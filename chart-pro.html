@@ -1304,6 +1304,48 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .pane-actions { margin-left: auto; display: flex; gap: 3px; }
 .pane-act { font-family: var(--font-mono); font-size: 9.5px; padding: 1px 5px; border-radius: 2px; color: var(--fg-3); border: 1px solid var(--border); }
 .pane-act:hover { color: var(--fg-1); border-color: var(--border-bright); }
+.compare-strip {
+  min-height: 31px; display:flex; align-items:center; gap:5px; padding:3px 7px;
+  overflow-x:auto; overflow-y:hidden; flex-shrink:0; background:var(--bg-1);
+  border-bottom:1px solid var(--border); scrollbar-width:thin;
+}
+.compare-strip:empty { display:none; }
+.chart-pane:not(.active) .compare-strip { display:none; }
+.compare-strip.drag-over, .chart-pane.compare-drop {
+  box-shadow:inset 0 0 0 2px var(--cyan); background:rgba(34,211,238,.06);
+}
+.compare-hint { color:var(--fg-4); font:9px var(--font-mono); white-space:nowrap; padding:0 4px; }
+.compare-chip {
+  display:inline-flex; align-items:center; gap:4px; min-width:0; padding:3px 5px;
+  border:1px solid var(--border); border-radius:4px; background:var(--bg-2);
+  color:var(--fg-2); font:9px var(--font-mono); white-space:nowrap;
+}
+.compare-chip[draggable="true"] { cursor:grab; }
+.compare-chip.dragging { opacity:.35; }
+.compare-chip.drop-before { box-shadow:-2px 0 0 var(--cyan); }
+.compare-chip.drop-after { box-shadow:2px 0 0 var(--cyan); }
+.compare-chip-color { width:7px; height:7px; border-radius:50%; flex:none; }
+.compare-chip-id { max-width:190px; overflow:hidden; text-overflow:ellipsis; }
+.compare-chip-change { color:var(--fg-3); }
+.compare-chip-change.up { color:var(--green); }
+.compare-chip-change.dn { color:var(--red); }
+.compare-chip button, .hs-compare, .us-compare, .wl-compare {
+  border:0; background:transparent; color:var(--fg-3); font:11px var(--font-mono);
+  line-height:1; padding:2px; border-radius:3px; min-width:24px; min-height:24px;
+}
+.compare-chip button:hover, .compare-chip button:focus-visible, .hs-compare:hover, .hs-compare:focus-visible, .us-compare:hover, .us-compare:focus-visible, .wl-compare:hover, .wl-compare:focus-visible { color:var(--cyan); background:var(--bg-3); }
+.compare-chip .compare-remove:hover, .compare-chip .compare-remove:focus-visible { color:var(--red); }
+.hs-compare { opacity:.55; }
+.hs-row:hover .hs-compare, .hs-row.sel .hs-compare { opacity:1; }
+.wl-compare { opacity:0; margin-left:2px; }
+.wl-row:hover .wl-compare, .wl-row:focus-within .wl-compare { opacity:1; }
+.drag-to-chart-open { pointer-events:none !important; opacity:.14 !important; }
+.chart-pane[data-drop-ready="true"]::after {
+  content:"DROP TO COMPARE"; pointer-events:none; position:absolute; inset:34px 8px 8px;
+  z-index:20; display:flex; align-items:center; justify-content:center;
+  border:2px dashed var(--cyan); border-radius:8px; color:var(--cyan);
+  background:rgba(3,8,17,.72); font:700 12px var(--font-mono); letter-spacing:1px;
+}
 
 .tv-container { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .tv-container iframe { width: 100%; height: 100%; border: none; }
@@ -1728,6 +1770,11 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   .pcov-provider summary { grid-template-columns: minmax(140px, 1fr) 90px; }
   .pcov-provider summary .pcov-stat:nth-of-type(2) { display: none; }
   .pcov-grid { grid-template-columns: 1fr 1fr; }
+  .compare-strip { min-height:36px; padding:4px 6px; }
+  .compare-chip { padding:4px 6px; }
+  .compare-chip button { min-width:30px; min-height:30px; }
+  .compare-chip-id { max-width:120px; }
+  .wl-compare, .hs-compare, .us-compare { opacity:1; min-width:26px; min-height:26px; }
   .pcov-meta { flex-wrap: wrap; }
 }
 @media (max-width: 980px) {
@@ -2703,7 +2750,7 @@ class SymDir {
     const dsAction = r.browse_provider ? 'provider ›' : (r.raw ? 'stored file ›' : (r.browse ? 'browse ›' : 'data ›'));
     const providerLabel = r.provider_name || this.provLabel(r.provider);
     const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(providerLabel)} · ${dsAction}</span>` : `<span class="hs-prov ${provCls}">${ac ? UI.esc(ac) + ' · ' : ''}${r.ex && r.kind === 'instrument' ? UI.esc(r.ex) : UI.esc(providerLabel)}${r.pinned ? ' · ★' : ''}</span>${badges ? `<span class="hs-badges">${badges}</span>` : ''}`;
-    const add = isDs ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`;
+    const add = isDs ? '<span></span>' : `<span><button class="hs-compare" data-compare="${UI.esc(r.id)}" aria-label="Compare ${UI.esc(r.name || r.id)} on chart" title="Add to chart comparison">⇄</button><button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button></span>`;
     // ops 5144: what the warehouse holds for a TradingView symbol — every source, with its cadence and span
     let srcLine = '';
     if (Array.isArray(r.sources)) {
@@ -2711,12 +2758,22 @@ class SymDir {
         ? `<div class="hs-sources">${r.sources.map(x => `<span class="hs-src" title="${UI.esc(x.note || '')}">${UI.esc(x.provider_name || x.provider)} <b>${UI.esc(x.id.split(':').slice(1).join(':'))}</b> · ${UI.esc(x.freq || '?')} · ${UI.esc((x.first || '?').slice(0, 4))}→${UI.esc((x.last || '?').slice(0, 4))}${x.banked ? '' : ' · not banked'}</span>`).join('')}</div>`
         : `<div class="hs-sources"><span class="hs-src none">TradingView-only — no warehouse source yet</span></div>`;
     }
-    return `<div class="hs-row ${cls} ${i === sel ? 'sel' : ''}" data-ticker="${UI.esc(r.id)}" data-i="${i}" data-kind="${cls}" title="${UI.esc(r.id)}">
+    return `<div class="hs-row ${cls} ${i === sel ? 'sel' : ''}" data-ticker="${UI.esc(r.id)}" data-i="${i}" data-kind="${cls}" draggable="${isDs ? 'false' : 'true'}" title="${UI.esc(r.id)} · drag to chart to compare">
       <span class="hs-tk ${cls}">${UI.esc(sym)}</span>
       <span class="hs-name">${UI.esc(r.name || '')}${meta ? `<small>${UI.esc(meta)}</small>` : ''}${srcLine}</span>
       ${tag}${add}</div>`;
   }
   static wireRows(container, onPick) {
+    container.querySelectorAll('.hs-row[data-ticker]:not([data-kind="dataset"])').forEach(row => {
+      row.draggable = true;
+      if (!row.title.includes('drag to chart')) row.title = `${row.title || row.dataset.ticker} · drag to chart to compare`;
+      if (!row.querySelector('.hs-compare')) {
+        row.insertAdjacentHTML('beforeend', `<button class="hs-compare" data-compare="${UI.esc(row.dataset.ticker)}" aria-label="Compare ${UI.esc(row.dataset.ticker)} on chart" title="Add to chart comparison">⇄</button>`);
+      }
+    });
+    container.querySelectorAll('.hs-compare').forEach(btn => btn.addEventListener('click', (ev) => {
+      ev.stopPropagation(); CompareController.add(btn.dataset.compare);
+    }));
     container.querySelectorAll('.hs-add').forEach(btn => btn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const id = btn.dataset.add; const row = btn.closest('.hs-row');
@@ -3290,6 +3347,7 @@ const State = {
   activeInfoTab: 'overview',
   activeLayout: '1x1',
   activeChartPane: 0,
+  paneTickers: {},
   
   customWatchlists: {},  // {id: {name, color, tickers: []}}
   symbolFlags: {},       // {ticker: 'red'|'green'|...} — global, TradingView-style
@@ -3305,7 +3363,7 @@ const State = {
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
   tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
   chartType: 'candles',   // ops 5142: candles | bars | line | area | ha (Heikin-Ashi) for OHLC charts
-  compareSymbol: null,   // overlay symbol for relative comparison
+  compareSymbols: [],    // ordered chart comparison symbols / warehouse series
   ratioSymbol: null,     // denominator for a ratio/spread chart (TICKER ÷ ratioSymbol)
   seasonality: false,    // show avg monthly seasonality view
   baskets: {},           // {name: [{ticker, weight}]} — per-user weighted baskets
@@ -3424,24 +3482,34 @@ class DataService {
 // ─── CHART SYNC (link timescales of native charts across panes) ────
 class ChartSync {
   static charts = new Map();  // paneIdx -> {chart, unsub}
+  static listeners = new Map();
   static enabled = false;
   static register(paneIdx, chart) {
     this.charts.set(paneIdx, chart);
     if (this.enabled) this.linkAll();
   }
-  static unregister(paneIdx) { this.charts.delete(paneIdx); }
+  static unregister(paneIdx) { this.charts.delete(paneIdx); this.clearLinks(); if (this.enabled) this.linkAll(); }
+  static clearLinks() {
+    this.listeners.forEach((handler, chart) => {
+      try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(handler); } catch (e) {}
+    });
+    this.listeners.clear();
+  }
   static linkAll() {
+    this.clearLinks();
     const list = [...this.charts.values()];
     if (list.length < 2) return;
     let syncing = false;
     list.forEach((src) => {
       try {
-        src.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        const handler = (range) => {
           if (!range || syncing || !this.enabled) return;
           syncing = true;
           list.forEach(o => { if (o !== src) { try { o.timeScale().setVisibleLogicalRange(range); } catch (e) {} } });
           syncing = false;
-        });
+        };
+        src.timeScale().subscribeVisibleLogicalRangeChange(handler);
+        this.listeners.set(src, handler);
       } catch (e) {}
     });
   }
@@ -3451,6 +3519,7 @@ class ChartSync {
     if (b) b.classList.toggle('active', this.enabled);
     if (window.__jhToast) window.__jhToast(this.enabled ? '🔗 Charts synced (native panes pan/zoom together)' : 'Chart sync off');
     if (this.enabled) this.linkAll();
+    else this.clearLinks();
   }
 }
 
@@ -3812,7 +3881,7 @@ class WatchlistManager {
       const ar = localStorage.getItem('jh_alert_rules');
       if (ar) State.alertRules = JSON.parse(ar);
       const ws = localStorage.getItem('jh_workspace');
-      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.changeMode)State.changeMode=w.changeMode; if(w.changeStyle)State.changeStyle=w.changeStyle; if(w.statBlock!=null)State.statBlock=w.statBlock; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; }
+      if (ws) { const w = JSON.parse(ws); if(w.indicators)State.indicators=w.indicators; if(w.tf)State.tf=w.tf; if(w.changeMode)State.changeMode=w.changeMode; if(w.changeStyle)State.changeStyle=w.changeStyle; if(w.statBlock!=null)State.statBlock=w.statBlock; if(w.priceAlerts)State.priceAlerts=w.priceAlerts; if(w.drawings)State.drawings=w.drawings; if(Array.isArray(w.compareSymbols))State.compareSymbols=w.compareSymbols; else if(w.compareSymbol)State.compareSymbols=[w.compareSymbol]; }
       const lastWl = localStorage.getItem('jh_active_watchlist');
       if (lastWl && (lastWl === 'favorites' || WATCHLIST_CONFIGS.some(c=>c.id===lastWl) || lastWl.startsWith('custom_'))) {
         State.activeWatchlistId = lastWl;
@@ -3851,6 +3920,9 @@ class WatchlistManager {
         if (data.changeMode) State.changeMode = data.changeMode;
         if (data.changeStyle) State.changeStyle = data.changeStyle;
         if (data.statBlock != null) State.statBlock = data.statBlock;
+        const deepCompare = (() => { try { return new URLSearchParams(location.search).has('cmp'); } catch (e) { return false; } })();
+        if (!deepCompare && Array.isArray(data.compareSymbols)) State.compareSymbols = data.compareSymbols;
+        else if (!deepCompare && data.compareSymbol) State.compareSymbols = [data.compareSymbol];
         if (data.seasonality != null) State.seasonality = data.seasonality;
         if (data.baskets) State.baskets = data.baskets;
         if (data.priceAlerts) State.priceAlerts = data.priceAlerts;
@@ -3859,6 +3931,13 @@ class WatchlistManager {
         if (data.chartEngine) State.chartEngine = data.chartEngine;
         if (data.activeWatchlistId) State.activeWatchlistId = data.activeWatchlistId;
         this.saveLocal();
+        if (typeof CompareController !== 'undefined') {
+          CompareController.generation++;
+          CompareController.renderAll();
+          document.getElementById('compare-btn')?.classList.toggle('active', CompareController.symbols().length > 0);
+          if (State.compareSymbols.length && State.chartEngine === 'tv') State.chartEngine = 'native';
+          if (State.activeTicker) ChartController.loadTicker(State.activeTicker);
+        }
         return true;
       }
     } catch (e) { console.warn('Cloud load failed', e); }
@@ -3876,7 +3955,7 @@ class WatchlistManager {
       localStorage.setItem('jh_known_symbols', JSON.stringify(State.knownSymbols || {}));
       try { const sm = State.symbolMeta || {}; const ks = Object.keys(sm); if (ks.length > 3000) ks.slice(0, ks.length - 3000).forEach(k => delete sm[k]); localStorage.setItem('jh_symbol_meta', JSON.stringify(sm)); } catch (e) {}
       localStorage.setItem('jh_alert_rules', JSON.stringify(State.alertRules || []));
-      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, changeMode:State.changeMode, changeStyle:State.changeStyle, statBlock:State.statBlock, priceAlerts:State.priceAlerts, drawings:State.drawings}));
+      localStorage.setItem('jh_workspace', JSON.stringify({indicators:State.indicators, tf:State.tf, changeMode:State.changeMode, changeStyle:State.changeStyle, statBlock:State.statBlock, priceAlerts:State.priceAlerts, drawings:State.drawings, compareSymbols:State.compareSymbols}));
       localStorage.setItem('jh_active_watchlist', State.activeWatchlistId);
     } catch (e) {}
   }
@@ -3906,6 +3985,7 @@ class WatchlistManager {
           changeMode: State.changeMode,
           changeStyle: State.changeStyle,
           statBlock: State.statBlock,
+          compareSymbols: State.compareSymbols,
           seasonality: State.seasonality,
           baskets: State.baskets,
           priceAlerts: State.priceAlerts,
@@ -4347,7 +4427,7 @@ class UI {
       const noteDot = hasNote ? '<span class="wl-note-dot" title="Has notes">📝</span>' : '';
       const removeBtn = isCustom ? `<span class="wl-remove" data-remove-ticker="${this.esc(m.ticker)}" title="Remove from list">−</span>` : '';
       return `
-        <div class="wl-row ${selected} ${isCustom ? 'custom-row' : ''}" data-ticker="${this.esc(m.ticker)}">
+        <div class="wl-row ${selected} ${isCustom ? 'custom-row' : ''}" data-ticker="${this.esc(m.ticker)}" draggable="true" title="Drag ${this.esc(m.ticker)} to the chart to compare">
           <span class="wl-flag flag-${m.flag}" data-flag-ticker="${this.esc(m.ticker)}" title="Set color flag"></span>
           <span class="wl-star ${isFav ? 'starred' : ''}" data-fav-ticker="${this.esc(m.ticker)}" title="Favorite">${isFav ? '★' : '☆'}</span>
           <span class="wl-sym-cell">
@@ -4355,6 +4435,7 @@ class UI {
               <span class="wl-symbol ${m.isSeries ? 'series' : ''}" title="${this.esc(m.ticker)}${m.isSeries && m.lastDate ? ' · last obs ' + this.esc(m.lastDate) : ''}">${this.esc(symDisp)}</span>
               <span class="wl-sig-dots">${sigDots}</span>
               ${noteDot}
+              <button class="wl-compare" type="button" data-compare="${this.esc(m.ticker)}" aria-label="Compare ${this.esc(m.ticker)} on chart" title="Add to chart comparison">⇄</button>
             </span>
             <span class="wl-sub" title="${this.esc(m.isSeries ? m.seriesName : (m.sub || m.name || ''))}">${this.esc(m.isSeries ? (m.seriesName || SymDir.provLabel(jhSeriesProvider(m.ticker))) : (m.sub || m.name || ''))}</span>
           </span>
@@ -4364,6 +4445,9 @@ class UI {
         </div>`;
     }).join('');
     document.getElementById('watchlist-body').innerHTML = html;
+    document.querySelectorAll('#watchlist-body .wl-compare').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation(); CompareController.add(btn.dataset.compare);
+    }));
     
     // Wire row clicks (load chart)
     document.querySelectorAll('.wl-row').forEach(el => {
@@ -5013,6 +5097,267 @@ class UI {
   }
 }
 
+// ─── CHART COMPARISON WORKSPACE ────────────────────────────────────
+class CompareController {
+  static COLORS = ['#a78bfa', '#f59e0b', '#10b981', '#f472b6', '#60a5fa', '#fb7185', '#84cc16', '#e879f9', '#14b8a6', '#f97316'];
+  static generation = 0;
+  static applyTokens = {};
+  static statuses = {};
+
+  static symbols() {
+    const seen = new Set();
+    State.compareSymbols = (Array.isArray(State.compareSymbols) ? State.compareSymbols : [])
+      .map(x => jhCanonId(String(x || '').trim())).filter(x => x && !seen.has(x) && seen.add(x));
+    return State.compareSymbols;
+  }
+  static add(symbol, at = null) {
+    symbol = jhCanonId(String(symbol || '').trim());
+    const baseTicker = jhCanonId((State.paneTickers || {})[State.activeChartPane] || State.activeTicker);
+    if (!symbol || symbol === baseTicker) { if (symbol) jhToast(`${symbol} is already the base chart`); return; }
+    const list = this.symbols();
+    const old = list.indexOf(symbol);
+    if (old >= 0) list.splice(old, 1);
+    if (Number.isInteger(at)) list.splice(Math.max(0, Math.min(at, list.length)), 0, symbol);
+    else list.push(symbol);
+    this.statuses[symbol] = { state: 'loading' };
+    this.changed(`${symbol} added to comparison`);
+  }
+  static remove(symbol) {
+    const before = [...this.symbols()];
+    const removedAt = before.indexOf(symbol);
+    State.compareSymbols = before.filter(x => x !== symbol);
+    delete this.statuses[symbol];
+    this.changed(`${symbol} removed`);
+    setTimeout(() => {
+      const remaining = this.symbols();
+      const next = remaining[Math.min(Math.max(removedAt, 0), remaining.length - 1)];
+      (next ? document.querySelector(`.chart-pane.active .compare-chip[data-symbol="${CSS.escape(next)}"]`) : document.getElementById('compare-btn'))?.focus({ preventScroll:true });
+    }, 0);
+  }
+  static clear() {
+    State.compareSymbols = []; this.statuses = {}; this.changed('Comparisons cleared');
+  }
+  static move(symbol, index) {
+    const list = this.symbols();
+    const from = list.indexOf(symbol);
+    if (from < 0) return;
+    list.splice(from, 1);
+    list.splice(Math.max(0, Math.min(index, list.length)), 0, symbol);
+    this.changed(`${symbol} reordered`);
+    setTimeout(() => document.querySelector(`.compare-chip[data-symbol="${CSS.escape(symbol)}"]`)?.focus(), 0);
+  }
+  static changed(message) {
+    this.generation++;
+    this.renderAll();
+    const btn = document.getElementById('compare-btn');
+    if (btn) btn.classList.toggle('active', this.symbols().length > 0);
+    if (message) jhToast(message);
+    const baseTicker = (State.paneTickers || {})[State.activeChartPane] || State.activeTicker;
+    if (baseTicker) {
+      if (State.chartEngine === 'tv') {
+        State.chartEngine = 'native';
+        document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+        jhToast('Chart comparison uses the JustHodl native data engine');
+      }
+      const special = State.seasonality ? 'seasonality' : (State.ratioSymbol ? 'ratio view' : (baseTicker.startsWith('BASKET:') ? 'basket view' : ''));
+      if (special) {
+        this.symbols().forEach(x => { this.statuses[x] = { state:'error', message:`unavailable in ${special}` }; });
+        this.renderAll();
+      }
+      WatchlistManager.syncToCloud();
+      ChartController.loadTicker(baseTicker);
+    } else WatchlistManager.syncToCloud();
+    if (window.jhSyncUrl) window.jhSyncUrl();
+  }
+  static color(symbol) {
+    const i = Math.max(0, this.symbols().indexOf(symbol));
+    return this.COLORS[i % this.COLORS.length];
+  }
+  static renderAll() {
+    const focus = document.activeElement?.closest?.('.compare-chip');
+    const focusSymbol = focus?.dataset.symbol;
+    const focusClass = document.activeElement?.className;
+    document.querySelectorAll('.compare-strip').forEach(strip => this.renderStrip(+strip.id.split('-').pop()));
+    if (focusSymbol) {
+      const chip = document.querySelector(`.chart-pane.active .compare-chip[data-symbol="${CSS.escape(focusSymbol)}"]`);
+      const target = focusClass && typeof focusClass === 'string' ? chip?.querySelector('.' + focusClass.split(/\s+/)[0]) : chip;
+      (target || chip)?.focus({ preventScroll:true });
+    }
+  }
+  static renderStrip(paneIdx) {
+    const strip = document.getElementById(`compare-strip-${paneIdx}`);
+    if (!strip) return;
+    if (paneIdx !== State.activeChartPane) { strip.innerHTML = ''; return; }
+    const list = this.symbols();
+    if (!list.length) {
+      strip.innerHTML = `<span class="compare-hint">Drag any search result, watchlist symbol, or macro series here to compare</span>`;
+      return;
+    }
+    strip.innerHTML = list.map((symbol, i) => {
+      const st = this.statuses[symbol] || {};
+      const value = Number.isFinite(st.value) ? `${st.value >= 0 ? '+' : ''}${st.value.toFixed(2)}%` : (st.state === 'error' ? (st.message || 'no overlap') : 'loading');
+      const cls = Number.isFinite(st.value) ? (st.value >= 0 ? 'up' : 'dn') : '';
+      return `<div class="compare-chip" draggable="true" tabindex="0" role="listitem"
+          data-symbol="${UI.esc(symbol)}" data-index="${i}"
+          aria-label="${UI.esc(symbol)} comparison, ${UI.esc(value)}. Drag or use Alt plus Left or Right to reorder.">
+        <span class="compare-chip-color" style="background:${this.color(symbol)}"></span>
+        <span class="compare-chip-id" title="${UI.esc(symbol)}">${UI.esc(symbol)}</span>
+        <span class="compare-chip-change ${cls}">${UI.esc(value)}</span>
+        <button type="button" class="compare-left" aria-label="Move ${UI.esc(symbol)} left">‹</button>
+        <button type="button" class="compare-right" aria-label="Move ${UI.esc(symbol)} right">›</button>
+        <button type="button" class="compare-remove" aria-label="Remove ${UI.esc(symbol)} comparison">×</button>
+      </div>`;
+    }).join('') + `<button type="button" class="pane-act compare-clear" aria-label="Clear all chart comparisons">Clear</button>`;
+    strip.querySelectorAll('.compare-chip').forEach(chip => {
+      const symbol = chip.dataset.symbol;
+      chip.querySelector('.compare-remove').addEventListener('click', () => this.remove(symbol));
+      chip.querySelector('.compare-left').addEventListener('click', () => this.move(symbol, +chip.dataset.index - 1));
+      chip.querySelector('.compare-right').addEventListener('click', () => this.move(symbol, +chip.dataset.index + 1));
+      chip.addEventListener('keydown', e => {
+        if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); this.remove(symbol); }
+        else if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); this.move(symbol, +chip.dataset.index - 1); }
+        else if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); this.move(symbol, +chip.dataset.index + 1); }
+      });
+      chip.addEventListener('dragstart', e => {
+        e.stopPropagation(); chip.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('application/x-justhodl-compare-index', chip.dataset.index);
+        e.dataTransfer.setData('application/x-justhodl-symbol', symbol);
+        e.dataTransfer.setData('text/plain', symbol);
+      });
+      chip.addEventListener('dragend', () => this.clearDragUi());
+    });
+    strip.querySelector('.compare-clear').addEventListener('click', () => this.clear());
+  }
+  static bindPanes() {
+    document.querySelectorAll('.chart-pane').forEach(pane => {
+      if (pane.dataset.compareBound) return;
+      pane.dataset.compareBound = 'true';
+      pane.addEventListener('dragenter', e => {
+        if (this.dragHasSymbol(e.dataTransfer)) { e.preventDefault(); pane.dataset.dropReady = 'true'; pane.classList.add('compare-drop'); }
+      });
+      pane.addEventListener('dragover', e => {
+        if (!this.dragHasSymbol(e.dataTransfer)) return;
+        e.preventDefault(); e.dataTransfer.dropEffect = e.dataTransfer.types.includes('application/x-justhodl-compare-index') ? 'move' : 'copy';
+        pane.dataset.dropReady = 'true'; pane.classList.add('compare-drop');
+        const chip = e.target.closest('.compare-chip');
+        document.querySelectorAll('.compare-chip').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+        if (chip) chip.classList.add(e.clientX > chip.getBoundingClientRect().left + chip.offsetWidth / 2 ? 'drop-after' : 'drop-before');
+      });
+      pane.addEventListener('dragleave', e => { if (!pane.contains(e.relatedTarget)) this.clearDragUi(); });
+      pane.addEventListener('drop', e => {
+        if (!this.dragHasSymbol(e.dataTransfer)) return;
+        e.preventDefault();
+        const symbol = e.dataTransfer.getData('application/x-justhodl-symbol');
+        const chip = e.target.closest('.compare-chip');
+        let at = chip ? +chip.dataset.index + (e.clientX > chip.getBoundingClientRect().left + chip.offsetWidth / 2 ? 1 : 0) : null;
+        const from = e.dataTransfer.getData('application/x-justhodl-compare-index');
+        this.clearDragUi();
+        State.activeChartPane = +pane.dataset.pane;
+        State.activeTicker = (State.paneTickers || {})[State.activeChartPane] || State.activeTicker;
+        document.querySelectorAll('.chart-pane').forEach(x => x.classList.toggle('active', x === pane));
+        if (from !== '' && this.symbols().includes(symbol)) {
+          if (at == null) at = this.symbols().length;
+          else if (+from < at) at--;
+          this.move(symbol, at);
+        } else this.add(symbol, at);
+      });
+    });
+    if (!document.documentElement.dataset.compareSourcesBound) {
+      document.documentElement.dataset.compareSourcesBound = 'true';
+      document.addEventListener('dragstart', e => {
+        if (e.target.closest('.macro-drag-handle,.compare-chip')) return;
+        const source = e.target.closest('.hs-row[data-ticker],.us-row[data-ticker],.wl-row[data-ticker],.macro-item[data-symbol]');
+        if (!source) return;
+        const symbol = source.dataset.symbol || source.dataset.ticker;
+        if (!symbol || source.dataset.kind === 'dataset') { e.preventDefault(); return; }
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('application/x-justhodl-symbol', symbol);
+        e.dataTransfer.setData('text/plain', symbol);
+        const overlay = source.closest('.search-modal,.macro-modal,#search-modal,#macro-modal');
+        if (overlay) requestAnimationFrame(() => overlay.classList.add('drag-to-chart-open'));
+      }, true);
+      document.addEventListener('dragend', () => this.clearDragUi(), true);
+    }
+  }
+  static dragHasSymbol(dt) {
+    return !!dt && dt.types.includes('application/x-justhodl-symbol');
+  }
+  static clearDragUi() {
+    document.querySelectorAll('.chart-pane').forEach(x => { delete x.dataset.dropReady; x.classList.remove('compare-drop'); });
+    document.querySelectorAll('.compare-strip,.compare-chip').forEach(x => x.classList.remove('drag-over', 'dragging', 'drop-before', 'drop-after'));
+    document.querySelectorAll('.drag-to-chart-open').forEach(x => x.classList.remove('drag-to-chart-open'));
+  }
+  static async apply(chart, basePoints, baseTicker, paneIdx) {
+    const symbols = this.symbols().filter(x => x !== baseTicker);
+    this.renderAll();
+    if (!symbols.length || !chart || !basePoints || basePoints.length < 2) return;
+    const token = this.generation;
+    const applyToken = this.applyTokens[paneIdx] = (this.applyTokens[paneIdx] || 0) + 1;
+    this.applyCharts = this.applyCharts || {};
+    this.applyCharts[paneIdx] = chart;
+    const base = basePoints.map(p => ({ time: NativeChart.dateKey(p.time), ms:NativeChart.timeMs(p.time), value: +(p.value ?? p.close) }))
+      .filter(p => p.time !== '' && Number.isFinite(p.ms) && Number.isFinite(p.value)).sort((a, b) => a.ms - b.ms);
+    const loaded = await Promise.all(symbols.map(async symbol => {
+      try { return { symbol, points: await NativeChart.expressionPoints(symbol) }; }
+      catch (error) { return { symbol, points: [], error }; }
+    }));
+    if (token !== this.generation || applyToken !== this.applyTokens[paneIdx] || this.applyCharts[paneIdx] !== chart || (State.paneTickers || {})[paneIdx] !== baseTicker || !document.getElementById(`nch-chart-${paneIdx}`)?.isConnected) return;
+    loaded.forEach(x => {
+      x.points = x.points.map(p => ({ ...p, ms:NativeChart.timeMs(p.time) }))
+        .filter(p => Number.isFinite(p.ms) && Number.isFinite(p.value)).sort((a,b) => a.ms-b.ms);
+    });
+    const usable = loaded.filter(x => {
+      const p = x.points;
+      return p.length > 1 && p[0].ms <= base[base.length - 1].ms && p[p.length - 1].ms >= base[0].ms;
+    });
+    loaded.filter(x => !usable.includes(x)).forEach(x => { this.statuses[x.symbol] = { state: 'error' }; });
+    if (!usable.length) { this.renderAll(); return; }
+    const start = Math.max(base[0].ms, ...usable.map(x => x.points[0].ms));
+    if (!Number.isFinite(start) || start >= base[base.length - 1].ms) {
+      usable.forEach(x => { this.statuses[x.symbol] = { state: 'error' }; }); this.renderAll(); return;
+    }
+    const normalizeBase = points => {
+      const windowed = points.filter(p => p.ms >= start);
+      const first = windowed[0];
+      if (!first || first.value === 0) return [];
+      return windowed.map(p => ({ time:p.time, value:(p.value-first.value)/Math.abs(first.value)*100 }))
+        .filter(p => Number.isFinite(p.value));
+    };
+    const alignAndNormalize = points => {
+      const end = Math.min(base[base.length - 1].ms, points[points.length - 1].ms);
+      const timeline = base.filter(p => p.ms >= start && p.ms <= end);
+      let i = 0, last = null; const aligned = [];
+      for (const b of timeline) {
+        while (i < points.length && points[i].ms <= b.ms) { last = points[i]; i++; }
+        if (last && last.ms >= points[0].ms) aligned.push({ time:b.time, value:last.value });
+      }
+      const first = aligned[0];
+      if (!first || first.value === 0) return [];
+      return aligned.map(p => ({ time:p.time, value:(p.value-first.value)/Math.abs(first.value)*100 }))
+        .filter(p => Number.isFinite(p.value));
+    };
+    const pctFmt = { type: 'custom', formatter: v => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` };
+    chart.priceScale('left').applyOptions({ visible: true, borderColor: TVShell.palette().border });
+    const baseData = normalizeBase(base);
+    if (baseData.length < 2) {
+      usable.forEach(x => { this.statuses[x.symbol] = { state:'error', message:'base has zero or insufficient baseline' }; });
+      this.renderAll();
+      return;
+    }
+    const baseLine = chart.addLineSeries({ color:'#22d3ee', lineWidth:1, priceScaleId:'left', priceFormat:pctFmt, lastValueVisible:false, priceLineVisible:false, title:`${baseTicker} %` });
+    baseLine.setData(baseData);
+    usable.forEach(x => {
+      const data = alignAndNormalize(x.points);
+      if (data.length < 2) { this.statuses[x.symbol] = { state:'error', message:x.points[0]?.value === 0 ? 'zero baseline' : 'no overlap' }; return; }
+      const line = chart.addLineSeries({ color:this.color(x.symbol), lineWidth:2, priceScaleId:'left', priceFormat:pctFmt, lastValueVisible:true, priceLineVisible:false, title:x.symbol });
+      line.setData(data);
+      this.statuses[x.symbol] = { state:'ready', value:data[data.length - 1].value };
+    });
+    this.renderAll();
+  }
+}
+
 // ─── CHART CONTROLLER ──────────────────────────────────────────────
 class ChartController {
   static layouts = {
@@ -5026,18 +5371,20 @@ class ChartController {
     
     let html = '';
     for (let i = 0; i < numPanes; i++) {
+      const paneTicker = (State.paneTickers || {})[i] || State.activeTicker;
       html += `
         <div class="chart-pane ${i === State.activeChartPane ? 'active' : ''}" data-pane="${i}">
           <div class="pane-header">
-            <span class="pane-symbol" id="pane-symbol-${i}">${State.activeTicker}</span>
+            <span class="pane-symbol" id="pane-symbol-${i}">${paneTicker}</span>
             <span class="pane-symbol-change" id="pane-change-${i}">—</span>
             <div class="pane-actions">
               <button class="pane-act" data-pane-action="fullscreen">⛶</button>
             </div>
           </div>
+          <div class="compare-strip" id="compare-strip-${i}" role="list" aria-live="polite" aria-label="Chart comparisons"></div>
           <div class="tv-container" id="tv-container-${i}">
             <div class="tv-placeholder">
-              <span class="ticker">${State.activeTicker}</span>
+              <span class="ticker">${paneTicker}</span>
               <span>Loading TradingView chart...</span>
             </div>
           </div>
@@ -5048,16 +5395,35 @@ class ChartController {
     
     document.querySelectorAll('.chart-pane').forEach(el => {
       el.addEventListener('click', () => {
+        const previousPane = State.activeChartPane;
         State.activeChartPane = parseInt(el.dataset.pane);
+        State.activeTicker = (State.paneTickers || {})[State.activeChartPane] || State.activeTicker;
         document.querySelectorAll('.chart-pane').forEach(p => p.classList.remove('active'));
         el.classList.add('active');
+        CompareController.renderAll();
+        if (previousPane !== State.activeChartPane && (State.chartEngine === 'native' || CompareController.symbols().length)) ChartController.loadTicker(State.activeTicker);
       });
     });
+    CompareController.bindPanes();
+    CompareController.renderAll();
     
-    // Initialize TradingView widgets
+    // Comparison/native state must survive a layout rebuild. Only the active
+    // pane is hydrated immediately; inactive panes hydrate when selected.
     State.tv_widgets = {};
-    for (let i = 0; i < numPanes; i++) {
-      this.createTVWidget(i, State.activeTicker);
+    const nativeLayout = State.chartEngine === 'native' || CompareController.symbols().length > 0;
+    if (nativeLayout) {
+      if (CompareController.symbols().length && State.chartEngine === 'tv') {
+        State.chartEngine = 'native';
+        document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+      }
+      const baseTicker = (State.paneTickers || {})[State.activeChartPane] || State.activeTicker;
+      State.activeTicker = baseTicker;
+      State.paneTickers[State.activeChartPane] = baseTicker;
+      NativeChart.render(baseTicker);
+    } else {
+      for (let i = 0; i < numPanes; i++) {
+        this.createTVWidget(i, (State.paneTickers || {})[i] || State.activeTicker);
+      }
     }
   }
   
@@ -5156,6 +5522,16 @@ class ChartController {
     ticker = expression ? expression.canonical : jhCanonId(ticker);
     
     State.activeTicker = ticker;
+    State.paneTickers = State.paneTickers || {};
+    State.paneTickers[State.activeChartPane] = ticker;
+    if (CompareController.symbols().includes(ticker)) {
+      State.compareSymbols = CompareController.symbols().filter(x => x !== ticker);
+      delete CompareController.statuses[ticker];
+      CompareController.generation++;
+      CompareController.renderAll();
+      WatchlistManager.syncToCloud();
+      if (window.jhSyncUrl) window.jhSyncUrl();
+    }
     ChartTabs.setActiveTabSymbol(ticker);
     setTimeout(() => { try { TVShell.renderSymCard(); } catch (e) {} }, 900);
     
@@ -5185,6 +5561,13 @@ class ChartController {
     if (State.ratioSymbol || State.seasonality || changeActive) { NativeChart.render(ticker); return; }
     // Forced native
     if (engine === 'native') { NativeChart.render(ticker); return; }
+    // Comparisons use the native engine so warehouse and market series share one aligned scale.
+    if (CompareController.symbols().length && engine === 'tv') {
+      State.chartEngine = 'native';
+      document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+      NativeChart.render(ticker);
+      return;
+    }
     // Forced TradingView
     if (engine === 'tv') { return this.loadTV(ticker, knownFull); }
     
@@ -5526,9 +5909,9 @@ class MacroData {
     const body = document.getElementById('macro-body');
     const html = this.state.categories.map(cat => {
       const items = cat.items.map(it => {
-        return `<div class="macro-item loading" tabindex="0" role="button"
+        return `<div class="macro-item loading" tabindex="0" role="button" draggable="true"
             data-symbol="${UI.esc(it.symbol)}" data-series-id="${UI.esc(it.uid)}" data-category-id="${UI.esc(cat.id)}"
-            aria-label="Chart ${UI.esc(it.title)}">
+            aria-label="Chart ${UI.esc(it.title)}. Drag to the chart to compare.">
           <span class="mi-title">${UI.esc(it.title)}</span>
           <span class="mi-meta"><span class="mi-id">${UI.esc(it.symbol)}</span><span>${UI.esc(it.provider || '')}</span></span>
           <div class="macro-latest"><span class="macro-latest-value">…</span><span class="macro-latest-unit">${UI.esc(it.units || '')}</span><span class="macro-asof"></span></div>
@@ -5537,6 +5920,7 @@ class MacroData {
             ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
           </div>
           <span class="macro-item-tools">
+            <button class="macro-icon-btn" type="button" data-macro-action="compare-series" aria-label="Compare ${UI.esc(it.title)} on chart" title="Add to chart comparison">⇄</button>
             <button class="macro-drag-handle" type="button" draggable="true"
               data-drag-series="${UI.esc(it.uid)}" data-category-id="${UI.esc(cat.id)}"
               aria-label="Reorder ${UI.esc(it.title)}. Use arrow keys to move; Control plus Up or Down moves between categories."
@@ -5587,6 +5971,7 @@ class MacroData {
       const categoryId = btn.dataset.categoryId || (card && card.dataset.categoryId);
       const seriesId = card && card.dataset.seriesId;
       if (action === 'add-series') this.openSeriesEditor(null, categoryId, null, btn);
+      if (action === 'compare-series' && card) CompareController.add(card.dataset.symbol);
       if (action === 'edit-series') this.openSeriesEditor(seriesId, categoryId, null, btn);
       if (action === 'remove-series') this.removeSeries(seriesId, categoryId);
       if (action === 'edit-category') this.openCategoryEditor(categoryId, btn);
@@ -6562,14 +6947,18 @@ class NativeChart {
   static async renderChange(paneIdx, series, mode, label, ticker) {
     const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
     if (!chartEl || typeof LightweightCharts === 'undefined') return;
+    const epoch = this._renderEpoch && this._renderEpoch[paneIdx];
+    const current = () => epoch === this._renderEpoch?.[paneIdx] && chartEl === document.getElementById(`nch-chart-${paneIdx}`) && chartEl.isConnected;
     chartEl.innerHTML = '';
     let data;
     if (mode === 'vsspy') {
       const spy = await this.fetchSpySeries();
+      if (!current()) return;
       data = this.computeVsSpy(series, spy);
     } else {
       data = this.computeChange(series, mode);
     }
+    if (!current()) return;
     if (!data.length) {
       const le = document.getElementById(`nch-loading-${paneIdx}`);
       if (le) { le.style.display = 'flex'; le.textContent = `Not enough history for ${this.CHANGE_LABELS[mode]} on ${ticker}`; }
@@ -6598,6 +6987,7 @@ class NativeChart {
     series_ref.createPriceLine({ price: 0, color: 'rgba(168,179,199,0.4)', lineWidth: 1, lineStyle: 0 });
     chart.timeScale().fitContent();
     State.nativeChart = chart;
+    CompareController.apply(chart, series, ticker, paneIdx);
     const last = data[data.length - 1];
     const avg = data.reduce((a, b) => a + b.value, 0) / data.length;
     const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
@@ -6660,6 +7050,8 @@ class NativeChart {
   }
   static async render(ticker) {
     const paneIdx = State.activeChartPane;
+    this._renderEpoch = this._renderEpoch || {};
+    this._renderEpoch[paneIdx] = (this._renderEpoch[paneIdx] || 0) + 1;
     this.disposePane(paneIdx);
     if (ticker.startsWith('BASKET:')) { this._shell(paneIdx, ticker, ticker.slice(7)); return this.renderBasket(paneIdx, ticker.slice(7)); }
     if (State.ratioSymbol && State.ratioSymbol !== ticker) {
@@ -6925,18 +7317,49 @@ class NativeChart {
     if (symbol.includes(':')) {
       const d = await SymDir.series(symbol);
       if (d && Array.isArray(d.obs) && d.obs.length) {
-        return d.obs.map(x => ({ time: String(x[0]).slice(0, 10), value: +x[1] }))
+        return d.obs.map(x => ({ time: this.dateKey(x[0]), value: +x[1] }))
           .filter(x => x.time && Number.isFinite(x.value))
-          .sort((a, b) => a.time.localeCompare(b.time));
+          .sort((a, b) => this.timeMs(a.time) - this.timeMs(b.time));
+      }
+      if (d && Array.isArray(d.ohlc) && d.ohlc.length) {
+        return d.ohlc.map(x => ({ time: this.dateKey(x[0]), value: +x[4] }))
+          .filter(x => x.time && Number.isFinite(x.value))
+          .sort((a, b) => this.timeMs(a.time) - this.timeMs(b.time));
+      }
+      if (d && Array.isArray(d.bars) && d.bars.length) {
+        return d.bars.map(x => ({ time: this.dateKey(x.time), value: +(x.close ?? x.value) }))
+          .filter(x => x.time && Number.isFinite(x.value))
+          .sort((a, b) => this.timeMs(a.time) - this.timeMs(b.time));
       }
       throw new Error((d && d.error) || `No series data for ${symbol}`);
     }
     const tf = State.tf || { mult: 1, span: 'day', days: 250 };
     const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(symbol)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
     const d = await r.json();
-    return (d.bars || []).map(b => ({ time: String(b.time).slice(0, 10), value: +b.close }))
+    return (d.bars || []).map(b => ({ time: this.dateKey(b.time), value: +b.close }))
       .filter(x => x.time && Number.isFinite(x.value))
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => this.timeMs(a.time) - this.timeMs(b.time));
+  }
+
+  static dateKey(value) {
+    if (value == null || value === '') return '';
+    if (typeof value === 'number' || /^\d{10,13}$/.test(String(value))) {
+      const n = Number(value);
+      return String(Math.trunc(Math.abs(n))).length >= 13 ? Math.floor(n / 1000) : n;
+    }
+    if (String(value).includes('T')) {
+      const ms = Date.parse(String(value));
+      return Number.isFinite(ms) ? Math.floor(ms / 1000) : '';
+    }
+    return String(value).slice(0, 10);
+  }
+  static timeMs(value) {
+    if (typeof value === 'number' || /^\d{10,13}$/.test(String(value))) {
+      const n = Number(value);
+      return String(Math.trunc(Math.abs(n))).length >= 13 ? n : n * 1000;
+    }
+    const ms = Date.parse(String(value));
+    return Number.isFinite(ms) ? ms : NaN;
   }
 
   // Compute an arbitrary provider-qualified expression. Series are aligned on
@@ -6986,6 +7409,7 @@ class NativeChart {
       State.nativeChart = chart;
       (State._charts = State._charts || {})[paneIdx] = { chart, series, bars: out, ticker: expression.canonical };
       ChartSync.register(paneIdx, chart);
+      CompareController.apply(chart, out, expression.canonical, paneIdx);
       const meta = document.getElementById(`nch-meta-${paneIdx}`);
       if (meta) meta.textContent = `Computed · ${expression.operands.length} series · ${out.length.toLocaleString()} aligned observations · prior-value carry-forward`;
       if (le) le.style.display = 'none';
@@ -7001,6 +7425,8 @@ class NativeChart {
   static async renderRatio(paneIdx, baseTicker, denomTicker) {
     const host = document.getElementById(`nch-chart-${paneIdx}`);
     if (!host) return;
+    const epoch = this._renderEpoch && this._renderEpoch[paneIdx];
+    const current = () => epoch === this._renderEpoch?.[paneIdx] && host === document.getElementById(`nch-chart-${paneIdx}`) && host.isConnected;
     const tf = State.tf || { mult: 1, span: 'day', days: 250 };
     const fetchBars = async (t) => {
       const ty = State.symbolType[t] || this.guessType(t);
@@ -7010,6 +7436,7 @@ class NativeChart {
       const d = await r.json(); return (d.bars||[]).map(b=>({time:b.time,value:b.close}));
     };
     const [a, b] = await Promise.all([fetchBars(baseTicker), fetchBars(denomTicker)]);
+    if (!current()) return;
     if (!a.length || !b.length) { const le=document.getElementById(`nch-loading-${paneIdx}`); if(le){le.style.display='flex';le.textContent=`Ratio needs native data for both ${baseTicker} and ${denomTicker}`;} return; }
     const bMap = new Map(b.map(x => [x.time, x.value]));
     const ratio = [];
@@ -7044,6 +7471,8 @@ class NativeChart {
   static async renderSeasonality(paneIdx, ticker) {
     const host = document.getElementById(`nch-chart-${paneIdx}`);
     if (!host) return;
+    const epoch = this._renderEpoch && this._renderEpoch[paneIdx];
+    const current = () => epoch === this._renderEpoch?.[paneIdx] && host === document.getElementById(`nch-chart-${paneIdx}`) && host.isConnected;
     // pull ~6y of daily bars to build monthly returns
     let bars = [];
     const ty = State.symbolType[ticker] || this.guessType(ticker);
@@ -7053,6 +7482,7 @@ class NativeChart {
       else if (ticker.startsWith('FRED:')) { const r = await fetch(`${PROXY}/fred?series=${encodeURIComponent(ticker.slice(5))}&obs=3000`); bars = ((await r.json()).bars||[]).map(b=>({time:b.time,close:b.value})); }
       else { const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=1&span=day&days=2200`); bars = (await r.json()).bars || []; }
     } catch (e) {}
+    if (!current()) return;
     const le = document.getElementById(`nch-loading-${paneIdx}`);
     if (!bars.length) { if(le){le.style.display='flex';le.textContent=`No history for seasonality on ${ticker}`;} return; }
     // monthly close = last bar of each calendar month
@@ -7082,6 +7512,8 @@ class NativeChart {
   static async renderBasket(paneIdx, name) {
     const host = document.getElementById(`nch-chart-${paneIdx}`);
     if (!host) return;
+    const epoch = this._renderEpoch && this._renderEpoch[paneIdx];
+    const current = () => epoch === this._renderEpoch?.[paneIdx] && host === document.getElementById(`nch-chart-${paneIdx}`) && host.isConnected;
     const constituents = (State.baskets || {})[name] || [];
     const le = document.getElementById(`nch-loading-${paneIdx}`);
     if (!constituents.length) { if(le){le.style.display='flex';le.textContent=`Basket "${name}" is empty.`;} return; }
@@ -7095,6 +7527,7 @@ class NativeChart {
       try { const d = await (await fetch(url)).json(); return new Map((d.bars||[]).map(b=>[b.time,b.close])); } catch(e){ return new Map(); }
     };
     const series = await Promise.all(constituents.map(c => fetchCloses(c.ticker)));
+    if (!current()) return;
     const valid = constituents.map((c,i)=>({...c, m: series[i]})).filter(c => c.m && c.m.size > 5);
     if (!valid.length) { if(le){le.style.display='flex';le.textContent=`No native data for basket constituents.`;} return; }
     const totalW = valid.reduce((a,b)=>a+b.weight,0) || 1;
@@ -7135,10 +7568,10 @@ class NativeChart {
     if (!foot) { foot = document.createElement('div'); foot.className='nch-quickstats'; host.parentElement.appendChild(foot); }
     foot.innerHTML = `<span>${UI.esc(holds)}</span><span id="basket-risk-${paneIdx}" style="color:var(--fg-3)">computing risk…</span>`;
     // Risk analytics vs SPY (beta, vol, max drawdown, Sharpe) — async
-    this.computeBasketRisk(idx, paneIdx);
+    this.computeBasketRisk(idx, paneIdx, epoch);
   }
   
-  static async computeBasketRisk(idx, paneIdx) {
+  static async computeBasketRisk(idx, paneIdx, epoch) {
     try {
       // basket daily returns
       const bRet = []; for (let i=1;i<idx.length;i++) bRet.push({ time: idx[i].time, r: idx[i].value/idx[i-1].value - 1 });
@@ -7168,9 +7601,11 @@ class NativeChart {
       // max drawdown
       let peak = idx[0].value, mdd = 0;
       for (const p of idx){ if(p.value>peak) peak=p.value; const dd=(p.value-peak)/peak; if(dd<mdd) mdd=dd; }
+      if (epoch !== this._renderEpoch?.[paneIdx]) return;
       const el = document.getElementById(`basket-risk-${paneIdx}`);
       if (el) el.innerHTML = `<span style="color:var(--cyan)">β ${beta!=null?beta.toFixed(2):'—'}</span> · σ ${vol.toFixed(0)}% · Sharpe ${sharpe.toFixed(2)} · MaxDD <span style="color:var(--red)">${(mdd*100).toFixed(0)}%</span> · ann ${annRet>=0?'+':''}${annRet.toFixed(0)}%`;
     } catch (e) {
+      if (epoch !== this._renderEpoch?.[paneIdx]) return;
       const el = document.getElementById(`basket-risk-${paneIdx}`); if (el) el.textContent = '';
     }
   }
@@ -7212,6 +7647,7 @@ class NativeChart {
   
   static async renderYahoo(ticker, yahooSym, label) {
     const paneIdx = State.activeChartPane;
+    const renderEpoch = (this._renderEpoch || {})[paneIdx] || 0;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     container.innerHTML = `
@@ -7226,6 +7662,7 @@ class NativeChart {
       const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(yahooSym)}&range=${yRange}`);
       const data = await r.json();
       const bars = data.bars || [];
+      if (State.activeTicker !== ticker || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) {
@@ -7246,7 +7683,7 @@ class NativeChart {
         return;
       }
       this._yahooRetried = null;
-      if (State.activeTicker !== ticker) return;
+      if (State.activeTicker !== ticker || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       // FRED-style % change mode for crypto/forex too
       if (cmY && cmY !== 'price') {
         NativeChart.renderChangeHisto(paneIdx, bars.map(b => ({ time: b.time, value: b.close })), cmY, NativeChart.CHANGE_LABELS[cmY], ticker);
@@ -7274,6 +7711,7 @@ class NativeChart {
       const chg = prev.close ? ((last.close-prev.close)/prev.close*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
       if (metaEl) metaEl.innerHTML = `${label} · ${last.close.toLocaleString(undefined,{maximumFractionDigits:6})} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span>`;
+      CompareController.apply(chart, bars.map(b => ({ time:b.time, value:b.close })), ticker, paneIdx);
     } catch (e) {
       ChartController.loadTV(ticker);
     }
@@ -7282,6 +7720,7 @@ class NativeChart {
   // ops 5117: any directory series id → full history via /series (warehouse-first, live-API fallback, mirror-extended)
   static async renderSeries(symbol) {
     const paneIdx = State.activeChartPane;
+    const renderEpoch = (this._renderEpoch || {})[paneIdx] || 0;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     const prov = jhSeriesProvider(symbol) || 'series';
@@ -7295,6 +7734,7 @@ class NativeChart {
       </div>`;
     try {
       const d = await SymDir.series(symbol);
+      if (State.activeTicker !== symbol || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       const bars = (d.obs || []).map(o => ({ time: o[0], value: o[1] }));
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
@@ -7309,7 +7749,7 @@ class NativeChart {
         }
         return;
       }
-      if (State.activeTicker !== symbol) return;
+      if (State.activeTicker !== symbol || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       if (d.resolved_from && d.id && d.id !== symbol) {
         // ops 5152: a typed prefix (TVC:US10) resolved to the real symbol (TVC:US10Y) — the chart shows the real one
         symbol = d.id; State.activeTicker = d.id;
@@ -7375,6 +7815,7 @@ class NativeChart {
       const chg = prev.value ? ((last.value-prev.value)/Math.abs(prev.value)*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
       if (metaEl) metaEl.innerHTML = `${UI.esc(d.provider_name || SymDir.provLabel(prov))} · <b>${jhFmtVal(last.value)}</b>${d.unit ? ' ' + UI.esc(String(d.unit).slice(0, 22)) : ''} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${clean.length.toLocaleString()} obs · ${UI.esc(d.first || '')}→${UI.esc(d.last || '')}${d.freq ? ' · ' + UI.esc(d.freq) : ''}${d.source ? ' · <span style="color:var(--fg-4)" title="' + UI.esc(d.source) + '">' + UI.esc(String(d.source).split(':')[0]) + '</span>' : ''}`;
+      CompareController.apply(chart, clean, symbol, paneIdx);
     } catch (e) {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `${SymDir.provLabel(prov)} error: ${String(e).slice(0,80)}`; }
@@ -7384,6 +7825,7 @@ class NativeChart {
   static async renderLine(symbol, source) {
     const series = symbol.slice(source.length + 1);
     const paneIdx = State.activeChartPane;
+    const renderEpoch = (this._renderEpoch || {})[paneIdx] || 0;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     container.innerHTML = `
@@ -7399,10 +7841,11 @@ class NativeChart {
       const r = await fetch(endpoint);
       const data = await r.json();
       const bars = data.bars || [];
+      if (State.activeTicker !== symbol || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) { if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `No ${source} data for ${series}`; } return; }
-      if (State.activeTicker !== symbol) return;
+      if (State.activeTicker !== symbol || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       // FRED-style % change mode (macro series support DoD..YoY too)
       const cmL = State.changeMode;
       if (cmL && cmL !== 'price') {
@@ -7431,6 +7874,7 @@ class NativeChart {
       const chg = prev.value ? ((last.value-prev.value)/Math.abs(prev.value)*100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
       if (metaEl) metaEl.innerHTML = `${source} · ${last.value.toLocaleString()} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${clean.length} obs`;
+      CompareController.apply(chart, clean, symbol, paneIdx);
     } catch (e) {
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) { loadingEl.style.display='flex'; loadingEl.textContent = `${source} error: ${String(e).slice(0,60)}`; }
@@ -7439,6 +7883,7 @@ class NativeChart {
   
   static async renderEquity(ticker) {
     const paneIdx = State.activeChartPane;
+    const renderEpoch = (this._renderEpoch || {})[paneIdx] || 0;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
     const subActive = State.indicators.rsi || State.indicators.macd || State.indicators.roc;
@@ -7474,6 +7919,7 @@ class NativeChart {
       if (tf.span === 'day' || tf.span === 'week' || tf.span === 'month') {
         try {
           const d = await SymDir.series(ticker);
+          if (State.activeTicker !== ticker || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
           if (d && d.provider && d.provider !== 'equity' && d.provider !== 'tv' && !(d.ohlc || []).length && (d.obs || []).length) {
             // ops 5143: a bare id the directory resolved to a data series (HQMCB10YRP -> fred) charts as a series
             State.activeTicker = d.id || ticker; document.getElementById('active-ticker').textContent = d.id || ticker;
@@ -7507,6 +7953,7 @@ class NativeChart {
         bars = data.bars || [];
       }
       if (!bars.length) { bars = await jhYahooBars(jhYSym, days); if (bars.length) jhSrc = 'Yahoo fallback'; }
+      if (State.activeTicker !== ticker || renderEpoch !== ((this._renderEpoch || {})[paneIdx] || 0)) return;
       State.nativeSrc = jhSrc;
       if (jhSrc !== 'Polygon') { const jm = document.getElementById(`nch-meta-${paneIdx}`); if (jm) jm.textContent = jhSrc; }
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
@@ -7604,16 +8051,12 @@ class NativeChart {
       // ── JustHodl Signal Overlays — the moat ──
       try { SignalOverlay.apply(chart, candleSeries, bars, ticker); } catch (e) {}
       
-      // Compare overlay — normalized line of a second symbol (relative performance)
-      if (State.compareSymbol && State.compareSymbol !== ticker) {
-        NativeChart.addCompareOverlay(chart, ticker, bars, State.compareSymbol);
-      }
-      
       const last = bars[bars.length - 1];
       const prev = bars[bars.length - 2] || last;
       const chg = prev.close ? ((last.close - prev.close) / prev.close * 100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
       if (metaEl) metaEl.innerHTML = `$${last.close.toFixed(2)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${bars.length.toLocaleString()} bars · <span style="color:var(--fg-4)">${UI.esc(jhSrc)}</span>`;
+      CompareController.apply(chart, bars.map(b => ({ time:b.time, value:b.close })), ticker, paneIdx);
       
       // Price-level alert lines (per-user)
       NativeChart.drawPriceAlerts(candleSeries, ticker);
@@ -7847,6 +8290,14 @@ class UniverseSearch {
       });
     });
     body.querySelectorAll('.us-row').forEach(el => {
+      if (el.dataset.kind !== 'dataset') {
+        el.draggable = true;
+        el.title = `${el.title || el.dataset.ticker} · drag to chart to compare`;
+        if (!el.querySelector('.us-compare')) {
+          el.insertAdjacentHTML('beforeend', `<button type="button" class="us-compare" aria-label="Compare ${UI.esc(el.dataset.ticker)} on chart" title="Add to chart comparison">⇄</button>`);
+          el.querySelector('.us-compare').addEventListener('click', e => { e.stopPropagation(); CompareController.add(el.dataset.ticker); });
+        }
+      }
       el.addEventListener('click', () => this.select(el.dataset.ticker, el.dataset.kind, el.dataset.full));
     });
   }
@@ -8622,7 +9073,7 @@ class CommandPalette {
       { icon: '➕', label: 'New chart tab', hint: '', group: 'Tools', run: () => ChartTabs.addTab() },
     ];
   }
-  static setCompare(sym) { State.compareSymbol = sym; ChartController.loadTicker('__reload__'); setTimeout(()=>ChartController.loadTicker(State.activeTicker),10); const b=document.getElementById('compare-btn'); if(b) b.classList.toggle('active', !!sym); }
+  static setCompare(sym) { if (sym) CompareController.add(sym); else CompareController.clear(); }
   static setTf(mult, span, days) { State.tf = { mult, span, days }; document.querySelectorAll('.tf-btn').forEach(x=>x.classList.toggle('active', x.dataset.span===span && x.dataset.mult==String(mult))); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
   static setChange(mode) { State.changeMode = mode; document.querySelectorAll('.chg-btn').forEach(x=>x.classList.toggle('active', x.dataset.chg===mode)); WatchlistManager.syncToCloud(); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
   static setEngine(e) { State.chartEngine=e; document.querySelectorAll('.ceng-btn[data-engine]').forEach(b=>b.classList.toggle('active',b.dataset.engine===e)); const t=State.activeTicker; State.activeTicker='__r'; ChartController.loadTicker(t); }
@@ -9055,6 +9506,7 @@ async function init() {
     el.addEventListener('click', () => {
       State.activeLayout = el.dataset.layout;
       State.activeChartPane = 0;
+      State.activeTicker = (State.paneTickers || {})[0] || State.activeTicker;
       document.querySelectorAll('.layout-btn[data-layout]').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
       ChartController.initLayout();
@@ -9149,11 +9601,8 @@ async function init() {
   
   // ── Compare button ──
   document.getElementById('compare-btn').addEventListener('click', () => {
-    if (State.compareSymbol) { CommandPalette.setCompare(null); }
-    else {
-      const s = prompt('Compare against symbol (e.g. SPY, QQQ, a peer):', 'SPY');
-      if (s) CommandPalette.setCompare(s.trim().toUpperCase());
-    }
+    const s = prompt('Add a comparison symbol or exact data-series ID (for example SPY or FRED:FEDFUNDS):', 'SPY');
+    if (s) CompareController.add(s.trim());
   });
   // ── Ratio button (TICKER ÷ denominator) ──
   document.getElementById('ratio-btn').addEventListener('click', () => {
@@ -9221,8 +9670,19 @@ async function init() {
       const map = { '5m':[5,'minute',5], '1H':[1,'hour',60], '1D':[1,'day',365], '1W':[1,'week',1825], '1M':[1,'month',3650] };
       if (map[dlTf]) State.tf = { mult: map[dlTf][0], span: map[dlTf][1], days: map[dlTf][2] };
     }
+    if (usp.has('cmp')) {
+      const dlCmp = usp.get('cmp') || '';
+      State.compareSymbols = dlCmp.split(',').map(x => x.trim()).filter(Boolean);
+      CompareController.symbols();
+      CompareController.generation++;
+      CompareController.renderAll();
+      if (State.compareSymbols.length && State.chartEngine === 'tv') {
+        State.chartEngine = 'native';
+        document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
+      }
+    }
     const dlSym = usp.get('s') || usp.get('symbol') || usp.get('ticker');
-    if (dlSym) setTimeout(() => ChartController.loadTicker(dlSym), 600);
+    if (dlSym || usp.has('cmp')) setTimeout(() => ChartController.loadTicker(dlSym || State.activeTicker), 0);
   } catch (e) {}
   // Reflect current view in the URL (so the address bar is always shareable)
   window.jhSyncUrl = function () {
@@ -9234,6 +9694,8 @@ async function init() {
       if (State.changeMode && State.changeMode !== 'price') u.searchParams.set('mode', State.changeMode); else u.searchParams.delete('mode');
       const on = Object.keys(State.signalLayers || {}).filter(k => State.signalLayers[k]);
       if (on.length) u.searchParams.set('layers', on.join(',')); else u.searchParams.delete('layers');
+      const cmp = CompareController.symbols();
+      u.searchParams.set('cmp', cmp.join(','));
       history.replaceState(null, '', u);
     } catch (e) {}
   };
