@@ -1,0 +1,39 @@
+# ops 5168 -- census-econ v2: deploy verify, wake shard 11, cadence
+
+**Status:** success  
+**Duration:** 1152.9s  
+**Finished:** 2026-09-03T21:38:45+00:00  
+
+## Log
+## A. Deploy + shard states
+
+- `21:34:40` ⚠    deploy marker not observed after 15 min -- continuing with whatever is live
+- `21:34:40`    s00 COMPLETE  left    0 done  214/ 107 rows 183,194,540 fails   0 cursor=- lease= head=-
+- `21:34:40`    s01 COMPLETE  left    0 done  211/ 103 rows 219,718,629 fails   0 cursor=- lease= head=-
+- `21:34:40`    s02 COMPLETE  left    0 done  213/ 100 rows 191,048,031 fails   0 cursor=- lease= head=-
+- `21:34:40`    s03 DRAIN     left   64 done   55/  99 rows  78,821,984 fails   2 cursor=- lease=21:38:02 head=cps/vets/aug@2023
+- `21:34:40`    s04 COMPLETE  left    0 done  198/ 100 rows 174,971,632 fails   1 cursor=- lease= head=-
+- `21:34:40`    s05 COMPLETE  left    0 done  189/  89 rows 169,070,668 fails   2 cursor=- lease= head=-
+- `21:34:41`    s06 COMPLETE  left    0 done  107/ 107 rows 105,357,068 fails   1 cursor=- lease= head=-
+- `21:34:41`    s07 COMPLETE  left    0 done  108/ 108 rows 129,108,823 fails   1 cursor=- lease= head=-
+- `21:34:41`    s08 COMPLETE  left    0 done  113/ 113 rows 110,282,554 fails   0 cursor=- lease= head=-
+- `21:34:41`    s09 COMPLETE  left    0 done  102/ 102 rows 130,897,606 fails   1 cursor=- lease= head=-
+- `21:34:41`    s10 COMPLETE  left    0 done   98/  98 rows  88,457,222 fails   1 cursor=- lease= head=-
+- `21:34:41`    s11 COMPLETE  left    0 done  100/ 100 rows  85,643,848 fails   1 cursor=- lease= head=-
+- `21:34:41`    shards with work: [3]
+- `21:34:41`    shard 3 failures (2): {"ase/cscb@2014": "variables HTTP 0 (attempt 1)", "ase/cscbo@2014": "variables HTTP 0 (attempt 1)"}
+- `21:34:41`    shard 3 queue head: ['cps/vets/aug@2023', 'cps/school/oct@2022', 'cps/pubarts/jul@2022', 'cps/vets/aug@2021', 'cps/basic/feb@2018']
+## B. Dispatcher: synchronous call -- must skip COMPLETE shards
+
+- `21:34:42`    dispatcher -> {"mode": "econ_dispatch", "shards": 12, "invoked": 1, "skipped_complete": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11], "recatalog": false}
+- `21:34:42` ✅    only 1 shard(s) invoked, 11 COMPLETE skipped
+## C. Bracket: lease visible, cursor/progress on the working shard
+
+- `21:38:44`    s03 before: left 64 done 55 rows 78821984 | after: left 63 done 56 rows 80578070 cursor={"tag": "cps/school/oct@2022", "gi": 0, "ci": 315, "at": "20 lease= breaks=1 version=econ-v2
+- `21:38:44` ✅    shard 3 is moving (lease/cursor/progress observed)
+- `21:38:45` ✅    no Traceback/ERROR in the log since the dispatch
+- `21:38:45`    dispatcher state: {"last_recatalog": "2026-09-03T21:24:03.066919+00:00", "last_dispatch": "2026-09-03T21:34:42.744768+00:00", "last_invoked": 1, "last_skipped_complete": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]}
+## D. Cadence: dispatcher back to rate(15 minutes) -- safe now (skip-complete + lease + cursor)
+
+- `21:38:45` ✅    justhodl-census-econ-dispatch rate(1 hour) -> rate(15 minutes)
+- `21:38:45` ✅ ops 5168 complete
