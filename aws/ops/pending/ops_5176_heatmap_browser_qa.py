@@ -34,7 +34,7 @@ from ops_report import report  # noqa: E402
 
 SITE = "https://justhodl.ai"
 PAGE = SITE + "/chart-pro.html?s=SPY&tf=1D"
-MARKER = "jh_heatmap_workspace_v3"
+MARKER = "reskin_site.py rewrites rgba() text at deploy time"
 SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
 FAILS = []
 
@@ -75,6 +75,25 @@ with report("ops_5176_heatmap_browser_qa") as R:
             return p.chromium.launch(headless=True)
 
     SHOTS.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as p0:
+        b0 = launch(p0)
+        live = False
+        for _ in range(30):
+            pg0 = b0.new_page(viewport={"width": 1200, "height": 800})
+            try:
+                pg0.goto(PAGE, wait_until="domcontentloaded", timeout=60000)
+                pg0.wait_for_timeout(3000)
+                live = pg0.evaluate("() => typeof Heatmap === 'function' && typeof MacroData === 'function'")
+            except Exception:
+                live = False
+            pg0.close()
+            if live:
+                break
+            time.sleep(15)
+        b0.close()
+    (R.ok if live else R.fail)("   main script parses in Chrome (Heatmap + MacroData defined): %s" % live)
+    if not live:
+        sys.exit(1)
 
     def new_page(browser, width, height, init_script=None):
         ctx = browser.new_context(viewport={"width": width, "height": height}, has_touch=width < 900,
