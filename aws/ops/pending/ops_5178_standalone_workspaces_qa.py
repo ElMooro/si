@@ -1,4 +1,4 @@
-"""ops_5178 -- standalone engines QA: heatmap.html + macro-data.html (generated from chart-pro).
+"""ops_5178 -- standalone engines QA: universe-heatmap.html + macro-economic-data.html (generated from chart-pro).
 
 Khalid: "make Universe Heatmap and Macro & Economic Data their own separate
 engines (same design, same capabilities, everything) but keep them on chart-pro
@@ -49,12 +49,12 @@ def fetch(url):
 
 
 with report("ops_5178_standalone_workspaces_qa") as R:
-    R.heading("ops 5178 -- standalone engines QA (heatmap.html, macro-data.html)")
+    R.heading("ops 5178 -- standalone engines QA (universe-heatmap.html, macro-economic-data.html)")
     R.section("P0 deploy")
     ok = False
     for i in range(48):
-        st1, b1 = fetch(SITE + "/heatmap.html")
-        st2, b2 = fetch(SITE + "/macro-data.html")
+        st1, b1 = fetch(SITE + "/universe-heatmap.html")
+        st2, b2 = fetch(SITE + "/macro-economic-data.html")
         st3, b3 = fetch(SITE + "/assets/jh-workspaces.js")
         if st1 == 200 and st2 == 200 and st3 == 200 and "JH_WS" in b3 and "class Heatmap" in b3:
             ok = True
@@ -98,11 +98,11 @@ with report("ops_5178_standalone_workspaces_qa") as R:
     with sync_playwright() as p:
         browser = launch(p)
 
-        R.section("P1 heatmap.html")
+        R.section("P1 universe-heatmap.html")
         for width, height in ((1440, 1000), (390, 844)):
             ctx, pg, errors = new_page(browser, width, height)
             try:
-                pg.goto(SITE + "/heatmap.html", wait_until="domcontentloaded", timeout=60000)
+                pg.goto(SITE + "/universe-heatmap.html", wait_until="domcontentloaded", timeout=60000)
                 cells = wait_count(pg, "#heatmap-body .hm-cell", 40)
                 ready = wait_count(pg, "#heatmap-body .hm-cell[data-metric-state='ready']", 6, 30)
                 sections = pg.evaluate("() => document.querySelectorAll('#heatmap-body .hm-sector').length")
@@ -120,16 +120,16 @@ with report("ops_5178_standalone_workspaces_qa") as R:
                 R.log("   %4dpx: sections=%d cells=%d hydrated=%d cascade-live=%d D->M %s->%s legend='%s' inline=%s overflow=%dpx errors=%d"
                       % (width, sections, cells, ready, auto_items, first, after, legend[:30], visible, overflow, len(errors)))
                 if cells < 40 or ready < 6 or not visible or overflow > 0 or errors or "signal" not in legend.lower():
-                    FAILS.append("heatmap.html %dpx: cells=%d ready=%d inline=%s overflow=%d errors=%s legend=%s" % (width, cells, ready, visible, overflow, errors[:2], legend[:30]))
+                    FAILS.append("universe-heatmap.html %dpx: cells=%d ready=%d inline=%s overflow=%d errors=%s legend=%s" % (width, cells, ready, visible, overflow, errors[:2], legend[:30]))
             except Exception as e:
-                FAILS.append("heatmap.html %dpx: %s" % (width, str(e)[:160]))
+                FAILS.append("universe-heatmap.html %dpx: %s" % (width, str(e)[:160]))
             ctx.close()
 
-        R.section("P2 macro-data.html")
+        R.section("P2 macro-economic-data.html")
         for width, height in ((1440, 1000), (390, 844)):
             ctx, pg, errors = new_page(browser, width, height)
             try:
-                pg.goto(SITE + "/macro-data.html", wait_until="domcontentloaded", timeout=60000)
+                pg.goto(SITE + "/macro-economic-data.html", wait_until="domcontentloaded", timeout=60000)
                 cards = wait_count(pg, "#macro-body .macro-item", 40)
                 ready = wait_count(pg, "#macro-body .macro-item[data-metric-state='ready']", 6, 30)
                 cats = pg.evaluate("() => document.querySelectorAll('#macro-body .macro-cat').length")
@@ -141,15 +141,15 @@ with report("ops_5178_standalone_workspaces_qa") as R:
                 R.log("   %4dpx: categories=%d cards=%d hydrated=%d search('unemployment')=%d inline=%s overflow=%dpx errors=%d"
                       % (width, cats, cards, ready, found, visible, overflow, len(errors)))
                 if cards < 40 or ready < 6 or found < 3 or not visible or overflow > 0 or errors:
-                    FAILS.append("macro-data.html %dpx: cards=%d ready=%d search=%d inline=%s overflow=%d errors=%s" % (width, cards, ready, found, visible, overflow, errors[:2]))
+                    FAILS.append("macro-economic-data.html %dpx: cards=%d ready=%d search=%d inline=%s overflow=%d errors=%s" % (width, cards, ready, found, visible, overflow, errors[:2]))
             except Exception as e:
-                FAILS.append("macro-data.html %dpx: %s" % (width, str(e)[:160]))
+                FAILS.append("macro-economic-data.html %dpx: %s" % (width, str(e)[:160]))
             ctx.close()
 
         R.section("P3 chart handoff to Chart Pro (new tab)")
         ctx, pg, errors = new_page(browser, 1440, 1000)
         try:
-            pg.goto(SITE + "/heatmap.html", wait_until="domcontentloaded", timeout=60000)
+            pg.goto(SITE + "/universe-heatmap.html", wait_until="domcontentloaded", timeout=60000)
             wait_count(pg, "#heatmap-body .hm-cell", 40)
             sym = pg.evaluate("() => document.querySelector('#heatmap-body .hm-sector[data-auto=\"0\"] .hm-cell').dataset.symbol")
             with ctx.expect_page(timeout=15000) as new_tab:
@@ -162,7 +162,7 @@ with report("ops_5178_standalone_workspaces_qa") as R:
             if not ("chart-pro.html" in url and sym in url and still >= 40):
                 FAILS.append("P3 heatmap handoff: %s" % url[:80])
             tab.close()
-            pg.goto(SITE + "/macro-data.html", wait_until="domcontentloaded", timeout=60000)
+            pg.goto(SITE + "/macro-economic-data.html", wait_until="domcontentloaded", timeout=60000)
             wait_count(pg, "#macro-body .macro-item", 40)
             msym = pg.evaluate("() => document.querySelector('#macro-body .macro-item').dataset.symbol")
             with ctx.expect_page(timeout=15000) as new_tab2:
@@ -197,7 +197,7 @@ with report("ops_5178_standalone_workspaces_qa") as R:
             pg.evaluate("() => MacroData.close()")
             closed = pg.evaluate("() => !document.getElementById('macro-modal').classList.contains('open') && !document.getElementById('heatmap-modal').classList.contains('open')")
             R.log("   facts=%s heatmap cells=%d macro cards=%d modals close=%s errors=%d" % (facts, hm_cells, mc_cards, closed, len(errors)))
-            if not (facts.get("heat") and facts.get("macro") and facts.get("hmLink") == "/heatmap.html" and facts.get("macroLink") == "/macro-data.html" and hm_cells >= 40 and mc_cards >= 40 and closed) or errors:
+            if not (facts.get("heat") and facts.get("macro") and facts.get("hmLink") == "/universe-heatmap.html" and facts.get("macroLink") == "/macro-economic-data.html" and hm_cells >= 40 and mc_cards >= 40 and closed) or errors:
                 FAILS.append("P4 chart-pro: %s cells=%d cards=%d closed=%s errors=%s" % (facts, hm_cells, mc_cards, closed, errors[:2]))
         except Exception as e:
             FAILS.append("P4: %s" % str(e)[:160])
@@ -205,7 +205,7 @@ with report("ops_5178_standalone_workspaces_qa") as R:
 
         R.section("P5 nav manifest")
         st, body = fetch(SITE + "/nav-manifest.json")
-        has = ("/heatmap.html" in body, "/macro-data.html" in body)
+        has = ("/universe-heatmap.html" in body, "/macro-economic-data.html" in body)
         (R.ok if all(has) else R.warn)("   nav-manifest.json %s lists heatmap=%s macro=%s" % (st, has[0], has[1]))
 
         R.section("P6 login return leg with a real PKCE verifier")

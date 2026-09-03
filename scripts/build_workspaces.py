@@ -15,8 +15,9 @@ chart-pro.html stays the single source of truth. This script EXTRACTS from it:
 and writes:
   assets/jh-workspaces.js   shim (PROXY, State, feed loader, chart handoff) + classes
   assets/jh-workspaces.css  extracted rules + inline-page layout
-  heatmap.html              standalone Universe Heatmap
-  macro-data.html           standalone Macro & Economic Data
+  universe-heatmap.html     standalone Universe Heatmap
+  macro-economic-data.html  standalone Macro & Economic Data
+(heatmap.html and macro-data.html are OLDER, unrelated pages -- never overwrite them)
 
 Run locally to commit the outputs, and in pages.yml right after the site
 artifact is assembled so the deployed engines are always regenerated from the
@@ -234,7 +235,7 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
     def page(which, title, crumb, markup, open_class):
         markup = markup.replace('class="heatmap-modal" id="heatmap-modal"', 'class="heatmap-modal open" id="heatmap-modal"') if which == "heatmap" else \
             markup.replace('class="heatmap-modal" id="macro-modal"', 'class="heatmap-modal open" id="macro-modal"')
-        other = ("/macro-data.html", "Macro &amp; Economic Data") if which == "heatmap" else ("/heatmap.html", "Universe Heatmap")
+        other = ("/macro-economic-data.html", "Macro &amp; Economic Data") if which == "heatmap" else ("/universe-heatmap.html", "Universe Heatmap")
         return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -275,9 +276,9 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
     (SITE / "assets").mkdir(parents=True, exist_ok=True)
     (SITE / "assets" / "jh-workspaces.js").write_text(bundle, encoding="utf-8")
     (SITE / "assets" / "jh-workspaces.css").write_text(css, encoding="utf-8")
-    (SITE / "heatmap.html").write_text(page("heatmap", "Universe Heatmap", "Universe Heatmap · configurable performance / cascade / signal heatmap", heat_markup, "open"), encoding="utf-8")
-    (SITE / "macro-data.html").write_text(page("macro", "Macro & Economic Data", "Macro &amp; Economic Data · every indexed series, your categories, danger rules", macro_markup, "open"), encoding="utf-8")
-    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), heatmap.html, macro-data.html"
+    (SITE / "universe-heatmap.html").write_text(page("heatmap", "Universe Heatmap", "Universe Heatmap · configurable performance / cascade / signal heatmap", heat_markup, "open"), encoding="utf-8")
+    (SITE / "macro-economic-data.html").write_text(page("macro", "Macro & Economic Data", "Macro &amp; Economic Data · every indexed series, your categories, danger rules", macro_markup, "open"), encoding="utf-8")
+    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html"
           % (len(bundle), len(css)))
 
 
