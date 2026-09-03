@@ -231,6 +231,9 @@ class UniversalProviderSearchTests(unittest.TestCase):
                     ("gdelt:indicator:conflict", "gdelt", "GDELT",
                      "Conflict intensity", "geopolitical events",
                      "indicator_ref", None, None, 1),
+                    ("gdelt:indicator:geopolitical", "gdelt", "GDELT",
+                     "Geopolitical", "conflict intensity",
+                     "indicator_ref", None, None, 1),
                 ],
             )
             con.commit()
@@ -248,12 +251,16 @@ class UniversalProviderSearchTests(unittest.TestCase):
                 row["key"],
                 "data/warm/gdelt/events/world-events.json.gz",
             )
-            entity = symdir.warehouse_search("geopolitical", 10)["rows"][0]
+            entity = symdir.warehouse_search(
+                "geopolitical events", 10)["rows"][0]
             self.assertEqual(entity["catalog_kind"], "indicator_ref")
             self.assertFalse(entity["raw"])
             self.assertIsNone(entity["key"])
             self.assertEqual(entity["src"], "geopolitical events")
             self.assertEqual(entity["lookup_query"], "Conflict intensity")
+            exact = symdir.warehouse_search("Geopolitical", 10)["rows"]
+            self.assertEqual(
+                exact[0]["id"], "gdelt:indicator:geopolitical")
         finally:
             os.remove(path)
 

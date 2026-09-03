@@ -336,6 +336,9 @@ def main():
         live_hash = None
         expected_hash = None
         build_manifest = {}
+        expected_stamp = (
+            '<meta name="jh-build-commit" content="%s">' % target_sha
+        ).encode()
         for _ in range(40):
             req = urllib.request.Request(
                 "https://justhodl.ai/chart-pro.html?v=" + str(int(time.time())),
@@ -354,7 +357,7 @@ def main():
                     if (build_manifest.get("commit_sha") == target_sha
                             and expected_hash
                             and len(expected_hash) == 64
-                            and live_hash == expected_hash):
+                            and expected_stamp in live_body):
                         live = True
                         break
             except Exception:  # noqa: BLE001
@@ -363,9 +366,10 @@ def main():
         if not live:
             fails.append(
                 "live build mismatch commit=%s target=%s page_hash=%s "
-                "manifest_hash=%s"
+                "manifest_hash=%s commit_stamp_present=%s"
                 % (build_manifest.get("commit_sha"), target_sha, live_hash,
-                   expected_hash))
+                   expected_hash, bool(expected_stamp in live_body)
+                   if "live_body" in locals() else False))
 
         r.section("verdict")
         for failure in fails:

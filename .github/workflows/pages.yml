@@ -111,7 +111,15 @@ jobs:
         run: |
           python3 - <<'PY'
           import hashlib, json, os
-          page = open("_site/chart-pro.html", "rb").read()
+          path = "_site/chart-pro.html"
+          text = open(path, encoding="utf-8").read()
+          stamp = ('<meta name="jh-build-commit" content="%s">'
+                   % os.environ["GITHUB_SHA"])
+          if stamp not in text:
+              text = text.replace("</head>", stamp + "\n</head>", 1)
+              with open(path, "w", encoding="utf-8") as dst:
+                  dst.write(text)
+          page = open(path, "rb").read()
           manifest = {
               "commit_sha": os.environ["GITHUB_SHA"],
               "chart_pro_sha256": hashlib.sha256(page).hexdigest(),

@@ -1428,9 +1428,15 @@ def warehouse_search(q, limit=20, prov=None):
     if prov:
         sql += " AND provider=?"
         args.append(prov)
+    # Exact catalog entities must beat incidental mentions in long metadata
+    # (for example the DXY vault row must beat notes that merely discuss DXY).
     sql += (
-        " ORDER BY CASE kind WHEN 'provider' THEN 0 ELSE 1 END,"
+        " ORDER BY CASE"
+        " WHEN lower(title)=lower(?) THEN 0"
+        " WHEN lower(id)=lower(?) OR lower(id) LIKE lower(?) THEN 0"
+        " WHEN kind='provider' THEN 1 ELSE 2 END,"
         " bm25(docs), CAST(hot AS INTEGER) DESC LIMIT ?")
+    args.extend([q, q, "%:" + q])
     args.append(limit + 1)
     con = sqlite3.connect("file:%s?mode=ro" % path, uri=True)
     try:
