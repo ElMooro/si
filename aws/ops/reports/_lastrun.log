@@ -1,90 +1,33 @@
-executing-against: 363bfcecf22bfb65691cd3316ff8e3d7ecd63e3d
-ops 5164 -- September cost stand-down (reversible; ledger at data/ops/ops5164-cost-standdown.json)
-── 0. Current truth -- per-function burn, last 12 hours ──
-[18:17:15] Lambda fleet last 12h -> $10.03/day run-rate ($301/month)
-[18:17:15] FUNCTION                                        INV/12h      ERR    AVG_S    $/DAY
-[18:17:15] justhodl-census-us                                1,936        0     60.4     3.90
-[18:17:15] justhodl-repo                                       144        0    337.0     2.43
-[18:17:15] justhodl-boj-full                                   551        0     27.7     0.76
-[18:17:15] justhodl-symdir                                   1,097        0      3.3     0.73
-[18:17:15] justhodl-ecb-deep                                    71        0     51.0     0.48
-[18:17:15] justhodl-sdmx-walker                              1,032        0      1.2     0.40
-[18:17:15] justhodl-provider-catalog                            12        0    398.2     0.16
-[18:17:15] justhodl-news-velocity                               12        0    480.2     0.10
-[18:17:15] justhodl-fundamental-census                          24        0     77.8     0.09
-[18:17:15] justhodl-research-backtest                            3        3    900.0     0.09
-[18:17:15] justhodl-data-census                                  1        0    646.1     0.06
-[18:17:15] justhodl-13f-positions                                6        0    312.6     0.06
-[18:17:15] justhodl-repo-monitor                                24        0    147.6     0.06
-[18:17:15] justhodl-risk-gate                                   13        0     88.7     0.04
-[18:17:15] justhodl-backend-agent                               48        0     43.9     0.04
-[18:17:15] justhodl-te-fred-mirror                              12        0    116.2     0.03
-[18:17:15] justhodl-research-critique                           58        0     34.4     0.03
-[18:17:15] justhodl-a2a-bus                                    470        0      3.6     0.03
-[18:17:15] justhodl-causality-scanner                            1        0    381.0     0.03
-[18:17:15] justhodl-stock-screener                               3        0    136.5     0.02
-── 1. justhodl-repo -- daily engine hitched to rate(5 minutes) by ops 5071 ──
-[18:17:16]    last 6h: invocations 72, errors 0, duration 25365s total
-[18:17:17]    rule      benzinga-news-agent-warm                     rate(5 minutes)        ENABLED targets=['repo'] inputs=['{}']
-[18:17:17] ✅    removed justhodl-repo from rule benzinga-news-agent-warm (targets ['repo']) -- daily engine on a rate(5 minutes) host rule (ops 5071 hitch)
-[18:17:18] ✅    schedule justhodl-repo-daily created cron(10 6 * * ? *) -> justhodl-repo {}
-── 2. justhodl-fundamental-census -- daily engine hitched to rate(30 minutes) by ops 5071 ──
-[18:17:18]    last 6h: invocations 12, errors 0, duration 943s total
-[18:17:19]    rule      fleet-freshness-monitor-30min                rate(30 minutes)       ENABLED targets=['fundamental-census'] inputs=['{}']
-[18:17:19]    scheduler fundamental-census-sched                     cron(0 6 1,15 * ? *)   ENABLED
-[18:17:19] ✅    removed justhodl-fundamental-census from rule fleet-freshness-monitor-30min (targets ['fundamental-census']) -- daily self-resuming census on a rate(30 minutes) host rule (ops 5071 hitch)
-[18:17:19] ✅    schedule justhodl-fundamental-census-daily created cron(15 3 * * ? *) -> justhodl-fundamental-census {"resume": true}
-── 3. justhodl-boj-full -- redundant classic 5-minute target beside the Scheduler fan-out? ──
-[18:17:19]    last 6h: invocations 275, errors 0 (0%), throttles 0
-[18:17:19]    scheduler justhodl-boj-full-fanout                     rate(30 minutes)       ENABLED
-[18:17:19]    scheduler justhodl-boj-full-12h                        rate(24 hours)         ENABLED
-[18:17:19] ✅    BOJ storm is over on the last-6h measure (error rate 0.0%)
-── 4. justhodl-ecb-deep -- backfill lane state (no action: data lane) ──
-[18:17:20]    mode=refresh flows complete 58/58  windows={'empty': 182, 'done': 309, 'err:HTTP': 189, 'slow_mon': 28, 'err:Time': 13}  updated_at=None
-[18:17:20]    last 6h: invocations 35, errors 0, 0.7 Lambda-hours
-[18:17:20]    scheduler justhodl-ecb-deep-10min                      rate(10 minutes)       ENABLED
-[18:17:20]    verdict: refresh mode
-── 5. sdmx-walker OECD temp schedules (retrunc / refail) -- ledger still shrinking? ──
-[18:17:21]    OECD ledger: failed=431 truncated=278 (Sep-02 reference: 444 / 273)  keys=['as_of', 'done', 'failures', 'lease_until', 'n_total', 'progress_pct', 'retried_fail', 'retried_ok', 'status', 'truncated']
-[18:17:21]    justhodl-sdmx-walker-oecd-retrunc rate(10 minutes) ENABLED
-[18:17:21]    justhodl-sdmx-walker-oecd-refail rate(15 minutes) ENABLED
-[18:17:21] ✅    deleted temp schedule justhodl-sdmx-walker-oecd-retrunc (ledger recorded for recreation)
-[18:17:21] ✅    deleted temp schedule justhodl-sdmx-walker-oecd-refail (ledger recorded for recreation)
-── 6. Dead versions -- raw lifecycle rules, version sampling, 1-day noncurrent purge on data/ ──
-[18:17:21]    RAW {"ID": "expire-old-versions-after-30d", "Filter": {}, "Status": "Enabled", "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 7}}
-[18:17:21]    RAW {"ID": "jh-noncurrent-14d", "Filter": {}, "Status": "Enabled", "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 3}}
-[18:17:22]    data/repo-history/             sample: current 3 (0.4 MB), noncurrent 2997 (415.3 MB), delete-markers 0 -> noncurrent share 100% of bytes
-[18:17:22]    data/warm/census-econ/         sample: current 75 (63.5 MB), noncurrent 1925 (198.0 MB), delete-markers 0 -> noncurrent share 76% of bytes
-[18:17:23]    data/warm/fred-scoped/         sample: current 1956 (93.9 MB), noncurrent 44 (25.7 MB), delete-markers 0 -> noncurrent share 22% of bytes
-[18:17:23] ✅    lifecycle ops5164-purge-dead-versions-data armed: data/ noncurrent versions expire after 1 day (+ expired delete markers); 9 rules total
-── 7. us-west-2 DR mirror -- stale Standard-IA storage (HOLD: reported, not deleted) ──
-[18:17:26] ⚠    justhodl-dashboard-live-dr                     2764 GB (Standard=0GB, StandardIA=2543GB, StandardIASizeOverhead=222GB) ~ $34.56/month -- replication was deleted Aug-26 (ops 4988); this copy only ages
-[18:17:27] ⚠    justhodl-dr-usw2-857687956942                  11 GB (Standard=6GB, StandardIA=1GB, StandardIASizeOverhead=4GB) ~ $0.14/month -- replication was deleted Aug-26 (ops 4988); this copy only ages
-── 8. SnapStart cache ($17/month in August) -- which functions (HOLD) ──
-[18:17:37] ⚠    justhodl-ai-chat  SnapStart=PublishedVersions
-── 8b. justhodl-symdir -- triggers (report only; chart-pro is hands-off) ──
-[18:17:38]    last 6h: invocations 970, errors 0, 0.9 Lambda-hours at 6144MB
-[18:17:39]    scheduler justhodl-symdir-ustbank                      cron(30 21 ? * MON-FRI *) ENABLED
-[18:17:39]    scheduler justhodl-symdir-build                        cron(40 5 * * ? *)     ENABLED
-[18:17:39]    scheduler justhodl-symdir-codelists                    rate(20 minutes)       ENABLED
-[18:17:39]    scheduler justhodl-symdir-fredfresh                    rate(1 hour)           ENABLED
-[18:17:39]    scheduler justhodl-symdir-fredupdates                  rate(15 minutes)       ENABLED
-[18:17:39]    scheduler justhodl-symdir-warm                         rate(5 minutes)        ENABLED
-[18:17:39]    scheduler justhodl-symdir-titles                       rate(1 hour)           ENABLED
-── 9. justhodl-census-us econ lane -- bracketed progress, own dispatcher schedule ──
-[18:17:39]    waiting 337s so the second lane read brackets at least 6 minutes
-[18:23:17]    shards 12  phases={'COMPLETE': 11, 'DRAIN': 1}  n_done 1703/1328  queue_left 151  rows_total 1,663,352,798  failures 10  newest=2026-09-03T18:21:34.768369+00:00
-[18:23:17]    6.0-minute bracket: datasets +0, rows +-11,436
-[18:23:18]    last 6h: invocations 973, errors 0, throttles 0, 16.3 Lambda-hours
-[18:23:19]    rule      benzinga-news-agent-warm                     rate(5 minutes)        ENABLED targets=['econdispatch'] inputs=['{"mode": "econ_dispatch", "shards": 12}']
-[18:23:19]    rule      carry-surface-4h                             rate(4 hours)          ENABLED targets=['censusts'] inputs=['{}']
-[18:23:19]    scheduler justhodl-census-us-15min                     rate(15 minutes)       ENABLED
-[18:23:19]    verdict: lane NOT progressing in the bracket -> hourly until it moves
-[18:23:19] ✅    removed justhodl-census-us from rule benzinga-news-agent-warm (targets ['econdispatch']) -- econ dispatcher hitched onto rate(5 minutes) (ops 5063)
-[18:23:19] ✅    schedule justhodl-census-econ-dispatch created rate(1 hour) -> justhodl-census-us {"mode": "econ_dispatch", "shards": 12}
-── 10. Ledger + expected landing ──
-[18:23:19] ✅    reversal ledger written to s3://justhodl-dashboard-live/data/ops/ops5164-cost-standdown.json
-[18:23:19]    removed targets: 3  schedules created/updated: 3  temp schedules deleted: 2  lifecycle: armed
-[18:23:19] ✅ ops 5164 complete in 390s
+executing-against: b2b4f809562c05e9aa3784cb63cd937642eaef39
+ops 5165 -- stand-down corrections + expected landing
+── 1. fundamental-census: drop the daily schedule ops 5164 added; twice-monthly design stands ──
+[18:25:41] ✅    deleted justhodl-fundamental-census-daily (cron(15 3 * * ? *))
+[18:25:41] ✅    designed cadence intact: fundamental-census-sched cron(0 6 1,15 * ? *) ENABLED
+── 2. ecb-deep: refresh mode (58/58 complete) -> rate(6 hours) ──
+[18:25:41] ✅    justhodl-ecb-deep-10min rate(10 minutes) -> rate(6 hours)
+── 3. Storage tracking + purge rule ──
+[18:25:41]    2026-08-28  2851 GB
+[18:25:41]    2026-08-29  1642 GB
+[18:25:41]    2026-08-30  1701 GB
+[18:25:41]    2026-08-31  1917 GB
+[18:25:41]    2026-09-01  1954 GB
+[18:25:42]    purge rule present: True -> {"Expiration": {"ExpiredObjectDeleteMarker": true}, "ID": "ops5164-purge-dead-versions-data", "Filter": {"Prefix": "data/"}, "Status": "Enabled", "NoncurrentVersionExpiration": {"NoncurrentDays": 1}}
+── 4. Expected September landing (from ops-5164 last-12h numbers, stood-down lines removed) ──
+[18:25:42]    Lambda fleet, everything else (last 12h)                   $ 2.73/day   measured, minus the lines below
+[18:25:42]    justhodl-repo (daily now, was 288/day)                     $ 0.05/day   1 run x 337s x 1536MB
+[18:25:42]    justhodl-census-us econ (hourly, 11/12 shards COMPLETE)    $ 0.60/day   288 shard runs x ~60s + 15-min heartbeat
+[18:25:42]    justhodl-ecb-deep refresh (6h, was 10 min)                 $ 0.02/day   4 runs x 51s x 4096MB
+[18:25:42]    justhodl-sdmx-walker (OECD temp schedules removed)         $ 0.05/day   remaining rules only
+[18:25:42]    justhodl-fundamental-census (twice monthly)                $ 0.02/day   design cadence
+[18:25:42]    S3 requests (repo PUT storm removed)                       $ 0.80/day   was $3.5-4.0/day Tier-1
+[18:25:42]    S3 storage after dead-version purge (~600 GB)              $ 0.45/day   was $1.41/day at 1,954 GB
+[18:25:42]    S3 GET/HEAD + access logs + Storage Lens                   $ 0.55/day   edge reads
+[18:25:42]    DynamoDB, Secrets Manager, Route 53, CloudWatch, ECR/EBS   $ 0.45/day   flat
+[18:25:42]    us-west-2 DR mirror (HOLD -- Khalid's call)                $ 1.15/day   $34.56/month until deleted
+[18:25:42]    SnapStart cache on justhodl-ai-chat (HOLD)                 $ 0.57/day   $17/month
+[18:25:42]    TOTAL                                                      $ 7.44/day = $223/month  (drop the two HOLD lines: $5.72/day = $172/month)
+[18:25:42]    reference: Aug 01-08 baseline $4.52/day = $135/month; Sep 01-02 actual $20.72/day = $622/month
+[18:25:42] ✅    ledger updated
+[18:25:42] ✅ ops 5165 complete
 
-→ Report written to aws/ops/reports/latest/ops_5164_sep_cost_standdown.md
+→ Report written to aws/ops/reports/latest/ops_5165_standdown_corrections.md
