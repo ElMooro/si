@@ -1,4 +1,4 @@
-"""ops_5173 -- Google sign-in VERIFY after Khalid restored the paused Supabase project,
+"""ops_5173 (re-run 2026-09-03T23:05Z) -- Google sign-in VERIFY after Khalid restored the paused Supabase project,
 + keep-alive sentinel armed. Same legs as ops 5171 (which proved NXDOMAIN on the project host).
 
 Khalid: "investigate why I can't login from Google".
