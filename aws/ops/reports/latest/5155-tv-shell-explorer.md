@@ -1,0 +1,33 @@
+# ops 5155 -- TradingView shell + Data Explorer (final verification)
+
+**Status:** success  
+**Duration:** 89.5s  
+**Finished:** 2026-09-03T00:29:37+00:00  
+
+## Log
+## S1 deploy + /explorer
+
+- `00:28:07`   zip: 142205 bytes
+## 1. Lambda
+
+- `00:28:08`   Lambda exists — updating
+- `00:28:11` ✅   ✓ updated justhodl-symdir
+- `00:28:24`   /explorer: providers=60 directory_docs=1374434 totals={'providers': 57, 'datasets': 811865, 'keys': 1922446, 'gb': 530.41} first=[('fred', {'series': 747515, 'dataset': 0, 'instrument': 0}), ('bls', {'series': 443357, 'dataset': 0, 'instrument': 0}), ('gdelt', {}), ('worldbank', {'series': 0, 'dataset': 29490, 'instrument': 0})]
+- `00:28:25`   fred: total=747515 kinds={'series': 747515} hub={'datasets': 280633, 'series_count': 277540, 'total_mb': 11238.16, 'freshest_h': 0.0, 'coverage_pct': None, 'catalog_note': 'scoped import: 277,540 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 125 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'} first=['fred:BAMLH0A0HYM2', 'fred:DGS10', 'fred:T10Y2Y'] err=None
+- `00:28:25`   eurostat: total=8152 kinds={'dataset': 8152} hub={'datasets': 8191, 'series_count': 564204235, 'total_mb': 321818.87, 'freshest_h': 0.9, 'coverage_pct': 100.0, 'catalog_note': 'derived series store: 564,204,235 series across 1,128,408 pages (312.9 GB) — counted, not mirrored'} first=['eurostat:CENS_21COBHS_R3', 'eurostat:MIGR_RESBC12', 'eurostat:MIGR_RESBC13'] err=None
+- `00:28:25`   gdelt: total=100 kinds={} hub={'datasets': 402156, 'series_count': None, 'total_mb': 92119.34, 'freshest_h': 0.0, 'coverage_pct': None, 'catalog_note': 'FULL v2 EVENTS warehouse (gdelt-full v1): 397162 files · 39.77GB · cursor 20260902 · gaps 2 · phase V1 · v1 archive 4983/4986 · GKG/mentions scoped by design'} first=['gdelt:data/warm/gdelt-full/v1/2003.zip', 'gdelt:data/warm/gdelt-full/v1/2001.zip', 'gdelt:data/warm/gdelt-full/v1/1999.zip'] err=None
+- `00:28:26`   boj: total=66848 kinds={'dataset': 21, 'series': 66827} hub={'datasets': 17076, 'series_count': None, 'total_mb': 96.91, 'freshest_h': 0.1, 'coverage_pct': None, 'catalog_note': 'FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal · API universe: 22 dbs · 100547/120394 series · 16567 parts'} first=['boj:BP01', 'boj:BP01:BPBP6D1A', 'boj:BP01:BPBP6D1A1'] err=None
+- `00:28:27`   fred + 'unemployment rate': total=12706 first=['fred:UNRATE', 'fred:LNS14024887', 'fred:LNS14000006', 'fred:NROU', 'fred:CAUR']
+- `00:28:28` ✅   worker /explorer live: bls total=443357
+## S2 live page
+
+- `00:28:49`   shell: {"shell": true, "theme": "light", "wlInRail": true, "infoInRail": true, "rangebar": true, "symcard": "NVDA Stock\n      \n      \u2014\n      \u25cf Market data \u00b7 JustHodl warehouse\n      \n      ", "wlRows": 0, "mainRight": "384px"}
+- `00:28:53`   explorer: {"open": true, "providers": 61, "chips": 41}
+- `00:28:58`   fred rows: {"rows": 300, "count": "300 shown \u00b7 747,515 total", "first": "BAMLH0A0HYM2ICE BofA US High Yield Index Option-Adjusted SpreadFREDD \u00b7 %2023\u21922026-08+", "info": "BAMLH0A0HYM2ICE BofA US High Yield Index Option-Adjusted Spread\n      idfred:BAMLH0A0HYM2sourceFREDkindseriescadenceDuni"}
+- `00:29:11`   after double-click: {"active": "fred:DGS10", "meta": "FRED \u00b7 4.75 % +0.42% \u00b7 16,151 obs \u00b7 1962-01-02\u21922026-08-31 \u00b7 D \u00b7 warehouse", "closed": true, "card": "fred:DGS10 FRED\n      Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted "}
+- `00:29:17`   nyfed list {"rows": 10, "adds": 10, "count": "10 shown \u00b7 10 total"} -> + from explorer -> watchlist: ['nyfed:bgcr']
+- `00:29:26`   theme toggle: {"theme": "dark", "meta": "FRED \u00b7 4.75 % +0.42% \u00b7 16,151 obs \u00b7 1962-01-02\u21922026-08-31 \u00b7 "}
+- `00:29:35`   classic layout: {"shell": false, "leftHome": true, "leftOpen": true}
+## verdict
+
+- `00:29:37` ✅ PASS_ALL: TradingView shell live with the Data Explorer over every provider; double-click charts, + adds, classic layout one click away
