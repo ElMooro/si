@@ -277,6 +277,54 @@ body.tv-shell .tv-iconrail { display: flex; }
 .dx-empty { padding: 30px; text-align: center; color: var(--fg-4); font-size: 12.5px; }
 .tv-rail .dx-mini { flex: 1; overflow: auto; }
 .tv-rail .dx-mini .dx-prov { padding: 6px 12px; }
+.search-coverage {
+  flex: none; min-height: 36px; display: flex; align-items: center; gap: 14px;
+  padding: 5px 12px; border-bottom: 1px solid var(--border); background: var(--bg-1);
+  font-family: var(--font-mono); overflow-x: auto; scrollbar-width: thin;
+}
+.scov-state { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-2); white-space: nowrap; font-size: 10px; font-weight: 700; letter-spacing: .45px; }
+.scov-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fg-4); box-shadow: 0 0 0 3px rgba(149,152,161,.1); }
+.search-coverage.ready .scov-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(38,255,175,.1); }
+.search-coverage.delayed .scov-dot { background: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.1); }
+.search-coverage.stale .scov-dot, .search-coverage.error .scov-dot { background: var(--red); box-shadow: 0 0 0 3px rgba(255,77,106,.1); }
+.scov-metric { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; color: var(--fg-4); font-size: 9.5px; }
+.scov-metric b { color: var(--fg-0); font-size: 11px; font-weight: 700; }
+.scov-spacer { flex: 1; min-width: 10px; }
+.scov-refresh, .scov-details {
+  border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-2);
+  border-radius: 5px; padding: 3px 7px; font: 700 9.5px var(--font-mono); cursor: pointer; white-space: nowrap;
+}
+.scov-refresh:hover, .scov-details:hover { color: var(--cyan); border-color: var(--cyan); }
+.ai-index-strip {
+  flex: none; min-height: 29px; display: flex; align-items: center; gap: 8px; padding: 4px 12px;
+  border-top: 1px solid var(--border); background: var(--bg-1); color: var(--fg-4);
+  font: 9.5px var(--font-mono);
+}
+.ai-index-strip b { color: var(--violet); letter-spacing: .4px; }
+.ai-index-strip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-index-strip button { margin-left: auto; border: 0; background: transparent; color: var(--cyan); font: 700 9.5px var(--font-mono); cursor: pointer; white-space: nowrap; }
+.ai-index-modal { position: fixed; inset: 0; z-index: 1300; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,.62); }
+.ai-index-modal.open { display: flex; }
+.ai-index-card { width: min(1120px, 96vw); max-height: min(880px, 92vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-bright); border-radius: 12px; background: var(--bg); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+.ai-index-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-1); }
+.ai-index-head h2 { margin: 0; color: var(--fg-0); font: 700 14px var(--font-mono); letter-spacing: .4px; }
+.ai-index-head p { margin: 2px 0 0; color: var(--fg-4); font-size: 10.5px; }
+.ai-index-head .ai-index-actions { margin-left: auto; display: flex; gap: 7px; }
+.ai-index-head button { border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-2); border-radius: 6px; padding: 6px 9px; cursor: pointer; font: 700 10px var(--font-mono); }
+.ai-index-head button:hover { border-color: var(--cyan); color: var(--cyan); }
+.ai-index-body { overflow: auto; padding: 18px; color: var(--fg-2); line-height: 1.55; }
+.ai-index-live { display: grid; grid-template-columns: repeat(4, minmax(130px, 1fr)); gap: 8px; margin-bottom: 18px; }
+.ai-index-kpi { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-1); }
+.ai-index-kpi span { display: block; color: var(--fg-4); font: 9px var(--font-mono); text-transform: uppercase; letter-spacing: .5px; }
+.ai-index-kpi b { display: block; margin-top: 3px; color: var(--fg-0); font: 700 15px var(--font-mono); }
+.ai-index-body h3 { margin: 18px 0 7px; color: var(--fg-0); font: 700 12px var(--font-mono); }
+.ai-index-body h3:first-of-type { margin-top: 0; }
+.ai-index-body p { margin: 0 0 8px; }
+.ai-index-body ol, .ai-index-body ul { margin: 7px 0 10px 20px; }
+.ai-index-body li { margin: 4px 0; }
+.ai-index-body code { color: var(--violet); background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; font: 10.5px var(--font-mono); }
+.ai-index-body .ai-warning { padding: 9px 11px; border: 1px solid var(--amber); border-radius: 7px; background: rgba(251,191,36,.06); color: var(--fg-1); }
+.ai-index-body a { color: var(--cyan); }
 .hs-sources { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 6px; }
 .hs-src { font-family: var(--font-mono); font-size: 9px; color: var(--fg-3); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px; }
 .hs-src b { color: var(--violet); font-weight: 600; }
@@ -1481,6 +1529,15 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   .dx-box { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; width: 100vw; height: 100vh; border-radius: 0; }
   .dx-tree, .dx-info { display: none; }
   .search-modal-content { width: 100vw !important; }
+  .search-coverage { gap: 10px; padding-inline: 8px; }
+  .scov-spacer { display: none; }
+  .ai-index-strip { padding-inline: 8px; }
+  .ai-index-strip span { max-width: 58vw; }
+  .ai-index-modal { padding: 0; }
+  .ai-index-card { width: 100vw; height: 100vh; max-height: none; border-radius: 0; }
+  .ai-index-head { align-items: flex-start; }
+  .ai-index-head p { display: none; }
+  .ai-index-live { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 980px) {
   .app { grid-template-columns: 220px 1fr; }
@@ -1689,6 +1746,17 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   <main class="main-area">
     <!-- Chart tabs (multiple charts, click to switch) -->
     <div class="chart-tabs" id="chart-tabs"></div>
+    <section class="search-coverage" id="search-coverage" aria-label="Universal search coverage">
+      <span class="scov-state"><i class="scov-dot"></i><span id="scov-state" role="status" aria-live="polite">SEARCH COVERAGE LOADING</span></span>
+      <span class="scov-metric"><b id="scov-providers">—</b> providers</span>
+      <span class="scov-metric"><b id="scov-documents">—</b> FTS records</span>
+      <span class="scov-metric"><b id="scov-assets">—</b> stored assets</span>
+      <span class="scov-metric"><b id="scov-storage">—</b> inventoried</span>
+      <span class="scov-metric"><b id="scov-refreshed">—</b> refreshed</span>
+      <span class="scov-spacer"></span>
+      <button class="scov-refresh" id="scov-refresh" type="button" aria-label="Refresh search coverage" title="Reload the public search manifest and probe live search">↻</button>
+      <button class="scov-details" id="scov-details" type="button">HOW IT IS INDEXED</button>
+    </section>
     
     <div class="chart-toolbar">
       <div class="symbol-header" id="symbol-header">
@@ -1766,6 +1834,11 @@ html, body { max-width: 100vw; overflow-x: hidden; }
       <span class="strip-label">Live Signals:</span>
       <span class="strip-sig" style="color:var(--fg-3)">Loading...</span>
     </div>
+    <footer class="ai-index-strip">
+      <b>NOTE FOR AI MAINTAINERS</b>
+      <span>The storage figure comes from exact S3 object bytes, while searchable assets, entity references, normalized series and hierarchical series use different index paths.</span>
+      <button type="button" id="ai-index-open">READ INDEXING GUIDE</button>
+    </footer>
   </main>
   
   <!-- ─── RIGHT SIDEBAR: Info Panel ─── -->
@@ -1784,6 +1857,107 @@ html, body { max-width: 100vw; overflow-x: hidden; }
       <!-- Overview tab content (default) -->
     </div>
   </aside>
+</div>
+
+<!--
+  AI MAINTAINER ENTRY POINT:
+  The visible guide below documents the complete universal-search contract.
+  Never hard-code catalog totals in Chart Pro. SearchCoverage fetches the generation-bound
+  public manifest at /data/search/provider-shards.json and renders exact current values.
+-->
+<div class="ai-index-modal" id="ai-index-modal" role="dialog" aria-modal="true" aria-labelledby="ai-index-title">
+  <article class="ai-index-card">
+    <header class="ai-index-head">
+      <div>
+        <h2 id="ai-index-title">HOW JUSTHODL UNIVERSAL SEARCH IS INDEXED</h2>
+        <p>Maintainer contract for humans and AI agents. Live values come from the current generation manifest.</p>
+      </div>
+      <div class="ai-index-actions">
+        <button type="button" id="ai-index-copy">COPY GUIDE</button>
+        <button type="button" id="ai-index-close">CLOSE</button>
+      </div>
+    </header>
+    <div class="ai-index-body" id="ai-index-guide">
+      <div class="ai-index-live" aria-label="Current search generation">
+        <div class="ai-index-kpi"><span>Providers</span><b data-scov="providers">—</b></div>
+        <div class="ai-index-kpi"><span>FTS records</span><b data-scov="documents">—</b></div>
+        <div class="ai-index-kpi"><span>Inventory bytes</span><b data-scov="storage">—</b></div>
+        <div class="ai-index-kpi"><span>Generated</span><b data-scov="generated">—</b></div>
+      </div>
+
+      <h3>Purpose and source of truth</h3>
+      <p>Chart Pro does not crawl <code>data.html</code> in the browser. The provider-catalog Lambda builds the machine-readable catalog, provider shards and one SQLite FTS5 database from AWS inventory and provider registries. The public generation manifest is <code>/data/search/provider-shards.json</code>. It is the source of truth for provider counts, index counts, exact storage bytes, shard keys, the generation timestamp and the FTS database checksum.</p>
+      <p>The human catalog at <code>https://justhodl.ai/data.html</code> is a presentation layer. Its machine-readable companion is <code>https://justhodl.ai/data/provider-catalog.json</code>. Do not scrape rendered HTML and do not copy a displayed total into JavaScript.</p>
+
+      <h3>What one search generation contains</h3>
+      <ul>
+        <li><code>provider_rows</code>: one navigational record for each provider.</li>
+        <li><code>assets</code>: meaningful stored S3 files or datasets that users can locate and inspect.</li>
+        <li><code>entity_refs</code>: first-class registry entities, including every Indicator Bus entry and every LIVE TradingView Vault instrument. These are searchable references, not raw files.</li>
+        <li><code>series_refs</code>: normalized chartable time series with stable IDs such as <code>FRED:DGS10</code>.</li>
+        <li><code>hierarchical_series</code>: enormous provider-native universes, currently Eurostat and ECB, queried through prefix/browse endpoints instead of materializing hundreds of millions of rows into the global FTS dropdown.</li>
+      </ul>
+
+      <h3>How total storage coverage is obtained</h3>
+      <p>For each ordinary provider, the catalog build inventories the provider's S3 keys and sums the exact object byte sizes into <code>total_bytes</code>. Provider bytes are summed into <code>coverage.storage_bytes</code>; object counts are summed into <code>coverage.storage_objects</code>. The UI converts exact bytes to decimal GB only for display. It never reconstructs bytes from rounded MB.</p>
+      <div class="ai-warning"><b>Important:</b> storage objects are not the same thing as searchable datasets. Internal manifests, compressed pages, pagination shards and hierarchical storage can increase <code>storage_objects</code> without creating a useful search result. “Inventory covered” means the full byte inventory is reconciled to a provider and covered by the correct access path. It does not mean every internal S3 object is shown as a dropdown row.</div>
+
+      <h3>Required count invariants</h3>
+      <ul>
+        <li><code>documents = sum(shard.count)</code></li>
+        <li><code>indexed_assets = sum(shard.assets)</code></li>
+        <li><code>indexed_entity_refs = sum(shard.entity_refs)</code></li>
+        <li><code>indexed_series_refs = sum(shard.series_refs)</code></li>
+        <li>Catalog provider bytes must equal <code>coverage.storage_bytes</code>; catalog object counts must equal <code>coverage.storage_objects</code>.</li>
+        <li>Eurostat and ECB hierarchical counts must be nonzero and must equal their live series-manifest counts.</li>
+      </ul>
+
+      <h3>Runtime request path</h3>
+      <ol>
+        <li>Chart Pro calls <code>/symsearch?q=...&amp;provider=...&amp;limit=...</code>.</li>
+        <li>The symdir Lambda queries the validated SQLite FTS5 generation and merges normalized/native results where necessary.</li>
+        <li>Exact title, full ID and provider-qualified ID matches rank before provider rows, prefix matches and incidental metadata mentions.</li>
+        <li>A normalized series opens the chart. A raw asset or entity reference opens Data Explorer with its provider and selected query preserved. A hierarchical dataset opens its provider-native series browser.</li>
+      </ol>
+
+      <h3>How to add or repair a provider</h3>
+      <ol>
+        <li>Update the provider-catalog Lambda so the provider emits exact <code>total_bytes</code>, storage-object count and the correct mix of assets, entity references and series references.</li>
+        <li>Give every result a stable unique ID, provider slug, kind, name and truthful <code>raw</code>/<code>chartable</code> behavior. Never disguise an entity reference as a stored file.</li>
+        <li>If the series universe is too large for FTS, publish a live hierarchical manifest and implement prefix/browse access. Do not inject internal pagination objects into global search.</li>
+        <li>Build provider shards by streaming rows, then build the SQLite database. Upload the database to a generation-specific key with size and SHA-256 metadata. Publish the manifest last so readers never observe a mixed generation.</li>
+        <li>Update symdir mapping only if a new kind or access path is introduced. Preserve exact-match ranking and deduplicate native/warehouse rows before calculating facets.</li>
+      </ol>
+
+      <h3>Files future agents should inspect first</h3>
+      <ul>
+        <li><code>aws/lambdas/justhodl-provider-catalog/source/lambda_function.py</code>: inventory, entity expansion, provider shards, FTS build and coverage manifest.</li>
+        <li><code>aws/lambdas/justhodl-symdir/source/lambda_function.py</code>: query execution, ranking, deduplication, facets and Data Explorer contracts.</li>
+        <li><code>aws/lambdas/justhodl-symdir/tests/test_universal_provider_search.py</code>: regression and result-behavior tests.</li>
+        <li><code>aws/ops/ran/ops_5160_complete_catalog_search.py</code>: production acceptance contract from the completed universal-search rollout. Copy it to a new pending operation instead of silently editing historical evidence.</li>
+        <li><code>.github/workflows/pages.yml</code>: commit-specific Pages stamp and build manifest used to prove the tested frontend revision is live.</li>
+        <li><code>chart-pro.html</code>: <code>SymDir</code>, <code>DataExplorer</code> and <code>SearchCoverage</code> are the frontend entry points.</li>
+      </ul>
+
+      <h3>Safe rebuild and release checklist</h3>
+      <ol>
+        <li>Run Python compilation, focused universal-search tests and <code>git diff --check</code>.</li>
+        <li>Test an exact normalized series, a raw asset, an Indicator Bus entity, a TradingView Vault entity and both hierarchical providers.</li>
+        <li>Deploy the catalog and symdir Lambdas. Let the catalog publish a complete generation before symdir swaps its cached database.</li>
+        <li>Deploy Pages from the exact target commit. Verify the public build manifest commit and the <code>jh-build-commit</code> stamp.</li>
+        <li>Run a new production acceptance operation and require exact storage reconciliation, nonzero hierarchy counts, unique result IDs and correct result behavior.</li>
+      </ol>
+
+      <h3>Rules that prevent future regressions</h3>
+      <ul>
+        <li>Never hard-code provider, dataset, storage or index totals in this page. Render the public manifest.</li>
+        <li>Never compare a transformed Pages artifact byte-for-byte with raw source HTML. Verify the commit stamp and transformed build manifest.</li>
+        <li>Never publish a constant S3 database key before its manifest. Use a generation-specific key and publish the manifest atomically last.</li>
+        <li>Never swallow search errors as an empty result without showing degraded status.</li>
+        <li>Never claim all storage objects are independent datasets. Report each coverage layer by its own name.</li>
+      </ul>
+    </div>
+  </article>
 </div>
 
 <!-- ═══════════════ MODALS ═══════════════ -->
@@ -2507,6 +2681,133 @@ class DataExplorer {
       ps.map(p => { const c = p.in_directory || {}; const n = (c.series || 0) + (c.dataset || 0) + (c.instrument || 0); return `<div class="dx-prov" data-prov="${UI.esc(p.slug)}"><div><div class="dx-prov-name">${UI.esc(p.name || p.slug)}</div><div class="dx-prov-sub">${UI.esc(p.api || '')}${p.freshest_h != null ? ' · ' + p.freshest_h + 'h' : ''}</div></div><div class="dx-prov-n">${n ? this.fmtN(n) : this.fmtN(p.datasets || 0)}</div></div>`; }).join('');
     document.getElementById('dx-mini-open').addEventListener('click', () => this.open());
     host.querySelectorAll('.dx-prov').forEach(el => el.addEventListener('click', () => this.open(el.dataset.prov)));
+  }
+}
+
+// Universal-search coverage is rendered from the generation manifest. Never hard-code these totals.
+class SearchCoverage {
+  static manifest = null;
+  static endpoint = `${PROXY}/data/search/provider-shards.json`;
+  static probeEndpoint = `${PROXY}/symsearch?q=${encodeURIComponent('FRED:DGS10')}&limit=5`;
+  static _returnFocus = null;
+  static _inerted = [];
+  static fmtN(n) { return Number.isFinite(Number(n)) ? Number(n).toLocaleString() : '—'; }
+  static fmtBytes(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return '—';
+    return `${(v / 1e9).toFixed(2)} GB`;
+  }
+  static fmtAge(iso) {
+    const t = Date.parse(iso || '');
+    if (!Number.isFinite(t)) return { text: 'unknown', hours: Infinity };
+    const hours = Math.max(0, (Date.now() - t) / 36e5);
+    if (hours < 1) return { text: `${Math.max(1, Math.round(hours * 60))}m ago`, hours };
+    if (hours < 48) return { text: `${Math.round(hours)}h ago`, hours };
+    return { text: `${Math.round(hours / 24)}d ago`, hours };
+  }
+  static setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+  static setGuide(key, value) { document.querySelectorAll(`[data-scov="${key}"]`).forEach(el => { el.textContent = value; }); }
+  static validateManifest(d) {
+    const c = d && d.coverage;
+    const shards = d && d.shards;
+    if (!c || !Array.isArray(shards) || !d.index || !d.index.key || !d.index.sha256) throw new Error('manifest is incomplete');
+    const sum = key => shards.reduce((n, s) => n + Number(s[key] || 0), 0);
+    if (Number(d.providers) !== shards.length) throw new Error('provider count invariant failed');
+    if (Number(d.documents) !== sum('count')) throw new Error('document count invariant failed');
+    if (Number(c.indexed_assets) !== sum('assets')) throw new Error('asset count invariant failed');
+    if (Number(c.indexed_entity_refs) !== sum('entity_refs')) throw new Error('entity count invariant failed');
+    if (Number(c.indexed_series_refs) !== sum('series_refs')) throw new Error('series count invariant failed');
+    if (!(Number(c.storage_bytes) > 0) || !(Number(c.storage_objects) > 0)) throw new Error('storage coverage invariant failed');
+    if (!(Number(c.hierarchical_series && c.hierarchical_series.eurostat) > 0) || !(Number(c.hierarchical_series && c.hierarchical_series.ecb) > 0)) throw new Error('hierarchical coverage invariant failed');
+  }
+  static async load(force = false) {
+    const bar = document.getElementById('search-coverage');
+    if (!bar) return;
+    bar.className = 'search-coverage';
+    this.setText('scov-state', force ? 'REFRESHING COVERAGE' : 'SEARCH COVERAGE LOADING');
+    try {
+      const sep = this.endpoint.includes('?') ? '&' : '?';
+      const [response, probeResponse] = await Promise.all([
+        fetch(`${this.endpoint}${sep}ts=${Date.now()}`, { cache: 'no-store' }),
+        fetch(`${this.probeEndpoint}&ts=${Date.now()}`, { cache: 'no-store' })
+      ]);
+      if (!response.ok) throw new Error(`manifest HTTP ${response.status}`);
+      if (!probeResponse.ok) throw new Error(`live search HTTP ${probeResponse.status}`);
+      const [d, probe] = await Promise.all([response.json(), probeResponse.json()]);
+      if (!d || !d.generated_at) throw new Error('manifest missing generation timestamp');
+      this.validateManifest(d);
+      const probeReady = Array.isArray(probe && probe.rows) && !probe.error && probe.rows.some(r => String(r.id || '').toUpperCase() === 'FRED:DGS10');
+      if (!probeReady) throw new Error('live search probe did not return FRED:DGS10');
+      this.manifest = d;
+      const c = d.coverage;
+      const age = this.fmtAge(d.generated_at);
+      const status = age.hours < 26 ? 'ready' : (age.hours < 72 ? 'delayed' : 'stale');
+      bar.classList.add(status);
+      this.setText('scov-state', status === 'ready' ? 'SEARCH INDEX READY' : (status === 'delayed' ? 'SEARCH REFRESH DELAYED' : 'SEARCH INDEX STALE'));
+      this.setText('scov-providers', this.fmtN(d.providers));
+      this.setText('scov-documents', this.fmtN(d.documents));
+      this.setText('scov-assets', this.fmtN(c.indexed_assets));
+      this.setText('scov-storage', this.fmtBytes(c.storage_bytes));
+      this.setText('scov-refreshed', age.text);
+      this.setGuide('providers', this.fmtN(d.providers));
+      this.setGuide('documents', this.fmtN(d.documents));
+      this.setGuide('storage', `${this.fmtN(c.storage_bytes)} B`);
+      this.setGuide('generated', new Date(d.generated_at).toLocaleString());
+      bar.title = `${this.fmtN(c.catalog_datasets)} catalog datasets · ${this.fmtN(c.storage_objects)} storage objects · ${this.fmtN(c.indexed_entity_refs)} entity refs · ${this.fmtN(c.indexed_series_refs)} normalized series refs · Eurostat ${this.fmtN(c.hierarchical_series && c.hierarchical_series.eurostat)} · ECB ${this.fmtN(c.hierarchical_series && c.hierarchical_series.ecb)}`;
+    } catch (err) {
+      bar.classList.add('error');
+      this.setText('scov-state', 'SEARCH COVERAGE UNAVAILABLE');
+      this.setText('scov-refreshed', 'retry needed');
+      bar.title = `Could not load ${this.endpoint}: ${err && err.message ? err.message : err}`;
+    }
+  }
+  static openGuide(trigger = document.activeElement) {
+    const modal = document.getElementById('ai-index-modal');
+    if (!modal || modal.classList.contains('open')) return;
+    this._returnFocus = trigger instanceof HTMLElement ? trigger : null;
+    this._inerted = [...document.body.children].filter(el => el !== modal && !['SCRIPT', 'STYLE'].includes(el.tagName)).map(el => [el, el.inert]);
+    this._inerted.forEach(([el]) => { el.inert = true; });
+    modal.classList.add('open');
+    document.getElementById('ai-index-close')?.focus();
+  }
+  static closeGuide() {
+    const modal = document.getElementById('ai-index-modal');
+    if (!modal || !modal.classList.contains('open')) return;
+    modal.classList.remove('open');
+    this._inerted.forEach(([el, wasInert]) => { el.inert = wasInert; });
+    this._inerted = [];
+    this._returnFocus?.focus();
+    this._returnFocus = null;
+  }
+  static guideText() {
+    const body = document.getElementById('ai-index-guide');
+    return body ? `JUSTHODL UNIVERSAL SEARCH INDEXING GUIDE\n\n${body.innerText.trim()}\n\nLive manifest: ${this.endpoint}\nProvider catalog: https://justhodl.ai/data/provider-catalog.json` : '';
+  }
+  static init() {
+    document.getElementById('scov-refresh')?.addEventListener('click', () => this.load(true));
+    document.getElementById('scov-details')?.addEventListener('click', e => this.openGuide(e.currentTarget));
+    document.getElementById('ai-index-open')?.addEventListener('click', e => this.openGuide(e.currentTarget));
+    document.getElementById('ai-index-close')?.addEventListener('click', () => this.closeGuide());
+    document.getElementById('ai-index-modal')?.addEventListener('click', e => { if (e.target.id === 'ai-index-modal') this.closeGuide(); });
+    document.getElementById('ai-index-modal')?.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); this.closeGuide(); return; }
+      if (e.key !== 'Tab') return;
+      const focusable = [...e.currentTarget.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled && el.offsetParent);
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    document.getElementById('ai-index-copy')?.addEventListener('click', async e => {
+      const text = this.guideText();
+      try {
+        await navigator.clipboard.writeText(text);
+        const old = e.currentTarget.textContent;
+        e.currentTarget.textContent = 'COPIED';
+        setTimeout(() => { e.currentTarget.textContent = old; }, 1400);
+      } catch (_) { prompt('Copy the indexing guide:', text); }
+    });
+    this.load();
   }
 }
 
@@ -7572,7 +7873,7 @@ async function init() {
   const searchInput = document.getElementById('search-input');
   HeaderSearch.init();
   DatasetBrowser.init(); SymDir.loadInstruments();  // ops 5117: symbol directory (instant instruments + dataset browser)
-  DataExplorer.init(); TVShell.init();               // ops 5153: TradingView shell + Data Explorer
+  DataExplorer.init(); TVShell.init(); SearchCoverage.init(); // Data Explorer + live universal-search coverage
   // reset selection when starting a new search
   searchInput.addEventListener('input', () => { HeaderSearch.sel = 0; });
   document.getElementById('search-modal-input').addEventListener('input', (e) => {
@@ -7608,6 +7909,7 @@ async function init() {
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
       MacroData.close(); DatasetBrowser.close(); DataExplorer.close(); CorrelationMatrix.close(); Basket.close(); AlertCenter.close();
+      SearchCoverage.closeGuide();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }
