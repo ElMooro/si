@@ -262,12 +262,16 @@ def main():
         r.log("  Pages deployment sha=%s id=%s state=%s"
               % (pages.get("sha"), pages.get("deployment_id"),
                  pages.get("state")))
-        marker = b"OPS5156_UNIVERSAL_SEARCH_V1"
+        marker = b"OPS5159_UNIVERSAL_SEARCH_V2"
         live = False
         for _ in range(40):
             req = urllib.request.Request(
                 "https://justhodl.ai/chart-pro.html?v=" + str(int(time.time())),
-                headers={"Cache-Control": "no-cache"})
+                headers={
+                    "Accept-Encoding": "identity",
+                    "Cache-Control": "no-cache",
+                    "User-Agent": "justhodl-ops-5159",
+                })
             try:
                 with urllib.request.urlopen(req, timeout=60) as res:
                     if marker in res.read():
