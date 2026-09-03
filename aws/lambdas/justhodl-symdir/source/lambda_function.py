@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.8.0"
+VERSION = "1.8.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2733,16 +2733,34 @@ def explorer(qs):
         total += 1
         if total > offset and len(rows) < limit:
             rows.append(doc_row(d))
-    if total == 0 and not toks:
+    if total == 0:
+        # providers the directory does not index (gdelt: 402k daily event files) list from their hub catalog:
+        # the first list-of-records field wins; a list of S3 keys becomes one row per key
         cat = _get_json("data/providers/%s.json" % prov) or {}
-        items = cat.get("datasets") or cat.get("items") or cat.get("files") or []
-        if isinstance(items, dict):
-            items = [dict(v, id=k) if isinstance(v, dict) else {"id": k, "name": str(v)} for k, v in items.items()]
+        items = []
+        for k, v in cat.items():
+            if isinstance(v, list) and v and isinstance(v[0], dict):
+                items = v
+                break
+        if not items:
+            for k, v in cat.items():
+                if isinstance(v, dict) and len(v) > 3 and k in ("datasets", "series", "flows", "files", "keys"):
+                    items = [dict(x, id=kk) if isinstance(x, dict) else {"id": kk, "name": str(x)[:120]} for kk, x in v.items()]
+                    break
+        if not items:
+            for k, v in cat.items():
+                if isinstance(v, list) and v and isinstance(v[0], str):
+                    items = [{"id": x.rsplit("/", 1)[-1], "name": x, "key": x} for x in v]
+                    break
+        if toks:
+            items = [it for it in items if all(t in (json.dumps(it, default=str).lower()) for t in toks)]
         total = len(items)
         for it in items[offset:offset + limit]:
-            rows.append({"id": "%s:%s" % (prov, it.get("id") or it.get("key") or it.get("name")), "symbol": it.get("id") or it.get("key") or "", "name": it.get("name") or it.get("title") or it.get("id") or "",
+            iid = str(it.get("id") or it.get("key") or it.get("name") or it.get("slug") or "")
+            rows.append({"id": "%s:%s" % (prov, iid), "symbol": iid[:80], "name": str(it.get("name") or it.get("title") or it.get("key") or iid)[:200],
                          "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": "dataset", "chartable": False, "browse": False,
-                         "first": it.get("first"), "last": it.get("last") or it.get("updated"), "n": it.get("rows") or it.get("n"), "mb": it.get("mb") or it.get("size_mb")})
+                         "first": it.get("first") or it.get("first_obs"), "last": it.get("last") or it.get("last_obs") or it.get("updated") or it.get("modified"), "n": it.get("rows") or it.get("n") or it.get("series"),
+                         "mb": it.get("mb") or it.get("size_mb") or (round(it["bytes"] / 1e6, 2) if isinstance(it.get("bytes"), (int, float)) else None)})
     facets = defaultdict(int)
     for d in docs:
         if d[D_PROV] == prov:
