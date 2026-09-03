@@ -203,10 +203,11 @@ with report("ops_5176_heatmap_browser_qa") as R:
                 FAILS.append("P2 category/inert")
 
             # P2 search + add
-            pg.fill("#hm-search-input", "gold")
+            pg.fill("#hm-search-input", "GLD")
             pg.wait_for_selector("#heatmap-body .macro-sr", timeout=15000)
             n_results = pg.evaluate("() => document.querySelectorAll('#heatmap-body .macro-sr').length")
-            pg.click("#heatmap-body .macro-sr [data-add-result]")
+            pick = pg.evaluate("() => { const rows = [...document.querySelectorAll('#heatmap-body .macro-sr')]; const r = rows.find(x => x.dataset.symbol === 'GLD') || rows.find(x => !x.dataset.symbol.includes(':')) || rows[0]; return r ? r.dataset.resultIndex : null; }")
+            pg.click("#heatmap-body .macro-sr[data-result-index='%s'] [data-add-result]" % pick)
             pg.wait_for_selector("#hm-editor-modal.open", timeout=5000)
             selected = pg.evaluate("() => document.getElementById('hm-selected-instrument').textContent")
             pg.select_option("#hm-instrument-category", label=pg.evaluate("() => [...document.querySelectorAll('#hm-instrument-category option')].find(o => o.textContent.includes('QA Basket')).textContent"))
@@ -230,6 +231,11 @@ with report("ops_5176_heatmap_browser_qa") as R:
             elif not flash.get("danger") and flash.get("ch") not in ("—", "0.00%", "+0.00%"):
                 FAILS.append("P3 danger rule did not flash: %s" % flash)
 
+            # seed three more instruments into QA Basket so reorder has room to move
+            pg.evaluate("""() => { const c = Heatmap.state.categories.find(x => x.cat === 'QA Basket');
+                ['SPY', 'QQQ', 'IWM'].forEach((sym, i) => { if (!c.items.some(it => it.symbol === sym)) c.items.push({ uid: 'qa-' + sym, symbol: sym, title: sym, kind: 'etf', provider: 'market', danger: { type: 'none', threshold: null, horizon: 'D' } }); });
+                Heatmap.save(); Heatmap.render(); }""")
+            pg.wait_for_timeout(800)
             # P4 keyboard reorder: first editable category, first handle ArrowRight
             order_before = pg.evaluate("() => { const st = JSON.parse(localStorage.getItem('jh_heatmap_workspace_v3')); const c = st.categories.find(x => !x.auto && x.items.length > 2); return c ? {id: c.id, syms: c.items.map(i => i.symbol)} : null; }")
             pg.focus("#heatmap-body .hm-sector[data-category-id='%s'] .hm-cell:first-child .macro-drag-handle" % order_before["id"])
