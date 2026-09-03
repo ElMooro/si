@@ -1083,6 +1083,9 @@ body.tv-shell .tv-iconrail { display: flex; }
 .macro-item .mi-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); display: flex; gap: 8px; }
 .macro-item .mi-id { color: var(--violet); }
 .macro-head-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.macro-reorder-hint {
+  color:var(--fg-4); font:500 9px/1.25 var(--font-mono); white-space:nowrap;
+}
 .macro-manage-btn {
   border:1px solid var(--border); background:var(--bg-2); color:var(--fg-2);
   border-radius:5px; padding:6px 9px; font:700 9px/1 var(--font-mono);
@@ -1102,6 +1105,25 @@ body.tv-shell .tv-iconrail { display: flex; }
 }
 .macro-icon-btn:hover, .macro-icon-btn:focus-visible { color:var(--cyan); border-color:var(--border-bright); outline:none; }
 .macro-icon-btn.remove:hover, .macro-icon-btn.remove:focus-visible { color:var(--red); border-color:var(--red); }
+.macro-drag-handle {
+  border:1px solid transparent; color:var(--fg-4); width:25px; height:23px;
+  display:inline-grid; place-items:center; border-radius:4px; cursor:grab;
+  font:700 13px/1 var(--font-mono); background:transparent; touch-action:none;
+}
+.macro-drag-handle:hover, .macro-drag-handle:focus-visible {
+  color:var(--cyan); border-color:var(--border-bright); outline:none;
+}
+.macro-drag-handle:active { cursor:grabbing; }
+.macro-cat.dragging, .macro-item.dragging { opacity:.35; }
+.macro-cat.drag-before { box-shadow:0 -3px 0 var(--cyan); }
+.macro-cat.drag-after { box-shadow:0 3px 0 var(--cyan); }
+.macro-item.drag-before { box-shadow:-3px 0 0 var(--cyan); border-color:var(--cyan); }
+.macro-item.drag-after { box-shadow:3px 0 0 var(--cyan); border-color:var(--cyan); }
+.macro-grid.series-drop-target {
+  outline:1px dashed var(--cyan); outline-offset:4px; min-height:54px;
+  background:rgba(34,211,238,.025);
+}
+body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-item { position:relative; min-height:98px; padding-right:34px; }
 .macro-item .mi-title { padding-right:2px; }
 .macro-item-tools {
@@ -1211,9 +1233,11 @@ body.tv-shell .tv-iconrail { display: flex; }
   #macro-modal .heatmap-title { width:calc(100% - 36px); }
   #macro-modal .heatmap-header > div:nth-child(2) { order:3; width:100%; margin:6px 0 0 !important; flex-wrap:wrap; }
   .macro-head-actions { width:100%; }
+  .macro-reorder-hint { width:100%; }
   .macro-body { padding:11px; }
   .macro-grid { grid-template-columns:1fr; }
   .macro-cat-tools, .macro-item-tools { opacity:1; }
+  .macro-drag-handle { width:29px; height:27px; }
   .macro-form-row { grid-template-columns:1fr; }
   .macro-picker-row { grid-template-columns:95px 1fr; }
   .macro-picker-provider { display:none; }
@@ -2249,6 +2273,7 @@ html, body { max-width: 100vw; overflow-x: hidden; }
       <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
         <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
         <div class="macro-head-actions">
+          <span class="macro-reorder-hint">⠿ DRAG TO REORDER · ARROWS ON HANDLE</span>
           <button class="macro-manage-btn" id="macro-add-series" type="button">+ SERIES</button>
           <button class="macro-manage-btn" id="macro-add-category" type="button">+ CATEGORY</button>
           <button class="macro-manage-btn danger" id="macro-reset" type="button" title="Restore the original curated catalog">RESET</button>
@@ -2576,7 +2601,7 @@ function jhGroupN(bars, n) {
 }
 function jhToast(msg) {
   let el = document.getElementById('jh-toast');
-  if (!el) { el = document.createElement('div'); el.id = 'jh-toast'; el.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg-1);border:1px solid var(--green);color:var(--fg-0);padding:8px 14px;border-radius:8px;font:12px var(--font-mono);z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none'; document.body.appendChild(el); }
+  if (!el) { el = document.createElement('div'); el.id = 'jh-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg-1);border:1px solid var(--green);color:var(--fg-0);padding:8px 14px;border-radius:8px;font:12px var(--font-mono);z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none'; document.body.appendChild(el); }
   el.textContent = msg; el.style.display = 'block'; clearTimeout(el._t); el._t = setTimeout(() => { el.style.display = 'none'; }, 2200);
 }
 class SymDir {
@@ -5376,6 +5401,8 @@ class MacroData {
   static pickerTimer = null;
   static editorTrigger = null;
   static modalTrigger = null;
+  static dragState = null;
+  static pointerDrag = null;
 
   static init() {
     this.load();
@@ -5474,6 +5501,7 @@ class MacroData {
   static close() {
     const modal = document.getElementById('macro-modal');
     const wasOpen = modal.classList.contains('open');
+    this.clearDrag();
     this.renderToken++;
     this.searchSeq++;
     if (this.metricObserver) this.metricObserver.disconnect();
@@ -5493,6 +5521,7 @@ class MacroData {
   }
 
   static renderCatalog() {
+    this.clearDrag();
     if (this.metricObserver) this.metricObserver.disconnect();
     const body = document.getElementById('macro-body');
     const html = this.state.categories.map(cat => {
@@ -5508,21 +5537,31 @@ class MacroData {
             ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
           </div>
           <span class="macro-item-tools">
+            <button class="macro-drag-handle" type="button" draggable="true"
+              data-drag-series="${UI.esc(it.uid)}" data-category-id="${UI.esc(cat.id)}"
+              aria-label="Reorder ${UI.esc(it.title)}. Use arrow keys to move; Control plus Up or Down moves between categories."
+              title="Drag to reorder or move between categories">⠿</button>
             <button class="macro-icon-btn" type="button" data-macro-action="edit-series" aria-label="Edit ${UI.esc(it.title)}">✎</button>
             <button class="macro-icon-btn remove" type="button" data-macro-action="remove-series" aria-label="Remove ${UI.esc(it.title)}">×</button>
           </span>
         </div>`;
       }).join('') || `<div class="macro-empty-cat">No series yet. Use + to add one from any indexed provider.</div>`;
-      return `<div class="macro-cat">
+      return `<div class="macro-cat" data-category-id="${UI.esc(cat.id)}">
         <div class="macro-cat-name">
-          <span class="macro-cat-label"><span class="mc-flag">${UI.esc(cat.flag)}</span><span>${UI.esc(cat.cat)}</span><span class="macro-cat-count">${cat.items.length}</span></span>
+          <span class="macro-cat-label">
+            <button class="macro-drag-handle" type="button" draggable="true"
+              data-drag-category="${UI.esc(cat.id)}"
+              aria-label="Reorder ${UI.esc(cat.cat)} category. Use Up or Down arrow keys to move."
+              title="Drag category to reorder">⠿</button>
+            <span class="mc-flag">${UI.esc(cat.flag)}</span><span>${UI.esc(cat.cat)}</span><span class="macro-cat-count">${cat.items.length}</span>
+          </span>
           <span class="macro-cat-tools">
             <button class="macro-icon-btn" type="button" data-macro-action="add-series" data-category-id="${UI.esc(cat.id)}" aria-label="Add series to ${UI.esc(cat.cat)}">+</button>
             <button class="macro-icon-btn" type="button" data-macro-action="edit-category" data-category-id="${UI.esc(cat.id)}" aria-label="Edit ${UI.esc(cat.cat)}">✎</button>
             <button class="macro-icon-btn remove" type="button" data-macro-action="remove-category" data-category-id="${UI.esc(cat.id)}" aria-label="Remove ${UI.esc(cat.cat)}">×</button>
           </span>
         </div>
-        <div class="macro-grid">${items}</div>
+        <div class="macro-grid" data-category-id="${UI.esc(cat.id)}">${items}</div>
       </div>`;
     }).join('') || `<div class="macro-empty-cat">No categories yet. Select + CATEGORY to create your first monitoring group.</div>`;
     body.innerHTML = html;
@@ -5553,7 +5592,269 @@ class MacroData {
       if (action === 'edit-category') this.openCategoryEditor(categoryId, btn);
       if (action === 'remove-category') this.removeCategory(categoryId);
     }));
+    this.wireReordering(body);
     this.hydrateMetrics();
+  }
+
+  static wireReordering(body) {
+    body.querySelectorAll('.macro-drag-handle').forEach(handle => {
+      handle.addEventListener('click', e => e.stopPropagation());
+      handle.addEventListener('keydown', e => this.onReorderKey(e, handle));
+      handle.addEventListener('dragstart', e => {
+        this.beginDrag(handle);
+        if (!this.dragState) { e.preventDefault(); return; }
+        e.stopPropagation();
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dragState.id);
+        requestAnimationFrame(() => this.dragState && this.dragState.sourceEl.classList.add('dragging'));
+      });
+      handle.addEventListener('dragend', () => this.clearDrag());
+      handle.addEventListener('pointerdown', e => this.beginPointerDrag(e, handle));
+    });
+    if (!body.dataset.macroReorderDelegated) {
+      body.dataset.macroReorderDelegated = 'true';
+      body.addEventListener('dragover', e => {
+        if (!this.dragState) return;
+        const target = this.dropTarget(e.target, e.clientX, e.clientY);
+        if (!target) {
+          this.clearDropTarget();
+          return;
+        }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        this.showDropTarget(target);
+      });
+      body.addEventListener('drop', e => {
+        if (!this.dragState) return;
+        const target = this.dropTarget(e.target, e.clientX, e.clientY);
+        if (!target) { this.clearDrag(); return; }
+        e.preventDefault();
+        this.commitDrop(target);
+      });
+    }
+  }
+
+  static beginDrag(handle) {
+    const categoryId = handle.dataset.dragCategory;
+    const seriesId = handle.dataset.dragSeries;
+    if (categoryId) {
+      this.dragState = {
+        type: 'category', id: categoryId,
+        sourceEl: handle.closest('.macro-cat'), target: null,
+      };
+    } else if (seriesId) {
+      this.dragState = {
+        type: 'series', id: seriesId, fromCategory: handle.dataset.categoryId,
+        sourceEl: handle.closest('.macro-item'), target: null,
+      };
+    }
+  }
+
+  static beginPointerDrag(e, handle) {
+    if (e.pointerType === 'mouse' || e.button !== 0) return;
+    e.stopPropagation();
+    this.clearDrag();
+    const macroBody = document.getElementById('macro-body');
+    let lastX = e.clientX;
+    let lastY = e.clientY;
+    let autoScrollFrame = 0;
+    this.pointerDrag = {
+      handle, pointerId: e.pointerId, x: e.clientX, y: e.clientY,
+      active: false, cleanup: null,
+    };
+    handle.setPointerCapture(e.pointerId);
+    const updateTarget = (clientX, clientY) => {
+      const node = document.elementFromPoint(clientX, clientY);
+      const target = this.dropTarget(node, clientX, clientY);
+      if (target) this.showDropTarget(target);
+      else this.clearDropTarget();
+      return target;
+    };
+    const autoScroll = () => {
+      autoScrollFrame = 0;
+      if (!this.pointerDrag?.active || !this.dragState) return;
+      const rect = macroBody.getBoundingClientRect();
+      const edge = Math.min(72, Math.max(42, rect.height * .12));
+      let delta = 0;
+      if (lastY < rect.top + edge) delta = -Math.ceil((rect.top + edge - lastY) / edge * 20);
+      else if (lastY > rect.bottom - edge) delta = Math.ceil((lastY - (rect.bottom - edge)) / edge * 20);
+      if (delta) {
+        const before = macroBody.scrollTop;
+        macroBody.scrollTop += delta;
+        if (macroBody.scrollTop !== before) updateTarget(lastX, lastY);
+      }
+      autoScrollFrame = requestAnimationFrame(autoScroll);
+    };
+    const move = event => {
+      if (!this.pointerDrag || event.pointerId !== this.pointerDrag.pointerId) return;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      const distance = Math.hypot(event.clientX - this.pointerDrag.x, event.clientY - this.pointerDrag.y);
+      if (!this.pointerDrag.active && distance >= 6) {
+        this.pointerDrag.active = true;
+        this.beginDrag(handle);
+        document.body.classList.add('macro-pointer-dragging');
+        if (this.dragState) this.dragState.sourceEl.classList.add('dragging');
+        autoScrollFrame = requestAnimationFrame(autoScroll);
+      }
+      if (!this.pointerDrag.active || !this.dragState) return;
+      event.preventDefault();
+      updateTarget(event.clientX, event.clientY);
+    };
+    const cleanup = () => {
+      if (autoScrollFrame) cancelAnimationFrame(autoScrollFrame);
+      autoScrollFrame = 0;
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', end);
+      handle.removeEventListener('pointercancel', cancel);
+      handle.removeEventListener('lostpointercapture', cancel);
+      document.body.classList.remove('macro-pointer-dragging');
+    };
+    const end = (event, cancelled = false) => {
+      if (!this.pointerDrag || event.pointerId !== this.pointerDrag.pointerId) return;
+      event.stopPropagation();
+      const target = !cancelled && this.dragState
+        ? this.dropTarget(document.elementFromPoint(event.clientX, event.clientY), event.clientX, event.clientY)
+        : null;
+      this.pointerDrag = null;
+      cleanup();
+      if (target) this.commitDrop(target);
+      else this.clearDrag();
+    };
+    const cancel = event => end(event, true);
+    this.pointerDrag.cleanup = cleanup;
+    handle.addEventListener('pointermove', move, { passive: false });
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', cancel);
+    handle.addEventListener('lostpointercapture', cancel);
+  }
+
+  static dropTarget(node, clientX, clientY) {
+    if (!node || !this.dragState) return null;
+    if (this.dragState.type === 'category') {
+      const category = node.closest('.macro-cat');
+      if (!category || category.dataset.categoryId === this.dragState.id) return null;
+      const rect = category.getBoundingClientRect();
+      return {
+        type: 'category', id: category.dataset.categoryId,
+        after: clientY > rect.top + rect.height / 2, element: category,
+      };
+    }
+    const card = node.closest('.macro-item');
+    const grid = node.closest('.macro-grid');
+    if (!grid) return null;
+    if (!card) {
+      return { type: 'series', categoryId: grid.dataset.categoryId, id: null, after: true, element: grid };
+    }
+    if (card.dataset.seriesId === this.dragState.id) return null;
+    const rect = card.getBoundingClientRect();
+    const vertical = Math.abs(clientY - (rect.top + rect.height / 2)) > rect.height * .24;
+    const after = vertical ? clientY > rect.top + rect.height / 2 : clientX > rect.left + rect.width / 2;
+    return {
+      type: 'series', categoryId: card.dataset.categoryId,
+      id: card.dataset.seriesId, after, element: card,
+    };
+  }
+
+  static showDropTarget(target) {
+    this.clearDropClasses();
+    this.dragState.target = target;
+    if (target.type === 'category') target.element.classList.add(target.after ? 'drag-after' : 'drag-before');
+    else if (target.id) target.element.classList.add(target.after ? 'drag-after' : 'drag-before');
+    else target.element.classList.add('series-drop-target');
+  }
+
+  static clearDropClasses() {
+    document.querySelectorAll('#macro-body .drag-before, #macro-body .drag-after, #macro-body .series-drop-target')
+      .forEach(el => el.classList.remove('drag-before', 'drag-after', 'series-drop-target'));
+  }
+
+  static clearDropTarget() {
+    this.clearDropClasses();
+    if (this.dragState) this.dragState.target = null;
+  }
+
+  static clearDrag() {
+    const pointer = this.pointerDrag;
+    this.pointerDrag = null;
+    if (pointer?.cleanup) pointer.cleanup();
+    this.clearDropTarget();
+    document.querySelectorAll('#macro-body .dragging').forEach(el => el.classList.remove('dragging'));
+    document.body.classList.remove('macro-pointer-dragging');
+    this.dragState = null;
+  }
+
+  static commitDrop(target) {
+    const drag = this.dragState;
+    this.clearDrag();
+    if (!drag) return;
+    if (drag.type === 'category') this.moveCategory(drag.id, target.id, target.after);
+    else this.moveSeries(drag.id, drag.fromCategory, target.categoryId, target.id, target.after);
+  }
+
+  static moveCategory(categoryId, targetId, after = false) {
+    if (!categoryId || !targetId || categoryId === targetId) return;
+    const categories = this.state.categories;
+    const from = categories.findIndex(cat => cat.id === categoryId);
+    if (from < 0) return;
+    const [category] = categories.splice(from, 1);
+    const target = categories.findIndex(cat => cat.id === targetId);
+    if (target < 0) { categories.splice(from, 0, category); return; }
+    categories.splice(target + (after ? 1 : 0), 0, category);
+    this.save();
+    this.renderCatalog();
+    setTimeout(() => {
+      document.querySelector(`[data-drag-category="${CSS.escape(categoryId)}"]`)?.focus();
+      jhToast(`Moved ${category.cat}`);
+    }, 0);
+  }
+
+  static moveSeries(seriesId, fromCategoryId, toCategoryId, targetId = null, after = false) {
+    const source = this.state.categories.find(cat => cat.id === fromCategoryId)
+      || this.state.categories.find(cat => cat.items.some(item => item.uid === seriesId));
+    const destination = this.state.categories.find(cat => cat.id === toCategoryId);
+    if (!source || !destination || seriesId === targetId) return;
+    const from = source.items.findIndex(item => item.uid === seriesId);
+    if (from < 0) return;
+    const [item] = source.items.splice(from, 1);
+    const target = targetId ? destination.items.findIndex(entry => entry.uid === targetId) : -1;
+    destination.items.splice(target < 0 ? destination.items.length : target + (after ? 1 : 0), 0, item);
+    this.save();
+    this.renderCatalog();
+    setTimeout(() => {
+      document.querySelector(`[data-drag-series="${CSS.escape(seriesId)}"]`)?.focus();
+      jhToast(`Moved ${item.title} to ${destination.cat}`);
+    }, 0);
+  }
+
+  static onReorderKey(e, handle) {
+    const dragCategoryId = handle.dataset.dragCategory;
+    if (dragCategoryId && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const index = this.state.categories.findIndex(cat => cat.id === dragCategoryId);
+      const offset = e.key === 'ArrowUp' ? -1 : 1;
+      const target = this.state.categories[index + offset];
+      if (target) this.moveCategory(dragCategoryId, target.id, e.key === 'ArrowDown');
+      return;
+    }
+    const seriesId = handle.dataset.dragSeries;
+    if (!seriesId || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const categoryId = handle.dataset.categoryId;
+    const categoryIndex = this.state.categories.findIndex(cat => cat.id === categoryId);
+    const category = this.state.categories[categoryIndex];
+    if (!category) return;
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      const destination = this.state.categories[categoryIndex + (e.key === 'ArrowUp' ? -1 : 1)];
+      if (destination) this.moveSeries(seriesId, categoryId, destination.id);
+      return;
+    }
+    const index = category.items.findIndex(item => item.uid === seriesId);
+    const backward = e.key === 'ArrowLeft' || e.key === 'ArrowUp';
+    const target = category.items[index + (backward ? -1 : 1)];
+    if (target) this.moveSeries(seriesId, categoryId, categoryId, target.uid, !backward);
   }
 
   static async fetchMetric(symbol) {
@@ -8883,7 +9184,7 @@ async function init() {
   // Apply saved timeframe to the toolbar
   document.querySelectorAll('.tf-btn').forEach(x => x.classList.toggle('active', x.dataset.span === State.tf.span && x.dataset.mult == String(State.tf.mult)));
   // Simple toast
-  window.__jhToast = (msg) => { let t = document.getElementById('jh-toast'); if(!t){t=document.createElement('div');t.id='jh-toast';t.className='jh-toast';document.body.appendChild(t);} t.textContent=msg; t.classList.add('show'); clearTimeout(window.__jhToastT); window.__jhToastT=setTimeout(()=>t.classList.remove('show'),2600); };
+  window.__jhToast = (msg) => { let t = document.getElementById('jh-toast'); if(!t){t=document.createElement('div');t.id='jh-toast';t.className='jh-toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.appendChild(t);} t.textContent=msg; t.classList.add('show'); clearTimeout(window.__jhToastT); window.__jhToastT=setTimeout(()=>t.classList.remove('show'),2600); };
   // ── Command palette (Cmd-K / Ctrl-K) ──
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); CommandPalette.open(); }
