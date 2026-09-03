@@ -329,6 +329,49 @@ class UniversalProviderSearchTests(unittest.TestCase):
         self.assertEqual(result["rows"][0]["key"], selected["key"])
         self.assertTrue(result["rows"][0]["raw"])
 
+    def test_ofr_nested_titles_and_descriptions_are_searchable(self):
+        symdir = load_lambda("symdir_ofr_meta_under_test", SYMDIR, FakeS3())
+        ts = {
+            "metadata": {
+                "description": {
+                    "long_name": "Primary Dealer Aggregate Fails to Deliver: Total",
+                    "short_name": "Aggregate Fails to Deliver",
+                    "description": "Weekly primary dealer settlement fails.",
+                },
+            },
+        }
+        meta, desc, name, aliases = symdir.ofr_series_meta(
+            "NYPD-PD_AFtD_TOT-A", ts)
+        self.assertEqual(
+            name, "Primary Dealer Aggregate Fails to Deliver: Total")
+        item = symdir.doc(
+            "ofr:NYPD-PD_AFtD_TOT-A", "ofr", name, "series", 0.55,
+            extra={"aliases": aliases, "description": desc["description"],
+                   "dataset_name":
+                       "Federal Reserve Bank of New York Primary Dealer Statistics"})
+        indexed = symdir.doc_tokens(item)
+        for token in ("primary", "dealer", "fail", "deliver", "settlement",
+                      "statistic", "nypd"):
+            self.assertIn(symdir._stem(token), indexed)
+
+    def test_ofr_fsi_resolver_reads_full_csv_column(self):
+        symdir = load_lambda("symdir_ofr_fsi_under_test", SYMDIR, FakeS3())
+        sample = (
+            "Date,OFR FSI,Credit,Funding\n"
+            "2000-01-03,2.14,0.54,0.472\n"
+            "2000-01-04,2.421,0.604,0.55\n"
+        ).encode()
+        symdir._get = lambda key: sample
+        item = symdir.doc(
+            "ofr-fsi:OFR_FSI", "ofr-fsi", "OFR Financial Stress Index",
+            "series", key="data/warm/ofr-fsi/fsi.csv",
+            extra={"field": "OFR FSI"})
+        result = symdir.r_ofr_fsi("ofr-fsi:OFR_FSI", "OFR_FSI", item)
+        self.assertEqual(result["name"], "OFR Financial Stress Index")
+        self.assertEqual(result["freq"], "D")
+        self.assertEqual(result["obs"],
+                         [["2000-01-03", 2.14], ["2000-01-04", 2.421]])
+
 
 if __name__ == "__main__":
     unittest.main()

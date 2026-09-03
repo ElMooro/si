@@ -2257,13 +2257,61 @@ function jhChartable(s) {
 // (bare tickers, EXCHANGE:SYMBOL) stays on the equity / TradingView path. Ids are
 // case-sensitive (census slugs, FiscalData datasets, StatCan vectors), so they are never
 // upper-cased by the watchlist or the chart.
-const JH_SERIES_PROVIDERS = new Set(['fred','te','eurostat','ecb','nyfed','ofr','ofr-hfm','ofr-bsrm','boj','statcan','worldbank','treasury','boe','census','bls','oecd','bis','imf','cboe']);
+const JH_SERIES_PROVIDERS = new Set(['fred','te','eurostat','ecb','nyfed','ofr','ofr-fsi','ofr-hfm','ofr-bsrm','boj','statcan','worldbank','treasury','boe','census','bls','oecd','bis','imf','cboe']);
 function jhSeriesProvider(id) {
   if (!id || typeof id !== 'string' || !id.includes(':')) return null;
   const p = id.split(':')[0].toLowerCase();
   return JH_SERIES_PROVIDERS.has(p) ? p : null;
 }
 function jhCanonId(id) { id = (id || '').trim(); if (!id) return id; return jhSeriesProvider(id) ? id : id.toUpperCase(); }
+
+// Expressions use provider-qualified operands and arithmetic operators. An
+// operator is recognized only when the next token starts a provider prefix,
+// so hyphens inside real IDs (for example OFR mnemonics) remain untouched.
+class ExpressionEngine {
+  static parse(text) {
+    text = String(text || '').trim();
+    if (!text || !text.includes(':')) return null;
+    const re = /\s*([+\-*/])\s*(?=(?:ofr-fsi|ofr-hfm|ofr-bsrm|official-yields|[A-Za-z][A-Za-z0-9_]*):)/gi;
+    const operands = [], operators = [];
+    let start = 0, m;
+    while ((m = re.exec(text))) {
+      const part = text.slice(start, m.index).trim();
+      // A hyphen can be part of the next provider name (ofr-fsi). It is not
+      // an operator until the accumulated left operand already has a colon.
+      if (!part || !part.includes(':')) continue;
+      operands.push(jhCanonId(part));
+      operators.push(m[1]);
+      start = re.lastIndex;
+    }
+    const last = text.slice(start).trim();
+    if (!operators.length || !last || !last.includes(':')) return null;
+    operands.push(jhCanonId(last));
+    const canonical = operands.reduce((s, x, i) => s + (i ? operators[i - 1] : '') + x, '');
+    return { operands, operators, canonical };
+  }
+  static result(text) {
+    const p = this.parse(text);
+    return p ? { id: p.canonical, ticker: p.canonical, symbol: p.canonical,
+      name: 'Computed expression · ' + p.operands.length + ' aligned series',
+      kind: 'expression', provider: 'computed', chartable: true } : null;
+  }
+  static evaluate(inputValues, inputOperators) {
+    const values = inputValues.slice(), ops = inputOperators.slice();
+    for (let i = 0; i < ops.length;) {
+      if (ops[i] !== '*' && ops[i] !== '/') { i++; continue; }
+      const rhs = values[i + 1];
+      if (ops[i] === '/' && rhs === 0) return null;
+      values.splice(i, 2, ops[i] === '*' ? values[i] * rhs : values[i] / rhs);
+      ops.splice(i, 1);
+    }
+    let value = values[0];
+    for (let i = 0; i < ops.length; i++) {
+      value = ops[i] === '+' ? value + values[i + 1] : value - values[i + 1];
+    }
+    return Number.isFinite(value) ? value : null;
+  }
+}
 function jhFmtVal(v) {
   if (v == null || !isFinite(v)) return '—';
   const a = Math.abs(v);
@@ -2383,7 +2431,7 @@ class SymDir {
     State.symbolMeta[r.id] = { name: r.name || '', provider: r.provider || jhSeriesProvider(r.id), unit: r.unit || null, freq: r.freq || null, first: r.first || null, last: r.last || null, kind: r.kind || 'series' };
   }
   static meta(id) { return (State.symbolMeta || {})[id] || null; }
-  static provLabel(p) { return ({ fred: 'FRED', eurostat: 'Eurostat', ecb: 'ECB', oecd: 'OECD', bis: 'BIS', imf: 'IMF', boj: 'BoJ', statcan: 'StatCan', worldbank: 'World Bank', nyfed: 'NY Fed', ofr: 'OFR', 'ofr-hfm': 'OFR HFM', 'ofr-bsrm': 'OFR BSRM', te: 'TE mirror', treasury: 'FiscalData', boe: 'BoE', census: 'Census', bls: 'BLS', cboe: 'Cboe', tv: 'TradingView', instrument: 'Market' })[p] || (p || '').toUpperCase(); }
+  static provLabel(p) { return ({ fred: 'FRED', eurostat: 'Eurostat', ecb: 'ECB', oecd: 'OECD', bis: 'BIS', imf: 'IMF', boj: 'BoJ', statcan: 'StatCan', worldbank: 'World Bank', nyfed: 'NY Fed', ofr: 'OFR', 'ofr-fsi': 'OFR FSI', 'ofr-hfm': 'OFR HFM', 'ofr-bsrm': 'OFR BSRM', te: 'TE mirror', treasury: 'FiscalData', boe: 'BoE', census: 'Census', bls: 'BLS', cboe: 'Cboe', tv: 'TradingView', instrument: 'Market', computed: 'Computed' })[p] || (p || '').toUpperCase(); }
   static rowMeta(r) {
     const bits = [];
     if (r.raw && r.key) bits.push(r.key);
@@ -4871,7 +4919,8 @@ class ChartController {
   
   static async loadTicker(ticker, knownFull) {
     if (!ticker) return;
-    ticker = jhCanonId(ticker);
+    const expression = ExpressionEngine.parse(ticker);
+    ticker = expression ? expression.canonical : jhCanonId(ticker);
     
     State.activeTicker = ticker;
     ChartTabs.setActiveTabSymbol(ticker);
@@ -4894,6 +4943,7 @@ class ChartController {
     const type = State.symbolType[ticker] || '';
     const changeActive = State.changeMode && State.changeMode !== 'price';
     
+    if (expression) { NativeChart.renderExpression(expression); return; }
     // Macro series → always native line (ops 5117: any directory series id — fred:, eurostat:, ecb:, boj:, statcan:, …)
     if (isFred || isDbn || jhSeriesProvider(ticker)) { NativeChart.render(ticker); return; }
     // Baskets → synthetic native render
@@ -5792,6 +5842,82 @@ class NativeChart {
       } catch (e) {}
     });
   }
+
+  static async expressionPoints(symbol) {
+    if (symbol.includes(':')) {
+      const d = await SymDir.series(symbol);
+      if (d && Array.isArray(d.obs) && d.obs.length) {
+        return d.obs.map(x => ({ time: String(x[0]).slice(0, 10), value: +x[1] }))
+          .filter(x => x.time && Number.isFinite(x.value))
+          .sort((a, b) => a.time.localeCompare(b.time));
+      }
+      throw new Error((d && d.error) || `No series data for ${symbol}`);
+    }
+    const tf = State.tf || { mult: 1, span: 'day', days: 250 };
+    const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(symbol)}&mult=${tf.mult}&span=${tf.span}&days=${tf.days}`);
+    const d = await r.json();
+    return (d.bars || []).map(b => ({ time: String(b.time).slice(0, 10), value: +b.close }))
+      .filter(x => x.time && Number.isFinite(x.value))
+      .sort((a, b) => a.time.localeCompare(b.time));
+  }
+
+  // Compute an arbitrary provider-qualified expression. Series are aligned on
+  // the union of dates with prior-value carry-forward, which makes mixed
+  // daily/weekly/monthly macro expressions useful without inventing future data.
+  static async renderExpression(expression) {
+    const paneIdx = State.activeChartPane;
+    const renderId = this._expressionRenderId = (this._expressionRenderId || 0) + 1;
+    this.disposePane(paneIdx);
+    this._shell(paneIdx, expression.canonical, expression.canonical);
+    const le = document.getElementById(`nch-loading-${paneIdx}`);
+    try {
+      const sets = await Promise.all(expression.operands.map(x => this.expressionPoints(x)));
+      if (renderId !== this._expressionRenderId || State.activeTicker !== expression.canonical) return;
+      const maps = sets.map(points => new Map(points.map(p => [p.time, p.value])));
+      const historyEnd = sets.reduce((end, points) => {
+        const last = points.length ? points[points.length - 1].time : '';
+        return !end || last < end ? last : end;
+      }, '');
+      const dates = [...new Set(sets.flatMap(points => points.map(p => p.time)))]
+        .filter(date => !historyEnd || date <= historyEnd).sort();
+      const last = new Array(sets.length).fill(null);
+      const out = [];
+      for (const date of dates) {
+        maps.forEach((m, i) => { if (m.has(date)) last[i] = m.get(date); });
+        if (last.some(v => !Number.isFinite(v))) continue;
+        // Standard arithmetic precedence: collapse multiplication/division,
+        // then evaluate addition/subtraction.
+        const value = ExpressionEngine.evaluate(last, expression.operators);
+        if (value != null) out.push({ time: date, value });
+      }
+      if (!out.length) throw new Error('The operands have no usable overlapping history');
+      const host = document.getElementById(`nch-chart-${paneIdx}`);
+      if (!host || typeof LightweightCharts === 'undefined') return;
+      host.innerHTML = '';
+      const chart = NativeChart.createChart(host, {
+        autoSize: true,
+        layout: { background: { color: TVShell.palette().bg }, textColor: TVShell.palette().text, fontFamily: "'IBM Plex Mono',monospace" },
+        grid: { vertLines: { color: TVShell.palette().grid }, horzLines: { color: TVShell.palette().grid } },
+        rightPriceScale: { borderColor: TVShell.palette().border },
+        timeScale: { borderColor: TVShell.palette().border, minBarSpacing: 0.001 },
+        crosshair: { mode: 1 },
+      });
+      const series = chart.addLineSeries({ color: '#22d3ee', lineWidth: 2 });
+      series.setData(out);
+      chart.timeScale().fitContent();
+      State.nativeChart = chart;
+      (State._charts = State._charts || {})[paneIdx] = { chart, series, bars: out, ticker: expression.canonical };
+      ChartSync.register(paneIdx, chart);
+      const meta = document.getElementById(`nch-meta-${paneIdx}`);
+      if (meta) meta.textContent = `Computed · ${expression.operands.length} series · ${out.length.toLocaleString()} aligned observations · prior-value carry-forward`;
+      if (le) le.style.display = 'none';
+      if (window.jhSyncUrl) window.jhSyncUrl();
+    } catch (e) {
+      if (renderId === this._expressionRenderId && State.activeTicker === expression.canonical && le) {
+        le.style.display = 'flex'; le.textContent = `Expression failed: ${e.message || e}`;
+      }
+    }
+  }
   
   // Ratio / spread chart: base ÷ denominator, time-aligned (e.g. NVDA/SPY)
   static async renderRatio(paneIdx, baseTicker, denomTicker) {
@@ -6521,16 +6647,18 @@ class UniverseSearch {
     // Bump sequence so stale async responses are dropped
     this._seq = (this._seq || 0) + 1;
     const seq = this._seq;
+    const expression = ExpressionEngine.result(query);
     // Instant local (JustHodl) results
     const local = this.localSearch(query).map(r => ({
       ticker: r.ticker, name: r.name, kind: 'justhodl', sources: r.sources,
     }));
-    this._groups = { justhodl: local, equity: [], macro: [] };
+    this._groups = { expression: expression ? [expression] : [], justhodl: local, equity: [], macro: [] };
     this.renderGrouped(this._groups, true);
     // Instant instruments from the directory (client-side)
     this._groups.equity = SymDir.localInstruments(query, 8).filter(r => !local.some(l => l.ticker === r.symbol.toUpperCase()))
       .map(r => ({ ticker: r.symbol, name: r.name, kind: 'equity', type: r.type, exchange: r.exchange, full: r.symbol }));
     this.renderGrouped(this._groups, true);
+    if (expression) { this.renderGrouped(this._groups); return; }
     // Parallel remote: each source renders as soon as it returns
     this.debounceTimer = setTimeout(() => {
       const q = encodeURIComponent(query);
@@ -6568,8 +6696,8 @@ class UniverseSearch {
     ).slice(0, 8) : []);
     groups.recents = groups.recents || [];
     const favSet2 = new Set(groups.favorites.map(f => f.ticker));
-    for (const g of ['justhodl', 'equity', 'macro', 'datasets']) groups[g] = (groups[g] || []).filter(r => !favSet2.has(r.ticker));
-    this.currentResults = [...groups.favorites, ...groups.recents, ...groups.justhodl, ...groups.equity, ...groups.macro, ...groups.datasets];
+    for (const g of ['expression', 'justhodl', 'equity', 'macro', 'datasets']) groups[g] = (groups[g] || []).filter(r => !favSet2.has(r.ticker));
+    this.currentResults = [...groups.expression, ...groups.favorites, ...groups.recents, ...groups.justhodl, ...groups.equity, ...groups.macro, ...groups.datasets];
     if (this.currentResults.length === 0) {
       body.innerHTML = partial
         ? '<div class="search-empty">Searching universe + macro…</div>'
@@ -6593,6 +6721,7 @@ class UniverseSearch {
         <span class="sr-price">${UI.esc((r.type||r.kind||'').slice(0,5))}</span>
         ${star(r, i)}<span class="sr-chg">→</span></div>`;
     let html = '';
+    html += section('Computed expression', groups.expression, genRow);
     html += section('★ Favorites', groups.favorites, genRow);
     html += section('⏱ Recent', groups.recents, genRow);
     html += section('★ Your JustHodl Signals', groups.justhodl, (r, i) => {
@@ -6699,7 +6828,7 @@ class HeaderSearch {
     input.addEventListener('keydown', (e) => this.onKey(e, input));
     document.addEventListener('click', (e) => { if (!e.target.closest('#universe-search')) this.close(); });
   }
-  static close() { const dd = document.getElementById('hsearch-dropdown'); if (dd) dd.classList.remove('open'); }
+  static close() { this._seq++; const dd = document.getElementById('hsearch-dropdown'); if (dd) dd.classList.remove('open'); }
   
   static onInput(q) {
     q = (q || '').trim();
@@ -6715,8 +6844,10 @@ class HeaderSearch {
       .map(r => ({ id: r.symbol, symbol: r.symbol, name: r.name, kind: 'instrument', provider: r.market === 'tv' ? 'tv' : 'instrument', ex: r.exchange, type: r.type, market: r.market }));
     const qU = q.toUpperCase();
     const hfav = jhFavs().filter(f => f.ticker.toUpperCase().includes(qU) || (f.name||'').toUpperCase().includes(qU) || (f.display||'').toUpperCase().includes(qU)).slice(0, 5);
-    this._groups = { pinned: [], favorites: hfav, justhodl: local, instruments: instr, series: [], datasets: [], equity: [] };
+    const expression = ExpressionEngine.result(q);
+    this._groups = { expression: expression ? [expression] : [], pinned: [], favorites: hfav, justhodl: local, instruments: instr, series: [], datasets: [], equity: [] };
     this.render(true);
+    if (expression) { this.render(); return; }
     if (!SymDir.instruments) SymDir.loadInstruments().then(() => { if (seq === this._seq) this.onInput(q); });
     // Server: the symbol directory (every data series + dataset across every provider), then TradingView for what's left
     SymDir.query(q, 40, this._provFilter || '').then(d => {
@@ -6768,7 +6899,7 @@ class HeaderSearch {
   static _render(partial) {
     const dd = document.getElementById('hsearch-dropdown');
     const g = this._groups || { favorites: [], justhodl: [], instruments: [], series: [], datasets: [], equity: [] };
-    ['pinned', 'favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });
+    ['expression', 'pinned', 'favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });
     // ops 5156: the backend order is authoritative — instruments (exact ticker / policy pins first), then data
     // series and datasets, then TradingView-only symbols, favorites, and JustHodl signal rows LAST (they are
     // also badges on the matching instrument). Enter therefore never loads a signal row over the exact security.
@@ -6776,7 +6907,7 @@ class HeaderSearch {
     (g.instruments || []).forEach(r => { const sg = sigMap.get(String(r.id).toUpperCase()); if (sg) r.signals = sg.sources || []; });
     const sigOnly = (g.justhodl || []).filter(r => !(g.instruments || []).some(x => String(x.id).toUpperCase() === String(r.ticker).toUpperCase()));
     g.justhodl = sigOnly;
-    this.results = [...g.pinned, ...g.instruments, ...g.series, ...g.datasets, ...g.equity, ...g.favorites, ...g.justhodl];
+    this.results = [...g.expression, ...g.pinned, ...g.instruments, ...g.series, ...g.datasets, ...g.equity, ...g.favorites, ...g.justhodl];
     dd.classList.add('open');
     if (!this.results.length) {
       const sug = (this._suggest || []).length && !partial ? `<div class="hs-foot"><span>did you mean:</span>${this._suggest.slice(0, 6).map(t => `<span class="dsb-chip" data-sug="${UI.esc(t)}">${UI.esc(t)}</span>`).join('')}</div>` : '';
@@ -6792,6 +6923,8 @@ class HeaderSearch {
       html += `<div class="hs-facets"><span class="hs-facet ${this._provFilter ? '' : 'on'}" data-prov="">all ${fac.reduce((a, f) => a + f.n, 0).toLocaleString()}</span>` +
         fac.slice(0, 12).map(f => `<span class="hs-facet ${this._provFilter === f.provider ? 'on' : ''}" data-prov="${UI.esc(f.provider)}">${UI.esc(f.provider_name)} <b>${f.n.toLocaleString()}</b></span>`).join('') + `</div>`;
     }
+    html += section('Computed expression', g.expression, (r, i) =>
+      `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.id)}" data-i="${i}"><span class="hs-tk" style="color:var(--cyan)">${UI.esc(r.id)}</span><span class="hs-name">${UI.esc(r.name)}</span><span class="hs-tag">ƒ(x)</span></div>`);
     html += section('Best match', g.pinned, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('Symbols', g.instruments, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('TradingView universe', g.equity, (r, i) => {
@@ -8011,7 +8144,7 @@ async function init() {
       if (map[dlTf]) State.tf = { mult: map[dlTf][0], span: map[dlTf][1], days: map[dlTf][2] };
     }
     const dlSym = usp.get('s') || usp.get('symbol') || usp.get('ticker');
-    if (dlSym) setTimeout(() => ChartController.loadTicker(dlSym.toUpperCase()), 600);
+    if (dlSym) setTimeout(() => ChartController.loadTicker(dlSym), 600);
   } catch (e) {}
   // Reflect current view in the URL (so the address bar is always shareable)
   window.jhSyncUrl = function () {

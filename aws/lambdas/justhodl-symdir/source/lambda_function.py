@@ -71,7 +71,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.9.0"
+VERSION = "1.10.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -257,15 +257,15 @@ SYN = {
     "china": ["cn", "chinese"], "japan": ["jp"], "canada": ["ca"], "retail": ["sales"], "trade": ["exports", "imports"],
     "balance": ["sheet"], "liquidity": ["reserves", "balance"], "spread": ["oas", "spreads"],
 }
-PROV_WEIGHT = {"instrument": 12, "fred": 8, "ecb": 7, "eurostat": 6, "nyfed": 7, "ofr": 6, "oecd": 5, "bis": 6, "imf": 5,
+PROV_WEIGHT = {"instrument": 12, "fred": 8, "ecb": 7, "eurostat": 6, "nyfed": 7, "ofr": 6, "ofr-fsi": 7, "oecd": 5, "bis": 6, "imf": 5,
                "boj": 5, "statcan": 4, "worldbank": 4, "te": 5, "treasury": 5, "fiscaldata": 4, "boe": 5, "census": 4,
                "bls": 6, "cboe": 6, "tv": 9, "ofr-hfm": 4, "ofr-bsrm": 4, "banxico": 4, "snb": 4, "bcb": 4}
 PROV_TOKENS = {"statcan": ("canada", "statistic", "canadian"), "boj": ("japan", "bank"), "ecb": ("euro", "european", "central", "bank"),
                "eurostat": ("eu", "europe", "european"), "boe": ("england", "uk", "bank"), "census": ("census", "us"), "bls": ("bls", "labor", "us"),
-               "nyfed": ("fed", "new", "york", "us"), "worldbank": ("world", "bank"), "fred": ("fred",), "ofr": ("ofr", "treasury"), "imf": ("imf",),
+               "nyfed": ("fed", "new", "york", "us"), "worldbank": ("world", "bank"), "fred": ("fred",), "ofr": ("ofr", "treasury"), "ofr-fsi": ("ofr", "financial", "stress", "index"), "imf": ("imf",),
                "bis": ("bis", "settlement"), "oecd": ("oecd",), "treasury": ("treasury", "us", "fiscal")}
 PROV_NAME = {"ustpar": "US Treasury", "official-yields": "Official yields", "fred": "FRED", "ecb": "ECB", "eurostat": "Eurostat", "oecd": "OECD", "bis": "BIS", "imf": "IMF", "boj": "BoJ",
-             "statcan": "StatCan", "worldbank": "World Bank", "nyfed": "NY Fed", "ofr": "OFR", "ofr-hfm": "OFR HFM",
+             "statcan": "StatCan", "worldbank": "World Bank", "nyfed": "NY Fed", "ofr": "OFR", "ofr-fsi": "OFR Financial Stress Index", "ofr-hfm": "OFR HFM",
              "ofr-bsrm": "OFR BSRM", "te": "TE mirror", "treasury": "FiscalData", "fiscaldata": "FiscalData", "boe": "BoE",
              "census": "Census", "bls": "BLS", "cboe": "Cboe", "tv": "TradingView", "instrument": "Market", "banxico": "Banxico"}
 
@@ -336,6 +336,15 @@ def doc_tokens(d):
         fam = FAMOUS.get(d[D_ID].split(":", 1)[1])
         if fam:
             ts.update(tokens(fam))
+    # Some providers put the human name below the primary title. Index only
+    # bounded descriptive fields, never arbitrary raw payloads.
+    ex = d[D_EXTRA] or {}
+    for fld in ("aliases", "description", "short_name", "dataset_name"):
+        val = ex.get(fld)
+        if val:
+            if isinstance(val, (list, tuple, set)):
+                val = " ".join(str(x) for x in list(val)[:40])
+            ts.update(tokens(str(val)[:4000]))
     return ts
 
 
@@ -345,6 +354,20 @@ D_ID, D_PROV, D_TITLE, D_KIND, D_POP, D_UNIT, D_FREQ, D_FIRST, D_LAST, D_KEY, D_
 
 def doc(id_, prov, title, kind, pop=0.0, unit=None, freq=None, first=None, last=None, key=None, n=None, extra=None):
     return [id_, prov, (title or "")[:220], kind, round(min(max(pop, 0.0), 1.0), 4), unit, freq, first, last, key, n, extra]
+
+
+def ofr_series_meta(mn, ts):
+    """Normalize OFR's older flat metadata and current nested description."""
+    meta = (ts or {}).get("metadata") or {}
+    desc = meta.get("description") or {}
+    if not isinstance(desc, dict):
+        desc = {"description": str(desc)}
+    name = (meta.get("long_name") or desc.get("long_name")
+            or meta.get("short_name") or desc.get("short_name")
+            or meta.get("name") or desc.get("name") or mn)
+    aliases = [x for x in (meta.get("short_name"), desc.get("short_name"), mn)
+               if x and x != name]
+    return meta, desc, name, aliases
 
 
 # ================================================================ BUILD
@@ -767,12 +790,18 @@ def build(event, context):
             docs.append(doc("ofr:" + dsn, "ofr", pl.get("long_name") or pl.get("short_name") or dsn, "dataset", 0.5,
                             n=len(pl.get("timeseries") or {})))
             for mn, ts in (pl.get("timeseries") or {}).items():
-                meta = (ts or {}).get("metadata") or {}
+                meta, desc, nm, aliases = ofr_series_meta(mn, ts)
                 agg = ((ts or {}).get("timeseries") or {}).get("aggregation") or []
-                nm = meta.get("long_name") or meta.get("short_name") or meta.get("name") or mn
-                docs.append(doc("ofr:" + mn, "ofr", nm, "series", 0.55, unit=meta.get("unit") or meta.get("units"),
-                                freq=meta.get("frequency"), first=agg[0][0] if agg else None, last=agg[-1][0] if agg else None,
-                                key=k, n=len(agg) or None, extra={"ds": dsn}))
+                docs.append(doc("ofr:" + mn, "ofr", nm, "series", 0.55,
+                                unit=meta.get("unit") or meta.get("units")
+                                or desc.get("unit") or desc.get("units"),
+                                freq=meta.get("frequency") or desc.get("frequency"),
+                                first=agg[0][0] if agg else None,
+                                last=agg[-1][0] if agg else None,
+                                key=k, n=len(agg) or None,
+                                extra={"ds": dsn, "dataset_name": pl.get("long_name"),
+                                       "aliases": aliases,
+                                       "description": desc.get("description")}))
                 n += 1
         for prov, pre in (("ofr-hfm", "data/warm/ofr-hfm/series/"), ("ofr-bsrm", "data/warm/ofr-bsrm/series/")):
             for o in _list(pre):
@@ -782,6 +811,36 @@ def build(event, context):
                     docs.append(doc(prov + ":" + mn, prov, mn.replace("_", " ").replace("-", " · "), "series", 0.35, key=o["Key"]))
                     n += 1
         return {"series": n}
+
+    def st_ofr_fsi():
+        # A mandatory first-class stage: absence or schema drift is visible in
+        # build errors instead of silently publishing an index without FSI.
+        raw = _get("data/warm/ofr-fsi/fsi.csv").decode("utf-8-sig")
+        rows = list(csv.DictReader(io.StringIO(raw)))
+        headers = list(rows[0]) if rows else []
+        if "Date" not in headers or "OFR FSI" not in headers:
+            raise ValueError("OFR FSI CSV is empty or missing Date/OFR FSI")
+        n = 0
+        for col in headers[1:]:
+            rid = re.sub(r"[^A-Z0-9]+", "_", col.upper()).strip("_")
+            vals = [(r.get("Date"), r.get(col)) for r in rows
+                    if r.get(col) not in (None, "")]
+            if not vals:
+                continue
+            title = ("OFR Financial Stress Index" if col == "OFR FSI"
+                     else "OFR FSI: " + col)
+            docs.append(doc("ofr-fsi:" + rid, "ofr-fsi", title, "series",
+                            0.8 if col == "OFR FSI" else 0.58,
+                            unit="Index", freq="D", first=vals[0][0],
+                            last=vals[-1][0],
+                            key="data/warm/ofr-fsi/fsi.csv", n=len(vals),
+                            extra={"field": col,
+                                   "aliases": [col, "OFR FSI", "financial stress"],
+                                   "dataset_name": "OFR Financial Stress Index"}))
+            n += 1
+        if n < 2:
+            raise ValueError("OFR FSI CSV produced fewer than two series")
+        return {"series": n, "rows": len(rows)}
 
     def st_treasury():
         n = 0
@@ -954,6 +1013,10 @@ def build(event, context):
     stage("statcan", st_statcan)
     stage("nyfed", st_nyfed)
     stage("ofr", st_ofr)
+    stage("ofr-fsi", st_ofr_fsi, optional=False)
+    if "ofr-fsi" in log["errors"]:
+        raise RuntimeError("mandatory OFR FSI indexing failed: "
+                           + log["errors"]["ofr-fsi"])
     stage("treasury", st_treasury)
     stage("boe", st_boe)
     stage("census", st_census)
@@ -2319,6 +2382,20 @@ def r_ofr(sid, rest, d, prov="ofr"):
     return _result(sid, prov, [(a, b) for a, b in agg], name=rest, source="ofr-api")
 
 
+def r_ofr_fsi(sid, rest, d):
+    key = d[D_KEY] if d and d[D_KEY] else "data/warm/ofr-fsi/fsi.csv"
+    rows = csv.DictReader(io.StringIO(_get(key).decode("utf-8-sig")))
+    field = ((d[D_EXTRA] or {}).get("field") if d else None)
+    if not field:
+        field = {"OFR_FSI": "OFR FSI"}.get(
+            rest.upper(), rest.replace("_", " ").title())
+    obs = [(r.get("Date"), r.get(field)) for r in rows
+           if r.get(field) not in (None, "")]
+    return _result(sid, "ofr-fsi", obs,
+                   name=d[D_TITLE] if d else "OFR Financial Stress Index",
+                   unit="Index", freq="D", source="warehouse:ofr-fsi")
+
+
 def r_boj(sid, rest, d):
     db, _, code = rest.partition(":")
     keys = [o["Key"] for o in _list("data/warm/boj-full/api/%s/" % db) if o["Key"].endswith(".json.gz")]
@@ -2781,10 +2858,10 @@ def r_official_yield(sid, rest, d):
     return _result(sid, "official-yields", obs, name=j.get("name") or j.get("title") or rest, unit="Percent", freq="D", source="warehouse:official-yields (%s)" % (j.get("source") or rest))
 
 
-RESOLVERS = {"ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr,
+RESOLVERS = {"ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr, "ofr-fsi": r_ofr_fsi,
              "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
-CACHE_TTL = {"ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
+CACHE_TTL = {"ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "ofr-fsi": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
 
 
