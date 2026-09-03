@@ -1,4 +1,4 @@
-"""ops_5174 -- Universe Heatmap workspace: live browser QA at desktop / tablet / mobile.
+"""ops_5176 -- Universe Heatmap workspace: live browser QA at desktop / tablet / mobile.
 
 The heatmap in chart-pro.html was rebuilt to the Macro & Economic Data
 workspace contract (categories, instruments from universal search, D/W/M/Q/Y
@@ -41,15 +41,15 @@ FAILS = []
 
 def live_has_marker():
     try:
-        req = urllib.request.Request(SITE + "/chart-pro.html", headers={"User-Agent": "ops5174", "Cache-Control": "no-cache"})
+        req = urllib.request.Request(SITE + "/chart-pro.html", headers={"User-Agent": "ops5176", "Cache-Control": "no-cache"})
         with urllib.request.urlopen(req, timeout=30) as r:
             return MARKER in r.read().decode("utf-8", "ignore")
     except Exception:
         return False
 
 
-with report("ops_5174_heatmap_browser_qa") as R:
-    R.heading("ops 5174 -- Universe Heatmap browser QA (1440 / 768 / 390)")
+with report("ops_5176_heatmap_browser_qa") as R:
+    R.heading("ops 5176 -- Universe Heatmap browser QA (1440 / 768 / 390)")
     R.section("P0 deploy")
     ok = False
     for i in range(40):
@@ -129,7 +129,7 @@ with report("ops_5174_heatmap_browser_qa") as R:
                 pg.wait_for_timeout(200)
                 stored = pg.evaluate("() => JSON.parse(localStorage.getItem('jh_heatmap_workspace_v3') || '{}')")
                 overflow = pg.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
-                shot = SHOTS / f"ops5174_heatmap_{width}.png"
+                shot = SHOTS / f"ops5176_heatmap_{width}.png"
                 pg.screenshot(path=str(shot), full_page=False)
                 R.log("   %4dpx: sections=%d cells=%d hydrated=%d first D=%s W=%s legend='%s' bg-variety=%d stored.version=%s overflow=%dpx errors=%d"
                       % (width, sections, cells, ready, first_ch, w_ch, legend[:36], bg_variety, stored.get("version"), overflow, len(errors)))
@@ -258,13 +258,13 @@ with report("ops_5174_heatmap_browser_qa") as R:
             (R.ok if esc_ok else R.fail)("   P7 Escape: editor closed=%s modal stayed=%s then closed=%s focus->%s" % (not editor_open, modal_open, not modal_open2, focus_after_editor))
             if not esc_ok:
                 FAILS.append("P7 escape/focus")
-            pg.screenshot(path=str(SHOTS / "ops5174_heatmap_after_qa.png"))
+            pg.screenshot(path=str(SHOTS / "ops5176_heatmap_after_qa.png"))
             if errors:
                 FAILS.append("desktop QA page errors: %s" % errors[:2])
         except Exception as e:
             FAILS.append("P2-P7: %s" % str(e)[:200])
             try:
-                pg.screenshot(path=str(SHOTS / "ops5174_heatmap_failure.png"))
+                pg.screenshot(path=str(SHOTS / "ops5176_heatmap_failure.png"))
             except Exception:
                 pass
         ctx.close()

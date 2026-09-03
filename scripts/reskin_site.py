@@ -95,6 +95,11 @@ def sub_hex(m):
 
 def sub_fn(m):
     kind, body = m.group(1).lower(), m.group(2)
+    # ops 5176: never touch colour calls whose arguments are JS expressions --
+    # a template placeholder or a nested call means this is code, not a colour
+    # literal, and rewriting it truncates the expression (chart-pro, 2026-09-03)
+    if "${" in body or "(" in body or "`" in body:
+        return m.group(0)
     parts = [p.strip() for p in re.split(r"[,/]", body) if p.strip()]
     try:
         if kind.startswith("hsl"):

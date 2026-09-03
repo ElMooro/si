@@ -9800,16 +9800,24 @@ class Heatmap {
   }
 
   static colorFor(mode, value, horizon) {
+    // NOTE: keep every rgba() literal free of commas/parens inside the ${} --
+    // scripts/reskin_site.py rewrites rgba() text at deploy time and truncates
+    // anything after the first ')' (that is what broke the page in ops 5174).
     if (!Number.isFinite(value)) return 'rgba(255,255,255,0.045)';
+    let a;
     if (mode === 'perf') {
       const scale = this.PERF_SCALE[horizon] || 3;
-      const intensity = Math.min(1, Math.abs(value) / scale);
-      if (value > 0) return `rgba(38,255,175,${(0.09 + intensity * 0.62).toFixed(3)})`;
-      if (value < 0) return `rgba(255,85,119,${(0.09 + intensity * 0.62).toFixed(3)})`;
+      a = (0.09 + Math.min(1, Math.abs(value) / scale) * 0.62).toFixed(3);
+      if (value > 0) return `rgba(38,255,175,${a})`;
+      if (value < 0) return `rgba(255,85,119,${a})`;
       return 'rgba(255,255,255,0.05)';
     }
-    if (mode === 'cascade') return `rgba(34,211,238,${(0.08 + Math.min(1, Math.max(0, value) / 200) * 0.55).toFixed(3)})`;
-    return `rgba(167,139,250,${(0.08 + Math.min(1, Math.max(0, value) / 5) * 0.58).toFixed(3)})`;
+    if (mode === 'cascade') {
+      a = (0.08 + Math.min(1, Math.max(0, value) / 200) * 0.55).toFixed(3);
+      return `rgba(34,211,238,${a})`;
+    }
+    a = (0.08 + Math.min(1, Math.max(0, value) / 5) * 0.58).toFixed(3);
+    return `rgba(167,139,250,${a})`;
   }
 
   static formatChange(value) {
