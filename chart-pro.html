@@ -1082,9 +1082,121 @@ body.tv-shell .tv-iconrail { display: flex; }
 .macro-item .mi-title { font-size: 11.5px; color: var(--fg-1); font-weight: 600; line-height: 1.3; }
 .macro-item .mi-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-3); display: flex; gap: 8px; }
 .macro-item .mi-id { color: var(--violet); }
+.macro-head-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.macro-manage-btn {
+  border:1px solid var(--border); background:var(--bg-2); color:var(--fg-2);
+  border-radius:5px; padding:6px 9px; font:700 9px/1 var(--font-mono);
+  letter-spacing:.35px; cursor:pointer; white-space:nowrap;
+}
+.macro-manage-btn:hover, .macro-manage-btn:focus-visible { border-color:var(--cyan); color:var(--cyan); outline:none; }
+.macro-manage-btn.danger:hover, .macro-manage-btn.danger:focus-visible { border-color:var(--red); color:var(--red); }
+.macro-cat-name { justify-content:space-between; }
+.macro-cat-label { display:flex; align-items:center; gap:8px; min-width:0; }
+.macro-cat-tools { display:flex; align-items:center; gap:5px; opacity:.5; transition:opacity .12s; }
+.macro-cat:hover .macro-cat-tools, .macro-cat:focus-within .macro-cat-tools { opacity:1; }
+.macro-cat-count { color:var(--fg-4); font-size:9px; font-weight:500; }
+.macro-icon-btn {
+  border:1px solid transparent; color:var(--fg-3); width:25px; height:23px;
+  display:inline-grid; place-items:center; border-radius:4px; cursor:pointer;
+  font:700 12px/1 var(--font-mono); background:transparent;
+}
+.macro-icon-btn:hover, .macro-icon-btn:focus-visible { color:var(--cyan); border-color:var(--border-bright); outline:none; }
+.macro-icon-btn.remove:hover, .macro-icon-btn.remove:focus-visible { color:var(--red); border-color:var(--red); }
+.macro-item { position:relative; min-height:98px; padding-right:34px; }
+.macro-item .mi-title { padding-right:2px; }
+.macro-item-tools {
+  position:absolute; right:5px; top:5px; display:flex; flex-direction:column;
+  opacity:0; transition:opacity .12s;
+}
+.macro-item:hover .macro-item-tools, .macro-item:focus-within .macro-item-tools { opacity:1; }
+.macro-latest { display:flex; align-items:baseline; gap:6px; margin-top:5px; min-height:20px; }
+.macro-latest-value { font:700 15px/1.1 var(--font-mono); color:var(--fg-0); }
+.macro-latest-unit { font:500 9px/1 var(--font-mono); color:var(--fg-4); }
+.macro-asof { margin-left:auto; font:500 8px/1 var(--font-mono); color:var(--fg-4); }
+.macro-changes {
+  display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-top:7px;
+}
+.macro-change {
+  border-top:1px solid var(--border); padding-top:4px; min-width:0;
+  font:600 8.5px/1.2 var(--font-mono); color:var(--fg-3);
+}
+.macro-change b { display:block; color:var(--fg-4); font-size:7.5px; margin-bottom:2px; font-weight:600; }
+.macro-change.up { color:var(--green); }
+.macro-change.down { color:var(--red); }
+.macro-change.na { color:var(--fg-4); }
+.macro-item.loading .macro-latest-value, .macro-item.loading .macro-change { color:var(--fg-4); }
+.macro-item.danger-flash {
+  border-color:var(--red); background:rgba(255,65,90,.11);
+  animation:macro-danger-pulse 1.05s ease-in-out infinite;
+}
+.macro-item.danger-flash .mi-title, .macro-item.danger-flash .macro-latest-value { color:var(--red); }
+.macro-danger-badge {
+  display:none; width:max-content; margin-top:5px; border-radius:3px; padding:2px 5px;
+  background:var(--red); color:#fff; font:800 7.5px/1 var(--font-mono); letter-spacing:.7px;
+}
+.macro-item.danger-flash .macro-danger-badge { display:block; }
+@keyframes macro-danger-pulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(255,65,90,.1); }
+  50% { box-shadow:0 0 0 3px rgba(255,65,90,.28), inset 0 0 18px rgba(255,65,90,.08); }
+}
+@media (prefers-reduced-motion:reduce) { .macro-item.danger-flash { animation:none; } }
+.macro-empty-cat {
+  grid-column:1/-1; border:1px dashed var(--border); border-radius:6px; padding:14px;
+  color:var(--fg-4); font:10px/1.4 var(--font-mono); text-align:center;
+}
+.macro-editor-content {
+  width:min(620px,94vw); max-height:min(760px,90vh); overflow:hidden;
+  background:var(--bg-1); border:1px solid var(--border-bright); border-radius:10px;
+  box-shadow:0 24px 70px rgba(0,0,0,.65); display:flex; flex-direction:column;
+}
+#macro-editor-modal { z-index:120; }
+.macro-editor-content [hidden] { display:none !important; }
+.macro-editor-head {
+  display:flex; align-items:center; justify-content:space-between; padding:13px 15px;
+  border-bottom:1px solid var(--border); color:var(--fg-0);
+  font:700 12px/1 var(--font-mono);
+}
+.macro-editor-body { padding:14px 15px; overflow-y:auto; display:grid; gap:12px; }
+.macro-form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.macro-field { display:grid; gap:5px; }
+.macro-field > label { color:var(--fg-3); font:700 8.5px/1 var(--font-mono); letter-spacing:.5px; text-transform:uppercase; }
+.macro-field input, .macro-field select {
+  width:100%; border:1px solid var(--border); border-radius:5px; background:var(--bg-2);
+  color:var(--fg-1); padding:8px 9px; outline:none; font:11px/1.2 var(--font-mono);
+}
+.macro-field input:focus, .macro-field select:focus { border-color:var(--cyan); }
+.macro-picker-results {
+  max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:6px;
+  background:var(--bg); display:grid;
+}
+.macro-picker-row {
+  display:grid; grid-template-columns:minmax(90px,140px) 1fr auto; align-items:center;
+  gap:8px; padding:8px 9px; border-bottom:1px solid var(--border); cursor:pointer;
+}
+.macro-picker-row:last-child { border-bottom:0; }
+.macro-picker-row:hover, .macro-picker-row.selected { background:var(--bg-2); }
+.macro-picker-id { color:var(--violet); font:700 9.5px/1.2 var(--font-mono); overflow:hidden; text-overflow:ellipsis; }
+.macro-picker-title { color:var(--fg-1); font-size:10.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.macro-picker-provider { color:var(--fg-4); font:8px/1 var(--font-mono); text-transform:uppercase; }
+.macro-editor-note { color:var(--fg-4); font:9px/1.45 var(--font-mono); }
+.macro-selected-series {
+  border:1px solid var(--cyan); border-radius:5px; padding:8px 9px;
+  color:var(--cyan); font:700 10px/1.3 var(--font-mono); overflow-wrap:anywhere;
+}
+.macro-editor-actions {
+  display:flex; justify-content:flex-end; gap:8px; padding:11px 15px;
+  border-top:1px solid var(--border);
+}
+.macro-save-btn {
+  border:1px solid var(--cyan); border-radius:5px; padding:7px 12px;
+  background:rgba(34,211,238,.09); color:var(--cyan); cursor:pointer;
+  font:700 9.5px/1 var(--font-mono);
+}
+.macro-save-btn:disabled { opacity:.35; cursor:not-allowed; }
+.macro-picker-empty { padding:15px; text-align:center; color:var(--fg-4); font:9.5px/1.4 var(--font-mono); }
 .macro-search-results { display: flex; flex-direction: column; gap: 5px; }
 .macro-sr {
-  display: grid; grid-template-columns: 110px 1fr auto; align-items: center; gap: 12px;
+  display: grid; grid-template-columns: 110px 1fr auto auto; align-items: center; gap: 12px;
   padding: 9px 12px; cursor: pointer; border-radius: 6px;
   background: var(--bg-1); border: 1px solid var(--border);
   font-family: var(--font-mono);
@@ -1093,6 +1205,19 @@ body.tv-shell .tv-iconrail { display: flex; }
 .macro-sr .sr-id { color: var(--violet); font-weight: 700; font-size: 11.5px; }
 .macro-sr .sr-title { color: var(--fg-1); font-size: 11.5px; font-family: var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .macro-sr .sr-meta { color: var(--fg-3); font-size: 9.5px; text-align: right; }
+@media (max-width:700px) {
+  #macro-modal .heatmap-content { width:100vw !important; max-width:none !important; height:100dvh; border-radius:0; }
+  #macro-modal .heatmap-header { align-items:flex-start; flex-wrap:wrap; height:auto; padding:10px; }
+  #macro-modal .heatmap-title { width:calc(100% - 36px); }
+  #macro-modal .heatmap-header > div:nth-child(2) { order:3; width:100%; margin:6px 0 0 !important; flex-wrap:wrap; }
+  .macro-head-actions { width:100%; }
+  .macro-body { padding:11px; }
+  .macro-grid { grid-template-columns:1fr; }
+  .macro-cat-tools, .macro-item-tools { opacity:1; }
+  .macro-form-row { grid-template-columns:1fr; }
+  .macro-picker-row { grid-template-columns:95px 1fr; }
+  .macro-picker-provider { display:none; }
+}
 
 .chart-toolbar {
   height: 36px;
@@ -1615,7 +1740,8 @@ html, body { max-width: 100vw; overflow-x: hidden; }
     <a href="/screener/">Screener</a>
     <a href="/chart-pro.html" class="active">Chart Pro</a>
     <a href="/proof.html">Proof</a>
-    <a href="/download.html">Download</a>>Pricing</a>
+    <a href="/download.html">Download</a>
+    <a href="/pricing.html">Pricing</a>
   </nav>
   
   <div class="spacer"></div>
@@ -2116,17 +2242,99 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   </div>
 </div>
 
-<div class="heatmap-modal" id="macro-modal">
+<div class="heatmap-modal" id="macro-modal" role="dialog" aria-modal="true" aria-labelledby="macro-modal-title" aria-hidden="true">
   <div class="heatmap-content" style="width:80vw;max-width:1000px">
     <div class="heatmap-header">
-      <div class="heatmap-title">📈 Macro &amp; Economic Data</div>
+      <div class="heatmap-title" id="macro-modal-title">📈 Macro &amp; Economic Data</div>
       <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
         <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
+        <div class="macro-head-actions">
+          <button class="macro-manage-btn" id="macro-add-series" type="button">+ SERIES</button>
+          <button class="macro-manage-btn" id="macro-add-category" type="button">+ CATEGORY</button>
+          <button class="macro-manage-btn danger" id="macro-reset" type="button" title="Restore the original curated catalog">RESET</button>
+        </div>
       </div>
-      <button class="modal-close" id="macro-close">×</button>
+      <button class="modal-close" id="macro-close" type="button" aria-label="Close macro catalog">×</button>
     </div>
     <div class="macro-body" id="macro-body">
       <div class="wl-loading">Loading catalog…</div>
+    </div>
+  </div>
+</div>
+
+<div class="new-wl-modal" id="macro-editor-modal" role="dialog" aria-modal="true" aria-labelledby="macro-editor-title" aria-hidden="true">
+  <div class="macro-editor-content">
+    <div class="macro-editor-head">
+      <span id="macro-editor-title">Add series</span>
+      <button class="modal-close" id="macro-editor-close" type="button" aria-label="Close editor">×</button>
+    </div>
+    <div class="macro-editor-body">
+      <div class="macro-field" id="macro-category-name-field" hidden>
+        <label for="macro-category-name">Category name</label>
+        <input id="macro-category-name" type="text" maxlength="80" autocomplete="off" placeholder="Example: Funding stress">
+      </div>
+      <div class="macro-field" id="macro-category-icon-field" hidden>
+        <label for="macro-category-icon">Category icon or short label</label>
+        <input id="macro-category-icon" type="text" maxlength="12" autocomplete="off" placeholder="Example: ⚠">
+      </div>
+      <div id="macro-series-fields">
+        <div class="macro-field">
+          <label for="macro-series-search">Find any indexed series</label>
+          <input id="macro-series-search" type="text" autocomplete="off" placeholder="Search by natural name, alias, provider, or exact ID">
+        </div>
+        <div class="macro-picker-results" id="macro-picker-results">
+          <div class="macro-picker-empty">Type at least two characters to search every indexed provider.</div>
+        </div>
+        <div class="macro-selected-series" id="macro-selected-series" hidden></div>
+        <div class="macro-form-row">
+          <div class="macro-field">
+            <label for="macro-series-category">Category</label>
+            <select id="macro-series-category"></select>
+          </div>
+          <div class="macro-field">
+            <label for="macro-series-title">Display name</label>
+            <input id="macro-series-title" type="text" maxlength="120" autocomplete="off">
+          </div>
+        </div>
+        <div class="macro-form-row">
+          <div class="macro-field">
+            <label for="macro-series-unit">Unit label</label>
+            <input id="macro-series-unit" type="text" maxlength="30" autocomplete="off" placeholder="%, index, USD…">
+          </div>
+          <div class="macro-field">
+            <label for="macro-alert-type">Danger rule</label>
+            <select id="macro-alert-type">
+              <option value="none">No alert</option>
+              <option value="value_above">Latest value above</option>
+              <option value="value_below">Latest value below</option>
+              <option value="move_up">Change rises by</option>
+              <option value="move_down">Change falls by</option>
+              <option value="move_abs">Absolute change exceeds</option>
+            </select>
+          </div>
+        </div>
+        <div class="macro-form-row" id="macro-alert-options">
+          <div class="macro-field">
+            <label for="macro-alert-threshold">Danger threshold</label>
+            <input id="macro-alert-threshold" type="number" step="any" autocomplete="off" placeholder="Example: 10">
+          </div>
+          <div class="macro-field">
+            <label for="macro-alert-horizon">Change horizon</label>
+            <select id="macro-alert-horizon">
+              <option value="D">Daily</option>
+              <option value="W">Weekly</option>
+              <option value="M">Monthly</option>
+              <option value="Q">Quarterly</option>
+              <option value="Y">Yearly</option>
+            </select>
+          </div>
+        </div>
+        <div class="macro-editor-note">Change rules use percentage change for the selected horizon. Value rules compare the latest raw observation. A triggered rule flashes red until the data moves out of danger or you edit the rule.</div>
+      </div>
+    </div>
+    <div class="macro-editor-actions">
+      <button class="macro-manage-btn" id="macro-editor-cancel" type="button">CANCEL</button>
+      <button class="macro-save-btn" id="macro-editor-save" type="button">SAVE</button>
     </div>
   </div>
 </div>
@@ -5079,7 +5287,7 @@ class ChartTabs {
 
 // ─── MACRO DATA CATALOG (FRED + Europe + EM + Frontier) ────────────
 class MacroData {
-  // Curated catalog. id is the FRED series id; charted as FRED:id (line).
+  static STORAGE_KEY = 'jh_macro_workspace_v2';
   static CATALOG = [
     { cat: "US Rates & Yields", flag: "🇺🇸", items: [
       ["DGS10","10Y Treasury Yield","%"], ["DGS2","2Y Treasury Yield","%"],
@@ -5155,84 +5363,653 @@ class MacroData {
       ["PCOPPUSDM","Copper","$/mt"], ["WPU0911","Lumber PPI","Index"],
     ]},
   ];
-  
+
+  static state = null;
+  static editMode = null;
+  static editId = null;
+  static selectedSeries = null;
+  static metricCache = new Map();
+  static metricInflight = new Map();
+  static metricObserver = null;
+  static renderToken = 0;
+  static searchSeq = 0;
+  static pickerTimer = null;
+  static editorTrigger = null;
+  static modalTrigger = null;
+
+  static init() {
+    this.load();
+    document.getElementById('macro-add-category').addEventListener('click', e => this.openCategoryEditor(null, e.currentTarget));
+    document.getElementById('macro-add-series').addEventListener('click', e => this.openSeriesEditor(null, null, null, e.currentTarget));
+    document.getElementById('macro-reset').addEventListener('click', () => this.reset());
+    document.getElementById('macro-editor-close').addEventListener('click', () => this.closeEditor());
+    document.getElementById('macro-editor-cancel').addEventListener('click', () => this.closeEditor());
+    document.getElementById('macro-editor-save').addEventListener('click', () => this.saveEditor());
+    document.getElementById('macro-series-search').addEventListener('input', e => {
+      clearTimeout(this.pickerTimer);
+      this.pickerTimer = setTimeout(() => this.searchPicker(e.target.value), 260);
+    });
+    document.getElementById('macro-alert-type').addEventListener('change', () => this.syncAlertFields());
+    document.getElementById('macro-editor-modal').addEventListener('click', e => {
+      if (e.target.id === 'macro-editor-modal') this.closeEditor();
+    });
+    document.getElementById('macro-editor-modal').addEventListener('keydown', e => this.trapEditorFocus(e));
+    document.getElementById('macro-modal').addEventListener('keydown', e => this.trapModalFocus(e));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('macro-editor-modal').classList.contains('open')) {
+        e.stopImmediatePropagation();
+        this.closeEditor();
+      }
+    });
+  }
+
+  static defaults() {
+    return this.CATALOG.map((cat, ci) => ({
+      id: `default-${ci}`,
+      cat: cat.cat,
+      flag: cat.flag || '▦',
+      items: cat.items.map((item, ii) => ({
+        uid: `default-${ci}-${ii}`,
+        symbol: cat.etf ? item[0] : `FRED:${item[0]}`,
+        title: item[1],
+        units: item[2] || (cat.etf ? 'ETF · live' : ''),
+        kind: cat.etf ? 'etf' : 'series',
+        provider: cat.etf ? 'market' : 'fred',
+        danger: { type: 'none', threshold: null, horizon: 'D' },
+      })),
+    }));
+  }
+
+  static load() {
+    if (this.state) return this.state;
+    try {
+      const saved = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || 'null');
+      if (saved && Array.isArray(saved.categories)) this.state = saved;
+    } catch (e) {}
+    if (!this.state) this.state = { version: 2, categories: this.defaults() };
+    this.normalize();
+    return this.state;
+  }
+
+  static normalize() {
+    const cats = Array.isArray(this.state && this.state.categories) ? this.state.categories : [];
+    this.state = {
+      version: 2,
+      categories: cats.map((cat, ci) => ({
+        id: String(cat.id || `category-${Date.now()}-${ci}`),
+        cat: String(cat.cat || 'Untitled category'),
+        flag: String(cat.flag || '▦'),
+        items: (Array.isArray(cat.items) ? cat.items : []).map((item, ii) => ({
+          uid: String(item.uid || `series-${Date.now()}-${ci}-${ii}`),
+          symbol: String(item.symbol || item.id || ''),
+          title: String(item.title || item.name || item.symbol || item.id || 'Untitled series'),
+          units: String(item.units || item.unit || ''),
+          kind: String(item.kind || 'series'),
+          provider: String(item.provider || String(item.symbol || '').split(':')[0] || 'data'),
+          danger: {
+            type: String((item.danger || {}).type || 'none'),
+            threshold: Number.isFinite(Number((item.danger || {}).threshold)) ? Number(item.danger.threshold) : null,
+            horizon: String((item.danger || {}).horizon || 'D'),
+          },
+        })).filter(item => item.symbol),
+      })),
+    };
+  }
+
+  static save() {
+    try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state)); } catch (e) {}
+  }
+
   static open() {
-    document.getElementById('macro-modal').classList.add('open');
+    this.load();
+    const modal = document.getElementById('macro-modal');
+    this.modalTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    this.searchSeq++;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.getElementById('macro-search-input').value = '';
     this.renderCatalog();
     setTimeout(() => document.getElementById('macro-search-input').focus(), 50);
   }
-  static close() { document.getElementById('macro-modal').classList.remove('open'); }
-  
+  static close() {
+    const modal = document.getElementById('macro-modal');
+    const wasOpen = modal.classList.contains('open');
+    this.renderToken++;
+    this.searchSeq++;
+    if (this.metricObserver) this.metricObserver.disconnect();
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (wasOpen && this.modalTrigger && this.modalTrigger.isConnected) {
+      const trigger = this.modalTrigger;
+      this.modalTrigger = null;
+      setTimeout(() => trigger.focus(), 0);
+    }
+  }
+
+  static categoryOptions(selected) {
+    return this.state.categories.map(cat =>
+      `<option value="${UI.esc(cat.id)}"${cat.id === selected ? ' selected' : ''}>${UI.esc(cat.flag)} ${UI.esc(cat.cat)}</option>`
+    ).join('');
+  }
+
   static renderCatalog() {
+    if (this.metricObserver) this.metricObserver.disconnect();
     const body = document.getElementById('macro-body');
-    const html = this.CATALOG.map(cat => {
+    const html = this.state.categories.map(cat => {
       const items = cat.items.map(it => {
-        const [id, title, units] = it;
-        if (cat.etf) {
-          return `<div class="macro-item" data-symbol="${id}" data-kind="etf">
-            <span class="mi-title">${UI.esc(title)}</span>
-            <span class="mi-meta"><span class="mi-id">${id}</span><span>ETF · live</span></span>
-          </div>`;
-        }
-        return `<div class="macro-item" data-symbol="FRED:${id}" data-kind="fred">
-          <span class="mi-title">${UI.esc(title)}</span>
-          <span class="mi-meta"><span class="mi-id">${id}</span><span>${UI.esc(units||'')}</span></span>
+        return `<div class="macro-item loading" tabindex="0" role="button"
+            data-symbol="${UI.esc(it.symbol)}" data-series-id="${UI.esc(it.uid)}" data-category-id="${UI.esc(cat.id)}"
+            aria-label="Chart ${UI.esc(it.title)}">
+          <span class="mi-title">${UI.esc(it.title)}</span>
+          <span class="mi-meta"><span class="mi-id">${UI.esc(it.symbol)}</span><span>${UI.esc(it.provider || '')}</span></span>
+          <div class="macro-latest"><span class="macro-latest-value">…</span><span class="macro-latest-unit">${UI.esc(it.units || '')}</span><span class="macro-asof"></span></div>
+          <div class="macro-danger-badge">DANGER</div>
+          <div class="macro-changes">
+            ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
+          </div>
+          <span class="macro-item-tools">
+            <button class="macro-icon-btn" type="button" data-macro-action="edit-series" aria-label="Edit ${UI.esc(it.title)}">✎</button>
+            <button class="macro-icon-btn remove" type="button" data-macro-action="remove-series" aria-label="Remove ${UI.esc(it.title)}">×</button>
+          </span>
         </div>`;
-      }).join('');
+      }).join('') || `<div class="macro-empty-cat">No series yet. Use + to add one from any indexed provider.</div>`;
       return `<div class="macro-cat">
-        <div class="macro-cat-name"><span class="mc-flag">${cat.flag}</span>${UI.esc(cat.cat)}</div>
+        <div class="macro-cat-name">
+          <span class="macro-cat-label"><span class="mc-flag">${UI.esc(cat.flag)}</span><span>${UI.esc(cat.cat)}</span><span class="macro-cat-count">${cat.items.length}</span></span>
+          <span class="macro-cat-tools">
+            <button class="macro-icon-btn" type="button" data-macro-action="add-series" data-category-id="${UI.esc(cat.id)}" aria-label="Add series to ${UI.esc(cat.cat)}">+</button>
+            <button class="macro-icon-btn" type="button" data-macro-action="edit-category" data-category-id="${UI.esc(cat.id)}" aria-label="Edit ${UI.esc(cat.cat)}">✎</button>
+            <button class="macro-icon-btn remove" type="button" data-macro-action="remove-category" data-category-id="${UI.esc(cat.id)}" aria-label="Remove ${UI.esc(cat.cat)}">×</button>
+          </span>
+        </div>
         <div class="macro-grid">${items}</div>
       </div>`;
-    }).join('');
+    }).join('') || `<div class="macro-empty-cat">No categories yet. Select + CATEGORY to create your first monitoring group.</div>`;
     body.innerHTML = html;
     body.querySelectorAll('.macro-item').forEach(el => {
-      el.addEventListener('click', () => { this.chartSeries(el.dataset.symbol); this.close(); });
+      el.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        this.chartSeries(el.dataset.symbol);
+        this.close();
+      });
+      el.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
+          e.preventDefault();
+          this.chartSeries(el.dataset.symbol);
+          this.close();
+        }
+      });
     });
+    body.querySelectorAll('[data-macro-action]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
+      btn.focus({ preventScroll: true });
+      const action = btn.dataset.macroAction;
+      const card = btn.closest('.macro-item');
+      const categoryId = btn.dataset.categoryId || (card && card.dataset.categoryId);
+      const seriesId = card && card.dataset.seriesId;
+      if (action === 'add-series') this.openSeriesEditor(null, categoryId, null, btn);
+      if (action === 'edit-series') this.openSeriesEditor(seriesId, categoryId, null, btn);
+      if (action === 'remove-series') this.removeSeries(seriesId, categoryId);
+      if (action === 'edit-category') this.openCategoryEditor(categoryId, btn);
+      if (action === 'remove-category') this.removeCategory(categoryId);
+    }));
+    this.hydrateMetrics();
   }
-  
+
+  static async fetchMetric(symbol) {
+    const cached = this.metricCache.get(symbol);
+    if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) return cached;
+    if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
+    const request = (async () => {
+      const response = await fetch(`${PROXY}/series?id=${encodeURIComponent(symbol)}`);
+      if (!response.ok) throw new Error(`Series ${response.status}`);
+      const payload = await response.json();
+      const observations = (payload.obs || payload.bars || []).map(row => {
+        const rawValue = Array.isArray(row) ? row[1] : (row.value ?? row.close);
+        if (rawValue == null || rawValue === '') return null;
+        const date = String(Array.isArray(row) ? row[0] : (row.time || row.date || ''));
+        const value = Number(rawValue);
+        return date && Number.isFinite(value) ? { date, value } : null;
+      }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+      if (!observations.length) throw new Error('No observations');
+      const last = observations[observations.length - 1];
+      const changes = {};
+      const lastTime = Date.parse(last.date.length === 10 ? `${last.date}T00:00:00Z` : last.date);
+      const targetTime = horizon => {
+        const date = new Date(lastTime);
+        if (horizon === 'D') date.setUTCDate(date.getUTCDate() - 1);
+        if (horizon === 'W') date.setUTCDate(date.getUTCDate() - 7);
+        if (horizon === 'M') date.setUTCMonth(date.getUTCMonth() - 1);
+        if (horizon === 'Q') date.setUTCMonth(date.getUTCMonth() - 3);
+        if (horizon === 'Y') date.setUTCFullYear(date.getUTCFullYear() - 1);
+        return date.getTime();
+      };
+      const tolerances = { D: 3, W: 5, M: 16, Q: 45, Y: 95 };
+      Object.keys(tolerances).forEach(horizon => {
+        const cutoff = targetTime(horizon);
+        let prior = null, priorTime = null;
+        for (let i = observations.length - 1; i >= 0; i--) {
+          const time = Date.parse(observations[i].date.length === 10 ? `${observations[i].date}T00:00:00Z` : observations[i].date);
+          if (time <= cutoff) { prior = observations[i]; priorTime = time; break; }
+        }
+        const withinTolerance = prior && Number.isFinite(priorTime) && (cutoff - priorTime) <= tolerances[horizon] * 86400000;
+        changes[horizon] = withinTolerance && prior.value !== 0
+          ? ((last.value - prior.value) / Math.abs(prior.value)) * 100
+          : null;
+      });
+      const metric = { last: last.value, asof: last.date.slice(0, 10), changes, cachedAt: Date.now() };
+      this.metricCache.set(symbol, metric);
+      return metric;
+    })();
+    this.metricInflight.set(symbol, request);
+    try { return await request; }
+    finally { if (this.metricInflight.get(symbol) === request) this.metricInflight.delete(symbol); }
+  }
+
+  static hydrateMetrics() {
+    const token = ++this.renderToken;
+    const cards = [...document.querySelectorAll('#macro-body .macro-item[data-symbol]')];
+    const hydrate = async card => {
+      if (card.dataset.metricState) return;
+      card.dataset.metricState = 'loading';
+      try {
+        const metric = await this.fetchMetric(card.dataset.symbol);
+        if (token !== this.renderToken || !card.isConnected) return;
+        this.paintMetric(card, metric);
+        card.dataset.metricState = 'ready';
+      } catch (e) {
+        if (!card.isConnected || token !== this.renderToken) return;
+        card.classList.remove('loading');
+        card.dataset.metricState = 'error';
+        card.querySelector('.macro-latest-value').textContent = 'Unavailable';
+        card.querySelector('.macro-latest-value').title = String(e && e.message || e);
+      }
+    };
+    if (!('IntersectionObserver' in window)) {
+      cards.slice(0, 24).forEach(hydrate);
+      return;
+    }
+    this.metricObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        this.metricObserver.unobserve(entry.target);
+        hydrate(entry.target);
+      });
+    }, { root: document.getElementById('macro-body'), rootMargin: '320px 0px', threshold: 0.01 });
+    cards.forEach(card => this.metricObserver.observe(card));
+  }
+
+  static paintMetric(card, metric) {
+    const found = this.findSeries(card.dataset.seriesId, card.dataset.categoryId);
+    if (!found) return;
+    const item = found.item;
+    card.classList.remove('loading');
+    card.querySelector('.macro-latest-value').textContent = this.formatValue(metric.last);
+    card.querySelector('.macro-asof').textContent = metric.asof;
+    Object.entries(metric.changes).forEach(([horizon, value]) => {
+      const node = card.querySelector(`[data-horizon="${horizon}"]`);
+      if (!node) return;
+      node.className = 'macro-change ' + (!Number.isFinite(value) ? 'na' : value > 0 ? 'up' : value < 0 ? 'down' : 'na');
+      node.innerHTML = `<b>${horizon}</b>${Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(Math.abs(value) >= 100 ? 0 : 2)}%` : '—'}`;
+    });
+    const danger = this.isDanger(item.danger, metric);
+    card.classList.toggle('danger-flash', danger);
+    if (danger) {
+      const rule = item.danger;
+      const value = rule.type.startsWith('value_') ? metric.last : metric.changes[rule.horizon];
+      card.querySelector('.macro-danger-badge').title = `${rule.type.replaceAll('_', ' ')} ${rule.threshold}; current ${this.formatValue(value)}`;
+    }
+  }
+
+  static formatValue(value) {
+    if (!Number.isFinite(value)) return '—';
+    const abs = Math.abs(value);
+    if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
+    if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+    if (abs >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    return value.toLocaleString(undefined, { maximumFractionDigits: abs < 10 ? 3 : 2 });
+  }
+
+  static isDanger(rule, metric) {
+    if (!rule || rule.type === 'none' || !Number.isFinite(Number(rule.threshold))) return false;
+    const threshold = Number(rule.threshold);
+    if (rule.type === 'value_above') return metric.last > threshold;
+    if (rule.type === 'value_below') return metric.last < threshold;
+    const change = metric.changes[rule.horizon || 'D'];
+    if (!Number.isFinite(change)) return false;
+    if (rule.type === 'move_up') return change >= Math.abs(threshold);
+    if (rule.type === 'move_down') return change <= -Math.abs(threshold);
+    if (rule.type === 'move_abs') return Math.abs(change) >= Math.abs(threshold);
+    return false;
+  }
+
+  static findSeries(seriesId, categoryId) {
+    const category = this.state.categories.find(cat => cat.id === categoryId)
+      || this.state.categories.find(cat => cat.items.some(item => item.uid === seriesId));
+    if (!category) return null;
+    const item = category.items.find(entry => entry.uid === seriesId);
+    return item ? { category, item } : null;
+  }
+
   static async search(text) {
     const body = document.getElementById('macro-body');
+    const seq = ++this.searchSeq;
     if (!text || text.length < 2) { this.renderCatalog(); return; }
-    body.innerHTML = '<div class="wl-loading">Searching FRED + global providers (DBnomics: ECB, IMF, World Bank, OECD, BIS, Eurostat…)</div>';
+    this.renderToken++;
+    body.innerHTML = '<div class="wl-loading">Searching every indexed provider…</div>';
     try {
-      const [fredR, dbnR] = await Promise.allSettled([
-        fetch(`${PROXY}/fred-search?text=${encodeURIComponent(text)}`).then(r => r.ok ? r.json() : {series:[]}),
-        fetch(`${PROXY}/dbnomics-search?q=${encodeURIComponent(text)}`).then(r => r.ok ? r.json() : {series:[]}),
-      ]);
-      const fred = (fredR.value && fredR.value.series) || [];
-      const dbn = (dbnR.value && dbnR.value.series) || [];
-      if (!fred.length && !dbn.length) { body.innerHTML = '<div class="wl-empty">No series found for "' + UI.esc(text) + '"</div>'; return; }
-      let html = '';
-      if (fred.length) {
-        html += '<div class="macro-cat-name" style="margin-bottom:8px">🇺🇸 FRED (St. Louis Fed)</div>';
-        html += '<div class="macro-search-results" style="margin-bottom:18px">' + fred.map(s => `
-          <div class="macro-sr" data-symbol="FRED:${s.id}">
-            <span class="sr-id">${UI.esc(s.id)}</span>
-            <span class="sr-title">${UI.esc(s.title)}</span>
-            <span class="sr-meta">${UI.esc(s.units||'')} · ${UI.esc(s.frequency||'')}</span>
-          </div>`).join('') + '</div>';
+      const rows = await this.searchRows(text);
+      if (seq !== this.searchSeq) return;
+      if (!rows.length) {
+        body.innerHTML = '<div class="wl-empty">No chartable series found for "' + UI.esc(text) + '"</div>';
+        return;
       }
-      if (dbn.length) {
-        html += '<div class="macro-cat-name" style="margin-bottom:8px">🌐 Global (DBnomics: ECB · IMF · World Bank · OECD · BIS · Eurostat · national)</div>';
-        html += '<div class="macro-search-results">' + dbn.map(s => `
-          <div class="macro-sr" data-symbol="DBN:${s.id}">
-            <span class="sr-id" style="font-size:9.5px">${UI.esc(s.provider)}</span>
-            <span class="sr-title">${UI.esc(s.name)}</span>
-            <span class="sr-meta">${UI.esc(s.dataset||'')}</span>
+      body.innerHTML = '<div class="macro-cat-name" style="margin-bottom:8px"><span class="macro-cat-label">Universal series search</span><span class="macro-cat-count">' + rows.length + '</span></div>'
+        + '<div class="macro-search-results">' + rows.map((row, index) => `
+          <div class="macro-sr" data-result-index="${index}" data-symbol="${UI.esc(row.id)}" tabindex="0" role="button" aria-label="Chart ${UI.esc(row.title || row.name || row.id)}">
+            <span class="sr-id">${UI.esc(row.id)}</span>
+            <span class="sr-title">${UI.esc(row.title || row.name || row.id)}</span>
+            <span class="sr-meta">${UI.esc(row.provider_name || row.provider || row.unit || '')}</span>
+            <button class="macro-manage-btn" type="button" data-add-result="${index}">+ ADD</button>
           </div>`).join('') + '</div>';
-      }
-      body.innerHTML = html;
       body.querySelectorAll('.macro-sr').forEach(el => {
-        el.addEventListener('click', () => { this.chartSeries(el.dataset.symbol); this.close(); });
+        el.addEventListener('click', e => {
+          if (e.target.closest('button')) return;
+          this.chartSeries(el.dataset.symbol);
+          this.close();
+        });
+        el.addEventListener('keydown', e => {
+          if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
+            e.preventDefault();
+            this.chartSeries(el.dataset.symbol);
+            this.close();
+          }
+        });
+      });
+      body.querySelectorAll('[data-add-result]').forEach(button => {
+        button.addEventListener('click', e => {
+          e.stopPropagation();
+          const row = rows[Number(button.dataset.addResult)];
+          this.openSeriesEditor(null, null, row, button);
+        });
       });
     } catch (e) {
+      if (seq !== this.searchSeq) return;
       body.innerHTML = '<div class="wl-empty">Search failed. Try again.</div>';
     }
   }
-  
+
+  static async searchRows(text) {
+    const response = await fetch(`${PROXY}/symsearch?q=${encodeURIComponent(text)}&limit=60`);
+    if (!response.ok) throw new Error(`Search ${response.status}`);
+    const payload = await response.json();
+    const seen = new Set();
+    const candidates = [
+      ...((payload.series_hits && payload.series_hits.rows) || []),
+      ...(payload.rows || []).filter(row => row.kind === 'series'),
+    ];
+    return candidates.filter(row => {
+      const id = String(row.id || '');
+      if (!id || seen.has(id) || row.raw || row.chartable === false || row.kind !== 'series') return false;
+      seen.add(id);
+      return true;
+    });
+  }
+
+  static openCategoryEditor(categoryId = null, trigger = null) {
+    const category = categoryId && this.state.categories.find(cat => cat.id === categoryId);
+    this.editMode = category ? 'edit-category' : 'add-category';
+    this.editId = category && category.id;
+    document.getElementById('macro-editor-title').textContent = category ? 'Edit category' : 'Add category';
+    document.getElementById('macro-category-name-field').hidden = false;
+    document.getElementById('macro-category-icon-field').hidden = false;
+    document.getElementById('macro-series-fields').hidden = true;
+    document.getElementById('macro-category-name').value = category ? category.cat : '';
+    document.getElementById('macro-category-icon').value = category ? category.flag : '▦';
+    this.showEditor(trigger);
+    setTimeout(() => document.getElementById('macro-category-name').focus(), 30);
+  }
+
+  static openSeriesEditor(seriesId = null, categoryId = null, seed = null, trigger = null) {
+    const found = seriesId ? this.findSeries(seriesId, categoryId) : null;
+    this.editMode = found ? 'edit-series' : 'add-series';
+    this.editId = found ? found.item.uid : null;
+    this.selectedSeries = found ? {
+      id: found.item.symbol,
+      title: found.item.title,
+      unit: found.item.units,
+      provider: found.item.provider,
+      kind: found.item.kind,
+    } : seed;
+    document.getElementById('macro-editor-title').textContent = found ? 'Edit series' : 'Add series';
+    document.getElementById('macro-category-name-field').hidden = true;
+    document.getElementById('macro-category-icon-field').hidden = true;
+    document.getElementById('macro-series-fields').hidden = false;
+    const selectedCategory = categoryId || (found && found.category.id) || (this.state.categories[0] && this.state.categories[0].id) || '';
+    document.getElementById('macro-series-category').innerHTML = this.categoryOptions(selectedCategory);
+    document.getElementById('macro-series-search').value = '';
+    document.getElementById('macro-series-search').disabled = !!found;
+    document.getElementById('macro-picker-results').innerHTML = found
+      ? '<div class="macro-picker-empty">The source ID is fixed while editing. Remove and add again to replace it.</div>'
+      : '<div class="macro-picker-empty">Type at least two characters to search every indexed provider.</div>';
+    const item = found && found.item;
+    document.getElementById('macro-series-title').value = item ? item.title : (seed && (seed.title || seed.name)) || '';
+    document.getElementById('macro-series-unit').value = item ? item.units : (seed && (seed.unit || seed.units)) || '';
+    document.getElementById('macro-alert-type').value = item ? item.danger.type : 'none';
+    document.getElementById('macro-alert-threshold').value = item && item.danger.threshold != null ? item.danger.threshold : '';
+    document.getElementById('macro-alert-horizon').value = item ? item.danger.horizon : 'D';
+    this.paintSelectedSeries();
+    this.syncAlertFields();
+    this.showEditor(trigger);
+    setTimeout(() => (found ? document.getElementById('macro-series-title') : document.getElementById('macro-series-search')).focus(), 30);
+  }
+
+  static showEditor(trigger = null) {
+    const modal = document.getElementById('macro-editor-modal');
+    this.editorTrigger = trigger instanceof HTMLElement
+      ? trigger
+      : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    document.getElementById('macro-modal').setAttribute('aria-hidden', 'true');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  static closeEditor() {
+    const modal = document.getElementById('macro-editor-modal');
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (document.getElementById('macro-modal').classList.contains('open')) {
+      document.getElementById('macro-modal').setAttribute('aria-hidden', 'false');
+    }
+    this.editMode = null;
+    this.editId = null;
+    this.selectedSeries = null;
+    this.searchSeq++;
+    const trigger = this.editorTrigger;
+    this.editorTrigger = null;
+    if (trigger && trigger.isConnected) setTimeout(() => trigger.focus(), 0);
+  }
+
+  static trapEditorFocus(e) {
+    if (e.key !== 'Tab') return;
+    const modal = document.getElementById('macro-editor-modal');
+    const controls = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.hidden && el.offsetParent !== null);
+    if (!controls.length) return;
+    const first = controls[0], last = controls[controls.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  static trapModalFocus(e) {
+    if (e.key !== 'Tab' || document.getElementById('macro-editor-modal').classList.contains('open')) return;
+    const modal = document.getElementById('macro-modal');
+    const controls = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.hidden && el.offsetParent !== null);
+    if (!controls.length) return;
+    const first = controls[0], last = controls[controls.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  static syncAlertFields() {
+    const type = document.getElementById('macro-alert-type').value;
+    document.getElementById('macro-alert-options').hidden = type === 'none';
+    document.getElementById('macro-alert-horizon').closest('.macro-field').hidden = type.startsWith('value_');
+  }
+
+  static async searchPicker(text) {
+    const target = document.getElementById('macro-picker-results');
+    const seq = ++this.searchSeq;
+    if (!text || text.trim().length < 2) {
+      target.innerHTML = '<div class="macro-picker-empty">Type at least two characters to search every indexed provider.</div>';
+      return;
+    }
+    target.innerHTML = '<div class="macro-picker-empty">Searching every indexed provider…</div>';
+    try {
+      const rows = await this.searchRows(text.trim());
+      if (seq !== this.searchSeq) return;
+      if (!rows.length) {
+        target.innerHTML = '<div class="macro-picker-empty">No chartable series found.</div>';
+        return;
+      }
+      target.innerHTML = rows.map((row, index) => `
+        <div class="macro-picker-row" data-picker-index="${index}" tabindex="0" role="button">
+          <span class="macro-picker-id">${UI.esc(row.id)}</span>
+          <span class="macro-picker-title">${UI.esc(row.title || row.name || row.id)}</span>
+          <span class="macro-picker-provider">${UI.esc(row.provider_name || row.provider || '')}</span>
+        </div>`).join('');
+      target.querySelectorAll('[data-picker-index]').forEach(el => {
+        const choose = () => this.selectPicker(rows[Number(el.dataset.pickerIndex)]);
+        el.addEventListener('click', choose);
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
+        });
+      });
+    } catch (e) {
+      if (seq !== this.searchSeq) return;
+      target.innerHTML = '<div class="macro-picker-empty">Search failed. Try again.</div>';
+    }
+  }
+
+  static selectPicker(row) {
+    this.selectedSeries = row;
+    document.getElementById('macro-series-title').value = row.title || row.name || row.id;
+    document.getElementById('macro-series-unit').value = row.unit || row.units || '';
+    this.paintSelectedSeries();
+    document.querySelectorAll('#macro-picker-results .macro-picker-row').forEach(el => {
+      el.classList.toggle('selected', el.querySelector('.macro-picker-id').textContent === row.id);
+    });
+  }
+
+  static paintSelectedSeries() {
+    const node = document.getElementById('macro-selected-series');
+    if (!this.selectedSeries) {
+      node.hidden = true;
+      node.textContent = '';
+      return;
+    }
+    node.hidden = false;
+    node.textContent = `${this.selectedSeries.id} · ${this.selectedSeries.title || this.selectedSeries.name || ''}`;
+  }
+
+  static saveEditor() {
+    if (this.editMode === 'add-category' || this.editMode === 'edit-category') {
+      const name = document.getElementById('macro-category-name').value.trim();
+      const flag = document.getElementById('macro-category-icon').value.trim() || '▦';
+      if (!name) { document.getElementById('macro-category-name').focus(); return; }
+      if (this.editMode === 'edit-category') {
+        const category = this.state.categories.find(cat => cat.id === this.editId);
+        if (category) { category.cat = name; category.flag = flag; }
+      } else {
+        this.state.categories.push({ id: `category-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, cat: name, flag, items: [] });
+      }
+      this.save();
+      this.closeEditor();
+      this.renderCatalog();
+      setTimeout(() => document.getElementById('macro-search-input').focus(), 0);
+      return;
+    }
+    if (!this.selectedSeries || !this.state.categories.length) {
+      if (!this.state.categories.length) this.openCategoryEditor();
+      else document.getElementById('macro-series-search').focus();
+      return;
+    }
+    const categoryId = document.getElementById('macro-series-category').value;
+    const destination = this.state.categories.find(cat => cat.id === categoryId);
+    if (!destination) return;
+    const title = document.getElementById('macro-series-title').value.trim() || this.selectedSeries.title || this.selectedSeries.name || this.selectedSeries.id;
+    const units = document.getElementById('macro-series-unit').value.trim();
+    const alertType = document.getElementById('macro-alert-type').value;
+    const thresholdRaw = document.getElementById('macro-alert-threshold').value;
+    const threshold = thresholdRaw === '' ? null : Number(thresholdRaw);
+    if (alertType !== 'none' && !Number.isFinite(threshold)) {
+      document.getElementById('macro-alert-threshold').focus();
+      return;
+    }
+    const danger = { type: alertType, threshold, horizon: document.getElementById('macro-alert-horizon').value };
+    if (this.editMode === 'edit-series') {
+      const found = this.findSeries(this.editId);
+      if (!found) return;
+      found.category.items = found.category.items.filter(item => item.uid !== this.editId);
+      destination.items.push({
+        ...found.item, title, units, danger,
+      });
+    } else {
+      destination.items.push({
+        uid: `series-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        symbol: String(this.selectedSeries.id),
+        title,
+        units,
+        kind: this.selectedSeries.kind || 'series',
+        provider: this.selectedSeries.provider_name || this.selectedSeries.provider || String(this.selectedSeries.id).split(':')[0],
+        danger,
+      });
+    }
+    this.save();
+    this.closeEditor();
+    document.getElementById('macro-search-input').value = '';
+    this.renderCatalog();
+    setTimeout(() => document.getElementById('macro-search-input').focus(), 0);
+  }
+
+  static removeSeries(seriesId, categoryId) {
+    const found = this.findSeries(seriesId, categoryId);
+    if (!found || !confirm(`Remove "${found.item.title}" from this category?`)) return;
+    found.category.items = found.category.items.filter(item => item.uid !== seriesId);
+    this.save();
+    this.renderCatalog();
+  }
+
+  static removeCategory(categoryId) {
+    const category = this.state.categories.find(cat => cat.id === categoryId);
+    if (!category || !confirm(`Remove "${category.cat}" and its ${category.items.length} series?`)) return;
+    this.state.categories = this.state.categories.filter(cat => cat.id !== categoryId);
+    this.save();
+    this.renderCatalog();
+  }
+
+  static reset() {
+    if (!confirm('Restore the original curated macro catalog? Your custom categories, series, and danger rules will be removed.')) return;
+    this.state = { version: 2, categories: this.defaults() };
+    this.metricCache.clear();
+    this.save();
+    this.renderCatalog();
+  }
+
   static chartSeries(symbol) {
-    // Force native engine for FRED series; load into active tab
-    if (symbol.startsWith('FRED:')) {
+    if (symbol.includes(':')) {
       State.chartEngine = 'native';
       document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));
     }
@@ -8166,6 +8943,7 @@ async function init() {
   document.getElementById('basket-add-wt').addEventListener('keydown', (e) => { if (e.key === 'Enter') Basket.addRow(); });
   document.getElementById('basket-chart-btn').addEventListener('click', () => Basket.saveAndChart());
   // ── Macro data catalog ──
+  MacroData.init();
   document.getElementById('macro-btn').addEventListener('click', () => MacroData.open());
   document.getElementById('macro-close').addEventListener('click', () => MacroData.close());
   let macroSearchTimer = null;
@@ -8217,6 +8995,11 @@ async function init() {
   
   // ── Global keyboard shortcuts ──
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('macro-editor-modal').classList.contains('open')) {
+      e.preventDefault();
+      MacroData.closeEditor();
+      return;
+    }
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === '/') { e.preventDefault(); const si = document.getElementById('search-input'); if (si) { si.focus(); si.select(); } }
     if (e.key === 'Escape') {
