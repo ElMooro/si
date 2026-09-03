@@ -34,7 +34,7 @@ from ops_report import report  # noqa: E402
 
 SITE = "https://justhodl.ai"
 PAGE = SITE + "/chart-pro.html?s=SPY&tf=1D"
-MARKER = "reskin_site.py rewrites rgba() text at deploy time"
+MARKER = "capture is best-effort: a released or synthetic pointer"
 SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
 FAILS = []
 

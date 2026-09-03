@@ -10094,7 +10094,7 @@ class Heatmap {
     const body = document.getElementById('heatmap-body');
     let lastX = e.clientX, lastY = e.clientY, autoScrollFrame = 0;
     this.pointerDrag = { handle, pointerId: e.pointerId, x: e.clientX, y: e.clientY, active: false, cleanup: null };
-    handle.setPointerCapture(e.pointerId);
+    try { handle.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort: a released or synthetic pointer still drags via the handle listeners */ }
     const updateTarget = (clientX, clientY) => {
       const node = document.elementFromPoint(clientX, clientY);
       const target = this.dropTarget(node, clientX, clientY);
