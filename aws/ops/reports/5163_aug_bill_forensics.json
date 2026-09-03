@@ -1,0 +1,1767 @@
+{
+ "ops": 5163,
+ "ts": "2026-09-03T18:03:59.105706+00:00",
+ "invoice_reported": 484.26,
+ "aug_total_ce": 484.27,
+ "aug_by_service": {
+  "AWS App Runner": 0.2,
+  "AWS Cost Explorer": 0.06,
+  "AWS Glue": 0.0,
+  "AWS Key Management Service": 0.0,
+  "AWS Lambda": 149.26,
+  "AWS Secrets Manager": 3.6,
+  "AWS Step Functions": 0.0,
+  "AWS Systems Manager": 0.32,
+  "AWS X-Ray": 0.0,
+  "Amazon API Gateway": 0.01,
+  "Amazon CloudFront": 0.0,
+  "Amazon DynamoDB": 13.93,
+  "Amazon EC2 Container Registry (ECR)": 1.83,
+  "EC2 - Other": 1.28,
+  "Amazon Elastic Compute Cloud - Compute": 0.32,
+  "Amazon Elastic File System": 0.0,
+  "Amazon Elastic Load Balancing": 0.65,
+  "Amazon OpenSearch Service": 1.13,
+  "Amazon Route 53": 1.5,
+  "Amazon SageMaker": 1.27,
+  "Amazon Simple Email Service": 0.0,
+  "Amazon Simple Notification Service": 0.0,
+  "Amazon Simple Queue Service": 0.0,
+  "Amazon Simple Storage Service": 289.23,
+  "Amazon Virtual Private Cloud": 0.35,
+  "AmazonCloudWatch": 9.55,
+  "CloudWatch Events": 9.77,
+  "Tax": 0.0
+ },
+ "aug_usage_types": {
+  "Lambda-GB-Second": [
+   126.99,
+   8019320.2
+  ],
+  "USW2-Requests-SIA-Tier1": [
+   94.88,
+   9488074.0
+  ],
+  "Requests-Tier1": [
+   70.95,
+   14191213.0
+  ],
+  "USE1-USW2-AWS-Out-Bytes": [
+   46.02,
+   2301.0
+  ],
+  "DataTransfer-Out-Bytes": [
+   26.63,
+   395.8
+  ],
+  "TimedStorage-ByteHrs": [
+   26.24,
+   1083.6
+  ],
+  "Lambda-SnapStart-Cached-GB-S": [
+   17.13,
+   11383200.0
+  ],
+  "USW2-TimedStorage-SIA-ByteHrs": [
+   13.51,
+   1080.9
+  ],
+  "WriteRequestUnits": [
+   12.4,
+   19836500.0
+  ],
+  "Requests-Tier2": [
+   11.28,
+   28197402.0
+  ],
+  "USE1-Event-64K-Chunks": [
+   9.77,
+   9772928.0
+  ],
+  "CW:Requests": [
+   6.23,
+   1623366.0
+  ],
+  "USE1-AWSSecretsManager-Secrets": [
+   3.6,
+   9.0
+  ],
+  "CW:AlarmMonitorUsage": [
+   2.09,
+   30.9
+  ],
+  "Lambda-GB-Second-ARM": [
+   2.02,
+   151838.0
+  ],
+  "Request": [
+   1.82,
+   10079174.0
+  ],
+  "USW2-TimedStorage-SIA-SmObjects": [
+   1.81,
+   145.0
+  ],
+  "HostedZone": [
+   1.5,
+   3.0
+  ],
+  "EBS:VolumeUsage.gp3": [
+   1.28,
+   16.0
+  ],
+  "CW:GMD-Metrics": [
+   1.22,
+   122364.0
+  ],
+  "ReadRequestUnits": [
+   1.14,
+   9149144.5
+  ],
+  "ESInstance:t3.small": [
+   1.08,
+   30.0
+  ],
+  "USE1-Studio:JupyterLab-ml.t3.medium": [
+   0.71,
+   14.2
+  ],
+  "LoadBalancerUsage": [
+   0.65,
+   29.0
+  ],
+  "USW2-Requests-Tier1": [
+   0.56,
+   112047.0
+  ],
+  "USE1-Studio:VolumeUsage.gp3": [
+   0.56,
+   5.0
+  ],
+  "USE1-PublicIPv4:InUseAddress": [
+   0.35,
+   70.5
+  ],
+  "USE1-TimedPITRStorage-ByteHrs": [
+   0.35,
+   1.8
+  ],
+  "BoxUsage:t2.micro": [
+   0.32,
+   28.0
+  ],
+  "USE1-PS-Advanced-Param-Tier1": [
+   0.31,
+   4445.0
+  ],
+  "USE1-AppRunner-Provisioned-GB-hours": [
+   0.2,
+   28.0
+  ],
+  "USE1-StorageLens-ObjCount": [
+   0.16,
+   776518.5
+  ],
+  "USW2-TimedStorage-ByteHrs": [
+   0.12,
+   5.4
+  ],
+  "Lambda-Storage-GB-Second": [
+   0.11,
+   3599953.0
+  ],
+  "USW2-Retrieval-SIA": [
+   0.07,
+   6.6
+  ],
+  "USE1-APIRequest": [
+   0.06,
+   6.0
+  ],
+  "ES:GP3-Storage": [
+   0.05,
+   0.4
+  ],
+  "USE1-TimedBackupStorage-ByteHrs": [
+   0.04,
+   0.4
+  ],
+  "Inventory-ObjectsListed": [
+   0.01,
+   5586965.0
+  ],
+  "USW2-DataTransfer-Out-Bytes": [
+   0.01,
+   0.3
+  ],
+  "USE1-PS-Param-Processed-Tier1": [
+   0.01,
+   1883.0
+  ],
+  "USE1-ApiGatewayMessage": [
+   0.01,
+   6667.0
+  ],
+  "Request-ARM": [
+   0.01,
+   33161.0
+  ],
+  "USE1-ApiGatewayMinute": [
+   0.0,
+   3421.0
+  ],
+  "USE1-ApiGatewayHttpRequest": [
+   0.0,
+   688.0
+  ],
+  "USE1-AWSSecretsManagerAPIRequest": [
+   0.0,
+   60.0
+  ],
+  "USE1-UGW1-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-PublicIPv4:IdleAddress": [
+   0.0,
+   0.1
+  ],
+  "USW2-CW:Requests": [
+   0.0,
+   10.0
+  ],
+  "LCUUsage": [
+   0.0,
+   0.0
+  ],
+  "USE1-ApiGatewayRequest": [
+   0.0,
+   5.0
+  ],
+  "Lambda-Storage-GB-Second-ARM": [
+   0.0,
+   311.6
+  ],
+  "USW2-Requests-Tier2": [
+   0.0,
+   18.0
+  ],
+  "USE1-TimedStorage-ByteHrs": [
+   0.0,
+   0.8
+  ],
+  "USE1-USE2-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-EUC1-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-APS2-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-EUW2-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-CAN1-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ],
+  "USE1-USW1-AWS-Out-Bytes": [
+   0.0,
+   0.0
+  ]
+ },
+ "baseline_daily_all": 4.52,
+ "baseline_daily_s3": 1.27,
+ "anomaly_excess_s3": 236.05,
+ "anomaly_excess_all": 309.48,
+ "sep_mtd_daily_avg": 20.72,
+ "sep_projection": 621.61,
+ "daily": {
+  "2026-08-01": {
+   "Other": 5.13,
+   "Lambda": 0.59,
+   "DynamoDB": 0.12,
+   "S3": 1.41,
+   "CloudWatch": 0.18
+  },
+  "2026-08-02": {
+   "Other": 0.25,
+   "Lambda": 0.56,
+   "DynamoDB": 0.05,
+   "S3": 0.73,
+   "CloudWatch": 0.01
+  },
+  "2026-08-03": {
+   "Other": 0.24,
+   "Lambda": 0.57,
+   "DynamoDB": 0.06,
+   "S3": 0.84,
+   "CloudWatch": 0.05
+  },
+  "2026-08-04": {
+   "Other": 0.25,
+   "Lambda": 0.59,
+   "DynamoDB": 0.06,
+   "S3": 0.71,
+   "CloudWatch": 0.01
+  },
+  "2026-08-05": {
+   "Other": 0.25,
+   "Lambda": 0.61,
+   "DynamoDB": 0.06,
+   "S3": 0.67,
+   "CloudWatch": 0.02
+  },
+  "2026-08-06": {
+   "Other": 0.25,
+   "Lambda": 0.62,
+   "DynamoDB": 0.09,
+   "S3": 1.94,
+   "CloudWatch": 0.07
+  },
+  "2026-08-07": {
+   "Other": 0.25,
+   "Lambda": 4.81,
+   "DynamoDB": 0.07,
+   "S3": 2.37,
+   "CloudWatch": 0.06
+  },
+  "2026-08-08": {
+   "Other": 0.25,
+   "Lambda": 9.74,
+   "DynamoDB": 0.07,
+   "S3": 1.49,
+   "CloudWatch": 0.05
+  },
+  "2026-08-09": {
+   "Other": 0.25,
+   "Lambda": 2.66,
+   "DynamoDB": 0.57,
+   "S3": 9.05,
+   "CloudWatch": 0.45
+  },
+  "2026-08-10": {
+   "Other": 0.25,
+   "Lambda": 5.15,
+   "DynamoDB": 0.67,
+   "S3": 10.56,
+   "CloudWatch": 0.57
+  },
+  "2026-08-11": {
+   "Other": 0.25,
+   "Lambda": 5.7,
+   "DynamoDB": 0.7,
+   "S3": 11.19,
+   "CloudWatch": 0.65
+  },
+  "2026-08-12": {
+   "Other": 0.25,
+   "Lambda": 5.5,
+   "DynamoDB": 0.71,
+   "S3": 11.33,
+   "CloudWatch": 0.66
+  },
+  "2026-08-13": {
+   "Other": 0.25,
+   "Lambda": 5.51,
+   "DynamoDB": 0.71,
+   "S3": 11.54,
+   "CloudWatch": 0.66
+  },
+  "2026-08-14": {
+   "Other": 0.25,
+   "Lambda": 4.01,
+   "DynamoDB": 0.67,
+   "S3": 11.19,
+   "CloudWatch": 0.63
+  },
+  "2026-08-15": {
+   "Other": 0.25,
+   "Lambda": 2.65,
+   "DynamoDB": 0.64,
+   "S3": 10.81,
+   "CloudWatch": 0.6
+  },
+  "2026-08-16": {
+   "Other": 0.25,
+   "Lambda": 2.6,
+   "DynamoDB": 0.66,
+   "S3": 12.02,
+   "CloudWatch": 0.8
+  },
+  "2026-08-17": {
+   "Other": 0.25,
+   "Lambda": 2.79,
+   "DynamoDB": 0.67,
+   "S3": 13.57,
+   "CloudWatch": 1.28
+  },
+  "2026-08-18": {
+   "Other": 0.25,
+   "Lambda": 3.82,
+   "DynamoDB": 0.65,
+   "S3": 13.16,
+   "CloudWatch": 1.25
+  },
+  "2026-08-19": {
+   "Other": 0.25,
+   "Lambda": 6.46,
+   "DynamoDB": 0.65,
+   "S3": 13.32,
+   "CloudWatch": 1.24
+  },
+  "2026-08-20": {
+   "Other": 0.25,
+   "Lambda": 5.2,
+   "DynamoDB": 0.65,
+   "S3": 13.22,
+   "CloudWatch": 1.24
+  },
+  "2026-08-21": {
+   "Other": 0.25,
+   "Lambda": 4.95,
+   "DynamoDB": 0.65,
+   "S3": 13.19,
+   "CloudWatch": 1.24
+  },
+  "2026-08-22": {
+   "Other": 0.25,
+   "Lambda": 4.27,
+   "DynamoDB": 0.64,
+   "S3": 13.47,
+   "CloudWatch": 1.24
+  },
+  "2026-08-23": {
+   "Other": 0.25,
+   "Lambda": 5.34,
+   "DynamoDB": 0.66,
+   "S3": 14.42,
+   "CloudWatch": 1.25
+  },
+  "2026-08-24": {
+   "Other": 0.25,
+   "Lambda": 6.43,
+   "DynamoDB": 0.72,
+   "S3": 22.03,
+   "CloudWatch": 1.33
+  },
+  "2026-08-25": {
+   "Other": 0.25,
+   "Lambda": 6.21,
+   "DynamoDB": 0.75,
+   "S3": 19.02,
+   "CloudWatch": 1.32
+  },
+  "2026-08-26": {
+   "Other": 0.25,
+   "Lambda": 7.24,
+   "DynamoDB": 0.72,
+   "S3": 12.83,
+   "CloudWatch": 0.75
+  },
+  "2026-08-27": {
+   "Other": 0.25,
+   "Lambda": 4.94,
+   "DynamoDB": 0.69,
+   "S3": 6.51,
+   "CloudWatch": 0.67
+  },
+  "2026-08-28": {
+   "Other": 0.28,
+   "Lambda": 5.56,
+   "DynamoDB": 0.38,
+   "S3": 6.43,
+   "CloudWatch": 0.44
+  },
+  "2026-08-29": {
+   "Other": 0.26,
+   "Lambda": 7.75,
+   "DynamoDB": 0.07,
+   "S3": 13.87,
+   "CloudWatch": 0.18
+  },
+  "2026-08-30": {
+   "Other": 0.25,
+   "Lambda": 8.72,
+   "DynamoDB": 0.07,
+   "S3": 8.17,
+   "CloudWatch": 0.18
+  },
+  "2026-08-31": {
+   "Other": 0.25,
+   "Lambda": 17.71,
+   "DynamoDB": 0.07,
+   "S3": 8.19,
+   "CloudWatch": 0.22
+  },
+  "2026-09-01": {
+   "Other": 1.75,
+   "Lambda": 9.26,
+   "DynamoDB": 0.11,
+   "S3": 6.99,
+   "CloudWatch": 0.04
+  },
+  "2026-09-02": {
+   "Other": 0.21,
+   "Lambda": 16.34,
+   "DynamoDB": 0.12,
+   "S3": 6.53,
+   "CloudWatch": 0.08
+  }
+ },
+ "s3_ops_10d": {
+  "CompleteMultipartUpload": [
+   0.02,
+   4021
+  ],
+  "CompleteMultipartUploadForRepl": [
+   0.03,
+   3353
+  ],
+  "GeneralPurposeBuckets": [
+   0.0,
+   1
+  ],
+  "GetObject": [
+   17.27,
+   11848757
+  ],
+  "GetObjectForRepl": [
+   10.77,
+   538
+  ],
+  "HeadObject": [
+   0.11,
+   264876
+  ],
+  "InitiateMultipartUpload": [
+   0.02,
+   4021
+  ],
+  "InitiateMultipartUploadForRepl": [
+   0.03,
+   3353
+  ],
+  "ListBucket": [
+   4.81,
+   943257
+  ],
+  "ListLensConfigurations": [
+   0.0,
+   2
+  ],
+  "PutObject": [
+   32.99,
+   6581108
+  ],
+  "PutObjectForRepl": [
+   18.4,
+   1840252
+  ],
+  "StandardIASizeOverhead": [
+   0.85,
+   68
+  ],
+  "StandardIAStorage": [
+   9.28,
+   742
+  ],
+  "StandardStorage": [
+   15.51,
+   674
+  ],
+  "UploadPart": [
+   0.11,
+   22500
+  ],
+  "UploadPartForRepl": [
+   0.15,
+   14836
+  ],
+  "ListAllMyBuckets": [
+   0.0,
+   4
+  ],
+  "ReadBucketServerSideEncryption": [
+   0.0,
+   88
+  ],
+  "ReadLogProps": [
+   0.0,
+   91
+  ],
+  "WebsiteGetObject": [
+   0.0,
+   49
+  ],
+  "ListMRAPs": [
+   0.0,
+   1
+  ],
+  "ReadBucketIntelligentTiering": [
+   0.0,
+   3
+  ],
+  "ReadBucketReplication": [
+   0.0,
+   49
+  ],
+  "ReadLocation": [
+   0.0,
+   45
+  ],
+  "CreateBucket": [
+   0.0,
+   1
+  ],
+  "Inventory": [
+   0.02,
+   7564425
+  ],
+  "PutLensConfiguration": [
+   0.0,
+   1
+  ],
+  "ReadBucketAnalytics": [
+   0.0,
+   1
+  ],
+  "ReadBucketInventory": [
+   0.0,
+   1
+  ],
+  "ReadBucketLifecycle": [
+   0.0,
+   5
+  ],
+  "ReadBucketMetrics": [
+   0.0,
+   1
+  ],
+  "ReadNotificationProps": [
+   0.0,
+   2
+  ],
+  "ReadVersioningProps": [
+   0.0,
+   2
+  ],
+  "WriteBucketInventory": [
+   0.0,
+   1
+  ],
+  "WriteBucketLifecycle": [
+   0.0,
+   2
+  ],
+  "WriteBucketPolicy": [
+   0.0,
+   1
+  ],
+  "WriteBucketPublicAccessBlock": [
+   0.0,
+   1
+  ],
+  "WriteLogProps": [
+   0.0,
+   1
+  ],
+  "ListBucketVersions": [
+   0.0,
+   33
+  ],
+  "StorageLens": [
+   0.2,
+   1000639
+  ],
+  "CopyObject": [
+   0.01,
+   2581
+  ],
+  "DeleteObject": [
+   0.0,
+   0
+  ]
+ },
+ "aug_lambda_ce": 149.26,
+ "aug_lambda_calc": 260.77,
+ "aug_lambda_top": [
+  {
+   "fn": "justhodl-series-extractor",
+   "inv": 22945,
+   "gb_s": 8972895,
+   "usd": 149.55,
+   "mem": 10240,
+   "err": 17672
+  },
+  {
+   "fn": "justhodl-ecb-deep",
+   "inv": 2000,
+   "gb_s": 1430755,
+   "usd": 23.85,
+   "mem": 4096,
+   "err": 67
+  },
+  {
+   "fn": "justhodl-sdmx-walker",
+   "inv": 43182,
+   "gb_s": 1136917,
+   "usd": 18.96,
+   "mem": 10240,
+   "err": 88
+  },
+  {
+   "fn": "justhodl-fred-catalog",
+   "inv": 4730,
+   "gb_s": 834651,
+   "usd": 13.91,
+   "mem": 2048,
+   "err": 66
+  },
+  {
+   "fn": "justhodl-census-us",
+   "inv": 2978,
+   "gb_s": 629472,
+   "usd": 10.49,
+   "mem": 1024,
+   "err": 1502
+  },
+  {
+   "fn": "justhodl-signal-registry-ingest",
+   "inv": 9771372,
+   "gb_s": 135131,
+   "usd": 4.21,
+   "mem": 256,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-news-velocity",
+   "inv": 746,
+   "gb_s": 238568,
+   "usd": 3.98,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-repo",
+   "inv": 303,
+   "gb_s": 152926,
+   "usd": 2.55,
+   "mem": 1536,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-boj-full",
+   "inv": 19976,
+   "gb_s": 145173,
+   "usd": 2.42,
+   "mem": 1536,
+   "err": 18216
+  },
+  {
+   "fn": "justhodl-provider-catalog",
+   "inv": 685,
+   "gb_s": 121962,
+   "usd": 2.03,
+   "mem": 1024,
+   "err": 5
+  },
+  {
+   "fn": "justhodl-fleet-monitor",
+   "inv": 475,
+   "gb_s": 105066,
+   "usd": 1.75,
+   "mem": 1024,
+   "err": 213
+  },
+  {
+   "fn": "justhodl-backend-agent",
+   "inv": 3110,
+   "gb_s": 103308,
+   "usd": 1.72,
+   "mem": 512,
+   "err": 26
+  },
+  {
+   "fn": "justhodl-a2a-bus",
+   "inv": 60189,
+   "gb_s": 93134,
+   "usd": 1.56,
+   "mem": 512,
+   "err": 11
+  },
+  {
+   "fn": "justhodl-worldbank-full",
+   "inv": 204,
+   "gb_s": 85336,
+   "usd": 1.42,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-gdelt-full",
+   "inv": 711,
+   "gb_s": 84074,
+   "usd": 1.4,
+   "mem": 1024,
+   "err": 108
+  },
+  {
+   "fn": "justhodl-13f-positions",
+   "inv": 183,
+   "gb_s": 47977,
+   "usd": 0.8,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-risk-gate",
+   "inv": 684,
+   "gb_s": 47628,
+   "usd": 0.79,
+   "mem": 1024,
+   "err": 3
+  },
+  {
+   "fn": "justhodl-data-census",
+   "inv": 37,
+   "gb_s": 37769,
+   "usd": 0.63,
+   "mem": 3008,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-calibrator",
+   "inv": 95,
+   "gb_s": 36238,
+   "usd": 0.6,
+   "mem": 2048,
+   "err": 48
+  },
+  {
+   "fn": "justhodl-te-fred-mirror",
+   "inv": 412,
+   "gb_s": 36234,
+   "usd": 0.6,
+   "mem": 768,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-repo-monitor",
+   "inv": 1364,
+   "gb_s": 35393,
+   "usd": 0.59,
+   "mem": 512,
+   "err": 33
+  },
+  {
+   "fn": "justhodl-fundamental-census",
+   "inv": 80,
+   "gb_s": 35395,
+   "usd": 0.59,
+   "mem": 1536,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-imf-full",
+   "inv": 57,
+   "gb_s": 34595,
+   "usd": 0.58,
+   "mem": 1024,
+   "err": 36
+  },
+  {
+   "fn": "justhodl-signal-scorecard",
+   "inv": 186,
+   "gb_s": 33110,
+   "usd": 0.55,
+   "mem": 1536,
+   "err": 184
+  },
+  {
+   "fn": "justhodl-real-economy-collector",
+   "inv": 365,
+   "gb_s": 31126,
+   "usd": 0.52,
+   "mem": 1024,
+   "err": 12
+  },
+  {
+   "fn": "justhodl-nyfed-markets-full",
+   "inv": 1184,
+   "gb_s": 31053,
+   "usd": 0.52,
+   "mem": 1024,
+   "err": 13
+  },
+  {
+   "fn": "justhodl-thesis-engine",
+   "inv": 42,
+   "gb_s": 28459,
+   "usd": 0.47,
+   "mem": 3008,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-tradingview",
+   "inv": 46,
+   "gb_s": 28074,
+   "usd": 0.47,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-plumbing-aggregator",
+   "inv": 647,
+   "gb_s": 23684,
+   "usd": 0.39,
+   "mem": 1024,
+   "err": 4
+  },
+  {
+   "fn": "justhodl-research-critique",
+   "inv": 1616,
+   "gb_s": 22473,
+   "usd": 0.37,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-insider-trades",
+   "inv": 2421,
+   "gb_s": 21618,
+   "usd": 0.36,
+   "mem": 512,
+   "err": 1297
+  },
+  {
+   "fn": "justhodl-crypto-intel",
+   "inv": 4962,
+   "gb_s": 21210,
+   "usd": 0.35,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-wl-engines",
+   "inv": 21,
+   "gb_s": 17350,
+   "usd": 0.29,
+   "mem": 3008,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-canary-macro",
+   "inv": 131,
+   "gb_s": 17331,
+   "usd": 0.29,
+   "mem": 1536,
+   "err": 4
+  },
+  {
+   "fn": "justhodl-equity-research",
+   "inv": 3437,
+   "gb_s": 16039,
+   "usd": 0.27,
+   "mem": 1024,
+   "err": 52
+  },
+  {
+   "fn": "justhodl-feed-catalog",
+   "inv": 61,
+   "gb_s": 14590,
+   "usd": 0.24,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-outcome-checker",
+   "inv": 79,
+   "gb_s": 13546,
+   "usd": 0.23,
+   "mem": 1024,
+   "err": 16
+  },
+  {
+   "fn": "justhodl-liquidity-reversal",
+   "inv": 354,
+   "gb_s": 13015,
+   "usd": 0.22,
+   "mem": 512,
+   "err": 10
+  },
+  {
+   "fn": "fmp-stock-picks-agent",
+   "inv": 685,
+   "gb_s": 12607,
+   "usd": 0.21,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fleet-error-monitor",
+   "inv": 634,
+   "gb_s": 12450,
+   "usd": 0.21,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-carry-surface",
+   "inv": 226,
+   "gb_s": 11562,
+   "usd": 0.19,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-signal-harvester",
+   "inv": 49,
+   "gb_s": 10971,
+   "usd": 0.18,
+   "mem": 1024,
+   "err": 24
+  },
+  {
+   "fn": "justhodl-fundamental-graphs",
+   "inv": 580,
+   "gb_s": 10287,
+   "usd": 0.17,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-patent-velocity",
+   "inv": 31,
+   "gb_s": 10054,
+   "usd": 0.17,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-sovereign-stress",
+   "inv": 32,
+   "gb_s": 9812,
+   "usd": 0.16,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-market-tape",
+   "inv": 9372,
+   "gb_s": 9522,
+   "usd": 0.16,
+   "mem": 192,
+   "err": 445
+  },
+  {
+   "fn": "justhodl-research-backtest",
+   "inv": 49,
+   "gb_s": 9617,
+   "usd": 0.16,
+   "mem": 1024,
+   "err": 27
+  },
+  {
+   "fn": "justhodl-tv-notes-ingest",
+   "inv": 18069,
+   "gb_s": 9356,
+   "usd": 0.16,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-daily-report-v3",
+   "inv": 57,
+   "gb_s": 9196,
+   "usd": 0.15,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-crypto-opportunities",
+   "inv": 217,
+   "gb_s": 9060,
+   "usd": 0.15,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-top-signals",
+   "inv": 325,
+   "gb_s": 8498,
+   "usd": 0.14,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-feed-registry",
+   "inv": 73,
+   "gb_s": 8062,
+   "usd": 0.13,
+   "mem": 1024,
+   "err": 63
+  },
+  {
+   "fn": "justhodl-portwatch",
+   "inv": 68,
+   "gb_s": 8039,
+   "usd": 0.13,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-bottom-signals",
+   "inv": 306,
+   "gb_s": 7337,
+   "usd": 0.12,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-causality-scanner",
+   "inv": 37,
+   "gb_s": 7290,
+   "usd": 0.12,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-finviz-signals",
+   "inv": 94,
+   "gb_s": 7208,
+   "usd": 0.12,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "securities-banking-agent",
+   "inv": 212,
+   "gb_s": 6474,
+   "usd": 0.11,
+   "mem": 512,
+   "err": 1
+  },
+  {
+   "fn": "justhodl-research-papers",
+   "inv": 31,
+   "gb_s": 6059,
+   "usd": 0.1,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "dollar-strength-agent",
+   "inv": 212,
+   "gb_s": 6017,
+   "usd": 0.1,
+   "mem": 512,
+   "err": 1
+  },
+  {
+   "fn": "justhodl-backtest-harness",
+   "inv": 64,
+   "gb_s": 5908,
+   "usd": 0.1,
+   "mem": 512,
+   "err": 0
+  }
+ ],
+ "sep_lambda_calc": 40.45,
+ "sep_lambda_daily": 14.7,
+ "sep_lambda_top": [
+  {
+   "fn": "justhodl-census-us",
+   "inv": 11378,
+   "gb_s": 1133695,
+   "usd": 18.9,
+   "mem": 1024,
+   "err": 390
+  },
+  {
+   "fn": "justhodl-repo",
+   "inv": 792,
+   "gb_s": 392278,
+   "usd": 6.54,
+   "mem": 1536,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-ecb-deep",
+   "inv": 399,
+   "gb_s": 214251,
+   "usd": 3.57,
+   "mem": 4096,
+   "err": 3
+  },
+  {
+   "fn": "justhodl-symdir",
+   "inv": 2413,
+   "gb_s": 189914,
+   "usd": 3.17,
+   "mem": 6144,
+   "err": 9
+  },
+  {
+   "fn": "justhodl-boj-full",
+   "inv": 22926,
+   "gb_s": 164355,
+   "usd": 2.74,
+   "mem": 1536,
+   "err": 20790
+  },
+  {
+   "fn": "justhodl-sdmx-walker",
+   "inv": 5413,
+   "gb_s": 70993,
+   "usd": 1.18,
+   "mem": 10240,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-provider-catalog",
+   "inv": 70,
+   "gb_s": 25613,
+   "usd": 0.43,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fundamental-census",
+   "inv": 137,
+   "gb_s": 20377,
+   "usd": 0.34,
+   "mem": 1536,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fortress",
+   "inv": 28,
+   "gb_s": 19480,
+   "usd": 0.32,
+   "mem": 8192,
+   "err": 6
+  },
+  {
+   "fn": "justhodl-news-velocity",
+   "inv": 66,
+   "gb_s": 15703,
+   "usd": 0.26,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-13f-positions",
+   "inv": 34,
+   "gb_s": 10480,
+   "usd": 0.17,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fleet-monitor",
+   "inv": 46,
+   "gb_s": 10240,
+   "usd": 0.17,
+   "mem": 1024,
+   "err": 30
+  },
+  {
+   "fn": "justhodl-repo-monitor",
+   "inv": 139,
+   "gb_s": 8558,
+   "usd": 0.14,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-risk-gate",
+   "inv": 69,
+   "gb_s": 6171,
+   "usd": 0.1,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-research-backtest",
+   "inv": 9,
+   "gb_s": 6120,
+   "usd": 0.1,
+   "mem": 1024,
+   "err": 9
+  },
+  {
+   "fn": "justhodl-imf-full",
+   "inv": 7,
+   "gb_s": 5923,
+   "usd": 0.1,
+   "mem": 1024,
+   "err": 6
+  },
+  {
+   "fn": "justhodl-backend-agent",
+   "inv": 264,
+   "gb_s": 5917,
+   "usd": 0.1,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-te-fred-mirror",
+   "inv": 66,
+   "gb_s": 5906,
+   "usd": 0.1,
+   "mem": 768,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-data-census",
+   "inv": 3,
+   "gb_s": 5803,
+   "usd": 0.1,
+   "mem": 3008,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-portwatch",
+   "inv": 19,
+   "gb_s": 4907,
+   "usd": 0.08,
+   "mem": 1024,
+   "err": 5
+  },
+  {
+   "fn": "justhodl-a2a-bus",
+   "inv": 2611,
+   "gb_s": 4685,
+   "usd": 0.08,
+   "mem": 512,
+   "err": 1
+  },
+  {
+   "fn": "justhodl-feed-catalog",
+   "inv": 5,
+   "gb_s": 4353,
+   "usd": 0.07,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-research-critique",
+   "inv": 189,
+   "gb_s": 4060,
+   "usd": 0.07,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-calibrator",
+   "inv": 8,
+   "gb_s": 3761,
+   "usd": 0.06,
+   "mem": 2048,
+   "err": 6
+  },
+  {
+   "fn": "justhodl-insider-trades",
+   "inv": 212,
+   "gb_s": 3101,
+   "usd": 0.05,
+   "mem": 512,
+   "err": 101
+  },
+  {
+   "fn": "justhodl-plumbing-aggregator",
+   "inv": 67,
+   "gb_s": 2636,
+   "usd": 0.04,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-canary-macro",
+   "inv": 33,
+   "gb_s": 2526,
+   "usd": 0.04,
+   "mem": 1536,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-causality-scanner",
+   "inv": 3,
+   "gb_s": 2474,
+   "usd": 0.04,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-thesis-engine",
+   "inv": 4,
+   "gb_s": 2432,
+   "usd": 0.04,
+   "mem": 3008,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fred-catalog",
+   "inv": 528,
+   "gb_s": 2259,
+   "usd": 0.04,
+   "mem": 2048,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-series-extractor",
+   "inv": 264,
+   "gb_s": 2216,
+   "usd": 0.04,
+   "mem": 10240,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-crypto-intel",
+   "inv": 498,
+   "gb_s": 2154,
+   "usd": 0.04,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-fundamental-graphs",
+   "inv": 151,
+   "gb_s": 1636,
+   "usd": 0.03,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-stock-screener",
+   "inv": 36,
+   "gb_s": 1565,
+   "usd": 0.03,
+   "mem": 1280,
+   "err": 25
+  },
+  {
+   "fn": "securities-banking-agent",
+   "inv": 34,
+   "gb_s": 1552,
+   "usd": 0.03,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "bond-indices-agent",
+   "inv": 106,
+   "gb_s": 1540,
+   "usd": 0.03,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "dollar-strength-agent",
+   "inv": 34,
+   "gb_s": 1487,
+   "usd": 0.02,
+   "mem": 512,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-equity-research",
+   "inv": 601,
+   "gb_s": 1437,
+   "usd": 0.02,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-daily-report-v3",
+   "inv": 6,
+   "gb_s": 1432,
+   "usd": 0.02,
+   "mem": 1024,
+   "err": 0
+  },
+  {
+   "fn": "justhodl-carry-surface",
+   "inv": 19,
+   "gb_s": 1336,
+   "usd": 0.02,
+   "mem": 1024,
+   "err": 0
+  }
+ ],
+ "s3_requesters": [
+  {
+   "who": "justhodl-repo",
+   "t1_day": 14544,
+   "t2_day": 20941,
+   "get_gb_day": 1.55,
+   "usd_month": 2.43
+  },
+  {
+   "who": "anonymous",
+   "t1_day": 0,
+   "t2_day": 3823,
+   "get_gb_day": 0.48,
+   "usd_month": 1.33
+  },
+  {
+   "who": "justhodl-census-us",
+   "t1_day": 3124,
+   "t2_day": 2062,
+   "get_gb_day": 0.01,
+   "usd_month": 0.49
+  },
+  {
+   "who": "justhodl-boj-full",
+   "t1_day": 187,
+   "t2_day": 1874,
+   "get_gb_day": 0.35,
+   "usd_month": 0.05
+  },
+  {
+   "who": "justhodl-streaming-fanout",
+   "t1_day": 225,
+   "t2_day": 650,
+   "get_gb_day": 0.01,
+   "usd_month": 0.04
+  },
+  {
+   "who": "justhodl-risk-gate",
+   "t1_day": 0,
+   "t2_day": 2636,
+   "get_gb_day": 0.0,
+   "usd_month": 0.03
+  },
+  {
+   "who": "justhodl-provider-catalog",
+   "t1_day": 175,
+   "t2_day": 75,
+   "get_gb_day": 0.08,
+   "usd_month": 0.03
+  },
+  {
+   "who": "justhodl-sdmx-walker",
+   "t1_day": 150,
+   "t2_day": 262,
+   "get_gb_day": 0.03,
+   "usd_month": 0.03
+  },
+  {
+   "who": "justhodl-fleet-freshness-monitor",
+   "t1_day": 162,
+   "t2_day": 25,
+   "get_gb_day": 0.0,
+   "usd_month": 0.02
+  },
+  {
+   "who": "justhodl-market-tape",
+   "t1_day": 75,
+   "t2_day": 50,
+   "get_gb_day": 0.04,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-a2a-bus",
+   "t1_day": 12,
+   "t2_day": 812,
+   "get_gb_day": 0.03,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-stock-screener",
+   "t1_day": 62,
+   "t2_day": 62,
+   "get_gb_day": 0.03,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-trade-ticket-monitor",
+   "t1_day": 50,
+   "t2_day": 25,
+   "get_gb_day": 0.0,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-ecb-deep",
+   "t1_day": 50,
+   "t2_day": 25,
+   "get_gb_day": 0.0,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-asia-trade-full",
+   "t1_day": 50,
+   "t2_day": 12,
+   "get_gb_day": 0.0,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-convergence-radar",
+   "t1_day": 37,
+   "t2_day": 137,
+   "get_gb_day": 0.01,
+   "usd_month": 0.01
+  },
+  {
+   "who": "justhodl-us10y-sentinel",
+   "t1_day": 25,
+   "t2_day": 37,
+   "get_gb_day": 0.02,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-stress-scenarios",
+   "t1_day": 12,
+   "t2_day": 112,
+   "get_gb_day": 0.08,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-ticker-deep-research",
+   "t1_day": 12,
+   "t2_day": 12,
+   "get_gb_day": 0.01,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-portfolio-risk",
+   "t1_day": 12,
+   "t2_day": 12,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-aaii-sentiment",
+   "t1_day": 12,
+   "t2_day": 12,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-lobbying-intel",
+   "t1_day": 12,
+   "t2_day": 12,
+   "get_gb_day": 0.15,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-symdir",
+   "t1_day": 0,
+   "t2_day": 162,
+   "get_gb_day": 0.03,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-daily-report-v3",
+   "t1_day": 12,
+   "t2_day": 0,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-page-ai",
+   "t1_day": 0,
+   "t2_day": 125,
+   "get_gb_day": 0.04,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-backend-agent",
+   "t1_day": 0,
+   "t2_day": 62,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-fundamental-census",
+   "t1_day": 0,
+   "t2_day": 50,
+   "get_gb_day": 0.06,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-signal-backtest",
+   "t1_day": 0,
+   "t2_day": 37,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-forced-selling-bounce",
+   "t1_day": 0,
+   "t2_day": 25,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-crypto-intel",
+   "t1_day": 0,
+   "t2_day": 12,
+   "get_gb_day": 0.02,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-scheduler",
+   "t1_day": 0,
+   "t2_day": 12,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "justhodl-import-sentinel",
+   "t1_day": 0,
+   "t2_day": 12,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  },
+  {
+   "who": "AmazonS3",
+   "t1_day": 0,
+   "t2_day": 0,
+   "get_gb_day": 0.0,
+   "usd_month": 0.0
+  }
+ ],
+ "s3_put_prefixes": {
+  "data/warm/census-econ": 2974,
+  "data/warm/fred-scoped": 2861,
+  "data/warm/boj-full": 187,
+  "data/market-tape.json": 75,
+  "data/warm/sdmx-walker-summary.json": 62,
+  "data/search/providers": 50,
+  "data/warm/asia-trade": 50,
+  "data/repo-history/BAMLEMLLLCRPILAUSOAS.json": 37,
+  "data/repo-history/BAMLEMIBHGCRPIEY.json": 37,
+  "data/repo-history/BAMLEMLLLCRPILAUSEY.json": 37,
+  "data/repo-history/BAMLEMHYHYLCRPIUSTRIV.json": 37,
+  "data/repo-history/BAMLEMIBHGCRPISYTW.json": 37,
+  "data/repo-history/BAMLEMIBHGCRPIOAS.json": 37,
+  "data/repo-history/BAMLEMIBHGCRPITRIV.json": 37,
+  "data/repo-history/BAMLEMLLLCRPILAUSSYTW.json": 37,
+  "data/_state/census-econ-s6.json": 37,
+  "data/repo-history/BAMLH0A0HYM2EY.json": 37,
+  "data/repo-history/BAMLEMXOCOLCRPIUSTRIV.json": 37,
+  "data/repo-history/BAMLEMXOCOLCRPIUSOAS.json": 37,
+  "data/repo-history/BAMLH0A0HYM2.json": 37
+ },
+ "live_bucket_gb": 1954.4,
+ "live_bucket_objects": 4414210,
+ "lifecycle_rules": 8,
+ "verdict": {
+  "aug_total": 484.27,
+  "aug_s3": 289.23,
+  "aug_lambda": 149.26,
+  "aug_cw": 19.32,
+  "anomaly_excess_s3": 236.05,
+  "anomaly_excess_all": 309.48,
+  "baseline_month": 135.48,
+  "sep_projection": 621.61
+ }
+}
