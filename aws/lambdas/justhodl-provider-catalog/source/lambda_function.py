@@ -9,14 +9,19 @@ counts...). Writes data/provider-catalog.json (hub index) +
 data/providers/{slug}.json (the complete per-provider manifest the
 template page renders). Daily 06:20 + on demand."""
 import gzip
+import hashlib
 import json
 import os
+import re
+import shutil
+import sqlite3
 from datetime import datetime, timezone
 
 import boto3
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
+SEARCH_SCHEMA_VERSION = 1
 
 REG = {
  "ofr": {"name": "OFR — Office of Financial Research",
@@ -313,6 +318,97 @@ def _series_list(spec):
     return None
 
 
+def _search_title(key):
+    """Human-readable label for a stored object without losing path searchability."""
+    raw = str(key or "")
+    leaf = raw.rsplit("/", 1)[-1]
+    leaf = re.sub(r"(?:\.(?:json|csv|tsv|parquet|arrow|xlsx?|zip|gz))+$", "", leaf,
+                  flags=re.I)
+    title = re.sub(r"[_\-.]+", " ", leaf).strip()
+    if not title or re.fullmatch(r"(page|part|chunk)\s*\d+", title, re.I):
+        clean = re.sub(
+            r"(?:\.(?:json|csv|tsv|parquet|arrow|xlsx?|zip|gz))+$",
+            "", raw, flags=re.I)
+        title = re.sub(r"[/_\-.]+", " ", clean).strip()
+    return title[:220] or raw[:220]
+
+
+def _write_search_shard(slug, provider_name, api, keys, series, search_db=None):
+    """Publish compact search metadata while the complete provider scan is in memory.
+
+    The search service must never re-list the bucket or fetch thousands of provider
+    pages. It consumes these gzip shards after the catalog job completes.
+    """
+    generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    series_ids = (series or {}).get("ids") or []
+    expected_count = 1 + sum(
+        1 for sid in series_ids
+        if str(sid) and not str(sid).startswith("…+")) + sum(
+        1 for item in keys if item.get("key") and not item.get("missing"))
+    meta = {
+        "schema_version": SEARCH_SCHEMA_VERSION,
+        "provider": slug,
+        "provider_name": provider_name,
+        "api": api,
+        "generated_at": generated_at,
+        "count": expected_count,
+    }
+
+    def rows():
+        yield [f"provider:{slug}", provider_name, "provider", None, None, None,
+               True]
+        for sid in series_ids:
+            sid = str(sid)
+            if not sid or sid.startswith("…+"):
+                continue
+            rid = sid if ":" in sid else f"{slug}:{sid}"
+            yield [rid, sid[:220], "series_ref", None, None, None, False]
+        for item in keys:
+            key = item.get("key")
+            if not key or item.get("missing"):
+                continue
+            asset_id = hashlib.sha1(str(key).encode()).hexdigest()[:16]
+            yield [
+                f"{slug}:asset:{asset_id}", _search_title(key), "asset", key,
+                item.get("bytes"), item.get("age_h"), bool(item.get("hot")),
+            ]
+
+    key = f"data/search/providers/{slug}.json.gz"
+    shard_path = f"/tmp/provider-search-{slug}.json.gz"
+    count, first, batch = 0, True, []
+    with gzip.open(shard_path, "wt", encoding="utf-8", compresslevel=6) as dst:
+        dst.write(json.dumps(meta, separators=(",", ":"))[:-1] + ',"rows":[')
+        for row in rows():
+            if not first:
+                dst.write(",")
+            first = False
+            dst.write(json.dumps(row, separators=(",", ":"), default=str))
+            count += 1
+            if search_db is not None:
+                batch.append((row[0], slug, provider_name, row[1], row[3] or "",
+                              row[2], row[4], row[5], 1 if row[6] else 0))
+                if len(batch) >= 1000:
+                    search_db.executemany(
+                        "INSERT INTO docs(id,provider,provider_name,title,key,kind,nbytes,age_h,hot) "
+                        "VALUES(?,?,?,?,?,?,?,?,?)", batch)
+                    batch.clear()
+        dst.write("]}")
+    if search_db is not None and batch:
+        search_db.executemany(
+            "INSERT INTO docs(id,provider,provider_name,title,key,kind,nbytes,age_h,hot) "
+            "VALUES(?,?,?,?,?,?,?,?,?)", batch)
+    if count != expected_count:
+        raise RuntimeError(
+            f"search shard count mismatch for {slug}: {count}!={expected_count}")
+    size = os.path.getsize(shard_path)
+    s3.upload_file(
+        shard_path, BUCKET, key,
+        ExtraArgs={"ContentType": "application/json", "CacheControl": "no-cache"})
+    os.remove(shard_path)
+    return {"provider": slug, "provider_name": provider_name,
+            "key": key, "count": count, "bytes": size}
+
+
 def _load_rollup_feeds():
     """ops 4513 v4: provider->feeds via the two-file join —
     engine-provider-map (engine->provider) x lambda-graph
@@ -459,6 +555,23 @@ def lambda_handler(event, context):
     except Exception as _e:
         print("disc_err", _e)
     hub = {"as_of": now.isoformat(timespec="seconds"), "providers": []}
+    search_shards = []
+    search_db_path = "/tmp/provider-search.sqlite"
+    search_db_gz = search_db_path + ".gz"
+    for path in (search_db_path, search_db_gz):
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+    search_db = sqlite3.connect(search_db_path)
+    search_db.execute("PRAGMA journal_mode=OFF")
+    search_db.execute("PRAGMA synchronous=OFF")
+    search_db.execute("PRAGMA temp_store=FILE")
+    search_db.execute(
+        "CREATE VIRTUAL TABLE docs USING fts5("
+        "id UNINDEXED,provider,provider_name UNINDEXED,title,key,"
+        "kind UNINDEXED,nbytes UNINDEXED,age_h UNINDEXED,hot UNINDEXED,"
+        "tokenize='unicode61 remove_diacritics 2')")
     for slug, r in REG.items():
         keys = []
         tot = 0
@@ -593,6 +706,8 @@ def lambda_handler(event, context):
                       Body=json.dumps(doc, default=str).encode(),
                       ContentType="application/json",
                       CacheControl="no-cache")
+        search_shards.append(_write_search_shard(
+            slug, r["name"], r["api"], keys, ser, search_db))
         n_live = len([k for k in keys if not k.get("missing")])
         # ops 4543 (Perplexity P1): the catalog count is a TARGET, not a
         # holding. datasets = what we actually have; target + coverage
@@ -1092,6 +1207,7 @@ def lambda_handler(event, context):
                     "freshest_h": _sa[1]}
     except Exception:
         pass
+    _equity_search_keys = []
     try:  # per-ticker equity research universe (count objects)
         n_eq, tok2, _teq, _feq = 0, None, 0, None
         while True:
@@ -1105,6 +1221,9 @@ def lambda_handler(event, context):
                 _teq += _o2["Size"]
                 _a2 = round((now - _o2["LastModified"])
                             .total_seconds() / 3600, 1)
+                _equity_search_keys.append({
+                    "key": _o2["Key"], "bytes": _o2["Size"],
+                    "age_h": _a2, "hot": _a2 <= 36})
                 if _feq is None or _a2 < _feq:
                     _feq = _a2
             if not r2.get("IsTruncated"):
@@ -1144,14 +1263,22 @@ def lambda_handler(event, context):
                                    "tradingview.com via extension")}
     for _ek, _ev in extras.items():
         _nm, _api = _extra_meta.get(_ek, (_ek, "internal"))
+        _slug = _ek.replace("_", "-")
         _xs = _xstat.get(_ek, {})
         hub["providers"].append(
-            {"slug": _ek.replace("_", "-"), "name": _nm, "api": _api,
+            {"slug": _slug, "name": _nm, "api": _api,
              "datasets": _ev, "unit": "instruments",
              "n_keys": _xs.get("n_keys", 0),
              "total_mb": _xs.get("mb", 0), "hot_feeds": 0,
              "series_count": None,
              "freshest_h": _xs.get("freshest_h")})
+        _extra_keys = {
+            "indicator_bus": [{"key": "data/indicator-bus.json"}],
+            "equity_research_tickers": _equity_search_keys,
+            "tradingview_vault_live": [{"key": "data/tradingview.json"}],
+        }.get(_ek, [])
+        search_shards.append(_write_search_shard(
+            _slug, _nm, _api, _extra_keys, None, search_db))
     hub["series_extras"] = extras
     # ops 4535 (Perplexity P1): auditable reconcile —
     # sum(provider.datasets) + instruments == datasets_total, and units
@@ -1176,6 +1303,48 @@ def lambda_handler(event, context):
                      "gb": round(sum(p["total_mb"]
                                      for p in hub["providers"])
                                  / 1000, 2)}
+    search_db.commit()
+    search_db.close()
+    search_db_bytes = os.path.getsize(search_db_path)
+    if search_db_bytes > 1500 * 1024 * 1024:
+        raise RuntimeError(
+            "provider search index exceeds safe 1.5 GB Lambda /tmp budget")
+    with open(search_db_path, "rb") as src, gzip.open(search_db_gz, "wb", 6) as dst:
+        shutil.copyfileobj(src, dst, length=1024 * 1024)
+    digest = hashlib.sha256()
+    with open(search_db_gz, "rb") as src:
+        for chunk in iter(lambda: src.read(1024 * 1024), b""):
+            digest.update(chunk)
+    search_db_gz_bytes = os.path.getsize(search_db_gz)
+    generation = now.strftime("%Y%m%dT%H%M%SZ")
+    checksum = digest.hexdigest()
+    search_index_key = (
+        f"data/search/index/provider-search-{generation}-{checksum[:12]}.sqlite.gz")
+    s3.upload_file(
+        search_db_gz, BUCKET, search_index_key,
+        ExtraArgs={"ContentType": "application/vnd.sqlite3",
+                   "CacheControl": "no-cache"})
+    search_manifest = {
+        "schema_version": SEARCH_SCHEMA_VERSION,
+        "generated_at": hub["as_of"],
+        "providers": len(search_shards),
+        "documents": sum(x["count"] for x in search_shards),
+        "index": {"key": search_index_key,
+                  "bytes": search_db_gz_bytes,
+                  "uncompressed_bytes": search_db_bytes,
+                  "sha256": checksum,
+                  "format": "sqlite-fts5+gzip"},
+        "shards": search_shards,
+    }
+    s3.put_object(Bucket=BUCKET, Key="data/search/provider-shards.json",
+                  Body=json.dumps(search_manifest, separators=(",", ":")).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    hub["search"] = {
+        "schema_version": SEARCH_SCHEMA_VERSION,
+        "providers": search_manifest["providers"],
+        "documents": search_manifest["documents"],
+        "manifest": "data/search/provider-shards.json",
+    }
     s3.put_object(Bucket=BUCKET, Key="data/provider-catalog.json",
                   Body=json.dumps(hub, default=str).encode(),
                   ContentType="application/json",

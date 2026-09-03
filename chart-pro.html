@@ -2141,6 +2141,7 @@ class SymDir {
   static provLabel(p) { return ({ fred: 'FRED', eurostat: 'Eurostat', ecb: 'ECB', oecd: 'OECD', bis: 'BIS', imf: 'IMF', boj: 'BoJ', statcan: 'StatCan', worldbank: 'World Bank', nyfed: 'NY Fed', ofr: 'OFR', 'ofr-hfm': 'OFR HFM', 'ofr-bsrm': 'OFR BSRM', te: 'TE mirror', treasury: 'FiscalData', boe: 'BoE', census: 'Census', bls: 'BLS', cboe: 'Cboe', tv: 'TradingView', instrument: 'Market' })[p] || (p || '').toUpperCase(); }
   static rowMeta(r) {
     const bits = [];
+    if (r.raw && r.key) bits.push(r.key);
     if (r.freq) bits.push(r.freq);
     if (r.unit) bits.push(String(r.unit).slice(0, 18));
     if (r.first || r.last) bits.push(`${(r.first || '?').slice(0, 7)}→${(r.last || '?').slice(0, 7)}`);
@@ -2173,7 +2174,9 @@ class SymDir {
     const meta = this.rowMeta(r);
     const ac = r.asset_class ? ({ crypto: 'Crypto', fx: 'FX', index: 'Index', etf: 'ETF', equity: 'Stock', tv: 'TV' })[r.asset_class] || '' : '';
     const badges = (r.signals || []).slice(0, 3).map(x => `<span class="hs-badge">${UI.esc(x)}</span>`).join('');
-    const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(this.provLabel(r.provider))} · browse ›</span>` : `<span class="hs-prov ${provCls}">${ac ? UI.esc(ac) + ' · ' : ''}${r.ex && r.kind === 'instrument' ? UI.esc(r.ex) : UI.esc(this.provLabel(r.provider))}${r.pinned ? ' · ★' : ''}</span>${badges ? `<span class="hs-badges">${badges}</span>` : ''}`;
+    const dsAction = r.browse_provider ? 'provider ›' : (r.raw ? 'stored file ›' : (r.browse ? 'browse ›' : 'data ›'));
+    const providerLabel = r.provider_name || this.provLabel(r.provider);
+    const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(providerLabel)} · ${dsAction}</span>` : `<span class="hs-prov ${provCls}">${ac ? UI.esc(ac) + ' · ' : ''}${r.ex && r.kind === 'instrument' ? UI.esc(r.ex) : UI.esc(providerLabel)}${r.pinned ? ' · ★' : ''}</span>${badges ? `<span class="hs-badges">${badges}</span>` : ''}`;
     const add = isDs ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`;
     // ops 5144: what the warehouse holds for a TradingView symbol — every source, with its cadence and span
     let srcLine = '';
@@ -2197,6 +2200,17 @@ class SymDir {
     container.querySelectorAll('.hs-row').forEach(el => el.addEventListener('click', () => onPick(el)));
   }
   static noteRows(rows) { this._lastRows = this._lastRows || {}; rows.forEach(r => { if (r && r.id) this._lastRows[r.id] = r; }); }
+  static openDataRow(r) {
+    if (!r) return;
+    if (r.browse && !r.raw && !r.browse_provider) {
+      DatasetBrowser.open(r.id, r.name);
+      return;
+    }
+    DataExplorer.open(
+      r.browse_provider || r.provider,
+      r.raw ? (r.key || r.name || '') : ''
+    );
+  }
 }
 
 // ─── DATASET BROWSER (series inside a dataset — Eurostat/ECB flows, StatCan cubes, WB indicators, BoJ DBs…) ──
@@ -2376,6 +2390,7 @@ class TVShell {
   }
 }
 
+// OPS5156_UNIVERSAL_SEARCH_V1: provider catalog, normalized series, and stored files share one search contract.
 // ─── ops 5153: Data Explorer — every provider → every dataset/series on data.html, inside chart-pro ─────
 class DataExplorer {
   static providers = null; static prov = null; static q = ''; static rows = []; static sel = -1; static _t = null; static _seq = 0; static total = 0;
@@ -2393,9 +2408,12 @@ class DataExplorer {
     document.getElementById('dx-modal').addEventListener('click', (e) => { if (e.target.id === 'dx-modal') this.close(); });
     document.getElementById('dx-list').addEventListener('keydown', (e) => this.onKey(e));
   }
-  static async open(prov) {
+  static async open(prov, query = '') {
     document.getElementById('dx-modal').classList.add('open');
     await this.loadProviders();
+    this.q = query || '';
+    const input = document.getElementById('dx-search');
+    if (input) input.value = this.q;
     this.renderTree();
     if (prov) this.pickProvider(prov); else if (!this.rows.length) this.load();
     setTimeout(() => document.getElementById('dx-search').focus(), 40);
@@ -2449,8 +2467,9 @@ class DataExplorer {
   static rowHtml(r, i) {
     const kind = r.kind || 'series';
     const span = (r.first || r.last) ? `${(r.first || '?').slice(0, 4)}→${(r.last || '?').slice(0, 7)}` : '';
-    const n = r.n ? ` · ${this.fmtN(r.n)}${kind === 'dataset' ? ' series' : ''}` : '';
-    return `<div class="dx-row ${i === this.sel ? 'sel' : ''}" data-i="${i}" title="${UI.esc(r.id)}"><span class="dx-id ${kind}">${UI.esc(r.symbol || r.id)}</span><span class="dx-name">${UI.esc(r.name || '')}<small>${UI.esc(r.provider_name || r.provider || '')}${kind === 'dataset' ? ' · dataset' : ''}</small></span><span class="dx-freq">${UI.esc(r.freq || '')}${r.unit ? ' · ' + UI.esc(String(r.unit).slice(0, 10)) : ''}</span><span class="dx-span">${UI.esc(span)}${n}</span>${kind === 'dataset' ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`}</div>`;
+    const n = r.n ? ` · ${this.fmtN(r.n)}${kind === 'dataset' && !r.raw ? ' series' : ''}` : '';
+    const subtype = r.browse_provider ? 'provider' : (r.raw ? 'stored file' : kind);
+    return `<div class="dx-row ${i === this.sel ? 'sel' : ''}" data-i="${i}" title="${UI.esc(r.key || r.id)}"><span class="dx-id ${kind}">${UI.esc(r.symbol || r.id)}</span><span class="dx-name">${UI.esc(r.name || '')}<small>${UI.esc(r.provider_name || r.provider || '')}${kind === 'dataset' ? ' · ' + subtype : ''}</small></span><span class="dx-freq">${UI.esc(r.freq || '')}${r.unit ? ' · ' + UI.esc(String(r.unit).slice(0, 10)) : ''}</span><span class="dx-span">${UI.esc(span)}${n}</span>${kind === 'dataset' ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`}</div>`;
   }
   static select(i) {
     this.sel = i; const r = this.rows[i]; const info = document.getElementById('dx-info');
@@ -2459,13 +2478,16 @@ class DataExplorer {
     const kind = r.kind || 'series';
     const meta = SymDir.rowMeta(r);
     info.innerHTML = `<h4>${UI.esc(r.symbol || r.id)}</h4><div style="color:var(--fg-1)">${UI.esc(r.name || '')}</div>
-      <div class="dx-kv"><span>id</span><span style="word-break:break-all">${UI.esc(r.id)}</span><span>source</span><span>${UI.esc(r.provider_name || r.provider || '')}${r.ex ? ' · ' + UI.esc(r.ex) : ''}</span><span>kind</span><span>${kind}${r.type ? ' · ' + UI.esc(r.type) : ''}</span>${r.freq ? `<span>cadence</span><span>${UI.esc(r.freq)}</span>` : ''}${r.unit ? `<span>unit</span><span>${UI.esc(String(r.unit))}</span>` : ''}${(r.first || r.last) ? `<span>history</span><span>${UI.esc(r.first || '?')} → ${UI.esc(r.last || '?')}</span>` : ''}${r.n ? `<span>${kind === 'dataset' ? 'series' : 'obs'}</span><span>${this.fmtN(r.n)}</span>` : ''}${r.last_value != null ? `<span>last value</span><span>${jhFmtVal(Number(r.last_value))}</span>` : ''}${meta ? `<span>meta</span><span>${UI.esc(meta)}</span>` : ''}${Array.isArray(r.sources) && r.sources.length ? `<span>warehouse</span><span>${r.sources.map(x => UI.esc(x.provider_name + ' ' + x.id.split(':').slice(1).join(':'))).join('<br>')}</span>` : ''}</div>
-      <div class="dx-actions">${kind === 'dataset' ? `<button class="primary" data-act="browse">Open ${r.n ? this.fmtN(r.n) + ' ' : ''}series ›</button>` : `<button class="primary" data-act="chart">Chart (double-click)</button><button data-act="add">+ Watchlist</button>`}</div>`;
-    info.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => { const a = b.dataset.act; if (a === 'chart') this.chart(i); else if (a === 'add') { if (SymDir.addToWatchlist(r.id, r) === 'ok') b.textContent = '✓ added'; } else if (a === 'browse') { this.close(); DatasetBrowser.open(r.id, r.name); } }));
+      <div class="dx-kv"><span>id</span><span style="word-break:break-all">${UI.esc(r.id)}</span>${r.key ? `<span>S3 key</span><span style="word-break:break-all">${UI.esc(r.key)}</span>` : ''}<span>source</span><span>${UI.esc(r.provider_name || r.provider || '')}${r.ex ? ' · ' + UI.esc(r.ex) : ''}</span><span>kind</span><span>${kind}${r.raw ? ' · stored file' : ''}${r.type ? ' · ' + UI.esc(r.type) : ''}</span>${r.freq ? `<span>cadence</span><span>${UI.esc(r.freq)}</span>` : ''}${r.unit ? `<span>unit</span><span>${UI.esc(String(r.unit))}</span>` : ''}${(r.first || r.last) ? `<span>history</span><span>${UI.esc(r.first || '?')} → ${UI.esc(r.last || '?')}</span>` : ''}${r.n ? `<span>${kind === 'dataset' && !r.raw ? 'series' : 'items'}</span><span>${this.fmtN(r.n)}</span>` : ''}${r.last_value != null ? `<span>last value</span><span>${jhFmtVal(Number(r.last_value))}</span>` : ''}${meta ? `<span>meta</span><span>${UI.esc(meta)}</span>` : ''}${Array.isArray(r.sources) && r.sources.length ? `<span>warehouse</span><span>${r.sources.map(x => UI.esc(x.provider_name + ' ' + x.id.split(':').slice(1).join(':'))).join('<br>')}</span>` : ''}</div>
+      <div class="dx-actions">${kind === 'dataset' ? `<button class="primary" data-act="browse">${r.raw || r.browse_provider ? 'View provider data' : `Open ${r.n ? this.fmtN(r.n) + ' ' : ''}series`} ›</button>` : `<button class="primary" data-act="chart">Chart (double-click)</button><button data-act="add">+ Watchlist</button>`}</div>`;
+    info.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => { const a = b.dataset.act; if (a === 'chart') this.chart(i); else if (a === 'add') { if (SymDir.addToWatchlist(r.id, r) === 'ok') b.textContent = '✓ added'; } else if (a === 'browse') { if (r.browse && !r.raw && !r.browse_provider) { this.close(); DatasetBrowser.open(r.id, r.name); } else { this.q = ''; const inp = document.getElementById('dx-search'); if (inp) inp.value = ''; this.load(); } } }));
   }
   static chart(i) {
     const r = this.rows[i]; if (!r) return;
-    if ((r.kind || 'series') === 'dataset') { this.close(); DatasetBrowser.open(r.id, r.name); return; }
+    if ((r.kind || 'series') === 'dataset') {
+      if (r.browse && !r.raw && !r.browse_provider) { this.close(); DatasetBrowser.open(r.id, r.name); }
+      return;
+    }
     SymDir.remember(r); WatchlistManager.rememberSymbol(r.id, r.kind === 'instrument' ? 'equity' : 'series');
     ChartController.loadTicker(r.id); this.close();
   }
@@ -6115,11 +6137,11 @@ class UniverseSearch {
         <span class="sr-price">${UI.esc(SymDir.provLabel(r.provider))} · ${UI.esc(r.units||'')} · ${UI.esc(r.frequency||'')}</span>
         ${star(r, i)}<button class="hs-add" data-add="${UI.esc(r.ticker)}" title="Add to watchlist">+</button></div>`;
     });
-    html += section('Datasets · open to browse every series inside', groups.datasets || [], (r, i) => {
+    html += section('Providers · datasets · stored files', groups.datasets || [], (r, i) => {
       return `<div class="search-result us-row ${i===this.focusIdx?'focus':''}" data-ticker="${UI.esc(r.ticker)}" data-kind="dataset" title="${UI.esc(r.ticker)}">
         <span class="sr-ticker" style="color:var(--amber);font-size:10.5px">${UI.esc(r.display||r.ticker)}</span>
         <span class="sr-name">${UI.esc(r.name||'')}</span>
-        <span class="sr-price">${UI.esc(SymDir.provLabel(r.provider))}${r.n ? ' · ' + Number(r.n).toLocaleString() + ' series' : ''} · browse ›</span>
+        <span class="sr-price">${UI.esc(SymDir.provLabel(r.provider))}${r.n ? ' · ' + Number(r.n).toLocaleString() + ' series' : ''} · ${(r._row && r._row.raw) ? 'stored file' : ((r._row && r._row.browse_provider) ? 'provider' : 'browse')} ›</span>
         <span class="sr-chg">›</span></div>`;
     });
     body.innerHTML = html;
@@ -6143,7 +6165,7 @@ class UniverseSearch {
   
   // Select → ENRICH: cache resolution, load chart (right engine), pull all intel
   static select(ticker, kind, full) {
-    if (kind === 'dataset') { const m = this.currentResults.find(r => r.ticker === ticker); DatasetBrowser.open(ticker, m && m.name); this.close(); return; }
+    if (kind === 'dataset') { const m = this.currentResults.find(r => r.ticker === ticker); SymDir.openDataRow(m && m._row); this.close(); return; }
     if (kind === 'macro') { const m = this.currentResults.find(r => r.ticker === ticker); if (m && m._row) SymDir.remember(m._row); }
     if (kind === 'equity' && full && full.includes(':')) {
       // Cache full symbol for non-stocks; bare for stocks handled in resolver
@@ -6296,7 +6318,7 @@ class HeaderSearch {
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}" data-type="${UI.esc(tc)}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag ${tc}">${UI.esc((r.type||'eq'))} ${UI.esc(r.exchange||'')}</span></div>`;
     });
     html += section('Data series · FRED · ECB · Eurostat · BoJ · StatCan · World Bank · NY Fed · OFR · BLS · Census …', g.series, (r, i) => SymDir.rowHtml(r, i, this.sel));
-    html += section('Datasets · open to browse every series inside', g.datasets, (r, i) => SymDir.rowHtml(r, i, this.sel));
+    html += section('Providers · datasets · stored files', g.datasets, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('★ Favorites', g.favorites, (r, i) => {
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}"><span class="hs-tk" style="color:var(--amber)">${UI.esc(r.display || r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag">${UI.esc(r.kind||'fav')}</span></div>`;
     });
@@ -6313,7 +6335,7 @@ class HeaderSearch {
   static pick(i) {
     const r = this.results[i];
     if (!r) return;
-    if (r.kind === 'dataset') { DatasetBrowser.open(r.id, r.name); this.close(); return; }
+    if (r.kind === 'dataset') { SymDir.openDataRow(r); this.close(); return; }
     // ops 5125: TradingView-universe results that are not plain US tickers load by their full EXCHANGE:SYMBOL id
     const id = (r.kind === 'equity' && r.full && r.full.includes(':') && !/^[A-Z]{1,5}$/.test(r.ticker || '')) ? r.full : (r.ticker || r.id);
     if (r.kind === 'equity' && r.type) State.symbolType[id] = r.type;

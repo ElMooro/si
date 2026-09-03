@@ -5,11 +5,12 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 6144,
   "timeout": 900,
+  "ephemeral_storage": 2048,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Symbol directory v1.9.0 (ops 5156): daily build over every catalog (instruments, FRED, Eurostat/ECB + Tier-1 + labels, OECD, BIS, IMF, StatCan, BOJ, WB, NY Fed, OFR, FiscalData, BoE, Census, BLS); /search /browse /series /quote; every symbol from S3.",
+  "description": "Symbol directory v1.9.0: normalized chart series, TradingView-style asset-aware ranking, and provider entry points; merges the separate 57-provider SQLite FTS catalog into /search without loading raw S3 objects into RAM.",
   "environment": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",

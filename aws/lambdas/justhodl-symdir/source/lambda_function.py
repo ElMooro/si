@@ -56,6 +56,8 @@ import math
 import os
 import pickle
 import re
+import shutil
+import sqlite3
 import time
 import traceback
 import urllib.error
@@ -239,6 +241,8 @@ def norm_period(p):
 
 TOK_RE = re.compile(r"[a-z0-9]+")
 STOP = {"the", "of", "and", "in", "for", "to", "by", "a", "an", "on", "at", "from", "all", "vs", "per", "with", "or"}
+PATH_STOP = {"data", "warm", "raw", "cache", "archive", "provider", "providers",
+             "page", "part", "chunk", "json", "csv", "tsv", "gz", "zip"}
 SYN = {
     "gdp": ["gross", "domestic", "product"], "cpi": ["consumer", "price", "index"], "ppi": ["producer", "price"],
     "unemployment": ["jobless", "unemployed"], "jobless": ["unemployment"], "fedfunds": ["federal", "funds"],
@@ -318,6 +322,9 @@ def doc_tokens(d):
     ts = set(tokens(d[D_TITLE]))
     idpart = d[D_ID].split(":", 1)[1] if ":" in d[D_ID] and d[D_PROV] != "tv" else d[D_ID]
     ts.update(tokens(idpart))
+    if d[D_KEY]:
+        ts.update(t for t in tokens(d[D_KEY])
+                  if t not in PATH_STOP and not t.isdigit())
     ts.add(d[D_PROV])
     ts.update(PROV_TOKENS.get(d[D_PROV], ()))
     tt = tokens(d[D_TITLE])
@@ -913,6 +920,30 @@ def build(event, context):
             n += 1
         return {"docs": n}
 
+    def st_provider_shards():
+        """Add provider entry points; raw objects stay in the separate FTS index."""
+        manifest = _get_json("data/search/provider-shards.json") or {}
+        shards = manifest.get("shards") or []
+        if int(manifest.get("schema_version") or 0) != 1:
+            raise ValueError("unsupported provider search shard schema")
+        existing_ids = {d[D_ID] for d in docs}
+        loaded = 0
+        for meta in shards:
+            prov = str(meta.get("provider") or "").lower()
+            rid = "provider:" + prov
+            if not prov or rid in existing_ids:
+                continue
+            name = meta.get("provider_name") or PROV_NAME.get(prov, prov.upper())
+            docs.append(doc(rid, prov, name, "dataset", 0.55,
+                            extra={"browse_provider": prov, "chartable": False,
+                                   "provider_name": name}))
+            existing_ids.add(rid)
+            loaded += 1
+        return {"providers": len(shards), "docs": loaded,
+                "manifest_docs": manifest.get("documents"),
+                "index": (manifest.get("index") or {}).get("key"),
+                "generated_at": manifest.get("generated_at")}
+
     stage("instruments", st_instruments, optional=False)
     stage("fred", st_fred, optional=False)
     stage("eurostat", st_eurostat)
@@ -930,6 +961,7 @@ def build(event, context):
     stage("boj", st_boj)
     stage("worldbank", st_worldbank)
     stage("bls", st_bls)
+    stage("provider-shards", st_provider_shards, optional=False)
     pool.shutdown(wait=False)
 
     # ---------------- dedupe by id (keep the higher-popularity doc)
@@ -1310,6 +1342,7 @@ def fred_fresh(event, context):
 # ================================================================ RUNTIME INDEX
 
 _IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
+_WIDX = {"generated_at": None, "path": None}
 _T0CACHE, _T1CACHE = {}, {}
 
 
@@ -1327,6 +1360,117 @@ def load_index(force=False):
     _IDX.update({"docs": a["docs"], "pop": a["pop"], "index": b["index"], "toklist": b["toklist"], "ids": b["ids"], "bare": b["bare"],
                  "loaded_at": _iso(), "built_at": a.get("built_at"), "load_s": round(time.time() - t, 2)})
     return _IDX
+
+
+def _warehouse_db(force=False):
+    """Materialize the compact provider-file FTS index in /tmp on demand."""
+    manifest = _get_json("data/search/provider-shards.json") or {}
+    generated_at = manifest.get("generated_at")
+    meta = manifest.get("index") or {}
+    key = meta.get("key")
+    if not key:
+        return None
+    path = "/tmp/justhodl-provider-search.sqlite"
+    if (not force and _WIDX.get("generated_at") == generated_at
+            and _WIDX.get("path") == path and os.path.exists(path)):
+        return path
+    packed = path + ".gz"
+    partial = path + ".partial"
+    declared_size = int(meta.get("uncompressed_bytes") or 0)
+    if declared_size > 1500 * 1024 * 1024:
+        raise RuntimeError("provider search index exceeds safe /tmp budget")
+    # No query keeps a connection open across invocations, so discard the prior
+    # generation before expanding the next one instead of holding both at once.
+    for old in (packed, partial, path):
+        try:
+            os.remove(old)
+        except FileNotFoundError:
+            pass
+    s3.download_file(BUCKET, key, packed)
+    packed_size = os.path.getsize(packed)
+    if meta.get("bytes") and packed_size != int(meta["bytes"]):
+        raise RuntimeError("provider search index compressed-size mismatch")
+    expected_digest = meta.get("sha256")
+    if expected_digest:
+        digest = hashlib.sha256()
+        with open(packed, "rb") as src:
+            for chunk in iter(lambda: src.read(1024 * 1024), b""):
+                digest.update(chunk)
+        if digest.hexdigest() != expected_digest:
+            raise RuntimeError("provider search index checksum mismatch")
+    with gzip.open(packed, "rb") as src, open(partial, "wb") as dst:
+        shutil.copyfileobj(src, dst, length=1024 * 1024)
+    if declared_size and os.path.getsize(partial) != declared_size:
+        raise RuntimeError("provider search index expanded-size mismatch")
+    os.replace(partial, path)
+    try:
+        os.remove(packed)
+    except FileNotFoundError:
+        pass
+    _WIDX.update({"generated_at": generated_at, "path": path})
+    return path
+
+
+def warehouse_search(q, limit=20, prov=None):
+    """Search all cataloged provider objects without loading them into RAM."""
+    raw_tokens = [t for t in TOK_RE.findall((q or "").lower())
+                  if t not in STOP and len(t) >= 2]
+    if not raw_tokens:
+        return {"rows": [], "more": False, "facets": []}
+    path = _warehouse_db()
+    if not path:
+        return {"rows": [], "more": False, "facets": []}
+    match = " AND ".join('"%s"*' % t for t in raw_tokens[:8])
+    sql = (
+        "SELECT id,provider,provider_name,title,key,kind,nbytes,age_h,hot "
+        "FROM docs WHERE docs MATCH ?")
+    args = [match]
+    if prov:
+        sql += " AND provider=?"
+        args.append(prov)
+    sql += (
+        " ORDER BY CASE kind WHEN 'provider' THEN 0 ELSE 1 END,"
+        " bm25(docs), CAST(hot AS INTEGER) DESC LIMIT ?")
+    args.append(limit + 1)
+    con = sqlite3.connect("file:%s?mode=ro" % path, uri=True)
+    try:
+        found = con.execute(sql, args).fetchall()
+    finally:
+        con.close()
+    more = len(found) > limit
+    found = found[:limit]
+    rows = []
+    facets = defaultdict(int)
+    for rid, provider, provider_name, title, key, rkind, nbytes, age_h, hot in found:
+        is_provider = rkind == "provider"
+        facets[provider] += 1
+        rows.append({
+            "id": rid,
+            "symbol": title if not is_provider else provider,
+            "name": title,
+            "provider": provider,
+            "provider_name": provider_name or PROV_NAME.get(provider, provider.upper()),
+            "kind": "dataset",
+            "chartable": False,
+            "browse": False,
+            "browse_provider": provider if is_provider else None,
+            "raw": not is_provider,
+            "key": key or None,
+            "bytes": nbytes,
+            "age_h": age_h,
+            "hot": bool(hot),
+            "catalog_kind": rkind,
+        })
+    return {
+        "rows": rows,
+        "more": more,
+        "facets": [{"provider": p,
+                    "provider_name": next(
+                        (r["provider_name"] for r in rows
+                         if r["provider"] == p), PROV_NAME.get(p, p.upper())),
+                    "n": n}
+                   for p, n in facets.items()],
+    }
 
 
 def _prefix_range(sorted_pairs, prefix, cap=400):
@@ -1392,13 +1536,17 @@ def doc_row(d, score=None):
     if prov in ("oecd", "bis", "imf") and kind == "dataset":
         chartable = False
     row = {"id": d[D_ID], "symbol": d[D_ID].split(":", 1)[1] if (":" in d[D_ID] and prov != "tv" and kind != "instrument") else d[D_ID],
-           "name": d[D_TITLE], "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": kind, "chartable": chartable, "asset_class": asset_class(d),
+           "name": d[D_TITLE], "provider": prov, "provider_name": ex.get("provider_name") or PROV_NAME.get(prov, prov.upper()), "kind": kind, "chartable": chartable, "asset_class": asset_class(d),
            "unit": d[D_UNIT], "freq": d[D_FREQ], "first": d[D_FIRST], "last": d[D_LAST], "n": d[D_N], "pop": d[D_POP]}
     if kind == "dataset":
         row["browse"] = prov in ("eurostat", "ecb", "statcan", "worldbank", "boj", "census", "treasury", "ofr")
-    for k in ("ex", "type", "mkt", "sector", "industry", "sa", "te", "arch", "src", "ds"):
+    for k in ("ex", "type", "mkt", "sector", "industry", "sa", "te", "arch",
+              "src", "ds", "key", "bytes", "age_h", "hot", "raw",
+              "browse_provider"):
         if ex.get(k) is not None:
             row[k] = ex[k]
+    if ex.get("chartable") is not None:
+        row["chartable"] = bool(ex["chartable"])
     if score is not None:
         row["score"] = round(score, 2)
     return row
@@ -1478,14 +1626,34 @@ def search(q, limit=40, prov=None, kind=None):
         for k, i in rows_ds:
             if k == (m.group(1) + ":" + m.group(2)).upper() and i not in hits:
                 hits[i] = (120, 0)
+    warehouse = {"rows": [], "more": False, "facets": []}
+    if not kind or kind == "dataset":
+        try:
+            warehouse = warehouse_search(
+                q, limit if not hits else max(6, min(16, limit // 3)),
+                prov=prov)
+        except Exception as e:  # noqa: BLE001
+            warehouse = {"rows": [], "more": False, "facets": [],
+                         "error": str(e)[:160]}
     if not hits and not (drill and drill.get("rows")):
-        return {"q": q, "rows": [], "total": 0, "detail": detail, "suggest": _suggest(q, toklist, index), "series_hits": drill}
+        return {"q": q, "rows": warehouse["rows"],
+                "total": len(warehouse["rows"]),
+                "warehouse_more": warehouse.get("more", False),
+                "warehouse_error": warehouse.get("error"),
+                "detail": detail, "facets": warehouse["facets"],
+                "suggest": _suggest(q, toklist, index),
+                "series_hits": drill}
     ql = q.lower()
     scored = []
     facets_all = defaultdict(int)
+    facet_names = {}
     for i, (b, nt) in hits.items():
         d = docs[i]
         facets_all[d[D_PROV]] += 1
+        facet_names.setdefault(
+            d[D_PROV],
+            (d[D_EXTRA] or {}).get("provider_name")
+            or PROV_NAME.get(d[D_PROV], d[D_PROV].upper()))
         if prov and d[D_PROV] != prov:
             continue
         if kind and d[D_KIND] != kind:
@@ -1524,7 +1692,19 @@ def search(q, limit=40, prov=None, kind=None):
         elif i in exact_pos and d[D_KIND] == "instrument":
             scored[n] = (5000 + pop[i] * 10, i)
     scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
-    rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
+    native_ids = {docs[i][D_ID] for _, i in scored}
+    warehouse["rows"] = [r for r in warehouse["rows"]
+                         if r["id"] not in native_ids]
+    warehouse_facets = defaultdict(int)
+    warehouse_facet_names = {}
+    for row in warehouse["rows"]:
+        warehouse_facets[row["provider"]] += 1
+        warehouse_facet_names.setdefault(
+            row["provider"], row.get("provider_name"))
+    native_limit = max(1, limit - len(warehouse["rows"]))
+    rows = [doc_row(docs[i], s) for s, i in scored[:native_limit]]
+    rows.extend(warehouse["rows"])
+    rows = rows[:limit]
     for r_ in rows:
         if r_["id"].upper() in pin_rank:
             r_["pinned"] = True
@@ -1537,8 +1717,17 @@ def search(q, limit=40, prov=None, kind=None):
                 row["sources"] = srcs
             elif row["id"].split(":")[0].upper() in ("ECONOMICS", "TVC") and not (row.get("src") in ("fred", "ecb", "yahoo") and row.get("sid")):
                 row["sources"] = []                      # TradingView-only: no warehouse source yet -> shown as such
-    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail, "policy": pins or None, "ambiguous": bool(pins and len(pins) > 1 and rows and rows[0].get("asset_class") in ("crypto", "index")),
-           "facets": sorted(({"provider": p, "provider_name": PROV_NAME.get(p, p.upper()), "n": n} for p, n in facets.items()), key=lambda x: -x["n"])}
+    for provider, n in warehouse_facets.items():
+        facets[provider] += n
+        facet_names.setdefault(provider, warehouse_facet_names.get(provider))
+    out = {"q": q, "rows": rows,
+           "total": len(scored) + len(warehouse["rows"]),
+           "warehouse_more": warehouse.get("more", False),
+           "warehouse_error": warehouse.get("error"),
+           "detail": detail,
+           "policy": pins or None,
+           "ambiguous": bool(pins and len(pins) > 1 and rows and rows[0].get("asset_class") in ("crypto", "index")),
+           "facets": sorted(({"provider": p, "provider_name": facet_names.get(p) or PROV_NAME.get(p, p.upper()), "n": n} for p, n in facets.items()), key=lambda x: -x["n"])}
     if drill is not None:
         out["series_hits"] = drill
     return out
@@ -2759,6 +2948,33 @@ def explorer(qs):
     q = (qs.get("q") or "").strip().lower()
     kind = (qs.get("kind") or "").strip()
     offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
+    if prov and q:
+        # Provider drill-down uses the same universal contract as the top search.
+        # This keeps a selected stored-file row (including its exact S3 key)
+        # visible instead of falling back to the provider's normalized docs.
+        found = search(q, min(200, offset + limit), prov=prov, kind=kind or None)
+        matched = found.get("rows") or []
+        page = matched[offset:offset + limit]
+        h = next(
+            (p for p in (hub().get("providers") or [])
+             if p.get("slug") == prov), None) or {}
+        return {
+            "provider": prov,
+            "provider_name": h.get("name") or PROV_NAME.get(prov, prov.upper()),
+            "api": h.get("api"),
+            "hub": {k: h.get(k) for k in (
+                "datasets", "series_count", "total_mb", "freshest_h",
+                "coverage_pct", "catalog_note")},
+            "total": found.get("total", len(matched)),
+            "offset": offset,
+            "limit": limit,
+            "rows": page,
+            "warehouse_more": found.get("warehouse_more", False),
+            "warehouse_error": found.get("warehouse_error"),
+            "series_level_via_browse": prov in (
+                "eurostat", "ecb", "statcan", "worldbank", "boj", "census",
+                "treasury", "ofr"),
+        }
     ix = load_index()
     docs = ix["docs"]
     if not prov:
@@ -2787,7 +3003,7 @@ def explorer(qs):
         if kind and d[D_KIND] != kind:
             continue
         if toks:
-            hay = (d[D_TITLE] + " " + d[D_ID]).lower()
+            hay = (d[D_TITLE] + " " + d[D_ID] + " " + (d[D_KEY] or "")).lower()
             if not all(t in hay for t in toks):
                 continue
         total += 1
@@ -2865,6 +3081,12 @@ def lambda_handler(event, context):
                 force = True
         ix = load_index(force=force)
         out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force}
+        try:
+            warehouse_path = _warehouse_db(force=force)
+            out["warehouse_ready"] = bool(warehouse_path)
+        except Exception as exc:  # noqa: BLE001
+            out["warehouse_ready"] = False
+            out["warehouse_error"] = str(exc)[:240]
         if path == "/warm":
             return _resp(out, ttl=0)
         return out
@@ -2916,5 +3138,6 @@ def lambda_handler(event, context):
         man = _get_json(SD + "manifest.json") or {}
         return _resp({"ok": True, "version": VERSION, "index_loaded": _IDX["docs"] is not None, "docs": len(_IDX["docs"]) if _IDX["docs"] else None,
                       "directory_built_at": man.get("built_at"), "directory_docs": man.get("docs"),
+                      "universal_search": (man.get("sources") or {}).get("provider-shards"),
                       "routes": ["/search?q=", "/browse?ds=&q=", "/series?id=", "/quote?ids=", "/warm"]}, ttl=30)
     return _resp({"error": "unknown route", "path": path}, 404, ttl=0)

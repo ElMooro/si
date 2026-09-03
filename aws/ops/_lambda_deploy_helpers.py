@@ -94,8 +94,10 @@ def create_or_update_lambda(
     *, report, function_name: str, zip_bytes: bytes,
     env_vars: Dict[str, str], timeout: int, memory: int,
     description: str, reserved_concurrency: Optional[int],
-    create_function_url: bool,
+    create_function_url: bool, ephemeral_storage: Optional[int],
 ):
+    storage = ({"EphemeralStorage": {"Size": ephemeral_storage}}
+               if ephemeral_storage else {})
     if function_exists(function_name):
         report.log(f"  Lambda exists — updating")
         _retry_on_conflict(_lam.update_function_code,
@@ -108,7 +110,8 @@ def create_or_update_lambda(
                            Environment={"Variables": env_vars},
                            Timeout=timeout,
                            MemorySize=memory,
-                           Description=description)
+                           Description=description,
+                           **storage)
         report.ok(f"  ✓ updated {function_name}")
     else:
         report.log(f"  Lambda missing — creating")
@@ -123,6 +126,7 @@ def create_or_update_lambda(
             MemorySize=memory,
             Architectures=["x86_64"],
             Environment={"Variables": env_vars},
+            **storage,
         )
         _lam.get_waiter("function_active").wait(
             FunctionName=function_name, WaiterConfig={"Delay": 2, "MaxAttempts": 30},
@@ -248,6 +252,7 @@ def deploy_lambda(
     eb_schedule: Optional[str] = None,
     timeout: int = 180,
     memory: int = 512,
+    ephemeral_storage: Optional[int] = None,
     description: str = "",
     reserved_concurrency: Optional[int] = None,
     create_function_url: bool = True,
@@ -263,6 +268,7 @@ def deploy_lambda(
         env_vars=env_vars, timeout=timeout, memory=memory,
         description=description, reserved_concurrency=reserved_concurrency,
         create_function_url=create_function_url,
+        ephemeral_storage=ephemeral_storage,
     )
 
     if eb_rule_name and eb_schedule:

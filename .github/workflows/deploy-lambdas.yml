@@ -164,6 +164,7 @@ jobs:
             fn_runtime="python3.12"
             fn_timeout="300"
             fn_memory="512"
+            fn_ephemeral=""
             fn_desc="JustHodl.AI Lambda"
             fn_env_args=""
             if [ -f "$dir/config.json" ]; then
@@ -172,6 +173,7 @@ jobs:
               fn_runtime=$(jq -r '.runtime // "python3.12"' "$dir/config.json")
               fn_timeout=$(jq -r '.timeout // 300' "$dir/config.json")
               fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
+              fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$dir/config.json")
               fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
               # Build --environment arg from .env (canonical) or .environment (legacy)
               # config-declared env block (only if non-empty)
@@ -343,6 +345,10 @@ jobs:
                   echo "{\"Variables\": $merged_env}" > "$tmp/env.json"
                   env_arg="--environment file://$tmp/env.json"
                 fi
+                ephemeral_arg=""
+                if [ -n "$fn_ephemeral" ]; then
+                  ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
+                fi
                 aws lambda update-function-configuration \
                   --function-name "$fn" \
                   --timeout "$fn_timeout" \
@@ -350,6 +356,7 @@ jobs:
                   --description "$fn_desc" \
                   --region "${{ secrets.AWS_REGION }}" \
                   $env_arg \
+                  $ephemeral_arg \
                   --output text > /dev/null
                 aws lambda wait function-updated \
                   --function-name "$fn" \
@@ -365,6 +372,10 @@ jobs:
                 echo "{\"Variables\": $cfg_env_json}" > "$tmp/env.json"
                 env_arg="--environment file://$tmp/env.json"
               fi
+              ephemeral_arg=""
+              if [ -n "$fn_ephemeral" ]; then
+                ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
+              fi
               aws lambda create-function \
                 --function-name "$fn" \
                 --runtime "$fn_runtime" \
@@ -376,6 +387,7 @@ jobs:
                 --description "$fn_desc" \
                 --region "${{ secrets.AWS_REGION }}" \
                 $env_arg \
+                $ephemeral_arg \
                 --tracing-config Mode=Active \
                 --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
                 --output text > /dev/null
