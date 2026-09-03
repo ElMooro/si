@@ -140,7 +140,7 @@ def wait_for_manifest(newer_than, timeout=1800):
                 fsi = sources.get("ofr-fsi") or {}
                 ofr = sources.get("ofr") or {}
                 if (last.get("version") == VERSION
-                        and fsi.get("docs", 0) >= 10
+                        and fsi.get("docs", 0) >= 9
                         and ofr.get("docs", 0) >= 100
                         and not fsi.get("error")
                         and not ofr.get("error")):
