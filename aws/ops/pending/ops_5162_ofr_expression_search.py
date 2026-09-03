@@ -7,6 +7,7 @@ waits for the exact GitHub Pages commit and checks the deployed Chart Pro stamp.
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -240,11 +241,17 @@ def main():
                     % (series_id, first_prefix))
 
         rep.section("S4 verify exact Pages revision and expression client")
-        target_sha = os.environ.get("OPS_TARGET_SHA", "")
+        run_sha = os.environ.get("OPS_TARGET_SHA", "")
+        target_sha = subprocess.check_output(
+            ["git", "log", "-1", "--format=%H", "--", "chart-pro.html"],
+            cwd=ROOT, text=True).strip()
+        if not target_sha:
+            raise RuntimeError("No Chart Pro commit is available")
         pages = wait_for_pages_deployment(target_sha)
         rep.log(
-            "  Pages deployment sha=%s id=%s state=%s"
-            % (pages.get("sha"), pages.get("deployment_id"), pages.get("state")))
+            "  run_sha=%s chart_sha=%s Pages id=%s state=%s"
+            % (run_sha, target_sha, pages.get("deployment_id"),
+               pages.get("state")))
         expected_stamp = (
             '<meta name="jh-build-commit" content="%s">' % target_sha).encode()
         live = False
