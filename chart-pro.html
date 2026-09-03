@@ -290,11 +290,11 @@ body.tv-shell .tv-iconrail { display: flex; }
 .scov-metric { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; color: var(--fg-4); font-size: 9.5px; }
 .scov-metric b { color: var(--fg-0); font-size: 11px; font-weight: 700; }
 .scov-spacer { flex: 1; min-width: 10px; }
-.scov-refresh, .scov-details {
+.scov-refresh, .scov-details, .scov-providers-btn {
   border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-2);
   border-radius: 5px; padding: 3px 7px; font: 700 9.5px var(--font-mono); cursor: pointer; white-space: nowrap;
 }
-.scov-refresh:hover, .scov-details:hover { color: var(--cyan); border-color: var(--cyan); }
+.scov-refresh:hover, .scov-details:hover, .scov-providers-btn:hover { color: var(--cyan); border-color: var(--cyan); }
 .ai-index-strip {
   flex: none; min-height: 29px; display: flex; align-items: center; gap: 8px; padding: 4px 12px;
   border-top: 1px solid var(--border); background: var(--bg-1); color: var(--fg-4);
@@ -325,6 +325,41 @@ body.tv-shell .tv-iconrail { display: flex; }
 .ai-index-body code { color: var(--violet); background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; font: 10.5px var(--font-mono); }
 .ai-index-body .ai-warning { padding: 9px 11px; border: 1px solid var(--amber); border-radius: 7px; background: rgba(251,191,36,.06); color: var(--fg-1); }
 .ai-index-body a { color: var(--cyan); }
+.pcov-tools { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-1); }
+.pcov-tools input, .pcov-tools select { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-2); color: var(--fg-1); padding: 7px 9px; font: 10.5px var(--font-mono); outline: none; }
+.pcov-tools input { flex: 1; min-width: 120px; }
+.pcov-tools input:focus, .pcov-tools select:focus { border-color: var(--cyan); }
+.pcov-tools .pcov-count { color: var(--fg-4); font: 10px var(--font-mono); white-space: nowrap; }
+.pcov-generation { padding: 7px 14px; border-bottom: 1px solid var(--border); background: rgba(251,191,36,.06); color: var(--fg-3); font: 9.5px/1.45 var(--font-mono); }
+.pcov-generation b { color: var(--amber); }
+.pcov-list { overflow: auto; padding: 8px; }
+.pcov-provider { border: 1px solid var(--border); border-radius: 7px; background: var(--bg-1); margin-bottom: 6px; overflow: hidden; }
+.pcov-provider[open] { border-color: var(--border-bright); }
+.pcov-provider summary { display: grid; grid-template-columns: minmax(180px, 1fr) 105px 120px 100px; gap: 10px; align-items: center; padding: 9px 11px; cursor: pointer; list-style: none; }
+.pcov-provider summary::-webkit-details-marker { display: none; }
+.pcov-provider summary:hover { background: var(--bg-2); }
+.pcov-name { min-width: 0; }
+.pcov-name b { display: block; color: var(--fg-0); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcov-name small { color: var(--fg-4); font: 9px var(--font-mono); }
+.pcov-stat { color: var(--fg-4); font: 9px var(--font-mono); text-align: right; white-space: nowrap; }
+.pcov-stat b { display: block; color: var(--fg-1); font-size: 10.5px; }
+.pcov-fresh { display: inline-flex; justify-content: flex-end; align-items: center; gap: 6px; color: var(--fg-2); font: 700 9.5px var(--font-mono); white-space: nowrap; }
+.pcov-fresh i { width: 7px; height: 7px; border-radius: 50%; background: var(--fg-4); }
+.pcov-fresh.fresh i { background: var(--green); }
+.pcov-fresh.delayed i { background: var(--amber); }
+.pcov-fresh.stale i { background: var(--red); }
+.pcov-detail { border-top: 1px solid var(--border); padding: 11px; background: var(--bg-2); }
+.pcov-grid { display: grid; grid-template-columns: repeat(5, minmax(100px, 1fr)); gap: 7px; }
+.pcov-kv { padding: 7px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-1); min-width: 0; }
+.pcov-kv span { display: block; color: var(--fg-4); font: 8.5px var(--font-mono); text-transform: uppercase; letter-spacing: .35px; }
+.pcov-kv b { display: block; margin-top: 2px; color: var(--fg-1); font: 10.5px var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcov-kv.exact b { white-space: normal; overflow-wrap: anywhere; }
+.pcov-meta { margin-top: 9px; display: flex; gap: 10px; align-items: flex-start; color: var(--fg-3); font-size: 10.5px; line-height: 1.45; }
+.pcov-meta span { min-width: 0; overflow-wrap: anywhere; }
+.pcov-meta span:last-child { flex: 1; }
+.pcov-meta b { color: var(--fg-1); font: 700 9.5px var(--font-mono); }
+.pcov-open { border: 1px solid var(--border); background: var(--bg-1); color: var(--cyan); border-radius: 5px; padding: 5px 8px; font: 700 9px var(--font-mono); cursor: pointer; white-space: nowrap; }
+.pcov-empty { padding: 34px 14px; text-align: center; color: var(--fg-4); }
 .hs-sources { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 6px; }
 .hs-src { font-family: var(--font-mono); font-size: 9px; color: var(--fg-3); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px; }
 .hs-src b { color: var(--violet); font-weight: 600; }
@@ -1538,6 +1573,13 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   .ai-index-head { align-items: flex-start; }
   .ai-index-head p { display: none; }
   .ai-index-live { grid-template-columns: 1fr 1fr; }
+  .pcov-tools { flex-wrap: wrap; }
+  .pcov-tools input { flex-basis: 100%; }
+  .pcov-generation { padding-inline: 10px; }
+  .pcov-provider summary { grid-template-columns: minmax(140px, 1fr) 90px; }
+  .pcov-provider summary .pcov-stat:nth-of-type(2) { display: none; }
+  .pcov-grid { grid-template-columns: 1fr 1fr; }
+  .pcov-meta { flex-wrap: wrap; }
 }
 @media (max-width: 980px) {
   .app { grid-template-columns: 220px 1fr; }
@@ -1748,6 +1790,7 @@ html, body { max-width: 100vw; overflow-x: hidden; }
     <div class="chart-tabs" id="chart-tabs"></div>
     <section class="search-coverage" id="search-coverage" aria-label="Universal search coverage">
       <span class="scov-state"><i class="scov-dot"></i><span id="scov-state" role="status" aria-live="polite">SEARCH COVERAGE LOADING</span></span>
+      <button class="scov-providers-btn" id="scov-providers-open" type="button">PROVIDER DETAILS</button>
       <span class="scov-metric"><b id="scov-providers">—</b> providers</span>
       <span class="scov-metric"><b id="scov-documents">—</b> FTS records</span>
       <span class="scov-metric"><b id="scov-assets">—</b> stored assets</span>
@@ -1956,6 +1999,34 @@ html, body { max-width: 100vw; overflow-x: hidden; }
         <li>Never swallow search errors as an empty result without showing degraded status.</li>
         <li>Never claim all storage objects are independent datasets. Report each coverage layer by its own name.</li>
       </ul>
+    </div>
+  </article>
+</div>
+
+<div class="ai-index-modal" id="provider-coverage-modal" role="dialog" aria-modal="true" aria-labelledby="provider-coverage-title">
+  <article class="ai-index-card">
+    <header class="ai-index-head">
+      <div>
+        <h2 id="provider-coverage-title">PROVIDER COVERAGE AND FRESHNESS</h2>
+        <p>Provider-slug join across independently refreshed index, inventory catalog and explorer metadata. Every metric names its source generation.</p>
+      </div>
+      <div class="ai-index-actions">
+        <button type="button" id="provider-coverage-close">CLOSE</button>
+      </div>
+    </header>
+    <div class="pcov-tools">
+      <input id="provider-coverage-filter" type="search" placeholder="Filter provider, slug, API or note…" autocomplete="off" aria-label="Filter provider coverage" />
+      <select id="provider-coverage-sort" aria-label="Sort provider coverage">
+        <option value="documents">Most indexed records</option>
+        <option value="storage">Largest storage</option>
+        <option value="freshness">Oldest latest object</option>
+        <option value="name">Provider name</option>
+      </select>
+      <span class="pcov-count" id="provider-coverage-count" role="status" aria-live="polite">Loading providers…</span>
+    </div>
+    <div class="pcov-generation" id="provider-coverage-generation">Loading source generations…</div>
+    <div class="pcov-list" id="provider-coverage-list">
+      <div class="pcov-empty">Loading provider coverage…</div>
     </div>
   </article>
 </div>
@@ -2687,8 +2758,13 @@ class DataExplorer {
 // Universal-search coverage is rendered from the generation manifest. Never hard-code these totals.
 class SearchCoverage {
   static manifest = null;
+  static explorer = null;
+  static catalog = null;
+  static providerRows = [];
   static endpoint = `${PROXY}/data/search/provider-shards.json`;
   static probeEndpoint = `${PROXY}/symsearch?q=${encodeURIComponent('FRED:DGS10')}&limit=5`;
+  static explorerEndpoint = `${PROXY}/explorer`;
+  static catalogEndpoint = 'https://justhodl.ai/data/provider-catalog.json';
   static _returnFocus = null;
   static _inerted = [];
   static fmtN(n) { return Number.isFinite(Number(n)) ? Number(n).toLocaleString() : '—'; }
@@ -2704,6 +2780,13 @@ class SearchCoverage {
     if (hours < 1) return { text: `${Math.max(1, Math.round(hours * 60))}m ago`, hours };
     if (hours < 48) return { text: `${Math.round(hours)}h ago`, hours };
     return { text: `${Math.round(hours / 24)}d ago`, hours };
+  }
+  static fmtFreshness(hours) {
+    if (hours == null || hours === '' || !Number.isFinite(Number(hours))) return { label: 'LATEST OBJECT', text: 'not reported', cls: 'unknown', sort: -1 };
+    const h = Math.max(0, Number(hours));
+    const cls = h <= 24 ? 'fresh' : (h <= 72 ? 'delayed' : 'stale');
+    const text = h < 1 ? `${Math.max(1, Math.round(h * 60))}m` : (h < 48 ? `${h.toFixed(1)}h` : `${(h / 24).toFixed(1)}d`);
+    return { label: 'LATEST OBJECT', text, cls, sort: h };
   }
   static setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
   static setGuide(key, value) { document.querySelectorAll(`[data-scov="${key}"]`).forEach(el => { el.textContent = value; }); }
@@ -2727,9 +2810,11 @@ class SearchCoverage {
     this.setText('scov-state', force ? 'REFRESHING COVERAGE' : 'SEARCH COVERAGE LOADING');
     try {
       const sep = this.endpoint.includes('?') ? '&' : '?';
-      const [response, probeResponse] = await Promise.all([
+      const [response, probeResponse, explorer, catalog] = await Promise.all([
         fetch(`${this.endpoint}${sep}ts=${Date.now()}`, { cache: 'no-store' }),
-        fetch(`${this.probeEndpoint}&ts=${Date.now()}`, { cache: 'no-store' })
+        fetch(`${this.probeEndpoint}&ts=${Date.now()}`, { cache: 'no-store' }),
+        fetch(`${this.explorerEndpoint}?ts=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${this.catalogEndpoint}?ts=${Date.now()}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null)
       ]);
       if (!response.ok) throw new Error(`manifest HTTP ${response.status}`);
       if (!probeResponse.ok) throw new Error(`live search HTTP ${probeResponse.status}`);
@@ -2739,6 +2824,15 @@ class SearchCoverage {
       const probeReady = Array.isArray(probe && probe.rows) && !probe.error && probe.rows.some(r => String(r.id || '').toUpperCase() === 'FRED:DGS10');
       if (!probeReady) throw new Error('live search probe did not return FRED:DGS10');
       this.manifest = d;
+      this.explorer = Array.isArray(explorer && explorer.providers) ? explorer : { providers: [] };
+      this.catalog = Array.isArray(catalog && catalog.providers) ? catalog : { providers: [] };
+      const explorerBySlug = new Map(this.explorer.providers.map(p => [String(p.slug || '').toLowerCase(), p]));
+      const catalogBySlug = new Map(this.catalog.providers.map(p => [String(p.slug || '').toLowerCase(), p]));
+      this.providerRows = d.shards.map(shard => {
+        const slug = String(shard.provider || '').toLowerCase();
+        return { shard, meta: explorerBySlug.get(slug) || {}, inventory: catalogBySlug.get(slug) || {} };
+      });
+      this.renderProviders();
       const c = d.coverage;
       const age = this.fmtAge(d.generated_at);
       const status = age.hours < 26 ? 'ready' : (age.hours < 72 ? 'delayed' : 'stale');
@@ -2761,23 +2855,111 @@ class SearchCoverage {
       bar.title = `Could not load ${this.endpoint}: ${err && err.message ? err.message : err}`;
     }
   }
-  static openGuide(trigger = document.activeElement) {
-    const modal = document.getElementById('ai-index-modal');
-    if (!modal || modal.classList.contains('open')) return;
+  static providerHtml(row) {
+    const { shard: s, meta: m, inventory: i } = row;
+    const slug = String(s.provider || '');
+    const name = s.provider_name || i.name || m.name || slug;
+    const fresh = this.fmtFreshness(i.freshest_h != null ? i.freshest_h : m.freshest_h);
+    const exactBytes = i.total_bytes == null ? NaN : Number(i.total_bytes);
+    const hierarchical = Number(m.hierarchical_series || 0);
+    const coverage = i.coverage_pct != null && Number.isFinite(Number(i.coverage_pct)) ? `${Number(i.coverage_pct).toFixed(1)}%` : '—';
+    const note = i.coverage_note || i.catalog_note || m.note || '';
+    const api = i.api || m.api || 'not reported';
+    return `<details class="pcov-provider">
+      <summary>
+        <span class="pcov-name"><b>${UI.esc(name)}</b><small>${UI.esc(slug)}</small></span>
+        <span class="pcov-fresh ${fresh.cls}"><i></i>${fresh.label} · ${fresh.text}</span>
+        <span class="pcov-stat"><b>${this.fmtN(s.count)}</b><small>indexed records</small></span>
+        <span class="pcov-stat"><b>${this.fmtBytes(exactBytes)}</b><small>catalog inventory</small></span>
+      </summary>
+      <div class="pcov-detail">
+        <div class="pcov-grid">
+          <div class="pcov-kv"><span>Index · documents</span><b>${this.fmtN(s.count)}</b></div>
+          <div class="pcov-kv"><span>Index · assets</span><b>${this.fmtN(s.assets)}</b></div>
+          <div class="pcov-kv"><span>Index · entity refs</span><b>${this.fmtN(s.entity_refs)}</b></div>
+          <div class="pcov-kv"><span>Index · series refs</span><b>${this.fmtN(s.series_refs)}</b></div>
+          <div class="pcov-kv"><span>Catalog · datasets</span><b>${this.fmtN(i.datasets != null ? i.datasets : m.datasets)}</b></div>
+          <div class="pcov-kv"><span>Catalog · S3 objects</span><b>${this.fmtN(i.n_keys)}</b></div>
+          <div class="pcov-kv exact"><span>Catalog · exact storage bytes</span><b>${Number.isFinite(exactBytes) ? this.fmtN(exactBytes) + ' B' : '—'}</b></div>
+          <div class="pcov-kv"><span>Catalog · series</span><b>${this.fmtN(i.series_count != null ? i.series_count : m.series_count)}</b></div>
+          <div class="pcov-kv"><span>Explorer · hierarchical</span><b>${hierarchical > 0 ? this.fmtN(hierarchical) : '—'}</b></div>
+          <div class="pcov-kv"><span>Catalog · coverage target</span><b>${coverage}</b></div>
+        </div>
+        <div class="pcov-meta"><span><b>API:</b> ${UI.esc(api)}</span>${note ? `<span><b>Coverage:</b> ${UI.esc(note)}</span>` : ''}</div>
+        <button class="pcov-open" type="button" data-provider="${UI.esc(slug)}">SEARCH THIS PROVIDER</button>
+      </div>
+    </details>`;
+  }
+  static renderProviders() {
+    const list = document.getElementById('provider-coverage-list');
+    const count = document.getElementById('provider-coverage-count');
+    const generation = document.getElementById('provider-coverage-generation');
+    if (!list || !count || !generation) return;
+    const q = String(document.getElementById('provider-coverage-filter')?.value || '').trim().toLowerCase();
+    const sort = document.getElementById('provider-coverage-sort')?.value || 'documents';
+    const rows = this.providerRows.filter(({ shard: s, meta: m, inventory: i }) =>
+      !q || [s.provider, s.provider_name, m.name, m.api, m.note, i.name, i.api, i.coverage_note, i.catalog_note].some(v => String(v || '').toLowerCase().includes(q))
+    );
+    rows.sort((a, b) => {
+      if (sort === 'storage') return Number(b.inventory.total_bytes || 0) - Number(a.inventory.total_bytes || 0);
+      if (sort === 'freshness') return this.fmtFreshness(b.inventory.freshest_h != null ? b.inventory.freshest_h : b.meta.freshest_h).sort - this.fmtFreshness(a.inventory.freshest_h != null ? a.inventory.freshest_h : a.meta.freshest_h).sort;
+      if (sort === 'name') return String(a.shard.provider_name || a.shard.provider).localeCompare(String(b.shard.provider_name || b.shard.provider));
+      return Number(b.shard.count || 0) - Number(a.shard.count || 0);
+    });
+    list.innerHTML = rows.length ? rows.map(r => this.providerHtml(r)).join('') : '<div class="pcov-empty">No providers match this filter.</div>';
+    const indexAge = this.manifest ? this.fmtAge(this.manifest.generated_at).text : 'unknown';
+    const catalogStamp = this.catalog && (this.catalog.as_of || this.catalog.generated_at);
+    const catalogAge = catalogStamp ? this.fmtAge(catalogStamp).text : 'metadata unavailable';
+    const explorerStamp = this.explorer && this.explorer.as_of;
+    const explorerAge = explorerStamp ? this.fmtAge(explorerStamp).text : 'metadata unavailable';
+    count.textContent = `${this.fmtN(rows.length)} of ${this.fmtN(this.providerRows.length)} providers`;
+    generation.innerHTML = `<b>INDEPENDENT GENERATIONS — DO NOT TREAT AS ONE ATOMIC SNAPSHOT.</b> Index shard: ${UI.esc(this.manifest && this.manifest.generated_at || 'unavailable')} (${indexAge}) · Inventory catalog: ${UI.esc(catalogStamp || 'unavailable')} (${catalogAge}) · Explorer metadata: ${UI.esc(explorerStamp || 'unavailable')} (${explorerAge}). “Latest object” is only the newest observed object age, not whole-provider completeness.`;
+    list.querySelectorAll('.pcov-open').forEach(button => button.addEventListener('click', () => {
+      const provider = button.dataset.provider;
+      this.closeProviders();
+      DataExplorer.open(provider);
+    }));
+  }
+  static openModal(id, trigger, focusId) {
+    this.closeAll(false);
+    const modal = document.getElementById(id);
+    if (!modal) return;
     this._returnFocus = trigger instanceof HTMLElement ? trigger : null;
     this._inerted = [...document.body.children].filter(el => el !== modal && !['SCRIPT', 'STYLE'].includes(el.tagName)).map(el => [el, el.inert]);
     this._inerted.forEach(([el]) => { el.inert = true; });
     modal.classList.add('open');
-    document.getElementById('ai-index-close')?.focus();
+    document.getElementById(focusId)?.focus();
   }
-  static closeGuide() {
-    const modal = document.getElementById('ai-index-modal');
+  static closeModal(id, restore = true) {
+    const modal = document.getElementById(id);
     if (!modal || !modal.classList.contains('open')) return;
     modal.classList.remove('open');
     this._inerted.forEach(([el, wasInert]) => { el.inert = wasInert; });
     this._inerted = [];
-    this._returnFocus?.focus();
+    if (restore) this._returnFocus?.focus();
     this._returnFocus = null;
+  }
+  static trapModal(e, close) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab') return;
+    const focusable = [...e.currentTarget.querySelectorAll('button, [href], input, select, textarea, summary, [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled && el.offsetParent);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  static openGuide(trigger = document.activeElement) {
+    this.openModal('ai-index-modal', trigger, 'ai-index-close');
+  }
+  static closeGuide(restore = true) { this.closeModal('ai-index-modal', restore); }
+  static openProviders(trigger = document.activeElement) {
+    this.renderProviders();
+    this.openModal('provider-coverage-modal', trigger, 'provider-coverage-filter');
+  }
+  static closeProviders(restore = true) { this.closeModal('provider-coverage-modal', restore); }
+  static closeAll(restore = true) {
+    this.closeGuide(restore);
+    this.closeProviders(restore);
   }
   static guideText() {
     const body = document.getElementById('ai-index-guide');
@@ -2786,18 +2968,16 @@ class SearchCoverage {
   static init() {
     document.getElementById('scov-refresh')?.addEventListener('click', () => this.load(true));
     document.getElementById('scov-details')?.addEventListener('click', e => this.openGuide(e.currentTarget));
+    document.getElementById('scov-providers-open')?.addEventListener('click', e => this.openProviders(e.currentTarget));
     document.getElementById('ai-index-open')?.addEventListener('click', e => this.openGuide(e.currentTarget));
     document.getElementById('ai-index-close')?.addEventListener('click', () => this.closeGuide());
     document.getElementById('ai-index-modal')?.addEventListener('click', e => { if (e.target.id === 'ai-index-modal') this.closeGuide(); });
-    document.getElementById('ai-index-modal')?.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { e.preventDefault(); this.closeGuide(); return; }
-      if (e.key !== 'Tab') return;
-      const focusable = [...e.currentTarget.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(el => !el.disabled && el.offsetParent);
-      if (!focusable.length) return;
-      const first = focusable[0], last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    });
+    document.getElementById('ai-index-modal')?.addEventListener('keydown', e => this.trapModal(e, () => this.closeGuide()));
+    document.getElementById('provider-coverage-close')?.addEventListener('click', () => this.closeProviders());
+    document.getElementById('provider-coverage-modal')?.addEventListener('click', e => { if (e.target.id === 'provider-coverage-modal') this.closeProviders(); });
+    document.getElementById('provider-coverage-modal')?.addEventListener('keydown', e => this.trapModal(e, () => this.closeProviders()));
+    document.getElementById('provider-coverage-filter')?.addEventListener('input', () => this.renderProviders());
+    document.getElementById('provider-coverage-sort')?.addEventListener('change', () => this.renderProviders());
     document.getElementById('ai-index-copy')?.addEventListener('click', async e => {
       const text = this.guideText();
       try {
@@ -7909,7 +8089,7 @@ async function init() {
     if (e.key === 'Escape') {
       UniverseSearch.close(); Heatmap.close(); FlagPicker.close(); AddSymbol.close();
       MacroData.close(); DatasetBrowser.close(); DataExplorer.close(); CorrelationMatrix.close(); Basket.close(); AlertCenter.close();
-      SearchCoverage.closeGuide();
+      SearchCoverage.closeAll();
       document.getElementById('new-wl-modal').classList.remove('open');
       document.getElementById('wl-selector').classList.remove('open');
     }
