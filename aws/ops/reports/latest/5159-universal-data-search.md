@@ -1,41 +1,34 @@
 # ops 5159 -- every data.html provider searchable in Chart Pro
 
-**Status:** failure  
-**Duration:** 1276.7s  
-**Finished:** 2026-09-03T01:33:34+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 688.3s  
+**Finished:** 2026-09-03T01:49:43+00:00  
 
 ## Log
 ## S1 provider catalog -> 57-provider FTS index
 
-- `01:12:17`   zip: 115704 bytes
+- `01:38:15`   zip: 115704 bytes
 ## 1. Lambda
 
-- `01:12:17`   Lambda exists — updating
-- `01:12:22` ✅   ✓ updated justhodl-provider-catalog
-- `01:12:23` ✅   ✓ Function URL: https://gjldbwni3zinympcfdl2xesnty0pcutr.lambda-url.us-east-1.on.aws/
-- `01:19:14`   manifest providers=57 documents=791707 index=data/search/index/provider-search-20260903T011227Z-96b15826ec5c.sqlite.gz bytes=34686706
-- `01:19:14`   sample provider=gdelt query='2003' id=gdelt:asset:12f5946134bdd2cb
+- `01:38:15`   Lambda exists — updating
+- `01:38:18` ✅   ✓ updated justhodl-provider-catalog
+- `01:45:39`   manifest providers=57 documents=791712 index=data/search/index/provider-search-20260903T013822Z-f3b6743edc21.sqlite.gz bytes=34680444
+- `01:45:40`   sample provider=gdelt query='2003' id=gdelt:asset:12f5946134bdd2cb
 ## S2 symdir v1.9.0 -> native + warehouse merged search
 
-- `01:19:15`   zip: 146383 bytes
+- `01:45:41`   zip: 146383 bytes
 ## 1. Lambda
 
-- `01:19:15`   Lambda exists — updating
-- `01:19:18` ✅   ✓ updated justhodl-symdir
-- `01:23:23`   symdir docs=1378332 elapsed=239.8 provider_shards={'providers': 57, 'docs': 57, 'manifest_docs': 791707, 'index': 'data/search/index/provider-search-20260903T011227Z-96b15826ec5c.sqlite.gz', 'generated_at': '2026-09-03T01:12:27+00:00', 's': 0.6}
-- `01:23:32`   warm docs=1378332 warehouse_ready=True warehouse_error=None
-- `01:23:32`   direct search rows=1 raw=1 more=False error=None
-- `01:23:32`   normalized DGS10 rows=4 exact=True facets=[{'provider': 'fred', 'provider_name': 'FRED', 'n': 2}, {'provider': 'te-mirror', 'provider_name': 'Trading Economics — FRED Mirror', 'n': 2}]
+- `01:45:41`   Lambda exists — updating
+- `01:45:44` ✅   ✓ updated justhodl-symdir
+- `01:49:34`   symdir docs=1378332 elapsed=213.2 provider_shards={'providers': 57, 'docs': 57, 'manifest_docs': 791712, 'index': 'data/search/index/provider-search-20260903T013822Z-f3b6743edc21.sqlite.gz', 'generated_at': '2026-09-03T01:38:22+00:00', 's': 0.5}
+- `01:49:42`   warm docs=1378332 warehouse_ready=True warehouse_error=None
+- `01:49:42`   direct search rows=1 raw=1 more=False error=None
+- `01:49:42`   normalized DGS10 rows=4 exact=True facets=[{'provider': 'fred', 'provider_name': 'FRED', 'n': 2}, {'provider': 'te-mirror', 'provider_name': 'Trading Economics — FRED Mirror', 'n': 2}]
 ## S3 Worker + live Chart Pro contract
 
-- `01:23:33`   worker rows=1 raw=1
-- `01:23:33`   Pages deployment sha=1747274c824ac4dd30e3301aa4f6cb97d6c2846d id=6234990420 state=success
+- `01:49:42`   worker rows=1 raw=1
+- `01:49:43`   Pages deployment sha=612d5738d3e4df9e311209c274cba41d502f2b42 id=6235270532 state=success
 ## verdict
 
-- `01:33:34` ✗ new Chart Pro universal-search UI marker not live
+- `01:49:43` ✅ PASS_ALL: 57/57 providers indexed; raw files are searchable through direct Lambda and Worker; normalized series remain separate from non-chartable provider assets
