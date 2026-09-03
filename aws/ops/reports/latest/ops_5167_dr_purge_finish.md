@@ -1,0 +1,65 @@
+# ops 5167 -- finish the DR replica purge (lifecycle re-check, held prefixes, sharded sweep)
+
+**Status:** success  
+**Duration:** 2488.4s  
+**Finished:** 2026-09-03T20:01:45+00:00  
+
+## Data
+
+| errors | function | invocations | section |
+|---|---|---|---|
+| 0 | justhodl-repo | 0 | verify_1h |
+| 0 | justhodl-fundamental-census | 0 | verify_1h |
+| 0 | justhodl-census-us | 31 | verify_1h |
+| 0 | justhodl-boj-full | 46 | verify_1h |
+| 0 | justhodl-ecb-deep | 2 | verify_1h |
+
+## Log
+- `19:20:17` ledger: 25 prefixes purge-approved, 40 held, sweep so far {'n': 2853122, 'bytes': 773024960734, 'errors': 0, 'tasks': 1344}
+## 1. Held prefixes: re-gate on their own (small) samples
+
+- `19:20:23` ✅    re-gated for purge on 100%-REPLICA evidence: 40 prefixes ['13f/', '_health/', 'air/', 'analytics/', 'asia/', 'backtest/', 'backups/', 'base-rates/', 'boom/', 'cb-cache/', 'chokepoint/', 'credit/', 'data-census/', 'discovery/', 'divergence/', 'domain-barometers/', 'estimate-revisions/', 'foreign-flows/', 'geo/', 'js/', 'learning/', 'macro-attribution/', 'opportunities/', 'ops/', 'plumbing-composite/', 'readthrough/', 'regime/', 'reports/', 'risk/', 'sec-filings-cache/', 'sec/', 'sentiment/', 'signals/', 'spx-beaters/', 'spx-ma/', 'state/', 'stock-analysis/', 'symbol-resolver/', 'telegram/', 'tools/']
+## 2. Lifecycle on the DR bucket -- patient read, re-put only if missing
+
+- `19:20:23`    attempt 1: 28 rules on the bucket, 27 of 67 wanted present
+- `19:20:43`    attempt 2: 28 rules on the bucket, 27 of 67 wanted present
+- `19:21:03`    attempt 3: 28 rules on the bucket, 27 of 67 wanted present
+- `19:21:04` ✅    put 40 missing rules
+- `19:21:29`    attempt 4: 68 rules on the bucket, 67 of 67 wanted present
+- `19:21:29` ✅    all 67 ops5166/5167 lifecycle rules present on justhodl-dashboard-live-dr
+- `19:21:29`    other rule: {"ID": "expire-noncurrent-90d", "Filter": {}, "Status": "Enabled", "NoncurrentVersionExpiration": {"NoncurrentDays": 90}}
+## 3. Second sweep -- 40-minute budget, character-sharded for flat mega-prefixes
+
+- `19:21:31`    root-level replica versions deleted: 987
+- `19:23:31`    t+ 195s  deleted 218,337 versions (53.6 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:25:31`    t+ 315s  deleted 405,337 versions (100.6 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:27:31`    t+ 435s  deleted 616,337 versions (153.6 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:29:31`    t+ 555s  deleted 823,337 versions (205.6 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:31:32`    t+ 675s  deleted 1,017,337 versions (254.2 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:33:32`    t+ 795s  deleted 1,211,337 versions (302.9 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:35:32`    t+ 915s  deleted 1,435,337 versions (359.1 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:37:32`    t+1035s  deleted 1,626,337 versions (407.2 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:39:32`    t+1155s  deleted 1,844,337 versions (462.0 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:41:32`    t+1275s  deleted 2,049,337 versions (513.7 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:43:32`    t+1395s  deleted 2,259,337 versions (566.6 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:45:32`    t+1516s  deleted 2,473,337 versions (620.3 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:47:32`    t+1636s  deleted 2,672,337 versions (670.2 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:49:32`    t+1756s  deleted 2,864,337 versions (718.4 GB)  tasks 1522 (shards 1452)  errors 0
+- `19:51:32`    t+1876s  deleted 3,053,337 versions (765.9 GB)  tasks 1522 (shards 1452)  errors 1000
+- `19:53:33`    t+1996s  deleted 3,505,537 versions (879.4 GB)  tasks 1522 (shards 1452)  errors 1000
+- `19:55:33`    t+2116s  deleted 3,768,338 versions (945.6 GB)  tasks 1522 (shards 1452)  errors 1000
+- `19:57:33`    t+2236s  deleted 3,986,527 versions (1001.2 GB)  tasks 1522 (shards 1452)  errors 1000
+- `19:59:33`    t+2356s  deleted 4,188,728 versions (1052.5 GB)  tasks 1522 (shards 1452)  errors 1000
+- `20:01:33`    t+2477s  deleted 4,394,728 versions (1105.1 GB)  tasks 1522 (shards 1452)  errors 1000
+- `20:01:43`    sweep done: 4,406,728 versions / delete markers removed, 1108.1 GB, 1000 errors, 1522 tasks (1452 shards), 2487s
+- `20:01:43` ⚠    budget reached -- lifecycle finishes the remainder
+- `20:01:43`    top-level prefixes still holding CURRENT objects: 3 ['backup/', 'data/', 'quarantine/']
+## 4. Verification -- last 60 minutes (the ops-5166 window straddled the fix)
+
+- `20:01:44`    justhodl-repo                    invocations     0  errors   0  0.00 Lambda-hours
+- `20:01:44`    justhodl-fundamental-census      invocations     0  errors   0  0.00 Lambda-hours
+- `20:01:44`    justhodl-census-us               invocations    31  errors   0  0.45 Lambda-hours
+- `20:01:44`    justhodl-boj-full                invocations    46  errors   0  0.37 Lambda-hours
+- `20:01:45`    justhodl-ecb-deep                invocations     2  errors   0  0.06 Lambda-hours
+- `20:01:45` ✅    ledger updated
+- `20:01:45` ✅ ops 5167 complete in 2488s
