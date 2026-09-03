@@ -1,0 +1,58 @@
+# ops 5156 -- search ranking authority + mobile composition (the audit's acceptance tests)
+
+**Status:** failure  
+**Duration:** 250.0s  
+**Finished:** 2026-09-03T00:54:00+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## S1 deploy symdir v1.9.0
+
+- `00:49:51`   zip: 143710 bytes
+## 1. Lambda
+
+- `00:49:51`   Lambda exists — updating
+- `00:49:54` ✅   ✓ updated justhodl-symdir
+## S2 acceptance battery (/search first result)
+
+- `00:50:08` ✅   'AAPL'     -> ['AAPL', 'NASDAQ:AAPL', 'I:AAPLCW', 'I:AAPLDI', 'I:AAPLIO'] (want AAPL) policy=None ambiguous=False
+- `00:50:08` ✅   'MSFT'     -> ['MSFT', 'NASDAQ:MSFT', 'I:MSFTCW', 'I:MSFTDI', 'I:MSFTIO'] (want MSFT) policy=None ambiguous=False
+- `00:50:08` ✅   'SPY'      -> ['SPY', 'AMEX:SPY', 'SPYQ', 'SPYR', 'SYRE'] (want SPY) policy=['SPY'] ambiguous=False
+- `00:50:08` ✅   'BTC'      -> ['X:BTCUSD', 'COINBASE:BTCUSD', 'INDEX:BTCUSD', 'BTC', 'BTCS'] (want X:BTCUSD) policy=['X:BTCUSD', 'COINBASE:BTCUSD', 'INDEX:BTCUSD', 'BTC'] ambiguous=True
+- `00:50:08` ✅   'bitcoin'  -> ['X:BTCUSD', 'COINBASE:BTCUSD', 'INDEX:BTCUSD', 'IBIT', 'BTC'] (want X:BTCUSD) policy=['X:BTCUSD', 'COINBASE:BTCUSD', 'INDEX:BTCUSD', 'IBIT', 'BTC'] ambiguous=True
+- `00:50:09` ✅   'ETH'      -> ['X:ETHUSD', 'ETHA', 'ETH', 'AMEX:ETHD', 'NASDAQ:ETHA'] (want X:ETHUSD) policy=['X:ETHUSD', 'COINBASE:ETHUSD', 'ETHA'] ambiguous=True
+- `00:50:09` ✅   'BTCUSD'   -> ['X:BTCUSD', 'COINBASE:BTCUSD', 'INDEX:BTCUSD', 'BITSTAMP:BTCUSD', 'BINANCE:BTCUSDH2025'] (want X:BTCUSD) policy=['X:BTCUSD', 'COINBASE:BTCUSD'] ambiguous=True
+- `00:50:10` ✅   'EURUSD'   -> ['C:EURUSD', 'FX:EURUSD', 'fred:DEXUSEU', 'CMCMARKETS:EURUSDU2025'] (want C:EURUSD) policy=['C:EURUSD', 'FX:EURUSD', 'fred:DEXUSEU'] ambiguous=False
+- `00:50:10` ✅   'BRK.B'    -> ['BRK.B', 'NYSE:BRK.B', 'BRK-A', 'BRK-B', 'BRKC'] (want BRK.B) policy=None ambiguous=False
+- `00:50:10` ✅   'crude'    -> ['fred:DCOILWTICO', 'NYMEX:CL1!', 'fred:DCOILBRENTEU', 'MCX:CRUDEOIL1!', 'fred:MCOILWTICO'] (want fred:DCOILWTICO) policy=['fred:DCOILWTICO', 'NYMEX:CL1!', 'fred:DCOILBRENTEU', 'USO'] ambiguous=False
+- `00:50:11` ✅   'oil'      -> ['fred:DCOILWTICO', 'NYMEX:CL1!', 'fred:DCOILBRENTEU', 'USO', 'TVC:USOIL'] (want fred:DCOILWTICO) policy=['fred:DCOILWTICO', 'NYMEX:CL1!', 'fred:DCOILBRENTEU', 'USO', 'TVC:USOIL'] ambiguous=False
+- `00:50:11` ✅   'WTI'      -> ['fred:DCOILWTICO', 'NYMEX:CL1!', 'TVC:USOIL', 'WTI', 'BLACKBULL:WTI'] (want fred:DCOILWTICO) policy=['fred:DCOILWTICO', 'NYMEX:CL1!', 'TVC:USOIL'] ambiguous=False
+- `00:50:11` ✅   'brent'    -> ['fred:DCOILBRENTEU', 'BNO', 'fred:POILBREUSDM', 'fred:MCOILBRENTEU', 'fred:POILBREUSDQ'] (want fred:DCOILBRENTEU) policy=['fred:DCOILBRENTEU', 'TVC:UKOIL', 'BNO'] ambiguous=False
+- `00:50:11` ✅   'gold'     -> ['fred:GOLDAMGBD228NLBM', 'COMEX:GC1!', 'TVC:GOLD', 'GLD', 'GOLD'] (want fred:GOLDAMGBD228NLBM) policy=['fred:GOLDAMGBD228NLBM', 'COMEX:GC1!', 'TVC:GOLD', 'GLD'] ambiguous=False
+- `00:50:12` ✅   'vix'      -> ['TVC:VIX', 'fred:VIXCLS', 'I:VIX', 'CBOE:VIX', 'CAPITALCOM:VIX'] (want TVC:VIX) policy=['TVC:VIX', 'fred:VIXCLS', 'I:VIX'] ambiguous=False
+- `00:50:12` ✅   'spx'      -> ['I:SPX', 'fred:SP500', 'SPCFD:SPX', 'SPXC', 'AMEX:SPXB'] (want I:SPX) policy=['I:SPX', 'SPY', 'fred:SP500'] ambiguous=True
+- `00:50:12` ✅   'nasdaq'   -> ['I:NDX', 'I:COMP', 'fred:NASDAQCOM', 'fred:NASDAQ100', 'NASDAQ:CG'] (want I:NDX) policy=['I:NDX', 'QQQ', 'I:COMP'] ambiguous=True
+- `00:50:12` ✅   'dxy'      -> ['TVC:DXY', 'fred:DTWEXBGS', 'CAPITALCOM:DXY', 'DXYZ', 'DXYN'] (want TVC:DXY) policy=['TVC:DXY', 'fred:DTWEXBGS'] ambiguous=False
+- `00:50:12` ✅   'sofr'     -> ['nyfed:sofr', 'fred:SOFR', 'SOFR', 'fred:SOFRINDEX', 'CMCMARKETS:SOFR3MO'] (want nyfed:sofr) policy=['nyfed:sofr', 'fred:SOFR'] ambiguous=False
+- `00:50:12` ✅   'NVDA'     -> ['NVDA', 'NASDAQ:NVDA', 'I:NVDACW', 'I:NVDADI', 'I:NVDAIO'] (want NVDA) policy=None ambiguous=False
+- `00:50:12` ✅   'TSLA'     -> ['TSLA', 'NASDAQ:TSLA', 'I:TSLACW', 'I:TSLADI', 'I:TSLAIO'] (want TSLA) policy=None ambiguous=False
+- `00:50:12` ✅   'dgs10'    -> ['fred:DGS10'] (want fred:DGS10) policy=None ambiguous=False
+## S3 live page
+
+- `00:53:45` ✅   page 'AAPL': first=AAPL top5=['AAPL', 'NASDAQ:AAPL', 'I:AAPLCW', 'I:AAPLDI', 'I:AAPLIO'] groups=['Symbols']
+- `00:53:46` ✗   page 'SPY': first=SPYA top5=['SPYA', 'SPYC', 'SPYD', 'SPYG', 'SPYH'] groups=['Symbols', 'TradingView universe', 'JustHodl signals (no']
+- `00:53:48` ✗   page 'BTC': first=BTC top5=['BTC', 'BTCS', 'BTCT', 'BTCC', 'BTCI'] groups=['Symbols']
+- `00:53:49` ✗   page 'MSFT': first=NASDAQ:MSFT top5=['NASDAQ:MSFT', 'MSFC', 'MSFD', 'MSFL', 'MSFO'] groups=['Symbols', 'JustHodl signals (no']
+- `00:53:50` ✗   page 'crude': first=TVC:USOIL top5=['TVC:USOIL', 'MCX:CRUDEOIL1!', 'OILK', 'SCO', 'UCO'] groups=['Symbols']
+- `00:54:00`   mobile 390px: {"scrollW": 390, "docW": 390, "shell": false, "search": {"x": 44, "w": 297, "y": 49}, "chart": {"w": 388, "h": 633}}
+## verdict
+
+- `00:54:00` ✗ page 'SPY' first=SPYA want SPY
+- `00:54:00` ✗ page 'BTC' first=BTC want X:BTCUSD
+- `00:54:00` ✗ page 'MSFT' first=NASDAQ:MSFT want MSFT
+- `00:54:00` ✗ page 'crude' first=TVC:USOIL want fred:DCOILWTICO
