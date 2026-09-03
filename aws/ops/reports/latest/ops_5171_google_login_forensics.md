@@ -1,0 +1,71 @@
+# ops 5171 -- Google sign-in forensics (read-only)
+
+**Status:** failure  
+**Duration:** 44.9s  
+**Finished:** 2026-09-03T21:59:17+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| csp_ok | first_status | http | nav | page | scripts | section | signin_btn | supabase_loaded | token_calls |
+|---|---|---|---|---|---|---|---|---|---|
+| True |  | 200 |  | /my-portfolio.html | 3 | S3 |  |  |  |
+| True |  | 200 |  | /chart-pro.html | 3 | S3 |  |  |  |
+|  |  |  | chrome-error://chromewebdata/ | /my-portfolio.html |  | S4_click | True | True |  |
+|  | None |  |  | /my-portfolio.html |  | S4_return |  |  | 0 |
+|  |  |  | chrome-error://chromewebdata/ | /chart-pro.html?s=VLO&tf=1W |  | S4_click | True | True |  |
+|  | None |  |  | /chart-pro.html?s=VLO&tf=1W |  | S4_return |  |  | 0 |
+
+## Log
+## S1 Supabase project health + auth settings
+
+- `21:58:32`    GET /auth/v1/health -> -1 
+- `21:58:32` ⚠    settings not JSON: -1 
+- `21:58:32`    GET /rest/v1/profiles (anon) -> -1 
+## S2 OAuth start: Supabase authorize -> Google
+
+- `21:58:32`    GET /auth/v1/authorize?provider=google -> -1  Location: 
+- `21:58:32` ✗    authorize did not hand off to Google: -1 
+## S3 Site wiring at the edge
+
+- `21:58:32`    /auth-config.js -> 200 enabled=true url=https://bdmjenqcyvzouusfcgow.supabase.co key=sb_publishable_W6V...
+- `21:58:32`    supabase-js CDN -> 200  213176 bytes  version=2.114.0
+- `21:58:32`    /my-portfolio.html   -> 200  scripts=['/auth-config.js?v=d35cea03', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/auth.js?v=00f49db2']  CSP present=True supabase+jsdelivr allowed=True
+- `21:58:32` ⚠    script order on /my-portfolio.html is ['/auth-config.js?v=d35cea03', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/auth.js?v=00f49db2']
+- `21:58:32`    /chart-pro.html      -> 200  scripts=['/auth-config.js?v=d35cea03', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/auth.js?v=00f49db2']  CSP present=True supabase+jsdelivr allowed=True
+- `21:58:32` ⚠    script order on /chart-pro.html is ['/auth-config.js?v=d35cea03', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/auth.js?v=00f49db2']
+## S4 Headless Chrome: click-through and return leg
+
+- `21:58:50`    /my-portfolio.html               facts={"supabaseLoaded": true, "authObj": true, "signinBtn": true, "user": "no"} console=1 csp_violations=0
+- `21:58:50`       console: error: Failed to load resource: the server responded with a status of 404 ()
+- `21:58:51`    modal opened=True google button=True
+- `21:58:51` ⚠    no navigation after clicking Continue with Google: net::ERR_NAME_NOT_RESOLVED
+- `21:58:54`    after click -> chrome-error://chromewebdata/
+- `21:58:54` ⚠    unexpected target chrome-error://chromewebdata/ ; recent console: ['error: Failed to load resource: the server responded with a status of 404 ()', 'verbose: [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o']
+- `21:59:01`    return leg /my-portfolio.html -> token exchange calls: [] ; url now https://justhodl.ai/my-portfolio.html?code=ops5171-fake-code
+- `21:59:06`    /chart-pro.html?s=VLO&tf=1W      facts={"supabaseLoaded": true, "authObj": true, "signinBtn": true, "user": "no"} console=5 csp_violations=0
+- `21:59:06`       console: error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fchart-pro.html&favs=0&sw=none&v=3276' from origin 'http
+- `21:59:06`       console: error: Failed to load resource: net::ERR_FAILED
+- `21:59:06`       console: error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=chartpro&lists=492&err=&sw=none&drawer=c3efc5d3&favs=0&lwc
+- `21:59:06`       console: error: Failed to load resource: net::ERR_FAILED
+- `21:59:06`       console: log: [JHF] fusion loaded: 685 phased, 1500 whale
+- `21:59:07`    modal opened=True google button=True
+- `21:59:07` ⚠    no navigation after clicking Continue with Google: net::ERR_NAME_NOT_RESOLVED
+- `21:59:10`    after click -> chrome-error://chromewebdata/
+- `21:59:10` ⚠    unexpected target chrome-error://chromewebdata/ ; recent console: ['error: Failed to load resource: net::ERR_FAILED', 'log: [JHF] fusion loaded: 685 phased, 1500 whale', 'verbose: [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o']
+- `21:59:17`    return leg /chart-pro.html?s=VLO&tf=1W -> token exchange calls: [] ; url now https://justhodl.ai/chart-pro.html?s=VLO&tf=1W&code=ops5171-fake-code&cmp=
+## S5 verdict
+
+- `21:59:17` ✗    Supabase auth health is -1 () -- project paused/unreachable?
+- `21:59:17` ✗    Supabase /auth/v1/settings unreadable (-1)
+- `21:59:17` ✗    Supabase authorize step failed: -1 
+- `21:59:17` ✗    /my-portfolio.html: clicking Google did not navigate (target chrome-error://chromewebdata/)
+- `21:59:17` ✗    /my-portfolio.html: no /auth/v1/token exchange attempted on return (code stripped or supabase-js absent)
+- `21:59:17` ✗    /chart-pro.html?s=VLO&tf=1W: clicking Google did not navigate (target chrome-error://chromewebdata/)
+- `21:59:17` ✗    /chart-pro.html?s=VLO&tf=1W: no /auth/v1/token exchange attempted on return (code stripped or supabase-js absent)
+- `21:59:17`    RED: 7 failing leg(s) listed above
