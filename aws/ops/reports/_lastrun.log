@@ -1,33 +1,14 @@
-executing-against: f4fca78cbd813bfa6f4ff541ddec72a689e5f7d4
-ops 5169 -- ecb-deep completeness audit (read-only)
-[21:42:32] mode=refresh flows=58 rearmed=None resynced=27
-[21:42:32] windows by status: {'empty': 182, 'done': 309, 'err:HTTP502': 1, 'slow_month': 28, 'err:TimeoutE': 13, 'err:HTTP400': 187, 'err:HTTP504': 1}
-[21:42:32] error codes: {'err:HTTP502': 1, 'err:TimeoutError': 13, 'err:HTTP400': 187, 'err:HTTP504': 1}
-[21:42:32] tries distribution among err windows: {3: 202}
-[21:42:32] banked raw bytes across done windows: 66.5 GB
-── err windows by flow ──
-[21:42:32]    CSEC           err 14 (gap  1, tail 13)  done 36  last-ok 2025-04_2025-04  e.g. 1900_1979:HTTP502/t3, 2026-08_2026-08:TimeoutError/t3, 2026-09_2026-09:TimeoutError/t3, 2026-10_2026-10:TimeoutError/t3
-[21:42:32]    ECB.DISS:JDF_ICP_COICOP_ANR err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ECB.DISS:JDF_ICP_COICOP_INX err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ECB.DISS:JDF_PUB_BSI_CROSS_BORDER_POSITIONS err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ECB.DISS:JDF_PUB_BSI_MFI_BALANCE_SHEET err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:E09      err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:E11      err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:GFS      err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:IDCM     err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:IDCS     err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:MNA      err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    ESTAT:QSA      err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    EUROSTAT:IEAF  err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    EUROSTAT:IEAQ  err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    IMF:BP6        err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    IMF:BPS        err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    IMF:RA6        err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    IMF:RAS        err 11 (gap  0, tail 11)  done  0  last-ok None  e.g. 1900_1979:HTTP400/t3, 1980_1989:HTTP400/t3, 1990_1994:HTTP400/t3, 1995_1999:HTTP400/t3
-[21:42:32]    PTN            err  1 (gap  1, tail  0)  done  9  last-ok 2025_2035  e.g. 2020_2022:HTTP504/t3
-── verdict ──
-[21:42:32]    2 err windows are real GAPS (data exists on both sides), 200 are tail windows (nothing later in the flow)
-[21:42:32]    engine has a one-shot healing switch: invoke with {"rearm_errs": true} -> tries reset, retried under the slow-window guard
-[21:42:32] ✅ ops 5169 complete -- read-only
+executing-against: 578b99f959adf53e7a474c44ea94e55006bcd6b2
+ops 5170 -- ecb-deep: heal PTN 2020-2022 (re-sliced yearly) and CSEC 1900-1979
+[21:46:05]    before PTN : {"2020_2022": {"status": "err:HTTP504", "tries": 3, "raw_bytes": null, "gz_bytes": null}}
+[21:46:05]    before CSEC: {"1900_1979": {"status": "err:HTTP502", "tries": 3, "raw_bytes": null, "gz_bytes": null}}
+[21:46:05] ✅    state written: PTN 2020/2021/2022 pending, CSEC 1900_1979 pending, mode=backfill
+── run the engine (synchronous, up to ~14 min; it chains on its own if more is pending) ──
+[21:50:36]    engine -> {"statusCode": 200, "body": "{\"skipped\": \"lease_held\"}"} (271s)
+[21:51:21]    after PTN : {"2020_2020": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}, "2021_2021": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}, "2022_2022": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}}
+[21:51:21]    after CSEC: {"1900_1979": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}}
+[21:51:21]    mode=backfill lease_until=1788472906.64463 n_complete=58
+[21:51:21]    still pending/retrying: [('CSEC', '1900_1979'), ('PTN', '2020_2020'), ('PTN', '2021_2021'), ('PTN', '2022_2022')] (the engine chains until none remain, then flips to refresh)
+[21:51:21] ✅ ops 5170 complete
 
-→ Report written to aws/ops/reports/latest/ops_5169_ecb_deep_gap_audit.md
+→ Report written to aws/ops/reports/latest/ops_5170_ecb_deep_heal_gaps.md

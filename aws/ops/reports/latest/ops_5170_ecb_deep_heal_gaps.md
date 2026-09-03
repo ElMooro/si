@@ -1,0 +1,25 @@
+# ops 5170 -- ecb-deep: heal PTN 2020-2022 (re-sliced yearly) and CSEC 1900-1979
+
+**Status:** success  
+**Duration:** 316.0s  
+**Finished:** 2026-09-03T21:51:21+00:00  
+
+## Data
+
+| done | err | flow | pending | section |
+|---|---|---|---|---|
+| 9 | 0 | PTN | 3 | result |
+| 36 | 13 | CSEC | 1 | result |
+
+## Log
+- `21:46:05`    before PTN : {"2020_2022": {"status": "err:HTTP504", "tries": 3, "raw_bytes": null, "gz_bytes": null}}
+- `21:46:05`    before CSEC: {"1900_1979": {"status": "err:HTTP502", "tries": 3, "raw_bytes": null, "gz_bytes": null}}
+- `21:46:05` ✅    state written: PTN 2020/2021/2022 pending, CSEC 1900_1979 pending, mode=backfill
+## run the engine (synchronous, up to ~14 min; it chains on its own if more is pending)
+
+- `21:50:36`    engine -> {"statusCode": 200, "body": "{\"skipped\": \"lease_held\"}"} (271s)
+- `21:51:21`    after PTN : {"2020_2020": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}, "2021_2021": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}, "2022_2022": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}}
+- `21:51:21`    after CSEC: {"1900_1979": {"status": "pending", "tries": 0, "raw_bytes": null, "gz_bytes": null}}
+- `21:51:21`    mode=backfill lease_until=1788472906.64463 n_complete=58
+- `21:51:21`    still pending/retrying: [('CSEC', '1900_1979'), ('PTN', '2020_2020'), ('PTN', '2021_2021'), ('PTN', '2022_2022')] (the engine chains until none remain, then flips to refresh)
+- `21:51:21` ✅ ops 5170 complete
