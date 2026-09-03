@@ -6206,7 +6206,9 @@ class HeaderSearch {
     // Instant local: JustHodl signals + the instrument directory (every Polygon/finviz/TV symbol, client-side)
     const local = UniverseSearch.localSearch(q).map(r => ({ ticker: r.ticker, name: r.name, kind: 'justhodl', sources: r.sources }));
     const lt = new Set(local.map(l => l.ticker));
-    const instr = SymDir.localInstruments(q, 8).filter(r => !lt.has(r.symbol.toUpperCase()))
+    // ops 5157: a symbol that also carries a JustHodl signal stays a symbol (the signal becomes a badge) —
+    // the old filter dropped exact SPY/MSFT and left the prefix matches on top
+    const instr = SymDir.localInstruments(q, 8)
       .map(r => ({ id: r.symbol, symbol: r.symbol, name: r.name, kind: 'instrument', provider: r.market === 'tv' ? 'tv' : 'instrument', ex: r.exchange, type: r.type, market: r.market }));
     const qU = q.toUpperCase();
     const hfav = jhFavs().filter(f => f.ticker.toUpperCase().includes(qU) || (f.name||'').toUpperCase().includes(qU) || (f.display||'').toUpperCase().includes(qU)).slice(0, 5);
@@ -6223,9 +6225,9 @@ class HeaderSearch {
       // replace the instant client-side guess; local rows the server did not return are appended
       const srvInstr = rows.filter(r => r.kind === 'instrument');
       const srvIds = new Set(srvInstr.map(r => r.id.toUpperCase()));
-      const localExtra = this._groups.instruments.filter(r => !srvIds.has(r.id.toUpperCase()) && !lt.has(r.id.toUpperCase()));
+      const localExtra = this._groups.instruments.filter(r => !srvIds.has(r.id.toUpperCase()));
       this._groups.instruments = [...srvInstr.slice(0, 10), ...localExtra.slice(0, 4)];
-      this._ambiguous = !!d.ambiguous;
+      this._ambiguous = !!d.ambiguous; this._answeredQ = q;
       const seen = new Set([...this._groups.instruments.map(r => r.id.toUpperCase()), ...lt]);
       const sh = (d.series_hits && d.series_hits.rows) || [];
       SymDir.noteRows(sh);
