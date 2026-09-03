@@ -1,9 +1,5 @@
-executing-against: dbdbe50b8ef7dfa473b3cd947b9bf11714bace7f
-ops 5177 -- Google sign-in return leg (PKCE-correct)
-[22:59:09]    /my-portfolio.html             went to Google=True  token calls=[]  sb keys=[]
-[22:59:24]    /chart-pro.html?s=VLO&tf=1W    went to Google=True  token calls=[]  sb keys=[]
-[22:59:24] ✗    /my-portfolio.html: no /auth/v1/token exchange on return with a stored verifier
-[22:59:24] ✗    /chart-pro.html?s=VLO&tf=1W: no /auth/v1/token exchange on return with a stored verifier
-
-→ Report written to aws/ops/reports/latest/ops_5177_login_return_leg.md
-❌ OPS-FAIL: aws/ops/pending/ops_5177_login_return_leg.py
+executing-against: 14b7025ac07b995a94022bfba2a744e583f4db0e
+ops 5178 -- standalone engines QA (heatmap.html, macro-data.html)
+── P0 deploy ──
+[23:10:04] ✅    pages + bundle live after 195s (heatmap 200, macro 200, bundle 200)
+── P1 heatmap.html ──
