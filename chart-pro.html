@@ -6212,7 +6212,7 @@ class HeaderSearch {
       .map(r => ({ id: r.symbol, symbol: r.symbol, name: r.name, kind: 'instrument', provider: r.market === 'tv' ? 'tv' : 'instrument', ex: r.exchange, type: r.type, market: r.market }));
     const qU = q.toUpperCase();
     const hfav = jhFavs().filter(f => f.ticker.toUpperCase().includes(qU) || (f.name||'').toUpperCase().includes(qU) || (f.display||'').toUpperCase().includes(qU)).slice(0, 5);
-    this._groups = { favorites: hfav, justhodl: local, instruments: instr, series: [], datasets: [], equity: [] };
+    this._groups = { pinned: [], favorites: hfav, justhodl: local, instruments: instr, series: [], datasets: [], equity: [] };
     this.render(true);
     if (!SymDir.instruments) SymDir.loadInstruments().then(() => { if (seq === this._seq) this.onInput(q); });
     // Server: the symbol directory (every data series + dataset across every provider), then TradingView for what's left
@@ -6228,11 +6228,16 @@ class HeaderSearch {
       const localExtra = this._groups.instruments.filter(r => !srvIds.has(r.id.toUpperCase()));
       this._groups.instruments = [...srvInstr.slice(0, 10), ...localExtra.slice(0, 4)];
       this._ambiguous = !!d.ambiguous; this._answeredQ = q;
+      // ops 5158: policy pins (crude -> WTI benchmark, gold -> LBMA fix, vix -> TVC:VIX…) lead the list in the
+      // backend's order whatever their kind; they are removed from their own groups below
+      this._groups.pinned = rows.filter(r => r.pinned);
+      const pinnedIds = new Set(this._groups.pinned.map(r => r.id.toUpperCase()));
+      this._groups.instruments = this._groups.instruments.filter(r => !pinnedIds.has(r.id.toUpperCase()));
       const seen = new Set([...this._groups.instruments.map(r => r.id.toUpperCase()), ...lt]);
       const sh = (d.series_hits && d.series_hits.rows) || [];
       SymDir.noteRows(sh);
-      this._groups.series = [...sh, ...rows.filter(r => r.kind === 'series')].filter(r => !seen.has(r.id.toUpperCase())).slice(0, 14);
-      this._groups.datasets = rows.filter(r => r.kind === 'dataset').slice(0, 6);
+      this._groups.series = [...sh, ...rows.filter(r => r.kind === 'series')].filter(r => !seen.has(r.id.toUpperCase()) && !pinnedIds.has(r.id.toUpperCase())).slice(0, 14);
+      this._groups.datasets = rows.filter(r => r.kind === 'dataset' && !pinnedIds.has(r.id.toUpperCase())).slice(0, 6);
       this._suggest = d.suggest || [];
       this._failed = !!d.failed;
       this.render();
@@ -6260,7 +6265,7 @@ class HeaderSearch {
   static _render(partial) {
     const dd = document.getElementById('hsearch-dropdown');
     const g = this._groups || { favorites: [], justhodl: [], instruments: [], series: [], datasets: [], equity: [] };
-    ['favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });
+    ['pinned', 'favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });
     // ops 5156: the backend order is authoritative — instruments (exact ticker / policy pins first), then data
     // series and datasets, then TradingView-only symbols, favorites, and JustHodl signal rows LAST (they are
     // also badges on the matching instrument). Enter therefore never loads a signal row over the exact security.
@@ -6268,7 +6273,7 @@ class HeaderSearch {
     (g.instruments || []).forEach(r => { const sg = sigMap.get(String(r.id).toUpperCase()); if (sg) r.signals = sg.sources || []; });
     const sigOnly = (g.justhodl || []).filter(r => !(g.instruments || []).some(x => String(x.id).toUpperCase() === String(r.ticker).toUpperCase()));
     g.justhodl = sigOnly;
-    this.results = [...g.instruments, ...g.series, ...g.datasets, ...g.equity, ...g.favorites, ...g.justhodl];
+    this.results = [...g.pinned, ...g.instruments, ...g.series, ...g.datasets, ...g.equity, ...g.favorites, ...g.justhodl];
     dd.classList.add('open');
     if (!this.results.length) {
       const sug = (this._suggest || []).length && !partial ? `<div class="hs-foot"><span>did you mean:</span>${this._suggest.slice(0, 6).map(t => `<span class="dsb-chip" data-sug="${UI.esc(t)}">${UI.esc(t)}</span>`).join('')}</div>` : '';
@@ -6284,6 +6289,7 @@ class HeaderSearch {
       html += `<div class="hs-facets"><span class="hs-facet ${this._provFilter ? '' : 'on'}" data-prov="">all ${fac.reduce((a, f) => a + f.n, 0).toLocaleString()}</span>` +
         fac.slice(0, 12).map(f => `<span class="hs-facet ${this._provFilter === f.provider ? 'on' : ''}" data-prov="${UI.esc(f.provider)}">${UI.esc(f.provider_name)} <b>${f.n.toLocaleString()}</b></span>`).join('') + `</div>`;
     }
+    html += section('Best match', g.pinned, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('Symbols', g.instruments, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('TradingView universe', g.equity, (r, i) => {
       const tc = (r.type||'').toLowerCase();
