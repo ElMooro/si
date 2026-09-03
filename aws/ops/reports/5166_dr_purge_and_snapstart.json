@@ -1,0 +1,695 @@
+{
+ "ops": 5166,
+ "ts": "2026-09-03T18:41:20.734052+00:00",
+ "dr": {
+  "justhodl-dashboard-live-dr": {
+   "size_gb_before": 2764.4,
+   "parts": {
+    "StandardStorage": 0.0,
+    "StandardIAStorage": 2542.8,
+    "StandardIASizeOverhead": 221.6
+   }
+  },
+  "justhodl-dr-usw2-857687956942": {
+   "size_gb_before": 11.4,
+   "parts": {
+    "StandardStorage": 5.9,
+    "StandardIAStorage": 1.1,
+    "StandardIASizeOverhead": 4.3
+   },
+   "prefixes": [
+    "13f-cache/"
+   ],
+   "sampled": 40,
+   "replica": 0,
+   "in_live": 40,
+   "gate_ok": false
+  },
+  "keep": {
+   "backup/": {
+    "current": "143098",
+    "current_gb": 2.61,
+    "noncurrent": "46180",
+    "noncurrent_gb": 0.76,
+    "delete_markers": "0",
+    "newest": "2026-09-03 06:01:55+00:00",
+    "pages": "190",
+    "truncated": "False"
+   },
+   "quarantine/": {
+    "current": "6",
+    "current_gb": 0.0,
+    "noncurrent": "0",
+    "noncurrent_gb": 0.0,
+    "delete_markers": "0",
+    "newest": "2026-08-01 18:48:13+00:00",
+    "pages": "1",
+    "truncated": "False"
+   }
+  },
+  "gate": {
+   "live_replication": "none",
+   "justhodl-dashboard-live-dr:source": "none",
+   "justhodl-dashboard-live-dr:versioning": "Enabled",
+   "justhodl-dashboard-live-dr:object_lock": "none",
+   "justhodl-dashboard-live-dr:notifications": 0,
+   "justhodl-dr-usw2-857687956942:source": "none",
+   "justhodl-dr-usw2-857687956942:versioning": "Enabled",
+   "justhodl-dr-usw2-857687956942:object_lock": "none",
+   "justhodl-dr-usw2-857687956942:notifications": 0,
+   "prefix_verdicts": {
+    "13f-cache/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-21 14:44:55+00:00",
+     "purge": true
+    },
+    "13f/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-24 08:30:44+00:00",
+     "purge": false
+    },
+    "_health/": {
+     "headed": 6,
+     "replica": 6,
+     "in_live": 6,
+     "newest": "2026-08-26 02:08:37+00:00",
+     "purge": false
+    },
+    "air/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 10:40:45+00:00",
+     "purge": false
+    },
+    "analytics/": {
+     "headed": 6,
+     "replica": 6,
+     "in_live": 6,
+     "newest": "2026-08-26 09:00:53+00:00",
+     "purge": false
+    },
+    "archive/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-05-26 15:05:44+00:00",
+     "purge": true
+    },
+    "asia/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-26 10:21:04+00:00",
+     "purge": false
+    },
+    "backtest/": {
+     "headed": 3,
+     "replica": 3,
+     "in_live": 3,
+     "newest": "2026-08-25 22:30:21+00:00",
+     "purge": false
+    },
+    "backups/": {
+     "headed": 3,
+     "replica": 3,
+     "in_live": 3,
+     "newest": "2026-08-01 14:16:53+00:00",
+     "purge": false
+    },
+    "base-rates/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-22 14:30:22+00:00",
+     "purge": false
+    },
+    "boom/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 12:30:54+00:00",
+     "purge": false
+    },
+    "calibration/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-23 04:00:26+00:00",
+     "purge": true
+    },
+    "cb-cache/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-05 00:00:47+00:00",
+     "purge": false
+    },
+    "chokepoint/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-25 15:31:09+00:00",
+     "purge": false
+    },
+    "config/": {
+     "headed": 9,
+     "replica": 9,
+     "in_live": 9,
+     "newest": "2026-08-01 21:00:09+00:00",
+     "purge": true
+    },
+    "cot/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-21 19:00:50+00:00",
+     "purge": true
+    },
+    "credit/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-25 22:35:43+00:00",
+     "purge": false
+    },
+    "data-census/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 12:52:17+00:00",
+     "purge": false
+    },
+    "data/": {
+     "headed": 48,
+     "replica": 48,
+     "in_live": 48,
+     "newest": "2026-08-26 14:43:52+00:00",
+     "purge": true
+    },
+    "discovery/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-25 13:30:55+00:00",
+     "purge": false
+    },
+    "divergence/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-01 11:00:15+00:00",
+     "purge": false
+    },
+    "domain-barometers/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 12:20:37+00:00",
+     "purge": false
+    },
+    "edgar-insiders/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-26 08:01:05+00:00",
+     "purge": true
+    },
+    "equity-critique/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-26 08:01:49+00:00",
+     "purge": true
+    },
+    "equity-prewarm/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-06-27 08:36:46+00:00",
+     "purge": true
+    },
+    "equity-research-history/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-06-02 15:41:01+00:00",
+     "purge": true
+    },
+    "equity-research/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-26 08:00:51+00:00",
+     "purge": true
+    },
+    "errors/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-25 11:51:12+00:00",
+     "purge": true
+    },
+    "estimate-revisions/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 13:40:38+00:00",
+     "purge": false
+    },
+    "etf-constituents-v2/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-25 23:15:17+00:00",
+     "purge": true
+    },
+    "etf-constituents/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-06-20 04:35:23+00:00",
+     "purge": true
+    },
+    "etf-flows/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-07-03 22:34:53+00:00",
+     "purge": true
+    },
+    "flow-anomalies/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-25 23:00:08+00:00",
+     "purge": true
+    },
+    "foreign-flows/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-17 21:31:55+00:00",
+     "purge": false
+    },
+    "geo/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 11:30:46+00:00",
+     "purge": false
+    },
+    "history/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-05-30 11:30:13+00:00",
+     "purge": true
+    },
+    "investor-debate/": {
+     "headed": 10,
+     "replica": 10,
+     "in_live": 10,
+     "newest": "2026-07-14 22:05:50+00:00",
+     "purge": true
+    },
+    "js/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-06-09 21:17:43+00:00",
+     "purge": false
+    },
+    "lake/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-04 17:42:27+00:00",
+     "purge": true
+    },
+    "learning/": {
+     "headed": 3,
+     "replica": 3,
+     "in_live": 3,
+     "newest": "2026-08-25 21:00:47+00:00",
+     "purge": false
+    },
+    "llm-cache/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-06 13:22:27+00:00",
+     "purge": true
+    },
+    "macro-attribution/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 12:05:35+00:00",
+     "purge": false
+    },
+    "macro/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-06-21 22:15:38+00:00",
+     "purge": true
+    },
+    "opportunities/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-04 21:36:19+00:00",
+     "purge": false
+    },
+    "ops/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-06-08 13:57:53+00:00",
+     "purge": false
+    },
+    "plumbing-composite/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-25 10:45:52+00:00",
+     "purge": false
+    },
+    "portfolio/": {
+     "headed": 13,
+     "replica": 13,
+     "in_live": 13,
+     "newest": "2026-08-26 14:43:47+00:00",
+     "purge": true
+    },
+    "readthrough/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 13:20:27+00:00",
+     "purge": false
+    },
+    "regime/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-07-31 18:06:24+00:00",
+     "purge": false
+    },
+    "reports/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-07-31 17:52:12+00:00",
+     "purge": false
+    },
+    "risk/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-01 11:00:17+00:00",
+     "purge": false
+    },
+    "screener/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-05 20:47:40+00:00",
+     "purge": true
+    },
+    "sec-filings-cache/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-07-30 12:00:09+00:00",
+     "purge": false
+    },
+    "sec/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-21 21:05:26+00:00",
+     "purge": false
+    },
+    "sentiment/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-25 16:45:13+00:00",
+     "purge": false
+    },
+    "signals/": {
+     "headed": 6,
+     "replica": 6,
+     "in_live": 6,
+     "newest": "2026-08-26 14:33:15+00:00",
+     "purge": false
+    },
+    "spx-beaters/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-08-23 20:49:17+00:00",
+     "purge": false
+    },
+    "spx-ma/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-25 21:15:07+00:00",
+     "purge": false
+    },
+    "state/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 12:10:20+00:00",
+     "purge": false
+    },
+    "stock-analysis/": {
+     "headed": 2,
+     "replica": 2,
+     "in_live": 2,
+     "newest": "2026-06-12 18:44:16+00:00",
+     "purge": false
+    },
+    "symbol-resolver/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 11:51:16+00:00",
+     "purge": false
+    },
+    "system-events/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-06-19 23:58:20+00:00",
+     "purge": true
+    },
+    "telegram/": {
+     "headed": 1,
+     "replica": 1,
+     "in_live": 1,
+     "newest": "2026-08-26 11:44:09+00:00",
+     "purge": false
+    },
+    "tools/": {
+     "headed": 7,
+     "replica": 7,
+     "in_live": 7,
+     "newest": "2026-08-15 02:43:31+00:00",
+     "purge": false
+    },
+    "transcripts/": {
+     "headed": 20,
+     "replica": 20,
+     "in_live": 20,
+     "newest": "2026-08-06 14:00:14+00:00",
+     "purge": true
+    }
+   }
+  },
+  "replica_prefixes": [
+   "13f-cache/",
+   "archive/",
+   "calibration/",
+   "config/",
+   "cot/",
+   "data/",
+   "edgar-insiders/",
+   "equity-critique/",
+   "equity-prewarm/",
+   "equity-research-history/",
+   "equity-research/",
+   "errors/",
+   "etf-constituents-v2/",
+   "etf-constituents/",
+   "etf-flows/",
+   "flow-anomalies/",
+   "history/",
+   "investor-debate/",
+   "lake/",
+   "llm-cache/",
+   "macro/",
+   "portfolio/",
+   "screener/",
+   "system-events/",
+   "transcripts/"
+  ],
+  "held_prefixes": [
+   "13f/",
+   "_health/",
+   "air/",
+   "analytics/",
+   "asia/",
+   "backtest/",
+   "backups/",
+   "base-rates/",
+   "boom/",
+   "cb-cache/",
+   "chokepoint/",
+   "credit/",
+   "data-census/",
+   "discovery/",
+   "divergence/",
+   "domain-barometers/",
+   "estimate-revisions/",
+   "foreign-flows/",
+   "geo/",
+   "js/",
+   "learning/",
+   "macro-attribution/",
+   "opportunities/",
+   "ops/",
+   "plumbing-composite/",
+   "readthrough/",
+   "regime/",
+   "reports/",
+   "risk/",
+   "sec-filings-cache/",
+   "sec/",
+   "sentiment/",
+   "signals/",
+   "spx-beaters/",
+   "spx-ma/",
+   "state/",
+   "stock-analysis/",
+   "symbol-resolver/",
+   "telegram/",
+   "tools/"
+  ],
+  "root_replica": [
+   "alerts-state.json",
+   "crypto-intel.json",
+   "edge-data.json",
+   "flow-confluence.html",
+   "flow-data.json",
+   "intelligence-report.json",
+   "liquidity-data.json",
+   "options-confluence.html",
+   "repo-data.json",
+   "valuations-data.json"
+  ],
+  "preserved": [
+   {
+    "src": "quarantine/2026-08-01/macro-report-api.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/macro-report-api.zip",
+    "bytes": 29862,
+    "verified": true
+   },
+   {
+    "src": "quarantine/2026-08-01/multi-agent-orchestrator.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/multi-agent-orchestrator.zip",
+    "bytes": 1505,
+    "verified": true
+   },
+   {
+    "src": "quarantine/2026-08-01/nyfed-financial-stability-fetcher.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/nyfed-financial-stability-fetcher.zip",
+    "bytes": 2769,
+    "verified": true
+   },
+   {
+    "src": "quarantine/2026-08-01/nyfed-primary-dealer-fetcher.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/nyfed-primary-dealer-fetcher.zip",
+    "bytes": 1692,
+    "verified": true
+   },
+   {
+    "src": "quarantine/2026-08-01/nyfedapi-isolated.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/nyfedapi-isolated.zip",
+    "bytes": 4426,
+    "verified": true
+   },
+   {
+    "src": "quarantine/2026-08-01/ultimate-multi-agent.zip",
+    "dest": "data/ops/archive/dr-quarantine/2026-08-01/ultimate-multi-agent.zip",
+    "bytes": 1931,
+    "verified": true
+   }
+  ],
+  "backup_days": 104,
+  "backup_latest_gb": 0.05,
+  "sweep": {
+   "n": 2853122,
+   "bytes": 773024960734,
+   "errors": 0,
+   "tasks": 1344
+  }
+ },
+ "snapstart": {
+  "ai_chat": {
+   "ApplyOn": "None",
+   "OptimizationStatus": "Off"
+  },
+  "deleted_versions": [
+   "justhodl-stock-analyzer:1",
+   "justhodl-ai-chat:1",
+   "justhodl-stock-screener:1",
+   "justhodl-investor-agents:1",
+   "justhodl-reports-builder:1",
+   "cftc-futures-positioning-agent:1",
+   "justhodl-morning-intelligence:1",
+   "justhodl-edge-engine:1"
+  ],
+  "kept": []
+ },
+ "verify": {
+  "justhodl-repo": {
+   "Invocations": 68.0,
+   "Errors": 0.0,
+   "Duration": 24173386.630000003
+  },
+  "justhodl-fundamental-census": {
+   "Invocations": 11.0,
+   "Errors": 0.0,
+   "Duration": 865494.1900000001
+  },
+  "justhodl-census-us": {
+   "Invocations": 935.0,
+   "Errors": 0.0,
+   "Duration": 57002017.31998999
+  },
+  "justhodl-boj-full": {
+   "Invocations": 276.0,
+   "Errors": 0.0,
+   "Duration": 7955093.61
+  },
+  "justhodl-ecb-deep": {
+   "Invocations": 36.0,
+   "Errors": 0.0,
+   "Duration": 2773492.16
+  },
+  "justhodl-sdmx-walker": {
+   "Invocations": 513.0,
+   "Errors": 0.0,
+   "Duration": 586799.9500000002
+  }
+ }
+}
