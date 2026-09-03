@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.8.1"
+VERSION = "1.9.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -1345,6 +1345,45 @@ def _expand(tok, toklist, index, cap=250):
     return cands
 
 
+# ---------------- ranking policy (the backend is the single authority; the page never re-sorts server rows)
+# query -> ids pinned at the top in this order. Crypto asset codes resolve to the spot pair before the same-ticker ETF
+# (BTC is Bitcoin, not the Grayscale trust); commodity words resolve to benchmarks before ticker-prefix products.
+SEARCH_POLICY = {
+    "btc": ["X:BTCUSD", "COINBASE:BTCUSD", "INDEX:BTCUSD", "BTC"], "bitcoin": ["X:BTCUSD", "COINBASE:BTCUSD", "INDEX:BTCUSD", "IBIT", "BTC"],
+    "eth": ["X:ETHUSD", "COINBASE:ETHUSD", "ETHA"], "ethereum": ["X:ETHUSD", "COINBASE:ETHUSD", "ETHA"], "sol": ["X:SOLUSD"], "solana": ["X:SOLUSD"], "xrp": ["X:XRPUSD"], "doge": ["X:DOGEUSD"],
+    "btcusd": ["X:BTCUSD", "COINBASE:BTCUSD"], "ethusd": ["X:ETHUSD", "COINBASE:ETHUSD"],
+    "eurusd": ["C:EURUSD", "FX:EURUSD", "fred:DEXUSEU"], "usdjpy": ["C:USDJPY", "FX:USDJPY", "fred:DEXJPUS"], "gbpusd": ["C:GBPUSD", "FX:GBPUSD", "fred:DEXUSUK"], "dxy": ["TVC:DXY", "fred:DTWEXBGS"], "dollar index": ["TVC:DXY", "fred:DTWEXBGS"],
+    "spy": ["SPY"], "sp500": ["I:SPX", "SPY", "fred:SP500"], "spx": ["I:SPX", "SPY", "fred:SP500"], "s&p 500": ["I:SPX", "SPY", "fred:SP500"], "s&p": ["I:SPX", "SPY", "fred:SP500"],
+    "nasdaq": ["I:NDX", "QQQ", "I:COMP"], "ndx": ["I:NDX", "QQQ"], "dow": ["I:DJI", "DIA"], "dow jones": ["I:DJI", "DIA"], "russell": ["I:RUT", "IWM"], "vix": ["TVC:VIX", "fred:VIXCLS", "I:VIX"],
+    "crude": ["fred:DCOILWTICO", "NYMEX:CL1!", "fred:DCOILBRENTEU", "USO"], "oil": ["fred:DCOILWTICO", "NYMEX:CL1!", "fred:DCOILBRENTEU", "USO", "TVC:USOIL"], "wti": ["fred:DCOILWTICO", "NYMEX:CL1!", "TVC:USOIL"],
+    "brent": ["fred:DCOILBRENTEU", "TVC:UKOIL", "BNO"], "gold": ["fred:GOLDAMGBD228NLBM", "COMEX:GC1!", "TVC:GOLD", "GLD"], "silver": ["COMEX:SI1!", "TVC:SILVER", "SLV"], "copper": ["fred:PCOPPUSDM", "COMEX:HG1!"],
+    "natural gas": ["fred:DHHNGSP", "NYMEX:NG1!", "UNG"], "natgas": ["fred:DHHNGSP", "NYMEX:NG1!"],
+    "10 year": ["fred:DGS10", "TVC:US10Y"], "10y": ["fred:DGS10", "TVC:US10Y"], "2 year": ["fred:DGS2", "TVC:US02Y"], "fed funds": ["fred:FEDFUNDS", "fred:DFF"], "sofr": ["nyfed:sofr", "fred:SOFR"],
+}
+CRYPTO_CODES = {"BTC", "ETH", "SOL", "XRP", "DOGE", "ADA", "AVAX", "DOT", "LINK", "LTC", "BCH", "XLM", "UNI", "ATOM", "MATIC", "NEAR", "SHIB", "TRX", "BNB", "AAVE", "SUI", "APT"}
+
+
+def asset_class(d):
+    if d[D_KIND] == "series":
+        return "series"
+    if d[D_KIND] == "dataset":
+        return "dataset"
+    i = d[D_ID].upper()
+    ex = (d[D_EXTRA] or {})
+    if i.startswith("X:") or ex.get("mkt") == "crypto":
+        return "crypto"
+    if i.startswith("C:") or ex.get("mkt") == "fx":
+        return "fx"
+    if i.startswith("I:") or ex.get("mkt") == "indices":
+        return "index"
+    if d[D_PROV] == "tv":
+        return "tv"
+    t = (ex.get("type") or "").lower()
+    if t in ("etf", "fund", "etn", "etv"):
+        return "etf"
+    return "equity"
+
+
 def doc_row(d, score=None):
     ex = d[D_EXTRA] or {}
     prov = d[D_PROV]
@@ -1353,7 +1392,7 @@ def doc_row(d, score=None):
     if prov in ("oecd", "bis", "imf") and kind == "dataset":
         chartable = False
     row = {"id": d[D_ID], "symbol": d[D_ID].split(":", 1)[1] if (":" in d[D_ID] and prov != "tv" and kind != "instrument") else d[D_ID],
-           "name": d[D_TITLE], "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": kind, "chartable": chartable,
+           "name": d[D_TITLE], "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": kind, "chartable": chartable, "asset_class": asset_class(d),
            "unit": d[D_UNIT], "freq": d[D_FREQ], "first": d[D_FIRST], "last": d[D_LAST], "n": d[D_N], "pop": d[D_POP]}
     if kind == "dataset":
         row["browse"] = prov in ("eurostat", "ecb", "statcan", "worldbank", "boj", "census", "treasury", "ofr")
@@ -1467,8 +1506,29 @@ def search(q, limit=40, prov=None, kind=None):
         if d[D_PROV] == "fred" and d[D_ID].split(":", 1)[1] in FAMOUS:
             s += 6
         scored.append((s, i))
+    # policy pins (query intent) and exact-ticker dominance: an exact bare instrument symbol is the first result,
+    # a known crypto code pins its spot pair above the same-ticker ETF, benchmark words pin their benchmarks
+    pins = list(SEARCH_POLICY.get(ql, []))
+    if not pins and Q in CRYPTO_CODES:
+        pins = ["X:%sUSD" % Q, "COINBASE:%sUSD" % Q]
+    pin_rank = {p.upper(): n for n, p in enumerate(pins)}
+    exact_pos = {}
+    for k, i in _prefix_range(ix["ids"], Q, cap=50)[0]:
+        if k == Q:
+            exact_pos[i] = 0
+    for n, (sc, i) in enumerate(scored):
+        d = docs[i]
+        idu = d[D_ID].upper()
+        if idu in pin_rank:
+            scored[n] = (10000 - pin_rank[idu], i)
+        elif i in exact_pos and d[D_KIND] == "instrument":
+            scored[n] = (5000 + pop[i] * 10, i)
     scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
     rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
+    for r_ in rows:
+        if r_["id"].upper() in pin_rank:
+            r_["pinned"] = True
+            r_["rank_reason"] = "policy:" + ql
     facets = facets_all          # counts over every provider, even when one is filtered in
     for row in rows:
         if row["provider"] == "tv" and ":" in row["id"]:
@@ -1477,7 +1537,7 @@ def search(q, limit=40, prov=None, kind=None):
                 row["sources"] = srcs
             elif row["id"].split(":")[0].upper() in ("ECONOMICS", "TVC") and not (row.get("src") in ("fred", "ecb", "yahoo") and row.get("sid")):
                 row["sources"] = []                      # TradingView-only: no warehouse source yet -> shown as such
-    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail,
+    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail, "policy": pins or None, "ambiguous": bool(pins and len(pins) > 1 and rows and rows[0].get("asset_class") in ("crypto", "index")),
            "facets": sorted(({"provider": p, "provider_name": PROV_NAME.get(p, p.upper()), "n": n} for p, n in facets.items()), key=lambda x: -x["n"])}
     if drill is not None:
         out["series_hits"] = drill

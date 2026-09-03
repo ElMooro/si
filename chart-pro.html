@@ -1461,6 +1461,27 @@ body.tv-shell .tv-iconrail { display: flex; }
   .right-sidebar { width: 280px; }
   :root { --right-w: 280px; }
 }
+/* ops 5156: real mobile composition — one column, search first, drawers as sheets, no horizontal scroll */
+html, body { max-width: 100vw; overflow-x: hidden; }
+@media (max-width: 768px) {
+  body.tv-shell .main-area { right: 0 !important; }
+  body.tv-shell .tv-rail { display: none !important; }
+  body.tv-shell .tv-iconrail { display: none !important; }
+  .header { flex-wrap: wrap; height: auto; padding: 6px 8px; }
+  .header .universe-search, #universe-search { order: -1; flex: 1 1 100%; width: 100% !important; max-width: none !important; }
+  #search-input { width: 100% !important; font-size: 16px; }
+  .chart-toolbar { flex-wrap: wrap; gap: 6px; padding: 6px; }
+  .chart-toolbar > * { min-width: 0; }
+  .tf-bar { flex-wrap: wrap; }
+  .symbol-name { max-width: 140px; }
+  .left-sidebar, .right-sidebar { width: 100% !important; max-width: 100vw; }
+  .tv-rangebar { flex-wrap: wrap; }
+  .tv-rangebar .tv-range-right { display: none; }
+  .edge-tab { padding: 8px 4px; font-size: 9px; }
+  .dx-box { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; width: 100vw; height: 100vh; border-radius: 0; }
+  .dx-tree, .dx-info { display: none; }
+  .search-modal-content { width: 100vw !important; }
+}
 @media (max-width: 980px) {
   .app { grid-template-columns: 220px 1fr; }
   .right-sidebar { display: none; }
@@ -2150,7 +2171,9 @@ class SymDir {
     const sym = r.symbol || r.id;
     const provCls = r.provider === 'fred' ? 'fred' : (r.provider === 'eurostat' || r.provider === 'ecb') ? 'eurostat' : (isDs ? 'dataset' : 'instrument');
     const meta = this.rowMeta(r);
-    const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(this.provLabel(r.provider))} · browse ›</span>` : `<span class="hs-prov ${provCls}">${UI.esc(this.provLabel(r.provider))}${r.ex && r.kind === 'instrument' ? ' · ' + UI.esc(r.ex) : ''}</span>`;
+    const ac = r.asset_class ? ({ crypto: 'Crypto', fx: 'FX', index: 'Index', etf: 'ETF', equity: 'Stock', tv: 'TV' })[r.asset_class] || '' : '';
+    const badges = (r.signals || []).slice(0, 3).map(x => `<span class="hs-badge">${UI.esc(x)}</span>`).join('');
+    const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(this.provLabel(r.provider))} · browse ›</span>` : `<span class="hs-prov ${provCls}">${ac ? UI.esc(ac) + ' · ' : ''}${r.ex && r.kind === 'instrument' ? UI.esc(r.ex) : UI.esc(this.provLabel(r.provider))}${r.pinned ? ' · ★' : ''}</span>${badges ? `<span class="hs-badges">${badges}</span>` : ''}`;
     const add = isDs ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`;
     // ops 5144: what the warehouse holds for a TradingView symbol — every source, with its cadence and span
     let srcLine = '';
@@ -2239,7 +2262,7 @@ class DatasetBrowser {
 class TVShell {
   static on = false;
   static init() {
-    const want = (localStorage.getItem('jh_tv_shell') || '1') === '1';
+    const want = (localStorage.getItem('jh_tv_shell') || '1') === '1' && window.innerWidth >= 900;   // phones get the one-column composition
     // chart-pro's own theme (TradingView light by default) — independent of the site theme jh-nav-drawer.js manages
     const theme = localStorage.getItem('jh_chart_theme') || 'light';
     this.setTheme(theme, false);
@@ -6196,16 +6219,18 @@ class HeaderSearch {
       const rows = d.rows || [];
       this._facets = d.facets || [];
       SymDir.noteRows(rows);
+      // ops 5156: the backend order is authoritative — server instrument rows (policy pins, exact ticker first)
+      // replace the instant client-side guess; local rows the server did not return are appended
+      const srvInstr = rows.filter(r => r.kind === 'instrument');
+      const srvIds = new Set(srvInstr.map(r => r.id.toUpperCase()));
+      const localExtra = this._groups.instruments.filter(r => !srvIds.has(r.id.toUpperCase()) && !lt.has(r.id.toUpperCase()));
+      this._groups.instruments = [...srvInstr.slice(0, 10), ...localExtra.slice(0, 4)];
+      this._ambiguous = !!d.ambiguous;
       const seen = new Set([...this._groups.instruments.map(r => r.id.toUpperCase()), ...lt]);
-      // ops 5146: rows the instant client-side list already shows still take the server's knowledge
-      // (sources, name) — otherwise a TradingView symbol never shows what the warehouse holds for it
-      const byId = new Map(rows.map(r => [r.id.toUpperCase(), r]));
-      this._groups.instruments.forEach(r => { const sr = byId.get(r.id.toUpperCase()); if (sr) { if (Array.isArray(sr.sources)) r.sources = sr.sources; if (sr.name && !r.name) r.name = sr.name; } });
       const sh = (d.series_hits && d.series_hits.rows) || [];
       SymDir.noteRows(sh);
       this._groups.series = [...sh, ...rows.filter(r => r.kind === 'series')].filter(r => !seen.has(r.id.toUpperCase())).slice(0, 14);
       this._groups.datasets = rows.filter(r => r.kind === 'dataset').slice(0, 6);
-      rows.filter(r => r.kind === 'instrument' && !seen.has(r.id.toUpperCase())).slice(0, 4).forEach(r => { this._groups.instruments.push(r); seen.add(r.id.toUpperCase()); });
       this._suggest = d.suggest || [];
       this._failed = !!d.failed;
       this.render();
@@ -6234,7 +6259,14 @@ class HeaderSearch {
     const dd = document.getElementById('hsearch-dropdown');
     const g = this._groups || { favorites: [], justhodl: [], instruments: [], series: [], datasets: [], equity: [] };
     ['favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });
-    this.results = [...g.favorites, ...g.justhodl, ...g.instruments, ...g.equity, ...g.series, ...g.datasets];
+    // ops 5156: the backend order is authoritative — instruments (exact ticker / policy pins first), then data
+    // series and datasets, then TradingView-only symbols, favorites, and JustHodl signal rows LAST (they are
+    // also badges on the matching instrument). Enter therefore never loads a signal row over the exact security.
+    const sigMap = new Map((g.justhodl || []).map(r => [String(r.ticker).toUpperCase(), r]));
+    (g.instruments || []).forEach(r => { const sg = sigMap.get(String(r.id).toUpperCase()); if (sg) r.signals = sg.sources || []; });
+    const sigOnly = (g.justhodl || []).filter(r => !(g.instruments || []).some(x => String(x.id).toUpperCase() === String(r.ticker).toUpperCase()));
+    g.justhodl = sigOnly;
+    this.results = [...g.instruments, ...g.series, ...g.datasets, ...g.equity, ...g.favorites, ...g.justhodl];
     dd.classList.add('open');
     if (!this.results.length) {
       const sug = (this._suggest || []).length && !partial ? `<div class="hs-foot"><span>did you mean:</span>${this._suggest.slice(0, 6).map(t => `<span class="dsb-chip" data-sug="${UI.esc(t)}">${UI.esc(t)}</span>`).join('')}</div>` : '';
@@ -6250,20 +6282,20 @@ class HeaderSearch {
       html += `<div class="hs-facets"><span class="hs-facet ${this._provFilter ? '' : 'on'}" data-prov="">all ${fac.reduce((a, f) => a + f.n, 0).toLocaleString()}</span>` +
         fac.slice(0, 12).map(f => `<span class="hs-facet ${this._provFilter === f.provider ? 'on' : ''}" data-prov="${UI.esc(f.provider)}">${UI.esc(f.provider_name)} <b>${f.n.toLocaleString()}</b></span>`).join('') + `</div>`;
     }
-    html += section('★ Favorites', g.favorites, (r, i) => {
-      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}"><span class="hs-tk" style="color:var(--amber)">${UI.esc(r.display || r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag">${UI.esc(r.kind||'fav')}</span></div>`;
-    });
-    html += section('★ Your JustHodl signals', g.justhodl, (r, i) => {
-      const badges = (r.sources||[]).slice(0,3).map(x => `<span class="hs-badge">${x}</span>`).join('');
-      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}<span class="hs-badges">${badges}</span></span><span class="hs-tag signal">signal</span></div>`;
-    });
-    html += section('Stocks · ETFs · Indices · Crypto · FX', g.instruments, (r, i) => SymDir.rowHtml(r, i, this.sel));
+    html += section('Symbols', g.instruments, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('TradingView universe', g.equity, (r, i) => {
       const tc = (r.type||'').toLowerCase();
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}" data-type="${UI.esc(tc)}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag ${tc}">${UI.esc((r.type||'eq'))} ${UI.esc(r.exchange||'')}</span></div>`;
     });
     html += section('Data series · FRED · ECB · Eurostat · BoJ · StatCan · World Bank · NY Fed · OFR · BLS · Census …', g.series, (r, i) => SymDir.rowHtml(r, i, this.sel));
     html += section('Datasets · open to browse every series inside', g.datasets, (r, i) => SymDir.rowHtml(r, i, this.sel));
+    html += section('★ Favorites', g.favorites, (r, i) => {
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}"><span class="hs-tk" style="color:var(--amber)">${UI.esc(r.display || r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag">${UI.esc(r.kind||'fav')}</span></div>`;
+    });
+    html += section('JustHodl signals (no matching symbol above)', g.justhodl, (r, i) => {
+      const badges = (r.sources||[]).slice(0,3).map(x => `<span class="hs-badge">${x}</span>`).join('');
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}<span class="hs-badges">${badges}</span></span><span class="hs-tag signal">signal</span></div>`;
+    });
     html += `<div class="hs-foot"><span>↑↓ navigate</span><span>↵ load</span><span>+ add to watchlist</span><span>esc close</span><span>${this.results.length} results${partial ? ' · searching…' : ''}</span></div>`;
     dd.innerHTML = html;
     SymDir.wireRows(dd, (el) => this.pick(+el.dataset.i));
