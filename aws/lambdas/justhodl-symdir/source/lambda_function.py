@@ -1443,6 +1443,8 @@ def warehouse_search(q, limit=20, prov=None):
     facets = defaultdict(int)
     for rid, provider, provider_name, title, key, rkind, nbytes, age_h, hot in found:
         is_provider = rkind == "provider"
+        is_asset = rkind == "asset"
+        is_entity = not is_provider and not is_asset
         facets[provider] += 1
         rows.append({
             "id": rid,
@@ -1454,8 +1456,10 @@ def warehouse_search(q, limit=20, prov=None):
             "chartable": False,
             "browse": False,
             "browse_provider": provider if is_provider else None,
-            "raw": not is_provider,
-            "key": key or None,
+            "raw": is_asset,
+            "key": (key or None) if is_asset else None,
+            "src": (key or None) if is_entity else None,
+            "lookup_query": title if is_entity else None,
             "bytes": nbytes,
             "age_h": age_h,
             "hot": bool(hot),
@@ -2982,19 +2986,23 @@ def explorer(qs):
         for d in docs:
             counts[d[D_PROV]][d[D_KIND]] += 1
         h = hub()
+        series_level = (
+            (((h.get("search") or {}).get("coverage") or {})
+             .get("hierarchical_series") or {}))
         out = []
         for p in h.get("providers") or []:
             slug = p.get("slug")
             c = counts.get(slug, {})
             out.append({"slug": slug, "name": p.get("name"), "api": p.get("api"), "datasets": p.get("datasets"), "series_count": p.get("series_count"), "mb": p.get("total_mb"),
                         "freshest_h": p.get("freshest_h"), "coverage_pct": p.get("coverage_pct"), "in_directory": dict(c), "note": (p.get("catalog_note") or "")[:160],
+                        "hierarchical_series": series_level.get(slug),
                         "engines": (p.get("engines") or [])[:6]})
         for slug, c in counts.items():
             if slug not in {x["slug"] for x in out}:
                 out.append({"slug": slug, "name": PROV_NAME.get(slug, slug.upper()), "in_directory": dict(c), "virtual": True})
         out.sort(key=lambda x: -(sum((x.get("in_directory") or {}).values()) + (x.get("datasets") or 0)))
         return {"providers": out, "as_of": h.get("as_of"), "totals": h.get("totals"), "directory_docs": len(docs),
-                "series_level": {"eurostat": 564204235, "ecb": 3240832}}
+                "series_level": series_level}
     toks = tokens(q) if q else []
     rows, total = [], 0
     for i, d in enumerate(docs):

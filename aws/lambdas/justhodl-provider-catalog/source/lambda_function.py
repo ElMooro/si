@@ -333,7 +333,63 @@ def _search_title(key):
     return title[:220] or raw[:220]
 
 
-def _write_search_shard(slug, provider_name, api, keys, series, search_db=None):
+def _indicator_search_rows(payload):
+    """Expand the canonical indicator registry into searchable entity refs."""
+    items = (payload or {}).get("indicators") or (payload or {}).get("items") or {}
+    if isinstance(items, dict):
+        items = [dict(value, symbol=symbol)
+                 if isinstance(value, dict) else {"symbol": symbol}
+                 for symbol, value in items.items()]
+    rows = []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        symbol = item.get("symbol") or item.get("id") or item.get("name")
+        if not symbol:
+            continue
+        rows.append({
+            "id": "indicator-bus:" + str(symbol),
+            "title": str(symbol),
+            "kind": "indicator_ref",
+            "search": " ".join(str(x) for x in (
+                item.get("name"), item.get("src"), item.get("source"),
+                item.get("asof")) if x is not None),
+            "hot": True,
+        })
+    return rows
+
+
+def _tradingview_live_search_rows(payload):
+    """Expand every LIVE vault symbol; unresolved/pending records stay excluded."""
+    items = (payload or {}).get("symbols") or []
+    if isinstance(items, dict):
+        items = [dict(value, symbol=symbol)
+                 if isinstance(value, dict) else {"symbol": symbol}
+                 for symbol, value in items.items()]
+    rows = []
+    for item in items if isinstance(items, list) else []:
+        if (not isinstance(item, dict) or item.get("status") != "LIVE"
+                or not item.get("symbol")):
+            continue
+        symbol = str(item["symbol"])
+        exchanges = item.get("exchanges") or []
+        if not isinstance(exchanges, list):
+            exchanges = [exchanges]
+        rows.append({
+            "id": "tradingview-vault-live:" + symbol,
+            "title": symbol,
+            "kind": "instrument_ref",
+            "search": " ".join(str(x) for x in (
+                item.get("category"), item.get("source"),
+                item.get("resolved_via"), " ".join(exchanges),
+                item.get("note_snippet")) if x is not None)[:1000],
+            "hot": True,
+        })
+    return rows
+
+
+def _write_search_shard(slug, provider_name, api, keys, series,
+                        search_db=None, entities=None):
     """Publish compact search metadata while the complete provider scan is in memory.
 
     The search service must never re-list the bucket or fetch thousands of provider
@@ -341,10 +397,21 @@ def _write_search_shard(slug, provider_name, api, keys, series, search_db=None):
     """
     generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     series_ids = (series or {}).get("ids") or []
+    entities = entities or []
+    entity_count = sum(
+        1 for entity in entities
+        if entity.get("id") and entity.get("title"))
+    asset_count = sum(
+        1 for item in keys
+        if item.get("key") and not item.get("missing"))
+    series_ref_count = sum(
+        1 for sid in series_ids
+        if str(sid) and not str(sid).startswith("…+"))
     expected_count = 1 + sum(
         1 for sid in series_ids
         if str(sid) and not str(sid).startswith("…+")) + sum(
-        1 for item in keys if item.get("key") and not item.get("missing"))
+        1 for item in keys if item.get("key") and not item.get("missing")) + \
+        entity_count
     meta = {
         "schema_version": SEARCH_SCHEMA_VERSION,
         "provider": slug,
@@ -363,6 +430,20 @@ def _write_search_shard(slug, provider_name, api, keys, series, search_db=None):
                 continue
             rid = sid if ":" in sid else f"{slug}:{sid}"
             yield [rid, sid[:220], "series_ref", None, None, None, False]
+        for entity in entities:
+            rid = str(entity.get("id") or "").strip()
+            title = str(entity.get("title") or "").strip()
+            if not rid or not title:
+                continue
+            # The existing `key` FTS column doubles as hidden search text for
+            # catalog entities. The consumer exposes it as `src`, never as an
+            # S3 key, unless kind == asset.
+            search_text = str(entity.get("search") or "")[:1000]
+            yield [
+                rid, title[:220], str(entity.get("kind") or "entity_ref"),
+                search_text, entity.get("bytes"), entity.get("age_h"),
+                bool(entity.get("hot")),
+            ]
         for item in keys:
             key = item.get("key")
             if not key or item.get("missing"):
@@ -406,7 +487,9 @@ def _write_search_shard(slug, provider_name, api, keys, series, search_db=None):
         ExtraArgs={"ContentType": "application/json", "CacheControl": "no-cache"})
     os.remove(shard_path)
     return {"provider": slug, "provider_name": provider_name,
-            "key": key, "count": count, "bytes": size}
+            "key": key, "count": count, "bytes": size,
+            "provider_rows": 1, "series_refs": series_ref_count,
+            "entity_refs": entity_count, "assets": asset_count}
 
 
 def _load_rollup_feeds():
@@ -556,6 +639,7 @@ def lambda_handler(event, context):
         print("disc_err", _e)
     hub = {"as_of": now.isoformat(timespec="seconds"), "providers": []}
     search_shards = []
+    hierarchical_series = {}
     search_db_path = "/tmp/provider-search.sqlite"
     search_db_gz = search_db_path + ".gz"
     for path in (search_db_path, search_db_gz):
@@ -644,6 +728,9 @@ def lambda_handler(event, context):
                 _d = _get_json(_cf[0])
                 derived_n = int(_d.get(_cf[1]) or 0)
                 derived_bytes = int(_d.get(_cf[2]) or 0)
+                if _d.get("series_extracted") is not None:
+                    hierarchical_series[slug] = int(
+                        _d.get("series_extracted") or 0)
                 _u = _d.get("updated_at")
                 if _u:
                     derived_fresh = round(
@@ -1176,7 +1263,9 @@ def lambda_handler(event, context):
              "coverage_basis": (cov_basis if cov is not None else None),
              "denied_source_side": denied,
              "unit": "keys",
-             "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
+             "n_keys": doc["n_keys"],
+             "total_bytes": doc["total_bytes"],
+             "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
              "catalog_note": note,
@@ -1194,16 +1283,19 @@ def lambda_handler(event, context):
     _xstat = {}  # ops 4568: extras were shipping 0 keys/0 MB/no
     # freshness — the page card rendered nothing but zeros while the
     # real instrument counts sat unrendered in `datasets`.
+    _indicator_search_entities = []
     try:  # canonical indicator bus (18k+ indicators)
         ib = _get_json("data/indicator-bus.json")
         n_ib = (ib.get("n") or ib.get("count") or
                 len(ib.get("indicators") or ib.get("items") or []))
+        _indicator_search_entities = _indicator_search_rows(ib)
         if n_ib:
             extras["indicator_bus"] = n_ib
             _sa = hotidx.get("data/indicator-bus.json")
             if _sa:
                 _xstat["indicator_bus"] = {
                     "n_keys": 1, "mb": round(_sa[0] / 1e6, 2),
+                    "bytes": _sa[0],
                     "freshest_h": _sa[1]}
     except Exception:
         pass
@@ -1233,22 +1325,28 @@ def lambda_handler(event, context):
             extras["equity_research_tickers"] = n_eq
             _xstat["equity_research_tickers"] = {
                 "n_keys": n_eq, "mb": round(_teq / 1e6, 2),
+                "bytes": _teq,
                 "freshest_h": _feq}
     except Exception:
         pass
+    _tv_search_entities = []
     try:  # TradingView vault LIVE symbols
         tv = _get_json("data/tradingview.json")
+        _tv_items = tv.get("symbols") or []
         n_tv = (tv.get("n_live") or tv.get("live") or
-                len([s for s in (tv.get("symbols") or {}).values()
+                len([s for s in (_tv_items.values()
+                                 if isinstance(_tv_items, dict)
+                                 else _tv_items)
                      if isinstance(s, dict)
-                     and s.get("status") == "LIVE"])
-                if isinstance(tv, dict) else 0)
+                     and s.get("status") == "LIVE"]))
         if isinstance(n_tv, int) and n_tv:
+            _tv_search_entities = _tradingview_live_search_rows(tv)
             extras["tradingview_vault_live"] = n_tv
             _st2 = hotidx.get("data/tradingview.json")
             if _st2:
                 _xstat["tradingview_vault_live"] = {
                     "n_keys": 1, "mb": round(_st2[0] / 1e6, 2),
+                    "bytes": _st2[0],
                     "freshest_h": _st2[1]}
     except Exception:
         pass
@@ -1269,6 +1367,7 @@ def lambda_handler(event, context):
             {"slug": _slug, "name": _nm, "api": _api,
              "datasets": _ev, "unit": "instruments",
              "n_keys": _xs.get("n_keys", 0),
+             "total_bytes": _xs.get("bytes", 0),
              "total_mb": _xs.get("mb", 0), "hot_feeds": 0,
              "series_count": None,
              "freshest_h": _xs.get("freshest_h")})
@@ -1277,8 +1376,13 @@ def lambda_handler(event, context):
             "equity_research_tickers": _equity_search_keys,
             "tradingview_vault_live": [{"key": "data/tradingview.json"}],
         }.get(_ek, [])
+        _extra_entities = {
+            "indicator_bus": _indicator_search_entities,
+            "tradingview_vault_live": _tv_search_entities,
+        }.get(_ek, [])
         search_shards.append(_write_search_shard(
-            _slug, _nm, _api, _extra_keys, None, search_db))
+            _slug, _nm, _api, _extra_keys, None, search_db,
+            entities=_extra_entities))
     hub["series_extras"] = extras
     # ops 4535 (Perplexity P1): auditable reconcile —
     # sum(provider.datasets) + instruments == datasets_total, and units
@@ -1296,13 +1400,16 @@ def lambda_handler(event, context):
                                  if p.get("unit") == "keys"),
         "instruments": sum(p["datasets"] for p in hub["providers"]
                            if p.get("unit") == "instruments")}
+    total_storage_bytes = sum(
+        int(p.get("total_bytes") or
+            round((p.get("total_mb") or 0) * 1000 * 1000))
+        for p in hub["providers"])
     hub["totals"] = {"providers": len(hub["providers"]),
                      "datasets": hub["datasets_total"],
                      "keys": sum(p["n_keys"]
                                  for p in hub["providers"]),
-                     "gb": round(sum(p["total_mb"]
-                                     for p in hub["providers"])
-                                 / 1000, 2)}
+                     "bytes": total_storage_bytes,
+                     "gb": round(total_storage_bytes / 1e9, 2)}
     search_db.commit()
     search_db.close()
     search_db_bytes = os.path.getsize(search_db_path)
@@ -1329,6 +1436,21 @@ def lambda_handler(event, context):
         "generated_at": hub["as_of"],
         "providers": len(search_shards),
         "documents": sum(x["count"] for x in search_shards),
+        "coverage": {
+            "catalog_datasets": hub.get("datasets_total") or 0,
+            "storage_objects": (hub.get("totals") or {}).get("keys") or 0,
+            "storage_bytes": total_storage_bytes,
+            "indexed_assets": sum(x.get("assets") or 0
+                                  for x in search_shards),
+            "indexed_entity_refs": sum(x.get("entity_refs") or 0
+                                       for x in search_shards),
+            "indexed_series_refs": sum(x.get("series_refs") or 0
+                                       for x in search_shards),
+            "hierarchical_series": {
+                **hierarchical_series,
+                "access": "tier1_prefix",
+            },
+        },
         "index": {"key": search_index_key,
                   "bytes": search_db_gz_bytes,
                   "uncompressed_bytes": search_db_bytes,
@@ -1344,6 +1466,7 @@ def lambda_handler(event, context):
         "providers": search_manifest["providers"],
         "documents": search_manifest["documents"],
         "manifest": "data/search/provider-shards.json",
+        "coverage": search_manifest["coverage"],
     }
     s3.put_object(Bucket=BUCKET, Key="data/provider-catalog.json",
                   Body=json.dumps(hub, default=str).encode(),

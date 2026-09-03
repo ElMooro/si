@@ -107,6 +107,18 @@ jobs:
         run: python3 scripts/stamp_assets.py _site
       - name: Bake SEO layer (canonical/OG/description + sitemap)
         run: python3 scripts/bake_seo.py _site || true
+      - name: Stamp commit-bound build manifest
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os
+          page = open("_site/chart-pro.html", "rb").read()
+          manifest = {
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "chart_pro_sha256": hashlib.sha256(page).hexdigest(),
+          }
+          with open("_site/build-manifest.json", "w") as dst:
+              json.dump(manifest, dst, separators=(",", ":"))
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -186,4 +198,3 @@ jobs:
             --data '{"purge_everything":true}' \
             "https://api.cloudflare.com/client/v4/zones/$ZID/purge_cache" \
             | head -c 300
-

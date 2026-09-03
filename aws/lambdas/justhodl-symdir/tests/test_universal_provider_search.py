@@ -63,6 +63,39 @@ def load_lambda(name, path, fake_s3):
 
 
 class UniversalProviderSearchTests(unittest.TestCase):
+    def test_first_class_registries_expand_without_sampling(self):
+        catalog = load_lambda("catalog_registry_under_test", CATALOG, FakeS3())
+        indicators = {
+            "n": 3,
+            "indicators": {
+                "DXY": {"src": "yahoo:DX-Y.NYB"},
+                "FEDFUNDS": {"src": "fred:FEDFUNDS"},
+                "US10Y": {"src": "fred:DGS10"},
+            },
+        }
+        tv = {
+            "n_live": 2,
+            "symbols": [
+                {"symbol": "DXY", "status": "LIVE",
+                 "resolved_via": "yahoo:DX-Y.NYB"},
+                {"symbol": "SPX", "status": "LIVE",
+                 "resolved_via": "yahoo:^GSPC"},
+                {"symbol": "MISSING", "status": "UNRESOLVED"},
+            ],
+        }
+        indicator_rows = catalog._indicator_search_rows(indicators)
+        tv_rows = catalog._tradingview_live_search_rows(tv)
+        self.assertEqual(len(indicator_rows), indicators["n"])
+        self.assertEqual(len(tv_rows), tv["n_live"])
+        self.assertEqual(
+            {row["title"] for row in indicator_rows},
+            {"DXY", "FEDFUNDS", "US10Y"},
+        )
+        self.assertEqual(
+            {row["title"] for row in tv_rows},
+            {"DXY", "SPX"},
+        )
+
     def test_catalog_writes_compact_search_shard(self):
         s3 = FakeS3()
         catalog = load_lambda("catalog_under_test", CATALOG, s3)
@@ -83,10 +116,18 @@ class UniversalProviderSearchTests(unittest.TestCase):
             }],
             {"ids": ["GKG_THEME"]},
             db,
+            entities=[{
+                "id": "gdelt:indicator:conflict",
+                "title": "Conflict intensity",
+                "kind": "indicator_ref",
+                "search": "geopolitical events",
+                "hot": True,
+            }],
         )
 
         self.assertEqual(meta["provider"], "gdelt")
-        self.assertEqual(meta["count"], 3)
+        self.assertEqual(meta["count"], 4)
+        self.assertEqual(meta["entity_refs"], 1)
         stored = s3.puts["data/search/providers/gdelt.json.gz"]
         payload = json.loads(gzip.decompress(stored["Body"]))
         asset = next(row for row in payload["rows"] if row[2] == "asset")
@@ -103,6 +144,14 @@ class UniversalProviderSearchTests(unittest.TestCase):
             indexed,
             ("gdelt", "world events",
              "data/warm/gdelt/events/2026/09/02/world-events.json.gz"),
+        )
+        entity = db.execute(
+            "SELECT id,title,key,kind FROM docs WHERE docs MATCH "
+            "'\"geopolitical\"*'").fetchone()
+        self.assertEqual(
+            entity,
+            ("gdelt:indicator:conflict", "Conflict intensity",
+             "geopolitical events", "indicator_ref"),
         )
         db.close()
 
@@ -179,6 +228,9 @@ class UniversalProviderSearchTests(unittest.TestCase):
                      "world events",
                      "data/warm/gdelt/events/world-events.json.gz",
                      "asset", 1234, 1.5, 1),
+                    ("gdelt:indicator:conflict", "gdelt", "GDELT",
+                     "Conflict intensity", "geopolitical events",
+                     "indicator_ref", None, None, 1),
                 ],
             )
             con.commit()
@@ -196,6 +248,12 @@ class UniversalProviderSearchTests(unittest.TestCase):
                 row["key"],
                 "data/warm/gdelt/events/world-events.json.gz",
             )
+            entity = symdir.warehouse_search("geopolitical", 10)["rows"][0]
+            self.assertEqual(entity["catalog_kind"], "indicator_ref")
+            self.assertFalse(entity["raw"])
+            self.assertIsNone(entity["key"])
+            self.assertEqual(entity["src"], "geopolitical events")
+            self.assertEqual(entity["lookup_query"], "Conflict intensity")
         finally:
             os.remove(path)
 

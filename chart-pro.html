@@ -2208,7 +2208,7 @@ class SymDir {
     }
     DataExplorer.open(
       r.browse_provider || r.provider,
-      r.raw ? (r.key || r.name || '') : ''
+      r.raw ? (r.key || r.name || '') : (r.lookup_query || '')
     );
   }
 }
@@ -2390,7 +2390,7 @@ class TVShell {
   }
 }
 
-// OPS5159_UNIVERSAL_SEARCH_V2: provider catalog, normalized series, and stored files share one search contract.
+// OPS5160_COMPLETE_CATALOG_SEARCH: providers, registry entities, normalized series, and stored files share one search contract.
 // ─── ops 5153: Data Explorer — every provider → every dataset/series on data.html, inside chart-pro ─────
 class DataExplorer {
   static providers = null; static prov = null; static q = ''; static rows = []; static sel = -1; static _t = null; static _seq = 0; static total = 0;
@@ -2424,7 +2424,7 @@ class DataExplorer {
     const tree = document.getElementById('dx-tree'); const chips = document.getElementById('dx-chips');
     const ps = this.providers || [];
     tree.innerHTML = `<div class="dx-prov ${this.prov ? '' : 'on'}" data-prov=""><div><div class="dx-prov-name">All providers</div><div class="dx-prov-sub">${ps.length} sources · ${this.fmtN(this._hub && this._hub.directory_docs)} searchable docs</div></div><div class="dx-prov-n">${this.fmtN(this._hub && this._hub.totals && this._hub.totals.gb)} GB</div></div>` +
-      ps.map(p => { const c = p.in_directory || {}; const n = (c.series || 0) + (c.dataset || 0) + (c.instrument || 0); return `<div class="dx-prov ${this.prov === p.slug ? 'on' : ''}" data-prov="${UI.esc(p.slug)}" title="${UI.esc(p.note || '')}"><div><div class="dx-prov-name">${UI.esc(p.name || p.slug)}</div><div class="dx-prov-sub">${UI.esc(p.api || '')}${p.freshest_h != null ? ' · ' + p.freshest_h + 'h' : ''}</div></div><div class="dx-prov-n">${n ? this.fmtN(n) : (p.datasets ? this.fmtN(p.datasets) + ' files' : '')}${p.slug === 'eurostat' ? '<br>+564M via browse' : (p.slug === 'ecb' ? '<br>+3.2M via browse' : '')}</div></div>`; }).join('');
+      ps.map(p => { const c = p.in_directory || {}; const n = (c.series || 0) + (c.dataset || 0) + (c.instrument || 0); const hs = Number(p.hierarchical_series || 0); return `<div class="dx-prov ${this.prov === p.slug ? 'on' : ''}" data-prov="${UI.esc(p.slug)}" title="${UI.esc(p.note || '')}"><div><div class="dx-prov-name">${UI.esc(p.name || p.slug)}</div><div class="dx-prov-sub">${UI.esc(p.api || '')}${p.freshest_h != null ? ' · ' + p.freshest_h + 'h' : ''}</div></div><div class="dx-prov-n">${n ? this.fmtN(n) : (p.datasets ? this.fmtN(p.datasets) + ' datasets' : '')}${hs ? '<br>+' + this.fmtN(hs) + ' via browse' : ''}</div></div>`; }).join('');
     tree.querySelectorAll('.dx-prov').forEach(el => el.addEventListener('click', () => this.pickProvider(el.dataset.prov || null)));
     chips.innerHTML = `<span class="dx-chip ${this.prov ? '' : 'on'}" data-prov="">all</span>` + ps.slice(0, 40).map(p => { const c = p.in_directory || {}; const n = (c.series || 0) + (c.dataset || 0) + (c.instrument || 0); return `<span class="dx-chip ${this.prov === p.slug ? 'on' : ''}" data-prov="${UI.esc(p.slug)}">${UI.esc(p.name || p.slug)} <b>${n ? this.fmtN(n) : this.fmtN(p.datasets || 0)}</b></span>`; }).join('');
     chips.querySelectorAll('.dx-chip').forEach(el => el.addEventListener('click', () => this.pickProvider(el.dataset.prov || null)));
