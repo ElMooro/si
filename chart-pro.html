@@ -1745,7 +1745,9 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 @media (hover: none) { .hm-tools { opacity: .85; } }
 @media (max-width: 900px) {
   .hm-content { width: 100vw; height: 100vh; max-width: none; border-radius: 0; }
-  .hm-header { padding: 10px 12px; }
+  .hm-header { padding: 10px 12px; position: relative; }
+  .hm-header .heatmap-title { padding-left: 44px; }
+  .hm-header #heatmap-close { position: absolute; top: 8px; right: 10px; }
   .hm-header-main { flex-basis: 100%; flex-wrap: wrap; }
   .hm-head-actions .macro-reorder-hint { display: none; }
   .hm-toolbar { padding: 6px 12px; gap: 8px; }
