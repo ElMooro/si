@@ -1,0 +1,253 @@
+{
+ "ops": 5164,
+ "ts": "2026-09-03T18:16:50.083398+00:00",
+ "removed_targets": [
+  {
+   "rule": "benzinga-news-agent-warm",
+   "function": "justhodl-repo",
+   "targets": [
+    {
+     "Id": "repo",
+     "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-repo",
+     "Input": "{}"
+    }
+   ],
+   "why": "daily engine on a rate(5 minutes) host rule (ops 5071 hitch)"
+  },
+  {
+   "rule": "fleet-freshness-monitor-30min",
+   "function": "justhodl-fundamental-census",
+   "targets": [
+    {
+     "Id": "fundamental-census",
+     "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fundamental-census",
+     "Input": "{}"
+    }
+   ],
+   "why": "daily self-resuming census on a rate(30 minutes) host rule (ops 5071 hitch)"
+  },
+  {
+   "rule": "benzinga-news-agent-warm",
+   "function": "justhodl-census-us",
+   "targets": [
+    {
+     "Id": "econdispatch",
+     "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-census-us",
+     "Input": "{\"mode\": \"econ_dispatch\", \"shards\": 12}"
+    }
+   ],
+   "why": "econ dispatcher hitched onto rate(5 minutes) (ops 5063)"
+  }
+ ],
+ "created_schedules": [
+  {
+   "name": "justhodl-repo-daily",
+   "expr": "cron(10 6 * * ? *)",
+   "fn": "justhodl-repo",
+   "payload": {},
+   "mode": "created"
+  },
+  {
+   "name": "justhodl-fundamental-census-daily",
+   "expr": "cron(15 3 * * ? *)",
+   "fn": "justhodl-fundamental-census",
+   "payload": {
+    "resume": true
+   },
+   "mode": "created"
+  },
+  {
+   "name": "justhodl-census-econ-dispatch",
+   "expr": "rate(1 hour)",
+   "fn": "justhodl-census-us",
+   "payload": {
+    "mode": "econ_dispatch",
+    "shards": 12
+   },
+   "mode": "created"
+  }
+ ],
+ "deleted_schedules": [
+  {
+   "name": "justhodl-sdmx-walker-oecd-retrunc",
+   "expr": "rate(10 minutes)",
+   "target": {
+    "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+    "Input": "{\"agency\": \"oecd\", \"retry_truncated\": true, \"cap_mb\": 300, \"per\": 4, \"workers\": 2, \"budget\": 780}",
+    "RetryPolicy": {
+     "MaximumEventAgeInSeconds": 300,
+     "MaximumRetryAttempts": 0
+    },
+    "RoleArn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
+   },
+   "why": "OECD ledger stopped shrinking"
+  },
+  {
+   "name": "justhodl-sdmx-walker-oecd-refail",
+   "expr": "rate(15 minutes)",
+   "target": {
+    "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+    "Input": "{\"agency\": \"oecd\", \"retry_failures\": true, \"per\": 2, \"workers\": 1, \"budget\": 600}",
+    "RetryPolicy": {
+     "MaximumEventAgeInSeconds": 300,
+     "MaximumRetryAttempts": 0
+    },
+    "RoleArn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
+   },
+   "why": "OECD ledger stopped shrinking"
+  }
+ ],
+ "lifecycle_added": {
+  "ID": "ops5164-purge-dead-versions-data",
+  "Status": "Enabled",
+  "Filter": {
+   "Prefix": "data/"
+  },
+  "NoncurrentVersionExpiration": {
+   "NoncurrentDays": 1
+  },
+  "Expiration": {
+   "ExpiredObjectDeleteMarker": true
+  }
+ },
+ "holds": [
+  {
+   "kind": "dr-bucket",
+   "bucket": "justhodl-dashboard-live-dr",
+   "gb": 2764,
+   "usd_month": 34.56
+  },
+  {
+   "kind": "dr-bucket",
+   "bucket": "justhodl-dr-usw2-857687956942",
+   "gb": 11,
+   "usd_month": 0.14
+  },
+  {
+   "kind": "snapstart",
+   "function": "justhodl-ai-chat",
+   "usd_month": 17.13
+  }
+ ],
+ "before_last12h_usd_day": 10.03,
+ "before_top": [
+  {
+   "fn": "justhodl-census-us",
+   "usd_day": 3.9,
+   "inv": 1936
+  },
+  {
+   "fn": "justhodl-repo",
+   "usd_day": 2.43,
+   "inv": 144
+  },
+  {
+   "fn": "justhodl-boj-full",
+   "usd_day": 0.76,
+   "inv": 551
+  },
+  {
+   "fn": "justhodl-symdir",
+   "usd_day": 0.73,
+   "inv": 1097
+  },
+  {
+   "fn": "justhodl-ecb-deep",
+   "usd_day": 0.48,
+   "inv": 71
+  },
+  {
+   "fn": "justhodl-sdmx-walker",
+   "usd_day": 0.4,
+   "inv": 1032
+  },
+  {
+   "fn": "justhodl-provider-catalog",
+   "usd_day": 0.16,
+   "inv": 12
+  },
+  {
+   "fn": "justhodl-news-velocity",
+   "usd_day": 0.1,
+   "inv": 12
+  },
+  {
+   "fn": "justhodl-fundamental-census",
+   "usd_day": 0.09,
+   "inv": 24
+  },
+  {
+   "fn": "justhodl-research-backtest",
+   "usd_day": 0.09,
+   "inv": 3
+  },
+  {
+   "fn": "justhodl-data-census",
+   "usd_day": 0.06,
+   "inv": 1
+  },
+  {
+   "fn": "justhodl-13f-positions",
+   "usd_day": 0.06,
+   "inv": 6
+  },
+  {
+   "fn": "justhodl-repo-monitor",
+   "usd_day": 0.06,
+   "inv": 24
+  },
+  {
+   "fn": "justhodl-risk-gate",
+   "usd_day": 0.04,
+   "inv": 13
+  },
+  {
+   "fn": "justhodl-backend-agent",
+   "usd_day": 0.04,
+   "inv": 48
+  }
+ ],
+ "ecb_deep": {
+  "mode": "refresh",
+  "complete": 58,
+  "flows": 58,
+  "windows": {
+   "empty": 182,
+   "done": 309,
+   "err:HTTP": 189,
+   "slow_mon": 28,
+   "err:Time": 13
+  }
+ },
+ "census_econ": {
+  "a": {
+   "n_done": 1703,
+   "n_total": 1328,
+   "queue_left": 151,
+   "rows_total": 1663364234,
+   "failures": 10,
+   "shards": 12,
+   "phases": {
+    "COMPLETE": 11,
+    "DRAIN": 1
+   },
+   "newest": "2026-09-03T18:16:35.430828+00:00"
+  },
+  "b": {
+   "n_done": 1703,
+   "n_total": 1328,
+   "queue_left": 151,
+   "rows_total": 1663352798,
+   "failures": 10,
+   "shards": 12,
+   "phases": {
+    "COMPLETE": 11,
+    "DRAIN": 1
+   },
+   "newest": "2026-09-03T18:21:34.768369+00:00"
+  },
+  "bracket_min": 6.0,
+  "verdict": "lane NOT progressing in the bracket -> hourly until it moves",
+  "cadence": "rate(1 hour)"
+ }
+}
