@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-supabase-keepalive",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 128,
+  "timeout": 30,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Supabase keep-alive + reachability sentinel (ops 5173): pings the auth project every 4h so the Free plan never pauses again; Telegram alert on state change. data/_health/supabase-keepalive.json",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "SUPABASE_URL": "https://bdmjenqcyvzouusfcgow.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_W6V6OaQ9aXvpVVV9k4Lrpg_pCPuBLvB",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  }
+}
