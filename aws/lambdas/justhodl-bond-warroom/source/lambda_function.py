@@ -55,7 +55,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
 TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
@@ -509,7 +509,7 @@ def merge_series(*sers):
         if ser:
             d.update(zip(ser["dates"], ser["closes"]))
     ds = sorted(d)
-    return {"dates": ds, "closes": [d[k] for k in ds]} if len(ds) > 3 else None
+    return {"dates": ds, "closes": [d[k] for k in ds]} if ds else None   # young scanner banks have 2 points and must survive the merge
 
 
 def bank_yield(slug, sid, title, src, ser, banked):
@@ -806,7 +806,7 @@ def lambda_handler(event, ctx):
                     d0 = _now().date().isoformat()
                     if ser["dates"][-1] < d0:
                         ser = {"dates": ser["dates"] + [d0], "closes": ser["closes"] + [tv_live[key]["close"]]}
-        if len(ser.get("closes") or []) < 2:
+        if not ser or len(ser.get("closes") or []) < 2:
             continue
         tv[key] = ser
         if kind == "index":
