@@ -787,3 +787,37 @@ def test_missing_deal_and_flow_metrics_do_not_create_neutral_evidence():
     assert row["source_count"] == 1
     assert row["source_families"] == ["special_situations"]
     assert row["discovery_stage"] != "HIGH_CONVICTION"
+
+
+def test_capital_decision_waits_for_an_actual_entry_trigger():
+    from lambda_function import build_output
+    from datetime import datetime, timezone
+
+    now = datetime(2026, 9, 4, 12, tzinfo=timezone.utc)
+    ts = now.isoformat()
+    feeds = {
+        "risk_gate": {"posture": "RISK_ON", "composite": 0, "sizing_multiplier": 0.8},
+        "crisis": {
+            "defcon_level": 4,
+            "master_crisis_score": 20,
+            "components_available": 3,
+            "components": [{"available": True, "age_hours": 1} for _ in range(3)],
+        },
+        "bond_warroom": {
+            "heartbeat": {"score": 20, "regime": "CALM"},
+            "equity_risk": {"score": 20, "state": "CALM"},
+            "eurodollar_shortage": {"score": 20, "state": "CALM"},
+            "panels": {"rates": []},
+        },
+        "eurodollar_stress": {"composite_score": 20},
+        "credit_composite": {"composite": 20},
+        "fortress": {"board": [], "etfs": [], "ledger": []},
+    }
+    metas = {
+        name: {"last_modified": ts, "error": None}
+        for name in feeds
+    }
+    output = build_output(feeds, metas, now, [])
+    assert output["stance"] == "WAIT_FOR_CONFIRMATION"
+    assert output["decision"]["capital_decision"] == "WAIT IN CASH / SHORT-TERM TREASURIES"
+    assert output["risk_board"]["capital_decision"] == output["decision"]["capital_decision"]

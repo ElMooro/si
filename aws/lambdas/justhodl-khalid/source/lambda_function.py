@@ -679,6 +679,14 @@ def build_output(
         else "SELECTIVE_BUY" if selected
         else "WAIT_FOR_CONFIRMATION"
     )
+    capital_decision = (
+        "STAY IN CASH / SHORT-TERM TREASURIES"
+        if policy["mode"] in {"DATA_HOLD", "DEFENSIVE"}
+        else "INVEST SELECTIVELY"
+        if selected and policy["allows_new_entries"]
+        else "WAIT IN CASH / SHORT-TERM TREASURIES"
+    )
+    risk_board["capital_decision"] = capital_decision
     asset_views = [
         {"asset_class": "Stocks", "stance": "SELECTIVE" if selected else "TRACKING", "ready": sum(x["asset_class"] == "STOCK" for x in selected), "building": sum(x["asset_class"] == "STOCK" for x in opportunity_radar), "reason": "Value, inflection, catalysts and capital confirmation are discovered broadly; entry remains strict."},
         {"asset_class": "ETFs / Sectors", "stance": "TRACKING", "ready": sum(x["asset_class"] == "ETF" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "ETF" for x in opportunity_radar), "reason": "Early sector emergence and cross-asset value are ranked before they become crowded."},
@@ -765,7 +773,7 @@ def build_output(
             "universe_from_katlin": n_katlin,
             "opportunities_tracked": len(opportunity_radar),
             "high_conviction_count": sum(x["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for x in opportunity_radar),
-            "capital_decision": risk_board["capital_decision"],
+            "capital_decision": capital_decision,
             "exposure_cap_pct": risk_board["exposure_cap_pct"],
             "shelter": policy["default_shelter"],
         },
