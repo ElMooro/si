@@ -22,16 +22,20 @@ def test_required_service_tests_run_before_aws_mutation():
     assert 'python3 "$dir/tests/run_tests.py"' in workflow[preflight:deploy]
 
 
-def test_risk_uses_numbered_candidate_path_and_not_unqualified_smoke():
+def test_governed_engines_use_numbered_candidate_path():
     workflow = WORKFLOW.read_text()
     candidate_call = workflow.index("bash scripts/deploy_validated_candidate.sh")
     scheduler_block = workflow.index(
         "# ── EventBridge Scheduler (if config.json has .eventbridge_scheduler)"
     )
     assert candidate_call < scheduler_block
-    assert 'if [ "$fn" = "justhodl-engine-fusion" ]; then' in workflow
     assert (
-        'if [ "$fn" != "justhodl-khalid-risk" ] '
+        'if [ "$fn" = "justhodl-engine-fusion" ] '
+        '|| [ "$fn" = "justhodl-khalid-risk" ]'
+    ) in workflow
+    assert (
+        'if [ "$fn" != "justhodl-engine-fusion" ] '
+        '&& [ "$fn" != "justhodl-khalid-risk" ] '
         '&& [ -f "$dir/config.json" ]'
     ) in workflow
     assert (
