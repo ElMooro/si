@@ -55,7 +55,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -661,7 +661,7 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
 # ─────────────────────────── cross-asset reactions ───────────────────
 def load_assets(force=False):
     doc = _s3_json(ASSETS_KEY) or {}
-    fresh = doc.get("as_of") and (Date_parse(doc["as_of"]) > _now() - timedelta(hours=20))
+    fresh = doc.get("as_of") and (Date_parse(doc["as_of"]) > _now() - timedelta(hours=3))   # the 16:35 ET run must see the day's closes
     if fresh and not force and doc.get("series"):
         return doc
     series = dict(doc.get("series") or {})
