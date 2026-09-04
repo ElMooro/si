@@ -305,6 +305,7 @@ footer a{margin:0 10px}
   /* legacy mobile overflow (ops 5192 hunter, hunter-v2 in 5194): the sticky top nav is a flex item that refused to shrink, and two legacy tables had no scroll wrapper */
   .topbar { overflow:hidden; } .nav-links { min-width:0; }
   .playbook, .trigger-table { overflow-x:auto; }
+  @media(max-width:700px){ .regime-banner { grid-template-columns:1fr; gap:14px; } .consensus { text-align:left; } }
   @keyframes wr-flash { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.45); } }
   @media (prefers-reduced-motion: reduce) { .wr-flag.RED, .wr-regime.ACUTE, .wr-v.HIGH.bearish { animation:none; } }
 </style>
