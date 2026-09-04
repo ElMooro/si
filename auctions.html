@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Treasury Auctions · JustHodl.AI</title>
-<meta name="description" content="Live US Treasury auction interpretation — crisis comparison, Bitcoin regime overlay, risk-on asset cross-reference, forward returns, decisive call.">
+<meta name="description" content="Treasury auction desk: same-day TreasuryDirect results, buyback operations, graded demand vs trailing history and daily liquidity / rates / risk-asset verdicts. Live US Treasury auction interpretation — crisis comparison, Bitcoin regime overlay, risk-on asset cross-reference, forward returns, decisive call.">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#facc15">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
@@ -222,7 +222,7 @@
 <div class="container">
 
 <header class="top">
-  <h1>🏛️ Treasury Auctions <span class="sub">— live tape, crisis comparison & market interpretation</span></h1>
+  <h1>🏛️ Treasury Auctions <span class="sub">— same-day results, buybacks, graded demand &amp; what it means for liquidity and risk assets</span></h1>
   <nav class="crumbs">
     <a href="/">Desk</a>
     <a href="/auctions.html" class="active">Auctions</a>
@@ -233,6 +233,300 @@
     <a href="/stress.html" style="color:#ef4444">🌪 Stress</a>
   </nav>
 </header>
+
+<!-- ═══════════════ AUCTION DESK (justhodl-auction-desk · data/auction-desk.json) ═══════════════ -->
+<style>
+  .desk-banner { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:20px 22px; margin-bottom:18px; }
+  .desk-banner.bullish { border-color:rgba(34,197,94,.45); box-shadow:0 0 0 1px rgba(34,197,94,.15), inset 0 0 60px rgba(34,197,94,.05); }
+  .desk-banner.bearish { border-color:rgba(239,68,68,.45); box-shadow:0 0 0 1px rgba(239,68,68,.15), inset 0 0 60px rgba(239,68,68,.05); }
+  .desk-banner.mixed { border-color:rgba(245,158,11,.4); }
+  .desk-kicker { font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .desk-kicker .fresh { color:var(--fg-4); text-transform:none; letter-spacing:0; }
+  .desk-headline { font-size:22px; font-weight:700; color:var(--fg-1); margin:6px 0 10px; line-height:1.3; letter-spacing:-.01em; }
+  .desk-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .desk-tag { font-size:10.5px; font-weight:700; letter-spacing:.06em; padding:4px 9px; border-radius:4px; border:1px solid var(--border-strong); color:var(--fg-2); background:var(--bg-elev); }
+  .desk-tag.bull { color:var(--green); border-color:rgba(34,197,94,.5); background:var(--green-soft); }
+  .desk-tag.bear { color:var(--red); border-color:rgba(239,68,68,.5); background:var(--red-soft); }
+  .desk-tag.warn { color:var(--amber); border-color:rgba(245,158,11,.5); background:var(--amber-soft); }
+  .desk-implications { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0; }
+  @media(max-width:800px){ .desk-implications { grid-template-columns:1fr; } }
+  .desk-imp { background:var(--bg-sunken); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .desk-imp .l { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3); }
+  .desk-imp .v { font-size:13px; color:var(--fg-1); margin-top:3px; }
+  .desk-imp.bull .v { color:var(--green); } .desk-imp.bear .v { color:var(--red); } .desk-imp.warn .v { color:var(--amber); }
+  .desk-bullets { margin:8px 0 0 0; padding-left:18px; color:var(--fg-2); font-size:12.5px; line-height:1.6; }
+  .desk-ai { margin-top:14px; border-top:1px dashed var(--border-strong); padding-top:12px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  @media(max-width:800px){ .desk-ai { grid-template-columns:1fr; } }
+  .desk-ai h4 { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); margin-bottom:4px; }
+  .desk-ai p { font-size:12.5px; color:var(--fg-2); line-height:1.6; }
+  .desk-ops { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:12px; }
+  .op-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; position:relative; }
+  .op-card.buyback { border-color:rgba(167,139,250,.45); }
+  .op-card.bull { border-left:3px solid var(--green); } .op-card.bear { border-left:3px solid var(--red); }
+  .op-head { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .op-head .t { font-size:15px; font-weight:700; color:var(--fg-1); }
+  .op-head .s { color:var(--fg-3); font-size:11.5px; }
+  .op-grade { margin-left:auto; font-size:18px; font-weight:800; width:34px; height:34px; border-radius:8px; display:grid; place-items:center; border:1px solid var(--border-strong); }
+  .op-grade.A, .op-grade.B { color:var(--green); border-color:rgba(34,197,94,.6); background:var(--green-soft); }
+  .op-grade.C { color:var(--amber); border-color:rgba(245,158,11,.5); background:var(--amber-soft); }
+  .op-grade.D, .op-grade.F { color:var(--red); border-color:rgba(239,68,68,.6); background:var(--red-soft); }
+  .op-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:10px 0; }
+  .op-m { background:var(--bg-sunken); border-radius:6px; padding:7px 9px; }
+  .op-m .l { font-size:9.5px; color:var(--fg-3); text-transform:uppercase; letter-spacing:.08em; }
+  .op-m .v { font-size:14px; font-weight:700; color:var(--fg-1); font-variant-numeric:tabular-nums; }
+  .op-m .z { font-size:10px; color:var(--fg-3); }
+  .op-m .z.pos { color:var(--green); } .op-m .z.neg { color:var(--red); }
+  .op-take { display:flex; height:8px; border-radius:4px; overflow:hidden; background:var(--bg-sunken); margin:6px 0 4px; }
+  .op-take span { display:block; height:100%; }
+  .op-take .ind { background:var(--cyan); } .op-take .dir { background:var(--blue); } .op-take .pd { background:var(--amber); }
+  .op-take-l { display:flex; gap:12px; font-size:10.5px; color:var(--fg-3); }
+  .op-take-l b { color:var(--fg-2); }
+  .op-verdict { font-size:12.5px; color:var(--fg-2); line-height:1.55; margin-top:8px; }
+  .op-imp { font-size:11.5px; color:var(--fg-3); margin-top:6px; }
+  .op-imp b.bull { color:var(--green); } .op-imp b.bear { color:var(--red); } .op-imp b.warn { color:var(--amber); }
+  .op-secs { margin-top:8px; font-size:11px; color:var(--fg-3); }
+  .op-secs summary { cursor:pointer; color:var(--fg-2); }
+  .desk-grid2 { display:grid; grid-template-columns:1.3fr 1fr; gap:18px; margin-bottom:18px; }
+  @media(max-width:1000px){ .desk-grid2 { grid-template-columns:1fr; } }
+  .desk-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+  @media(max-width:700px){ .desk-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  .desk-stat { background:var(--bg-sunken); border-radius:8px; padding:10px 12px; }
+  .desk-stat .l { font-size:10px; color:var(--fg-3); text-transform:uppercase; letter-spacing:.1em; }
+  .desk-stat .v { font-size:18px; font-weight:700; color:var(--fg-1); font-variant-numeric:tabular-nums; }
+  .desk-stat .n { font-size:10.5px; color:var(--fg-3); }
+  .desk-chart { width:100%; height:190px; display:block; }
+  .desk-filters { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
+  .desk-filters button { background:var(--bg-elev); border:1px solid var(--border); color:var(--fg-2); border-radius:5px; padding:5px 10px; font-size:11px; cursor:pointer; }
+  .desk-filters button.active { color:var(--yellow); border-color:var(--yellow); }
+  .grade-pill { display:inline-block; min-width:22px; text-align:center; padding:1px 6px; border-radius:4px; font-weight:800; font-size:11px; }
+  .grade-pill.A, .grade-pill.B { color:var(--green); background:var(--green-soft); } .grade-pill.C { color:var(--amber); background:var(--amber-soft); } .grade-pill.D, .grade-pill.F { color:var(--red); background:var(--red-soft); }
+  .tenor-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+  .tenor-card { background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .tenor-card .t { font-size:12px; font-weight:700; color:var(--fg-1); display:flex; justify-content:space-between; }
+  .tenor-card .t span { color:var(--fg-3); font-weight:400; font-size:11px; }
+  .tenor-card svg { width:100%; height:64px; display:block; margin-top:6px; }
+  .desk-method { font-size:11.5px; color:var(--fg-3); line-height:1.6; }
+  .desk-method b { color:var(--fg-2); }
+  .desk-src a { color:var(--fg-3); }
+  .cal-row td .rx { color:var(--purple); font-size:10px; margin-left:6px; }
+</style>
+
+<div class="desk-banner" id="desk-banner">
+  <div class="desk-kicker"><span>Auction desk · day verdict</span><span class="fresh" id="desk-fresh">loading data/auction-desk.json…</span></div>
+  <div class="desk-headline" id="desk-headline">Loading today's operations…</div>
+  <div class="desk-tags" id="desk-tags"></div>
+  <div class="desk-implications" id="desk-implications"></div>
+  <ul class="desk-bullets" id="desk-bullets"></ul>
+  <div class="desk-ai" id="desk-ai" hidden></div>
+</div>
+
+<section class="box">
+  <div class="head"><h3>🏛️ Today's operations — graded against the trailing 12 of the same tenor</h3><span class="right" id="desk-ops-meta"></span></div>
+  <div class="body"><div class="desk-ops" id="desk-ops"><div class="skel" style="height:120px"></div></div></div>
+</section>
+
+<div class="desk-grid2">
+  <section class="box" style="margin:0">
+    <div class="head"><h3>♻️ Treasury buyback program — supply removed, cash returned</h3><span class="right">FiscalData buybacks_operations · settlement T+1</span></div>
+    <div class="body">
+      <div class="desk-stats" id="bb-stats"></div>
+      <svg class="desk-chart" id="bb-chart" viewBox="0 0 720 190" preserveAspectRatio="none" role="img" aria-label="Buyback accepted par per operation with cumulative program total"></svg>
+      <div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Operation</th><th>Bucket</th><th>Type</th><th class="r">Max</th><th class="r">Offered</th><th class="r">Accepted</th><th class="r">Fill</th><th class="r">Cover</th><th>Signal</th></tr></thead><tbody id="bb-table"></tbody></table></div>
+    </div>
+  </section>
+  <section class="box" style="margin:0">
+    <div class="head"><h3>📅 Upcoming — announced & tentative</h3><span class="right">TreasuryDirect upcoming + announced</span></div>
+    <div class="body" style="padding:0"><div style="overflow-x:auto"><table><thead><tr><th>Auction</th><th>Security</th><th class="r">Size</th><th>Settles</th></tr></thead><tbody id="cal-table"></tbody></table></div></div>
+  </section>
+</div>
+
+<section class="box">
+  <div class="head"><h3>🗓 Recent auction days — what each day said</h3><span class="right">verdicts are recomputed from the tape every run</span></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Day</th><th>Headline</th><th>Tags</th><th class="r">Auctions</th><th class="r">Buyback</th><th>Risk assets</th></tr></thead><tbody id="days-table"></tbody></table></div>
+</section>
+
+<section class="box">
+  <div class="head"><h3>📋 Graded tape — every auction, same-day from TreasuryDirect</h3><span class="right" id="tape-meta"></span></div>
+  <div class="body" style="padding-bottom:0"><div class="desk-filters" id="tape-filters"></div></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Security</th><th class="r">Size</th><th class="r">High</th><th class="r">Tail bp</th><th class="r">BTC</th><th class="r">z</th><th class="r">Indirect</th><th class="r">Dealer</th><th class="r">Direct</th><th class="r">AAH</th><th class="r">Grade</th></tr></thead><tbody id="desk-tape"></tbody></table></div>
+</section>
+
+<section class="box">
+  <div class="head"><h3>📈 Demand by tenor — bid-to-cover, last 24 auctions each</h3><span class="right">line = auction, dashed = trailing-12 mean</span></div>
+  <div class="body"><div class="tenor-grid" id="tenor-grid"></div>
+    <p class="desk-method" style="margin-top:12px" id="desk-method"></p>
+  </div>
+</section>
+
+<h2 style="font-size:14px;color:var(--fg-3);letter-spacing:.12em;text-transform:uppercase;margin:26px 0 12px">Crisis lens — the detector composite</h2>
+
+<script>
+(function () {
+  const FEED = "https://justhodl-data-proxy.raafouis.workers.dev/data/auction-desk.json";
+  const FEED_S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-desk.json";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const bn = x => x == null ? "—" : (Math.abs(x) >= 1e9 ? "$" + (x / 1e9).toFixed(x >= 1e11 ? 0 : 1) + "B" : "$" + (x / 1e6).toFixed(0) + "M");
+  const pct = (x, d = 0) => x == null ? "—" : x.toFixed(d) + "%";
+  const num = (x, d = 2) => x == null ? "—" : Number(x).toFixed(d);
+  const zs = z => z == null ? "" : (z > 0 ? "+" : "") + z.toFixed(1) + "σ";
+  const toneOf = t => t === "bullish" ? "bull" : t === "bearish" ? "bear" : (t === "mixed" || t === "cautious") ? "warn" : "";
+  const tagClass = t => /BULLISH|EASY|STRONG|MAX FILL|INJECTION/.test(t) ? "bull" : /WEAK|TAIL|BEARISH|OFF/.test(t) ? "bear" : /MIXED|LARGE|HEAVY|WATCH/.test(t) ? "warn" : "";
+  const ago = iso => { if (!iso) return ""; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+  const fmtDate = d => d ? new Date(d + "T12:00:00Z").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "—";
+
+  function renderBanner(D) {
+    const v = D.today && D.today.verdict;
+    const b = $("desk-banner");
+    if (!v) { $("desk-headline").textContent = "No operations found in the feed."; return; }
+    b.className = "desk-banner " + (v.risk_assets === "bullish" ? "bullish" : v.risk_assets === "bearish" ? "bearish" : v.risk_assets === "mixed" ? "mixed" : "");
+    $("desk-fresh").textContent = `${fmtDate(v.date)} · engine ran ${ago(D.generated_at)} · newest auction ${D.freshness.newest_auction || "—"} · newest buyback ${D.freshness.newest_buyback || "—"}`;
+    $("desk-headline").textContent = v.headline;
+    $("desk-tags").innerHTML = (v.tags || []).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("");
+    const liq = v.liquidity, rates = v.rates, risk = v.risk_assets;
+    $("desk-implications").innerHTML = [
+      ["Liquidity", liq === "easy" ? "EASY — Treasury returned cash and removed supply" : liq === "tightening bias" ? "Tightening bias — buyers demanded concession" : "Neutral", liq === "easy" ? "bull" : liq === "tightening bias" ? "bear" : ""],
+      ["Rates", rates, /well bid/.test(rates) ? "bull" : /concession/.test(rates) ? "bear" : ""],
+      ["Risk assets", risk === "bullish" ? "BULLISH — the day's operations add liquidity / contain term premium" : risk === "bearish" ? "BEARISH — supply is getting harder to place" : risk === "mixed" ? "Mixed" : "Neutral", toneOf(risk)],
+    ].map(([l, val, cls]) => `<div class="desk-imp ${cls}"><div class="l">${l}</div><div class="v">${esc(val)}</div></div>`).join("");
+    $("desk-bullets").innerHTML = (v.bullets || []).map(x => `<li>${esc(x)}</li>`).join("");
+    const ai = D.today.ai_note;
+    if (ai && ai.what_happened) {
+      $("desk-ai").hidden = false;
+      $("desk-ai").innerHTML = [["What happened", ai.what_happened], ["What it means", ai.what_it_means], ["Watch next", ai.watch_next]]
+        .map(([h, p]) => `<div><h4>${h}</h4><p>${esc(p)}</p></div>`).join("") + `<div style="grid-column:1/-1;font-size:10px;color:var(--fg-4)">Desk note written by ${esc(ai.model || "Claude")} from the computed facts above only · ${ago(ai.generated_at)}</div>`;
+    }
+  }
+
+  function takeBar(a) {
+    const i = a.indirect_pct || 0, d = a.direct_pct || 0, p = a.pd_pct || 0;
+    return `<div class="op-take"><span class="ind" style="width:${i}%"></span><span class="dir" style="width:${d}%"></span><span class="pd" style="width:${p}%"></span></div>
+      <div class="op-take-l"><span>indirect <b>${pct(i)}</b></span><span>direct <b>${pct(d)}</b></span><span>dealers <b>${pct(p)}</b></span>${a.soma ? `<span>SOMA <b>${bn(a.soma)}</b></span>` : ""}</div>`;
+  }
+
+  function auctionCard(a, imp) {
+    const z = a.z || {}, t = a.trailing12 || {};
+    const zc = v => v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "";
+    const tone = imp ? toneOf(imp.tone) : "";
+    return `<div class="op-card ${tone}">
+      <div class="op-head"><span class="t">${esc(a.term)} ${esc(a.type)}${a.reopening ? " (reopen)" : ""}</span><span class="s">${bn(a.total_accepted)} accepted · CUSIP ${esc(a.cusip)}</span><span class="op-grade ${a.grade}" title="demand score ${num(a.demand_score)}">${esc(a.grade)}</span></div>
+      <div class="op-metrics">
+        <div class="op-m"><div class="l">High ${a.type === "Bill" ? "inv. rate" : "yield"}</div><div class="v">${num(a.high_yield, 3)}%</div><div class="z">${a.high_discount_rate != null ? "disc " + num(a.high_discount_rate, 3) + "%" : ""}</div></div>
+        <div class="op-m"><div class="l">Tail vs par</div><div class="v">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1) + "bp"}</div><div class="z ${zc(-(z.tail || 0))}">${z.tail == null ? "" : "z " + zs(z.tail)} ${t.tail_bp != null ? "· avg " + t.tail_bp.toFixed(1) : ""}</div></div>
+        <div class="op-m"><div class="l">Bid-to-cover</div><div class="v">${num(a.btc)}</div><div class="z ${zc(z.btc)}">${z.btc == null ? "" : "z " + zs(z.btc)} ${t.btc != null ? "· avg " + t.btc.toFixed(2) : ""}</div></div>
+        <div class="op-m"><div class="l">Allotted at high</div><div class="v">${pct(a.allocation_pct, 1)}</div><div class="z ${zc(-(z.allocation || 0))}">${z.allocation == null ? "" : "z " + zs(z.allocation)}</div></div>
+      </div>
+      ${takeBar(a)}
+      <div class="op-verdict">${esc(a.verdict)}</div>
+      ${imp ? `<div class="op-imp">Rates: <b class="${toneOf(imp.tone)}">${esc(imp.rates)}</b> · Risk assets: <b class="${toneOf(imp.tone)}">${esc(imp.risk)}</b></div>` : ""}
+    </div>`;
+  }
+
+  function buybackCard(b) {
+    const secs = (b.securities || []).slice(0, 40);
+    return `<div class="op-card buyback ${toneOf(b.implication && b.implication.tone)}">
+      <div class="op-head"><span class="t">Treasury buyback</span><span class="s">${esc(b.maturity_bucket || "")} · ${esc(b.operation_type || "")} · settles ${esc(b.settlement_date || "")}</span></div>
+      <div class="desk-tags">${(b.tags || []).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("")}</div>
+      <div class="op-metrics">
+        <div class="op-m"><div class="l">Maximum</div><div class="v">${bn(b.max_par)}</div></div>
+        <div class="op-m"><div class="l">Offered</div><div class="v">${bn(b.offered)}</div><div class="z">${b.coverage != null ? b.coverage.toFixed(2) + "x accepted" : ""}</div></div>
+        <div class="op-m"><div class="l">Accepted</div><div class="v">${bn(b.accepted)}</div><div class="z">${b.fill_pct != null ? b.fill_pct.toFixed(0) + "% of max" : ""}</div></div>
+        <div class="op-m"><div class="l">Size rank</div><div class="v">${b.size_pctile == null ? "—" : "p" + b.size_pctile}</div><div class="z">${b.n_issues_accepted != null ? b.n_issues_accepted + " CUSIPs" : ""}</div></div>
+      </div>
+      <div class="op-verdict">${esc(b.verdict)}</div>
+      ${b.implication ? `<div class="op-imp">Liquidity: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.liquidity)}</b> · Rates: <b>${esc(b.implication.rates)}</b> · Risk assets: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.risk)}</b></div>` : ""}
+      ${secs.length ? `<details class="op-secs"><summary>${secs.length} securities bought</summary><table style="margin-top:6px"><thead><tr><th>CUSIP</th><th class="r">Coupon</th><th>Maturity</th><th class="r">Par accepted</th><th class="r">Avg price</th></tr></thead><tbody>${secs.map(s => `<tr><td>${esc(s.cusip)}</td><td class="r">${num(s.coupon, 3)}</td><td>${esc(s.maturity)}</td><td class="r">${bn(s.par_accepted)}</td><td class="r">${num(s.price, 3)}</td></tr>`).join("")}</tbody></table></details>` : ""}
+    </div>`;
+  }
+
+  function renderOps(D) {
+    const T = D.today || {};
+    const imps = T.implications || {};
+    const html = (T.buybacks || []).map(buybackCard).join("") + (T.auctions || []).map(a => auctionCard(a, imps[a.cusip])).join("");
+    $("desk-ops").innerHTML = html || `<div style="color:var(--fg-3)">No operations on ${esc(T.date || "the latest day")}.</div>`;
+    $("desk-ops-meta").textContent = `${(T.auctions || []).length} auction${(T.auctions || []).length === 1 ? "" : "s"} · ${(T.buybacks || []).length} buyback${(T.buybacks || []).length === 1 ? "" : "s"} · ${fmtDate(T.date)}`;
+  }
+
+  function renderBuybacks(D) {
+    const B = D.buybacks || {}, P = B.program || {}, ops = (B.operations || []).slice();
+    $("bb-stats").innerHTML = [
+      ["Program total", bn(P.total_accepted), `${P.n_ops || 0} ops since ${P.since || "—"}`],
+      ["This fiscal year", bn(P.fy_accepted), `from ${P.fy_start || "—"}`],
+      ["Last 4 weeks", bn(P.last_4w_accepted), "accepted par"],
+      ["Average fill", pct(P.avg_fill_pct, 0), "accepted / maximum"],
+    ].map(([l, v, n]) => `<div class="desk-stat"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${esc(n)}</div></div>`).join("");
+    const rows = ops.filter(o => o.accepted != null).sort((a, b) => a.operation_date < b.operation_date ? -1 : 1).slice(-40);
+    const svg = $("bb-chart");
+    if (rows.length) {
+      const W = 720, H = 190, padL = 44, padR = 44, padT = 12, padB = 26;
+      const maxAcc = Math.max(...rows.map(r => r.accepted)) || 1;
+      let cum = 0; const cums = rows.map(r => (cum += r.accepted));
+      const maxCum = cums[cums.length - 1] || 1;
+      const bw = (W - padL - padR) / rows.length;
+      const y1 = v => padT + (H - padT - padB) * (1 - v / maxAcc);
+      const y2 = v => padT + (H - padT - padB) * (1 - v / maxCum);
+      const bars = rows.map((r, i) => `<rect x="${(padL + i * bw + 1).toFixed(1)}" y="${y1(r.accepted).toFixed(1)}" width="${Math.max(2, bw - 2).toFixed(1)}" height="${(H - padB - y1(r.accepted)).toFixed(1)}" fill="${r.liquidity_signal === "strong" ? "#22c55e" : "#a78bfa"}" opacity="${i === rows.length - 1 ? 1 : .75}"><title>${r.operation_date} ${esc(r.maturity_bucket || "")}: ${bn(r.accepted)} of ${bn(r.max_par)} (${r.fill_pct != null ? r.fill_pct.toFixed(0) : "—"}% fill)</title></rect>`).join("");
+      const line = cums.map((c, i) => `${i ? "L" : "M"}${(padL + i * bw + bw / 2).toFixed(1)},${y2(c).toFixed(1)}`).join(" ");
+      const ticks = [0, .5, 1].map(f => `<text x="${padL - 6}" y="${(y1(f * maxAcc) + 4).toFixed(1)}" font-size="9" fill="#6b7a92" text-anchor="end">${bn(f * maxAcc)}</text>`).join("")
+        + [0, .5, 1].map(f => `<text x="${W - padR + 6}" y="${(y2(f * maxCum) + 4).toFixed(1)}" font-size="9" fill="#a78bfa">${bn(f * maxCum)}</text>`).join("");
+      const xl = [0, Math.floor(rows.length / 2), rows.length - 1].map(i => `<text x="${(padL + i * bw + bw / 2).toFixed(1)}" y="${H - 8}" font-size="9" fill="#6b7a92" text-anchor="middle">${rows[i].operation_date}</text>`).join("");
+      svg.innerHTML = `<line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="rgba(120,145,180,.3)"/>${bars}<path d="${line}" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3 3"/>${ticks}${xl}<text x="${padL}" y="${padT}" font-size="9" fill="#6b7a92">accepted par per operation (bars) · program cumulative (dashed)</text>`;
+    }
+    $("bb-table").innerHTML = ops.slice(0, 14).map(o => `<tr><td class="tk">${esc(o.operation_date)}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(o.max_par)}</td><td class="r">${bn(o.offered)}</td><td class="r"><b>${bn(o.accepted)}</b></td><td class="r">${pct(o.fill_pct, 0)}</td><td class="r">${o.coverage != null ? o.coverage.toFixed(2) + "x" : "—"}</td><td>${(o.tags || []).filter(t => /EASY|INJECTION|MAX/.test(t)).map(t => `<span class="pill" style="background:var(--green-soft);color:var(--green);margin-right:4px">${esc(t)}</span>`).join("") || "<span class=\"flat\">routine</span>"}</td></tr>`).join("") || `<tr><td colspan="9" class="flat">No buyback operations in the feed.</td></tr>`;
+  }
+
+  function renderCalendar(D) {
+    const C = D.calendar || {};
+    const rows = (C.auctions || []).map(a => `<tr class="cal-row"><td class="tk">${fmtDate(a.auction_date)}</td><td>${esc(a.term)} ${esc(a.type)}${a.reopening ? '<span class="rx">REOPEN</span>' : ""}</td><td class="r">${bn(a.offering)}</td><td>${esc(a.issue_date || "")}</td></tr>`);
+    (C.buybacks || []).forEach(b => rows.push(`<tr class="cal-row"><td class="tk">${fmtDate(b.operation_date)}</td><td>Buyback · ${esc(b.maturity_bucket || "")}</td><td class="r">${bn(b.max_par)}</td><td>${esc(b.settlement_date || "")}</td></tr>`));
+    $("cal-table").innerHTML = rows.join("") || `<tr><td colspan="4" class="flat">Nothing announced yet.</td></tr>`;
+  }
+
+  function renderDays(D) {
+    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${(v.tags || []).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
+  }
+
+  let tapeFilter = "All";
+  function renderTape(D) {
+    const all = D.auctions || [];
+    const types = ["All", ...new Set(all.map(a => a.type))];
+    $("tape-filters").innerHTML = types.map(t => `<button class="${t === tapeFilter ? "active" : ""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+    $("tape-filters").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { tapeFilter = b.dataset.t; renderTape(D); }));
+    const rows = all.filter(a => tapeFilter === "All" || a.type === tapeFilter).slice(0, 80);
+    $("tape-meta").textContent = `${all.length} auctions in the bank window · ${D.freshness.bank_records || 0} records banked`;
+    $("desk-tape").innerHTML = rows.map(a => `<tr><td class="tk">${esc(a.auction_date)}</td><td>${esc(a.term)} ${esc(a.type)}${a.reopening ? '<span class="rx" style="color:var(--purple);font-size:9px;margin-left:5px">R</span>' : ""}</td><td class="r">${bn(a.total_accepted)}</td><td class="r">${num(a.high_yield, 3)}</td><td class="r"><span class="${a.tail_bp == null ? "flat" : a.tail_bp > 0.3 ? "neg" : a.tail_bp < -0.3 ? "pos" : "flat"}">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1)}</span></td><td class="r">${num(a.btc)}</td><td class="r"><span class="${(a.z && a.z.btc) > 0.5 ? "pos" : (a.z && a.z.btc) < -0.5 ? "neg" : "flat"}">${a.z && a.z.btc != null ? zs(a.z.btc) : "—"}</span></td><td class="r">${pct(a.indirect_pct)}</td><td class="r">${pct(a.pd_pct)}</td><td class="r">${pct(a.direct_pct)}</td><td class="r">${pct(a.allocation_pct, 1)}</td><td class="r"><span class="grade-pill ${a.grade}">${esc(a.grade)}</span></td></tr>`).join("");
+  }
+
+  function renderTenors(D) {
+    const T = D.by_term || {};
+    const order = Object.keys(T).sort((a, b) => T[b].length - T[a].length).slice(0, 8);
+    $("tenor-grid").innerHTML = order.map(k => {
+      const pts = T[k].slice(0, 24).reverse().filter(p => p.btc != null);
+      if (!pts.length) return "";
+      const W = 260, H = 64, min = Math.min(...pts.map(p => p.btc)) * .97, max = Math.max(...pts.map(p => p.btc)) * 1.03;
+      const x = i => 4 + i * (W - 8) / Math.max(pts.length - 1, 1), y = v => H - 4 - (H - 10) * (v - min) / Math.max(max - min, 1e-6);
+      const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.btc).toFixed(1)}`).join(" ");
+      const avg = pts.slice(-12).reduce((s, p) => s + p.btc, 0) / Math.min(12, pts.length);
+      const last = pts[pts.length - 1];
+      return `<div class="tenor-card"><div class="t">${esc(k)}<span>last ${last.btc.toFixed(2)} · 12-avg ${avg.toFixed(2)} · <b class="grade-pill ${last.grade}">${esc(last.grade)}</b></span></div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="4" y1="${y(avg).toFixed(1)}" x2="${W - 4}" y2="${y(avg).toFixed(1)}" stroke="#6b7a92" stroke-dasharray="3 3"/><path d="${path}" fill="none" stroke="#06b6d4" stroke-width="1.6"/>${pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.btc).toFixed(1)}" r="1.8" fill="${p.grade === "A" || p.grade === "B" ? "#22c55e" : p.grade === "D" || p.grade === "F" ? "#ef4444" : "#6b7a92"}"><title>${p.d} · BTC ${p.btc.toFixed(2)} · grade ${p.grade}${p.tail != null ? " · tail " + p.tail.toFixed(1) + "bp" : ""}</title></circle>`).join("")}</svg></div>`;
+    }).join("");
+    const m = D.methodology || {};
+    $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Tail: ${esc(m.tail_proxy || "")}. Buyback signal: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
+  }
+
+  async function load() {
+    let D = null;
+    for (const u of [FEED, FEED_S3]) {
+      try { const r = await fetch(u + "?t=" + Math.floor(Date.now() / 60000)); if (r.ok) { D = await r.json(); break; } } catch (e) {}
+    }
+    if (!D) { $("desk-headline").textContent = "Auction desk feed unavailable — the engine has not published yet."; return; }
+    window.__AUCTION_DESK = D;
+    renderBanner(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
+  }
+  document.addEventListener("DOMContentLoaded", load);
+})();
+</script>
 
 <!-- ─────────── HERO: live composite score + interpretation ─────────── -->
 <div class="hero">

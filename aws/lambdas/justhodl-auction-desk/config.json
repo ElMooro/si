@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-auction-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Treasury auction desk v1.0 (ops 5180): same-day TreasuryDirect results + FiscalData buybacks, 3y history bank, per-operation grades vs trailing-12 stats (bid-to-cover, indirect/dealer share, tail vs prior par curve), day verdict with liquidity/rates/risk-asset implications, grounded AI note. data/auction-desk.json",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "inherit_env": {"from_function": "justhodl-auction-interpreter", "keys": ["ANTHROPIC_API_KEY"]}
+}
