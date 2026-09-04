@@ -55,7 +55,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
 TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
@@ -263,6 +263,26 @@ def treasury_par():
     return out
 
 
+def bundesbank_bbsis(code="R10XX"):
+    """Bundesbank BBSIS daily listed Federal securities yields by residual maturity (R02XX 2Y, R10XX 10Y, R30XX 30Y);
+    CSV is ';' separated with ',' decimals and a metadata header (verified ops 5190)."""
+    try:
+        raw = _get("https://api.statistiken.bundesbank.de/rest/data/BBSIS/D.I.ZAR.ZI.EUR.S1311.B.A604.%s.R.A.A._Z._Z.A?format=csv&lastNObservations=1500" % code, timeout=40, binary=True)
+        ds, cs = [], []
+        for ln in raw.decode("utf-8", "ignore").splitlines():
+            parts = ln.split(";")
+            if len(parts) < 2 or len(parts[0]) != 10 or parts[0][4] != "-":
+                continue
+            v = _f(parts[1].replace(",", "."))
+            if v is not None:
+                ds.append(parts[0])
+                cs.append(v)
+        return _order(ds, cs) if cs else None
+    except Exception as e:
+        print("[warroom] bundesbank bbsis:", str(e)[:120])
+        return None
+
+
 def boe_gilts():
     """Bank of England nominal par gilt yields: IUDSNPY 5y, IUDMNZC 10y, IUDLNPY 20y (daily CSV)."""
     try:
@@ -350,32 +370,24 @@ def rba_f2():
 
 
 def snb_curve():
-    """SNB rendoblid: spot yields on Swiss Confederation bonds (2J, 10J), daily since 1988."""
+    """SNB rendoblid CSV cube ("Date";"D0";"Value", daily since 1988): spot yields on Swiss Confederation bonds, 2J / 5J / 10J."""
     try:
+        raw = _get("https://data.snb.ch/api/cube/rendoblid/data/csv/en", timeout=60, binary=True)
+        want = {"2J": "CH02Y", "5J": "CH05Y", "10J": "CH10Y"}
+        acc = {k: ([], []) for k in want.values()}
         since = (_now() - timedelta(days=2200)).date().isoformat()
-        body = _get("https://data.snb.ch/api/cube/rendoblid/data/json/en?fromDate=%s" % since, timeout=60)
-        out = {}
-        want = {"2J": "CH02Y", "10J": "CH10Y", "5J": "CH05Y"}
-        for ts in body.get("timeseries") or []:
-            tenor = None
-            for h in ts.get("header") or []:
-                if str(h.get("dimItem")) in want or str(h.get("dimItem", "")).split(" ")[0] in want:
-                    tenor = str(h.get("dimItem")).split(" ")[0]
-            if not tenor:
+        for ln in raw.decode("utf-8-sig", "ignore").splitlines():
+            parts = [x.strip().strip('"') for x in ln.split(";")]
+            if len(parts) < 3 or len(parts[0]) != 10 or parts[0] < since or parts[1] not in want:
                 continue
-            ds, cs = [], []
-            for v in ts.get("values") or []:
-                val = _f(v.get("value"))
-                if val is not None and v.get("date"):
-                    ds.append(v["date"][:10])
-                    cs.append(val)
-            if len(cs) > 40:
-                out[want[tenor]] = _order(ds, cs)
-        return out
+            v = _f(parts[2])
+            if v is not None:
+                acc[want[parts[1]]][0].append(parts[0])
+                acc[want[parts[1]]][1].append(v)
+        return {k: _order(ds, cs) for k, (ds, cs) in acc.items() if len(cs) > 40}
     except Exception as e:
         print("[warroom] snb:", str(e)[:120])
         return {}
-
 
 OFFICIAL = {  # key: (label, group, thresh kind)
     "US02Y": ("US 2Y", "us", "yield_us"), "US05Y": ("US 5Y", "us", "yield_us"), "US07Y": ("US 7Y", "us", "yield_us"), "US10Y": ("US 10Y", "us", "yield_us"),
@@ -396,11 +408,13 @@ def official_histories():
         return {("US%02dY" % int(t[:-1])): ser for t, ser in par.items() if t.endswith("Y") and t != "1Y"}, "treasury.gov par curve"
     def de():
         r = {}
-        for code, key in (("WT0202", "DE02Y"), ("WT1010", "DE10Y"), ("WT3030", "DE30Y")):
-            ser = bundesbank(code)
+        for code, key in (("R02XX", "DE02Y"), ("R10XX", "DE10Y"), ("R30XX", "DE30Y")):
+            ser = bundesbank_bbsis(code)
+            if not (ser and len(ser["closes"]) > 40) and key == "DE10Y":
+                ser = bundesbank("WT1010")
             if ser and len(ser["closes"]) > 40:
                 r[key] = ser
-        return r, "Bundesbank BBSSY"
+        return r, "Bundesbank"
     jobs = [us, de, lambda: (boe_gilts(), "Bank of England"), lambda: (boc_valet(), "Bank of Canada Valet"), lambda: (rba_f2(), "RBA F2"), lambda: (snb_curve(), "SNB rendoblid")]
     with ThreadPoolExecutor(max_workers=6) as ex:
         for res in ex.map(lambda f: f(), jobs):
