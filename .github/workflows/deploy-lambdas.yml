@@ -164,15 +164,7 @@ jobs:
             # runs its deterministic scoring suite without a pytest dependency.
             python3 -m py_compile "$dir/source/"*.py
             if [ "$(basename "$dir")" = "justhodl-khalid" ]; then
-              TEST_FILE="$dir/tests/test_scoring.py" python3 - <<'PY'
-          import os
-          import runpy
-          scope = runpy.run_path(os.environ["TEST_FILE"])
-          tests = sorted((name, fn) for name, fn in scope.items() if name.startswith("test_") and callable(fn))
-          for name, fn in tests:
-              fn()
-          print(f"Khalid scoring tests passed: {len(tests)}")
-          PY
+              python3 "$dir/tests/run_tests.py"
             fi
 
             # Read config (function_name + create-time config like runtime/timeout/memory/env)
@@ -434,60 +426,8 @@ jobs:
             # the stable live alias. Its schedule below targets only that alias,
             # so a failed candidate cannot replace the last known-good version.
             if [ "$fn" = "justhodl-khalid" ]; then
-              echo "Invoking Khalid candidate and validating its published artifact"
-              aws lambda invoke \
-                --function-name "$fn" \
-                --region "${{ secrets.AWS_REGION }}" \
-                --cli-read-timeout 310 \
-                "$tmp/khalid-invoke.json" > "$tmp/khalid-invoke-meta.json"
-              if [ "$(jq -r '.FunctionError // empty' "$tmp/khalid-invoke-meta.json" 2>/dev/null)" != "" ]; then
-                echo "::error::Khalid candidate returned FunctionError; live alias and schedule are unchanged"
-                cat "$tmp/khalid-invoke.json"
-                exit 1
-              fi
-              aws s3 cp \
-                "s3://justhodl-dashboard-live/data/khalid.json" \
-                "$tmp/khalid.json" \
-                --region "${{ secrets.AWS_REGION }}" > /dev/null
-              KHALID_ARTIFACT="$tmp/khalid.json" python3 - <<'PY'
-          import json
-          import os
-          path = os.environ["KHALID_ARTIFACT"]
-          with open(path, encoding="utf-8") as handle:
-              data = json.load(handle)
-          required = {
-              "engine", "schema_version", "generated_at", "status", "score",
-              "stance", "risk_score", "confidence", "coverage", "domains",
-              "asset_views", "inputs", "methodology", "panels",
-          }
-          missing = sorted(required - set(data))
-          if missing:
-              raise SystemExit(f"Khalid artifact missing keys: {missing}")
-          if data["engine"] != "justhodl-khalid":
-              raise SystemExit(f"Unexpected engine identity: {data['engine']}")
-          if data["status"] not in {"OK", "DEGRADED", "NO_DATA"}:
-              raise SystemExit(f"Unexpected Khalid status: {data['status']}")
-          if not isinstance(data["panels"], dict) or "overview" not in data["panels"]:
-              raise SystemExit("Khalid homepage panel is missing")
-          print("Khalid candidate artifact contract passed")
-          PY
-              candidate_version=$(aws lambda publish-version \
-                --function-name "$fn" \
-                --region "${{ secrets.AWS_REGION }}" \
-                --query 'Version' --output text)
-              if aws lambda get-alias --function-name "$fn" --name live --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
-                aws lambda update-alias \
-                  --function-name "$fn" --name live \
-                  --function-version "$candidate_version" \
-                  --region "${{ secrets.AWS_REGION }}" --output text > /dev/null
-              else
-                aws lambda create-alias \
-                  --function-name "$fn" --name live \
-                  --function-version "$candidate_version" \
-                  --description "Last schema-validated Khalid release" \
-                  --region "${{ secrets.AWS_REGION }}" --output text > /dev/null
-              fi
-              echo "  ✅ Khalid live alias promoted to version $candidate_version"
+              bash scripts/deploy_khalid_candidate.sh \
+                "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir"
             fi
 
             # ── EventBridge schedule (if config.json has .schedule) ──
