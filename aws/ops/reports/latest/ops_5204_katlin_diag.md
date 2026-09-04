@@ -1,0 +1,64 @@
+# ops 5204 -- KATLIN diagnostics
+
+**Status:** success  
+**Duration:** 1.6s  
+**Finished:** 2026-09-04T18:58:01+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `18:57:59`    fn justhodl-katlin state=Active mem=8192 timeout=900 env=['FMP_KEY', 'POLYGON_API_KEY'] codesize=144690
+- `18:58:00`    33 log events in the last 4h
+## every invocation: START / REPORT / errors
+
+- `18:58:00`    30 relevant lines
+- `18:58:00`    ---- 18:01:35 START RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794 Version: $LATEST
+- `18:58:00`    18:01:38 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:01:38 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:01:38 END RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794
+- `18:58:00`    18:01:38 REPORT RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794	Duration: 3117.71 ms	Billed Duration: 3637 ms	Memory Size: 8192 MB	Max Memory Used: 231 MB	Init Duration: 519.14 ms
+- `18:58:00`    ---- 18:02:38 START RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794 Version: $LATEST
+- `18:58:00`    18:02:41 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:02:41 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:02:41 END RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794
+- `18:58:00`    18:02:41 REPORT RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794	Duration: 3023.23 ms	Billed Duration: 3608 ms	Memory Size: 8192 MB	Max Memory Used: 231 MB	Init Duration: 584.52 ms
+- `18:58:00`    ---- 18:04:56 START RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794 Version: $LATEST
+- `18:58:00`    18:04:59 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:04:59 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:04:59 END RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794
+- `18:58:00`    18:04:59 REPORT RequestId: 76ffba86-1332-4cc6-b2d2-04044ca54794	Duration: 3194.39 ms	Billed Duration: 3195 ms	Memory Size: 8192 MB	Max Memory Used: 295 MB
+- `18:58:00`    ---- 18:40:07 START RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936 Version: $LATEST
+- `18:58:00`    18:40:10 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:40:10 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:40:10 END RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936
+- `18:58:00`    18:40:10 REPORT RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936	Duration: 3739.47 ms	Billed Duration: 4308 ms	Memory Size: 8192 MB	Max Memory Used: 231 MB	Init Duration: 567.57 ms	 | XRAY TraceId: 1-6a9b1086-5291dc9d01013de1185a7185	SegmentId: d0761476ac71543b	Sampled: true
+- `18:58:00`    ---- 18:41:12 START RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936 Version: $LATEST
+- `18:58:00`    18:41:15 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:41:15 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:41:15 END RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936
+- `18:58:00`    18:41:15 REPORT RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936	Duration: 3197.59 ms	Billed Duration: 3198 ms	Memory Size: 8192 MB	Max Memory Used: 295 MB	 | XRAY TraceId: 1-6a9b1086-5291dc9d01013de1185a7185	SegmentId: 71ad997913d936b6	Sampled: true
+- `18:58:00`    ---- 18:43:26 START RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936 Version: $LATEST
+- `18:58:00`    18:43:29 [katlin] feed miss data/katlin-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `18:58:00`    18:43:29 [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict' | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2812, in lambda_handler |     F = load_feeds() |   File "/var/task/lambda_function.py", line 1476, in load_feeds |     for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_botto
+- `18:58:00`    18:43:29 END RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936
+- `18:58:00`    18:43:29 REPORT RequestId: 72a5bb04-4955-44e5-bdb4-7ef2b0469936	Duration: 3038.56 ms	Billed Duration: 3039 ms	Memory Size: 8192 MB	Max Memory Used: 295 MB	 | XRAY TraceId: 1-6a9b1086-5291dc9d01013de1185a7185	SegmentId: 5e35af3d9eaae85a	Sampled: true
+## last traceback (verbatim)
+
+- `18:58:00`    [ERROR] TypeError: unsupported operand type(s) for +: 'dict' and 'dict'
+- `18:58:00`    Traceback (most recent call last):
+- `18:58:00`      File "/var/task/lambda_function.py", line 2812, in lambda_handler
+- `18:58:00`        F = load_feeds()
+- `18:58:00`      File "/var/task/lambda_function.py", line 1476, in load_feeds
+- `18:58:00`        for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_bottoms") or []):
+## S3 state of Katlin's lanes
+
+- `18:58:00`    data/warm/katlin/crypto-bars/         0 objects, 0.0 MB, newest None
+- `18:58:00`    data/warm/katlin/intraday-4h/         0 objects, 0.0 MB, newest None
+- `18:58:01`    data/katlin/history/                  0 objects, 0.0 MB, newest None
+- `18:58:01`    data/katlin                           0 objects, 0.0 MB, newest None
+- `18:58:01`    data/katlin.json: An error occurred (404) when calling the HeadObject operation: Not Found
+- `18:58:01` ✅    diagnostics captured
