@@ -69,7 +69,7 @@ def verify_artifacts() -> None:
         raise ValueError("settlement-fails is missing the normalized treasury block")
     if treasury.get("scope") != "US_TREASURY_INCLUDING_TIPS":
         raise ValueError("settlement-fails Treasury scope is not including TIPS")
-    for field in ("ftd_bn", "ftr_bn", "gross_fail_activity_bn", "completeness"):
+    for field in ("ftd_bn", "ftr_bn", "gross_bn", "completeness"):
         if field not in treasury:
             raise ValueError(f"settlement-fails Treasury block is missing {field}")
 
