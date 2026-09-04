@@ -3184,7 +3184,7 @@ def lambda_handler(event=None, context=None):
     base_rates = snapshot_and_base_rates(rows, bars, dates, session)
     published = [r for r in rows if r["tier"] != "SCREENED"]
     tiers = {t: sum(1 for r in rows if r["tier"] == t) for t in TIER_ORDER}
-    gates = {g: sum(1 for r in rows if r["gates"].get(g)) for g in ("location", "oversold", "accumulation", "inflows", "structure", "catalyst", "not_knife", "quality")}
+    gates = {g: sum(1 for r in rows if r["gates"].get(g)) for g in ("location", "washout", "oversold", "accumulation", "inflows", "structure", "catalyst", "not_knife", "quality")}
     top_picks = [{"ticker": r["ticker"], "score": r.get("composite"), "tier": r["tier"], "asset_class": r["asset_class"]} for r in rows if r["tier"] in ("KATLIN_PRIME", "READY")][:50]
     out = {"engine": ENGINE, "version": VERSION, "schema": "1.0", "generated_at": now_iso(), "as_of": session, "session": session, "elapsed_s": rnd(time.time() - t0, 1),
            "war_room": wr, "market": {k: rnd(v, 2) if isinstance(v, float) else v for k, v in mkt.items()},
