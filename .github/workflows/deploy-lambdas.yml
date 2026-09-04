@@ -426,8 +426,11 @@ jobs:
             # the stable live alias. Its schedule below targets only that alias,
             # so a failed candidate cannot replace the last known-good version.
             if [ "$fn" = "justhodl-khalid" ]; then
-              bash scripts/deploy_khalid_candidate.sh \
-                "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir"
+              if ! bash scripts/deploy_khalid_candidate.sh \
+                "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir"; then
+                echo "::error::Khalid validation or promotion failed"
+                exit 1
+              fi
             fi
 
             # ── EventBridge schedule (if config.json has .schedule) ──

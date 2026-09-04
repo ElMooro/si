@@ -502,7 +502,10 @@ def test_release_validation_is_read_only_until_alias_promotion():
     first_authoritative_write = handler.index("_write(OUT_KEY, output)")
     assert validation_branch < first_authoritative_write
     assert '"validation_only": True' in handler
+    assert '"artifact_size_bytes": encoded_size' in handler
+    assert '"artifact": output' not in handler
     assert release.index('"mode":"validate_only"') < release.index("publish-version")
+    assert '.schema_version == "2.0.0"' in release
     assert release.index('function-name "${fn}:live"') > release.index("update-alias")
     assert "rollback_alias" in release
     assert "data/khalid-candidates.json" in release

@@ -22,9 +22,14 @@ if [ "$(jq -r '.FunctionError // empty' "$tmp/khalid-invoke-meta.json" 2>/dev/nu
 fi
 
 jq -r '.body' "$tmp/khalid-invoke.json" \
-  | jq -e 'select(.validation_only == true) | .artifact' \
-  > "$tmp/khalid.json"
-python3 "$dir/tests/validate_artifact.py" "$tmp/khalid.json"
+  | jq -e 'select(
+      .ok == true
+      and .validation_only == true
+      and .schema_version == "2.0.0"
+      and (.status == "OK" or .status == "DEGRADED" or .status == "NO_DATA")
+      and (.opportunities_tracked | type == "number")
+      and (.artifact_size_bytes | type == "number")
+    )' > "$tmp/khalid-validation-summary.json"
 
 candidate_version=$(aws lambda publish-version \
   --function-name "$fn" \

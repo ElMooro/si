@@ -795,12 +795,16 @@ def lambda_handler(event, context):
     candidate_ledger = output.pop("_candidate_ledger")
     validate_output(output)
     if validation_only:
+        encoded_size = len(json.dumps(output, separators=(",", ":"), allow_nan=False).encode())
         return {
             "statusCode": 200,
             "body": json.dumps({
                 "ok": True,
                 "validation_only": True,
-                "artifact": output,
+                "schema_version": output["schema_version"],
+                "status": output["status"],
+                "opportunities_tracked": output["decision"]["opportunities_tracked"],
+                "artifact_size_bytes": encoded_size,
             }),
         }
     _write(OUT_KEY, output)
