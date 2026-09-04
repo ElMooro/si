@@ -1,4 +1,4 @@
-"""ops_5193 -- bond war room v1.1.0 (TradingView scanner + bank, MOF history, Bundesbank, ECB) -- redeploy + verify. Original launch: (global bond heartbeat) + verify the war room on bonds.html.
+"""ops_5194 -- bond war room v1.1.0 (TradingView scanner + bank, MOF history, Bundesbank, ECB) -- redeploy + verify. Original launch: (global bond heartbeat) + verify the war room on bonds.html.
 Creates the function directly (the deploy workflow does not create new functions), runs it, asserts
 the feed (TradingView yields for the main bond centers, MOF JGB curve, ICE BofA family, MOVE/ETFs,
 verdicts), arms the schedules (America/New_York, Mon-Fri) and drives the page in Chrome."""
@@ -25,8 +25,8 @@ s3 = boto3.client("s3", region_name="us-east-1", config=CFG)
 SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
 FAILS = []
 
-with report("ops_5193_bond_warroom_launch") as R:
-    R.heading("ops 5193 -- bond war room v1.2.1 -- Bundesbank 2Y/30Y, SNB, nav overflow")
+with report("ops_5194_bond_warroom_launch") as R:
+    R.heading("ops 5194 -- bond war room v1.2.2 -- SNB dropped (stale), true overflow hunter")
     cfg_json = json.loads((ROOT / "aws" / "lambdas" / FN / "config.json").read_text())
     create_or_update_lambda(report=R, function_name=FN, zip_bytes=build_zip(ROOT / "aws" / "lambdas" / FN / "source"),
                             env_vars=cfg_json.get("env") or {}, timeout=int(cfg_json.get("timeout") or 240), memory=int(cfg_json.get("memory") or 1024),
@@ -61,9 +61,9 @@ with report("ops_5193_bond_warroom_launch") as R:
     for k in ("US02Y", "US10Y", "US30Y", "DE02Y", "DE10Y", "DE30Y", "GB10Y", "CA10Y", "AU10Y", "CH10Y", "JP10Y", "BTP-Bund", "IT-ES"):
         r = allrows.get(k)
         R.log("   %-9s %s hist=%s z=%s z_ready=%s dod=%s dod%%=%s flag=%s src=%s" % (k, r and r["last"], r and r.get("history_days"), r and r.get("z"), r and r.get("z_ready"), r and r.get("dod"), r and r.get("dod_pct"), r and r["flag"], r and r["source"][:40]))
-        if k in ("US10Y", "DE02Y", "DE10Y", "DE30Y", "GB10Y", "CA10Y", "AU10Y", "CH10Y", "JP10Y") and not (r and r.get("z_ready")):
+        if k in ("US10Y", "DE02Y", "DE10Y", "DE30Y", "GB10Y", "CA10Y", "AU10Y", "JP10Y") and not (r and r.get("z_ready")):
             FAILS.append("%s has no real history (z not ready)" % k)
-    if (D.get("freshness") or {}).get("official_n", 0) < 22:
+    if (D.get("freshness") or {}).get("official_n", 0) < 20:
         FAILS.append("official histories thin: %s" % (D.get("freshness") or {}).get("official_n"))
     jc = D.get("jgb_curve") or {}
     R.log("   MOF JGB curve %s tenors=%s err=%s" % (jc.get("today"), len(jc.get("curve") or []), jc.get("error")))
@@ -79,10 +79,10 @@ with report("ops_5193_bond_warroom_launch") as R:
         tgt = {"Arn": cfg["FunctionArn"], "RoleArn": SCHED_ROLE, "Input": "{}", "RetryPolicy": {"MaximumRetryAttempts": 1}}
         try:
             sch.get_schedule(Name=name, GroupName="default")
-            sch.update_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5193)")
+            sch.update_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5194)")
             R.ok("   %s updated %s ET" % (name, expr))
         except sch.exceptions.ResourceNotFoundException:
-            sch.create_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5193)")
+            sch.create_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5194)")
             R.ok("   %s created %s ET" % (name, expr))
         except Exception as e:
             FAILS.append("schedule %s: %s" % (name, str(e)[:100]))
@@ -91,8 +91,8 @@ with report("ops_5193_bond_warroom_launch") as R:
     live = False
     for _ in range(40):
         try:
-            with urllib.request.urlopen(urllib.request.Request("https://justhodl.ai/bonds.html", headers={"User-Agent": "ops5193", "Cache-Control": "no-cache"}), timeout=30) as r:
-                live = b".nav-links { min-width:0; }" in r.read()
+            with urllib.request.urlopen(urllib.request.Request("https://justhodl.ai/bonds.html", headers={"User-Agent": "ops5194", "Cache-Control": "no-cache"}), timeout=30) as r:
+                live = b"hunter-v2" in r.read()
         except Exception:
             live = False
         if live:
@@ -123,14 +123,15 @@ with report("ops_5193_bond_warroom_launch") as R:
                     panels: document.querySelectorAll('#wr-grid .wr-panel').length, rows: document.querySelectorAll('#wr-grid tbody tr').length, flags: document.querySelectorAll('#wr-grid .wr-flag').length,
                     reds: document.querySelectorAll('#wr-grid .wr-flag.RED').length, jgb: document.querySelectorAll('.wr-jgb div').length, auction: document.querySelector('#wr-auction .h').textContent.slice(0, 80),
                     regimeBanner: !!document.getElementById('regime-banner'), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth })""")
-                pg.screenshot(path=str(SHOTS / f"ops5193_bonds_warroom_{width}.png"))
+                pg.screenshot(path=str(SHOTS / f"ops5194_bonds_warroom_{width}.png"))
                 R.log("   %4dpx: %s errors=%s" % (width, json.dumps(facts)[:420], errors[:2]))
                 if facts["panels"] < 6 or facts["rows"] < 30 or facts["score"] in ("—", "") or errors or not facts["regimeBanner"]:
                     FAILS.append("%dpx render: %s errors=%s" % (width, json.dumps(facts)[:200], errors[:2]))
                 if width == 390 and facts["overflow"] > 0:
                     offenders = pg.evaluate("""() => { const cw = document.documentElement.clientWidth; const out = [];
-                        for (const el of document.querySelectorAll('body *')) { const r = el.getBoundingClientRect(); if (r.right > cw + 1 && r.width > 40) out.push([el.tagName + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ').slice(0,2).join('.') : ''), Math.round(r.right - cw), Math.round(r.width)]); }
-                        return out.sort((a, b) => b[1] - a[1]).slice(0, 12); }""")
+                        const clipped = el => { for (let a = el.parentElement; a; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'hidden' || ox === 'scroll' || ox === 'clip') return true; } return false; };
+                        for (const el of document.querySelectorAll('body *')) { const r = el.getBoundingClientRect(); if (r.right > cw + 1 && r.width > 20 && !clipped(el)) { const cs = getComputedStyle(el); out.push([el.tagName + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ').slice(0,2).join('.') : ''), Math.round(r.right - cw), Math.round(r.width), cs.position, Math.round(r.left)]); } }
+                        return { body: document.body.scrollWidth, html: document.documentElement.scrollWidth, cw, top: out.sort((a, b) => b[1] - a[1]).slice(0, 10) }; }""")
                     R.log("   390px overflow offenders (element, px past edge, width): %s" % json.dumps(offenders))
                     FAILS.append("390px overflow %dpx" % facts["overflow"])
                 ctx.close()

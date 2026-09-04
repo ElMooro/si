@@ -55,7 +55,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
 TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
@@ -415,7 +415,7 @@ def official_histories():
             if ser and len(ser["closes"]) > 40:
                 r[key] = ser
         return r, "Bundesbank"
-    jobs = [us, de, lambda: (boe_gilts(), "Bank of England"), lambda: (boc_valet(), "Bank of Canada Valet"), lambda: (rba_f2(), "RBA F2"), lambda: (snb_curve(), "SNB rendoblid")]
+    jobs = [us, de, lambda: (boe_gilts(), "Bank of England"), lambda: (boc_valet(), "Bank of Canada Valet"), lambda: (rba_f2(), "RBA F2")]   # SNB rendoblid dropped: cube last published 2025-07-31 (stale a year) -- CH stays on the scanner bank
     with ThreadPoolExecutor(max_workers=6) as ex:
         for res in ex.map(lambda f: f(), jobs):
             r, name = res
