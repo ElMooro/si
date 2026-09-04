@@ -2,12 +2,54 @@
  "schema": 2,
  "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this.",
  "blocks": [
-  {"type": "section", "page": "bonds", "sec": "1", "w": 3, "title": "Global bond war room"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 1},
-  {"type": "engine", "ref": "bond-warroom", "panel": "japan", "w": 1},
-  {"type": "engine", "ref": "bond-warroom", "panel": "credit", "w": 1},
-  {"type": "engine", "ref": "bond-warroom", "panel": "europe_spreads", "w": 1},
-  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1},
-  {"type": "engine", "ref": "auction-desk", "panel": "", "w": 1}
+  {
+   "type": "section",
+   "page": "bonds",
+   "sec": "2",
+   "w": 3,
+   "title": "Global bond war room"
+  },
+  {
+   "type": "engine",
+   "ref": "bond-warroom",
+   "panel": "us_rates",
+   "w": 1,
+   "feed": "data/bond-warroom.json"
+  },
+  {
+   "type": "engine",
+   "ref": "bond-warroom",
+   "panel": "japan",
+   "w": 1,
+   "feed": "data/bond-warroom.json"
+  },
+  {
+   "type": "engine",
+   "ref": "bond-warroom",
+   "panel": "credit",
+   "w": 1,
+   "feed": "data/bond-warroom.json"
+  },
+  {
+   "type": "engine",
+   "ref": "bond-warroom",
+   "panel": "europe_spreads",
+   "w": 1,
+   "feed": "data/bond-warroom.json"
+  },
+  {
+   "type": "engine",
+   "ref": "bond-warroom",
+   "panel": "volatility",
+   "w": 1,
+   "feed": "data/bond-warroom.json"
+  },
+  {
+   "type": "engine",
+   "ref": "auction-desk",
+   "panel": "",
+   "w": 1,
+   "feed": "data/auction-desk.json"
+  }
  ]
 }

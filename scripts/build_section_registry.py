@@ -83,7 +83,7 @@ def crawl(base, pages, workers=4, settle_ms=4500, per_page_timeout=45000, log=pr
             except Exception:
                 pass
             pg.wait_for_timeout(settle_ms)
-            data = pg.evaluate("""() => { try { window.JustHodlSections && window.JustHodlSections.rerun(); } catch (e) {}
+            data = pg.evaluate("""() => { try { window.JustHodlSections && window.JustHodlSections.canonical(); } catch (e) {}
                 return { title: document.title, sections: window.JH_SECTIONS || null, loaded: !!window.__jhSectionsLoaded }; }""")
             rec["title"] = (data.get("title") or title).strip()[:120]
             if data.get("sections") is None:

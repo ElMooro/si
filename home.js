@@ -193,7 +193,7 @@
   }
   function addBlock(spec, quiet) {
     var b = normBlock(spec); if (!b) return null;
-    if (b.type === "engine") { var e = engineByShort.get(b.ref); if (e) { if (!b.feed) b.feed = e.feeds[0] || ""; if (!b.title) b.title = e.short + (b.panel ? " · " + b.panel : ""); } }
+    if (b.type === "engine") { var e = engineByShort.get(b.ref); if (!b.feed) b.feed = (e && e.feeds[0]) || "data/" + b.ref + ".json"; if (!b.title) b.title = b.ref + (b.panel ? " · " + b.panel : ""); }
     else { var p = pageByKey.get(b.page); if (!b.title) b.title = (p ? p.title : b.page) + (b.type === "section" ? " §" + b.sec : ""); if (b.type === "section") { var s = findSection(b.page, b.sec); if (s) { b.key = s.key; b.title = s.title || b.title; } } }
     if (state.blocks.length >= MAX_BLOCKS) { toast("block limit " + MAX_BLOCKS); return null; }
     state.blocks.push(b); scheduleSave(); render(); if (!quiet) toast("added  " + blockRef(b));
@@ -337,8 +337,7 @@
   }
   function renderEngine(node, b) {
     var body = node.querySelector(".body"), e = engineByShort.get(b.ref);
-    if (!b.feed && e) b.feed = e.feeds[0] || "";
-    if (!b.feed) { body.innerHTML = '<div class="msg">engine <b>' + esc(b.ref) + "</b> has no registered output feed.</div>"; return; }
+    if (!b.feed) b.feed = (e && e.feeds[0]) || "data/" + b.ref + ".json";   // fleet convention: data/<engine>.json
     var c = feedCache.get(b.feed);
     if (!c || c.status === "loading") { body.innerHTML = '<div class="hd-skel"></div>'; loadFeed(b.feed).then(function () { if (document.contains(node)) renderEngine(node, b); }); return; }
     if (c.status === "error") { body.innerHTML = '<div class="msg">feed <b>' + esc(b.feed) + "</b> unavailable: " + esc(c.error) + '</div>'; return; }

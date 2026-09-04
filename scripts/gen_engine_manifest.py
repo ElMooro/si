@@ -59,8 +59,23 @@ def confirmed_write_keys(code):
         for m in pat.finditer(code):
             varname_def[m.group(1)] = m.group(2)
     keys = set()
-    for m in re.finditer(r'put_object\(|\.put_json\(', code):
-        window = code[m.end(): m.end() + 300]
+    # ops 5200: close the documented residual gap — a locally defined wrapper whose body
+    # calls put_object (def _put_json(key, obj) / def save(key, data) / def publish(...))
+    # is a write site too; every call of that wrapper gets the same key window.
+    wrappers = []
+    for dm in re.finditer(r'^\s*def\s+([A-Za-z_]\w*)\s*\(', code, re.M):
+        body = code[dm.end(): dm.end() + 900]
+        nxt = re.search(r'^\s*def\s+', body[1:], re.M)
+        if nxt:
+            body = body[: nxt.start() + 1]
+        if 'put_object(' in body or '.put_json(' in body:
+            wrappers.append(dm.group(1))
+    sites = [m.end() for m in re.finditer(r'put_object\(|\.put_json\(', code)]
+    for w in wrappers:
+        for m in re.finditer(rf'(?<![\w.])(?<!def ){re.escape(w)}\(', code):
+            sites.append(m.end())
+    for end in sites:
+        window = code[end: end + 300]
         for lit in KEY_LIT.findall(window):
             if "{" not in lit:
                 keys.add(lit)

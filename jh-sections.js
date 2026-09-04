@@ -108,12 +108,25 @@
     }
     return null;
   }
+  // a small heading that sits right before a heading-less block owns it (<h2>Title</h2><table>…)
+  function prevHeading(el) {
+    var p = el.previousElementSibling, hops = 0;
+    while (p && hops < 3) {
+      if (p.hasAttribute("data-jh-sec") || p.hasAttribute("data-jh-sub")) return null;
+      if (p.matches(HEAD) && text(p)) return p;
+      var inner = p.children.length === 1 && p.firstElementChild.matches(HEAD) ? p.firstElementChild : null;
+      if (inner && text(inner)) return inner;
+      if (rect(p).height >= BIG_H || (text(p) && !p.matches(".kicker,.eyebrow,.label,small"))) return null;
+      p = p.previousElementSibling; hops++;
+    }
+    return null;
+  }
   function titleOf(el) {
     if (el.dataset.jhTitle) return el.dataset.jhTitle;
-    var h = ownHeading(el);
+    var h = ownHeading(el) || prevHeading(el);
     var t = h ? text(h) : "";
     if (!t && el.getAttribute("aria-label")) t = el.getAttribute("aria-label");
-    if (!t) { var k = el.querySelector(".kicker,.eyebrow,.label,.wr-kicker,b,strong"); t = k ? text(k) : ""; }
+    if (!t) { var k = el.querySelector(".kicker,.eyebrow,.label,.wr-kicker,b,strong"); t = k ? text(k.children.length ? k.firstElementChild : k) : ""; }
     if (!t) t = text(el).slice(0, 60);
     return t.replace(/^§\s*[\d.]+\s*/, "").replace(/§\s*[\d.]+\s*/g, "").trim().slice(0, 90);
   }
@@ -172,12 +185,12 @@
     return els;
   }
   function badge(el, n, key, sub) {
-    var old = el.querySelector(":scope > .jh-secbadge, :scope > * > .jh-secbadge");
+    var old = el.querySelector(":scope > .jh-secbadge, :scope > * > .jh-secbadge") || document.querySelector('.jh-secbadge[data-for="' + CSS.escape(el.id || "") + '"]');
     if (old && old.dataset.n === n) return;
     if (old) old.remove();
     var b = document.createElement("a");
     b.className = "jh-secbadge" + (sub ? " sub" : "");
-    b.dataset.jhBadge = "1"; b.dataset.n = n;
+    b.dataset.jhBadge = "1"; b.dataset.n = n; b.dataset.for = el.id || "";
     b.textContent = "§" + n;
     b.href = "#" + (el.id || "");
     b.title = page + "#" + n + " · click to copy this address for the home Add bar";
@@ -187,7 +200,7 @@
       try { navigator.clipboard.writeText(ref); } catch (e) { }
       toast("copied  " + ref);
     });
-    var h = ownHeading(el);
+    var h = ownHeading(el) || prevHeading(el);
     if (h) {
       h.insertBefore(b, h.firstChild);
     } else {
@@ -331,5 +344,12 @@
     window.addEventListener("resize", function () { schedule(300); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.JustHodlSections = { rerun: function () { pass(); return window.JH_SECTIONS; }, page: page, ref: function (n) { return page + "#" + n; } };
+  function canonical() {
+    assigned = new Map(); usedNumbers = new Set(); lastSig = "";
+    document.querySelectorAll(".jh-secbadge").forEach(function (b) { b.remove(); });
+    document.querySelectorAll("[data-jh-sec],[data-jh-key],[data-jh-sub]").forEach(function (e) { if (!e.closest("#hd-grid")) { e.removeAttribute("data-jh-sec"); e.removeAttribute("data-jh-key"); e.removeAttribute("data-jh-sub"); } });
+    pass();
+    return window.JH_SECTIONS;
+  }
+  window.JustHodlSections = { rerun: function () { pass(); return window.JH_SECTIONS; }, canonical: canonical, page: page, ref: function (n) { return page + "#" + n; } };
 })();
