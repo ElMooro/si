@@ -75,6 +75,7 @@ import math
 import os
 import re
 import time
+import traceback
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -181,6 +182,22 @@ def log(msg):
     line = "[katlin] " + str(msg)
     print(line)
     LOG.append(line[:300])
+
+
+
+ROW_ERRS = {}
+
+
+def row_error(kind, sym, e):
+    """count distinct row failures; the FIRST occurrence of each message carries its traceback into the log so a
+    systematic shape mismatch is diagnosable from one run instead of a 5,000-line 'row error' wall."""
+    msg = "%s: %s" % (type(e).__name__, str(e)[:100])
+    n = ROW_ERRS.get(msg, 0) + 1
+    ROW_ERRS[msg] = n
+    if n == 1:
+        log("%s row error %s -> %s | %s" % (kind, sym, msg, " | ".join(traceback.format_exc().strip().splitlines()[-4:])))
+    elif n in (10, 100, 1000):
+        log("%s row error x%d: %s" % (kind, n, msg))
 
 
 def now_iso():
@@ -1471,26 +1488,52 @@ def load_feeds():
                       ("whales", "data/whales.json"), ("stealth", "data/stealth-accumulation.json"), ("squeeze", "data/volatility-squeeze.json")):
         F[name] = s3_json(key, {}) or {}
     F["backtest"] = s3_json(BACKTEST_KEY, None)
-    # secondary accumulation reads from the fleet (radar / whales / stealth / fortress) -> per-ticker booleans
+    # secondary accumulation reads from the fleet (radar / whales / stealth / fortress) -> per-ticker booleans.
+    # Fleet payloads are shape-polymorphic (accumulation-radar's `bottoms` is {"stocks":[...],"etfs":[...]}, whales may
+    # publish a list or a keyed map) -- flatten() takes list / dict-of-lists / dict-of-dicts / dict-keyed-by-ticker.
+    def flatten(x, depth=0):
+        if isinstance(x, list):
+            return [r for r in x if r is not None]
+        if isinstance(x, dict) and depth < 2:
+            if any(k in x for k in ("ticker", "symbol")):
+                return [x]
+            out = []
+            for k, v in x.items():
+                if isinstance(v, (list, dict)):
+                    out.extend(flatten(v, depth + 1))
+                elif isinstance(k, str) and TICKER_OK.match(k) and isinstance(v, (int, float, str, bool)):
+                    out.append({"ticker": k})
+            return out
+        return []
+
+    def tk_of(r):
+        if isinstance(r, dict):
+            return r.get("ticker") or r.get("symbol")
+        return r if isinstance(r, str) else None
+
     acc = {}
-    for r in (F["accum_radar"].get("accumulating") or []) + (F["accum_radar"].get("bottoms") or []) + (F["accum_radar"].get("confirmed_bottoms") or []):
-        if isinstance(r, dict) and r.get("ticker"):
-            acc.setdefault(str(r["ticker"]).upper(), set()).add("accumulation-radar:%s" % (r.get("phase") or "accumulating"))
-    for r in F["whales"].get("fresh_accumulation") or F["whales"].get("whale_inflow_leaders") or []:
-        tk = r.get("ticker") if isinstance(r, dict) else r
+    for grp in ("accumulating", "bottoms", "confirmed_bottoms"):
+        for r in flatten(F["accum_radar"].get(grp)):
+            tk = tk_of(r)
+            if tk:
+                acc.setdefault(str(tk).upper(), set()).add("accumulation-radar:%s" % ((r.get("phase") if isinstance(r, dict) else None) or grp.replace("_", " ")))
+    for r in flatten(F["whales"].get("fresh_accumulation") or F["whales"].get("whale_inflow_leaders")):
+        tk = tk_of(r)
         if tk:
             acc.setdefault(str(tk).upper(), set()).add("whales:fresh accumulation")
     for k in ("primary", "signals", "picks", "top"):
-        for r in F["stealth"].get(k) or []:
-            if isinstance(r, dict) and r.get("ticker"):
-                acc.setdefault(str(r["ticker"]).upper(), set()).add("stealth-accumulation")
-    for r in F["fortress"].get("stocks") or []:
-        if isinstance(r, dict) and r.get("ticker") and r.get("tier") in ("FORTRESS_COIL", "COILED", "ACCUMULATING"):
-            acc.setdefault(str(r["ticker"]).upper(), set()).add("fortress:%s" % r["tier"].lower())
-    for r in (F["squeeze"].get("tier_s") or []) + (F["squeeze"].get("tier_a") or []):
-        tk = r.get("symbol") or r.get("ticker") if isinstance(r, dict) else r
-        if tk:
-            acc.setdefault(str(tk).upper(), set()).add("volatility-squeeze")
+        for r in flatten(F["stealth"].get(k)):
+            tk = tk_of(r)
+            if tk:
+                acc.setdefault(str(tk).upper(), set()).add("stealth-accumulation")
+    for r in flatten(F["fortress"].get("stocks") or F["fortress"].get("board")):
+        if isinstance(r, dict) and tk_of(r) and r.get("tier") in ("FORTRESS_COIL", "COILED", "ACCUMULATING"):
+            acc.setdefault(str(tk_of(r)).upper(), set()).add("fortress:%s" % r["tier"].lower())
+    for grp in ("tier_s", "tier_a"):
+        for r in flatten(F["squeeze"].get(grp)):
+            tk = tk_of(r)
+            if tk:
+                acc.setdefault(str(tk).upper(), set()).add("volatility-squeeze")
     F["fleet_accum"] = {k: sorted(v) for k, v in acc.items()}
     log("feeds in %.1fs: finviz=%d census=%d boom=%d rotation=%d flows=%d/%d f13=%d dark=%d insider=%d congress=%d options=%d blocks=%d "
         "catalyst=%d calendar=%d contracts=%d backlog=%d floor=%d ports=%d fleet_accum=%d warroom=%s" % (
@@ -1532,145 +1575,197 @@ def war_room(F):
         legs.append({"leg": name, "source": source, "risk": rnd(clamp(risk), 0), "read": read, "value": value, "weight": weight,
                      "asof": asof, "flag": "RED" if risk >= 70 else ("AMBER" if risk >= 45 else "GREEN")})
 
-    bw = F["bond_warroom"]
-    hb = bw.get("heartbeat") or {}
-    eq = bw.get("equity_risk") or {}
-    ed = bw.get("eurodollar_shortage") or {}
-    add("Bond heartbeat", "bond-warroom", fnum(hb.get("score")), "%s -- %s" % (hb.get("regime"), (hb.get("headline") or "")[:140]),
-        fnum(hb.get("score")), 1.5, bw.get("generated_at"))
-    eqs = str(eq.get("state") or "")
-    if eqs:
-        r = 85 if "DUMP" in eqs.upper() else (25 if "PUMP" in eqs.upper() else (55 if "FLIGHT" in eqs.upper() else 40))
-        add("Bond volatility -> stocks", "bond-warroom", r, "%s: %s" % (eqs, (eq.get("text") or "")[:140]), eqs, 1.5, bw.get("generated_at"))
-        if "DUMP" in eqs.upper() and str(eq.get("level") or "").upper() == "HIGH":
-            vetoes.append("bond desk flags DUMP RISK (high): bonds selling off hard today")
-    else:
-        missing.append("Bond volatility -> stocks")
-    eds = str(ed.get("state") or "")
-    if eds:
-        add("Eurodollar shortage", "bond-warroom", 85 if "SHORTAGE" in eds.upper() else (50 if "WATCH" in eds.upper() else 20),
-            "%s (%s pts)" % (eds, ed.get("points")), ed.get("points"), 1.0, bw.get("generated_at"))
-    au = F["auction"]
-    av = _first(au, "verdict", "today.verdict") or {}
-    tags = [str(t) for t in (av.get("tags") or [])]
-    if av:
-        tg = " ".join(tags).upper()
-        r = 20 if ("BULLISH" in tg or "LIQUIDITY" in tg) else (75 if ("BEARISH" in tg or "TIGHT" in tg or "FAIL" in tg) else 45)
-        add("Treasury auction desk", "auction-desk", r, (av.get("headline") or "")[:150] + (" [" + ", ".join(tags[:3]) + "]" if tags else ""), tags[:3], 0.8, au.get("generated_at"))
-    else:
-        missing.append("Treasury auction desk")
-    rg = F["risk_gate"]
-    post = str(rg.get("posture") or "")
-    if post:
-        r = {"RISK_ON": 15, "NEUTRAL": 40, "RISK_OFF": 72, "SEVERE": 95}.get(post, 50)
-        add("Risk gate (brain)", "risk-gate", r, "%s -- sizing x%s" % (post, rg.get("sizing_multiplier")), post, 2.0, rg.get("generated_at"))
-        if post == "SEVERE":
-            vetoes.append("risk-gate posture SEVERE (sizing x%s)" % rg.get("sizing_multiplier"))
-    else:
-        missing.append("Risk gate (brain)")
-    bs = F["blackswan"]
-    strip = bs.get("strip") or {}
-    baro = bs.get("barometer")
-    bval = fnum(baro.get("value") if isinstance(baro, dict) else baro)
-    alarm = str(strip.get("alarm") or "")
-    if bval is not None or alarm:
-        r = bval if bval is not None else (90 if alarm.upper() in ("RED", "ALARM", "ACUTE") else 50)
-        add("Black-swan watch", "blackswan-watch", r, "barometer %s, %s red extremes%s" % (rnd(bval, 0), strip.get("n_red"), (" -- " + alarm) if alarm else ""),
-            bval, 1.5, bs.get("as_of"))
-        if alarm.upper() in ("RED", "ALARM", "ACUTE") or (bval is not None and bval >= 85):
-            vetoes.append("black-swan barometer %s (%s)" % (rnd(bval, 0), alarm or "extreme"))
-    else:
-        missing.append("Black-swan watch")
-    cr = F["crisis"]
-    mcs = fnum(cr.get("master_crisis_score"))
-    dl = fnum(cr.get("defcon_level"))
-    if mcs is not None:
-        add("Crisis composite", "crisis-composite", mcs, "%s (DEFCON %s) -- %s" % (cr.get("defcon_name"), dl, ", ".join(str(x) for x in (cr.get("primary_drivers") or [])[:3])),
-            mcs, 1.5, cr.get("generated_at"))
-        if (dl is not None and dl <= 2) or mcs >= 80:
-            vetoes.append("crisis composite %s / DEFCON %s" % (rnd(mcs, 0), dl))
-    else:
-        missing.append("Crisis composite")
-    tl = F["tail"]
-    p10 = fnum(tl.get("p_drop_10"))
-    gauge = tl.get("system_tail_gauge")
-    if p10 is not None:
-        add("Options tail risk (P[-10%])", "tail-risk", lin_map(p10 * (100 if p10 <= 1 else 1), 4, 20, 25, 90),
-            "%.0f%% option-implied chance of a 10%% drop; %s" % (p10 * (100 if p10 <= 1 else 1), (gauge if isinstance(gauge, str) else (gauge or {}).get("label") if isinstance(gauge, dict) else "")), p10, 1.0, tl.get("generated_at"))
-    else:
-        missing.append("Options tail risk")
-    rc = F["regime"]
-    mr = str(rc.get("meta_regime") or "")
-    if mr:
-        mru = mr.upper()
-        r = 80 if ("CRISIS" in mru or "RISK-OFF" in mru or "RISK_OFF" in mru or "BEAR" in mru) else (55 if ("CAUTION" in mru or "TRANSITION" in mru or "LATE" in mru) else 25)
-        add("Regime composite", "regime-composite", r, "%s / %s -- %s" % (mr, rc.get("meta_class"), (rc.get("meta_narrative") or "")[:120]), mr, 1.2, rc.get("generated_at"))
-    else:
-        missing.append("Regime composite")
-    vr = F["vol"]
-    vrg = str(vr.get("composite_regime") or "")
-    if vrg:
-        vu = vrg.upper()
-        add("Volatility regime", "vol-regime", 85 if ("CRISIS" in vu or "EXTREME" in vu) else (65 if ("HIGH" in vu or "STRESS" in vu or "ELEVATED" in vu) else 25),
-            "%s (score %s)" % (vrg, vr.get("composite_score")), vrg, 1.0, vr.get("as_of"))
-    vx = F["vix"]
-    vxr = str(vx.get("composite_regime") or "")
-    cur = vx.get("current") or {}
-    if vxr:
-        vu = vxr.upper()
-        add("VIX term structure", "vix-curve", 85 if "BACKWARD" in vu else (55 if ("FLAT" in vu or "STRESS" in vu) else 25),
-            "%s -- VIX %s" % (vxr, cur.get("VIX") or cur.get("vix")), vxr, 1.0, vx.get("generated_at"))
-        if "BACKWARD" in vu:
-            vetoes.append("VIX curve in backwardation")
-    cs = F["credit"]
-    csr = str(cs.get("composite_regime") or "")
-    hy = fnum(_first(cs, "current_bps.hy_oas", "current_bps.HY_OAS", "current_bps.hy", "current.hy_oas"))
-    if csr:
-        cu = csr.upper()
-        add("Credit spreads (visible liquidity)", "credit-stress", 85 if ("CRISIS" in cu or "SEVERE" in cu) else (60 if ("STRESS" in cu or "WIDEN" in cu or "ELEVATED" in cu) else 25),
-            "%s%s" % (csr, (" -- HY OAS %sbp" % rnd(hy, 0)) if hy is not None else ""), csr, 1.5, cs.get("generated_at"))
-    else:
-        missing.append("Credit spreads")
-    gr = F["recession"]
-    gp = fnum(gr.get("global_recession_prob_pct"))
-    if gp is not None:
-        add("Global recession probability", "global-recession", lin_map(gp, 10, 15, 60, 90), "%.0f%% (%s)" % (gp, gr.get("band")), gp, 1.0, gr.get("generated_at"))
-    gbc = F["gbc"]
-    ph = str(_first(gbc, "global_phase", "phase", "aggregate.phase") or "")
-    dp6 = fnum(_first(gbc, "downturn_probability_6m", "composite.downturn_probability_6m", "aggregate.downturn_probability_6m"))
-    cli = fnum(_first(gbc, "cli_level", "global_avg_cli", "composite.cli_level"))
-    if ph or dp6 is not None:
-        pu = ph.upper()
-        r = dp6 * 100 if (dp6 is not None and dp6 <= 1) else (dp6 if dp6 is not None else (70 if ("CONTRACT" in pu or "DOWNTURN" in pu) else 50 if "SLOW" in pu else 25))
-        add("Global business cycle", "global-business-cycle", r, "phase %s%s%s" % (ph or "?", (" -- CLI %.1f" % cli) if cli is not None else "",
-                                                                             (" -- 6m downturn prob %.0f%%" % (dp6 * 100 if dp6 <= 1 else dp6)) if dp6 is not None else ""), ph, 1.0, gbc.get("generated_at"))
-    else:
-        missing.append("Global business cycle")
-    dr = F["dollar"]
-    drg = str(dr.get("regime") or "")
-    dpr = dr.get("dollar_pressure")
-    if drg:
-        du = drg.upper()
-        add("Dollar (view first)", "dollar-radar", 70 if ("STRONG" in du or "SQUEEZE" in du or "SHORTAGE" in du or "RISING" in du) else (25 if ("WEAK" in du or "FALLING" in du) else 45),
-            "%s -- %s" % (drg, (dr.get("headline") or "")[:120]), drg, 1.2, dr.get("generated_at"))
-    else:
-        missing.append("Dollar")
-    gl = F["liquidity"]
-    imp = fnum(gl.get("impulse_13w") or gl.get("global_impulse_13w_pct"))
-    glr = str(gl.get("regime") or "")
-    if imp is not None or glr:
-        r = lin_map(imp, 3, 15, -3, 75) if imp is not None else (25 if "EXPAND" in glr.upper() else 65 if "CONTRACT" in glr.upper() else 45)
-        add("Global liquidity impulse", "global-liquidity", r, "%s -- 13w impulse %s%%" % (glr, rnd(imp, 1)), imp, 1.2, gl.get("generated_at"))
-    xa = F["xasset"]
-    xs = fnum(xa.get("risk_score"))
-    if xs is not None:
-        add("Cross-asset regime", "cross-asset-regime", xs, "%s (%s)" % (xa.get("regime"), xa.get("risk_label")), xs, 1.0, xa.get("generated_at"))
-    cc = F["crypto_cycle"]
-    dumps = fnum(cc.get("dump_risk_score"))
-    crypto_risk = dumps
-    yc = F["yc"]
-    ten = ((yc.get("nominal_yields") or {}).get("10Y") or {})
-    y10 = fnum(ten.get("value")) if isinstance(ten, dict) else None
+    try:
+        bw = F["bond_warroom"]
+        hb = bw.get("heartbeat") or {}
+        eq = bw.get("equity_risk") or {}
+        ed = bw.get("eurodollar_shortage") or {}
+        add("Bond heartbeat", "bond-warroom", fnum(hb.get("score")), "%s -- %s" % (hb.get("regime"), (hb.get("headline") or "")[:140]),
+            fnum(hb.get("score")), 1.5, bw.get("generated_at"))
+        eqs = str(eq.get("state") or "")
+        if eqs:
+            r = 85 if "DUMP" in eqs.upper() else (25 if "PUMP" in eqs.upper() else (55 if "FLIGHT" in eqs.upper() else 40))
+            add("Bond volatility -> stocks", "bond-warroom", r, "%s: %s" % (eqs, (eq.get("text") or "")[:140]), eqs, 1.5, bw.get("generated_at"))
+            if "DUMP" in eqs.upper() and str(eq.get("level") or "").upper() == "HIGH":
+                vetoes.append("bond desk flags DUMP RISK (high): bonds selling off hard today")
+        else:
+            missing.append("Bond volatility -> stocks")
+        eds = str(ed.get("state") or "")
+        if eds:
+            add("Eurodollar shortage", "bond-warroom", 85 if "SHORTAGE" in eds.upper() else (50 if "WATCH" in eds.upper() else 20),
+                "%s (%s pts)" % (eds, ed.get("points")), ed.get("points"), 1.0, bw.get("generated_at"))
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        au = F["auction"]
+        av = _first(au, "verdict", "today.verdict") or {}
+        tags = [str(t) for t in (av.get("tags") or [])]
+        if av:
+            tg = " ".join(tags).upper()
+            r = 20 if ("BULLISH" in tg or "LIQUIDITY" in tg) else (75 if ("BEARISH" in tg or "TIGHT" in tg or "FAIL" in tg) else 45)
+            add("Treasury auction desk", "auction-desk", r, (av.get("headline") or "")[:150] + (" [" + ", ".join(tags[:3]) + "]" if tags else ""), tags[:3], 0.8, au.get("generated_at"))
+        else:
+            missing.append("Treasury auction desk")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        rg = F["risk_gate"]
+        post = str(rg.get("posture") or "")
+        if post:
+            r = {"RISK_ON": 15, "NEUTRAL": 40, "RISK_OFF": 72, "SEVERE": 95}.get(post, 50)
+            add("Risk gate (brain)", "risk-gate", r, "%s -- sizing x%s" % (post, rg.get("sizing_multiplier")), post, 2.0, rg.get("generated_at"))
+            if post == "SEVERE":
+                vetoes.append("risk-gate posture SEVERE (sizing x%s)" % rg.get("sizing_multiplier"))
+        else:
+            missing.append("Risk gate (brain)")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        bs = F["blackswan"]
+        strip = bs.get("strip") or {}
+        baro = bs.get("barometer")
+        bval = fnum(baro.get("value") if isinstance(baro, dict) else baro)
+        alarm = str(strip.get("alarm") or "")
+        if bval is not None or alarm:
+            r = bval if bval is not None else (90 if alarm.upper() in ("RED", "ALARM", "ACUTE") else 50)
+            add("Black-swan watch", "blackswan-watch", r, "barometer %s, %s red extremes%s" % (rnd(bval, 0), strip.get("n_red"), (" -- " + alarm) if alarm else ""),
+                bval, 1.5, bs.get("as_of"))
+            if alarm.upper() in ("RED", "ALARM", "ACUTE") or (bval is not None and bval >= 85):
+                vetoes.append("black-swan barometer %s (%s)" % (rnd(bval, 0), alarm or "extreme"))
+        else:
+            missing.append("Black-swan watch")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        cr = F["crisis"]
+        mcs = fnum(cr.get("master_crisis_score"))
+        dl = fnum(cr.get("defcon_level"))
+        if mcs is not None:
+            add("Crisis composite", "crisis-composite", mcs, "%s (DEFCON %s) -- %s" % (cr.get("defcon_name"), dl, ", ".join(str(x) for x in (cr.get("primary_drivers") or [])[:3])),
+                mcs, 1.5, cr.get("generated_at"))
+            if (dl is not None and dl <= 2) or mcs >= 80:
+                vetoes.append("crisis composite %s / DEFCON %s" % (rnd(mcs, 0), dl))
+        else:
+            missing.append("Crisis composite")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        tl = F["tail"]
+        p10 = fnum(tl.get("p_drop_10"))
+        gauge = tl.get("system_tail_gauge")
+        if p10 is not None:
+            add("Options tail risk (P[-10%])", "tail-risk", lin_map(p10 * (100 if p10 <= 1 else 1), 4, 20, 25, 90),
+                "%.0f%% option-implied chance of a 10%% drop; %s" % (p10 * (100 if p10 <= 1 else 1), (gauge if isinstance(gauge, str) else (gauge or {}).get("label") if isinstance(gauge, dict) else "")), p10, 1.0, tl.get("generated_at"))
+        else:
+            missing.append("Options tail risk")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        rc = F["regime"]
+        mr = str(rc.get("meta_regime") or "")
+        if mr:
+            mru = mr.upper()
+            r = 80 if ("CRISIS" in mru or "RISK-OFF" in mru or "RISK_OFF" in mru or "BEAR" in mru) else (55 if ("CAUTION" in mru or "TRANSITION" in mru or "LATE" in mru) else 25)
+            add("Regime composite", "regime-composite", r, "%s / %s -- %s" % (mr, rc.get("meta_class"), (rc.get("meta_narrative") or "")[:120]), mr, 1.2, rc.get("generated_at"))
+        else:
+            missing.append("Regime composite")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        vr = F["vol"]
+        vrg = str(vr.get("composite_regime") or "")
+        if vrg:
+            vu = vrg.upper()
+            add("Volatility regime", "vol-regime", 85 if ("CRISIS" in vu or "EXTREME" in vu) else (65 if ("HIGH" in vu or "STRESS" in vu or "ELEVATED" in vu) else 25),
+                "%s (score %s)" % (vrg, vr.get("composite_score")), vrg, 1.0, vr.get("as_of"))
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        vx = F["vix"]
+        vxr = str(vx.get("composite_regime") or "")
+        cur = vx.get("current") or {}
+        if vxr:
+            vu = vxr.upper()
+            add("VIX term structure", "vix-curve", 85 if "BACKWARD" in vu else (55 if ("FLAT" in vu or "STRESS" in vu) else 25),
+                "%s -- VIX %s" % (vxr, cur.get("VIX") or cur.get("vix")), vxr, 1.0, vx.get("generated_at"))
+            if "BACKWARD" in vu:
+                vetoes.append("VIX curve in backwardation")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        cs = F["credit"]
+        csr = str(cs.get("composite_regime") or "")
+        hy = fnum(_first(cs, "current_bps.hy_oas", "current_bps.HY_OAS", "current_bps.hy", "current.hy_oas"))
+        if csr:
+            cu = csr.upper()
+            add("Credit spreads (visible liquidity)", "credit-stress", 85 if ("CRISIS" in cu or "SEVERE" in cu) else (60 if ("STRESS" in cu or "WIDEN" in cu or "ELEVATED" in cu) else 25),
+                "%s%s" % (csr, (" -- HY OAS %sbp" % rnd(hy, 0)) if hy is not None else ""), csr, 1.5, cs.get("generated_at"))
+        else:
+            missing.append("Credit spreads")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        gr = F["recession"]
+        gp = fnum(gr.get("global_recession_prob_pct"))
+        if gp is not None:
+            add("Global recession probability", "global-recession", lin_map(gp, 10, 15, 60, 90), "%.0f%% (%s)" % (gp, gr.get("band")), gp, 1.0, gr.get("generated_at"))
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        gbc = F["gbc"]
+        ph = str(_first(gbc, "global_phase", "phase", "aggregate.phase") or "")
+        dp6 = fnum(_first(gbc, "downturn_probability_6m", "composite.downturn_probability_6m", "aggregate.downturn_probability_6m"))
+        cli = fnum(_first(gbc, "cli_level", "global_avg_cli", "composite.cli_level"))
+        if ph or dp6 is not None:
+            pu = ph.upper()
+            r = dp6 * 100 if (dp6 is not None and dp6 <= 1) else (dp6 if dp6 is not None else (70 if ("CONTRACT" in pu or "DOWNTURN" in pu) else 50 if "SLOW" in pu else 25))
+            add("Global business cycle", "global-business-cycle", r, "phase %s%s%s" % (ph or "?", (" -- CLI %.1f" % cli) if cli is not None else "",
+                                                                                 (" -- 6m downturn prob %.0f%%" % (dp6 * 100 if dp6 <= 1 else dp6)) if dp6 is not None else ""), ph, 1.0, gbc.get("generated_at"))
+        else:
+            missing.append("Global business cycle")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        dr = F["dollar"]
+        drg = str(dr.get("regime") or "")
+        dpr = dr.get("dollar_pressure")
+        if drg:
+            du = drg.upper()
+            add("Dollar (view first)", "dollar-radar", 70 if ("STRONG" in du or "SQUEEZE" in du or "SHORTAGE" in du or "RISING" in du) else (25 if ("WEAK" in du or "FALLING" in du) else 45),
+                "%s -- %s" % (drg, (dr.get("headline") or "")[:120]), drg, 1.2, dr.get("generated_at"))
+        else:
+            missing.append("Dollar")
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        gl = F["liquidity"]
+        imp = fnum(gl.get("impulse_13w") or gl.get("global_impulse_13w_pct"))
+        glr = str(gl.get("regime") or "")
+        if imp is not None or glr:
+            r = lin_map(imp, 3, 15, -3, 75) if imp is not None else (25 if "EXPAND" in glr.upper() else 65 if "CONTRACT" in glr.upper() else 45)
+            add("Global liquidity impulse", "global-liquidity", r, "%s -- 13w impulse %s%%" % (glr, rnd(imp, 1)), imp, 1.2, gl.get("generated_at"))
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        xa = F["xasset"]
+        xs = fnum(xa.get("risk_score"))
+        if xs is not None:
+            add("Cross-asset regime", "cross-asset-regime", xs, "%s (%s)" % (xa.get("regime"), xa.get("risk_label")), xs, 1.0, xa.get("generated_at"))
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        cc = F["crypto_cycle"]
+        dumps = fnum(cc.get("dump_risk_score"))
+        crypto_risk = dumps
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+    try:
+        yc = F["yc"]
+        ten = ((yc.get("nominal_yields") or {}).get("10Y") or {})
+        y10 = fnum(ten.get("value")) if isinstance(ten, dict) else None
+    except Exception as e_:
+        missing.append("leg error: %s" % str(e_)[:80])
+
     # thermometer
     num = sum(l["risk"] * l["weight"] for l in legs)
     den = sum(l["weight"] for l in legs)
@@ -2809,6 +2904,7 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     LOG.clear()
     DEGRADED.clear()
+    ROW_ERRS.clear()
     F = load_feeds()
     stocks, etfs, keep = build_universe(F)
     keys = session_keys(P["sessions"])
@@ -2847,11 +2943,13 @@ def lambda_handler(event=None, context=None):
         try:
             rows.append(build_row(sym, "stock", b, dates, spy_c, F, mkt))
         except Exception as e:
-            log("row error %s: %s" % (sym, str(e)[:120]))
+            row_error("stock", sym, e)
         if time.time() - t1 > 520:
             DEGRADED.append("stock scoring stopped early at %d names (time budget)" % len(rows))
             break
     log("stocks scored: %d (thin %d, hygiene %d) in %.0fs" % (len(rows), n_thin, n_hyg, time.time() - t1))
+    if ROW_ERRS:
+        log("row errors by message: %s" % sorted(ROW_ERRS.items(), key=lambda kv: -kv[1])[:6])
     for sym, cls in etfs.items():
         b = bars.get(sym)
         if not b or len(b.d) < P["min_sessions"] or b.d[-1] < len(dates) - 3:
@@ -2859,7 +2957,7 @@ def lambda_handler(event=None, context=None):
         try:
             rows.append(build_row(sym, "etf", b, dates, spy_c, F, mkt, sub_class=cls))
         except Exception as e:
-            log("etf row error %s: %s" % (sym, str(e)[:120]))
+            row_error("etf", sym, e)
     # crypto: own calendar, own SPY alignment (use BTC-relative RS -> pass BTC closes as the 'market')
     try:
         syms = list(dict.fromkeys(P["crypto_symbols"]))
@@ -2877,7 +2975,7 @@ def lambda_handler(event=None, context=None):
                 r["name"] = sym + "/USD"
                 rows.append(r)
             except Exception as e:
-                log("crypto row error %s: %s" % (sym, str(e)[:120]))
+                row_error("crypto", sym, e)
     except Exception as e:
         DEGRADED.append("crypto lane failed: %s" % str(e)[:120])
     # cross-sectional pillar ranks within asset class, industry-neutral valuation adjust for stocks
