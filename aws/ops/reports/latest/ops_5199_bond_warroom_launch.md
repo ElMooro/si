@@ -1,0 +1,79 @@
+# ops 5199 -- bond war room v1.3.2 warehouse-first for MOF + scanner markets
+
+**Status:** success  
+**Duration:** 67.6s  
+**Finished:** 2026-09-04T14:50:03+00:00  
+
+## Log
+- `14:48:55`   Lambda exists — updating
+- `14:49:01` ✅   ✓ updated justhodl-bond-warroom
+- `14:49:26`    run (20s, error=None) -> {"ok": true, "elapsed_s": 19.2, "n_series": 91, "heartbeat": 4, "regime": "CALM", "equity": "CALM", "eurodollar": "NONE", "red": ["JP30Y", "AU03Y"], "notes": [], "freshness": {"mof_jgb": "2026-09-03", "tradingview": "2026-09-04", "tradingview_symbols": 28, "official": {"warehouse:official-yields + Bundesbank": "2026-09-04", "warehouse:treasury-par + treasury.gov": "2026-09-03", "warehouse:official-yields + RBA": "2026-09-02", "warehouse:boe + Bank of England": "2026-09-02", "warehouse:official-yields + Bank of Canada": "2026-09-03"}, "official_n": 20, "ecb": "2026-09-03", "fred": null, "yahoo": null, "warehouse_lane": {"official_yields_banked": 33}}}
+## feed
+
+- `14:49:27`    heartbeat 4 CALM -- Bond markets are calm: Australia 3Y +10.1bp (z +2.0); Japan 30Y (JGB) -7.0bp (z -1.9); Australia 2s10s -4.6bp (z -2.1); Australia 2Y +9.7bp (z +2.0); UK 10Y (Gilt) -9.8bp (z -2.0).
+- `14:49:27`    equity: CALM LOW -- Bond prices and yields are inside their normal daily range (TLT +0.2% (z +0.5); 10Y +0.6bp (z +0.1); MOVE 75 -5.0pts (z -1.2); HY OAS -1.0bp (z -0.2)). No rates-driven pressure on stocks either way.
+- `14:49:27`    eurodollar: NONE 0 -- No eurodollar-shortage signature: periphery spreads, the dollar and EM/Euro credit are quiet.
+- `14:49:27`    freshness={'mof_jgb': '2026-09-03', 'tradingview': '2026-09-04', 'tradingview_symbols': 28, 'official': {'warehouse:official-yields + Bundesbank': '2026-09-04', 'warehouse:treasury-par + treasury.gov': '2026-09-03', 'warehouse:official-yields + RBA': '2026-09-02', 'warehouse:boe + Bank of England': '2026-09-02', 'warehouse:official-yields + Bank of Canada': '2026-09-03'}, 'official_n': 20, 'ecb': '2026-09-03', 'fred': None, 'yahoo': None, 'warehouse_lane': {'official_yields_banked': 33}} notes=[]
+- `14:49:27`    panel us_rates        12 rows: US02Y 4.374 GREEN, US05Y 4.541 GREEN, US07Y 4.63 GREEN, US10Y 4.776 GREEN, US20Y 5.25 GREEN, US30Y 5.24 GREEN, DGS3MO 3.92 GREEN, DFII10 2.45 GREEN, T10YIE 2.35 GREEN
+- `14:49:27`    panel volatility       9 rows: ^MOVE 74.68 GREEN, MOVE_TV 74.6812 GREEN, VIXCLS 14.32 GREEN, TLT 82.265 GREEN, IEF 92.275 GREEN, SHY 81.6805 GREEN, HYG 79.175 GREEN, LQD 105.535 GREEN, EMB 94.425 GREEN
+- `14:49:27`    panel japan            5 rows: JP02Y 1.85 GREEN, JP10Y 2.966 GREEN, JP30Y 4.052 RED, JP2s30s 2.202 AMBER, US-JGB 1.804 GREEN
+- `14:49:27`    panel europe          17 rows: DE02Y 2.94 GREEN, DE10Y 3.37 GREEN, DE30Y 3.8 GREEN, FR10Y 4.1854 GREEN, IT02Y 3.1403 GREEN, IT10Y 4.1476 GREEN, ES10Y 3.7608 GREEN, NL10Y 3.4226 GREEN, PT10Y 3.6598 GREEN
+- `14:49:27`    panel europe_spreads  12 rows: BTP-Bund 0.7776 GREEN, OAT-Bund 0.8154 GREEN, Bono-Bund 0.3908 GREEN, IT-ES 0.3868 GREEN, PT-Bund 0.2898 GREEN, GR-Bund 0.6388 GREEN, Gilt-Bund 1.7741 GREEN, US-Bund 1.406 GREEN, EA-periphery 0.4241 GREEN
+- `14:49:27`    panel world           15 rows: AU02Y 4.831 AMBER, AU03Y 4.819 RED, AU05Y 4.871 AMBER, AU10Y 5.182 GREEN, CA02Y 3.1 GREEN, CA05Y 3.41 GREEN, CA10Y 3.762 GREEN, CA30Y 4.16 GREEN, CN10Y 1.684 GREEN
+- `14:49:27`    panel credit          12 rows: BAMLH0A0HYM2 2.65 GREEN, BAMLC0A0CM 0.81 GREEN, BAMLC0A1CAAA 0.44 GREEN, BAMLC0A4CBBB 1.0 GREEN, BAMLH0A1HYBB 1.52 GREEN, BAMLH0A2HYB 2.76 GREEN, BAMLH0A3HYC 10.51 GREEN, BAMLHE00EHYIOAS 2.65 GREEN, BAMLEMCBPIOAS 1.38 GREEN
+- `14:49:27`    panel funding          4 rows: SOFR 3.66 GREEN, DTB3 3.78 GREEN, SOFR-TB3 -0.13 GREEN, DTWEXBGS 118.747 GREEN
+## official histories (v1.2)
+
+- `14:49:27`    official sources: {"warehouse:official-yields + Bundesbank": "2026-09-04", "warehouse:treasury-par + treasury.gov": "2026-09-03", "warehouse:official-yields + RBA": "2026-09-02", "warehouse:boe + Bank of England": "2026-09-02", "warehouse:official-yields + Bank of Canada": "2026-09-03"} (n=20)
+- `14:49:27`    US02Y     4.374 hist=1501 z=0.69 z_ready=True dod=3.4 dod%=0.78 flag=GREEN src=warehouse:treasury-par + treasury.gov + 
+- `14:49:27`    US10Y     4.776 hist=1501 z=0.08 z_ready=True dod=0.6 dod%=0.13 flag=GREEN src=warehouse:treasury-par + treasury.gov + 
+- `14:49:27`    US30Y     5.24 hist=1501 z=-0.33 z_ready=True dod=-1.0 dod%=-0.19 flag=GREEN src=warehouse:treasury-par + treasury.gov + 
+- `14:49:27`    DE02Y     2.94 hist=1046 z=-0.61 z_ready=True dod=-2.0 dod%=-0.68 flag=GREEN src=warehouse:official-yields + Bundesbank
+- `14:49:27`    DE10Y     3.37 hist=7381 z=-0.36 z_ready=True dod=-1.0 dod%=-0.3 flag=GREEN src=warehouse:official-yields + Bundesbank
+- `14:49:27`    DE30Y     3.8 hist=1046 z=-0.07 z_ready=True dod=0.0 dod%=0.0 flag=GREEN src=warehouse:official-yields + Bundesbank
+- `14:49:27`    GB10Y     5.1441 hist=11290 z=-1.97 z_ready=True dod=-9.75 dod%=-1.86 flag=AMBER src=warehouse:boe + Bank of England + Tradin
+- `14:49:27`    CA10Y     3.762 hist=1501 z=-0.7 z_ready=True dod=-2.8 dod%=-0.74 flag=GREEN src=warehouse:official-yields + Bank of Cana
+- `14:49:27`    AU10Y     5.182 hist=1501 z=-0.92 z_ready=True dod=-3.8 dod%=-0.73 flag=GREEN src=warehouse:official-yields + RBA + Tradin
+- `14:49:27`    CH10Y     0.419 hist=2 z=None z_ready=False dod=-2.0 dod%=-4.56 flag=GREEN src=warehouse:official-yields + TradingView 
+- `14:49:27`    JP10Y     2.966 hist=9932 z=-1.46 z_ready=True dod=-4.0 dod%=-1.33 flag=GREEN src=warehouse:official-yields + MOF Japan
+- `14:49:27`    BTP-Bund  0.7776 hist=2 z=None z_ready=False dod=-1.78 dod%=-2.24 flag=GREEN src=spread of warehouse:official-yields
+- `14:49:27`    IT-ES     0.3868 hist=2 z=None z_ready=False dod=0.86 dod%=2.27 flag=GREEN src=spread of warehouse:official-yields
+## warehouse-first (v1.3)
+
+- `14:49:27`    rows sourced warehouse-first: 65 / 86
+- `14:49:27`    DGS3MO         src=warehouse:fred + FRED tail DGS3MO asof=2026-09-02
+- `14:49:27`    BAMLH0A0HYM2   src=warehouse:fred + FRED tail BAMLH0A0HYM2 asof=2026-09-03
+- `14:49:27`    TLT            src=warehouse:tv-bars + Yahoo tail TLT asof=2026-09-04
+- `14:49:27`    ^MOVE          src=warehouse:tv-bars + Yahoo tail ^MOVE asof=2026-09-03
+- `14:49:27`    US10Y          src=warehouse:treasury-par + treasury.gov + TradingView live asof=2026-09-04
+- `14:49:27`    DE10Y          src=warehouse:official-yields + Bundesbank asof=2026-09-04
+- `14:49:27`    GB10Y          src=warehouse:boe + Bank of England + TradingView live asof=2026-09-04
+- `14:49:27`    CA10Y          src=warehouse:official-yields + Bank of Canada + TradingView live asof=2026-09-04
+- `14:49:27`    AU10Y          src=warehouse:official-yields + RBA + TradingView live asof=2026-09-04
+- `14:49:27`    EA_AAA10Y      src=warehouse:official-yields + ECB YC asof=2026-09-03
+- `14:49:27`    JP10Y          src=warehouse:official-yields + MOF Japan asof=2026-09-03
+- `14:49:27`    IT10Y          src=warehouse:official-yields + TradingView live TVC:IT10Y asof=2026-09-04
+- `14:49:27`    ES10Y          src=warehouse:official-yields + TradingView live TVC:ES10Y asof=2026-09-04
+- `14:49:27`    sources_doctrine: warehouse first: every series is read from our own AWS (fred-scoped, treasury-par, boe iadb, tv-bars, official-yields) through the symdir resolver, the official
+- `14:49:27`    official-yields lane: 34 objects: ['_state.json', 'au-10y-rba.json', 'au-2y-rba.json', 'au-3y-rba.json', 'au-5y-rba.json', 'br-10y-tv.json', 'ca-10y-boc.json', 'ca-2y-boc.json', 'ca-5y-boc.json', 'ca-long-boc.json', 'ch-10y-tv.json', 'cn-10y-tv.json', 'de-10y-bbk.json', 'de-2y-bbk.json', 'de-30y-bbk.json', 'ea-aaa-10y-ecb.json', 'ea-all-10y-ecb.json', 'es-10y-tv.json', 'fr-10y-tv.json', 'gb-10y-boe.json', 'gb-20y-boe.json', 'gb-2y-tv.json', 'gb-5y-boe.json', 'gr-10y-tv.json', 'in-10y-tv.json', 'it-10y-tv.json', 'it-2y-tv.json', 'jp-10y-mof.json', 'jp-2y-mof.json', 'jp-30y-mof.json', 'kr-10y-tv.json', 'mx-10y-tv.json', 'nl-10y-tv.json', 'pt-10y-tv.json']
+- `14:49:27`    lane state: count=33 banked_at=2026-09-04T14:49:26+00:00 sample=[{'id': 'au-10y-rba', 'key': 'data/warm/official-yields/au-10y-rba.json', 'last': '2026-09-02', 'n_obs': 1500}, {'id': 'au-2y-rba', 'key': 'data/warm/official-yields/au-2y-rba.json', 'last': '2026-09-02', 'n_obs': 1500}, {'id': 'au-3y-rba', 'key': 'data/warm/official-yields/au-3y-rba.json', 'last': '2026-09-02', 'n_obs': 1500}, {'id': 'au-5y-rba', 'key': 'data/warm/official-yields/au-5y-rba.json', 'last': '2026-09-02', 'n_obs': 1500}]
+- `14:49:28`    /series official-yields:ca-10y-boc       n=1500 last=['2026-09-03', 3.79] src=warehouse:official-yields (Bank of Canada Valet)
+- `14:49:28`    /series official-yields:jp-10y-mof       n=9932 last=['2026-09-03', 2.966] src=warehouse:official-yields (Japan MOF)
+- `14:49:29`    /series official-yields:it-10y-tv        n=2 last=['2026-09-04', 4.1412] src=warehouse:official-yields (TradingView scanner)
+- `14:49:29`    /series official-yields:gb-5y-boe        n=1937 last=['2026-09-02', 4.6975] src=warehouse:official-yields (Bank of England IADB)
+- `14:49:29`    MOF JGB curve 2026-09-03 tenors=15 err=None
+- `14:49:29`    auction desk: 2026-09-03 $12.5B buyback at max · $185.5B bills -> risk-on supportive tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] preds=6
+- `14:49:29`    RED=['JP30Y', 'AU03Y'] AMBER=['GB10Y', 'AU02Y', 'AU05Y', 'JP2s30s', 'AU2s10s']
+## schedules (America/New_York, Mon-Fri)
+
+- `14:49:30` ✅    justhodl-bond-warroom-early updated cron(30 7 ? * MON-FRI *) ET
+- `14:49:30` ✅    justhodl-bond-warroom-mid updated cron(0 10 ? * MON-FRI *) ET
+- `14:49:30` ✅    justhodl-bond-warroom-after-auction updated cron(35 13 ? * MON-FRI *) ET
+- `14:49:30` ✅    justhodl-bond-warroom-close updated cron(45 16 ? * MON-FRI *) ET
+- `14:49:30` ✅    justhodl-bond-warroom-evening updated cron(15 19 ? * MON-FRI *) ET
+## page
+
+- `14:49:31`    bonds.html carries the war room: True
+- `14:49:54`    1440px: {"score": "4", "regime": "CALM", "headline": "Bond markets are calm: Australia 3Y +10.1bp (z +2.0); Japan 30Y (JGB) -7.0bp (z -1.9); Aus", "panels": 8, "rows": 86, "flags": 86, "reds": 2, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 0} errors=[]
+- `14:50:02`     390px: {"score": "4", "regime": "CALM", "headline": "Bond markets are calm: Australia 3Y +10.1bp (z +2.0); Japan 30Y (JGB) -7.0bp (z -1.9); Aus", "panels": 8, "rows": 86, "flags": 86, "reds": 2, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 0} errors=[]
+- `14:50:03` ✅    GREEN: bond war room v1.3 warehouse-first, official-yields lane banked, catalog registered
