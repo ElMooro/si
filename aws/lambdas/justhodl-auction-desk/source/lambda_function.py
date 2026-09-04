@@ -47,7 +47,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -430,8 +430,8 @@ def ai_note(facts):
         note["generated_at"] = _iso()
         return note
     except Exception as e:
-        print("[auction-desk] ai note failed:", str(e)[:120])
-        return None
+        print("[auction-desk] ai note failed:", str(e)[:200])
+        return {"error": str(e)[:200]}
 
 
 # ─────────────────────────── main ────────────────────────────────────
@@ -449,7 +449,8 @@ def lambda_handler(event, ctx):
         try:
             for r in fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}):
                 rec = norm_fd(r)
-                if rec["cusip"] and rec["auction_date"]:
+                # announced-but-not-yet-auctioned rows carry no results: they belong to the calendar, not the bank
+                if rec["cusip"] and rec["auction_date"] and rec.get("btc") is not None:
                     records.setdefault(rec_key(rec), rec)
             notes.append("backfill %d records since %s" % (len(records), start))
         except Exception as e:
@@ -503,7 +504,8 @@ def lambda_handler(event, ctx):
     # 4) analysis
     par_rows = (_s3_json(PAR_KEY) or {}).get("rows") or {}
     bank_sorted = sorted(records.values(), key=lambda r: r["auction_date"])
-    recent = [r for r in bank_sorted if r["auction_date"] >= (_now() - timedelta(days=400)).date().isoformat()]
+    cutoff = (_now() - timedelta(days=400)).date().isoformat()
+    recent = [r for r in bank_sorted if cutoff <= r["auction_date"] <= today and r.get("btc") is not None]
     analyzed = [analyze_auction(r, bank_sorted, par_rows) for r in recent]
     analyzed.sort(key=lambda a: (a["auction_date"], a["term"]), reverse=True)
     program = [op for op in ops.values() if op.get("accepted") is not None]
@@ -554,13 +556,16 @@ def lambda_handler(event, ctx):
         prev = _s3_json(arch_key) or {}
         fingerprint = json.dumps([(a["cusip"], a.get("btc"), a["grade"]) for a in days[latest_day]["auctions"]] +
                                  [(b["operation_date"], b.get("accepted")) for b in days[latest_day]["buybacks"]], sort_keys=True)
-        if prev.get("fingerprint") == fingerprint and prev.get("ai_note"):
+        if prev.get("fingerprint") == fingerprint and prev.get("ai_note") and not prev["ai_note"].get("error"):
             ai = prev["ai_note"]
         elif not event.get("no_ai"):
             ai = ai_note({"date": latest_day, "verdict": verdicts[latest_day],
                           "auctions": [{k: a.get(k) for k in ("term", "type", "total_accepted", "btc", "indirect_pct", "pd_pct", "tail_bp", "grade", "z", "trailing12")} for a in days[latest_day]["auctions"]],
                           "buybacks": [{k: b.get(k) for k in ("operation_date", "maturity_bucket", "operation_type", "max_par", "offered", "accepted", "fill_pct", "coverage", "tags")} for b in days[latest_day]["buybacks"]],
                           "program": program_stats})
+        if ai and ai.get("error"):
+            notes.append("ai note: " + ai["error"])
+            ai = None
         _put_json(arch_key, {"date": latest_day, "fingerprint": fingerprint, "verdict": verdicts[latest_day],
                              "auctions": days[latest_day]["auctions"], "buybacks": days[latest_day]["buybacks"], "ai_note": ai, "written_at": _iso()})
 
