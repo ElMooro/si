@@ -1,31 +1,17 @@
-executing-against: a3c79000781b22f82d690f9f10b14e0d60ea9aaf
-ops 5181 -- Treasury auction desk: launch + verify
-── P1 deploy (direct from the runner if the workflow did not create it) + first run ──
-[02:29:13]    functions matching 'auction-desk' before: []
-[02:29:13]    not deployed by the workflow -- creating from aws/lambdas/justhodl-auction-desk/source
-[02:29:13]   Lambda missing — creating
-[02:29:18] ✅   ✓ created justhodl-auction-desk
-[02:29:18]    deployed 2026-09-04T02:29:13.906+0000 mem=1024 timeout=300 key=yes
-[02:29:36]    first run (17s) -> {"ok": true, "elapsed_s": 16.6, "newest_auction": "2026-09-10", "newest_buyback": "2026-09-03", "today": "2026-09-10", "headline": "$0.0B coupons mixed -> neutral", "notes": ["backfill 1327 records since 2023-08-31", "buybacks 218 operations"], "ai": false}
-── P2 feed assertions ──
-[02:29:36]    generated_at=2026-09-04T02:29:36+00:00 freshness={'newest_auction': '2026-09-10', 'newest_buyback': '2026-09-03', 'par_curve_last': '2026-09-03', 'td_rows': 109, 'bank_records': 1327} notes=['backfill 1327 records since 2023-08-31', 'buybacks 218 operations']
-[02:29:36]    TODAY 2026-09-10: $0.0B coupons mixed -> neutral
-[02:29:36]    tags=['DEMAND MIXED'] liquidity=neutral rates=no strong signal risk=neutral
-[02:29:36]      - 29-Year 11-Month (n/a): 29-Year 11-Month bond n/a -- demand: no takedown detail yet.
-[02:29:36]    auction 2026-09-10 29-Year 11-Month Bond grade=n/a btc=None z={'btc': None, 'indirect': None, 'pd': None, 'allocation': None, 'tail': None, 'size': None} tail=None indirect=None pd=None
-[02:29:36]    buyback operations in feed: 216, newest 2026-09-03, program total 532149000000.0, raw fields sample ['final_ann_pdf', 'final_ann_xml', 'maturity_bucket', 'max_nbr_offers', 'max_par_amt_redeemed', 'nbr_issues_accepted', 'nbr_issues_eligible', 'operation_close_time_est', 'operation_date', 'operation_start_time_est', 'operation_type', 'par_amt_per_offer', 'preliminary_ann_pdf', 'preliminary_ann_xml', 'results_pdf', 'results_xml', 'security_type', 'settlement_date', 'special_ann_pdf', 'total_par_amt_accepted', 'total_par_amt_offered']
-[02:29:36] ✅    Sep-03 buyback in feed: accepted 12500000000.0 tags ['LARGE OPERATION', 'MAX FILL', 'HEAVY OFFERS 2.3x', 'LIQUIDITY INJECTION', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH']
-[02:29:36]    graded auctions 192 / 200; calendar rows 6; recent days 30; by_term 27
-── P3 schedules (America/New_York, Mon-Fri) ──
-[02:29:37] ✅    justhodl-auction-desk-morning created cron(15 9 ? * MON-FRI *) ET
-[02:29:37] ✅    justhodl-auction-desk-buyback created cron(10 12 ? * MON-FRI *) ET
-[02:29:37] ✅    justhodl-auction-desk-results created cron(40 13 ? * MON-FRI *) ET
-[02:29:37] ✅    justhodl-auction-desk-late created cron(35 16 ? * MON-FRI *) ET
-── P4 page render ──
-[02:29:37]    page carries the desk block: True
-[02:29:57]    1440px: {"headline": "$0.0B coupons mixed -> neutral", "tags": 1, "cards": 1, "bbRows": 14, "cal": 6, "days": 15, "tape": 80, "tenors": 8, "ai": false, "overflow": 0} errors=[]
-[02:30:05]     390px: {"headline": "$0.0B coupons mixed -> neutral", "tags": 1, "cards": 1, "bbRows": 14, "cal": 6, "days": 15, "tape": 80, "tenors": 8, "ai": false, "overflow": 0} errors=[]
-── verdict ──
-[02:30:05] ✅    GREEN: auction desk live -- same-day Treasury data, graded operations, day verdict, buyback tracker, schedules armed, page renders
+executing-against: ca0986420b65880b64edd316feeb9302d35de112
+ops 5182 -- auction desk v1.0.1 verify
+[02:42:59]    deployed at 2026-09-04T02:33:00.000+0000 (fresh=False)
+[02:42:59] ⚠    deploy not observed yet -- running whatever is live
+[02:43:10]    run (11s) -> {"ok": true, "elapsed_s": 10.3, "newest_auction": "2026-09-03", "newest_buyback": "2026-09-03", "today": "2026-09-03", "headline": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "notes": ["buybacks 218 operations", "ai note: HTTP Error 400: Bad Request"], "ai": false}
+[02:43:10]    version 1.0.1 TODAY 2026-09-03: $12.5B buyback at max · $185.5B bills -> risk-on supportive
+[02:43:10]    tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] liquidity=easy rates=front-end only risk=bullish
+[02:43:10]      - Buyback: $12.5B accepted (100.0% of max, 2.3x offered) in the 1Mo to 2Y bucket -> supply removed, cash to dealers. Easing impulse; risk-asset supportive.
+[02:43:10]      - Bills: $185.5B across 2 auctions absorbed cleanly (bid-to-cover 3.02, 2.97).
+[02:43:10]    auction 8-Week Bill grade=B btc=3.02 z={'btc': 1.33, 'indirect': 0.99, 'pd': -1.12, 'tail': -0.37} tail=-6.6 ind=70.2 pd=25.2
+[02:43:10]    auction 4-Week Bill grade=B btc=2.97 z={'btc': 1.29, 'indirect': 0.73, 'pd': -0.73, 'tail': -0.88} tail=-6.8 ind=67.6 pd=29.0
+[02:43:10]    buyback 2026-09-03 accepted=12500000000.0 fill=100.0 cover=2.26 tags=['LARGE OPERATION', 'MAX FILL', 'HEAVY OFFERS 2.3x', 'LIQUIDITY INJECTION', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH']
+[02:43:10]    AI note: null
+[02:43:10]    notes: ['buybacks 218 operations', 'ai note: HTTP Error 400: Bad Request']
+[02:43:10] ✅    GREEN
 
-→ Report written to aws/ops/reports/latest/ops_5181_auction_desk_launch.md
+→ Report written to aws/ops/reports/latest/ops_5182_auction_desk_v101.md

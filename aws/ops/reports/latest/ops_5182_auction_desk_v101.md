@@ -1,0 +1,20 @@
+# ops 5182 -- auction desk v1.0.1 verify
+
+**Status:** success  
+**Duration:** 616.0s  
+**Finished:** 2026-09-04T02:43:10+00:00  
+
+## Log
+- `02:42:59`    deployed at 2026-09-04T02:33:00.000+0000 (fresh=False)
+- `02:42:59` ⚠    deploy not observed yet -- running whatever is live
+- `02:43:10`    run (11s) -> {"ok": true, "elapsed_s": 10.3, "newest_auction": "2026-09-03", "newest_buyback": "2026-09-03", "today": "2026-09-03", "headline": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "notes": ["buybacks 218 operations", "ai note: HTTP Error 400: Bad Request"], "ai": false}
+- `02:43:10`    version 1.0.1 TODAY 2026-09-03: $12.5B buyback at max · $185.5B bills -> risk-on supportive
+- `02:43:10`    tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] liquidity=easy rates=front-end only risk=bullish
+- `02:43:10`      - Buyback: $12.5B accepted (100.0% of max, 2.3x offered) in the 1Mo to 2Y bucket -> supply removed, cash to dealers. Easing impulse; risk-asset supportive.
+- `02:43:10`      - Bills: $185.5B across 2 auctions absorbed cleanly (bid-to-cover 3.02, 2.97).
+- `02:43:10`    auction 8-Week Bill grade=B btc=3.02 z={'btc': 1.33, 'indirect': 0.99, 'pd': -1.12, 'tail': -0.37} tail=-6.6 ind=70.2 pd=25.2
+- `02:43:10`    auction 4-Week Bill grade=B btc=2.97 z={'btc': 1.29, 'indirect': 0.73, 'pd': -0.73, 'tail': -0.88} tail=-6.8 ind=67.6 pd=29.0
+- `02:43:10`    buyback 2026-09-03 accepted=12500000000.0 fill=100.0 cover=2.26 tags=['LARGE OPERATION', 'MAX FILL', 'HEAVY OFFERS 2.3x', 'LIQUIDITY INJECTION', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH']
+- `02:43:10`    AI note: null
+- `02:43:10`    notes: ['buybacks 218 operations', 'ai note: HTTP Error 400: Bad Request']
+- `02:43:10` ✅    GREEN
