@@ -55,7 +55,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -696,16 +696,22 @@ def Date_parse(iso):
 
 
 def fwd_returns(ser, day):
-    """same-day (auction-day close vs prior close), +1/+5/+20 trading days after the auction day."""
+    """same-day (auction-day close vs prior close), +1/+5/+20 trading days after the auction day.
+    Requires a bar ON the auction day (a stale series must not borrow the previous close); bars dated
+    today (UTC) are in progress and flagged partial."""
     dates, closes = ser["dates"], ser["closes"]
-    i = bisect.bisect_right(dates, day) - 1          # last close on or before the auction day
-    if i < 1 or dates[i] < (datetime.fromisoformat(day) - timedelta(days=4)).date().isoformat():
+    i = bisect.bisect_left(dates, day)
+    if i >= len(dates) or dates[i] != day or i < 1:
         return None
-    out = {}
-    out["same_day"] = closes[i] / closes[i - 1] - 1 if closes[i - 1] else None
+    today_utc = _now().date().isoformat()
+    out = {"same_day": (closes[i] / closes[i - 1] - 1) if closes[i - 1] else None, "partial": []}
+    if dates[i] >= today_utc:
+        out["partial"].append("same_day")
     for label, n in HORIZONS[1:]:
         j = i + n
         out[label] = (closes[j] / closes[i] - 1) if j < len(closes) and closes[i] else None
+        if j < len(closes) and dates[j] >= today_utc:
+            out["partial"].append(label)
     return out
 
 
@@ -787,11 +793,11 @@ def predict_today(classes, reactions, assets):
         med1, hit1 = h1.get("median"), h1.get("hit")
         call = "→"
         if med1 is not None and hit1 is not None:
-            if med1 > 0 and hit1 >= 57:
+            if med1 >= 0.15 and hit1 >= 58:
                 call = "↑"
-            elif med1 < 0 and hit1 <= 43:
+            elif med1 <= -0.15 and hit1 <= 42:
                 call = "↓"
-        conf = "high" if (hit1 is not None and abs(hit1 - 50) >= 15 and h1.get("n", 0) >= 30) else "medium" if (hit1 is not None and abs(hit1 - 50) >= 8 and h1.get("n", 0) >= 15) else "low"
+        conf = "high" if (hit1 is not None and abs(hit1 - 50) >= 15 and h1.get("n", 0) >= 30) else "medium" if (hit1 is not None and abs(hit1 - 50) >= 10 and h1.get("n", 0) >= 15) else "low"
         rows.append({"symbol": sym, "name": name, "asset_class": cls_name, "basis": chosen, "basis_label": CLASS_LABEL.get(chosen, chosen), "n": h1.get("n"),
                      "same_day": st.get("same_day"), "d1": h1, "d5": h5, "d20": h20, "baseline_d1": b.get("d1"), "call": call, "confidence": conf,
                      "edge_d1": round((med1 or 0) - ((b.get("d1") or {}).get("median") or 0), 2) if med1 is not None else None})
@@ -810,7 +816,10 @@ def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6):
                 continue
             r = fwd_returns(ser, d)
             if r:
-                moves[sym] = {"same_day": round(r["same_day"] * 100, 2) if r.get("same_day") is not None else None, "d1": round(r["d1"] * 100, 2) if r.get("d1") is not None else None}
+                moves[sym] = {"same_day": round(r["same_day"] * 100, 2) if r.get("same_day") is not None else None, "d1": round(r["d1"] * 100, 2) if r.get("d1") is not None else None,
+                              "partial": r.get("partial") or []}
+            else:
+                moves[sym] = {"same_day": None, "d1": None, "partial": [], "pending": True}
         v = verdicts.get(d) or {}
         board.append({"date": d, "classes": cls, "labels": [CLASS_LABEL.get(c, c) for c in cls], "headline": v.get("headline"), "risk_assets": v.get("risk_assets"),
                       "grades": [a["grade"] for a in ops["auctions"]], "buyback_accepted": sum(b.get("accepted") or 0 for b in ops["buybacks"]), "moves": moves})
