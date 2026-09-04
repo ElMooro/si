@@ -1,0 +1,48 @@
+# ops 5189 -- bond war room launch
+
+**Status:** failure  
+**Duration:** 248.9s  
+**Finished:** 2026-09-04T13:24:52+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `13:20:44`   Lambda missing — creating
+- `13:20:49` ✅   ✓ created justhodl-bond-warroom
+- `13:21:09`    run (20s, error=None) -> {"ok": true, "elapsed_s": 19.1, "n_series": 32, "heartbeat": 0, "regime": "CALM", "equity": "CALM", "eurodollar": "NONE", "red": [], "notes": ["tv errors: {\"US02Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Ba\", \"US05Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Ba\", \"US10Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket"], "freshness": {"tradingview": null, "fred": "2026-09-03", "yahoo": "2026-09-04", "mof_jgb": "2026-09-03"}}
+## feed
+
+- `13:21:10`    heartbeat 0 CALM -- Bond markets are calm -- every monitored market inside its normal daily range.
+- `13:21:10`    equity: CALM LOW -- Bond prices and yields are inside their normal daily range (TLT +0.1% (z +0.3); 10Y +0.0bp (z -0.1); MOVE 75 -5.0pts (z -1.2); HY OAS +1.0bp (z +0.2)). No rates-driven pressure on stocks either way.
+- `13:21:10`    eurodollar: NONE 0 -- No eurodollar-shortage signature: periphery spreads, the dollar and EM/Euro credit are quiet.
+- `13:21:10`    freshness={'tradingview': None, 'fred': '2026-09-03', 'yahoo': '2026-09-04', 'mof_jgb': '2026-09-03'} notes=['tv errors: {"US02Y": "all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b\'HTTP/1.1 400 Ba", "US05Y": "all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b\'HTTP/1.1 400 Ba", "US10Y": "all endpoints refused: data.tradingview.com/socket.io/websocket']
+- `13:21:10`    panel us_rates         3 rows: DGS3MO 3.92 GREEN, DFII10 2.45 GREEN, T10YIE 2.35 GREEN
+- `13:21:10`    panel volatility       8 rows: ^MOVE 74.68 GREEN, VIXCLS 15.2 GREEN, TLT 82.07 GREEN, IEF 92.28 GREEN, SHY 81.71 GREEN, HYG 79.21 GREEN, LQD 105.5 GREEN, EMB 94.45 GREEN
+- `13:21:10`    panel japan            0 rows: 
+- `13:21:10`    panel europe           0 rows: 
+- `13:21:10`    panel europe_spreads   0 rows: 
+- `13:21:10`    panel world            0 rows: 
+- `13:21:10`    panel credit          12 rows: BAMLH0A0HYM2 2.66 GREEN, BAMLC0A0CM 0.81 GREEN, BAMLC0A1CAAA 0.43 GREEN, BAMLC0A4CBBB 0.99 GREEN, BAMLH0A1HYBB 1.53 GREEN, BAMLH0A2HYB 2.76 GREEN, BAMLH0A3HYC 10.53 GREEN, BAMLHE00EHYIOAS 2.62 GREEN, BAMLEMCBPIOAS 1.38 GREEN
+- `13:21:10`    panel funding          4 rows: SOFR 3.66 GREEN, DTB3 3.78 GREEN, SOFR-TB3 -0.13 GREEN, DTWEXBGS 118.747 GREEN
+- `13:21:10`    MOF JGB curve 2026-09-03 tenors=15 err=None
+- `13:21:10`    auction desk: 2026-09-03 $12.5B buyback at max · $185.5B bills -> risk-on supportive tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] preds=6
+- `13:21:10`    RED=[] AMBER=[]
+## schedules (America/New_York, Mon-Fri)
+
+- `13:21:10` ✅    justhodl-bond-warroom-early created cron(30 7 ? * MON-FRI *) ET
+- `13:21:10` ✅    justhodl-bond-warroom-mid created cron(0 10 ? * MON-FRI *) ET
+- `13:21:10` ✅    justhodl-bond-warroom-after-auction created cron(35 13 ? * MON-FRI *) ET
+- `13:21:10` ✅    justhodl-bond-warroom-close created cron(45 16 ? * MON-FRI *) ET
+- `13:21:11` ✅    justhodl-bond-warroom-evening created cron(15 19 ? * MON-FRI *) ET
+## page
+
+- `13:24:12`    bonds.html carries the war room: True
+- `13:24:43`    1440px: {"score": "0", "regime": "CALM", "headline": "Bond markets are calm -- every monitored market inside its normal daily range.", "panels": 8, "rows": 31, "flags": 27, "reds": 0, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 0} errors=[]
+- `13:24:52`     390px: {"score": "0", "regime": "CALM", "headline": "Bond markets are calm -- every monitored market inside its normal daily range.", "panels": 8, "rows": 31, "flags": 27, "reds": 0, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 100} errors=[]
+- `13:24:52` ✗    panel japan thin (0 rows)
+- `13:24:52` ✗    panel europe thin (0 rows)
+- `13:24:52` ✗    390px overflow 100px

@@ -1,71 +1,37 @@
-executing-against: a4f21c4c459a253987070bd5f4c616e8a37ccb6e
-ops 5188 -- bond war-room sources
-── A. Stooq government bond yields (daily CSV) ──
-[13:10:53]    10ydey.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:54]    10yity.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:55]    10yesy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:55]    10yfry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:56]    10yuky.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:57]    10yjpy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:57]    10yauy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:58]    10ycay.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:58]    10ychy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:59]    2ydey.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:10:59]    2yity.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:00]    2yjpy.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:00]    30ydey.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:01]    30yjpy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:02]    10yusy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:02]    2yusy.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:03]    10ynly.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:03]    10ypty.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:04]    10ygry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:04]    10ykry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:05]    10ycny.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:05]    10yiny.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:06]    10ybry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-[13:11:06]    10ymxy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
-── B. Japan MOF JGB daily curve ──
-[13:11:06]    jgbcm.csv -> 404 lines=0 head=[] last=None
-[13:11:07]    jgbcme.csv -> 200 bytes=545 head=b'Interest Rate (September 2026),,,,,,,,,,,,,,,(Unit : %)\r\nDate,1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,15Y,20Y,25Y,30Y,40Y\r\n2026/9/1,1.527,1.802,1.952,2.14,2.28,2.411,2.5'
-── C. worker routes ──
-[13:11:07]    /yf-ohlc?symbol=^MOVE&range=1y&interval=1d       -> 200 bars=250 last={'date': None, 'time': 1788442200, 'close': 74.68000030517578, 'value': 0}
-[13:11:07]    /yf-ohlc?symbol=TLT&range=1y&interval=1d         -> 200 bars=252 last={'date': None, 'time': 1788442200, 'close': 82.06999969482422, 'value': 18033000}
-[13:11:07]    /yf-ohlc?symbol=^TNX&range=1y&interval=1d        -> 200 bars=253 last={'date': None, 'time': 1788524400, 'close': 4.783999919891357, 'value': 0}
-[13:11:08]    /fred?series=DGS10&obs=30                        -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 4.79}
-[13:11:08]    /fred?series=BAMLH0A0HYM2&obs=30                 -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.66}
-[13:11:08]    /fred?series=BAMLC0A0CM&obs=30                   -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.81}
-[13:11:09]    /fred?series=BAMLH0A3HYC&obs=5                   -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 10.53}
-[13:11:09]    /fred?series=BAMLEMCBPIOAS&obs=5                 -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.38}
-[13:11:10]    /fred?series=BAMLC0A4CBBB&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.99}
-[13:11:10]    /fred?series=BAMLH0A1HYBB&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.53}
-[13:11:11]    /fred?series=BAMLEMPBPUBSICRPIOAS&obs=5          -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.12}
-[13:11:11]    /fred?series=BAMLHE00EHYIOAS&obs=5               -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.62}
-[13:11:11]    /fred?series=BAMLEMHBHYCRPIOAS&obs=5             -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.9}
-[13:11:12]    /fred?series=BAMLC0A1CAAA&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.43}
-[13:11:12]    /fred?series=IRLTLT01ITM156N&obs=3               -> 200 bars=3 last={'date': '2026-06-01', 'time': 1780272000, 'close': None, 'value': 3.734}
-[13:11:12]    /fred?series=DTWEXBGS&obs=5                      -> 200 bars=5 last={'date': '2026-08-28', 'time': 1787875200, 'close': None, 'value': 118.7479}
-[13:11:13]    /fred?series=VIXCLS&obs=5                        -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 15.2}
-[13:11:13]    /fred?series=T10Y2Y&obs=5                        -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 0.43}
-[13:11:14]    /fred?series=DFII10&obs=5                        -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.45}
-[13:11:14]    /fred?series=T10YIE&obs=5                        -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 2.35}
-[13:11:14]    /fred?series=SOFR&obs=5                          -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 3.66}
-[13:11:14]    /fred?series=DTB3&obs=5                          -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 3.78}
-── D. fleet feeds ──
-[13:11:15]    data/usd-funding.json            keys=['version', 'engine', 'generated', 'reference_rates', 'spreads_vs_iorb', 'bank_wholesale_funding', 'commercial_paper', 'sofr_term_structure', 'bis_lbs_usd', 'not_entitled', 'stress_z', 'errors', 'status']
-[13:11:15]    data/eurodollar-plumbing.json    keys=['engine', 'version', 'bis_crossborder', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note']
-[13:11:15]       composite_score=10.8
-[13:11:15]       generated_at=2026-09-04T12:02:47Z
-[13:11:15]       score=10.8
-[13:11:15]    data/move-index.json             keys=['engine', 'version', 'source', 'generated_at', 'ok', 'duration_s', 'level', 'change_1d', 'change_20d', 'percentile', 'avg_1y', 'regime', 'color', 'interpretation']
-[13:11:15]       regime=SUPPRESSED
-[13:11:15]       generated_at=2026-09-03T13:20:39.331064+00:00
-[13:11:15]       level=79.7
-[13:11:16]    data/auction-desk.json           keys=['version', 'generated_at', 'elapsed_s', 'notes', 'sources', 'freshness', 'today', 'recent_days', 'auctions', 'buybacks', 'calendar', 'by_term', 'composite_history', 'reactions']
-[13:11:16]       generated_at=2026-09-04T03:56:59+00:00
-[13:11:16]    data/crisis-plumbing.json        keys=['schema_version', 'generated_at', 'fetch_time_sec', 'composite', 'crisis_indices', 'plumbing_tier2', 'mmf_composition', 'funding_credit_signals', 'xcc_basis_proxy', 'yield_curve', 'n_series_fetched', 'enrichment', 'data_sources']
-[13:11:16]       composite={'composite_stress_score': 9.8, 'consensus_count': 0, 'agreement_signal': 'NORMAL', 'n_indices_available': 4, 'flagged_i
-[13:11:16]       generated_at=2026-09-03T14:54:26.193435+00:00
-[13:11:16] ✅ probe complete
+executing-against: e503e04fe8e9ed749f45b4f9b16f6212500d7ebe
+ops 5189 -- bond war room launch
+[13:20:44]   Lambda missing — creating
+[13:20:49] ✅   ✓ created justhodl-bond-warroom
+[13:21:09]    run (20s, error=None) -> {"ok": true, "elapsed_s": 19.1, "n_series": 32, "heartbeat": 0, "regime": "CALM", "equity": "CALM", "eurodollar": "NONE", "red": [], "notes": ["tv errors: {\"US02Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Ba\", \"US05Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Ba\", \"US10Y\": \"all endpoints refused: data.tradingview.com/socket.io/websocket"], "freshness": {"tradingview": null, "fred": "2026-09-03", "yahoo": "2026-09-04", "mof_jgb": "2026-09-03"}}
+── feed ──
+[13:21:10]    heartbeat 0 CALM -- Bond markets are calm -- every monitored market inside its normal daily range.
+[13:21:10]    equity: CALM LOW -- Bond prices and yields are inside their normal daily range (TLT +0.1% (z +0.3); 10Y +0.0bp (z -0.1); MOVE 75 -5.0pts (z -1.2); HY OAS +1.0bp (z +0.2)). No rates-driven pressure on stocks either way.
+[13:21:10]    eurodollar: NONE 0 -- No eurodollar-shortage signature: periphery spreads, the dollar and EM/Euro credit are quiet.
+[13:21:10]    freshness={'tradingview': None, 'fred': '2026-09-03', 'yahoo': '2026-09-04', 'mof_jgb': '2026-09-03'} notes=['tv errors: {"US02Y": "all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b\'HTTP/1.1 400 Ba", "US05Y": "all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b\'HTTP/1.1 400 Ba", "US10Y": "all endpoints refused: data.tradingview.com/socket.io/websocket']
+[13:21:10]    panel us_rates         3 rows: DGS3MO 3.92 GREEN, DFII10 2.45 GREEN, T10YIE 2.35 GREEN
+[13:21:10]    panel volatility       8 rows: ^MOVE 74.68 GREEN, VIXCLS 15.2 GREEN, TLT 82.07 GREEN, IEF 92.28 GREEN, SHY 81.71 GREEN, HYG 79.21 GREEN, LQD 105.5 GREEN, EMB 94.45 GREEN
+[13:21:10]    panel japan            0 rows: 
+[13:21:10]    panel europe           0 rows: 
+[13:21:10]    panel europe_spreads   0 rows: 
+[13:21:10]    panel world            0 rows: 
+[13:21:10]    panel credit          12 rows: BAMLH0A0HYM2 2.66 GREEN, BAMLC0A0CM 0.81 GREEN, BAMLC0A1CAAA 0.43 GREEN, BAMLC0A4CBBB 0.99 GREEN, BAMLH0A1HYBB 1.53 GREEN, BAMLH0A2HYB 2.76 GREEN, BAMLH0A3HYC 10.53 GREEN, BAMLHE00EHYIOAS 2.62 GREEN, BAMLEMCBPIOAS 1.38 GREEN
+[13:21:10]    panel funding          4 rows: SOFR 3.66 GREEN, DTB3 3.78 GREEN, SOFR-TB3 -0.13 GREEN, DTWEXBGS 118.747 GREEN
+[13:21:10]    MOF JGB curve 2026-09-03 tenors=15 err=None
+[13:21:10]    auction desk: 2026-09-03 $12.5B buyback at max · $185.5B bills -> risk-on supportive tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] preds=6
+[13:21:10]    RED=[] AMBER=[]
+── schedules (America/New_York, Mon-Fri) ──
+[13:21:10] ✅    justhodl-bond-warroom-early created cron(30 7 ? * MON-FRI *) ET
+[13:21:10] ✅    justhodl-bond-warroom-mid created cron(0 10 ? * MON-FRI *) ET
+[13:21:10] ✅    justhodl-bond-warroom-after-auction created cron(35 13 ? * MON-FRI *) ET
+[13:21:10] ✅    justhodl-bond-warroom-close created cron(45 16 ? * MON-FRI *) ET
+[13:21:11] ✅    justhodl-bond-warroom-evening created cron(15 19 ? * MON-FRI *) ET
+── page ──
+[13:24:12]    bonds.html carries the war room: True
+[13:24:43]    1440px: {"score": "0", "regime": "CALM", "headline": "Bond markets are calm -- every monitored market inside its normal daily range.", "panels": 8, "rows": 31, "flags": 27, "reds": 0, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 0} errors=[]
+[13:24:52]     390px: {"score": "0", "regime": "CALM", "headline": "Bond markets are calm -- every monitored market inside its normal daily range.", "panels": 8, "rows": 31, "flags": 27, "reds": 0, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 100} errors=[]
+[13:24:52] ✗    panel japan thin (0 rows)
+[13:24:52] ✗    panel europe thin (0 rows)
+[13:24:52] ✗    390px overflow 100px
 
-→ Report written to aws/ops/reports/latest/ops_5188_bond_sources_probe.md
+→ Report written to aws/ops/reports/latest/ops_5189_bond_warroom_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_5189_bond_warroom_launch.py
