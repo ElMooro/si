@@ -1,0 +1,8 @@
+{
+  "schema_version":"1.0.0",
+  "required":["engine","schema_version","generated_at","status","packets","inactive_packets","coverage","dedupe","disagreements","vetoes","subscriptions","trace","methodology"],
+  "packet_required":["evidence_id","source_id","subject","domain","direction","score","confidence","freshness","as_of","provenance","ancestry","source_family","evidence_level","independence_eligible","active"],
+  "directions":["RISK_ON","NEUTRAL","RISK_OFF"],
+  "freshness":["FRESH","STALE","MISSING","INVALID","UNKNOWN"],
+  "statuses":["OK","DEGRADED","NO_ACTIVE_EVIDENCE"]
+}

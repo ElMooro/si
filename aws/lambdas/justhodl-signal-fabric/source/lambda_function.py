@@ -6,7 +6,7 @@ the engine-leaderboard, with agreement and CONFLICT as first-class
 outputs. One read now answers: what does the whole fleet think about
 X — and where do proven engines disagree?
 Output: data/signal-fabric.json"""
-import json, re, time
+import hashlib, json, math, re, time
 from datetime import datetime, timezone
 
 import boto3
@@ -18,6 +18,18 @@ TICK_RX = re.compile(r"^[A-Z][A-Z0-9.\-]{0,6}$")
 DOWN_RX = re.compile(r"DOWN|UNDER|SHORT|SELL|BEAR|AVOID|TOP_FORM",
                      re.I)
 UP_RX = re.compile(r"UP|OUT?PERF|LONG|BUY|BULL|BOTTOM_FORM", re.I)
+SOURCE_FAMILY = {
+    "trend-reversal": "price_reversal",
+    "compound-aggregator": "multi_engine_compound",
+    "ai-rerating": "fundamental_rerating",
+    "magic-formula": "systematic_value",
+    "opportunities": "opportunity_composite",
+    "insider-clusters": "insider_transactions",
+    "congress-direct": "congress_transactions",
+    "squeeze-fuel": "short_positioning",
+    "short-interest": "short_positioning",
+    "13f-flows": "institutional_13f",
+}
 
 # ── explicit adapters: (artifact_key, rows_getter, stance_fn) ──
 # stance_fn(row) -> (kind, value, direction, confidence) or None
@@ -125,8 +137,9 @@ def st_13f(sym, tf):
 
 
 ADAPTERS = [
-    ("data/best-setups.json", ("top_setups",), st_best_setups,
-     "best-setups"),
+    # best-setups consumes feature-bus. It is a downstream L3 view and is
+    # intentionally excluded here to break the former
+    # signal-fabric -> feature-bus -> best-setups -> signal-fabric loop.
     ("data/trend-reversal.json", ("rows",), st_reversal,
      "trend-reversal"),
     ("data/compound-signals.json", ("compound",), st_compound,
@@ -223,17 +236,39 @@ def lambda_handler(event=None, context=None):
                                                   v["n"]))
         return (0.6, "neutral (ungraded)")
     FAB = {}
+    seen_evidence = set()
 
-    def add(sym, engine, kind, value, direction, conf):
+    def add(sym, engine, kind, value, direction, conf, root_id=None):
         if not sym or not TICK_RX.match(sym):
             return
+        try:
+            confidence = float(conf)
+        except (TypeError, ValueError):
+            return
+        if not math.isfinite(confidence) or not 0 <= confidence <= 1:
+            return
+        canonical = root_id or "|".join(
+            (engine, sym, str(kind), str(value), str(direction))
+        )
+        evidence_id = "sf1:" + hashlib.sha256(
+            canonical.encode("utf-8", "replace")
+        ).hexdigest()[:24]
+        if evidence_id in seen_evidence:
+            return
+        seen_evidence.add(evidence_id)
         w0, basis = wt(engine)
         FAB.setdefault(sym, []).append({
+            "evidence_id": evidence_id,
             "engine": engine, "kind": kind,
             "value": str(value)[:60],
-            "direction": direction, "confidence": round(
-                float(conf or 0.5), 2),
+            "direction": direction, "confidence": round(confidence, 2),
             "weight": round(w0, 2), "weight_basis": basis,
+            "source_family": SOURCE_FAMILY.get(engine, engine),
+            "evidence_level": "L1",
+            "role": "root_evidence",
+            "independence_eligible": True,
+            "ancestry": [],
+            "provenance": {"producer": engine},
             "link": "https://justhodl.ai"
                     + PAGE.get(engine, "/engine-leaderboard.html")})
     src_stats = {}
@@ -256,14 +291,29 @@ def lambda_handler(event=None, context=None):
     # congress-direct: nested senate/house
     cg = rd("data/congress-direct.json") or {}
     ncg = 0
+    congress_seen = set()
     for chamber in ("senate", "house"):
         ch = cg.get(chamber) or {}
         for r0 in resolve_rows(ch, ("rows", "transactions",
                                     "filings"))[:300]:
             sym = str(_g(r0, "ticker", "symbol") or "").upper()
+            transaction_id = str(_g(
+                r0, "transaction_id", "filing_id", "id"
+            ) or "").strip()
+            transaction_key = transaction_id or "|".join(str(x or "").strip().upper() for x in (
+                sym,
+                _g(r0, "filer", "name", "representative"),
+                _g(r0, "type", "transaction"),
+                _g(r0, "transaction_date", "date"),
+                _g(r0, "amount", "amount_range"),
+            ))
+            if transaction_key in congress_seen:
+                continue
+            congress_seen.add(transaction_key)
             st = st_congress(r0)
             if st:
-                add(sym, "congress-direct", *st)
+                add(sym, "congress-direct", *st,
+                    root_id="congress|" + transaction_key)
                 ncg += 1
     src_stats["congress-direct"] = ncg
     # short-interest: by_ticker map beats squeeze-fuel when empty
@@ -290,6 +340,19 @@ def lambda_handler(event=None, context=None):
     tickers = []
     conflicts = []
     for sym, envs in FAB.items():
+        # One correlated source family gets one vote per ticker. This also
+        # prevents short-interest and squeeze-fuel from manufacturing
+        # consensus from the same underlying positioning family.
+        by_family = {}
+        for envelope in envs:
+            family = envelope["source_family"]
+            incumbent = by_family.get(family)
+            if incumbent is None or (
+                envelope["weight"] * envelope["confidence"]
+                > incumbent["weight"] * incumbent["confidence"]
+            ):
+                by_family[family] = envelope
+        envs = list(by_family.values())
         ups = [e for e in envs if e["direction"] == "UP"]
         dns = [e for e in envs if e["direction"] == "DOWN"]
         score = sum(e["weight"] * e["confidence"] for e in ups) \

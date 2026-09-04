@@ -20,8 +20,7 @@ import boto3
 
 from discovery import apply_lifecycle, build_opportunity_radar
 from breadth import apply_breadth_confirmation
-from risk_board import build_risk_board
-from scoring import contract_error, number, rank_candidates, risk_policy, score_candidate
+from scoring import contract_error, number, rank_candidates, score_candidate
 
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -29,6 +28,21 @@ OUT_KEY = "data/khalid.json"
 HISTORY_KEY = "data/history/khalid.json"
 CANDIDATE_LEDGER_KEY = "data/khalid-candidates.json"
 S3 = boto3.client("s3")
+MAX_FUTURE_SKEW_HOURS = 5 / 60
+KHALID_RISK_MODES = {"DATA_HOLD", "DEFENSIVE", "SELECTIVE", "SELECTIVE_RISK_ON"}
+KHALID_RISK_DECISIONS = {
+    "STAY IN CASH / SHORT-TERM TREASURIES",
+    "INVEST SELECTIVELY",
+    "WAIT IN CASH / SHORT-TERM TREASURIES",
+}
+KHALID_RISK_SOURCE_STATUSES = {"FRESH", "STALE", "MISSING", "INVALID", "UNKNOWN"}
+KHALID_RISK_CRITICAL_SOURCES = {
+    "risk_gate",
+    "crisis",
+    "bond_warroom",
+    "eurodollar_stress",
+    "credit_composite",
+}
 
 REGISTRY_PATH = Path(__file__).with_name("input_registry.json")
 SCHEMA_PATH = Path(__file__).with_name("output_schema.json")
@@ -115,6 +129,13 @@ def validate_output(payload: dict) -> None:
         raise ValueError("capital decision does not reconcile with risk board")
     if decision.get("exposure_cap_pct") != board.get("exposure_cap_pct"):
         raise ValueError("exposure cap does not reconcile with risk board")
+    risk_artifact = payload.get("risk_artifact") or {}
+    if (
+        risk_artifact.get("artifact") != "data/khalid-risk.json"
+        or risk_artifact.get("authoritative") is not True
+        or risk_artifact.get("direct_risk_recomputed") is not False
+    ):
+        raise ValueError("authoritative Khalid Risk provenance is missing")
     high_count = sum(row["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for row in radar)
     if decision.get("high_conviction_count") != high_count:
         raise ValueError("high-conviction count does not reconcile")
@@ -146,7 +167,7 @@ def _age_h(iso_value: str | None, now: datetime) -> float | None:
         dt = datetime.fromisoformat(str(iso_value).replace("Z", "+00:00"))
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return round(max(0.0, (now - dt.astimezone(timezone.utc)).total_seconds() / 3600), 2)
+        return round((now - dt.astimezone(timezone.utc)).total_seconds() / 3600, 2)
     except (TypeError, ValueError):
         return None
 
@@ -161,6 +182,84 @@ def _feed_timestamp(payload: dict, meta: dict) -> str | None:
 
 def _risk_payload_error(name: str, payload: dict) -> str | None:
     """Apply semantic guards that cannot be expressed by the shallow registry contract."""
+    if name == "khalid_risk":
+        policy = payload.get("policy") if isinstance(payload.get("policy"), dict) else {}
+        board = payload.get("risk_board") if isinstance(payload.get("risk_board"), dict) else {}
+        status = payload.get("status")
+        mode = policy.get("mode")
+        allows = policy.get("allows_new_entries")
+        decision = payload.get("capital_decision")
+        cap = number(payload.get("exposure_cap_pct"))
+        sizing = number(policy.get("sizing_multiplier"))
+        health = payload.get("source_health")
+        if payload.get("schema_version") != "1.0.0":
+            return "khalid-risk schema_version must be 1.0.0"
+        if status not in {"OK", "DEGRADED", "DATA_HOLD"}:
+            return "khalid-risk status is invalid"
+        if mode not in KHALID_RISK_MODES:
+            return "khalid-risk policy mode is invalid"
+        if decision not in KHALID_RISK_DECISIONS:
+            return "khalid-risk capital decision is invalid"
+        if not isinstance(allows, bool):
+            return "khalid-risk allows_new_entries must be boolean"
+        if cap is None or not 0 <= cap <= 100:
+            return "khalid-risk exposure cap must be finite and within 0..100"
+        if sizing is None or not 0 <= sizing <= 1:
+            return "khalid-risk sizing multiplier must be finite and within 0..1"
+        if cap != number(policy.get("exposure_cap_pct")) or cap != number(board.get("exposure_cap_pct")):
+            return "khalid-risk exposure cap fields do not reconcile"
+        if payload.get("capital_decision") != board.get("capital_decision"):
+            return "khalid-risk capital decision fields do not reconcile"
+        if mode != board.get("mode") or allows is not board.get("allows_new_entries"):
+            return "khalid-risk policy and board state fields do not reconcile"
+        if not isinstance(board.get("domains"), list):
+            return "khalid-risk board domains must be a list"
+        if not isinstance(health, list):
+            return "khalid-risk source_health must be a list"
+        for row in health:
+            if (
+                not isinstance(row, dict)
+                or not isinstance(row.get("critical"), bool)
+                or row.get("status") not in KHALID_RISK_SOURCE_STATUSES
+            ):
+                return "khalid-risk source_health row is invalid"
+        health_by_name = {
+            row.get("name"): row
+            for row in health
+            if isinstance(row.get("name"), str)
+        }
+        for source in sorted(KHALID_RISK_CRITICAL_SOURCES):
+            row = health_by_name.get(source)
+            if row is None:
+                return f"khalid-risk critical source_health row is missing: {source}"
+            if row.get("critical") is not True:
+                return f"khalid-risk required source is not marked critical: {source}"
+        nonfresh = [row for row in health if row["status"] != "FRESH"]
+        critical_bad = [row for row in nonfresh if row["critical"]]
+        if critical_bad and (status != "DATA_HOLD" or mode != "DATA_HOLD"):
+            return "khalid-risk critical source failure must force DATA_HOLD"
+        if mode == "DATA_HOLD" and not critical_bad:
+            return "khalid-risk DATA_HOLD requires a critical source failure"
+        if status == "OK" and nonfresh:
+            return "khalid-risk OK status contradicts non-fresh source health"
+        if status == "DEGRADED" and (not nonfresh or critical_bad):
+            return "khalid-risk DEGRADED status contradicts source health"
+        if (status == "DATA_HOLD") != (mode == "DATA_HOLD"):
+            return "khalid-risk status and policy mode do not reconcile"
+        state_contract = {
+            "DATA_HOLD": (False, "STAY IN CASH / SHORT-TERM TREASURIES", 0),
+            "DEFENSIVE": (False, "STAY IN CASH / SHORT-TERM TREASURIES", 10),
+            "SELECTIVE": (True, "INVEST SELECTIVELY", 50),
+            "SELECTIVE_RISK_ON": (True, "INVEST SELECTIVELY", 100),
+        }
+        expected_allows, expected_decision, max_cap = state_contract[mode]
+        if allows is not expected_allows or decision != expected_decision or cap > max_cap:
+            return "khalid-risk mode, decision, entry permission, and cap contradict"
+        if sizing > cap / 100:
+            return "khalid-risk sizing multiplier exceeds exposure cap"
+        return None
+    # Retained adapter guards support direct bond/FX context and backwards
+    # compatible tests, but these feeds no longer participate in policy.
     if name in {"credit_composite", "eurodollar_stress"}:
         score = number(
             payload.get("composite")
@@ -205,9 +304,6 @@ def _risk_payload_error(name: str, payload: dict) -> str | None:
     available = [row for row in components if isinstance(row, dict) and row.get("available") is True]
     if reported is None or reported < max(1, len(components) * 0.75) or len(available) < len(components) * 0.75:
         return "crisis component coverage is below 75%"
-    # Most crisis sidecars are daily, while ECB CISS is weekly. Enforce the
-    # producer-aware cadence instead of either accepting old daily data or
-    # forcing a permanent hold on a healthy weekly observation.
     fresh_available = []
     stale = []
     for row in available:
@@ -225,6 +321,86 @@ def _risk_payload_error(name: str, payload: dict) -> str | None:
         )
         return f"crisis fresh component coverage is below 75%: {labels}"
     return None
+
+
+def _data_hold_policy(reason: str) -> tuple[dict, dict]:
+    """Fail-closed fallback when the required risk artifact is unavailable."""
+    policy = {
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "risk_gate_posture": "UNKNOWN",
+        "risk_gate_composite": None,
+        "risk_gate_sizing_multiplier": None,
+        "sizing_multiplier": 0.0,
+        "crisis_defcon": None,
+        "exposure_cap_pct": 0,
+        "reasons": [reason],
+        "default_shelter": {
+            "primary": "CASH",
+            "why": "Required authoritative Khalid Risk artifact is unavailable",
+            "avoid": "New risk until the critical risk artifact clears its contract",
+        },
+    }
+    board = {
+        "schema_version": "1.0.0",
+        "capital_decision": "STAY IN CASH / SHORT-TERM TREASURIES",
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "exposure_cap_pct": 0,
+        "risk_score": 100,
+        "hard_vetoes": [reason],
+        "tighteners": [],
+        "conflicts": [],
+        "domains": [],
+        "method": "Fail closed: required data/khalid-risk.json is not fresh and valid.",
+    }
+    return policy, board
+
+
+def _policy_from_risk_artifact(artifact: dict) -> tuple[dict, dict]:
+    """Copy the governed policy/board without recomputing direct market risk."""
+    if not isinstance(artifact, dict) or not artifact:
+        return _data_hold_policy("Required data/khalid-risk.json is missing, invalid, or stale")
+    policy = artifact.get("policy") if isinstance(artifact.get("policy"), dict) else {}
+    board = artifact.get("risk_board") if isinstance(artifact.get("risk_board"), dict) else {}
+    policy = {**policy, "reasons": list(policy.get("reasons") or [])}
+    board = {
+        **board,
+        "domains": list(board.get("domains") or []),
+        "hard_vetoes": list(board.get("hard_vetoes") or []),
+        "tighteners": list(board.get("tighteners") or []),
+        "conflicts": list(board.get("conflicts") or []),
+        "authoritative_artifact": "data/khalid-risk.json",
+        "authoritative_generated_at": artifact.get("generated_at"),
+        "authoritative_capital_decision": artifact.get("capital_decision"),
+        "authoritative_exposure_cap_pct": artifact.get("exposure_cap_pct"),
+    }
+    return policy, board
+
+
+def _sync_consumer_tightening(policy: dict, board: dict, reasons_before: int) -> None:
+    """Reflect any Khalid-only veto without ever loosening the risk artifact."""
+    source_cap = number(board.get("authoritative_exposure_cap_pct"))
+    current_cap = number(policy.get("exposure_cap_pct"))
+    if current_cap is None:
+        current_cap = 0
+    if source_cap is not None:
+        current_cap = min(current_cap, source_cap)
+    if policy.get("mode") in {"DATA_HOLD", "DEFENSIVE"}:
+        current_cap = min(current_cap, 10 if policy.get("mode") == "DEFENSIVE" else 0)
+        decision = "STAY IN CASH / SHORT-TERM TREASURIES"
+        policy["allows_new_entries"] = False
+    else:
+        decision = board.get("authoritative_capital_decision")
+    policy["exposure_cap_pct"] = round(current_cap)
+    policy["sizing_multiplier"] = min(number(policy.get("sizing_multiplier")) or 0, current_cap / 100)
+    board.update({
+        "mode": policy.get("mode"),
+        "allows_new_entries": bool(policy.get("allows_new_entries")),
+        "exposure_cap_pct": round(current_cap),
+        "capital_decision": decision,
+        "consumer_tighteners": list(policy.get("reasons") or [])[reasons_before:],
+    })
 
 
 def _index(rows: Any, *keys: str) -> dict[str, dict]:
@@ -479,6 +655,9 @@ def build_output(
         elif age is None:
             status = "UNKNOWN"
             gaps.append(f"{key}: no parseable timestamp")
+        elif age < -MAX_FUTURE_SKEW_HOURS:
+            status = "INVALID"
+            gaps.append(f"{key}: timestamp is {abs(age):.1f}h in the future")
         elif age > max_age:
             status = "STALE"
             gaps.append(f"{key}: {age:.1f}h old, SLA {max_age}h")
@@ -498,12 +677,17 @@ def build_output(
             "fields_consumed": spec.get("fields_consumed") or [],
         })
 
-    policy = risk_policy(feeds.get("risk_gate") or {}, feeds.get("crisis") or {}, source_health)
     health_by_id = {row["name"]: row["status"] for row in source_health}
     active_feeds = {
         name: payload if health_by_id.get(name) == "FRESH" else {}
         for name, payload in feeds.items()
     }
+    # The standalone Khalid Risk artifact is the only market-risk authority.
+    # Direct bond/FX feeds that remain below are context for opportunity
+    # features only and are never scored a second time into capital policy.
+    risk_artifact = active_feeds.get("khalid_risk") or {}
+    policy, risk_board = _policy_from_risk_artifact(risk_artifact)
+    risk_reason_count = len(policy.get("reasons") or [])
     katlin = active_feeds.get("katlin") or {}
     katlin_war_room = _katlin_posture(katlin)
     if (
@@ -520,10 +704,7 @@ def build_output(
             f"(thermometer {katlin_war_room.get('thermometer')}, "
             f"cap {katlin_war_room.get('exposure_cap_pct')}%): {detail}"
         )
-    # Direct market-risk lenses are evaluated before any candidate is scored.
-    # They receive freshness/contract-filtered payloads and may only tighten
-    # the already-authoritative gate and Katlin veto.
-    risk_board, policy = build_risk_board(active_feeds, source_health, policy)
+    _sync_consumer_tightening(policy, risk_board, risk_reason_count)
     fortress = active_feeds.get("fortress") or {}
     accumulation = active_feeds.get("accumulation") or {}
     best = active_feeds.get("best_setups") or {}
@@ -679,14 +860,9 @@ def build_output(
         else "SELECTIVE_BUY" if selected
         else "WAIT_FOR_CONFIRMATION"
     )
-    capital_decision = (
-        "STAY IN CASH / SHORT-TERM TREASURIES"
-        if policy["mode"] in {"DATA_HOLD", "DEFENSIVE"}
-        else "INVEST SELECTIVELY"
-        if selected and policy["allows_new_entries"]
-        else "WAIT IN CASH / SHORT-TERM TREASURIES"
-    )
-    risk_board["capital_decision"] = capital_decision
+    # Do not recompute capital permission from the candidate set. The
+    # authoritative risk artifact (or a stricter Khalid-only veto) controls it.
+    capital_decision = risk_board["capital_decision"]
     asset_views = [
         {"asset_class": "Stocks", "stance": "SELECTIVE" if selected else "TRACKING", "ready": sum(x["asset_class"] == "STOCK" for x in selected), "building": sum(x["asset_class"] == "STOCK" for x in opportunity_radar), "reason": "Value, inflection, catalysts and capital confirmation are discovered broadly; entry remains strict."},
         {"asset_class": "ETFs / Sectors", "stance": "TRACKING", "ready": sum(x["asset_class"] == "ETF" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "ETF" for x in opportunity_radar), "reason": "Early sector emergence and cross-asset value are ranked before they become crowded."},
@@ -696,7 +872,7 @@ def build_output(
         {"asset_class": "Cash / T-bills", "stance": "PREFERRED" if not selected or policy["mode"] in {"DATA_HOLD", "DEFENSIVE"} else "RESERVE", "ready": 0, "building": 0, "reason": policy["default_shelter"]["why"]},
     ]
     domain_rows = [
-        {"domain": "Risk regime", "score": 100 - risk_score, "direction": policy["mode"], "confidence": confidence, "status": "DEGRADED" if required_bad else "OK", "contributors": ["risk_gate", "crisis", "bond_warroom"]},
+        {"domain": "Risk regime", "score": 100 - risk_score, "direction": policy["mode"], "confidence": confidence, "status": "DEGRADED" if required_bad else "OK", "contributors": ["khalid_risk"]},
         {"domain": "Long-term location", "score": round(sum(x["score"] for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "BELOW_TREND_REQUIRED", "confidence": confidence, "status": "OK" if total else "NO_DATA", "contributors": ["fortress"]},
         {"domain": "Accumulation", "score": round(sum(min(100, len(x["evidence"]["accumulation"]) * 20) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "CONFIRMING" if building or selected else "WEAK", "confidence": confidence, "status": "OK" if active_feeds.get("accumulation") else "DEGRADED", "contributors": ["fortress", "accumulation"]},
         {"domain": "Capital flows", "score": round(sum(min(100, len(x["evidence"]["flows"]) * 25) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "SELECTIVE", "confidence": confidence, "status": "OK", "contributors": ["fortress", "options"]},
@@ -778,6 +954,13 @@ def build_output(
             "shelter": policy["default_shelter"],
         },
         "risk_board": risk_board,
+        "risk_artifact": {
+            "artifact": "data/khalid-risk.json",
+            "generated_at": risk_artifact.get("generated_at"),
+            "status": risk_artifact.get("status"),
+            "authoritative": True,
+            "direct_risk_recomputed": False,
+        },
         "breadth_clusters": breadth_clusters,
         "risk_control": {
             **policy,
@@ -790,6 +973,15 @@ def build_output(
                 "regime": allocator.get("regime_headline"),
                 "cash_buffer_pct": allocator.get("cash_buffer_pct"),
                 "recommended_weights_pct": allocator.get("recommended_weights_pct"),
+            },
+            "engine_fusion": {
+                "artifact": "data/engine-fusion.json",
+                "status": (active_feeds.get("engine_fusion") or {}).get("status"),
+                "summaries": (
+                    ((active_feeds.get("engine_fusion") or {}).get("subscriptions") or {}).get("khalid")
+                    or []
+                ),
+                "role": "context/tighten-only; never overrides Khalid Risk vetoes",
             },
         },
         "selected": selected,

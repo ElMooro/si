@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="Khalid's independent capital-risk board, including Treasury settlement fails, vetoes, coverage, and source health.">
+  <meta name="theme-color" content="#0C0B09">
+  <title>Khalid Risk Board | JustHodl.AI</title>
+  <link rel="stylesheet" href="/jh-theme.css">
+  <link rel="stylesheet" href="/khalidrisk.css">
+</head>
+<body>
+  <a class="kr-skip" href="#kr-main">Skip to risk board</a>
+  <header class="kr-header">
+    <a class="kr-brand" href="/" aria-label="JustHodl home">
+      <svg viewBox="0 0 36 36" role="img" aria-label="Khalid Risk">
+        <path d="M6 5v26M29 5 14 18l15 13M14 18H6" fill="none" stroke="currentColor" stroke-width="3.2"/>
+        <path d="M27 4v8M23 8h8" fill="none" stroke="#E07A6A" stroke-width="2"/>
+      </svg>
+      <span><strong>KHALID / RISK</strong><small>INDEPENDENT CAPITAL CONTROL</small></span>
+    </a>
+    <nav class="kr-nav" aria-label="Primary">
+      <a href="/">Command desk</a>
+      <a href="/khalid.html">Khalid opportunities</a>
+      <a href="/khalidrisk.html" aria-current="page">Risk board</a>
+    </nav>
+    <div id="jh-auth-slot" data-auth-slot></div>
+  </header>
+
+  <main id="kr-main" class="kr-shell">
+    <div id="kr-loading" class="kr-state" role="status" aria-live="polite">
+      <span class="kr-pulse" aria-hidden="true"></span>
+      Reading the authoritative risk artifact…
+    </div>
+    <section id="kr-error" class="kr-state kr-error" role="alert" hidden>
+      <strong>Risk artifact unavailable</strong>
+      <p id="kr-error-copy">No capital decision can be shown safely.</p>
+      <button id="kr-retry" type="button">Retry</button>
+    </section>
+
+    <div id="kr-board" hidden>
+      <section class="kr-decision" aria-labelledby="kr-title">
+        <div class="kr-decision-main">
+          <p class="kr-eyebrow">AUTHORITATIVE CAPITAL DECISION</p>
+          <h1 id="kr-title"><span id="kr-decision">Unavailable</span></h1>
+          <p id="kr-interpretation" class="kr-interpretation">No interpretation was supplied by the risk engine.</p>
+        </div>
+        <dl class="kr-command-metrics">
+          <div><dt>Exposure cap</dt><dd id="kr-cap">—</dd></div>
+          <div><dt>Risk mode</dt><dd id="kr-mode">—</dd></div>
+          <div><dt>As of</dt><dd id="kr-asof">—</dd></div>
+        </dl>
+      </section>
+
+      <section class="kr-control-grid" aria-label="Risk controls and data confidence">
+        <article class="kr-panel">
+          <header><p class="kr-eyebrow">HARD VETOES</p><span id="kr-veto-count">0 reported</span></header>
+          <div id="kr-vetoes" class="kr-lines"></div>
+        </article>
+        <article class="kr-panel">
+          <header><p class="kr-eyebrow">TIGHTENERS</p><span id="kr-tightener-count">0 reported</span></header>
+          <div id="kr-tighteners" class="kr-lines"></div>
+        </article>
+        <article class="kr-panel">
+          <header><p class="kr-eyebrow">FRESHNESS + COVERAGE</p><span id="kr-data-state">UNKNOWN</span></header>
+          <dl id="kr-coverage" class="kr-mini-metrics"></dl>
+        </article>
+      </section>
+
+      <section class="kr-section kr-fails" aria-labelledby="kr-fails-title">
+        <div class="kr-section-head">
+          <div>
+            <p class="kr-eyebrow">US TREASURY SETTLEMENT</p>
+            <h2 id="kr-fails-title">Fails to deliver and receive</h2>
+          </div>
+          <p>Displayed separately and combined. Values are never inferred when the feed omits them.</p>
+        </div>
+        <div id="kr-fails-grid" class="kr-fails-grid"></div>
+      </section>
+
+      <section class="kr-section" aria-labelledby="kr-domains-title">
+        <div class="kr-section-head">
+          <div>
+            <p class="kr-eyebrow">INDEPENDENT RISK DOMAINS</p>
+            <h2 id="kr-domains-title">Every reported lens</h2>
+          </div>
+          <span id="kr-domain-count">0 domains</span>
+        </div>
+        <div id="kr-domains" class="kr-domain-grid"></div>
+      </section>
+
+      <section class="kr-lower-grid">
+        <article class="kr-panel">
+          <header><p class="kr-eyebrow">SOURCE HEALTH</p><span id="kr-source-summary">Unknown</span></header>
+          <div class="kr-table-wrap">
+            <table>
+              <thead><tr><th>Source</th><th>Status</th><th>Age / as of</th><th>Coverage</th></tr></thead>
+              <tbody id="kr-sources"></tbody>
+            </table>
+          </div>
+          <p id="kr-source-empty" class="kr-empty" hidden>No source-health detail was supplied.</p>
+        </article>
+        <article class="kr-panel">
+          <header><p class="kr-eyebrow">CONFLICTS + DISAGREEMENTS</p><span id="kr-conflict-count">0 reported</span></header>
+          <div id="kr-conflicts" class="kr-lines"></div>
+        </article>
+      </section>
+
+      <footer class="kr-footer">
+        <p><strong>Decision support only.</strong> This page is research and risk-control information, not personalized investment advice, a recommendation, or an order instruction. Missing data is not positive evidence.</p>
+        <button id="kr-refresh" type="button">Refresh risk artifact</button>
+      </footer>
+    </div>
+  </main>
+
+  <script src="/auth-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth.js"></script>
+  <script src="/jh-nav-drawer.js" defer></script>
+  <script src="/khalidrisk.js" defer></script>
+</body>
+</html>

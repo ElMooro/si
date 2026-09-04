@@ -147,6 +147,34 @@ jobs:
             echo "targets=$targets" >> $GITHUB_OUTPUT
           fi
 
+      - name: Run deployment preflight tests
+        if: steps.detect.outputs.targets != ''
+        run: |
+          set -euo pipefail
+
+          # These static deployment tests and every selected Lambda's local
+          # checks complete before the deployment step can mutate AWS.
+          python3 tests/deployment/run_tests.py
+          for fn in ${{ steps.detect.outputs.targets }}; do
+            dir="aws/lambdas/$fn"
+            [ -d "$dir/source" ] || continue
+
+            python_sources=("$dir/source/"*.py)
+            if [ -e "${python_sources[0]}" ]; then
+              python3 -m py_compile "${python_sources[@]}"
+            fi
+
+            case "$fn" in
+              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid)
+                if [ ! -f "$dir/tests/run_tests.py" ]; then
+                  echo "::error::$fn requires dependency-free tests/run_tests.py"
+                  exit 1
+                fi
+                python3 "$dir/tests/run_tests.py"
+                ;;
+            esac
+          done
+
       - name: Deploy each changed Lambda
         if: steps.detect.outputs.targets != ''
         run: |
@@ -163,13 +191,6 @@ jobs:
                 exit 0
               fi
               echo "──── Deploying $fn ────"
-
-            # Fail before touching AWS when source cannot compile. Khalid also
-            # runs its deterministic scoring suite without a pytest dependency.
-            python3 -m py_compile "$dir/source/"*.py
-            if [ "$(basename "$dir")" = "justhodl-khalid" ]; then
-              python3 "$dir/tests/run_tests.py"
-            fi
 
             # Read config (function_name + create-time config like runtime/timeout/memory/env)
             fn_runtime="python3.12"
@@ -426,6 +447,52 @@ jobs:
               --function-name "$fn" \
               --region "${{ secrets.AWS_REGION }}" 2>/dev/null || true
 
+            # Engine Fusion must pass its read-only schema smoke test before any
+            # schedule is created or updated. Khalid Risk takes the stronger
+            # numbered-version candidate path below.
+            if [ "$fn" = "justhodl-engine-fusion" ]; then
+              smoke_payload="$tmp/${fn}-validate.json"
+              smoke_meta="$tmp/${fn}-invoke.json"
+              if ! aws lambda invoke \
+                --function-name "$fn" \
+                --region "${{ secrets.AWS_REGION }}" \
+                --cli-binary-format raw-in-base64-out \
+                --payload '{"mode":"validate_only"}' \
+                "$smoke_payload" > "$smoke_meta"; then
+                echo "::error::$fn validate_only invocation failed; schedule remains unchanged"
+                exit 1
+              fi
+              if jq -e '.FunctionError != null' "$smoke_meta" >/dev/null 2>&1; then
+                echo "::error::$fn validate_only returned FunctionError; schedule remains unchanged"
+                cat "$smoke_payload"
+                exit 1
+              fi
+              if ! jq -e '
+                .statusCode == 200
+                and ((.body | fromjson).ok == true)
+                and ((.body | fromjson).validation_only == true)
+                and (((.body | fromjson).schema_version | type) == "string")
+              ' "$smoke_payload" >/dev/null; then
+                echo "::error::$fn validate_only returned an invalid success envelope; schedule remains unchanged"
+                cat "$smoke_payload"
+                exit 1
+              fi
+              echo "✅ $fn read-only schema smoke test passed"
+            fi
+
+            # Risk releases publish the exact $LATEST revision/code hash, invoke
+            # that numbered version in validate_only mode, and only then move
+            # :live and update its Scheduler target. The helper rolls the alias
+            # back if the post-promotion Scheduler operation fails.
+            if [ "$fn" = "justhodl-khalid-risk" ]; then
+              risk_schema=$(jq -er '.schema_version' "$dir/source/output_schema.json")
+              if ! bash scripts/deploy_validated_candidate.sh \
+                "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir/config.json" "$risk_schema"; then
+                echo "::error::Khalid Risk candidate validation or promotion failed"
+                exit 1
+              fi
+            fi
+
             # Khalid is promoted atomically: validate $LATEST first, then move
             # the stable live alias. Its schedule below targets only that alias,
             # so a failed candidate cannot replace the last known-good version.
@@ -477,7 +544,7 @@ jobs:
             # is saturated, so new engines schedule via EventBridge Scheduler
             # (1M-schedule quota). Purely additive — Lambdas using the classic
             # .schedule block above are unaffected. See ops 821.
-            if [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
+            if [ "$fn" != "justhodl-khalid-risk" ] && [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
               sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$dir/config.json")
               sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$dir/config.json")
               sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$dir/config.json")
@@ -486,7 +553,7 @@ jobs:
               region="${{ secrets.AWS_REGION }}"
               acc="857687956942"
               fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
-              if [ "$fn" = "justhodl-khalid" ]; then
+              if [ "$fn" = "justhodl-khalid" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
                 fn_arn="${fn_arn}:live"
               fi
               target_json=$(jq -n --arg arn "$fn_arn" --arg role "$sched_role" \

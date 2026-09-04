@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-khalid-risk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Authoritative tighten-only Khalid capital-risk board with audited direct feeds and weekly Treasury settlement-fails plumbing",
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-khalid-risk-hourly",
+    "cron": "cron(20 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Hourly at :20 after engine fusion and before Khalid at :25; consumers still enforce freshness"
+  }
+}

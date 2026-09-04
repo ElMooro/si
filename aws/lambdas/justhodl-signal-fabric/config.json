@@ -3,5 +3,13 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
-  "timeout": 300
+  "timeout": 300,
+  "description": "Compatibility signal fabric and feature bus with root evidence IDs, transaction/family dedupe, and downstream-view self-exclusion",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-signal-fabric-hourly",
+    "cron": "cron(5 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Hourly at :05 before best-setups :10; best-setups is excluded from fabric evidence to prevent feedback"
+  }
 }

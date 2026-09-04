@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
 
@@ -7,7 +8,7 @@ from scoring import contract_error, risk_policy, score_candidate  # noqa: E402
 from discovery import apply_lifecycle, build_opportunity_radar  # noqa: E402
 from breadth import apply_breadth_confirmation  # noqa: E402
 from risk_board import build_risk_board  # noqa: E402
-from lambda_function import _risk_payload_error  # noqa: E402
+from lambda_function import _policy_from_risk_artifact, _risk_payload_error  # noqa: E402
 
 
 def base_row():
@@ -36,6 +37,47 @@ def base_row():
         "safety_score": 75,
         "adv_usd_20d": 10_000_000,
         "trade_plan": {"reward_to_risk": 99, "pivot": 10.5, "stop": 9, "target": 13, "target_2": 15},
+    }
+
+
+def valid_khalid_risk_artifact(ts="2026-09-04T12:00:00+00:00"):
+    return {
+        "schema_version": "1.0.0",
+        "generated_at": ts,
+        "status": "OK",
+        "capital_decision": "INVEST SELECTIVELY",
+        "exposure_cap_pct": 50,
+        "source_health": [
+            {"name": "risk_gate", "critical": True, "status": "FRESH"},
+            {"name": "crisis", "critical": True, "status": "FRESH"},
+            {"name": "bond_warroom", "critical": True, "status": "FRESH"},
+            {"name": "eurodollar_stress", "critical": True, "status": "FRESH"},
+            {"name": "credit_composite", "critical": True, "status": "FRESH"},
+            {"name": "dollar_radar", "critical": False, "status": "FRESH"},
+        ],
+        "policy": {
+            "mode": "SELECTIVE",
+            "allows_new_entries": True,
+            "sizing_multiplier": 0.5,
+            "exposure_cap_pct": 50,
+            "reasons": ["fixture"],
+            "default_shelter": {
+                "primary": "SGOV / BIL",
+                "why": "fixture",
+                "avoid": "fixture",
+            },
+        },
+        "risk_board": {
+            "capital_decision": "INVEST SELECTIVELY",
+            "mode": "SELECTIVE",
+            "allows_new_entries": True,
+            "exposure_cap_pct": 50,
+            "risk_score": 20,
+            "hard_vetoes": [],
+            "tighteners": [],
+            "conflicts": [],
+            "domains": [],
+        },
     }
 
 
@@ -121,6 +163,14 @@ def test_stale_critical_feed_forces_data_hold():
     out = risk_policy({"posture": "RISK_ON"}, {}, health)
     assert out["mode"] == "DATA_HOLD"
     assert out["allows_new_entries"] is False
+
+
+def test_missing_critical_khalid_risk_artifact_blocks_capital():
+    policy, board = _policy_from_risk_artifact({})
+    assert policy["mode"] == "DATA_HOLD"
+    assert policy["allows_new_entries"] is False
+    assert policy["exposure_cap_pct"] == 0
+    assert board["capital_decision"] == "STAY IN CASH / SHORT-TERM TREASURIES"
 
 
 def test_risk_off_blocks_entries():
@@ -789,28 +839,19 @@ def test_missing_deal_and_flow_metrics_do_not_create_neutral_evidence():
     assert row["discovery_stage"] != "HIGH_CONVICTION"
 
 
-def test_capital_decision_waits_for_an_actual_entry_trigger():
+def test_capital_decision_comes_from_authoritative_risk_artifact():
     from lambda_function import build_output
-    from datetime import datetime, timezone
 
     now = datetime(2026, 9, 4, 12, tzinfo=timezone.utc)
     ts = now.isoformat()
     feeds = {
-        "risk_gate": {"posture": "RISK_ON", "composite": 0, "sizing_multiplier": 0.8},
-        "crisis": {
-            "defcon_level": 4,
-            "master_crisis_score": 20,
-            "components_available": 3,
-            "components": [{"available": True, "age_hours": 1} for _ in range(3)],
-        },
+        "khalid_risk": valid_khalid_risk_artifact(ts),
         "bond_warroom": {
             "heartbeat": {"score": 20, "regime": "CALM"},
             "equity_risk": {"score": 20, "state": "CALM"},
             "eurodollar_shortage": {"score": 20, "state": "CALM"},
             "panels": {"rates": []},
         },
-        "eurodollar_stress": {"composite_score": 20},
-        "credit_composite": {"composite": 20},
         "fortress": {"board": [], "etfs": [], "ledger": []},
     }
     metas = {
@@ -819,5 +860,115 @@ def test_capital_decision_waits_for_an_actual_entry_trigger():
     }
     output = build_output(feeds, metas, now, [])
     assert output["stance"] == "WAIT_FOR_CONFIRMATION"
-    assert output["decision"]["capital_decision"] == "WAIT IN CASH / SHORT-TERM TREASURIES"
+    assert output["decision"]["capital_decision"] == "INVEST SELECTIVELY"
     assert output["risk_board"]["capital_decision"] == output["decision"]["capital_decision"]
+    assert output["risk_artifact"]["direct_risk_recomputed"] is False
+
+
+def test_khalid_risk_semantics_reject_arbitrary_and_contradictory_states():
+    assert _risk_payload_error("khalid_risk", valid_khalid_risk_artifact()) is None
+
+    empty_health = valid_khalid_risk_artifact()
+    empty_health["source_health"] = []
+    assert "critical source_health row is missing" in _risk_payload_error(
+        "khalid_risk", empty_health
+    )
+
+    missing_critical = valid_khalid_risk_artifact()
+    missing_critical["source_health"] = [
+        row for row in missing_critical["source_health"]
+        if row["name"] != "credit_composite"
+    ]
+    assert "credit_composite" in _risk_payload_error("khalid_risk", missing_critical)
+
+    arbitrary = valid_khalid_risk_artifact()
+    arbitrary["capital_decision"] = "YOLO"
+    arbitrary["risk_board"]["capital_decision"] = "YOLO"
+    assert "decision is invalid" in _risk_payload_error("khalid_risk", arbitrary)
+
+    bad_status_mode = valid_khalid_risk_artifact()
+    bad_status_mode["status"] = "DATA_HOLD"
+    assert "status and policy mode" in _risk_payload_error("khalid_risk", bad_status_mode)
+
+    bad_allows = valid_khalid_risk_artifact()
+    bad_allows["policy"]["allows_new_entries"] = False
+    bad_allows["risk_board"]["allows_new_entries"] = False
+    assert "contradict" in _risk_payload_error("khalid_risk", bad_allows)
+
+    bad_cap = valid_khalid_risk_artifact()
+    bad_cap["exposure_cap_pct"] = 75
+    bad_cap["policy"]["exposure_cap_pct"] = 75
+    bad_cap["risk_board"]["exposure_cap_pct"] = 75
+    assert "contradict" in _risk_payload_error("khalid_risk", bad_cap)
+
+    bad_sizing = valid_khalid_risk_artifact()
+    bad_sizing["policy"]["sizing_multiplier"] = 0.75
+    assert "exceeds exposure cap" in _risk_payload_error("khalid_risk", bad_sizing)
+
+    bad_critical_health = valid_khalid_risk_artifact()
+    bad_critical_health["source_health"][0]["status"] = "STALE"
+    assert "critical source failure" in _risk_payload_error(
+        "khalid_risk", bad_critical_health
+    )
+
+    false_degraded = valid_khalid_risk_artifact()
+    false_degraded["status"] = "DEGRADED"
+    assert "DEGRADED status contradicts" in _risk_payload_error(
+        "khalid_risk", false_degraded
+    )
+
+    unexplained_hold = valid_khalid_risk_artifact()
+    unexplained_hold["status"] = "DATA_HOLD"
+    unexplained_hold["capital_decision"] = "STAY IN CASH / SHORT-TERM TREASURIES"
+    unexplained_hold["exposure_cap_pct"] = 0
+    unexplained_hold["policy"].update({
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "sizing_multiplier": 0,
+        "exposure_cap_pct": 0,
+    })
+    unexplained_hold["risk_board"].update({
+        "capital_decision": "STAY IN CASH / SHORT-TERM TREASURIES",
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "exposure_cap_pct": 0,
+    })
+    assert "requires a critical source failure" in _risk_payload_error(
+        "khalid_risk", unexplained_hold
+    )
+
+
+def test_consistent_data_hold_artifact_with_critical_failure_is_valid():
+    artifact = valid_khalid_risk_artifact()
+    artifact["status"] = "DATA_HOLD"
+    artifact["capital_decision"] = "STAY IN CASH / SHORT-TERM TREASURIES"
+    artifact["exposure_cap_pct"] = 0
+    artifact["source_health"][0]["status"] = "INVALID"
+    artifact["policy"].update({
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "sizing_multiplier": 0,
+        "exposure_cap_pct": 0,
+    })
+    artifact["risk_board"].update({
+        "capital_decision": "STAY IN CASH / SHORT-TERM TREASURIES",
+        "mode": "DATA_HOLD",
+        "allows_new_entries": False,
+        "exposure_cap_pct": 0,
+    })
+    assert _risk_payload_error("khalid_risk", artifact) is None
+
+
+def test_main_khalid_rejects_materially_future_risk_artifact():
+    from lambda_function import build_output
+
+    now = datetime(2026, 9, 4, 12, tzinfo=timezone.utc)
+    future = (now + timedelta(hours=1)).isoformat()
+    feeds = {"khalid_risk": valid_khalid_risk_artifact(future)}
+    metas = {"khalid_risk": {"last_modified": now.isoformat(), "error": None}}
+    output = build_output(feeds, metas, now, [])
+    health = next(row for row in output["inputs"] if row["name"] == "khalid_risk")
+    assert health["status"] == "INVALID"
+    assert health["age_h"] < 0
+    assert output["risk_control"]["mode"] == "DATA_HOLD"
+    assert output["decision"]["capital_decision"] == "STAY IN CASH / SHORT-TERM TREASURIES"

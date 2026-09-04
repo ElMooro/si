@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0.0",
+  "required": ["engine", "schema_version", "generated_at", "as_of", "status", "policy", "capital_decision", "exposure_cap_pct", "risk_score", "plain_english", "coverage", "freshness", "treasury_fails", "domains", "conflicts", "source_health", "reasons", "methodology"],
+  "statuses": ["OK", "DEGRADED", "DATA_HOLD"],
+  "modes": ["DATA_HOLD", "DEFENSIVE", "SELECTIVE", "SELECTIVE_RISK_ON"],
+  "capital_decisions": ["STAY IN CASH / SHORT-TERM TREASURIES", "INVEST SELECTIVELY", "WAIT IN CASH / SHORT-TERM TREASURIES"],
+  "score_bounds": [0, 100],
+  "exposure_cap_bounds": [0, 100]
+}

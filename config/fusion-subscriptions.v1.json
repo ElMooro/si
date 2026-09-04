@@ -1,0 +1,8 @@
+{
+  "schema_version":"1.0.0",
+  "subscriptions":{
+    "khalid_risk":{"sources":["settlement_fails_treasury","credit_composite","eurodollar_stress","global_liquidity","cycle_clock"],"domains":["plumbing","credit","funding","liquidity","cycle"],"limit":8,"policy":"context_or_tighten_only"},
+    "khalid":{"sources":["risk_gate","settlement_fails_treasury","cycle_clock","global_liquidity"],"domains":["risk","plumbing","cycle","liquidity"],"limit":6,"policy":"context_or_tighten_only_never_override_khalid_risk"},
+    "homepage":{"sources":["risk_gate","settlement_fails_treasury","credit_composite","cycle_clock"],"domains":["risk","plumbing","credit","cycle"],"limit":6,"policy":"display_only"}
+  }
+}

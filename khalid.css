@@ -36,6 +36,8 @@ button { color: inherit; }
 .k-brand strong { font: 700 15px/1 var(--jh-mono); letter-spacing: .17em; }
 .k-brand small { color: var(--k-muted); font: 12px/1.6 var(--jh-mono); letter-spacing: .09em; }
 .k-header-meta { display: flex; align-items: center; gap: 17px; color: var(--k-muted); font: 12px var(--jh-mono); }
+.k-risk-link { color: var(--k-amber); text-decoration: none; border: 1px solid var(--k-line); padding: 7px 10px; }
+.k-risk-link:hover { border-color: var(--k-amber); }
 .k-live { display: flex; align-items: center; gap: 7px; color: var(--k-green); }
 .k-live i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
 .k-live.stale { color: var(--k-amber); }

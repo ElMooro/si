@@ -10,10 +10,37 @@
   <link rel="stylesheet" href="/home.css">
 </head>
 <body>
+  <a class="hd-skip" href="#hd-main">Skip to command desk</a>
   <main class="hd-wrap" id="hd-main">
+    <nav class="hd-topnav" aria-label="Primary">
+      <a class="hd-wordmark" href="/" aria-current="page">JUSTHODL<span>.AI</span></a>
+      <div class="hd-toplinks">
+        <a href="/khalid.html">Khalid opportunities</a>
+        <a href="/khalidrisk.html">Khalid risk board</a>
+        <a href="/engines.html">Engines</a>
+      </div>
+      <div id="jh-auth-slot" data-auth-slot></div>
+    </nav>
+
+    <section class="hd-authority unknown" id="hd-authority" data-jh-chrome aria-labelledby="hd-authority-title" aria-live="polite">
+      <div class="hd-authority-decision">
+        <span>AUTHORITATIVE CAPITAL DECISION</span>
+        <strong id="hd-authority-title">Risk artifact loading…</strong>
+        <a href="/khalidrisk.html">Open full risk board →</a>
+      </div>
+      <dl class="hd-authority-metrics">
+        <div><dt>Exposure cap</dt><dd id="hd-risk-cap">—</dd></div>
+        <div><dt>Fusion coverage</dt><dd id="hd-fusion-coverage">—</dd></div>
+        <div><dt>Disagreements</dt><dd id="hd-fusion-disagreements">—</dd></div>
+        <div><dt>Vetoes</dt><dd id="hd-fusion-vetoes">—</dd></div>
+        <div><dt>Stale / missing</dt><dd id="hd-fusion-stale">—</dd></div>
+      </dl>
+      <p id="hd-authority-note">Selected widgets are local context. They never override a risk-engine veto.</p>
+    </section>
+
     <section class="hd-banner" id="hd-banner" data-jh-chrome aria-label="Desk heartbeat and add bar">
       <div class="hd-ring">
-        <svg viewBox="0 0 120 120" role="img" aria-label="desk heartbeat"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(138,131,111,.18)" stroke-width="10"/><circle id="hd-arc" cx="60" cy="60" r="50" fill="none" stroke="#6fce8a" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/><text class="n" x="60" y="66" text-anchor="middle" id="hd-score" data-realtime>0</text><text class="l" x="60" y="84" text-anchor="middle">HEARTBEAT</text></svg>
+        <svg viewBox="0 0 120 120" role="img" aria-label="local widget heartbeat"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(138,131,111,.18)" stroke-width="10"/><circle id="hd-arc" cx="60" cy="60" r="50" fill="none" stroke="#6fce8a" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/><text class="n" x="60" y="66" text-anchor="middle" id="hd-score" data-realtime>0</text><text class="l" x="60" y="84" text-anchor="middle">LOCAL WIDGETS</text></svg>
         <span class="hd-regime CALM" id="hd-regime" data-realtime>CALM</span>
       </div>
       <div>
@@ -25,11 +52,17 @@
         </div>
       </div>
       <div class="hd-side">
-        <div class="hd-add hd-palette">
-          <div class="l"><span>Add to the desk</span><span>press / to focus</span></div>
-          <form id="hd-form" autocomplete="off"><input id="hd-input" type="text" placeholder="bonds#1.4   bond-warroom/japan   auctions   jgb…" aria-label="Add a section, engine panel or page"><button type="submit">Add</button></form>
-          <div class="hd-results" id="hd-results" role="listbox"></div>
-          <div class="hint">Every page numbers its sections <code>§1, §1.1…</code> — click a badge on any page to copy its address. <code>page#n</code> = the page's own live rendering · <code>engine/panel</code> = straight from the feed.</div>
+        <div class="hd-add">
+          <div class="l"><span>Compose the desk</span><span>guided builder</span></div>
+          <button class="hd-compose-open" id="hd-compose-open" type="button">Build a block</button>
+          <p class="hint">Choose a source, exact panel or page section, then the fields you want to see.</p>
+          <details class="hd-advanced">
+            <summary>Advanced address</summary>
+            <div class="hd-palette">
+              <form id="hd-form" autocomplete="off"><label class="sr-only" for="hd-input">Block address</label><input id="hd-input" type="text" placeholder="bonds#1.4 or bond-warroom/japan" aria-label="Advanced block address"><button type="submit">Add</button></form>
+              <div class="hd-results" id="hd-results" role="listbox" aria-label="Address matches"></div>
+            </div>
+          </details>
         </div>
         <div class="hd-status">
           <span id="hd-save" data-realtime><span class="dot"></span>starting</span>
@@ -40,7 +73,7 @@
       </div>
     </section>
 
-    <div class="hd-grid" id="hd-grid" data-jh-axis></div>
+    <div class="hd-grid" id="hd-grid" data-jh-axis><button class="sr-only" type="button" tabindex="-1" aria-label="Reorder card. Use arrow keys to move, or Space to grab.">Reorder instructions</button></div>
 
     <section class="hd-dir" id="hd-dir" data-jh-chrome aria-label="Page directory">
       <div class="ph"><span>Every page · <span id="hd-dir-count" data-realtime>…</span></span><span class="hd-status"><a href="/data.html">data warehouse</a> · <a href="/engines.html">engine directory</a> · <a href="/chart-pro.html">chart-pro</a> · <a href="/workspace.html">legacy workspace</a> · <a href="/status.html">status</a></span></div>
@@ -49,6 +82,52 @@
     <p class="hd-foot" id="hd-catalog" data-realtime>loading catalogs…</p>
     <p class="hd-foot">Research and analytics, not investment advice. Blocks render from your own AWS feeds (data/*.json) and from live same-origin page sections; nothing is cached beyond a few minutes.</p>
   </main>
+
+  <dialog class="hd-composer" id="hd-composer" aria-labelledby="hd-composer-title">
+    <form method="dialog" class="hd-composer-shell" id="hd-composer-form">
+      <header>
+        <div><p class="hd-step-label" id="hd-step-label">STEP 1 OF 4</p><h2 id="hd-composer-title">Choose what to add</h2></div>
+        <button class="hd-composer-close" value="cancel" aria-label="Close block builder">×</button>
+      </header>
+      <ol class="hd-progress" aria-label="Builder progress">
+        <li class="active" data-progress="0">Type</li><li data-progress="1">Source</li><li data-progress="2">Content</li><li data-progress="3">Preview</li>
+      </ol>
+      <div class="hd-compose-body">
+        <section class="hd-compose-step active" data-step="0">
+          <fieldset>
+            <legend>What belongs on your desk?</legend>
+            <div class="hd-kind-grid">
+              <button type="button" data-kind="engine"><b>Engine data</b><span>Select an exact output feed, panel, and individual fields or table columns.</span></button>
+              <button type="button" data-kind="page"><b>Landing page</b><span>Add a whole live page or one of its numbered sections.</span></button>
+            </div>
+          </fieldset>
+        </section>
+        <section class="hd-compose-step" data-step="1" hidden>
+          <label class="hd-search-label" for="hd-compose-search">Search and select a source</label>
+          <input id="hd-compose-search" class="hd-compose-search" type="search" autocomplete="off" placeholder="Search engines…">
+          <div id="hd-compose-sources" class="hd-source-results" role="listbox" aria-label="Available sources"></div>
+        </section>
+        <section class="hd-compose-step" data-step="2" hidden>
+          <div id="hd-compose-content"></div>
+        </section>
+        <section class="hd-compose-step" data-step="3" hidden>
+          <div class="hd-preview-head"><span>LIVE PREVIEW</span><span id="hd-preview-ref"></span></div>
+          <div id="hd-compose-preview" class="hd-compose-preview" aria-live="polite"></div>
+          <div class="hd-final-fields">
+            <label>Block title<input id="hd-compose-title" type="text" maxlength="120"></label>
+            <label>Width<select id="hd-compose-width"><option value="1">One column</option><option value="2">Two columns</option><option value="3">Full width</option></select></label>
+          </div>
+        </section>
+      </div>
+      <p id="hd-compose-error" class="hd-compose-error" role="alert"></p>
+      <footer>
+        <button id="hd-compose-back" class="hd-btn ghost" type="button" hidden>Back</button>
+        <span></span>
+        <button id="hd-compose-next" class="hd-btn" type="button" disabled>Continue</button>
+        <button id="hd-compose-add" class="hd-btn" type="button" hidden>Add block</button>
+      </footer>
+    </form>
+  </dialog>
   <div id="hd-toast" role="status" aria-live="polite"></div>
   <script src="/auth-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

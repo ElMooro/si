@@ -1,0 +1,432 @@
+{
+  "schema_version": "1.0.0",
+  "output_id": "engine_fusion",
+  "output_artifact": "data/engine-fusion.json",
+  "dynamic_manifest_ingestion": false,
+  "sources": [
+    {
+      "id": "risk_gate",
+      "artifact": "data/risk-gate.json",
+      "producer": "justhodl-risk-gate",
+      "domain": "risk",
+      "source_family": "master_risk",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "risk_gate",
+      "confidence": 0.9,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "posture",
+          "composite",
+          "sizing_multiplier"
+        ],
+        "types": {
+          "posture": "string",
+          "composite": "number",
+          "sizing_multiplier": "number"
+        },
+        "ranges": {
+          "composite": [
+            -10,
+            10
+          ],
+          "sizing_multiplier": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "crisis_composite",
+      "artifact": "data/crisis-composite.json",
+      "producer": "justhodl-crisis-composite",
+      "domain": "risk",
+      "source_family": "crisis_controls",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 8,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "crisis",
+      "confidence": 0.85,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "defcon_level",
+          "master_crisis_score"
+        ],
+        "types": {
+          "defcon_level": "number",
+          "master_crisis_score": "number"
+        },
+        "ranges": {
+          "defcon_level": [
+            1,
+            5
+          ],
+          "master_crisis_score": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "settlement_fails_treasury",
+      "artifact": "data/settlement-fails.json",
+      "producer": "justhodl-settlement-fails",
+      "domain": "plumbing",
+      "source_family": "nyfed_primary_dealer_fails",
+      "evidence_level": "L1",
+      "role": "root_evidence",
+      "independence_eligible": true,
+      "max_age_hours": 240,
+      "timestamp_paths": [
+        "treasury.as_of"
+      ],
+      "adapter": "settlement_fails",
+      "confidence": 0.82,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "treasury.scope",
+          "treasury.as_of",
+          "treasury.ftd_bn",
+          "treasury.ftr_bn",
+          "treasury.gross_bn",
+          "treasury.score",
+          "treasury.regime",
+          "treasury.complete"
+        ],
+        "types": {
+          "treasury.scope": "string",
+          "treasury.as_of": "string",
+          "treasury.ftd_bn": "number",
+          "treasury.ftr_bn": "number",
+          "treasury.gross_bn": "number",
+          "treasury.score": "number",
+          "treasury.regime": "string",
+          "treasury.complete": "boolean"
+        },
+        "ranges": {
+          "treasury.ftd_bn": [
+            0,
+            1000000
+          ],
+          "treasury.ftr_bn": [
+            0,
+            1000000
+          ],
+          "treasury.gross_bn": [
+            0,
+            1000000
+          ],
+          "treasury.score": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "credit_composite",
+      "artifact": "data/credit-composite.json",
+      "producer": "justhodl-credit-composite",
+      "domain": "credit",
+      "source_family": "credit_structure",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "credit",
+      "confidence": 0.84,
+      "depends_on": [],
+      "contract": {
+        "required_any": [
+          "composite",
+          "composite_score"
+        ],
+        "types": {
+          "composite": "number",
+          "composite_score": "number"
+        },
+        "ranges": {
+          "composite": [
+            0,
+            100
+          ],
+          "composite_score": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "eurodollar_stress",
+      "artifact": "data/eurodollar-stress.json",
+      "producer": "justhodl-eurodollar-stress",
+      "domain": "funding",
+      "source_family": "dollar_funding",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "eurodollar",
+      "confidence": 0.84,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "composite_score"
+        ],
+        "types": {
+          "composite_score": "number"
+        },
+        "ranges": {
+          "composite_score": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "dollar_radar",
+      "artifact": "data/dollar-radar.json",
+      "producer": "justhodl-dollar-radar",
+      "domain": "dollar",
+      "source_family": "broad_dollar",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "dollar",
+      "confidence": 0.78,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "dollar_pressure"
+        ],
+        "types": {
+          "dollar_pressure": "number"
+        },
+        "ranges": {
+          "dollar_pressure": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "global_liquidity",
+      "artifact": "data/global-liquidity.json",
+      "producer": "justhodl-global-liquidity",
+      "domain": "liquidity",
+      "source_family": "global_cb_liquidity",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "liquidity",
+      "confidence": 0.76,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "regime",
+          "global_liquidity_index",
+          "fed_net_liquidity"
+        ],
+        "types": {
+          "regime": "string",
+          "global_liquidity_index": "dict",
+          "fed_net_liquidity": "dict"
+        }
+      }
+    },
+    {
+      "id": "cycle_clock",
+      "artifact": "data/cycle-clock.json",
+      "producer": "justhodl-cycle-clock",
+      "domain": "cycle",
+      "source_family": "market_cycle",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "cycle",
+      "confidence": 0.72,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "synthesis.posture",
+          "synthesis.score",
+          "cycle"
+        ],
+        "types": {
+          "synthesis.posture": "string",
+          "synthesis.score": "number",
+          "cycle": "dict"
+        },
+        "ranges": {
+          "synthesis.score": [
+            -100,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "fifx_vol",
+      "artifact": "data/fifx-vol.json",
+      "producer": "justhodl-fifx-vol-migration",
+      "domain": "volatility",
+      "source_family": "cross_asset_vol",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 30,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "fifx_vol",
+      "confidence": 0.78,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "migration.state",
+          "legs"
+        ],
+        "types": {
+          "migration.state": "string",
+          "legs": "dict"
+        }
+      }
+    },
+    {
+      "id": "bond_warroom",
+      "artifact": "data/bond-warroom.json",
+      "producer": "justhodl-bond-warroom",
+      "domain": "rates",
+      "source_family": "rates_stress",
+      "evidence_level": "L2",
+      "role": "synthesized_view",
+      "independence_eligible": false,
+      "max_age_hours": 84,
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
+      "adapter": "bond_warroom",
+      "confidence": 0.82,
+      "depends_on": [],
+      "contract": {
+        "required": [
+          "heartbeat.score",
+          "equity_risk.score",
+          "eurodollar_shortage.score"
+        ],
+        "types": {
+          "heartbeat.score": "number",
+          "equity_risk.score": "number",
+          "eurodollar_shortage.score": "number"
+        },
+        "ranges": {
+          "heartbeat.score": [
+            0,
+            100
+          ],
+          "equity_risk.score": [
+            0,
+            100
+          ],
+          "eurodollar_shortage.score": [
+            0,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "id": "best_setups_view",
+      "artifact": "data/best-setups.json",
+      "producer": "justhodl-best-setups",
+      "domain": "equity_opportunity",
+      "source_family": "best_setups",
+      "evidence_level": "L3",
+      "role": "consumer_view",
+      "independence_eligible": false,
+      "max_age_hours": 2,
+      "timestamp_paths": [
+        "generated_at"
+      ],
+      "adapter": "excluded_view",
+      "confidence": null,
+      "depends_on": [
+        "feature_bus"
+      ],
+      "exclude_from_scoring": true,
+      "contract": {}
+    },
+    {
+      "id": "signal_fabric_view",
+      "artifact": "data/signal-fabric.json",
+      "producer": "justhodl-signal-fabric",
+      "domain": "equity_opportunity",
+      "source_family": "signal_fabric",
+      "evidence_level": "L3",
+      "role": "consumer_view",
+      "independence_eligible": false,
+      "max_age_hours": 2,
+      "timestamp_paths": [
+        "generated_at"
+      ],
+      "adapter": "excluded_view",
+      "confidence": null,
+      "depends_on": [],
+      "exclude_from_scoring": true,
+      "contract": {}
+    }
+  ],
+  "known_graph_nodes": {
+    "feature_bus": [
+      "signal_fabric_view"
+    ],
+    "best_setups_view": [
+      "feature_bus"
+    ],
+    "signal_fabric_view": []
+  }
+}

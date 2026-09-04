@@ -1,0 +1,16 @@
+{
+  "schema_version":"1.0.0",
+  "rules":{
+    "no_opaque_verdict":true,
+    "no_dynamic_manifest_inputs":true,
+    "stale_evidence_action":"emit_health_trace_but_no_active_packet",
+    "l2_l3_independent_evidence":false,
+    "dedupe_key":["subject","domain","source_family"],
+    "dedupe_preference":["root_evidence","confidence","freshness"],
+    "cycle_action":"reject_output",
+    "risk_override":"forbidden",
+    "risk_effect":"tighten_or_veto_only"
+  },
+  "thresholds":{"risk_off":65,"hard_veto":80,"risk_on":35},
+  "directions":["RISK_ON","NEUTRAL","RISK_OFF"]
+}

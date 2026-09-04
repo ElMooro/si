@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 
 import boto3
 
+from treasury import normalized_treasury, strict_json_dumps
+
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/settlement-fails.json"
@@ -148,6 +150,7 @@ def _emit_signal(sid, stype, direction, ticker, benchmark, value,
 
 
 def lambda_handler(event=None, context=None):
+    validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
     now = datetime.now(timezone.utc).isoformat()
 
     classes = []
@@ -179,6 +182,8 @@ def lambda_handler(event=None, context=None):
     # ops 3307: class spike -> graded signals (corporate & UST theses only)
     try:
         for c in classes:
+            if validation_only:
+                continue
             st = c.get("stats") or {}
             if not st.get("spike"):
                 continue
@@ -199,6 +204,9 @@ def lambda_handler(event=None, context=None):
     total_ftd = sum_series(ftd_all)
     total_ftr = sum_series(ftr_all)
     total_comb = combine(total_ftd, total_ftr)
+    # Additive normalized contract for risk consumers. This is strictly
+    # ex-TIPS + TIPS on common dates; all-asset totals above never enter it.
+    treasury = normalized_treasury(classes)
 
     head = next((c for c in classes if c["key"] == "ust_ex_tips"), None)
     hs = head["stats"] if head else {}
@@ -238,14 +246,17 @@ def lambda_handler(event=None, context=None):
                      "combined_bn": (hs.get("latest") if head else None),
                      "z": z, "pctile": pct, "max_bn": hs.get("max"),
                      "combined": (head["combined"] if head else [])},
+        "treasury": treasury,
         "classes": classes,
         "totals": {"ftd": total_ftd[-720:], "ftr": total_ftr[-720:], "combined": total_comb[-720:]},
         "source": "NY Fed Primary Dealer Statistics (FR 2004) \u2014 dealer financing settlement fails, weekly, $bn par",
     }
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out, separators=(",", ":")).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=3600")
-    return {"statusCode": 200, "body": json.dumps({
+    if not validation_only:
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=strict_json_dumps(out, separators=(",", ":")).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=3600")
+    return {"statusCode": 200, "body": strict_json_dumps({
+        "validation_only": validation_only,
         "regime": regime, "score": round(score), "as_of": out["as_of"],
         "ust_combined_bn": hs.get("latest"), "ust_pctile": pct,
         "classes": len(classes), "total_combined_bn": (total_comb[-1][1] if total_comb else None)})}
