@@ -1,9 +1,14 @@
-executing-against: 399fac2cdacaaf4d9f4341cfc0a7fbd997207f46
+executing-against: 8544096514b39d28f2bcd528c56b5545b6444a82
 invoked justhodl-settlement-fails
+invoked justhodl-signal-fabric
+invoked justhodl-engine-fusion:live
+invoked justhodl-khalid-risk:live
+invoked justhodl-khalid:live
+verified s3://justhodl-dashboard-live/data/settlement-fails.json generated_at=2026-09-04T23:22:52.291109+00:00 status=None
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 103, in <module>
-    invoke_chain()
-  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 49, in invoke_chain
-    raise RuntimeError(f"{function_name} returned {envelope}")
-RuntimeError: justhodl-signal-fabric returned {'ok': True}
+  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 104, in <module>
+    verify_artifacts()
+  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 74, in verify_artifacts
+    raise ValueError(f"settlement-fails Treasury block is missing {field}")
+ValueError: settlement-fails Treasury block is missing gross_fail_activity_bn
 ❌ OPS-FAIL: aws/ops/pending/initialize_khalid_chain_20260904.py
