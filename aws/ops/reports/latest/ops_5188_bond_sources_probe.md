@@ -1,0 +1,78 @@
+# ops 5188 -- bond war-room sources
+
+**Status:** success  
+**Duration:** 23.1s  
+**Finished:** 2026-09-04T13:11:16+00:00  
+
+## Log
+## A. Stooq government bond yields (daily CSV)
+
+- `13:10:53`    10ydey.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:54`    10yity.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:55`    10yesy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:55`    10yfry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:56`    10yuky.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:57`    10yjpy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:57`    10yauy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:58`    10ycay.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:58`    10ychy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:59`    2ydey.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:10:59`    2yity.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:00`    2yjpy.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:00`    30ydey.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:01`    30yjpy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:02`    10yusy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:02`    2yusy.b    -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:03`    10ynly.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:03`    10ypty.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:04`    10ygry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:04`    10ykry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:05`    10ycny.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:05`    10yiny.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:06`    10ybry.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+- `13:11:06`    10ymxy.b   -> 200 rows=3 last=b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="no'
+## B. Japan MOF JGB daily curve
+
+- `13:11:06`    jgbcm.csv -> 404 lines=0 head=[] last=None
+- `13:11:07`    jgbcme.csv -> 200 bytes=545 head=b'Interest Rate (September 2026),,,,,,,,,,,,,,,(Unit : %)\r\nDate,1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,15Y,20Y,25Y,30Y,40Y\r\n2026/9/1,1.527,1.802,1.952,2.14,2.28,2.411,2.5'
+## C. worker routes
+
+- `13:11:07`    /yf-ohlc?symbol=^MOVE&range=1y&interval=1d       -> 200 bars=250 last={'date': None, 'time': 1788442200, 'close': 74.68000030517578, 'value': 0}
+- `13:11:07`    /yf-ohlc?symbol=TLT&range=1y&interval=1d         -> 200 bars=252 last={'date': None, 'time': 1788442200, 'close': 82.06999969482422, 'value': 18033000}
+- `13:11:07`    /yf-ohlc?symbol=^TNX&range=1y&interval=1d        -> 200 bars=253 last={'date': None, 'time': 1788524400, 'close': 4.783999919891357, 'value': 0}
+- `13:11:08`    /fred?series=DGS10&obs=30                        -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 4.79}
+- `13:11:08`    /fred?series=BAMLH0A0HYM2&obs=30                 -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.66}
+- `13:11:08`    /fred?series=BAMLC0A0CM&obs=30                   -> 200 bars=30 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.81}
+- `13:11:09`    /fred?series=BAMLH0A3HYC&obs=5                   -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 10.53}
+- `13:11:09`    /fred?series=BAMLEMCBPIOAS&obs=5                 -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.38}
+- `13:11:10`    /fred?series=BAMLC0A4CBBB&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.99}
+- `13:11:10`    /fred?series=BAMLH0A1HYBB&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.53}
+- `13:11:11`    /fred?series=BAMLEMPBPUBSICRPIOAS&obs=5          -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 1.12}
+- `13:11:11`    /fred?series=BAMLHE00EHYIOAS&obs=5               -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.62}
+- `13:11:11`    /fred?series=BAMLEMHBHYCRPIOAS&obs=5             -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.9}
+- `13:11:12`    /fred?series=BAMLC0A1CAAA&obs=5                  -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 0.43}
+- `13:11:12`    /fred?series=IRLTLT01ITM156N&obs=3               -> 200 bars=3 last={'date': '2026-06-01', 'time': 1780272000, 'close': None, 'value': 3.734}
+- `13:11:12`    /fred?series=DTWEXBGS&obs=5                      -> 200 bars=5 last={'date': '2026-08-28', 'time': 1787875200, 'close': None, 'value': 118.7479}
+- `13:11:13`    /fred?series=VIXCLS&obs=5                        -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 15.2}
+- `13:11:13`    /fred?series=T10Y2Y&obs=5                        -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 0.43}
+- `13:11:14`    /fred?series=DFII10&obs=5                        -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 2.45}
+- `13:11:14`    /fred?series=T10YIE&obs=5                        -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 2.35}
+- `13:11:14`    /fred?series=SOFR&obs=5                          -> 200 bars=5 last={'date': '2026-09-03', 'time': 1788393600, 'close': None, 'value': 3.66}
+- `13:11:14`    /fred?series=DTB3&obs=5                          -> 200 bars=5 last={'date': '2026-09-02', 'time': 1788307200, 'close': None, 'value': 3.78}
+## D. fleet feeds
+
+- `13:11:15`    data/usd-funding.json            keys=['version', 'engine', 'generated', 'reference_rates', 'spreads_vs_iorb', 'bank_wholesale_funding', 'commercial_paper', 'sofr_term_structure', 'bis_lbs_usd', 'not_entitled', 'stress_z', 'errors', 'status']
+- `13:11:15`    data/eurodollar-plumbing.json    keys=['engine', 'version', 'bis_crossborder', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note']
+- `13:11:15`       composite_score=10.8
+- `13:11:15`       generated_at=2026-09-04T12:02:47Z
+- `13:11:15`       score=10.8
+- `13:11:15`    data/move-index.json             keys=['engine', 'version', 'source', 'generated_at', 'ok', 'duration_s', 'level', 'change_1d', 'change_20d', 'percentile', 'avg_1y', 'regime', 'color', 'interpretation']
+- `13:11:15`       regime=SUPPRESSED
+- `13:11:15`       generated_at=2026-09-03T13:20:39.331064+00:00
+- `13:11:15`       level=79.7
+- `13:11:16`    data/auction-desk.json           keys=['version', 'generated_at', 'elapsed_s', 'notes', 'sources', 'freshness', 'today', 'recent_days', 'auctions', 'buybacks', 'calendar', 'by_term', 'composite_history', 'reactions']
+- `13:11:16`       generated_at=2026-09-04T03:56:59+00:00
+- `13:11:16`    data/crisis-plumbing.json        keys=['schema_version', 'generated_at', 'fetch_time_sec', 'composite', 'crisis_indices', 'plumbing_tier2', 'mmf_composition', 'funding_credit_signals', 'xcc_basis_proxy', 'yield_curve', 'n_series_fetched', 'enrichment', 'data_sources']
+- `13:11:16`       composite={'composite_stress_score': 9.8, 'consensus_count': 0, 'agreement_signal': 'NORMAL', 'n_indices_available': 4, 'flagged_i
+- `13:11:16`       generated_at=2026-09-03T14:54:26.193435+00:00
+- `13:11:16` ✅ probe complete
