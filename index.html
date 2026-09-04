@@ -3,138 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Build a personal market intelligence workspace from 851 JustHodl engines and their live output feeds.">
-  <meta name="theme-color" content="#07111d">
-  <title>Engine Workspace · JustHodl.AI</title>
-  <link rel="preconnect" href="https://api.fontshare.com">
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=jet-brains-mono@400,500,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="workspace.css">
+  <meta name="description" content="JustHodl.AI command desk — every numbered section of every page and every engine panel on one screen, in the war-room table you read the bond heartbeat from.">
+  <meta name="theme-color" content="#0C0B09">
+  <title>Command Desk · JustHodl.AI</title>
+  <link id="jh-theme" rel="stylesheet" href="/jh-theme.css">
+  <link rel="stylesheet" href="/home.css">
 </head>
 <body>
-  <a class="skip-link" href="#workspace">Skip to workspace</a>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="JustHodl home">
-        <svg viewBox="0 0 36 36" role="img" aria-label="JustHodl compass mark">
-          <circle cx="18" cy="18" r="15"></circle><path d="m23 11-3.1 8.9L11 23l3.1-8.9L23 11Z"></path><circle cx="18" cy="18" r="2"></circle>
-        </svg>
-        <span>JustHodl<span>.AI</span></span>
-      </a>
-      <div class="topbar-title">
-        <h1>Engine Workspace</h1>
-        <p id="catalogSummary">Loading engine catalog…</p>
+  <main class="hd-wrap" id="hd-main">
+    <section class="hd-banner" id="hd-banner" data-jh-chrome aria-label="Desk heartbeat and add bar">
+      <div class="hd-ring">
+        <svg viewBox="0 0 120 120" role="img" aria-label="desk heartbeat"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(138,131,111,.18)" stroke-width="10"/><circle id="hd-arc" cx="60" cy="60" r="50" fill="none" stroke="#6fce8a" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/><text class="n" x="60" y="66" text-anchor="middle" id="hd-score" data-realtime>0</text><text class="l" x="60" y="84" text-anchor="middle">HEARTBEAT</text></svg>
+        <span class="hd-regime CALM" id="hd-regime" data-realtime>CALM</span>
       </div>
-      <div class="top-actions">
-        <span class="save-state local" id="saveState" role="status">Local workspace</span>
-        <button class="icon-button" id="themeToggle" type="button" aria-label="Switch color theme" title="Switch color theme">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"></path></svg>
-        </button>
-        <div id="jh-auth-slot" data-auth-slot></div>
+      <div>
+        <div class="hd-kicker"><span>Command desk</span><span id="hd-kick" data-realtime>loading…</span></div>
+        <h1 class="hd-headline" id="hd-headline" data-realtime>Reading your desk…</h1>
+        <div class="hd-verdicts">
+          <div class="hd-v" id="hd-v1"><div class="l">Flags across the desk</div><div class="s" data-realtime>…</div><div class="t" data-realtime></div></div>
+          <div class="hd-v" id="hd-v2"><div class="l">Blocks &amp; freshness</div><div class="s" data-realtime>…</div><div class="t" data-realtime></div></div>
+        </div>
       </div>
-    </header>
-    <nav class="side-rail" aria-label="Primary">
-      <a class="active" href="/" aria-current="page" title="Workspace">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
-        <span>Workspace</span>
-      </a>
-      <a href="/asset-compass.html" title="Assets">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v9l6 4"></path></svg>
-        <span>Assets</span>
-      </a>
-      <a href="/regime-map.html" title="Regime">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 7-8"></path><path d="M15 7h4v4"></path></svg>
-        <span>Regime</span>
-      </a>
-      <a href="/portfolio.html" title="Portfolio">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V4h8v3M3 12h18"></path></svg>
-        <span>Portfolio</span>
-      </a>
-      <a href="/brain.html" title="Brain">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0-1 5.2A3.5 3.5 0 0 0 9 19h1V5a3 3 0 0 0-1-1ZM15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 1 5.2A3.5 3.5 0 0 1 15 19h-1V5a3 3 0 0 1 1-1Z"></path></svg>
-        <span>Brain</span>
-      </a>
-    </nav>
-
-    <main id="workspace">
-      <section class="workspace-heading" aria-labelledby="workspaceTitle">
-        <div>
-          <p class="eyebrow">PERSONAL INTELLIGENCE SURFACE</p>
-          <h2 id="workspaceTitle">Arrange the signals that matter.</h2>
-          <p>Search the full engine fleet, place any output in a decision zone, and shape the view without writing code.</p>
+      <div class="hd-side">
+        <div class="hd-add hd-palette">
+          <div class="l"><span>Add to the desk</span><span>press / to focus</span></div>
+          <form id="hd-form" autocomplete="off"><input id="hd-input" type="text" placeholder="bonds#1.4   bond-warroom/japan   auctions   jgb…" aria-label="Add a section, engine panel or page"><button type="submit">Add</button></form>
+          <div class="hd-results" id="hd-results" role="listbox"></div>
+          <div class="hint">Every page numbers its sections <code>§1, §1.1…</code> — click a badge on any page to copy its address. <code>page#n</code> = the page's own live rendering · <code>engine/panel</code> = straight from the feed.</div>
         </div>
-        <div class="heading-actions">
-          <button class="button secondary" id="resetWorkspace" type="button">Reset layout</button>
-          <button class="button primary" id="openLibrary" type="button" aria-expanded="false" aria-controls="libraryPanel">
-            <span aria-hidden="true">＋</span> Add engine
-          </button>
+        <div class="hd-status">
+          <span id="hd-save" data-realtime><span class="dot"></span>starting</span>
+          <button class="hd-btn ghost" id="hd-refresh" type="button">refresh</button>
+          <button class="hd-btn ghost" id="hd-export" type="button">copy layout</button>
+          <button class="hd-btn ghost" id="hd-reset" type="button">reset</button>
         </div>
-      </section>
-
-      <aside class="library" id="libraryPanel" aria-labelledby="libraryTitle" hidden>
-        <div class="library-head">
-          <div>
-            <p class="eyebrow">ENGINE LIBRARY</p>
-            <h2 id="libraryTitle">Add a live output</h2>
-          </div>
-          <button class="icon-button" id="closeLibrary" type="button" aria-label="Close engine library">×</button>
-        </div>
-        <div class="library-tools">
-          <label class="search-field">
-            <span class="sr-only">Search engines</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
-            <input id="engineSearch" type="search" placeholder="Search 851 engines, descriptions, feeds…" autocomplete="off">
-          </label>
-          <label>Place in
-            <select id="newCardZone"></select>
-          </label>
-        </div>
-        <p class="library-count" id="libraryCount" role="status"></p>
-        <div class="library-results" id="libraryResults" role="list"></div>
-      </aside>
-
-      <div class="system-banner" id="systemBanner" role="status">
-        <span class="status-light"></span>
-        <strong>Catalog starting</strong>
-        <span>Joining engine outputs and freshness contracts.</span>
       </div>
+    </section>
 
-      <div class="workspace-zones" id="workspaceZones"></div>
-    </main>
+    <div class="hd-grid" id="hd-grid" data-jh-axis></div>
 
-    <footer>
-      <span>Research and analytics, not investment advice.</span>
-      <nav aria-label="Footer">
-        <a href="/classic-dashboard.html">Classic dashboard</a>
-        <a href="/data.html">Data catalog</a>
-        <a href="/status.html">System status</a>
-      </nav>
-    </footer>
-  </div>
-
-  <div class="sr-only" id="announcer" aria-live="polite"></div>
-
-  <template id="cardTemplate">
-    <article class="engine-card" draggable="true">
-      <header class="card-head">
-        <button class="drag-handle" type="button" aria-label="Reorder card. Use arrow keys to move, or Space to grab." title="Drag or use arrow keys to reorder">
-          <span></span><span></span><span></span><span></span><span></span><span></span>
-        </button>
-        <div class="card-title-wrap">
-          <p class="card-kicker"></p>
-          <h3 class="card-title"></h3>
-        </div>
-        <span class="freshness-badge"></span>
-        <button class="icon-button configure-card" type="button" aria-label="Configure card" aria-expanded="false">•••</button>
-      </header>
-      <div class="card-body"></div>
-      <p class="card-foot"></p>
-      <div class="card-settings" hidden></div>
-    </article>
-  </template>
-
-  <script src="auth-config.js"></script>
+    <section class="hd-dir" id="hd-dir" data-jh-chrome aria-label="Page directory">
+      <div class="ph"><span>Every page · <span id="hd-dir-count" data-realtime>…</span></span><span class="hd-status"><a href="/data.html">data warehouse</a> · <a href="/engines.html">engine directory</a> · <a href="/chart-pro.html">chart-pro</a> · <a href="/workspace.html">legacy workspace</a> · <a href="/status.html">status</a></span></div>
+      <div class="cats" id="hd-dir-cats"></div>
+    </section>
+    <p class="hd-foot" id="hd-catalog" data-realtime>loading catalogs…</p>
+    <p class="hd-foot">Research and analytics, not investment advice. Blocks render from your own AWS feeds (data/*.json) and from live same-origin page sections; nothing is cached beyond a few minutes.</p>
+  </main>
+  <div id="hd-toast" role="status" aria-live="polite"></div>
+  <script src="/auth-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js"></script>
-  <script src="workspace.js" defer></script>
+  <script src="/auth.js"></script>
+  <script src="/jh-nav-drawer.js" defer></script>
+  <script src="/jh-sections.js" defer></script>
+  <script src="/home.js" defer></script>
 </body>
 </html>

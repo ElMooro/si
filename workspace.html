@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Build a personal market intelligence workspace from 851 JustHodl engines and their live output feeds.">
+  <meta name="theme-color" content="#07111d">
+  <title>Engine Workspace (legacy) · JustHodl.AI</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&f[]=jet-brains-mono@400,500,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="workspace.css">
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="JustHodl home">
+        <svg viewBox="0 0 36 36" role="img" aria-label="JustHodl compass mark">
+          <circle cx="18" cy="18" r="15"></circle><path d="m23 11-3.1 8.9L11 23l3.1-8.9L23 11Z"></path><circle cx="18" cy="18" r="2"></circle>
+        </svg>
+        <span>JustHodl<span>.AI</span></span>
+      </a>
+      <div class="topbar-title">
+        <h1>Engine Workspace</h1>
+        <p id="catalogSummary">Loading engine catalog…</p>
+      </div>
+      <div class="top-actions">
+        <span class="save-state local" id="saveState" role="status">Local workspace</span>
+        <button class="icon-button" id="themeToggle" type="button" aria-label="Switch color theme" title="Switch color theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"></path></svg>
+        </button>
+        <div id="jh-auth-slot" data-auth-slot></div>
+      </div>
+    </header>
+    <nav class="side-rail" aria-label="Primary">
+      <a class="active" href="/workspace.html" aria-current="page" title="Workspace">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+        <span>Workspace</span>
+      </a>
+      <a href="/asset-compass.html" title="Assets">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v9l6 4"></path></svg>
+        <span>Assets</span>
+      </a>
+      <a href="/regime-map.html" title="Regime">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 3 7-8"></path><path d="M15 7h4v4"></path></svg>
+        <span>Regime</span>
+      </a>
+      <a href="/portfolio.html" title="Portfolio">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V4h8v3M3 12h18"></path></svg>
+        <span>Portfolio</span>
+      </a>
+      <a href="/brain.html" title="Brain">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0-1 5.2A3.5 3.5 0 0 0 9 19h1V5a3 3 0 0 0-1-1ZM15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 1 5.2A3.5 3.5 0 0 1 15 19h-1V5a3 3 0 0 1 1-1Z"></path></svg>
+        <span>Brain</span>
+      </a>
+    </nav>
+
+    <main id="workspace">
+      <section class="workspace-heading" aria-labelledby="workspaceTitle">
+        <div>
+          <p class="eyebrow">PERSONAL INTELLIGENCE SURFACE</p>
+          <h2 id="workspaceTitle">Arrange the signals that matter.</h2>
+          <p>Search the full engine fleet, place any output in a decision zone, and shape the view without writing code.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="button secondary" id="resetWorkspace" type="button">Reset layout</button>
+          <button class="button primary" id="openLibrary" type="button" aria-expanded="false" aria-controls="libraryPanel">
+            <span aria-hidden="true">＋</span> Add engine
+          </button>
+        </div>
+      </section>
+
+      <aside class="library" id="libraryPanel" aria-labelledby="libraryTitle" hidden>
+        <div class="library-head">
+          <div>
+            <p class="eyebrow">ENGINE LIBRARY</p>
+            <h2 id="libraryTitle">Add a live output</h2>
+          </div>
+          <button class="icon-button" id="closeLibrary" type="button" aria-label="Close engine library">×</button>
+        </div>
+        <div class="library-tools">
+          <label class="search-field">
+            <span class="sr-only">Search engines</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <input id="engineSearch" type="search" placeholder="Search 851 engines, descriptions, feeds…" autocomplete="off">
+          </label>
+          <label>Place in
+            <select id="newCardZone"></select>
+          </label>
+        </div>
+        <p class="library-count" id="libraryCount" role="status"></p>
+        <div class="library-results" id="libraryResults" role="list"></div>
+      </aside>
+
+      <div class="system-banner" id="systemBanner" role="status">
+        <span class="status-light"></span>
+        <strong>Catalog starting</strong>
+        <span>Joining engine outputs and freshness contracts.</span>
+      </div>
+
+      <div class="workspace-zones" id="workspaceZones"></div>
+    </main>
+
+    <footer>
+      <span>Research and analytics, not investment advice.</span>
+      <nav aria-label="Footer">
+        <a href="/classic-dashboard.html">Classic dashboard</a>
+        <a href="/data.html">Data catalog</a>
+        <a href="/status.html">System status</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="sr-only" id="announcer" aria-live="polite"></div>
+
+  <template id="cardTemplate">
+    <article class="engine-card" draggable="true">
+      <header class="card-head">
+        <button class="drag-handle" type="button" aria-label="Reorder card. Use arrow keys to move, or Space to grab." title="Drag or use arrow keys to reorder">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </button>
+        <div class="card-title-wrap">
+          <p class="card-kicker"></p>
+          <h3 class="card-title"></h3>
+        </div>
+        <span class="freshness-badge"></span>
+        <button class="icon-button configure-card" type="button" aria-label="Configure card" aria-expanded="false">•••</button>
+      </header>
+      <div class="card-body"></div>
+      <p class="card-foot"></p>
+      <div class="card-settings" hidden></div>
+    </article>
+  </template>
+
+  <script src="auth-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script src="workspace.js" defer></script>
+</body>
+</html>

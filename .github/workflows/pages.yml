@@ -71,6 +71,8 @@ jobs:
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)
         run: python3 scripts/build_workspaces.py _site || true
+      - name: Bake section numbers into every page + ship home layout/registry (ops 5200)
+        run: python3 scripts/bake_sections.py _site || true
       - name: Bake last-known values into homepage (zero em-dash first paint)
         run: python3 scripts/bake_homepage.py _site/index.html || true
       - name: CI gate — template leaks + dead-paint ratchet
