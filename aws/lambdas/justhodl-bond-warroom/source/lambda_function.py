@@ -55,11 +55,13 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.2"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
 TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
-PAR_KEY = "data/warm/treasury-par/curve.json.gz"      # fleet Treasury par-curve bank (13 tenors since 1990, symdir ustbank 21:30 UTC)
+PAR_KEY = "data/warm/treasury-par/curve.json.gz"
+OY_PREFIX = "data/warm/official-yields/"                 # the warehouse lane this engine reads first and banks into (schema of justhodl-repo _bank_put)
+OY_STATE = OY_PREFIX + "_state.json"      # fleet Treasury par-curve bank (13 tenors since 1990, symdir ustbank 21:30 UTC)
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 UA = "justhodl-bond-warroom/" + VERSION
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -400,29 +402,74 @@ OFFICIAL = {  # key: (label, group, thresh kind)
 }
 
 
+OY_SLUGS = {  # key -> (slug, id, title, source)   warehouse lane data/warm/official-yields/{slug}.json
+    "DE02Y": ("de-2y-bbk", "DE02Y_BBK", "Germany 2Y Bund yield (daily, Bundesbank)", "Bundesbank BBSIS"),
+    "DE10Y": ("de-10y-bbk", "DE10Y_BBK", "Germany 10Y Bund yield (daily, Bundesbank Svensson)", "Bundesbank BBSIS"),
+    "DE30Y": ("de-30y-bbk", "DE30Y_BBK", "Germany 30Y Bund yield (daily, Bundesbank)", "Bundesbank BBSIS"),
+    "GB05Y": ("gb-5y-boe", "GB05Y_BOE", "UK 5Y nominal par gilt yield (daily, Bank of England IUDSNPY)", "Bank of England IADB"),
+    "GB10Y": ("gb-10y-boe", "GB10Y_BOE", "UK 10Y nominal par gilt yield (daily, Bank of England IUDMNZC)", "Bank of England IADB"),
+    "GB20Y": ("gb-20y-boe", "GB20Y_BOE", "UK 20Y nominal par gilt yield (daily, Bank of England IUDLNPY)", "Bank of England IADB"),
+    "CA02Y": ("ca-2y-boc", "CA02Y_BOC", "Canada 2Y benchmark bond yield (daily, Bank of Canada)", "Bank of Canada Valet"),
+    "CA05Y": ("ca-5y-boc", "CA05Y_BOC", "Canada 5Y benchmark bond yield (daily, Bank of Canada)", "Bank of Canada Valet"),
+    "CA10Y": ("ca-10y-boc", "CA10Y_BOC", "Canada 10Y benchmark bond yield (daily, Bank of Canada)", "Bank of Canada Valet"),
+    "CA30Y": ("ca-long-boc", "CALONG_BOC", "Canada long-term benchmark bond yield (daily, Bank of Canada)", "Bank of Canada Valet"),
+    "AU02Y": ("au-2y-rba", "AU02Y_RBA", "Australia 2Y government bond yield (daily, RBA F2)", "RBA F2"),
+    "AU03Y": ("au-3y-rba", "AU03Y_RBA", "Australia 3Y government bond yield (daily, RBA F2)", "RBA F2"),
+    "AU05Y": ("au-5y-rba", "AU05Y_RBA", "Australia 5Y government bond yield (daily, RBA F2)", "RBA F2"),
+    "AU10Y": ("au-10y-rba", "AU10Y_RBA", "Australia 10Y government bond yield (daily, RBA F2)", "RBA F2"),
+    "JP02Y": ("jp-2y-mof", "JP02Y_MOF", "Japan 2Y JGB yield (daily, Ministry of Finance)", "Japan MOF"),
+    "JP10Y": ("jp-10y-mof", "JP10Y_MOF", "Japan 10Y JGB yield (daily, Ministry of Finance)", "Japan MOF"),
+    "JP30Y": ("jp-30y-mof", "JP30Y_MOF", "Japan 30Y JGB yield (daily, Ministry of Finance)", "Japan MOF"),
+    "EA_AAA10Y": ("ea-aaa-10y-ecb", "EA_AAA10Y_ECB", "Euro area AAA governments 10Y spot yield (daily, ECB)", "ECB YC dataset"),
+    "EA_ALL10Y": ("ea-all-10y-ecb", "EA_ALL10Y_ECB", "Euro area all governments 10Y spot yield (daily, ECB)", "ECB YC dataset"),
+}
+TV_SLUG = {"FR10Y": "fr-10y", "IT02Y": "it-2y", "IT10Y": "it-10y", "ES10Y": "es-10y", "NL10Y": "nl-10y", "PT10Y": "pt-10y", "GR10Y": "gr-10y", "GB02Y": "gb-2y", "CH10Y": "ch-10y",
+           "CN10Y": "cn-10y", "KR10Y": "kr-10y", "IN10Y": "in-10y", "BR10Y": "br-10y", "MX10Y": "mx-10y"}   # scanner-only markets banked as {slug}-tv
+
+
 def official_histories():
-    """Every official daily source in parallel -> {key: series, ...}, {source_name: as_of}."""
-    out, srcs = {}, {}
+    """Warehouse-first: read data/warm/official-yields/{slug} (and the older warehouse lanes: fred/boe/treasury-par),
+    refresh from the official origin, merge (origin wins on the same date), bank back. -> {key: series}, {key: source}, banked"""
+    out, srcs, banked = {}, {}, {}
+    def wh_first(key):
+        slug = OY_SLUGS[key][0]
+        ser = read_bank(slug)
+        if ser:
+            banked[slug] = ser
+        return ser
     def us():
         par = treasury_par()
-        return {("US%02dY" % int(t[:-1])): ser for t, ser in par.items() if t.endswith("Y") and t != "1Y"}, "treasury.gov par curve"
+        return {("US%02dY" % int(t[:-1])): ser for t, ser in par.items() if t.endswith("Y") and t != "1Y"}, "warehouse:treasury-par + treasury.gov"
     def de():
         r = {}
         for code, key in (("R02XX", "DE02Y"), ("R10XX", "DE10Y"), ("R30XX", "DE30Y")):
-            ser = bundesbank_bbsis(code)
-            if not (ser and len(ser["closes"]) > 40) and key == "DE10Y":
-                ser = bundesbank("WT1010")
-            if ser and len(ser["closes"]) > 40:
-                r[key] = ser
-        return r, "Bundesbank"
-    jobs = [us, de, lambda: (boe_gilts(), "Bank of England"), lambda: (boc_valet(), "Bank of Canada Valet"), lambda: (rba_f2(), "RBA F2")]   # SNB rendoblid dropped: cube last published 2025-07-31 (stale a year) -- CH stays on the scanner bank
-    with ThreadPoolExecutor(max_workers=6) as ex:
+            r[key] = merge_series(wh_first(key), bundesbank_bbsis(code))
+        return {k: v for k, v in r.items() if v and len(v["closes"]) > 40}, "warehouse:official-yields + Bundesbank"
+    def gb():
+        wh10 = wh_series("boe:IUDMNZC")
+        live = boe_gilts()
+        r = {k: merge_series(wh_first(k), wh10 if k == "GB10Y" else None, live.get(k)) for k in ("GB05Y", "GB10Y", "GB20Y")}
+        return {k: v for k, v in r.items() if v and len(v["closes"]) > 40}, "warehouse:boe + Bank of England"
+    def ca():
+        live = boc_valet()
+        r = {k: merge_series(wh_first(k), live.get(k)) for k in ("CA02Y", "CA05Y", "CA10Y", "CA30Y")}
+        return {k: v for k, v in r.items() if v and len(v["closes"]) > 40}, "warehouse:official-yields + Bank of Canada"
+    def au():
+        live = rba_f2()
+        r = {k: merge_series(wh_first(k), live.get(k)) for k in ("AU02Y", "AU03Y", "AU05Y", "AU10Y")}
+        return {k: v for k, v in r.items() if v and len(v["closes"]) > 40}, "warehouse:official-yields + RBA"
+    jobs = [us, de, gb, ca, au]
+    with ThreadPoolExecutor(max_workers=5) as ex:
         for res in ex.map(lambda f: f(), jobs):
             r, name = res
             for k, ser in r.items():
                 out[k] = ser
                 srcs[k] = name
-    return out, srcs
+    for key, ser in out.items():
+        if key in OY_SLUGS:
+            slug, sid, title, src = OY_SLUGS[key]
+            bank_yield(slug, sid, title, src, ser, banked)
+    return out, srcs, banked
 
 
 def with_live(ser, live, label):
@@ -433,6 +480,58 @@ def with_live(ser, live, label):
     if ser["dates"][-1] < d0:
         return {"dates": ser["dates"] + [d0], "closes": ser["closes"] + [live["close"]]}, label + " + TradingView live"
     return ser, label
+
+
+# ─────────────────────────── warehouse first (v1.3) ─────────────────────────
+def wh_series(sid):
+    """Full history from OUR warehouse through the symdir resolver (/series?id=), never a third party.
+    Returns {dates, closes} or None. fred:, ustpar:, boe:, official-yields:, bare Yahoo/TV tickers (tv-bars bank)."""
+    try:
+        body = _get("%s/series?id=%s" % (PROXY, urllib.parse.quote(sid, safe="")), timeout=45)
+        obs = body.get("observations") or body.get("obs") or []
+        ds, cs = [], []
+        for o in obs:
+            d, v = (o[0], o[1]) if isinstance(o, (list, tuple)) else (o.get("date"), o.get("value"))
+            v = _f(v)
+            if d and v is not None:
+                ds.append(str(d)[:10])
+                cs.append(v)
+        return _order(ds, cs) if len(cs) > 3 else None
+    except Exception as e:
+        print("[warroom] warehouse %s: %s" % (sid, str(e)[:100]))
+        return None
+
+
+def merge_series(*sers):
+    """Union by date; later arguments win on the same date (origin tail beats banked history)."""
+    d = {}
+    for ser in sers:
+        if ser:
+            d.update(zip(ser["dates"], ser["closes"]))
+    ds = sorted(d)
+    return {"dates": ds, "closes": [d[k] for k in ds]} if len(ds) > 3 else None
+
+
+def bank_yield(slug, sid, title, src, ser, banked):
+    """Write data/warm/official-yields/{slug}.json in the lane's schema when the series carries new points."""
+    if not ser:
+        return
+    key = OY_PREFIX + slug + ".json"
+    prev = banked.get(slug)
+    if prev and prev.get("dates") and prev["dates"][-1] >= ser["dates"][-1] and len(prev["dates"]) >= len(ser["dates"]):
+        return
+    doc = {"id": sid, "title": title, "source": src, "banked_at": _iso(), "banked_by": "justhodl-bond-warroom/" + VERSION,
+           "observations": [{"date": d, "value": v} for d, v in zip(ser["dates"], ser["closes"])]}
+    _put_json(key, doc)
+    banked[slug] = ser
+
+
+def read_bank(slug):
+    j = _s3_json(OY_PREFIX + slug + ".json")
+    if not j:
+        return None
+    obs = j.get("observations") or []
+    return _order([o["date"] for o in obs if o.get("value") is not None], [o["value"] for o in obs if o.get("value") is not None]) if obs else None
 
 
 def fred_fetch(series, obs=900):
@@ -730,7 +829,7 @@ def lambda_handler(event, ctx):
 
     # v1.2: official daily histories (Treasury, Bundesbank, BoE, BoC, RBA, SNB) replace the young scanner bank so
     # z-scores and 5d/20d are real from day one; the scanner still supplies the same-day level when newer
-    off, off_src = official_histories()
+    off, off_src, banked = official_histories()
     for key, ser in off.items():
         label, group, tk = OFFICIAL[key]
         ser2, src = with_live(ser, tv_live.get(key), off_src[key])
@@ -743,15 +842,20 @@ def lambda_handler(event, ctx):
     freshness["official_n"] = len(off)
 
     # ECB euro-area curve: AAA vs all governments (periphery stress proxy)
-    ea_aaa, ea_all = ecb_yc("G_N_A"), ecb_yc("G_N_C")
+    ea_aaa = merge_series(read_bank("ea-aaa-10y-ecb"), ecb_yc("G_N_A"))
+    ea_all = merge_series(read_bank("ea-all-10y-ecb"), ecb_yc("G_N_C"))
+    for key_, ser_ in (("EA_AAA10Y", ea_aaa), ("EA_ALL10Y", ea_all)):
+        if ser_:
+            slug_, sid_, title_, src_ = OY_SLUGS[key_]
+            bank_yield(slug_, sid_, title_, src_, ser_, banked)
     if ea_aaa and len(ea_aaa["closes"]) > 40:
         tv["EA_AAA10Y"] = ea_aaa
-        mm = metrics(ea_aaa, "yield", "bp", "yield_dm", "Euro area AAA 10Y (ECB)", "europe", "ECB YC")
+        mm = metrics(ea_aaa, "yield", "bp", "yield_dm", "Euro area AAA 10Y (ECB)", "europe", "warehouse:official-yields + ECB YC")
         if mm:
             m["EA_AAA10Y"] = mm
     if ea_all and len(ea_all["closes"]) > 40:
         tv["EA_ALL10Y"] = ea_all
-        mm = metrics(ea_all, "yield", "bp", "yield_dm", "Euro area all-govts 10Y (ECB)", "europe", "ECB YC")
+        mm = metrics(ea_all, "yield", "bp", "yield_dm", "Euro area all-govts 10Y (ECB)", "europe", "warehouse:official-yields + ECB YC")
         if mm:
             m["EA_ALL10Y"] = mm
         sp = spread_series(ea_all, ea_aaa) if ea_aaa else None
@@ -761,15 +865,27 @@ def lambda_handler(event, ctx):
                 m["EA-periphery"] = mm
     freshness["ecb"] = m["EA_AAA10Y"]["asof"] if "EA_AAA10Y" in m else None
 
-    # FRED
+    # FRED: warehouse history (fred-scoped bank via the resolver) + a short origin tail for today (v1.3)
     fred = {}
+    def fred_one(sid):
+        hist = wh_series("fred:" + sid)
+        try:
+            tail = fred_fetch(sid, obs=60)
+        except Exception as e:
+            tail = None
+            print("[warroom] fred tail %s: %s" % (sid, str(e)[:80]))
+        return sid, merge_series(hist, tail), bool(hist)
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        fred_res = {sid: (ser, wh) for sid, ser, wh in ex.map(fred_one, list(FRED_SERIES))}
     for sid, (label, group, kind) in FRED_SERIES.items():
         try:
-            fred[sid] = fred_fetch(sid)
+            fred[sid], _wh = fred_res.get(sid, (None, False))
+            if not fred[sid]:
+                raise RuntimeError("no data")
             tk = ("oas_ccc" if sid == "BAMLH0A3HYC" else "oas_hy" if sid in ("BAMLH0A0HYM2", "BAMLH0A1HYBB", "BAMLH0A2HYB", "BAMLHE00EHYIOAS") else "oas_em" if sid.startswith("BAMLEM") else "oas_ig") if kind == "spread" else \
                  ("vix" if sid == "VIXCLS" else "index" if kind == "index" else "yield_us")
             unit = "bp" if kind in ("spread", "yield") else "pct" if sid == "DTWEXBGS" else "pts"
-            mm = metrics(fred[sid], kind, unit, tk, label, group, "FRED " + sid)
+            mm = metrics(fred[sid], kind, unit, tk, label, group, ("warehouse:fred + FRED tail " if _wh else "FRED ") + sid)
             if mm:
                 m[sid] = mm
         except Exception as e:
@@ -779,13 +895,19 @@ def lambda_handler(event, ctx):
     # Yahoo
     for sym, (label, group, kind) in YAHOO.items():
         try:
-            ser = yahoo_fetch(sym)
+            hist = wh_series(sym)                      # tv-bars universe bank (Yahoo full history, banked in our warehouse)
+            try:
+                tail = yahoo_fetch(sym, "1mo")
+            except Exception:
+                tail = None
+            ser = merge_series(hist, tail) or yahoo_fetch(sym)
+            ysrc = ("warehouse:tv-bars + Yahoo tail " if hist else "Yahoo ") + sym
             if sym == "^TNX":
-                mm = metrics(ser, "yield", "bp", "yield_us", label, group, "Yahoo " + sym)
+                mm = metrics(ser, "yield", "bp", "yield_us", label, group, ysrc)
             elif kind == "index":
-                mm = metrics(ser, "index", "pts", "move", label, group, "Yahoo " + sym)
+                mm = metrics(ser, "index", "pts", "move", label, group, ysrc)
             else:
-                mm = metrics(ser, "price", "pct", "price_bond", label, group, "Yahoo " + sym)
+                mm = metrics(ser, "price", "pct", "price_bond", label, group, ysrc)
             if mm:
                 m[sym] = mm
         except Exception as e:
@@ -830,6 +952,23 @@ def lambda_handler(event, ctx):
           "move_index": {k: fleet["move_index"].get(k) for k in ("level", "change_1d", "regime", "percentile", "generated_at")},
           "crisis_plumbing": (fleet["crisis_plumbing"].get("composite") or {}) | {"generated_at": fleet["crisis_plumbing"].get("generated_at")} if isinstance(fleet["crisis_plumbing"].get("composite"), dict) else None}
 
+    # bank what only this engine fetches, so data.html / chart-pro serve it as official-yields:{slug}
+    for key_ in ("JP02Y", "JP10Y", "JP30Y"):
+        if mof_series.get(key_):
+            slug_, sid_, title_, src_ = OY_SLUGS[key_]
+            bank_yield(slug_, sid_, title_, src_, mof_series[key_], banked)
+    for key_, slug_ in TV_SLUG.items():
+        ser_ = series_from_bank(bank, key_)
+        if ser_ and len(ser_["closes"]) > 1:
+            bank_yield(slug_ + "-tv", key_ + "_TV", "%s (daily close, TradingView scanner, banked by the bond war room)" % TV_SYMBOLS[key_][1], "TradingView scanner", ser_, banked)
+    try:
+        catalog = sorted(banked)
+        _put_json(OY_STATE, {"lane": "official-yields", "banked_at": _iso(), "engines": ["justhodl-repo", "justhodl-bond-warroom"], "count": len(catalog),
+                             "catalog": [{"id": c, "key": OY_PREFIX + c + ".json", "last": banked[c]["dates"][-1], "n_obs": len(banked[c]["dates"])} for c in catalog]})
+    except Exception as e:
+        notes.append("lane state: %s" % str(e)[:80])
+    freshness["warehouse_lane"] = {"official_yields_banked": len(banked)}
+
     eq = equity_risk(m)
     ed = eurodollar_shortage(m, fleet)
     hb = heartbeat(m, eq, ed)
@@ -851,6 +990,7 @@ def lambda_handler(event, ctx):
     out = {"version": VERSION, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes, "freshness": freshness,
            "heartbeat": hb, "equity_risk": eq, "eurodollar_shortage": ed, "flags": flags, "panels": panels, "jgb_curve": {k: jgb.get(k) for k in ("today", "tenors", "curve", "error")},
            "auction": auction, "fleet": ff, "n_series": len(m),
+           "sources_doctrine": "warehouse first: every series is read from our own AWS (fred-scoped, treasury-par, boe iadb, tv-bars, official-yields) through the symdir resolver, the official origin only adds the same-day tail, and whatever the warehouse lacked is banked into data/warm/official-yields/ so data.html and chart-pro serve it next",
            "methodology": {"dod": "day-over-day change: bp for yields and spreads, % for bond ETFs and the dollar, points for MOVE/VIX; z = today's change vs the trailing 250 daily changes",
                            "history": "sovereign yields from the TradingView scanner bank grow one close per run; z-scores appear after 40 banked days (JGB, Bund, ECB, FRED, Yahoo carry full history from day one)", "flags": "RED = shock threshold hit (US/DM 10Y 10bp, JGB 7bp, periphery spreads 10bp, HY OAS 20bp, IG OAS 7bp, CCC 35bp, EM 15bp, bond ETFs 1.5%, MOVE +10 or level >= 120) or |z| >= 2.5 or a yield moving >= 5% of its own level in a day; AMBER = 60% of those, |z| >= 1.5 or >= 3% of level",
                            "equity_risk": "DUMP RISK: TLT <= -1.5% or US10Y >= +10bp or MOVE +10 with bonds down; PUMP SETUP: TLT >= +1.5% or US10Y <= -10bp with HY OAS not widening >= 8bp; FLIGHT TO SAFETY: the same buying with HY OAS widening",

@@ -171,6 +171,11 @@ REG = {
   "api": "bankofengland.co.uk/boeapps/database",
   "engines": ["justhodl-global-expansion"],
   "prefixes": ["data/warm/boe/", "data/warm/boe-full/"]},
+ "official-yields": {"name": "Official daily sovereign yields — Treasury, Bundesbank, BoE, BoC, RBA, MOF, ECB + market closes",
+  "api": "bundesbank.de · bankofengland.co.uk · bankofcanada.ca/valet · rba.gov.au · mof.go.jp · data-api.ecb.europa.eu · scanner.tradingview.com",
+  "engines": ["justhodl-repo", "justhodl-bond-warroom"],
+  "prefixes": ["data/warm/official-yields/"], "hot": ["data/bond-warroom.json"],
+  "series_from": ("data/warm/official-yields/_state.json", "catalog")},
  "hk-data": {
      "name": "Hong Kong — data.gov.hk",
      "api": "data.gov.hk CKAN",
