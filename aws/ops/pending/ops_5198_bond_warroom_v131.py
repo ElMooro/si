@@ -1,4 +1,4 @@
-"""ops_5197 -- bond war room v1.1.0 (TradingView scanner + bank, MOF history, Bundesbank, ECB) -- redeploy + verify. Original launch: (global bond heartbeat) + verify the war room on bonds.html.
+"""ops_5198 -- bond war room v1.1.0 (TradingView scanner + bank, MOF history, Bundesbank, ECB) -- redeploy + verify. Original launch: (global bond heartbeat) + verify the war room on bonds.html.
 Creates the function directly (the deploy workflow does not create new functions), runs it, asserts
 the feed (TradingView yields for the main bond centers, MOF JGB curve, ICE BofA family, MOVE/ETFs,
 verdicts), arms the schedules (America/New_York, Mon-Fri) and drives the page in Chrome."""
@@ -25,8 +25,8 @@ s3 = boto3.client("s3", region_name="us-east-1", config=CFG)
 SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
 FAILS = []
 
-with report("ops_5197_bond_warroom_launch") as R:
-    R.heading("ops 5197 -- bond war room v1.3.0 warehouse-first + official-yields lane")
+with report("ops_5198_bond_warroom_launch") as R:
+    R.heading("ops 5198 -- bond war room v1.3.1 warehouse-first for MOF + scanner markets")
     cfg_json = json.loads((ROOT / "aws" / "lambdas" / FN / "config.json").read_text())
     create_or_update_lambda(report=R, function_name=FN, zip_bytes=build_zip(ROOT / "aws" / "lambdas" / FN / "source"),
                             env_vars=cfg_json.get("env") or {}, timeout=int(cfg_json.get("timeout") or 240), memory=int(cfg_json.get("memory") or 1024),
@@ -68,7 +68,7 @@ with report("ops_5197_bond_warroom_launch") as R:
     R.section("warehouse-first (v1.3)")
     wh_rows = [r for r in allrows.values() if str(r.get("source", "")).startswith("warehouse:")]
     R.log("   rows sourced warehouse-first: %d / %d" % (len(wh_rows), len(allrows)))
-    for k in ("DGS10", "BAMLH0A0HYM2", "TLT", "^MOVE", "US10Y", "DE10Y", "GB10Y", "CA10Y", "AU10Y", "EA_AAA10Y"):
+    for k in ("DGS3MO", "BAMLH0A0HYM2", "TLT", "^MOVE", "US10Y", "DE10Y", "GB10Y", "CA10Y", "AU10Y", "EA_AAA10Y", "JP10Y", "IT10Y", "ES10Y"):
         r = allrows.get(k)
         R.log("   %-14s src=%s asof=%s" % (k, r and r["source"], r and r["asof"]))
         if not (r and str(r["source"]).startswith("warehouse:")):
@@ -83,7 +83,7 @@ with report("ops_5197_bond_warroom_launch") as R:
     import urllib.request as _u
     for sid in ("official-yields:ca-10y-boc", "official-yields:jp-10y-mof", "official-yields:it-10y-tv", "official-yields:gb-5y-boe"):
         try:
-            with _u.urlopen(_u.Request("https://justhodl-data-proxy.raafouis.workers.dev/series?id=" + sid, headers={"User-Agent": "ops5197"}), timeout=60) as r:
+            with _u.urlopen(_u.Request("https://justhodl-data-proxy.raafouis.workers.dev/series?id=" + sid, headers={"User-Agent": "ops5198"}), timeout=60) as r:
                 j = json.loads(r.read())
             obs = j.get("observations") or j.get("obs") or []
             R.log("   /series %-32s n=%d last=%s src=%s" % (sid, len(obs), obs[-1] if obs else None, str(j.get("source"))[:50]))
@@ -91,29 +91,6 @@ with report("ops_5197_bond_warroom_launch") as R:
                 FAILS.append("resolver empty for %s" % sid)
         except Exception as e:
             FAILS.append("resolver %s: %s" % (sid, str(e)[:80]))
-    R.section("data.html provider catalog")
-    PC = "justhodl-provider-catalog"
-    pc_cfg = json.loads((ROOT / "aws" / "lambdas" / PC / "config.json").read_text())
-    create_or_update_lambda(report=R, function_name=PC, zip_bytes=build_zip(ROOT / "aws" / "lambdas" / PC / "source"), env_vars=pc_cfg.get("env") or {},
-                            timeout=int(pc_cfg.get("timeout") or 600), memory=int(pc_cfg.get("memory") or 1024), description=pc_cfg.get("description", "")[:250],
-                            reserved_concurrency=None, create_function_url=False, ephemeral_storage=None)
-    for _ in range(30):
-        c2 = lam.get_function_configuration(FunctionName=PC)
-        if c2.get("LastUpdateStatus") in (None, "Successful") and c2.get("State") == "Active":
-            break
-        time.sleep(5)
-    lam.invoke(FunctionName=PC, InvocationType="Event", Payload=b"{}")
-    doc = None
-    for _ in range(40):
-        time.sleep(15)
-        try:
-            doc = json.loads(s3.get_object(Bucket="justhodl-dashboard-live", Key="data/providers/official-yields.json")["Body"].read())
-            break
-        except Exception:
-            doc = None
-    R.log("   data/providers/official-yields.json: %s" % (json.dumps({k: doc.get(k) for k in ("slug", "name", "series", "n_series", "objects", "bytes", "generated_at") if k in doc})[:300] if doc else "NOT WRITTEN within 10 min (catalog runs on its own schedule; re-check later)"))
-    if not doc:
-        R.warn("   provider doc not yet written -- catalog engine is Event-invoked; verify on data.html after its next run")
     jc = D.get("jgb_curve") or {}
     R.log("   MOF JGB curve %s tenors=%s err=%s" % (jc.get("today"), len(jc.get("curve") or []), jc.get("error")))
     A = D.get("auction") or {}
@@ -128,10 +105,10 @@ with report("ops_5197_bond_warroom_launch") as R:
         tgt = {"Arn": cfg["FunctionArn"], "RoleArn": SCHED_ROLE, "Input": "{}", "RetryPolicy": {"MaximumRetryAttempts": 1}}
         try:
             sch.get_schedule(Name=name, GroupName="default")
-            sch.update_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5197)")
+            sch.update_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5198)")
             R.ok("   %s updated %s ET" % (name, expr))
         except sch.exceptions.ResourceNotFoundException:
-            sch.create_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5197)")
+            sch.create_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5198)")
             R.ok("   %s created %s ET" % (name, expr))
         except Exception as e:
             FAILS.append("schedule %s: %s" % (name, str(e)[:100]))
@@ -140,8 +117,8 @@ with report("ops_5197_bond_warroom_launch") as R:
     live = False
     for _ in range(40):
         try:
-            with urllib.request.urlopen(urllib.request.Request("https://justhodl.ai/bonds.html", headers={"User-Agent": "ops5197", "Cache-Control": "no-cache"}), timeout=30) as r:
-                live = b"warehouse first" in r.read()
+            with urllib.request.urlopen(urllib.request.Request("https://justhodl.ai/bonds.html", headers={"User-Agent": "ops5198", "Cache-Control": "no-cache"}), timeout=30) as r:
+                live = b"wr-fresh" in r.read()
         except Exception:
             live = False
         if live:
@@ -172,7 +149,7 @@ with report("ops_5197_bond_warroom_launch") as R:
                     panels: document.querySelectorAll('#wr-grid .wr-panel').length, rows: document.querySelectorAll('#wr-grid tbody tr').length, flags: document.querySelectorAll('#wr-grid .wr-flag').length,
                     reds: document.querySelectorAll('#wr-grid .wr-flag.RED').length, jgb: document.querySelectorAll('.wr-jgb div').length, auction: document.querySelector('#wr-auction .h').textContent.slice(0, 80),
                     regimeBanner: !!document.getElementById('regime-banner'), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth })""")
-                pg.screenshot(path=str(SHOTS / f"ops5197_bonds_warroom_{width}.png"))
+                pg.screenshot(path=str(SHOTS / f"ops5198_bonds_warroom_{width}.png"))
                 R.log("   %4dpx: %s errors=%s" % (width, json.dumps(facts)[:420], errors[:2]))
                 if facts["panels"] < 6 or facts["rows"] < 30 or facts["score"] in ("—", "") or errors or not facts["regimeBanner"]:
                     FAILS.append("%dpx render: %s errors=%s" % (width, json.dumps(facts)[:200], errors[:2]))

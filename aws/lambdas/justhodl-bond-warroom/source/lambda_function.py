@@ -55,7 +55,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
 TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
@@ -780,7 +780,7 @@ def lambda_handler(event, ctx):
             ds = [r["date"] for r in jgb["rows"] if r.get(tenor) is not None]
             cs = [r[tenor] for r in jgb["rows"] if r.get(tenor) is not None]
             if len(cs) > 3:
-                mof_series[key] = {"dates": ds, "closes": cs}
+                mof_series[key] = merge_series(read_bank(OY_SLUGS[key][0]), {"dates": ds, "closes": cs})
         rows_ = jgb["rows"]
         last, prev = rows_[-1], rows_[-2] if len(rows_) > 1 else None
         jgb["today"] = last["date"]
@@ -797,7 +797,7 @@ def lambda_handler(event, ctx):
         notes.append("tv scanner: %s" % str(e)[:120])
     tv = {}
     for key, (sym, label, group, kind) in TV_SYMBOLS.items():
-        ser = mof_series.get(key) or series_from_bank(bank, key)
+        ser = mof_series.get(key) or (merge_series(read_bank(TV_SLUG[key] + "-tv"), series_from_bank(bank, key)) if key in TV_SLUG else series_from_bank(bank, key))
         if key == "DE10Y":
             bb = bundesbank_10y()
             if bb and len(bb["closes"]) > 40:
@@ -813,7 +813,7 @@ def lambda_handler(event, ctx):
             mm = metrics(ser, "index", "pts", "move", label, group, "TradingView " + sym)
         else:
             tk = "yield_jp" if group == "japan" else "yield_em" if key in ("BR10Y", "MX10Y", "IN10Y") else "yield_us" if group == "us" else "yield_dm"
-            src = "MOF Japan" if key in mof_series else ("Bundesbank + TradingView" if key == "DE10Y" else "TradingView " + sym)
+            src = "warehouse:official-yields + MOF Japan" if key in mof_series else ("Bundesbank + TradingView" if key == "DE10Y" else ("warehouse:official-yields + TradingView live " + sym) if key in TV_SLUG else "TradingView " + sym)
             mm = metrics(ser, "yield", "bp", tk, label, group, src)
         if mm:
             lv = tv_live.get(key) or {}
