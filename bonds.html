@@ -276,8 +276,9 @@ footer a{margin:0 10px}
   .wr-tag.bull { color:#22c55e; background:rgba(34,197,94,.12); } .wr-tag.bear { color:#ef4444; background:rgba(239,68,68,.12); }
   .wr-pred { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:6px; font-size:11px; }
   .wr-pred b.up { color:#22c55e; } .wr-pred b.down { color:#ef4444; } .wr-pred b.flat { color:var(--fg-3,#8a97a8); }
-  .wr-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(460px,1fr)); gap:14px; margin-top:14px; }
-  @media(max-width:520px){ .wr-grid { grid-template-columns:1fr; } }
+  .wr-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr)); gap:14px; margin-top:14px; }
+  .wr-panel .tbl { overflow-x:auto; }
+  @media(max-width:520px){ .wr-grid { grid-template-columns:1fr; } .wr-banner { padding:14px; } .wr-headline { font-size:17px; } }
   .wr-panel { background:var(--bg-card,#101418); border:1px solid var(--border,#1e2733); border-radius:10px; overflow:hidden; }
   .wr-panel .ph { display:flex; justify-content:space-between; align-items:center; padding:9px 13px; border-bottom:1px solid var(--border,#1e2733); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-2,#c2cbd6); }
   .wr-panel .ph .cnt { font-size:10px; letter-spacing:0; text-transform:none; color:var(--fg-3,#8a97a8); }
@@ -355,7 +356,7 @@ footer a{margin:0 10px}
     const kind = r.kind;
     const unit = r.unit;
     const zc = r.z == null ? "" : `<small>z ${r.z > 0 ? "+" : ""}${r.z.toFixed(1)}</small>`;
-    return `<tr class="${r.flag}" title="${esc(r.source)} · as of ${esc(r.asof)} · 1y percentile ${r.pct1y == null ? "—" : r.pct1y + "%"}">
+    return `<tr class="${r.flag}" title="${esc(r.source)} · as of ${esc(r.asof)} · 1y percentile ${r.pct1y == null ? "—" : r.pct1y + "%"}${r.bank_days != null ? " · " + r.bank_days + " banked days (z-score after 40)" : ""}">
       <td class="lab">${esc(r.label)}<small>${esc(r.asof || "")}${r.pct1y != null ? " · p" + r.pct1y : ""}</small></td>
       <td>${fmtLevel(r)}</td>
       <td class="${cls(r.dod, kind)}"><b>${fmtChg(r.dod, unit)}</b>${zc}</td>
@@ -399,7 +400,7 @@ footer a{margin:0 10px}
         extra = `<div class="ph" style="border-top:1px solid var(--border,#1e2733)"><span>MOF official curve · ${esc(D.jgb_curve.today || "")}</span><span class="cnt">day-over-day, bp (red = yields up)</span></div><div class="wr-jgb">${D.jgb_curve.curve.filter(c => c.last != null).map(c => `<div><div class="t">${esc(c.tenor)}</div><div class="v">${c.last.toFixed(3)}</div><div class="c ${c.dod_bp > 0 ? "pos" : c.dod_bp < 0 ? "neg" : ""}">${c.dod_bp == null ? "—" : (c.dod_bp > 0 ? "+" : "") + c.dod_bp.toFixed(1)}</div></div>`).join("")}</div>`;
       }
       return `<div class="wr-panel"><div class="ph"><span>${title}</span><span class="cnt">${rows.length} series${reds ? ` · <b style="color:#ef4444">${reds} RED</b>` : ""}${ambers ? ` · <b style="color:#f59e0b">${ambers} AMBER</b>` : ""}</span></div>
-        <table><thead><tr><th>Series</th><th>Level</th><th>DoD</th><th>5d</th><th>20d</th><th>30d</th><th>Flag</th></tr></thead><tbody>${rows.map(rowHtml).join("") || `<tr><td colspan="7" class="flat">no data</td></tr>`}</tbody></table>${extra}</div>`;
+        <div class="tbl"><table><thead><tr><th>Series</th><th>Level</th><th>DoD</th><th>5d</th><th>20d</th><th>30d</th><th>Flag</th></tr></thead><tbody>${rows.map(rowHtml).join("") || `<tr><td colspan="7" class="flat">no data</td></tr>`}</tbody></table></div>${extra}</div>`;
     }).join("");
     const M = D.methodology || {};
     const F = D.fleet || {};

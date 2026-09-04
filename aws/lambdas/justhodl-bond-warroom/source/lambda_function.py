@@ -9,11 +9,15 @@ same way, every ICE BofA spread, the European metrics (BTP-Bund, IT-ES ...)
 that detect a eurodollar shortage. Keep what is there; add these."
 
 Sources (all real, refreshed every run):
-  * TradingView chart bars (server-side WebSocket, same session the fleet's
-    tv-bars engine uses) for sovereign yields: US02Y/05Y/10Y/30Y, DE02Y/10Y/30Y,
-    FR10Y, IT02Y/10Y, ES10Y, NL10Y, PT10Y, GR10Y, GB02Y/10Y, CH10Y, JP02Y/10Y/30Y,
-    AU10Y, CA10Y, CN10Y, KR10Y, IN10Y, BR10Y, MX10Y -- and TVC:MOVE.
-  * Japan MOF daily JGB curve CSV (1Y..40Y, authoritative) -- current month.
+  * TradingView scanner (public REST, no session) for sovereign yields:
+    US02Y/05Y/10Y/30Y, DE02Y/10Y/30Y, FR10Y, IT02Y/10Y, ES10Y, NL10Y, PT10Y, GR10Y,
+    GB02Y/10Y, CH10Y, JP02Y/10Y/30Y, AU10Y, CA10Y, CN10Y, KR10Y, IN10Y, BR10Y,
+    MX10Y and TVC:MOVE -- level, day change, week/month/quarter performance;
+    every run banks the day's close so 5d/20d and z-scores grow from the bank
+    (the WebSocket history route the tv-bars engine uses was refused, 400).
+  * Japan MOF daily JGB curve (1Y..40Y) -- full history CSV since 1974 (authoritative).
+  * Bundesbank daily 10Y Bund yield; ECB daily euro-area 10Y curve, AAA and
+    all-issuers (their gap is the euro-area periphery stress proxy).
   * FRED via the fleet proxy: DGS3MO/2/5/10/30, DFII10, T10YIE, SOFR, DTB3,
     DTWEXBGS, VIXCLS and the ICE BofA OAS family (US HY/IG/AAA/BBB/BB/B/CCC,
     Euro HY, EM corp / EM HY / EM sovereign).
@@ -51,15 +55,10 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-try:
-    import tv_pull
-except Exception:  # pragma: no cover
-    tv_pull = None
-
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/bond-warroom.json"
-TV_KEY = "data/warm/bond-warroom/tv.json.gz"
+TV_KEY = "data/warm/bond-warroom/tv-bank.json.gz"
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 UA = "justhodl-bond-warroom/" + VERSION
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -147,40 +146,84 @@ def _f(v):
 
 
 # ─────────────────────────── fetchers ────────────────────────────────
-def tv_fetch(cache):
-    """Sovereign yields + MOVE from TradingView; incremental when cached."""
-    out = dict(cache.get("series") or {})
-    errors = {}
-    if not tv_pull:
-        return out, {"tv": "module unavailable"}
-    token, cookie = tv_pull._session()
-    if not cookie:
-        return out, {"tv": "no TradingView session in SSM"}
+def tv_scan(cache):
+    """TradingView scanner: current level + day change + W/1M/3M performance for every symbol; bank the close by date."""
+    bank = dict(cache.get("bank") or {})
+    tickers = [v[0] for v in TV_SYMBOLS.values()]
+    body = json.dumps({"symbols": {"tickers": tickers, "query": {"types": []}},
+                       "columns": ["close", "change", "change_abs", "Perf.W", "Perf.1M", "Perf.3M", "update_mode"]}).encode()
+    req = urllib.request.Request("https://scanner.tradingview.com/global/scan", data=body,
+                                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36",
+                                          "Content-Type": "application/json", "Origin": "https://www.tradingview.com", "Referer": "https://www.tradingview.com/"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        rows = json.loads(r.read()).get("data") or []
+    today = _now().date().isoformat()
+    live = {}
+    by_ticker = {k: v[0] for k, v in TV_SYMBOLS.items()}
+    inv = {v: k for k, v in by_ticker.items()}
+    for row in rows:
+        key = inv.get(row.get("s"))
+        d = row.get("d") or []
+        if not key or len(d) < 3 or d[0] is None:
+            continue
+        close, chg_pct, chg_abs = _f(d[0]), _f(d[1]), _f(d[2])
+        live[key] = {"close": close, "change_pct": chg_pct, "change_abs": chg_abs, "perf_w": _f(d[3]) if len(d) > 3 else None,
+                     "perf_1m": _f(d[4]) if len(d) > 4 else None, "perf_3m": _f(d[5]) if len(d) > 5 else None, "mode": d[6] if len(d) > 6 else None}
+        b = bank.setdefault(key, {})
+        b[today] = close
+        if chg_abs is not None and len(b) < 2:
+            # seed yesterday from the scanner's own day change so DoD exists on day one
+            yday = (_now().date() - timedelta(days=1)).isoformat()
+            b.setdefault(yday, round(close - chg_abs, 6))
+        if len(b) > 1500:
+            for k in sorted(b)[:-1500]:
+                b.pop(k, None)
+    return live, bank
 
-    def one(key):
-        sym = TV_SYMBOLS[key][0]
-        have = out.get(key) or {}
-        countback = 40 if have.get("dates") else 800
-        try:
-            bars = tv_pull.pull(sym, token, cookie, countback=countback, budget=20)
-        except Exception as e:
-            return key, None, str(e)[:100]
-        if not bars:
-            return key, None, "no bars"
-        merged = dict(zip(have.get("dates") or [], have.get("closes") or []))
-        for b in bars:
-            d = datetime.fromtimestamp(int(b[0]), tz=timezone.utc).date().isoformat()
-            merged[d] = float(b[4])
-        ds = sorted(merged)[-1200:]
-        return key, {"dates": ds, "closes": [merged[d] for d in ds]}, None
 
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        for key, ser, err in ex.map(one, list(TV_SYMBOLS)):
-            if ser:
-                out[key] = ser
-            elif err:
-                errors[key] = err
-    return out, errors
+def series_from_bank(bank, key):
+    b = bank.get(key) or {}
+    ds = sorted(b)
+    return {"dates": ds, "closes": [b[d] for d in ds]}
+
+
+def bundesbank_10y():
+    """Daily 10Y Bund yield from the Bundesbank API (sdmx-json)."""
+    try:
+        body = _get("https://api.statistiken.bundesbank.de/rest/data/BBSSY/D.REN.EUR.A630.000000WT1010.A?lastNObservations=1500&format=sdmx_json", timeout=40)
+        ds_struct = body["data"]["structure"]["dimensions"]["observation"][0]["values"]
+        obs = list(body["data"]["dataSets"][0]["series"].values())[0]["observations"]
+        ds, cs = [], []
+        for idx, val in obs.items():
+            v = _f(val[0])
+            if v is None:
+                continue
+            ds.append(ds_struct[int(idx)]["id"][:10])
+            cs.append(v)
+        order = sorted(range(len(ds)), key=lambda i: ds[i])
+        return {"dates": [ds[i] for i in order], "closes": [cs[i] for i in order]}
+    except Exception as e:
+        print("[warroom] bundesbank:", str(e)[:120])
+        return None
+
+
+def ecb_yc(kind="G_N_A"):
+    """ECB euro-area 10Y spot yield, daily: G_N_A = AAA-rated governments, G_N_C = all governments."""
+    try:
+        raw = _get("https://data-api.ecb.europa.eu/service/data/YC/B.U2.EUR.4F.%s.SV_C_YM.SR_10Y?lastNObservations=1500&format=csvdata" % kind, timeout=40, binary=True)
+        lines = raw.decode("utf-8", "ignore").splitlines()
+        hdr = lines[0].split(",")
+        ti, vi = hdr.index("TIME_PERIOD"), hdr.index("OBS_VALUE")
+        ds, cs = [], []
+        for ln in lines[1:]:
+            parts = ln.split(",")
+            if len(parts) > max(ti, vi) and _f(parts[vi]) is not None:
+                ds.append(parts[ti][:10])
+                cs.append(_f(parts[vi]))
+        return {"dates": ds, "closes": cs}
+    except Exception as e:
+        print("[warroom] ecb yc:", str(e)[:120])
+        return None
 
 
 def fred_fetch(series, obs=900):
@@ -209,9 +252,13 @@ def yahoo_fetch(symbol, rng="2y"):
 
 
 def mof_jgb():
-    """Japan MOF daily JGB curve (current month CSV, shift_jis)."""
+    """Japan MOF daily JGB curve -- full history CSV (since 1974) + the current month file."""
     try:
-        raw = _get("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv", timeout=30, binary=True)
+        raw = _get("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv", timeout=40, binary=True)
+        try:
+            raw += b"\r\n" + _get("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv", timeout=30, binary=True)
+        except Exception:
+            pass
         text = raw.decode("shift_jis", "ignore")
         lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
         hdr_i = next(i for i, ln in enumerate(lines) if ln.startswith("Date,"))
@@ -226,6 +273,10 @@ def mof_jgb():
             except Exception:
                 continue
             rows.append({"date": d, **{cols[i]: _f(parts[i]) for i in range(1, min(len(cols), len(parts)))}})
+        seen = {}
+        for r in rows:
+            seen[r["date"]] = r
+        rows = [seen[d] for d in sorted(seen)]
         return {"tenors": cols[1:], "rows": rows}
     except Exception as e:
         return {"error": str(e)[:120], "rows": []}
@@ -235,7 +286,7 @@ def mof_jgb():
 def metrics(ser, kind, unit_dod, thresh_key, label, group, source):
     """kind: yield | spread | price | index. unit_dod: 'bp' (x100 of a % level), 'pct' (relative %), 'pts'."""
     ds, cs = ser.get("dates") or [], ser.get("closes") or []
-    if len(cs) < 3:
+    if len(cs) < 2:
         return None
     last, prev = cs[-1], cs[-2]
     def chg(i):
@@ -282,7 +333,7 @@ def spread_series(a, b):
         if d in mb:
             ds.append(d)
             cs.append(v - mb[d])
-    return {"dates": ds, "closes": cs} if len(cs) > 3 else None
+    return {"dates": ds, "closes": cs} if len(cs) >= 2 else None
 
 
 def word_dod(m):
@@ -408,25 +459,79 @@ def lambda_handler(event, ctx):
     notes, freshness = [], {}
     m = {}
 
-    # TradingView sovereign yields + MOVE
+    # Japan MOF curve first (authoritative daily history for JP 2Y/10Y/30Y)
+    jgb = mof_jgb()
+    mof_series = {}
+    if jgb.get("rows"):
+        for tenor, key in (("2Y", "JP02Y"), ("10Y", "JP10Y"), ("30Y", "JP30Y")):
+            ds = [r["date"] for r in jgb["rows"] if r.get(tenor) is not None]
+            cs = [r[tenor] for r in jgb["rows"] if r.get(tenor) is not None]
+            if len(cs) > 3:
+                mof_series[key] = {"dates": ds, "closes": cs}
+        rows_ = jgb["rows"]
+        last, prev = rows_[-1], rows_[-2] if len(rows_) > 1 else None
+        jgb["today"] = last["date"]
+        jgb["curve"] = [{"tenor": t, "last": last.get(t), "prev": prev.get(t) if prev else None, "dod_bp": round((last.get(t) - prev.get(t)) * 100, 1) if (prev and last.get(t) is not None and prev.get(t) is not None) else None} for t in jgb["tenors"]]
+        freshness["mof_jgb"] = last["date"]
+
+    # TradingView scanner (levels + day change) with our own daily bank for history
     cache = _s3_json(TV_KEY) or {}
-    tv, tv_err = tv_fetch(cache)
-    if tv:
-        _put_json(TV_KEY, {"version": VERSION, "as_of": _iso(), "series": tv}, gz=True)
-    if tv_err:
-        notes.append("tv errors: %s" % json.dumps(tv_err)[:300])
+    tv_live, bank = {}, dict(cache.get("bank") or {})
+    try:
+        tv_live, bank = tv_scan(cache)
+        _put_json(TV_KEY, {"version": VERSION, "as_of": _iso(), "bank": bank}, gz=True)
+    except Exception as e:
+        notes.append("tv scanner: %s" % str(e)[:120])
+    tv = {}
     for key, (sym, label, group, kind) in TV_SYMBOLS.items():
-        ser = tv.get(key)
-        if not ser:
+        ser = mof_series.get(key) or series_from_bank(bank, key)
+        if key == "DE10Y":
+            bb = bundesbank_10y()
+            if bb and len(bb["closes"]) > 40:
+                ser = bb
+                if tv_live.get(key) and tv_live[key].get("close") is not None:
+                    d0 = _now().date().isoformat()
+                    if ser["dates"][-1] < d0:
+                        ser = {"dates": ser["dates"] + [d0], "closes": ser["closes"] + [tv_live[key]["close"]]}
+        if len(ser.get("closes") or []) < 2:
             continue
+        tv[key] = ser
         if kind == "index":
             mm = metrics(ser, "index", "pts", "move", label, group, "TradingView " + sym)
         else:
             tk = "yield_jp" if group == "japan" else "yield_em" if key in ("BR10Y", "MX10Y", "IN10Y") else "yield_us" if group == "us" else "yield_dm"
-            mm = metrics(ser, "yield", "bp", tk, label, group, "TradingView " + sym)
+            src = "MOF Japan" if key in mof_series else ("Bundesbank + TradingView" if key == "DE10Y" else "TradingView " + sym)
+            mm = metrics(ser, "yield", "bp", tk, label, group, src)
         if mm:
+            lv = tv_live.get(key) or {}
+            # fill 5d/20d from the scanner's performance columns while the bank is young
+            if mm.get("d5") is None and lv.get("perf_w") is not None and lv.get("close"):
+                mm["d5"] = round(lv["close"] * lv["perf_w"] / 100 * (100 if mm["unit"] == "bp" else 1) / (1 + lv["perf_w"] / 100), 2)
+            if mm.get("d20") is None and lv.get("perf_1m") is not None and lv.get("close"):
+                mm["d20"] = round(lv["close"] * lv["perf_1m"] / 100 * (100 if mm["unit"] == "bp" else 1) / (1 + lv["perf_1m"] / 100), 2)
+            mm["bank_days"] = len(bank.get(key) or {})
             m[key] = mm
-    freshness["tradingview"] = max((v["asof"] for k, v in m.items() if v["source"].startswith("TradingView")), default=None)
+    freshness["tradingview"] = _now().date().isoformat() if tv_live else None
+    freshness["tradingview_symbols"] = len(tv_live)
+
+    # ECB euro-area curve: AAA vs all governments (periphery stress proxy)
+    ea_aaa, ea_all = ecb_yc("G_N_A"), ecb_yc("G_N_C")
+    if ea_aaa and len(ea_aaa["closes"]) > 40:
+        tv["EA_AAA10Y"] = ea_aaa
+        mm = metrics(ea_aaa, "yield", "bp", "yield_dm", "Euro area AAA 10Y (ECB)", "europe", "ECB YC")
+        if mm:
+            m["EA_AAA10Y"] = mm
+    if ea_all and len(ea_all["closes"]) > 40:
+        tv["EA_ALL10Y"] = ea_all
+        mm = metrics(ea_all, "yield", "bp", "yield_dm", "Euro area all-govts 10Y (ECB)", "europe", "ECB YC")
+        if mm:
+            m["EA_ALL10Y"] = mm
+        sp = spread_series(ea_all, ea_aaa) if ea_aaa else None
+        if sp:
+            mm = metrics(sp, "spread", "bp", "spread_periph", "Euro area all-govts minus AAA 10Y (periphery stress)", "europe", "ECB YC")
+            if mm:
+                m["EA-periphery"] = mm
+    freshness["ecb"] = m["EA_AAA10Y"]["asof"] if "EA_AAA10Y" in m else None
 
     # FRED
     fred = {}
@@ -481,14 +586,6 @@ def lambda_handler(event, ctx):
         if mm:
             m["SOFR-TB3"] = mm
 
-    # Japan MOF curve
-    jgb = mof_jgb()
-    if jgb.get("rows"):
-        rows = jgb["rows"]
-        last, prev = rows[-1], rows[-2] if len(rows) > 1 else None
-        jgb["today"] = last["date"]
-        jgb["curve"] = [{"tenor": t, "last": last.get(t), "prev": prev.get(t) if prev else None, "dod_bp": round((last.get(t) - prev.get(t)) * 100, 1) if (prev and last.get(t) is not None and prev.get(t) is not None) else None} for t in jgb["tenors"]]
-        freshness["mof_jgb"] = last["date"]
     # fleet feeds
     fleet = {"auction_desk": _s3_json("data/auction-desk.json") or {}, "usd_funding": _s3_json("data/usd-funding.json") or {},
              "eurodollar_plumbing": _s3_json("data/eurodollar-plumbing.json") or {}, "move_index": _s3_json("data/move-index.json") or {},
@@ -516,8 +613,8 @@ def lambda_handler(event, ctx):
         "us_rates": rows(["US02Y", "US05Y", "US10Y", "US30Y", "DGS3MO", "DFII10", "T10YIE", "US2s10s", "US5s30s"]),
         "volatility": rows(["^MOVE", "MOVE_TV", "VIXCLS", "TLT", "IEF", "SHY", "HYG", "LQD", "EMB"]),
         "japan": rows(["JP02Y", "JP10Y", "JP30Y", "JP2s30s", "US-JGB"]),
-        "europe": rows(["DE02Y", "DE10Y", "DE30Y", "FR10Y", "IT02Y", "IT10Y", "ES10Y", "NL10Y", "PT10Y", "GR10Y", "GB02Y", "GB10Y", "CH10Y"]),
-        "europe_spreads": rows(["BTP-Bund", "OAT-Bund", "Bono-Bund", "IT-ES", "PT-Bund", "GR-Bund", "Gilt-Bund", "US-Bund", "DE2s10s", "IT2s10s"]),
+        "europe": rows(["DE02Y", "DE10Y", "DE30Y", "FR10Y", "IT02Y", "IT10Y", "ES10Y", "NL10Y", "PT10Y", "GR10Y", "GB02Y", "GB10Y", "CH10Y", "EA_AAA10Y", "EA_ALL10Y"]),
+        "europe_spreads": rows(["BTP-Bund", "OAT-Bund", "Bono-Bund", "IT-ES", "PT-Bund", "GR-Bund", "Gilt-Bund", "US-Bund", "EA-periphery", "DE2s10s", "IT2s10s"]),
         "world": rows(["AU10Y", "CA10Y", "CN10Y", "KR10Y", "IN10Y", "BR10Y", "MX10Y"]),
         "credit": rows(["BAMLH0A0HYM2", "BAMLC0A0CM", "BAMLC0A1CAAA", "BAMLC0A4CBBB", "BAMLH0A1HYBB", "BAMLH0A2HYB", "BAMLH0A3HYC", "BAMLHE00EHYIOAS", "BAMLEMCBPIOAS", "BAMLEMIBHGCRPIOAS", "BAMLEMHBHYCRPIOAS", "BAMLEMPBPUBSICRPIOAS"]),
         "funding": rows(["SOFR", "DTB3", "SOFR-TB3", "DTWEXBGS"]),
@@ -527,7 +624,7 @@ def lambda_handler(event, ctx):
            "heartbeat": hb, "equity_risk": eq, "eurodollar_shortage": ed, "flags": flags, "panels": panels, "jgb_curve": {k: jgb.get(k) for k in ("today", "tenors", "curve", "error")},
            "auction": auction, "fleet": ff, "n_series": len(m),
            "methodology": {"dod": "day-over-day change: bp for yields and spreads, % for bond ETFs and the dollar, points for MOVE/VIX; z = today's change vs the trailing 250 daily changes",
-                           "flags": "RED = shock threshold hit (US/DM 10Y 10bp, JGB 7bp, periphery spreads 10bp, HY OAS 20bp, IG OAS 7bp, CCC 35bp, EM 15bp, bond ETFs 1.5%, MOVE +10 or level >= 120) or |z| >= 2.5; AMBER = 60% of those or |z| >= 1.5",
+                           "history": "sovereign yields from the TradingView scanner bank grow one close per run; z-scores appear after 40 banked days (JGB, Bund, ECB, FRED, Yahoo carry full history from day one)", "flags": "RED = shock threshold hit (US/DM 10Y 10bp, JGB 7bp, periphery spreads 10bp, HY OAS 20bp, IG OAS 7bp, CCC 35bp, EM 15bp, bond ETFs 1.5%, MOVE +10 or level >= 120) or |z| >= 2.5; AMBER = 60% of those or |z| >= 1.5",
                            "equity_risk": "DUMP RISK: TLT <= -1.5% or US10Y >= +10bp or MOVE +10 with bonds down; PUMP SETUP: TLT >= +1.5% or US10Y <= -10bp with HY OAS not widening >= 8bp; FLIGHT TO SAFETY: the same buying with HY OAS widening",
                            "eurodollar": "points from BTP-Bund / OAT-Bund / IT-ES widening, dollar up >= 0.4%, Euro-HY / EM spreads widening >= 8bp, the fleet's eurodollar-plumbing composite and USD-funding stress z; SHORTAGE SIGNAL at 5+ points",
                            "heartbeat": "weighted share of RED/AMBER across US rates, volatility, credit, Europe, Japan, rest of world and funding; ACUTE >= 70, ELEVATED >= 45, WATCH >= 22"}}
