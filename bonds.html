@@ -355,7 +355,8 @@ footer a{margin:0 10px}
   function rowHtml(r) {
     const kind = r.kind;
     const unit = r.unit;
-    const zc = r.z == null ? "" : `<small>z ${r.z > 0 ? "+" : ""}${r.z.toFixed(1)}</small>`;
+    const zc = r.z != null ? `<small>z ${r.z > 0 ? "+" : ""}${r.z.toFixed(1)}${kind === "yield" && r.dod_pct != null ? " · " + (r.dod_pct > 0 ? "+" : "") + r.dod_pct.toFixed(1) + "% of level" : ""}</small>`
+             : (r.history_days != null && r.history_days < 41 ? `<small>z after ${41 - r.history_days} more days</small>` : "");
     return `<tr class="${r.flag}" title="${esc(r.source)} · as of ${esc(r.asof)} · 1y percentile ${r.pct1y == null ? "—" : r.pct1y + "%"}${r.bank_days != null ? " · " + r.bank_days + " banked days (z-score after 40)" : ""}">
       <td class="lab">${esc(r.label)}<small>${esc(r.asof || "")}${r.pct1y != null ? " · p" + r.pct1y : ""}</small></td>
       <td>${fmtLevel(r)}</td>
@@ -375,7 +376,8 @@ footer a{margin:0 10px}
     $("wr-banner").className = "wr-banner " + (hb.regime || "");
     $("wr-headline").textContent = hb.headline || "";
     const fr = D.freshness || {};
-    $("wr-fresh").textContent = `engine ran ${ago(D.generated_at)} · ${D.n_series || 0} series · TradingView ${fr.tradingview || "—"} · FRED ${fr.fred || "—"} · MOF JGB ${fr.mof_jgb || "—"}`;
+    const offs = fr.official ? Object.entries(fr.official).map(([k, v]) => `${k.replace(" par curve", "").replace(" BBSSY", "").replace(" Valet", "").replace(" rendoblid", "")} ${v || "—"}`).join(" · ") : "";
+    $("wr-fresh").textContent = `engine ran ${ago(D.generated_at)} · ${D.n_series || 0} series · ${offs ? offs + " · " : ""}MOF JGB ${fr.mof_jgb || "—"} · ECB ${fr.ecb || "—"} · FRED ${fr.fred || "—"} · TradingView live ${fr.tradingview || "—"}`;
     const eqEl = $("wr-eq"); eqEl.className = `wr-v ${eq.tone || "neutral"} ${eq.level || ""}`;
     eqEl.querySelector(".s").textContent = `${eq.state || "—"}${eq.level ? " · " + eq.level : ""}`; eqEl.querySelector(".t").textContent = eq.text || "";
     const edEl = $("wr-ed"); edEl.className = `wr-v ${ed.state === "SHORTAGE SIGNAL" ? "shortage" : ed.state === "WATCH" ? "watch" : "neutral"}`;

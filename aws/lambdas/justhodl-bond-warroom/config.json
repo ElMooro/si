@@ -5,8 +5,12 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 240,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Global bond heartbeat war room v1.0 (ops 5189): TradingView sovereign yields (20+ markets) + Japan MOF JGB curve + FRED ICE BofA OAS family + Yahoo MOVE/bond ETFs + fleet funding feeds; DoD/5d/20d, z-scores, flags, equity dump/pump risk, eurodollar-shortage score, periphery spreads, heartbeat 0-100. data/bond-warroom.json",
-  "env": {"S3_BUCKET": "justhodl-dashboard-live"}
+  "description": "Global bond war room v1.2 (ops 5192): official yield histories (Treasury, Bundesbank, BoE, BoC, RBA, SNB, MOF) + TradingView live, ICE BofA OAS, MOVE/ETFs, funding, auction desk; DoD/z/flags, equity dump-pump, eurodollar, heartbeat",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
 }
