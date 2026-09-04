@@ -83,7 +83,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -119,8 +119,8 @@ P = {
                        "ENA", "W", "STRK", "ZK", "EIGEN", "HYPE", "PENDLE", "AERO", "VIRTUAL", "AR",
                        "AKT", "THETA", "FLR", "ASTR", "WLD", "ZRO"],
 }
-WEIGHTS = {"structure": 18, "accumulation": 20, "inflows": 16, "oversold": 10, "location": 8,
-           "catalyst": 10, "momentum": 8, "quality": 10}
+WEIGHTS = {"structure": 18, "accumulation": 16, "inflows": 14, "oversold": 12, "location": 12,
+           "catalyst": 12, "momentum": 8, "quality": 8}
 GATE_PILLARS = ["structure", "accumulation", "inflows", "oversold", "location", "quality"]
 TIER_ORDER = ["KATLIN_PRIME", "READY", "BASING", "WATCH", "SCREENED"]
 BENCH = ["SPY", "QQQ", "IWM", "TLT", "IEF", "SHY", "BIL", "HYG", "LQD", "UUP", "GLD", "SLV", "CPER",
@@ -165,6 +165,9 @@ OVERLAY_RX = re.compile(r"\bvix\b|volatility|market neutral|anti-beta|buffer|def
                         r"options? income|enhanced (options|income)|option strateg|income advantage|autocallable|0dte|daily target|"
                         r"\bhedged\b|floor etf|income shares|equity premium|call writ|put writ|collar|dividend income (etf|fund)|defiance .*income|"
                         r"kurv|roundhill .*(income|yield)|neos|amplify .*income", re.I)
+MONEY_RX = re.compile(r"treasury bill|t-bill|\b0-3 month|\b1-3 month|\b0-1 year|1-12 month|ultra[- ]?short|floating rate|floating-rate|"
+                      r"money market|short duration|short-duration|cash reserve|overnight|3-month|6-month|senior loan|bank loan|"
+                      r"enhanced short|short maturity|\bshort[- ]term (treasury|bond|government|corporate)", re.I)
 BOND_RX = re.compile(r"\b(treasur|bond|credit|muni|municipal|corporate|high yield|aggregate|fixed income|tips|"
                      r"floating rate|bank loan|mortgage|mbs|duration|t-bill|bill|govt|government|yield)\b", re.I)
 COMMOD_RX = re.compile(r"\b(gold|silver|platinum|palladium|copper|oil|crude|natural gas|gasoline|uranium|lithium|"
@@ -1142,6 +1145,8 @@ def location_block(b):
     e200 = ema_last(c, 200)
     e250 = ema_last(c, 250)
     px = c[-1]
+    out["sma50"] = sma(c, 50)
+    out["sma100"] = sma(c, 100)
     out.update({"sma200": s200, "sma250": s250, "ema200": e200, "ema250": e250,
                 "dist_sma200_pct": (px / s200 - 1) * 100, "dist_sma250_pct": (px / s250 - 1) * 100,
                 "dist_ema200_pct": (px / e200 - 1) * 100 if e200 else None, "dist_ema250_pct": (px / e250 - 1) * 100 if e250 else None})
@@ -1528,18 +1533,35 @@ def load_feeds():
     si = s3_json("data/short-interest.json", {}) or {}
     F["short"] = si.get("by_ticker") or {}
     pw = s3_json("data/portwatch.json", {}) or {}
-    inds = pw.get("industries")
+    # PortWatch shape (ops 3846+): ports[] rows carry z / vs_baseline_pct / yoy_pct and an industry_exposure block whose
+    # industries[] rows name the import-canary industry line, the exporter's share and exposure_pct. Aggregate per industry:
+    # share-weighted port yoy plus the ports/countries behind it. exporters[] gives the country read (verdict + avg vs baseline).
     pw_ind = {}
-    if isinstance(inds, dict):
-        for k, v in inds.items():
-            if isinstance(v, dict):
-                pw_ind[str(k)] = v
-    elif isinstance(inds, list):
-        for v in inds:
-            if isinstance(v, dict) and v.get("industry"):
-                pw_ind[str(v["industry"])] = v
+    for prt in (pw.get("ports") or []):
+        if not isinstance(prt, dict):
+            continue
+        y = fnum(prt.get("yoy_pct"))
+        if y is None:
+            y = fnum(prt.get("vs_baseline_pct"))
+        ie = prt.get("industry_exposure") if isinstance(prt.get("industry_exposure"), dict) else {}
+        for ln in (ie.get("industries") or []):
+            if not isinstance(ln, dict) or not ln.get("industry") or y is None:
+                continue
+            e = pw_ind.setdefault(str(ln["industry"]), {"w": 0.0, "wy": 0.0, "ports": [], "countries": set()})
+            w = fnum(ln.get("share_pct")) or 1.0
+            e["w"] += w
+            e["wy"] += w * y
+            if len(e["ports"]) < 4 and prt.get("name") not in e["ports"]:
+                e["ports"].append(prt.get("name"))
+            if prt.get("country"):
+                e["countries"].add(str(prt["country"]))
+    for k, e in list(pw_ind.items()):
+        pw_ind[k] = {"yoy_pct": (e["wy"] / e["w"]) if e["w"] else None, "ports": e["ports"], "countries": sorted(e["countries"])[:4]}
+    F["ports_countries"] = {}
+    for ex in (pw.get("exporters") or []):
+        if isinstance(ex, dict) and ex.get("country"):
+            F["ports_countries"][str(ex["country"])] = {"yoy_pct": fnum(ex.get("avg_vs_baseline_pct")), "verdict": ex.get("verdict"), "n_ports": ex.get("n_ports"), "ports": ex.get("ports")}
     F["ports"] = pw_ind
-    F["ports_countries"] = {str(r.get("country")): r for r in (pw.get("countries") or pw.get("by_country") or []) if isinstance(r, dict) and r.get("country")} if isinstance(pw.get("countries") or pw.get("by_country"), list) else {}
     F["asof"]["portwatch"] = pw.get("generated_at")
     cmc = s3_json("data/commodity-curves.json", {}) or {}
     F["commod"] = cmc
@@ -2107,6 +2129,26 @@ def inflow_block(sym, fv, cs, F, mcap, adv, asset_class, industry_etf):
     return score, legs, ev
 
 
+
+_STOP = {"and", "the", "of", "general", "other", "misc", "services", "products", "equipment", "specialty", "diversified", "industrial", "industries"}
+
+
+def _fuzzy_industry(table, industry):
+    """match a Finviz industry ('Semiconductor Equipment & Materials') to an import-canary line ('Semiconductors') by shared word stems."""
+    if not table or not industry:
+        return None
+    toks = {t[:6] for t in re.findall(r"[a-z]+", str(industry).lower()) if len(t) >= 5 and t not in _STOP}
+    if not toks:
+        return None
+    best, best_n = None, 0
+    for k, v in table.items():
+        kt = {t[:6] for t in re.findall(r"[a-z]+", str(k).lower()) if len(t) >= 5 and t not in _STOP}
+        n_ = len(toks & kt)
+        if n_ > best_n:
+            best, best_n = v, n_
+    return best
+
+
 def catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, industry_etf):
     """named catalysts: scheduled events, contracts/backlog, revisions, industry boom, ports/physical economy, commodity curves,
     peers waking up, short-squeeze fuel, rates. Each with a plain sentence; score 0-100."""
@@ -2160,12 +2202,12 @@ def catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, industr
         if rg is not None and rg >= 12:
             w = min(16, 6 + rg / 4)
             pts += w
-            items.append({"kind": "industry_boom", "text": "its industry is booming: %s revenue growth %.0f%% y/y%s" % (industry, rg, (" with %.0f%% of names growing" % br) if br is not None else ""), "strength": w})
+            items.append({"kind": "industry_boom", "boom_score": bs, "text": "its industry is booming: %s revenue growth %.0f%% y/y%s" % (industry, rg, (" with %.0f%% of names growing" % br) if br is not None else ""), "strength": w})
         elif bs is not None and bs >= 70:
             pts += 8
-            items.append({"kind": "industry_boom", "text": "industry boom score %.0f/100 (%s)" % (bs, industry), "strength": 8})
+            items.append({"kind": "industry_boom", "boom_score": bs, "text": "industry boom score %.0f/100 (%s)" % (bs, industry), "strength": 8})
         # physical economy: ports of the exporter's country + industry
-        pw = F["ports"].get(industry) or {}
+        pw = F["ports"].get(industry) or _fuzzy_industry(F["ports"], industry) or {}
         yoy = fnum(pw.get("yoy_pct") or pw.get("yoy"))
         if yoy is not None and yoy >= 5:
             w = min(14, 4 + yoy / 3)
@@ -2255,7 +2297,8 @@ def catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, industr
             if pcut is not None and (pcut if pcut > 1 else pcut * 100) >= 55:
                 pts += 8
                 items.append({"kind": "rates", "text": "%.0f%% market-implied chance of a Fed cut at the next meeting -- a duration tailwind" % (pcut if pcut > 1 else pcut * 100), "strength": 8})
-    named = [i for i in items if i.get("kind") not in ("earnings", "scheduled", "catalyst_engine")]
+    named = [i for i in items if (i.get("kind") not in ("earnings", "scheduled", "catalyst_engine", "squeeze"))
+             and not (i.get("kind") == "industry_boom" and (i.get("boom_score") is None or i["boom_score"] < 65))]
     return clamp(pts * 1.6), items, len(named)
 
 
@@ -2375,6 +2418,8 @@ def classify_etf(fv):
         return None
     if OVERLAY_RX.search(name):
         return None
+    if MONEY_RX.search(name):
+        return None
     if CRYPTO_ETF_RX.search(name):
         return "crypto_etf"
     if BOND_RX.search(name) or "bond" in et or "fixed" in et:
@@ -2462,6 +2507,7 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
          "last": rnd(sig["last"], 4 if sig["last"] < 1 else 2), "mcap": mcap, "adv_usd": rnd(adv, 0),
          "sessions": sig["sessions"], "n_weeks": sig["n_weeks"], "n_months": sig["n_months"], "n_quarters": sig["n_quarters"],
          # location
+         "sma50": rnd(sig["loc"].get("sma50"), 2), "sma100": rnd(sig["loc"].get("sma100"), 2),
          "sma200": rnd(sig["loc"].get("sma200"), 2), "sma250": rnd(sig["loc"].get("sma250"), 2), "ema200": rnd(sig["loc"].get("ema200"), 2), "ema250": rnd(sig["loc"].get("ema250"), 2),
          "dist_sma200_pct": rnd(sig["loc"].get("dist_sma200_pct"), 1), "dist_sma250_pct": rnd(sig["loc"].get("dist_sma250_pct"), 1),
          "dist_ema200_pct": rnd(sig["loc"].get("dist_ema200_pct"), 1), "dist_ema250_pct": rnd(sig["loc"].get("dist_ema250_pct"), 1),
@@ -2497,22 +2543,36 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
          "knife": knife, "knife_why": knife_why,
          "pillars": {"location": rnd(loc_s, 1), "oversold": rnd(os_s, 1), "structure": rnd(st_s, 1), "accumulation": rnd(acc_s, 1),
                      "inflows": rnd(in_s, 1), "catalyst": rnd(cat_s, 1), "momentum": rnd(mom["score"], 1), "quality": rnd(q.get("score"), 1)},
-         "gates": {"location": bool(loc_gate), "oversold": bool(os_gate), "accumulation": bool(acc_s is not None and acc_s >= P["accum_gate"]),
+         "gates": {"location": bool(loc_gate), "washout": bool(_washout(sig)), "oversold": bool(os_gate), "accumulation": bool(acc_s is not None and acc_s >= P["accum_gate"]),
                    "inflows": bool(in_s is not None and in_s >= P["inflow_gate"]), "structure": st_state != "NONE",
                    "catalyst": bool(cat_s >= P["catalyst_gate"]), "not_knife": not knife, "quality": not q.get("red_flags")},
          "location_legs": loc_legs, "oversold_legs": os_legs}
     return r
 
 
+
+def _washout(sig):
+    """tradability: a real drawdown (>=10% off the 52-week high, or >=6% under the 200-day) and >=10% annualised volatility."""
+    loc, rk = sig["loc"], sig["risk"]
+    dd = loc.get("dd_52w_pct")
+    d200 = loc.get("dist_sma200_pct")
+    vol = rk.get("vol_ann_pct")
+    if vol is not None and vol < 10.0:
+        return False
+    return (dd is not None and dd <= -10.0) or (d200 is not None and d200 <= -6.0)
+
+
 def gates_and_tier(r):
     g = r["gates"]
     n = sum(1 for k in ("location", "oversold", "accumulation", "inflows", "structure", "catalyst") if g.get(k))
     r["gates_passed"] = n + (1 if g["not_knife"] else 0) + (1 if g["quality"] else 0)
-    core = g["location"] and g["not_knife"] and g["quality"]
+    core = g["location"] and g["not_knife"] and g["quality"] and g.get("washout", True)
     if not core:
         tier = "WATCH" if (g["location"] and n >= 3) else "SCREENED"
         if not g["quality"] or not g["not_knife"]:
             tier = "SCREENED" if n < 4 else "WATCH"
+        if g["location"] and not g.get("washout", True):
+            tier = "WATCH" if n >= 3 else "SCREENED"
     elif g["oversold"] and g["accumulation"] and g["inflows"] and g["structure"] and g["catalyst"] and r["structure_state"] == "CONFIRMED" and (r.get("n_named_catalysts") or 0) >= 1:
         tier = "KATLIN_PRIME"
     elif g["accumulation"] and g["structure"] and (g["oversold"] or g["inflows"]) and (n >= 4):
@@ -2557,14 +2617,27 @@ def trade_plan(r):
     px = r["last"]
     dbw = r.get("double_bottom_w") or {}
     dbd = r.get("double_bottom_d") or {}
-    lows = [x for x in (dbw.get("low2"), dbd.get("low2"), r.get("low_52w")) if x]
+    # stop: the nearest structural low under price (weekly double-bottom low, daily double-bottom low, 60-day low, 52-week low)
+    cands = [x for x in (dbw.get("low2"), dbd.get("low2"), r.get("low_60d"), r.get("low_52w")) if x and px and x < px]
     stop = None
-    if lows:
-        stop = max(min(lows) * 0.97, px * 0.80) if px else None
+    if cands:
+        near = max(cands)                       # the closest support below price
+        stop = near * 0.97
+        if stop < px * 0.75:                    # support too far to be a stop -- use the volatility budget instead
+            stop = px * 0.80
     if stop is None or stop >= px:
         stop = px * 0.90 if px else None
-    t1 = r.get("sma200") if (r.get("sma200") and r["sma200"] > px * 1.03) else (dbw.get("neckline") if dbw.get("neckline") and dbw["neckline"] > px * 1.03 else None)
-    t2 = r.get("high_52w") if (r.get("high_52w") and r["high_52w"] > px * 1.05) else None
+    # targets: nearest structural level above price first, then the next one / the 52-week high
+    levels = []
+    for lab, v in (("neckline", dbw.get("neckline")), ("50-day average", r.get("sma50")), ("100-day average", r.get("sma100")),
+                   ("200-day average", r.get("sma200")), ("52-week high", r.get("high_52w"))):
+        if v and px and v > px * 1.04:
+            levels.append((v, lab))
+    levels.sort()
+    t1, t1_label = (levels[0] if levels else (None, None))
+    t2, t2_label = (levels[-1] if len(levels) >= 2 else (None, None))
+    if t2 and t1 and t2 < t1 * 1.08 and len(levels) >= 3:
+        t2, t2_label = levels[-1]
     up1 = (t1 / px - 1) * 100 if (t1 and px) else None
     up2 = (t2 / px - 1) * 100 if (t2 and px) else None
     dn = (1 - stop / px) * 100 if (stop and px) else None
@@ -2577,8 +2650,8 @@ def trade_plan(r):
         trig = dbw["neckline"]
     elif r.get("trendline_level") and not r.get("lt_trend_break"):
         trig = r["trendline_level"]
-    r["plan"] = {"entry": px, "stop": rnd(stop, 2), "target_1": rnd(t1, 2), "target_1_label": "200-day average" if (t1 and t1 == r.get("sma200")) else ("neckline" if t1 else None),
-                 "target_2": rnd(t2, 2), "target_2_label": "52-week high" if t2 else None, "upside_1_pct": rnd(up1, 1), "upside_2_pct": rnd(up2, 1),
+    r["plan"] = {"entry": px, "stop": rnd(stop, 2), "target_1": rnd(t1, 2), "target_1_label": t1_label,
+                 "target_2": rnd(t2, 2), "target_2_label": t2_label, "upside_1_pct": rnd(up1, 1), "upside_2_pct": rnd(up2, 1),
                  "downside_pct": rnd(dn, 1), "rr_1": rnd(rr, 1), "rr_2": rnd(rr2, 1), "asymmetry": rnd(min(asym, 25) if asym else None, 1),
                  "confirmation_trigger": rnd(trig, 2)}
     r["asymmetry"] = r["plan"]["asymmetry"]
@@ -2976,6 +3049,7 @@ def pick_rows_class(rows, cls, n=40):
 
 
 DEFINITIONS = {
+    "washout gate": "an asymmetric bottom needs a real drawdown: at least 10% off the 52-week high or 6% under the 200-day, with annualised volatility of 10% or more. Money-market and ultra-short bond funds that sit a hair under a flat average are never buy candidates.",
     "posture": "The war room's decision BEFORE any pick: FULL_RISK / SELECTIVE / DEFENSIVE / CASH_OR_TBILLS, from a weighted risk thermometer over the bond desk, auction desk, brain risk-gate, black-swan watch, crisis composite, options tail risk, regime, volatility, VIX curve, credit spreads, recession probability, business cycle, dollar, global liquidity and cross-asset regime. Hard vetoes force CASH_OR_TBILLS.",
     "exposure_cap_pct": "Maximum share of the portfolio the posture allows in risk assets today. Brain doctrine: macro gates sizing before selection.",
     "location": "Distance to the 200- and 250-day simple/exponential averages. Gate: close BELOW the 200-day (the spec); below the 250-day is a bonus. Further below = more reward room, until the knife guard trips.",
