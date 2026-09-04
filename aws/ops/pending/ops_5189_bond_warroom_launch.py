@@ -1,0 +1,129 @@
+"""ops_5189 -- launch justhodl-bond-warroom (global bond heartbeat) + verify the war room on bonds.html.
+Creates the function directly (the deploy workflow does not create new functions), runs it, asserts
+the feed (TradingView yields for the main bond centers, MOF JGB curve, ICE BofA family, MOVE/ETFs,
+verdicts), arms the schedules (America/New_York, Mon-Fri) and drives the page in Chrome."""
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+import boto3
+from botocore.config import Config
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "aws" / "ops"))
+from ops_report import report  # noqa: E402
+from _lambda_deploy_helpers import build_zip, create_or_update_lambda  # noqa: E402
+
+FN = "justhodl-bond-warroom"
+SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
+CFG = Config(retries={"max_attempts": 3, "mode": "adaptive"}, read_timeout=280)
+lam = boto3.client("lambda", region_name="us-east-1", config=CFG)
+sch = boto3.client("scheduler", region_name="us-east-1", config=CFG)
+s3 = boto3.client("s3", region_name="us-east-1", config=CFG)
+SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
+FAILS = []
+
+with report("ops_5189_bond_warroom_launch") as R:
+    R.heading("ops 5189 -- bond war room launch")
+    cfg_json = json.loads((ROOT / "aws" / "lambdas" / FN / "config.json").read_text())
+    create_or_update_lambda(report=R, function_name=FN, zip_bytes=build_zip(ROOT / "aws" / "lambdas" / FN / "source"),
+                            env_vars=cfg_json.get("env") or {}, timeout=int(cfg_json.get("timeout") or 240), memory=int(cfg_json.get("memory") or 1024),
+                            description=cfg_json.get("description", "")[:250], reserved_concurrency=None, create_function_url=False, ephemeral_storage=None)
+    cfg = None
+    for _ in range(30):
+        cfg = lam.get_function_configuration(FunctionName=FN)
+        if cfg.get("LastUpdateStatus") in (None, "Successful") and cfg.get("State") == "Active":
+            break
+        time.sleep(5)
+    t0 = time.time()
+    resp = lam.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=b"{}")
+    out = json.loads(resp["Payload"].read() or b"{}")
+    R.log("   run (%.0fs, error=%s) -> %s" % (time.time() - t0, resp.get("FunctionError"), json.dumps(out)[:700]))
+    if resp.get("FunctionError") or not out.get("ok"):
+        FAILS.append("engine failed: %s" % json.dumps(out)[:300])
+    D = json.loads(s3.get_object(Bucket="justhodl-dashboard-live", Key="data/bond-warroom.json")["Body"].read())
+    R.section("feed")
+    hb, eq, ed = D.get("heartbeat") or {}, D.get("equity_risk") or {}, D.get("eurodollar_shortage") or {}
+    R.log("   heartbeat %s %s -- %s" % (hb.get("score"), hb.get("regime"), (hb.get("headline") or "")[:200]))
+    R.log("   equity: %s %s -- %s" % (eq.get("state"), eq.get("level"), (eq.get("text") or "")[:200]))
+    R.log("   eurodollar: %s %s -- %s" % (ed.get("state"), ed.get("points"), (ed.get("text") or "")[:160]))
+    R.log("   freshness=%s notes=%s" % (D.get("freshness"), (D.get("notes") or [])[:3]))
+    for key, rows in (D.get("panels") or {}).items():
+        R.log("   panel %-15s %2d rows: %s" % (key, len(rows), ", ".join("%s %s %s" % (r["key"], fmt := (str(r["last"])[:7]), r["flag"]) for r in rows[:9])[:260]))
+        if key in ("us_rates", "europe", "japan", "credit", "volatility") and len(rows) < 3:
+            FAILS.append("panel %s thin (%d rows)" % (key, len(rows)))
+    jc = D.get("jgb_curve") or {}
+    R.log("   MOF JGB curve %s tenors=%s err=%s" % (jc.get("today"), len(jc.get("curve") or []), jc.get("error")))
+    A = D.get("auction") or {}
+    R.log("   auction desk: %s %s tags=%s preds=%d" % (A.get("today"), (A.get("verdict") or {}).get("headline"), (A.get("verdict") or {}).get("tags"), len(A.get("prediction") or [])))
+    if not (A.get("verdict") or {}).get("headline"):
+        FAILS.append("auction summary missing")
+    R.log("   RED=%s AMBER=%s" % ((D.get("flags") or {}).get("RED"), (D.get("flags") or {}).get("AMBER")))
+    R.section("schedules (America/New_York, Mon-Fri)")
+    for name, expr in (("justhodl-bond-warroom-early", "cron(30 7 ? * MON-FRI *)"), ("justhodl-bond-warroom-mid", "cron(0 10 ? * MON-FRI *)"),
+                       ("justhodl-bond-warroom-after-auction", "cron(35 13 ? * MON-FRI *)"), ("justhodl-bond-warroom-close", "cron(45 16 ? * MON-FRI *)"),
+                       ("justhodl-bond-warroom-evening", "cron(15 19 ? * MON-FRI *)")):
+        tgt = {"Arn": cfg["FunctionArn"], "RoleArn": SCHED_ROLE, "Input": "{}", "RetryPolicy": {"MaximumRetryAttempts": 1}}
+        try:
+            sch.get_schedule(Name=name, GroupName="default")
+            sch.update_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5189)")
+            R.ok("   %s updated %s ET" % (name, expr))
+        except sch.exceptions.ResourceNotFoundException:
+            sch.create_schedule(Name=name, GroupName="default", ScheduleExpression=expr, ScheduleExpressionTimezone="America/New_York", FlexibleTimeWindow={"Mode": "OFF"}, Target=tgt, State="ENABLED", Description="bond war room (ops 5189)")
+            R.ok("   %s created %s ET" % (name, expr))
+        except Exception as e:
+            FAILS.append("schedule %s: %s" % (name, str(e)[:100]))
+    R.section("page")
+    import urllib.request
+    live = False
+    for _ in range(40):
+        try:
+            with urllib.request.urlopen(urllib.request.Request("https://justhodl.ai/bonds.html", headers={"User-Agent": "ops5189", "Cache-Control": "no-cache"}), timeout=30) as r:
+                live = b"wr-banner" in r.read()
+        except Exception:
+            live = False
+        if live:
+            break
+        time.sleep(15)
+    R.log("   bonds.html carries the war room: %s" % live)
+    if live:
+        try:
+            import playwright  # noqa: F401
+        except Exception:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", "playwright"], check=True)
+        from playwright.sync_api import sync_playwright
+        SHOTS.mkdir(parents=True, exist_ok=True)
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.launch(channel="chrome", headless=True)
+            except Exception:
+                subprocess.run([sys.executable, "-m", "playwright", "install", "chromium", "--with-deps"], check=False)
+                browser = p.chromium.launch(headless=True)
+            for width, height in ((1440, 1100), (390, 844)):
+                ctx = browser.new_context(viewport={"width": width, "height": height}, is_mobile=width < 700)
+                pg = ctx.new_page()
+                errors = []
+                pg.on("pageerror", lambda e: errors.append(str(e)[:160]))
+                pg.goto("https://justhodl.ai/bonds.html", wait_until="domcontentloaded", timeout=60000)
+                pg.wait_for_timeout(8000)
+                facts = pg.evaluate("""() => ({ score: document.getElementById('wr-score').textContent, regime: document.getElementById('wr-regime').textContent, headline: document.getElementById('wr-headline').textContent.slice(0, 90),
+                    panels: document.querySelectorAll('#wr-grid .wr-panel').length, rows: document.querySelectorAll('#wr-grid tbody tr').length, flags: document.querySelectorAll('#wr-grid .wr-flag').length,
+                    reds: document.querySelectorAll('#wr-grid .wr-flag.RED').length, jgb: document.querySelectorAll('.wr-jgb div').length, auction: document.querySelector('#wr-auction .h').textContent.slice(0, 80),
+                    regimeBanner: !!document.getElementById('regime-banner'), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth })""")
+                pg.screenshot(path=str(SHOTS / f"ops5189_bonds_warroom_{width}.png"))
+                R.log("   %4dpx: %s errors=%s" % (width, json.dumps(facts)[:420], errors[:2]))
+                if facts["panels"] < 6 or facts["rows"] < 30 or facts["score"] in ("—", "") or errors or not facts["regimeBanner"]:
+                    FAILS.append("%dpx render: %s errors=%s" % (width, json.dumps(facts)[:200], errors[:2]))
+                if width == 390 and facts["overflow"] > 0:
+                    FAILS.append("390px overflow %dpx" % facts["overflow"])
+                ctx.close()
+            browser.close()
+    else:
+        FAILS.append("page deploy not observed")
+    for f in FAILS:
+        R.fail("   " + f)
+    if FAILS:
+        sys.exit(1)
+    R.ok("   GREEN: bond war room live")

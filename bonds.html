@@ -230,7 +230,7 @@ footer a{margin:0 10px}
 <main class="container">
   <div class="page-hdr">
     <h1>BONDS &amp; YIELD CURVE</h1>
-    <p>Live US Treasury curve, real rates, breakevens, and bond regime classification. Bonds are the price of money; their behavior tells you what equity, credit, FX, and commodities are <em>about</em> to do. Below: where we sit, what regime we&apos;re in, what assets historically outperform/underperform, and what would change the read.</p>
+    <p>Global bond war room: every major bond center, spreads, credit and volatility read daily — plus the live US Treasury curve, real rates, breakevens, and bond regime classification. Bonds are the price of money; their behavior tells you what equity, credit, FX, and commodities are <em>about</em> to do. Below: where we sit, what regime we&apos;re in, what assets historically outperform/underperform, and what would change the read.</p>
     <div class="meta">
       <span>📊 last update: <span id="updated">—</span></span>
       <span>🔄 5 min refresh from <code style="color:var(--cyan)">data/report.json</code></span>
@@ -239,6 +239,184 @@ footer a{margin:0 10px}
   </div>
 
   <div id="errorBanner" class="error-banner"></div>
+
+<!-- ═══════════════ BOND WAR ROOM (justhodl-bond-warroom · data/bond-warroom.json) ═══════════════ -->
+<style>
+  .wr { margin-bottom:26px; }
+  .wr-banner { display:grid; grid-template-columns:150px 1fr 320px; gap:18px; align-items:stretch; background:var(--bg-card,#101418); border:1px solid var(--border,#1e2733); border-radius:12px; padding:18px 20px; }
+  @media(max-width:1000px){ .wr-banner { grid-template-columns:1fr; } }
+  .wr-banner.ACUTE { border-color:#ef4444; box-shadow:0 0 0 1px rgba(239,68,68,.25), inset 0 0 80px rgba(239,68,68,.06); }
+  .wr-banner.ELEVATED { border-color:#f59e0b; }
+  .wr-banner.WATCH { border-color:#eab308; }
+  .wr-ring { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .wr-ring svg { width:118px; height:118px; }
+  .wr-ring .n { font-size:30px; font-weight:800; fill:var(--fg-1,#e8edf3); }
+  .wr-ring .l { font-size:9px; letter-spacing:.14em; fill:var(--fg-3,#8a97a8); }
+  .wr-regime { font-size:11px; font-weight:800; letter-spacing:.16em; padding:3px 10px; border-radius:4px; }
+  .wr-regime.CALM { color:#22c55e; background:rgba(34,197,94,.12); } .wr-regime.WATCH { color:#eab308; background:rgba(234,179,8,.14); }
+  .wr-regime.ELEVATED { color:#f59e0b; background:rgba(245,158,11,.16); } .wr-regime.ACUTE { color:#ef4444; background:rgba(239,68,68,.16); animation:wr-flash 1.1s ease-in-out infinite; }
+  .wr-kicker { font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3,#8a97a8); display:flex; gap:12px; flex-wrap:wrap; }
+  .wr-headline { font-size:20px; font-weight:700; color:var(--fg-1,#e8edf3); margin:6px 0 10px; line-height:1.35; }
+  .wr-verdicts { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:700px){ .wr-verdicts { grid-template-columns:1fr; } }
+  .wr-v { border:1px solid var(--border,#1e2733); border-radius:8px; padding:10px 12px; background:var(--bg-sunken,#0b0f14); }
+  .wr-v .l { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3,#8a97a8); }
+  .wr-v .s { font-size:16px; font-weight:800; margin:2px 0 4px; }
+  .wr-v .t { font-size:12px; color:var(--fg-2,#c2cbd6); line-height:1.5; }
+  .wr-v.bearish { border-color:#ef4444; } .wr-v.bearish .s { color:#ef4444; }
+  .wr-v.bullish { border-color:#22c55e; } .wr-v.bullish .s { color:#22c55e; }
+  .wr-v.cautious .s { color:#f59e0b; } .wr-v.supportive .s { color:#86efac; } .wr-v.neutral .s { color:var(--fg-2,#c2cbd6); }
+  .wr-v.HIGH.bearish { animation:wr-flash 1.1s ease-in-out infinite; }
+  .wr-v.shortage { border-color:#ef4444; } .wr-v.shortage .s { color:#ef4444; } .wr-v.watch .s { color:#f59e0b; }
+  .wr-side { display:flex; flex-direction:column; gap:8px; }
+  .wr-auction { border:1px solid var(--border,#1e2733); border-radius:8px; padding:10px 12px; background:var(--bg-sunken,#0b0f14); font-size:12px; color:var(--fg-2,#c2cbd6); line-height:1.5; }
+  .wr-auction .l { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3,#8a97a8); display:flex; justify-content:space-between; }
+  .wr-auction .h { color:var(--fg-1,#e8edf3); font-weight:700; margin:3px 0; }
+  .wr-tag { display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.06em; padding:2px 6px; border-radius:3px; margin:2px 3px 0 0; background:rgba(120,140,170,.15); color:var(--fg-2,#c2cbd6); }
+  .wr-tag.bull { color:#22c55e; background:rgba(34,197,94,.12); } .wr-tag.bear { color:#ef4444; background:rgba(239,68,68,.12); }
+  .wr-pred { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:6px; font-size:11px; }
+  .wr-pred b.up { color:#22c55e; } .wr-pred b.down { color:#ef4444; } .wr-pred b.flat { color:var(--fg-3,#8a97a8); }
+  .wr-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(460px,1fr)); gap:14px; margin-top:14px; }
+  @media(max-width:520px){ .wr-grid { grid-template-columns:1fr; } }
+  .wr-panel { background:var(--bg-card,#101418); border:1px solid var(--border,#1e2733); border-radius:10px; overflow:hidden; }
+  .wr-panel .ph { display:flex; justify-content:space-between; align-items:center; padding:9px 13px; border-bottom:1px solid var(--border,#1e2733); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-2,#c2cbd6); }
+  .wr-panel .ph .cnt { font-size:10px; letter-spacing:0; text-transform:none; color:var(--fg-3,#8a97a8); }
+  .wr-panel table { width:100%; border-collapse:collapse; font-size:11.5px; }
+  .wr-panel th { text-align:right; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-3,#8a97a8); padding:6px 8px; border-bottom:1px solid var(--border,#1e2733); }
+  .wr-panel th:first-child, .wr-panel td:first-child { text-align:left; }
+  .wr-panel td { padding:6px 8px; text-align:right; border-bottom:1px solid rgba(120,140,170,.08); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .wr-panel tr:last-child td { border-bottom:0; }
+  .wr-panel td.lab { color:var(--fg-1,#e8edf3); font-weight:600; }
+  .wr-panel td.lab small { display:block; color:var(--fg-3,#8a97a8); font-weight:400; font-size:9.5px; }
+  .wr-panel td.pos { color:#22c55e; } .wr-panel td.neg { color:#ef4444; } .wr-panel td.flat { color:var(--fg-3,#8a97a8); }
+  .wr-panel tr.RED td { background:rgba(239,68,68,.07); } .wr-panel tr.RED td.lab { color:#fca5a5; }
+  .wr-panel tr.AMBER td { background:rgba(245,158,11,.05); }
+  .wr-flag { display:inline-block; min-width:52px; text-align:center; font-size:9.5px; font-weight:800; letter-spacing:.08em; padding:2px 6px; border-radius:3px; }
+  .wr-flag.GREEN { color:#22c55e; background:rgba(34,197,94,.12); } .wr-flag.AMBER { color:#f59e0b; background:rgba(245,158,11,.16); }
+  .wr-flag.RED { color:#fff; background:#ef4444; animation:wr-flash 1s ease-in-out infinite; }
+  .wr-spark { width:88px; height:22px; display:block; margin-left:auto; }
+  .wr-jgb { display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:5px; padding:10px 12px; }
+  .wr-jgb div { background:var(--bg-sunken,#0b0f14); border-radius:5px; padding:6px 4px; text-align:center; }
+  .wr-jgb .t { font-size:9.5px; color:var(--fg-3,#8a97a8); } .wr-jgb .v { font-size:12.5px; font-weight:700; color:var(--fg-1,#e8edf3); } .wr-jgb .c { font-size:10px; }
+  .wr-jgb .c.pos { color:#ef4444; } .wr-jgb .c.neg { color:#22c55e; }
+  .wr-foot { font-size:11px; color:var(--fg-3,#8a97a8); margin-top:10px; line-height:1.55; }
+  .wr-foot b { color:var(--fg-2,#c2cbd6); }
+  @keyframes wr-flash { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.45); } }
+  @media (prefers-reduced-motion: reduce) { .wr-flag.RED, .wr-regime.ACUTE, .wr-v.HIGH.bearish { animation:none; } }
+</style>
+
+<section class="wr" id="wr">
+  <div class="wr-banner" id="wr-banner">
+    <div class="wr-ring">
+      <svg viewBox="0 0 120 120" id="wr-ring"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(120,140,170,.18)" stroke-width="10"/><circle id="wr-arc" cx="60" cy="60" r="50" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/><text class="n" x="60" y="66" text-anchor="middle" id="wr-score">—</text><text class="l" x="60" y="84" text-anchor="middle">HEARTBEAT</text></svg>
+      <span class="wr-regime" id="wr-regime">LOADING</span>
+    </div>
+    <div>
+      <div class="wr-kicker"><span>Global bond war room</span><span id="wr-fresh">loading data/bond-warroom.json…</span></div>
+      <div class="wr-headline" id="wr-headline">Reading every major bond market…</div>
+      <div class="wr-verdicts">
+        <div class="wr-v" id="wr-eq"><div class="l">Bond volatility → stocks &amp; risk assets</div><div class="s">—</div><div class="t"></div></div>
+        <div class="wr-v" id="wr-ed"><div class="l">Eurodollar shortage watch</div><div class="s">—</div><div class="t"></div></div>
+      </div>
+    </div>
+    <div class="wr-side">
+      <div class="wr-auction" id="wr-auction"><div class="l"><span>Treasury auction desk</span><span id="wr-auction-date"></span></div><div class="h">loading…</div></div>
+    </div>
+  </div>
+  <div class="wr-grid" id="wr-grid"></div>
+  <p class="wr-foot" id="wr-foot"></p>
+</section>
+
+<script>
+(function () {
+  const FEED = "https://justhodl-data-proxy.raafouis.workers.dev/data/bond-warroom.json";
+  const FEED_S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/data/bond-warroom.json";
+  const AD = "/auctions.html";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const ago = iso => { if (!iso) return ""; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+  const fmtLevel = r => r.kind === "price" ? r.last.toFixed(2) : r.kind === "index" ? r.last.toFixed(r.last >= 100 ? 1 : 2) : (r.unit === "bp" && (r.kind === "spread") ? (r.last * 100).toFixed(0) + "bp" : r.last.toFixed(3) + "%");
+  const fmtChg = (v, unit) => v == null ? "—" : (v > 0 ? "+" : "") + (unit === "bp" ? v.toFixed(1) + "bp" : unit === "pct" ? v.toFixed(2) + "%" : v.toFixed(1));
+  const cls = (v, kind) => v == null ? "flat" : Math.abs(v) < 1e-9 ? "flat" : (kind === "price" ? (v > 0 ? "pos" : "neg") : (v > 0 ? "neg" : "pos"));
+  const spark = (r) => {
+    const pts = r.spark || []; if (pts.length < 2) return "";
+    const min = Math.min(...pts), max = Math.max(...pts), W = 88, H = 22;
+    const x = i => 2 + i * (W - 4) / (pts.length - 1), y = v => H - 3 - (H - 6) * (v - min) / Math.max(max - min, 1e-9);
+    const d = pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    const col = r.flag === "RED" ? "#ef4444" : r.flag === "AMBER" ? "#f59e0b" : "#38bdf8";
+    return `<svg class="wr-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${col}" stroke-width="1.4"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1]).toFixed(1)}" r="1.8" fill="${col}"/></svg>`;
+  };
+  const PANELS = [
+    ["us_rates", "🇺🇸 US Treasuries — yields, real, breakeven, curve"], ["volatility", "🌪 Bond volatility — MOVE, VIX, bond ETFs (price)"],
+    ["japan", "🇯🇵 Japan JGBs"], ["europe", "🇪🇺 Europe — sovereign yields"], ["europe_spreads", "🇪🇺 Europe — spreads vs Bund & curves"],
+    ["credit", "🏦 ICE BofA credit spreads (OAS)"], ["world", "🌍 Rest of world 10Y"], ["funding", "💵 Funding & dollar"],
+  ];
+  function rowHtml(r) {
+    const kind = r.kind;
+    const unit = r.unit;
+    const zc = r.z == null ? "" : `<small>z ${r.z > 0 ? "+" : ""}${r.z.toFixed(1)}</small>`;
+    return `<tr class="${r.flag}" title="${esc(r.source)} · as of ${esc(r.asof)} · 1y percentile ${r.pct1y == null ? "—" : r.pct1y + "%"}">
+      <td class="lab">${esc(r.label)}<small>${esc(r.asof || "")}${r.pct1y != null ? " · p" + r.pct1y : ""}</small></td>
+      <td>${fmtLevel(r)}</td>
+      <td class="${cls(r.dod, kind)}"><b>${fmtChg(r.dod, unit)}</b>${zc}</td>
+      <td class="${cls(r.d5, kind)}">${fmtChg(r.d5, unit)}</td>
+      <td class="${cls(r.d20, kind)}">${fmtChg(r.d20, unit)}</td>
+      <td>${spark(r)}</td>
+      <td><span class="wr-flag ${r.flag}">${r.flag}</span></td></tr>`;
+  }
+  function render(D) {
+    const hb = D.heartbeat || {}, eq = D.equity_risk || {}, ed = D.eurodollar_shortage || {};
+    const score = hb.score || 0;
+    $("wr-score").textContent = score;
+    $("wr-arc").setAttribute("stroke-dasharray", `${(314 * score / 100).toFixed(1)} 314`);
+    $("wr-arc").setAttribute("stroke", score >= 70 ? "#ef4444" : score >= 45 ? "#f59e0b" : score >= 22 ? "#eab308" : "#22c55e");
+    $("wr-regime").textContent = hb.regime || "—"; $("wr-regime").className = "wr-regime " + (hb.regime || "");
+    $("wr-banner").className = "wr-banner " + (hb.regime || "");
+    $("wr-headline").textContent = hb.headline || "";
+    const fr = D.freshness || {};
+    $("wr-fresh").textContent = `engine ran ${ago(D.generated_at)} · ${D.n_series || 0} series · TradingView ${fr.tradingview || "—"} · FRED ${fr.fred || "—"} · MOF JGB ${fr.mof_jgb || "—"}`;
+    const eqEl = $("wr-eq"); eqEl.className = `wr-v ${eq.tone || "neutral"} ${eq.level || ""}`;
+    eqEl.querySelector(".s").textContent = `${eq.state || "—"}${eq.level ? " · " + eq.level : ""}`; eqEl.querySelector(".t").textContent = eq.text || "";
+    const edEl = $("wr-ed"); edEl.className = `wr-v ${ed.state === "SHORTAGE SIGNAL" ? "shortage" : ed.state === "WATCH" ? "watch" : "neutral"}`;
+    edEl.querySelector(".s").textContent = `${ed.state || "—"} · ${ed.score == null ? "" : ed.score + "/100"}`; edEl.querySelector(".t").textContent = ed.text || "";
+    const A = D.auction || {}, v = A.verdict || {};
+    $("wr-auction-date").textContent = A.today ? `${A.today} · ${ago(A.generated_at)}` : "";
+    const tagClass = t => /BULLISH|EASY|STRONG|MAX FILL|INJECTION/.test(t) ? "bull" : /WEAK|TAIL|BEARISH/.test(t) ? "bear" : "";
+    const preds = (A.prediction || []).map(p => `<span>${esc(p.name)} <b class="${p.call === "↑" ? "up" : p.call === "↓" ? "down" : "flat"}">${p.call}${p.d1 && p.d1.median != null ? " " + (p.d1.median > 0 ? "+" : "") + p.d1.median.toFixed(2) + "%" : ""}</b></span>`).join("");
+    $("wr-auction").innerHTML = `<div class="l"><span>Treasury auction desk</span><span>${esc($("wr-auction-date").textContent)}</span></div>
+      <div class="h">${esc(v.headline || "No operations today")}</div>
+      <div>${(v.tags || []).map(t => `<span class="wr-tag ${tagClass(t)}">${esc(t)}</span>`).join("")}</div>
+      ${(A.auctions || []).map(a => `<div style="margin-top:4px">${esc(a.term)} ${esc(a.type)} <b>${esc(a.grade)}</b> · BTC ${a.btc == null ? "—" : a.btc.toFixed(2)} · tail ${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1) + "bp"}</div>`).join("")}
+      ${(A.buybacks || []).map(b => `<div style="margin-top:4px">Buyback <b>$${(b.accepted / 1e9).toFixed(1)}B</b> accepted (${b.fill_pct == null ? "—" : b.fill_pct.toFixed(0) + "% of max"}, ${b.coverage == null ? "—" : b.coverage.toFixed(1) + "x offered"})</div>`).join("")}
+      ${preds ? `<div class="wr-pred"><span style="color:var(--fg-3)">next-day read:</span>${preds}</div>` : ""}
+      ${A.composite_now ? `<div style="margin-top:6px;font-size:11px;color:var(--fg-3)">auction-stress composite ${A.composite_now.composite} · <a href="${AD}" style="color:var(--cyan,#22d3ee)">open the auction desk →</a></div>` : `<div style="margin-top:6px;font-size:11px"><a href="${AD}" style="color:var(--cyan,#22d3ee)">open the auction desk →</a></div>`}`;
+    const P = D.panels || {};
+    $("wr-grid").innerHTML = PANELS.map(([key, title]) => {
+      const rows = P[key] || [];
+      const reds = rows.filter(r => r.flag === "RED").length, ambers = rows.filter(r => r.flag === "AMBER").length;
+      let extra = "";
+      if (key === "japan" && D.jgb_curve && D.jgb_curve.curve && D.jgb_curve.curve.length) {
+        extra = `<div class="ph" style="border-top:1px solid var(--border,#1e2733)"><span>MOF official curve · ${esc(D.jgb_curve.today || "")}</span><span class="cnt">day-over-day, bp (red = yields up)</span></div><div class="wr-jgb">${D.jgb_curve.curve.filter(c => c.last != null).map(c => `<div><div class="t">${esc(c.tenor)}</div><div class="v">${c.last.toFixed(3)}</div><div class="c ${c.dod_bp > 0 ? "pos" : c.dod_bp < 0 ? "neg" : ""}">${c.dod_bp == null ? "—" : (c.dod_bp > 0 ? "+" : "") + c.dod_bp.toFixed(1)}</div></div>`).join("")}</div>`;
+      }
+      return `<div class="wr-panel"><div class="ph"><span>${title}</span><span class="cnt">${rows.length} series${reds ? ` · <b style="color:#ef4444">${reds} RED</b>` : ""}${ambers ? ` · <b style="color:#f59e0b">${ambers} AMBER</b>` : ""}</span></div>
+        <table><thead><tr><th>Series</th><th>Level</th><th>DoD</th><th>5d</th><th>20d</th><th>30d</th><th>Flag</th></tr></thead><tbody>${rows.map(rowHtml).join("") || `<tr><td colspan="7" class="flat">no data</td></tr>`}</tbody></table>${extra}</div>`;
+    }).join("");
+    const M = D.methodology || {};
+    const F = D.fleet || {};
+    $("wr-foot").innerHTML = `<b>How to read it.</b> ${esc(M.dod || "")}. Flags: ${esc(M.flags || "")}. Stocks call: ${esc(M.equity_risk || "")}. Eurodollar: ${esc(M.eurodollar || "")}. Heartbeat: ${esc(M.heartbeat || "")}. Fleet inputs: eurodollar-plumbing ${F.eurodollar_plumbing && F.eurodollar_plumbing.composite_score != null ? F.eurodollar_plumbing.composite_score : "—"}, USD-funding stress z ${F.usd_funding_stress_z == null ? "—" : F.usd_funding_stress_z}, crisis-plumbing ${F.crisis_plumbing && F.crisis_plumbing.composite_stress_score != null ? F.crisis_plumbing.composite_stress_score : "—"}. Engine justhodl-bond-warroom v${esc(D.version)}${(D.notes || []).length ? " · notes: " + esc((D.notes || []).join(" | ")).slice(0, 300) : ""}`;
+  }
+  async function load() {
+    let D = null;
+    for (const u of [FEED, FEED_S3]) { try { const r = await fetch(u + "?t=" + Math.floor(Date.now() / 60000)); if (r.ok) { D = await r.json(); break; } } catch (e) {} }
+    if (!D) { $("wr-headline").textContent = "War-room feed unavailable — the engine has not published yet."; return; }
+    window.__BOND_WARROOM = D;
+    try { render(D); } catch (e) { $("wr-headline").textContent = "Render error: " + e.message; }
+  }
+  document.addEventListener("DOMContentLoaded", load);
+  setInterval(load, 5 * 60 * 1000);
+})();
+</script>
+
 
   <!-- ───────────────────────── REGIME BANNER ───────────────────────── -->
   <div id="regime-banner" class="regime-banner NEUTRAL">
