@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="katlin-version" content="katlin-v1.0.0">
+<meta name="katlin-version" content="katlin-v1.1.0">
 <meta name="jh-marker" content="KATLIN_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Katlin · the buy desk · war-room posture + asymmetric bottoms across stocks, ETFs and crypto · JustHodl.AI</title>
@@ -319,7 +319,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     if (il.options) h += '<div class="note">options: put/call ' + num(il.options.pcr_vol, 2) + ', net premium ' + big(il.options.net_premium_usd) + ', IV rank ' + num(il.options.iv_rank, 0) + (il.options.signal ? ", " + esc(il.options.signal) : "") + '</div>';
     h += '<h4>Catalysts (score ' + num(r.pillars && r.pillars.catalyst, 0) + ')</h4>' + li(r.catalysts);
     h += '<h4>Momentum arriving (score ' + num(r.pillars && r.pillars.momentum, 0) + ')</h4>' + li(r.mom_evidence) + '<div class="kv"><span>RS vs SPY 63d</span><span>' + pct(r.rs_63_pct) + '</span><span>weekly MACD turn</span><span>' + esc(r.macd_w_turn) + '</span><span>squeeze lean</span><span>' + esc(r.squeeze_lean) + '</span></div>';
-    if (r.asset_class === "stock") h += '<h4>Dilution, valuation, balance sheet</h4><div class="kv"><span>share count y/y</span><span class="' + (q.share_count_yoy_pct > 5 ? "red" : "grn") + '">' + pct(q.share_count_yoy_pct) + '</span><span>net buyback yield</span><span>' + pct(q.net_buyback_yield_pct) + '</span><span>P/E · fwd P/E · PEG</span><span>' + num(q.pe, 1) + ' · ' + num(q.fwd_pe, 1) + ' · ' + num(q.peg, 2) + '</span><span>EV/EBITDA · P/S · P/B</span><span>' + num(q.ev_ebitda, 1) + ' · ' + num(q.ps, 2) + ' · ' + num(q.pb, 2) + '</span><span>FCF yield</span><span>' + pct(q.fcf_yield_pct) + '</span><span>revenue y/y · EPS y/y</span><span>' + pct(q.revenue_yoy_pct) + ' · ' + pct(q.eps_yoy_pct) + '</span><span>Altman Z · Piotroski · Beneish</span><span>' + num(q.altman_z, 2) + ' · ' + esc(q.piotroski_f == null ? "—" : q.piotroski_f) + ' · ' + num(q.beneish_m, 2) + '</span><span>net debt/EBITDA · coverage</span><span>' + num(q.netdebt_to_ebitda, 1) + ' · ' + num(q.interest_coverage, 1) + '</span><span>runway · liquid floor coverage</span><span>' + num(q.runway_months, 0) + 'm · ' + num(q.floor_coverage, 2) + '</span></div>' + (q.red_flags && q.red_flags.length ? '<div class="note red">red flags: ' + esc(q.red_flags.join("; ")) + '</div>' : "") + (q.notes && q.notes.length ? '<div class="note">' + esc(q.notes.join("; ")) + '</div>' : "");
+    if (r.asset_class === "stock") h += '<h4>Dilution, valuation, balance sheet</h4><div class="kv"><span>share count y/y' + (q.shares_source ? ' (' + esc(q.shares_source) + ')' : '') + '</span><span class="' + (q.share_count_yoy_pct > 5 ? "red" : "grn") + '">' + pct(q.share_count_yoy_pct) + '</span><span>net buyback yield</span><span>' + pct(q.net_buyback_yield_pct) + '</span><span>P/E · fwd P/E · PEG</span><span>' + num(q.pe, 1) + ' · ' + num(q.fwd_pe, 1) + ' · ' + num(q.peg, 2) + '</span><span>EV/EBITDA · P/S · P/B</span><span>' + num(q.ev_ebitda, 1) + ' · ' + num(q.ps, 2) + ' · ' + num(q.pb, 2) + '</span><span>FCF yield</span><span>' + pct(q.fcf_yield_pct) + '</span><span>revenue y/y · EPS y/y</span><span>' + pct(q.revenue_yoy_pct) + ' · ' + pct(q.eps_yoy_pct) + '</span><span>Altman Z · Piotroski · Beneish</span><span>' + num(q.altman_z, 2) + ' · ' + esc(q.piotroski_f == null ? "—" : q.piotroski_f) + ' · ' + num(q.beneish_m, 2) + '</span><span>net debt/EBITDA · coverage</span><span>' + num(q.netdebt_to_ebitda, 1) + ' · ' + num(q.interest_coverage, 1) + '</span><span>runway · liquid floor coverage</span><span>' + num(q.runway_months, 0) + 'm · ' + num(q.floor_coverage, 2) + '</span></div>' + (q.red_flags && q.red_flags.length ? '<div class="note red">red flags: ' + esc(q.red_flags.join("; ")) + '</div>' : "") + (q.notes && q.notes.length ? '<div class="note">' + esc(q.notes.join("; ")) + '</div>' : "");
     h += '<h4>Risk stats</h4><div class="kv"><span>annualised vol · beta</span><span>' + num(r.vol_ann_pct, 0) + '% · ' + num(r.beta_1y, 2) + '</span><span>CVaR 5% · worst day</span><span>' + pct(r.cvar5_pct) + ' · ' + pct(r.worst_day_1y_pct) + '</span><span>avg $ volume 20d</span><span>' + big(r.adv_usd) + '</span></div>';
     $("evid").innerHTML = h;
   }
@@ -374,7 +374,13 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     $("degraded").innerHTML = (D.degraded && D.degraded.length) ? '<span class="amb">engine degraded notes: ' + esc(D.degraded.join(" · ")) + '</span>' : "";
     $("meta").textContent = "justhodl-katlin v" + (D.version || "") + " · session " + (D.session || "") + " · generated " + (D.generated_at || "") + " (" + ago(D.generated_at) + ") · " + (D.elapsed_s || "") + "s · feeds: " + Object.keys(D.feeds_asof || {}).length + " fleet artifacts";
   }
-  function renderAll() { renderWar(); renderBoard(); renderChanges(); renderValidation(); renderDefs(); var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); } }
+  function renderAll() {
+    renderWar();
+    // open on the first non-empty bucket (the gates are strict; PRIME is often empty by design)
+    if (!D._tabPicked) { D._tabPicked = true; var counts = { prime: 0, ready: 0, basing: 0 }; (D.picks || []).forEach(function (r) { if (r.tier === "KATLIN_PRIME") counts.prime++; else if (r.tier === "READY") counts.ready++; else if (r.tier === "BASING") counts.basing++; }); var want = counts.prime ? "prime" : counts.ready ? "ready" : counts.basing ? "basing" : "watch"; if (want !== tab) { tab = want; document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x.dataset.t === tab); }); } }
+    renderBoard(); renderChanges(); renderValidation(); renderDefs();
+    var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); }
+  }
   function load(i) {
     i = i || 0;
     if (i >= FEEDS.length) { $("errbox").textContent = "katlin.json unavailable on every path"; return; }

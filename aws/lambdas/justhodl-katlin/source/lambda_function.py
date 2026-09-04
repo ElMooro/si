@@ -83,7 +83,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -93,6 +93,8 @@ BARS_ROOT = "data/warm/polygon-full/grouped/"
 CRYPTO_ROOT = "data/warm/katlin/crypto-bars/"
 INTRADAY_ROOT = "data/warm/katlin/intraday-4h/"
 POLY_KEY = os.environ.get("POLYGON_API_KEY") or os.environ.get("POLYGON_KEY") or ""
+FMP_KEY = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY") or ""
+SHARES_ROOT = "data/warm/katlin/shares/"
 
 P = {
     "sessions": 1260,            # ~5 years of daily bars -> 20 quarterly, 60 monthly, 260 weekly bars
@@ -105,7 +107,7 @@ P = {
     "knife_3m_ret_pct": -40.0,
     "knife_dist_sma200_pct": -45.0,
     "rsi_w_oversold": 40.0, "rsi_d_oversold": 35.0, "rsi_m_oversold": 45.0,
-    "accum_gate": 55.0, "inflow_gate": 55.0, "structure_gate": 40.0, "catalyst_gate": 40.0,
+    "accum_gate": 55.0, "inflow_gate": 55.0, "structure_gate": 40.0, "catalyst_gate": 35.0,
     "shortlist": 70,             # names that get 4h sniper bars
     "crypto_symbols": ["BTC", "ETH", "SOL", "XRP", "BNB", "ADA", "DOGE", "AVAX", "LINK", "DOT", "LTC",
                        "BCH", "UNI", "ATOM", "NEAR", "APT", "ARB", "OP", "SUI", "POL", "MATIC", "TRX",
@@ -158,8 +160,11 @@ INDUSTRY_PHYSICAL = {"Copper": ["copper"], "Steel": ["steel", "iron"], "Gold": [
                      "Farm Products": ["corn", "wheat", "soy", "cattle"], "Marine Shipping": ["freight", "baltic", "shipping"],
                      "Other Industrial Metals & Mining": ["copper", "nickel", "zinc", "aluminum"], "Semiconductors": ["semiconductor"]}
 LEV_RX = re.compile(r"\b(2x|3x|-1x|ultra|bull|bear|inverse|short|leveraged|daily .*(2x|3x)|proshares ultra|direxion)\b", re.I)
-OVERLAY_RX = re.compile(r"\bvix\b|volatility|market neutral|anti-beta|buffer|defined outcome|covered call|buywrite|"
-                        r"yieldmax|premium income|target[- ]\d+|select income|hedged equity|managed futures|interval fund", re.I)
+OVERLAY_RX = re.compile(r"\bvix\b|volatility|market neutral|anti-beta|buffer|defined outcome|covered call|buywrite|buy-write|"
+                        r"yieldmax|premium income|target[- ]\d+|select income|hedged equity|managed futures|interval fund|"
+                        r"options? income|enhanced (options|income)|option strateg|income advantage|autocallable|0dte|daily target|"
+                        r"\bhedged\b|floor etf|income shares|equity premium|call writ|put writ|collar|dividend income (etf|fund)|defiance .*income|"
+                        r"kurv|roundhill .*(income|yield)|neos|amplify .*income", re.I)
 BOND_RX = re.compile(r"\b(treasur|bond|credit|muni|municipal|corporate|high yield|aggregate|fixed income|tips|"
                      r"floating rate|bank loan|mortgage|mbs|duration|t-bill|bill|govt|government|yield)\b", re.I)
 COMMOD_RX = re.compile(r"\b(gold|silver|platinum|palladium|copper|oil|crude|natural gas|gasoline|uranium|lithium|"
@@ -618,6 +623,77 @@ def load_crypto(today, symbols):
 
 
 # ── resampling to W / 1M / 3M ───────────────────────────────────────────────
+
+# -- dilution lane (FMP enterprise-values, banked 7 days in OUR warehouse) -------------------------------------------
+def s3_json_quiet(key):
+    try:
+        body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+        if key.endswith(".gz"):
+            body = gzip.decompress(body)
+        return json.loads(body)
+    except Exception:
+        return None
+
+
+def fmp_shares_yoy(sym, today):
+    """share count y/y from FMP /stable/enterprise-values (numberOfShares per quarter). Banked at
+    data/warm/katlin/shares/{T}.json for 7 days so the lane costs ~0 calls on most runs. Returns (yoy_pct, status)."""
+    key = SHARES_ROOT + sym + ".json"
+    doc = s3_json_quiet(key)
+    if doc and doc.get("banked_at") and (datetime.strptime(today, "%Y-%m-%d") - datetime.strptime(doc["banked_at"][:10], "%Y-%m-%d")).days <= 7:
+        return doc.get("yoy_pct"), "banked"
+    if not FMP_KEY:
+        return None, "no FMP key"
+    try:
+        url = "https://financialmodelingprep.com/stable/enterprise-values?%s" % urllib.parse.urlencode({"symbol": sym.replace(".", "-"), "period": "quarter", "limit": 6, "apikey": FMP_KEY})
+        req = urllib.request.Request(url, headers={"User-Agent": "justhodl-katlin/%s" % VERSION})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            rows = json.loads(r.read())
+        pts = [(str(x.get("date"))[:10], fnum(x.get("numberOfShares"))) for x in (rows or []) if isinstance(x, dict) and fnum(x.get("numberOfShares"))]
+        pts = [x for x in pts if x[1] and x[1] > 0]
+        pts.sort(reverse=True)
+        yoy = None
+        if len(pts) >= 2:
+            d0, s0 = pts[0]
+            ref = next((x for x in pts if (datetime.strptime(d0, "%Y-%m-%d") - datetime.strptime(x[0], "%Y-%m-%d")).days >= 300), None)
+            if ref:
+                yoy = (s0 / ref[1] - 1.0) * 100.0
+        s3_put_json(key, {"symbol": sym, "source": "fmp enterprise-values quarterly numberOfShares", "banked_at": today, "points": pts, "yoy_pct": rnd(yoy, 2)})
+        return yoy, "fmp"
+    except Exception as e:
+        return None, "err %s" % str(e)[:60]
+
+
+def dilution_lane(rows, ranks, today):
+    """fill share-count y/y for tiered stock rows the census matrix does not cover; heavy dilution knocks the quality gate."""
+    todo = [r for r in rows if r["asset_class"] == "stock" and r["tier"] in ("KATLIN_PRIME", "READY", "BASING")
+            and (r.get("quality") or {}).get("share_count_yoy_pct") is None][:400]
+    if not todo:
+        return
+    t0 = time.time()
+    st = {}
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        for r, (yoy, status) in zip(todo, ex.map(lambda r_: fmp_shares_yoy(r_["ticker"], today), todo)):
+            st[status.split(" ")[0]] = st.get(status.split(" ")[0], 0) + 1
+            if yoy is None:
+                continue
+            q = r["quality"]
+            q["share_count_yoy_pct"] = rnd(yoy, 1)
+            q["shares_source"] = "fmp"
+            if yoy >= 15:
+                q["red_flags"].append("heavy dilution: share count +%.0f%% y/y (FMP)" % yoy)
+                r["gates"]["quality"] = False
+            elif yoy >= 6:
+                q["notes"].append("share count +%.0f%% y/y (dilution, FMP)" % yoy)
+            elif yoy <= -1:
+                q["notes"].append("shares shrinking %.0f%% y/y (buybacks, FMP)" % -yoy)
+            if r["pillars"].get("quality") is not None:
+                r["pillars"]["quality"] = rnd(clamp(r["pillars"]["quality"] + (lin_map(yoy, 12, -15, -4, 10) if yoy > -4 else 6)), 1)
+            gates_and_tier(r)
+            composite(r, ranks)
+    log("dilution lane: %d names, %s, %.0fs" % (len(todo), st, time.time() - t0))
+
+
 def resample(b, dates, how):
     """OHLCV per period. how in ('W','M','Q'). returns dict of lists o,h,l,c,v and 'end' (last daily pos)."""
     o, h, l, c, v, end = [], [], [], [], [], []
@@ -1627,11 +1703,15 @@ def war_room(F):
         bval = fnum(baro.get("value") if isinstance(baro, dict) else baro)
         alarm = str(strip.get("alarm") or "")
         if bval is not None or alarm:
-            r = bval if bval is not None else (90 if alarm.upper() in ("RED", "ALARM", "ACUTE") else 50)
-            add("Black-swan watch", "blackswan-watch", r, "barometer %s, %s red extremes%s" % (rnd(bval, 0), strip.get("n_red"), (" -- " + alarm) if alarm else ""),
+            # barometer = systemic stress 0-100; strip.alarm = today's extreme movers (RED when >=2 canaries printed a red move).
+            # A RED strip on a low barometer is a tape event, so it lifts the leg to AMBER territory but does not veto by itself.
+            r = bval if bval is not None else (60 if alarm.upper() in ("RED", "ALARM", "ACUTE") else 40)
+            if alarm.upper() in ("RED", "ALARM", "ACUTE"):
+                r = max(r, 55)
+            add("Black-swan watch", "blackswan-watch", r, "barometer %s, %s red extremes today%s" % (rnd(bval, 0), strip.get("n_red"), (" -- strip " + alarm) if alarm else ""),
                 bval, 1.5, bs.get("as_of"))
-            if alarm.upper() in ("RED", "ALARM", "ACUTE") or (bval is not None and bval >= 85):
-                vetoes.append("black-swan barometer %s (%s)" % (rnd(bval, 0), alarm or "extreme"))
+            if (bval is not None and bval >= 80) or (alarm.upper() in ("RED", "ALARM", "ACUTE") and bval is not None and bval >= 55):
+                vetoes.append("black-swan barometer %s with a %s strip" % (rnd(bval, 0), alarm or "extreme"))
         else:
             missing.append("Black-swan watch")
     except Exception as e_:
@@ -1651,8 +1731,12 @@ def war_room(F):
         missing.append("leg error: %s" % str(e_)[:80])
     try:
         tl = F["tail"]
-        p10 = fnum(tl.get("p_drop_10"))
+        rows_ = tl.get("indices") if isinstance(tl.get("indices"), list) else []
+        spy_row = next((r_ for r_ in rows_ if isinstance(r_, dict) and str(r_.get("ticker")).upper() == "SPY"), (rows_[0] if rows_ and isinstance(rows_[0], dict) else {}))
+        p10 = fnum(tl.get("p_drop_10")) if tl.get("p_drop_10") is not None else fnum(spy_row.get("p_drop_10"))
         gauge = tl.get("system_tail_gauge")
+        if isinstance(gauge, (int, float)):
+            gauge = "system tail gauge %.0f/100 (%s)" % (gauge, tl.get("tail_regime") or "")
         if p10 is not None:
             add("Options tail risk (P[-10%])", "tail-risk", lin_map(p10 * (100 if p10 <= 1 else 1), 4, 20, 25, 90),
                 "%.0f%% option-implied chance of a 10%% drop; %s" % (p10 * (100 if p10 <= 1 else 1), (gauge if isinstance(gauge, str) else (gauge or {}).get("label") if isinstance(gauge, dict) else "")), p10, 1.0, tl.get("generated_at"))
@@ -1713,9 +1797,12 @@ def war_room(F):
         missing.append("leg error: %s" % str(e_)[:80])
     try:
         gbc = F["gbc"]
-        ph = str(_first(gbc, "global_phase", "phase", "aggregate.phase") or "")
-        dp6 = fnum(_first(gbc, "downturn_probability_6m", "composite.downturn_probability_6m", "aggregate.downturn_probability_6m"))
-        cli = fnum(_first(gbc, "cli_level", "global_avg_cli", "composite.cli_level"))
+        ph = str(_first(gbc, "aggregate.global_phase", "global_phase", "phase") or "")
+        dp6 = _first(gbc, "downturn_probability_6m", "composite.downturn_probability_6m")
+        if isinstance(dp6, dict):
+            dp6 = _first(dp6, "probability_now", "probability", "p_now")
+        dp6 = fnum(dp6)
+        cli = fnum(_first(gbc, "aggregate.global_avg_cli", "global_avg_cli", "cli_level"))
         if ph or dp6 is not None:
             pu = ph.upper()
             r = dp6 * 100 if (dp6 is not None and dp6 <= 1) else (dp6 if dp6 is not None else (70 if ("CONTRACT" in pu or "DOWNTURN" in pu) else 50 if "SLOW" in pu else 25))
@@ -1781,6 +1868,12 @@ def war_room(F):
         posture, cap = "SELECTIVE", 65
     else:
         posture, cap = "FULL_RISK", 100
+    try:
+        sz = fnum((F.get("risk_gate") or {}).get("sizing_multiplier"))
+        if sz is not None and 0 < sz <= 1.5 and posture != "UNKNOWN":
+            cap = int(min(cap, round(sz * 100)))
+    except Exception:
+        pass
     words = {"FULL_RISK": "green light -- deploy into the best asymmetric setups",
              "SELECTIVE": "amber -- only the highest-conviction bottoms, smaller size, keep dry powder",
              "DEFENSIVE": "mostly cash / short treasuries -- nibble only confirmed bottoms with tight stops",
@@ -2162,7 +2255,8 @@ def catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, industr
             if pcut is not None and (pcut if pcut > 1 else pcut * 100) >= 55:
                 pts += 8
                 items.append({"kind": "rates", "text": "%.0f%% market-implied chance of a Fed cut at the next meeting -- a duration tailwind" % (pcut if pcut > 1 else pcut * 100), "strength": 8})
-    return clamp(pts), items
+    named = [i for i in items if i.get("kind") not in ("earnings", "scheduled", "catalyst_engine")]
+    return clamp(pts * 1.6), items, len(named)
 
 
 def commodity_read(F, kw):
@@ -2360,7 +2454,7 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
         acc_s = clamp(acc_s + min(12, 4 * len(fleet_acc)))
     adv = sig["risk"].get("adv_usd_20d")
     in_s, in_legs, in_ev = inflow_block(sym, fv, cs, F, mcap, adv, asset_class, ind_etf)
-    cat_s, cat_items = catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, ind_etf)
+    cat_s, cat_items, n_named = catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, ind_etf)
     q = quality_block(sym, fv, cs, F, asset_class, mcap)
     mom = sig["mom"]
     r = {"ticker": sym, "name": (fv.get("company") or sym)[:60], "asset_class": asset_class, "sub_class": sub_class,
@@ -2399,7 +2493,7 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
          "vol_ann_pct": rnd(sig["risk"].get("vol_ann_pct"), 1), "beta_1y": rnd(sig["risk"].get("beta_1y"), 2), "cvar5_pct": rnd(sig["risk"].get("cvar5_pct"), 2),
          "worst_day_1y_pct": rnd(sig["risk"].get("worst_day_1y_pct"), 1), "gap_risk_pct": rnd(sig["risk"].get("gap_risk_pct"), 1),
          # fusion
-         "inflow_legs": in_legs, "inflow_evidence": in_ev, "catalysts": cat_items, "quality": q,
+         "inflow_legs": in_legs, "inflow_evidence": in_ev, "catalysts": cat_items, "n_named_catalysts": n_named, "quality": q,
          "knife": knife, "knife_why": knife_why,
          "pillars": {"location": rnd(loc_s, 1), "oversold": rnd(os_s, 1), "structure": rnd(st_s, 1), "accumulation": rnd(acc_s, 1),
                      "inflows": rnd(in_s, 1), "catalyst": rnd(cat_s, 1), "momentum": rnd(mom["score"], 1), "quality": rnd(q.get("score"), 1)},
@@ -2419,7 +2513,7 @@ def gates_and_tier(r):
         tier = "WATCH" if (g["location"] and n >= 3) else "SCREENED"
         if not g["quality"] or not g["not_knife"]:
             tier = "SCREENED" if n < 4 else "WATCH"
-    elif g["oversold"] and g["accumulation"] and g["inflows"] and g["structure"] and g["catalyst"] and r["structure_state"] == "CONFIRMED":
+    elif g["oversold"] and g["accumulation"] and g["inflows"] and g["structure"] and g["catalyst"] and r["structure_state"] == "CONFIRMED" and (r.get("n_named_catalysts") or 0) >= 1:
         tier = "KATLIN_PRIME"
     elif g["accumulation"] and g["structure"] and (g["oversold"] or g["inflows"]) and (n >= 4):
         tier = "READY"
@@ -2474,8 +2568,8 @@ def trade_plan(r):
     up1 = (t1 / px - 1) * 100 if (t1 and px) else None
     up2 = (t2 / px - 1) * 100 if (t2 and px) else None
     dn = (1 - stop / px) * 100 if (stop and px) else None
-    rr = (up1 / dn) if (up1 and dn) else None
-    rr2 = (up2 / dn) if (up2 and dn) else None
+    rr = min(up1 / dn, 10.0) if (up1 and dn) else None
+    rr2 = min(up2 / dn, 10.0) if (up2 and dn) else None
     sigma_m = (r.get("vol_ann_pct") or 40.0) / math.sqrt(12)
     asym = (median([x for x in (up1, up2) if x]) / max(dn or 10.0, 0.5 * sigma_m)) if (up1 or up2) else None
     trig = None
@@ -2503,8 +2597,13 @@ def why_text(r):
             nm, r["ticker"], ac, -d200, (" and %.0f%% below the 250-day" % -r["dist_sma250_pct"]) if (r.get("dist_sma250_pct") or 0) < 0 else "",))
     else:
         s.append("%s (%s) sits %s%% %s its 200-day average." % (nm, r["ticker"], rnd(abs(d200 or 0), 0), "above" if (d200 or 0) >= 0 else "below"))
-    if r.get("days_below_sma200"):
-        s.append("It has been under that average for %d sessions, so this is a long downtrend, not a dip." % r["days_below_sma200"])
+    dbs = r.get("days_below_sma200") or 0
+    if dbs >= 120:
+        s.append("It has been under that average for %d sessions, so this is a long downtrend, not a dip." % dbs)
+    elif dbs >= 40:
+        s.append("It has been under that average for %d sessions -- a multi-month breakdown that is now old enough to base." % dbs)
+    elif dbs:
+        s.append("It slipped under that average only %d sessions ago, so treat the location as a fresh breakdown rather than a washed-out base." % dbs)
     st = r.get("structure_legs") or []
     if r["structure_state"] == "CONFIRMED":
         s.append("On the long-term chart the bottom looks CONFIRMED: " + ", ".join(st[:3]) + ".")
@@ -2991,6 +3090,10 @@ def lambda_handler(event=None, context=None):
         gates_and_tier(r)
         composite(r, ranks)
         trade_plan(r)
+    try:
+        dilution_lane(rows, ranks, today)
+    except Exception as e:
+        DEGRADED.append("dilution lane failed: %s" % str(e)[:100])
     # posture applied: in DEFENSIVE / CASH the buy tiers are demoted to their evidence but flagged
     for r in rows:
         r["posture_note"] = None
