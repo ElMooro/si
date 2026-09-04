@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "required": [
+    "engine",
+    "schema_version",
+    "generated_at",
+    "as_of",
+    "status",
+    "score",
+    "stance",
+    "risk_score",
+    "confidence",
+    "coverage",
+    "domains",
+    "asset_views",
+    "top_signals",
+    "contradictions",
+    "catalysts",
+    "risks",
+    "inputs",
+    "missing_inputs",
+    "methodology",
+    "panels"
+  ],
+  "score_bounds": [0, 100],
+  "confidence_bounds": [0, 1],
+  "statuses": ["OK", "DEGRADED", "NO_DATA"],
+  "actions": ["READY_TO_SNIPE", "BUILDING_BASE", "WATCH_RECLAIM", "REJECTED"]
+}

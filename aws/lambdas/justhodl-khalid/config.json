@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-khalid",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 1024,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Strict cross-asset asymmetric opportunity orchestrator with macro vetoes and evidence-complete decisions",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-khalid-hourly",
+    "cron": "cron(25 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Hourly Khalid risk and opportunity synthesis after upstream engines settle"
+  }
+}

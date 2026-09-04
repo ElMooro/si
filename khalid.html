@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="Khalid is JustHodl's strict cross-asset risk and asymmetric-opportunity engine.">
+  <title>Khalid | JustHodl.AI</title>
+  <link rel="stylesheet" href="/jh-theme.css">
+  <link rel="stylesheet" href="/khalid.css">
+</head>
+<body>
+  <div class="k-app" id="khalid">
+    <header class="k-header">
+      <a class="k-brand" href="/" aria-label="JustHodl home">
+        <svg class="k-mark" viewBox="0 0 36 36" role="img" aria-label="Khalid logo">
+          <path d="M6 5v26M29 5 14 18l15 13M14 18H6" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square" stroke-linejoin="miter"/>
+          <path d="M26 5h4v4" fill="none" stroke="#F0B429" stroke-width="2"/>
+        </svg>
+        <span><strong>KHALID</strong><small>RISK + OPPORTUNITY ENGINE</small></span>
+      </a>
+      <div class="k-header-meta">
+        <span class="k-live"><i></i><b id="feed-status">CONNECTING</b></span>
+        <span id="updated-at">Waiting for engine</span>
+        <button class="k-icon-btn" id="refresh-btn" type="button" aria-label="Refresh engine data">REFRESH</button>
+      </div>
+    </header>
+
+    <aside class="k-rail" aria-label="Khalid views">
+      <p class="k-eyebrow">COMMAND VIEWS</p>
+      <nav class="k-nav">
+        <button class="active" data-view="command" type="button"><span>01</span>Command</button>
+        <button data-view="opportunities" type="button"><span>02</span>Opportunities</button>
+        <button data-view="assets" type="button"><span>03</span>Asset classes</button>
+        <button data-view="risk" type="button"><span>04</span>Risk radar</button>
+        <button data-view="method" type="button"><span>05</span>Method + data</button>
+      </nav>
+      <div class="k-rail-note">
+        <b>MANDATE</b>
+        <p>Large upside. Defined downside. No chasing.</p>
+      </div>
+    </aside>
+
+    <main class="k-main" id="main">
+      <div id="loading" class="k-loading" role="status">
+        <span></span><span></span><span></span>
+        <p>Composing risk, flows, bases and catalysts</p>
+      </div>
+      <div id="error" class="k-error" hidden>
+        <b>ENGINE DATA UNAVAILABLE</b>
+        <p id="error-copy">Khalid could not load its decision artifact.</p>
+        <button id="retry-btn" type="button">TRY AGAIN</button>
+      </div>
+
+      <div id="dashboard" hidden>
+        <section class="k-section k-command" id="command" data-jh-axis data-jh-key="command" data-jh-title="Khalid command decision">
+          <div class="k-decision">
+            <div>
+              <p class="k-eyebrow">CURRENT CAPITAL POSTURE</p>
+              <div class="k-stance-line">
+                <span class="k-stance" id="stance">WAIT</span>
+                <span class="k-confidence" id="confidence">0% confidence</span>
+              </div>
+              <h1 id="headline">Preserve optionality until every gate clears.</h1>
+              <p class="k-lede" id="plain-english"></p>
+            </div>
+            <div class="k-dials">
+              <div class="k-dial">
+                <span>SETUP</span><strong id="setup-score">--</strong><small>/ 100</small>
+              </div>
+              <div class="k-dial risk">
+                <span>RISK</span><strong id="risk-score">--</strong><small>/ 100</small>
+              </div>
+            </div>
+          </div>
+          <div class="k-kpis" id="kpis"></div>
+          <div class="k-regime-grid">
+            <article class="k-panel">
+              <div class="k-panel-head"><p>RISK CONTROL</p><span id="risk-mode">--</span></div>
+              <div id="risk-reasons" class="k-lines"></div>
+            </article>
+            <article class="k-panel">
+              <div class="k-panel-head"><p>DEFAULT SHELTER</p><span id="shelter">--</span></div>
+              <p id="shelter-why" class="k-panel-copy"></p>
+            </article>
+            <article class="k-panel">
+              <div class="k-panel-head"><p>BOND MARKET</p><span id="bond-regime">MONITOR</span></div>
+              <p id="bond-summary" class="k-panel-copy"></p>
+            </article>
+          </div>
+        </section>
+
+        <section class="k-section" id="opportunities" data-jh-axis data-jh-key="opportunities" data-jh-title="Khalid opportunities">
+          <div class="k-section-head">
+            <div><p class="k-eyebrow">ASYMMETRIC SETUPS</p><h2>Opportunity queue</h2></div>
+            <div class="k-tools">
+              <div class="k-segments" id="action-filters" aria-label="Opportunity status filter">
+                <button class="active" data-filter="ALL" type="button">ALL</button>
+                <button data-filter="READY_TO_SNIPE" type="button">READY</button>
+                <button data-filter="BUILDING_BASE" type="button">BUILDING</button>
+                <button data-filter="WATCH_RECLAIM" type="button">WATCH</button>
+              </div>
+              <label class="k-search"><span>FIND</span><input id="asset-search" type="search" autocomplete="off" placeholder="Ticker or asset"></label>
+            </div>
+          </div>
+          <p class="k-note">3M, monthly and weekly define the thesis. Daily and 4h only time the entry.</p>
+          <div id="opportunity-list" class="k-opportunities"></div>
+          <div id="opportunity-empty" class="k-empty" hidden>No setup matches this view.</div>
+        </section>
+
+        <section class="k-section" id="assets" data-jh-axis data-jh-key="assets" data-jh-title="Khalid asset-class views">
+          <div class="k-section-head"><div><p class="k-eyebrow">CROSS-ASSET MAP</p><h2>Where capital may belong</h2></div></div>
+          <div id="asset-grid" class="k-asset-grid"></div>
+          <div class="k-subgrid">
+            <article class="k-panel"><div class="k-panel-head"><p>DOMAIN CONFLUENCE</p></div><div id="domain-list"></div></article>
+            <article class="k-panel"><div class="k-panel-head"><p>CRYPTO WATCH</p><span>NO VOLUME CHASING</span></div><div id="crypto-list" class="k-lines"></div></article>
+          </div>
+        </section>
+
+        <section class="k-section" id="risk" data-jh-axis data-jh-key="risk" data-jh-title="Khalid risk radar">
+          <div class="k-section-head"><div><p class="k-eyebrow">FAIL-CLOSED CONTROL</p><h2>Risk, vetoes and contradictions</h2></div></div>
+          <div class="k-risk-grid">
+            <article class="k-panel"><div class="k-panel-head"><p>ACTIVE RISKS</p><span id="risk-count">0</span></div><div id="risk-list" class="k-lines"></div></article>
+            <article class="k-panel"><div class="k-panel-head"><p>CONTRADICTIONS</p><span id="contradiction-count">0</span></div><div id="contradiction-list" class="k-lines"></div></article>
+            <article class="k-panel"><div class="k-panel-head"><p>CATALYST TAPE</p><span id="catalyst-count">0</span></div><div id="catalyst-list" class="k-lines"></div></article>
+          </div>
+        </section>
+
+        <section class="k-section" id="method" data-jh-axis data-jh-key="method" data-jh-title="Khalid methodology and data quality">
+          <div class="k-section-head"><div><p class="k-eyebrow">AUDIT TRAIL</p><h2>Method and data quality</h2></div><span class="k-badge" id="coverage-badge">--</span></div>
+          <div class="k-method-grid">
+            <article class="k-panel"><div class="k-panel-head"><p>HARD GATES</p></div><ol id="hard-gates" class="k-rule-list"></ol></article>
+            <article class="k-panel"><div class="k-panel-head"><p>EVIDENCE RULES</p></div><ol id="evidence-rules" class="k-rule-list"></ol></article>
+          </div>
+          <article class="k-evidence-register">
+            <div class="k-panel-head"><p>RESEARCH SAFEGUARDS</p><span>PRIMARY SOURCES</span></div>
+            <div class="k-source-grid">
+              <a href="https://mebfaber.com/wp-content/uploads/2016/05/SSRN-id962461.pdf" target="_blank" rel="noopener"><b>LONG-TERM TREND</b><span>Below the 200-day average is a discovery constraint, never proof of value.</span></a>
+              <a href="https://www.bollingerbands.com/bollinger-band-rules" target="_blank" rel="noopener"><b>BOLLINGER BANDS</b><span>A lower-band touch is not a buy signal; compression needs independent confirmation.</span></a>
+              <a href="https://chartschool.stockcharts.com/table-of-contents/market-analysis/wyckoff-analysis-articles/the-wyckoff-method-a-tutorial" target="_blank" rel="noopener"><b>ACCUMULATION</b><span>Volume dry-up is a precondition; absorption, structure and demand must confirm it.</span></a>
+              <a href="https://www.sec.gov/rules-regulations/staff-guidance/division-investment-management-frequently-asked-questions/frequently-asked-questions-about-form-13f" target="_blank" rel="noopener"><b>INSTITUTIONAL HOLDINGS</b><span>13F is delayed and incomplete, so it remains context rather than timing evidence.</span></a>
+              <a href="https://www.finra.org/filing-reporting/otc-transparency-data" target="_blank" rel="noopener"><b>OFF-EXCHANGE ACTIVITY</b><span>ATS volume has no trade-side direction and cannot prove dark-pool buying.</span></a>
+              <a href="https://www.ams.org/notices/201405/rnoti-p458.pdf" target="_blank" rel="noopener"><b>BACKTEST CONTROL</b><span>Every variation belongs in a trials ledger to limit multiple-testing overfit.</span></a>
+              <a href="https://libertystreeteconomics.newyorkfed.org/2021/02/measuring-the-forest-through-the-trees-the-corporate-bond-market-distress-index/" target="_blank" rel="noopener"><b>CREDIT STRESS</b><span>Corporate-bond distress is treated as a regime input, not a standalone forecast.</span></a>
+              <a href="https://www.chicagofed.org/research/data/nfci/about" target="_blank" rel="noopener"><b>FINANCIAL CONDITIONS</b><span>Broad conditions are monitored with explicit cadence and freshness controls.</span></a>
+            </div>
+          </article>
+          <div class="k-table-wrap">
+            <table>
+              <thead><tr><th>Input</th><th>Domain</th><th>Status</th><th>Age</th><th>SLA</th><th>Producer</th></tr></thead>
+              <tbody id="input-table"></tbody>
+            </table>
+          </div>
+          <p class="k-disclaimer">Decision support, not personalized financial advice. Khalid never places an order and does not convert missing data into positive evidence.</p>
+        </section>
+      </div>
+    </main>
+
+    <aside class="k-detail" id="detail" aria-label="Opportunity detail" aria-hidden="true" inert>
+      <button class="k-detail-close" id="detail-close" type="button" aria-label="Close opportunity detail">CLOSE</button>
+      <div id="detail-content"></div>
+    </aside>
+  </div>
+  <script src="/jh-nav-drawer.js" defer></script>
+  <script src="/khalid.js" defer></script>
+</body>
+</html>

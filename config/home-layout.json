@@ -3,6 +3,14 @@
  "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this. Katlin (ops 5203) sits first: the war-room section + PRIME/READY panels + risk legs.",
  "blocks": [
   {
+   "type": "engine",
+   "ref": "khalid",
+   "panel": "overview",
+   "w": 3,
+   "feed": "data/khalid.json",
+   "title": "Khalid · Risk & Opportunity Engine"
+  },
+  {
    "type": "section",
    "page": "katlin",
    "sec": "2",
