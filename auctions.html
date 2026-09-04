@@ -331,6 +331,17 @@
   .gx .scale span.on { color:var(--fg-1); background:var(--bg-elev); outline:1px solid var(--yellow); }
   .gx ul { padding-left:0; list-style:none; display:grid; gap:7px; }
   .gx li { font-size:12.5px; color:var(--fg-2); line-height:1.5; } .gx li b { color:var(--fg-1); }
+  .rx-grid { display:grid; grid-template-columns:1.25fr 1fr; gap:18px; margin-bottom:18px; }
+  @media(max-width:1100px){ .rx-grid { grid-template-columns:1fr; } }
+  .rx-call { display:inline-block; min-width:26px; text-align:center; font-weight:800; border-radius:5px; padding:1px 7px; }
+  .rx-call.up { color:var(--green); background:var(--green-soft); } .rx-call.down { color:var(--red); background:var(--red-soft); } .rx-call.flat { color:var(--fg-3); background:var(--bg-sunken); }
+  .rx-hit { font-size:10px; color:var(--fg-3); }
+  .rx-basis { font-size:10.5px; color:var(--fg-3); }
+  .rx-conf { font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:1px 6px; border-radius:3px; background:var(--bg-sunken); color:var(--fg-3); }
+  .rx-conf.high { color:var(--yellow); } .rx-conf.medium { color:var(--fg-2); }
+  .rx-note { font-size:11.5px; color:var(--fg-3); margin-top:8px; line-height:1.55; }
+  .mv { font-variant-numeric:tabular-nums; } .mv.pos { color:var(--green); } .mv.neg { color:var(--red); } .mv.flat { color:var(--fg-3); }
+  .rx-cls { font-size:10px; color:var(--fg-3); }
 </style>
 
 <div class="gx-overlay" id="gx-overlay" role="dialog" aria-modal="true" aria-labelledby="gx-title"><div class="gx"><button class="close" id="gx-close" type="button" aria-label="Close">×</button><h3 id="gx-title"></h3><div class="sub" id="gx-sub"></div><div id="gx-body"></div></div></div>
@@ -341,6 +352,18 @@
   <div class="desk-implications" id="desk-implications"></div>
   <ul class="desk-bullets" id="desk-bullets"></ul>
   <div class="desk-ai" id="desk-ai" hidden></div>
+</div>
+
+<div class="rx-grid">
+  <section class="box" style="margin:0">
+    <div class="head"><h3>🔮 Cross-asset read — what days like today usually did to markets</h3><span class="right" id="rx-meta"></span></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Based on</th><th class="r">Same day</th><th class="r">+1 day</th><th class="r">+5 days</th><th class="r">+20 days</th><th class="r">Call</th></tr></thead><tbody id="rx-pred"><tr><td colspan="7"><div class="skel" style="height:40px"></div></td></tr></tbody></table></div>
+    <div class="body" style="padding-top:8px"><div class="rx-note" id="rx-note"></div></div>
+  </section>
+  <section class="box" style="margin:0">
+    <div class="head"><h3>📒 What actually happened — recent auction days</h3><span class="right">same-day = results at 1pm → close · next = following close</span></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Day</th><th>What the tape said</th><th class="r">S&amp;P</th><th class="r">Nasdaq</th><th class="r">TLT</th><th class="r">HYG</th><th class="r">BTC</th><th class="r">Gold</th><th class="r">Silver</th><th class="r">REITs</th></tr></thead><tbody id="rx-board"></tbody></table></div>
+  </section>
 </div>
 
 <section class="box">
@@ -547,6 +570,22 @@
     $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Tail: ${esc(m.tail_proxy || "")}. Buyback signal: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
   }
 
+  function renderReactions(D) {
+    const R = D.reactions || {};
+    const pred = R.prediction || [];
+    const f = v => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+    const cell = h => h && h.median != null ? `<span class="mv ${h.median > 0.05 ? "pos" : h.median < -0.05 ? "neg" : "flat"}">${f(h.median)}</span><div class="rx-hit">${h.hit}% up · n ${h.n}</div>` : "<span class=\"flat\">—</span>";
+    const cls = (R.today_classes || []).map(c => (R.class_labels || {})[c] || c).join(" + ");
+    $("rx-meta").textContent = cls ? `today = ${cls}` : "";
+    $("rx-pred").innerHTML = pred.length ? pred.map(p => `<tr><td class="tk" title="${esc(p.asset_class)}">${esc(p.name)} <span class="rx-cls">${esc(p.symbol)}</span></td><td class="rx-basis" style="white-space:normal;max-width:180px">${esc(p.basis_label)}<br>${p.n} days since bank start</td><td class="r">${cell(p.same_day)}</td><td class="r">${cell(p.d1)}</td><td class="r">${cell(p.d5)}</td><td class="r">${cell(p.d20)}</td><td class="r"><span class="rx-call ${p.call === "↑" ? "up" : p.call === "↓" ? "down" : "flat"}">${p.call}</span><div><span class="rx-conf ${p.confidence}">${p.confidence}</span></div></td></tr>`).join("")
+      : `<tr><td colspan="7" class="flat">${esc(R.note || "No reaction history yet.")}</td></tr>`;
+    $("rx-note").innerHTML = `<b>How to read it.</b> Every auction day since the bank starts is filed by what the tape said (weak coupon day, strong coupon day, bills only, large max-fill buyback day). For each asset the table shows the <b>median</b> move that followed days of today's kind, and how often the move was up. ↑ = median up and up ≥57% of the time; ↓ = median down and up ≤43%. Confidence rises with the sample and how one-sided it is. This is conditional history, not a promise — ${esc(R.note || "")}. ${esc(R.horizons || "")}`;
+    const board = R.scoreboard || [];
+    const mv = (m, k) => m && m[k] != null ? `<span class="mv ${m[k] > 0.05 ? "pos" : m[k] < -0.05 ? "neg" : "flat"}">${f(m[k])}</span>` : "<span class=\"flat\">—</span>";
+    const pair = (moves, sym) => { const m = moves[sym]; return `<td class="r">${mv(m, "same_day")}<div class="rx-hit">next ${mv(m, "d1")}</div></td>`; };
+    $("rx-board").innerHTML = board.map(b => `<tr><td class="tk">${fmtDate(b.date)}</td><td style="white-space:normal;min-width:200px">${esc((b.labels || []).join(" + "))}${b.grades && b.grades.length ? ` <span class="rx-cls">grades ${b.grades.join("")}</span>` : ""}${b.buyback_accepted ? ` <span class="rx-cls">buyback ${bn(b.buyback_accepted)}</span>` : ""}<div class="rx-cls">${esc(b.headline || "")}</div></td>${["SPY","QQQ","TLT","HYG","BTC-USD","GLD","SLV","VNQ"].map(s => pair(b.moves || {}, s)).join("")}</tr>`).join("") || `<tr><td colspan="10" class="flat">No history yet.</td></tr>`;
+  }
+
   function findAuction(D, key) {
     const [cusip, date] = String(key).split("|");
     return (D.auctions || []).find(a => a.cusip === cusip && a.auction_date === date) || ((D.today || {}).auctions || []).find(a => a.cusip === cusip && a.auction_date === date);
@@ -581,7 +620,7 @@
     }
     if (!D) { $("desk-headline").textContent = "Auction desk feed unavailable — the engine has not published yet."; return; }
     window.__AUCTION_DESK = D;
-    renderBanner(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
+    renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
     wireExplainer(D);
   }
   document.addEventListener("DOMContentLoaded", load);
@@ -1350,7 +1389,7 @@ loadData();
 setInterval(loadData, 5 * 60 * 1000);
 </script>
 
-  <script src="/jh-enhance.js" data-feed="data/auction-crisis.json" data-line="composite_history.series" data-title="Treasury-auction stress — composite history" data-sub="issuance / tail-stress composite" data-crisis="1"></script>
+  <script src="/jh-enhance.js" data-feed="data/auction-desk.json" data-line="composite_history.series" data-title="Treasury-auction stress — composite history, 1996 → today" data-sub="detector composite rebuilt weekly over every auction since 1996 (daily for the last 60 days) · crisis bands shaded" data-crisis="1"></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <!-- P0-7 audit follow-up · dark engine wired (perplexity, 2026-08-05) -->

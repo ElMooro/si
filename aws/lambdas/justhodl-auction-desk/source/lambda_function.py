@@ -46,15 +46,36 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+import bisect
+
 import boto3
 
-VERSION = "1.1.0"
+try:
+    import crisis_scoring  # vendored justhodl-auction-crisis-detector scoring (same math for the 1996-> composite)
+except Exception:  # pragma: no cover
+    crisis_scoring = None
+
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
 BUY_KEY = "data/warm/treasury-auctions/buybacks.json"
 DAILY_PREFIX = "data/warm/treasury-auctions/daily/"
 PAR_KEY = "data/warm/treasury-par/curve.json.gz"
+FULL_KEY = "data/warm/treasury-auctions/history-full.json.gz"     # raw FiscalData rows since 1996 (composite history + reactions)
+ASSETS_KEY = "data/warm/treasury-auctions/assets.json.gz"
+COMPOSITE_KEY = "data/warm/treasury-auctions/composite-history.json"
+REACT_KEY = "data/warm/treasury-auctions/reactions.json"
+PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
+FULL_FIELDS = ("cusip", "security_type", "security_term", "auction_date", "issue_date", "maturity_date", "high_rate", "high_yield",
+               "high_discnt_rate", "high_investment_rate", "low_rate", "low_yield", "low_discnt_rate", "median_rate", "median_yield",
+               "median_discnt_rate", "bid_to_cover_ratio", "primary_dealer_accepted", "direct_bidder_accepted", "indirect_bidder_accepted",
+               "allocation_pctage", "total_accepted", "comp_accepted", "noncomp_accepted", "soma_accepted", "offering_amt", "reopening", "int_rate")
+ASSETS = [("SPY", "S&P 500", "stocks"), ("QQQ", "Nasdaq 100", "stocks"), ("IWM", "Small caps", "stocks"),
+          ("TLT", "Long Treasuries", "bonds"), ("IEF", "7-10Y Treasuries", "bonds"), ("HYG", "High-yield credit", "credit"),
+          ("BTC-USD", "Bitcoin", "crypto"), ("ETH-USD", "Ether", "crypto"), ("GLD", "Gold", "gold"), ("SLV", "Silver", "silver"),
+          ("VNQ", "Real estate (REITs)", "real estate"), ("UUP", "US dollar", "fx"), ("USO", "Oil", "commodities"), ("EEM", "Emerging markets", "stocks")]
+HORIZONS = (("same_day", 0), ("d1", 1), ("d5", 5), ("d20", 20))
 TD = "https://www.treasurydirect.gov/TA_WS/securities/"
 FD = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/"
 UA = "justhodl-auction-desk/" + VERSION
@@ -186,14 +207,21 @@ def rec_key(r):
 
 
 # ─────────────────────────── par curve (tail proxy) ──────────────────
+_PAR_DATES = {}
+
+
 def par_prev_close(par_rows, auction_date, tenor):
     """Par yield of `tenor` on the last curve date strictly before the auction date."""
     if not par_rows or not tenor or not auction_date:
         return None, None
-    dates = [d for d in par_rows if d < auction_date]
-    if not dates:
+    key = id(par_rows)
+    if key not in _PAR_DATES:
+        _PAR_DATES[key] = sorted(par_rows)
+    dates = _PAR_DATES[key]
+    i = bisect.bisect_left(dates, auction_date) - 1
+    if i < 0:
         return None, None
-    d = max(dates)
+    d = dates[i]
     v = (par_rows.get(d) or {}).get(tenor)
     return (_f(v), d) if v is not None else (None, d)
 
@@ -219,11 +247,25 @@ def z(value, hist):
     return round((value - mu) / sd, 2)
 
 
-def analyze_auction(r, bank_sorted, par_rows):
+def analyze_bank(bank_sorted, par_rows, today):
+    """Grade every settled auction in the bank (O(n): trailing-12 via per-tenor groups)."""
+    groups = {}
+    out = []
+    for r in bank_sorted:
+        if r.get("btc") is None or r["auction_date"] > today:
+            continue
+        g = groups.setdefault((r["type"], r["term"]), [])
+        out.append(analyze_auction(r, None, par_rows, prior=g[-12:]))
+        g.append(r)
+    return out
+
+
+def analyze_auction(r, bank_sorted, par_rows, prior=None):
     """Grade one auction against the trailing 12 same type+term auctions before it."""
     a = dict(r)
     a.update(shares(r))
-    prior = [b for b in bank_sorted if b["type"] == r["type"] and b["term"] == r["term"] and b["auction_date"] < r["auction_date"]][-12:]
+    if prior is None:
+        prior = [b for b in bank_sorted if b["type"] == r["type"] and b["term"] == r["term"] and b["auction_date"] < r["auction_date"]][-12:]
     for b in prior:
         b.update(shares(b))
     par, par_date = par_prev_close(par_rows, r["auction_date"], r.get("tenor"))
@@ -511,6 +553,270 @@ def ai_note(facts):
         return {"error": str(e)[:200]}
 
 
+# ─────────────────────────── full history (1996->) ───────────────────
+def load_full_bank(force=False):
+    doc = _s3_json(FULL_KEY) or {}
+    rows = doc.get("rows") or {}
+    if rows and not force:
+        # incremental: everything since the newest banked auction minus 10 days
+        start = (datetime.fromisoformat(max(rows)[:10]) - timedelta(days=10)).date().isoformat()
+    else:
+        rows, start = {}, "1996-01-01"
+    try:
+        for r in fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}, max_pages=60):
+            if not r.get("cusip") or not r.get("auction_date") or _f(r.get("bid_to_cover_ratio")) is None:
+                continue
+            rows["%s|%s" % (r["auction_date"][:10], r["cusip"])] = {k: r.get(k) for k in FULL_FIELDS if r.get(k) not in (None, "", "null")}
+        doc = {"version": VERSION, "rows": rows, "as_of": _iso(), "n": len(rows), "first": min(rows)[:10] if rows else None, "last": max(rows)[:10] if rows else None}
+        _put_json(FULL_KEY, doc, gz=True)
+    except Exception as e:
+        doc.setdefault("rows", rows)
+        doc["error"] = str(e)[:160]
+    return doc
+
+
+def fetch_fred_daily(series, obs=12000):
+    try:
+        body = _get_json("%s/fred?series=%s&obs=%d" % (PROXY, series, obs), timeout=40)
+        out = {}
+        for b in body.get("bars") or []:
+            d = b.get("date") or (datetime.fromtimestamp(int(b["time"]), tz=timezone.utc).date().isoformat() if b.get("time") else None)
+            if d and _f(b.get("value")) is not None:
+                out[d[:10]] = _f(b.get("value"))
+        return out
+    except Exception:
+        return {}
+
+
+def build_composite_history(full_rows, ff_by_date, live_point=None):
+    """Detector-faithful composite (0.7*max + 0.3*avg per auction, size-weighted over a 14-day window,
+    + up to 15 points of bill-issuance overlay), sampled weekly from 1996 and daily for the last 60 days."""
+    if not crisis_scoring or not full_rows:
+        return {"series": [], "note": "scoring module unavailable"}
+    scored = []
+    ff_dates = sorted(ff_by_date)
+    for key in sorted(full_rows):
+        r = full_rows[key]
+        d = r.get("auction_date", "")[:10]
+        try:
+            m = crisis_scoring.compute_record_metrics(r)
+        except Exception:
+            continue
+        if not m.get("btc"):
+            continue
+        i = bisect.bisect_right(ff_dates, d) - 1
+        ff = ff_by_date[ff_dates[i]] if i >= 0 else 0.0
+        sc = crisis_scoring.score_indicators(m, ff)
+        if not sc:
+            continue
+        mx, av = max(sc.values()), sum(sc.values()) / len(sc)
+        scored.append((d, 0.7 * mx + 0.3 * av, m.get("accepted_billions") or 1.0, "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
+    scored.sort()
+    dates = [x[0] for x in scored]
+    today = _now().date()
+    first = datetime.fromisoformat(min(dates)).date() if dates else today
+    samples = []
+    d = first
+    while d <= today - timedelta(days=60):
+        samples.append(d)
+        d += timedelta(days=7)
+    d = max(d, today - timedelta(days=60))
+    while d <= today:
+        samples.append(d)
+        d += timedelta(days=1)
+    series = []
+    for D in samples:
+        lo, hi = (D - timedelta(days=14)).isoformat(), D.isoformat()
+        a, b = bisect.bisect_left(dates, lo), bisect.bisect_right(dates, hi)
+        win = scored[a:b]
+        if not win:
+            continue
+        tot = sum(w[2] for w in win)
+        comp = sum(w[1] * w[2] for w in win) / tot if tot else 0.0
+        # issuance overlay: bills 4w average per auction day vs trailing 1y
+        a1 = bisect.bisect_left(dates, (D - timedelta(days=365)).isoformat())
+        a4 = bisect.bisect_left(dates, (D - timedelta(days=28)).isoformat())
+        by_day_1y, by_day_4w = {}, {}
+        for w in scored[a1:b]:
+            if w[3] and w[4]:
+                by_day_1y[w[0]] = by_day_1y.get(w[0], 0) + w[4]
+        for w in scored[a4:b]:
+            if w[3] and w[4]:
+                by_day_4w[w[0]] = by_day_4w.get(w[0], 0) + w[4]
+        if by_day_1y and by_day_4w:
+            avg4 = sum(by_day_4w.values()) / len(by_day_4w)
+            avg1 = sum(by_day_1y.values()) / len(by_day_1y)
+            pct = (avg4 - avg1) / avg1 * 100 if avg1 else 0
+            iss = 90 if pct > 50 else 60 if pct > 30 else 30 if pct > 15 else 0
+            comp = min(100, comp + iss * 0.15)
+        series.append({"date": hi, "composite": round(comp, 1), "n": len(win)})
+    if live_point and live_point.get("date") and live_point.get("composite") is not None:
+        series = [p for p in series if p["date"] != live_point["date"]]
+        series.append({"date": live_point["date"], "composite": round(float(live_point["composite"]), 1), "n": live_point.get("n") or 0, "live": True})
+        series.sort(key=lambda p: p["date"])
+    return {"series": series, "sampled": "weekly to T-60d, daily after", "first": series[0]["date"] if series else None,
+            "last": series[-1]["date"] if series else None, "n_auctions_scored": len(scored), "method": "detector composite: 0.7*max+0.3*avg per auction, size-weighted 14d window, +0-15 issuance overlay"}
+
+
+# ─────────────────────────── cross-asset reactions ───────────────────
+def load_assets(force=False):
+    doc = _s3_json(ASSETS_KEY) or {}
+    fresh = doc.get("as_of") and (Date_parse(doc["as_of"]) > _now() - timedelta(hours=20))
+    if fresh and not force and doc.get("series"):
+        return doc
+    series = dict(doc.get("series") or {})
+    for sym, name, cls in ASSETS:
+        try:
+            body = _get_json("%s/yf-ohlc?symbol=%s&range=max&interval=1d" % (PROXY, urllib.parse.quote(sym)), timeout=40)
+            bars = body.get("bars") or []
+            dates, closes = [], []
+            for b in bars:
+                t = b.get("time")
+                c = _f(b.get("close"))
+                if t is None or c is None:
+                    continue
+                d = datetime.fromtimestamp(int(t), tz=timezone.utc).date().isoformat() if isinstance(t, (int, float)) else str(t)[:10]
+                if d >= "1995-01-01":
+                    dates.append(d)
+                    closes.append(c)
+            if len(dates) > 100:
+                series[sym] = {"name": name, "class": cls, "dates": dates, "closes": closes}
+        except Exception as e:
+            print("[auction-desk] asset %s failed: %s" % (sym, str(e)[:80]))
+    doc = {"version": VERSION, "as_of": _iso(), "series": series}
+    _put_json(ASSETS_KEY, doc, gz=True)
+    return doc
+
+
+def Date_parse(iso):
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    except Exception:
+        return _now() - timedelta(days=9)
+
+
+def fwd_returns(ser, day):
+    """same-day (auction-day close vs prior close), +1/+5/+20 trading days after the auction day."""
+    dates, closes = ser["dates"], ser["closes"]
+    i = bisect.bisect_right(dates, day) - 1          # last close on or before the auction day
+    if i < 1 or dates[i] < (datetime.fromisoformat(day) - timedelta(days=4)).date().isoformat():
+        return None
+    out = {}
+    out["same_day"] = closes[i] / closes[i - 1] - 1 if closes[i - 1] else None
+    for label, n in HORIZONS[1:]:
+        j = i + n
+        out[label] = (closes[j] / closes[i] - 1) if j < len(closes) and closes[i] else None
+    return out
+
+
+def day_class(auctions, buybacks):
+    coupons = [a for a in auctions if a["type"] in ("Note", "Bond", "TIPS", "FRN")]
+    strong_bb = any(b.get("liquidity_signal") == "strong" for b in buybacks)
+    cls = []
+    if strong_bb:
+        cls.append("buyback_strong")
+    if coupons:
+        grades = [a["grade"] for a in coupons if a["grade"] in "ABCDF" and a["grade"] != "n/a"]
+        if grades and all(g in ("A", "B") for g in grades):
+            cls.append("coupon_strong")
+        elif grades and any(g in ("D", "F") for g in grades):
+            cls.append("coupon_weak")
+        elif grades:
+            cls.append("coupon_mixed")
+    elif auctions:
+        cls.append("bills_only")
+    return cls or ["none"]
+
+
+CLASS_LABEL = {"buyback_strong": "large max-fill buyback day", "coupon_strong": "coupon auctions well bid (A/B)",
+               "coupon_weak": "a coupon auction tailed / graded D-F", "coupon_mixed": "coupon auctions mixed (C)", "bills_only": "bills only", "none": "no operations"}
+
+
+def build_reactions(day_ops, assets, today_key):
+    """day_ops: {date: {"auctions": [...analyzed], "buybacks": [...analyzed]}} over the analysed history.
+    Returns conditional forward-return stats per class x asset x horizon, today's prediction, and the realised scoreboard."""
+    events = []
+    for d, ops in day_ops.items():
+        if d >= today_key:
+            continue
+        for c in day_class(ops["auctions"], ops["buybacks"]):
+            events.append((d, c))
+    stats = {}
+    base = {}
+    for sym, ser in assets.items():
+        # unconditional baseline: every auction day
+        rets = [fwd_returns(ser, d) for d in day_ops if d < today_key]
+        rets = [r for r in rets if r]
+        base[sym] = {h: _dist([r[h] for r in rets if r.get(h) is not None]) for h, _ in HORIZONS}
+        for cls in set(c for _, c in events):
+            days = [d for d, c in events if c == cls]
+            rr = [fwd_returns(ser, d) for d in days]
+            rr = [r for r in rr if r]
+            stats.setdefault(cls, {})[sym] = {h: _dist([r[h] for r in rr if r.get(h) is not None]) for h, _ in HORIZONS}
+    return {"stats": stats, "baseline": base, "n_events": {c: sum(1 for _, x in events if x == c) for c in set(c for _, c in events)},
+            "classes": CLASS_LABEL, "horizons": [h for h, _ in HORIZONS]}
+
+
+def _dist(xs):
+    xs = [x for x in xs if x is not None]
+    if len(xs) < 3:
+        return {"n": len(xs), "median": None, "mean": None, "hit": None}
+    xs_sorted = sorted(xs)
+    med = xs_sorted[len(xs) // 2] if len(xs) % 2 else (xs_sorted[len(xs) // 2 - 1] + xs_sorted[len(xs) // 2]) / 2
+    return {"n": len(xs), "median": round(med * 100, 2), "mean": round(sum(xs) / len(xs) * 100, 2), "hit": round(100.0 * sum(1 for x in xs if x > 0) / len(xs))}
+
+
+def predict_today(classes, reactions, assets):
+    """Per asset: the conditional distribution for today's class (prefer the rarest informative class), the call, and the edge vs baseline."""
+    order = ["buyback_strong", "coupon_weak", "coupon_strong", "coupon_mixed", "bills_only"]
+    use = [c for c in order if c in classes and c in reactions["stats"]]
+    rows = []
+    for sym, name, cls_name in ASSETS:
+        if sym not in assets:
+            continue
+        chosen, st = None, None
+        for c in use:
+            cand = reactions["stats"].get(c, {}).get(sym)
+            if cand and (cand.get("d1", {}).get("n") or 0) >= 8:
+                chosen, st = c, cand
+                break
+        if not st:
+            continue
+        b = reactions["baseline"].get(sym, {})
+        h1, h5, h20 = st.get("d1", {}), st.get("d5", {}), st.get("d20", {})
+        med1, hit1 = h1.get("median"), h1.get("hit")
+        call = "→"
+        if med1 is not None and hit1 is not None:
+            if med1 > 0 and hit1 >= 57:
+                call = "↑"
+            elif med1 < 0 and hit1 <= 43:
+                call = "↓"
+        conf = "high" if (hit1 is not None and abs(hit1 - 50) >= 15 and h1.get("n", 0) >= 30) else "medium" if (hit1 is not None and abs(hit1 - 50) >= 8 and h1.get("n", 0) >= 15) else "low"
+        rows.append({"symbol": sym, "name": name, "asset_class": cls_name, "basis": chosen, "basis_label": CLASS_LABEL.get(chosen, chosen), "n": h1.get("n"),
+                     "same_day": st.get("same_day"), "d1": h1, "d5": h5, "d20": h20, "baseline_d1": b.get("d1"), "call": call, "confidence": conf,
+                     "edge_d1": round((med1 or 0) - ((b.get("d1") or {}).get("median") or 0), 2) if med1 is not None else None})
+    return rows
+
+
+def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6):
+    board = []
+    for d in day_list[:n + 1]:
+        ops = day_ops.get(d) or {"auctions": [], "buybacks": []}
+        cls = day_class(ops["auctions"], ops["buybacks"])
+        moves = {}
+        for sym in ("SPY", "QQQ", "TLT", "HYG", "BTC-USD", "GLD", "SLV", "VNQ"):
+            ser = assets.get(sym)
+            if not ser:
+                continue
+            r = fwd_returns(ser, d)
+            if r:
+                moves[sym] = {"same_day": round(r["same_day"] * 100, 2) if r.get("same_day") is not None else None, "d1": round(r["d1"] * 100, 2) if r.get("d1") is not None else None}
+        v = verdicts.get(d) or {}
+        board.append({"date": d, "classes": cls, "labels": [CLASS_LABEL.get(c, c) for c in cls], "headline": v.get("headline"), "risk_assets": v.get("risk_assets"),
+                      "grades": [a["grade"] for a in ops["auctions"]], "buyback_accepted": sum(b.get("accepted") or 0 for b in ops["buybacks"]), "moves": moves})
+    return board
+
+
 # ─────────────────────────── main ────────────────────────────────────
 def lambda_handler(event, ctx):
     t0 = time.time()
@@ -581,9 +887,9 @@ def lambda_handler(event, ctx):
     # 4) analysis
     par_rows = (_s3_json(PAR_KEY) or {}).get("rows") or {}
     bank_sorted = sorted(records.values(), key=lambda r: r["auction_date"])
+    analyzed_all = analyze_bank(bank_sorted, par_rows, today)
     cutoff = (_now() - timedelta(days=400)).date().isoformat()
-    recent = [r for r in bank_sorted if cutoff <= r["auction_date"] <= today and r.get("btc") is not None]
-    analyzed = [analyze_auction(r, bank_sorted, par_rows) for r in recent]
+    analyzed = [a for a in analyzed_all if a["auction_date"] >= cutoff]
     analyzed.sort(key=lambda a: (a["auction_date"], a["term"]), reverse=True)
     program = [op for op in ops.values() if op.get("accepted") is not None]
     program.sort(key=lambda o: o["operation_date"])
@@ -611,15 +917,45 @@ def lambda_handler(event, ctx):
         secs.sort(key=lambda x: x.get("ttm_years") or 0)
         b["securities"] = secs[:80]
 
-    # day buckets (most recent 30 operation days)
-    days = {}
-    for a in analyzed:
-        days.setdefault(a["auction_date"], {"auctions": [], "buybacks": []})["auctions"].append(a)
+    # day buckets: the full analysed history feeds the reaction model; the desk shows the last 30 operation days
+    days_all = {}
+    for a in analyzed_all:
+        days_all.setdefault(a["auction_date"], {"auctions": [], "buybacks": []})["auctions"].append(a)
     for b in bb_analyzed:
-        days.setdefault(b["operation_date"], {"auctions": [], "buybacks": []})["buybacks"].append(b)
+        days_all.setdefault(b["operation_date"], {"auctions": [], "buybacks": []})["buybacks"].append(b)
+    days = {d: v for d, v in days_all.items() if d >= cutoff}
     day_list = sorted(days, reverse=True)[:30]
     verdicts = {d: day_verdict(d, days[d]["auctions"], days[d]["buybacks"]) for d in day_list}
     latest_day = day_list[0] if day_list else None
+
+    # cross-asset reactions (history from the same graded bank; prices via the fleet proxy, cached ~daily)
+    reactions, prediction, scoreboard, assets_note = None, [], [], ""
+    try:
+        assets = (load_assets(force=bool(event.get("assets"))) or {}).get("series") or {}
+        reactions = build_reactions(days_all, assets, latest_day or today)
+        today_classes = day_class(days[latest_day]["auctions"], days[latest_day]["buybacks"]) if latest_day else ["none"]
+        prediction = predict_today(today_classes, reactions, assets)
+        scoreboard = realised_scoreboard(days_all, assets, day_list, verdicts)
+        assets_note = "%d assets, %d graded auction days" % (len(assets), len([d for d in days_all if d < (latest_day or today)]))
+    except Exception as e:
+        assets_note = "reactions failed: %s" % str(e)[:140]
+        today_classes = ["none"]
+
+    # composite history 1996-> (weekly; daily last 60d) with the detector's own live point appended
+    composite = None
+    try:
+        full = load_full_bank(force=bool(event.get("history")))
+        live = None
+        try:
+            ac = _s3_json("data/auction-crisis.json") or {}
+            live = {"date": today, "composite": ac.get("composite_score"), "n": ac.get("n_recent_auctions_14d")}
+        except Exception:
+            pass
+        composite = build_composite_history(full.get("rows") or {}, fetch_fred_daily("DFF"), live)
+        composite["bank"] = {"first": full.get("first"), "last": full.get("last"), "n": full.get("n"), "error": full.get("error")}
+        _put_json(COMPOSITE_KEY, composite)
+    except Exception as e:
+        composite = {"series": [], "error": str(e)[:160]}
 
     # program stats
     fy_start = ("%d-10-01" % (_now().year - 1)) if _now().month < 10 else ("%d-10-01" % _now().year)
@@ -678,10 +1014,15 @@ def lambda_handler(event, ctx):
         "buybacks": {"operations": bb_analyzed, "program": program_stats},
         "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if b["operation_date"] > today][:10]},
         "by_term": by_term,
+        "composite_history": composite,
+        "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
+                      "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
+                      "note": assets_note, "horizons": "same_day = auction-day close vs prior close (results land at 1pm ET); d1/d5/d20 = trading days after the auction day; crypto trades 7 days"},
         "methodology": {
             "tail_proxy": "high yield (bills: investment rate) minus the prior-close Treasury par yield of the matching tenor, in bp; a true when-issued tail needs dealer WI quotes",
             "z_scores": "vs the trailing 12 auctions of the same type and term", "grade": "demand score = z(bid-to-cover) + 0.8 z(indirect) - 0.8 z(dealer) - z(tail); A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F",
-            "buyback_signal": "strong = accepted >= 90% of maximum and maximum >= $5B (tags LIQUIDITY INJECTION / EASY-POLICY SIGNAL / RISK-ASSET BULLISH)"},
+            "buyback_signal": "strong = accepted >= 90% of maximum and maximum >= $5B (tags LIQUIDITY INJECTION / EASY-POLICY SIGNAL / RISK-ASSET BULLISH)",
+            "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }
     _put_json(OUT_KEY, out)
     return {"ok": True, "elapsed_s": out["elapsed_s"], "newest_auction": out["freshness"]["newest_auction"], "newest_buyback": out["freshness"]["newest_buyback"],
