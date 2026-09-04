@@ -20,6 +20,15 @@ test("Khalid loads the canonical artifact with the production fallback", () => {
   assert.match(js, /justhodl-data-proxy/);
 });
 
+test("Khalid renders the broad opportunity radar and lifecycle changes", () => {
+  assert.match(js, /opportunity_radar/);
+  assert.match(js, /opportunity_changes/);
+  assert.match(html, /GLOBAL OPPORTUNITY RADAR/);
+  assert.match(html, /data-filter="HIGH_CONVICTION"/);
+  assert.match(html, /data-filter="EVIDENCE_HOLD"/);
+  assert.match(js, /\["DATA HOLD", changeData\.held\]/);
+});
+
 test("Dynamic feed values use DOM text nodes rather than HTML interpolation", () => {
   assert.doesNotMatch(js, /innerHTML\\s*=/);
   assert.match(js, /textContent/);

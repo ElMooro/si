@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "required": [
     "engine",
     "schema_version",
@@ -14,6 +14,11 @@
     "domains",
     "asset_views",
     "top_signals",
+    "biggest_opportunities",
+    "opportunity_radar",
+    "opportunity_changes",
+    "queues",
+    "near_misses",
     "contradictions",
     "catalysts",
     "risks",
@@ -25,5 +30,6 @@
   "score_bounds": [0, 100],
   "confidence_bounds": [0, 1],
   "statuses": ["OK", "DEGRADED", "NO_DATA"],
-  "actions": ["READY_TO_SNIPE", "BUILDING_BASE", "WATCH_RECLAIM", "REJECTED"]
+  "actions": ["READY_TO_SNIPE", "ARMED", "BUILDING_BASE", "WATCH_RECLAIM", "TRACKING", "REJECTED"],
+  "discovery_stages": ["ENTRY_READY", "HIGH_CONVICTION", "UNDERAPPRECIATED", "RISK_BLOCKED", "EARLY_SIGNAL", "EVIDENCE_HOLD"]
 }

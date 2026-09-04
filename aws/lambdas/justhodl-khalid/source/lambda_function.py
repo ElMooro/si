@@ -18,12 +18,14 @@ from typing import Any
 
 import boto3
 
-from scoring import contract_error, rank_candidates, risk_policy, score_candidate
+from discovery import apply_lifecycle, build_opportunity_radar
+from scoring import contract_error, number, rank_candidates, risk_policy, score_candidate
 
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/khalid.json"
 HISTORY_KEY = "data/history/khalid.json"
+CANDIDATE_LEDGER_KEY = "data/khalid-candidates.json"
 S3 = boto3.client("s3")
 
 REGISTRY_PATH = Path(__file__).with_name("input_registry.json")
@@ -50,6 +52,41 @@ def validate_output(payload: dict) -> None:
             raise ValueError(f"{key} outside 0..100")
     if not 0 <= float(payload["confidence"]) <= 1:
         raise ValueError("confidence outside 0..1")
+    allowed_actions = set(schema["actions"])
+    allowed_stages = set(schema["discovery_stages"])
+    radar = payload.get("opportunity_radar")
+    if not isinstance(radar, list):
+        raise ValueError("opportunity_radar must be a list")
+    seen = set()
+    for row in radar:
+        lifecycle = row.get("lifecycle") or {}
+        opportunity_id = lifecycle.get("opportunity_id")
+        if not opportunity_id or opportunity_id in seen:
+            raise ValueError("opportunity IDs must be present and unique")
+        seen.add(opportunity_id)
+        if row.get("action") not in allowed_actions:
+            raise ValueError(f"invalid action for {opportunity_id}")
+        if row.get("discovery_stage") not in allowed_stages:
+            raise ValueError(f"invalid discovery stage for {opportunity_id}")
+        if not 0 <= float(row.get("score")) <= 100:
+            raise ValueError(f"score outside 0..100 for {opportunity_id}")
+        if not 0 <= float(row.get("confidence")) <= 1:
+            raise ValueError(f"confidence outside 0..1 for {opportunity_id}")
+        if not 0 <= float(row.get("component_coverage")) <= 1:
+            raise ValueError(f"coverage outside 0..1 for {opportunity_id}")
+        entry_state = (row.get("entry_trigger") or {}).get("state")
+        if row.get("discovery_stage") == "ENTRY_READY":
+            if row.get("action") != "READY_TO_SNIPE" or entry_state != "TRIGGERED":
+                raise ValueError(f"ENTRY_READY without observed trigger for {opportunity_id}")
+        if row.get("discovery_stage") == "EVIDENCE_HOLD":
+            if row.get("action") != "TRACKING" or float(row.get("confidence")) != 0 or entry_state != "WAIT":
+                raise ValueError(f"EVIDENCE_HOLD must suspend conviction and execution for {opportunity_id}")
+    decision = payload.get("decision") or {}
+    if decision.get("opportunities_tracked") != len(radar):
+        raise ValueError("tracked count does not reconcile")
+    high_count = sum(row["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for row in radar)
+    if decision.get("high_conviction_count") != high_count:
+        raise ValueError("high-conviction count does not reconcile")
     json.dumps(payload, allow_nan=False)
 
 
@@ -108,6 +145,18 @@ def _index(rows: Any, *keys: str) -> dict[str, dict]:
     return out
 
 
+def _dict_rows(value: Any) -> list[dict]:
+    if not isinstance(value, list):
+        return []
+    return [row for row in value if isinstance(row, dict)]
+
+
+def _dict_map(value: Any) -> dict[str, dict]:
+    if not isinstance(value, dict):
+        return {}
+    return {str(key).upper(): row for key, row in value.items() if isinstance(row, dict)}
+
+
 def _crypto_watch(ma: dict, confluence: dict, cycle: dict) -> list[dict]:
     rows = []
     risk_score = cycle.get("composite_score") or cycle.get("risk_score")
@@ -117,7 +166,7 @@ def _crypto_watch(ma: dict, confluence: dict, cycle: dict) -> list[dict]:
         ("retest_failed", "Failed 200-day retest"),
         ("fresh_breakouts_above", "Fresh reclaim; wait for a successful retest"),
     ):
-        for row in (ma.get(group) or [])[:10]:
+        for row in _dict_rows(ma.get(group))[:10]:
             dist = row.get("dist_pct")
             rows.append({
                 "ticker": row.get("ticker"),
@@ -161,78 +210,124 @@ def _crypto_watch(ma: dict, confluence: dict, cycle: dict) -> list[dict]:
     return rows
 
 
-
-# ---- KATLIN bridge (2026-09-04): Khalid gates; Katlin hunts. Katlin (justhodl-katlin, data/katlin.json) scans every
-# stock/ETF/crypto in the warehouse for the 200/250-day location, W/M/Q bottom structure, oversold RSI, Wyckoff
-# accumulation, inflows, named catalysts and a 4h entry. Its picks are translated into the row vocabulary that
-# score_candidate already reads, so Khalid's strict execution gate runs over Fortress AND Katlin without a second
-# scoring rulebook. Fortress rows win on overlapping fields; Katlin fills what Fortress does not measure.
 def _katlin_rows(katlin: dict) -> list[dict]:
+    """Translate Katlin's broad scan into Khalid's independently gated row contract."""
     rows = []
-    for r in list(katlin.get("picks") or []) + list(katlin.get("watch") or []):
-        if not isinstance(r, dict) or not r.get("ticker"):
+    for row in _dict_rows(katlin.get("picks")) + _dict_rows(katlin.get("watch")):
+        if not row.get("ticker"):
             continue
-        q = r.get("quality") if isinstance(r.get("quality"), dict) else {}
-        il = r.get("inflow_legs") if isinstance(r.get("inflow_legs"), dict) else {}
-        pl = r.get("plan") if isinstance(r.get("plan"), dict) else {}
-        pillars = r.get("pillars") if isinstance(r.get("pillars"), dict) else {}
-        legs = r.get("accum_legs") if isinstance(r.get("accum_legs"), dict) else {}
-        cats = [str(c.get("text") if isinstance(c, dict) else c) for c in (r.get("catalysts") or [])]
-        cat_text = " ".join(cats).lower()
-        indflow = il.get("industry_flow") if isinstance(il.get("industry_flow"), dict) else {}
+        quality = row.get("quality") if isinstance(row.get("quality"), dict) else {}
+        inflows = row.get("inflow_legs") if isinstance(row.get("inflow_legs"), dict) else {}
+        plan = row.get("plan") if isinstance(row.get("plan"), dict) else {}
+        pillars = row.get("pillars") if isinstance(row.get("pillars"), dict) else {}
+        accum = row.get("accum_legs") if isinstance(row.get("accum_legs"), dict) else {}
+        catalysts = _dict_rows(row.get("catalysts"))
+        catalyst_text = " ".join(str(item.get("text") or "") for item in catalysts).lower()
+        industry_flow = inflows.get("industry_flow") if isinstance(inflows.get("industry_flow"), dict) else {}
         rows.append({
             "_source": "katlin",
-            "ticker": r.get("ticker"),
-            "name": r.get("name"),
-            "industry": r.get("industry"),
-            "asset_class": str(r.get("asset_class") or "stock").upper(),
-            "close": r.get("last"),
-            "vs_sma200_pct": r.get("dist_sma200_pct"),
-            "vs_sma250_pct": r.get("dist_sma250_pct"),
-            "bb_width_pctile": r.get("bbw_pctile"),
-            "rsi": r.get("rsi_w"),
-            "volume_dryup": r.get("vol_ratio_20_120"),
-            "higher_lows": r.get("higher_lows_w"),
-            "obv_divergence": (legs.get("obv_div") or 0) >= 60,
-            "ad_divergence": (legs.get("ad_line") or 0) >= 60,
-            "adv_usd_20d": r.get("adv_usd"),
-            "dilution_yoy_pct": q.get("share_count_yoy_pct"),
-            "net_buyback_yield_pct": q.get("net_buyback_yield_pct"),
+            "ticker": row.get("ticker"),
+            "name": row.get("name"),
+            "industry": row.get("industry"),
+            "asset_class": str(row.get("asset_class") or "stock").upper(),
+            "close": row.get("last"),
+            "vs_sma200_pct": row.get("dist_sma200_pct"),
+            "vs_sma250_pct": row.get("dist_sma250_pct"),
+            "bb_width_pctile": row.get("bbw_pctile"),
+            "rsi": row.get("rsi_w"),
+            "volume_dryup": row.get("vol_ratio_20_120"),
+            "higher_lows": row.get("higher_lows_w"),
+            "obv_divergence": (number(accum.get("obv_div")) or 0) >= 60,
+            "ad_divergence": (number(accum.get("ad_line")) or 0) >= 60,
+            "adv_usd_20d": row.get("adv_usd"),
+            "dilution_yoy_pct": quality.get("share_count_yoy_pct"),
+            "net_buyback_yield_pct": quality.get("net_buyback_yield_pct"),
             "flow_score": pillars.get("inflows"),
-            "inflow_major": bool(indflow.get("major")),
-            "inst_net_usd": il.get("inst_net_usd"),
-            "whale_net_usd": il.get("whale_net_usd"),
-            "dark_pool_state": il.get("dark_pool_state"),
-            "insider_cluster": bool(il.get("insider_cluster")),
+            "inflow_major": bool(industry_flow.get("major")),
+            "inst_net_usd": inflows.get("inst_net_usd"),
+            "whale_net_usd": inflows.get("whale_net_usd"),
+            "dark_pool_state": inflows.get("dark_pool_state"),
+            "insider_cluster": bool(inflows.get("insider_cluster")),
             "catalyst_score": pillars.get("catalyst"),
-            "has_contract_catalyst": "contract" in cat_text,
-            "demand_accelerating": "backlog" in cat_text or "accelerat" in cat_text,
-            "industry_boom_score": next((c.get("value") for c in (r.get("catalysts") or []) if isinstance(c, dict) and c.get("kind") == "industry_boom"), None),
-            "fwd_pe": q.get("fwd_pe"), "peg": q.get("peg"), "ev_ebitda": q.get("ev_ebitda"), "fcf_yield_pct": q.get("fcf_yield_pct"),
-            "beneish_m": q.get("beneish_m"),
-            "asymmetry": r.get("asymmetry"),
-            "confidence": (r.get("conviction") or 0) / 100.0 if r.get("conviction") is not None else None,
-            "trade_plan": {"pivot": pl.get("entry"), "stop": pl.get("stop"), "target_2": pl.get("target_2") or pl.get("target_1"), "target": pl.get("target_1")},
+            "has_contract_catalyst": "contract" in catalyst_text,
+            "demand_accelerating": "backlog" in catalyst_text or "accelerat" in catalyst_text,
+            "industry_boom_score": next(
+                (item.get("value") for item in catalysts if item.get("kind") == "industry_boom"),
+                None,
+            ),
+            "fwd_pe": quality.get("fwd_pe"),
+            "peg": quality.get("peg"),
+            "ev_ebitda": quality.get("ev_ebitda"),
+            "fcf_yield_pct": quality.get("fcf_yield_pct"),
+            "beneish_m": quality.get("beneish_m"),
+            "asymmetry": row.get("asymmetry"),
+            "confidence": (
+                (number(row.get("conviction")) or 0) / 100.0
+                if row.get("conviction") is not None else None
+            ),
+            "trade_plan": {
+                "pivot": plan.get("entry"),
+                "stop": plan.get("stop"),
+                "target_2": plan.get("target_2") or plan.get("target_1"),
+                "target": plan.get("target_1"),
+            },
             "_katlin": {
-                "tier": r.get("tier"), "composite": r.get("composite"), "conviction": r.get("conviction"),
-                "structure_state": r.get("structure_state"), "double_bottom": (r.get("double_bottom_w") or {}).get("state") if isinstance(r.get("double_bottom_w"), dict) else None,
-                "trend_break": r.get("lt_trend_break"), "rsi_d": r.get("rsi_d"), "rsi_w": r.get("rsi_w"), "rsi_m": r.get("rsi_m"),
-                "accumulation": pillars.get("accumulation"), "inflows": pillars.get("inflows"), "catalyst": pillars.get("catalyst"), "momentum": pillars.get("momentum"),
-                "sniper": (r.get("sniper") or {}).get("state") if isinstance(r.get("sniper"), dict) else None,
-                "knife": r.get("knife"), "red_flags": q.get("red_flags"), "why": r.get("why"), "catalysts": cats[:4],
-                "accum_evidence": (r.get("accum_evidence") or [])[:4], "inflow_evidence": (r.get("inflow_evidence") or [])[:4],
+                "tier": row.get("tier"),
+                "composite": row.get("composite"),
+                "conviction": row.get("conviction"),
+                "structure_state": row.get("structure_state"),
+                "double_bottom": (
+                    row.get("double_bottom_w").get("state")
+                    if isinstance(row.get("double_bottom_w"), dict) else None
+                ),
+                "trend_break": row.get("lt_trend_break"),
+                "rsi_d": row.get("rsi_d"),
+                "rsi_w": row.get("rsi_w"),
+                "rsi_m": row.get("rsi_m"),
+                "accumulation": pillars.get("accumulation"),
+                "inflows": pillars.get("inflows"),
+                "catalyst": pillars.get("catalyst"),
+                "momentum": pillars.get("momentum"),
+                "sniper": (
+                    row.get("sniper").get("state")
+                    if isinstance(row.get("sniper"), dict) else None
+                ),
+                "knife": row.get("knife"),
+                "red_flags": quality.get("red_flags"),
+                "why": row.get("why"),
+                "catalysts": [str(item.get("text") or "") for item in catalysts[:4]],
+                "accum_evidence": [
+                    item for item in (row.get("accum_evidence") or [])[:4]
+                ] if isinstance(row.get("accum_evidence"), list) else [],
+                "inflow_evidence": [
+                    item for item in (row.get("inflow_evidence") or [])[:4]
+                ] if isinstance(row.get("inflow_evidence"), list) else [],
             },
         })
     return rows
 
 
 def _katlin_posture(katlin: dict) -> dict:
-    wr = katlin.get("war_room") if isinstance(katlin.get("war_room"), dict) else {}
-    return {"posture": wr.get("posture"), "thermometer": wr.get("thermometer"), "exposure_cap_pct": wr.get("exposure_cap_pct"),
-            "vetoes": wr.get("vetoes") or [], "brief": wr.get("brief"), "n_legs": len(wr.get("legs") or []), "session": katlin.get("session")}
+    war_room = katlin.get("war_room") if isinstance(katlin.get("war_room"), dict) else {}
+    legs = war_room.get("legs") if isinstance(war_room.get("legs"), list) else []
+    vetoes = war_room.get("vetoes") if isinstance(war_room.get("vetoes"), list) else []
+    return {
+        "posture": war_room.get("posture"),
+        "thermometer": war_room.get("thermometer"),
+        "exposure_cap_pct": war_room.get("exposure_cap_pct"),
+        "vetoes": vetoes,
+        "brief": war_room.get("brief"),
+        "n_legs": len(legs),
+        "session": katlin.get("session"),
+    }
 
 
-def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime | None = None) -> dict:
+def build_output(
+    feeds: dict[str, dict],
+    metas: dict[str, dict],
+    now: datetime | None = None,
+    prior_candidates: list[dict] | None = None,
+) -> dict:
     now = now or datetime.now(timezone.utc)
     source_health = []
     gaps = []
@@ -272,34 +367,48 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
         })
 
     policy = risk_policy(feeds.get("risk_gate") or {}, feeds.get("crisis") or {}, source_health)
-    katlin = feeds.get("katlin") or {}
-    katlin_wr = _katlin_posture(katlin)
-    if katlin_wr.get("posture") in {"CASH_OR_TBILLS", "DEFENSIVE"} and policy.get("allows_new_entries"):
+    health_by_id = {row["name"]: row["status"] for row in source_health}
+    active_feeds = {
+        name: payload if health_by_id.get(name) == "FRESH" else {}
+        for name, payload in feeds.items()
+    }
+    katlin = active_feeds.get("katlin") or {}
+    katlin_war_room = _katlin_posture(katlin)
+    if (
+        katlin_war_room.get("posture") in {"CASH_OR_TBILLS", "DEFENSIVE"}
+        and policy.get("allows_new_entries")
+    ):
         policy["allows_new_entries"] = False
+        detail = (
+            "; ".join(str(value) for value in katlin_war_room["vetoes"][:3])
+            if katlin_war_room["vetoes"] else "Katlin's cross-asset war room is defensive"
+        )
         policy.setdefault("reasons", []).append(
-            f"Katlin war room is {katlin_wr['posture']} (thermometer {katlin_wr.get('thermometer')}, cap {katlin_wr.get('exposure_cap_pct')}%): "
-            + "; ".join(str(v) for v in (katlin_wr.get("vetoes") or [])[:3]) if katlin_wr.get("vetoes") else
-            f"Katlin war room is {katlin_wr['posture']} (thermometer {katlin_wr.get('thermometer')}, cap {katlin_wr.get('exposure_cap_pct')}%)")
-    fortress = feeds.get("fortress") or {}
-    accumulation = feeds.get("accumulation") or {}
-    best = feeds.get("best_setups") or {}
-    floor = feeds.get("floor") or {}
-    buyback = feeds.get("buyback") or {}
-    option_feed = feeds.get("options") or {}
+            f"Katlin war room is {katlin_war_room['posture']} "
+            f"(thermometer {katlin_war_room.get('thermometer')}, "
+            f"cap {katlin_war_room.get('exposure_cap_pct')}%): {detail}"
+        )
+    fortress = active_feeds.get("fortress") or {}
+    accumulation = active_feeds.get("accumulation") or {}
+    best = active_feeds.get("best_setups") or {}
+    floor = active_feeds.get("floor") or {}
+    buyback = active_feeds.get("buyback") or {}
+    option_feed = active_feeds.get("options") or {}
 
+    bottoms = accumulation.get("bottoms") if isinstance(accumulation.get("bottoms"), dict) else {}
     bottom_rows = (
-        (accumulation.get("confirmed_bottoms") or [])
-        + ((accumulation.get("bottoms") or {}).get("stocks") or [])
-        + ((accumulation.get("bottoms") or {}).get("etfs") or [])
+        _dict_rows(accumulation.get("confirmed_bottoms"))
+        + _dict_rows(bottoms.get("stocks"))
+        + _dict_rows(bottoms.get("etfs"))
     )
     bottom_map = _index(bottom_rows, "ticker", "symbol")
-    best_map = _index(best.get("top_setups") or [], "ticker", "symbol")
-    floor_map = floor.get("tickers") if isinstance(floor.get("tickers"), dict) else {}
-    buyback_map = buyback.get("tickers") if isinstance(buyback.get("tickers"), dict) else {}
-    option_map = _index(option_feed.get("all_results") or [], "ticker", "symbol")
+    best_map = _index(_dict_rows(best.get("top_setups")), "ticker", "symbol")
+    floor_map = _dict_map(floor.get("tickers"))
+    buyback_map = _dict_map(buyback.get("tickers"))
+    option_map = _index(_dict_rows(option_feed.get("all_results")), "ticker", "symbol")
 
     candidates = []
-    for row in (fortress.get("board") or []):
+    for row in _dict_rows(fortress.get("board")):
         ticker = str(row.get("ticker") or "").upper()
         candidates.append(score_candidate(
             row,
@@ -311,7 +420,7 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             buyback=(buyback_map or {}).get(ticker),
             options=option_map.get(ticker),
         ))
-    for row in (fortress.get("etfs") or []):
+    for row in _dict_rows(fortress.get("etfs")):
         ticker = str(row.get("ticker") or "").upper()
         candidates.append(score_candidate(
             row,
@@ -322,71 +431,130 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             options=option_map.get(ticker),
         ))
 
-    # union with Katlin's market-wide scan: same ticker -> Fortress fields win, Katlin fills the gaps; new tickers -> Katlin rows
-    seen = {c["ticker"]: i for i, c in enumerate(candidates) if c.get("ticker")}
-    fortress_rows = {str(r.get("ticker") or "").upper(): r for r in list(fortress.get("board") or []) + list(fortress.get("etfs") or []) if isinstance(r, dict)}
-    for krow in _katlin_rows(katlin):
-        t = str(krow["ticker"]).upper()
-        cls = krow["asset_class"]
-        if t in seen:
-            merged = {**krow, **{k: v for k, v in fortress_rows.get(t, {}).items() if v is not None}, "_source": "fortress+katlin", "_katlin": krow["_katlin"]}
-            candidates[seen[t]] = score_candidate(merged, asset_class=cls if cls != "CRYPTO" else "STOCK",
-                                                  risk_allows_entries=policy["allows_new_entries"], bottom_confirmation=bottom_map.get(t),
-                                                  best_setup=best_map.get(t), floor=(floor_map or {}).get(t), buyback=(buyback_map or {}).get(t), options=option_map.get(t))
+    # Katlin expands discovery; every translated row still passes Khalid's
+    # independent scoring, macro veto, and observed-trigger execution rules.
+    seen = {row["ticker"]: index for index, row in enumerate(candidates) if row.get("ticker")}
+    fortress_rows = {
+        str(row.get("ticker") or "").upper(): row
+        for row in _dict_rows(fortress.get("board")) + _dict_rows(fortress.get("etfs"))
+    }
+    for katlin_row in _katlin_rows(katlin):
+        ticker = str(katlin_row["ticker"]).upper()
+        asset_class = katlin_row["asset_class"]
+        if ticker in seen:
+            merged = {
+                **katlin_row,
+                **{
+                    key: value
+                    for key, value in fortress_rows.get(ticker, {}).items()
+                    if value is not None
+                },
+                "_source": "fortress+katlin",
+                "_katlin": katlin_row["_katlin"],
+            }
+            candidates[seen[ticker]] = score_candidate(
+                merged,
+                asset_class=asset_class,
+                risk_allows_entries=policy["allows_new_entries"],
+                bottom_confirmation=bottom_map.get(ticker),
+                best_setup=best_map.get(ticker),
+                floor=floor_map.get(ticker),
+                buyback=buyback_map.get(ticker),
+                options=option_map.get(ticker),
+            )
         else:
-            seen[t] = len(candidates)
-            candidates.append(score_candidate(krow, asset_class=cls, risk_allows_entries=policy["allows_new_entries"], bottom_confirmation=bottom_map.get(t),
-                                              best_setup=best_map.get(t), floor=(floor_map or {}).get(t), buyback=(buyback_map or {}).get(t), options=option_map.get(t)))
+            seen[ticker] = len(candidates)
+            candidates.append(score_candidate(
+                katlin_row,
+                asset_class=asset_class,
+                risk_allows_entries=policy["allows_new_entries"],
+                bottom_confirmation=bottom_map.get(ticker),
+                best_setup=best_map.get(ticker),
+                floor=floor_map.get(ticker),
+                buyback=buyback_map.get(ticker),
+                options=option_map.get(ticker),
+            ))
+
     ranked = rank_candidates(candidates)
     selected = [x for x in ranked if x["action"] == "READY_TO_SNIPE"][:12]
-    building = [x for x in ranked if x["action"] == "BUILDING_BASE"][:20]
+    building = [x for x in ranked if x["action"] in {"ARMED", "BUILDING_BASE"}][:20]
     watch = [x for x in ranked if x["action"] == "WATCH_RECLAIM"][:12]
     rejected_examples = [x for x in ranked if x["action"] == "REJECTED"][:12]
-    crypto_watch = [x for x in ranked if x["asset_class"] == "CRYPTO"][:15] + _crypto_watch(
-        feeds.get("crypto_ma200") or {},
-        feeds.get("crypto_confluence") or {},
-        feeds.get("crypto_cycle_risk") or {},
+    crypto_watch = [row for row in ranked if row["asset_class"] == "CRYPTO"][:15] + _crypto_watch(
+        active_feeds.get("crypto_ma200") or {},
+        active_feeds.get("crypto_confluence") or {},
+        active_feeds.get("crypto_cycle_risk") or {},
     )
 
-    allocator = feeds.get("allocator") or {}
-    bond = feeds.get("bond_warroom") or {}
+    allocator = active_feeds.get("allocator") or {}
+    bond = active_feeds.get("bond_warroom") or {}
     total = len(candidates)
-    n_katlin = sum(1 for x in candidates if str(x.get("source") or "").find("katlin") >= 0)
+    n_katlin = sum("katlin" in str(row.get("source") or "") for row in candidates)
     required_bad = [x for x in source_health if x["critical"] and x["status"] != "FRESH"]
     fresh_count = sum(1 for x in source_health if x["status"] == "FRESH")
     top_eligible = selected or building or watch
-    stance_score = round(top_eligible[0]["score"], 1) if top_eligible else None
+    opportunity_radar = build_opportunity_radar(active_feeds, ranked, policy["mode"])
+    opportunity_radar, candidate_ledger, opportunity_changes = apply_lifecycle(
+        opportunity_radar,
+        prior_candidates or [],
+        _iso(now),
+        {
+            row["name"]
+            for row in source_health
+            if row["status"] != "FRESH"
+        },
+    )
+    biggest_opportunities = sorted([
+        row for row in opportunity_radar
+        if row["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION", "UNDERAPPRECIATED", "RISK_BLOCKED"}
+    ], key=lambda row: (-row["score"], -row["source_count"], row["asset_class"], row["ticker"]))[:15]
+    queue_counts = {
+        "discovery": len(opportunity_radar),
+        "conviction": sum(row["discovery_stage"] in {"HIGH_CONVICTION", "ENTRY_READY", "RISK_BLOCKED"} for row in opportunity_radar),
+        "entry": sum((row.get("entry_trigger") or {}).get("state") in {"ARMED", "TRIGGERED"} for row in opportunity_radar),
+    }
+    universe_by_asset_class = {
+        asset_class: sum(row["asset_class"] == asset_class for row in opportunity_radar)
+        for asset_class in sorted({row["asset_class"] for row in opportunity_radar})
+    }
+    stance_score = round(
+        (biggest_opportunities[0]["score"] if biggest_opportunities else top_eligible[0]["score"]),
+        1,
+    ) if (biggest_opportunities or top_eligible) else None
     risk_score = {
         "DATA_HOLD": 100,
         "DEFENSIVE": 85,
         "SELECTIVE": 50,
         "SELECTIVE_RISK_ON": 25,
     }.get(policy["mode"], 75)
+    confidence_pool = top_eligible[:5] if top_eligible else biggest_opportunities[:5]
     confidence = round(
         (fresh_count / max(1, len(source_health))) * 0.45
-        + ((sum(x.get("confidence", 0) for x in top_eligible[:5]) / len(top_eligible[:5])) if top_eligible else 0) * 0.55,
+        + ((sum(x.get("confidence", 0) for x in confidence_pool) / len(confidence_pool)) if confidence_pool else 0) * 0.55,
         3,
     )
-    status = "NO_DATA" if total == 0 else ("DEGRADED" if required_bad else "OK")
+    status = "NO_DATA" if total == 0 and not opportunity_radar else ("DEGRADED" if required_bad else "OK")
     stance = (
         "CASH_OR_TBILLS" if policy["mode"] in {"DATA_HOLD", "DEFENSIVE"}
         else "SELECTIVE_BUY" if selected
         else "WAIT_FOR_CONFIRMATION"
     )
     asset_views = [
-        {"asset_class": "Stocks", "stance": "SELECTIVE" if selected else "WAIT", "ready": sum(x["asset_class"] == "STOCK" for x in selected), "building": sum(x["asset_class"] == "STOCK" for x in building), "reason": "Only below-trend, evidence-complete bases qualify."},
-        {"asset_class": "ETFs", "stance": "SELECTIVE" if any(x["asset_class"] == "ETF" for x in selected) else "WAIT", "ready": sum(x["asset_class"] == "ETF" for x in selected), "building": sum(x["asset_class"] == "ETF" for x in building), "reason": "Fund flows must confirm a favorable long-term location."},
-        {"asset_class": "Crypto", "stance": "WATCH", "ready": 0, "building": len(crypto_watch), "reason": "A 200-day reclaim needs a durable base, flow confirmation and retest."},
-        {"asset_class": "Bonds", "stance": bond.get("regime") or bond.get("state") or "MONITOR", "ready": 0, "building": 0, "reason": bond.get("summary") or bond.get("headline") or "Rates, credit and auction stress govern sizing."},
+        {"asset_class": "Stocks", "stance": "SELECTIVE" if selected else "TRACKING", "ready": sum(x["asset_class"] == "STOCK" for x in selected), "building": sum(x["asset_class"] == "STOCK" for x in opportunity_radar), "reason": "Value, inflection, catalysts and capital confirmation are discovered broadly; entry remains strict."},
+        {"asset_class": "ETFs / Sectors", "stance": "TRACKING", "ready": sum(x["asset_class"] == "ETF" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "ETF" for x in opportunity_radar), "reason": "Early sector emergence and cross-asset value are ranked before they become crowded."},
+        {"asset_class": "Crypto", "stance": "TRACKING", "ready": sum(x["asset_class"] == "CRYPTO" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "CRYPTO" for x in opportunity_radar), "reason": "Crypto can enter discovery, but needs durable structure and a retest before execution."},
+        {"asset_class": "Bonds", "stance": bond.get("regime") or bond.get("state") or "MONITOR", "ready": sum(x["asset_class"] == "BOND" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "BOND" for x in opportunity_radar), "reason": bond.get("summary") or bond.get("headline") or "Rates, credit, carry and asymmetry are ranked alongside their role as risk controls."},
+        {"asset_class": "Commodities / Countries", "stance": "TRACKING", "ready": sum(x["asset_class"] in {"COMMODITY", "COUNTRY"} and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] in {"COMMODITY", "COUNTRY"} for x in opportunity_radar), "reason": "Physical demand, relative strength, expected return and extension risk are monitored across markets."},
         {"asset_class": "Cash / T-bills", "stance": "PREFERRED" if not selected or policy["mode"] in {"DATA_HOLD", "DEFENSIVE"} else "RESERVE", "ready": 0, "building": 0, "reason": policy["default_shelter"]["why"]},
     ]
     domain_rows = [
         {"domain": "Risk regime", "score": 100 - risk_score, "direction": policy["mode"], "confidence": confidence, "status": "DEGRADED" if required_bad else "OK", "contributors": ["risk_gate", "crisis", "bond_warroom"]},
         {"domain": "Long-term location", "score": round(sum(x["score"] for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "BELOW_TREND_REQUIRED", "confidence": confidence, "status": "OK" if total else "NO_DATA", "contributors": ["fortress"]},
-        {"domain": "Accumulation", "score": round(sum(min(100, len(x["evidence"]["accumulation"]) * 20) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "CONFIRMING" if building or selected else "WEAK", "confidence": confidence, "status": "OK" if feeds.get("accumulation") else "DEGRADED", "contributors": ["fortress", "accumulation"]},
+        {"domain": "Accumulation", "score": round(sum(min(100, len(x["evidence"]["accumulation"]) * 20) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "CONFIRMING" if building or selected else "WEAK", "confidence": confidence, "status": "OK" if active_feeds.get("accumulation") else "DEGRADED", "contributors": ["fortress", "accumulation"]},
         {"domain": "Capital flows", "score": round(sum(min(100, len(x["evidence"]["flows"]) * 25) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "SELECTIVE", "confidence": confidence, "status": "OK", "contributors": ["fortress", "options"]},
         {"domain": "Catalysts", "score": round(sum(min(100, len(x["evidence"]["catalysts"]) * 25) for x in top_eligible[:10]) / len(top_eligible[:10]), 1) if top_eligible else None, "direction": "SELECTIVE", "confidence": confidence, "status": "OK", "contributors": ["fortress", "buyback"]},
-        {"domain": "Crypto cycle", "score": None, "direction": "WATCH_ONLY", "confidence": confidence, "status": "OK" if feeds.get("crypto_ma200") else "DEGRADED", "contributors": ["crypto_ma200", "crypto_confluence", "crypto_cycle_risk"]},
+        {"domain": "Crypto cycle", "score": None, "direction": "WATCH_ONLY", "confidence": confidence, "status": "OK" if active_feeds.get("crypto_ma200") else "DEGRADED", "contributors": ["crypto_ma200", "crypto_confluence", "crypto_cycle_risk"]},
+        {"domain": "Opportunity discovery", "score": round(sum(x["score"] for x in biggest_opportunities) / len(biggest_opportunities), 1) if biggest_opportunities else None, "direction": "BROAD_CROSS_ASSET", "confidence": confidence, "status": "OK" if opportunity_radar else "NO_DATA", "contributors": ["fortress", "universe_discovery", "asset_compass", "sector_emergence", "commodity_curves", "deal_scanner", "buyback_ranking", "insider_radar", "spinoff_desk", "industry_rotation", "capital_flow", "cftc_positioning", "crypto_emergence", "crypto_opportunities", "metals_miners", "inventory_drawdown", "global_sovereign", "fx_intelligence", "portwatch"]},
     ]
     contradictions = []
     for row in top_eligible[:12]:
@@ -403,9 +571,9 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
         for row in rejected_examples[:8] for veto in row.get("vetoes", [])[:1]
     )
     output = {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "engine": "justhodl-khalid",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "generated_at": _iso(now),
         "as_of": _iso(now),
         "status": status,
@@ -419,6 +587,9 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             "stale": sum(1 for x in source_health if x["status"] == "STALE"),
             "missing": sum(1 for x in source_health if x["status"] in {"MISSING", "UNKNOWN"}),
             "ratio": round(fresh_count / max(1, len(source_health)), 3),
+            "evaluated": len(opportunity_radar),
+            "tracked": len(opportunity_radar),
+            "universe_by_asset_class": universe_by_asset_class,
             "by_domain": {
                 domain: {
                     "fresh": sum(1 for x in source_health if x["domain"] == domain and x["status"] == "FRESH"),
@@ -429,7 +600,7 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
         },
         "domains": domain_rows,
         "asset_views": asset_views,
-        "top_signals": top_eligible[:12],
+        "top_signals": biggest_opportunities or top_eligible[:12],
         "contradictions": contradictions[:20],
         "catalysts": catalyst_rows[:24],
         "risks": risks[:30],
@@ -439,30 +610,32 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             "posture": policy["mode"],
             "headline": (
                 f"{len(selected)} setup{'s' if len(selected) != 1 else ''} cleared every gate"
-                if selected else "No asset cleared every gate; preserve optionality"
+                if selected else f"No entry trigger yet; tracking {len(opportunity_radar)} opportunities"
             ),
             "plain_english": (
                 "Khalid found long-term value, accumulation, flow, catalyst, and reward/risk alignment. "
                 "The names below are armed for confirmation, not market orders."
                 if selected else
-                "The engine found no setup with the required long-term location, independent accumulation, "
-                "capital flow, catalyst, and reward/risk evidence. Cash or short-term Treasury bills remain the default."
+                f"Khalid is monitoring {len(opportunity_radar)} cross-asset opportunities across discovery and conviction. "
+                "None has an observed daily/4h entry trigger, so cash or short-term Treasury bills remain the default."
             ),
             "selected_count": len(selected),
             "building_count": len(building),
             "universe_scored": total,
             "universe_from_katlin": n_katlin,
+            "opportunities_tracked": len(opportunity_radar),
+            "high_conviction_count": sum(x["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for x in opportunity_radar),
             "shelter": policy["default_shelter"],
         },
         "risk_control": {
             **policy,
+            "katlin_war_room": katlin_war_room,
             "bond_market": {
                 "generated_at": bond.get("generated_at"),
                 "summary": bond.get("summary") or bond.get("headline"),
                 "regime": bond.get("regime") or bond.get("state"),
                 "note": "Bond-market evidence controls sizing and vetoes; it does not create an equity buy.",
             },
-            "katlin_war_room": katlin_wr,
             "allocator": {
                 "regime": allocator.get("regime_headline"),
                 "cash_buffer_pct": allocator.get("cash_buffer_pct"),
@@ -473,13 +646,39 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
         "building_bases": building,
         "watch_reclaims": watch,
         "crypto_watch": crypto_watch[:15],
+        "biggest_opportunities": biggest_opportunities,
+        "opportunity_radar": opportunity_radar,
+        "queues": {
+            "discovery": {
+                "eligible_count": queue_counts["discovery"],
+                "returned_count": queue_counts["discovery"],
+                "next_cursor": None,
+            },
+            "conviction": {
+                "eligible_count": queue_counts["conviction"],
+                "returned_count": queue_counts["conviction"],
+                "next_cursor": None,
+            },
+            "entry": {
+                "eligible_count": queue_counts["entry"],
+                "returned_count": queue_counts["entry"],
+                "next_cursor": None,
+            },
+        },
+        "near_misses": sorted([
+            row for row in opportunity_radar
+            if row["discovery_stage"] in {"EARLY_SIGNAL", "UNDERAPPRECIATED"}
+        ], key=lambda row: (-row["score"], row["ticker"]))[:25],
+        "opportunity_changes": opportunity_changes,
         "rejected_examples": rejected_examples,
         "methodology": {
-            "mandate": "Find large-upside, defined-downside opportunities before consensus without chasing.",
-            "long_horizon": "3M, monthly and weekly context establish the thesis; 200/250-day location is mandatory.",
+            "mandate": "Continuously find and track the market's largest underappreciated, asymmetric opportunities across asset classes, then wait for a defined-risk entry.",
+            "long_horizon": "3M, monthly and weekly context establish the thesis. Discovery spans value, early trend, capital rotation, physical demand and unpriced catalysts.",
             "entry_horizon": "Daily and 4h are execution-only. A breakout, retest and higher low may arm an entry; they cannot rescue a weak thesis.",
             "hard_gates": [
-                "At or below the 200-day trend; below the 250-day trend is preferred",
+                "Discovery and execution are separate: an idea may be tracked early, but only the execution lane can label it READY_TO_SNIPE",
+                "For deep-base entries, price must be at or below the 200-day trend; below the 250-day trend is preferred",
+                "Emerging-trend ideas may be tracked after a reclaim only when they are not extended; they are not automatically entry-ready",
                 "A compressed base, supply dry-up and independent price/volume structure must agree",
                 "RSI must be reset at 45 or below before a setup can be armed",
                 "At least one capital-flow clue and one identifiable catalyst clue",
@@ -504,6 +703,9 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
                 "ETF flow is separated from corporate issuance; buybacks and dilution are evaluated independently.",
                 "A recent volume surge or price breakout is not accumulation and is rejected if the asset is extended.",
                 "Reported institutional positions are delayed context and never a fast entry trigger.",
+                "A candidate is stronger when independent engines agree; source count is explicit and one-source ideas receive a confidence haircut.",
+                "The radar ranks opportunity, not guaranteed return. Every tracked thesis retains a falsifier or risk note.",
+                "Every qualifying candidate remains reachable in the full radar; queues publish reconciled counts and never hide rows behind a fixed client slice.",
             ],
         },
         "source_health": source_health,
@@ -517,19 +719,20 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             "engine_id": "justhodl-khalid",
             "domain": "cross_asset_opportunity",
             "as_of": _iso(now),
-            "score": round(((selected[0]["score"] if selected else 0) / 50.0) - 1.0, 3),
+            "score": round((((selected[0]["score"] if selected else biggest_opportunities[0]["score"]) if biggest_opportunities or selected else 0) / 50.0) - 1.0, 3),
             "confidence": round(
-                sum(x.get("confidence", 0) for x in selected) / len(selected), 3
-            ) if selected else 0.0,
+                sum(x.get("confidence", 0) for x in (selected or biggest_opportunities[:5]))
+                / len(selected or biggest_opportunities[:5]), 3
+            ) if (selected or biggest_opportunities) else 0.0,
             "regime_context": [policy["mode"]],
             "lead_lag_days": 0,
-            "state": "green" if selected and policy["allows_new_entries"] else ("amber" if building else "red"),
+            "state": "green" if selected and policy["allows_new_entries"] else ("amber" if opportunity_radar else "red"),
             "percentile_10y": None,
             "percentile_2008on": None,
             "contributes_to": ["opportunity_board", "risk_master"],
             "why": (
                 f"{len(selected)} candidates passed every required gate"
-                if selected else "No candidate passed every required gate"
+                if selected else f"{len(opportunity_radar)} opportunities are tracked; none has a verified entry trigger"
             ),
         },
     }
@@ -542,6 +745,8 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             "ready": len(selected),
             "building": len(building),
             "universe": total,
+            "tracked": len(opportunity_radar),
+            "high_conviction": sum(x["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for x in opportunity_radar),
             "shelter": policy["default_shelter"]["primary"],
             "status": status,
         }],
@@ -558,12 +763,13 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
                 "reward_risk": row["risk_reward"]["ratio"],
                 "why": row["plain_english"],
             }
-            for row in top_eligible[:12]
+            for row in biggest_opportunities
         ],
         "risks": risks[:20],
         "catalysts": catalyst_rows[:20],
         "data_quality": source_health,
     }
+    output["_candidate_ledger"] = candidate_ledger
     validate_output(output)
     return output
 
@@ -579,12 +785,26 @@ def _write(key: str, payload: dict) -> None:
 
 
 def lambda_handler(event, context):
+    validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
     now = datetime.now(timezone.utc)
     feeds, metas = {}, {}
     for name, (key, _max_age, _critical) in FEEDS.items():
         feeds[name], metas[name] = _read(key)
-    output = build_output(feeds, metas, now)
+    prior_ledger, _ = _read(CANDIDATE_LEDGER_KEY)
+    output = build_output(feeds, metas, now, prior_ledger.get("candidates") or [])
+    candidate_ledger = output.pop("_candidate_ledger")
+    validate_output(output)
+    if validation_only:
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "ok": True,
+                "validation_only": True,
+                "artifact": output,
+            }),
+        }
     _write(OUT_KEY, output)
+    _write(CANDIDATE_LEDGER_KEY, candidate_ledger)
 
     history, _ = _read(HISTORY_KEY)
     points = history.get("points") if isinstance(history.get("points"), list) else []
@@ -594,8 +814,10 @@ def lambda_handler(event, context):
         "selected_count": output["decision"]["selected_count"],
         "building_count": output["decision"]["building_count"],
         "risk_gate_posture": output["risk_control"]["risk_gate_posture"],
-        "top_ticker": output["selected"][0]["ticker"] if output["selected"] else None,
-        "top_score": output["selected"][0]["score"] if output["selected"] else None,
+        "tracked_count": output["decision"]["opportunities_tracked"],
+        "high_conviction_count": output["decision"]["high_conviction_count"],
+        "top_ticker": output["biggest_opportunities"][0]["ticker"] if output["biggest_opportunities"] else None,
+        "top_score": output["biggest_opportunities"][0]["score"] if output["biggest_opportunities"] else None,
     }
     if not points or points[-1].get("generated_at") != point["generated_at"]:
         points.append(point)

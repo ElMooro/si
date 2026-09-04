@@ -7,11 +7,13 @@ entry after the thesis passes.
 """
 from __future__ import annotations
 
+import math
 from typing import Any
 
 
 ACTION_ORDER = {
     "READY_TO_SNIPE": 4,
+    "ARMED": 3.5,
     "BUILDING_BASE": 3,
     "WATCH_RECLAIM": 2,
     "REJECTED": 1,
@@ -22,7 +24,8 @@ def number(value: Any) -> float | None:
     if isinstance(value, bool) or value is None:
         return None
     try:
-        return float(value)
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) else None
     except (TypeError, ValueError):
         return None
 
@@ -56,6 +59,7 @@ def contract_error(spec: dict, payload: dict) -> str | None:
             continue
         valid = (
             (expected == "list" and isinstance(value, list))
+            or (expected == "dict" and isinstance(value, dict))
             or (expected == "string" and isinstance(value, str) and bool(value.strip()))
             or (
                 expected == "number"
@@ -65,6 +69,17 @@ def contract_error(spec: dict, payload: dict) -> str | None:
         )
         if not valid:
             return f"{key} must be {expected}"
+
+    for key, expected in (contract.get("item_types") or {}).items():
+        value = payload.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, list):
+            return f"{key} must be list before validating items"
+        if expected == "dict" and any(not isinstance(item, dict) for item in value):
+            return f"{key} items must be dict"
+        if expected == "list" and any(not isinstance(item, list) for item in value):
+            return f"{key} items must be list"
 
     for key, allowed in (contract.get("allowed") or {}).items():
         value = payload.get(key)
@@ -104,17 +119,24 @@ def score_candidate(
     src = source or str(row.get("_source") or "fortress")
     ticker = str(row.get("ticker") or row.get("symbol") or "").upper().strip()
     name = row.get("name") or row.get("company_name") or ticker
-    bottom_confirmation = bottom_confirmation or {}
-    best_setup = best_setup or {}
-    floor = floor or {}
-    buyback = buyback or {}
-    options = options or row.get("options") or {}
+    bottom_confirmation = bottom_confirmation if isinstance(bottom_confirmation, dict) else {}
+    best_setup = best_setup if isinstance(best_setup, dict) else {}
+    floor = floor if isinstance(floor, dict) else {}
+    buyback = buyback if isinstance(buyback, dict) else {}
+    options = options if isinstance(options, dict) else row.get("options")
+    options = options if isinstance(options, dict) else {}
+    flows = row.get("flows") if isinstance(row.get("flows"), dict) else {}
+    dark_pool = (
+        bottom_confirmation.get("dark_pool")
+        if isinstance(bottom_confirmation.get("dark_pool"), dict)
+        else {}
+    )
 
     vs200 = first_number(row.get("vs_ema200_pct"), row.get("vs_sma200_pct"))
     vs250 = first_number(row.get("vs_ema250_pct"), row.get("vs_sma250_pct"))
     bb_pctile = number(row.get("bb_width_pctile"))
     rsi = first_number(bottom_confirmation.get("rsi"), row.get("rsi"), row.get("rsi_14"))
-    plan = row.get("trade_plan") or {}
+    plan = row.get("trade_plan") if isinstance(row.get("trade_plan"), dict) else {}
     price = number(row.get("close") or row.get("price"))
     planned_entry = first_number(plan.get("pivot"), row.get("breakout_level"), price)
     planned_stop = first_number(plan.get("stop"), row.get("range_low_60"))
@@ -175,10 +197,9 @@ def score_candidate(
     if rsi is not None and rsi <= 45:
         _add(evidence["accumulation"], "RSI reset", round(rsi, 1), "accumulation-radar", "Momentum is washed out rather than extended")
     if (row.get("dark_pool_state") == "ACCUMULATION"
-            or (bottom_confirmation.get("dark_pool") or {}).get("state") == "ACCUMULATION"):
+            or dark_pool.get("state") == "ACCUMULATION"):
         cautions.append("Dark-pool volume has no verified trade-side direction and is context only")
 
-    flows = row.get("flows") or {}
     if row.get("industry_inflow_major") or row.get("inflow_major") or flows.get("major"):
         _add(evidence["flows"], "Major fund inflow", True, src, "Industry or ETF flow is large relative to assets")
     flow_score = first_number(row.get("flow_score"), flows.get("score"))
@@ -243,8 +264,9 @@ def score_candidate(
         cautions.append("Dilution coverage is unavailable; the setup cannot be armed")
     if row.get("beneish_m") is not None and number(row.get("beneish_m")) is not None and number(row.get("beneish_m")) > -1.78:
         cautions.append("Beneish screen warrants accounting review")
-    if best_setup.get("red_flags"):
-        cautions.extend(str(x) for x in best_setup.get("red_flags")[:3])
+    red_flags = best_setup.get("red_flags")
+    if isinstance(red_flags, list):
+        cautions.extend(str(x) for x in red_flags[:3])
 
     location_score = _location_score(vs200, vs250) if vs200 is not None else 0.0
     accum_score = clamp(len(evidence["accumulation"]) * 18.0)
@@ -265,10 +287,13 @@ def score_candidate(
         + rr_component * 0.12,
         1,
     )
-    reported_confidence = number(row.get("confidence"))
+    raw_confidence = row.get("confidence")
+    reported_confidence = number(raw_confidence)
     candidate_confidence = (
         clamp(reported_confidence, 0.0, 1.0)
         if reported_confidence is not None
+        else 0.0
+        if raw_confidence is not None
         else min(0.95, 0.45 + 0.05 * sum(len(x) for x in evidence.values()))
     )
     confidence_ok = candidate_confidence >= 0.60
@@ -296,8 +321,14 @@ def score_candidate(
         and rr >= 2.5
         and risk_allows_entries
     )
-    if entry_ok:
+    trigger_observed = (
+        row.get("entry_triggered") is True
+        or row.get("daily_4h_triggered") is True
+    )
+    if entry_ok and trigger_observed:
         action = "READY_TO_SNIPE"
+    elif entry_ok:
+        action = "ARMED"
     elif vs200 is not None and 0 < vs200 <= 3 and not vetoes[1:]:
         action = "WATCH_RECLAIM"
     elif critical_ok and not vetoes:
@@ -305,7 +336,7 @@ def score_candidate(
     else:
         action = "REJECTED"
 
-    if not risk_allows_entries and action == "READY_TO_SNIPE":
+    if not risk_allows_entries and action in {"READY_TO_SNIPE", "ARMED"}:
         action = "BUILDING_BASE"
         cautions.append("Macro/risk gate blocks new risk until conditions improve")
 
@@ -321,7 +352,9 @@ def score_candidate(
     if vetoes:
         plain.append("it is not actionable because " + "; ".join(vetoes[:2]).lower())
     elif action == "READY_TO_SNIPE":
-        plain.append("the long-term thesis passes, but entry still waits for a daily/4h trigger")
+        plain.append("the long-term thesis and an observed daily/4h trigger pass")
+    elif action == "ARMED":
+        plain.append("the long-term thesis passes, but entry still waits for an observed daily/4h trigger")
     elif action == "BUILDING_BASE":
         plain.append("the base is interesting, but at least one required confirmation is still missing")
 
@@ -373,7 +406,7 @@ def score_candidate(
             "asymmetry": round(asymmetry, 2) if asymmetry is not None else None,
         },
         "entry_trigger": {
-            "state": "ARMED" if action == "READY_TO_SNIPE" else "WAIT",
+            "state": "TRIGGERED" if action == "READY_TO_SNIPE" else ("ARMED" if action == "ARMED" else "WAIT"),
             "daily": "Close through the base pivot with volume; no gap-chasing",
             "four_hour": "Retest/hold of the pivot or higher low after breakout",
             "invalidation": row.get("invalidation") or "Close below the base low on expanding volume",

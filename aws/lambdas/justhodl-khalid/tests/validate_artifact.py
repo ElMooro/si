@@ -21,6 +21,11 @@ required = {
     "coverage",
     "domains",
     "asset_views",
+    "biggest_opportunities",
+    "opportunity_radar",
+    "opportunity_changes",
+    "queues",
+    "near_misses",
     "inputs",
     "methodology",
     "panels",
@@ -34,4 +39,21 @@ if data["status"] not in {"OK", "DEGRADED", "NO_DATA"}:
     raise SystemExit(f"Unexpected Khalid status: {data['status']}")
 if not isinstance(data["panels"], dict) or "overview" not in data["panels"]:
     raise SystemExit("Khalid homepage panel is missing")
+radar = data["opportunity_radar"]
+if not isinstance(radar, list):
+    raise SystemExit("Khalid opportunity radar is not a list")
+ids = [(row.get("lifecycle") or {}).get("opportunity_id") for row in radar]
+if any(not value for value in ids) or len(ids) != len(set(ids)):
+    raise SystemExit("Khalid opportunity IDs must be present and unique")
+if (data.get("decision") or {}).get("opportunities_tracked") != len(radar):
+    raise SystemExit("Khalid tracked count does not reconcile")
+for row in radar:
+    if row.get("discovery_stage") == "ENTRY_READY":
+        if row.get("action") != "READY_TO_SNIPE" or (row.get("entry_trigger") or {}).get("state") != "TRIGGERED":
+            raise SystemExit("Khalid ENTRY_READY row lacks an observed trigger")
+    if row.get("discovery_stage") == "EVIDENCE_HOLD":
+        if row.get("action") != "TRACKING" or row.get("confidence") != 0:
+            raise SystemExit("Khalid EVIDENCE_HOLD row must suspend conviction and execution")
+        if (row.get("entry_trigger") or {}).get("state") != "WAIT":
+            raise SystemExit("Khalid EVIDENCE_HOLD row must wait for feed recovery")
 print("Khalid candidate artifact contract passed")

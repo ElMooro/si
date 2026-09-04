@@ -60,8 +60,9 @@
     var kpis = $("kpis"); clear(kpis);
     [
       ["READY", data.decision && data.decision.selected_count],
-      ["BUILDING", data.decision && data.decision.building_count],
-      ["UNIVERSE", data.decision && data.decision.universe_scored],
+      ["HIGH CONVICTION", data.decision && data.decision.high_conviction_count],
+      ["TRACKED", data.decision && data.decision.opportunities_tracked],
+      ["EXECUTION UNIVERSE", data.decision && data.decision.universe_scored],
       ["FRESH INPUTS", data.coverage && data.coverage.fresh],
       ["STALE / MISSING", data.coverage ? (data.coverage.stale + data.coverage.missing) : null]
     ].forEach(function (item) {
@@ -72,21 +73,29 @@
   }
 
   function opportunities(data) {
-    return [].concat(data.selected || [], data.building_bases || [], data.watch_reclaims || [], data.crypto_watch || []);
+    return (data.opportunity_radar && data.opportunity_radar.length)
+      ? data.opportunity_radar
+      : [].concat(data.selected || [], data.building_bases || [], data.watch_reclaims || [], data.crypto_watch || []);
   }
   function renderOpportunities() {
     var list = $("opportunity-list"); clear(list);
+    var changes = $("opportunity-changes"); clear(changes);
+    var changeData = state.data.opportunity_changes || {};
+    [["NEW", changeData.new], ["PROMOTED", changeData.promoted], ["DEMOTED", changeData.demoted], ["DATA HOLD", changeData.held], ["DORMANT", changeData.dormant]].forEach(function (item) {
+      var chip = node("span"); chip.append(node("b", "", (item[1] || []).length), document.createTextNode(" " + item[0])); changes.append(chip);
+    });
     var q = state.query.toUpperCase();
     var rows = opportunities(state.data).filter(function (r) {
-      return (state.filter === "ALL" || r.action === state.filter) &&
+      return (state.filter === "ALL" || r.action === state.filter || r.discovery_stage === state.filter) &&
         (!q || String(r.ticker || "").toUpperCase().indexOf(q) > -1 || String(r.name || "").toUpperCase().indexOf(q) > -1);
     });
-    rows.slice(0, 36).forEach(function (row) {
+    rows.forEach(function (row) {
       var card = node("article", "k-card");
       card.tabIndex = 0; card.setAttribute("role", "button"); card.setAttribute("aria-label", "Open " + row.ticker + " analysis");
       var top = node("div", "k-card-top");
       var ident = node("div"); ident.append(node("span", "k-ticker", row.ticker), node("span", "k-name", row.name || row.asset_class));
-      var badge = node("span", "k-action " + (row.action === "READY_TO_SNIPE" ? "ready" : ""), actionLabel(row.action));
+      var status = row.discovery_stage || row.action;
+      var badge = node("span", "k-action " + (status === "ENTRY_READY" ? "ready" : ""), actionLabel(status));
       top.append(ident, badge);
       var score = node("div", "k-card-score");
       var meter = node("div", "k-meter"); var fill = node("i"); fill.style.width = Math.max(0, Math.min(100, row.score || 0)) + "%"; meter.append(fill);
@@ -94,9 +103,9 @@
       var copy = node("p", "k-card-copy", row.plain_english || "Evidence is still being assembled.");
       var facts = node("div", "k-card-facts");
       [
-        ["VS 200D", pct(row.technical && row.technical.vs_200d_pct)],
-        ["RSI", num(row.technical && row.technical.rsi, 1)],
-        ["R / R", row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--"]
+        ["ASSET", row.asset_class || "--"],
+        ["SOURCES", row.source_count == null ? "--" : row.source_count],
+        ["ENTRY", actionLabel((row.entry_trigger && row.entry_trigger.state) || row.action || "WAIT")]
       ].forEach(function (x) { var f = node("div", "k-fact"); f.append(node("span", "", x[0]), node("b", "", x[1])); facts.append(f); });
       card.append(top, score, copy, facts);
       card.addEventListener("click", function () { showDetail(row, card); });
@@ -162,13 +171,30 @@
 
   function showDetail(row, opener) {
     var box = $("detail-content"); clear(box);
-    box.append(node("p", "k-eyebrow", row.asset_class + " · " + actionLabel(row.action)), node("h2", "", row.ticker), node("p", "k-detail-summary", row.plain_english));
+    box.append(node("p", "k-eyebrow", row.asset_class + " · " + actionLabel(row.discovery_stage || row.action)), node("h2", "", row.ticker), node("p", "k-detail-summary", row.plain_english));
     var stats = node("div", "k-detail-grid");
     [
-      ["Score", num(row.score, 1)], ["200D", pct(row.technical && row.technical.vs_200d_pct)], ["250D", pct(row.technical && row.technical.vs_250d_pct)],
+      ["Discovery", num(row.score, 1)], ["Coverage", pct(row.component_coverage == null ? null : row.component_coverage * 100)], ["Entry", actionLabel((row.entry_trigger && row.entry_trigger.state) || row.action)],
       ["RSI", num(row.technical && row.technical.rsi, 1)], ["R / R", row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--"], ["Dilution", pct(row.dilution && row.dilution.yoy_pct)]
     ].forEach(function (x) { var s = node("div", "k-detail-stat"); s.append(node("span", "", x[0]), node("b", "", x[1])); stats.append(s); });
     box.append(stats);
+    if (row.lifecycle) {
+      box.append(node("h3", "", "LIFECYCLE"));
+      box.append(
+        line("FIRST SEEN", ago(row.lifecycle.first_seen)),
+        line("OBSERVATIONS", row.lifecycle.observations),
+        line("PRIOR STAGE", actionLabel(row.lifecycle.prior_stage || "NEW")),
+        line("MAX SCORE", num(row.lifecycle.max_score, 1))
+      );
+    }
+    if ((row.why_underappreciated || []).length) {
+      box.append(node("h3", "", "WHY IT MAY BE UNDERAPPRECIATED"));
+      row.why_underappreciated.forEach(function (x) { box.append(line("EDGE", x)); });
+    }
+    if ((row.catalysts || []).length) {
+      box.append(node("h3", "", "POTENTIAL UNLOCKS"));
+      row.catalysts.forEach(function (x) { box.append(line("CATALYST", x)); });
+    }
     box.append(node("h3", "", "ENTRY DISCIPLINE"));
     var entry = row.entry_trigger || {};
     box.append(line("DAILY", entry.daily || "--"), line("4H", entry.four_hour || "--"), line("INVALIDATE", entry.invalidation || "--"));
