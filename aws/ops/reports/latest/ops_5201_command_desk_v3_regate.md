@@ -1,0 +1,97 @@
+# ops 5201 -- command desk v3 re-gate: numbered sections fleet-wide + composable homepage
+
+**Status:** success  
+**Duration:** 1057.2s  
+**Finished:** 2026-09-04T16:31:53+00:00  
+
+## Data
+
+| crawled | dropped | failed | kept | new_sections | ok | pages | seconds |
+|---|---|---|---|---|---|---|---|
+| 429 | 0 | 0 | 0 | 11791 | 429 | 429 | 757 |
+
+## Log
+## S1 Pages deploy wait
+
+- `16:14:16`    t+0s home=False bonds_numbered=True
+- `16:14:36`    t+21s home=False bonds_numbered=True
+- `16:14:57`    t+41s home=False bonds_numbered=True
+- `16:15:17`    t+61s home=False bonds_numbered=True
+- `16:15:37`    t+81s home=False bonds_numbered=True
+- `16:15:57`    t+102s home=False bonds_numbered=True
+- `16:16:17`    t+122s home=False bonds_numbered=True
+- `16:16:38`    t+142s home=False bonds_numbered=True
+- `16:16:58`    t+162s home=False bonds_numbered=True
+- `16:17:18`    t+182s home=False bonds_numbered=True
+- `16:17:38`    t+203s home=True bonds_numbered=True
+- `16:17:38` ✅    Pages deploy live after 203s
+## S2 command desk render gate
+
+- `16:18:12`    1440px: {"blocks": 7, "refs": ["bonds#2", "bond-warroom/us_rates", "bond-warroom/japan", "bond-warroom/credit", "bond-warroom/europe_spreads", "bond-warroom/volatility", "auction-desk"], "rows": 90, "flags": 50, "reds": 1, "kpis": 0, "embeds": [["/bonds.html?embed=2", 1600]], "fresh": ["LIVE", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 7m ago"], "score": "29", "regime": "WATCH", "headline": "5 RED \u00b7 11 AMBER across your desk \u2014 Global bond war room, bond-warroom \u00b7 japan", "badges": ["\u00a71", "\u00a71.2", "\u00a72", "\u00a73", "\u00a74", "\u00a75", "\u00a76", "\u00a77"], "directory": 456, "catalog": "854 engines \u00b7 456 pages \u00b7 0 pages with baked section numbers", "chrome": true, "overflow": 0}
+- `16:18:12`    1440px: page errors [] csp []
+- `16:18:13`    palette: {"bonds#1": ["bonds#1", "bonds", "global-sovereign"], "bond-warroom/japan": ["bond-warroom/japan", "bond-warroom", "bond-warroom/japan"], "auctions": ["auctions", "auctions", "auction-desk", "auction-tail", "fiscaldata-full"], "jgb": ["boj-detail", "yen-carry"]}
+- `16:18:27`    390px: {"blocks": 7, "refs": ["bonds#2", "bond-warroom/us_rates", "bond-warroom/japan", "bond-warroom/credit", "bond-warroom/europe_spreads", "bond-warroom/volatility", "auction-desk"], "rows": 90, "flags": 50, "reds": 1, "kpis": 0, "embeds": [["/bonds.html?embed=2", 1600]], "fresh": ["LIVE", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 1h ago", "LIVE 8m ago"], "score": "29", "regime": "WATCH", "headline": "5 RED \u00b7 11 AMBER across your desk \u2014 Global bond war room, bond-warroom \u00b7 japan", "badges": ["\u00a71", "\u00a71.2", "\u00a72", "\u00a73", "\u00a74", "\u00a75", "\u00a76", "\u00a77"], "directory": 456, "catalog": "854 engines \u00b7 456 pages \u00b7 0 pages with baked section numbers", "chrome": true, "overflow": 0}
+- `16:18:27`    390px: page errors [] csp []
+## S3 numbered pages (bonds, auctions) + embed isolation
+
+- `16:18:37`    bonds: 14 sections, 32 badges, errors []
+- `16:18:37`       §1     bonds-yield-curve                  BONDS & YIELD CURVE
+- `16:18:37`       §2     wr                                 Global bond war room  panels: ['2.1 Global bond war room', '2.2 🇺🇸 US Treasuries — yields,', '2.3 🌪 Bond volatility — MOVE, V', '2.4 🇯🇵 Japan JGBs5 series · 1 ', '2.5 🇪🇺 Europe — sovereign yiel', '2.6 🇪🇺 Europe — spreads vs Bun']
+- `16:18:37`       §3     regime-banner                      BOND REGIME · DETECTOR-V1
+- `16:18:37`       §4     ai-decisive-call                   ⚡ AI Decisive CallNEUTRALconf: HIGH3h agoBonds & Y  panels: ['4.1 ⚡ AI Decisive CallNEUTRALcon', '4.2 Supporting Evidence6 points']
+- `16:18:37`       §5     key-metrics                        10Y YIELD 4.79% +0.16pp vs 30d ago Restrictive (>4
+- `16:18:37`       §6     curve-nearly-flat-at-0-40pp        Curve nearly flat at +0.40pp
+- `16:18:37`       §7     spread-grid                        10Y - 2YWATCH +0.40pp Late-cycle flat 10Y - 3MNORM
+- `16:18:37`       §8     transition-mixed                   TRANSITION / MIXED
+- `16:18:37`       §9     mixed-signals-default-to-neutral-allocat Mixed signals. Default to neutral allocations unti
+- `16:18:37`       §10    auction-summary                    tail_stress
+- `16:18:37`       §11    triggerthresholdcurrentlystatusfires-thi TriggerThresholdCurrentlyStatusFires this regime… 
+- `16:18:37`       §12    call-banner                        DECISIVE CALL
+- `16:18:37`       §13    bond-regime-asset-playbook         Bond regime → asset playbook  panels: ['13.1 Bond regime → asset playbook', '13.2 Bond regime at historical in', '13.3 Bond regime at major BTC inf', '13.4 The asymmetric truth.']
+- `16:18:37`       §14    fed-hikes-priced                   📊 FED · hikes priced  panels: ['14.1 📡 Treasury Tenor Signals', '14.2 💧 Liquidity & Credit Engine', '14.3 💧 Liquidity & Credit Pulse']
+- `16:18:46`    bonds?embed=2: {"embed": true, "target": true, "visibleTop": ["MAIN"], "chromeHidden": true, "h": 2683}
+- `16:18:55`    auctions: 22 sections, 33 badges, errors []
+- `16:18:55`       §1     jhviz                              Treasury-auction stress — composite history, 1996 
+- `16:18:55`       §2     desk-banner                        Auction desk · day verdictThu, Sep 3 · engine ran 
+- `16:18:55`       §3     how-to-read-it                     How to read it.  panels: ['3.1 🔮 Cross-asset read — what d', '3.2 📒 What actually happened — ']
+- `16:18:55`       §4     today-s-operations-graded-against-the-tr 🏛️ Today's operations — graded against the traili
+- `16:18:55`       §5     12-5b                              $12.5B  panels: ['5.1 ♻️ Treasury buyback program ', '5.2 📅 Upcoming — announced & te']
+- `16:18:55`       §6     recent-auction-days-what-each-day-said 🗓 Recent auction days — what each day said
+- `16:18:55`       §7     graded-tape-every-auction-same-day-from 📋 Graded tape — every auction, same-day from Trea
+- `16:18:55`       §8     demand-by-tenor-bid-to-cover-last-auctio 📈 Demand by tenor — bid-to-cover, last 24 auction
+- `16:18:55`       §9     what-today-s-auction-tape-is-telling-you What today's auction tape is telling you
+- `16:18:55`       §10    ai-decisive-call                   ⚡ AI Decisive CallCALMconf: HIGH3h agoTreasury Auc  panels: ['10.1 ⚡ AI Decisive CallCALMconf: ', '10.2 Supporting Evidence5 points']
+- `16:18:55`       §11    tenor-signals-panel                📡 Treasury Tenor Signals
+- `16:18:55`       §12    liquidity-credit-panel             💧 Liquidity & Credit Engine
+- `16:18:55`       §13    liquidity-pulse-panel              💧 Liquidity & Credit Pulse
+- `16:18:55`       §14    the-crisis-patterns-current-state  📊 The 6 crisis patterns — current state
+- `16:19:05`    global-cycle: 7 sections, 9 badges, errors []
+- `16:19:05`       §1     global-phase-global-expansion-avg-cli-ex GLOBAL PHASE GLOBAL EXPANSION avg CLI 100.05 % EXP
+- `16:19:05`       §2     global-cycle-interpretation        📋 Global Cycle Interpretation
+- `16:19:05`       §3     cross-asset-implications           ⚖️ Cross-Asset Implications
+- `16:19:05`       §4     pillarssection                     🧭 Pillar breadth · GDP-weighted z by pillar acros
+- `16:19:05`       §5     world-map-color-current-cycle-phase 🗺️ World Map · color = current cycle phase
+- `16:19:05`       §6     by-region                          🌐 By Region
+- `16:19:05`       §7     methodology-v-multi-pillar-composite-cyc 📚 Methodology · v3 Multi-Pillar Composite Cycle I  panels: ['7.1 composite of five pillars', '7.2 Inputs:']
+- `16:19:15`    sectors: 13 sections, 15 badges, errors []
+- `16:19:15`       §1     jhviz                              Sector rotation — weekly performance (%)industry l
+- `16:19:15`       §2     market-breadth                     Market breadth
+- `16:19:15`       §3     sector-heatmap                     📊 Sector heatmap
+- `16:19:15`       §4     detailed-table-sorted-by-63d-rs-vs-spy 📋 Detailed table — sorted by 63d RS vs SPY
+- `16:19:15`       §5     industry-cap-rotation-finviz       🏭 Industry & cap rotation (Finviz)
+- `16:19:15`       §6     real-fund-flows-finviz             💵 Real fund flows (Finviz)  panels: ['6.1 Biggest inflows (all ETFs, 1', '6.2 Most intense flows (1M as % ']
+- `16:19:15`       §7     flow-price-quadrant-map-sector-spdrs-1m 🧭 Flow–price quadrant map (sector SPDRs, 1M)
+- `16:19:15`       §8     wrapper-wars-complex-net-truth     🥊 Wrapper wars — complex-net truth
+- `16:19:15`       §9     where-the-money-went-by-asset-class-1m 🌐 Where the money went — by asset class (1M)
+- `16:19:15`       §10    whales-vs-the-crowd-sector-spdrs   🐋 Whales vs the crowd (sector SPDRs)
+- `16:19:15`       §11    sector-internals-do-flows-have-breadth-b 📶 Sector internals — do flows have breadth behind
+- `16:19:15`       §12    does-chasing-flows-work-here-event-study 🔬 Does chasing flows work here? — event study on 
+- `16:19:15`       §13    leveraged-risk-appetite-bull-vs-bear-mon 🎰 Leveraged risk appetite — bull vs bear money (5
+## S4 fleet crawl -> section registry (append-only)
+
+- `16:19:15`    429 pages from nav-manifest (+index)
+- `16:31:53`    registry: 429 pages, 10735 sections, 1056 panels -> config/section-registry.json + s3://justhodl-dashboard-live/data/site/section-registry.json
+- `16:31:53`    failures (0): 
+- `16:31:53`    most sections: [(6831, 'brain'), (504, 'tradingview'), (154, 'news'), (130, 'brain-compiler'), (117, 'compound-signals'), (95, 'equity-chokepoint'), (74, 'tv-workbench'), (50, 'data-census')]
+- `16:31:53`    rendered but 0 sections (12): ['position-sizer', 'engine', 'provider', 'stress', 'chart-pro', 'signal-replay', 'charts', 'engines', 'contact', 'investor', 'settings', 'compare']
+- `16:31:53` ✅    GREEN: command desk v3 live, every page numbered, registry written (the next Pages bake freezes the numbers)
