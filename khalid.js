@@ -1,7 +1,11 @@
 (function () {
   "use strict";
   var PROXY = (window.JUSTHODL_AUTH_CONFIG && window.JUSTHODL_AUTH_CONFIG.syncBase) || "https://justhodl-data-proxy.raafouis.workers.dev";
-  var state = { data: null, filter: "ALL", query: "", detailReturnFocus: null };
+  var state = {
+    data: null, filter: "ALL", query: "", assetClass: "ALL", industry: "ALL",
+    capBucket: "ALL", sortKey: "score", sortDirection: "desc", page: 1,
+    pageSize: 25, detailReturnFocus: null
+  };
   var $ = function (id) { return document.getElementById(id); };
 
   function node(tag, cls, text) {
@@ -26,6 +30,42 @@
     return row;
   }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function textValue(value) {
+    if (value == null || value === "") return "--";
+    if (Array.isArray(value)) return value.map(textValue).join(" · ");
+    if (typeof value === "object") {
+      return Object.keys(value).map(function (key) {
+        var item = value[key];
+        return key.replace(/_/g, " ") + ": " + (typeof item === "object" ? textValue(item) : String(item));
+      }).join(" · ");
+    }
+    return String(value);
+  }
+  function criteriaCount(row) {
+    var value = row.criteria;
+    if (Array.isArray(value)) return value.length;
+    if (value && typeof value === "object") return Object.keys(value).filter(function (key) { return value[key] === true || (value[key] && value[key].passed === true); }).length;
+    return value == null ? null : Number(value);
+  }
+  function industryLabel(row) { return row.industry || row.category || row.sector || null; }
+  function sortValue(row, key) {
+    if (key === "criteria") return criteriaCount(row);
+    if (key === "industry") return industryLabel(row);
+    if (key === "vs_200d") return row.technical && row.technical.vs_200d_pct;
+    if (key === "rr") return row.risk_reward && row.risk_reward.ratio;
+    if (key === "stage") return row.discovery_stage || row.action;
+    return row[key];
+  }
+  function compareRows(a, b) {
+    var av = sortValue(a, state.sortKey), bv = sortValue(b, state.sortKey);
+    var aNull = av == null || av === "" || (typeof av === "number" && Number.isNaN(av));
+    var bNull = bv == null || bv === "" || (typeof bv === "number" && Number.isNaN(bv));
+    if (aNull || bNull) return aNull === bNull ? String(a.ticker || "").localeCompare(String(b.ticker || "")) : (aNull ? 1 : -1);
+    var result = typeof av === "number" && typeof bv === "number"
+      ? av - bv
+      : String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: "base" });
+    return state.sortDirection === "asc" ? result : -result;
+  }
 
   async function fetchData() {
     var paths = ["/data/khalid.json", PROXY + "/data/khalid.json"];
@@ -54,6 +94,9 @@
     set("shelter-why", data.risk_control && data.risk_control.default_shelter && data.risk_control.default_shelter.why);
     set("bond-regime", data.risk_control && data.risk_control.bond_market && data.risk_control.bond_market.regime);
     set("bond-summary", data.risk_control && data.risk_control.bond_market && (data.risk_control.bond_market.summary || data.risk_control.bond_market.note));
+    set("capital-decision", (data.risk_board && data.risk_board.capital_decision) || (data.decision && data.decision.capital_decision));
+    set("exposure-cap", ((data.risk_board && data.risk_board.exposure_cap_pct) == null ? "--" : data.risk_board.exposure_cap_pct + "%"));
+    $("capital-banner").className = "k-capital-banner " + ((data.risk_board && data.risk_board.allows_new_entries) ? "invest" : "cash");
     var reasons = $("risk-reasons"); clear(reasons);
     ((data.risk_control && data.risk_control.reasons) || []).forEach(function (x) { reasons.append(line("GATE", x)); });
 
@@ -77,6 +120,27 @@
       ? data.opportunity_radar
       : [].concat(data.selected || [], data.building_bases || [], data.watch_reclaims || [], data.crypto_watch || []);
   }
+  function fillSelect(id, values, allLabel) {
+    var select = $(id), current = select.value || "ALL"; clear(select);
+    var all = node("option", "", allLabel); all.value = "ALL"; select.append(all);
+    values.filter(Boolean).filter(function (value, index, allValues) { return allValues.indexOf(value) === index; })
+      .sort().forEach(function (value) {
+        var option = node("option", "", value); option.value = value; select.append(option);
+      });
+    select.value = values.indexOf(current) > -1 ? current : "ALL";
+  }
+  function filteredOpportunities() {
+    var q = state.query.toUpperCase();
+    return opportunities(state.data).filter(function (r) {
+      return (state.filter === "ALL" || r.action === state.filter || r.discovery_stage === state.filter) &&
+        (state.assetClass === "ALL" || r.asset_class === state.assetClass) &&
+        (state.industry === "ALL" || industryLabel(r) === state.industry) &&
+        (state.capBucket === "ALL" || r.cap_bucket === state.capBucket) &&
+        (!q || String(r.ticker || "").toUpperCase().indexOf(q) > -1 ||
+          String(r.name || "").toUpperCase().indexOf(q) > -1 ||
+          String(industryLabel(r) || "").toUpperCase().indexOf(q) > -1);
+    }).sort(compareRows);
+  }
   function renderOpportunities() {
     var list = $("opportunity-list"); clear(list);
     var changes = $("opportunity-changes"); clear(changes);
@@ -84,12 +148,15 @@
     [["NEW", changeData.new], ["PROMOTED", changeData.promoted], ["DEMOTED", changeData.demoted], ["DATA HOLD", changeData.held], ["DORMANT", changeData.dormant]].forEach(function (item) {
       var chip = node("span"); chip.append(node("b", "", (item[1] || []).length), document.createTextNode(" " + item[0])); changes.append(chip);
     });
-    var q = state.query.toUpperCase();
-    var rows = opportunities(state.data).filter(function (r) {
-      return (state.filter === "ALL" || r.action === state.filter || r.discovery_stage === state.filter) &&
-        (!q || String(r.ticker || "").toUpperCase().indexOf(q) > -1 || String(r.name || "").toUpperCase().indexOf(q) > -1);
-    });
-    rows.forEach(function (row) {
+    var allRows = opportunities(state.data);
+    fillSelect("asset-class-filter", allRows.map(function (row) { return row.asset_class; }), "All asset classes");
+    fillSelect("industry-filter", allRows.map(industryLabel), "All industries / categories");
+    fillSelect("cap-filter", allRows.map(function (row) { return row.cap_bucket; }), "All cap buckets");
+    $("asset-class-filter").value = state.assetClass;
+    $("industry-filter").value = state.industry;
+    $("cap-filter").value = state.capBucket;
+    var rows = filteredOpportunities();
+    rows.slice(0, 9).forEach(function (row) {
       var card = node("article", "k-card");
       card.tabIndex = 0; card.setAttribute("role", "button"); card.setAttribute("aria-label", "Open " + row.ticker + " analysis");
       var top = node("div", "k-card-top");
@@ -112,6 +179,36 @@
       card.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); showDetail(row, card); } });
       list.append(card);
     });
+    var body = $("opportunity-table-body"); clear(body);
+    var pageCount = Math.max(1, Math.ceil(rows.length / state.pageSize));
+    state.page = Math.min(state.page, pageCount);
+    var start = (state.page - 1) * state.pageSize;
+    rows.slice(start, start + state.pageSize).forEach(function (row) {
+      var tr = node("tr");
+      var tickerCell = node("td"), open = node("button", "k-table-open", row.ticker);
+      open.type = "button"; open.setAttribute("aria-label", "Open " + row.ticker + " analysis");
+      open.addEventListener("click", function () { showDetail(row, open); }); tickerCell.append(open);
+      var values = [
+        tickerCell, row.asset_class, num(row.score, 1),
+        criteriaCount(row) == null ? "--" : criteriaCount(row),
+        industryLabel(row) || "--", row.cap_bucket || "--",
+        row.technical && row.technical.vs_200d_pct != null ? pct(row.technical.vs_200d_pct) : "--",
+        row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--",
+        actionLabel(row.discovery_stage || row.action)
+      ];
+      values.forEach(function (value) {
+        if (value && value.nodeType) tr.append(value);
+        else tr.append(node("td", "", value));
+      });
+      body.append(tr);
+    });
+    document.querySelectorAll("[data-sort]").forEach(function (button) {
+      var th = button.closest("th");
+      th.setAttribute("aria-sort", button.dataset.sort === state.sortKey ? (state.sortDirection === "asc" ? "ascending" : "descending") : "none");
+    });
+    set("page-status", "Page " + state.page + " of " + pageCount + " · " + rows.length + " results");
+    $("page-prev").disabled = state.page <= 1;
+    $("page-next").disabled = state.page >= pageCount;
     $("opportunity-empty").hidden = rows.length > 0;
   }
 
@@ -146,6 +243,37 @@
     if (!(data.risks || []).length) risks.append(line("CLEAR", "No active system veto is reported."));
     if (!(data.contradictions || []).length) contradictions.append(line("NONE", "No material conflict is reported in the top queue."));
     if (!(data.catalysts || []).length) catalysts.append(line("NONE", "No verified catalyst cleared the current queue."));
+    var board = data.risk_board || {};
+    set("risk-board-decision", board.capital_decision);
+    set("risk-board-cap", board.exposure_cap_pct == null ? "--" : board.exposure_cap_pct + "%");
+    set("risk-board-score", board.risk_score == null ? "--" : num(board.risk_score, 1));
+    set("risk-board-method", board.method);
+    var domains = $("risk-board-domains"); clear(domains);
+    (board.domains || []).forEach(function (domain) {
+      var card = node("article", "k-risk-card severity-" + String(domain.severity || "unknown").toLowerCase());
+      var head = node("div", "k-risk-card-head");
+      var title = node("div"); title.append(node("span", "", domain.label), node("small", "", domain.domain + " · " + domain.status + (domain.age_h == null ? "" : " · " + num(domain.age_h, 1) + "h")));
+      head.append(title, node("strong", "", domain.score == null ? actionLabel(domain.severity) : num(domain.score, 1)));
+      card.append(head, node("p", "", domain.summary));
+      var metrics = node("div", "k-risk-metrics");
+      (domain.metrics || []).forEach(function (metric) {
+        metrics.append(line(metric.label, textValue(metric.value) + (metric.unit || "")));
+      });
+      card.append(metrics); domains.append(card);
+    });
+    var boardConflicts = $("board-conflicts"); clear(boardConflicts);
+    (board.conflicts || []).forEach(function (conflict) { boardConflicts.append(line(conflict.label, conflict.detail)); });
+    if (!(board.conflicts || []).length) boardConflicts.append(line("NONE", "No material disagreement is reported across authoritative lenses."));
+    set("board-conflict-count", (board.conflicts || []).length);
+    var breadth = $("breadth-clusters"); clear(breadth);
+    (data.breadth_clusters || []).forEach(function (cluster) {
+      var card = node("article", "k-breadth-card");
+      card.append(node("span", "k-action", actionLabel(cluster.state)), node("h3", "", cluster.group), node("strong", "", num(cluster.score, 1)));
+      card.append(node("p", "", cluster.plain_english));
+      card.append(line("LEADERS", (cluster.leaders || []).join(", ")));
+      breadth.append(card);
+    });
+    if (!(data.breadth_clusters || []).length) breadth.append(node("p", "k-empty", "No peer group has enough members for breadth confirmation."));
   }
 
   function renderMethod(data) {
@@ -171,13 +299,23 @@
 
   function showDetail(row, opener) {
     var box = $("detail-content"); clear(box);
-    box.append(node("p", "k-eyebrow", row.asset_class + " · " + actionLabel(row.discovery_stage || row.action)), node("h2", "", row.ticker), node("p", "k-detail-summary", row.plain_english));
+    var title = node("h2", "", row.ticker); title.id = "detail-title";
+    box.append(node("p", "k-eyebrow", row.asset_class + " · " + actionLabel(row.discovery_stage || row.action)), title, node("p", "k-detail-summary", row.plain_english));
     var stats = node("div", "k-detail-grid");
     [
       ["Discovery", num(row.score, 1)], ["Coverage", pct(row.component_coverage == null ? null : row.component_coverage * 100)], ["Entry", actionLabel((row.entry_trigger && row.entry_trigger.state) || row.action)],
       ["RSI", num(row.technical && row.technical.rsi, 1)], ["R / R", row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--"], ["Dilution", pct(row.dilution && row.dilution.yoy_pct)]
     ].forEach(function (x) { var s = node("div", "k-detail-stat"); s.append(node("span", "", x[0]), node("b", "", x[1])); stats.append(s); });
     box.append(stats);
+    box.append(node("h3", "", "CLASSIFICATION + MOMENTUM"));
+    box.append(
+      line("INDUSTRY / CATEGORY", industryLabel(row) || "--"),
+      line("CAP BUCKET", row.cap_bucket || "--"),
+      line("MARKET CAP", row.market_cap == null ? "--" : textValue(row.market_cap)),
+      line("MOMENTUM", textValue(row.momentum))
+    );
+    box.append(node("h3", "", "CRITERIA + GATES"));
+    box.append(line("CRITERIA", textValue(row.criteria)), line("GATES", textValue(row.gates)));
     if (row.lifecycle) {
       box.append(node("h3", "", "LIFECYCLE"));
       box.append(
@@ -195,6 +333,24 @@
       box.append(node("h3", "", "POTENTIAL UNLOCKS"));
       row.catalysts.forEach(function (x) { box.append(line("CATALYST", x)); });
     }
+    box.append(node("h3", "", "RISK / REWARD"));
+    var rr = row.risk_reward || {}, dump = row.dump_risk || {};
+    box.append(
+      line("R / R", rr.ratio == null ? "--" : num(rr.ratio, 2) + "x"),
+      line("PIVOT / STOP / TARGET", [rr.pivot, rr.stop, rr.target_2 || rr.target_1].map(textValue).join(" / ")),
+      line("EMPIRICAL DUMP LOSS", dump.empirical_loss_pct == null ? "--" : pct(dump.empirical_loss_pct))
+    );
+    if (dump.structural_estimate) {
+      box.append(line(
+        dump.structural_estimate.label || "STRUCTURAL DUMP-RISK ESTIMATE — NOT A PROBABILITY",
+        pct(dump.structural_estimate.estimated_loss_pct) + " · " + (dump.structural_estimate.method || "")
+      ));
+    }
+    (dump.evidence || []).forEach(function (item) { box.append(line("DUMP EVIDENCE", textValue(item))); });
+    if ((row.risks || []).length) {
+      box.append(node("h3", "", "THESIS RISKS"));
+      row.risks.forEach(function (x) { box.append(line("RISK", x)); });
+    }
     box.append(node("h3", "", "ENTRY DISCIPLINE"));
     var entry = row.entry_trigger || {};
     box.append(line("DAILY", entry.daily || "--"), line("4H", entry.four_hour || "--"), line("INVALIDATE", entry.invalidation || "--"));
@@ -204,7 +360,7 @@
       box.append(node("h3", "", key.toUpperCase()));
       items.forEach(function (item) {
         var e = node("div", "k-evidence-item");
-        e.append(node("b", "", item.label + (item.value == null ? "" : " · " + item.value)), node("span", "", item.detail + " [" + item.source + "]"));
+        e.append(node("b", "", (item.label || key) + (item.value == null ? "" : " · " + item.value)), node("span", "", (item.detail || "--") + " [" + (item.source || "unspecified") + "]"));
         box.append(e);
       });
     });
@@ -257,11 +413,36 @@
     var filter = ev.target.closest("[data-filter]");
     if (filter) {
       state.filter = filter.dataset.filter;
+      state.page = 1;
       document.querySelectorAll("[data-filter]").forEach(function (x) { x.classList.toggle("active", x === filter); });
       renderOpportunities();
     }
+    var sort = ev.target.closest("[data-sort]");
+    if (sort) {
+      if (state.sortKey === sort.dataset.sort) {
+        state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+      } else {
+        state.sortKey = sort.dataset.sort;
+        state.sortDirection = sort.dataset.sort === "score" ? "desc" : "asc";
+      }
+      state.page = 1;
+      renderOpportunities();
+    }
   });
-  $("asset-search").addEventListener("input", function (ev) { state.query = ev.target.value.trim(); renderOpportunities(); });
+  $("asset-search").addEventListener("input", function (ev) { state.query = ev.target.value.trim(); state.page = 1; renderOpportunities(); });
+  [
+    ["asset-class-filter", "assetClass"],
+    ["industry-filter", "industry"],
+    ["cap-filter", "capBucket"]
+  ].forEach(function (binding) {
+    $(binding[0]).addEventListener("change", function (ev) {
+      state[binding[1]] = ev.target.value;
+      state.page = 1;
+      renderOpportunities();
+    });
+  });
+  $("page-prev").addEventListener("click", function () { if (state.page > 1) { state.page -= 1; renderOpportunities(); } });
+  $("page-next").addEventListener("click", function () { state.page += 1; renderOpportunities(); });
   $("detail-close").addEventListener("click", closeDetail);
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "Escape") closeDetail();

@@ -101,6 +101,19 @@ def _blank(ticker: str, name: str | None, asset_class: str) -> dict:
         "ticker": ticker,
         "name": name or ticker,
         "asset_class": asset_class,
+        "industry": None,
+        "sector": None,
+        "category": None,
+        "market_cap": None,
+        "cap_bucket": None,
+        "momentum": None,
+        "criteria": [],
+        "gates": [],
+        "dump_risk": {
+            "empirical_loss_pct": None,
+            "structural_estimate": None,
+            "evidence": [],
+        },
         "lane": "CROSS_ASSET_DISCOVERY",
         "components_raw": {key: [] for key in WEIGHTS},
         "sources": [],
@@ -183,6 +196,9 @@ def _read_execution(records: dict[str, dict], rows: list[dict]) -> None:
         row["valuation"] = item.get("valuation") or row["valuation"]
         row["dilution"] = item.get("dilution") or row["dilution"]
         row["risk_reward"] = item.get("risk_reward") or row["risk_reward"]
+        for key in ("industry", "sector", "category", "market_cap", "cap_bucket", "momentum", "criteria", "gates", "dump_risk"):
+            if item.get(key) is not None:
+                row[key] = item[key]
         execution_source = str(item.get("source") or "fortress-execution")
         if "fortress" in execution_source:
             _source(row, "fortress-execution")
@@ -299,13 +315,24 @@ def _read_deals(records: dict[str, dict], feed: dict) -> None:
     for item in (feed.get("deals") or [])[:150]:
         if item.get("listed") is False or item.get("promo_risk") or item.get("non_binding"):
             continue
+        score = _num(item.get("score"))
+        materiality = _num(item.get("materiality_pct"))
+        has_evidence = (
+            score is not None
+            or materiality is not None
+            or item.get("smart_money_backed") is True
+            or item.get("confirmed_8k") is True
+        )
+        if not has_evidence:
+            continue
         row = _record(records, item.get("symbol"), item.get("name"), "STOCK")
         if not row:
             continue
         _source(row, "deal-scanner")
-        score = _num(item.get("score"))
-        materiality = _num(item.get("materiality_pct"))
-        _component(row, "catalyst", score if score is not None else (50 + min(45, materiality or 0)))
+        if score is not None:
+            _component(row, "catalyst", score)
+        elif materiality is not None:
+            _component(row, "catalyst", 50 + min(45, materiality))
         if item.get("smart_money_backed"):
             _component(row, "capital_confirmation", 75)
         _append_unique(row, "catalysts", item.get("title") or item.get("why"))
@@ -357,7 +384,11 @@ def _read_spinoffs(records: dict[str, dict], feed: dict) -> None:
         _source(row, "spinoff-desk")
         _component(row, "underappreciation", item.get("spinoff_score"))
         _component(row, "catalyst", item.get("spinoff_score"))
-        _component(row, "asymmetry", 75 if (item.get("fundamentals") or {}).get("fcf_positive") else 50)
+        fcf_positive = (item.get("fundamentals") or {}).get("fcf_positive")
+        if fcf_positive is True:
+            _component(row, "asymmetry", 75)
+        elif fcf_positive is False:
+            _component(row, "asymmetry", 25)
         _append_unique(row, "why_underappreciated", item.get("thesis") or "Post-spin forced selling and limited coverage")
         _append_unique(row, "risks", item.get("risk"))
 
@@ -383,21 +414,33 @@ def _read_industry_rotation(records: dict[str, dict], feed: dict) -> None:
 
 def _read_capital_flows(records: dict[str, dict], feed: dict) -> None:
     for item in feed.get("complexes") or []:
+        zscore = _num(item.get("flow_zscore_90d"))
+        breadth = _num(item.get("breadth"))
+        pump_probability = _num(item.get("pump_probability"))
+        has_evidence = (
+            zscore is not None
+            or breadth is not None
+            or pump_probability is not None
+            or item.get("accelerating") is True
+            or item.get("flow_price_divergence") is True
+        )
+        if not has_evidence:
+            continue
         tickers = [item.get("primary")] + list(item.get("top_conviction_stocks") or [])
         for ticker in tickers:
             row = _record(records, ticker, item.get("complex"), "ETF" if ticker == item.get("primary") else "STOCK")
             if not row:
                 continue
             _source(row, "capital-flow-radar")
-            zscore = _num(item.get("flow_zscore_90d"))
-            breadth = _num(item.get("breadth"))
-            _component(row, "capital_confirmation", 50 + (zscore or 0) * 12)
-            _component(row, "capital_confirmation", breadth * 100 if breadth is not None and breadth <= 1 else breadth)
+            if zscore is not None:
+                _component(row, "capital_confirmation", 50 + zscore * 12)
+            if breadth is not None:
+                _component(row, "capital_confirmation", breadth * 100 if breadth <= 1 else breadth)
             if item.get("accelerating"):
                 _append_unique(row, "catalysts", "Capital flows are accelerating")
             if item.get("flow_price_divergence"):
                 _append_unique(row, "why_underappreciated", "Positive fund flow is diverging from price")
-            if (_num(item.get("pump_probability")) or 0) >= 70:
+            if pump_probability is not None and pump_probability >= 70:
                 _append_unique(row, "risks", "Flow profile carries elevated pump/reversal risk")
 
 
@@ -424,7 +467,9 @@ def _read_crypto(records: dict[str, dict], emergence: dict, opportunities: dict)
             continue
         _source(row, "crypto-opportunities")
         _component(row, "capital_confirmation", item.get("composite_score"))
-        _component(row, "catalyst", 40 + 12 * (_num(item.get("n_signals")) or 0))
+        n_signals = _num(item.get("n_signals"))
+        if n_signals is not None:
+            _component(row, "catalyst", 40 + 12 * n_signals)
         row["price"] = item.get("price_usd") if row["price"] is None else row["price"]
         for signal in item.get("signals_fired") or []:
             _append_unique(row, "catalysts", signal)
@@ -439,7 +484,9 @@ def _read_metals(records: dict[str, dict], feed: dict) -> None:
             continue
         _source(row, "metals-miners")
         _component(row, "underappreciation", item.get("score"))
-        _component(row, "asymmetry", 50 + min(50, _num(item.get("implied_gain_pct")) or 0))
+        implied_gain = _num(item.get("implied_gain_pct"))
+        if implied_gain is not None:
+            _component(row, "asymmetry", 50 + min(50, implied_gain))
         _append_unique(row, "why_underappreciated", item.get("thesis"))
         for risk in item.get("caveats") or []:
             _append_unique(row, "risks", risk)
@@ -484,7 +531,9 @@ def _read_country_macro(records: dict[str, dict], sovereign: dict, fx: dict, por
                 continue
             row = _record(records, ticker, None, "COUNTRY")
             _source(row, "fx-intelligence")
-            _component(row, "trend_inflection", 50 + (_num(item.get("momentum_z")) or 0) * 12)
+            momentum_z = _num(item.get("momentum_z"))
+            if momentum_z is not None:
+                _component(row, "trend_inflection", 50 + momentum_z * 12)
             _append_unique(row, "catalysts", f"{code} FX trend: {item.get('trend') or item.get('signal')}")
     for item in portwatch.get("exporters") or []:
         ticker = country_etf.get(item.get("country"))
@@ -617,10 +666,55 @@ def _finalize(row: dict, risk_mode: str) -> dict:
         "four_hour": "Use a 4h retest or higher low only after daily confirmation",
         "invalidation": row["risks"][0] if row["risks"] else "Thesis score falls below 50 or the stated catalyst fails",
     }
+    risk_reward = row["risk_reward"] if isinstance(row.get("risk_reward"), dict) else {}
+    dump_risk = row["dump_risk"] if isinstance(row.get("dump_risk"), dict) else {}
+    empirical_dump = _num(risk_reward.get("empirical_dump_loss_pct"))
+    if empirical_dump is None:
+        empirical_dump = _num(dump_risk.get("empirical_loss_pct"))
+    structural_dump = risk_reward.get("structural_dump_risk")
+    if empirical_dump is not None:
+        structural_dump = None
+    elif not isinstance(structural_dump, dict):
+        price = _num(row.get("price"))
+        stop = _num(risk_reward.get("stop"))
+        vs200 = _num((row.get("technical") or {}).get("vs_200d_pct"))
+        if price is not None and stop is not None and 0 < stop < price:
+            estimate = (price - stop) / price * 100
+            method = "Distance from current price to the stated structural stop"
+        elif vs200 is not None:
+            estimate = min(60.0, 12.0 + abs(min(0.0, vs200)) * 0.35)
+            method = "Heuristic distance-to-trend stress band; no empirical loss sample is available"
+        else:
+            estimate = 20.0
+            method = "Conservative structural fallback because empirical loss and stop geometry are unavailable"
+        structural_dump = {
+            "label": "STRUCTURAL DUMP-RISK ESTIMATE — NOT A PROBABILITY",
+            "estimated_loss_pct": round(estimate, 1),
+            "method": method,
+            "calibrated_probability": False,
+        }
+    risk_reward = {
+        **risk_reward,
+        "empirical_dump_loss_pct": empirical_dump,
+        "structural_dump_risk": structural_dump,
+    }
+    dump_risk = {
+        "empirical_loss_pct": empirical_dump,
+        "structural_estimate": structural_dump,
+        "evidence": dump_risk.get("evidence") if isinstance(dump_risk.get("evidence"), list) else [],
+    }
     return {
         "ticker": row["ticker"],
         "name": row["name"],
         "asset_class": row["asset_class"],
+        "industry": row.get("industry"),
+        "sector": row.get("sector"),
+        "category": row.get("category"),
+        "market_cap": row.get("market_cap"),
+        "cap_bucket": row.get("cap_bucket"),
+        "momentum": row.get("momentum"),
+        "criteria": row.get("criteria") if row.get("criteria") is not None else [],
+        "gates": row.get("gates") if row.get("gates") is not None else [],
         "lane": row["lane"],
         "discovery_stage": stage,
         "action": action,
@@ -640,7 +734,8 @@ def _finalize(row: dict, risk_mode: str) -> dict:
         "technical": row["technical"],
         "valuation": row["valuation"],
         "dilution": row["dilution"],
-        "risk_reward": row["risk_reward"],
+        "risk_reward": risk_reward,
+        "dump_risk": dump_risk,
         "entry_trigger": entry,
         "evidence": execution.get("evidence") or {},
         "vetoes": execution.get("vetoes") or [],
@@ -800,6 +895,14 @@ def apply_lifecycle(
                 "ticker": old.get("ticker"),
                 "name": snapshot.get("name") or old.get("ticker"),
                 "asset_class": old.get("asset_class") or snapshot.get("asset_class") or "UNKNOWN",
+                "industry": snapshot.get("industry"),
+                "sector": snapshot.get("sector"),
+                "category": snapshot.get("category"),
+                "market_cap": snapshot.get("market_cap"),
+                "cap_bucket": snapshot.get("cap_bucket"),
+                "momentum": snapshot.get("momentum"),
+                "criteria": snapshot.get("criteria") if snapshot.get("criteria") is not None else [],
+                "gates": snapshot.get("gates") if snapshot.get("gates") is not None else [],
                 "lane": snapshot.get("lane") or "DISCOVERY",
                 "discovery_stage": "EVIDENCE_HOLD",
                 "action": "TRACKING",
@@ -823,6 +926,16 @@ def apply_lifecycle(
                 "valuation": snapshot.get("valuation") or {},
                 "dilution": snapshot.get("dilution") or {},
                 "risk_reward": snapshot.get("risk_reward") or {},
+                "dump_risk": snapshot.get("dump_risk") or {
+                    "empirical_loss_pct": None,
+                    "structural_estimate": {
+                        "label": "STRUCTURAL DUMP-RISK ESTIMATE — NOT A PROBABILITY",
+                        "estimated_loss_pct": 20.0,
+                        "method": "Conservative structural fallback retained during a data outage",
+                        "calibrated_probability": False,
+                    },
+                    "evidence": [],
+                },
                 "entry_trigger": {
                     "state": "WAIT",
                     "daily": "Wait for supporting feeds to recover and revalidate the thesis",
@@ -882,7 +995,7 @@ def apply_lifecycle(
     ledger_rows.sort(key=lambda row: (row.get("status") == "ACTIVE", row.get("score") or 0), reverse=True)
     ledger = {
         "engine": "justhodl-khalid-candidate-ledger",
-        "schema_version": "1.0.0",
+        "schema_version": "3.0.0",
         "generated_at": generated_at,
         "candidates": ledger_rows,
     }

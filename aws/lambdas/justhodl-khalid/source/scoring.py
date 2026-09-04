@@ -65,6 +65,7 @@ def contract_error(spec: dict, payload: dict) -> str | None:
                 expected == "number"
                 and not isinstance(value, bool)
                 and isinstance(value, (int, float))
+                and math.isfinite(float(value))
             )
         )
         if not valid:
@@ -141,6 +142,16 @@ def score_candidate(
     planned_entry = first_number(plan.get("pivot"), row.get("breakout_level"), price)
     planned_stop = first_number(plan.get("stop"), row.get("range_low_60"))
     planned_target = first_number(plan.get("target_2"), row.get("target_price"), plan.get("target"))
+    market_cap = first_number(row.get("market_cap"), row.get("market_cap_usd"), row.get("market_capitalization"))
+    cap_bucket = row.get("cap_bucket") or row.get("market_cap_bucket")
+    if not cap_bucket and market_cap is not None:
+        cap_bucket = (
+            "MEGA" if market_cap >= 200_000_000_000
+            else "LARGE" if market_cap >= 10_000_000_000
+            else "MID" if market_cap >= 2_000_000_000
+            else "SMALL" if market_cap >= 300_000_000
+            else "MICRO"
+        )
     rr = None
     if (
         planned_entry is not None
@@ -359,12 +370,38 @@ def score_candidate(
         plain.append("the base is interesting, but at least one required confirmation is still missing")
 
     katlin_block = row.get("_katlin") if isinstance(row.get("_katlin"), dict) else None
+    empirical_dump = number(row.get("empirical_dump_loss_pct"))
+    structural_dump = None
+    if empirical_dump is None:
+        if price is not None and planned_stop is not None and 0 < planned_stop < price:
+            estimate = (price - planned_stop) / price * 100
+            method = "Distance from current price to the stated structural stop"
+        elif vs200 is not None:
+            estimate = min(60.0, 12.0 + abs(min(0.0, vs200)) * 0.35)
+            method = "Heuristic distance-to-trend stress band; no empirical loss sample is available"
+        else:
+            estimate = 20.0
+            method = "Conservative structural fallback because neither empirical loss nor valid stop geometry is available"
+        structural_dump = {
+            "label": "STRUCTURAL DUMP-RISK ESTIMATE — NOT A PROBABILITY",
+            "estimated_loss_pct": round(estimate, 1),
+            "method": method,
+            "calibrated_probability": False,
+        }
     return {
         "source": src,
         "katlin": katlin_block,
         "ticker": ticker,
         "name": name,
         "asset_class": asset_class,
+        "industry": row.get("industry"),
+        "sector": row.get("sector"),
+        "category": row.get("category"),
+        "market_cap": market_cap,
+        "cap_bucket": cap_bucket,
+        "momentum": row.get("momentum") if row.get("momentum") is not None else row.get("momentum_score"),
+        "criteria": row.get("criteria") if row.get("criteria") is not None else row.get("criteria_met", []),
+        "gates": row.get("gates") if row.get("gates") is not None else row.get("gate_results", []),
         "action": action,
         "score": score,
         "confidence": round(candidate_confidence, 2),
@@ -402,8 +439,14 @@ def score_candidate(
             "stop": planned_stop,
             "target_1": number(plan.get("target")),
             "target_2": planned_target,
-            "empirical_dump_loss_pct": number(row.get("empirical_dump_loss_pct")),
+            "empirical_dump_loss_pct": empirical_dump,
+            "structural_dump_risk": structural_dump,
             "asymmetry": round(asymmetry, 2) if asymmetry is not None else None,
+        },
+        "dump_risk": {
+            "empirical_loss_pct": empirical_dump,
+            "structural_estimate": structural_dump,
+            "evidence": row.get("dump_risk_evidence") or row.get("dump_evidence") or [],
         },
         "entry_trigger": {
             "state": "TRIGGERED" if action == "READY_TO_SNIPE" else ("ARMED" if action == "ARMED" else "WAIT"),
@@ -444,7 +487,14 @@ def risk_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dic
     ]
     reasons = []
     allowed_postures = {"RISK_ON", "NEUTRAL", "RISK_OFF", "SEVERE"}
-    if critical_bad or posture not in allowed_postures or defcon is None:
+    if (
+        critical_bad
+        or posture not in allowed_postures
+        or composite is None
+        or sizing is None
+        or not 0 <= sizing <= 1
+        or defcon is None
+    ):
         mode = "DATA_HOLD"
         reasons.append("Critical risk inputs are stale, missing, or outside their contract")
     elif posture in {"SEVERE", "RISK_OFF"} or (defcon is not None and defcon <= 2):
@@ -457,14 +507,13 @@ def risk_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dic
         mode = "SELECTIVE_RISK_ON"
         reasons.append("Risk backdrop permits entries, but location and evidence gates still apply")
     allows = mode in {"SELECTIVE", "SELECTIVE_RISK_ON"}
-    if posture == "NEUTRAL":
-        allows = True
     return {
         "mode": mode,
         "allows_new_entries": allows,
         "risk_gate_posture": posture,
         "risk_gate_composite": composite,
         "risk_gate_sizing_multiplier": sizing,
+        "sizing_multiplier": sizing if sizing is not None else 0.0,
         "crisis_defcon": int(defcon) if defcon is not None else None,
         "reasons": reasons,
         "default_shelter": {

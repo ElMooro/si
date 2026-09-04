@@ -30,7 +30,7 @@ test("Khalid renders the broad opportunity radar and lifecycle changes", () => {
 });
 
 test("Dynamic feed values use DOM text nodes rather than HTML interpolation", () => {
-  assert.doesNotMatch(js, /innerHTML\\s*=/);
+  assert.doesNotMatch(js, /innerHTML\s*=/);
   assert.match(js, /textContent/);
 });
 
@@ -45,4 +45,48 @@ test("The closed detail drawer is inert and restores focus to its opener", () =>
   assert.match(js, /detail\.inert = false/);
   assert.match(js, /detail\.inert = true/);
   assert.match(js, /state\.detailReturnFocus\.focus\(\)/);
+});
+
+test("Opportunity table sorting is accessible, bidirectional, and null-last", () => {
+  assert.match(html, /data-sort="criteria"/);
+  assert.match(html, /aria-sort="descending"/);
+  assert.match(js, /setAttribute\("aria-sort"/);
+  assert.match(js, /state\.sortDirection === "asc" \? "desc" : "asc"/);
+  assert.match(js, /aNull \? 1 : -1/);
+});
+
+test("Opportunity controls expose requested filters and pagination", () => {
+  assert.match(html, /id="asset-class-filter"/);
+  assert.match(html, /id="industry-filter"/);
+  assert.match(html, /id="cap-filter"/);
+  assert.match(html, /id="page-prev"/);
+  assert.match(html, /id="page-next"/);
+  assert.match(js, /state\.pageSize: 25|pageSize: 25/);
+  assert.match(js, /rows\.slice\(0, 9\)/);
+});
+
+test("Full risk board and breadth clusters are rendered", () => {
+  assert.match(html, /id="risk-board-domains"/);
+  assert.match(html, /id="board-conflicts"/);
+  assert.match(html, /id="breadth-clusters"/);
+  assert.match(js, /board\.domains/);
+  assert.match(js, /data\.breadth_clusters/);
+  assert.match(html, /Breadth never creates entry readiness/);
+});
+
+test("Capital decision is prominent and reconciles exposure cap", () => {
+  assert.match(html, /AUTHORITATIVE CAPITAL DECISION/);
+  assert.match(html, /id="capital-decision"/);
+  assert.match(html, /id="exposure-cap"/);
+  assert.match(js, /risk_board\.capital_decision/);
+  assert.match(js, /risk_board\.exposure_cap_pct/);
+});
+
+test("Opportunity drawer includes full criteria, momentum, dump risk and reward-risk detail", () => {
+  assert.match(js, /CLASSIFICATION \+ MOMENTUM/);
+  assert.match(js, /CRITERIA \+ GATES/);
+  assert.match(js, /STRUCTURAL DUMP-RISK ESTIMATE/);
+  assert.match(js, /THESIS RISKS/);
+  assert.match(js, /RISK \/ REWARD/);
+  assert.match(html, /role="dialog"[^>]*aria-modal="true"/);
 });

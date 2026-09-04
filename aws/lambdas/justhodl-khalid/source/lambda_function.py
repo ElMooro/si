@@ -19,6 +19,8 @@ from typing import Any
 import boto3
 
 from discovery import apply_lifecycle, build_opportunity_radar
+from breadth import apply_breadth_confirmation
+from risk_board import build_risk_board
 from scoring import contract_error, number, rank_candidates, risk_policy, score_candidate
 
 
@@ -46,6 +48,8 @@ def validate_output(payload: dict) -> None:
         raise ValueError("missing output keys: " + ", ".join(missing))
     if payload["status"] not in schema["statuses"]:
         raise ValueError("invalid status")
+    if payload.get("schema_version") != schema["schema_version"] or payload.get("version") != schema["schema_version"]:
+        raise ValueError("schema/version mismatch")
     for key in ("score", "risk_score"):
         value = payload.get(key)
         if value is not None and not 0 <= float(value) <= 100:
@@ -74,6 +78,26 @@ def validate_output(payload: dict) -> None:
             raise ValueError(f"confidence outside 0..1 for {opportunity_id}")
         if not 0 <= float(row.get("component_coverage")) <= 1:
             raise ValueError(f"coverage outside 0..1 for {opportunity_id}")
+        stable_fields = {
+            "industry", "sector", "category", "market_cap", "cap_bucket",
+            "momentum", "criteria", "gates", "dump_risk", "risk_reward",
+        }
+        missing_row_fields = sorted(stable_fields - set(row))
+        if missing_row_fields:
+            raise ValueError(f"unstable row schema for {opportunity_id}: {missing_row_fields}")
+        dump_risk = row.get("dump_risk")
+        if not isinstance(dump_risk, dict):
+            raise ValueError(f"dump_risk must be an object for {opportunity_id}")
+        empirical = dump_risk.get("empirical_loss_pct")
+        estimate = dump_risk.get("structural_estimate")
+        if empirical is not None and estimate is not None:
+            raise ValueError(f"empirical and structural dump risk cannot coexist for {opportunity_id}")
+        if estimate is not None and (
+            not isinstance(estimate, dict)
+            or estimate.get("calibrated_probability") is not False
+            or "NOT A PROBABILITY" not in str(estimate.get("label"))
+        ):
+            raise ValueError(f"mislabelled structural dump risk for {opportunity_id}")
         entry_state = (row.get("entry_trigger") or {}).get("state")
         if row.get("discovery_stage") == "ENTRY_READY":
             if row.get("action") != "READY_TO_SNIPE" or entry_state != "TRIGGERED":
@@ -84,6 +108,13 @@ def validate_output(payload: dict) -> None:
     decision = payload.get("decision") or {}
     if decision.get("opportunities_tracked") != len(radar):
         raise ValueError("tracked count does not reconcile")
+    board = payload.get("risk_board")
+    if not isinstance(board, dict) or not isinstance(board.get("domains"), list):
+        raise ValueError("risk_board must expose domains")
+    if decision.get("capital_decision") != board.get("capital_decision"):
+        raise ValueError("capital decision does not reconcile with risk board")
+    if decision.get("exposure_cap_pct") != board.get("exposure_cap_pct"):
+        raise ValueError("exposure cap does not reconcile with risk board")
     high_count = sum(row["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for row in radar)
     if decision.get("high_conviction_count") != high_count:
         raise ValueError("high-conviction count does not reconcile")
@@ -128,6 +159,74 @@ def _feed_timestamp(payload: dict, meta: dict) -> str | None:
     )
 
 
+def _risk_payload_error(name: str, payload: dict) -> str | None:
+    """Apply semantic guards that cannot be expressed by the shallow registry contract."""
+    if name in {"credit_composite", "eurodollar_stress"}:
+        score = number(
+            payload.get("composite")
+            if name == "credit_composite" and payload.get("composite") is not None
+            else payload.get("composite_score")
+        )
+        if score is None or not 0 <= score <= 100:
+            return f"{name} composite score must be finite and within 0..100"
+        return None
+    if name == "bond_warroom":
+        heartbeat = payload.get("heartbeat") if isinstance(payload.get("heartbeat"), dict) else {}
+        equity = payload.get("equity_risk") if isinstance(payload.get("equity_risk"), dict) else {}
+        shortage = (
+            payload.get("eurodollar_shortage")
+            if isinstance(payload.get("eurodollar_shortage"), dict)
+            else {}
+        )
+        missing = []
+        heartbeat_score = number(heartbeat.get("score"))
+        equity_score = number(equity.get("score"))
+        shortage_score = number(shortage.get("score"))
+        if heartbeat_score is None or not 0 <= heartbeat_score <= 100 or not str(heartbeat.get("regime") or "").strip():
+            missing.append("heartbeat.score/regime")
+        if equity_score is None or not 0 <= equity_score <= 100 or not str(
+            equity.get("state") or equity.get("level") or ""
+        ).strip():
+            missing.append("equity_risk.score/state")
+        if shortage_score is None or not 0 <= shortage_score <= 100 or not str(shortage.get("state") or "").strip():
+            missing.append("eurodollar_shortage.score/state")
+        if not payload.get("panels"):
+            missing.append("panels")
+        return "bond risk fields are missing: " + ", ".join(missing) if missing else None
+    if name != "crisis":
+        return None
+    components = payload.get("components")
+    reported = number(payload.get("components_available"))
+    defcon = number(payload.get("defcon_level"))
+    if defcon is None or not 1 <= defcon <= 5:
+        return "crisis defcon_level must be finite and within 1..5"
+    if not isinstance(components, list) or not components:
+        return "crisis component coverage is missing"
+    available = [row for row in components if isinstance(row, dict) and row.get("available") is True]
+    if reported is None or reported < max(1, len(components) * 0.75) or len(available) < len(components) * 0.75:
+        return "crisis component coverage is below 75%"
+    # Most crisis sidecars are daily, while ECB CISS is weekly. Enforce the
+    # producer-aware cadence instead of either accepting old daily data or
+    # forcing a permanent hold on a healthy weekly observation.
+    fresh_available = []
+    stale = []
+    for row in available:
+        source = str(row.get("source") or "").lower()
+        max_age_h = 192 if source in {"ciss_ea", "ciss"} else 72
+        age_h = number(row.get("age_hours"))
+        if age_h is None or age_h > max_age_h:
+            stale.append((row, max_age_h))
+        else:
+            fresh_available.append(row)
+    if len(fresh_available) < len(components) * 0.75:
+        labels = ", ".join(
+            f"{row.get('source') or row.get('label') or 'component'}>{max_age_h}h"
+            for row, max_age_h in stale[:3]
+        )
+        return f"crisis fresh component coverage is below 75%: {labels}"
+    return None
+
+
 def _index(rows: Any, *keys: str) -> dict[str, dict]:
     out = {}
     if not isinstance(rows, list):
@@ -155,6 +254,31 @@ def _dict_map(value: Any) -> dict[str, dict]:
     if not isinstance(value, dict):
         return {}
     return {str(key).upper(): row for key, row in value.items() if isinstance(row, dict)}
+
+
+def _bond_context(bond: dict) -> dict:
+    """Normalize the published bond-warroom shape for legacy summary panels."""
+    heartbeat = bond.get("heartbeat") if isinstance(bond.get("heartbeat"), dict) else {}
+    equity = bond.get("equity_risk") if isinstance(bond.get("equity_risk"), dict) else {}
+    shortage = (
+        bond.get("eurodollar_shortage")
+        if isinstance(bond.get("eurodollar_shortage"), dict)
+        else {}
+    )
+    return {
+        "generated_at": bond.get("generated_at"),
+        "summary": (
+            equity.get("text")
+            or heartbeat.get("headline")
+            or shortage.get("text")
+        ),
+        "regime": (
+            equity.get("state")
+            or equity.get("level")
+            or heartbeat.get("regime")
+            or shortage.get("state")
+        ),
+    }
 
 
 def _crypto_watch(ma: dict, confluence: dict, cycle: dict) -> list[dict]:
@@ -229,6 +353,14 @@ def _katlin_rows(katlin: dict) -> list[dict]:
             "ticker": row.get("ticker"),
             "name": row.get("name"),
             "industry": row.get("industry"),
+            "sector": row.get("sector"),
+            "category": row.get("category"),
+            "market_cap": row.get("market_cap") or row.get("market_cap_usd"),
+            "cap_bucket": row.get("cap_bucket") or row.get("market_cap_bucket"),
+            "momentum": row.get("momentum") if row.get("momentum") is not None else pillars.get("momentum"),
+            "criteria": row.get("criteria") if row.get("criteria") is not None else row.get("criteria_met", []),
+            "gates": row.get("gates") if row.get("gates") is not None else row.get("gate_results", []),
+            "dump_risk_evidence": row.get("dump_risk_evidence") or row.get("dump_evidence") or [],
             "asset_class": str(row.get("asset_class") or "stock").upper(),
             "close": row.get("last"),
             "vs_sma200_pct": row.get("dist_sma200_pct"),
@@ -337,7 +469,7 @@ def build_output(
         spec = REGISTRY_BY_ID[name]
         ts = _feed_timestamp(payload, meta)
         age = _age_h(ts, now)
-        adapter_error = contract_error(spec, payload)
+        adapter_error = contract_error(spec, payload) or _risk_payload_error(name, payload)
         if meta.get("error"):
             status = "MISSING"
             gaps.append(f"{key}: {meta['error']}")
@@ -388,6 +520,10 @@ def build_output(
             f"(thermometer {katlin_war_room.get('thermometer')}, "
             f"cap {katlin_war_room.get('exposure_cap_pct')}%): {detail}"
         )
+    # Direct market-risk lenses are evaluated before any candidate is scored.
+    # They receive freshness/contract-filtered payloads and may only tighten
+    # the already-authoritative gate and Katlin veto.
+    risk_board, policy = build_risk_board(active_feeds, source_health, policy)
     fortress = active_feeds.get("fortress") or {}
     accumulation = active_feeds.get("accumulation") or {}
     best = active_feeds.get("best_setups") or {}
@@ -488,12 +624,14 @@ def build_output(
 
     allocator = active_feeds.get("allocator") or {}
     bond = active_feeds.get("bond_warroom") or {}
+    bond_context = _bond_context(bond)
     total = len(candidates)
     n_katlin = sum("katlin" in str(row.get("source") or "") for row in candidates)
     required_bad = [x for x in source_health if x["critical"] and x["status"] != "FRESH"]
     fresh_count = sum(1 for x in source_health if x["status"] == "FRESH")
     top_eligible = selected or building or watch
     opportunity_radar = build_opportunity_radar(active_feeds, ranked, policy["mode"])
+    opportunity_radar, breadth_clusters = apply_breadth_confirmation(opportunity_radar)
     opportunity_radar, candidate_ledger, opportunity_changes = apply_lifecycle(
         opportunity_radar,
         prior_candidates or [],
@@ -527,6 +665,8 @@ def build_output(
         "SELECTIVE": 50,
         "SELECTIVE_RISK_ON": 25,
     }.get(policy["mode"], 75)
+    if risk_board.get("risk_score") is not None:
+        risk_score = max(risk_score, float(risk_board["risk_score"]))
     confidence_pool = top_eligible[:5] if top_eligible else biggest_opportunities[:5]
     confidence = round(
         (fresh_count / max(1, len(source_health))) * 0.45
@@ -543,7 +683,7 @@ def build_output(
         {"asset_class": "Stocks", "stance": "SELECTIVE" if selected else "TRACKING", "ready": sum(x["asset_class"] == "STOCK" for x in selected), "building": sum(x["asset_class"] == "STOCK" for x in opportunity_radar), "reason": "Value, inflection, catalysts and capital confirmation are discovered broadly; entry remains strict."},
         {"asset_class": "ETFs / Sectors", "stance": "TRACKING", "ready": sum(x["asset_class"] == "ETF" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "ETF" for x in opportunity_radar), "reason": "Early sector emergence and cross-asset value are ranked before they become crowded."},
         {"asset_class": "Crypto", "stance": "TRACKING", "ready": sum(x["asset_class"] == "CRYPTO" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "CRYPTO" for x in opportunity_radar), "reason": "Crypto can enter discovery, but needs durable structure and a retest before execution."},
-        {"asset_class": "Bonds", "stance": bond.get("regime") or bond.get("state") or "MONITOR", "ready": sum(x["asset_class"] == "BOND" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "BOND" for x in opportunity_radar), "reason": bond.get("summary") or bond.get("headline") or "Rates, credit, carry and asymmetry are ranked alongside their role as risk controls."},
+        {"asset_class": "Bonds", "stance": bond_context["regime"] or "MONITOR", "ready": sum(x["asset_class"] == "BOND" and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] == "BOND" for x in opportunity_radar), "reason": bond_context["summary"] or "Rates, credit, carry and asymmetry are ranked alongside their role as risk controls."},
         {"asset_class": "Commodities / Countries", "stance": "TRACKING", "ready": sum(x["asset_class"] in {"COMMODITY", "COUNTRY"} and x["action"] == "READY_TO_SNIPE" for x in opportunity_radar), "building": sum(x["asset_class"] in {"COMMODITY", "COUNTRY"} for x in opportunity_radar), "reason": "Physical demand, relative strength, expected return and extension risk are monitored across markets."},
         {"asset_class": "Cash / T-bills", "stance": "PREFERRED" if not selected or policy["mode"] in {"DATA_HOLD", "DEFENSIVE"} else "RESERVE", "ready": 0, "building": 0, "reason": policy["default_shelter"]["why"]},
     ]
@@ -571,9 +711,9 @@ def build_output(
         for row in rejected_examples[:8] for veto in row.get("vetoes", [])[:1]
     )
     output = {
-        "schema_version": "2.0.0",
+        "schema_version": "3.0.0",
         "engine": "justhodl-khalid",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "generated_at": _iso(now),
         "as_of": _iso(now),
         "status": status,
@@ -625,15 +765,17 @@ def build_output(
             "universe_from_katlin": n_katlin,
             "opportunities_tracked": len(opportunity_radar),
             "high_conviction_count": sum(x["discovery_stage"] in {"ENTRY_READY", "HIGH_CONVICTION"} for x in opportunity_radar),
+            "capital_decision": risk_board["capital_decision"],
+            "exposure_cap_pct": risk_board["exposure_cap_pct"],
             "shelter": policy["default_shelter"],
         },
+        "risk_board": risk_board,
+        "breadth_clusters": breadth_clusters,
         "risk_control": {
             **policy,
             "katlin_war_room": katlin_war_room,
             "bond_market": {
-                "generated_at": bond.get("generated_at"),
-                "summary": bond.get("summary") or bond.get("headline"),
-                "regime": bond.get("regime") or bond.get("state"),
+                **bond_context,
                 "note": "Bond-market evidence controls sizing and vetoes; it does not create an equity buy.",
             },
             "allocator": {

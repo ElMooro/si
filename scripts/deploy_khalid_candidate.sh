@@ -7,9 +7,25 @@ tmp="$3"
 dir="$4"
 
 printf '{"mode":"validate_only"}' > "$tmp/khalid-validation-event.json"
-echo "Invoking Khalid candidate in read-only validation mode"
+candidate_revision=$(aws lambda get-function-configuration \
+  --function-name "$fn" \
+  --region "$region" \
+  --query 'RevisionId' --output text)
+candidate_sha=$(aws lambda get-function-configuration \
+  --function-name "$fn" \
+  --region "$region" \
+  --query 'CodeSha256' --output text)
+candidate_version=$(aws lambda publish-version \
+  --function-name "$fn" \
+  --region "$region" \
+  --revision-id "$candidate_revision" \
+  --code-sha256 "$candidate_sha" \
+  --query 'Version' --output text)
+
+echo "Invoking pinned Khalid candidate version $candidate_version in read-only validation mode"
 aws lambda invoke \
   --function-name "$fn" \
+  --qualifier "$candidate_version" \
   --region "$region" \
   --cli-read-timeout 310 \
   --payload "fileb://$tmp/khalid-validation-event.json" \
@@ -25,16 +41,11 @@ jq -r '.body' "$tmp/khalid-invoke.json" \
   | jq -e 'select(
       .ok == true
       and .validation_only == true
-      and .schema_version == "2.0.0"
+      and .schema_version == "3.0.0"
       and (.status == "OK" or .status == "DEGRADED" or .status == "NO_DATA")
       and (.opportunities_tracked | type == "number")
       and (.artifact_size_bytes | type == "number")
     )' > "$tmp/khalid-validation-summary.json"
-
-candidate_version=$(aws lambda publish-version \
-  --function-name "$fn" \
-  --region "$region" \
-  --query 'Version' --output text)
 
 previous_version=""
 alias_existed=0

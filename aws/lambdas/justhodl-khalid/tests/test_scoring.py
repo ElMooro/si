@@ -5,6 +5,9 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "source"))
 
 from scoring import contract_error, risk_policy, score_candidate  # noqa: E402
 from discovery import apply_lifecycle, build_opportunity_radar  # noqa: E402
+from breadth import apply_breadth_confirmation  # noqa: E402
+from risk_board import build_risk_board  # noqa: E402
+from lambda_function import _risk_payload_error  # noqa: E402
 
 
 def base_row():
@@ -121,7 +124,11 @@ def test_stale_critical_feed_forces_data_hold():
 
 
 def test_risk_off_blocks_entries():
-    out = risk_policy({"posture": "RISK_OFF"}, {"defcon_level": 3}, [])
+    out = risk_policy(
+        {"posture": "RISK_OFF", "composite": -1, "sizing_multiplier": 0.2},
+        {"defcon_level": 3},
+        [],
+    )
     assert out["mode"] == "DEFENSIVE"
     assert out["allows_new_entries"] is False
 
@@ -131,7 +138,11 @@ def test_unknown_or_incomplete_risk_contract_fails_closed():
     assert out["mode"] == "DATA_HOLD"
     assert out["allows_new_entries"] is False
 
-    out = risk_policy({"posture": "SURPRISE_STATE"}, {"defcon_level": 4}, [])
+    out = risk_policy(
+        {"posture": "SURPRISE_STATE", "composite": 0, "sizing_multiplier": 0.5},
+        {"defcon_level": 4},
+        [],
+    )
     assert out["mode"] == "DATA_HOLD"
     assert out["allows_new_entries"] is False
 
@@ -504,8 +515,10 @@ def test_release_validation_is_read_only_until_alias_promotion():
     assert '"validation_only": True' in handler
     assert '"artifact_size_bytes": encoded_size' in handler
     assert '"artifact": output' not in handler
-    assert release.index('"mode":"validate_only"') < release.index("publish-version")
-    assert '.schema_version == "2.0.0"' in release
+    assert release.index("publish-version") < release.index("--qualifier \"$candidate_version\"")
+    assert "--revision-id \"$candidate_revision\"" in release
+    assert "--code-sha256 \"$candidate_sha\"" in release
+    assert '.schema_version == "3.0.0"' in release
     assert release.index('function-name "${fn}:live"') > release.index("update-alias")
     assert "rollback_alias" in release
     assert "data/khalid-candidates.json" in release
@@ -564,3 +577,213 @@ def test_discovery_rejects_non_finite_component_values():
     assert rows[0]["components"]["asymmetry"] == 0
     assert rows[0]["raw_score"] < 10
     assert rows[0]["discovery_stage"] == "EARLY_SIGNAL"
+
+
+def test_real_bond_warroom_shape_maps_heartbeat_equity_and_spreads():
+    feeds = {
+        "risk_gate": {"posture": "RISK_ON", "composite": 1, "sizing_multiplier": 0.8},
+        "crisis": {
+            "defcon_level": 4, "master_crisis_score": 25, "components_available": 3,
+            "components": [{"available": True, "age_hours": 1} for _ in range(3)],
+        },
+        "bond_warroom": {
+            "heartbeat": {"score": 48, "regime": "ELEVATED", "headline": "Stress is building"},
+            "equity_risk": {"score": 64, "state": "SELL-OFF", "text": "Rates headwind"},
+            "eurodollar_shortage": {"score": 36, "state": "WATCH", "inputs": {}},
+            "panels": {
+                "europe_spreads": [
+                    {"key": "BTP-Bund", "last": 1.42},
+                    {"key": "IT-ES", "last": 0.31},
+                ]
+            },
+        },
+    }
+    health = [
+        {"name": key, "status": "FRESH", "age_h": 1, "key": f"data/{key}.json"}
+        for key in feeds
+    ]
+    board, tightened = build_risk_board(
+        feeds, health,
+        risk_policy(feeds["risk_gate"], feeds["crisis"], []),
+    )
+    bond = next(row for row in board["domains"] if row["id"] == "bond_warroom")
+    metrics = {row["label"]: row["value"] for row in bond["metrics"]}
+    assert bond["state"] == "ELEVATED"
+    assert metrics["Heartbeat"] == 48
+    assert metrics["BTP-Bund"] == 142
+    assert metrics["Italy-Spain"] == 31
+    assert tightened["mode"] in {"SELECTIVE", "SELECTIVE_RISK_ON"}
+
+
+def test_risk_board_is_tighten_only_and_credit_is_primary_cap_modifier():
+    base = {
+        "mode": "SELECTIVE", "allows_new_entries": True, "sizing_multiplier": 0.6,
+        "reasons": [], "default_shelter": {"primary": "SGOV / BIL", "why": "wait"},
+    }
+    feeds = {"credit_composite": {"composite": 55}}
+    board, policy = build_risk_board(
+        feeds,
+        [{"name": "credit_composite", "status": "FRESH", "age_h": 1, "key": "data/credit-composite.json"}],
+        base,
+    )
+    assert policy["mode"] == "SELECTIVE"
+    assert policy["sizing_multiplier"] <= base["sizing_multiplier"]
+    assert board["exposure_cap_pct"] == 45
+    defensive = {**base, "mode": "DEFENSIVE", "allows_new_entries": False}
+    _, still_defensive = build_risk_board({}, [], defensive)
+    assert still_defensive["mode"] == "DEFENSIVE"
+    assert still_defensive["allows_new_entries"] is False
+
+
+def test_breadth_bonus_is_modest_and_never_creates_entry_readiness():
+    rows = []
+    for ticker in ("AAA", "BBB", "CCC"):
+        rows.append({
+            "ticker": ticker, "asset_class": "STOCK", "industry": "Test Industry",
+            "score": 60, "source_count": 2, "discovery_stage": "UNDERAPPRECIATED",
+            "action": "TRACKING",
+            "technical": {"higher_lows": 2, "vs_200d_pct": -4, "vs_250d_pct": -5, "rsi": 40},
+            "components": {"capital_confirmation": 75},
+            "evidence": {"accumulation": [
+                {"label": "Supply dry-up precondition"},
+                {"label": "Higher lows"},
+            ]},
+            "plain_english": "Tracked.",
+        })
+    confirmed, clusters = apply_breadth_confirmation(rows)
+    assert clusters[0]["state"] == "BULLISH_BREADTH"
+    assert all(60 < row["score"] <= 65 for row in confirmed)
+    assert all(row["action"] == "TRACKING" for row in confirmed)
+    assert all(row["discovery_stage"] == "UNDERAPPRECIATED" for row in confirmed)
+    assert all(row["breadth_confirmation"]["creates_entry_readiness"] is False for row in confirmed)
+
+
+def test_classification_momentum_criteria_and_dump_fields_survive():
+    row = base_row()
+    row.update({
+        "industry": "Machinery", "sector": "Industrials", "category": "Cyclicals",
+        "market_cap": 4_000_000_000, "cap_bucket": "MID",
+        "momentum": {"weekly": "reset"}, "criteria": {"quality": True},
+        "gates": [{"name": "liquidity", "passed": True}],
+        "dump_risk_evidence": [{"source": "event-study", "loss_pct": -18}],
+    })
+    out = score_candidate(row, asset_class="STOCK", risk_allows_entries=True)
+    radar = build_opportunity_radar({}, [out], "SELECTIVE")[0]
+    assert radar["industry"] == "Machinery"
+    assert radar["category"] == "Cyclicals"
+    assert radar["cap_bucket"] == "MID"
+    assert radar["momentum"] == {"weekly": "reset"}
+    assert radar["criteria"] == {"quality": True}
+    assert radar["gates"][0]["name"] == "liquidity"
+    assert radar["dump_risk"]["evidence"][0]["source"] == "event-study"
+    estimate = radar["dump_risk"]["structural_estimate"]
+    assert "NOT A PROBABILITY" in estimate["label"]
+    assert estimate["calibrated_probability"] is False
+
+
+def test_malformed_crisis_contract_and_component_freshness_is_cadence_aware():
+    import json
+    registry = json.loads(
+        (Path(__file__).parents[1] / "source/input_registry.json").read_text()
+    )
+    spec = next(row for row in registry["inputs"] if row["id"] == "crisis")
+    assert contract_error(spec, {"defcon_level": 4}) is not None
+    health = [{"critical": True, "status": "INVALID", "key": "data/crisis-composite.json"}]
+    policy = risk_policy(
+        {"posture": "RISK_ON", "composite": 1, "sizing_multiplier": 0.8},
+        {"defcon_level": 4},
+        health,
+    )
+    assert policy["mode"] == "DATA_HOLD"
+    assert policy["allows_new_entries"] is False
+    crisis = {
+        "defcon_level": 4,
+        "components_available": 13,
+        "components": [
+            {"source": f"component-{index}", "available": True, "age_hours": 2}
+            for index in range(13)
+        ] + [{"source": "ciss", "available": True, "age_hours": 158}],
+    }
+    assert _risk_payload_error("crisis", crisis) is None
+    crisis["components"][0]["age_hours"] = 80
+    crisis["components"][1]["age_hours"] = 80
+    crisis["components"][2]["age_hours"] = 80
+    crisis["components"][3]["age_hours"] = 80
+    assert "below 75%" in _risk_payload_error("crisis", crisis)
+
+
+def test_bond_context_uses_published_nested_fields():
+    from lambda_function import _bond_context
+
+    context = _bond_context({
+        "generated_at": "2026-09-04T12:00:00+00:00",
+        "heartbeat": {"regime": "ELEVATED", "headline": "Stress is building"},
+        "equity_risk": {"state": "SELL-OFF", "text": "Rates headwind"},
+        "eurodollar_shortage": {"state": "WATCH", "text": "Funding watch"},
+    })
+    assert context == {
+        "generated_at": "2026-09-04T12:00:00+00:00",
+        "summary": "Rates headwind",
+        "regime": "SELL-OFF",
+    }
+
+
+def test_critical_numeric_contracts_reject_non_finite_values():
+    numeric = {"contract": {"required_all": ["score"], "types": {"score": "number"}}}
+    assert contract_error(numeric, {"score": float("nan")}) == "score must be number"
+    assert contract_error(numeric, {"score": float("inf")}) == "score must be number"
+    assert contract_error(numeric, {"score": 25}) is None
+
+
+def test_semantically_empty_bond_warroom_fails_closed():
+    payload = {
+        "heartbeat": {},
+        "equity_risk": {},
+        "eurodollar_shortage": {},
+        "panels": {},
+    }
+    error = _risk_payload_error("bond_warroom", payload)
+    assert "heartbeat.score/regime" in error
+    assert "equity_risk.score/state" in error
+    assert "eurodollar_shortage.score/state" in error
+
+
+def test_critical_risk_scores_must_be_within_documented_ranges():
+    assert _risk_payload_error("credit_composite", {"composite": -1})
+    assert _risk_payload_error("credit_composite", {"composite": 101})
+    assert _risk_payload_error("eurodollar_stress", {"composite_score": float("inf")})
+    crisis = {
+        "defcon_level": 99,
+        "components_available": 3,
+        "components": [{"available": True, "age_hours": 1} for _ in range(3)],
+    }
+    assert _risk_payload_error("crisis", crisis)
+
+
+def test_missing_deal_and_flow_metrics_do_not_create_neutral_evidence():
+    feeds = {
+        "spinoff_desk": {
+            "top_setups": [{
+                "symbol": "MISS",
+                "spinoff_score": 90,
+                "fundamentals": {"fcf_positive": True},
+                "thesis": "Forced selling creates a valuation gap",
+            }],
+        },
+        "deal_scanner": {
+            "deals": [{"symbol": "MISS", "listed": True}],
+        },
+        "capital_flow": {
+            "complexes": [{
+                "primary": "MISS",
+                "complex": "Unscored flow",
+                "top_conviction_stocks": [],
+            }],
+        },
+    }
+    row = build_opportunity_radar(feeds, [], "SELECTIVE")[0]
+    assert row["components"]["catalyst"] == 90
+    assert row["components"]["capital_confirmation"] is None
+    assert row["source_count"] == 1
+    assert row["source_families"] == ["special_situations"]
+    assert row["discovery_stage"] != "HIGH_CONVICTION"
