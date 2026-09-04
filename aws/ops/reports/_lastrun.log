@@ -1,14 +1,10 @@
-executing-against: 8544096514b39d28f2bcd528c56b5545b6444a82
+executing-against: 0438c8a93c8ba3fc3027ca8c8ad377756a64578c
 invoked justhodl-settlement-fails
 invoked justhodl-signal-fabric
 invoked justhodl-engine-fusion:live
 invoked justhodl-khalid-risk:live
 invoked justhodl-khalid:live
-verified s3://justhodl-dashboard-live/data/settlement-fails.json generated_at=2026-09-04T23:22:52.291109+00:00 status=None
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 104, in <module>
-    verify_artifacts()
-  File "/home/runner/work/si/si/aws/ops/pending/initialize_khalid_chain_20260904.py", line 74, in verify_artifacts
-    raise ValueError(f"settlement-fails Treasury block is missing {field}")
-ValueError: settlement-fails Treasury block is missing gross_fail_activity_bn
-❌ OPS-FAIL: aws/ops/pending/initialize_khalid_chain_20260904.py
+verified s3://justhodl-dashboard-live/data/settlement-fails.json generated_at=2026-09-04T23:25:45.089675+00:00 status=None
+verified s3://justhodl-dashboard-live/data/engine-fusion.json generated_at=2026-09-04T23:25:50.729893+00:00 status=DEGRADED
+verified s3://justhodl-dashboard-live/data/khalid-risk.json generated_at=2026-09-04T23:25:51.567625+00:00 status=OK
+verified s3://justhodl-dashboard-live/data/khalid.json generated_at=2026-09-04T23:25:52.383769+00:00 status=OK
