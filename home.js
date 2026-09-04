@@ -56,13 +56,13 @@
       getJson(["/data/engine-registry.json", PROXY + "/data/engine-registry.json"]),
       getJson(["/config/engine-contracts.json", PROXY + "/config/engine-contracts.json"]),
       getJson(["/nav-manifest.json"]),
-      getJson(["/config/section-registry.json"]),
+      Promise.resolve({ pages: {} }),
       getJson(["/config/home-layout.json"]),
     ]);
     var manifest = res[0].status === "fulfilled" ? res[0].value : {}, reg = res[1].status === "fulfilled" ? res[1].value : {};
     contracts = res[2].status === "fulfilled" ? (res[2].value.contracts || {}) : {};
     var nav = res[3].status === "fulfilled" ? res[3].value : { categories: [] };
-    registry = res[4].status === "fulfilled" && res[4].value && res[4].value.pages ? res[4].value : { pages: {} };
+    registry = { pages: {} };   // the section registry (~600KB) loads lazily on the first palette use or section title lookup
     var defaults = res[5].status === "fulfilled" ? res[5].value : null;
     var joined = new Map();
     (Array.isArray(manifest.engines) ? manifest.engines : []).forEach(function (e) { if (e && e.engine) joined.set(e.engine, { name: e.engine, description: e.description || "", keys: e.keys || [], outs: [] }); });
@@ -83,10 +83,24 @@
     pages = [];
     (nav.categories || []).forEach(function (c) { (c.pages || []).forEach(function (p) { var k = pageKeyOf(p.href); pages.push({ key: k, href: p.href, title: p.title || k, cat: c.name }); }); });
     pageByKey = new Map(pages.map(function (p) { return [p.key, p]; }));
-    Object.keys(registry.pages || {}).forEach(function (k) { if (!pageByKey.has(k)) { var p = { key: k, href: pageHref(k), title: registry.pages[k].title || k, cat: "Other" }; pages.push(p); pageByKey.set(k, p); } });
     try { discovered = JSON.parse(localStorage.getItem(LS_SEC) || "{}") || {}; } catch (e) { discovered = {}; }
-    $("hd-catalog").textContent = engines.length.toLocaleString() + " engines · " + pages.length.toLocaleString() + " pages · " + Object.keys(registry.pages || {}).length.toLocaleString() + " pages with baked section numbers";
+    $("hd-catalog").textContent = engines.length.toLocaleString() + " engines · " + pages.length.toLocaleString() + " pages";
     return defaults;
+  }
+  var registryP = null;
+  function ensureRegistry() {
+    if (registryP) return registryP;
+    registryP = getJson(["/config/section-registry.json", PROXY + "/data/site/section-registry.json"]).then(function (r) {
+      if (r && r.pages) registry = r;
+      Object.keys(registry.pages || {}).forEach(function (k) { if (!pageByKey.has(k)) { var p = { key: k, href: pageHref(k), title: registry.pages[k].title || k, cat: "Other" }; pages.push(p); pageByKey.set(k, p); } });
+      $("hd-catalog").textContent = engines.length.toLocaleString() + " engines · " + pages.length.toLocaleString() + " pages · " + (registry.n_sections || 0).toLocaleString() + " numbered sections · " + (registry.n_panels || 0).toLocaleString() + " panels" + (registry.generated_at ? " · registry " + ago(registry.generated_at) : "");
+      renderDirectory();
+      var fixed = false;
+      state.blocks.forEach(function (b) { if (b.type === "section" && !b.titleLocked) { var sec = findSection(b.page, b.sec); if (sec && sec.title && sec.title !== b.title) { b.title = sec.title; b.key = sec.key; fixed = true; } } });
+      if (fixed) { state.blocks.forEach(function (b) { var n = document.querySelector('[data-bid="' + b.id + '"] .t a'); if (n) n.textContent = b.title || blockRef(b); }); }
+      return registry;
+    }).catch(function () { return registry; });
+    return registryP;
   }
   function sectionsOf(pageKey) {
     var d = discovered[pageKey], r = registry.pages && registry.pages[pageKey];
@@ -193,6 +207,7 @@
   }
   function addBlock(spec, quiet) {
     var b = normBlock(spec); if (!b) return null;
+    if (b.type === "section" && !registryP) ensureRegistry();
     if (b.type === "engine") { var e = engineByShort.get(b.ref); if (!b.feed) b.feed = (e && e.feeds[0]) || "data/" + b.ref + ".json"; if (!b.title) b.title = b.ref + (b.panel ? " · " + b.panel : ""); }
     else { var p = pageByKey.get(b.page); if (!b.title) b.title = (p ? p.title : b.page) + (b.type === "section" ? " §" + b.sec : ""); if (b.type === "section") { var s = findSection(b.page, b.sec); if (s) { b.key = s.key; b.title = s.title || b.title; } } }
     if (state.blocks.length >= MAX_BLOCKS) { toast("block limit " + MAX_BLOCKS); return null; }
@@ -438,8 +453,8 @@
   });
   function addTitle(b) { if (b.type === "engine") { var e = engineByShort.get(b.ref); b.title = (e ? e.short : b.ref) + (b.panel ? " · " + b.panel : ""); } else { var p = pageByKey.get(b.page), s = b.type === "section" ? findSection(b.page, b.sec) : null; b.title = s ? s.title : (p ? p.title : b.page) + (b.type === "section" ? " §" + b.sec : ""); if (s) b.key = s.key; } }
   var input = $("hd-input");
-  input.addEventListener("input", function () { palette.sel = -1; renderPalette(); });
-  input.addEventListener("focus", function () { if (input.value.trim()) renderPalette(); });
+  input.addEventListener("input", function () { palette.sel = -1; renderPalette(); ensureRegistry().then(function () { if (input.value.trim()) renderPalette(); }); });
+  input.addEventListener("focus", function () { ensureRegistry(); if (input.value.trim()) renderPalette(); });
   input.addEventListener("keydown", function (ev) {
     if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); if (!palette.items.length) return; palette.sel = (palette.sel + (ev.key === "ArrowDown" ? 1 : -1) + palette.items.length) % palette.items.length; renderPalette(); var s = $("hd-results").querySelector(".it.sel"); if (s) s.scrollIntoView({ block: "nearest" }); }
     else if (ev.key === "Escape") { $("hd-results").classList.remove("on"); input.blur(); }
@@ -482,6 +497,7 @@
     state = loadLocal() || fromDefaults(defaults);
     render(); renderDirectory();
     setStatus("saved on this device", "");
+    if (state.blocks.some(function (b) { return b.type === "section"; })) setTimeout(ensureRegistry, 1500);
     var q = new URLSearchParams(location.search).get("add"); if (q) { var spec = parseAddress(q); if (spec) addBlock(spec); history.replaceState(null, "", location.pathname); }
     if (window.JustHodlAuth && window.JustHodlAuth.onChange) {
       window.JustHodlAuth.onChange(function (user) { cloudUser = user || null; if (user) cloudLoad(user); else setStatus("saved on this device · sign in to sync across devices", ""); heartbeat(); });

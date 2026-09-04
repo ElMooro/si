@@ -207,8 +207,8 @@ def main():
     ap.add_argument("--json", default="")
     a = ap.parse_args()
     pages = load_pages(ROOT)
-    if a.pages:
-        want = set(a.pages.split(","))
+    if a.pages.strip():
+        want = set(x.strip() for x in a.pages.split(",") if x.strip())
         pages = [p for p in pages if p[0] in want] or [(k, k) for k in want]
     try:
         registry = json.load(open(a.registry, encoding="utf-8"))

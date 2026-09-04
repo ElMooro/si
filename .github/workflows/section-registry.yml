@@ -1,0 +1,60 @@
+# Section registry crawl (ops 5201). Renders every page in headless Chrome and lets
+# jh-sections.js number its real blocks; merges APPEND-ONLY into
+# config/section-registry.json (numbers never shift; new sections take the next
+# number) and mirrors it to S3 data/site/section-registry.json. The Pages cron
+# bakes each page's map within 15 minutes, which is what freezes the numbers a
+# user sees. Daily, plus on demand.
+name: Section registry crawl
+on:
+  schedule:
+    - cron: '35 6 * * *'
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: 'comma-separated page keys (empty = every page)'
+        required: false
+        default: ''
+permissions:
+  contents: write
+concurrency:
+  group: section-registry
+  cancel-in-progress: false
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Crawl
+        run: |
+          python3 -m pip install -q playwright boto3
+          python3 scripts/build_section_registry.py --workers 5 --pages "${{ github.event.inputs.pages }}" --json /tmp/crawl.json
+          python3 - <<'PY'
+          import json; d = json.load(open('/tmp/crawl.json')); print('stats', d['stats'])
+          bad = [k for k, v in d['crawled'].items() if not v['ok']]; print('failed pages', len(bad), bad[:20])
+          PY
+      - name: Mirror to S3
+        run: aws s3 cp config/section-registry.json s3://justhodl-dashboard-live/data/site/section-registry.json --content-type application/json --cache-control max-age=300
+      - name: Commit the registry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
+          if [ -n "$(git status --porcelain config/section-registry.json)" ]; then
+            git add config/section-registry.json
+            git commit -m "section registry: nightly crawl (append-only) [skip-deploy]"
+            git push || (git pull --rebase origin main && git push)
+          else
+            echo "registry unchanged"
+          fi

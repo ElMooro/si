@@ -40,7 +40,19 @@ def main():
     os.makedirs(os.path.join(SITE, "config"), exist_ok=True)
     for name in ("section-registry.json", "home-layout.json"):
         src = os.path.join(ROOT, "config", name)
-        if os.path.exists(src):
+        if not os.path.exists(src):
+            continue
+        try:  # compact copy for the site (the repo copy stays indented for diffs)
+            obj = json.load(open(src, encoding="utf-8"))
+            if name == "section-registry.json":
+                for pk, entry in (obj.get("pages") or {}).items():
+                    for sec in entry.get("sections", []):
+                        sec.pop("first_seen", None)
+                        for x in sec.get("sub", []) or []:
+                            x.pop("first_seen", None)
+            with open(os.path.join(SITE, "config", name), "w", encoding="utf-8") as f:
+                json.dump(obj, f, separators=(",", ":"), ensure_ascii=False)
+        except Exception:
             shutil.copyfile(src, os.path.join(SITE, "config", name))
     injected = baked = skipped = 0
     for dirpath, dirnames, files in os.walk(SITE):
@@ -75,6 +87,8 @@ def main():
                 for x in s.get("sub", []) or []:
                     if x.get("key") and x.get("n") is not None:
                         pmap[x["key"]] = str(x["n"])
+            if len(pmap) > 200:   # a list page (notes/news) that slipped past the fan-out cap: bake nothing, keep the page light
+                pmap = {}
             map_tag = ("<script>window.JH_SECTION_MAP=" + json.dumps(pmap, separators=(",", ":")) + ";</script>") if pmap else ""
             # replace a previously baked map (idempotent re-bakes)
             text2 = re.sub(r"<script>window\.JH_SECTION_MAP=\{.*?\};</script>\n?", "", text, flags=re.S)

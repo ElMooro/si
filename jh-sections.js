@@ -26,6 +26,8 @@
   var BIG_H = 96;            // px: a block must be at least this tall
   var BIG_W = 0.40;          // fraction of viewport width
   var SUB_MIN = 2;           // sub-panels only when a section has ≥2 big children
+  var MAX_FANOUT = 40;       // a container with more big children than this is a LIST (notes, news) → one section
+  var MAX_SUB = 16;          // sub-panels per section
   var CHROME = "nav,header,footer,aside,script,style,template,noscript,dialog,[role=dialog],[role=navigation],[role=banner],[role=contentinfo],[data-jh-chrome],#jh-chrome,.jh-topbar,.jh-drawer,#jh-drawer,.jh-rail,#__jhRail,.jhtag-pop,#jh-page-ai,.jh-page-ai,#jh-ai-insights,.jh-ai-insights,#jh-auth-slot,.skip-link,.sr-only";
   var MAP = window.JH_SECTION_MAP || {};
   var page = pageKey();
@@ -45,6 +47,14 @@
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "";
   }
   function text(el) { return (el.textContent || "").replace(/\s+/g, " ").trim(); }
+  function headText(h) {
+    var own = "";
+    for (var i = 0; i < h.childNodes.length; i++) { var c = h.childNodes[i]; if (c.nodeType === 3) own += c.textContent; else if (c.nodeType === 1 && /^(B|STRONG|EM|I|SPAN)$/.test(c.tagName) && !c.classList.contains("jh-secbadge") && (c.className || "").indexOf("badge") < 0 && (c.className || "").indexOf("cnt") < 0 && text(c).length <= 60 && !own.trim()) own += c.textContent; }
+    own = own.replace(/\s+/g, " ").trim();
+    if (own.length >= 3) return own;
+    var first = h.firstElementChild; while (first && first.classList.contains("jh-secbadge")) first = first.nextElementSibling;
+    return first ? text(first) : text(h);
+  }
   function isChrome(el) { return !!(el.closest && el.closest(CHROME)); }
   function visible(el) {
     var cs = getComputedStyle(el);
@@ -81,7 +91,7 @@
     while (n) {
       if (n.children.length >= 2) {
         var kids = bigChildren(n, vw);
-        if (kids.length >= 2) {
+        if (kids.length >= 2 && kids.length <= MAX_FANOUT) {
           var cover = 0; kids.forEach(function (k) { cover += rect(k).height; });
           if (kids.length > bestScore || (kids.length === bestScore && cover > bestCover)) { best = n; bestScore = kids.length; bestCover = cover; }
         }
@@ -124,7 +134,7 @@
   function titleOf(el) {
     if (el.dataset.jhTitle) return el.dataset.jhTitle;
     var h = ownHeading(el) || prevHeading(el);
-    var t = h ? text(h) : "";
+    var t = h ? headText(h) : "";
     if (!t && el.getAttribute("aria-label")) t = el.getAttribute("aria-label");
     if (!t) { var k = el.querySelector(".kicker,.eyebrow,.label,.wr-kicker,b,strong"); t = k ? text(k.children.length ? k.firstElementChild : k) : ""; }
     if (!t) t = text(el).slice(0, 60);
@@ -164,7 +174,7 @@
       var inner = bigChildren(k, vw);
       if (inner.length >= SUB_MIN && !ownHeading(k)) inner.forEach(function (c) { out.push(c); }); else out.push(k);
     });
-    return out.length >= SUB_MIN ? out : [];
+    return out.length >= SUB_MIN && out.length <= MAX_SUB ? out : [];
   }
   function collect(root, vw) {
     var axis = findAxis(root, vw);
