@@ -41,13 +41,14 @@ import json
 import os
 import statistics
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -421,8 +422,16 @@ def ai_note(facts):
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
                                  headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            data = json.loads(r.read())
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                data = json.loads(r.read())
+        except urllib.error.HTTPError as he:
+            detail = ""
+            try:
+                detail = he.read().decode("utf-8", "ignore")[:300]
+            except Exception:
+                pass
+            raise RuntimeError("HTTP %s %s" % (he.code, detail))
         text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text").strip()
         text = text[text.find("{"):text.rfind("}") + 1]
         note = json.loads(text)
