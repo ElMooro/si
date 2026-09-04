@@ -1,35 +1,18 @@
-executing-against: 7fcc2707100865678ff1ab540ec2d5ad91cf6f71
-ops 5191 -- bond war room launch
-[13:32:03]   Lambda exists — updating
-[13:32:06] ✅   ✓ updated justhodl-bond-warroom
-[13:32:24]    run (12s, error=None) -> {"ok": true, "elapsed_s": 11.1, "n_series": 76, "heartbeat": 4, "regime": "CALM", "equity": "CALM", "eurodollar": "NONE", "red": ["JP30Y"], "notes": [], "freshness": {"mof_jgb": "2026-09-03", "tradingview": "2026-09-04", "tradingview_symbols": 28, "ecb": "2026-09-03", "fred": "2026-09-03", "yahoo": "2026-09-04"}}
-── feed ──
-[13:32:24]    heartbeat 4 CALM -- Bond markets are calm: Japan 30Y (JGB) -7.0bp (z -1.9); Japan 2s30s -6.6bp (z -1.7).
-[13:32:24]    equity: CALM LOW -- Bond prices and yields are inside their normal daily range (TLT +0.3% (z +0.6); 10Y +0.4bp; MOVE 75 -5.0pts (z -1.2); HY OAS +1.0bp (z +0.2)). No rates-driven pressure on stocks either way.
-[13:32:24]    eurodollar: NONE 0 -- No eurodollar-shortage signature: periphery spreads, the dollar and EM/Euro credit are quiet.
-[13:32:24]    freshness={'mof_jgb': '2026-09-03', 'tradingview': '2026-09-04', 'tradingview_symbols': 28, 'ecb': '2026-09-03', 'fred': '2026-09-03', 'yahoo': '2026-09-04'} notes=[]
-[13:32:24]    panel us_rates         9 rows: US02Y 4.381 GREEN, US05Y 4.543 GREEN, US10Y 4.776 GREEN, US30Y 5.239 GREEN, DGS3MO 3.92 GREEN, DFII10 2.45 GREEN, T10YIE 2.35 GREEN, US2s10s 0.395 GREEN, US5s30s 0.696 GREEN
-[13:32:24]    panel volatility       9 rows: ^MOVE 74.68 GREEN, MOVE_TV 74.6812 GREEN, VIXCLS 15.2 GREEN, TLT 82.31 GREEN, IEF 92.2701 GREEN, SHY 81.6701 GREEN, HYG 79.225 GREEN, LQD 105.57 GREEN, EMB 94.485 GREEN
-[13:32:24]    panel japan            4 rows: JP02Y 1.85 GREEN, JP10Y 2.966 GREEN, JP30Y 4.052 RED, JP2s30s 2.202 AMBER
-[13:32:24]    panel europe          15 rows: DE02Y 2.944 GREEN, DE10Y 3.34 GREEN, DE30Y 3.8059 GREEN, FR10Y 4.1857 GREEN, IT02Y 3.1408 GREEN, IT10Y 4.1514 GREEN, ES10Y 3.7758 GREEN, NL10Y 3.4143 GREEN, PT10Y 3.6628 GREEN
-[13:32:24]    panel europe_spreads  11 rows: BTP-Bund 0.8114 GREEN, OAT-Bund 0.8457 GREEN, Bono-Bund 0.4358 GREEN, IT-ES 0.3756 GREEN, PT-Bund 0.3228 GREEN, GR-Bund 0.6714 GREEN, Gilt-Bund 1.7987 GREEN, US-Bund 1.436 GREEN, EA-periphery 0.4241 GREEN
-[13:32:24]    panel world            7 rows: AU10Y 5.187 GREEN, CA10Y 3.766 GREEN, CN10Y 1.684 GREEN, KR10Y 4.361 GREEN, IN10Y 6.961 GREEN, BR10Y 14.3998 GREEN, MX10Y 9.284 GREEN
-[13:32:24]    panel credit          12 rows: BAMLH0A0HYM2 2.66 GREEN, BAMLC0A0CM 0.81 GREEN, BAMLC0A1CAAA 0.43 GREEN, BAMLC0A4CBBB 0.99 GREEN, BAMLH0A1HYBB 1.53 GREEN, BAMLH0A2HYB 2.76 GREEN, BAMLH0A3HYC 10.53 GREEN, BAMLHE00EHYIOAS 2.62 GREEN, BAMLEMCBPIOAS 1.38 GREEN
-[13:32:24]    panel funding          4 rows: SOFR 3.66 GREEN, DTB3 3.78 GREEN, SOFR-TB3 -0.13 GREEN, DTWEXBGS 118.747 GREEN
-[13:32:24]    MOF JGB curve 2026-09-03 tenors=15 err=None
-[13:32:24]    auction desk: 2026-09-03 $12.5B buyback at max · $185.5B bills -> risk-on supportive tags=['LIQUIDITY EASY', 'EASY-POLICY SIGNAL', 'RISK-ASSET BULLISH'] preds=6
-[13:32:24]    RED=['JP30Y'] AMBER=['JP2s30s']
-── schedules (America/New_York, Mon-Fri) ──
-[13:32:24] ✅    justhodl-bond-warroom-early updated cron(30 7 ? * MON-FRI *) ET
-[13:32:24] ✅    justhodl-bond-warroom-mid updated cron(0 10 ? * MON-FRI *) ET
-[13:32:25] ✅    justhodl-bond-warroom-after-auction updated cron(35 13 ? * MON-FRI *) ET
-[13:32:25] ✅    justhodl-bond-warroom-close updated cron(45 16 ? * MON-FRI *) ET
-[13:32:25] ✅    justhodl-bond-warroom-evening updated cron(15 19 ? * MON-FRI *) ET
-── page ──
-[13:35:26]    bonds.html carries the war room: True
-[13:35:51]    1440px: {"score": "4", "regime": "CALM", "headline": "Bond markets are calm: Japan 30Y (JGB) -7.0bp (z -1.9); Japan 2s30s -6.6bp (z -1.7).", "panels": 8, "rows": 71, "flags": 71, "reds": 1, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 0} errors=[]
-[13:35:59]     390px: {"score": "4", "regime": "CALM", "headline": "Bond markets are calm: Japan 30Y (JGB) -7.0bp (z -1.9); Japan 2s30s -6.6bp (z -1.7).", "panels": 8, "rows": 71, "flags": 71, "reds": 1, "jgb": 60, "auction": "$12.5B buyback at max \u00b7 $185.5B bills -> risk-on supportive", "regimeBanner": true, "overflow": 100} errors=[]
-[13:35:59] ✗    390px overflow 100px
+executing-against: 7ebd55e17e31ba694013c1efc336d0ea3949928d
+ops 5192 -- bonds.html 390px overflow probe
+[13:39:04]    viewport 390 overflow with war room=100px, without=100px
+[13:39:04]    A# . right=1349 w=81
+[13:39:04]    A# . right=1268 w=51
+[13:39:04]    A# . right=1217 w=96
+[13:39:04]    A# . right=1120 w=96
+[13:39:04]    A# . right=1024 w=58
+[13:39:04]    A# . right=966 w=89
+[13:39:04]    A# .active right=877 w=66
+[13:39:04]    TABLE# . right=819 w=804
+[13:39:04]    THEAD# . right=819 w=804
+[13:39:04]    TR# . right=819 w=804
+[13:39:04]    TH# . right=819 w=68
+[13:39:04]    TBODY# . right=819 w=804
+[13:39:04] ✅ done
 
-→ Report written to aws/ops/reports/latest/ops_5191_bond_warroom_launch.md
-❌ OPS-FAIL: aws/ops/pending/ops_5191_bond_warroom_v110.py
+→ Report written to aws/ops/reports/latest/ops_5192_bonds_overflow_probe.md
