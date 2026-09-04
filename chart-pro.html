@@ -6436,7 +6436,9 @@ class MacroData {
       if (!response.ok) throw new Error(`Series ${response.status}`);
       const payload = await response.json();
       const observations = (payload.obs || payload.bars || []).map(row => {
-        const rawValue = Array.isArray(row) ? row[1] : (row.value ?? row.close);
+        // OHLC rows expose volume as `value`; prefer the closing price.
+        // Observation-series rows have no `close`, so they continue to use `value`.
+        const rawValue = Array.isArray(row) ? row[1] : (row.close ?? row.value);
         if (rawValue == null || rawValue === '') return null;
         const date = String(Array.isArray(row) ? row[0] : (row.time || row.date || ''));
         const value = Number(rawValue);
