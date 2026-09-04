@@ -1,0 +1,66 @@
+# ops 5196 -- bond war room inputs vs the warehouse
+
+**Status:** success  
+**Duration:** 69.6s  
+**Finished:** 2026-09-04T14:18:25+00:00  
+
+## Log
+## A. /series resolver (warehouse-first) for every war-room input
+
+- `14:17:17`    fred:DGS3MO                                -> 200 n=11249  first=1981-09-01 last=['2026-08-31', 3.91] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:18`    fred:DGS2                                  -> 200 n=12559  first=1976-06-01 last=['2026-08-31', 4.34] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:20`    fred:DGS10                                 -> 200 n=16151  first=1962-01-02 last=['2026-08-31', 4.75] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:21`    fred:DGS30                                 -> 200 n=12381  first=1977-02-15 last=['2026-08-31', 5.25] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:22`    fred:DFII10                                -> 200 n=5920   first=2003-01-02 last=['2026-08-31', 2.44] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:24`    fred:T10YIE                                -> 200 n=5921   first=2003-01-02 last=['2026-09-01', 2.35] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:24`    fred:SOFR                                  -> 200 n=2102   first=2018-04-03 last=['2026-09-01', 3.66] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:26`    fred:DTB3                                  -> 200 n=18157  first=1954-01-04 last=['2026-08-31', 3.78] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:27`    fred:DTWEXBGS                              -> 200 n=5198   first=2006-01-02 last=['2026-08-28', 118.7479] src=warehouse:fred-scoped/Exchange_Rates
+- `14:17:29`    fred:VIXCLS                                -> 200 n=9264   first=1990-01-02 last=['2026-09-01', 16.34] src=warehouse:fred-scoped/Financial_Indicators
+- `14:17:29`    fred:BAMLH0A0HYM2                          -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 2.65] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:30`    fred:BAMLC0A0CM                            -> 200 n=7747   first=1996-12-31 last=['2026-09-01', 0.81] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:31`    fred:BAMLC0A1CAAA                          -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 0.42] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:33`    fred:BAMLC0A4CBBB                          -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 0.99] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:34`    fred:BAMLH0A1HYBB                          -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 1.52] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:35`    fred:BAMLH0A2HYB                           -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 2.75] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:36`    fred:BAMLH0A3HYC                           -> 200 n=7748   first=1996-12-31 last=['2026-09-01', 10.49] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:37`    fred:BAMLHE00EHYIOAS                       -> 200 n=6144   first=1997-12-31 last=['2026-09-01', 2.6] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:37`    fred:BAMLEMCBPIOAS                         -> 200 n=7229   first=1998-12-31 last=['2026-09-01', 1.36] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:38`    fred:BAMLEMHBHYCRPIOAS                     -> 200 n=7229   first=1998-12-31 last=['2026-09-01', 2.9] src=warehouse:fred-scoped/Interest_Rates
+- `14:17:40`    fred:BAMLEMPBPUBSICRPIOAS                  -> 200 n=5517   first=1998-12-31 last=['2026-09-03', 1.12] src=warehouse:fred-scoped/Interest_Rates (+20 obs tail from FRED
+- `14:17:43`    fred:BAMLEMIBHGCRPIOAS                     -> 200 n=7231   first=1998-12-31 last=['2026-09-03', 0.81] src=warehouse:fred-scoped/Interest_Rates (+16 obs tail from FRED
+- `14:17:44`    ustpar:2Y                                  -> 200 n=9175   first=1990-01-02 last=['2026-09-03', 4.34] src=warehouse:treasury-par (home.treasury.gov daily_treasury_yie
+- `14:17:45`    ustpar:10Y                                 -> 200 n=9175   first=1990-01-02 last=['2026-09-03', 4.77] src=warehouse:treasury-par (home.treasury.gov daily_treasury_yie
+- `14:17:45`    ustpar:30Y                                 -> 200 n=8181   first=1990-01-02 last=['2026-09-03', 5.25] src=warehouse:treasury-par (home.treasury.gov daily_treasury_yie
+- `14:17:46`    boe:IUDMNZC                                -> 200 n=11288  first=1982-01-04 last=['2026-09-01', 5.2068] src=warehouse:boe iadb
+- `14:17:47`    boe:IUDSNPY                                -> 500 body=b'{"id":"boe:IUDSNPY","obs":[],"error":"An error occurred (NoSuchKey) when calling the GetObject operation: The specified '
+- `14:17:47`    boe:IUDLNPY                                -> 500 body=b'{"id":"boe:IUDLNPY","obs":[],"error":"An error occurred (NoSuchKey) when calling the GetObject operation: The specified '
+- `14:17:48`    official-yields:de-10y-bbk                 -> 200 n=7380   first=1997-08-07 last=['2026-09-03', 3.42] src=warehouse:official-yields (Bundesbank BBSIS)
+- `14:17:49`    official-yields:ea-aaa-10y-ecb             -> 200 n=5622   first=2004-09-06 last=['2026-09-02', 3.3918508877] src=warehouse:official-yields (ECB YC dataset)
+- `14:17:51`    ecb:YC:B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y    -> 200 n=5623   first=2004-09-06 last=['2026-09-03', 3.3646241735] src=ecb-api
+- `14:17:53`    ecb:YC:B.U2.EUR.4F.G_N_C.SV_C_YM.SR_10Y    -> 200 n=5623   first=2004-09-06 last=['2026-09-03', 3.7887590778] src=ecb-api
+- `14:17:54`    TLT                                        -> 200 n=6064   first=2002-07-30 last=['2026-09-03', 82.06999969482422] src=warehouse:tv-bars · yahoo-chart:TLT
+- `14:17:55`    IEF                                        -> 200 n=6064   first=2002-07-30 last=['2026-09-03', 92.27999877929688] src=warehouse:tv-bars · yahoo-chart:IEF
+- `14:17:57`    SHY                                        -> 200 n=6064   first=2002-07-30 last=['2026-09-03', 81.70999908447266] src=warehouse:tv-bars · yahoo-chart:SHY
+- `14:17:58`    HYG                                        -> 200 n=4882   first=2007-04-11 last=['2026-09-03', 79.20999908447266] src=warehouse:tv-bars · yahoo-chart:HYG
+- `14:17:59`    LQD                                        -> 200 n=6064   first=2002-07-30 last=['2026-09-03', 105.5] src=warehouse:tv-bars · yahoo-chart:LQD
+- `14:18:00`    EMB                                        -> 200 n=4706   first=2007-12-19 last=['2026-09-03', 94.44999694824219] src=warehouse:tv-bars · yahoo-chart:EMB
+- `14:18:04`    ^MOVE                                      -> 200 n=5888   first=2002-11-12 last=['2026-09-03', 74.68000030517578] src=warehouse:tv-bars (banked just now) · yahoo-chart:^MOVE
+- `14:18:08`    ^TNX                                       -> 200 n=16157  first=1962-01-02 last=['2026-09-04', 4.779999732971191] src=warehouse:tv-bars (banked just now) · yahoo-chart:^TNX
+- `14:18:12`    ^IRX                                       -> 200 n=16654  first=1960-01-04 last=['2026-09-04', 3.765000104904175] src=warehouse:tv-bars (banked just now) · yahoo-chart:^IRX
+- `14:18:16`    ^TYX                                       -> 200 n=12415  first=1977-02-15 last=['2026-09-04', 5.241000175476074] src=warehouse:tv-bars (banked just now) · yahoo-chart:^TYX
+- `14:18:18`    MOVE                                       -> 200 n=1371   first=2021-03-23 last=['2026-09-04', 14.28499984741211] src=warehouse:tv-bars (banked just now) · yahoo-chart:MOVE
+## B. banks
+
+- `14:18:18`    official-yields: 2 objects: [('de-10y-bbk.json', 258567, '2026-09-04T06:16'), ('ea-aaa-10y-ecb.json', 270476, '2026-09-04T06:16')]
+- `14:18:18`    tv-bars universe index: 33 symbols; type=dict sample=['US:AAPL', 'NASDAQ:AAPL', 'SSE:000001', 'FX:EURUSD', 'X:BTCUSD', 'COINBASE:BTCUSD', 'CME_MINI:ES1!', 'HKEX:700', 'I:SPX', 'US:BRK.B', 'AMEX:SPY', 'XETR:DAX']
+- `14:18:18`    present: {'TLT': False, 'IEF': False, 'SHY': False, 'HYG': False, 'LQD': False, 'EMB': False, '^MOVE': False, 'MOVE': False, '^TNX': False, '^IRX': False, '^FVX': False, '^TYX': False, 'TVC:MOVE': False, 'TVC:US10Y': False, 'TVC:DE10Y': False, 'TVC:IT10Y': False, 'TVC:JP10Y': False}
+- `14:18:18`    data/warm/treasury/              7 objects; sample=['avg_interest_rates.json.gz', 'debt_outstanding.json.gz', 'debt_to_penny.json.gz', 'interest_expense.json.gz', 'latest-summary.json', 'rates_of_exchange.json.gz']
+- `14:18:18`    data/warm/boe-full/iadb/IUDMNZC  1 objects; sample=['IUDMNZC.csv.gz']
+- `14:18:19`    data/warm/fred-scoped/           2000 objects; sample=['CANEPUINDXM.json', 'CATEPUINDXM.json', 'CHNMAINLANDEPU.json', 'CHNMAINLANDTPU.json', 'DEEPUFEARINDX.json', 'DEEPUINDXM.json']
+- `14:18:19`    data/warm/boj-full/api/          2000 objects; sample=['part00001_1955.json.gz', 'part00002_1955.json.gz', 'part00003_1955.json.gz', 'part00004_1955.json.gz', 'part00005_1955.json.gz', 'part00006_1955.json.gz']
+- `14:18:24`    fred-scoped objects scanned=20000; war-room hits=['data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXBGS.json', 'data/warm/fred-scoped/Exchange_Rates/DTWEXBGS.json', 'data/warm/fred-scoped/Financial_Indicators/VIXCLS.json', 'data/warm/fred-scoped/ICE_BofA_OAS/BAMLH0A0HYM2.json', 'data/warm/fred-scoped/Interest_Rates/BAMLH0A0HYM2.json', 'data/warm/fred-scoped/Interest_Rates/DGS10.json']
+## C. data.html provider hub
+
+- `14:18:25`    hub read: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie; provider docs: ['atlantafed.json', 'banxico.json', 'bcb.json', 'PN39285BQ.json', 'PN39286BQ.json', 'PN39287BQ.json', 'PN39414FQ.json', 'bea.json', 'page-000.json', 'bis.json', 'bls.json', 'page-000.json', 'page-001.json', 'page-002.json', 'page-003.json', 'boe.json', 'boj.json', 'page-000.json', 'page-001.json', 'page-002.json', 'page-003.json', 'page-004.json', 'page-005.json', 'page-006.json', 'page-007.json', 'page-008.json', 'page-009.json', 'page-010.json', 'page-011.json', 'page-012.json', 'page-013.json', 'page-014.json', 'page-015.json', 'page-016.json', 'page-017.json', 'page-018.json', 'page-019.json', 'page-020.json', 'page-021.json', 'page-022.json', 'page-023.json', 'page-024.json', 'page-025.json', 'page-026.json', 'page-027.json', 'page-028.json', 'page-029.json', 'page-030.json', 'page-031.json', 'page-032.json', 'page-033.json', 'portfolio_liab_debt.json', 'portfolio_liab_equity.json', 'portfolio_liab_total.json', 'cboe.json', 'census-us.json', 'page-000.json', 'cftc.json', 'chicagofed.json', 'cl-datos.json', 'clevelandfed.json', 'coinmetrics.json', 'dbnomics.json', 'dol.json', 'ecb.json', 'page-000.json', 'page-001.json', 'series-manifest.json', 'page-0000.json', 'page-0001.json', 'page-0002.json', 'page-0003.json', 'page-0004.json', 'page-0005.json', 'page-0006.json', 'page-0007.json', 'page-0008.json', 'page-0009.json', 'page-0010.json', 'page-0011.json']
+- `14:18:25` ✅ audit complete
