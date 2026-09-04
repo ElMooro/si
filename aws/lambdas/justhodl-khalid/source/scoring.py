@@ -98,7 +98,10 @@ def score_candidate(
     floor: dict | None = None,
     buyback: dict | None = None,
     options: dict | None = None,
+    source: str | None = None,
 ) -> dict:
+    # evidence rows name the producer that supplied the field: fortress (default) or katlin (market-wide scan)
+    src = source or str(row.get("_source") or "fortress")
     ticker = str(row.get("ticker") or row.get("symbol") or "").upper().strip()
     name = row.get("name") or row.get("company_name") or ticker
     bottom_confirmation = bottom_confirmation or {}
@@ -143,10 +146,10 @@ def score_candidate(
     elif vs200 > 0:
         vetoes.append(f"Price is {vs200:.1f}% above the 200-day average; Khalid does not chase")
     else:
-        _add(evidence["location"], "Below 200-day", round(vs200, 1), "fortress", "Required long-term location gate passed")
+        _add(evidence["location"], "Below 200-day", round(vs200, 1), src, "Required long-term location gate passed")
 
     if vs250 is not None and vs250 <= 0:
-        _add(evidence["location"], "Below 250-day", round(vs250, 1), "fortress", "Preferred deep-location confirmation")
+        _add(evidence["location"], "Below 250-day", round(vs250, 1), src, "Preferred deep-location confirmation")
     elif vs250 is not None:
         cautions.append(f"Price is {vs250:.1f}% above the 250-day average")
 
@@ -156,16 +159,16 @@ def score_candidate(
         vetoes.append("20-day average dollar volume is below $1M")
 
     if bb_pctile is not None and bb_pctile <= 20:
-        _add(evidence["accumulation"], "Tight Bollinger width", round(bb_pctile, 1), "fortress", "Bandwidth is in the lowest quintile of its own history")
+        _add(evidence["accumulation"], "Tight Bollinger width", round(bb_pctile, 1), src, "Bandwidth is in the lowest quintile of its own history")
     if row.get("vcp_ok"):
-        _add(evidence["accumulation"], "Volatility contraction", True, "fortress", "Successive contractions suggest supply is drying up")
+        _add(evidence["accumulation"], "Volatility contraction", True, src, "Successive contractions suggest supply is drying up")
     volume_dryup = number(row.get("volume_dryup"))
     if volume_dryup is not None and volume_dryup <= 0.8:
-        _add(evidence["accumulation"], "Supply dry-up precondition", round(volume_dryup, 2), "fortress", "Base volume is at least 20% below its reference level; this is not proof by itself")
+        _add(evidence["accumulation"], "Supply dry-up precondition", round(volume_dryup, 2), src, "Base volume is at least 20% below its reference level; this is not proof by itself")
     if number(row.get("higher_lows")) and number(row.get("higher_lows")) >= 2:
-        _add(evidence["accumulation"], "Higher lows", int(number(row.get("higher_lows"))), "fortress", "Base structure is improving")
+        _add(evidence["accumulation"], "Higher lows", int(number(row.get("higher_lows"))), src, "Base structure is improving")
     if row.get("obv_divergence") or row.get("ad_divergence"):
-        _add(evidence["accumulation"], "Volume divergence", True, "fortress", "OBV or accumulation/distribution is improving before price")
+        _add(evidence["accumulation"], "Volume divergence", True, src, "OBV or accumulation/distribution is improving before price")
     if (bottom_confirmation.get("phase") == "ACCUMULATION"
             or bottom_confirmation.get("flag") == "LIKELY_BOTTOM"):
         _add(evidence["accumulation"], "Independent bottom model", bottom_confirmation.get("flag") or bottom_confirmation.get("phase"), "accumulation-radar", "Separate Wyckoff/bottom model confirms the base")
@@ -177,14 +180,14 @@ def score_candidate(
 
     flows = row.get("flows") or {}
     if row.get("industry_inflow_major") or row.get("inflow_major") or flows.get("major"):
-        _add(evidence["flows"], "Major fund inflow", True, "fortress", "Industry or ETF flow is large relative to assets")
+        _add(evidence["flows"], "Major fund inflow", True, src, "Industry or ETF flow is large relative to assets")
     flow_score = first_number(row.get("flow_score"), flows.get("score"))
     if flow_score is not None and flow_score >= 65:
-        _add(evidence["flows"], "Persistent flow score", round(flow_score, 1), "fortress", "Multi-source fund-flow score is strong")
+        _add(evidence["flows"], "Persistent flow score", round(flow_score, 1), src, "Multi-source fund-flow score is strong")
     if first_number(row.get("inst_net_usd"), row.get("whale_net_usd"), bottom_confirmation.get("whale_flow_usd")) not in (None, 0):
         inst = first_number(row.get("inst_net_usd"), row.get("whale_net_usd"), bottom_confirmation.get("whale_flow_usd"))
         if inst and inst > 0:
-            _add(evidence["flows"], "Institutional ownership flow", round(inst), "fortress/13F", "Reported institutional or whale net flow is positive")
+            _add(evidence["flows"], "Institutional ownership flow", round(inst), src + "/13F", "Reported institutional or whale net flow is positive")
             cautions.append("Institutional filings are delayed context, not an entry trigger")
     option_blocks = number(options.get("n_smart_money_blocks"))
     if option_blocks is not None and option_blocks >= 2:
@@ -192,19 +195,19 @@ def score_candidate(
 
     catalyst_score = number(row.get("catalyst_score"))
     if row.get("has_contract_catalyst") or (catalyst_score is not None and catalyst_score >= 50):
-        _add(evidence["catalysts"], "Contract catalyst", round(catalyst_score or 50, 1), "fortress", "Recent contracts or an explicit catalyst are material")
+        _add(evidence["catalysts"], "Contract catalyst", round(catalyst_score or 50, 1), src, "Recent contracts or an explicit catalyst are material")
     if row.get("demand_accelerating"):
-        _add(evidence["catalysts"], "Demand acceleration", True, "fortress", "Backlog or demand is accelerating")
+        _add(evidence["catalysts"], "Demand acceleration", True, src, "Backlog or demand is accelerating")
     boom = number(row.get("industry_boom_score"))
     boom_delta = number(row.get("industry_boom_delta_20d"))
     if boom is not None and boom >= 60 and (boom_delta is None or boom_delta > 0):
         _add(evidence["catalysts"], "Industry boom", round(boom, 1), "industry-boom", "Physical/fundamental industry activity is strong and not decelerating")
     backlog_growth = first_number(row.get("backlog_qoq_pct"), row.get("rpo_qoq_pct"))
     if backlog_growth is not None and backlog_growth >= 10:
-        _add(evidence["catalysts"], "Backlog/RPO acceleration", round(backlog_growth, 1), "fortress/backlog", "Committed demand is rising")
+        _add(evidence["catalysts"], "Backlog/RPO acceleration", round(backlog_growth, 1), src + "/backlog", "Committed demand is rising")
     eps_next = number(row.get("eps_next_y_pct"))
     if eps_next is not None and eps_next >= 15:
-        _add(evidence["catalysts"], "Forward EPS inflection", round(eps_next, 1), "fortress", "Expected earnings growth can re-rate the asset")
+        _add(evidence["catalysts"], "Forward EPS inflection", round(eps_next, 1), src, "Expected earnings growth can re-rate the asset")
     if row.get("insider_cluster"):
         _add(evidence["catalysts"], "Insider cluster", True, "insider-clusters", "Multiple insiders bought")
     net_buyback = first_number(row.get("net_buyback_yield_pct"), buyback.get("net_buyback_yield"))
@@ -213,11 +216,11 @@ def score_candidate(
 
     valuation_score = number(row.get("valuation_score"))
     if valuation_score is not None:
-        _add(evidence["valuation"], "Peer valuation score", round(valuation_score, 1), "fortress", "Percentile score within the relevant industry")
+        _add(evidence["valuation"], "Peer valuation score", round(valuation_score, 1), src, "Percentile score within the relevant industry")
     for key, label in (("fwd_pe", "Forward P/E"), ("peg", "PEG"), ("ev_ebitda", "EV/EBITDA"), ("fcf_yield_pct", "FCF yield")):
         value = number(row.get(key))
         if value is not None:
-            _add(evidence["valuation"], label, round(value, 2), "fortress", "Context metric, not a standalone buy signal")
+            _add(evidence["valuation"], label, round(value, 2), src, "Context metric, not a standalone buy signal")
 
     if rr is not None:
         _add(evidence["risk_reward"], "Entry-based reward/risk", round(rr, 2), "khalid", "Upside and downside are recomputed from the planned entry, target and stop")
@@ -322,7 +325,10 @@ def score_candidate(
     elif action == "BUILDING_BASE":
         plain.append("the base is interesting, but at least one required confirmation is still missing")
 
+    katlin_block = row.get("_katlin") if isinstance(row.get("_katlin"), dict) else None
     return {
+        "source": src,
+        "katlin": katlin_block,
         "ticker": ticker,
         "name": name,
         "asset_class": asset_class,

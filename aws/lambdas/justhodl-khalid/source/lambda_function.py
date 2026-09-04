@@ -161,6 +161,77 @@ def _crypto_watch(ma: dict, confluence: dict, cycle: dict) -> list[dict]:
     return rows
 
 
+
+# ---- KATLIN bridge (2026-09-04): Khalid gates; Katlin hunts. Katlin (justhodl-katlin, data/katlin.json) scans every
+# stock/ETF/crypto in the warehouse for the 200/250-day location, W/M/Q bottom structure, oversold RSI, Wyckoff
+# accumulation, inflows, named catalysts and a 4h entry. Its picks are translated into the row vocabulary that
+# score_candidate already reads, so Khalid's strict execution gate runs over Fortress AND Katlin without a second
+# scoring rulebook. Fortress rows win on overlapping fields; Katlin fills what Fortress does not measure.
+def _katlin_rows(katlin: dict) -> list[dict]:
+    rows = []
+    for r in list(katlin.get("picks") or []) + list(katlin.get("watch") or []):
+        if not isinstance(r, dict) or not r.get("ticker"):
+            continue
+        q = r.get("quality") if isinstance(r.get("quality"), dict) else {}
+        il = r.get("inflow_legs") if isinstance(r.get("inflow_legs"), dict) else {}
+        pl = r.get("plan") if isinstance(r.get("plan"), dict) else {}
+        pillars = r.get("pillars") if isinstance(r.get("pillars"), dict) else {}
+        legs = r.get("accum_legs") if isinstance(r.get("accum_legs"), dict) else {}
+        cats = [str(c.get("text") if isinstance(c, dict) else c) for c in (r.get("catalysts") or [])]
+        cat_text = " ".join(cats).lower()
+        indflow = il.get("industry_flow") if isinstance(il.get("industry_flow"), dict) else {}
+        rows.append({
+            "_source": "katlin",
+            "ticker": r.get("ticker"),
+            "name": r.get("name"),
+            "industry": r.get("industry"),
+            "asset_class": str(r.get("asset_class") or "stock").upper(),
+            "close": r.get("last"),
+            "vs_sma200_pct": r.get("dist_sma200_pct"),
+            "vs_sma250_pct": r.get("dist_sma250_pct"),
+            "bb_width_pctile": r.get("bbw_pctile"),
+            "rsi": r.get("rsi_w"),
+            "volume_dryup": r.get("vol_ratio_20_120"),
+            "higher_lows": r.get("higher_lows_w"),
+            "obv_divergence": (legs.get("obv_div") or 0) >= 60,
+            "ad_divergence": (legs.get("ad_line") or 0) >= 60,
+            "adv_usd_20d": r.get("adv_usd"),
+            "dilution_yoy_pct": q.get("share_count_yoy_pct"),
+            "net_buyback_yield_pct": q.get("net_buyback_yield_pct"),
+            "flow_score": pillars.get("inflows"),
+            "inflow_major": bool(indflow.get("major")),
+            "inst_net_usd": il.get("inst_net_usd"),
+            "whale_net_usd": il.get("whale_net_usd"),
+            "dark_pool_state": il.get("dark_pool_state"),
+            "insider_cluster": bool(il.get("insider_cluster")),
+            "catalyst_score": pillars.get("catalyst"),
+            "has_contract_catalyst": "contract" in cat_text,
+            "demand_accelerating": "backlog" in cat_text or "accelerat" in cat_text,
+            "industry_boom_score": next((c.get("value") for c in (r.get("catalysts") or []) if isinstance(c, dict) and c.get("kind") == "industry_boom"), None),
+            "fwd_pe": q.get("fwd_pe"), "peg": q.get("peg"), "ev_ebitda": q.get("ev_ebitda"), "fcf_yield_pct": q.get("fcf_yield_pct"),
+            "beneish_m": q.get("beneish_m"),
+            "asymmetry": r.get("asymmetry"),
+            "confidence": (r.get("conviction") or 0) / 100.0 if r.get("conviction") is not None else None,
+            "trade_plan": {"pivot": pl.get("entry"), "stop": pl.get("stop"), "target_2": pl.get("target_2") or pl.get("target_1"), "target": pl.get("target_1")},
+            "_katlin": {
+                "tier": r.get("tier"), "composite": r.get("composite"), "conviction": r.get("conviction"),
+                "structure_state": r.get("structure_state"), "double_bottom": (r.get("double_bottom_w") or {}).get("state") if isinstance(r.get("double_bottom_w"), dict) else None,
+                "trend_break": r.get("lt_trend_break"), "rsi_d": r.get("rsi_d"), "rsi_w": r.get("rsi_w"), "rsi_m": r.get("rsi_m"),
+                "accumulation": pillars.get("accumulation"), "inflows": pillars.get("inflows"), "catalyst": pillars.get("catalyst"), "momentum": pillars.get("momentum"),
+                "sniper": (r.get("sniper") or {}).get("state") if isinstance(r.get("sniper"), dict) else None,
+                "knife": r.get("knife"), "red_flags": q.get("red_flags"), "why": r.get("why"), "catalysts": cats[:4],
+                "accum_evidence": (r.get("accum_evidence") or [])[:4], "inflow_evidence": (r.get("inflow_evidence") or [])[:4],
+            },
+        })
+    return rows
+
+
+def _katlin_posture(katlin: dict) -> dict:
+    wr = katlin.get("war_room") if isinstance(katlin.get("war_room"), dict) else {}
+    return {"posture": wr.get("posture"), "thermometer": wr.get("thermometer"), "exposure_cap_pct": wr.get("exposure_cap_pct"),
+            "vetoes": wr.get("vetoes") or [], "brief": wr.get("brief"), "n_legs": len(wr.get("legs") or []), "session": katlin.get("session")}
+
+
 def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     source_health = []
@@ -201,6 +272,14 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
         })
 
     policy = risk_policy(feeds.get("risk_gate") or {}, feeds.get("crisis") or {}, source_health)
+    katlin = feeds.get("katlin") or {}
+    katlin_wr = _katlin_posture(katlin)
+    if katlin_wr.get("posture") in {"CASH_OR_TBILLS", "DEFENSIVE"} and policy.get("allows_new_entries"):
+        policy["allows_new_entries"] = False
+        policy.setdefault("reasons", []).append(
+            f"Katlin war room is {katlin_wr['posture']} (thermometer {katlin_wr.get('thermometer')}, cap {katlin_wr.get('exposure_cap_pct')}%): "
+            + "; ".join(str(v) for v in (katlin_wr.get("vetoes") or [])[:3]) if katlin_wr.get("vetoes") else
+            f"Katlin war room is {katlin_wr['posture']} (thermometer {katlin_wr.get('thermometer')}, cap {katlin_wr.get('exposure_cap_pct')}%)")
     fortress = feeds.get("fortress") or {}
     accumulation = feeds.get("accumulation") or {}
     best = feeds.get("best_setups") or {}
@@ -243,12 +322,27 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             options=option_map.get(ticker),
         ))
 
+    # union with Katlin's market-wide scan: same ticker -> Fortress fields win, Katlin fills the gaps; new tickers -> Katlin rows
+    seen = {c["ticker"]: i for i, c in enumerate(candidates) if c.get("ticker")}
+    fortress_rows = {str(r.get("ticker") or "").upper(): r for r in list(fortress.get("board") or []) + list(fortress.get("etfs") or []) if isinstance(r, dict)}
+    for krow in _katlin_rows(katlin):
+        t = str(krow["ticker"]).upper()
+        cls = krow["asset_class"]
+        if t in seen:
+            merged = {**krow, **{k: v for k, v in fortress_rows.get(t, {}).items() if v is not None}, "_source": "fortress+katlin", "_katlin": krow["_katlin"]}
+            candidates[seen[t]] = score_candidate(merged, asset_class=cls if cls != "CRYPTO" else "STOCK",
+                                                  risk_allows_entries=policy["allows_new_entries"], bottom_confirmation=bottom_map.get(t),
+                                                  best_setup=best_map.get(t), floor=(floor_map or {}).get(t), buyback=(buyback_map or {}).get(t), options=option_map.get(t))
+        else:
+            seen[t] = len(candidates)
+            candidates.append(score_candidate(krow, asset_class=cls, risk_allows_entries=policy["allows_new_entries"], bottom_confirmation=bottom_map.get(t),
+                                              best_setup=best_map.get(t), floor=(floor_map or {}).get(t), buyback=(buyback_map or {}).get(t), options=option_map.get(t)))
     ranked = rank_candidates(candidates)
     selected = [x for x in ranked if x["action"] == "READY_TO_SNIPE"][:12]
     building = [x for x in ranked if x["action"] == "BUILDING_BASE"][:20]
     watch = [x for x in ranked if x["action"] == "WATCH_RECLAIM"][:12]
     rejected_examples = [x for x in ranked if x["action"] == "REJECTED"][:12]
-    crypto_watch = _crypto_watch(
+    crypto_watch = [x for x in ranked if x["asset_class"] == "CRYPTO"][:15] + _crypto_watch(
         feeds.get("crypto_ma200") or {},
         feeds.get("crypto_confluence") or {},
         feeds.get("crypto_cycle_risk") or {},
@@ -257,6 +351,7 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
     allocator = feeds.get("allocator") or {}
     bond = feeds.get("bond_warroom") or {}
     total = len(candidates)
+    n_katlin = sum(1 for x in candidates if str(x.get("source") or "").find("katlin") >= 0)
     required_bad = [x for x in source_health if x["critical"] and x["status"] != "FRESH"]
     fresh_count = sum(1 for x in source_health if x["status"] == "FRESH")
     top_eligible = selected or building or watch
@@ -356,6 +451,7 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
             "selected_count": len(selected),
             "building_count": len(building),
             "universe_scored": total,
+            "universe_from_katlin": n_katlin,
             "shelter": policy["default_shelter"],
         },
         "risk_control": {
@@ -366,6 +462,7 @@ def build_output(feeds: dict[str, dict], metas: dict[str, dict], now: datetime |
                 "regime": bond.get("regime") or bond.get("state"),
                 "note": "Bond-market evidence controls sizing and vetoes; it does not create an equity buy.",
             },
+            "katlin_war_room": katlin_wr,
             "allocator": {
                 "regime": allocator.get("regime_headline"),
                 "cash_buffer_pct": allocator.get("cash_buffer_pct"),

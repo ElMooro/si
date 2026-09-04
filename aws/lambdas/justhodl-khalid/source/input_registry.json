@@ -1,18 +1,226 @@
 {
   "schema_version": "1.0.0",
   "inputs": [
-    {"id":"risk_gate","domain":"risk","artifact":"data/risk-gate.json","producer":"justhodl-risk-gate","required":true,"max_age_hours":6,"fields_consumed":["posture","composite","sizing_multiplier"],"contract":{"required_all":["posture","composite","sizing_multiplier"],"types":{"posture":"string","composite":"number","sizing_multiplier":"number"},"allowed":{"posture":["RISK_ON","NEUTRAL","RISK_OFF","SEVERE"]}}},
-    {"id":"crisis","domain":"black_swan","artifact":"data/crisis-composite.json","producer":"justhodl-crisis-composite","required":true,"max_age_hours":8,"fields_consumed":["defcon_level","defcon"],"contract":{"required_any":["defcon_level","defcon"],"types":{"defcon_level":"number","defcon":"number"}}},
-    {"id":"fortress","domain":"opportunities","artifact":"data/fortress.json","producer":"justhodl-fortress","required":true,"max_age_hours":36,"fields_consumed":["board","etfs"],"contract":{"required_all":["board","etfs"],"types":{"board":"list","etfs":"list"}}},
-    {"id":"accumulation","domain":"accumulation","artifact":"data/accumulation-radar.json","producer":"justhodl-accumulation-radar","required":false,"max_age_hours":36,"fields_consumed":["confirmed_bottoms","bottoms"]},
-    {"id":"best_setups","domain":"technicals","artifact":"data/best-setups.json","producer":"justhodl-best-setups","required":false,"max_age_hours":6,"fields_consumed":["top_setups"]},
-    {"id":"floor","domain":"dilution","artifact":"data/floor-audit.json","producer":"justhodl-floor-audit","required":false,"max_age_hours":36,"fields_consumed":["tickers"]},
-    {"id":"buyback","domain":"capital_returns","artifact":"data/buyback-engine.json","producer":"justhodl-buyback-engine","required":false,"max_age_hours":36,"fields_consumed":["tickers"]},
-    {"id":"options","domain":"derivatives","artifact":"data/polygon-options-flow.json","producer":"justhodl-polygon-options-flow","required":false,"max_age_hours":6,"fields_consumed":["all_results"]},
-    {"id":"allocator","domain":"allocation","artifact":"data/allocator.json","producer":"justhodl-allocator","required":false,"max_age_hours":36,"fields_consumed":["regime_headline","cash_buffer_pct","recommended_weights_pct"]},
-    {"id":"crypto_ma200","domain":"crypto","artifact":"data/crypto-ma200.json","producer":"justhodl-crypto-ma200","required":false,"max_age_hours":36,"fields_consumed":["fresh_breakdowns_below","retest_failed","fresh_breakouts_above"]},
-    {"id":"crypto_confluence","domain":"crypto","artifact":"data/crypto-confluence.json","producer":"justhodl-crypto-confluence","required":false,"max_age_hours":36,"fields_consumed":["regime","verdict","state"]},
-    {"id":"crypto_cycle_risk","domain":"crypto","artifact":"data/crypto-cycle-risk.json","producer":"justhodl-crypto-cycle-risk","required":false,"max_age_hours":12,"fields_consumed":["composite_score","risk_score"]},
-    {"id":"bond_warroom","domain":"bonds","artifact":"data/bond-warroom.json","producer":"justhodl-bond-warroom","required":false,"max_age_hours":8,"fields_consumed":["summary","headline","regime","state"]}
+    {
+      "id": "risk_gate",
+      "domain": "risk",
+      "artifact": "data/risk-gate.json",
+      "producer": "justhodl-risk-gate",
+      "required": true,
+      "max_age_hours": 6,
+      "fields_consumed": [
+        "posture",
+        "composite",
+        "sizing_multiplier"
+      ],
+      "contract": {
+        "required_all": [
+          "posture",
+          "composite",
+          "sizing_multiplier"
+        ],
+        "types": {
+          "posture": "string",
+          "composite": "number",
+          "sizing_multiplier": "number"
+        },
+        "allowed": {
+          "posture": [
+            "RISK_ON",
+            "NEUTRAL",
+            "RISK_OFF",
+            "SEVERE"
+          ]
+        }
+      }
+    },
+    {
+      "id": "crisis",
+      "domain": "black_swan",
+      "artifact": "data/crisis-composite.json",
+      "producer": "justhodl-crisis-composite",
+      "required": true,
+      "max_age_hours": 8,
+      "fields_consumed": [
+        "defcon_level",
+        "defcon"
+      ],
+      "contract": {
+        "required_any": [
+          "defcon_level",
+          "defcon"
+        ],
+        "types": {
+          "defcon_level": "number",
+          "defcon": "number"
+        }
+      }
+    },
+    {
+      "id": "fortress",
+      "domain": "opportunities",
+      "artifact": "data/fortress.json",
+      "producer": "justhodl-fortress",
+      "required": true,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "board",
+        "etfs"
+      ],
+      "contract": {
+        "required_all": [
+          "board",
+          "etfs"
+        ],
+        "types": {
+          "board": "list",
+          "etfs": "list"
+        }
+      }
+    },
+    {
+      "id": "accumulation",
+      "domain": "accumulation",
+      "artifact": "data/accumulation-radar.json",
+      "producer": "justhodl-accumulation-radar",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "confirmed_bottoms",
+        "bottoms"
+      ]
+    },
+    {
+      "id": "best_setups",
+      "domain": "technicals",
+      "artifact": "data/best-setups.json",
+      "producer": "justhodl-best-setups",
+      "required": false,
+      "max_age_hours": 6,
+      "fields_consumed": [
+        "top_setups"
+      ]
+    },
+    {
+      "id": "floor",
+      "domain": "dilution",
+      "artifact": "data/floor-audit.json",
+      "producer": "justhodl-floor-audit",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "tickers"
+      ]
+    },
+    {
+      "id": "buyback",
+      "domain": "capital_returns",
+      "artifact": "data/buyback-engine.json",
+      "producer": "justhodl-buyback-engine",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "tickers"
+      ]
+    },
+    {
+      "id": "options",
+      "domain": "derivatives",
+      "artifact": "data/polygon-options-flow.json",
+      "producer": "justhodl-polygon-options-flow",
+      "required": false,
+      "max_age_hours": 6,
+      "fields_consumed": [
+        "all_results"
+      ]
+    },
+    {
+      "id": "allocator",
+      "domain": "allocation",
+      "artifact": "data/allocator.json",
+      "producer": "justhodl-allocator",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "regime_headline",
+        "cash_buffer_pct",
+        "recommended_weights_pct"
+      ]
+    },
+    {
+      "id": "crypto_ma200",
+      "domain": "crypto",
+      "artifact": "data/crypto-ma200.json",
+      "producer": "justhodl-crypto-ma200",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "fresh_breakdowns_below",
+        "retest_failed",
+        "fresh_breakouts_above"
+      ]
+    },
+    {
+      "id": "crypto_confluence",
+      "domain": "crypto",
+      "artifact": "data/crypto-confluence.json",
+      "producer": "justhodl-crypto-confluence",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "regime",
+        "verdict",
+        "state"
+      ]
+    },
+    {
+      "id": "crypto_cycle_risk",
+      "domain": "crypto",
+      "artifact": "data/crypto-cycle-risk.json",
+      "producer": "justhodl-crypto-cycle-risk",
+      "required": false,
+      "max_age_hours": 12,
+      "fields_consumed": [
+        "composite_score",
+        "risk_score"
+      ]
+    },
+    {
+      "id": "bond_warroom",
+      "domain": "bonds",
+      "artifact": "data/bond-warroom.json",
+      "producer": "justhodl-bond-warroom",
+      "required": false,
+      "max_age_hours": 8,
+      "fields_consumed": [
+        "summary",
+        "headline",
+        "regime",
+        "state"
+      ]
+    },
+    {
+      "id": "katlin",
+      "domain": "opportunities",
+      "artifact": "data/katlin.json",
+      "producer": "justhodl-katlin",
+      "required": false,
+      "max_age_hours": 36,
+      "fields_consumed": [
+        "picks",
+        "watch",
+        "war_room"
+      ],
+      "contract": {
+        "required_all": [
+          "picks",
+          "war_room"
+        ],
+        "types": {
+          "picks": "list",
+          "war_room": "dict"
+        }
+      }
+    }
   ]
 }
