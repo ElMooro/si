@@ -86,6 +86,7 @@ FORCE = {  # ops 3302
     "/dark-pool.html": "Equity Signals",                  # ops 4559: FINRA ATS share-of-volume
     "/flow-lookthrough.html": "Equity Signals",           # ops 4559: tier-A mechanical constituent flow
     "/fortress.html": "Equity Signals",   # ops 5081: Fortress Coil dump-resilient accumulation radar
+    "/katlin.html": "Equity Signals",     # ops 5203: KATLIN buy desk (war-room posture + asymmetric bottoms across stocks/ETFs/crypto)
     "/floor.html": "Risk & Crisis",   # ops 4919: asset-floor auditor —
     # "auditor" in the title otherwise collides with the System & Meta
     # "audit" keyword and files a risk desk under settings/legal.

@@ -1,0 +1,34 @@
+{
+  "function_name": "justhodl-katlin",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 8192,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "KATLIN buy desk v1: war-room posture (bond/auction/risk-gate/black-swan/crisis/cycle) + asymmetric bottoms across stocks/ETFs/crypto -- under the 200/250 MA, W/1M/3M structure, oversold RSI, Wyckoff accumulation, inflows, named catalysts, 4h sniper",
+  "inherit_env": {
+    "from_function": "justhodl-equity-research",
+    "keys": [
+      "FMP_KEY",
+      "POLYGON_API_KEY"
+    ]
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-katlin-daily",
+    "cron": "cron(10 4 ? * TUE-SAT *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "KATLIN daily 04:10 UTC Tue-Sat, after fortress (03:30) and polygon-full"
+  },
+  "eventbridge_scheduler_extra": {
+    "schedule_name": "justhodl-katlin-backtest-weekly",
+    "cron": "cron(30 9 ? * SUN *)",
+    "timezone": "UTC",
+    "input": "{\"mode\":\"backtest\"}",
+    "note": "created by the launch ops (workflow handles only the primary block)"
+  }
+}

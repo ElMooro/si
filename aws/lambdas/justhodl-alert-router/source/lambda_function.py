@@ -792,6 +792,66 @@ def format_telegram_msg(alert):
 
 
 @track_errors
+def check_katlin(alerts):
+    """KATLIN buy desk (data/katlin.json): a name that just entered KATLIN_PRIME (every gate incl. a confirmed
+    long-term bottom and a named catalyst), a READY name whose 4h sniper says SNIPE_NOW, and a war-room posture
+    change to CASH_OR_TBILLS / back to FULL_RISK. Ids carry the session so each event fires once."""
+    d = load_json("data/katlin.json")
+    session = d.get("session") or "?"
+    ch = d.get("changes") or {}
+    wr = d.get("war_room") or {}
+    picks = {r.get("ticker"): r for r in (d.get("picks") or []) if isinstance(r, dict)}
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+
+    def md(x):
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        pl = r.get("plan") or {}
+        sn = r.get("sniper") or {}
+        return (f"{md(r.get('name'))} · {md(r.get('industry') or r.get('sub_class'))} · {md(r.get('asset_class'))}\n"
+                f"vs 200d {fmt(r.get('dist_sma200_pct'), 1, '%')} · RSI W {fmt(r.get('rsi_w'), 0)} · bottom {md(r.get('structure_state'))} · "
+                f"accum {fmt((r.get('pillars') or {}).get('accumulation'), 0)} · inflows {fmt((r.get('pillars') or {}).get('inflows'), 0)}\n"
+                f"score {fmt(r.get('composite'), 1)} · conviction {fmt(r.get('conviction'), 0)} · R/R {fmt(r.get('rr'), 1, 'x')}\n"
+                f"plan: stop {fmt(pl.get('stop'))} · target {fmt(pl.get('target_1') or pl.get('target_2'))} · 4h {md(sn.get('state') or 'n/a')}\n"
+                f"{md((r.get('why') or '')[:400])}\n"
+                f"https://justhodl.ai/katlin.html")
+
+    for t in (ch.get("new_prime") or [])[:5]:
+        r = picks.get(t) or {}
+        alerts.append({
+            "id": f"katlin_prime_{t}_{session}",
+            "category": "KATLIN",
+            "severity": "HIGH",
+            "title": f"🎯 KATLIN PRIME: {t} -- confirmed bottom, accumulating, catalyst named",
+            "detail": line(r) if r else f"{t} entered KATLIN_PRIME on session {session}. https://justhodl.ai/katlin.html",
+        })
+    n_snipe = 0
+    for r in (d.get("picks") or []):
+        if n_snipe >= 3 or not isinstance(r, dict):
+            break
+        if r.get("tier") in ("KATLIN_PRIME", "READY") and (r.get("sniper") or {}).get("state") == "SNIPE_NOW":
+            n_snipe += 1
+            alerts.append({
+                "id": f"katlin_snipe_{r.get('ticker')}_{session}",
+                "category": "KATLIN",
+                "severity": "MEDIUM",
+                "title": f"🔫 KATLIN 4h snipe: {r.get('ticker')} ({md(r.get('tier'))})",
+                "detail": line(r),
+            })
+    post = wr.get("posture")
+    if post in ("CASH_OR_TBILLS", "FULL_RISK"):
+        alerts.append({
+            "id": f"katlin_posture_{post}_{session}",
+            "category": "KATLIN",
+            "severity": "HIGH" if post == "CASH_OR_TBILLS" else "LOW",
+            "title": f"🏛 KATLIN war room: {md(post)} (thermometer {fmt(wr.get('thermometer'), 0)})",
+            "detail": md(wr.get("brief") or "")[:700] + "\nhttps://justhodl.ai/katlin.html",
+        })
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[alert-router] start")
@@ -819,6 +879,7 @@ def lambda_handler(event=None, context=None):
         ("short_interest", check_short_interest),
         ("etf_flows", check_etf_flows),
         ("fortress", check_fortress),
+        ("katlin", check_katlin),
         ("sector_rotation", check_sector_rotation),
         ("divergences", check_divergences),
         ("cot_extremes", check_cot_extremes),

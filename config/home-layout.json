@@ -1,7 +1,38 @@
 {
  "schema": 2,
- "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this.",
+ "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this. Katlin (ops 5203) sits first: the war-room section + PRIME/READY panels + risk legs.",
  "blocks": [
+  {
+   "type": "section",
+   "page": "katlin",
+   "sec": "2",
+   "w": 3,
+   "title": "Katlin buy desk -- war room"
+  },
+  {
+   "type": "engine",
+   "ref": "katlin",
+   "panel": "prime",
+   "w": 1,
+   "feed": "data/katlin.json",
+   "title": "Katlin -- PRIME picks"
+  },
+  {
+   "type": "engine",
+   "ref": "katlin",
+   "panel": "ready",
+   "w": 1,
+   "feed": "data/katlin.json",
+   "title": "Katlin -- READY picks"
+  },
+  {
+   "type": "engine",
+   "ref": "katlin",
+   "panel": "war_room",
+   "w": 1,
+   "feed": "data/katlin.json",
+   "title": "Katlin -- risk legs"
+  },
   {
    "type": "section",
    "page": "bonds",

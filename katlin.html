@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="katlin-version" content="katlin-v1.0.0">
+<meta name="jh-marker" content="KATLIN_DESK_V1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Katlin · the buy desk · war-room posture + asymmetric bottoms across stocks, ETFs and crypto · JustHodl.AI</title>
+<meta name="description" content="Katlin decides first whether it is safe to hold risk (bond desk, auctions, brain risk-gate, black-swan watch, crisis composite, cycle, credit, dollar, liquidity), then hunts assets under their 200/250-day averages with a confirmed long-term bottom, oversold RSI, Wyckoff accumulation, inflows, named catalysts and a 4-hour sniper entry. Plain English on every pick.">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a; --bg-card:#101418;
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --amber:#ffb13d; --red:#ff5c7a; --cyan:#00d4ff; --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace; --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px;overflow:hidden}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;flex:1;overflow-x:auto;min-width:0}
+.nav-links a{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-links a:hover{color:var(--fg-1)} .nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.container{max-width:1500px;margin:0 auto;padding:22px 24px}
+.page-hdr{margin-bottom:18px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px;max-width:980px}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-top:6px}
+h2{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2);margin:26px 0 10px}
+/* war-room banner (bonds.html design) */
+.wr{margin-bottom:22px}
+.wr-banner{display:grid;grid-template-columns:150px 1fr 330px;gap:18px;align-items:stretch;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+@media(max-width:1000px){.wr-banner{grid-template-columns:1fr}}
+.wr-banner.CASH_OR_TBILLS{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.25),inset 0 0 80px rgba(239,68,68,.06)}
+.wr-banner.DEFENSIVE{border-color:#f59e0b}.wr-banner.SELECTIVE{border-color:#eab308}.wr-banner.FULL_RISK{border-color:#22c55e}
+.wr-ring{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.wr-ring svg{width:118px;height:118px}.wr-ring .n{font-size:30px;font-weight:800;fill:var(--fg-1)}.wr-ring .l{font-size:9px;letter-spacing:.14em;fill:var(--fg-3)}
+.wr-regime{font-size:10.5px;font-weight:800;letter-spacing:.12em;padding:3px 10px;border-radius:4px;text-align:center}
+.wr-regime.FULL_RISK{color:#22c55e;background:rgba(34,197,94,.12)}.wr-regime.SELECTIVE{color:#eab308;background:rgba(234,179,8,.14)}
+.wr-regime.DEFENSIVE{color:#f59e0b;background:rgba(245,158,11,.16)}.wr-regime.CASH_OR_TBILLS{color:#ef4444;background:rgba(239,68,68,.16);animation:wr-flash 1.1s ease-in-out infinite}
+.wr-regime.UNKNOWN{color:var(--fg-3);background:rgba(120,140,170,.15)}
+.wr-kicker{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);display:flex;gap:12px;flex-wrap:wrap}
+.wr-headline{font-size:19px;font-weight:700;color:var(--fg-1);margin:6px 0 10px;line-height:1.35}
+.wr-brief{font-size:12.5px;color:var(--fg-2);line-height:1.55}
+.wr-verdicts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:700px){.wr-verdicts{grid-template-columns:1fr}}
+.wr-v{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg-sunken)}
+.wr-v .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3)}.wr-v .s{font-size:16px;font-weight:800;margin:2px 0 4px}.wr-v .t{font-size:12px;color:var(--fg-2);line-height:1.5}
+.wr-v.bearish{border-color:#ef4444}.wr-v.bearish .s{color:#ef4444}.wr-v.bullish{border-color:#22c55e}.wr-v.bullish .s{color:#22c55e}.wr-v.cautious .s{color:#f59e0b}.wr-v.neutral .s{color:var(--fg-2)}
+.wr-side{display:flex;flex-direction:column;gap:8px}
+.wr-box{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg-sunken);font-size:12px;color:var(--fg-2);line-height:1.5}
+.wr-box .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);display:flex;justify-content:space-between}
+.wr-box .h{color:var(--fg-1);font-weight:700;margin:3px 0}
+.wr-tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:3px;margin:2px 3px 0 0;background:rgba(120,140,170,.15);color:var(--fg-2)}
+.wr-tag.bull{color:#22c55e;background:rgba(34,197,94,.12)}.wr-tag.bear{color:#ef4444;background:rgba(239,68,68,.12)}.wr-tag.amber{color:#f59e0b;background:rgba(245,158,11,.14)}
+.wr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:14px;margin-top:14px}
+.wr-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.wr-panel .ph{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-2)}
+.wr-panel .ph .cnt{font-size:10px;letter-spacing:0;text-transform:none;color:var(--fg-3)}
+.wr-panel .tbl{overflow-x:auto}
+table.wr{width:100%;border-collapse:collapse;font-size:11.5px}
+table.wr th{text-align:right;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:relative}
+table.wr th:first-child,table.wr td:first-child{text-align:left}
+table.wr th.on{color:var(--cyan)}
+table.wr td{padding:6px 8px;text-align:right;border-bottom:1px solid rgba(120,140,170,.08);font-variant-numeric:tabular-nums;white-space:nowrap}
+table.wr tr:last-child td{border-bottom:0}
+table.wr td.lab{color:var(--fg-1);font-weight:600}table.wr td.lab small{display:block;color:var(--fg-3);font-weight:400;font-size:9.5px;white-space:normal;max-width:260px}
+table.wr td.pos{color:#22c55e}table.wr td.neg{color:#ef4444}table.wr td.flat{color:var(--fg-3)}
+table.wr td.read{text-align:left;white-space:normal;color:var(--fg-2);max-width:520px;font-size:11px}
+table.wr tr.RED td{background:rgba(239,68,68,.07)}table.wr tr.AMBER td{background:rgba(245,158,11,.05)}
+table.wr tbody tr.pick{cursor:pointer}table.wr tbody tr.pick:hover td{background:rgba(0,212,255,.05)}table.wr tbody tr.pick.sel td{background:rgba(0,212,255,.10)}
+.wr-flag{display:inline-block;min-width:52px;text-align:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:3px}
+.wr-flag.GREEN{color:#22c55e;background:rgba(34,197,94,.12)}.wr-flag.AMBER{color:#f59e0b;background:rgba(245,158,11,.16)}.wr-flag.RED{color:#fff;background:#ef4444;animation:wr-flash 1s ease-in-out infinite}
+.tier{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:3px}
+.tier.KATLIN_PRIME{color:#0b0f14;background:#38ffa8}.tier.READY{color:#22c55e;background:rgba(34,197,94,.14)}.tier.BASING{color:#eab308;background:rgba(234,179,8,.14)}.tier.WATCH{color:var(--fg-2);background:rgba(120,140,170,.15)}
+.st{font-size:10px;font-weight:700;letter-spacing:.06em}.st.CONFIRMED{color:#22c55e}.st.FORMING{color:#eab308}.st.NONE{color:var(--fg-3)}
+.sn{font-size:10px;font-weight:700}.sn.SNIPE_NOW{color:#38ffa8}.sn.SNIPE_PULLBACK{color:#22c55e}.sn.WAIT_TURN,.sn.WAIT_BREAK,.sn.WAIT{color:var(--fg-3)}
+.help{display:inline-block;width:13px;height:13px;line-height:12px;border-radius:50%;border:1px solid var(--border-strong);color:var(--fg-3);font-size:9px;text-align:center;margin-left:4px;cursor:help;font-weight:400}
+.tip{position:absolute;z-index:60;left:0;top:100%;min-width:220px;max-width:340px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--fg-2);text-align:left;white-space:normal;text-transform:none;letter-spacing:0;font-weight:400;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+th:hover .tip,th.pin .tip{display:block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
+.tabs button{background:var(--bg-card);border:1px solid var(--border);color:var(--fg-2);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:6px 12px;border-radius:6px;cursor:pointer}
+.tabs button.on{color:var(--cyan);border-color:var(--cyan)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.filters select,.filters input{background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-1);padding:5px 8px;border-radius:5px;font-size:12px}
+.board{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:14px}
+@media(max-width:1100px){.board{grid-template-columns:1fr}}
+.evid{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;position:sticky;top:60px;max-height:calc(100vh - 80px);overflow:auto}
+.evid h3{font-family:var(--font-mono);font-size:15px;margin-bottom:4px}.evid .sub{color:var(--fg-3);font-size:11px;margin-bottom:10px}
+.evid .why{font-size:13px;line-height:1.6;color:var(--fg-1);background:var(--bg-sunken);border-left:3px solid var(--cyan);padding:10px 12px;border-radius:6px;margin-bottom:12px}
+.evid h4{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);margin:12px 0 6px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:11.5px}.kv span:nth-child(odd){color:var(--fg-3)}.kv span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.gates{display:flex;flex-wrap:wrap;gap:4px}.gate{font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid var(--border)}
+.gate.ok{color:#22c55e;border-color:rgba(34,197,94,.4)}.gate.no{color:var(--fg-3)}
+.pillars .bar{display:grid;grid-template-columns:96px 1fr 34px;gap:8px;align-items:center;font-size:11px;margin:2px 0}
+.pillars .bar i{display:block;height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden}.pillars .bar i b{display:block;height:100%;background:var(--cyan)}
+.evid ul{padding-left:16px;font-size:11.5px;color:var(--fg-2)}.evid li{margin:2px 0}
+.red{color:#ef4444}.grn{color:#22c55e}.amb{color:#f59e0b}
+.note{font-size:11.5px;color:var(--fg-3);margin:8px 0}
+.defs dt{font-family:var(--font-mono);font-size:12px;color:var(--cyan);margin-top:10px}.defs dd{font-size:12px;color:var(--fg-2);margin-left:0}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.mini div{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:8px 10px}.mini .t{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3)}.mini .v{font-size:16px;font-weight:700;font-family:var(--font-mono)}
+#errbox{color:#ef4444;font-family:var(--font-mono);font-size:12px;margin:8px 0}
+footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);color:var(--fg-3);font-size:11px;text-align:center}
+@keyframes wr-flash{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
+@media(prefers-reduced-motion:reduce){.wr-flag.RED,.wr-regime.CASH_OR_TBILLS{animation:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>.AI</span></a>
+  <div class="nav-links">
+    <a href="/">Command desk</a><a href="/bonds.html">Bonds</a><a href="/auctions.html">Auctions</a><a href="/fortress.html">Fortress</a><a class="active" href="/katlin.html">Katlin</a><a href="/why.html">Why</a><a href="/chart-pro.html">Chart Pro</a><a href="/data.html">Data</a>
+  </div>
+</div>
+<div class="container">
+<div class="page-hdr">
+  <h1>KATLIN · the buy desk</h1>
+  <p><b>First the war room decides whether it is safe to be in risk at all</b> (bond desk, Treasury auctions, brain risk-gate, black-swan watch, crisis composite, options tail risk, regime, volatility, VIX curve, credit spreads, recession odds, business cycle, dollar, global liquidity). <b>Then it hunts the asymmetric entries</b>: stocks, ETFs (sectors, industries, countries, commodities, bonds) and crypto sitting <b>under their 200/250-day averages</b> at the end of a long-term downtrend, with a <b>confirmed or forming bottom on the weekly/monthly/quarterly chart</b>, <b>oversold RSI</b>, <b>Wyckoff-style accumulation</b> (volume dry-up, tight lower Bollinger band, OBV/A-D divergence, absorption), <b>capital inflows</b> (ETF flows, 13F, whales, dark pool, insiders, Congress, options), <b>named catalysts</b> (calendar, contracts, backlog, industry boom, ports, commodity curves, squeeze fuel) and a <b>4-hour sniper</b> for the entry. Every pick carries a plain-English why.</p>
+  <div class="meta" id="meta">loading data/katlin.json…</div>
+</div>
+<div id="errbox"></div>
+
+<section class="wr" id="wr">
+  <div class="wr-banner UNKNOWN" id="wr-banner">
+    <div class="wr-ring">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(120,140,170,.18)" stroke-width="10"/><circle id="wr-arc" cx="60" cy="60" r="50" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 314" transform="rotate(-90 60 60)"/><text class="n" x="60" y="66" text-anchor="middle" id="wr-score">—</text><text class="l" x="60" y="84" text-anchor="middle">RISK THERMOMETER</text></svg>
+      <span class="wr-regime UNKNOWN" id="wr-posture">LOADING</span>
+    </div>
+    <div>
+      <div class="wr-kicker"><span>Katlin war room</span><span id="wr-fresh">reading the fleet…</span></div>
+      <div class="wr-headline" id="wr-headline">Deciding whether it is safe to hold risk…</div>
+      <div class="wr-brief" id="wr-brief"></div>
+      <div class="wr-verdicts">
+        <div class="wr-v neutral" id="wr-cap"><div class="l">Exposure allowed today</div><div class="s">—</div><div class="t"></div></div>
+        <div class="wr-v neutral" id="wr-veto"><div class="l">Hard vetoes</div><div class="s">—</div><div class="t"></div></div>
+      </div>
+    </div>
+    <div class="wr-side">
+      <div class="wr-box" id="wr-mkt"><div class="l"><span>Tape</span><span id="wr-session"></span></div><div class="h">…</div></div>
+      <div class="wr-box" id="wr-cycle"><div class="l"><span>Cycle</span></div><div class="h">…</div></div>
+      <div class="wr-box" id="wr-counts"><div class="l"><span>Picks</span></div><div class="h">…</div></div>
+    </div>
+  </div>
+  <div class="wr-grid">
+    <div class="wr-panel" style="grid-column:1/-1"><div class="ph"><span>Risk legs — every fleet engine the desk listens to</span><span class="cnt" id="legs-cnt"></span></div><div class="tbl"><table class="wr" id="legs"></table></div></div>
+  </div>
+</section>
+
+<h2>Opportunities — the asymmetric bottoms</h2>
+<div class="tabs" id="tabs">
+  <button data-t="prime" class="on">Katlin Prime</button><button data-t="ready">Ready</button><button data-t="basing">Basing</button><button data-t="etfs">ETFs</button><button data-t="crypto">Crypto</button><button data-t="watch">Watch</button>
+</div>
+<div class="filters">
+  <select id="f-class"><option value="">All asset classes</option><option value="stock">Stocks</option><option value="etf">ETFs</option><option value="crypto">Crypto</option></select>
+  <select id="f-struct"><option value="">Any structure</option><option value="CONFIRMED">Bottom CONFIRMED</option><option value="FORMING">Bottom FORMING</option></select>
+  <select id="f-sniper"><option value="">Any 4h state</option><option value="SNIPE_NOW">SNIPE NOW</option><option value="SNIPE_PULLBACK">SNIPE pullback</option><option value="WAIT">waiting</option></select>
+  <input id="f-q" placeholder="ticker / name / industry" style="min-width:180px">
+  <span class="note" id="board-note"></span>
+</div>
+<div class="board">
+  <div class="wr-panel"><div class="ph"><span id="board-title">Katlin Prime</span><span class="cnt" id="board-cnt"></span></div><div class="tbl"><table class="wr" id="board"></table></div></div>
+  <div class="evid" id="evid"><h3>Click a row</h3><div class="sub">the evidence panel explains, in plain English, why the engine likes (or does not like) the name — gates, pillars, accumulation legs, inflows, catalysts, dilution/valuation, the plan and the 4-hour entry.</div></div>
+</div>
+
+<h2>What changed since the last session</h2>
+<div class="mini" id="changes"></div>
+
+<h2>Validation — is the engine actually sharp?</h2>
+<div class="note" id="val-note"></div>
+<div class="wr-panel"><div class="ph"><span>Walk-forward cohorts (price gates, point-in-time, vs SPY)</span><span class="cnt" id="val-cnt"></span></div><div class="tbl"><table class="wr" id="val"></table></div></div>
+<div class="wr-panel" style="margin-top:12px"><div class="ph"><span>Self-graded snapshots (the engine's own picks, 21 / 63 sessions later)</span><span class="cnt" id="base-cnt"></span></div><div class="tbl"><table class="wr" id="base"></table></div></div>
+
+<h2>Definitions</h2>
+<dl class="defs" id="defs"></dl>
+<div class="note" id="degraded"></div>
+
+<footer>KATLIN · justhodl-katlin · reads only JustHodl warehouse data (Polygon bar store, fleet engines) · <a href="/data/katlin.json" target="_blank" rel="noopener">raw feed</a> · <a href="/fortress.html">Fortress</a> · <a href="/bonds.html">Bonds war room</a> · <a href="/">Command desk</a></footer>
+</div>
+
+<script>
+(function () {
+  var FEEDS = ["/data/katlin.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/katlin.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/katlin.json"];
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+  var ago = function (iso) { if (!iso) return ""; var m = Math.round((Date.now() - Date.parse(iso)) / 60000); return isNaN(m) ? "" : m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+  var num = function (v, d) { return (v == null || isNaN(v)) ? "—" : Number(v).toFixed(d == null ? 1 : d); };
+  var pct = function (v, d) { return (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(d == null ? 1 : d) + "%"; };
+  var big = function (v) { if (v == null) return "—"; var a = Math.abs(v); return (v < 0 ? "-" : "") + (a >= 1e9 ? (a / 1e9).toFixed(1) + "B" : a >= 1e6 ? (a / 1e6).toFixed(0) + "M" : a >= 1e3 ? (a / 1e3).toFixed(0) + "K" : a.toFixed(0)); };
+  var cls = function (v) { return v == null ? "flat" : v > 0 ? "pos" : v < 0 ? "neg" : "flat"; };
+  var D = null, tab = "prime", sortKey = "composite", sortDir = -1, selected = null;
+
+  var HELP = {
+    ticker: ["Ticker", "Click the row for the full plain-English case."],
+    tier: ["Tier", "KATLIN_PRIME = every gate incl. a CONFIRMED long-term bottom and a named catalyst. READY = accumulation + structure + (oversold or inflows). BASING = accumulation plus one more gate. WATCH = partial evidence.", "best first"],
+    composite: ["Score", "0-100 composite: structure 18, accumulation 20, inflows 16, oversold 10, location 8, catalyst 10, momentum 8, quality 10 — each blended with its rank across the asset class. Knife x0.6, red flags x0.75.", "higher is better"],
+    conviction: ["Conviction", "Geometric mean of the six gate pillars — one weak leg drags it down, so it rewards balanced evidence.", "higher is better"],
+    last: ["Price", "Last close from the warehouse."],
+    dist_sma200_pct: ["vs 200d", "Distance to the 200-day simple average. The spec: must be BELOW (negative). Further below = more mean-reversion room until the knife guard trips.", "more negative = more room"],
+    dist_sma250_pct: ["vs 250d", "Distance to the 250-day simple average (bonus when negative).", "negative preferred"],
+    rsi_w: ["RSI W", "Weekly RSI(14). Oversold <= 40. A turn up from a washout or a bullish divergence adds points.", "low + turning up"],
+    rsi_d: ["RSI D", "Daily RSI(14). Oversold <= 35.", "low"],
+    rsi_m: ["RSI M", "Monthly RSI(14). Oversold <= 45.", "low"],
+    structure_state: ["Bottom", "Long-term structure: CONFIRMED (weekly double bottom broke its neckline, or a close above the weekly downtrend line), FORMING (higher lows / forming double bottom), NONE.", "CONFIRMED best"],
+    accumulation: ["Accum", "Wyckoff volume-structure score 0-100: volume dry-up, Bollinger bandwidth percentile + squeeze, lower-band hug, OBV and A/D divergence, up/down volume, absorption on the heaviest down days, ATR contraction, support test.", "higher"],
+    inflows: ["Inflows", "Capital arriving 0-100: industry-ETF flows, ETF constituent pressure, 13F institutions/whales vs market cap, dark-pool share/state, insiders, Congress, options accumulation. Crypto: spot-ETF flows, exchange netflows, stablecoins, Coinbase premium.", "higher"],
+    catalyst: ["Catalyst", "Named catalysts 0-100: calendar events, earnings, contract wins vs market cap, backlog, EPS revisions, industry boom, ports, commodity curves, peers, squeeze fuel, Fed odds.", "higher"],
+    momentum: ["Mom", "Momentum about to arrive 0-100: RS line vs SPY leading price, weekly MACD histogram turning up, ROC cross, squeeze lean, 10-week EMA.", "higher"],
+    bbw_pctile: ["BBW %", "Bollinger bandwidth percentile vs the asset's own last year. <= 20 = coiled.", "lower = tighter"],
+    vol_ratio_20_120: ["Vol 20/120", "Average volume last 20 sessions divided by last 120. < 0.8 = supply drying up.", "lower"],
+    rr: ["R/R", "Best reward/risk of the plan: upside to the 200-day (or neckline) or the 52-week high, divided by the downside to the stop.", "higher"],
+    asymmetry: ["Asym", "Median upside / max(downside, half a monthly sigma), capped 25.", "higher"],
+    sniper: ["4h", "4-hour entry state for shortlist names: SNIPE_NOW (micro downtrend broken on a higher low with volume), SNIPE_PULLBACK (holding a higher low on the 20-EMA), WAIT_TURN, WAIT_BREAK, WAIT."],
+    dilution: ["Shares y/y", "Share count change year over year. Positive = dilution. >= 15% is a red flag.", "negative (buybacks) best"],
+    pe: ["P/E", "Trailing price/earnings from Finviz."],
+    mcap: ["Mkt cap", "Market capitalization (stocks) / AUM (ETFs)."],
+    ret_3m_pct: ["3M", "Three-month return. Katlin avoids names that already took off."],
+    days_below_sma200: ["Days < 200", "Consecutive sessions below the 200-day average."]
+  };
+  var COLS = ["ticker", "tier", "composite", "conviction", "last", "dist_sma200_pct", "dist_sma250_pct", "days_below_sma200", "rsi_w", "rsi_d", "rsi_m", "structure_state", "accumulation", "inflows", "catalyst", "momentum", "bbw_pctile", "vol_ratio_20_120", "rr", "asymmetry", "sniper", "dilution", "pe", "mcap", "ret_3m_pct"];
+  var TIER_RANK = { KATLIN_PRIME: 0, READY: 1, BASING: 2, WATCH: 3, SCREENED: 4 };
+  var STRUCT_RANK = { CONFIRMED: 0, FORMING: 1, NONE: 2 };
+  var SN_RANK = { SNIPE_NOW: 0, SNIPE_PULLBACK: 1, WAIT_TURN: 2, WAIT_BREAK: 3, WAIT: 4 };
+
+  function val(r, k) {
+    switch (k) {
+      case "accumulation": case "inflows": case "catalyst": case "momentum": return r.pillars ? r.pillars[k] : null;
+      case "sniper": return r.sniper ? r.sniper.state : null;
+      case "dilution": return r.quality ? r.quality.share_count_yoy_pct : null;
+      case "pe": return r.quality ? r.quality.pe : null;
+      default: return r[k];
+    }
+  }
+  function sortVal(r, k) {
+    var v = val(r, k);
+    if (k === "tier") return TIER_RANK[v] == null ? 9 : TIER_RANK[v];
+    if (k === "structure_state") return STRUCT_RANK[v] == null ? 9 : STRUCT_RANK[v];
+    if (k === "sniper") return SN_RANK[v] == null ? 9 : SN_RANK[v];
+    if (typeof v === "string") return v.toLowerCase();
+    return v;
+  }
+  function cell(r, k) {
+    var v = val(r, k);
+    switch (k) {
+      case "ticker": return '<td class="lab">' + esc(r.ticker) + '<small>' + esc((r.name || "") + (r.industry ? " · " + r.industry : (r.sub_class ? " · " + r.sub_class : ""))) + '</small></td>';
+      case "tier": return '<td><span class="tier ' + esc(v) + '">' + esc(String(v).replace("KATLIN_", "")) + '</span>' + (r.posture_note ? ' <span class="amb" title="' + esc(r.posture_note) + '">!</span>' : "") + (r.knife ? ' <span class="red" title="' + esc(r.knife_why) + '">✕</span>' : "") + '</td>';
+      case "composite": case "conviction": case "accumulation": case "inflows": case "catalyst": case "momentum": case "asymmetry": case "rr": return '<td>' + num(v, k === "rr" || k === "asymmetry" ? 1 : 0) + '</td>';
+      case "last": return '<td>' + (v == null ? "—" : v < 1 ? Number(v).toFixed(4) : Number(v).toFixed(2)) + '</td>';
+      case "dist_sma200_pct": case "dist_sma250_pct": case "ret_3m_pct": case "dilution": return '<td class="' + (k === "dilution" ? cls(-v) : cls(v)) + '">' + pct(v, 1) + '</td>';
+      case "rsi_w": case "rsi_d": case "rsi_m": return '<td class="' + (v != null && v <= 40 ? "pos" : "flat") + '">' + num(v, 0) + '</td>';
+      case "structure_state": return '<td><span class="st ' + esc(v) + '">' + esc(v) + '</span></td>';
+      case "sniper": return '<td><span class="sn ' + esc(v || "") + '">' + esc(v || "—") + '</span></td>';
+      case "bbw_pctile": case "days_below_sma200": return '<td>' + num(v, 0) + '</td>';
+      case "vol_ratio_20_120": return '<td class="' + (v != null && v < 0.8 ? "pos" : "flat") + '">' + num(v, 2) + '</td>';
+      case "pe": return '<td>' + (v == null || v <= 0 ? "—" : num(v, 0)) + '</td>';
+      case "mcap": return '<td>' + (r.asset_class === "etf" ? big(r.quality && r.quality.aum_usd) : big(v)) + '</td>';
+      default: return '<td>' + esc(v == null ? "—" : v) + '</td>';
+    }
+  }
+  function rowsFor() {
+    var all = (D.picks || []).concat(D.watch || []);
+    var q = ($("f-q").value || "").toLowerCase(), fc = $("f-class").value, fs = $("f-struct").value, fn = $("f-sniper").value;
+    return all.filter(function (r) {
+      if (tab === "prime" && r.tier !== "KATLIN_PRIME") return false;
+      if (tab === "ready" && r.tier !== "READY") return false;
+      if (tab === "basing" && r.tier !== "BASING") return false;
+      if (tab === "watch" && r.tier !== "WATCH") return false;
+      if (tab === "etfs" && r.asset_class !== "etf") return false;
+      if (tab === "crypto" && r.asset_class !== "crypto") return false;
+      if (fc && r.asset_class !== fc) return false;
+      if (fs && r.structure_state !== fs) return false;
+      if (fn && !(r.sniper && (fn === "WAIT" ? String(r.sniper.state || "").indexOf("WAIT") === 0 : r.sniper.state === fn))) return false;
+      if (q && ((r.ticker + " " + (r.name || "") + " " + (r.industry || "") + " " + (r.sector || "")).toLowerCase().indexOf(q) < 0)) return false;
+      return true;
+    });
+  }
+  function renderBoard() {
+    if (!D) return;
+    var rows = rowsFor();
+    rows.sort(function (a, b) { var x = sortVal(a, sortKey), y = sortVal(b, sortKey); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : x > y ? 1 : 0) * sortDir; });
+    var head = "<thead><tr>" + COLS.map(function (k) { var h = HELP[k] || [k, ""]; return '<th data-k="' + k + '" class="' + (k === sortKey ? "on" : "") + '">' + esc(h[0]) + (k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : " ▲▼") + '<span class="help">?</span><span class="tip"><b>' + esc(h[0]) + '</b><br>' + esc(h[1]) + (h[2] ? '<br><i>Better: ' + esc(h[2]) + '</i>' : "") + '</span></th>'; }).join("") + "</tr></thead>";
+    var body = rows.slice(0, 400).map(function (r) { return '<tr class="pick' + (selected === r.ticker ? " sel" : "") + '" data-t="' + esc(r.ticker) + '">' + COLS.map(function (k) { return cell(r, k); }).join("") + "</tr>"; }).join("");
+    $("board").innerHTML = head + "<tbody>" + (body || '<tr><td colspan="' + COLS.length + '" class="read">nothing in this bucket today — the gates are strict by design. Try Basing or Watch, or loosen the filters.</td></tr>') + "</tbody>";
+    $("board-cnt").textContent = rows.length + " rows";
+    $("board-title").textContent = { prime: "Katlin Prime — all gates, bottom confirmed, catalyst named", ready: "Ready — accumulation + structure, sniper watching", basing: "Basing — accumulating under the 200-day, no confirmation yet", etfs: "ETFs (sectors · industries · countries · commodities · bonds)", crypto: "Crypto", watch: "Watch — partial evidence" }[tab];
+    $("board").querySelectorAll("th").forEach(function (th) {
+      th.addEventListener("click", function (e) { if (e.target.classList.contains("help") || e.target.closest(".tip")) { th.classList.toggle("pin"); e.stopPropagation(); return; } var k = th.dataset.k; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "tier" || k === "structure_state" || k === "sniper" || k === "ticker" || k === "dist_sma200_pct" || k === "dist_sma250_pct" || k === "rsi_w" || k === "rsi_d" || k === "rsi_m" || k === "bbw_pctile" || k === "vol_ratio_20_120" || k === "dilution" || k === "pe" || k === "ret_3m_pct") ? 1 : -1; } renderBoard(); });
+    });
+    $("board").querySelectorAll("tr.pick").forEach(function (tr) { tr.addEventListener("click", function () { selected = tr.dataset.t; renderEvidence(); renderBoard(); }); });
+  }
+  function li(items) { return items && items.length ? "<ul>" + items.map(function (x) { return "<li>" + esc(typeof x === "string" ? x : x.text) + "</li>"; }).join("") + "</ul>" : '<div class="note">none detected</div>'; }
+  function bars(p) { var ks = ["structure", "accumulation", "inflows", "oversold", "location", "catalyst", "momentum", "quality"]; return '<div class="pillars">' + ks.map(function (k) { var v = p[k]; return '<div class="bar"><span>' + k + ' <small style="color:var(--fg-3)">w' + (D.weights[k] || "") + '</small></span><i><b style="width:' + (v == null ? 0 : v) + '%"></b></i><span>' + (v == null ? "—" : Math.round(v)) + '</span></div>'; }).join("") + "</div>"; }
+  function renderEvidence() {
+    var r = (D.picks || []).concat(D.watch || []).find(function (x) { return x.ticker === selected; });
+    if (!r) return;
+    var q = r.quality || {}, pl = r.plan || {}, il = r.inflow_legs || {}, sn = r.sniper;
+    var h = '<h3>' + esc(r.ticker) + ' <span class="tier ' + esc(r.tier) + '">' + esc(String(r.tier).replace("KATLIN_", "")) + '</span> <span class="st ' + esc(r.structure_state) + '">' + esc(r.structure_state) + '</span></h3>';
+    h += '<div class="sub">' + esc(r.name || "") + (r.industry ? " · " + esc(r.industry) : "") + (r.country ? " · " + esc(r.country) : "") + ' · ' + esc(r.asset_class) + (r.industry_etf ? ' · industry ETF ' + esc(r.industry_etf) : "") + ' · <a href="/why.html?ticker=' + esc(r.ticker) + '">research desk →</a></div>';
+    if (r.posture_note) h += '<div class="note amb">⚠ ' + esc(r.posture_note) + '</div>';
+    h += '<div class="why">' + esc(r.why || "") + '</div>';
+    if (r.why) h += '<div class="gates">' + Object.keys(r.gates || {}).map(function (g) { return '<span class="gate ' + (r.gates[g] ? "ok" : "no") + '">' + (r.gates[g] ? "✓ " : "✗ ") + g.replace("_", " ") + '</span>'; }).join("") + '</div>';
+    h += '<h4>Pillars (composite ' + num(r.composite, 0) + ', conviction ' + num(r.conviction, 0) + ', evidence coverage ' + num(r.evidence_coverage_pct, 0) + '%)</h4>' + bars(r.pillars || {});
+    h += '<h4>Plan</h4><div class="kv"><span>entry</span><span>' + esc(pl.entry) + '</span><span>stop</span><span class="red">' + esc(pl.stop) + ' (' + pct(-(pl.downside_pct || 0), 1) + ')</span><span>target 1 (' + esc(pl.target_1_label || "—") + ')</span><span class="grn">' + esc(pl.target_1 || "—") + ' (' + pct(pl.upside_1_pct, 1) + ')</span><span>target 2 (' + esc(pl.target_2_label || "—") + ')</span><span class="grn">' + esc(pl.target_2 || "—") + ' (' + pct(pl.upside_2_pct, 1) + ')</span><span>reward/risk</span><span>' + num(pl.rr_1, 1) + 'x / ' + num(pl.rr_2, 1) + 'x</span><span>asymmetry</span><span>' + num(pl.asymmetry, 1) + '</span><span>confirmation trigger</span><span>' + esc(pl.confirmation_trigger || "—") + '</span></div>';
+    if (sn) h += '<h4>4-hour sniper <span class="sn ' + esc(sn.state || "") + '">' + esc(sn.state || "no state") + '</span></h4><div class="note" style="color:var(--fg-2)">' + esc(sn.text || "") + '</div><div class="kv"><span>4h RSI</span><span>' + num(sn.rsi_4h, 0) + '</span><span>4h 20/50 EMA</span><span>' + esc(sn.ema20_4h) + ' / ' + esc(sn.ema50_4h) + '</span><span>higher low (4h)</span><span>' + (sn.higher_low_4h ? "yes" : "no") + '</span><span>micro downtrend line</span><span>' + esc(sn.micro_downtrend_line || "—") + '</span><span>volume 6/60 bars</span><span>' + num(sn.vol_ratio_6_60, 2) + 'x</span><span>bars as of</span><span>' + esc(sn.asof || "") + '</span></div>';
+    h += '<h4>Location & structure</h4><div class="kv"><span>vs SMA200 / SMA250</span><span>' + pct(r.dist_sma200_pct) + ' / ' + pct(r.dist_sma250_pct) + '</span><span>vs EMA200 / EMA250</span><span>' + pct(r.dist_ema200_pct) + ' / ' + pct(r.dist_ema250_pct) + '</span><span>sessions below 200d</span><span>' + esc(r.days_below_sma200) + '</span><span>52-week position / drawdown</span><span>' + num(r.pos_52w_pct, 0) + '% / ' + pct(r.dd_52w_pct) + '</span><span>weekly downtrend / broken</span><span>' + esc(r.lt_downtrend) + ' / ' + esc(r.lt_trend_break) + (r.weeks_since_break != null ? " (" + r.weeks_since_break + "w ago)" : "") + '</span><span>higher / lower weekly lows</span><span>' + esc(r.higher_lows_w) + ' / ' + esc(r.lower_lows_w) + '</span><span>monthly higher low · quarterly break</span><span>' + esc(r.m_higher_low) + ' · ' + esc(r.q_break) + '</span><span>RSI D / W / M</span><span>' + num(r.rsi_d, 0) + ' / ' + num(r.rsi_w, 0) + ' / ' + num(r.rsi_m, 0) + '</span><span>RSI divergence W / D</span><span>' + esc(r.rsi_div_w) + ' / ' + esc(r.rsi_div_d) + '</span><span>returns 1M / 3M / 6M / 12M</span><span>' + pct(r.ret_1m_pct, 0) + ' / ' + pct(r.ret_3m_pct, 0) + ' / ' + pct(r.ret_6m_pct, 0) + ' / ' + pct(r.ret_12m_pct, 0) + '</span></div>';
+    if (r.double_bottom_w) h += '<div class="note">weekly double bottom: lows ' + esc(num(r.double_bottom_w.low1, 2)) + ' / ' + esc(num(r.double_bottom_w.low2, 2)) + ', neckline ' + esc(num(r.double_bottom_w.neckline, 2)) + ', ' + esc(r.double_bottom_w.weeks_apart) + ' weeks apart — <b>' + esc(r.double_bottom_w.state) + '</b></div>';
+    h += '<h4>Accumulation legs (score ' + num(r.pillars && r.pillars.accumulation, 0) + ')</h4><div class="kv">' + Object.keys(r.accum_legs || {}).map(function (k) { return '<span>' + k.replace(/_/g, " ") + '</span><span>' + num(r.accum_legs[k], 0) + '</span>'; }).join("") + '<span>BBW percentile · %B · squeeze</span><span>' + num(r.bbw_pctile, 0) + ' · ' + num(r.pct_b, 2) + ' · ' + esc(r.squeeze) + '</span><span>volume 20/120 · up/down vol</span><span>' + num(r.vol_ratio_20_120, 2) + ' · ' + num(r.updown_vol_20, 2) + '</span><span>OBV / A-D slope (40d)</span><span>' + num(r.obv_slope_40, 3) + ' / ' + num(r.ad_slope_40, 3) + '</span><span>absorption CLV</span><span>' + num(r.absorption_clv, 2) + '</span></div>' + li(r.accum_evidence);
+    if (r.fleet_accumulation && r.fleet_accumulation.length) h += '<div class="note">fleet confirmation: ' + esc(r.fleet_accumulation.join(", ")) + '</div>';
+    h += '<h4>Inflows (score ' + num(r.pillars && r.pillars.inflows, 0) + ')</h4>' + li(r.inflow_evidence);
+    h += '<div class="kv">' + ["industry_etf", "etf_pressure_pct_mcap", "inst_net_usd", "whale_net_usd", "funds_holding", "dark_pool_pct", "dark_pool_state", "insider_buys", "insider_cluster", "inst_trans_pct", "short_float_pct", "days_to_cover", "etf_flow_30d_usd", "etf_regime", "exchange_netflow_btc", "stablecoin", "coinbase_premium_pct", "rotation_tag", "rrg_quadrant"].filter(function (k) { return il[k] != null; }).map(function (k) { var v = il[k]; return '<span>' + k.replace(/_/g, " ") + '</span><span>' + (typeof v === "number" ? (Math.abs(v) >= 1e5 ? big(v) : num(v, 2)) : esc(v)) + '</span>'; }).join("") + '</div>';
+    if (il.industry_flow && il.industry_flow.score != null) h += '<div class="note">industry ETF ' + esc(il.industry_etf) + ': flow score ' + num(il.industry_flow.score, 0) + ', z90 ' + num(il.industry_flow.z90, 1) + ', 21d ' + num(il.industry_flow.pct_aum_21d, 1) + '% of AUM' + (il.industry_flow.quadrant ? ", " + esc(il.industry_flow.quadrant) : "") + '</div>';
+    if (il.options) h += '<div class="note">options: put/call ' + num(il.options.pcr_vol, 2) + ', net premium ' + big(il.options.net_premium_usd) + ', IV rank ' + num(il.options.iv_rank, 0) + (il.options.signal ? ", " + esc(il.options.signal) : "") + '</div>';
+    h += '<h4>Catalysts (score ' + num(r.pillars && r.pillars.catalyst, 0) + ')</h4>' + li(r.catalysts);
+    h += '<h4>Momentum arriving (score ' + num(r.pillars && r.pillars.momentum, 0) + ')</h4>' + li(r.mom_evidence) + '<div class="kv"><span>RS vs SPY 63d</span><span>' + pct(r.rs_63_pct) + '</span><span>weekly MACD turn</span><span>' + esc(r.macd_w_turn) + '</span><span>squeeze lean</span><span>' + esc(r.squeeze_lean) + '</span></div>';
+    if (r.asset_class === "stock") h += '<h4>Dilution, valuation, balance sheet</h4><div class="kv"><span>share count y/y</span><span class="' + (q.share_count_yoy_pct > 5 ? "red" : "grn") + '">' + pct(q.share_count_yoy_pct) + '</span><span>net buyback yield</span><span>' + pct(q.net_buyback_yield_pct) + '</span><span>P/E · fwd P/E · PEG</span><span>' + num(q.pe, 1) + ' · ' + num(q.fwd_pe, 1) + ' · ' + num(q.peg, 2) + '</span><span>EV/EBITDA · P/S · P/B</span><span>' + num(q.ev_ebitda, 1) + ' · ' + num(q.ps, 2) + ' · ' + num(q.pb, 2) + '</span><span>FCF yield</span><span>' + pct(q.fcf_yield_pct) + '</span><span>revenue y/y · EPS y/y</span><span>' + pct(q.revenue_yoy_pct) + ' · ' + pct(q.eps_yoy_pct) + '</span><span>Altman Z · Piotroski · Beneish</span><span>' + num(q.altman_z, 2) + ' · ' + esc(q.piotroski_f == null ? "—" : q.piotroski_f) + ' · ' + num(q.beneish_m, 2) + '</span><span>net debt/EBITDA · coverage</span><span>' + num(q.netdebt_to_ebitda, 1) + ' · ' + num(q.interest_coverage, 1) + '</span><span>runway · liquid floor coverage</span><span>' + num(q.runway_months, 0) + 'm · ' + num(q.floor_coverage, 2) + '</span></div>' + (q.red_flags && q.red_flags.length ? '<div class="note red">red flags: ' + esc(q.red_flags.join("; ")) + '</div>' : "") + (q.notes && q.notes.length ? '<div class="note">' + esc(q.notes.join("; ")) + '</div>' : "");
+    h += '<h4>Risk stats</h4><div class="kv"><span>annualised vol · beta</span><span>' + num(r.vol_ann_pct, 0) + '% · ' + num(r.beta_1y, 2) + '</span><span>CVaR 5% · worst day</span><span>' + pct(r.cvar5_pct) + ' · ' + pct(r.worst_day_1y_pct) + '</span><span>avg $ volume 20d</span><span>' + big(r.adv_usd) + '</span></div>';
+    $("evid").innerHTML = h;
+  }
+  function renderWar() {
+    var w = D.war_room || {}, th = w.thermometer;
+    $("wr-score").textContent = th == null ? "—" : Math.round(th);
+    $("wr-arc").setAttribute("stroke-dasharray", (314 * (th || 0) / 100).toFixed(1) + " 314");
+    $("wr-arc").setAttribute("stroke", th >= 72 ? "#ef4444" : th >= 55 ? "#f59e0b" : th >= 38 ? "#eab308" : "#22c55e");
+    $("wr-posture").textContent = String(w.posture || "UNKNOWN").replace(/_/g, " ");
+    $("wr-posture").className = "wr-regime " + esc(w.posture || "UNKNOWN");
+    $("wr-banner").className = "wr-banner " + esc(w.posture || "UNKNOWN");
+    $("wr-headline").textContent = w.words || "";
+    $("wr-brief").textContent = w.brief || "";
+    $("wr-fresh").textContent = "session " + (D.session || "") + " · generated " + ago(D.generated_at) + " · " + (w.legs || []).length + " legs" + (w.missing && w.missing.length ? " · missing: " + w.missing.join(", ") : "");
+    var cap = $("wr-cap"); cap.className = "wr-v " + (w.exposure_cap_pct >= 100 ? "bullish" : w.exposure_cap_pct >= 60 ? "neutral" : w.exposure_cap_pct >= 30 ? "cautious" : "bearish");
+    cap.querySelector(".s").textContent = (w.exposure_cap_pct == null ? "—" : w.exposure_cap_pct + "% of the book in risk"); cap.querySelector(".t").textContent = "Brain doctrine: macro gates sizing before selection. Picks below are shown regardless; the cap tells you how much to deploy.";
+    var vt = $("wr-veto"); vt.className = "wr-v " + ((w.vetoes || []).length ? "bearish" : "bullish");
+    vt.querySelector(".s").textContent = (w.vetoes || []).length ? (w.vetoes.length + " active") : "none"; vt.querySelector(".t").textContent = (w.vetoes || []).length ? w.vetoes.join(" · ") : "No engine is forcing the desk to cash today.";
+    var m = D.market || {};
+    $("wr-session").textContent = D.session || "";
+    $("wr-mkt").querySelector(".h").innerHTML = "SPY " + esc(num(m.last, 2)) + " · " + esc(pct(m.dist_sma200_pct)) + " vs 200d · 1M " + esc(pct(m.ret_1m_pct)) + " · 3M " + esc(pct(m.ret_3m_pct)) + " · from 52w high " + esc(pct(m.dd_from_52w_high_pct)) + " · RSI " + esc(num(m.rsi_d, 0));
+    var c = w.cycle || {};
+    $("wr-cycle").querySelector(".h").innerHTML = "phase <b>" + esc(c.phase || "unknown") + "</b>" + (c.cli != null ? " · CLI " + esc(num(c.cli, 1)) : "") + (c.downturn_prob_6m != null ? " · 6m downturn " + esc(num(c.downturn_prob_6m <= 1 ? c.downturn_prob_6m * 100 : c.downturn_prob_6m, 0)) + "%" : "") + (c.recession_prob_pct != null ? " · recession " + esc(num(c.recession_prob_pct, 0)) + "%" : "") + (w.crypto_dump_risk != null ? " · crypto dump-risk " + esc(num(w.crypto_dump_risk, 0)) : "") + (w.y10 != null ? " · 10Y " + esc(num(w.y10, 2)) + "%" : "");
+    var t = D.tiers || {}, u = D.universe || {};
+    $("wr-counts").querySelector(".h").innerHTML = '<span class="tier KATLIN_PRIME">PRIME ' + (t.KATLIN_PRIME || 0) + '</span> <span class="tier READY">READY ' + (t.READY || 0) + '</span> <span class="tier BASING">BASING ' + (t.BASING || 0) + '</span> <span class="tier WATCH">WATCH ' + (t.WATCH || 0) + '</span><div class="note">' + (u.stocks_scored || 0) + ' stocks · ' + (u.etfs_scored || 0) + ' ETFs · ' + (u.crypto_scored || 0) + ' crypto scored over ' + (u.sessions || 0) + ' sessions (' + esc(u.first_session || "") + '→)</div>';
+    var legs = (w.legs || []).slice().sort(function (a, b) { return b.risk - a.risk; });
+    $("legs").innerHTML = '<thead><tr><th>Leg</th><th>Risk</th><th>Flag</th><th style="text-align:left">Read</th><th>Source</th><th>As of</th></tr></thead><tbody>' + legs.map(function (l) { return '<tr class="' + esc(l.flag) + '"><td class="lab">' + esc(l.leg) + '<small>weight ' + esc(l.weight) + '</small></td><td class="' + (l.risk >= 70 ? "neg" : l.risk >= 45 ? "flat" : "pos") + '">' + esc(l.risk) + '</td><td><span class="wr-flag ' + esc(l.flag) + '">' + esc(l.flag) + '</span></td><td class="read">' + esc(l.read) + '</td><td>' + esc(l.source) + '</td><td>' + esc(l.asof ? ago(l.asof) : "—") + '</td></tr>'; }).join("") + "</tbody>";
+    $("legs-cnt").textContent = legs.length + " legs · " + (w.n_red || 0) + " RED";
+  }
+  function renderChanges() {
+    var c = D.changes || {};
+    $("changes").innerHTML = '<div><div class="t">new PRIME</div><div class="v">' + esc((c.new_prime || []).join(", ") || "—") + '</div></div><div><div class="t">new READY</div><div class="v">' + esc((c.new_ready || []).join(", ") || "—") + '</div></div><div><div class="t">dropped from PRIME/READY</div><div class="v">' + esc((c.dropped || []).join(", ") || "—") + '</div></div><div><div class="t">previous session</div><div class="v">' + esc(c.prev_session || "first run") + '</div></div>';
+  }
+  function renderValidation() {
+    var v = D.validation || {}, co = v.cohorts || {};
+    $("val-note").textContent = (v.status || "") + (v.note ? " — " + v.note : "");
+    var hz = ["21s", "63s", "126s"];
+    var labs = Object.keys(co);
+    if (!labs.length) { $("val").innerHTML = '<tbody><tr><td class="read">the weekly walk-forward has not run yet (Sundays 09:30 UTC). Until then the tiers are evidence, not a track record.</td></tr></tbody>'; $("val-cnt").textContent = ""; }
+    else {
+      $("val").innerHTML = '<thead><tr><th>Cohort</th>' + hz.map(function (h) { return '<th>' + h + ' n</th><th>' + h + ' median excess</th><th>' + h + ' hit</th><th>' + h + ' MAE</th>'; }).join("") + '</tr></thead><tbody>' + labs.map(function (l) { return '<tr><td class="lab">' + esc(l) + '</td>' + hz.map(function (h) { var c = co[l][h] || {}; return '<td>' + esc(c.n == null ? "—" : c.n) + '</td><td class="' + cls(c.median_excess_pct) + '">' + esc(pct(c.median_excess_pct, 2)) + '</td><td>' + esc(c.hit_rate_pct == null ? "—" : c.hit_rate_pct + "%") + '</td><td class="neg">' + esc(pct(c.median_max_adverse_pct, 1)) + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody>';
+      $("val-cnt").textContent = labs.length + " cohorts";
+    }
+    var b = D.base_rates || {}, bt = b.by_tier || {};
+    var tiers = Object.keys(bt);
+    if (!tiers.length) { $("base").innerHTML = '<tbody><tr><td class="read">' + esc(b.n_snapshots || 0) + ' daily snapshot(s) banked — the first grades appear 21 sessions after the first snapshot.</td></tr></tbody>'; $("base-cnt").textContent = b.status || ""; }
+    else { $("base").innerHTML = '<thead><tr><th>Tier</th><th>21s n</th><th>21s median ret</th><th>21s excess</th><th>21s hit</th><th>63s n</th><th>63s median ret</th><th>63s excess</th><th>63s hit</th></tr></thead><tbody>' + tiers.map(function (t) { var a = bt[t]["21s"] || {}, c = bt[t]["63s"] || {}; return '<tr><td class="lab">' + esc(t) + '</td><td>' + esc(a.n || "—") + '</td><td class="' + cls(a.median_ret_pct) + '">' + esc(pct(a.median_ret_pct, 2)) + '</td><td class="' + cls(a.median_excess_vs_spy_pct) + '">' + esc(pct(a.median_excess_vs_spy_pct, 2)) + '</td><td>' + esc(a.hit_rate_pct == null ? "—" : a.hit_rate_pct + "%") + '</td><td>' + esc(c.n || "—") + '</td><td class="' + cls(c.median_ret_pct) + '">' + esc(pct(c.median_ret_pct, 2)) + '</td><td class="' + cls(c.median_excess_vs_spy_pct) + '">' + esc(pct(c.median_excess_vs_spy_pct, 2)) + '</td><td>' + esc(c.hit_rate_pct == null ? "—" : c.hit_rate_pct + "%") + '</td></tr>'; }).join("") + '</tbody>'; $("base-cnt").textContent = (b.n_snapshots || 0) + " snapshots · " + (b.status || ""); }
+  }
+  function renderDefs() {
+    var d = D.definitions || {};
+    $("defs").innerHTML = Object.keys(d).map(function (k) { return "<dt>" + esc(k) + "</dt><dd>" + esc(d[k]) + "</dd>"; }).join("");
+    $("degraded").innerHTML = (D.degraded && D.degraded.length) ? '<span class="amb">engine degraded notes: ' + esc(D.degraded.join(" · ")) + '</span>' : "";
+    $("meta").textContent = "justhodl-katlin v" + (D.version || "") + " · session " + (D.session || "") + " · generated " + (D.generated_at || "") + " (" + ago(D.generated_at) + ") · " + (D.elapsed_s || "") + "s · feeds: " + Object.keys(D.feeds_asof || {}).length + " fleet artifacts";
+  }
+  function renderAll() { renderWar(); renderBoard(); renderChanges(); renderValidation(); renderDefs(); var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); } }
+  function load(i) {
+    i = i || 0;
+    if (i >= FEEDS.length) { $("errbox").textContent = "katlin.json unavailable on every path"; return; }
+    fetch(FEEDS[i] + (FEEDS[i].indexOf("?") < 0 ? "?cb=" : "&cb=") + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) { D = j; $("errbox").textContent = ""; renderAll(); }).catch(function (e) { console.warn("katlin feed", FEEDS[i], e.message); load(i + 1); });
+  }
+  document.querySelectorAll("#tabs button").forEach(function (b) { b.addEventListener("click", function () { document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); tab = b.dataset.t; renderBoard(); }); });
+  ["f-class", "f-struct", "f-sniper"].forEach(function (id) { $(id).addEventListener("change", renderBoard); });
+  $("f-q").addEventListener("input", renderBoard);
+  document.addEventListener("click", function (e) { if (!e.target.closest("th")) document.querySelectorAll("th.pin").forEach(function (t) { t.classList.remove("pin"); }); });
+  load(0);
+  setInterval(function () { load(0); }, 15 * 60 * 1000);
+})();
+</script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
