@@ -45,7 +45,7 @@ def invoke_chain() -> None:
                 f"{function_name} failed: {body.decode('utf-8', errors='replace')}"
             )
         envelope = strict_json(body)
-        if envelope.get("statusCode") != 200:
+        if envelope.get("statusCode") != 200 and envelope.get("ok") is not True:
             raise RuntimeError(f"{function_name} returned {envelope}")
         print(f"invoked {function_name}{':' + qualifier if qualifier else ''}")
 
