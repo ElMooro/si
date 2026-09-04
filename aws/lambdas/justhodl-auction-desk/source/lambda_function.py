@@ -48,7 +48,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -262,8 +262,76 @@ def analyze_auction(r, bank_sorted, par_rows):
     score = round(sum(parts) / max(len(parts), 1), 2) if parts else None
     a["demand_score"] = score
     a["grade"] = ("A" if score >= 1.0 else "B" if score >= 0.4 else "C" if score >= -0.4 else "D" if score >= -1.0 else "F") if score is not None else "n/a"
+    a["score_parts"] = [
+        {"metric": "Bid-to-cover", "z": zz["btc"], "weight": 1.0, "contribution": round(1.0 * zz["btc"], 2) if zz["btc"] is not None else None,
+         "why": "more bids per dollar sold = more demand"},
+        {"metric": "Indirect bidders", "z": zz["indirect"], "weight": 0.8, "contribution": round(0.8 * zz["indirect"], 2) if zz["indirect"] is not None else None,
+         "why": "foreign central banks and big funds taking more = real-money demand"},
+        {"metric": "Dealers", "z": zz["pd"], "weight": -0.8, "contribution": round(-0.8 * zz["pd"], 2) if zz["pd"] is not None else None,
+         "why": "dealers forced to absorb more = weaker demand, so this counts against"},
+        {"metric": "Tail", "z": zz["tail"], "weight": -1.0, "contribution": round(-1.0 * zz["tail"], 2) if zz["tail"] is not None else None,
+         "why": "paying up vs the market (positive tail) = weaker; stopping through (negative) = stronger"},
+    ]
+    a["explain"] = explain_auction(a)
     a["verdict"] = auction_verdict(a)
     return a
+
+
+def explain_auction(a):
+    """Plain-English lines for people who do not read auction tapes. Every number is the auction's own."""
+    t = a.get("trailing12") or {}
+    is_bill = a["type"] == "Bill"
+    unit = "bills" if is_bill else a["type"].lower() + "s"
+    lines = []
+    if a.get("btc") is not None:
+        lines.append({"metric": "Bid-to-cover %.2f" % a["btc"],
+                      "text": "Investors asked for $%.2f of %s for every $1 Treasury sold%s. Higher means more demand." % (
+                          a["btc"], unit, (" (usual for this tenor lately: %.2f)" % t["btc"]) if t.get("btc") else "")})
+    if a.get("indirect_pct") is not None:
+        lines.append({"metric": "Indirect bidders %.0f%%" % a["indirect_pct"],
+                      "text": "Share bought by foreign central banks and large funds bidding through dealers -- the 'real money' crowd%s. More is stronger." % (
+                          (" (usual: %.0f%%)" % t["indirect_pct"]) if t.get("indirect_pct") else "")})
+    if a.get("pd_pct") is not None:
+        lines.append({"metric": "Dealers %.0f%%" % a["pd_pct"],
+                      "text": "Share the primary dealers had to take onto their own books because nobody else bid for it%s. Less is better -- it means investors, not dealers, absorbed the supply." % (
+                          (" (usual: %.0f%%)" % t["pd_pct"]) if t.get("pd_pct") else "")})
+    if a.get("direct_pct") is not None:
+        lines.append({"metric": "Direct bidders %.0f%%" % a["direct_pct"], "text": "Institutions (banks, funds, insurers) bidding for their own account, not via a dealer."})
+    if a.get("tail_bp") is not None:
+        tb = a["tail_bp"]
+        if tb < -0.3:
+            txt = "The auction cleared %.1f basis points BELOW where this tenor traded the day before -- buyers accepted a lower yield than the market offered. That is a strong auction ('stopped through')." % -tb
+        elif tb > 0.3:
+            txt = "The auction cleared %.1f basis points ABOVE where this tenor traded the day before -- Treasury had to pay a higher yield to find buyers. That is a weak auction ('tailed')." % tb
+        else:
+            txt = "The auction cleared right where the market traded the day before -- no concession needed either way."
+        lines.append({"metric": "Tail %+.1fbp" % tb, "text": txt + (" (recent average for this tenor: %+.1fbp)" % t["tail_bp"] if t.get("tail_bp") is not None else "")})
+    if a.get("allocation_pct") is not None:
+        ap = a["allocation_pct"]
+        lines.append({"metric": "Allotted at high %.0f%%" % ap,
+                      "text": ("Of the bids placed at the highest accepted yield, %.0f%% were filled. A high number means the auction only just cleared at that level; a low number means demand was deep and most high-yield bids were unnecessary." % ap)})
+    if a.get("high_yield") is not None:
+        lines.append({"metric": ("High investment rate %.3f%%" % a["high_yield"]) if is_bill else ("High yield %.3f%%" % a["high_yield"]),
+                      "text": ("The annualised yield the last accepted bidder got%s." % ((" (discount rate %.3f%%)" % a["high_discount_rate"]) if a.get("high_discount_rate") is not None else "")) if is_bill else
+                              "The yield the last accepted bidder got -- everyone is filled at this single yield."})
+    if a.get("soma"):
+        lines.append({"metric": "SOMA %s" % fmt_bn(a["soma"]), "text": "The Federal Reserve rolled over maturing holdings by this amount -- an add-on outside the competitive bidding, not a sign of demand."})
+    z_txt = ", ".join("%s %s" % (p["metric"].lower(), ("%+.1f" % p["z"]) + "σ") for p in a.get("score_parts", []) if p.get("z") is not None)
+    if a.get("demand_score") is not None:
+        lines.append({"metric": "Grade %s (score %+.2f)" % (a["grade"], a["demand_score"]),
+                      "text": "Each metric is compared with the last 12 auctions of the same tenor (σ = how unusual it is). Demand score averages them: bid-to-cover and indirects count for, dealers and tail count against (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F." % z_txt})
+    return lines
+
+
+def ttm_label(years):
+    """Time to maturity as people say it: '3m', '1y 2m', '8y'."""
+    if years is None:
+        return None
+    months = int(round(years * 12))
+    y, m = divmod(months, 12)
+    if y == 0:
+        return "%dm" % max(m, 1)
+    return "%dy" % y if m == 0 else "%dy %dm" % (y, m)
 
 
 def fmt_bn(x):
@@ -521,10 +589,27 @@ def lambda_handler(event, ctx):
     program.sort(key=lambda o: o["operation_date"])
     bb_analyzed = [analyze_buyback(op, program) for op in program]
     bb_analyzed.sort(key=lambda b: b["operation_date"], reverse=True)
+    term_by_cusip = {}
+    for r in records.values():
+        if r.get("cusip") and r.get("term"):
+            term_by_cusip.setdefault(r["cusip"], "%s %s" % (r["term"], r["type"]))
     for b in bb_analyzed[:12]:
-        b["securities"] = [{"cusip": d.get("cusip_nbr"), "coupon": _f(d.get("coupon_rate_pct")), "maturity": _d(d.get("maturity_date")),
-                            "par_accepted": _f(d.get("par_amt_accepted")), "price": _f(d.get("weighted_avg_accepted_price"))}
-                           for d in details if _d(d.get("operation_date")) == b["operation_date"] and _f(d.get("par_amt_accepted"))][:60]
+        secs = []
+        for d in details:
+            if _d(d.get("operation_date")) != b["operation_date"] or not _f(d.get("par_amt_accepted")):
+                continue
+            mat = _d(d.get("maturity_date"))
+            ttm = None
+            try:
+                ttm = (datetime.fromisoformat(mat) - datetime.fromisoformat(b["operation_date"])).days / 365.25
+            except Exception:
+                pass
+            secs.append({"cusip": d.get("cusip_nbr"), "coupon": _f(d.get("coupon_rate_pct")), "maturity": mat,
+                         "par_accepted": _f(d.get("par_amt_accepted")), "price": _f(d.get("weighted_avg_accepted_price")),
+                         "ttm_years": round(ttm, 2) if ttm is not None else None, "ttm_label": ttm_label(ttm),
+                         "orig_term": term_by_cusip.get(d.get("cusip_nbr"))})
+        secs.sort(key=lambda x: x.get("ttm_years") or 0)
+        b["securities"] = secs[:80]
 
     # day buckets (most recent 30 operation days)
     days = {}
