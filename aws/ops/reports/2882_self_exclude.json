@@ -1,8 +1,0 @@
-{
- "ops": 2882,
- "ts": "2026-07-05T16:21:00.199456+00:00",
- "errors": {
-  "main": "hon/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-brain-compiler\n"
- },
- "status": "FAILED"
-}
