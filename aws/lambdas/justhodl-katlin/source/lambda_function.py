@@ -2922,7 +2922,18 @@ def run_sniper(rows, today):
 
 # ── snapshots, self-grading, changes ────────────────────────────────────────
 def snapshot_and_base_rates(rows, bars, dates, session):
-    picks = [{"t": r["ticker"], "c": r["asset_class"], "tier": r["tier"], "score": r.get("composite"), "px": r["last"]} for r in rows if r["tier"] in ("KATLIN_PRIME", "READY", "BASING")]
+    # snapshot carries the full evidence vector so the non-price pillars (inflows, catalysts, quality, sniper) accrue their own base
+    # rates over time -- the walk-forward can only see price; this is how the fleet's fusion layers get graded honestly.
+    def _snap(r):
+        p_ = r.get("pillars") or {}
+        il = r.get("inflow_legs") or {}
+        return {"t": r["ticker"], "c": r["asset_class"], "tier": r["tier"], "score": r.get("composite"), "px": r["last"],
+                "learned": r.get("learned_excess_126s_pct"), "conv": r.get("conviction"), "struct": r.get("structure_state"),
+                "p": {k: p_.get(k) for k in ("structure", "accumulation", "inflows", "oversold", "location", "catalyst", "momentum", "quality")},
+                "named_cat": r.get("n_named_catalysts"), "sniper": (r.get("sniper") or {}).get("state"), "knife": bool(r.get("knife")),
+                "dark": il.get("dark_pool_state"), "ins_cluster": bool(il.get("insider_cluster")), "ind_major": bool((il.get("industry_flow") or {}).get("major")),
+                "posture": (r.get("posture_note") or "")[:12], "d200": r.get("dist_sma200_pct"), "vol": r.get("vol_ann_pct"), "dd52": r.get("dd_52w_pct")}
+    picks = [_snap(r) for r in rows if r["tier"] in ("KATLIN_PRIME", "READY", "BASING", "CRASH_BARBELL")]
     s3_put_json(HIST_PREFIX + session + ".json.gz", {"session": session, "version": VERSION, "picks": picks, "spy": bars["SPY"].c[-1] if "SPY" in bars else None}, gz=True)
     keys = sorted(k for k in list_keys(HIST_PREFIX) if k.endswith(".json.gz"))
     idx = {d: i for i, d in enumerate(dates)}
