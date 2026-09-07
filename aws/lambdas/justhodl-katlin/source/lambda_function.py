@@ -83,7 +83,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -119,8 +119,8 @@ P = {
                        "ENA", "W", "STRK", "ZK", "EIGEN", "HYPE", "PENDLE", "AERO", "VIRTUAL", "AR",
                        "AKT", "THETA", "FLR", "ASTR", "WLD", "ZRO"],
 }
-WEIGHTS = {"structure": 12, "accumulation": 12, "inflows": 12, "oversold": 8, "location": 12,
-           "catalyst": 10, "momentum": 5, "quality": 7, "learned": 22}
+WEIGHTS = {"structure": 10, "accumulation": 8, "inflows": 12, "oversold": 6, "location": 10,
+           "catalyst": 10, "momentum": 5, "quality": 9, "learned": 30}
 GATE_PILLARS = ["structure", "accumulation", "inflows", "oversold", "location", "quality"]
 TIER_ORDER = ["KATLIN_PRIME", "READY", "BASING", "CRASH_BARBELL", "WATCH", "SCREENED"]
 BENCH = ["SPY", "QQQ", "IWM", "TLT", "IEF", "SHY", "BIL", "HYG", "LQD", "UUP", "GLD", "SLV", "CPER",
@@ -505,6 +505,69 @@ def load_session(key, keep):
     return out
 
 
+
+# -- split repair -------------------------------------------------------------------------------------------------
+# The grouped store was backfilled (adjusted=true at fetch time) through 2026-08-31, so every split BEFORE that is already
+# baked into every session file. A split executed after it only reaches the files fetched after it, so the older sessions
+# sit on the pre-split basis. Katlin banks Polygon's split calendar (data/warm/katlin/splits.json, refreshed daily) and
+# rebases the pre-split bars to today's basis: price x split_from/split_to, volume x split_to/split_from.
+SPLITS_KEY = "data/warm/katlin/splits.json"
+SPLIT_REPAIR_SINCE = "2026-08-29"
+
+
+def load_splits(today):
+    doc = s3_json_quiet(SPLITS_KEY) or {}
+    if doc.get("banked_at") == today and doc.get("splits") is not None:
+        return doc["splits"]
+    if not POLY_KEY:
+        return doc.get("splits") or []
+    out = []
+    url = "https://api.polygon.io/v3/reference/splits?%s" % urllib.parse.urlencode({"execution_date.gte": SPLIT_REPAIR_SINCE, "limit": 1000, "order": "asc", "sort": "execution_date", "apiKey": POLY_KEY})
+    for _ in range(12):
+        j = poly_get(url)
+        for r in (j or {}).get("results") or []:
+            try:
+                out.append({"ticker": str(r.get("ticker") or "").upper(), "execution_date": str(r.get("execution_date"))[:10],
+                            "split_from": float(r.get("split_from")), "split_to": float(r.get("split_to"))})
+            except Exception:
+                continue
+        nxt = (j or {}).get("next_url")
+        if not nxt:
+            break
+        url = nxt + ("&" if "?" in nxt else "?") + "apiKey=" + POLY_KEY
+    s3_put_json(SPLITS_KEY, {"banked_at": today, "since": SPLIT_REPAIR_SINCE, "n": len(out), "splits": out})
+    return out
+
+
+def repair_splits(dates, bars):
+    """rebase pre-split bars to today's basis for splits executed after the store's backfill boundary."""
+    if not dates:
+        return 0
+    today = dates[-1]
+    splits = [x for x in load_splits(today) if x.get("ticker") in bars and x.get("split_from") and x.get("split_to")]
+    n_fixed = 0
+    for x in splits:
+        b = bars[x["ticker"]]
+        ex = x["execution_date"]
+        cut = bisect.bisect_left(dates, ex)          # first session index on/after the execution date
+        if cut <= 0:
+            continue
+        f = x["split_from"] / x["split_to"]         # price factor for the pre-split basis
+        if f <= 0 or abs(f - 1.0) < 1e-9:
+            continue
+        for p in range(len(b.d)):
+            if b.d[p] < cut:
+                b.c[p] *= f
+                b.h[p] *= f
+                b.l[p] *= f
+                b.o[p] *= f
+                b.v[p] /= f
+        n_fixed += 1
+    if n_fixed:
+        log("split repair: %d names rebased for splits since %s" % (n_fixed, SPLIT_REPAIR_SINCE))
+    return n_fixed
+
+
 def load_bars(keys, keep, workers=14):
     bars = {}
     dates = [k.rsplit("/", 1)[1][:10] for k in keys]
@@ -527,6 +590,10 @@ def load_bars(keys, keep, workers=14):
                     b.o.append(o)
             if (start // chunk) % 10 == 0:
                 log("bars %d/%d sessions, %d tickers" % (min(start + chunk, len(keys)), len(keys), len(bars)))
+    try:
+        repair_splits(dates, bars)
+    except Exception as e:
+        DEGRADED.append("split repair skipped: %s" % str(e)[:100])
     return dates, bars
 
 
@@ -3243,6 +3310,62 @@ def barbell_base_rate(bt):
     return out or None
 
 
+
+def build_basket(rows, wr):
+    """a model basket sized by the war-room cap: core = PRIME/READY (+ the best BASING) with a positive learned prior, weights
+    proportional to expected excess / variance (Kelly-lite), capped at 10% of the book each; barbell sleeve = the crash barbell
+    equal-weighted at 10% of the cap. Cash = the rest. A base-rate-driven model, not advice."""
+    cap = float(wr.get("exposure_cap_pct") or 0.0)
+    core_pool = [r for r in rows if r["tier"] in ("KATLIN_PRIME", "READY") and not r.get("knife") and (r.get("learned_excess_126s_pct") or 0) >= 2.0]
+    extra = [r for r in rows if r["tier"] == "BASING" and (r.get("learned_excess_126s_pct") or 0) >= 6.0 and not r.get("knife")]
+    extra.sort(key=lambda r: -(r.get("composite") or 0))
+    core_pool = (core_pool + extra[:10])[:20]
+    bb_pool = [r for r in rows if r["tier"] == "CRASH_BARBELL"]
+    bb_pool.sort(key=lambda r: -(r.get("learned_excess_126s_pct") or 0))
+    bb_pool = bb_pool[:10]
+    out = {"exposure_cap_pct": cap, "posture": wr.get("posture"), "core": [], "barbell": [], "cash_pct": 100.0, "notes": [
+        "Model basket from base rates and gates -- research, not advice. Weights are shares of the whole book; the war-room cap bounds the total.",
+        "Core: Kelly-lite (expected 6-month excess / variance), 10% of the book max per name. Barbell: equal-weight lottery tickets, 10% of the cap in total.",
+        "Expected excess is the walk-forward base rate for the name's price profile; most names in these buckets lose a little and a few double -- size the basket, not the name."]}
+    if cap <= 0 or not rows:
+        out["notes"].append("war room allows no risk today -- basket is cash / T-bills")
+        return out
+    bb_budget = min(10.0, cap * 0.10) if bb_pool else 0.0
+    core_budget = cap - bb_budget
+    raw = []
+    for r in core_pool:
+        e = max(float(r.get("learned_excess_126s_pct") or 0.0), 1.0)
+        v = max(float(r.get("vol_ann_pct") or 40.0), 25.0) / 100.0
+        raw.append(e / (v * v))
+    tot = sum(raw) or 1.0
+    ws = [core_budget * x / tot for x in raw]
+    # cap at 10% of the book and redistribute once
+    over = sum(max(0.0, w - 10.0) for w in ws)
+    ws = [min(w, 10.0) for w in ws]
+    if over > 0:
+        room = [10.0 - w for w in ws]
+        rt = sum(room) or 1.0
+        ws = [w + over * rm / rt for w, rm in zip(ws, room)]
+    for r, w in zip(core_pool, ws):
+        if w < 0.5:
+            continue
+        pl = r.get("plan") or {}
+        out["core"].append({"ticker": r["ticker"], "name": r.get("name"), "tier": r["tier"], "asset_class": r["asset_class"], "weight_pct": rnd(w, 1),
+                            "expected_excess_126s_pct": r.get("learned_excess_126s_pct"), "vol_ann_pct": r.get("vol_ann_pct"), "composite": r.get("composite"),
+                            "entry": r.get("last"), "stop": pl.get("stop"), "target_1": pl.get("target_1"), "sniper": (r.get("sniper") or {}).get("state"),
+                            "structure": r.get("structure_state"), "why": (r.get("why") or "")[:220]})
+    for r in bb_pool:
+        w = bb_budget / len(bb_pool)
+        out["barbell"].append({"ticker": r["ticker"], "name": r.get("name"), "weight_pct": rnd(w, 2), "expected_excess_126s_pct": r.get("learned_excess_126s_pct"),
+                               "dd_52w_pct": r.get("dd_52w_pct"), "vol_ann_pct": r.get("vol_ann_pct"), "entry": r.get("last"), "knife_why": r.get("knife_why"),
+                               "why": (r.get("why") or "")[:200]})
+    used = sum(x["weight_pct"] for x in out["core"]) + sum(x["weight_pct"] for x in out["barbell"])
+    out["cash_pct"] = rnd(max(0.0, 100.0 - used), 1)
+    out["core_pct"] = rnd(sum(x["weight_pct"] for x in out["core"]), 1)
+    out["barbell_pct"] = rnd(sum(x["weight_pct"] for x in out["barbell"]), 1)
+    return out
+
+
 def validation_summary(bt):
     if not bt:
         return {"status": "no backtest yet -- runs Sundays", "cohorts": None}
@@ -3473,6 +3596,7 @@ def lambda_handler(event=None, context=None):
            "top_picks": top_picks,
            "picks": [r for r in published if r["tier"] in ("KATLIN_PRIME", "READY", "BASING", "CRASH_BARBELL")][:340],
            "barbell_base_rate": barbell_base_rate(F.get("backtest")),
+           "basket": build_basket(rows, wr),
            "watch": [{k: r.get(k) for k in ("ticker", "name", "asset_class", "sub_class", "sector", "industry", "last", "dist_sma200_pct", "dist_sma250_pct", "rsi_w", "rsi_d",
                                             "structure_state", "composite", "gates", "pillars", "knife", "tier")} for r in published if r["tier"] == "WATCH"][:400],
            "panels": desk_panels(rows, wr), "changes": changes, "base_rates": base_rates, "validation": validation_summary(F.get("backtest")),

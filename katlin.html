@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="katlin-version" content="katlin-v2.1.0">
+<meta name="katlin-version" content="katlin-v2.2.0">
 <meta name="jh-marker" content="KATLIN_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Katlin · the buy desk · war-room posture + asymmetric bottoms across stocks, ETFs and crypto · JustHodl.AI</title>
@@ -168,6 +168,14 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 <div class="board">
   <div class="wr-panel"><div class="ph"><span id="board-title">Katlin Prime</span><span class="cnt" id="board-cnt"></span></div><div class="tbl"><table class="wr" id="board"></table></div></div>
   <div class="evid" id="evid"><h3>Click a row</h3><div class="sub">the evidence panel explains, in plain English, why the engine likes (or does not like) the name — gates, pillars, accumulation legs, inflows, catalysts, dilution/valuation, the plan and the 4-hour entry.</div></div>
+</div>
+
+<h2>Suggested basket — sized by the war room</h2>
+<div class="note" id="basket-note"></div>
+<div class="mini" id="basket-mini"></div>
+<div class="wr-grid" id="basket-grid">
+  <div class="wr-panel"><div class="ph"><span>Core — Kelly-lite on the learned prior</span><span class="cnt" id="basket-core-cnt"></span></div><div class="tbl"><table class="wr" id="basket-core"></table></div></div>
+  <div class="wr-panel"><div class="ph"><span>Crash barbell sleeve — equal-weight lottery tickets</span><span class="cnt" id="basket-bb-cnt"></span></div><div class="tbl"><table class="wr" id="basket-bb"></table></div></div>
 </div>
 
 <h2>What changed since the last session</h2>
@@ -360,6 +368,16 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     $("legs").innerHTML = '<thead><tr><th>Leg</th><th>Risk</th><th>Flag</th><th style="text-align:left">Read</th><th>Source</th><th>As of</th></tr></thead><tbody>' + legs.map(function (l) { return '<tr class="' + esc(l.flag) + '"><td class="lab">' + esc(l.leg) + '<small>weight ' + esc(l.weight) + '</small></td><td class="' + (l.risk >= 70 ? "neg" : l.risk >= 45 ? "flat" : "pos") + '">' + esc(l.risk) + '</td><td><span class="wr-flag ' + esc(l.flag) + '">' + esc(l.flag) + '</span></td><td class="read">' + esc(l.read) + '</td><td>' + esc(l.source) + '</td><td>' + esc(l.asof ? ago(l.asof) : "—") + '</td></tr>'; }).join("") + "</tbody>";
     $("legs-cnt").textContent = legs.length + " legs · " + (w.n_red || 0) + " RED";
   }
+  function renderBasket() {
+    var b = D.basket || {};
+    $("basket-note").textContent = (b.notes || []).join(" ");
+    $("basket-mini").innerHTML = '<div><div class="t">posture / cap</div><div class="v">' + esc((b.posture || "").replace(/_/g, " ")) + ' · ' + esc(b.exposure_cap_pct) + '%</div></div><div><div class="t">core</div><div class="v">' + esc(b.core_pct == null ? "—" : b.core_pct + "%") + '</div></div><div><div class="t">barbell sleeve</div><div class="v">' + esc(b.barbell_pct == null ? "—" : b.barbell_pct + "%") + '</div></div><div><div class="t">cash / T-bills</div><div class="v">' + esc(b.cash_pct == null ? "—" : b.cash_pct + "%") + '</div></div>';
+    var core = b.core || [], bb = b.barbell || [];
+    $("basket-core").innerHTML = '<thead><tr><th>Name</th><th>Weight</th><th>History 6M</th><th>Vol</th><th>Score</th><th>Entry</th><th>Stop</th><th>T1</th><th>4h</th></tr></thead><tbody>' + (core.length ? core.map(function (x) { return '<tr class="pick" data-t="' + esc(x.ticker) + '"><td class="lab">' + esc(x.ticker) + '<small>' + esc(x.name || "") + ' · ' + esc(String(x.tier).replace("KATLIN_", "")) + '</small></td><td><b>' + esc(x.weight_pct) + '%</b></td><td class="' + cls(x.expected_excess_126s_pct) + '">' + esc(pct(x.expected_excess_126s_pct, 1)) + '</td><td>' + esc(num(x.vol_ann_pct, 0)) + '%</td><td>' + esc(num(x.composite, 0)) + '</td><td>' + esc(x.entry) + '</td><td class="neg">' + esc(x.stop) + '</td><td class="pos">' + esc(x.target_1 || "—") + '</td><td><span class="sn ' + esc(x.sniper || "") + '">' + esc(x.sniper || "—") + '</span></td></tr>'; }).join("") : '<tr><td class="read">no core names clear the history gate today</td></tr>') + '</tbody>';
+    $("basket-bb").innerHTML = '<thead><tr><th>Name</th><th>Weight</th><th>History 6M</th><th>Drawdown</th><th>Vol</th><th>Entry</th><th style="text-align:left">Why it is a knife</th></tr></thead><tbody>' + (bb.length ? bb.map(function (x) { return '<tr class="pick" data-t="' + esc(x.ticker) + '"><td class="lab">' + esc(x.ticker) + '<small>' + esc(x.name || "") + '</small></td><td><b>' + esc(x.weight_pct) + '%</b></td><td class="' + cls(x.expected_excess_126s_pct) + '">' + esc(pct(x.expected_excess_126s_pct, 1)) + '</td><td class="neg">' + esc(pct(x.dd_52w_pct, 0)) + '</td><td>' + esc(num(x.vol_ann_pct, 0)) + '%</td><td>' + esc(x.entry) + '</td><td class="read">' + esc(x.knife_why || "") + '</td></tr>'; }).join("") : '<tr><td class="read">no barbell names today</td></tr>') + '</tbody>';
+    $("basket-core-cnt").textContent = core.length + " names"; $("basket-bb-cnt").textContent = bb.length + " names";
+    document.querySelectorAll("#basket-core tr.pick, #basket-bb tr.pick").forEach(function (tr) { tr.addEventListener("click", function () { selected = tr.dataset.t; var r = (D.picks || []).find(function (x) { return x.ticker === selected; }); if (r) { tab = r.tier === "KATLIN_PRIME" ? "prime" : r.tier === "READY" ? "ready" : r.tier === "BASING" ? "basing" : r.tier === "CRASH_BARBELL" ? "barbell" : tab; document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x.dataset.t === tab); }); } renderEvidence(); renderBoard(); document.getElementById("evid").scrollIntoView({ behavior: "smooth", block: "start" }); }); });
+  }
   function renderChanges() {
     var c = D.changes || {};
     $("changes").innerHTML = '<div><div class="t">new PRIME</div><div class="v">' + esc((c.new_prime || []).join(", ") || "—") + '</div></div><div><div class="t">new READY</div><div class="v">' + esc((c.new_ready || []).join(", ") || "—") + '</div></div><div><div class="t">dropped from PRIME/READY</div><div class="v">' + esc((c.dropped || []).join(", ") || "—") + '</div></div><div><div class="t">previous session</div><div class="v">' + esc(c.prev_session || "first run") + '</div></div>';
@@ -403,7 +421,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     renderWar();
     // open on the first non-empty bucket (the gates are strict; PRIME is often empty by design)
     if (!D._tabPicked) { D._tabPicked = true; var counts = { prime: 0, ready: 0, basing: 0, barbell: 0 }; (D.picks || []).forEach(function (r) { if (r.tier === "KATLIN_PRIME") counts.prime++; else if (r.tier === "READY") counts.ready++; else if (r.tier === "BASING") counts.basing++; else if (r.tier === "CRASH_BARBELL") counts.barbell++; }); var want = counts.prime ? "prime" : counts.ready ? "ready" : counts.basing ? "basing" : counts.barbell ? "barbell" : "watch"; if (want !== tab) { tab = want; document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x.dataset.t === tab); }); } }
-    renderBoard(); renderChanges(); renderValidation(); renderDefs();
+    renderBoard(); renderBasket(); renderChanges(); renderValidation(); renderDefs();
     var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); }
   }
   function load(i) {
