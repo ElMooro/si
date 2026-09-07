@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="katlin-version" content="katlin-v1.2.0">
+<meta name="katlin-version" content="katlin-v2.0.0">
 <meta name="jh-marker" content="KATLIN_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Katlin · the buy desk · war-room posture + asymmetric bottoms across stocks, ETFs and crypto · JustHodl.AI</title>
@@ -175,7 +175,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 
 <h2>Validation — is the engine actually sharp?</h2>
 <div class="note" id="val-note"></div>
-<div class="wr-panel"><div class="ph"><span>Walk-forward cohorts (price gates, point-in-time, vs SPY)</span><span class="cnt" id="val-cnt"></span></div><div class="tbl"><table class="wr" id="val"></table></div></div>
+<div class="wr-panel"><div class="ph"><span>Walk-forward cohorts (price gates, point-in-time, vs SPY; delistings exit at the last print)</span><span class="cnt" id="val-cnt"></span></div><div class="tbl"><table class="wr" id="val"></table></div></div>
+<div id="val-extra"></div>
 <div class="wr-panel" style="margin-top:12px"><div class="ph"><span>Self-graded snapshots (the engine's own picks, 21 / 63 sessions later)</span><span class="cnt" id="base-cnt"></span></div><div class="tbl"><table class="wr" id="base"></table></div></div>
 
 <h2>Definitions</h2>
@@ -202,6 +203,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     tier: ["Tier", "KATLIN_PRIME = every gate incl. a CONFIRMED long-term bottom and a named catalyst. READY = accumulation + structure + (oversold or inflows). BASING = accumulation plus one more gate. WATCH = partial evidence.", "best first"],
     composite: ["Score", "0-100 composite: structure 18, accumulation 20, inflows 16, oversold 10, location 8, catalyst 10, momentum 8, quality 10 — each blended with its rank across the asset class. Knife x0.6, red flags x0.75.", "higher is better"],
     conviction: ["Conviction", "Geometric mean of the six gate pillars — one weak leg drags it down, so it rewards balanced evidence.", "higher is better"],
+    learned: ["History 6M", "Learned prior: what names with this exact price profile (distance under the 200-day, weekly RSI, Bollinger width, volume dry-up, structure, drawdown, volatility, regime…) averaged versus SPY over the next 126 sessions in the walk-forward since 2021. A base rate, not a forecast — fitted on the past, applied to today.", "higher"],
     last: ["Price", "Last close from the warehouse."],
     dist_sma200_pct: ["vs 200d", "Distance to the 200-day simple average. The spec: must be BELOW (negative). Further below = more mean-reversion room until the knife guard trips.", "more negative = more room"],
     dist_sma250_pct: ["vs 250d", "Distance to the 250-day simple average (bonus when negative).", "negative preferred"],
@@ -224,7 +226,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     ret_3m_pct: ["3M", "Three-month return. Katlin avoids names that already took off."],
     days_below_sma200: ["Days < 200", "Consecutive sessions below the 200-day average."]
   };
-  var COLS = ["ticker", "tier", "composite", "conviction", "last", "dist_sma200_pct", "dist_sma250_pct", "days_below_sma200", "rsi_w", "rsi_d", "rsi_m", "structure_state", "accumulation", "inflows", "catalyst", "momentum", "bbw_pctile", "vol_ratio_20_120", "rr", "asymmetry", "sniper", "dilution", "pe", "mcap", "ret_3m_pct"];
+  var COLS = ["ticker", "tier", "composite", "conviction", "learned", "last", "dist_sma200_pct", "dist_sma250_pct", "days_below_sma200", "rsi_w", "rsi_d", "rsi_m", "structure_state", "accumulation", "inflows", "catalyst", "momentum", "bbw_pctile", "vol_ratio_20_120", "rr", "asymmetry", "sniper", "dilution", "pe", "mcap", "ret_3m_pct"];
   var TIER_RANK = { KATLIN_PRIME: 0, READY: 1, BASING: 2, WATCH: 3, SCREENED: 4 };
   var STRUCT_RANK = { CONFIRMED: 0, FORMING: 1, NONE: 2 };
   var SN_RANK = { SNIPE_NOW: 0, SNIPE_PULLBACK: 1, WAIT_TURN: 2, WAIT_BREAK: 3, WAIT: 4 };
@@ -233,6 +235,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     switch (k) {
       case "accumulation": case "inflows": case "catalyst": case "momentum": return r.pillars ? r.pillars[k] : null;
       case "sniper": return r.sniper ? r.sniper.state : null;
+      case "learned": return r.learned_excess_126s_pct;
       case "dilution": return r.quality ? r.quality.share_count_yoy_pct : null;
       case "pe": return r.quality ? r.quality.pe : null;
       default: return r[k];
@@ -252,6 +255,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
       case "ticker": return '<td class="lab">' + esc(r.ticker) + '<small>' + esc((r.name || "") + (r.industry ? " · " + r.industry : (r.sub_class ? " · " + r.sub_class : ""))) + '</small></td>';
       case "tier": return '<td><span class="tier ' + esc(v) + '">' + esc(String(v).replace("KATLIN_", "")) + '</span>' + (r.posture_note ? ' <span class="amb" title="' + esc(r.posture_note) + '">!</span>' : "") + (r.knife ? ' <span class="red" title="' + esc(r.knife_why) + '">✕</span>' : "") + '</td>';
       case "composite": case "conviction": case "accumulation": case "inflows": case "catalyst": case "momentum": case "asymmetry": case "rr": return '<td>' + num(v, k === "rr" || k === "asymmetry" ? 1 : 0) + '</td>';
+      case "learned": return '<td class="' + cls(v) + '">' + pct(v, 1) + '</td>';
       case "last": return '<td>' + (v == null ? "—" : v < 1 ? Number(v).toFixed(4) : Number(v).toFixed(2)) + '</td>';
       case "dist_sma200_pct": case "dist_sma250_pct": case "ret_3m_pct": case "dilution": return '<td class="' + (k === "dilution" ? cls(-v) : cls(v)) + '">' + pct(v, 1) + '</td>';
       case "rsi_w": case "rsi_d": case "rsi_m": return '<td class="' + (v != null && v <= 40 ? "pos" : "flat") + '">' + num(v, 0) + '</td>';
@@ -307,6 +311,11 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     h += '<div class="why">' + esc(r.why || "") + '</div>';
     if (r.why) h += '<div class="gates">' + Object.keys(r.gates || {}).map(function (g) { return '<span class="gate ' + (r.gates[g] ? "ok" : "no") + '">' + (r.gates[g] ? "✓ " : "✗ ") + g.replace("_", " ") + '</span>'; }).join("") + '</div>';
     h += '<h4>Pillars (composite ' + num(r.composite, 0) + ', conviction ' + num(r.conviction, 0) + ', evidence coverage ' + num(r.evidence_coverage_pct, 0) + '%)</h4>' + bars(r.pillars || {});
+    var ap = r.alpha_prior && r.alpha_prior["126s"];
+    if (ap && ap.n_features) {
+      h += '<h4>History check — learned prior (walk-forward since 2021)</h4><div class="kv"><span>expected excess vs SPY, 6 months</span><span class="' + cls(ap.expected_excess_pct) + '">' + pct(ap.expected_excess_pct, 1) + '</span><span>3 months / 12 months</span><span>' + pct((r.alpha_prior["63s"] || {}).expected_excess_pct, 1) + ' / ' + pct((r.alpha_prior["252s"] || {}).expected_excess_pct, 1) + '</span></div>';
+      h += '<ul>' + (ap.contrib || []).map(function (c) { return '<li>' + esc(c.feature) + ' <b>' + esc(c.bucket) + '</b>: <span class="' + cls(c.delta_pct) + '">' + pct(c.delta_pct, 1) + '</span> vs the average name (n=' + esc(c.n) + ', hit ' + esc(c.hit_rate_pct) + '%)</li>'; }).join("") + '</ul><div class="note">a base rate from price features only — flows, catalysts and quality are not in the history and sit on top of it.</div>';
+    }
     h += '<h4>Plan</h4><div class="kv"><span>entry</span><span>' + esc(pl.entry) + '</span><span>stop</span><span class="red">' + esc(pl.stop) + ' (' + pct(-(pl.downside_pct || 0), 1) + ')</span><span>target 1 (' + esc(pl.target_1_label || "—") + ')</span><span class="grn">' + esc(pl.target_1 || "—") + ' (' + pct(pl.upside_1_pct, 1) + ')</span><span>target 2 (' + esc(pl.target_2_label || "—") + ')</span><span class="grn">' + esc(pl.target_2 || "—") + ' (' + pct(pl.upside_2_pct, 1) + ')</span><span>reward/risk</span><span>' + num(pl.rr_1, 1) + 'x / ' + num(pl.rr_2, 1) + 'x</span><span>asymmetry</span><span>' + num(pl.asymmetry, 1) + '</span><span>confirmation trigger</span><span>' + esc(pl.confirmation_trigger || "—") + '</span></div>';
     if (sn) h += '<h4>4-hour sniper <span class="sn ' + esc(sn.state || "") + '">' + esc(sn.state || "no state") + '</span></h4><div class="note" style="color:var(--fg-2)">' + esc(sn.text || "") + '</div><div class="kv"><span>4h RSI</span><span>' + num(sn.rsi_4h, 0) + '</span><span>4h 20/50 EMA</span><span>' + esc(sn.ema20_4h) + ' / ' + esc(sn.ema50_4h) + '</span><span>higher low (4h)</span><span>' + (sn.higher_low_4h ? "yes" : "no") + '</span><span>micro downtrend line</span><span>' + esc(sn.micro_downtrend_line || "—") + '</span><span>volume 6/60 bars</span><span>' + num(sn.vol_ratio_6_60, 2) + 'x</span><span>bars as of</span><span>' + esc(sn.asof || "") + '</span></div>';
     h += '<h4>Location & structure</h4><div class="kv"><span>vs SMA200 / SMA250</span><span>' + pct(r.dist_sma200_pct) + ' / ' + pct(r.dist_sma250_pct) + '</span><span>vs EMA200 / EMA250</span><span>' + pct(r.dist_ema200_pct) + ' / ' + pct(r.dist_ema250_pct) + '</span><span>sessions below 200d</span><span>' + esc(r.days_below_sma200) + '</span><span>52-week position / drawdown</span><span>' + num(r.pos_52w_pct, 0) + '% / ' + pct(r.dd_52w_pct) + '</span><span>weekly downtrend / broken</span><span>' + esc(r.lt_downtrend) + ' / ' + esc(r.lt_trend_break) + (r.weeks_since_break != null ? " (" + r.weeks_since_break + "w ago)" : "") + '</span><span>higher / lower weekly lows</span><span>' + esc(r.higher_lows_w) + ' / ' + esc(r.lower_lows_w) + '</span><span>monthly higher low · quarterly break</span><span>' + esc(r.m_higher_low) + ' · ' + esc(r.q_break) + '</span><span>RSI D / W / M</span><span>' + num(r.rsi_d, 0) + ' / ' + num(r.rsi_w, 0) + ' / ' + num(r.rsi_m, 0) + '</span><span>RSI divergence W / D</span><span>' + esc(r.rsi_div_w) + ' / ' + esc(r.rsi_div_d) + '</span><span>returns 1M / 3M / 6M / 12M</span><span>' + pct(r.ret_1m_pct, 0) + ' / ' + pct(r.ret_3m_pct, 0) + ' / ' + pct(r.ret_6m_pct, 0) + ' / ' + pct(r.ret_12m_pct, 0) + '</span></div>';
@@ -332,7 +341,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     $("wr-posture").className = "wr-regime " + esc(w.posture || "UNKNOWN");
     $("wr-banner").className = "wr-banner " + esc(w.posture || "UNKNOWN");
     $("wr-headline").textContent = w.words || "";
-    $("wr-brief").textContent = w.brief || "";
+    $("wr-brief").textContent = (w.brief || "") + ((D.history && D.history.text) ? " " + D.history.text : "");
     $("wr-fresh").textContent = "session " + (D.session || "") + " · generated " + ago(D.generated_at) + " · " + (w.legs || []).length + " legs" + (w.missing && w.missing.length ? " · missing: " + w.missing.join(", ") : "");
     var cap = $("wr-cap"); cap.className = "wr-v " + (w.exposure_cap_pct >= 100 ? "bullish" : w.exposure_cap_pct >= 60 ? "neutral" : w.exposure_cap_pct >= 30 ? "cautious" : "bearish");
     cap.querySelector(".s").textContent = (w.exposure_cap_pct == null ? "—" : w.exposure_cap_pct + "% of the book in risk"); cap.querySelector(".t").textContent = "Brain doctrine: macro gates sizing before selection. Picks below are shown regardless; the cap tells you how much to deploy.";
@@ -356,13 +365,27 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
   function renderValidation() {
     var v = D.validation || {}, co = v.cohorts || {};
     $("val-note").textContent = (v.status || "") + (v.note ? " — " + v.note : "");
-    var hz = ["21s", "63s", "126s"];
+    var hz = ["21s", "63s", "126s", "252s"];
     var labs = Object.keys(co);
     if (!labs.length) { $("val").innerHTML = '<tbody><tr><td class="read">the weekly walk-forward has not run yet (Sundays 09:30 UTC). Until then the tiers are evidence, not a track record.</td></tr></tbody>'; $("val-cnt").textContent = ""; }
     else {
-      $("val").innerHTML = '<thead><tr><th>Cohort</th>' + hz.map(function (h) { return '<th>' + h + ' n</th><th>' + h + ' median excess</th><th>' + h + ' hit</th><th>' + h + ' MAE</th>'; }).join("") + '</tr></thead><tbody>' + labs.map(function (l) { return '<tr><td class="lab">' + esc(l) + '</td>' + hz.map(function (h) { var c = co[l][h] || {}; return '<td>' + esc(c.n == null ? "—" : c.n) + '</td><td class="' + cls(c.median_excess_pct) + '">' + esc(pct(c.median_excess_pct, 2)) + '</td><td>' + esc(c.hit_rate_pct == null ? "—" : c.hit_rate_pct + "%") + '</td><td class="neg">' + esc(pct(c.median_max_adverse_pct, 1)) + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody>';
-      $("val-cnt").textContent = labs.length + " cohorts";
+      $("val").innerHTML = '<thead><tr><th>Cohort</th>' + hz.map(function (h) { return '<th>' + h + ' n</th><th>' + h + ' mean</th><th>' + h + ' median</th><th>' + h + ' hit</th><th>' + h + ' p90</th><th>' + h + ' payoff</th>'; }).join("") + '</tr></thead><tbody>' + labs.map(function (l) { return '<tr><td class="lab">' + esc(l) + '</td>' + hz.map(function (h) { var c = co[l][h] || {}; return '<td>' + esc(c.n == null ? "—" : c.n) + '</td><td class="' + cls(c.mean_excess_pct) + '">' + esc(pct(c.mean_excess_pct, 1)) + '</td><td class="' + cls(c.median_excess_pct) + '">' + esc(pct(c.median_excess_pct, 1)) + '</td><td>' + esc(c.hit_rate_pct == null ? "—" : c.hit_rate_pct + "%") + '</td><td class="pos">' + esc(pct(c.p90_excess_pct, 0)) + '</td><td>' + esc(c.payoff == null ? "—" : c.payoff) + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody>';
+      $("val-cnt").textContent = labs.length + " cohorts · excess vs SPY";
     }
+    var o = v.oos || {}, ok = Object.keys(o);
+    var oh = "";
+    if (ok.length) {
+      oh += '<div class="mini">' + ok.map(function (h) { var x = o[h]; var b = x.below200_top_decile; return '<div><div class="t">out-of-sample ' + esc(h) + ' (split ' + esc(x.split_date) + ')</div><div class="v ' + cls(x.spread_pct) + '">' + esc(pct(x.spread_pct, 1)) + ' spread</div><div class="note">top decile of the learned prior ' + esc(pct(x.top_decile.mean_excess_pct, 1)) + ' (hit ' + esc(x.top_decile.hit_rate_pct) + '%) vs bottom decile ' + esc(pct(x.bottom_decile.mean_excess_pct, 1)) + ' · corr ' + esc(x.corr) + ' · ' + esc(x.test_obs) + ' test obs' + (b ? ' · among bottoms: top decile ' + esc(pct(b.mean_excess_pct, 1)) + ', hit ' + esc(b.hit_rate_pct) + '%' : '') + '</div></div>'; }).join("") + '</div>';
+    }
+    var rg = v.regime_126s || {}, rk = Object.keys(rg);
+    if (rk.length) {
+      oh += '<div class="wr-panel" style="margin-top:10px"><div class="ph"><span>Bottoms by market regime — 126 sessions, excess vs SPY</span><span class="cnt">SPY above / below its own 200-day at the observation date</span></div><div class="tbl"><table class="wr"><thead><tr><th>Cohort</th><th>regime</th><th>n</th><th>mean</th><th>median</th><th>hit</th><th>p90</th><th>MAE</th></tr></thead><tbody>' + rk.map(function (l) { return Object.keys(rg[l]).map(function (m) { var c = rg[l][m] || {}; return '<tr><td class="lab">' + esc(l) + '</td><td>' + esc(m) + '</td><td>' + esc(c.n) + '</td><td class="' + cls(c.mean_excess_pct) + '">' + esc(pct(c.mean_excess_pct, 1)) + '</td><td class="' + cls(c.median_excess_pct) + '">' + esc(pct(c.median_excess_pct, 1)) + '</td><td>' + esc(c.hit_rate_pct) + '%</td><td class="pos">' + esc(pct(c.p90_excess_pct, 0)) + '</td><td class="neg">' + esc(pct(c.median_max_adverse_pct, 1)) + '</td></tr>'; }).join(""); }).join("") + '</tbody></table></div></div>';
+    }
+    var fs = v.feature_stats_126s || {}, fb = fs.buckets || {}, fk = Object.keys(fb);
+    if (fk.length) {
+      oh += '<div class="wr-panel" style="margin-top:10px"><div class="ph"><span>What actually carried edge — per-feature base rates, 126 sessions (grand mean ' + esc(pct(fs.grand_mean_excess_pct, 1)) + ', n=' + esc(fs.n) + ')</span><span class="cnt">delta = bucket mean minus grand mean; this table is the learned prior</span></div><div class="tbl"><table class="wr"><thead><tr><th>Feature</th><th style="text-align:left">bucket</th><th>n</th><th>mean excess</th><th>delta</th><th>hit</th></tr></thead><tbody>' + fk.map(function (f) { var bks = fb[f]; return Object.keys(bks).sort(function (a, b) { return (bks[b].delta_pct || 0) - (bks[a].delta_pct || 0); }).map(function (bk) { var c = bks[bk]; return '<tr><td class="lab">' + esc(f) + '</td><td style="text-align:left">' + esc(bk) + '</td><td>' + esc(c.n) + '</td><td class="' + cls(c.mean_excess_pct) + '">' + esc(pct(c.mean_excess_pct, 1)) + '</td><td class="' + cls(c.delta_pct) + '">' + esc(pct(c.delta_pct, 1)) + '</td><td>' + esc(c.hit_rate_pct) + '%</td></tr>'; }).join(""); }).join("") + '</tbody></table></div></div>';
+    }
+    $("val-extra").innerHTML = oh;
     var b = D.base_rates || {}, bt = b.by_tier || {};
     var tiers = Object.keys(bt);
     if (!tiers.length) { $("base").innerHTML = '<tbody><tr><td class="read">' + esc(b.n_snapshots || 0) + ' daily snapshot(s) banked — the first grades appear 21 sessions after the first snapshot.</td></tr></tbody>'; $("base-cnt").textContent = b.status || ""; }
