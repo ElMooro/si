@@ -83,7 +83,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -119,10 +119,10 @@ P = {
                        "ENA", "W", "STRK", "ZK", "EIGEN", "HYPE", "PENDLE", "AERO", "VIRTUAL", "AR",
                        "AKT", "THETA", "FLR", "ASTR", "WLD", "ZRO"],
 }
-WEIGHTS = {"structure": 16, "accumulation": 13, "inflows": 12, "oversold": 10, "location": 10,
-           "catalyst": 11, "momentum": 6, "quality": 7, "learned": 15}
+WEIGHTS = {"structure": 12, "accumulation": 12, "inflows": 12, "oversold": 8, "location": 12,
+           "catalyst": 10, "momentum": 5, "quality": 7, "learned": 22}
 GATE_PILLARS = ["structure", "accumulation", "inflows", "oversold", "location", "quality"]
-TIER_ORDER = ["KATLIN_PRIME", "READY", "BASING", "WATCH", "SCREENED"]
+TIER_ORDER = ["KATLIN_PRIME", "READY", "BASING", "CRASH_BARBELL", "WATCH", "SCREENED"]
 BENCH = ["SPY", "QQQ", "IWM", "TLT", "IEF", "SHY", "BIL", "HYG", "LQD", "UUP", "GLD", "SLV", "CPER",
          "USO", "DBC", "DBB", "BTC"]
 SECTOR_ETF = {"Technology": "XLK", "Healthcare": "XLV", "Financial": "XLF", "Consumer Cyclical": "XLY",
@@ -787,7 +787,7 @@ def structure_weekly(W):
         level = seg_h[i2] + slope * (cur - i2)
         out["trendline_level"] = level
         out["lt_downtrend"] = True
-        above = seg_c[-1] > level
+        above = seg_c[-1] > level * 1.02          # 2% margin: a close AT the line is not a break
         wk = None
         if above:
             wk = 0
@@ -796,10 +796,14 @@ def structure_weekly(W):
                 if seg_c[-1 - k] <= lv:
                     break
                 wk = k
-        out["lt_trend_break"] = bool(above)
+        # a CONFIRMED-grade break needs a real chain (the anchor plus >=2 lower highs) and must be fresh (<=26 weeks)
+        out["minor_line_break"] = bool(above)
+        out["lt_trend_break"] = bool(above and lower_highs >= 2 and (wk is None or wk <= 26))
         out["weeks_since_break"] = wk
-        if above:
+        if out["lt_trend_break"]:
             out["notes"].append("weekly close above the downtrend line drawn through %d lower highs (%.2f)" % (lower_highs, level))
+        elif above:
+            out["notes"].append("above a minor line (%d lower high) -- not counted as a confirmed break" % lower_highs)
     else:
         out["lt_downtrend"] = bool(out["sma40_falling"] and c[-1] < (s40 or c[-1]))
         out["lt_trend_break"] = False if out["lt_downtrend"] else None
@@ -836,7 +840,7 @@ def structure_weekly(W):
             peak = max(seg_h[ib:ia + 1])
             if peak / lo_ - 1 < 0.08:
                 continue
-            state = "CONFIRMED" if seg_c[-1] > peak else ("FORMING" if seg_c[-1] > la * 1.03 else "UNCONFIRMED")
+            state = "CONFIRMED" if seg_c[-1] > peak * 1.01 else ("FORMING" if seg_c[-1] > la * 1.03 else "UNCONFIRMED")
             db = {"low1": lb, "low2": la, "neckline": peak, "weeks_apart": gap, "state": state,
                   "weeks_since_low2": look - 1 - ia, "room_to_neckline_pct": (peak / seg_c[-1] - 1) * 100}
             break
@@ -1306,7 +1310,9 @@ def structure_score(sig):
     if (mq.get("m_lower_lows") or 0) >= 3 and not mq.get("m_higher_low"):
         pts -= 8
     score = clamp(pts)
-    state = "CONFIRMED" if (score >= 50 and ((db and db["state"] == "CONFIRMED") or sw.get("lt_trend_break"))) else \
+    dd52 = (sig.get("loc") or {}).get("dd_52w_pct")
+    real_decline = dd52 is None or dd52 <= -15.0
+    state = "CONFIRMED" if (score >= 55 and real_decline and ((db and db["state"] == "CONFIRMED") or sw.get("lt_trend_break"))) else \
         ("FORMING" if score >= P["structure_gate"] else "NONE")
     return score, state, legs
 
@@ -2564,6 +2570,10 @@ def _washout(sig):
 
 def gates_and_tier(r):
     g = r["gates"]
+    # history gate from the learned prior (walk-forward base rate): PRIME needs a positive expected excess, READY must not be clearly negative
+    hist = r.get("learned_excess_126s_pct")
+    g["history"] = bool(hist is None or hist >= -2.0)
+    hist_prime = hist is None or hist >= 2.0
     n = sum(1 for k in ("location", "oversold", "accumulation", "inflows", "structure", "catalyst") if g.get(k))
     r["gates_passed"] = n + (1 if g["not_knife"] else 0) + (1 if g["quality"] else 0)
     core = g["location"] and g["not_knife"] and g["quality"] and g.get("washout", True)
@@ -2573,9 +2583,14 @@ def gates_and_tier(r):
             tier = "SCREENED" if n < 4 else "WATCH"
         if g["location"] and not g.get("washout", True):
             tier = "WATCH" if n >= 3 else "SCREENED"
-    elif g["oversold"] and g["accumulation"] and g["inflows"] and g["structure"] and g["catalyst"] and r["structure_state"] == "CONFIRMED" and (r.get("n_named_catalysts") or 0) >= 1:
+        # the crash barbell: a knife with a deep drawdown and real volatility -- history says most lose a little, a few double or triple
+        if g["location"] and not g["not_knife"] and g["quality"] and (r.get("dd_52w_pct") or 0) <= -45.0 and (r.get("vol_ann_pct") or 0) >= 45.0 \
+                and (hist is None or hist >= 4.0) and r["asset_class"] == "stock":
+            tier = "CRASH_BARBELL"
+    elif g["oversold"] and g["accumulation"] and g["inflows"] and g["structure"] and g["catalyst"] and r["structure_state"] == "CONFIRMED" \
+            and (r.get("n_named_catalysts") or 0) >= 1 and hist_prime:
         tier = "KATLIN_PRIME"
-    elif g["accumulation"] and g["structure"] and (g["oversold"] or g["inflows"]) and (n >= 4):
+    elif g["accumulation"] and g["structure"] and (g["oversold"] or g["inflows"]) and (n >= 4) and g["history"]:
         tier = "READY"
     elif g["accumulation"] and (g["oversold"] or g["structure"] or g["inflows"]):
         tier = "BASING"
@@ -2719,7 +2734,9 @@ def why_text(r):
         s.append("RED FLAGS: " + "; ".join(q["red_flags"]) + ".")
     elif q.get("notes"):
         s.append("Watch: " + "; ".join(q["notes"][:2]) + ".")
-    if r.get("knife"):
+    if r.get("knife") and r.get("tier") == "CRASH_BARBELL":
+        s.append("CRASH BARBELL: %s. History since 2021 says names like this lose a little most of the time and occasionally double or triple -- a small, equal-weight lottery ticket inside a basket, never a core position." % r["knife_why"])
+    elif r.get("knife"):
         s.append("KNIFE WARNING: %s -- wait for a higher low before touching it." % r["knife_why"])
     ap = (r.get("alpha_prior") or {}).get("126s") if isinstance(r.get("alpha_prior"), dict) else None
     if ap and ap.get("n_features"):
@@ -3214,6 +3231,18 @@ def regime_history(bt, mkt_above200):
     return out
 
 
+
+def barbell_base_rate(bt):
+    """the walk-forward's knife cohort = the crash barbell's honest base rate (mean, median, hit, p90, MAE at 126/252s)."""
+    co = ((bt or {}).get("cohorts") or {}).get("knife") or {}
+    out = {}
+    for h in ("63s", "126s", "252s"):
+        c = co.get(h)
+        if c:
+            out[h] = {k: c.get(k) for k in ("n", "mean_excess_pct", "median_excess_pct", "hit_rate_pct", "p90_excess_pct", "median_max_adverse_pct", "payoff")}
+    return out or None
+
+
 def validation_summary(bt):
     if not bt:
         return {"status": "no backtest yet -- runs Sundays", "cohorts": None}
@@ -3268,7 +3297,7 @@ def desk_panels(rows, wr):
                         "rsi_w": r.get("rsi_w"), "structure": r["structure_state"], "sniper": (r.get("sniper") or {}).get("state"), "why": (r.get("why") or "")[:260]})
         return out
     war = [{"key": l["leg"], "label": l["leg"], "last": l["risk"], "kind": "index", "unit": "", "flag": l["flag"], "read": l["read"][:160], "source": l["source"], "asof": l.get("asof")} for l in wr["legs"]]
-    return {"war_room": war, "prime": pick_rows("KATLIN_PRIME"), "ready": pick_rows("READY", 60), "basing": pick_rows("BASING", 60),
+    return {"war_room": war, "prime": pick_rows("KATLIN_PRIME"), "ready": pick_rows("READY", 60), "basing": pick_rows("BASING", 60), "barbell": pick_rows("CRASH_BARBELL", 30),
             "etfs": pick_rows_class(rows, "etf"), "crypto": pick_rows_class(rows, "crypto")}
 
 
@@ -3442,7 +3471,8 @@ def lambda_handler(event=None, context=None):
                         "crypto_scored": sum(1 for r in rows if r["asset_class"] == "crypto"), "sessions": len(dates), "first_session": dates[0], "published": len(published)},
            "tiers": tiers, "gates": gates, "weights": WEIGHTS, "params": {k: v for k, v in P.items() if k != "crypto_symbols"},
            "top_picks": top_picks,
-           "picks": [r for r in published if r["tier"] in ("KATLIN_PRIME", "READY", "BASING")][:300],
+           "picks": [r for r in published if r["tier"] in ("KATLIN_PRIME", "READY", "BASING", "CRASH_BARBELL")][:340],
+           "barbell_base_rate": barbell_base_rate(F.get("backtest")),
            "watch": [{k: r.get(k) for k in ("ticker", "name", "asset_class", "sub_class", "sector", "industry", "last", "dist_sma200_pct", "dist_sma250_pct", "rsi_w", "rsi_d",
                                             "structure_state", "composite", "gates", "pillars", "knife", "tier")} for r in published if r["tier"] == "WATCH"][:400],
            "panels": desk_panels(rows, wr), "changes": changes, "base_rates": base_rates, "validation": validation_summary(F.get("backtest")),

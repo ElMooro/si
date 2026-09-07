@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="katlin-version" content="katlin-v2.0.0">
+<meta name="katlin-version" content="katlin-v2.1.0">
 <meta name="jh-marker" content="KATLIN_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Katlin · the buy desk · war-room posture + asymmetric bottoms across stocks, ETFs and crypto · JustHodl.AI</title>
@@ -79,7 +79,7 @@ table.wr tbody tr.pick{cursor:pointer}table.wr tbody tr.pick:hover td{background
 .wr-flag{display:inline-block;min-width:52px;text-align:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:3px}
 .wr-flag.GREEN{color:#22c55e;background:rgba(34,197,94,.12)}.wr-flag.AMBER{color:#f59e0b;background:rgba(245,158,11,.16)}.wr-flag.RED{color:#fff;background:#ef4444;animation:wr-flash 1s ease-in-out infinite}
 .tier{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:3px}
-.tier.KATLIN_PRIME{color:#0b0f14;background:#38ffa8}.tier.READY{color:#22c55e;background:rgba(34,197,94,.14)}.tier.BASING{color:#eab308;background:rgba(234,179,8,.14)}.tier.WATCH{color:var(--fg-2);background:rgba(120,140,170,.15)}
+.tier.KATLIN_PRIME{color:#0b0f14;background:#38ffa8}.tier.READY{color:#22c55e;background:rgba(34,197,94,.14)}.tier.BASING{color:#eab308;background:rgba(234,179,8,.14)}.tier.WATCH{color:var(--fg-2);background:rgba(120,140,170,.15)}.tier.CRASH_BARBELL{color:#ff5c7a;background:rgba(255,92,122,.14)}
 .st{font-size:10px;font-weight:700;letter-spacing:.06em}.st.CONFIRMED{color:#22c55e}.st.FORMING{color:#eab308}.st.NONE{color:var(--fg-3)}
 .sn{font-size:10px;font-weight:700}.sn.SNIPE_NOW{color:#38ffa8}.sn.SNIPE_PULLBACK{color:#22c55e}.sn.WAIT_TURN,.sn.WAIT_BREAK,.sn.WAIT{color:var(--fg-3)}
 .help{display:inline-block;width:13px;height:13px;line-height:12px;border-radius:50%;border:1px solid var(--border-strong);color:var(--fg-3);font-size:9px;text-align:center;margin-left:4px;cursor:help;font-weight:400}
@@ -156,7 +156,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 
 <h2>Opportunities — the asymmetric bottoms</h2>
 <div class="tabs" id="tabs">
-  <button data-t="prime" class="on">Katlin Prime</button><button data-t="ready">Ready</button><button data-t="basing">Basing</button><button data-t="etfs">ETFs</button><button data-t="crypto">Crypto</button><button data-t="watch">Watch</button>
+  <button data-t="prime" class="on">Katlin Prime</button><button data-t="ready">Ready</button><button data-t="basing">Basing</button><button data-t="barbell">Crash barbell</button><button data-t="etfs">ETFs</button><button data-t="crypto">Crypto</button><button data-t="watch">Watch</button>
 </div>
 <div class="filters">
   <select id="f-class"><option value="">All asset classes</option><option value="stock">Stocks</option><option value="etf">ETFs</option><option value="crypto">Crypto</option></select>
@@ -227,7 +227,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     days_below_sma200: ["Days < 200", "Consecutive sessions below the 200-day average."]
   };
   var COLS = ["ticker", "tier", "composite", "conviction", "learned", "last", "dist_sma200_pct", "dist_sma250_pct", "days_below_sma200", "rsi_w", "rsi_d", "rsi_m", "structure_state", "accumulation", "inflows", "catalyst", "momentum", "bbw_pctile", "vol_ratio_20_120", "rr", "asymmetry", "sniper", "dilution", "pe", "mcap", "ret_3m_pct"];
-  var TIER_RANK = { KATLIN_PRIME: 0, READY: 1, BASING: 2, WATCH: 3, SCREENED: 4 };
+  var TIER_RANK = { KATLIN_PRIME: 0, READY: 1, BASING: 2, CRASH_BARBELL: 3, WATCH: 4, SCREENED: 5 };
   var STRUCT_RANK = { CONFIRMED: 0, FORMING: 1, NONE: 2 };
   var SN_RANK = { SNIPE_NOW: 0, SNIPE_PULLBACK: 1, WAIT_TURN: 2, WAIT_BREAK: 3, WAIT: 4 };
 
@@ -276,6 +276,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
       if (tab === "ready" && r.tier !== "READY") return false;
       if (tab === "basing" && r.tier !== "BASING") return false;
       if (tab === "watch" && r.tier !== "WATCH") return false;
+      if (tab === "barbell" && r.tier !== "CRASH_BARBELL") return false;
       if (tab === "etfs" && r.asset_class !== "etf") return false;
       if (tab === "crypto" && r.asset_class !== "crypto") return false;
       if (fc && r.asset_class !== fc) return false;
@@ -293,7 +294,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     var body = rows.slice(0, 400).map(function (r) { return '<tr class="pick' + (selected === r.ticker ? " sel" : "") + '" data-t="' + esc(r.ticker) + '">' + COLS.map(function (k) { return cell(r, k); }).join("") + "</tr>"; }).join("");
     $("board").innerHTML = head + "<tbody>" + (body || '<tr><td colspan="' + COLS.length + '" class="read">nothing in this bucket today — the gates are strict by design. Try Basing or Watch, or loosen the filters.</td></tr>') + "</tbody>";
     $("board-cnt").textContent = rows.length + " rows";
-    $("board-title").textContent = { prime: "Katlin Prime — all gates, bottom confirmed, catalyst named", ready: "Ready — accumulation + structure, sniper watching", basing: "Basing — accumulating under the 200-day, no confirmation yet", etfs: "ETFs (sectors · industries · countries · commodities · bonds)", crypto: "Crypto", watch: "Watch — partial evidence" }[tab];
+    var bb = (D.barbell_base_rate || {})["252s"] || (D.barbell_base_rate || {})["126s"];
+    $("board-title").textContent = { prime: "Katlin Prime — all gates, bottom confirmed, catalyst named, history positive", ready: "Ready — accumulation + structure, history not against it, sniper watching", basing: "Basing — accumulating under the 200-day, no confirmation yet", barbell: "Crash barbell — knives with a deep drawdown: lottery tickets, small equal-weight basket only" + (bb ? " · history: mean " + pct(bb.mean_excess_pct, 0) + ", median " + pct(bb.median_excess_pct, 0) + ", hit " + bb.hit_rate_pct + "%, p90 " + pct(bb.p90_excess_pct, 0) + " (n=" + bb.n + ")" : ""), etfs: "ETFs (sectors · industries · countries · commodities · bonds)", crypto: "Crypto", watch: "Watch — partial evidence" }[tab];
     $("board").querySelectorAll("th").forEach(function (th) {
       th.addEventListener("click", function (e) { if (e.target.classList.contains("help") || e.target.closest(".tip")) { th.classList.toggle("pin"); e.stopPropagation(); return; } var k = th.dataset.k; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "tier" || k === "structure_state" || k === "sniper" || k === "ticker" || k === "dist_sma200_pct" || k === "dist_sma250_pct" || k === "rsi_w" || k === "rsi_d" || k === "rsi_m" || k === "bbw_pctile" || k === "vol_ratio_20_120" || k === "dilution" || k === "pe" || k === "ret_3m_pct") ? 1 : -1; } renderBoard(); });
     });
@@ -353,7 +355,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     var c = w.cycle || {};
     $("wr-cycle").querySelector(".h").innerHTML = "phase <b>" + esc(c.phase || "unknown") + "</b>" + (c.cli != null ? " · CLI " + esc(num(c.cli, 1)) : "") + (c.downturn_prob_6m != null ? " · 6m downturn " + esc(num(c.downturn_prob_6m <= 1 ? c.downturn_prob_6m * 100 : c.downturn_prob_6m, 0)) + "%" : "") + (c.recession_prob_pct != null ? " · recession " + esc(num(c.recession_prob_pct, 0)) + "%" : "") + (w.crypto_dump_risk != null ? " · crypto dump-risk " + esc(num(w.crypto_dump_risk, 0)) : "") + (w.y10 != null ? " · 10Y " + esc(num(w.y10, 2)) + "%" : "");
     var t = D.tiers || {}, u = D.universe || {};
-    $("wr-counts").querySelector(".h").innerHTML = '<span class="tier KATLIN_PRIME">PRIME ' + (t.KATLIN_PRIME || 0) + '</span> <span class="tier READY">READY ' + (t.READY || 0) + '</span> <span class="tier BASING">BASING ' + (t.BASING || 0) + '</span> <span class="tier WATCH">WATCH ' + (t.WATCH || 0) + '</span><div class="note">' + (u.stocks_scored || 0) + ' stocks · ' + (u.etfs_scored || 0) + ' ETFs · ' + (u.crypto_scored || 0) + ' crypto scored over ' + (u.sessions || 0) + ' sessions (' + esc(u.first_session || "") + '→)</div>';
+    $("wr-counts").querySelector(".h").innerHTML = '<span class="tier KATLIN_PRIME">PRIME ' + (t.KATLIN_PRIME || 0) + '</span> <span class="tier READY">READY ' + (t.READY || 0) + '</span> <span class="tier BASING">BASING ' + (t.BASING || 0) + '</span> <span class="tier CRASH_BARBELL">BARBELL ' + (t.CRASH_BARBELL || 0) + '</span> <span class="tier WATCH">WATCH ' + (t.WATCH || 0) + '</span><div class="note">' + (u.stocks_scored || 0) + ' stocks · ' + (u.etfs_scored || 0) + ' ETFs · ' + (u.crypto_scored || 0) + ' crypto scored over ' + (u.sessions || 0) + ' sessions (' + esc(u.first_session || "") + '→)</div>';
     var legs = (w.legs || []).slice().sort(function (a, b) { return b.risk - a.risk; });
     $("legs").innerHTML = '<thead><tr><th>Leg</th><th>Risk</th><th>Flag</th><th style="text-align:left">Read</th><th>Source</th><th>As of</th></tr></thead><tbody>' + legs.map(function (l) { return '<tr class="' + esc(l.flag) + '"><td class="lab">' + esc(l.leg) + '<small>weight ' + esc(l.weight) + '</small></td><td class="' + (l.risk >= 70 ? "neg" : l.risk >= 45 ? "flat" : "pos") + '">' + esc(l.risk) + '</td><td><span class="wr-flag ' + esc(l.flag) + '">' + esc(l.flag) + '</span></td><td class="read">' + esc(l.read) + '</td><td>' + esc(l.source) + '</td><td>' + esc(l.asof ? ago(l.asof) : "—") + '</td></tr>'; }).join("") + "</tbody>";
     $("legs-cnt").textContent = legs.length + " legs · " + (w.n_red || 0) + " RED";
@@ -400,7 +402,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
   function renderAll() {
     renderWar();
     // open on the first non-empty bucket (the gates are strict; PRIME is often empty by design)
-    if (!D._tabPicked) { D._tabPicked = true; var counts = { prime: 0, ready: 0, basing: 0 }; (D.picks || []).forEach(function (r) { if (r.tier === "KATLIN_PRIME") counts.prime++; else if (r.tier === "READY") counts.ready++; else if (r.tier === "BASING") counts.basing++; }); var want = counts.prime ? "prime" : counts.ready ? "ready" : counts.basing ? "basing" : "watch"; if (want !== tab) { tab = want; document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x.dataset.t === tab); }); } }
+    if (!D._tabPicked) { D._tabPicked = true; var counts = { prime: 0, ready: 0, basing: 0, barbell: 0 }; (D.picks || []).forEach(function (r) { if (r.tier === "KATLIN_PRIME") counts.prime++; else if (r.tier === "READY") counts.ready++; else if (r.tier === "BASING") counts.basing++; else if (r.tier === "CRASH_BARBELL") counts.barbell++; }); var want = counts.prime ? "prime" : counts.ready ? "ready" : counts.basing ? "basing" : counts.barbell ? "barbell" : "watch"; if (want !== tab) { tab = want; document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x.dataset.t === tab); }); } }
     renderBoard(); renderChanges(); renderValidation(); renderDefs();
     var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); }
   }
