@@ -1,25 +1,94 @@
-executing-against: 3d1106d1515bf9091fa7f055c7686e040baa15e5
-ops 5215 -- fusion Release 2: API v1 + Fusion Desk + shadow ledger
-── fusion Lambda ──
-[18:39:10]   Lambda exists — updating
-[18:39:13] ✅   ✓ updated justhodl-jh-fusion
-[18:39:29] ✅    fusion 20260907T183919Z-cebe2a5a v1.1.0: 14 entities, shadow=True, shadow block {"key": "data/jh-fusion/shadow.json", "agreement_rate": 0.72, "n_compared": 25, "logging": {"enabled": true, "logged": 12, "skipped": 2, "errors": []}}
-[18:39:29] ✅    shadow.json: 14 rows, agreement 0.72 on 25 reads, logging {"enabled": true, "logged": 12, "skipped": 2, "errors": []}
-[18:39:29]    jh_fusion ledger rows today: 12 -> ['SPY UP 770.19', 'QQQ DOWN 718.96', 'IWM DOWN 296.01', 'NVDA DOWN 230.36', 'TSM UP 428.91', 'ASML UP 1714.88', 'AAPL DOWN 319.97', 'MSFT UP 499.7', 'AMZN UP 258.51', 'META UP 616.77', 'BTC-USD UP 79112.24', 'ETH-USD UP 2487.77']
-── API v1 (justhodl.ai/api/v1/*) ──
-[18:39:30]    /api/v1/health live at the edge: True (0s)
-[18:39:30]    /api/v1/fusion -> HTTP 200, 12657 bytes, ok=True
-[18:39:30]    /api/v1/fusion/NVDA -> HTTP 200, 8598 bytes, ok=True
-[18:39:30]    /api/v1/fusion/equity:NVDA?horizon=INTERMEDIATE&full=1 -> HTTP 200, 8106 bytes, ok=True
-[18:39:30]    /api/v1/fusion/NVDA/changes -> HTTP 200, 1427 bytes, ok=True
-[18:39:30]    /api/v1/signals/SPY?family=RISK -> HTTP 200, 1215 bytes, ok=True
-[18:39:30]    /api/v1/regime/current -> HTTP 200, 1110 bytes, ok=True
-[18:39:30]    /api/v1/opportunities?min_confidence=0.3&limit=5 -> HTTP 200, 2423 bytes, ok=True
-[18:39:30]    /api/v1/fusion/ZZZZ -> HTTP 404, 238 bytes, ok=True
-── fusion.html ──
-[18:42:46]    fusion.html carries JH_FUSION_DESK_V1 at the edge: True
-[18:42:59]    1440px: {"score": "+0.27", "posture": "MILDLY SUPPORTIVE", "legs": 5, "board": 14, "evid": 217, "evrows": 3, "tabs": 3, "helps": 12, "defs": 13, "opps": 20, "shadow": 14, "overflow": 0, "err": ""} errors=[] csp=[]
-[18:43:09]     390px: {"score": "+0.27", "posture": "MILDLY SUPPORTIVE", "legs": 5, "board": 14, "evid": 217, "evrows": 3, "tabs": 3, "helps": 12, "defs": 13, "opps": 20, "shadow": 14, "overflow": 0, "err": ""} errors=[] csp=[]
-[18:43:09] ✅ GREEN -- Release 2 live: /api/v1/*, fusion.html, shadow ledger (jh_fusion in justhodl-signals) -- still shadow mode
+executing-against: d4efb5b985c86d1ceb9280588e74447ac3fcd3ce
+ops 5216 -- QA probe: live route states (read-only)
+── route / ──
+[19:02:01]    HTTP 200 -> final /?v=1788807711 in 10.7s
+[19:02:01]    facts: {"title": "Command Desk \u00b7 JustHodl.AI", "sections": 19, "tables": 10, "rows": 126, "links": 982, "buttons": 559, "hd_authority": "INVEST SELECTIVELY", "hd_catalog": "860 engines \u00b7 460 pages \u00b7 3,449 numbered sections \u00b7 1,367 panels \u00b7 registry 12h ago", "hd_dir_count": "460 pages", "hd_cap": "50%", "hd_cov": "70%", "hd_blocks": 12, "khalid_unavail": false, "body_len": 12208, "engines_rows": 0, "errbox": null}
+[19:02:01]    fallback strings still visible after 10s: none
+[19:02:01]    page errors: none
+[19:02:01]    console errors/warnings: ['error: Failed to load resource: the server responded with a status of 404 ()', 'error: Failed to load resource: the server responded with a status of 404 ()', 'error: Failed to load resource: the server responded with a status of 404 ()']
+[19:02:01]    failed requests: none
+[19:02:01]    >=400 responses: [(404, 'https://justhodl.ai/config/engine-contracts.json'), (404, 'https://justhodl.ai/config/engine-contracts.json')]
+[19:02:01]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:00 ET COMMAND CENTER → Skip to command desk JUSTHODL.AI Khalid opportunities Khalid risk board Engines AUTHORITATIVE CAPITAL DECISION INVEST SELECTIVELY Open full risk board → EXPOSURE CAP 50% FUSION COVERAGE 70% DISAGREEMENTS 0 VETOES 0 STALE / MISSING 2 / 0 Selected 
+── route /khalid.html ──
+[19:02:12]    HTTP 200 -> final /khalid.html?v=1788807721 in 10.5s
+[19:02:12]    facts: {"title": "Khalid | JustHodl.AI", "sections": 5, "tables": 2, "rows": 58, "links": 535, "buttons": 54, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 9672, "engines_rows": 0, "errbox": null}
+[19:02:12]    fallback strings still visible after 10s: none
+[19:02:12]    page errors: none
+[19:02:12]    console errors/warnings: none
+[19:02:12]    failed requests: ['https://justhodl.ai/khalid.js?v=e8f0711a net::ERR_ABORTED', 'https://justhodl.ai/jh-footer.js?v=677b9e51 net::ERR_ABORTED']
+[19:02:12]    >=400 responses: none
+[19:02:12]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:12 ET COMMAND CENTER → KHALID RISK + OPPORTUNITY ENGINE · V3 RISK BOARD OK Updated 36m ago REFRESH COMMAND VIEWS 01 Command 02 Opportunities 03 Asset classes 04 Risk radar 05 Method + data MANDATE Find the market's biggest underappreciated opportunities. Track early. E
+── route /khalidrisk.html ──
+[19:02:23]    HTTP 200 -> final /khalidrisk.html?v=1788807732 in 10.4s
+[19:02:23]    facts: {"title": "Khalid Risk Board | JustHodl.AI", "sections": 6, "tables": 1, "rows": 13, "links": 479, "buttons": 7, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 6229, "engines_rows": 0, "errbox": null}
+[19:02:23]    fallback strings still visible after 10s: none
+[19:02:23]    page errors: none
+[19:02:23]    console errors/warnings: none
+[19:02:23]    failed requests: none
+[19:02:23]    >=400 responses: none
+[19:02:23]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:22 ET COMMAND CENTER → Skip to risk board KHALID / RISK INDEPENDENT CAPITAL CONTROL Command desk Khalid opportunities Risk board Sign In AUTHORITATIVE CAPITAL DECISION §1INVEST SELECTIVELY INVEST SELECTIVELY. Khalid Risk permits at most 50% exposure. Only fully confirm
+── route /engines.html ──
+[19:02:33]    HTTP 200 -> final /engines.html?v=1788807743 in 10.6s
+[19:02:33]    facts: {"title": "Engine Directory \u00b7 JustHodl AI", "sections": 0, "tables": 1, "rows": 667, "links": 2302, "buttons": 5, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 63277, "engines_rows": 0, "errbox": null}
+[19:02:33]    fallback strings still visible after 10s: none
+[19:02:33]    page errors: none
+[19:02:33]    console errors/warnings: ["error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fengines.html&favs=0&sw=none&v=3276' from origin 'https:", 'error: Failed to load resource: net::ERR_FAILED']
+[19:02:33]    failed requests: ['https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fengines.html&favs=0&sw=none&v=3276 net::ERR_FAILED']
+[19:02:33]    >=400 responses: none
+[19:02:33]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:32 ET COMMAND CENTER → SYSTEM & META / ENGINE DIRECTORY Engine Directory UPDATED 2026-09-07T18:53:23Z Every registered engine, computed fresh on every deploy — not a hand-maintained list. WIRED means at least one live page's actual source references that engine's real 
+── route /status.html ──
+[19:02:44]    HTTP 200 -> final /system.html?v=1788807753 in 10.6s
+[19:02:44]    facts: {"title": "System Health \u00b7 JustHodl.AI", "sections": 2, "tables": 9, "rows": 82, "links": 975, "buttons": 15, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 18136, "engines_rows": 0, "errbox": null}
+[19:02:44]    fallback strings still visible after 10s: none
+[19:02:44]    page errors: none
+[19:02:44]    console errors/warnings: none
+[19:02:44]    failed requests: ['https://justhodl.ai/jh-wire.js?v=83773466 net::ERR_ABORTED', 'https://justhodl.ai/jh-sections.js?v=74240ba8 net::ERR_ABORTED']
+[19:02:44]    >=400 responses: none
+[19:02:44]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:44 ET COMMAND CENTER → JUSTHODL ·AI DESK STOCK SCREENER EDGE INTEL TICKER SECTORS ALLOCATOR VOL NEWS MOMENTUM RESEARCH ACCURACY FEEDBACK LIQUIDITY FLOW CRYPTO COT RISK 🌪 STRESS 🏛 AUCTIONS 📈 BONDS VALUATIONS SYSTEM INVESTORS 19:02 UTC DEGRADED · 23 RED SYSTEM HEALTH Liv
+── route /system.html ──
+[19:02:54]    HTTP 200 -> final /system.html?v=1788807764 in 10.4s
+[19:02:54]    facts: {"title": "System Health \u00b7 JustHodl.AI", "sections": 2, "tables": 9, "rows": 82, "links": 975, "buttons": 15, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 18136, "engines_rows": 0, "errbox": null}
+[19:02:54]    fallback strings still visible after 10s: none
+[19:02:54]    page errors: none
+[19:02:54]    console errors/warnings: none
+[19:02:54]    failed requests: none
+[19:02:54]    >=400 responses: none
+[19:02:54]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:02:53 ET COMMAND CENTER → JUSTHODL ·AI DESK STOCK SCREENER EDGE INTEL TICKER SECTORS ALLOCATOR VOL NEWS MOMENTUM RESEARCH ACCURACY FEEDBACK LIQUIDITY FLOW CRYPTO COT RISK 🌪 STRESS 🏛 AUCTIONS 📈 BONDS VALUATIONS SYSTEM INVESTORS 19:02 UTC DEGRADED · 23 RED SYSTEM HEALTH Liv
+── route /fusion.html ──
+[19:03:05]    HTTP 200 -> final /fusion.html?v=1788807775 in 10.4s
+[19:03:05]    facts: {"title": "Fusion Desk \u00b7 JustHodl Intelligence Network \u00b7 one conviction, confidence, coverage and contradiction read per asset \u00b7 JustHodl.AI", "sections": 1, "tables": 4, "rows": 53, "links": 971, "buttons": 11, "hd_authority": null, "hd_catalog": null, "hd_dir_count": null, "hd_cap": null, "hd_cov": null, "hd_blocks": 0, "khalid_unavail": false, "body_len": 20294, "engines_rows": 0, "errbox": null}
+[19:03:05]    fallback strings still visible after 10s: none
+[19:03:05]    page errors: none
+[19:03:05]    console errors/warnings: none
+[19:03:05]    failed requests: none
+[19:03:05]    >=400 responses: none
+[19:03:05]    text: JUSTHODL·AI SPX 7,718.6 -0.4% NDX 26,507 -0.3% BTC 79,195 -1.4% GOLD 4,452 -0.6% US10Y 4.77% VIX 14.3 DXY 118.7 +0.3% CN GDP 21.05% US CPI 2.95% 15:03:04 ET COMMAND CENTER → JUSTHODL .AI COMMAND DESK FUSION BONDS AUCTIONS FORTRESS KATLIN WHY CHART PRO DATA §1FUSION DESK · the intelligence network SHADOW MODE Every registered engine's read, translated to one canonical signal (JHSIGNAL-1.0) and fused per asset and hori
+── artifacts the pages depend on ──
+[19:03:05]    data/khalid-risk.json: 0.7h old, 19956 bytes, keys ['engine', 'schema_version', 'version', 'generated_at', 'as_of', 'status', 'policy', 'capital_decision', 'exposure_cap_pct', 'risk_score', 'plain_english', 'coverage', 'freshness', 'treasury_fails', 'domains', 'hard_vetoes', 'tighteners', 'conflicts', 'source_health', 'missing_inputs', 'critical_failures', 'reasons', 'risk_board', 'fusion_context', 'methodology']
+[19:03:05]       top: {"status": "DEGRADED", "as_of": "2026-09-07T18:15:50.786346+00:00", "generated_at": "2026-09-07T18:20:49.522302+00:00", "engine": "justhodl-khalid-risk", "schema_version": "1.0.0", "policy": "{\"mode\": \"SELECTIVE\", \"allows_new_entries\": true, \"risk_gate_posture\": \"NEUTRAL\", \"risk_gate_composite\": -0.125, \"risk_gate_sizing_multiplier\": 0.75, \"sizing_mu", "capital_decision": "INVEST SELECTIVELY", "exposure_cap_pct": 50, "coverage": "{\"total\": 13, \"fresh\": 11, \"stale\": 2, \"miss
+[19:03:05]    data/engine-fusion.json: 0.8h old, 12587 bytes, keys ['engine', 'schema_version', 'version', 'generated_at', 'status', 'authoritative_verdict', 'packets', 'inactive_packets', 'coverage', 'dedupe', 'disagreements', 'vetoes', 'subscriptions', 'trace', 'methodology']
+[19:03:05]       top: {"status": "DEGRADED", "generated_at": "2026-09-07T18:15:10.833098+00:00", "engine": "justhodl-engine-fusion", "schema_version": "1.0.0", "coverage": "{\"allowlisted_sources\": 10, \"fresh_active_before_dedupe\": 7, \"active_after_dedupe\": 7, \"ratio\": 0.7, \"independent_root_evidence\": 0, \"synthesized_views\": 7, \"fr"}
+[19:03:05]       packets 7 active / inactive 5 / coverage {"allowlisted_sources": 10, "fresh_active_before_dedupe": 7, "active_after_dedupe": 7, "ratio": 0.7, "independent_root_evidence": 0, "synthesized_views": 7, "fr / status DEGRADED
+[19:03:06]    data/khalid.json: 0.6h old, 12897237 bytes, keys ['schema_version', 'engine', 'version', 'generated_at', 'as_of', 'status', 'score', 'stance', 'risk_score', 'confidence', 'coverage', 'domains', 'asset_views', 'top_signals', 'contradictions', 'catalysts', 'risks', 'inputs', 'missing_inputs', 'decision', 'risk_board', 'risk_artifact', 'breadth_clusters', 'risk_control', 'selected', 'building_bases', 'watch_reclaims', 'crypto_watch', 'biggest_opportunities', 'opportunity_radar']
+[19:03:06]       top: {"status": "OK", "as_of": "2026-09-07T18:25:50.912341+00:00", "generated_at": "2026-09-07T18:25:50.912341+00:00", "engine": "justhodl-khalid", "schema_version": "3.0.0", "coverage": "{\"required\": 2, \"fresh\": 30, \"stale\": 3, \"missing\": 0, \"ratio\": 0.909, \"evaluated\": 3857, \"tracked\": 3857, \"universe_by_asset_class\": {\"BOND\": 7, \"COMMODITY\": 1"}
+[19:03:07]    data/khalid-candidates.json: 0.6h old, 14141148 bytes, keys ['engine', 'schema_version', 'generated_at', 'candidates']
+[19:03:07]       top: {"generated_at": "2026-09-07T18:25:50.912341+00:00", "engine": "justhodl-khalid-candidate-ledger", "schema_version": "3.0.0"}
+[19:03:07]    data/engine-registry.json: 1488.1h old, 162164 bytes, keys ['generated_at', 'n_engines', 'engines']
+[19:03:07]       top: {"generated_at": "2026-07-07T18:57:40.368970+00:00"}
+[19:03:07]       registry entries: 667
+[19:03:07]    data/site/section-registry.json: 11.8h old, 1036118 bytes, keys ['version', 'pages', 'generated_at', 'n_pages', 'n_sections', 'n_panels']
+[19:03:07]       top: {"generated_at": "2026-09-07T07:13:12+00:00"}
+[19:03:07]    data/jh-fusion.json: 0.1h old, 266914 bytes, keys ['schema_version', 'run_id', 'generated_at', 'shadow_mode', 'snapshot_run_id', 'snapshot_generated_at', 'trigger', 'regime', 'critical_dependencies', 'engine_versions', 'reliability_basis', 'flags', 'stats', 'entities', 'methodology', 'version', 'shadow', 'ledger_key']
+[19:03:07]       top: {"generated_at": "2026-09-07T18:55:59Z", "schema_version": "JH-FUSION-1.0", "run_id": "20260907T185559Z-1d12693b"}
+[19:03:07]    data/risk-gate.json: 0.4h old, 16406 bytes, keys ['engine', 'version', 'marker', 'generated_at', 'brain_constitution', 'posture', 'composite', 'replay_posture_fred_only', 'replay_composite_fred_only', 'sizing_multiplier', 'legs', 'fleet_context', 'event_study', 'indicators', 'recent_timeline', 'consume_as', 'elapsed_s']
+[19:03:07]       top: {"generated_at": "2026-09-07T18:41:36.483433+00:00", "engine": "justhodl-risk-gate"}
+── producers ──
+[19:03:08]    justhodl-khalid: modified 2026-09-04T23:09:06 | 1024MB/180s | schedules ['justhodl-khalid-risk-hourly cron(20 * * * ? *) ENABLED', 'justhodl-khalid-hourly cron(25 * * * ? *) ENABLED'] | last log 2026-09-07T18:25:57
+[19:03:08]       recent errors (6h): none
+[19:03:09]    justhodl-khalid-risk: modified 2026-09-04T23:07:29 | 512MB/120s | schedules ['justhodl-khalid-risk-hourly cron(20 * * * ? *) ENABLED'] | last log 2026-09-07T18:20:49
+[19:03:10]       recent errors (6h): none
+[19:03:10]    justhodl-engine-fusion: modified 2026-09-04T23:06:02 | 384MB/90s | schedules ['justhodl-engine-fusion-hourly cron(15 * * * ? *) ENABLED'] | last log 2026-09-07T18:15:10
+[19:03:11]       recent errors (6h): none
+[19:03:11] ✅ probe complete (read-only)
 
-→ Report written to aws/ops/reports/latest/ops_5215_fusion_release2.md
+→ Report written to aws/ops/reports/latest/ops_5216_qa_probe_routes.md
