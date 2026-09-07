@@ -1,27 +1,25 @@
-executing-against: def9bc31849f192fc9244856c7e2af950024d8bd
-ops 5214 -- fusion R1 fix-forward (GBC, etf-flows, timestamps, TTLs) + fan-out audit
-── functions ──
-[17:02:58]   Lambda exists — updating
-[17:03:01] ✅   ✓ updated justhodl-jhsignal-bridge
-[17:03:07]    justhodl-jhsignal-bridge Active / Successful
-[17:03:07]   Lambda exists — updating
-[17:03:13] ✅   ✓ updated justhodl-jh-fusion
-[17:03:18]    justhodl-jh-fusion Active / Successful
-── bridge re-run ──
-[17:03:29] ✅    run 20260907T170319Z-2cdba968 (bridge v1.0.1): 1823 signals / 1483 entities in 7.84s; freshness {'FRESH': 1823, 'STALE': 0, 'EXPIRED': 0, 'INVALID': 0}; changes {'new': 61, 'revised': 0, 'expired': 0}; bus {'sent': 62, 'failed': 0, 'suppressed': 0, 'per_signal_events': 61}; state {'enabled': True, 'table': 'ACTIVE', 'written': 1823, 'expired_swept': 0}
-[17:03:29]    market:US_EQUITY engines: ['crisis_composite', 'global_business_cycle', 'liquidity_credit_engine', 'regime_composite', 'risk_gate']
-[17:03:29]    snapshot families: {'MACRO': 3, 'RISK': 5, 'CATALYST': 211, 'FLOW': 421, 'MARKET': 1099, 'FUNDAMENTAL': 84}; duplicates dropped: 0
-[17:03:29]    etf:SPY: ['dealer_gex', 'etf_flows', 'institutional_13f_flows', 'tail_risk']
-[17:03:29]    etf:QQQ: ['dealer_gex', 'etf_flows', 'institutional_13f_flows', 'tail_risk']
-[17:03:29]    equity:NVDA: ['catalyst', 'dealer_gex', 'estimate_revisions', 'institutional_13f_flows']
-[17:03:29]    equity:AAPL: ['dealer_gex', 'institutional_13f_flows', 'short_interest']
-── fusion via coordinator route ──
-[17:03:40] ✅    fusion 20260907T170327Z-61cd5e46 via jhsignal.batch_published: entities 14, coverage mean 0.39, confidence mean 0.56, hard 0 / soft 3, regime MILDLY_SUPPORTIVE (0.27, 5 legs), route_verified=True
-── fan-out '15min' tick audit (justhodl-regime-composite had not run for 23h) ──
-[17:03:40]    ticks: {'daily-morn': 28, 'daily-eve': 8, 'daily-06utc': 2, 'daily-16utc': 2, 'every_6h': 2, '4hourly': 6, '15min': 10, 'daily-17utc': 10, 'hourly': 10, 'daily-15utc': 1, 'daily-08utc': 4, '30min': 1, 'daily-07utc': 1}
-[17:03:40]    router justhodl-scheduler last log event: 2026-09-07T17:00:40
-[17:03:41]    router schedules: []
-[17:03:42]    15min members silent > 6h: 0 of 10 -> []
-[17:03:42] ✅ GREEN -- fix-forward verified on live data
+executing-against: 3d1106d1515bf9091fa7f055c7686e040baa15e5
+ops 5215 -- fusion Release 2: API v1 + Fusion Desk + shadow ledger
+── fusion Lambda ──
+[18:39:10]   Lambda exists — updating
+[18:39:13] ✅   ✓ updated justhodl-jh-fusion
+[18:39:29] ✅    fusion 20260907T183919Z-cebe2a5a v1.1.0: 14 entities, shadow=True, shadow block {"key": "data/jh-fusion/shadow.json", "agreement_rate": 0.72, "n_compared": 25, "logging": {"enabled": true, "logged": 12, "skipped": 2, "errors": []}}
+[18:39:29] ✅    shadow.json: 14 rows, agreement 0.72 on 25 reads, logging {"enabled": true, "logged": 12, "skipped": 2, "errors": []}
+[18:39:29]    jh_fusion ledger rows today: 12 -> ['SPY UP 770.19', 'QQQ DOWN 718.96', 'IWM DOWN 296.01', 'NVDA DOWN 230.36', 'TSM UP 428.91', 'ASML UP 1714.88', 'AAPL DOWN 319.97', 'MSFT UP 499.7', 'AMZN UP 258.51', 'META UP 616.77', 'BTC-USD UP 79112.24', 'ETH-USD UP 2487.77']
+── API v1 (justhodl.ai/api/v1/*) ──
+[18:39:30]    /api/v1/health live at the edge: True (0s)
+[18:39:30]    /api/v1/fusion -> HTTP 200, 12657 bytes, ok=True
+[18:39:30]    /api/v1/fusion/NVDA -> HTTP 200, 8598 bytes, ok=True
+[18:39:30]    /api/v1/fusion/equity:NVDA?horizon=INTERMEDIATE&full=1 -> HTTP 200, 8106 bytes, ok=True
+[18:39:30]    /api/v1/fusion/NVDA/changes -> HTTP 200, 1427 bytes, ok=True
+[18:39:30]    /api/v1/signals/SPY?family=RISK -> HTTP 200, 1215 bytes, ok=True
+[18:39:30]    /api/v1/regime/current -> HTTP 200, 1110 bytes, ok=True
+[18:39:30]    /api/v1/opportunities?min_confidence=0.3&limit=5 -> HTTP 200, 2423 bytes, ok=True
+[18:39:30]    /api/v1/fusion/ZZZZ -> HTTP 404, 238 bytes, ok=True
+── fusion.html ──
+[18:42:46]    fusion.html carries JH_FUSION_DESK_V1 at the edge: True
+[18:42:59]    1440px: {"score": "+0.27", "posture": "MILDLY SUPPORTIVE", "legs": 5, "board": 14, "evid": 217, "evrows": 3, "tabs": 3, "helps": 12, "defs": 13, "opps": 20, "shadow": 14, "overflow": 0, "err": ""} errors=[] csp=[]
+[18:43:09]     390px: {"score": "+0.27", "posture": "MILDLY SUPPORTIVE", "legs": 5, "board": 14, "evid": 217, "evrows": 3, "tabs": 3, "helps": 12, "defs": 13, "opps": 20, "shadow": 14, "overflow": 0, "err": ""} errors=[] csp=[]
+[18:43:09] ✅ GREEN -- Release 2 live: /api/v1/*, fusion.html, shadow ledger (jh_fusion in justhodl-signals) -- still shadow mode
 
-→ Report written to aws/ops/reports/latest/ops_5214_fusion_r1_fixforward.md
+→ Report written to aws/ops/reports/latest/ops_5215_fusion_release2.md
