@@ -1,36 +1,12 @@
-executing-against: c60d4ea7603426b311879c655cc83357dd998ec4
-ops 5217 -- orphan references vs S3 (read-only)
-── page references (26) ──
-[19:09:26]    data/snapshots/data_${engine}-${date}.json: templated key, skipped
-[19:09:26]    {'PRESENT': 25, 'MISSING': 0, 'ERR': 0, 'PRESENT_STALE_7d': 7}
-── engine references (219) ──
-[19:09:26]    data/_alerts/digest-{today_str}-close.json: templated key, skipped
-[19:09:27]    data/_state/sdmx-walk-{agency}.json: templated key, skipped
-[19:09:27]    data/_state/sdmx-walk-{slug}.json: templated key, skipped
-[19:09:27]    data/_state/series-extract-{provider}.json: templated key, skipped
-[19:09:30]    data/ecb-hist/{hid}.json: templated key, skipped
-[19:09:30]    data/ecb-hist/{hist_id}.json: templated key, skipped
-[19:09:31]    data/estimate-revisions/{today_iso}.json: templated key, skipped
-[19:09:31]    data/fundgraph/cache/{sym}_quarter_v21.json: templated key, skipped
-[19:09:33]    data/history/{base}-history.json: templated key, skipped
-[19:09:33]    data/history/{base}_history.json: templated key, skipped
-[19:09:33]    data/llm/self-critique/{yday}.json: templated key, skipped
-[19:09:34]    data/misses/{d}.json: templated key, skipped
-[19:09:35]    data/page-ai/{page}.json: templated key, skipped
-[19:09:35]    data/page-ai/{pg}.json: templated key, skipped
-[19:09:35]    data/predictions-snapshots/{yesterday}.json: templated key, skipped
-[19:09:36]    data/search/providers/{slug}.json.gz: templated key, skipped
-[19:09:37]    data/snapshots/{base}.json: templated key, skipped
-[19:09:39]    data/warm/fred-scoped/EU_Sovereign_Yields/{_fid}.json: templated key, skipped
-[19:09:39]    data/warm/fred-scoped/{cat}/{id}.json: templated key, skipped
-[19:09:41]    data/warm/ofr-hfm/series/{_fs}.json.gz: templated key, skipped
-[19:09:41]    data/warm/ofr/series/{_mm}.json.gz: templated key, skipped
-[19:09:41]    data/warm/ofr/series/{mn}.json.gz: templated key, skipped
-[19:09:42]    data/warm/treasury/{ds}.json.gz: templated key, skipped
-[19:09:42]    data/{guess}.json: templated key, skipped
-[19:09:42]    data/{key}.json: templated key, skipped
-[19:09:42]    data/{k}.json: templated key, skipped
-[19:09:42]    {'PRESENT': 106, 'MISSING': 87, 'ERR': 0, 'PRESENT_STALE_7d': 31}
-[19:09:42] ✅ done: {"page": {"PRESENT": 25, "MISSING": 0, "ERR": 0, "PRESENT_STALE_7d": 7}, "engine": {"PRESENT": 106, "MISSING": 87, "ERR": 0, "PRESENT_STALE_7d": 31}}
+executing-against: 6fb54b47111830899e81c7c2e21ec5b2b1b1d71b
+ops 5218 -- QA fixes gate (B1 contracts 404, B2 engine directory, B3 beacon CORS)
+── edge deploy ──
+[19:48:42]    /config/engine-contracts.json -> 200 (356440 bytes) ; /config/engine-registry.json -> 200 (234386 bytes) after 282s
+[19:48:42]    registry n_engines=860 generated_at=2026-09-07T19:48:11Z
+[19:48:42]    contracts n_contracts=866
+── live Chrome ──
+[19:49:03]    /: rows=126 authority=INVEST SELECTIVELY catalog=860 engines · 460 pages · 3,449 numbered sections · 1,367 panels · registry 13h  | page errors [] | console errors 1 (CORS 0) | >=400 []
+[19:49:14]    /engines.html: rows=860 authority=None catalog= | page errors [] | console errors 0 (CORS 0) | >=400 []
+[19:49:14] ✅ GREEN -- QA fixes live: contracts served, directory fresh, beacon silent
 
-→ Report written to aws/ops/reports/latest/ops_5217_qa_orphan_keys.md
+→ Report written to aws/ops/reports/latest/ops_5218_qa_fixes_gate.md
