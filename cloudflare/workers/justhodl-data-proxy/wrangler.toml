@@ -11,7 +11,10 @@ workers_dev = true
 # absolute proxy URLs, this month's pages use the clean relative form).
 routes = [
   { pattern = "justhodl.ai/data/*", zone_name = "justhodl.ai" },
-  { pattern = "www.justhodl.ai/data/*", zone_name = "justhodl.ai" }
+  { pattern = "www.justhodl.ai/data/*", zone_name = "justhodl.ai" },
+  # ops 5215: versioned read API for the fusion layer (src/fusion_api.js)
+  { pattern = "justhodl.ai/api/v1/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/api/v1/*", zone_name = "justhodl.ai" }
 ]
 
 [observability]

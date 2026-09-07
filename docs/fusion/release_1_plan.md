@@ -38,7 +38,9 @@ appears only when it makes the list -- that is measured as coverage, not hidden.
   (betas from impact_mapper) is Release 3/7 work.
 - `data/jh-fusion.json` grows with the universe; emergent entities are flagged off until a paged read model exists.
 
-## Next (Release 2)
-Versioned read endpoints on the data-proxy worker (`/api/v1/fusion/{entity}`, `?horizon=`, `/changes`),
-command-desk panel + screener columns from `data/jh-fusion.json`, and the shadow comparison ledger
-(existing decision vs fusion decision vs realised outcome) that gates promotion.
+## Release 2 (shipped 2026-09-07, ops 5215)
+Read API v1 on the data-proxy worker (see api.md), `fusion.html` Fusion Desk (regime banner, screener with filters,
+evidence panel with per-horizon why-bullish / why-bearish / what-changed / contributions / vetoes, opportunities, shadow
+comparison), and the phase-51 ledger: every directional best-horizon read is logged as `jh_fusion` into justhodl-signals so
+outcome-checker + signal-scorecard grade fusion like any other engine; `data/jh-fusion/shadow.json` shows agreement with
+the existing engines. Promotion out of shadow mode = a deliberate `FUSION_SHADOW_MODE` flip once that record matures.

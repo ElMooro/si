@@ -1,6 +1,6 @@
 {
   "schema_version": "JH-FUSION-FLAGS-1.0",
-  "note": "Defaults for the fusion layer feature flags (phase 50). Override at runtime with SSM parameter /justhodl/fusion/flags holding a JSON object of the same keys. Shadow mode stays ON until Release 2 promotion evidence exists (phase 51).",
+  "note": "Defaults for the fusion layer feature flags (phase 50). Override at runtime with SSM parameter /justhodl/fusion/flags holding a JSON object of the same keys. Shadow mode stays ON until Release 2 promotion evidence exists (phase 51). FUSION_SHADOW_LOGGING logs each directional best-horizon read as signal_type jh_fusion into justhodl-signals so the fleet's own truth layer grades fusion (ops 5215).",
   "flags": {
     "FUSION_SIGNAL_BUS_ENABLED": true,
     "FUSION_STATE_DDB_ENABLED": true,
@@ -16,6 +16,7 @@
     "FUSION_PER_SIGNAL_EVENTS": "changes_only",
     "FUSION_MAX_ENTITIES": 400,
     "FUSION_DISABLED_ENGINES": [],
-    "FUSION_DISABLED_ENTITIES": []
+    "FUSION_DISABLED_ENTITIES": [],
+    "FUSION_SHADOW_LOGGING": true
   }
 }

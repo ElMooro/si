@@ -21,6 +21,8 @@
  * reduction: typically 60-80% on text/JSON.
  */
 
+import { handleFusionApi } from "./fusion_api.js";
+
 const BUCKET_BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
 
 const CACHE_RULES = [
@@ -186,6 +188,8 @@ export class WorkspaceCoordinator {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // ops 5215: JustHodl Intelligence Network read API (fusion / signals / regime / opportunities)
+    if (url.pathname === "/api/v1" || url.pathname.startsWith("/api/v1/")) { return handleFusionApi(request, env, ctx, url); }
     if (url.pathname === "/gov") { return handleGov(url); }
 
     if (request.method === "OPTIONS") {

@@ -25,7 +25,7 @@ justhodl-jh-fusion (shadow mode)                    aws/shared/jh_fusion_core.py
 Documents: [architecture](architecture.md) - [signal schema](signal_schema.md) - [engine registry](engine_registry.md) -
 [event bus](event_bus.md) - [entity graph](entity_graph.md) - [hypothesis engine](hypothesis_engine.md) -
 [fusion scoring](fusion_scoring.md) - [regime engine](regime_engine.md) - [veto system](veto_system.md) -
-[historical replay](historical_replay.md) - [observability](observability.md) - [deployment](deployment.md) -
+[historical replay](historical_replay.md) - [observability](observability.md) - [deployment](deployment.md) - [api](api.md) -
 [release 1 plan](release_1_plan.md) - [audit](current_architecture_audit.md) - [gap analysis](gap_analysis.md)
 
 ## Release status
@@ -33,7 +33,7 @@ Documents: [architecture](architecture.md) - [signal schema](signal_schema.md) -
 |---|---|---|
 | 0 | audit, gap analysis, plan | done (this folder) |
 | 1 | schema, registry, adapters, bus routes, state store, archive, decay, fusion v1 shadow, tests, metrics | **shipped, ops 5212** |
-| 2 | API endpoints, command-desk/screener columns, promotion evidence | next |
+| 2 | read API v1, Fusion Desk page (`fusion.html`), shadow comparison + graded ledger (`jh_fusion` in justhodl-signals) | **shipped, ops 5215** |
 | 3 | entity graph, propagation, trigger router, hypotheses | planned |
 | 4 | regime vector, conditional reliability | planned (engines exist) |
 | 5 | performance DB views, alpha decay feed, confluence research | planned (engines exist) |

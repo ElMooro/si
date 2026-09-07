@@ -1,4 +1,4 @@
-"""justhodl-jh-fusion v1.0.0 -- Fusion Engine v1 for the pilot universe (Release 1, SHADOW MODE).
+"""justhodl-jh-fusion v1.1.0 -- Fusion Engine v1 for the pilot universe (Release 1, SHADOW MODE).
 
 Reads the bridge's current-state read model (data/jhsignal/state/latest.json),
 learned reliability (data/engine-trust.json effective_trust + signal-scorecard
@@ -22,7 +22,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 import jhsignal as J
-from jh_fusion_core import run_fusion
+from jh_fusion_core import run_fusion, shadow_comparison
 from jh_registry import EngineRegistry, load_flags, load_universe
 from jh_state_store import STATE_KEY, Bus, Metrics, S3Store, _log
 
@@ -32,13 +32,56 @@ except Exception:  # pragma: no cover
     def track_errors(fn):
         return fn
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 ENGINE = "jh-fusion"
 OUT_KEY = "data/jh-fusion.json"
 LEDGER_PREFIX = "data/jh-fusion/ledger/"
 TRUST_KEY = "data/engine-trust.json"
 SCORECARD_KEY = "data/signal-scorecard.json"
 ORTHO_KEY = "data/signal-orthogonality.json"
+CONVICTION_KEY = "data/conviction.json"
+SHADOW_KEY = "data/jh-fusion/shadow.json"
+SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
+SHADOW_WINDOWS = ["5", "21", "63"]           # tactical / swing / intermediate grading windows (outcome-checker day_N)
+YAHOO_SYMBOL = {"crypto": lambda t: "%s-USD" % t, "equity": lambda t: t, "etf": lambda t: t, "index": lambda t: "^" + t}
+
+
+def shadow_log(result, *, flags, run_id):
+    """Phase 51: put every directional best-horizon read into the fleet's graded ledger (justhodl-signals) as
+    signal_type `jh_fusion` through aws/shared/signals_emit.log_signal -- the same contract the harvester uses, so
+    outcome-checker prices it forward and signal-scorecard grades fusion next to every other engine. Never raises;
+    one row per ticker per day (log_signal dedupes on signal_id)."""
+    out = {"enabled": bool(flags.get("FUSION_SHADOW_LOGGING", True)), "logged": 0, "skipped": 0, "errors": []}
+    if not out["enabled"]:
+        return out
+    try:
+        import boto3
+        from signals_emit import log_signal, yprice
+        table = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "us-east-1")).Table(SIGNALS_TABLE)
+    except Exception as exc:
+        out["errors"].append("setup: %s" % str(exc)[:160]); return out
+    for eid, r in (result.get("entities") or {}).items():
+        et, sym = eid.split(":", 1)
+        h = (r.get("horizons") or {}).get(r.get("best_horizon")) or {}
+        fs = float(h.get("fusion_score") or 0.0)
+        if et not in YAHOO_SYMBOL or abs(fs) < 0.15 or float(h.get("confidence") or 0) < 0.3 or h.get("capital_decision") == "BLOCKED":
+            out["skipped"] += 1; continue
+        ysym = YAHOO_SYMBOL[et](sym)
+        try:
+            px = yprice(ysym)
+            if not px:
+                out["skipped"] += 1; out["errors"].append("%s: no price" % ysym); continue
+            ok = log_signal(table, "jh_fusion", ysym, "UP" if fs > 0 else "DOWN", SHADOW_WINDOWS, px,
+                            confidence=float(h.get("confidence") or 0.5),
+                            rationale="fusion %+.2f conviction %s confidence %.2f coverage %.2f contradiction %s (%s, shadow)" % (fs, h.get("conviction"), float(h.get("confidence") or 0), float(h.get("fusion_coverage") or 0), h.get("contradiction_score"), r.get("best_horizon")),
+                            metadata={"entity_id": eid, "horizon": r.get("best_horizon"), "fusion_result_id": run_id, "conviction": h.get("conviction"), "coverage": h.get("fusion_coverage"),
+                                      "contradiction": h.get("contradiction_score"), "independent": h.get("independent_evidence_count"), "capital_decision": h.get("capital_decision"), "shadow": True},
+                            signal_value="%.4f" % fs)
+            out["logged" if ok else "skipped"] += 1
+        except Exception as exc:
+            out["errors"].append("%s: %s" % (ysym, str(exc)[:120]))
+    out["errors"] = out["errors"][:8]
+    return out
 
 
 def _variants(trust_key: str):
@@ -123,6 +166,12 @@ def lambda_handler(event=None, context=None):
     result["reliability_basis"]["per_engine"] = rel["basis"]
     result["reliability_basis"]["n_correlation_engines"] = len(corr or {})
     result["version"] = VERSION
+    # phase 51 -- shadow comparison + graded ledger (fusion never feeds sizing; the truth layer grades it instead)
+    conviction, _ = s3.get_json(CONVICTION_KEY)
+    shadow = shadow_comparison(result, snapshot, conviction_doc=conviction, now=now)
+    shadow["logging"] = shadow_log(result, flags=flags, run_id=run_id)
+    s3.put_json(SHADOW_KEY, shadow)
+    result["shadow"] = {"key": SHADOW_KEY, "agreement_rate": shadow.get("agreement_rate"), "n_compared": shadow.get("n_compared"), "logging": shadow["logging"]}
 
     # ledger (full) + read model (full minus nothing -- the doc is small for the pilot)
     ledger_key = "%s%s/%s.json.gz" % (LEDGER_PREFIX, now.strftime("%Y/%m/%d"), run_id)
@@ -155,9 +204,11 @@ def lambda_handler(event=None, context=None):
     metrics.put("CoverageMean", st["coverage_mean"], unit="None"); metrics.put("ConfidenceMean", st["confidence_mean"], unit="None")
     metrics.put("CriticalDependencyFailures", len(result["critical_dependencies"]["failures"]))
     metrics.put("FusionChangedEvents", n_changed); metrics.put("EventPublishFailures", bus.failed)
+    metrics.put("ShadowSignalsLogged", shadow["logging"].get("logged", 0)); metrics.put("ShadowAgreementRate", (shadow.get("agreement_rate") or 0.0), unit="None")
     flushed = metrics.flush()
     out = {"ok": True, "run_id": run_id, "out_key": OUT_KEY, "ledger_key": ledger_key, "bytes": out_bytes, "stats": st, "regime": result["regime"]["label"],
            "critical_failures": len(result["critical_dependencies"]["failures"]), "events": {"sent": bus.sent, "failed": bus.failed, "changed": n_changed},
+           "shadow": result["shadow"],
            "metrics_flushed": flushed, "elapsed_s": round(time.time() - t0, 2), "shadow_mode": result["shadow_mode"]}
     _log(level="info", msg="fusion done", **out, **trace)
     return out

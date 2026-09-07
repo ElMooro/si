@@ -18,3 +18,9 @@
   (pytest + jsonschema); the op also runs them on the runner.
 - Cost: ~17 GETs + ~5 small PUTs per bridge run (24/day), one fusion run per batch; append-only keys avoid the
   versioned-bucket churn that caused the Aug-2026 anomaly.
+- API: `cloudflare/workers/justhodl-data-proxy/src/fusion_api.js` ships with the worker on any change under
+  `cloudflare/workers/justhodl-data-proxy/**` (`deploy-workers.yml`, wrangler applies the `/api/v1/*` zone routes).
+- Page: `fusion.html` (marker `JH_FUSION_DESK_V1`) deploys with `pages.yml`; section numbering makes `fusion#2`
+  addable to the command desk through the Add bar.
+- Shadow ledger: the fusion Lambda logs `jh_fusion` rows into DynamoDB `justhodl-signals` via
+  `aws/shared/signals_emit.log_signal` (flag `FUSION_SHADOW_LOGGING`) and writes `data/jh-fusion/shadow.json`.

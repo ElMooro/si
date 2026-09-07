@@ -192,6 +192,14 @@ class TestRunLevel:
         c = F.run_fusion(later_snap, registry_doc=registry.doc, universe_doc=universe_doc, flags=flags, now=NOW + timedelta(days=20), run_id="later")
         assert c["entities"]["equity:NVDA"]["horizons"]["SWING"]["evidence_mass"] < a["entities"]["equity:NVDA"]["horizons"]["SWING"]["evidence_mass"]
 
+    def test_shadow_comparison_is_explicit_and_ungraded(self, snapshot, registry, universe_doc, flags):
+        res = F.run_fusion(snapshot, registry_doc=registry.doc, universe_doc=universe_doc, flags=flags, now=NOW, run_id="r1")
+        sh = F.shadow_comparison(res, snapshot, conviction_doc={"headline_call": {"subject": "Broad risk / equity beta", "direction": "LONG", "conviction": 71}}, now=NOW)
+        assert sh["shadow_mode"] is True and sh["grading"]["signal_type"] == "jh_fusion" and sh["fleet_context"]["conviction_engine_headline"]["conviction"] == 71
+        nv = next(r for r in sh["rows"] if r["entity_id"] == "equity:NVDA")
+        assert set(nv["existing"]) >= {"momentum_leaders", "estimate_revisions", "institutional_13f_flows"} and nv["n_compared"] == len(nv["agreements"])
+        assert sh["n_compared"] >= sum(r["n_compared"] for r in sh["rows"]) and (sh["agreement_rate"] is None or 0 <= sh["agreement_rate"] <= 1)
+
     def test_disabled_entities_and_emergent_flag(self, snapshot, registry, universe_doc, flags):
         res = F.run_fusion(snapshot, registry_doc=registry.doc, universe_doc=universe_doc, flags=dict(flags, FUSION_DISABLED_ENTITIES=["equity:NVDA"]), now=NOW)
         assert "equity:NVDA" not in res["entities"]
@@ -230,11 +238,13 @@ class TestHandlersEndToEnd:
         fus_src = str(Path(__file__).resolve().parents[1] / "source")
         spec = importlib.util.spec_from_file_location("jh_fusion_lambda", Path(fus_src) / "lambda_function.py")
         fus = importlib.util.module_from_spec(spec); spec.loader.exec_module(fus)
-        monkeypatch.setattr(fus, "load_flags", lambda **kw: dict(__import__("jh_registry").DEFAULT_FLAGS, FUSION_SIGNAL_BUS_ENABLED=False))
+        monkeypatch.setattr(fus, "load_flags", lambda **kw: dict(__import__("jh_registry").DEFAULT_FLAGS, FUSION_SIGNAL_BUS_ENABLED=False, FUSION_SHADOW_LOGGING=False))
         out = fus.lambda_handler({"trigger_event": "jhsignal.batch_published", "trigger_detail": {"run_id": summary["run_id"], "event_id": "e1"}, "triggered_by": "justhodl-event-coordinator"}, None)
         assert out["ok"] and out["stats"]["n_entities"] == 14 and out["shadow_mode"] is True
         doc = json.loads(fake.objects["data/jh-fusion.json"]["Body"])
         assert doc["snapshot_run_id"] == summary["run_id"] and doc["entities"]["equity:NVDA"]["horizons"]
+        shadow = json.loads(fake.objects["data/jh-fusion/shadow.json"]["Body"])
+        assert shadow["fusion_run_id"] == out["run_id"] and len(shadow["rows"]) == 14 and shadow["logging"]["enabled"] is False and out["shadow"]["n_compared"] >= 5
         ledger = json.loads(gzip.decompress(fake.objects[out["ledger_key"]]["Body"]))
         assert ledger["fusion_result_id"] == out["run_id"] and ledger["result"]["entities"]["equity:NVDA"]["horizons"]["SWING"]["signals"]
         # duplicate trigger for the same snapshot is skipped (idempotent)

@@ -422,3 +422,57 @@ METHODOLOGY = {
     "vetoes": "HARD (crisis composite >= 80 / DEFCON <= 2, risk-gate SEVERE) blocks capital; SOFT reduces the size modifier by half its severity, floor 0.2; CRITICAL engines missing -> CAPITAL_DECISION_BLOCKED",
     "shadow_mode": "fusion never feeds the existing sizing engine until FUSION_SHADOW_MODE is switched off after the phase-51 comparison window",
 }
+
+
+# ---------------------------------------------------------------------------
+# Shadow comparison (phase 51) -- existing decisions vs fusion, per entity
+# ---------------------------------------------------------------------------
+_TIER_SIGN = {"FORTRESS_COIL": 1, "COILED": 1, "ACCUMULATING": 1, "WATCH": 0, "KATLIN_PRIME": 1, "READY": 1, "BASING": 1, "CRASH_BARBELL": 1}
+
+
+def shadow_comparison(result: Dict[str, Any], snapshot: Dict[str, Any], *, conviction_doc: Optional[Dict[str, Any]] = None,
+                      now: Optional[datetime] = None) -> Dict[str, Any]:
+    """Side-by-side of what the fleet's existing engines say about each pilot entity and what fusion says.
+
+    Nothing here is graded -- grading comes from the fleet's own truth layer: the fusion Lambda logs each
+    directional best-horizon read as signal_type `jh_fusion` into justhodl-signals, the outcome-checker prices
+    it forward and signal-scorecard publishes its hit-rate next to every other engine's. Promotion out of shadow
+    mode needs that ledger to mature (phase 51), not this table.
+    """
+    now = now or J.utcnow()
+    ents = snapshot.get("entities") or {}
+    market = {s["engine_id"]: s for s in ents.get(MARKET_SUBJECT, [])}
+    rg = (market.get("risk_gate") or {}).get("metadata") or {}
+    head = ((conviction_doc or {}).get("headline_call") or {}) if isinstance((conviction_doc or {}).get("headline_call"), dict) else {}
+    rows = []
+    agree_n = agree_total = 0
+    for eid, r in (result.get("entities") or {}).items():
+        bh = r.get("best_horizon"); h = (r.get("horizons") or {}).get(bh) or {}
+        fs = h.get("fusion_score")
+        fsign = 1 if (fs or 0) > 0.15 else -1 if (fs or 0) < -0.15 else 0
+        existing = {}
+        for s in ents.get(eid, []):
+            md = s.get("metadata") or {}
+            if s["engine_id"] in ("fortress", "katlin") and md.get("tier"):
+                existing[s["engine_id"]] = {"read": md["tier"], "sign": _TIER_SIGN.get(md["tier"], 0), "data_asof": s["data_asof"]}
+            elif s["engine_id"] in ("momentum_leaders", "estimate_revisions", "institutional_13f_flows", "insider_radar", "dark_pool", "short_interest", "dealer_gex", "etf_flows", "catalyst"):
+                existing[s["engine_id"]] = {"read": s["direction"], "sign": 1 if float(s["score"]) > 0.15 else -1 if float(s["score"]) < -0.15 else 0, "data_asof": s["data_asof"]}
+        agreements = {k: (v["sign"] == fsign) for k, v in existing.items() if v["sign"] != 0 and fsign != 0}
+        agree_n += sum(1 for v in agreements.values() if v); agree_total += len(agreements)
+        rows.append({
+            "entity_id": eid, "ticker": r.get("ticker"), "best_horizon": bh,
+            "fusion": {"score": fs, "direction": h.get("direction"), "conviction": h.get("conviction"), "confidence": h.get("confidence"),
+                       "capital_decision": h.get("capital_decision"), "contradiction": h.get("contradiction_score"), "coverage": h.get("fusion_coverage")},
+            "existing": existing, "agreements": agreements,
+            "n_agree": sum(1 for v in agreements.values() if v), "n_compared": len(agreements),
+        })
+    return {
+        "schema_version": "JH-FUSION-SHADOW-1.0", "generated_at": J.iso(now), "fusion_run_id": result.get("run_id"), "snapshot_run_id": snapshot.get("run_id"),
+        "shadow_mode": bool(result.get("shadow_mode", True)),
+        "fleet_context": {"risk_gate_posture": rg.get("posture"), "risk_gate_sizing_multiplier": rg.get("sizing_multiplier"), "regime": (result.get("regime") or {}).get("label"),
+                          "conviction_engine_headline": {k: head.get(k) for k in ("subject", "direction", "conviction") if k in head} or None},
+        "agreement_rate": (round(agree_n / agree_total, 4) if agree_total else None), "n_agree": agree_n, "n_compared": agree_total,
+        "grading": {"signal_type": "jh_fusion", "ledger": "DynamoDB justhodl-signals -> outcome-checker -> signal-scorecard (data/signal-scorecard.json)",
+                    "note": "hit-rate / excess vs SPY for jh_fusion appears in the scorecard once outcomes mature (5/21/63d windows)"},
+        "rows": rows,
+    }

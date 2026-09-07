@@ -48,6 +48,7 @@ def title_of(p):
 
 FORCE = {  # ops 3302
     "/khalid.html": "System & Meta",           # Khalid cross-asset risk and opportunity engine
+    "/fusion.html": "System & Meta",           # ops 5215 JustHodl Intelligence Network fusion desk
     "/sp500.html": "Research & Tools",         # ops 4809 index-as-a-stock
     "/spx-beaters.html": "Portfolio & Execution",  # ops 4811 weekly beat-SPX league
     "/data.html": "System & Meta",           # ops 4506 Data hub
