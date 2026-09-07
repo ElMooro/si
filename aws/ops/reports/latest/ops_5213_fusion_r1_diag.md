@@ -1,0 +1,75 @@
+# ops 5213 -- fusion R1 diagnostics (read-only)
+
+**Status:** success  
+**Duration:** 2.1s  
+**Finished:** 2026-09-07T16:58:48+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| asof | basis | engine | n | status |
+|---|---|---|---|---|
+| 2026-09-06T17:53:12Z | engine | regime_composite | 1 | STALE |
+| 2026-09-06T18:22:33Z | engine | liquidity_credit_engine | 1 | OK |
+| 2026-09-07T12:01:05Z | engine | global_business_cycle | 0 | OK |
+| 2026-09-07T16:41:43Z | engine | risk_gate | 1 | OK |
+| 2026-09-07T16:15:50Z | engine | crisis_composite | 1 | OK |
+| 2026-09-06T21:35:40Z | engine | tail_risk | 3 | STALE |
+| 2026-09-07T14:40:29Z | engine | insider_radar | 3 | OK |
+| 2026-09-07T15:07:01Z | engine | institutional_13f_flows | 236 | OK |
+| 2026-09-07T11:35:42Z | engine | etf_flows | 0 | OK |
+| 2026-09-04T21:41:08Z | engine | dark_pool | 58 | OK |
+| 2026-09-07T13:40:37Z | engine | estimate_revisions | 84 | OK |
+| 2026-09-07T16:25:19Z | engine | momentum_leaders | 60 | OK |
+| 2026-09-05T03:32:03Z | s3_last_modified | fortress | 800 | STALE |
+| 2026-09-07T16:18:26Z | engine | katlin | 239 | OK |
+| 2026-09-07T02:29:33Z | s3_last_modified | catalyst | 201 | OK |
+| 2026-09-07T16:07:22Z | engine | dealer_gex | 10 | OK |
+| 2026-09-07T12:20:57Z | engine | short_interest | 64 | OK |
+
+## Log
+## bridge run report
+
+- `16:58:45`    run 20260907T165623Z-16a6464d: 1762 signals / 1429 entities, freshness {'FRESH': 958, 'STALE': 804, 'EXPIRED': 0, 'INVALID': 0}, bus {'sent': 1, 'failed': 0, 'suppressed': 0, 'per_signal_events': 0}
+## artifact shapes
+
+- `16:58:46`    global_business_cycle (data/global-business-cycle.json, S3 2026-09-07T12:01:06): 19 keys ['schema_version', 'engine_version', 'engine_type', 'generated_at', 'elapsed_sec', 'countries_with_fresh_data', 'countries_total', 'sources_used', 'supplements', 'polygon_lane', 'acceptance_gate', 'composite', 'downturn_probability_6m', 'global_composite_latest', 'methodology', 'by_country', 'physical_confirmation', 'aggregate', 'interpretation']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-07T12:01:05.372260+00:00"}
+- `16:58:46`       aggregate keys ['global_phase', 'global_avg_cli', 'global_phase_mix_pct', 'global_phase_mix_weight', 'total_weight_covered', 'classified_weight_covered', 'classification_coverage_pct', 'expansion_breadth_pct', 'contraction_breadth_pct', 'by_region'] | global_phase=GLOBAL_EXPANSION cli=99.97
+- `16:58:46`       downturn_probability_6m={'ok': True, 'horizon_months': 6, 'n_obs': 265, 'base_rate': 0.385, 'coefficients': {'intercept': -0.6159, 'global_z': -1.4017, 'd3': -0.8859}, 'in_sample_auc': 0.693, 'in_sample_hit_rate': 0.683, 'sample_start': '2004-01', 'sample_end': '2026-01', 'probability_now': 0.354, 'target': 'GDP-weighted industrial production y/y (OECD KEI) six months ahead < 0', 'caveat': "in-sample calibration on this platform's own history; a monitoring signal, not a validated forecast", 'target_series_months': 307, 'target_latest': '2026-07'} composite={"available": true, "features_generated_at": "2026-09-07T10:30:07+00:00", "features_age_h": 1.5, "features_version": "1.1.1", "countries_multi_pillar": 34, "countries_thin_or_equity": 0, "pillar_counts": {"survey": 32, "activity": 32, "trade": 34, "financial": 34, "equity": 34}, "pillar_weights": {" n_countries=None fresh_count=None
+- `16:58:46`       countries: dict -> 34
+- `16:58:46`    etf_flows (data/etf-flows.json, S3 2026-09-07T11:35:43): 13 keys ['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out', 'duration_s', 'data_sources', 'signal_definitions']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-07T11:35:42.632278+00:00"}
+- `16:58:46`       by_etf: 60 entries; first: {"ticker": "SHY", "category": "RATES_TREASURIES", "name": "iShares 1-3 Year Treasury Bond ETF", "latest_close": 81.69, "aum_b": 26.2, "return_1d_pct": -0.02, "return_5d_pct": -0.24, "return_20d_pct": -0.28, "today_dollar_vol_b": 0.203, "avg_5d_dollar_vol_b": 0.373, "avg_20d_dollar_vol_b": 0.284, "avg_60d_dollar_vol_b": null, "dvol_z_score": null, "dvol_5d_vs_20d_pct": 31.5, "flow_signal": "ROTATION_OUT"}
+- `16:58:46`       heavy_inflow=0 rotation_in=4 n_etfs_analyzed=60
+- `16:58:46`    fortress (data/fortress.json, S3 2026-09-05T03:32:03): 36 keys ['engine', 'version', 'ok', 'as_of', 'session', 'sessions_loaded', 'bars_first', 'doctrine', 'params', 'weights', 'weights_effective', 'weights_evidence', 'gate_names', 'gate_labels', 'market', 'breadth', 'funnel', 'tiers', 'n_scored', 'n_universe_bars', 'location_gate', 'empirical_dump_loss', 'top_picks', 'sizing', 'changes', 'validation', 'regime', 'board', 'ledger', 'etfs', 'etf_tiers', 'industries', 'base_rates', 'definitions', 'inputs', 'diagnostics']
+- `16:58:46`       timestamp-like: {"as_of": "2026-09-05T03:32:02+00:00", "session": "2026-09-04", "sessions_loaded": 760}
+- `16:58:46`       board 800 rows; first row keys ['ticker', 'name', 'sector', 'industry', 'country', 'market_cap', 'cap_bucket', 'sp500', 'industry_etf', 'industry_etf_kind', 'sector_etf', 'industry_etf_name', 'n_sessions', 'close', 'last_session', 'adv_usd_20d', 'ema250', 'ema200', 'ema250_available', 'vs_ema250_pct', 'vs_ema200_pct', 'vs_sma250_pct', 'vs_sma200_pct', 'vs_sma50_pct', 'ret_1m_pct', 'ret_3m_pct', 'ret_6m_pct', 'ret_12m_pct', 'pct_from_52w_high', 'pct_above_52w_low', 'max_dd_1y_pct', 'weeks_since_52w_high', 'vol_20d_pct', 'vol_100d_pct', 'vol_contraction', 'cvar5_pct', 'downside_dev_pct', 'ulcer_index', 'gaps_5pct_1y', 'max_gap_pct_1y', 'amihud_illiq', 'bb_width_pct', 'bb_width_pctile', 'bb_width_6m_low', 'bb_pct_b']
+- `16:58:46`       first row: {"ticker": "GRNT", "name": "Granite Ridge Resources Inc", "sector": "Energy", "industry": "Oil & Gas E&P", "country": "USA", "market_cap": 670050000.0, "cap_bucket": "small", "sp500": false, "industry_etf": "XOP", "industry_etf_kind": "industry", "sector_etf": "XLE", "industry_etf_name": "Oil & Gas E&P", "n_sessions": 760, "close": 5.08, "last_session": "2026-09-04", "adv_usd_20d": 5880849.9345, "ema250": 5.1489, "ema200": 5.0926, "ema250_available": true, "vs_ema250_pct": -1.3383, "vs_ema200_pct": -0.2471, "vs_sma250_pct": -0.5458, "vs_sma200_pct": 0.6788, "vs_sma50_pct": 5.508, "ret_1m_pct": 9.0129, "ret_3m_pct": 5.6133, "ret_6m_pct": 1.1952, "ret_12m_pct": -6.2731, "pct_from_52w_high": -1
+- `16:58:46`    catalyst (data/catalyst.json, S3 2026-09-07T02:29:33): 8 keys ['engine', 'as_of', 'doctrine', 'taxonomy', 'macro', 'class_census', 'n_tickers', 'by_ticker']
+- `16:58:46`       timestamp-like: {"as_of": "2026-09-07T02:29:32+00:00"}
+- `16:58:46`       by_ticker 201; first: ["WDAY", {"catalysts": [{"class": "EARNINGS_INFLECTION", "evidence": "EPS +195.4% QoQ (XBRL diluted)", "src": "backlog engine EPS", "ts": "2026-09-07T02:29:32+00:00", "weight": 2.0}, {"class": "LARGE_BUYBACK", "evidence": "net buyback yield 12.9%/yr (census)", "src": "fundamental census", "ts": "2026-09-07T02:29:32+00:00", "weight": 1.8}], "score": 3.8, "top_class": "EARNINGS_INFLECTION"}]
+- `16:58:46`    regime_composite (data/regime-composite.json, S3 2026-09-06T17:53:16): 16 keys ['schema_version', 'version', 'generated_at', 'wl_research', 'duration_s', 'meta_regime', 'meta_narrative', 'meta_class', 'composite_score', 'dimensions', 'modules', 'n_modules_total', 'n_modules_with_data', 'n_modules_missing', 'prior_regime', 'regime_changed_from_prior']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-06T17:53:12.775870+00:00"}
+- `16:58:46`       composite_score=56.1 meta_regime=LATE_CYCLE n_modules_with_data=19/19
+- `16:58:46`    tail_risk (data/tail-risk.json, S3 2026-09-06T21:35:41): 13 keys ['engine', 'version', 'ok', 'generated_at', 'thesis', 'system_tail_gauge', 'tail_regime', 'tail_valuation', 'indices', 'interpretation', 'data_source', 'caveats', 'elapsed_s']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-06T21:35:40.498856+00:00"}
+- `16:58:46`       indices: [{"ticker": "IWM", "spot": 296.01, "front_exp": "2026-10-16", "back_exp": "2026-11-20", "atm_iv": 0.1777, "put10_iv": 0.2354, "put25_iv": 0.2, "call25_iv": 0.1517, "put_skew_slope": 0.0577, "risk_reversal_25": -0.0482, "risk_reversal_10": -0.0895, "rr_term_slope": 0.0011, "p_drop_5": 0.1535, "p_drop_10": 0.0548, "p_drop_20": 0.017, "rn_skew": -1.52, "rn_kurt": 7.65, "skew_index": 115.2, "tail_stress": 48.8, "skew_slope_pctile": 36.2, "crash_prob_pctile": 36.2}, {"ticker": "QQQ", "spot": 718.96, "front_exp": "2026-10-16", "back_exp": "2026-11-20", "atm_iv": 0.1778, "put10_iv": 0.2554, "put25_iv
+- `16:58:46`    liquidity_credit_engine (data/liquidity-credit-engine.json, S3 2026-09-06T18:22:34): 11 keys ['schema_version', 'generated_at', 'wl_research', 'elapsed_sec', 'regime', 'composite', 'series', 'by_category', 'reference', 'transitions', 'interpretation']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-06T18:22:33.012079+00:00"}
+- `16:58:46`    insider_radar (data/insider-radar.json, S3 2026-09-07T14:40:30): 18 keys ['engine', 'version', 'generated_at', 'source_used', 'n_raw', 'window_days', 'n_buys', 'n_sells', 'latest_buys', 'clusters', 'finviz_buys', 'finviz_sells', 'finviz_buy_confirm', 'decline_buys', 'decline_clusters', 'logged', 'diagnostics', 'methodology']
+- `16:58:46`       timestamp-like: {"generated_at": "2026-09-07T14:40:29.427292+00:00"}
+## engine cadence (schedules + last log event)
+
+- `16:58:47`    justhodl-regime-composite: modified 2026-07-13T04:11:25 | schedules - | rules - | last log event 2026-09-06T17:53:15
+- `16:58:47`    justhodl-tail-risk: modified 2026-06-20T20:22:14 | schedules ['justhodl-tail-risk-daily cron(35 21 * * ? *) ENABLED'] | rules ['justhodl-tail-risk-daily cron(0 13 ? * TUE-SAT *) ENABLED'] | last log event 2026-09-06T21:35:40
+- `16:58:47`    justhodl-etf-flows: modified 2026-05-30T18:41:43 | schedules - | rules ['justhodl-etf-flows-6h cron(35 11 * * ? *) ENABLED'] | last log event 2026-09-07T11:35:42
+- `16:58:47`    justhodl-global-business-cycle: modified 2026-09-02T01:02:44 | schedules - | rules ['justhodl-gbc-daily cron(0 12 * * ? *) ENABLED'] | last log event 2026-09-07T12:01:06
+- `16:58:47`    justhodl-fortress: modified 2026-09-01T12:18:19 | schedules ['justhodl-fortress-backtest-weekly cron(0 9 ? * SUN *) ENABLED', 'justhodl-fortress-daily cron(30 3 ? * TUE-SAT *) ENABLED'] | rules - | last log event 2026-09-06T09:04:13
+- `16:58:48`    justhodl-catalyst: modified 2026-08-13T23:35:34 | schedules ['justhodl-catalyst rate(24 hours) ENABLED', 'justhodl-catalyst-chain-daily cron(15 22 * * ? *) ENABLED', 'justhodl-catalyst-clusters-daily cron(15 14 * * ? *) ENABLED', 'justhodl-catalyst-skew-premove-daily cron(30 0 * * ? *) ENABLED', 'justhodl-catalyst-classifier-daily cron(0 14 * * ? *) ENABLED'] | rules - | last log event 2026-09-07T02:29:32
+- `16:58:48` ✅ diagnostics complete
