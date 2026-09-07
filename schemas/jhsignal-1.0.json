@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://justhodl.ai/schemas/jhsignal-1.0.json",
+  "title": "JHSIGNAL-1.0 -- JustHodl universal signal envelope",
+  "description": "Canonical, versioned signal published by every participating JustHodl engine (through an adapter) onto the intelligence bus. Every field that carries a number is a MEASURED quantity from the producing engine; adapters never invent a value -- a missing input yields no signal, not a default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "signal_id", "engine_id", "engine_version",
+    "entity_id", "entity_type", "observed_at", "data_asof", "published_at",
+    "category", "signal_type", "direction", "score", "confidence",
+    "horizon", "horizon_min_days", "horizon_max_days", "half_life_days",
+    "freshness_ttl_seconds", "supports", "affects", "dependencies",
+    "invalidation", "evidence", "quality", "metadata"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "JHSIGNAL-1.0"},
+    "signal_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+    "engine_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_]{1,63}$"},
+    "engine_version": {"type": "string", "minLength": 1, "maxLength": 32},
+    "entity_id": {"type": "string", "pattern": "^(equity|etf|crypto|commodity|fx|country|sector|industry|index|central_bank|market|theme|bond):[A-Z0-9][A-Z0-9_\\-\\.]{0,63}$"},
+    "entity_type": {"type": "string", "enum": ["equity", "etf", "crypto", "commodity", "fx", "country", "sector", "industry", "index", "central_bank", "market", "theme", "bond"]},
+    "ticker": {"type": ["string", "null"], "pattern": "^[A-Z0-9][A-Z0-9\\-\\.]{0,15}$"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "data_asof": {"type": "string", "format": "date-time"},
+    "published_at": {"type": "string", "format": "date-time"},
+    "category": {"type": "string", "enum": ["macro", "liquidity", "credit", "risk", "smart_money", "institutional_flow", "options_positioning", "fundamental_growth", "quality", "valuation", "price_confirmation", "catalyst", "sentiment", "geopolitics", "positioning", "cycle"]},
+    "signal_type": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_]{1,63}$"},
+    "direction": {"type": "string", "enum": ["strong_bearish", "bearish", "slightly_bearish", "neutral", "slightly_bullish", "bullish", "strong_bullish"]},
+    "direction_numeric": {"type": "number", "minimum": -1.0, "maximum": 1.0},
+    "score": {"type": "number", "minimum": -1.0, "maximum": 1.0},
+    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "magnitude": {"type": ["number", "null"]},
+    "percentile": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "horizon": {"type": "string", "enum": ["TACTICAL", "SWING", "INTERMEDIATE", "STRUCTURAL"]},
+    "horizon_min_days": {"type": "integer", "minimum": 0},
+    "horizon_max_days": {"type": "integer", "minimum": 1},
+    "half_life_days": {"type": "number", "exclusiveMinimum": 0},
+    "freshness_ttl_seconds": {"type": "integer", "minimum": 60},
+    "supports": {"type": "array", "items": {"type": "string"}},
+    "affects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entity_id", "relationship", "strength"],
+        "properties": {
+          "entity_id": {"type": "string"},
+          "relationship": {"type": "string"},
+          "strength": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        }
+      }
+    },
+    "dependencies": {"type": "array", "items": {"type": "string"}},
+    "invalidation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type", "description"],
+      "properties": {
+        "type": {"type": "string", "enum": ["text", "level", "state", "time"]},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["field", "value"],
+        "properties": {
+          "field": {"type": "string"},
+          "value": {},
+          "unit": {"type": ["string", "null"]},
+          "source": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_reliability", "data_completeness", "calculation_quality"],
+      "properties": {
+        "source_reliability": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "data_completeness": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "calculation_quality": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+      }
+    },
+    "metadata": {"type": "object"}
+  },
+  "allOf": [
+    {"description": "horizon_min_days <= horizon_max_days is enforced by the native validator"}
+  ]
+}

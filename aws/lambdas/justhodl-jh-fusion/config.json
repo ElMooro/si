@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-jh-fusion",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "JustHodl Intelligence Network R1 fusion v1 (SHADOW): multi-horizon, six-family, cluster-independent fusion with contradiction, coverage, confidence, vetoes and ledger over the pilot universe -> data/jh-fusion.json",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "JH_FLAGS_PARAM": "/justhodl/fusion/flags"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-jh-fusion-daily",
+    "cron": "cron(20 5 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "JH fusion daily fallback 05:20 UTC (ops 5212); primary trigger is the coordinator route on jhsignal.batch_published"
+  }
+}

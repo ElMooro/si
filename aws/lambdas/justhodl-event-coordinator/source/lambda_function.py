@@ -259,6 +259,31 @@ ROUTES = {
         "notify":  True,
         "audit":   True,
     },
+
+    # ─── JustHodl Intelligence Network (fusion layer, Release 1 / ops 5212) ───
+    # The jhsignal bridge republishes every registered engine's read as a
+    # JHSIGNAL-1.0 fact. Per-signal facts are high volume (hundreds per run)
+    # and are archived by the bridge itself (data/jhsignal/archive/) -- the
+    # coordinator drops them without auditing. The batch event is the one
+    # that drives fusion (async), so engines never call the fusion engine
+    # and fusion never calls engines.
+    "jhsignal.published": {"invoke": [], "notify": False, "audit": False},
+    "jhsignal.revised":   {"invoke": [], "notify": False, "audit": False},
+    "jhsignal.expired":   {"invoke": [], "notify": False, "audit": False},
+    "jhsignal.batch_published": {
+        "invoke":  ["justhodl-jh-fusion"],
+        "notify":  False,
+        "audit":   True,
+    },
+    "jhsignal.hard_veto": {
+        "invoke":  [],
+        "notify":  True,    # a hard veto is a capital-blocking fact
+        "audit":   True,
+    },
+    "jhsignal.soft_veto": {"invoke": [], "notify": False, "audit": True},
+    "jhsignal.fusion_changed": {"invoke": [], "notify": False, "audit": True},
+    "jhsignal.critical_dependency_failed": {"invoke": [], "notify": True, "audit": True},
+    "jhsignal.regime_changed": {"invoke": [], "notify": True, "audit": True},
 }
 
 

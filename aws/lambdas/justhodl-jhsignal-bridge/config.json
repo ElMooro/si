@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-jhsignal-bridge",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "JustHodl Intelligence Network R1 bridge: reads registered engine artifacts through adapters, emits JHSIGNAL-1.0, writes the current-state store (DDB + data/jhsignal/state), archives the stream, publishes jhsignal.* facts on the system-events bus",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "JHSIGNAL_TABLE": "justhodl-jhsignal-state",
+    "JH_FLAGS_PARAM": "/justhodl/fusion/flags"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-jhsignal-bridge-hourly",
+    "cron": "rate(1 hour)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "JHSIGNAL bridge hourly (ops 5212) -- adapters over registered engine artifacts"
+  }
+}

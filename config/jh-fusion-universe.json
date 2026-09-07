@@ -1,0 +1,27 @@
+{
+  "schema_version": "JH-FUSION-UNIVERSE-1.0",
+  "note": "First production pilot universe (spec: indexes, mega-cap tech, semiconductors, crypto, cross-asset macro sensitivity). market:US_EQUITY is the macro subject every MACRO/RISK engine publishes against; equity/etf/crypto entities inherit it through the MACRO and RISK families in fusion.",
+  "entities": [
+    {"entity_id": "market:US_EQUITY", "name": "US equity market (macro subject)", "aliases": ["US", "MARKET"], "expected_families": ["MACRO", "RISK", "FLOW", "MARKET"]},
+    {"entity_id": "etf:SPY", "name": "SPDR S&P 500", "aliases": ["SPX", "^GSPC"], "sector": null, "industry": null},
+    {"entity_id": "etf:QQQ", "name": "Invesco QQQ", "aliases": ["NDX"], "sector": null, "industry": null},
+    {"entity_id": "etf:IWM", "name": "iShares Russell 2000", "aliases": ["RUT"], "sector": null, "industry": null},
+    {"entity_id": "equity:NVDA", "name": "NVIDIA", "sector": "Technology", "industry": "Semiconductors", "affects": [{"entity_id": "industry:SEMICONDUCTORS", "relationship": "industry_member", "strength": 0.8}, {"entity_id": "etf:SMH", "relationship": "constituent_exposure", "strength": 0.5}]},
+    {"entity_id": "equity:TSM", "name": "Taiwan Semiconductor", "sector": "Technology", "industry": "Semiconductors", "affects": [{"entity_id": "industry:SEMICONDUCTORS", "relationship": "industry_member", "strength": 0.8}, {"entity_id": "country:TW", "relationship": "domicile", "strength": 0.7}]},
+    {"entity_id": "equity:ASML", "name": "ASML", "sector": "Technology", "industry": "Semiconductor Equipment & Materials", "affects": [{"entity_id": "industry:SEMICONDUCTORS", "relationship": "supplier", "strength": 0.6}]},
+    {"entity_id": "equity:AAPL", "name": "Apple", "sector": "Technology", "industry": "Consumer Electronics"},
+    {"entity_id": "equity:MSFT", "name": "Microsoft", "sector": "Technology", "industry": "Software - Infrastructure"},
+    {"entity_id": "equity:AMZN", "name": "Amazon", "sector": "Consumer Cyclical", "industry": "Internet Retail"},
+    {"entity_id": "equity:GOOGL", "name": "Alphabet", "sector": "Communication Services", "industry": "Internet Content & Information", "aliases": ["GOOG"]},
+    {"entity_id": "equity:META", "name": "Meta Platforms", "sector": "Communication Services", "industry": "Internet Content & Information"},
+    {"entity_id": "crypto:BTC", "name": "Bitcoin", "aliases": ["BTCUSD", "X:BTCUSD", "BTC-USD"]},
+    {"entity_id": "crypto:ETH", "name": "Ethereum", "aliases": ["ETHUSD", "X:ETHUSD", "ETH-USD"]}
+  ],
+  "expected_families": {
+    "equity": {"MACRO": 1.0, "FLOW": 1.0, "FUNDAMENTAL": 1.0, "CATALYST": 0.75, "MARKET": 1.0, "RISK": 1.0},
+    "etf": {"MACRO": 1.0, "FLOW": 1.0, "FUNDAMENTAL": 0.25, "CATALYST": 0.5, "MARKET": 1.0, "RISK": 1.0},
+    "crypto": {"MACRO": 1.0, "FLOW": 1.0, "FUNDAMENTAL": 0.0, "CATALYST": 0.5, "MARKET": 1.0, "RISK": 1.0},
+    "market": {"MACRO": 1.0, "FLOW": 0.5, "FUNDAMENTAL": 0.0, "CATALYST": 0.25, "MARKET": 0.5, "RISK": 1.0},
+    "index": {"MACRO": 1.0, "FLOW": 0.5, "FUNDAMENTAL": 0.0, "CATALYST": 0.5, "MARKET": 1.0, "RISK": 1.0}
+  }
+}
