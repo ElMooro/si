@@ -10,7 +10,7 @@ stamp_assets so /jh-sections.js gets its content hash):
   2. bakes THIS page's key→number map from config/section-registry.json into
      window.JH_SECTION_MAP so numbers are stable across deploys and never
      shift when a section is added (append-only registry);
-  3. ships config/section-registry.json and config/home-layout.json into
+  3. ships config/section-registry.json, config/home-layout.json and config/engine-contracts.json into
      _site/config/ for the homepage (config/ is otherwise not deployed).
 
 Never fails the deploy: any per-file error is logged and skipped.
@@ -38,7 +38,7 @@ def main():
     except Exception as e:  # noqa: BLE001
         print(f"bake_sections: registry unavailable ({e}); numbering will be DOM-order until the first crawl")
     os.makedirs(os.path.join(SITE, "config"), exist_ok=True)
-    for name in ("section-registry.json", "home-layout.json"):
+    for name in ("section-registry.json", "home-layout.json", "engine-contracts.json"):   # engine-contracts: QA audit 2026-09-07 -- home.js fetched /config/engine-contracts.json and got 404 on every load
         src = os.path.join(ROOT, "config", name)
         if not os.path.exists(src):
             continue

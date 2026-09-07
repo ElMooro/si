@@ -280,7 +280,7 @@ if (typeof module === "object" && module.exports) {
   async function loadCatalogs() {
     var res = await Promise.allSettled([
       getJson(["/engine-manifest.json", PROXY + "/engine-manifest.json"]),
-      getJson(["/data/engine-registry.json", PROXY + "/data/engine-registry.json"]),
+      getJson(["/config/engine-registry.json", "/data/engine-registry.json", PROXY + "/data/engine-registry.json"]),   // /config copy is rebuilt on every deploy (QA audit 2026-09-07); the S3 doc has had no writer since July
       getJson(["/config/engine-contracts.json", PROXY + "/config/engine-contracts.json"]),
       getJson(["/nav-manifest.json"]),
       Promise.resolve({ pages: {} }),
