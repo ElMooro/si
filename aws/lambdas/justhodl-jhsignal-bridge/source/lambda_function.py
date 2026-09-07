@@ -1,4 +1,4 @@
-"""justhodl-jhsignal-bridge v1.0.0 -- the JustHodl Intelligence Network signal bridge (Release 1).
+"""justhodl-jhsignal-bridge v1.0.1 -- the JustHodl Intelligence Network signal bridge (Release 1).
 
     existing engine artifacts (S3, unchanged)
       -> SignalAdapter per registered engine (aws/shared/jh_adapters.py)
@@ -38,7 +38,7 @@ except Exception:  # pragma: no cover
     def track_errors(fn):
         return fn
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ENGINE = "jhsignal-bridge"
 MAX_PER_SIGNAL_EVENTS = int(os.environ.get("JH_MAX_PER_SIGNAL_EVENTS", "250"))
 _DDB_READY = {"ok": False}
@@ -113,7 +113,7 @@ def lambda_handler(event=None, context=None):
         "version": VERSION, "run_id": run_id, "mode": mode, "generated_at": J.iso(now), "n_engines": len(reports),
         "n_signals": len(signals), "n_entities": snapshot["n_entities"], "freshness_counts": snapshot["freshness_counts"],
         "changes": {k: len(v) for k, v in diff.items()}, "hard_veto_signals": len(hard),
-        "engines": [{k: r.get(k) for k in ("engine_id", "family", "criticality", "n_signals", "n_rejected", "source_status", "data_asof", "asof_basis")} for r in reports],
+        "engines": [{k: r.get(k) for k in ("engine_id", "family", "criticality", "n_signals", "n_rejected", "n_skipped", "skip_reasons", "source_status", "data_asof", "asof_basis", "diagnostics")} for r in reports],
         "rejections": [{"engine_id": r["engine_id"], "sample": r.get("rejected_sample")} for r in reports if r.get("n_rejected")],
     }
     if mode != "run":

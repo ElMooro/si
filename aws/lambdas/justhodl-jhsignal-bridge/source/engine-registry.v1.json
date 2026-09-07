@@ -1,8 +1,15 @@
 {
   "schema_version": "ENGINE-REGISTRY-1.0",
-  "generated_by": "ops 5212 -- JustHodl Intelligence Network Release 1 (2026-09-07)",
+  "generated_by": "ops 5212/5214 -- JustHodl Intelligence Network Release 1 (2026-09-07)",
   "note": "Persisted engine metadata for the fusion layer. Engines listed here are read through adapters (aws/shared/jh_adapters.py); their own outputs and schedules are untouched. status: active | shadow | disabled. criticality: CRITICAL blocks capital decisions when stale/missing, IMPORTANT reduces confidence and sizing, NONCRITICAL only lowers coverage.",
-  "families": ["MACRO", "FLOW", "FUNDAMENTAL", "CATALYST", "MARKET", "RISK"],
+  "families": [
+    "MACRO",
+    "FLOW",
+    "FUNDAMENTAL",
+    "CATALYST",
+    "MARKET",
+    "RISK"
+  ],
   "engines": [
     {
       "engine_id": "regime_composite",
@@ -12,16 +19,29 @@
       "owner": "justhodl",
       "producer": "justhodl-regime-composite",
       "artifact": "data/regime-composite.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0.1",
       "status": "active",
       "criticality": "IMPORTANT",
       "default_horizon": "SWING",
-      "expected_update_frequency": "hourly",
-      "freshness_ttl_seconds": 43200,
+      "expected_update_frequency": "fan-out 15min tick member; observed daily ~17:50 UTC",
+      "freshness_ttl_seconds": 108000,
       "half_life_days": 5,
-      "entities_supported": ["market"],
-      "dependencies": ["dealer-gex", "vix-curve", "credit-composite", "dark-pool", "options-flow", "cb-stance", "insider", "13f"],
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "dealer-gex",
+        "vix-curve",
+        "credit-composite",
+        "dark-pool",
+        "options-flow",
+        "cb-stance",
+        "insider",
+        "13f"
+      ],
       "historical_backtest_available": true,
       "calibration_available": false,
       "hard_veto_capable": false,
@@ -29,7 +49,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "regime_composite",
       "trust_key": "regime-composite",
-      "signal_types": {"meta_regime": {"cluster": "macro_support", "category": "macro"}}
+      "signal_types": {
+        "meta_regime": {
+          "cluster": "macro_support",
+          "category": "macro"
+        }
+      }
     },
     {
       "engine_id": "liquidity_credit_engine",
@@ -39,7 +64,9 @@
       "owner": "justhodl",
       "producer": "justhodl-liquidity-credit-engine",
       "artifact": "data/liquidity-credit-engine.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.1",
       "status": "active",
       "criticality": "IMPORTANT",
@@ -47,8 +74,12 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 172800,
       "half_life_days": 14,
-      "entities_supported": ["market"],
-      "dependencies": ["fred"],
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "fred"
+      ],
       "historical_backtest_available": false,
       "calibration_available": false,
       "hard_veto_capable": false,
@@ -56,7 +87,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "liquidity_credit",
       "trust_key": "liquidity-credit-engine",
-      "signal_types": {"liquidity_credit_composite": {"cluster": "liquidity", "category": "liquidity"}}
+      "signal_types": {
+        "liquidity_credit_composite": {
+          "cluster": "liquidity",
+          "category": "liquidity"
+        }
+      }
     },
     {
       "engine_id": "global_business_cycle",
@@ -66,16 +102,25 @@
       "owner": "justhodl",
       "producer": "justhodl-global-business-cycle",
       "artifact": "data/global-business-cycle.json",
-      "timestamp_paths": ["generated_at", "as_of"],
+      "timestamp_paths": [
+        "generated_at",
+        "as_of"
+      ],
       "version": "3.0.3",
       "status": "active",
       "criticality": "NONCRITICAL",
       "default_horizon": "INTERMEDIATE",
-      "expected_update_frequency": "daily",
+      "expected_update_frequency": "daily 12:00 UTC",
       "freshness_ttl_seconds": 259200,
       "half_life_days": 30,
-      "entities_supported": ["market"],
-      "dependencies": ["cycle-features", "oecd", "bis"],
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "cycle-features",
+        "oecd",
+        "bis"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -83,7 +128,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "global_cycle",
       "trust_key": "global-business-cycle",
-      "signal_types": {"global_cycle_phase": {"cluster": "cycle", "category": "cycle"}}
+      "signal_types": {
+        "global_cycle_phase": {
+          "cluster": "cycle",
+          "category": "cycle"
+        }
+      }
     },
     {
       "engine_id": "risk_gate",
@@ -93,7 +143,10 @@
       "owner": "justhodl",
       "producer": "justhodl-risk-gate",
       "artifact": "data/risk-gate.json",
-      "timestamp_paths": ["generated_at", "as_of"],
+      "timestamp_paths": [
+        "generated_at",
+        "as_of"
+      ],
       "version": "2.3",
       "status": "active",
       "criticality": "CRITICAL",
@@ -101,8 +154,13 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 108000,
       "half_life_days": 3,
-      "entities_supported": ["market"],
-      "dependencies": ["fred", "brain"],
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "fred",
+        "brain"
+      ],
       "historical_backtest_available": true,
       "calibration_available": false,
       "hard_veto_capable": true,
@@ -110,7 +168,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "risk_gate",
       "trust_key": "risk-gate",
-      "signal_types": {"risk_posture": {"cluster": "risk", "category": "risk"}}
+      "signal_types": {
+        "risk_posture": {
+          "cluster": "risk",
+          "category": "risk"
+        }
+      }
     },
     {
       "engine_id": "crisis_composite",
@@ -120,7 +183,9 @@
       "owner": "justhodl",
       "producer": "justhodl-crisis-composite",
       "artifact": "data/crisis-composite.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "CRITICAL",
@@ -128,8 +193,14 @@
       "expected_update_frequency": "hourly",
       "freshness_ttl_seconds": 28800,
       "half_life_days": 1,
-      "entities_supported": ["market"],
-      "dependencies": ["settlement-fails", "eurodollar-stress", "credit-composite"],
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "settlement-fails",
+        "eurodollar-stress",
+        "credit-composite"
+      ],
       "historical_backtest_available": true,
       "calibration_available": false,
       "hard_veto_capable": true,
@@ -137,7 +208,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "crisis_composite",
       "trust_key": "crisis-composite",
-      "signal_types": {"systemic_stress": {"cluster": "risk", "category": "risk"}}
+      "signal_types": {
+        "systemic_stress": {
+          "cluster": "risk",
+          "category": "risk"
+        }
+      }
     },
     {
       "engine_id": "tail_risk",
@@ -147,16 +223,23 @@
       "owner": "justhodl",
       "producer": "justhodl-tail-risk",
       "artifact": "data/tail-risk.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "IMPORTANT",
       "default_horizon": "TACTICAL",
-      "expected_update_frequency": "daily",
-      "freshness_ttl_seconds": 64800,
+      "expected_update_frequency": "daily 21:35 UTC",
+      "freshness_ttl_seconds": 108000,
       "half_life_days": 2,
-      "entities_supported": ["etf", "market"],
-      "dependencies": ["polygon-options"],
+      "entities_supported": [
+        "etf",
+        "market"
+      ],
+      "dependencies": [
+        "polygon-options"
+      ],
       "historical_backtest_available": false,
       "calibration_available": false,
       "hard_veto_capable": false,
@@ -164,7 +247,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "tail_risk",
       "trust_key": "tail-risk",
-      "signal_types": {"crash_probability": {"cluster": "risk", "category": "risk"}}
+      "signal_types": {
+        "crash_probability": {
+          "cluster": "risk",
+          "category": "risk"
+        }
+      }
     },
     {
       "engine_id": "insider_radar",
@@ -174,7 +262,9 @@
       "owner": "justhodl",
       "producer": "justhodl-insider-radar",
       "artifact": "data/insider-radar.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -182,8 +272,13 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 172800,
       "half_life_days": 21,
-      "entities_supported": ["equity"],
-      "dependencies": ["edgar-form4", "finviz"],
+      "entities_supported": [
+        "equity"
+      ],
+      "dependencies": [
+        "edgar-form4",
+        "finviz"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -191,7 +286,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "insider_radar",
       "trust_key": "insider-radar",
-      "signal_types": {"insider_cluster_buy": {"cluster": "smart_money", "category": "smart_money"}}
+      "signal_types": {
+        "insider_cluster_buy": {
+          "cluster": "smart_money",
+          "category": "smart_money"
+        }
+      }
     },
     {
       "engine_id": "institutional_13f_flows",
@@ -201,7 +301,9 @@
       "owner": "justhodl",
       "producer": "justhodl-13f-positions",
       "artifact": "data/13f-flows-by-ticker.json",
-      "timestamp_paths": ["as_of"],
+      "timestamp_paths": [
+        "as_of"
+      ],
       "version": "ops4968",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -209,8 +311,13 @@
       "expected_update_frequency": "3h",
       "freshness_ttl_seconds": 604800,
       "half_life_days": 45,
-      "entities_supported": ["equity", "etf"],
-      "dependencies": ["edgar-13f"],
+      "entities_supported": [
+        "equity",
+        "etf"
+      ],
+      "dependencies": [
+        "edgar-13f"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -218,7 +325,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "institutional_13f",
       "trust_key": "13f-positions",
-      "signal_types": {"whale_net_flow": {"cluster": "institutional_flow", "category": "institutional_flow"}}
+      "signal_types": {
+        "whale_net_flow": {
+          "cluster": "institutional_flow",
+          "category": "institutional_flow"
+        }
+      }
     },
     {
       "engine_id": "etf_flows",
@@ -228,16 +340,22 @@
       "owner": "justhodl",
       "producer": "justhodl-etf-flows",
       "artifact": "data/etf-flows.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
       "default_horizon": "SWING",
-      "expected_update_frequency": "daily",
+      "expected_update_frequency": "daily 11:35 UTC",
       "freshness_ttl_seconds": 129600,
       "half_life_days": 7,
-      "entities_supported": ["etf"],
-      "dependencies": ["polygon"],
+      "entities_supported": [
+        "etf"
+      ],
+      "dependencies": [
+        "polygon"
+      ],
       "historical_backtest_available": false,
       "calibration_available": false,
       "hard_veto_capable": false,
@@ -245,7 +363,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "etf_flows",
       "trust_key": "etf-flows",
-      "signal_types": {"etf_flow": {"cluster": "institutional_flow", "category": "institutional_flow"}}
+      "signal_types": {
+        "etf_flow": {
+          "cluster": "institutional_flow",
+          "category": "institutional_flow"
+        }
+      }
     },
     {
       "engine_id": "dark_pool",
@@ -255,7 +378,9 @@
       "owner": "justhodl",
       "producer": "justhodl-dark-pool",
       "artifact": "data/dark-pool.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -263,8 +388,12 @@
       "expected_update_frequency": "weekly",
       "freshness_ttl_seconds": 864000,
       "half_life_days": 14,
-      "entities_supported": ["equity"],
-      "dependencies": ["finra-ats"],
+      "entities_supported": [
+        "equity"
+      ],
+      "dependencies": [
+        "finra-ats"
+      ],
       "historical_backtest_available": false,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -272,7 +401,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "dark_pool",
       "trust_key": "dark-pool",
-      "signal_types": {"dark_pool_accumulation": {"cluster": "institutional_flow", "category": "institutional_flow"}}
+      "signal_types": {
+        "dark_pool_accumulation": {
+          "cluster": "institutional_flow",
+          "category": "institutional_flow"
+        }
+      }
     },
     {
       "engine_id": "estimate_revisions",
@@ -282,7 +416,9 @@
       "owner": "justhodl",
       "producer": "justhodl-estimate-revisions",
       "artifact": "data/estimate-revisions.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -290,8 +426,12 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 259200,
       "half_life_days": 30,
-      "entities_supported": ["equity"],
-      "dependencies": ["fmp"],
+      "entities_supported": [
+        "equity"
+      ],
+      "dependencies": [
+        "fmp"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -299,7 +439,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "estimate_revisions",
       "trust_key": "estimate-revisions",
-      "signal_types": {"eps_revision": {"cluster": "fundamental_growth", "category": "fundamental_growth"}}
+      "signal_types": {
+        "eps_revision": {
+          "cluster": "fundamental_growth",
+          "category": "fundamental_growth"
+        }
+      }
     },
     {
       "engine_id": "momentum_leaders",
@@ -309,7 +454,9 @@
       "owner": "justhodl",
       "producer": "justhodl-momentum-leaders",
       "artifact": "data/momentum-leaders.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -317,8 +464,13 @@
       "expected_update_frequency": "hourly",
       "freshness_ttl_seconds": 86400,
       "half_life_days": 10,
-      "entities_supported": ["equity", "etf"],
-      "dependencies": ["polygon"],
+      "entities_supported": [
+        "equity",
+        "etf"
+      ],
+      "dependencies": [
+        "polygon"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -326,7 +478,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "momentum_leaders",
       "trust_key": "momentum-leaders",
-      "signal_types": {"momentum_composite": {"cluster": "price_confirmation", "category": "price_confirmation"}}
+      "signal_types": {
+        "momentum_composite": {
+          "cluster": "price_confirmation",
+          "category": "price_confirmation"
+        }
+      }
     },
     {
       "engine_id": "fortress",
@@ -336,16 +493,29 @@
       "owner": "justhodl",
       "producer": "justhodl-fortress",
       "artifact": "data/fortress.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
       "version": "2.2.1",
       "status": "active",
       "criticality": "NONCRITICAL",
       "default_horizon": "SWING",
-      "expected_update_frequency": "daily",
-      "freshness_ttl_seconds": 172800,
+      "expected_update_frequency": "daily 03:30 UTC Tue-Sat (72h TTL covers the weekend)",
+      "freshness_ttl_seconds": 259200,
       "half_life_days": 15,
-      "entities_supported": ["equity", "etf"],
-      "dependencies": ["polygon-full", "finviz", "fundamental-census", "etf-flows", "13f", "insider-radar"],
+      "entities_supported": [
+        "equity",
+        "etf"
+      ],
+      "dependencies": [
+        "polygon-full",
+        "finviz",
+        "fundamental-census",
+        "etf-flows",
+        "13f",
+        "insider-radar"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -353,7 +523,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "fortress",
       "trust_key": "fortress",
-      "signal_types": {"fortress_accumulation": {"cluster": "price_confirmation", "category": "price_confirmation"}}
+      "signal_types": {
+        "fortress_accumulation": {
+          "cluster": "price_confirmation",
+          "category": "price_confirmation"
+        }
+      }
     },
     {
       "engine_id": "katlin",
@@ -363,7 +538,9 @@
       "owner": "justhodl",
       "producer": "justhodl-katlin",
       "artifact": "data/katlin.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "2.2.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -371,8 +548,19 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 172800,
       "half_life_days": 20,
-      "entities_supported": ["equity", "etf", "crypto"],
-      "dependencies": ["polygon-full", "fortress", "bond-warroom", "risk-gate", "crisis-composite", "tail-risk"],
+      "entities_supported": [
+        "equity",
+        "etf",
+        "crypto"
+      ],
+      "dependencies": [
+        "polygon-full",
+        "fortress",
+        "bond-warroom",
+        "risk-gate",
+        "crisis-composite",
+        "tail-risk"
+      ],
       "historical_backtest_available": true,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -380,7 +568,16 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "katlin",
       "trust_key": "katlin",
-      "signal_types": {"katlin_bottom_setup": {"cluster": "price_confirmation", "category": "price_confirmation"}, "katlin_catalyst": {"cluster": "catalyst", "category": "catalyst"}}
+      "signal_types": {
+        "katlin_bottom_setup": {
+          "cluster": "price_confirmation",
+          "category": "price_confirmation"
+        },
+        "katlin_catalyst": {
+          "cluster": "catalyst",
+          "category": "catalyst"
+        }
+      }
     },
     {
       "engine_id": "catalyst",
@@ -390,7 +587,10 @@
       "owner": "justhodl",
       "producer": "justhodl-catalyst",
       "artifact": "data/catalyst.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -398,8 +598,13 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 172800,
       "half_life_days": 10,
-      "entities_supported": ["equity"],
-      "dependencies": ["benzinga", "deal-history"],
+      "entities_supported": [
+        "equity"
+      ],
+      "dependencies": [
+        "benzinga",
+        "deal-history"
+      ],
       "historical_backtest_available": false,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -407,7 +612,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "catalyst",
       "trust_key": "catalyst",
-      "signal_types": {"named_catalyst": {"cluster": "catalyst", "category": "catalyst"}}
+      "signal_types": {
+        "named_catalyst": {
+          "cluster": "catalyst",
+          "category": "catalyst"
+        }
+      }
     },
     {
       "engine_id": "dealer_gex",
@@ -417,7 +627,9 @@
       "owner": "justhodl",
       "producer": "justhodl-dealer-gex",
       "artifact": "data/dealer-gex.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -425,8 +637,13 @@
       "expected_update_frequency": "hourly",
       "freshness_ttl_seconds": 43200,
       "half_life_days": 2,
-      "entities_supported": ["equity", "etf"],
-      "dependencies": ["polygon-options"],
+      "entities_supported": [
+        "equity",
+        "etf"
+      ],
+      "dependencies": [
+        "polygon-options"
+      ],
       "historical_backtest_available": true,
       "calibration_available": false,
       "hard_veto_capable": false,
@@ -434,7 +651,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "dealer_gex",
       "trust_key": "dealer-gex",
-      "signal_types": {"gamma_regime": {"cluster": "options_positioning", "category": "options_positioning"}}
+      "signal_types": {
+        "gamma_regime": {
+          "cluster": "options_positioning",
+          "category": "options_positioning"
+        }
+      }
     },
     {
       "engine_id": "short_interest",
@@ -444,7 +666,9 @@
       "owner": "justhodl",
       "producer": "justhodl-short-interest",
       "artifact": "data/short-interest.json",
-      "timestamp_paths": ["generated_at"],
+      "timestamp_paths": [
+        "generated_at"
+      ],
       "version": "1.0",
       "status": "active",
       "criticality": "NONCRITICAL",
@@ -452,8 +676,13 @@
       "expected_update_frequency": "daily",
       "freshness_ttl_seconds": 259200,
       "half_life_days": 14,
-      "entities_supported": ["equity"],
-      "dependencies": ["finra", "polygon"],
+      "entities_supported": [
+        "equity"
+      ],
+      "dependencies": [
+        "finra",
+        "polygon"
+      ],
       "historical_backtest_available": false,
       "calibration_available": true,
       "hard_veto_capable": false,
@@ -461,7 +690,12 @@
       "signal_schema_version": "JHSIGNAL-1.0",
       "adapter": "short_interest",
       "trust_key": "short-interest",
-      "signal_types": {"short_positioning": {"cluster": "positioning", "category": "positioning"}}
+      "signal_types": {
+        "short_positioning": {
+          "cluster": "positioning",
+          "category": "positioning"
+        }
+      }
     }
   ]
 }

@@ -160,7 +160,7 @@ class TestAdapters:
         sigs, reports = signals_from_artifacts
         ids = {(s["engine_id"], s["entity_id"]) for s in sigs}
         assert ("institutional_13f_flows", "equity:ZERO") not in ids          # wn == 0 -> no signal
-        assert ("etf_flows", "etf:SMH") not in ids                          # z-score missing -> no signal
+        assert ("etf_flows", "etf:SMH") not in ids                          # z-score AND 5d/20d proxy missing -> no signal
         assert ("dark_pool", "equity:MSFT") not in ids                      # NEUTRAL state -> no signal
         assert ("catalyst", "equity:EMPTY") not in ids                      # no catalysts -> no signal
         assert ("dealer_gex", "equity:BAD") not in ids                      # err row -> no signal
@@ -191,6 +191,12 @@ class TestAdapters:
         assert er["score"] < 0 and er["metadata"]["binary_event_soon"] is True
         assert by[("fortress", "etf:IWM", "fortress_accumulation")]["entity_type"] == "etf"
         assert by[("momentum_leaders", "equity:META", "momentum_composite")]["direction"] in ("bearish", "slightly_bearish")
+        shy = by[("etf_flows", "etf:SHY", "etf_flow")]                       # 60d z-score null -> 5d/20d rotation proxy, sign from ROTATION_OUT
+        assert shy["score"] < 0 and shy["metadata"]["confidence_basis"].startswith("5d_vs_20d_proxy") and abs(shy["score"] + 31.5 / 75.0) < 1e-6
+        gbc = by[("global_business_cycle", "market:US_EQUITY", "global_cycle_phase")]  # v3 publishes the calibration block, not a float
+        assert abs(gbc["score"] - (0.5 - 0.8 * (0.354 - 0.25))) < 1e-6 and abs(gbc["confidence"] - 30 / 34) < 1e-6
+        assert by[("fortress", "etf:IWM", "fortress_accumulation")]["metadata"]["asof_basis"] == "engine"
+        assert by[("catalyst", "equity:AMZN", "named_catalyst")]["metadata"]["asof_basis"] == "engine"
 
     def test_hard_veto_paths(self, registry, universe, now):
         from jh_adapters import adapter_for

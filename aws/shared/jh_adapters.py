@@ -255,7 +255,8 @@ class LiquidityCreditAdapter(SignalAdapter):
 
 class GlobalCycleAdapter(SignalAdapter):
     """global_phase base (RECOVERY +0.7, EXPANSION +0.5, PEAKING -0.3, CONTRACTION -0.7) shifted by the
-    6-month downturn probability: score = base - 0.8*(p - 0.25). Confidence = fresh countries / mapped."""
+    6-month downturn probability (v3 publishes it as a calibration block with probability_now): score = base - 0.8*(p - 0.25).
+    Confidence = countries_with_fresh_data / countries_total (fallback: aggregate.classification_coverage_pct)."""
     signal_type, category = "global_cycle_phase", "cycle"
     BASE = {"GLOBAL_RECOVERY": 0.7, "GLOBAL_EXPANSION": 0.5, "GLOBAL_PEAKING": -0.3, "GLOBAL_CONTRACTION": -0.7}
 
@@ -267,15 +268,18 @@ class GlobalCycleAdapter(SignalAdapter):
         base = self.BASE.get(phase)
         if base is None:
             return
-        p = _f(doc.get("downturn_probability_6m"))
-        if p is None:
-            p = _f(_path(doc, "composite.downturn_probability_6m.probability_now"))
+        dp = doc.get("downturn_probability_6m")
+        p = _f(dp.get("probability_now")) if isinstance(dp, dict) else _f(dp)   # v3 publishes the calibration block, not a bare float
         score = base if p is None else _clip(base - 0.8 * (p - 0.25))
-        fresh = _f(doc.get("fresh_count")); n = _f(doc.get("n_countries"))
+        fresh = _f(doc.get("countries_with_fresh_data", doc.get("fresh_count"))); n = _f(doc.get("countries_total", doc.get("n_countries")))
         conf = (fresh / n) if (fresh is not None and n) else None
+        basis = "countries_with_fresh_data/countries_total"
+        if conf is None:
+            cov = _f(agg.get("classification_coverage_pct"))
+            conf, basis = ((cov / 100.0) if cov is not None else None), "aggregate.classification_coverage_pct"
         yield {
-            "symbol": "US_EQUITY", "entity_type": "market", "score": score, "confidence": conf, "confidence_basis": "fresh_count/n_countries",
-            "evidence": _ev(global_phase=phase, downturn_probability_6m=p, global_avg_cli=agg.get("global_avg_cli"), cli_level=agg.get("cli_level")),
+            "symbol": "US_EQUITY", "entity_type": "market", "score": score, "confidence": conf, "confidence_basis": basis,
+            "evidence": _ev(global_phase=phase, downturn_probability_6m=p, global_avg_cli=agg.get("global_avg_cli"), cli_level=agg.get("cli_level"), expansion_breadth_pct=agg.get("expansion_breadth_pct"), contraction_breadth_pct=agg.get("contraction_breadth_pct")),
             "metadata": {"global_phase": phase},
             "invalidation": {"type": "state", "description": "global phase changes or downturn probability crosses 0.5"},
         }
@@ -442,9 +446,10 @@ class Institutional13FAdapter(SignalAdapter):
 
 
 class EtfFlowsAdapter(SignalAdapter):
-    """by_etf[ticker] {dvol_z_score, return_1d_pct, flow_signal}: score = clip(z/3) with sign from the flow
-    classification (HEAVY_INFLOW/ROTATION_IN +, HEAVY_OUTFLOW/ROTATION_OUT -, else sign of 1d return).
-    Confidence = 0.45 + 0.15*min(|z|, 3)/3 + 0.2 if classified."""
+    """by_etf[ticker] {dvol_z_score, dvol_5d_vs_20d_pct, return_1d_pct, flow_signal}: size = |z|/3 when the 60d z-score
+    exists, else |dvol_5d_vs_20d_pct|/75 (the engine's own rotation measure; 25% is its ROTATION threshold); sign from
+    the flow classification (HEAVY_INFLOW/ROTATION_IN +, HEAVY_OUTFLOW/ROTATION_OUT -, else sign of 1d return).
+    Confidence = 0.45 + 0.15*size + 0.2 if classified, -0.1 when only the 5d/20d proxy exists."""
     signal_type, category = "etf_flow", "institutional_flow"
     entity_default = "etf"
 
@@ -456,9 +461,13 @@ class EtfFlowsAdapter(SignalAdapter):
             if not isinstance(r, dict):
                 yield {"skip": "not isinstance(r, dict)"}
                 continue
-            z = _f(r.get("dvol_z_score"))
-            if z is None:
-                yield {"skip": "z is None"}
+            z = _f(r.get("dvol_z_score")); rot = _f(r.get("dvol_5d_vs_20d_pct"))
+            if z is not None:
+                size, basis_note = min(1.0, abs(z) / 3.0), "z60"
+            elif rot is not None:
+                size, basis_note = min(1.0, abs(rot) / 75.0), "5d_vs_20d_proxy"
+            else:
+                yield {"skip": "dvol_z_score and dvol_5d_vs_20d_pct both missing"}
                 continue
             fs = str(r.get("flow_signal") or "")
             r1 = _f(r.get("return_1d_pct"))
@@ -472,10 +481,10 @@ class EtfFlowsAdapter(SignalAdapter):
                 continue
             classified = fs not in ("", "NORMAL", "NONE", "UNUSUAL_VOL")
             yield {
-                "symbol": sym, "entity_type": "etf", "score": _clip(sgn * min(1.0, abs(z) / 3.0)),
-                "confidence": min(0.9, 0.45 + 0.15 * min(abs(z), 3.0) / 3.0 + (0.2 if classified else 0.0)),
-                "confidence_basis": "z-score size + classification", "magnitude": _f(r.get("today_dollar_vol_b")), "percentile": None,
-                "evidence": _ev(dvol_z_score=z, flow_signal=fs or None, return_1d_pct=r1, aum_b=r.get("aum_b")),
+                "symbol": sym, "entity_type": "etf", "score": _clip(sgn * size),
+                "confidence": _clip(0.45 + 0.15 * size + (0.2 if classified else 0.0) - (0.1 if basis_note != "z60" else 0.0), 0.0, 0.9),
+                "confidence_basis": "%s size + classification" % basis_note, "magnitude": _f(r.get("today_dollar_vol_b")), "percentile": None,
+                "evidence": _ev(dvol_z_score=z, dvol_5d_vs_20d_pct=rot, flow_signal=fs or None, return_1d_pct=r1, aum_b=r.get("aum_b"), category=r.get("category")),
                 "invalidation": {"type": "state", "description": "flow_signal reverses"},
             }
 
