@@ -78,7 +78,11 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
 function badge(status){
-  var map = {wired:["b-wired","WIRED"], "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
+  // audit 2026-09-08 (section C-3): per-output states -- WIRED now means "a page references a present, fresh output";
+  // a referenced-but-stale or referenced-but-missing feed is no longer hidden inside WIRED.
+  var map = {wired:["b-wired","WIRED"], "wired-stale-feed":["b-stale","WIRED · STALE FEED"], "wired-missing-feed":["b-dead","WIRED · MISSING FEED"],
+    "declared-absent":["b-dead","DECLARED · ABSENT ON S3"],
+    "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
     "orphan-stale":["b-stale","ORPHAN · STALE"], "orphan-dead":["b-dead","ORPHAN · DEAD FEED"],
     "no-outs":["b-noouts","NO OUTPUT DECLARED"]};
   var m = map[status] || ["b-noouts", status];
@@ -94,8 +98,9 @@ function ageLabel(h){
 document.getElementById("stamp").textContent = "UPDATED " + (D.generated_at || "—");
 
 var KPI_DEFS = [
-  ["wired", "WIRED", "wired"], ["orphan-fresh", "ORPHAN · FRESH", "fresh"],
-  ["orphan-stale", "ORPHAN · STALE", "stale"], ["no-outs", "NO OUTPUT DECLARED", "noouts"]
+  ["wired", "WIRED", "wired"], ["wired-stale-feed", "WIRED · STALE FEED", "stale"], ["wired-missing-feed", "WIRED · MISSING FEED", "stale"],
+  ["orphan-fresh", "ORPHAN · FRESH", "fresh"], ["orphan-stale", "ORPHAN · STALE", "stale"],
+  ["declared-absent", "DECLARED · ABSENT", "stale"], ["no-outs", "NO OUTPUT DECLARED", "noouts"]
 ];
 document.getElementById("kpis").innerHTML = KPI_DEFS.map(function(k){
   var n = (D.counts[k[0]] || 0) + (k[0] === "orphan-stale" ? (D.counts["orphan-dead"] || 0) : 0);
@@ -119,8 +124,12 @@ function render(){
           return '<a href="/' + p + '">' + p.replace(".html","") + "</a>";
         }).join("") + "</span>"
       : '<span class="dim">— none —</span>';
-    return "<tr><td>" + esc(row.name) + "</td><td>" + badge(row.status) + "</td><td>" +
-      esc((row.outs || [])[0] || "—") + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
+    var outsCell = esc((row.outs || [])[0] || "—");
+    if (row.n_outputs != null) outsCell += ' <span class="dim" title="declared / present on S3 / referenced by a page">' + row.n_outputs + " out · " + (row.n_present || 0) + " present · " + (row.n_referenced || 0) + " referenced</span>";
+    var detail = (row.outputs || []).length ? '<details><summary class="dim">per-output state</summary>' + row.outputs.map(function(o){
+      return '<div class="dim">' + esc(o.key) + " · " + (o.present ? (o.fresh ? "fresh" : "stale") : "MISSING") + (o.age_h != null ? " · " + ageLabel(o.age_h) : "") + " · " + ((o.pages || []).length ? o.pages.length + " page(s) [" + (o.ref_kind || []).join(",") + "]" : "no page reference") + "</div>";
+    }).join("") + "</details>" : "";
+    return "<tr><td>" + esc(row.name) + detail + "</td><td>" + badge(row.status) + "</td><td>" + outsCell + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
   }).join("");
 }
 

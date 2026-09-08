@@ -65,13 +65,31 @@ def load_entries(build_dir="."):
 def main(build_dir="."):
     entries, registry_asof = load_entries(build_dir)
 
-    # read every page's ALREADY-ASSEMBLED source in _site (no network needed for this part)
+    # read every page's ALREADY-ASSEMBLED source in _site (no network needed for this part).
+    # audit 2026-09-08 (section C-4): directory routes (intel/index.html, funding/index.html, ...) are
+    # public pages too, and a page's linked same-origin scripts are part of its source -- a feed loaded
+    # from /intel.js is displayed by intel/index.html even though the HTML never names the key.
     page_src = {}
-    for f in glob.glob(f"{build_dir}/*.html"):
-        name = f.split("/")[-1]
-        if name in ("engines.html",):
+    js_cache = {}
+    _script_re = re.compile(r'<script[^>]+src=["\']/?([A-Za-z0-9_./-]+\.js)(?:\?[^"\']*)?["\']')
+    def linked_js(src):
+        out = []
+        for m in _script_re.finditer(src):
+            path = f"{build_dir}/{m.group(1)}"
+            if path not in js_cache:
+                try:
+                    js_cache[path] = open(path, encoding="utf-8", errors="replace").read()
+                except Exception:
+                    js_cache[path] = ""
+            if js_cache[path]:
+                out.append(js_cache[path])
+        return "\n".join(out)
+    for f in sorted(glob.glob(f"{build_dir}/*.html") + glob.glob(f"{build_dir}/*/index.html")):
+        rel = f[len(build_dir):].lstrip("/")
+        if rel in ("engines.html",) or rel.startswith(("_", "node_modules/", "vendor/")):
             continue
-        page_src[name] = open(f, encoding="utf-8", errors="replace").read()
+        src = open(f, encoding="utf-8", errors="replace").read()
+        page_src[rel] = src + "\n" + linked_js(src)
 
     unique_feeds = set()
     for e in entries.values():
@@ -93,26 +111,45 @@ def main(build_dir="."):
             ages[k] = a
 
     def referenced(out, src):
-        # Pages fetch feeds three ways: full path literal, constructed base+"name.json",
-        # or a quoted stem inside a JS key list. Any of them means the page displays it.
+        # audit 2026-09-08 (section C-3): a reference is the full key or the file name WITH its
+        # extension. The old stem-only match ('"pv"', '"log"') turned CSS classes and axis types into
+        # "wired" evidence. This is still static evidence, not proof of rendering -- see
+        # `ref_kind` on each output and the per-output state below.
         if out in src:
-            return True
+            return "path"
         bare = out.split("/")[-1]
-        if bare in src:
-            return True
-        stem = bare.rsplit(".", 1)[0]
-        return re.search(r'["\']' + re.escape(stem) + r'["\']', src) is not None
+        if bare.endswith(".json") and bare in src:
+            return "filename"
+        return None
 
     rows = []
     for name, e in sorted(entries.items()):
         outs = e.get("outs") or []
-        pages = sorted({p for p, src in page_src.items()
-                        if any(referenced(o, src) for o in outs)}) if outs else []
-        best_age = min((ages[o] for o in outs if ages.get(o) is not None), default=None)
+        # per-output state: declared -> present on S3 -> referenced by a page -> fresh (audit C-3/C-5)
+        outputs = []
+        for o in outs:
+            age = ages.get(o)
+            refs = {}
+            for pg, src in page_src.items():
+                k = referenced(o, src)
+                if k:
+                    refs[pg] = k
+            outputs.append({"key": o, "present": age is not None, "age_h": age, "fresh": (age is not None and age < 24),
+                            "pages": sorted(refs.keys()), "ref_kind": sorted(set(refs.values()))})
+        pages = sorted({pg for out in outputs for pg in out["pages"]})
+        referenced_outs = [out for out in outputs if out["pages"]]
+        present_outs = [out for out in outputs if out["present"]]
+        best_age = min((out["age_h"] for out in present_outs), default=None)
         if not outs:
             status = "no-outs"
-        elif pages:
+        elif not present_outs:
+            status = "declared-absent"          # every declared output is missing on S3 (manifest false positive or a dead writer)
+        elif referenced_outs and any(out["present"] and out["fresh"] for out in referenced_outs):
             status = "wired"
+        elif referenced_outs and any(out["present"] for out in referenced_outs):
+            status = "wired-stale-feed"         # a page points at it but the feed it shows is stale
+        elif referenced_outs:
+            status = "wired-missing-feed"       # a page points at a key that does not exist on S3
         elif best_age is not None and best_age < 24:
             status = "orphan-fresh"
         elif best_age is not None:
@@ -120,7 +157,9 @@ def main(build_dir="."):
         else:
             status = "orphan-dead"
         rows.append({"name": name, "outs": outs[:3], "pages": pages[:3],
-                      "age_h": best_age, "status": status})
+                      "age_h": best_age, "status": status,
+                      "n_outputs": len(outs), "n_present": len(present_outs), "n_referenced": len(referenced_outs),
+                      "outputs": outputs})
 
     counts = {}
     for r in rows:
