@@ -13,6 +13,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE.parent / "source" / "lambda_function.py"
+# shared modules (managed_secret etc.) are bundled into the Lambda zip; make them importable here too
+sys.path.insert(0, str(HERE.parents[2] / "shared"))
 
 
 class _NoAWS:

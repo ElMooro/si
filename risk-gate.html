@@ -221,6 +221,12 @@ tr:last-child td{border-bottom:none}
 <div class="dim" style="font-size:12.5px;margin-bottom:10px">Seven legs Khalid's brain requires. Each shows engine-emitted score −2..+2, fused fleet score, and named indicators with brain-cited thresholds.</div>
 <div class="grid g-legs" id="legs"></div>
 
+<!-- audit 2026-09-08 FR-09: the nine brain-cited indicators the producer publishes (indicators.indicators) and the live overlays -->
+<h2>Nine Brain-Cited Indicators <span class="anchor">native-month Sahm / truck · pending sources shown honestly</span></h2>
+<div class="grid g-legs" id="indicators"><div class="dim">Loading…</div></div>
+<h2>Live Overlays <span class="anchor">composite = weighted legs + overlays (identity checked)</span></h2>
+<div class="card2" id="overlays">Loading…</div>
+
 <!-- ================================================================ -->
 <h2>Fleet Inputs <span class="anchor">deltas contributing to fleet-fused posture</span></h2>
 <div class="card2" id="fleet">Loading…</div>
@@ -535,11 +541,14 @@ function renderLegs(rg){
   if(!rg || !rg.legs){ el.innerHTML='<div class="dim">no legs</div>'; return; }
   el.innerHTML = Object.entries(rg.legs).map(([name,leg])=>{
     const meta = LEG_META[name] || {emoji:'⚙️', title:name, bs:''};
-    const engine = leg.engine_score;
-    const fused = leg.fleet_fused_score;
-    const state = leg.state || '?';
+    // audit 2026-09-08 FR-09: read the producer's actual fields (score / score_fused / why / fleet_inputs);
+    // the v2.5 producer also publishes engine_score / fleet_fused_score / state / drivers explicitly.
+    const engine = (leg.engine_score != null) ? leg.engine_score : leg.score;
+    const fused = (leg.fleet_fused_score != null) ? leg.fleet_fused_score : ((leg.score_fused != null) ? leg.score_fused : leg.score);
+    const state = leg.state || (fused == null ? 'UNKNOWN' : fused >= 0.35 ? 'RISK-ON' : fused > -0.35 ? 'NEUTRAL' : fused > -0.95 ? 'RISK-OFF' : 'SEVERE');
     const ind = leg.indicators || [];
-    const drivers = leg.drivers || [];
+    const drivers = (leg.drivers && leg.drivers.length) ? leg.drivers : (leg.fleet_inputs || []).map(x => ({source: x.input, delta: x.score_adj, weight: 1, status: x.status}));
+    const why = Array.isArray(leg.why) ? leg.why : [];
     const engineColor = scoreColor(engine);
     const fusedColor = scoreColor(fused);
     const engMark = scorePct(engine);
@@ -570,8 +579,35 @@ function renderLegs(rg){
         <span>+2</span>
       </div>
       ${indHtml?`<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--line2)">${indHtml}</div>`:''}
+      ${why.length?`<div class="dim" style="margin-top:8px;font-size:11px;line-height:1.45">${why.slice(0,4).map(w=>esc(String(w))).join('<br>')}</div>`:''}
+      ${leg.applied?`<div class="dim" style="margin-top:6px;font-size:11px">overlay applied: <b>${esc(String(leg.applied))}</b> · ${esc(String(leg.status||''))}</div>`:''}
     </div>`;
   }).join('');
+}
+
+function renderIndicators(rg){
+  const el = document.getElementById('indicators'); if(!el) return;
+  const ind = rg && rg.indicators && rg.indicators.indicators;
+  if(!ind){ el.innerHTML='<div class="dim">no indicators in feed</div>'; return; }
+  el.innerHTML = Object.entries(ind).map(([k,v])=>{
+    const pending = v && v.pending_source;
+    const val = (v && typeof v.value==='number') ? (v.value.toFixed(2)+(v.unit?' '+v.unit:'')) : (pending ? 'pending' : String(v && v.value != null ? v.value : '?'));
+    const sig = (v && v.signal) || (pending ? 'NO SOURCE' : '');
+    const col = /RECESSION|TRIGGERED|STRESS|SEIZ|ALERT/.test(sig) ? 'var(--red)' : /WATCH|WARN|STRAIN/.test(sig) ? 'var(--sev)' : pending ? 'var(--dim)' : 'var(--green)';
+    return `<div class="card2"><h3 style="margin:0;font-size:13px">${esc(k.replace(/_/g,' '))}</h3>
+      <div class="big" style="font-size:20px;color:${col}">${esc(val)}</div>
+      <div style="font-size:11px;color:${col}">${esc(sig)}</div>
+      <div class="dim" style="font-size:10.5px;margin-top:4px">${pending ? 'pending source: '+esc(String(v.pending_source)) : esc(String(v.source||''))} · as of ${esc(String((v&&(v.observation_date||v.asof))||'?'))}${v&&v.basis?'<br>'+esc(String(v.basis)):''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverlays(rg){
+  const el = document.getElementById('overlays'); if(!el) return;
+  const ov = rg && rg.overlays, id = rg && rg.composite_identity;
+  if(!ov){ el.innerHTML='<div class="dim">producer predates v2.5 -- overlays not disclosed</div>'; return; }
+  el.innerHTML = `<div class="dim" style="font-size:12px;margin-bottom:8px">composite ${fmt(id&&id.composite,3)} = weighted legs ${fmt(id&&id.weighted_legs,3)} + overlays ${fmt(id&&id.overlays_total,3)} · identity ${id&&id.check_ok?'<b style="color:var(--green)">OK</b>':'<b style="color:var(--red)">BROKEN</b>'} · ${esc(String(rg.replay_purity||''))}</div>` +
+    ov.map(o=>`<div class="fi"><span class="k">${esc(o.name)}</span><span class="v">${esc(String(o.why||''))}</span><span class="adj ${o.contribution<0?'leg-neg':'leg-zero'}">${fmt(o.contribution,2)} · ${esc(o.status||'')}${o.age_h!=null?' · '+fmt(o.age_h,0)+'h':''}${o.eligible===false?' · not applied':''}</span></div>`).join('');
 }
 
 /* =============================================================================
@@ -749,6 +785,8 @@ function renderDiag(rg, dom, cc, reg, kb, ofr){
   renderRegimeStrip(reg);
   renderCrisisKB(kb);
   renderLegs(rg);
+  renderIndicators(rg);
+  renderOverlays(rg);
   renderFleet(rg);
   renderES(rg);
   renderTL(rg);

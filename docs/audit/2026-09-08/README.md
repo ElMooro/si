@@ -42,10 +42,10 @@ reported with the reproduction, not fixed.
 | FR-03 | P1 | Risk-sizer breaches its 8% single-name cap | Claude | B1 | **FIXED** (push pending A2) | v2.0: cap applied after the quality tilt, drawdown and gate multipliers, cluster/gross scaling and rounding; `final_constraint_check` asserted. `aws/lambdas/justhodl-risk-sizer/tests/run_tests.py` (7); ops 5222 |
 | FR-04 | P1 | Risk-sizer separate authority, ignores portfolio state | Claude | B1 | **FIXED** (push pending A2) | binds to `data/khalid-risk.json` (min cap, entry prohibition, missing/stale = HOLD), risk-gate sizing multiplier (zero honoured), nets the real book `portfolio/snapshot.json` (`portfolio/state.json` was never written by anyone), empty pipeline writes an explicit NO_IDEAS artifact; risk.html shows the authority + hold reasons |
 | FR-05 | P1 | Zero NAV discards drawdown brake | Claude | B1 | **FIXED** (push pending A2) | `is not None` + finite/non-negative; <2 snapshots = UNKNOWN = hold; the page shows UNKNOWN (never 0.00%) and the BINDING trigger |
-| FR-06 | P1 | Risk-gate replay reads today's feeds | Claude | B | open | |
-| FR-07 | P1 | Risk-gate live drops annotated deductions | Claude | B | open | |
-| FR-08 | P1 | Monthly Sahm/truck from daily forward-fill | Claude | B | open | |
-| FR-09 | P1/P2 | risk-gate.html schema mismatch | Claude | B | open | |
+| FR-06 | P1 | Risk-gate replay reads today's feeds | Claude | B2 | **FIXED** (push pending A2) | v2.5: `compute_posture` is pure (no S3); the two overlays are read once in the handler and applied to the live composite only; `replay_*_fred_only` labels now true; thousands of serial S3 reads per run gone. `aws/lambdas/justhodl-risk-gate/tests/run_tests.py` (6); ops 5223 |
+| FR-07 | P1 | Risk-gate live drops annotated deductions | Claude | B2 | **FIXED** (push pending A2) | `overlays[]` published with contribution/status/age/eligible; `composite_identity` asserts composite = weighted legs + overlays; stale/missing overlays never apply |
+| FR-08 | P1 | Monthly Sahm/truck from daily forward-fill | Claude | B2 | **FIXED** (push pending A2) | native monthly series kept before forward-fill; Sahm = 3-mo avg minus min of the prior 12 3-mo avgs (official); truck YoY vs the observation 12 calendar months earlier; observation dates published; insufficient history = pending, never zero |
+| FR-09 | P1/P2 | risk-gate.html schema mismatch | Claude | B2 | **FIXED** (push pending A2) | producer publishes engine_score / fleet_fused_score / state / drivers per leg, `fleet_context.inputs` dict, `schema_version risk-gate.v2.5`; page reads the real fields and gains the nine-indicator and overlays panels |
 | FR-10 | P1 | Governed fusion rejects credit contract | **Perplexity** | — | reported | `fusion_engine.py:63-65` range-checks absent alternatives |
 | FR-11 | P2 | Governed fusion always DEGRADED | **Perplexity** | — | reported | |
 | FR-12 | P2 | Khalid Risk page hides fields | **Perplexity** | — | reported | |

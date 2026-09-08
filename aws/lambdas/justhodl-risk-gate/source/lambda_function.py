@@ -59,7 +59,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.4 BRAIN-CONSTITUTIONAL FLEET-FUSED"
+MARKER = "risk-gate v2.5 BRAIN-CONSTITUTIONAL FLEET-FUSED (audit 2026-09-08: pure replay, disclosed overlays, native-month indicators)"
 
 s3 = boto3.client("s3")
 
@@ -187,10 +187,56 @@ def _zlast(series_map, calendar, i, back=252):
     return cur, z
 
 
-def compute_indicators(F, calendar, i):
-    """9 brain-cited risk indicators as a clean render contract."""
+def sahm_rule(native_unrate, d):
+    """Official Sahm real-time rule on NATIVE monthly observations (audit 2026-09-08 FR-08):
+    current 3-month average of UNRATE minus the MINIMUM of the 3-month averages over the
+    previous 12 months. Returns None when fewer than 15 monthly observations <= d exist."""
+    pts = sorted((k, v) for k, v in (native_unrate or {}).items() if k <= d and v is not None)
+    if len(pts) < 15:
+        return None
+    vals = [v for _, v in pts]
+    avg3 = [sum(vals[j - 2:j + 1]) / 3.0 for j in range(2, len(vals))]   # 3-mo averages, index j-2 -> month j
+    cur = avg3[-1]
+    prior12 = avg3[-13:-1]                                                # the 12 preceding 3-mo averages
+    if len(prior12) < 12:
+        return None
+    low = min(prior12)
+    return {"value": round(cur - low, 2), "recent_3mo_avg": round(cur, 2), "trailing_low_3mo_avg": round(low, 2),
+            "observation_date": pts[-1][0], "n_months": len(pts), "basis": "native monthly UNRATE; 3-mo avg minus min of prior 12 3-mo avgs (official formula)"}
+
+
+def truck_yoy(native_truck, d):
+    """TRUCKD11 year-over-year on NATIVE monthly observations: the observation <= d versus the
+    observation 12 calendar months earlier (nearest at or before that month, within 45 days)."""
+    pts = sorted((k, v) for k, v in (native_truck or {}).items() if k <= d and v is not None)
+    if len(pts) < 13:
+        return None
+    cur_d, cur_v = pts[-1]
+    try:
+        y, m, day = int(cur_d[:4]), int(cur_d[5:7]), int(cur_d[8:10])
+    except Exception:
+        return None
+    target = "%04d-%02d-%02d" % (y - 1, m, day)
+    prior = [(k, v) for k, v in pts if k <= target]
+    if not prior:
+        return None
+    pk, pv = prior[-1]
+    # reject a base observation more than ~45 days before the target month
+    from datetime import date as _date
+    gap = (_date(y - 1, m, min(day, 28)) - _date(int(pk[:4]), int(pk[5:7]), min(int(pk[8:10]), 28))).days
+    if gap > 45 or not pv:
+        return None
+    return {"value": round((cur_v / pv - 1) * 100, 1), "observation_date": cur_d, "base_observation_date": pk,
+            "current": cur_v, "year_ago": pv, "basis": "native monthly TRUCKD11 vs the observation 12 calendar months earlier"}
+
+
+def compute_indicators(F, calendar, i, native=None):
+    """9 brain-cited risk indicators as a clean render contract.
+    `native` = the un-forward-filled monthly series (UNRATE, TRUCKD11): monthly measures are
+    never computed from repeated daily samples (audit 2026-09-08 FR-08)."""
     d = calendar[i]
     out = {}
+    native = native or {}
 
     # 1 — HY-IG skew (credit-quality dispersion): HY OAS - IG OAS, z-scored
     hy = F.get("BAMLH0A0HYM2", {}).get(d)
@@ -286,47 +332,39 @@ def compute_indicators(F, calendar, i):
     else:
         out["sofr_iorb"] = {"pending_source": "FRED SOFR/IORB", "asof": d}
 
-    # 8 — Sahm Rule (recession trigger): 3mo-avg UNRATE minus trailing-12mo
-    # low; >= 0.50 triggers
-    ur = F.get("UNRATE", {})
-    if ur.get(d) is not None:
-        # monthly series: gather last ~15 monthly points
-        pts = sorted((k, v) for k, v in ur.items() if k <= d)[-15:]
-        if len(pts) >= 13:
-            recent3 = sum(v for _, v in pts[-3:]) / 3
-            low12 = min(v for _, v in pts[-12:])
-            sahm = round(recent3 - low12, 2)
-            out["sahm_rule"] = {
-                "value": sahm, "z": None, "unit": "pp",
-                "signal": ("RECESSION TRIGGERED" if sahm >= 0.50 else
-                           "WATCH" if sahm >= 0.30 else "CLEAR"),
-                "recent_3mo_avg": round(recent3, 2), "trailing_low": low12,
-                "cite": "Sahm recession rule — real-time downturn trigger",
-                "source": "FRED UNRATE", "asof": pts[-1][0]}
-        else:
-            out["sahm_rule"] = {"pending_source": "UNRATE history depth",
-                                "asof": d}
+    # 8 — Sahm Rule (recession trigger) on NATIVE monthly UNRATE (FR-08)
+    sr = sahm_rule(native.get("UNRATE"), d)
+    if sr:
+        sahm = sr["value"]
+        out["sahm_rule"] = {
+            "value": sahm, "z": None, "unit": "pp",
+            "signal": ("RECESSION TRIGGERED" if sahm >= 0.50 else
+                       "WATCH" if sahm >= 0.30 else "CLEAR"),
+            "recent_3mo_avg": sr["recent_3mo_avg"], "trailing_low": sr["trailing_low_3mo_avg"],
+            "basis": sr["basis"], "n_months": sr["n_months"], "observation_date": sr["observation_date"],
+            "cite": "Sahm recession rule — real-time downturn trigger",
+            "source": "FRED UNRATE (native monthly)", "asof": sr["observation_date"]}
+    elif native.get("UNRATE"):
+        out["sahm_rule"] = {"pending_source": "UNRATE history depth (need 15 native months)", "asof": d}
     else:
         out["sahm_rule"] = {"pending_source": "FRED UNRATE", "asof": d}
 
-    # 9 — truck transport (freight recession canary): FRED TRUCKD11 YoY
-    tr = F.get("TRUCKD11", {})
-    if tr.get(d) is not None or tr:
-        pts = sorted((k, v) for k, v in tr.items())[-15:]
-        if len(pts) >= 13:
-            cur_v = pts[-1][1]
-            yoy = round((cur_v / pts[-13][1] - 1) * 100, 1) \
-                if pts[-13][1] else None
+    # 9 — truck transport (freight recession canary): NATIVE monthly TRUCKD11 YoY (FR-08)
+    ty = truck_yoy(native.get("TRUCKD11"), d)
+    if ty:
+        yoy = ty["value"]
+        if True:
             out["truck_transport"] = {
                 "value": yoy, "z": None, "unit": "% YoY",
                 "signal": ("FREIGHT RECESSION" if (yoy or 0) < -5 else
                            "SOFT" if (yoy or 0) < 0 else "EXPANDING"),
                 "level": cur_v,
                 "cite": "freight/truck tonnage — real-economy demand canary",
-                "source": "FRED TRUCKD11", "asof": pts[-1][0]}
-        else:
-            out["truck_transport"] = {"pending_source": "TRUCKD11 history",
-                                      "asof": d}
+                "source": "FRED TRUCKD11 (native monthly)", "asof": ty["observation_date"],
+                "observation_date": ty["observation_date"], "base_observation_date": ty["base_observation_date"], "basis": ty["basis"]}
+    elif native.get("TRUCKD11"):
+        out["truck_transport"] = {"pending_source": "TRUCKD11 history (need 13 native months)",
+                                  "asof": d}
     else:
         out["truck_transport"] = {"pending_source": "FRED TRUCKD11",
                                   "asof": d}
@@ -340,9 +378,61 @@ def compute_indicators(F, calendar, i):
 # ── end indicators block ──
 
 
+def posture_from(composite, funding_score, credit_score):
+    """Posture bands + the plumbing override, shared by replay and live."""
+    if funding_score <= -2 and credit_score <= -1:
+        return "SEVERE"
+    if composite >= 0.35:
+        return "RISK_ON"
+    if composite > -0.35:
+        return "NEUTRAL"
+    if composite > -0.95:
+        return "RISK_OFF"
+    return "SEVERE"
+
+
+def leg_state(score):
+    if score is None:
+        return "UNKNOWN"
+    return "RISK-ON" if score >= 0.35 else "NEUTRAL" if score > -0.35 else "RISK-OFF" if score > -0.95 else "SEVERE"
+
+
+def live_overlays(rh, rh_age, op, op_age, stale_h=FLEET_STALE_H if "FLEET_STALE_H" in globals() else 72.0):
+    """The disclosed live overlays (audit 2026-09-08 FR-06/07): each carries its numeric effect,
+    source age, eligibility and reason. Returns (overlays list, total contribution)."""
+    rows = []
+    # collateral: treasury-rehypo band (ops 4316)
+    if rh is None:
+        rows.append({"name": "collateral", "artifact": "data/treasury-rehypo.json", "status": "MISSING", "eligible": False, "contribution": 0.0, "score": None, "why": "treasury-rehypo unreadable"})
+    else:
+        band, comp = rh.get("band"), rh.get("composite")
+        stale = rh_age is not None and rh_age > stale_h
+        contrib = -0.15 if band == "STRAINED" else -0.35 if band == "SEIZING" else 0.0
+        rows.append({"name": "collateral", "artifact": "data/treasury-rehypo.json", "status": "STALE" if stale else "OK", "age_h": rh_age, "eligible": not stale,
+                     "score": round(max(-2.0, min(2.0, -((comp or 50) - 50) / 12.5)), 2), "band": band, "composite": comp,
+                     "contribution": 0.0 if stale else contrib, "applied": ("%s (%s)" % (contrib, band)) if (contrib and not stale) else None,
+                     "why": "treasury-rehypo composite %s (%s): fails/velocity/specialness/funding/RRP proxy stack (ops 4302-4308)%s" % (comp, band, " -- STALE, not applied" if stale else "")})
+    # foreign official: official-pulse dollar leg (ops 4864)
+    if op is None:
+        rows.append({"name": "foreign_official", "artifact": "data/official-pulse.json", "status": "MISSING", "eligible": False, "contribution": 0.0, "score": None, "why": "official-pulse unreadable"})
+    else:
+        dl = op.get("dollar_leg") or {}
+        try:
+            nf = int(dl.get("legs_firing") or 0)
+        except (TypeError, ValueError):
+            nf = 0
+        stale = op_age is not None and op_age > stale_h
+        contrib = -0.30 if nf >= 3 else -0.15 if nf >= 2 else 0.0
+        rows.append({"name": "foreign_official", "artifact": "data/official-pulse.json", "status": "STALE" if stale else "OK", "age_h": op_age, "eligible": not stale,
+                     "score": round(max(-2.0, -0.7 * nf), 2), "legs_firing": nf, "available": dl.get("available"), "firing": dl.get("firing") or [],
+                     "contribution": 0.0 if stale else contrib, "applied": ("%s (%d legs firing)" % (contrib, nf)) if (contrib and not stale) else None,
+                     "why": "official-pulse %s: %d/%s legs firing (TIC official z + safe-haven z + FRBNY custody drain; STRESS-ONLY)%s" % (dl.get("status"), nf, dl.get("available") or 0, " -- STALE, not applied" if stale else "")})
+    return rows, round(sum(r["contribution"] for r in rows), 3)
+
+
 def compute_posture(F, calendar, i):
-    """PURE function of trailing values at day index i — replayable, no
-    lookahead. Returns (posture, composite, legs dict)."""
+    """PURE function of trailing FRED values at day index i — replayable, no
+    lookahead, no S3 (audit 2026-09-08 FR-06). Returns (posture, composite, legs dict)."""
     d = calendar[i]
     legs = {}
 
@@ -516,82 +606,15 @@ def compute_posture(F, calendar, i):
 
     W = {"funding": .25, "credit": .25, "dollar": .20, "carry": .10,
          "growth": .10, "structure": .10}
-    # ops 4316 — collateral leg (advisory; weights untouched): the
-    # treasury-rehypo desk's composite enters as a recorded leg and
-    # adjusts the gate only at STRAINED/SEIZING, fully disclosed.
-    try:
-        _rh = json.loads(s3.get_object(
-            Bucket="justhodl-dashboard-live", Key="data/treasury-rehypo.json"
-        )["Body"].read())
-        _c, _b = _rh.get("composite"), _rh.get("band")
-        _sc = max(-2.0, min(2.0, -((_c or 50) - 50) / 12.5))
-        legs["collateral"] = {
-            "score": round(_sc, 2), "advisory": True,
-            "why": ["treasury-rehypo composite %s (%s): fails/"
-                    "velocity/specialness/funding/RRP proxy stack "
-                    "(ops 4302-4308)" % (_c, _b)],
-            "cite": "ops4302/rehypo"}
-    except Exception as _e:
-        legs["collateral"] = {"score": None, "advisory": True,
-                              "why": ["rehypo unreadable: %s"
-                                      % str(_e)[:60]]}
     composite = sum(legs[k]["score"] * W[k] for k in W)
-    _b = (legs.get("collateral") or {}).get("why", [""])[0]
-    _band = _rh.get("band") if "_rh" in dir() else None
-    if _band == "STRAINED":
-        composite -= 0.15
-        legs["collateral"]["applied"] = "-0.15 (STRAINED)"
-    elif _band == "SEIZING":
-        composite -= 0.35
-        legs["collateral"]["applied"] = "-0.35 (SEIZING)"
-
-    # ops 4864 -- foreign-official dollar leg (advisory; weights
-    # untouched): the official-pulse composite (H.4.1 weekly +
-    # TIC monthly, STRESS-ONLY) enters as a recorded leg and
-    # adjusts the gate only at 2/3-leg firing, fully disclosed.
-    try:
-        _op = json.loads(s3.get_object(
-            Bucket="justhodl-dashboard-live",
-            Key="data/official-pulse.json")["Body"].read())
-        _dl = _op.get("dollar_leg") or {}
-        _nf = int(_dl.get("legs_firing") or 0)
-        legs["foreign_official"] = {
-            "score": round(max(-2.0, -0.7 * _nf), 2),
-            "advisory": True,
-            "why": ["official-pulse %s: %d/%d legs firing %s "
-                    "(TIC official z + safe-haven z + FRBNY "
-                    "custody drain; STRESS-ONLY)"
-                    % (_dl.get("status"), _nf,
-                       _dl.get("available") or 0,
-                       ",".join(_dl.get("firing") or []) or "-")],
-            "cite": "ops4864/official-pulse"}
-        if _nf >= 3:
-            composite -= 0.30
-            legs["foreign_official"]["applied"] = \
-                "-0.30 (3 legs firing)"
-        elif _nf >= 2:
-            composite -= 0.15
-            legs["foreign_official"]["applied"] = \
-                "-0.15 (2 legs firing)"
-    except Exception as _e:
-        legs["foreign_official"] = {
-            "score": None, "advisory": True,
-            "why": ["official-pulse unreadable: %s"
-                    % str(_e)[:60]]}
+    # audit 2026-09-08 FR-06: this function is PURE -- the collateral (treasury-rehypo) and
+    # foreign-official (official-pulse) overlays are read ONCE in the handler and applied only to
+    # the LIVE composite (live_overlays); the replay never sees today's feeds.
 
     # Posture bands + the plumbing override (nmq5vhvebjob6: never touch stocks
     # when plumbing is shaky — a broken funding leg confirmed by credit is
     # SEVERE regardless of the other legs' average).
-    if legs["funding"]["score"] <= -2 and legs["credit"]["score"] <= -1:
-        posture = "SEVERE"
-    elif composite >= 0.35:
-        posture = "RISK_ON"
-    elif composite > -0.35:
-        posture = "NEUTRAL"
-    elif composite > -0.95:
-        posture = "RISK_OFF"
-    else:
-        posture = "SEVERE"
+    posture = posture_from(composite, legs["funding"]["score"], legs["credit"]["score"])
     return posture, round(composite, 3), legs
 
 
@@ -965,6 +988,8 @@ def lambda_handler(event, context):
         raise RuntimeError("too few FRED series resolved — refusing to publish a fake gate")
 
     calendar = build_calendar({k: v for k, v in F.items() if k != "SP500"})
+    # keep the NATIVE observations of the monthly series before forward-filling (FR-08)
+    native = {sid: dict(F[sid]) for sid in ("UNRATE", "TRUCKD11") if sid in F}
     # forward-fill every series onto the union calendar (weekly/monthly legs)
     for sid in F:
         F[sid] = ffill_on(calendar, F[sid])
@@ -985,20 +1010,34 @@ def lambda_handler(event, context):
     fleet_in = fleet_adjust(live_legs)
     W = {"funding": .25, "credit": .25, "dollar": .20, "carry": .10,
          "growth": .10, "structure": .10}
-    live_comp = 0.0
+    weighted_legs = 0.0
     for k in W:
         fa = max(-0.75, min(0.75, sum(x["score_adj"] for x in fleet_in.get(k, []))))
         live_legs[k]["fleet_adj"] = round(fa, 3)
         live_legs[k]["fleet_inputs"] = fleet_in.get(k, [])
         live_legs[k]["score_fused"] = round(max(-2.0, min(2.0, live_legs[k]["score"] + fa)), 3)
-        live_comp += live_legs[k]["score_fused"] * W[k]
-    live_comp = round(live_comp, 3)
-    if live_legs["funding"]["score_fused"] <= -2 and live_legs["credit"]["score_fused"] <= -1:
-        live_posture = "SEVERE"
-    elif live_comp >= 0.35: live_posture = "RISK_ON"
-    elif live_comp > -0.35: live_posture = "NEUTRAL"
-    elif live_comp > -0.95: live_posture = "RISK_OFF"
-    else: live_posture = "SEVERE"
+        live_legs[k]["weight"] = W[k]
+        weighted_legs += live_legs[k]["score_fused"] * W[k]
+    # audit 2026-09-08 FR-06/07: the two live overlays are read ONCE here, applied to the LIVE
+    # composite only, and published with their numeric effect so composite == weighted legs + overlays.
+    _rh, _rh_age = _feed("data/treasury-rehypo.json")
+    _op, _op_age = _feed("data/official-pulse.json")
+    overlays, overlay_total = live_overlays(_rh, _rh_age, _op, _op_age)
+    for ov in overlays:
+        live_legs[ov["name"]] = {"score": ov.get("score"), "advisory": True, "applied": ov.get("applied"), "contribution": ov["contribution"],
+                                 "status": ov["status"], "age_h": ov.get("age_h"), "why": [ov["why"]], "cite": "ops4302/rehypo" if ov["name"] == "collateral" else "ops4864/official-pulse"}
+    live_comp = round(weighted_legs + overlay_total, 3)
+    composite_identity = {"weighted_legs": round(weighted_legs, 3), "overlays_total": overlay_total, "composite": live_comp,
+                          "check_ok": abs(round(weighted_legs + overlay_total, 3) - live_comp) < 1e-6,
+                          "rule": "composite = sum(score_fused x weight over the 6 legs) + sum(overlay contributions); overlays are STALE/MISSING-aware"}
+    live_posture = posture_from(live_comp, live_legs["funding"]["score_fused"], live_legs["credit"]["score_fused"])
+    # page contract (FR-09): explicit per-leg fields the dedicated page renders
+    for k, leg in live_legs.items():
+        leg["engine_score"] = leg.get("score")
+        leg["fleet_fused_score"] = leg.get("score_fused", leg.get("score"))
+        leg["state"] = leg_state(leg["fleet_fused_score"])
+        leg["drivers"] = [{"source": x.get("input"), "feed": x.get("feed"), "value": x.get("value"), "delta": x.get("score_adj"), "status": x.get("status"), "age_h": x.get("age_h"), "note": x.get("note")}
+                          for x in (leg.get("fleet_inputs") or [])]
 
     # existing-fleet context (consumed, never duplicated) — live only
     yen = read_feed("data/yen-carry.json")
@@ -1006,7 +1045,13 @@ def lambda_handler(event, context):
     fleet_context = {
         "yen_carry_composite": (yen or {}).get("composite") or (yen or {}).get("headline"),
         "crisis_composite": (crisis or {}).get("composite") or (crisis or {}).get("headline"),
+        # FR-09: the flat inputs table the page renders (every fleet input across the 6 legs + overlays)
+        "method": "per-leg fleet adjustments clamped to +/-0.75 added to the FRED leg score; overlays added to the composite",
+        "inputs": {("%s.%s" % (k, x.get("input"))): {"value": x.get("value"), "delta": x.get("score_adj"), "status": x.get("status"), "age_h": x.get("age_h"), "feed": x.get("feed")}
+                   for k in W for x in (live_legs[k].get("fleet_inputs") or [])},
     }
+    for ov in overlays:
+        fleet_context["inputs"]["overlay.%s" % ov["name"]] = {"value": ov.get("band") or ov.get("legs_firing"), "delta": ov["contribution"], "status": ov["status"], "age_h": ov.get("age_h"), "feed": ov["artifact"]}
 
     es = event_study(F, calendar, postures)
 
@@ -1016,8 +1061,12 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-risk-gate",
-        "version": "1.0",
+        "version": "2.5",
+        "schema_version": "risk-gate.v2.5",
         "marker": MARKER,
+        "replay_purity": "FRED-only: compute_posture reads no live artifact; the collateral and foreign-official overlays are applied to the LIVE composite only (audit 2026-09-08 FR-06)",
+        "overlays": overlays,
+        "composite_identity": composite_identity,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "brain_constitution": {
             "directive": "Khalid 2026-07-26: brain is how the system thinks; all "
@@ -1036,7 +1085,7 @@ def lambda_handler(event, context):
         "legs": live_legs,
         "fleet_context": fleet_context,
         "event_study": es,
-        "indicators": compute_indicators(F, calendar, li),
+        "indicators": compute_indicators(F, calendar, li, native=native),
         "recent_timeline": timeline,
         "consume_as": "multiply position size / conviction by sizing_multiplier; "
                       "RISK_OFF tightens verdict thresholds; SEVERE = distressed-"
