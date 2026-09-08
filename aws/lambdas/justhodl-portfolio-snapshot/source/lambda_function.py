@@ -194,6 +194,9 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
     rec = {"symbol": sym}
     p = price_data.get(sym) or {}
     rec["current_price"] = p.get("price")
+    # audit 2026-09-08 INST-08: carry the mark's provenance with the price
+    rec["price_asof_unix_ms"] = p.get("as_of_unix_ms")
+    rec["price_provider"] = "polygon:prev_close" if p.get("price") is not None else None
     rec["price_open"] = p.get("open")
     rec["price_high"] = p.get("high")
     rec["price_low"] = p.get("low")
@@ -297,47 +300,74 @@ def lambda_handler(event, context):
     position_records = []
     total_value = 0.0
     total_cost = 0.0
+    unpriced_cost = 0.0        # signed, for the P&L scope arithmetic
+    unpriced_cost_abs = 0.0    # absolute, for display
+    unpriced = []
     sector_value = {}
+    STALE_MARK_H = 120.0   # a prev-close older than ~5 days is not a valuation-grade mark
     for p in positions:
         sym = p["symbol"]
         e = enriched_by_sym.get(sym, {"symbol": sym})
         qty = float(p.get("qty") or 0)
         cost_per = float(p.get("cost_basis_per_share") or 0)
-        cost_total = float(p.get("cost_basis_total") or qty * cost_per)
-        cur_price = e.get("current_price") or cost_per  # fallback to cost if no price
-        market_value = qty * cur_price
-        pnl_dollars = market_value - cost_total
-        pnl_pct = (pnl_dollars / abs(cost_total)) * 100 if cost_total else None
+        # audit 2026-09-08 INST-07/08: the basis is always qty x unit cost (a stale stored total is never trusted),
+        # the side follows the SIGN of the quantity, and a missing/stale price NEVER becomes a market price.
+        cost_total = qty * cost_per
+        side = "LONG" if qty >= 0 else "SHORT"
+        cur_price = e.get("current_price")
+        mark_age_h = None
+        if e.get("price_asof_unix_ms"):
+            try:
+                mark_age_h = round((datetime.now(timezone.utc).timestamp() - float(e["price_asof_unix_ms"]) / 1000.0) / 3600.0, 1)
+            except Exception:
+                mark_age_h = None
+        priced = cur_price is not None and cur_price > 0 and (mark_age_h is None or mark_age_h <= STALE_MARK_H)
+        valuation_status = "PRICED" if priced else ("STALE_MARK" if cur_price else "UNPRICED")
+        if priced:
+            market_value = qty * cur_price
+            pnl_dollars = market_value - cost_total
+            pnl_pct = (pnl_dollars / abs(cost_total)) * 100 if cost_total else None
+        else:
+            market_value = None
+            pnl_dollars = None
+            pnl_pct = None
+            unpriced.append(sym)
+            unpriced_cost += cost_total
+            unpriced_cost_abs += abs(cost_total)
         stop = float(p["stop_loss"]) if p.get("stop_loss") is not None else None
-        stop_distance_pct = ((cur_price - stop) / stop) * 100 if (stop and cur_price) else None
-        stop_hit = (stop and cur_price and cur_price <= stop) if p.get("position_type") == "LONG" else \
-                   (stop and cur_price and cur_price >= stop)
+        stop_distance_pct = ((cur_price - stop) / stop) * 100 if (stop and priced) else None
+        stop_hit = None
+        if stop and priced:
+            stop_hit = (cur_price <= stop) if side == "LONG" else (cur_price >= stop)
 
         rec = {
             **e,
             "qty": qty,
             "cost_basis_per_share": cost_per,
-            "cost_basis_total": cost_total,
-            "market_value": round(market_value, 2),
-            "pnl_dollars": round(pnl_dollars, 2),
+            "cost_basis_total": round(cost_total, 2),
+            "market_value": round(market_value, 2) if market_value is not None else None,
+            "pnl_dollars": round(pnl_dollars, 2) if pnl_dollars is not None else None,
             "pnl_pct": round(pnl_pct, 2) if pnl_pct is not None else None,
-            "position_type": p.get("position_type", "LONG"),
+            "position_type": side,
+            "valuation_status": valuation_status,
+            "mark_age_h": mark_age_h,
             "stop_loss": stop,
             "stop_distance_pct": round(stop_distance_pct, 2) if stop_distance_pct is not None else None,
-            "stop_hit": bool(stop_hit),
+            "stop_hit": stop_hit,          # None = not evaluable (no valuation-grade mark), never False by default
             "target_weight_pct": float(p["target_weight_pct"]) if p.get("target_weight_pct") is not None else None,
             "added_at": p.get("added_at"),
             "notes": p.get("notes"),
         }
         position_records.append(rec)
-        total_value += market_value
+        if market_value is not None:
+            total_value += market_value
         total_cost += cost_total
         sec = e.get("sector") or p.get("sector") or "Unknown"
         sector_value[sec] = sector_value.get(sec, 0.0) + market_value
 
     # Compute current weights
     for rec in position_records:
-        rec["current_weight_pct"] = round((rec["market_value"] / total_value) * 100, 2) if total_value else None
+        rec["current_weight_pct"] = round((rec["market_value"] / total_value) * 100, 2) if (total_value and rec.get("market_value") is not None) else None
         # Weight drift from target
         if rec.get("target_weight_pct") is not None and rec.get("current_weight_pct") is not None:
             rec["weight_drift_pct"] = round(rec["current_weight_pct"] - rec["target_weight_pct"], 2)
@@ -368,8 +398,11 @@ def lambda_handler(event, context):
             "weight_pct": round((val / total_value) * 100, 2) if total_value else None,
         })
 
-    total_pnl = total_value - total_cost
-    total_pnl_pct = (total_pnl / abs(total_cost)) * 100 if total_cost else None
+    # P&L is computed on the PRICED sleeve only: unpriced positions are excluded from BOTH sides
+    # (otherwise their cost would read as a loss against a zero mark -- audit 2026-09-08 INST-08)
+    priced_cost = total_cost - unpriced_cost
+    total_pnl = total_value - priced_cost
+    total_pnl_pct = (total_pnl / abs(priced_cost)) * 100 if priced_cost else None
 
     # 9. Stops hit summary
     stops_hit = [{"symbol": r["symbol"], "stop_loss": r["stop_loss"],
@@ -387,11 +420,16 @@ def lambda_handler(event, context):
         "portfolio_summary": {
             "n_positions": len(position_records),
             "total_market_value": round(total_value, 2),
+            "total_market_value_scope": "PRICED positions only" if unpriced else "all positions priced",
             "total_cost_basis": round(total_cost, 2),
             "total_pnl_dollars": round(total_pnl, 2),
             "total_pnl_pct": round(total_pnl_pct, 2) if total_pnl_pct is not None else None,
+            "pnl_scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)",
+            "unpriced_positions": unpriced,
+            "unpriced_cost_basis": round(unpriced_cost_abs, 2),
             "stops_hit_count": len(stops_hit),
             "stops_hit": stops_hit,
+            "stops_not_evaluable": [r["symbol"] for r in position_records if r.get("stop_loss") is not None and r.get("stop_hit") is None],
         },
 
         # Positions + watchlist

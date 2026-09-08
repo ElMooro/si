@@ -117,8 +117,38 @@ def remove_position(event):
             "removed_item": _scrub(removed) if removed else None}
 
 
+def _finite(v, name):
+    """audit 2026-09-08 INST-07: numeric edits must be finite numbers."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        raise ValueError("%s must be a number (got %r)" % (name, v))
+    if f != f or f in (float("inf"), float("-inf")):
+        raise ValueError("%s must be finite" % name)
+    return f
+
+
 def update_position(event):
     sym = event["symbol"].upper().strip()
+    # audit 2026-09-08 INST-07: read-validate-write. A quantity-only or cost-only edit used to leave
+    # cost_basis_total stale (10 sh @ $100 -> 20 sh kept a $1,000 total = a fabricated $1,000 gain), and
+    # position_type was fixed at creation (a flip to -20 stayed LONG, selecting the wrong stop rule).
+    # Every dependent field is recomputed from the merged state, the write is conditioned on the item
+    # still being the one we read (optimistic concurrency), and upserts to absent positions are refused.
+    try:
+        cur = table.get_item(Key={"pk": "POSITION", "sk": sym}).get("Item")
+    except Exception as e:
+        return {"ok": False, "err": "read failed: %s" % str(e)[:120]}
+    if not cur:
+        return {"ok": False, "err": "position %s does not exist -- use add_position" % sym}
+    try:
+        new_qty = _finite(event["qty"], "qty") if event.get("qty") is not None else float(cur.get("qty") or 0)
+        new_cost = _finite(event["cost_basis_per_share"], "cost_basis_per_share") if event.get("cost_basis_per_share") is not None else float(cur.get("cost_basis_per_share") or 0)
+        for k in ("stop_loss", "target_weight_pct"):
+            if event.get(k) is not None:
+                _finite(event[k], k)
+    except ValueError as e:
+        return {"ok": False, "err": str(e)}
     # Build UpdateExpression dynamically
     updates, values, names = [], {}, {}
     field_map = {
@@ -138,12 +168,16 @@ def update_position(event):
         values[placeholder] = _dec(v) if attr_type is float else str(v)
         names[name_alias] = attr_name
 
-    # If qty or cost_basis_per_share changed, recompute total
-    if event.get("qty") is not None and event.get("cost_basis_per_share") is not None:
-        total = float(event["qty"]) * float(event["cost_basis_per_share"])
+    # Recompute EVERY dependent field whenever either input changed (partial edits included)
+    if event.get("qty") is not None or event.get("cost_basis_per_share") is not None:
         updates.append("#cbt = :cbt")
-        values[":cbt"] = _dec(total)
+        values[":cbt"] = _dec(new_qty * new_cost)
         names["#cbt"] = "cost_basis_total"
+        side = "LONG" if new_qty >= 0 else "SHORT"
+        if side != cur.get("position_type"):
+            updates.append("#pt = :pt")
+            values[":pt"] = side
+            names["#pt"] = "position_type"
 
     if not updates:
         return {"ok": False, "err": "No update fields provided"}
@@ -152,13 +186,27 @@ def update_position(event):
     values[":u"] = datetime.now(timezone.utc).isoformat()
     names["#u"] = "updated_at"
 
-    resp = table.update_item(
-        Key={"pk": "POSITION", "sk": sym},
-        UpdateExpression="SET " + ", ".join(updates),
-        ExpressionAttributeValues=values,
-        ExpressionAttributeNames=names,
-        ReturnValues="ALL_NEW",
-    )
+    # optimistic concurrency: the item must still carry the qty/cost/updated_at we based the merge on
+    names["#cq"] = "qty"
+    values[":cq"] = cur.get("qty")
+    cond = "attribute_exists(pk) AND #cq = :cq"
+    if cur.get("updated_at") is not None:
+        names["#cu"] = "updated_at"
+        values[":cu"] = cur.get("updated_at")
+        cond += " AND #cu = :cu"
+    try:
+        resp = table.update_item(
+            Key={"pk": "POSITION", "sk": sym},
+            UpdateExpression="SET " + ", ".join(updates),
+            ConditionExpression=cond,
+            ExpressionAttributeValues=values,
+            ExpressionAttributeNames=names,
+            ReturnValues="ALL_NEW",
+        )
+    except Exception as e:
+        if "ConditionalCheckFailed" in str(e):
+            return {"ok": False, "err": "concurrent edit detected for %s -- re-read and retry" % sym}
+        raise
     return {"ok": True, "action": "update_position",
              "updated": _scrub(resp.get("Attributes"))}
 
