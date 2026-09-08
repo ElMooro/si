@@ -41,7 +41,7 @@ def main():
 
     section("3) Probe FMP /stable/analyst-estimates directly")
     # Test a few names we know have estimates
-    FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+    FMP_KEY = "REDACTED_FMP_KEY"
     for sym in ["AAPL", "MSFT", "NVDA", "PLTR", "CSGP"]:
         url = f"https://financialmodelingprep.com/stable/analyst-estimates?symbol={sym}&period=annual&limit=5&apikey={FMP_KEY}"
         try:

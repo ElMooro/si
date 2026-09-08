@@ -29,12 +29,13 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/universe-discovery.json"
 SNAPSHOT_KEY = "state/universe-discovery-snapshot.json"   # persisted between runs
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 LOOKBACK_DAYS = 10
 s3 = boto3.client("s3", region_name="us-east-1")
 

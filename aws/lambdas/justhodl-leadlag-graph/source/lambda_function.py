@@ -25,12 +25,13 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/lead-lag-graph.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-POLYGON = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+POLYGON = managed_secret(('POLYGON', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 UNIVERSE_CAP = 85
 MIN_BARS = 45

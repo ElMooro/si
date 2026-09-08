@@ -1,14 +1,15 @@
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json,os,urllib.request,urllib.error,boto3,traceback,time
 from datetime import datetime,timedelta,timezone
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
     pass
 
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
-FRED_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')
-POLYGON_KEY=os.environ.get('POLYGON_API_KEY','zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d')
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 ANTHROPIC_KEY=os.environ.get('ANTHROPIC_API_KEY','')
 s3=boto3.client('s3',region_name='us-east-1')
 

@@ -162,7 +162,7 @@ def main():
 
         rep.section("0.5 FRED id probe (runner-side, definitive)")
         import urllib.request as _ur
-        FKEY = "2f057499936072679d8843d7fce99989"
+        FKEY = "REDACTED_FRED_KEY"
         probe_ids = ["TRESEGCNM052N", "TRESEGUSM052N", "TRESEGJPM052N",
                      "TRESEGCHM052N", "TRESEGEZM052N", "TRESEGXMM052N",
                      "IGREA", "IRLTLT01ITM156N", "IRLTLT01DEM156N"]

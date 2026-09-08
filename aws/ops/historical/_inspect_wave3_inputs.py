@@ -46,7 +46,7 @@ def main():
         r.heading("4. Polygon options entitlement check (test direct snapshot)")
         import urllib.request, urllib.parse
         for url in [
-            "https://api.polygon.io/v3/snapshot/options/SPY?apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d&limit=5",
+            "https://api.polygon.io/v3/snapshot/options/SPY?apiKey=REDACTED_POLYGON_KEY&limit=5",
         ]:
             try:
                 with urllib.request.urlopen(url, timeout=10) as resp:

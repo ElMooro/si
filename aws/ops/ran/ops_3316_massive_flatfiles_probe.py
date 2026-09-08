@@ -29,7 +29,7 @@ from ops_report import report
 ENDPOINT = "https://files.massive.com"
 BUCKET = "flatfiles"
 AK = "7a11d881-743a-4a4d-813d-2776f2bd4c68"
-SK = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"  # 'Default' key secret
+SK = "REDACTED_POLYGON_KEY"  # 'Default' key secret
 
 HINTS = ("benzinga", "rating", "guidance", "analyst", "price_target",
          "pricetarget", "estimate")

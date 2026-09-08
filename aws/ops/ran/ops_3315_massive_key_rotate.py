@@ -35,7 +35,7 @@ SSM_PATH = "/justhodl/massive-api-key"
 CANDIDATES = {
     "beautiful_chandrasekhar": "ch6CGKm7oMtKWfMp0SI7pP3uLI7q_ptM",
     "desperate_lamarr": "Out4PAHPLWSG6uoeQVSgGUsyN2AnVFPI",
-    "Default": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+    "Default": "REDACTED_POLYGON_KEY",
 }
 
 

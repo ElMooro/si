@@ -31,8 +31,8 @@ with report("3596_spx_ma") as rep:
     try:
         src_env = (LAM.get_function_configuration(FunctionName="justhodl-deal-scanner")
                    .get("Environment") or {}).get("Variables") or {}
-        env = {"FMP_API_KEY": src_env.get("FMP_API_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
-               "POLYGON_API_KEY": src_env.get("POLYGON_API_KEY") or "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"}
+        env = {"FMP_API_KEY": src_env.get("FMP_API_KEY") or "REDACTED_FMP_KEY",
+               "POLYGON_API_KEY": src_env.get("POLYGON_API_KEY") or "REDACTED_POLYGON_KEY"}
         deploy_lambda(report=rep, function_name=FN,
                       source_dir=ROOT / "lambdas" / "justhodl-spx-ma" / "source",
                       env_vars=env, timeout=900, memory=1024,

@@ -57,6 +57,7 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -68,7 +69,7 @@ BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/cross-asset-confirm.json')
 SIGNAL_BOARD_KEY = os.environ.get('SIGNAL_BOARD_KEY', 'data/signal-board.json')
 
-FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
 

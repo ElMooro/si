@@ -28,11 +28,12 @@ Universe: existing screener data + S&P 500 backup (same as deep-value)
 import io, json, os, time, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/eps-revision-velocity.json")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 N_WORKERS = int(os.environ.get("N_WORKERS", "10"))
 MIN_MCAP = float(os.environ.get("MIN_MCAP", "300000000"))  # $300M
 MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "500"))

@@ -40,8 +40,8 @@ def main():
 
     env = {
         "S3_BUCKET": "justhodl-dashboard-live",
-        "NEWS_KEY": "17d36cdd13c44e139853b3a6876cf940",
-        "POLY_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+        "NEWS_KEY": "REDACTED_NEWSAPI_KEY",
+        "POLY_KEY": "REDACTED_POLYGON_KEY",
         "TIMEOUT_BUDGET_S": "550",
         "N_WORKERS": "6",
     }

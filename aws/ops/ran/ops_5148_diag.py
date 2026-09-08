@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
 from ops_report import report  # noqa: E402
 
-KEY = "2f057499936072679d8843d7fce99989"
+KEY = "REDACTED_FRED_KEY"
 
 
 def get(url, timeout=60):

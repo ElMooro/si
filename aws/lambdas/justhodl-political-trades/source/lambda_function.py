@@ -30,11 +30,12 @@ from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY_OUT = "data/political-trades.json"
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 

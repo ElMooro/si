@@ -55,10 +55,11 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/labor-leading.json")
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com")
 
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"

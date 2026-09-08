@@ -42,7 +42,7 @@ REGION = "us-east-1"
 B = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name=REGION, config=Config(retries={"max_attempts": 6}, max_pool_connections=32))
 lam = boto3.client("lambda", region_name=REGION, config=Config(retries={"max_attempts": 4}))
-POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY = "REDACTED_POLYGON_KEY"
 
 WARM_SAMPLE = ["fred-scoped", "fred", "fred-catalog", "eurostat", "ecb", "oecd", "imf", "bis", "statcan", "boj", "boj-full",
                "worldbank", "bls", "nyfed", "ofr", "ofr-bsrm", "ofr-hfm", "ofr-fsi", "bea", "te-mirror", "treasury",

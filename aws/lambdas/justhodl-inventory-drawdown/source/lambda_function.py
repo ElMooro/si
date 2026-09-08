@@ -21,12 +21,13 @@ import json, time, boto3, math, os, urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/inventory-drawdown.json"
 VERSION = "1.0.0"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 FRED_BASE = "https://api.stlouisfed.org/fred"
 

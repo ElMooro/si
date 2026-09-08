@@ -5,6 +5,7 @@ from datetime import datetime,timezone,timedelta
 from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
@@ -37,7 +38,7 @@ except Exception as _e:
             def is_signal_calibrated(self, _): return False
         return _C()
 
-TELEGRAM_TOKEN="8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_API="https://api.telegram.org/bot"+TELEGRAM_TOKEN
 ANTHROPIC_KEY=os.environ.get('ANTHROPIC_KEY', '')
 S3_BUCKET="justhodl-dashboard-live"

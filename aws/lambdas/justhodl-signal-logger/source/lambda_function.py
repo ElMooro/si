@@ -3,6 +3,7 @@ import json,boto3,uuid,time,urllib.request,urllib.error
 from datetime import datetime,timezone,timedelta
 from decimal import Decimal
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
@@ -20,8 +21,8 @@ S3_BUCKET="justhodl-dashboard-live"
 CFTC_URL="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/"
 
 # Same keys outcome-checker uses
-POLYGON_KEY="zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # Cache prices within a single Lambda invocation (one fetch per ticker)
 _PRICE_CACHE={}

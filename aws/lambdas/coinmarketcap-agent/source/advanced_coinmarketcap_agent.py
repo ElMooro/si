@@ -8,6 +8,7 @@ import hmac
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import statistics
 import math
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Initialize
 logger = {'info': print, 'error': print}
@@ -17,7 +18,7 @@ class AdvancedCoinMarketCapAgent:
     """Complete Advanced Crypto Intelligence System"""
     
     def __init__(self):
-        self.api_key = '17ba8e87-53f0-46f4-abe5-014d9cd99597'
+        self.api_key = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
         self.base_url = 'https://pro-api.coinmarketcap.com'
         self.cache = {}
         self.cache_ttl = 60

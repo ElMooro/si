@@ -17,7 +17,7 @@ def main():
     code = r'''
 import json, urllib.request, urllib.error, time
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 def fetch(url, label):
     try:

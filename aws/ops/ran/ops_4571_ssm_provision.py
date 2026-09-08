@@ -15,7 +15,7 @@ import boto3
 from ops_report import report
 
 REGION = "us-east-1"
-WORKING_KEY = "2f057499936072679d8843d7fce99989"  # current (burned but live)
+WORKING_KEY = "REDACTED_FRED_KEY"  # current (burned but live)
 KNOBS = {"/justhodl/fred/rate-ceiling": "100",
          "/justhodl/fred/min-popularity": "-1",
          "/justhodl/fred/paused": "0"}

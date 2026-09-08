@@ -19,11 +19,12 @@ import boto3
 
 from impact_mapper import (build as impact_build,
                            structural_row, beta_impact)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "2.0.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/freight-pulse.json"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 S3 = boto3.client("s3", region_name="us-east-1")
 
 SERIES = {

@@ -1,6 +1,7 @@
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json,os,re,boto3,urllib.request,traceback
 from datetime import datetime,timezone
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 TELEGRAM_TOKEN=os.environ.get("TELEGRAM_TOKEN","")
 ANTHROPIC_KEY=os.environ.get("ANTHROPIC_API_KEY","")
@@ -580,7 +581,7 @@ def cmd_stock(chat_id,ticker):
         send_message(chat_id,f"Error fetching {ticker.upper()}: {str(e)[:100]}"); return
     # Fetch ticker-specific news from FMP
     try:
-        FMP_KEY="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+        FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
         news_req=urllib.request.Request(f"https://financialmodelingprep.com/stable/news/stock?symbols={ticker.upper()}&limit=5&apikey={FMP_KEY}",headers={"User-Agent":"Mozilla/5.0"})
         with urllib.request.urlopen(news_req,timeout=10) as nr:
             fmp_news=json.loads(nr.read().decode())

@@ -49,7 +49,7 @@
 - `11:47:38` justhodl-provider-catalog: 24h 24/0 · []
 - `11:47:39` justhodl-risk-gate: 24h 25/0 · []
 - `11:47:40` justhodl-real-economy-collector: 24h 1/0 · []
-- `11:47:41` cftc-futures-positioning-agent: 24h 17/1 · ["[ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d: HTTP Error 403: Forbidden"]
+- `11:47:41` cftc-futures-positioning-agent: 24h 17/1 · ["[ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=REDACTED_POLYGON_KEY: HTTP Error 403: Forbidden"]
 ## D. global cycle physical layer
 
 - `11:47:41` portwatch: generated_at=2026-09-02T11:20:51.382111+00:00 ports=58 with_yoy=24

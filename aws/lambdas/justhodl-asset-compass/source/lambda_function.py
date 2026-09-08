@@ -69,6 +69,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET   = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY  = "data/asset-compass.json"
@@ -1151,7 +1152,7 @@ def lambda_handler(event, context):
         import urllib.request as _ur
         def _fl2(sid):
             try:
-                key = _os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+                key = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
                 j = _js.loads(_ur.urlopen(
                     "https://api.stlouisfed.org/fred/series/observations?series_id="
                     + sid + "&api_key=" + key + "&file_type=json&sort_order=desc&limit=8",

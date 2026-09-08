@@ -2,7 +2,7 @@
 sovereign yield/bond indices for SG/HK/TW."""
 import json, urllib.request, urllib.parse
 from ops_report import report
-KEY="zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+KEY="REDACTED_POLYGON_KEY"
 def get(url,t=20):
     try:
         req=urllib.request.Request(url,headers={"User-Agent":"jh/1.0"})

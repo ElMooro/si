@@ -17,12 +17,13 @@ precision. Inputs are the platform's own live briefs + FRED.
 import json, os, re, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/kb-match.json"
 KB_KEY = "data/crisis-knowledge-base.json"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 VERSION = "1.0.3"
 
 

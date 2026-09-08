@@ -46,13 +46,14 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
 VERSION = "2.4.6"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
 EUROSTAT = ("https://ec.europa.eu/eurostat/api/dissemination/statistics"

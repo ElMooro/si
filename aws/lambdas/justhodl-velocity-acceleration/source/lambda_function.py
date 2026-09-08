@@ -98,6 +98,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -110,7 +111,7 @@ OFLOW_KEY    = "data/options-flow.json"
 BUZZ_KEY     = "data/buzz-velocity.json"
 STATE_KEY    = "data/_state/velocity-acceleration-pending.json"
 OUTPUT_KEY   = "data/velocity-acceleration.json"
-FMP_KEY      = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # Tunable parameters
 LOOKBACK_DAYS         = 7    # sessions for slope-fitting

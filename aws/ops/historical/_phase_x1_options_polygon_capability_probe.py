@@ -11,7 +11,7 @@ Capabilities to test:
 """
 import json, urllib.request, urllib.error, time, os
 
-POLY_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY_KEY = "REDACTED_POLYGON_KEY"
 
 REPORT = []
 def log(m):

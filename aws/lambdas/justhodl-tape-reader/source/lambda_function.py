@@ -73,11 +73,12 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY_OUT = os.environ.get("S3_KEY_OUT", "data/tape-reader.json")
-POLY_KEY = os.environ.get("POLY_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 N_BASELINE_DAYS = int(os.environ.get("N_BASELINE_DAYS", "20"))
 MIN_DOLLAR_VOL = float(os.environ.get("MIN_DOLLAR_VOL", "5000000"))  # $5M min daily
 

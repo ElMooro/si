@@ -28,9 +28,10 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Tuple
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ─── CONFIG ────────────────────────────────────────────────────────────────
-FRED_API_KEY  = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_API_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 S3_BUCKET     = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY        = "liquidity-data.json"
 FRED_BASE     = "https://api.stlouisfed.org/fred/series/observations"

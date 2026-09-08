@@ -63,7 +63,7 @@ from decimal import Decimal
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 TABLE = os.environ.get("DDB_TABLE", "justhodl-signals")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = os.environ.get("FMP_KEY", "REDACTED_FMP_KEY")
 MIN_SCORE = float(os.environ.get("MIN_SCORE", "65"))
 
 S3 = boto3.client("s3", region_name=REGION)
@@ -372,7 +372,7 @@ def main():
     env = {
         "S3_BUCKET": "justhodl-dashboard-live",
         "DDB_TABLE": "justhodl-signals",
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
         "MIN_SCORE": "65",
     }
     if exists:

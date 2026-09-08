@@ -82,7 +82,7 @@ with report("create_auction_crisis_detector") as r:
             Handler="lambda_function.lambda_handler",
             Timeout=240,
             MemorySize=1024,
-            Environment={"Variables": {"FRED_API_KEY": "2f057499936072679d8843d7fce99989"}},
+            Environment={"Variables": {"FRED_API_KEY": "REDACTED_FRED_KEY"}},
         )
         r.log("  ✅ updated existing Lambda")
     except ClientError as e:
@@ -99,7 +99,7 @@ with report("create_auction_crisis_detector") as r:
             Timeout=240,
             MemorySize=1024,
             Architectures=["x86_64"],
-            Environment={"Variables": {"FRED_API_KEY": "2f057499936072679d8843d7fce99989"}},
+            Environment={"Variables": {"FRED_API_KEY": "REDACTED_FRED_KEY"}},
             Description="Phase 10 — Treasury auction crisis detector (calibrated from 9 historical PDFs)",
             Tags={"phase": "10", "owner": "justhodl"},
         )

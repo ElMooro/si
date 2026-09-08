@@ -70,12 +70,13 @@ import boto3
 from boto3.dynamodb.conditions import Attr
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 
-POLY_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 
 MOVE_THRESHOLD_PCT = 5.0    # filter to ≥5% absolute daily move
 MIN_VOLUME = 200_000        # liquidity floor
@@ -85,7 +86,7 @@ NEAR_MISS_BUFFER = 0.85     # threshold for near-miss classification
 TOP_N_FOR_TELEGRAM = 5      # how many misses to flag in the digest
 SUMMARY_ROLLING_DAYS = 30   # rolling window for the calibrator feed
 
-TELEGRAM_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 
 

@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ops_report import report
 REPO = Path(__file__).resolve().parents[3]
 lam = boto3.client("lambda", region_name="us-east-1")
-K = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+K = "REDACTED_FMP_KEY"
 UA = {"User-Agent": "ops-3516"}
 
 def gj(url):

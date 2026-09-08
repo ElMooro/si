@@ -57,6 +57,7 @@ from datetime import datetime, timezone
 from urllib import request
 import boto3
 from boto3.dynamodb.conditions import Attr
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/signal-scorecard.json"
@@ -164,7 +165,7 @@ def _spy_history():
     import datetime as _dt
     start = (datetime.now(timezone.utc) - _dt.timedelta(days=430)).strftime("%Y-%m-%d")
     out = {}
-    fmp = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     try:
         u = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
              f"?symbol={BENCH}&from={start}&apikey={fmp}")
@@ -178,7 +179,7 @@ def _spy_history():
         print(f"[scorecard] FMP SPY history failed: {e}")
     if len(out) < 30:
         try:
-            pk = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+            pk = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             u = (f"https://api.polygon.io/v2/aggs/ticker/{BENCH}/range/1/day/{start}/{today}"
                  f"?adjusted=true&sort=asc&limit=500&apiKey={pk}")

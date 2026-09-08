@@ -4,7 +4,7 @@ back decades on FRED. Probe FRED long-term govt bond yield series (IRLTLT01) for
 their inception dates, so we can reconstruct a yield-spread-based historical barometer."""
 import json, urllib.request
 from ops_report import report
-FRED="2f057499936072679d8843d7fce99989"
+FRED="REDACTED_FRED_KEY"
 def series_start(sid):
     url=f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED}&file_type=json&sort_order=asc&limit=1"
     try:

@@ -62,8 +62,9 @@ def _get(d, *path, default=None):
 # macro-regime quadrant → investment-clock phase
 import urllib.request, urllib.parse
 from statistics import mean, pstdev
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 
 
 def _fred(series, start="2006-01-01"):
@@ -264,7 +265,7 @@ def _ai_synthesis(state):
     return None
 
 
-POLY_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 
 CROSS_ASSETS = [
     ("SPY", "US equities", "equity"), ("QQQ", "US tech", "equity"), ("IWM", "Small caps", "equity"),

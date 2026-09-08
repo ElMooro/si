@@ -60,7 +60,7 @@ def main():
     # Bump memory + timeout to handle 2400+ stocks
     cur_env = (c.get("Environment") or {}).get("Variables", {}) or {}
     cur_env["S3_BUCKET"] = "justhodl-dashboard-live"
-    cur_env["FMP_KEY"] = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+    cur_env["FMP_KEY"] = "REDACTED_FMP_KEY"
     L.update_function_configuration(
         FunctionName=LAMBDA_NAME, MemorySize=1024, Timeout=300,
         Environment={"Variables": cur_env},

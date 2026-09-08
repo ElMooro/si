@@ -9,6 +9,7 @@ import traceback
 # === S3 CACHE FOR /cot/all ===
 import boto3 as _boto3_cache
 from datetime import datetime as _dt_cache, timedelta as _td_cache
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 _s3_cache = _boto3_cache.client('s3', region_name='us-east-1')
 _CACHE_BUCKET = 'justhodl-dashboard-live'
@@ -48,7 +49,7 @@ def _save_cot_all_cache(data):
 # === END CACHE ===
 
 
-POLYGON_API_KEY = os.environ.get("POLYGON_API_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_API_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 ctx = ssl.create_default_context()
 
 COT_CONTRACTS = {

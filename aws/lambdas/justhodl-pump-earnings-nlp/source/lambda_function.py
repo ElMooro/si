@@ -39,6 +39,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,7 +48,7 @@ RADAR_KEY     = "data/convergence-radar.json"
 OUTPUT_KEY    = "data/pump-earnings-nlp.json"
 MODEL         = "claude-haiku-4-5-20251001"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-FMP_KEY       = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 TOP_N_TICKERS = 8
 TRANSCRIPT_MAX_CHARS = 18000

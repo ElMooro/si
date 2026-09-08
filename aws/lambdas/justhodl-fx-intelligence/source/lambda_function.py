@@ -32,10 +32,11 @@ import urllib.parse
 from datetime import datetime, timezone, date
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/fx-intelligence.json"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 CFTC_URL = os.environ.get(
     "CFTC_URL",
     "https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/")

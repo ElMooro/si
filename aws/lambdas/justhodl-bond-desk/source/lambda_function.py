@@ -45,6 +45,7 @@ Output data/bond-desk.json. Consumers: signal-board, bond-desk.html.
 import json, time, urllib.request, statistics as st
 from datetime import datetime, timezone, timedelta
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     from llm_router import complete as _llm
 except Exception:
@@ -52,8 +53,8 @@ except Exception:
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/bond-desk.json"
 HIST = "data/history/bond-desk.json"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 ANALOG_KEY = "data/history/bond-crisis-analogs.json"
 
 # world tiles: rich regions resolved from owned engines at runtime; the rest

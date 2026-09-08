@@ -39,7 +39,7 @@ from _lambda_deploy_helpers import deploy_lambda  # noqa: E402
 REGION = "us-east-1"
 B = "justhodl-dashboard-live"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 s3 = boto3.client("s3", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=200, retries={"max_attempts": 2}))
 sch = boto3.client("scheduler", region_name=REGION)

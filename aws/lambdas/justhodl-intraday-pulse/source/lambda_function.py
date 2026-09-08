@@ -17,10 +17,11 @@ the future upgrade path if 60s granularity ever proves insufficient.
 import json, gzip, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
-POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", os.environ.get("TELEGRAM_BOT_TOKEN", ""))
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
 ARMED_KEY = "data/_intraday/armed.json"

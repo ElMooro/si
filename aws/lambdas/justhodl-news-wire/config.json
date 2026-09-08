@@ -12,10 +12,7 @@
   "description": "Real-time news wire: NewsAPI + FMP general/financial. Hash-dedupe, Claude batch classifies (tickers/themes/sentiment/urgency), per-headline impact-on-your-portfolio scoring. Top 10 24h surfaced + Telegram on urgency>=4 & impact>=6.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
-    "NEWSAPI_KEY": "17d36cdd13c44e139853b3a6876cf940",
-    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
     "MAX_NEW_TO_SCORE": "20",
-    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
     "TELEGRAM_CHAT_ID": "8678089260"
   },
   "inherit_env": {

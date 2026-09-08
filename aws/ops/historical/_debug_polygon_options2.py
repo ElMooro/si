@@ -3,7 +3,7 @@ import json
 import urllib.request
 from ops_report import report
 
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = "REDACTED_POLYGON_KEY"
 
 
 def main():

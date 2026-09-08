@@ -38,12 +38,13 @@ import json, time, urllib.request
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cyclical-bagger.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+POLY = managed_secret(('POLY', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 s3 = boto3.client("s3", "us-east-1")
 
 # sector/keyword -> supply-inflection themes (ETFs) whose upstream tightening is the catalyst

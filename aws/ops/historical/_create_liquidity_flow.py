@@ -21,7 +21,7 @@ EB_SCHEDULE = "rate(1 day)"
 ENV_VARS = {
     "S3_BUCKET": "justhodl-dashboard-live",
     "S3_KEY": "data/liquidity-flow.json",
-    "FRED_KEY": "2f057499936072679d8843d7fce99989",
+    "FRED_KEY": "REDACTED_FRED_KEY",
 }
 
 

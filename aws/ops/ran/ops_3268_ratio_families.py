@@ -32,7 +32,7 @@ BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name=REGION)
 LAM = boto3.client("lambda", region_name=REGION)
 AWS_DIR = Path(__file__).resolve().parents[2]
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 SHARED_CONSUMERS = ("justhodl-wl-engines", "justhodl-thesis-engine",
                     "justhodl-symbol-dictionary")
 FAMS = [

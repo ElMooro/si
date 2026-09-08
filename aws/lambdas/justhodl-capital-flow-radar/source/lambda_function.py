@@ -24,6 +24,7 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "3.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
@@ -31,7 +32,7 @@ OUT_KEY = "data/capital-flow-radar.json"
 STATE_KEY = "data/capital-flow-radar-state.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
-TELEGRAM_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT = "8678089260"
 
 

@@ -31,6 +31,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -38,9 +39,9 @@ except Exception:
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 POLYGON_BASE = "https://api.polygon.io"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 FRED_BASE = "https://api.stlouisfed.org/fred"
 
 S3 = boto3.client("s3", region_name=REGION)

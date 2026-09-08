@@ -82,7 +82,7 @@ with report("create_crisis_plumbing_lambda") as r:
                 Timeout=120,
                 MemorySize=512,
                 Environment={"Variables": {
-                    "FRED_API_KEY": "2f057499936072679d8843d7fce99989",
+                    "FRED_API_KEY": "REDACTED_FRED_KEY",
                 }},
                 Architectures=["x86_64"],
                 Description="Phase 9.1 — official crisis indices + plumbing tier 2 + XCC basis proxy",

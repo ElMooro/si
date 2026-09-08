@@ -64,13 +64,14 @@ from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY_TRADES = os.environ.get("S3_KEY_TRADES", "data/user-trades.json")
 S3_KEY_STATS = os.environ.get("S3_KEY_STATS", "data/user-trades-stats.json")
 SSM_TOKEN_PATH = os.environ.get("SSM_TOKEN_PATH", "/justhodl/api-admin/token")
-POLY_KEY = os.environ.get("POLY_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 
 ALLOWED_ORIGINS = {"https://justhodl.ai", "https://www.justhodl.ai"}
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,7}$")

@@ -26,7 +26,7 @@ def section(title):
     REPORT.append(f"\n# {title}\n")
 
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 
 def test_fmp(path, params=None, timeout=15):

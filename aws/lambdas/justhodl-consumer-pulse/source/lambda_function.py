@@ -34,6 +34,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -42,7 +43,7 @@ except Exception:
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/consumer-pulse.json"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 # (series_id, display name, group, frequency, invert?, weight)
 # invert=True : a RISING value is a NEGATIVE for the pulse (delinquencies)

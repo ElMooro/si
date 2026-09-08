@@ -1,13 +1,14 @@
 import json, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
     pass
 
-FRED_KEY    = "2f057499936072679d8843d7fce99989"
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-CMC_KEY     = "17ba8e87-53f0-46f4-abe5-014d9cd99597"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
 S3_BUCKET   = "justhodl-dashboard-live"
 
 def hget(url, headers=None, timeout=12):

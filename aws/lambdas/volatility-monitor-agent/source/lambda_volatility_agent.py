@@ -4,11 +4,12 @@ import urllib.parse
 from datetime import datetime
 from decimal import Decimal
 import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 def lambda_handler(event, context):
     """Volatility Agent - All volatility indices"""
     
-    fred_key = "2f057499936072679d8843d7fce99989"
+    fred_key = managed_secret(('fred_key', 'FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     
     # Complete volatility indicators
     volatility_indicators = {

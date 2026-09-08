@@ -58,8 +58,8 @@ with report("3556_census2_deploy") as rep:
         if not ok: fails.append(n)
 
     rep.heading("ops 3556 — ETF + FI census live")
-    env = {"FMP_API_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
-           "FRED_API_KEY": "2f057499936072679d8843d7fce99989"}
+    env = {"FMP_API_KEY": "REDACTED_FMP_KEY",
+           "FRED_API_KEY": "REDACTED_FRED_KEY"}
     marks = {}
     for fn, tmo, mem in (("justhodl-etf-census", 900, 1024),
                          ("justhodl-fi-census", 600, 768)):

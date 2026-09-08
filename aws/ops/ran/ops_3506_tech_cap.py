@@ -28,7 +28,7 @@ with report("3506_tech_cap") as rep:
     rep.heading("ops 3506 — tech verdicts cap-exempt")
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO / "aws" / "lambdas" / FN / "source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY",
                             "S3_BUCKET": BUCKET, "CACHE_TTL_SEC": "72000"},
                   timeout=900, memory=512,
                   description="Fundamental Graphs v1.9.1 tech cap-exempt (ops 3506)",

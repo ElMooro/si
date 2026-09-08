@@ -34,11 +34,12 @@ import io, json, os, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/options-flow.json")
-POLY_KEY = os.environ.get("POLY_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 N_WORKERS = int(os.environ.get("N_WORKERS", "8"))
 MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "300"))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
@@ -71,7 +72,7 @@ def get_universe():
 
 def get_spot_price(ticker):
     """Get latest close price from FMP (we already have FMP key)."""
-    fmp_key = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+    fmp_key = managed_secret(('fmp_key', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     url = "https://financialmodelingprep.com/stable/quote?symbol=" + ticker + "&apikey=" + fmp_key
     try:
         d = _http_get_json(url, timeout=10)

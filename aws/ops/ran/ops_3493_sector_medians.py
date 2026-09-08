@@ -38,7 +38,7 @@ from _lambda_deploy_helpers import deploy_lambda   # noqa: E402
 REPO = Path(__file__).resolve().parents[3]
 FN = "justhodl-fundamental-graphs"
 BUCKET = "justhodl-dashboard-live"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 lam = boto3.client("lambda", region_name="us-east-1")
 s3c = boto3.client("s3", region_name="us-east-1")
 

@@ -23,7 +23,7 @@ from _lambda_deploy_helpers import deploy_lambda   # noqa: E402
 REPO = Path(__file__).resolve().parents[3]
 FN = "justhodl-fundamental-graphs"
 BUCKET = "justhodl-dashboard-live"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 MARKER = "FUNDGRAPH_V1_OPS3462"
 CORS = {"AllowCredentials": False, "AllowHeaders": ["content-type"],
         "AllowMethods": ["*"], "AllowOrigins": ["*"], "MaxAge": 86400}

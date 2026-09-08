@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ops_report import report
 
 REPO = Path(__file__).resolve().parents[3]
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 s3c = boto3.client("s3", region_name="us-east-1")
 
 with report("3503_probe_recon") as rep:

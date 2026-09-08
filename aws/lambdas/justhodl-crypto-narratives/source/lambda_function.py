@@ -24,10 +24,11 @@ import urllib.error
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/crypto-narratives.json"
-CMC_KEY = os.environ.get("CMC_KEY", "17ba8e87-53f0-46f4-abe5-014d9cd99597")
+CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
 
 MIN_MCAP = 50_000_000      # ignore micro categories — noise
 MIN_TOKENS = 4

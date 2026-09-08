@@ -20,10 +20,11 @@ other consumer. Each metric green/yellow/red → composite hk_funding status.
 import os, json, time, statistics, urllib.request, urllib.parse, datetime
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
-FMP_KEY = os.environ.get("FMP_API_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+FMP_KEY = managed_secret(('FMP_API_KEY', 'FMP_KEY'), ("/justhodl/fmp/api-key",))
 S3 = boto3.client("s3", region_name="us-east-1")
 OUT_KEY = "data/hkma.json"
 

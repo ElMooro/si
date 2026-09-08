@@ -34,12 +34,13 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = os.environ.get("S3_KEY_OUT", "data/market-machine.json")
 HIST_KEY = "data/market-machine-history.json"
 FRED_KEY = os.environ.get("FRED_API_KEY",
-                          "2f057499936072679d8843d7fce99989")
+                          managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
 s3 = boto3.client("s3")
 
 PILLAR_WEIGHTS = {"profits": 0.25, "rates": 0.25, "flow": 0.25,

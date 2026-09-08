@@ -17,7 +17,7 @@ def main():
     code = r'''
 import json, urllib.request, urllib.error, time
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 def fetch_url(url, timeout=15):
     req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-RevAccel/1.0"})

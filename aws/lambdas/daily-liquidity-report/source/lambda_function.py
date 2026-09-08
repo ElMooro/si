@@ -3,6 +3,7 @@ import json
 import boto3
 import urllib.request
 from datetime import datetime
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client('s3')
 
@@ -21,7 +22,7 @@ def lambda_handler(event, context):
 
 def get_fred_data():
     indicators = {}
-    fred_key = '2f057499936072679d8843d7fce99989'
+    fred_key = managed_secret(('fred_key', 'FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     series = {'SOFR': 'SOFR', 'VIXCLS': 'VIX', 'DGS10': '10Y', 'DGS2': '2Y', 'DFF': 'Fed Funds'}
     
     for sid, name in series.items():

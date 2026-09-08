@@ -39,7 +39,7 @@ import urllib.request
 probe={"tried":True}
 try:
     req=urllib.request.Request(
-        "https://api.stlouisfed.org/fred/series?series_id=DGS10&api_key=2f057499936072679d8843d7fce99989&file_type=json",
+        "https://api.stlouisfed.org/fred/series?series_id=DGS10&api_key=REDACTED_FRED_KEY&file_type=json",
         headers={"User-Agent":"JustHodl research admin@justhodl.ai"})
     r=urllib.request.urlopen(req,timeout=20)
     probe["status"]=r.status; probe["body_ok"]=True

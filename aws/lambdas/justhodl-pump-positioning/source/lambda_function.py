@@ -103,6 +103,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -112,7 +113,7 @@ EARNINGS_KEY = "data/earnings-tracker.json"
 SYNTHESIS_KEY = "data/ai-website-synthesis.json"
 OUTPUT_KEY   = "data/pump-positioning.json"
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # Portfolio assumptions for sizing (these are PARAMETERS, displayed in UI)
 TARGET_VOL_PER_NAME = 0.02   # target 2% portfolio vol per single name

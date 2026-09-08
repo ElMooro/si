@@ -48,13 +48,14 @@ import boto3
 from botocore.exceptions import ClientError
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/forward-orders.json"
 
-NEWS_API_KEY = "17d36cdd13c44e139853b3a6876cf940"
-FMP_KEY      = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+NEWS_API_KEY = managed_secret(('NEWS_API_KEY', 'NEWSAPI_KEY', 'NEWS_KEY'), ("/justhodl/newsapi/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # XBRL tag candidates (varies by industry; first found wins)
 RPO_TAGS = [

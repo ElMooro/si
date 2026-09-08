@@ -19,7 +19,7 @@ from botocore.exceptions import ClientError
 REGION = "us-east-1"
 PROBE_NAME = "justhodl-tmp-fmp-probe"
 ROLE_ARN = "arn:aws:iam::857687956942:role/lambda-execution-role"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 lam = boto3.client("lambda", region_name=REGION)
 

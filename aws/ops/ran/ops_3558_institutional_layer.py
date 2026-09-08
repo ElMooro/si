@@ -46,8 +46,8 @@ with report("3558_institutional_layer") as rep:
         print(line); rep.log(line)
         if not ok: fails.append(n)
 
-    env_e = {"FMP_API_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"}
-    env_f = dict(env_e, FRED_API_KEY="2f057499936072679d8843d7fce99989")
+    env_e = {"FMP_API_KEY": "REDACTED_FMP_KEY"}
+    env_f = dict(env_e, FRED_API_KEY="REDACTED_FRED_KEY")
     for fn, env, tmo, mem in (("justhodl-etf-census", env_e, 900, 1024),
                               ("justhodl-fi-census", env_f, 900, 768)):
         deploy_lambda(report=rep, function_name=fn,

@@ -5,7 +5,7 @@
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Long pump candidate / short weakest sector peer generator. Uses FMP stock-peers + 90d price data. Vol-balanced ratios. Hourly :20.",
-  "environment": {"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+  "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-pair-trades-hourly",
     "cron": "cron(20 * * * ? *)",

@@ -55,7 +55,7 @@ def main():
             MemorySize=512,
             Timeout=300,
             Environment={"Variables": {
-                "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                "FMP_KEY": "REDACTED_FMP_KEY",
                 "S3_BUCKET": "justhodl-dashboard-live",
                 "S3_KEY": "data/smart-money-clusters.json",
             }},
@@ -71,7 +71,7 @@ def main():
             MemorySize=512,
             Timeout=300,
             Environment={"Variables": {
-                "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                "FMP_KEY": "REDACTED_FMP_KEY",
                 "S3_BUCKET": "justhodl-dashboard-live",
                 "S3_KEY": "data/smart-money-clusters.json",
             }},

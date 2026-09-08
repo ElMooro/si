@@ -25,7 +25,7 @@ with report("3517_history_close") as rep:
     rep.heading("ops 3517 — price stitcher + depth regate")
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO/"aws"/"lambdas"/FN/"source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY",
                             "S3_BUCKET": BUCKET, "CACHE_TTL_SEC": "72000"},
                   timeout=900, memory=512,
                   description="v1.11.1 price stitch + stmt_rows (ops 3517)",

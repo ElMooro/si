@@ -16,13 +16,14 @@ import json, os, time, urllib.request, urllib.parse, statistics
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/risk-regime.json"
 STATE_KEY = "data/risk-regime-state.json"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
-TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+TG_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 try:

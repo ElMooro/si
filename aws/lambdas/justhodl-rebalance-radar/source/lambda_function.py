@@ -15,10 +15,11 @@ Output data/rebalance-radar.json + board "Rebalance Window" + page.
 import json, urllib.request
 from datetime import datetime, timezone, timedelta, date
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/rebalance-radar.json"
 ES_KEY = "data/history/rebalance-eventstudy.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 PROXIES = {"SPY":"S&P 500","QQQ":"Nasdaq","SMH":"Semiconductors/AI","IWM":"Small Caps",
            "TLT":"Long Treasuries","AGG":"Agg Bonds","GLD":"Gold","BTCUSD":"Bitcoin"}
 COMPLEX_PROXY = {"Semiconductors":"SMH","Nasdaq":"QQQ","Technology":"QQQ","S&P":"SPY",

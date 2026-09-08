@@ -56,7 +56,7 @@ import boto3
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/universe.json")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = os.environ.get("FMP_KEY", "REDACTED_FMP_KEY")
 
 MIN_MCAP = float(os.environ.get("MIN_MCAP", "300000000"))   # $300M
 MIN_VOLUME = float(os.environ.get("MIN_VOLUME", "100000"))
@@ -304,7 +304,7 @@ def main():
         Environment={"Variables": {
             "S3_BUCKET": "justhodl-dashboard-live",
             "S3_KEY": "data/universe.json",
-            "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+            "FMP_KEY": "REDACTED_FMP_KEY",
             "MIN_MCAP": "300000000",
             "MIN_VOLUME": "100000",
             "MAX_ENRICH": "2400",

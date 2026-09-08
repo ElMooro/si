@@ -61,6 +61,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -69,7 +70,7 @@ OUTPUT_KEY   = "data/convergence-radar.json"
 STATE_KEY    = "data/_alerts/convergence-radar-state.json"
 ALERT_KEY    = "data/_alerts/convergence-radar-alerted.json"
 
-TELEGRAM_TOKEN   = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 
 s3 = boto3.client("s3", region_name="us-east-1")

@@ -13,6 +13,7 @@ import json, time
 import urllib.request, os
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/brain.json"
@@ -281,7 +282,7 @@ def lambda_handler(event=None, context=None):
         # Pull live macro series so the regime-read reasons from real data, not vibes.
         def _fred_latest(series):
             try:
-                u = f"https://api.stlouisfed.org/fred/series/observations?series_id={series}&api_key=2f057499936072679d8843d7fce99989&file_type=json&sort_order=desc&limit=1"
+                u = f"https://api.stlouisfed.org/fred/series/observations?series_id={series}&api_key={managed_secret(('FRED_API_KEY', 'FRED_KEY'), ('/justhodl/fred/api-key',))}&file_type=json&sort_order=desc&limit=1"
                 d = json.loads(urllib.request.urlopen(u, timeout=8).read().decode())
                 return float(d["observations"][0]["value"])
             except Exception:

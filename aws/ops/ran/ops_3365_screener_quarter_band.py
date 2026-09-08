@@ -21,7 +21,7 @@ import boto3
 
 ROOT = Path(__file__).resolve().parents[2]
 FN = "justhodl-stock-screener"
-KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+KEY = "REDACTED_FMP_KEY"
 BAND = '(test[0].get("investorsHolding") or 0) > 3000'
 LAM = boto3.client("lambda", region_name="us-east-1")
 

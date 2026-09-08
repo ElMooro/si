@@ -31,13 +31,14 @@ import ssl
 import time
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # === CONFIG ===
-FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')
-POLYGON_KEY = os.environ.get('POLYGON_API_KEY', 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d')
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 ALPHAVANTAGE_KEY = os.environ.get('ALPHAVANTAGE_KEY', 'EOLGKSGAYZUXKPUL')
-CMC_KEY = os.environ.get('CMC_KEY', '17ba8e87-53f0-46f4-abe5-014d9cd99597')
-NEWS_KEY = os.environ.get('NEWS_KEY', '17d36cdd13c44e139853b3a6876cf940')
+CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
+NEWS_KEY = managed_secret(('NEWS_KEY', 'NEWSAPI_KEY', 'NEWS_API_KEY'), ("/justhodl/newsapi/api-key",))
 S3_BUCKET = os.environ.get('S3_BUCKET', 'justhodl-bloomberg-terminal')
 EMAIL_TO = os.environ.get('EMAIL_TO', 'PLACEHOLDER@example.com')
 EMAIL_FROM = os.environ.get('EMAIL_FROM', 'PLACEHOLDER@example.com')

@@ -38,6 +38,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
@@ -51,15 +52,15 @@ MIN_SIZE = 60              # bytes — smaller than this ⇒ effectively empty
 
 # keys (provider keys are non-sensitive read keys; Anthropic key via env only)
 KEYS = {
-    "FRED": os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989"),
-    "FMP": os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"),
-    "POLYGON": os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"),
+    "FRED": managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)),
+    "FMP": managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",)),
+    "POLYGON": managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",)),
     "ALPHAVANTAGE": os.environ.get("AV_KEY", "EOLGKSGAYZUXKPUL"),
-    "CMC": os.environ.get("CMC_KEY", "17ba8e87-53f0-46f4-abe5-014d9cd99597"),
+    "CMC": managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",)),
 }
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
-                          "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+                          managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 

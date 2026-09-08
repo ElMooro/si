@@ -28,10 +28,11 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 ECB = "https://data-api.ecb.europa.eu/service/data/"
-FRED_KEY = __import__("os").environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
+FRED_KEY = __import__("os").environ.get("FRED_API_KEY") or managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
            "Accept": "text/csv;q=0.9, */*;q=0.5", "Accept-Language": "en-US,en;q=0.9"}
 s3 = boto3.client("s3", region_name=REGION)

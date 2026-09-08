@@ -50,6 +50,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-capacity.json"
@@ -58,7 +59,7 @@ SCHEMA = "1.0"
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP = "https://financialmodelingprep.com/stable"
 HTTP_TIMEOUT = 50
 

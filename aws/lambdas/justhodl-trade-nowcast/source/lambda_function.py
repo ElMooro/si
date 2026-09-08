@@ -25,11 +25,12 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/trade-nowcast.json"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 UA = {"User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                      "AppleWebKit/537.36 Chrome/126.0 Safari/537.36")}
 S3 = boto3.client("s3", region_name="us-east-1")

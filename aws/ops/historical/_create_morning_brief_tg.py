@@ -32,7 +32,7 @@ def get_telegram_token():
     except Exception as e:
         print(f"telegram token source fail: {e}")
     # Fallback to known token
-    return "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+    return "REDACTED_TELEGRAM_KEY"
 
 
 def make_zip():

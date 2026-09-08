@@ -62,12 +62,13 @@ from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SCREENER_KEY = os.environ.get("SCREENER_KEY", "screener/data.json")
 OUTPUT_KEY = os.environ.get("OUTPUT_KEY", "data/forensic-screen.json")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Forensic Screen raafouis@gmail.com")
 N_TICKERS = int(os.environ.get("N_TICKERS", "503"))   # full S&P 500

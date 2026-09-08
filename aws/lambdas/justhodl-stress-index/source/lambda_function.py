@@ -28,13 +28,14 @@ import urllib.error
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.9.2"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
 
-FRED_KEY = os.environ.get("FRED_KEY", "") or os.environ.get("FRED_API_KEY", "") or "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 HISTORY_START = "1990-01-01"
 

@@ -4,9 +4,10 @@ from datetime import datetime, timezone, timedelta
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_auth import authorize
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 
 # Allowed origins — /stock/index.html on justhodl.ai calls this

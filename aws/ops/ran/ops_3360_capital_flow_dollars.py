@@ -64,7 +64,7 @@ with report("3360_capital_flow_dollars") as R:
         scr = lam.get_function_configuration(FunctionName="justhodl-stock-screener") \
             .get("Environment", {}).get("Variables", {}) or {}
         key = scr.get("FMP_API_KEY") or scr.get("FMP_KEY") \
-            or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+            or "REDACTED_FMP_KEY"
     probe = None
     yy, qq = None, None
     import datetime as _dt

@@ -30,12 +30,13 @@ except Exception:  # defensive if shared bundle missing
     bz_recent_reported = None
     bz_calendar = None
 from datetime import datetime, timedelta, timezone
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/earnings-tracker.json"
 
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 # Watchlist — 165 high-priority tickers
 WATCHLIST = [

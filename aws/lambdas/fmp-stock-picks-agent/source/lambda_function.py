@@ -1,6 +1,7 @@
 import json, re, math
 from datetime import datetime, timedelta
 import boto3, urllib3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 http = urllib3.PoolManager()
 ses  = boto3.client("ses")
@@ -11,7 +12,7 @@ SES_SENDER = "reports@justhodl.ai"
 RECIPIENTS = ["plebsoulex@gmail.com","khalidbernoussi@yahoo.com"]
 
 # ---- FRED ----
-FRED_API_KEY = "2f057499936072679d8843d7fce99989"   # or set via env and read with os.getenv
+FRED_API_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 FRED_SERIES = {
   "RESBALNS":"Reserve Balances",
   "RRPONTSYD":"ON RRP",

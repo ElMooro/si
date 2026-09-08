@@ -8,6 +8,7 @@ from datetime import datetime
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_auth import authorize
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Allowed origins — called via Cloudflare Worker which sets
 # Origin: https://justhodl.ai on every upstream fetch.
@@ -26,7 +27,7 @@ except Exception as _e:
 
 http=urllib3.PoolManager()
 s3_client=boto3.client("s3",region_name="us-east-1")
-FMP_KEY=os.environ.get("FMP_KEY","wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 ANT_KEY=os.environ.get("ANTHROPIC_KEY",os.environ.get('ANTHROPIC_API_KEY', ''))
 BUCKET="justhodl-dashboard-live"
 FMP_BASE="https://financialmodelingprep.com"

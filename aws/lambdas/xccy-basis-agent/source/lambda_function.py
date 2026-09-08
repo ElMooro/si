@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 from datetime import datetime
 from decimal import Decimal
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -11,7 +12,7 @@ except Exception:
 def lambda_handler(event, context):
     """Main handler for Cross-Currency Basis Agent"""
     
-    fred_key = "2f057499936072679d8843d7fce99989"
+    fred_key = managed_secret(('fred_key', 'FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     
     # FRED doesn't have direct cross-currency basis, but we can use related indicators
     indicators = {

@@ -33,10 +33,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 STATE_KEY = "data/_alerts/prepump-router-state.json"
-TG_BOT_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"  # fallback
+TG_BOT_TOKEN = managed_secret(('TG_BOT_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT_ID = "8678089260"
 
 s3 = boto3.client("s3", region_name="us-east-1")

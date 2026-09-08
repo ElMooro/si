@@ -13,8 +13,8 @@ LAMBDA_NAME = "justhodl-wave-signal-logger"
 ROLE_ARN = "arn:aws:iam::857687956942:role/lambda-execution-role"
 SOURCE_DIR = "aws/lambdas/justhodl-wave-signal-logger/source"
 
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = "REDACTED_POLYGON_KEY"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 lam = boto3.client("lambda", region_name=REGION)
 events = boto3.client("events", region_name=REGION)

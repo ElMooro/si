@@ -19,7 +19,7 @@ SOURCE_DIR = Path("aws/lambdas/justhodl-options-gamma/source")
 EB_RULE_NAME = "justhodl-options-gamma-30min"
 EB_SCHEDULE = "rate(30 minutes)"
 
-ENV_VARS = {'S3_BUCKET': 'justhodl-dashboard-live', 'POLYGON_KEY': 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d', 'UNDERLYING': 'SPY'}
+ENV_VARS = {'S3_BUCKET': 'justhodl-dashboard-live', 'POLYGON_KEY': 'REDACTED_POLYGON_KEY', 'UNDERLYING': 'SPY'}
 
 
 def main():

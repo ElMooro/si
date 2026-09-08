@@ -33,6 +33,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/risk-ratios.json"
@@ -120,7 +121,7 @@ def yahoo_daily(symbol, rng="6mo"):
         return []
 
 
-FRED_KEY = os.environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 
 def fred_series(sid, limit):

@@ -24,9 +24,10 @@ import urllib.request, urllib.parse
 from datetime import datetime, timezone, date, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 ALFRED = "https://api.stlouisfed.org/fred/series/observations"
 s3 = boto3.client("s3", region_name=REGION)
 

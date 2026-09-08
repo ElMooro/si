@@ -22,7 +22,7 @@ with report("3518_keep_clamp") as rep:
     rep.heading("ops 3518 — MAX_Q 44->220 (full statements)")
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO/"aws"/"lambdas"/FN/"source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY",
                             "S3_BUCKET": BUCKET, "CACHE_TTL_SEC": "72000"},
                   timeout=900, memory=512,
                   description="v1.11.2 keep-clamp 220/65 (ops 3518)",

@@ -31,7 +31,7 @@ with report("3583_asia_leads") as rep:
     try:
         donor_env = (LAM.get_function_configuration(FunctionName="justhodl-confluence-meta")
                      .get("Environment") or {}).get("Variables") or {}
-        env = {"FRED_API_KEY": donor_env.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"}
+        env = {"FRED_API_KEY": donor_env.get("FRED_API_KEY") or "REDACTED_FRED_KEY"}
         deploy_lambda(report=rep, function_name=FN,
                       source_dir=ROOT / "lambdas" / "justhodl-asia-leads" / "source",
                       env_vars=env, timeout=180, memory=512,

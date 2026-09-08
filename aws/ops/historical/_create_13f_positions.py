@@ -32,7 +32,7 @@ ENV_VARS = {
     "S3_CACHE_PREFIX": "13f-cache/",
     "S3_FILINGS_KEY": "data/institutional-positions.json",
     "USER_AGENT": "JustHodl Research raafouis@gmail.com",
-    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "FMP_KEY": "REDACTED_FMP_KEY",
     "MAX_PARALLEL": "3",
 }
 

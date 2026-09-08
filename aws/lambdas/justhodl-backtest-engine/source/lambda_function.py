@@ -43,6 +43,7 @@ from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Attr
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 REGION = "us-east-1"
@@ -101,7 +102,7 @@ BOOTSTRAP_BLOCK_LEN = 5          # 1 trading week
 BOOTSTRAP_SEED = 42
 
 # Polygon for SPY benchmark
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 POLYGON_BASE = "https://api.polygon.io"
 
 

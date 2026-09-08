@@ -26,7 +26,7 @@ import json, urllib.request, time
 import boto3
 
 S3 = boto3.client("s3")
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 def fetch_quote(symbol):
     url = "https://financialmodelingprep.com/stable/quote?symbol=" + symbol + "&apikey=" + FMP_KEY

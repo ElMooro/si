@@ -33,13 +33,14 @@ from collections import defaultdict
 from datetime import date, datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/strategy-portfolio.json"
 ALPHA_KEY = "data/engine-alpha.json"
 OUTCOMES_TABLE = "justhodl-outcomes"
-POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 COST_RT_PCT = 0.30          # round-trip cost per pick (matches scorecard)
 MAX_ENGINES = 12            # cap universe for readable matrices
 MIN_WEEKS = 8               # exclude engines with too little history

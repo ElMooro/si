@@ -28,7 +28,7 @@ with report("3598_fifx_vol") as rep:
             fails.append(n)
 
     try:
-        env = {"FRED_API_KEY": "2f057499936072679d8843d7fce99989"}
+        env = {"FRED_API_KEY": "REDACTED_FRED_KEY"}
         deploy_lambda(report=rep, function_name=FN,
                       source_dir=ROOT / "lambdas" / "justhodl-fifx-vol-migration" / "source",
                       env_vars=env, timeout=180, memory=512,

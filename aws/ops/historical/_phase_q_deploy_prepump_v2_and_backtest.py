@@ -8,7 +8,7 @@ from botocore.config import Config
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 LAMBDA_NAME = "justhodl-pre-pump-detector"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 L = boto3.client("lambda", region_name=REGION)
 L2 = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=600, connect_timeout=10))

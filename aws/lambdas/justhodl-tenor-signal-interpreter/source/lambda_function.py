@@ -35,6 +35,7 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -45,7 +46,7 @@ SSM = boto3.client("ssm", region_name="us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/auction-tenor-signals.json"
 AUCTION_CRISIS_KEY = "data/auction-crisis.json"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 FISCAL_BASE = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
                "/v1/accounting/od/auctions_query")

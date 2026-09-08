@@ -36,11 +36,12 @@ import boto3
 
 from impact_mapper import (build as impact_build, load_graph,
                            measured_row, industry_rollup)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/dark-pool.json"
-POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 S3 = boto3.client("s3", region_name=REGION)
 
 

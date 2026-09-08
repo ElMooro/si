@@ -20,7 +20,7 @@ import boto3
 
 ROOT = Path(__file__).resolve().parents[2]
 FN = "justhodl-ignition"
-KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+KEY = "REDACTED_FMP_KEY"
 LAM = boto3.client("lambda", region_name="us-east-1")
 
 

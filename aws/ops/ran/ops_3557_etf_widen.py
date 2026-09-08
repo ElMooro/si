@@ -41,7 +41,7 @@ with report("3557_etf_widen") as rep:
     deploy_lambda(report=rep, function_name=fn,
                   source_dir=REPO/"aws"/"lambdas"/fn/"source",
                   env_vars={"FMP_API_KEY":
-                            "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+                            "REDACTED_FMP_KEY"},
                   timeout=900, memory=1024,
                   description="justhodl-etf-census v1.0.1 (ops 3557)",
                   create_function_url=False, smoke=False)

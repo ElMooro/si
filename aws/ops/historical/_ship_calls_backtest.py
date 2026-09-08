@@ -15,7 +15,7 @@ SOURCE_DIR = "aws/lambdas/justhodl-calls-backtest/source"
 ROLE_ARN = f"arn:aws:iam::{ACCOUNT}:role/lambda-execution-role"
 SCHEDULE_RULE = f"{FUNC}-daily"
 SCHEDULE_EXPR = "cron(15 14 * * ? *)"  # 14:15 UTC daily — after position-sizer (14:00) but before backtest engine (every 6h)
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = "REDACTED_POLYGON_KEY"
 
 LAM = boto3.client("lambda", region_name=REGION)
 EVENTS = boto3.client("events", region_name=REGION)

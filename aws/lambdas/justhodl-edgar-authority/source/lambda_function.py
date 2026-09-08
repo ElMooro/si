@@ -27,11 +27,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 import edgar  # shared toolkit (bundled at deploy)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/edgar-authority.json"
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # balance-sheet instants (most-recent-first); income annual durations
 INSTANT_PERIODS = ["CY2026Q1I", "CY2025Q4I", "CY2025Q3I", "CY2025Q2I", "CY2025Q1I"]

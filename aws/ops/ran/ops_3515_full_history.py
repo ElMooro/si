@@ -48,7 +48,7 @@ with report("3515_full_history") as rep:
     rep.heading("ops 3515 — full history (statements + price + NBER)")
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO/"aws"/"lambdas"/FN/"source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY",
                             "S3_BUCKET": BUCKET, "CACHE_TTL_SEC": "72000"},
                   timeout=900, memory=512,
                   description="Fundamental Graphs v1.11.0 full history (ops 3515)",

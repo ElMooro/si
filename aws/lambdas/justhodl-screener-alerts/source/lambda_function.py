@@ -29,6 +29,7 @@ import urllib.parse
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ───────────── CONFIG ─────────────
 S3_BUCKET = "justhodl-dashboard-live"
@@ -39,7 +40,7 @@ ALERT_STATE_KEY = "screener/alert-state.json"
 # Stored in Lambda env vars; fall back to known values
 TELEGRAM_TOKEN = os.environ.get(
     "TELEGRAM_TOKEN",
-    "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+    managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 )
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"

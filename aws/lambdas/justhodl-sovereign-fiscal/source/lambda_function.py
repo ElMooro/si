@@ -19,13 +19,14 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-fiscal.json"
 FD = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com", "Accept": "application/json, text/plain, */*"}
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 MON = {"Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
        "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"}
 FEATURED = ["Grand Total", "Japan", "China, Mainland", "United Kingdom", "Belgium",

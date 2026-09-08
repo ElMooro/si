@@ -54,6 +54,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 import equity_enrich as EE
 import finviz as FV
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 
@@ -67,7 +68,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 HTTP_TIMEOUT = 20
 MAX_PARALLEL = 8
 N_TOP_FOR_STOCKTWITS = 25  # only fetch StockTwits for top 25 by mentions (rate-aware)
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 N_TOP_FOR_QUOTES = 35  # fetch price for the top names shown on the page
 

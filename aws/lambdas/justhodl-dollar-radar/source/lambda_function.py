@@ -41,6 +41,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -337,7 +338,7 @@ def get_fred_key():
         return SSM.get_parameter(Name="/justhodl/fred/api-key",
                                  WithDecryption=True)["Parameter"]["Value"]
     except Exception:
-        return "2f057499936072679d8843d7fce99989"
+        return managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 
 def fred_series(series_id, start_date, key):

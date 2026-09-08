@@ -39,6 +39,7 @@ import boto3
 
 import sys
 import os
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from engine_trust import trust as _trust   # auto-demotion gate (consumer side)
@@ -51,8 +52,8 @@ S3_BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 SEEN_KEY = "data/_harvest/seen.json"
 SUMMARY_KEY = "data/_harvest/last-run.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-POLYGON = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+POLYGON = managed_secret(('POLYGON', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 TOP_PER_ENGINE = 8
 DEDUP_DAYS = 6

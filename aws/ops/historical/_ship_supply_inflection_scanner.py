@@ -77,8 +77,8 @@ def main():
             MemorySize=1024,
             Timeout=300,
             Environment={"Variables": {
-                "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
-                "FRED_KEY": "2f057499936072679d8843d7fce99989",
+                "POLYGON_KEY": "REDACTED_POLYGON_KEY",
+                "FRED_KEY": "REDACTED_FRED_KEY",
             }},
         )
         for _ in range(20):
@@ -96,8 +96,8 @@ def main():
             MemorySize=1024,
             Timeout=300,
             Environment={"Variables": {
-                "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
-                "FRED_KEY": "2f057499936072679d8843d7fce99989",
+                "POLYGON_KEY": "REDACTED_POLYGON_KEY",
+                "FRED_KEY": "REDACTED_FRED_KEY",
             }},
         )
         for _ in range(20):

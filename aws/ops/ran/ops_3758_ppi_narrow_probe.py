@@ -41,7 +41,7 @@ from ops_report import report  # noqa: E402
 
 UA = {"User-Agent": "Mozilla/5.0 (compatible; JustHodl research)"}
 CTX = ssl.create_default_context()
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 BLS_KEY = os.environ.get("BLS_API_KEY", "341b59ff02974b298a46547e6fe42321")
 
 # narrow lines to test — deliberately specific end-uses

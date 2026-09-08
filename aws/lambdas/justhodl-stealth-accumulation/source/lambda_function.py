@@ -50,12 +50,13 @@ from impact_mapper import (build as impact_build, load_graph,
                            measured_row, structural_row)
 from evidence_weights import blend as ew_blend
 from signals_emit import log_signal, yprice
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/stealth-accumulation.json"
 SSM_KEY = "/justhodl/stealth-accumulation/state"
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
-                                "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+                                managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 SOURCES = {

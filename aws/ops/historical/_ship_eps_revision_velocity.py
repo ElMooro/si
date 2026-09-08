@@ -48,7 +48,7 @@ def main():
             Timeout=300,
             MemorySize=1024,
             Environment={"Variables": {
-                "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                "FMP_KEY": "REDACTED_FMP_KEY",
                 "MAX_TICKERS": "400",
                 "TIMEOUT_BUDGET_S": "240",
                 "MIN_MCAP": "300000000",
@@ -69,7 +69,7 @@ def main():
         MemorySize=1024,
         Timeout=300,
         Environment={"Variables": {
-            "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+            "FMP_KEY": "REDACTED_FMP_KEY",
             "MAX_TICKERS": "400",
             "TIMEOUT_BUDGET_S": "240",
             "MIN_MCAP": "300000000",

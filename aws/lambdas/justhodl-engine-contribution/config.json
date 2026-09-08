@@ -5,9 +5,11 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 600,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "COUNTERFACTUAL ENGINE CONTRIBUTION — measures marginal portfolio PnL per engine from signal-logger outcomes. Tells you which engines actually move the needle vs add noise. Closes the loop the calibrator cannot.",
+  "description": "COUNTERFACTUAL ENGINE CONTRIBUTION \u2014 measures marginal portfolio PnL per engine from signal-logger outcomes. Tells you which engines actually move the needle vs add noise. Closes the loop the calibrator cannot.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "OUT_KEY": "data/engine-contributions.json",
@@ -17,12 +19,11 @@
     "LOOKBACK_DAYS": "180",
     "POSITION_SIZE_BPS": "50",
     "OUTCOME_WINDOWS": "7,30",
-    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
     "TELEGRAM_CHAT_ID": "8678089260"
   },
   "schedule": {
     "rule_name": "engine-contribution-weekly",
     "cron": "cron(0 2 ? * SUN *)",
-    "description": "Engine contribution counterfactual — weekly Sunday 02 UTC"
+    "description": "Engine contribution counterfactual \u2014 weekly Sunday 02 UTC"
   }
 }

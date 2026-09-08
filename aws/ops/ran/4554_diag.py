@@ -2,7 +2,7 @@
 category sizes Khalid quoted (Interest Rates alone = 1,080). Direct raw
 API call, no abstractions, print everything."""
 import json,os,urllib.request
-FRED_KEY="2f057499936072679d8843d7fce99989"
+FRED_KEY="REDACTED_FRED_KEY"
 R={}
 def raw_get(u):
     req=urllib.request.Request(u,headers={"User-Agent":"JustHodl research admin@justhodl.ai"})

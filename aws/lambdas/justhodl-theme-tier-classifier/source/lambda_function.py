@@ -35,10 +35,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 
 # Filter Layer 1 themes by phase before classifying — focus on the phases

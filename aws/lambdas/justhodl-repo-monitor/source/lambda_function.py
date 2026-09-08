@@ -2,13 +2,14 @@ import json,boto3,os,ssl,time,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
     pass
 
 s3=boto3.client('s3')
-FRED_API_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')
+FRED_API_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 ctx=ssl.create_default_context();ctx.check_hostname=False;ctx.verify_mode=ssl.CERT_NONE
 def http_get(url,timeout=15,retries=3):

@@ -58,6 +58,7 @@ from decimal import Decimal
 import boto3
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -68,7 +69,7 @@ lam = boto3.client("lambda", region_name=REGION)
 s3 = boto3.client("s3", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
 
-TELEGRAM_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 
 DEDUPE_WINDOW_SEC = 60

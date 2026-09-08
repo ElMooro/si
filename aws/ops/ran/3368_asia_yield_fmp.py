@@ -3,7 +3,7 @@
 import json, urllib.request
 from ops_report import report
 
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = "REDACTED_FMP_KEY"
 
 def get(url):
     try:

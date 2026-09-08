@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "ops"))
 from ops_report import report  # noqa: E402
 
-KEY = os.environ.get("CENSUS_API_KEY", "8423ffa543d0e95cdba580f2e381649b6772f515")
+KEY = os.environ.get("CENSUS_API_KEY", "REDACTED_CENSUS_KEY")
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
 CTX = ssl.create_default_context()
 

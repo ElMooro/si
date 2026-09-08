@@ -49,7 +49,7 @@ def get_polygon_key():
                     return env[k]
         except Exception:
             continue
-    return os.environ.get("POLYGON_KEY") or "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+    return os.environ.get("POLYGON_KEY") or "REDACTED_POLYGON_KEY"
 
 
 def fetch_spy_history(start, end, key):

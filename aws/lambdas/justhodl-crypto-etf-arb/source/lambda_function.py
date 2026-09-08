@@ -37,14 +37,15 @@ import traceback
 import urllib.request
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-CMC_KEY = os.environ.get("CMC_KEY", "17ba8e87-53f0-46f4-abe5-014d9cd99597")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/crypto-etf-arb.json"
 SSM_KEY = "/justhodl/crypto-etf-arb/state"
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
-                                "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+                                managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 UA = "JustHodlAI-CryptoETFArb/1.0"

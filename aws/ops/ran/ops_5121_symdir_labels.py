@@ -73,7 +73,7 @@ def main():
         r.heading("ops 5121 -- symbol directory v1.1.0: Eurostat/ECB dimension labels")
         fails = []
         r.section("S1 redeploy")
-        env = {"S3_BUCKET": B, "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d", "FRED_KEY": "2f057499936072679d8843d7fce99989"}
+        env = {"S3_BUCKET": B, "POLYGON_KEY": "REDACTED_POLYGON_KEY", "FRED_KEY": "REDACTED_FRED_KEY"}
         cur = lam.get_function_configuration(FunctionName=FN)
         v = (cur.get("Environment") or {}).get("Variables", {}).get("BLS_API_KEY")
         if v:

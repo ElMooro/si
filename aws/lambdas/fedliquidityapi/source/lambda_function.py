@@ -4,9 +4,10 @@ import urllib.request
 import urllib.parse
 from datetime import datetime, timedelta
 import time
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Your FRED API key
-FRED_API_KEY = '2f057499936072679d8843d7fce99989'
+FRED_API_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 # Complete Fed Liquidity Series IDs (220+ series)
 FED_LIQUIDITY_SERIES = {

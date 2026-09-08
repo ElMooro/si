@@ -53,7 +53,7 @@ SEN_FN = "justhodl-import-sentinel"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
 SRC = ROOT / "aws" / "lambdas" / FN / "source"
 STATE_KEY = "data/warm/census-us/_state/state.json"
-CENSUS_KEY = "8423ffa543d0e95cdba580f2e381649b6772f515"
+CENSUS_KEY = "REDACTED_CENSUS_KEY"
 
 MARKERS = {
     FN: "justhodl-census-us v1.0.0 ops4944",

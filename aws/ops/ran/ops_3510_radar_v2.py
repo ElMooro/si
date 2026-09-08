@@ -94,7 +94,7 @@ with report("3510_radar_v2") as rep:
 
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO / "aws" / "lambdas" / FN / "source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY",
                             "S3_BUCKET": BUCKET, "CACHE_TTL_SEC": "72000"},
                   timeout=900, memory=512,
                   description="Fundamental Graphs v1.10.1 radar v2 (ops 3510)",

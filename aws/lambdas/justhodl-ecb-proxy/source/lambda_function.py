@@ -9,6 +9,7 @@ import sys
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_auth import authorize
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 ECB_ENDPOINTS = [
     "https://data-api.ecb.europa.eu/service/data",
@@ -16,7 +17,7 @@ ECB_ENDPOINTS = [
 ]
 
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 
 SERIES = {
     "us_ciss": {"key": "CISS/D.US.Z0Z.4F.EC.SS_CI.IDX", "label": "US CISS", "region": "US"},

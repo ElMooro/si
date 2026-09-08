@@ -35,7 +35,7 @@ def main():
 
     env = {
         "S3_BUCKET": "justhodl-dashboard-live",
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
         "MAX_TICKERS": "600",
         "TIMEOUT_BUDGET_S": "260",
         "MIN_DOLLAR_VOL": "5000000",

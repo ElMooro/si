@@ -5,8 +5,9 @@ except Exception:
     guard_output = None
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-FMP      = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"

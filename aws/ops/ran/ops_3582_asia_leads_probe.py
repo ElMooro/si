@@ -8,7 +8,7 @@ import json, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 from ops_report import report
 
-FRED = "2f057499936072679d8843d7fce99989"
+FRED = "REDACTED_FRED_KEY"
 UA = {"User-Agent": "JustHodl research contact@justhodl.ai", "Accept": "application/json"}
 
 def gj(url, timeout=25):

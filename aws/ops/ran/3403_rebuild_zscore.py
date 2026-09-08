@@ -7,7 +7,7 @@ import json, urllib.request, statistics
 from datetime import datetime, timezone
 from ops_report import report
 import boto3
-FRED="2f057499936072679d8843d7fce99989"
+FRED="REDACTED_FRED_KEY"
 s3=boto3.client("s3",region_name="us-east-1")
 HUBS={
  "United States":"IRLTLT01USM156N","United Kingdom":"IRLTLT01GBM156N","Germany":"IRLTLT01DEM156N",

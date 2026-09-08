@@ -70,7 +70,7 @@ def main():
             MemorySize=1024,
             Timeout=600,
             Environment={"Variables": {
-                "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                "FMP_KEY": "REDACTED_FMP_KEY",
             }},
         )
         for _ in range(30):
@@ -90,7 +90,7 @@ def main():
             Timeout=600,
             Description="Layer 4 of nobrainer hunter — fuses Layers 1+2+3 into 5-factor asymmetric score",
             Environment={"Variables": {
-                "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+                "FMP_KEY": "REDACTED_FMP_KEY",
             }},
         )
         time.sleep(3)

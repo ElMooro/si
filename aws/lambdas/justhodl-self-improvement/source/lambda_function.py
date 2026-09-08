@@ -30,11 +30,12 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, List, Dict, Tuple
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-TG_BOT_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+TG_BOT_TOKEN = managed_secret(('TG_BOT_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT_ID = "8678089260"
 
 s3 = boto3.client("s3", region_name="us-east-1")

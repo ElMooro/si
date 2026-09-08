@@ -75,7 +75,7 @@ with report("create_stock_ai_research_lambda") as r:
     ant_key = get_anthropic_key()
     r.log(f"  Anthropic key prefix: {ant_key[:14]}...")
 
-    fmp_key = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"  # consistent with sibling Lambdas
+    fmp_key = "REDACTED_FMP_KEY"  # consistent with sibling Lambdas
 
     # ─── D. Create function (or update if exists) ──────────────────────
     r.section("D. Create or update function")

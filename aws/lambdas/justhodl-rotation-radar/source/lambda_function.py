@@ -19,12 +19,13 @@ import json, os, time, re, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-radar.json"
-POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 VERSION = "1.2.1"
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}

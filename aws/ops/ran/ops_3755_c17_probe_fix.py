@@ -39,7 +39,7 @@ from ops_report import report  # noqa: E402
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; JustHodl research)"}
 CTX = ssl.create_default_context()
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 
 with report("3755_c17_probe_fix") as rep:
     rep.heading("ops 3755 — canary #17 credit-before-equity probe")

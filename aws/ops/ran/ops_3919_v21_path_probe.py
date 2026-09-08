@@ -16,7 +16,7 @@ from ops_report import report  # noqa: E402
 
 s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
-FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP = os.environ.get("FMP_KEY", "REDACTED_FMP_KEY")
 
 
 def get(k):

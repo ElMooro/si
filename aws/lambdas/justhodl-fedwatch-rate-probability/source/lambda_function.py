@@ -76,13 +76,14 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/fedwatch.json"
 
 FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get(
-    "FRED_KEY", "2f057499936072679d8843d7fce99989")
+    "FRED_KEY", managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
 FRED_BASE = "https://api.stlouisfed.org/fred"
 HTTP_TIMEOUT = 20
 

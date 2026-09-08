@@ -20,11 +20,12 @@ import urllib.request
 import ssl
 from datetime import datetime, timezone, timedelta
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 s3 = boto3.client("s3", region_name=REGION)
 ctx = ssl.create_default_context()

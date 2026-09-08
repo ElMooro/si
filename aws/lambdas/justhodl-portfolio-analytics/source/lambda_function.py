@@ -91,13 +91,14 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 S3_BUCKET    = "justhodl-dashboard-live"
 RADAR_KEY    = "data/convergence-radar.json"
 OUTPUT_KEY   = "data/portfolio-analytics.json"
-FMP_KEY      = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 LOOKBACK_DAYS = 60
 

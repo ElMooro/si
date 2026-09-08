@@ -94,14 +94,15 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ═════════════════════════════════════════════════════════════════════
 # Config
 # ═════════════════════════════════════════════════════════════════════
 
-FMP_KEY      = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE     = "https://financialmodelingprep.com/stable"
-POLYGON_KEY  = os.environ.get("POLYGON_API_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 POLYGON_BASE = "https://api.polygon.io"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_KEY", "")
 MODEL        = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")

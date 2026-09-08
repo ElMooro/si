@@ -13,7 +13,7 @@ REGION = "us-east-1"
 LAMBDA_NAME = "justhodl-historical-analogs"
 ROLE_ARN = "arn:aws:iam::857687956942:role/lambda-execution-role"
 SOURCE_DIR = "aws/lambdas/justhodl-historical-analogs/source"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 
 lam = boto3.client("lambda", region_name=REGION)
 events = boto3.client("events", region_name=REGION)

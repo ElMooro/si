@@ -53,7 +53,7 @@ def main():
         log(f"Lambda {LAMBDA_NAME} does not exist — creating")
 
     env_vars = {
-        "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+        "POLYGON_KEY": "REDACTED_POLYGON_KEY",
         "MIN_TRACK_SCORE": "60",
         "MAX_LOGS_PER_RUN": "20",
         "SCORE_DELTA_TRIGGER": "5",

@@ -9,6 +9,7 @@ except Exception:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_auth import authorize
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Allowed origins — edge.html on justhodl.ai calls this Lambda
 ALLOWED_ORIGINS = [
@@ -40,8 +41,8 @@ except Exception as _e:
             def is_signal_calibrated(self, _): return False
         return _C()
 
-FRED_KEY    = '2f057499936072679d8843d7fce99989'
-POLYGON_KEY = 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d'
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 S3_BUCKET   = 'justhodl-dashboard-live'
 
 def hget(url, timeout=10):

@@ -20,6 +20,7 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
 import finviz as FV
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -27,7 +28,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 VERSION = "1.5.1"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":

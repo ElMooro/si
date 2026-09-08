@@ -12,9 +12,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Symbol directory v1.9.0: normalized chart series, TradingView-style asset-aware ranking, and provider entry points; merges the separate 57-provider SQLite FTS catalog into /search without loading raw S3 objects into RAM.",
   "environment": {
-    "S3_BUCKET": "justhodl-dashboard-live",
-    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
-    "FRED_KEY": "2f057499936072679d8843d7fce99989"
+    "S3_BUCKET": "justhodl-dashboard-live"
   },
   "inherit_env": {
     "from_function": "bls-labor-agent",

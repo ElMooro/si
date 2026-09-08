@@ -57,6 +57,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 from botocore.exceptions import ClientError
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 # =====================================================================
@@ -66,8 +67,8 @@ REGION = "us-east-1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/buyback-scanner.json"
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-TG_TOKEN = os.environ.get("TG_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+TG_TOKEN = managed_secret(('TG_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 
 EDGAR_UA = "JustHodlAI khalid@justhodl.ai"

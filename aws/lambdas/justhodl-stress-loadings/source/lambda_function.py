@@ -38,11 +38,12 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, pvariance
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 LOADINGS_KEY = "data/stress-factor-loadings.json"
-POLYGON_KEY = os.environ.get("POLYGON_API_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 LOOKBACK_DAYS = 365 * 5     # 5 years
 LOOKBACK_FETCH_BUFFER = 30  # extra days for weekend/holiday padding
 

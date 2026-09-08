@@ -38,15 +38,16 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ---- infrastructure ---------------------------------------------------
 S3_BUCKET = "justhodl-dashboard-live"
 REPORT_KEY = "data/breadth-thrust.json"
 CACHE_KEY = "data/breadth-history.json"
 STATE_SSM = "/justhodl/breadth-thrust/state"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 # ---- Zweig thresholds (canonical) -------------------------------------
@@ -133,7 +134,7 @@ def fetch_spy_history(years=20):
     if len(out) < 350:
         try:
             fred_key = os.environ.get("FRED_API_KEY",
-                                      "2f057499936072679d8843d7fce99989")
+                                      managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
             frm = (now - timedelta(days=365 * 10)).strftime("%Y-%m-%d")
             u = ("https://api.stlouisfed.org/fred/series/observations?"
                  "series_id=SP500&api_key=%s&file_type=json&"

@@ -67,7 +67,7 @@ with report("3584_asia_v11") as rep:
                       env_vars=cl_env, timeout=180, memory=512,
                       description="China liquidity + credit impulse — v2 adds REAL NBS Total Social Financing (annual composition + monthly when probed) alongside the money-acceleration proxy.",
                       create_function_url=False)
-        al_env = {"FRED_API_KEY": cl_env.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"}
+        al_env = {"FRED_API_KEY": cl_env.get("FRED_API_KEY") or "REDACTED_FRED_KEY"}
         deploy_lambda(report=rep, function_name="justhodl-asia-leads",
                       source_dir=ROOT / "lambdas" / "justhodl-asia-leads" / "source",
                       env_vars=al_env, timeout=120, memory=512,

@@ -23,10 +23,11 @@ import json, time
 import urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/funding-plumbing.json"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 s3 = boto3.client("s3", region_name=REGION)
 
 # Lowest Comfortable Level of Reserves — the floor the Fed tries not to breach.
@@ -49,7 +50,7 @@ SERIES = {
 def _telegram(msg):
     """Exceptions-only alert via the JustHodl Telegram bot (token + chat from SSM)."""
     try:
-        token = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+        token = managed_secret(('token', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
         try:
             chat_id = boto3.client("ssm", region_name=REGION).get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
         except Exception:

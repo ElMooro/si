@@ -13,7 +13,7 @@ LAMBDA_NAME = "justhodl-pre-pump-detector"
 SCHEDULE_NAME = "justhodl-pre-pump-detector-daily"
 SCHEDULE_EXPR = "cron(15 13 * * ? *)"  # 13:15 UTC daily
 ROLE_ARN = f"arn:aws:iam::{ACCOUNT}:role/lambda-execution-role"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 L = boto3.client("lambda", region_name=REGION)
 EB = boto3.client("events", region_name=REGION)

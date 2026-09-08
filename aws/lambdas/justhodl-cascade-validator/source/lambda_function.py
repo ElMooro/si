@@ -24,9 +24,10 @@ from typing import Optional, List, Dict
 from concurrent.futures import ThreadPoolExecutor
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 LOOKBACK_DAYS = 7  # how many days of cascade predictions to validate
 N_WORKERS = 8
 

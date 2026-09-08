@@ -29,11 +29,12 @@ guards. Picks -> harvester for forward excess-vs-SPY grading (measure-before-tru
 """
 import json, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "2.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/resilience.json"
-POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY = managed_secret(('POLY', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 import boto3
 s3 = boto3.client("s3", "us-east-1")

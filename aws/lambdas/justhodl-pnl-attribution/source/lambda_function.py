@@ -50,6 +50,7 @@ import urllib.error
 from datetime import datetime, timezone, timedelta, date
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/pnl-attribution.json"
@@ -57,7 +58,7 @@ LEDGER_KEY = "data/pnl-ledger.json"
 RETURNS_KEY = "data/desk-returns.json"
 ALLOC_KEY = "data/desk-allocator.json"
 FACTOR_KEY = "data/factor-risk.json"
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 SCHEMA = "1.0"
 
 DESK_ORDER = ["best-ideas", "pairs-arb", "trend-engine", "merger-arb",

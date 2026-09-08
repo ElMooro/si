@@ -42,6 +42,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/opportunities.json"
@@ -173,7 +174,7 @@ def fetch_forward_growth(universe, max_n=2600):
     import concurrent.futures as cf
     syms = [(s.get("symbol") or s.get("ticker")) for s in universe][:max_n]
     syms = [s for s in syms if s]
-    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp_key = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     base = "https://financialmodelingprep.com/stable"
 
     def one(sym):
@@ -220,7 +221,7 @@ def fetch_capex_buyback(universe, max_n=2600):
        capex_intensity= capex / revenue
     Concurrent; capped at max_n to bound the run."""
     import concurrent.futures as _cf
-    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp_key = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     base = "https://financialmodelingprep.com/stable"
     syms = [s.get("symbol") for s in universe if s.get("symbol")][:max_n]
     result = {}
@@ -750,7 +751,7 @@ def fetch_tail_metrics(tail):
     """Deep-fetch full-universe tail (all caps) → screener-shaped records so
     they flow through the same scoring. key-metrics-ttm + ratios-ttm + quote."""
     import concurrent.futures as cf
-    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp_key = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     base = "https://financialmodelingprep.com/stable"
 
     def cap_bucket(m):
@@ -1054,7 +1055,7 @@ def lambda_handler(event, context):
 
     # ── NEW: backlog/RPO from earnings transcripts for the top names ──
     print("[opp] extracting backlog for top names…")
-    fmp_key = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp_key = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     for r in rows[:40]:
         bl = extract_backlog(r["ticker"], fmp_key)
         if bl:

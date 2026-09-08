@@ -51,7 +51,7 @@ def main():
                 Timeout=300,  # 5 min — fetches ~270 tickers
                 MemorySize=1024,
                 Environment={"Variables": {
-                    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+                    "POLYGON_KEY": "REDACTED_POLYGON_KEY",
                 }},
                 Description="Auto-detect theme lifecycle from 70+ thematic ETFs (DORMANT/EMERGING/ACCELERATING/EXTENDED/PEAKING/COOLING/DYING)",
             )
@@ -73,7 +73,7 @@ def main():
                     Timeout=300,
                     MemorySize=1024,
                     Environment={"Variables": {
-                        "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+                        "POLYGON_KEY": "REDACTED_POLYGON_KEY",
                     }},
                 )
                 for _ in range(15):

@@ -25,7 +25,7 @@ from ops_report import report  # noqa: E402
 
 BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 
 def list_snapshots():

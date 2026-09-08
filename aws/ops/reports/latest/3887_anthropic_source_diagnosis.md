@@ -11,7 +11,7 @@
 | 0 | False | False |  |  |  |  |  |  |  |  |
 |  |  |  | 108 | True | False |  |  |  |  |  |
 |  |  |  |  |  |  | 108 | True |  |  |  |
-|  |  |  |  |  |  |  |  | ['ANTHROPIC_API_KEY', 'FMP_KEY', 'MAX_NEW_TO_SCORE', 'NEWSAPI_KEY', 'S3_BUCKET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'] | PLACEHOLDER_REPLACE_VIA_AWS_CONSOLE_OR_OPS | 2026-07-25T21:38:23.000+0000 |
+|  |  |  |  |  |  |  |  | ['ANTHROPIC_API_KEY', 'FMP_KEY', 'MAX_NEW_TO_SCORE', 'NEWSAPI_KEY', 'S3_BUCKET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'] | REDACTED_ANTHROPIC_KEY | 2026-07-25T21:38:23.000+0000 |
 
 ## Log
 ## 1. does justhodl-confluence-meta actually have a real ANTHROPIC_API_KEY

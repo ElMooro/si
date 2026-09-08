@@ -48,17 +48,18 @@ import urllib.parse
 import urllib.request
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Inline defaults match the pattern used in other production engines.
 # These can be overridden by Lambda env vars but should never be empty.
-CMC_KEY = os.environ.get("CMC_KEY", "17ba8e87-53f0-46f4-abe5-014d9cd99597")
+CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
 COINGECKO_KEY = os.environ.get("COINGECKO_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/crypto-opportunities.json"
 SSM_KEY = "/justhodl/crypto-opportunities/state"
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
-                                "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+                                managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 UA = "JustHodlAI-CryptoOpportunities/1.0"

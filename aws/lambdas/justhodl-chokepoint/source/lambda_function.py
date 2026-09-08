@@ -37,11 +37,12 @@ import json, time, statistics, urllib.request, csv, io
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "5.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 s3 = boto3.client("s3", "us-east-1")
 
 CHOKE_THRESHOLD = 50.0   # calibrated gap: commodity max 34, chokepoint min 54.6

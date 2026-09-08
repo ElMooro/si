@@ -46,6 +46,7 @@ import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "v1.0.0"
 ENGINE = "justhodl-multi-tf-convergence"
@@ -53,7 +54,7 @@ S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/multi-tf-convergence.json"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
-                                  "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+                                  managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 s3 = boto3.client("s3", region_name="us-east-1")

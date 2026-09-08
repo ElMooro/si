@@ -96,7 +96,7 @@ def main():
     section("1) Deploy earnings-pead (NEW)")
     env = {
         "S3_BUCKET": "justhodl-dashboard-live",
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
         "MAX_TICKERS": "1500",
         "TIMEOUT_BUDGET_S": "550",
         "N_WORKERS": "12",

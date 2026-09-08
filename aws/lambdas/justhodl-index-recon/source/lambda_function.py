@@ -63,13 +63,14 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/index-recon.json"
 SCHEMA = "index-recon-1.0"
 
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP = "https://financialmodelingprep.com/stable"
 
 # ---- index structure constants --------------------------------------------

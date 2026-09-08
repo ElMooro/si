@@ -14,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from boto3.dynamodb.conditions import Attr
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
@@ -24,8 +25,8 @@ SIGNALS_TABLE  = "justhodl-signals"
 OUTCOMES_TABLE = "justhodl-outcomes"
 S3_BUCKET      = "justhodl-dashboard-live"
 
-POLYGON_KEY    = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY        = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 
 def float_to_decimal(obj):

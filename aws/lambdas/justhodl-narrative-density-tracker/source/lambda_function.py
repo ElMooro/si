@@ -22,11 +22,12 @@ OUTPUT: data/narrative-density.json
 import io, json, os, time, urllib.request, urllib.error, urllib.parse
 from collections import defaultdict
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/narrative-density.json")
-POLY_KEY = os.environ.get("POLY_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
 MAX_ARTICLES_PER_PAGE = 200
 MAX_PAGES = 30  # ~6000 articles max

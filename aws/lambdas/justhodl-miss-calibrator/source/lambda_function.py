@@ -49,6 +49,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -68,7 +69,7 @@ MIN_THRESHOLD_REDUCTION = -0.02  # smallest meaningful change
 RECURRING_TICKER_MIN = 3         # ticker missed ≥3x → flag for universe review
 PROPOSAL_TTL_DAYS = 14            # proposals expire after 14d
 
-TELEGRAM_TOKEN = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 
 s3 = boto3.client("s3", region_name=REGION)

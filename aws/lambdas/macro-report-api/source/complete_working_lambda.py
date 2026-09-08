@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 import urllib.request
 import urllib.parse
 import ssl
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # Create SSL context to handle certificates
 ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
-FRED_API_KEY = '2f057499936072679d8843d7fce99989'
+FRED_API_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 # ALL 272 METRICS FROM YOUR DOCUMENTATION
 ALL_METRICS = {

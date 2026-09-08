@@ -3,10 +3,7 @@
   "timeout": 120,
   "runtime": "python3.12",
   "description": "Cross-Asset Relative Value engine \u2014 OLS residual-z dislocation detector across 6 cross-asset relationships",
-  "environment": {
-    "FRED_KEY": "2f057499936072679d8843d7fce99989",
-    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
-  },
+  "environment": {},
   "inherit_env": [
     {
       "from_function": "justhodl-vol-surface",

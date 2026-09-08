@@ -31,11 +31,12 @@ from datetime import datetime, timezone
 from statistics import median
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/beta-laggards.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 BASE = "https://financialmodelingprep.com/stable"
 WORKERS = 8
 

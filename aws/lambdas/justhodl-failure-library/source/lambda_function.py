@@ -44,6 +44,7 @@ import json, os, logging, urllib.request, urllib.parse
 import boto3
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -54,7 +55,7 @@ OUT_KEY = "data/pre-disaster-watchlist.json"
 LIBRARY_KEY = "data/pre-disaster-library.json"
 HIST_KEY = "data/history/pre-disaster-history.json"
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")

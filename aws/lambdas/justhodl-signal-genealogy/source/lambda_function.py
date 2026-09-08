@@ -42,6 +42,7 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
@@ -111,7 +112,7 @@ def _spy_history():
     """SPY daily closes -> {YYYY-MM-DD: close}. Same proven pattern as signal-scorecard."""
     start = (datetime.now(timezone.utc) - timedelta(days=130)).strftime("%Y-%m-%d")
     out = {}
-    fmp = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     try:
         u = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
              f"?symbol={BENCH}&from={start}&apikey={fmp}")

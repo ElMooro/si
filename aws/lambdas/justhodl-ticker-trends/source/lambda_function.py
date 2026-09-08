@@ -47,12 +47,13 @@ from statistics import mean
 import boto3
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/ticker-trends.json"
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 # Tunable via env
 MAX_TICKERS    = int(os.environ.get("MAX_TICKERS", "80"))

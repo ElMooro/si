@@ -34,13 +34,14 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
 INITIAL_NAV = 100_000.0
-POLYGON_KEY = os.environ.get("POLYGON_KEY") or "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 # Verb-to-SPY-exposure mapping. Conservative version of the trader handbook.
 EXPOSURE = {

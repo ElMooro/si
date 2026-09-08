@@ -30,7 +30,7 @@ from ops_report import report  # noqa: E402
 
 REGION = "us-east-1"
 B = "justhodl-dashboard-live"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 s3 = boto3.client("s3", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=200, retries={"max_attempts": 2}))
 ev = boto3.client("events", region_name=REGION)

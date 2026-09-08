@@ -35,7 +35,7 @@ with report("3514_ftd_v101") as rep:
     rep.heading("ops 3514 — FTD v1.0.1 (min-base spike)")
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO/"aws"/"lambdas"/FN/"source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY"},
                   timeout=600, memory=512,
                   description="Equity FTD v1.0.1 min-base (ops 3514)",
                   create_function_url=False, smoke=False)

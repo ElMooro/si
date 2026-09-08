@@ -29,13 +29,14 @@ import os, json, time, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", "us-east-1")
 DDB = boto3.resource("dynamodb", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ma200-reclaim.json"
 BUF_KEY = "data/_ma200/closes.json"
-POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 VERSION = "1.0.0"
 
 KEEP = 235            # closes retained per ticker (enough for 200-dma + retest path)

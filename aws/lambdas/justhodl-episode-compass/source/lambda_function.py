@@ -14,11 +14,12 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, pstdev
 from decimal import Decimal
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/episode-compass.json"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 VERSION = "1.0.1"
 

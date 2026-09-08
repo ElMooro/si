@@ -73,7 +73,7 @@ with report("3174_fred_key") as rep:
                     cands[f"{fn}:{k}"] = env[k]
         except Exception:
             continue
-    cands["hardcoded_fallback"] = "2f057499936072679d8843d7fce99989"
+    cands["hardcoded_fallback"] = "REDACTED_FRED_KEY"
     rep.kv(candidates=len(cands))
 
     good = None

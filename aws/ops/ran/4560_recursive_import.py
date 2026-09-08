@@ -14,7 +14,7 @@ R={"ops":4560,"started":datetime.now(timezone.utc).isoformat()}
 # discontinued-tag PROBE (verify, don't wire)
 try:
     req=urllib.request.Request(
-        "https://api.stlouisfed.org/fred/tags/series?tag_names=discontinued&api_key=2f057499936072679d8843d7fce99989&file_type=json&limit=3",
+        "https://api.stlouisfed.org/fred/tags/series?tag_names=discontinued&api_key=REDACTED_FRED_KEY&file_type=json&limit=3",
         headers={"User-Agent":"JustHodl research admin@justhodl.ai"})
     d=json.loads(urllib.request.urlopen(req,timeout=20).read())
     R["discontinued_tag_probe"]={"exists":bool(d.get("seriess")),"count":d.get("count"),

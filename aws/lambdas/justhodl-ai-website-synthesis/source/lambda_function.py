@@ -56,6 +56,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
@@ -293,7 +294,7 @@ def fetch_all_engines() -> dict:
 # Telegram notification on regime change
 # ═════════════════════════════════════════════════════════════════════
 
-TELEGRAM_TOKEN   = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 PRIOR_STATE_KEY  = "data/_alerts/website-synthesis-state.json"
 

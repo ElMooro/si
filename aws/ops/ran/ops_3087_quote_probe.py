@@ -12,7 +12,7 @@ from pathlib import Path
 from ops_report import report
 
 AWS_DIR = Path(__file__).resolve().parents[2]
-KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+KEY = "REDACTED_FMP_KEY"
 
 
 def get(url):

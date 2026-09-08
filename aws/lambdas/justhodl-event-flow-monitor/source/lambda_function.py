@@ -70,6 +70,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -77,7 +78,7 @@ OUTPUT_KEY = "data/event-flow-health.json"
 SSM_PULSE_PATH = "/justhodl/event-flow/pulse"
 AUDIT_PREFIX = "system-events/audit/"
 
-TELEGRAM_TOKEN   = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 
 # Thresholds

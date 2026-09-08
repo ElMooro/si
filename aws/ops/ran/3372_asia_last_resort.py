@@ -3,7 +3,7 @@
 sovereigns (a real-market proxy), (3) MAS/HKMA-style series on DBnomics other providers."""
 import json, urllib.request, urllib.parse
 from ops_report import report
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = "REDACTED_FMP_KEY"
 def get(url, t=20):
     try:
         req=urllib.request.Request(url,headers={"User-Agent":"jh/1.0"})

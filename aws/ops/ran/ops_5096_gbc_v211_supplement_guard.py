@@ -38,7 +38,7 @@ FN = "justhodl-global-business-cycle"
 LIVE_KEY = "data/global-business-cycle.json"
 HIST_KEY = "data/global-business-cycle-history.json"
 WANT = "2.1.1"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 SERIES = {"USA": "USACSCICP02STSAM", "CHN": "CHNBSCICP02STSAM"}
 
 s3 = boto3.client("s3", region_name=REGION)

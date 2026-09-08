@@ -31,6 +31,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
@@ -39,7 +40,7 @@ OVERLAY_HIST_KEY = "data/jsi-overlay-history.json"
 SPINE_WEIGHTS_PARAM = "/justhodl/jsi/spine-weights"
 OVERLAY_WEIGHTS_PARAM = "/justhodl/jsi/overlay-weights"
 
-FRED_KEY = os.environ.get("FRED_KEY", "") or "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 HISTORY_START = "1990-01-01"
 

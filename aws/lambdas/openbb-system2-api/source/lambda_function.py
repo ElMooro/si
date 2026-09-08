@@ -4,6 +4,7 @@ import urllib.error
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -61,7 +62,7 @@ def fetch_indicator(series_id, api_key):
 def lambda_handler(event, context):
     """Main Lambda handler with WEEKLY data updates"""
     
-    api_key = "2f057499936072679d8843d7fce99989"
+    api_key = managed_secret(('api_key', 'FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     
     # Parse the path from the event
     path = event.get('path', '')

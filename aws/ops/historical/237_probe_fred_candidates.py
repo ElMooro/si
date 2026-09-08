@@ -30,7 +30,7 @@ PROBE_CODE = '''
 import json, os, urllib.request, urllib.parse
 def lambda_handler(event, context):
     series = event["series_id"]
-    api_key = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+    api_key = os.environ.get("FRED_API_KEY", "REDACTED_FRED_KEY")
     params = {"series_id": series, "api_key": api_key, "file_type": "json", "limit": 5, "sort_order": "desc"}
     url = "https://api.stlouisfed.org/fred/series/observations?" + urllib.parse.urlencode(params)
     try:

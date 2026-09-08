@@ -3,6 +3,7 @@ import boto3
 import urllib.request
 from datetime import datetime
 from decimal import Decimal
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 def lambda_handler(event, context):
     """Enhanced Repo Agent with updated NY Fed endpoints"""
@@ -44,7 +45,7 @@ def lambda_handler(event, context):
         pass
     
     # Use FRED as backup for RRP data
-    fred_key = "2f057499936072679d8843d7fce99989"
+    fred_key = managed_secret(('fred_key', 'FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     try:
         rrp_url = f"https://api.stlouisfed.org/fred/series/observations?series_id=RRPONTSYD&api_key={fred_key}&file_type=json&limit=1&sort_order=desc"
         with urllib.request.urlopen(rrp_url) as response:

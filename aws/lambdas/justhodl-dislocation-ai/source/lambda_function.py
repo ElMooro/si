@@ -18,11 +18,12 @@ import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, re, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/dislocation-ai.json"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 MODEL = "claude-haiku-4-5-20251001"
 s3 = boto3.client("s3", region_name=REGION)

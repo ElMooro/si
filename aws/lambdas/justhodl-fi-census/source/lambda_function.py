@@ -20,14 +20,15 @@ import sys as _sys
 _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = os.environ.get("FMP_API_KEY",
-                         "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+                         managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",)))
 FRED_KEY = os.environ.get("FRED_API_KEY",
-                          "2f057499936072679d8843d7fce99989")
+                          managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
 MX_KEY = "data/fi-census-matrix.json"
 DOC_KEY = "data/fi-census.json"
 UNIVERSE = [

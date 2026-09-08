@@ -70,7 +70,7 @@ SHARED = ROOT / "shared" / "benzinga.py"
 # run-ops.yml injects ANTHROPIC/MASSIVE/EIA/BLS/BEA/CENSUS but NOT FMP.
 # Resolve the way every engine does: env first, platform default second.
 FMP_KEY = (os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
-           or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+           or "REDACTED_FMP_KEY")
 
 ANCHOR = '''def fetch_calendar(days_ahead=14, min_importance=0, limit=1000):'''
 
@@ -84,7 +84,7 @@ SHIM = '''def _fmp_calendar(days_ahead=14, limit=1000):
     proven in benzinga-news-agent and buyback-engine.
     """
     key = (os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
-           or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+           or "REDACTED_FMP_KEY")
     if not key:
         return []
     today = date.today()

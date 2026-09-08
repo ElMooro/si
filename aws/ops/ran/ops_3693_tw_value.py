@@ -13,7 +13,7 @@ from ops_report import report
 
 S3C = boto3.client("s3", "us-east-1", config=Config(retries={"max_attempts": 2}))
 B = "justhodl-dashboard-live"
-FRED = "2f057499936072679d8843d7fce99989"
+FRED = "REDACTED_FRED_KEY"
 
 
 def fred_search(term, limit=8):

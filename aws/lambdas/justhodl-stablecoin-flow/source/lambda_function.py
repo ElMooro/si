@@ -50,13 +50,14 @@ import datetime as dt
 
 import boto3
 from botocore.exceptions import ClientError
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 REGION = "us-east-1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/stablecoin-flow.json"
 
-TG_TOKEN = os.environ.get("TG_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TG_TOKEN = managed_secret(('TG_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 SSM_STATE = "/justhodl/stablecoin-flow/state"
 

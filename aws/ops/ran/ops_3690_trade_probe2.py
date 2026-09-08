@@ -12,7 +12,7 @@ from ops_report import report
 
 UA = {"User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                      "AppleWebKit/537.36 Chrome/126.0 Safari/537.36")}
-FRED = "2f057499936072679d8843d7fce99989"
+FRED = "REDACTED_FRED_KEY"
 
 
 def get(u, t=30, cap=900_000):

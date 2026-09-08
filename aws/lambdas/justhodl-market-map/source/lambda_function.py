@@ -15,6 +15,7 @@ import json, os, time, gzip, urllib.request
 from datetime import datetime, timezone, timedelta
 import boto3
 from decimal import Decimal
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -23,8 +24,8 @@ MAP_KEY = "data/market-map.json"
 GRP_KEY = "data/sector-groups.json"
 STATE_KEY = "data/_map/state.json"
 UP_STATE = "data/_upside/state.json.gz"
-POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 VERSION = "1.2.2"
 DIAG = []
 SECTOR_ETFS = [("XLK", "Technology"), ("XLF", "Financials"), ("XLV", "Health Care"),

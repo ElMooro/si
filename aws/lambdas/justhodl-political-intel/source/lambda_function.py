@@ -45,6 +45,7 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/political-intel.json"
@@ -166,7 +167,7 @@ def fetch_legislators():
 
 
 # ── 2. Congress trades (FMP /stable/ — commercial-licensed, reliable) ─
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 
 def fetch_congress_trades():

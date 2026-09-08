@@ -12,7 +12,7 @@ import boto3
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name=REGION)
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 REPORT = []
 def log(m):

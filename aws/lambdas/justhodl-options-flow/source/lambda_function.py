@@ -75,6 +75,7 @@ import os
 
 
 import concurrent.futures
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 
 
@@ -94,7 +95,7 @@ import concurrent.futures
 
 
 
-FRED_KEY = os.environ.get('FRED_KEY', '2f057499936072679d8843d7fce99989')
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 
 
 
@@ -104,7 +105,7 @@ FRED_KEY = os.environ.get('FRED_KEY', '2f057499936072679d8843d7fce99989')
 
 
 
-POLYGON_KEY = os.environ.get('POLYGON_KEY', 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d')
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 
 
 
@@ -124,7 +125,7 @@ AV_KEY = os.environ.get('AV_KEY', 'EOLGKSGAYZUXKPUL')
 
 
 
-NEWS_KEY = os.environ.get('NEWS_KEY', '17d36cdd13c44e139853b3a6876cf940')
+NEWS_KEY = managed_secret(('NEWS_KEY', 'NEWSAPI_KEY', 'NEWS_API_KEY'), ("/justhodl/newsapi/api-key",))
 
 
 

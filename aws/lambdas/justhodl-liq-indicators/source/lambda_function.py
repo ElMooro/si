@@ -40,12 +40,13 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/liq-indicators.json"
 WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
-                          "2f057499936072679d8843d7fce99989")
+                          managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
 FRED_BUDGET = 175  # bounded per run; cumulative via warm cache
 YH_BUDGET = {"n": 135}
 CUR_BUDGET = {"n": 45}   # curated symbols + curated composite legs

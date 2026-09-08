@@ -24,10 +24,11 @@ and what does the fusion imply forward. Long-history, source-robust dims
 import json, re, math, time, urllib.request, urllib.parse, statistics
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/positioning-analog.json"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com"}
 s3 = boto3.client("s3", region_name="us-east-1")
 

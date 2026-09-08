@@ -36,11 +36,12 @@ import urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/dislocations.json"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -325,7 +326,7 @@ def lambda_handler(event=None, context=None):
     # before a name is a true buy. Cheap + downtrending = falling knife (penalize);
     # cheap + inflecting = the real setup (boost).
     import concurrent.futures as cf
-    polygon_key = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+    polygon_key = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
     top_for_mom = scored[:80]
 
     def momentum(rc):

@@ -5,12 +5,11 @@
   "memory": 1536,
   "description": "Global Business Cycle v3.0.3: multi-pillar composite (OECD CLI/KEI, BIS credit/property/REER, Eurostat surveys, equity momentum) for 34 economies via data/cycle/features.json.gz; writes data/global-business-cycle.json + -history.json. Daily 12:00 UTC.",
   "environment": {
-    "FRED_KEY": "2f057499936072679d8843d7fce99989",
     "S3_BUCKET": "justhodl-dashboard-live"
   },
   "schedule": {
     "rule_name": "justhodl-gbc-daily",
     "cron": "cron(0 12 * * ? *)",
-    "description": "Daily run of synthetic CLI engine — current state + history"
+    "description": "Daily run of synthetic CLI engine \u2014 current state + history"
   }
 }

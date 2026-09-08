@@ -22,6 +22,7 @@ import json, os, time, urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3")
 EV = boto3.client("events")
@@ -49,7 +50,7 @@ WAKE_FLASHING = 3      # ECB dump signals active
 WAKE_VIX = 25.0        # spot VIX
 CALM_HOURS = 24        # sustained calm before re-hibernating
 
-TG_TOKEN = os.environ.get("TG_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TG_TOKEN = managed_secret(('TG_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 
 

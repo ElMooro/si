@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 import boto3  # noqa: E402
 from ops_report import report  # noqa: E402
 
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 PROBES = {
     # engine: {dead_id: [candidates]}
     "plumbing-aggregator": {

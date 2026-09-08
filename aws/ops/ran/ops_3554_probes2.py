@@ -7,7 +7,7 @@ from ops_report import report
 REPO = Path(__file__).resolve().parents[3]
 BUCKET = "justhodl-dashboard-live"
 s3c = boto3.client("s3", region_name="us-east-1")
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 def fmp(qs):
     u = f"https://financialmodelingprep.com/stable/{qs}&apikey={FMP_KEY}"

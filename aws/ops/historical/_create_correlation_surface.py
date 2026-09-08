@@ -16,7 +16,7 @@ REGION = "us-east-1"
 LAMBDA_NAME = "justhodl-correlation-surface"
 ROLE_ARN = "arn:aws:iam::857687956942:role/lambda-execution-role"
 SOURCE_DIR = "aws/lambdas/justhodl-correlation-surface/source"
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = "REDACTED_POLYGON_KEY"
 
 lam = boto3.client("lambda", region_name=REGION)
 events = boto3.client("events", region_name=REGION)

@@ -9,6 +9,7 @@ import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -23,8 +24,8 @@ except Exception as _e:
     def add_ka_aliases(obj, **_kwargs):
         return obj
 
-FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')
-POLY_KEY = os.environ.get('POLYGON_API_KEY', 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d')
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+POLY_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 S3_BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 s3 = boto3.client('s3', region_name=os.environ.get('AWS_REGION','us-east-1'))
 
@@ -618,7 +619,7 @@ def fetch_financial_news():
 
 def fetch_newsapi_headlines():
     """Fetch premium financial news from NewsAPI for real-time coverage"""
-    NEWSAPI_KEY = '17d36cdd13c44e139853b3a6876cf940'
+    NEWSAPI_KEY = managed_secret(('NEWSAPI_KEY', 'NEWS_API_KEY', 'NEWS_KEY'), ("/justhodl/newsapi/api-key",))
     news = []
     seen = set()
     queries = [

@@ -23,6 +23,7 @@ import json, os, time, statistics
 from datetime import datetime, timezone
 from collections import defaultdict
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/capital-flow.json"
@@ -233,7 +234,7 @@ def lambda_handler(event=None, context=None):
     import urllib.request
     from concurrent.futures import ThreadPoolExecutor, as_completed
     FMP_KEY = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
-               or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+               or managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",)))
     FMP_BASE = "https://financialmodelingprep.com/stable"
 
     def _fmp(path, params, timeout=20):

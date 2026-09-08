@@ -45,13 +45,14 @@ from datetime import datetime, timezone
 
 import boto3
 import urllib.request
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 LINES_KEY = "config/ppi-lines.json"
 OUT_KEY = "data/ppi-acceleration.json"
 S3 = boto3.client("s3", region_name="us-east-1")
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 UA = {"User-Agent": "JustHodl ppi-acceleration"}
 
 ACCEL_THRESH_PP = 2.0     # percentage points of 2nd derivative

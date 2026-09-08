@@ -44,12 +44,13 @@ import io, json, os, time, urllib.request, urllib.error, statistics, math
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/cross-asset-regime.json")
 STATE_KEY = os.environ.get("STATE_KEY", "data/cross-asset-regime-state.json")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
 
 S3 = boto3.client("s3", region_name=REGION)

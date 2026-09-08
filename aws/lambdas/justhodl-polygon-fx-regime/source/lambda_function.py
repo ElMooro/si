@@ -27,9 +27,10 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
-OLD_POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+OLD_POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 try:
     from massive import get_massive_key, MASSIVE_BASE
     _MKEY = get_massive_key()

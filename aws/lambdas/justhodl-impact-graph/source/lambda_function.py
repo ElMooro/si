@@ -34,6 +34,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 SSM = boto3.client("ssm", region_name="us-east-1")
@@ -207,7 +208,7 @@ def build_graph(gaps):
     missing = [t for t, d1 in tickers.items()
                if d1.get("adv_usd") and not d1.get("industry")]
     missing.sort(key=lambda t: -(tickers[t].get("adv_usd") or 0))
-    fmp_key = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+    fmp_key = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
     filled = 0
     bf_t0 = time.time()
     for t in missing[:300]:

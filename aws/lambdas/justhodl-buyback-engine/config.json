@@ -5,7 +5,13 @@
   "timeout": 600,
   "memory_size": 512,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "environment": {"S3_BUCKET": "justhodl-dashboard-live", "FMP_API_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
-  "schedule": {"rule_name": "justhodl-buyback-engine-daily", "cron": "cron(30 13 * * ? *)", "description": "Daily unified buyback intelligence"},
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "rule_name": "justhodl-buyback-engine-daily",
+    "cron": "cron(30 13 * * ? *)",
+    "description": "Daily unified buyback intelligence"
+  },
   "description": "Unified buyback intelligence: authorization + execution + net-of-dilution + share-shrink + valuation"
 }

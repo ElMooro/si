@@ -22,12 +22,13 @@ import json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3")
 DDB = boto3.client("dynamodb")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-TG_TOKEN = os.environ.get("TG_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TG_TOKEN = managed_secret(('TG_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 
 BASE_W = {"pump": 1.2, "momentum": 1.0, "squeeze": 1.0, "flow": 1.0, "insider": 0.9}

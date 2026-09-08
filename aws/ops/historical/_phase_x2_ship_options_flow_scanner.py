@@ -46,7 +46,7 @@ def main():
 
     env = {
         "S3_BUCKET": "justhodl-dashboard-live",
-        "POLY_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+        "POLY_KEY": "REDACTED_POLYGON_KEY",
         "MAX_TICKERS": "150",  # start conservative — options has heavy fanout
         "TIMEOUT_BUDGET_S": "550",  # 9+ minutes
         "DAYS_BACK": "20",

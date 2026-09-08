@@ -52,7 +52,7 @@ def main():
         "LOOKBACK_DAYS": "30",
         "MIN_BUY_VALUE_USD": "10000",
         "CLUSTER_MIN_INSIDERS": "2",
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
     }}
     
     if exists:

@@ -22,13 +22,14 @@ from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
 from decimal import Decimal
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/us-cycle.json"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
-POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
+POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 VERSION = "1.0.1"
 
 
@@ -147,7 +148,7 @@ def lambda_handler(event=None, context=None):
 
     # 5) Copper/gold ("sniper exit") — FRED LBMA gold discontinued → FMP commodities
     def fmp_eod(sym, days=1900):
-        k = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+        k = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
         frm = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
         u = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
              f"?symbol={sym}&from={frm}&apikey={k}")

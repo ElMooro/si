@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Attr
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -46,7 +47,7 @@ _RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sizing.json"
-POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 VERSION = "1.0.1"
 DIRMAP = {"UP": 1, "LONG": 1, "OUTPERFORM": 1, "BULLISH": 1,
            "DOWN": -1, "SHORT": -1, "UNDERPERFORM": -1, "BEARISH": -1}

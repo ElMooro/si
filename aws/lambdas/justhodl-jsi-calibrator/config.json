@@ -5,15 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 300,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "JSI calibrator — fits spine component weights on the full 1990-2026 FRED sample (IC vs forward SPY drawdown, multi-regime) + overlay feed weights on accrued snapshots. Writes SSM /justhodl/jsi/spine-weights + overlay-weights + data/jsi-calibration.json.",
-  "env": {
-    "FRED_KEY": "2f057499936072679d8843d7fce99989"
-  },
+  "description": "JSI calibrator \u2014 fits spine component weights on the full 1990-2026 FRED sample (IC vs forward SPY drawdown, multi-regime) + overlay feed weights on accrued snapshots. Writes SSM /justhodl/jsi/spine-weights + overlay-weights + data/jsi-calibration.json.",
+  "env": {},
   "schedule": {
     "rule_name": "jsi-calibrator-weekly",
     "cron": "cron(30 9 ? * SUN *)",
-    "description": "JSI calibrator weekly — Sundays 09:30 UTC"
+    "description": "JSI calibrator weekly \u2014 Sundays 09:30 UTC"
   }
 }

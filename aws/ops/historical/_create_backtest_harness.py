@@ -20,7 +20,7 @@ ENV_VARS = {
     "S3_BUCKET": "justhodl-dashboard-live",
     "S3_OUTPUT_KEY": "data/backtest-summary.json",
     "DDB_TABLE": "justhodl-backtest",
-    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "FMP_KEY": "REDACTED_FMP_KEY",
 }
 
 

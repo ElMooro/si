@@ -279,8 +279,8 @@ def main():
         zip_bytes = build_zip(L2_SRC)
         log(f"Layer 2 zip size: {len(zip_bytes):,}b")
         deploy_lambda(lam, L2_NAME, zip_bytes, {
-            "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
-            "FRED_KEY": "2f057499936072679d8843d7fce99989",
+            "POLYGON_KEY": "REDACTED_POLYGON_KEY",
+            "FRED_KEY": "REDACTED_FRED_KEY",
         })
 
         section("A3) Smoke invoke Layer 2 — verify FRED retry works")
@@ -295,7 +295,7 @@ def main():
 
     section("B2) Deploy Layer 3 Lambda")
     deploy_lambda(lam, L3_NAME, zip_bytes, {
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
     }, memory=1024, timeout=600)
 
     section("B3) Schedule Layer 3 daily 08:00 UTC")

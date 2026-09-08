@@ -20,10 +20,11 @@ filings; this engine measures the dollars.
 import json, time, urllib.request
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/capex-pulse.json"
 HIST = "data/history/capex-pulse.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 HYPERSCALERS = ["AMZN", "MSFT", "GOOGL", "META", "AAPL", "NVDA", "ORCL", "AVGO"]
 N_TOP = 160
 s3 = boto3.client("s3", region_name="us-east-1")

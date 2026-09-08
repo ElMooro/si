@@ -30,6 +30,7 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import threading
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/insider-clusters.json")
@@ -40,7 +41,7 @@ CLUSTER_MIN_INSIDERS = int(os.environ.get("CLUSTER_MIN_INSIDERS", "2"))
 N_BUSINESS_DAYS_INDEX = int(os.environ.get("N_BUSINESS_DAYS_INDEX", "7"))
 MAX_FILINGS_TO_PARSE = int(os.environ.get("MAX_FILINGS_TO_PARSE", "1500"))
 N_WORKERS = int(os.environ.get("N_WORKERS", "8"))
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 S3 = boto3.client("s3", region_name="us-east-1")
 

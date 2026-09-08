@@ -18,10 +18,11 @@ Writes data/asia-leads.json. Real data only; blocks degrade independently."""
 import json, os, time, urllib.parse, urllib.request
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/asia-leads.json"
-FRED = os.environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
+FRED = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 s3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "JustHodl research contact@justhodl.ai", "Accept": "application/json"}
@@ -80,7 +81,7 @@ def _num_kr(x):
         return None
 
 
-NEWSAPI_KEY = os.environ.get("NEWSAPI_KEY", "17d36cdd13c44e139853b3a6876cf940")
+NEWSAPI_KEY = managed_secret(('NEWSAPI_KEY', 'NEWS_API_KEY', 'NEWS_KEY'), ("/justhodl/newsapi/api-key",))
 FMP_KEY = os.environ.get("FMP_API_KEY", os.environ.get("FMP_KEY", ""))
 
 def _json_get(u, timeout=20):

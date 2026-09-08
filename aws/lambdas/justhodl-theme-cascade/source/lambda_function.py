@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -225,7 +226,7 @@ def _get_telegram_config():
     except Exception as e:
         print(f"[telegram] SSM error: {e}")
         # Fallback hardcoded values (from memories)
-        return "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs", "8678089260"
+        return managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)), "8678089260"
 
 
 def _html_escape(s: str) -> str:

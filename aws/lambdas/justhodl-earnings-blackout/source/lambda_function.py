@@ -17,10 +17,11 @@ Consumers: signal-board ("Buyback Blackout"), blackout.html.
 import json, urllib.request
 from datetime import datetime, timezone, timedelta, date
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/earnings-blackout.json"
 HIST = "data/history/blackout.json"
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 s3 = boto3.client("s3", region_name="us-east-1")
 PRE, POST = 30, 2   # street proxy window
 

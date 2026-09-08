@@ -4,7 +4,7 @@ Only build on series that actually return data. Read-only."""
 import json, urllib.request
 from ops_report import report
 
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 
 def fred_check(sid):
     url = f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&limit=3&sort_order=desc"

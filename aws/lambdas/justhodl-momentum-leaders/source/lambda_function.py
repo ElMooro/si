@@ -92,6 +92,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -100,7 +101,7 @@ RADAR_KEY   = "data/convergence-radar.json"
 MOMENTUM_BO_KEY = "data/momentum-breakout.json"
 ETF_KEY     = "data/ticker-trends.json"
 OUTPUT_KEY  = "data/momentum-leaders.json"
-FMP_KEY     = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 LOOKBACK_DAYS  = 90
 MAX_UNIVERSE   = 60     # cap to keep within Lambda time/cost budget

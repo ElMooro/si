@@ -82,7 +82,7 @@ with report("create_correlation_breaks_lambda") as r:
             Handler="lambda_function.lambda_handler",
             Timeout=240,
             MemorySize=1024,
-            Environment={"Variables": {"FRED_API_KEY": "2f057499936072679d8843d7fce99989"}},
+            Environment={"Variables": {"FRED_API_KEY": "REDACTED_FRED_KEY"}},
         )
         r.log(f"  ✅ updated existing Lambda")
     except ClientError as e:
@@ -99,7 +99,7 @@ with report("create_correlation_breaks_lambda") as r:
             Timeout=240,
             MemorySize=1024,
             Architectures=["x86_64"],
-            Environment={"Variables": {"FRED_API_KEY": "2f057499936072679d8843d7fce99989"}},
+            Environment={"Variables": {"FRED_API_KEY": "REDACTED_FRED_KEY"}},
             Description="Phase 9.5 — cross-asset correlation break detector",
             Tags={"phase": "9.5", "owner": "justhodl"},
         )

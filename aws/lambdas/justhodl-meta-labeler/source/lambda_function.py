@@ -12,13 +12,14 @@ at threshold. Output: data/meta-labeler.json · daily 21:50 UTC.
 import json, gzip, math, os, time, urllib.request
 from datetime import datetime, timezone
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 GRADED_KEY = "data/_backtest/graded.json.gz"
 OUT_KEY = "data/meta-labeler.json"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 THRESH = 0.55
 VERSION = "1.0.1"
 DIAG = []

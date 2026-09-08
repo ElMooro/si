@@ -33,10 +33,11 @@ import boto3
 from impact_mapper import (build as impact_build, load_graph,
                            measured_row, industry_rollup)
 from edgar import cik_map, cik_map_mf
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/etf-true-flows.json"
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl/2.0 (ops@justhodl.ai)"}
 s3 = boto3.client("s3", region_name=REGION)

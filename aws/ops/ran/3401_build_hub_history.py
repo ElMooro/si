@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from ops_report import report
 import boto3
 
-FRED="2f057499936072679d8843d7fce99989"
+FRED="REDACTED_FRED_KEY"
 s3=boto3.client("s3",region_name="us-east-1")
 
 # DM hubs with long FRED yield history (slug -> series). Anchor = Germany (Bund).

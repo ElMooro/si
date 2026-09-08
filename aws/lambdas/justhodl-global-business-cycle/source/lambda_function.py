@@ -87,6 +87,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -98,7 +99,7 @@ except Exception as _cce:  # noqa: BLE001
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
 ENGINE_VERSION = "3.0.3"
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
 HISTORY_KEY = "data/global-business-cycle-history.json"

@@ -1,26 +1,23 @@
 {
- "function_name": "justhodl-global-stress",
- "region": "us-east-1",
- "runtime": "python3.12",
- "handler": "lambda_function.lambda_handler",
- "memory": 512,
- "timeout": 240,
- "architectures": [
-  "x86_64"
- ],
- "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
- "description": "Global Stress Matrix - world equity and bond-market stress. Blends a 10-market price-action matrix with credit spreads (HY/IG OAS), implied volatility (VIX) and cross-market contagion; adds breadth, momentum and safe-haven demand.",
- "environment": {
-  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
-  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
-  "TELEGRAM_CHAT_ID": "8678089260",
-  "FRED_KEY": "2f057499936072679d8843d7fce99989"
- },
- "eventbridge_scheduler": {
-  "schedule_name": "justhodl-global-stress-6h",
-  "cron": "cron(35 1,7,13,19 * * ? *)",
-  "timezone": "UTC",
-  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-  "description": "Global Stress Matrix - every 6h via EventBridge Scheduler, re-scoring equity and bond stress across global markets as price action updates."
- }
+  "function_name": "justhodl-global-stress",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Global Stress Matrix - world equity and bond-market stress. Blends a 10-market price-action matrix with credit spreads (HY/IG OAS), implied volatility (VIX) and cross-market contagion; adds breadth, momentum and safe-haven demand.",
+  "environment": {
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-global-stress-6h",
+    "cron": "cron(35 1,7,13,19 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Global Stress Matrix - every 6h via EventBridge Scheduler, re-scoring equity and bond stress across global markets as price action updates."
+  }
 }

@@ -10,7 +10,7 @@ from ops_report import report
 
 BASE = ("https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/"
         "PortWatch_ports_database/FeatureServer/0/query")
-FRED = "2f057499936072679d8843d7fce99989"
+FRED = "REDACTED_FRED_KEY"
 
 
 def q(params):

@@ -45,6 +45,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -54,7 +55,7 @@ S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
 
 FRED = (os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY")
-        or "2f057499936072679d8843d7fce99989")
+        or managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
 UA = {"User-Agent": "Mozilla/5.0 (jh-us10y-sentinel)"}
 
 TIERS = [(5.00, "CRITICAL"), (4.75, "RED"), (4.50, "HIGH"),

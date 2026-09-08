@@ -69,6 +69,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -76,7 +77,7 @@ S3_BUCKET   = "justhodl-dashboard-live"
 MOMENTUM_KEY = "data/momentum-leaders.json"
 PROFILE_CACHE_KEY = "data/_cache/ticker-profiles.json"
 OUTPUT_KEY  = "data/themes.json"
-FMP_KEY     = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 MIN_TICKERS_FOR_THEME = 3   # need ≥3 momentum leaders in an industry to call it a theme
 TOP_N_LEADERS          = 30  # how many momentum leaders to classify

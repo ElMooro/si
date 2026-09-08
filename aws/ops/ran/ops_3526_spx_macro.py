@@ -80,7 +80,7 @@ with report("3526_spx_macro") as rep:
     prev_sample = (prev.get("points") or [None])[0]
     deploy_lambda(report=rep, function_name=FN,
                   source_dir=REPO/"aws"/"lambdas"/FN/"source",
-                  env_vars={"FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"},
+                  env_vars={"FMP_KEY": "REDACTED_FMP_KEY"},
                   timeout=600, memory=512,
                   description="SPX deep-history refresher v1.0 (ops 3526)",
                   create_function_url=False, smoke=False)

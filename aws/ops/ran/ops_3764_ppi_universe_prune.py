@@ -36,7 +36,7 @@ from ops_report import report  # noqa: E402
 
 BUCKET = "justhodl-dashboard-live"
 LINES_KEY = "config/ppi-lines.json"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_FRED_KEY"
 UA = {"User-Agent": "JustHodl ppi-universe-validate"}
 CTX = ssl.create_default_context()
 

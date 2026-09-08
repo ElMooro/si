@@ -61,7 +61,7 @@ def main():
         "N_WORKERS": "8",
         "MIN_BUY_VALUE_USD": "10000",
         "CLUSTER_MIN_INSIDERS": "2",
-        "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+        "FMP_KEY": "REDACTED_FMP_KEY",
         "S3_BUCKET": "justhodl-dashboard-live",
         "S3_KEY": "data/insider-clusters.json",
         "SEC_USER_AGENT": "JustHodl Research raafouis@gmail.com",

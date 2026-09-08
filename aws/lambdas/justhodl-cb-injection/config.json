@@ -5,15 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 90,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Central Bank Capital-Injection & Carry Engine — per-CB injection stance (balance-sheet trajectory + policy-rate direction) for ECB/BOJ/Fed/SNB, net global liquidity impulse, and carry-trade funding + unwind-risk synthesis. Output data/cb-injection.json.",
-  "environment": {
-    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
-  },
+  "description": "Central Bank Capital-Injection & Carry Engine \u2014 per-CB injection stance (balance-sheet trajectory + policy-rate direction) for ECB/BOJ/Fed/SNB, net global liquidity impulse, and carry-trade funding + unwind-risk synthesis. Output data/cb-injection.json.",
+  "environment": {},
   "schedule": {
     "rule_name": "cb-injection-daily",
     "cron": "cron(0 13 * * ? *)",
-    "description": "CB Capital-Injection & Carry Engine — daily 13:00 UTC"
+    "description": "CB Capital-Injection & Carry Engine \u2014 daily 13:00 UTC"
   }
 }

@@ -35,9 +35,10 @@ buyback-scanner). Research, not investment advice.
 import json, os, time, datetime, urllib.request
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-FMP_KEY = os.environ.get("FMP_API_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = managed_secret(('FMP_API_KEY', 'FMP_KEY'), ("/justhodl/fmp/api-key",))
 OUT_KEY = "data/buyback-engine.json"
 s3 = boto3.client("s3")
 

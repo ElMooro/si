@@ -54,6 +54,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean, stdev
 
 import boto3
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -66,8 +67,8 @@ OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
 HIST_PREFIX = os.environ.get('HIST_PREFIX', 'data/carry-surface/history/')
 ALERT_HISTORY_KEY = 'data/carry-surface/alert-history.json'
 
-FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')
-FMP_KEY = os.environ.get('FMP_KEY', 'wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb')
+FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
 

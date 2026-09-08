@@ -56,6 +56,7 @@ import boto3
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _sentry_lite import track_errors  # noqa: F401  (auto-installs error tracking)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 INPUT_KEY = "data/auction-crisis.json"
@@ -491,7 +492,7 @@ def _write_error(message: str, **extras) -> dict:
 # requiring CHANGE in state, not just current high-stress levels.
 # ═════════════════════════════════════════════════════════════════════
 
-TELEGRAM_TOKEN   = "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
 TELEGRAM_CHAT_ID = "8678089260"
 ALERT_STATE_KEY  = "data/auction-crisis-alert-state.json"
 

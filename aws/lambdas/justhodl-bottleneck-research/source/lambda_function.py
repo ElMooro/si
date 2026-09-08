@@ -24,13 +24,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 from llm_router import complete
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 VERSION = "1.0.0"
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 SRC_KEY = "data/bottleneck-boom.json"
 OUT_KEY = "data/bottleneck-boom-research.json"
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 BASE = "https://financialmodelingprep.com/stable"
 TOP_N = 30
 THESIS_CACHE_HRS = 20

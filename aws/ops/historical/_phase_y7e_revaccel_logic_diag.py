@@ -16,7 +16,7 @@ def main():
     code = r'''
 import json, urllib.request, time
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 
 def fetch_url(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Diag/1.0"})

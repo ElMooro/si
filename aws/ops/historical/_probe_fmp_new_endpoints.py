@@ -1,7 +1,7 @@
 """Probe FMP's new (post-Aug 2025) API structure to migrate tier-classifier."""
 import json, time, os, urllib.request, urllib.error
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_FMP_KEY"
 REPORT = []
 
 def log(m):

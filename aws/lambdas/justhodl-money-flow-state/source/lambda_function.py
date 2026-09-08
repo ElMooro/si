@@ -17,10 +17,11 @@ import json
 import boto3
 import urllib.request
 from datetime import datetime, timezone, date, timedelta
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
-POLY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLY = managed_secret(('POLY', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 N_DAYS = 6
 
 

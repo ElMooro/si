@@ -80,6 +80,7 @@ from auction_crisis_v2 import (
     compute_preauction_concession,
     compute_postissue_performance,
 )
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/auction-crisis.json"
@@ -421,7 +422,7 @@ def score_indicators(metrics, fed_funds_rate):
 
 def get_fed_funds_rate():
     """Fetch latest Fed funds effective rate from FRED. Returns float or None."""
-    fred_key = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+    fred_key = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
     url = (
         "https://api.stlouisfed.org/fred/series/observations"
         f"?series_id=DFF&api_key={fred_key}&file_type=json&limit=5&sort_order=desc"
