@@ -2,10 +2,10 @@
 """scripts/gen_engine_wiring.py — the canonical engine->page wiring layer.
 
 Source of truth for WHERE each previously-orphaned engine feed is displayed.
-Emits data/engine-wiring.json and idempotently injects one jh-wire.js line per
-page (replacing any prior line). Feed paths are embedded verbatim in each page
-so the engine-directory audit's exact-containment check flips them to WIRED.
-Re-run any time assignments change. DEAD feeds are never wired (nothing real to
+v2 (audit 2026-09-08 C-6): PAGES are the source of truth. --reconcile (default) regenerates
+data/engine-wiring.json from what every page actually declares (atomic write, no page mutation);
+--check fails on drift (CI); --apply injects the ASSIGN proposal ONLY into pages with no jh-wire
+line, after validating every page, never replacing an existing declaration. DEAD feeds are never wired (nothing real to
 render); INTERNAL feeds (caches/KBs consumed by other engines) are classified,
 not displayed. STALE feeds ARE wired — the card shows the feed's own timestamp,
 which is the honest treatment.
@@ -113,37 +113,106 @@ DEAD = [  # output key exists in code but object absent/never written — fix en
  ("justhodl-kill-switch","data/kill-switch-state.json"),
 ]
 
-def main():
-    problems, patched, wired = [], [], []
-    for page, feeds in sorted(ASSIGN.items()):
-        if not os.path.exists(page):
-            problems.append(f"MISSING PAGE {page}"); continue
-        src = open(page, encoding="utf-8", errors="replace").read()
-        if len(src) < 1500 or 'http-equiv="refresh"' in src:
-            problems.append(f"STUB/REDIRECT {page} ({len(src)}b) — refusing to wire"); continue
-        spec = ";".join(f"{f}|{e}|{t}" for f, e, t, _ in feeds)
-        line = f'<script src="/jh-wire.js" defer data-feeds="{spec}"></script>'
-        src = re.sub(r'\n?<script src="/jh-wire\.js"[^>]*></script>', "", src)
-        m = list(re.finditer(r"</body>", src, re.I))
-        if not m:
-            problems.append(f"NO </body> {page}"); continue
-        i = m[-1].start()
-        open(page, "w", encoding="utf-8").write(src[:i] + line + "\n" + src[i:])
-        patched.append(page)
-        for f, e, t, cls in feeds:
-            wired.append({"engine": e, "feed": f, "page": page, "title": t, "freshness_at_wiring": cls, "via": "jh-wire.js"})
+def _scan_pages():
+    """Read every page's ACTUAL jh-wire declaration(s). Pages are the source of truth."""
+    import glob
+    declared = {}
+    for page in sorted(glob.glob("*.html") + glob.glob("*/index.html")):
+        try:
+            src = open(page, encoding="utf-8", errors="replace").read()
+        except Exception:
+            continue
+        for m in re.finditer(r'<script src="/jh-wire\.js"[^>]*data-feeds="([^"]*)"', src):
+            rows = []
+            for ent in m.group(1).split(";"):
+                parts = ent.split("|")
+                if parts and parts[0].strip():
+                    rows.append({"feed": parts[0].strip(), "engine": (parts[1].strip() if len(parts) > 1 else ""), "title": (parts[2].strip() if len(parts) > 2 else parts[0].strip())})
+            declared.setdefault(page, []).extend(rows)
+    return declared
+
+
+def _atomic_write(path, obj):
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(obj, f, indent=1)
+    os.replace(tmp, path)
+
+
+def main(argv=None):
+    """audit 2026-09-08 (section C-6): the generator used to push a hard-coded ASSIGN table INTO pages
+    (deleting whatever jh-wire line a page already had) and wrote the registry BEFORE exiting non-zero on
+    problems -- a blind rerun could regress newer page assignments and leave a half-written registry.
+
+      --reconcile (default)  pages are the truth: read every page's jh-wire declaration and regenerate
+                             data/engine-wiring.json from them (atomic write). Never mutates a page.
+      --check                like --reconcile but writes nothing; exits 1 when the registry on disk drifts
+                             from the pages (use in CI).
+      --apply                ADDITIVE: inject the ASSIGN line only into pages that currently have NO jh-wire
+                             line; a page that already declares feeds is left exactly as it is and reported.
+                             Every page is validated before any page is written (no partial mutation).
+    """
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--reconcile", action="store_true")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--apply", action="store_true")
+    args = ap.parse_args(argv)
+    mode = "apply" if args.apply else "check" if args.check else "reconcile"
+
+    problems, patched, skipped = [], [], []
+    if mode == "apply":
+        plan = []
+        for page, feeds in sorted(ASSIGN.items()):
+            if not os.path.exists(page):
+                problems.append(f"MISSING PAGE {page}"); continue
+            src = open(page, encoding="utf-8", errors="replace").read()
+            if len(src) < 1500 or 'http-equiv="refresh"' in src:
+                problems.append(f"STUB/REDIRECT {page} ({len(src)}b) — refusing to wire"); continue
+            if re.search(r'<script src="/jh-wire\.js"', src):
+                skipped.append(page); continue           # the page already declares its feeds -- never replaced
+            m = list(re.finditer(r"</body>", src, re.I))
+            if not m:
+                problems.append(f"NO </body> {page}"); continue
+            spec = ";".join(f"{f}|{e}|{t}" for f, e, t, _ in feeds)
+            line = f'<script src="/jh-wire.js" defer data-feeds="{spec}"></script>'
+            i = m[-1].start()
+            plan.append((page, src[:i] + line + "\n" + src[i:]))
+        if problems:
+            for p in problems: print("PROBLEM:", p)
+            print("apply aborted: nothing written (validate-all-then-write)")
+            sys.exit(1)
+        for page, new_src in plan:
+            open(page, "w", encoding="utf-8").write(new_src)
+            patched.append(page)
+        print(f"apply: pages patched {len(patched)}, already-declared pages left untouched {len(skipped)}: {skipped[:8]}")
+
+    declared = _scan_pages()
+    wired = [{"engine": r["engine"], "feed": r["feed"], "page": page, "title": r["title"], "via": "jh-wire.js"}
+             for page, rows in declared.items() for r in rows]
     manifest = {
-        "v": 1, "generated_by": "scripts/gen_engine_wiring.py",
-        "note": "Canonical engine→page wiring for previously-orphaned feeds (ops 2944/2945 audit, corrected matcher). WIRED = displayed via jh-wire.js on that page. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign.",
+        "v": 2, "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
+        "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
+        "n_pages": len(declared), "n_wired": len(wired),
         "wired": wired,
         "internal": [{"engine": e, "feed": f, "class": "INTERNAL-BY-DESIGN"} for e, f in INTERNAL],
         "dead": [{"engine": e, "feed": f, "class": "DEAD-FEED"} for e, f in DEAD],
     }
+    if mode == "check":
+        try:
+            cur = json.load(open("data/engine-wiring.json"))
+        except Exception:
+            cur = {}
+        cur_set = {(w.get("page"), w.get("feed")) for w in (cur.get("wired") or [])}
+        new_set = {(w["page"], w["feed"]) for w in wired}
+        drift_add, drift_gone = sorted(new_set - cur_set), sorted(cur_set - new_set)
+        print(f"check: pages {len(declared)} wired {len(wired)} | registry missing {len(drift_add)} | registry stale {len(drift_gone)}")
+        for x in drift_add[:10]: print("  + page declares, registry lacks:", x)
+        for x in drift_gone[:10]: print("  - registry claims, page lacks:", x)
+        sys.exit(1 if (drift_add or drift_gone) else 0)
     os.makedirs("data", exist_ok=True)
-    json.dump(manifest, open("data/engine-wiring.json", "w"), indent=1)
-    print(f"pages patched: {len(patched)}  feeds wired: {len(wired)}  internal: {len(INTERNAL)}  dead: {len(DEAD)}")
-    for p in problems: print("PROBLEM:", p)
-    if problems: sys.exit(1)
+    _atomic_write("data/engine-wiring.json", manifest)
+    print(f"reconcile: pages {len(declared)}  feeds wired {len(wired)}  internal {len(INTERNAL)}  dead {len(DEAD)}")
 
 if __name__ == "__main__":
     main()

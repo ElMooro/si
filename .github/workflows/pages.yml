@@ -56,6 +56,8 @@ jobs:
       # audit 2026-09-08 INST-14: EVERY frontend/worker suite gates the Pages deploy, not one file.
       - name: Frontend + worker behavioural tests
         run: node --test tests/*.test.js
+      - name: Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)
+        run: python3 scripts/gen_engine_wiring.py --check
       - name: Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)
         run: |
           BAD=0
