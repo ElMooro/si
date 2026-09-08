@@ -237,46 +237,61 @@ def load_weight_history():
             w = snap.get("weights") or {}
             if not (ws and we and w):
                 continue
+            # audit 2026-09-08 INST-09: the point-in-time key is the AVAILABILITY timestamp, never the
+            # start of the calibration week. v2 snapshots carry available_at; v1 snapshots are dated by
+            # their as_of (the moment they were computed) -- the honest lower bound.
+            available_at = snap.get("available_at") or snap.get("as_of")
+            if not available_at:
+                info["fetch_errors"].append({"key": key, "err": "snapshot has no available_at/as_of -- excluded (cannot be placed in time)"})
+                continue
             out.append({
                 "week_start": ws,
                 "week_end": we,
                 "iso_week": snap.get("iso_week"),
+                "snapshot_id": snap.get("snapshot_id") or snap.get("iso_week"),
+                "available_at": available_at,
                 "weights": {k: to_float(v) for k, v in w.items() if to_float(v) is not None},
                 "accuracy": snap.get("accuracy") or {},
             })
         except Exception as e:
             info["fetch_errors"].append({"key": key, "err": str(e)[:120]})
 
-    out.sort(key=lambda x: x["week_end"])
+    out.sort(key=lambda x: x["available_at"])
     info["n_snapshots"] = len(out)
+    info["point_in_time_rule"] = "snapshot usable when available_at <= decision timestamp (audit 2026-09-08 INST-09)"
     if out:
+        info["earliest_available_at"] = out[0]["available_at"]
+        info["latest_available_at"] = out[-1]["available_at"]
         info["earliest_week_start"] = out[0]["week_start"]
         info["latest_week_end"] = out[-1]["week_end"]
     return out, info
 
 
-def resolve_weight_walkforward(stype, trade_date_iso, history):
-    """Find the calibration snapshot in effect at the trade's logged_at date.
+def resolve_weight_walkforward(stype, trade_ts_iso, history):
+    """Find the calibration snapshot that was AVAILABLE at the trade's logged_at TIMESTAMP.
 
-    A snapshot covers trades whose logged_at >= snapshot.week_start. We pick
-    the LATEST snapshot whose week_start <= trade_date. If trade pre-dates
-    all snapshots, return (None, "no_snapshot_yet"). The returned weight
-    represents what the system actually believed at the time the trade fired.
+    audit 2026-09-08 INST-09: the newest snapshot whose full availability timestamp is no later
+    than the decision time. A snapshot computed on Sunday is NOT applied to that week's Tuesday
+    trade (the old rule matched on week_start <= trade DATE and stripped timestamps).
+    Returns (weight, source) or (None, reason).
     """
-    if not trade_date_iso or not history:
+    if not trade_ts_iso or not history:
         return None, "no_history" if not history else "no_date"
+    t = str(trade_ts_iso)
+    if len(t) == 10:
+        t = t + "T00:00:00+00:00"   # a bare date is the START of that day: nothing computed later that day counts
     chosen = None
     for snap in history:
-        if snap["week_start"] <= trade_date_iso:
+        if str(snap["available_at"]) <= t:
             chosen = snap
         else:
-            break  # history is sorted, no later snap can cover earlier date
+            break  # history is sorted by available_at
     if chosen is None:
         return None, "trade_predates_all_snapshots"
     w = chosen["weights"].get(stype)
     if w is None:
-        return None, f"signal_not_in_snapshot:{chosen.get('iso_week')}"
-    return w, f"walkforward:{chosen.get('iso_week')}"
+        return None, f"signal_not_in_snapshot:{chosen.get('snapshot_id')}"
+    return w, f"walkforward:{chosen.get('snapshot_id')}@{chosen.get('available_at')}"
 
 
 def dir_sign(predicted_dir):
@@ -974,7 +989,7 @@ def lambda_handler(event=None, context=None):
                 if not stype:
                     continue
                 window = o.get("window_key")
-                logged_at = (o.get("logged_at") or "")[:10]
+                logged_at = (o.get("logged_at") or "")          # FULL timestamp: the decision time (INST-09)
 
                 w, src = resolve_weight_walkforward(stype, logged_at, weight_history)
                 if w is None:
@@ -1113,12 +1128,22 @@ def lambda_handler(event=None, context=None):
                     "n_trades_predates_snapshots": n_wf_predates,
                     "n_trades_signal_missing_in_snapshot": n_wf_no_snapshot_for_signal,
                     "coverage_pct": round(coverage * 100, 2),
-                    # Whether to publish the number — high coverage AND data sufficient
+                    # audit 2026-09-08 INST-10: this series books each trade's COMPLETED horizon return on its
+                    # entry day, ignores overlapping exposure, gross/concentration caps, costs and the intraperiod
+                    # path. It is a SIGNAL-ATTRIBUTION curve, not a daily-marked, capital-constrained portfolio NAV,
+                    # and it is never promoted to a headline performance claim (a daily-marked ledger is Release C3).
+                    "curve_semantics": "signal_attribution",
+                    "curve_semantics_note": "each trade's completed horizon return is credited on its signal date; no daily marks, no overlap/gross/concentration constraints, no costs, borrow or financing; interim drawdowns inside a horizon are invisible here",
+                    "tradable_portfolio_nav": False,
+                    "headline_eligible": False,
+                    "point_in_time_rule": wh_info.get("point_in_time_rule"),
+                    # Whether the coverage/window are large enough for the ATTRIBUTION number to be meaningful
                     "data_sufficient": (wf_n_years >= 0.5 and coverage >= 0.5),
                     "data_sufficiency_note": (
                         f"walk-forward coverage {round(coverage*100,1)}%, "
                         f"window {wf_n_obs} biz days ({round(wf_n_years,3)}y). "
-                        f"{'PUBLISHABLE' if (wf_n_years >= 0.5 and coverage >= 0.5) else 'NOT YET PUBLISHABLE — wait for more snapshots and/or longer window'}."
+                        f"{'attribution statistics meaningful' if (wf_n_years >= 0.5 and coverage >= 0.5) else 'NOT YET MEANINGFUL — wait for more snapshots and/or longer window'}. "
+                        f"Never a headline NAV: see curve_semantics."
                     ),
                     # Period stats (always reliable)
                     "n_business_days": wf_n_obs,
@@ -1136,6 +1161,7 @@ def lambda_handler(event=None, context=None):
                     "annualized_return_pct": round(wf_ann_ret_pct, 4),
                     "annualized_vol_pct": round(wf_ann_vol_pct, 4),
                     "sharpe_point": round(wf_sharpe, 4) if wf_sharpe is not None else None,
+                    "sharpe_semantics": "Sharpe of the signal-attribution series, not of a tradable book",
                     "rf_annual": RF_ANNUAL,
                     "fetch_errors": wh_info.get("fetch_errors") or [],
                 }

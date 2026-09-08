@@ -152,9 +152,20 @@ def lambda_handler(event=None, context=None):
 
     label, iso_year, iso_week, week_start, week_end = iso_week_label(now)
 
+    # audit 2026-09-08 INST-09: a snapshot is an IMMUTABLE, availability-stamped model version.
+    # It becomes usable for decisions only from available_at (= now) onward; it is never labelled with
+    # the Monday of the week it was computed in (that backdated Sunday weights onto the week's trades).
+    snapshot_id = "cal-%s-%s" % (now.strftime("%Y%m%dT%H%M%SZ"), label)
     snapshot = {
-        "v": "1.0",
+        "v": "2.0",
+        "snapshot_id": snapshot_id,
         "as_of": now.isoformat(),
+        "calibrated_at": now.isoformat(),
+        "available_at": now.isoformat(),
+        "training_end_at": now.isoformat(),
+        "model_version": "calibrator-ssm-weights",
+        "code_version": "snapshotter-2.0",
+        "point_in_time_rule": "usable for a decision only when available_at <= decision timestamp",
         "iso_week": label,
         "iso_year": iso_year,
         "iso_week_num": iso_week,
@@ -176,14 +187,26 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - started, 2),
     }
 
-    # 4. Write versioned snapshot (idempotent — overwrites if same week ran twice)
-    snapshot_key = f"calibration/history/{label}.json"
+    # 4. Write the IMMUTABLE version (unique id) + the legacy weekly key (kept for old readers) + an index
     body = json.dumps(snapshot, default=str).encode("utf-8")
+    version_key = f"calibration/versions/{snapshot_id}.json"
+    S3.put_object(Bucket=BUCKET, Key=version_key, Body=body, ContentType="application/json", CacheControl="public, max-age=31536000, immutable")
+    snapshot_key = f"calibration/history/{label}.json"
     S3.put_object(
         Bucket=BUCKET, Key=snapshot_key, Body=body,
         ContentType="application/json",
         CacheControl="public, max-age=3600",
     )
+    try:
+        idx = json.loads(S3.get_object(Bucket=BUCKET, Key="calibration/index.json")["Body"].read())
+    except Exception:
+        idx = {"v": "1.0", "versions": []}
+    idx["versions"] = [v for v in (idx.get("versions") or []) if v.get("snapshot_id") != snapshot_id]
+    idx["versions"].append({"snapshot_id": snapshot_id, "key": version_key, "available_at": snapshot["available_at"], "calibrated_at": snapshot["calibrated_at"],
+                            "iso_week": label, "n_weights": n_weights})
+    idx["versions"].sort(key=lambda v: v["available_at"])
+    idx["updated_at"] = now.isoformat()
+    S3.put_object(Bucket=BUCKET, Key="calibration/index.json", Body=json.dumps(idx, default=str).encode("utf-8"), ContentType="application/json", CacheControl="public, max-age=300")
 
     # Latest pointer
     S3.put_object(

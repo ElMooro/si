@@ -174,7 +174,7 @@ table td.num{text-align:right}
   <!-- ─── v2.1 WALK-FORWARD CALIBRATION ─── -->
   <div class="section" id="walkforward-section">
     <h2>v2.1 Walk-Forward Calibration <span style="font-size:11px;color:var(--cyan);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">future headline</span></h2>
-    <p class="sub">Each trade's weight resolved from the calibration snapshot in effect at its <code>logged_at</code> date — eliminates in-sample look-ahead bias. Snapshots written every Sunday 12:00 UTC. Coverage stat tells you how trustworthy the v2.1 number is. When coverage ≥50% AND window ≥0.5y, this becomes the headline number.</p>
+    <p class="sub">Each trade's weight resolved from the newest calibration snapshot whose <code>available_at</code> is no later than the trade's <code>logged_at</code> timestamp (a snapshot computed on Sunday never applies to that week's earlier trades). This is a <b>signal-attribution</b> curve: each trade's completed horizon return is credited on its signal date — no daily marks, no overlap/gross/concentration constraints, no costs — so it is not a tradable NAV and is not promoted to a headline number. Coverage tells you how much of the book the point-in-time weights actually cover.</p>
     <div id="walkforward-notice"></div>
     <div class="kpis" id="walkforward-kpi-row"><div class="kpi"><h3>Loading…</h3></div></div>
     <div class="card" style="padding:18px 22px;margin-top:14px">

@@ -148,12 +148,24 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
     research_keys = list_keys_under(RESEARCH_PREFIX)
     print(f"[backtest] found {len(research_keys)} current research files")
 
-    # Build critique lookup
+    # Build critique lookup. audit 2026-09-08 INST-11: a critique is joined to a historical call only
+    # when it existed at (or before) the call's decision time -- today's Devil's-Advocate note must never
+    # colour an August call. The critique's own generated_at is its availability time.
     critique_lookup = {}
     for ck in list_keys_under(CRITIQUE_PREFIX):
         cd = read_s3_json(ck)
         if cd and cd.get("ticker"):
             critique_lookup[cd["ticker"]] = cd
+
+
+def critique_available_at(critique, decision_iso):
+    """Return the critique if it was available at decision time, else None (UNKNOWN)."""
+    if not critique:
+        return None
+    avail = critique.get("available_at") or critique.get("generated_at")
+    if not avail or not decision_iso:
+        return None
+    return critique if str(avail) <= str(decision_iso) else None
 
     for key in research_keys:
         latest_doc = read_s3_json(key)
@@ -213,17 +225,18 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
         spy_ret = pct_change(spy_then, spy_now) if (spy_then and spy_now) else None
         alpha = round(ticker_ret - spy_ret, 2) if (ticker_ret is not None and spy_ret is not None) else None
 
-        # Capture regime stamp from entry snapshot (the regime active when
-        # the call was made). Falls back to latest if no entry doc.
+        # Regime stamp ONLY from the entry snapshot (the regime active when the call was made).
+        # audit 2026-09-08 INST-11: no fallback to the latest document -- an old call without a stamp
+        # is UNKNOWN, never relabelled with today's regime.
         regime_stamp = None
         if history:
-            regime_stamp = (entry_doc or {}).get("regime_at_generation") if 'entry_doc' in dir() else None
-        if not regime_stamp:
-            regime_stamp = latest_doc.get("regime_at_generation") or {}
-        regime_at_gen = (regime_stamp or {}).get("regime")
+            regime_stamp = (entry_doc or {}).get("regime_at_generation")
+        regime_at_gen = (regime_stamp or {}).get("regime") if isinstance(regime_stamp, dict) else None
+        regime_source = "entry_snapshot" if regime_at_gen else "unknown"
 
-        critique = critique_lookup.get(ticker, {})
-        c_obj = critique.get("critique", {})
+        critique = critique_available_at(critique_lookup.get(ticker, {}), gen_at)
+        c_obj = (critique or {}).get("critique", {})
+        critique_source = ("critique@" + str((critique or {}).get("available_at") or (critique or {}).get("generated_at"))) if critique else "unknown_at_decision_time"
         per_call.append({
             "ticker": ticker,
             "generated_at": gen_at,
@@ -246,6 +259,8 @@ def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
             "rating_diverges":     bool(c_obj.get("alternative_rating") and rating
                                          and c_obj.get("alternative_rating") != rating),
             "regime_at_generation": regime_at_gen,
+            "regime_source": regime_source,
+            "critique_source": critique_source,
             "n_history_snapshots": len(history),
         })
 
@@ -322,23 +337,48 @@ def build_ensemble_attribution(calls: list) -> dict:
 
     consensus_stats = stats(consensus)
     contested_stats = stats(contested)
-    # Spread = consensus_alpha - contested_alpha. If positive, ensemble works.
+    # Spread = consensus_alpha - contested_alpha, with a Welch t-test and coverage requirement.
+    # audit 2026-09-08 INST-11: a positive mean spread is NOT "alpha" without significance and coverage.
     spread = None
+    t_stat = None
+    ci95 = None
+    n_total = len(calls)
+    coverage = (len(with_critique) / n_total) if n_total else 0.0
     if consensus_stats.get("mean_alpha_pct") is not None and contested_stats.get("mean_alpha_pct") is not None:
         spread = round(consensus_stats["mean_alpha_pct"] - contested_stats["mean_alpha_pct"], 2)
+        a = [c["alpha_pct"] for c in consensus if c.get("alpha_pct") is not None]
+        b = [c["alpha_pct"] for c in contested if c.get("alpha_pct") is not None]
+        if len(a) >= 2 and len(b) >= 2:
+            ma, mb = sum(a) / len(a), sum(b) / len(b)
+            va = sum((x - ma) ** 2 for x in a) / (len(a) - 1)
+            vb = sum((x - mb) ** 2 for x in b) / (len(b) - 1)
+            se = (va / len(a) + vb / len(b)) ** 0.5
+            if se > 0:
+                t_stat = round((ma - mb) / se, 3)
+                ci95 = [round(ma - mb - 1.96 * se, 2), round(ma - mb + 1.96 * se, 2)]
+    min_n = 20
+    significant = t_stat is not None and abs(t_stat) >= 2.0 and len(consensus) >= min_n and len(contested) >= min_n and coverage >= 0.5
+    if spread is None:
+        interp = "Sample too small for meaningful inference"
+    elif significant and spread > 0:
+        interp = "Consensus picks outperformed contested ones with statistical significance (|t|>=2, n>=%d each, critique coverage>=50%%) — ensemble signal shows alpha in this sample" % min_n
+    elif significant and spread < 0:
+        interp = "Contested picks outperformed consensus with statistical significance — counter to the ensemble premise"
+    else:
+        interp = "Spread %s%% is NOT statistically distinguishable from zero (t=%s, n=%d/%d, coverage %.0f%%) — no alpha claim" % (spread, t_stat, len(consensus), len(contested), coverage * 100)
 
     return {
+        "n_calls_total":      n_total,
         "n_with_critique":    len(with_critique),
+        "critique_coverage_pct": round(coverage * 100, 1),
         "consensus":          consensus_stats,
         "contested":          contested_stats,
         "alpha_spread_pct":   spread,
-        "interpretation":     (
-            "Consensus picks outperformed contested ones — ensemble signal is alpha"
-            if spread is not None and spread > 0
-            else "Contested picks outperformed consensus — counterintuitive, possibly noise"
-            if spread is not None and spread < 0
-            else "Sample too small for meaningful inference"
-        ),
+        "t_stat":             t_stat,
+        "ci95_spread_pct":    ci95,
+        "significance_rule":  "|t| >= 2 and n >= %d per group and critique coverage >= 50%%; critiques joined only when available at each call's decision time" % min_n,
+        "significant":        bool(significant),
+        "interpretation":     interp,
     }
 
 
