@@ -46,6 +46,42 @@ MAX_CLUSTER_PCT = 0.25
 CLUSTER_CORRELATION_THRESHOLD = 0.65
 # Fractional Kelly multiplier (1.0 = full Kelly, 0.25 = 1/4 Kelly)
 KELLY_FRACTION = 0.25
+# audit 2026-09-08 FR-04: freshness SLAs for the binding authority (hourly engine) and the raw gate (daily)
+AUTHORITY_SLA_H = 24.0
+GATE_SLA_H = 36.0
+
+
+def age_hours(ts):
+    try:
+        t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=timezone.utc)
+        return round((datetime.now(timezone.utc) - t).total_seconds() / 3600.0, 2)
+    except Exception:
+        return None
+
+
+def authority_view(kr):
+    """Normalise data/khalid-risk.json into the fields the sizer binds to."""
+    kr = kr if isinstance(kr, dict) else {}
+    pol = kr.get("policy") if isinstance(kr.get("policy"), dict) else {}
+    age = age_hours(kr.get("generated_at"))
+    cap = kr.get("exposure_cap_pct")
+    if cap is None:
+        cap = pol.get("exposure_cap_pct")
+    try:
+        cap = float(cap) if cap is not None else None
+    except (TypeError, ValueError):
+        cap = None
+    allows = pol.get("allows_new_entries")
+    status = "MISSING"
+    if kr and age is not None and cap is not None and isinstance(allows, bool):
+        status = "FRESH" if age <= AUTHORITY_SLA_H else "STALE"
+    elif kr:
+        status = "INVALID"
+    return {"source": "justhodl-khalid-risk", "artifact": "data/khalid-risk.json", "status": status, "age_h": age, "sla_h": AUTHORITY_SLA_H,
+            "generated_at": kr.get("generated_at"), "mode": pol.get("mode") or kr.get("mode"), "exposure_cap_pct": cap,
+            "allows_new_entries": allows, "hard_vetoes": [str(v) for v in (kr.get("hard_vetoes") or [])], "engine_status": kr.get("status")}
 
 
 def get_s3_json(key, default=None):
@@ -182,16 +218,34 @@ def cluster_by_correlation(symbols, returns_by_symbol, sector_by_symbol=None, th
     return clusters
 
 
+def _finite_nonneg(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")) or f < 0:
+        return None
+    return f
+
+
 def compute_drawdown(pnl_history_snapshots):
-    """Compute current drawdown as % from peak in pnl-history.json."""
+    """Compute current drawdown as % from peak in pnl-history.json.
+
+    audit 2026-09-08 FR-05: a NAV of 0 is a real observation (total loss), not a
+    missing one -- `is not None` + finite/non-negative, never truthiness. When the
+    history cannot support a drawdown read the result is (None, None) = UNKNOWN,
+    and the caller must HOLD rather than assume 0% drawdown.
+    """
     if not pnl_history_snapshots:
-        return 0.0, None
+        return None, None
     # snapshot shape: {as_of, khalid_strategy_value_usd, ...}
-    values = [(s.get("as_of"), s.get("khalid_strategy_value_usd"))
-              for s in pnl_history_snapshots
-              if s.get("khalid_strategy_value_usd")]
+    values = []
+    for snap in pnl_history_snapshots:
+        v = _finite_nonneg((snap or {}).get("khalid_strategy_value_usd"))
+        if v is not None and (snap or {}).get("as_of"):
+            values.append((snap.get("as_of"), v))
     if len(values) < 2:
-        return 0.0, None
+        return None, None
     # Sort by date
     values.sort()
     peak = values[0][1]
@@ -207,19 +261,25 @@ def compute_drawdown(pnl_history_snapshots):
     return round(current_dd, 4), peak_date
 
 
-def drawdown_size_multiplier(current_dd):
-    """Map current drawdown % to a size scaling factor."""
-    for trigger_dd, multiplier in DRAWDOWN_TRIGGERS:
-        if current_dd <= trigger_dd:
-            continue  # we\'re past this trigger; check next
-        # current_dd > trigger_dd, so we haven\'t hit it yet OR
-        # we\'re between thresholds. Find the worst multiplier we\'ve hit.
-    # Walk through triggers in order, applying the worst hit
-    multiplier = 1.0
+def binding_trigger(current_dd):
+    """The DEEPEST breached drawdown trigger (the one that actually binds), or None.
+    audit 2026-09-08 FR-05: the page used to describe the FIRST breached rule (-5% / x0.75)
+    even at -15% where the multiplier is zero."""
+    if current_dd is None:
+        return None
+    hit = None
     for trigger_dd, mult in DRAWDOWN_TRIGGERS:
         if current_dd <= trigger_dd:
-            multiplier = mult
-    return multiplier
+            hit = (trigger_dd, mult)
+    return hit
+
+
+def drawdown_size_multiplier(current_dd):
+    """Map current drawdown % to a size scaling factor. UNKNOWN drawdown -> 0 (hold)."""
+    if current_dd is None:
+        return 0.0
+    hit = binding_trigger(current_dd)
+    return hit[1] if hit else 1.0
 
 
 def kelly_size(conviction_pct, edge_pct=0.05):
@@ -250,8 +310,12 @@ def lambda_handler(event, context):
     debate = get_s3_json("investor-debate/_index.json", {})
     regime = get_s3_json("regime/current.json", {})
     pnl_history = get_s3_json("portfolio/pnl-history.json", {})
-    state = get_s3_json("portfolio/state.json", {})
+    # audit 2026-09-08 FR-04: portfolio/state.json was never written by any engine (dead read);
+    # the reconciled book is portfolio/snapshot.json (justhodl-portfolio-snapshot).
+    book = get_s3_json("portfolio/snapshot.json", {})
     report = get_s3_json("data/report.json", {})
+    khalid_risk = get_s3_json("data/khalid-risk.json", {})       # the ONE capital authority
+    risk_gate = get_s3_json("data/risk-gate.json", {})           # brain sizing multiplier
 
     print(f"  asymmetric setups: {len(asym.get('top_setups', []))}")
     print(f"  watchlist debate tickers: {debate.get('n_tickers', 0)}")
@@ -262,12 +326,51 @@ def lambda_handler(event, context):
     snapshots = pnl_history.get("snapshots", [])
     current_dd, peak_date = compute_drawdown(snapshots)
     dd_multiplier = drawdown_size_multiplier(current_dd)
-    print(f"  current_dd={current_dd:.2%}, multiplier={dd_multiplier:.2f}")
+    hold_reasons = []
+    if current_dd is None:
+        hold_reasons.append("drawdown brake has no trusted NAV history (need >= 2 finite snapshots) -- HOLD")
+        print("  current_dd=UNKNOWN -> multiplier 0 (hold)")
+    else:
+        print(f"  current_dd={current_dd:.2%}, multiplier={dd_multiplier:.2f}")
 
-    # ─── 3. Determine regime-based gross exposure cap ──────────────────
-    regime_str = regime.get("regime", "NEUTRAL")
-    max_gross = REGIME_MAX_EXPOSURE.get(regime_str, 0.75)
-    print(f"  regime={regime_str}, max_gross_exposure={max_gross:.0%}")
+    # ─── 3. Gross exposure cap: regime x AUTHORITY x book ───────────────
+    regime_str = regime.get("regime")
+    if regime_str not in REGIME_MAX_EXPOSURE:
+        hold_reasons.append("regime/current.json missing or unknown (%r) -- no default to NEUTRAL/75%%" % regime_str)
+        regime_str = regime_str or "UNKNOWN"
+    max_gross = REGIME_MAX_EXPOSURE.get(regime_str, 0.0)
+    # audit 2026-09-08 FR-04: data/khalid-risk.json is the binding permission (same artifact the
+    # homepage and Katlin obey). Missing/stale/invalid authority = HOLD, never a default.
+    authority = authority_view(khalid_risk)
+    if authority["status"] == "FRESH":
+        max_gross = min(max_gross, authority["exposure_cap_pct"] / 100.0)
+        if authority["allows_new_entries"] is False:
+            hold_reasons.append("capital authority forbids new entries (%s)" % authority["mode"])
+    else:
+        hold_reasons.append("capital authority khalid-risk is %s%s -- HOLD" % (authority["status"], (" (age %sh > %sh)" % (authority["age_h"], AUTHORITY_SLA_H)) if authority["age_h"] is not None else ""))
+    gate_mult = None
+    try:
+        gm = float(risk_gate.get("sizing_multiplier"))
+        if 0.0 <= gm <= 1.5:
+            gate_mult = min(gm, 1.0)          # a valid ZERO is a zero
+    except (TypeError, ValueError):
+        gate_mult = None
+    gate_age = age_hours(risk_gate.get("generated_at"))
+    if gate_mult is None or gate_age is None or gate_age > GATE_SLA_H:
+        hold_reasons.append("risk-gate sizing multiplier unusable (mult=%s age=%sh)" % (gate_mult, gate_age))
+    # the existing book counts against the cap: sizing is for NEW entries only
+    book_positions = [p for p in (book.get("positions") or []) if isinstance(p, dict)]
+    book_value = _finite_nonneg((book.get("portfolio_summary") or {}).get("total_market_value"))
+    book_weights = {}
+    if book_value and book_value > 0:
+        for pos in book_positions:
+            mv = _finite_nonneg(pos.get("market_value"))
+            if pos.get("symbol") and mv is not None:
+                book_weights[str(pos["symbol"]).upper()] = mv / book_value
+    current_gross = sum(book_weights.values())
+    available_gross = max(0.0, max_gross - current_gross)
+    print(f"  regime={regime_str}, authority={authority['status']}/{authority['exposure_cap_pct']}, max_gross={max_gross:.0%}, book_gross={current_gross:.0%}, available={available_gross:.0%}")
+    entries_allowed = not hold_reasons
 
     # ─── 4. Build candidate idea list ───────────────────────────────────
     # Sources: Phase 2B setups (high-conviction filter passed) + Loop 4
@@ -328,11 +431,16 @@ def lambda_handler(event, context):
     print(f"  total candidate ideas: {len(ideas)}")
 
     if not ideas:
-        return {"statusCode": 200, "body": json.dumps({
-            "warning": "no_ideas_in_pipeline",
-            "regime": regime_str,
-            "drawdown": current_dd,
-        })}
+        # audit 2026-09-08 FR-04: an empty pipeline must REPLACE the previous actionable book, not leave it in place
+        empty = {"as_of": now.isoformat(), "v": "2.0", "status": "NO_IDEAS", "regime": regime_str, "entries_allowed": entries_allowed,
+                 "authority": authority, "hold_reasons": hold_reasons, "max_gross_exposure_pct": round(max_gross * 100, 1),
+                 "drawdown_status": {"current_dd_pct": round(current_dd * 100, 2) if current_dd is not None else None, "status": "UNKNOWN" if current_dd is None else "OK",
+                                     "peak_date": peak_date, "size_multiplier": dd_multiplier},
+                 "sized_recommendations": [], "clusters": {}, "summary": {"n_candidate_ideas": 0, "n_clusters": 0, "total_recommended_size_pct": 0.0},
+                 "warnings": [{"level": "info", "message": "no candidate ideas in the pipeline this run"}]}
+        put_s3_json("risk/recommendations.json", empty)
+        put_s3_json("data/risk-sizer.json", empty)
+        return {"statusCode": 200, "body": json.dumps({"warning": "no_ideas_in_pipeline", "regime": regime_str, "drawdown": current_dd, "status": "NO_IDEAS"})}
 
     # ─── 5. Cluster by correlation ──────────────────────────────────────
     stocks_data = report.get("stocks", {})
@@ -383,10 +491,18 @@ def lambda_handler(event, context):
         kelly = kelly_size(idea["raw_conviction"])
         weight = weight_by_sym.get(sym, 1.0)
         weighted_kelly = kelly * weight
-        # Apply drawdown multiplier
-        adjusted = weighted_kelly * dd_multiplier
+        # audit 2026-09-08 FR-03: the published single-name limit binds AFTER the quality tilt
+        # (it used to be applied inside kelly_size, before a x1.6 multiplier could breach it)
+        capped = min(weighted_kelly, MAX_SINGLE_POSITION_PCT)
+        # Apply drawdown multiplier and the brain risk-gate sizing multiplier (both <= 1)
+        adjusted = capped * dd_multiplier * (gate_mult if gate_mult is not None else 0.0)
+        # FR-04: sizing is for NEW entries -- an existing holding only gets the increment up to target
+        held = book_weights.get(str(sym).upper(), 0.0)
+        adjusted = max(0.0, adjusted - held)
         idea["kelly_raw"] = round(kelly, 4)
         idea["quality_weight"] = round(weight, 3)
+        idea["single_name_capped"] = round(capped, 4)
+        idea["currently_held_pct"] = round(held * 100, 2)
         idea["dd_adjusted"] = round(adjusted, 4)
         idea["cluster"] = sym_to_cluster.get(sym, "isolated")
         sized.append(idea)
@@ -409,15 +525,33 @@ def lambda_handler(event, context):
         cluster_scale = cluster_scalings.get(idea["cluster"], 1.0)
         idea["after_cluster_cap"] = round(idea["dd_adjusted"] * cluster_scale, 4)
 
-    # ─── 8. Apply gross exposure cap ────────────────────────────────────
+    # ─── 8. Apply gross exposure cap (on the AVAILABLE gross after the existing book) ────
     total_post_cluster = sum(i["after_cluster_cap"] for i in sized)
-    if total_post_cluster > max_gross:
-        gross_scale = max_gross / total_post_cluster
+    if total_post_cluster > available_gross:
+        gross_scale = (available_gross / total_post_cluster) if total_post_cluster > 0 else 0.0
     else:
         gross_scale = 1.0
 
     for idea in sized:
         idea["recommended_size_pct"] = round(idea["after_cluster_cap"] * gross_scale * 100, 2)
+        if not entries_allowed:
+            idea["recommended_size_pct"] = 0.0
+            idea["blocked_reason"] = "; ".join(hold_reasons)
+
+    # ─── 8b. FINAL constraint assertion after rounding (FR-03 acceptance) ──────────────
+    final_check = {"single_name_ok": True, "cluster_ok": True, "gross_ok": True, "clamped": []}
+    for idea in sized:
+        if idea["recommended_size_pct"] > MAX_SINGLE_POSITION_PCT * 100 + 1e-9:
+            final_check["single_name_ok"] = False
+            final_check["clamped"].append(idea["symbol"])
+            idea["recommended_size_pct"] = round(MAX_SINGLE_POSITION_PCT * 100, 2)
+    cl_tot = {}
+    for idea in sized:
+        cl_tot[idea["cluster"]] = cl_tot.get(idea["cluster"], 0.0) + idea["recommended_size_pct"]
+    if any(v > MAX_CLUSTER_PCT * 100 + 0.01 for v in cl_tot.values()):
+        final_check["cluster_ok"] = False
+    if sum(i["recommended_size_pct"] for i in sized) > available_gross * 100 + 0.01:
+        final_check["gross_ok"] = False
 
     # ─── 9. Sort by size descending and build reasoning ─────────────────
     sized.sort(key=lambda x: -x.get("recommended_size_pct", 0))
@@ -441,11 +575,15 @@ def lambda_handler(event, context):
 
     # ─── 10. Build warnings list ────────────────────────────────────────
     warnings = []
-    if current_dd <= -0.10:
+    if current_dd is None:
+        warnings.append({"level": "high", "message": "Drawdown UNKNOWN -- NAV history has fewer than 2 finite snapshots; sizing is held at zero until the brake can read"})
+    elif current_dd <= -0.10:
         warnings.append({
             "level": "high",
             "message": f"Hypothetical drawdown {current_dd:.1%} — consider reducing all exposures",
         })
+    for hr in hold_reasons:
+        warnings.append({"level": "high", "message": hr})
     if regime_str == "RISK_OFF":
         warnings.append({
             "level": "high",
@@ -466,18 +604,25 @@ def lambda_handler(event, context):
 
     snapshot = {
         "as_of": now.isoformat(),
-        "v": "1.0",
+        "v": "2.0",
+        "status": "ENTRIES_BLOCKED" if not entries_allowed else "OK",
+        "entries_allowed": entries_allowed,
+        "hold_reasons": hold_reasons,
+        "recommendation_semantics": "target weight of the whole book for a NEW entry; existing holdings are netted out (currently_held_pct) and the existing book's gross counts against max_gross",
+        "authority": authority,
+        "risk_gate": {"sizing_multiplier": gate_mult, "age_h": gate_age, "sla_h": GATE_SLA_H},
+        "book": {"source": "portfolio/snapshot.json", "as_of": book.get("as_of") or book.get("generated_at"), "n_positions": len(book_positions), "total_market_value": book_value,
+                 "gross_pct": round(current_gross * 100, 2), "available_gross_pct": round(available_gross * 100, 2)},
+        "final_constraint_check": final_check,
         "regime": regime_str,
         "regime_strength": regime.get("regime_strength"),
         "max_gross_exposure_pct": round(max_gross * 100, 1),
         "drawdown_status": {
-            "current_dd_pct": round(current_dd * 100, 2),
+            "current_dd_pct": round(current_dd * 100, 2) if current_dd is not None else None,
+            "status": "UNKNOWN" if current_dd is None else "OK",
             "peak_date": peak_date,
             "size_multiplier": dd_multiplier,
-            "active_trigger": next(
-                (f"DD<{t*100:.0f}% → ×{m}" for t, m in DRAWDOWN_TRIGGERS if current_dd <= t),
-                "no trigger"
-            ),
+            "active_trigger": (f"DD<{binding_trigger(current_dd)[0]*100:.0f}% → ×{binding_trigger(current_dd)[1]}" if binding_trigger(current_dd) else ("unknown -- hold" if current_dd is None else "no trigger")),
         },
         "summary": {
             "n_candidate_ideas": len(ideas),
@@ -488,8 +633,10 @@ def lambda_handler(event, context):
         "constraints_applied": {
             "max_single_position_pct": MAX_SINGLE_POSITION_PCT * 100,
             "max_cluster_pct": MAX_CLUSTER_PCT * 100,
-            "max_gross_exposure_pct": max_gross * 100,
+            "max_gross_exposure_pct": round(max_gross * 100, 2),
+            "available_gross_pct": round(available_gross * 100, 2),
             "kelly_fraction": KELLY_FRACTION,
+            "single_name_cap_applied_after": "quality tilt, drawdown and risk-gate multipliers, cluster and gross scaling, rounding",
         },
         "clusters": clusters,
         "sized_recommendations": sized,
@@ -509,7 +656,8 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "regime": regime_str,
             "max_gross_exposure_pct": round(max_gross * 100, 1),
-            "current_drawdown_pct": round(current_dd * 100, 2),
+            "current_drawdown_pct": round(current_dd * 100, 2) if current_dd is not None else None,
+            "entries_allowed": entries_allowed,
             "drawdown_multiplier": dd_multiplier,
             "n_ideas": len(ideas),
             "n_clusters": len(clusters),

@@ -302,11 +302,28 @@ async function load(){
   setCell('clusters', sm.n_clusters || '—', `${(d.clusters||[]).length} active`, 'cyan');
 
   const dd = d.drawdown_status || {};
-  const ddCls = dd.current_dd_pct < -10 ? 'red' : dd.current_dd_pct < -5 ? 'amber' : 'green';
+  // audit 2026-09-08 FR-05: an UNKNOWN drawdown is shown as unknown (never as 0.00%), and the
+  // trigger shown is the BINDING one the producer now publishes (deepest breached rule).
+  const ddUnknown = dd.status === 'UNKNOWN' || dd.current_dd_pct == null;
+  const ddCls = ddUnknown ? 'red' : dd.current_dd_pct < -10 ? 'red' : dd.current_dd_pct < -5 ? 'amber' : 'green';
   setCell('drawdown',
-    dd.current_dd_pct != null ? fmtPct(dd.current_dd_pct, 2) : '0.00%',
-    dd.active_trigger ? escHtml(dd.active_trigger) : 'no trigger',
+    ddUnknown ? 'UNKNOWN' : fmtPct(dd.current_dd_pct, 2),
+    ddUnknown ? 'no trusted NAV history -- sizing held' : (dd.active_trigger ? escHtml(dd.active_trigger) : 'no trigger'),
     ddCls);
+  // FR-04: the binding capital authority + hold reasons, shown above the constraints card
+  (function(){
+    var a = d.authority || {}, host = document.getElementById('consSub');
+    if (!host) return;
+    var el = document.getElementById('jhAuthorityStrip');
+    if (!el) { el = document.createElement('div'); el.id = 'jhAuthorityStrip'; el.style.cssText = 'margin:8px 0 12px;font-size:12px;line-height:1.5;border:1px solid var(--border);border-radius:8px;padding:8px 10px'; host.parentNode.insertBefore(el, host.nextSibling); }
+    var ok = a.status === 'FRESH';
+    var html = '<b>Binding capital authority (Khalid Risk):</b> ' + (ok ? escHtml(String(a.mode || '-')) + ' · cap ' + fmtPct(a.exposure_cap_pct, 0) + ' · new entries ' + (a.allows_new_entries ? 'allowed' : '<span style="color:var(--red)">BLOCKED</span>') + ' · ' + fmtAge(a.generated_at) : '<span style="color:var(--red)">UNAVAILABLE (' + escHtml(String(a.status || 'MISSING')) + ')</span>');
+    html += ' · status <b>' + escHtml(String(d.status || 'OK')) + '</b>';
+    if (d.book) html += ' · book gross ' + fmtPct(d.book.gross_pct, 1) + ' (' + (d.book.n_positions || 0) + ' positions), available ' + fmtPct(d.book.available_gross_pct, 1);
+    if ((d.hold_reasons || []).length) html += '<div style="color:var(--red);margin-top:4px">HOLD: ' + escHtml(d.hold_reasons.join(' · ')) + '</div>';
+    if (d.recommendation_semantics) html += '<div style="color:var(--fg-3);margin-top:4px">' + escHtml(d.recommendation_semantics) + '</div>';
+    el.innerHTML = html;
+  })();
 
   // ── Constraints card
   document.getElementById('consSub').textContent = `regime-adjusted · ${fmtAge(d.as_of)}`;

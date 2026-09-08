@@ -39,9 +39,9 @@ reported with the reproduction, not fixed.
 | INST-14 | P1 | Release gates cover a small subset | Claude | A | **FIXED** | deploy-workers: required test job (`tests/worker-*.test.js`, syntax check every worker); pages.yml runs `tests/*.test.js` + blocking literal gate; deploy-lambdas runs every changed engine's `tests/run_tests.py` (or pytest); `tests/deployment` runs every `test_*.py` |
 | FR-01 | P1 | Katlin bypasses the authoritative risk artifact | Claude | A | **FIXED** | Katlin v2.3.0 consumes `data/khalid-risk.json`; effective cap = min(authority, desk, gate); `allows_new_entries=false` demotes PRIME/READY + empties basket; page shows authority / desk / gate separately. `aws/lambdas/justhodl-katlin/tests/run_tests.py` (7); ops 5220 D |
 | FR-02 | P1 | Stale/missing risk → FULL_RISK; zero multiplier ignored | Claude | A | **FIXED** | missing/stale/invalid authority or gate → DATA_HOLD 0%; `0 <= sz` honoured; no legs → 0% not 25% |
-| FR-03 | P1 | Risk-sizer breaches its 8% single-name cap | Claude | B | open | |
-| FR-04 | P1 | Risk-sizer separate authority, ignores portfolio state | Claude | B | open | |
-| FR-05 | P1 | Zero NAV discards drawdown brake | Claude | B | open | |
+| FR-03 | P1 | Risk-sizer breaches its 8% single-name cap | Claude | B1 | **FIXED** (push pending A2) | v2.0: cap applied after the quality tilt, drawdown and gate multipliers, cluster/gross scaling and rounding; `final_constraint_check` asserted. `aws/lambdas/justhodl-risk-sizer/tests/run_tests.py` (7); ops 5222 |
+| FR-04 | P1 | Risk-sizer separate authority, ignores portfolio state | Claude | B1 | **FIXED** (push pending A2) | binds to `data/khalid-risk.json` (min cap, entry prohibition, missing/stale = HOLD), risk-gate sizing multiplier (zero honoured), nets the real book `portfolio/snapshot.json` (`portfolio/state.json` was never written by anyone), empty pipeline writes an explicit NO_IDEAS artifact; risk.html shows the authority + hold reasons |
+| FR-05 | P1 | Zero NAV discards drawdown brake | Claude | B1 | **FIXED** (push pending A2) | `is not None` + finite/non-negative; <2 snapshots = UNKNOWN = hold; the page shows UNKNOWN (never 0.00%) and the BINDING trigger |
 | FR-06 | P1 | Risk-gate replay reads today's feeds | Claude | B | open | |
 | FR-07 | P1 | Risk-gate live drops annotated deductions | Claude | B | open | |
 | FR-08 | P1 | Monthly Sahm/truck from daily forward-fill | Claude | B | open | |
