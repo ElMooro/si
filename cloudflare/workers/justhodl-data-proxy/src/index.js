@@ -1,5 +1,10 @@
 /**
- * justhodl-data-proxy v2.0.0
+ * justhodl-data-proxy v2.1.0
+ *
+ * v2.1.0 (audit 2026-09-08, Release A): private routes (/brain, /journal,
+ * /brain-debug, /brain-purge, /userdata, /create-checkout) derive identity from
+ * a VERIFIED Supabase Bearer token or a service secret -- never from a query
+ * string, body field or the length of an id. See identity block below.
  *
  * Edge-cached read-through proxy for all justhodl public S3 feeds.
  * Cloudflare's edge automatically applies Brotli/gzip compression for
@@ -51,7 +56,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "GET, HEAD, PUT, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With, X-JH-Service-Token",
     "Access-Control-Max-Age":       "86400",
     "Vary":                         "Accept-Encoding",
   };
@@ -152,6 +157,136 @@ async function handleGov(url) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// IDENTITY & ROLES (audit 2026-09-08 INST-01/02/04/06)
+//
+//   role "owner"   -- verified Supabase user whose email is in env.OWNER_EMAILS
+//                     (comma list) or whose uid is in KV owner:uids. Owns the
+//                     legacy single-user Brain/Journal stores.
+//   role "user"    -- any other verified Supabase user; scoped to stores keyed
+//                     by their OWN verified uid, never by a supplied id.
+//   role "service" -- caller presenting X-JH-Service-Token equal to the
+//                     ADMIN_TOKEN Worker secret (SSM /justhodl/api-admin/token).
+//                     Used by justhodl-brain-sync / tv-notes-ingest and by ops
+//                     maintenance. May select a store explicitly via ?uid=.
+//   role "anon"    -- everything else. Private routes answer 401.
+//
+// A UUID is an identifier, not proof of authentication. No route below grants
+// access from the shape or length of a uid any more.
+// ═══════════════════════════════════════════════════════════════════════════
+const OWNER_BRAIN_STORE_DEFAULT = "brain-930ffa48-60a1-4b11-8726-8848d1b827f9";
+const OWNER_JOURNAL_LEGACY_STORE = "khalid";
+globalThis.__jhTokCache = globalThis.__jhTokCache || new Map();
+
+function timingSafeEqual(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a.length !== b.length || !a.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Verified Supabase identity from Authorization: Bearer <access_token>.
+// Returns {uid, email} or null. 120s in-memory cache per isolate.
+async function verifyBearer(request, env) {
+  try {
+    const h = request.headers.get("Authorization") || "";
+    if (!h.startsWith("Bearer ") || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
+    const tok = h.slice(7).trim();
+    if (tok.length < 20) return null;
+    const now = Date.now();
+    const hit = globalThis.__jhTokCache.get(tok);
+    if (hit && hit.exp > now) return { uid: hit.uid, email: hit.email };
+    const r = await fetch(env.SUPABASE_URL + "/auth/v1/user", {
+      headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + tok } });
+    if (!r.ok) return null;
+    const u = await r.json();
+    const uid = u && u.id;
+    if (!uid || typeof uid !== "string") return null;
+    const email = (u.email || "").toLowerCase();
+    if (globalThis.__jhTokCache.size > 500) globalThis.__jhTokCache.clear();
+    globalThis.__jhTokCache.set(tok, { uid, email, exp: now + 120000 });
+    return { uid, email };
+  } catch (e) { return null; }
+}
+
+function isServiceCaller(request, env) {
+  const t = request.headers.get("X-JH-Service-Token") || "";
+  return !!(env.ADMIN_TOKEN && t && timingSafeEqual(t, env.ADMIN_TOKEN));
+}
+
+async function ownerBinding(env) {
+  const emails = String(env.OWNER_EMAILS || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+  let uids = [];
+  try { if (env.USER_DATA) uids = JSON.parse(await env.USER_DATA.get("owner:uids") || "[]"); } catch (e) { uids = []; }
+  return { emails, uids: Array.isArray(uids) ? uids : [] };
+}
+
+// Resolve the caller to {role, uid, email}. Bearer identity wins over a
+// service header so a signed-in owner is attributed as the owner.
+async function resolveIdentity(request, env) {
+  const who = await verifyBearer(request, env);
+  if (who) {
+    const b = await ownerBinding(env);
+    const owner = (who.email && b.emails.includes(who.email)) || b.uids.includes(who.uid);
+    return { role: owner ? "owner" : "user", uid: who.uid, email: who.email };
+  }
+  if (isServiceCaller(request, env)) return { role: "service", uid: null, email: null };
+  return { role: "anon", uid: null, email: null };
+}
+
+function cleanUid(s) { return String(s || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64); }
+
+// Which Brain store a caller may touch. Returns a store id or null (=401).
+function brainStoreFor(id, url, env) {
+  if (id.role === "owner") return env.BRAIN_OWNER_STORE || OWNER_BRAIN_STORE_DEFAULT;
+  if (id.role === "user") return id.uid;                                  // own verified uid, nothing else
+  if (id.role === "service") {                                           // explicit store, defaults to the owner store
+    const u = cleanUid(url.searchParams.get("uid"));
+    return u && u.length >= 8 ? u : (env.BRAIN_OWNER_STORE || OWNER_BRAIN_STORE_DEFAULT);
+  }
+  return null;
+}
+
+// Which Journal store a caller may touch. Owner + users are keyed by their own
+// verified uid; the legacy "khalid" journal is merged into the owner's uid
+// store on first owner read (see /journal). Service may select explicitly.
+function journalStoreFor(id, url) {
+  if (id.role === "owner" || id.role === "user") return id.uid;
+  if (id.role === "service") {
+    const u = cleanUid(url.searchParams.get("uid"));
+    return u && u.length >= 8 ? u : OWNER_JOURNAL_LEGACY_STORE;
+  }
+  return null;
+}
+
+function unauthorized(reason) {
+  return new Response(JSON.stringify({ error: "auth required", reason: reason || "sign in" }),
+    { status: 401, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+}
+function forbidden(reason) {
+  return new Response(JSON.stringify({ error: "forbidden", reason: reason || "owner or service role required" }),
+    { status: 403, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+}
+
+// Server-side Stripe price -> plan allowlist. env.PRICE_PLAN_MAP is a JSON
+// object {price_id: plan}. Unknown prices are never accepted at checkout and
+// never change entitlement in the webhook.
+function pricePlanMap(env) {
+  try { const m = JSON.parse(env.PRICE_PLAN_MAP || "{}"); return (m && typeof m === "object") ? m : {}; } catch (e) { return {}; }
+}
+const ALLOWED_RETURN_HOSTS = new Set(["justhodl.ai", "www.justhodl.ai"]);
+function safeReturnBase(raw) {
+  try { const u = new URL(String(raw || "")); if (u.protocol === "https:" && ALLOWED_RETURN_HOSTS.has(u.hostname)) return u.origin; } catch (e) {}
+  return "https://justhodl.ai";
+}
+
+async function stripeGet(path, env) {
+  const r = await fetch("https://api.stripe.com/v1" + path, { headers: { "Authorization": "Bearer " + env.STRIPE_SECRET } });
+  const d = await r.json().catch(() => null);
+  return r.ok ? d : null;
+}
+
 export class WorkspaceCoordinator {
   constructor(state) {
     this.state = state;
@@ -205,36 +340,41 @@ export default {
         return new Response(JSON.stringify({ error: "store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const juid = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
-      const jwho = juid && juid.length >= 8 ? juid : "khalid";
+      // audit 2026-09-08 INST-01: identity comes ONLY from a verified token or the
+      // service secret. ?uid= is ignored for owner/user callers; anonymous -> 401.
+      const jid = await resolveIdentity(request, env);
+      const jwho = journalStoreFor(jid, url);
+      if (!jwho) return unauthorized("journal is private: sign in");
       const JKEY = "journal:" + jwho;
-      const PIN_KEY = "brainpin:" + jwho;
-      async function sha(s) {
-        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
-        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-      }
       if (request.method === "GET") {
-        const stored = await env.USER_DATA.get(JKEY);
+        let stored = await env.USER_DATA.get(JKEY);
+        // One-time merge of the legacy single-user journal into the owner's own
+        // uid-keyed store (entries deduped by id, legacy key removed after merge).
+        if (jid.role === "owner") {
+          const legacy = await env.USER_DATA.get("journal:" + OWNER_JOURNAL_LEGACY_STORE);
+          if (legacy) {
+            try {
+              const cur = stored ? JSON.parse(stored) : { entries: [] };
+              const old = JSON.parse(legacy);
+              const have = new Set((cur.entries || []).map(e => e && e.id));
+              const merged = (cur.entries || []).concat((old.entries || []).filter(e => e && e.id && !have.has(e.id)));
+              cur.entries = merged; cur.migrated_legacy_at = Date.now();
+              stored = JSON.stringify(cur);
+              await env.USER_DATA.put(JKEY, stored);
+              await env.USER_DATA.delete("journal:" + OWNER_JOURNAL_LEGACY_STORE);
+            } catch (e) { /* leave legacy in place; served unmerged */ }
+          }
+        }
         return new Response(stored || JSON.stringify({ entries: [] }),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
       if (request.method === "PUT" || request.method === "POST") {
         const rawJ = await request.text();
         let pj = null; try { pj = JSON.parse(rawJ); } catch (e) {}
-        let pin = request.headers.get("X-Brain-Pin") || "";
-        if (!pin && pj && pj._pin) pin = String(pj._pin);
-        const jAuthed = (jwho !== "khalid" && juid.length >= 20);  // logged-in UUID = auth
-        if (!jAuthed) {
-          const ph = await sha(pin);
-          const existing = await env.USER_DATA.get(PIN_KEY);
-          if (!existing || ph !== existing) {
-            return new Response(JSON.stringify({ error: "wrong or unset pin (set it on the Brain first)" }),
-              { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-          }
-        }
         try {
           if (!pj) throw new Error("invalid json");
           if (pj._pin) delete pj._pin;
+          pj._server = { saved_at: Date.now(), actor_role: jid.role, actor_uid: jid.uid || null, store: jwho };
           const bodyText = JSON.stringify(pj);
           if (bodyText.length > 10000000) {
             return new Response(JSON.stringify({ error: "too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
@@ -267,9 +407,11 @@ export default {
     // returns progress; call repeatedly until done. ──
     if (url.pathname === "/brain-purge") {
       if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
-      const token = url.searchParams.get("token") || "";
-      if (token !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
-      const uid = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
+      // audit 2026-09-08 INST-01/06: maintenance is a ROLE (owner or service), not a query-string literal.
+      const pid = await resolveIdentity(request, env);
+      if (pid.role !== "owner" && pid.role !== "service") return pid.role === "anon" ? unauthorized("maintenance") : forbidden();
+      const uid = pid.role === "owner" ? (env.BRAIN_OWNER_STORE || OWNER_BRAIN_STORE_DEFAULT) : cleanUid(url.searchParams.get("uid"));
+      if (!uid) return jsonResp({ error: "uid required for service purge" }, 400);
       if (url.searchParams.get("reset") === "1") {
         try {
           await env.USER_DATA.put("bidx:" + uid, "[]");
@@ -331,6 +473,9 @@ export default {
 
     if (url.pathname === "/brain-debug") {
       if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
+      // audit 2026-09-08 INST-01: identity enumeration is owner/service only.
+      const did = await resolveIdentity(request, env);
+      if (did.role !== "owner" && did.role !== "service") return did.role === "anon" ? unauthorized("debug") : forbidden();
       try {
         const out = { identities: [], device_ids: [], total_note_shards: 0 };
         let cursor = undefined;
@@ -373,18 +518,19 @@ export default {
         return new Response(JSON.stringify({ error: "store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const uidParam = (url.searchParams.get("uid") || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64);
-      const who = uidParam && uidParam.length >= 8 ? uidParam : "khalid";
+      // audit 2026-09-08 INST-01: the store is chosen by ROLE from a verified
+      // identity. ?uid= is honoured only for the service role. Anonymous -> 401
+      // (brain.html then falls back to the read-only public mirror data/brain.json).
+      const bid = await resolveIdentity(request, env);
+      const who = brainStoreFor(bid, url, env);
+      if (!who) return unauthorized("brain is private: sign in");
+      const uidParam = who;
+      const isMaint = (bid.role === "owner" || bid.role === "service");
       const IDX_KEY = "bidx:" + who;            // JSON array of note ids (order)
       const NOTE_PREFIX = "bnote:" + who + ":";
       const CACHE_KEY = "bcache:" + who;        // SINGLE key holding the full notes array → instant reads
       const LEGACY_KEY = "brain:" + who;        // old single-blob (for migration)
-      const PIN_KEY = "brainpin:" + who;
-      const isAuthedUser = (who !== "khalid" && uidParam.length >= 20);
-      async function sha(s) {
-        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jhsalt:" + s));
-        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-      }
+      const PIN_KEY = "brainpin:" + who;        // legacy marker only (pin_set for old clients); no longer an auth factor
       async function readIndex() {
         try { return JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]"); } catch (e) { return []; }
       }
@@ -437,7 +583,7 @@ export default {
       // ONE-SHOT DEDUP: read the cache, dedup by normalized text in memory, write
       // back the deduped index+cache in a single call (works for brains ≤~10k).
       if (url.searchParams.get("dedupnow") === "1") {
-        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        if (!isMaint) return forbidden("maintenance requires the owner or service role");
         try {
           function nz(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,200); }
           let cache = [];
@@ -456,7 +602,7 @@ export default {
         } catch (e) { return jsonResp({ error: String(e).slice(0,150) }, 500); }
       }
       if (url.searchParams.get("dedup") === "1") {
-        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        if (!isMaint) return forbidden("maintenance requires the owner or service role");
         try {
           function norm(t){ return String(t||"").toLowerCase().replace(/\s+/g," ").replace(/[^\w\s]/g,"").trim().slice(0,300); }
           let ids = JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]");
@@ -495,7 +641,7 @@ export default {
         } catch (e) { return jsonResp({ error: String(e).slice(0, 150) }, 500); }
       }
       if (url.searchParams.get("build") === "1") {
-        if ((url.searchParams.get("token") || "") !== "jhpurge_9f48_2026") return jsonResp({ error: "forbidden" }, 403);
+        if (!isMaint) return forbidden("maintenance requires the owner or service role");
         try {
           // garble/junk filter so we keep ONLY real notes (index re-grew to 26k junk)
           function realNote(t){
@@ -564,24 +710,18 @@ export default {
           // No cache yet. Do NOT fan-out 854 shards here (it 500s/times out).
           // Return empty fast with a flag; the cache is built via ?build=1.
           const idsLen = (JSON.parse(await env.USER_DATA.get(IDX_KEY) || "[]")).length;
-          return new Response(JSON.stringify({ notes: [], pin_set: !!(await env.USER_DATA.get(PIN_KEY)), scope: who === "khalid" ? "owner" : "user", cache_building: true, index_count: idsLen }),
+          return new Response(JSON.stringify({ notes: [], pin_set: !!(await env.USER_DATA.get(PIN_KEY)), scope: bid.role, store: who, cache_building: true, index_count: idsLen }),
             { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
         }
         const hasPin = !!(await env.USER_DATA.get(PIN_KEY));
-        return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: who === "khalid" ? "owner" : "user", cached: true }),
+        return new Response(JSON.stringify({ notes, pin_set: hasPin, scope: bid.role, store: who, cached: true }),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
 
       if (request.method === "PUT" || request.method === "POST") {
         const rawText = await request.text();
         let body = null; try { body = JSON.parse(rawText); } catch (e) {}
-        let pin = request.headers.get("X-Brain-Pin") || (body && body._pin) || "";
-        if (!isAuthedUser) {
-          if (!pin || pin.length < 4) return new Response(JSON.stringify({ error: "pin required (min 4 chars)" }), { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-          const existing = await env.USER_DATA.get(PIN_KEY); const ph = await sha(pin);
-          if (existing) { if (ph !== existing) return new Response(JSON.stringify({ error: "wrong pin" }), { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders() } }); }
-          else await env.USER_DATA.put(PIN_KEY, ph);
-        }
+        if (body && body._pin) delete body._pin;   // PIN retired as an auth factor (audit 2026-09-08)
         try {
           if (!body) throw new Error("invalid json");
           // ── WRITE-TIME JUNK GUARD: reject AI-chat transcripts, code/dev-logs,
@@ -718,26 +858,9 @@ export default {
     // ── Supabase JWT verification (ops 3156) ────────────────────────────
     // Returns the verified supabase user id for Authorization: Bearer <jwt>,
     // or null. 120s in-memory cache per isolate keeps latency ~0 on bursts.
-    globalThis.__jhTokCache = globalThis.__jhTokCache || new Map();
     async function verifySupabaseUser() {
-      try {
-        const h = request.headers.get("Authorization") || "";
-        if (!h.startsWith("Bearer ") || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
-        const tok = h.slice(7).trim();
-        if (tok.length < 20) return null;
-        const now = Date.now();
-        const hit = globalThis.__jhTokCache.get(tok);
-        if (hit && hit.exp > now) return hit.uid;
-        const r = await fetch(env.SUPABASE_URL + "/auth/v1/user", {
-          headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + tok } });
-        if (!r.ok) return null;
-        const u = await r.json();
-        const uid = u && u.id;
-        if (!uid) return null;
-        if (globalThis.__jhTokCache.size > 500) globalThis.__jhTokCache.clear();
-        globalThis.__jhTokCache.set(tok, { uid, exp: now + 120000 });
-        return uid;
-      } catch (e) { return null; }
+      const who = await verifyBearer(request, env);
+      return who ? who.uid : null;
     }
 
     // GET /workspace/home — load the signed-in user's home workspace.
@@ -833,6 +956,74 @@ export default {
       return jsonResp({ plan: (plan || "free"), src });
     }
 
+    // ── /admin/* -- SERVICE-ROLE maintenance (audit 2026-09-08). Driven by ops
+    // scripts on the GitHub runner with the SSM admin token; never by browsers.
+    if (url.pathname.startsWith("/admin/")) {
+      if (!isServiceCaller(request, env)) return unauthorized("service token required");
+      if (!env.USER_DATA) return jsonResp({ error: "no kv" }, 503);
+      const adminHeaders = { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY };
+      const canSupabase = !!(env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY);
+
+      // GET /admin/users -> Supabase accounts (id, email, timestamps) for owner binding.
+      if (url.pathname === "/admin/users" && request.method === "GET") {
+        if (!canSupabase) return jsonResp({ error: "supabase not configured" }, 503);
+        const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10) || 1);
+        const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=200`, { headers: adminHeaders });
+        const d = await r.json().catch(() => null);
+        if (!r.ok || !d) return jsonResp({ error: "supabase admin users failed", status: r.status }, 502);
+        const users = (d.users || []).map(u => ({ id: u.id, email: u.email || null, created_at: u.created_at, last_sign_in_at: u.last_sign_in_at, provider: (u.app_metadata || {}).provider || null }));
+        return jsonResp({ ok: true, page, n: users.length, users });
+      }
+
+      // GET /admin/owner -> current binding; POST {uid?, email?} -> add to binding.
+      if (url.pathname === "/admin/owner") {
+        const b = await ownerBinding(env);
+        if (request.method === "GET") return jsonResp({ ok: true, owner_emails: b.emails, owner_uids: b.uids, brain_store: env.BRAIN_OWNER_STORE || OWNER_BRAIN_STORE_DEFAULT });
+        if (request.method === "POST") {
+          let body = {}; try { body = await request.json(); } catch (e) {}
+          const uid = cleanUid(body.uid);
+          if (!uid || uid.length < 20) return jsonResp({ error: "uid (verified supabase id) required" }, 400);
+          const uids = Array.from(new Set(b.uids.concat([uid])));
+          await env.USER_DATA.put("owner:uids", JSON.stringify(uids));
+          return jsonResp({ ok: true, owner_uids: uids, owner_emails: b.emails });
+        }
+        return jsonResp({ error: "method not allowed" }, 405);
+      }
+
+      // POST /admin/userdata-migrate?cursor= -> move legacy u:<uid> blobs whose uid is NOT a
+      // Supabase account into anon:<uid>. Ownership proof = Supabase admin lookup 404.
+      if (url.pathname === "/admin/userdata-migrate" && request.method === "POST") {
+        if (!canSupabase) return jsonResp({ error: "supabase not configured" }, 503);
+        const dry = url.searchParams.get("dry") === "1";
+        const cursor = url.searchParams.get("cursor") || undefined;
+        const list = await env.USER_DATA.list({ prefix: "u:", cursor, limit: 100 });
+        const out = { ok: true, scanned: 0, accounts: 0, migrated: 0, already: 0, errors: 0, dry, next_cursor: list.list_complete ? null : list.cursor, rows: [] };
+        for (const k of list.keys) {
+          const uid = k.name.slice(2);
+          out.scanned++;
+          if (!/^[0-9a-fA-F-]{20,64}$/.test(uid) && !/^[a-zA-Z0-9_\-]{8,64}$/.test(uid)) { out.errors++; continue; }
+          let isAccount = null;
+          try {
+            const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${uid}`, { headers: adminHeaders });
+            if (r.status === 200) isAccount = true;
+            else if (r.status === 404 || r.status === 400 || r.status === 422) isAccount = false;   // not a user id
+          } catch (e) { isAccount = null; }
+          if (isAccount === null) { out.errors++; out.rows.push({ uid: uid.slice(0, 8) + "…", status: "lookup_failed" }); continue; }
+          if (isAccount) { out.accounts++; continue; }
+          const anonKey = "anon:" + uid;
+          if (await env.USER_DATA.get(anonKey)) { out.already++; continue; }
+          if (!dry) {
+            const blob = await env.USER_DATA.get(k.name);
+            if (blob) await env.USER_DATA.put(anonKey, blob);
+          }
+          out.migrated++;
+          out.rows.push({ uid: uid.slice(0, 8) + "…", status: dry ? "would_migrate" : "migrated" });
+        }
+        return jsonResp(out);
+      }
+      return jsonResp({ error: "unknown admin route" }, 404);
+    }
+
     // GET  /userdata/:uid           → returns stored JSON blob for user
     // PUT  /userdata/:uid {json}    → stores JSON blob for user
     // Keyed by anonymous device UID generated client-side. Backed by KV.
@@ -865,10 +1056,12 @@ export default {
           { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
       const kvKey = authed ? `u:${verifiedUid}` : `anon:${uid}`;
-      const legacyKey = `u:${uid}`;  // pre-3156 anonymous blobs lived here
+      // audit 2026-09-08 INST-02: anonymous callers never read u:<uid>. Legacy
+      // pre-3156 anonymous blobs are moved to anon:<uid> by the service-only
+      // /admin/userdata-migrate route after Supabase confirms the uid is NOT an
+      // account -- an ownership proof, not a fallback.
       if (request.method === "GET") {
-        let stored = await env.USER_DATA.get(kvKey);
-        if (!stored && !authed) stored = await env.USER_DATA.get(legacyKey);
+        const stored = await env.USER_DATA.get(kvKey);
         return new Response(stored || JSON.stringify({ empty: true }),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
@@ -897,7 +1090,7 @@ export default {
       return new Response(
         JSON.stringify({
           name:           "justhodl-data-proxy",
-          version:        "2.0.0",
+          version:        "2.1.0",
           status:         "ok",
           upstream:       BUCKET_BASE,
           cache_rules:    CACHE_RULES.length,
@@ -959,12 +1152,17 @@ export default {
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).
       if (!env.STRIPE_SECRET) return jsonResp({ error: "billing not configured" }, 503);
       try {
-        const b = await request.json();
-        const priceId = (b.priceId || "").trim();
-        const userId = (b.userId || "").trim();
-        const email = (b.email || "").trim();
-        if (!priceId || !userId) return jsonResp({ error: "missing priceId/userId" }, 400);
-        const base = b.returnUrl || "https://justhodl.ai";
+        // audit 2026-09-08 INST-04: the buyer is the VERIFIED user; the plan is
+        // derived on the server from an allowlisted price; return hosts are pinned.
+        const buyer = await verifyBearer(request, env);
+        if (!buyer) return unauthorized("sign in to start checkout");
+        const b = await request.json().catch(() => ({}));
+        const priceId = String(b.priceId || "").trim();
+        const priceMap = pricePlanMap(env);
+        if (!priceId || !priceMap[priceId]) return jsonResp({ error: "unknown price", price_id: priceId || null }, 400);
+        const userId = buyer.uid;
+        const email = buyer.email || "";
+        const base = safeReturnBase(b.returnUrl);
         const form = new URLSearchParams();
         form.set("mode", "subscription");
         form.set("line_items[0][price]", priceId);
@@ -974,8 +1172,9 @@ export default {
         form.set("client_reference_id", userId);          // ties session → our user
         form.set("metadata[user_id]", userId);
         form.set("subscription_data[metadata][user_id]", userId);
-        const plan = ((b.plan || "pro") + "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 12) || "pro";
+        const plan = String(priceMap[priceId]).toLowerCase().replace(/[^a-z]/g, "").slice(0, 12) || "pro";
         form.set("metadata[plan]", plan);
+        form.set("metadata[plan_source]", "server_price_map");
         form.set("subscription_data[metadata][plan]", plan);
         if (email) form.set("customer_email", email);
         const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -1006,24 +1205,45 @@ export default {
         const evt = JSON.parse(payload);
         const type = evt.type;
         const obj = evt.data && evt.data.object || {};
-        let userId = null, plan = null;
+        // audit 2026-09-08 INST-05: durable inbox -- an event id is processed once.
+        const evtKey = evt.id ? "stripe-evt:" + evt.id : null;
+        if (evtKey && env.USER_DATA && await env.USER_DATA.get(evtKey)) return new Response("ok duplicate", { status: 200 });
+        const priceMap = pricePlanMap(env);
+        const planForPrices = (ids) => { for (const pid of ids || []) { if (priceMap[pid]) return priceMap[pid]; } return null; };
+        let userId = null, plan = null, source = null;
         if (type === "checkout.session.completed") {
           userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
-          plan = (obj.metadata && obj.metadata.plan) || "pro";
-        } else if (type === "customer.subscription.deleted" ||
-                   (type === "customer.subscription.updated" && obj.status !== "active" && obj.status !== "trialing")) {
+          // Authoritative: the subscription actually created (status + items), else the session line items.
+          let sub = null;
+          if (obj.subscription && env.STRIPE_SECRET) sub = await stripeGet("/subscriptions/" + obj.subscription, env);
+          if (sub && sub.status && sub.status !== "active" && sub.status !== "trialing") { plan = "free"; source = "subscription_status"; }
+          else if (sub) { plan = planForPrices(((sub.items || {}).data || []).map(i => i.price && i.price.id)); source = "subscription_items"; }
+          if (!plan && env.STRIPE_SECRET && obj.id) {
+            const li = await stripeGet("/checkout/sessions/" + obj.id + "/line_items", env);
+            plan = planForPrices(((li || {}).data || []).map(i => i.price && i.price.id)); source = plan ? "line_items" : source;
+          }
+        } else if (type === "customer.subscription.deleted") {
+          userId = obj.metadata && obj.metadata.user_id; plan = "free"; source = "subscription_deleted";
+        } else if (type === "customer.subscription.updated") {
           userId = obj.metadata && obj.metadata.user_id;
-          plan = "free";
-        } else if (type === "customer.subscription.updated" && (obj.status === "active" || obj.status === "trialing")) {
-          userId = obj.metadata && obj.metadata.user_id;
-          plan = (obj.metadata && obj.metadata.plan) || "pro";
+          // Out-of-order safety: re-read the subscription's CURRENT state from Stripe.
+          const live = (env.STRIPE_SECRET && obj.id) ? await stripeGet("/subscriptions/" + obj.id, env) : null;
+          const st = (live && live.status) || obj.status;
+          const items = ((live || obj).items || {}).data || [];
+          if (st !== "active" && st !== "trialing") { plan = "free"; source = "subscription_status"; }
+          else { plan = planForPrices(items.map(i => i.price && i.price.id)); source = "subscription_items"; }
+        }
+        if (userId && !plan && type !== "customer.subscription.deleted") {
+          // Paid but unmapped price: never guess an entitlement. Record for the operator and let Stripe retry.
+          if (env.USER_DATA) await env.USER_DATA.put("stripe-unmapped:" + (evt.id || Date.now()), JSON.stringify({ type, user: userId, at: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 });
+          return new Response("unmapped price -- entitlement not changed", { status: 500 });
         }
         if (userId && plan) {
           // ops 3366: UPSERT (not PATCH). A PATCH with id=eq matches 0 rows if
           // the profile row doesn't exist yet (e.g. signup trigger not
           // installed, or user pre-dates it) and the paid plan is silently
           // lost. on_conflict=id + merge-duplicates creates-or-updates.
-          await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
+          const pr = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
             method: "POST",
             headers: {
               "apikey": env.SUPABASE_SERVICE_KEY,
@@ -1031,17 +1251,31 @@ export default {
               "Content-Type": "application/json",
               "Prefer": "resolution=merge-duplicates,return=minimal",
             },
-            body: JSON.stringify(Object.assign({ id: userId, plan },
+            body: JSON.stringify(Object.assign({ id: userId, plan, plan_source: source || null, plan_event_id: evt.id || null },
               obj.customer ? { stripe_customer_id: obj.customer } : {})),
           });
-          // cache entitlement at the edge for fast gating
+          if (!pr.ok) {
+            // A profile row that does not know the plan_source column still must not lose the update:
+            // retry once with the minimal contract before failing loud.
+            const pr2 = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
+              method: "POST",
+              headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY,
+                         "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal" },
+              body: JSON.stringify(Object.assign({ id: userId, plan }, obj.customer ? { stripe_customer_id: obj.customer } : {})),
+            });
+            if (!pr2.ok) return new Response("profile write failed " + pr2.status, { status: 500 });   // Stripe retries
+          }
+          // cache entitlement at the edge for fast gating -- only after the durable write succeeded
           if (env.USER_DATA) {
             await env.USER_DATA.put("plan:" + userId, plan, { expirationTtl: 60 * 60 * 24 * 35 });
           }
         }
+        if (evtKey && env.USER_DATA) await env.USER_DATA.put(evtKey, JSON.stringify({ type, user: userId, plan, source, at: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 });
         return new Response("ok", { status: 200 });
       } catch (e) {
-        return new Response("err " + String(e).slice(0, 100), { status: 200 }); // 200 so Stripe doesn't retry-storm on our bug
+        // audit 2026-09-08 INST-05: a failure is a failure. 500 makes Stripe retry with backoff
+        // instead of silently dropping a paid entitlement.
+        return new Response("err " + String(e).slice(0, 100), { status: 500 });
       }
     }
 

@@ -1,0 +1,69 @@
+# JustHodl institutional audit 2026-09-08 — engineering program
+
+Source: `JustHodl-Audit-2026-09-08.md` (uploaded by Khalid; pinned to `34ddd51`, which was HEAD when
+the program started, so every line reference in it applies verbatim). This file is the single
+tracker: one row per finding, its owner boundary, the release it ships in, and the evidence.
+
+Boundary doctrine: `justhodl-khalid`, `justhodl-khalid-risk`, `justhodl-engine-fusion` and their
+pages are built by Perplexity and are **not edited here**; findings inside that boundary are
+reported with the reproduction, not fixed.
+
+## Releases
+
+| Release | Scope | Ops | Status |
+|---|---|---|---|
+| **A** | Security containment (INST-01/02/03/04/05/06), capital authority (FR-01/02), fusion read-API readiness (D1–D4), release gates (INST-14), 7 page mislabels + `jh-wire.js` guard | 5219 containment, 5220 gate | shipped in this push — see ops reports |
+| **A2** | Fleet credential sweep (`scripts/scrub_literal_keys.py`, 358 engines / 418 sites / 111 config env blocks / ~250 historical ops scripts) then provider-key **rotation** (Khalid, provider dashboards) | 5221+ | queued: batched pushes after the Release A gate is GREEN |
+| **B** | Capital + risk maths: FR-03/04/05 (risk-sizer), FR-06/07/08/09 (risk-gate replay, deductions, monthly Sahm/truck, page schema) | — | next |
+| **C** | Accounting + historical truth: INST-07/08 (portfolio-admin/snapshot), INST-09/10/11 (calibration-snapshotter/backtest-engine/research-backtest), INST-12 (outcome-checker), INST-13 (freshness monitor) | — | after B |
+| **D** | Ownership + display contracts: producer contracts replacing heuristic wiring, per-output/per-page states in the engine directory, directory routes + script graph, generator atomicity, `jh-wire` typed drilldowns | — | after C |
+| **E** | Curated donor→recipient contracts (34) with ablations; genuinely new production inputs (broker reconciliation, NBBO, borrow, WI quotes, point-in-time reference data) | — | after D |
+
+## Findings
+
+| ID | Sev | Finding | Boundary | Release | Status | Evidence / acceptance |
+|---|---|---|---|---|---|---|
+| INST-01 | P0 | Brain/Journal authorization by uid length; debug enumerates identities | Claude | A | **FIXED** | data-proxy v2.1.0: identity only from verified Supabase token or service secret; roles owner/user/service/anon; anonymous → 401; `/brain-debug`, `/brain-purge`, `?build/?dedup` role-gated; PIN retired as auth. `tests/worker-data-proxy.test.js` (12) + ops 5220 A |
+| INST-02 | P0 | Anonymous userdata falls back into `u:<uid>` | Claude | A | **FIXED** | fallback removed; service-only `/admin/userdata-migrate` moves legacy blobs only when Supabase confirms the uid is not an account (ops 5219 dry+real) |
+| INST-03 | P1 | Origin header grants ENTERPRISE, rate table fails open | Claude | A | **FIXED** | `api_auth.py`: Origin selects metered SITE tier by client IP; degraded in-process counter, never unlimited. `tests/deployment/test_api_auth.py` (5); ops 5220 B burst probe |
+| INST-04 | P1 | Checkout trusts body user/plan | Claude | A | **FIXED** | verified buyer, `PRICE_PLAN_MAP` allowlist, pinned return host |
+| INST-05 | P1 | Webhook acks failed persistence | Claude | A | **FIXED** | idempotent `stripe-evt:<id>` inbox, plan from live subscription items, 500 on failed durable write, unmapped prices never change plan |
+| INST-06 | P1 | Literal credentials in source | Claude | A + A2 | **PARTIAL** | A: 5 audited sites + 3 shared modules + worker purge literal + wrangler key literals → `managed_secret`/SSM/Worker secrets; ops 5219 seeds canonical SSM params from live envs. A2: the audit undercounted — same 4 keys in 358 engines, a Telegram bot token in 87 places, Anthropic/NewsAPI/Census keys in config blocks; scrub tool validated (0 compile failures, 0 residuals on a scratch copy). **Rotation is Khalid's action after A2 lands.** Client-side FMP key in `journal.html` and other pages is a separate class (browser-exposed by design) → Release D proxying |
+| INST-07 | P1 | Quantity/cost edits corrupt P&L, stop side never flips | Claude | C | open | |
+| INST-08 | P1 | Missing price becomes cost | Claude | C | open | |
+| INST-09 | P1 | Walk-forward weights backdated | Claude | C | open | |
+| INST-10 | P1 | NAV books full horizon on entry day | Claude | C | open | |
+| INST-11 | P1 | Research attribution joins current critique | Claude | C | open | |
+| INST-12 | P1 | Outcome grading depends on job delay | Claude | C | open | |
+| INST-13 | P1 | Freshness monitor marks empty artifacts healthy | Claude | C | open | |
+| INST-14 | P1 | Release gates cover a small subset | Claude | A | **FIXED** | deploy-workers: required test job (`tests/worker-*.test.js`, syntax check every worker); pages.yml runs `tests/*.test.js` + blocking literal gate; deploy-lambdas runs every changed engine's `tests/run_tests.py` (or pytest); `tests/deployment` runs every `test_*.py` |
+| FR-01 | P1 | Katlin bypasses the authoritative risk artifact | Claude | A | **FIXED** | Katlin v2.3.0 consumes `data/khalid-risk.json`; effective cap = min(authority, desk, gate); `allows_new_entries=false` demotes PRIME/READY + empties basket; page shows authority / desk / gate separately. `aws/lambdas/justhodl-katlin/tests/run_tests.py` (7); ops 5220 D |
+| FR-02 | P1 | Stale/missing risk → FULL_RISK; zero multiplier ignored | Claude | A | **FIXED** | missing/stale/invalid authority or gate → DATA_HOLD 0%; `0 <= sz` honoured; no legs → 0% not 25% |
+| FR-03 | P1 | Risk-sizer breaches its 8% single-name cap | Claude | B | open | |
+| FR-04 | P1 | Risk-sizer separate authority, ignores portfolio state | Claude | B | open | |
+| FR-05 | P1 | Zero NAV discards drawdown brake | Claude | B | open | |
+| FR-06 | P1 | Risk-gate replay reads today's feeds | Claude | B | open | |
+| FR-07 | P1 | Risk-gate live drops annotated deductions | Claude | B | open | |
+| FR-08 | P1 | Monthly Sahm/truck from daily forward-fill | Claude | B | open | |
+| FR-09 | P1/P2 | risk-gate.html schema mismatch | Claude | B | open | |
+| FR-10 | P1 | Governed fusion rejects credit contract | **Perplexity** | — | reported | `fusion_engine.py:63-65` range-checks absent alternatives |
+| FR-11 | P2 | Governed fusion always DEGRADED | **Perplexity** | — | reported | |
+| FR-12 | P2 | Khalid Risk page hides fields | **Perplexity** | — | reported | |
+| D1–D4 | P1/P2 | Fusion read API: empty docs healthy, list route throws, stale labels eligible, blocked rows returned | Claude | A | **FIXED** | `fusion_api.js` v1.1 readiness object, 503 no-store on invalid, `EXPIRED` labels, actionable-only opportunities. `tests/worker-fusion-api.test.js` (6); ops 5220 C |
+| C-1 | P1 | 7 cards label upstream inputs as engine outputs | Claude | A | **FIXED** | repointed to each engine's real output (verified write sites); ops 5220 E |
+| C-2 | P1 | Generic cards cannot show every field | Claude | A (honesty) / D (drilldowns) | **PARTIAL** | `jh-wire.js`: rows/columns shown vs available stated, hidden arrays/objects counted, raw-feed link; typed drilldowns + pagination in D |
+| C-3 | P1 | WIRED status false positives | Claude | D | open | |
+| C-4 | P1 | Directory misses directory routes / script graph | Claude | D | open | |
+| C-5 | P1 | Manifest false negatives/positives | Claude | D | open | |
+| C-6 | P1 | Wiring generator overwrites newer assignments | Claude | D | open (do not rerun) | |
+| C-7 | P2 | `[null]` breaks the renderer | Claude | A | **FIXED** | null-first-row guard |
+| Data | P1 | Liquidity spread proxy is daily range | Claude | E | open | |
+| Home | P1 | 50% vs 75% competing authorities | Claude (Katlin side) | A | **FIXED** via FR-01 | homepage embed of Katlin now shows the authority cap |
+
+## Needs Khalid
+
+1. **Rotate** the FMP, Polygon, FRED, CoinMarketCap keys and the Telegram bot token in the provider
+   dashboards **after** Release A2 lands (every consumer reads SSM by then). Then paste nothing here —
+   run `ops_52xx_rotate_keys.py` which updates SSM + every Lambda env from the parameter values.
+2. Confirm `raafouis@gmail.com` is the Supabase account you sign in with; ops 5219 binds it as the
+   Brain/Journal owner and fails loud otherwise.

@@ -21,7 +21,8 @@ from llm_router import complete
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
-FMP_KEY = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal fallback
+FMP_KEY = managed_secret(("FMP_KEY", "FMP_API_KEY"), ("/justhodl/fmp/api-key",))
 BASE = "https://financialmodelingprep.com/stable"
 
 

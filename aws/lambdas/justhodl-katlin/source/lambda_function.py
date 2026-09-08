@@ -83,7 +83,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.2.0"
+VERSION = "2.3.0"   # audit 2026-09-08 FR-01/FR-02: binding capital authority (khalid-risk), data-hold on missing/stale critical evidence
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -1656,7 +1656,8 @@ def load_feeds():
                       ("credit", "data/credit-stress.json"), ("recession", "data/global-recession.json"), ("gbc", "data/global-business-cycle.json"),
                       ("dollar", "data/dollar-radar.json"), ("liquidity", "data/global-liquidity.json"), ("xasset", "data/cross-asset-regime.json"),
                       ("yc", "data/yield-curve.json"), ("fortress", "data/fortress.json"), ("accum_radar", "data/accumulation-radar.json"),
-                      ("whales", "data/whales.json"), ("stealth", "data/stealth-accumulation.json"), ("squeeze", "data/volatility-squeeze.json")):
+                      ("whales", "data/whales.json"), ("stealth", "data/stealth-accumulation.json"), ("squeeze", "data/volatility-squeeze.json"),
+                      ("khalid_risk", "data/khalid-risk.json")):   # audit 2026-09-08 FR-01: the authoritative capital permission
         F[name] = s3_json(key, {}) or {}
     F["backtest"] = s3_json(BACKTEST_KEY, None)
     # secondary accumulation reads from the fleet (radar / whales / stealth / fortress) -> per-ticker booleans.
@@ -1738,6 +1739,9 @@ def war_room(F):
     legs = []
     vetoes = []
     missing = []
+    # leg-scoped reads referenced after their try blocks: a missing feed must not
+    # raise UnboundLocalError (audit 2026-09-08: a partial fleet is a DATA_HOLD, not a crash)
+    gp = ph = dp6 = cli = crypto_risk = y10 = None
 
     def add(name, source, risk, read, value=None, weight=1.0, asof=None):
         if risk is None:
@@ -1948,36 +1952,114 @@ def war_room(F):
     except Exception as e_:
         missing.append("leg error: %s" % str(e_)[:80])
 
-    # thermometer
+    # thermometer -- the desk's own research read (never the binding permission by itself)
     num = sum(l["risk"] * l["weight"] for l in legs)
     den = sum(l["weight"] for l in legs)
     therm = (num / den) if den else None
     nred = sum(1 for l in legs if l["flag"] == "RED")
     if therm is None:
-        posture, cap = "UNKNOWN", 25
+        local_posture, local_cap = "UNKNOWN", 0          # audit FR-02: unknown is not permission to allocate (was 25%)
     elif vetoes or therm >= 72:
-        posture, cap = "CASH_OR_TBILLS", 10
+        local_posture, local_cap = "CASH_OR_TBILLS", 10
     elif therm >= 55 or nred >= 3:
-        posture, cap = "DEFENSIVE", 35
+        local_posture, local_cap = "DEFENSIVE", 35
     elif therm >= 38:
-        posture, cap = "SELECTIVE", 65
+        local_posture, local_cap = "SELECTIVE", 65
     else:
-        posture, cap = "FULL_RISK", 100
-    try:
-        sz = fnum((F.get("risk_gate") or {}).get("sizing_multiplier"))
-        if sz is not None and 0 < sz <= 1.5 and posture != "UNKNOWN":
-            cap = int(min(cap, round(sz * 100)))
-    except Exception:
-        pass
+        local_posture, local_cap = "FULL_RISK", 100
+
+    # ── binding capital authority (audit 2026-09-08 FR-01/FR-02) ─────────────
+    # data/khalid-risk.json is the ONE portfolio permission the homepage and Khalid
+    # obey. Effective cap = min(authority cap, desk cap); allows_new_entries=false
+    # blocks executable entries whatever the desk ranks; missing/stale critical
+    # evidence never widens the cap -- it produces a DATA_HOLD.
+    def _age_h(ts):
+        try:
+            t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+            if t.tzinfo is None:
+                t = t.replace(tzinfo=timezone.utc)
+            return round((datetime.now(timezone.utc) - t).total_seconds() / 3600.0, 2)
+        except Exception:
+            return None
+    AUTH_SLA_H, GATE_SLA_H = 24.0, 36.0     # khalid-risk is hourly; the raw risk-gate is daily
+    kr = F.get("khalid_risk") or {}
+    pol = kr.get("policy") if isinstance(kr.get("policy"), dict) else {}
+    auth_age = _age_h(kr.get("generated_at"))
+    auth_cap = fnum(kr.get("exposure_cap_pct"))
+    if auth_cap is None:
+        auth_cap = fnum(pol.get("exposure_cap_pct"))
+    auth_allows = pol.get("allows_new_entries")
+    auth_vetoes = [str(v) for v in (kr.get("hard_vetoes") or []) if v]
+    auth_mode = pol.get("mode") or kr.get("mode")
+    auth_status = "MISSING"
+    if kr and auth_age is not None and auth_cap is not None and isinstance(auth_allows, bool):
+        auth_status = "FRESH" if auth_age <= AUTH_SLA_H else "STALE"
+    elif kr:
+        auth_status = "INVALID"
+    authority = {"source": "justhodl-khalid-risk", "artifact": "data/khalid-risk.json", "status": auth_status,
+                 "generated_at": kr.get("generated_at"), "age_h": auth_age, "sla_h": AUTH_SLA_H, "schema_version": kr.get("schema_version"),
+                 "mode": auth_mode, "capital_decision": kr.get("capital_decision"), "exposure_cap_pct": auth_cap,
+                 "allows_new_entries": auth_allows, "hard_vetoes": auth_vetoes,
+                 "engine_status": kr.get("status"), "reasons": [str(r) for r in (pol.get("reasons") or [])][:6]}
+
+    rg = F.get("risk_gate") or {}
+    gate_age = _age_h(rg.get("generated_at"))
+    sz = fnum(rg.get("sizing_multiplier"))
+    gate_fresh = bool(rg.get("posture")) and gate_age is not None and gate_age <= GATE_SLA_H
+    gate_cap = int(round(min(max(sz, 0.0), 1.0) * 100)) if (sz is not None and 0.0 <= sz <= 1.5) else None   # FR-02: zero is a valid cap
+
+    hold_reasons = []
+    entries_allowed = True
+    if auth_status == "FRESH":
+        cap = int(min(local_cap, auth_cap))
+        if auth_allows is False:
+            entries_allowed = False
+        if auth_mode == "DATA_HOLD":
+            cap = 0
+    else:
+        # audit FR-02: missing / stale / invalid CRITICAL evidence is a hold, never a fallback that
+        # could widen exposure. khalid-risk is hourly, so > 24h stale means the authority is down.
+        hold_reasons.append("capital authority khalid-risk is %s%s -- DATA_HOLD (raw risk-gate %s)" % (
+            auth_status, (" (age %sh > SLA %sh)" % (auth_age, AUTH_SLA_H)) if auth_age is not None else "",
+            ("fresh, %s x%s" % (rg.get("posture"), sz)) if gate_fresh else ("age %sh" % gate_age if gate_age is not None else "missing")))
+        cap = 0
+        entries_allowed = False
+    if local_posture == "UNKNOWN":
+        hold_reasons.append("desk thermometer has no legs -- DATA_HOLD")
+        cap = 0
+        entries_allowed = False
+    if gate_fresh and gate_cap is not None:
+        cap = int(min(cap, gate_cap))   # the raw gate's own sizing multiplier still bounds the desk
+    if cap <= 0:
+        entries_allowed = False
+    for v in auth_vetoes:
+        vetoes.append("authority: " + v)
+    if hold_reasons:
+        posture = "DATA_HOLD"
+    elif cap <= 0 or auth_allows is False:
+        posture = "CASH_OR_TBILLS"
+    elif cap < 35:
+        posture = "DEFENSIVE"
+    elif cap < 80 or local_posture in ("DEFENSIVE", "SELECTIVE"):
+        posture = "SELECTIVE" if local_posture != "DEFENSIVE" else "DEFENSIVE"
+    else:
+        posture = "FULL_RISK"
     words = {"FULL_RISK": "green light -- deploy into the best asymmetric setups",
              "SELECTIVE": "amber -- only the highest-conviction bottoms, smaller size, keep dry powder",
              "DEFENSIVE": "mostly cash / short treasuries -- nibble only confirmed bottoms with tight stops",
-             "CASH_OR_TBILLS": "stand aside in cash / T-bills -- the bond and crisis desks say the floor can drop",
+             "CASH_OR_TBILLS": "stand aside in cash / T-bills -- the capital authority or the crisis desks say the floor can drop",
+             "DATA_HOLD": "capital authority evidence missing or stale -- no new risk until the gate is fresh again",
              "UNKNOWN": "war-room feeds unavailable -- treat as SELECTIVE"}
     brief = []
     if therm is not None:
         brief.append("Risk thermometer %.0f/100 across %d fleet legs (%d red, %d amber). Posture %s: %s." % (
             therm, len(legs), nred, sum(1 for l in legs if l["flag"] == "AMBER"), posture.replace("_", " "), words[posture]))
+    if auth_status == "FRESH":
+        brief.append("Capital authority (Khalid Risk, %sh old): %s, cap %s%%, new entries %s%s." % (
+            auth_age, auth_mode, int(auth_cap), "allowed" if auth_allows else "BLOCKED",
+            (", %d hard veto(s)" % len(auth_vetoes)) if auth_vetoes else ""))
+    for hr in hold_reasons:
+        brief.append(hr + ".")
     if vetoes:
         brief.append("Hard vetoes active: " + "; ".join(vetoes) + ".")
     top = sorted(legs, key=lambda l: -l["risk"])[:3]
@@ -1990,7 +2072,10 @@ def war_room(F):
         brief.append("Cycle: global phase %s%s." % (ph or "unknown", (", CLI %.1f" % cli) if cli is not None else ""))
     if crypto_risk is not None:
         brief.append("Crypto dump-risk %.0f/100 from the crypto cycle engine." % crypto_risk)
-    return {"posture": posture, "exposure_cap_pct": cap, "thermometer": rnd(therm, 1), "n_red": nred, "vetoes": vetoes,
+    return {"posture": posture, "exposure_cap_pct": cap, "entries_allowed": entries_allowed, "thermometer": rnd(therm, 1), "n_red": nred, "vetoes": vetoes,
+            "authority": authority, "local": {"posture": local_posture, "exposure_cap_pct": local_cap, "note": "desk thermometer -- research opinion, not the binding permission"},
+            "raw_gate": {"posture": rg.get("posture"), "sizing_multiplier": sz, "cap_pct": gate_cap, "age_h": gate_age, "fresh": gate_fresh, "sla_h": GATE_SLA_H},
+            "hold_reasons": hold_reasons,
             "legs": legs, "missing": missing, "brief": " ".join(brief), "crypto_dump_risk": crypto_risk, "y10": y10,
             "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp},
             "words": words[posture]}
@@ -3338,8 +3423,8 @@ def build_basket(rows, wr):
         "Model basket from base rates and gates -- research, not advice. Weights are shares of the whole book; the war-room cap bounds the total.",
         "Core: Kelly-lite (expected 6-month excess / variance), 10% of the book max per name. Barbell: equal-weight lottery tickets, 10% of the cap in total.",
         "Expected excess is the walk-forward base rate for the name's price profile; most names in these buckets lose a little and a few double -- size the basket, not the name."]}
-    if cap <= 0 or not rows:
-        out["notes"].append("war room allows no risk today -- basket is cash / T-bills")
+    if cap <= 0 or not rows or not wr.get("entries_allowed", True):
+        out["notes"].append("war room allows no risk today -- basket is cash / T-bills" if cap <= 0 else "capital authority blocks new entries today -- basket is cash / T-bills")
         return out
     bb_budget = min(10.0, cap * 0.10) if bb_pool else 0.0
     core_budget = cap - bb_budget
@@ -3448,7 +3533,7 @@ DEFINITIONS = {
     "learned prior (History 6M)": "The weekly walk-forward buckets every past name-date by its price profile (distance under the 200-day, weekly RSI, Bollinger width, volume dry-up, structure, higher lows, drawdown, sessions under the average, accumulation, momentum, divergence, trendline, volatility, market regime, asset type) and records the average excess return vs SPY 63/126/252 sessions later. Today's names inherit those base rates: expected excess = grand mean + the sum of their buckets' deltas. It is fitted on the past and applied to the present, checked out-of-sample on a 60/40 date split, and it carries 15% of the composite. Flows, catalysts and quality are not in the history, so they sit on top.",
     "washout gate": "an asymmetric bottom needs a real drawdown: at least 10% off the 52-week high or 6% under the 200-day, with annualised volatility of 10% or more. Money-market and ultra-short bond funds that sit a hair under a flat average are never buy candidates.",
     "posture": "The war room's decision BEFORE any pick: FULL_RISK / SELECTIVE / DEFENSIVE / CASH_OR_TBILLS, from a weighted risk thermometer over the bond desk, auction desk, brain risk-gate, black-swan watch, crisis composite, options tail risk, regime, volatility, VIX curve, credit spreads, recession probability, business cycle, dollar, global liquidity and cross-asset regime. Hard vetoes force CASH_OR_TBILLS.",
-    "exposure_cap_pct": "Maximum share of the portfolio the posture allows in risk assets today. Brain doctrine: macro gates sizing before selection.",
+    "exposure_cap_pct": "EFFECTIVE maximum share of the portfolio in risk assets today = min(Khalid Risk authority cap, desk thermometer cap, raw risk-gate sizing). Brain doctrine: macro gates sizing before selection. war_room.authority carries the binding permission (mode, cap, allows_new_entries, hard vetoes, age); war_room.local is the desk's own read; DATA_HOLD means the authority evidence is missing or stale and no new risk is permitted.",
     "location": "Distance to the 200- and 250-day simple/exponential averages. Gate: close BELOW the 200-day (the spec); below the 250-day is a bonus. Further below = more reward room, until the knife guard trips.",
     "oversold": "RSI on the weekly (<=40), daily (<=35) and monthly (<=45) frames, plus weekly RSI turning up from a washout and bullish RSI divergence (price lower low, RSI higher low).",
     "structure": "Long-term bottom evidence on weekly/monthly/quarterly bars: weekly double bottom (two lows within 6%, neckline break = CONFIRMED), a close above the weekly downtrend line drawn through descending swing highs, higher weekly lows, a monthly higher low, a quarterly close above the prior quarter's high. Lower lows still printing subtract.",
@@ -3582,7 +3667,11 @@ def lambda_handler(event=None, context=None):
     # posture applied: in DEFENSIVE / CASH the buy tiers are demoted to their evidence but flagged
     for r in rows:
         r["posture_note"] = None
-        if wr["posture"] == "CASH_OR_TBILLS" and r["tier"] in ("KATLIN_PRIME", "READY"):
+        if wr["posture"] == "DATA_HOLD" and r["tier"] in ("KATLIN_PRIME", "READY"):
+            r["posture_note"] = "DATA_HOLD -- capital authority evidence missing/stale; watchlist only"
+        elif not wr.get("entries_allowed", True) and r["tier"] in ("KATLIN_PRIME", "READY"):
+            r["posture_note"] = "capital authority blocks new entries -- watchlist only until Khalid Risk allows entries"
+        elif wr["posture"] == "CASH_OR_TBILLS" and r["tier"] in ("KATLIN_PRIME", "READY"):
             r["posture_note"] = "war room says CASH/T-BILLS -- watchlist only until the veto clears"
         elif wr["posture"] == "DEFENSIVE" and r["tier"] in ("KATLIN_PRIME", "READY"):
             r["posture_note"] = "war room DEFENSIVE -- half size, confirmed bottoms only"

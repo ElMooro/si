@@ -81,7 +81,26 @@ TIERS = {
         "per_sec":   None,
         "label":     "Enterprise",
     },
+    # audit 2026-09-08 INST-03: browser traffic from the site's own pages is a
+    # METERED anonymous quota keyed by client IP -- never an Enterprise grant.
+    # Origin/Referer are caller-controlled strings, so they can only select a
+    # quota, not a privilege. Generous enough for a human on a dashboard, far
+    # below what a scraper would want.
+    "SITE": {
+        "per_hour": 1_200,
+        "per_day":  8_000,
+        "per_sec":  15,
+        "label":    "Site (anonymous, metered by IP)",
+    },
 }
+
+# Degraded-mode fallback when the DynamoDB rate table is unreachable: an
+# in-process window counter per container. It is NOT unlimited -- capped at
+# DEGRADED_CAP_PER_MIN per key per container so a rate-table outage cannot
+# silently disable quotas (the previous behaviour returned 0 = fail OPEN).
+DEGRADED_CAP_PER_MIN = int(os.environ.get("JUSTHODL_API_DEGRADED_CAP_PER_MIN", "60"))
+_degraded_windows: dict = {}
+_degraded_flagged = False
 
 # Module-level boto3 clients — reused across invocations
 _ddb = None
@@ -199,11 +218,29 @@ def _atomic_increment_window(key_hash: str, window_pk: str, ttl_seconds: int) ->
         )
         return int(resp["Attributes"]["count"]["N"])
     except ClientError as e:
-        # If something goes wrong with the rate table, fail OPEN (allow the
-        # request) — better to over-serve a few than to break the whole API
-        # because of a transient DDB issue.
-        print(f"[api_auth] _atomic_increment_window error: {e}")
-        return 0
+        # audit 2026-09-08 INST-03: never fail OPEN. Count in-process instead
+        # (bounded, per container) and flag loudly so the outage is visible.
+        global _degraded_flagged
+        if not _degraded_flagged:
+            print(f"[api_auth] RATE_TABLE_DEGRADED: {e}")
+            _degraded_flagged = True
+        return _degraded_count(window_pk, ttl_seconds)
+
+
+def _degraded_count(window_pk: str, ttl_seconds: int) -> int:
+    """In-process window counter used only while the rate table is unreachable."""
+    now = int(time.time())
+    if len(_degraded_windows) > 5000:
+        for k in [k for k, (_, exp) in _degraded_windows.items() if exp < now][:2500]:
+            _degraded_windows.pop(k, None)
+    cnt, exp = _degraded_windows.get(window_pk, (0, now + min(ttl_seconds, 60)))
+    if exp < now:
+        cnt, exp = 0, now + min(ttl_seconds, 60)
+    cnt += 1
+    _degraded_windows[window_pk] = (cnt, exp)
+    # Report the count in the scale of the window being checked so that even
+    # the per-hour/per-day checks see a bounded number during degradation.
+    return cnt if cnt <= DEGRADED_CAP_PER_MIN else 10 ** 9
 
 
 def _update_last_used(key_hash: str) -> None:
@@ -230,14 +267,14 @@ def authorize(event: dict, allowed_origins: Optional[list] = None) -> Tuple[Opti
     Strict mode (default, allowed_origins=None):
         API key is required. No origin bypass.
 
-    Origin-bypass mode (allowed_origins is a non-empty list):
+    Site mode (allowed_origins is a non-empty list):
         If the request's Origin or Referer header matches one of the
-        allowed origins, the request is allowed through WITHOUT a key,
-        treated as ENTERPRISE-tier (no rate limit). This is intended
-        for migrating existing Lambdas where the justhodl.ai frontend
-        calls them directly — adding auth would otherwise break the
-        page. External callers (curl, third-party apps) still need
-        a valid jhd_<key>.
+        allowed origins AND no key is supplied, the request is admitted
+        as tier SITE: a metered anonymous quota keyed by the client IP
+        (TIERS["SITE"]), with all counters recorded. It is never an
+        Enterprise grant (audit 2026-09-08 INST-03 -- Origin is a
+        caller-controlled header). External callers wanting more than
+        the site quota still need a valid jhd_<key>.
 
         Example:
             authorize(event, allowed_origins=[
@@ -256,30 +293,32 @@ def authorize(event: dict, allowed_origins: Optional[list] = None) -> Tuple[Opti
           - On success: (key_meta_dict, None)
           - On failure: (None, lambda_response_dict)
 
-        On origin-bypass success, key_meta has:
-          {tier: "ENTERPRISE", auth_mode: "origin", origin: "..."}
+        On site-mode success, key_meta has:
+          {tier: "SITE", auth_mode: "origin", origin: "...", client_ip: "..."}
         On API-key success, key_meta has:
           {key_hash, tier, owner_email, label, created_at,
            auth_mode: "api_key"}
     """
     plain = _extract_key_from_event(event)
 
-    # Origin-bypass mode — only triggers if no API key was provided
-    # AND a matching origin/referer is present.
+    # Site mode -- only when no API key was provided AND a matching
+    # origin/referer is present. Metered by client IP (audit 2026-09-08).
     if not plain and allowed_origins:
         bypass_origin = _check_origin_bypass(event, allowed_origins)
         if bypass_origin:
-            # Pass through as ENTERPRISE-equivalent. We don't rate-limit
-            # internal frontend traffic; it's already protected by CORS
-            # at the Function URL level and by per-Lambda reserved
-            # concurrency.
+            client_ip = _client_ip(event)
+            site_hash = _hash_key("site:" + client_ip)
+            err = _enforce_limits(site_hash, "SITE")
+            if err:
+                return None, err
             return {
                 "auth_mode": "origin",
-                "tier": "ENTERPRISE",
-                "tier_label": "Enterprise (frontend internal)",
+                "tier": "SITE",
+                "tier_label": TIERS["SITE"]["label"],
                 "origin": bypass_origin,
+                "client_ip": client_ip,
                 "owner_email": "",
-                "label": "frontend-internal",
+                "label": "site-anonymous",
                 "created_at": "",
             }, None
 
@@ -303,51 +342,15 @@ def authorize(event: dict, allowed_origins: Optional[list] = None) -> Tuple[Opti
                           extra={"revoked_at": meta.get("revoked_at")})
 
     tier = meta.get("tier", "FREE")
-    if tier not in TIERS:
-        # Defensive: if the stored tier name is unrecognized, treat as FREE
+    if tier not in TIERS or tier == "SITE":
+        # Defensive: if the stored tier name is unrecognized, treat as FREE.
+        # SITE is never a stored key tier.
         tier = "FREE"
     limits = TIERS[tier]
 
-    # Rate limiting — three windows: per-second (burst), per-hour, per-day
-    now = int(time.time())
-    epoch_sec = now
-    epoch_hour = now // 3600
-    epoch_day = now // 86400
-
-    # Order matters: check tightest first so we don't increment looser counters
-    # for requests that the tightest limit would reject. We check sec → hour → day.
-    # For ENTERPRISE all three limits are None — skip checks but still log usage.
-
-    if limits["per_sec"] is not None:
-        sec_count = _atomic_increment_window(key_hash, f"{key_hash}#s{epoch_sec}", 60)
-        if sec_count > limits["per_sec"]:
-            return None, _err(429, "rate_limit_exceeded_burst",
-                              f"Burst limit: {limits['per_sec']} req/sec for {tier} tier.",
-                              extra={"tier": tier, "limit_per_sec": limits["per_sec"],
-                                     "current": sec_count},
-                              retry_after=1)
-
-    if limits["per_hour"] is not None:
-        hour_count = _atomic_increment_window(key_hash, f"{key_hash}#h{epoch_hour}", 3700)
-        if hour_count > limits["per_hour"]:
-            seconds_to_reset = 3600 - (now % 3600)
-            return None, _err(429, "rate_limit_exceeded_hour",
-                              f"Hourly limit: {limits['per_hour']} req/hour for {tier} tier.",
-                              extra={"tier": tier, "limit_per_hour": limits["per_hour"],
-                                     "current": hour_count,
-                                     "resets_in_seconds": seconds_to_reset},
-                              retry_after=seconds_to_reset)
-
-    if limits["per_day"] is not None:
-        day_count = _atomic_increment_window(key_hash, f"{key_hash}#d{epoch_day}", 90000)
-        if day_count > limits["per_day"]:
-            seconds_to_reset = 86400 - (now % 86400)
-            return None, _err(429, "rate_limit_exceeded_day",
-                              f"Daily limit: {limits['per_day']} req/day for {tier} tier.",
-                              extra={"tier": tier, "limit_per_day": limits["per_day"],
-                                     "current": day_count,
-                                     "resets_in_seconds": seconds_to_reset},
-                              retry_after=seconds_to_reset)
+    err = _enforce_limits(key_hash, tier)
+    if err:
+        return None, err
 
     # Best-effort usage timestamp update
     _update_last_used(key_hash)
@@ -361,6 +364,66 @@ def authorize(event: dict, allowed_origins: Optional[list] = None) -> Tuple[Opti
         "label": meta.get("label", ""),
         "created_at": meta.get("created_at", ""),
     }, None
+
+
+def _client_ip(event: dict) -> str:
+    """Client IP for a Function URL / API Gateway v2 event (never trusts X-Forwarded-For)."""
+    try:
+        ip = ((event.get("requestContext") or {}).get("http") or {}).get("sourceIp")
+        if ip:
+            return str(ip)
+        ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp")
+        if ip:
+            return str(ip)
+    except Exception:
+        pass
+    return "unknown"
+
+
+def _enforce_limits(key_hash: str, tier: str) -> Optional[dict]:
+    """Apply the tier's three windows (sec/hour/day). Returns an error response or None."""
+    limits = TIERS[tier]
+    # Rate limiting — three windows: per-second (burst), per-hour, per-day
+    now = int(time.time())
+    epoch_sec = now
+    epoch_hour = now // 3600
+    epoch_day = now // 86400
+
+    # Order matters: check tightest first so we don't increment looser counters
+    # for requests that the tightest limit would reject. We check sec → hour → day.
+    # For ENTERPRISE all three limits are None — skip checks but still log usage.
+
+    if limits["per_sec"] is not None:
+        sec_count = _atomic_increment_window(key_hash, f"{key_hash}#s{epoch_sec}", 60)
+        if sec_count > limits["per_sec"]:
+            return _err(429, "rate_limit_exceeded_burst",
+                              f"Burst limit: {limits['per_sec']} req/sec for {tier} tier.",
+                              extra={"tier": tier, "limit_per_sec": limits["per_sec"],
+                                     "current": sec_count},
+                              retry_after=1)
+
+    if limits["per_hour"] is not None:
+        hour_count = _atomic_increment_window(key_hash, f"{key_hash}#h{epoch_hour}", 3700)
+        if hour_count > limits["per_hour"]:
+            seconds_to_reset = 3600 - (now % 3600)
+            return _err(429, "rate_limit_exceeded_hour",
+                              f"Hourly limit: {limits['per_hour']} req/hour for {tier} tier.",
+                              extra={"tier": tier, "limit_per_hour": limits["per_hour"],
+                                     "current": hour_count,
+                                     "resets_in_seconds": seconds_to_reset},
+                              retry_after=seconds_to_reset)
+
+    if limits["per_day"] is not None:
+        day_count = _atomic_increment_window(key_hash, f"{key_hash}#d{epoch_day}", 90000)
+        if day_count > limits["per_day"]:
+            seconds_to_reset = 86400 - (now % 86400)
+            return _err(429, "rate_limit_exceeded_day",
+                              f"Daily limit: {limits['per_day']} req/day for {tier} tier.",
+                              extra={"tier": tier, "limit_per_day": limits["per_day"],
+                                     "current": day_count,
+                                     "resets_in_seconds": seconds_to_reset},
+                              retry_after=seconds_to_reset)
+    return None
 
 
 def _check_origin_bypass(event: dict, allowed_origins: list) -> Optional[str]:

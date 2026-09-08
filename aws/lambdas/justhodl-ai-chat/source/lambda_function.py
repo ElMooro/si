@@ -28,8 +28,9 @@ _ALLOWED_ORIGINS = ("https://justhodl.ai", "https://www.justhodl.ai")
 # ── END AUTH MODULE ─────────────────────────────────────────────────
 
 
-POLYGON_KEY  = 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d'
-CMC_KEY      = '17ba8e87-53f0-46f4-abe5-014d9cd99597'
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+POLYGON_KEY  = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY'), ('/justhodl/polygon/api-key',))
+CMC_KEY      = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ('/justhodl/cmc/api-key',))
 ANTHROPIC_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 S3_BUCKET    = 'justhodl-dashboard-live'
 

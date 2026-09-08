@@ -17,6 +17,23 @@ import boto3
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/brain.json"
 BRAIN_URL = "https://justhodl-data-proxy.raafouis.workers.dev/brain"
+# audit 2026-09-08 INST-01: the Brain is private; this mirror reads it with the
+# SERVICE role (X-JH-Service-Token = SSM /justhodl/api-admin/token), not by uid.
+SERVICE_TOKEN_SSM = os.environ.get("SERVICE_TOKEN_SSM", "/justhodl/api-admin/token")
+BRAIN_STORE = os.environ.get("BRAIN_STORE", "brain-930ffa48-60a1-4b11-8726-8848d1b827f9")
+_svc_tok = None
+def _service_token():
+    global _svc_tok
+    if _svc_tok:
+        return _svc_tok
+    v = os.environ.get("JH_SERVICE_TOKEN", "")
+    if not v:
+        try:
+            v = boto3.client("ssm", region_name="us-east-1").get_parameter(Name=SERVICE_TOKEN_SSM, WithDecryption=True)["Parameter"]["Value"]
+        except Exception as e:
+            print("[brain-sync] service token unavailable: %s" % str(e)[:80]); v = ""
+    _svc_tok = v
+    return v
 MODEL = "claude-haiku-4-5-20251001"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "") or os.environ.get("ANTHROPIC_API_KEY", "")
 s3 = boto3.client("s3", region_name=REGION)
@@ -167,7 +184,8 @@ def _regime_read(notes_text, regimes):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
-        req = urllib.request.Request(BRAIN_URL + "?sync=1&uid=brain-930ffa48-60a1-4b11-8726-8848d1b827f9", headers={"User-Agent": "JustHodl-BrainSync/1.0"})
+        req = urllib.request.Request(BRAIN_URL + "?sync=1&uid=" + BRAIN_STORE,
+                                     headers={"User-Agent": "JustHodl-BrainSync/1.0", "X-JH-Service-Token": _service_token()})
         d = json.loads(urllib.request.urlopen(req, timeout=15).read().decode())
     except Exception as e:
         print(f"[brain-sync] fetch err: {str(e)[:80]}")

@@ -19,10 +19,32 @@ permissions:
   contents: read
 
 jobs:
+  # audit 2026-09-08 INST-14: a Worker can no longer ship without its behavioural
+  # tests. The auth/entitlement paths reproduced by the audit are asserted here
+  # (tests/worker-*.test.js run the real module in Node with fake KV/Supabase/Stripe).
+  test:
+    name: Worker behavioural tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check every worker entrypoint
+        run: |
+          set -e
+          for f in cloudflare/workers/*/src/*.js; do node --check "$f"; done
+      - name: Run worker test suites
+        run: node --test tests/worker-*.test.js
+
   deploy:
     name: Deploy changed Workers
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,6 +122,14 @@ jobs:
             --query 'Parameter.Value' --output text)
           echo "::add-mask::$PA_PASS"
           echo "PORTFOLIO_MGR_PASS=$PA_PASS" >> $GITHUB_ENV
+          # audit 2026-09-08: data-proxy service role + provider keys come from SSM
+          # (soft-fail: an absent parameter leaves the existing secret untouched;
+          # ops_5219 creates the parameters and re-dispatches this workflow).
+          for pair in "ADMIN_TOKEN:/justhodl/api-admin/token" "POLYGON_KEY:/justhodl/polygon/api-key" "FRED_KEY:/justhodl/fred/api-key"; do
+            var="${pair%%:*}"; name="${pair#*:}"
+            val=$(aws ssm get-parameter --name "$name" --with-decryption --region ${{ secrets.AWS_REGION }} --query 'Parameter.Value' --output text 2>/dev/null || true)
+            if [ -n "$val" ] && [ "$val" != "None" ]; then echo "::add-mask::$val"; echo "$var=$val" >> $GITHUB_ENV; echo "ssm: $name -> $var"; else echo "::warning::ssm parameter $name absent -- $var not attached this run"; fi
+          done
 
       - name: Deploy each changed Worker
         if: steps.detect.outputs.targets != ''
@@ -137,6 +167,9 @@ jobs:
               if [ -n "$STRIPE_SECRET" ]; then echo "$STRIPE_SECRET" | wrangler secret put STRIPE_SECRET; fi
               if [ -n "$STRIPE_WEBHOOK_SECRET" ]; then echo "$STRIPE_WEBHOOK_SECRET" | wrangler secret put STRIPE_WEBHOOK_SECRET; fi
               if [ -n "$SUPABASE_SERVICE_KEY" ]; then echo "$SUPABASE_SERVICE_KEY" | wrangler secret put SUPABASE_SERVICE_KEY; fi
+              if [ -n "$ADMIN_TOKEN" ]; then echo "$ADMIN_TOKEN" | wrangler secret put ADMIN_TOKEN; fi
+              if [ -n "$POLYGON_KEY" ]; then echo "$POLYGON_KEY" | wrangler secret put POLYGON_KEY; fi
+              if [ -n "$FRED_KEY" ]; then echo "$FRED_KEY" | wrangler secret put FRED_KEY; fi
             fi
 
             echo "✅ $w deployed"

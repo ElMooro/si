@@ -62,7 +62,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, x-mgr-pass, X-Brain-Pin',
+    'Access-Control-Allow-Headers': 'Content-Type, x-mgr-pass, X-Brain-Pin, Authorization, X-JH-Service-Token',
     'Access-Control-Max-Age': '300',
     'Vary': 'Origin',
   };
@@ -279,6 +279,10 @@ async function handleDataProxy(request, origin, path, search) {
     const init = { method: request.method, headers: {} };
     const ct = request.headers.get('Content-Type'); if (ct) init.headers['Content-Type'] = ct;
     const bp = request.headers.get('X-Brain-Pin'); if (bp) init.headers['X-Brain-Pin'] = bp;
+    // audit 2026-09-08 INST-01: the data-proxy now authenticates Brain/Journal callers by a verified
+    // Supabase Bearer token (or the service secret). Forward both so the bridge is not an auth bypass.
+    const az = request.headers.get('Authorization'); if (az) init.headers['Authorization'] = az;
+    const st = request.headers.get('X-JH-Service-Token'); if (st) init.headers['X-JH-Service-Token'] = st;
     if (request.method !== 'GET' && request.method !== 'HEAD') init.body = await request.text();
     const r = await fetch(upstream, init);
     const text = await r.text();

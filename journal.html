@@ -94,6 +94,10 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY="https://api.justhodl.ai";const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 const FMP="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
 function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
+// audit 2026-09-08: the journal is private -- reads and writes carry the verified Supabase token.
+async function authHdr(){try{var t=window.JustHodlAuth&&JustHodlAuth.getAccessToken?await JustHodlAuth.getAccessToken():null;return t?{'Authorization':'Bearer '+t}:{};}catch(e){return {};}}
+async function waitForAuth(ms){var t0=Date.now();while(!(window.JustHodlAuth&&JustHodlAuth.init)&&Date.now()-t0<(ms||4000)){await new Promise(function(r){setTimeout(r,60);});}return !!(window.JustHodlAuth&&JustHodlAuth.init);}
+let READONLY=false;
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
 function fmtDate(ts){return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
@@ -158,14 +162,14 @@ async function _jdoSave(){
   if(_jsaving){_jpending=true;return;}
   _jsaving=true;_jpending=false;
   var _authed=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());
-  if(!_authed && !PIN){_jsaving=false;openPin();return;}
+  if(!_authed){_jsaving=false;_jpending=true;badge('🔒 sign in to lock decisions in','err');if(window.JustHodlAuth&&JustHodlAuth.openSignIn)JustHodlAuth.openSignIn();return;}
   badge('saving…','saving');
   try{
-    var _bd={entries:ENTRIES,updated_at:new Date().toISOString()};if(!_authed)_bd._pin=PIN;
-    let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(_bd)});d=await r.json();break;}catch(e){}}
+    var _bd={entries:ENTRIES,updated_at:new Date().toISOString()};
+    let d=null,st=0;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?${uidQ()}`,{method:'PUT',headers:Object.assign({'Content-Type':'text/plain'},await authHdr()),body:JSON.stringify(_bd)});st=r.status;d=await r.json();break;}catch(e){}}
     if(!d)throw new Error('unreachable');
     if(d.ok){badge('✓ locked in','saved');setTimeout(()=>{if(!_jsaving&&!_jpending)badge('');},1800);}
-    else if(r.status===403||r.status===401){if(!_authed){PIN='';sessionStorage.removeItem('jh_brain_pin');openPin();}else badge('save error','err');}
+    else if(st===403||st===401){badge('🔒 sign in to save','err');_jpending=true;}
     else badge(d.error||'failed','err');
   }catch(e){badge('offline','err');_jpending=true;}
   _jsaving=false;
@@ -173,7 +177,7 @@ async function _jdoSave(){
 }
 function save(){clearTimeout(_jtimer);_jtimer=setTimeout(_jdoSave,400);}
 async function load(){
-  try{let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?t=${Date.now()}&${uidQ()}`);d=await r.json();break;}catch(e){}}ENTRIES=(d&&Array.isArray(d.entries))?d.entries:[];}catch(e){ENTRIES=[];}
+  try{let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?t=${Date.now()}&${uidQ()}`,{headers:await authHdr()});if(r.status===401){READONLY=true;badge('🔒 sign in to see your journal','err');break;}d=await r.json();break;}catch(e){}}ENTRIES=(d&&Array.isArray(d.entries))?d.entries:[];}catch(e){ENTRIES=[];}
   try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}
   renderTrack();renderEntries();
 }
@@ -183,12 +187,12 @@ document.getElementById('pin-input').onkeydown=(e)=>{if(e.key==='Enter')document
 document.querySelectorAll('.dir-chip').forEach(el=>el.onclick=()=>{dir=el.dataset.dir;document.querySelectorAll('.dir-chip').forEach(x=>x.classList.remove('active'));el.classList.add('active');});
 document.querySelector('.dir-chip.bull').classList.add('active');
 document.getElementById('j-add').onclick=addEntry;
-load();
+(async function boot(){ if(await waitForAuth(4000)){ try{ await JustHodlAuth.init(); }catch(e){} if(JustHodlAuth.onChange){ JustHodlAuth.onChange(function(){ READONLY=false; load().then(function(){ if(_jpending){_jpending=false;save();} }); }); } } load(); })();
 </script>
 <script src="/auth-config.js?v=6"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js?v=6"></script>
-<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
+<script>/* audit 2026-09-08: JustHodlAuth.init() is awaited by the page's boot() above */</script>
 <script src="/cmdk.js"></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>

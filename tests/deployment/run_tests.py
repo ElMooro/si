@@ -7,12 +7,15 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve().parent
-scope = runpy.run_path(str(HERE / "test_release_workflow.py"))
-tests = sorted(
-    (name, function)
-    for name, function in scope.items()
-    if name.startswith("test_") and callable(function)
-)
+tests = []
+# audit 2026-09-08: every test_*.py here runs on every Lambda deploy (shared api_auth included).
+for module in sorted(HERE.glob("test_*.py")):
+    scope = runpy.run_path(str(module))
+    tests.extend(sorted(
+        (f"{module.stem}.{name}", function)
+        for name, function in scope.items()
+        if name.startswith("test_") and callable(function)
+    ))
 for name, test in tests:
     test()
 

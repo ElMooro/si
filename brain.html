@@ -144,6 +144,10 @@ function brainUid(){
   return _BRAIN_UID;
 }
 function uidQ(){return "uid="+encodeURIComponent(brainUid());}
+// audit 2026-09-08: the worker authenticates Brain writes by a VERIFIED Supabase token
+// (owner role). Anonymous readers get the public mirror, read-only.
+async function authHdr(){try{var t=window.JustHodlAuth&&JustHodlAuth.getAccessToken?await JustHodlAuth.getAccessToken():null;return t?{'Authorization':'Bearer '+t}:{};}catch(e){return {};}}
+async function waitForAuth(ms){var t0=Date.now();while(!(window.JustHodlAuth&&JustHodlAuth.init)&&Date.now()-t0<(ms||4000)){await new Promise(function(r){setTimeout(r,60);});}return !!(window.JustHodlAuth&&JustHodlAuth.init);}
 // One-time account pin: visiting brain.html?account=<your-uid> remembers it
 // permanently so the Brain always loads your account notes — no sign-in modal
 // needed. Useful when the OAuth flow is fiddly.
@@ -454,9 +458,10 @@ async function _putBrain(job){
   const kind=job.note?'note':job.notes_upsert?('batch×'+job.notes_upsert.length):job.delete?'delete':job.notes?('bulk×'+job.notes.length):'?';
   for(const base of [PROXY, PROXY_FALLBACK]){
     try{
-      const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:{'Content-Type':'text/plain'},body:JSON.stringify(job)});
+      const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:Object.assign({'Content-Type':'text/plain'},await authHdr()),body:JSON.stringify(job)});
       const d=await r.json();
       d._status=r.status;
+      if(r.status===401||r.status===403)return d;   // auth verdict is final on this endpoint -- do not fall through to the other base
       dbg('SAVE '+kind+' → '+base.replace('https://','')+' = '+r.status+' '+(d.ok?'OK':JSON.stringify(d).slice(0,60)));
       return d;
     }catch(e){ dbg('SAVE '+kind+' → '+base.replace('https://','')+' FAILED: '+String(e).slice(0,50)); }
@@ -473,6 +478,12 @@ async function _runQueue(){
         badge(_q.length?('saving… '+(_q.length+1)+' left'):'saving…','saving');
         const d=await _putBrain(job);
         if(d&&d.ok){ok=true;}
+        else if(d&&(d._status===401||d._status===403)){
+          // not signed in as the owner -- keep the job, stop the queue, resume on sign-in
+          _q.unshift(job); STATE.readonly=true;
+          badge('🔒 sign in as the owner to save changes','err'); renderStatus();
+          _qrunning=false; return;
+        }
         else if(d&&d._status===429){
           // capacity full — park this job locally, stop the queue (don't churn)
           try{var ov=JSON.parse(localStorage.getItem('brain_overflow')||'[]');ov.push(job);localStorage.setItem('brain_overflow',JSON.stringify(ov).slice(0,4000000));}catch(e){}
@@ -515,8 +526,9 @@ async function load(){
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),9000);
     try{
       const t0=Date.now();
-      const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal});
+      const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal,headers:await authHdr()});
       const dt=Date.now()-t0;
+      if(r.status===401){STATE.readonly=true;lastErr='private store: sign in as the owner (HTTP 401)';dbg('LOAD '+lastErr);break;}
       if(!r.ok){const body=await r.text().catch(()=>'' );lastErr=base.replace('https://','')+' HTTP '+r.status+' in '+dt+'ms · '+body.slice(0,80);dbg('LOAD '+lastErr);continue;}
       d=await r.json();dbg('LOAD OK '+base.replace('https://','')+' '+dt+'ms · notes='+((d.notes||[]).length));break;
     }catch(e){lastErr=base.replace('https://','')+' '+e.name+': '+e.message;dbg('LOAD ERR '+lastErr);}
@@ -529,7 +541,7 @@ async function load(){
       if(r.ok){const m=await r.json();if(Array.isArray(m.notes)){d={notes:m.notes,pin_set:false,scope:'mirror'};STATE.stale=true;STATE.mirrorTime=m.generated_at;dbg('LOAD MIRROR · '+m.notes.length+' notes from '+(m.generated_at||'').slice(0,16));}}
     }catch(e){}
   }
-  if(d){STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;STATE.source=d.scope;}
+  if(d){STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;STATE.source=d.scope;STATE.readonly=(d.scope==='mirror');}
   else{STATE.notes=[];dbg('LOAD FAILED — '+(lastErr||'all sources unreachable'));}
   renderStatus();
   renderCats();renderFilters();renderNotes();
@@ -544,11 +556,10 @@ async function renderStatus(){
   try{
     const u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
     let remembered='';try{remembered=localStorage.getItem('jh_brain_account')||'';}catch(e){}
-    const onAccount=!!u || (_BRAIN_UID&&_BRAIN_UID.indexOf('dev-')!==0) || !!remembered;
-    if(!onAccount){
+    if(STATE.readonly){
       gb=`<div style="background:rgba(34,211,238,0.07);border:1px solid #1c3a44;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--fg-2)">
-        <span>🔒 <b>Guest mode</b> — notes are saved to this browser only. <b>Sign in</b> to sync across devices &amp; never lose them.</span>
-        <button onclick="if(window.JustHodlAuth)JustHodlAuth.openSignIn()" style="margin-left:auto;background:var(--cyan);border:none;color:var(--bg);font-weight:700;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer">Sign in to sync</button>
+        <span>🔒 <b>Read-only</b> — ${u?'this account is not the Brain owner':'you are viewing the public mirror'}. The private store is owner-only; edits need the owner\'s sign-in.</span>
+        ${u?'':'<button onclick="if(window.JustHodlAuth)JustHodlAuth.openSignIn()" style="margin-left:auto;background:var(--cyan);border:none;color:var(--bg);font-weight:700;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer">Sign in</button>'}
       </div>`;
     }
   }catch(e){}
@@ -620,7 +631,7 @@ document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&
   // If signed in, the account id is used automatically (no 'guest mode', no
   // re-sign-in). Guest id is only the fallback when genuinely not logged in.
   try{
-    if(window.JustHodlAuth&&JustHodlAuth.init){
+    if(await waitForAuth(4000)){
       await JustHodlAuth.init();              // fully await session restore (no premature 3.5s cutoff)
     }
   }catch(e){}
@@ -634,8 +645,8 @@ document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&
     JustHodlAuth.onChange(function(){
       try{
         var u=JustHodlAuth.getUser&&JustHodlAuth.getUser();
-        if(u&&u.id&&u.id!==_BRAIN_UID){_BRAIN_UID=u.id;load();renderStatus();}
-        else if(!u&&_BRAIN_UID&&_BRAIN_UID.indexOf('dev-')!==0){_BRAIN_UID=null;brainUid();load();renderStatus();}
+        // identity is server-side now: any auth change re-reads the private store and resumes parked saves
+        STATE.readonly=false; load().then(function(){ if(u&&_q.length)_runQueue(); });
       }catch(e){}
     });
   }

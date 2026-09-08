@@ -76,6 +76,18 @@ def _mirror_write(doc):
                   CacheControl="max-age=300")
 
 
+_svc_tok = None
+def _service_token():
+    """audit 2026-09-08 INST-01: Brain writes need the SERVICE role (X-JH-Service-Token)."""
+    global _svc_tok
+    if _svc_tok is None:
+        try:
+            _svc_tok = _ssm("/justhodl/api-admin/token", "JH_SERVICE_TOKEN")
+        except Exception as e:
+            print("[tv-notes] service token unavailable: %s" % str(e)[:80]); _svc_tok = ""
+    return _svc_tok
+
+
 def _brain_put(payload, uid):
     body = json.dumps(payload).encode("utf-8")
     last = None
@@ -84,7 +96,8 @@ def _brain_put(payload, uid):
             req = urllib.request.Request(
                 "%s/brain?uid=%s" % (base, uid), data=body, method="PUT",
                 headers={"Content-Type": "text/plain",
-                         "User-Agent": "justhodl-tv-ingest/1.0"})
+                         "User-Agent": "justhodl-tv-ingest/1.0",
+                         "X-JH-Service-Token": _service_token()})
             with urllib.request.urlopen(req, timeout=25) as r:
                 d = json.loads(r.read().decode("utf-8", "replace"))
                 if d.get("ok"):

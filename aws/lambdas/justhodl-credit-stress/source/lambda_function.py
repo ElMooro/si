@@ -85,7 +85,8 @@ S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/credit-stress.json"
 HISTORY_KEY = "data/credit-stress-history.json"
 
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal fallback
+FRED_KEY = managed_secret(("FRED_KEY", "FRED_API_KEY"), ("/justhodl/fred/api-key",))
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 

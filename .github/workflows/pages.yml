@@ -49,8 +49,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test Khalid dashboard interactions
-        run: node --test tests/khalid-ui.test.js
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # audit 2026-09-08 INST-14: EVERY frontend/worker suite gates the Pages deploy, not one file.
+      - name: Frontend + worker behavioural tests
+        run: node --test tests/*.test.js
+      - name: Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)
+        run: |
+          BAD=0
+          for f in *.html; do
+            if grep -nE '\[object Object\]|undefined%' "$f"; then echo "::error file=$f::forbidden literal"; BAD=1; fi
+          done
+          exit $BAD
       - name: Assemble lean site artifact
         run: |
           mkdir -p _site

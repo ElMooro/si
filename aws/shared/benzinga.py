@@ -136,8 +136,8 @@ def _fmp_calendar(days_ahead=14, limit=1000):
     healthy while emitting nothing). FMP /stable/earnings-calendar is already
     proven in benzinga-news-agent and buyback-engine.
     """
-    key = (os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
-           or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    from managed_secret import managed_secret  # audit 2026-09-08 INST-06
+    key = managed_secret(("FMP_KEY", "FMP_API_KEY"), ("/justhodl/fmp/api-key",))
     if not key:
         return []
     today = date.today()

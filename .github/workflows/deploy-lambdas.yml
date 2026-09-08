@@ -165,14 +165,23 @@ jobs:
             fi
 
             case "$fn" in
-              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid)
+              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid|justhodl-katlin)
                 if [ ! -f "$dir/tests/run_tests.py" ]; then
                   echo "::error::$fn requires dependency-free tests/run_tests.py"
                   exit 1
                 fi
-                python3 "$dir/tests/run_tests.py"
                 ;;
             esac
+            # audit 2026-09-08 INST-14: every changed engine that ships tests runs them before AWS is touched.
+            if [ -f "$dir/tests/run_tests.py" ]; then
+              echo "── $fn: tests/run_tests.py"
+              python3 "$dir/tests/run_tests.py"
+            elif ls "$dir/tests"/test_*.py >/dev/null 2>&1; then
+              # engines without their own runner (jh-fusion, jhsignal-bridge, symdir, invest) run under pytest
+              echo "── $fn: pytest"
+              python3 -m pip install -q pytest >/dev/null 2>&1 || true
+              PYTHONPATH="aws/shared:$dir/source:$dir/tests" python3 -m pytest -q "$dir/tests" -x
+            fi
           done
 
       - name: Deploy each changed Lambda

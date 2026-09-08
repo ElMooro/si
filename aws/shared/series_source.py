@@ -54,9 +54,9 @@ import re
 import urllib.parse
 import urllib.request
 
-FRED_FALLBACK = "2f057499936072679d8843d7fce99989"
-FRED_KEY = (os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY")
-            or FRED_FALLBACK)
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal fallback
+FRED_KEY = managed_secret(("FRED_API_KEY", "FRED_KEY"), ("/justhodl/fred/api-key",))
+FRED_FALLBACK = FRED_KEY   # retained name: line ~974 iterates (FRED_KEY, FRED_FALLBACK)
 
 ISO2_ISO3 = {
     "US": "USA", "EU": "EA19", "JP": "JPN", "CN": "CHN", "GB": "GBR",

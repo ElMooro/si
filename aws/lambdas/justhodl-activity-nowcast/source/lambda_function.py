@@ -41,7 +41,8 @@ import boto3
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/activity-nowcast.json"
-FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal fallback
+FRED_KEY = managed_secret(("FRED_API_KEY", "FRED_KEY"), ("/justhodl/fred/api-key",))
 
 # (series_id, display name, frequency w/d, invert?, weight)
 # invert=True : a RISING value is a DRAG on activity (claims, stress, spreads)

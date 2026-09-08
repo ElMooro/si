@@ -30,7 +30,7 @@
     var h=(Date.now()-d.getTime())/36e5,t=h<1?Math.round(h*60)+"m":h<48?h.toFixed(1)+"h":Math.round(h/24)+"d";
     var c=h<=26?"jw-ok":h<=80?"jw-warn":"jw-bad";return '<span class="jw-b '+c+'">'+t+' old</span>';}
   function firstArray(o,depth){if(depth>2||o==null)return null;
-    if(Array.isArray(o))return o.length&&typeof o[0]==="object"&&!Array.isArray(o[0])?o:null;
+    if(Array.isArray(o))return o.length&&o[0]!==null&&typeof o[0]==="object"&&!Array.isArray(o[0])?o:null;
     if(typeof o!=="object")return null;
     var ks=Object.keys(o);for(var i=0;i<ks.length;i++){var r=firstArray(o[ks[i]],depth+1);if(r)return r;}return null;}
   function scalars(o){var out=[];if(!o||typeof o!=="object"||Array.isArray(o))return out;
@@ -40,14 +40,23 @@
       else if(typeof v==="string"&&v.length<=40&&v.length>0)out.push([k,esc(v)]);
       else if(typeof v==="boolean")out.push([k,String(v)]);}
     return out;}
-  function tableOf(arr){var rows=arr.slice(0,8),cols=[],c0=rows[0];
+  function tableOf(arr){var rows=arr.filter(function(r){return r&&typeof r==="object"&&!Array.isArray(r);}).slice(0,8),cols=[],c0=rows[0];
+    if(!c0)return "";
     var ks=Object.keys(c0);for(var i=0;i<ks.length&&cols.length<5;i++){var k=ks[i],v=c0[k];
       if(typeof v==="number"||(typeof v==="string"&&v.length<=28))cols.push(k);}
     if(!cols.length)return "";
     var h="<tr>"+cols.map(function(c){return "<th>"+esc(c)+"</th>";}).join("")+"</tr>";
     var b=rows.map(function(r){return "<tr>"+cols.map(function(c){var v=r[c];
       return "<td>"+(typeof v==="number"?fmt(v):esc(String(v==null?"":v)).slice(0,30))+"</td>";}).join("")+"</tr>";}).join("");
-    return '<table class="jw-t">'+h+b+"</table><div class='jw-more'>"+(arr.length>8?("+"+(arr.length-8)+" more rows in feed"):"")+"</div>";}
+    // audit 2026-09-08 (page coverage): a preview must SAY it is a preview -- rows and columns shown vs available.
+    var more=[];if(arr.length>rows.length)more.push("showing "+rows.length+" of "+arr.length+" rows");
+    if(ks.length>cols.length)more.push(cols.length+" of "+ks.length+" columns");
+    return '<table class="jw-t">'+h+b+"</table><div class='jw-more'>"+(more.length?esc(more.join(" · "))+" · preview only":"")+"</div>";}
+  function coverageNote(d,arr){if(!d||typeof d!=="object"||Array.isArray(d))return "";
+    var ks=Object.keys(d),shownScalars=0,arrays=0,objects=0;
+    ks.forEach(function(k){var v=d[k];if(Array.isArray(v))arrays++;else if(v&&typeof v==="object")objects++;});
+    var parts=[];if(arrays>(arr?1:0))parts.push((arrays-(arr?1:0))+" more array"+(arrays-(arr?1:0)>1?"s":""));if(objects)parts.push(objects+" nested object"+(objects>1?"s":""));
+    return parts.length?'<div class="jw-more">not shown in this preview: '+esc(parts.join(", "))+" — open the raw feed for every field</div>":"";}
   function summarize(o){if(o==null)return"empty feed";
     if(Array.isArray(o))return"array · "+o.length+" items";
     if(typeof o==="object")return"object · "+Object.keys(o).length+" keys";return esc(String(o));}
@@ -93,6 +102,8 @@
       var arr=firstArray(d,0);
       if(arr)html+=tableOf(arr);
       if(!html)html='<div class="jw-sum">'+summarize(d)+"</div>";
+      html+=coverageNote(d,arr);
+      html+='<div class="jw-more"><a href="/'+esc(en.feed)+'" target="_blank" rel="noopener" style="color:var(--jh-amber,#eab308)">raw feed JSON ↗</a> · full typed views live on the engine\'s dedicated page</div>';
       body.className="jw-body";body.innerHTML=html;
     });
   });
