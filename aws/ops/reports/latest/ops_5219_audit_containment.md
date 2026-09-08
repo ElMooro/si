@@ -1,35 +1,41 @@
 # ops 5219 -- audit 2026-09-08 Release A: containment (SSM managed config, owner binding, guest-namespace migration)
 
-**Status:** failure  
-**Duration:** 911.2s  
-**Finished:** 2026-09-08T21:54:29+00:00  
+**Status:** success  
+**Duration:** 17.0s  
+**Finished:** 2026-09-08T22:01:58+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| accounts | already | dry | errors | migrated | scanned | step |
+|---|---|---|---|---|---|---|
+| 1 | 1 | 1 | 0 | 10 | 12 | userdata-migrate |
+| 1 | 1 | 0 | 0 | 10 | 12 | userdata-migrate |
 
 ## Log
 ## 1. canonical SSM parameters
 
-- `21:39:26` scanned 883 functions' environments
-- `21:39:26` ⚠ /justhodl/fmp/api-key: 2 distinct live values across the fleet (majority 193 functions) -- rotation must reconcile these
-- `21:39:26` ✅ /justhodl/fmp/api-key CREATED from the live env majority value (ww…xb, 193 functions)
-- `21:39:26` ⚠ /justhodl/polygon/api-key: 2 distinct live values across the fleet (majority 132 functions) -- rotation must reconcile these
-- `21:39:26` ✅ /justhodl/polygon/api-key exists and matches the fleet majority value (zv…_d, 132 functions)
-- `21:39:26` ⚠ /justhodl/fred/api-key: 2 distinct live values across the fleet (majority 186 functions) -- rotation must reconcile these
-- `21:39:26` ✅ /justhodl/fred/api-key exists and matches the fleet majority value (2f…89, 186 functions)
-- `21:39:26` ✅ /justhodl/cmc/api-key CREATED from the live env majority value (17…97, 49 functions)
-- `21:39:26` ✅ /justhodl/telegram/bot_token exists and matches the fleet majority value (86…Gs, 121 functions)
-- `21:39:26` ✅ /justhodl/newsapi/api-key CREATED from the live env majority value (17…40, 18 functions)
-- `21:39:27` ✅ /justhodl/census/api-key CREATED from the live env majority value (84…15, 3 functions)
+- `22:01:50` scanned 883 functions' environments
+- `22:01:50` ⚠ /justhodl/fmp/api-key: 2 distinct live values across the fleet (majority 193 functions) -- rotation must reconcile these
+- `22:01:50` ✅ /justhodl/fmp/api-key exists and matches the fleet majority value (ww…xb, 193 functions)
+- `22:01:50` ⚠ /justhodl/polygon/api-key: 2 distinct live values across the fleet (majority 132 functions) -- rotation must reconcile these
+- `22:01:50` ✅ /justhodl/polygon/api-key exists and matches the fleet majority value (zv…_d, 132 functions)
+- `22:01:50` ⚠ /justhodl/fred/api-key: 2 distinct live values across the fleet (majority 186 functions) -- rotation must reconcile these
+- `22:01:50` ✅ /justhodl/fred/api-key exists and matches the fleet majority value (2f…89, 186 functions)
+- `22:01:50` ✅ /justhodl/cmc/api-key exists and matches the fleet majority value (17…97, 49 functions)
+- `22:01:50` ✅ /justhodl/telegram/bot_token exists and matches the fleet majority value (86…Gs, 121 functions)
+- `22:01:50` ✅ /justhodl/newsapi/api-key exists and matches the fleet majority value (17…40, 18 functions)
+- `22:01:50` ✅ /justhodl/census/api-key exists and matches the fleet majority value (84…15, 3 functions)
 ## 2. worker v2.1.0 + owner binding + guest migration
 
-## 3. re-dispatch deploy-workers (secrets from the parameters above)
+- `22:01:50` ✅ data-proxy 2.1.0 live after 0s
+- `22:01:50` supabase accounts: 3 -> op…@justhodl.ai, pl…@gmail.com, ra…@gmail.com
+- `22:01:51` ✅ owner bound: uid 9f…6d (ra…@gmail.com)
+- `22:01:52` ✅ service-role Brain read OK: 13051 notes, store brain-930ffa48-60a1-4b11-8726-8848d1b827f9
+- `22:01:54` userdata-migrate dry=1: {'scanned': 12, 'accounts': 1, 'migrated': 10, 'already': 1, 'errors': 0}
+- `22:01:58` userdata-migrate dry=0: {'scanned': 12, 'accounts': 1, 'migrated': 10, 'already': 1, 'errors': 0}
+## 3. worker secrets
 
-- `21:54:29` ⚠ workflow dispatch -> HTTP 403 b'{"message":"Resource not accessible by personal access token","documentation_url":"https://docs.gith' (secrets attach on the next worker push instead)
+- `22:01:58` secrets attached by deploy-workers run 34281756709; no re-dispatch needed
 ## verdict
 
-- `21:54:29` ✗ data-proxy is None after 901s (expected 2.1.0)
-- `21:54:29` RED: 1 failure(s)
+- `22:01:58` ✅ GREEN: containment complete
