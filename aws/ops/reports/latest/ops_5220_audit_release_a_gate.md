@@ -1,0 +1,73 @@
+# ops 5220 -- audit 2026-09-08 Release A live gate
+
+**Status:** success  
+**Duration:** 184.8s  
+**Finished:** 2026-09-08T21:57:34+00:00  
+
+## Data
+
+| authority_allows | authority_cap | authority_status | cap | entries_allowed | local_cap | posture | step | version |
+|---|---|---|---|---|---|---|---|---|
+| True | 50.0 | FRESH | 50 | True | 100 | SELECTIVE | katlin | 2.3.0 |
+
+## Log
+## A. data-proxy authorization
+
+- `21:54:29` ✅ worker version 2.1.0 live (got 2.1.0)
+- `21:54:29` ✅ worker: anonymous GET /brain (owner store id) -> 401 (got 401)
+- `21:54:29` ✅ worker: anonymous PUT /brain -> 401 (got 401)
+- `21:54:29` ✅ worker: anonymous PUT /journal -> 401 (got 401)
+- `21:54:29` ✅ worker: anonymous /brain-debug -> 401 (got 401)
+- `21:54:29` ✅ worker: retired purge literal -> 401 (got 401)
+- `21:54:30` ✅ api.justhodl.ai bridge: anonymous GET /brain (owner store id) -> 401 (got 401)
+- `21:54:30` ✅ api.justhodl.ai bridge: anonymous PUT /brain -> 401 (got 401)
+- `21:54:30` ✅ api.justhodl.ai bridge: anonymous PUT /journal -> 401 (got 401)
+- `21:54:30` ✅ api.justhodl.ai bridge: anonymous /brain-debug -> 401 (got 401)
+- `21:54:30` ✅ api.justhodl.ai bridge: retired purge literal -> 401 (got 401)
+- `21:54:30` ✅ anonymous /userdata/<random uuid> -> empty (got 200 b'{"empty":true}')
+- `21:54:30` ✅ anonymous /admin/users -> 401 (got 401)
+- `21:54:31` ✅ service role reads the owner Brain (13051 notes)
+- `21:54:31` ✅ owner binding present: emails=['raafouis@gmail.com'] uids=0
+## B. api_auth SITE tier (Origin no longer grants Enterprise)
+
+- `21:54:32` justhodl-treasury-proxy LastModified 2026-09-08T21:47:35.000+0000 (push 2026-09-08T21:38:50+00:00)
+- `21:54:37` ✅ Origin-only 40-call burst against justhodl-treasury-proxy is metered: {200: 16, 429: 24}
+- `21:54:37` ✅ site traffic is still admitted under the ceiling: {200: 16, 429: 24}
+## C. fusion read API v1.1
+
+- `21:54:37` ✅ /api/v1/health carries readiness (200: ok=True ready=True fresh=True coherent=True)
+- `21:54:37` ✅ /api/v1/fusion -> 200 labels_valid=True n=14
+- `21:54:38` ✅ /api/v1/opportunities actionable-only (200, n=34 excluded=0)
+## D. Katlin v2.3.0 capital authority
+
+- `21:54:38` justhodl-katlin LastModified 2026-09-08T21:44:00.000+0000
+- `21:54:38` invoked justhodl-katlin (Event) -- waiting for a fresh data/katlin.json
+- `21:57:09` ✅ data/katlin.json rewritten after 150s
+- `21:57:09` katlin 2.3.0: posture=SELECTIVE cap=50 entries_allowed=True | authority FRESH mode=SELECTIVE cap=50.0 allows=True age=0.58h | local FULL_RISK cap=100 | gate NEUTRAL x0.75 age=0.23h
+- `21:57:09` ✅ katlin.json version 2.3.0 (got 2.3.0)
+- `21:57:09` ✅ war_room carries authority/local/raw_gate/entries_allowed
+- `21:57:09` ✅ effective cap 50 <= authority cap 50.0
+- `21:57:09` ✅ entries never allowed when the authority forbids them
+## E. pages
+
+- `21:57:10` ✅ /sectors.html carries data/volatility-squeeze.json at the edge
+- `21:57:10` ✅ /global-macro.html carries data/hiring-velocity.json at the edge
+- `21:57:10` ✅ /resilience.html carries data/spinoff-desk.json at the edge
+- `21:57:10` ✅ /crypto-liquidity.html carries data/index-inclusion.json at the edge
+- `21:57:10` ✅ /lce.html carries data/fed-pivot-factor-trades.json at the edge
+- `21:57:10` ✅ /signal-intelligence.html carries data/calibration-latest.json at the edge
+- `21:57:10` ✅ /brain.html carries authHdr at the edge
+- `21:57:10` ✅ /journal.html carries authHdr at the edge
+- `21:57:10` ✅ /katlin.html carries wr-auth at the edge
+- `21:57:10` ✅ /resilience.html stocktwits card repointed
+## F. headless Chrome
+
+- `21:57:23`    /katlin.html: page errors [] | auth strip BINDING CAPITAL AUTHORITY · KHALID RISK / SELECTIVE · cap 50% · new entries allowed / generated 36m ago · SLA 24h / DESK THERM | cap EXPOSURE ALLOWED TODAY / 50% effective cap / Effective = min(authority cap 50%, desk | brain status  | notes 11
+- `21:57:23` ✅ /katlin.html renders without page errors
+- `21:57:23` ✅ katlin.html shows the binding authority strip
+- `21:57:34`    /brain.html: page errors [] | auth strip  | cap  | brain status §6 / 🔒 Read-only — you are viewing the public mirror. The private store is owner-o | notes 13051
+- `21:57:34` ✅ /brain.html renders without page errors
+- `21:57:34` ✅ brain.html signed-out view is read-only mirror or shows notes
+## verdict
+
+- `21:57:34` ✅ GREEN -- Release A of the 2026-09-08 audit is live and verified

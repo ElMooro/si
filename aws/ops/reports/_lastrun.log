@@ -1,12 +1,79 @@
-executing-against: 6fb54b47111830899e81c7c2e21ec5b2b1b1d71b
-ops 5218 -- QA fixes gate (B1 contracts 404, B2 engine directory, B3 beacon CORS)
-── edge deploy ──
-[19:48:42]    /config/engine-contracts.json -> 200 (356440 bytes) ; /config/engine-registry.json -> 200 (234386 bytes) after 282s
-[19:48:42]    registry n_engines=860 generated_at=2026-09-07T19:48:11Z
-[19:48:42]    contracts n_contracts=866
-── live Chrome ──
-[19:49:03]    /: rows=126 authority=INVEST SELECTIVELY catalog=860 engines · 460 pages · 3,449 numbered sections · 1,367 panels · registry 13h  | page errors [] | console errors 1 (CORS 0) | >=400 []
-[19:49:14]    /engines.html: rows=860 authority=None catalog= | page errors [] | console errors 0 (CORS 0) | >=400 []
-[19:49:14] ✅ GREEN -- QA fixes live: contracts served, directory fresh, beacon silent
+executing-against: 4928169ebeb2e6b7916da317f4610cf99019383c
+ops 5219 -- audit 2026-09-08 Release A: containment (SSM managed config, owner binding, guest-namespace migration)
+── 1. canonical SSM parameters ──
+[21:39:26] scanned 883 functions' environments
+[21:39:26] ⚠ /justhodl/fmp/api-key: 2 distinct live values across the fleet (majority 193 functions) -- rotation must reconcile these
+[21:39:26] ✅ /justhodl/fmp/api-key CREATED from the live env majority value (ww…xb, 193 functions)
+[21:39:26] ⚠ /justhodl/polygon/api-key: 2 distinct live values across the fleet (majority 132 functions) -- rotation must reconcile these
+[21:39:26] ✅ /justhodl/polygon/api-key exists and matches the fleet majority value (zv…_d, 132 functions)
+[21:39:26] ⚠ /justhodl/fred/api-key: 2 distinct live values across the fleet (majority 186 functions) -- rotation must reconcile these
+[21:39:26] ✅ /justhodl/fred/api-key exists and matches the fleet majority value (2f…89, 186 functions)
+[21:39:26] ✅ /justhodl/cmc/api-key CREATED from the live env majority value (17…97, 49 functions)
+[21:39:26] ✅ /justhodl/telegram/bot_token exists and matches the fleet majority value (86…Gs, 121 functions)
+[21:39:26] ✅ /justhodl/newsapi/api-key CREATED from the live env majority value (17…40, 18 functions)
+[21:39:27] ✅ /justhodl/census/api-key CREATED from the live env majority value (84…15, 3 functions)
+── 2. worker v2.1.0 + owner binding + guest migration ──
+── 3. re-dispatch deploy-workers (secrets from the parameters above) ──
+[21:54:29] ⚠ workflow dispatch -> HTTP 403 b'{"message":"Resource not accessible by personal access token","documentation_url":"https://docs.gith' (secrets attach on the next worker push instead)
+── verdict ──
+[21:54:29] ✗ data-proxy is None after 901s (expected 2.1.0)
+[21:54:29] RED: 1 failure(s)
 
-→ Report written to aws/ops/reports/latest/ops_5218_qa_fixes_gate.md
+→ Report written to aws/ops/reports/latest/ops_5219_audit_containment.md
+❌ OPS-FAIL: aws/ops/pending/ops_5219_audit_containment.py
+ops 5220 -- audit 2026-09-08 Release A live gate
+── A. data-proxy authorization ──
+[21:54:29] ✅ worker version 2.1.0 live (got 2.1.0)
+[21:54:29] ✅ worker: anonymous GET /brain (owner store id) -> 401 (got 401)
+[21:54:29] ✅ worker: anonymous PUT /brain -> 401 (got 401)
+[21:54:29] ✅ worker: anonymous PUT /journal -> 401 (got 401)
+[21:54:29] ✅ worker: anonymous /brain-debug -> 401 (got 401)
+[21:54:29] ✅ worker: retired purge literal -> 401 (got 401)
+[21:54:30] ✅ api.justhodl.ai bridge: anonymous GET /brain (owner store id) -> 401 (got 401)
+[21:54:30] ✅ api.justhodl.ai bridge: anonymous PUT /brain -> 401 (got 401)
+[21:54:30] ✅ api.justhodl.ai bridge: anonymous PUT /journal -> 401 (got 401)
+[21:54:30] ✅ api.justhodl.ai bridge: anonymous /brain-debug -> 401 (got 401)
+[21:54:30] ✅ api.justhodl.ai bridge: retired purge literal -> 401 (got 401)
+[21:54:30] ✅ anonymous /userdata/<random uuid> -> empty (got 200 b'{"empty":true}')
+[21:54:30] ✅ anonymous /admin/users -> 401 (got 401)
+[21:54:31] ✅ service role reads the owner Brain (13051 notes)
+[21:54:31] ✅ owner binding present: emails=['raafouis@gmail.com'] uids=0
+── B. api_auth SITE tier (Origin no longer grants Enterprise) ──
+[21:54:32] justhodl-treasury-proxy LastModified 2026-09-08T21:47:35.000+0000 (push 2026-09-08T21:38:50+00:00)
+[21:54:37] ✅ Origin-only 40-call burst against justhodl-treasury-proxy is metered: {200: 16, 429: 24}
+[21:54:37] ✅ site traffic is still admitted under the ceiling: {200: 16, 429: 24}
+── C. fusion read API v1.1 ──
+[21:54:37] ✅ /api/v1/health carries readiness (200: ok=True ready=True fresh=True coherent=True)
+[21:54:37] ✅ /api/v1/fusion -> 200 labels_valid=True n=14
+[21:54:38] ✅ /api/v1/opportunities actionable-only (200, n=34 excluded=0)
+── D. Katlin v2.3.0 capital authority ──
+[21:54:38] justhodl-katlin LastModified 2026-09-08T21:44:00.000+0000
+[21:54:38] invoked justhodl-katlin (Event) -- waiting for a fresh data/katlin.json
+[21:57:09] ✅ data/katlin.json rewritten after 150s
+[21:57:09] katlin 2.3.0: posture=SELECTIVE cap=50 entries_allowed=True | authority FRESH mode=SELECTIVE cap=50.0 allows=True age=0.58h | local FULL_RISK cap=100 | gate NEUTRAL x0.75 age=0.23h
+[21:57:09] ✅ katlin.json version 2.3.0 (got 2.3.0)
+[21:57:09] ✅ war_room carries authority/local/raw_gate/entries_allowed
+[21:57:09] ✅ effective cap 50 <= authority cap 50.0
+[21:57:09] ✅ entries never allowed when the authority forbids them
+── E. pages ──
+[21:57:10] ✅ /sectors.html carries data/volatility-squeeze.json at the edge
+[21:57:10] ✅ /global-macro.html carries data/hiring-velocity.json at the edge
+[21:57:10] ✅ /resilience.html carries data/spinoff-desk.json at the edge
+[21:57:10] ✅ /crypto-liquidity.html carries data/index-inclusion.json at the edge
+[21:57:10] ✅ /lce.html carries data/fed-pivot-factor-trades.json at the edge
+[21:57:10] ✅ /signal-intelligence.html carries data/calibration-latest.json at the edge
+[21:57:10] ✅ /brain.html carries authHdr at the edge
+[21:57:10] ✅ /journal.html carries authHdr at the edge
+[21:57:10] ✅ /katlin.html carries wr-auth at the edge
+[21:57:10] ✅ /resilience.html stocktwits card repointed
+── F. headless Chrome ──
+[21:57:23]    /katlin.html: page errors [] | auth strip BINDING CAPITAL AUTHORITY · KHALID RISK / SELECTIVE · cap 50% · new entries allowed / generated 36m ago · SLA 24h / DESK THERM | cap EXPOSURE ALLOWED TODAY / 50% effective cap / Effective = min(authority cap 50%, desk | brain status  | notes 11
+[21:57:23] ✅ /katlin.html renders without page errors
+[21:57:23] ✅ katlin.html shows the binding authority strip
+[21:57:34]    /brain.html: page errors [] | auth strip  | cap  | brain status §6 / 🔒 Read-only — you are viewing the public mirror. The private store is owner-o | notes 13051
+[21:57:34] ✅ /brain.html renders without page errors
+[21:57:34] ✅ brain.html signed-out view is read-only mirror or shows notes
+── verdict ──
+[21:57:34] ✅ GREEN -- Release A of the 2026-09-08 audit is live and verified
+
+→ Report written to aws/ops/reports/latest/ops_5220_audit_release_a_gate.md
