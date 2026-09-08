@@ -62,8 +62,14 @@ reported with the reproduction, not fixed.
 
 ## Needs Khalid
 
-1. **Rotate** the FMP, Polygon, FRED, CoinMarketCap keys and the Telegram bot token in the provider
-   dashboards **after** Release A2 lands (every consumer reads SSM by then). Then paste nothing here —
-   run `ops_52xx_rotate_keys.py` which updates SSM + every Lambda env from the parameter values.
+1. **Rotate** the FMP, Polygon, FRED, CoinMarketCap keys and the Telegram bot token — only after ops 5221
+   (Release A2) is GREEN. For each: generate the new key in the provider dashboard, then in the AWS console
+   (Systems Manager → Parameter Store, us-east-1) edit the value of the matching parameter:
+   `/justhodl/fmp/api-key`, `/justhodl/polygon/api-key`, `/justhodl/fred/api-key`, `/justhodl/cmc/api-key`,
+   `/justhodl/telegram/bot_token`. Never paste a key in chat. Then say "rotated" — Claude moves
+   `aws/ops/staged/ops_5226_rotate_provider_keys.py` into `aws/ops/pending/` and pushes: it validates each
+   new value against the provider (a bad paste aborts that provider), fans it into every Lambda env that
+   carries the credential, and a worker no-op push re-attaches the Worker secrets. Old keys can be revoked
+   in the dashboards once 5226 is GREEN.
 2. Confirm `raafouis@gmail.com` is the Supabase account you sign in with; ops 5219 binds it as the
    Brain/Journal owner and fails loud otherwise.
