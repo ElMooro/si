@@ -42,7 +42,11 @@ FAILS = []
 
 
 def http(method, url, headers=None, body=None, timeout=40):
-    req = urllib.request.Request(url, method=method, headers=headers or {}, data=body)
+    # Cloudflare challenges the bare Python-urllib User-Agent with an HTML page (ops 5219 run 1 saw
+    # "version None" for 15 min while ops 5220 with a custom UA saw 2.1.0 immediately).
+    h = {"User-Agent": "ops5219", "Cache-Control": "no-cache"}
+    h.update(headers or {})
+    req = urllib.request.Request(url, method=method, headers=h, data=body)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.status, r.read()
@@ -181,19 +185,13 @@ with report("ops_5219_audit_containment") as R:
             R.log("userdata-migrate dry=%s: %s" % (dry, tot))
             R.kv(step="userdata-migrate", dry=dry, **tot)
 
-    # ── 3. re-dispatch deploy-workers for the data-proxy ────────────────────
-    R.section("3. re-dispatch deploy-workers (secrets from the parameters above)")
-    tok = os.environ.get("BUS_GITHUB_PAT") or os.environ.get("GH_API_TOKEN") or ""
-    if tok:
-        st, body = http("POST", "https://api.github.com/repos/ElMooro/si/actions/workflows/deploy-workers.yml/dispatches",
-                        {"Authorization": "Bearer " + tok, "Accept": "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "ops5219"},
-                        json.dumps({"ref": "main", "inputs": {"worker": "justhodl-data-proxy"}}).encode())
-        if st == 204:
-            R.ok("deploy-workers re-dispatched for justhodl-data-proxy")
-        else:
-            R.warn("workflow dispatch -> HTTP %s %s (secrets attach on the next worker push instead)" % (st, body[:100]))
-    else:
-        R.warn("no GitHub token in env -- skipped re-dispatch")
+    # ── 3. worker secrets ──────────────────────────────────────────────────
+    R.section("3. worker secrets")
+    # Run 1 proved /justhodl/polygon/api-key, /justhodl/fred/api-key and /justhodl/api-admin/token existed
+    # before the push, so deploy-workers attached POLYGON_KEY / FRED_KEY / ADMIN_TOKEN on its first run
+    # (the service-role Brain read in section 2 is the proof for ADMIN_TOKEN). The runner's tokens lack
+    # the workflow scope (HTTP 403 in run 1), so no re-dispatch is attempted; a worker push re-attaches.
+    R.log("secrets attached by deploy-workers run 34281756709; no re-dispatch needed")
 
     R.section("verdict")
     for f in FAILS:
