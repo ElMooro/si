@@ -4,6 +4,7 @@ Runs weekly. For every pending signal in DynamoDB whose check window
 has elapsed, fetches the actual market price and scores the prediction.
 """
 
+import gzip
 import json
 import re
 import boto3
@@ -103,7 +104,58 @@ def get_coingecko_price(ticker):
 _hist_cache = {}
 
 
+BARS_ROOT = "data/warm/polygon-full/grouped/"
+_mark_cache = {}
+MAX_PENDING_ATTEMPTS = 12   # pending windows retried across runs; after this many misses the window is UNSCOREABLE (explicit, never a zero grade)
+
+
+def get_mark_at(ticker, date_iso):
+    """audit 2026-09-08 INST-12: a MARK with provenance -- {price, as_of, provider} or None.
+    Source order: the house bar warehouse (adjusted daily grouped bars, the same basis Katlin/fortress
+    use) for the session ON or BEFORE date_iso (up to 7 calendar days back), then the Yahoo daily chart.
+    The same function prices asset and benchmark so both marks share a session and adjustment basis."""
+    key = (ticker, date_iso)
+    if key in _mark_cache:
+        return _mark_cache[key]
+    mark = None
+    try:
+        d0 = datetime.fromisoformat(date_iso[:10]).date()
+        sym = ticker.replace("-USD", "USD") if ticker.endswith("-USD") else ticker
+        for back in range(0, 8):
+            d = (d0 - timedelta(days=back)).isoformat()
+            for k in ("%s%s/%s.json.gz" % (BARS_ROOT, d[:4], d), "%s%s/%s.json.gz" % (BARS_ROOT, d[:4], d.replace("-", ""))):
+                try:
+                    body = s3.get_object(Bucket=S3_BUCKET, Key=k)["Body"].read()
+                except Exception:
+                    continue
+                try:
+                    j = json.loads(gzip.decompress(body))
+                except Exception:
+                    j = json.loads(body)
+                for r in j.get("results") or []:
+                    if r.get("T") in (ticker, sym) and r.get("c"):
+                        mark = {"price": float(r["c"]), "as_of": d, "provider": "s3:polygon-grouped adjusted daily close", "requested": date_iso[:10]}
+                        break
+                if mark or j.get("results") is not None:
+                    break
+            if mark:
+                break
+    except Exception as e:
+        print(f"[MARK-AT] warehouse {ticker}@{date_iso}: {str(e)[:60]}")
+    if mark is None:
+        px = get_price_at_yahoo(ticker, date_iso)
+        if px:
+            mark = {"price": float(px), "as_of": date_iso[:10], "provider": "yahoo:daily chart close (on/before date)", "requested": date_iso[:10]}
+    _mark_cache[key] = mark
+    return mark
+
+
 def get_price_at(ticker, date_iso):
+    m = get_mark_at(ticker, date_iso)
+    return m["price"] if m else None
+
+
+def get_price_at_yahoo(ticker, date_iso):
     """checker-v3 (ops 3411): close ON/BEFORE date_iso via Yahoo daily chart.
     Elapsed windows are graded at their own date, not at check-time."""
     key = (ticker, date_iso)
@@ -333,52 +385,76 @@ def check_pending_signals():
         outcomes_updated = False
 
         for window_key, check_time_iso in check_ts.items():
-            # Skip already evaluated windows
-            if window_key in existing_outcomes:
+            # Skip already evaluated windows (_pending is bookkeeping, not a grade)
+            if window_key in existing_outcomes and window_key != "_pending":
                 continue
 
             # Check if this window has elapsed
             if check_time_iso > now_iso:
                 continue
 
-            # checker-v3: elapsed windows priced AT THEIR DATE (historical
-            # close), not at check-time. <=2d-fresh windows use live price.
-            _stale = check_time_iso < (datetime.now(timezone.utc)
-                                       - timedelta(days=2)).isoformat()
-            _as_of = check_time_iso[:10] if _stale else None
-            _pk = (ticker, _as_of or "LIVE")
+            # audit 2026-09-08 INST-12 (checker-v4): EVERY elapsed window is graded at ITS OWN
+            # session close (never a live quote), so the grade does not depend on when the job
+            # runs; asset and benchmark marks come from the same function (shared session +
+            # adjustment basis) and carry provenance; a missing mark leaves the window PENDING
+            # with a retry policy -- it is never finalised as a zero excess return.
+            _as_of = check_time_iso[:10]
+            pend = existing_outcomes.setdefault("_pending", {})
+            _pk = (ticker, _as_of)
             if _pk not in price_cache:
-                price_cache[_pk] = (get_price_at(ticker, _as_of) if _as_of
-                                    else get_price(ticker))
-                time.sleep(0.3)
-            current_price = price_cache[_pk]
-            if _as_of:
-                print(f"[CHECKER v3] {ticker} {window_key} priced as-of {_as_of}")
-
-            if not current_price:
-                print(f"[CHECKER] No price for {ticker}, skipping window {window_key}")
+                price_cache[_pk] = get_mark_at(ticker, _as_of)
+                time.sleep(0.2)
+            asset_mark = price_cache[_pk]
+            bm_mark = None
+            if pred_type == "relative":
+                _bk = (benchmark, _as_of)
+                if _bk not in price_cache:
+                    price_cache[_bk] = get_mark_at(benchmark, _as_of)
+                    time.sleep(0.2)
+                bm_mark = price_cache.get(_bk)
+            missing = [n for n, m in (("asset", asset_mark), ("benchmark", bm_mark if pred_type == "relative" else asset_mark)) if not m]
+            if missing:
+                prev = pend.get(window_key) or {}
+                attempts = int(prev.get("attempts") or 0) + 1
+                pend[window_key] = {"attempts": attempts, "last_try": now_iso, "reason": "no %s mark for %s" % ("/".join(missing), _as_of), "next_retry_after_h": 6}
+                outcomes_updated = True
+                if attempts >= MAX_PENDING_ATTEMPTS:
+                    existing_outcomes[window_key] = {"correct": None, "status": "UNSCOREABLE", "reason": pend[window_key]["reason"], "attempts": attempts, "checked_at": now_iso}
+                    outcomes_table.put_item(Item=float_to_decimal({"outcome_id": f"{signal_id}_{window_key}", "signal_id": signal_id, "signal_type": signal_type, "window_key": window_key,
+                                                                    "correct": None, "predicted_dir": pred_dir, "status": "UNSCOREABLE", "outcome": existing_outcomes[window_key], "logged_at": signal.get("logged_at"),
+                                                                    "checked_at": now_iso, "ttl": int((now.timestamp()) + 365 * 86400)}))
+                    pend.pop(window_key, None)
+                    print(f"[CHECKER v4] {ticker} {window_key} UNSCOREABLE after {attempts} attempts")
+                else:
+                    print(f"[CHECKER v4] {ticker} {window_key} pending ({attempts}/{MAX_PENDING_ATTEMPTS}): {pend[window_key]['reason']}")
                 continue
+            pend.pop(window_key, None)
+            current_price = asset_mark["price"]
+            print(f"[CHECKER v4] {ticker} {window_key} graded at session {asset_mark['as_of']} via {asset_mark['provider']}")
 
             # Score the prediction
             if pred_type == "relative":
-                _bk = (benchmark, _as_of or "LIVE")
-                if _bk not in price_cache:
-                    price_cache[_bk] = (get_price_at(benchmark, _as_of)
-                                        if _as_of else get_price(benchmark))
-                    time.sleep(0.3)
-
                 baseline_bm  = float(signal.get("baseline_benchmark_price") or 0)
-                current_bm   = price_cache.get(_bk)
+                current_bm   = bm_mark["price"]
                 correct, excess = score_relative(
                     pred_dir, ticker, benchmark,
                     baseline, current_price,
                     baseline_bm, current_bm
                 )
+                if correct is None:
+                    # a zero baseline is a data defect, not a graded outcome
+                    pend[window_key] = {"attempts": MAX_PENDING_ATTEMPTS, "last_try": now_iso, "reason": "baseline price or baseline benchmark is zero/missing on the signal record"}
+                    existing_outcomes[window_key] = {"correct": None, "status": "UNSCOREABLE", "reason": pend[window_key]["reason"], "checked_at": now_iso}
+                    outcomes_updated = True
+                    pend.pop(window_key, None)
+                    continue
                 outcome = {
                     "correct":        correct,
-                    "excess_return":  float(excess) if excess else 0.0,
+                    "excess_return":  float(excess),
                     "asset_price":    float(current_price),
-                    "benchmark_price": float(current_bm) if current_bm else None,
+                    "benchmark_price": float(current_bm),
+                    "marks":          {"asset": asset_mark, "benchmark": bm_mark},
+                    "graded_at_session": asset_mark["as_of"],
                     "checked_at":     now_iso,
                 }
             else:
@@ -391,6 +467,8 @@ def check_pending_signals():
                     "return_pct":        float(return_pct),
                     "price_at_signal":   float(baseline),
                     "price_at_check":    float(current_price),
+                    "marks":             {"asset": asset_mark},
+                    "graded_at_session": asset_mark["as_of"],
                     "checked_at":        now_iso,
                 }
 
@@ -431,9 +509,9 @@ def check_pending_signals():
         if not outcomes_updated:
             continue
 
-        # Determine new status
+        # Determine new status ("_pending" is bookkeeping, not a graded window)
         all_windows = set(check_ts.keys())
-        done_windows = set(existing_outcomes.keys())
+        done_windows = set(k for k in existing_outcomes.keys() if not k.startswith("_"))
         if done_windows >= all_windows:
             new_status = "complete"
         elif done_windows:
