@@ -50,6 +50,139 @@ VAR_ENVGET = re.compile(
     rf'^\s*([A-Za-z_]\w*)\s*=\s*os\.environ\.get\([^,]+,\s*["\']({PREFIXES}/[a-zA-Z0-9_\-/\.]+?\.json)["\']', re.M)
 
 
+# ── audit 2026-09-08 (section C-5): AST-based ownership ───────────────────────────────────────
+# The 300-character window after a put call listed any key literal nearby as an output (a read of
+# another engine's feed right after a write became an "output"), truncated at 16 keys, and could not
+# see constant-prefix f-strings (justhodl-etf-fund-flows: OUTPUT_PREFIX = "etf-flows/" + f"{OUTPUT_PREFIX}daily.json"
+# scanned as keys:[]). This resolver binds the ACTUAL Key= argument of each write call (and of locally
+# defined wrappers around one) and resolves constants, f-strings, concatenations and formats. Dynamic
+# segments become a "*" so the key FAMILY is still declared. Reads (get_object) are recorded separately.
+import ast
+
+WRITE_ATTRS = {"put_object", "put_json", "upload_fileobj", "upload_file", "write_json", "save_json", "put"}
+READ_ATTRS = {"get_object", "download_fileobj", "get_json", "read_json", "head_object"}
+# any top-level bucket folder (data/, etf-flows/, air/, portfolio/, calibration/, risk/, ...) -- the old allowlist hid air/hkia-cargo-levels.json
+KEY_RE = re.compile(r'^[a-z0-9][a-z0-9_\-]*/')
+
+
+class _Resolver:
+    def __init__(self, tree):
+        self.consts = {}
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+                v = self.resolve(node.value)
+                if v is not None:
+                    self.consts[node.targets[0].id] = v
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.value is not None:
+                v = self.resolve(node.value)
+                if v is not None:
+                    self.consts[node.target.id] = v
+
+    def resolve(self, node):
+        """Return a string (with '*' for unresolvable segments) or None."""
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        if isinstance(node, ast.Name):
+            return self.consts.get(node.id, "*")
+        if isinstance(node, ast.JoinedStr):
+            out = []
+            for v in node.values:
+                if isinstance(v, ast.Constant):
+                    out.append(str(v.value))
+                elif isinstance(v, ast.FormattedValue):
+                    r = self.resolve(v.value) if isinstance(v.value, (ast.Name, ast.Constant, ast.Attribute)) else None
+                    out.append(r if (r is not None and r != "*") else "*")
+                else:
+                    out.append("*")
+            return "".join(out)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+            l, r = self.resolve(node.left), self.resolve(node.right)
+            if l is None or r is None:
+                return None
+            return l + r
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mod):
+            l = self.resolve(node.left)
+            return re.sub(r'%(?:\([^)]*\))?[-+ 0#]*\d*(?:\.\d+)?[sdifrxX%]', '*', l) if l else None   # %s %d %.2f %(name)s -> *
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "format":
+            base = self.resolve(node.func.value)
+            return re.sub(r'\\{[^}]*\\}', '*', base) if base else None
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ("str",) and node.args:
+            return "*"
+        if isinstance(node, ast.Attribute):
+            return "*"
+        if isinstance(node, ast.Subscript):
+            return "*"
+        return None
+
+
+def _normalise_key(k):
+    if not k or not isinstance(k, str):
+        return None
+    k = re.sub(r'\*+', '*', k.strip())
+    if not KEY_RE.match(k):
+        return None
+    if not (k.endswith(".json") or k.endswith(".json.gz") or k.endswith("*")):
+        return None
+    return k
+
+
+def _key_from_call(call, res, wrapper_key_pos=None):
+    """The Key of a write/read call: Key= keyword, else a positional arg (wrappers) that resolves to a key."""
+    for kw in call.keywords:
+        if kw.arg == "Key":
+            return _normalise_key(res.resolve(kw.value))
+    if wrapper_key_pos is not None and len(call.args) > wrapper_key_pos:
+        return _normalise_key(res.resolve(call.args[wrapper_key_pos]))
+    for a in call.args:
+        k = _normalise_key(res.resolve(a))
+        if k:
+            return k
+    return None
+
+
+def ast_keys(code):
+    """(writes, reads, ok) from the AST. ok=False when the file does not parse (caller falls back to regex)."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return [], [], False
+    res = _Resolver(tree)
+    # wrappers: locally defined functions whose body contains a write attribute call; the key is the first
+    # parameter that is passed as Key= (or the first positional) inside the body
+    wrappers = {}
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef):
+            pos = None
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Attribute) and sub.func.attr in WRITE_ATTRS:
+                    params = [a.arg for a in node.args.args]
+                    for kw in sub.keywords:
+                        if kw.arg == "Key" and isinstance(kw.value, ast.Name) and kw.value.id in params:
+                            pos = params.index(kw.value.id)
+                    if pos is None and params:
+                        pos = 0
+                    break
+            if pos is not None:
+                wrappers[node.name] = pos
+    writes, reads = set(), set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if isinstance(node.func, ast.Attribute) and node.func.attr in WRITE_ATTRS:
+            k = _key_from_call(node, res)
+            if k:
+                writes.add(k)
+        elif isinstance(node.func, ast.Attribute) and node.func.attr in READ_ATTRS:
+            k = _key_from_call(node, res)
+            if k:
+                reads.add(k)
+        elif isinstance(node.func, ast.Name) and node.func.id in wrappers:
+            k = _key_from_call(node, res, wrappers[node.func.id])
+            if k:
+                writes.add(k)
+    return sorted(writes), sorted(reads), True
+
+
 def confirmed_write_keys(code):
     """Real data/*.json (and sibling-prefix) keys this engine WRITES —
     windowed around actual put_object(/.put_json( call sites, so a read
@@ -95,7 +228,24 @@ def main():
             code = src.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
-        keys = confirmed_write_keys(code)
+        writes, reads, ok = ast_keys(code)
+        # multi-file engines: sibling modules under source/ can own writes too
+        for extra in sorted((d / "source").glob("*.py")):
+            if extra.name == "lambda_function.py" or extra.name.startswith("_"):
+                continue
+            try:
+                w2, r2, ok2 = ast_keys(extra.read_text(encoding="utf-8", errors="replace"))
+                writes = sorted(set(writes) | set(w2)); reads = sorted(set(reads) | set(r2))
+            except Exception:
+                pass
+        legacy = confirmed_write_keys(code)
+        if ok:
+            keys = writes
+            method = "ast"
+        else:
+            keys = legacy
+            method = "regex-window(fallback: parse error)"
+        keys = keys[:64]
         desc = ""
         cfg = d / "config.json"
         if cfg.exists():
@@ -106,9 +256,11 @@ def main():
         if not desc:
             head = code.split('"""', 2)
             desc = (head[1].strip().splitlines()[0][:140] if len(head) > 2 else "")
-        engines.append({"engine": d.name, "keys": keys, "description": desc})
+        engines.append({"engine": d.name, "keys": keys, "n_keys": len(keys), "reads": [r for r in reads if r not in keys][:64],
+                        "key_patterns": [k for k in keys if k.endswith("*")], "method": method,
+                        "legacy_regex_keys": [k for k in legacy if k not in keys][:16], "description": desc})
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
-           "source": "scripts/gen_engine_manifest.py (repo grep, per ops run)",
+           "source": "scripts/gen_engine_manifest.py (AST Key= binding per write call + wrappers, audit 2026-09-08 C-5; regex window only as parse-failure fallback)",
            "n_engines": len(engines), "engines": engines}
     out = ROOT / "engine-manifest.json"
     out.write_text(json.dumps(doc, separators=(",", ":")))
