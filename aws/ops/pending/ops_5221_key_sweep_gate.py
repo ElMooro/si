@@ -50,7 +50,7 @@ with report("ops_5221_key_sweep_gate") as R:
     t0 = time.time()
     pending = set(fns)
     missing = set()
-    while pending and time.time() - t0 < 4800:   # the fleet redeploy takes up to ~80 min
+    while pending and time.time() - t0 < 10800:  # the fleet redeploy runs ~2.4 functions/min (~2.5h for 329)
         for fn in list(pending):
             try:
                 cfg = lam.get_function_configuration(FunctionName=fn)
