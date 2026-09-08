@@ -92,7 +92,7 @@ a{color:var(--cyan);text-decoration:none}
 
 <script>
 const PROXY="https://api.justhodl.ai";const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
-const FMP="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+// audit 2026-09-08: provider keys never ship in pages -- quotes come from the data-proxy /quotes route (Polygon key is a Worker secret)
 function uidQ(){try{var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?("uid="+encodeURIComponent(u.id)):"";}catch(e){return "";}}
 // audit 2026-09-08: the journal is private -- reads and writes carry the verified Supabase token.
 async function authHdr(){try{var t=window.JustHodlAuth&&JustHodlAuth.getAccessToken?await JustHodlAuth.getAccessToken():null;return t?{'Authorization':'Bearer '+t}:{};}catch(e){return {};}}
@@ -145,7 +145,7 @@ function renderEntries(){
   box.querySelectorAll('.edel').forEach(el=>el.onclick=()=>{if(confirm('Delete this decision?')){ENTRIES=ENTRIES.filter(x=>x.id!==el.dataset.id);save();renderEntries();}});
 }
 async function priceNow(tk){
-  try{const r=await fetch(`https://financialmodelingprep.com/stable/quote?symbol=${tk}&apikey=${FMP}`);const d=await r.json();return (Array.isArray(d)&&d[0])?d[0].price:null;}catch(e){return null;}
+  try{const r=await fetch(`${PROXY_FALLBACK}/quotes?tickers=${encodeURIComponent(tk)}`);const d=await r.json();const q=d&&d.tickers&&d.tickers[String(tk).toUpperCase()];return (q&&q.price)?q.price:null;}catch(e){return null;}
 }
 async function addEntry(){
   const tk=document.getElementById('j-ticker').value.trim().toUpperCase();

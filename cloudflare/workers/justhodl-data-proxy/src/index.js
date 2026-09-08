@@ -1321,7 +1321,7 @@ export default {
       if (request.headers.get("Upgrade") !== "websocket") {
         return new Response("expected websocket", { status: 426, headers: corsHeaders() });
       }
-      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+      const polygonKey = env.POLYGON_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
       const pair = new WebSocketPair();
       const client = pair[0], server = pair[1];
       server.accept();
@@ -1372,7 +1372,7 @@ export default {
       }
       const tickers = tickersParam.toUpperCase().split(",")
         .map(t => t.trim()).filter(Boolean).slice(0, 60);  // cap 60
-      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+      const polygonKey = env.POLYGON_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
 
       // Edge cache key per ticker set
       const qCacheKey = new Request(`https://quotes.cache/${tickers.sort().join(",")}`, { method: "GET" });
@@ -1536,7 +1536,7 @@ export default {
         return new Response(JSON.stringify({ error: "invalid series" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const fredKey = env.FRED_KEY || "2f057499936072679d8843d7fce99989";
+      const fredKey = env.FRED_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
       const fCacheKey = new Request(`https://fred.cache/${series}/${obs}`, { method: "GET" });
       const fc = caches.default;
       const hit = await fc.match(fCacheKey);
@@ -1572,7 +1572,7 @@ export default {
         return new Response(JSON.stringify({ series: [] }),
           { headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const fredKey = env.FRED_KEY || "2f057499936072679d8843d7fce99989";
+      const fredKey = env.FRED_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
       try {
         const sUrl = `https://api.stlouisfed.org/fred/series/search?search_text=${encodeURIComponent(text)}&api_key=${fredKey}&file_type=json&limit=30&order_by=popularity&sort_order=desc`;
         const resp = await fetch(sUrl, { cf: { cacheTtl: 1800, cacheEverything: true } });
@@ -1601,7 +1601,7 @@ export default {
         return new Response(JSON.stringify({ error: "invalid params" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const polygonKey = env.POLYGON_KEY || "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d";
+      const polygonKey = env.POLYGON_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
       const to = new Date();
       const from = new Date(to.getTime() - days * 86400000);
       const fmt = (d) => d.toISOString().slice(0, 10);

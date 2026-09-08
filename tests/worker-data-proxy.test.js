@@ -277,7 +277,8 @@ test("INST-06: no maintenance literal or provider key literal remains in the wor
   for (const f of files) {
     const s = fs.readFileSync(f, "utf8");
     assert.ok(!/jhpurge_/.test(s), "purge literal in " + f);
-    assert.ok(!/POLYGON_KEY\s*=\s*"[A-Za-z0-9_]{20,}"/.test(s), "polygon literal in " + f);
-    assert.ok(!/FRED_KEY\s*=\s*"[0-9a-f]{32}"/.test(s), "fred literal in " + f);
+    assert.ok(!/POLYGON_KEY\s*(=|\|\|)\s*"[A-Za-z0-9_]{20,}"/.test(s), "polygon literal (assignment or fallback) in " + f);
+    assert.ok(!/FRED_KEY\s*(=|\|\|)\s*"[0-9a-f]{32}"/.test(s), "fred literal (assignment or fallback) in " + f);
+    assert.ok(!/(apiKey|api_key|apikey)=[A-Za-z0-9_]{24,}/.test(s), "hard-coded provider key in a URL in " + f);
   }
 });
