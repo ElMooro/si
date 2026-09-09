@@ -32,10 +32,10 @@ TOKEN_PARAM = "/justhodl/api-admin/token"
 TEMP_SID = "Audit20260909DerivativeMigrationInProgress"
 PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask",
               "portfolio-snapshot", "portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "risk-sizer",
-              "pm-decision", "behavior-mirror", "ai-brief")
+              "pm-decision", "behavior-mirror", "ai-brief", "history-api")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog")
-READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir")))
+READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
 
 
@@ -192,7 +192,9 @@ class Migration:
                 raise
             reread = {"Version": "2012-10-17", "Statement": []}
         require(reread == current, "bucket_policy_changed_during_merge")
-        s3.put_bucket_policy(Bucket=BUCKET, Policy=json.dumps(updated))
+        policy_text = encoded(updated).decode()
+        require(len(policy_text.encode()) <= 20 * 1024, "merged_bucket_policy_exceeds_s3_limit")
+        s3.put_bucket_policy(Bucket=BUCKET, Policy=policy_text)
         actual = json.loads(s3.get_bucket_policy(Bucket=BUCKET)["Policy"])
         require(actual == updated, "bucket_policy_not_verified")
         self.temp_installed = temporary

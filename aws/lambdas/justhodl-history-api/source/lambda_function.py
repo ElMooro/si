@@ -30,6 +30,7 @@ RESPONSE
   Errors return {"error": "...", "code": "<short>"}.
 """
 from __future__ import annotations
+from private_artifact import is_private_source, private_http_denied
 import base64
 import gzip
 import json
@@ -67,11 +68,13 @@ def _err(status, msg, code="bad_request"):
     return _resp(status, {"error": msg, "code": code})
 
 
-def _decode_content(item: dict):
+def _decode_content(item: dict, allow_private=False):
     """Reverse the encoding done by the snapshotter."""
     encoding = item.get("encoding", {}).get("S")
     content = item.get("content", {}).get("S")
     archive_key = item.get("content_archive_key", {}).get("S")
+    if archive_key and is_private_source(archive_key) and not allow_private:
+        return None, "private-archive-denied"
     if encoding == "s3-archive-gzip":
         # Body is in S3 as gzipped JSON
         try:
@@ -120,7 +123,7 @@ def handle_index():
         return _err(500, str(e), "s3_error")
 
 
-def handle_snapshot(qs):
+def handle_snapshot(qs, allow_private=False):
     key = qs.get("key")
     ts = qs.get("ts")
     if not key:
@@ -139,7 +142,7 @@ def handle_snapshot(qs):
     if not item:
         return _err(404, f"no snapshot at exact ts={ts} for {pk}", "snapshot_not_found")
 
-    content_str, enc_used = _decode_content(item)
+    content_str, enc_used = _decode_content(item, allow_private=allow_private)
     out = {
         "pk": pk,
         "feed_key": key,
@@ -165,7 +168,7 @@ def handle_snapshot(qs):
     return _resp(200, out)
 
 
-def handle_latest(qs):
+def handle_latest(qs, allow_private=False):
     key = qs.get("key")
     if not key:
         return _err(400, "missing key", "missing_key")
@@ -185,7 +188,7 @@ def handle_latest(qs):
         return _err(404, f"no snapshots for {pk}", "feed_not_found")
     item = items[0]
     ts = item.get("sk", {}).get("S")
-    return handle_snapshot({"key": key, "ts": ts})
+    return handle_snapshot({"key": key, "ts": ts}, allow_private=allow_private)
 
 
 def handle_timestamps(qs):
@@ -227,6 +230,7 @@ def handle_timestamps(qs):
 
 
 def lambda_handler(event=None, context=None):
+    event = event or {}
     method = (event.get("requestContext", {})
                   .get("http", {}).get("method", "GET")) if isinstance(event, dict) else "GET"
     if method == "OPTIONS":
@@ -235,15 +239,24 @@ def lambda_handler(event=None, context=None):
     raw_path = event.get("rawPath") or event.get("path") or "/"
     path = raw_path.rstrip("/").lower() or "/"
     qs = _parse_qs(event)
+    private_feed = is_private_source(str(qs.get("key") or "").removeprefix("feed#"))
+    allow_private = False
+    if private_feed:
+        denied = private_http_denied(event)
+        if denied is not None:
+            return denied
+        allow_private = True
 
     if path in ("/", "/index"):
         return handle_index()
     if path == "/snapshot":
-        return handle_snapshot(qs)
-    if path == "/latest":
-        return handle_latest(qs)
-    if path == "/timestamps":
-        return handle_timestamps(qs)
-
-    return _err(404, f"unknown path {raw_path}. valid: /, /snapshot, /latest, /timestamps",
-                "unknown_path")
+        response = handle_snapshot(qs, allow_private=allow_private)
+    elif path == "/latest":
+        response = handle_latest(qs, allow_private=allow_private)
+    elif path == "/timestamps":
+        response = handle_timestamps(qs)
+    else:
+        return _err(404, f"unknown path {raw_path}. valid: /, /snapshot, /latest, /timestamps", "unknown_path")
+    if private_feed:
+        response["headers"].update({"Cache-Control": "private, no-store", "Vary": "Authorization"})
+    return response

@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, List
 
 import boto3
+from private_artifact import is_private_source
+from public_brain_projection import PUBLIC_CONTEXT_PRIVACY_VERSION, sanitize_public
 
 S3_BUCKET = "justhodl-dashboard-live"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -220,11 +222,10 @@ Schema:
     "portfolio": {
         "data_files": [
             "data/simulated-portfolio.json", "data/pnl-stats.json",
-            "data/pm-decision.json", "data/portfolio-snapshot.json",
             "data/trade-monitor-snapshots.json",
         ],
-        "system": """You are JustHodl.AI's portfolio manager writing the morning book review.
-Assess open positions, concentration, P&L trajectory.
+        "system": """You are JustHodl.AI's research simulation reviewer. All supplied portfolios and trades are model research; label them as simulated, never as the user's actual account.
+Assess simulated positions, concentration, P&L trajectory.
 Be specific: tickers, P&L $, exposure %. Recommend rebalancing if warranted.
 Return ONLY valid JSON, no markdown fences.
 
@@ -285,6 +286,8 @@ def gather_page_context(page: str) -> dict:
         return {}
     ctx = {}
     for path in cfg["data_files"]:
+        if is_private_source(path):
+            continue
         key = path.split("/")[-1].replace(".json", "").replace("-", "_")
         ctx[key] = _read_json(path) or {}
     return ctx
@@ -340,9 +343,18 @@ Generate the JSON commentary now."""
 
     try:
         parsed = json.loads(cleaned)
-        return parsed
+        return parsed if isinstance(parsed, dict) else {"error": "invalid_response_type"}
     except Exception as e:
         return {"narrative_raw": raw[:1500], "parse_error": str(e)}
+
+
+def usable_previous(page, document):
+    if not isinstance(document, dict):
+        return {}
+    if page == "portfolio" and document.get("privacy_version") != PUBLIC_CONTEXT_PRIVACY_VERSION:
+        return {}
+    commentary = document.get("commentary") or {}
+    return commentary if isinstance(commentary, dict) and "error" not in commentary else {}
 
 
 def lambda_handler(event, context):
@@ -361,6 +373,7 @@ def lambda_handler(event, context):
         commentary = generate_commentary(page, ctx)
         # Validate at least one expected field
         has_content = "error" not in commentary
+        attempt_failed = not has_content
         # truth-layer ops4969: NEVER overwrite a good brief with an
         # error stub. If the LLM failed, keep the last good content
         # (current doc, else newest dated history) and stamp the failed
@@ -374,7 +387,7 @@ def lambda_handler(event, context):
                     Key=f"data/ai-commentary/{page}.json")["Body"].read())
             except Exception:
                 prev = {}
-            pc = (prev or {}).get("commentary") or {}
+            pc = usable_previous(page, prev)
             if not (pc and "error" not in pc):
                 try:
                     hist = s3.list_objects_v2(
@@ -385,7 +398,7 @@ def lambda_handler(event, context):
                     for k in reversed(keys[-14:]):
                         d2 = json.loads(s3.get_object(
                             Bucket=S3_BUCKET, Key=k)["Body"].read())
-                        pc2 = (d2 or {}).get("commentary") or {}
+                        pc2 = usable_previous(page, d2)
                         if pc2 and "error" not in pc2:
                             prev, pc = d2, pc2
                             break
@@ -403,13 +416,16 @@ def lambda_handler(event, context):
         }
 
         output = {
+            "privacy_version": PUBLIC_CONTEXT_PRIVACY_VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "page": page,
             "model": ANTHROPIC_MODEL,
             "commentary": commentary,
             "preserved_from": preserved_from,
-            "llm_attempt_failed": bool(preserved_from),
+            "llm_attempt_failed": attempt_failed,
         }
+        if page == "portfolio":
+            output = sanitize_public("data/ai-commentary/portfolio.json", output)
 
         s3.put_object(
             Bucket=S3_BUCKET, Key=f"data/ai-commentary/{page}.json",
@@ -422,7 +438,7 @@ def lambda_handler(event, context):
         s3.put_object(
             Bucket=S3_BUCKET, Key=f"data/ai-commentary/history/{page}/{today}.json",
             Body=json.dumps(output, default=str).encode(),
-            ContentType="application/json", CacheControl="public, max-age=86400",
+            ContentType="application/json", CacheControl="private, no-store" if page == "portfolio" else "public, max-age=86400",
         )
 
     elapsed = round(time.time() - t0, 1)

@@ -114,6 +114,8 @@ class PublicMigrationTests(unittest.TestCase):
             "data/sizing.json": {"holdings": [{"ticker": MARKER, "qty": 20, "weight": 3}], "book_status": MARKER,
                                  "recommendations": [{"ticker": "NVDA", "baseline_px": 123, "final_w_pct": 2,
                                                       "overlap_flags": ["book:" + MARKER + " ρ0.9", "SPY ρ0.8"]}]},
+            "data/ai-commentary/portfolio.json": {"page": "portfolio", "generated_at": "2026-09-09T00:00:00Z",
+                                                  "commentary": {"headline": MARKER}, "preserved_from": MARKER},
             "data/search/providers/tradingview_vault_live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
             "equity-research/NVDA.json": {"price": 123, "khalid_notes": {"n_notes": 3, "levels": [120, 140], "note_ids": ["n1"], "latest_note": MARKER, "llm_view": MARKER}},
         }
@@ -237,7 +239,7 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
-        self.assertEqual(len(migration.PUBLISHERS), 15)
+        self.assertEqual(len(migration.PUBLISHERS), 16)
 
     def test_private_mirror_verification_retries_head_without_body_access(self):
         requests = []

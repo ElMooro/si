@@ -7,6 +7,8 @@ It performs no IO and never logs the input.
 from copy import deepcopy
 import re
 
+PUBLIC_CONTEXT_PRIVACY_VERSION = "20260909-public-inputs-v1"
+
 
 def _rows(value):
     return list(value.values()) if isinstance(value, dict) else value if isinstance(value, list) else []
@@ -170,6 +172,12 @@ def sanitize_public(key, document, *, vault=None):
             out["execution_eligible"] = False
             out["publication_note"] = "Personal holdings and book references withheld; historical sizing awaits account reconciliation."
         out["holdings_publication"] = "REDACTED_ACCOUNT_PRIVATE"
+    elif name == "ai-commentary/portfolio.json":
+        if out.get("privacy_version") != PUBLIC_CONTEXT_PRIVACY_VERSION:
+            out = {"page": "portfolio", "generated_at": out.get("generated_at"),
+                   "privacy_version": PUBLIC_CONTEXT_PRIVACY_VERSION, "private_context_removed": True,
+                   "commentary": {"error": "private_context_removed", "headline": "Public research commentary is awaiting regeneration."},
+                   "preserved_from": None, "llm_attempt_failed": True}
     elif name == "search/providers/tradingview_vault_live.json.gz":
         if not isinstance(vault, dict):
             raise ValueError("vault source required to rebuild search fields")

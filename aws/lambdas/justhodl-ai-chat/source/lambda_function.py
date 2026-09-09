@@ -100,6 +100,9 @@ def fetch_cryptos(sym_id_pairs):
     return data or {}
 
 def get_s3(key):
+    from private_artifact import is_private_source
+    if is_private_source(key):
+        return None
     try:
         s3 = boto3.client('s3', region_name='us-east-1')
         r = s3.get_object(Bucket=S3_BUCKET, Key=key)
