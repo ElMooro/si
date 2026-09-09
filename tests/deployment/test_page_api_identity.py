@@ -7,7 +7,10 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location('page_api_identity', ROOT / 'aws/ops/pending/ops_5240_page_api_identity.py')
+OPERATION = ROOT / 'aws/ops/pending/ops_5240_page_api_identity.py'
+if not OPERATION.exists():
+    OPERATION = ROOT / 'aws/ops/ran/ops_5240_page_api_identity.py'
+SPEC = importlib.util.spec_from_file_location('page_api_identity', OPERATION)
 mod = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mod)
 
@@ -83,6 +86,11 @@ class IdentityTests(unittest.TestCase):
         self.assertEqual(rows[0]['status'], 'UNPROVEN')
         self.assertIsNone(mod.safe_hash('PRIVATE'))
         self.assertIsNone(mod.safe_arn('PRIVATE'))
+
+
+def test_page_api_identity_suite():
+    result = unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromTestCase(IdentityTests))
+    assert result.wasSuccessful(), 'Page API identity metadata tests failed'
 
 
 if __name__ == '__main__':
