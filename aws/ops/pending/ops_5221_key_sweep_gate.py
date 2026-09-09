@@ -75,14 +75,19 @@ with report("ops_5221_key_sweep_gate") as R:
     else:
         R.ok("every live rewritten engine redeployed after the push")
 
-    R.section("2. log scan for managed_secret failures since the push")
+    R.section("2. log scan for managed_secret failures since the env backfill (ops 5227)")
+    # ops 5227 backfilled the provider env vars on 159 functions at 01:58 UTC 2026-09-09; failures logged
+    # BEFORE that are the ones it fixed. The scan window starts at the backfill commit.
+    _bf = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=ops 5227 managed_secret env backfill"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+    T_SCAN = int(_bf or T_PUSH)
+    R.log("log window starts %s" % datetime.fromtimestamp(T_SCAN, timezone.utc).isoformat())
     bad = {}
     scanned = 0
     for fn in fns:
         if fn in missing:
             continue
         try:
-            ev = logs.filter_log_events(logGroupName="/aws/lambda/" + fn, startTime=T_PUSH * 1000,
+            ev = logs.filter_log_events(logGroupName="/aws/lambda/" + fn, startTime=T_SCAN * 1000,
                                         filterPattern='?"managed_secret" ?"No module named" ?"ImportError"', limit=20)
             scanned += 1
         except logs.exceptions.ResourceNotFoundException:
