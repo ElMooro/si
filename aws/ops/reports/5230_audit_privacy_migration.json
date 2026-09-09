@@ -1,0 +1,17 @@
+{
+  "ops": 5230,
+  "checkout_sha": "8af4780900acd163b2bbea08b6c479ca24f0f7c4",
+  "ops_target_sha": "1fe46495e259d6000c1cedb86aa3b4ce93ccd25a",
+  "ok": false,
+  "core_layer_prerequisite": {
+    "consumer_count": 379,
+    "desired_layer": "arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:2",
+    "expected_layer_sha256": "g2Al3pzjoHZxZxErRKsdADItgqAI+cVPOUbd+3zU9tM="
+  },
+  "failed_step": "install_containment",
+  "error_class": "MigrationError",
+  "reason": "merged_bucket_policy_exceeds_s3_limit",
+  "checks": [],
+  "private_payloads_reported": 0,
+  "temporary_containment_recheck_failed": true
+}
