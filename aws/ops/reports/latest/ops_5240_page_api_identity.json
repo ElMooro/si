@@ -1,8 +1,8 @@
 {
   "schema_version": "page-api-identity-metadata.v1",
   "operation": "5240",
-  "observed_at": "2026-09-09T04:56:10.846820+00:00",
-  "checkout_sha": "0c82670e9c24925e1b152549a1da167960830b3d",
+  "observed_at": "2026-09-09T12:11:15.056974+00:00",
+  "checkout_sha": "76e1bc19c8227f37e7ee3a63ac3290a2ba37476f",
   "read_only": true,
   "payload_requests": 0,
   "lambda_invokes": 0,
@@ -17,7 +17,7 @@
       "actual_hostname": "nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws",
       "url_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fmp-fundamentals-agent",
       "configuration_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fmp-fundamentals-agent",
-      "code_sha256": "czOnbmBxn3SKyqCgQXJtuRiyQDFoph2InjwBJo4f0iI=",
+      "code_sha256": "f1gS8AcIFgWCbke2DjtQmw/ZVBNYcuAll3pDNEDhDTg=",
       "state": "Active",
       "url_hostname_matches": true,
       "metadata_calls_attempted": 2,
@@ -28,7 +28,7 @@
     {
       "page": "census.html",
       "function": "fedliquidityapi",
-      "expected_page_hostname": "gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws",
+      "expected_page_hostname": "mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws",
       "page_contains_expected_hostname": true,
       "actual_function_url": "https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/",
       "actual_hostname": "mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws",
@@ -36,12 +36,12 @@
       "configuration_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fedliquidityapi",
       "code_sha256": "V4Z0AG7M3c0M+JK6AohmbMuxWsCHJ+k3r1/0ypPTFao=",
       "state": "Active",
-      "url_hostname_matches": false,
+      "url_hostname_matches": true,
       "metadata_calls_attempted": 2,
       "errors": [],
       "function_arn_matches": true,
-      "status": "MISMATCH"
+      "status": "VERIFIED"
     }
   ],
-  "all_verified": false
+  "all_verified": true
 }
