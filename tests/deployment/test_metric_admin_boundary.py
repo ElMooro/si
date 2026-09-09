@@ -13,9 +13,10 @@ import private_artifact
 def load(short):
     stub=types.ModuleType('managed_secret');stub.managed_secret=lambda *args:''
     boto=types.ModuleType('boto3');boto.client=MagicMock()
+    router=types.ModuleType('llm_router');router.complete=MagicMock(return_value='')
     spec=importlib.util.spec_from_file_location('metric_'+short,ROOT/'aws/lambdas'/('justhodl-'+short+'-metrics')/'source/lambda_function.py')
     module=importlib.util.module_from_spec(spec)
-    with patch.dict(sys.modules,{'boto3':boto,'managed_secret':stub,'anthropic_shim':types.ModuleType('anthropic_shim'),'_fred_shim':types.ModuleType('_fred_shim')}):spec.loader.exec_module(module)
+    with patch.dict(sys.modules,{'boto3':boto,'managed_secret':stub,'llm_router':router,'anthropic_shim':types.ModuleType('anthropic_shim'),'_fred_shim':types.ModuleType('_fred_shim')}):spec.loader.exec_module(module)
     return module
 
 def test_public_metric_mutations_are_denied_before_any_config_or_provider_read():
@@ -55,14 +56,26 @@ def test_absent_metrics_and_invalid_weights_cannot_be_neutral_risk():
 def test_failed_analysis_replaces_old_report_with_owned_unavailable_snapshot():
     for short in ('ka','khalid'):
         module=load(short)
-        for data,reason in (({'risk_index':None},'metrics_unavailable'),({'risk_index':0},'analysis_provider_unavailable')):
+        for data,reason in (({'risk_index':None},'metrics_unavailable'),({'risk_index':0},'analysis_unavailable')):
             result=module.run_ai_analysis({'metrics':[],'categories':[]},data)
             assert result['engine']=='justhodl-'+short+'-metrics'
             assert result['error']==reason and result['llm_status']=='unavailable' and result['execution_eligible'] is False
             stored=json.loads(module.s3.put_object.call_args.kwargs['Body'])
             assert stored==result and stored['generated'].endswith('+00:00')
             assert module.s3.put_object.call_args.kwargs['Key']=='data/'+short+'-analysis.json'
-        module.ANTHROPIC_KEY='synthetic'
-        with patch.object(module.urllib.request,'urlopen',side_effect=RuntimeError('synthetic-private-url-and-token')):
+        with patch.object(module,'complete',side_effect=RuntimeError('synthetic-private-url-and-token')):
             result=module.run_ai_analysis({'metrics':[],'categories':[]},{'risk_index':0})
         assert result['error']=='analysis_unavailable' and 'synthetic-private' not in json.dumps(result)
+
+
+def test_metric_analysis_uses_managed_budgeted_router_and_rejects_nonfinite_output():
+    for short in ('ka','khalid'):
+        module=load(short)
+        module.complete.return_value='{"risk_analysis":{"risk_score":0}}'
+        result=module.run_ai_analysis({'metrics':[],'categories':[]},{'risk_index':0,'generated':'2026-09-09T16:00:00Z'})
+        assert result['llm_status']=='available' and result['risk_analysis']['risk_score']==0
+        assert result['execution_eligible'] is False and result['input_generated']=='2026-09-09T16:00:00Z'
+        assert module.complete.call_args.kwargs=={'tier':'reason','max_tokens':6000,'on_demand':False}
+        module.complete.return_value='{"risk_analysis":{"risk_score":NaN}}'
+        result=module.run_ai_analysis({'metrics':[],'categories':[]},{'risk_index':0})
+        assert result['llm_status']=='unavailable' and result['error']=='analysis_unavailable'
