@@ -10,14 +10,17 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "AI v1: the front window to Amazon SageMaker -- live inventory of every SageMaker resource, JumpStart financial-model catalog (RoBERTa-SEC transfer learning), Brain-derived datasets, training/deploy/inference control plane with hard cost guards; read model data/ai.json",
+  "description": "AI v1: the front window to Amazon SageMaker -- live inventory, JumpStart financial-model catalog (RoBERTa-SEC transfer learning), Brain-derived datasets, train/deploy/infer control plane with hard cost guards; read model data/ai.json",
   "env": {
     "AI_PRIVATE_BUCKET": "justhodl-ai-857687956942",
     "AI_PUBLIC_BUCKET": "justhodl-dashboard-live"
   },
   "function_url": {
     "enabled": true,
-    "cors_origins": ["https://justhodl.ai", "https://www.justhodl.ai"]
+    "cors_origins": [
+      "https://justhodl.ai",
+      "https://www.justhodl.ai"
+    ]
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-ai-inventory",
