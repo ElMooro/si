@@ -25,7 +25,9 @@ from ops_report import report  # noqa: E402
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 FAILS = []
-T_PUSH = int(subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip() or "0")
+# anchored to this release's own commit (not HEAD): a later ops-only push must not move the reference past the deploy
+_rel = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=Release C1 (ops 5224)"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+T_PUSH = int(_rel or subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip() or "0")
 
 
 def expect(cond, msg):
