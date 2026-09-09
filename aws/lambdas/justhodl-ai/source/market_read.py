@@ -50,9 +50,9 @@ SOURCES = {
     "crisis": ("data/crisis-composite.json", 36, False),
     "gbc": ("data/global-business-cycle.json", 200, False),
     "regime_composite": ("data/regime-composite.json", 36, False),
-    "metals": ("data/metals-miners.json", 60, False),
-    "crypto": ("data/crypto-intel.json", 30, False),
-    "btc_cycle": ("data/btc-cycle.json", 60, False),
+    "metals": ("screener/metals-miners.json", 60, False),
+    "crypto": ("crypto-intel.json", 30, False),
+    "btc_cycle": ("data/crypto-cycle-risk.json", 60, False),
     "scorecard": ("data/signal-scorecard.json", 60, False),
     "brain": ("data/brain.json", 400, True),
 }
@@ -281,8 +281,10 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn) -> Di
     slim.pop("candidates", None)
     prompt = "BOARD (fleet artifacts, with freshness):\n%s\n\nPLAYBOOK (operator's nearest notes per setup):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
         json.dumps(slim, default=str)[:24000], json.dumps(play.get("notes") or {"unavailable": play.get("reason")}, default=str)[:9000], ", ".join(board.get("candidates") or []))
-    raw = complete_fn(prompt, tier="critical", max_tokens=3200, contains_proprietary=True, system=SYSTEM)
+    raw = complete_fn(prompt, tier="critical", max_tokens=2400, contains_proprietary=True, system=SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
+    if not txt:
+        return {"parse_error": True, "raw": "", "empty": True}
     m = re.search(r"\{.*\}", txt, re.S)
     try:
         j = json.loads(m.group(0) if m else txt)

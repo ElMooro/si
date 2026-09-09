@@ -397,6 +397,10 @@ def test_embedding_pass_assembles_csv_and_index_then_retrieves():
 def test_cost_guard_rules():
     import cost_guard as cg
     pol = dict(cg.DEFAULT_POLICY)
+    import sm_hub
+    long_ep = "jh-ai-mxnet-tcembedding-robertafin-base-uncased"
+    n = sm_hub._safe_name(long_ep, "cfg", "8983967612-1")
+    assert len(n) <= 63 and not n.endswith("-") and n.endswith("-cfg-8983967612-1") and "--" not in n, n
     assert cg.instance_allowed(pol, "ml.m5.xlarge", "hosting") is None
     assert "large GPU" in cg.instance_allowed(pol, "ml.p4d.24xlarge", "training")
     assert "not in policy" in cg.instance_allowed(pol, "ml.r5.24xlarge", "hosting")
@@ -520,7 +524,7 @@ def _fleet_docs(s3):
     s3.put_object("public-test", "data/katlin.json", json.dumps({"generated_at": now, "war_room": {"posture": "SELECTIVE", "thermometer": 62}, "picks": [{"ticker": "AAPL", "tier": "KATLIN_PRIME", "score": 81, "desk": "stocks"}, {"ticker": "BTC-USD", "tier": "READY", "score": 70, "desk": "crypto"}]}).encode())
     s3.put_object("public-test", "data/bottom.json", json.dumps({"generated_at": now, "top_picks": [{"ticker": "TLT", "state": "ST_CONFIRMED", "score": 64, "desk": "bonds", "grade": "B"}], "market": {"breadth": {"actionable": 12}, "read": "few climaxes"}}).encode())
     s3.put_object("public-test", "data/bond-warroom.json", json.dumps({"generated_at": "2026-01-01T00:00:00+00:00", "headline": "old"}).encode())   # STALE on purpose
-    s3.put_object("public-test", "data/metals-miners.json", json.dumps({"generated_at": now, "gold": {"price": 3520.5}, "silver": {"price": 41.2}, "top": [{"ticker": "GLD", "score": 70}]}).encode())
+    s3.put_object("public-test", "screener/metals-miners.json", json.dumps({"generated_at": now, "gold": {"price": 3520.5}, "silver": {"price": 41.2}, "top": [{"ticker": "GLD", "score": 70}]}).encode())
 
 
 def test_market_read_board_playbook_llm_ledger_and_grading():

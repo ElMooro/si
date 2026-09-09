@@ -43,6 +43,13 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _safe_name(base: str, kind: str, stamp: str) -> str:
+    """SageMaker names: <=63 chars, [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62} -- never end on a dash (ops 5302)."""
+    tail = ("-%s-%s" % (kind, stamp)) if kind else ("-%s" % stamp)
+    name = (base[: 63 - len(tail)].rstrip("-") + tail)[:63]
+    return re.sub(r"-+", "-", name).strip("-")
+
+
 def _stamp() -> str:
     """Second-precision names collided when a serverless attempt and its real-time fallback ran in the same
     second (ops 5301) -- millisecond + counter stamps never do."""
@@ -341,7 +348,7 @@ def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, insta
         env.setdefault(k, v)
     env.setdefault("SAGEMAKER_REGION", REGION)
     env.setdefault("MODEL_CACHE_ROOT", "/opt/ml/model")
-    model_name = ("%s-%s" % (endpoint_name, _stamp()))[:63]
+    model_name = _safe_name(endpoint_name, "", _stamp())
     container = {"Image": spec["hosting_image"], "Environment": env}
     if md.get("source"):
         container["ModelDataSource"] = md["source"]
@@ -349,7 +356,7 @@ def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, insta
         container["ModelDataUrl"] = md["url"]
     model_data = md.get("url") or (md.get("source") or {}).get("S3DataSource", {}).get("S3Uri")
     sm.create_model(ModelName=model_name, ExecutionRoleArn=role_arn, Tags=tags, PrimaryContainer=container)
-    cfg_name = ("%s-cfg-%s" % (endpoint_name, _stamp()))[:63]
+    cfg_name = _safe_name(endpoint_name, "cfg", _stamp())
     variant = {"VariantName": "AllTraffic", "ModelName": model_name}
     if serverless:
         variant["ServerlessConfig"] = {"MemorySizeInMB": int(serverless_memory_mb), "MaxConcurrency": int(serverless_max_conc)}

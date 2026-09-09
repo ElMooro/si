@@ -48,7 +48,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -640,10 +640,23 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     play = mr.playbook(s3, client("sagemaker-runtime"), PRIVATE_BUCKET, (ds or {}).get("dataset_id"), ep, sentences, sm_hub.embed_texts, bd.nearest_notes)
     try:
         import llm_router
-        complete = llm_router.complete
     except Exception as e:
         raise ActionError("LLM router unavailable in this bundle: %s" % str(e)[:100])
+
+    def complete(prompt, **kw):
+        txt = ""
+        try:
+            txt = llm_router.complete(prompt, **kw) or ""
+        except Exception as e:
+            print("[ai] router: %s" % str(e)[:120])
+        if txt.strip():
+            return txt
+        # the router answers "" on budget/mode gates or its fixed 35s timeout; a user-requested read is worth one direct,
+        # bounded Sonnet call (same key, 120s) -- metered through llm_cost when it is present
+        return _direct_claude(prompt, kw.get("system"), int(kw.get("max_tokens") or 2400))
+
     read = mr.compose_read(board, play, complete)
+    read["llm_path"] = getattr(_direct_claude, "last_path", "router")
     read_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logged = []
     if read.get("calls") and not read.get("parse_error"):
@@ -665,6 +678,39 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     except Exception:
         pass
     return {k: doc[k] for k in ("read_id", "generated_at", "elapsed_s", "read", "calls_logged")} | {"playbook_available": play.get("available"), "sources": board["sources"]}
+
+
+def _direct_claude(prompt: str, system: Optional[str], max_tokens: int) -> str:
+    import urllib.request
+    try:
+        import llm_router
+        key = llm_router._anthropic_key()
+        model = getattr(llm_router, "SONNET", "claude-sonnet-4-6")
+    except Exception as e:
+        _direct_claude.last_path = "no-key:%s" % str(e)[:60]
+        return ""
+    payload = {"model": model, "max_tokens": int(max_tokens), "messages": [{"role": "user", "content": prompt}]}
+    if system:
+        payload["system"] = system
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(payload).encode(),
+                                 headers={"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "x-jh-internal": "justhodl-ai"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            d = json.loads(r.read().decode())
+        txt = "".join(b.get("text", "") for b in d.get("content", []))
+        _direct_claude.last_path = "direct:%s" % model
+        try:
+            import llm_cost
+            u = d.get("usage") or {}
+            if hasattr(llm_cost, "record"):
+                llm_cost.record(ENGINE, model, int(u.get("input_tokens") or 0), int(u.get("output_tokens") or 0))
+        except Exception:
+            pass
+        return txt
+    except Exception as e:
+        _direct_claude.last_path = "direct-failed:%s" % str(e)[:80]
+        print("[ai] direct claude failed: %s" % str(e)[:160])
+        return ""
 
 
 def action_get_read(body: dict, policy: dict) -> Dict[str, Any]:
