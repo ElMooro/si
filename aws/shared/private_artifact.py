@@ -22,6 +22,19 @@ MIRRORED_ARTIFACTS = {
     "data/ai-brief.json": "ai-brief",
     "data/user-watchlist.json": "user-watchlist", "data/vol-regime-private.json": "vol-regime-private",
     "data/user-trades.json": "personal-trades", "data/user-trades-stats.json": "personal-trades-stats",
+    "portfolio/catalyst-alert-history.json": "portfolio-catalyst-history",
+    "portfolio/risk-alert-history.json": "portfolio-risk-history",
+    "portfolio/sizing-alert-history.json": "portfolio-sizing-history",
+    "data/history/behavior-mirror-history.json": "behavior-mirror-history",
+}
+# Equivalent output aliases use the canonical mirror, never a second seed that
+# could replace a current mirror with an older copy after a partial S3 write.
+PRIVATE_ARTIFACT_ALIASES = {"risk/recommendations.json": "data/risk-sizer.json"}
+# Exact empty schemas returned by the corresponding producers before any event.
+# Migration may create these only with IfNoneMatch, after checking absence.
+OWNER_HISTORY_DEFAULTS = {
+    "portfolio/catalyst-alert-history.json": {}, "portfolio/risk-alert-history.json": {},
+    "portfolio/sizing-alert-history.json": {}, "data/history/behavior-mirror-history.json": {"snapshots": []},
 }
 PRIVATE_KEYS = frozenset(MIRRORED_ARTIFACTS) | {
     "data/tradingview-notes.json", "risk/recommendations.json", "data/ai-brief.md",

@@ -442,7 +442,9 @@ test('all dedicated owner account engines publish and read through authenticated
     'portfolio/snapshot.json':'portfolio-snapshot','portfolio/risk.json':'portfolio-risk','portfolio/sizing.json':'portfolio-sizing','portfolio/catalysts.json':'portfolio-catalysts',
     'data/risk-sizer.json':'risk-sizer','risk/recommendations.json':'risk-sizer','data/pm-decision.json':'pm-decision','data/pm-decision-history.json':'pm-decision-history',
     'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief',
-    'data/user-watchlist.json':'user-watchlist','data/vol-regime-private.json':'vol-regime-private','data/user-trades.json':'personal-trades','data/user-trades-stats.json':'personal-trades-stats'};
+    'data/user-watchlist.json':'user-watchlist','data/vol-regime-private.json':'vol-regime-private','data/user-trades.json':'personal-trades','data/user-trades-stats.json':'personal-trades-stats',
+    'portfolio/catalyst-alert-history.json':'portfolio-catalyst-history','portfolio/risk-alert-history.json':'portfolio-risk-history',
+    'portfolio/sizing-alert-history.json':'portfolio-sizing-history','data/history/behavior-mirror-history.json':'behavior-mirror-history'};
   globalThis.caches={default:{async match(){throw new Error('private cache read')},async put(){throw new Error('private cache write')}}};
   for(const [key,kind] of Object.entries(keys)){
     const doc={engine:kind,account_fixture:{positions:[{ticker:'SYNTHETIC',qty:3}],nav:100}};

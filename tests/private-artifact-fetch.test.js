@@ -32,7 +32,9 @@ test('every owner feed uses its dedicated private kind with bearer and no-store'
     '/portfolio/snapshot.json':'portfolio-snapshot','/portfolio/risk.json':'portfolio-risk','/portfolio/sizing.json':'portfolio-sizing','/portfolio/catalysts.json':'portfolio-catalysts',
     '/data/risk-sizer.json':'risk-sizer','/risk/recommendations.json':'risk-sizer','/data/pm-decision.json':'pm-decision','/data/pm-decision-history.json':'pm-decision-history',
     '/data/behavior-mirror.json':'behavior-mirror','/data/ai-brief.json':'ai-brief',
-    '/data/user-watchlist.json':'user-watchlist','/data/vol-regime-private.json':'vol-regime-private','/data/user-trades.json':'personal-trades','/data/user-trades-stats.json':'personal-trades-stats'};
+    '/data/user-watchlist.json':'user-watchlist','/data/vol-regime-private.json':'vol-regime-private','/data/user-trades.json':'personal-trades','/data/user-trades-stats.json':'personal-trades-stats',
+    '/portfolio/catalyst-alert-history.json':'portfolio-catalyst-history','/portfolio/risk-alert-history.json':'portfolio-risk-history',
+    '/portfolio/sizing-alert-history.json':'portfolio-sizing-history','/data/history/behavior-mirror-history.json':'behavior-mirror-history'};
   for(const [key,kind] of Object.entries(paths)){
     const result=await window.fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com'+key+'?t=fixture',{headers:{Authorization:'do-not-forward'}});
     assert.equal((await result.json()).positions[0].quantity,7);const call=state.calls.at(-1);

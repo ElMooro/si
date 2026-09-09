@@ -368,8 +368,10 @@ def update_history(payload):
                       Body=json.dumps(old, indent=2).encode(),
                       ContentType="application/json",
                       CacheControl="private, no-store")
-    except Exception as e:
-        logger.error(f"history_write_fail: {e}")
+        publish_private("behavior-mirror-history", old)
+    except Exception:
+        logger.error("owner history publication failed")
+        raise
 
 
 def _run_private(event, context):

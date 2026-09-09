@@ -120,6 +120,7 @@ def run(engine):
             assert ("pm-decision-history", store.docs["data/pm-decision-history.json"]) in mirrors
         if engine == "behavior-mirror":
             assert any(w["Key"] == "data/history/behavior-mirror-history.json" for w in store.writes)
+            assert ("behavior-mirror-history", store.docs["data/history/behavior-mirror-history.json"]) in mirrors
         checks += 1
 
         # Failure to refresh the authenticated mirror is observable, never success.
@@ -148,9 +149,31 @@ def run(engine):
             checks += 1
         if "save_alert_history" in env:
             history_store = Store()
-            _, _, env = load(engine, history_store)
-            env["save_alert_history"]({SYMBOL: "2026-09-09T00:00:00Z"})
+            _, history_mirrors, env = load(engine, history_store)
+            history = {SYMBOL: "2026-09-09T00:00:00Z"}
+            env["save_alert_history"](history)
             assert history_store.writes[-1]["CacheControl"] == "private, no-store"
+            kind = {"portfolio-risk": "portfolio-risk-history", "portfolio-sizer": "portfolio-sizing-history", "portfolio-catalysts": "portfolio-catalyst-history"}[engine]
+            assert (kind, history) in history_mirrors
+            assert history_store.docs[env["ALERT_HISTORY_KEY"]] == history
+            checks += 1
+
+            # A source outage must not be interpreted as an empty history.
+            env["s3"].get_object = lambda **kw: (_ for _ in ()).throw(RuntimeError("synthetic source unavailable"))
+            try: env["load_alert_history"]()
+            except RuntimeError as error: assert str(error) == "synthetic source unavailable"
+            else: raise AssertionError("failed source read became empty history")
+            assert len(history_store.writes) == 1
+            checks += 1
+
+            # Successful canonical storage survives mirror failure; failure is
+            # observable so a missing owner output cannot be called successful.
+            history_store = Store()
+            _, _, env = load(engine, history_store, fail_publish=True)
+            try: env["save_alert_history"](history)
+            except RuntimeError as error: assert str(error) == "synthetic private mirror unavailable"
+            else: raise AssertionError("private history publication failed silently")
+            assert history_store.docs[env["ALERT_HISTORY_KEY"]] == history
             checks += 1
     print(f"{engine}: {checks} private handler checks passed")
 

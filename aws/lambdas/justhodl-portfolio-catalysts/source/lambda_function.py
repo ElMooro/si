@@ -283,16 +283,22 @@ def send_telegram(text, chat_id):
 
 
 def load_alert_history():
-    try: return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY)["Body"].read())
-    except Exception: return {}
+    try:
+        history = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY)["Body"].read())
+        if not isinstance(history, dict):
+            raise ValueError("invalid owner history document")
+        return history
+    except Exception as error:
+        if str(getattr(error, "response", {}).get("Error", {}).get("Code", "")) in {"404", "NoSuchKey", "NotFound"}:
+            return {}
+        raise
 
 
 def save_alert_history(h):
-    try:
-        s3.put_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY,
-            Body=json.dumps(h, separators=(",", ":")).encode("utf-8"),
-            ContentType="application/json", CacheControl="private, no-store")
-    except Exception as e: print(f"  hist err: {e}")
+    s3.put_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY,
+        Body=json.dumps(h, separators=(",", ":")).encode("utf-8"),
+        ContentType="application/json", CacheControl="private, no-store")
+    publish_private("portfolio-catalyst-history", h)
 
 
 def should_alert(history, key):

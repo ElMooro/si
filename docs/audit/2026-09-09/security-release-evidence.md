@@ -8,7 +8,7 @@ No private customer bodies, billing mutations, producer invocations, messages, c
 
 | Audit finding | Source result and meaningful verification |
 |---|---|
-| INST-01 personal data | Private corpus, owner account outputs, historical archives and alternate aliases intercept before cache. Owner/service authorization gates 21 exact mirror kinds; only services publish. Raw archives remain IAM-only. Full private originals are preserved. Signed-out, unrelated-account, stale-cache, Range, version and encoded-path fixtures cannot disclose private bodies. |
+| INST-01 personal data | Private corpus, owner account outputs, historical archives and alternate aliases intercept before cache. Owner/service authorization gates 25 exact mirror kinds; only services publish. Raw archives remain IAM-only. Full private originals are preserved. Signed-out, unrelated-account, stale-cache, Range, version and encoded-path fixtures cannot disclose private bodies. |
 | INST-01 locked journal | The existing SQLite Durable Object stores versioned, chunked journals and immutable revision records. Legacy source is retained. Locked entries cannot be edited/deleted; corrections append. Concurrent submissions conflict explicitly; restart and multi-megabyte migration fixtures preserve history. |
 | INST-02 identity isolation | Verified user namespaces and anonymous namespaces remain separate. Existing regression tests still pass. |
 | INST-04 checkout | Verified buyer, server price mapping, pinned return origin and independently proven Stripe customer ownership. Browser profile or request metadata cannot select another customer or grant a plan. |
@@ -21,7 +21,7 @@ INST-03's original Enterprise/unmetered bypass was already corrected in the prev
 
 ## Frozen source map and migration
 
-`aws/shared/private_artifact.py` is the canonical map: 21 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 15 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
+`aws/shared/private_artifact.py` is the canonical map: 25 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 15 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
 
 The 37 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
 
@@ -34,6 +34,8 @@ The 37 exact-source readiness targets in `audit_20260909_privacy_migration.py` c
 
 The direct-key closure trace is documented in `privacy-graph-closure.md`: 24 private paths then present, their legacy aliases, and 36 matching consumer files. It found the additional manual personal trade API. Watchlist and volatility were separately traced; the calculator request-persistence paths were found during the page/API classification. This is an explicit bounded source review, not a claim that every computed runtime path or live endpoint was tested.
 
+The four owner-only history outputs (portfolio risk, sizing and catalyst alert dictionaries; behavior history) are now mirrored in full for authenticated inspection. Existing histories are retained; absent histories use only the corresponding producers’ exact empty schemas under conditional creation. History source errors never become empty successful reads. `PRIVATE_ARTIFACT_ALIASES` explicitly maps the risk recommendations duplicate to its canonical private mirror without double-seeding it. No private S3 resource becomes public through this coverage change.
+
 Public model portfolios, simulated performance, public market intelligence, normalized PM macro posture, permitted structured note counts/scores and the public simulated trade-evaluation ledger remain public. Personal holdings, quantities, cash, manual notes/theses, watchlist membership, trade records, and caller financial scenario inputs do not.
 
 Migration preserves originals and historical versions; installs permanent private/history denies and temporary current-derivative containment; validates exact deployed ZIP/shared-source membership; grants only the named service environment targets and exact SSM parameter; seeds authenticated mirrors; conditionally sanitizes current objects; rebuilds the provider index; resets warm caches; purges affected caches; and verifies metadata/HEAD access before lifting temporary containment. The full volatility original is bootstrapped before its public projection is reduced to core model rows. No calculator invocation is needed to remove old caller data. Any failed containment, parity or purge gate must leave temporary protection in place.
@@ -43,8 +45,8 @@ No new Durable Object binding, migration tag or Supabase DDL is required. Exact-
 ## Local evidence and handoff commits
 
 - 117 security/Fusion/browser/workspace JavaScript tests passed before the final calculator transport change. Its three new browser tests and all 30 Worker tests then passed together. They use actual Worker modules and extracted page functions, not source-string assertions alone.
-- AI Brief: six actual-handler checks. Personal trade API: six. Private portfolio producers: 24. Downstream AI/history: 20. Watchlist: ten; volatility: two. These are offline handler/source tests with external services mocked.
-- The final migration has 20 offline checks; the public Brain boundary suite has 14. Earlier private Brain/grader/Ask/Ask Desk handler checks also remain available through their committed runners.
+- AI Brief: six actual-handler checks. Personal trade API: six. Private portfolio producers: 30. Downstream AI/history: 20. Watchlist: ten; volatility: two. These are offline handler/source tests with external services mocked.
+- The final migration has 21 offline checks; the public Brain boundary suite has 14. Earlier private Brain/grader/Ask/Ask Desk handler checks also remain available through their committed runners.
 - Owned Python preflight and JavaScript/inline-page parsing passed. Root's joint release gate is the authority for the assembled release; no duplicate broad gate was run after the root took that work.
 
 Primary security foundation: `eede659`, cache follow-up `75d2d04`, Fusion `4ca378a`, note derivative protection `3facbdf` and `eceb239`. Account foundation/UI: `b7cd7e3`, `98e4776`. Companion account producers: `7090342`, `233495f`, `8d1b7ba`, `9e690fb`, `c1b90b3`, `b99ff75`. Downstream AI/history: `12e9041`. Migration and later extensions: `58d2b32`, `5cef5c2`, `2a6fc87`, `dd2fbe5`. Calculator producer and final browser/cache commits are recorded by the release owner when assembling this handoff.

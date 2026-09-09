@@ -25,6 +25,7 @@ from audit_20260909_security import (
 from public_brain_projection import (
     brief_public, devils_public, notes_public, playbook_public, sanitize_public,
 )
+from private_artifact import OWNER_HISTORY_DEFAULTS
 
 BUCKET = "justhodl-dashboard-live"
 ACCOUNT = "857687956942"
@@ -349,6 +350,13 @@ class Migration:
         require(isinstance(ledger.get("trades"), list), "personal_ledger_schema_invalid")
         if stats is None:
             self.create_private_original(stats_key, compute_stats(ledger))
+
+        # An empty alert/history file is legitimate before the first event.
+        # Preserve every existing row; never infer past activity or overwrite it.
+        for key, empty in OWNER_HISTORY_DEFAULTS.items():
+            _, existing = self.read_object(key, optional=True)
+            if existing is None:
+                self.create_private_original(key, empty)
 
     def create_private_original(self, key, original):
         raw = encoded(original)

@@ -270,7 +270,7 @@ class PublicMigrationTests(unittest.TestCase):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 
     def test_private_seed_kinds_exclude_raw_tradingview_corpus(self):
-        self.assertEqual(len(migration.MIRRORED_KEYS), 21)
+        self.assertEqual(len(migration.MIRRORED_KEYS), 25)
         self.assertNotIn("data/tradingview-notes.json", migration.MIRRORED_KEYS)
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/snapshot.json"], "portfolio-snapshot")
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")
@@ -315,8 +315,23 @@ class PublicMigrationTests(unittest.TestCase):
         stats = store.docs["data/user-trades-stats.json"]
         self.assertEqual(stats["n_open"], 1)
         self.assertEqual(stats["open_total_pnl_dollars"], 100)
-        self.assertEqual([w["Key"] for w in store.writes], ["data/user-trades-stats.json"])
+        self.assertEqual([w["Key"] for w in store.writes if w["Key"] not in migration.OWNER_HISTORY_DEFAULTS], ["data/user-trades-stats.json"])
         self.assertNotIn(MARKER, json.dumps(job.rows))
+
+    def test_owner_history_bootstrap_preserves_existing_rows_and_uses_only_empty_source_schemas(self):
+        existing = {"synthetic-held-position": "2026-09-09T00:00:00Z"}
+        store = MemoryS3({"data/vol-regime-private.json": {"tickers": []},
+                          "data/user-trades.json": {"version": 0, "trades": []},
+                          "data/user-trades-stats.json": {"n_total": 0},
+                          "portfolio/risk-alert-history.json": existing})
+        job = migration.Migration(ROOT, {"s3": store})
+        job.bootstrap_private_derivatives()
+        self.assertEqual(store.docs["portfolio/risk-alert-history.json"], existing)
+        self.assertFalse(any(w["Key"] == "portfolio/risk-alert-history.json" for w in store.writes))
+        for key, empty in migration.OWNER_HISTORY_DEFAULTS.items():
+            if key != "portfolio/risk-alert-history.json": self.assertEqual(store.docs[key], empty)
+        self.assertTrue(all(w["IfNoneMatch"] == "*" and w["CacheControl"] == "private, no-store" for w in store.writes))
+        count = len(store.writes);job.bootstrap_private_derivatives();self.assertEqual(len(store.writes), count)
 
     def test_missing_manual_ledger_with_nonempty_stats_fails_closed(self):
         store = MemoryS3({"data/vol-regime-private.json": {"tickers": []}, "data/user-trades-stats.json": {"n_total": 2}})
