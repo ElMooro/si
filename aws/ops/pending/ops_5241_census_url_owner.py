@@ -18,7 +18,7 @@ def main():
     checkout = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     result = {"ops": 5241, "checkout_sha": checkout, "ops_target_sha": os.environ.get("OPS_TARGET_SHA")}
     try:
-        config = Config(connect_timeout=10, read_timeout=20, retries={"max_attempts": 2}, max_pool_connections=6)
+        config = Config(connect_timeout=10, read_timeout=20, retries={"mode": "adaptive", "total_max_attempts": 10}, max_pool_connections=2)
         clients = {name: boto3.client(name, region_name="us-east-1", config=config) for name in ("lambda", "sts")}
         result.update(discover(clients["lambda"], clients["sts"]))
     except Exception:

@@ -7,6 +7,25 @@ if repo!='ElMooro/si': raise RuntimeError('Unexpected repository')
 def get(path):
     req=urllib.request.Request('https://api.github.com/repos/'+repo+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10'})
     with urllib.request.urlopen(req,timeout=30) as response: return json.load(response)
+def failure_sections(raw):
+    rows=[]
+    for match in re.finditer(r'──── Deploying ([A-Za-z0-9_-]+) ────(.*?)(?=──── Deploying |\Z)',raw,re.S):
+        name,part=match.groups()
+        if 'Deploy failed for '+name not in part: continue
+        row={'function':name,'aws_errors':[{'code':a,'operation':b} for a,b in re.findall(r'An error occurred \(([A-Za-z0-9_.-]+)\) when calling the ([A-Za-z0-9]+) operation',part)],
+             'validation_fields':sorted(set(re.findall(r" at '([A-Za-z0-9_.]+)' failed to satisfy",part))),
+             'stages':[label for marker,label in [('Updating existing Lambda','existing_function'),('Built ','package_built'),('Invoking pinned ','candidate_invoked'),('live alias promoted','candidate_promoted'),('Setting up EventBridge rule','classic_schedule'),('Setting up EventBridge Scheduler','scheduler'),('Schedule attached','classic_schedule_done')] if marker in part],
+             'configuration_errors':[]}
+        for line in part.splitlines():
+            offset=line.find('{')
+            if offset<0: continue
+            try: doc=json.loads(line[offset:])
+            except (ValueError,TypeError): continue
+            if isinstance(doc,dict) and doc.get('phase')=='lambda_configuration_failed' and doc.get('function')==name:
+                row['configuration_errors'].append({key:doc[key] for key in ('phase','function','operation','error_code','exit_code') if key in doc})
+        rows.append(row)
+    return rows
+
 def diagnostics(job_id):
     # Never forward GitHub authorization onto a signed log-download redirect.
     class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -21,7 +40,7 @@ def diagnostics(job_id):
             if not location.startswith('https://'): return {'available':False}
             response=urllib.request.urlopen(location,timeout=30)
         with response: raw=response.read(20_000_000).decode('utf-8','replace')
-        return {'available':True,
+        return {'available':True, 'function_failures':failure_sections(raw),
                 'exception_types':sorted(set(re.findall(r'\b[A-Z][A-Za-z]*(?:Error|Exception)\b',raw))),
                 'aws_error_codes':sorted(set(re.findall(r'An error occurred \(([A-Za-z0-9_.-]+)\) when calling',raw))),
                 'missing_modules':sorted(set(re.findall(r"No module named ['\"]([A-Za-z0-9_.-]+)['\"]",raw))),
