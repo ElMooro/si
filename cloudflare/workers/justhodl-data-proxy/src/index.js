@@ -1639,7 +1639,7 @@ export default {
         return new Response(JSON.stringify({ error: "invalid ticker" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const fmpKey = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+      const fmpKey = env.FMP_KEY || "";   /* audit 2026-09-08 INST-06: Worker secret from SSM, no literal */
       const fKey = new Request(`https://fund.cache/${ticker}`, { method: "GET" });
       const fc = caches.default;
       const hit = await fc.match(fKey);
@@ -1696,7 +1696,7 @@ export default {
         return new Response(JSON.stringify({ news: [] }),
           { headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const fmpKey = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb";
+      const fmpKey = env.FMP_KEY || "";   /* audit 2026-09-08 INST-06: Worker secret from SSM, no literal */
       const nKey = new Request(`https://news.cache/${ticker}`, { method: "GET" });
       const nc = caches.default;
       const hit = await nc.match(nKey);

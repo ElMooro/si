@@ -34,7 +34,8 @@ class _S3:
 
         class P:
             def paginate(self, Bucket, Prefix, Delimiter=None):
-                items = [{"Key": k, "Size": len(v), "LastModified": datetime.now(timezone.utc)} for k, v in sorted(objs.items()) if k.startswith(Prefix)]
+                items = [{"Key": k, "Size": len(v), "LastModified": datetime.now(timezone.utc)} for k, v in sorted(objs.items())
+                         if k.startswith(Prefix) and (not Delimiter or Delimiter not in k[len(Prefix):])]
                 for i in range(0, max(1, len(items)), 2):
                     yield {"Contents": items[i:i + 2]}
         return P()
@@ -94,6 +95,15 @@ def test_enumeration_reports_truncation_instead_of_silently_stopping():
     mod2, _ = _load({"data/%d.json" % i: b"{\"a\":1}" for i in range(3)}, max_keys=400)
     keys, truncated = mod2.list_keys_under_rule({"prefix": "data/"})
     assert truncated is False and len(keys) == 3
+
+
+def test_data_rule_lists_depth_one_by_default_and_recursive_on_request():
+    objs = {"data/a.json": b"{\"a\":1}", "data/warm/deep/b.json": b"{\"a\":1}"}
+    mod, _ = _load(dict(objs), max_keys=400)
+    keys, _t = mod.list_keys_under_rule({"prefix": "data/"})
+    assert [k["Key"] for k in keys] == ["data/a.json"], "the warehouse must not be walked by default"
+    keys, _t = mod.list_keys_under_rule({"prefix": "data/", "recursive": True})
+    assert len(keys) == 2
 
 
 def test_scoped_keys_are_depth_one_feeds_and_overrides():

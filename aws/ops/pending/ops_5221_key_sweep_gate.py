@@ -27,7 +27,7 @@ REGION = "us-east-1"
 FAILS = []
 # The reference time is the A2 sweep commit ITSELF (the push that triggered the fleet redeploy), not HEAD:
 # a later re-arm push must not move the goalposts past functions that already redeployed.
-_a2 = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=Release A2 (ops 5221)"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+_a2 = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=Release A (ops 5219/5220)"], capture_output=True, text=True, cwd=ROOT).stdout.strip()   # Release A shipped the first managed_secret consumers (21:38); A2 followed
 _head = subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
 T_PUSH = int(_a2 or _head or "0")
 

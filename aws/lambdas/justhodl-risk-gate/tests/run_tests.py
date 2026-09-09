@@ -66,6 +66,17 @@ def test_truck_yoy_on_native_months(mod):
     assert mod.truck_yoy(_months(2025, 1, [100.0] * 5), "2026-01-31") is None
 
 
+def test_compute_indicators_renders_truck_and_sahm_end_to_end(mod):
+    ur = _months(2025, 1, [4.0] * 14 + [5.0] * 3)
+    tr = _months(2025, 1, [100.0] * 12 + [90.0] + [91.0] * 4)
+    F = {"UNRATE": {"2026-06-%02d" % d: 5.0 for d in range(1, 31)}, "TRUCKD11": {"2026-06-%02d" % d: 91.0 for d in range(1, 31)}}
+    cal = sorted(F["UNRATE"].keys())
+    ind = mod.compute_indicators(F, cal, len(cal) - 1, native={"UNRATE": ur, "TRUCKD11": tr})["indicators"]
+    t = ind["truck_transport"]
+    assert t["value"] == -9.0 and t["level"] == 91.0 and t["year_ago_level"] == 100.0 and t["basis"], t
+    assert ind["sahm_rule"]["value"] == 1.0
+
+
 def test_indicators_use_native_series_not_forward_fill(mod):
     # F is the forward-filled daily view (repeated rows), native carries the months
     ur = _months(2025, 1, [4.0] * 14 + [5.0] * 3)

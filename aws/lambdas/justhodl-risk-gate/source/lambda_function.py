@@ -353,12 +353,12 @@ def compute_indicators(F, calendar, i, native=None):
     ty = truck_yoy(native.get("TRUCKD11"), d)
     if ty:
         yoy = ty["value"]
-        if True:
+        if ty is not None:
             out["truck_transport"] = {
                 "value": yoy, "z": None, "unit": "% YoY",
                 "signal": ("FREIGHT RECESSION" if (yoy or 0) < -5 else
                            "SOFT" if (yoy or 0) < 0 else "EXPANDING"),
-                "level": cur_v,
+                "level": ty["current"], "year_ago_level": ty["year_ago"],
                 "cite": "freight/truck tonnage — real-economy demand canary",
                 "source": "FRED TRUCKD11 (native monthly)", "asof": ty["observation_date"],
                 "observation_date": ty["observation_date"], "base_observation_date": ty["base_observation_date"], "basis": ty["basis"]}

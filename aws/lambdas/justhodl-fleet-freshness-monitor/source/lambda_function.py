@@ -149,8 +149,13 @@ def list_keys_under_rule(rule):
     keys = []
     paginator = s3.get_paginator('list_objects_v2')
     kw = {'Bucket': BUCKET, 'Prefix': prefix}
+    # audit 2026-09-08 INST-13 (ops 5225 finding): listing data/ without a delimiter walks the 9.7M-object
+    # warehouse and hits the cap after 10,000 keys, so most expected feeds were never even enumerated.
+    # Depth-1 by default; a rule sets "recursive": true to opt into a full walk.
     if rule.get('delimiter'):
         kw['Delimiter'] = rule['delimiter']
+    elif not rule.get('recursive'):
+        kw['Delimiter'] = '/'
     for page in paginator.paginate(**kw):
         for obj in page.get('Contents', []):
             keys.append(obj)
@@ -378,9 +383,20 @@ def lambda_handler(event=None, context=None):
     now_iso_seen = datetime.now(timezone.utc).isoformat()
     missing, declared_absent = [], []
     prefixes = [r.get('prefix', 'data/') for r in rules]
+    heads = 0
+    HEAD_BUDGET = int(os.environ.get('EXPECTED_HEAD_BUDGET', '2500'))
     for k, eng in expected.items():
         if not any(k.startswith(p) for p in prefixes) or is_excluded(k, manifest):
             continue
+        if k.endswith('*') or '*' in k:
+            continue                       # key FAMILIES (dynamic segments) cannot be existence-checked by name
+        if k not in present and heads < HEAD_BUDGET:
+            heads += 1
+            try:
+                s3.head_object(Bucket=BUCKET, Key=k)
+                present.add(k)
+            except Exception:
+                pass
         if k in present:
             seen[k] = now_iso_seen
         elif k in seen:
@@ -392,7 +408,7 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[freshness-monitor] seen-keys save failed: {str(e)[:80]}")
     all_results.extend(missing)
-    coverage.update({'expected_keys_checked': len(expected), 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
+    coverage.update({'expected_keys_checked': len(expected), 'expected_keys_headed': heads, 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
 
     stale = [r for r in all_results if r.get('status') == 'STALE']
     fresh = [r for r in all_results if r.get('status') == 'FRESH']

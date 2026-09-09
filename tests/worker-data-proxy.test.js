@@ -280,5 +280,6 @@ test("INST-06: no maintenance literal or provider key literal remains in the wor
     assert.ok(!/POLYGON_KEY\s*(=|\|\|)\s*"[A-Za-z0-9_]{20,}"/.test(s), "polygon literal (assignment or fallback) in " + f);
     assert.ok(!/FRED_KEY\s*(=|\|\|)\s*"[0-9a-f]{32}"/.test(s), "fred literal (assignment or fallback) in " + f);
     assert.ok(!/(apiKey|api_key|apikey)=[A-Za-z0-9_]{24,}/.test(s), "hard-coded provider key in a URL in " + f);
+    assert.ok(!/const \w*[Kk]ey\s*=\s*"[A-Za-z0-9_-]{24,}"/.test(s), "hard-coded key constant in " + f);
   }
 });

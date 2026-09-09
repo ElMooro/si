@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-risk-gate"
 FAILS = []
 # anchored to this release's own commit (not HEAD): a later ops-only push must not move the reference past the deploy
-_rel = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=Release B2 (ops 5223)"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+_rel = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=risk-gate v2.5 NameError fix"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
 T_PUSH = int(_rel or subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip() or "0")
 
 

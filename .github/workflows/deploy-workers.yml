@@ -125,7 +125,7 @@ jobs:
           # audit 2026-09-08: data-proxy service role + provider keys come from SSM
           # (soft-fail: an absent parameter leaves the existing secret untouched;
           # ops_5219 creates the parameters and re-dispatches this workflow).
-          for pair in "ADMIN_TOKEN:/justhodl/api-admin/token" "POLYGON_KEY:/justhodl/polygon/api-key" "FRED_KEY:/justhodl/fred/api-key"; do
+          for pair in "ADMIN_TOKEN:/justhodl/api-admin/token" "POLYGON_KEY:/justhodl/polygon/api-key" "FRED_KEY:/justhodl/fred/api-key" "FMP_KEY:/justhodl/fmp/api-key"; do
             var="${pair%%:*}"; name="${pair#*:}"
             val=$(aws ssm get-parameter --name "$name" --with-decryption --region ${{ secrets.AWS_REGION }} --query 'Parameter.Value' --output text 2>/dev/null || true)
             if [ -n "$val" ] && [ "$val" != "None" ]; then echo "::add-mask::$val"; echo "$var=$val" >> $GITHUB_ENV; echo "ssm: $name -> $var"; else echo "::warning::ssm parameter $name absent -- $var not attached this run"; fi
@@ -170,6 +170,7 @@ jobs:
               if [ -n "$ADMIN_TOKEN" ]; then echo "$ADMIN_TOKEN" | wrangler secret put ADMIN_TOKEN; fi
               if [ -n "$POLYGON_KEY" ]; then echo "$POLYGON_KEY" | wrangler secret put POLYGON_KEY; fi
               if [ -n "$FRED_KEY" ]; then echo "$FRED_KEY" | wrangler secret put FRED_KEY; fi
+              if [ -n "$FMP_KEY" ]; then echo "$FMP_KEY" | wrangler secret put FMP_KEY; fi
             fi
 
             echo "✅ $w deployed"
