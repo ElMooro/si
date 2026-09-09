@@ -451,9 +451,10 @@ def test_learning_curve_nested_fractions_and_read_model():
     assert len({x["job_name"] for x in runs}) == 3 and all(x["job_name"] in sm.jobs for x in runs)
     # nested: the 10% subset is contained in the 50% subset
     base = "ai/datasets/brain/%s/emb/jh-ai-roberta/curve/" % man["dataset_id"]
-    f10 = set(s3.objs[("private-test", base + "f010/train.csv")].decode().splitlines())
-    f50 = set(s3.objs[("private-test", base + "f050/train.csv")].decode().splitlines())
-    assert f10 <= f50 and len(f10) == runs[0]["n_train"]
+    from collections import Counter
+    f10 = Counter(s3.objs[("private-test", base + "f010/train.csv")].decode().splitlines())
+    f50 = Counter(s3.objs[("private-test", base + "f050/train.csv")].decode().splitlines())
+    assert all(f50[k] >= v for k, v in f10.items()) and sum(f10.values()) == runs[0]["n_train"]   # nested, with multiplicity (the fake embedder can collide)
     out = lf.run_inventory(None)
     L = out["learning"]
     assert L["curves"] and L["curves"][-1]["curve_id"] == body["result"]["curve_id"] and L["curves"][-1]["runs"][0]["status"] == "Completed"
