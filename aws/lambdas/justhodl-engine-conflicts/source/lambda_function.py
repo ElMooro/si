@@ -12,6 +12,7 @@ false-confident single verdict. The honest, high-value cases:
 For each conflict we present BOTH sides so the user decides with eyes open.
 OUTPUT: data/engine-conflicts.json · SCHEDULE: every 6h.
 """
+from public_brain_projection import sanitize_public
 import json, time
 from datetime import datetime, timezone
 import boto3
@@ -94,7 +95,7 @@ def lambda_handler(event=None, context=None):
            "duration_s": round(time.time() - t0, 1),
            "conflicts": uniq[:25], "n_conflicts": len(uniq),
            "note": "Where the system's own engines disagree — both sides shown so you decide with eyes open."}
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[engine-conflicts] {len(uniq)} conflicts")
     return {"statusCode": 200, "body": json.dumps({"n": len(uniq)})}

@@ -9,6 +9,7 @@ flagging when a setup violates one of the user's own stated rules.
 
 OUTPUT: data/devils-advocate.json  ·  SCHEDULE: every 6h (after best-setups).
 """
+from public_brain_projection import devils_public
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
@@ -29,16 +30,7 @@ def publish(out, allowed_tickers=()):
     publish_private("devils-advocate", out)
     # Do not try to redact model prose: publish only validated references, enums and counts.
     import re
-    rows = [{"ticker": c["ticker"],
-             "risk_level": c.get("risk_level") if c.get("risk_level") in {"low", "medium", "high"} else "unknown",
-             "rule_violation": bool(c.get("violates_your_rule")), "private_text": True,
-             "bear_case": "Private review available to the signed-in Brain owner."}
-            for c in out.get("cases", []) if isinstance(c, dict)
-            and c.get("ticker") in allowed_tickers and isinstance(c.get("ticker"), str) and re.fullmatch(r"[A-Z0-9.^=-]{1,20}", c["ticker"])]
-    public = {"engine": "devils-advocate", "generated_at": out["generated_at"], "cases": rows,
-              "by_ticker": {c["ticker"]: c for c in rows}, "private_text": True,
-              "n_rule_violations": sum(c["rule_violation"] for c in rows),
-              "note": "Sign in as the Brain owner to read the personalized review."}
+    public = devils_public(out, allowed_tickers)
     s3.put_object(Bucket=BUCKET, Key="data/devils-advocate-public.json", Body=json.dumps(public).encode(),
                   ContentType="application/json", CacheControl="public, max-age=300")
 

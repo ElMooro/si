@@ -27,6 +27,7 @@ LLM leg (optional, policy-gated): distils a one-paragraph "Khalid's view"
 for the most-noted tickers. Deterministic output stands alone if the LLM
 is gated off — the engine never depends on it.
 """
+from public_brain_projection import notes_public
 
 import json
 import math
@@ -97,16 +98,7 @@ def s3_put(key, doc):
 
 
 def public_projection(kind, doc):
-    out = {k: doc[k] for k in ("generated_at", "version", "n_notes", "n_tickers", "n_macro_notes", "theme_counts", "llm_views") if k in doc}
-    out["private_text"] = True
-    if kind == "notes-index":
-        out["index"] = {ticker: {**{k: row[k] for k in ("n_notes", "stance_score", "stance", "last_note_at", "levels", "themes", "note_ids") if k in row},
-                                    "private_text": True} for ticker, row in doc.get("index", {}).items()}
-    else:
-        out["themes"] = {theme: {"n_notes": row.get("n_notes"), "avg_stance": row.get("avg_stance"),
-                                   "recent": [{"note_id": n.get("note_id"), "at": n.get("at"), "private_text": True} for n in row.get("recent", [])]}
-                         for theme, row in doc.get("themes", {}).items()}
-    return out
+    return notes_public(kind, doc)
 
 
 def publish(kind, key, doc):

@@ -20,6 +20,7 @@ reference keys — Black Swan's 500 symbols cost bytes once, not per list):
     symbols: {KEY: {value,status,source_engine,tv_source,description,
                     n_notes,notes:[{t,ts}]}} }
 """
+from public_brain_projection import sanitize_public
 import json
 import re
 import time
@@ -158,7 +159,7 @@ def lambda_handler(event, context):
         symbol["notes"] = [{"note_id": note.get("note_id"), "ts": note.get("ts"),
                             "text_private": True} for note in symbol["notes"]]
     out["note"] = "Notes are private. Note IDs and counts link this public workbench to the authenticated Brain."
-    body = json.dumps(out, default=str)
+    body = json.dumps(sanitize_public(OUT_KEY, out), default=str)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=body,
                   ContentType="application/json", CacheControl="max-age=300")
     print(f"[tv-workbench] DONE {out['elapsed_s']}s wl={len(watchlists)} "

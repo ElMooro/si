@@ -49,6 +49,7 @@ Output: data/master-allocation.json + SSM
 /justhodl/master-allocation/target (machine-readable target for
 downstream execution / position-sizer consumers).
 """
+from public_brain_projection import sanitize_public
 import json
 import os
 import time
@@ -802,7 +803,7 @@ def lambda_handler(event, context):
         report["best_asset"] = {"error": str(_e)[:140]}
 
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(report,
+                  Body=json.dumps(sanitize_public(OUT_KEY, report),
                                   default=str).encode("utf-8"),
                   ContentType="application/json",
                   CacheControl="public, max-age=600")

@@ -16,6 +16,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "aws/shared"))
+import public_brain_projection
 MARKER = "SYNTHETIC_PRIVATE_NOTE_7f00"
 NOW = "2026-09-09T00:00:00Z"
 
@@ -38,6 +40,7 @@ def source(engine):
 
 
 def function(engine, name, env):
+    env.update({"vault_search_rows": public_brain_projection.vault_search_rows, "project_notes_block": public_brain_projection.public_notes_block})
     tree = ast.parse(source(engine).read_text())
     selected = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == name)
     selected.decorator_list = []

@@ -19,6 +19,7 @@ Families:
   TURN        top/bottom marks|signals|before|after ...
   CONDITIONAL when|if ... then/expect/→ ...
 """
+from public_brain_projection import playbook_public
 import json
 import re
 import sys
@@ -36,12 +37,7 @@ OUT_KEY = "data/playbook-rules.json"
 
 
 def public_projection(doc):
-    curve = (doc.get("flagship") or {}).get("yield_curve") or {}
-    return {**{k: doc[k] for k in ("generated_at", "source_notes", "n_rules", "families") if k in doc},
-            "flagship": {"yield_curve": {k: curve[k] for k in ("series", "latest", "most_recent_inversion_onset", "months_elapsed", "khalid_lag_months", "lag_marker_date", "status") if k in curve}},
-            "private_text": True,
-            "rules": [{**{k: r[k] for k in ("id", "symbol", "family", "params") if k in r}, "text_private": True}
-                      for r in doc.get("rules", [])]}
+    return playbook_public(doc)
 
 FAMS = [
     ("TIMING", re.compile(

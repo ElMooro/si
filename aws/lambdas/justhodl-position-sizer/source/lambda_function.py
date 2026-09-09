@@ -5,6 +5,7 @@ style scaling (capped, conservative). Not advice — a disciplined sizing frame.
 
 OUTPUT: data/position-sizing.json · SCHEDULE: every 6h.
 """
+from public_brain_projection import sanitize_public
 import json, time
 from datetime import datetime, timezone
 import boto3
@@ -85,7 +86,7 @@ def lambda_handler(event=None, context=None):
            "note": ("Disciplined sizing frame: fractional-Kelly scaled by your risk posture and the "
                     "current regime. Conservative caps (8%/name). Research, not advice."),
            "caveat": "Sizes shrink automatically when the macro regime deteriorates."}
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[position-sizer] {len(sized)} sized, posture={posture_mult}x regime={round(regime_mult,2)}x gamma={gamma_regime} gv_mult={gamma_vol_mult}")
     return {"statusCode": 200, "body": json.dumps({"n": len(sized)})}

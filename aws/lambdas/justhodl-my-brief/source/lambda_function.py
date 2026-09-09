@@ -6,6 +6,7 @@ Reads best-setups, brain (directive), bond-vol, funding-plumbing, crypto-risk,
 catalyst-calendar. Asks Claude to write a tight, personalized brief in the
 user's own frame. OUTPUT: data/my-brief.json · SCHEDULE: daily 13:30 UTC.
 """
+from public_brain_projection import brief_public
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
@@ -25,9 +26,7 @@ def publish(out):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="private, no-store")
     publish_private("my-brief", out)
-    public = {"engine": "my-brief", "generated_at": out["generated_at"], "brief": None,
-              "brief_available": bool(out.get("brief")), "private_text": True,
-              "note": "Sign in as the Brain owner to read the personalized brief."}
+    public = brief_public(out)
     s3.put_object(Bucket=BUCKET, Key="data/my-brief-public.json", Body=json.dumps(public).encode(),
                   ContentType="application/json", CacheControl="public, max-age=300")
 

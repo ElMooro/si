@@ -8,6 +8,7 @@ panel ids, BIS/Eurostat/OECD/StatCan flow lists, Treasury datasets, rp op
 counts...). Writes data/provider-catalog.json (hub index) +
 data/providers/{slug}.json (the complete per-provider manifest the
 template page renders). Daily 06:20 + on demand."""
+from public_brain_projection import vault_search_rows
 import gzip
 import hashlib
 import json
@@ -365,31 +366,7 @@ def _indicator_search_rows(payload):
 
 
 def _tradingview_live_search_rows(payload):
-    """Expand every LIVE vault symbol; unresolved/pending records stay excluded."""
-    items = (payload or {}).get("symbols") or []
-    if isinstance(items, dict):
-        items = [dict(value, symbol=symbol)
-                 if isinstance(value, dict) else {"symbol": symbol}
-                 for symbol, value in items.items()]
-    rows = []
-    for item in items if isinstance(items, list) else []:
-        if (not isinstance(item, dict) or item.get("status") != "LIVE"
-                or not item.get("symbol")):
-            continue
-        symbol = str(item["symbol"])
-        exchanges = item.get("exchanges") or []
-        if not isinstance(exchanges, list):
-            exchanges = [exchanges]
-        rows.append({
-            "id": "tradingview-vault-live:" + symbol,
-            "title": symbol,
-            "kind": "instrument_ref",
-            "search": " ".join(str(x) for x in (
-                item.get("category"), item.get("source"),
-                item.get("resolved_via"), " ".join(exchanges)) if x is not None)[:1000],
-            "hot": True,
-        })
-    return rows
+    return vault_search_rows(payload)
 
 
 def _write_search_shard(slug, provider_name, api, keys, series,

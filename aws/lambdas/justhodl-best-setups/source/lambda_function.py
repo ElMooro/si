@@ -23,6 +23,7 @@ OUTPUT data/best-setups.json — ranked setups with entry/stop/target + thesis.
 Consumed by chart-pro "⚡ Today's Setups" board + Telegram morning push.
 SCHEDULE: hourly (after trade-tickets + signals refresh).
 """
+from public_brain_projection import sanitize_public
 import json
 import time
 from datetime import datetime, timezone
@@ -1752,7 +1753,7 @@ def lambda_handler(event, context):
     except Exception as _e:
         output["industry_context"]["industry_boom"] = {"error": str(_e)[:90]}
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
-                  Body=json.dumps(output, default=str).encode(),
+                  Body=json.dumps(sanitize_public(OUTPUT_KEY, output), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=600")
     print(f"[best-setups] {len(setups)} setups · {len(by_verdict['STRONG BUY'])} strong / "
           f"{len(by_verdict['BUY'])} buy · weights={weight_src} · {round(time.time()-t0,1)}s")

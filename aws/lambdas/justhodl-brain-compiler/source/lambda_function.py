@@ -24,6 +24,7 @@ restored. Deterministic, real data only.
 
 OUTPUT data/brain-compiler.json    SCHEDULE monthly cron(0 6 1 * ? *)
 """
+from public_brain_projection import sanitize_public
 import json
 import re
 from collections import defaultdict
@@ -240,6 +241,6 @@ def lambda_handler(event=None, context=None):
         claim.pop("claim", None)
         claim["claim_text_private"] = True
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
+                  Body=json.dumps(sanitize_public(OUT_KEY, out), ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=3600")
     return {"ok": True, "claims": len(claims), "covered": n_cov, "gaps": n_gap}

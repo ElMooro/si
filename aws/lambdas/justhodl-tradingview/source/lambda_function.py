@@ -18,6 +18,7 @@ one retry on failure.
 Registry: parsed live from data/brain.json [TV:*] tags + brain-text scan.
 Output: data/tradingview.json
 """
+from public_brain_projection import sanitize_public
 import json
 import math
 import os
@@ -1912,7 +1913,7 @@ def lambda_handler(event, context):
     for public_row in out["symbols"]:
         public_row.pop("note_snippet", None)
         public_row["note_text_private"] = True
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str),
                   ContentType="application/json", CacheControl="max-age=900")
     print(f"[tv-vault] DONE {out['elapsed_s']}s live={n_live}/{len(rows)} "
           f"cached={n_cached} fred_calls={_FRED_CALLS['n']}")

@@ -18,6 +18,7 @@ top macro desk watches.
 OUTPUT  data/canary-warroom.json     SCHEDULE  hourly :50 (after feeds refresh)
 Real aggregated data — not investment advice.
 """
+from public_brain_projection import sanitize_public
 import json
 import re
 from datetime import datetime, timezone
@@ -912,7 +913,7 @@ def lambda_handler(event=None, context=None):
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),
            "note": "Unified early-warning across every canary mechanism the platform runs, plus the operator's own brain playbook. Real aggregated data — not advice."}
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
     return {"ok": True, "barometer": baro, "per_mechanism": pm, "earned": earned, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
 
@@ -953,7 +954,7 @@ def lambda_handler(event=None, context=None):
                 "note": "global breadth canaries from the bus"}
         _doc["bus_canaries"] = _blk
         S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                      Body=json.dumps(_doc, default=str).encode(),
+                      Body=json.dumps(sanitize_public(OUT_KEY, _doc), default=str).encode(),
                       ContentType="application/json")
         print("[bus_canaries] wired: " + json.dumps(_blk)[:120])
     except Exception as _e:

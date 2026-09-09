@@ -78,6 +78,7 @@ OUTPUT (JSON)
   "metadata": {data_freshness, sources, elapsed_sec, claude_model}
 }
 """
+from public_brain_projection import public_notes_block as project_notes_block
 
 import json
 import math
@@ -2807,11 +2808,7 @@ _NOTES_IDX = {"v": None}
 
 
 def public_notes_block(note):
-    """Allowlisted numeric/reference projection, including legacy cached note blocks."""
-    if not isinstance(note, dict):
-        return {}
-    return {**{k: note[k] for k in ("n_notes", "stance", "stance_score", "latest_at", "levels", "note_ids") if k in note},
-            "note_text_private": True}
+    return project_notes_block(note)
 
 
 def khalid_notes_block(ticker):

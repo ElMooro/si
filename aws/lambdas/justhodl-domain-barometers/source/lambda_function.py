@@ -38,6 +38,7 @@ CONSUMES  data/brain.json, data/tradingview.json, data/risk-gate.json,
           data/rotation-dashboard.json
 EMITS     data/domain-barometers.json
 """
+from public_brain_projection import sanitize_public
 import json
 import math
 import re
@@ -808,7 +809,7 @@ def lambda_handler(event, context):
                       "Macro gates sizing before selection [nmq5x0cp7zp4j].",
         "elapsed_s": round(time.time() - t0, 1),
     }
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str),
                   ContentType="application/json", CacheControl="max-age=600")
     print(f"[barometers] DONE {out['elapsed_s']}s "
           f"M={bar['MACRO']['score_0_100']} L={bar['LIQUIDITY']['score_0_100']} "
