@@ -429,6 +429,28 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertEqual(store.docs[key],original)
         self.assertFalse(any(row["Key"]==key for row in store.writes))
 
+    def test_gzip_content_encoding_retains_original_and_encoded_public_bytes(self):
+        key="equity-research/NVDA.json"
+        class EncodedStore(MemoryS3):
+            def raw(self,key):
+                raw=super().raw(key)
+                return gzip.compress(raw,mtime=0) if not key.startswith(migration.BACKUP_PREFIX) else raw
+            def get_object(self,**kwargs):
+                result=super().get_object(**kwargs)
+                if not kwargs["Key"].startswith(migration.BACKUP_PREFIX):result["ContentEncoding"]="gzip"
+                return result
+            def put_object(self,**args):
+                if args.get("ContentEncoding")=="gzip":
+                    self.assert_encoded=args["Body"]
+                    args={**args,"Body":gzip.decompress(args["Body"])}
+                return super().put_object(**args)
+        store=EncodedStore({key:self.fixtures()[key]});original=store.raw(key)
+        job=migration.Migration(ROOT,{"s3":store});job.scrub(key)
+        backup=next(value for name,value in store.docs.items() if name.startswith(migration.BACKUP_PREFIX))
+        self.assertEqual(base64.b64decode(backup["raw_base64"]),original)
+        self.assertEqual(json.loads(gzip.decompress(store.assert_encoded)),store.docs[key])
+        self.assertNotIn(MARKER,json.dumps(store.docs[key]))
+
     def test_backup_policy_denies_current_and_historical_external_reads(self):
         policy=migration.backup_deny_statement()
         self.assertEqual(set(policy["Action"]),{"s3:GetObject","s3:GetObjectVersion"})

@@ -70,6 +70,10 @@ def encoded(doc):
     return json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
 
 
+def gzip_object(key, metadata):
+    return key.endswith(".gz") or "gzip" in {item.strip() for item in str(metadata.get("ContentEncoding", "")).lower().split(",")}
+
+
 def personal_trade_schema(root):
     # Reuse the reviewed producer's pure schema and computation, without loading
     # its AWS clients, HTTP routes, mark-to-market task or any live function.
@@ -380,7 +384,7 @@ class Migration:
         require(obj.get("ContentLength", 0) <= MAX_OBJECT, "object_exceeds_reviewed_size_limit")
         raw = bounded_read(obj["Body"])
         obj["_audit_raw_bytes"] = raw
-        if key.endswith(".gz"):
+        if gzip_object(key, obj):
             raw = bounded_read(gzip.GzipFile(fileobj=io.BytesIO(raw)))
         doc = json.loads(raw)
         require(isinstance(doc, dict), "source_document_not_object")
@@ -407,12 +411,12 @@ class Migration:
         self.record("immutable_original_preserved",key=key,backup_key=backup_key,bytes=len(raw),sha256=raw_hash)
 
     def put_public(self, key, doc, previous=None):
-        body = encoded(doc)
-        if key.endswith(".gz"):
-            body = gzip.compress(body, mtime=0)
-        args = {"Bucket": BUCKET, "Key": key, "Body": body, "ContentType": "application/json", "CacheControl": "no-cache"}
         if previous is None:
             previous,_ = self.read_object(key,optional=True)
+        body = encoded(doc)
+        if gzip_object(key, previous or {}):
+            body = gzip.compress(body, mtime=0)
+        args = {"Bucket": BUCKET, "Key": key, "Body": body, "ContentType": "application/json", "CacheControl": "no-cache"}
         if previous:
             self.preserve_original(key,previous)
             require(bool(previous.get("ETag")), "source_etag_missing")
