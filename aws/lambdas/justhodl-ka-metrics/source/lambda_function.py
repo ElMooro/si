@@ -3,6 +3,7 @@ import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json,os,urllib.request,urllib.error,boto3,traceback,time,math
 from datetime import datetime,timedelta,timezone
 from private_artifact import private_http_denied
+from llm_router import complete
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
@@ -12,7 +13,6 @@ except Exception:
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
-ANTHROPIC_KEY=os.environ.get('ANTHROPIC_API_KEY','')
 s3=boto3.client('s3',region_name='us-east-1')
 
 def cors_response(status,body):
@@ -291,7 +291,6 @@ def unavailable_analysis(data, reason):
 
 def run_ai_analysis(config, data):
     if data.get('risk_index') is None:return unavailable_analysis(data,'metrics_unavailable')
-    if not ANTHROPIC_KEY:return unavailable_analysis(data,'analysis_provider_unavailable')
     lines=[]
     for cat in config.get('categories',[]):
         cat_risk=data.get('category_risks',{}).get(cat,'N/A')
@@ -337,30 +336,26 @@ Compare ECB vs Fed policy divergence — drives EUR/USD and global capital flows
 Return ONLY valid JSON:
 {{"plumbing_health":{{"score":<1-100>,"grade":"<A+ to F>","summary":"<2-3 sentences covering US+Europe>","key_signals":["<6 signals with numbers>"],"stress_points":["<areas of strain>"],"positive_signs":["<areas of strength>"]}},"crisis_comparison":{{"current_vs_2008":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"current_vs_2020":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"current_vs_2022":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"closest_historical_analog":"<period>","crisis_probability_6mo":<0-100>,"crisis_type_if_occurs":"<type>"}},"risk_regime":{{"stance":"<RISK-ON|RISK-OFF|NEUTRAL|TRANSITIONING>","confidence":<0-100>,"summary":"<3-4 sentences citing US+ECB metrics>","risk_on_signals":["<signals>"],"risk_off_signals":["<signals>"],"regime_duration_estimate":"<duration>","trigger_to_flip":"<trigger>","ecb_fed_divergence":"<policy divergence analysis>"}},"crypto_outlook":{{"btc_regime":"<ACCUMULATE|HOLD|DISTRIBUTE|AVOID>","cycle_position":"<Early Bull|Mid Bull|Late Bull|Blow-off Top|Early Bear|Capitulation|Accumulation>","cycle_confidence":<0-100>,"summary":"<4-5 sentences using global liquidity>","btc_correlation_to_liquidity":"<global liquidity impact>","dollar_impact_on_crypto":"<DXY+EUR/USD impact>","key_metrics_for_crypto":["<6 metrics including ECB>"],"comparison_to_past_tops":"<vs Nov 2021>","comparison_to_past_bottoms":"<vs Nov 2022>","expected_performance_3mo":"<outlook>","expected_performance_12mo":"<outlook>","biggest_risk_for_crypto":"<risk>","biggest_catalyst_for_crypto":"<catalyst>"}},"boom_bust_cycle":{{"phase":"<phase>","confidence":<0-100>,"position_in_cycle":<0-100>,"summary":"<3-4 sentences>","leading_indicators":["<indicators>"],"cycle_risks":["<risks>"]}},"risk_analysis":{{"overall_risk":"<LOW|MODERATE|ELEVATED|HIGH|EXTREME>","risk_score":<1-100>,"systemic_risk":"<US+Europe>","liquidity_risk":"<global>","credit_risk":"<US+Europe>","dollar_risk":"<USD+EUR>","dealer_stress":"<dealer+repo>","ecb_risk":"<European risks>","tail_risks":["<risks>"],"risk_trajectory":"<IMPROVING|STABLE|DETERIORATING>"}},"portfolio_recommendation":{{"regime":"<Risk-On|Neutral|Risk-Off|Defensive|Crisis>","conviction":"<LOW|MEDIUM|HIGH>","summary":"<3-4 sentences>","allocations":{{"us_equities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"european_equities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"international_equities":{{"weight":<0-100>,"bias":"<DM|EM|avoid>","reasoning":"<why>"}},"us_treasuries":{{"weight":<0-100>,"duration":"<duration>","reasoning":"<why>"}},"european_bonds":{{"weight":<0-100>,"bias":"<core|periphery|avoid>","reasoning":"<why>"}},"credit":{{"weight":<0-100>,"quality":"<quality>","reasoning":"<why>"}},"gold_commodities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"crypto":{{"weight":<0-100>,"bias":"<BTC heavy|ETH heavy|altcoins|avoid>","reasoning":"<why>"}},"cash":{{"weight":<0-100>,"reasoning":"<why>"}},"dollar_position":{{"stance":"<long|neutral|short>","reasoning":"<why>"}},"eur_position":{{"stance":"<long|neutral|short>","reasoning":"<why>"}}}},"top_trades":[{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}},{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}},{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}}],"hedges":["<hedge>","<hedge>"]}},"outlook":{{"1_month":"<outlook>","3_month":"<outlook>","6_month":"<outlook>","12_month":"<outlook>","biggest_risk":"<risk>","biggest_opportunity":"<opportunity>"}}}}"""
 
-    req_body=json.dumps({"model":"claude-sonnet-4-6","max_tokens":8000,"messages":[{"role":"user","content":prompt}]}).encode('utf-8')
-    req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=req_body,headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_KEY,"anthropic-version":"2023-06-01"},method="POST")
     try:
-        print("Calling Claude...")
-        with urllib.request.urlopen(req,timeout=280) as resp:
-            result=json.loads(resp.read());text=""
-            for block in result.get("content",[]):
-                if block.get("type")=="text":text+=block["text"]
-            text=text.strip()
-            if text.startswith("```"):text=text.split("\n",1)[1]if"\n"in text else text[3:]
-            if text.endswith("```"):text=text[:-3]
-            analysis=_loads_repair(text.strip())
-            analysis['engine']='justhodl-ka-metrics'
-            analysis['schema_version']='macro-analysis.v1'
-            analysis['input_artifact']='data/ka-metrics.json'
-            analysis['input_generated']=data.get('generated')
-            analysis['llm_status']='available'
-            analysis['generated']=datetime.now(timezone.utc).isoformat()
-            analysis['status']='AVAILABLE'
-            analysis['execution_eligible']=False
-            analysis['analysis_basis']='UNCALIBRATED_DESCRIPTIVE_LLM'
-            s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
-            print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
-            return analysis
+        # Existing router supplies managed credentials, cache, budget and background-call policy.
+        text=complete(prompt,tier='reason',max_tokens=6000,on_demand=False)
+        if not isinstance(text,str) or not text.strip():return unavailable_analysis(data,'analysis_unavailable')
+        text=text.strip()
+        if text.startswith("```"):text=text.split("\n",1)[1]if"\n"in text else text[3:]
+        if text.endswith("```"):text=text[:-3]
+        analysis=_loads_repair(text.strip())
+        analysis['engine']='justhodl-ka-metrics'
+        analysis['schema_version']='macro-analysis.v1'
+        analysis['input_artifact']='data/ka-metrics.json'
+        analysis['input_generated']=data.get('generated')
+        analysis['llm_status']='available'
+        analysis['generated']=datetime.now(timezone.utc).isoformat()
+        analysis['status']='AVAILABLE'
+        analysis['execution_eligible']=False
+        analysis['analysis_basis']='UNCALIBRATED_DESCRIPTIVE_LLM'
+        s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=json.dumps(analysis,indent=2,allow_nan=False).encode('utf-8'),ContentType='application/json')
+        print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
+        return analysis
     except Exception:
         print('Analysis provider unavailable')
         return unavailable_analysis(data,'analysis_unavailable')
