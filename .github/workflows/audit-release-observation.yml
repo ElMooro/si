@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      AUDIT_RELEASE_SHA: 65eedef82a958b9f855090a09e004a0a07ea83dd
+      AUDIT_RELEASE_SHA: 00e792232deee02e98ae6a927fbb5764af02d87a
     steps:
       - uses: actions/checkout@v4
         with:
