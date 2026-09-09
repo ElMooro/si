@@ -52,7 +52,7 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from managed_secret import managed_secret  # env first, then SSM -- no literal credentials
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 ENGINE = "justhodl-bottom"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/bottom.json"
@@ -762,19 +762,33 @@ def _outcomes(ev, c, l, h, prm):
     ti = ev.get("trig_i")
     if ti is not None and ev.get("trig_fill"):
         fill = ev["trig_fill"]
+        end = min(n - 1, ti + prm["outcome_bars"])
         for w in (21, 63):
             j = ti + w
-            raw = 100.0 * (c[j] / fill - 1.0) if j < n else None
-            ev["ret_%d" % w] = raw
-            si = ev.get("stop_i")
-            if si is not None and si - ti <= w:
-                ev["mret_%d" % w] = ev.get("exit_ret")
-            else:
-                ev["mret_%d" % w] = raw
-        end = min(n - 1, ti + prm["outcome_bars"])
+            ev["ret_%d" % w] = 100.0 * (c[j] / fill - 1.0) if j < n else None
+        # the paper's stop and two alternatives, each managed independently from the arrays (exit = first close below the level)
+        levels = {"paper": ev["stop"], "climax": min(ev["sc_low"], ev["st_low"]) - 0.25 * ev["atr"], "wide": ev["st_low"] - 1.0 * ev["atr"]}
+        ev["stops"] = {}
+        for rule, lvl in levels.items():
+            hit_i = next((k for k in range(ti + 1, end + 1) if c[k] < lvl), None)
+            rec = {"level": lvl, "hit": hit_i is not None, "hit_bar": (hit_i - ti) if hit_i is not None else None}
+            for w in (21, 63):
+                j = ti + w
+                if hit_i is not None and hit_i - ti <= w:
+                    rec["mret_%d" % w] = 100.0 * (c[hit_i] / fill - 1.0)
+                else:
+                    rec["mret_%d" % w] = 100.0 * (c[j] / fill - 1.0) if j < n else None
+            ev["stops"][rule] = rec
+        ev["mret_21"] = ev["stops"]["paper"]["mret_21"]
+        ev["mret_63"] = ev["stops"]["paper"]["mret_63"]
         t1 = ev.get("target_1")
         ev["t1_hit"] = bool(t1 and any(h[k] >= t1 for k in range(ti + 1, end + 1))) if end > ti else None
-        ev["stop_hit"] = ev.get("stop_i") is not None
+        ev["t1_before_stop"] = None
+        if ev["t1_hit"]:
+            t1_i = next(k for k in range(ti + 1, end + 1) if h[k] >= t1)
+            ph = ev["stops"]["paper"]["hit_bar"]
+            ev["t1_before_stop"] = ph is None or (t1_i - ti) < ph
+        ev["stop_hit"] = ev["stops"]["paper"]["hit"]
     ai = ev.get("ar_valid_i")
     if ai is not None and ev.get("ar_buy_px"):
         px = ev["ar_buy_px"]
@@ -981,22 +995,29 @@ def load_feeds():
     F["asof"]["finviz"] = fv.get("generated_at")
     ar = s3_json("data/accumulation-radar.json", {}) or {}
     acc = {}
-    for cl in ("stocks", "etfs", "countries"):
-        for r in ((ar.get("bottoms") or {}).get(cl) or []):
-            if isinstance(r, dict) and r.get("ticker"):
-                acc[to_poly(r["ticker"])] = {"bottom_score": fnum(r.get("bottom_score")), "phase": r.get("phase"), "signal": r.get("signal") or r.get("state")}
-    for r in (ar.get("rows") or ar.get("all") or []):
-        if isinstance(r, dict) and r.get("ticker") and to_poly(r["ticker"]) not in acc:
-            acc[to_poly(r["ticker"])] = {"bottom_score": fnum(r.get("bottom_score")), "phase": r.get("phase"), "signal": r.get("signal")}
+    # producer shape (justhodl-accumulation-radar): bottoms/accumulating = {stocks|etfs|countries: [rows]}, confirmed_bottoms = [rows]
+    for grp in ("bottoms", "accumulating"):
+        for cl in ("stocks", "etfs", "countries"):
+            for r in ((ar.get(grp) or {}).get(cl) or []):
+                if isinstance(r, dict) and r.get("ticker"):
+                    acc.setdefault(to_poly(r["ticker"]), {"bottom_score": fnum(r.get("bottom_score")), "phase": r.get("phase"), "signal": r.get("flag") or r.get("signal"), "confirm_n": r.get("confirm_n")})
+    for r in (ar.get("confirmed_bottoms") or []):
+        if isinstance(r, dict) and r.get("ticker"):
+            e = acc.setdefault(to_poly(r["ticker"]), {"bottom_score": fnum(r.get("bottom_score")), "phase": r.get("phase"), "signal": r.get("flag")})
+            e["confirmed"] = True
+            e["confirm_n"] = r.get("confirm_n")
     F["accum"] = acc
     F["asof"]["accumulation_radar"] = ar.get("generated_at") or ar.get("as_of")
     pd = s3_json("data/phase-detector.json", {}) or {}
     ph = {}
-    for key in ("rows", "stocks", "accumulation", "distribution", "phases"):
-        for r in (pd.get(key) or []) if isinstance(pd.get(key), list) else []:
-            if isinstance(r, dict) and r.get("ticker"):
-                ph[to_poly(r["ticker"])] = {"phase": r.get("phase") or r.get("state"), "begin": r.get("begin") or r.get("range_start") or r.get("start"),
-                                            "end": r.get("end") or r.get("range_end"), "pressure": fnum(r.get("pressure"))}
+    # producer shape (justhodl-phase-detector): phases_all = {ticker: {p: phase, b: begin}}, tickers = {ticker: full row} for the kept names
+    for t, v in (pd.get("phases_all") or {}).items():
+        if isinstance(v, dict):
+            ph[to_poly(t)] = {"phase": v.get("p"), "begin": v.get("b"), "end": None, "pressure": None}
+    for t, v in (pd.get("tickers") or {}).items():
+        if isinstance(v, dict):
+            e = ph.setdefault(to_poly(t), {"phase": v.get("phase"), "begin": v.get("begin"), "end": None, "pressure": None})
+            e["phase"] = v.get("phase") or e.get("phase"); e["begin"] = v.get("begin") or e.get("begin"); e["end"] = v.get("end"); e["pressure"] = fnum(v.get("pressure"))
     F["phase"] = ph
     F["asof"]["phase_detector"] = pd.get("generated_at") or pd.get("as_of")
     fo = s3_json("data/fortress.json", {}) or {}
@@ -1030,8 +1051,9 @@ def load_feeds():
     F["flows"] = {m.get("ticker"): m for m in (ef.get("metrics") or []) if isinstance(m, dict) and m.get("ticker") and not m.get("error")}
     F["asof"]["etf_flows"] = ef.get("generated_at") or ef.get("as_of")
     kr = s3_json("data/khalid-risk.json", {}) or {}
-    F["authority"] = {"mode": kr.get("mode") or kr.get("posture"), "allows_new_entries": kr.get("allows_new_entries"),
-                      "cap_pct": fnum(kr.get("exposure_cap_pct") or kr.get("cap_pct")), "generated_at": kr.get("generated_at")}
+    pol = kr.get("policy") if isinstance(kr.get("policy"), dict) else {}
+    F["authority"] = {"mode": pol.get("mode") or kr.get("mode"), "allows_new_entries": pol.get("allows_new_entries"), "status": kr.get("status"),
+                      "cap_pct": fnum(kr.get("exposure_cap_pct")), "policy_cap_pct": fnum(pol.get("exposure_cap_pct")), "generated_at": kr.get("generated_at")}
     rg = s3_json("data/risk-gate.json", {}) or {}
     F["risk_gate"] = {"posture": rg.get("posture") or rg.get("regime"), "sizing_multiplier": fnum(rg.get("sizing_multiplier")), "generated_at": rg.get("generated_at")}
     log("feeds: finviz=%d accum=%d phase=%d fortress=%d katlin=%d f13=%d dark=%d insider=%d flows=%d" % (
@@ -1044,7 +1066,9 @@ def confirmations(sym, asset_class, F):
     legs, score = [], 0
     a = F["accum"].get(sym)
     if a:
-        if (a.get("bottom_score") or 0) >= 60 or str(a.get("signal") or "").upper().startswith("LIKELY_BOTTOM"):
+        if a.get("confirmed"):
+            legs.append({"src": "accumulation-radar", "read": "confirmed bottom (%s fleet confirmations)" % a.get("confirm_n"), "bull": True}); score += 1
+        elif (a.get("bottom_score") or 0) >= 60 or str(a.get("signal") or "").upper().startswith("LIKELY_BOTTOM"):
             legs.append({"src": "accumulation-radar", "read": "bottom score %s / phase %s" % (rnd(a.get("bottom_score"), 0), a.get("phase")), "bull": True}); score += 1
         elif a.get("phase") in ("ACCUMULATION", "MARKUP"):
             legs.append({"src": "accumulation-radar", "read": "phase %s" % a.get("phase"), "bull": True}); score += 1
@@ -1123,9 +1147,13 @@ def plan_for(E, last, prm):
     risk = (entry - stop) / entry * 100.0 if entry and stop and entry > stop else None
     rr1 = ((t1 - entry) / (entry - stop)) if (t1 and entry and stop and entry > stop and t1 > entry) else None
     rr2 = ((t2 - entry) / (entry - stop)) if (t2 and entry and stop and entry > stop and t2 > entry) else None
+    stop_climax = min(E["sc_low"], E["st_low"]) - 0.25 * E["atr"] if E.get("sc_low") else None
+    stop_wide = E["st_low"] - 1.0 * E["atr"]
     return {"entry": rnd(entry, 4), "stop": rnd(stop, 4), "risk_pct": rnd(risk, 2), "target_1": rnd(t1, 4), "target_2": rnd(t2, 4),
             "rr_1": rnd(rr1, 2), "rr_2": rnd(rr2, 2), "last_vs_entry_pct": rnd(100.0 * (last / entry - 1.0), 2) if entry else None,
-            "rule": "buy the reaction away from the test (close above the test candle's high); stop just under the test low; first target the rally high, second the pre-climax swing high"}
+            "stop_climax": rnd(stop_climax, 4), "risk_climax_pct": rnd((entry - stop_climax) / entry * 100.0, 2) if (entry and stop_climax and entry > stop_climax) else None,
+            "stop_wide": rnd(stop_wide, 4), "risk_wide_pct": rnd((entry - stop_wide) / entry * 100.0, 2) if (entry and stop_wide and entry > stop_wide) else None,
+            "rule": "buy the reaction away from the test (close above the test candle's high); the paper's stop sits just under the test low; the structural stop sits under the climax low; first target the rally high, second the pre-climax swing high -- the base-rates tab shows how often each stop was hit and what each rule earned"}
 
 
 def why_text(r, ev, plan, confirm):
@@ -1294,13 +1322,31 @@ def base_rates(hist):
     for e in hist:
         out["outcome_mix"][e["outcome"]] = out["outcome_mix"].get(e["outcome"], 0) + 1
 
+    def stop_block(rows):
+        out = {}
+        for rule in ("paper", "climax", "wide"):
+            rs = [e["stops"][rule] for e in rows if isinstance(e.get("stops"), dict) and e["stops"].get(rule)]
+            if not rs:
+                continue
+            out[rule] = {"n": len(rs), "stop_hit_pct": rnd(100.0 * sum(1 for x in rs if x.get("hit")) / len(rs), 0),
+                         "managed_21": _stats([x.get("mret_21") for x in rs]), "managed_63": _stats([x.get("mret_63") for x in rs]),
+                         "median_bars_to_stop": rnd(median([x.get("hit_bar") for x in rs if x.get("hit_bar") is not None]), 0)}
+        best = None
+        cands = [(k, v) for k, v in out.items() if (v.get("managed_63") or {}).get("n", 0) >= 100]
+        if cands:
+            best = max(cands, key=lambda kv: (kv[1]["managed_63"].get("median") or -1e9))[0]
+        return {"rules": out, "best_rule_by_median_63": best,
+                "levels": {"paper": "0.1 ATR under the test low (the paper)", "climax": "0.25 ATR under the lower of the climax low and the test low (structural)", "wide": "1.0 ATR under the test low"}}
+
     def block(rows):
         return {"n": len(rows), "ret_21": _stats([e.get("ret_21") for e in rows]), "ret_63": _stats([e.get("ret_63") for e in rows]),
                 "managed_21": _stats([e.get("mret_21") for e in rows]), "managed_63": _stats([e.get("mret_63") for e in rows]),
                 "stop_hit_pct": rnd(100.0 * sum(1 for e in rows if e.get("stop_hit")) / len(rows), 0) if rows else None,
                 "target1_hit_pct": rnd(100.0 * sum(1 for e in rows if e.get("t1_hit")) / len([e for e in rows if e.get("t1_hit") is not None]), 0) if [e for e in rows if e.get("t1_hit") is not None] else None,
                 "mae_median": rnd(median([e.get("mae_pct") for e in rows if e.get("mae_pct") is not None]), 1) if rows else None,
-                "mfe_median": rnd(median([e.get("mfe_pct") for e in rows if e.get("mfe_pct") is not None]), 1) if rows else None}
+                "mfe_median": rnd(median([e.get("mfe_pct") for e in rows if e.get("mfe_pct") is not None]), 1) if rows else None,
+                "target1_before_stop_pct": rnd(100.0 * sum(1 for e in rows if e.get("t1_before_stop")) / len([e for e in rows if e.get("t1_before_stop") is not None]), 0) if [e for e in rows if e.get("t1_before_stop") is not None] else None,
+                "stops": stop_block(rows)}
     out["triggered"] = {"all": block(trig)}
     for fr in ("D", "W"):
         out["triggered"]["frame_" + fr] = block([e for e in trig if e.get("frame") == fr])
@@ -1322,7 +1368,49 @@ def base_rates(hist):
                                       "stopped_out_pct": rnd(100.0 * sum(1 for e in trig if e.get("stop_hit")) / len(trig), 0) if trig else None,
                                       "share_of_sequences_that_ever_trigger_pct": rnd(100.0 * len(trig) / len(seq), 0) if seq else None},
         "note": "measured from every selling-climax sequence in the 5-year window; crowd entry = close of the bar the automatic rally reached 2 ATR off the low; pro entry = close above the test candle's high; managed returns exit at the stop when it hits first"}
+    out["findings"] = findings(out, seq, trig)
     return out
+
+
+def findings(out, seq, trig):
+    """plain-English verdicts derived from the measured numbers -- the engine argues with the paper where the tape disagrees."""
+    f = []
+    t = (out.get("triggered") or {}).get("all") or {}
+    if not t.get("n"):
+        return f
+    r63 = t.get("ret_63") or {}
+    st = (t.get("stops") or {}).get("rules") or {}
+    pap, cli, wid = st.get("paper") or {}, st.get("climax") or {}, st.get("wide") or {}
+    f.append("%d sequences reached the trigger. Unmanaged, the trigger entry made a median %+.1f%% after 63 bars (hit %.0f%%) and reached the rally high (target 1) in %.0f%% of cases%s." % (
+        t["n"], r63.get("median") or 0, r63.get("hit") or 0, t.get("target1_hit_pct") or 0,
+        (", %.0f%% of them before the paper's stop was touched" % t["target1_before_stop_pct"]) if t.get("target1_before_stop_pct") is not None else ""))
+    if pap:
+        hp = pap.get("stop_hit_pct") or 0
+        f.append("The paper's stop (0.1 ATR under the test low) was hit in %.0f%% of triggered sequences%s; managed by that stop the 63-bar outcome is a median %+.1f%% (hit %.0f%%).%s" % (
+            hp, (" (median %.0f bars after entry)" % pap["median_bars_to_stop"]) if pap.get("median_bars_to_stop") is not None else "",
+            (pap.get("managed_63") or {}).get("median") or 0, (pap.get("managed_63") or {}).get("hit") or 0,
+            " A stop that tight is whipsawed by the range itself: the tape revisits the test low far more often than it fails." if hp >= 50 else ""))
+    if cli and wid:
+        f.append("Alternatives measured on the same trades: a stop 0.25 ATR under the climax low is hit %.0f%% of the time (managed 63-bar median %+.1f%%); a stop 1 ATR under the test low is hit %.0f%% (median %+.1f%%). Best rule by median managed return: %s." % (
+            cli.get("stop_hit_pct") or 0, (cli.get("managed_63") or {}).get("median") or 0, wid.get("stop_hit_pct") or 0, (wid.get("managed_63") or {}).get("median") or 0,
+            (t.get("stops") or {}).get("best_rule_by_median_63") or "n/a"))
+    cv = out.get("crowd_vs_pro") or {}
+    c = cv.get("crowd_buys_the_bounce") or {}
+    if c.get("n"):
+        mix = out.get("outcome_mix") or {}
+        vshare = 100.0 * (mix.get("NO_TEST_BREAKOUT") or 0) / max(1, out.get("n_sequences") or 1)
+        f.append("The crowd's bounce entry (n %d) made a median %+.1f%% after 63 bars (hit %.0f%%) but with a median worst drawdown of %.1f%%; in %.0f%% of sequences the tape later undercut the climax low and %.0f%% failed outright. Waiting for the test forfeits the V-bottoms: %.0f%% of all sequences left the range upward without ever testing the low." % (
+            c["n"], (c.get("ret_63") or {}).get("median") or 0, (c.get("ret_63") or {}).get("hit") or 0, c.get("worst_drawdown_median_pct") or 0, c.get("later_undercut_climax_low_pct") or 0, c.get("sequence_failed_pct") or 0, vshare))
+    tv = out.get("by_test_volume") or {}
+    q, l = tv.get("quiet (<=0.4x climax)") or {}, tv.get("loud (>0.7x)") or {}
+    if q.get("n") and l.get("n"):
+        f.append("Test volume: quiet tests (<=0.4x climax volume, n %d) made a median %+.1f%% at 63 bars vs %+.1f%% for loud tests (n %d) -- %s." % (
+            q["n"], (q.get("ret_63") or {}).get("median") or 0, (l.get("ret_63") or {}).get("median") or 0, l["n"],
+            "the paper's variable carries an edge in this window" if ((q.get("ret_63") or {}).get("median") or 0) > ((l.get("ret_63") or {}).get("median") or 0) + 0.5 else "no return edge from the volume ratio alone in this window; use it as a risk filter, not a return forecast"))
+    bg = out.get("by_grade") or {}
+    if (bg.get("A") or {}).get("n") and (bg.get("C") or {}).get("n"):
+        f.append("Grade A sequences (n %d) made a median %+.1f%% at 63 bars vs %+.1f%% for grade C (n %d)." % ((bg["A"]["n"]), (bg["A"].get("ret_63") or {}).get("median") or 0, (bg["C"].get("ret_63") or {}).get("median") or 0, bg["C"]["n"]))
+    return f
 
 
 def hist_row(sym, desk, asset_class, E, frame, prm):
@@ -1332,7 +1420,7 @@ def hist_row(sym, desk, asset_class, E, frame, prm):
             "ret_21": E.get("ret_21"), "ret_63": E.get("ret_63"), "mret_21": E.get("mret_21"), "mret_63": E.get("mret_63"),
             "stop_hit": E.get("stop_hit"), "t1_hit": E.get("t1_hit"), "mae_pct": E.get("mae_pct"), "mfe_pct": E.get("mfe_pct"),
             "ar_ret_21": E.get("ar_ret_21"), "ar_ret_63": E.get("ar_ret_63"), "ar_mae_pct": E.get("ar_mae_pct"), "ar_hole": E.get("ar_hole"),
-            "sc_vol_x": E.get("sc_vol_x"), "st_vol_ratio_sc": E.get("st_vol_ratio_sc")}
+            "sc_vol_x": E.get("sc_vol_x"), "st_vol_ratio_sc": E.get("st_vol_ratio_sc"), "stops": E.get("stops"), "t1_before_stop": E.get("t1_before_stop")}
 
 
 # ---- market context ---------------------------------------------------------------------------------------------------
@@ -1367,7 +1455,8 @@ DEFINITIONS = {
     "markup": "After the trigger, a close above the rally high: a sign of strength; the range resolved upward.",
     "score": "0-100 evidence ladder: climax quality (<=25) + rally quality (<=15) + test quality (<=40) + trigger/confirmation (<=20), plus up to +8 for fleet confirmations and +6 when the weekly frame agrees. A/B/C/D = >=75 / >=60 / >=45 / below.",
     "frame": "D = daily bars (the trading bottom), W = weekly bars resampled from the same warehouse (the major bottom). A row's headline frame is the daily one unless only the weekly sequence is live or the weekly is further along.",
-    "base_rates": "Every sequence detected in the ~5-year window is graded from the tape: +21/+63-bar returns from the trigger fill (raw and stop-managed), stop-hit and target-1-hit rates, and the paper's counterfactual -- the crowd buying the automatic rally vs the professional waiting for the trigger.",
+    "base_rates": "Every sequence detected in the ~5-year window is graded from the tape: +21/+63-bar returns from the trigger fill (raw and stop-managed), stop-hit and target-1-hit rates, three stop rules measured on the same trades (paper / climax-low / 1 ATR), and the paper's counterfactual -- the crowd buying the automatic rally vs the professional waiting for the trigger. The findings block states, in words, where the tape agrees with the paper and where it does not.",
+    "stop_rules": "paper = 0.1 ATR under the test low (what the paper prescribes); climax = 0.25 ATR under the lower of the climax low and the test low (the structural floor); wide = 1 ATR under the test low. Each is managed independently on every historical trigger so their stop-hit rates and managed returns are comparable.",
     "confirmations": "Fleet evidence joined by ticker: accumulation-radar, phase-detector, fortress, katlin, 13F institutional flow, insider clusters, dark-pool state, ETF flows. Evidence on the row, never a gate: the tape decides, the fleet confirms.",
 }
 

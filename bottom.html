@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="bottom-version" content="bottom-v1.0.0">
+<meta name="bottom-version" content="bottom-v1.1.0">
 <meta name="jh-marker" content="BOTTOM_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Bottom · the Wyckoff bottom desk · selling climax → automatic rally → secondary test → trigger, across every asset class · JustHodl.AI</title>
@@ -338,6 +338,12 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     return s;
   }
 
+  function stopHit(desk, rule) {
+    var br = (D && D.base_rates) || {}; var b = ((br.by_desk || {})[desk] || (br.triggered || {}).all || {});
+    var rl = (((b.stops || {}).rules || {})[rule]) || {};
+    if (rl.stop_hit_pct == null) return "";
+    return " · hit " + rl.stop_hit_pct + "% of the time, managed +63 " + pct((rl.managed_63 || {}).median);
+  }
   function select(t) {
     selected = t;
     var r = (D.board || []).filter(function (x) { return x.ticker === t; })[0];
@@ -362,7 +368,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
       "<span>Trigger</span><span>" + (tg.date ? esc(tg.date) + " · above " + num(tg.level, 2) + " · fill " + num(tg.fill, 2) + (tg.vol_x != null ? " · vol " + num(tg.vol_x, 1) + "x" : "") : "waiting") + "</span>" +
       (tg.sos_date ? "<span>Sign of strength</span><span>" + esc(tg.sos_date) + "</span>" : "") + (tg.stop_date ? "<span>Stopped</span><span>" + esc(tg.stop_date) + "</span>" : "") +
       "</div>";
-    if (p.entry) h += "<h4>Plan</h4><div class=\"kv\"><span>Entry (test candle high)</span><span>" + num(p.entry, p.entry < 1 ? 4 : 2) + "</span><span>Stop (under the test low)</span><span class=\"red\">" + num(p.stop, p.stop < 1 ? 4 : 2) + " (" + num(p.risk_pct, 1) + "% risk)</span><span>Target 1 · rally high</span><span class=\"grn\">" + num(p.target_1, 2) + (p.rr_1 != null ? " (" + num(p.rr_1, 1) + "R)" : "") + "</span><span>Target 2 · pre-climax high</span><span class=\"grn\">" + num(p.target_2, 2) + (p.rr_2 != null ? " (" + num(p.rr_2, 1) + "R)" : "") + "</span><span>Last vs entry</span><span>" + pct(p.last_vs_entry_pct, 1) + "</span></div><div class=\"note\">" + esc(p.rule) + "</div>";
+    if (p.entry) h += "<h4>Plan</h4><div class=\"kv\"><span>Entry (test candle high)</span><span>" + num(p.entry, p.entry < 1 ? 4 : 2) + "</span><span>Stop · paper (0.1 ATR under the test low)</span><span class=\"red\">" + num(p.stop, p.stop < 1 ? 4 : 2) + " (" + num(p.risk_pct, 1) + "% risk" + stopHit(r.desk, "paper") + ")</span>" + (p.stop_climax != null ? "<span>Stop · structural (under the climax low)</span><span class=\"red\">" + num(p.stop_climax, p.stop_climax < 1 ? 4 : 2) + " (" + num(p.risk_climax_pct, 1) + "% risk" + stopHit(r.desk, "climax") + ")</span>" : "") + (p.stop_wide != null ? "<span>Stop · wide (1 ATR under the test low)</span><span class=\"red\">" + num(p.stop_wide, p.stop_wide < 1 ? 4 : 2) + " (" + num(p.risk_wide_pct, 1) + "% risk" + stopHit(r.desk, "wide") + ")</span>" : "") + "<span>Target 1 · rally high</span><span class=\"grn\">" + num(p.target_1, 2) + (p.rr_1 != null ? " (" + num(p.rr_1, 1) + "R)" : "") + "</span><span>Target 2 · pre-climax high</span><span class=\"grn\">" + num(p.target_2, 2) + (p.rr_2 != null ? " (" + num(p.rr_2, 1) + "R)" : "") + "</span><span>Last vs entry</span><span>" + pct(p.last_vs_entry_pct, 1) + "</span></div><div class=\"note\">" + esc(p.rule) + "</div>";
     if (r.score_parts) { h += "<h4>Score ladder</h4><div class=\"pillars\">"; var caps = { climax: 25, rally: 15, test: 40, trigger: 20 }; Object.keys(caps).forEach(function (k) { var v = r.score_parts[k] || 0; h += '<div class="bar"><span>' + k + '</span><i><b style="width:' + Math.min(100, 100 * v / caps[k]) + '%"></b></i><span>' + num(v, 0) + "/" + caps[k] + "</span></div>"; }); h += "</div>"; }
     if (r.reasons && r.reasons.length) h += "<h4>Why</h4><ul>" + r.reasons.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
     if (r.risks && r.risks.length) h += "<h4>Risks</h4><ul>" + r.risks.map(function (x) { return '<li class="red">' + esc(x) + "</li>"; }).join("") + "</ul>";
@@ -400,7 +406,14 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
       h += '<div class="cvp"><div class="card crowd"><h5>THE CROWD — buys the first bounce</h5><div class="kv"><span>sequences</span><span>' + (c.n || 0) + '</span><span>+21 median · hit</span><span class="' + cls((c.ret_21 || {}).median) + '">' + pct((c.ret_21 || {}).median) + " · " + ((c.ret_21 || {}).hit == null ? "—" : (c.ret_21 || {}).hit + "%") + '</span><span>+63 median · hit</span><span class="' + cls((c.ret_63 || {}).median) + '">' + pct((c.ret_63 || {}).median) + " · " + ((c.ret_63 || {}).hit == null ? "—" : (c.ret_63 || {}).hit + "%") + '</span><span>worst drawdown (median)</span><span class="red">' + pct(c.worst_drawdown_median_pct) + "</span><span>later undercut the climax low</span><span class=\"red\">" + (c.later_undercut_climax_low_pct == null ? "—" : c.later_undercut_climax_low_pct + "% of sequences") + "</span><span>sequence failed outright</span><span class=\"red\">" + (c.sequence_failed_pct == null ? "—" : c.sequence_failed_pct + "%") + "</span></div></div>";
       h += '<div class="card pro"><h5>THE PROFESSIONAL — waits for the trigger</h5><div class="kv"><span>triggers</span><span>' + (p.n || 0) + '</span><span>+21 median · hit (stop-managed)</span><span class="' + cls((p.ret_21 || {}).median) + '">' + pct((p.ret_21 || {}).median) + " · " + ((p.ret_21 || {}).hit == null ? "—" : (p.ret_21 || {}).hit + "%") + '</span><span>+63 median · hit (stop-managed)</span><span class="' + cls((p.ret_63 || {}).median) + '">' + pct((p.ret_63 || {}).median) + " · " + ((p.ret_63 || {}).hit == null ? "—" : (p.ret_63 || {}).hit + "%") + '</span><span>worst drawdown (median)</span><span class="red">' + pct(p.worst_drawdown_median_pct) + "</span><span>stopped out</span><span>" + (p.stopped_out_pct == null ? "—" : p.stopped_out_pct + "%") + "</span><span>sequences that ever trigger</span><span>" + (p.share_of_sequences_that_ever_trigger_pct == null ? "—" : p.share_of_sequences_that_ever_trigger_pct + "%") + "</span></div></div></div>";
       h += '<div class="note">' + esc(cv.note || "") + "</div>";
+      if (br.findings && br.findings.length) h += '<h2>What the tape says about the paper</h2><div class="wr-panel" style="padding:12px 14px"><ul style="padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--fg-1)">' + br.findings.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
       var t = br.triggered || {};
+      var sr = ((t.all || {}).stops || {});
+      if (sr.rules) {
+        h += '<div class="wr-panel" style="margin-top:12px"><div class="ph"><span>Stop rules — the same triggers managed three ways</span><span class="cnt">best by median +63: ' + esc(sr.best_rule_by_median_63 || "—") + '</span></div><div class="tbl"><table class="wr"><thead><tr><th>rule</th><th>where</th><th>n</th><th>stop hit</th><th>median bars to stop</th><th>managed +21</th><th>+21 hit</th><th>managed +63</th><th>+63 hit</th></tr></thead><tbody>';
+        Object.keys(sr.rules).forEach(function (k) { var x = sr.rules[k]; h += "<tr><td class=\"lab\">" + esc(k) + "</td><td class=\"read\">" + esc((sr.levels || {})[k] || "") + "</td><td>" + x.n + "</td><td>" + (x.stop_hit_pct == null ? "—" : x.stop_hit_pct + "%") + "</td><td>" + (x.median_bars_to_stop == null ? "—" : x.median_bars_to_stop) + '</td><td class="' + cls((x.managed_21 || {}).median) + '">' + pct((x.managed_21 || {}).median) + "</td><td>" + ((x.managed_21 || {}).hit == null ? "—" : (x.managed_21 || {}).hit + "%") + '</td><td class="' + cls((x.managed_63 || {}).median) + '">' + pct((x.managed_63 || {}).median) + "</td><td>" + ((x.managed_63 || {}).hit == null ? "—" : (x.managed_63 || {}).hit + "%") + "</td></tr>"; });
+        h += "</tbody></table></div></div>";
+      }
       h += ratesTable({ all: t.all, daily: t.frame_D, weekly: t.frame_W }, "Triggered sequences — by frame");
       h += ratesTable(br.by_desk, "By desk");
       h += ratesTable(br.by_grade, "By grade (score at the time of the trigger)");
