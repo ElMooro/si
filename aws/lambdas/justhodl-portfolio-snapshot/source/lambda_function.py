@@ -271,7 +271,9 @@ def lambda_handler(event, context):
           f"sentiment={len(sentiment_idx)}")
 
     # 2. Auto-sync watchlist
-    sync_changes = sync_auto_watchlist(alpha)
+    validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
+    sync_changes = ({"added_S":[],"added_A":[],"removed_S":[],"removed_A":[],"validation_skipped_sync":True}
+                    if validation_only else sync_auto_watchlist(alpha))
     print(f"  watchlist sync: +{len(sync_changes['added_S'])} S "
           f"+{len(sync_changes['added_A'])} A "
           f"-{len(sync_changes['removed_S'])+len(sync_changes['removed_A'])} stale")
@@ -475,6 +477,9 @@ def lambda_handler(event, context):
         },
     }
 
+    if validation_only:
+        return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
+                "status": payload["capital_book"]["status"], "artifact_size_bytes": len(json.dumps(payload).encode())}
     s3.put_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY,
         Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
         ContentType="application/json",

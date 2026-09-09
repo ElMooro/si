@@ -309,6 +309,9 @@ def gate_performance_results(results_doc, decision_iso):
     reason="Missing immutable fills, cash ledger, daily instrument marks, corporate actions, borrow/financing and decision-time capital constraints"
     for name in ("summary", "realistic_summary", "honest_summary", "walkforward_summary"):
         section=results_doc.get(name)
+        if not isinstance(section,dict):
+            section={}
+            results_doc[name]=section
         if isinstance(section,dict):
             section.update(curve_semantics="signal_attribution", tradable_portfolio_nav=False,
                            headline_eligible=False, publication_status="BLOCKED", publication_reason=reason)
@@ -1301,6 +1304,9 @@ def lambda_handler(event=None, context=None):
     # 10. Write to S3
     full_body = json.dumps(results_doc, default=str).encode("utf-8")
     summary_body = json.dumps(summary_doc, default=str).encode("utf-8")
+    if isinstance(event, dict) and event.get("mode") == "validate_only":
+        return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
+                "status": results_doc["publication"]["status"], "artifact_size_bytes": len(full_body)}
     S3.put_object(Bucket=BUCKET, Key="backtest/results.json", Body=full_body,
                   ContentType="application/json", CacheControl="public, max-age=600")
     S3.put_object(Bucket=BUCKET, Key="backtest/summary.json", Body=summary_body,

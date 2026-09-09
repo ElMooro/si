@@ -65,6 +65,19 @@ def test_significance_requires_twenty_actual_alpha_pairs(mod):
     assert result["significant"] is False and result["n_alpha_consensus"]==2
 
 
+def test_validate_only_real_research_handler_writes_nothing(mod):
+    docs={"current":{"ticker":"X","generated_at":"2026-09-08T09:00:00Z","quote":{"price":100},"verdict":{"rating":"BUY"}}}
+    mod.list_keys_under=lambda prefix:["current"] if prefix==mod.RESEARCH_PREFIX else []
+    mod.read_s3_json=lambda key:docs[key]
+    mod.list_history_for_ticker=lambda ticker:[]
+    mod.get_current_price=lambda ticker:110 if ticker=="X" else 100
+    mod.build_spy_history=lambda *a:{"2026-09-08":100}
+    def forbidden(**kw): raise AssertionError("write attempted in validate_only")
+    mod.s3.put_object=forbidden
+    result=mod.lambda_handler({"mode":"validate_only"},None)
+    assert result["ok"] and result["validation_only"] and result["artifact_size_bytes"]>0,result
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

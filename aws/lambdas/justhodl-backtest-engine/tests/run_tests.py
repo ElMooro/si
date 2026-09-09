@@ -92,6 +92,28 @@ def test_page_never_promotes_attribution_metrics(mod):
     subprocess.run(["node",str(HERE/"publication.test.cjs")],check=True)
 
 
+def test_validate_only_real_backtest_handler_writes_nothing(mod):
+    mod.get_weights=lambda:{}; mod.get_horizon_weights=lambda:{}
+    mod.scan_scored_outcomes=lambda:([],0)
+    mod.fetch_spy_window=lambda *a:{}
+    mod.S3=MemoryS3()
+    result=mod.lambda_handler({"mode":"validate_only"},None)
+    assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
+    assert not mod.S3.objects
+
+
+def test_validate_only_snapshotter_writes_nothing(mod):
+    from datetime import datetime,timezone
+    spec=importlib.util.spec_from_file_location("snapshotter_readonly", HERE.parents[1]/"justhodl-calibration-snapshotter/source/lambda_function.py")
+    producer=importlib.util.module_from_spec(spec); spec.loader.exec_module(producer)
+    producer.S3=MemoryS3()
+    producer.safe_get_ssm=lambda name:{"sig":1.3} if name.endswith("weights") else {}
+    producer.count_outcomes_60d=lambda:({},0)
+    result=producer.lambda_handler({"mode":"validate_only"},None)
+    assert result["ok"] and result["validation_only"] and result["artifact_size_bytes"]>0
+    assert not producer.S3.objects
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

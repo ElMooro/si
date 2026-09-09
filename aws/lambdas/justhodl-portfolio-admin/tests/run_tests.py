@@ -142,6 +142,17 @@ def test_actual_handler_rejects_missing_future_stale_and_nonfinite_marks():
         assert payload["portfolio_summary"]["total_pnl_dollars"] == 0
 
 
+def test_validate_only_snapshot_skips_sync_and_all_writes():
+    mod=_load_snapshot({})
+    def forbidden(*a,**kw): raise AssertionError("write attempted in validate_only")
+    mod.load_s3_json=lambda key,default:default
+    mod.sync_auto_watchlist=forbidden
+    mod.query_pk=lambda key:[{"symbol":"AAA","qty":10,"cost_basis_per_share":100}] if key=="POSITION" else []
+    mod.s3.put_object=forbidden
+    result=mod.lambda_handler({"mode":"validate_only"},None)
+    assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:

@@ -576,6 +576,9 @@ def lambda_handler(event, context):
 
     # Write to S3
     body = json.dumps(out, default=str).encode()
+    if isinstance(event, dict) and event.get("mode") == "validate_only":
+        return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
+                "status": "RESEARCH_ONLY", "artifact_size_bytes": len(body)}
     s3.put_object(
         Bucket=S3_BUCKET,
         Key=OUTPUT_KEY,

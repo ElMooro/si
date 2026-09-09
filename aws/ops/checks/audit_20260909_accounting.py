@@ -62,7 +62,8 @@ def run(repo, region='us-east-1', bucket='justhodl-dashboard-live'):
     for engine in ENGINES:
         name='justhodl-'+engine
         source=repo/'aws/lambdas'/name/'source/lambda_function.py'
-        config=json.loads((source.parent.parent/'config.json').read_text())
+        config_path=source.parent.parent/'config.json'
+        config=json.loads(config_path.read_text()) if config_path.exists() else {}
         try:
             deployed=lamb.get_function(FunctionName=name)
             with urllib.request.urlopen(deployed['Code']['Location'],timeout=30) as response:

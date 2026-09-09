@@ -191,6 +191,9 @@ def lambda_handler(event=None, context=None):
 
     # 4. Write the IMMUTABLE version (unique id) + the legacy weekly key (kept for old readers) + an index
     body = json.dumps(snapshot, default=str).encode("utf-8")
+    if isinstance(event, dict) and event.get("mode") == "validate_only":
+        return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
+                "status": "READY", "artifact_size_bytes": len(body)}
     version_key = f"calibration/versions/{snapshot_id}.json"
     S3.put_object(Bucket=BUCKET, Key=version_key, Body=body, IfNoneMatch="*", ContentType="application/json", CacheControl="public, max-age=31536000, immutable")
     snapshot_key = f"calibration/history/{label}.json"
