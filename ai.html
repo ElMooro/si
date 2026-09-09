@@ -7,7 +7,7 @@
 <meta name="jh-marker" content="AI_DESK_V2">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
-<meta name="description" content="AI is the front window to Amazon SageMaker for JustHodl: every SageMaker resource live, the JumpStart financial-model catalog (RoBERTa-SEC transfer learning), the Brain turned into a labelled dataset, four training tiers (transfer learning, JumpStart fine-tune, Autopilot, HyperPod) and a cost guard that prices every action from the live AWS Price List.">
+<meta name="description" content="AI is the governed front window to Amazon SageMaker for JustHodl: owner-only resource control, financial-model discovery, private Brain retrieval, fleet-wide evidence coverage, bounded training, and testable cross-asset market calls.">
 <style>
 :root{
   --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a; --bg-card:#101418;
@@ -186,7 +186,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="row" style="margin-top:8px">
       <div class="field"><label>&nbsp;</label><button class="btn" data-act="embed">Embed the Brain</button></div>
       <div class="field"><label>&nbsp;</label><button class="btn" data-act="classifier">Train classifier (tier 1)</button></div>
-      <div class="field"><label>&nbsp;</label><button class="btn" data-act="automl-text">Autopilot text (tier 3)</button></div>
+      <div class="field"><label>&nbsp;</label><button class="btn" disabled title="Disabled until worst-case cost can be estimated before launch">Autopilot text (cost gate pending)</button></div>
     </div>
     <div id="emb-body" class="scroll" style="margin-top:10px"></div></div>
 </div>
@@ -232,13 +232,13 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   "use strict";
   var FEEDS = ["/data/ai.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/ai.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/ai.json"];
   var PROXY = "https://api.justhodl.ai", PROXY_FALLBACK = "https://justhodl-data-proxy.raafouis.workers.dev";
-  var D = null, TAB = "endpoints", BUSY = false, FLEET_FILTER = "ALL";
+  var D = null, TAB = "endpoints", BUSY = false, FLEET_FILTER = "ALL", AUTH_EPOCH = 0;
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, d) { if (n == null || isNaN(n)) return "—"; return Number(n).toLocaleString("en-US", { maximumFractionDigits: d == null ? 2 : d }); }
   function usd(n) { return n == null ? "—" : "$" + fmt(n, 2); }
   function ago(iso) { if (!iso) return "—"; var t = Date.parse(iso); if (isNaN(t)) return String(iso).slice(0, 19); var m = Math.round((Date.now() - t) / 60000); if (m < 60) return m + "m ago"; if (m < 1440) return Math.round(m / 60) + "h ago"; return Math.round(m / 1440) + "d ago"; }
-  function stTag(s) { s = String(s || ""); var c = /InService|Completed|Ready|Active|FRESH/i.test(s) ? "g" : /Creating|Updating|InProgress|Starting|Pending|Stopping|Deleting|Assembling|running|STALE|UNTIMESTAMPED/i.test(s) ? "a" : /Fail|Error|Stopped|Deleted|MISSING|DEAD|BLOCKED/i.test(s) ? "r" : ""; return '<span class="tag ' + c + '">' + esc(s || "—") + "</span>"; }
+  function stTag(s) { s = String(s || ""); var c = /InService|Completed|Ready|Active|FRESH/i.test(s) ? "g" : /Creating|Updating|InProgress|Starting|Pending|Stopping|Deleting|Assembling|running|STALE|UNTIMESTAMPED/i.test(s) ? "a" : /Fail|Error|Stopped|Deleted|MISSING|DEAD|BLOCKED|FUTURE/i.test(s) ? "r" : ""; return '<span class="tag ' + c + '">' + esc(s || "—") + "</span>"; }
   function log(kind, msg, obj) { var c = $("console"); if (c.firstChild && c.firstChild.className.indexOf("dim") >= 0) c.innerHTML = ""; var l = document.createElement("div"); l.className = "l"; l.innerHTML = '<span class="' + (kind === "err" ? "bad" : kind === "ok" ? "ok" : "dim") + '">' + new Date().toISOString().slice(11, 19) + " " + esc(msg) + "</span>" + (obj ? "\n" + esc(typeof obj === "string" ? obj : JSON.stringify(obj, null, 1).slice(0, 4000)) : ""); c.insertBefore(l, c.firstChild); }
 
   // ── auth (same bridge as brain.html: verified Supabase bearer -> worker owner role) ──
@@ -268,10 +268,12 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   async function act(name, path, body) {
     if (BUSY) return; if (!user()) { log("err", name + ": sign in first"); renderAuth(); return; }
+    var epoch = AUTH_EPOCH;
     BUSY = true; document.querySelectorAll("button[data-act]").forEach(function (b) { b.disabled = true; });
     log("info", name + " …");
     try {
       var r = await api(path, body || {});
+      if (epoch !== AUTH_EPOCH || !user()) return r;
       if (r.status === 200 && r.json && r.json.ok !== false) log("ok", name + " → " + r.status, /infer|market-read/.test(path) ? null : (r.json.result || r.json));
       else log("err", name + " → " + r.status + " " + ((r.json && (r.json.error || r.json.message)) || ""), r.json);
       if (path !== "/inventory" && path !== "/infer" && r.status === 200) { var r2 = await api("/inventory", {}); log(r2.status === 200 ? "info" : "err", "inventory refresh → " + r2.status); if (r2.status === 200 && r2.json.result) render(r2.json.result); }
@@ -464,7 +466,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   function renderTiers(d) {
     var t = d.tiers || [];
-    $("tiers").innerHTML = t.map(function (x) { return '<div class="tier"><div class="no">T' + x.tier + "</div><div><b>" + esc(x.name) + "</b><p>" + esc(x.how) + '</p><span class="tag">' + esc(x.cost) + "</span>" + (x.tier === 4 ? ' <button class="btn sm" data-act="hyperpod">create cluster…</button>' : x.tier === 3 ? ' <button class="btn sm" data-act="automl-tab">Autopilot on a warehouse CSV…</button>' : "") + "</div></div>"; }).join("");
+    $("tiers").innerHTML = t.map(function (x) { return '<div class="tier"><div class="no">T' + x.tier + "</div><div><b>" + esc(x.name) + "</b><p>" + esc(x.how) + '</p><span class="tag">' + esc(x.cost) + "</span>" + (x.tier === 4 ? ' <button class="btn sm" data-act="hyperpod">create cluster…</button>' : x.tier === 3 ? ' <button class="btn sm" disabled title="Disabled until worst-case cost can be estimated before launch">AutoML cost gate pending</button>' : "") + "</div></div>"; }).join("");
     bindActs($("tiers"));
   }
   function svgLine(series, w, h, opts) {
@@ -553,9 +555,12 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   var INVENTORY_INFLIGHT = false;
   async function loadOwnerInventory(force) {
     if (!user() || INVENTORY_INFLIGHT) return;
+    var epoch = AUTH_EPOCH, current = user(), uid = current && (current.id || current.email);
     INVENTORY_INFLIGHT = true;
     try {
       var r = await api("/inventory", null, "GET");
+      var after = user(), sameUser = after && (after.id || after.email) === uid;
+      if (epoch !== AUTH_EPOCH || !sameUser) return;
       if (r.status === 200 && r.json && r.json.result) render(r.json.result);
       else if (force) log("err", "owner inventory → " + r.status, r.json);
     } finally { INVENTORY_INFLIGHT = false; }
@@ -563,9 +568,12 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   async function loadOwnerRead(force) {
     if (!user() || READ_INFLIGHT) return;
     if (!force && Date.now() - READ_LAST < 30000) return;          // auth onChange can fire in bursts -- one read per 30s
+    var epoch = AUTH_EPOCH, current = user(), uid = current && (current.id || current.email);
     READ_INFLIGHT = true; READ_LAST = Date.now();
     try {
       var r = await api("/read", null, "GET");
+      var after = user(), sameUser = after && (after.id || after.email) === uid;
+      if (epoch !== AUTH_EPOCH || !sameUser) return;
       if (r.status === 200 && r.json && r.json.result) renderReadOwner(r.json.result);
       else if (r.status === 400) { $("read-body").innerHTML = '<div class="dim">' + esc((r.json && r.json.error) || "no read yet") + "</div>"; }
       else if (Date.now() - READ_ERR_LOGGED > 60000) { READ_ERR_LOGGED = Date.now(); log("err", "read → " + r.status, r.json); }
@@ -619,8 +627,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     try { if (await waitForAuth(4000)) { await JustHodlAuth.init(); } } catch (e) { }
     renderAuth();
     if (window.JustHodlAuth && JustHodlAuth.onChange) JustHodlAuth.onChange(async function () {
+      AUTH_EPOCH++;
       if (!user()) {
         READ = null;
+        D = null;
+        render({ access: "PUBLIC_AGGREGATE", version: "2.0.0-review", inventory_summary: {}, policy: {}, cost: {}, catalog: {}, fleet_inputs: { status: "BLOCKED", summary: {} }, definitions: {} });
         $("pg-out").innerHTML = "";
         $("console").innerHTML = '<div class="l dim">private session cleared</div>';
         await load();

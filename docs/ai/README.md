@@ -6,7 +6,7 @@
 
 - The Brain classifier predicts the operator-assigned note category. It is a semantic organizer and retrieval aid, not an investment-return model.
 - The market read is advisory. It may explain eligible engine evidence, but it cannot allocate capital or override the independent risk authority.
-- A market call is suppressed when fusion, risk-gate, or khalid-risk is not fresh, when the fleet registry is unavailable, or when production-scale eligible feed coverage is below 80%.
+- A market call is suppressed when fusion, risk-gate, or khalid-risk is not fresh, when registry v2 has fewer than 150 unique feeds, or when eligible feed coverage is below 80%.
 - Every production promotion remains blocked until the P0 exit criteria in `CORNERSTONE_ARCHITECTURE_V2.md` are met.
 
 ## Data boundary
@@ -40,12 +40,13 @@ The canonical Brain source must move behind the private boundary before producti
 - Serverless memory and concurrency ceilings.
 - Managed-resource tag checks before deleting, stopping, or replacing endpoints.
 - HyperPod node-count bound and whole-cluster cost projection.
-- Endpoint TTL and idle reaping only for engine-managed resources.
+- Mandatory endpoint TTL and idle reaping only for engine-managed resources; new pinned endpoints are rejected.
+- AutoML is disabled until worst-case candidate and infrastructure cost can be estimated before launch.
 - No direct LLM fallback around router budgets or operating modes.
 - No raw Brain prose in the narrator prompt.
 - Strict stance, side, horizon, confidence, and candidate-symbol validation.
 - Deduplicated, successfully logged prediction rows only.
-- Private result clearing on sign-out.
+- Private result clearing on sign-out plus epoch checks that discard in-flight owner responses.
 
 ## Remaining production blockers
 

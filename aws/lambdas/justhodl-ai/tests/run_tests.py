@@ -194,13 +194,16 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
     fake = types.ModuleType("boto3")
     fake.resource = lambda name, **k: types.SimpleNamespace(Table=lambda n: FAKE_TABLE)
     lr = types.ModuleType("llm_router")
-    lr.complete = lambda prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None, **k: json.dumps({
+    def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None, **k):
+        lr.last_prompt = prompt
+        return json.dumps({
         "overall": "Regime mildly supportive; risk gate neutral; breadth improving.", "macro": "Funding stable.",
         "stocks": {"stance": "SELECTIVE", "read": "PRIME picks exist"}, "bonds": {"stance": "NEUTRAL", "read": "curve flat"},
         "metals": {"stance": "ACCUMULATE", "read": "gold bid"}, "crypto": {"stance": "HOLD", "read": "cycle mid"},
         "best_opportunities": [{"ticker": "NVDA", "side": "LONG", "why": "fusion leader", "horizon_days": 63, "from_engines": ["fusion"]}, {"ticker": "FAKEX", "side": "LONG", "why": "invented", "horizon_days": 21, "from_engines": []}],
         "what_would_change_my_mind": ["HY OAS > 500"], "data_gaps": ["metals stale"],
         "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 63, "confidence": 0.7, "thesis": "leader"}, {"ticker": "FAKEX", "direction": "UP", "horizon_days": 21, "confidence": 0.9, "thesis": "no"}, {"ticker": "GLD", "direction": "SIDEWAYS", "horizon_days": 21, "confidence": 0.6, "thesis": "bad direction"}]})
+    lr.complete = complete
     sys.modules["llm_router"] = lr
     se = types.ModuleType("signals_emit")
     def _log(table, signal_type, ticker, direction, windows, baseline_price, confidence=0.55, rationale="", metadata=None, benchmark=None, signal_value=""):
@@ -433,7 +436,7 @@ def test_cost_guard_rules():
     assert cg._price_from_products(price["PriceList"], "Hosting") == 0.23
     assert cg._price_from_products(price["PriceList"], "Training") == 0.23
     assert cg._price_from_products(price["PriceList"], "Processing") is None
-    # TTL enforcement: past-TTL managed endpoint deleted, unmanaged and pinned untouched
+    # TTL enforcement: past-TTL managed endpoints deleted, including legacy pinned ones
     sm = FakeSM()
     old = (datetime.now(timezone.utc) - timedelta(hours=5)).isoformat()
     eps = [{"name": "jh-ai-old", "status": "InService", "created_at": old, "tags": {"justhodl-ai-managed": "true", "justhodl-ai-ttl-hours": "3"}},
@@ -442,7 +445,7 @@ def test_cost_guard_rules():
            {"name": "jh-ai-dead", "status": "Failed", "created_at": old, "tags": {"justhodl-ai-managed": "true"}}]
     ledger = cg.enforce_endpoint_ttl(sm, FakeCW(0.0), eps, pol)
     acts = {r["endpoint"]: r["action"] for r in ledger}
-    assert acts == {"jh-ai-old": "deleted", "jh-ai-pinned": "keep", "someone-elses": "keep", "jh-ai-dead": "deleted"}, acts
+    assert acts == {"jh-ai-old": "deleted", "jh-ai-pinned": "deleted", "someone-elses": "keep", "jh-ai-dead": "deleted"}, acts
     assert ("delete_endpoint", "jh-ai-old") in sm.calls and ("delete_endpoint", "someone-elses") not in sm.calls
     return "allow-list, budget, unpriced refusal, TTL ledger"
 
@@ -556,7 +559,7 @@ def test_learning_curve_nested_fractions_and_read_model():
 def _fleet_docs(s3):
     now = datetime.now(timezone.utc).isoformat()
     s3.put_object("public-test", "data/engine-wiring.json", json.dumps({
-        "v": 1,
+        "v": 2,
         "wired": [{"engine": "fusion", "feed": "data/jh-fusion.json", "page": "confluence.html", "schema_version": "1"}],
         "internal": [],
         "dead": [],
@@ -580,6 +583,7 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     rt = FakeRT(dim=6)
     store = _install_fakes(s3=s3, rt=rt)
     lf = _load(store)
+    lf.fi.MIN_UNIQUE_FEEDS = 1
     import brain_dataset as bd
     import market_read as mr
     import sm_hub
@@ -604,7 +608,8 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     assert res["calls_logged"][0]["logged"] is True and res["calls_logged"][0]["baseline_price"] == 120.5
     private = json.loads(s3.objs[("private-test", "ai/market-read/latest.json")])
     assert private["playbook"]["notes"]["stocks"] and private["playbook"]["notes"]["stocks"][0]["text_private"] is True
-    assert "text" not in private["playbook"]["notes"]["stocks"][0]
+    assert private["playbook"]["notes"]["stocks"][0]["text"]
+    assert "eurodollar" not in sys.modules["llm_router"].last_prompt
     # rate limit
     r2 = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": "{}"}, None)
     assert r2["statusCode"] == 400 and "allowed every" in json.loads(r2["body"])["error"]
@@ -659,7 +664,9 @@ def test_pipeline_state_machine_end_to_end_and_ladder_failover():
     st = lf.action_pipeline_tick({}, pol)              # infer_proof -> retrieval (serverless doubles) -> cleanup -> market_read -> done
     assert st["infer_proof"]["nearest"] and st["retrieval_endpoint"] == st["embedding_endpoint"], st.get("infer_proof")
     assert st["status"] == "done" and st["stage"] == "done" and st["market_read"]["stances"]["stocks"] == "SELECTIVE", st.get("market_read")
-    assert st["market_read"]["n_calls"] == 1
+    # The pipeline still completes its governed read, but incomplete registry
+    # coverage must suppress calls rather than bypass the evidence gate.
+    assert st["market_read"]["n_calls"] == 0
     # read model carries the pipeline view, no note text
     out = lf.run_inventory(None)
     assert out["pipeline"]["status"] == "done" and out["pipeline"]["stage_index"] == pl.STAGES.index("done")
@@ -667,7 +674,7 @@ def test_pipeline_state_machine_end_to_end_and_ladder_failover():
     # idempotent start: a finished pipeline restarts only with force
     st2 = lf.action_pipeline_start({"ladder": ["mxnet-tcembedding-robertafin-base-uncased"], "tick": False}, pol)
     assert st2["status"] == "running" and st2["stage"] == "dataset"
-    return "ladder failover with log tail, 13 stages to done, market read + call logged, view sanitized"
+    return "ladder failover with log tail, 13 stages to done, governed read gated, view sanitized"
 
 def test_fleet_registry_reads_every_unique_feed_and_gates_evidence():
     s3 = FakeS3()
@@ -693,13 +700,34 @@ def test_fleet_registry_reads_every_unique_feed_and_gates_evidence():
     import fleet_inputs as fi
     snap = fi.build_fleet_snapshot(s3, "public-test")
     assert snap["summary"]["declared"] == 6 and snap["summary"]["unique_feeds"] == 5
-    assert snap["summary"]["eligible"] == 1 and snap["summary"]["private_excluded"] == 1
+    assert snap["summary"]["eligible"] == 1 and snap["summary"]["private_excluded"] == 2
     by_feed = {r["feed"]: r for r in snap["feeds"]}
     assert by_feed["data/a.json"]["status"] == "FRESH" and by_feed["data/a.json"]["engines"] == ["engine-a", "engine-b"]
     assert by_feed["data/c.json"]["status"] == "STALE" and by_feed["data/d.json"]["status"] == "UNTIMESTAMPED"
     assert by_feed["data/e.json"]["status"] == "DEAD" and by_feed["data/trade-journal.json"]["eligible"] is False
+    assert by_feed["data/d.json"]["private"] is True
     assert snap["digest"][0]["symbols"] == ["SPY"] and snap["digest"][0]["signals"]
-    return "all declarations counted, duplicate feed deduped, stale/private/untimestamped/dead evidence gated"
+    assert snap["status"] == "BLOCKED" and any("minimum" in b for b in snap["release_blockers"])
+    return "all declarations counted; incomplete/private/stale/untimestamped/dead evidence gated"
+
+
+def test_private_feed_future_timestamp_and_registry_controls_fail_closed():
+    s3 = FakeS3()
+    future = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+    registry = {"v": 2, "wired": [
+        {"engine": "behavior", "feed": "data/behavior-mirror.json"},
+        {"engine": "future", "feed": "data/future.json"},
+    ], "internal": [], "dead": []}
+    s3.put_object("public-test", "data/engine-wiring.json", json.dumps(registry).encode())
+    s3.put_object("public-test", "data/behavior-mirror.json", json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(), "decision": "PRIVATE"}).encode())
+    s3.put_object("public-test", "data/future.json", json.dumps({"generated_at": future, "signal": "BYPASS"}).encode())
+    import fleet_inputs as fi
+    snap = fi.build_fleet_snapshot(s3, "public-test")
+    by_feed = {r["feed"]: r for r in snap["feeds"]}
+    assert by_feed["data/behavior-mirror.json"]["private"] is True and by_feed["data/behavior-mirror.json"]["eligible"] is False
+    assert by_feed["data/future.json"]["status"] == "FUTURE" and by_feed["data/future.json"]["eligible"] is False
+    assert snap["status"] == "BLOCKED" and snap["digest"] == []
+    return "canonical private artifact, future timestamp and truncated registry all fail closed"
 
 
 def test_destructive_endpoint_action_requires_engine_ownership_tag():
@@ -738,7 +766,22 @@ def test_endpoint_replacement_and_serverless_limits_fail_closed():
         raise AssertionError("serverless policy ceiling must be enforced")
     except lf.ActionError:
         pass
-    return "unmanaged replacement blocked; bounded serverless defaults accepted"
+    try:
+        lf._capped_runtime({"max_runtime_s": policy["training_max_runtime_s"] + 1}, policy)
+        raise AssertionError("caller runtime must not exceed the policy ceiling")
+    except lf.ActionError:
+        pass
+    try:
+        lf._reject_pinned({"pinned": True})
+        raise AssertionError("pinned billable endpoints must be refused")
+    except lf.ActionError:
+        pass
+    try:
+        lf.action_train_automl({}, policy)
+        raise AssertionError("AutoML must remain disabled without bounded cost estimation")
+    except lf.ActionError as exc:
+        assert "disabled" in str(exc)
+    return "ownership, serverless, runtime, pinning and AutoML controls fail closed"
 
 
 def test_inventory_writes_public_read_model_without_note_text():
@@ -781,8 +824,9 @@ def main():
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
              test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover,
-             test_fleet_registry_reads_every_unique_feed_and_gates_evidence, test_destructive_endpoint_action_requires_engine_ownership_tag,
-             test_endpoint_replacement_and_serverless_limits_fail_closed, test_inventory_writes_public_read_model_without_note_text]
+             test_fleet_registry_reads_every_unique_feed_and_gates_evidence, test_private_feed_future_timestamp_and_registry_controls_fail_closed,
+             test_destructive_endpoint_action_requires_engine_ownership_tag, test_endpoint_replacement_and_serverless_limits_fail_closed,
+             test_inventory_writes_public_read_model_without_note_text]
     failed = 0
     for t in tests:
         try:

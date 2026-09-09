@@ -91,5 +91,26 @@
         "training_eligible": {"type": "boolean"}
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "taint": {
+            "anyOf": [
+              {"properties": {"llm_derived": {"const": true}}, "required": ["llm_derived"]},
+              {"properties": {"cornerstone_derived": {"const": true}}, "required": ["cornerstone_derived"]}
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "taint": {
+            "properties": {"training_eligible": {"const": false}}
+          }
+        }
+      }
+    }
+  ]
 }

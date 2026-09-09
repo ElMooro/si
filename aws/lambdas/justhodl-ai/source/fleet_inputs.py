@@ -13,8 +13,16 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
+try:
+    from private_artifact import is_private_source as _canonical_private_source
+except Exception:
+    _canonical_private_source = None
+
 REGISTRY_KEY = "data/engine-wiring.json"
 DEFAULT_SLA_H = 48.0
+MAX_FUTURE_SKEW_H = 5.0 / 60.0
+MIN_REGISTRY_VERSION = 2
+MIN_UNIQUE_FEEDS = 150
 MAX_VALUE_CHARS = 96
 SIGNAL_KEYS = re.compile(
     r"(score|signal|stance|regime|state|status|verdict|posture|trend|direction|"
@@ -23,6 +31,26 @@ SIGNAL_KEYS = re.compile(
 )
 SYMBOL_KEYS = {"ticker", "symbol", "asset", "entity_id"}
 PRIVATE_TOKENS = ("brain", "note", "journal", "portfolio", "credential", "secret")
+PRIVATE_FEEDS = frozenset({
+    "data/brain.json", "data/brain-history.json", "data/journal-graded.json",
+    "data/my-brief.json", "data/devils-advocate.json", "data/notes-index.json",
+    "data/notes-themes.json", "data/playbook-rules.json", "data/risk-sizer.json",
+    "data/pm-decision.json", "data/pm-decision-history.json",
+    "data/behavior-mirror.json", "data/ai-brief.json", "data/user-watchlist.json",
+    "data/vol-regime-private.json", "data/user-trades.json",
+    "data/user-trades-stats.json", "data/portfolio-manager-brief.json",
+    "data/tradingview-notes.json", "data/ai-brief.md", "data/_telegram-chat.json",
+    "data/tv-sources.json", "data/history/behavior-mirror-history.jsonl",
+    "portfolio/snapshot.json", "portfolio/risk.json", "portfolio/sizing.json",
+    "portfolio/catalysts.json", "portfolio/holdings.json", "portfolio/pm-history.json",
+    "portfolio/catalyst-alert-history.json", "portfolio/risk-alert-history.json",
+    "portfolio/sizing-alert-history.json",
+    "risk/recommendations.json",
+})
+PRIVATE_PREFIXES = (
+    "data/_askdesk/", "data/search/index/", "equity-research-history/",
+    "backtest/ledger/", "data/ai-commentary/history/portfolio/",
+)
 
 
 def _load_json(s3, bucket: str, key: str):
@@ -101,6 +129,11 @@ def _walk_symbols(value: Any, depth: int = 0) -> Iterable[str]:
 
 
 def _is_private(row: Dict[str, Any]) -> bool:
+    feed = str(row.get("feed") or "").lstrip("/")
+    if ((_canonical_private_source is not None and _canonical_private_source(feed))
+            or row.get("declared_class") == "INTERNAL" or row.get("private") is True
+            or feed in PRIVATE_FEEDS or any(feed.startswith(prefix) for prefix in PRIVATE_PREFIXES)):
+        return True
     blob = " ".join(str(row.get(k) or "") for k in ("engine", "feed", "page", "title")).lower()
     return any(token in blob for token in PRIVATE_TOKENS)
 
@@ -162,6 +195,8 @@ def build_fleet_snapshot(s3, public_bucket: str, registry_key: str = REGISTRY_KE
         age_h = _age_h(stamp)
         if not stamp or age_h is None:
             status = "UNTIMESTAMPED"
+        elif age_h < -MAX_FUTURE_SKEW_H:
+            status = "FUTURE"
         elif age_h > default_sla_h:
             status = "STALE"
         else:
@@ -206,11 +241,23 @@ def build_fleet_snapshot(s3, public_bucket: str, registry_key: str = REGISTRY_KE
         "signals": row.get("signals") or [],
         "symbols": row.get("symbols") or [],
     } for row in eligible]
+    version_ok = registry.get("v") == MIN_REGISTRY_VERSION
+    complete = len(feeds) >= MIN_UNIQUE_FEEDS
+    coverage = (len(eligible) / len(feeds)) if feeds else 0.0
+    ready = version_ok and complete and coverage >= 0.80
+    blockers = []
+    if not version_ok:
+        blockers.append("registry version must equal %s" % MIN_REGISTRY_VERSION)
+    if not complete:
+        blockers.append("registry has %d unique feeds; minimum is %d" % (len(feeds), MIN_UNIQUE_FEEDS))
+    if coverage < 0.80:
+        blockers.append("eligible fleet coverage %.1f%% is below 80%%" % (coverage * 100.0))
     return {
         "registry_key": registry_key,
         "registry_version": registry.get("v"),
         "registry_generated_by": registry.get("generated_by"),
-        "status": "READY" if eligible else "BLOCKED",
+        "status": "READY" if ready else "BLOCKED",
+        "release_blockers": blockers,
         "summary": {
             "declared": len(declarations),
             "unique_feeds": len(feeds),
@@ -229,4 +276,3 @@ def prompt_digest(snapshot: Dict[str, Any], max_chars: int = 24000) -> str:
     rows = snapshot.get("digest") or []
     text = json.dumps(rows, separators=(",", ":"), default=str)
     return text[:max_chars]
-

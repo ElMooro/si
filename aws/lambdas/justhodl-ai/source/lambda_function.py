@@ -412,7 +412,21 @@ def _serverless_config(body: dict, policy: dict) -> tuple:
     return memory, concurrency
 
 
+def _capped_runtime(body: dict, policy: dict) -> int:
+    ceiling = int(policy.get("training_max_runtime_s") or 3600)
+    requested = int(body.get("max_runtime_s") or ceiling)
+    if requested < 60 or requested > ceiling:
+        raise ActionError("max_runtime_s must be between 60 and the policy ceiling %d" % ceiling)
+    return requested
+
+
+def _reject_pinned(body: dict) -> None:
+    if body.get("pinned") is True:
+        raise ActionError("pinned endpoints are disabled; all billable endpoints require an enforced TTL")
+
+
 def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
+    _reject_pinned(body)
     model_id = str(body.get("model_id") or "").strip()
     if not model_id:
         raise ActionError("model_id required (a hub card id, e.g. mxnet-tcembedding-robertafin-base-uncased)")
@@ -443,7 +457,7 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     _assert_endpoint_write_allowed(ep)
     memory, concurrency = _serverless_config(body, policy) if serverless else (4096, 4)
     res = sm_hub.deploy_model(client("sagemaker"), client("s3"), spec=spec, role_arn=role, endpoint_name=ep, instance_type=instance_type,
-                              serverless=serverless, private_bucket=PRIVATE_BUCKET, tags=cg.tags("hub:" + model_id, None if serverless else ttl, bool(body.get("pinned"))),
+                              serverless=serverless, private_bucket=PRIVATE_BUCKET, tags=cg.tags("hub:" + model_id, ttl, False),
                               serverless_memory_mb=memory, serverless_max_conc=concurrency)
     res.update({"model_id": model_id, "ttl_hours": None if serverless else ttl, "spec": {k: spec.get(k) for k in ("task", "framework", "hosting_image", "default_inference_instance", "supported_inference_instances", "training_supported")}})
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
@@ -500,7 +514,7 @@ def action_train_classifier(body: dict, policy: dict) -> Dict[str, Any]:
     role = execution_role()
     it = body.get("instance_type") or "ml.m5.xlarge"
     spot = bool(body.get("spot", policy.get("training_spot", True)))
-    max_rt = int(body.get("max_runtime_s") or policy.get("training_max_runtime_s") or 3600)
+    max_rt = _capped_runtime(body, policy)
     _guard_instance(policy, it, "training", max_rt / 3600.0)
     out_uri = "s3://%s/ai/jobs/classifier/%s/%s/" % (PRIVATE_BUCKET, ds_id, re.sub(r"[^a-z0-9-]", "-", ep.lower()))
     res = tr.start_classifier_job(client("sagemaker"), role_arn=role, train_uri=emb["train_uri"], validation_uri=emb["validation_uri"], out_uri=out_uri,
@@ -522,7 +536,7 @@ def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
     fractions = sorted({min(1.0, max(0.02, float(f))) for f in fractions})
     it = body.get("instance_type") or "ml.m5.xlarge"
     spot = bool(body.get("spot", policy.get("training_spot", True)))
-    max_rt = int(body.get("max_runtime_s") or policy.get("training_max_runtime_s") or 3600)
+    max_rt = _capped_runtime(body, policy)
     price = _guard_instance(policy, it, "training", len(fractions) * max_rt / 3600.0)
     curve_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     runs = []
@@ -587,7 +601,7 @@ def action_train_finetune(body: dict, policy: dict) -> Dict[str, Any]:
         raise ActionError("model_id and an s3:// training_uri are required")
     spec = sm_hub.describe_model(client("sagemaker"), model_id, body.get("version"))
     it = body.get("instance_type") or spec.get("default_training_instance")
-    max_rt = int(body.get("max_runtime_s") or policy.get("training_max_runtime_s") or 3600)
+    max_rt = _capped_runtime(body, policy)
     spot = bool(body.get("spot", policy.get("training_spot", True)))
     _guard_instance(policy, it, "training", max_rt / 3600.0)
     out_uri = "s3://%s/ai/jobs/finetune/%s/" % (PRIVATE_BUCKET, re.sub(r"[^a-z0-9-]", "-", model_id.lower()))
@@ -598,31 +612,11 @@ def action_train_finetune(body: dict, policy: dict) -> Dict[str, Any]:
 
 
 def action_train_automl(body: dict, policy: dict) -> Dict[str, Any]:
-    kind = body.get("kind") or "text"
-    max_rt = int(body.get("max_runtime_s") or policy.get("training_max_runtime_s") or 3600)
-    projected, _ = _projected(policy)
-    if float(projected.get("usd_per_day") or 0) >= float(policy.get("daily_budget_usd") or 0):
-        raise ActionError("run-rate already at the daily budget; AutoML refused")
-    if kind == "text":
-        ds_id = body.get("dataset_id") or (bd.latest_dataset(client("s3"), PRIVATE_BUCKET) or {}).get("dataset_id")
-        if not ds_id:
-            raise ActionError("build the Brain dataset first")
-        csv_uri = "s3://%s/ai/datasets/brain/%s/automl/" % (PRIVATE_BUCKET, ds_id)
-        res = tr.start_autopilot_text(client("sagemaker"), role_arn=execution_role(), csv_uri=csv_uri, out_uri="s3://%s/ai/jobs/automl/%s/" % (PRIVATE_BUCKET, ds_id),
-                                      max_runtime_s=max_rt, tags=cg.tags("automl-text:" + ds_id, None))
-    else:
-        csv_uri = str(body.get("csv_uri") or "")
-        target = str(body.get("target") or "")
-        if not csv_uri.startswith("s3://") or not target:
-            raise ActionError("csv_uri (s3://, header row) and target column required")
-        res = tr.start_autopilot_tabular(client("sagemaker"), role_arn=execution_role(), csv_uri=csv_uri, out_uri="s3://%s/ai/jobs/automl-tabular/" % PRIVATE_BUCKET,
-                                         target=target, problem_type=body.get("problem_type"), max_runtime_s=max_rt, max_candidates=int(body.get("max_candidates") or 20),
-                                         tags=cg.tags("automl-tabular:" + target, None))
-    put_private("ai/jobs/%s.json" % res["job_name"], res)
-    return res
+    raise ActionError("AutoML is disabled until a worst-case candidate and infrastructure cost estimator is enforced")
 
 
 def action_deploy_trained(body: dict, policy: dict) -> Dict[str, Any]:
+    _reject_pinned(body)
     job = str(body.get("job_name") or "").strip()
     if not job:
         raise ActionError("job_name required")
@@ -635,7 +629,7 @@ def action_deploy_trained(body: dict, policy: dict) -> Dict[str, Any]:
     _assert_endpoint_write_allowed(ep)
     memory, concurrency = _serverless_config(body, policy) if serverless else (2048, 2)
     res = tr.deploy_training_output(client("sagemaker"), job_name=job, role_arn=execution_role(), endpoint_name=ep, serverless=serverless, instance_type=it,
-                                    tags=cg.tags("trained:" + job, None if serverless else ttl, bool(body.get("pinned"))),
+                                    tags=cg.tags("trained:" + job, ttl, False),
                                     serverless_memory_mb=memory, serverless_max_conc=concurrency)
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
     return res
@@ -803,8 +797,9 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     blockers = ["critical source %s is not FRESH" % name for name in critical]
     if fleet.get("status") != "READY":
         blockers.append("fleet registry is not READY")
-    elif unique_feeds >= 10 and coverage < 0.80:
-        blockers.append("eligible fleet coverage %.1f%% is below 80%%" % (coverage * 100.0))
+    for blocker in fleet.get("release_blockers") or []:
+        if blocker not in blockers:
+            blockers.append(blocker)
     read["decision_status"] = "ADVISORY_ONLY" if blockers else "EVIDENCE_READY"
     read["release_blockers"] = blockers
     if blockers:

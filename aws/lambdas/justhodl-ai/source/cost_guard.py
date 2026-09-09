@@ -4,9 +4,10 @@ Doctrine (2026-09-09, after the recursion-loop mail): every SageMaker resource t
 creates is tagged, priced from the live AWS Price List, and bounded:
 
   * endpoints carry a TTL tag; the hourly inventory deletes any managed endpoint past its
-    TTL unless it is pinned (`justhodl-ai-pinned=true`), and any managed endpoint with zero
+    TTL, and any managed endpoint with zero
     invocations for `idle_hours` (CloudWatch Invocations metric, real);
-  * training / AutoML jobs are created with MaxRuntimeInSeconds (and spot where supported);
+  * training jobs are created with MaxRuntimeInSeconds (and spot where supported);
+    AutoML remains disabled until its worst-case infrastructure cost is estimable;
   * every create action is refused when the projected daily run-rate of managed resources
     would exceed `daily_budget_usd`, or when the instance type is outside the allow list;
   * HyperPod / large GPU tiers are locked behind an explicit policy unlock.
@@ -212,7 +213,7 @@ def endpoint_invocations(cw, endpoint: str, hours: float) -> Optional[float]:
 
 
 def enforce_endpoint_ttl(sm, cw, endpoints: List[dict], policy: Dict[str, Any]) -> List[dict]:
-    """Delete managed endpoints past their TTL or idle beyond policy.idle_hours (never pinned ones).
+    """Delete managed endpoints past their TTL or idle beyond policy.idle_hours.
     Returns the action ledger (one row per endpoint examined)."""
     ledger = []
     now = datetime.now(timezone.utc)
@@ -226,9 +227,7 @@ def enforce_endpoint_ttl(sm, cw, endpoints: List[dict], policy: Dict[str, Any]) 
             ledger.append(row)
             continue
         if t.get(TAG_PINNED) == "true":
-            row["reason"] = "pinned"
-            ledger.append(row)
-            continue
+            row["reason"] = "legacy pinned tag ignored; TTL remains authoritative"
         created = ep.get("created_at")
         age_h = None
         if created:

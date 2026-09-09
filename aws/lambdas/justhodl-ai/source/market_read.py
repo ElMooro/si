@@ -38,6 +38,7 @@ SIGNAL_TYPE = "ai_market_read"
 WINDOWS = [5, 21, 63]
 MAX_CALLS = 6
 MIN_READ_GAP_S = 20 * 60
+MAX_FUTURE_SKEW_H = 5.0 / 60.0
 STANCE_ENUMS = {
     "stocks": {"RISK_ON", "SELECTIVE", "DEFENSIVE", "AVOID"},
     "bonds": {"LONG_DURATION", "NEUTRAL", "SHORT_DURATION", "AVOID"},
@@ -144,7 +145,7 @@ def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) ->
         d = _get(s3, source_bucket, key)
         st = _stamp(d)
         age = _age_h(st)
-        status = "MISSING" if d is None else ("STALE" if (age is None or age > sla_h) else "FRESH")
+        status = "MISSING" if d is None else ("FUTURE" if age is not None and age < -MAX_FUTURE_SKEW_H else ("STALE" if (age is None or age > sla_h) else "FRESH"))
         sources[name] = {"key": key, "generated_at": st, "age_h": age, "sla_h": sla_h, "status": status, "private": private}
         docs[name] = d if d is not None else {}
     F, RG, KR, KT, BT, FT, BD, CR, GB, RC, MT, CY, BC, SC, BR = [docs[k] for k in ("fusion", "risk_gate", "khalid_risk", "katlin", "bottom", "fortress", "bonds", "crisis", "gbc", "regime_composite", "metals", "crypto", "btc_cycle", "scorecard", "brain")]
@@ -263,7 +264,8 @@ def playbook(s3, rt, private_bucket: str, ds_id: Optional[str], endpoint: Option
             continue
         try:
             out["notes"][name] = [{"similarity": n["similarity"], "label": n["label"], "pinned": n["pinned"],
-                                   "note_id": n.get("note_id") or n.get("id"), "text_private": True}
+                                   "note_id": n.get("note_id") or n.get("id"), "text": n.get("text", ""),
+                                   "text_private": True}
                                   for n in nearest_fn(s3, private_bucket, ds_id, endpoint, vec, k=k)]
         except Exception as e:
             out["notes"][name] = [{"error": str(e)[:100]}]
@@ -290,9 +292,11 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn) -> Di
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
     fleet_digest = slim.pop("fleet_digest", [])
+    play_refs = {name: [{k: note.get(k) for k in ("similarity", "label", "pinned", "note_id", "text_private")}
+                        for note in notes] for name, notes in (play.get("notes") or {}).items()}
     prompt = "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
         json.dumps(slim, default=str)[:24000], json.dumps(fleet_digest, default=str)[:24000],
-        json.dumps(play.get("notes") or {"unavailable": play.get("reason")}, default=str)[:9000],
+        json.dumps(play_refs or {"unavailable": play.get("reason")}, default=str)[:9000],
         ", ".join(board.get("candidates") or []))
     raw = complete_fn(prompt, tier="critical", max_tokens=2400, contains_proprietary=True, system=SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
