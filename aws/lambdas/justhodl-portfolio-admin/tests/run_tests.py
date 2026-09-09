@@ -153,6 +153,14 @@ def test_validate_only_snapshot_skips_sync_and_all_writes():
     assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
 
 
+def test_snapshot_trigger_uses_promoted_live_alias():
+    mod,_ = _load_admin([])
+    calls=[]
+    mod._lam=types.SimpleNamespace(invoke=lambda **kwargs:calls.append(kwargs))
+    mod._trigger_snapshot()
+    assert len(calls)==1 and calls[0]["Qualifier"]=="live" and calls[0]["InvocationType"]=="Event"
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:

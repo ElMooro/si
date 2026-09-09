@@ -59,7 +59,7 @@ def _admin_token():
 def _trigger_snapshot():
     """Fire-and-forget refresh of the portfolio snapshot after a book edit."""
     try:
-        _lam.invoke(FunctionName=SNAPSHOT_FN, InvocationType="Event",
+        _lam.invoke(FunctionName=SNAPSHOT_FN, Qualifier="live", InvocationType="Event",
                     Payload=b"{}")
     except Exception as e:  # never let a refresh failure break the write
         print(f"[portfolio-admin] snapshot trigger failed: {e}")
