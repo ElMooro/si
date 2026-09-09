@@ -14,6 +14,7 @@ sys.path.insert(0,str(ROOT/'aws/shared'))
 from equity_donor_inputs import (load_inputs,safe_evidence,stock_context,conviction_members,
     annotate_book,true_flow_rows,sector_flow_context,constrain_sizes,firm_board_contract)
 from capital_contract import CRITICAL_SLAS,authority_expiry
+from proposed_book_risk import export_model
 NOW=datetime(2026,9,9,12,tzinfo=timezone.utc)
 TS=NOW.isoformat()
 
@@ -40,23 +41,26 @@ def base_docs():
             'data/risk-gate.json':{'generated_at':TS,'sizing_multiplier':1},
             'data/liquidity-profile.json':{'generated_at':TS,'all_tickers':{'AAPL':{'adv_usd':1e8,'n_bars':20,'observed_at':TS}}},
             'data/liquidity-capacity.json':{'generated_at':TS,'firm':{'n_unknown_volume':0},'least_liquid_names':[]},
-            'data/factor-risk.json':{'generated_at':TS,'firm':{'var_99_1d_pct':1},'coverage':{'direct':1}},
+            'data/factor-risk.json':{'generated_at':TS,'firm':{'var_99_1d_pct':1},'coverage':{'direct':1},
+                'proposed_book_model':export_model(['MKT'],[[.0001]],[(NOW-timedelta(days=i)).date().isoformat() for i in range(60,0,-1)],
+                    {'AAPL':{'betas':{'MKT':1},'resid_var':.0001,'n_obs':60,'asof':TS,'observed_through':(NOW-timedelta(days=1)).date().isoformat()}},{},
+                    [{'name':'Stress','shock':{'MKT':-.5}}],TS)},
             'data/engine-trust.json':{'generated_at':TS,'current_regime':'BALANCED','engines':[{'signal_type':'eng:test-engine','effective_trust':.8,
-                'regime_n':50,'regime_wilson_lb':.6,'net_alpha_t_stat':3,'net_alpha_excess_pct':1,'alpha_status':'ALPHA_PROVEN'}]}}
+                'n_scored':100,'regime_n':50,'regime_effective_n':35,'regime_effective_n_method':'independent dated event clusters','alpha_validation_scope':'OUT_OF_SAMPLE','regime_wilson_lb':.6,'net_alpha_t_stat':3,'net_alpha_excess_pct':1,'alpha_status':'ALPHA_PROVEN'}]}}
 
 def size(docs):
-    recs=[{'ticker':'AAPL','engine':'test-engine','final_w_pct':4}]
+    recs=[{'ticker':'AAPL','engine':'test-engine','direction':'LONG','final_w_pct':4}]
     result=constrain_sizes(recs,docs,now=NOW)
     return recs[0],result
 
 def test_sizing_positive_control_and_required_donor_ablations():
     docs=base_docs();rec,summary=size(docs)
-    assert rec['final_w_pct']==2.56 and summary['authority_usable'] and summary['constraints_ready'],(rec,summary)
+    assert rec['final_w_pct']==3.2 and summary['authority_usable'] and summary['constraints_ready'],(rec,summary)
     assert rec['execution_eligible'] is False
     for key in ['data/khalid-risk.json','portfolio/snapshot.json','data/risk-gate.json','data/liquidity-profile.json','data/liquidity-capacity.json','data/factor-risk.json','data/engine-trust.json']:
         bad=copy.deepcopy(docs);bad.pop(key)
         rec,_=size(bad);assert rec['final_w_pct']==0,key
-    for field,value in [('regime_n',2),('regime_wilson_lb',.4),('net_alpha_t_stat',1),('net_alpha_excess_pct',-1),('alpha_status','ALPHA_NEGATIVE')]:
+    for field,value in [('regime_n',2),('regime_effective_n',None),('alpha_validation_scope',None),('regime_wilson_lb',.4),('net_alpha_t_stat',1),('net_alpha_excess_pct',-1),('alpha_status','ALPHA_NEGATIVE')]:
         bad=copy.deepcopy(docs);bad['data/engine-trust.json']['engines'][0][field]=value
         assert size(bad)[0]['final_w_pct']==0,field
 
@@ -65,7 +69,7 @@ def test_sizing_zero_cap_zero_gate_orders_and_old_volume_are_binding():
     assert size(docs)[0]['final_w_pct']==0
     docs=base_docs();a=docs['data/khalid-risk.json'];a['exposure_cap_pct']=0;a['policy']['exposure_cap_pct']=0
     assert size(docs)[0]['final_w_pct']==0
-    docs=base_docs();b=docs['portfolio/snapshot.json']['capital_book'];b['open_orders']=[{'symbol':'AAPL','remaining_exposure':4900}];b['reserved_order_exposure']=4900
+    docs=base_docs();b=docs['portfolio/snapshot.json']['capital_book'];b['open_orders']=[{'symbol':'AAPL','remaining_exposure':4900,'side':'BUY'}];b['reserved_order_exposure']=4900
     assert size(docs)[0]['final_w_pct']<=.1  # An order-only name still consumes the per-name cap.
     docs=base_docs();docs['data/liquidity-profile.json']['all_tickers']['AAPL']['observed_at']=(NOW-timedelta(days=6)).isoformat()
     assert size(docs)[0]['final_w_pct']==0
@@ -88,7 +92,7 @@ def test_donor_reader_rejects_stale_future_missing_and_retains_zero_and_invalid_
 
 def test_conviction_exact_trust_match_and_empirical_redundancy_reduce_votes():
     rows=[{'engine':'one','skill':1.4,'signal':80},{'engine':'two','skill':1.2,'signal':60}]
-    trust={'generated_at':TS,'engines':[{'signal_type':'eng:one','effective_trust':.8},{'signal_type':'eng:two','effective_trust':.4}]}
+    trust={'generated_at':TS,'engines':[{'signal_type':'eng:one','effective_trust':.8,'n_scored':50,'regime_n':25},{'signal_type':'eng:two','effective_trust':.4,'n_scored':50,'regime_n':25}]}
     orth={'as_of':TS,'snapshots_total':50,'clusters_high_redundancy':[['one','two']],'effective_information_rank':1}
     result=conviction_members(copy.deepcopy(rows),trust,orth)
     assert [r['skill'] for r in result]==[.8,.2]

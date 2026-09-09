@@ -5,6 +5,7 @@ import json,math
 from datetime import datetime,timezone
 from donor_contract import inspect_donor
 from capital_contract import authority_view, capital_book_view
+from proposed_book_risk import prepare_model, constrain_candidate
 
 def finite(value):
     if isinstance(value,bool):return None
@@ -57,10 +58,15 @@ def trust_factor(engine,doc,require_edge=False):
     row=next((r for r in doc.get('engines',[]) if canonical(r.get('signal_type'))==canonical(engine)),None)
     if not row:return 0.0 if require_edge else 0.5,{'status':'UNMATCHED','size_eligible':False}
     n=finite(row.get('regime_n'));lb=finite(row.get('regime_wilson_lb'));t=finite(row.get('net_alpha_t_stat'));edge=finite(row.get('net_alpha_excess_pct'))
-    eligible=bool(n is not None and n>=20 and lb is not None and lb>0.5 and t is not None and t>=2 and edge is not None and edge>0 and row.get('alpha_status')=='ALPHA_PROVEN')
+    effective_n=finite(row.get('regime_effective_n'))
+    independent=bool(effective_n is not None and effective_n>=20 and n is not None and effective_n<=n and row.get('regime_effective_n_method'))
+    out_of_sample=row.get('alpha_validation_scope')=='OUT_OF_SAMPLE'
+    eligible=bool(independent and out_of_sample and n>=20 and lb is not None and lb>0.5 and t is not None and t>=2 and edge is not None and edge>0 and row.get('alpha_status')=='ALPHA_PROVEN')
     trust=finite(row.get('effective_trust'));factor=max(0,min(1,trust)) if trust is not None else 0.5
+    sufficient_raw_sample=(finite(row.get('n_scored')) or 0)>=20 and (n or 0)>=20
+    if not sufficient_raw_sample:factor=min(factor,0.5)
     if require_edge and not eligible:factor=0.0
-    return factor,{**row,'current_regime':doc.get('current_regime'),'source_as_of':stamp(doc),'size_eligible':eligible,'applied_factor':factor,'method':'one bounded engine-trust factor; not multiplied again by its underlying scorecard'}
+    return factor,{**row,'current_regime':doc.get('current_regime'),'source_as_of':stamp(doc),'size_eligible':eligible,'independent_sample_validated':independent,'out_of_sample_validated':out_of_sample,'sample_status':'EFFECTIVE_SAMPLE_VALIDATED' if independent else 'OBSERVED_COUNTS_ONLY' if sufficient_raw_sample else 'INSUFFICIENT','applied_factor':factor,'method':'one bounded engine-trust factor; not multiplied again by its underlying scorecard'}
 
 def stock_context(stocks,docs):
     credit=docs.get('data/credit-before-equity.json',{});revision=docs.get('data/estimate-revisions.json',{});quality=docs.get('data/earnings-quality.json',{})
@@ -162,8 +168,15 @@ def constrain_sizes(recs,docs,now=None):
     max_cap=authority['exposure_cap_pct'];entry=authority['allows_new_entries']
     multiplier=finite(gate.get('sizing_multiplier'))
     valid_authority=authority['status']=='FRESH' and book['status']=='READY' and max_cap is not None and 0<=max_cap<=100 and entry is True and multiplier is not None and 0<=multiplier<=1
-    lc=capacity.get('firm') or {};fr=factor.get('firm') or {};var99=finite(fr.get('var_99_1d_pct'))
-    constraints_ready=bool(profile and capacity and factor and finite(lc.get('n_unknown_volume'))==0 and var99 is not None and var99>=0)
+    lc=capacity.get('firm') or {};risk_state=prepare_model(factor,book,now=now)
+    lmap=rows_by(profile,'all_tickers')
+    book_liquidity_ready=True
+    for symbol in set(book['gross_weights'])|set(book['order_weights']):
+        if book['gross_weights'].get(symbol,0)+book['order_weights'].get(symbol,0)<=0:continue
+        row=lmap.get(symbol) or {}
+        receipt=inspect_donor({'generated_at':stamp(profile),'observed_at':row.get('observed_at')},'liquidity-profile existing-book coverage',48,observed_paths=('observed_at',),now=now,max_observation_age_hours=96)
+        if not receipt['usable'] or (finite(row.get('adv_usd')) or 0)<=0 or (finite(row.get('n_bars')) or 0)<15:book_liquidity_ready=False
+    constraints_ready=bool(profile and capacity and factor and finite(lc.get('n_unknown_volume'))==0 and risk_state['status']=='READY' and book_liquidity_ready)
     existing_gross_pct=sum(book['gross_weights'].values())*100+sum(book['order_weights'].values())*100
     remaining=max(0,max_cap-existing_gross_pct) if valid_authority and constraints_ready else 0.0
     lmap=rows_by(profile,'all_tickers');cmap=rows_by(capacity,'least_liquid_names');existing_by_name={};per_name={}
@@ -179,23 +192,24 @@ def constrain_sizes(recs,docs,now=None):
         vol=finite((liq or {}).get('adv_usd'));bars=finite((liq or {}).get('n_bars'))
         observation=inspect_donor({'generated_at':stamp(profile),'observed_at':(liq or {}).get('observed_at')},'data/liquidity-profile.json#'+tick,48,observed_paths=('observed_at',),now=now,max_observation_age_hours=96)
         if not observation['usable']:vol=None
-        liquid_cap_pct=(0.01*vol/max(aum,1)*100) if vol is not None and vol>0 and bars is not None and bars>=15 and aum is not None and aum>0 else 0.0
+        liquid_cap_pct=(max(0,0.01*vol-existing_by_name.get(tick,0))/max(aum,1)*100) if vol is not None and vol>0 and bars is not None and bars>=15 and aum is not None and aum>0 else 0.0
         if cap:
             comfortable=finite(cap.get('comfortable_position_usd'))
             if comfortable is not None and aum:liquid_cap_pct=min(liquid_cap_pct,max(0,comfortable-existing_by_name.get(tick,0))/aum*100)
-        risk_factor=0 if var99 is None else max(0,min(1,(5.0-var99)/5.0))
-        final=min(original*tf*(multiplier if valid_authority else 0)*risk_factor,liquid_cap_pct,remaining,max(0,5-per_name.get(tick,0)))
+        upper=min(original*tf*(multiplier if valid_authority else 0),liquid_cap_pct,remaining,max(0,5-per_name.get(tick,0)))
         if tick in ('BTC','ETH'):
-            rec['crypto_basis_context']=(docs.get('data/crypto-basis.json',{}).get(tick.lower()) or None);final=0;reasons.append('crypto carry requires executable quotes, financing and collateral verification')
+            rec['crypto_basis_context']=(docs.get('data/crypto-basis.json',{}).get(tick.lower()) or None);upper=0;reasons.append('crypto carry requires executable quotes, financing and collateral verification')
+        final,marginal_risk=constrain_candidate(risk_state,tick,rec.get('direction'),upper)
         if not valid_authority:reasons.append('missing, invalid or closed capital authority')
         if not constraints_ready:reasons.append('missing portfolio risk / liquidity coverage')
         if not tf:reasons.append('positive net out-of-sample edge and regime sample not established')
         if liquid_cap_pct==0:reasons.append('insufficient ADV/volume or consistent notional basis')
-        final=max(0,math.floor(final*100)/100);remaining=max(0,remaining-final);per_name[tick]=per_name.get(tick,0)+final
+        final=max(0,final);remaining=max(0,remaining-final);per_name[tick]=per_name.get(tick,0)+final
+        existing_by_name[tick]=existing_by_name.get(tick,0)+final*(aum or 0)/100
         rec.update(final_w_pct=final,dollars_per_100k=round(final*1000),execution_eligible=False,
-                   donor_constraints={'pre_donor_w_pct':original,'trust':te,'adv_usd':vol,'liquidity_observation':{k:v for k,v in observation.items() if k!='fields'},'liquidity_cap_pct':liquid_cap_pct,'risk_budget_factor':risk_factor,'var_99_1d_pct':var99,'capital_cap_pct':max_cap,'binding_reasons':reasons,
-                                      'factor_model_scope':'existing modeled firm portfolio guard; not a computed marginal candidate VaR','authority':authority,'capital_book_status':book['status'],'book_errors':book['errors'],'portfolio_coverage':factor.get('coverage'),'risk_contributors':factor.get('risk_contributors'),'basis':'reconciled account NAV and reserved orders for capital; modeled liquidity/risk only'})
-    return {'gross_final_pct':round(sum(r['final_w_pct'] for r in recs),2),'capital_cap_pct':max_cap,'constraints_ready':constraints_ready,'authority_usable':valid_authority,'execution_eligible':False}
+                   donor_constraints={'pre_donor_w_pct':original,'trust':te,'adv_usd':vol,'liquidity_observation':{k:v for k,v in observation.items() if k!='fields'},'liquidity_cap_pct':liquid_cap_pct,'proposed_book_risk':marginal_risk,'capital_cap_pct':max_cap,'binding_reasons':reasons,
+                                      'factor_model_scope':'recomputed same-book candidate marginal covariance VaR and all scenario constraints','authority':authority,'capital_book_status':book['status'],'book_errors':['RECONCILIATION_REQUIRED'] if book['errors'] else [],'portfolio_coverage':factor.get('coverage'),'risk_contributors':factor.get('risk_contributors'),'basis':'reconciled account NAV and reserved orders for capital; modeled liquidity/risk only'})
+    return {'gross_final_pct':round(sum(r['final_w_pct'] for r in recs),2),'capital_cap_pct':max_cap,'constraints_ready':constraints_ready,'existing_book_liquidity_usable':book_liquidity_ready,'authority_usable':valid_authority,'execution_eligible':False}
 
 def firm_board_contract(out,factor,capacity,book,now=None):
     now=now or datetime.now(timezone.utc)

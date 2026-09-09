@@ -24,6 +24,8 @@ from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Attr
 from equity_donor_inputs import load_inputs, constrain_sizes, SIZING_SPECS
+from capital_contract import capital_book_view
+from public_brain_projection import sanitize_public
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -220,21 +222,10 @@ def lambda_handler(event=None, context=None):
                  key=lambda c: -((tmap.get(c["type"]) or {}).get("quarter_kelly_w_pct") or 0))
     cl = [c for c in cl if (tmap.get(c["type"]) or {}).get("gate") != "NO-EDGE"][:30]
 
-    # ── C) book (honest read) ──
-    holdings = []
-    try:
-        pr = DDB.Table("justhodl-portfolio").scan(Limit=200)
-        for it in pr.get("Items", []):
-            tk = it.get("ticker") or it.get("symbol")
-            if tk and (it.get("qty") or it.get("shares") or it.get("weight")):
-                holdings.append({"ticker": str(tk),
-                                  "qty": f(it.get("qty") or it.get("shares")),
-                                  "weight": f(it.get("weight"))})
-    except Exception as e:
-        print(f"[book] {str(e)[:50]}")
-    book_status = (f"{len(holdings)} holdings" if holdings
-                    else "EMPTY — cluster haircut runs vs recommendation set + SPY; "
-                          "book-aware path arms automatically when positions exist")
+    # Reconciled snapshot only; no unscoped DynamoDB portfolio scan or public holdings.
+    account_book=capital_book_view(donor_docs.get('portfolio/snapshot.json',{}))
+    holdings=[{'ticker':symbol} for symbol in account_book['gross_weights']] if account_book['status']=='READY' else []
+    book_status=account_book['status']
 
     # ── D) vols + correlations + the sizing chain ──
     series = {}
@@ -268,7 +259,7 @@ def lambda_handler(event=None, context=None):
         for h in holdings:
             r_ = corr(rs, series.get(h["ticker"]) or [])
             if r_ is not None and r_ >= 0.8:
-                overlaps.append(f"book:{h['ticker']} ρ{round(r_,2)}")
+                overlaps.append("correlated existing account exposure")
                 mx = max(mx, r_)
         hcut = 1 - 0.5 * max(0.0, mx)
         beta = corr(rs, spy)
@@ -308,7 +299,7 @@ def lambda_handler(event=None, context=None):
            "engine_table": table,
            "fade_list": [x["signal_type"] for x in table if x["gate"] == "NO-EDGE"][:15],
            "recommendations": recs, "gross_recommended_w_pct": gross,
-           "book_status": book_status, "holdings": holdings,
+           "book_status": book_status, "holdings": None,"holdings_publication":"REDACTED_ACCOUNT_PRIVATE",
            "methodology": (
              "Quarter-Kelly per engine from the closed loop's own graded record "
              "(outcomes.correct + return_pct at each signal's primary horizon; median "
@@ -319,7 +310,8 @@ def lambda_handler(event=None, context=None):
              "Sizes are research outputs per $100k of book, not advice.")}
     out["duration_s"] = round(time.time() - t0, 1)
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
+    clean=sanitize_public(OUT_KEY,clean)
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean,allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[sizing] graded={scanned} engines={len(table)} recs={len(recs)} "
           f"gross={gross}% {out['duration_s']}s")

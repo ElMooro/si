@@ -60,6 +60,8 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 
+from proposed_book_risk import export_model
+
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -329,13 +331,13 @@ def lambda_handler(event, context):
 
     def cache_fresh(sym):
         e = loadings.get(sym)
-        if not e or "asof" not in e:
+        if not e or "asof" not in e or not e.get("observed_through"):
             return False
         try:
             asof = datetime.fromisoformat(e["asof"]).date()
         except Exception:
             return False
-        return (today - asof).days <= CACHE_STALE_DAYS
+        return 0 <= (today - asof).days <= CACHE_STALE_DAYS
 
     order = sorted(book, key=lambda r: -abs(r["weight"]))
     n_fetched = n_cached = n_failed = 0
@@ -364,6 +366,7 @@ def lambda_handler(event, context):
             "resid_var": rvar,
             "n_obs": len(aligned),
             "asof": today.isoformat(),
+            "observed_from":aligned[0],"observed_through":aligned[-1],
         }
         n_fetched += 1
 
@@ -562,7 +565,8 @@ def lambda_handler(event, context):
             "net_market_beta": round(b["MKT"], 3),
         },
         "factor_exposures": factor_rows,
-        "risk_contributors": contrib[:15],
+        "risk_contributors": contrib,
+        "top_risk_contributors":contrib[:15],
         "scenarios": scen_rows,
         "hedges": hedges,
         "coverage": {
@@ -586,6 +590,7 @@ def lambda_handler(event, context):
                        "firm book. Scenario shocks are stylised "
                        "historical analogues. Not investment advice."),
     }
+    out["proposed_book_model"]=export_model(FACTOR_NAMES,sigma_daily,common,loadings,name_load,scen_rows,out["generated_at"])
     put_json(OUT_KEY, out)
     return {"statusCode": 200, "body": json.dumps({"ok": True,
             "annual_vol_pct": out["firm"]["annual_vol_pct"],
