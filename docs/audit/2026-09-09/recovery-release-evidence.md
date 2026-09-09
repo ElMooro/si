@@ -21,3 +21,20 @@ The follow-up explicitly applies fedliquidityapi's configured Python3.12 runtime
 Live Fed page verification at76e1bc1 exposed252 catalog series and12 summary series with full response capture. It also exposed obsolete RESBALNS data from2020 and a monthly observation incorrectly represented as a weekly change. The follow-up uses the active WRBWFRBL reserve series in the current summary (retains historical RESBALNS in the catalog), obtains units/native frequency/provider metadata, rejects cadence-inappropriate or distant comparison observations, and exposes age/quality. Currency magnitudes now convert explicit native million/billion-dollar units; absent values remain unavailable. FRED references: https://fred.stlouisfed.org/series/RESBALNS and https://fred.stlouisfed.org/series/WRBWFRBL . Five Fed handler and five page behavior checks pass.
 
 Final local follow-up gate:216 deployment checks,11 candidate scenarios,234 frontend tests,19 Risk Sizer scenarios,5 Fed handler checks;9,157 scanned files with zero credential findings. These counts supersede earlier local follow-up counts only; they do not certify runtime deployment.
+
+Recovery34349581247 deployed70 of71 selected functions. Research Backtest's
+numbered candidate3 exhausted its1024MB allocation before constructing the
+research universe. Its previous live version1 remained active; metadata5247
+also records that older version's scheduled timeouts. The fee895b follow-up
+34350706350 successfully deployed Risk Sizer and Fed Liquidity.
+
+The research retry retains only fields consumed by attribution arithmetic in
+its per-invocation cache. It preserves every decision, entry price, verdict,
+regime and temporally eligible critique while leaving large narratives/provider
+tables in their original source objects. A full-versus-projected input test
+asserts identical attribution rows and values. Memory is explicitly2048MB.
+Deadline exhaustion still prevents publication, and pinned validation remains
+mandatory. The deployment diagnostic now distinguishes FunctionError from an
+executed-version mismatch; both paths stop before promotion. Local research
+checks9 and validated-candidate scenarios12 pass. This is a source-fix record;
+the next numbered candidate must pass production validation.

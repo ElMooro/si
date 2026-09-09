@@ -85,14 +85,14 @@ aws lambda invoke \
   --payload "fileb://$validation_event" \
   "$validation_payload" > "$validation_meta"
 
-if ! jq -e --arg version "$candidate_version" '.StatusCode == 200 and .FunctionError == null and .ExecutedVersion == $version' "$validation_meta" > /dev/null 2>&1; then
+if ! jq -e --arg version "$candidate_version" '.StatusCode == 200 and .ExecutedVersion == $version' "$validation_meta" > /dev/null 2>&1; then
   echo "::error::$fn invocation did not confirm execution of the pinned version; response withheld"
   exit 1
 fi
 
 if jq -e '.FunctionError != null' "$validation_meta" > /dev/null 2>&1; then
   echo "::error::$fn candidate returned FunctionError; live alias and schedule are unchanged"
-  echo "Validation response withheld; inspect private runner logs for source errors"
+  echo "Validation response withheld; use metadata-only runtime diagnostics for source errors"
   exit 1
 fi
 

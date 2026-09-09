@@ -119,12 +119,38 @@ def read_s3_json(key: str) -> Optional[dict]:
     if key in _document_cache: return _document_cache[key]
     try:
         body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-        document=json.loads(body)
+        document=attribution_fields(key, json.loads(body))
         _document_cache[key]=document
         return document
     except Exception as e:
         print("[read] SOURCE_UNAVAILABLE")
         return None
+
+
+def attribution_fields(key, document):
+    """Retain every decision and only fields consumed by attribution arithmetic.
+
+    Full research narratives and unrelated provider tables remain in their source
+    objects. Caching them here exhausted the candidate's memory before scoring.
+    This projection changes neither row eligibility nor calculation inputs.
+    """
+    if not isinstance(document, dict):
+        return document
+    if key.startswith((RESEARCH_PREFIX, HISTORY_PREFIX)):
+        fields = ("ticker", "generated_at", "available_at", "research_id", "id")
+        nested = {"quote": ("price",), "verdict": ("rating", "conviction_grade", "price_target_12m"),
+                  "regime_at_generation": ("regime",)}
+    elif key.startswith(CRITIQUE_PREFIX):
+        fields = ("ticker", "generated_at", "available_at", "research_id", "research_generated_at")
+        nested = {"critique": ("alternative_rating", "disagreement_score")}
+    else:
+        return document
+    result = {field: document[field] for field in fields if field in document}
+    for field, names in nested.items():
+        if field in document:
+            value = document[field]
+            result[field] = {name: value[name] for name in names if name in value} if isinstance(value, dict) else value
+    return result
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -505,7 +531,7 @@ def lambda_handler(event, context):
 
     # 1. Find every unique ticker in the research universe
     research_keys = list_keys_under(RESEARCH_PREFIX)
-    # Cache each full source document once; eight reads at a time retain all rows.
+    # Read each source once; retain compact arithmetic fields for every row.
     with ThreadPoolExecutor(max_workers=8) as pool:
         list(pool.map(read_s3_json,research_keys))
     universe = set()

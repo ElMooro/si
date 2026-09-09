@@ -42,7 +42,12 @@ case "$service/$operation" in
     if [ "${MOCK_MALFORMED_BODY:-0}" = 1 ]; then
       printf '%s\n' '{"statusCode":200,"body":"MALFORMED_PRIVATE_CANARY"}' > "$output"
     fi
-    printf '{"StatusCode":200,"ExecutedVersion":"%s"}\n' "${MOCK_EXECUTED_VERSION:-42}"
+    if [ "${MOCK_FUNCTION_ERROR:-0}" = 1 ]; then
+      printf '%s\n' '{"errorType":"RuntimeError","errorMessage":"PRIVATE_ERROR_CANARY"}' > "$output"
+      printf '%s\n' '{"StatusCode":200,"ExecutedVersion":"42","FunctionError":"Unhandled"}'
+    else
+      printf '{"StatusCode":200,"ExecutedVersion":"%s"}\n' "${MOCK_EXECUTED_VERSION:-42}"
+    fi
     ;;
   lambda/get-alias)
     if [ "${MOCK_ALIAS_EXISTS:-1}" = "1" ]; then
@@ -170,6 +175,14 @@ if MOCK_EXECUTED_VERSION=41 run_candidate > "$work/version.out" 2>&1; then exit 
 
 # No optional config and no Scheduler are both supported without guessed changes.
 : > "$work/aws.log"
+if MOCK_FUNCTION_ERROR=1 run_candidate > "$work/function-error.out" 2>&1; then exit 1; fi
+grep -q 'candidate returned FunctionError' "$work/function-error.out"
+! grep -q 'PRIVATE_ERROR_CANARY' "$work/function-error.out"
+! grep -q '^lambda update-alias ' "$work/aws.log"
+! grep -q '^scheduler .*schedule ' "$work/aws.log"
+
+# No optional config and no Scheduler are both supported without guessed changes.
+: > "$work/aws.log"
 MOCK_CONFIG="$work/missing-config.json" run_candidate > "$work/no-config.out"
 ! grep -q '^scheduler ' "$work/aws.log"
 printf '{}\n' > "$work/empty-config.json"
@@ -194,4 +207,4 @@ test "$(grep -c '^lambda invoke ' "$work/aws.log")" -eq 1
 grep -q -- '--qualifier 42' "$work/aws.log"
 ! grep -q '^s3 ' "$work/aws.log"
 
-echo "Validated candidate shell tests passed: 11"
+echo "Validated candidate shell tests passed: 12"

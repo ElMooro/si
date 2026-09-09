@@ -27,7 +27,7 @@ def main():
     versions=[row for page in lam.get_paginator('list_versions_by_function').paginate(FunctionName=FUNCTION) for row in page['Versions']]
     for row in versions[-8:]:result['versions'].append({k:row.get(k) for k in fields})
     result['live_alias']={k:v for k,v in lam.get_alias(FunctionName=FUNCTION,Name='live').items() if k in ('Name','FunctionVersion','RoutingConfig')}
-    start=int((time.time()-3*3600)*1000);token=None;counts=Counter();seen=set();pages=0
+    start=int((time.time()-3*3600)*1000);token=None;counts=Counter();seen=set();pages=0;exhausted=False
     while pages<30:
         args={'logGroupName':'/aws/lambda/'+FUNCTION,'startTime':start,'limit':1000}
         if token:args['nextToken']=token
@@ -45,15 +45,16 @@ def main():
             version=re.search(r'^START RequestId: [A-Za-z0-9-]+ Version: ([0-9]+|\$LATEST)',message)
             if version:row['executed_version']=version.group(1)
             if message.startswith('REPORT RequestId:'):
-                row['runtime_report']={key:float(value) for key,value in re.findall(r'(Duration|Billed Duration|Memory Size|Max Memory Used): ([0-9.]+)',message)}
+                row['runtime_report']={key:float(value) for key,value in re.findall(r'(?:^|\t)(Duration|Billed Duration|Memory Size|Max Memory Used): ([0-9.]+)',message)}
                 status=re.search(r'Status: ([a-z_]+)',message)
                 if status:row['runtime_status']=status.group(1)
             if len(row)>1 and not any(m in row.get('markers',[]) for m in ('[read] SOURCE_UNAVAILABLE','[fmp] PROVIDER_UNAVAILABLE')):
                 result['events'].append(row)
         token=page.get('nextToken')
-        if not token or token in seen:break
+        if not token or token in seen:
+            exhausted=True;break
         seen.add(token)
-    result.update(marker_counts=dict(counts),pages_read=pages,listing_exhausted=not token or token in seen,ok=True)
+    result.update(marker_counts=dict(counts),pages_read=pages,listing_exhausted=exhausted,ok=True)
     DEST.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'ok':True,'events':len(result['events']),'report':str(DEST.relative_to(ROOT))}))
 

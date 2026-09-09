@@ -47,6 +47,8 @@ def diagnostics(job_id):
                 'missing_modules':sorted(set(re.findall(r"No module named ['\"]([A-Za-z0-9_.-]+)['\"]",raw))),
                 'traceback_locations':[{'path':m[0],'line':int(m[1])} for m in re.findall(r'File "/home/runner/work/si/si/([A-Za-z0-9_./-]+)", line ([0-9]+)',raw)],
                 'failed_test_names':sorted(set(re.findall(r'FAIL(?:ED)?:? (test_[A-Za-z0-9_]+)',raw))),
+                'javascript_test_locations':sorted(set(re.findall(r'\btests/([A-Za-z0-9_./-]+\.test\.js:[0-9]+(?::[0-9]+)?)',raw))),
+                'failed_javascript_test_numbers':sorted(set(int(value) for value in re.findall(r'\bnot ok ([0-9]+) -',raw))),
                 'validation_failures':[{'function':m[0],'category':m[1]} for m in re.findall(r'(justhodl-[A-Za-z0-9_-]+) (invocation did not confirm execution of the pinned version|candidate returned an invalid validation envelope|candidate returned FunctionError)',raw)],
                 'failed_functions':sorted(set(re.findall(r'Deploy failed for ([A-Za-z0-9_-]+)',raw))),
                 'deployed_functions':sorted(set(re.findall(r'✅ ([A-Za-z0-9_-]+) deployed',raw)))}

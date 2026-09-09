@@ -100,6 +100,33 @@ def test_deadline_exhaustion_never_publishes_or_returns_success(mod):
     else: raise AssertionError("Expired computation continued")
 
 
+def test_compact_source_cache_keeps_every_attribution_input_and_row(mod):
+    import json
+    local=_load()
+    current=local.RESEARCH_PREFIX+'X.json';history=local.HISTORY_PREFIX+'X/2026-08-01.json'
+    critique=local.CRITIQUE_PREFIX+'X.json'
+    entry={'ticker':'X','generated_at':'2026-08-01T09:00:00Z','available_at':'2026-08-01T09:00:00Z',
+           'research_id':'r1','id':'fallback','quote':{'price':100,'provider_table':['ignored']*50000},
+           'verdict':{'rating':'BUY','conviction_grade':'A','price_target_12m':140,'narrative':'ignored'*100000},
+           'regime_at_generation':{'regime':'EXPANSION','unrelated_evidence':['ignored']*50000},
+           'narrative':'ignored'*100000}
+    latest={**entry,'generated_at':'2026-09-08T09:00:00Z','available_at':'2026-09-08T09:00:00Z','research_id':'r2'}
+    critic={'ticker':'X','research_id':'r1','research_generated_at':entry['generated_at'],
+            'generated_at':'2026-08-01T08:59:00Z','available_at':'2026-08-01T08:59:00Z',
+            'critique':{'alternative_rating':'SELL','disagreement_score':80,'narrative':'ignored'*100000}}
+    docs={current:latest,history:entry,critique:critic}
+    local.list_keys_under=lambda prefix:[current] if prefix==local.RESEARCH_PREFIX else [critique]
+    local.list_history_for_ticker=lambda ticker:[('2026-08-01',history)]
+    local.read_s3_json=lambda key:docs[key]
+    original=local.build_per_call_attribution({'X':120},110,{'2026-08-01':100,'2026-09-08':105})
+    compact={key:local.attribution_fields(key,doc) for key,doc in docs.items()}
+    assert len(json.dumps(compact))<2000
+    local.read_s3_json=lambda key:compact[key]
+    actual=local.build_per_call_attribution({'X':120},110,{'2026-08-01':100,'2026-09-08':105})
+    assert actual==original and len(actual)==2 and actual[0]['disagreement_score']==80
+    assert len(docs[history]['narrative'])>500000, 'source payload must remain unchanged'
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
