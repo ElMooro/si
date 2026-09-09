@@ -28,6 +28,25 @@ Here the documents are the Brain notes and the labels are the categories Khalid 
 Hub card ids the engine looks for first: `mxnet-tcembedding-robertafin-{base,base-wiki,large,large-wiki}-uncased`.
 If the hub no longer lists them the catalog says so and the pipeline uses the best available text-embedding card.
 
+## The AI's read of the market (v1.2, ops 5302/5303)
+
+Quant computes, the AI explains (fusion doctrine). `market_read.py`:
+
+1. **Board** — the fleet's fresh artifacts with per-source freshness (FRESH/STALE/MISSING, never filled): jh-fusion regime + entities,
+   risk-gate, khalid-risk authority, katlin war room + picks, bottom, fortress, bond war room, crisis composite, GBC, regime composite,
+   `screener/metals-miners.json`, `crypto-intel.json`, `data/crypto-cycle-risk.json`, the Brain's own regime read, the signal scorecard.
+2. **Playbook** — each asset-class setup is written as a sentence from the board, embedded through the live RoBERTa-SEC endpoint and
+   matched to the operator's nearest Brain notes.
+3. **Read** — one Sonnet call (proprietary tier, `on_demand=True`, bounded direct fallback when the router gates) → strict JSON:
+   overall, macro, stocks/bonds/metals/crypto stances + reads, best opportunities, what would change its mind, data gaps, up to 6 dated
+   calls restricted to tickers the fleet surfaced.
+4. **Ledger** — calls are logged as `signal_type=ai_market_read` via `signals_emit.log_signal` (5/21/63d windows); outcome-checker
+   prices them forward; `GET /read` grades every call and the page shows hit rates and per-call returns.
+
+Private artifact `ai/market-read/latest.json` (quotes notes → owner route only); public `data/ai.json.market_read` carries stances,
+counts, freshness and hit rates. Daily schedule `justhodl-ai-market-read` cron(45 5 * * ? *) UTC; on-demand from the page (20-min gap).
+The pipeline verdict of the last launch/re-arm op is written to `data/ai/verdict.json` and shown on the page.
+
 ## Tiers
 
 1. Transfer learning (above) — cents.
