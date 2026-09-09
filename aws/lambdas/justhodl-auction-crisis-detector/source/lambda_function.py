@@ -505,6 +505,7 @@ def lambda_handler(event, context):
 
     if not raw:
         body = {
+            "engine": "justhodl-auction-crisis-detector",
             "schema_version": "1.0",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "status": "no_data",
@@ -701,6 +702,7 @@ def lambda_handler(event, context):
 
     # Build report
     report = {
+        "engine": "justhodl-auction-crisis-detector",
         "schema_version": "2.1",  # v2.1: + pre-auction concession + post-issue performance (ops/1100)
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),

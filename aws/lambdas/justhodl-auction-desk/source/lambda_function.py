@@ -55,7 +55,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.2.2"
+VERSION = "1.2.3"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -1009,7 +1009,7 @@ def lambda_handler(event, ctx):
                              "auctions": days[latest_day]["auctions"], "buybacks": days[latest_day]["buybacks"], "ai_note": ai, "written_at": _iso()})
 
     out = {
-        "version": VERSION, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes + ([calendar_note] if calendar_note else []),
+        "engine": "justhodl-auction-desk", "version": VERSION, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes + ([calendar_note] if calendar_note else []),
         "sources": {"same_day": "treasurydirect.gov TA_WS securities/auctioned", "history": "api.fiscaldata.treasury.gov auctions_query",
                     "buybacks": "api.fiscaldata.treasury.gov buybacks_operations + buybacks_security_details",
                     "calendar": "treasurydirect.gov TA_WS securities/upcoming + announced", "par_curve": "home.treasury.gov daily par yield curve (fleet bank)"},
