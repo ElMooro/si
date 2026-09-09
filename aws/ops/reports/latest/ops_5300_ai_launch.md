@@ -1,8 +1,8 @@
 # ops 5300 -- AI launch (SageMaker front window) + learn from the Brain
 
 **Status:** failure  
-**Duration:** 207.7s  
-**Finished:** 2026-09-09T18:07:34+00:00  
+**Duration:** 1530.4s  
+**Finished:** 2026-09-09T18:38:36+00:00  
 
 ## Error
 
@@ -13,46 +13,47 @@ SystemExit: 1
 ## Log
 ## 1. IAM
 
-- `18:04:06` ✅    justhodl-sagemaker-execution-role created
-- `18:04:19` ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
-- `18:04:19` ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
-- `18:04:19` ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
+- `18:13:06`    justhodl-sagemaker-execution-role exists
+- `18:13:06` ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
+- `18:13:06` ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
+- `18:13:07` ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
 ## 2. private ML bucket
 
-- `18:04:19` ✅    justhodl-ai-857687956942 created
-- `18:04:19` ✅    public access block ok
-- `18:04:20` ✅    default encryption ok
-- `18:04:20` ✅    lifecycle ok
-- `18:04:20` ✅    tags ok
+- `18:13:07`    justhodl-ai-857687956942 exists
+- `18:13:07` ✅    public access block ok
+- `18:13:07` ✅    default encryption ok
+- `18:13:07` ✅    lifecycle ok
+- `18:13:08` ✅    tags ok
 ## 3. Lambda justhodl-ai
 
-- `18:04:21`    JH_SERVICE_TOKEN taken from SSM (env-first doctrine, ops 5227)
-- `18:04:21`   Lambda missing — creating
-- `18:04:26` ✅   ✓ created justhodl-ai
-- `18:04:26` ✅   ✓ Function URL: https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
-- `18:04:27`    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
-- `18:04:28` ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
-- `18:04:28` ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
+- `18:13:08`   Lambda exists — updating
+- `18:13:12` ✅   ✓ updated justhodl-ai
+- `18:13:17`    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+- `18:13:18` ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
+- `18:13:19` ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
 ## 4. schedule (EventBridge Scheduler)
 
-- `18:04:29` ✅    justhodl-ai-inventory created cron(7 * * * ? *)
+- `18:13:19` ✅    justhodl-ai-inventory updated cron(7 * * * ? *)
 ## 5. inventory (async + poll data/ai.json)
 
-- `18:04:44`    v1.0.0 in 1.7s | domains 2 apps 0 endpoints 0 models 0 jobs 0 notebooks 0 feature_groups 0 clusters 0
-- `18:04:44`       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
-- `18:04:44`       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
-- `18:04:44`    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
-- `18:04:44`    run-rate 0.0 | MTD 0.15 | ttl ledger []
-- `18:04:44`    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
+- `18:13:35`    v1.0.1 in 1.5s | domains 2 apps 0 endpoints 0 models 0 jobs 0 notebooks 0 feature_groups 0 clusters 0
+- `18:13:35`       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
+- `18:13:35`       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
+- `18:13:35`    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
+- `18:13:35`    run-rate 0.0 | MTD 0.15 | ttl ledger []
+- `18:13:35`    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
 ## 6. learn from the Brain (dataset -> embedding endpoint -> embed -> classifier -> serve -> infer)
 
-- `18:04:46`    dataset 20260909T180445Z: 13051 rows (10459 train / 2592 validation) from 13051 notes; by_label {"philosophy": 9641, "thesis": 3407, "lesson": 1, "macro": 2}; dropped {"short": 0, "no_cat": 0, "dup": 0}
-- `18:04:46`    embedding card: mxnet-tcembedding-robertafin-base-uncased
+- `18:13:37`    dataset 20260909T181335950447Z: 13051 rows (10456 train / 2592 validation) from 13051 notes; by_label {"philosophy": 9641, "thesis": 3407, "lesson": 1, "macro": 2}; dropped {"short": 0, "no_cat": 0, "dup": 0}
+- `18:13:37`    embedding card: mxnet-tcembedding-robertafin-base-uncased
+- `18:13:40`    deployed real-time: {"endpoint": "jh-ai-mxnet-tcembedding-robertafin-base-uncased", "artifact_how": "artifact-prefix", "artifact_probes": [{"candidate": "artifact", "uri": "s3://jumpstart-cache-prod-us-east-1/mxnet-tcembedding/mxnet-tcembedding-robertafin-base-uncased/artifacts/inference-prepack/v1.0.0/", "exists": true}], "model_data": "s3://jumpstart-cache-prod-us-east-1/mxnet-tcembedding/mxnet-tcembedding-robertafin-base-uncased/artifacts/inference-prepack/v1.0.0/", "instance_type": "ml.m5.xlarge"}
+- `18:38:11`    endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased -> Failed after 1471s The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
+- `18:38:12` ✅    real-time embedding endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased deleted (no hourly bill left behind); the classifier endpoint is serverless
 ## 7. page
 
-- `18:07:05`    ai.html carries marker AI_DESK_V1 at the edge: True
-- `18:07:24`    1440px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
-- `18:07:34`     390px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
-- `18:07:34` ⚠    dataset thin (13051 rows, smallest class 1) -- the classifier will be weak until the Brain has more labelled notes
-- `18:07:34` ⚠    serverless deploy of mxnet-tcembedding-robertafin-base-uncased failed (deploy: {"errorMessage": "An error occurred (404) when calling the HeadObject operation: Not Found", "errorType": "ClientError", "requestId": "4853938f-2570-406) -- falling back to real-time ml.m5.xlarge with a 2h TTL
-- `18:07:34` ✗    brain pipeline: deploy: {"errorMessage": "An error occurred (404) when calling the HeadObject operation: Not Found", "errorType": "ClientError", "requestId": "6e59c651-690b-4049-ab28-2aa4bef14ec2", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 600, in lambda_handler\n    return {\"ok\": True, \"result\": fn(event.get(\"body\") or {}, _policy(), context)}\n", "  File \"/var/task/lambda_function.py\
+- `18:38:13`    ai.html carries marker AI_DESK_V1 at the edge: True
+- `18:38:27`    1440px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `18:38:36`     390px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `18:38:36` ⚠    dataset thin (13051 rows, smallest class 1) -- the classifier will be weak until the Brain has more labelled notes
+- `18:38:36` ⚠    serverless deploy of mxnet-tcembedding-robertafin-base-uncased failed (deploy: {"errorMessage": "An error occurred (ValidationException) when calling the CreateEndpointConfig operation: Model with containers that use ModelDataSourc) -- falling back to real-time ml.m5.xlarge with a 2h TTL
+- `18:38:36` ✗    brain pipeline: embedding endpoint not InService: Failed The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
