@@ -360,8 +360,8 @@ document.getElementById("blast-q").addEventListener("input", e => renderBlast(de
 
 (async () => {
   [dep, monitor] = await Promise.all([
-    fetchJSON("dependency-graph.json"),
-    fetchJSON("synthetic-monitor.json"),
+    fetchJSON("data/dependency-graph.json"),
+    fetchJSON("data/synthetic-monitor.json"),
   ]);
   if (!dep) {
     document.getElementById("stats").innerHTML =

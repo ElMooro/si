@@ -130,3 +130,66 @@ def test_directory_transport_and_denied_responses_never_claim_absence():
             row=json.loads((r/'engines.html').read_text())['rows'][0]
             assert row['status']==('wired-missing-feed' if code==404 else 'wired-unverified-feed'),row
             assert row['outputs'][0]['present'] is (False if code==404 else None)
+
+def test_backtest_primary_output_and_owner_mirror_survive_access_classification():
+    from build_page_data_contracts import contract
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td)
+        rows=[]
+        for engine,keys in [('backtest-engine',['backtest/results.json','backtest/summary.json']),('context',['data/market-tape.json']),('owner',['portfolio/snapshot.json'])]:
+            rows.append({'engine':engine,'keys':keys,'write_evidence':{k:[{'file':'producer.py','line':1}] for k in keys},'key_patterns':[],'unresolved_writes':[]})
+        (root/'engine-manifest.json').write_text(json.dumps({'schema_version':'engine-manifest.v3','engines':rows}))
+        (root/'backtest.html').write_text('<script>fetch("/backtest/results.json")</script><script src="context.js"></script><script src="private-artifacts.js"></script>')
+        (root/'second.html').write_text('<script src="context.js"></script>')
+        (root/'private.html').write_text('<script>fetch("/portfolio/snapshot.json")</script>')
+        (root/'context.js').write_text('fetch("/data/market-tape.json")')
+        (root/'private-artifacts.js').write_text('const mapping={"portfolio/snapshot.json":"portfolio-snapshot"};')
+        doc=contract(root);page=doc['pages']['backtest.html']
+        assert page['primary_producers']==['backtest-engine'] and page['supplemental_producers']==['context'],page
+        assert {o['key'] for o in page['outputs']}=={'backtest/results.json','backtest/summary.json','data/market-tape.json'}
+        owner=doc['pages']['private.html']['outputs'][0]
+        assert owner['access']=='owner_authenticated' and owner['private_kind']=='portfolio-snapshot'
+        assert not doc['pages']['second.html']['primary_producers']
+
+def test_absolute_root_json_reference_is_exact_and_does_not_expand_basenames():
+    from page_sources import literal_keys
+    keys=literal_keys('fetch("/repo-data.json");fetch("https://justhodl.ai/ecb_data.json?t=1");fetch("/data/crypto-cycle-risk.json");')
+    assert keys=={'repo-data.json','ecb_data.json','data/crypto-cycle-risk.json'}
+    assert 'risk.json' not in keys
+
+def test_js_ast_handles_regex_templates_wrappers_and_rejects_fragment_ownership():
+    from page_sources import literal_keys
+    code=r'''const quote=/["']/g;const nested=`<b>${`nested ${value}`}</b>`;
+const S3='https://justhodl.ai/data/';const J=key=>fetch(S3+key+'?t='+Date.now());
+J('conviction.json');fetch('/data/asset-compass.json');fetch('https://external.example/data/not-owned.json');
+fetch('/data/providers/'+slug+'/flows.json.gz');
+function mapped(key){const u=S3+key+'?t='+Date.now();return fetch(u);}
+function nestedMapped(key){return mapped(key);}
+nestedMapped('real.json');
+'''
+    keys=literal_keys(code)
+    assert keys=={'data/conviction.json','data/asset-compass.json','data/real.json'},keys
+    bad=literal_keys("const OUT='data/wrong.json';function load(OUT){return fetch(OUT)}load('data/real.json');")
+    # A referenced literal can remain source evidence, but a basename is never aliased into a namespace.
+    assert 'data/real.json' in bad
+
+def test_inspector_bootstrap_precedes_first_app_request_and_is_idempotent():
+    from build_page_data_contracts import install_html
+    source='<html><head><script>fetch("https://api.justhodl.ai/first")</script></head><body></body></html>'
+    apis=[{'engine':'engine','origin':'https://api.justhodl.ai','pathname':'/first','methods':['GET']}]
+    result=install_html(source,apis)
+    assert result.index('jh-api-data-contract')<result.index('src="/jh-data-inspector.js"')<result.index('fetch(')
+    assert 'defer data-contract' not in result
+    assert install_html(result,apis)==result
+
+def test_manifest_accepts_only_source_verified_compare_and_swap_augmentation():
+    from gen_engine_manifest import build
+    with tempfile.TemporaryDirectory() as td:
+        r=Path(td);source=r/'aws/lambdas/augment/source';source.mkdir(parents=True)
+        code='KEY="data/report.json"\nOUTPUT_OWNERSHIP={"key":KEY,"role":"augmentation","base_producer":"base","compare_and_swap":True}\ns3.put_object(Key=KEY,Body=body,IfMatch=etag)'
+        (source/'lambda_function.py').write_text(code)
+        entry=build(r)['engines'][0];assert entry['output_roles'][0]['cas_write_verified'] is True
+        (source/'lambda_function.py').write_text(code.replace(',IfMatch=etag',''))
+        try:build(r)
+        except ValueError:pass
+        else:raise AssertionError('Unsafe shared writer accepted as augmentation')

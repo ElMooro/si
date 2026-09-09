@@ -33,3 +33,63 @@ test('object field pagination exposes every scalar beyond the old eight-field ca
  const next=all(view,n=>n.tagName==='button'&&n.textContent==='Next')[0];while(!next.disabled){next.onclick();text+=view.textContent;}
  for(let i=0;i<61;i++)assert.ok(text.includes('value'+i));
 });
+
+test('owner artifact inspection requires matching authenticated route and never uses public fallback', async()=>{
+ const api=require('../jh-data-inspector.js');let publicCalls=0,ownerCalls=0;
+ const entry={key:'portfolio/snapshot.json',access:'owner_authenticated',private_kind:'portfolio-snapshot'};
+ const publicFetch=async()=>{publicCalls++;return {ok:true};};
+ await assert.rejects(api.fetchArtifact(entry,publicFetch,null),/Authenticated owner/);
+ await assert.rejects(api.fetchArtifact(entry,publicFetch,{kindFor:()=>null,fetch:publicFetch}),/Authenticated owner/);
+ const response=await api.fetchArtifact(entry,publicFetch,{kindFor:()=>entry.private_kind,fetch:async()=>{ownerCalls++;return {status:401};}});
+ assert.equal(response.status,401);assert.equal(publicCalls,0);assert.equal(ownerCalls,1);
+ await api.fetchArtifact({key:'backtest/results.json',access:'public'},publicFetch,null);assert.equal(publicCalls,1);
+});
+
+test('legacy account and note payloads cannot bypass required public projection',()=>{
+ const api=require('../jh-data-inspector.js');
+ assert.throws(()=>api.validateProjection({required_projection:'sizing'},{holdings:[{ticker:'PRIVATE'}]}),/not yet redacted/);
+ assert.throws(()=>api.validateProjection({required_projection:'brain-compiler'},{claims:[{claim:'PRIVATE'}]}),/not yet redacted/);
+ assert.deepEqual(api.validateProjection({required_projection:'brain-compiler'},{claims:[{claim_text_private:true,count:0}]}),{claims:[{claim_text_private:true,count:0}]});
+});
+
+test('response observation matches exact reviewed API, performs no extra request, and preserves every field',async()=>{
+ const records=[],calls=[],contracts=[{engine:'engine',origin:'https://api.justhodl.ai',pathname:'/known',methods:['POST']}];
+ const wrapped=inspector.observeResponses(async(url,init)=>{calls.push([url,init]);return new Response(JSON.stringify({zero:0,missing:null,rows:[{a:1},{later:'full'}]}),{status:200});},contracts,r=>records.push(r),()=>({uid:null,epoch:0}));
+ const response=await wrapped('https://api.justhodl.ai/known?secret=do-not-label',{method:'POST',body:'do-not-retain'});await response.json();await new Promise(r=>setImmediate(r));
+ assert.equal(calls.length,1);assert.equal(records.length,1);assert.equal(records[0].endpoint,'https://api.justhodl.ai/known');assert.equal(records[0].payload.rows[1].later,'full');assert.equal(records[0].payload.zero,0);assert.equal(records[0].payload.missing,null);assert.equal(records[0].body,undefined);
+ await wrapped('https://unreviewed.example/known',{method:'POST'});await wrapped('https://api.justhodl.ai/known-else',{method:'POST'});await wrapped('https://api.justhodl.ai/known',{method:'GET'});await new Promise(r=>setImmediate(r));assert.equal(records.length,1);
+});
+
+test('owner response observation drops signed-out, wrong-kind and in-flight previous-owner responses',async()=>{
+ let owner={uid:null,epoch:0},resolve,records=[];
+ const contract={engine:'private',origin:'https://api.justhodl.ai',pathname:'/private-artifact',methods:['GET'],query:{kind:'brain'},owner_authenticated:true};
+ const wrapped=inspector.observeResponses(async()=>({ok:true,clone:()=>({json:()=>new Promise(r=>{resolve=r;})})}),[contract],r=>records.push(r),()=>({...owner}));
+ await wrapped('https://api.justhodl.ai/private-artifact?kind=brain');assert.equal(resolve,undefined);
+ owner={uid:'owner-a',epoch:1};await wrapped('https://api.justhodl.ai/private-artifact?kind=other');assert.equal(resolve,undefined);
+ await wrapped('https://api.justhodl.ai/private-artifact?kind=brain');owner={uid:'owner-b',epoch:2};resolve({notes:['private-a']});await new Promise(r=>setImmediate(r));assert.equal(records.length,0);
+});
+
+test('head bootstrap captures first inline application response before DOM ready and clears it on auth change',async()=>{
+ const vm=require('node:vm'),fs=require('node:fs');const events={},head=new Element('head'),body=new Element('body');
+ const apiContract={engine:'first-engine',origin:'https://api.justhodl.ai',pathname:'/first',methods:['GET']};
+ const config=new Element('script');config.textContent=JSON.stringify([apiContract]);let engineCalls=0,ownerChange;
+ const contract={outputs:[],primary_producers:['first-engine'],api_responses:[apiContract]};
+ const doc={head,body,readyState:'loading',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-api-data-contract'?config:all(body,n=>n.id===id)[0],addEventListener:(event,fn)=>{(events[event]??=[]).push(fn);}};
+ const context={document:doc,location:{pathname:'/first.html',href:'https://justhodl.ai/first.html',search:''},URL,URLSearchParams,console,
+  JustHodlAuth:{getUser:()=>({id:'owner-a'}),onChange:fn=>{ownerChange=fn;}},
+  fetch:async url=>{if(url==='/config/page-data-contracts.json')return {ok:true,json:async()=>({schema_version:'v1',pages:{'first.html':contract}})};engineCalls++;return new Response(JSON.stringify({first_payload:{zero:0,all_rows:[1,2,3]}}),{status:200});}};
+ vm.createContext(context);vm.runInContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);
+ await vm.runInContext("fetch('https://api.justhodl.ai/first').then(r=>r.json())",context);await new Promise(r=>setImmediate(r));
+ for(const fn of events.DOMContentLoaded)await fn();await new Promise(r=>setImmediate(r));
+ const choice=all(body,n=>n.attrs['aria-label']==='Observed engine API response')[0];assert.ok(choice.textContent.includes('first-engine'));choice.value='0';choice.onchange();
+ assert.ok(body.textContent.includes('first_payload'));assert.equal(engineCalls,1);
+ ownerChange();assert.ok(!choice.textContent.includes('first-engine'));assert.ok(!body.textContent.includes('first_payload'));
+});
+
+test('reviewed archive index exposes every listed matching key and rejects unrelated/private paths',()=>{
+ const entry={engine:'snapshotter',key:'calibration/history-index.json',archive_index:{rows:'snapshots',key_field:'key',key_regex:'^calibration/history/[^/]+\\.json$'}};
+ const rows=Array.from({length:60},(_,i)=>({key:'calibration/history/week-'+i+'.json'}));
+ rows.push(null,{key:'data/brain.json'},{key:'calibration/history/../private.json'},{key:'https://evil.example/private.json'},{key:'calibration/history/week-1.json'});
+ const outputs=inspector.indexedOutputs(entry,{snapshots:rows});assert.equal(outputs.length,60);assert.equal(outputs.at(-1).key,'calibration/history/week-59.json');assert.ok(outputs.every(x=>x.access==='public'));
+ assert.throws(()=>inspector.indexedOutputs(entry,{snapshots:null}),/schema unavailable/);
+});

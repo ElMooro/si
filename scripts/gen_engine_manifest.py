@@ -203,7 +203,7 @@ def build(root=ROOT):
         try:cfg=json.loads((d/'config.json').read_text())
         except (OSError,ValueError):pass
         env=cfg.get('environment') or {}; env=env.get('Variables',env) if isinstance(env,dict) else {}
-        keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{}
+        keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{};output_roles=[]
         handler=cfg.get('handler') or cfg.get('Handler')
         runtime=cfg.get('runtime') or cfg.get('Runtime')
         module=str(handler or '').rsplit('.',1)[0].replace('.','/')
@@ -217,6 +217,20 @@ def build(root=ROOT):
             try:
                 s=scan_code(src.read_text(errors='replace'),env);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
                 for key,lines in s.proofs.items():proofs.setdefault(key,[]).extend({'file':rel,'line':line} for line in sorted(lines))
+                for declaration in s.tree.body:
+                    if not isinstance(declaration,ast.Assign) or not any(isinstance(t,ast.Name) and t.id=='OUTPUT_OWNERSHIP' for t in declaration.targets) or not isinstance(declaration.value,ast.Dict):continue
+                    role={}
+                    for key_node,value_node in zip(declaration.value.keys,declaration.value.values):
+                        try:name=ast.literal_eval(key_node)
+                        except (ValueError,TypeError):continue
+                        value=s.globals.get(value_node.id) if isinstance(value_node,ast.Name) else ast.literal_eval(value_node)
+                        role[name]=value
+                    key=role.get('key');lines=s.proofs.get(key,set())
+                    writes=[n for n in ast.walk(s.tree) if isinstance(n,ast.Call) and n.lineno in lines and isinstance(n.func,ast.Attribute) and n.func.attr=='put_object']
+                    cas=bool(writes) and all(any(kw.arg=='IfMatch' for kw in n.keywords) for n in writes)
+                    if key in s.writes and role.get('role')=='augmentation' and role.get('base_producer') and role.get('compare_and_swap') is True and cas:
+                        output_roles.append({**role,'cas_write_verified':True,'source':rel,'declaration_line':declaration.lineno})
+                    else:raise ValueError('Unproven output augmentation contract: '+d.name+' '+str(key))
                 unresolved.extend(dict(x,file=rel) for x in s.unresolved)
             except SyntaxError as exc:unresolved.append({'file':rel,'line':exc.lineno,'reason':'parse failure'})
         # Resolve parameter-only reports only when that exact write site has a concrete or family binding.
@@ -224,7 +238,7 @@ def build(root=ROOT):
         unresolved=[dict(t) for t in sorted({tuple(sorted(x.items())) for x in unresolved})]  # A resolved invocation must not hide another unresolved invocation at the same write site.
         exact=sorted(k for k in keys if '*' not in k);patterns=sorted(k for k in keys if '*' in k)
         engines.append({'engine':d.name,'keys':exact,'n_keys':len(exact),'key_patterns':patterns,
-                        'reads':sorted(reads),'method':'ast-call-binding-v3','write_evidence':proofs,
+                        'reads':sorted(reads),'output_roles':output_roles,'method':'ast-call-binding-v3','write_evidence':proofs,
                         'unresolved_writes':unresolved,'environment_key_defaults':defaults,
                         'ownership_status':'incomplete' if unresolved else 'source_bound',
                         'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Python source writes; API response bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})

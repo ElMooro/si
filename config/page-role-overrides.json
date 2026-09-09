@@ -1,0 +1,1063 @@
+{
+  "schema_version": "page-role-overrides.v1",
+  "pages": {
+    "about.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Static product information",
+      "evidence": [
+        "about.html"
+      ]
+    },
+    "api-docs.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "API documentation and example links",
+      "evidence": [
+        "api-docs.html"
+      ]
+    },
+    "contact.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Contact information",
+      "evidence": [
+        "contact.html"
+      ]
+    },
+    "directory.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Page navigation catalog",
+      "evidence": [
+        "directory.html"
+      ]
+    },
+    "downloads.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Application download links",
+      "evidence": [
+        "downloads.html"
+      ]
+    },
+    "engine-data.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Engine selector and generic full-output browser; engine is chosen by URL parameter",
+      "evidence": [
+        "engine-data.html"
+      ]
+    },
+    "engine.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Parameterized engine catalog browser; selected engine is not fixed per route",
+      "evidence": [
+        "engine.html"
+      ]
+    },
+    "engines.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Fleet catalog and availability directory",
+      "evidence": [
+        "engines.html"
+      ]
+    },
+    "glossary.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Static glossary",
+      "evidence": [
+        "glossary.html"
+      ]
+    },
+    "macro-economic-data.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Workspace links and navigation",
+      "evidence": [
+        "macro-economic-data.html"
+      ]
+    },
+    "universe-heatmap.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Workspace links and navigation",
+      "evidence": [
+        "universe-heatmap.html"
+      ]
+    },
+    "notifications.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Notification subscription settings",
+      "evidence": [
+        "notifications.html"
+      ]
+    },
+    "pricing.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Plan and subscription page",
+      "evidence": [
+        "pricing.html"
+      ]
+    },
+    "privacy.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Privacy policy",
+      "evidence": [
+        "privacy.html"
+      ]
+    },
+    "settings.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Account settings",
+      "evidence": [
+        "settings.html"
+      ]
+    },
+    "terms.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Terms of service",
+      "evidence": [
+        "terms.html"
+      ]
+    },
+    "tools/ice-recover.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Operator file import utility",
+      "evidence": [
+        "tools/ice-recover.html"
+      ]
+    },
+    "welcome.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Product landing page",
+      "evidence": [
+        "welcome.html"
+      ]
+    },
+    "bot/index.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Telegram bot architecture and command documentation",
+      "evidence": [
+        "bot/index.html"
+      ]
+    },
+    "desktop/renderer/offline.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Desktop application offline shell",
+      "evidence": [
+        "desktop/renderer/offline.html"
+      ]
+    },
+    "desktop/renderer/shell.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Desktop application frame",
+      "evidence": [
+        "desktop/renderer/shell.html"
+      ]
+    },
+    "mobile/www/index.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Mobile application wrapper",
+      "evidence": [
+        "mobile/www/index.html"
+      ]
+    },
+    "brain.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Owner notes CRUD is Worker account storage; the dedicated AI interpretation explicitly loads the brain private artifact. Keep owner authentication, never make this public.",
+      "evidence": [
+        {
+          "file": "brain.html",
+          "line": 577,
+          "supports": "Explicit brain-sync producer comment"
+        },
+        {
+          "file": "brain.html",
+          "line": 580,
+          "supports": "Authenticated private-artifact kind=brain"
+        },
+        {
+          "file": "aws/lambdas/justhodl-brain-sync/source/lambda_function.py",
+          "line": 372,
+          "supports": "Publishes private brain artifact"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-brain-sync"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-brain-sync",
+          "origin": "https://justhodl-data-proxy.raafouis.workers.dev",
+          "pathname": "/private-artifact",
+          "methods": [
+            "GET"
+          ],
+          "query": {
+            "kind": "brain"
+          },
+          "owner_authenticated": true,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "journal.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Worker /journal stores the editable account decisions; the graded interpretation is the dedicated journal-grader artifact.",
+      "evidence": [
+        {
+          "file": "journal.html",
+          "line": 197,
+          "supports": "Authenticated Worker account journal read"
+        },
+        {
+          "file": "journal.html",
+          "line": 200,
+          "supports": "Authenticated private-artifact kind=journal-graded"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-journal-grader"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-journal-grader",
+          "origin": "https://justhodl-data-proxy.raafouis.workers.dev",
+          "pathname": "/private-artifact",
+          "methods": [
+            "GET"
+          ],
+          "query": {
+            "kind": "journal-graded"
+          },
+          "owner_authenticated": true,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "fred.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Exact source-config Function URL match and batch series response. Add an API response contract; do not invent a fixed S3 output.",
+      "evidence": [
+        {
+          "file": "fred.html",
+          "line": 82,
+          "supports": "Function URL"
+        },
+        {
+          "file": "fred.html",
+          "line": 122,
+          "supports": "Batch series fetch"
+        },
+        {
+          "file": "aws/lambdas/justhodl-fred-proxy/config.json",
+          "line": 27,
+          "supports": "Exact matching Function URL"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-fred-proxy"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-fred-proxy",
+          "origin": "https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "stock/index.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Ticker-dependent report and AI research tab. Inspect actual returned JSON and declare dynamic artifact families separately.",
+      "evidence": [
+        {
+          "file": "stock/index.html",
+          "line": 129,
+          "supports": "Analyzer URL"
+        },
+        {
+          "file": "aws/lambdas/justhodl-stock-analyzer/config.json",
+          "line": 32,
+          "supports": "Exact URL binding"
+        },
+        {
+          "file": "stock/index.html",
+          "line": 165,
+          "supports": "Explicit justhodl-stock-ai-research upstream"
+        },
+        {
+          "file": "stock/index.html",
+          "line": 166,
+          "supports": "Worker /research route"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 7,
+          "supports": "Route producer declaration"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-stock-analyzer",
+        "justhodl-stock-ai-research"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-stock-analyzer",
+          "origin": "https://enxmdjjowjfwiydpslyykokjee0qdvml.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        },
+        {
+          "engine": "justhodl-stock-ai-research",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/research",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "positioning/index.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Page fetches /signals, /cot/all and /futures on the Worker cftc-positioning route. The route maps to an exact config Function URL. Its cache artifact is additional data, not a substitute for all three API responses.",
+      "evidence": [
+        {
+          "file": "positioning/index.html",
+          "line": 42,
+          "supports": "Worker route"
+        },
+        {
+          "file": "positioning/index.html",
+          "line": 44,
+          "supports": "Three API responses"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 49,
+          "supports": "Exact upstream URL"
+        },
+        {
+          "file": "aws/lambdas/cftc-futures-positioning-agent/config.json",
+          "line": 19,
+          "supports": "Exact matching URL"
+        }
+      ],
+      "primary_engines": [
+        "cftc-futures-positioning-agent"
+      ],
+      "api_responses": [
+        {
+          "engine": "cftc-futures-positioning-agent",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/cftc-positioning/signals",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        },
+        {
+          "engine": "cftc-futures-positioning-agent",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/cftc-positioning/cot/all",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        },
+        {
+          "engine": "cftc-futures-positioning-agent",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/cftc-positioning/futures",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "investor.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Explicit powered-by and Worker route producer declaration; ticker-specific response.",
+      "evidence": [
+        {
+          "file": "investor.html",
+          "line": 244,
+          "supports": "Explicit engine name"
+        },
+        {
+          "file": "investor.html",
+          "line": 249,
+          "supports": "Worker /investor route"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 8,
+          "supports": "Explicit producer declaration"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-investor-agents"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-investor-agents",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/investor",
+          "methods": [
+            "POST"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "dxy.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Explicit powered-by engine and /agent/dollar route; source handler provides the dollar response. Deployment URL identity still needs live/config confirmation.",
+      "evidence": [
+        {
+          "file": "dxy.html",
+          "line": 151,
+          "supports": "Explicit engine and route"
+        },
+        {
+          "file": "dxy.html",
+          "line": 155,
+          "supports": "Route fetch target"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 39,
+          "supports": "Dollar upstream binding"
+        },
+        {
+          "file": "aws/lambdas/dollar-strength-agent/source/lambda_dollar_agent.py",
+          "line": 9,
+          "supports": "Actual API handler"
+        }
+      ],
+      "primary_engines": [
+        "dollar-strength-agent"
+      ],
+      "api_responses": [
+        {
+          "engine": "dollar-strength-agent",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/dollar",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "sentiment.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Explicitly named two producers and two API routes; shared AI/liquidity scripts are supporting context. sentiment/data.json is source-bound but root data/data.json must not be fabricated.",
+      "evidence": [
+        {
+          "file": "sentiment.html",
+          "line": 169,
+          "supports": "Explicit both engine names"
+        },
+        {
+          "file": "sentiment.html",
+          "line": 173,
+          "supports": "Two Worker API routes"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 44,
+          "supports": "Trends route"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 45,
+          "supports": "Sentiment route"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-news-sentiment",
+        "google-trends-agent"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-news-sentiment",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/sentiment",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        },
+        {
+          "engine": "google-trends-agent",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/agent/trends",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "stress.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Page explicitly names engine; /presets and /simulate match handler branches. Manifest missing configured entrypoint metadata does not erase existing source; correct config separately.",
+      "evidence": [
+        {
+          "file": "stress.html",
+          "line": 408,
+          "supports": "Explicit engine name"
+        },
+        {
+          "file": "stress.html",
+          "line": 285,
+          "supports": "Presets API"
+        },
+        {
+          "file": "stress.html",
+          "line": 307,
+          "supports": "Simulation API"
+        },
+        {
+          "file": "aws/lambdas/justhodl-stress-simulator/source/lambda_function.py",
+          "line": 431,
+          "supports": "Actual handler"
+        },
+        {
+          "file": "aws/lambdas/justhodl-stress-simulator/source/lambda_function.py",
+          "line": 444,
+          "supports": "Presets response"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-stress-simulator"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-stress-simulator",
+          "origin": "https://zmwuxvqqwexxzzgrw7g2ayql6i0fqrpi.lambda-url.us-east-1.on.aws",
+          "pathname": "/presets",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        },
+        {
+          "engine": "justhodl-stress-simulator",
+          "origin": "https://zmwuxvqqwexxzzgrw7g2ayql6i0fqrpi.lambda-url.us-east-1.on.aws",
+          "pathname": "/simulate",
+          "methods": [
+            "POST"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "portfolio-manager.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Actual positions CRUD API with explicit Worker route producer mapping. No fixed S3 artifact from admin; snapshot is a separate downstream producer and AI brief supporting.",
+      "evidence": [
+        {
+          "file": "portfolio-manager.html",
+          "line": 127,
+          "supports": "Worker portfolio-admin target"
+        },
+        {
+          "file": "portfolio-manager.html",
+          "line": 140,
+          "supports": "Admin request"
+        },
+        {
+          "file": "cloudflare/workers/justhodl-ai-proxy/src/index.js",
+          "line": 9,
+          "supports": "Explicit admin producer"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-portfolio-admin"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-portfolio-admin",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/portfolio-admin",
+          "methods": [
+            "POST"
+          ],
+          "query": {},
+          "owner_authenticated": true,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "tax-plan.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Unique UI/engine schema and source writer establish intended engine; personalized API response must be distinct from default modeled public snapshot. Confirmed privacy bug is being fixed: HTTP requests must not overwrite shared snapshot.",
+      "evidence": [
+        {
+          "file": "tax-plan.html",
+          "line": 350,
+          "supports": "Fixed Function URL"
+        },
+        {
+          "file": "aws/lambdas/justhodl-tax-plan/source/lambda_function.py",
+          "line": 2,
+          "supports": "Explicit engine role"
+        },
+        {
+          "file": "aws/lambdas/justhodl-tax-plan/source/lambda_function.py",
+          "line": 639,
+          "supports": "Exact snapshot write"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-tax-plan"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-tax-plan",
+          "origin": "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "wealth-plan.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Unique UI/engine schema and source writer establish intended engine; personalized API response must be distinct from default modeled public snapshot. Confirmed privacy bug is being fixed: HTTP requests must not overwrite shared snapshot.",
+      "evidence": [
+        {
+          "file": "wealth-plan.html",
+          "line": 368,
+          "supports": "Fixed Function URL"
+        },
+        {
+          "file": "aws/lambdas/justhodl-wealth-plan/source/lambda_function.py",
+          "line": 2,
+          "supports": "Explicit engine role"
+        },
+        {
+          "file": "aws/lambdas/justhodl-wealth-plan/source/lambda_function.py",
+          "line": 649,
+          "supports": "Exact snapshot write"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-wealth-plan"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-wealth-plan",
+          "origin": "https://tgo66l3w3s2trxoizqowfwvo240wclyw.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "benzinga.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Producer docstring explicitly states market news for benzinga.html and describes exact UI response schema. Config lacks Function URL, so deployed endpoint identity is still unverified.",
+      "evidence": [
+        {
+          "file": "benzinga.html",
+          "line": 54,
+          "supports": "Direct Function URL and rendered analyst/calendar/news fields"
+        },
+        {
+          "file": "aws/lambdas/benzinga-news-agent/source/lambda_function.py",
+          "line": 1,
+          "supports": "Explicit page ownership and response schema"
+        },
+        {
+          "file": "aws/lambdas/benzinga-news-agent/source/lambda_function.py",
+          "line": 195,
+          "supports": "Actual handler"
+        }
+      ],
+      "primary_engines": [
+        "benzinga-news-agent"
+      ],
+      "api_responses": [
+        {
+          "engine": "benzinga-news-agent",
+          "origin": "https://qgmut34alss5bvacffyklqqs3a0ckday.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "query": {},
+          "owner_authenticated": false,
+          "source_identity": "reviewed source association; live deployed identity unverified"
+        }
+      ]
+    },
+    "fmp.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence.",
+      "evidence": [
+        {
+          "file": "fmp.html",
+          "line": 54,
+          "supports": "Direct URL and response fields"
+        },
+        {
+          "file": "aws/lambdas/fmp-fundamentals-agent/source/lambda_function.py",
+          "line": 50,
+          "supports": "Matching response fields"
+        }
+      ],
+      "primary_engines": [],
+      "api_responses": [],
+      "unresolved_reason": "fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence."
+    },
+    "census.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade.",
+      "evidence": [
+        {
+          "file": "census.html",
+          "line": 721,
+          "supports": "Direct unknown Function URL"
+        },
+        {
+          "file": "census.html",
+          "line": 735,
+          "supports": "series=summary request"
+        },
+        {
+          "file": "aws/lambdas/fedliquidityapi/source/lambda_function.py",
+          "line": 459,
+          "supports": "Candidate summary handler"
+        },
+        {
+          "file": "aws/lambdas/census-economic-agent/source/lambda_census_agent.py",
+          "line": 2,
+          "supports": "Census economic is retail, not this UI"
+        }
+      ],
+      "primary_engines": [],
+      "api_responses": [],
+      "unresolved_reason": "Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade."
+    },
+    "ask.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Unique request/response/header schema matches ask-desk handler; deployed URL is obtained from manually provisioned askdesk-config.json, whose current endpoint is not source-bound. Record intended producer but keep API endpoint availability unresolved.",
+      "evidence": [
+        {
+          "file": "ask.html",
+          "line": 54,
+          "supports": "Configured POST question with x-desk-key"
+        },
+        {
+          "file": "ask.html",
+          "line": 64,
+          "supports": "Manual config fetch"
+        },
+        {
+          "file": "aws/lambdas/justhodl-ask-desk/source/lambda_function.py",
+          "line": 178,
+          "supports": "Matching API handler"
+        },
+        {
+          "file": "aws/ops/ran/ops_4254_sharpen.py",
+          "line": 72,
+          "supports": "Config classified manual"
+        }
+      ],
+      "primary_engines": [
+        "justhodl-ask-desk"
+      ],
+      "api_responses": [],
+      "unresolved_reason": "Unique request/response/header schema matches ask-desk handler; deployed URL is obtained from manually provisioned askdesk-config.json, whose current endpoint is not source-bound. Record intended producer but keep API endpoint availability unresolved."
+    },
+    "alpha-atlas.html": {
+      "role": "STATIC_DATA_PAGE",
+      "reason": "Source key is created/updated by numbered ops scripts, not any Lambda writer. Add non-Lambda producer contract for ops-generated static catalog; do not invent dedicated engine.",
+      "evidence": [
+        {
+          "file": "alpha-atlas.html",
+          "line": 40,
+          "supports": "Exact static catalog fetch"
+        },
+        {
+          "file": "aws/ops/ran/ops_4281_alpha_atlas.py",
+          "line": 199,
+          "supports": "Exact ops S3 writer"
+        },
+        {
+          "file": "aws/ops/ran/ops_4289_census_v3.py",
+          "line": 121,
+          "supports": "Subsequent ops writer"
+        }
+      ],
+      "static_outputs": [
+        {
+          "engine": "ops:alpha-atlas",
+          "key": "data/alpha-atlas.json",
+          "source": "aws/ops/ran/ops_4281_alpha_atlas.py"
+        }
+      ]
+    },
+    "archive/pro.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Legacy archived route fetches root pro-data.json; historical cleanup explicitly records stale sole source. No Lambda writer was found; classify archive, not active dedicated engine.",
+      "evidence": [
+        {
+          "file": "archive/pro.html",
+          "line": 38,
+          "supports": "Root artifact fetch"
+        },
+        {
+          "file": "aws/ops/historical/204_cleanup_broken_zombies.py",
+          "line": 149,
+          "supports": "Explicit archived stale source record"
+        }
+      ],
+      "primary_engines": [],
+      "api_responses": [],
+      "unresolved_reason": "Legacy archived route fetches root pro-data.json; historical cleanup explicitly records stale sole source. No Lambda writer was found; classify archive, not active dedicated engine."
+    },
+    "stocks/index.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Exact root stock-picks-data.json has no Lambda or ops writer match. Existing fmp-stock-picks-agent writes a different HTML report family to a different bucket and cannot establish this route association.",
+      "evidence": [
+        {
+          "file": "stocks/index.html",
+          "line": 155,
+          "supports": "Exact root fetch"
+        },
+        {
+          "file": "aws/lambdas/fmp-stock-picks-agent/source/lambda_function.py",
+          "line": 426,
+          "supports": "Different report artifact writer"
+        }
+      ],
+      "primary_engines": [],
+      "api_responses": [],
+      "unresolved_reason": "Exact root stock-picks-data.json has no Lambda or ops writer match. Existing fmp-stock-picks-agent writes a different HTML report family to a different bucket and cannot establish this route association."
+    },
+    "intelligence.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Restored complete dedicated market intelligence report from the source-bound writer",
+      "primary_engines": [
+        "justhodl-intelligence"
+      ],
+      "evidence": [
+        {
+          "file": "aws/lambdas/justhodl-intelligence/source/lambda_function.py",
+          "supports": "Writes intelligence-report.json; model report allocation only, privacy reviewed"
+        }
+      ]
+    },
+    "agent/index.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Exact page Function URL matches configured engine URL",
+      "primary_engines": [
+        "justhodl-financial-secretary"
+      ],
+      "evidence": [
+        "agent/index.html",
+        "aws/lambdas/justhodl-financial-secretary/config.json",
+        "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-financial-secretary",
+          "origin": "https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws",
+          "pathname": "/latest",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "exact source-config URL match; live deployed identity unverified"
+        },
+        {
+          "engine": "justhodl-financial-secretary",
+          "origin": "https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws",
+          "pathname": "/chat",
+          "methods": [
+            "POST"
+          ],
+          "source_identity": "exact source-config URL match; live deployed identity unverified"
+        }
+      ]
+    },
+    "nasdaq-datalink.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Exact page Function URL matches configured engine URL",
+      "primary_engines": [
+        "nasdaq-datalink-agent"
+      ],
+      "evidence": [
+        "nasdaq-datalink.html",
+        "aws/lambdas/nasdaq-datalink-agent/config.json"
+      ],
+      "api_responses": [
+        {
+          "engine": "nasdaq-datalink-agent",
+          "origin": "https://ff66pvk3anywuluh75k7khvpaq0tslft.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "exact source-config URL match; live deployed identity unverified"
+        }
+      ]
+    },
+    "fusion.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Governed fusion API produces the validated view; raw fusion and bridge artifacts remain source observations",
+      "primary_engines": [
+        "justhodl-jh-fusion",
+        "justhodl-jhsignal-bridge"
+      ],
+      "evidence": [
+        "fusion.html",
+        "cloudflare/workers/justhodl-data-proxy/src/index.js"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-jh-fusion",
+          "origin": "https://justhodl.ai",
+          "pathname": "/api/v1/fusion",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "explicit governed Worker read-model route"
+        },
+        {
+          "engine": "justhodl-jh-fusion",
+          "origin": "https://justhodl-data-proxy.raafouis.workers.dev",
+          "pathname": "/api/v1/fusion",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "explicit governed Worker read-model route"
+        }
+      ]
+    },
+    "feedback.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Operational human feedback labeling interface; configured API and manual reviews",
+      "evidence": [
+        "feedback.html"
+      ]
+    },
+    "errors.html": {
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Operational shared error-recorder summary; no dedicated financial engine",
+      "evidence": [
+        "errors.html"
+      ]
+    },
+    "compare.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Parameterized equity-research ticker family; no exact dedicated producer or enumerated family index is established by source scan",
+      "reason": "Parameterized equity-research ticker family; no exact dedicated producer or enumerated family index is established by source scan",
+      "evidence": [
+        "compare.html"
+      ]
+    },
+    "provider.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Parameterized provider/series pages and range reads span several producer families; exact selected producer and archive indexes must be resolved per runtime slug",
+      "reason": "Parameterized provider/series pages and range reads span several producer families; exact selected producer and archive indexes must be resolved per runtime slug",
+      "evidence": [
+        "provider.html"
+      ]
+    },
+    "signal-replay.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "User-selected engine/date snapshot family; fixed primary output unavailable until a source-bound snapshot index is provided",
+      "reason": "User-selected engine/date snapshot family; fixed primary output unavailable until a source-bound snapshot index is provided",
+      "evidence": [
+        "signal-replay.html"
+      ]
+    },
+    "fleet-health.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Legacy _health/fleet.json has no bound engine writer in the checked source catalog",
+      "reason": "Legacy _health/fleet.json has no bound engine writer in the checked source catalog",
+      "evidence": [
+        "fleet-health.html"
+      ]
+    },
+    "frontrun.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
+      "reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
+      "evidence": [
+        "frontrun.html"
+      ]
+    },
+    "macro-frontrun.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
+      "reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
+      "evidence": [
+        "macro-frontrun.html"
+      ]
+    },
+    "dex.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Browser reads external DEX provider APIs and AI proxy; no source-proven dedicated JustHodl engine association",
+      "reason": "Browser reads external DEX provider APIs and AI proxy; no source-proven dedicated JustHodl engine association",
+      "evidence": [
+        "dex.html"
+      ]
+    },
+    "euro/index.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Legacy root data.json/report.json have no checked source writer; current page also reads per-series APIs",
+      "reason": "Legacy root data.json/report.json have no checked source writer; current page also reads per-series APIs",
+      "evidence": [
+        "euro/index.html"
+      ]
+    },
+    "archive/exponential-search-dashboard.html": {
+      "role": "ENGINE_PAGE",
+      "unresolved_reason": "Archived OpenBB API application; current dedicated producer binding is not recorded",
+      "reason": "Archived OpenBB API application; current dedicated producer binding is not recorded",
+      "evidence": [
+        "archive/exponential-search-dashboard.html"
+      ]
+    }
+  }
+}

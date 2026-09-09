@@ -2,17 +2,20 @@
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, unquote
-import re
+import re,json,subprocess
+NON_CONSUMER_ASSETS={'private-artifacts.js','jh-data-inspector.js','auth.js','jh-wire.js'}
 DENY={'aws','.github','scripts','ci','config','cloudflare','ops','docs','supabase','tools-src','chrome-extension','node_modules','vendor','_partials','_site','tests','.git'}
 STRINGS=re.compile(r'//[^\n]*|/\*.*?\*/|(?P<q>[\'"`])(?P<s>(?:\\.|(?! (?P=q)).)*?)(?P=q)',re.S|re.X)
 KEY=re.compile(r'(?<![A-Za-z0-9_./-])/?([a-zA-Z0-9_-]+(?:/[A-Za-z0-9_.-]+)+\.json(?:\.gz)?)(?![A-Za-z0-9_.-])')
 IMPORT=re.compile(r'''(?:\b(?:import|export)\s+(?:[^;\n]*?\s+from\s*)?|\b(?:import|importScripts)\s*\()\s*["']([^"']+)["']''')
 class HTML(HTMLParser):
-    def __init__(self):super().__init__();self.scripts=[];self.inline=[];self.wires=[];self.inscript=False
+    def __init__(self):super().__init__();self.scripts=[];self.inline=[];self.wires=[];self.primary_engines=[];self.inscript=False;self.redirect=None
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
+        if tag=='meta' and a.get('http-equiv','').lower()=='refresh':self.redirect=a.get('content','')
+        if tag=='meta' and a.get('name')=='jh-primary-engine':self.primary_engines.extend(x for x in re.split(r'[,;\s]+',a.get('content','')) if x)
         if tag=='script':
-            self.inscript=True
+            self.inscript=a.get('type','').lower() in ('','module','text/javascript','application/javascript')
             if a.get('src'):self.scripts.append(a['src'])
             if a.get('data-feeds'):
                 for part in a['data-feeds'].split(';'):
@@ -38,36 +41,35 @@ def local_asset(root,parent,url):
     except ValueError:return None
     return candidate if candidate.is_file() else None
 
+_JS_CACHE={}
+
+def prime_source_analysis(codes):
+    missing=list(dict.fromkeys(code for code in codes if code not in _JS_CACHE))
+    if not missing:return
+    result=subprocess.run(['node',str(Path(__file__).with_name('js_source_refs.cjs'))],
+        input=json.dumps(missing),text=True,capture_output=True,check=True)
+    parsed=json.loads(result.stdout)
+    if len(parsed)!=len(missing):raise ValueError('JavaScript ownership parser returned incomplete analysis')
+    _JS_CACHE.update(zip(missing,parsed))
+
+def source_analysis(code):
+    prime_source_analysis([code]);return _JS_CACHE[code]
+
 def literal_keys(text):
-    out=set();i=0;n=len(text)
-    while i<n:
-        if text.startswith('//',i):
-            end=text.find('\n',i);i=n if end<0 else end+1;continue
-        if text.startswith('/*',i):
-            end=text.find('*/',i+2);i=n if end<0 else end+2;continue
-        if text[i] not in ('"', "'", '`'):i+=1;continue
-        quote=text[i];i+=1;value=[]
-        while i<n:
-            char=text[i];i+=1
-            if char==quote:break
-            if char=='\\' and i<n:char=text[i];i+=1
-            value.append(char)
-        value=re.sub(r'https?://[^/\s]+/','/',''.join(value))
-        out.update(KEY.findall(value))
-    return out
+    return set(source_analysis(text)['keys'])
 
 from functools import lru_cache
 @lru_cache(maxsize=4096)
 def asset_info(path):
-    code=Path(path).read_text(errors='replace')
-    return literal_keys(code),tuple(m[1] for m in IMPORT.finditer(code))
+    return source_analysis(Path(path).read_text(errors='replace'))
 
 def page_graph(root,page):
     root=Path(root).resolve();page=Path(page).resolve();html=HTML();html.feed(page.read_text(errors='replace'))
-    keys=set(r['feed'].lstrip('/') for r in html.wires);sources={};missing=[]
+    keys=set(r['feed'].lstrip('/') for r in html.wires);sources={};missing=[];direct_keys=set(keys);key_sources={str(page.relative_to(root)):set(keys)};parse_errors=[]
     pending=[(page,url) for url in html.scripts]
     for code in html.inline:
-        keys.update(literal_keys(code));pending.extend((page,m[1]) for m in IMPORT.finditer(code))
+        analysis=source_analysis(code);inline_keys=set(analysis['keys']);keys.update(inline_keys);direct_keys.update(inline_keys);key_sources[str(page.relative_to(root))].update(inline_keys);pending.extend((page,url) for url in analysis['imports'])
+        if analysis.get('error'):parse_errors.append({'source':str(page.relative_to(root)),'error':analysis['error']})
     seen=set()
     while pending:
         parent,url=pending.pop();p=local_asset(root,parent,url)
@@ -75,8 +77,18 @@ def page_graph(root,page):
             if not urlsplit(url).netloc:missing.append({'from':str(parent.relative_to(root)),'script':url})
             continue
         if p in seen:continue
-        seen.add(p);asset_keys,imports=asset_info(str(p));sources[str(p.relative_to(root))]=True
-        keys.update(asset_keys);pending.extend((p,url) for url in imports)
-    return {'keys':sorted(keys),'scripts':sorted(sources),'missing_scripts':missing,'wires':html.wires,'evidence':'static exact-path source reference; runtime consumption unverified'}
+        seen.add(p);analysis=asset_info(str(p));asset_keys=set(analysis['keys']);imports=analysis['imports'];sources[str(p.relative_to(root))]=True
+        if analysis.get('error'):parse_errors.append({'source':str(p.relative_to(root)),'error':analysis['error']})
+        if str(p.relative_to(root)) not in NON_CONSUMER_ASSETS:
+            keys.update(asset_keys);key_sources[str(p.relative_to(root))]=set(asset_keys)
+        pending.extend((p,url) for url in imports)
+    return {'keys':sorted(keys),'direct_keys':sorted(direct_keys),'key_sources':{source:sorted(values) for source,values in key_sources.items()},'primary_engines':html.primary_engines,'scripts':sorted(sources),'missing_scripts':missing,'script_parse_errors':parse_errors,'redirect':html.redirect,'wires':html.wires,'evidence':'static exact-path source reference; runtime consumption unverified'}
 
-def scan_pages(root):return {str(p.relative_to(root)):page_graph(root,p) for p in pages(root)}
+def scan_pages(root):
+    root=Path(root);routes=pages(root);codes=[]
+    for page in routes:
+        html=HTML();html.feed(page.read_text(errors='replace'));codes.extend(html.inline)
+    for path in root.rglob('*.js'):
+        if not any(x in DENY or x.startswith('.') for x in path.relative_to(root).parts[:-1]):codes.append(path.read_text(errors='replace'))
+    prime_source_analysis(codes)
+    return {str(p.relative_to(root)):page_graph(root,p) for p in routes}

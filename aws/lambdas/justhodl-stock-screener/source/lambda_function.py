@@ -1080,7 +1080,7 @@ def compute_steal_score(stocks):
         ("momentum_6m",         8, _vmap(stocks, "chg6m"),         False),
         ("inst_flow",           7, _vmap_capped(stocks, "instQoQChgPct", lo=-50, hi=100), False),
         ("insider_flow",        4, _vmap(stocks, "insiderNet90dUsd"), False),
-        ("estimate_revisions",  4, _vmap(stocks, "beatStreak"),    False),
+        ("earnings_surprise_streak", 4, _vmap(stocks, "beatStreak"), False),
         # ── STAGE 9: 3 new factors ──
         # Analyst grades consensus — sentiment of professional analysts
         ("analyst_grades",      7, _vmap(stocks, "gradesScore"),   False),
