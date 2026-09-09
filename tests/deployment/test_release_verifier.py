@@ -31,6 +31,18 @@ def test_scope_includes_transitive_shared_importers_and_excludes_archived():
         assert 'shared:indirect' in scope['justhodl-recipient']
 
 
+def test_explicit_primary_outputs_are_source_bound_and_do_not_select_control_state():
+    manifest=json.loads((ROOT/'engine-manifest.json').read_text())
+    engines={row['engine']:set(row['keys']) for row in manifest['engines']}
+    for name,keys in release.PRIMARY.items():
+        assert set(keys)<=engines[name], (name,set(keys)-engines[name])
+    assert release.PRIMARY['justhodl-contract-gate']==['data/contract-violations.json']
+    assert release.PRIMARY['justhodl-fleet-monitor']==['_health/fleet.json']
+    assert release.PRIMARY['justhodl-portfolio-risk']==['portfolio/risk.json']
+    assert release.PRIMARY['justhodl-theme-classifier']==['data/momentum-themes.json']
+    assert release.PRIMARY['justhodl-theme-rotation-engine']==['data/theme-momentum.json']
+
+
 def test_any_source_mismatch_aborts_before_schedule_or_lambda_mutation():
     class NoMutation:
         def __getattr__(self,name):raise AssertionError('Unexpected AWS operation '+name)

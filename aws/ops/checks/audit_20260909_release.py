@@ -52,6 +52,22 @@ PRIMARY = {
     'justhodl-sizing-engine':['data/sizing.json'],
     'justhodl-etf-constituents':['etf-flows/constituent-pressure.json'],
     'justhodl-risk-sizer':['data/risk-sizer.json','risk/recommendations.json'],
+    'justhodl-brain-sync':['data/brain.json'],
+    'justhodl-notes-intel':['data/notes-index.json','data/notes-themes.json','data/notes-index-public.json','data/notes-themes-public.json'],
+    'justhodl-playbook-engine':['data/playbook-rules.json','data/playbook-rules-public.json'],
+    'justhodl-ai-brief-router':['data/portfolio-manager-brief.json'],
+    'justhodl-compound-aggregator':['data/compound-signals.json','data/prime-convergence.json'],
+    'justhodl-contract-gate':['data/contract-violations.json'],
+    'justhodl-etf-fund-flows':['etf-flows/daily.json','etf-flows/composite.json','etf-flows/rotation.json','etf-flows/per-ticker-context.json','etf-flows/event-study.json'],
+    'justhodl-fleet-monitor':['_health/fleet.json'],
+    'justhodl-health-monitor':['_health/dashboard.json'],
+    'justhodl-history-snapshotter':['data/history-index.json','data/history-snapshotter-status.json'],
+    'justhodl-portfolio-catalysts':['portfolio/catalysts.json'],
+    'justhodl-portfolio-risk':['portfolio/risk.json'],
+    'justhodl-portfolio-sizer':['portfolio/sizing.json'],
+    'justhodl-theme-classifier':['data/momentum-themes.json'],
+    'justhodl-theme-rotation-engine':['data/theme-momentum.json'],
+    'justhodl-trade-journal':['data/user-trades.json','data/user-trades-stats.json'],
 }
 # Reviewed regular handlers publish research/data only and have no notification
 # path. No generic discovery-based invocation is permitted. Portfolio snapshot's
