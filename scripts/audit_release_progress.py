@@ -15,7 +15,8 @@ def failure_sections(raw):
         row={'function':name,'aws_errors':[{'code':a,'operation':b} for a,b in re.findall(r'An error occurred \(([A-Za-z0-9_.-]+)\) when calling the ([A-Za-z0-9]+) operation',part)],
              'validation_fields':sorted(set(re.findall(r" at '([A-Za-z0-9_.]+)' failed to satisfy",part))),
              'stages':[label for marker,label in [('Updating existing Lambda','existing_function'),('Built ','package_built'),('Invoking pinned ','candidate_invoked'),('live alias promoted','candidate_promoted'),('Setting up EventBridge rule','classic_schedule'),('Setting up EventBridge Scheduler','scheduler'),('Schedule attached','classic_schedule_done')] if marker in part],
-             'configuration_errors':[]}
+             'configuration_errors':[],
+             'transport_flags':[flag for marker,flag in [('Read timeout','READ_TIMEOUT'),('Connection was closed','CONNECTION_CLOSED'),('Could not connect','CONNECT_FAILED'),('timed out','TIMEOUT'),('InvalidParameterValue','INVALID_PARAMETER'),('failed to satisfy constraint','CONSTRAINT_FAILED')] if marker in part]}
         for line in part.splitlines():
             offset=line.find('{')
             if offset<0: continue
