@@ -40,6 +40,8 @@ for fn in $DEPLOY_TARGETS; do
   fn_desc="JustHodl.AI Lambda"
   fn_env_args=""
   cfg_env_json="{}"
+  architecture_create_args=()
+  architecture_update_args=()
   if [ -f "$config_file" ]; then
     cfg_name=$(jq -r '.function_name // empty' "$config_file")
     [ -n "$cfg_name" ] && fn="$cfg_name"
@@ -49,6 +51,10 @@ for fn in $DEPLOY_TARGETS; do
     fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$config_file")
     fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$config_file")
     cfg_env_json=$(python3 scripts/lambda_config_environment.py "$config_file" "$DEPLOY_AWS_REGION")
+    create_architecture=$(python3 scripts/lambda_architecture.py "$config_file" create)
+    update_architecture=$(python3 scripts/lambda_architecture.py "$config_file" update)
+    if [ -n "$create_architecture" ]; then architecture_create_args=(--architectures "$create_architecture"); fi
+    if [ -n "$update_architecture" ]; then architecture_update_args=(--architectures "$update_architecture"); fi
   fi
 
   staging="$tmp/stage"
@@ -103,6 +109,7 @@ for fn in $DEPLOY_TARGETS; do
     aws lambda update-function-code \
       --function-name "$fn" \
       "${code_revision_args[@]}" \
+      "${architecture_update_args[@]}" \
       --zip-file "fileb://$tmp/deploy.zip" \
       --region "$DEPLOY_AWS_REGION" \
       --query 'LastModified' --output text
@@ -150,7 +157,6 @@ for fn in $DEPLOY_TARGETS; do
       config_args=()
       # Runtime upgrades require an explicit opt-in; imported legacy metadata alone
       # must not downgrade a runtime that operations already upgraded.
-      if jq -e ' .update_runtime == true ' "$config_file" >/dev/null; then config_args+=(--runtime "$fn_runtime"); fi
       # Runtime is historically a create-time field. Upgrades require an explicit
       # reviewed flag so old imported metadata cannot downgrade other functions.
       if jq -e '.update_runtime == true' "$config_file" >/dev/null; then
@@ -184,6 +190,7 @@ for fn in $DEPLOY_TARGETS; do
       ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
     fi
     python3 scripts/secret_lambda_config.py create-function "$fn" \
+      "${architecture_create_args[@]}" \
       --runtime "$fn_runtime" \
       --role "arn:aws:iam::857687956942:role/lambda-execution-role" \
       --handler "lambda_function.lambda_handler" \

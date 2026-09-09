@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from normalize_lambda_config import normalize_config
+from lambda_architecture import architecture
 
 
 def validate_configs(root, targets):
@@ -21,8 +22,10 @@ def validate_configs(root, targets):
             errors.append({"function": target, "field": "schedule", "error_code": str(error)})
         if config.get("update_runtime") is True and (not isinstance(config.get("runtime"), str) or not config["runtime"]):
             errors.append({"function": target, "field": "runtime", "error_code": "explicit_runtime_required"})
-        if config.get("update_runtime") is True and (not isinstance(config.get("runtime"),str) or not config["runtime"]):
-            errors.append({"function":target,"field":"runtime","error_code":"explicit_runtime_required"})
+        try:
+            architecture(config, 'update')
+        except ValueError as error:
+            errors.append({"function":target,"field":"architectures","error_code":str(error)})
         if "description" in config:
             description = config["description"]
             if not isinstance(description, str) or len(description) > 256:
