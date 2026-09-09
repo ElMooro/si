@@ -343,7 +343,7 @@ function privateArtifact(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   return Object.hasOwn(PRIVATE_ARTIFACTS, normalized) ? PRIVATE_ARTIFACTS[normalized] : null;
 }
-const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md']);
+const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md', '_telegram-chat.json']);
 function privateArchive(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   if (PRIVATE_RAW_ARTIFACTS.has(normalized) || ['_askdesk/', 'search/index/',

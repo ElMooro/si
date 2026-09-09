@@ -37,7 +37,7 @@ OWNER_HISTORY_DEFAULTS = {
     "portfolio/sizing-alert-history.json": {}, "data/history/behavior-mirror-history.json": {"snapshots": []},
 }
 PRIVATE_KEYS = frozenset(MIRRORED_ARTIFACTS) | {
-    "data/tradingview-notes.json", "risk/recommendations.json", "data/ai-brief.md",
+    "data/tradingview-notes.json", "risk/recommendations.json", "data/ai-brief.md", "data/_telegram-chat.json",
     "data/history/behavior-mirror-history.json", "portfolio/sizing-alert-history.json",
     "portfolio/catalyst-alert-history.json", "portfolio/risk-alert-history.json",
 }
