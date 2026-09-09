@@ -27,6 +27,7 @@
  */
 
 import { handleFusionApi } from "./fusion_api.js";
+import { handleAccountState } from "./account_state.js";
 
 const BUCKET_BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
 
@@ -281,18 +282,70 @@ function safeReturnBase(raw) {
   return "https://justhodl.ai";
 }
 
-async function stripeGet(path, env) {
-  const r = await fetch("https://api.stripe.com/v1" + path, { headers: { "Authorization": "Bearer " + env.STRIPE_SECRET } });
-  const d = await r.json().catch(() => null);
-  return r.ok ? d : null;
+async function boundedBody(request, limit) {
+  if (!request.body) return '';
+  const reader = request.body.getReader(), chunks = []; let length = 0;
+  while (true) {
+    const { value, done } = await reader.read(); if (done) break;
+    length += value.byteLength;
+    if (length > limit) { await reader.cancel(); return null; }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(length); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
+async function accountRequest(env, name, operation, input) {
+  if (!env.WORKSPACE_COORDINATOR) return jsonResp({ error: "durable account storage unavailable" }, 503);
+  const stub = env.WORKSPACE_COORDINATOR.get(env.WORKSPACE_COORDINATOR.idFromName(name));
+  const result = await stub.fetch(new Request('https://account.internal/' + operation, {
+    method: 'POST', body: JSON.stringify(input), headers: { 'Content-Type': 'application/json' },
+  }));
+  return new Response(result.body, { status: result.status,
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store', Vary: 'Authorization' } });
+}
+
+// These artifacts contain personal notes or decisions. Intercept every legacy
+// proxy alias before consulting ANY edge cache. S3 anonymous-read denial is a
+// required companion deployment control; IAM engine readers retain access.
+const PRIVATE_ARTIFACTS = {
+  'brain.json': 'brain', 'brain-history.json': 'brain-history', 'journal-graded.json': 'journal-graded',
+  'my-brief.json': 'my-brief', 'devils-advocate.json': 'devils-advocate',
+  'notes-index.json': 'notes-index', 'notes-themes.json': 'notes-themes', 'playbook-rules.json': 'playbook-rules',
+};
+const SANITIZED_ARTIFACTS = new Set([
+  'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
+  'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
+  'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz',
+]);
+function sanitizedArtifact(path) {
+  const normalized = path.replace(/^data\//, '');
+  return SANITIZED_ARTIFACTS.has(normalized) || /^equity-research\/.+\.json$/.test(normalized);
+}
+function artifactUpstreamUrl(path) {
+  return `${BUCKET_BASE}/${path}` + (sanitizedArtifact(path) ? '?audit_privacy=20260909' : '');
+}
+function privateArtifact(path) {
+  const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
+  return Object.hasOwn(PRIVATE_ARTIFACTS, normalized) ? PRIVATE_ARTIFACTS[normalized] : null;
 }
 
 export class WorkspaceCoordinator {
-  constructor(state) {
+  constructor(state, env) {
     this.state = state;
+    this.env = env;
+    this.accountQueue = Promise.resolve();
   }
 
   async fetch(request) {
+    if (['/journal', '/billing'].includes(new URL(request.url).pathname)) {
+      // A DO can interleave requests at external awaits. Explicit per-object
+      // serialization covers Stripe + profile writes, not only storage calls.
+      const task = this.accountQueue.then(() => handleAccountState(this.state.storage, this.env, request));
+      this.accountQueue = task.then(() => undefined, () => undefined);
+      return task;
+    }
     if (request.method === "GET") {
       const stored = await this.state.storage.get("workspace");
       return jsonResp(stored || { empty: true });
@@ -334,59 +387,60 @@ export default {
     // ─── PER-USER DATA SYNC (watchlists, flags, settings) ───
     // ── /journal — the Decision Journal: timestamped, locked decisions with the
     // reasoning + a price snapshot, graded later against what actually happened.
-    // Same PIN as /brain. This is the user's personal track record of judgment. ──
+    // Authenticated, append-only personal track record of judgment. ──
+    // audit-20260909-private-artifacts-v1: no anonymous mirror or cache fallback.
+    const privateKind = privateArtifact(url.pathname);
+    if (/^\/+(?:data\/)?(?:_askdesk\/|search\/index\/|equity-research-history\/|tradingview-notes\.json$)/.test(url.pathname)) {
+      // Historical questions/responses are operational records, never a public
+      // feed. Archive inspection requires IAM, even for a signed-in browser.
+      return new Response(JSON.stringify({ error: 'private archive' }), {
+        status: 403, headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' },
+      });
+    }
+    if (privateKind || url.pathname === "/private-artifact") {
+      const identity = await resolveIdentity(request, env);
+      if (identity.role === "anon") return unauthorized("personal artifacts require sign-in");
+      if (identity.role !== "owner" && identity.role !== "service") return forbidden("owner artifact");
+      if (!env.USER_DATA) return jsonResp({ error: "private store unavailable" }, 503);
+      const kind = privateKind || url.searchParams.get("kind");
+      if (!Object.values(PRIVATE_ARTIFACTS).includes(kind)) return jsonResp({ error: "unknown artifact" }, 404);
+      const key = "private-artifact:" + kind;
+      if (request.method === "PUT" && url.pathname === "/private-artifact") {
+        if (identity.role !== "service") return forbidden("service publisher required");
+        const raw = await boundedBody(request, 20000000);
+        if (raw === null) return jsonResp({ error: "artifact too large" }, 413);
+        let doc; try { doc = JSON.parse(raw); } catch (_) { return jsonResp({ error: "invalid artifact" }, 400); }
+        if (!doc || typeof doc !== "object" || Array.isArray(doc)) return jsonResp({ error: "invalid artifact" }, 400);
+        await env.USER_DATA.put(key, JSON.stringify(doc));
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders(), "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+      }
+      if (request.method !== "GET" && request.method !== "HEAD") return jsonResp({ error: "method not allowed" }, 405);
+      const raw = await env.USER_DATA.get(key);
+      return new Response(request.method === "HEAD" ? null : raw || JSON.stringify({ error: "private artifact awaiting sync" }), {
+        status: raw ? 200 : 503, headers: { ...corsHeaders(), "Content-Type": "application/json", "Cache-Control": "private, no-store", Vary: "Authorization" },
+      });
+    }
     if (url.pathname === "/journal") {
-      if (!env.USER_DATA) {
-        return new Response(JSON.stringify({ error: "store unavailable" }),
-          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-      }
-      // audit 2026-09-08 INST-01: identity comes ONLY from a verified token or the
-      // service secret. ?uid= is ignored for owner/user callers; anonymous -> 401.
       const jid = await resolveIdentity(request, env);
-      const jwho = journalStoreFor(jid, url);
+      let jwho = journalStoreFor(jid, url);
+      let migrateOwnerLegacy = jid.role === 'owner';
       if (!jwho) return unauthorized("journal is private: sign in");
-      const JKEY = "journal:" + jwho;
-      if (request.method === "GET") {
-        let stored = await env.USER_DATA.get(JKEY);
-        // One-time merge of the legacy single-user journal into the owner's own
-        // uid-keyed store (entries deduped by id, legacy key removed after merge).
-        if (jid.role === "owner") {
-          const legacy = await env.USER_DATA.get("journal:" + OWNER_JOURNAL_LEGACY_STORE);
-          if (legacy) {
-            try {
-              const cur = stored ? JSON.parse(stored) : { entries: [] };
-              const old = JSON.parse(legacy);
-              const have = new Set((cur.entries || []).map(e => e && e.id));
-              const merged = (cur.entries || []).concat((old.entries || []).filter(e => e && e.id && !have.has(e.id)));
-              cur.entries = merged; cur.migrated_legacy_at = Date.now();
-              stored = JSON.stringify(cur);
-              await env.USER_DATA.put(JKEY, stored);
-              await env.USER_DATA.delete("journal:" + OWNER_JOURNAL_LEGACY_STORE);
-            } catch (e) { /* leave legacy in place; served unmerged */ }
-          }
-        }
-        return new Response(stored || JSON.stringify({ entries: [] }),
-          { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
+      if (jid.role === "service") {
+        const owners = await ownerBinding(env);
+        if (!url.searchParams.get("uid") && !owners.uids.length) return jsonResp({ error: "journal owner binding unavailable" }, 503);
+        if (!url.searchParams.get("uid")) jwho = owners.uids[0];
+        migrateOwnerLegacy = owners.uids.includes(jwho);
       }
-      if (request.method === "PUT" || request.method === "POST") {
-        const rawJ = await request.text();
-        let pj = null; try { pj = JSON.parse(rawJ); } catch (e) {}
-        try {
-          if (!pj) throw new Error("invalid json");
-          if (pj._pin) delete pj._pin;
-          pj._server = { saved_at: Date.now(), actor_role: jid.role, actor_uid: jid.uid || null, store: jwho };
-          const bodyText = JSON.stringify(pj);
-          if (bodyText.length > 10000000) {
-            return new Response(JSON.stringify({ error: "too large" }), { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-          }
-          await env.USER_DATA.put(JKEY, bodyText);
-          return new Response(JSON.stringify({ ok: true, saved_at: Date.now() }),
-            { headers: { "Content-Type": "application/json", ...corsHeaders() } });
-        } catch (e) {
-          return new Response(JSON.stringify({ error: "invalid json" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
-        }
+      if (!["GET", "PUT", "POST"].includes(request.method)) return jsonResp({ error: "method not allowed" }, 405);
+      let body = null;
+      if (request.method !== "GET") {
+        const raw = await boundedBody(request, 10000000);
+        if (raw === null) return jsonResp({ error: "too large" }, 413);
+        try { body = JSON.parse(raw); } catch (_) { return jsonResp({ error: "invalid json" }, 400); }
       }
-      return new Response("method not allowed", { status: 405, headers: corsHeaders() });
+      return accountRequest(env, "journal:" + jwho, "journal", {
+        method: request.method, actor: { role: jid.role, uid: jid.uid }, store: jwho, body, migrateOwnerLegacy,
+      });
     }
 
     // ── /brain — SHARDED storage: one KV key per note (bnote:<user>:<id>) + a
@@ -930,30 +984,16 @@ export default {
       });
     }
 
-    // GET /plan/self — server-authoritative plan for the signed-in user
-    // (ops 3366). KV edge cache first (written by the Stripe webhook), then
-    // profiles via service role, else "free". Client entitlement checks
-    // prefer this: it survives RLS/client-read misconfig entirely.
-    if (url.pathname === "/plan/self" && request.method === "GET") {
-      const pUid = await verifySupabaseUser();
-      if (!pUid) return jsonResp({ error: "auth required" }, 401);
-      let plan = null, src = "default";
-      try {
-        if (env.USER_DATA) {
-          plan = await env.USER_DATA.get("plan:" + pUid);
-          if (plan) src = "kv";
-        }
-      } catch (e) {}
-      if (!plan && env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY) {
-        try {
-          const pr = await fetch(env.SUPABASE_URL + "/rest/v1/profiles?id=eq." + pUid + "&select=plan", {
-            headers: { "apikey": env.SUPABASE_SERVICE_KEY,
-                       "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY } });
-          const rows = await pr.json().catch(() => null);
-          if (rows && rows[0] && rows[0].plan) { plan = rows[0].plan; src = "profiles"; }
-        } catch (e) {}
-      }
-      return jsonResp({ plan: (plan || "free"), src });
+    // GET /plan/self — durable, versioned Stripe projection is the only authority.
+    // No KV/profile/auth-metadata fallback can elevate a user's entitlement.
+    if ((url.pathname === "/plan/self" || url.pathname === "/plan/service") && request.method === "GET") {
+      let pUid = null;
+      if (url.pathname === "/plan/service") {
+        if (!isServiceCaller(request, env)) return unauthorized("service identity required");
+        pUid = cleanUid(url.searchParams.get("uid"));
+      } else pUid = await verifySupabaseUser();
+      if (!pUid) return unauthorized("verified user required");
+      return accountRequest(env, "billing:" + pUid, "billing", { action: "plan", uid: pUid });
     }
 
     // ── /admin/* -- SERVICE-ROLE maintenance (audit 2026-09-08). Driven by ops
@@ -1128,11 +1168,10 @@ export default {
       const vUid = await verifySupabaseUser();
       if (!vUid) return jsonResp({ error: "auth required" }, 401);
       try {
-        const pr = await fetch(env.SUPABASE_URL + "/rest/v1/profiles?id=eq." + vUid + "&select=stripe_customer_id", {
-          headers: { "apikey": env.SUPABASE_SERVICE_KEY,
-                     "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY } });
-        const rows = await pr.json();
-        const cust = rows && rows[0] && rows[0].stripe_customer_id;
+        const bindingResponse = await accountRequest(env, "billing:" + vUid, "billing", { action: "portal", uid: vUid });
+        if (!bindingResponse.ok) return bindingResponse;
+        const binding = await bindingResponse.json();
+        const cust = binding.customer;
         if (!cust) return jsonResp({ error: "no billing profile" }, 404);
         const form = new URLSearchParams();
         form.set("customer", cust);
@@ -1163,6 +1202,9 @@ export default {
         const userId = buyer.uid;
         const email = buyer.email || "";
         const base = safeReturnBase(b.returnUrl);
+        const bindingResponse = await accountRequest(env, "billing:" + userId, "billing", { action: "customer", uid: userId, email });
+        if (!bindingResponse.ok) return bindingResponse;
+        const binding = await bindingResponse.json();
         const form = new URLSearchParams();
         form.set("mode", "subscription");
         form.set("line_items[0][price]", priceId);
@@ -1176,7 +1218,7 @@ export default {
         form.set("metadata[plan]", plan);
         form.set("metadata[plan_source]", "server_price_map");
         form.set("subscription_data[metadata][plan]", plan);
-        if (email) form.set("customer_email", email);
+        form.set("customer", binding.customer);
         const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
           method: "POST",
           headers: { "Authorization": "Bearer " + env.STRIPE_SECRET,
@@ -1205,73 +1247,12 @@ export default {
         const evt = JSON.parse(payload);
         const type = evt.type;
         const obj = evt.data && evt.data.object || {};
-        // audit 2026-09-08 INST-05: durable inbox -- an event id is processed once.
-        const evtKey = evt.id ? "stripe-evt:" + evt.id : null;
-        if (evtKey && env.USER_DATA && await env.USER_DATA.get(evtKey)) return new Response("ok duplicate", { status: 200 });
-        const priceMap = pricePlanMap(env);
-        const planForPrices = (ids) => { for (const pid of ids || []) { if (priceMap[pid]) return priceMap[pid]; } return null; };
-        let userId = null, plan = null, source = null;
-        if (type === "checkout.session.completed") {
-          userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
-          // Authoritative: the subscription actually created (status + items), else the session line items.
-          let sub = null;
-          if (obj.subscription && env.STRIPE_SECRET) sub = await stripeGet("/subscriptions/" + obj.subscription, env);
-          if (sub && sub.status && sub.status !== "active" && sub.status !== "trialing") { plan = "free"; source = "subscription_status"; }
-          else if (sub) { plan = planForPrices(((sub.items || {}).data || []).map(i => i.price && i.price.id)); source = "subscription_items"; }
-          if (!plan && env.STRIPE_SECRET && obj.id) {
-            const li = await stripeGet("/checkout/sessions/" + obj.id + "/line_items", env);
-            plan = planForPrices(((li || {}).data || []).map(i => i.price && i.price.id)); source = plan ? "line_items" : source;
-          }
-        } else if (type === "customer.subscription.deleted") {
-          userId = obj.metadata && obj.metadata.user_id; plan = "free"; source = "subscription_deleted";
-        } else if (type === "customer.subscription.updated") {
-          userId = obj.metadata && obj.metadata.user_id;
-          // Out-of-order safety: re-read the subscription's CURRENT state from Stripe.
-          const live = (env.STRIPE_SECRET && obj.id) ? await stripeGet("/subscriptions/" + obj.id, env) : null;
-          const st = (live && live.status) || obj.status;
-          const items = ((live || obj).items || {}).data || [];
-          if (st !== "active" && st !== "trialing") { plan = "free"; source = "subscription_status"; }
-          else { plan = planForPrices(items.map(i => i.price && i.price.id)); source = "subscription_items"; }
-        }
-        if (userId && !plan && type !== "customer.subscription.deleted") {
-          // Paid but unmapped price: never guess an entitlement. Record for the operator and let Stripe retry.
-          if (env.USER_DATA) await env.USER_DATA.put("stripe-unmapped:" + (evt.id || Date.now()), JSON.stringify({ type, user: userId, at: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 });
-          return new Response("unmapped price -- entitlement not changed", { status: 500 });
-        }
-        if (userId && plan) {
-          // ops 3366: UPSERT (not PATCH). A PATCH with id=eq matches 0 rows if
-          // the profile row doesn't exist yet (e.g. signup trigger not
-          // installed, or user pre-dates it) and the paid plan is silently
-          // lost. on_conflict=id + merge-duplicates creates-or-updates.
-          const pr = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
-            method: "POST",
-            headers: {
-              "apikey": env.SUPABASE_SERVICE_KEY,
-              "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY,
-              "Content-Type": "application/json",
-              "Prefer": "resolution=merge-duplicates,return=minimal",
-            },
-            body: JSON.stringify(Object.assign({ id: userId, plan, plan_source: source || null, plan_event_id: evt.id || null },
-              obj.customer ? { stripe_customer_id: obj.customer } : {})),
-          });
-          if (!pr.ok) {
-            // A profile row that does not know the plan_source column still must not lose the update:
-            // retry once with the minimal contract before failing loud.
-            const pr2 = await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
-              method: "POST",
-              headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY,
-                         "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal" },
-              body: JSON.stringify(Object.assign({ id: userId, plan }, obj.customer ? { stripe_customer_id: obj.customer } : {})),
-            });
-            if (!pr2.ok) return new Response("profile write failed " + pr2.status, { status: 500 });   // Stripe retries
-          }
-          // cache entitlement at the edge for fast gating -- only after the durable write succeeded
-          if (env.USER_DATA) {
-            await env.USER_DATA.put("plan:" + userId, plan, { expirationTtl: 60 * 60 * 24 * 35 });
-          }
-        }
-        if (evtKey && env.USER_DATA) await env.USER_DATA.put(evtKey, JSON.stringify({ type, user: userId, plan, source, at: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 });
-        return new Response("ok", { status: 200 });
+        const supported = ["checkout.session.completed", "customer.subscription.deleted", "customer.subscription.updated", "customer.subscription.created"];
+        if (!supported.includes(type)) return jsonResp({ ok: true, ignored: true });
+        const userId = type === "checkout.session.completed" ? obj.client_reference_id || obj.metadata?.user_id : obj.metadata?.user_id;
+        const customer = typeof obj.customer === "string" ? obj.customer : obj.customer?.id;
+        if (!userId || !customer || !evt.id) return jsonResp({ error: "billing event lacks bound owner/customer/id" }, 400);
+        return accountRequest(env, "billing:" + userId, "billing", { action: "event", uid: userId, customer, event_id: evt.id });
       } catch (e) {
         // audit 2026-09-08 INST-05: a failure is a failure. 500 makes Stripe retry with backoff
         // instead of silently dropping a paid entitlement.
@@ -1283,11 +1264,15 @@ export default {
       // Proxy natural-language questions to the justhodl-ask Lambda Function URL.
       const ASK_URL = "https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";
       if (request.method === "OPTIONS") return new Response("{}", { headers: corsHeaders() });
+      const identity = await resolveIdentity(request, env);
+      if (identity.role === 'anon') return unauthorized('personal research requires sign-in');
+      if (identity.role !== 'owner' && identity.role !== 'service') return forbidden('owner research context');
+      if (!env.ADMIN_TOKEN) return jsonResp({ error: 'private research service unavailable' }, 503);
       try {
         const body = await request.text();
-        const r = await fetch(ASK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+        const r = await fetch(ASK_URL, { method: "POST", headers: { "Content-Type": "application/json", 'X-JH-Service-Token': env.ADMIN_TOKEN }, body });
         const txt = await r.text();
-        return new Response(txt, { status: r.status, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        return new Response(txt, { status: r.status, headers: { "Content-Type": "application/json", ...corsHeaders(), 'Cache-Control': 'private, no-store', Vary: 'Authorization' } });
       } catch (e) {
         return new Response(JSON.stringify({ error: "ask unavailable", detail: String(e).slice(0, 120) }),
           { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
@@ -1854,7 +1839,7 @@ export default {
     if (rangeHdr) {
       let rr;
       try {
-        rr = await fetch(`${BUCKET_BASE}/${safePath}`, {
+        rr = await fetch(artifactUpstreamUrl(safePath), {
           headers: { "Range": rangeHdr,
                      "User-Agent": "justhodl-data-proxy" },
           cf: { cacheEverything: false }
@@ -1885,7 +1870,7 @@ export default {
     // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
     // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
     // verified fresh; query-param busting is useless since we strip it).
-    const CACHE_VER = "v4528";
+    const CACHE_VER = "v20260909-private-containment";
     const cacheKey = new Request(`${url.origin}/__${CACHE_VER}__/${safePath}`, { method: "GET" });
     const cache = caches.default;
     let response = await cache.match(cacheKey);
@@ -1893,7 +1878,7 @@ export default {
 
     if (!response) {
       cacheStatus = "MISS";
-      let upstreamUrl = `${BUCKET_BASE}/${safePath}`;
+      let upstreamUrl = artifactUpstreamUrl(safePath);
       let upstream;
       try {
         upstream = await fetchUpstream(upstreamUrl, ttl);
@@ -1908,7 +1893,7 @@ export default {
       // S3 returns 403 (AccessDenied) — not 404 — for a missing key when
       // ListBucket is denied, so retry under /data/ on BOTH.
       if (!upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
-        const fallbackUrl = `${BUCKET_BASE}/data/${safePath}`;
+        const fallbackUrl = artifactUpstreamUrl(`data/${safePath}`);
         try {
           const fallback = await fetchUpstream(fallbackUrl, ttl);
           if (fallback.ok) { upstream = fallback; upstreamUrl = fallbackUrl; }

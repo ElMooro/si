@@ -28,6 +28,9 @@
   let supabase = null;
   let currentUser = null;
   let currentTier = "free";
+  let currentTierValidUntil = 0;
+  let tierLoadGeneration = 0;
+  let tierExpiryTimer = null;
   const changeListeners = [];
 
   // ── Tier → entitlements map (which features each tier unlocks) ──
@@ -52,7 +55,7 @@
   };
 
   function notify() {
-    changeListeners.forEach((cb) => { try { cb(currentUser, currentTier); } catch (e) {} });
+    changeListeners.forEach((cb) => { try { cb(currentUser, JustHodlAuth.getTier()); } catch (e) {} });
   }
 
   // ── Device ID fallback (anonymous mode) ──
@@ -87,12 +90,14 @@
           currentUser = session.user;
           await this._loadTier();
         }
-        supabase.auth.onAuthStateChange(async (_event, s) => {
+        supabase.auth.onAuthStateChange((_event, s) => {
           currentUser = s ? s.user : null;
-          if (currentUser) await this._loadTier();
-          else currentTier = "free";
-          this._renderAuthUI();
-          notify();
+          this._resetTier(); this._renderAuthUI(); notify();
+          // Session callbacks run inside the auth client's lock. Defer calls
+          // back into that client, and clear private UI before any network wait.
+          if (currentUser) setTimeout(() => {
+            this._loadTier().then(() => { this._renderAuthUI(); notify(); });
+          }, 0);
         });
       } catch (e) {
         console.error("[auth] init error:", e);
@@ -101,50 +106,55 @@
       notify();
     },
 
-    async _loadTier() {
-      // Real plan lives in the 'profiles' table (the Stripe webhook writes it).
-      // Fall back to metadata, then 'free'. Bounded so it never hangs the page.
+    _resetTier() {
+      tierLoadGeneration++;
+      clearTimeout(tierExpiryTimer);
+      tierExpiryTimer = null;
       currentTier = "free";
+      currentTierValidUntil = 0;
+    },
+
+    async _loadTier() {
+      // audit-20260909-billing-authority-v1: only the authenticated durable
+      // Stripe projection can grant a tier. Profiles and user metadata are not
+      // authorization sources; an unavailable or expired authority means free.
+      this._resetTier();
+      const generation = tierLoadGeneration;
+      const expectedUser = currentUser && currentUser.id;
+      if (!supabase || !expectedUser || !CFG.syncBase) return;
       try {
-        if (supabase && currentUser) {
-          const q = supabase.from("profiles").select("plan").eq("id", currentUser.id).single();
-          const res = await Promise.race([
-            q, new Promise((r) => setTimeout(() => r({ data: null }), 3000)),
-          ]);
-          const plan = res && res.data && res.data.plan;
-          if (plan) { currentTier = plan; return; }
+        const session = await Promise.race([supabase.auth.getSession(),
+          new Promise(resolve => setTimeout(() => resolve(null), 3000))]);
+        const token = session && session.data && session.data.session && session.data.session.access_token;
+        if (!token || session.data.session.user.id !== expectedUser) return;
+        const response = await fetch(CFG.syncBase + "/plan/self", {
+          headers: { Authorization: "Bearer " + token }, cache: "no-store", signal: AbortSignal.timeout(5000),
+        });
+        const projection = response.ok ? await response.json() : null;
+        if (generation === tierLoadGeneration && currentUser && currentUser.id === expectedUser && projection
+            && projection.src === "durable_stripe_projection"
+            && Number.isSafeInteger(projection.version)
+            && Number.isFinite(projection.valid_until_ms) && projection.valid_until_ms > Date.now()
+            && ["free", "pro", "elite", "enterprise"].includes(projection.plan)) {
+          currentTier = projection.plan === "enterprise" ? "elite" : projection.plan;
+          currentTierValidUntil = projection.valid_until_ms;
+          tierExpiryTimer = setTimeout(() => {
+            if (generation !== tierLoadGeneration) return;
+            this._resetTier(); this._renderAuthUI(); notify();
+            this._loadTier().then(() => { this._renderAuthUI(); notify(); });
+          }, Math.max(1, currentTierValidUntil - Date.now()));
         }
-        // ops 3366 (additive): server-authoritative fallback. The worker's
-        // /plan/self reads the Stripe-webhook KV cache + profiles via the
-        // service role — works even if client RLS reads are misconfigured.
-        if (supabase && currentUser && CFG.syncBase) {
-          try {
-            const tk = await Promise.race([
-              supabase.auth.getSession().then((r) => r.data.session && r.data.session.access_token),
-              new Promise((r) => setTimeout(() => r(null), 1500)),
-            ]);
-            if (tk) {
-              const pr = await Promise.race([
-                fetch(CFG.syncBase + "/plan/self", { headers: { "Authorization": "Bearer " + tk } })
-                  .then((r) => (r.ok ? r.json() : null)),
-                new Promise((r) => setTimeout(() => r(null), 2500)),
-              ]);
-              if (pr && pr.plan) { currentTier = pr.plan; return; }
-            }
-          } catch (e) {}
-        }
-        currentTier = (currentUser && currentUser.user_metadata && currentUser.user_metadata.tier)
-          || (currentUser && currentUser.app_metadata && currentUser.app_metadata.tier)
-          || "free";
-      } catch (e) { currentTier = "free"; }
+      } catch (_) { if (generation === tierLoadGeneration) this._resetTier(); }
     },
 
     getUser() { return currentUser; },
-    getTier() { return currentTier; },
+    getTier() {
+      return currentUser && currentTierValidUntil > Date.now() ? currentTier : "free";
+    },
     isAuthed() { return !!currentUser; },
 
     hasAccess(feature) {
-      const set = ENTITLEMENTS[currentTier] || ENTITLEMENTS.free;
+      const set = ENTITLEMENTS[this.getTier()] || ENTITLEMENTS.free;
       return set.has(feature);
     },
 
@@ -199,9 +209,9 @@
     },
 
     async signOut() {
-      if (supabase) await supabase.auth.signOut();
-      currentUser = null; currentTier = "free";
+      currentUser = null; this._resetTier();
       this._renderAuthUI(); notify();
+      if (supabase) await supabase.auth.signOut();
     },
 
     getAccessToken() {
@@ -266,6 +276,7 @@
     },
 
     _renderAuthUI() {
+      const tier = this.getTier();
       const slots = document.querySelectorAll("[data-auth-slot]");
       slots.forEach((slot) => {
         if (!ENABLED) {
@@ -275,8 +286,8 @@
         if (currentUser) {
           const email = currentUser.email || "account";
           const initial = (email[0] || "U").toUpperCase();
-          const tierBadge = currentTier !== "free"
-            ? `<span class="jh-tier-badge ${currentTier}">${currentTier.toUpperCase()}</span>` : "";
+          const tierBadge = tier !== "free"
+            ? `<span class="jh-tier-badge ${tier}">${tier.toUpperCase()}</span>` : "";
           slot.innerHTML = `
             <div class="jh-user-menu" id="jh-user-menu">
               <div class="jh-user-trigger">
@@ -286,7 +297,7 @@
               </div>
               <div class="jh-user-dropdown">
                 <div class="jh-user-email">${email}</div>
-                <div class="jh-user-tier">Plan: <b>${currentTier.toUpperCase()}</b></div>
+                <div class="jh-user-tier">Plan: <b>${tier.toUpperCase()}</b></div>
                 <a href="/pricing.html" class="jh-menu-link">Manage Subscription</a>
                 <a href="#" class="jh-menu-link" id="jh-signout">Sign Out</a>
               </div>

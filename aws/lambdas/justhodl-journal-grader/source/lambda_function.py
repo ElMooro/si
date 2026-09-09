@@ -14,6 +14,7 @@ import json, time
 import urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3
+from private_artifact import publish_private, service_headers
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
@@ -24,9 +25,9 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 s3 = boto3.client("s3", region_name=REGION)
 
 
-def http_json(url, timeout=12):
+def http_json(url, timeout=12, headers=None):
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0", **(headers or {})})
         return json.loads(urllib.request.urlopen(req, timeout=timeout).read().decode())
     except Exception:
         return None
@@ -41,12 +42,16 @@ def price_now(ticker):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    jd = http_json(JOURNAL_URL + "?g=1")
-    entries = (jd or {}).get("entries") or []
+    # A denied or unavailable journal is not an empty successful journal.
+    jd = http_json(JOURNAL_URL + "?g=1", headers=service_headers())
+    if not isinstance(jd, dict) or not isinstance(jd.get("entries"), list):
+        return {"statusCode": 502, "body": "private journal unavailable"}
+    entries = [e for e in jd["entries"] if not e.get("correction_of")]
     if not entries:
         out = {"engine": "journal-grader", "generated_at": datetime.now(timezone.utc).isoformat(),
                "n_entries": 0, "track_record": {}, "graded": [], "note": "No journal entries yet."}
-        s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json", CacheControl="private, no-store")
+        publish_private("journal-graded", out)
         return {"statusCode": 200, "body": "no entries"}
 
     now_ms = time.time() * 1000
@@ -118,6 +123,7 @@ def lambda_handler(event=None, context=None):
            "n_entries": len(entries), "track_record": track,
            "graded": sorted(graded, key=lambda g: -(g.get("created") or 0))[:100]}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=600")
+                  ContentType="application/json", CacheControl="private, no-store")
     print(f"[journal-grader] {n_dec} graded, hit_rate={hit_rate}%")
+    publish_private("journal-graded", out)
     return {"statusCode": 200, "body": json.dumps(track)}

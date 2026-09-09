@@ -13,6 +13,7 @@ import json, time
 import urllib.request, os
 from datetime import datetime, timezone
 import boto3
+from private_artifact import publish_private
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
@@ -329,7 +330,7 @@ def lambda_handler(event=None, context=None):
             hist = hist[-200:]
             s3.put_object(Bucket=BUCKET, Key="data/brain-history.json",
                           Body=json.dumps({"history": hist}, default=str).encode(),
-                          ContentType="application/json")
+                          ContentType="application/json", CacheControl="private, no-store")
         except Exception as e:
             print(f"[brain-sync] history write err: {str(e)[:60]}")
 
@@ -343,7 +344,7 @@ def lambda_handler(event=None, context=None):
                                        "directive_changed_this_run": directive_changed,
                                        "note": "entries append only when the directive changes"},
                                       default=str).encode(),
-                      ContentType="application/json")
+                      ContentType="application/json", CacheControl="private, no-store")
     except Exception as _e:
         print(f"[brain-sync] heartbeat err: {str(_e)[:60]}")
 
@@ -366,7 +367,10 @@ def lambda_handler(event=None, context=None):
         "categories": {CAT_LABEL.get(k, k): len(v) for k, v in by_cat.items()},
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=300")
+                  ContentType="application/json", CacheControl="private, no-store")
+    # audit-20260909-private-artifacts-v1: owner UI uses an authenticated mirror.
+    publish_private("brain", out)
+    publish_private("brain-history", {"history": read_history(), "last_checked": out["generated_at"]})
     print(f"[brain-sync] DONE {round(time.time()-t0,1)}s — {len(notes)} notes ({len(pinned)} pinned), "
           f"directive={'fresh' if (directive and prev.get('content_hash') != content_hash) else 'cached' if directive else 'none'}")
     return {"statusCode": 200, "body": json.dumps({"n_notes": len(notes), "n_pinned": len(pinned)})}

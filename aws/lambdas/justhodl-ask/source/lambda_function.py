@@ -18,6 +18,8 @@ import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, re, time, urllib.request
 from datetime import datetime, timezone
 import boto3
+import hmac
+from private_artifact import service_headers
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 MODEL = "claude-haiku-4-5-20251001"
@@ -129,6 +131,20 @@ def lambda_handler(event=None, context=None):
             "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Content-Type": "application/json"}
     if isinstance(event, dict) and event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {"statusCode": 200, "headers": cors, "body": "{}"}
+    # audit-20260909-private-artifacts-v1: the owner Brain is not public query
+    # context. Direct IAM Lambda invokes are trusted; every HTTP caller must
+    # arrive through the owner-authenticating Worker with its service identity.
+    if isinstance(event, dict) and (event.get("requestContext") or "headers" in event):
+        headers = {str(k).lower(): str(v) for k, v in (event.get("headers") or {}).items()}
+        provided = headers.get("x-jh-service-token", "")
+        try:
+            expected = service_headers()["X-JH-Service-Token"]
+        except Exception:
+            expected = ""
+        if not provided or not expected or not hmac.compare_digest(provided, expected):
+            return {"statusCode": 401, "headers": {**cors, "Cache-Control": "private, no-store"},
+                    "body": json.dumps({"error": "private research authentication required"})}
+    cors["Cache-Control"] = "private, no-store"
     if not q:
         return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "Ask a question via ?q= or {\"q\":...}"})}
 

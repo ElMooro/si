@@ -104,6 +104,9 @@ def slim(obj, depth=0):
 
 
 def fetch_slim(key):
+    from private_artifact import public_source_allowed
+    if not public_source_allowed(key):
+        return json.dumps({"error": "private source unavailable to public desk"})
     try:
         d = json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
         return json.dumps(slim(d), default=str)[:5200]
@@ -112,6 +115,7 @@ def fetch_slim(key):
 
 
 def catalog():
+    from private_artifact import public_source_allowed
     lines = [f"{k} — {desc}" for k, desc in EXTRA_SOURCES]
     try:
         man = json.loads(S3.get_object(Bucket=BUCKET,
@@ -125,7 +129,7 @@ def catalog():
     seen, out = set(), []
     for l_ in lines:
         k = l_.split(" — ")[0]
-        if k not in seen:
+        if k not in seen and public_source_allowed(k):
             seen.add(k)
             out.append(l_)
     return out
@@ -145,7 +149,10 @@ def answer_question(q):
         route = json.loads(rt.strip())
     except Exception:
         route = {"keys": ["data/signal-board.json"], "why": "router parse fallback"}
-    keys = [k for k in (route.get("keys") or []) if str(k).startswith("data/")][:6]
+    # Model-generated keys are untrusted. A router cannot escalate from its
+    # public catalog into IAM-private Brain/Journal artifacts or prior questions.
+    allowed = {line.split(" — ")[0] for line in cat}
+    keys = [k for k in (route.get("keys") or []) if isinstance(k, str) and k in allowed][:6]
     if not keys:
         keys = ["data/signal-board.json"]
     src_blobs = []
@@ -162,7 +169,7 @@ def answer_question(q):
         S3.put_object(Bucket=BUCKET,
                       Key=f"data/_askdesk/{int(time.time())}.json",
                       Body=json.dumps({"q": q[:600], **out}).encode(),
-                      ContentType="application/json")
+                      ContentType="application/json", CacheControl="private, no-store")
     except Exception:
         pass
     return out

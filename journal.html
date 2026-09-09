@@ -83,7 +83,7 @@ a{color:var(--cyan);text-decoration:none}
 <div class="pin-modal" id="pin-modal" style="position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(4px);z-index:999;display:none;align-items:center;justify-content:center">
   <div style="background:var(--bg-1);border:1px solid var(--border-bright);border-radius:14px;padding:24px;width:min(340px,92vw)">
     <h3 style="color:var(--fg-0);margin-bottom:6px">Enter your Brain PIN</h3>
-    <p style="color:var(--fg-2);font-size:12.5px;margin-bottom:14px">The journal shares your Brain PIN. (Set it on the Brain page first if you haven't.)</p>
+    <p style="color:var(--fg-2);font-size:12.5px;margin-bottom:14px">Your verified account protects this journal. Decisions remain locked; corrections are appended.</p>
     <input id="pin-input" type="password" placeholder="••••" autocomplete="off" style="width:100%;background:var(--bg-2);border:1px solid var(--border-bright);border-radius:8px;color:var(--fg-1);padding:11px;font-size:16px;font-family:var(--mono);margin-bottom:12px;text-align:center;letter-spacing:3px">
     <div id="pin-err" style="color:var(--red);font-size:12px;min-height:15px;margin-bottom:8px;text-align:center"></div>
     <button class="btn primary" id="pin-ok" style="width:100%">Continue</button>
@@ -101,7 +101,7 @@ let READONLY=false;
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function badge(t,cls){const b=document.getElementById('savebadge');b.textContent=t;b.className='savebadge '+(cls||'');}
 function fmtDate(ts){return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
-let ENTRIES=[],GRADED=null,dir="bullish";
+let ENTRIES=[],GRADED=null,dir="bullish",BASE_REVISION=0;
 let PIN=sessionStorage.getItem('jh_brain_pin')||"";
 
 function renderTrack(){
@@ -136,18 +136,22 @@ function renderEntries(){
         <span class="etk">${esc(e.ticker)}</span>
         <span class="edir" style="color:${dc}">${dsym} ${esc(e.direction)}</span>
         <span class="grade ${grade}">${grade}</span>
-        <span class="edate">${fmtDate(e.created)} · ${e.horizon_days}d horizon</span>
+        <span class="edate">${fmtDate(e.created)} · ${e.correction_of?'correction':e.horizon_days+'d horizon'}</span>
       </div>
       <div class="ethesis">${esc(e.thesis)}</div>
-      <div class="emeta">Logged @ $${e.entry_price!=null?Number(e.entry_price).toFixed(2):'?'}${perf}<span class="edel" data-id="${e.id}">delete</span></div>
+      <div class="emeta">Logged @ $${e.entry_price!=null?Number(e.entry_price).toFixed(2):'?'}${perf}<span class="edel" data-id="${esc(e.id)}">append correction</span></div>
     </div>`;
   }).join('');
-  box.querySelectorAll('.edel').forEach(el=>el.onclick=()=>{if(confirm('Delete this decision?')){ENTRIES=ENTRIES.filter(x=>x.id!==el.dataset.id);save();renderEntries();}});
+  box.querySelectorAll('.edel').forEach(el=>el.onclick=()=>{
+    const original=ENTRIES.find(x=>x.id===el.dataset.id);const text=prompt('Append a correction. The original decision remains locked.');
+    if(original&&text&&text.trim()){ENTRIES.push({id:'c'+crypto.randomUUID().replace(/-/g,''),correction_of:original.id,ticker:original.ticker,direction:original.direction,horizon_days:original.horizon_days,entry_price:null,created:Date.now(),thesis:text.trim()});save();renderEntries();}
+  });
 }
 async function priceNow(tk){
   try{const r=await fetch(`${PROXY_FALLBACK}/quotes?tickers=${encodeURIComponent(tk)}`);const d=await r.json();const q=d&&d.tickers&&d.tickers[String(tk).toUpperCase()];return (q&&q.price)?q.price:null;}catch(e){return null;}
 }
 async function addEntry(){
+  if(READONLY||!brainSession()){badge('Sign in before logging a decision','err');return;}
   const tk=document.getElementById('j-ticker').value.trim().toUpperCase();
   const th=document.getElementById('j-thesis').value.trim();
   if(!tk||!th){badge('ticker + thesis required','err');return;}
@@ -157,29 +161,45 @@ async function addEntry(){
   document.getElementById('j-ticker').value='';document.getElementById('j-thesis').value='';
   save();renderEntries();
 }
+function brainSession(){return !!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}
 let _jsaving=false,_jpending=false,_jtimer=null;
 async function _jdoSave(){
   if(_jsaving){_jpending=true;return;}
-  _jsaving=true;_jpending=false;
-  var _authed=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());
-  if(!_authed){_jsaving=false;_jpending=true;badge('🔒 sign in to lock decisions in','err');if(window.JustHodlAuth&&JustHodlAuth.openSignIn)JustHodlAuth.openSignIn();return;}
-  badge('saving…','saving');
+  if(!brainSession()){_jpending=true;badge('Sign in to save your decisions','err');return;}
+  const saveIdentity=uidQ();const current=()=>brainSession()&&uidQ()===saveIdentity;
+  _jsaving=true;_jpending=false;badge('saving…','saving');
   try{
-    var _bd={entries:ENTRIES,updated_at:new Date().toISOString()};
-    let d=null,st=0;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?${uidQ()}`,{method:'PUT',headers:Object.assign({'Content-Type':'text/plain'},await authHdr()),body:JSON.stringify(_bd)});st=r.status;d=await r.json();break;}catch(e){}}
-    if(!d)throw new Error('unreachable');
-    if(d.ok){badge('✓ locked in','saved');setTimeout(()=>{if(!_jsaving&&!_jpending)badge('');},1800);}
-    else if(st===403||st===401){badge('🔒 sign in to save','err');_jpending=true;}
-    else badge(d.error||'failed','err');
-  }catch(e){badge('offline','err');_jpending=true;}
-  _jsaving=false;
-  if(_jpending){_jpending=false;setTimeout(_jdoSave,150);}
+    for(let attempt=0;attempt<3;attempt++){
+      const sent=ENTRIES.slice();const sentIds=new Set(sent.map(e=>e.id));
+      const headers=Object.assign({'Content-Type':'application/json'},await authHdr());if(!current())return;
+      const r=await fetch(`${PROXY_FALLBACK}/journal?${uidQ()}`,{method:'PUT',headers,body:JSON.stringify({entries:sent,baseRevision:BASE_REVISION})});
+      const d=await r.json();if(!current())return;
+      if(r.status===409&&d.current){
+        const serverIds=new Set(d.current.entries.map(e=>e.id));
+        ENTRIES=d.current.entries.concat(ENTRIES.filter(e=>!serverIds.has(e.id)));BASE_REVISION=d.current.revision;continue;
+      }
+      if(!r.ok||!d.ok)throw new Error(d.error||'save unavailable');
+      const drafts=ENTRIES.filter(e=>!sentIds.has(e.id));ENTRIES=d.entries.concat(drafts);BASE_REVISION=d.revision;
+      _jpending=drafts.length>0;renderEntries();badge('✓ locked in · revision '+BASE_REVISION,'saved');return;
+    }
+    throw new Error('Journal changed on another device. Retry your unsaved additions.');
+  }catch(e){if(current())badge(e.message||'save unavailable','err');}
+  finally{_jsaving=false;if(!current())_jpending=false;if(_jpending&&brainSession()){_jpending=false;setTimeout(_jdoSave,150);}}
 }
 function save(){clearTimeout(_jtimer);_jtimer=setTimeout(_jdoSave,400);}
 async function load(){
-  try{let d=null;for(const base of [PROXY,PROXY_FALLBACK]){try{const r=await fetch(`${base}/journal?t=${Date.now()}&${uidQ()}`,{headers:await authHdr()});if(r.status===401){READONLY=true;badge('🔒 sign in to see your journal','err');break;}d=await r.json();break;}catch(e){}}ENTRIES=(d&&Array.isArray(d.entries))?d.entries:[];}catch(e){ENTRIES=[];}
-  try{const r2=await fetch(`${PROXY}/data/journal-graded.json?t=${Date.now()}`);if(r2.ok)GRADED=await r2.json();}catch(e){}
-  renderTrack();renderEntries();
+  const generation=(load.generation||0)+1;load.generation=generation;
+  const expectedIdentity=brainSession()?uidQ():null;
+  const current=()=>generation===load.generation&&brainSession()&&uidQ()===expectedIdentity;
+  ENTRIES=[];GRADED=null;BASE_REVISION=0;READONLY=true;renderTrack();renderEntries();
+  if(!brainSession()){badge('Sign in to see your private journal','err');return;}
+  try{
+    const r=await fetch(`${PROXY_FALLBACK}/journal?t=${Date.now()}&${uidQ()}`,{headers:await authHdr(),cache:'no-store'});
+    const d=await r.json();if(!current())return;if(!r.ok||!Array.isArray(d.entries))throw new Error(d.error||'journal unavailable');
+    ENTRIES=d.entries;BASE_REVISION=d.revision;READONLY=false;
+    const r2=await fetch(`${PROXY_FALLBACK}/private-artifact?kind=journal-graded`,{headers:await authHdr(),cache:'no-store'});if(r2.ok){const graded=await r2.json();if(!current())return;GRADED=graded;}
+  }catch(e){if(current())badge(e.message,'err');}
+  if(!current())return;renderTrack();renderEntries();
 }
 function openPin(){document.getElementById('pin-modal').style.display='flex';setTimeout(()=>document.getElementById('pin-input').focus(),30);}
 document.getElementById('pin-ok').onclick=()=>{const v=document.getElementById('pin-input').value.trim();if(v.length<4){document.getElementById('pin-err').textContent='Min 4 chars';return;}PIN=v;sessionStorage.setItem('jh_brain_pin',v);document.getElementById('pin-modal').style.display='none';save();};

@@ -138,23 +138,13 @@ function deviceId(){
 // auth loaded at a different time).
 let _BRAIN_UID=null;
 function brainUid(){
-  // Single-user system: the brain ALWAYS lives under this fixed private key.
-  // (Bypasses session/localStorage uids that pointed at the old polluted store.)
-  _BRAIN_UID="brain-930ffa48-60a1-4b11-8726-8848d1b827f9";
-  return _BRAIN_UID;
+  var user=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();
+  return user&&user.id?user.id:null;
 }
-function uidQ(){return "uid="+encodeURIComponent(brainUid());}
-// audit 2026-09-08: the worker authenticates Brain writes by a VERIFIED Supabase token
-// (owner role). Anonymous readers get the public mirror, read-only.
+function uidQ(){var id=brainUid();return id?'uid='+encodeURIComponent(id):'';}
+// audit-20260909-private-artifacts-v1: identity requires a verified session.
 async function authHdr(){try{var t=window.JustHodlAuth&&JustHodlAuth.getAccessToken?await JustHodlAuth.getAccessToken():null;return t?{'Authorization':'Bearer '+t}:{};}catch(e){return {};}}
 async function waitForAuth(ms){var t0=Date.now();while(!(window.JustHodlAuth&&JustHodlAuth.init)&&Date.now()-t0<(ms||4000)){await new Promise(function(r){setTimeout(r,60);});}return !!(window.JustHodlAuth&&JustHodlAuth.init);}
-// One-time account pin: visiting brain.html?account=<your-uid> remembers it
-// permanently so the Brain always loads your account notes — no sign-in modal
-// needed. Useful when the OAuth flow is fiddly.
-(function(){try{var p=new URLSearchParams(location.search).get('account');
-  if(p&&p.length>=20){localStorage.setItem('jh_brain_account',p);_BRAIN_UID=p;
-    var u=new URL(location.href);u.searchParams.delete('account');history.replaceState(null,'',u);}
-}catch(e){}})();
 const CATS=[
   {id:"philosophy",label:"Philosophy",c:"#a78bfa"},
   {id:"rule",label:"Rule",c:"#26ffaf"},
@@ -371,6 +361,7 @@ async function extractText(file,onProg){
 }
 
 async function handleFiles(files){
+  const importUid=brainUid();if(!importUid||STATE.readonly){badge('Sign in before importing notes','err');return;}
   const JUNK=['lnk','url','webloc','exe','msi','dmg','app','bat','sh','onedrive','ini','sys','dll','tmp','zip','rar','7z'];
   const READABLE=['docx','txt','md','rtf','pdf','csv','tsv','json','png','jpg','jpeg','webp','gif','bmp'];
   for(const file of files){
@@ -384,6 +375,7 @@ async function handleFiles(files){
     dzStatus(name,'working','reading…');
     try{
       let text=(await extractText(file,msg=>dzStatus(name,'working',msg))).trim();
+      if(brainUid()!==importUid)return;
       if(!text){dzStatus(name,'err','no text found');continue;}
       // For large docs, split into paragraph-sized notes so each idea is tracked
       // separately (better for the AI directive + matching). Cap chunk size.
@@ -418,6 +410,7 @@ async function handleFiles(files){
 
 // ── Paste an image (screenshot of notes) anywhere → OCR into a note. ──
 document.addEventListener('paste',async(e)=>{
+  const importUid=brainUid();if(!importUid||STATE.readonly)return;
   const items=(e.clipboardData&&e.clipboardData.items)||[];
   for(const it of items){
     if(it.type&&it.type.indexOf('image')===0){
@@ -427,6 +420,7 @@ document.addEventListener('paste',async(e)=>{
       dzStatus(nm,'working','OCR…');
       try{
         const text=(await ocrImage(blob,p=>dzStatus(nm,'working','OCR '+p+'%'))).trim();
+        if(brainUid()!==importUid)return;
         if(!text){dzStatus(nm,'err','no text found in image');return;}
         var _pn={id:uid(),cat:activeCat,text:text.length>8000?text.slice(0,8000)+'…':text,created:Date.now(),pinned:false,source:'pasted image'};STATE.notes.unshift(_pn);saveNote(_pn);
         dzStatus(nm,'ok','imported → '+activeCat);
@@ -438,6 +432,7 @@ document.addEventListener('paste',async(e)=>{
 });
 
 function addNote(){
+  if(!brainUid()||STATE.readonly){badge('Sign in before adding notes','err');return;}
   const ta=document.getElementById('note-input');const v=ta.value.trim();if(!v)return;
   // size guard + auto-split big pastes into multiple notes (manual add had no cap)
   if(v.length>16000){
@@ -454,11 +449,16 @@ function addNote(){
 // fast, no size limit, no race. Scales to 500MB+ total. A queue serializes them.
 let _q=[],_qrunning=false;
 function dbg(msg){var el=document.getElementById('brain-debug');if(el){var t=new Date().toLocaleTimeString();el.textContent=(t+' '+msg+'\n'+el.textContent).split('\n').slice(0,8).join('\n');}}
-async function _putBrain(job){
+async function _putBrain(envelope){
+  const job=envelope.payload;
+  const current=()=>envelope.ownerUid&&envelope.ownerUid===brainUid();
+  if(!current())return {_status:401,error:'session changed'};
   const kind=job.note?'note':job.notes_upsert?('batch×'+job.notes_upsert.length):job.delete?'delete':job.notes?('bulk×'+job.notes.length):'?';
   for(const base of [PROXY, PROXY_FALLBACK]){
     try{
-      const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers:Object.assign({'Content-Type':'text/plain'},await authHdr()),body:JSON.stringify(job)});
+      const headers=Object.assign({'Content-Type':'text/plain'},await authHdr());
+      if(!current())return {_status:401,error:'session changed'};
+      const r=await fetch(`${base}/brain?${uidQ()}`,{method:'PUT',headers,body:JSON.stringify(job)});
       const d=await r.json();
       d._status=r.status;
       if(r.status===401||r.status===403)return d;   // auth verdict is final on this endpoint -- do not fall through to the other base
@@ -471,7 +471,8 @@ async function _putBrain(job){
 async function _runQueue(){
   if(_qrunning)return; _qrunning=true;
   while(_q.length){
-    const job=_q.shift();
+    const next=_q.findIndex(job=>job.ownerUid===brainUid());if(next<0)break;
+    const job=_q.splice(next,1)[0];
     let ok=false;
     for(let attempt=0;attempt<3 && !ok;attempt++){
       try{
@@ -486,9 +487,9 @@ async function _runQueue(){
         }
         else if(d&&d._status===429){
           // capacity full — park this job locally, stop the queue (don't churn)
-          try{var ov=JSON.parse(localStorage.getItem('brain_overflow')||'[]');ov.push(job);localStorage.setItem('brain_overflow',JSON.stringify(ov).slice(0,4000000));}catch(e){}
+          try{var ov=JSON.parse(localStorage.getItem('brain_overflow:'+job.ownerUid)||'[]');ov.push(job);localStorage.setItem('brain_overflow:'+job.ownerUid,JSON.stringify(ov).slice(0,4000000));}catch(e){}
           badge('⚠ Brain full — extra notes parked locally. Dedupe or remove old notes.','err');
-          _q.length=0; ok=true;   // clear queue; capacity won't fix by retrying
+          _q=_q.filter(pending=>pending.ownerUid!==job.ownerUid); ok=true;   // clear queue; capacity won't fix by retrying
         }
         else { badge((d&&d.error)||'save failed','err'); ok=true; }
       }catch(e){ if(attempt<2) await new Promise(r=>setTimeout(r,800)); }
@@ -498,9 +499,9 @@ async function _runQueue(){
   _qrunning=false;
   badge('✓ saved ('+STATE.notes.length+')','saved');setTimeout(()=>{if(!_q.length)badge('');},1500);
 }
-function saveNote(n){_pendingUpserts.set(n.id,n);_scheduleBatch();}
-function deleteNote(id){_pendingUpserts.delete(id);_q.push({delete:id});_runQueue();}
-function save(){_q.push({notes:STATE.notes});_runQueue();}
+function saveNote(n){const ownerUid=brainUid();if(!ownerUid)return;_pendingUpserts.set(ownerUid+':'+n.id,{ownerUid,note:n});_scheduleBatch();}
+function deleteNote(id){const ownerUid=brainUid();if(!ownerUid)return;_pendingUpserts.delete(ownerUid+':'+id);_q.push({ownerUid,payload:{delete:id}});_runQueue();}
+function save(){const ownerUid=brainUid();if(!ownerUid)return;_q.push({ownerUid,payload:{notes:STATE.notes}});_runQueue();}
 
 // Coalesce rapid note adds/edits (typing, multi-file import, paste) into ONE
 // batched request instead of one round-trip per note → fast even for 50 notes.
@@ -512,21 +513,26 @@ function _scheduleBatch(){
 }
 function _flushBatch(){
   if(!_pendingUpserts.size)return;
-  const notes=[..._pendingUpserts.values()];_pendingUpserts.clear();
-  // Split into ≤450-note chunks so no single request exceeds the worker's 500 cap.
-  for(let i=0;i<notes.length;i+=450){_q.push({notes_upsert:notes.slice(i,i+450)});}
+  const grouped=new Map();for(const item of _pendingUpserts.values()){if(!grouped.has(item.ownerUid))grouped.set(item.ownerUid,[]);grouped.get(item.ownerUid).push(item.note);}_pendingUpserts.clear();
+  // Every parked draft remains attached to its originating account.
+  for(const [ownerUid,notes] of grouped){for(let i=0;i<notes.length;i+=450)_q.push({ownerUid,payload:{notes_upsert:notes.slice(i,i+450)}});}
   _runQueue();
 }
 async function load(){
+  const generation=(load.generation||0)+1;load.generation=generation;
   var _uid=brainUid();
+  const current=()=>generation===load.generation&&_uid===brainUid();
   var _signedin=false;try{_signedin=!!(window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser());}catch(e){}
-  dbg('IDENTITY: '+(_signedin?'signed-in':'owner-default')+' uid='+_uid.slice(0,16)+'…');
+  dbg('IDENTITY: '+(_signedin?'signed-in':'signed-out'));
+  if(!_signedin){STATE={notes:[],pin_set:false,readonly:true};renderStatus();renderCats();renderFilters();renderNotes();return;}
   let d=null,lastErr=null;
   for(const base of [PROXY, PROXY_FALLBACK]){
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),9000);
     try{
       const t0=Date.now();
-      const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal,headers:await authHdr()});
+      const headers=await authHdr();if(!current())return;
+      const r=await fetch(`${base}/brain?t=${Date.now()}&${uidQ()}`,{signal:ctl.signal,headers,cache:'no-store'});
+      if(!current())return;
       const dt=Date.now()-t0;
       if(r.status===401){STATE.readonly=true;lastErr='private store: sign in as the owner (HTTP 401)';dbg('LOAD '+lastErr);break;}
       if(!r.ok){const body=await r.text().catch(()=>'' );lastErr=base.replace('https://','')+' HTTP '+r.status+' in '+dt+'ms · '+body.slice(0,80);dbg('LOAD '+lastErr);continue;}
@@ -534,19 +540,22 @@ async function load(){
     }catch(e){lastErr=base.replace('https://','')+' '+e.name+': '+e.message;dbg('LOAD ERR '+lastErr);}
     finally{clearTimeout(to);}
   }
-  // Fix 2: fall back to the S3 mirror so the page never goes blank on a CF stall
+  // Authenticated owner mirror only; never fall back to a public copy.
+  if(!current())return;
   if(!d){
     try{
-      const r=await fetch(`${PROXY_FALLBACK}/data/brain.json?t=${Date.now()}`);
-      if(r.ok){const m=await r.json();if(Array.isArray(m.notes)){d={notes:m.notes,pin_set:false,scope:'mirror'};STATE.stale=true;STATE.mirrorTime=m.generated_at;dbg('LOAD MIRROR · '+m.notes.length+' notes from '+(m.generated_at||'').slice(0,16));}}
+      const r=await fetch(`${PROXY_FALLBACK}/private-artifact?kind=brain&t=${Date.now()}`,{headers:await authHdr(),cache:'no-store'});
+      if(r.ok){const m=await r.json();if(!current())return;if(Array.isArray(m.notes)){d={notes:m.notes,pin_set:false,scope:'private-mirror'};STATE.stale=true;STATE.mirrorTime=m.generated_at;dbg('LOAD MIRROR · '+m.notes.length+' notes from '+(m.generated_at||'').slice(0,16));}}
     }catch(e){}
   }
-  if(d){STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;STATE.source=d.scope;STATE.readonly=(d.scope==='mirror');}
+  if(!current())return;
+  if(d){STATE.notes=Array.isArray(d.notes)?d.notes:[];STATE.pin_set=!!d.pin_set;STATE.source=d.scope;STATE.readonly=(d.scope==='private-mirror');}
   else{STATE.notes=[];dbg('LOAD FAILED — '+(lastErr||'all sources unreachable'));}
   renderStatus();
   renderCats();renderFilters();renderNotes();
 }
 async function renderStatus(){
+  const statusUid=brainUid();const generation=(renderStatus.generation||0)+1;renderStatus.generation=generation;
   // Show that the system has READ, ANALYZED, and is APPLYING the notes.
   const el=document.getElementById('brain-status'); if(!el)return;
   // Guest-mode banner: if not signed in, notes live under a device id (this
@@ -558,7 +567,7 @@ async function renderStatus(){
     let remembered='';try{remembered=localStorage.getItem('jh_brain_account')||'';}catch(e){}
     if(STATE.readonly){
       gb=`<div style="background:rgba(34,211,238,0.07);border:1px solid #1c3a44;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--fg-2)">
-        <span>🔒 <b>Read-only</b> — ${u?'this account is not the Brain owner':'you are viewing the public mirror'}. The private store is owner-only; edits need the owner\'s sign-in.</span>
+        <span>🔒 <b>Read-only</b> — ${u?'the primary store is unavailable; this authenticated mirror is read-only':'sign in to view your private notes'}. The private store is owner-only; edits need the owner\'s sign-in.</span>
         ${u?'':'<button onclick="if(window.JustHodlAuth)JustHodlAuth.openSignIn()" style="margin-left:auto;background:var(--cyan);border:none;color:var(--bg);font-weight:700;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer">Sign in</button>'}
       </div>`;
     }
@@ -568,7 +577,8 @@ async function renderStatus(){
   // brain-sync Lambda to S3 and served by the data-proxy worker — NOT by
   // api.justhodl.ai (which only proxies /brain & /journal). So fetch it from the
   // data-proxy directly; 404 just means the AI hasn't analyzed yet.
-  try{const r=await fetch(`${PROXY_FALLBACK}/data/brain.json?t=${Date.now()}`);if(r.ok)synced=await r.json();}catch(e){}
+  try{if(!brainUid())throw new Error('sign in');const r=await fetch(`${PROXY_FALLBACK}/private-artifact?kind=brain&t=${Date.now()}`,{headers:await authHdr(),cache:'no-store'});if(r.ok)synced=await r.json();}catch(e){}
+  if(statusUid!==brainUid()||generation!==renderStatus.generation)return;
   if(!synced||!synced.directive){
     el.innerHTML=gb+`<div style="background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:16px;font-size:12.5px;color:var(--fg-3);font-family:var(--mono)">⏳ The system syncs and analyzes your notes every ~15 min. ${STATE.notes.length?'Your notes are saved — the AI worldview will appear here shortly.':'Add notes and they\'ll be read, analyzed, and applied across your engines.'}</div>`;
     return;
@@ -646,7 +656,7 @@ document.getElementById('note-input').onkeydown=(e)=>{if((e.metaKey||e.ctrlKey)&
       try{
         var u=JustHodlAuth.getUser&&JustHodlAuth.getUser();
         // identity is server-side now: any auth change re-reads the private store and resumes parked saves
-        STATE.readonly=false; load().then(function(){ if(u&&_q.length)_runQueue(); });
+        STATE.notes=[]; STATE.readonly=!u; renderNotes(); load().then(function(){ if(u&&_q.length)_runQueue(); });
       }catch(e){}
     });
   }
