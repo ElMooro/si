@@ -269,3 +269,22 @@ def nearest_notes(s3, private_bucket: str, ds_id: str, endpoint: str, query_vec:
         out.append({"id": nid, "similarity": round(sim, 4), "label": meta["labels"][i], "pinned": meta["pinned"][i],
                     "text": r.get("text", "")[:400], "created": r.get("created")})
     return out
+
+
+# ──────────────────────────────────────────────────────────── learning curve
+def write_fraction_csv(s3, private_bucket: str, ds_id: str, endpoint: str, fraction: float) -> Dict[str, Any]:
+    """A deterministic, NESTED subset of the train CSV (row i kept when hash(i) < fraction), same validation
+    set for every fraction -- the classic learning curve: validation loss as a function of training rows."""
+    base = "ai/datasets/brain/%s/emb/%s/" % (ds_id, endpoint)
+    body = s3.get_object(Bucket=private_bucket, Key=base + "train/train.csv")["Body"].read().decode()
+    lines = [l for l in body.splitlines() if l.strip()]
+    keep = []
+    for i, l in enumerate(lines):
+        h = int(hashlib.sha256(("%s|%d" % (ds_id, i)).encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
+        if h < fraction or fraction >= 1.0:
+            keep.append(l)
+    pct = int(round(fraction * 100))
+    key = base + "curve/f%03d/train.csv" % pct
+    s3.put_object(Bucket=private_bucket, Key=key, Body="\n".join(keep).encode(), ContentType="text/csv", ServerSideEncryption="AES256")
+    return {"fraction": fraction, "n_train": len(keep), "n_train_full": len(lines), "train_uri": "s3://%s/%s" % (private_bucket, base + "curve/f%03d/" % pct),
+            "validation_uri": "s3://%s/%svalidation/" % (private_bucket, base)}

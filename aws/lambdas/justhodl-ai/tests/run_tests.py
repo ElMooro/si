@@ -163,8 +163,9 @@ class FakeCW:
 class FakePricing:
     def get_products(self, **kw):
         it = [f["Value"] for f in kw["Filters"] if f["Field"] == "instanceName"][0]
-        row = {"product": {"attributes": {"instanceName": it, "component": "Hosting"}}, "terms": {"OnDemand": {"x": {"priceDimensions": {"y": {"pricePerUnit": {"USD": "0.2300000000"}}}}}}}
-        return {"PriceList": [json.dumps(row)]}
+        host = {"product": {"attributes": {"instanceName": it, "instanceType": it + "-Hosting", "usagetype": "USE1-Host:" + it}}, "terms": {"OnDemand": {"x": {"priceDimensions": {"y": {"pricePerUnit": {"USD": "0.2300000000"}}}}}}}
+        train = {"product": {"attributes": {"instanceName": it, "component": "Training", "usagetype": "USE1-Training:" + it}}, "terms": {"OnDemand": {"x": {"priceDimensions": {"y": {"pricePerUnit": {"USD": "0.2300000000"}}}}}}}
+        return {"PriceList": [json.dumps(host), json.dumps(train)]}
 
 
 def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
@@ -357,7 +358,8 @@ def test_cost_guard_rules():
     assert "unpriced" in cg.check_budget(pol, {"usd_per_day": 0.0, "unpriced": ["x"]}, 0.1, 1)
     price = FakePricing().get_products(ServiceCode="AmazonSageMaker", Filters=[{"Field": "instanceName", "Value": "ml.m5.xlarge"}])
     assert cg._price_from_products(price["PriceList"], "Hosting") == 0.23
-    assert cg._price_from_products(price["PriceList"], "Training") is None
+    assert cg._price_from_products(price["PriceList"], "Training") == 0.23
+    assert cg._price_from_products(price["PriceList"], "Processing") is None
     # TTL enforcement: past-TTL managed endpoint deleted, unmanaged and pinned untouched
     sm = FakeSM()
     old = (datetime.now(timezone.utc) - timedelta(hours=5)).isoformat()
@@ -428,6 +430,37 @@ def test_handler_auth_and_routing():
     return "401 without token, 404 unknown, policy patch persisted, deploy ok, GPU refused 400"
 
 
+def test_learning_curve_nested_fractions_and_read_model():
+    s3 = FakeS3()
+    s3.put_object("public-test", "data/brain.json", json.dumps(_brain(30)).encode())
+    store = _install_fakes(s3=s3)
+    lf = _load(store)
+    import brain_dataset as bd
+    import sm_hub
+    man = bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
+    bd.run_embedding_pass(s3, FakeRT(dim=6), "private-test", man["dataset_id"], "jh-ai-roberta", embed_fn=sm_hub.embed_texts, budget_s=30)
+    ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
+    ev = {"version": "2.0", "rawPath": "/train/curve", "requestContext": {"http": {"method": "POST", "path": "/train/curve"}}, "headers": ok,
+          "body": json.dumps({"endpoint": "jh-ai-roberta", "fractions": [0.1, 0.5, 1.0]})}
+    r = lf.lambda_handler(ev, None)
+    body = json.loads(r["body"])
+    assert r["statusCode"] == 200, body
+    runs = body["result"]["runs"]
+    assert [x["fraction"] for x in runs] == [0.1, 0.5, 1.0] and runs[0]["n_train"] < runs[1]["n_train"] < runs[2]["n_train"] == man["n_train"], runs
+    sm = store["sagemaker"]
+    assert len({x["job_name"] for x in runs}) == 3 and all(x["job_name"] in sm.jobs for x in runs)
+    # nested: the 10% subset is contained in the 50% subset
+    base = "ai/datasets/brain/%s/emb/jh-ai-roberta/curve/" % man["dataset_id"]
+    f10 = set(s3.objs[("private-test", base + "f010/train.csv")].decode().splitlines())
+    f50 = set(s3.objs[("private-test", base + "f050/train.csv")].decode().splitlines())
+    assert f10 <= f50 and len(f10) == runs[0]["n_train"]
+    out = lf.run_inventory(None)
+    L = out["learning"]
+    assert L["curves"] and L["curves"][-1]["curve_id"] == body["result"]["curve_id"] and L["curves"][-1]["runs"][0]["status"] == "Completed"
+    assert "learning" in json.loads(s3.objs[("public-test", "data/ai.json")]) and "eurodollar" not in json.dumps(out["learning"])
+    return "3 nested-fraction jobs, same validation set, metrics collected into data/ai.json"
+
+
 def test_inventory_writes_public_read_model_without_note_text():
     store = _install_fakes()
     s3 = store["s3"]
@@ -455,7 +488,8 @@ def main():
     tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
-             test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_inventory_writes_public_read_model_without_note_text]
+             test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
+             test_inventory_writes_public_read_model_without_note_text]
     failed = 0
     for t in tests:
         try:

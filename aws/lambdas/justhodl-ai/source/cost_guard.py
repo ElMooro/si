@@ -46,6 +46,8 @@ DEFAULT_POLICY = {
 }
 
 SM_PRODUCT_FAMILY = {"hosting": "Hosting", "training": "Training", "processing": "Processing", "notebook": "Notebook", "studio": "Studio"}
+FAMILY_TOKENS = {"hosting": ["hosting", "-host", "host:"], "training": ["training", "train:"], "processing": ["processing", "process:"],
+                 "notebook": ["notebook"], "studio": ["studio"]}
 
 
 def now_iso() -> str:
@@ -103,8 +105,11 @@ def _price_from_products(products: List[str], want_family: str) -> Optional[floa
         except Exception:
             continue
         attrs = (p.get("product") or {}).get("attributes") or {}
-        fam = (attrs.get("component") or attrs.get("productFamily") or p.get("product", {}).get("productFamily") or "")
-        if want_family.lower() not in str(fam).lower():
+        # the SageMaker Price List names the billing lane in several attributes depending on the row's vintage:
+        # component ("Hosting"/"Training"), instanceType ("ml.m5.xlarge-Hosting"), usagetype ("USE1-Host:ml.m5.xlarge" / "USE1-Training:...")
+        blob = " ".join(str(attrs.get(k) or "") for k in ("component", "instanceType", "usagetype", "productFamily", "operation")).lower()
+        tokens = FAMILY_TOKENS.get(want_family.lower(), [want_family.lower()])
+        if not any(tok in blob for tok in tokens):
             continue
         terms = (p.get("terms") or {}).get("OnDemand") or {}
         for t in terms.values():
