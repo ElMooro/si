@@ -113,7 +113,7 @@ def jplg_input(doc, now=None):
     if not source: return row
     stamp = re.fullmatch(r"boj:(\d{4})-?(\d{2})(?:-?\d{2})? YoY", str(source.get("asof", "")))
     valid_route = str(source.get("resolved_via", "")).startswith("boj:MD11:")
-    if source.get("source") != "bank-of-japan" or not valid_route or not stamp or source.get("status") != "LIVE" or not finite(source.get("value")):
+    if source.get("source") != "bank-of-japan" or source.get("unit") != "% YoY" or source.get("contract_version") != "boj-loan-growth-yoy.v1" or not valid_route or not stamp or source.get("status") != "LIVE" or not finite(source.get("value")):
         row.update(status="INVALID", error="JPLG lacks the curated BOJ YoY source/unit contract")
         return row
     observed = instant(stamp.group(1) + "-" + stamp.group(2) + "-01")

@@ -9,6 +9,7 @@ BOOK_SCHEMA = "1.0"
 MAX_CLOCK_SKEW_H = 5 / 60
 AUTH_MAX_AGE_H = 24.0
 BOOK_MAX_AGE_H = 24.0
+CRITICAL_SLAS = {"risk_gate":30.0,"crisis":8.0,"bond_warroom":84.0,"eurodollar_stress":30.0,"credit_composite":30.0}
 MODES = {"DATA_HOLD", "DEFENSIVE", "SELECTIVE", "SELECTIVE_RISK_ON"}
 
 
@@ -49,6 +50,8 @@ def authority_expiry(generated_at, source_health):
             if observed is None and isinstance(row.get("as_of"), str) and len(row["as_of"]) == 10:
                 observed = timestamp(row["as_of"] + "T00:00:00+00:00")
             sla = finite(row.get("max_age_h"))
+            if sla is not None and row.get("name") in CRITICAL_SLAS:
+                sla = min(sla, CRITICAL_SLAS[row["name"]])
             if observed is not None and sla is not None and sla > 0:
                 deadlines.append(observed + timedelta(hours=sla))
     return min(deadlines).isoformat()
@@ -83,14 +86,17 @@ def authority_view(payload, now=None):
         errors.append("source health is missing or malformed")
         health = []
     critical = [r for r in health if r.get("critical") is True]
-    if not critical:
-        errors.append("no critical-source contract supplied")
+    names = [r.get("name") for r in critical]
+    if any(names.count(name) != 1 for name in CRITICAL_SLAS):
+        errors.append("canonical critical-source set missing or duplicated")
     if allows is True:
         for row in critical:
             observed = row.get("as_of")
             if isinstance(observed, str) and len(observed) == 10:
                 observed += "T00:00:00+00:00"
             sla = finite(row.get("max_age_h"))
+            if sla is not None and row.get("name") in CRITICAL_SLAS:
+                sla = min(sla, CRITICAL_SLAS[row["name"]])
             if row.get("status") != "FRESH" or sla is None or sla <= 0 or not fresh_timestamp(observed, now, sla):
                 errors.append("critical source unusable: " + str(row.get("name", "unknown")))
         if kr.get("critical_failures") != []:

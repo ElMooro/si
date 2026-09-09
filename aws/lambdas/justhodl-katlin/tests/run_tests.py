@@ -49,9 +49,9 @@ def _gate(posture="RISK_ON", sizing=1.0, hours_ago=2):
 
 def _auth(cap=50, allows=True, mode="SELECTIVE", hours_ago=1, vetoes=None):
     ts = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
-    return {"engine":"justhodl-khalid-risk", "schema_version":"1.0.0", "generated_at":ts.isoformat(), "expires_at":(ts+timedelta(hours=24)).isoformat(), "status":"OK",
+    return {"engine":"justhodl-khalid-risk", "schema_version":"1.0.0", "generated_at":ts.isoformat(), "expires_at":(ts+timedelta(hours=8)).isoformat(), "status":"OK",
             "capital_decision":"INVEST SELECTIVELY", "exposure_cap_pct":cap, "policy":{"mode":mode,"allows_new_entries":allows,"exposure_cap_pct":cap,"reasons":["test"]},
-            "hard_vetoes":vetoes or [], "critical_failures":[], "source_health":[{"name":"risk_gate","critical":True,"status":"FRESH","as_of":ts.isoformat(),"max_age_h":24.0}]}
+            "hard_vetoes":vetoes or [], "critical_failures":[], "source_health":[{"name":name,"critical":True,"status":"FRESH","as_of":ts.isoformat(),"max_age_h":sla} for name,sla in {"risk_gate":30,"crisis":8,"bond_warroom":84,"eurodollar_stress":30,"credit_composite":30}.items()]}
 
 
 

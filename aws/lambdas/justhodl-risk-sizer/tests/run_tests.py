@@ -49,9 +49,9 @@ def _iso(hours_ago=1):
 
 def _auth(cap=100, allows=True, mode="SELECTIVE_RISK_ON", hours_ago=1):
     ts = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
-    return {"engine": "justhodl-khalid-risk", "schema_version": "1.0.0", "generated_at": ts.isoformat(), "expires_at": (ts+timedelta(hours=24)).isoformat(),
+    return {"engine": "justhodl-khalid-risk", "schema_version": "1.0.0", "generated_at": ts.isoformat(), "expires_at": (ts+timedelta(hours=8)).isoformat(),
             "status": "OK", "exposure_cap_pct": cap, "policy": {"mode": mode, "allows_new_entries": allows, "exposure_cap_pct": cap}, "hard_vetoes": [], "critical_failures": [],
-            "source_health": [{"name":"risk_gate", "critical":True, "status":"FRESH", "as_of":ts.isoformat(), "max_age_h":24.0}]}
+            "source_health": [{"name":name,"critical":True,"status":"FRESH","as_of":ts.isoformat(),"max_age_h":sla} for name,sla in {"risk_gate":30,"crisis":8,"bond_warroom":84,"eurodollar_stress":30,"credit_composite":30}.items()]}
 
 
 def _book(positions=None, nav=100000, cash=None, hours_ago=1, orders=None):
@@ -190,6 +190,8 @@ def test_future_malformed_and_expired_authority_fails_closed():
         a=_auth();a["exposure_cap_pct"]=cap;a["policy"]["exposure_cap_pct"]=cap;bad.append(a)
     a=_auth();a["schema_version"]="wrong";bad.append(a)
     a=_auth();a["status"]="INVALID";bad.append(a)
+    a=_auth();a["source_health"].pop();bad.append(a)
+    a=_auth();a["source_health"][1]["max_age_h"]=1e9;a["source_health"][1]["as_of"]="2000-01-01T00:00:00Z";bad.append(a)
     a=_auth();a["expires_at"]=_iso(1);bad.append(a)
     for a in bad:
         _, out=_run(_base_docs(**{"data/khalid-risk.json":a}))

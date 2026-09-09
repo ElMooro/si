@@ -512,6 +512,8 @@ def validate_output(payload: dict) -> None:
     if policy.get("mode") == "DATA_HOLD" and (cap != 0 or policy["allows_new_entries"]): raise ValueError("DATA_HOLD cannot permit capital")
     if policy["allows_new_entries"] and (payload.get("hard_vetoes") or payload.get("critical_failures")): raise ValueError("veto/critical failure cannot permit entries")
     if payload.get("expires_at") != authority_expiry(payload.get("generated_at"), payload.get("source_health")): raise ValueError("authority expiry does not match input deadlines")
+    board=mapping(payload.get("risk_board"))
+    if number(board.get("exposure_cap_pct")) != cap or board.get("allows_new_entries") != policy["allows_new_entries"] or board.get("mode") != policy["mode"]: raise ValueError("risk board and policy must agree")
     risk=number(payload.get("risk_score"))
     if payload.get("risk_score") is not None and (risk is None or not 0<=risk<=100): raise ValueError("risk score invalid")
     if not isinstance(payload.get("domains"),list) or not isinstance(payload.get("source_health"),list): raise ValueError("domains/source health must be lists")

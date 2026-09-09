@@ -16,7 +16,7 @@ test('Expiry is evaluated at use time and clears basket and recommendation alloc
  }
 });
 test('Future, malformed cap and mismatched authority contracts never permit display',()=>{
- for(const change of [p=>p.authority.exposure_cap_pct=NaN,p=>p.authority.generated_at='2099-01-01T00:00:00Z',p=>p.authority.schema_version='wrong',p=>p.final_constraint_check.gross_ok=false]){
+ for(const change of [p=>p.authority.exposure_cap_pct=NaN,p=>p.authority.generated_at='2099-01-01T00:00:00Z',p=>p.authority.schema_version='wrong',p=>p.final_constraint_check.gross_ok=false,p=>p.authority.source_health.pop()]){
   const p=structuredClone(payload.sizer);change(p);assert(api.permissionErrors(p,'risk-sizer').length);
  }
 });

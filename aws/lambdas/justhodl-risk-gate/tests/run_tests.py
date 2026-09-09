@@ -167,9 +167,11 @@ def test_jplg_provenance_blocks_loan_levels_and_stale_yoy(mod):
     row = {"symbol": "JPLG", "value": 3000000, "source": "imf:MFS_DC (family)", "adapter": "family:LG", "status": "LIVE", "asof": "2026-08"}
     result = jplg_input({"symbols": [row]}, now)
     assert result["status"] == "INVALID" and result["value"] is None and result["score_adj"] == 0
-    row.update(value=-0.2, source="bank-of-japan", resolved_via="boj:MD11:DLCLAADBLTTO", asof="boj:202608 YoY")
+    row.update(value=-0.2, unit="% YoY", contract_version="boj-loan-growth-yoy.v1", source="bank-of-japan", resolved_via="boj:MD11:DLCLAADBLTTO", asof="boj:202608 YoY")
     result = jplg_input({"symbols": [row]}, now)
     assert result["status"] == "OK" and result["value"] == -0.2 and result["score_adj"] == -0.4
+    wrong=dict(row,unit="JPY");assert jplg_input({"symbols":[wrong]},now)["status"]=="INVALID"
+    legacy=dict(row);legacy.pop("contract_version");assert jplg_input({"symbols":[legacy]},now)["status"]=="INVALID"
     row["asof"] = "boj:200001 YoY"
     assert jplg_input({"symbols": [row]}, now)["status"] == "STALE"
 

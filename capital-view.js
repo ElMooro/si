@@ -1,6 +1,7 @@
 /* Capital permission checks and complete, lazy evidence inspection. No network. */
 (function(root){
   'use strict';
+  const criticalSLAs={risk_gate:30,crisis:8,bond_warroom:84,eurodollar_stress:30,credit_composite:30};
   const finite = n => typeof n === 'number' && Number.isFinite(n);
   const iso = s => typeof s === 'string' && /(?:Z|[+-]\d\d:\d\d)$/.test(s) ? Date.parse(s) : NaN;
   function permissionErrors(p, kind, now=Date.now()) {
@@ -18,7 +19,7 @@
       if(!Number.isFinite(age)||age< -300000||age>24*3600000||!Number.isFinite(ae)||ae<=now||expiry>ae+1000) errors.push('Capital authority expired');
       if(!Array.isArray(a.hard_vetoes)||a.hard_vetoes.length||!Array.isArray(a.critical_failures)||a.critical_failures.length) errors.push('Capital authority reports unresolved vetoes or failures');
       const critical=Array.isArray(a.source_health)?a.source_health.filter(x=>x&&x.critical===true):[];
-      if(!critical.length||critical.some(x=>{const t=iso(typeof x.as_of==='string'&&x.as_of.length===10?x.as_of+'T00:00:00Z':x.as_of), age=now-t;return x.status!=='FRESH'||!finite(x.max_age_h)||!Number.isFinite(age)||age< -300000||age>x.max_age_h*3600000;})) errors.push('Critical risk evidence is missing or expired');
+      if(Object.keys(criticalSLAs).some(name=>critical.filter(x=>x.name===name).length!==1)||critical.some(x=>{const t=iso(typeof x.as_of==='string'&&x.as_of.length===10?x.as_of+'T00:00:00Z':x.as_of), age=now-t;return x.status!=='FRESH'||!finite(x.max_age_h)||!Number.isFinite(age)||age< -300000||age>Math.min(x.max_age_h,criticalSLAs[x.name]||x.max_age_h)*3600000;})) errors.push('Critical risk evidence is missing or expired');
       if(katlin) {
         const researchAge=now-iso(p.research_generated_at), marketAge=now-iso(String(p.session||'')+'T00:00:00Z');
         if(p.research_status!=='FRESH'||!Number.isFinite(researchAge)||researchAge< -300000||researchAge>36*3600000||!Number.isFinite(marketAge)||marketAge< -300000||marketAge>96*3600000) errors.push('Research observations expired');
