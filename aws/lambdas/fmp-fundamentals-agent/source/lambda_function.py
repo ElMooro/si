@@ -14,9 +14,9 @@ BASE = 'https://financialmodelingprep.com/stable/'
 WATCH = ['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','JPM','V','XOM','JNJ','WMT',
          'MA','HD','CVX','LLY','AVGO','NFLX','AMD','VRT','PLTR','SMCI','ARM','MSTR']
 INDICES = ['^GSPC','^IXIC','^DJI','^VIX','^TRN']
-HEADERS = {'Content-Type':'application/json','Access-Control-Allow-Origin':'*',
-           'Access-Control-Allow-Headers':'Content-Type','Access-Control-Allow-Methods':'GET, OPTIONS',
-           'Cache-Control':'no-store'}
+# The production Function URL owns CORS. Returning it here as well produces
+# duplicate allow-origin headers, which browsers reject (verified by ops5271).
+HEADERS = {'Content-Type':'application/json','Cache-Control':'no-store'}
 CACHE = None
 CACHE_UNTIL = 0
 
