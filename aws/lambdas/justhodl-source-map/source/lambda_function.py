@@ -1,37 +1,14 @@
-"""justhodl-source-map — the attribution rollup engine.
-
-WHY THIS EXISTS (ops 4071 finding): data/source-map.json — the artifact
-harvest-monitor.html renders — had NO producer.  A probe across all 756
-fleet functions found zero Lambdas writing it and zero schedules touching
-it.  It existed only because an ops script wrote it by hand, which means
-the monitor froze the moment the session ended.  That is precisely the
-"declared != live" failure this fleet has been burned by before, so the
-logic is promoted here into a real scheduled engine.
-
-WHAT IT DOES
-  1. Reads data/tv-sources.json (the extension's landing artifact).
-  2. Normalises attribution: strips the source/ provider/ country/
-     prefixes the TV payloads carry, drops lowercase-slug junk (logoids
-     like "django_model" that are rendering hints, not publishers).
-  3. Writes the cleaned store back — idempotent, so junk that re-lands on
-     a later sync is purged automatically instead of accumulating.
-  4. Rolls attribution up into KNOWN agency families and NEW sources.
-  5. NEW vs the hand-run version: an ECONOMICS→agency rollup, agency
-     coverage against the gov-sources registry, and harvest progress
-     telemetry — the numbers that say whether the walk is actually
-     reaching the payoff rather than grinding through trading venues.
-
-Every key written here is rendered by harvest-monitor.html; the field
-coverage is asserted by the deploy op.
+"""Public source-family rollup. Reads IAM-only browser attribution, writes only
+its own data/source-map.json projection. Raw prose and diagnostics stay private.
 """
 import json
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "source-map engine v2.2 ops4100"
+MARKER = "source-map engine v3 public-source-map.v1"
 BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -103,126 +80,101 @@ def gj(key, default=None):
         return default
 
 
+# Public symbols are qualified market identifiers, never free-form browser labels.
+PUBLIC_SYMBOL = re.compile(r'^(?:ECONOMICS|FRED|NASDAQ|NYSE|AMEX|ARCA|CBOE|CME|CBOT|COMEX|NYMEX|ICEUS|TVC|CRYPTOCAP|BINANCE|COINBASE|BITSTAMP|KRAKEN|OANDA|FX):[A-Z0-9][A-Z0-9_.!^/-]{0,39}$')
+PUBLIC_FAMILIES = frozenset(KNOWN) | {'UNMAPPED', 'OTHER-OFFICIAL'}
+
+
+def public_number(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    import math
+    return value if math.isfinite(value) and value >= 0 else None
+
+
+def public_timestamp(value):
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        if parsed.tzinfo is None:
+            return None
+        return parsed.astimezone(timezone.utc).isoformat()
+    except ValueError:
+        return None
+
+
 def lambda_handler(event, context):
-    print(f"[source-map] {MARKER}")
-    now = datetime.now(timezone.utc)
+    """Read the private landing artifact; publish a distinct public projection.
 
-    sr = gj("data/tv-sources.json", {}) or {}
-    store = sr.get("sources") or {}
-    diag = sr.get("last_harvest_diag") or {}
-
-    # ── 1. normalise + purge junk (idempotent) ──
-    real = {}
-    for k, v in store.items():
-        if not isinstance(v, dict):
+    No write back to ingest's store: that read/modify/write lost concurrent
+    browser updates. No browser source prose or diagnostics enter this output.
+    Family matching is a classification heuristic, not independent attestation.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    raw = gj('data/tv-sources.json')
+    available = isinstance(raw, dict) and isinstance(raw.get('sources'), dict)
+    sr = raw if isinstance(raw, dict) else {}
+    store = sr.get('sources') if available else {}
+    diag = sr.get('last_harvest_diag')
+    diag = diag if isinstance(diag, dict) else {}
+    real, cleaned, families, by = {}, {}, Counter(), Counter()
+    for symbol, value in store.items():
+        if not isinstance(value, dict):
             continue
-        n0 = PFX_RX.sub("", str(v.get("source") or "")).strip()
-        if not n0 or JUNK_RX.match(n0.replace("-", "_")):
+        source = PFX_RX.sub('', str(value.get('source') or '')).strip()
+        if not source or JUNK_RX.match(source.replace('-', '_')):
             continue
-        real[k] = {"source": n0,
-                   "description": v.get("description"),
-                   "updated": v.get("updated")}
-    junk = len(store) - len(real)
-
-    if real and len(real) != len(store):
-        sr["sources"] = real
-        sr["n_symbols"] = len(real)
-        s3.put_object(Bucket=BUCKET, Key="data/tv-sources.json",
-                      Body=json.dumps(sr), ContentType="application/json",
-                      CacheControl="max-age=120")
-
-    # ── 2. roll up ──
-    by, ex = Counter(), defaultdict(list)
-    for sym, v in real.items():
-        src = str(v.get("source"))
-        by[src] += 1
-        if len(ex[src]) < 3:
-            ex[src].append(sym)
-
-    known_ct, new_rows = Counter(), []
-    for src, n in by.most_common():
-        fam = fam_of(src)
-        if fam:
-            known_ct[fam] += n
-        else:
-            new_rows.append({"source": src, "n_symbols": n,
-                             "examples": ex[src]})
-
-    # ── 3. THE PAYOFF: ECONOMICS symbols → publishing agency ──
-    econ = {k: v["source"] for k, v in real.items()
-            if k.upper().startswith(("ECONOMICS", "FRED"))}
-    econ_by = Counter(econ.values())
-    economics_agencies = [{"source": s, "n_symbols": n,
-                           "family": fam_of(s) or "UNMAPPED"}
-                          for s, n in econ_by.most_common(40)]
-
-    agency_families = {f: n for f, n in known_ct.items()
-                       if f not in NON_AGENCY}
-
-    # v2.1 — MACRO JOIN. TradingView returns source=null for its entire
-    # macro namespace (ops 4081), so agency attribution for ECONOMICS/FRED
-    # symbols cannot come from the harvester at all. justhodl-macro-
-    # attribution resolves it from FRED's own series/release/sources
-    # metadata and the vault's government adapters. Merged here so the
-    # page shows one honest agency picture instead of a browser-only view
-    # that is structurally stuck at zero.
-    ma = gj("data/macro-attribution.json", {}) or {}
-    macro_attr = ma.get("attribution") or {}
-    macro_fams = Counter()
-    for sym, v in macro_attr.items():
-        macro_fams[v.get("family") or "OTHER-OFFICIAL"] += 1
-    for f, n in macro_fams.items():
-        agency_families[f] = agency_families.get(f, 0) + n
-    for row in (ma.get("by_publisher") or [])[:40]:
-        economics_agencies.append({"source": row.get("publisher"),
-                                   "n_symbols": row.get("n_symbols"),
-                                   "family": row.get("family")})
-    econ_count_extra = len(macro_attr)
-    macro_unattributed = ma.get("unattributed") or 0
-
-    agency_rows = sum(agency_families.values())
-
-    # ── 4. is the walk actually reaching the payoff? ──
-    done = int(diag.get("done") or 0)
-    total = int(diag.get("total") or 0)
-    progress = {
-        "walked": done,
-        "total": total,
-        "pct": round(done / total * 100, 1) if total else 0.0,
-        "tier1_done": diag.get("tier1_done"),
-        "rate_per_min": diag.get("rate_per_min"),
-        "elapsed_s": diag.get("elapsed_s"),
-        "matched": diag.get("matched"),
-        "eta_hours": (round((total - done) / diag["rate_per_min"] / 60, 1)
-                      if diag.get("rate_per_min") else None),
-    }
-
-    out = {
-        "generated_at": now.isoformat(),
-        "marker": MARKER,
-        "symbols_with_source": len(real),
-        "distinct_sources": len(by),
-        "junk_purged": junk,
-        "known_families": dict(known_ct),
-        "agency_families": agency_families,
-        "agency_rows": agency_rows,
-        "venue_rows": known_ct.get("MARKET-VENUES", 0),
-        "economics_agencies": economics_agencies,
-        "economics_symbols": len(econ) + econ_count_extra,
-        "macro_attributed": econ_count_extra,
-        "macro_unattributed": macro_unattributed,
-        "macro_coverage_pct": ma.get("coverage_pct"),
-        "harvest_progress": progress,
-        "new_sources": new_rows,
-    }
-    s3.put_object(Bucket=BUCKET, Key="data/source-map.json",
-                  Body=json.dumps(out), ContentType="application/json",
-                  CacheControl="max-age=120")
-
-    print(f"[source-map] DONE real={len(real)} junk={junk} "
-          f"agency={agency_rows} venue={out['venue_rows']} "
-          f"econ={len(econ)} walked={done}/{total}")
-    return {"statusCode": 200,
-            "body": json.dumps({"symbols_with_source": len(real),
-                                "agency_rows": agency_rows,
-                                "economics_symbols": len(econ)})}
+        family = fam_of(source) or 'UNMAPPED'
+        real[symbol] = family
+        families[family] += 1
+        by[source] += 1
+        if isinstance(symbol, str) and PUBLIC_SYMBOL.fullmatch(symbol):
+            cleaned[symbol] = {'source_family': family,
+                               'updated': public_timestamp(value.get('updated'))}
+    known = {f:n for f,n in families.items() if f != 'UNMAPPED'}
+    agency = {f:n for f,n in known.items() if f not in NON_AGENCY}
+    econ = Counter(f for symbol,f in real.items()
+                   if isinstance(symbol,str) and symbol.startswith(('ECONOMICS:', 'FRED:')))
+    ma = gj('data/macro-attribution.json')
+    ma = ma if isinstance(ma,dict) else {}
+    macro = ma.get('attribution')
+    macro = macro if isinstance(macro,dict) else {}
+    for value in macro.values():
+        if not isinstance(value,dict):
+            continue
+        family = value.get('family')
+        family = family if isinstance(family,str) and family in PUBLIC_FAMILIES else 'UNMAPPED'
+        if family not in NON_AGENCY and family != 'UNMAPPED':
+            agency[family] = agency.get(family,0)+1
+        econ[family] += 1
+    done, total, rate = (public_number(diag.get(k)) for k in ('done','total','rate_per_min'))
+    progress = {'walked':done,'total':total,
+                'pct':round(done/total*100,1) if done is not None and total else None,
+                'tier1_done':public_number(diag.get('tier1_done')),
+                'rate_per_min':rate,'elapsed_s':public_number(diag.get('elapsed_s')),
+                'matched':public_number(diag.get('matched')),
+                'eta_hours':round(max(total-done,0)/rate/60,1) if done is not None and total is not None and rate else None}
+    out = {'schema_version':'public-source-map.v1','engine':'justhodl-source-map',
+           'generated_at':now,'marker':MARKER,
+           'publication':{'scope':'PUBLIC_MARKET_SOURCE_METADATA','contains_private_data':False,
+                          'raw_source_text_private':True,'raw_diagnostics_private':True},
+           'input_artifact':'data/tv-sources.json','input_generated_at':public_timestamp(sr.get('generated_at')),
+           'input_status':'AVAILABLE' if available else 'UNAVAILABLE',
+           'classification_method':'Fixed agency-family keyword classification; no independent publisher attestation. Unrecognized text is withheld.',
+           'symbols_with_source':len(real),'distinct_sources':len(by),
+           'junk_filtered':len(store)-len(real),'known_families':known,
+           'agency_families':agency,'agency_rows':sum(agency.values()),
+           'venue_rows':families.get('MARKET-VENUES',0),
+           'economics_agencies':[{'source_family':family,'n_symbols':n} for family,n in econ.most_common()],
+           'economics_symbols':sum(econ.values()),'macro_attributed':len(macro),
+           'macro_unattributed':public_number(ma.get('unattributed')),
+           'macro_coverage_pct':public_number(ma.get('coverage_pct')),
+           'macro_input_generated_at':public_timestamp(ma.get('generated_at')),
+           'harvest_progress':progress,'cleaned_sources':cleaned,
+           'public_symbol_count':len(cleaned),'withheld_symbol_count':len(real)-len(cleaned),
+           'unmapped_source_rows':families.get('UNMAPPED',0),
+           'errors':[] if available else ['SOURCE_INPUT_UNAVAILABLE']}
+    s3.put_object(Bucket=BUCKET,Key='data/source-map.json',Body=json.dumps(out,allow_nan=False),
+                  ContentType='application/json',CacheControl='max-age=120')
+    return {'statusCode':200,'body':json.dumps({'symbols_with_source':len(real),'public_symbol_count':len(cleaned),'input_status':out['input_status']})}

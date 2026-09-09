@@ -1,3 +1,4 @@
+"""KA Metrics owns only data/ka-*.json; legacy Khalid outputs have their own producer."""
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json,os,urllib.request,urllib.error,boto3,traceback,time
 from datetime import datetime,timedelta,timezone
@@ -17,11 +18,29 @@ def cors_response(status,body):
     return{'statusCode':status,'headers':{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'*','Access-Control-Allow-Headers':'Content-Type'},'body':json.dumps(body,default=str)}
 
 def load_config():
-    try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-config.json');return json.loads(obj['Body'].read())
-    except:return{"metrics":[],"categories":[],"version":1}
+    """Read KA's own configuration; seed from legacy only on confirmed absence.
+
+    The fallback is read-only. Authentication, decoding and transient errors
+    must not silently select another engine's settings or publish an empty book.
+    """
+    try:
+        obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-config.json')
+        config=json.loads(obj['Body'].read())
+        source='data/ka-config.json'
+    except Exception as exc:
+        code=getattr(exc,'response',{}).get('Error',{}).get('Code')
+        if str(code) not in ('NoSuchKey','NotFound','404'):
+            raise
+        obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-config.json')
+        config=json.loads(obj['Body'].read())
+        source='data/khalid-config.json'
+    if not isinstance(config,dict) or not isinstance(config.get('metrics'),list):
+        raise ValueError('Metrics configuration unavailable or malformed')
+    config['configuration_source']={'artifact':source,'legacy_read_only_fallback':source!='data/ka-config.json'}
+    return config
 
 def save_config(config):
-    s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-config.json',Body=json.dumps(config,indent=2).encode('utf-8'),ContentType='application/json')
+    config['configuration_source']={'artifact':'data/ka-config.json','legacy_read_only_fallback':False}
     s3.put_object(Bucket=S3_BUCKET,Key='data/ka-config.json',Body=json.dumps(config,indent=2).encode('utf-8'),ContentType='application/json')
 
 # ═══════════════════════════════════════════
@@ -249,8 +268,7 @@ def refresh_data(config):
         cm=[m for m in config['metrics']if m.get('category')==cat and m.get('enabled',True)]
         if cm:cr[cat]=calc_risk(md,{'metrics':cm,'categories':[cat]})
     now=datetime.now(timezone(timedelta(hours=-5)))
-    result={'metrics':md,'risk_index':ri,'category_risks':cr,'errors':errors,'generated':now.isoformat(),'count':len(md),'version':config.get('version',1)}
-    s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-metrics.json',Body=json.dumps(result,indent=2).encode('utf-8'),ContentType='application/json')
+    result={'engine':'justhodl-ka-metrics','schema_version':'macro-metrics.v1','configuration_source':config.get('configuration_source'),'metrics':md,'risk_index':ri,'category_risks':cr,'errors':errors,'generated':now.isoformat(),'count':len(md),'version':config.get('version',1)}
     s3.put_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json',Body=json.dumps(result,indent=2).encode('utf-8'),ContentType='application/json')
     print(f"\n{'='*50}\nPUBLISHED: {len(md)} OK, {len(errors)} errors, risk={ri}\n{'='*50}")
     if errors:print(f"ERRORS: {errors}")
@@ -318,8 +336,12 @@ Return ONLY valid JSON:
             if text.startswith("```"):text=text.split("\n",1)[1]if"\n"in text else text[3:]
             if text.endswith("```"):text=text[:-3]
             analysis=_loads_repair(text.strip())
+            analysis['engine']='justhodl-ka-metrics'
+            analysis['schema_version']='macro-analysis.v1'
+            analysis['input_artifact']='data/ka-metrics.json'
+            analysis['input_generated']=data.get('generated')
+            analysis['llm_status']='available'
             analysis['generated']=datetime.now(timezone(timedelta(hours=-5))).isoformat()
-            s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
             return analysis
@@ -330,11 +352,13 @@ Return ONLY valid JSON:
         try:
             try:prev=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json')['Body'].read())
             except Exception:prev={}
+            prev['engine']='justhodl-ka-metrics'
+            prev['schema_version']='macro-analysis.v1'
+            prev['input_artifact']='data/ka-metrics.json'
             prev['llm_status']='unavailable'
             prev['llm_error']=str(e)[:140]
             prev['llm_last_attempt']=datetime.now(timezone.utc).isoformat()
             body=json.dumps(prev,indent=2).encode('utf-8')
-            s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json',Body=body,ContentType='application/json')
             s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=body,ContentType='application/json')
             print("[ka] degrade-write: previous analysis preserved + llm_status stamped")
         except Exception as e2:print(f"[ka] degrade-write failed: {e2}")
@@ -344,7 +368,7 @@ Return ONLY valid JSON:
 # HANDLER
 # ═══════════════════════════════════════════
 def lambda_handler(event,context):
-    print(f"Khalid Metrics: {datetime.now()}")
+    print(f"KA Metrics: {datetime.now()}")
     hm=None;path='/';body=None
     if 'requestContext' in event and 'http' in event.get('requestContext',{}):
         hm=event['requestContext']['http']['method'];path=event.get('rawPath','/');body=event.get('body','')
@@ -357,20 +381,20 @@ def lambda_handler(event,context):
         if hm=='GET':
             if path=='/config':return cors_response(200,config)
             elif path=='/data':
-                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-metrics.json');return cors_response(200,json.loads(obj['Body'].read()))
+                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');return cors_response(200,json.loads(obj['Body'].read()))
                 except:return cors_response(200,{'metrics':{},'risk_index':50})
             elif path=='/analysis':
-                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json');return cors_response(200,json.loads(obj['Body'].read()))
+                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json');return cors_response(200,json.loads(obj['Body'].read()))
                 except:return cors_response(200,{'error':'No analysis yet'})
             elif path=='/refresh':return cors_response(200,refresh_data(config))
             elif path=='/analyze':
-                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-metrics.json');data=json.loads(obj['Body'].read())
+                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');data=json.loads(obj['Body'].read())
                 except:data={'metrics':{},'risk_index':50}
                 return cors_response(200,run_ai_analysis(config,data))
             else:
-                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-metrics.json');data=json.loads(obj['Body'].read())
+                try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');data=json.loads(obj['Body'].read())
                 except:data={'metrics':{},'risk_index':50}
-                try:obj2=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json');analysis=json.loads(obj2['Body'].read())
+                try:obj2=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json');analysis=json.loads(obj2['Body'].read())
                 except:analysis=None
                 return cors_response(200,{'config':config,'data':data,'analysis':analysis})
         elif hm in('POST','PUT'):

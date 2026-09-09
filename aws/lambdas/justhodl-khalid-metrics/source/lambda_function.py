@@ -248,7 +248,7 @@ def refresh_data(config):
         cm=[m for m in config['metrics']if m.get('category')==cat and m.get('enabled',True)]
         if cm:cr[cat]=calc_risk(md,{'metrics':cm,'categories':[cat]})
     now=datetime.now(timezone(timedelta(hours=-5)))
-    result={'metrics':md,'risk_index':ri,'category_risks':cr,'errors':errors,'generated':now.isoformat(),'count':len(md),'version':config.get('version',1)}
+    result={'engine':'justhodl-khalid-metrics','schema_version':'macro-metrics.v1','metrics':md,'risk_index':ri,'category_risks':cr,'errors':errors,'generated':now.isoformat(),'count':len(md),'version':config.get('version',1)}
     s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-metrics.json',Body=json.dumps(result,indent=2).encode('utf-8'),ContentType='application/json')
     print(f"\n{'='*50}\nPUBLISHED: {len(md)} OK, {len(errors)} errors, risk={ri}\n{'='*50}")
     if errors:print(f"ERRORS: {errors}")
@@ -316,6 +316,11 @@ Return ONLY valid JSON:
             if text.startswith("```"):text=text.split("\n",1)[1]if"\n"in text else text[3:]
             if text.endswith("```"):text=text[:-3]
             analysis=_loads_repair(text.strip())
+            analysis['engine']='justhodl-khalid-metrics'
+            analysis['schema_version']='macro-analysis.v1'
+            analysis['input_artifact']='data/khalid-metrics.json'
+            analysis['input_generated']=data.get('generated')
+            analysis['llm_status']='available'
             analysis['generated']=datetime.now(timezone(timedelta(hours=-5))).isoformat()
             s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")

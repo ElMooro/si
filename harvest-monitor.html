@@ -13,63 +13,15 @@ button{background:var(--amber);color:#111;font-weight:800;border:0;border-radius
 </style></head><body>
 <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
 <h1>Harvest Monitor</h1>
-<span class="dim">live view of every landing artifact · auto-refresh <span id="cd">30</span>s</span>
+<span class="dim">public source-family projection · auto-refresh <span id="cd">30</span>s</span>
 <button onclick="load()">refresh now</button></div>
 <div class="grid" id="stats"></div>
-<div class="card"><b>Harvest diagnostics</b> <span class="dim">(ships with every sync, even at zero)</span><div id="diag" class="mono" style="font-size:12px;margin-top:6px">—</div></div>
+<div class="card"><b>Private harvest material</b> <span class="dim">(authenticated access unavailable here)</span><div id="diag" class="mono" style="font-size:12px;margin-top:6px">—</div></div>
 <div class="card" style="margin-top:10px"><b>Walk progress</b> <span class="dim">is the harvester actually reaching the payoff?</span><div id="prog" style="margin-top:6px">—</div></div>
-<div class="card" style="margin-top:10px"><b>Agency coverage</b> <span class="dim">official publishers attested by attribution — the point of the arc</span><div id="agency" style="margin-top:6px">—</div></div>
+<div class="card" style="margin-top:10px"><b>Agency coverage</b> <span class="dim">classified source families — not independent attestation</span><div id="agency" style="margin-top:6px">—</div></div>
 <div class="card" style="margin-top:10px"><b>ECONOMICS &rarr; publishing agency</b> <span class="dim">which body actually publishes each macro series</span><div id="econ" style="margin-top:6px">—</div></div>
-<div class="card" style="margin-top:10px"><b>Latest sources captured</b><div id="latest">—</div></div>
+<div class="card" style="margin-top:10px"><b>Latest public market references</b><div id="latest">—</div></div>
 <div class="card" style="margin-top:10px"><b>Top sources</b><div id="tops">—</div></div>
-<div class="card" style="margin-top:10px"><b>NEW sources (not yet in the system)</b> <span class="dim">from data/source-map.json</span><div id="newsrc">—</div></div>
-<script>
-const P='https://justhodl-data-proxy.raafouis.workers.dev/data/',S='https://s3.amazonaws.com/justhodl-dashboard-live/data/';
-const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-async function gj(f){for(const b of[P,S]){try{const r=await fetch(b+f+'?v='+Date.now());if(r.ok)return await r.json()}catch(e){}}return null}
-function ago(iso){if(!iso)return '—';const m=(Date.now()-new Date(iso))/60000;return m<1?'just now':m<60?Math.round(m)+' min ago':(m/60).toFixed(1)+' h ago'}
-async function load(){
- const [src,wl,wb,map]=await Promise.all([gj('tv-sources.json'),gj('tv-watchlists.json'),gj('tv-workbench.json'),gj('source-map.json')]);
- const n=src?Object.keys(src.sources||{}).length:null;
- document.getElementById('stats').innerHTML=[
-  ['sources landed',n===null?'<span class="amb">not born yet</span>':'<span class="ok">'+n+'</span>',src&&ago(src.generated_at)],
-  ['watchlists',wl?((wl.lists||wl.watchlists||[]).length):'—',wl&&ago(wl.generated_at)],
-  ['workbench (page)',wb?((wb.totals||{}).symbols_with_tv_source??0)+' sourced':'—',wb&&ago(wb.generated_at)],
-  ['delta: NEW sources',map?((map.new_sources||[]).length):'<span class="dim">awaits sources</span>',map&&ago(map.generated_at)]
- ].map(([k,v,t])=>`<div class="card"><div class="dim" style="font-size:11px">${k}</div><div class="big">${v}</div><div class="dim" style="font-size:11px">${t||''}</div></div>`).join('');
- const d=src&&src.last_harvest_diag;
- document.getElementById('diag').innerHTML=d?('<b>'+esc(JSON.stringify(d))+'</b>'):'<span class="dim">no diag yet — lands with the next sync</span>';
- if(src){const rows=Object.entries(src.sources||{}).sort((a,b)=>String(b[1].updated).localeCompare(String(a[1].updated))).slice(0,15);
-  document.getElementById('latest').innerHTML='<table><tr><th>symbol</th><th>pulled from</th><th>when</th></tr>'+rows.map(([k,v])=>`<tr><td class="mono">${esc(k)}</td><td class="blue" style="color:var(--blue)">${esc(v.source)}</td><td class="dim">${ago(v.updated)}</td></tr>`).join('')+'</table>';
-  const c={};Object.values(src.sources||{}).forEach(v=>{c[v.source]=(c[v.source]||0)+1});
-  document.getElementById('tops').innerHTML=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([s2,n2])=>`<div style="display:flex;gap:8px"><b style="width:44px;text-align:right">${n2}</b><span>${esc(s2)}</span></div>`).join('');
- }
- if(map)document.getElementById('newsrc').innerHTML=(map.new_sources||[]).slice(0,15).map(x=>`<div style="display:flex;gap:8px"><b style="width:44px;text-align:right">${x.n_symbols}</b><span>${esc(x.source)}</span><span class="dim" style="font-size:11px">e.g. ${esc((x.examples||[]).join(', '))}</span></div>`).join('')||'<span class="dim">none yet</span>';
- if(map){
-  const pr=map.harvest_progress||{};
-  document.getElementById('prog').innerHTML=
-   `<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:#1c2129;margin-bottom:8px"><div style="width:${pr.pct||0}%;background:var(--amber)"></div></div>`+
-   `<table><tr><td class="dim">walked</td><td><b>${pr.walked??'—'}</b> / ${pr.total??'—'} <span class="dim">(${pr.pct??0}%)</span></td>`+
-   `<td class="dim">agency rows walked</td><td><b class="ok">${pr.tier1_done??'—'}</b></td></tr>`+
-   `<tr><td class="dim">rate</td><td>${pr.rate_per_min??'—'} /min</td>`+
-   `<td class="dim">ETA</td><td>${pr.eta_hours??'—'} h</td></tr>`+
-   `<tr><td class="dim">matched</td><td>${pr.matched??'—'}</td>`+
-   `<td class="dim">elapsed</td><td>${pr.elapsed_s??'—'} s</td></tr></table>`;
-  const af=map.agency_families||{},ak=Object.entries(af).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('agency').innerHTML=
-   `<div style="margin-bottom:8px">macro attributed <b class="ok">${map.macro_attributed??0}</b> <span class="dim">(${map.macro_coverage_pct??0}% of macro symbols)</span> &middot; honestly unattributed <b class="dim">${map.macro_unattributed??0}</b></div>`+
-   `<div class="dim" style="font-size:11px;margin-bottom:8px">macro publishers come from FRED's own series/release/sources metadata and the vault's government adapters. Symbols that would only resolve by inferring an agency from a country and a topic are counted as unattributed, never guessed.</div>`+
-   `<div style="margin-bottom:8px">agency rows <b class="ok">${map.agency_rows??0}</b> &middot; venue rows <b class="dim">${map.venue_rows??0}</b> &middot; distinct sources <b>${map.distinct_sources??0}</b> &middot; junk purged <b class="dim">${map.junk_purged??0}</b> &middot; total sourced <b>${map.symbols_with_source??0}</b></div>`+
-   (ak.length?ak.map(([f,n])=>`<div style="display:flex;gap:8px"><b style="width:44px;text-align:right" class="ok">${n}</b><span>${esc(f)}</span></div>`).join('')
-   :'<span class="dim">no official-agency attribution banked yet — the walk has not reached the ECONOMICS tier</span>')+
-   (Object.keys(map.known_families||{}).length?`<div class="dim" style="font-size:11px;margin-top:8px">all families incl. venues: ${esc(Object.entries(map.known_families).sort((a,b)=>b[1]-a[1]).map(([f,n])=>f+' '+n).join(' · '))}</div>`:'');
-  const ea=map.economics_agencies||[];
-  document.getElementById('econ').innerHTML=
-   `<div class="dim" style="margin-bottom:6px">${map.economics_symbols??0} ECONOMICS/FRED symbols mapped</div>`+
-   (ea.length?'<table><tr><th>publisher</th><th>family</th><th>symbols</th></tr>'+ea.slice(0,20).map(x=>`<tr><td>${esc(x.source)}</td><td class="dim">${esc(x.family)}</td><td><b>${x.n_symbols}</b></td></tr>`).join('')+'</table>'
-   :'<span class="dim">none yet</span>');
- }
-}
-let cd=30;setInterval(()=>{cd--;if(cd<=0){cd=30;load()}document.getElementById('cd').textContent=cd},1000);load();
-</script><script src="/sidebar.js" defer></script>
+<div class="card" style="margin-top:10px"><b>Unmapped or withheld sources</b> <span class="dim">from data/source-map.json</span><div id="newsrc">—</div></div>
+<script src="/harvest-monitor.js"></script><script src="/sidebar.js" defer></script>
 </body></html>
