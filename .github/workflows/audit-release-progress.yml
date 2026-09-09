@@ -8,6 +8,17 @@ on:
       - 'scripts/audit_public_api_status.py'
       - 'scripts/audit_public_pages.py'
   workflow_dispatch:
+    inputs:
+      pages_deployed_sha:
+        description: 'Full SHA of a confirmed successful Pages deployment to recheck (read-only)'
+        required: false
+        default: ''
+        type: string
+      pages_deployment_run:
+        description: 'Successful Pages deployment run ID corresponding to that SHA'
+        required: false
+        default: ''
+        type: string
   workflow_run:
     workflows: [Deploy Lambdas, Run Ops Script, Deploy site to Pages]
     types: [completed]
@@ -15,11 +26,12 @@ permissions:
   contents: write
   actions: read
 concurrency:
-  group: audit-release-progress
+  # Lambda/ops completion must not cancel the full Pages evidence sweep.
+  group: audit-release-progress-${{ github.event.workflow_run.name || github.event_name }}
   cancel-in-progress: true
 jobs:
   public-pages:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Deploy site to Pages' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Deploy site to Pages' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && inputs.pages_deployed_sha != '' && inputs.pages_deployment_run != '')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -28,8 +40,8 @@ jobs:
           fetch-depth: 0
       - name: Check every published route against the completed deployment
         env:
-          AUDIT_PAGES_DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
-          AUDIT_PAGES_DEPLOYMENT_RUN: ${{ github.event.workflow_run.id }}
+          AUDIT_PAGES_DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha || inputs.pages_deployed_sha }}
+          AUDIT_PAGES_DEPLOYMENT_RUN: ${{ github.event.workflow_run.id || inputs.pages_deployment_run }}
         run: python3 scripts/audit_public_pages.py
       - name: Preserve public HTML verification receipt
         uses: actions/upload-artifact@v4
