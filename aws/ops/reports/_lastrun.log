@@ -1,6 +1,5 @@
-executing-against: f7ebc9e7310c7a262ad90e0565de1b637e798468
-{"report": "aws/ops/reports/5249_page_test_failure_metadata.json", "available": true}
-{"actual_workflow_sha": "f7ebc9e7310c7a262ad90e0565de1b637e798468", "aws_calls": 0, "base_sha": "9e9d103ca8152ac72734ae1d71ef7df887a6e516", "checkout_verification": "REQUIRED_IN_RELEASE_JOB", "expected_checkout_sha": "f7ebc9e7310c7a262ad90e0565de1b637e798468", "http_status": 200, "operation": "5250", "request_sent": true, "requested_at": "2026-09-09T13:06:41.882019+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34355028508", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34355028508, "workflow_sha": "f7ebc9e7310c7a262ad90e0565de1b637e798468", "workflow_sha_matches": true}
-[13:06:43] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
+executing-against: 7c95eab650e8e8387386714d3a01a404b4a6f8aa
+Current core layer and qualified runtime reconciliation
+[13:14:41] ✅ Current discovered bindings verified; historical pre-migration configuration safety remains unverified
 
-→ Report written to aws/ops/reports/latest/ops_5250_retry_pinned_core_release.md
+→ Report written to aws/ops/reports/latest/ops_5234_reconcile_core_layer.md

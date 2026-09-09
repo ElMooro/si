@@ -1,14 +1,14 @@
 # Current core layer and qualified runtime reconciliation
 
-**Status:** failure  
-**Duration:** 0.5s  
-**Finished:** 2026-09-09T12:52:09+00:00  
+**Status:** success  
+**Duration:** 250.5s  
+**Finished:** 2026-09-09T13:14:41+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| consumer_count | prior_5232_configuration_safety | status | unresolved_count |
+|---|---|---|---|
+| 379 | UNVERIFIABLE_WITHOUT_PREMIGRATION_SNAPSHOT | VERIFIED_CURRENT_STATE | 0 |
 
 ## Log
-- `12:52:09` ✗ Core layer reconciliation stopped: DependencyError
+- `13:14:41` ✅ Current discovered bindings verified; historical pre-migration configuration safety remains unverified
