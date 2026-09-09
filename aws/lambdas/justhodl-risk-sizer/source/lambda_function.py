@@ -12,7 +12,7 @@ import json
 import os
 import statistics
 import math
-from capital_contract import authority_view, capital_book_view, fresh_timestamp, finite
+from capital_contract import authority_view, capital_book_view, fresh_timestamp, finite, publication_summary
 from datetime import datetime, timezone, timedelta
 import boto3
 
@@ -281,7 +281,8 @@ def kelly_size(conviction_pct, edge_pct=0.05):
 
 
 def lambda_handler(event, context):
-    print("=== RISK SIZER v1 ===")
+    validate_only = isinstance(event, dict) and (event.get("mode") == "validate_only" or event.get("validate_only") is True)
+    print("=== RISK SIZER v3 ===")
     now = datetime.now(timezone.utc)
 
     # ─── 1. Load all inputs ─────────────────────────────────────────────
@@ -414,11 +415,15 @@ def lambda_handler(event, context):
     if not ideas:
         # audit 2026-09-08 FR-04: an empty pipeline must REPLACE the previous actionable book, not leave it in place
         empty = {"engine": "justhodl-risk-sizer", "schema_version": "3.0", "as_of": now.isoformat(), "expires_at": min(now + timedelta(hours=1), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now).isoformat(), "v": "3.0", "status": "NO_IDEAS", "regime": regime_str, "entries_allowed": entries_allowed,
-                 "authority": authority, "hold_reasons": hold_reasons, "max_gross_exposure_pct": round(max_gross * 100, 1),
+                 "authority": authority, "hold_reasons": hold_reasons, "max_gross_exposure_pct": round(max_gross * 100, 6),
                  "drawdown_status": {"current_dd_pct": round(current_dd * 100, 2) if current_dd is not None else None, "status": "UNKNOWN" if current_dd is None else "OK",
                                      "peak_date": peak_date, "size_multiplier": dd_multiplier},
                  "sized_recommendations": [], "clusters": {}, "summary": {"n_candidate_ideas": 0, "n_clusters": 0, "total_recommended_size_pct": 0.0},
                  "warnings": [{"level": "info", "message": "no candidate ideas in the pipeline this run"}]}
+        empty["entries_allowed"] = False  # no actionable entries exist in an empty pipeline
+        validation = publication_summary(empty, "risk-sizer")
+        if validate_only:
+            return validation
         put_s3_json("risk/recommendations.json", empty)
         put_s3_json("data/risk-sizer.json", empty)
         return {"statusCode": 200, "body": json.dumps({"warning": "no_ideas_in_pipeline", "regime": regime_str, "drawdown": current_dd, "status": "NO_IDEAS"})}
@@ -619,7 +624,7 @@ def lambda_handler(event, context):
         "final_constraint_check": final_check,
         "regime": regime_str,
         "regime_strength": regime.get("regime_strength"),
-        "max_gross_exposure_pct": round(max_gross * 100, 1),
+        "max_gross_exposure_pct": round(max_gross * 100, 6),
         "drawdown_status": {
             "current_dd_pct": round(current_dd * 100, 2) if current_dd is not None else None,
             "status": "UNKNOWN" if current_dd is None else "OK",
@@ -636,7 +641,7 @@ def lambda_handler(event, context):
         "constraints_applied": {
             "max_single_position_pct": MAX_SINGLE_POSITION_PCT * 100,
             "max_cluster_pct": MAX_CLUSTER_PCT * 100,
-            "max_gross_exposure_pct": round(max_gross * 100, 2),
+            "max_gross_exposure_pct": round(max_gross * 100, 6),
             "available_gross_pct": round(available_gross * 100, 2),
             "kelly_fraction": KELLY_FRACTION,
             "single_name_cap_applied_after": "quality tilt, drawdown and risk-gate multipliers, cluster and gross scaling, rounding",
@@ -646,6 +651,9 @@ def lambda_handler(event, context):
         "warnings": warnings,
     }
 
+    validation = publication_summary(snapshot, "risk-sizer")
+    if validate_only:
+        return validation
     put_s3_json("risk/recommendations.json", snapshot)
     # Mirror to canonical data/ path so consumers using either naming convention work.
     put_s3_json("data/risk-sizer.json", snapshot)
@@ -658,7 +666,7 @@ def lambda_handler(event, context):
         "headers": {"Content-Type": "application/json"},
         "body": json.dumps({
             "regime": regime_str,
-            "max_gross_exposure_pct": round(max_gross * 100, 1),
+            "max_gross_exposure_pct": round(max_gross * 100, 6),
             "current_drawdown_pct": round(current_dd * 100, 2) if current_dd is not None else None,
             "entries_allowed": entries_allowed,
             "drawdown_multiplier": dd_multiplier,

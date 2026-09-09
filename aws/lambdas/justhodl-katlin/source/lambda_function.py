@@ -82,7 +82,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import boto3
-from capital_contract import authority_view, fresh_timestamp, age_hours as contract_age_hours
+from capital_contract import authority_view, fresh_timestamp, age_hours as contract_age_hours, publication_summary
+
+VALIDATION_ONLY = False
 
 VERSION = "2.4.0"   # audit 2026-09-08 FR-01/FR-02: binding capital authority (khalid-risk), data-hold on missing/stale critical evidence
 ENGINE = "justhodl-katlin"
@@ -225,9 +227,11 @@ def s3_json(key, default=None):
 
 
 def s3_put_json(key, obj, gz=False):
-    body = json.dumps(obj, separators=(",", ":"), default=str).encode()
+    body = json.dumps(obj, separators=(",", ":"), default=str, allow_nan=False).encode()
     if gz:
         body = gzip.compress(body)
+    if VALIDATION_ONLY:
+        return len(body)
     s3.put_object(Bucket=BUCKET, Key=key, Body=body,
                   ContentType="application/json", **({"ContentEncoding": "gzip"} if gz else {}))
     return len(body)
@@ -3593,6 +3597,9 @@ def refresh_permission(event=None):
                 "expires_at": wr["expires_at"], "war_room": wr, "basket": build_basket(rows, wr)})
     if isinstance(out.get("panels"), dict):
         out["panels"]["war_room"] = [{"key":l["leg"],"label":l["leg"],"last":l["risk"],"kind":"index","unit":"","flag":l["flag"],"read":l["read"],"source":l["source"],"asof":l.get("asof")} for l in wr["legs"]]
+    validation = publication_summary(out, "katlin")
+    if VALIDATION_ONLY:
+        return validation
     try:
         s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out,allow_nan=False).encode(), ContentType="application/json", CacheControl="max-age=60", IfMatch=etag)
     except Exception as exc:
@@ -3604,7 +3611,7 @@ def refresh_permission(event=None):
 
 
 # ── handler ─────────────────────────────────────────────────────────────────
-def lambda_handler(event=None, context=None):
+def _run_handler(event=None, context=None):
     event = event or {}
     if event.get("mode") == "permission_refresh":
         return refresh_permission(event)
@@ -3764,7 +3771,21 @@ def lambda_handler(event=None, context=None):
     out["research_generated_at"] = out["generated_at"]
     out["research_status"] = "FRESH" if research_data_fresh else "STALE"
     out["research_max_age_h"] = 36.0
+    validation = publication_summary(out, "katlin")
+    if VALIDATION_ONLY:
+        return validation
     n = s3_put_json(OUT_KEY, out)
     log("wrote %s (%.1f MB) tiers=%s posture=%s" % (OUT_KEY, n / 1e6, tiers, wr["posture"]))
     return {"ok": True, "session": session, "posture": wr["posture"], "thermometer": wr["thermometer"], "tiers": tiers, "scored": len(rows),
             "bytes": n, "elapsed_s": out["elapsed_s"], "degraded": DEGRADED}
+
+
+def lambda_handler(event=None, context=None):
+    """Per-invocation dry-run state; all cache/history/output writers share this guard."""
+    global VALIDATION_ONLY
+    event = event or {}
+    VALIDATION_ONLY = event.get("mode") == "validate_only" or event.get("validate_only") is True
+    try:
+        return _run_handler(event, context)
+    finally:
+        VALIDATION_ONLY = False

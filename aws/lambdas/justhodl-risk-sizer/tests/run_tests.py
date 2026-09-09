@@ -224,6 +224,16 @@ def test_another_book_nav_history_and_unreconciled_orders_hold():
     assert out["entries_allowed"] is False
 
 
+def test_validate_only_computes_real_output_without_publishing():
+    mod,s3=_load(_base_docs())
+    out=mod.lambda_handler({"mode":"validate_only"},None)
+    assert out["ok"] and out["validation_only"] and out["schema_version"]=="3.0" and out["artifact_size_bytes"]>0
+    assert out["status"]=="OK" and s3.writes=={}
+    mod,s3=_load(_base_docs(**{"opportunities/asymmetric-equity.json":{"top_setups":[]}}))
+    out=mod.lambda_handler({"validate_only":True},None)
+    assert out["status"]=="NO_IDEAS" and out["validation_only"] and s3.writes=={}
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:

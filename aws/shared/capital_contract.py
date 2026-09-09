@@ -197,3 +197,44 @@ def capital_book_view(snapshot, now=None):
             "sector_by_symbol": sectors, "gross_exposure": gross, "net_exposure": net,
             "order_weights": {k:v/nav for k,v in order_weights.items()} if nav and nav > 0 else {},
             "reserved_order_exposure": finite(book.get("reserved_order_exposure")), "nav_history": snapshots}
+
+
+def publication_summary(payload, kind):
+    """Validate a candidate artifact and return metadata only, never its account data."""
+    import json
+    expected = "justhodl-katlin" if kind == "katlin" else "justhodl-risk-sizer"
+    if not isinstance(payload, dict) or payload.get("engine") != expected:
+        raise ValueError("unexpected capital output producer")
+    board = payload.get("war_room") if kind == "katlin" else payload
+    if not isinstance(board, dict) or not isinstance(board.get("entries_allowed"), bool):
+        raise ValueError("capital output requires explicit entry permission")
+    cap = finite(board.get("exposure_cap_pct") if kind == "katlin" else payload.get("max_gross_exposure_pct"))
+    if cap is None or not 0 <= cap <= 100:
+        raise ValueError("capital output cap invalid")
+    if timestamp(payload.get("expires_at")) is None:
+        raise ValueError("capital output expiry invalid")
+    if kind == "katlin":
+        basket = payload.get("basket") or {}
+        core, barbell = basket.get("core"), basket.get("barbell")
+        if not isinstance(core, list) or not isinstance(barbell, list):
+            raise ValueError("basket lists missing")
+        weights = [finite(r.get("weight_pct")) if isinstance(r, dict) else None for r in core + barbell]
+        if any(w is None or w < 0 for w in weights) or sum(weights) > cap + 1e-8 or any(finite(r.get("weight_pct")) > 10 for r in core):
+            raise ValueError("basket allocation exceeds constraints")
+        allocated = sum(weights)
+    else:
+        rows = payload.get("sized_recommendations")
+        if not isinstance(rows, list):
+            raise ValueError("recommendation rows missing")
+        weights = [finite(r.get("recommended_size_pct")) if isinstance(r, dict) else None for r in rows]
+        if any(w is None or not 0 <= w <= 8 for w in weights) or sum(weights) > cap + 1e-8:
+            raise ValueError("recommendation weights exceed constraints")
+        allocated = sum(weights)
+        available = finite((payload.get("book") or {}).get("available_gross_pct"))
+        if available is not None and allocated > available + 1e-8:
+            raise ValueError("recommendations exceed available capital")
+    if board["entries_allowed"] is False and allocated > 0:
+        raise ValueError("blocked capital output contains allocations")
+    encoded = json.dumps(payload, allow_nan=False).encode()
+    return {"ok":True,"validation_only":True,"schema_version":payload.get("schema") if kind=="katlin" else payload.get("schema_version"),
+            "status":board.get("posture") if kind=="katlin" else payload.get("status"),"artifact_size_bytes":len(encoded)}

@@ -156,7 +156,12 @@ def test_permission_refresh_preserves_research_age_and_uses_conditional_write(mo
         result=mod.lambda_handler({"mode":"permission_refresh"})
         assert result["ok"] and result["research_generated_at"]==research_at
         assert fake.writes[0]["research_generated_at"]==research_at and fake.writes[0]["war_room"]["entries_allowed"]
-        stale=dict(fake.writes[0],research_generated_at="2000-01-01T00:00:00Z")
+        published = fake.writes[0]
+        dry=FakeS3(research);mod.s3=dry
+        validation=mod.lambda_handler({"mode":"permission_refresh","validate_only":True})
+        assert validation["ok"] and validation["validation_only"] and validation["schema_version"]=="1.1" and validation["artifact_size_bytes"]>0
+        assert dry.writes==[] and mod.VALIDATION_ONLY is False
+        stale=dict(published,research_generated_at="2000-01-01T00:00:00Z")
         fake=FakeS3(stale);mod.s3=fake
         result=mod.lambda_handler({"mode":"permission_refresh"})
         assert result["research_status"]=="STALE" and fake.writes[0]["war_room"]["exposure_cap_pct"]==0
@@ -166,6 +171,28 @@ def test_permission_refresh_preserves_research_age_and_uses_conditional_write(mo
         assert result["status"]=="RESEARCH_CHANGED" and fake.writes==[]
     finally:
         mod.s3=old
+
+
+def test_validate_only_suppresses_shared_cache_writer_and_restores_state(mod):
+    original=mod._run_handler
+    try:
+        def compute(event,context):
+            assert mod.VALIDATION_ONLY is True
+            size=mod.s3_put_json("data/test-cache-never-written.json",{"a":1})
+            assert size>0
+            return {"ok":True}
+        mod._run_handler=compute
+        assert mod.lambda_handler({"mode":"validate_only"})["ok"]
+        assert mod.VALIDATION_ONLY is False
+        def fail(event,context):
+            raise ValueError("validation failure")
+        mod._run_handler=fail
+        try:mod.lambda_handler({"mode":"validate_only"})
+        except ValueError:pass
+        else:raise AssertionError("failure must propagate")
+        assert mod.VALIDATION_ONLY is False
+    finally:
+        mod._run_handler=original
 
 
 if __name__ == "__main__":
