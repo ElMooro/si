@@ -68,3 +68,23 @@ Historical/current unsafe snapshots still require the coordinated deployment
 migration. The security release owns replacement of unmarked snapshots with a
 whole-document unavailable marker, historical access denial, cache handling, and
 browser POST transport. Source changes alone do not prove those live controls.
+
+### Original-byte retention before public migration
+
+The migration now preserves the exact original bytes before each existing public
+object is rewritten, including compressed input bytes. It creates a conditional,
+content-addressed snapshot beneath `audit-private/20260909-originals/`, reads it
+back, and verifies its full bytes before applying an ETag-conditional public
+replacement. A conflicting update or failed backup prevents that replacement.
+This guarantee does not depend on bucket versioning being enabled. The snapshots
+are immutable to this migration's create-only writer; S3 Object Lock is not claimed.
+
+A permanent bucket-policy deny covers current and historical backup reads by
+anonymous/external principals. The data-proxy Worker denies the entire
+`audit-private/` prefix before cache or backend access. The migration checks HEAD
+responses across the Worker, both site hosts, and the S3 origin before writes,
+and repeats that check against an actual saved backup. Provider catalog and
+symbol-directory source enumerations do not include this root-level prefix.
+Receipts contain only object keys, counts, hashes and status metadata. They do
+not include original content or its base64 representation. Production completion
+still requires a successful Worker deployment and operation 5230 receipt.

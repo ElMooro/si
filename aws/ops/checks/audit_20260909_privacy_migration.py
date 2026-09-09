@@ -20,7 +20,7 @@ import zipfile
 
 from audit_20260909_security import (
     MIRRORED_ARTIFACTS, MIRRORED_KEYS, SANITIZED_KEYS, SANITIZED_PREFIXES, WORKER,
-    anonymous_deny_statement, historical_deny_statement, check,
+    anonymous_deny_statement, historical_deny_statement, check, _head as security_head,
     policies_equal, has_policy_statement, policy_diagnostic,
 )
 from public_brain_projection import (
@@ -33,6 +33,8 @@ ACCOUNT = "857687956942"
 REGION = "us-east-1"
 TOKEN_PARAM = "/justhodl/api-admin/token"
 TEMP_SID = "Audit20260909DerivativeMigrationInProgress"
+BACKUP_PREFIX = "audit-private/20260909-originals/"
+BACKUP_SID = "Audit20260909ImmutableOriginalBackups"
 PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask",
               "portfolio-snapshot", "portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "risk-sizer",
               "pm-decision", "behavior-mirror", "ai-brief", "history-api", "watchlist", "vol-regime", "trade-journal", "ai-brief-router")
@@ -42,6 +44,13 @@ PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", 
              "etf-fund-flows", "macro-regime")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
+
+
+def backup_deny_statement():
+    return {"Sid":BACKUP_SID,"Effect":"Deny","Principal":"*",
+        "Action":["s3:GetObject","s3:GetObjectVersion"],
+        "Resource":[f"arn:aws:s3:::{BUCKET}/{BACKUP_PREFIX}*"],
+        "Condition":{"StringNotEquals":{"aws:PrincipalAccount":ACCOUNT}}}
 
 
 class MigrationError(RuntimeError):
@@ -259,6 +268,18 @@ class Migration:
     def record(self, stage, **metadata):
         self.rows.append({"check": stage, **metadata})
 
+    def verify_backup_access(self, key):
+        require(key.startswith(BACKUP_PREFIX), "backup_key_outside_private_prefix")
+        for base in (WORKER, "https://justhodl.ai", "https://www.justhodl.ai",
+                     f"https://{BUCKET}.s3.{REGION}.amazonaws.com"):
+            result = security_head(base + "/" + key)
+            denied = result["status"] in (401, 403)
+            if base in ("https://justhodl.ai", "https://www.justhodl.ai"):
+                denied = denied or result["status"] == 404
+            self.record("original_backup_anonymous_denied", host=base, key=key,
+                        status=result["status"], ok=denied)
+            require(denied, "original_backup_public_access_not_denied")
+
     def policy(self, temporary):
         s3 = self.clients["s3"]
         try:
@@ -267,7 +288,7 @@ class Migration:
             if error_code(exc) != "NoSuchBucketPolicy":
                 raise
             current = {"Version": "2012-10-17", "Statement": []}
-        statements = [anonymous_deny_statement(BUCKET, ACCOUNT), historical_deny_statement(BUCKET, ACCOUNT)]
+        statements = [anonymous_deny_statement(BUCKET, ACCOUNT), historical_deny_statement(BUCKET, ACCOUNT), backup_deny_statement()]
         if temporary:
             statements.append(temporary_statement())
         updated = merge_policy(current, statements, remove=(TEMP_SID,))
@@ -358,24 +379,50 @@ class Migration:
             raise
         require(obj.get("ContentLength", 0) <= MAX_OBJECT, "object_exceeds_reviewed_size_limit")
         raw = bounded_read(obj["Body"])
+        obj["_audit_raw_bytes"] = raw
         if key.endswith(".gz"):
             raw = bounded_read(gzip.GzipFile(fileobj=io.BytesIO(raw)))
         doc = json.loads(raw)
         require(isinstance(doc, dict), "source_document_not_object")
         return obj, doc
 
+    def preserve_original(self,key,previous):
+        raw=previous.get("_audit_raw_bytes")
+        require(isinstance(raw,bytes),"original_bytes_unavailable")
+        etag=previous.get("ETag")
+        require(bool(etag),"original_etag_missing")
+        raw_hash=digest(raw)
+        backup_key=BACKUP_PREFIX+digest(encoded([key,etag,raw_hash]))+".json"
+        snapshot={"schema_version":"private-original-backup.v1","source_key":key,"source_etag":etag,
+                  "raw_sha256":raw_hash,"raw_size_bytes":len(raw),"raw_base64":base64.b64encode(raw).decode()}
+        expected=encoded(snapshot)
+        try:
+            self.clients["s3"].put_object(Bucket=BUCKET,Key=backup_key,Body=expected,
+                ContentType="application/json",CacheControl="private, no-store",IfNoneMatch="*")
+        except Exception as exc:
+            if error_code(exc) not in {"PreconditionFailed","412","ConditionalRequestConflict","409"}:raise
+        saved=self.clients["s3"].get_object(Bucket=BUCKET,Key=backup_key)
+        actual=bounded_read(saved["Body"],MAX_OBJECT*2+4096)
+        require(actual==expected,"immutable_original_backup_not_verified")
+        self.record("immutable_original_preserved",key=key,backup_key=backup_key,bytes=len(raw),sha256=raw_hash)
+
     def put_public(self, key, doc, previous=None):
         body = encoded(doc)
         if key.endswith(".gz"):
             body = gzip.compress(body, mtime=0)
         args = {"Bucket": BUCKET, "Key": key, "Body": body, "ContentType": "application/json", "CacheControl": "no-cache"}
+        if previous is None:
+            previous,_ = self.read_object(key,optional=True)
         if previous:
+            self.preserve_original(key,previous)
             require(bool(previous.get("ETag")), "source_etag_missing")
             args["IfMatch"] = previous["ETag"]
             # Retain encryption and operational metadata; do not emit either.
             for field in ("Metadata", "ContentEncoding", "ServerSideEncryption", "SSEKMSKeyId", "BucketKeyEnabled"):
                 if field in previous:
                     args[field] = previous[field]
+        else:
+            args["IfNoneMatch"] = "*"
         self.clients["s3"].put_object(**args)
         _, stored = self.read_object(key)
         require(encoded(stored) == encoded(doc), "public_write_readback_mismatch")
@@ -562,6 +609,7 @@ class Migration:
         self.step = "install_containment"
         self.policy(True)
         self.purge()
+        self.verify_backup_access(BACKUP_PREFIX + "access-probe.json")
         self.step = "verify_deployed_code"
         for name in READINESS:
             self.readiness(name)
@@ -577,6 +625,10 @@ class Migration:
         self.step = "sanitize_current_public_objects"
         self.scrub_all(private)
         del private
+        backup = next((row["backup_key"] for row in self.rows
+                       if row["check"] == "immutable_original_preserved"), None)
+        if backup is not None:
+            self.verify_backup_access(backup)
         self.step = "rebuild_search_and_clear_warm_cache"
         self.rebuild_search()
         self.step = "verify_confidentiality"

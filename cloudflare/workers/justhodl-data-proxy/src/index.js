@@ -349,7 +349,7 @@ const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md', 
 function privateArchive(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   if (PRIVATE_RAW_ARTIFACTS.has(normalized) || ['_askdesk/', 'search/index/',
-    'equity-research-history/', 'backtest/ledger/', 'ai-commentary/history/portfolio/']
+    'audit-private/', 'equity-research-history/', 'backtest/ledger/', 'ai-commentary/history/portfolio/']
     .some(prefix => normalized.startsWith(prefix))) return true;
   const archivePrefix = 'history/archive/feed/';
   if (!normalized.startsWith(archivePrefix)) return false;

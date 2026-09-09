@@ -48,7 +48,7 @@ class MemoryS3:
     def put_object(self, **args):
         if args.get("IfNoneMatch") == "*" and args["Key"] in self.docs:
             raise object_error("PreconditionFailed")
-        if self.fail_once:
+        if self.fail_once and args.get("IfMatch"):
             self.fail_once = False
             self.docs[args["Key"]]["price"] = 234
             raise object_error("PreconditionFailed")
@@ -398,10 +398,52 @@ class PublicMigrationTests(unittest.TestCase):
         job = migration.Migration(ROOT, {"s3": s3})
         job.scrub(key)
         self.assertEqual(s3.docs[key]["price"], 234)
-        self.assertEqual(s3.writes[0]["Metadata"], {"operational-tag": "retain"})
+        self.assertEqual([w for w in s3.writes if w["Key"]==key][0]["Metadata"], {"operational-tag": "retain"})
         self.assertNotIn(MARKER, json.dumps(s3.docs[key]))
         self.assertNotIn(MARKER, json.dumps(job.rows))
-        self.assertEqual(job.rows[0]["sha256"], migration.digest(migration.encoded(s3.docs[key])))
+        self.assertEqual([r for r in job.rows if r["check"]=="public_projection_written"][0]["sha256"], migration.digest(migration.encoded(s3.docs[key])))
+
+    def test_exact_original_bytes_survive_scrub_without_bucket_versioning(self):
+        key="equity-research/NVDA.json"
+        store=MemoryS3({key:self.fixtures()[key]})
+        original=store.raw(key);job=migration.Migration(ROOT,{"s3":store})
+        job.scrub(key)
+        preserved=[value for name,value in store.docs.items() if name.startswith(migration.BACKUP_PREFIX)]
+        self.assertEqual(len(preserved),1)
+        self.assertEqual(base64.b64decode(preserved[0]["raw_base64"]),original)
+        self.assertNotIn(MARKER,json.dumps(store.docs[key]))
+        self.assertNotIn(MARKER,json.dumps(job.rows))
+        self.assertTrue(store.writes[0]["Key"].startswith(migration.BACKUP_PREFIX))
+        self.assertEqual(store.writes[0]["IfNoneMatch"],"*")
+
+    def test_failed_or_corrupt_backup_prevents_public_rewrite(self):
+        key="equity-research/NVDA.json"
+        class Corrupt(MemoryS3):
+            def get_object(self,**kwargs):
+                result=super().get_object(**kwargs)
+                if kwargs["Key"].startswith(migration.BACKUP_PREFIX):result["Body"]=io.BytesIO(b"corrupt")
+                return result
+        store=Corrupt({key:self.fixtures()[key]});original=deepcopy(store.docs[key])
+        with self.assertRaisesRegex(migration.MigrationError,"backup_not_verified"):
+            migration.Migration(ROOT,{"s3":store}).scrub(key)
+        self.assertEqual(store.docs[key],original)
+        self.assertFalse(any(row["Key"]==key for row in store.writes))
+
+    def test_backup_policy_denies_current_and_historical_external_reads(self):
+        policy=migration.backup_deny_statement()
+        self.assertEqual(set(policy["Action"]),{"s3:GetObject","s3:GetObjectVersion"})
+        self.assertEqual(policy["Condition"],{"StringNotEquals":{"aws:PrincipalAccount":migration.ACCOUNT}})
+        self.assertEqual(policy["Resource"],["arn:aws:s3:::"+migration.BUCKET+"/"+migration.BACKUP_PREFIX+"*"])
+
+    def test_backup_boundary_requires_denial_on_all_public_hosts(self):
+        job=migration.Migration(ROOT,{})
+        with patch.object(migration,"security_head",return_value={"status":403}) as head:
+            job.verify_backup_access(migration.BACKUP_PREFIX+"fixture.json")
+        self.assertEqual(head.call_count,4)
+        self.assertTrue(all(row["ok"] for row in job.rows))
+        with patch.object(migration,"security_head",return_value={"status":200}):
+            with self.assertRaisesRegex(migration.MigrationError,"public_access_not_denied"):
+                job.verify_backup_access(migration.BACKUP_PREFIX+"fixture.json")
 
     def test_missing_canonical_is_failure_missing_alias_is_explicit(self):
         job = migration.Migration(ROOT, {"s3": MemoryS3({})})
@@ -523,6 +565,7 @@ class PublicMigrationTests(unittest.TestCase):
         job = migration.Migration(ROOT, {"sts": types.SimpleNamespace(get_caller_identity=lambda: {"Account": migration.ACCOUNT})})
         job.policy = lambda temporary: operations.append(("policy", temporary))
         job.purge = lambda: operations.append(("purge", True))
+        job.verify_backup_access = lambda key: operations.append(("backup_boundary", key.startswith(migration.BACKUP_PREFIX)))
         def reject_code(name):
             raise migration.MigrationError("deployed_source_member_mismatch")
         job.readiness = reject_code
@@ -530,7 +573,7 @@ class PublicMigrationTests(unittest.TestCase):
         job.seed = lambda token: self.fail("private source must not be read before exact source readiness")
         with self.assertRaisesRegex(migration.MigrationError, "member_mismatch"):
             job.run()
-        self.assertEqual(operations, [("policy", True), ("purge", True)])
+        self.assertEqual(operations, [("policy", True), ("purge", True), ("backup_boundary", True)])
         self.assertEqual(job.step, "verify_deployed_code")
 
     def test_invocation_rejects_wrong_version_without_reporting_lambda_payload(self):

@@ -429,7 +429,7 @@ test('every private corpus and archive alias is blocked before stale cache, incl
     'portfolio/snapshot.json','portfolio/risk.json','portfolio/sizing.json','portfolio/catalysts.json','portfolio/holdings.json','portfolio/pm-history.json','portfolio-manager-brief.json','history/_fleet-monitor-history.jsonl',
     'risk-sizer.json','risk/recommendations.json','pm-decision.json','pm-decision-history.json','behavior-mirror.json','ai-brief.json','ai-brief.md',
     'history/behavior-mirror-history.json','portfolio/sizing-alert-history.json','portfolio/catalyst-alert-history.json','portfolio/risk-alert-history.json',
-    'backtest/ledger/latest.json','backtest/ledger/versions/fixture.json','ai-commentary/history/portfolio/old.json',
+    'audit-private/20260909-originals/fixture.json','backtest/ledger/latest.json','backtest/ledger/versions/fixture.json','ai-commentary/history/portfolio/old.json',
     'history/archive/feed/data/ai-brief.json/old.json','history/archive/feed/ai-brief.json/old.json','history/archive/feed/portfolio/snapshot.json/old.json',
     'user-watchlist.json','vol-regime-private.json','user-trades.json','user-trades-stats.json','history/archive/feed/data/user-trades.json/old.json'];
   for(const key of keys)for(const prefix of ['/','/data/'])for(const method of ['GET','HEAD']){
