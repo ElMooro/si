@@ -24,6 +24,7 @@ def probe(path):
         with response:
             row.update(status=response.status,content_type=response.headers.get('Content-Type'),
                 cors_allow_origin=response.headers.get_all('Access-Control-Allow-Origin',[]))
+            row['cors_valid']=row['cors_allow_origin'] in (['*'],['https://justhodl.ai'])
             raw=response.read(4_000_001);row['bytes']=len(raw)
             if len(raw)<=4_000_000:
                 try:
@@ -33,6 +34,7 @@ def probe(path):
                             handler_error_present=bool(doc.get('error')),trace_field_present='trace' in doc,
                             quote_count=len(doc.get('watchlist_quotes',{})) if isinstance(doc.get('watchlist_quotes'),dict) else None,
                             sector_count=len(doc.get('sector_performance',[])) if isinstance(doc.get('sector_performance'),list) else None)
+                        row['provider_status']=doc.get('status') if doc.get('status') in ('READY','PARTIAL','UNAVAILABLE','HANDLER_READY') else None
                 except (ValueError,TypeError):row['invalid_json']=True
     except Exception as exc:row['error_type']=type(exc).__name__
     row['elapsed_s']=round(time.monotonic()-started,2);return row
@@ -48,7 +50,8 @@ def main():
         'cors':config.get('Cors',{}),'raw_response_bodies_reported':0,
         'source_sha':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()}
     result['requests']=[probe('/health'),probe('/')]
-    result['ok']=all(r.get('status')==200 and r.get('agent_matches') and not r.get('handler_error_present') for r in result['requests'])
+    result['ok']=all(r.get('status')==200 and r.get('agent_matches') and r.get('cors_valid')
+                     and not r.get('handler_error_present') and not r.get('trace_field_present') for r in result['requests'])
     destination=ROOT/'aws/ops/reports/5271_audit_page_api_probe.json';destination.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result));return 0
 
