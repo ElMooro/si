@@ -1,81 +1,335 @@
-executing-against: d500d26a722bee8f7ad7d4595275979c39c8c255
-ops 5304 -- AI relaunch v1.2.2: paged endpoint log tails, embedding-card fallback ladder (RoBERTa-SEC -> BGE -> MiniLM), LLM path diagnostics
+executing-against: 4e101ce129ee4745217fefda75c46445f6a517bd
+ops 5305 -- AI relaunch v1.2.3: hub env parsed for real (blank overrides killed every container), per-family images, serverless CPU retrieval endpoint, LLM 400 body
 ── 1. IAM ──
-[20:25:48]    justhodl-sagemaker-execution-role exists
-[20:25:48] ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
-[20:25:48] ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
-[20:25:48] ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
+[21:12:15]    justhodl-sagemaker-execution-role exists
+[21:12:15] ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
+[21:12:15] ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
+[21:12:16] ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
 ── 2. private ML bucket ──
-[20:25:48]    justhodl-ai-857687956942 exists
-[20:25:49] ✅    public access block ok
-[20:25:49] ✅    default encryption ok
-[20:25:49] ✅    lifecycle ok
-[20:25:49] ✅    tags ok
+[21:12:16]    justhodl-ai-857687956942 exists
+[21:12:16] ✅    public access block ok
+[21:12:16] ✅    default encryption ok
+[21:12:16] ✅    lifecycle ok
+[21:12:16] ✅    tags ok
 ── 3. Lambda justhodl-ai ──
-[20:25:50]   Lambda exists — updating
-[20:25:53] ✅   ✓ updated justhodl-ai
-[20:25:59]    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
-[20:26:00] ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
-[20:26:00] ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
+[21:12:17]   Lambda exists — updating
+[21:12:20] ✅   ✓ updated justhodl-ai
+[21:12:26]    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+[21:12:27] ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
+[21:12:28] ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
 ── 4. schedule (EventBridge Scheduler) ──
-[20:26:01] ✅    justhodl-ai-inventory updated cron(7 * * * ? *)
-[20:26:01] ✅    justhodl-ai-market-read updated cron(45 5 * * ? *)
+[21:12:28] ✅    justhodl-ai-inventory updated cron(7 * * * ? *)
+[21:12:28] ✅    justhodl-ai-market-read updated cron(45 5 * * ? *)
 ── 5. inventory (async + poll data/ai.json) ──
-[20:26:16]    v1.2.1 in 1.8s | domains 2 apps 0 endpoints 1 models 7 jobs 0 notebooks 0 feature_groups 0 clusters 0
-[20:26:16]       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
-[20:26:16]       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
-[20:26:16]       endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased Failed {} tags {"justhodl-ai-managed": "true", "justhodl-ai-purpose": "hub:mxnet-tcembedding-robertafin-base-uncased", "justhodl": "ai"
-[20:26:16]    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
-[20:26:16]    run-rate 0.0 | MTD 0.15 | ttl ledger [{"endpoint": "jh-ai-mxnet-tcembedding-robertafin-base-uncased", "managed": true, "action": "keep", "reason": "", "age_hours": 0.33, "ttl_hours": 3.0, "invocations_window": 0.0}]
-[20:26:16]    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
+[21:12:44]    v1.2.3 in 1.9s | domains 2 apps 0 endpoints 1 models 12 jobs 0 notebooks 0 feature_groups 0 clusters 0
+[21:12:44]       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
+[21:12:44]       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
+[21:12:44]       endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased Deleting {} tags {"justhodl-ai-managed": "true", "justhodl-ai-purpose": "hub:mxnet-tcembedding-robertafin-base-uncased", "justhodl": "ai"
+[21:12:44]    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
+[21:12:44]    run-rate 0.0 | MTD 0.16 | ttl ledger [{"endpoint": "jh-ai-mxnet-tcembedding-robertafin-base-uncased", "managed": true, "action": "deleted", "reason": "endpoint Failed (never bills; blocks the name)", "age_hours": 1.11, "ttl_hours": 3.0, "invocations_window": 0.0}]
+[21:12:44]    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
 ── 6. learn from the Brain (dataset -> embedding endpoint -> embed -> classifier -> serve -> infer) ──
-[20:26:18]    dataset 20260909T202617516695Z: 13051 rows (10456 train / 2592 validation) from 13051 notes; by_label {"philosophy": 9641, "thesis": 3407, "lesson": 1, "macro": 2}; dropped {"short": 0, "no_cat": 0, "dup": 0}
-[20:26:18]    embedding card ladder: ['mxnet-tcembedding-robertafin-base-uncased', 'huggingface-textembedding-bge-base-en-v1-5', 'huggingface-textembedding-all-MiniLM-L6-v2', 'huggingface-sentencesimilarity-bge-base-en-v1-5']
-[20:26:18]    mxnet-tcembedding-robertafin-base-uncased: image 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38 | env {"ENDPOINT_SERVER_TIMEOUT": "", "MODEL_CACHE_ROOT": "", "SAGEMAKER_CONTAINER_LOG_LEVEL": "", "SAGEMAKER_ENV": "", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "", "SAGEMAKER_MODEL_SERVER_WORKERS": "", "SAGEMAKER_PROGRAM": "", "SAGEMAKER_SUBMIT_DIRECTORY": ""} | default instance ml.p3.2xlarge
-[20:26:25]    huggingface-textembedding-bge-base-en-v1-5: image 683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04 | env {"ENDPOINT_SERVER_TIMEOUT": "", "HF_MODEL_ID": "", "MODEL_CACHE_ROOT": "", "SAGEMAKER_CONTAINER_LOG_LEVEL": "", "SAGEMAKER_ENV": "", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "", "SAGEMAKER_MODEL_SERVER_WORKERS": "", "SAGEMAKER_PROGRAM": "", "SAGEMAKER_SUBMIT_DIRECTORY": ""} | default instance ml.g5.xlarge
-[20:38:07]    deployed serverless: {"endpoint": "jh-ai-huggingface-textembedding-bge-base-en-v1-5", "artifact_how": "prefix-tar-repacked", "model_data": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-textembedding-bge-base-en-v1-5/model.tar.gz"}
-[20:48:55]    endpoint jh-ai-huggingface-textembedding-bge-base-en-v1-5 -> Failed after 648s Received server error (0) from model with message "An error occurred while handling request as the model process exited.". See https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logEventViewer:group=/aws/sagemaker/End
-[20:48:55]       log: == stream 7c809c9-a8542f67eb684177b0b7fa7303e52c65 (5 events, 0 flagged)
-[20:48:55]       log: CUDA compat package requires Nvidia driver ≤535.183.06
-[20:48:55]       log: cat: /proc/driver/nvidia/version: No such file or directory
-[20:48:55]       log: Current installed Nvidia driver version is
-[20:48:55]       log: Skip CUDA compat libs setup as newer Nvidia driver is installed
-[20:48:55]       log: HF_MODEL_ID must be set
-[20:48:56]    failed endpoint jh-ai-huggingface-textembedding-bge-base-en-v1-5 deleted
-[20:48:57]    huggingface-textembedding-all-MiniLM-L6-v2: image 683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04 | env {"ENDPOINT_SERVER_TIMEOUT": "", "HF_MODEL_ID": "", "MODEL_CACHE_ROOT": "", "SAGEMAKER_CONTAINER_LOG_LEVEL": "", "SAGEMAKER_ENV": "", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "", "SAGEMAKER_MODEL_SERVER_WORKERS": "", "SAGEMAKER_PROGRAM": "", "SAGEMAKER_SUBMIT_DIRECTORY": ""} | default instance ml.g5.xlarge
-[20:49:15]    deployed serverless: {"endpoint": "jh-ai-huggingface-textembedding-all-minilm-l6-v2", "artifact_how": "prefix-tar-repacked", "model_data": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-textembedding-all-MiniLM-L6-v2/model.tar.gz"}
-[20:50:56]    endpoint jh-ai-huggingface-textembedding-all-minilm-l6-v2 -> Failed after 101s Received server error (0) from model with message "An error occurred while handling request as the model process exited.". See https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logEventViewer:group=/aws/sagemaker/End
-[20:50:56]       log: == stream 325e66b-b757e305267744cd91494b4a9f9440a0 (5 events, 0 flagged)
-[20:50:56]       log: CUDA compat package requires Nvidia driver ≤535.183.06
-[20:50:56]       log: cat: /proc/driver/nvidia/version: No such file or directory
-[20:50:56]       log: Current installed Nvidia driver version is
-[20:50:56]       log: Skip CUDA compat libs setup as newer Nvidia driver is installed
-[20:50:56]       log: HF_MODEL_ID must be set
-[20:50:57]    failed endpoint jh-ai-huggingface-textembedding-all-minilm-l6-v2 deleted
-[20:50:57]    huggingface-sentencesimilarity-bge-base-en-v1-5: image 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04 | env {"ENDPOINT_SERVER_TIMEOUT": "", "MODEL_CACHE_ROOT": "", "SAGEMAKER_CONTAINER_LOG_LEVEL": "", "SAGEMAKER_ENV": "", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "", "SAGEMAKER_MODEL_SERVER_WORKERS": "", "SAGEMAKER_PROGRAM": "", "SAGEMAKER_SUBMIT_DIRECTORY": ""} | default instance ml.g5.2xlarge
-[20:54:59]    deployed serverless: {"endpoint": "jh-ai-huggingface-sentencesimilarity-bge-base-en-v1-5", "artifact_how": "prefix-tar-repacked", "model_data": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-sentencesimilarity-bge-base-en-v1-5/model.tar.gz"}
-[21:05:26]    endpoint jh-ai-huggingface-sentencesimilarity-bge-base-en-v1-5 -> Failed after 628s Image size 13127985835 is greater than supported size 10737418240
-[21:05:26]       log: log tail unavailable: An error occurred (ResourceNotFoundException) when calling the DescribeLogStreams operation: The specified log group does not exist.
-[21:05:27]    failed endpoint jh-ai-huggingface-sentencesimilarity-bge-base-en-v1-5 deleted
-── 6b. market read ──
-[21:05:31]    read 20260909T210529Z in 2.2s | playbook False | sources {"fusion": "FRESH", "risk_gate": "FRESH", "khalid_risk": "FRESH", "katlin": "FRESH", "bottom": "FRESH", "fortress": "FRESH", "bonds": "FRESH", "crisis": "FRESH", "gbc": "FRESH", "regime_composite": "FRESH", "metals": "FRESH", "crypto": "FRESH", "btc_cycle": "FRESH", "scorecard": "FRESH", "brain": "FRESH"}
-[21:05:31]    stances: {"stocks": null, "bonds": null, "metals": null, "crypto": null}
-[21:05:31]    llm_path direct-failed:HTTP Error 400: Bad Request | empty True | raw 
-[21:05:31]    overall: 
-[21:05:31]    opportunities 0: 
-[21:05:31]    calls logged: []
-── 7. page ──
-[21:05:31]    ai.html carries marker AI_DESK_V1 at the edge: True
-[21:05:52]    1440px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
-[21:06:02]     390px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
-[21:06:02] ⚠    dataset thin (13051 rows, smallest class 1) -- the classifier will be weak until the Brain has more labelled notes
-[21:06:02] ⚠    serverless deploy of mxnet-tcembedding-robertafin-base-uncased failed (deploy: {"errorMessage": "An error occurred (ValidationException) when calling the CreateEndpoint operation: Cannot create already existing endpoint \"arn:aws:s) -- trying real-time ml.m5.xlarge with a 2h TTL
-[21:06:02] ⚠    real-time deploy of mxnet-tcembedding-robertafin-base-uncased failed too: deploy: {"errorMessage": "An error occurred (ValidationException) when calling the CreateEndpoint operation: Cannot create already existing endpoint \"arn:aws:s
-[21:06:02] ⚠    huggingface-textembedding-bge-base-en-v1-5 endpoint Failed: Received server error (0) from model with message "An error occurred while handling request as the model process exited.". See https://us-east-1.console.aws.ama
-[21:06:02] ⚠    huggingface-textembedding-all-MiniLM-L6-v2 endpoint Failed: Received server error (0) from model with message "An error occurred while handling request as the model process exited.". See https://us-east-1.console.aws.ama
-[21:06:02] ⚠    huggingface-sentencesimilarity-bge-base-en-v1-5 endpoint Failed: Image size 13127985835 is greater than supported size 10737418240
-[21:06:02] ✗    brain pipeline: no embedding card reached InService (ladder ['mxnet-tcembedding-robertafin-base-uncased', 'huggingface-textembedding-bge-base-en-v1-5', 'huggingface-textembedding-all-MiniLM-L6-v2', 'huggingface-sentencesimilarity-bge-base-en-v1-5']) -- log tails above
-[21:06:02] ✗    market read: LLM answer did not parse as JSON
-
-→ Report written to aws/ops/reports/latest/ops_5304_ai_relaunch.md
-❌ OPS-FAIL: aws/ops/pending/ops_5304_ai_relaunch.py
+[21:12:45]    dataset 20260909T211244793252Z: 13051 rows (10456 train / 2592 validation) from 13051 notes; by_label {"philosophy": 9641, "thesis": 3407, "lesson": 1, "macro": 2}; dropped {"short": 0, "no_cat": 0, "dup": 0}
+[21:12:45]    embedding card ladder: ['mxnet-tcembedding-robertafin-base-uncased', 'huggingface-textembedding-bge-base-en-v1-5', 'huggingface-textembedding-all-MiniLM-L6-v2', 'huggingface-sentencesimilarity-bge-base-en-v1-5']
+[21:12:46]    mxnet-tcembedding-robertafin-base-uncased: image 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38 | env {"ENDPOINT_SERVER_TIMEOUT": "3600", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inf | default ml.p3.2xlarge | supported ['ml.c5.2xlarge', 'ml.c5.xlarge', 'ml.g4dn.xlarge', 'ml.m5.large', 'ml.m5.xlarge', 'ml.p3.2xlarge'] | variants {"Variants": {"c4": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38"}}, "c5": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38"}}, "c5d": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38"}}, "c5n": {"Properties": {"ImageUri": "7631
+[21:12:48]    deployed real-time: {"endpoint": "jh-ai-mxnet-tcembedding-robertafin-base-uncased", "artifact_how": "prepacked-prefix", "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38", "variant": null, "instance_type": "ml.c5.2xlarge", "action": "created"}
+[21:12:48]       env {"ENDPOINT_SERVER_TIMEOUT": "3600", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code", "SAGEMAKER_REGION": "us-east-1"}
+[21:37:39]    endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased -> Failed after 1491s The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
+[21:37:40]       log: == stream AllTraffic/i-02f87f7d2f69e99b8 (34 events, 34 flagged)
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: == stream AllTraffic/i-0601bc650632fc0a5 (40 events, 40 flagged)
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_container/serving.py", line 
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:40]       log: == stream 8f1f4b1-140869e25c674505bac4cf333b015e12 (18 events, 2 flagged)
+[21:37:40]       log: Traceback (most recent call last):
+[21:37:40]       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+[21:37:41]    failed endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased deleted
+[21:37:41]    huggingface-textembedding-bge-base-en-v1-5: image 683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04 | env {"ENDPOINT_SERVER_TIMEOUT": "3600", "HF_MODEL_ID": "/opt/ml/model", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS" | default ml.g5.xlarge | supported ['ml.g5.12xlarge', 'ml.g5.24xlarge', 'ml.g5.2xlarge', 'ml.g5.48xlarge', 'ml.g5.4xlarge', 'ml.g5.8xlarge', 'ml.g5.xlarge', 'ml.g6.12xlarge', 'ml.g6.24xlarge', 'ml.g6.2xlarge', 'ml.g6.48xlarge', 'ml.g6.4xlarge', 'ml.g6.8xlarge', 'ml.g6.xlarge', 'ml.p4d.24xlarge'] | variants {"Variants": {"g4dn": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04"}}, "g5": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04"}}, "g6": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu2
+[21:37:44]    deployed real-time: {"endpoint": "jh-ai-huggingface-textembedding-bge-base-en-v1-5", "artifact_how": "prepacked-prefix", "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04", "variant": null, "instance_type": "ml.m5.xlarge", "action": "created"}
+[21:37:44]       env {"ENDPOINT_SERVER_TIMEOUT": "3600", "HF_MODEL_ID": "/opt/ml/model", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code", "SAGEMAKER_REGION": "us-east-1"}
+[22:00:33]    endpoint jh-ai-huggingface-textembedding-bge-base-en-v1-5 -> Failed after 1370s The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
+[22:00:35]       log: == stream AllTraffic/i-0b394695d8fbd8c3a (85 events, 17 flagged)
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: == stream AllTraffic/i-0b24be4fa7e18b7d6 (105 events, 21 flagged)
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: Error: 'nvidia-smi' command not found.
+[22:00:35]       log: == stream 7c809c9-a8542f67eb684177b0b7fa7303e52c65 (5 events, 0 flagged)
+[22:00:35]       log: CUDA compat package requires Nvidia driver ≤535.183.06
+[22:00:35]       log: cat: /proc/driver/nvidia/version: No such file or directory
+[22:00:35]       log: Current installed Nvidia driver version is
+[22:00:35]       log: Skip CUDA compat libs setup as newer Nvidia driver is installed
+[22:00:35]       log: HF_MODEL_ID must be set
+[22:00:35]    failed endpoint jh-ai-huggingface-textembedding-bge-base-en-v1-5 deleted
+[22:00:35]    huggingface-textembedding-all-MiniLM-L6-v2: image 683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04 | env {"ENDPOINT_SERVER_TIMEOUT": "3600", "HF_MODEL_ID": "/opt/ml/model", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS" | default ml.g5.xlarge | supported ['ml.g5.12xlarge', 'ml.g5.24xlarge', 'ml.g5.2xlarge', 'ml.g5.48xlarge', 'ml.g5.4xlarge', 'ml.g5.8xlarge', 'ml.g5.xlarge', 'ml.g6.12xlarge', 'ml.g6.24xlarge', 'ml.g6.2xlarge', 'ml.g6.48xlarge', 'ml.g6.4xlarge', 'ml.g6.8xlarge', 'ml.g6.xlarge', 'ml.p4d.24xlarge'] | variants {"Variants": {"g4dn": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04"}}, "g5": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04"}}, "g6": {"Properties": {"ImageUri": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu2
+[22:00:38]    deployed real-time: {"endpoint": "jh-ai-huggingface-textembedding-all-minilm-l6-v2", "artifact_how": "prepacked-prefix", "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04", "variant": null, "instance_type": "ml.m5.xlarge", "action": "created"}
+[22:00:38]       env {"ENDPOINT_SERVER_TIMEOUT": "3600", "HF_MODEL_ID": "/opt/ml/model", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code", "SAGEMAKER_REGION": "us-east-1"}
+[22:23:48]    endpoint jh-ai-huggingface-textembedding-all-minilm-l6-v2 -> Failed after 1390s The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
+[22:23:49]       log: == stream AllTraffic/i-0c6acfdcada9cda70 (105 events, 21 flagged)
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: == stream AllTraffic/i-022477aaaed8ed077 (85 events, 17 flagged)
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: Error: 'nvidia-smi' command not found.
+[22:23:49]       log: == stream 325e66b-b757e305267744cd91494b4a9f9440a0 (5 events, 0 flagged)
+[22:23:49]       log: CUDA compat package requires Nvidia driver ≤535.183.06
+[22:23:49]       log: cat: /proc/driver/nvidia/version: No such file or directory
+[22:23:49]       log: Current installed Nvidia driver version is
+[22:23:49]       log: Skip CUDA compat libs setup as newer Nvidia driver is installed
+[22:23:49]       log: HF_MODEL_ID must be set
+[22:23:49]    failed endpoint jh-ai-huggingface-textembedding-all-minilm-l6-v2 deleted
+[22:23:50]    huggingface-sentencesimilarity-bge-base-en-v1-5: image 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04 | env {"ENDPOINT_SERVER_TIMEOUT": "3600", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inf | default ml.g5.2xlarge | supported ['ml.c6i.xlarge', 'ml.g4dn.2xlarge', 'ml.g5.2xlarge', 'ml.g5.4xlarge', 'ml.g5.8xlarge', 'ml.p3.2xlarge'] | variants {"Variants": {"c4": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04"}}, "c5": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-cpu-py39-ubuntu20.04"}}, "c5d": {"Properties": {"ImageUri": "763104351884.dkr.ecr.us-east
+[22:23:52]    deployed real-time: {"endpoint": "jh-ai-huggingface-sentencesimilarity-bge-base-en-v1-5", "artifact_how": "prepacked-prefix", "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04", "variant": null, "instance_type": "ml.m5.xlarge", "action": "created"}
+[22:23:52]       env {"ENDPOINT_SERVER_TIMEOUT": "3600", "MODEL_CACHE_ROOT": "/opt/ml/model", "SAGEMAKER_CONTAINER_LOG_LEVEL": "20", "SAGEMAKER_ENV": "1", "SAGEMAKER_MODEL_SERVER_TIMEOUT": "3600", "SAGEMAKER_MODEL_SERVER_WORKERS": "1", "SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code", "SAGEMAKER_REGION": "us-east-1"}
+[22:28:54]    endpoint jh-ai-huggingface-sentencesimilarity-bge-base-en-v1-5 -> InService after 302s 
+[22:39:26]    embed pass 1: status running cursor 3072/13051 dim 768 errors 0 elapsed 631.1s
