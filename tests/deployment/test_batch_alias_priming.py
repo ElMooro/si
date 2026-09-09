@@ -22,6 +22,18 @@ def test_generic_router_change_also_primes_unchanged_dependencies():
     assert prime(['justhodl-portfolio-admin'], {}) == ['justhodl-portfolio-snapshot']
 
 
+def test_freshness_monitor_is_established_governed_dependency_without_bootstrap_exception():
+    name='justhodl-fleet-freshness-monitor'
+    config=json.loads((ROOT/'aws/lambdas'/name/'config.json').read_text())
+    assert config['release_validation']['schema_version']=='audit-freshness-1.0'
+    assert name in GOVERNED and name in SCOPE['ESTABLISHED_DEPENDENCIES']
+    assert not SCOPE['bootstrap_eligible'](name,[name],{name:config},ROOT)
+    routing=runpy.run_path(str(ROOT/'aws/shared/governed_targets.py'))['governed_target']
+    assert routing(name)==name+':live'
+    assert routing(name+':$LATEST')==name+':live'
+    assert routing(name+':17')==name+':17'
+
+
 def test_configured_engine_names_and_new_validation_opt_ins_are_resolved():
     assert prime(['folder'], {'folder': {'function_name':'new-engine', 'release_validation':{'schema_version':'v1'}}}) == ['new-engine']
     assert prime(['other'], {}) == []

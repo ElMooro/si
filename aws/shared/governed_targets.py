@@ -6,6 +6,7 @@ numbered versions and named aliases are preserved; $LATEST is not a release.
 GOVERNED_FUNCTIONS = frozenset({
     "justhodl-backtest-engine", "justhodl-calibration-snapshotter",
     "justhodl-engine-fusion", "justhodl-katlin", "justhodl-khalid", "justhodl-khalid-risk",
+    "justhodl-fleet-freshness-monitor",
     "justhodl-portfolio-snapshot", "justhodl-research-backtest",
     "justhodl-public-archive-index",
     "justhodl-risk-gate", "justhodl-risk-sizer",
