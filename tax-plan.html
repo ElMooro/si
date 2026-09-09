@@ -391,8 +391,10 @@ async function refresh() {
   });
 
   try {
-    const resp = await fetch(ENDPOINT + "?" + params.toString(), { method: "GET" });
+    const resp = await fetch(ENDPOINT, { method: "POST", cache: "no-store",
+      headers: {"Content-Type": "application/json"}, body: JSON.stringify(Object.fromEntries(params)) });
     const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Server error");
     render(data);
   } catch (e) {
     root.innerHTML = `<div class="loading" style="color:var(--avoid)">Error: ${e.message}</div>`;

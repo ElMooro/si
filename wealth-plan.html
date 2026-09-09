@@ -404,7 +404,8 @@ async function run() {
   });
 
   try {
-    const resp = await fetch(LAMBDA_URL + "?" + params.toString(), { method: "GET" });
+    const resp = await fetch(LAMBDA_URL, { method: "POST", cache: "no-store",
+      headers: {"Content-Type": "application/json"}, body: JSON.stringify(Object.fromEntries(params)) });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || "Server error");
     render(data);

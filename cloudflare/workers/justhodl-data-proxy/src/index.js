@@ -326,6 +326,7 @@ const SANITIZED_ARTIFACTS = new Set([
   'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
   'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
   'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json', 'vol-regime.json',
+  'wealth-plan-snapshot.json', 'tax-plan-snapshot.json',
 ]);
 function sanitizedArtifact(path) {
   const normalized = path.replace(/^data\//, '');

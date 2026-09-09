@@ -483,7 +483,9 @@ test('manual owner APIs authenticate all reads and mutations before fixed servic
 test('sanitized public derivatives bypass old Worker and upstream cache generations',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0,upstreamUrl,upstreamOptions;
   globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})},async put(){throw new Error('private-derived payload recached')}}};globalThis.fetch=async(url,opts)=>{upstreamUrl=String(url);upstreamOptions=opts;return Response.json({safe:true})};
-  const r=await w.fetch(req('/data/brain-compiler.json'),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909'));assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);assert.equal(r.headers.get('Cache-Control'),'no-store');
+  for(const key of ['brain-compiler.json','wealth-plan-snapshot.json','tax-plan-snapshot.json']){
+    const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909'));assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);assert.equal(r.headers.get('Cache-Control'),'no-store');
+  }
 });
 test('AI proxy forwards authoritative entitlement and private-artifact auth without caching or synthesizing tiers',async()=>{
   const ai=(await import(pathToFileURL(path.join(__dirname,'..','cloudflare/workers/justhodl-ai-proxy/src/index.js')).href)).default;const calls=[];
