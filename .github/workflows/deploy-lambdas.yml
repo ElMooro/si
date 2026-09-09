@@ -18,6 +18,8 @@ on:
       - 'scripts/deploy_*.sh'
       - 'scripts/protect_lambda_alias.py'
       - 'scripts/prime_governed_aliases.py'
+      - 'scripts/release_order.py'
+      - 'scripts/pin_release_checkout.py'
       - 'scripts/scheduler_payload.py'
       - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'
@@ -32,7 +34,7 @@ on:
         required: false
         default: ''
       expected_sha:
-        description: 'Optional full40hex workflow commit pin; mismatch aborts before deployment'
+        description: 'Optional full40hex source commit; exact checkout requires matching workflow definition'
         required: false
         default: ''
 
@@ -53,6 +55,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 50
+
+      - name: Pin exact recovery checkout
+        env:
+          EXPECTED_RELEASE_SHA: ${{ github.event.inputs.expected_sha }}
+          TRIGGERING_RELEASE_SHA: ${{ github.event.after || github.sha }}
+          RECOVERY_BASE_SHA: ${{ github.event.inputs.base_sha }}
+          RELEASE_EVENT_NAME: ${{ github.event_name }}
+        run: python3 scripts/pin_release_checkout.py
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -75,7 +85,9 @@ jobs:
           parent_sha="${{ github.event.before }}"
           if [ -n "$EXPECTED_RELEASE_SHA" ]; then
             [[ "$EXPECTED_RELEASE_SHA" =~ ^[a-fA-F0-9]{40}$ ]] || { echo "::error::expected_sha must be full40hex"; exit 1; }
-            [ "$triggering_sha" = "$EXPECTED_RELEASE_SHA" ] || { echo "::error::Release commit changed before dispatch; refusing deployment"; exit 1; }
+            EXPECTED_RELEASE_SHA="${EXPECTED_RELEASE_SHA,,}"
+            [ "$(git rev-parse HEAD)" = "$EXPECTED_RELEASE_SHA" ] || { echo "::error::Release commit changed after verified checkout; refusing deployment"; exit 1; }
+            triggering_sha="$EXPECTED_RELEASE_SHA"
           fi
           if [ -n "$RECOVERY_BASE_SHA" ]; then
             [[ "$RECOVERY_BASE_SHA" =~ ^[a-fA-F0-9]{40}$ ]] || { echo "::error::base_sha must be full40hex"; exit 1; }

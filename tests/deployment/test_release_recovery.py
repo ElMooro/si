@@ -34,6 +34,7 @@ def test_recovery_redeploys_original_source_changes_and_shared_importers():
         def write(name, data):
             path=repo/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(data)
         git('init');git('config','user.name','test');git('config','user.email','test@example.invalid')
+        write('.github/workflows/deploy-lambdas.yml', WORKFLOW.read_text())
         write('aws/lambdas/engine-a/source/lambda_function.py','old=1\n')
         write('aws/lambdas/engine-c/source/lambda_function.py','from donor import value\n')
         write('aws/shared/donor.py','value=1\n')
@@ -58,6 +59,19 @@ def test_recovery_redeploys_original_source_changes_and_shared_importers():
         env['RECOVERY_BASE_SHA']=base;env['EXPECTED_RELEASE_SHA']='0'*40
         result=subprocess.run(['bash'],input=detect_script(head),text=True,cwd=repo,env=env,capture_output=True)
         assert result.returncode!=0 and 'commit changed' in result.stdout
+        # A later commit can change the branch after dispatch. Deploy precisely
+        # the requested source; newer changes must not contaminate its target set.
+        write('aws/lambdas/engine-unrequested/source/lambda_function.py','later=1\n')
+        git('add','aws/lambdas/engine-unrequested');git('commit','-m','branch advanced after dispatch')
+        observer=git('rev-parse','HEAD')
+        pin=runpy.run_path(str(ROOT/'scripts/pin_release_checkout.py'))['pin_checkout']
+        receipt=pin(repo,head,observer,base=base)
+        assert receipt['release_sha']==head and git('rev-parse','HEAD')==head
+        assert not (repo/'aws/lambdas/engine-unrequested').exists()
+        output.unlink();env['EXPECTED_RELEASE_SHA']=head
+        result=subprocess.run(['bash'],input=detect_script(observer),text=True,cwd=repo,env=env,capture_output=True)
+        assert result.returncode==0, result.stderr
+        assert set(output.read_text().strip().split('targets=')[-1].split())=={'engine-a','engine-b','engine-c'}
 
 
 def test_all_lambda_workflow_run_blocks_remain_below_expression_limit():
@@ -95,14 +109,21 @@ def recovery_5235():
     return runpy.run_path(str(path))['main']
 
 
+def recovery_5236():
+    path=ROOT/'aws/ops/pending/ops_5236_retry_pinned_core_release.py'
+    if not path.exists():path=ROOT/'aws/ops/ran'/path.name
+    assert 'boto3' not in path.read_text()
+    return runpy.run_path(str(path))['main']
+
+
 def test_alias_recovery_uses_distinct_receipt_and_exact_head_once():
     with tempfile.TemporaryDirectory() as temp:
         _alias_recovery_once(Path(temp))
 
 
-def _alias_recovery_once(tmp_path):
-    main=recovery_5235();scope=main.__globals__
-    assert scope['REPORT'].name=='ops_5235_core_recovery_dispatch.json'
+def _alias_recovery_once(tmp_path, operation='5235'):
+    main=(recovery_5235 if operation=='5235' else recovery_5236)();scope=main.__globals__
+    assert scope['REPORT'].name=='ops_'+operation+'_core_recovery_dispatch.json'
     report=tmp_path/scope['REPORT'].name
     # A failed earlier attempt must not suppress the independently numbered retry.
     (tmp_path/'ops_5233_core_recovery_dispatch.json').write_text('{"request_sent":true}')
@@ -118,15 +139,29 @@ def _alias_recovery_once(tmp_path):
             assert payload=={'ref':'main','inputs':{
                 'base_sha':'c167a7541b9b02f849343bad1b4a231e758cadd8','expected_sha':head}}
             return 200,{'workflow_run_id':123}
-        return 200,{'head_sha':head}
+        return 200,{'head_sha':head if operation=='5235' else 'b'*40}
     scope['request']=request
     with patch.dict(os.environ,{'GITHUB_REPOSITORY':'owner/repo','GH_API_TOKEN':'test-secret-never-logged'}):
         main();main()
     assert len(requests)==2 and len(git_calls)==2
     saved=json.loads(report.read_text())
-    assert saved['operation']=='5235' and saved['status']=='DISPATCHED'
-    assert saved['workflow_sha_matches'] is True and saved['aws_calls']==0
+    assert saved['operation']==operation and saved['status']=='DISPATCHED'
+    assert saved['workflow_sha_matches'] is (operation=='5235') and saved['aws_calls']==0
+    if operation=='5236':
+        assert saved['expected_checkout_sha']==head and saved['checkout_verification']=='REQUIRED_IN_RELEASE_JOB'
     assert 'test-secret' not in report.read_text()
+
+
+def test_pinned_retry_preserves_requested_commit_when_dispatch_branch_advances():
+    with tempfile.TemporaryDirectory() as temp:
+        _alias_recovery_once(Path(temp), '5236')
+
+
+def test_recovery_checkout_is_verified_before_credentials_and_code_staging():
+    workflow=WORKFLOW.read_text()
+    assert workflow.index('- name: Pin exact recovery checkout') < workflow.index('- name: Configure AWS credentials')
+    assert workflow.index('- name: Pin exact recovery checkout') < workflow.index('- name: Detect changed Lambdas')
+    assert 'triggering_sha="$EXPECTED_RELEASE_SHA"' in workflow
 
 
 def test_alias_recovery_uncertain_request_never_auto_duplicates_or_logs_body():
