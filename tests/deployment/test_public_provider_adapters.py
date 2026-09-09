@@ -96,7 +96,9 @@ class MarketTests(unittest.TestCase):
         d=self.module.analyze_market_breadth({'sector_etfs':rows});self.assertEqual(d['market_breadth'],'UNCHANGED');self.assertIsNone(d['breadth_ratio'])
     def test_all_expected_rows_and_no_fabricated_sentiment(self):
         self.module.fetch_quote=lambda s,k:{'symbol':s,'status':'UNAVAILABLE','error':'PROVIDER_HTTP_ERROR'}
-        d=json.loads(self.module.lambda_handler({},None)['body'])
+        response=self.module.lambda_handler({},None)
+        self.assertFalse(any(k.lower().startswith('access-control-') for k in response['headers']))
+        d=json.loads(response['body'])
         self.assertEqual(d['coverage'],{'expected_quotes':17,'observed_quotes':0});self.assertEqual(d['status'],'UNAVAILABLE')
         self.assertIsNone(d['market_data']['sentiment']['vix']);self.assertIsNone(d['market_data']['sentiment']['fear_greed'])
         self.assertEqual(d['recommendations'],[]);self.assertFalse(d['execution_eligible'])

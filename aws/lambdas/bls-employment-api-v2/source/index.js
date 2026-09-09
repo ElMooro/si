@@ -92,23 +92,22 @@ exports.handler = async (event) => {
     
     // Fetch data in chunks for full historical coverage (BLS API limits)
     const allData = {};
+    const chunkCoverage = [];
     const yearChunks = createYearChunks(startYear, endYear, 20); // 20-year chunks max per BLS API
     
     for (const chunk of yearChunks) {
       console.log(`📅 Fetching data for ${chunk.start}-${chunk.end}`);
       const chunkData = await fetchBLSData(seriesToFetch, apiKey, chunk.start, chunk.end);
       
+      chunkCoverage.push({start_year:chunk.start,end_year:chunk.end,missing_series:seriesToFetch.filter(id=>!chunkData[id]?.data?.length)});
       // Merge chunk data
       Object.keys(chunkData).forEach(seriesId => {
         if (!allData[seriesId]) {
           allData[seriesId] = chunkData[seriesId];
         } else {
-          // Merge data arrays and remove duplicates
-          const existingDates = new Set(allData[seriesId].data.map(d => d.date));
-          const newData = chunkData[seriesId].data.filter(d => !existingDates.has(d.date));
-          allData[seriesId].data = allData[seriesId].data.concat(newData);
-          allData[seriesId].data.sort((a, b) => new Date(a.date) - new Date(b.date));
-          allData[seriesId].summary.dataPoints = allData[seriesId].data.length;
+          const merged = new Map();
+          for (const point of [...allData[seriesId].provider_observations, ...chunkData[seriesId].provider_observations]) merged.set(`${point.year}:${point.period}`, point);
+          allData[seriesId] = processHistoricalData([{seriesID:seriesId,data:[...merged.values()]}])[seriesId];
         }
       });
       
@@ -118,13 +117,18 @@ exports.handler = async (event) => {
       }
     }
     
+    const observedSeries = Object.values(allData).filter(series=>Number.isFinite(series.summary.latest)).length;
+    const complete = observedSeries === seriesToFetch.length && chunkCoverage.every(chunk=>chunk.missing_series.length===0);
     const currentMetrics = getCurrentMetrics(allData);
     const crisisAnalysis = performCrisisAnalysis(allData);
     const chartData = formatForCharts(allData);
     
     const responseData = {
-      success: true,
-      message: 'BLS Employment API - Full Historical Data (2000-Present)',
+      success: observedSeries > 0,
+      status: complete ? 'READY' : observedSeries ? 'PARTIAL' : 'UNAVAILABLE',
+      execution_eligible: false,
+      chunk_coverage: chunkCoverage,
+      message: 'BLS published observations in the requested range',
       timestamp: new Date().toISOString(),
       mode: mode,
       data_coverage: {
@@ -140,7 +144,8 @@ exports.handler = async (event) => {
         data_source: 'U.S. Bureau of Labor Statistics (Real Data Only)',
         historical_coverage: `${startYear}-${endYear}`,
         update_frequency: 'Twice Weekly (Tuesdays & Fridays)',
-        next_update: getNextUpdateDate(),
+        next_update: null,
+        next_update_basis: 'Schedule not verified by this request',
         data_authenticity: '100% Real Federal Data - No Mock/Demo Data',
         chart_compatibility: 'Optimized for Chart.js, D3.js, Plotly, Excel, etc.'
       },
@@ -157,11 +162,11 @@ exports.handler = async (event) => {
       chart_data: chartData, // Pre-formatted for easy charting
       live_data: allData,
       auto_update_info: {
-        enabled: true,
+        enabled: null,
         frequency: 'Twice weekly',
         schedule: 'Tuesdays 6:00 PM EST, Fridays 6:00 PM EST',
         last_update: new Date().toISOString(),
-        data_freshness: 'Real-time from BLS'
+        data_freshness: 'Published observation dates supplied per series; collection time is not release time'
       }
     };
     
@@ -232,27 +237,28 @@ function fetchBLSData(seriesIds, apiKey, startYear, endYear) {
       },
       timeout: 60000 // Longer timeout for historical data
     }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      let data = '';let bytes = 0;
+      res.on('data', chunk => {bytes += chunk.length;if (bytes > 8_000_000) {res.destroy();resolve({});return;}data += chunk;});
+      res.on('error',()=>resolve({}));
       res.on('end', () => {
         try {
           const response = JSON.parse(data);
           console.log(`📊 BLS Response: ${response.status}`);
-          if (response.status === 'REQUEST_SUCCEEDED') {
+          if (res.statusCode === 200 && response.status === 'REQUEST_SUCCEEDED' && Array.isArray(response.Results?.series)) {
             resolve(processHistoricalData(response.Results.series));
           } else {
-            console.log('BLS API issue:', response.message);
+            console.log('BLS provider rejected request');
             resolve({});
           }
         } catch (error) {
-          console.log('Parse error:', error);
+          console.log('BLS response invalid');
           resolve({});
         }
       });
     });
     
     req.on('error', (error) => {
-      console.log('Request error:', error);
+      console.log('BLS request failed');
       resolve({});
     });
     req.on('timeout', () => {
@@ -270,15 +276,16 @@ function processHistoricalData(seriesArray) {
   const result = {};
   
   seriesArray.forEach(series => {
-    const chartReadyData = series.data.map(point => ({
+    const observations = series.data.map(point => ({
       date: parseBlsDate(point.period, point.year),
-      value: parseFloat(point.value),
+      value: typeof point.value === 'string' && point.value.trim() && Number.isFinite(Number(point.value)) ? Number(point.value) : null,
       period: point.period,
       year: parseInt(point.year),
       periodName: point.periodName,
       footnotes: point.footnotes || [],
       calculations: point.calculations || {}
-    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+    }));
+    const chartReadyData = observations.filter(point=>point.date !== null).sort((a,b)=>a.date.localeCompare(b.date));
     
     const latestValue = chartReadyData.length > 0 ? chartReadyData[chartReadyData.length - 1].value : null;
     
@@ -287,9 +294,13 @@ function processHistoricalData(seriesArray) {
       title: getSeriesTitle(series.seriesID),
       category: getSeriesCategory(series.seriesID),
       units: getSeriesUnits(series.seriesID),
-      data: chartReadyData, // Chart-ready format
+      data: chartReadyData, // Dated monthly/quarterly observations only.
+      annual_averages: observations.filter(point=>point.period === 'M13'),
+      undated_observations: observations.filter(point=>point.date === null && point.period !== 'M13'),
+      provider_observations: series.data,
       summary: {
         latest: latestValue,
+        latest_observation_date: chartReadyData.at(-1)?.date || null,
         dataPoints: chartReadyData.length,
         trend: calculateTrend(chartReadyData),
         dateRange: {
@@ -351,19 +362,16 @@ function getChartColor(category, alpha = 1) {
 }
 
 function parseBlsDate(period, year) {
-  if (period.startsWith('M')) {
-    const month = parseInt(period.substring(1));
-    return `${year}-${month.toString().padStart(2, '0')}-01`;
-  } else if (period.startsWith('Q')) {
-    const quarter = parseInt(period.substring(1));
-    const month = (quarter - 1) * 3 + 1;
-    return `${year}-${month.toString().padStart(2, '0')}-01`;
-  }
-  return `${year}-01-01`;
+  if (!/^\d{4}$/.test(String(year)) || typeof period !== 'string') return null;
+  if (/^M(0[1-9]|1[0-2])$/.test(period)) return `${year}-${period.slice(1)}-01`;
+  if (/^Q0[1-4]$/.test(period)) return `${year}-${String((Number(period.slice(1))-1)*3+1).padStart(2,'0')}-01`;
+  return null; // M13 is an annual average, never a thirteenth month.
 }
 
 function calculateTrend(dataPoints) {
-  if (dataPoints.length < 6) return 'insufficient data';
+  if (dataPoints.length < 6 || dataPoints.slice(-6).some(point=>!Number.isFinite(point.value) || !/^M(0[1-9]|1[0-2])$/.test(point.period))) return 'insufficient data';
+  const months=dataPoints.slice(-6).map(point=>Number(point.year)*12+Number(point.period.slice(1)));
+  if (months.some((month,index)=>index && month!==months[index-1]+1)) return 'insufficient contiguous monthly data';
   
   // Compare last 3 months average vs previous 3 months
   const recent = dataPoints.slice(-3).map(p => p.value);
@@ -448,11 +456,11 @@ function getSeriesCategory(seriesId) {
 }
 
 function getSeriesUnits(seriesId) {
-  if (seriesId.includes('14000') || seriesId.includes('113') || seriesId.includes('123')) return 'Percent';
-  if (seriesId.startsWith('CES') && seriesId.includes('0003')) return 'Dollars';
-  if (seriesId.startsWith('CES') && seriesId.includes('0002')) return 'Hours';
-  if (seriesId.startsWith('CES')) return 'Thousands';
-  return 'Thousands';
+  if (BLS_INDICATORS.unemployment_core.includes(seriesId) && seriesId !== 'LNS13008636' || BLS_INDICATORS.unemployment_demographics.includes(seriesId) || BLS_INDICATORS.state_unemployment.includes(seriesId)) return 'Percent';
+  if (seriesId === 'CES0500000003') return 'Dollars';
+  if (seriesId === 'CES0500000002') return 'Hours';
+  if (seriesId.startsWith('CES') || seriesId === 'LNS13008636') return 'Thousands';
+  return 'Unverified';
 }
 
 function getCurrentMetrics(data) {
@@ -474,7 +482,7 @@ function getCurrentMetrics(data) {
 
 function performCrisisAnalysis(data) {
   const unemploymentData = data['LNS14000000'];
-  if (!unemploymentData) {
+  if (!unemploymentData || !Number.isFinite(unemploymentData.summary?.latest)) {
     return { status: 'Insufficient data for crisis analysis' };
   }
   
@@ -489,6 +497,9 @@ function performCrisisAnalysis(data) {
   
   return {
     current_unemployment_rate: currentRate,
+    classification_basis: 'Descriptive unemployment thresholds; not a validated crisis forecast',
+    observation_date: unemploymentData.summary.latest_observation_date,
+    execution_eligible: false,
     historical_comparison: {
       '2001_dot_com_peak': `${crisisPeriods.dot_com_2001.peak}%`,
       '2008_financial_crisis_peak': `${crisisPeriods.financial_2008.peak}%`,

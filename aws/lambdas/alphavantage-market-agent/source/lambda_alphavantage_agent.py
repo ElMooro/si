@@ -54,7 +54,8 @@ def analyze_market_breadth(data):
             'freshness_status':'CALENDAR_AND_SESSION_UNVERIFIED','execution_eligible':False}
 
 def response(status,body):
-    return {'statusCode':status,'headers':{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'},'body':json.dumps(body,allow_nan=False)}
+    # Production Function URL CORS is verified in runner receipt 5280.
+    return {'statusCode':status,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':json.dumps(body,allow_nan=False)}
 
 def lambda_handler(event,context):
     global _CACHE,_CACHE_AT
