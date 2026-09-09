@@ -41,7 +41,7 @@ KEY_TO_CHANNEL = {
     "data/macro-nowcast.json": "regime",
     "data/compound-signals.json": "compound",
     "data/cross-asset-regime.json": "cross_asset",
-    "data/options-flow.json": "options_flow",
+    "data/options-flow-scanner.json": "options_flow",
     "data/eurodollar-stress.json": "eurodollar",
     "data/nobrainers.json": "nobrainers",
     "data/narrative-density.json": "narrative",
@@ -161,7 +161,7 @@ def _build_summary(key, body_bytes):
             "regime_60d": (j.get("regime_60d") or {}).get("regime"),
             "as_of": j.get("generated_at"),
         }
-    if key == "data/options-flow.json":
+    if key == "data/options-flow-scanner.json":
         return {
             "updated": True,
             "n_tier_a": (j.get("stats") or {}).get("n_tier_a"),

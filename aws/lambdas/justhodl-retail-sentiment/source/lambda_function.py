@@ -589,7 +589,7 @@ def lambda_handler(event, context):
             _v = _r.get("velocity")
             if _r.get("stealth") or (_v is not None and _v >= 1.5):
                 trends_set.add(str(_r["ticker"]).upper())
-    options_set = _collect_tickers(_load_json("data/options-flow.json"))
+    options_set = _collect_tickers(_load_json("data/options-flow-scanner.json"))
     _fvn = _load_json("data/finviz-news.json")
     fvnews_set = set(str(t.get("ticker")).upper() for t in (_fvn.get("top_tickers") or []) if t.get("ticker"))
     fvnews_set |= set(k.upper() for k in (_fvn.get("by_ticker") or {}).keys() if isinstance(k, str))
@@ -615,7 +615,7 @@ def lambda_handler(event, context):
         key=lambda x: (-(x.get("corroboration_count") or 0), -(x.get("heat") or 0)))[:12]
 
     # ─── #7 Retail flow proxy: options call/put skew + watchlist growth ───
-    opt_doc = _load_json("data/options-flow.json")
+    opt_doc = _load_json("data/options-flow-scanner.json")
     opt_map = {}
     for r in (opt_doc.get("all_qualifying") or (opt_doc.get("summary", {}) or {}).get("top_25_overall") or []):
         sym = (r.get("symbol") or "").upper()

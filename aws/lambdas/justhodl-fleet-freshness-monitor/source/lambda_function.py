@@ -12,7 +12,7 @@ Uses the EXISTING manifest schema at data/_freshness-manifest.json:
   "rules": [{"prefix": "data/", "default_max_age_h": 26.0}],
   "exclude_prefixes": ["data/archive/", "data/_archive/", ...],
   "admin_only_keys": ["data/khalid-config.json", ...],
-  "key_overrides": {"data/options-flow.json": 0.2, ...}
+  "key_overrides": {"data/options-flow-scanner.json": 0.2, ...}
 }
 
 Logic:

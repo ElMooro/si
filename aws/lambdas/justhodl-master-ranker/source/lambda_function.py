@@ -231,7 +231,7 @@ def build_ticker_index():
         "deep_value":       fetch_json("data/deep-value.json"),
         "pead":             fetch_json("data/pead-signals.json"),
         "nobrainers":       fetch_json("data/nobrainers.json"),
-        "options_flow":     fetch_json("data/options-flow.json", max_age_h=72),
+        "options_flow":     fetch_json("data/options-flow-scanner.json", max_age_h=72),
         "momentum_breakout": fetch_json("data/momentum-breakout.json"),
         "volatility_squeeze": fetch_json("data/volatility-squeeze.json"),
         # Forward-looking (added 2026-05-31)
@@ -520,14 +520,14 @@ def build_ticker_index():
 
     # 10. options flow
     if feeds["options_flow"]:
-        for r in (feeds["options_flow"].get("unusual") or feeds["options_flow"].get("top_flow") or []):
+        for r in (feeds["options_flow"].get("all_qualifying") or []):
             sym = r.get("ticker") or r.get("symbol")
             if not sym:
                 continue
             idx.setdefault(sym, {})["options_flow"] = {
-                "score": r.get("score") or r.get("unusual_score"),
-                "flag": r.get("flag") or r.get("classification"),
-                "premium": r.get("premium"),
+                "score": r.get("score"),
+                "flag": r.get("tier"),
+                "premium": None,  # scanner publishes contract volumes, not premium dollars
             }
 
     # 11. momentum breakout

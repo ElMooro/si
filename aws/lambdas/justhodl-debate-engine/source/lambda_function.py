@@ -42,7 +42,7 @@ INPUTS (all sidecars from S3)
   signals/confluence.json       → confluence tier + factors firing
   signals/regime-picks.json     → regime fit score
   signals/anomalies.json        → Macro Stress Score for regime context
-  data/options-flow.json        → options-flow signal
+  data/options-flow-scanner.json        → options-flow signal
   data/earnings-tracker.json    → upcoming earnings catalyst
   screener/data.json             → full screener row (PE, growth, margins, etc.)
 
@@ -75,7 +75,7 @@ ALPHA_KEY = "screener/alpha-score.json"
 CONFLUENCE_KEY = "signals/confluence.json"
 REGIME_KEY = "signals/regime-picks.json"
 ANOMALIES_KEY = "signals/anomalies.json"
-OPTIONS_FLOW_KEY = "data/options-flow.json"
+OPTIONS_FLOW_KEY = "data/options-flow-scanner.json"
 EARNINGS_KEY = "data/earnings-tracker.json"
 SCREENER_KEY = "screener/data.json"
 OUTPUT_KEY = "data/debate.json"

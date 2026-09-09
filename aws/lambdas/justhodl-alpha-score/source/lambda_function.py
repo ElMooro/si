@@ -57,7 +57,7 @@ S3_BUCKET = "justhodl-dashboard-live"
 SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
-OPTIONS_FLOW_KEY = "data/options-flow.json"
+OPTIONS_FLOW_KEY = "data/options-flow-scanner.json"
 MASSIVE_KEY = "data/massive-signals.json"
 _MASSIVE_CACHE = {}
 def _massive_tickers():

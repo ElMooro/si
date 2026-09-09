@@ -19,7 +19,7 @@ This Lambda reads existing S3 outputs from:
   - data/insider-buys-enriched.json
   - data/smart-money-clusters.json   (13F clusters)
   - data/short-pressure.json
-  - data/options-flow.json (if available -- optional 4th signal)
+  - flow-data.json (if available -- optional 4th signal)
 
 And produces:
   data/stealth-accumulation.json
@@ -63,7 +63,7 @@ SOURCES = {
     "insider": "data/insider-buys-enriched.json",
     "smart_money": "data/smart-money-clusters.json",
     "short_pressure": "data/short-pressure.json",
-    "options_flow": "data/options-flow.json",   # optional
+    "options_flow": "flow-data.json",   # optional
 }
 
 
@@ -171,11 +171,16 @@ def extract_options_flow_tickers(data):
     if not isinstance(data, dict):
         return {}
     out = {}
-    # Multiple possible shapes for options-flow output
-    bullish = (data.get("top_bullish")
+    # The macro flow producer owns premium measurements. Its ratio is put/call;
+    # derive call/put from the explicit volume fields to avoid inverting zeros.
+    primary = ((data.get("data") or {}).get("put_call") or {}).get("options_flow")
+    bullish = ([{**row, "call_premium_usd": row.get("call_premium"),
+                 "call_put_ratio": row["call_volume"] / row["put_volume"] if row.get("put_volume", 0) > 0 else 0}
+                for row in primary if isinstance(row, dict) and row.get("sentiment") == "BULLISH"]
+               if isinstance(primary, list) else (data.get("top_bullish")
                or data.get("bullish_flow")
                or data.get("calls_premium_top")
-               or [])
+               or []))
     if not isinstance(bullish, list):
         bullish = []
     for b in bullish[:50]:

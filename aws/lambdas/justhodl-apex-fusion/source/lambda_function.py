@@ -139,7 +139,7 @@ def lambda_handler(event, context):
             e["evidence"]["squeeze"] = f"short {m.get('short_pct_recent')}% · {r.get('tier', '')[:22]}"
 
     # 4) options flow
-    of = _rd("data/options-flow.json")
+    of = _rd("data/options-flow-scanner.json")
     for r in (of.get("all_qualifying") or []):
         m = r.get("metrics") or {}
         e = slot(r.get("symbol"), m.get("spot"))

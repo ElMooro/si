@@ -41,7 +41,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 FEED_CATALYST = "data/catalyst-calendar.json"
-FEED_OPTIONS = "data/options-flow.json"
+FEED_OPTIONS = "flow-data.json"
 FEED_IVCRUSH = "data/earnings-iv-crush.json"
 
 
@@ -58,6 +58,17 @@ def extract_options_skew(data):
     if not isinstance(data, dict):
         return {}
     out = {}
+    primary = ((data.get("data") or {}).get("put_call") or {}).get("options_flow")
+    if isinstance(primary, list):
+        for row in primary:
+            if not isinstance(row, dict) or not row.get("ticker"):
+                continue
+            calls, puts = row.get("call_volume"), row.get("put_volume")
+            if not isinstance(calls, (int, float)) or not isinstance(puts, (int, float)) or puts <= 0:
+                continue  # no finite C/P measurement; never turn missing puts into a ratio
+            out[str(row["ticker"]).upper()] = {"call_put_ratio": calls / puts,
+                "call_premium": row.get("call_premium") or 0, "put_premium": row.get("put_premium") or 0}
+        return out
     sources = [
         data.get("top_bullish") or [],
         data.get("top_bearish") or [],

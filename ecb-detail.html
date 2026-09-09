@@ -131,7 +131,7 @@ function card(name,color,big,tag,tagColor,det,rd){
 }
 
 async function main(){
-  const d=await J("ecb-detail.json");
+  const [d,derived]=await Promise.all([J("ecb-detail.json"),J("ecb-derived.json")]);
   if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">ECB-DETAIL DATA UNAVAILABLE</div>';return;}
   document.getElementById("hero").innerHTML=hero(d);
   document.getElementById("elq").innerHTML=excessLiq(d.liquidity||{});
@@ -158,10 +158,12 @@ async function main(){
   document.getElementById("cards").innerHTML=cards.join("");
 
   const xr=d.cross_reference||{};
+  const esi=derived?.indicators?.eurodollar_stress_index||{};
   document.getElementById("edollar").innerHTML=`<div class="panel" style="border-left-color:var(--cyan)">
     <div class="t">Eurodollar Read</div>
     <div class="r">${esc(d.eurodollar_read||"")}</div>
     <div class="xref">cross-reference — global CB impulse: ${esc(xr.cb_injection_global_impulse||"n/a")} · eurodollar stress: ${esc(xr.eurodollar_stress_score!=null?xr.eurodollar_stress_score:"n/a")}</div>
+    <div class="xref">ECB-derived Eurodollar Stress Index: ${esc(esi.esi_0_100!=null?esi.esi_0_100+"/100":"unavailable")} · ${esc(esi.tier||"unavailable")} · generated ${esc(derived?.generated_at||"unavailable")}</div>
   </div>`;
   document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". Real data only — not investment advice.";
   document.getElementById("ts").textContent=

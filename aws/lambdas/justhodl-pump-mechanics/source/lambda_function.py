@@ -35,7 +35,7 @@ Market-structure layer for pump candidates. Two outputs per ticker:
 INPUTS
 ══════
 data/convergence-radar.json   →  pump_candidates[]
-data/options-flow.json        →  for skew/CPR data
+data/options-flow-scanner.json        →  for skew/CPR data
 data/sec-filings-intel.json   →  for concentration signals
 
 OUTPUT
@@ -94,7 +94,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 S3_BUCKET     = "justhodl-dashboard-live"
 RADAR_KEY     = "data/convergence-radar.json"
-OFLOW_KEY     = "data/options-flow.json"
+OFLOW_KEY     = "data/options-flow-scanner.json"
 SEC_KEY       = "data/sec-filings-intel.json"
 OUTPUT_KEY    = "data/pump-mechanics.json"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))

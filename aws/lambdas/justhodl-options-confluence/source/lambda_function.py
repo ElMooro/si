@@ -169,14 +169,16 @@ def lambda_handler(event, context):
         for it in (cs.get("bear_skew_setups") or []):
             if isinstance(it, dict): add(_tk(it), "catalyst-skew", -0.6, tag="pre-catalyst bear skew")
 
-    # 5. options-flow scanner + volatility-squeeze — COILED (vol compression, tier S/A)
-    for fk, key in [("options-flow-scanner", "data/options-flow.json"),
+    # 5. Scanner flow tiers and volatility compression have separate contracts.
+    for fk, key in [("options-flow-scanner", "data/options-flow-scanner.json"),
                     ("volatility-squeeze", "data/volatility-squeeze.json")]:
         inc, _ = gated(fk)
         if not inc: continue
         for it in (_read(key).get("all_qualifying") or []):
             if not isinstance(it, dict): continue
-            if (it.get("tier") or "").upper() in ("S", "A"):
+            if fk == "options-flow-scanner" and it.get("tier") == "TIER_A_BULLISH_FLOW":
+                add(_tk(it), fk, 0.0, tag="scanner Tier-A bullish flow")
+            elif fk == "volatility-squeeze" and (it.get("tier") or "").upper() in ("S", "A"):
                 add(_tk(it), fk, 0.0, coiled=True, tag="coiled (vol compression)")
 
     # earnings IV — options pricing into earnings is vol context for the options posture

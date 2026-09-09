@@ -165,7 +165,7 @@ def build_flow_index():
             if isinstance(q, dict):
                 add(q.get("symbol"), t)
 
-    qual(_read("data/options-flow.json"), "OPTIONS_UOA")
+    qual(_read("data/options-flow-scanner.json"), "OPTIONS_UOA")
     st = _read("data/stealth-accumulation.json")
     for r in (st or {}).get("top_smart_money_only", []) or []:
         if (r.get("n_funds_buying") or 0) > 0 or (r.get("score") or 0) >= 70:

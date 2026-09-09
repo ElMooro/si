@@ -616,7 +616,7 @@ def lambda_handler(event, context):
         payload = add_ka_aliases(payload)
         s3.put_object(
             Bucket=S3_BUCKET,
-            Key='data/report.json',
+            Key='data/bloomberg-report.json',
             Body=json.dumps(payload, default=str),
             ContentType='application/json',
             CacheControl='max-age=60',

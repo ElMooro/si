@@ -172,7 +172,7 @@ function gauge(val,lo,hi,mid,label){
 }
 
 Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.json'),F('options-analytics.json'),
- F('polygon-options-flow.json'),F('options-flow.json'),F('dix.json'),F('opex-calendar.json'),
+ F('polygon-options-flow.json'),F('options-flow-scanner.json'),F('dix.json'),F('opex-calendar.json'),
  F('dealer-gex-history.json'),F('catalyst-skew-premove.json'),F('earnings-iv-crush.json'),F('volatility-squeeze.json')
 ]).then(function(res){
  const dg=res[0],og=res[1],conf=res[2],oa=res[3],pf=res[4],of=res[5],dix=res[6],opex=res[7],gh=res[8],cat=res[9],eiv=res[10],vsq=res[11];

@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 s3 = boto3.client('s3', region_name='us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 REPORT_KEY = 'data/report.json'
+OUTPUT_OWNERSHIP = {"key": REPORT_KEY, "role": "augmentation", "base_producer": "justhodl-daily-report-v3",
+                    "base_version": "V10", "compare_and_swap": True}
 CMC_KEY = os.environ.get('CMC_API_KEY', '')
 
 ctx = ssl.create_default_context()
@@ -220,6 +222,33 @@ def compute_market_intelligence(report):
     
     return intel
 
+def save_enrichment(enrichments):
+    """Rebase enrichment on the latest V10 report, preserving concurrent prices."""
+    for _ in range(3):
+        obj = s3.get_object(Bucket=BUCKET, Key=REPORT_KEY)
+        report = json.loads(obj['Body'].read())
+        if not isinstance(report, dict) or report.get('version') != 'V10':
+            raise ValueError('report_base_schema_not_v10')
+        if not obj.get('ETag'):
+            raise ValueError('report_base_revision_missing')
+        applied = {**enrichments, 'market_intelligence': compute_market_intelligence(report)}
+        report.update(applied)
+        report['enriched_at'] = datetime.now(timezone.utc).isoformat()
+        report['enrichment_fields'] = list(applied)
+        report['enrichment_provenance'] = {**OUTPUT_OWNERSHIP, 'engine': 'justhodl-crypto-enricher',
+            'base_generated_at': report.get('generated_at'), 'base_etag': obj['ETag']}
+        try:
+            s3.put_object(Bucket=BUCKET, Key=REPORT_KEY, Body=json.dumps(report, default=str),
+                          ContentType='application/json', CacheControl='max-age=60', IfMatch=obj['ETag'])
+        except Exception as exc:
+            if getattr(exc, 'response', {}).get('Error', {}).get('Code') in {
+                    'PreconditionFailed', 'ConditionalRequestConflict', '412', '409'}:
+                continue
+            raise
+        return report, applied
+    raise RuntimeError('report_changed_during_enrichment')
+
+
 def lambda_handler(event, context):
     headers = {
         'Content-Type': 'application/json',
@@ -264,25 +293,9 @@ def lambda_handler(event, context):
             enrichments['leverage_sentiment'] = leverage
             print(f"  Leverage: {len(leverage)} pairs")
         
-        # 5. Computed Market Intelligence
-        print("Computing market intelligence...")
-        intel = compute_market_intelligence(report)
-        enrichments['market_intelligence'] = intel
-        print(f"  Intel fields: {list(intel.keys())}")
-        
-        # Merge into report
-        report.update(enrichments)
-        report['enriched_at'] = datetime.now(timezone.utc).isoformat()
-        report['enrichment_fields'] = list(enrichments.keys())
-        
-        # Save back to S3
-        print("Saving enriched report to S3...")
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=REPORT_KEY,
-            Body=json.dumps(report, default=str),
-            ContentType='application/json'
-        )
+        # Re-read after network collection and recompute report-derived fields on
+        # each conditional-write retry; never overwrite a newer base snapshot.
+        report, enrichments = save_enrichment(enrichments)
         
         summary = {
             'status': 'enriched',

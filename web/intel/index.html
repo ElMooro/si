@@ -438,7 +438,7 @@ async function loadAll() {
   }
 
   // Options Flow
-  const of = await fetchJson('options-flow.json');
+  const of = await fetchJson('options-flow-scanner.json');
   if (of) {
     const top = (of.summary && of.summary.top_25_overall || []).slice(0, 8);
     document.getElementById('options-flow').innerHTML = tableHTML(top, [

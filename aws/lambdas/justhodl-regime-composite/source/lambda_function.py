@@ -193,7 +193,7 @@ MODULES_CFG = [
         "derive": "dix",
     },
     {
-        "label": "Options Flow", "emoji": "⚡", "key": "data/options-flow.json",
+        "label": "Options Flow", "emoji": "⚡", "key": "data/options-flow-scanner.json",
         "regime_path": None, "signal_path": None,
         "polarity_map": None, "dimension": "liquidity",
         "page": "/options-flow/",

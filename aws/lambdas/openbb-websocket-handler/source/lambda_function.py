@@ -37,7 +37,7 @@ ALLOWED_CHANNELS = {
     "regime",                # data/macro-nowcast.json (regime change)
     "compound",              # data/compound-signals.json
     "cross_asset",           # data/cross-asset-regime.json
-    "options_flow",          # data/options-flow.json
+    "options_flow",          # data/options-flow-scanner.json
     "eurodollar",            # data/eurodollar-stress.json
     "nobrainers",            # data/nobrainers.json
     "narrative",             # data/narrative-density.json

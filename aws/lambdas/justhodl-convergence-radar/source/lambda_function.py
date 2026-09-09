@@ -148,7 +148,7 @@ ENGINE_EXTRACTORS = {
         "default_score": 70,       # post-confirmation = strong signal
     },
     "options-flow": {
-        "key":    "data/options-flow.json",
+        "key":    "data/options-flow-scanner.json",
         "path":   "all_qualifying",
         "ticker": "symbol",
         "score":  "score",

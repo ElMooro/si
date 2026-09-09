@@ -55,7 +55,7 @@ FEEDS = {
     "momentum":       ("data/momentum-breakout.json",      "summary.top_25_overall",  "symbol"),
     "pre_pump":       ("data/pre-pump-signals.json",       "summary.top_25_overall",  "symbol"),
     # institutional signals
-    "options_flow":   ("data/options-flow.json",           "summary.top_25_overall",  "symbol"),
+    "options_flow":   ("data/options-flow-scanner.json",           "summary.top_25_overall",  "symbol"),
     "activist":       ("data/activist-filings.json",       "summary.top_25_overall",  "subject_ticker"),
     # NEW: coiled-spring + fundamental inflection + squeeze + PEAD
     "vol_squeeze":    ("data/volatility-squeeze.json",     "summary.top_25_overall",  "symbol"),

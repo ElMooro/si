@@ -325,14 +325,7 @@ def lambda_handler(event=None, context=None):
             "signal": tier if tier != "NORMAL" else "NORMAL",
             "interpretation": f"ESI {esi}/100 → {tier}. The master dollar-shortage gauge: WATCH ≥50, CRITICAL ≥70, BLACK SWAN ≥85. 2008/2011/2020/2023 all crossed 70 weeks before SPX bottomed.",
             "thresholds": {"watch": 50, "critical": 70, "black_swan": 85}}
-        # also mirror ESI into ecb-detail's eurodollar slot (where the audit looked)
-        try:
-            ed = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ecb-detail.json")["Body"].read())
-            ed["eurodollar_stress_score"] = esi
-            ed["eurodollar_stress_tier"] = tier
-            s3.put_object(Bucket=BUCKET, Key="data/ecb-detail.json", Body=json.dumps(ed, default=str).encode(), ContentType="application/json")
-        except Exception:
-            pass
+        # ESI is published only in this engine's own ecb-derived artifact.
     except Exception as e:
         out["indicators"]["eurodollar_stress_index"] = {"err": str(e)[:60]}
 

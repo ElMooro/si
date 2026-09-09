@@ -90,11 +90,11 @@
     <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
     <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a></div>
   </div>
-  <div id="content"><div class="loading">Loading data/options-flow.json…</div></div>
+  <div id="content"><div class="loading">Loading data/options-flow-scanner.json…</div></div>
 </div>
 
 <script>
-const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/options-flow.json";
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/options-flow-scanner.json";
 let DATA=null;
 let activeFilter="tier_a";
 let sortKey="score";
@@ -102,8 +102,8 @@ let sortDir=-1;
 let expanded=null;
 
 async function load(){
-  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;DATA=await r.json();}
-  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/options-flow.json</div>`;return;}
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;DATA=await r.json();if(DATA?.method!=="options_flow_scanner_v1"||!Array.isArray(DATA.all_qualifying))throw 0;}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/options-flow-scanner.json</div>`;return;}
   render();
 }
 
@@ -181,7 +181,7 @@ function render(){
         <span><strong>Method:</strong> ${DATA.method||"—"}</span>
         <span><strong>Showing:</strong> top 80 of ${list.length}</span>
         <span style="flex:1"></span>
-        <span style="color:var(--text-muted)">data/options-flow.json</span>
+        <span style="color:var(--text-muted)">data/options-flow-scanner.json</span>
       </div>
     </div>`;
 }
@@ -238,7 +238,7 @@ setInterval(load,15*60*1000);
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-  <script src="/jh-enhance.js" data-feed="data/options-flow.json" data-bars="summary.top_25_overall:symbol:score" data-title="Options flow — top scores" data-sub="unusual options activity" ></script>
+  <script src="/jh-enhance.js" data-feed="data/options-flow-scanner.json" data-bars="summary.top_25_overall:symbol:score" data-title="Options flow — top scores" data-sub="unusual options activity" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

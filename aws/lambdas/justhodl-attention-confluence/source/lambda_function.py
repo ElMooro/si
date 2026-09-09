@@ -212,7 +212,7 @@ def lambda_handler(event=None, context=None):
     att = _read("data/attention-signals.json")
     A = x_attention(att)
     IC = x_insider_clusters(_read("data/insider-clusters.json"))
-    OP = x_options(_read("data/options-flow.json"))
+    OP = x_options(_read("data/options-flow-scanner.json"))
     F13 = x_13f(_read("data/13f-positions.json"))
     SM = x_smart_money(_read("data/smart-money-clusters.json"))
     DP = x_dark_pool(_read("data/dark-pool.json"))

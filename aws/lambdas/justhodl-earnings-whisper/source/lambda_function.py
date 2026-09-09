@@ -374,7 +374,7 @@ def lambda_handler(event, context):
     print("[whisper] Loading data…")
     earnings_tracker = fetch_json("data/earnings-tracker.json") or {}
     eps_data         = fetch_json("data/eps-revision-velocity.json")
-    options_data     = fetch_json("data/options-flow.json")
+    options_data     = fetch_json("data/options-flow-scanner.json")
     insider_data     = fetch_json("data/insider-trades.json")
     filings_data     = fetch_json("data/8k-filings.json")
     revenue_data     = fetch_json("data/revenue-acceleration.json")

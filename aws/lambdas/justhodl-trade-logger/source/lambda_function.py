@@ -48,7 +48,7 @@ ALPHA_KEY = "screener/alpha-score.json"
 CONFLUENCE_KEY = "signals/confluence.json"
 REGIME_KEY = "signals/regime-picks.json"
 DEBATE_KEY = "data/debate.json"
-OPTIONS_FLOW_KEY = "data/options-flow.json"
+OPTIONS_FLOW_KEY = "data/options-flow-scanner.json"
 ANOMALIES_KEY = "signals/anomalies.json"
 SCREENER_KEY = "screener/data.json"
 

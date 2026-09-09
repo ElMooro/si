@@ -23,7 +23,7 @@ For each ticker in our universe:
            - Falling short interest (bears giving up)
            - High IV percentile (premiums elevated)
 
-OUTPUT: data/options-flow.json
+OUTPUT: data/options-flow-scanner.json
 
 This is what would have caught:
   - LWLG/AAOI before pumps (call buying surges precede equity moves by 5-15d)
@@ -38,7 +38,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-S3_KEY = os.environ.get("S3_KEY", "data/options-flow.json")
+S3_KEY = "data/options-flow-scanner.json"  # fixed ownership; ignore obsolete legacy S3_KEY override
 POLY_KEY = managed_secret(('POLY_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY'), ("/justhodl/polygon/api-key",))
 N_WORKERS = int(os.environ.get("N_WORKERS", "8"))
 MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "300"))

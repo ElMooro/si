@@ -157,7 +157,7 @@ def build_flow_index():
                 add(q.get(sym_key), {"type": sig_type, "tier": q.get("tier"),
                     "score": q.get("score"), "flags": (q.get("flags") or [])[:4], "mc": mc})
 
-    of = _read("data/options-flow.json"); from_qualifying(of, "OPTIONS_UOA")
+    of = _read("data/options-flow-scanner.json"); from_qualifying(of, "OPTIONS_UOA")
     st = _read("data/stealth-accumulation.json")
     for r in (st or {}).get("top_smart_money_only", []) or []:
         if (r.get("n_funds_buying") or 0) > 0 or (r.get("score") or 0) >= 70:

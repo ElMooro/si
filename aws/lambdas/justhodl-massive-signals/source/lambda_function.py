@@ -83,8 +83,9 @@ def lambda_handler(event, context):
         })
 
     # ── simple-majors flow (options-flow, 8 names) for market read ──
-    of = _read("data/options-flow.json") or {}
-    majors = {f.get("ticker"): f.get("sentiment") for f in (of.get("all_qualifying") or [])
+    of = _read("flow-data.json") or {}
+    flow_rows = ((of.get("data") or {}).get("put_call") or {}).get("options_flow") or []
+    majors = {f.get("ticker"): f.get("sentiment") for f in flow_rows
               if isinstance(f, dict) and f.get("ticker")}
 
     # ── ETF $ flows (sector + small-cap bid) ──
