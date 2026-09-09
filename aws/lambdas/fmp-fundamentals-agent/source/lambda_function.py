@@ -1,7 +1,8 @@
+from managed_secret import managed_secret
 import json, urllib.request, os, traceback
 from datetime import datetime
 
-API_KEY = os.environ.get('FMP_API_KEY', 'wwVpi37SWHoNAzacFNVCDxEKBTUIS8xb')
+API_KEY = managed_secret(('FMP_API_KEY', 'FMP_KEY'), ('/justhodl/fmp/api-key',))
 BASE = 'https://financialmodelingprep.com/api/v3'
 WATCH = ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","JPM","V","XOM","JNJ","WMT","MA","HD","CVX","LLY","AVGO","NFLX","AMD","VRT","PLTR","SMCI","ARM","MSTR"]
 

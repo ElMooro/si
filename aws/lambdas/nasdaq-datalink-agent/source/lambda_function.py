@@ -1,3 +1,4 @@
+from managed_secret import managed_secret
 import json, urllib.request, os, sys, traceback
 from datetime import datetime
 
@@ -5,7 +6,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from api_auth import authorize
 
-API_KEY = os.environ.get('NASDAQ_API_KEY', '965p8tUm6xa2xA8hVrx7')
+API_KEY = managed_secret(('NASDAQ_API_KEY', 'NASDAQ_DATALINK_API_KEY', 'NASDAQ_DATALINK_KEY', 'QUANDL_API_KEY'), ('/justhodl/nasdaq-datalink/api-key',))
 
 # Allowed origins — nasdaq-datalink.html on justhodl.ai calls this directly
 ALLOWED_ORIGINS = [
