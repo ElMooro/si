@@ -1,0 +1,93 @@
+# ops 5290 -- BOTTOM launch (Wyckoff bottom desk)
+
+**Status:** failure  
+**Duration:** 606.2s  
+**Finished:** 2026-09-09T15:47:54+00:00  
+
+## Error
+
+```
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5290_bottom_launch.py", line 315, in <module>
+    R.log("   fusion bridge: %d `bottom` signals in the state store, e.g. %s | adapter report %s" % (len(found), [(s.get("entity_id"), s.get("direction"), round(s.get("score", 0), 2)) for s in found[:5]], json.dumps((st.get("adapters") or {}).get("bottom"))[:300]))
+                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+
+```
+
+## Log
+- `15:37:49`   Lambda missing — creating
+- `15:37:54` ✅   ✓ created justhodl-bottom
+- `15:37:54`    function state Active / Successful, 8192MB / 900s, env keys ['FMP_KEY', 'POLYGON_API_KEY']
+- `15:37:54`    invoked async (prior generated_at=None); polling data/bottom.json
+- `15:40:22`    fresh artifact after 148s: v1.0.0 session 2026-09-08 elapsed 144.9s
+## universe / states / desks
+
+- `15:40:22`    universe {"instruments": 7666, "scored": 4899, "rows": 599, "sessions": 1260, "window": ["2021-08-31", "2026-09-08"], "crypto_symbols": 64}
+- `15:40:22`    by_state {"TRIGGERED": 54, "MARKUP": 142, "ST_CONFIRMED": 18, "TESTING": 49, "CLIMAX": 78, "COMPLETED": 51, "STOPPED": 35, "FAILED": 14, "NO_TEST_BREAKOUT": 70, "EXPIRED": 2, "NO_RALLY": 86}
+- `15:40:22`    by_desk  {"stocks": 551, "countries": 13, "crypto": 22, "gold_metals": 1, "equity_etfs": 12}
+- `15:40:22`    breadth  {"in_bottom_process": 341, "share_of_universe_pct": 7.0, "climax_5d": 37, "testing": 49, "test_confirmed": 18, "triggered_5d": 43, "failed_10d": 27, "weekly_live": 137}
+- `15:40:22`    read: selective bottoming processes
+- `15:40:22`    benchmarks: {"SPY": {"last": 765.96, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, "n_sequences_5y": 2}, "QQQ": {"last": 718.36, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, "n_sequences_5y": 3}, "IWM": {"last": 294.67, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, "n_sequences_5y": 6}, "TLT": {"last": 82.2, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, "n_sequences_5y": 2}, "GLD": {"last": 399.72, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, "n_sequences_5y": 1}, "UUP": {"last": 27.99, "daily": "NONE", "weekly": "NONE", "daily_sc_date": null, 
+- `15:40:22`    authority {"mode": null, "allows_new_entries": null, "cap_pct": 50.0, "generated_at": "2026-09-09T15:20:50.173720+00:00"} | risk gate {"posture": "NEUTRAL", "sizing_multiplier": 0.75, "generated_at": "2026-09-09T14:40:18.552720+00:00"} | katlin posture SELECTIVE
+## board / rows / contract
+
+- `15:40:22`    board 320 rows (with charts), board_all 599 rows, weekly_live 120, top_picks 42
+- `15:40:22`       PTCT   stocks   TRIGGERED     D      92.7 A     sc 2026-07-31 2.38x  test 2026-08-24 21%  trig 2026-08-25  plan 71.45/67.6504/75.0  fleet 2
+- `15:40:22`       PLOW   stocks   TRIGGERED     D      90.5 A     sc 2026-08-03 4.34x  test 2026-08-18 25%  trig 2026-08-21  plan 41.9/40.6029/45.99  fleet 1
+- `15:40:22`       ORN    stocks   TRIGGERED     D      89.9 A     sc 2026-07-29 8.04x  test 2026-08-21 11%  trig 2026-08-27  plan 9.33/8.8722/11.38  fleet 1
+- `15:40:22`       BKKT   stocks   TRIGGERED     D      89.6 A     sc 2026-08-19 2.39x  test 2026-09-01 31%  trig 2026-09-03  plan 7.55/7.062/9.018  fleet 0
+- `15:40:22`       WSO    stocks   TRIGGERED     D      88.3 A     sc 2026-07-29 5.5x  test 2026-08-25 11%  trig 2026-08-26  plan 313.445/296.4285/336.44  fleet 0
+- `15:40:22`       PHAT   stocks   TRIGGERED     D      87.2 A     sc 2026-07-30 7.08x  test 2026-08-24 13%  trig 2026-08-27  plan 8.92/8.4378/9.745  fleet 1
+- `15:40:22`       SBGI   stocks   TRIGGERED     D      86.8 A     sc 2026-06-26 3.73x  test 2026-07-23 26%  trig 2026-07-28  plan 13.7/13.0685/15.54  fleet 1
+- `15:40:22`       CMP    stocks   TRIGGERED     D      85.3 A     sc 2026-08-06 3.85x  test 2026-08-18 29%  trig 2026-08-21  plan 25.91/24.3112/27.82  fleet 0
+- `15:40:22`       GNTX   stocks   TRIGGERED     D      84.0 A     sc 2026-07-24 3.06x  test 2026-09-01 32%  trig 2026-09-02  plan 22.505/21.9614/24.44  fleet 0
+- `15:40:22`       TLK    stocks   TRIGGERED     D      83.6 A     sc 2026-06-08 3.6x  test 2026-06-30 47%  trig 2026-07-01  plan 13.54/13.17/16.39  fleet 1
+- `15:40:22`       PCT    stocks   TRIGGERED     W      83.4 A     sc 2026-02-27 2.25x  test 2026-07-31 47%  trig 2026-08-07  plan 6.55/5.5998/13.29  fleet 0
+- `15:40:22`       FLIN   countrie TRIGGERED     W      81.4 A     sc 2026-03-27 2.33x  test 2026-05-22 19%  trig 2026-05-29  plan 34.85/33.6859/36.88  fleet 1
+## base rates (graded from the tape)
+
+- `15:40:22`    sequences 19756, with rally 14504, triggered 5969, outcome mix {"STOPPED": 3825, "NO_TEST_BREAKOUT": 6409, "NO_RALLY": 5405, "COMPLETED": 2144, "FAILED": 1928, "EXPIRED": 45}
+- `15:40:22`    triggered all: {"n": 5969, "ret_21": {"n": 5932, "median": 0.58, "mean": 2.93, "hit": 52.0}, "ret_63": {"n": 5657, "median": 2.65, "mean": 10.89, "hit": 55.0}, "managed_21": {"n": 5969, "median": -3.27, "mean": 1.92, "hit": 41.0}, "managed_63": {"n": 5892, "median": -5.14, "mean": 5.48, "hit": 32.0}, "stop_hit_pct": 64.0, "target1_hit_pct": 78.0, "mae_median": -7.2, "mfe_median": 8.7}
+- `15:40:22`    crowd vs pro: {"crowd_buys_the_bounce": {"n": 14414, "ret_21": {"n": 14414, "median": 2.22, "mean": 5.39, "hit": 58.0}, "ret_63": {"n": 13868, "median": 4.92, "mean": 13.3, "hit": 59.0}, "worst_drawdown_median_pct": -10.7, "later_undercut_climax_low_pct": 52.0, "sequence_failed_pct": 13.0}, "pro_waits_for_the_trigger": {"n": 5969, "ret_21": {"n": 5969, "median": -3.27, "mean": 1.92, "hit": 41.0}, "ret_63": {"n": 5892, "median": -5.14, "mean": 5.48, "hit": 32.0}, "worst_drawdown_median_pct": -7.2, "stopped_out_pct": 64.0, "share_of_sequences_that_ever_trigger_pct": 41.0}, "note": "measured from every selling-climax sequence in the 5-year window; crowd entry = close of the bar the automatic rally reached 2 ATR off the low; pro entry = close above the test candle's high; managed returns exit at the stop when it hits first"}
+- `15:40:22`       bonds        n   87  +21 2.32 (hit 72.0%)  +63 -0.41 (hit 42.0%)  managed63 -1.44  stop 67.0%  t1 85.0%
+- `15:40:22`       commodities  n   29  +21 1.66 (hit 55.0%)  +63 4.84 (hit 76.0%)  managed63 -2.21  stop 52.0%  t1 93.0%
+- `15:40:22`       countries    n  148  +21 3.77 (hit 66.0%)  +63 2.6 (hit 56.0%)  managed63 -2.28  stop 64.0%  t1 91.0%
+- `15:40:22`       crypto       n  184  +21 -1.85 (hit 45.0%)  +63 -1.54 (hit 45.0%)  managed63 -11.42  stop 71.0%  t1 68.0%
+- `15:40:22`       currencies   n    2  +21 1.09 (hit 50.0%)  +63 3.79 (hit 50.0%)  managed63 -5.19  stop 100.0%  t1 50.0%
+- `15:40:22`       equity_etfs  n  435  +21 1.28 (hit 58.0%)  +63 -0.5 (hit 48.0%)  managed63 -3.8  stop 72.0%  t1 88.0%
+- `15:40:22`       gold_metals  n   20  +21 0.84 (hit 50.0%)  +63 10.83 (hit 67.0%)  managed63 -3.08  stop 60.0%  t1 90.0%
+- `15:40:22`       stocks       n 5064  +21 0.31 (hit 51.0%)  +63 3.48 (hit 56.0%)  managed63 -5.58  stop 63.0%  t1 77.0%
+- `15:40:22`       test volume quiet (<=0.4x climax)  n 3223  +63 2.61 (hit 55.0%)  stop 67.0%
+- `15:40:22`       test volume diminished (0.4-0.7x)  n 2000  +63 2.5 (hit 55.0%)  stop 62.0%
+- `15:40:22`       test volume loud (>0.7x)           n  746  +63 3.26 (hit 57.0%)  stop 55.0%
+## health
+
+- `15:40:22`    degraded: []
+- `15:40:22`    row_errors: {}
+- `15:40:22`    feeds_asof: {"finviz": "2026-09-09T14:00:38.228355+00:00", "accumulation_radar": "2026-09-08T21:50:21.620419+00:00", "phase_detector": "2026-09-08T22:10:41.844108+00:00", "fortress": "2026-09-09T03:31:57+00:00", "katlin": "2026-09-09T04:13:09Z", "f13": "2026-09-09T15:07:02.645497+00:00", "dark_pool": "2026-09-09T14:01:20.450489+00:00", "insider": "2026-09-09T14:40:29.846595+00:00", "etf_flows": "2026-09-08T22:00:25.396312+00:00"}
+- `15:40:22`       [bottom] feeds: finviz=11614 accum=11 phase=0 fortress=950 katlin=250 f13=7526 dark=941 insider=15 flows=300
+- `15:40:22`       [bottom] universe: 7666 instruments (3838 stocks, 3828 etf wrappers)
+- `15:40:22`       [bottom] bars 28/1260 sessions, 4599 tickers
+- `15:40:22`       [bottom] bars 308/1260 sessions, 5056 tickers
+- `15:40:22`       [bottom] bars 588/1260 sessions, 5510 tickers
+- `15:40:22`       [bottom] bars 868/1260 sessions, 6180 tickers
+- `15:40:22`       [bottom] bars 1148/1260 sessions, 7141 tickers
+- `15:40:22`       [bottom] split repair: 4 names rebased (calendar banked 2026-09-08)
+- `15:40:22`       [bottom] bars loaded: 1260 sessions 2021-08-31..2026-09-08, 7662 tickers in 78s
+- `15:40:22`       [bottom] equities/wrappers: 4836 scored, 587 rows with a live or recent sequence, 19353 historical sequences in 142s
+- `15:40:22`       [bottom] crypto lane: 64 symbols, 63 with >=200 days, 0 errors
+- `15:40:22`    data/bottom.json = 2.16 MB
+## schedule (EventBridge Scheduler, UTC)
+
+- `15:40:22` ✅    justhodl-bottom-daily created cron(45 3 ? * TUE-SAT *)
+## page
+
+- `15:40:23`    bottom.html carries marker BOTTOM_DESK_V1 at the edge: True
+- `15:40:49`    1440px: {"headline": "selective bottoming processes", "funnel": 7, "board": 320, "helps": 22, "evid": 424, "svg": true, "defs": 13, "overflow": 0, "err": "", "rates_cards": 2, "rates_tables": 5} errors=[]
+- `15:41:01`     390px: {"headline": "selective bottoming processes", "funnel": 7, "board": 320, "helps": 22, "evid": 429, "svg": true, "defs": 13, "overflow": 0, "err": "", "rates_cards": 2, "rates_tables": 5} errors=[]
+## consumers
+
+- `15:47:33`    katlin v2.5.0 fresh: 252 picks, 72 carry wyckoff_bottom ([('QDEL', 'MARKUP'), ('HCKT', 'TRIGGERED'), ('BUR', 'ST_CONFIRMED'), ('TLRY', 'TESTING'), ('ADMA', 'ST_CONFIRMED'), ('CNXC', 'MARKUP')])
