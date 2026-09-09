@@ -31,6 +31,10 @@ case "$service/$operation" in
     else
       printf '%s\n' '{"statusCode":200,"body":"{\"ok\":false,\"validation_only\":true,\"schema_version\":\"1.0.0\",\"status\":\"OK\",\"artifact_size_bytes\":123}"}' > "$output"
     fi
+    if [ "${MOCK_SCHEMA:-1.0.0}" != 1.0.0 ]; then
+      jq --arg schema "$MOCK_SCHEMA" '.body |= (fromjson | .schema_version=$schema | tojson)' "$output" > "$output.schema"
+      mv "$output.schema" "$output"
+    fi
     if [ "${MOCK_DIRECT:-0}" = 1 ]; then
       jq '.body | fromjson' "$output" > "$output.direct"
       mv "$output.direct" "$output"
@@ -179,4 +183,15 @@ if MOCK_MALFORMED_BODY=1 run_candidate > "$work/private-body.out" 2>&1; then exi
 ! grep -q MALFORMED_PRIVATE_CANARY "$work/private-body.out"
 ! grep -q '^lambda update-alias ' "$work/aws.log"
 
-echo "Validated candidate shell tests passed: 10"
+# Khalid compatibility entry point delegates exactly one read-only validation
+# and promotion; it never invokes production or rolls S3 artifacts backward.
+mkdir -p "$work/khalid"
+printf '{}\n' > "$work/khalid/config.json"
+: > "$work/aws.log"
+PATH="$work/bin:$PATH" MOCK_AWS_LOG="$work/aws.log" MOCK_SCHEMA=3.0.0 \
+  bash "$root/scripts/deploy_khalid_candidate.sh" justhodl-khalid us-east-1 "$work/output" "$work/khalid" > "$work/khalid.out"
+test "$(grep -c '^lambda invoke ' "$work/aws.log")" -eq 1
+grep -q -- '--qualifier 42' "$work/aws.log"
+! grep -q '^s3 ' "$work/aws.log"
+
+echo "Validated candidate shell tests passed: 11"

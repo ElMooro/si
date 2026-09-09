@@ -266,17 +266,6 @@ for fn in $DEPLOY_TARGETS; do
     bash scripts/deploy_validated_candidate.sh "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$dir/config.json" "$candidate_schema"
   fi
 
-  # Khalid is promoted atomically: validate $LATEST first, then move
-  # the stable live alias. Its schedule below targets only that alias,
-  # so a failed candidate cannot replace the last known-good version.
-  if [ "$fn" = "justhodl-khalid" ]; then
-    if ! bash scripts/deploy_khalid_candidate.sh \
-      "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$dir"; then
-      echo "::error::Khalid validation or promotion failed"
-      exit 1
-    fi
-  fi
-
   # ── EventBridge schedule (if config.json has .schedule) ──
   if [ -f "$dir/config.json" ] && jq -e '.schedule' "$dir/config.json" >/dev/null 2>&1; then
     rule_name=$(jq -r '.schedule.rule_name' "$dir/config.json")

@@ -556,6 +556,7 @@ def test_crypto_ma200_contract_quarantines_malformed_rows():
 
 
 def test_release_validation_is_read_only_until_alias_promotion():
+    import json
     root = Path(__file__).parents[4]
     handler = (root / "aws/lambdas/justhodl-khalid/source/lambda_function.py").read_text()
     release = (root / "scripts/deploy_khalid_candidate.sh").read_text()
@@ -565,17 +566,21 @@ def test_release_validation_is_read_only_until_alias_promotion():
     assert '"validation_only": True' in handler
     assert '"artifact_size_bytes": encoded_size' in handler
     assert '"artifact": output' not in handler
-    assert release.index("publish-version") < release.index("--qualifier \"$candidate_version\"")
-    assert "--revision-id \"$candidate_revision\"" in release
-    assert "--code-sha256 \"$candidate_sha\"" in release
-    assert '.schema_version == "3.0.0"' in release
-    assert release.index('function-name "${fn}:live"') > release.index("update-alias")
-    assert "rollback_alias" in release
-    assert "data/khalid-candidates.json" in release
-    assert "data/history/khalid.json" in release
-    assert '"s3://justhodl-dashboard-live/$key"' in release
-    assert 'exit "$failure_status"' in release
-    assert "restore_failed=1" in release
+    shared_release = (root / "scripts/deploy_validated_candidate.sh").read_text()
+    workflow = (root / "scripts/deploy_lambdas.sh").read_text()
+    config = json.loads((root / "aws/lambdas/justhodl-khalid/config.json").read_text())
+    assert config["release_validation"]["schema_version"] == "3.0.0"
+    assert 'exec bash' in release and 'deploy_validated_candidate.sh' in release
+    assert '"$4/config.json" "3.0.0"' in release
+    assert 'aws s3' not in release and 'aws lambda invoke' not in release
+    assert 'bash scripts/deploy_khalid_candidate.sh' not in workflow  # no duplicate promotion
+    assert shared_release.index("publish-version") < shared_release.index('--qualifier "$candidate_version"')
+    assert '--revision-id "$candidate_revision"' in shared_release
+    assert '--code-sha256 "$candidate_sha"' in shared_release
+    assert '[ "$candidate_sha" = "$expected_sha" ]' in shared_release
+    assert "rollback_alias" in shared_release
+    assert '--revision-id "$promoted_alias_revision"' in shared_release
+    assert "aws s3" not in shared_release  # no unsafe restoration over a concurrent production write
 
 
 def test_katlin_source_survives_scoring_and_discovery_without_bypassing_entry():
@@ -972,3 +977,24 @@ def test_main_khalid_rejects_materially_future_risk_artifact():
     assert health["age_h"] < 0
     assert output["risk_control"]["mode"] == "DATA_HOLD"
     assert output["decision"]["capital_decision"] == "STAY IN CASH / SHORT-TERM TREASURIES"
+
+
+def test_actual_validate_only_handler_builds_and_checks_output_without_writing():
+    import json
+    import lambda_function as handler
+    original_read, original_write = handler._read, handler._write
+    reads, writes = [], []
+    def read(key):
+        reads.append(key)
+        return {}, {"key":key,"last_modified":None,"bytes":None,"error":"fixture unavailable"}
+    try:
+        handler._read = read
+        handler._write = lambda *args, **kwargs: writes.append((args,kwargs))
+        response = handler.lambda_handler({"mode":"validate_only"},None)
+        metadata = json.loads(response["body"])
+        assert response["statusCode"] == 200 and metadata["ok"] and metadata["validation_only"]
+        assert metadata["schema_version"] == "3.0.0" and metadata["artifact_size_bytes"] > 0
+        assert metadata["status"] == "NO_DATA" and reads and writes == []
+        assert "artifact" not in metadata
+    finally:
+        handler._read, handler._write = original_read, original_write
