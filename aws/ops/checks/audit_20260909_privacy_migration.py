@@ -285,8 +285,9 @@ def update_environment(lam, function, additions, expected_sha):
 
 
 class Migration:
-    def __init__(self, root, clients, http=urllib.request.urlopen):
+    def __init__(self, root, clients, http=urllib.request.urlopen, *, on_progress=None):
         self.root, self.clients, self.http = Path(root), clients, http
+        self.on_progress = on_progress
         self.rows = []
         self.step = "initialization"
         self.epoch = "privacy-5230-" + uuid.uuid4().hex
@@ -298,6 +299,8 @@ class Migration:
 
     def record(self, stage, **metadata):
         self.rows.append({"check": stage, **metadata})
+        if self.on_progress is not None:
+            self.on_progress(self)
 
     def verify_backup_access(self, key):
         require(key.startswith(BACKUP_PREFIX), "backup_key_outside_private_prefix")
