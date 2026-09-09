@@ -25,7 +25,11 @@ from ops_report import report  # noqa: E402
 
 REGION = "us-east-1"
 FAILS = []
-T_PUSH = int(subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip() or "0")
+# The reference time is the A2 sweep commit ITSELF (the push that triggered the fleet redeploy), not HEAD:
+# a later re-arm push must not move the goalposts past functions that already redeployed.
+_a2 = subprocess.run(["git", "log", "--format=%ct", "-1", "--grep=Release A2 (ops 5221)"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+_head = subprocess.run(["git", "log", "-1", "--format=%ct", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+T_PUSH = int(_a2 or _head or "0")
 
 
 def rewritten_functions():
@@ -50,7 +54,7 @@ with report("ops_5221_key_sweep_gate") as R:
     t0 = time.time()
     pending = set(fns)
     missing = set()
-    while pending and time.time() - t0 < 10800:  # the fleet redeploy runs ~2.4 functions/min (~2.5h for 329)
+    while pending and time.time() - t0 < 1800:   # the fleet redeploy has already landed; short grace for stragglers
         for fn in list(pending):
             try:
                 cfg = lam.get_function_configuration(FunctionName=fn)
