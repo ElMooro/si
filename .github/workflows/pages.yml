@@ -179,6 +179,11 @@ jobs:
             --data '{"purge_everything":true}' \
             "https://api.cloudflare.com/client/v4/zones/$ZID/purge_cache" \
             | head -c 300
+      - name: Fail this run when Pages was not deployed
+        if: always() && steps.deployment.outcome != 'success'
+        run: |
+          echo "::error::This revision was not deployed to Pages; a retry is a separate release attempt."
+          exit 1
   self-heal:
     needs: [build, deploy]
     if: always() && needs.build.result == 'success' && needs.deploy.outputs.ok != 'success'
