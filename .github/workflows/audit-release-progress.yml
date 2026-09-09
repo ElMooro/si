@@ -6,6 +6,9 @@ on:
       - '.github/workflows/audit-release-progress.yml'
       - 'scripts/audit_release_progress.py'
   workflow_dispatch:
+  workflow_run:
+    workflows: [Deploy Lambdas, Run Ops Script]
+    types: [completed]
 permissions:
   contents: write
   actions: read
