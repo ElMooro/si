@@ -1,0 +1,79 @@
+{
+  "ops": 5286,
+  "ok": true,
+  "status": "VERIFIED",
+  "private_payloads_reported": 0,
+  "raw_lambda_responses_reported": 0,
+  "checkout_sha": "adfe04ff06e861218c361952279c7cbef92c4b95",
+  "code": {
+    "justhodl-cot-extremes-scanner": {
+      "function": "justhodl-cot-extremes-scanner",
+      "qualifier": "$LATEST",
+      "files": [
+        {
+          "member": "cot_data.py",
+          "expected_sha256": "fa9cfbe81cf47595f891814164644a0d9388277b163af9d61177355b0d37f12d",
+          "actual_sha256": "fa9cfbe81cf47595f891814164644a0d9388277b163af9d61177355b0d37f12d",
+          "match": true
+        },
+        {
+          "member": "lambda_function.py",
+          "expected_sha256": "42e74f5a58b4cbfb2d501b08ba5d7c4ccd170f0a5f1197a6a335cbdf31b01204",
+          "actual_sha256": "42e74f5a58b4cbfb2d501b08ba5d7c4ccd170f0a5f1197a6a335cbdf31b01204",
+          "match": true
+        }
+      ],
+      "pass": true,
+      "version": "$LATEST",
+      "code_sha256": "7nHaEc6UKIAtwRTA2bX/BMQwyPlmbsn41TERBnhASHc=",
+      "state": "Active",
+      "update_status": "Successful",
+      "last_modified": "2026-09-09T17:57:42.000+0000",
+      "handler": "lambda_function.lambda_handler",
+      "configuration_mismatches": [],
+      "configuration_differences": []
+    }
+  },
+  "outputs": {
+    "justhodl-cot-extremes-scanner": [
+      {
+        "key": "cot/extremes/current.json",
+        "status": "VERIFIED_BLOCKED_REQUIREMENTS",
+        "observed_at": "2026-09-09T17:59:17.380627+00:00",
+        "errors": [],
+        "requirements": [
+          "COT_CURRENT_VINTAGE_IS_NOT_POINT_IN_TIME_HISTORY",
+          "COT_PROVIDER_OR_HISTORY_COVERAGE_INCOMPLETE",
+          "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
+        ],
+        "expected_output_contract": "cot-extremes.v2_complete_calculation_histories",
+        "expected_producer": "justhodl-cot-extremes-scanner",
+        "bytes": 2049241,
+        "last_modified": "2026-09-09T17:58:49+00:00",
+        "generated_at": "2026-09-09T17:58:41.718491+00:00",
+        "version_id": "u9Lxng990QvhjElPSBln8ZO60Ua2_zwa",
+        "schema_version": "cot-extremes.v2",
+        "producer_version": null,
+        "producer": "justhodl-cot-extremes-scanner",
+        "source_code_version_marker_present": false,
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {
+          "contracts": 36,
+          "histories": 36,
+          "history_rows": 9300
+        }
+      }
+    ]
+  },
+  "invocations": [],
+  "requirements": [],
+  "artifact_scope": {
+    "justhodl-cot-extremes-scanner": {
+      "primary_keys": [
+        "cot/extremes/current.json"
+      ]
+    }
+  },
+  "source_parity_pending": [],
+  "finished_at": "2026-09-09T17:59:17.460328+00:00"
+}
