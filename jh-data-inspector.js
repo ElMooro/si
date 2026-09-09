@@ -76,11 +76,16 @@ function indexedOutputs(entry,payload){
  if(index.required_schema&&(!payload||payload.schema_version!==index.required_schema))throw new Error('Archive index schema does not match its reviewed publisher contract');
  if(index.require_complete&&payload.complete!==true)throw new Error('Archive listing is unavailable or incomplete; no partial archive list is certified');
  if(index.publisher_engine&&(payload.publisher_engine!==index.publisher_engine||payload.engine!==index.engine||JSON.stringify(payload.families)!==JSON.stringify(index.patterns)))throw new Error('Archive index engine or family provenance does not match its reviewed contract');
- const rows=payload&&payload[index.rows];if(!Array.isArray(rows))throw new Error('Archive index row schema unavailable');
+ const rawRows=payload&&payload[index.rows];
+ const mapping=rawRows&&typeof rawRows==='object'&&!Array.isArray(rawRows);
+ const rows=index.rows_mode==='object_values'?(mapping?Object.values(rawRows):null):index.rows_mode==='object_keys'?(mapping?Object.keys(rawRows):null):rawRows;
+ if(!Array.isArray(rows))throw new Error('Archive index row schema unavailable');
  const pattern=new RegExp(index.key_regex),seen=new Set(),out=[];
  for(const row of rows){
-  const key=row&&row[index.key_field];
-  if(typeof key!=='string'||key.includes('..')||!pattern.test(key)||!key.endsWith('.json')||seen.has(key))continue;
+  const value=index.key_field==='$value'?row:row&&row[index.key_field];
+  if(typeof value!=='string')continue;
+  const key=(index.key_prefix||'')+value+(index.key_suffix||'');
+  if(key===entry.key||key.includes('..')||!pattern.test(key)||!key.endsWith('.json')||seen.has(key))continue;
   seen.add(key);out.push({engine:index.engine||entry.engine,key,access:'public',inspection_schema:'json-value.v1',indexed_by:entry.key,index_publisher:entry.engine});
  }
  return out;
@@ -141,8 +146,15 @@ async function install(){
  if(!engine&&contract.primary_producers)panel.append(node('p',contract.primary_producers.length?'Primary engine references: '+contract.primary_producers.join(', '):'No primary engine output is declared for this page. Shared context does not establish dedicated-engine coverage.'));
  if(!engine&&contract.page_role==='NO_ENGINE_EXPECTED')panel.append(node('p','This route has no dedicated engine: '+contract.role_reason));
  if(!engine&&contract.page_role!=='NO_ENGINE_EXPECTED'&&contract.primary_output_status==='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT')panel.append(node('p','Primary engine output coverage is unresolved.'));
- if(!engine&&contract.primary_output_status==='PARTIAL_PRIMARY_OUTPUT_ACCESS')panel.append(node('p','Primary output access is partial: '+contract.primary_withheld_output_count+' withheld paths, '+contract.primary_unresolved_write_count+' unresolved writes, and '+(contract.unresolved_primary_references||[]).length+' unresolved primary references.'));
+ if(!engine&&contract.primary_output_status==='PARTIAL_PRIMARY_OUTPUT_ACCESS')panel.append(node('p','Primary output access is partial: '+contract.primary_withheld_output_count+' withheld result paths, '+contract.primary_unresolved_write_count+' unresolved writes, '+contract.primary_unindexed_family_count+' unindexed families, and '+(contract.unresolved_primary_references||[]).length+' unresolved primary references.'));
  if(contract.dedicated_coverage_note)panel.append(node('p',contract.dedicated_coverage_note));
+ if(contract.primary_scope_evidence&&Object.keys(contract.primary_scope_evidence).length)panel.append(node('p','Dedicated output scope: '+Object.values(contract.primary_scope_evidence).map(row=>row.purpose).join('; ')));
+ if(contract.runtime_outputs&&contract.runtime_outputs.length)panel.append(node('p','Selected outputs are inspected in this page’s data controls: '+contract.runtime_outputs.map(row=>row.engine+' — '+row.scope).join('; ')));
+ if(contract.excluded_internal_outputs&&contract.excluded_internal_outputs.length){
+  const inventory=node('details');inventory.append(node('summary',contract.excluded_internal_outputs.length+' source-reviewed internal storage entries'));
+  inventory.append(node('p','These operational checkpoints, input caches and delivery settings remain withheld. Their purpose and source evidence are listed separately from published analytical results.'));
+  inventory.append(collectionView(contract.excluded_internal_outputs,''));panel.append(inventory);
+ }
  if(canonical==='engine-data.html')panel.open=true;
  const explanation=node('p','Choose an output to inspect every returned field, nested object and row. Source ownership is checked at build time. Availability and payload coverage are checked when opened.');panel.append(explanation);
  const select=node('select');select.setAttribute('aria-label','Engine output');select.append(node('option','Choose an engine output'));

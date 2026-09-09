@@ -23,6 +23,11 @@ def normalise(value):
     if not KEY_RE.fullmatch(value) or '..' in value.split('/') or '{' in value: return None
     return value
 
+class FunctionBinding:
+    def __init__(self,node,environment):
+        self.node=node
+        self.environment=environment
+
 class Scan:
     def __init__(self, code, environment=None, initial_symbols=None):
         self.tree = ast.parse(code)
@@ -134,8 +139,10 @@ class Scan:
         if isinstance(node,ast.AnnAssign) and node.value:self.assign_target(node.target,node.value,env)
 
     def call(self,node,env,stack):
+        local_functions=(env.get('__jh_local_functions') or {})
+        def known_function(name):return local_functions[name] if name in local_functions else self.functions.get(name)
         # Standard executor callbacks bind the callable's real argument positions.
-        if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and node.args[0].id in self.functions:
+        if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and known_function(node.args[0].id):
             callback=node.args[0]
             if node.func.attr=='submit':
                 self.call(ast.Call(func=callback,args=node.args[1:],keywords=node.keywords),env,stack)
@@ -145,11 +152,13 @@ class Scan:
                     for values in zip(*(arg.elts for arg in iterables)):self.call(ast.Call(func=callback,args=list(values),keywords=[]),env,stack)
                 else:self.call(ast.Call(func=callback,args=[],keywords=[]),env,stack)
             return
-        if isinstance(node.func,ast.Name) and node.func.id in self.functions:
+        if isinstance(node.func,ast.Name) and known_function(node.func.id):
             name=node.func.id;self.called_functions.add(name)
             if name in stack or len(stack)>12:return
-            fn=self.functions[name]; args=list(fn.args.posonlyargs)+list(fn.args.args)
-            bound=dict(self.globals)
+            binding=known_function(name);fn=binding.node if isinstance(binding,FunctionBinding) else binding; args=list(fn.args.posonlyargs)+list(fn.args.args)
+            # A nested function captures its lexical caller values. A module
+            # function does not inherit arbitrary locals from its caller.
+            bound=dict(binding.environment if isinstance(binding,FunctionBinding) else self.globals)
             for a in args+list(fn.args.kwonlyargs):bound[a.arg]=None
             for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,env)
             for a,d in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
@@ -185,7 +194,7 @@ class Scan:
             (self.writes if kind=='write' else self.reads).add(key)
             if kind=='write':self.proofs.setdefault(key,set()).add(node.lineno)
         elif kind=='write':
-            if isinstance(keyvalue,str) and '*' not in keyvalue and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_./-]*\.(?:md|txt|html|csv|parquet|jsonl|zip|png|pdf)',keyvalue):self.other_writes.append({'line':node.lineno,'operation':attr,'key':keyvalue,'classification':'non_json_output'})
+            if isinstance(keyvalue,str) and re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_./=*\-]*\.(?:md|txt|html|csv|parquet|jsonl|ndjson|sqlite|db|zip|png|pdf)(?:\.gz)?',keyvalue):self.other_writes.append({'line':node.lineno,'operation':attr,'key':keyvalue,'classification':'dynamic_non_json_output' if '*' in keyvalue else 'non_json_output'})
             else:self.unresolved.append({'line':node.lineno,'operation':attr,'reason':'dynamic or unresolved key'})
 
     def expr(self,node,env,stack):
@@ -195,7 +204,10 @@ class Scan:
 
     def block(self,nodes,env,stack):
         for n in nodes:
-            if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)):continue
+            if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)):
+                if stack:env['__jh_local_functions']={**(env.get('__jh_local_functions') or {}),n.name:FunctionBinding(n,env)}
+                continue
+            if isinstance(n,ast.ClassDef):continue
             self.assign(n,env)
             if isinstance(n,ast.If):
                 self.expr(n.test,env,stack)

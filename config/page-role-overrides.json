@@ -990,11 +990,39 @@
       ]
     },
     "provider.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Parameterized provider/series pages and range reads span several producer families; exact selected producer and archive indexes must be resolved per runtime slug",
-      "reason": "Parameterized provider/series pages and range reads span several producer families; exact selected producer and archive indexes must be resolved per runtime slug",
-      "evidence": [
-        "provider.html"
+      "primary_engines": [
+        "justhodl-provider-catalog"
+      ],
+      "primary_exclusive": true,
+      "reason": "Catalogue manifests and continuation pages are produced by provider-catalog; ECB/Eurostat original series pages and compact blocks come from series-extractor. The route explicitly inspects every selected returned document; ops-generated tier-zero flow inventories are labeled separately.",
+      "runtime_outputs": [
+        {
+          "engine": "justhodl-provider-catalog",
+          "patterns": [
+            "data/providers/*.json",
+            "data/providers/*/page-*.json"
+          ],
+          "inspection_source": "jh-provider-data.js",
+          "scope": "Selected provider catalogue manifest and all continuation pages"
+        },
+        {
+          "engine": "justhodl-series-extractor",
+          "patterns": [
+            "data/providers/*/series-manifest.json",
+            "data/providers/*/series/page-*.json",
+            "data/index/*/t1/*.blocks.json",
+            "data/index/*/t1/*.jsonl"
+          ],
+          "inspection_source": "jh-provider-data.js",
+          "scope": "ECB/Eurostat only: all selected source pages and compact index blocks; compact rows link back to complete originals",
+          "when": {
+            "query": "provider",
+            "values": [
+              "ecb",
+              "eurostat"
+            ]
+          }
+        }
       ]
     },
     "signal-replay.html": {
@@ -1016,36 +1044,75 @@
       "reason": "Exact source writer justhodl-fleet-monitor publishes _health/fleet.json; monitor schema includes compute/static checks, cadence and dependency status. Leading underscore was previously excluded by the ownership parser."
     },
     "frontrun.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
-      "reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
-      "evidence": [
-        "frontrun.html"
-      ]
+      "primary_engines": [
+        "justhodl-ai-brief-router"
+      ],
+      "primary_exclusive": true,
+      "reason": "Dedicated frontrun-sniffer context: runtime source pins its report and history constants and rejects a mismatched context/type/output before input reads. Other router contexts have their own pages.",
+      "primary_output_keys": {
+        "justhodl-ai-brief-router": [
+          "data/frontrun-sniffer.json",
+          "data/frontrun-sniffer-history.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-ai-brief-router": {
+          "source": "aws/lambdas/justhodl-ai-brief-router/source/lambda_function.py",
+          "constants": [
+            "FRONTRUN_OUTPUT_KEY",
+            "FRONTRUN_HISTORY_KEY"
+          ],
+          "purpose": "Dedicated frontrun-sniffer context: runtime source pins its report and history constants and rejects a mismatched context/type/output before input reads. Other router contexts have their own pages."
+        }
+      }
     },
     "macro-frontrun.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
-      "reason": "Shared AI brief renderer constructs context keys at runtime; broad router data/*.json pattern does not prove concrete ownership",
-      "evidence": [
-        "macro-frontrun.html"
-      ]
+      "primary_engines": [
+        "justhodl-ai-brief-router"
+      ],
+      "primary_exclusive": true,
+      "reason": "Dedicated macro-frontrun-sniffer context: runtime source pins its report and history constants and rejects a mismatched context/type/output before input reads. Other router contexts have their own pages.",
+      "primary_output_keys": {
+        "justhodl-ai-brief-router": [
+          "data/macro-frontrun-sniffer.json",
+          "data/macro-frontrun-sniffer-history.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-ai-brief-router": {
+          "source": "aws/lambdas/justhodl-ai-brief-router/source/lambda_function.py",
+          "constants": [
+            "MACRO_FRONTRUN_OUTPUT_KEY",
+            "MACRO_FRONTRUN_HISTORY_KEY"
+          ],
+          "purpose": "Dedicated macro-frontrun-sniffer context: runtime source pins its report and history constants and rejects a mismatched context/type/output before input reads. Other router contexts have their own pages."
+        }
+      }
     },
     "dex.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Browser reads external DEX provider APIs and AI proxy; no source-proven dedicated JustHodl engine association",
-      "reason": "Browser reads external DEX provider APIs and AI proxy; no source-proven dedicated JustHodl engine association",
-      "evidence": [
-        "dex.html"
+      "primary_engines": [
+        "justhodl-ai-chat"
+      ],
+      "primary_exclusive": true,
+      "reason": "Browser DexScreener client performs its own hot-score ranking. AI replies come from justhodl-ai-chat through the source-configured api.justhodl.ai custom domain (ai-proxy Worker). Provider records are browser responses rather than a fictional Lambda output.",
+      "api_responses": [
+        {
+          "engine": "justhodl-ai-chat",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/",
+          "methods": [
+            "POST"
+          ]
+        }
       ]
     },
     "euro/index.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Legacy root data.json/report.json have no checked source writer; current page also reads per-series APIs",
-      "reason": "Legacy root data.json/report.json have no checked source writer; current page also reads per-series APIs",
-      "evidence": [
-        "euro/index.html"
-      ]
+      "primary_engines": [
+        "justhodl-ecb-detail",
+        "justhodl-ecb-derived"
+      ],
+      "primary_exclusive": true,
+      "reason": "Europe report reads source-owned data/ecb-detail.json and data/ecb-derived.json, preserving actual policy rates, euro-area CISS, M3, unemployment, FX and liquidity timestamps. Browser custom FRED metrics are separate selected provider observations; fabricated current values and obsolete root reports were removed."
     },
     "archive/exponential-search-dashboard.html": {
       "role": "ENGINE_PAGE",

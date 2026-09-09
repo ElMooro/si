@@ -248,3 +248,66 @@ def test_separate_archive_index_publisher_keeps_source_engine_and_exact_family_p
         try:add_archive_index_relationships(emap,engines,root)
         except ValueError:pass
         else:raise AssertionError('shared ownership was silently accepted')
+
+def test_nested_executor_callbacks_capture_only_lexical_values_and_declare_non_json_families():
+    from gen_engine_manifest import scan_code
+    code='''
+def external():
+ s3.put_object(Key=local_only)
+def lambda_handler(event,context):
+ provider="ecb"
+ local_only="data/not-lexically-visible.json"
+ with ThreadPoolExecutor() as pool:
+  def put(key,body):
+   s3.put_object(Key=key,Body=body)
+  def flush(rows):
+   key=f"data/providers/{provider}/series/page-{page}.json"
+   pool.submit(put,key,rows)
+  flush([])
+ external()
+ s3.put_object(Key=f"data/index/{provider}/{flow}.jsonl")
+'''
+    result=scan_code(code)
+    assert result.writes=={'data/providers/ecb/series/page-*.json'}
+    assert len(result.unresolved)==1 and result.unresolved[0]['line']==3
+    assert result.other_writes[0]['key']=='data/index/ecb/*.jsonl' and result.other_writes[0]['classification']=='dynamic_non_json_output'
+
+def test_internal_storage_roles_require_source_proof_and_cannot_exclude_required_results():
+    from build_page_data_contracts import internal_output_roles
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);(root/'config').mkdir();source=root/'aws/lambdas/engine/source';source.mkdir(parents=True);(source/'lambda_function.py').write_text('s3.put_object(Key="data/_cursor.json")')
+        row={'engine':'engine','key':'data/_cursor.json','role':'internal_operational_storage','purpose':'Resume cursor only','public_access_approved':False,'evidence':{'source':'aws/lambdas/engine/source/lambda_function.py','lines':[1]}}
+        path=root/'config/engine-output-roles.json';path.write_text(json.dumps({'roles':[row]}))
+        engines={'engine':{'keys':['data/_cursor.json'],'write_evidence':{'data/_cursor.json':[{'file':'lambda_function.py','line':1}]}}}
+        assert internal_output_roles(root,engines)['engine']['data/_cursor.json']==row
+        path.write_text(json.dumps({'roles':[row],'must_remain_required_or_receive_public_review':[{'engine':'engine','key':'data/_cursor.json'}]}))
+        try:internal_output_roles(root,engines)
+        except ValueError:pass
+        else:raise AssertionError('required result was excluded')
+
+def test_nested_sibling_call_does_not_inherit_caller_local_shadow():
+    from gen_engine_manifest import scan_code
+    code='''
+def lambda_handler(event,context):
+ key="data/lexical.json"
+ def save():
+  s3.put_object(Key=key)
+ def caller():
+  key="data/wrong-caller-local.json"
+  save()
+ caller()
+'''
+    result=scan_code(code)
+    assert result.writes=={'data/lexical.json'} and not result.unresolved
+
+def test_dedicated_context_scope_requires_actual_writer_and_pinned_literal_constants():
+    from build_page_data_contracts import validated_primary_scopes
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);source=root/'aws/lambdas/router/source';source.mkdir(parents=True);(source/'lambda_function.py').write_text('OUT="data/context.json"\nHISTORY="data/context-history.json"\n')
+        engines={'router':{'keys':['data/context.json','data/context-history.json','data/other.json']}}
+        role={'primary_output_keys':{'router':['data/context.json','data/context-history.json']},'primary_scope_evidence':{'router':{'source':'aws/lambdas/router/source/lambda_function.py','constants':['OUT','HISTORY'],'purpose':'Dedicated pinned context, separate from other router pages'}}}
+        assert validated_primary_scopes(role,engines,root,'page.html')==role['primary_output_keys']
+        role['primary_output_keys']['router']=['data/other.json']
+        try:validated_primary_scopes(role,engines,root,'page.html')
+        except ValueError:pass
+        else:raise AssertionError('unbound scope accepted')

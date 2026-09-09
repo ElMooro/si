@@ -108,3 +108,15 @@ test('reviewed metadata index preserves original engine and rejects wrong or inc
  const rows=inspector.indexedOutputs(entry,payload);assert.equal(rows.length,1);assert.equal(rows[0].engine,'source-engine');assert.equal(rows[0].index_publisher,entry.engine);
  for(const change of [{complete:false},{engine:'other'},{publisher_engine:'other'},{families:['data/archive/private/*.json']},{schema_version:'unknown'}])assert.throws(()=>inspector.indexedOutputs(entry,{...payload,...change}));
 });
+
+test('reviewed symbol manifests traverse object keys, values and ticker lists without guessing paths',()=>{
+ const fixtures=[
+  [{rows:'symbols',rows_mode:'object_values',key_field:'key'},{symbols:{A:{key:'data/reviewed/A.json'},B:{key:'data/private/B.json'}}}],
+  [{rows:'series',rows_mode:'object_keys',key_field:'$value',key_prefix:'data/reviewed/',key_suffix:'.json'},{series:{A:{n:300},'../private/B':{n:1}}}],
+  [{rows:'tickers',key_field:'$value',key_prefix:'data/reviewed/',key_suffix:'.json'},{tickers:['A','../private/B']}],
+ ];
+ for(const [contract,payload] of fixtures){
+  const result=inspector.indexedOutputs({engine:'source',key:'data/reviewed/_index.json',archive_index:{...contract,key_regex:'^data/reviewed/[A-Z]+\\.json$'}},payload);
+  assert.deepEqual(result.map(row=>row.key),['data/reviewed/A.json']);
+ }
+});

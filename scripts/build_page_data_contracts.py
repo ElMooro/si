@@ -9,6 +9,13 @@ from pathlib import Path
 from page_sources import scan_pages,pages
 ROOT=Path(__file__).resolve().parents[1]
 SENSITIVE=re.compile(r'(^|[/_.-])(private|secrets?|credentials?|tokens?|passwords?|userdata|users?|brain|journal|portfolio|orders?|accounts?|subscriptions?|auth)([/_.-]|$)',re.I)
+REPOSITORY_ASSETS={
+ 'assets/vendor/world-atlas-2.0.2-countries-110m.json':'Vendored geographic geometry for the country map',
+ 'config/home-layout.json':'Reviewed home layout configuration',
+ 'config/section-registry.json':'Stable navigation section registry',
+ 'engine-manifest.json':'Build-generated source ownership inventory',
+ 'nav-manifest.json':'Repository navigation manifest',
+}
 PUBLIC_PREFIXES={'data','screener','etf-flows','macro','sentiment','air','regime','base-rates','divergence','plumbing-composite','risk','calibration','analytics','backtest','cot','foreign-flows','opportunities','reports','signals'}
 PUBLIC_EXACT={'intelligence-report.json','liquidity-data.json','ecb_data.json','edge-data.json','flow-data.json','repo-data.json','treasury_historical_comprehensive.json','valuations-data.json','crypto-intel.json','config/engine-contracts.json',
               'data/proven-portfolio.json','data/proven-portfolio-history.json','data/strategy-portfolio.json','data/simulated-portfolio.json','data/forward-orders.json','predictions.json','portfolio/signal-portfolio-state.json','portfolio/signal-portfolio-history.json','portfolio/sizer-v2.json','data/brain-compiler.json','data/trade-journal.json'}
@@ -16,6 +23,7 @@ PUBLIC_EXACT={'intelligence-report.json','liquidity-data.json','ecb_data.json','
 # Source-reviewed public market histories/caches and government data; privacy policy always wins.
 PUBLIC_EXACT.update({
  '_health/fleet.json',
+ 'data/_altseason/global-history.json','data/_backtest/graded.json.gz',
  '13f/clone-holdings-cache.json','13f/clone-price-cache.json','asia/kr-flash-tape.json','asia/tw-orders-levels.json',
  'boom/boom-stage-history.json','chokepoint/fundamentals-ledger.json','credit/credit-before-equity-history.json',
  'data/_cache/chokepoint-irreplaceability.json','data/_ma200/closes.json','data/_ma200/crypto-closes.json',
@@ -28,6 +36,11 @@ PUBLIC_EXACT.update({
 
 # Explicit index schemas from the snapshotter's actual rows and bound family writes.
 ARCHIVE_INDEXES={
+ 'data/ecb-hist/_manifest.json':{'engine':'justhodl-ecb-history','rows':'series','key_field':'id','key_prefix':'data/ecb-hist/','key_suffix':'.json','family_prefix':'data/ecb-hist/','include_exact_prefix':'data/ecb-hist/'},
+ 'data/warm/tv-bars/_index.json':{'engine':'justhodl-tv-notes-ingest','rows':'symbols','rows_mode':'object_values','key_field':'key','pattern':'data/warm/tv-bars/*.json'},
+ 'data/warm/archived-fred/_index.json':{'engine':'justhodl-tv-notes-ingest','rows':'series','rows_mode':'object_keys','key_field':'$value','key_prefix':'data/warm/archived-fred/','key_suffix':'.json','pattern':'data/warm/archived-fred/*.json'},
+ 'investor-debate/_index.json':{'engine':'justhodl-watchlist-debate','rows':'tickers','key_field':'$value','key_prefix':'investor-debate/','key_suffix':'.json','pattern':'investor-debate/*.json'},
+ 'data/impact/etf-holdings-index.json':{'engine':'justhodl-flow-lookthrough','rows':'etfs','rows_mode':'object_keys','key_field':'$value','key_prefix':'etf-constituents-v2/','key_suffix':'.json','pattern':'etf-constituents-v2/*.json'},
  'data/snapshots-index.json':{'engine':'justhodl-whats-changed','rows':'snapshots','key_field':'key','family_prefix':'data/snapshots/','required_schema':'daily-snapshot-index.v1','require_complete':True},
  'calibration/index.json':{'engine':'justhodl-calibration-snapshotter','rows':'versions','key_field':'key','pattern':'calibration/versions/cal-*-*-*.json'},
  'calibration/history-index.json':{'engine':'justhodl-calibration-snapshotter','rows':'snapshots','key_field':'key','patterns':['calibration/history/*.json','calibration/versions/cal-*-*-*.json']},
@@ -84,6 +97,45 @@ def add_archive_index_relationships(emap,engines,root):
             'archive_family_evidence':engines[name]['write_evidence'].get(pattern,[]),
             'archive_index':{'engine':name,'publisher_engine':publisher,'required_schema':'public-engine-archive-index.v1','require_complete':True,
                 'rows':'snapshots','key_field':'key','patterns':[pattern],'key_regex':'^'+re.escape(pattern).replace(r'\*',r'[^/]+')+'$'}})
+
+def internal_output_roles(root,engines):
+    path=root/'config/engine-output-roles.json'
+    if not path.exists():return {}
+    result=defaultdict(dict)
+    doc=json.loads(path.read_text())
+    required={(row['engine'],row['key']) for row in doc.get('must_remain_required_or_receive_public_review',[])}
+    for row in doc.get('roles',[]):
+        name,key=row['engine'],row['key'];engine=engines.get(name);evidence=row.get('evidence',{})
+        source=evidence.get('source','');approved_roles={'internal_input_cache','internal_operational_storage','private_operational_state','internal_configuration'}
+        proofs=engine.get('write_evidence',{}).get(key,[]) if engine else []
+        proven_sources={'aws/lambdas/'+name+'/source/'+p['file'] for p in proofs}
+        if (not engine or key not in engine['keys'] or source not in proven_sources or not (root/source).is_file()
+                or row.get('role') not in approved_roles or not row.get('purpose') or row.get('public_access_approved') is not False
+                or (name,key) in required or key in result[name]):raise ValueError('Unproven or conflicting internal output role: '+name+' '+key)
+        result[name][key]=row
+    return result
+
+def validated_runtime_outputs(records,engines,graph,root,route):
+    for record in records:
+        name=record.get('engine');source=record.get('inspection_source');patterns=record.get('patterns',[])
+        engine=engines.get(name)
+        known=set(engine.get('key_patterns',[]))|{row['key'] for row in engine.get('other_format_outputs',[])} if engine else set()
+        if (not engine or not patterns or not set(patterns)<=known or source not in [route,*graph['scripts']]
+                or 'JHDataInspector.inspect' not in (root/source).read_text() or not record.get('scope')):raise ValueError('Unproven selected-response contract: '+route+' '+str(name))
+    return records
+
+def validated_primary_scopes(role,engines,root,route):
+    scopes=role.get('primary_output_keys',{})
+    for name,keys in scopes.items():
+        evidence=role.get('primary_scope_evidence',{}).get(name,{})
+        source=evidence.get('source','');constants={}
+        if name not in engines or not keys or not set(keys)<=set(engines[name]['keys']) or not evidence.get('purpose') or not source.startswith('aws/lambdas/'+name+'/source/') or not (root/source).is_file():raise ValueError('Unproven dedicated output scope: '+route)
+        for node in ast.parse((root/source).read_text()).body:
+            if isinstance(node,ast.Assign) and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str):
+                for target in node.targets:
+                    if isinstance(target,ast.Name):constants[target.id]=node.value.value
+        if set(keys)!={constants.get(name) for name in evidence.get('constants',[])}:raise ValueError('Dedicated output constants drift: '+route)
+    return scopes
 def contract(root):
     mirrors,private_keys,private_prefixes=access_rules()
     role_path=root/'config/page-role-overrides.json'
@@ -95,17 +147,19 @@ def contract(root):
     for name,engine in engines.items():
         for role in engine.get('output_roles',[]):
             if role.get('role')=='augmentation' and role.get('cas_write_verified') and role.get('base_producer') in writers.get(role.get('key'),set()):augmentations[(role['key'],name)]=role
-    emap={}
+    internal_roles=internal_output_roles(root,engines);emap={}
     for name,e in engines.items():
-        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':'brain-compiler' if k=='data/brain-compiler.json' else 'sizing' if k=='data/sizing.json' else None,'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if public_key(k) or k in mirrors]
+        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':'brain-compiler' if k=='data/brain-compiler.json' else 'sizing' if k=='data/sizing.json' else None,'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
         for output in allowed:
             if (output['key'],name) in augmentations:output['ownership_role']=augmentations[(output['key'],name)]
             index=ARCHIVE_INDEXES.get(output['key'])
             if index and index['engine']==name:
                 patterns=[pattern for pattern in e['key_patterns'] if pattern.startswith(index['family_prefix'])] if index.get('family_prefix') else index.get('patterns') or [index['pattern']]
                 if not patterns or any(pattern not in e['key_patterns'] for pattern in patterns):raise ValueError('Archive index write family drift: '+name)
-                output['archive_index']={**index,'patterns':patterns,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns)+')$'}
+                exacts=[key for key in e['keys'] if key!=output['key'] and public_key(key) and key.startswith(index['include_exact_prefix'])] if index.get('include_exact_prefix') else []
+                output['archive_index']={**index,'patterns':patterns,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns+exacts)+')$'}
         emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
+                    'excluded_internal_outputs':list(internal_roles.get(name,{}).values()),
                     'historical_or_dynamic_family_count':len(e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
                     'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments'}
     add_archive_index_relationships(emap,engines,root)
@@ -113,9 +167,11 @@ def contract(root):
     for graph in graphs.values():
         for source in graph['scripts']:source_usage[source]+=1
     for route,graph in graphs.items():
-        producers=set();primary=set();unresolved=[];role=roles.get(route,{})
+        producers=set();primary=set();unresolved=[];repository_assets=[];role=roles.get(route,{})
+        scopes=validated_primary_scopes(role,engines,root,route)
         api_responses=role.get('api_responses',[])
-        declared_engines=graph.get('primary_engines',[])+role.get('primary_engines',[])+[r['engine'] for r in api_responses]
+        runtime_outputs=validated_runtime_outputs(role.get('runtime_outputs',[]),engines,graph,root,route)
+        declared_engines=graph.get('primary_engines',[])+role.get('primary_engines',[])+[r['engine'] for r in api_responses+runtime_outputs]
         for api in api_responses:
             if api.get('origin','').startswith('https://') is False or not api.get('pathname','').startswith('/') or '*' in api['pathname'] or set(api.get('methods',[])) - {'GET','POST'}:raise ValueError('Unsafe or unsupported API inspection contract: '+route)
         for declared in declared_engines:
@@ -128,6 +184,12 @@ def contract(root):
             if w['engine'] not in writers.get(w['feed'],set()):raise ValueError('Invalid page producer declaration: '+route+' '+w['engine']+' '+w['feed'])
             producers.add(w['engine']);primary.add(w['engine'])
         for key in graph['keys']:
+            if key in REPOSITORY_ASSETS:
+                asset=root/key
+                if not asset.is_file():raise ValueError('Reviewed repository asset missing: '+key)
+                json.loads(asset.read_text())
+                repository_assets.append({'key':key,'role':'repository_configuration_or_asset','purpose':REPOSITORY_ASSETS[key],'sha256':hashlib.sha256(asset.read_bytes()).hexdigest()})
+                continue
             owners=writers.get(key,set())
             bases=owners-{name for name in owners if (key,name) in augmentations}
             pipeline=len(bases)==1 and all(augmentations[(key,name)]['base_producer'] in bases for name in owners-bases)
@@ -139,6 +201,7 @@ def contract(root):
         outputs=[];seen=set()
         for name in sorted(producers,key=lambda name:(name not in primary,name)):
             for o in emap[name]['outputs']:
+                if name in scopes and o['key'] not in scopes[name]:continue
                 pair=(o['engine'],o['key'])
                 if pair not in seen:outputs.append(o);seen.add(pair)
         static_keys=set()
@@ -148,22 +211,24 @@ def contract(root):
             if not parsed or key not in written or not public_key(key):raise ValueError('Static output ownership or access invalid: '+route+' '+key)
             outputs.append({'engine':static['engine'],'key':key,'access':'public','inspection_schema':'json-value.v1','ownership_evidence':[{'file':static['source'],'basis':'bound write argument'}]});static_keys.add(key)
         unresolved=[row for row in unresolved if row['key'] not in static_keys]
-        primary_accessible=sum((o.get('source_engine') or o['engine']) in primary for o in outputs)+len(api_responses)+len(static_keys)
-        primary_withheld=sum(emap[e]['restricted_count'] for e in primary)
-        primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary)
-        primary_families=sum(emap[e]['historical_or_dynamic_family_count'] for e in primary)
+        primary_accessible=sum((o.get('source_engine') or o['engine']) in primary for o in outputs)+len(api_responses)+len(runtime_outputs)+len(static_keys)
+        primary_withheld=sum(sum(not public_key(k) and k not in mirrors and k not in internal_roles.get(e,{}) for k in scopes.get(e,engines[e]['keys'])) for e in primary)
+        internal_inventory=[row for name in sorted(primary) for row in emap[name]['excluded_internal_outputs'] if name not in scopes or row['key'] in scopes[name]]
+        primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary if e not in scopes)
+        primary_families=sum(emap[e]['historical_or_dynamic_family_count'] for e in primary if e not in scopes)
         indexed={(o.get('source_engine') or o['engine'],pattern) for o in outputs if (o.get('source_engine') or o['engine']) in primary and o.get('archive_index') for pattern in (o['archive_index'].get('patterns') or [o['archive_index']['pattern']])}
         unindexed_families=primary_families-len(indexed)
-        unresolved_primary=[row for row in unresolved if row['primary'] and not role.get('primary_exclusive')]
+        scoped_keys={key for keys in scopes.values() for key in keys}
+        unresolved_primary=[row for row in unresolved if row['primary'] and (not role.get('primary_exclusive') or row['key'] in scoped_keys or set(row.get('writers',[]))&primary)]
         role_name='NO_ENGINE_EXPECTED' if graph.get('redirect') else role.get('role','ENGINE_PAGE')
         role_reason='Redirect: '+graph['redirect'] if graph.get('redirect') else role.get('reason')
         missing_primary=not primary_accessible or unresolved_primary or graph['script_parse_errors'] or role.get('unresolved_reason')
         primary_status=('NO_PRIMARY_OUTPUT_ACCESS_CONTRACT' if not primary_accessible else
                         'PARTIAL_PRIMARY_OUTPUT_ACCESS' if primary_withheld or primary_unresolved or unindexed_families or missing_primary else 'ACCESSIBLE_BY_CONTRACT')
         coverage_class=('NOT_APPLICABLE' if role_name=='NO_ENGINE_EXPECTED' else 'PRIMARY_VALID_CONTRACT' if primary_status=='ACCESSIBLE_BY_CONTRACT' else 'PRIMARY_PARTIAL' if primary_accessible or primary else 'SUPPORT_ONLY' if producers else 'NO_ASSOCIATION')
-        pmap[route]={'page_role':role_name,'role_reason':role_reason,'coverage_class':coverage_class,'api_responses':api_responses,'unresolved_primary_references':unresolved_primary,'dedicated_coverage_note':role.get('unresolved_reason'),'script_parse_errors':graph['script_parse_errors'],'outputs':outputs,'producers':sorted(producers),'primary_producers':sorted(primary),'supplemental_producers':sorted(producers-primary),'primary_output_status':primary_status,'primary_withheld_output_count':primary_withheld,'primary_unresolved_write_count':primary_unresolved,'primary_dynamic_family_count':primary_families,'primary_unindexed_family_count':unindexed_families,'owner_authenticated_count':sum(emap[e]['owner_authenticated_count'] for e in producers),'restricted_count':sum(emap[e]['restricted_count'] for e in producers),
-                     'unresolved_count':len(unresolved)+sum(emap[e]['unresolved_count'] for e in producers),'unresolved_references':unresolved,
-                     'historical_or_dynamic_family_count':sum(emap[e]['historical_or_dynamic_family_count'] for e in producers),
+        pmap[route]={'page_role':role_name,'role_reason':role_reason,'coverage_class':coverage_class,'repository_assets':repository_assets,'api_responses':api_responses,'runtime_outputs':runtime_outputs,'primary_output_scopes':scopes,'primary_scope_evidence':role.get('primary_scope_evidence',{}),'unresolved_primary_references':unresolved_primary,'dedicated_coverage_note':role.get('unresolved_reason'),'script_parse_errors':graph['script_parse_errors'],'outputs':outputs,'producers':sorted(producers),'primary_producers':sorted(primary),'supplemental_producers':sorted(producers-primary),'primary_output_status':primary_status,'primary_withheld_output_count':primary_withheld,'primary_unresolved_write_count':primary_unresolved,'primary_dynamic_family_count':primary_families,'primary_unindexed_family_count':unindexed_families,'excluded_internal_outputs':internal_inventory,'owner_authenticated_count':sum(emap[e]['owner_authenticated_count'] for e in producers),'restricted_count':sum(emap[e]['restricted_count'] for e in producers),
+                     'unresolved_count':len(unresolved)+sum(emap[e]['unresolved_count'] for e in producers if e not in scopes),'unresolved_references':unresolved,
+                     'historical_or_dynamic_family_count':sum(emap[e]['historical_or_dynamic_family_count'] for e in producers if e not in scopes),
                      'association_basis':'exact source references or explicit validated page declarations; shared-script conditional use not inferred as primary ownership',
                      'runtime_coverage':'unverified_until_opened','missing_script_count':len(graph['missing_scripts'])}
     return {'schema_version':'page-data-contract.v1','inspection_schema':'json-value.v1','source_manifest_schema':doc['schema_version'],

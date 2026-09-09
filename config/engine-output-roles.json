@@ -1,0 +1,433 @@
+{
+  "review": "Exact source-reviewed operational storage; excluded from public analytical-output completeness while retained as visible restricted inventory. This grants no new public access.",
+  "reviewed_source_scope": "2026-09-09 release checkout; line locations are evidence anchors, not deployed proof",
+  "roles": [
+    {
+      "engine": "justhodl-accumulation-radar",
+      "key": "data/_cycle/pv.json",
+      "role": "internal_input_cache",
+      "purpose": "Rolling price/volume input buffer read before scoring; published ranked results are data/accumulation-radar.json.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-accumulation-radar/source/lambda_function.py",
+        "lines": [
+          41,
+          149,
+          150,
+          214
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-alert-sentinel",
+      "key": "data/_alerts/last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Notification comparison snapshot, retained send buffer and last_sent_date, separate from public alert-sentinel results.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-alert-sentinel/source/lambda_function.py",
+        "lines": [
+          25,
+          433,
+          469,
+          470,
+          471
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-alpha-compass",
+      "key": "data/_telegram-chat.json",
+      "role": "private_operational_state",
+      "purpose": "Private delivery destination discovery state containing chat_id; this is never a public analytical result.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-alpha-compass/source/lambda_function.py",
+        "lines": [
+          204,
+          243,
+          259,
+          261
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-market-map",
+      "key": "data/_map/state.json",
+      "role": "internal_input_cache",
+      "purpose": "Weekly market-cap/revenue fetch cache used by mcap_state; market-map.json and sector-groups.json are published results.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-market-map/source/lambda_function.py",
+        "lines": [
+          25,
+          78,
+          81,
+          106,
+          109,
+          152,
+          155
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-stock-valuations",
+      "key": "data/_value/state.json",
+      "role": "internal_input_cache",
+      "purpose": "Valuation input refresh/cache state; complete public result is stock-valuations.json.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-stock-valuations/source/lambda_function.py",
+        "lines": [
+          29,
+          288,
+          290,
+          419,
+          420
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-insider-trades",
+      "key": "data/_insider/backfill-cursor.json",
+      "role": "internal_operational_storage",
+      "purpose": "Resumption cursor stores done/complete/next/total for SEC daily backfill, not transactions.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-insider-trades/source/lambda_function.py",
+        "lines": [
+          545,
+          573,
+          576,
+          629,
+          631,
+          632
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/crisis_composite_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/dollar_radar_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/global_stress_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/live_pulse_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/master_alloc_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/signal_board_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-streaming-fanout",
+      "key": "data/_streaming/vol_radar_last.json",
+      "role": "internal_operational_storage",
+      "purpose": "Per-channel last broadcast/comparison state; public streaming-fanout log/config and original engine snapshots remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-streaming-fanout/source/lambda_function.py",
+        "lines": [
+          34,
+          56,
+          275,
+          276,
+          277,
+          279,
+          293
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-trend-reversal",
+      "key": "data/_tmp/trend-reversal-partial.json",
+      "role": "internal_operational_storage",
+      "purpose": "Temporary multi-invocation batch accumulator, cleared at start and deleted after final publication; not a completed engine snapshot.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-trend-reversal/source/lambda_function.py",
+        "lines": [
+          44,
+          453,
+          456,
+          469,
+          471,
+          474,
+          476,
+          621
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-backtest-harness",
+      "key": "data/_backtest/state.json",
+      "role": "internal_input_cache",
+      "purpose": "Simulation input refresh/cache state, not the separately persisted graded rows or public research results.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-backtest-harness/source/lambda_function.py",
+        "lines": [
+          27,
+          262,
+          361
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-monitor",
+      "key": "_health/fleet_last_alert.json",
+      "role": "internal_operational_storage",
+      "purpose": "Prior alert fingerprint used to suppress duplicate notifications, separate from current _health/fleet.json.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-monitor/source/lambda_function.py",
+        "lines": [
+          47,
+          365,
+          387
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-integrity",
+      "key": "data/_state/d1-classification-cache.json",
+      "role": "internal_input_cache",
+      "purpose": "Resumable discovery classification cache; current public integrity ledger is data/fleet-integrity.json.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-integrity/source/lambda_function.py",
+        "lines": [
+          31,
+          32,
+          102,
+          379,
+          453
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-integrity",
+      "key": "data/_state/d1-scan-cursor.json",
+      "role": "internal_operational_storage",
+      "purpose": "Resumable D1 scan cursor, not the public ledger.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-integrity/source/lambda_function.py",
+        "lines": [
+          99,
+          103,
+          390,
+          456
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-integrity",
+      "key": "data/_state/fleet-integrity-baseline.json",
+      "role": "internal_operational_storage",
+      "purpose": "Known defect identity baseline used for new-defect comparison; public integrity ledger remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-integrity/source/lambda_function.py",
+        "lines": [
+          13,
+          33,
+          61,
+          811,
+          843
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-error-monitor",
+      "key": "data/_fleet-monitor-alert-history.json",
+      "role": "internal_operational_storage",
+      "purpose": "Notification deduplication timestamps, separate from required current monitor results.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-error-monitor/source/lambda_function.py",
+        "lines": [
+          144,
+          145,
+          147,
+          153,
+          156
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-freshness-monitor",
+      "key": "data/_freshness-alert-history.json",
+      "role": "internal_operational_storage",
+      "purpose": "Notification deduplication and escalation timestamps; not the required current freshness findings.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
+        "lines": [
+          27,
+          484,
+          501,
+          531
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-freshness-monitor",
+      "key": "data/_freshness-seen-keys.json",
+      "role": "internal_operational_storage",
+      "purpose": "Resumable source-key discovery state; availability/freshness results remain required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
+        "lines": [
+          281,
+          287
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-fleet-freshness-monitor",
+      "key": "data/_freshness-manifest.json",
+      "role": "internal_configuration",
+      "purpose": "Operational SLA/rule configuration revalidated by the monitor; not a data observation or freshness result.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
+        "lines": [
+          10,
+          90,
+          92,
+          97,
+          100
+        ]
+      },
+      "public_access_approved": false
+    }
+  ],
+  "must_remain_required_or_receive_public_review": [
+    {
+      "engine": "justhodl-altseason",
+      "key": "data/_altseason/global-history.json",
+      "reason": "Meaningful public CoinGecko global snapshots; source369-397 contains dates/marketcap/dominance, not operational state. Expose after public-path review."
+    },
+    {
+      "engine": "justhodl-backtest-harness",
+      "key": "data/_backtest/graded.json.gz",
+      "reason": "Per-observation analytical graded results for meta-labeler, not an internal cursor. Keep required and assess safe full gzip display."
+    },
+    {
+      "engine": "justhodl-fleet-monitor",
+      "key": "_health/fleet.json",
+      "reason": "Current health report, meaningful primary output; new privacy sanitizer required."
+    },
+    {
+      "engine": "justhodl-fleet-error-monitor",
+      "key": "data/_fleet-monitor.json",
+      "reason": "Current alert/health report; not operational state even though key has underscore."
+    },
+    {
+      "engine": "justhodl-fleet-freshness-monitor",
+      "key": "data/_freshness-monitor.json",
+      "reason": "Required current freshness and coverage report; cannot exclude from public result completeness merely for underscore."
+    }
+  ]
+}

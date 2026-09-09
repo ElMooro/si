@@ -21,14 +21,22 @@ def report(root=ROOT):
         gaps={}
         for name in page['primary_producers']:
             engine=engines[name];visible={o['key'] for o in contracts['engines'][name]['outputs']}
-            gaps[name]={'withheld_keys':[k for k in engine['keys'] if k not in visible],'unresolved_writes':engine['unresolved_writes'],'dynamic_families':engine['key_patterns'],'other_format_outputs':engine.get('other_format_outputs',[])}
+            internal=contracts['engines'][name].get('excluded_internal_outputs',[]);internal_keys={row['key'] for row in internal}
+            scope=page.get('primary_output_scopes',{}).get(name)
+            indexed={pattern for o in contracts['engines'][name]['outputs'] if o.get('archive_index') for pattern in o['archive_index'].get('patterns',[])}
+            gaps[name]={'withheld_result_keys':[k for k in (scope or engine['keys']) if k not in visible and k not in internal_keys],
+                        'excluded_internal_outputs':internal,'unresolved_writes':[] if scope else engine['unresolved_writes'],
+                        'unindexed_dynamic_families':[] if scope else [pattern for pattern in engine['key_patterns'] if pattern not in indexed],
+                        'other_format_outputs':[] if scope else engine.get('other_format_outputs',[])}
         rows.append({'route':route,'classification':page['coverage_class'],'primary_engines':page['primary_producers'],'reasons':reasons,'unresolved_primary_references':page.get('unresolved_primary_references',[]),'engine_gaps':gaps})
-    result={'schema_version':'page-coverage-review.v1','generated_from':'Current source contracts; static access classification, not deployed certification','coverage':contracts['coverage'],'partial_reason_combinations':dict(combinations),'remaining_routes':rows}
+    inventory=[row for engine in contracts['engines'].values() for row in engine.get('excluded_internal_outputs',[])]
+    result={'schema_version':'page-coverage-review.v1','generated_from':'Current source contracts; static access classification, not deployed certification','coverage':contracts['coverage'],'source_reviewed_internal_storage':inventory,'partial_reason_combinations':dict(combinations),'remaining_routes':rows}
     dest=root/'docs/audit/2026-09-09';dest.mkdir(parents=True,exist_ok=True)
     (dest/'page-coverage-remaining.json').write_text(json.dumps(result,indent=2)+'\n')
     lines=['# Page coverage follow-up — 9 September 2026','',contracts['coverage']['claim'],'','| Classification | Routes |','|---|---:|']
     for key in ['primary_valid_contract','primary_partial','support_only','no_association','not_applicable']:lines.append('| '+key+' | '+str(contracts['coverage'][key])+' |')
-    lines+=['',str(contracts['coverage']['routes_with_api_response_contract'])+' routes have exact reviewed API response contracts, installed before the first application request. Each route embeds its own small access contract; the full registry is fetched only by the generic engine browser. Public JSON/gzip, authenticated owner mirrors and reviewed archive indexes remain separate access mechanisms.','','## Partial categories','','| Reason combination | Routes |','|---|---:|']
+    lines+=['',str(contracts['coverage']['routes_with_api_response_contract'])+' routes have exact reviewed API response contracts, installed before the first application request. Each route embeds its own small access contract; the full registry is fetched only by the generic engine browser. Public JSON/gzip, authenticated owner mirrors and reviewed archive indexes remain separate access mechanisms.',
+            '',str(len(inventory))+' exact source-reviewed operational storage keys remain withheld and visible in the inspection inventory. They are excluded from published analytical-result completeness; meaningful health, model grades and historical observations remain required. Dedicated AI-router context scopes are checked against literal writer constants, preserving separate report and history contracts for each context.','','## Partial categories','','| Reason combination | Routes |','|---|---:|']
     lines+=['| '+key+' | '+str(value)+' |' for key,value in combinations.most_common()]
     lines+=['','## Remaining routes','','The JSON companion enumerates source write locations, exact withheld paths, format-only exports and families for every route. A source-analysis gap is not proof of runtime absence. Protected raw storage and model caches are distinguished from published user-facing records in source review; privacy is not weakened to change these counts.','','| Route | Classification | Remaining reason |','|---|---|---|']
     for row in rows:lines.append('| '+row['route']+' | '+row['classification']+' | '+'; '.join(row['reasons']).replace('|','/')+' |')
