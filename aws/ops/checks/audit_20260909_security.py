@@ -7,10 +7,11 @@ import json
 import urllib.error
 import urllib.request
 
-MIRRORED_KEYS = ("data/brain.json", "data/brain-history.json", "data/journal-graded.json", "data/my-brief.json", "data/devils-advocate.json", "data/notes-index.json", "data/notes-themes.json", "data/playbook-rules.json")
-PRIVATE_KEYS = MIRRORED_KEYS + ("data/tradingview-notes.json",)
-PRIVATE_PREFIXES = ("data/_askdesk/", "data/search/index/", "equity-research-history/")
-SANITIZED_KEYS = ("data/brain-compiler.json", "data/tv-workbench.json", "data/canary-warroom.json", "data/tradingview.json", "data/domain-barometers.json", "data/best-setups.json", "data/master-allocation.json", "data/position-sizing.json", "data/engine-conflicts.json", "data/search/providers/tradingview_vault_live.json.gz")
+from private_artifact import MIRRORED_ARTIFACTS, PRIVATE_KEYS as SOURCE_PRIVATE_KEYS, PRIVATE_PREFIXES
+
+MIRRORED_KEYS = tuple(MIRRORED_ARTIFACTS)
+PRIVATE_KEYS = tuple(sorted(SOURCE_PRIVATE_KEYS))
+SANITIZED_KEYS = ("data/brain-compiler.json", "data/tv-workbench.json", "data/canary-warroom.json", "data/tradingview.json", "data/domain-barometers.json", "data/best-setups.json", "data/master-allocation.json", "data/position-sizing.json", "data/engine-conflicts.json", "data/search/providers/tradingview_vault_live.json.gz", "data/sizing.json", "data/ai-commentary/portfolio.json")
 SANITIZED_PREFIXES = ("equity-research/",)
 
 WORKER = "https://justhodl-data-proxy.raafouis.workers.dev"
@@ -24,7 +25,7 @@ def anonymous_deny_statement(bucket, owner_account="857687956942"):
     """
     return {"Sid": "Audit20260909PrivatePersonalArtifacts", "Effect": "Deny", "Principal": "*",
             "Action": ["s3:GetObject", "s3:GetObjectVersion"],
-            "Resource": [f"arn:aws:s3:::{bucket}/{key}" for key in PRIVATE_KEYS] + [f"arn:aws:s3:::{bucket}/{key.removeprefix('data/')}" for key in PRIVATE_KEYS] + [f"arn:aws:s3:::{bucket}/{prefix}*" for prefix in PRIVATE_PREFIXES],
+            "Resource": sorted({f"arn:aws:s3:::{bucket}/{key}" for key in PRIVATE_KEYS} | {f"arn:aws:s3:::{bucket}/{key.removeprefix('data/')}" for key in PRIVATE_KEYS} | {f"arn:aws:s3:::{bucket}/{prefix}*" for prefix in PRIVATE_PREFIXES} | {f"arn:aws:s3:::{bucket}/{prefix.removeprefix('data/')}*" for prefix in PRIVATE_PREFIXES}),
             "Condition": {"StringNotEquals": {"aws:PrincipalAccount": owner_account}}}
 
 
@@ -59,12 +60,21 @@ def check(s3, bucket="justhodl-dashboard-live", service_token=None):
         for base in (WORKER, "https://justhodl.ai", "https://www.justhodl.ai"):
             result = _head(base + "/" + key)
             checks.append({"check": "anonymous_worker_denied", "host": base, "key": key,
-                           "status": result["status"], "ok": result["status"] in (401, 403)})
+                           "status": result["status"], "ok": result["status"] in (401, 403) or (not key.startswith("data/") and base != WORKER and result["status"] == 404)})
         result = _head(f"https://{bucket}.s3.us-east-1.amazonaws.com/{key}")
         checks.append({"check": "anonymous_s3_denied", "key": key, "status": result["status"], "ok": result["status"] == 403})
         # IAM service-read preservation check, metadata only.
-        head = s3.head_object(Bucket=bucket, Key=key)
-        checks.append({"check": "iam_source_preserved", "key": key, "ok": head.get("ContentLength", 0) > 0})
+        try:
+            head = s3.head_object(Bucket=bucket, Key=key)
+            checks.append({"check": "iam_source_preserved", "key": key, "ok": head.get("ContentLength", 0) > 0})
+        except Exception as error:
+            code = str(getattr(error, "response", {}).get("Error", {}).get("Code", ""))
+            # Alert/history files may never have existed. Their absence is safe;
+            # every full mirrored source is required and every other error fails.
+            if key not in MIRRORED_KEYS and code in ("404", "NoSuchKey", "NotFound"):
+                checks.append({"check": "optional_private_source_absent", "key": key, "ok": True})
+            else:
+                checks.append({"check": "iam_source_preserved", "key": key, "ok": False, "reason": "source metadata unavailable"})
         if service_token and key in MIRRORED_KEYS:
             result = _head(WORKER + "/" + key, {"X-JH-Service-Token": service_token})
             checks.append({"check": "authenticated_mirror_ready", "key": key, "status": result["status"],

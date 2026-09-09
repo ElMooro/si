@@ -314,11 +314,16 @@ const PRIVATE_ARTIFACTS = {
   'brain.json': 'brain', 'brain-history.json': 'brain-history', 'journal-graded.json': 'journal-graded',
   'my-brief.json': 'my-brief', 'devils-advocate.json': 'devils-advocate',
   'notes-index.json': 'notes-index', 'notes-themes.json': 'notes-themes', 'playbook-rules.json': 'playbook-rules',
+  'portfolio/snapshot.json':'portfolio-snapshot', 'portfolio/risk.json':'portfolio-risk',
+  'portfolio/sizing.json':'portfolio-sizing', 'portfolio/catalysts.json':'portfolio-catalysts',
+  'risk-sizer.json':'risk-sizer', 'risk/recommendations.json':'risk-sizer',
+  'pm-decision.json':'pm-decision', 'pm-decision-history.json':'pm-decision-history',
+  'behavior-mirror.json':'behavior-mirror', 'ai-brief.json':'ai-brief',
 };
 const SANITIZED_ARTIFACTS = new Set([
   'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
   'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
-  'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz',
+  'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json',
 ]);
 function sanitizedArtifact(path) {
   const normalized = path.replace(/^data\//, '');
@@ -330,6 +335,20 @@ function artifactUpstreamUrl(path) {
 function privateArtifact(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   return Object.hasOwn(PRIVATE_ARTIFACTS, normalized) ? PRIVATE_ARTIFACTS[normalized] : null;
+}
+const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md',
+  'history/behavior-mirror-history.json', 'portfolio/sizing-alert-history.json',
+  'portfolio/catalyst-alert-history.json', 'portfolio/risk-alert-history.json']);
+function privateArchive(path) {
+  const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
+  if (PRIVATE_RAW_ARTIFACTS.has(normalized) || ['_askdesk/', 'search/index/',
+    'equity-research-history/', 'backtest/ledger/', 'ai-commentary/history/portfolio/']
+    .some(prefix => normalized.startsWith(prefix))) return true;
+  const archivePrefix = 'history/archive/feed/';
+  if (!normalized.startsWith(archivePrefix)) return false;
+  const archived = normalized.slice(archivePrefix.length).replace(/^data\//, '');
+  return [...Object.keys(PRIVATE_ARTIFACTS), ...PRIVATE_RAW_ARTIFACTS]
+    .some(key => archived === key || archived.startsWith(key + '/'));
 }
 
 export class WorkspaceCoordinator {
@@ -391,7 +410,7 @@ export default {
     // Authenticated, append-only personal track record of judgment. ──
     // audit-20260909-private-artifacts-v1: no anonymous mirror or cache fallback.
     const privateKind = privateArtifact(url.pathname);
-    if (/^\/+(?:data\/)?(?:_askdesk\/|search\/index\/|equity-research-history\/|tradingview-notes\.json$)/.test(url.pathname)) {
+    if (privateArchive(url.pathname)) {
       // Historical questions/responses are operational records, never a public
       // feed. Archive inspection requires IAM, even for a signed-in browser.
       return new Response(JSON.stringify({ error: 'private archive' }), {

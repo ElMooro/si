@@ -425,11 +425,34 @@ test('legacy profile customer binding requires independent Stripe owner proof, i
 
 test('every private corpus and archive alias is blocked before stale cache, including encoded/range/version attempts',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0;globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})}}};
-  const keys=['brain.json','brain-history.json','journal-graded.json','my-brief.json','devils-advocate.json','notes-index.json','notes-themes.json','playbook-rules.json','tradingview-notes.json','_askdesk/old.json','search/index/provider-search-old.sqlite.gz','equity-research-history/SPY/old.json'];
+  const keys=['brain.json','brain-history.json','journal-graded.json','my-brief.json','devils-advocate.json','notes-index.json','notes-themes.json','playbook-rules.json','tradingview-notes.json','_askdesk/old.json','search/index/provider-search-old.sqlite.gz','equity-research-history/SPY/old.json',
+    'portfolio/snapshot.json','portfolio/risk.json','portfolio/sizing.json','portfolio/catalysts.json',
+    'risk-sizer.json','risk/recommendations.json','pm-decision.json','pm-decision-history.json','behavior-mirror.json','ai-brief.json','ai-brief.md',
+    'history/behavior-mirror-history.json','portfolio/sizing-alert-history.json','portfolio/catalyst-alert-history.json','portfolio/risk-alert-history.json',
+    'backtest/ledger/latest.json','backtest/ledger/versions/fixture.json','ai-commentary/history/portfolio/old.json',
+    'history/archive/feed/data/ai-brief.json/old.json','history/archive/feed/ai-brief.json/old.json','history/archive/feed/portfolio/snapshot.json/old.json'];
   for(const key of keys)for(const prefix of ['/','/data/'])for(const method of ['GET','HEAD']){
     const r=await w.fetch(req(prefix+key+'?versionId=old',{method,headers:{Range:'bytes=0-12'}}),env,{});assert.ok([401,403].includes(r.status),prefix+key);assert.match(r.headers.get('Cache-Control'),/no-store/);
   }
   assert.equal((await w.fetch(req('/data/%62rain.json'),env,{})).status,400);assert.equal(cacheReads,0);
+});
+test('all dedicated owner account engines publish and read through authenticated no-store mirrors',async()=>{
+  const {env}=fresh();const w=await worker();const keys={
+    'portfolio/snapshot.json':'portfolio-snapshot','portfolio/risk.json':'portfolio-risk','portfolio/sizing.json':'portfolio-sizing','portfolio/catalysts.json':'portfolio-catalysts',
+    'data/risk-sizer.json':'risk-sizer','risk/recommendations.json':'risk-sizer','data/pm-decision.json':'pm-decision','data/pm-decision-history.json':'pm-decision-history',
+    'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief'};
+  globalThis.caches={default:{async match(){throw new Error('private cache read')},async put(){throw new Error('private cache write')}}};
+  for(const [key,kind] of Object.entries(keys)){
+    const doc={engine:kind,account_fixture:{positions:[{ticker:'SYNTHETIC',qty:3}],nav:100}};
+    assert.equal((await w.fetch(req('/private-artifact?kind='+kind,{method:'PUT',headers:{'X-JH-Service-Token':ADMIN},body:JSON.stringify(doc)}),env,{})).status,200);
+    for(const suffix of ['?versionId=old','']){
+      assert.equal((await w.fetch(req('/'+key+suffix),env,{})).status,401);
+      assert.equal((await w.fetch(req('/'+key+suffix,{headers:{Authorization:'Bearer other_tok_000000000000'}}),env,{})).status,403);
+      const result=await w.fetch(req('/'+key+suffix,{headers:{Authorization:'Bearer owner_tok_000000000000'}}),env,{});
+      assert.equal(result.status,200,key);assert.match(result.headers.get('Cache-Control'),/private, no-store/);assert.deepEqual(await result.json(),doc);
+    }
+    const head=await w.fetch(req('/'+key,{method:'HEAD',headers:{'X-JH-Service-Token':ADMIN}}),env,{});assert.equal(head.status,200);assert.equal(await head.text(),'');
+  }
 });
 test('sanitized public derivatives bypass old Worker and upstream cache generations',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0,upstreamUrl,upstreamOptions;

@@ -697,7 +697,13 @@ def call_anthropic(prompt, key, model=ANTHROPIC_MODEL, max_tokens=2000):
         return json.loads(resp.read().decode())
 
 
+from private_artifact import private_http_denied, publish_private
+
+
 def lambda_handler(event=None, context=None):
+    denied = private_http_denied(event)
+    if denied:
+        return denied
     started = time.time()
 
     # 1. Pull all 17 sources (was 14 — added paper portfolio + macro P&L + ranked calibration ledger)
@@ -743,6 +749,9 @@ def lambda_handler(event=None, context=None):
 
     snapshot_str = json.dumps(snapshot, indent=2, default=str)
     print(f"[ai-brief] snapshot size: {len(snapshot_str):,} chars")
+    if isinstance(event, dict) and event.get("validate_only"):
+        return {"statusCode": 200, "headers": {"Cache-Control": "private, no-store"},
+                "body": json.dumps({"validated": True, "snapshot_keys": list(snapshot)})}
 
     # 3. Build prompt
     prompt = f"""You are the Chief Investment Strategist for JustHodl.AI — a Bloomberg-terminal-grade financial intelligence platform owned by Khalid. Below is a JSON snapshot of every major signal in the system as of right now.
@@ -828,11 +837,14 @@ Rules:
                 "error": str(e),
             }
 
+    # Account-specific sizing and drawdown enter this synthesis. Keep the full
+    # brief private; public market/model engines remain available separately.
+    publish_private("ai-brief", out)
     # 5. Write outputs
     body = json.dumps(out, default=str).encode("utf-8")
-    S3.put_object(Bucket=BUCKET, Key="data/ai-brief.json", Body=body, ContentType="application/json", CacheControl="public, max-age=600")
+    S3.put_object(Bucket=BUCKET, Key="data/ai-brief.json", Body=body, ContentType="application/json", CacheControl="private, no-store")
     md_body = (out.get("brief_md") or "").encode("utf-8")
-    S3.put_object(Bucket=BUCKET, Key="data/ai-brief.md", Body=md_body, ContentType="text/markdown", CacheControl="public, max-age=600")
+    S3.put_object(Bucket=BUCKET, Key="data/ai-brief.md", Body=md_body, ContentType="text/markdown", CacheControl="private, no-store")
     print(f"[ai-brief] wrote ai-brief.json ({len(body):,}b) and ai-brief.md ({len(md_body):,}b) in {out['duration_s']}s")
 
     # 6. Snapshot decisive call to history ledger (append-only) so we can chart how
@@ -921,6 +933,7 @@ Rules:
 
     return {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json", "Cache-Control": "private, no-store"},
         "body": json.dumps({
             "duration_s": out["duration_s"],
             "brief_chars": len(out.get("brief_md") or ""),

@@ -69,7 +69,12 @@
   }
 
   const JustHodlAuth = {
-    async init() {
+    init() {
+      if (!this._initPromise) this._initPromise = this._init();
+      return this._initPromise;
+    },
+
+    async _init() {
       this._injectCSS();
       this._ensureSlot();
       if (!ENABLED) { this._renderAuthUI(); return; }

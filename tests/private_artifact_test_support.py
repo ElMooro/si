@@ -25,7 +25,8 @@ class S3:
         if kw["Key"] not in self.docs: raise KeyError(kw["Key"])
         return {"Body": io.BytesIO(json.dumps(self.docs[kw["Key"]]).encode())}
     def put_object(self, **kw):
-        self.writes.append(kw); self.docs[kw["Key"]] = json.loads(kw["Body"])
+        self.writes.append(kw)
+        self.docs[kw["Key"]] = json.loads(kw["Body"]) if kw.get("ContentType", "application/json") == "application/json" else kw["Body"].decode()
     def get_parameter(self, **kw): return {"Parameter": {"Value": "fixture-service-token"}}
 
 
@@ -112,6 +113,39 @@ def run(engine):
             assert "data/brain.json" not in s3.reads
             assert s3.writes[0]["Key"].startswith("data/_askdesk/") and s3.writes[0]["CacheControl"] == "private, no-store"
             print(engine + ": 4 checks passed (catalog filter, fetch guard, router allowlist, private archive)")
+        elif engine == "justhodl-ai-brief":
+            mod, s3 = load(engine, {"risk/recommendations.json": {
+                "drawdown_status": {"current_drawdown_pct": -4.25},
+                "sized_recommendations": [{"symbol": "PRIVATE-FIXTURE", "recommended_size_pct": 3.5}]}})
+            mod.SKIP_TELEGRAM = True
+            mod.get_anthropic_key = lambda: None
+            mod.send_telegram = lambda *a, **k: (_ for _ in ()).throw(AssertionError("message forbidden"))
+            published = []
+            def urlopen(request, **kwargs):
+                assert "/private-artifact?kind=ai-brief" in request.full_url
+                assert request.get_header("X-jh-service-token") == "fixture-service-token"
+                assert request.get_method() == "PUT"
+                published.append(json.loads(request.data)); return Response({"ok": True})
+            urllib.request.urlopen = urlopen
+            for headers in ({}, {"X-JH-Service-Token": "invalid"}, []):
+                assert mod.lambda_handler({"headers": headers, "requestContext": {"http": {"method": "POST"}}})["statusCode"] == 401
+            assert not s3.reads and not s3.writes and not published
+            assert mod.lambda_handler({"validate_only": True})["statusCode"] == 200
+            assert not s3.writes and not published
+            result = mod.lambda_handler({})
+            assert result["statusCode"] == 200 and result["headers"]["Cache-Control"] == "private, no-store"
+            assert len(published) == 1 and published[0] == s3.docs["data/ai-brief.json"]
+            assert published[0]["snapshot"]["risk_sizer"]["top_5_sized"][0]["symbol"] == "PRIVATE-FIXTURE"
+            assert all(w["CacheControl"] == "private, no-store" for w in s3.writes if w["Key"] in ("data/ai-brief.json", "data/ai-brief.md"))
+            assert "PRIVATE-FIXTURE" not in json.dumps(s3.docs["data/decisive-call-history.json"])
+            writes = len(s3.writes)
+            def fail(*a, **k): raise OSError("fixture mirror unavailable")
+            urllib.request.urlopen = fail
+            try: mod.lambda_handler({})
+            except OSError: pass
+            else: raise AssertionError("mirror failure must fail handler")
+            assert len(s3.writes) == writes
+            print(engine + ": 6 checks passed (HTTP auth, dry run, full private mirror, IAM original/cache, public ledger projection, publication failure)")
         else:
             raise ValueError(engine)
     finally:
