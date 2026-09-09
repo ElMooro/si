@@ -175,6 +175,7 @@ def test_code_only_api_engine_keeps_overall_release_pending():
          patch.object(release,'configure_katlin_refresh',return_value={'verified':True}), \
          patch.object(release,'privacy_receipt_summary',return_value={'verified':True}), \
          patch.object(release,'observe_schedules',return_value=[]), \
+         patch.object(release,'observe_function_urls',return_value=[]), \
          patch.object(release,'QUIET_STAGES',()),patch.object(release,'git',return_value='0'*40):
         result=verifier.run()
     assert result['ok'] is False and result['status']=='PENDING_SCHEDULED_OUTPUTS'
@@ -247,3 +248,118 @@ def test_dependency_stages_publish_donors_before_their_actual_receivers():
     assert stage['khalid-risk'] < stage['portfolio-snapshot'] < stage['risk-sizer']
     assert stage['short-interest'] < stage['squeeze-fuel'] and stage['short-interest'] < stage['trade-tickets']
     assert stage['crypto-basis'] < stage['sizing-engine'] and stage['factor-risk'] < stage['firm-risk-board']
+    assert stage['calibration-snapshotter'] < stage['backtest-engine']
+
+
+def test_calibration_outputs_have_distinct_producer_contracts_and_readiness_checks():
+    mapping=release.artifact_map(ROOT,['justhodl-calibration-snapshotter','justhodl-calibrator'])
+    assert mapping['justhodl-calibration-snapshotter']['primary_keys']==['calibration/model-latest.json']
+    assert mapping['justhodl-calibrator']['primary_keys']==['calibration/latest.json']
+    assert mapping['justhodl-calibrator']['expected_output_contracts']['calibration/latest.json']=='calibrator_horizon_and_accuracy_report'
+    assert 'calibration/model-latest.json' in release.ACCOUNTING_KEYS
+    assert 'calibration/latest.json' not in release.ACCOUNTING_KEYS
+
+
+def test_calibrator_old_snapshot_cannot_satisfy_report_contract():
+    now=datetime.now(timezone.utc)
+    code={'last_modified':(now-timedelta(hours=1)).isoformat()}
+    doc={'generated_at':now.isoformat(),'snapshot_id':'cal-old','model_version':'calibrator-ssm-weights','weights':{}}
+    result=release.inspect_output(fixture_output(doc),'justhodl-calibrator','calibration/latest.json',code,now=now)
+    assert result['status']=='CONTRACT_FAILED'
+    assert 'CALIBRATOR_REPORT_REPLACED_BY_MODEL_SNAPSHOT' in result['errors']
+    assert result['expected_output_contract']=='calibrator_horizon_and_accuracy_report'
+    doc={'generated_at':now.isoformat(),'total_outcomes':0,'signal_types_tracked':0,'weights':{},
+         'accuracy_by_type':{},'window_accuracy':{},'window_weights':{},'recommended_horizon':{},
+         'khalid_component_weights':{},'recommendations':[]}
+    result=release.inspect_output(fixture_output(doc),'justhodl-calibrator','calibration/latest.json',code,now=now)
+    assert result['status']=='VERIFIED' and not result['errors']
+
+
+def test_calibration_snapshot_and_backtests_are_reviewed_quiet_but_calibrator_and_fleet_are_not():
+    for name in ('calibration-snapshotter','backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'):
+        calls=[]
+        checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'17'}]
+        verifier=release.ReleaseVerifier(ROOT,{'lambda':SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})},package_check=checker)
+        verifier.checkpoint=lambda:None
+        assert verifier.invoke_once('justhodl-'+name)
+        assert calls[0]['Qualifier']=='17' and calls[0]['Payload']==b'{}'
+        assert 'justhodl-'+name in verifier.requested_after
+    for name in ('calibrator','fleet-freshness-monitor'):
+        verifier=release.ReleaseVerifier(ROOT,{})
+        try:verifier.invoke_once('justhodl-'+name)
+        except ValueError:pass
+        else:raise AssertionError('Notification or weights-changing handler was manually invoked')
+
+
+def test_post_deployment_output_must_also_be_generated_after_requested_refresh():
+    now=datetime.now(timezone.utc)
+    doc={'generated_at':(now-timedelta(minutes=3)).isoformat()}
+    code={'last_modified':(now-timedelta(hours=1)).isoformat()}
+    result=release.inspect_output(fixture_output(doc),'justhodl-example','data/example.json',code,now=now,not_before=now-timedelta(minutes=1))
+    assert result['status']=='PENDING_OUTPUT' and 'POST_REFRESH_GENERATION_PENDING' in result['requirements']
+    doc['generated_at']=now.isoformat()
+    result=release.inspect_output(fixture_output(doc),'justhodl-example','data/example.json',code,now=now,not_before=now-timedelta(minutes=1))
+    assert result['status']=='VERIFIED'
+
+
+def test_backtest_generation_must_follow_latest_verified_model_publication():
+    now=datetime.now(timezone.utc)
+    verifier=release.ReleaseVerifier(ROOT,{'s3':None})
+    verifier.report['artifact_scope']={'justhodl-backtest-engine':{'primary_keys':['backtest/results.json']}}
+    verifier.report['code']={'justhodl-backtest-engine':{'last_modified':(now-timedelta(hours=1)).isoformat()}}
+    verifier.report['outputs']['justhodl-calibration-snapshotter']=[{'status':'VERIFIED','last_modified':now.isoformat()}]
+    captured=[]
+    def inspect(*args,**kw):
+        captured.append(kw['not_before'])
+        return {'status':'PENDING_OUTPUT'}
+    with patch.object(release,'inspect_output',side_effect=inspect):
+        assert verifier.inspect_function('justhodl-backtest-engine') is False
+        verifier.requested_after['justhodl-backtest-engine']=now+timedelta(seconds=1)
+        verifier.inspect_function('justhodl-backtest-engine')
+    assert captured==[now,now+timedelta(seconds=1)]
+
+
+def test_colliding_outputs_have_explicit_distinct_canonical_keys_and_schemas():
+    expected={'justhodl-options-flow-scanner':'data/options-flow-scanner.json','justhodl-options-flow':'flow-data.json',
+              'justhodl-bloomberg-v8':'data/bloomberg-report.json','justhodl-daily-report-v3':'data/report.json',
+              'justhodl-ecb-derived':'data/ecb-derived.json'}
+    mapping=release.artifact_map(ROOT,expected)
+    for name,key in expected.items():
+        assert mapping[name]['primary_keys']==[key]
+        assert key in mapping[name]['expected_output_contracts']
+        assert release.donor_checks(name,{'generated_at':'2026-09-09T00:00:00Z'})['errors']
+
+
+def test_bloomberg_uses_its_actual_utc_generation_field_and_rejects_wrong_report():
+    now=datetime.now(timezone.utc)
+    doc={'utc':now.isoformat(),'fred':{},'stocks':{},'stats':{},'signals':{},'yield_curve':[]}
+    code={'last_modified':(now-timedelta(hours=1)).isoformat()}
+    result=release.inspect_output(fixture_output(doc),'justhodl-bloomberg-v8','data/bloomberg-report.json',code,now=now)
+    assert result['status']=='VERIFIED' and result['generated_at']==now.isoformat()
+    assert release.donor_checks('justhodl-daily-report-v3',doc)['errors']==['DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID']
+
+
+def test_function_url_identity_uses_only_reviewed_names_and_hostname_metadata():
+    calls=[]
+    lookup={function:host for _,function,host in release.FUNCTION_URL_BINDINGS}
+    def config(**kw):
+        calls.append(kw)
+        return {'FunctionUrl':'https://'+lookup[kw['FunctionName']]+'/?ignored=DO_NOT_REPORT',
+                'AuthType':'NONE','OtherSensitiveMetadata':'DO_NOT_REPORT'}
+    rows=release.observe_function_urls(SimpleNamespace(get_function_url_config=config),ROOT)
+    assert all(row['status']=='VERIFIED' for row in rows)
+    assert calls==[{'FunctionName':function} for _,function,_ in release.FUNCTION_URL_BINDINGS]
+    assert 'DO_NOT_REPORT' not in json.dumps(rows)
+    lookup['fedliquidityapi']='different.lambda-url.us-east-1.on.aws'
+    rows=release.observe_function_urls(SimpleNamespace(get_function_url_config=config),ROOT)
+    assert rows[1]['status']=='PENDING_IDENTITY' and rows[1]['reason']=='FUNCTION_URL_HOSTNAME_MISMATCH'
+
+
+def test_unreviewed_page_url_change_blocks_identity_without_cloud_lookup():
+    with tempfile.TemporaryDirectory() as temp:
+        root=Path(temp)
+        for page,_,_ in release.FUNCTION_URL_BINDINGS:(root/page).write_text('https://changed.example.invalid/')
+        class NoLookup:
+            def get_function_url_config(self,**kw):raise AssertionError('Changed page triggered guessed discovery')
+        rows=release.observe_function_urls(NoLookup(),root)
+        assert all(row['reason']=='PAGE_URL_CHANGED_SINCE_REVIEW' for row in rows)

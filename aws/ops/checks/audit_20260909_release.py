@@ -13,6 +13,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT / 'aws/shared'), str(ROOT / 'aws/ops/checks'), str(ROOT / 'scripts')]
@@ -29,7 +30,13 @@ ACCOUNT = '857687956942'
 PRIMARY = {
     'justhodl-backtest-engine':['backtest/results.json'],
     'justhodl-research-backtest':['analytics/backtest_results.json'],
-    'justhodl-calibration-snapshotter':['calibration/latest.json'],
+    'justhodl-calibration-snapshotter':['calibration/model-latest.json'],
+    'justhodl-calibrator':['calibration/latest.json'],
+    'justhodl-options-flow-scanner':['data/options-flow-scanner.json'],
+    'justhodl-options-flow':['flow-data.json'],
+    'justhodl-bloomberg-v8':['data/bloomberg-report.json'],
+    'justhodl-daily-report-v3':['data/report.json'],
+    'justhodl-ecb-derived':['data/ecb-derived.json'],
     'justhodl-portfolio-snapshot':['portfolio/snapshot.json'],
     'justhodl-fleet-freshness-monitor':['data/_freshness-monitor.json'],
     'justhodl-stock-screener':['screener/data.json'],
@@ -40,9 +47,10 @@ PRIMARY = {
 }
 # Reviewed regular handlers publish research/data only and have no notification
 # path. No generic discovery-based invocation is permitted. Portfolio snapshot's
-# ordinary watchlist synchronization is part of its authorized normal refresh.
+# ordinary watchlist synchronization and ECB-derived's dated research-signal
+# recording are part of their authorized normal refresh; neither submits trades.
 QUIET_STAGES = (
-    ('tradingview','short-interest','liquidity-profile','etf-true-flows'),
+    ('tradingview','short-interest','liquidity-profile','etf-true-flows','calibration-snapshotter'),
     ('factor-risk','liquidity-capacity','conviction-engine'),
     ('risk-gate',),
     ('engine-fusion',),
@@ -50,15 +58,34 @@ QUIET_STAGES = (
     ('portfolio-snapshot',),
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
+    ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
 )
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
+# Calibrator changes live SSM weights and emits an EventBridge event. Observe its
+# normal publication only; its report must replace any old colliding model file.
+OBSERVED_FUNCTIONS = {'justhodl-calibrator'}
+FUNCTION_URL_BINDINGS = (
+    ('fmp.html','fmp-fundamentals-agent','nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws'),
+    ('census.html','fedliquidityapi','gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws'),
+)
+REFRESH_DEPENDENCIES = {'justhodl-backtest-engine': ('justhodl-calibration-snapshotter',)}
+OUTPUT_CONTRACTS = {
+    'calibration/model-latest.json': 'immutable_model_snapshot_with_availability',
+    'calibration/latest.json': 'calibrator_horizon_and_accuracy_report',
+    'data/options-flow-scanner.json': 'options_flow_scanner_v1_ranked_equities',
+    'flow-data.json': 'options_flow_and_sentiment_v3_nested_market_data',
+    'data/bloomberg-report.json': 'bloomberg_v8_market_report',
+    'data/report.json': 'daily_report_v10_market_report',
+    'data/ecb-derived.json': 'ecb_derived_3.4_indicators',
+}
 RISK_KINDS = {'katlin','risk-sizer','khalid-risk','risk-gate','engine-fusion'}
 ACCOUNTING_KEYS = {'portfolio/snapshot.json','backtest/results.json','analytics/backtest_results.json',
-                   'calibration/latest.json','data/_freshness-monitor.json'}
+                   'calibration/model-latest.json','data/_freshness-monitor.json'}
 MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-sizer':2,
              'justhodl-risk-gate':48,'justhodl-katlin':36,'justhodl-portfolio-snapshot':3,
              'justhodl-crypto-funding':2,'justhodl-crypto-basis':2,'justhodl-factor-risk':48,
-             'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192}
+             'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
+             'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 
 
@@ -99,6 +126,10 @@ def changed_scope(root, base=BASE):
         if hits: reasons.setdefault(directory.name,set()).update('shared:'+name for name in hits)
     for name in QUIET_FUNCTIONS:
         reasons.setdefault(name,set()).add('reviewed_dependency_refresh')
+    for name in OBSERVED_FUNCTIONS:
+        reasons.setdefault(name,set()).add('scheduled_report_ownership_verification')
+    for _,name,_ in FUNCTION_URL_BINDINGS:
+        reasons.setdefault(name,set()).add('function_url_identity_verification')
     return {name:sorted(why) for name,why in sorted(reasons.items()) if (root/'aws/lambdas'/name/'source').exists()}
 
 
@@ -113,6 +144,7 @@ def artifact_map(root, functions):
         conventional='data/'+function.removeprefix('justhodl-')+'.json'
         chosen=PRIMARY.get(function) or ([conventional] if conventional in keys else keys if len(keys)==1 else [])
         result[function]={'primary_keys':chosen,'other_source_bound_keys':[key for key in keys if key not in chosen],
+                          'expected_output_contracts':{key:OUTPUT_CONTRACTS[key] for key in chosen if key in OUTPUT_CONTRACTS},
                           'unresolved_write_count':len(row.get('unresolved_writes',[])),
                           'primary_resolution':'EXPLICIT_OR_SOURCE_BOUND' if chosen else 'API_OR_PRIMARY_UNRESOLVED',
                           'pages':sorted(page for page,contract in pages.items() if function in contract.get('producers',[])),
@@ -191,16 +223,43 @@ def donor_checks(function, doc):
         if doc.get('allows_new_entries') is not False:errors.append('MODELED_BOOK_GRANTED_EXECUTION')
     elif name=='liquidity-profile':
         if doc.get('method')!='liquidity_profile_v2_volume_capacity':errors.append('LIQUIDITY_PROFILE_OLD_METHOD')
+    elif name=='calibrator':
+        for field in ('weights','accuracy_by_type','window_accuracy','window_weights','recommended_horizon','khalid_component_weights'):
+            if not isinstance(doc.get(field),dict):errors.append('CALIBRATOR_REPORT_SCHEMA_INVALID')
+        for field in ('total_outcomes','signal_types_tracked'):
+            value=numeric(doc.get(field))
+            if value is None or value < 0 or not value.is_integer():errors.append('CALIBRATOR_REPORT_COUNTS_INVALID')
+        if not isinstance(doc.get('recommendations'),list):errors.append('CALIBRATOR_REPORT_SCHEMA_INVALID')
+        if doc.get('snapshot_id') or doc.get('model_version') or not doc.get('generated_at'):
+            errors.append('CALIBRATOR_REPORT_REPLACED_BY_MODEL_SNAPSHOT')
+    elif name=='options-flow-scanner':
+        if doc.get('schema_version')!=1 or doc.get('method')!='options_flow_scanner_v1' or not isinstance(doc.get('all_qualifying'),list) or not isinstance(doc.get('summary'),dict) or not isinstance(doc.get('stats'),dict):
+            errors.append('OPTIONS_SCANNER_OUTPUT_OWNERSHIP_INVALID')
+    elif name=='options-flow':
+        data=doc.get('data')
+        if doc.get('engine')!='JustHodl Options Flow & Sentiment Engine v3.0' or not isinstance(data,dict) or not all(field in data for field in ('vix_complex','put_call','gamma_exposure','trading_signals')):
+            errors.append('OPTIONS_FLOW_OUTPUT_OWNERSHIP_INVALID')
+    elif name=='bloomberg-v8':
+        if not doc.get('utc') or not all(isinstance(doc.get(field),dict) for field in ('fred','stocks','stats','signals')) or not isinstance(doc.get('yield_curve'),list):
+            errors.append('BLOOMBERG_V8_OUTPUT_OWNERSHIP_INVALID')
+    elif name=='daily-report-v3':
+        if doc.get('version')!='V10' or not all(field in doc for field in ('risk_dashboard','net_liquidity','liquidity_credit_engine','tenor_signals','global_business_cycle')):
+            errors.append('DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID')
+    elif name=='ecb-derived':
+        if doc.get('engine')!='ecb-derived' or doc.get('version')!='3.4.0' or not isinstance(doc.get('indicators'),dict):
+            errors.append('ECB_DERIVED_OUTPUT_OWNERSHIP_INVALID')
     return {'errors':sorted(set(errors)),'requirements':sorted(set(requirements)),'counts':counts}
 
 
-def inspect_output(s3, function, key, code, bucket=BUCKET, now=None):
+def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=None):
     now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','errors':[],'requirements':[]}
+    if key in OUTPUT_CONTRACTS:
+        result.update(expected_output_contract=OUTPUT_CONTRACTS[key],expected_producer=function)
     try:
         response=s3.get_object(Bucket=bucket,Key=key);raw=response['Body'].read();doc=strict_document(raw)
         modified=response.get('LastModified');modified=parse_timestamp(modified.isoformat() if isinstance(modified,datetime) else modified)
         deployment=parse_timestamp(code.get('last_modified'))
-        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter') else None
+        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else None
         generated=parse_timestamp(doc.get(generation_field)) if generation_field else None
         result.update(bytes=len(raw),last_modified=modified.isoformat() if modified else None,
                       generated_at=generated.isoformat() if generated else None,version_id=response.get('VersionId'),
@@ -211,6 +270,13 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None):
             result['requirements'].append('FIRST_POST_RELEASE_PUBLICATION_PENDING');return result
         if not generated or generated < deployment-timedelta(seconds=5):
             result['requirements'].append('POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN');return result
+        if not_before is not None:
+            # A pre-existing post-deployment artifact cannot prove this refresh,
+            # or a recomputation after a newly published upstream model. S3 time
+            # may be rounded to seconds; generation must satisfy the exact bound.
+            result['required_generation_not_before']=not_before.isoformat()
+            if generated < not_before or modified < not_before.replace(microsecond=0):
+                result['requirements'].append('POST_REFRESH_GENERATION_PENDING');return result
         if (now-generated).total_seconds()>MAX_AGE_H.get(function,72)*3600:
             result['requirements'].append('FRESH_GENERATION_PENDING');return result
         if generated and ((now-generated).total_seconds() < -300 or generated>modified.replace(microsecond=0)+timedelta(minutes=5)):
@@ -339,12 +405,37 @@ def observe_schedules(clients, root, functions):
     return result
 
 
+def observe_function_urls(lam, root):
+    """Prove only the two reviewed candidate identities; never call their URLs."""
+    rows=[]
+    for page,function,expected_host in FUNCTION_URL_BINDINGS:
+        row={'page':page,'function':function,'page_hostname':expected_host,
+             'status':'PENDING_IDENTITY','scope':'URL identity only; response contract not invoked'}
+        try:
+            text=(root/page).read_text()
+            hosts={urlsplit(url).hostname for url in re.findall(r'https://[^\s\'"<>]+',text)}
+            if expected_host not in hosts:
+                row['reason']='PAGE_URL_CHANGED_SINCE_REVIEW'
+            else:
+                config=lam.get_function_url_config(FunctionName=function)
+                actual=urlsplit(config.get('FunctionUrl',''))
+                row.update(deployed_hostname=actual.hostname,auth_type=safe_label(config.get('AuthType')))
+                if actual.scheme=='https' and actual.hostname==expected_host:
+                    row['status']='VERIFIED'
+                else:row['reason']='FUNCTION_URL_HOSTNAME_MISMATCH'
+        except Exception as exc:
+            row.update(reason='FUNCTION_URL_IDENTITY_UNPROVEN',error_type=type(exc).__name__)
+        rows.append(row)
+    return rows
+
+
 class ReleaseVerifier:
     def __init__(self, root, clients, *, parity_seconds=1800, publication_seconds=2100,
                  sleeper=time.sleep, clock=time.monotonic, package_check=check_packages, privacy_receipt=None):
         self.root=root;self.clients=clients;self.parity_seconds=min(parity_seconds,1800)
         self.publication_seconds=min(publication_seconds,2100);self.sleep=sleeper;self.clock=clock;self.package_check=package_check
         self.privacy_receipt=privacy_receipt
+        self.requested_after={}
         self.report={'ops':5231,'ok':False,'status':'INITIALIZING','code':{},'outputs':{},'invocations':[],
                      'requirements':[],'private_payloads_reported':0,'raw_lambda_responses_reported':0}
 
@@ -368,7 +459,12 @@ class ReleaseVerifier:
 
     def inspect_function(self, name):
         outputs=self.report['artifact_scope'][name]['primary_keys'];code=self.report['code'][name]
-        rows=[inspect_output(self.clients['s3'],name,key,code) for key in outputs]
+        floors=[self.requested_after[name]] if name in self.requested_after else []
+        for dependency in REFRESH_DEPENDENCIES.get(name,()):
+            for row in self.report['outputs'].get(dependency,[]):
+                stamp=parse_timestamp(row.get('last_modified'))
+                if stamp and row['status'].startswith('VERIFIED'):floors.append(stamp)
+        rows=[inspect_output(self.clients['s3'],name,key,code,not_before=max(floors) if floors else None) for key in outputs]
         self.report['outputs'][name]=rows
         return bool(rows) and all(row['status'].startswith('VERIFIED') for row in rows)
 
@@ -385,10 +481,12 @@ class ReleaseVerifier:
         if not code.get('pass'):raise ValueError('code_changed_before_invocation')
         args={'FunctionName':name,'InvocationType':'Event','Payload':b'{}'}
         if code.get('qualifier')=='live':args['Qualifier']=code['version']
+        requested_at=utcnow()
         response=self.clients['lambda'].invoke(**args)
         self.report['invocations'].append({'function':name,'qualifier':args.get('Qualifier','$LATEST'),
-            'request_status':response.get('StatusCode'),'requested_at':utcnow().isoformat(),'mode':'regular_quiet_publish'})
+            'request_status':response.get('StatusCode'),'requested_at':requested_at.isoformat(),'mode':'regular_quiet_publish'})
         if response.get('StatusCode')!=202:raise ValueError('async_invocation_not_accepted')
+        self.requested_after[name]=requested_at
         self.checkpoint();return True
 
     def run(self):
@@ -426,9 +524,11 @@ class ReleaseVerifier:
             # source remains unavailable; no donor failure is recast as neutral.
         for name in scope:self.inspect_function(name)
         self.report['schedules']=observe_schedules(self.clients,self.root,scope)
+        self.report['function_urls']=observe_function_urls(self.clients['lambda'],self.root)
         self.report['schedule_discovery_scope']='declarative config schedules; no claim that unconfigured fleet rules were exhaustively discovered'
         pending=[];failed=[];blocked=[]
         pending.extend({'function':row['function'],'reason':'SCHEDULE_CONFIGURATION_PENDING','schedule':row['name']} for row in self.report['schedules'] if row['status']!='VERIFIED')
+        pending.extend({'function':row['function'],'page':row['page'],'reason':row.get('reason','FUNCTION_URL_IDENTITY_UNPROVEN')} for row in self.report['function_urls'] if row['status']!='VERIFIED')
         if self.report['katlin_refresh_schedule'].get('weekly_schedule_present') is False:
             pending.append({'function':'justhodl-katlin','reason':'WEEKLY_BACKTEST_SCHEDULE_MISSING'})
         for name,rows in self.report['outputs'].items():
