@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="ai-version" content="ai-v1.0.0">
+<meta name="ai-version" content="ai-v1.2.0">
 <meta name="jh-marker" content="AI_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
@@ -126,6 +126,19 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   </div>
   <div class="pipe" id="pipe"><h3>Learn from the Brain — pipeline</h3><div id="pipe-steps"></div></div>
 </section>
+
+
+<h2>The AI's read of the market — right now <span class="help" data-h="Quant computes, the AI explains: the fleet's fresh artifacts (fusion regime, risk gate, Khalid authority, Katlin, Bottom, Fortress, bond war room, crisis, business cycle, metals, crypto) form the BOARD; the setup is embedded through RoBERTa-SEC and matched to your own Brain notes (PLAYBOOK); one LLM call composes the read in strict JSON and may only name tickers the fleet surfaced. Its dated calls go to the signal ledger and are graded against real prices.">?</span></h2>
+<div class="wr-panel" id="read-panel">
+  <div class="row"><div class="field"><label>&nbsp;</label><button class="btn pri" data-act="market-read">Read the market now</button></div><div class="field"><label>&nbsp;</label><span class="dim" id="read-meta">—</span></div></div>
+  <div id="read-body" style="margin-top:12px"><div class="dim">loading…</div></div>
+</div>
+
+<h2>Performance — the AI's calls, graded against real prices <span class="help" data-h="Every call the AI made (signal_type ai_market_read) with the return since the call's baseline price at 5 / 21 / 63 trading days, filled in by the outcome-checker as the windows mature. Hit rate = correct direction. This is the test of its performance; nothing here is self-reported.">?</span></h2>
+<div class="wr-panel"><div id="perf-summary" class="mini"></div><div class="scroll" id="perf-table" style="margin-top:10px"></div></div>
+
+<h2>Pipeline verdict — the last launch/re-arm op <span class="help" data-h="Written by the ops script that launched or re-armed this engine (IAM, bucket, Lambda, schedule, inventory, Brain pipeline, page gate). GREEN means every step passed; RED names the step.">?</span></h2>
+<div class="wr-panel" id="verdict"></div>
 
 <h2>Inventory — what SageMaker holds right now <span class="help" data-h="Read straight from the SageMaker API every hour (and after each action). Rows tagged justhodl-ai-managed were created by this engine and fall under the cost guard; other rows are shown but never touched.">?</span></h2>
 <div class="tabs" id="inv-tabs"></div>
@@ -274,7 +287,8 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       ["API sections failing", errKeys.length, errKeys.length ? errKeys.join(", ") : "all readable"]
     ].map(function (l) { return '<div class="leg"><div class="k">' + l[0] + '</div><div class="v ' + (l[0].indexOf("failing") >= 0 && l[1] ? "bad" : "") + '">' + l[1] + '</div><div class="s">' + esc(l[2]) + "</div></div>"; }).join("");
     if (errKeys.length) $("inv-err").textContent = errKeys.map(function (k) { return k + ": " + errs[k]; }).join(" · "); else $("inv-err").textContent = "";
-    renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d);
+    renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d); renderVerdict(d);
+    if (!READ) renderReadPublic(d);
   }
   function renderPipeline(d) {
     var ds = d.brain_dataset, passes = (ds && ds.embedding_passes) || [], done = passes.filter(function (p) { return p.status === "complete"; }), run = passes.filter(function (p) { return p.status && p.status !== "complete"; });
@@ -403,6 +417,63 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     $("runs-table").innerHTML = runs.length ? '<table><thead><tr><th>started</th><th>dataset</th><th>train rows</th><th>status</th><th>validation loss</th><th>job</th></tr></thead><tbody>' + runs.map(function (r) { var m = r.metrics || {}; return "<tr><td class=\"dim\">" + ago(r.started_at) + "</td><td class=\"mono\">" + esc(r.dataset_id) + "</td><td class=\"mono\">" + fmt(r.n_train, 0) + "</td><td>" + stTag(r.status) + "</td><td class=\"mono\">" + (m["validation:mlogloss"] != null ? fmt(m["validation:mlogloss"], 4) : "—") + "</td><td class=\"mono dim\">" + esc(r.job_name) + "</td></tr>"; }).join("") + "</tbody></table>" : "";
     bindActs($("curve-chart").parentElement);
   }
+
+  // ── the AI's read (owner-only: it quotes Brain notes) + public fallback ──
+  var READ = null;
+  function stanceClass(s) { s = String(s || ""); return /RISK_ON|LONG_DURATION|ACCUMULATE/.test(s) ? "g" : /SELECTIVE|NEUTRAL|HOLD/.test(s) ? "c" : /DEFENSIVE|SHORT|TRIM|REDUCE/.test(s) ? "a" : /AVOID/.test(s) ? "r" : ""; }
+  function srcChips(src) { src = src || {}; return Object.keys(src).map(function (k) { var v = src[k], st = typeof v === "string" ? v : (v && v.status); var age = v && v.age_h != null ? " " + fmt(v.age_h, 0) + "h" : ""; return '<span class="tag ' + (st === "FRESH" ? "g" : st === "STALE" ? "a" : "r") + '" title="' + esc(k + " " + st + age) + '">' + esc(k) + age + "</span>"; }).join(""); }
+  function renderReadPublic(d) {
+    var m = d.market_read;
+    $("read-meta").textContent = m && m.generated_at ? "last read " + ago(m.generated_at) + " · sign in to read it" : "no read yet";
+    if (!m || !m.generated_at) { $("read-body").innerHTML = '<div class="dim">No market read yet. Sign in as the owner and press <b>Read the market now</b>; the daily schedule reads at 05:45 UTC after the fleet.</div>'; renderPerf(null, m); return; }
+    var st = m.stances || {};
+    $("read-body").innerHTML = '<div class="mini">' + ["stocks", "bonds", "metals", "crypto"].map(function (k) { return '<div><b class="' + (stanceClass(st[k]) === "g" ? "ok" : stanceClass(st[k]) === "a" ? "warn" : stanceClass(st[k]) === "r" ? "bad" : "") + '">' + esc(st[k] || "—") + "</b><span>" + k + "</span></div>"; }).join("") + '</div><div class="note" style="margin-top:8px">' + (m.n_opportunities || 0) + " opportunities · " + (m.n_calls_this_read || 0) + " calls this read · playbook " + (m.playbook_available ? "on" : "off (no live embedding endpoint)") + (m.parse_error ? ' · <span class="bad">last LLM answer did not parse</span>' : "") + '</div><div style="margin-top:6px">' + srcChips(m.sources) + '</div><div class="note">Sign in as the owner to read the full interpretation, opportunities, the playbook notes and every call.</div>';
+    renderPerf(null, m);
+  }
+  function renderReadOwner(doc) {
+    READ = doc; var rd = doc.read || {}, pb = doc.playbook || {}, notes = pb.notes || {};
+    $("read-meta").textContent = "read " + doc.read_id + " · " + ago(doc.generated_at) + " · " + (doc.elapsed_s || 0) + "s · playbook " + (pb.available ? "on via " + pb.endpoint : "off — " + esc(pb.reason || ""));
+    if (rd.parse_error) { $("read-body").innerHTML = '<div class="bad">The LLM answer did not parse as JSON. Raw:</div><div class="console">' + esc(rd.raw || "") + "</div>"; return; }
+    var h = '<div style="margin-bottom:8px">' + srcChips((doc.board || {}).sources) + "</div>";
+    h += '<div class="wr-headline" style="font-size:15px;line-height:1.5;font-weight:500">' + esc(rd.overall || "") + "</div>";
+    if (rd.macro) h += '<h3 class="dim mono" style="margin-top:12px">MACRO</h3><div>' + esc(rd.macro) + "</div>";
+    h += '<div class="cards" style="margin-top:12px">' + ["stocks", "bonds", "metals", "crypto"].map(function (k) { var o = rd[k] || {}; var nn = notes[k] || []; return '<div class="card"><div class="id" style="color:var(--fg-1)">' + k.toUpperCase() + ' <span class="tag ' + stanceClass(o.stance) + '">' + esc(o.stance || "—") + '</span></div><div class="d">' + esc(o.read || "") + "</div>" + (nn.length ? '<div class="dim mono" style="font-size:10px;letter-spacing:.1em;margin-top:6px">MY PLAYBOOK SAYS</div>' + nn.slice(0, 3).map(function (n) { return n.error ? '<div class="bad">' + esc(n.error) + "</div>" : '<div style="font-size:11.5px;border-left:2px solid var(--border-strong);padding-left:8px;margin:5px 0"><span class="tag">' + esc(n.label) + "</span><span class=\"dim mono\">sim " + fmt(n.similarity, 3) + "</span><div>" + esc(n.text) + "</div></div>"; }).join("") : "") + "</div>"; }).join("") + "</div>";
+    var ops = rd.best_opportunities || [];
+    h += '<h3 class="dim mono" style="margin-top:14px">BEST OPPORTUNITIES</h3>' + (ops.length ? '<div class="scroll"><table><thead><tr><th>ticker</th><th>side</th><th>horizon</th><th>why</th><th>from engines</th></tr></thead><tbody>' + ops.map(function (o) { return "<tr><td class=\"mono\">" + esc(o.ticker) + "</td><td>" + (o.side === "LONG" ? '<span class="tag g">LONG</span>' : '<span class="tag r">' + esc(o.side) + "</span>") + "</td><td class=\"mono\">" + esc(o.horizon_days) + "d</td><td>" + esc(o.why) + "</td><td class=\"dim\">" + esc((o.from_engines || []).join(", ")) + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<div class="dim">none named</div>');
+    var calls = doc.calls_logged || [];
+    h += '<h3 class="dim mono" style="margin-top:14px">CALLS THIS READ (dated, graded at 5/21/63d)</h3>' + (calls.length ? '<div class="scroll"><table><thead><tr><th>ticker</th><th>direction</th><th>horizon</th><th>confidence</th><th>baseline</th><th>ledger</th><th>thesis</th></tr></thead><tbody>' + calls.map(function (c) { return "<tr><td class=\"mono\">" + esc(c.ticker) + "</td><td>" + (c.direction === "UP" ? '<span class="tag g">UP</span>' : '<span class="tag r">DOWN</span>') + "</td><td class=\"mono\">" + esc(c.horizon_days) + "d</td><td class=\"mono\">" + fmt(c.confidence, 2) + "</td><td class=\"mono\">" + (c.baseline_price == null ? "—" : fmt(c.baseline_price, 2)) + "</td><td>" + (c.logged ? '<span class="tag g">logged</span>' : '<span class="tag a">' + esc(c.why || c.error || "dedupe (already called today)") + "</span>") + "</td><td>" + esc(c.thesis) + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<div class="dim">the AI made no calls this read</div>');
+    if ((rd.what_would_change_my_mind || []).length) h += '<h3 class="dim mono" style="margin-top:14px">WHAT WOULD CHANGE ITS MIND</h3><ul style="padding-left:18px">' + rd.what_would_change_my_mind.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>";
+    if ((rd.data_gaps || []).length) h += '<h3 class="dim mono" style="margin-top:10px">DATA GAPS IT NAMED</h3><ul style="padding-left:18px" class="dim">' + rd.data_gaps.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>";
+    h += '<details style="margin-top:12px"><summary class="dim mono" style="cursor:pointer">the board it read (numbers only)</summary><div class="console" style="max-height:420px">' + esc(JSON.stringify(doc.board, null, 1).slice(0, 20000)) + "</div></details>";
+    $("read-body").innerHTML = h;
+    renderPerf(doc.performance, null);
+  }
+  function renderPerf(perf, pub) {
+    var s = perf && perf.by_window ? perf : (pub && pub.performance && pub.performance.by_window ? pub.performance : null);
+    if (!s) { $("perf-summary").innerHTML = '<div><b>—</b><span>no calls yet</span></div>'; $("perf-table").innerHTML = ""; return; }
+    var bw = s.by_window || {};
+    $("perf-summary").innerHTML = '<div><b>' + fmt(s.n_calls, 0) + "</b><span>calls logged</span></div>" + ["5", "21", "63"].map(function (w) { var v = bw[w] || {}; return "<div><b class=\"" + (v.hit_rate == null ? "" : v.hit_rate >= 0.55 ? "ok" : v.hit_rate < 0.45 ? "bad" : "warn") + "\">" + (v.hit_rate == null ? "—" : fmt(100 * v.hit_rate, 0) + "%") + "</b><span>" + w + "d hit rate (" + (v.n || 0) + " graded)</span></div>"; }).join("");
+    if (!perf || !perf.rows) { $("perf-table").innerHTML = '<div class="dim">sign in to see every call with its graded return</div>'; return; }
+    $("perf-table").innerHTML = '<table><thead><tr><th>logged</th><th>ticker</th><th>dir</th><th>horizon</th><th>baseline</th><th>5d</th><th>21d</th><th>63d</th><th>status</th><th>thesis</th></tr></thead><tbody>' + perf.rows.slice().reverse().map(function (r) { function cell(w) { var o = (r.windows || {})[w]; if (!o) return '<td class="dim">…</td>'; return '<td class="mono ' + (o.correct === true ? "ok" : o.correct === false ? "bad" : "") + '">' + (o.return_pct == null ? "—" : (o.return_pct > 0 ? "+" : "") + fmt(o.return_pct, 2) + "%") + "</td>"; } return "<tr><td class=\"dim\">" + ago(r.logged_at) + "</td><td class=\"mono\">" + esc(r.ticker) + "</td><td>" + (r.direction === "UP" ? '<span class="tag g">UP</span>' : '<span class="tag r">DOWN</span>') + "</td><td class=\"mono\">" + esc(r.horizon_days) + "d</td><td class=\"mono\">" + (r.baseline_price == null ? "—" : fmt(r.baseline_price, 2)) + "</td>" + cell("5") + cell("21") + cell("63") + "<td>" + stTag(r.status) + "</td><td>" + esc(r.thesis) + "</td></tr>"; }).join("") + "</tbody></table>";
+  }
+  function renderVerdict(d) {
+    var v = d.pipeline_verdict;
+    if (!v) { $("verdict").innerHTML = '<div class="dim">no verdict recorded yet</div>'; return; }
+    var green = String(v.status || "").toUpperCase() === "GREEN";
+    var h = '<div class="wr-headline" style="font-size:16px"><span class="tag ' + (green ? "g" : "r") + '">' + esc(v.status) + "</span> ops " + esc(v.ops) + " · " + esc(v.title || "") + ' <span class="dim mono" style="font-size:11px">' + ago(v.finished_at) + " · " + fmt(v.duration_s, 0) + "s</span></div>";
+    h += '<div class="scroll"><table><thead><tr><th>step</th><th>result</th></tr></thead><tbody>' + (v.steps || []).map(function (s) { return "<tr><td class=\"mono\">" + esc(s.step) + "</td><td class=\"" + (s.status === "ok" ? "ok" : s.status === "fail" ? "bad" : "warn") + "\">" + esc(s.status) + (s.detail ? ' <span class="dim">' + esc(s.detail) + "</span>" : "") + "</td></tr>"; }).join("") + "</tbody></table></div>";
+    if ((v.fails || []).length) h += '<div class="bad" style="margin-top:8px">' + v.fails.map(function (f) { return "✗ " + esc(f); }).join("<br>") + "</div>";
+    if ((v.warns || []).length) h += '<div class="warn" style="margin-top:8px">' + v.warns.map(function (f) { return "⚠ " + esc(f); }).join("<br>") + "</div>";
+    if (v.report) h += '<div class="note">full report: <a href="' + esc(v.report) + '" target="_blank">' + esc(v.report.split("/").pop()) + "</a></div>";
+    $("verdict").innerHTML = h;
+  }
+  async function loadOwnerRead() {
+    if (!user()) return;
+    var r = await api("/read", null, "GET");
+    if (r.status === 200 && r.json && r.json.result) renderReadOwner(r.json.result);
+    else if (r.status === 400) { $("read-body").innerHTML = '<div class="dim">' + esc((r.json && r.json.error) || "no read yet") + "</div>"; }
+    else log("err", "read → " + r.status, r.json);
+  }
   function renderDefs(d) { var defs = d.definitions || {}; $("defs").innerHTML = Object.keys(defs).map(function (k) { return "<dt>" + esc(k) + "</dt><dd>" + esc(defs[k]) + "</dd>"; }).join(""); }
   function fillSelects(d) {
     var eps = ((d.inventory || {}).endpoints || []).filter(function (e) { return e.status === "InService"; });
@@ -418,6 +489,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   function bindActs(root) { root.querySelectorAll("button[data-act]").forEach(function (b) { b.onclick = function () { dispatch(b); }; }); }
   async function dispatch(b) {
     var a = b.getAttribute("data-act");
+    if (a === "market-read") { if (!confirm("Run a fresh read now? One Sonnet call over the fleet board + your Brain playbook (cents); its calls are logged to the ledger and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(); return; }
     if (a === "dataset") return act("build Brain dataset", "/dataset/build", {});
     if (a === "embed") { var ep = $("emb-ep").value; if (!ep) return log("err", "no InService embedding endpoint — deploy one from the catalog"); return act("embed the Brain via " + ep, "/embed", { endpoint: ep, auto_train: $("emb-auto").value === "1", max_seconds: 600 }); }
     if (a === "classifier") { var ep2 = $("emb-ep").value; return act("train classifier (tier 1)", "/train/classifier", { endpoint: ep2, instance_type: $("tr-inst").value }); }
@@ -447,8 +519,9 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   (async function boot() {
     try { if (await waitForAuth(4000)) { await JustHodlAuth.init(); } } catch (e) { }
     renderAuth();
-    if (window.JustHodlAuth && JustHodlAuth.onChange) JustHodlAuth.onChange(renderAuth);
+    if (window.JustHodlAuth && JustHodlAuth.onChange) JustHodlAuth.onChange(function () { renderAuth(); loadOwnerRead(); });
     await load();
+    loadOwnerRead();
     setInterval(function () { if (!BUSY) load(); }, 300000);
   })();
 })();

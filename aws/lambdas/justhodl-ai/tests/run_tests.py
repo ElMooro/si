@@ -168,8 +168,43 @@ class FakePricing:
         return {"PriceList": [json.dumps(host), json.dumps(train)]}
 
 
+class FakeTable:
+    def __init__(self):
+        self.items = {}
+
+    def put_item(self, Item):
+        self.items[Item["signal_id"]] = Item
+
+    def get_item(self, Key):
+        it = self.items.get(Key["signal_id"])
+        return {"Item": it} if it else {}
+
+
+FAKE_TABLE = FakeTable()
+
+
 def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
     fake = types.ModuleType("boto3")
+    fake.resource = lambda name, **k: types.SimpleNamespace(Table=lambda n: FAKE_TABLE)
+    lr = types.ModuleType("llm_router")
+    lr.complete = lambda prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None, **k: json.dumps({
+        "overall": "Regime mildly supportive; risk gate neutral; breadth improving.", "macro": "Funding stable.",
+        "stocks": {"stance": "SELECTIVE", "read": "PRIME picks exist"}, "bonds": {"stance": "NEUTRAL", "read": "curve flat"},
+        "metals": {"stance": "ACCUMULATE", "read": "gold bid"}, "crypto": {"stance": "HOLD", "read": "cycle mid"},
+        "best_opportunities": [{"ticker": "NVDA", "side": "LONG", "why": "fusion leader", "horizon_days": 63, "from_engines": ["fusion"]}, {"ticker": "FAKEX", "side": "LONG", "why": "invented", "horizon_days": 21, "from_engines": []}],
+        "what_would_change_my_mind": ["HY OAS > 500"], "data_gaps": ["metals stale"],
+        "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 63, "confidence": 0.7, "thesis": "leader"}, {"ticker": "FAKEX", "direction": "UP", "horizon_days": 21, "confidence": 0.9, "thesis": "no"}, {"ticker": "GLD", "direction": "SIDEWAYS", "horizon_days": 21, "confidence": 0.6, "thesis": "bad direction"}]})
+    sys.modules["llm_router"] = lr
+    se = types.ModuleType("signals_emit")
+    def _log(table, signal_type, ticker, direction, windows, baseline_price, confidence=0.55, rationale="", metadata=None, benchmark=None, signal_value=""):
+        sid = "%s#%s#%s" % (signal_type, ticker, datetime.now(timezone.utc).date().isoformat())
+        if sid in table.items:
+            return False
+        table.put_item(Item={"signal_id": sid, "signal_type": signal_type, "predicted_direction": direction, "baseline_price": baseline_price, "status": "pending", "outcomes": {}})
+        return True
+    se.log_signal = _log
+    se.yprice = lambda sym: {"NVDA": 120.5, "GLD": 250.0}.get(sym)
+    sys.modules["signals_emit"] = se
     store = {"s3": s3 or FakeS3(), "sagemaker": sm or FakeSM(), "sagemaker-runtime": rt or FakeRT(), "cloudwatch": cw or FakeCW(), "pricing": pricing or FakePricing(),
              "ce": types.SimpleNamespace(get_cost_and_usage=lambda **k: {"ResultsByTime": [{"TimePeriod": {"Start": "2026-09-01"}, "Total": {"UnblendedCost": {"Amount": "1.25"}}}]}),
              "ssm": types.SimpleNamespace(get_parameter=lambda **k: {"Parameter": {"Value": ""}})}
@@ -184,7 +219,7 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
 
 
 def _load(store):
-    for m in ("lambda_function", "sm_hub", "brain_dataset", "cost_guard", "training", "private_artifact", "managed_secret"):
+    for m in ("lambda_function", "sm_hub", "brain_dataset", "cost_guard", "training", "market_read", "private_artifact", "managed_secret"):
         sys.modules.pop(m, None)
     import lambda_function as lf
     lf._clients.clear()
@@ -277,7 +312,7 @@ def test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes():
     spec["hosting_prepacked_artifact"] = "s3://jumpstart-cache-prod-us-east-1/mxnet-infer/prepack/v1.0.0/infer-prepack-x.tar.gz"
     s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-infer/prepack/v1.0.0/infer-prepack-x.tar.gz")] = _tar_bytes({"model.params": b"w", "code/inference.py": b"x"})
     md = sm_hub.resolve_model_data(s3, spec, "private-test")
-    assert md["how"] == "prepacked-tar" and md["url"].endswith("infer-prepack-x.tar.gz") and not md["env"]
+    assert md["how"] == "prepacked-tar" and md["url"].endswith("infer-prepack-x.tar.gz") and md["env"]["SAGEMAKER_SUBMIT_DIRECTORY"] == "/opt/ml/model/code"
     assert [p["exists"] for p in md["probes"]] == [True, False]
     # (c) uncompressed prefix artifact -> ModelDataSource
     spec["hosting_prepacked_artifact"] = None
@@ -286,9 +321,22 @@ def test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes():
     s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-infer/uncompressed/x/model.params")] = b"w"
     md = sm_hub.resolve_model_data(s3, spec, "private-test")
     assert md["how"] == "artifact-prefix" and md["source"]["S3DataSource"]["S3DataType"] == "S3Prefix"
-    res = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+    # the real 5301 shape: an inference-prepack prefix -> real-time keeps ModelDataSource + script env; serverless gets a tarball
+    spec["hosting_artifact"] = "s3://jumpstart-cache-prod-us-east-1/mxnet-tcembedding/x/artifacts/inference-prepack/v1.0.0/"
+    s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-tcembedding/x/artifacts/inference-prepack/v1.0.0/model.params")] = b"w"
+    s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-tcembedding/x/artifacts/inference-prepack/v1.0.0/code/inference.py")] = b"def model_fn(): pass"
+    res = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p", instance_type="ml.m5.xlarge", serverless=False, private_bucket="private-test", tags=[])
     cm = [c for c in store["sagemaker"].calls if c[0] == "create_model"][-1][1]
-    assert "ModelDataSource" in cm["PrimaryContainer"] and "ModelDataUrl" not in cm["PrimaryContainer"] and res["artifact_how"] == "artifact-prefix"
+    assert "ModelDataSource" in cm["PrimaryContainer"] and res["artifact_how"] == "prepacked-prefix"
+    assert cm["PrimaryContainer"]["Environment"]["SAGEMAKER_SUBMIT_DIRECTORY"] == "/opt/ml/model/code" and cm["PrimaryContainer"]["Environment"]["SAGEMAKER_PROGRAM"] == "inference.py"
+    res2 = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p2", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+    cm2 = [c for c in store["sagemaker"].calls if c[0] == "create_model"][-1][1]
+    assert res2["artifact_how"] == "prefix-tar-repacked" and cm2["PrimaryContainer"]["ModelDataUrl"] == "s3://private-test/ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz"
+    with tarfile.open(fileobj=io.BytesIO(s3.objs[("private-test", "ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz")]), mode="r:gz") as tt:
+        assert sorted(tt.getnames()) == ["code/inference.py", "model.params"], tt.getnames()
+    assert "ServerlessConfig" in [c for c in store["sagemaker"].calls if c[0] == "create_endpoint_config"][-1][1]["ProductionVariants"][0]
+    res3 = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p3", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+    assert res3["artifact_how"] == "prefix-tar-cached"
     return "probes named on failure; prepacked > prefix > repack"
 
 
@@ -462,6 +510,70 @@ def test_learning_curve_nested_fractions_and_read_model():
     return "3 nested-fraction jobs, same validation set, metrics collected into data/ai.json"
 
 
+def _fleet_docs(s3):
+    now = datetime.now(timezone.utc).isoformat()
+    s3.put_object("public-test", "data/jh-fusion.json", json.dumps({"generated_at": now, "regime": {"label": "MILDLY_SUPPORTIVE", "score": 0.27, "legs": [{"engine": "risk_gate", "score": 0.1, "label": "NEUTRAL"}]},
+        "entities": {"stock:NVDA": {"best_horizon": "SWING", "horizons": {"SWING": {"fusion_score": 0.61, "direction": "bullish", "confidence": 0.7, "contradiction_score": 20, "horizon": "SWING"}}},
+                     "stock:META": {"fusion_score": -0.3, "direction": "bearish", "confidence": 0.5}, "crypto:BTCUSD": {"fusion_score": 0.2, "direction": "bullish", "confidence": 0.4}}}).encode())
+    s3.put_object("public-test", "data/risk-gate.json", json.dumps({"generated_at": now, "posture": "NEUTRAL", "composite": {"score": -0.125}, "sizing_multiplier": 0.75}).encode())
+    s3.put_object("public-test", "data/khalid-risk.json", json.dumps({"generated_at": now, "policy": {"mode": "SELECTIVE", "allows_new_entries": True, "cap_pct": 50}}).encode())
+    s3.put_object("public-test", "data/katlin.json", json.dumps({"generated_at": now, "war_room": {"posture": "SELECTIVE", "thermometer": 62}, "picks": [{"ticker": "AAPL", "tier": "KATLIN_PRIME", "score": 81, "desk": "stocks"}, {"ticker": "BTC-USD", "tier": "READY", "score": 70, "desk": "crypto"}]}).encode())
+    s3.put_object("public-test", "data/bottom.json", json.dumps({"generated_at": now, "top_picks": [{"ticker": "TLT", "state": "ST_CONFIRMED", "score": 64, "desk": "bonds", "grade": "B"}], "market": {"breadth": {"actionable": 12}, "read": "few climaxes"}}).encode())
+    s3.put_object("public-test", "data/bond-warroom.json", json.dumps({"generated_at": "2026-01-01T00:00:00+00:00", "headline": "old"}).encode())   # STALE on purpose
+    s3.put_object("public-test", "data/metals-miners.json", json.dumps({"generated_at": now, "gold": {"price": 3520.5}, "silver": {"price": 41.2}, "top": [{"ticker": "GLD", "score": 70}]}).encode())
+
+
+def test_market_read_board_playbook_llm_ledger_and_grading():
+    s3 = FakeS3()
+    FAKE_TABLE.items.clear()
+    s3.put_object("public-test", "data/brain.json", json.dumps(_brain(30)).encode())
+    _fleet_docs(s3)
+    rt = FakeRT(dim=6)
+    store = _install_fakes(s3=s3, rt=rt)
+    lf = _load(store)
+    import brain_dataset as bd
+    import market_read as mr
+    import sm_hub
+    man = bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
+    bd.run_embedding_pass(s3, rt, "private-test", man["dataset_id"], "jh-ai-roberta", embed_fn=sm_hub.embed_texts, budget_s=30)
+    sm = store["sagemaker"]
+    sm.endpoints["jh-ai-roberta"] = {"EndpointName": "jh-ai-roberta", "EndpointStatus": "InService", "EndpointArn": "arn:ep:jh-ai-roberta", "CreationTime": datetime.now(timezone.utc), "ProductionVariants": [], "Tags": []}
+    board = mr.build_board(s3, "public-test")
+    assert board["sources"]["bonds"]["status"] == "STALE" and board["sources"]["crypto"]["status"] == "MISSING" and board["sources"]["fusion"]["status"] == "FRESH"
+    assert board["regime"]["fusion_regime"] == "MILDLY_SUPPORTIVE" and board["regime"]["risk_gate_sizing"] == 0.75 and board["regime"]["authority_mode"] == "SELECTIVE"
+    assert board["stocks"]["fusion_top"][0]["ticker"] == "NVDA" and board["stocks"]["fusion_bottom"][0]["ticker"] == "META"
+    assert board["stocks"]["katlin_prime"][0]["ticker"] == "AAPL" and board["bonds"]["bottom_bonds"][0]["ticker"] == "TLT" and board["metals"]["gold"] == 3520.5
+    assert "NVDA" in board["candidates"] and "FAKEX" not in board["candidates"] and board["crypto"]["fusion_crypto"][0]["ticker"] == "BTC-USD"
+    ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
+    r = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": "{}"}, None)
+    body = json.loads(r["body"])
+    assert r["statusCode"] == 200, body
+    res = body["result"]
+    assert res["playbook_available"] is True and res["read"]["stocks"]["stance"] == "SELECTIVE"
+    assert [c["ticker"] for c in res["read"]["calls"]] == ["NVDA"], res["read"]["calls"]          # FAKEX (not a candidate) and SIDEWAYS dropped
+    assert [o["ticker"] for o in res["read"]["best_opportunities"]] == ["NVDA"]
+    assert res["calls_logged"][0]["logged"] is True and res["calls_logged"][0]["baseline_price"] == 120.5
+    private = json.loads(s3.objs[("private-test", "ai/market-read/latest.json")])
+    assert private["playbook"]["notes"]["stocks"] and "text" in private["playbook"]["notes"]["stocks"][0]
+    # rate limit
+    r2 = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": "{}"}, None)
+    assert r2["statusCode"] == 400 and "allowed every" in json.loads(r2["body"])["error"]
+    # grading: outcome-checker fills outcomes -> the owner read shows returns + hit rate
+    sid = res["calls_logged"][0]["signal_id"]
+    FAKE_TABLE.items[sid]["outcomes"] = {"day_5": {"price": 126.0, "return_pct": 4.56, "correct": True}}
+    FAKE_TABLE.items[sid]["status"] = "partial"
+    r3 = lf.lambda_handler({"version": "2.0", "rawPath": "/read", "requestContext": {"http": {"method": "GET", "path": "/read"}}, "headers": ok, "body": ""}, None)
+    perf = json.loads(r3["body"])["result"]["performance"]
+    assert perf["n_calls"] == 1 and perf["by_window"]["5"] == {"hits": 1, "n": 1, "hit_rate": 1.0} and perf["rows"][0]["windows"]["5"]["return_pct"] == 4.56
+    # public read model: stances + hit rates, never note text or the narrative
+    lf.run_inventory(None)
+    pub = json.loads(s3.objs[("public-test", "data/ai.json")])
+    assert pub["market_read"]["stances"] == {"stocks": "SELECTIVE", "bonds": "NEUTRAL", "metals": "ACCUMULATE", "crypto": "HOLD"}
+    assert pub["market_read"]["performance"]["by_window"]["5"]["hit_rate"] == 1.0 and pub["market_read"]["sources"]["bonds"] == "STALE"
+    assert "eurodollar" not in json.dumps(pub) and "Regime mildly supportive" not in json.dumps(pub)
+    return "board freshness, candidates guard, LLM JSON, ledger + graded hit rate, public summary clean"
+
+
 def test_inventory_writes_public_read_model_without_note_text():
     store = _install_fakes()
     s3 = store["s3"]
@@ -490,7 +602,7 @@ def main():
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
-             test_inventory_writes_public_read_model_without_note_text]
+             test_market_read_board_playbook_llm_ledger_and_grading, test_inventory_writes_public_read_model_without_note_text]
     failed = 0
     for t in tests:
         try:

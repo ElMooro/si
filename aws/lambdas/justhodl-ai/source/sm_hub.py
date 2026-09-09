@@ -244,7 +244,7 @@ def _s3_exists(s3, uri: str) -> Optional[bool]:
         return None
 
 
-def resolve_model_data(s3, spec: dict, private_bucket: str) -> Dict[str, Any]:
+def resolve_model_data(s3, spec: dict, private_bucket: str, serverless: bool = False) -> Dict[str, Any]:
     """Pick the hosting artifact the plain control plane can serve, in order of preference:
       1. a PREPACKED artifact (JumpStart's own copy with the inference code inside)  -> ModelDataUrl / ModelDataSource
       2. an UNCOMPRESSED S3 prefix artifact                                          -> ModelDataSource (S3Prefix, None)
@@ -265,13 +265,25 @@ def resolve_model_data(s3, spec: dict, private_bucket: str) -> Dict[str, Any]:
         raise RuntimeError("no hosting artifact reachable for %s: probes=%s doc_keys=%s" % (spec.get("model_id"), json.dumps(probes), spec.get("doc_keys")))
     label, uri = cands[0]
     prefix = uri.endswith("/") or str(spec.get("hosting_artifact_s3_type") or "").lower() == "s3prefix" or str(spec.get("hosting_artifact_compression") or "").lower() == "none"
-    env_extra = {}
-    if label == "prepacked":
-        if prefix:
-            return {"source": {"S3DataSource": {"S3Uri": uri, "S3DataType": "S3Prefix", "CompressionType": "None"}}, "how": "prepacked-prefix", "probes": probes, "env": env_extra}
-        return {"url": uri, "how": "prepacked-tar", "probes": probes, "env": env_extra}
+    # prepacked artifacts (JumpStart's own copies carry code/inference.py inside) need the script env or the
+    # framework server starts with no handler and fails the ping health check (ops 5301)
+    script_env = {"SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code"}
+    prepacked = label == "prepacked" or "prepack" in uri
+    env_extra = dict(script_env) if prepacked else {}
     if prefix:
-        return {"source": {"S3DataSource": {"S3Uri": uri, "S3DataType": "S3Prefix", "CompressionType": "None"}}, "how": "artifact-prefix", "probes": probes, "env": env_extra}
+        if serverless:
+            key = "ai/models/repacked/%s/model.tar.gz" % spec["model_id"]
+            try:
+                s3.head_object(Bucket=private_bucket, Key=key)
+                url = "s3://%s/%s" % (private_bucket, key)
+                how = "prefix-tar-cached"
+            except Exception:
+                url = repack_prefix_to_tar(s3, uri, private_bucket, key)
+                how = "prefix-tar-repacked"
+            return {"url": url, "how": how, "probes": probes, "env": env_extra}
+        return {"source": {"S3DataSource": {"S3Uri": uri, "S3DataType": "S3Prefix", "CompressionType": "None"}}, "how": ("prepacked-prefix" if prepacked else "artifact-prefix"), "probes": probes, "env": env_extra}
+    if label == "prepacked":
+        return {"url": uri, "how": "prepacked-tar", "probes": probes, "env": env_extra}
     if spec.get("hosting_script"):
         sx = _s3_exists(s3, spec["hosting_script"])
         probes.append({"candidate": "script", "uri": spec["hosting_script"], "exists": sx})
@@ -282,13 +294,49 @@ def resolve_model_data(s3, spec: dict, private_bucket: str) -> Dict[str, Any]:
     return {"url": uri, "how": "artifact-tar", "probes": probes, "env": env_extra}
 
 
+def repack_prefix_to_tar(s3, prefix_uri: str, dest_bucket: str, dest_key: str, max_bytes: int = 1_600_000_000) -> str:
+    """Uncompressed prepacked artifacts (S3Prefix) are what JumpStart ships for the legacy cards; serverless
+    endpoints refuse ModelDataSource, so stream the prefix into one model.tar.gz in the private bucket."""
+    b, k = _s3_parts(prefix_uri)
+    keys, total, tok = [], 0, None
+    while True:
+        kw = {"Bucket": b, "Prefix": k}
+        if tok:
+            kw["ContinuationToken"] = tok
+        r = s3.list_objects_v2(**kw)
+        for o in r.get("Contents") or []:
+            if not o["Key"].endswith("/"):
+                keys.append((o["Key"], int(o.get("Size") or 0)))
+                total += int(o.get("Size") or 0)
+        tok = r.get("NextContinuationToken")
+        if not tok:
+            break
+    if not keys:
+        raise RuntimeError("prefix %s is empty" % prefix_uri)
+    if total > max_bytes:
+        raise RuntimeError("prefix %s is %.2f GB, over the in-Lambda repack limit" % (prefix_uri, total / 1e9))
+    work = "/tmp/repack-prefix"
+    os.makedirs(work, exist_ok=True)
+    out_path = os.path.join(work, "model.tar.gz")
+    with tarfile.open(out_path, "w:gz") as out:
+        for key, size in keys:
+            rel = key[len(k):].lstrip("/")
+            local = os.path.join(work, "f")
+            s3.download_file(b, key, local)
+            out.add(local, arcname=rel)
+            os.remove(local)
+    s3.upload_file(out_path, dest_bucket, dest_key)
+    os.remove(out_path)
+    return "s3://%s/%s" % (dest_bucket, dest_key)
+
+
 def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, instance_type: Optional[str],
                  serverless: bool, private_bucket: str, tags: List[dict], serverless_memory_mb: int = 4096,
                  serverless_max_conc: int = 2) -> Dict[str, Any]:
     if not spec.get("hosting_image") or not (spec.get("hosting_artifact") or spec.get("hosting_prepacked_artifact")):
         raise RuntimeError("hub document for %s has no hosting image/artifact; keys=%s" % (spec.get("model_id"), spec.get("doc_keys")))
     env = dict(spec.get("inference_env") or {})
-    md = resolve_model_data(s3, spec, private_bucket)
+    md = resolve_model_data(s3, spec, private_bucket, serverless=serverless)
     for k, v in (md.get("env") or {}).items():
         env.setdefault(k, v)
     env.setdefault("SAGEMAKER_REGION", REGION)

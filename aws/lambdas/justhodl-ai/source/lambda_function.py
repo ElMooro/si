@@ -39,6 +39,7 @@ from botocore.config import Config
 
 import brain_dataset as bd
 import cost_guard as cg
+import market_read as mr
 import sm_hub
 import training as tr
 
@@ -47,7 +48,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -55,6 +56,10 @@ PRIVATE_BUCKET = os.environ.get("AI_PRIVATE_BUCKET", "justhodl-ai-857687956942")
 OUT_KEY = "data/ai.json"
 CONTROL_KEY = "data/ai/control.json"
 CATALOG_KEY = "ai/catalog.json"
+READ_KEY = "ai/market-read/latest.json"
+CALLS_KEY = "ai/market-read/calls.json"
+VERDICT_KEY = "data/ai/verdict.json"
+SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
 CFG = Config(retries={"max_attempts": 4, "mode": "adaptive"}, read_timeout=60)
 
 _clients: Dict[str, Any] = {}
@@ -240,6 +245,8 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
                     "cards": (catalog.get("cards") or [])[:120]},
         "brain_dataset": _public_dataset_view(ds, passes),
         "learning": collect_learning(client("sagemaker")),
+        "market_read": _safe(public_market_read),
+        "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
         "tiers": [
             {"tier": 1, "name": "Transfer learning (article recipe)", "how": "RoBERTa-SEC embedding endpoint -> Brain rows embedded -> XGBoost classifier (spot) -> serverless endpoint", "cost": "cents"},
             {"tier": 2, "name": "JumpStart fine-tune", "how": "any hub card with a training recipe, pretrained weights as the `model` channel", "cost": "instance-hours, capped by MaxRuntime"},
@@ -260,6 +267,13 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
     pub = {"function_url": ctl.get("function_url"), "updated_at": out["generated_at"], "version": VERSION}
     put_public(CONTROL_KEY, pub)
     return out
+
+
+def _safe(fn):
+    try:
+        return fn()
+    except Exception as e:
+        return {"error": str(e)[:140]}
 
 
 def _public_dataset_view(ds: Optional[dict], passes: List[dict]) -> Optional[dict]:
@@ -585,6 +599,106 @@ def action_hyperpod(body: dict, policy: dict) -> Dict[str, Any]:
                                       count=int(body.get("count") or 1), lifecycle_s3=body["lifecycle_s3"], tags=cg.tags("hyperpod", None, True))
 
 
+# ══════════════════════════════════════════════════════════════ market read
+def _signals_table():
+    return boto3.resource("dynamodb", region_name=REGION).Table(SIGNALS_TABLE)
+
+
+def _live_embedding_endpoint(ds: Optional[dict]) -> Optional[str]:
+    """An InService endpoint that already has a completed embedding pass on the latest dataset (so retrieval works)."""
+    if not ds:
+        return None
+    done = set((ds.get("embeddings") or {}).keys())
+    if not done:
+        return None
+    try:
+        for e in (client("sagemaker").list_endpoints(MaxResults=100).get("Endpoints") or []):
+            if e.get("EndpointName") in done and e.get("EndpointStatus") == "InService":
+                return e["EndpointName"]
+    except Exception:
+        pass
+    return None
+
+
+def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]:
+    s3 = client("s3")
+    prev = get_json(PRIVATE_BUCKET, READ_KEY) or {}
+    if not body.get("force") and prev.get("generated_at"):
+        try:
+            age = (datetime.now(timezone.utc) - datetime.fromisoformat(prev["generated_at"])).total_seconds()
+            if age < mr.MIN_READ_GAP_S:
+                raise ActionError("last read is %d min old; a new LLM read is allowed every %d min (pass force=true to override)" % (age // 60, mr.MIN_READ_GAP_S // 60))
+        except ActionError:
+            raise
+        except Exception:
+            pass
+    t0 = time.time()
+    board = mr.build_board(s3, PUBLIC_BUCKET)
+    sentences = mr.setup_sentences(board)
+    ds = bd.latest_dataset(s3, PRIVATE_BUCKET)
+    ep = body.get("embedding_endpoint") or _live_embedding_endpoint(ds)
+    play = mr.playbook(s3, client("sagemaker-runtime"), PRIVATE_BUCKET, (ds or {}).get("dataset_id"), ep, sentences, sm_hub.embed_texts, bd.nearest_notes)
+    try:
+        import llm_router
+        complete = llm_router.complete
+    except Exception as e:
+        raise ActionError("LLM router unavailable in this bundle: %s" % str(e)[:100])
+    read = mr.compose_read(board, play, complete)
+    read_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    logged = []
+    if read.get("calls") and not read.get("parse_error"):
+        try:
+            from signals_emit import log_signal, yprice
+            logged = mr.log_calls(_signals_table(), read_id, read["calls"], log_signal, yprice)
+        except Exception as e:
+            logged = [{"error": "ledger unavailable: %s" % str(e)[:120]}]
+    calls_doc = get_json(PRIVATE_BUCKET, CALLS_KEY) or {"calls": []}
+    calls_doc["calls"] = (calls_doc.get("calls") or []) + [r for r in logged if r.get("signal_id")]
+    calls_doc["calls"] = calls_doc["calls"][-400:]
+    put_private(CALLS_KEY, calls_doc)
+    doc = {"read_id": read_id, "generated_at": now_iso(), "elapsed_s": round(time.time() - t0, 1), "engine": ENGINE, "version": VERSION,
+           "board": board, "setup_sentences": sentences, "playbook": play, "read": read, "calls_logged": logged, "signal_type": mr.SIGNAL_TYPE, "windows": mr.WINDOWS}
+    put_private(READ_KEY, doc)
+    put_private("ai/market-read/history/%s.json" % read_id, doc)
+    try:
+        run_inventory(context, continue_embeddings=False)
+    except Exception:
+        pass
+    return {k: doc[k] for k in ("read_id", "generated_at", "elapsed_s", "read", "calls_logged")} | {"playbook_available": play.get("available"), "sources": board["sources"]}
+
+
+def action_get_read(body: dict, policy: dict) -> Dict[str, Any]:
+    doc = get_json(PRIVATE_BUCKET, READ_KEY)
+    if not doc:
+        raise ActionError("no market read yet -- press 'Read the market now'")
+    calls = (get_json(PRIVATE_BUCKET, CALLS_KEY) or {}).get("calls") or []
+    try:
+        perf = mr.grade_calls(_signals_table(), calls)
+    except Exception as e:
+        perf = {"error": str(e)[:140], "n_calls": len(calls)}
+    doc["performance"] = perf
+    return doc
+
+
+def public_market_read() -> Optional[dict]:
+    doc = get_json(PRIVATE_BUCKET, READ_KEY)
+    if not doc:
+        return None
+    rd = doc.get("read") or {}
+    st = {k: (rd.get(k) or {}).get("stance") if isinstance(rd.get(k), dict) else None for k in ("stocks", "bonds", "metals", "crypto")}
+    calls = (get_json(PRIVATE_BUCKET, CALLS_KEY) or {}).get("calls") or []
+    perf = None
+    try:
+        g = mr.grade_calls(_signals_table(), calls)
+        perf = {"n_calls": g.get("n_calls"), "by_window": g.get("by_window")}
+    except Exception as e:
+        perf = {"error": str(e)[:100], "n_calls": len(calls)}
+    return {"read_id": doc.get("read_id"), "generated_at": doc.get("generated_at"), "stances": st, "n_opportunities": len(rd.get("best_opportunities") or []),
+            "n_calls_this_read": len(rd.get("calls") or []), "playbook_available": (doc.get("playbook") or {}).get("available"),
+            "sources": {k: v.get("status") for k, v in ((doc.get("board") or {}).get("sources") or {}).items()}, "performance": perf,
+            "parse_error": bool(rd.get("parse_error"))}
+
+
 ACTIONS = {
     ("POST", "/inventory"): lambda b, p, c: run_inventory(c, refresh_catalog=bool(b.get("refresh_catalog"))),
     ("POST", "/catalog"): lambda b, p, c: run_inventory(c, refresh_catalog=True)["catalog"],
@@ -602,6 +716,8 @@ ACTIONS = {
     ("POST", "/job/stop"): lambda b, p, c: action_job_stop(b, p),
     ("POST", "/policy"): lambda b, p, c: action_policy(b, p),
     ("POST", "/hyperpod/create"): lambda b, p, c: action_hyperpod(b, p),
+    ("POST", "/market-read"): lambda b, p, c: action_market_read(b, p, c),
+    ("GET", "/read"): lambda b, p, c: action_get_read(b, p),
 }
 
 

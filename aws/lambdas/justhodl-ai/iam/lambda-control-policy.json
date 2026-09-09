@@ -95,6 +95,38 @@
         "ssm:GetParameter"
       ],
       "Resource": "arn:aws:ssm:us-east-1:857687956942:parameter/justhodl/api-admin/token"
+    },
+    {
+      "Sid": "LlmKeys",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters"
+      ],
+      "Resource": "arn:aws:ssm:us-east-1:857687956942:parameter/justhodl/*"
+    },
+    {
+      "Sid": "SignalLedger",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:Query"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals",
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals/index/*"
+      ]
+    },
+    {
+      "Sid": "EndpointLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:FilterLogEvents",
+        "logs:DescribeLogStreams"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/*"
     }
   ]
 }
