@@ -26,14 +26,13 @@
     },
     "url": "https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/"
   },
-  "eventbridge_rules": [
-    "fedliquidityapi-auto-update"
-  ],
+  "eventbridge_rules": [],
   "last_modified": "2025-09-20T01:16:20.000+0000",
   "code_size": 6104,
   "files_imported": 1,
   "secrets_sanitized": [],
   "imported_at": "2026-04-22T22:20:21+00:00",
   "memory": 256,
-  "update_runtime": true
+  "update_runtime": true,
+  "schedule_audit_note": "On-demand HTTP API; no direct Scheduler or EventBridge trigger found by ops 5283 on 2026-09-09. No periodic S3 publication required."
 }

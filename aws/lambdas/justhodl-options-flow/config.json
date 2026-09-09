@@ -33,18 +33,28 @@
     },
     "url": "https://g65enkjk3uu4woaoy764ow3q340sppvg.lambda-url.us-east-1.on.aws/"
   },
-  "eventbridge_rules": [
-    "justhodl-flow-refresh"
-  ],
+  "eventbridge_rules": [],
   "last_modified": "2026-03-05T04:26:37.000+0000",
   "code_size": 9350,
   "files_imported": 1,
   "secrets_sanitized": [],
   "imported_at": "2026-04-22T22:20:29+00:00",
   "memory": 1024,
-  "schedule": {
-    "name": "justhodl-options-flow-sched",
-    "expression": "cron(25 20 ? * MON-FRI *)",
-    "description": "Options flow"
-  }
+  "eventbridge_schedulers_extra": [
+    {
+      "schedule_name": "justhodl-options-flow-30m",
+      "expression": "cron(33 15 * * ? *)",
+      "timezone": "UTC",
+      "state": "ENABLED",
+      "input": {}
+    },
+    {
+      "schedule_name": "justhodl-options-flow-sched",
+      "expression": "cron(25 20 ? * MON-FRI *)",
+      "timezone": "UTC",
+      "state": "ENABLED",
+      "input": {}
+    }
+  ],
+  "schedule_audit_note": "Preserves both observed Scheduler cadences. The legacy 30m name actually means daily 15:33 UTC. Ops 5284 disables equivalent duplicate classic rules only after guarded readback; these declarations alone do not mutate those triggers."
 }
