@@ -186,9 +186,70 @@ def test_classify_wrappers(m):
     return "%d wrapper names classified into the right desks; leveraged/overlay/money-market excluded" % len(cases)
 
 
+def _uptrend_pullback(seed=5):
+    """IVES-style: a strong uptrend (+60% over 150 bars) with an 9% pullback to a 3-week low on a 2.5x volume down bar, then the
+    uptrend resumes. v1.1 called this a selling climax; v1.2 must not (not a new 120-bar low, above the 50-bar average, in the
+    top of the yearly range, not a prolonged decline)."""
+    random.seed(seed)
+    o, h, l, c, v = [], [], [], [], []
+    px = 100.0
+
+    def bar(open_, close, rng, vol):
+        hi = max(open_, close) + rng * 0.4
+        lo = min(open_, close) - rng * 0.4
+        o.append(open_); c.append(close); h.append(hi); l.append(lo); v.append(vol)
+    for i in range(150):
+        nx = px * (1 + 0.0032 + random.uniform(-0.006, 0.006)); bar(px, nx, 1.5, 1_000_000 + i * 4000); px = nx
+    for i in range(8):
+        nx = px * 0.988; bar(px, nx, 1.6, 1_300_000); px = nx
+    op = px * 0.99; cl = px * 0.975; hi = op * 1.003; lo = px * 0.965
+    o.append(op); c.append(cl); h.append(hi); l.append(lo); v.append(4_000_000); px = cl
+    for i in range(60):
+        nx = px * 1.006; bar(px, nx, 1.4, 1_100_000); px = nx
+    return o, h, l, c, v
+
+
+def test_uptrend_pullback_is_not_a_climax(m):
+    o, h, l, c, v = _uptrend_pullback()
+    diag = {}
+    ev, act = m.detect(o, h, l, c, v, m.P["D"], "D", diag=diag)
+    assert not ev and act is None, "a pullback in an uptrend must never be a selling climax: %s" % [(e["state"], e["sc_i"]) for e in ev]
+    assert diag.get("vol_x_ok", 0) >= 1 and diag.get("climax", 0) == 0, diag
+    rejected = {k: n for k, n in diag.items() if k.startswith("rej_")}
+    assert rejected, diag
+    return "uptrend pullback rejected (%s)" % ", ".join("%s=%d" % kv for kv in sorted(rejected.items()))
+
+
+def test_resolved_sequence_is_not_actionable(m):
+    o, h, l, c, v, sc_low = _seq(n_markup=40)   # ran far above the range after the trigger
+    b = m.Bars()
+    from datetime import date, timedelta
+    d0 = date(2021, 1, 4); dates = []; k = 0
+    while len(dates) < len(c):
+        d = d0 + timedelta(days=k); k += 1
+        if d.weekday() < 5:
+            dates.append(d.isoformat())
+    for i in range(len(c)):
+        b.d.append(i); b.o.append(o[i]); b.h.append(h[i]); b.l.append(l[i]); b.c.append(c[i]); b.v.append(v[i])
+    m.P["min_sessions"] = 100
+    F = {"asof": {}, "finviz": {}, "accum": {}, "phase": {}, "fortress": {}, "katlin": {}, "f13": {}, "dark": {}, "insider": {}, "flows": {},
+         "authority": {}, "risk_gate": {}, "katlin_posture": None}
+    r, evD, evW = m.build_row("RAN", "stock", "stock", b, dates, F, len(dates) - 1)
+    assert r is not None and r["state"] == "MARKUP" and r["actionable"] is False and r["still_in_range"] is False
+    assert r["pos_52w_pct"] is not None and r["dist_52w_high_pct"] is not None
+    o, h, l, c, v, sc_low = _seq(n_markup=1)     # fresh trigger, price still in the range
+    b2 = m.Bars()
+    for i in range(len(c)):
+        b2.d.append(i); b2.o.append(o[i]); b2.h.append(h[i]); b2.l.append(l[i]); b2.c.append(c[i]); b2.v.append(v[i])
+    r2, _, _ = m.build_row("FRESH", "stock", "stock", b2, dates[:len(c)], F, len(c) - 1)
+    assert r2 is not None and r2["state"] == "TRIGGERED" and r2["actionable"] is True and r2["still_in_range"] is True
+    return "resolved MARKUP row not actionable (%.0f%% above the trigger level); fresh trigger actionable" % ((r["last"] / r["trigger_level"] - 1) * 100)
+
+
 def main():
     m = _load()
-    tests = [test_textbook_sequence, test_failed_test_on_rising_volume, test_higher_low, test_no_rally, test_weekly_resample_and_row, test_classify_wrappers]
+    tests = [test_textbook_sequence, test_failed_test_on_rising_volume, test_higher_low, test_no_rally, test_weekly_resample_and_row, test_classify_wrappers,
+             test_uptrend_pullback_is_not_a_climax, test_resolved_sequence_is_not_actionable]
     failed = 0
     for t in tests:
         try:
