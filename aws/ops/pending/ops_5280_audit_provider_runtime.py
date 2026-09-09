@@ -1,3 +1,4 @@
+# Retry after verified market CORS correction and completed NASDAQ deployment.
 """Runner-only source-bound public provider acceptance. Metadata only; no secrets or payload reports."""
 import json
 import os
