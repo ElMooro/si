@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this. Katlin (ops 5203) sits first: the war-room section + PRIME/READY panels + risk legs.",
+ "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this. Katlin (ops 5203) sits first: the war-room section + PRIME/READY panels + risk legs. Bottom (ops 5290) sits after Katlin: the Wyckoff tape read + fresh triggers.",
  "blocks": [
   {
    "type": "engine",
@@ -8,7 +8,7 @@
    "panel": "overview",
    "w": 3,
    "feed": "data/khalid.json",
-   "title": "Khalid · Risk & Opportunity Engine"
+   "title": "Khalid \u00b7 Risk & Opportunity Engine"
   },
   {
    "type": "section",
@@ -40,6 +40,37 @@
    "w": 1,
    "feed": "data/katlin.json",
    "title": "Katlin -- risk legs"
+  },
+  {
+   "type": "section",
+   "page": "bottom",
+   "sec": "2",
+   "w": 3,
+   "title": "Bottom -- the Wyckoff bottom desk (tape read + process)"
+  },
+  {
+   "type": "engine",
+   "ref": "bottom",
+   "panel": "top_picks",
+   "w": 1,
+   "feed": "data/bottom.json",
+   "title": "Bottom -- fresh triggers (close above the test candle)"
+  },
+  {
+   "type": "engine",
+   "ref": "bottom",
+   "panel": "changes",
+   "w": 1,
+   "feed": "data/bottom.json",
+   "title": "Bottom -- what changed"
+  },
+  {
+   "type": "engine",
+   "ref": "bottom",
+   "panel": "market.breadth",
+   "w": 1,
+   "feed": "data/bottom.json",
+   "title": "Bottom -- breadth of the bottoming process"
   },
   {
    "type": "section",

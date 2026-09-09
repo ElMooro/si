@@ -90,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.2.1"
+VERSION = "2.2.2"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -1139,6 +1139,14 @@ def load_feeds():
             e["n_insiders"] = r.get("n_insiders")
     F["insider"] = ib_
     F["insider_asof"] = ins.get("generated_at")
+    # justhodl-bottom (ops 5290): Wyckoff bottom desk states, joined as EVIDENCE only (no pillar weight -- the
+    # walk-forward measures fortress's own legs and must stay honest). board_all carries every row.
+    bo = s3_json("data/bottom.json", {}) or {}
+    F["bottom"] = {str(r.get("ticker")).upper(): {"state": r.get("state"), "frame": r.get("frame"), "score": fnum(r.get("score")), "grade": r.get("grade"),
+                                                  "weekly_state": r.get("weekly_state"), "st_vol_ratio_sc": fnum(r.get("st_vol_ratio_sc")), "st_date": r.get("st_date"),
+                                                  "trigger_date": r.get("trigger_date"), "bars_in_state": r.get("bars_in_state")}
+                   for r in (bo.get("board_all") or []) if isinstance(r, dict) and r.get("ticker")}
+    F["bottom_asof"] = bo.get("generated_at")
     er = s3_json("data/estimate-revisions.json", {}) or {}
     rev = {}
     for k in ("upward_revisions", "downward_revisions"):
@@ -3108,6 +3116,13 @@ def lambda_handler(event=None, context=None):
         r["reasons"] = reasons_for(r)
         r["invalidation"] = invalidation_for(r)
         r["risks"] = r.get("risks") or []
+        wb = (F.get("bottom") or {}).get(r.get("ticker"))
+        r["wyckoff_bottom"] = wb
+        if wb and wb.get("state") in ("TRIGGERED", "MARKUP", "ST_CONFIRMED"):
+            r["reasons"].append("Wyckoff bottom desk: %s %s%s" % ("weekly" if wb.get("frame") == "W" else "daily", str(wb["state"]).lower().replace("_", " "),
+                                                                 (" on %.0f%% of climax volume" % (100 * wb["st_vol_ratio_sc"])) if wb.get("st_vol_ratio_sc") is not None else ""))
+        elif wb and wb.get("state") in ("FAILED", "STOPPED") and (wb.get("bars_in_state") or 99) <= 10:
+            r["risks"].append("Wyckoff bottom desk: the last secondary test FAILED on rising volume")
         r["flags"] = [f for f, ok in (("MAJOR_GROWTH", r.get("major_growth")),
                                       ("MAJOR_INFLOWS", r.get("industry_inflow_major")),
                                       ("MAJOR_BACKLOG", r.get("major_backlog")),

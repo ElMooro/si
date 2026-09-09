@@ -86,7 +86,7 @@ from capital_contract import authority_view, fresh_timestamp, age_hours as contr
 
 VALIDATION_ONLY = False
 
-VERSION = "2.4.0"   # audit 2026-09-08 FR-01/FR-02: binding capital authority (khalid-risk), data-hold on missing/stale critical evidence
+VERSION = "2.5.0"   # 2.5.0 (ops 5290): joins the Wyckoff bottom desk (data/bottom.json) into structure; audit 2026-09-08 FR-01/FR-02 authority binding kept
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -1707,6 +1707,18 @@ def load_feeds():
             if tk:
                 acc.setdefault(str(tk).upper(), set()).add("volatility-squeeze")
     F["fleet_accum"] = {k: sorted(v) for k, v in acc.items()}
+    # justhodl-bottom (ops 5290): the Wyckoff bottom desk -- selling climax -> automatic rally -> secondary test on
+    # diminished volume -> trigger above the test candle. A TRIGGERED/MARKUP weekly sequence is a confirmed long-term
+    # bottom by that method; a FAILED test is a knife. Joined by ticker; the artifact carries every row in board_all.
+    bo = s3_json("data/bottom.json", {}) or {}
+    F["bottom"] = {}
+    for r in flatten(bo.get("board_all")):
+        if isinstance(r, dict) and r.get("ticker"):
+            F["bottom"][str(r["ticker"]).upper()] = {"state": r.get("state"), "frame": r.get("frame"), "score": fnum(r.get("score")), "grade": r.get("grade"),
+                                                     "weekly_state": r.get("weekly_state"), "daily_state": r.get("daily_state"), "st_vol_ratio_sc": fnum(r.get("st_vol_ratio_sc")),
+                                                     "st_depth_class": r.get("st_depth_class"), "trigger_date": r.get("trigger_date"), "st_date": r.get("st_date"),
+                                                     "bars_in_state": r.get("bars_in_state")}
+    F["asof"]["bottom"] = bo.get("generated_at")
     log("feeds in %.1fs: finviz=%d census=%d boom=%d rotation=%d flows=%d/%d f13=%d dark=%d insider=%d congress=%d options=%d blocks=%d "
         "catalyst=%d calendar=%d contracts=%d backlog=%d floor=%d ports=%d fleet_accum=%d warroom=%s" % (
             time.time() - t0, len(F["finviz"]), len(census), len(F["boom"]), len(F["rotation"]), len(F["flows_poly"]), len(F["flows_true"]),
@@ -2646,6 +2658,31 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
     os_s, os_gate, os_legs = oversold_score(sig)
     st_s, st_state, st_legs = structure_score(sig)
     knife, knife_why = knife_guard(sig)
+    wb = (F.get("bottom") or {}).get(sym)
+    if wb:
+        ws, ds = wb.get("weekly_state"), wb.get("daily_state")
+        if wb.get("frame") == "W":
+            ws = wb.get("state")
+        if ws in ("TRIGGERED", "MARKUP"):
+            st_s = clamp((st_s or 0) + 20)
+            if st_state != "CONFIRMED":
+                st_state = "CONFIRMED"
+            st_legs.append("weekly Wyckoff bottom: climax -> rally -> quiet test -> triggered (bottom engine)")
+        elif ws == "ST_CONFIRMED":
+            st_s = clamp((st_s or 0) + 10)
+            if st_state == "NONE":
+                st_state = "FORMING"
+            st_legs.append("weekly secondary test held on %s of climax volume (bottom engine)" % ("%.0f%%" % (100 * wb["st_vol_ratio_sc"]) if wb.get("st_vol_ratio_sc") is not None else "low"))
+        if ds in ("TRIGGERED", "MARKUP") and (wb.get("bars_in_state") or 99) <= 10:
+            st_s = clamp((st_s or 0) + 8)
+            if st_state == "NONE":
+                st_state = "FORMING"
+            st_legs.append("daily Wyckoff trigger %s (bottom engine)" % (wb.get("trigger_date") or ""))
+        elif ds in ("FAILED", "STOPPED") and (wb.get("bars_in_state") or 99) <= 10:
+            st_s = clamp((st_s or 0) - 25)
+            if st_state == "CONFIRMED":
+                st_state = "FORMING"
+            st_legs.append("daily secondary test FAILED on rising volume (bottom engine) -- the floor vanished")
     acc = sig["accum"]
     acc_s = acc["score"]
     fleet_acc = F["fleet_accum"].get(sym) or []
@@ -2679,7 +2716,7 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
          "base_weeks": sig["struct_w"].get("base_weeks"), "sma40w_falling": sig["struct_w"].get("sma40_falling"), "above_ema10_w": sig["struct_w"].get("above_ema10_w"),
          "m_higher_low": sig["struct_mq"].get("m_higher_low"), "m_lower_lows": sig["struct_mq"].get("m_lower_lows"), "m_close_vs_sma12_pct": rnd(sig["struct_mq"].get("m_close_vs_sma12_pct"), 1),
          "q_lower_highs": sig["struct_mq"].get("q_lower_highs"), "q_break": sig["struct_mq"].get("q_break"), "q_ret_pct": rnd(sig["struct_mq"].get("q_ret_pct"), 1), "m_ret_pct": rnd(sig["struct_mq"].get("m_ret_pct"), 1),
-         "structure_state": st_state, "structure_legs": st_legs,
+         "structure_state": st_state, "structure_legs": st_legs, "wyckoff_bottom": wb,
          # accumulation
          "accum_legs": acc["legs"], "accum_evidence": acc["evidence"], "fleet_accumulation": fleet_acc,
          "bbw_pctile": rnd(acc.get("bbw_pctile"), 0), "pct_b": rnd(acc.get("pct_b"), 2), "squeeze": acc.get("squeeze"), "vol_ratio_20_120": rnd(acc.get("vol_ratio_20_120"), 2),
@@ -2845,6 +2882,14 @@ def why_text(r):
         s.append("On the long-term chart the bottom looks CONFIRMED: " + ", ".join(st[:3]) + ".")
     elif r["structure_state"] == "FORMING":
         s.append("A bottom is FORMING on the weekly chart: " + ", ".join(st[:3]) + " -- not confirmed yet.")
+    wb = r.get("wyckoff_bottom") or {}
+    if wb.get("state") in ("TRIGGERED", "MARKUP", "ST_CONFIRMED", "TESTING", "CLIMAX"):
+        s.append("Wyckoff bottom desk: %s sequence is %s%s (score %s%s) -- see bottom.html for the climax / rally / test on the tape." % (
+            "weekly" if wb.get("frame") == "W" else "daily", str(wb["state"]).lower().replace("_", " "),
+            (" on %.0f%% of climax volume" % (100 * wb["st_vol_ratio_sc"])) if wb.get("st_vol_ratio_sc") is not None else "",
+            rnd(wb.get("score"), 0), (" " + wb["grade"]) if wb.get("grade") else ""))
+    elif wb.get("state") in ("FAILED", "STOPPED"):
+        s.append("Wyckoff bottom desk: the last bottom attempt FAILED -- the test came on rising volume and the floor vanished.")
     elif st:
         s.append("Weekly structure: " + ", ".join(st[:2]) + ".")
     os_ = r.get("oversold_legs") or []

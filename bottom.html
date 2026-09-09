@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="bottom-version" content="bottom-v1.0.0">
+<meta name="jh-marker" content="BOTTOM_DESK_V1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Bottom · the Wyckoff bottom desk · selling climax → automatic rally → secondary test → trigger, across every asset class · JustHodl.AI</title>
+<meta name="description" content="Bottom detects the market's own bottoming process on every asset with real volume in the JustHodl warehouse: a selling climax, the automatic rally, a secondary test on diminished volume, the trigger above the test candle and the stop under the test low — stocks, bonds, gold, metals, commodities, currencies, countries, sectors and crypto, daily and weekly, with five years of graded base rates.">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a; --bg-card:#101418;
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --amber:#ffb13d; --red:#ff5c7a; --cyan:#00d4ff; --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace; --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px;overflow:hidden}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;flex:1;overflow-x:auto;min-width:0}
+.nav-links a{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-links a:hover{color:var(--fg-1)} .nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.container{max-width:1500px;margin:0 auto;padding:22px 24px}
+.page-hdr{margin-bottom:18px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px;max-width:1040px}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-top:6px}
+h2{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2);margin:26px 0 10px}
+/* war-room banner (bonds.html design) */
+.wr-banner{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:stretch;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+@media(max-width:1000px){.wr-banner{grid-template-columns:1fr}}
+.wr-kicker{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);display:flex;gap:12px;flex-wrap:wrap}
+.wr-headline{font-size:19px;font-weight:700;color:var(--fg-1);margin:6px 0 10px;line-height:1.35}
+.wr-brief{font-size:12.5px;color:var(--fg-2);line-height:1.55}
+.wr-side{display:flex;flex-direction:column;gap:8px}
+.wr-box{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg-sunken);font-size:12px;color:var(--fg-2);line-height:1.5}
+.wr-box .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);display:flex;justify-content:space-between}
+.wr-box .h{color:var(--fg-1);font-weight:700;margin:3px 0}
+.wr-tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:3px;margin:2px 3px 0 0;background:rgba(120,140,170,.15);color:var(--fg-2)}
+.wr-tag.bull{color:#22c55e;background:rgba(34,197,94,.12)}.wr-tag.bear{color:#ef4444;background:rgba(239,68,68,.12)}.wr-tag.amber{color:#f59e0b;background:rgba(245,158,11,.14)}
+/* the process funnel */
+.funnel{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:6px 0 14px}
+@media(max-width:900px){.funnel{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.funnel div{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:9px 10px;text-align:center;cursor:pointer}
+.funnel div:hover{border-color:var(--border-hover)}.funnel div.on{border-color:var(--cyan)}
+.funnel .t{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.funnel .v{font-size:20px;font-weight:800;font-family:var(--font-mono)}
+.funnel .CLIMAX .v{color:#f59e0b}.funnel .TESTING .v{color:var(--cyan)}.funnel .ST_CONFIRMED .v{color:#eab308}.funnel .TRIGGERED .v{color:#22c55e}.funnel .MARKUP .v{color:#38ffa8}.funnel .FAILED .v{color:#ef4444}
+.wr-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.wr-panel .ph{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-2)}
+.wr-panel .ph .cnt{font-size:10px;letter-spacing:0;text-transform:none;color:var(--fg-3)}
+.wr-panel .tbl{overflow-x:auto}
+table.wr{width:100%;border-collapse:collapse;font-size:11.5px}
+table.wr th{text-align:right;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:relative}
+table.wr th:first-child,table.wr td:first-child{text-align:left}
+table.wr th.active{color:var(--cyan)}table.wr th .arrows{font-size:8px;margin-left:3px;color:var(--fg-4)}table.wr th.active .arrows{color:var(--cyan)}
+table.wr td{padding:6px 8px;text-align:right;border-bottom:1px solid rgba(120,140,170,.08);font-variant-numeric:tabular-nums;white-space:nowrap}
+table.wr tr:last-child td{border-bottom:0}
+table.wr td.lab{color:var(--fg-1);font-weight:600}table.wr td.lab small{display:block;color:var(--fg-3);font-weight:400;font-size:9.5px;white-space:normal;max-width:240px}
+table.wr td.pos{color:#22c55e}table.wr td.neg{color:#ef4444}table.wr td.flat{color:var(--fg-3)}
+table.wr td.read{text-align:left;white-space:normal;color:var(--fg-2);max-width:520px;font-size:11px}
+table.wr tbody tr.pick{cursor:pointer}table.wr tbody tr.pick:hover td{background:rgba(0,212,255,.05)}table.wr tbody tr.pick.sel td{background:rgba(0,212,255,.10)}
+.state{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:rgba(120,140,170,.15);color:var(--fg-2)}
+.state.CLIMAX{color:#f59e0b;background:rgba(245,158,11,.16)}.state.TESTING{color:var(--cyan);background:rgba(0,212,255,.12)}.state.ST_CONFIRMED{color:#eab308;background:rgba(234,179,8,.16)}
+.state.TRIGGERED{color:#0b0f14;background:#22c55e}.state.MARKUP{color:#0b0f14;background:#38ffa8}.state.FAILED,.state.STOPPED{color:#fff;background:#ef4444}.state.COMPLETED{color:#22c55e;background:rgba(34,197,94,.14)}
+.state.NO_TEST_BREAKOUT{color:var(--violet);background:rgba(167,139,250,.14)}
+.grade{font-family:var(--font-mono);font-weight:800}.grade.A{color:#38ffa8}.grade.B{color:#22c55e}.grade.C{color:#eab308}.grade.D{color:var(--fg-3)}
+.fr{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid var(--border);color:var(--fg-3)}.fr.W{color:var(--violet);border-color:rgba(167,139,250,.4)}
+.help{display:inline-block;width:13px;height:13px;line-height:12px;border-radius:50%;border:1px solid var(--border-strong);color:var(--fg-3);font-size:9px;text-align:center;margin-left:4px;cursor:help;font-weight:400}
+.tip{display:none;position:absolute;z-index:60;left:0;top:100%;min-width:220px;max-width:340px;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--fg-2);text-align:left;white-space:normal;text-transform:none;letter-spacing:0;font-weight:400;line-height:1.45}
+.tip b{color:var(--fg-1)}.tip .hint{display:block;color:var(--fg-3);margin-top:4px;font-size:10px}
+th:hover .tip,th.pin .tip{display:block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
+.tabs button{background:var(--bg-card);border:1px solid var(--border);color:var(--fg-2);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:6px 12px;border-radius:6px;cursor:pointer}
+.tabs button.on{color:var(--cyan);border-color:var(--cyan)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.filters select,.filters input{background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-1);padding:5px 8px;border-radius:5px;font-size:12px}
+.board{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:14px}
+@media(max-width:1100px){.board{grid-template-columns:1fr}}
+.evid{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;position:sticky;top:60px;max-height:calc(100vh - 80px);overflow:auto}
+.evid h3{font-family:var(--font-mono);font-size:15px;margin-bottom:4px}.evid .sub{color:var(--fg-3);font-size:11px;margin-bottom:10px}
+.evid .why{font-size:13px;line-height:1.6;color:var(--fg-1);background:var(--bg-sunken);border-left:3px solid var(--cyan);padding:10px 12px;border-radius:6px;margin-bottom:12px}
+.evid .next{font-size:12px;color:var(--fg-1);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);padding:8px 10px;border-radius:6px;margin-bottom:10px}
+.evid h4{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);margin:12px 0 6px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:11.5px}.kv span:nth-child(odd){color:var(--fg-3)}.kv span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.pillars .bar{display:grid;grid-template-columns:76px 1fr 34px;gap:8px;align-items:center;font-size:11px;margin:2px 0}
+.pillars .bar i{display:block;height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden}.pillars .bar i b{display:block;height:100%;background:var(--cyan)}
+.evid ul{padding-left:16px;font-size:11.5px;color:var(--fg-2)}.evid li{margin:2px 0}
+.chart{width:100%;height:230px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;margin:6px 0 4px}
+.chart text{font-family:var(--font-mono);font-size:9px;fill:var(--fg-3)}
+.legend{font-size:10px;color:var(--fg-3);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:middle}
+.red{color:#ef4444}.grn{color:#22c55e}.amb{color:#f59e0b}
+.note{font-size:11.5px;color:var(--fg-3);margin:8px 0}
+.defs dt{font-family:var(--font-mono);font-size:12px;color:var(--cyan);margin-top:10px}.defs dd{font-size:12px;color:var(--fg-2);margin-left:0}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.mini div{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:8px 10px}.mini .t{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3)}.mini .v{font-size:16px;font-weight:700;font-family:var(--font-mono)}.mini .s{font-size:10.5px;color:var(--fg-3)}
+.cvp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+@media(max-width:800px){.cvp{grid-template-columns:1fr}}
+.cvp .card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.cvp .card h5{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;margin-bottom:6px}
+.cvp .crowd h5{color:#ef4444}.cvp .pro h5{color:#22c55e}
+.wr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:14px;margin-top:14px}
+#errbox{color:#ef4444;font-family:var(--font-mono);font-size:12px;margin:8px 0}
+footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);color:var(--fg-3);font-size:11px;text-align:center}
+@media(max-width:600px){.container{padding:14px 12px}.page-hdr h1{font-size:18px}.evid{position:static;max-height:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>.AI</span></a>
+  <div class="nav-links">
+    <a href="/">Command desk</a><a href="/bonds.html">Bonds</a><a href="/katlin.html">Katlin</a><a href="/fortress.html">Fortress</a><a class="active" href="/bottom.html">Bottom</a><a href="/accumulation.html">Accumulation</a><a href="/why.html">Why</a><a href="/chart-pro.html">Chart Pro</a><a href="/data.html">Data</a>
+  </div>
+</div>
+<div class="container">
+<div class="page-hdr">
+  <h1>BOTTOM · the Wyckoff bottom desk</h1>
+  <p><b>A bottom is a process, not a price.</b> The engine watches every asset with real volume in the warehouse — stocks, bond / gold / metal / commodity / currency / country / sector wrappers and spot crypto — for the sequence the paper describes: a <b>selling climax</b> (panic on climactic volume), the <b>automatic rally</b> (the bounce the crowd buys), and the <b>secondary test</b> (price returns to the low; the signal is the <i>silence</i> in the volume). It buys nothing at the level: the <b>trigger</b> is a close above the high of the candle that made the test low, the <b>stop</b> sits just under that low, and every historical sequence is graded from the tape so the base rates below are measured, not quoted.</p>
+  <div class="meta" id="meta">loading data/bottom.json…</div>
+</div>
+<div id="errbox"></div>
+
+<section class="wr-banner" id="wr-banner">
+  <div>
+    <div class="wr-kicker"><span>Tape read</span><span id="wr-fresh">reading the warehouse…</span></div>
+    <div class="wr-headline" id="wr-headline">Scanning every asset class for the climax → rally → test sequence…</div>
+    <div class="wr-brief" id="wr-brief"></div>
+    <div id="wr-bench" style="margin-top:10px"></div>
+  </div>
+  <div class="wr-side">
+    <div class="wr-box" id="wr-auth"><div class="l"><span>Capital authority</span><span id="wr-auth-age"></span></div><div class="h">…</div></div>
+    <div class="wr-box" id="wr-gate"><div class="l"><span>Risk gate · Katlin posture</span></div><div class="h">…</div></div>
+    <div class="wr-box" id="wr-universe"><div class="l"><span>Universe</span><span id="wr-session"></span></div><div class="h">…</div></div>
+  </div>
+</section>
+
+<h2>The process — where every live sequence stands</h2>
+<div class="funnel" id="funnel"></div>
+
+<h2>The board</h2>
+<div class="tabs" id="tabs">
+  <button data-t="all" class="on">All desks</button><button data-t="stocks">Stocks</button><button data-t="equity_etfs">Equity &amp; sector ETFs</button><button data-t="countries">Countries</button><button data-t="bonds">Bonds</button><button data-t="gold_metals">Gold &amp; metals</button><button data-t="commodities">Commodities</button><button data-t="currencies">Currencies</button><button data-t="crypto">Crypto</button><button data-t="weekly">Weekly · major bottoms</button><button data-t="changes">What changed</button><button data-t="rates">Base rates</button><button data-t="defs">Definitions</button>
+</div>
+<div class="filters" id="filters">
+  <select id="f-state"><option value="">Any state</option><option value="LIVE">Live sequences</option><option value="TRIGGERED">Triggered</option><option value="MARKUP">Markup</option><option value="ST_CONFIRMED">Test confirmed · awaiting trigger</option><option value="TESTING">Testing the low</option><option value="CLIMAX">Fresh climax</option><option value="FAILED">Failed / stopped</option></select>
+  <select id="f-grade"><option value="">Any grade</option><option value="A">A only</option><option value="AB">A + B</option></select>
+  <select id="f-frame"><option value="">Any frame</option><option value="D">Daily</option><option value="W">Weekly</option></select>
+  <input id="f-q" placeholder="ticker / name / industry" style="min-width:180px">
+  <span class="note" id="board-note"></span>
+</div>
+<div class="board" id="board-wrap">
+  <div class="wr-panel"><div class="ph"><span id="board-title">All desks</span><span class="cnt" id="board-cnt"></span></div><div class="tbl"><table class="wr" id="board"></table></div></div>
+  <div class="evid" id="evid"><h3>Click a row</h3><div class="sub">the evidence panel shows the sequence on the tape — the climax bar, the rally that set the range, the test and its volume, the trigger and the stop — plus the plan, the fleet confirmations and what to do next.</div></div>
+</div>
+<div id="aux"></div>
+
+<h2>Definitions</h2>
+<dl class="defs" id="defs"></dl>
+<div class="note" id="degraded"></div>
+
+<footer>BOTTOM · justhodl-bottom · reads only JustHodl warehouse data (Polygon bar store, the shared crypto bank, fleet engines) · <a href="/data/bottom.json" target="_blank" rel="noopener">raw feed</a> · <a href="/katlin.html">Katlin</a> · <a href="/fortress.html">Fortress</a> · <a href="/accumulation.html">Accumulation radar</a> · <a href="/">Command desk</a></footer>
+</div>
+
+<script>
+(function () {
+  var FEEDS = ["/data/bottom.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/bottom.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/bottom.json"];
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+  var ago = function (iso) { if (!iso) return ""; var m = Math.round((Date.now() - Date.parse(iso)) / 60000); return isNaN(m) ? "" : m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+  var num = function (v, d) { return (v == null || isNaN(v)) ? "—" : Number(v).toFixed(d == null ? 1 : d); };
+  var pct = function (v, d) { return (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(d == null ? 1 : d) + "%"; };
+  var big = function (v) { if (v == null) return "—"; var a = Math.abs(v); return (v < 0 ? "-" : "") + (a >= 1e9 ? (a / 1e9).toFixed(1) + "B" : a >= 1e6 ? (a / 1e6).toFixed(0) + "M" : a >= 1e3 ? (a / 1e3).toFixed(0) + "K" : a.toFixed(0)); };
+  var cls = function (v) { return v == null ? "flat" : v > 0 ? "pos" : v < 0 ? "neg" : "flat"; };
+  var LIVE = { CLIMAX: 1, TESTING: 1, ST_CONFIRMED: 1, TRIGGERED: 1, MARKUP: 1 };
+  var STATE_LABEL = { CLIMAX: "Climax", TESTING: "Testing", ST_CONFIRMED: "Test confirmed", TRIGGERED: "Triggered", MARKUP: "Markup", FAILED: "Failed", STOPPED: "Stopped", COMPLETED: "Completed", NO_TEST_BREAKOUT: "V-bottom", EXPIRED: "Expired", NO_RALLY: "No rally" };
+  var STATE_RANK = { TRIGGERED: 0, MARKUP: 1, ST_CONFIRMED: 2, TESTING: 3, CLIMAX: 4, COMPLETED: 5, STOPPED: 6, FAILED: 6, NO_TEST_BREAKOUT: 7, EXPIRED: 8, NO_RALLY: 8 };
+  var DEPTH_RANK = { HIGHER_LOW: 0, EQUAL_LOW: 1, SPRING: 2, UNDERCUT: 3 };
+  var D = null, tab = "all", sortKey = "state", sortDir = 1, selected = null, funnelState = "";
+
+  var HELP = {
+    ticker: ["Ticker", "Click the row for the sequence on the tape and the full plain-English case.", ""],
+    state: ["State", "Where the sequence stands: CLIMAX (panic bar printed, waiting for the bounce) → TESTING (bounced, drifting back to the low) → TEST CONFIRMED (the low was tested on lower volume and price turned; waiting for the trigger) → TRIGGERED (closed above the test candle's high) → MARKUP (closed above the rally high). FAILED = the test came on rising volume and broke the low. STOPPED = triggered, then closed under the stop.", "TRIGGERED / MARKUP are the entries"],
+    grade: ["Grade", "A ≥ 75, B ≥ 60, C ≥ 45, D below — from the score.", "A best"],
+    score: ["Score", "0-100 evidence ladder: climax quality (≤25: volume multiple, range, close off the low, depth of the decline) + rally quality (≤15) + test quality (≤40: test volume vs climax and vs average, volume shrinking on the approach, bars narrowing, higher-low / equal / spring, repeated tests each quieter) + trigger / confirmation (≤20) + fleet confirmations (≤8) + weekly agreement (+6).", "higher is better"],
+    frame: ["Frame", "D = the daily sequence (the trading bottom). W = the weekly sequence (the major bottom, resampled from the same warehouse bars). The headline frame is the one further along.", "W = bigger bottom"],
+    last: ["Price", "Last close from the warehouse (spot crypto in USD).", ""],
+    sc_date: ["Climax", "Date of the selling climax bar (the last bar of a climax cluster when several panic bars print together).", ""],
+    sc_vol_x: ["Climax vol", "Climax bar volume as a multiple of the prior 50-bar average (weekly: 26). ≥ 2x is required; 3-4x is a true washout.", "higher = more panic absorbed"],
+    sc_decline_pct: ["Decline", "How far the climax close sat under the 60-bar high (weekly: 26 weeks). The climax must end a real decline.", "more negative = deeper washout"],
+    ar_rally_pct: ["Rally", "The automatic rally off the climax low, in percent. Its high is the top of the range and target 1.", ""],
+    st_date: ["Test", "Date of the candle that made the secondary-test low.", ""],
+    st_vol_ratio_sc: ["Test vol / climax", "THE number of the paper: volume on the test candle divided by climax volume. ≤ 0.4 = silence (supply exhausted); 0.4-0.7 = diminished; > 0.7 = not a quiet test.", "lower is better"],
+    st_depth_class: ["Depth", "Where the test low sits vs the climax low: HIGHER LOW (buyers stepped in early — the strongest read), EQUAL (within 0.25 ATR), SPRING (light-volume undercut, recovered), UNDERCUT.", "HIGHER_LOW best"],
+    n_tests: ["Tests", "Number of tests of the low so far. More than one is fine only when each arrives on lower volume than the last (the score checks this).", ""],
+    trigger_date: ["Trigger", "The date price closed above the high of the test candle — the entry by the paper's rule.", ""],
+    bars_in_state: ["Bars", "Bars (sessions or weeks) since the current state began. A trigger 1-3 bars old is fresh; a test confirmed 20 bars ago is getting stale.", "fresh triggers = low numbers"],
+    dist_sc_low_pct: ["vs climax low", "Distance of the last close from the climax low. Near zero while testing; rising through the range after the trigger.", ""],
+    rr_1: ["R/R", "Reward to risk of the plan: (rally high − entry) / (entry − stop).", "higher"],
+    risk_pct: ["Risk", "Entry-to-stop distance in percent — the loss defined before entry.", "lower = tighter"],
+    n_confirm: ["Fleet", "Number of fleet engines confirming (accumulation-radar, phase-detector, fortress, katlin, 13F, insiders, dark pool, ETF flows). Evidence, never a gate.", "more is better"],
+    weekly_state: ["Weekly", "State of the weekly (major) sequence on the same name, when one is live.", ""],
+    adv_usd: ["ADV $", "Average dollar volume over the last 20 sessions.", ""],
+    desk: ["Desk", "Asset-class desk the wrapper belongs to.", ""]
+  };
+  var COLS = [
+    { k: "ticker", l: "Ticker" }, { k: "state", l: "State" }, { k: "grade", l: "Grade" }, { k: "score", l: "Score", r: 1 }, { k: "frame", l: "Frame" },
+    { k: "last", l: "Price", r: 1 }, { k: "sc_date", l: "Climax" }, { k: "sc_vol_x", l: "Climax vol", r: 1 }, { k: "sc_decline_pct", l: "Decline", r: 1 },
+    { k: "ar_rally_pct", l: "Rally", r: 1 }, { k: "st_date", l: "Test" }, { k: "st_vol_ratio_sc", l: "Test vol / climax", r: 1 }, { k: "st_depth_class", l: "Depth" },
+    { k: "n_tests", l: "Tests", r: 1 }, { k: "trigger_date", l: "Trigger" }, { k: "bars_in_state", l: "Bars", r: 1 }, { k: "dist_sc_low_pct", l: "vs climax low", r: 1 },
+    { k: "rr_1", l: "R/R", r: 1 }, { k: "risk_pct", l: "Risk", r: 1 }, { k: "n_confirm", l: "Fleet", r: 1 }, { k: "weekly_state", l: "Weekly" }, { k: "adv_usd", l: "ADV $", r: 1 }
+  ];
+
+  function val(r, k) {
+    if (k === "rr_1") return r.plan ? r.plan.rr_1 : null;
+    if (k === "risk_pct") return r.plan ? r.plan.risk_pct : null;
+    return r[k];
+  }
+  function sortVal(r, k) {
+    var v = val(r, k);
+    if (k === "state") return STATE_RANK[v] == null ? 9 : STATE_RANK[v];
+    if (k === "grade") return { A: 0, B: 1, C: 2, D: 3 }[v] == null ? 4 : { A: 0, B: 1, C: 2, D: 3 }[v];
+    if (k === "st_depth_class") return DEPTH_RANK[v] == null ? 4 : DEPTH_RANK[v];
+    if (k === "weekly_state") return STATE_RANK[v] == null ? 9 : STATE_RANK[v];
+    if (typeof v === "string") return v.toLowerCase();
+    return v == null ? null : Number(v);
+  }
+  var BEST_ASC = { state: 1, grade: 1, st_depth_class: 1, weekly_state: 1, st_vol_ratio_sc: 1, bars_in_state: 1, risk_pct: 1, ticker: 1, sc_date: 1, st_date: 1, trigger_date: 1, frame: 1 };
+
+  function rows() {
+    if (!D) return [];
+    var all = D.board || [];
+    var out = all;
+    if (tab === "weekly") out = all.filter(function (r) { return r.frame === "W" || (r.weekly_state && LIVE[r.weekly_state]); });
+    else if (tab !== "all" && tab !== "changes" && tab !== "rates" && tab !== "defs") out = all.filter(function (r) { return r.desk === tab; });
+    var fs = $("f-state").value, fg = $("f-grade").value, ff = $("f-frame").value, q = ($("f-q").value || "").trim().toLowerCase();
+    if (funnelState) out = out.filter(function (r) { return funnelState === "FAILED" ? (r.state === "FAILED" || r.state === "STOPPED") : r.state === funnelState; });
+    if (fs === "LIVE") out = out.filter(function (r) { return LIVE[r.state]; });
+    else if (fs === "FAILED") out = out.filter(function (r) { return r.state === "FAILED" || r.state === "STOPPED"; });
+    else if (fs) out = out.filter(function (r) { return r.state === fs; });
+    if (fg === "A") out = out.filter(function (r) { return r.grade === "A"; });
+    if (fg === "AB") out = out.filter(function (r) { return r.grade === "A" || r.grade === "B"; });
+    if (ff) out = out.filter(function (r) { return r.frame === ff; });
+    if (q) out = out.filter(function (r) { return (r.ticker + " " + (r.company || "") + " " + (r.industry || "") + " " + (r.sector || "") + " " + (r.sub_class || "")).toLowerCase().indexOf(q) >= 0; });
+    out = out.slice().sort(function (a, b) {
+      var x = sortVal(a, sortKey), y = sortVal(b, sortKey);
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      if (x < y) return -sortDir; if (x > y) return sortDir;
+      return (b.score || 0) - (a.score || 0);
+    });
+    return out;
+  }
+
+  function header(cols) {
+    return "<tr>" + cols.map(function (c) {
+      var on = sortKey === c.k; var a = on ? (sortDir < 0 ? "▼" : "▲") : "▲▼"; var hp = HELP[c.k];
+      var tip = hp ? '<span class="help" data-k="' + c.k + '">?<span class="tip"><b>' + esc(hp[0]) + "</b><br>" + esc(hp[1]) + '<span class="hint">' + esc(hp[2]) + " · click the header to sort, click again to reverse</span></span></span>" : "";
+      return '<th class="' + (c.r ? "r" : "") + (on ? " active" : "") + '" data-k="' + c.k + '">' + esc(c.l) + '<span class="arrows">' + a + "</span>" + tip + "</th>";
+    }).join("") + "</tr>";
+  }
+
+  function renderBoard() {
+    var rs = rows();
+    var html = "<thead>" + header(COLS) + "</thead><tbody>";
+    rs.forEach(function (r) {
+      var p = r.plan || {};
+      html += '<tr class="pick' + (selected === r.ticker ? " sel" : "") + '" data-t="' + esc(r.ticker) + '">' +
+        '<td class="lab">' + esc(r.ticker) + "<small>" + esc(r.company) + (r.industry ? " · " + esc(r.industry) : (r.sub_class && r.sub_class !== "stock" ? " · " + esc(r.sub_class.replace(/_/g, " ")) : "")) + "</small></td>" +
+        '<td><span class="state ' + esc(r.state) + '">' + esc(STATE_LABEL[r.state] || r.state) + "</span></td>" +
+        '<td class="grade ' + esc(r.grade) + '">' + esc(r.grade) + "</td><td>" + num(r.score, 0) + '</td><td><span class="fr ' + esc(r.frame) + '">' + esc(r.frame) + "</span></td>" +
+        "<td>" + num(r.last, r.last < 1 ? 4 : 2) + "</td><td>" + esc(r.sc_date || "—") + "</td><td>" + num(r.sc_vol_x, 1) + "x</td><td class=\"neg\">" + pct(r.sc_decline_pct, 0) + "</td>" +
+        '<td class="pos">' + pct(r.ar_rally_pct, 1) + "</td><td>" + esc(r.st_date || "—") + '</td><td class="' + (r.st_vol_ratio_sc == null ? "flat" : r.st_vol_ratio_sc <= 0.4 ? "pos" : r.st_vol_ratio_sc > 0.7 ? "neg" : "") + '">' + (r.st_vol_ratio_sc == null ? "—" : num(100 * r.st_vol_ratio_sc, 0) + "%") + "</td>" +
+        "<td>" + esc(r.st_depth_class ? r.st_depth_class.replace(/_/g, " ").toLowerCase() : "—") + "</td><td>" + (r.n_tests == null ? "—" : r.n_tests) + "</td><td>" + esc(r.trigger_date || "—") + "</td><td>" + (r.bars_in_state == null ? "—" : r.bars_in_state) + "</td>" +
+        '<td class="' + cls(r.dist_sc_low_pct) + '">' + pct(r.dist_sc_low_pct, 1) + "</td><td>" + (p.rr_1 == null ? "—" : num(p.rr_1, 1) + "R") + "</td><td>" + (p.risk_pct == null ? "—" : num(p.risk_pct, 1) + "%") + "</td>" +
+        "<td>" + (r.n_confirm || 0) + "</td><td>" + (r.weekly_state ? '<span class="state ' + esc(r.weekly_state) + '">' + esc(STATE_LABEL[r.weekly_state] || r.weekly_state) + "</span>" : "—") + "</td><td>" + big(r.adv_usd) + "</td></tr>";
+    });
+    html += "</tbody>";
+    $("board").innerHTML = html;
+    $("board-cnt").textContent = rs.length + " rows" + (D.board_all && D.board_all.length > (D.board || []).length ? " · full board " + D.board_all.length + " (top " + (D.board || []).length + " carried with charts)" : "");
+    $("board-title").textContent = tab === "all" ? "All desks" : tab === "weekly" ? "Weekly · major bottoms" : (D.desk_labels || {})[tab] || tab;
+    Array.prototype.forEach.call($("board").querySelectorAll("th"), function (th) {
+      th.addEventListener("click", function (e) {
+        if (e.target.classList.contains("help") || e.target.closest(".tip")) { e.stopPropagation(); th.classList.toggle("pin"); return; }
+        var k = th.getAttribute("data-k");
+        if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = BEST_ASC[k] ? 1 : -1; }
+        renderBoard();
+      });
+    });
+    Array.prototype.forEach.call($("board").querySelectorAll("tr.pick"), function (tr) { tr.addEventListener("click", function () { select(tr.getAttribute("data-t")); }); });
+  }
+
+  // ---- the theater: bars + volume with the sequence marks --------------------------------------------------
+  function chartSvg(ch, r) {
+    if (!ch || !ch.c || !ch.c.length) return '<div class="note">no chart payload on this row (outside the top board)</div>';
+    var W = 430, H = 230, padL = 6, padR = 58, padT = 10, volH = 46, priceH = H - volH - padT - 16;
+    var n = ch.c.length, lo = Math.min.apply(null, ch.l), hi = Math.max.apply(null, ch.h);
+    if (r.plan && r.plan.stop) lo = Math.min(lo, r.plan.stop);
+    var span = (hi - lo) || 1; lo -= span * 0.04; hi += span * 0.04; span = hi - lo;
+    var vmax = Math.max.apply(null, ch.v) || 1;
+    var x = function (i) { return padL + (i + 0.5) * (W - padL - padR) / n; };
+    var y = function (p) { return padT + (hi - p) / span * priceH; };
+    var bw = Math.max(1.2, (W - padL - padR) / n * 0.62);
+    var s = '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">';
+    // levels
+    var lv = [];
+    if (r.sc_low != null) lv.push([r.sc_low, "#f59e0b", "climax"]);
+    if (r.ar_high != null) lv.push([r.ar_high, "#00d4ff", "rally"]);
+    if (r.plan && r.plan.stop != null) lv.push([r.plan.stop, "#ef4444", "stop"]);
+    if (r.plan && r.plan.entry != null && r.state !== "CLIMAX" && r.state !== "TESTING") lv.push([r.plan.entry, "#22c55e", "trigger"]);
+    lv.forEach(function (L) { var yy = y(L[0]); if (yy < padT || yy > padT + priceH) return; s += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '" stroke="' + L[1] + '" stroke-width="0.8" stroke-dasharray="3 3" opacity=".8"/><text x="' + (W - padR + 3) + '" y="' + (yy + 3).toFixed(1) + '" fill="' + L[1] + '">' + esc(L[2]) + "</text>"; });
+    // bars
+    for (var i = 0; i < n; i++) {
+      var up = ch.c[i] >= ch.o[i]; var col = up ? "#22c55e" : "#ef4444";
+      s += '<line x1="' + x(i).toFixed(1) + '" x2="' + x(i).toFixed(1) + '" y1="' + y(ch.h[i]).toFixed(1) + '" y2="' + y(ch.l[i]).toFixed(1) + '" stroke="' + col + '" stroke-width="0.9"/>';
+      var yo = y(ch.o[i]), yc = y(ch.c[i]);
+      s += '<rect x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + Math.min(yo, yc).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0.8, Math.abs(yo - yc)).toFixed(1) + '" fill="' + col + '" opacity=".9"/>';
+      var vh = ch.v[i] / vmax * volH;
+      s += '<rect x="' + (x(i) - bw / 2).toFixed(1) + '" y="' + (H - 14 - vh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + vh.toFixed(1) + '" fill="' + col + '" opacity=".45"/>';
+    }
+    // marks
+    var M = ch.marks || {};
+    var mk = { SC: ["SC", "#f59e0b"], AR: ["AR", "#00d4ff"], ST: ["ST", "#eab308"], TRIG: ["TRIG", "#22c55e"], SOS: ["SOS", "#38ffa8"], STOP: ["STOP", "#ef4444"] };
+    Object.keys(mk).forEach(function (k) {
+      if (M[k] == null) return; var i = M[k]; var top = k === "AR" || k === "SOS" || k === "TRIG"; var yy = top ? y(ch.h[i]) - 6 : y(ch.l[i]) + 12;
+      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + (top ? y(ch.h[i]) - 2 : y(ch.l[i]) + 2).toFixed(1) + '" r="2.2" fill="' + mk[k][1] + '"/><text x="' + x(i).toFixed(1) + '" y="' + yy.toFixed(1) + '" text-anchor="middle" fill="' + mk[k][1] + '" font-weight="700">' + mk[k][0] + "</text>";
+    });
+    s += '<text x="' + padL + '" y="' + (H - 3) + '">' + esc(ch.d[0]) + '</text><text x="' + (W - padR) + '" y="' + (H - 3) + '" text-anchor="end">' + esc(ch.d[n - 1]) + "</text>";
+    s += '<text x="' + (W - padR - 2) + '" y="' + (padT + 8) + '" text-anchor="end">' + num(hi, hi < 1 ? 4 : 2) + '</text><text x="' + (W - padR - 2) + '" y="' + (padT + priceH) + '" text-anchor="end">' + num(lo, lo < 1 ? 4 : 2) + "</text>";
+    s += "</svg>";
+    return s;
+  }
+
+  function select(t) {
+    selected = t;
+    var r = (D.board || []).filter(function (x) { return x.ticker === t; })[0];
+    if (!r) return;
+    var ev = r.event || {}, sc = ev.sc || {}, ar = ev.ar || {}, st = ev.st || {}, tg = ev.trigger || {}, oc = ev.outcome || {}, cr = ev.crowd || {}, p = r.plan || {};
+    var h = "<h3>" + esc(r.ticker) + ' <span class="state ' + esc(r.state) + '">' + esc(STATE_LABEL[r.state] || r.state) + '</span> <span class="fr ' + esc(r.frame) + '">' + esc(r.frame === "W" ? "weekly" : "daily") + "</span></h3>";
+    h += '<div class="sub">' + esc(r.company) + " · " + esc(r.desk ? (D.desk_labels || {})[r.desk] || r.desk : "") + (r.industry ? " · " + esc(r.industry) : "") + " · score " + num(r.score, 0) + " (" + esc(r.grade) + ") · " + (r.bars_in_state == null ? "" : r.bars_in_state + (r.frame === "W" ? " weeks" : " sessions") + " in state") + "</div>";
+    h += '<div class="why">' + esc(r.why) + "</div>";
+    if (r.what_next) h += '<div class="next"><b>What next:</b> ' + esc(r.what_next) + "</div>";
+    h += '<div class="legend"><span><i style="background:#f59e0b"></i>SC climax</span><span><i style="background:#00d4ff"></i>AR rally</span><span><i style="background:#eab308"></i>ST test</span><span><i style="background:#22c55e"></i>TRIG</span><span><i style="background:#38ffa8"></i>SOS markup</span><span><i style="background:#ef4444"></i>stop</span></div>';
+    h += chartSvg(r.chart, r);
+    h += "<h4>The sequence</h4><div class=\"kv\">" +
+      "<span>Selling climax</span><span>" + esc(sc.date || "—") + " · low " + num(sc.low, sc.low < 1 ? 4 : 2) + "</span>" +
+      "<span>Climax volume / range</span><span>" + num(sc.vol_x, 1) + "x avg · " + num(sc.range_x, 1) + "x ATR · close " + (sc.clv == null ? "—" : num(100 * sc.clv, 0) + "% off low") + "</span>" +
+      "<span>Decline into the climax</span><span>" + pct(sc.decline_pct, 1) + " from " + num(sc.pre_high, 2) + "</span>" +
+      "<span>Automatic rally</span><span>" + (ar.date ? esc(ar.date) + " · high " + num(ar.high, 2) + " (" + pct(ar.rally_pct, 1) + ", " + num(ar.rally_atr, 1) + " ATR)" : "not yet") + "</span>" +
+      "<span>Crowd's bounce entry</span><span>" + (ar.crowd_buy_date ? esc(ar.crowd_buy_date) + " @ " + num(ar.crowd_buy_px, 2) : "—") + "</span>" +
+      "<span>Secondary test</span><span>" + (st.date ? esc(st.date) + " · low " + num(st.low, st.low < 1 ? 4 : 2) : "not yet") + "</span>" +
+      "<span>Test volume</span><span>" + (st.vol_ratio_sc == null ? "—" : num(100 * st.vol_ratio_sc, 0) + "% of climax · " + num(st.vol_ratio_avg, 2) + "x avg") + "</span>" +
+      "<span>Approach character</span><span>" + (st.approach_vol_slope == null ? "—" : "vol slope " + num(st.approach_vol_slope, 3) + " · bars " + num(st.approach_range_x, 2) + " ATR") + "</span>" +
+      "<span>Test depth</span><span>" + (st.depth_class ? esc(st.depth_class.replace(/_/g, " ").toLowerCase()) + " (" + num(st.depth_atr, 2) + " ATR)" : "—") + (st.n_tests > 1 ? " · " + st.n_tests + " tests" : "") + "</span>" +
+      "<span>Trigger</span><span>" + (tg.date ? esc(tg.date) + " · above " + num(tg.level, 2) + " · fill " + num(tg.fill, 2) + (tg.vol_x != null ? " · vol " + num(tg.vol_x, 1) + "x" : "") : "waiting") + "</span>" +
+      (tg.sos_date ? "<span>Sign of strength</span><span>" + esc(tg.sos_date) + "</span>" : "") + (tg.stop_date ? "<span>Stopped</span><span>" + esc(tg.stop_date) + "</span>" : "") +
+      "</div>";
+    if (p.entry) h += "<h4>Plan</h4><div class=\"kv\"><span>Entry (test candle high)</span><span>" + num(p.entry, p.entry < 1 ? 4 : 2) + "</span><span>Stop (under the test low)</span><span class=\"red\">" + num(p.stop, p.stop < 1 ? 4 : 2) + " (" + num(p.risk_pct, 1) + "% risk)</span><span>Target 1 · rally high</span><span class=\"grn\">" + num(p.target_1, 2) + (p.rr_1 != null ? " (" + num(p.rr_1, 1) + "R)" : "") + "</span><span>Target 2 · pre-climax high</span><span class=\"grn\">" + num(p.target_2, 2) + (p.rr_2 != null ? " (" + num(p.rr_2, 1) + "R)" : "") + "</span><span>Last vs entry</span><span>" + pct(p.last_vs_entry_pct, 1) + "</span></div><div class=\"note\">" + esc(p.rule) + "</div>";
+    if (r.score_parts) { h += "<h4>Score ladder</h4><div class=\"pillars\">"; var caps = { climax: 25, rally: 15, test: 40, trigger: 20 }; Object.keys(caps).forEach(function (k) { var v = r.score_parts[k] || 0; h += '<div class="bar"><span>' + k + '</span><i><b style="width:' + Math.min(100, 100 * v / caps[k]) + '%"></b></i><span>' + num(v, 0) + "/" + caps[k] + "</span></div>"; }); h += "</div>"; }
+    if (r.reasons && r.reasons.length) h += "<h4>Why</h4><ul>" + r.reasons.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    if (r.risks && r.risks.length) h += "<h4>Risks</h4><ul>" + r.risks.map(function (x) { return '<li class="red">' + esc(x) + "</li>"; }).join("") + "</ul>";
+    if (r.confirm && r.confirm.length) h += "<h4>Fleet confirmations</h4><div>" + r.confirm.map(function (c) { return '<span class="wr-tag ' + (c.bull ? "bull" : "bear") + '">' + esc(c.src) + ": " + esc(c.read) + "</span>"; }).join("") + "</div>";
+    if (r.weekly && r.weekly.sc) { var w = r.weekly; h += "<h4>Weekly frame</h4><div class=\"kv\"><span>State</span><span><span class=\"state " + esc(w.state) + "\">" + esc(STATE_LABEL[w.state] || w.state) + "</span></span><span>Climax</span><span>" + esc(w.sc.date || "—") + " · " + num(w.sc.vol_x, 1) + "x vol</span><span>Test</span><span>" + (w.st.date ? esc(w.st.date) + " · " + num(100 * (w.st.vol_ratio_sc || 0), 0) + "% of climax vol" : "—") + "</span><span>Trigger</span><span>" + esc(w.trigger.date || "—") + "</span></div>"; }
+    if (oc && (oc.ret_21 != null || oc.mfe_pct != null)) h += "<h4>Outcome so far</h4><div class=\"kv\"><span>+21 bars</span><span class=\"" + cls(oc.ret_21) + "\">" + pct(oc.ret_21) + "</span><span>+63 bars</span><span class=\"" + cls(oc.ret_63) + "\">" + pct(oc.ret_63) + "</span><span>Best / worst since trigger</span><span>" + pct(oc.mfe_pct) + " / " + pct(oc.mae_pct) + "</span><span>Target 1 hit · stop hit</span><span>" + (oc.t1_hit == null ? "—" : oc.t1_hit ? "yes" : "no") + " · " + (oc.stop_hit ? "yes" : "no") + "</span></div>";
+    if (cr && cr.ar_ret_21 != null) h += "<h4>What the bounce buyer got</h4><div class=\"kv\"><span>+21 / +63 from the rally entry</span><span class=\"" + cls(cr.ar_ret_21) + "\">" + pct(cr.ar_ret_21) + " / " + pct(cr.ar_ret_63) + "</span><span>Worst drawdown</span><span class=\"red\">" + pct(cr.ar_mae_pct) + "</span><span>Undercut the climax low later</span><span>" + (cr.ar_hole ? "YES — the hole got deeper" : "no") + "</span></div>";
+    h += '<div class="note" style="margin-top:10px"><a href="/why.html?ticker=' + encodeURIComponent(r.ticker) + '">research desk →</a> · <a href="/chart-pro.html?symbol=' + encodeURIComponent(r.ticker) + '">chart →</a> · n sequences 5y: ' + (r.n_events_5y == null ? "—" : r.n_events_5y) + " · triggers: " + (r.n_triggers_5y == null ? "—" : r.n_triggers_5y) + "</div>";
+    $("evid").innerHTML = h;
+    Array.prototype.forEach.call($("board").querySelectorAll("tr.pick"), function (tr) { tr.classList.toggle("sel", tr.getAttribute("data-t") === t); });
+    if (window.innerWidth < 1100) $("evid").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function statBlock(b, label) {
+    if (!b || !b.n) return "<div class=\"note\">" + esc(label) + ": no graded sequences yet</div>";
+    return "";
+  }
+  function ratesTable(obj, title) {
+    var keys = Object.keys(obj || {});
+    if (!keys.length) return "";
+    var h = '<div class="wr-panel" style="margin-top:12px"><div class="ph"><span>' + esc(title) + '</span></div><div class="tbl"><table class="wr"><thead><tr><th>cohort</th><th>n</th><th>+21 median</th><th>+21 hit</th><th>+63 median</th><th>+63 hit</th><th>managed +63</th><th>stop hit</th><th>target 1 hit</th><th>worst (median)</th><th>best (median)</th></tr></thead><tbody>';
+    keys.forEach(function (k) {
+      var b = obj[k] || {}; if (!b.n) { h += "<tr><td class=\"lab\">" + esc(k.replace(/_/g, " ")) + "</td><td>0</td><td colspan=\"9\" class=\"flat\">no graded sequences</td></tr>"; return; }
+      var r21 = b.ret_21 || {}, r63 = b.ret_63 || {}, m63 = b.managed_63 || {};
+      h += "<tr><td class=\"lab\">" + esc(k.replace(/_/g, " ")) + "</td><td>" + b.n + '</td><td class="' + cls(r21.median) + '">' + pct(r21.median) + "</td><td>" + (r21.hit == null ? "—" : r21.hit + "%") + '</td><td class="' + cls(r63.median) + '">' + pct(r63.median) + "</td><td>" + (r63.hit == null ? "—" : r63.hit + "%") + '</td><td class="' + cls(m63.median) + '">' + pct(m63.median) + "</td><td>" + (b.stop_hit_pct == null ? "—" : b.stop_hit_pct + "%") + "</td><td>" + (b.target1_hit_pct == null ? "—" : b.target1_hit_pct + "%") + '</td><td class="neg">' + pct(b.mae_median) + '</td><td class="pos">' + pct(b.mfe_median) + "</td></tr>";
+    });
+    return h + "</tbody></table></div></div>";
+  }
+
+  function renderAux() {
+    var a = $("aux"); a.innerHTML = "";
+    if (tab === "rates") {
+      var br = D.base_rates || {}; var cv = br.crowd_vs_pro || {}; var c = cv.crowd_buys_the_bounce || {}, p = cv.pro_waits_for_the_trigger || {};
+      var h = '<h2>Base rates — every sequence in the window, graded from the tape</h2><div class="note">' + (br.n_sequences || 0) + " selling-climax sequences detected across the universe in " + esc(((D.universe || {}).window || []).join(" → ")) + "; " + (br.n_with_rally || 0) + " produced an automatic rally; " + (br.n_triggered || 0) + " reached the trigger. Outcome mix: " + esc(JSON.stringify(br.outcome_mix || {})) + "</div>";
+      h += '<div class="cvp"><div class="card crowd"><h5>THE CROWD — buys the first bounce</h5><div class="kv"><span>sequences</span><span>' + (c.n || 0) + '</span><span>+21 median · hit</span><span class="' + cls((c.ret_21 || {}).median) + '">' + pct((c.ret_21 || {}).median) + " · " + ((c.ret_21 || {}).hit == null ? "—" : (c.ret_21 || {}).hit + "%") + '</span><span>+63 median · hit</span><span class="' + cls((c.ret_63 || {}).median) + '">' + pct((c.ret_63 || {}).median) + " · " + ((c.ret_63 || {}).hit == null ? "—" : (c.ret_63 || {}).hit + "%") + '</span><span>worst drawdown (median)</span><span class="red">' + pct(c.worst_drawdown_median_pct) + "</span><span>later undercut the climax low</span><span class=\"red\">" + (c.later_undercut_climax_low_pct == null ? "—" : c.later_undercut_climax_low_pct + "% of sequences") + "</span><span>sequence failed outright</span><span class=\"red\">" + (c.sequence_failed_pct == null ? "—" : c.sequence_failed_pct + "%") + "</span></div></div>";
+      h += '<div class="card pro"><h5>THE PROFESSIONAL — waits for the trigger</h5><div class="kv"><span>triggers</span><span>' + (p.n || 0) + '</span><span>+21 median · hit (stop-managed)</span><span class="' + cls((p.ret_21 || {}).median) + '">' + pct((p.ret_21 || {}).median) + " · " + ((p.ret_21 || {}).hit == null ? "—" : (p.ret_21 || {}).hit + "%") + '</span><span>+63 median · hit (stop-managed)</span><span class="' + cls((p.ret_63 || {}).median) + '">' + pct((p.ret_63 || {}).median) + " · " + ((p.ret_63 || {}).hit == null ? "—" : (p.ret_63 || {}).hit + "%") + '</span><span>worst drawdown (median)</span><span class="red">' + pct(p.worst_drawdown_median_pct) + "</span><span>stopped out</span><span>" + (p.stopped_out_pct == null ? "—" : p.stopped_out_pct + "%") + "</span><span>sequences that ever trigger</span><span>" + (p.share_of_sequences_that_ever_trigger_pct == null ? "—" : p.share_of_sequences_that_ever_trigger_pct + "%") + "</span></div></div></div>";
+      h += '<div class="note">' + esc(cv.note || "") + "</div>";
+      var t = br.triggered || {};
+      h += ratesTable({ all: t.all, daily: t.frame_D, weekly: t.frame_W }, "Triggered sequences — by frame");
+      h += ratesTable(br.by_desk, "By desk");
+      h += ratesTable(br.by_grade, "By grade (score at the time of the trigger)");
+      h += ratesTable(br.by_test_volume, "By test volume — the paper's variable");
+      h += ratesTable(br.by_depth_class, "By test depth");
+      a.innerHTML = h;
+    } else if (tab === "changes") {
+      var ch = D.changes || {};
+      var mk = function (t, l, k) { var xs = ch[k] || []; return '<div><div class="t">' + esc(t) + '</div><div class="v">' + xs.length + '</div><div class="s">' + esc(xs.slice(0, 14).join(" ")) + (xs.length > 14 ? " …" : "") + "</div></div>"; };
+      a.innerHTML = "<h2>What changed since " + esc(ch.prior_session || "the last session") + '</h2><div class="mini">' + mk("New triggers", "", "new_triggered") + mk("New tests confirmed", "", "new_test_confirmed") + mk("New climaxes", "", "new_climax") + mk("Failed / stopped", "", "new_failed") + "</div>";
+    }
+  }
+
+  function renderDefs() {
+    var d = D.definitions || {};
+    $("defs").innerHTML = Object.keys(d).map(function (k) { return "<dt>" + esc(k.replace(/_/g, " ")) + "</dt><dd>" + esc(d[k]) + "</dd>"; }).join("");
+  }
+
+  function renderTop() {
+    var m = D.market || {}, b = m.breadth || {}, u = D.universe || {};
+    $("meta").textContent = "v" + D.version + " · session " + D.session + " · generated " + (D.generated_at || "") + " (" + ago(D.generated_at) + ") · " + (D.elapsed_s || "?") + "s · " + (u.sessions || "?") + " sessions " + ((u.window || []).join(" → "));
+    $("wr-fresh").textContent = "session " + D.session + " · " + ago(D.generated_at);
+    $("wr-headline").textContent = m.read || "";
+    var live = b.in_bottom_process || 0;
+    $("wr-brief").innerHTML = "<b>" + live + "</b> instruments are inside a bottoming process (" + (b.share_of_universe_pct == null ? "—" : b.share_of_universe_pct + "%") + " of " + (u.scored || "?") + " scored) — <b>" + (b.climax_5d || 0) + "</b> printed a selling climax in the last 5 sessions, <b>" + (b.testing || 0) + "</b> are testing the low, <b>" + (b.test_confirmed || 0) + "</b> have a confirmed test awaiting the trigger, <b>" + (b.triggered_5d || 0) + "</b> triggered in the last 5 sessions, <b>" + (b.failed_10d || 0) + "</b> failed in the last 10. " + (b.weekly_live || 0) + " weekly (major) sequences are live.";
+    var bench = m.benchmarks || {};
+    $("wr-bench").innerHTML = Object.keys(bench).map(function (k) { var x = bench[k]; var dd = x.daily || "NONE", ww = x.weekly || "NONE"; return '<span class="wr-tag ' + (LIVE[dd] ? "bull" : "") + '">' + esc(k) + " " + esc(STATE_LABEL[dd] || dd) + (ww !== "NONE" && ww ? " · W " + esc(STATE_LABEL[ww] || ww) : "") + (x.daily_sc_date ? " · SC " + esc(x.daily_sc_date) : "") + "</span>"; }).join("");
+    var au = m.capital_authority || {};
+    $("wr-auth").querySelector(".h").innerHTML = au.mode ? esc(au.mode) + (au.allows_new_entries === false ? ' · <span class="red">no new entries</span>' : au.allows_new_entries ? ' · <span class="grn">new entries allowed</span>' : "") + (au.cap_pct != null ? " · cap " + au.cap_pct + "%" : "") : '<span class="amb">khalid-risk.json not read</span>';
+    $("wr-auth-age").textContent = au.generated_at ? ago(au.generated_at) : "";
+    var rg = m.risk_gate || {};
+    $("wr-gate").querySelector(".h").textContent = (rg.posture || "—") + (rg.sizing_multiplier != null ? " × " + rg.sizing_multiplier : "") + " · Katlin " + (m.katlin_posture || "—");
+    $("wr-universe").querySelector(".h").textContent = (u.instruments || 0) + " instruments · " + (u.scored || 0) + " scored · " + (u.rows || 0) + " with a live or recent sequence · " + (u.crypto_symbols || 0) + " crypto";
+    $("wr-session").textContent = D.session || "";
+    // funnel
+    var bs = (D.counts || {}).by_state || {};
+    var F = [["CLIMAX", "Climax"], ["TESTING", "Testing"], ["ST_CONFIRMED", "Test confirmed"], ["TRIGGERED", "Triggered"], ["MARKUP", "Markup"], ["FAILED", "Failed / stopped"], ["COMPLETED", "Completed"]];
+    $("funnel").innerHTML = F.map(function (f) { var n = f[0] === "FAILED" ? (bs.FAILED || 0) + (bs.STOPPED || 0) : (bs[f[0]] || 0); return '<div class="' + f[0] + (funnelState === f[0] ? " on" : "") + '" data-s="' + f[0] + '"><div class="t">' + f[1] + '</div><div class="v">' + n + "</div></div>"; }).join("");
+    Array.prototype.forEach.call($("funnel").querySelectorAll("div[data-s]"), function (el) { el.addEventListener("click", function () { funnelState = funnelState === el.getAttribute("data-s") ? "" : el.getAttribute("data-s"); renderTop(); renderBoard(); }); });
+    var deg = (D.degraded || []);
+    $("degraded").textContent = deg.length ? "degraded inputs: " + deg.join(" · ") : "";
+  }
+
+  function render(doc) {
+    D = doc;
+    renderTop(); renderBoard(); renderAux(); renderDefs();
+    if (!selected) { var first = rows()[0]; if (first) select(first.ticker); }
+  }
+  Array.prototype.forEach.call($("tabs").querySelectorAll("button"), function (b) {
+    b.addEventListener("click", function () {
+      tab = b.getAttribute("data-t");
+      Array.prototype.forEach.call($("tabs").querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); });
+      var isBoard = tab !== "rates" && tab !== "defs" && tab !== "changes";
+      $("board-wrap").style.display = isBoard ? "" : "none"; $("filters").style.display = isBoard ? "" : "none";
+      renderBoard(); renderAux();
+    });
+  });
+  ["f-state", "f-grade", "f-frame"].forEach(function (id) { $(id).addEventListener("change", renderBoard); });
+  $("f-q").addEventListener("input", renderBoard);
+  document.addEventListener("click", function (e) { if (!e.target.closest("th")) Array.prototype.forEach.call(document.querySelectorAll("th.pin"), function (t) { t.classList.remove("pin"); }); });
+  var qt = (location.search.match(/[?&]ticker=([^&]+)/) || [])[1];
+  if (qt) selected = decodeURIComponent(qt).toUpperCase();
+
+  function load(i) {
+    i = i || 0;
+    if (i >= FEEDS.length) { $("errbox").textContent = "bottom.json unavailable on every path"; return; }
+    fetch(FEEDS[i] + (FEEDS[i].indexOf("?") < 0 ? "?cb=" : "&cb=") + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(render).catch(function (e) { console.warn("bottom feed", FEEDS[i], e.message); load(i + 1); });
+  }
+  load(0);
+})();
+</script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>

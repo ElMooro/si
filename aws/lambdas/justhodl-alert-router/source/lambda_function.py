@@ -791,6 +791,73 @@ def format_telegram_msg(alert):
     )
 
 
+def check_bottom(alerts):
+    """BOTTOM Wyckoff desk (data/bottom.json): a fresh trigger (close above the test candle's high) on an A/B sequence, a
+    weekly (major) trigger, a confirmed secondary test on silence awaiting its trigger, and a benchmark (SPY/QQQ/IWM/
+    TLT/GLD/BTC) entering the bottom process. Ids carry the session so each event fires once."""
+    d = load_json("data/bottom.json")
+    session = d.get("session") or "?"
+    ch = d.get("changes") or {}
+    board = {r.get("ticker"): r for r in (d.get("board") or []) if isinstance(r, dict)}
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+
+    def md(x):
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        p = r.get("plan") or {}
+        tv = (r.get("st_vol_ratio_sc") or 0) * 100 if r.get("st_vol_ratio_sc") is not None else None
+        return (f"{md(r.get('company'))} · {md(r.get('desk'))} · {md(r.get('frame'))} frame · score {fmt(r.get('score'), 0)} {md(r.get('grade'))}\n"
+                f"climax {md(r.get('sc_date'))} on {fmt(r.get('sc_vol_x'), 1, 'x')} volume after {fmt(r.get('sc_decline_pct'), 0, '%')} · rally {fmt(r.get('ar_rally_pct'), 1, '%')} · "
+                f"test {md(r.get('st_date'))} on {fmt(tv, 0, '%')} of climax volume ({md(r.get('st_depth_class'))})\n"
+                f"plan: entry {fmt(p.get('entry'))} · stop {fmt(p.get('stop'))} ({fmt(p.get('risk_pct'), 1, '%')} risk) · target {fmt(p.get('target_1'))} ({fmt(p.get('rr_1'), 1, 'R')}) · fleet confirmations {r.get('n_confirm') or 0}\n"
+                f"https://justhodl.ai/bottom.html?ticker={r.get('ticker')}")
+
+    n = 0
+    for t in (ch.get("new_triggered") or []):
+        r = board.get(t) or {}
+        if not r or r.get("grade") not in ("A", "B") or n >= 6:
+            continue
+        n += 1
+        major = r.get("frame") == "W" or r.get("weekly_state") in ("TRIGGERED", "MARKUP")
+        alerts.append({
+            "id": f"bottom_trigger_{t}_{session}",
+            "category": "BOTTOM",
+            "severity": "HIGH" if (r.get("grade") == "A" or major) else "MEDIUM",
+            "title": f"{'🏔' if major else '⛏'} BOTTOM TRIGGERED: {t} closed above its test candle ({'weekly' if major else 'daily'} {r.get('grade')})",
+            "detail": line(r),
+        })
+    n = 0
+    for t in (ch.get("new_test_confirmed") or []):
+        r = board.get(t) or {}
+        if not r or r.get("grade") not in ("A", "B") or (r.get("st_vol_ratio_sc") or 1.0) > 0.5 or n >= 4:
+            continue
+        n += 1
+        alerts.append({
+            "id": f"bottom_test_{t}_{session}",
+            "category": "BOTTOM",
+            "severity": "MEDIUM",
+            "title": f"🔍 BOTTOM: {t} tested its climax low on silence -- trigger above {fmt((r.get('plan') or {}).get('entry'))}",
+            "detail": line(r),
+        })
+    bench = ((d.get("market") or {}).get("benchmarks") or {})
+    for b, x in bench.items():
+        if not isinstance(x, dict):
+            continue
+        for fr in ("daily", "weekly"):
+            st = x.get(fr)
+            if st in ("CLIMAX", "ST_CONFIRMED", "TRIGGERED"):
+                alerts.append({
+                    "id": f"bottom_bench_{b}_{fr}_{st}_{x.get('daily_sc_date') or session}",
+                    "category": "BOTTOM",
+                    "severity": "HIGH" if st != "CLIMAX" else "MEDIUM",
+                    "title": f"📉 BOTTOM: {b} {fr} sequence is {md(st)}",
+                    "detail": f"{b} last {fmt(x.get('last'))} · {fr} Wyckoff state {md(st)} (climax {md(x.get('daily_sc_date'))}). https://justhodl.ai/bottom.html",
+                })
+
+
 @track_errors
 def check_katlin(alerts):
     """KATLIN buy desk (data/katlin.json): a name that just entered KATLIN_PRIME (every gate incl. a confirmed
@@ -880,6 +947,7 @@ def lambda_handler(event=None, context=None):
         ("etf_flows", check_etf_flows),
         ("fortress", check_fortress),
         ("katlin", check_katlin),
+        ("bottom", check_bottom),
         ("sector_rotation", check_sector_rotation),
         ("divergences", check_divergences),
         ("cot_extremes", check_cot_extremes),

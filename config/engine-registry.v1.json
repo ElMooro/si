@@ -580,6 +580,52 @@
       }
     },
     {
+      "engine_id": "bottom",
+      "engine_name": "BOTTOM Wyckoff desk",
+      "engine_family": "MARKET",
+      "description": "Wyckoff bottom detection across every asset class: selling climax -> automatic rally -> secondary test on diminished volume -> trigger above the test candle, stop under the test low; daily + weekly frames; 5y graded base rates.",
+      "owner": "justhodl",
+      "producer": "justhodl-bottom",
+      "artifact": "data/bottom.json",
+      "timestamp_paths": [
+        "generated_at"
+      ],
+      "version": "1.0.0",
+      "status": "active",
+      "criticality": "NONCRITICAL",
+      "default_horizon": "SWING",
+      "expected_update_frequency": "daily 03:45 UTC Tue-Sat (72h TTL covers the weekend)",
+      "freshness_ttl_seconds": 259200,
+      "half_life_days": 10,
+      "entities_supported": [
+        "equity",
+        "etf",
+        "crypto"
+      ],
+      "dependencies": [
+        "polygon-full",
+        "katlin-crypto-bank",
+        "finviz",
+        "accumulation-radar",
+        "phase-detector",
+        "fortress",
+        "katlin"
+      ],
+      "historical_backtest_available": true,
+      "calibration_available": false,
+      "hard_veto_capable": false,
+      "soft_veto_capable": false,
+      "signal_schema_version": "JHSIGNAL-1.0",
+      "adapter": "bottom",
+      "trust_key": "bottom",
+      "signal_types": {
+        "wyckoff_bottom": {
+          "cluster": "price_confirmation",
+          "category": "price_confirmation"
+        }
+      }
+    },
+    {
       "engine_id": "catalyst",
       "engine_name": "Catalyst Tape",
       "engine_family": "CATALYST",

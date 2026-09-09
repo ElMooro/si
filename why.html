@@ -4367,6 +4367,44 @@ async function markStale(d, ticker){
 })();
 </script>
 
+<!-- bottom-desk module (ops 5290, self-contained; namespaced WB_): the Wyckoff bottom desk's read on the active ticker -->
+<div id="wb_sec" style="max-width:1200px;margin:18px auto;padding:0 16px;font-family:inherit;display:none">
+<h2 style="font-size:15px;margin:0 0 6px">&#9968;&#65039; Bottom desk &mdash; selling climax &rarr; automatic rally &rarr; secondary test &rarr; trigger <a id="wb_link" href="bottom.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
+<div id="wb_body" style="font-size:12px"></div>
+</div>
+<script>
+(function WB_(){
+  var P="https://justhodl-data-proxy.raafouis.workers.dev/data/bottom.json";
+  var doc=null, loading=null;
+  function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function n(v,d){return (v==null||isNaN(v))?"\u2014":Number(v).toFixed(d==null?1:d);}
+  var COL={TRIGGERED:"#26ffaf",MARKUP:"#26ffaf",ST_CONFIRMED:"#eab308",TESTING:"#00d4ff",CLIMAX:"#f59e0b",FAILED:"#ff5577",STOPPED:"#ff5577"};
+  function load(){ if(!loading){ loading=fetch(P+"?t="+Math.floor(Date.now()/900000)).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}); } return loading; }
+  function render(t){
+    var sec=document.getElementById("wb_sec"), body=document.getElementById("wb_body"); if(!sec||!body||!t) return;
+    load().then(function(d){
+      doc=d; if(!d||!d.board_all){ sec.style.display="none"; return; }
+      var T=String(t).toUpperCase().replace(/-/g,".");
+      var r=(d.board||[]).filter(function(x){return x.ticker===T;})[0]||(d.board_all||[]).filter(function(x){return x.ticker===T;})[0];
+      document.getElementById("wb_link").href="bottom.html?ticker="+encodeURIComponent(T);
+      if(!r){ sec.style.display=""; body.innerHTML='<div style="opacity:.7">No live or recent Wyckoff sequence on '+esc(T)+' (session '+esc(d.session)+'): no selling climax within the detection window, or the last sequence expired. That is a finding, not a gap \u2014 the tape has not printed the panic that starts the process.</div>'; return; }
+      var p=r.plan||{}, c=COL[r.state]||"#8a93a5";
+      var h='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch">';
+      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:170px;box-shadow:0 0 0 1px '+c+'"><div style="font-size:11px;font-weight:700">'+esc(T)+' <span style="float:right;opacity:.7">'+esc(r.frame==="W"?"weekly":"daily")+'</span></div><div style="font-size:13px;font-weight:700;color:'+c+'">'+esc(String(r.state).replace(/_/g," "))+'</div><div style="font-size:10px;opacity:.7">score '+n(r.score,0)+' '+esc(r.grade||"")+(r.bars_in_state!=null?' \u00b7 '+r.bars_in_state+' bars in state':'')+'</div></div>';
+      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:170px"><div style="font-size:10px;opacity:.7">SELLING CLIMAX</div><div style="font-size:11px">'+esc(r.sc_date||"\u2014")+'</div><div style="font-size:10px;opacity:.8">'+n(r.sc_vol_x,1)+'x volume \u00b7 '+n(r.sc_decline_pct,0)+'% decline \u00b7 low '+n(r.sc_low,2)+'</div></div>';
+      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:170px"><div style="font-size:10px;opacity:.7">SECONDARY TEST</div><div style="font-size:11px">'+esc(r.st_date||"not yet")+'</div><div style="font-size:10px;opacity:.8">'+(r.st_vol_ratio_sc==null?"\u2014":n(100*r.st_vol_ratio_sc,0)+"% of climax volume")+(r.st_depth_class?' \u00b7 '+esc(String(r.st_depth_class).replace(/_/g," ").toLowerCase()):'')+'</div></div>';
+      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:190px"><div style="font-size:10px;opacity:.7">PLAN</div><div style="font-size:11px">'+(p.entry?'trigger above '+n(p.entry,2)+' \u00b7 stop '+n(p.stop,2)+' ('+n(p.risk_pct,1)+'%)':'no test yet \u2014 nothing to buy')+'</div><div style="font-size:10px;opacity:.8">'+(p.target_1?'target '+n(p.target_1,2)+(p.rr_1!=null?' ('+n(p.rr_1,1)+'R)':''):'')+(r.weekly_state?' \u00b7 weekly '+esc(String(r.weekly_state).replace(/_/g," ").toLowerCase()):'')+'</div></div>';
+      h+='</div>';
+      if(r.why) h+='<div style="margin-top:8px;font-size:12px;line-height:1.5;opacity:.9">'+esc(r.why)+'</div>';
+      if(r.what_next) h+='<div style="margin-top:4px;font-size:11px;opacity:.75"><b>What next:</b> '+esc(r.what_next)+'</div>';
+      sec.style.display=""; body.innerHTML=h;
+    });
+  }
+  function boot(){ if(window.__JH_TICKER_BUS){ window.__JH_TICKER_BUS.subscribe(render); } else { var q=new URLSearchParams(location.search); var t=q.get("ticker")||q.get("t"); if(t) render(t); } }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", function(){ setTimeout(boot,0); }); else setTimeout(boot,0);
+})();
+</script>
+
 <script src="/sidebar.js" defer></script>
 <script id="OPS5016">
 /* ops 5016 — ticker bus: the desk arrives with no ?ticker and rewrites
