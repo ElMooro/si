@@ -40,10 +40,11 @@ def test_governed_engines_use_numbered_candidate_path():
         '|| [ "$fn" = "justhodl-khalid-risk" ]'
     ) in workflow
     assert 'if [ "$candidate_managed" -eq 0 ] && [ -f "$config_file" ]' in workflow
-    assert (
-        '[ "$fn" = "justhodl-khalid" ] '
-        '|| [ "$fn" = "justhodl-khalid-risk" ]'
-    ) in workflow
+    import json
+    for name in ('justhodl-khalid',):
+        config=json.loads((ROOT/'aws/lambdas'/name/'config.json').read_text())
+        assert config['release_validation']['schema_version']
+    assert 'scripts/apply_direct_scheduler.py' in workflow[scheduler_block:]
 
 
 def test_candidate_script_pins_validates_promotes_then_schedules():

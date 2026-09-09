@@ -94,6 +94,15 @@ jobs:
           python scripts/gen_engine_manifest.py || true
           aws s3 cp engine-manifest.json s3://justhodl-dashboard-live/data/engine-manifest.json --content-type application/json --cache-control max-age=900 || true
 
+      - name: Preserve long verification connections on the ephemeral runner
+        if: steps.pick.outputs.scripts != ''
+        run: |
+          set -euo pipefail
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_time=60
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_intvl=30
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_probes=5
+          aws configure set tcp_keepalive true
+
       - name: Run script(s)
         if: steps.pick.outputs.scripts != ''
         env:
