@@ -1,6 +1,6 @@
 # Security release handoff — 9 September 2026
 
-Status: implemented and tested in source. Production progress and live receipts are maintained by the release owner; this subteam does not independently attest deployment or confidentiality closure. Ops5230 must validate the complete matching 42-function source set before migration, including all earlier core producers.
+Status: implemented and tested in source. Production progress and live receipts are maintained by the release owner; this subteam does not independently attest deployment or confidentiality closure. Ops5230 must validate the complete matching 44-function source set before migration, including all earlier core producers.
 
 No private customer bodies, billing mutations, producer invocations, messages, credentials or deployment operations were used by this security implementation team. Test data are synthetic. The release owner runs the joint release gate and live verification separately.
 
@@ -27,14 +27,14 @@ INST-03's original Enterprise/unmetered bypass was already corrected in the prev
 
 ## Reviewed source map and migration
 
-`aws/shared/private_artifact.py` is the canonical map: 26 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 19 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
+`aws/shared/private_artifact.py` is the canonical map: 26 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 21 deterministic current keys and three JSON families requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
 
-The 42 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
+The 44 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
 
 | Boundary | Engines, all with the `justhodl-` prefix |
 |---|---|
 | Private producers and service readers (20 service-token targets) | brain-sync, journal-grader, my-brief, devils-advocate, notes-intel, playbook-engine, ask, portfolio-snapshot, portfolio-risk, portfolio-sizer, portfolio-catalysts, risk-sizer, pm-decision, behavior-mirror, ai-brief, history-api, watchlist, vol-regime, trade-journal, ai-brief-router |
-| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog, fleet-monitor, fleet-error-monitor, fleet-freshness-monitor, source-map |
+| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog, fleet-monitor, fleet-error-monitor, fleet-freshness-monitor, source-map, etf-fund-flows, macro-regime |
 | Downstream public readers/caches | ask-desk, symdir, ai-chat, page-ai-commentary |
 | Stateless personal scenario calculators | wealth-plan, tax-plan |
 
@@ -60,3 +60,5 @@ Primary security foundation: `eede659`, cache follow-up `75d2d04`, Fusion `4ca37
 Rollback must retain permanent privacy policies and durable journal/billing state. Do not restore public original fallbacks or advisory profile/KV authorization. Production closure requires recorded exact-code deployment, temporary-containment removal only after successful scrub/purge, anonymous denial and authenticated no-store access checks. No such closure is asserted here.
 
 The TradingView attribution landing key `data/tv-sources.json` contains authenticated browser source labels, descriptions and diagnostics. It remains IAM-only, including its legacy aliases and historical versions. The separate `data/source-map.json` publishes only fixed family identifiers, qualified market symbols and typed counts/timestamps; source-map no longer rewrites the ingest landing file. Its page rejects legacy unmarked data. The migration replaces unmarked legacy rollups with a fixed unavailable projection and validates every marked field again.
+
+ETF flows and macro regime preserve real successful market metrics while replacing provider error response text with fixed diagnostic categories. The same pure projection applies to HTTP responses, current publications and historical writes. Migration sanitizes `etf-flows/daily.json`, `macro/regime.json` and every JSON object in `etf-flows/history/` and `macro/history/`; historical object versions remain IAM-only. Worker requests for both current and historical families bypass old cache generations. Temporary external-read containment remains until the entire family scrub and verification succeed; receipts count each reviewed prefix separately.

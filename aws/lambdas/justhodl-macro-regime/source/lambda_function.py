@@ -43,6 +43,7 @@ from typing import Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from public_brain_projection import provider_failure, public_provider_diagnostics, macro_regime_public
 
 S3_BUCKET = "justhodl-dashboard-live"
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
@@ -118,7 +119,7 @@ ALL_UNIVERSE = {**INDICES_UNIVERSE, **ETF_PROXY_UNIVERSE, **FX_UNIVERSE}
 def fetch_daily_bars(ticker: str, days: int = 252) -> dict:
     """Fetch daily aggregates for one symbol. Returns latest + history."""
     if not POLYGON_KEY:
-        return {"ticker": ticker, "error": "POLYGON_KEY not set"}
+        return provider_failure(ticker, "PROVIDER_KEY_UNAVAILABLE")
     end_date = datetime.now(timezone.utc).date()
     start_date = end_date - timedelta(days=int(days * 1.5))  # buffer for non-trading days
     url = (
@@ -132,8 +133,7 @@ def fetch_daily_bars(ticker: str, days: int = 252) -> dict:
             data = json.loads(r.read())
             results = data.get("results") or []
             if not results:
-                return {"ticker": ticker, "error": "no_results",
-                        "status": data.get("status"), "queryCount": data.get("queryCount")}
+                return provider_failure(ticker, "PROVIDER_NO_RESULTS")
             # results already sort=desc, but be defensive
             results = sorted(results, key=lambda x: x.get("t", 0), reverse=True)
             latest = results[0]
@@ -153,14 +153,9 @@ def fetch_daily_bars(ticker: str, days: int = 252) -> dict:
                 "n_bars": len(results),
             }
     except urllib.error.HTTPError as e:
-        body = ""
-        try:
-            body = e.read().decode("utf-8", errors="ignore")[:200]
-        except Exception:
-            pass
-        return {"ticker": ticker, "error": f"http_{e.code}", "body": body}
-    except Exception as e:
-        return {"ticker": ticker, "error": str(e)[:200]}
+        return provider_failure(ticker, "PROVIDER_HTTP_ERROR", e.code)
+    except Exception:
+        return provider_failure(ticker, "PROVIDER_REQUEST_FAILED")
 
 
 def fetch_universe() -> dict:
@@ -175,7 +170,7 @@ def fetch_universe() -> dict:
             try:
                 results[t] = fut.result()
             except Exception as e:
-                results[t] = {"ticker": t, "error": str(e)[:200]}
+                results[t] = provider_failure(t, "PROVIDER_REQUEST_FAILED")
     return results
 
 
@@ -210,11 +205,11 @@ def _zscore(latest, history):
 def compute_asset_metrics(snap: dict) -> dict:
     """Compute returns + trend metrics for one asset."""
     if snap.get("error"):
-        return {**snap, "metric_status": "missing"}
+        return {**public_provider_diagnostics(snap), "metric_status": "missing"}
     bars = snap.get("bars", []) or []
     closes = [b["close"] for b in bars if b.get("close") is not None]
     if not closes:
-        return {**snap, "metric_status": "no_closes"}
+        return {**provider_failure(snap.get("ticker"), "PROVIDER_NO_PRICES"), "metric_status": "no_closes"}
     latest = closes[0]
     return {
         "ticker": snap["ticker"],
@@ -551,6 +546,7 @@ def lambda_handler(event, context):
         "asset_metrics": metrics,
     }
 
+    out = macro_regime_public(out)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     s3.put_object(
         Bucket=S3_BUCKET,
@@ -571,12 +567,12 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
-        "body": json.dumps({
+        "body": json.dumps(public_provider_diagnostics({
             "ok": True,
             "elapsed_s": elapsed,
             "n_ok": n_ok,
             "regime": top_regime.get("regime"),
             "confidence": top_regime.get("confidence"),
             "sub_regime_summary": {k: v.get("label") for k, v in subs.items()},
-        }),
+        })),
     }

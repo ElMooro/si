@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "aws/ops/checks"), str(ROOT / "aws/shared")]
 import audit_20260909_containment as containment
 from test_policy_semantics import normalized
+import audit_20260909_privacy_migration as migration
 
 
 class PolicyOnlyS3:
@@ -49,6 +50,46 @@ def fixture(*, wrong_account=False, fail_purge=False, exposed=False):
 
 
 class ContainmentTests(unittest.TestCase):
+    def test_family_scrub_paginates_every_reviewed_prefix_and_reports_separate_counts(self):
+        listed, scrubbed = [], []
+        class S3:
+            def get_paginator(self, name):
+                self_name = name
+                class Paginator:
+                    def paginate(self, *, Bucket, Prefix):
+                        self_assert = (self_name == "list_objects_v2" and Bucket == containment.BUCKET)
+                        if not self_assert: raise AssertionError("Unexpected storage operation")
+                        listed.append(Prefix)
+                        yield {"Contents": [{"Key": Prefix + "2026-09-08.json"}, {"Key": Prefix + "README.txt"}]}
+                        yield {"Contents": [{"Key": Prefix + "2026-09-09.json"}]}
+                return Paginator()
+        job = migration.Migration(ROOT, {"s3": S3()})
+        job.read_object = lambda key: ({}, {})
+        job.scrub = lambda key, **kwargs: scrubbed.append(key)
+        job.put_public = lambda *args, **kwargs: None
+        job.scrub_all({kind: {} for kind in ("my-brief", "devils-advocate", "notes-index", "notes-themes", "playbook-rules")})
+        self.assertEqual(listed, list(migration.SANITIZED_PREFIXES))
+        for prefix in migration.SANITIZED_PREFIXES:
+            self.assertIn(prefix + "2026-09-08.json", scrubbed)
+            self.assertIn(prefix + "2026-09-09.json", scrubbed)
+            self.assertNotIn(prefix + "README.txt", scrubbed)
+        self.assertEqual(job.rows, [{"check": "public_family_scrub", "prefix": prefix, "count": 2}
+                                   for prefix in migration.SANITIZED_PREFIXES])
+
+    def test_provider_current_and_archive_controls_preserve_account_boundary(self):
+        temporary = containment.temporary_statement()
+        history = containment.historical_deny_statement(containment.BUCKET)
+        resources = {f"arn:aws:s3:::{containment.BUCKET}/{key}" for key in (
+            "etf-flows/daily.json", "macro/regime.json", "etf-flows/history/*", "macro/history/*")}
+        for statement in (temporary, history):
+            self.assertTrue(resources <= set(statement["Resource"]))
+            self.assertEqual(statement["Effect"], "Deny")
+            self.assertEqual(statement["Principal"], "*")
+            self.assertEqual(statement["Condition"], {"StringNotEquals": {"aws:PrincipalAccount": containment.ACCOUNT}})
+            self.assertNotIn(f"arn:aws:s3:::{containment.BUCKET}/macro/*", statement["Resource"])
+        self.assertEqual(set(temporary["Action"]), {"s3:GetObject", "s3:GetObjectVersion"})
+        self.assertEqual(history["Action"], ["s3:GetObjectVersion"])
+
     def test_aws_normalized_readback_passes_install_and_final_verification(self):
         class S3(PolicyOnlyS3):
             def get_bucket_policy(self, **kwargs): return {"Policy": json.dumps(normalized(self.policy))}

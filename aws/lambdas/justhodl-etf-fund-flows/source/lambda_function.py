@@ -79,6 +79,7 @@ from typing import Optional, List, Dict, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
+from public_brain_projection import provider_failure, public_provider_diagnostics, etf_flows_public
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_PREFIX = "etf-flows/"
@@ -461,7 +462,7 @@ def fetch_etf_flow_window(ticker: str, days: int = 100) -> dict:
       daily_flow_usd, fund_flow_5d_usd, fund_flow_21d_usd, history (list)
     """
     if not POLYGON_KEY:
-        return {"ticker": ticker, "error": "POLYGON_KEY not set"}
+        return provider_failure(ticker, "PROVIDER_KEY_UNAVAILABLE")
     from datetime import timedelta
     end_date = datetime.now(timezone.utc).date()
     start_date = end_date - timedelta(days=days + 10)
@@ -481,9 +482,7 @@ def fetch_etf_flow_window(ticker: str, days: int = 100) -> dict:
             data = json.loads(r.read())
             results = data.get("results") or []
             if not results:
-                return {"ticker": ticker, "error": "no_results",
-                        "raw_status": data.get("status"),
-                        "request_id": data.get("request_id")}
+                return provider_failure(ticker, "PROVIDER_NO_RESULTS")
             # Already sorted desc by API, but be defensive
             results = sorted(
                 results, key=lambda x: x.get("processed_date") or "",
@@ -529,14 +528,9 @@ def fetch_etf_flow_window(ticker: str, days: int = 100) -> dict:
                 "n_history": len(results),
             }
     except urllib.error.HTTPError as e:
-        body = ""
-        try:
-            body = e.read().decode("utf-8", errors="ignore")[:300]
-        except Exception:
-            pass
-        return {"ticker": ticker, "error": f"http_{e.code}", "body": body}
-    except Exception as e:
-        return {"ticker": ticker, "error": str(e)[:200]}
+        return provider_failure(ticker, "PROVIDER_HTTP_ERROR", e.code)
+    except Exception:
+        return provider_failure(ticker, "PROVIDER_REQUEST_FAILED")
 
 
 def _num(v) -> Optional[float]:
@@ -559,7 +553,7 @@ def fetch_universe_parallel() -> dict:
             try:
                 results[t] = fut.result()
             except Exception as e:
-                results[t] = {"ticker": t, "error": str(e)[:200]}
+                results[t] = provider_failure(t, "PROVIDER_REQUEST_FAILED")
     return results
 
 
@@ -573,7 +567,7 @@ def compute_per_etf_metrics(snapshot: dict, history: list) -> dict:
     inputs are missing (graceful degradation).
     """
     if snapshot.get("error"):
-        return {**snapshot, "signal_label": "DATA_MISSING"}
+        return {**public_provider_diagnostics(snapshot), "signal_label": "DATA_MISSING"}
 
     daily_flow = snapshot.get("daily_flow_usd")
     aum = snapshot.get("aum_usd")
@@ -1048,6 +1042,8 @@ def build_per_ticker_context(metrics: list, composite: dict) -> dict:
 # S3 writers
 # ═════════════════════════════════════════════════════════════════════
 def _write_json(key: str, obj: dict, cache_ttl: int = 600):
+    if key == OUTPUT_PREFIX + "daily.json" or key.startswith(OUTPUT_PREFIX + "history/"):
+        obj = etf_flows_public(obj)
     s3.put_object(
         Bucket=S3_BUCKET, Key=key,
         Body=json.dumps(obj, default=str).encode(),
@@ -1334,7 +1330,7 @@ def lambda_handler(event, context):
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
         },
-        "body": json.dumps({
+        "body": json.dumps(public_provider_diagnostics({
             "ok": True,
             "elapsed_s": elapsed,
             "n_etfs_ok": n_ok,
@@ -1349,5 +1345,5 @@ def lambda_handler(event, context):
                 f"{OUTPUT_PREFIX}per-ticker-context.json",
                 archive_key,
             ],
-        }, default=str),
+        }), default=str),
     }

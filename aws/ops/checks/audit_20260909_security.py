@@ -13,10 +13,11 @@ from private_artifact import MIRRORED_ARTIFACTS, PRIVATE_KEYS as SOURCE_PRIVATE_
 MIRRORED_KEYS = tuple(MIRRORED_ARTIFACTS)
 PRIVATE_KEYS = tuple(sorted(SOURCE_PRIVATE_KEYS))
 SANITIZED_KEYS = ("data/brain-compiler.json", "data/tv-workbench.json", "data/canary-warroom.json", "data/tradingview.json", "data/domain-barometers.json", "data/best-setups.json", "data/master-allocation.json", "data/position-sizing.json", "data/engine-conflicts.json", "data/search/providers/tradingview_vault_live.json.gz", "data/sizing.json", "data/ai-commentary/portfolio.json")
-SANITIZED_PREFIXES = ("equity-research/",)
+SANITIZED_PREFIXES = ("equity-research/", "etf-flows/history/", "macro/history/")
 SANITIZED_KEYS += ("data/vol-regime.json", "data/wealth-plan-snapshot.json", "data/tax-plan-snapshot.json", "_health/fleet.json")
 SANITIZED_KEYS += ("data/_fleet-monitor.json", "data/_freshness-monitor.json")
 SANITIZED_KEYS += ("data/source-map.json",)
+SANITIZED_KEYS += ("etf-flows/daily.json", "macro/regime.json")
 
 WORKER = "https://justhodl-data-proxy.raafouis.workers.dev"
 

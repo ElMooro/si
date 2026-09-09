@@ -124,6 +124,8 @@ class FakeLambda:
 class PublicMigrationTests(unittest.TestCase):
     def fixtures(self):
         return {
+            "etf-flows/daily.json": {"generated_at": "2026-09-09T00:00:00Z", "metrics": [{"ticker": "SPY", "error": MARKER, "body": MARKER, "nav": 0}, {"ticker": "QQQ", "daily_flow_usd": 0}]},
+            "macro/regime.json": {"generated_at": "2026-09-09T00:00:00Z", "asset_metrics": [{"ticker": "SPY", "error": MARKER, "headers": {"Authorization": MARKER}, "latest_close": None}]},
             "data/source-map.json": {"new_sources": [{"source": MARKER, "examples": [MARKER]}],
                                       "economics_agencies": [{"source": MARKER, "n_symbols": 1}]},
             "data/_fleet-monitor.json": {"version": "1.0.0", "n_lambdas_scanned": 10, "n_alerts_raised": 1,
@@ -428,7 +430,8 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
         self.assertEqual(len(migration.PUBLISHERS), 20)
-        self.assertEqual(len(migration.READINESS), 42)
+        self.assertEqual(len(migration.READINESS), 44)
+        self.assertTrue({"etf-fund-flows", "macro-regime"} <= set(migration.PRODUCERS))
         self.assertTrue({"wealth-plan", "tax-plan"} <= set(migration.READINESS))
         self.assertFalse({"wealth-plan", "tax-plan"} & set(migration.PUBLISHERS))
 

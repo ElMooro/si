@@ -2,7 +2,7 @@
  "version": 2,
  "generated_at": "2026-08-01T20:58:40.385383+00:00",
  "schema": "producers[key] = {writers, readers, mentions}; role decided by put_object / Key-constant / get_object proximity (\u00b1500 chars)",
- "n_mapped": 799,
+ "n_mapped": 806,
  "n_with_writer": 683,
  "n_reader_only": 40,
  "n_mention_only": 76,
@@ -602,9 +602,7 @@
   },
   "data/auction-crisis.json": {
    "writers": [
-    "justhodl-auction-crisis-ai",
-    "justhodl-auction-crisis-detector",
-    "justhodl-tenor-signal-interpreter"
+    "justhodl-auction-crisis-detector"
    ],
    "readers": [
     "justhodl-chart-data",
@@ -628,7 +626,9 @@
     "justhodl-signal-board",
     "justhodl-smart-wake",
     "justhodl-wave-signal-logger"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/auction-decisive-call.json": {
    "writers": [],
@@ -3012,11 +3012,12 @@
     "justhodl-global-tide",
     "justhodl-signal-board",
     "justhodl-smart-wake"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/ecb-detail.json": {
    "writers": [
-    "justhodl-ecb-derived",
     "justhodl-ecb-detail"
    ],
    "readers": [],
@@ -3024,7 +3025,9 @@
     "justhodl-cb-injection",
     "justhodl-euro-fragmentation",
     "justhodl-global-tide"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/econ-calendar.json": {
    "writers": [
@@ -4866,7 +4869,9 @@
     "justhodl-ka-metrics"
    ],
    "readers": [],
-   "mentions": []
+   "mentions": [],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/ka-config.json": {
    "writers": [
@@ -4880,7 +4885,9 @@
     "justhodl-ka-metrics"
    ],
    "readers": [],
-   "mentions": []
+   "mentions": [],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/kb-match.json": {
    "writers": [
@@ -4907,13 +4914,14 @@
   },
   "data/khalid-analysis.json": {
    "writers": [
-    "justhodl-ka-metrics",
     "justhodl-khalid-metrics"
    ],
    "readers": [],
    "mentions": [
     "justhodl-history-snapshotter"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/khalid-config.json": {
    "writers": [
@@ -4928,13 +4936,14 @@
   },
   "data/khalid-metrics.json": {
    "writers": [
-    "justhodl-ka-metrics",
     "justhodl-khalid-metrics"
    ],
    "readers": [],
    "mentions": [
     "justhodl-history-snapshotter"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/kill-theses.json": {
    "writers": [
@@ -5820,45 +5829,18 @@
    ]
   },
   "data/options-flow.json": {
-   "writers": [
-    "justhodl-alpha-score",
-    "justhodl-debate-engine",
-    "justhodl-fleet-freshness-monitor",
-    "justhodl-polygon-options-flow",
-    "justhodl-pump-mechanics",
-    "justhodl-trade-logger",
-    "justhodl-velocity-acceleration"
-   ],
-   "readers": [
-    "justhodl-catalyst-skew-premove",
-    "justhodl-stealth-accumulation"
-   ],
-   "mentions": [
-    "justhodl-ai-infra-stack",
-    "justhodl-apex-fusion",
-    "justhodl-attention-confluence",
-    "justhodl-best-setups",
-    "justhodl-compound-aggregator",
-    "justhodl-convergence-radar",
-    "justhodl-deal-scanner",
-    "justhodl-earnings-whisper",
-    "justhodl-history-snapshotter",
-    "justhodl-massive-signals",
-    "justhodl-master-ranker",
-    "justhodl-options-confluence",
-    "justhodl-options-flow-scanner",
-    "justhodl-page-ai-commentary",
-    "justhodl-political-ai-investigation",
-    "justhodl-prediction-snapshotter",
-    "justhodl-prepump-alerts-router",
-    "justhodl-regime-composite",
-    "justhodl-retail-sentiment",
-    "justhodl-sector-capital-fusion",
-    "justhodl-theme-second-wave",
-    "justhodl-ticket-ai-rationale",
-    "openbb-websocket-broadcast",
-    "openbb-websocket-handler"
-   ]
+   "writers": [],
+   "readers": [],
+   "mentions": [],
+   "authoritative_writers": true,
+   "retired": {
+    "replacement_keys": [
+     "data/options-flow-scanner.json",
+     "flow-data.json"
+    ],
+    "reason": "Shared ambiguous namespace retired; scanners and macro flow now publish separate source-owned schemas."
+   },
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/options-gamma.json": {
    "writers": [],
@@ -6594,12 +6576,8 @@
   },
   "data/report.json": {
    "writers": [
-    "justhodl-bloomberg-v8",
-    "justhodl-crypto-enricher",
     "justhodl-daily-report-v3",
-    "justhodl-intelligence",
-    "justhodl-morning-intelligence",
-    "justhodl-stress-simulator"
+    "justhodl-crypto-enricher"
    ],
    "readers": [
     "justhodl-ab-test",
@@ -6631,7 +6609,10 @@
     "openbb-websocket-broadcast",
     "openbb-websocket-handler",
     "scrapeMacroData"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1",
+   "writer_relationship": "daily-report-v3 owns the V10 base; crypto-enricher uses verified V10 schema and conditional IfMatch augmentation."
   },
   "data/research-papers.json": {
    "writers": [
@@ -7364,7 +7345,9 @@
     "justhodl-source-map"
    ],
    "readers": [],
-   "mentions": []
+   "mentions": [],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/sovereign-fiscal.json": {
    "writers": [
@@ -7898,7 +7881,9 @@
     "justhodl-theme-cascade-backtest",
     "justhodl-theme-rotation-engine",
     "justhodl-theme-second-wave"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/theme-second-wave.json": {
    "writers": [
@@ -7935,9 +7920,7 @@
   },
   "data/themes.json": {
    "writers": [
-    "justhodl-market-map",
-    "justhodl-theme-classifier",
-    "justhodl-velocity-acceleration"
+    "justhodl-market-map"
    ],
    "readers": [],
    "mentions": [
@@ -7945,7 +7928,9 @@
     "justhodl-catalyst-clusters",
     "justhodl-notes-intel",
     "justhodl-theme-cascade"
-   ]
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   },
   "data/thesis-engine.json": {
    "writers": [
@@ -8125,13 +8110,15 @@
   },
   "data/tv-sources.json": {
    "writers": [
-    "justhodl-source-map",
     "justhodl-tv-notes-ingest"
    ],
    "readers": [
     "justhodl-tv-workbench"
    ],
-   "mentions": []
+   "mentions": [],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1",
+   "visibility": "PRIVATE_RAW_BROWSER_SOURCE_DATA"
   },
   "data/tv-watchlist-state.json": {
    "writers": [
@@ -8597,6 +8584,69 @@
     "justhodl-wave-signal-logger",
     "justhodl-whats-changed"
    ]
+  },
+  "data/theme-momentum.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-theme-rotation-engine"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "data/momentum-themes.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-theme-classifier"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "data/options-flow-scanner.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-options-flow-scanner"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "flow-data.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-options-flow"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "data/bloomberg-report.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-bloomberg-v8"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "calibration/model-latest.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-calibration-snapshotter"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
+  },
+  "calibration/latest.json": {
+   "readers": [],
+   "mentions": [],
+   "writers": [
+    "justhodl-calibrator"
+   ],
+   "authoritative_writers": true,
+   "writer_source": "namespace-audit-2026-09-09.v1"
   }
  }
 }

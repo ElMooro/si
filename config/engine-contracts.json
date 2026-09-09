@@ -3,7 +3,7 @@
  "marker": "contract-gate v1.1.0 ops4249 cadence-bounds",
  "generated_at": "2026-08-01T19:11:32.828678+00:00",
  "note": "Learned floors, not hand-authored ceilings. min_rows is 70% of the count observed at learn time; tighten by hand where an engine's output should be exact.",
- "n_contracts": 866,
+ "n_contracts": 872,
  "n_cadence_bounded": 760,
  "n_suspects": 129,
  "suspects": [
@@ -12350,27 +12350,33 @@
    "learned_at": "2026-08-01T19:11:11.685342+00:00"
   },
   "data/ka-analysis.json": {
-   "rows_path": [
-    "plumbing_health",
-    "positive_signs"
-   ],
-   "min_rows": 6,
-   "learned_rows": 9,
    "required_keys": [
-    "_truncated_repaired",
-    "boom_bust_cycle",
-    "crisis_comparison",
-    "crypto_outlook",
-    "generated",
-    "plumbing_health",
-    "portfolio_recommendation",
-    "risk_analysis",
-    "risk_regime"
+    "engine",
+    "schema_version",
+    "input_artifact",
+    "input_generated",
+    "llm_status",
+    "generated"
    ],
-   "max_age_hours": 72.0,
-   "bound_source": "observed-capped",
-   "age_source": "s3:LastModified",
-   "learned_at": "2026-08-01T19:11:11.713983+00:00"
+   "required_types": {
+    "$": "object",
+    "generated": "timestamp"
+   },
+   "required_values": {
+    "engine": "justhodl-ka-metrics",
+    "schema_version": "macro-analysis.v1",
+    "input_artifact": "data/ka-metrics.json",
+    "llm_status": "available"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
   },
   "data/ka-config.json": {
    "rows_path": [
@@ -12389,24 +12395,38 @@
    "learned_at": "2026-08-01T19:11:11.752453+00:00"
   },
   "data/ka-metrics.json": {
-   "rows_path": [
-    "errors"
-   ],
-   "min_rows": 2,
-   "learned_rows": 3,
    "required_keys": [
-    "category_risks",
-    "count",
-    "errors",
-    "generated",
+    "engine",
+    "schema_version",
     "metrics",
     "risk_index",
+    "category_risks",
+    "errors",
+    "generated",
+    "count",
     "version"
    ],
-   "max_age_hours": 36.0,
-   "bound_source": "observed",
-   "age_source": "s3:LastModified",
-   "learned_at": "2026-08-01T19:11:11.789967+00:00"
+   "required_types": {
+    "$": "object",
+    "metrics": "object",
+    "category_risks": "object",
+    "errors": "array",
+    "count": "integer",
+    "generated": "timestamp"
+   },
+   "required_values": {
+    "engine": "justhodl-ka-metrics",
+    "schema_version": "macro-metrics.v1"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "An empty errors array is healthy; never require an historical positive error count."
   },
   "data/kb-match.json": {
    "rows_path": [
@@ -12471,27 +12491,33 @@
    "learned_at": "2026-08-01T19:11:11.887216+00:00"
   },
   "data/khalid-analysis.json": {
-   "rows_path": [
-    "plumbing_health",
-    "positive_signs"
-   ],
-   "min_rows": 6,
-   "learned_rows": 9,
    "required_keys": [
-    "_truncated_repaired",
-    "boom_bust_cycle",
-    "crisis_comparison",
-    "crypto_outlook",
-    "generated",
-    "plumbing_health",
-    "portfolio_recommendation",
-    "risk_analysis",
-    "risk_regime"
+    "engine",
+    "schema_version",
+    "input_artifact",
+    "input_generated",
+    "llm_status",
+    "generated"
    ],
-   "max_age_hours": 54.0,
-   "bound_source": "cadence(24.0h)",
-   "age_source": "s3:LastModified",
-   "learned_at": "2026-08-01T19:11:11.922663+00:00"
+   "required_types": {
+    "$": "object",
+    "generated": "timestamp"
+   },
+   "required_values": {
+    "engine": "justhodl-khalid-metrics",
+    "schema_version": "macro-analysis.v1",
+    "input_artifact": "data/khalid-metrics.json",
+    "llm_status": "available"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
   },
   "data/khalid-config.json": {
    "rows_path": [
@@ -12510,24 +12536,38 @@
    "learned_at": "2026-08-01T19:11:11.977738+00:00"
   },
   "data/khalid-metrics.json": {
-   "rows_path": [
-    "errors"
-   ],
-   "min_rows": 2,
-   "learned_rows": 3,
    "required_keys": [
-    "category_risks",
-    "count",
-    "errors",
-    "generated",
+    "engine",
+    "schema_version",
     "metrics",
     "risk_index",
+    "category_risks",
+    "errors",
+    "generated",
+    "count",
     "version"
    ],
-   "max_age_hours": 54.0,
-   "bound_source": "cadence(24.0h)",
-   "age_source": "s3:LastModified",
-   "learned_at": "2026-08-01T19:11:12.027191+00:00"
+   "required_types": {
+    "$": "object",
+    "metrics": "object",
+    "category_risks": "object",
+    "errors": "array",
+    "count": "integer",
+    "generated": "timestamp"
+   },
+   "required_values": {
+    "engine": "justhodl-khalid-metrics",
+    "schema_version": "macro-metrics.v1"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "An empty errors array is healthy; never require an historical positive error count."
   },
   "data/kill-theses.json": {
    "rows_path": [
@@ -14783,27 +14823,6 @@
    "bound_source": "cadence(1.0h)",
    "age_source": "generated_at",
    "learned_at": "2026-08-01T19:11:16.745390+00:00"
-  },
-  "data/options-flow.json": {
-   "rows_path": [
-    "summary",
-    "top_25_overall"
-   ],
-   "min_rows": 10,
-   "learned_rows": 15,
-   "required_keys": [
-    "all_qualifying",
-    "duration_s",
-    "generated_at",
-    "method",
-    "schema_version",
-    "stats",
-    "summary"
-   ],
-   "max_age_hours": 12.0,
-   "bound_source": "cadence(0.5h)",
-   "age_source": "generated_at",
-   "learned_at": "2026-08-01T19:11:16.776777+00:00"
   },
   "data/options-gamma.json": {
    "rows_path": null,
@@ -18437,33 +18456,43 @@
    "learned_at": "2026-08-01T19:11:25.061970+00:00"
   },
   "data/source-map.json": {
-   "rows_path": [
-    "economics_agencies"
-   ],
-   "min_rows": 28,
-   "learned_rows": 40,
    "required_keys": [
-    "agency_families",
-    "agency_rows",
-    "distinct_sources",
-    "economics_agencies",
-    "economics_symbols",
+    "schema_version",
+    "engine",
     "generated_at",
-    "harvest_progress",
-    "junk_purged",
+    "input_artifact",
+    "input_status",
+    "publication",
+    "cleaned_sources",
     "known_families",
-    "macro_attributed",
-    "macro_coverage_pct",
-    "macro_unattributed",
-    "marker",
-    "new_sources",
-    "symbols_with_source",
-    "venue_rows"
+    "errors"
    ],
-   "max_age_hours": 54.0,
-   "bound_source": "cadence(24.0h)",
-   "age_source": "generated_at",
-   "learned_at": "2026-08-01T19:11:25.094107+00:00"
+   "required_types": {
+    "$": "object",
+    "publication": "object",
+    "cleaned_sources": "object",
+    "known_families": "object",
+    "errors": "array",
+    "generated_at": "timestamp"
+   },
+   "required_values": {
+    "engine": "justhodl-source-map",
+    "schema_version": "public-source-map.v1",
+    "input_artifact": "data/tv-sources.json",
+    "publication.contains_private_data": false,
+    "publication.scope": "PUBLIC_MARKET_SOURCE_METADATA",
+    "publication.raw_source_text_private": true,
+    "publication.raw_diagnostics_private": true,
+    "input_status": "AVAILABLE"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
   },
   "data/source-utilization.json": {
    "rows_path": null,
@@ -19968,30 +19997,33 @@
    "learned_at": "2026-08-01T19:11:28.712351+00:00"
   },
   "data/themes.json": {
-   "rows_path": [
-    "all_industries_seen"
-   ],
-   "min_rows": 13,
-   "learned_rows": 19,
    "required_keys": [
-    "all_industries_seen",
-    "elapsed_sec",
+    "engine",
+    "version",
     "generated_at",
-    "metadata",
-    "min_tickers_for_theme",
-    "n_active_themes",
-    "n_classified",
-    "n_momentum_leaders",
-    "n_unknown",
-    "schema_version",
+    "as_of_session",
     "themes",
-    "ticker_to_theme",
-    "unclassified"
+    "methodology"
    ],
-   "max_age_hours": 12.0,
-   "bound_source": "cadence(1.0h)",
-   "age_source": "generated_at",
-   "learned_at": "2026-08-01T19:11:28.747029+00:00"
+   "required_types": {
+    "$": "object",
+    "themes": "array",
+    "generated_at": "timestamp"
+   },
+   "required_values": {
+    "engine": "themes"
+   },
+   "rows_path": [
+    "themes"
+   ],
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 78,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "Curated market-map list; classifier dictionary belongs to momentum-themes.json."
   },
   "data/thesis-engine.json": {
    "rows_path": [
@@ -21555,6 +21587,259 @@
    "bound_source": "cadence(24.0h)",
    "age_source": "generated_at",
    "learned_at": "2026-08-01T19:11:32.828338+00:00"
+  },
+  "data/theme-momentum.json": {
+   "required_keys": [
+    "schema_version",
+    "method",
+    "producer",
+    "generated_at",
+    "stats",
+    "summary",
+    "all_themes",
+    "breadth_details"
+   ],
+   "required_types": {
+    "$": "object",
+    "summary": "object",
+    "all_themes": "array",
+    "breadth_details": "object",
+    "generated_at": "timestamp"
+   },
+   "required_values": {
+    "producer": "justhodl-theme-rotation-engine",
+    "method": "theme_rotation_engine_v1",
+    "schema_version": 1
+   },
+   "rows_path": [
+    "all_themes"
+   ],
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 78,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
+  },
+  "data/momentum-themes.json": {
+   "required_keys": [
+    "schema_version",
+    "producer",
+    "generated_at",
+    "themes",
+    "ticker_to_theme",
+    "unclassified",
+    "all_industries_seen",
+    "n_active_themes"
+   ],
+   "required_types": {
+    "$": "object",
+    "themes": "object",
+    "ticker_to_theme": "object",
+    "unclassified": "array",
+    "all_industries_seen": "array",
+    "generated_at": "timestamp"
+   },
+   "required_values": {
+    "producer": "justhodl-theme-classifier",
+    "schema_version": "1.0"
+   },
+   "rows_path": [
+    "all_industries_seen"
+   ],
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 18,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "Zero qualifying momentum names is structurally valid; historical sample size is not an institutional coverage floor."
+  },
+  "data/options-flow-scanner.json": {
+   "required_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "all_qualifying",
+    "summary",
+    "stats"
+   ],
+   "required_types": {
+    "$": "object",
+    "all_qualifying": "array",
+    "summary": "object",
+    "stats": "object",
+    "generated_at": "timestamp"
+   },
+   "required_values": {
+    "schema_version": 1,
+    "method": "options_flow_scanner_v1"
+   },
+   "rows_path": [
+    "all_qualifying"
+   ],
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 78,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
+  },
+  "flow-data.json": {
+   "required_keys": [
+    "success",
+    "data"
+   ],
+   "required_types": {
+    "$": "object",
+    "data": "object"
+   },
+   "required_values": {
+    "success": true
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 78,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": null,
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
+  },
+  "data/bloomberg-report.json": {
+   "required_keys": [
+    "utc",
+    "fred",
+    "stocks",
+    "crypto",
+    "news",
+    "khalid_index",
+    "signals",
+    "sectors",
+    "liquidity",
+    "yield_curve",
+    "stats"
+   ],
+   "required_types": {
+    "$": "object",
+    "fred": "object",
+    "news": "array",
+    "signals": "object",
+    "yield_curve": "array",
+    "utc": "timestamp"
+   },
+   "required_values": {},
+   "rows_path": [
+    "news"
+   ],
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 12,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "utc",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
+  },
+  "calibration/model-latest.json": {
+   "required_keys": [
+    "v",
+    "audit_version",
+    "snapshot_id",
+    "as_of",
+    "calibrated_at",
+    "available_at",
+    "training_end_at",
+    "model_version",
+    "code_version",
+    "weights",
+    "accuracy",
+    "accuracy_meta",
+    "outcome_counts_60d",
+    "summary"
+   ],
+   "required_types": {
+    "$": "object",
+    "weights": "object",
+    "accuracy": "object",
+    "summary": "object",
+    "as_of": "timestamp"
+   },
+   "required_values": {
+    "v": "2.0",
+    "audit_version": "2026-09-09.1"
+   },
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 342,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "as_of",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
+   "review_note": "Availability-stamped model snapshot; zero weights/outcomes are valid. Age is a reviewed weekly-monitor bound, not eligibility for a past decision."
+  },
+  "calibration/latest.json": {
+   "required_keys": [
+    "generated_at",
+    "total_outcomes",
+    "signal_types_tracked",
+    "weights",
+    "accuracy_by_type",
+    "window_accuracy",
+    "window_weights",
+    "recommended_horizon",
+    "khalid_component_weights",
+    "top_performing_signals",
+    "worst_performing_signals",
+    "recommendations"
+   ],
+   "required_types": {
+    "$": "object",
+    "weights": "object",
+    "accuracy_by_type": "object",
+    "recommendations": "array",
+    "generated_at": "timestamp"
+   },
+   "required_values": {},
+   "rows_path": null,
+   "min_rows": 0,
+   "learned_rows": 0,
+   "max_age_hours": 54,
+   "bound_source": "reviewed-source-policy",
+   "timestamp_field": "generated_at",
+   "source_contract": "namespace-audit-2026-09-09.v1",
+   "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
   }
+ },
+ "source_overlay": {
+  "version": "namespace-audit-2026-09-09.v1",
+  "mode": "IN_MEMORY_SOURCE_OVERLAY",
+  "reviewed_keys": [
+   "calibration/latest.json",
+   "calibration/model-latest.json",
+   "data/auction-crisis.json",
+   "data/bloomberg-report.json",
+   "data/ecb-derived.json",
+   "data/ecb-detail.json",
+   "data/ka-analysis.json",
+   "data/ka-metrics.json",
+   "data/khalid-analysis.json",
+   "data/khalid-metrics.json",
+   "data/momentum-themes.json",
+   "data/options-flow-scanner.json",
+   "data/report.json",
+   "data/source-map.json",
+   "data/theme-momentum.json",
+   "data/theme-rotation.json",
+   "data/themes.json",
+   "data/tv-sources.json",
+   "flow-data.json"
+  ],
+  "retired_keys": [
+   "data/options-flow.json"
+  ]
  }
 }

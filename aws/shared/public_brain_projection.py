@@ -356,6 +356,79 @@ def source_map_public(document):
     return out
 
 
+PUBLIC_PROVIDER_METRICS = {"schema_version": "public-provider-metrics.v1",
+                           "diagnostics": "FIXED_CATEGORIES_ONLY", "contains_provider_response_text": False}
+PROVIDER_FAILURE_CODES = frozenset(("PROVIDER_KEY_UNAVAILABLE", "PROVIDER_NO_RESULTS", "PROVIDER_HTTP_ERROR",
+                                    "PROVIDER_REQUEST_FAILED", "PROVIDER_NO_PRICES"))
+
+
+def provider_failure(ticker, code="PROVIDER_REQUEST_FAILED", http_status=None):
+    """A provider failure never returns request URLs, bodies or exception text."""
+    row = {"ticker": ticker if isinstance(ticker, str) and re.fullmatch(r"[A-Za-z0-9:^=./_-]{1,40}", ticker) else None,
+           "error": code if isinstance(code, str) and code in PROVIDER_FAILURE_CODES else "PROVIDER_REQUEST_FAILED"}
+    row["error_code"] = row["error"]
+    if type(http_status) is int and 100 <= http_status <= 599:
+        row["http_status"] = http_status
+    return row
+
+
+def public_provider_diagnostics(document):
+    """Remove diagnostic channels while retaining successful analytic fields.
+
+    Used by the exact ETF-flow/macro producers, their HTTP responses and migration.
+    The historical bug stored arbitrary errors only inside failed metric rows.
+    Those rows retain typed partial observations and ticker, never raw diagnostics.
+    """
+    diagnostic_fields = {"body", "raw_sample", "raw_status", "request_id", "request_url", "response", "response_body",
+                         "raw_response", "headers", "exception", "traceback", "stack_trace", "error_message"}
+    def clean(value):
+        if isinstance(value, list):
+            return [clean(row) for row in value]
+        if not isinstance(value, dict):
+            return value
+        failed = bool(value.get("error") or value.get("error_code"))
+        if failed:
+            error = value.get("error_code") or value.get("error")
+            http_status = value.get("http_status")
+            if isinstance(error, str) and re.fullmatch(r"http_[1-5][0-9]{2}", error):
+                http_status = int(error[5:]); code = "PROVIDER_HTTP_ERROR"
+            elif isinstance(error, str) and error in PROVIDER_FAILURE_CODES:
+                code = error
+            elif error == "no_results":
+                code = "PROVIDER_NO_RESULTS"
+            elif error == "POLYGON_KEY not set":
+                code = "PROVIDER_KEY_UNAVAILABLE"
+            else:
+                code = "PROVIDER_REQUEST_FAILED"
+            out = provider_failure(value.get("ticker"), code, http_status)
+            # Preserve actual partial scalar observations, including null/zero.
+            numeric = {"latest_close", "latest_volume", "n_bars", "nav", "shares_outstanding", "aum_usd",
+                       "daily_flow_usd", "fund_flow_5d_usd", "fund_flow_21d_usd", "flow_5d_usd", "flow_21d_usd",
+                       "pct_aum_daily", "pct_aum_5d", "pct_aum_21d", "ret_1d_pct", "ret_5d_pct", "ret_21d_pct",
+                       "ret_63d_pct", "ret_252d_pct", "flow_zscore_90d", "n_history_points"}
+            out.update({key: value[key] for key in numeric if key in value and (value[key] is None or
+                        type(value[key]) in (int, float) and math.isfinite(value[key]))})
+            if value.get("signal_label") == "DATA_MISSING":
+                out["signal_label"] = "DATA_MISSING"
+            if value.get("metric_status") in ("missing", "no_closes"):
+                out["metric_status"] = value["metric_status"]
+            return out
+        return {key: clean(child) for key, child in value.items() if key not in diagnostic_fields}
+    return clean(document)
+
+
+def etf_flows_public(document):
+    out = public_provider_diagnostics(document)
+    out["publication"] = dict(PUBLIC_PROVIDER_METRICS)
+    return out
+
+
+def macro_regime_public(document):
+    out = public_provider_diagnostics(document)
+    out["publication"] = dict(PUBLIC_PROVIDER_METRICS)
+    return out
+
+
 def sanitize_public(key, document, *, vault=None):
     """Return a copy; canonical and historical root-alias keys share one contract."""
     if not isinstance(document, dict):
@@ -370,6 +443,10 @@ def sanitize_public(key, document, *, vault=None):
         out = fleet_public(document)
     elif name == "_freshness-monitor.json":
         out = freshness_public(document)
+    elif key in {"etf-flows/daily.json", "data/etf-flows/daily.json"} or key.removeprefix("data/").startswith("etf-flows/history/"):
+        out = etf_flows_public(document)
+    elif key in {"macro/regime.json", "data/macro/regime.json"} or key.removeprefix("data/").startswith("macro/history/"):
+        out = macro_regime_public(document)
     elif name == "brain-compiler.json":
         for row in out.get("claims", []):
             row.pop("claim", None)

@@ -332,10 +332,11 @@ const SANITIZED_ARTIFACTS = new Set([
   'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
   'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json', 'vol-regime.json',
   'wealth-plan-snapshot.json', 'tax-plan-snapshot.json', '_health/fleet.json', '_fleet-monitor.json', '_freshness-monitor.json', 'source-map.json',
+  'etf-flows/daily.json', 'macro/regime.json',
 ]);
 function sanitizedArtifact(path) {
   const normalized = path.replace(/^data\//, '');
-  return SANITIZED_ARTIFACTS.has(normalized) || /^equity-research\/.+\.json$/.test(normalized);
+  return SANITIZED_ARTIFACTS.has(normalized) || /^(?:equity-research|etf-flows\/history|macro\/history)\/.+\.json$/.test(normalized);
 }
 function artifactUpstreamUrl(path) {
   return `${BUCKET_BASE}/${path}` + (sanitizedArtifact(path) ? '?audit_privacy=20260909' : '');

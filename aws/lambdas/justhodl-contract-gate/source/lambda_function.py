@@ -49,9 +49,12 @@ from datetime import datetime, timezone
 
 import boto3
 from botocore.config import Config
+from private_artifact import is_private_source
+from reviewed_contracts import (apply_contracts, apply_producers, artifact_function_name,
+                                load_overlay, validate_fields)
 
-VERSION = "1.3.0"
-MARKER = "contract-gate v1.3.0 ops4254 weekday-aware"
+VERSION = "1.4.0"
+MARKER = "contract-gate v1.4.0 reviewed namespace contracts"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CONTRACTS_KEY = "config/engine-contracts.json"
@@ -67,7 +70,7 @@ SKIP = {"contract-violations.json", "fleet-integrity.json",
         "schedule-drift.json", "engine-manifest.json"}
 
 SEV = {"MISSING": 1, "UNPARSEABLE": 1, "ROW_COLLAPSE": 1,
-       "MISSING_KEYS": 1, "STALE": 2}
+       "MISSING_KEYS": 1, "FIELD_TYPE": 1, "FIELD_VALUE": 1, "STALE": 2}
 
 
 def now():
@@ -147,8 +150,9 @@ def rows_at(doc, path):
     return len(cur) if isinstance(cur, list) else None
 
 
-def doc_age_h(doc, fallback_modified):
-    for k in ("generated_at", "captured_at", "asof", "updated_at", "ts"):
+def doc_age_h(doc, fallback_modified, preferred_field=None):
+    for k in ([preferred_field] if preferred_field else
+              ("generated_at", "captured_at", "asof", "updated_at", "ts")):
         v = (doc.get(k) if isinstance(doc, dict) else None)
         if isinstance(v, str) and len(v) >= 10:
             try:
@@ -265,7 +269,7 @@ def _staleness_bound(cad_tuple, age_h):
 def _load_cadences():
     """artifact key -> cadence hours, via producers map + manifest."""
     try:
-        prod = json.loads(get_json_raw(PRODUCERS_KEY))
+        prod = apply_producers(json.loads(get_json_raw(PRODUCERS_KEY)))
     except Exception:
         return {}
     try:
@@ -280,7 +284,7 @@ def _load_cadences():
         if ct is None:
             continue
         for t in r.get("targets") or []:
-            fn = (t.get("arn") or "").split(":")[-1]
+            fn = artifact_function_name(t.get("arn"))
             if fn:
                 prev = fn_cad.get(fn)
                 if prev is None or ct[0] < prev[0]:
@@ -288,8 +292,8 @@ def _load_cadences():
     out = {}
     for key, entry in (prod.get("producers") or {}).items():
         if isinstance(entry, dict):
-            fns = entry.get("writers") or entry.get("readers") \
-                or entry.get("mentions") or []
+            fns = entry.get("writers") or ([] if entry.get("authoritative_writers") else
+                  entry.get("readers") or entry.get("mentions") or [])
         else:
             fns = entry
         cads = [fn_cad[f] for f in fns if f in fn_cad]
@@ -354,10 +358,12 @@ def learn():
 
 def check():
     try:
-        reg = get_json(CONTRACTS_KEY)
+        reg = apply_contracts(get_json(CONTRACTS_KEY))
     except Exception as e:
-        return {"ok": False, "error": "no contract registry: %s" % str(e)[:90]}
-    contracts = reg.get("contracts", {})
+        return {"ok": False, "error": "CONTRACT_REGISTRY_UNAVAILABLE"}
+    all_contracts = reg.get("contracts", {})
+    private_excluded = sum(is_private_source(key) for key in all_contracts)
+    contracts = {key: value for key, value in all_contracts.items() if not is_private_source(key)}
     # Explicit, reviewed exemptions — one-shot reports and event-driven
     # state files whose silence is their normal condition. An exemption
     # ledger keeps the violations feed meaning "something is wrong"
@@ -369,7 +375,16 @@ def check():
             "config/contract-exemptions.json")).get("exempt") or {}
     except Exception:
         exempt = {}
-    live = {a["key"]: a for a in list_artifacts()}
+    live = {a["key"]: a for a in list_artifacts() if not is_private_source(a["key"])}
+    # Named root/calibration outputs do not appear in top-level data/ discovery.
+    # Observe only reviewed exact keys; never expand into private/history trees.
+    for key in load_overlay()["entries"]:
+        if key not in live and key in contracts:
+            try:
+                head = s3.head_object(Bucket=BUCKET, Key=key)
+                live[key] = {"key": key, "size": head.get("ContentLength"), "modified": head.get("LastModified")}
+            except Exception:
+                pass  # Existing MISSING check reports it; no registry mutation.
     violations = []
     rowcounts = {}
     exempted_hits = []
@@ -398,8 +413,10 @@ def check():
         try:
             doc = get_json(key)
         except Exception as e:
-            v("UNPARSEABLE", key, "will not parse: %s" % str(e)[:80])
+            v("UNPARSEABLE", key, "ARTIFACT_READ_OR_PARSE_FAILED")
             continue
+        for cls, detail in validate_fields(doc, c):
+            v(cls, key, detail)
         n = rows_at(doc, c.get("rows_path") or ["$"])
         if n is not None:
             rowcounts[key] = n
@@ -415,7 +432,7 @@ def check():
             if missing:
                 v("MISSING_KEYS", key,
                   "absent top-level keys: %s" % ", ".join(missing[:8]))
-        age_h, _ = doc_age_h(doc, a["modified"])
+        age_h, _ = doc_age_h(doc, a["modified"], c.get("timestamp_field"))
         if age_h is not None and age_h > c.get("max_age_hours", 48):
             v("STALE", key, "%.0fh old, bound is %.0fh"
               % (age_h, c.get("max_age_hours", 48)))
@@ -445,17 +462,19 @@ def check():
     uncontracted = sorted(set(live) - set(contracts))
     violations.sort(key=lambda x: (x["sev"], x["cls"], x["artifact"]))
     doc = {"version": VERSION, "marker": MARKER,
+           "source_overlay": reg.get("source_overlay"),
            "generated_at": now().isoformat(),
            "n_contracts": len(contracts), "n_artifacts": len(live),
+           "private_contracts_excluded": private_excluded, "scope": "PUBLIC_ENGINE_OUTPUTS",
            "n_violations": len(violations),
            "sev1": sum(1 for x in violations if x["sev"] == 1),
            "sev2": sum(1 for x in violations if x["sev"] == 2),
            "by_class": {},
            "n_exempted": len(exempted_hits),
            "exempted": sorted(exempted_hits),
-           "uncontracted": uncontracted[:100],
+           "uncontracted": uncontracted,
            "n_uncontracted": len(uncontracted),
-           "violations": violations[:400]}
+           "violations": violations}
     for x in violations:
         doc["by_class"][x["cls"]] = doc["by_class"].get(x["cls"], 0) + 1
     s3.put_object(Bucket=BUCKET, Key=VIOLATIONS_KEY,

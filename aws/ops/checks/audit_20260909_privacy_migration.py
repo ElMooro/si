@@ -38,7 +38,8 @@ PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "no
               "pm-decision", "behavior-mirror", "ai-brief", "history-api", "watchlist", "vol-regime", "trade-journal", "ai-brief-router")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog",
-             "wealth-plan", "tax-plan", "fleet-monitor", "fleet-error-monitor", "fleet-freshness-monitor", "source-map")
+             "wealth-plan", "tax-plan", "fleet-monitor", "fleet-error-monitor", "fleet-freshness-monitor", "source-map",
+             "etf-fund-flows", "macro-regime")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
 
@@ -492,14 +493,14 @@ class Migration:
             alias = key.removeprefix("data/")
             if alias != key:
                 self.scrub(alias, vault=vault, optional=True)
-        count = 0
         for prefix in SANITIZED_PREFIXES:
+            count = 0
             for page in self.clients["s3"].get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=prefix):
                 for obj in page.get("Contents", []):
                     if obj["Key"].endswith(".json"):
                         self.scrub(obj["Key"])
                         count += 1
-        self.record("equity_research_scrub", count=count)
+            self.record("public_family_scrub", prefix=prefix, count=count)
         _, setups = self.read_object("data/best-setups.json")
         allowed = {r.get("ticker") for r in setups.get("top_setups", []) if isinstance(r, dict)}
         siblings = {"my-brief": brief_public(private["my-brief"]), "devils-advocate": devils_public(private["devils-advocate"], allowed),
