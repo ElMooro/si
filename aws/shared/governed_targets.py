@@ -7,6 +7,7 @@ GOVERNED_FUNCTIONS = frozenset({
     "justhodl-backtest-engine", "justhodl-calibration-snapshotter",
     "justhodl-engine-fusion", "justhodl-katlin", "justhodl-khalid", "justhodl-khalid-risk",
     "justhodl-portfolio-snapshot", "justhodl-research-backtest",
+    "justhodl-public-archive-index",
     "justhodl-risk-gate", "justhodl-risk-sizer",
 })
 

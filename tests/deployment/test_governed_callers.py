@@ -18,6 +18,7 @@ EXPECTED = {
     'justhodl-backtest-engine', 'justhodl-calibration-snapshotter',
     'justhodl-engine-fusion', 'justhodl-katlin', 'justhodl-khalid', 'justhodl-khalid-risk',
     'justhodl-portfolio-snapshot', 'justhodl-research-backtest',
+    'justhodl-public-archive-index',
     'justhodl-risk-gate', 'justhodl-risk-sizer',
 }
 ARN = 'arn:aws:lambda:us-east-1:123456789012:function:'
@@ -59,7 +60,7 @@ class EventRecorder:
             {'Name':'hourly','State':'ENABLED','ScheduleExpression':'rate(1 hour)'}]}]))
 
 
-def test_governed_allowlist_has_exact_ten_release_functions():
+def test_governed_allowlist_has_exact_eleven_release_functions():
     assert HELPER['GOVERNED_FUNCTIONS'] == EXPECTED
 
 
@@ -162,4 +163,3 @@ def test_actual_liveness_handler_repair_and_invoke_route_live():
     assert lam.calls[0]['FunctionName']=='justhodl-risk-gate:live'
     assert events.targets[0]['Arn']==ARN+'justhodl-risk-gate:live'
     assert writes and json.loads(writes[0]['Body'])['n_revived']==1
-
