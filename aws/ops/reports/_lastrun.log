@@ -1,10 +1,8 @@
-executing-against: d8b369c80a7eb79df63c91d25286c7df131e3cb9
+executing-against: dca53978594a22a040f867bd5482d56a0b7b8723
 <unknown>:32: SyntaxWarning: invalid escape sequence '\$'
 <unknown>:45: SyntaxWarning: invalid escape sequence '\$'
 <unknown>:45: SyntaxWarning: invalid escape sequence '\$'
 {"ops": 5231, "phase": "package_parity", "matched": 135, "pending": 0}
 {"ops": 5231, "phase": "publication", "stage": ["backtest-engine", "research-backtest", "options-flow", "options-flow-scanner", "bloomberg-v8", "ecb-derived"], "pending": 1}
-{"ops": 5231, "ok": false, "status": "PENDING_SCHEDULED_OUTPUTS", "stage": "final", "code_engines": 135, "pending_outputs": 68, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
+{"ops": 5231, "ok": false, "status": "PENDING_SCHEDULED_OUTPUTS", "stage": "final", "code_engines": 135, "pending_outputs": 67, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
 ❌ OPS-FAIL: aws/ops/pending/ops_5231_audit_release_verify.py
-{"ops": 5231, "phase": "package_parity", "matched": 2, "pending": 0}
-{"ops": 5285, "ok": true, "status": "VERIFIED"}
