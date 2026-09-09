@@ -1,33 +1,33 @@
-executing-against: df0b66a94681d0abd465bd2ff070f24972a13e62
+executing-against: f19e76dfbef989109cd99404b5863f127574f4e5
 ops 5221 -- audit 2026-09-08 Release A2 gate: fleet credential sweep
-[23:29:41] 329 engines read credentials through managed_secret
+[00:44:53] 329 engines read credentials through managed_secret
 ── 1. redeploy state ──
-[23:30:28]    waiting: 327 not yet redeployed (47s)
-[23:33:12]    waiting: 320 not yet redeployed (211s)
-[23:35:56]    waiting: 315 not yet redeployed (375s)
-[23:38:39]    waiting: 306 not yet redeployed (537s)
-[23:41:22]    waiting: 298 not yet redeployed (700s)
-[23:44:02]    waiting: 292 not yet redeployed (860s)
-[23:46:44]    waiting: 285 not yet redeployed (1022s)
-[23:49:23]    waiting: 279 not yet redeployed (1182s)
-[23:52:04]    waiting: 273 not yet redeployed (1342s)
-[23:54:41]    waiting: 267 not yet redeployed (1500s)
-[23:57:20]    waiting: 258 not yet redeployed (1658s)
-[23:59:56]    waiting: 253 not yet redeployed (1814s)
-[00:02:32]    waiting: 245 not yet redeployed (1971s)
-[00:05:06]    waiting: 236 not yet redeployed (2125s)
-[00:07:40]    waiting: 231 not yet redeployed (2278s)
-[00:10:12]    waiting: 222 not yet redeployed (2431s)
-[00:12:44]    waiting: 217 not yet redeployed (2583s)
-[00:15:14]    waiting: 210 not yet redeployed (2733s)
-[00:17:44]    waiting: 210 not yet redeployed (2882s)
-[00:20:13]    waiting: 210 not yet redeployed (3032s)
-[00:22:44]    waiting: 210 not yet redeployed (3182s)
-[00:25:13]    waiting: 210 not yet redeployed (3331s)
-[00:27:42]    waiting: 210 not yet redeployed (3480s)
-[00:30:11]    waiting: 208 not yet redeployed (3629s)
-[00:32:40]    waiting: 208 not yet redeployed (3779s)
-[00:35:10]    waiting: 208 not yet redeployed (3928s)
-[00:37:40]    waiting: 208 not yet redeployed (4079s)
-[00:40:09]    waiting: 208 not yet redeployed (4228s)
-[00:42:39]    waiting: 208 not yet redeployed (4377s)
+[00:45:38]    waiting: 4 not yet redeployed (44s)
+[00:47:39]    waiting: 4 not yet redeployed (165s)
+[00:49:39]    waiting: 4 not yet redeployed (285s)
+[00:51:40]    waiting: 4 not yet redeployed (406s)
+[00:53:40]    waiting: 4 not yet redeployed (527s)
+[00:55:41]    waiting: 4 not yet redeployed (647s)
+[00:57:41]    waiting: 4 not yet redeployed (768s)
+[00:59:42]    waiting: 4 not yet redeployed (888s)
+[01:01:43]    waiting: 4 not yet redeployed (1009s)
+[01:03:43]    waiting: 4 not yet redeployed (1129s)
+[01:05:44]    waiting: 4 not yet redeployed (1250s)
+[01:07:44]    waiting: 4 not yet redeployed (1370s)
+[01:09:45]    waiting: 4 not yet redeployed (1491s)
+[01:11:45]    waiting: 4 not yet redeployed (1612s)
+[01:13:46]    waiting: 4 not yet redeployed (1732s)
+── 2. log scan for managed_secret failures since the push ──
+[01:17:38] scanned 329 log groups
+── 3. residual literals ──
+── verdict ──
+[01:17:39] ✗ 4 engines not redeployed after 1852s: justhodl-activity-nowcast, justhodl-ai-chat, justhodl-credit-stress, justhodl-volatility-squeeze-hunter
+[01:17:39] ✗ fedliquidityapi: [managed_secret] /justhodl/fred/api-key unavailable: An error occurred (AccessDeniedException) when calling the GetParameter operatio
+
+[01:17:39] ✗ fmp-stock-picks-agent: [managed_secret] /justhodl/fred/api-key unavailable: An error occurred (AccessDeniedException) when calling the GetParameter operatio
+
+[01:17:39] ✗ 1 files still carry a live credential literal: ['cloudflare/workers/justhodl-data-proxy/src/index.js']
+[01:17:39] RED: 4 failure(s)
+
+→ Report written to aws/ops/reports/latest/ops_5221_key_sweep_gate.md
+❌ OPS-FAIL: aws/ops/pending/ops_5221_key_sweep_gate.py
