@@ -90,6 +90,13 @@ class SnifferContextTests(unittest.TestCase):
         scope, reads, writes, alerts = fixture()
         result = scope["generate_one_brief"]("unreviewed-alias", deepcopy(REGISTRY[CONTEXTS[0]]), {})
         self.assertEqual(result["status"], "ERR_CONFIG"); self.assertFalse(reads); self.assertFalse(writes)
+        for context in CONTEXTS:
+            for suffix in ("", "-history"):
+                result = scope["generate_one_brief"]("other-regime-context", {
+                    "brief_type":"regime", "output_key":context + suffix,
+                    "primary_feed":"data/brain.json"}, {})
+                self.assertEqual(result["status"], "ERR_CONFIG")
+                self.assertFalse(reads); self.assertFalse(writes)
 
 
 if __name__ == "__main__": unittest.main()

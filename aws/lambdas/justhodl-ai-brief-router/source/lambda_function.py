@@ -3693,7 +3693,9 @@ DET_FALLBACK_V2 = True  # ops 3435 gate marker
 
 
 def generate_one_brief(ctx_id, cfg, episode_ref):
-    is_sniffer = ctx_id in SNIFFER_CONTEXTS or cfg.get("brief_type") in ("frontrun", "macro_frontrun")
+    reserved_outputs = set(SNIFFER_CONTEXTS) | {key + "-history" for key in SNIFFER_CONTEXTS}
+    is_sniffer = (ctx_id in SNIFFER_CONTEXTS or cfg.get("brief_type") in ("frontrun", "macro_frontrun")
+                  or cfg.get("output_key") in reserved_outputs)
     if is_sniffer and not valid_sniffer_config(ctx_id, cfg):
         return sniffer_config_error(ctx_id)
     r = _generate_one_brief_core(ctx_id, cfg, episode_ref)
