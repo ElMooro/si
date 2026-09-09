@@ -6,9 +6,9 @@
   "completion_scope": "EXPLICIT_FINAL_RELEASE",
   "private_payloads_reported": 0,
   "raw_lambda_responses_reported": 0,
-  "expected_release_sha": "cd425e4705c0b284b19f7732dd0e4d44099ac4fd",
-  "checker_checkout_sha": "dca53978594a22a040f867bd5482d56a0b7b8723",
-  "ops_target_sha": "dca53978594a22a040f867bd5482d56a0b7b8723",
+  "expected_release_sha": "65eedef82a958b9f855090a09e004a0a07ea83dd",
+  "checker_checkout_sha": "adfe04ff06e861218c361952279c7cbef92c4b95",
+  "ops_target_sha": "adfe04ff06e861218c361952279c7cbef92c4b95",
   "code": {
     "alphavantage-market-agent": {
       "function": "alphavantage-market-agent",
@@ -1380,6 +1380,33 @@
       "state": "Active",
       "update_status": "Successful",
       "last_modified": "2026-09-09T05:09:32.000+0000",
+      "handler": "lambda_function.lambda_handler",
+      "configuration_mismatches": [],
+      "configuration_differences": []
+    },
+    "justhodl-cot-extremes-scanner": {
+      "function": "justhodl-cot-extremes-scanner",
+      "qualifier": "$LATEST",
+      "files": [
+        {
+          "member": "cot_data.py",
+          "expected_sha256": "fa9cfbe81cf47595f891814164644a0d9388277b163af9d61177355b0d37f12d",
+          "actual_sha256": "fa9cfbe81cf47595f891814164644a0d9388277b163af9d61177355b0d37f12d",
+          "match": true
+        },
+        {
+          "member": "lambda_function.py",
+          "expected_sha256": "42e74f5a58b4cbfb2d501b08ba5d7c4ccd170f0a5f1197a6a335cbdf31b01204",
+          "actual_sha256": "42e74f5a58b4cbfb2d501b08ba5d7c4ccd170f0a5f1197a6a335cbdf31b01204",
+          "match": true
+        }
+      ],
+      "pass": true,
+      "version": "$LATEST",
+      "code_sha256": "7nHaEc6UKIAtwRTA2bX/BMQwyPlmbsn41TERBnhASHc=",
+      "state": "Active",
+      "update_status": "Successful",
+      "last_modified": "2026-09-09T17:57:42.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5029,7 +5056,7 @@
       {
         "key": "data/ka-metrics.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.746238+00:00",
+        "observed_at": "2026-09-09T17:59:06.307998+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 12815,
@@ -5046,7 +5073,7 @@
       {
         "key": "data/ka-analysis.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:02.772152+00:00",
+        "observed_at": "2026-09-09T17:59:06.342040+00:00",
         "errors": [],
         "requirements": [
           "CURRENT_MODEL_ANALYSIS_UNAVAILABLE",
@@ -5070,7 +5097,7 @@
       {
         "key": "data/khalid-metrics.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.447343+00:00",
+        "observed_at": "2026-09-09T17:59:07.102448+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 12708,
@@ -5087,7 +5114,7 @@
       {
         "key": "data/khalid-analysis.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:03.478817+00:00",
+        "observed_at": "2026-09-09T17:59:07.135209+00:00",
         "errors": [],
         "requirements": [
           "CURRENT_MODEL_ANALYSIS_UNAVAILABLE",
@@ -5111,7 +5138,7 @@
       {
         "key": "data/tradingview.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.784005+00:00",
+        "observed_at": "2026-09-09T17:59:12.064684+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 3605726,
@@ -5130,7 +5157,7 @@
       {
         "key": "data/short-interest.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.098326+00:00",
+        "observed_at": "2026-09-09T17:59:11.156759+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 3574140,
@@ -5151,7 +5178,7 @@
       {
         "key": "data/liquidity-profile.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.613734+00:00",
+        "observed_at": "2026-09-09T17:59:07.303927+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 245544,
@@ -5170,7 +5197,7 @@
       {
         "key": "data/etf-true-flows.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.068847+00:00",
+        "observed_at": "2026-09-09T17:59:05.582579+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 178366,
@@ -5189,7 +5216,7 @@
       {
         "key": "calibration/model-latest.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.707001+00:00",
+        "observed_at": "2026-09-09T17:59:03.985617+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "immutable_model_snapshot_with_availability",
@@ -5210,7 +5237,7 @@
       {
         "key": "data/source-map.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:06.274850+00:00",
+        "observed_at": "2026-09-09T17:59:11.303062+00:00",
         "errors": [],
         "requirements": [
           "RAW_SOURCE_TEXT_AND_DIAGNOSTICS_REQUIRE_AUTHENTICATED_ACCESS"
@@ -5233,7 +5260,7 @@
       {
         "key": "data/factor-risk.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.382946+00:00",
+        "observed_at": "2026-09-09T17:59:05.968010+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 303970,
@@ -5252,7 +5279,7 @@
       {
         "key": "data/liquidity-capacity.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.528784+00:00",
+        "observed_at": "2026-09-09T17:59:07.199319+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 259456,
@@ -5271,7 +5298,7 @@
       {
         "key": "data/conviction.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.060960+00:00",
+        "observed_at": "2026-09-09T17:59:04.385093+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 13514,
@@ -5290,13 +5317,13 @@
       {
         "key": "data/risk-gate.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.859386+00:00",
+        "observed_at": "2026-09-09T17:59:10.778435+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 39229,
-        "last_modified": "2026-09-09T16:40:20+00:00",
-        "generated_at": "2026-09-09T16:40:19.280215+00:00",
-        "version_id": "sC.8Ug6ySaa5BaO_y5.jHo6_Jo4jrh2y",
+        "bytes": 39114,
+        "last_modified": "2026-09-09T17:40:27+00:00",
+        "generated_at": "2026-09-09T17:40:26.901525+00:00",
+        "version_id": "SIxnKJswRGbSV3gU1YejOGH7Q8y.Jkq0",
         "schema_version": "risk-gate.v2.5",
         "producer_version": "2.5",
         "producer": "justhodl-risk-gate",
@@ -5310,7 +5337,7 @@
       {
         "key": "data/engine-fusion.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.667861+00:00",
+        "observed_at": "2026-09-09T17:59:05.076591+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 13691,
@@ -5330,7 +5357,7 @@
       {
         "key": "data/khalid-risk.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.502430+00:00",
+        "observed_at": "2026-09-09T17:59:07.165665+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 19851,
@@ -5350,15 +5377,15 @@
       {
         "key": "portfolio/snapshot.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.339724+00:00",
+        "observed_at": "2026-09-09T17:59:08.580831+00:00",
         "errors": [],
         "requirements": [
           "BROKER_RECONCILED_CAPITAL_LEDGER_REQUIRED"
         ],
         "bytes": 1215,
-        "last_modified": "2026-09-09T16:40:48+00:00",
-        "generated_at": "2026-09-09T16:40:47.389018+00:00",
-        "version_id": "HIk7_tKMcGY_lZbojGjtvUiUhHuH5tJQ",
+        "last_modified": "2026-09-09T17:40:48+00:00",
+        "generated_at": "2026-09-09T17:40:47.533816+00:00",
+        "version_id": "MF2rlBA4OIR03jnL6h_tmLkGkWDmLv7n",
         "schema_version": null,
         "producer_version": "2026-09-09.1",
         "producer": null,
@@ -5371,13 +5398,13 @@
       {
         "key": "data/katlin.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.799419+00:00",
+        "observed_at": "2026-09-09T17:59:06.372259+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 2763862,
-        "last_modified": "2026-09-09T17:22:42+00:00",
-        "generated_at": "2026-09-09T17:22:39.609322+00:00",
-        "version_id": "iROTjbtd2L44wrv2Xt_r_UY150ntWhQB",
+        "bytes": 2764019,
+        "last_modified": "2026-09-09T17:52:42+00:00",
+        "generated_at": "2026-09-09T17:52:39.761821+00:00",
+        "version_id": "FtbVd..BuBCCv0nOJtDFubdM6Nq48DM4",
         "schema_version": null,
         "producer_version": "2.5.1",
         "producer": "justhodl-katlin",
@@ -5391,7 +5418,7 @@
       {
         "key": "data/risk-sizer.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.894422+00:00",
+        "observed_at": "2026-09-09T17:59:10.814565+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 43600,
@@ -5409,7 +5436,7 @@
       {
         "key": "risk/recommendations.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.973935+00:00",
+        "observed_at": "2026-09-09T17:59:10.924740+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 43600,
@@ -5428,7 +5455,7 @@
       {
         "key": "data/squeeze-fuel.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:06.300080+00:00",
+        "observed_at": "2026-09-09T17:59:11.357837+00:00",
         "errors": [],
         "requirements": [
           "DATED_POSITIONING_UNAVAILABLE"
@@ -5451,7 +5478,7 @@
       {
         "key": "data/trade-tickets.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.753921+00:00",
+        "observed_at": "2026-09-09T17:59:12.022919+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 1159,
@@ -5472,7 +5499,7 @@
       {
         "key": "data/crypto-basis.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:01.143485+00:00",
+        "observed_at": "2026-09-09T17:59:04.531567+00:00",
         "errors": [],
         "requirements": [
           "OBSERVED_PERPETUAL_FUNDING_UNAVAILABLE"
@@ -5493,7 +5520,7 @@
       {
         "key": "data/firm-risk-board.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.413216+00:00",
+        "observed_at": "2026-09-09T17:59:06.004198+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 571257,
@@ -5512,7 +5539,7 @@
       {
         "key": "data/sizing.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.187350+00:00",
+        "observed_at": "2026-09-09T17:59:11.250167+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 469503,
@@ -5531,7 +5558,7 @@
       {
         "key": "backtest/results.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:00.183332+00:00",
+        "observed_at": "2026-09-09T17:59:03.242095+00:00",
         "errors": [],
         "requirements": [
           "TRADABLE_PORTFOLIO_NAV_AND_VINTAGES_REQUIRED"
@@ -5553,7 +5580,7 @@
       {
         "key": "analytics/backtest_results.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.700088+00:00",
+        "observed_at": "2026-09-09T17:59:10.548653+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 5272423,
@@ -5572,7 +5599,7 @@
       {
         "key": "flow-data.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.113102+00:00",
+        "observed_at": "2026-09-09T17:59:08.119257+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "options_flow_and_sentiment_v3_nested_market_data",
@@ -5593,7 +5620,7 @@
       {
         "key": "data/options-flow-scanner.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.140244+00:00",
+        "observed_at": "2026-09-09T17:59:08.181674+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "options_flow_scanner_v1_ranked_equities",
@@ -5614,7 +5641,7 @@
       {
         "key": "data/bloomberg-report.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:00.265385+00:00",
+        "observed_at": "2026-09-09T17:59:03.344493+00:00",
         "errors": [],
         "requirements": [
           "BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE",
@@ -5622,16 +5649,15 @@
         ],
         "expected_output_contract": "bloomberg_v8_market_report",
         "expected_producer": "justhodl-bloomberg-v8",
-        "bytes": 3001952,
-        "last_modified": "2026-09-09T17:28:44+00:00",
-        "generated_at": "2026-09-09T17:28:38.665532+00:00",
-        "version_id": "9vB6jyN1sYf2GyjXCDulgvTp1hITb38t",
+        "bytes": 3001956,
+        "last_modified": "2026-09-09T17:53:18+00:00",
+        "generated_at": "2026-09-09T17:53:12.809807+00:00",
+        "version_id": "14nzP7tRRvQ6N2EMmqLlI1IIpcHvxhL.",
         "schema_version": "bloomberg-report.v8.1",
         "producer_version": null,
         "producer": "justhodl-bloomberg-v8",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T17:28:37.882096+00:00",
         "counts": {}
       }
     ],
@@ -5639,7 +5665,7 @@
       {
         "key": "data/ecb-derived.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.577906+00:00",
+        "observed_at": "2026-09-09T17:59:05.004915+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "ecb_derived_3.4_indicators",
@@ -5656,17 +5682,47 @@
         "counts": {}
       }
     ],
+    "justhodl-cot-extremes-scanner": [
+      {
+        "key": "cot/extremes/current.json",
+        "status": "VERIFIED_BLOCKED_REQUIREMENTS",
+        "observed_at": "2026-09-09T17:59:04.418561+00:00",
+        "errors": [],
+        "requirements": [
+          "COT_CURRENT_VINTAGE_IS_NOT_POINT_IN_TIME_HISTORY",
+          "COT_PROVIDER_OR_HISTORY_COVERAGE_INCOMPLETE",
+          "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
+        ],
+        "expected_output_contract": "cot-extremes.v2_complete_calculation_histories",
+        "expected_producer": "justhodl-cot-extremes-scanner",
+        "bytes": 2049241,
+        "last_modified": "2026-09-09T17:58:49+00:00",
+        "generated_at": "2026-09-09T17:58:41.718491+00:00",
+        "version_id": "u9Lxng990QvhjElPSBln8ZO60Ua2_zwa",
+        "schema_version": "cot-extremes.v2",
+        "producer_version": null,
+        "producer": "justhodl-cot-extremes-scanner",
+        "source_code_version_marker_present": false,
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "required_generation_not_before": "2026-09-09T17:58:40.904859+00:00",
+        "counts": {
+          "contracts": 36,
+          "histories": 36,
+          "history_rows": 9300
+        }
+      }
+    ],
     "justhodl-whats-changed": [
       {
         "key": "data/whats-changed.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:07.160599+00:00",
+        "observed_at": "2026-09-09T17:59:12.586901+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 2515,
-        "last_modified": "2026-09-09T17:00:50+00:00",
-        "generated_at": "2026-09-09T17:00:48.804647+00:00",
-        "version_id": "jRMtjVTi8.5AcccXbfjyDwfyeg.Ckn9T",
+        "bytes": 2514,
+        "last_modified": "2026-09-09T17:53:21+00:00",
+        "generated_at": "2026-09-09T17:53:19.349027+00:00",
+        "version_id": "V6IFZ4PkmTEFnEMzL3nigGdAZvESRl8p",
         "schema_version": null,
         "producer_version": null,
         "producer": null,
@@ -5677,7 +5733,7 @@
       {
         "key": "data/snapshots-index.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:07.190579+00:00",
+        "observed_at": "2026-09-09T17:59:12.630902+00:00",
         "errors": [],
         "requirements": [
           "MUTABLE_DAILY_COPIES_NOT_POINT_IN_TIME_CERTIFIED"
@@ -5685,9 +5741,9 @@
         "expected_output_contract": "daily-snapshot-index.v1_source_owned_mutable_copies",
         "expected_producer": "justhodl-whats-changed",
         "bytes": 365520,
-        "last_modified": "2026-09-09T17:00:50+00:00",
-        "generated_at": "2026-09-09T17:00:49.439436+00:00",
-        "version_id": "cpEzO1P2GVmI6_5awRrX_iSXjSG4n9fd",
+        "last_modified": "2026-09-09T17:53:20+00:00",
+        "generated_at": "2026-09-09T17:53:19.881302+00:00",
+        "version_id": "uo.wSFY3LxyQgjKiXurxTF7wZctQYizz",
         "schema_version": "daily-snapshot-index.v1",
         "producer_version": null,
         "producer": null,
@@ -5703,15 +5759,15 @@
       {
         "key": "data/archive-indexes/catalog.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.422628+00:00",
+        "observed_at": "2026-09-09T17:59:08.688043+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 4600,
-        "last_modified": "2026-09-09T17:16:01+00:00",
-        "generated_at": "2026-09-09T17:15:58.963385+00:00",
-        "version_id": "vYNDeFBiHE0jc5VtLcS0_5hpJhYjllHn",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:59.350492+00:00",
+        "version_id": "5qu3VTmXTLsWquMF5qg1_ZroZuy3uBI6",
         "schema_version": "public-engine-archive-catalog.v1",
         "producer_version": null,
         "producer": null,
@@ -5724,15 +5780,15 @@
       {
         "key": "data/archive-indexes/justhodl-activity-nowcast.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.543185+00:00",
+        "observed_at": "2026-09-09T17:59:08.724023+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 27686,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.022155+00:00",
-        "version_id": "C4ULAFgHrhknc7K1GUM1Z.l9X8OPMnpE",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.024377+00:00",
+        "version_id": "BCTxCfYZvWMeoaeq6GIx2zp.KwxPy38.",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-activity-nowcast",
@@ -5745,15 +5801,15 @@
       {
         "key": "data/archive-indexes/justhodl-cb-injection.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.575074+00:00",
+        "observed_at": "2026-09-09T17:59:08.789124+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 28178,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.099918+00:00",
-        "version_id": "lbYiRAguEmHL82ayVCCca7ocql1JINt1",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.084610+00:00",
+        "version_id": "E4NAycUnZHekqeZ65eqz66qyFlj2uo0P",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-cb-injection",
@@ -5766,15 +5822,15 @@
       {
         "key": "data/archive-indexes/justhodl-consumer-pulse.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.604050+00:00",
+        "observed_at": "2026-09-09T17:59:08.845544+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 27219,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.164679+00:00",
-        "version_id": "21BPkGuSfQwQULhJH5KpbOcTS28LrBIh",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.147140+00:00",
+        "version_id": "Hjcb78ReuWV5adPP6XHnmAn_RWFPBrxu",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-consumer-pulse",
@@ -5787,15 +5843,15 @@
       {
         "key": "data/archive-indexes/justhodl-conviction-engine.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.630758+00:00",
+        "observed_at": "2026-09-09T17:59:08.919141+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 25599,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.222663+00:00",
-        "version_id": ".XZa2AlZCYeFq9Li0AvHjQxjQMqSsuIx",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.205097+00:00",
+        "version_id": "b6xks409UuYtDfdh4Hzi0MlXjA7vMR4x",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-conviction-engine",
@@ -5808,15 +5864,15 @@
       {
         "key": "data/archive-indexes/justhodl-stock-screener.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.661581+00:00",
+        "observed_at": "2026-09-09T17:59:08.957064+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 2525,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.257967+00:00",
-        "version_id": "qhQbGoMv5Gk23MQZO3CMA6aKDiy7deLb",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.242477+00:00",
+        "version_id": "F4VwxPvAt4zg62UEVKioitQOXKEhhvvp",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-stock-screener",
@@ -5829,15 +5885,15 @@
       {
         "key": "data/archive-indexes/justhodl-theme-cascade.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.693952+00:00",
+        "observed_at": "2026-09-09T17:59:09.025983+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 21791,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.319609+00:00",
-        "version_id": "25kZ7twPcx52zCxZd9ErUhO0cPrtcVAx",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.288818+00:00",
+        "version_id": "QvCXUpNPSm63lyF.Nswbs5mUKr03uCYU",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-theme-cascade",
@@ -5850,15 +5906,15 @@
       {
         "key": "data/archive-indexes/justhodl-auction-crisis-ai.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.722914+00:00",
+        "observed_at": "2026-09-09T17:59:09.186446+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 47989,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.422279+00:00",
-        "version_id": "dKBAKRo9lPJmAm0afNh3sDWHatEnRHdJ",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.405218+00:00",
+        "version_id": "fgxnROFu81kWfakV_Yu6V9rDGGKam0LF",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-auction-crisis-ai",
@@ -5871,15 +5927,15 @@
       {
         "key": "data/archive-indexes/justhodl-catalyst-classifier.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.750111+00:00",
+        "observed_at": "2026-09-09T17:59:09.250401+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 6612,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:49.460927+00:00",
-        "version_id": "ucFW4ebHSAOS33IippQLo_pGnSNmhtk_",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:49.430372+00:00",
+        "version_id": "6MActj2F5zpOUVDzrQty6yVpSM4rJWSm",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-catalyst-classifier",
@@ -5892,36 +5948,36 @@
       {
         "key": "data/archive-indexes/justhodl-convergence-radar.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.777806+00:00",
+        "observed_at": "2026-09-09T17:59:09.297522+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 1183709,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.083687+00:00",
-        "version_id": "iEujfLcwkZJq7n_yrbzWXdiLfOBfpzos",
+        "bytes": 1183955,
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.264644+00:00",
+        "version_id": "M2_Fubu5eNnNemRqVGusXEye0xU0AlHL",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-convergence-radar",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 4809
+          "snapshots": 4810
         }
       },
       {
         "key": "data/archive-indexes/justhodl-correlation-breaks.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.892559+00:00",
+        "observed_at": "2026-09-09T17:59:09.431907+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 24796,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.146021+00:00",
-        "version_id": "qtfVm2MNjnt8WvKE_f4UsJiI3vmjqL9r",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.344483+00:00",
+        "version_id": "CLgBoHpX20EqOfMqV4W0Uo8GGL3AUxLM",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-correlation-breaks",
@@ -5934,15 +5990,15 @@
       {
         "key": "data/archive-indexes/justhodl-crisis-plumbing.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.923932+00:00",
+        "observed_at": "2026-09-09T17:59:09.463127+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 30624,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.224255+00:00",
-        "version_id": "ZvS5DrWfQHTTkjmI6W3g765mS72gxCv7",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.407109+00:00",
+        "version_id": "MNv4oAEi2kynBzW7WsZJTYUQEwfv9HBf",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-crisis-plumbing",
@@ -5955,15 +6011,15 @@
       {
         "key": "data/archive-indexes/justhodl-dark-pool.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.953602+00:00",
+        "observed_at": "2026-09-09T17:59:09.502139+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 1876,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.244567+00:00",
-        "version_id": "ZTcpFyikHao5rbK0r9tsIwXnc68u.hzE",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.430319+00:00",
+        "version_id": "6Q8BEKIG1LxvAGCs8QXB9Zj6k.7_P1Ql",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-dark-pool",
@@ -5976,15 +6032,15 @@
       {
         "key": "data/archive-indexes/justhodl-freight-pulse.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:04.983180+00:00",
+        "observed_at": "2026-09-09T17:59:09.549239+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 8001,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.268728+00:00",
-        "version_id": "5ksoh5LV0YVYSm0HHXuCtz5xuA4qAtPR",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.454967+00:00",
+        "version_id": "k5mKg4qHmE_xLPal25NXzUTVdZHdLwU.",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-freight-pulse",
@@ -5997,15 +6053,15 @@
       {
         "key": "data/archive-indexes/justhodl-grid-queue.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.012413+00:00",
+        "observed_at": "2026-09-09T17:59:09.582922+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 7902,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:52.288830+00:00",
-        "version_id": "vB98fxfI4RFY5TgMKDn.lCdrYHlM1emH",
+        "last_modified": "2026-09-09T17:46:00+00:00",
+        "generated_at": "2026-09-09T17:45:52.481354+00:00",
+        "version_id": "97yRSjzXXzxvYyxERG4CWhk5K7klbL.o",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-grid-queue",
@@ -6018,57 +6074,57 @@
       {
         "key": "data/archive-indexes/justhodl-momentum-leaders.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.042430+00:00",
+        "observed_at": "2026-09-09T17:59:09.628481+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 585561,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:53.546484+00:00",
-        "version_id": "9MS7FpYnaDN.dXA2WLQkBvaqgB1h6Mx4",
+        "bytes": 585805,
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:53.785294+00:00",
+        "version_id": "3h69CcsaUQngRjBydxvHBfXL9ofXc7OU",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-momentum-leaders",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 2397
+          "snapshots": 2398
         }
       },
       {
         "key": "data/archive-indexes/justhodl-pair-trades.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.107901+00:00",
+        "observed_at": "2026-09-09T17:59:09.718329+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 574038,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:54.819764+00:00",
-        "version_id": "eA.MxyT23bT1cTL5ugXMDzNEfnEoyh1b",
+        "bytes": 574277,
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:55.105339+00:00",
+        "version_id": "AuSBVGFKzwDQw5g40pkXkPnFh_R5CXLP",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pair-trades",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 2399
+          "snapshots": 2400
         }
       },
       {
         "key": "data/archive-indexes/justhodl-pump-earnings-nlp.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.163823+00:00",
+        "observed_at": "2026-09-09T17:59:09.812077+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 8288,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:54.844680+00:00",
-        "version_id": "OpZMPP4DyMAcTGiFqPpdx6dxBW0mSGU4",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:55.127755+00:00",
+        "version_id": "DfF5xmHsc5hbeJkb5ClbH3iHD5JB3A9.",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-earnings-nlp",
@@ -6081,15 +6137,15 @@
       {
         "key": "data/archive-indexes/justhodl-pump-mechanics.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.196256+00:00",
+        "observed_at": "2026-09-09T17:59:09.847268+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 582214,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:56.065935+00:00",
-        "version_id": "1Z.q4gURNsXBNV9WNLyPzrWEn9k1Mzcn",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:56.404198+00:00",
+        "version_id": "bjHAqp3bPaof_CSNXxT.UVXZawOK3sc_",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-mechanics",
@@ -6102,15 +6158,15 @@
       {
         "key": "data/archive-indexes/justhodl-pump-positioning.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.252675+00:00",
+        "observed_at": "2026-09-09T17:59:09.937208+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 586781,
-        "last_modified": "2026-09-09T17:16:00+00:00",
-        "generated_at": "2026-09-09T17:15:57.386441+00:00",
-        "version_id": "BiRwy9H5DJ3LFmmZ9BLmERjpbfKncWMI",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:57.783199+00:00",
+        "version_id": "eIPwd.3_Sb8y2KUUW7qdTldS2.OluXBl",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-positioning",
@@ -6123,15 +6179,15 @@
       {
         "key": "data/archive-indexes/justhodl-signal-fabric.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.311675+00:00",
+        "observed_at": "2026-09-09T17:59:09.995566+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 9378,
-        "last_modified": "2026-09-09T17:16:01+00:00",
-        "generated_at": "2026-09-09T17:15:57.424686+00:00",
-        "version_id": "S_PVrMkWYNadGlFQk7GOJC1UhNAbU.in",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:57.812376+00:00",
+        "version_id": "eQVZI4aEGeZbSiA7RndyPsOgK9lPgKNP",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-signal-fabric",
@@ -6144,15 +6200,15 @@
       {
         "key": "data/archive-indexes/justhodl-ticker-deep-research.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.344115+00:00",
+        "observed_at": "2026-09-09T17:59:10.044130+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 151828,
-        "last_modified": "2026-09-09T17:16:01+00:00",
-        "generated_at": "2026-09-09T17:15:57.743628+00:00",
-        "version_id": "ECNhPWW8v0HWOU1GjFpY_Vfoz32WA_sh",
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:58.143441+00:00",
+        "version_id": "OPI7oyWaD0Vykvoz5UG4XmBuJew1a_b6",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-ticker-deep-research",
@@ -6165,22 +6221,22 @@
       {
         "key": "data/archive-indexes/justhodl-velocity-acceleration.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:05.377770+00:00",
+        "observed_at": "2026-09-09T17:59:10.103416+00:00",
         "errors": [],
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 568873,
-        "last_modified": "2026-09-09T17:16:01+00:00",
-        "generated_at": "2026-09-09T17:15:58.962636+00:00",
-        "version_id": "V2hbRkolk_ePcuKpj4p9QBjWmCtsXcA6",
+        "bytes": 569121,
+        "last_modified": "2026-09-09T17:46:01+00:00",
+        "generated_at": "2026-09-09T17:45:59.349823+00:00",
+        "version_id": "YWkNe_pgpQXZTw6q22CNINLRahflgrmR",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-velocity-acceleration",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 2291
+          "snapshots": 2292
         }
       }
     ],
@@ -6188,15 +6244,15 @@
       {
         "key": "data/_freshness-monitor.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.474202+00:00",
+        "observed_at": "2026-09-09T17:59:06.083160+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "fleet-freshness-monitor.v3",
         "expected_producer": "justhodl-fleet-freshness-monitor",
-        "bytes": 785413,
-        "last_modified": "2026-09-09T17:07:47+00:00",
-        "generated_at": "2026-09-09T17:07:46.435728+00:00",
-        "version_id": "csKtwC4qg4gxmeD6czYEogOQjeticeUf",
+        "bytes": 785988,
+        "last_modified": "2026-09-09T17:44:19+00:00",
+        "generated_at": "2026-09-09T17:44:18.500223+00:00",
+        "version_id": "Jo4N6i_Lzhp2SPP2zAD48aHhXHaql9wa",
         "schema_version": "fleet-freshness-monitor.v3",
         "producer_version": "3.0.0",
         "producer": null,
@@ -6209,15 +6265,15 @@
       {
         "key": "data/_fleet-monitor.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.448487+00:00",
+        "observed_at": "2026-09-09T17:59:06.053024+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "fleet-errors-metadata-20260909-v1",
         "expected_producer": "justhodl-fleet-error-monitor",
-        "bytes": 1061,
-        "last_modified": "2026-09-09T17:27:09+00:00",
-        "generated_at": "2026-09-09T17:27:08.460353+00:00",
-        "version_id": "aRBKHQw2IkpH_jAHz43bgGAQeuz0fIDp",
+        "bytes": 1060,
+        "last_modified": "2026-09-09T17:57:08+00:00",
+        "generated_at": "2026-09-09T17:57:07.961240+00:00",
+        "version_id": "YS3mQlfwP_F_8uiiSNbLqn.bkBuy7zh5",
         "schema_version": null,
         "producer_version": "1.1.0",
         "producer": "fleet-error-monitor",
@@ -6235,7 +6291,7 @@
       {
         "key": "data/ai-brief.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:28:59.726827+00:00",
+        "observed_at": "2026-09-09T17:59:02.745739+00:00",
         "errors": [],
         "requirements": [
           "PRODUCER_REPORTED_DATA_UNAVAILABLE"
@@ -6256,7 +6312,7 @@
       {
         "key": "data/portfolio-manager-brief.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:28:59.766276+00:00",
+        "observed_at": "2026-09-09T17:59:02.775456+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6277,7 +6333,7 @@
       {
         "key": "data/ai-infra-stack.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:28:59.792080+00:00",
+        "observed_at": "2026-09-09T17:59:02.803365+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 53981,
@@ -6297,7 +6353,7 @@
       {
         "key": "data/allocator.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:28:59.819806+00:00",
+        "observed_at": "2026-09-09T17:59:02.839008+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6317,7 +6373,7 @@
       {
         "key": "screener/alpha-score.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:28:59.849411+00:00",
+        "observed_at": "2026-09-09T17:59:02.869995+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 233956,
@@ -6336,7 +6392,7 @@
       {
         "key": "data/apex-fusion.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:28:59.915368+00:00",
+        "observed_at": "2026-09-09T17:59:02.945455+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 7806,
@@ -6357,7 +6413,7 @@
       {
         "key": "data/attention-confluence.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:28:59.945984+00:00",
+        "observed_at": "2026-09-09T17:59:02.974970+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 3628938,
@@ -6376,7 +6432,7 @@
       {
         "key": "data/auction-crisis.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.072979+00:00",
+        "observed_at": "2026-09-09T17:59:03.119491+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 43526,
@@ -6395,13 +6451,13 @@
       {
         "key": "data/auction-desk.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.101885+00:00",
+        "observed_at": "2026-09-09T17:59:03.152111+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 1173435,
-        "last_modified": "2026-09-09T16:10:39+00:00",
-        "generated_at": "2026-09-09T16:10:38+00:00",
-        "version_id": "nUrBJo0kpW2wECThCvm36mKPlUt4lYta",
+        "bytes": 1177709,
+        "last_modified": "2026-09-09T17:41:00+00:00",
+        "generated_at": "2026-09-09T17:40:59+00:00",
+        "version_id": "Af33mQVExRj0Z3a7CqjNs0vqnqP3n7KN",
         "schema_version": null,
         "producer_version": "1.2.3",
         "producer": "justhodl-auction-desk",
@@ -6414,7 +6470,7 @@
       {
         "key": "data/auction-decisive-call.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.154867+00:00",
+        "observed_at": "2026-09-09T17:59:03.209309+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 727,
@@ -6434,7 +6490,7 @@
       {
         "key": "data/behavior-mirror.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.209894+00:00",
+        "observed_at": "2026-09-09T17:59:03.277821+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 823,
@@ -6453,7 +6509,7 @@
       {
         "key": "data/best-setups.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.233634+00:00",
+        "observed_at": "2026-09-09T17:59:03.309439+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 263047,
@@ -6472,13 +6528,13 @@
       {
         "key": "data/bond-warroom.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.403065+00:00",
+        "observed_at": "2026-09-09T17:59:03.624250+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 909142,
-        "last_modified": "2026-09-09T14:01:32+00:00",
-        "generated_at": "2026-09-09T14:01:31+00:00",
-        "version_id": "2DYPi9vk_zUw6naLW9Gksq0UnsSMMFEp",
+        "bytes": 908049,
+        "last_modified": "2026-09-09T17:35:49+00:00",
+        "generated_at": "2026-09-09T17:35:48+00:00",
+        "version_id": "vqFQ2cTL27J0lIg9asPaudfTDtdOCTDB",
         "schema_version": null,
         "producer_version": "1.3.2",
         "producer": null,
@@ -6491,7 +6547,7 @@
       {
         "key": "data/brain-compiler.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.518302+00:00",
+        "observed_at": "2026-09-09T17:59:03.787853+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -6511,7 +6567,7 @@
       {
         "key": "data/brain.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.546210+00:00",
+        "observed_at": "2026-09-09T17:59:03.816978+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6531,7 +6587,7 @@
       {
         "key": "calibration/latest.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.731398+00:00",
+        "observed_at": "2026-09-09T17:59:04.021715+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6553,13 +6609,13 @@
       {
         "key": "data/canary-warroom.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:00.847423+00:00",
+        "observed_at": "2026-09-09T17:59:04.116249+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 117737,
-        "last_modified": "2026-09-09T16:50:42+00:00",
-        "generated_at": "2026-09-09T16:50:32.970078+00:00",
-        "version_id": "ZBTn8VJSBIi7q3_IkTUe25wL9xlOKdpq",
+        "bytes": 117738,
+        "last_modified": "2026-09-09T17:50:41+00:00",
+        "generated_at": "2026-09-09T17:50:33.053400+00:00",
+        "version_id": ".BTG0onyThT74j5hS_dhOazzfHSf1VtL",
         "schema_version": null,
         "producer_version": null,
         "producer": "justhodl-canary-warroom",
@@ -6572,7 +6628,7 @@
       {
         "key": "data/catalysts.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:00.870517+00:00",
+        "observed_at": "2026-09-09T17:59:04.149451+00:00",
         "errors": [],
         "requirements": [
           "PRODUCER_REPORTED_DATA_UNAVAILABLE"
@@ -6593,7 +6649,7 @@
       {
         "key": "data/catalyst-clusters.json",
         "status": "VERIFIED_BLOCKED_REQUIREMENTS",
-        "observed_at": "2026-09-09T17:29:00.895736+00:00",
+        "observed_at": "2026-09-09T17:59:04.179854+00:00",
         "errors": [],
         "requirements": [
           "PRODUCER_REPORTED_DATA_UNAVAILABLE"
@@ -6614,7 +6670,7 @@
       {
         "key": "data/catalyst-skew-premove.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.920881+00:00",
+        "observed_at": "2026-09-09T17:59:04.211053+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6635,7 +6691,7 @@
       {
         "key": "data/compound-signals.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.945819+00:00",
+        "observed_at": "2026-09-09T17:59:04.243288+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6653,7 +6709,7 @@
       {
         "key": "data/prime-convergence.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:00.972300+00:00",
+        "observed_at": "2026-09-09T17:59:04.275482+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6673,7 +6729,7 @@
       {
         "key": "data/contract-violations.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.000575+00:00",
+        "observed_at": "2026-09-09T17:59:04.305538+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 27467,
@@ -6692,13 +6748,13 @@
       {
         "key": "data/convergence-radar.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.028846+00:00",
+        "observed_at": "2026-09-09T17:59:04.337128+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 620892,
-        "last_modified": "2026-09-09T17:00:13+00:00",
-        "generated_at": "2026-09-09T17:00:12.676684+00:00",
-        "version_id": ".tUGPu5o0ynoUKNnBo0jeMYYq1mAMR6O",
+        "bytes": 611586,
+        "last_modified": "2026-09-09T17:30:13+00:00",
+        "generated_at": "2026-09-09T17:30:12.754217+00:00",
+        "version_id": "gGSlWE5ixwNqqRxajky8bWbOIkyCeu4C",
         "schema_version": "2.0",
         "producer_version": null,
         "producer": null,
@@ -6711,7 +6767,7 @@
       {
         "key": "data/crisis-canaries.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.114869+00:00",
+        "observed_at": "2026-09-09T17:59:04.500367+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6731,7 +6787,7 @@
       {
         "key": "data/report.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.174153+00:00",
+        "observed_at": "2026-09-09T17:59:04.562268+00:00",
         "errors": [],
         "requirements": [],
         "expected_output_contract": "daily_report_v10_market_report",
@@ -6752,7 +6808,7 @@
       {
         "key": "data/crypto-funding.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.325811+00:00",
+        "observed_at": "2026-09-09T17:59:04.705935+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6772,7 +6828,7 @@
       {
         "key": "data/debate.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.354047+00:00",
+        "observed_at": "2026-09-09T17:59:04.738599+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 6749,
@@ -6791,7 +6847,7 @@
       {
         "key": "data/devils-advocate.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.378561+00:00",
+        "observed_at": "2026-09-09T17:59:04.771561+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 245,
@@ -6810,7 +6866,7 @@
       {
         "key": "data/domain-barometers.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.405115+00:00",
+        "observed_at": "2026-09-09T17:59:04.803790+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -6830,7 +6886,7 @@
       {
         "key": "data/earnings-whisper.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.552646+00:00",
+        "observed_at": "2026-09-09T17:59:04.972899+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 4529,
@@ -6849,7 +6905,7 @@
       {
         "key": "data/engine-conflicts.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:01.617533+00:00",
+        "observed_at": "2026-09-09T17:59:05.043341+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 259,
@@ -6868,7 +6924,7 @@
       {
         "key": "equity-research/shared/constituents.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.694805+00:00",
+        "observed_at": "2026-09-09T17:59:05.107524+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -6888,7 +6944,7 @@
       {
         "key": "etf-flows/constituent-pressure.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.719258+00:00",
+        "observed_at": "2026-09-09T17:59:05.138642+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6908,7 +6964,7 @@
       {
         "key": "etf-flows/daily.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.920006+00:00",
+        "observed_at": "2026-09-09T17:59:05.317632+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -6926,7 +6982,7 @@
       {
         "key": "etf-flows/composite.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.961354+00:00",
+        "observed_at": "2026-09-09T17:59:05.399687+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6944,7 +7000,7 @@
       {
         "key": "etf-flows/rotation.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:01.986667+00:00",
+        "observed_at": "2026-09-09T17:59:05.433884+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6962,7 +7018,7 @@
       {
         "key": "etf-flows/per-ticker-context.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:02.013178+00:00",
+        "observed_at": "2026-09-09T17:59:05.462768+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -6980,7 +7036,7 @@
       {
         "key": "etf-flows/event-study.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:02.039980+00:00",
+        "observed_at": "2026-09-09T17:59:05.490769+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7000,7 +7056,7 @@
       {
         "key": "data/euro-fragmentation.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.097020+00:00",
+        "observed_at": "2026-09-09T17:59:05.623260+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 10004272,
@@ -7019,7 +7075,7 @@
       {
         "key": "data/eurodollar-plumbing.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.356784+00:00",
+        "observed_at": "2026-09-09T17:59:05.903277+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 25938,
@@ -7039,7 +7095,7 @@
       {
         "key": "_health/fleet.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.511899+00:00",
+        "observed_at": "2026-09-09T17:59:06.152173+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 9198,
@@ -7058,13 +7114,13 @@
       {
         "key": "_health/dashboard.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.579609+00:00",
+        "observed_at": "2026-09-09T17:59:06.180412+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 37812,
-        "last_modified": "2026-09-09T17:01:04+00:00",
-        "generated_at": "2026-09-09T17:00:41.259956+00:00",
-        "version_id": "vzE1AtjRGVX2FuHt7Ke3_._26bO5hyno",
+        "bytes": 37920,
+        "last_modified": "2026-09-09T17:53:22+00:00",
+        "generated_at": "2026-09-09T17:53:12.855744+00:00",
+        "version_id": "RAfF3bEScOgpIg.Ob29fcl5lZw3q.CKf",
         "schema_version": null,
         "producer_version": null,
         "producer": null,
@@ -7078,7 +7134,7 @@
       {
         "key": "data/history-index.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:02.628839+00:00",
+        "observed_at": "2026-09-09T17:59:06.213746+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7096,7 +7152,7 @@
       {
         "key": "data/history-snapshotter-status.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:02.694535+00:00",
+        "observed_at": "2026-09-09T17:59:06.244903+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7116,7 +7172,7 @@
       {
         "key": "data/journal-graded.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:02.722019+00:00",
+        "observed_at": "2026-09-09T17:59:06.279136+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 165,
@@ -7135,7 +7191,7 @@
       {
         "key": "data/kb-match.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.065289+00:00",
+        "observed_at": "2026-09-09T17:59:06.687751+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7155,7 +7211,7 @@
       {
         "key": "data/khalid.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.092941+00:00",
+        "observed_at": "2026-09-09T17:59:06.724038+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 12928441,
@@ -7174,7 +7230,7 @@
       {
         "key": "data/liquidity-credit-engine.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.561192+00:00",
+        "observed_at": "2026-09-09T17:59:07.234810+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7194,7 +7250,7 @@
       {
         "key": "data/liquidity-inflection.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.586840+00:00",
+        "observed_at": "2026-09-09T17:59:07.263769+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 183936,
@@ -7213,7 +7269,7 @@
       {
         "key": "macro/regime.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.644794+00:00",
+        "observed_at": "2026-09-09T17:59:07.342320+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7233,7 +7289,7 @@
       {
         "key": "data/massive-signals.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.673783+00:00",
+        "observed_at": "2026-09-09T17:59:07.370303+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7253,7 +7309,7 @@
       {
         "key": "data/master-allocation.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.731921+00:00",
+        "observed_at": "2026-09-09T17:59:07.594732+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 11230,
@@ -7272,7 +7328,7 @@
       {
         "key": "data/master-ranker.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.817451+00:00",
+        "observed_at": "2026-09-09T17:59:07.641688+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7293,7 +7349,7 @@
       {
         "key": "data/my-brief.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:03.850005+00:00",
+        "observed_at": "2026-09-09T17:59:07.708380+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 153,
@@ -7312,7 +7368,7 @@
       {
         "key": "data/notes-index.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.875881+00:00",
+        "observed_at": "2026-09-09T17:59:07.750654+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7330,7 +7386,7 @@
       {
         "key": "data/notes-themes.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:03.987716+00:00",
+        "observed_at": "2026-09-09T17:59:07.936618+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7348,7 +7404,7 @@
       {
         "key": "data/notes-index-public.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.016171+00:00",
+        "observed_at": "2026-09-09T17:59:07.992670+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7366,7 +7422,7 @@
       {
         "key": "data/notes-themes-public.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.055810+00:00",
+        "observed_at": "2026-09-09T17:59:08.027563+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7386,7 +7442,7 @@
       {
         "key": "data/options-confluence.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.085877+00:00",
+        "observed_at": "2026-09-09T17:59:08.063517+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7408,7 +7464,7 @@
       {
         "key": "data/playbook-rules.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.168107+00:00",
+        "observed_at": "2026-09-09T17:59:08.233315+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7426,7 +7482,7 @@
       {
         "key": "data/playbook-rules-public.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.204430+00:00",
+        "observed_at": "2026-09-09T17:59:08.286911+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7446,7 +7502,7 @@
       {
         "key": "data/pm-decision.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.240641+00:00",
+        "observed_at": "2026-09-09T17:59:08.337733+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 1686,
@@ -7466,7 +7522,7 @@
       {
         "key": "portfolio/catalysts.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.264855+00:00",
+        "observed_at": "2026-09-09T17:59:08.382317+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 17690,
@@ -7485,13 +7541,13 @@
       {
         "key": "portfolio/risk.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.287124+00:00",
+        "observed_at": "2026-09-09T17:59:08.479813+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 159,
-        "last_modified": "2026-09-09T16:43:46+00:00",
-        "generated_at": "2026-09-09T16:43:45.478438+00:00",
-        "version_id": "LktqNPnQQVhk4H92jZdRPqKdYK5zGuGb",
+        "last_modified": "2026-09-09T17:43:46+00:00",
+        "generated_at": "2026-09-09T17:43:45.151957+00:00",
+        "version_id": "u3bEEqvjcDuSL2BUDkE2j15.A1HYCHhY",
         "schema_version": null,
         "producer_version": null,
         "producer": null,
@@ -7504,13 +7560,13 @@
       {
         "key": "portfolio/sizing.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:04.314152+00:00",
+        "observed_at": "2026-09-09T17:59:08.530813+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 975,
-        "last_modified": "2026-09-09T16:45:51+00:00",
-        "generated_at": "2026-09-09T16:45:50.740622+00:00",
-        "version_id": "Jlm4PtnSNGsq278gzR8xdR3OZ4LOWRoU",
+        "bytes": 976,
+        "last_modified": "2026-09-09T17:45:51+00:00",
+        "generated_at": "2026-09-09T17:45:50.621482+00:00",
+        "version_id": "zeya6lRcplb0TkW9eI29rOyHuwgM0B_c",
         "schema_version": null,
         "producer_version": "1.0.0",
         "producer": null,
@@ -7522,48 +7578,46 @@
     "justhodl-position-sizer": [
       {
         "key": "data/position-sizing.json",
-        "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.368970+00:00",
+        "status": "VERIFIED",
+        "observed_at": "2026-09-09T17:59:08.613569+00:00",
         "errors": [],
-        "requirements": [
-          "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
-        ],
-        "bytes": 1227,
-        "last_modified": "2026-09-09T13:45:28+00:00",
-        "generated_at": "2026-09-09T11:32:24.722922+00:00",
-        "version_id": "e172hLda_aT5awO8tdaYgJ5I2MtbHRTH",
+        "requirements": [],
+        "bytes": 1337,
+        "last_modified": "2026-09-09T17:32:25+00:00",
+        "generated_at": "2026-09-09T17:32:24.800462+00:00",
+        "version_id": "huOWcQvyoxe8rqjua3D9hsre9Kbnk2Bc",
         "schema_version": null,
         "producer_version": "1.0",
         "producer": "position-sizer",
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {}
       }
     ],
     "justhodl-provider-catalog": [
       {
         "key": "data/provider-catalog.json",
-        "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:04.396435+00:00",
+        "status": "VERIFIED",
+        "observed_at": "2026-09-09T17:59:08.664024+00:00",
         "errors": [],
-        "requirements": [
-          "FIRST_POST_RELEASE_PUBLICATION_PENDING"
-        ],
-        "bytes": 26816,
-        "last_modified": "2026-09-09T16:55:35+00:00",
-        "generated_at": "2026-09-09T16:48:53+00:00",
-        "version_id": "T2zykbNCa3hpsLaICLVBOxqSZrr0If8O",
+        "requirements": [],
+        "bytes": 26819,
+        "last_modified": "2026-09-09T17:55:45+00:00",
+        "generated_at": "2026-09-09T17:48:53+00:00",
+        "version_id": "HSpCPh6ic9rKxhb57ZbvV1radDp2GIeU",
         "schema_version": null,
         "producer_version": null,
         "producer": null,
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {}
       }
     ],
     "justhodl-pump-mechanics": [
       {
         "key": "data/pump-mechanics.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.441369+00:00",
+        "observed_at": "2026-09-09T17:59:10.192549+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 17717,
@@ -7582,13 +7636,13 @@
       {
         "key": "data/regime-composite.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.468373+00:00",
+        "observed_at": "2026-09-09T17:59:10.302119+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 9611,
-        "last_modified": "2026-09-09T17:00:45+00:00",
-        "generated_at": "2026-09-09T17:00:41.289116+00:00",
-        "version_id": "ssK2f56K5DQ5Tw.PbBcK4Z8JOemLbjVw",
+        "bytes": 9591,
+        "last_modified": "2026-09-09T17:53:16+00:00",
+        "generated_at": "2026-09-09T17:53:13.075303+00:00",
+        "version_id": "2al8eCyvY5ESEH5tJBQbcHDUNH62IvHc",
         "schema_version": "1.0",
         "producer_version": "1.0.1",
         "producer": null,
@@ -7601,7 +7655,7 @@
       {
         "key": "data/regime-conditional-router.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.494714+00:00",
+        "observed_at": "2026-09-09T17:59:10.335945+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 3616,
@@ -7620,7 +7674,7 @@
       {
         "key": "data/repo.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:05.521861+00:00",
+        "observed_at": "2026-09-09T17:59:10.387620+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 1403886,
@@ -7639,7 +7693,7 @@
       {
         "key": "data/retail-sentiment.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:05.824829+00:00",
+        "observed_at": "2026-09-09T17:59:10.741640+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7659,7 +7713,7 @@
       {
         "key": "data/schedule-liveness.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.002646+00:00",
+        "observed_at": "2026-09-09T17:59:11.014784+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 21536,
@@ -7679,13 +7733,13 @@
       {
         "key": "data/sector-capital-fusion.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.026787+00:00",
+        "observed_at": "2026-09-09T17:59:11.058829+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 20240,
-        "last_modified": "2026-09-09T16:45:16+00:00",
-        "generated_at": "2026-09-09T16:45:15.065275+00:00",
-        "version_id": "hpV_WYqUNLSUPDaCVblXT.R9TJYMak55",
+        "bytes": 20225,
+        "last_modified": "2026-09-09T17:45:16+00:00",
+        "generated_at": "2026-09-09T17:45:15.016467+00:00",
+        "version_id": "ksQITC1ALe.ziLxdxikDjop1VUCQLSgJ",
         "schema_version": null,
         "producer_version": "1.0.0",
         "producer": "justhodl-sector-capital-fusion",
@@ -7698,13 +7752,13 @@
       {
         "key": "data/sector-rotation.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.062451+00:00",
+        "observed_at": "2026-09-09T17:59:11.104666+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 81197,
-        "last_modified": "2026-09-09T16:38:42+00:00",
-        "generated_at": "2026-09-09T16:38:41.546368+00:00",
-        "version_id": "e9dC9GctQhQ.cOtFuZ_pOqglCbqXWBJZ",
+        "bytes": 81158,
+        "last_modified": "2026-09-09T17:38:42+00:00",
+        "generated_at": "2026-09-09T17:38:41.600349+00:00",
+        "version_id": "cIPpAFpa7i9PFgDvEVwR2DRTPtTKZX3V",
         "schema_version": null,
         "producer_version": "1.0.0",
         "producer": null,
@@ -7717,7 +7771,7 @@
       {
         "key": "data/stealth-accumulation.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.339632+00:00",
+        "observed_at": "2026-09-09T17:59:11.427454+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7738,7 +7792,7 @@
       {
         "key": "screener/data.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.367189+00:00",
+        "observed_at": "2026-09-09T17:59:11.459707+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 2690846,
@@ -7757,7 +7811,7 @@
       {
         "key": "data/tax-plan-snapshot.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.567694+00:00",
+        "observed_at": "2026-09-09T17:59:11.689530+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 18758,
@@ -7776,13 +7830,13 @@
       {
         "key": "data/theme-cascade.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.597869+00:00",
+        "observed_at": "2026-09-09T17:59:11.739099+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 1574,
-        "last_modified": "2026-09-09T17:20:45+00:00",
-        "generated_at": "2026-09-09T17:20:44.411211+00:00",
-        "version_id": "7RUFO1dscZ6q6leHa9Dze2Mwyo9uo_YQ",
+        "last_modified": "2026-09-09T17:50:45+00:00",
+        "generated_at": "2026-09-09T17:50:44.426214+00:00",
+        "version_id": "DFcQoKucmfpg9RFGWuR3HoGFN2mj4Kcs",
         "schema_version": "2.0",
         "producer_version": null,
         "producer": null,
@@ -7795,7 +7849,7 @@
       {
         "key": "data/theme-cascade-backtest.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.627639+00:00",
+        "observed_at": "2026-09-09T17:59:11.767664+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7815,7 +7869,7 @@
       {
         "key": "data/momentum-themes.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.653564+00:00",
+        "observed_at": "2026-09-09T17:59:11.801955+00:00",
         "errors": [],
         "requirements": [],
         "error_type": "NoSuchKey",
@@ -7826,7 +7880,7 @@
       {
         "key": "data/theme-momentum.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.667741+00:00",
+        "observed_at": "2026-09-09T17:59:11.838985+00:00",
         "errors": [],
         "requirements": [],
         "error_type": "NoSuchKey",
@@ -7837,7 +7891,7 @@
       {
         "key": "data/theme-second-wave.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.678797+00:00",
+        "observed_at": "2026-09-09T17:59:11.879328+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7857,7 +7911,7 @@
       {
         "key": "data/user-trades.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.706156+00:00",
+        "observed_at": "2026-09-09T17:59:11.933133+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7875,7 +7929,7 @@
       {
         "key": "data/user-trades-stats.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:06.730687+00:00",
+        "observed_at": "2026-09-09T17:59:11.975165+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7896,7 +7950,7 @@
       {
         "key": "data/tv-workbench.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:06.883994+00:00",
+        "observed_at": "2026-09-09T17:59:12.182250+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 2698068,
@@ -7915,13 +7969,13 @@
       {
         "key": "data/velocity-acceleration.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:07.028247+00:00",
+        "observed_at": "2026-09-09T17:59:12.390924+00:00",
         "errors": [],
         "requirements": [],
         "bytes": 2735,
-        "last_modified": "2026-09-09T16:30:18+00:00",
-        "generated_at": "2026-09-09T16:30:17.698380+00:00",
-        "version_id": "P6qcz9xxh2NnttFQhHeEnT5_RIJkATb9",
+        "last_modified": "2026-09-09T17:30:18+00:00",
+        "generated_at": "2026-09-09T17:30:17.523569+00:00",
+        "version_id": "FkfC1cEIOk0z3A21i4OhEbxibbA8wS4Z",
         "schema_version": "1.1",
         "producer_version": null,
         "producer": null,
@@ -7934,13 +7988,13 @@
       {
         "key": "data/vol-regime.json",
         "status": "VERIFIED",
-        "observed_at": "2026-09-09T17:29:07.057490+00:00",
+        "observed_at": "2026-09-09T17:59:12.439897+00:00",
         "errors": [],
         "requirements": [],
-        "bytes": 3720,
-        "last_modified": "2026-09-09T17:01:23+00:00",
-        "generated_at": "2026-09-09T17:01:21+00:00",
-        "version_id": "qUwJepkkqn05hghulEKjhGN.GmU6OJUA",
+        "bytes": 3722,
+        "last_modified": "2026-09-09T17:53:16+00:00",
+        "generated_at": "2026-09-09T17:53:14+00:00",
+        "version_id": "G8HxKV6asynNJ_LLSWsSfpfplu__bUfA",
         "schema_version": "2.0",
         "producer_version": null,
         "producer": null,
@@ -7953,7 +8007,7 @@
       {
         "key": "data/user-watchlist.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:07.082263+00:00",
+        "observed_at": "2026-09-09T17:59:12.488371+00:00",
         "errors": [],
         "requirements": [
           "FIRST_POST_RELEASE_PUBLICATION_PENDING"
@@ -7973,7 +8027,7 @@
       {
         "key": "data/wealth-plan-snapshot.json",
         "status": "PENDING_OUTPUT",
-        "observed_at": "2026-09-09T17:29:07.129600+00:00",
+        "observed_at": "2026-09-09T17:59:12.537721+00:00",
         "errors": [],
         "requirements": [
           "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
@@ -7995,17 +8049,17 @@
   },
   "invocations": [
     {
-      "function": "justhodl-bloomberg-v8",
+      "function": "justhodl-cot-extremes-scanner",
       "qualifier": "$LATEST",
       "request_status": 202,
-      "requested_at": "2026-09-09T17:28:37.882096+00:00",
-      "mode": "regular_quiet_publish"
+      "requested_at": "2026-09-09T17:58:40.904859+00:00",
+      "mode": "audit_refresh"
     }
   ],
   "requirements": [],
-  "checkout_sha": "cd425e4705c0b284b19f7732dd0e4d44099ac4fd",
+  "checkout_sha": "65eedef82a958b9f855090a09e004a0a07ea83dd",
   "baseline_sha": "125a68a89268c5ff8303dfba4177026dcf1e3c21",
-  "started_at": "2026-09-09T17:28:16.209002+00:00",
+  "started_at": "2026-09-09T17:58:16.472332+00:00",
   "engine_scope": {
     "alphavantage-market-agent": [
       "shared:public_provider_json",
@@ -8152,6 +8206,10 @@
       "shared:donor_contract",
       "shared:equity_donor_inputs",
       "shared:proposed_book_risk",
+      "source_or_config_changed"
+    ],
+    "justhodl-cot-extremes-scanner": [
+      "reviewed_dependency_refresh",
       "source_or_config_changed"
     ],
     "justhodl-crisis-canaries": [
@@ -9144,6 +9202,24 @@
       "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
       "pages": [
         "conviction.html"
+      ],
+      "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+    },
+    "justhodl-cot-extremes-scanner": {
+      "primary_keys": [
+        "cot/extremes/current.json"
+      ],
+      "other_source_bound_keys": [],
+      "expected_output_contracts": {
+        "cot/extremes/current.json": "cot-extremes.v2_complete_calculation_histories"
+      },
+      "unresolved_write_count": 0,
+      "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+      "pages": [
+        "classic-dashboard.html",
+        "cot-extremes.html",
+        "desk-v2.html",
+        "desk.html"
       ],
       "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
     },
@@ -12399,16 +12475,6 @@
       "reason": "API_REQUEST_FIXTURE_OR_PRIMARY_OUTPUT_MAPPING_REQUIRED"
     },
     {
-      "function": "justhodl-position-sizer",
-      "key": "data/position-sizing.json",
-      "reason": "FIRST_SCHEDULED_RUN_PENDING"
-    },
-    {
-      "function": "justhodl-provider-catalog",
-      "key": "data/provider-catalog.json",
-      "reason": "FIRST_SCHEDULED_RUN_PENDING"
-    },
-    {
       "function": "justhodl-retail-sentiment",
       "key": "data/retail-sentiment.json",
       "reason": "FIRST_SCHEDULED_RUN_PENDING"
@@ -12541,6 +12607,15 @@
       "key": "data/bloomberg-report.json",
       "requirements": [
         "BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE",
+        "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
+      ]
+    },
+    {
+      "function": "justhodl-cot-extremes-scanner",
+      "key": "cot/extremes/current.json",
+      "requirements": [
+        "COT_CURRENT_VINTAGE_IS_NOT_POINT_IN_TIME_HISTORY",
+        "COT_PROVIDER_OR_HISTORY_COVERAGE_INCOMPLETE",
         "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
       ]
     },
@@ -12734,5 +12809,5 @@
       ]
     }
   ],
-  "finished_at": "2026-09-09T17:29:10.319431+00:00"
+  "finished_at": "2026-09-09T17:59:16.185886+00:00"
 }

@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942",
+        "arn:aws:s3:::justhodl-ai-857687956942/*",
+        "arn:aws:s3:::justhodl-dashboard-live",
+        "arn:aws:s3:::justhodl-dashboard-live/*",
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*",
+        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1",
+        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams",
+        "cloudwatch:PutMetricData",
+        "sagemaker:*"
+      ]
+    }
+  ]
+}

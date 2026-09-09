@@ -1,8 +1,43 @@
-executing-against: dca53978594a22a040f867bd5482d56a0b7b8723
-<unknown>:32: SyntaxWarning: invalid escape sequence '\$'
-<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
-<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
-{"ops": 5231, "phase": "package_parity", "matched": 135, "pending": 0}
-{"ops": 5231, "phase": "publication", "stage": ["backtest-engine", "research-backtest", "options-flow", "options-flow-scanner", "bloomberg-v8", "ecb-derived"], "pending": 1}
-{"ops": 5231, "ok": false, "status": "PENDING_SCHEDULED_OUTPUTS", "stage": "final", "code_engines": 135, "pending_outputs": 67, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
-❌ OPS-FAIL: aws/ops/pending/ops_5231_audit_release_verify.py
+executing-against: 9f034fca49c9eed5ceede1eca5e24f79dfd738d8
+ops 5300 -- AI launch (SageMaker front window) + learn from the Brain
+── 1. IAM ──
+[18:04:06] ✅    justhodl-sagemaker-execution-role created
+[18:04:19] ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
+[18:04:19] ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
+[18:04:19] ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
+── 2. private ML bucket ──
+[18:04:19] ✅    justhodl-ai-857687956942 created
+[18:04:19] ✅    public access block ok
+[18:04:20] ✅    default encryption ok
+[18:04:20] ✅    lifecycle ok
+[18:04:20] ✅    tags ok
+── 3. Lambda justhodl-ai ──
+[18:04:21]    JH_SERVICE_TOKEN taken from SSM (env-first doctrine, ops 5227)
+[18:04:21]   Lambda missing — creating
+[18:04:26] ✅   ✓ created justhodl-ai
+[18:04:26] ✅   ✓ Function URL: https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+[18:04:27]    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+[18:04:28] ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
+[18:04:28] ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
+── 4. schedule (EventBridge Scheduler) ──
+[18:04:29] ✅    justhodl-ai-inventory created cron(7 * * * ? *)
+── 5. inventory (async + poll data/ai.json) ──
+[18:04:44]    v1.0.0 in 1.7s | domains 2 apps 0 endpoints 0 models 0 jobs 0 notebooks 0 feature_groups 0 clusters 0
+[18:04:44]       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
+[18:04:44]       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
+[18:04:44]    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
+[18:04:44]    run-rate 0.0 | MTD 0.15 | ttl ledger []
+[18:04:44]    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
+── 6. learn from the Brain (dataset -> embedding endpoint -> embed -> classifier -> serve -> infer) ──
+[18:04:46]    dataset 20260909T180445Z: 13051 rows (10459 train / 2592 validation) from 13051 notes; by_label {"philosophy": 9641, "thesis": 3407, "lesson": 1, "macro": 2}; dropped {"short": 0, "no_cat": 0, "dup": 0}
+[18:04:46]    embedding card: mxnet-tcembedding-robertafin-base-uncased
+── 7. page ──
+[18:07:05]    ai.html carries marker AI_DESK_V1 at the edge: True
+[18:07:24]    1440px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+[18:07:34]     390px: {"headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 7, "rows": 1, "cards": 37, "helps": 9, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+[18:07:34] ⚠    dataset thin (13051 rows, smallest class 1) -- the classifier will be weak until the Brain has more labelled notes
+[18:07:34] ⚠    serverless deploy of mxnet-tcembedding-robertafin-base-uncased failed (deploy: {"errorMessage": "An error occurred (404) when calling the HeadObject operation: Not Found", "errorType": "ClientError", "requestId": "4853938f-2570-406) -- falling back to real-time ml.m5.xlarge with a 2h TTL
+[18:07:34] ✗    brain pipeline: deploy: {"errorMessage": "An error occurred (404) when calling the HeadObject operation: Not Found", "errorType": "ClientError", "requestId": "6e59c651-690b-4049-ab28-2aa4bef14ec2", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 600, in lambda_handler\n    return {\"ok\": True, \"result\": fn(event.get(\"body\") or {}, _policy(), context)}\n", "  File \"/var/task/lambda_function.py\
+
+→ Report written to aws/ops/reports/latest/ops_5300_ai_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_5300_ai_launch.py

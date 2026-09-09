@@ -238,6 +238,24 @@ async function resolveIdentity(request, env) {
   return { role: "anon", uid: null, email: null };
 }
 
+// justhodl-ai control pointer -> Lambda Function URL (5 min in-isolate cache; shape-validated).
+async function aiLambdaUrl() {
+  const now = Date.now();
+  const c = globalThis.__jhAiCtl;
+  if (c && c.exp > now) return c.url;
+  let u = "";
+  try {
+    const r = await fetch(BUCKET_BASE + "/data/ai/control.json?t=" + now, { cache: "no-store" });
+    if (r.ok) {
+      const j = await r.json();
+      const cand = j && typeof j.function_url === "string" ? j.function_url : "";
+      if (/^https:\/\/[a-z0-9]+\.lambda-url\.us-east-1\.on\.aws\/?$/.test(cand)) u = cand;
+    }
+  } catch (e) { u = ""; }
+  globalThis.__jhAiCtl = { url: u, exp: now + (u ? 300000 : 30000) };
+  return u;
+}
+
 function cleanUid(s) { return String(s || "").replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64); }
 
 // Which Brain store a caller may touch. Returns a store id or null (=401).
@@ -1310,6 +1328,30 @@ export default {
         // instead of silently dropping a paid entitlement.
         return new Response("err " + String(e).slice(0, 100), { status: 500 });
       }
+    }
+
+    if (url.pathname === "/ai" || url.pathname.startsWith("/ai/")) {
+      // ops 5300 -- AI engine (justhodl-ai): the SageMaker front window. Owner/service only. The
+      // Lambda Function URL is read from the engine's own control pointer (data/ai/control.json,
+      // written by the engine), never hard-coded here; the Lambda only ever sees the service token.
+      if (request.method === "OPTIONS") return new Response("{}", { headers: corsHeaders() });
+      const identity = await resolveIdentity(request, env);
+      if (identity.role === 'anon') return unauthorized('the AI desk requires sign-in');
+      if (identity.role !== 'owner' && identity.role !== 'service') return forbidden('owner AI desk');
+      if (!['GET', 'POST'].includes(request.method)) return jsonResp({ error: 'method not allowed' }, 405);
+      if (!env.ADMIN_TOKEN) return jsonResp({ error: 'AI service unavailable' }, 503);
+      const sub = url.pathname === "/ai" ? "/status" : url.pathname.slice(3);
+      if (!/^\/[a-z0-9/-]{1,40}$/.test(sub) || sub.includes("//")) return jsonResp({ error: 'unknown ai action' }, 404);
+      const base = String(env.AI_LAMBDA_URL || "") || await aiLambdaUrl();
+      if (!base) return jsonResp({ error: 'AI engine not launched yet (no control pointer)' }, 503);
+      const body = request.method === 'POST' ? await boundedBody(request, 1000000) : undefined;
+      if (body === null) return jsonResp({ error: 'request too large' }, 413);
+      try {
+        const upstream = await fetch(base.replace(/\/$/, '') + sub + (url.search || ''), { method: request.method, body,
+          headers: { 'Content-Type': 'application/json', 'X-JH-Service-Token': env.ADMIN_TOKEN }, redirect: 'error', cache: 'no-store' });
+        const txt = await upstream.text();
+        return new Response(txt, { status: upstream.status, headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store', Vary: 'Authorization' } });
+      } catch (_) { return jsonResp({ error: 'AI engine unavailable' }, 502); }
     }
 
     if (url.pathname === "/ask") {

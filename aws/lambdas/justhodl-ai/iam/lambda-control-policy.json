@@ -1,0 +1,100 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SageMakerControlPlane",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "sagemaker:List*",
+        "sagemaker:Describe*",
+        "sagemaker:Search",
+        "sagemaker:AddTags",
+        "sagemaker:ListTags",
+        "sagemaker:DeleteTags",
+        "sagemaker:CreateModel",
+        "sagemaker:DeleteModel",
+        "sagemaker:CreateEndpointConfig",
+        "sagemaker:DeleteEndpointConfig",
+        "sagemaker:CreateEndpoint",
+        "sagemaker:UpdateEndpoint",
+        "sagemaker:DeleteEndpoint",
+        "sagemaker:InvokeEndpoint",
+        "sagemaker:CreateTrainingJob",
+        "sagemaker:StopTrainingJob",
+        "sagemaker:CreateAutoMLJobV2",
+        "sagemaker:StopAutoMLJob",
+        "sagemaker:CreateCluster",
+        "sagemaker:DeleteCluster",
+        "sagemaker:UpdateCluster",
+        "sagemaker:DescribeHubContent",
+        "sagemaker:ListHubContents"
+      ]
+    },
+    {
+      "Sid": "PassSageMakerExecutionRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::857687956942:role/justhodl-sagemaker-execution-role",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "PrivateMlBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942",
+        "arn:aws:s3:::justhodl-ai-857687956942/*"
+      ]
+    },
+    {
+      "Sid": "JumpStartCacheRead",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*"
+      ]
+    },
+    {
+      "Sid": "PricingAndCost",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "pricing:GetProducts",
+        "ce:GetCostAndUsage",
+        "cloudwatch:GetMetricStatistics",
+        "cloudwatch:GetMetricData"
+      ]
+    },
+    {
+      "Sid": "SelfUrl",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetFunctionUrlConfig"
+      ],
+      "Resource": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai"
+    },
+    {
+      "Sid": "ServiceToken",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter"
+      ],
+      "Resource": "arn:aws:ssm:us-east-1:857687956942:parameter/justhodl/api-admin/token"
+    }
+  ]
+}

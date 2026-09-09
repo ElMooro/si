@@ -1,0 +1,32 @@
+{
+  "function_name": "justhodl-ai",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 3008,
+  "timeout": 900,
+  "ephemeral_storage": 2048,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI v1: the front window to Amazon SageMaker -- live inventory, JumpStart financial-model catalog (RoBERTa-SEC transfer learning), Brain-derived datasets, train/deploy/infer control plane with hard cost guards; read model data/ai.json",
+  "env": {
+    "AI_PRIVATE_BUCKET": "justhodl-ai-857687956942",
+    "AI_PUBLIC_BUCKET": "justhodl-dashboard-live"
+  },
+  "function_url": {
+    "enabled": true,
+    "cors_origins": [
+      "https://justhodl.ai",
+      "https://www.justhodl.ai"
+    ]
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-ai-inventory",
+    "cron": "cron(7 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "AI hourly 07 past: SageMaker inventory + cost guard (idle endpoint TTL, budget) + continuation of pending Brain embedding passes; never self-invokes"
+  }
+}
