@@ -47,7 +47,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -264,8 +264,8 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
 def _public_dataset_view(ds: Optional[dict], passes: List[dict]) -> Optional[dict]:
     if not ds:
         return None
-    keep = ("dataset_id", "kind", "built_at", "source_generated_at", "source_n_notes", "n_rows", "n_train", "n_validation", "by_label", "labels",
-            "n_pinned", "dropped", "min_class_rows", "text_chars_median")
+    keep = ("dataset_id", "kind", "built_at", "source_generated_at", "source_n_notes", "n_rows", "n_train", "n_validation", "n_excluded", "by_label", "labels",
+            "excluded_labels", "min_class_rows_floor", "n_pinned", "dropped", "min_class_rows", "text_chars_median")
     v = {k: ds.get(k) for k in keep}
     v["embedding_passes"] = passes
     return v
@@ -326,14 +326,14 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     ep = body.get("endpoint_name") or ("jh-ai-" + re.sub(r"[^a-z0-9]+", "-", model_id.lower()))[:56].rstrip("-")
     res = sm_hub.deploy_model(client("sagemaker"), client("s3"), spec=spec, role_arn=role, endpoint_name=ep, instance_type=instance_type,
                               serverless=serverless, private_bucket=PRIVATE_BUCKET, tags=cg.tags("hub:" + model_id, None if serverless else ttl, bool(body.get("pinned"))),
-                              serverless_memory_mb=int(body.get("serverless_memory_mb") or 4096))
+                              serverless_memory_mb=int(body.get("serverless_memory_mb") or 4096), serverless_max_conc=int(body.get("serverless_max_conc") or 4))
     res.update({"model_id": model_id, "ttl_hours": None if serverless else ttl, "spec": {k: spec.get(k) for k in ("task", "framework", "hosting_image", "default_inference_instance", "training_supported")}})
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
     return res
 
 
 def action_dataset_build(body: dict, policy: dict) -> Dict[str, Any]:
-    man = bd.build_brain_dataset(client("s3"), PUBLIC_BUCKET, PRIVATE_BUCKET, min_chars=int(body.get("min_chars") or 24))
+    man = bd.build_brain_dataset(client("s3"), PUBLIC_BUCKET, PRIVATE_BUCKET, min_chars=int(body.get("min_chars") or 24), min_class_rows=int(body.get("min_class_rows") or 20))
     # AutoML text CSV (header text,label) alongside, still private
     rows = bd.load_rows(client("s3"), PRIVATE_BUCKET, man["dataset_id"])
     import csv
@@ -462,16 +462,17 @@ def action_infer(body: dict, policy: dict) -> Dict[str, Any]:
         raise ActionError("embedding endpoint returned nothing")
     out: Dict[str, Any] = {"dim": len(vec), "embedding_endpoint": emb_ep}
     clf = body.get("classifier_endpoint")
+    ds_id = body.get("dataset_id") or (bd.latest_dataset(client("s3"), PRIVATE_BUCKET) or {}).get("dataset_id")
     if clf:
         pred = sm_hub.predict_csv(rt, clf, [vec])
-        labels = body.get("labels") or bd.CATS
+        man = bd._get_json(client("s3"), PRIVATE_BUCKET, "ai/datasets/brain/%s/manifest.json" % ds_id) if ds_id else None
+        labels = body.get("labels") or (man or {}).get("labels") or bd.CATS
         p0 = pred[0] if pred else None
         if isinstance(p0, list) and len(p0) == len(labels):
             ranked = sorted(zip(labels, [float(x) for x in p0]), key=lambda kv: -kv[1])
             out["classification"] = [{"label": l, "p": round(p, 4)} for l, p in ranked]
         else:
             out["classification_raw"] = pred[:3]
-    ds_id = body.get("dataset_id") or (bd.latest_dataset(client("s3"), PRIVATE_BUCKET) or {}).get("dataset_id")
     if ds_id and body.get("retrieve", True):
         out["nearest_notes"] = bd.nearest_notes(client("s3"), PRIVATE_BUCKET, ds_id, emb_ep, vec, k=int(body.get("k") or 8))
         out["dataset_id"] = ds_id
@@ -593,7 +594,7 @@ def lambda_handler(event=None, context=None):
     if mode == "inventory":
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))
         return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"]}
-    fn = ACTIONS.get(("POST", "/" + mode.strip("/")))
+    fn = ACTIONS.get(("POST", "/" + mode.strip("/"))) or ACTIONS.get(("GET", "/" + mode.strip("/")))
     if not fn:
         return {"ok": False, "error": "unknown mode %s" % mode}
     try:

@@ -40,6 +40,8 @@ class FakeS3:
         self.objs[(Bucket, Key)] = Body if isinstance(Body, bytes) else str(Body).encode()
 
     def head_object(self, Bucket, Key):
+        if (Bucket, Key) not in self.objs:
+            raise Exception("An error occurred (404) when calling the HeadObject operation: Not Found")
         return {"ContentLength": len(self.objs[(Bucket, Key)])}
 
     def download_file(self, Bucket, Key, path):
@@ -49,7 +51,8 @@ class FakeS3:
         self.objs[(Bucket, Key)] = Path(path).read_bytes()
 
     def list_objects_v2(self, Bucket, Prefix="", **kw):
-        return {"Contents": [{"Key": k} for (b, k) in self.objs if b == Bucket and k.startswith(Prefix)]}
+        hits = [{"Key": k} for (b, k) in self.objs if b == Bucket and k.startswith(Prefix)]
+        return {"Contents": hits, "KeyCount": len(hits)}
 
 
 HUB_DOC = {"HostingEcrUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.8.0-cpu-py37",
@@ -258,6 +261,36 @@ def test_deploy_script_mode_repacks_and_creates_serverless_endpoint():
     return "repacked model+code, serverless variant, script env"
 
 
+def test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes():
+    s3 = FakeS3()
+    store = _install_fakes(s3=s3)
+    import sm_hub
+    spec = sm_hub.describe_model(store["sagemaker"], "mxnet-tcembedding-robertafin-base-uncased")
+    # (a) nothing reachable -> the error lists every probe
+    try:
+        sm_hub.resolve_model_data(s3, spec, "private-test")
+        raise AssertionError("must fail when no artifact exists")
+    except RuntimeError as e:
+        assert "probes" in str(e) and "artifact" in str(e)
+    # (b) prepacked tarball present while the plain artifact 404s -> used directly, no repack
+    spec["hosting_prepacked_artifact"] = "s3://jumpstart-cache-prod-us-east-1/mxnet-infer/prepack/v1.0.0/infer-prepack-x.tar.gz"
+    s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-infer/prepack/v1.0.0/infer-prepack-x.tar.gz")] = _tar_bytes({"model.params": b"w", "code/inference.py": b"x"})
+    md = sm_hub.resolve_model_data(s3, spec, "private-test")
+    assert md["how"] == "prepacked-tar" and md["url"].endswith("infer-prepack-x.tar.gz") and not md["env"]
+    assert [p["exists"] for p in md["probes"]] == [True, False]
+    # (c) uncompressed prefix artifact -> ModelDataSource
+    spec["hosting_prepacked_artifact"] = None
+    spec["hosting_artifact"] = "s3://jumpstart-cache-prod-us-east-1/mxnet-infer/uncompressed/x/"
+    spec["hosting_artifact_compression"] = "None"
+    s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-infer/uncompressed/x/model.params")] = b"w"
+    md = sm_hub.resolve_model_data(s3, spec, "private-test")
+    assert md["how"] == "artifact-prefix" and md["source"]["S3DataSource"]["S3DataType"] == "S3Prefix"
+    res = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+    cm = [c for c in store["sagemaker"].calls if c[0] == "create_model"][-1][1]
+    assert "ModelDataSource" in cm["PrimaryContainer"] and "ModelDataUrl" not in cm["PrimaryContainer"] and res["artifact_how"] == "artifact-prefix"
+    return "probes named on failure; prepacked > prefix > repack"
+
+
 def test_embed_texts_falls_back_to_x_text_and_flattens():
     import sm_hub
     rt = FakeRT(dim=5)
@@ -273,15 +306,19 @@ def test_brain_dataset_build_and_split():
     s3 = FakeS3()
     s3.put_object("public-test", "data/brain.json", json.dumps(_brain()).encode())
     import brain_dataset as bd
-    man = bd.build_brain_dataset(s3, "public-test", "private-test")
+    man = bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
     assert man["n_rows"] == 42 and man["dropped"] == {"short": 1, "no_cat": 1, "dup": 1}, man
-    assert man["by_label"]["rule"] == 6 and man["n_pinned"] == 7 and man["labels"] == bd.CATS
+    assert man["labels"] == bd.CATS and man["excluded_labels"] == [] and man["n_excluded"] == 0
+    assert man["by_label"]["rule"] == 6 and man["n_pinned"] == 7
+    # default floor (20 rows): every 6-row class is kept for retrieval but excluded from the classifier
+    man2 = bd.build_brain_dataset(s3, "public-test", "private-test")
+    assert man2["n_excluded"] == 42 and man2["labels"] == [] and len(man2["excluded_labels"]) == 7
     assert man["n_train"] + man["n_validation"] == 42 and man["n_validation"] > 0
     assert ("private-test", man["rows_key"]) in s3.objs and ("public-test", man["rows_key"]) not in s3.objs
     rows = bd.load_rows(s3, "private-test", man["dataset_id"])
     assert rows[0]["split"] == bd._split(rows[0]["id"])
-    assert bd.latest_dataset(s3, "private-test")["dataset_id"] == man["dataset_id"]
-    return "42 rows from 45 notes, drops explained, private only, deterministic split"
+    assert bd.latest_dataset(s3, "private-test")["dataset_id"] == man2["dataset_id"] != man["dataset_id"]
+    return "42 rows from 45 notes, drops explained, private only, deterministic split, class floor honoured"
 
 
 def test_embedding_pass_assembles_csv_and_index_then_retrieves():
@@ -289,7 +326,7 @@ def test_embedding_pass_assembles_csv_and_index_then_retrieves():
     s3.put_object("public-test", "data/brain.json", json.dumps(_brain()).encode())
     import brain_dataset as bd
     import sm_hub
-    man = bd.build_brain_dataset(s3, "public-test", "private-test")
+    man = bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
     rt = FakeRT(dim=6)
     st = bd.run_embedding_pass(s3, rt, "private-test", man["dataset_id"], "jh-ai-roberta", embed_fn=sm_hub.embed_texts, budget_s=30, chunk=10)
     assert st["status"] == "complete" and st["n_embedded"] == 42 and st["dim"] == 6, st
@@ -397,7 +434,7 @@ def test_inventory_writes_public_read_model_without_note_text():
     s3.put_object("public-test", "data/brain.json", json.dumps(_brain()).encode())
     lf = _load(store)
     import brain_dataset as bd
-    bd.build_brain_dataset(s3, "public-test", "private-test")
+    bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
     sm = store["sagemaker"]
     sm.endpoints["jh-ai-x"] = {"EndpointName": "jh-ai-x", "EndpointStatus": "InService", "EndpointArn": "arn:ep:jh-ai-x", "CreationTime": datetime.now(timezone.utc),
                                "ProductionVariants": [{"VariantName": "AllTraffic", "CurrentInstanceType": "ml.m5.xlarge", "CurrentInstanceCount": 1}],
@@ -416,6 +453,7 @@ def test_inventory_writes_public_read_model_without_note_text():
 
 def main():
     tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
+             test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_inventory_writes_public_read_model_without_note_text]
     failed = 0
