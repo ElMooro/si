@@ -105,7 +105,8 @@ FED_LIQUIDITY_SERIES = {
     'DRTSCILM': 'Banks Tightening Standards - Large Firms',
     'SUBLPDRCILM': 'Loan Demand from Large Firms',
     'DRTSCLCC': 'Banks Tightening Credit Card Standards',
-    'STLFSI3': 'St. Louis Financial Stress Index',
+    'STLFSI3': 'St. Louis Financial Stress Index (Discontinued)',
+    'STLFSI4': 'St. Louis Financial Stress Index',
     'NFCI': 'Chicago Fed Financial Conditions',
     'ANFCI': 'Adjusted Financial Conditions',
 
@@ -381,8 +382,14 @@ def fetch_fred_data(series_id, start_date=None, end_date=None, _max_retries=4):
     print("FRED_RETRIES_EXHAUSTED")
     return []
 
+_metadata_cache = {}
+
+
 def get_series_metadata(series_id):
     """Get metadata for a series"""
+    cached = _metadata_cache.get(series_id)
+    if cached and time.monotonic() - cached[0] < 6 * 3600:
+        return dict(cached[1])
     try:
         base_url = 'https://api.stlouisfed.org/fred/series'
         params = {
@@ -398,12 +405,19 @@ def get_series_metadata(series_id):
 
         if data.get('seriess'):
             series = data['seriess'][0]
-            return {
+            if series.get('id') != series_id or any(not isinstance(series.get(field), str) or not series[field]
+                                                   for field in ('title', 'units', 'frequency')):
+                return None
+            metadata = {
+                'id': series_id,
                 'title': series.get('title', 'N/A'),
                 'units': series.get('units', 'N/A'),
                 'frequency': series.get('frequency', 'N/A'),
                 'last_updated': series.get('last_updated', 'N/A')
             }
+            if series_id in FED_LIQUIDITY_SERIES:
+                _metadata_cache[series_id] = (time.monotonic(), dict(metadata))
+            return metadata
     except:
         pass
     return None
@@ -424,7 +438,7 @@ def summarize_series(series_id):
     metadata=get_series_metadata(series_id) or {}
     frequency=str(metadata.get('frequency','UNKNOWN'))
     cadence='Daily' if frequency.startswith('Daily') else 'Weekly' if frequency.startswith('Weekly') else 'Monthly' if frequency=='Monthly' else 'Quarterly' if frequency=='Quarterly' else 'Annual' if frequency=='Annual' else 'UNKNOWN'
-    tolerance={'Daily':4,'Weekly':3,'Monthly':4}.get(cadence)
+    tolerance={'Daily':4,'Weekly':6,'Monthly':4}.get(cadence)
     def previous(cutoff):
         row=next((row for row in observations if row['date'] <= cutoff.isoformat()),None)
         return row if row and tolerance is not None and (cutoff-datetime.fromisoformat(row['date']).date()).days<=tolerance else None
@@ -481,7 +495,7 @@ def lambda_handler(event, context):
                     'yield_spreads': ['T10Y2Y', 'T10Y3M', 'T5YIE', 'T10YIE', 'TEDRATE'],
                     'corporate_bonds': ['AAA10Y', 'BAA10Y', 'BAMLH0A0HYM2', 'BAMLC0A0CM'],
                     'emerging_markets': ['BAMLEMCBPIOAS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS'],
-                    'bank_stress': ['DRTSCIS', 'STLFSI3', 'NFCI', 'ANFCI'],
+                    'bank_stress': ['DRTSCIS', 'STLFSI4', 'NFCI', 'ANFCI'],
                     'volatility': ['VIXCLS', 'OVXCLS', 'GVZCLS', 'TYVIX'],
                     'currencies': ['DTWEXBGS', 'DEXUSEU', 'DEXJPUS', 'DEXCHUS'],
                     'commodities': ['DCOILWTICO', 'DCOILBRENTEU', 'GOLDAMGBD228NLBM'],
@@ -493,7 +507,7 @@ def lambda_handler(event, context):
         elif series_param == 'summary':
             # Get key metrics with latest values
             key_series = ['WALCL', 'WRBWFRBL', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS',
-                         'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2']
+                         'DTWEXBGS', 'SP500', 'STLFSI4', 'T10Y2Y', 'BAMLH0A0HYM2']
             summary = {}
 
             with ThreadPoolExecutor(max_workers=4) as pool:
@@ -533,7 +547,7 @@ def lambda_handler(event, context):
                 'spreads': ['T10Y2Y', 'T10Y3M', 'T30Y10Y', 'T5YIE', 'T10YIE', 'TEDRATE'],
                 'corporate': ['AAA10Y', 'BAA10Y', 'BAMLH0A0HYM2', 'BAMLC0A0CM', 'DAAA', 'DBAA'],
                 'emerging': ['BAMLEMCBPIOAS', 'DEXMXUS', 'DEXBZUS', 'DEXINUS', 'DEXSFUS'],
-                'stress': ['DRTSCIS', 'DRTSCILM', 'STLFSI3', 'NFCI', 'ANFCI'],
+                'stress': ['DRTSCIS', 'DRTSCILM', 'STLFSI4', 'NFCI', 'ANFCI'],
                 'volatility': ['VIXCLS', 'VXVCLS', 'OVXCLS', 'GVZCLS', 'EVZCLS', 'TYVIX'],
                 'currencies': ['DTWEXBGS', 'DEXUSEU', 'DEXJPUS', 'DEXUSUK', 'DEXCHUS'],
                 'commodities': ['DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'GOLDAMGBD228NLBM'],

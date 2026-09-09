@@ -9,6 +9,7 @@ sys.modules['_fred_shim']=types.ModuleType('_fred_shim')
 secret=types.ModuleType('managed_secret');secret.managed_secret=lambda *a:'';sys.modules['managed_secret']=secret
 spec=importlib.util.spec_from_file_location('fed_under_test',Path(__file__).resolve().parents[1]/'source/lambda_function.py')
 mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+real_get_series_metadata=mod.get_series_metadata
 mod.get_series_metadata=lambda *a:{'frequency':'Weekly, Ending Wednesday','units':'Millions of U.S. Dollars','title':'Fixture'}
 
 def test_calendar_changes_use_observation_dates_and_preserve_zero():
@@ -41,6 +42,36 @@ def test_monthly_series_never_invents_a_weekly_return_and_stale_dates_are_flagge
     _,row=mod.summarize_series('M2SL')
     assert row['week_change'] is None and row['month_change']==10 and row['data_quality']=='STALE'
     mod.get_series_metadata=lambda *a:{'frequency':'Weekly, Ending Wednesday','units':'Millions of U.S. Dollars','title':'Fixture'}
+
+def test_weekly_month_comparison_uses_last_available_week_without_future_observation():
+    mod.fetch_fred_data=lambda *a,**kw:[{'date':'2026-09-02','value':110},
+        {'date':'2026-08-05','value':105},{'date':'2026-07-29','value':100}]
+    _,row=mod.summarize_series('WALCL')
+    assert row['month_comparison_date']=='2026-07-29' and row['month_change']==10
+    mod.fetch_fred_data=lambda *a,**kw:[{'date':'2026-09-02','value':110},{'date':'2026-07-22','value':100}]
+    assert mod.summarize_series('WALCL')[1]['month_change'] is None
+
+def test_summary_uses_active_stress_index_and_retains_historical_catalog():
+    mod.fetch_fred_data=lambda *a,**kw:[]
+    result=json.loads(mod.lambda_handler({'queryStringParameters':{'series':'summary'}},None)['body'])
+    assert 'STLFSI4' in result['requested_series'] and 'STLFSI3' not in result['requested_series']
+    assert 'STLFSI3' in mod.FED_LIQUIDITY_SERIES
+
+def test_metadata_cache_has_expiry_and_does_not_cache_failed_provider_responses():
+    from unittest.mock import patch
+    class Response:
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def read(self):return json.dumps({'seriess':[{'id':'VIXCLS','title':'Fixture','units':'Index','frequency':'Daily'}]}).encode()
+    mod._metadata_cache={}
+    with patch.object(mod.urllib.request,'urlopen',return_value=Response()) as request:
+        first=real_get_series_metadata('VIXCLS');first['frequency']='tampered'
+        assert real_get_series_metadata('VIXCLS')['frequency']=='Daily' and request.call_count==1
+        mod._metadata_cache['VIXCLS']=(mod.time.monotonic()-7*3600,mod._metadata_cache['VIXCLS'][1])
+        real_get_series_metadata('VIXCLS');assert request.call_count==2
+    mod._metadata_cache={}
+    with patch.object(mod.urllib.request,'urlopen',side_effect=RuntimeError('PRIVATE_CANARY')):
+        assert real_get_series_metadata('VIXCLS') is None and mod._metadata_cache=={}
 
 
 tests=[fn for name,fn in sorted(globals().items()) if name.startswith('test_')]

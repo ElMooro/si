@@ -38,3 +38,16 @@ mandatory. The deployment diagnostic now distinguishes FunctionError from an
 executed-version mismatch; both paths stop before promotion. Local research
 checks9 and validated-candidate scenarios12 pass. This is a source-fix record;
 the next numbered candidate must pass production validation.
+
+The live Fed check after fee895b confirmed correct currency magnitudes, dates,
+zero values and explicit Partial coverage. It exposed STLFSI3's last2022
+observation in the current summary. FRED identifies STLFSI4 as the current
+replacement; the follow-up uses it for current summaries/categories and keeps
+STLFSI3 explicitly discontinued in the historical catalog. Weekly month
+comparisons now admit the last observation within one weekly cadence before
+the calendar cutoff (at most6 days), without using an observation after that
+cutoff. Validated series metadata is cached in each warm process for at most6
+hours to reduce repeated provider requests. Missing metadata still produces
+UNKNOWN/Partial; no frequency or units are guessed. Eight Fed handler checks
+pass. Primary references: https://fred.stlouisfed.org/series/STLFSI3 and
+https://fred.stlouisfed.org/series/STLFSI4 .
