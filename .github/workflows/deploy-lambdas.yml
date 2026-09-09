@@ -36,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 10
+          fetch-depth: 50
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -56,6 +56,16 @@ jobs:
           parent_sha="${{ github.event.before }}"
           echo "Triggering commit: $triggering_sha"
           echo "Parent commit: $parent_sha"
+          # audit 2026-09-08 (2026-09-09 incident): a 10-commit push exceeded the shallow clone, the
+          # parent diff failed silently and ZERO engines deployed. Fetch both push boundaries explicitly
+          # and refuse to proceed with an empty diff when the range is non-empty.
+          if [ -n "$parent_sha" ] && [ "$parent_sha" != "0000000000000000000000000000000000000000" ]; then
+            git fetch -q --depth=200 origin "$parent_sha" "$triggering_sha" 2>/dev/null || git fetch -q --unshallow origin 2>/dev/null || true
+            if ! git cat-file -e "$parent_sha" 2>/dev/null; then
+              echo "::error::parent commit $parent_sha not reachable after fetch -- refusing to guess the change set"
+              exit 1
+            fi
+          fi
 
           # Check the specific triggering commit's message for [skip-deploy].
           # Manual workflow_dispatch invocations bypass this — the user
@@ -103,8 +113,9 @@ jobs:
           else
             # Fallback to HEAD^ if we don't have both refs
             if [ -n "$parent_sha" ] && [ "$parent_sha" != "0000000000000000000000000000000000000000" ]; then
-              changed=$(git diff --name-only "$parent_sha" "$triggering_sha" 2>/dev/null | grep '^aws/lambdas/' || true)
-              shared_changed=$(git diff --name-only "$parent_sha" "$triggering_sha" 2>/dev/null | grep -E '^aws/shared/.*\.py$' || true)
+              range_files=$(git diff --name-only "$parent_sha" "$triggering_sha") || { echo "::error::git diff $parent_sha..$triggering_sha failed"; exit 1; }
+              changed=$(echo "$range_files" | grep '^aws/lambdas/' || true)
+              shared_changed=$(echo "$range_files" | grep -E '^aws/shared/.*\.py$' || true)
             else
               changed=$(git diff --name-only HEAD^ HEAD | grep '^aws/lambdas/' || true)
               shared_changed=$(git diff --name-only HEAD^ HEAD | grep -E '^aws/shared/.*\.py$' || true)
