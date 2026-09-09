@@ -1,9 +1,9 @@
 {
   "ops": 5241,
-  "checkout_sha": "2d87a4e2f8181786649c5955a387fffcb3d1659e",
-  "ops_target_sha": "2d87a4e2f8181786649c5955a387fffcb3d1659e",
+  "checkout_sha": "cfb1f5d12073a27bd819ef40ebe8be128852e0eb",
+  "ops_target_sha": "cfb1f5d12073a27bd819ef40ebe8be128852e0eb",
   "ok": false,
-  "status": "INCOMPLETE",
+  "status": "NOT_FOUND",
   "target_hostname": "gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws",
   "account_verified": true,
   "matches": [],
@@ -11,19 +11,17 @@
     "function_pages": 18,
     "functions_enumerated": 884,
     "functions_scanned": 884,
-    "function_scans_complete": 854,
-    "url_pages": 854,
-    "url_configs_scanned": 143,
+    "function_scans_complete": 884,
+    "url_pages": 884,
+    "url_configs_scanned": 152,
     "enumeration_complete": true,
-    "url_scan_complete": false,
-    "max_workers": 6,
+    "url_scan_complete": true,
+    "max_workers": 2,
     "max_function_pages": 200,
     "max_functions": 10000,
     "max_url_pages_per_function": 20,
     "max_seconds": 900
   },
-  "error_count": 30,
-  "error_types": {
-    "url_scan:TooManyRequestsException": 30
-  }
+  "error_count": 0,
+  "error_types": {}
 }
