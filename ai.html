@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="ai-version" content="ai-v1.2.0">
+<meta name="ai-version" content="ai-v1.2.2">
 <meta name="jh-marker" content="AI_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
@@ -236,12 +236,13 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   async function api(path, body, method) {
     var h = await authHdr(); h["Content-Type"] = "application/json";
     var last = null;
-    for (var i = 0; i < 2; i++) {
-      var base = i === 0 ? PROXY : PROXY_FALLBACK;
+    var bases = [PROXY, PROXY_FALLBACK];
+    for (var i = 0; i < bases.length; i++) {
       try {
-        var r = await fetch(base + "/ai" + path, { method: method || (body ? "POST" : "GET"), headers: h, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
+        var r = await fetch(bases[i] + "/ai" + path, { method: method || (body ? "POST" : "GET"), headers: h, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
         var txt = await r.text(); var j; try { j = JSON.parse(txt); } catch (e) { j = { error: txt.slice(0, 300) }; }
-        if (r.status === 502 || r.status === 503) { last = j; continue; }
+        // a bridge that does not carry the /ai route answers a generic 404 {"error":"Not found"} -- try the next base
+        if (r.status === 502 || r.status === 503 || (r.status === 404 && j && /^not found$/i.test(String(j.error || "")))) { last = j; continue; }
         return { status: r.status, json: j };
       } catch (e) { last = { error: String(e) }; }
     }
@@ -467,12 +468,17 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (v.report) h += '<div class="note">full report: <a href="' + esc(v.report) + '" target="_blank">' + esc(v.report.split("/").pop()) + "</a></div>";
     $("verdict").innerHTML = h;
   }
-  async function loadOwnerRead() {
-    if (!user()) return;
-    var r = await api("/read", null, "GET");
-    if (r.status === 200 && r.json && r.json.result) renderReadOwner(r.json.result);
-    else if (r.status === 400) { $("read-body").innerHTML = '<div class="dim">' + esc((r.json && r.json.error) || "no read yet") + "</div>"; }
-    else log("err", "read → " + r.status, r.json);
+  var READ_INFLIGHT = false, READ_LAST = 0, READ_ERR_LOGGED = 0;
+  async function loadOwnerRead(force) {
+    if (!user() || READ_INFLIGHT) return;
+    if (!force && Date.now() - READ_LAST < 30000) return;          // auth onChange can fire in bursts -- one read per 30s
+    READ_INFLIGHT = true; READ_LAST = Date.now();
+    try {
+      var r = await api("/read", null, "GET");
+      if (r.status === 200 && r.json && r.json.result) renderReadOwner(r.json.result);
+      else if (r.status === 400) { $("read-body").innerHTML = '<div class="dim">' + esc((r.json && r.json.error) || "no read yet") + "</div>"; }
+      else if (Date.now() - READ_ERR_LOGGED > 60000) { READ_ERR_LOGGED = Date.now(); log("err", "read → " + r.status, r.json); }
+    } finally { READ_INFLIGHT = false; }
   }
   function renderDefs(d) { var defs = d.definitions || {}; $("defs").innerHTML = Object.keys(defs).map(function (k) { return "<dt>" + esc(k) + "</dt><dd>" + esc(defs[k]) + "</dd>"; }).join(""); }
   function fillSelects(d) {
