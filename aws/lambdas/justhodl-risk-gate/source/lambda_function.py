@@ -55,11 +55,12 @@ from datetime import datetime, timezone
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from donor_contracts import term_premium_indicator, treasury_fails_input, jplg_input
 
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.5 BRAIN-CONSTITUTIONAL FLEET-FUSED (audit 2026-09-08: pure replay, disclosed overlays, native-month indicators)"
+MARKER = "risk-gate v2.5 BRAIN-CONSTITUTIONAL FLEET-FUSED (audit 2026-09-09: scoped live donors, JPLG units, complete evidence)"
 
 s3 = boto3.client("s3")
 
@@ -87,7 +88,6 @@ SERIES = {
     # ── indicators (ops 4396) ──
     "BAMLC0A0CM":      "indicator-ig-oas",       # IG OAS (HY-IG skew)
     "VXVCLS":          "indicator-vix3m",        # 3M VIX (term structure)
-    "T10Y2Y":          "indicator-2s10s",        # ACM proxy
     "DGS2":            "indicator-2y",
     "UNRATE":          "indicator-sahm",         # Sahm rule
     "TRUCKD11":        "indicator-truck",        # freight canary
@@ -158,7 +158,6 @@ IND_SERIES = {
     "BAMLH0A0HYM2": None,      # HY OAS (already in SERIES)
     "VIXCLS": None,            # spot VIX (already fetched)
     "VXVCLS": None,            # 3M VIX (term structure)
-    "T10Y2Y": None,            # 2s10s (ACM proxy leg)
     "T10Y3M": None,            # 10y-3m
     "DGS10": None, "DGS2": None,
     "SOFR": None, "IORB": None,
@@ -230,7 +229,7 @@ def truck_yoy(native_truck, d):
             "current": cur_v, "year_ago": pv, "basis": "native monthly TRUCKD11 vs the observation 12 calendar months earlier"}
 
 
-def compute_indicators(F, calendar, i, native=None):
+def compute_indicators(F, calendar, i, native=None, term_premium=None):
     """9 brain-cited risk indicators as a clean render contract.
     `native` = the un-forward-filled monthly series (UNRATE, TRUCKD11): monthly measures are
     never computed from repeated daily samples (audit 2026-09-08 FR-08)."""
@@ -278,19 +277,9 @@ def compute_indicators(F, calendar, i, native=None):
         out["vix_term_structure"] = {"pending_source": "FRED VXVCLS",
                                      "asof": d}
 
-    # 3 — ACM term premium proxy: 2s10s slope (ACM model data is non-FRED)
-    cur, z = _zlast(F.get("T10Y2Y", {}), calendar, i)
-    if cur is not None:
-        out["acm_term_premium"] = {
-            "value": round(cur, 2), "z": z, "unit": "pp (2s10s proxy)",
-            "signal": ("INVERTED" if cur < 0 else "POSITIVE"),
-            "cite": "term premium proxy — NY Fed ACM is non-FRED; 2s10s "
-                    "slope stands in",
-            "source": "FRED T10Y2Y (proxy)", "asof": d,
-            "note": "true ACM decomposition pending non-FRED source"}
-    else:
-        out["acm_term_premium"] = {"pending_source": "FRED T10Y2Y",
-                                   "asof": d}
+    # True ACM is supplied only to the LIVE indicator view. Its current
+    # observations must never enter historical posture/event-study replay.
+    out["acm_term_premium"] = term_premium or term_premium_indicator(None)
 
     # 4 — XCC basis: already computed in fleet layer (crisis-plumbing);
     # surface a pointer so the page can cross-link
@@ -720,11 +709,8 @@ def fleet_adjust(legs):
     out["funding"].append(_fi("dealer_net_treasury_b", "nyfed-primary-dealer", v, adj,
         "dealer net treasury positioning; deep short = stressed intermediation "
         "[tv-a8157acb4435ffe6]; corp_net_bonds_b not exported in live artifact (producer todo)", a))
-    ofr, a = _feed("data/ofr-stfm.json")
-    v = (ofr or {}).get("fails_cross")
-    adj = (-0.4 if (isinstance(v, (int, float)) and v > 1.5) else 0.0)
-    out["funding"].append(_fi("fails_cross_z", "ofr-stfm", v, adj,
-        "fails = collateral scramble [nmq5x0cp7zp4j]; fails_cross not in live artifact yet — producer-side export needed, stays MISSING honestly", a))
+    fails_doc, _ = _feed("data/settlement-fails.json")
+    out["funding"].append(treasury_fails_input(fails_doc))
     ag, a = _feed("data/auction-grades.json")
     g10 = None
     for r in ((ag or {}).get("graded_auctions") or []):
@@ -855,20 +841,8 @@ def fleet_adjust(legs):
            (0.2 if (isinstance(v, (int, float)) and v > 8) else 0.0))
     out["carry"].append(_fi("china_m1_yoy_pct", "china-liquidity", v, adj,
         "CNY liquidity/devaluation risk channel [nmq5x0cpig3hx]", a))
-    tvj, a = _feed("data/tradingview.json")
-    jrow = next((r_ for r_ in ((tvj or {}).get("symbols") or [])
-                 if r_.get("symbol") == "JPLG"), {})
-    v = jrow.get("value")
-    pv = jrow.get("prev")
-    adj = 0.0
-    if isinstance(v, (int, float)):
-        if v < 0:
-            adj = -0.4
-        elif (isinstance(pv, (int, float)) and v < pv - 0.3) or v < 1.0:
-            adj = -0.2
-    out["carry"].append(_fi("jplg_loan_growth_yoy", "tradingview-vault(BOJ)", v, adj,
-        "Japan bank lending YoY from the BOJ API — 'JPLG decline = FLASH WARNING' "
-        "[tv-b3ec3933837d5155]; contraction -0.4, sharp decel -0.2", a))
+    tvj, _ = _feed("data/tradingview.json")
+    out["carry"].append(jplg_input(tvj))
 
     # ops4003 jp10y-carry: JGB 10Y from the vault (MOF official curve). Rising
     # long JGB yields raise the funding cost of every yen-carry position —
@@ -978,6 +952,7 @@ def read_feed(key):
 
 def lambda_handler(event, context):
     t0 = time.time()
+    validation_only = isinstance(event, dict) and (event.get("validate_only") is True or event.get("mode") == "validate_only")
     print(f"[risk-gate] {MARKER}")
 
     F = {}
@@ -1047,12 +1022,14 @@ def lambda_handler(event, context):
         "crisis_composite": (crisis or {}).get("composite") or (crisis or {}).get("headline"),
         # FR-09: the flat inputs table the page renders (every fleet input across the 6 legs + overlays)
         "method": "per-leg fleet adjustments clamped to +/-0.75 added to the FRED leg score; overlays added to the composite",
-        "inputs": {("%s.%s" % (k, x.get("input"))): {"value": x.get("value"), "delta": x.get("score_adj"), "status": x.get("status"), "age_h": x.get("age_h"), "feed": x.get("feed")}
+        "inputs": {("%s.%s" % (k, x.get("input"))): dict(x, delta=x.get("score_adj"))
                    for k in W for x in (live_legs[k].get("fleet_inputs") or [])},
     }
     for ov in overlays:
         fleet_context["inputs"]["overlay.%s" % ov["name"]] = {"value": ov.get("band") or ov.get("legs_firing"), "delta": ov["contribution"], "status": ov["status"], "age_h": ov.get("age_h"), "feed": ov["artifact"]}
 
+    term_doc, _ = _feed("data/term-premium.json")
+    acm_indicator = term_premium_indicator(term_doc)
     es = event_study(F, calendar, postures)
 
     # recent posture timeline (last 90 days, thinned)
@@ -1085,14 +1062,18 @@ def lambda_handler(event, context):
         "legs": live_legs,
         "fleet_context": fleet_context,
         "event_study": es,
-        "indicators": compute_indicators(F, calendar, li, native=native),
+        "indicators": compute_indicators(F, calendar, li, native=native, term_premium=acm_indicator),
         "recent_timeline": timeline,
         "consume_as": "multiply position size / conviction by sizing_multiplier; "
                       "RISK_OFF tightens verdict thresholds; SEVERE = distressed-"
                       "buyer posture only (cash/gold/quality per pinned seed1)",
         "elapsed_s": round(time.time() - t0, 1),
     }
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
+    artifact = json.dumps(out, default=str, allow_nan=False)
+    if validation_only:
+        return {"ok": True, "validation_only": True, "schema_version": out["schema_version"],
+                "status": "VALIDATED", "artifact_size_bytes": len(artifact.encode("utf-8"))}
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=artifact,
                   ContentType="application/json", CacheControl="max-age=600")
     print(f"[risk-gate] DONE {out['elapsed_s']}s posture={live_posture} "
           f"comp={live_comp} flips={es['n_flips_to_risk_off_or_worse']}")

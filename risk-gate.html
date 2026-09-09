@@ -232,7 +232,7 @@ tr:last-child td{border-bottom:none}
 <div class="card2" id="fleet">Loading…</div>
 
 <!-- ================================================================ -->
-<h2>Event Study <span class="anchor">forward-return conditioned on posture flips (out-of-sample)</span></h2>
+<h2>Event Study <span class="anchor">historical replay; current fleet data excluded</span></h2>
 <div class="card">
   <div class="dim" style="font-size:12px;margin-bottom:10px" id="esNote">Loading…</div>
   <div id="esChart"></div>
@@ -251,6 +251,8 @@ tr:last-child td{border-bottom:none}
 </div>
 
 <!-- ================================================================ -->
+<h2>Complete Risk Gate Evidence <span class="anchor">every field from the dedicated engine</span></h2>
+<div class="card2" id="completeEvidence"></div>
 <h2>Diagnostics <span class="anchor">provenance · staleness · methodology</span></h2>
 <div class="card2 mono" id="diag" style="font-size:11.5px;color:var(--dim);white-space:pre-wrap;line-height:1.55">Loading…</div>
 
@@ -534,20 +536,38 @@ const LEG_META = {
   STRUCTURE:  {emoji:'🏗️', title:'Structure & Breadth', bs:'Pillar 6 · SPX vs SMH/QQQE, cross-asset regime coherence'},
   COLLATERAL: {emoji:'🔗', title:'Collateral', bs:'Pillar 7 · Fails-to-deliver/receive, treasury auction Bid-to-Cover, Allotted-at-High%, Tail'}
 };
+// Render all nested leaves with escaped text. Summary formatting never hides
+// fields: every record and the exact loaded JSON remain available below.
+function evidenceValue(value){
+  if(value===null) return '<span class="dim">null (not supplied)</span>';
+  if(value===undefined) return '<span class="dim">not supplied</span>';
+  if(typeof value!=='object') return esc(value===''?'"" (empty string)':String(value));
+  const keys=Object.keys(value);
+  if(!keys.length) return Array.isArray(value)?'[]':'{}';
+  return '<dl style="margin:6px 0;overflow-wrap:anywhere">'+keys.map(k=>'<div style="padding:3px 0;border-bottom:1px solid var(--line2)"><dt class="dim">'+esc(Array.isArray(value)?'['+k+']':k)+'</dt><dd style="margin-left:12px;white-space:pre-wrap">'+evidenceValue(value[k])+'</dd></div>').join('')+'</dl>';
+}
+function evidenceDetails(title, value){
+  return '<details style="margin-top:8px;min-width:0"><summary>'+esc(title)+'</summary>'+evidenceValue(value)+'</details>';
+}
+function renderCompleteEvidence(rg){
+  const el=document.getElementById('completeEvidence');
+  el.innerHTML=Object.entries(rg||{}).map(([key,value])=>evidenceDetails(key,value)).join('')+
+    '<details><summary>Complete original JSON</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:70vh;overflow:auto">'+esc(JSON.stringify(rg,null,2))+'</pre></details>';
+}
 function scoreColor(v){ if(v==null) return 'var(--dim)'; if(v<=-1.2) return 'var(--red)'; if(v<=-0.4) return 'var(--sev)'; if(v>=1.2) return 'var(--green)'; if(v>=0.4) return '#a8dfaf'; return 'var(--amber)'; }
 function scorePct(v){ if(v==null) return 50; return 50 + Math.max(-2,Math.min(2,v))/2*50; }
 function renderLegs(rg){
   const el = document.getElementById('legs');
   if(!rg || !rg.legs){ el.innerHTML='<div class="dim">no legs</div>'; return; }
   el.innerHTML = Object.entries(rg.legs).map(([name,leg])=>{
-    const meta = LEG_META[name] || {emoji:'⚙️', title:name, bs:''};
+    const meta = LEG_META[String(name).toUpperCase()] || {emoji:'⚙️', title:name, bs:''};
     // audit 2026-09-08 FR-09: read the producer's actual fields (score / score_fused / why / fleet_inputs);
     // the v2.5 producer also publishes engine_score / fleet_fused_score / state / drivers explicitly.
     const engine = (leg.engine_score != null) ? leg.engine_score : leg.score;
     const fused = (leg.fleet_fused_score != null) ? leg.fleet_fused_score : ((leg.score_fused != null) ? leg.score_fused : leg.score);
     const state = leg.state || (fused == null ? 'UNKNOWN' : fused >= 0.35 ? 'RISK-ON' : fused > -0.35 ? 'NEUTRAL' : fused > -0.95 ? 'RISK-OFF' : 'SEVERE');
     const ind = leg.indicators || [];
-    const drivers = (leg.drivers && leg.drivers.length) ? leg.drivers : (leg.fleet_inputs || []).map(x => ({source: x.input, delta: x.score_adj, weight: 1, status: x.status}));
+    const drivers = (leg.drivers && leg.drivers.length) ? leg.drivers : (leg.fleet_inputs || []).map(x => ({source: x.input, delta: x.score_adj, age_h: x.age_h, status: x.status}));
     const why = Array.isArray(leg.why) ? leg.why : [];
     const engineColor = scoreColor(engine);
     const fusedColor = scoreColor(fused);
@@ -560,11 +580,11 @@ function renderLegs(rg){
         const val = i.value ?? i.raw ?? i.reading;
         const th = i.threshold_text || i.desc || '';
         const emoji = i.status==='ok'?'✅': i.status==='warn'?'⚠️': i.status==='alert'?'🚨':'';
-        return `<div class="ind"><span class="lbl">${emoji} ${esc(i.label||i.name||'?')}</span><span class="val" style="color:${scoreColor(i.z_score||0)}">${esc(typeof val==='number'?val.toFixed(2):val||'?')}</span><span class="ctx">${esc(th).slice(0,60)}</span></div>`;
+        return `<div class="ind"><span class="lbl">${emoji} ${esc(i.label||i.name||'?')}</span><span class="val" style="color:${scoreColor(i.z_score||0)}">${esc(typeof val==='number'?val.toFixed(2):val||'?')}</span><span class="ctx">${esc(th)}</span></div>`;
       }).join('');
     } else if(drivers.length){
       indHtml = drivers.map(d=>{
-        return `<div class="ind"><span class="lbl">${esc(d.source||d.name||'?')}</span><span class="val" style="color:${scoreColor(d.delta)}">${fmt(d.delta,2)}</span><span class="ctx">weight ${fmt(d.weight,2)}</span></div>`;
+        return `<div class="ind"><span class="lbl">${esc(d.source||d.name||'?')}</span><span class="val" style="color:${scoreColor(d.delta)}">${fmt(d.delta,2)}</span><span class="ctx">${esc(d.status||'UNKNOWN')}${d.age_h!=null?' · '+fmt(d.age_h,1)+'h':''}${d.weight!=null?' · weight '+fmt(d.weight,2):''}</span></div>`;
       }).join('');
     }
     return `<div class="card2">
@@ -579,7 +599,8 @@ function renderLegs(rg){
         <span>+2</span>
       </div>
       ${indHtml?`<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--line2)">${indHtml}</div>`:''}
-      ${why.length?`<div class="dim" style="margin-top:8px;font-size:11px;line-height:1.45">${why.slice(0,4).map(w=>esc(String(w))).join('<br>')}</div>`:''}
+      ${why.length?`<div class="dim" style="margin-top:8px;font-size:11px;line-height:1.45">${why.map(w=>esc(String(w))).join('<br>')}</div>`:''}
+      ${evidenceDetails('Complete leg evidence',leg)}
       ${leg.applied?`<div class="dim" style="margin-top:6px;font-size:11px">overlay applied: <b>${esc(String(leg.applied))}</b> · ${esc(String(leg.status||''))}</div>`:''}
     </div>`;
   }).join('');
@@ -598,6 +619,7 @@ function renderIndicators(rg){
       <div class="big" style="font-size:20px;color:${col}">${esc(val)}</div>
       <div style="font-size:11px;color:${col}">${esc(sig)}</div>
       <div class="dim" style="font-size:10.5px;margin-top:4px">${pending ? 'pending source: '+esc(String(v.pending_source)) : esc(String(v.source||''))} · as of ${esc(String((v&&(v.observation_date||v.asof))||'?'))}${v&&v.basis?'<br>'+esc(String(v.basis)):''}</div>
+      ${evidenceDetails('Indicator source and complete contract',v)}
     </div>`;
   }).join('');
 }
@@ -617,14 +639,18 @@ function renderFleet(rg){
   const el = document.getElementById('fleet');
   const fc = rg && rg.fleet_context;
   if(!fc || !fc.inputs){ el.innerHTML='<div class="dim">no fleet data</div>'; return; }
-  const inputs = Object.entries(fc.inputs);
-  el.innerHTML = `<div class="dim" style="font-size:12px;margin-bottom:8px">${inputs.length} fleet inputs · fused method: ${esc(fc.method||'?')}</div>
-    <div style="max-height:400px;overflow-y:auto;padding-right:6px">${inputs.slice(0,80).map(([k,v])=>{
-      const val = typeof v==='object'? (v.value ?? v.reading ?? JSON.stringify(v).slice(0,60)) : v;
-      const adj = v && v.delta!=null ? fmt(v.delta,2) : (v && v.contribution!=null ? fmt(v.contribution,2) : '');
-      const adjClass = adj && parseFloat(adj)>0 ? 'leg-pos' : adj && parseFloat(adj)<0 ? 'leg-neg' : 'leg-zero';
-      return `<div class="fi"><span class="k">${esc(k)}</span><span class="v">${esc(String(val)).slice(0,80)}</span><span class="adj ${adjClass}">${adj||'—'}</span></div>`;
-    }).join('')}</div>`;
+  const inputs=Object.entries(fc.inputs);
+  el.innerHTML='<div class="dim">'+inputs.length+' fleet inputs · '+esc(fc.method||'')+'</div>'+
+    inputs.map(([key,record])=>{
+      const row=record && typeof record==='object'?record:{value:record};
+      const delta=row.delta??row.contribution??row.score_adj;
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--line2);overflow-wrap:anywhere">'+
+        '<strong>'+esc(key)+'</strong> · '+esc(row.status||'UNKNOWN')+' · adjustment '+fmt(delta,2)+
+        (row.age_h!=null?' · age '+fmt(row.age_h,1)+'h':' · age unknown')+
+        (row.max_age_h!=null?' / limit '+fmt(row.max_age_h,1)+'h':'')+
+        '<div class="dim">'+esc(row.feed||'Source path not supplied')+'</div>'+
+        evidenceValue(row.value)+evidenceDetails('Complete source record',row)+'</div>';
+    }).join('');
 }
 
 /* =============================================================================
@@ -788,6 +814,7 @@ function renderDiag(rg, dom, cc, reg, kb, ofr){
   renderIndicators(rg);
   renderOverlays(rg);
   renderFleet(rg);
+  renderCompleteEvidence(rg);
   renderES(rg);
   renderTL(rg);
   renderBC(rg, dom);

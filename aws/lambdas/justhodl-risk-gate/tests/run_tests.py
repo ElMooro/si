@@ -11,6 +11,7 @@ HERE = Path(__file__).resolve().parent
 SRC = HERE.parent / "source" / "lambda_function.py"
 # shared modules (managed_secret etc.) are bundled into the Lambda zip; make them importable here too
 sys.path.insert(0, str(HERE.parents[2] / "shared"))
+sys.path.insert(0, str(HERE.parent / "source"))
 
 
 class _NoAWS:
@@ -108,6 +109,125 @@ def test_posture_bands_and_leg_states(mod):
     assert mod.posture_from(0.9, -2, -1) == "SEVERE", "plumbing override"
     assert mod.leg_state(0.4) == "RISK-ON" and mod.leg_state(-0.5) == "RISK-OFF" and mod.leg_state(None) == "UNKNOWN"
 
+
+
+def test_acm_uses_actual_donor_contract_and_never_slope_proxy(mod):
+    from datetime import datetime, timezone, timedelta
+    from copy import deepcopy
+    from donor_contracts import term_premium_indicator
+    now = datetime(2026, 9, 9, tzinfo=timezone.utc)
+    doc = {"engine": "justhodl-term-premium", "version": "1.0.0", "generated_at": now.isoformat(),
+           "latest": {"date": "2026-09-08", "tp10": 0.7, "tp5": 0.4, "tp2": 0.1, "y10": 4.1, "rn10": 3.4},
+           "decomposition": {"term_premium_10y_pct": 0.7, "risk_neutral_10y_pct": 3.4, "acm_fitted_10y_pct": 4.1},
+           "z_10y": 1.2, "deltas_bps": {"d5": 5, "d21": 10, "d63": 15}, "regime": {"level": "LOW_NORMAL"}}
+    value = term_premium_indicator(doc, now)
+    assert value["status"] == "OK" and value["value"] == 0.7 and value["unit"] == "pp"
+    assert value["evidence"]["latest"]["tp5"] == 0.4
+    F, cal = {"T10Y2Y": {"2026-09-08": -100}}, ["2026-09-08"]
+    out = mod.compute_indicators(F, cal, 0, term_premium=value)["indicators"]["acm_term_premium"]
+    assert out["value"] == 0.7 and out["source"] == "data/term-premium.json"
+    assert "pending_source" in mod.compute_indicators(F, cal, 0)["indicators"]["acm_term_premium"]
+    for field, mutation, status in [
+        ("latest", {**doc["latest"], "date": "2000-01-01"}, "STALE"),
+        ("generated_at", (now + timedelta(days=1)).isoformat(), "INVALID"),
+        ("latest", {**doc["latest"], "tp10": 70}, "INVALID"),
+        ("latest", {**doc["latest"], "tp10": float("nan")}, "INVALID"),
+        ("version", "unknown", "INVALID")]:
+        bad = deepcopy(doc); bad[field] = mutation
+        result = term_premium_indicator(bad, now)
+        assert result["status"] == status and result["value"] is None
+        import json; json.dumps(result, allow_nan=False)
+
+
+def test_treasury_fails_scope_arithmetic_and_observation_freshness(mod):
+    from datetime import datetime, timezone
+    from copy import deepcopy
+    from donor_contracts import treasury_fails_input
+    now = datetime(2026, 9, 9, tzinfo=timezone.utc)
+    treasury = {"scope": "US_TREASURY_INCLUDING_TIPS", "unit": "USD_bn_par", "complete": True,
+                "as_of": "2026-09-02", "ftd_bn": 10, "ftr_bn": 20, "gross_bn": 30,
+                "stats": {"gross": {"z": 2.5, "as_of": "2026-09-02"}}}
+    doc = {"engine": "settlement-fails", "version": "1.0.0", "generated_at": now.isoformat(), "treasury": treasury,
+           "totals": {"gross_bn": 9999999}, "signal": {"score": 0}}
+    result = treasury_fails_input(doc, now)
+    assert result["status"] == "OK" and result["value"] == 2.5 and result["score_adj"] == -0.4
+    assert result["max_age_h"] == 240 and result["age_h"] == 168
+    for key, value, status in [("scope", "ALL_ASSETS", "INVALID"), ("unit", "USD", "INVALID"),
+                               ("gross_bn", 31, "INVALID"), ("complete", False, "INVALID"),
+                               ("as_of", "2026-08-26", "STALE")]:
+        bad = deepcopy(doc); bad["treasury"][key] = value
+        result = treasury_fails_input(bad, now)
+        assert result["status"] == status and result["score_adj"] == 0 and result["value"] is None
+
+
+def test_jplg_provenance_blocks_loan_levels_and_stale_yoy(mod):
+    from datetime import datetime, timezone
+    from donor_contracts import jplg_input
+    now = datetime(2026, 9, 9, tzinfo=timezone.utc)
+    row = {"symbol": "JPLG", "value": 3000000, "source": "imf:MFS_DC (family)", "adapter": "family:LG", "status": "LIVE", "asof": "2026-08"}
+    result = jplg_input({"symbols": [row]}, now)
+    assert result["status"] == "INVALID" and result["value"] is None and result["score_adj"] == 0
+    row.update(value=-0.2, source="bank-of-japan", resolved_via="boj:MD11:DLCLAADBLTTO", asof="boj:202608 YoY")
+    result = jplg_input({"symbols": [row]}, now)
+    assert result["status"] == "OK" and result["value"] == -0.2 and result["score_adj"] == -0.4
+    row["asof"] = "boj:200001 YoY"
+    assert jplg_input({"symbols": [row]}, now)["status"] == "STALE"
+
+
+def _handler_fixture(mod, event=None):
+    import contextlib, io, copy, json
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    date = now.date().isoformat()
+    donor = {"engine": "justhodl-term-premium", "version": "1.0.0", "generated_at": now.isoformat(),
+             "latest": {"date": date, "tp10": 0.7, "tp5": 0.4, "tp2": 0.1, "y10": 4.1, "rn10": 3.4},
+             "decomposition": {"term_premium_10y_pct": 0.7, "risk_neutral_10y_pct": 3.4, "acm_fitted_10y_pct": 4.1},
+             "z_10y": 1.2, "regime": {"level": "LOW_NORMAL"}}
+    fails = {"engine": "settlement-fails", "version": "1.0.0", "generated_at": now.isoformat(),
+             "treasury": {"scope": "US_TREASURY_INCLUDING_TIPS", "unit": "USD_bn_par", "complete": True,
+                          "as_of": date, "ftd_bn": 10, "ftr_bn": 20, "gross_bn": 30,
+                          "stats": {"gross": {"z": 2.5, "as_of": date}}}}
+    docs = {"data/term-premium.json": donor, "data/settlement-fails.json": fails}
+    months = _months(2025, 1, [4.0] * 17 + [5.0] * 3)
+    trucks = _months(2025, 1, [100.0] * 12 + [90.0] * 8)
+    other = _months(2025, 1, [100.0] * 20)
+    mod.fred = lambda sid: copy.deepcopy(months if sid == "UNRATE" else trucks if sid == "TRUCKD11" else other)
+    reads, writes = [], {}
+    def feed(key):
+        reads.append(key)
+        return docs.get(key), 0.0 if key in docs else None
+    mod._feed = feed
+    mod.read_feed = lambda key: docs.get(key)
+    class MemoryS3:
+        def put_object(self, **args): writes[args["Key"]] = json.loads(args["Body"])
+        def __getattr__(self, name): raise AssertionError("Unexpected AWS operation " + name)
+    mod.s3 = MemoryS3()
+    with contextlib.redirect_stdout(io.StringIO()):
+        response = mod.lambda_handler(event or {}, None)
+    return response, writes, reads
+
+
+def test_actual_handler_consumes_scoped_donors_once_and_preserves_live_replay_separation(mod):
+    response, writes, reads = _handler_fixture(_load())
+    out = writes["data/risk-gate.json"]
+    assert reads.count("data/term-premium.json") == 1
+    assert reads.count("data/settlement-fails.json") == 1
+    assert "data/ofr-stfm.json" not in reads
+    assert out["indicators"]["indicators"]["acm_term_premium"]["value"] == 0.7
+    fails = out["fleet_context"]["inputs"]["funding.treasury_fails_gross_z"]
+    assert fails["delta"] == -0.4 and fails["evidence"]["gross_bn"] == 30
+    assert fails["freshness_basis"] == "observation_time" and fails["max_age_h"] == 240
+    assert out["composite_identity"]["check_ok"] is True
+    assert out["composite"] < out["replay_composite_fred_only"]
+
+
+def test_validation_only_computes_real_artifact_without_writes(mod):
+    for event in ({"validate_only": True}, {"mode": "validate_only"}):
+        response, writes, reads = _handler_fixture(_load(), event)
+        assert response["ok"] is True and response["validation_only"] is True
+        assert response["schema_version"] == "risk-gate.v2.5"
+        assert response["artifact_size_bytes"] > 1000 and not writes
+        assert "data/term-premium.json" in reads
 
 if __name__ == "__main__":
     mod = _load()

@@ -19,6 +19,7 @@ Registry: parsed live from data/brain.json [TV:*] tags + brain-text scan.
 Output: data/tradingview.json
 """
 import json
+import math
 import os
 import re
 import time
@@ -35,7 +36,8 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.30.2 ops4227 sticky-relabel"
+MARKER = "tradingview-vault v3.30.3 audit JPLG YoY source/cache contract"
+JPLG_CONTRACT = "boj-loan-growth-yoy.v1"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1165,6 +1167,8 @@ def _dict_try(row):
 
 
 def _family_try(row):
+    if row.get("symbol") == "JPLG":
+        return None  # JPLG is BOJ YoY; family:LG is an IMF loan LEVEL.
     m = FAM_RX.match(str(row.get("symbol") or ""))
     if not m:
         return None
@@ -1214,21 +1218,76 @@ def boj_yoy(tgt):
             rs = (d.get("RESULTSET") or [{}])[0]
             vals = ((rs.get("VALUES") or {}).get("VALUES")) or []
             dates = ((rs.get("VALUES") or {}).get("SURVEY_DATES")) or []
-            i = len(vals) - 1
-            while i >= 12 and vals[i] in (None, ""):
-                i -= 1
-            if i < 12 or vals[i] in (None, "") or vals[i - 12] in (None, ""):
+            # Join the same calendar month a year earlier. Array positions
+            # are not elapsed months when the provider omits an observation.
+            monthly = {}
+            for survey, value in zip(dates, vals):
+                month = re.sub(r"[^0-9]", "", str(survey))[:6]
+                if len(month) != 6 or not 1 <= int(month[4:]) <= 12 or value in (None, ""):
+                    continue
+                level = float(value)
+                if math.isfinite(level) and level > 0:
+                    monthly[month] = level
+            if not monthly:
                 continue
-            yoy = round((float(vals[i]) / float(vals[i - 12]) - 1) * 100, 2)
-            prev = None
-            if i >= 13 and vals[i - 1] not in (None, "") and vals[i - 13] not in (None, ""):
-                prev = round((float(vals[i - 1]) / float(vals[i - 13]) - 1) * 100, 2)
-            return {"value": yoy, "prev": prev,
-                    "chg_pct": round(yoy - prev, 2) if prev is not None else None,
-                    "asof": f"boj:{dates[i] if i < len(dates) else '?'} YoY"}
+            month = max(monthly)
+            year_ago = str(int(month[:4]) - 1) + month[4:]
+            if year_ago not in monthly:
+                continue
+            yoy = round((monthly[month] / monthly[year_ago] - 1) * 100, 2)
+            year, mn = int(month[:4]), int(month[4:])
+            previous_month = f"{year if mn > 1 else year - 1:04d}{mn - 1 if mn > 1 else 12:02d}"
+            previous_year = str(int(previous_month[:4]) - 1) + previous_month[4:]
+            previous = (round((monthly[previous_month] / monthly[previous_year] - 1) * 100, 2)
+                        if previous_month in monthly and previous_year in monthly else None)
+            return {"value": yoy, "prev": previous,
+                    "chg_pct": round(yoy - previous, 2) if previous is not None else None,
+                    "asof": f"boj:{month} YoY", "observation_date": f"{month[:4]}-{month[4:]}-01",
+                    "unit": "% YoY", "contract_version": JPLG_CONTRACT}
         except Exception:
             continue
     return None
+
+def resolve_jplg_row(row, cached, now, force=False, allow_fetch=True):
+    """Route JPLG before generic dictionaries and invalidate every old unitless cache row."""
+    alias = ALIASES["JPLG"]
+    def valid(value):
+        if not isinstance(value, dict): return False
+        level = value.get("value")
+        try:
+            observation = datetime.fromisoformat(value["observation_date"]).replace(tzinfo=timezone.utc)
+            if not 0 <= (now - observation).total_seconds() / 86400 <= 90: return False
+        except (KeyError, TypeError, ValueError):
+            return False
+        return (value.get("contract_version") == JPLG_CONTRACT and value.get("unit") == "% YoY"
+                and isinstance(level, (int, float)) and not isinstance(level, bool) and math.isfinite(level)
+                and value.get("observation_date") is not None)
+    cache_age, observation_age = None, None
+    try:
+        cache_age = (now - datetime.fromisoformat(cached["fetched_at"].replace("Z", "+00:00"))).total_seconds() / 86400
+        observation_age = (now - datetime.fromisoformat(cached["observation_date"]).replace(tzinfo=timezone.utc)).total_seconds() / 86400
+    except (KeyError, TypeError, ValueError):
+        pass
+    if (not force and valid(cached) and cached.get("status") == "LIVE"
+            and cached.get("source") == "bank-of-japan" and cached.get("resolved_via") == alias
+            and cache_age is not None and 0 <= cache_age < 27
+            and observation_age is not None and 0 <= observation_age <= 90):
+        row.update({key: cached.get(key) for key in ("value", "prev", "chg_pct", "asof", "observation_date", "unit", "contract_version", "status", "source", "resolved_via", "fetched_at")})
+        row["cached"] = True
+        return
+    # A fresh container or an unrelated family:LG resolver cannot renew a
+    # value measured in loan levels as percentage growth. No fallback to it.
+    row.update(value=None, prev=None, chg_pct=None, asof=None, observation_date=None,
+               status="PENDING_RESOLUTION", source="bank-of-japan", resolved_via=alias,
+               unit="% YoY", contract_version=JPLG_CONTRACT, cached=False,
+               resolution_note="BOJ YoY contract required; old unitless/level cache invalidated")
+    value = boj_yoy(alias.partition(":")[2]) if allow_fetch else None
+    if valid(value):
+        row.update(value)
+        row.update(status="LIVE", fetched_at=now.isoformat(), resolution_note="Curated BOJ levels joined to the same month one year earlier")
+    elif not allow_fetch:
+        row["resolution_note"] = "BOJ YoY fetch deferred by runtime budget; no level fallback"
+
 
 def boj_level(tgt):
     """Bank of Japan official API (launched 2026-02): getDataCode on the
@@ -1621,6 +1680,20 @@ def lambda_handler(event, context):
                % (_ri, len(rows), n_live, _ladder_n,
                   _ladder_spent, _rev_spent))
         c = cache.get(sym) or {}
+        if sym == "JPLG":
+            allow_jplg_fetch = not out_of_time and _ladder_spent < LADDER_WALL_S
+            if context is not None:
+                try:
+                    allow_jplg_fetch = allow_jplg_fetch and context.get_remaining_time_in_millis() >= 180000
+                except Exception:
+                    allow_jplg_fetch = False
+            started_jplg = time.time()
+            resolve_jplg_row(row, c, now, force=force, allow_fetch=allow_jplg_fetch)
+            _ladder_spent += time.time() - started_jplg
+            n_live += row.get("status") == "LIVE"
+            n_cached += row.get("cached") is True
+            n_pending += row.get("status") == "PENDING_RESOLUTION"
+            continue
         fetched_at = c.get("fetched_at")
         fresh_days = CADENCE.get(row["cadence"], 0)
         if not force and fetched_at:
@@ -1836,6 +1909,9 @@ def lambda_handler(event, context):
         "elapsed_s": round(time.time() - t0, 1),
     }
     PH("pre-write")
+    for public_row in out["symbols"]:
+        public_row.pop("note_snippet", None)
+        public_row["note_text_private"] = True
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
                   ContentType="application/json", CacheControl="max-age=900")
     print(f"[tv-vault] DONE {out['elapsed_s']}s live={n_live}/{len(rows)} "
