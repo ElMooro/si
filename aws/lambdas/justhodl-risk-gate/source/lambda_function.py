@@ -361,9 +361,9 @@ def compute_indicators(F, calendar, i, native=None, term_premium=None):
     live = sum(1 for v in out.values() if "pending_source" not in v)
     return {"indicators": out, "live_count": live, "total": len(out),
             "spec": "Perplexity ae9048ad — 9 brain-cited indicators",
-            "note": "FRED-derived live now; non-FRED (Howell GLI, sovereign "
-                    "CDS, CBOE SKEW, true ACM) emit pending_source for "
-                    "honest placeholder rendering — no fabricated values"}
+            "note": "FRED-derived indicators and validated NY Fed ACM donor data are live context. "
+                    "Unresolved Howell GLI, sovereign CDS and CBOE SKEW, and invalid or stale "
+                    "ACM data, remain explicitly pending; no proxy is relabeled as term premium."}
 # ── end indicators block ──
 
 
