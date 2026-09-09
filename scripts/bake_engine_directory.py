@@ -12,6 +12,8 @@ just invisible) or stale/dead? This directly answers 'is my engine wired to
 a page' for the whole fleet in one place, replacing guesswork.
 """
 import glob, json, re, sys, time
+from pathlib import Path
+from page_sources import scan_pages
 from concurrent.futures import ThreadPoolExecutor
 from email.utils import parsedate_to_datetime
 
@@ -23,7 +25,7 @@ def get(url, to=12):
     try:
         r = urllib.request.urlopen(urllib.request.Request(
             url, headers={"User-Agent": "Mozilla/5.0 jh"}), timeout=to)
-        return r.getcode(), r.read(), dict(r.headers)
+        return r.getcode(), r.read(4 * 1024 * 1024 + 1), dict(r.headers)
     except Exception:
         return None, b"", {}
 
@@ -41,7 +43,7 @@ def load_entries(build_dir="."):
             m = json.load(open(mpath, encoding="utf-8"))
             for e in m.get("engines") or []:
                 if e.get("engine"):
-                    entries[e["engine"]] = {"name": e["engine"], "outs": list(e.get("keys") or []), "description": e.get("description") or "", "source": "manifest"}
+                    entries[e["engine"]] = {"name": e["engine"], "outs": list(e.get("keys") or []), "description": e.get("description") or "", "source": "manifest", "key_patterns": list(e.get("key_patterns") or []), "unresolved_writes": e.get("unresolved_writes") or []}
             break
         except Exception:
             continue
@@ -55,8 +57,9 @@ def load_entries(build_dir="."):
                if isinstance(raw, dict) else {e.get("name", str(i)): e for i, e in enumerate(raw or [])})
     for name, r in records.items():
         prior = entries.get(name) or {"name": name, "outs": [], "description": "", "source": "registry"}
-        outs = list(dict.fromkeys(list(prior.get("outs") or []) + list(r.get("outs") or r.get("outputs") or [])))
+        outs = list(prior.get("outs") or [])  # registry hints never confer producer ownership
         merged = {**r, **prior, "outs": outs, "description": prior.get("description") or r.get("description") or r.get("doc") or ""}
+        merged["unverified_registry_outs"] = [k for k in (r.get("outs") or r.get("outputs") or []) if k not in outs]
         merged["source"] = "manifest+registry" if prior.get("source") == "manifest" else "registry"
         entries[name] = merged
     return entries, (reg.get("generated_at") if isinstance(reg, dict) else None)
@@ -65,62 +68,54 @@ def load_entries(build_dir="."):
 def main(build_dir="."):
     entries, registry_asof = load_entries(build_dir)
 
-    # read every page's ALREADY-ASSEMBLED source in _site (no network needed for this part).
-    # audit 2026-09-08 (section C-4): directory routes (intel/index.html, funding/index.html, ...) are
-    # public pages too, and a page's linked same-origin scripts are part of its source -- a feed loaded
-    # from /intel.js is displayed by intel/index.html even though the HTML never names the key.
-    page_src = {}
-    js_cache = {}
-    _script_re = re.compile(r'<script[^>]+src=["\']/?([A-Za-z0-9_./-]+\.js)(?:\?[^"\']*)?["\']')
-    def linked_js(src):
-        out = []
-        for m in _script_re.finditer(src):
-            path = f"{build_dir}/{m.group(1)}"
-            if path not in js_cache:
-                try:
-                    js_cache[path] = open(path, encoding="utf-8", errors="replace").read()
-                except Exception:
-                    js_cache[path] = ""
-            if js_cache[path]:
-                out.append(js_cache[path])
-        return "\n".join(out)
-    for f in sorted(glob.glob(f"{build_dir}/*.html") + glob.glob(f"{build_dir}/*/index.html")):
-        rel = f[len(build_dir):].lstrip("/")
-        if rel in ("engines.html",) or rel.startswith(("_", "node_modules/", "vendor/")):
-            continue
-        src = open(f, encoding="utf-8", errors="replace").read()
-        page_src[rel] = src + "\n" + linked_js(src)
-
+    page_graphs = scan_pages(Path(build_dir))
+    page_keys = {page:set(rec["keys"]) for page,rec in page_graphs.items() if page != "engines.html"}
     unique_feeds = set()
     for e in entries.values():
         unique_feeds.update(e.get("outs") or [])
 
-    def age_of(key):
-        c2, _, hdrs = get(f"{BUCKET}/{key}?t={int(time.time())}")
-        lm = hdrs.get("Last-Modified") if c2 == 200 else None
-        if not lm:
-            return None
+    cadence={}
+    try:
+        settings=json.load(open(Path(build_dir)/"config/feed-sla.json"))
+        for key,value in settings.items():
+            if isinstance(value,(int,float)) and value>0:cadence[key]=value
+            elif isinstance(value,dict):
+                hours=value.get("max_age_hours",value.get("max_age_h"))
+                if isinstance(hours,(int,float)) and hours>0:cadence[key]=hours
+    except (OSError,ValueError):pass
+    def inspect_feed(key):
+        if "*" in key:
+            return {"state":"pattern_requires_index","present":None,"valid":False,"age_h":None,"fresh":False}
+        code, body, headers = get(f"{BUCKET}/{key}?t={int(time.time())}")
+        result={"http_status":code,"present":code==200,"valid":False,"fresh":False,"age_h":None}
+        if code != 200:
+            result["state"]="missing" if code==404 else "inaccessible" if code in (401,403) else "fetch_failed"
+            return result
+        if len(body)>4*1024*1024:
+            result["state"]="body_exceeds_validation_limit";return result
         try:
-            return round((time.time() - parsedate_to_datetime(lm).timestamp()) / 3600, 1)
-        except Exception:
-            return None
+            obj=json.loads(body)
+            if obj is None or obj == {} or obj == []:raise ValueError("empty")
+            result["valid"]=True
+        except (ValueError,TypeError):
+            result["state"]="invalid_or_empty";return result
+        source_ts=next((obj.get(k) for k in ("generated_at","as_of","asof","updated_at","timestamp","date") if isinstance(obj,dict) and obj.get(k)),None)
+        if source_ts:
+            try:
+                from datetime import datetime,timezone
+                dt=datetime.fromisoformat(str(source_ts).replace("Z","+00:00"))
+                if not dt.tzinfo:dt=dt.replace(tzinfo=timezone.utc)
+                age=(time.time()-dt.timestamp())/3600
+                max_age=cadence.get(key,24)
+                result.update(age_h=round(age,1),fresh=0<=age<max_age,state="fresh" if 0<=age<max_age else "future_timestamp" if age<0 else "stale",freshness_basis="payload",max_age_h=max_age,cadence_basis="feed_sla" if key in cadence else "default_24h")
+                return result
+            except (ValueError,TypeError):pass
+        result["state"]="source_time_unknown"
+        return result
 
-    ages = {}
+    observations={}
     with ThreadPoolExecutor(max_workers=16) as ex:
-        for k, a in zip(unique_feeds, ex.map(age_of, unique_feeds)):
-            ages[k] = a
-
-    def referenced(out, src):
-        # audit 2026-09-08 (section C-3): a reference is the full key or the file name WITH its
-        # extension. The old stem-only match ('"pv"', '"log"') turned CSS classes and axis types into
-        # "wired" evidence. This is still static evidence, not proof of rendering -- see
-        # `ref_kind` on each output and the per-output state below.
-        if out in src:
-            return "path"
-        bare = out.split("/")[-1]
-        if bare.endswith(".json") and bare in src:
-            return "filename"
-        return None
+        observations=dict(zip(sorted(unique_feeds),ex.map(inspect_feed,sorted(unique_feeds))))
 
     rows = []
     for name, e in sorted(entries.items()):
@@ -128,38 +123,28 @@ def main(build_dir="."):
         # per-output state: declared -> present on S3 -> referenced by a page -> fresh (audit C-3/C-5)
         outputs = []
         for o in outs:
-            age = ages.get(o)
-            refs = {}
-            for pg, src in page_src.items():
-                k = referenced(o, src)
-                if k:
-                    refs[pg] = k
-            outputs.append({"key": o, "present": age is not None, "age_h": age, "fresh": (age is not None and age < 24),
-                            "pages": sorted(refs.keys()), "ref_kind": sorted(set(refs.values()))})
-        pages = sorted({pg for out in outputs for pg in out["pages"]})
-        referenced_outs = [out for out in outputs if out["pages"]]
-        present_outs = [out for out in outputs if out["present"]]
-        best_age = min((out["age_h"] for out in present_outs), default=None)
-        if not outs:
-            status = "no-outs"
-        elif not present_outs:
-            status = "declared-absent"          # every declared output is missing on S3 (manifest false positive or a dead writer)
-        elif referenced_outs and any(out["present"] and out["fresh"] for out in referenced_outs):
-            status = "wired"
-        elif referenced_outs and any(out["present"] for out in referenced_outs):
-            status = "wired-stale-feed"         # a page points at it but the feed it shows is stale
-        elif referenced_outs:
-            status = "wired-missing-feed"       # a page points at a key that does not exist on S3
-        elif best_age is not None and best_age < 24:
-            status = "orphan-fresh"
-        elif best_age is not None:
-            status = "orphan-stale"
-        else:
-            status = "orphan-dead"
-        rows.append({"name": name, "outs": outs[:3], "pages": pages[:3],
-                      "age_h": best_age, "status": status,
-                      "n_outputs": len(outs), "n_present": len(present_outs), "n_referenced": len(referenced_outs),
-                      "outputs": outputs})
+            observation=observations[o]
+            refs=sorted(pg for pg,keys in page_keys.items() if o in keys)
+            outputs.append({"key":o,**observation,"pages":refs,"ref_kind":["exact_path"] if refs else [],"rendered":None,"field_coverage":None})
+        for pattern in e.get("key_patterns") or []:
+            outputs.append({"key":pattern,"state":"pattern_requires_index","present":None,"valid":False,"age_h":None,"fresh":False,"pages":[],"ref_kind":[],"rendered":None,"field_coverage":None})
+        pages=sorted({p for o in outputs for p in o["pages"]})
+        referenced=[o for o in outputs if o["pages"]];present=[o for o in outputs if o["present"]]
+        ready=[o for o in outputs if o["valid"] and o["fresh"] and o["pages"]]
+        if not outputs:status="no-outs"
+        elif ready and len(ready)==len(outputs):status="wired"
+        elif ready:status="partial"
+        elif referenced and any(o["valid"] for o in referenced):status="wired-stale-feed"
+        elif referenced:status="wired-missing-feed"
+        elif not present:status="declared-absent"
+        elif any(o["fresh"] for o in present):status="orphan-fresh"
+        else:status="orphan-stale"
+        rows.append({"name":name,"outs":[o["key"] for o in outputs],"pages":pages,
+                     "age_h":max((o["age_h"] for o in outputs if o["age_h"] is not None),default=None),
+                     "status":status,"n_outputs":len(outputs),"n_present":len(present),"n_referenced":len(referenced),
+                     "outputs":outputs,"unresolved_writes":e.get("unresolved_writes") or [],
+                     "unverified_registry_outs":e.get("unverified_registry_outs") or [],
+                     "coverage_status":"runtime_not_verified","missing_scripts":{p:page_graphs[p]["missing_scripts"] for p in pages if page_graphs[p]["missing_scripts"]}})
 
     counts = {}
     for r in rows:

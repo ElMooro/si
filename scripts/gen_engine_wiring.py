@@ -114,22 +114,46 @@ DEAD = [  # output key exists in code but object absent/never written — fix en
 ]
 
 def _scan_pages():
-    """Read every page's ACTUAL jh-wire declaration(s). Pages are the source of truth."""
-    import glob
-    declared = {}
-    for page in sorted(glob.glob("*.html") + glob.glob("*/index.html")):
-        try:
-            src = open(page, encoding="utf-8", errors="replace").read()
-        except Exception:
-            continue
-        for m in re.finditer(r'<script src="/jh-wire\.js"[^>]*data-feeds="([^"]*)"', src):
-            rows = []
-            for ent in m.group(1).split(";"):
-                parts = ent.split("|")
-                if parts and parts[0].strip():
-                    rows.append({"feed": parts[0].strip(), "engine": (parts[1].strip() if len(parts) > 1 else ""), "title": (parts[2].strip() if len(parts) > 2 else parts[0].strip())})
-            declared.setdefault(page, []).extend(rows)
+    from pathlib import Path
+    from page_sources import pages, HTML
+    declared={}
+    for page in pages(Path(".")):
+        parser=HTML();parser.feed(page.read_text(errors="replace"))
+        if parser.wires:declared[str(page)]=parser.wires
     return declared
+
+
+def _validate_ownership(declared):
+    from collections import Counter
+    manifest=json.load(open("engine-manifest.json"))
+    owned={e["engine"]:set(e.get("keys") or []) for e in manifest["engines"]}
+    errors=[]
+    for page,rows in declared.items():
+        duplicate=Counter((r["engine"],r["feed"]) for r in rows)
+        if any(n>1 for n in duplicate.values()):errors.append("duplicate declaration on "+page)
+        for row in rows:
+            if row["feed"] not in owned.get(row["engine"],set()):errors.append(page+": output is not bound to declared producer: "+row["engine"]+" -> "+row["feed"])
+            if not row.get("title"):errors.append(page+": empty title")
+    return errors
+
+
+def _apply_transaction(plan):
+    import tempfile
+    from pathlib import Path
+    staged=[];originals={}
+    try:
+        for page,src in plan:
+            p=Path(page);originals[page]=p.read_bytes()
+            fd,name=tempfile.mkstemp(prefix=p.name+".",suffix=".tmp",dir=str(p.parent))
+            with os.fdopen(fd,"w") as handle:handle.write(src)
+            staged.append((name,page))
+        for name,page in staged:os.replace(name,page)
+    except Exception:
+        for page,content in originals.items():Path(page).write_bytes(content)
+        raise
+    finally:
+        for name,_ in staged:
+            if os.path.exists(name):os.unlink(name)
 
 
 def _atomic_write(path, obj):
@@ -182,13 +206,22 @@ def main(argv=None):
             for p in problems: print("PROBLEM:", p)
             print("apply aborted: nothing written (validate-all-then-write)")
             sys.exit(1)
-        for page, new_src in plan:
-            open(page, "w", encoding="utf-8").write(new_src)
-            patched.append(page)
+        prospective=_scan_pages()
+        from page_sources import HTML
+        for page,new_src in plan:
+            parser=HTML();parser.feed(new_src);prospective[page]=parser.wires
+        problems.extend(_validate_ownership(prospective))
+        if problems:
+            print("apply aborted before writes:", problems);sys.exit(1)
+        _apply_transaction(plan)
+        patched.extend(page for page,_ in plan)
         print(f"apply: pages patched {len(patched)}, already-declared pages left untouched {len(skipped)}: {skipped[:8]}")
 
     declared = _scan_pages()
-    wired = [{"engine": r["engine"], "feed": r["feed"], "page": page, "title": r["title"], "via": "jh-wire.js"}
+    errors=_validate_ownership(declared)
+    if errors:
+        print("Invalid producer contracts:");print("\n".join(errors));sys.exit(1)
+    wired = [{"engine": r["engine"], "feed": r["feed"], "page": page, "title": r["title"], "schema_version":r["schema_version"], "via": "jh-wire.js"}
              for page, rows in declared.items() for r in rows]
     manifest = {
         "v": 2, "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
@@ -203,8 +236,11 @@ def main(argv=None):
             cur = json.load(open("data/engine-wiring.json"))
         except Exception:
             cur = {}
-        cur_set = {(w.get("page"), w.get("feed")) for w in (cur.get("wired") or [])}
-        new_set = {(w["page"], w["feed"]) for w in wired}
+        fields=("page","feed","engine","title","schema_version","via")
+        records=cur.get("wired") or []
+        cur_set={tuple(w.get(k) for k in fields) for w in records}
+        new_set={tuple(w.get(k) for k in fields) for w in wired}
+        if len(cur_set)!=len(records):print("duplicate registry records");sys.exit(1)
         drift_add, drift_gone = sorted(new_set - cur_set), sorted(cur_set - new_set)
         print(f"check: pages {len(declared)} wired {len(wired)} | registry missing {len(drift_add)} | registry stale {len(drift_gone)}")
         for x in drift_add[:10]: print("  + page declares, registry lacks:", x)

@@ -54,7 +54,7 @@
   <div class="crumb"><a href="/">SYSTEM &amp; META</a> / ENGINE DIRECTORY</div>
   <h1 class="ptitle">Engine Directory</h1>
   <div class="pstamp" id="stamp">UPDATED —</div>
-  <p class="lede">Every registered engine, computed fresh on every deploy — not a hand-maintained list. WIRED means at least one live page's actual source references that engine's real output file. ORPHAN means the engine is producing data (fresh or stale) with zero page anywhere displaying it.</p>
+  <p class="lede">Source-bound producer outputs and exact page references. Availability and source age are checked during deployment; per-output details show failures and unresolved families. A source reference is not proof that a page rendered the data. Open complete data to inspect every returned field and row.</p>
 
   <div class="kpis" id="kpis"></div>
   <div class="controls">
@@ -80,11 +80,11 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
 function badge(status){
   // audit 2026-09-08 (section C-3): per-output states -- WIRED now means "a page references a present, fresh output";
   // a referenced-but-stale or referenced-but-missing feed is no longer hidden inside WIRED.
-  var map = {wired:["b-wired","WIRED"], "wired-stale-feed":["b-stale","WIRED · STALE FEED"], "wired-missing-feed":["b-dead","WIRED · MISSING FEED"],
-    "declared-absent":["b-dead","DECLARED · ABSENT ON S3"],
+  var map = {wired:["b-wired","REFERENCED · AVAILABLE"], partial:["b-stale","PARTIAL COVERAGE"], "wired-stale-feed":["b-stale","WIRED · STALE FEED"], "wired-missing-feed":["b-dead","WIRED · MISSING FEED"],
+    "declared-absent":["b-dead","UNAVAILABLE / UNRESOLVED"],
     "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
     "orphan-stale":["b-stale","ORPHAN · STALE"], "orphan-dead":["b-dead","ORPHAN · DEAD FEED"],
-    "no-outs":["b-noouts","NO OUTPUT DECLARED"]};
+    "no-outs":["b-noouts","NO CONCRETE OUTPUT BOUND"]};
   var m = map[status] || ["b-noouts", status];
   return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
 }
@@ -98,9 +98,9 @@ function ageLabel(h){
 document.getElementById("stamp").textContent = "UPDATED " + (D.generated_at || "—");
 
 var KPI_DEFS = [
-  ["wired", "WIRED", "wired"], ["wired-stale-feed", "WIRED · STALE FEED", "stale"], ["wired-missing-feed", "WIRED · MISSING FEED", "stale"],
+  ["wired", "REFERENCED · AVAILABLE", "wired"], ["partial", "PARTIAL COVERAGE", "stale"], ["wired-stale-feed", "WIRED · STALE FEED", "stale"], ["wired-missing-feed", "WIRED · MISSING FEED", "stale"],
   ["orphan-fresh", "ORPHAN · FRESH", "fresh"], ["orphan-stale", "ORPHAN · STALE", "stale"],
-  ["declared-absent", "DECLARED · ABSENT", "stale"], ["no-outs", "NO OUTPUT DECLARED", "noouts"]
+  ["declared-absent", "DECLARED · ABSENT", "stale"], ["no-outs", "NO CONCRETE OUTPUT BOUND", "noouts"]
 ];
 document.getElementById("kpis").innerHTML = KPI_DEFS.map(function(k){
   var n = (D.counts[k[0]] || 0) + (k[0] === "orphan-stale" ? (D.counts["orphan-dead"] || 0) : 0);
@@ -127,9 +127,9 @@ function render(){
     var outsCell = esc((row.outs || [])[0] || "—");
     if (row.n_outputs != null) outsCell += ' <span class="dim" title="declared / present on S3 / referenced by a page">' + row.n_outputs + " out · " + (row.n_present || 0) + " present · " + (row.n_referenced || 0) + " referenced</span>";
     var detail = (row.outputs || []).length ? '<details><summary class="dim">per-output state</summary>' + row.outputs.map(function(o){
-      return '<div class="dim">' + esc(o.key) + " · " + (o.present ? (o.fresh ? "fresh" : "stale") : "MISSING") + (o.age_h != null ? " · " + ageLabel(o.age_h) : "") + " · " + ((o.pages || []).length ? o.pages.length + " page(s) [" + (o.ref_kind || []).join(",") + "]" : "no page reference") + "</div>";
+      return '<div class="dim">' + esc(o.key) + " · " + esc(o.state || "unknown") + (o.age_h != null ? " · " + ageLabel(o.age_h) : "") + " · " + ((o.pages || []).length ? o.pages.map(function(p){return '<a href="/'+esc(p)+'">'+esc(p)+'</a>';}).join(", ") + " [" + (o.ref_kind || []).join(",") + "]" : "no page reference") + "</div>";
     }).join("") + "</details>" : "";
-    return "<tr><td>" + esc(row.name) + detail + "</td><td>" + badge(row.status) + "</td><td>" + outsCell + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
+    return "<tr><td>" + esc(row.name) + ' <a href="/engine-data.html?engine='+encodeURIComponent(row.name)+'">complete data</a>' + detail + "</td><td>" + badge(row.status) + "</td><td>" + outsCell + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
   }).join("");
 }
 

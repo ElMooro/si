@@ -30,7 +30,7 @@
     var h=(Date.now()-d.getTime())/36e5,t=h<1?Math.round(h*60)+"m":h<48?h.toFixed(1)+"h":Math.round(h/24)+"d";
     var c=h<=26?"jw-ok":h<=80?"jw-warn":"jw-bad";return '<span class="jw-b '+c+'">'+t+' old</span>';}
   function firstArray(o,depth){if(depth>2||o==null)return null;
-    if(Array.isArray(o))return o.length&&o[0]!==null&&typeof o[0]==="object"&&!Array.isArray(o[0])?o:null;
+    if(Array.isArray(o))return o.some(function(r){return r&&typeof r==="object"&&!Array.isArray(r);})?o:null;
     if(typeof o!=="object")return null;
     var ks=Object.keys(o);for(var i=0;i<ks.length;i++){var r=firstArray(o[ks[i]],depth+1);if(r)return r;}return null;}
   function scalars(o){var out=[];if(!o||typeof o!=="object"||Array.isArray(o))return out;
@@ -103,8 +103,17 @@
       if(arr)html+=tableOf(arr);
       if(!html)html='<div class="jw-sum">'+summarize(d)+"</div>";
       html+=coverageNote(d,arr);
-      html+='<div class="jw-more"><a href="/'+esc(en.feed)+'" target="_blank" rel="noopener" style="color:var(--jh-amber,#eab308)">raw feed JSON ↗</a> · full typed views live on the engine\'s dedicated page</div>';
+      html+='<div class="jw-more"><a href="/'+esc(en.feed)+'" target="_blank" rel="noopener" style="color:var(--jh-amber,#eab308)">raw feed JSON ↗</a> · inspect the complete returned artifact below</div>';
       body.className="jw-body";body.innerHTML=html;
+      var full=document.createElement("details"),label=document.createElement("summary"),content=document.createElement("div");
+      label.textContent="Inspect every field and row";full.appendChild(label);full.appendChild(content);body.appendChild(full);
+      var initialized=false;
+      full.addEventListener("toggle",function(){if(!full.open||initialized)return;
+        content.textContent="Opening complete data inspector…";
+        var ready=window.JHDataInspector?Promise.resolve():window.__jhInspectorLoad;
+        if(!ready){ready=window.__jhInspectorLoad=new Promise(function(resolve,reject){var script=document.createElement("script");script.src="/jh-data-inspector.js";script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}
+        ready.then(function(){initialized=true;window.JHDataInspector.inspect(content,d,en.eng+" → "+en.feed);}).catch(function(){content.textContent="Inspector unavailable. The raw JSON link above contains the full artifact.";});
+      });
     });
   });
 })();

@@ -3,13 +3,14 @@
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
  "n_pages": 42,
- "n_wired": 171,
+ "n_wired": 167,
  "wired": [
   {
    "engine": "justhodl-13f-positions",
    "feed": "data/13f-positions.json",
    "page": "13f.html",
    "title": "13F POSITIONS (buys / sells / new / exit)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -17,6 +18,7 @@
    "feed": "data/consensus-bottom.json",
    "page": "accumulation.html",
    "title": "MULTI-MANAGER CONSENSUS BOTTOM",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -24,6 +26,7 @@
    "feed": "data/sequence-alpha.json",
    "page": "accumulation.html",
    "title": "3-STEP ACCUMULATION SEQUENCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -31,6 +34,7 @@
    "feed": "data/baltic-dry.json",
    "page": "activity-nowcast.html",
    "title": "FREIGHT PULSE (BDRY)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -38,13 +42,15 @@
    "feed": "data/attention-signals.json",
    "page": "attention.html",
    "title": "PRE-PUMP ATTENTION SIGNALS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-auction-decisive-call",
+   "engine": "justhodl-auction-interpreter",
    "feed": "data/auction-decisive-call.json",
    "page": "auctions.html",
    "title": "TREASURY AUCTION DECISIVE CALL",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -52,6 +58,7 @@
    "feed": "data/earnings-cascade.json",
    "page": "confluence.html",
    "title": "EARNINGS MOMENTUM CASCADE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -59,6 +66,7 @@
    "feed": "data/fed-pivot-factor-trades.json",
    "page": "convergence-desk.html",
    "title": "FED-PIVOT FACTOR ROUTER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -66,6 +74,7 @@
    "feed": "data/macro-confluence.json",
    "page": "convergence-desk.html",
    "title": "MACRO CONFLUENCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -73,6 +82,7 @@
    "feed": "data/stock-bond-corr.json",
    "page": "correlation.html",
    "title": "STOCK-BOND CORR REGIME",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -80,6 +90,7 @@
    "feed": "data/correlation-break-trades.json",
    "page": "correlation.html",
    "title": "CORRELATION-BREAK TRADE ROUTER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -87,6 +98,7 @@
    "feed": "data/sloos.json",
    "page": "credit-desk.html",
    "title": "SLOOS LENDING STANDARDS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -94,20 +106,15 @@
    "feed": "data/muni-ratio.json",
    "page": "credit-desk.html",
    "title": "MUNI / TREASURY RATIO",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-lce",
+   "engine": "justhodl-liquidity-credit-engine",
    "feed": "data/liquidity-credit-engine.json",
    "page": "credit-desk.html",
-   "title": "LIQUIDITY &amp",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "",
-   "feed": "CREDIT ENGINE",
-   "page": "credit-desk.html",
-   "title": "CREDIT ENGINE",
+   "title": "LIQUIDITY & CREDIT ENGINE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -115,6 +122,7 @@
    "feed": "data/cds-proxy.json",
    "page": "credit-desk.html",
    "title": "CDS PROXY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -122,6 +130,7 @@
    "feed": "data/sifma-issuance.json",
    "page": "credit-desk.html",
    "title": "CORPORATE ISSUANCE (SIFMA M7)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -129,97 +138,7 @@
    "feed": "data/risk-ratios.json",
    "page": "credit-desk.html",
    "title": "RISK RATIOS (credit-leg detail)",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-index-inclusion",
-   "feed": "data/index-inclusion.json",
-   "page": "crypto-liquidity.html",
-   "title": "INDEX INCLUSION",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-coinbase-premium",
-   "feed": "data/coinbase-premium-history.json",
-   "page": "crypto-risk.html",
-   "title": "COINBASE PREMIUM",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-basis",
-   "feed": "data/crypto-basis-history.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO BASIS",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-cot",
-   "feed": "data/crypto-cot-history.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO COT",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-dvol",
-   "feed": "data/crypto-dvol.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO DVOL",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-etf-flows",
-   "feed": "data/crypto-etf-flows-history.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO ETF FLOWS",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-funding",
-   "feed": "data/crypto-funding.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO FUNDING",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-gex",
-   "feed": "data/crypto-gex.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO GEX",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-narratives",
-   "feed": "data/crypto-narratives.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO NARRATIVES",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-options",
-   "feed": "data/crypto-options-history.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO OPTIONS",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-options-surface",
-   "feed": "data/crypto-options-surface-history.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO OPTIONS SURFACE",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-crypto-scorecard",
-   "feed": "data/crypto-engine-trust.json",
-   "page": "crypto-risk.html",
-   "title": "CRYPTO SCORECARD",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-hyperliquid-perps",
-   "feed": "data/hyperliquid-perps-history.json",
-   "page": "crypto-risk.html",
-   "title": "HYPERLIQUID PERPS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -227,6 +146,7 @@
    "feed": "data/crypto-miners.json",
    "page": "crypto/index.html",
    "title": "CRYPTO MINERS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -234,6 +154,111 @@
    "feed": "data/crypto-exchange-flows.json",
    "page": "crypto/index.html",
    "title": "CRYPTO EXCHANGE FLOWS",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-index-inclusion",
+   "feed": "data/index-inclusion.json",
+   "page": "crypto-liquidity.html",
+   "title": "INDEX INCLUSION",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-coinbase-premium",
+   "feed": "data/coinbase-premium.json",
+   "page": "crypto-risk.html",
+   "title": "COINBASE PREMIUM",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-basis",
+   "feed": "data/crypto-basis-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO BASIS",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-cot",
+   "feed": "data/crypto-cot-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO COT",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-dvol",
+   "feed": "data/crypto-dvol.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO DVOL",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-etf-flows",
+   "feed": "data/crypto-etf-flows-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO ETF FLOWS",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-funding",
+   "feed": "data/crypto-funding.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO FUNDING",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-gex",
+   "feed": "data/crypto-gex.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO GEX",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-narratives",
+   "feed": "data/crypto-narratives.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO NARRATIVES",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-options",
+   "feed": "data/crypto-options-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO OPTIONS",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-options-surface",
+   "feed": "data/crypto-options-surface-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO OPTIONS SURFACE",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-scorecard",
+   "feed": "data/crypto-engine-trust.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO SCORECARD",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-hyperliquid-perps",
+   "feed": "data/hyperliquid-perps-history.json",
+   "page": "crypto-risk.html",
+   "title": "HYPERLIQUID PERPS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -241,6 +266,7 @@
    "feed": "data/em-carry.json",
    "page": "dollar.html",
    "title": "EM FX CARRY PROXY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -248,6 +274,7 @@
    "feed": "data/revision-breadth.json",
    "page": "eps-velocity.html",
    "title": "REVISION BREADTH \u00b7 MARKET LEVEL",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -255,6 +282,7 @@
    "feed": "data/factor-regime.json",
    "page": "factor-regime.html",
    "title": "FACTOR REGIME",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -262,6 +290,7 @@
    "feed": "data/factor-returns.json",
    "page": "factor-regime.html",
    "title": "FACTOR L/S RETURNS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -269,6 +298,7 @@
    "feed": "data/naaim.json",
    "page": "fleet-audit.html",
    "title": "NAAIM",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -276,6 +306,7 @@
    "feed": "data/peer-comparison.json",
    "page": "fleet-audit.html",
    "title": "PEER COMPARISON",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -283,6 +314,7 @@
    "feed": "data/seasonality.json",
    "page": "fleet-audit.html",
    "title": "SEASONALITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -290,6 +322,7 @@
    "feed": "data/sellside-views.json",
    "page": "fleet-audit.html",
    "title": "SELLSIDE VIEWS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -297,6 +330,7 @@
    "feed": "data/singapore-nodx.json",
    "page": "fleet-audit.html",
    "title": "SINGAPORE NODX",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -304,6 +338,7 @@
    "feed": "data/structural-pre-signals.json",
    "page": "fleet-audit.html",
    "title": "STRUCTURAL PRE SIGNALS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -311,6 +346,7 @@
    "feed": "data/taiwan-moea.json",
    "page": "fleet-audit.html",
    "title": "TAIWAN MOEA",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -318,6 +354,7 @@
    "feed": "data/talent-migration.json",
    "page": "fleet-audit.html",
    "title": "TALENT MIGRATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -325,6 +362,7 @@
    "feed": "data/universe.json",
    "page": "fleet-audit.html",
    "title": "UNIVERSE BUILDER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -332,6 +370,7 @@
    "feed": "data/universe-discovery.json",
    "page": "fleet-audit.html",
    "title": "UNIVERSE DISCOVERY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -339,6 +378,7 @@
    "feed": "data/pre-disaster-watchlist.json",
    "page": "forensic.html",
    "title": "PRE-DISASTER WATCHLIST (bankruptcy fingerprint)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -346,6 +386,7 @@
    "feed": "data/sec-filing-diff.json",
    "page": "forensic.html",
    "title": "SEC 10-K RISK FACTOR CHANGES",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -353,13 +394,15 @@
    "feed": "data/global-m2.json",
    "page": "global-macro.html",
    "title": "GLOBAL USD-M2 IMPULSE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-flows-ai-analysis",
-   "feed": "data/crisis-knowledge-base.json",
+   "feed": "etf-flows/ai-analysis.json",
    "page": "global-macro.html",
    "title": "FLOWS AI ANALYSIS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -367,6 +410,7 @@
    "feed": "data/global-markets.json",
    "page": "global-macro.html",
    "title": "GLOBAL MARKETS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -374,6 +418,7 @@
    "feed": "data/leading-markets-history.json",
    "page": "global-macro.html",
    "title": "LEADING MARKETS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -381,6 +426,7 @@
    "feed": "data/fx-intelligence.json",
    "page": "global-macro.html",
    "title": "FX INTELLIGENCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -388,13 +434,15 @@
    "feed": "data/hiring-velocity.json",
    "page": "global-macro.html",
    "title": "HIRING VELOCITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-liquidity-agent",
-   "feed": "data/fred-cache.json",
+   "feed": "liquidity-data.json",
    "page": "global-macro.html",
    "title": "LIQUIDITY AGENT",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -402,6 +450,7 @@
    "feed": "data/liquidity-profile.json",
    "page": "global-macro.html",
    "title": "LIQUIDITY PROFILE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -409,6 +458,7 @@
    "feed": "data/macro-calendar.json",
    "page": "global-macro.html",
    "title": "MACRO CALENDAR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -416,6 +466,7 @@
    "feed": "data/industry-rotation.json",
    "page": "industry-rotation.html",
    "title": "INDUSTRY ROTATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -423,6 +474,7 @@
    "feed": "data/finviz-groups.json",
    "page": "industry-rotation.html",
    "title": "FINVIZ GROUP AGGREGATES",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -430,6 +482,7 @@
    "feed": "data/insider-radar.json",
    "page": "insider-desk.html",
    "title": "INSIDER RADAR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -437,20 +490,23 @@
    "feed": "data/insider-trades.json",
    "page": "insider-desk.html",
    "title": "RAW INSIDER TAPE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-insider-buys",
+   "engine": "justhodl-insider-buys-enriched",
    "feed": "data/insider-buys-enriched.json",
    "page": "insider-desk.html",
    "title": "ENRICHED BUYS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-insider-clusters",
+   "engine": "justhodl-insider-cluster-scanner",
    "feed": "data/insider-clusters.json",
    "page": "insider-desk.html",
    "title": "CLUSTER DETECTION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -458,6 +514,7 @@
    "feed": "data/sloos.json",
    "page": "lce.html",
    "title": "SLOOS LENDING STANDARDS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -465,13 +522,15 @@
    "feed": "data/cftc-all-cache.json",
    "page": "lce.html",
    "title": "CFTC FUTURES POSITIONING AGENT",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-bond-regime-detector",
-   "feed": "data/fred-cache-secretary.json",
+   "feed": "regime/current.json",
    "page": "lce.html",
    "title": "BOND REGIME DETECTOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -479,6 +538,7 @@
    "feed": "data/bond-trace.json",
    "page": "lce.html",
    "title": "BOND TRACE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -486,13 +546,15 @@
    "feed": "data/cb-stance.json",
    "page": "lce.html",
    "title": "CB STANCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-cftc-deep-view",
-   "feed": "data/cftc-all-cache.json",
+   "feed": "data/cftc-deep-view.json",
    "page": "lce.html",
    "title": "CFTC DEEP VIEW",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -500,6 +562,7 @@
    "feed": "data/china-liquidity-history.json",
    "page": "lce.html",
    "title": "CHINA LIQUIDITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -507,6 +570,7 @@
    "feed": "data/construction-housing.json",
    "page": "lce.html",
    "title": "CONSTRUCTION HOUSING",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -514,6 +578,7 @@
    "feed": "data/cross-asset-rv-history.json",
    "page": "lce.html",
    "title": "CROSS ASSET RV",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -521,6 +586,7 @@
    "feed": "data/econ-calendar.json",
    "page": "lce.html",
    "title": "ECON CALENDAR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -528,6 +594,7 @@
    "feed": "data/fed-nlp.json",
    "page": "lce.html",
    "title": "FED NLP",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -535,6 +602,7 @@
    "feed": "data/fed-pivot-factor-trades.json",
    "page": "lce.html",
    "title": "FED PIVOT FACTOR ROUTER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -542,6 +610,7 @@
    "feed": "data/fedwatch.json",
    "page": "lce.html",
    "title": "FEDWATCH RATE PROBABILITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -549,13 +618,15 @@
    "feed": "data/miner-margin.json",
    "page": "metals-miners.html",
    "title": "MINER MARGIN vs GOLD",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-commodity-curves",
-   "feed": "data/commodity-curves-history.json",
+   "feed": "data/commodity-curves.json",
    "page": "metals-miners.html",
    "title": "COMMODITY CURVES",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -563,6 +634,7 @@
    "feed": "data/peru-copper.json",
    "page": "metals-miners.html",
    "title": "PERU COPPER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -570,6 +642,7 @@
    "feed": "data/ofr-fsi.json",
    "page": "ofr.html",
    "title": "OFR FINANCIAL STRESS INDEX",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -577,6 +650,7 @@
    "feed": "data/earnings-pead.json",
    "page": "opportunities.html",
    "title": "EARNINGS PEAD",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -584,6 +658,7 @@
    "feed": "data/earnings-tone-velocity.json",
    "page": "opportunities.html",
    "title": "EARNINGS TONE VELOCITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -591,6 +666,7 @@
    "feed": "data/eva-spread.json",
    "page": "opportunities.html",
    "title": "EVA SPREAD",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -598,6 +674,7 @@
    "feed": "data/factor-data-cache.json",
    "page": "opportunities.html",
    "title": "FACTOR DECOMPOSITION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -605,6 +682,7 @@
    "feed": "data/gf-value.json",
    "page": "opportunities.html",
    "title": "GF VALUE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -612,6 +690,7 @@
    "feed": "data/google-trends.json",
    "page": "opportunities.html",
    "title": "GOOGLE TRENDS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -619,6 +698,7 @@
    "feed": "data/hkma.json",
    "page": "opportunities.html",
    "title": "HKMA MONITOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -626,6 +706,7 @@
    "feed": "data/ipo-pipeline.json",
    "page": "opportunities.html",
    "title": "IPO PIPELINE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -633,6 +714,7 @@
    "feed": "data/lobbying-intel.json",
    "page": "opportunities.html",
    "title": "LOBBYING INTEL",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -640,6 +722,7 @@
    "feed": "data/magic-formula.json",
    "page": "opportunities.html",
    "title": "MAGIC FORMULA",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -647,6 +730,7 @@
    "feed": "data/magnitude-distributions.json",
    "page": "opportunities.html",
    "title": "MAGNITUDE DISTRIBUTIONS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -654,6 +738,7 @@
    "feed": "data/market-tape.json",
    "page": "opportunities.html",
    "title": "MARKET TAPE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -661,6 +746,7 @@
    "feed": "data/quality-on-sale.json",
    "page": "opportunities.html",
    "title": "QUALITY ON SALE (Buffett 5-condition)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -668,6 +754,7 @@
    "feed": "data/forced-selling-bounce.json",
    "page": "opportunities.html",
    "title": "FORCED-SELLING BOUNCE (5-condition V-bottom)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -675,6 +762,7 @@
    "feed": "data/dealer-gex-history.json",
    "page": "options.html",
    "title": "DEALER GEX",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -682,27 +770,15 @@
    "feed": "data/dix-history.json",
    "page": "options.html",
    "title": "DIX",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-chart-vision",
    "feed": "data/chart-vision.json",
    "page": "patterns.html",
-   "title": "CHART VISION (H&amp",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "",
-   "feed": "S, cup&amp",
-   "page": "patterns.html",
-   "title": "S, cup&amp",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "",
-   "feed": "handle, flags)",
-   "page": "patterns.html",
-   "title": "handle, flags)",
+   "title": "CHART VISION (H&S, cup&handle, flags)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -710,20 +786,15 @@
    "feed": "data/convexity-scores.json",
    "page": "portfolio.html",
    "title": "CONVEXITY (gamma) SCORER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-concentration-liquidity",
    "feed": "data/concentration-liquidity.json",
    "page": "portfolio.html",
-   "title": "POSITION CONCENTRATION &amp",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "",
-   "feed": "LIQUIDITY RISK",
-   "page": "portfolio.html",
-   "title": "LIQUIDITY RISK",
+   "title": "POSITION CONCENTRATION & LIQUIDITY RISK",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -731,6 +802,7 @@
    "feed": "data/regime-conditional-router.json",
    "page": "regime.html",
    "title": "REGIME-CONDITIONAL SLEEVE ALLOCATOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -738,6 +810,7 @@
    "feed": "data/regime-conditional-trust.json",
    "page": "regime.html",
    "title": "REGIME-CONDITIONAL ENGINE TRUST",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -745,6 +818,7 @@
    "feed": "data/merger-arb.json",
    "page": "resilience.html",
    "title": "MERGER ARB",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -752,6 +826,7 @@
    "feed": "data/pairs-arb.json",
    "page": "resilience.html",
    "title": "PAIRS ARB",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -759,6 +834,7 @@
    "feed": "data/patent-velocity.json",
    "page": "resilience.html",
    "title": "PATENT VELOCITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -766,6 +842,7 @@
    "feed": "data/congress-party-map.json",
    "page": "resilience.html",
    "title": "POLITICAL STOCKS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -773,6 +850,7 @@
    "feed": "data/sector-heatmap.json",
    "page": "resilience.html",
    "title": "SECTOR HEATMAP",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -780,6 +858,7 @@
    "feed": "data/spinoff-desk.json",
    "page": "resilience.html",
    "title": "SPINOFF DESK",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -787,6 +866,7 @@
    "feed": "data/stocktwits.json",
    "page": "resilience.html",
    "title": "STOCKTWITS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -794,6 +874,7 @@
    "feed": "data/supply-chain-linkage.json",
    "page": "resilience.html",
    "title": "SUPPLY CHAIN LINKAGE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -801,6 +882,7 @@
    "feed": "data/themes-detected.json",
    "page": "resilience.html",
    "title": "THEME DETECTOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -808,6 +890,7 @@
    "feed": "data/theme-rotation.json",
    "page": "resilience.html",
    "title": "THEME ROTATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -815,6 +898,7 @@
    "feed": "data/theme-rotation-state.json",
    "page": "resilience.html",
    "title": "THEME ROTATION ENGINE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -822,6 +906,7 @@
    "feed": "data/ticker-trends.json",
    "page": "resilience.html",
    "title": "TICKER TRENDS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -829,6 +914,7 @@
    "feed": "data/coffee-can-holdings.json",
    "page": "risk-desk.html",
    "title": "COFFEE CAN",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -836,6 +922,7 @@
    "feed": "data/ka-analysis.json",
    "page": "risk-desk.html",
    "title": "KA METRICS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -843,6 +930,7 @@
    "feed": "data/khalid-analysis.json",
    "page": "risk-desk.html",
    "title": "KHALID METRICS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -850,6 +938,7 @@
    "feed": "data/stress-factor-loadings.json",
    "page": "risk-desk.html",
    "title": "STRESS LOADINGS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -857,6 +946,7 @@
    "feed": "data/cro-digest.json",
    "page": "risk-desk.html",
    "title": "CRO MORNING DIGEST",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -864,6 +954,7 @@
    "feed": "data/canary-grid.json",
    "page": "risk-gate.html",
    "title": "CANARY GRID (early-warning strip)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -871,6 +962,7 @@
    "feed": "data/trade-journal.json",
    "page": "sectors.html",
    "title": "TRADE EVALUATOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -878,6 +970,7 @@
    "feed": "data/trend-engine.json",
    "page": "sectors.html",
    "title": "TREND ENGINE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -885,6 +978,7 @@
    "feed": "data/upside-theses.json",
    "page": "sectors.html",
    "title": "UPSIDE THESIS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -892,6 +986,7 @@
    "feed": "data/volatility-squeeze.json",
    "page": "sectors.html",
    "title": "VOLATILITY SQUEEZE HUNTER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -899,6 +994,7 @@
    "feed": "data/industry-rotation.json",
    "page": "sectors.html",
    "title": "INDUSTRY ROTATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -906,13 +1002,15 @@
    "feed": "data/activist-filings-state.json",
    "page": "signal-board.html",
    "title": "ACTIVIST FILINGS SCANNER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-analyst-consensus",
-   "feed": "data/analyst-consensus-history.json",
+   "feed": "data/analyst-consensus.json",
    "page": "signal-board.html",
    "title": "ANALYST CONSENSUS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -920,6 +1018,7 @@
    "feed": "data/ark-holdings-prev.json",
    "page": "signal-board.html",
    "title": "ARK HOLDINGS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -927,6 +1026,7 @@
    "feed": "data/bagger-engine.json",
    "page": "signal-board.html",
    "title": "BAGGER ENGINE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -934,6 +1034,7 @@
    "feed": "data/benzinga-earnings-calendar.json",
    "page": "signal-board.html",
    "title": "BENZINGA EARNINGS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -941,6 +1042,7 @@
    "feed": "data/beta-laggards.json",
    "page": "signal-board.html",
    "title": "BETA LAGGARD",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -948,6 +1050,7 @@
    "feed": "data/capital-return.json",
    "page": "signal-board.html",
    "title": "CAPITAL RETURN",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -955,6 +1058,7 @@
    "feed": "data/causality-discoveries.json",
    "page": "signal-board.html",
    "title": "CAUSALITY SCANNER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -962,6 +1066,7 @@
    "feed": "data/chart-patterns.json",
    "page": "signal-board.html",
    "title": "CHART PATTERNS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -969,6 +1074,7 @@
    "feed": "data/dividend-growth.json",
    "page": "signal-board.html",
    "title": "DIVIDEND GROWTH",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -976,6 +1082,7 @@
    "feed": "data/earnings-confluence.json",
    "page": "signal-board.html",
    "title": "EARNINGS CONFLUENCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -983,6 +1090,7 @@
    "feed": "data/earnings-nlp.json",
    "page": "signal-board.html",
    "title": "EARNINGS NLP",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -990,6 +1098,7 @@
    "feed": "data/industry-rotation.json",
    "page": "signal-board.html",
    "title": "INDUSTRY ROTATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -997,20 +1106,23 @@
    "feed": "data/factor-regime.json",
    "page": "signal-board.html",
    "title": "FACTOR REGIME",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-edge-accuracy",
+   "engine": "justhodl-signal-scorecard",
    "feed": "data/engine-alpha.json",
    "page": "signal-intelligence.html",
    "title": "ENGINE ALPHA VERDICTS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-signal-backtester",
+   "engine": "justhodl-signal-backtest",
    "feed": "data/signal-backtest.json",
    "page": "signal-intelligence.html",
    "title": "SIGNAL BACKTESTS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1018,6 +1130,7 @@
    "feed": "data/calibration-latest.json",
    "page": "signal-intelligence.html",
    "title": "FLEET CALIBRATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1025,6 +1138,7 @@
    "feed": "data/signal-orthogonality.json",
    "page": "signal-intelligence.html",
    "title": "ORTHOGONALITY MAP",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1032,6 +1146,7 @@
    "feed": "data/signal-fabric.json",
    "page": "signals.html",
    "title": "SIGNAL FABRIC (canonical envelope)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1039,6 +1154,7 @@
    "feed": "data/refining-stress.json",
    "page": "supply-chain.html",
    "title": "REFINING STRESS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1046,6 +1162,7 @@
    "feed": "data/event-flow-health.json",
    "page": "system.html",
    "title": "EVENT-FLOW HEALTH",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1053,6 +1170,7 @@
    "feed": "data/dr-snapshot-latest.json",
    "page": "system.html",
    "title": "DISASTER-RECOVERY SNAPSHOT",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1060,6 +1178,7 @@
    "feed": "data/schedule-liveness.json",
    "page": "system.html",
    "title": "SCHEDULE LIVENESS",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1067,6 +1186,7 @@
    "feed": "data/alert-backtests.json",
    "page": "system.html",
    "title": "ALERT BACKTESTER",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1074,6 +1194,7 @@
    "feed": "data/calibration-history.json",
    "page": "system.html",
    "title": "ALPHA CALIBRATOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1081,6 +1202,7 @@
    "feed": "data/cost-anomaly.json",
    "page": "system.html",
    "title": "COST ANOMALY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1088,6 +1210,7 @@
    "feed": "data/engine-contributions.json",
    "page": "system.html",
    "title": "ENGINE CONTRIBUTION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1095,6 +1218,7 @@
    "feed": "data/engine-signal-map.json",
    "page": "system.html",
    "title": "ENGINE SIGNAL MAP",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1102,6 +1226,7 @@
    "feed": "data/feed-catalog.json",
    "page": "system.html",
    "title": "FEED CATALOG",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1109,6 +1234,7 @@
    "feed": "data/regime-anomaly.json",
    "page": "system.html",
    "title": "REGIME ANOMALY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1116,13 +1242,15 @@
    "feed": "data/theme-second-wave.json",
    "page": "themes.html",
    "title": "THEME SECOND-WAVE (picks-and-shovels)",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
-   "engine": "justhodl-auction-crisis",
+   "engine": "justhodl-auction-crisis-detector",
    "feed": "data/auction-crisis.json",
    "page": "treasury-desk.html",
    "title": "AUCTION CRISIS DETECTOR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1130,6 +1258,7 @@
    "feed": "data/bill-share.json",
    "page": "treasury-desk.html",
    "title": "BILL SHARE OF ISSUANCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1137,6 +1266,7 @@
    "feed": "data/bill-share.json",
    "page": "treasury-noise.html",
    "title": "BILL SHARE OF ISSUANCE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1144,6 +1274,7 @@
    "feed": "data/implied-corr.json",
    "page": "vol.html",
    "title": "IMPLIED CORRELATION",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1151,6 +1282,7 @@
    "feed": "data/alpha-brief.json",
    "page": "why.html",
    "title": "ALPHA DAILY BRIEF",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1158,6 +1290,7 @@
    "feed": "data/behavior-mirror.json",
    "page": "why.html",
    "title": "BEHAVIOR MIRROR",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1165,6 +1298,7 @@
    "feed": "data/buzz-velocity.json",
    "page": "why.html",
    "title": "BUZZ VELOCITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1172,13 +1306,15 @@
    "feed": "data/gdelt-buzz.json",
    "page": "why.html",
    "title": "GDELT BUZZ",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
    "engine": "justhodl-news-velocity",
-   "feed": "data/news-velocity-history.json",
+   "feed": "data/news-velocity.json",
    "page": "why.html",
    "title": "NEWS VELOCITY",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1186,6 +1322,7 @@
    "feed": "data/news-wire-state.json",
    "page": "why.html",
    "title": "NEWS WIRE",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1193,6 +1330,7 @@
    "feed": "data/polygon-futures-curves.json",
    "page": "why.html",
    "title": "POLYGON FUTURES CURVES",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
   {
@@ -1200,6 +1338,7 @@
    "feed": "data/sec-filings-intel.json",
    "page": "why.html",
    "title": "SEC FILINGS INTEL",
+   "schema_version": "unspecified",
    "via": "jh-wire.js"
   }
  ],

@@ -72,13 +72,11 @@ def scan_engines(repo: Path, manifest):
         keys = set(KEY_RE.findall(text))
         templ = set(FSTR_RE.findall(text))
         reads, writes = set(), set(own)
-        for k in keys:
-            v = classify_literal(text, k, own)
-            if v in ("write", "both"):
-                writes.add(k)
-            if v in ("read", "both", "unknown"):
-                if k not in own:
-                    reads.add(k)
+        # Only a bound write argument establishes ownership; nearby mentions never do.
+        from gen_engine_manifest import ast_keys
+        for source in sorted(src_dir.rglob("*.py")):
+            _, actual_reads, _ = ast_keys(source.read_text(errors="replace"))
+            reads.update(actual_reads)
         cfg = {}
         try:
             cfg = json.loads((d / "config.json").read_text())
@@ -90,28 +88,8 @@ def scan_engines(repo: Path, manifest):
 
 
 def scan_pages(repo: Path):
-    out = {}
-    for f in sorted(repo.glob("*.html")) + sorted(repo.glob("*.js")):
-        if f.name.startswith("_") or f.parent.name in SKIP_DIRS:
-            continue
-        try:
-            text = f.read_text(errors="replace")
-        except Exception:
-            continue
-        keys = sorted(set(KEY_RE.findall(text)))
-        # a page's inline script may reference the companion .js; join them by stem
-        out[f.name] = {"keys": keys, "templates": sorted(set(FSTR_RE.findall(text)))}
-    # merge page.js into page.html
-    merged = {}
-    for name, rec in out.items():
-        if name.endswith(".html"):
-            js = out.get(name[:-5] + ".js")
-            keys = set(rec["keys"]) | set(js["keys"] if js else [])
-            merged[name] = {"keys": sorted(keys), "companion_js": (name[:-5] + ".js") if js else None}
-    for name, rec in out.items():
-        if name.endswith(".js") and (name[:-3] + ".html") not in merged:
-            merged[name] = {"keys": rec["keys"], "companion_js": None}
-    return merged
+    from page_sources import scan_pages as scan
+    return scan(repo)
 
 
 def fanout_members(repo: Path):
