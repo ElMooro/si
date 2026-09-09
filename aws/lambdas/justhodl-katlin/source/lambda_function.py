@@ -84,9 +84,11 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from capital_contract import authority_view, fresh_timestamp, age_hours as contract_age_hours, publication_summary
 
+from bottom_context import context_rows
+
 VALIDATION_ONLY = False
 
-VERSION = "2.5.0"   # 2.5.0 (ops 5290): joins the Wyckoff bottom desk (data/bottom.json) into structure; audit 2026-09-08 FR-01/FR-02 authority binding kept
+VERSION = "2.5.1"   # Fresh BOTTOM context only; historical scoring and binding capital authority preserved.
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -1708,16 +1710,10 @@ def load_feeds():
                 acc.setdefault(str(tk).upper(), set()).add("volatility-squeeze")
     F["fleet_accum"] = {k: sorted(v) for k, v in acc.items()}
     # justhodl-bottom (ops 5290): the Wyckoff bottom desk -- selling climax -> automatic rally -> secondary test on
-    # diminished volume -> trigger above the test candle. A TRIGGERED/MARKUP weekly sequence is a confirmed long-term
-    # bottom by that method; a FAILED test is a knife. Joined by ticker; the artifact carries every row in board_all.
+    # diminished volume -> trigger above the test candle. The states are descriptive evidence from that
+    # method; they cannot change scoring or confirm Katlin structure without historical-vintage validation. Joined by ticker; the artifact carries every row in board_all.
     bo = s3_json("data/bottom.json", {}) or {}
-    F["bottom"] = {}
-    for r in flatten(bo.get("board_all")):
-        if isinstance(r, dict) and r.get("ticker"):
-            F["bottom"][str(r["ticker"]).upper()] = {"state": r.get("state"), "frame": r.get("frame"), "score": fnum(r.get("score")), "grade": r.get("grade"),
-                                                     "weekly_state": r.get("weekly_state"), "daily_state": r.get("daily_state"), "st_vol_ratio_sc": fnum(r.get("st_vol_ratio_sc")),
-                                                     "st_depth_class": r.get("st_depth_class"), "trigger_date": r.get("trigger_date"), "st_date": r.get("st_date"),
-                                                     "bars_in_state": r.get("bars_in_state")}
+    F["bottom"],F["bottom_health"] = context_rows(bo)
     F["asof"]["bottom"] = bo.get("generated_at")
     log("feeds in %.1fs: finviz=%d census=%d boom=%d rotation=%d flows=%d/%d f13=%d dark=%d insider=%d congress=%d options=%d blocks=%d "
         "catalyst=%d calendar=%d contracts=%d backlog=%d floor=%d ports=%d fleet_accum=%d warroom=%s" % (
@@ -2659,30 +2655,8 @@ def build_row(sym, asset_class, b, dates, spy_c, F, mkt, sub_class=None):
     st_s, st_state, st_legs = structure_score(sig)
     knife, knife_why = knife_guard(sig)
     wb = (F.get("bottom") or {}).get(sym)
-    if wb:
-        ws, ds = wb.get("weekly_state"), wb.get("daily_state")
-        if wb.get("frame") == "W":
-            ws = wb.get("state")
-        if ws in ("TRIGGERED", "MARKUP"):
-            st_s = clamp((st_s or 0) + 20)
-            if st_state != "CONFIRMED":
-                st_state = "CONFIRMED"
-            st_legs.append("weekly Wyckoff bottom: climax -> rally -> quiet test -> triggered (bottom engine)")
-        elif ws == "ST_CONFIRMED":
-            st_s = clamp((st_s or 0) + 10)
-            if st_state == "NONE":
-                st_state = "FORMING"
-            st_legs.append("weekly secondary test held on %s of climax volume (bottom engine)" % ("%.0f%%" % (100 * wb["st_vol_ratio_sc"]) if wb.get("st_vol_ratio_sc") is not None else "low"))
-        if ds in ("TRIGGERED", "MARKUP") and (wb.get("bars_in_state") or 99) <= 10:
-            st_s = clamp((st_s or 0) + 8)
-            if st_state == "NONE":
-                st_state = "FORMING"
-            st_legs.append("daily Wyckoff trigger %s (bottom engine)" % (wb.get("trigger_date") or ""))
-        elif ds in ("FAILED", "STOPPED") and (wb.get("bars_in_state") or 99) <= 10:
-            st_s = clamp((st_s or 0) - 25)
-            if st_state == "CONFIRMED":
-                st_state = "FORMING"
-            st_legs.append("daily secondary test FAILED on rising volume (bottom engine) -- the floor vanished")
+    # The existing walk-forward does not include historical BOTTOM vintages.
+    # Retain fresh auxiliary evidence without promoting the validated structure gate.
     acc = sig["accum"]
     acc_s = acc["score"]
     fleet_acc = F["fleet_accum"].get(sym) or []
@@ -3812,7 +3786,7 @@ def _run_handler(event=None, context=None):
            "watch": [{k: r.get(k) for k in ("ticker", "name", "asset_class", "sub_class", "sector", "industry", "last", "dist_sma200_pct", "dist_sma250_pct", "rsi_w", "rsi_d",
                                             "structure_state", "composite", "gates", "pillars", "knife", "tier")} for r in published if r["tier"] == "WATCH"][:400],
            "panels": desk_panels(rows, wr), "changes": changes, "base_rates": base_rates, "validation": validation_summary(F.get("backtest")),
-           "feeds_asof": F["asof"], "definitions": DEFINITIONS, "degraded": DEGRADED, "log": LOG[-60:]}
+           "feeds_asof": F["asof"], "bottom_context_health": F.get("bottom_health"), "definitions": DEFINITIONS, "degraded": DEGRADED, "log": LOG[-60:]}
     out["research_generated_at"] = out["generated_at"]
     out["research_status"] = "FRESH" if research_data_fresh else "STALE"
     out["research_max_age_h"] = 36.0
