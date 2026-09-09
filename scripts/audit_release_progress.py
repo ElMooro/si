@@ -27,6 +27,7 @@ def diagnostics(job_id):
                 'missing_modules':sorted(set(re.findall(r"No module named ['\"]([A-Za-z0-9_.-]+)['\"]",raw))),
                 'traceback_locations':[{'path':m[0],'line':int(m[1])} for m in re.findall(r'File "/home/runner/work/si/si/([A-Za-z0-9_./-]+)", line ([0-9]+)',raw)],
                 'failed_test_names':sorted(set(re.findall(r'FAIL(?:ED)?:? (test_[A-Za-z0-9_]+)',raw))),
+                'validation_failures':[{'function':m[0],'category':m[1]} for m in re.findall(r'(justhodl-[A-Za-z0-9_-]+) (invocation did not confirm execution of the pinned version|candidate returned an invalid validation envelope|candidate returned FunctionError)',raw)],
                 'failed_functions':sorted(set(re.findall(r'Deploy failed for ([A-Za-z0-9_-]+)',raw))),
                 'deployed_functions':sorted(set(re.findall(r'✅ ([A-Za-z0-9_-]+) deployed',raw)))}
     except Exception as exc: return {'available':False,'error_type':type(exc).__name__}
@@ -41,6 +42,12 @@ while True:
     if not active or time.monotonic()>=deadline: break
     print('Awaiting completion of',len(active),'release workflows',flush=True)
     time.sleep(20)
+# Retain the requested release even after routine nightly runs fill the recent page.
+pinned_ids = (34312891397,)
+known_ids = {run['id'] for run in recent}
+for pinned_id in pinned_ids:
+    if pinned_id not in known_ids:
+        recent.append(get('/actions/runs/' + str(pinned_id)))
 rows=[]
 for run in recent:
     if run['path'] not in {'.github/workflows/run-ops.yml','.github/workflows/deploy-lambdas.yml','.github/workflows/deploy-workers.yml','.github/workflows/pages.yml'}: continue
