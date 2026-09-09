@@ -1347,11 +1347,13 @@ export default {
       const body = request.method === 'POST' ? await boundedBody(request, 1000000) : undefined;
       if (body === null) return jsonResp({ error: 'request too large' }, 413);
       try {
-        const upstream = await fetch(base.replace(/\/$/, '') + sub + (url.search || ''), { method: request.method, body,
-          headers: { 'Content-Type': 'application/json', 'X-JH-Service-Token': env.ADMIN_TOKEN }, redirect: 'error', cache: 'no-store' });
+        // same fetch shape as the proven /ask bridge (no cache/redirect options: those throw on some runtimes)
+        const init = { method: request.method, headers: { 'Content-Type': 'application/json', 'X-JH-Service-Token': env.ADMIN_TOKEN } };
+        if (body !== undefined) init.body = body;
+        const upstream = await fetch(base.replace(/\/$/, '') + sub + (url.search || ''), init);
         const txt = await upstream.text();
         return new Response(txt, { status: upstream.status, headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store', Vary: 'Authorization' } });
-      } catch (_) { return jsonResp({ error: 'AI engine unavailable' }, 502); }
+      } catch (e) { return jsonResp({ error: 'AI engine unavailable', detail: String(e).slice(0, 140) }, 502); }
     }
 
     if (url.pathname === "/ask") {
