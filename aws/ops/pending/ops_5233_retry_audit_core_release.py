@@ -5,6 +5,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,4 +72,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.path.insert(0, str(ROOT / "aws/ops"))
+    from ops_report import report as ops_report
+    with ops_report("ops_5233_retry_audit_core_release") as rep:
+        try:
+            main()
+            rep.ok("Exact-revision recovery dispatch recorded; deployment remains separately verified")
+        except Exception as exc:
+            rep.fail("Recovery dispatch failed or is uncertain: " + type(exc).__name__)
+            sys.exit(1)
