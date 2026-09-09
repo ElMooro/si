@@ -312,7 +312,7 @@ export default {
     // reach *.workers.dev directly (adblock/wallet-extension filters), but
     // api.justhodl.ai is on the user's own domain and never blocked. Worker→worker
     // server-side fetch is unaffected by browser filters.
-    if (['/brain', '/journal', '/brain-debug', '/brain-purge', '/private-artifact', '/plan/self', '/plan/service', '/create-checkout', '/billing-portal', '/ask'].includes(path)) {
+    if (['/brain', '/journal', '/brain-debug', '/brain-purge', '/private-artifact', '/plan/self', '/plan/service', '/create-checkout', '/billing-portal', '/ask'].includes(path) || path.startsWith('/owner-api/')) {
       return handleDataProxy(request, origin, path, url.search);
     }
 

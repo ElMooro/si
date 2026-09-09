@@ -31,11 +31,12 @@ test('every owner feed uses its dedicated private kind with bearer and no-store'
   const {state,window}=setup();const paths={
     '/portfolio/snapshot.json':'portfolio-snapshot','/portfolio/risk.json':'portfolio-risk','/portfolio/sizing.json':'portfolio-sizing','/portfolio/catalysts.json':'portfolio-catalysts',
     '/data/risk-sizer.json':'risk-sizer','/risk/recommendations.json':'risk-sizer','/data/pm-decision.json':'pm-decision','/data/pm-decision-history.json':'pm-decision-history',
-    '/data/behavior-mirror.json':'behavior-mirror','/data/ai-brief.json':'ai-brief'};
+    '/data/behavior-mirror.json':'behavior-mirror','/data/ai-brief.json':'ai-brief',
+    '/data/user-watchlist.json':'user-watchlist','/data/vol-regime-private.json':'vol-regime-private','/data/user-trades.json':'personal-trades','/data/user-trades-stats.json':'personal-trades-stats'};
   for(const [key,kind] of Object.entries(paths)){
     const result=await window.fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com'+key+'?t=fixture',{headers:{Authorization:'do-not-forward'}});
     assert.equal((await result.json()).positions[0].quantity,7);const call=state.calls.at(-1);
-    assert.equal(call.input,'https://justhodl-data-proxy.raafouis.workers.dev/private-artifact?kind='+kind);
+    assert.equal(call.input,'https://api.justhodl.ai/private-artifact?kind='+kind);
     assert.equal(call.init.headers.Authorization,'Bearer fixture-owner-a');assert.equal(call.init.cache,'no-store');
   }
   assert.equal(state.inits,1);
@@ -68,8 +69,25 @@ test('private request failures produce fixed unavailable response and no public 
   assert.equal(response.status,503);assert.ok(!(await response.text()).includes('internal detail'));assert.equal(state.calls.length,1);
 });
 test('every known account-consuming page installs the helper before inline fetches',()=>{
-  for(const name of ['classic-dashboard.html','desk.html','sizing/index.html','why.html','portfolio/index.html','ticker.html','risk.html','pm-decision.html','catalyst/index.html','desk-v2.html','brief.html','engine.html','engines.html','index.html']){
+  for(const name of ['classic-dashboard.html','desk.html','sizing/index.html','why.html','portfolio/index.html','ticker.html','risk.html','pm-decision.html','catalyst/index.html','desk-v2.html','brief.html','engine.html','engines.html','index.html','watchlist.html','trade-journal.html','master-rank.html','vol-regime.html']){
     const html=fs.readFileSync(path.join(__dirname,'..',name),'utf8');const marker=html.indexOf('src="/private-artifacts.js?v=20260909"');
     assert.ok(marker>=0,name);const fetch=html.indexOf('fetch(');if(fetch>=0)assert.ok(marker<fetch,name+' installs late');
+  }
+});
+test('owner CRUD uses session bearer, exact account path, preserved JSON, and no browser service secret',async()=>{
+  const {state,window}=setup();const body=JSON.stringify({ticker:'FIXTURE',thesis:'synthetic'});
+  const response=await window.fetch('https://api.justhodl.ai/owner-api/trades/add',{method:'POST',body,headers:{'x-justhodl-token':'never-forward'}});
+  assert.equal(response.status,200);assert.equal(state.calls[0].input,'https://api.justhodl.ai/owner-api/trades/add');
+  assert.equal(state.calls[0].init.body,body);assert.equal(state.calls[0].init.headers.Authorization,'Bearer fixture-owner-a');assert.equal(state.calls[0].init.headers['x-justhodl-token'],undefined);
+  assert.equal((await window.fetch('/owner-api/watchlist',{method:'DELETE'})).status,405);assert.equal(state.calls.length,1);
+});
+test('signed-out account mutations never reach network',async()=>{
+  const {state,window}=setup({uid:null});assert.equal((await window.fetch('/owner-api/watchlist',{method:'POST',body:'{}'})).status,401);assert.equal(state.calls.length,0);
+});
+test('manual watchlist and trade pages use account identity without service-token forms or raw fallbacks',()=>{
+  for(const name of ['watchlist.html','trade-journal.html']){
+    const source=fs.readFileSync(path.join(__dirname,'..',name),'utf8');
+    assert.ok(source.includes('https://api.justhodl.ai/owner-api/'));assert.ok(source.includes('JustHodlPrivateArtifacts.ready()'));
+    assert.ok(!source.includes('lambda-url.us-east-1.on.aws'));assert.ok(!source.includes('x-justhodl-token'));assert.ok(!source.includes('setItem(\'jh_admin_token\''));
   }
 });

@@ -4,13 +4,15 @@
   'use strict';
   if (window.JustHodlPrivateArtifacts) return;
   const nativeFetch = window.fetch.bind(window);
-  const WORKER = 'https://justhodl-data-proxy.raafouis.workers.dev';
+  const PRIVATE_API = 'https://api.justhodl.ai';
   const paths = {
     'portfolio/snapshot.json': 'portfolio-snapshot', 'portfolio/risk.json': 'portfolio-risk',
     'portfolio/sizing.json': 'portfolio-sizing', 'portfolio/catalysts.json': 'portfolio-catalysts',
     'risk-sizer.json': 'risk-sizer', 'risk/recommendations.json': 'risk-sizer',
     'pm-decision.json': 'pm-decision', 'pm-decision-history.json': 'pm-decision-history',
     'behavior-mirror.json': 'behavior-mirror', 'ai-brief.json': 'ai-brief',
+    'user-watchlist.json': 'user-watchlist', 'vol-regime-private.json': 'vol-regime-private',
+    'user-trades.json': 'personal-trades', 'user-trades-stats.json': 'personal-trades-stats',
     'brain.json': 'brain', 'brain-history.json': 'brain-history', 'journal-graded.json': 'journal-graded',
     'my-brief.json': 'my-brief', 'devils-advocate.json': 'devils-advocate',
     'notes-index.json': 'notes-index', 'notes-themes.json': 'notes-themes', 'playbook-rules.json': 'playbook-rules',
@@ -26,6 +28,12 @@
       if (!hosts.has(url.hostname) || !['http:', 'https:'].includes(url.protocol)) return null;
       const key = url.pathname.replace(/^\/+/, '').replace(/^data\//, '');
       return Object.hasOwn(paths, key) ? paths[key] : null;
+    } catch (_) { return null; }
+  }
+  function ownerApiFor(input) {
+    try {
+      const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url, document.baseURI || location.href);
+      return hosts.has(url.hostname) && ['http:', 'https:'].includes(url.protocol) && /^\/owner-api\/(watchlist|trades)(\/(add|remove|replace|close|update|delete|mtm))?$/.test(url.pathname) ? url.pathname : null;
     } catch (_) { return null; }
   }
   function unavailable(message, status) {
@@ -84,17 +92,18 @@
     return ready;
   }
   async function privateFetch(input, init) {
-    const kind = kindFor(input);
-    if (!kind) return nativeFetch(input, init);
+    const kind = kindFor(input), ownerApi = ownerApiFor(input);
+    if (!kind && !ownerApi) return nativeFetch(input, init);
     const method = String(init?.method || input?.method || 'GET').toUpperCase();
-    if (!['GET', 'HEAD'].includes(method)) return unavailable('private artifact is read only', 405);
+    if (!(ownerApi ? ['GET', 'POST'] : ['GET', 'HEAD']).includes(method)) return unavailable('private operation does not support this method', 405);
     try {
       const auth = await authReady(), uid = auth.getUser()?.id;
       if (!uid) { showAccessStatus(401); return unavailable('Sign in to view your private account data.', 401); }
       const token = await auth.getAccessToken();
+      const requestBody = method === 'POST' ? (init?.body === undefined && input instanceof Request ? await input.clone().arrayBuffer() : init?.body) : undefined;
       if (!token || auth.getUser()?.id !== uid) return unavailable('Account session changed.', 401);
-      const response = await nativeFetch(WORKER + '/private-artifact?kind=' + encodeURIComponent(kind), {
-        method, headers: {Authorization: 'Bearer ' + token}, cache: 'no-store', signal: init?.signal || input?.signal,
+      const response = await nativeFetch(PRIVATE_API + (ownerApi || '/private-artifact?kind=' + encodeURIComponent(kind)), {
+        method, body: requestBody, headers: {Authorization: 'Bearer ' + token, ...(ownerApi ? {'Content-Type':'application/json'} : {})}, cache: 'no-store', signal: init?.signal || input?.signal,
       });
       // Buffer before releasing the response, so a delayed body from a previous
       // account cannot repopulate a page after sign-out or account replacement.
@@ -104,7 +113,7 @@
       return new Response(body, {status: response.status, headers: response.headers});
     } catch (_) { showAccessStatus(503); return unavailable('Private account data is temporarily unavailable.', 503); }
   }
-  window.JustHodlPrivateArtifacts = {kindFor, fetch: privateFetch};
+  window.JustHodlPrivateArtifacts = {kindFor, fetch: privateFetch, ready: authReady};
   window.fetch = privateFetch;
   window.addEventListener('pageshow', event => { if (event.persisted) reloadPrivateView(); });
 })();

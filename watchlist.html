@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-watchlist">
+<script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Watchlist · JustHodl.AI</title>
@@ -133,11 +135,8 @@
     </div>
 
     <div class="auth-row">
-      <label>Admin Token:</label>
-      <input type="password" id="adminToken" placeholder="paste your x-justhodl-token here…">
-      <button class="secondary" onclick="testAuth()">Test</button>
-      <span id="authStatus" class="status no">no auth</span>
-      <span style="font-size:11px;color:var(--text-muted)">stored in localStorage; required for save</span>
+      <button class="secondary" onclick="JustHodlAuth.openSignIn()">Sign in</button>
+      <span id="authStatus" class="status no">checking account…</span>
     </div>
 
     <div class="toolbar">
@@ -209,8 +208,7 @@
   </div>
 
 <script>
-const API_URL = 'https://kzwn6o5kbm7kqdqoioiw32hd4m0rzzsr.lambda-url.us-east-1.on.aws/';  // replaced post-deploy
-const S3_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/user-watchlist.json';
+const API_URL = 'https://api.justhodl.ai/owner-api/watchlist';
 const TICKER_RE = /^[A-Z][A-Z0-9.\-]{0,7}$/;
 
 let STATE = null;        // current watchlist (from server)
@@ -228,56 +226,31 @@ function showToast(msg, type='info', ms=3000) {
   setTimeout(() => t.classList.remove('show'), ms);
 }
 
-function getToken() { return localStorage.getItem('jh_admin_token') || ''; }
-function setToken(v) { localStorage.setItem('jh_admin_token', v); }
-
-function testAuth() {
-  const t = $('adminToken').value.trim();
-  if (!t) {
-    setToken('');
-    $('authStatus').className = 'status no';
-    $('authStatus').textContent = 'no auth';
-    $('saveBtn').disabled = true;
-    return;
-  }
-  setToken(t);
-  $('authStatus').className = 'status ok';
-  $('authStatus').textContent = 'token saved (server validates on save)';
-  $('saveBtn').disabled = !DIRTY;
-}
-
-function loadFromCache() {
-  const tok = getToken();
-  if (tok) {
-    $('adminToken').value = tok;
-    $('authStatus').className = 'status ok';
-    $('authStatus').textContent = 'token loaded';
-  }
+function signedIn() { return !!window.JustHodlAuth?.getUser(); }
+async function initAccount() {
+  try { localStorage.removeItem('jh_admin_token'); } catch (_) {}
+  await JustHodlPrivateArtifacts.ready();
+  $('authStatus').className = 'status ' + (signedIn() ? 'ok' : 'no');
+  $('authStatus').textContent = signedIn() ? 'signed in' : 'sign in required';
 }
 
 async function reloadFromServer() {
   ind('saving', 'loading…');
   try {
-    const r = await fetch(S3_URL + '?_=' + Date.now());
-    if (!r.ok) throw new Error('S3 ' + r.status);
-    STATE = await r.json();
+    const r = await fetch(API_URL);
+    if (!r.ok) throw new Error('Account access ' + r.status);
+    const j = await r.json();
+    if (!j.ok) throw new Error('Watchlist unavailable');
+    STATE = j.watchlist;
     DRAFT = JSON.parse(JSON.stringify(STATE));
     DIRTY = false;
     ind('saved', 'saved');
     $('saveBtn').disabled = true;
     render();
   } catch (e) {
+    STATE = emptyState(); DRAFT = emptyState(); DIRTY = false;
+    $('saveBtn').disabled = true; render(); ind('error', 'unavailable');
     showToast('Load failed: ' + e.message, 'error');
-    // Fallback to API
-    try {
-      const r = await fetch(API_URL);
-      const j = await r.json();
-      if (j.ok) {
-        STATE = j.watchlist;
-        DRAFT = JSON.parse(JSON.stringify(STATE));
-        render();
-      }
-    } catch (_) {}
   }
 }
 
@@ -293,7 +266,7 @@ function emptyState() {
 function markDirty() {
   DIRTY = true;
   ind('dirty', 'unsaved');
-  $('saveBtn').disabled = !getToken();
+  $('saveBtn').disabled = !signedIn();
 }
 
 function validateTicker(t) {
@@ -418,9 +391,8 @@ function attachDragHandlers() {
 }
 
 async function saveWatchlist() {
-  const token = getToken();
-  if (!token) {
-    showToast('Set admin token first', 'error');
+  if (!signedIn()) {
+    showToast('Sign in first', 'error');
     return;
   }
   ind('saving', 'saving…');
@@ -435,7 +407,6 @@ async function saveWatchlist() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-justhodl-token': token,
       },
       body: JSON.stringify(payload),
     });
@@ -455,8 +426,7 @@ async function saveWatchlist() {
 }
 
 // Init
-loadFromCache();
-reloadFromServer();
+initAccount().then(reloadFromServer).catch(() => showToast('Authentication unavailable', 'error'));
 setInterval(() => { if (!DIRTY) reloadFromServer(); }, 60*1000);
 </script>
   <script src="/jh-page-ai.js" defer></script>

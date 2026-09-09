@@ -20,6 +20,8 @@ MIRRORED_ARTIFACTS = {
     "data/risk-sizer.json": "risk-sizer", "data/pm-decision.json": "pm-decision",
     "data/pm-decision-history.json": "pm-decision-history", "data/behavior-mirror.json": "behavior-mirror",
     "data/ai-brief.json": "ai-brief",
+    "data/user-watchlist.json": "user-watchlist", "data/vol-regime-private.json": "vol-regime-private",
+    "data/user-trades.json": "personal-trades", "data/user-trades-stats.json": "personal-trades-stats",
 }
 PRIVATE_KEYS = frozenset(MIRRORED_ARTIFACTS) | {
     "data/tradingview-notes.json", "risk/recommendations.json", "data/ai-brief.md",

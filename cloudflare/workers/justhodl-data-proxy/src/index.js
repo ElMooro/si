@@ -319,11 +319,13 @@ const PRIVATE_ARTIFACTS = {
   'risk-sizer.json':'risk-sizer', 'risk/recommendations.json':'risk-sizer',
   'pm-decision.json':'pm-decision', 'pm-decision-history.json':'pm-decision-history',
   'behavior-mirror.json':'behavior-mirror', 'ai-brief.json':'ai-brief',
+  'user-watchlist.json':'user-watchlist', 'vol-regime-private.json':'vol-regime-private',
+  'user-trades.json':'personal-trades', 'user-trades-stats.json':'personal-trades-stats',
 };
 const SANITIZED_ARTIFACTS = new Set([
   'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
   'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
-  'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json',
+  'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json', 'vol-regime.json',
 ]);
 function sanitizedArtifact(path) {
   const normalized = path.replace(/^data\//, '');
@@ -439,6 +441,30 @@ export default {
       return new Response(request.method === "HEAD" ? null : raw || JSON.stringify({ error: "private artifact awaiting sync" }), {
         status: raw ? 200 : 503, headers: { ...corsHeaders(), "Content-Type": "application/json", "Cache-Control": "private, no-store", Vary: "Authorization" },
       });
+    }
+    if (url.pathname.startsWith('/owner-api/')) {
+      const match = /^\/owner-api\/(watchlist|trades)(\/(?:add|remove|replace|close|update|delete|mtm))?$/.exec(url.pathname);
+      if (!match) return jsonResp({ error: 'unknown owner operation' }, 404);
+      const identity = await resolveIdentity(request, env);
+      if (identity.role === 'anon') return unauthorized('personal account sign-in required');
+      if (!['owner', 'service'].includes(identity.role)) return forbidden('owner account');
+      if (!['GET', 'POST'].includes(request.method)) return jsonResp({ error: 'method not allowed' }, 405);
+      const operation = match[2] || '/';
+      const allowed = match[1] === 'watchlist' ? ['/', '/add', '/remove', '/replace'] : ['/', '/add', '/close', '/update', '/delete', '/mtm'];
+      if (!allowed.includes(operation) || (request.method === 'GET' && operation !== '/')) return jsonResp({ error: 'unknown owner operation' }, 404);
+      if (!env.ADMIN_TOKEN) return jsonResp({ error: 'private account service unavailable' }, 503);
+      const body = request.method === 'POST' ? await boundedBody(request, 1000000) : undefined;
+      if (body === null) return jsonResp({ error: 'account request too large' }, 413);
+      const base = match[1] === 'watchlist'
+        ? 'https://kzwn6o5kbm7kqdqoioiw32hd4m0rzzsr.lambda-url.us-east-1.on.aws'
+        : 'https://c6bhlnugikpdjulunpf6qeu66q0ugtbg.lambda-url.us-east-1.on.aws';
+      try {
+        const upstream = await fetch(base + operation, {method: request.method, body,
+          headers: {'Content-Type':'application/json', 'X-JH-Service-Token':env.ADMIN_TOKEN},
+          redirect: 'error', cache: 'no-store'});
+        return new Response(upstream.body, {status: upstream.status, headers: {...corsHeaders(),
+          'Content-Type':'application/json', 'Cache-Control':'private, no-store', Vary:'Authorization'}});
+      } catch (_) { return jsonResp({ error: 'private account service unavailable' }, 503); }
     }
     if (url.pathname === "/journal") {
       const jid = await resolveIdentity(request, env);

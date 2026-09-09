@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-trade-journal">
+<script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trade Journal · JustHodl.AI</title>
@@ -139,11 +141,8 @@
     </div>
 
     <div class="auth-row">
-      <label>Admin Token:</label>
-      <input type="password" id="adminToken" placeholder="paste your x-justhodl-token here…">
-      <button class="action-btn" onclick="testAuth()">Save</button>
-      <span id="authStatus" class="status no">no auth</span>
-      <span style="font-size:11px;color:var(--text-muted)">required to add/close/edit trades</span>
+      <button class="action-btn" onclick="JustHodlAuth.openSignIn()">Sign in</button>
+      <span id="authStatus" class="status no">checking account…</span>
     </div>
 
     <div class="stats">
@@ -223,7 +222,7 @@
   </div>
 
 <script>
-const API_URL = 'https://c6bhlnugikpdjulunpf6qeu66q0ugtbg.lambda-url.us-east-1.on.aws';
+const API_URL = 'https://api.justhodl.ai/owner-api/trades';
 const $ = id => document.getElementById(id);
 let DATA = null;
 
@@ -234,25 +233,13 @@ function showToast(msg, type='info', ms=3000) {
   setTimeout(() => t.classList.remove('show'), ms);
 }
 
-function getToken() { return localStorage.getItem('jh_admin_token') || ''; }
-function setToken(v) { localStorage.setItem('jh_admin_token', v); }
-
-function testAuth() {
-  const t = $('adminToken').value.trim();
-  setToken(t);
-  $('authStatus').className = 'status ' + (t ? 'ok' : 'no');
-  $('authStatus').textContent = t ? 'token saved' : 'no auth';
-  $('addBtn').disabled = !t;
-}
-
-function loadCachedToken() {
-  const t = getToken();
-  if (t) {
-    $('adminToken').value = t;
-    $('authStatus').className = 'status ok';
-    $('authStatus').textContent = 'token loaded';
-    $('addBtn').disabled = false;
-  }
+function signedIn() { return !!window.JustHodlAuth?.getUser(); }
+async function initAccount() {
+  try { localStorage.removeItem('jh_admin_token'); } catch (_) {}
+  await JustHodlPrivateArtifacts.ready();
+  $('authStatus').className = 'status ' + (signedIn() ? 'ok' : 'no');
+  $('authStatus').textContent = signedIn() ? 'signed in' : 'sign in required';
+  $('addBtn').disabled = !signedIn();
 }
 
 async function load() {
@@ -264,6 +251,7 @@ async function load() {
     DATA = j;
     render();
   } catch (e) {
+    DATA = {trades: {trades: []}, stats: {}}; render();
     showToast('Load failed: ' + e.message, 'error');
     console.error(e);
   }
@@ -352,9 +340,8 @@ function render() {
 
 async function addTrade(ev) {
   ev.preventDefault();
-  const token = getToken();
-  if (!token) {
-    showToast('Set admin token first', 'error');
+  if (!signedIn()) {
+    showToast('Sign in first', 'error');
     return;
   }
   const fd = new FormData(ev.target);
@@ -377,7 +364,7 @@ async function addTrade(ev) {
   try {
     const r = await fetch(API_URL + '/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-justhodl-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
     const j = await r.json();
@@ -392,8 +379,7 @@ async function addTrade(ev) {
 }
 
 async function promptClose(id, ticker, entryPx) {
-  const token = getToken();
-  if (!token) { showToast('Set admin token first', 'error'); return; }
+  if (!signedIn()) { showToast('Sign in first', 'error'); return; }
   const exit = prompt(`Close ${ticker} at what price? (entry was $${entryPx})`);
   if (!exit) return;
   const reason = prompt('Reason? (TARGET / STOP / MANUAL / EARNINGS)', 'MANUAL');
@@ -401,7 +387,7 @@ async function promptClose(id, ticker, entryPx) {
   try {
     const r = await fetch(API_URL + '/close', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-justhodl-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, exit_price: parseFloat(exit), exit_reason: reason.trim().toUpperCase() }),
     });
     const j = await r.json();
@@ -416,8 +402,7 @@ async function promptClose(id, ticker, entryPx) {
 
 // Init: pre-fill today's date
 document.querySelector('[name=entry_date]').value = new Date().toISOString().slice(0,10);
-loadCachedToken();
-load();
+initAccount().then(load).catch(() => showToast('Authentication unavailable', 'error'));
 setInterval(load, 60*1000);
 </script>
   <script src="/jh-page-ai.js" defer></script>

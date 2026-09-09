@@ -430,7 +430,8 @@ test('every private corpus and archive alias is blocked before stale cache, incl
     'risk-sizer.json','risk/recommendations.json','pm-decision.json','pm-decision-history.json','behavior-mirror.json','ai-brief.json','ai-brief.md',
     'history/behavior-mirror-history.json','portfolio/sizing-alert-history.json','portfolio/catalyst-alert-history.json','portfolio/risk-alert-history.json',
     'backtest/ledger/latest.json','backtest/ledger/versions/fixture.json','ai-commentary/history/portfolio/old.json',
-    'history/archive/feed/data/ai-brief.json/old.json','history/archive/feed/ai-brief.json/old.json','history/archive/feed/portfolio/snapshot.json/old.json'];
+    'history/archive/feed/data/ai-brief.json/old.json','history/archive/feed/ai-brief.json/old.json','history/archive/feed/portfolio/snapshot.json/old.json',
+    'user-watchlist.json','vol-regime-private.json','user-trades.json','user-trades-stats.json','history/archive/feed/data/user-trades.json/old.json'];
   for(const key of keys)for(const prefix of ['/','/data/'])for(const method of ['GET','HEAD']){
     const r=await w.fetch(req(prefix+key+'?versionId=old',{method,headers:{Range:'bytes=0-12'}}),env,{});assert.ok([401,403].includes(r.status),prefix+key);assert.match(r.headers.get('Cache-Control'),/no-store/);
   }
@@ -440,7 +441,8 @@ test('all dedicated owner account engines publish and read through authenticated
   const {env}=fresh();const w=await worker();const keys={
     'portfolio/snapshot.json':'portfolio-snapshot','portfolio/risk.json':'portfolio-risk','portfolio/sizing.json':'portfolio-sizing','portfolio/catalysts.json':'portfolio-catalysts',
     'data/risk-sizer.json':'risk-sizer','risk/recommendations.json':'risk-sizer','data/pm-decision.json':'pm-decision','data/pm-decision-history.json':'pm-decision-history',
-    'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief'};
+    'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief',
+    'data/user-watchlist.json':'user-watchlist','data/vol-regime-private.json':'vol-regime-private','data/user-trades.json':'personal-trades','data/user-trades-stats.json':'personal-trades-stats'};
   globalThis.caches={default:{async match(){throw new Error('private cache read')},async put(){throw new Error('private cache write')}}};
   for(const [key,kind] of Object.entries(keys)){
     const doc={engine:kind,account_fixture:{positions:[{ticker:'SYNTHETIC',qty:3}],nav:100}};
@@ -454,6 +456,30 @@ test('all dedicated owner account engines publish and read through authenticated
     const head=await w.fetch(req('/'+key,{method:'HEAD',headers:{'X-JH-Service-Token':ADMIN}}),env,{});assert.equal(head.status,200);assert.equal(await head.text(),'');
   }
 });
+test('manual owner APIs authenticate all reads and mutations before fixed service forwarding',async()=>{
+  const {env}=fresh();const w=await worker();const prior=globalThis.fetch,calls=[];
+  globalThis.fetch=async(url,init)=>{
+    if(String(url).includes('.lambda-url.')){calls.push({url,init});return Response.json({ok:true,watchlist:{version:1},trades:{version:1,trades:[]}});}
+    return prior(url,init);
+  };
+  for(const endpoint of ['/owner-api/watchlist','/owner-api/trades'])for(const method of ['GET','POST']){
+    const suffix=method==='POST'&&endpoint.endsWith('trades')?'/add':'';
+    const body=method==='POST'?'{}':undefined;
+    assert.equal((await w.fetch(req(endpoint+suffix,{method,body}),env,{})).status,401);
+    assert.equal((await w.fetch(req(endpoint+suffix,{method,body,headers:{Authorization:'Bearer other_tok_000000000000'}}),env,{})).status,403);
+  }
+  assert.equal(calls.length,0);
+  for(const endpoint of ['/owner-api/watchlist','/owner-api/watchlist/add','/owner-api/watchlist/remove','/owner-api/watchlist/replace','/owner-api/trades/add','/owner-api/trades/close','/owner-api/trades/update','/owner-api/trades/delete','/owner-api/trades/mtm']){
+    const result=await w.fetch(req(endpoint,{method:'POST',body:'{"fixture":true}',headers:{Authorization:'Bearer owner_tok_000000000000','x-justhodl-token':'do-not-forward'}}),env,{});
+    assert.equal(result.status,200,endpoint);assert.match(result.headers.get('Cache-Control'),/private, no-store/);
+    const call=calls.at(-1);assert.equal(call.init.headers['X-JH-Service-Token'],ADMIN);assert.equal(call.init.headers.Authorization,undefined);assert.equal(call.init.headers['x-justhodl-token'],undefined);
+    assert.equal(call.init.body,'{"fixture":true}');assert.equal(call.init.redirect,'error');assert.equal(call.init.cache,'no-store');
+  }
+  const before=calls.length;
+  for(const endpoint of ['/owner-api/unknown','/owner-api/watchlist/delete','/owner-api/trades/replace'])assert.equal((await w.fetch(req(endpoint,{headers:{'X-JH-Service-Token':ADMIN}}),env,{})).status,404);
+  assert.equal((await w.fetch(req('/owner-api/watchlist',{method:'POST',body:'x'.repeat(1000001),headers:{'X-JH-Service-Token':ADMIN}}),env,{})).status,413);assert.equal(calls.length,before);
+  assert.equal((await w.fetch(req('/owner-api/trades',{headers:{'X-JH-Service-Token':ADMIN}}),env,{})).status,200);
+});
 test('sanitized public derivatives bypass old Worker and upstream cache generations',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0,upstreamUrl,upstreamOptions;
   globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})},async put(){throw new Error('private-derived payload recached')}}};globalThis.fetch=async(url,opts)=>{upstreamUrl=String(url);upstreamOptions=opts;return Response.json({safe:true})};
@@ -462,7 +488,7 @@ test('sanitized public derivatives bypass old Worker and upstream cache generati
 test('AI proxy forwards authoritative entitlement and private-artifact auth without caching or synthesizing tiers',async()=>{
   const ai=(await import(pathToFileURL(path.join(__dirname,'..','cloudflare/workers/justhodl-ai-proxy/src/index.js')).href)).default;const calls=[];
   globalThis.fetch=async(url,init)=>{calls.push({url,init});return Response.json({error:'verified user required'},{status:401})};
-  for(const route of ['/plan/self','/private-artifact?kind=brain']){
+  for(const route of ['/plan/self','/private-artifact?kind=brain','/owner-api/watchlist','/owner-api/trades']){
     const r=await ai.fetch(new Request('https://api.justhodl.ai'+route,{headers:{Origin:'https://justhodl.ai',Authorization:'Bearer fixture'}}),{},{});assert.equal(r.status,401);assert.match(r.headers.get('Cache-Control'),/no-store/);assert.equal(calls.at(-1).init.headers.Authorization,'Bearer fixture');assert.ok(calls.at(-1).url.endsWith(route));
   }
 });

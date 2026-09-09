@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-vol-regime">
+<script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vol Regime · JustHodl.AI</title>
@@ -255,12 +257,13 @@ function render() {
 
 async function load() {
   try {
-    const r = await fetch(FEED_URL + '?_=' + Date.now());
+    let r = await fetch('/data/vol-regime-private.json');
+    if (!r.ok) r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     document.getElementById('metaLine').innerHTML =
       `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
-      `${DATA.n_with_data}/${DATA.n_tickers} tickers with data · ${DATA.duration_s}s`;
+      `${DATA.n_with_iv ?? 0}/${DATA.n_tickers ?? 0} tickers with implied volatility · ${DATA.duration_s}s · ` + (DATA.universe_scope === 'PUBLIC_CORE_MODEL' ? 'public core universe' : 'private account universe');
 
     const reg = DATA.composite_regime || 'UNKNOWN';
     document.getElementById('composite').className = 'composite ' + reg;
