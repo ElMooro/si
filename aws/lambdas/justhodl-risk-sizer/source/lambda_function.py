@@ -91,110 +91,75 @@ def safe_float(v, default=None):
 
 
 def compute_returns(history):
-    """Convert history list of {d, c} to a list of daily returns."""
-    if not history or len(history) < 2:
-        return []
-    closes = [h.get("c") for h in history if isinstance(h, dict) and h.get("c")]
-    closes = [c for c in closes if c and c > 0]
-    if len(closes) < 2:
-        return []
-    # history is most-recent first; reverse for chronological
-    closes_chron = list(reversed(closes))
-    returns = []
-    for i in range(1, len(closes_chron)):
-        r = (closes_chron[i] - closes_chron[i-1]) / closes_chron[i-1]
-        returns.append(r)
-    return returns
+    """Dated close-to-close intervals; unknown/conflicting clocks never align by row."""
+    if not isinstance(history,list): return {}
+    closes={}
+    today=datetime.now(timezone.utc).date()
+    for row in history:
+        if not isinstance(row,dict): continue
+        raw=row.get("d") or row.get("date")
+        try:
+            day=datetime.strptime(raw,"%Y-%m-%d").date()
+            value=row.get("c")
+            if isinstance(value,bool): continue
+            value=float(value)
+            if not math.isfinite(value) or value <= 0 or day > today: continue
+        except (ValueError,TypeError): continue
+        if day in closes and closes[day]!=value: return {}
+        closes[day]=value
+    days=sorted(closes)
+    if not days:return {}
+    cutoff=days[-1]-timedelta(days=90)
+    return {(start.isoformat(),end.isoformat()):(closes[end]/closes[start]-1)
+            for start,end in zip(days,days[1:]) if end>=cutoff and (end-start).days<=7}
 
 
-def correlation(a, b):
-    """Pearson correlation between two return series."""
-    n = min(len(a), len(b))
-    if n < 20:
-        return None
-    a = a[-n:]
-    b = b[-n:]
-    a_mean = statistics.mean(a)
-    b_mean = statistics.mean(b)
-    a_dev = [x - a_mean for x in a]
-    b_dev = [x - b_mean for x in b]
-    cov = sum(a_dev[i] * b_dev[i] for i in range(n)) / n
-    a_var = sum(x * x for x in a_dev) / n
-    b_var = sum(x * x for x in b_dev) / n
-    if a_var == 0 or b_var == 0:
-        return None
-    return cov / ((a_var * b_var) ** 0.5)
+def correlation(a,b):
+    """Pearson correlation on the same start AND end sessions (latest60 pairs)."""
+    if not isinstance(a,dict) or not isinstance(b,dict): return None
+    pairs=sorted(set(a)&set(b))[-60:]
+    values=[(a[key],b[key]) for key in pairs if isinstance(key,tuple) and len(key)==2
+            and all(isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) for v in (a[key],b[key]))]
+    n=len(values)
+    if n<20:return None
+    left,right=zip(*values)
+    am,bm=statistics.mean(left),statistics.mean(right)
+    av,bv=[v-am for v in left],[v-bm for v in right]
+    aa,bb=sum(v*v for v in av),sum(v*v for v in bv)
+    if aa<=0 or bb<=0:return None
+    return max(-1.0,min(1.0,sum(x*y for x,y in zip(av,bv))/math.sqrt(aa*bb)))
 
 
-def cluster_by_correlation(symbols, returns_by_symbol, sector_by_symbol=None, threshold=CLUSTER_CORRELATION_THRESHOLD):
-    """Cluster symbols by 60-day return correlation when data exists, else by sector.
-
-    For symbols with sufficient return data we use the original 0.65 correlation
-    threshold (precise but data-dependent). For symbols WITHOUT return data —
-    most Phase 2B output, since data/report.json only carries ~80 major ETFs/
-    names and the screener has 503 — we fall back to sector grouping. INCY +
-    RMD = Healthcare → 1 cluster, etc. Less precise but vastly better than
-    treating every name as its own cluster (which makes per-cluster caps useless).
-    """
-    if sector_by_symbol is None:
-        sector_by_symbol = {}
-    clusters = []
-    assigned = set()
-
-    # Pass 1: correlation-based clusters for symbols with return data
-    for sym in symbols:
-        if sym in assigned or sym not in returns_by_symbol:
-            continue
-        cluster_members = [sym]
-        cluster_corrs = []
-        for other in symbols:
-            if other == sym or other in assigned or other not in returns_by_symbol:
-                continue
-            corr = correlation(returns_by_symbol[sym], returns_by_symbol[other])
-            if corr is not None and corr > threshold:
-                cluster_members.append(other)
-                cluster_corrs.append(corr)
-        for m in cluster_members:
-            assigned.add(m)
-        clusters.append({
-            "id": f"corr_{cluster_members[0]}",
-            "method": "correlation",
-            "members": sorted(cluster_members),
-            "avg_correlation": round(statistics.mean(cluster_corrs), 3) if cluster_corrs else 0,
-            "size": len(cluster_members),
-        })
-
-    # Pass 2: sector-based clusters for the remainder
-    by_sector = {}
-    for sym in symbols:
-        if sym in assigned:
-            continue
-        sector = sector_by_symbol.get(sym, "Unknown")
-        by_sector.setdefault(sector, []).append(sym)
-
-    for sector, members in by_sector.items():
-        if len(members) == 1:
-            # Single-member sector → still mark as sector cluster, not isolated
-            clusters.append({
-                "id": f"sector_{sector.lower().replace(' ', '_')}",
-                "method": "sector_single",
-                "members": members,
-                "avg_correlation": 0,
-                "size": 1,
-                "sector": sector,
-            })
-        else:
-            clusters.append({
-                "id": f"sector_{sector.lower().replace(' ', '_')}",
-                "method": "sector",
-                "members": sorted(members),
-                "avg_correlation": 0,  # sector grouping doesn\'t compute corr
-                "size": len(members),
-                "sector": sector,
-            })
-        for m in members:
-            assigned.add(m)
-
+def cluster_by_correlation(symbols,returns_by_symbol,sector_by_symbol=None,threshold=CLUSTER_CORRELATION_THRESHOLD):
+    """Connected exposure groups; unknown pair evidence uses disclosed sector fallback."""
+    sectors=sector_by_symbol or {}
+    symbols=sorted(set(symbols))
+    adjacency={symbol:set() for symbol in symbols};edges={}
+    for i,left in enumerate(symbols):
+        for right in symbols[i+1:]:
+            corr=correlation(returns_by_symbol.get(left),returns_by_symbol.get(right))
+            same_sector=(sectors.get(left) or "UNKNOWN").upper()==(sectors.get(right) or "UNKNOWN").upper()
+            if (corr is not None and corr>threshold) or (corr is None and same_sector):
+                adjacency[left].add(right);adjacency[right].add(left)
+                edges[(left,right)]=corr
+    clusters=[];seen=set()
+    for symbol in symbols:
+        if symbol in seen:continue
+        stack=[symbol];members=set()
+        while stack:
+            current=stack.pop()
+            if current in members:continue
+            members.add(current);stack.extend(adjacency[current]-members)
+        seen.update(members)
+        component=[value for (left,right),value in edges.items() if left in members and right in members]
+        valid=[value for value in component if value is not None]
+        fallback=sum(value is None for value in component)
+        method="correlation_and_sector_fallback" if valid and fallback else "correlation" if valid else "sector" if len(members)>1 else "sector_single"
+        clusters.append({"id":"cluster_"+min(members),"method":method,"members":sorted(members),"size":len(members),
+            "avg_correlation":round(statistics.mean(valid),3) if valid else None,
+            "correlation_basis":"same_start_and_end_sessions_min20_latest60",
+            "measured_pairs":len(valid),"sector_fallback_pairs":fallback,
+            "adjustment_basis":"UPSTREAM_CLOSE_BASIS_NOT_INDEPENDENTLY_VERIFIED"})
     return clusters
 
 

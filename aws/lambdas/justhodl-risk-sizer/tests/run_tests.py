@@ -267,6 +267,38 @@ def test_unauthenticated_http_is_rejected_before_reads_or_validation():
         assert s3.reads==[] and s3.writes=={} and s3.private_publications==[]
 
 
+def test_returns_use_matching_interval_dates_and_reject_conflicting_duplicates():
+    mod,_=_load({})
+    start=datetime(2026,7,1).date()
+    history=[{"d":str(start+timedelta(days=i)),"c":100+i+(i%3)} for i in range(35)]
+    returns=mod.compute_returns(history)
+    assert returns==mod.compute_returns(list(reversed(history)))
+    assert abs(mod.correlation(returns,returns)-1)<1e-10
+    shifted={(str(start+timedelta(days=100+i)),str(start+timedelta(days=101+i))):value for i,value in enumerate(returns.values())}
+    assert mod.correlation(returns,shifted) is None
+    assert mod.compute_returns(history+[dict(history[0],c=999)])=={}
+    assert mod.compute_returns([{"c":100},{"c":110}])=={}
+
+
+def test_matching_end_dates_with_different_start_dates_are_not_daily_pairs():
+    mod,_=_load({})
+    start=datetime(2026,7,1).date()
+    a={(str(start+timedelta(days=i)),str(start+timedelta(days=i+1))):i%3 for i in range(30)}
+    b={(str(start+timedelta(days=i-1)),str(start+timedelta(days=i+1))):i%3 for i in range(30)}
+    assert mod.correlation(a,b) is None
+    assert mod.correlation([1,2,3]*10,[1,2,3]*10) is None
+
+
+def test_transitive_correlated_exposures_share_one_cap_and_unknown_uses_sector():
+    mod,_=_load({})
+    lookup={('A','B'):0.8,('A','C'):0.2,('B','C'):0.8}
+    mod.correlation=lambda a,b:lookup.get(tuple(sorted((a,b)))) if a and b else None
+    groups=mod.cluster_by_correlation(['C','A','B','D','E'],{'A':'A','B':'B','C':'C'},{'D':'Tech','E':'Tech'})
+    assert groups[0]['members']==['A','B','C'] and groups[0]['measured_pairs']==2
+    assert groups[1]['members']==['D','E'] and groups[1]['avg_correlation'] is None
+    assert groups[1]['sector_fallback_pairs']==1
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:
