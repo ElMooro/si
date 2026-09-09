@@ -14,7 +14,6 @@ Also monitors:
 
 Output:
   - data/_fleet-monitor.json with the last run state
-  - data/history/_fleet-monitor-history.jsonl (append-only)
   - Telegram alert if any alarms triggered
   - SNS publish to justhodl-fleet-alerts
 
@@ -22,10 +21,11 @@ Idempotent — alert dedupe within the same 1-hour window based on Lambda name +
 """
 import os, json, time, urllib.request, urllib.parse, traceback
 import boto3
+from public_brain_projection import fleet_error_category, sanitize_public
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -71,7 +71,7 @@ def fetch_cw_metric(metric_name, namespace, dim_value, dim_name='FunctionName',
         )
         return sum(p['Sum'] for p in resp.get('Datapoints', []))
     except Exception:
-        return 0
+        return None
 
 
 def fetch_last_error_log(fn_name, lookback_min=LOOKBACK_MINUTES):
@@ -94,7 +94,7 @@ def fetch_last_error_log(fn_name, lookback_min=LOOKBACK_MINUTES):
         return None
 
 
-def check_lambda(fn_name):
+def check_lambda(fn_name, include_log_context=True):
     """Check one Lambda. Returns alert dict or None."""
     if fn_name in EXCLUDE:
         return None
@@ -102,6 +102,10 @@ def check_lambda(fn_name):
     invocations = fetch_cw_metric('Invocations', 'AWS/Lambda', fn_name)
     errors = fetch_cw_metric('Errors', 'AWS/Lambda', fn_name)
     throttles = fetch_cw_metric('Throttles', 'AWS/Lambda', fn_name)
+    if any(value is None for value in (invocations, errors, throttles)):
+        return {'lambda': fn_name, 'severity': 'WARNING', 'metric_status': 'UNAVAILABLE',
+                'error_category': 'METRIC_READ_UNAVAILABLE', 'invocations': invocations,
+                'errors': errors, 'throttles': throttles, 'error_rate_pct': None}
     
     if invocations < MIN_INVOCATIONS and throttles == 0:
         return None
@@ -112,7 +116,7 @@ def check_lambda(fn_name):
         return None
     
     # Alert! Fetch context.
-    last_error = fetch_last_error_log(fn_name)
+    last_error = fetch_last_error_log(fn_name) if include_log_context else None
     return {
         'lambda': fn_name,
         'invocations': int(invocations),
@@ -120,6 +124,7 @@ def check_lambda(fn_name):
         'throttles': int(throttles),
         'error_rate_pct': round(error_rate, 1),
         'last_error_log': last_error,
+        'error_category': fleet_error_category(last_error, throttles=throttles, errors=errors),
         'severity': 'CRITICAL' if error_rate > 50 or throttles > 0 else 'WARNING',
     }
 
@@ -136,9 +141,9 @@ def check_dlq_depth():
         visible = int(attrs.get('ApproximateNumberOfMessages', 0))
         inflight = int(attrs.get('ApproximateNumberOfMessagesNotVisible', 0))
         total = visible + inflight
-        return {'visible': visible, 'inflight': inflight, 'total': total}
-    except Exception as e:
-        return {'error': str(e)[:200]}
+        return {'available': True, 'visible': visible, 'inflight': inflight, 'total': total}
+    except Exception:
+        return {'available': False, 'error': 'DLQ_STATUS_UNAVAILABLE'}
 
 
 def load_alert_history():
@@ -188,8 +193,8 @@ def send_telegram(msg):
         req = urllib.request.Request(url, data=data, method='POST')
         resp = urllib.request.urlopen(req, timeout=10)
         return resp.status == 200
-    except Exception as e:
-        print(f"[telegram] failed: {e}")
+    except Exception:
+        print("[telegram] delivery unavailable")
         return False
 
 
@@ -197,12 +202,17 @@ def publish_sns(subject, msg):
     try:
         sns.publish(TopicArn=SNS_ARN, Subject=subject[:100], Message=msg)
         return True
-    except Exception as e:
-        print(f"[sns] failed: {e}")
+    except Exception:
+        print("[sns] delivery unavailable")
         return False
 
 
 def lambda_handler(event=None, context=None):
+    # A reviewed IAM invocation can refresh public metadata without sending or
+    # consuming alert dedupe. This mode also avoids reading CloudWatch bodies.
+    quiet = isinstance(event, dict) and event.get('mode') == 'audit_refresh'
+    if quiet and ('requestContext' in event or 'headers' in event):
+        return {'statusCode': 403, 'body': json.dumps({'error': 'iam_invocation_required'})}
     started = time.time()
     run_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     print(f"[fleet-monitor] v{VERSION} run_id={run_id} starting")
@@ -217,15 +227,18 @@ def lambda_handler(event=None, context=None):
     # 2. Check each Lambda in parallel
     alerts = []
     with ThreadPoolExecutor(max_workers=12) as ex:
-        futures = {ex.submit(check_lambda, fn['FunctionName']): fn['FunctionName']
+        futures = {ex.submit(check_lambda, fn['FunctionName'], include_log_context=not quiet): fn['FunctionName']
                    for fn in all_lambdas}
         for fut in as_completed(futures):
             try:
                 result = fut.result()
                 if result:
                     alerts.append(result)
-            except Exception as e:
-                print(f"[fleet-monitor] check error: {e}")
+            except Exception:
+                alerts.append({'lambda': futures[fut], 'severity': 'WARNING', 'metric_status': 'UNAVAILABLE',
+                               'error_category': 'METRIC_READ_UNAVAILABLE', 'invocations': None,
+                               'errors': None, 'throttles': None, 'error_rate_pct': None})
+                print("[fleet-monitor] function check unavailable")
     
     # 3. Check DLQ depth
     dlq = check_dlq_depth()
@@ -245,7 +258,7 @@ def lambda_handler(event=None, context=None):
     # 5. Send alerts
     sent_telegram = False
     sent_sns = False
-    if new_alerts:
+    if new_alerts and not quiet:
         # Build digest
         lines = [f"🚨 *FLEET MONITOR* — {len(new_alerts)} new alert(s)"]
         critical = [a for a in new_alerts if a.get('severity') == 'CRITICAL']
@@ -284,10 +297,11 @@ def lambda_handler(event=None, context=None):
         'run_id': run_id,
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'n_lambdas_scanned': len(all_lambdas),
+        'n_alerts_detected': len(alerts),
         'n_alerts_raised': len(new_alerts),
         'n_alerts_suppressed': suppressed,
         'dlq_status': dlq,
-        'alerts': new_alerts,
+        'alerts': alerts,
         'elapsed_s': round(time.time() - started, 2),
         'thresholds': {
             'error_rate_pct': ERROR_RATE_THRESHOLD,
@@ -298,7 +312,9 @@ def lambda_handler(event=None, context=None):
         },
         'telegram_sent': sent_telegram,
         'sns_sent': sent_sns,
+        'notification_mode': 'suppressed_for_audit' if quiet else 'normal',
     }
+    state = sanitize_public('data/_fleet-monitor.json', state)
     s3.put_object(
         Bucket=BUCKET,
         Key='data/_fleet-monitor.json',
