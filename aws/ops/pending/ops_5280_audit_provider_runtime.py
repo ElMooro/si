@@ -1,3 +1,4 @@
+# Verify explicit direct-FRED fallback without reporting raw observations.
 # Retry after verified market CORS correction and completed NASDAQ deployment.
 """Runner-only source-bound public provider acceptance. Metadata only; no secrets or payload reports."""
 import json
@@ -36,7 +37,7 @@ def probe(function,url,path):
             row['handler_error_present']=bool(doc.get('error'))
             if function=='nasdaq-datalink-agent' and path=='/':
                 rows=[r for group in doc.get('categories',{}).values() if isinstance(group,dict) for r in group.values() if isinstance(r,dict)]
-                row.update(datasets=len(rows),history_rows=sum(len(r.get('history',[])) for r in rows),available=doc.get('metrics_ok'),unavailable=doc.get('metrics_err'))
+                row.update(fallback_datasets=doc.get('fallback_datasets'),datasets=len(rows),history_rows=sum(len(r.get('history',[])) for r in rows),available=doc.get('metrics_ok'),unavailable=doc.get('metrics_err'))
                 row['schema_verified']=len(rows)==24 and doc.get('metrics_ok',-1)+doc.get('metrics_err',-1)==24
                 row['provider_http_counts']={str(code):sum(r.get('http_status')==code for r in rows) for code in (200,401,403,404,429,500,502,503)}
             elif function=='alphavantage-technical-analysis' and path=='/':
