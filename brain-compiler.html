@@ -48,14 +48,14 @@ function render(d){DATA=d;const s=d.summary||{};
    <div><span>Registry engines</span><b>${s.n_registry_engines}</b></div>`;
  document.getElementById('bq').innerHTML=(d.build_queue||[]).map(b=>
   `<div class="card bq"><b>${b.concept}</b> — ${b.n_claims} claim(s) · suggested: <code>${b.suggested_engine}</code>
-   <div class="muted" style="margin-top:5px">${(b.sample_claims||[]).map(c=>'“'+c+'”').join('<br>')}</div></div>`).join('')
+   <div class="muted" style="margin-top:5px">Private claims · note references: ${(b.note_ids||[]).map(x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))).join(', ')}</div></div>`).join('')
   ||'<div class="card"><b style="color:var(--cov)">No gaps.</b> Every testable claim in the brain is covered by at least one engine.</div>';
  document.getElementById('filters').innerHTML=['all','GAP','PARTIAL','COVERED'].map(f=>`<button class="${f==filt?'on':''}" onclick="filt='${f}';tbl()">${f}</button>`).join('');
  tbl();}
 function tbl(){const rows=(DATA.claims||[]).filter(c=>filt=='all'||c.status==filt).slice(0,200);
  document.querySelector('#tbl tbody').innerHTML=rows.map(c=>
   `<tr><td><span class="pill ${c.status}">${c.status}</span>${c.pinned?' 📌':''}</td>
-   <td>${c.claim}</td>
+   <td>Private claim · <a href="/brain.html">open Brain</a><div class="muted">${String(c.note_id||"reference unavailable").replace(/[&<>"]/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[x]))}</div></td>
    <td>${(c.concepts||[]).map(x=>'<span class="tag">'+x+'</span>').join('')}</td>
    <td class="eng">${(c.engines||[]).map(e=>e.engine.replace('justhodl-','')+' ('+e.score+')').join('<br>')||'—'}</td></tr>`).join('')
   ||'<tr><td colspan="4" class="muted" style="padding:16px">None in this view.</td></tr>';}

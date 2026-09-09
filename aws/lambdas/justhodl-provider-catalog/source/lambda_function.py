@@ -386,8 +386,7 @@ def _tradingview_live_search_rows(payload):
             "kind": "instrument_ref",
             "search": " ".join(str(x) for x in (
                 item.get("category"), item.get("source"),
-                item.get("resolved_via"), " ".join(exchanges),
-                item.get("note_snippet")) if x is not None)[:1000],
+                item.get("resolved_via"), " ".join(exchanges)) if x is not None)[:1000],
             "hot": True,
         })
     return rows

@@ -31,6 +31,8 @@ def lambda_handler(event=None, context=None):
     directive = brain.get("directive") or {}
     posture = (directive.get("risk_posture") or "balanced").lower()
     posture_mult = 1.3 if "aggressive" in posture else 0.6 if "defensive" in posture else 1.0
+    # Publish a controlled enum, never the operator's private directive prose.
+    posture = "aggressive" if posture_mult == 1.3 else "defensive" if posture_mult == 0.6 else "balanced"
 
     # regime risk multiplier — shrink size as the macro backdrop deteriorates
     bvr = (bv.get("regime") or "NORMAL").upper()

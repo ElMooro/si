@@ -50,20 +50,38 @@ a{color:var(--cyan);text-decoration:none}
   <div id="regime" class="regime-strip"></div>
   <div class="grid" id="grid"><div class="loading">Loading your cockpit…</div></div>
 </div>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function mdToHtml(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
-async function gj(p){try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);return r.ok?await r.json():null;}catch(e){return null;}}
+async function gj(p){try{
+  const kinds={'data/brain.json':'brain','data/my-brief.json':'my-brief','data/journal-graded.json':'journal-graded'};
+  if(kinds[p]){
+    const auth=window.JustHodlAuth, owner=auth&&auth.getUser&&auth.getUser();
+    const token=owner&&auth.getAccessToken?await auth.getAccessToken():null;
+    if(token){const r=await fetch(`${PROXY}/private-artifact?kind=${kinds[p]}`,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+      if(r.ok){const d=await r.json();if(auth.getUser()?.id===owner.id)return d;}}
+    if(p==='data/my-brief.json')p='data/my-brief-public.json';else return null;
+  }
+  const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`,{cache:'no-store'});return r.ok?await r.json():null;
+}catch(e){return null;}}
 function rcol(r){return({CRISIS:'#ff5577',STRESS:'#ff5577',ELEVATED:'#ff9f43',FRAGILE:'#ff9f43',TIGHTENING:'#fbbf24',NORMAL:'#26ffaf',AMPLE:'#26ffaf',BOND_VOL_LOW:'#22d3ee',EXTREME:'#ff5577',HIGH:'#ff9f43',MODERATE:'#fbbf24',LOW:'#26ffaf'})[r]||'#a8b3c7';}
 
+let loadGeneration=0;
 async function load(){
+  const generation=++loadGeneration;
+  document.getElementById("grid").textContent="Loading cockpit…";
   const [brain,myb,bv,fp,cr,playbook,nvt,sizer,conflicts,journal,bs]=await Promise.all([
     gj('data/brain.json'),gj('data/my-brief.json'),gj('data/bond-vol.json'),gj('data/funding-plumbing.json'),
     gj('data/crypto-cycle-risk.json'),gj('data/regime-playbook.json'),gj('data/narrative-vs-tape.json'),
     gj('data/position-sizing.json'),gj('data/engine-conflicts.json'),gj('data/journal-graded.json'),gj('data/best-setups.json')]);
+  if(generation!==loadGeneration)return;
 
-  // CTA if brain empty
+  document.getElementById('cta').innerHTML='';
+  // Private owner context is available only after authentication.
   if(!brain||!brain.directive){
     document.getElementById('cta').innerHTML=`<a class="cta" href="/brain.html">🧠 Your Cockpit personalizes once you fill the Brain — add your principles & rules →</a>`;
   }
@@ -79,7 +97,7 @@ async function load(){
   // My Brief (wide)
   h+=`<div class="card wide"><h2 style="color:var(--violet)">🧠 WHAT CHANGED FOR YOU TODAY</h2>`;
   if(myb&&myb.brief)h+=`<div class="brief">${mdToHtml(myb.brief)}</div>`;
-  else h+=`<div class="empty">Personalized brief appears once your Brain has notes. <a href="/brain.html">Fill it →</a></div>`;
+  else h+=`<div class="empty">Sign in as the Brain owner to read your personalized brief. <a href="/brain.html">Open Brain →</a></div>`;
   h+=`</div>`;
 
   // Journal track record
@@ -132,7 +150,7 @@ async function load(){
 
   g.innerHTML=h;
 }
-load();
+if(window.JustHodlAuth){JustHodlAuth.onChange(load);JustHodlAuth.init().then(load);}else load();
 </script>
 <script src="/cmdk.js"></script>
   <script src="/jh-page-ai.js" defer></script>

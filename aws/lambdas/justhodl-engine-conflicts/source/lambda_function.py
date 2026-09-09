@@ -78,7 +78,9 @@ def lambda_handler(event=None, context=None):
         if dv and (dv.get("violates_your_rule") or dv.get("risk_level") == "high") and (s.get("conviction") or 0) >= 70:
             conflicts.append({"ticker": tk, "type": "CONVICTION vs YOUR RULES",
                 "bull": f"Conviction {s.get('conviction')} — {s.get('verdict')}.",
-                "bear": "Devil's advocate: " + (dv.get("bear_case") or "") + (f" Breaks your rule: {dv.get('violates_your_rule')}." if dv.get("violates_your_rule") else ""),
+                "bear": "Private rule review flagged a conflict; see the authenticated review for details.",
+                "private_review_ref": {"engine": "devils-advocate", "ticker": tk,
+                                       "rule_violation": bool(dv.get("violates_your_rule"))},
                 "resolution": "The board likes it but it conflicts with your own discipline — you decide which wins."})
 
     # dedup by ticker+type

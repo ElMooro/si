@@ -324,7 +324,7 @@ def classify(brain, rows):
         else:
             b, mg, top = nb(" ".join(b for _i, b in subj.get(s, [])), restrict=sorted(ds))
             dom[s], tier[s], marg[s] = b or sorted(ds)[0], "T1a*", round(mg, 4)
-            evid[s] = f"subject of {len(ds)} doctrine notes {sorted(ds)}; his wording favours {dom[s]} {top}"
+            evid[s] = f"subject of {len(ds)} doctrine notes {sorted(ds)}; private corpus classification {dom[s]}"
         nids[s] = ids
     for nid, d in ANCHORS.items():
         for s in note_syms.get(nid, ()):
@@ -344,7 +344,7 @@ def classify(brain, rows):
         nids[s] = [i for i, _x in own][:4] or [i for i, _x in (ment.get(s) or [])][:2]
         if mg >= T2_MIN_MARGIN:
             dom[s], tier[s], marg[s] = b, "T2", round(mg, 4)
-            evid[s] = f"his own notes (n={len(own)}) — deciding terms {top}"
+            evid[s] = f"private source notes (n={len(own)}); deciding terms remain private"
         else:
             weak[s] = (b, round(mg, 4), top)
 
@@ -746,7 +746,7 @@ def lambda_handler(event, context):
             "category": cat, "status": r.get("status"), "value": r.get("value"),
             "chg_pct": r.get("chg_pct"), "asof": r.get("asof"),
             "source": r.get("source"), "n_notes": r.get("n_notes"),
-            "note_snippet": (r.get("note_snippet") or "")[:240],
+            "note_text_private": True,
         })
 
     prev_vals, prev_date = load_prev_values()
@@ -774,7 +774,7 @@ def lambda_handler(event, context):
             "method": "multinomial Naive Bayes (Laplace a=1, equal class priors) trained on "
                       "the brain corpus, weak-labelled from his doctrine notes. No hand-written "
                       "symbol->domain map: every assignment publishes its tier, margin, the "
-                      "terms that decided it, and the note ids.",
+                      "classification confidence and note ids; source prose remains private.",
             "anchor_notes": ANCHORS,
             "tier_legend": {
                 "T1a": "symbol is the SUBJECT of one of his doctrine notes",

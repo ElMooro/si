@@ -253,7 +253,7 @@ function render(d){
   renderTbl();
   // playbook
   document.getElementById('playbook').innerHTML=(d.brain_playbook||[]).map(p=>
-    `<div class="pb">${p.pinned?'<span class="pin">📌 PINNED</span> ':''}${p.cat?'<span class="cat">'+p.cat+'</span>':''}<div style="margin-top:5px">${(p.text||'').replace(/[\r\n]+/g,' ')}</div></div>`).join('')||'<div class="muted">No canary notes surfaced from the brain.</div>';
+    `<div class="pb">${p.pinned?'<span class="pin">📌 PINNED</span> ':''}${p.cat?'<span class="cat">'+p.cat+'</span>':''}<div style="margin-top:5px">Private note · <a href="/brain.html">open Brain</a> · ${String(p.note_id||"reference unavailable").replace(/[&<>"]/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[x]))}</div></div>`).join('')||'<div class="muted">No canary notes surfaced from the brain.</div>';
 }
 function renderTbl(){
   const rows=(filt=='everything'

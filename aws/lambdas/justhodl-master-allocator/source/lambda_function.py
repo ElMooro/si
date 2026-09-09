@@ -352,7 +352,8 @@ def gather_signals():
         out["brain_posture"] = {"value": round(intensity, 2),
                                 "intensity": clamp(intensity, -1.0, 1.0),
                                 "label": "Brain Macro Posture",
-                                "regime": rp[:60]}
+                                "regime": "DEFENSIVE" if intensity > 0 else "RISK_ON" if intensity < 0 else "NEUTRAL",
+                                "source_text_private": True}
 
     return out
 def aggregate_tilts(signals, ic_weights):

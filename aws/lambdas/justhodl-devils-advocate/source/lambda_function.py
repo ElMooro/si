@@ -14,12 +14,33 @@ import json, time, os
 import urllib.request
 from datetime import datetime, timezone
 import boto3
+from private_artifact import publish_private
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/devils-advocate.json"
 MODEL = "claude-haiku-4-5-20251001"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "") or os.environ.get("ANTHROPIC_API_KEY", "")
 s3 = boto3.client("s3", region_name=REGION)
+
+
+def publish(out, allowed_tickers=()):
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="private, no-store")
+    publish_private("devils-advocate", out)
+    # Do not try to redact model prose: publish only validated references, enums and counts.
+    import re
+    rows = [{"ticker": c["ticker"],
+             "risk_level": c.get("risk_level") if c.get("risk_level") in {"low", "medium", "high"} else "unknown",
+             "rule_violation": bool(c.get("violates_your_rule")), "private_text": True,
+             "bear_case": "Private review available to the signed-in Brain owner."}
+            for c in out.get("cases", []) if isinstance(c, dict)
+            and c.get("ticker") in allowed_tickers and isinstance(c.get("ticker"), str) and re.fullmatch(r"[A-Z0-9.^=-]{1,20}", c["ticker"])]
+    public = {"engine": "devils-advocate", "generated_at": out["generated_at"], "cases": rows,
+              "by_ticker": {c["ticker"]: c for c in rows}, "private_text": True,
+              "n_rule_violations": sum(c["rule_violation"] for c in rows),
+              "note": "Sign in as the Brain owner to read the personalized review."}
+    s3.put_object(Bucket=BUCKET, Key="data/devils-advocate-public.json", Body=json.dumps(public).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=300")
 
 
 def read_json(key, default=None):
@@ -60,7 +81,7 @@ def lambda_handler(event=None, context=None):
     setups = (bs.get("top_setups") or [])[:12]
     if not setups:
         out = {"engine": "devils-advocate", "generated_at": datetime.now(timezone.utc).isoformat(), "cases": [], "note": "no setups"}
-        s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
+        publish(out)
         return {"statusCode": 200, "body": "no setups"}
 
     slim = [{"ticker": s.get("ticker"), "verdict": s.get("verdict"), "conviction": s.get("conviction"),
@@ -96,7 +117,6 @@ def lambda_handler(event=None, context=None):
            "cases": cases, "by_ticker": by_ticker,
            "n_rule_violations": sum(1 for c in cases if c.get("violates_your_rule")),
            "note": "Bear case for the top setups, checked against your own rules."}
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=1800")
+    publish(out, {s.get("ticker") for s in setups if isinstance(s, dict)})
     print(f"[devils] {len(cases)} bear cases, {out['n_rule_violations']} rule violations")
     return {"statusCode": 200, "body": json.dumps({"n_cases": len(cases)})}

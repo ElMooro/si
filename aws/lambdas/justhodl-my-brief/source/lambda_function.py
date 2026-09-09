@@ -11,12 +11,25 @@ import json, time, os
 import urllib.request
 from datetime import datetime, timezone
 import boto3
+from private_artifact import publish_private
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/my-brief.json"
 MODEL = "claude-haiku-4-5-20251001"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "") or os.environ.get("ANTHROPIC_API_KEY", "")
 s3 = boto3.client("s3", region_name=REGION)
+
+
+def publish(out):
+    # The full personalized prose is IAM-private and available to the authenticated owner.
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="private, no-store")
+    publish_private("my-brief", out)
+    public = {"engine": "my-brief", "generated_at": out["generated_at"], "brief": None,
+              "brief_available": bool(out.get("brief")), "private_text": True,
+              "note": "Sign in as the Brain owner to read the personalized brief."}
+    s3.put_object(Bucket=BUCKET, Key="data/my-brief-public.json", Body=json.dumps(public).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=300")
 
 
 def rj(key, default=None):
@@ -50,7 +63,7 @@ def lambda_handler(event=None, context=None):
     if not directive:
         out = {"engine": "my-brief", "generated_at": datetime.now(timezone.utc).isoformat(),
                "brief": None, "note": "Add notes to your Brain to get a personalized brief."}
-        s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(), ContentType="application/json")
+        publish(out)
         return {"statusCode": 200, "body": "no directive"}
 
     bs = rj("data/best-setups.json") or {}
@@ -77,7 +90,6 @@ def lambda_handler(event=None, context=None):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "brief": brief, "context_used": list(ctx.keys())}
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=600")
+    publish(out)
     print(f"[my-brief] done, brief={'yes' if brief else 'no'}")
     return {"statusCode": 200, "body": "ok"}

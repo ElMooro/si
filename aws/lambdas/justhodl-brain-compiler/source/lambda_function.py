@@ -230,6 +230,15 @@ def lambda_handler(event=None, context=None):
                                         "sessions consume to extend the nearest engine or create a new one — and "
                                         "an LLM leg can auto-draft specs once LLM credits are restored."),
            "note": "Deterministic compile of the operator's brain. Real data only — not advice."}
+    # Public routing metadata must not duplicate the private source prose.
+    for item in out["build_queue"]:
+        item.pop("sample_claims", None)
+        item["note_ids"] = list(dict.fromkeys(
+            c["note_id"] for c in claims if item["concept"] in c["concepts"] and c.get("note_id")))
+        item["claim_text_private"] = True
+    for claim in out["claims"]:
+        claim.pop("claim", None)
+        claim["claim_text_private"] = True
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=3600")

@@ -625,12 +625,12 @@ def lambda_handler(event, context):
             if sl and (sl in sec or sec in sl):
                 low = stance.lower()
                 if "overweight" in low:
-                    return f"Fits your overweight on {sector}: {stance[:90]}"
+                    return "Aligned with private sector policy"
                 if "avoid" in low or "underweight" in low:
                     return None  # don't flag setups in sectors you avoid
         for th in brain_themes:
             if sl and (sl in th or any(w in th for w in sl.split())):
-                return f"Fits your theme: {th}"
+                return "Aligned with private theme policy"
         return None
     bv_regime = (bond_vol.get("regime") or "").upper()
 
@@ -1174,7 +1174,7 @@ def lambda_handler(event, context):
             "khalid_note": (lambda _n: {
                 "n": _n["n_notes"], "stance": _n["stance"],
                 "score": _n["stance_score"], "last": _n["last_note_at"],
-                "view": (_n.get("llm_view") or {}).get("view"),
+                "view": None, "view_private": True,
             } if _n else None)(_notes_idx.get(str(tk).upper())),
             "industry_flow_quadrant": ((_ind_row or {}).get("fund_flows")
                                         or {}).get("quadrant"),

@@ -67,7 +67,7 @@ def lambda_handler(event, context):
         full = m.group(1)
         bare = full.split(":")[-1]
         body = txt[m.end():].strip()[:NOTE_CHARS]
-        rec = {"t": body, "ts": n.get("ts") or n.get("created") or None}
+        rec = {"t": body, "note_id": n.get("id"), "ts": n.get("ts") or n.get("created") or None}
         notes_by[full].append(rec)
         if bare != full:
             notes_by[bare].append(rec)
@@ -148,12 +148,16 @@ def lambda_handler(event, context):
                    "symbols_with_tv_source": n_with_src},
         "honesty": "tv_source is TradingView's own attribution captured by "
                    "extension v1.5.0; empty means not yet browsed+uploaded, "
-                   "never inferred. Notes are Khalid's verbatim brain notes, "
-                   "capped at 6/symbol for size.",
+                   "never inferred. The public view contains private-note references and counts.",
         "watchlists": watchlists,
         "symbols": symbols,
         "elapsed_s": round(time.time() - t0, 1),
     }
+    # Keep source notes in IAM-private Brain. The public workbench carries references.
+    for symbol in out["symbols"].values():
+        symbol["notes"] = [{"note_id": note.get("note_id"), "ts": note.get("ts"),
+                            "text_private": True} for note in symbol["notes"]]
+    out["note"] = "Notes are private. Note IDs and counts link this public workbench to the authenticated Brain."
     body = json.dumps(out, default=str)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=body,
                   ContentType="application/json", CacheControl="max-age=300")

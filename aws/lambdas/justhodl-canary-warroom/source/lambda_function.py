@@ -623,7 +623,7 @@ def brain_playbook():
         # skip code-ish / meta notes
         if txt.strip().startswith(("#", '"""', "import", "def ")):
             continue
-        hits.append({"text": txt[:400], "cat": n.get("cat"), "pinned": bool(n.get("pinned"))})
+        hits.append({"text": txt[:400], "note_id": n.get("id"), "cat": n.get("cat"), "pinned": bool(n.get("pinned"))})
     hits.sort(key=lambda h: (not h["pinned"]))
     # dedupe by first 60 chars
     seen, uniq = set(), []
@@ -632,7 +632,8 @@ def brain_playbook():
         if k in seen:
             continue
         seen.add(k); uniq.append(h)
-    return uniq[:8]
+    return [{"note_id": h["note_id"], "cat": h["cat"], "pinned": h["pinned"],
+             "text_private": True} for h in uniq[:8]]
 
 
 MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json", norm_crisis),

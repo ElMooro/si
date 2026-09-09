@@ -3596,6 +3596,15 @@ const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
 
 // ─── DATA SERVICE ──────────────────────────────────────────────────
 class DataService {
+  static async privateReview() {
+    const auth=window.JustHodlAuth, owner=auth&&auth.getUser&&auth.getUser();
+    try {
+      const token=owner&&auth.getAccessToken?await auth.getAccessToken():null;
+      if(token){const r=await fetch(`${PROXY}/private-artifact?kind=devils-advocate`,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+        if(r.ok){const d=await r.json();if(auth.getUser()?.id===owner.id)return d;}}
+    } catch(e) {}
+    return this.fetch('data/devils-advocate-public.json');
+  }
   static async fetch(path) {
     try {
       // ops 5135: every signal feed was fetched as PROXY + "https://…" (68 HTTP 400s per load) — the cascade,
@@ -3624,7 +3633,7 @@ class DataService {
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/political-ai-investigation.json'),
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/executive-intel.json'),
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/best-setups.json'),
-      this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/devils-advocate.json'),
+      this.privateReview(),
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/dislocations.json'),
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/opportunities.json'),
       this.fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/capital-flow.json'),
@@ -11007,6 +11016,8 @@ async function init() {
   // ── Auth: init + reload watchlists when user signs in/out ──
   if (window.JustHodlAuth) {
     JustHodlAuth.onChange(async (user) => {
+      State.devils=null; UI.renderSetups();
+      State.devils=await DataService.privateReview(); UI.renderSetups();
       await WatchlistManager.loadFromCloud();
       UI.refreshWatchlist();
     });
