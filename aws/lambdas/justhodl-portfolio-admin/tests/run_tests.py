@@ -106,9 +106,15 @@ def _snapshot_run(prices, positions):
     mod.sync_auto_watchlist = lambda _: dict(added_S=[], added_A=[], removed_S=[], removed_A=[])
     mod.query_pk = lambda key: positions if key == "POSITION" else []
     written = []
-    mod.s3.put_object = lambda **kw: written.append(json.loads(kw["Body"]))
+    published=[]
+    mod.publish_private=lambda kind,doc:published.append((kind,doc))
+    def capture(**kw):
+        assert kw["CacheControl"]=="private, no-store"
+        written.append(json.loads(kw["Body"]))
+    mod.s3.put_object = capture
     result = mod.lambda_handler({}, None)
     assert result["statusCode"] == 200 and len(written) == 1
+    assert published==[("portfolio-snapshot",written[0])]
     return written[0]
 
 
@@ -149,8 +155,25 @@ def test_validate_only_snapshot_skips_sync_and_all_writes():
     mod.sync_auto_watchlist=forbidden
     mod.query_pk=lambda key:[{"symbol":"AAA","qty":10,"cost_basis_per_share":100}] if key=="POSITION" else []
     mod.s3.put_object=forbidden
+    mod.publish_private=forbidden
     result=mod.lambda_handler({"mode":"validate_only"},None)
     assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
+
+
+def test_private_publication_failure_prevents_snapshot_write():
+    mod = _load_snapshot({})
+    mod.load_s3_json=lambda key,default:default
+    mod.sync_auto_watchlist=lambda _:dict(added_S=[],added_A=[],removed_S=[],removed_A=[])
+    mod.query_pk=lambda key:[]
+    writes=[]
+    mod.s3.put_object=lambda **kw:writes.append(kw)
+    mod.publish_private=lambda *args:(_ for _ in ()).throw(RuntimeError("authenticated publisher unavailable"))
+    try:
+        mod.lambda_handler({},None)
+        raise AssertionError("failed private publication must fail the handler")
+    except RuntimeError as err:
+        assert "authenticated publisher" in str(err)
+    assert not writes
 
 
 def test_snapshot_trigger_uses_promoted_live_alias():

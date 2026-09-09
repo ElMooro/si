@@ -25,6 +25,7 @@ Schedule: every 30 min during market hours · every hour off-hours
 Cost: ~$0 (Polygon free tier, no Claude calls)
 """
 import json
+from private_artifact import publish_private
 import math
 import os
 import time
@@ -480,10 +481,11 @@ def lambda_handler(event, context):
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
                 "status": payload["capital_book"]["status"], "artifact_size_bytes": len(json.dumps(payload).encode())}
+    publish_private("portfolio-snapshot", payload)
     s3.put_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY,
         Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
         ContentType="application/json",
-        CacheControl="public, max-age=1800")
+        CacheControl="private, no-store")
 
     print(f"  ✓ snapshot written · {elapsed:.2f}s")
 
