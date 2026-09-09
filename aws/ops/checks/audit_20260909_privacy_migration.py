@@ -144,35 +144,91 @@ def get_alias(lam, name):
         raise
 
 
-def stable_config(config):
-    require(config.get("State") == "Active" and config.get("LastUpdateStatus") == "Successful", "lambda_not_stable")
+def stable_config(config, *, qualified=False):
+    require(config.get("State") == "Active" and
+            (config.get("LastUpdateStatus") == "Successful" or qualified and config.get("LastUpdateStatus") is None), "lambda_not_stable")
     require(config.get("RevisionId") and config.get("CodeSha256"), "lambda_revision_unavailable")
+    require(not (config.get("Environment") or {}).get("Error")
+            and not (config.get("ImageConfigResponse") or {}).get("Error"), "lambda_config_unreadable")
+
+
+def business_config(config, additions=()):
+    """All execution configuration, excluding response/version metadata only."""
+    ignored = {"ResponseMetadata", "RevisionId", "LastModified", "Version", "LastUpdateStatus",
+               "LastUpdateStatusReason", "LastUpdateStatusReasonCode", "StateReason", "StateReasonCode",
+               "RuntimeVersionConfig"}
+    result = {key: value for key, value in config.items() if key not in ignored}
+    arn = result.get("FunctionArn")
+    if isinstance(arn, str) and ":function:" in arn:
+        prefix, name = arn.split(":function:", 1)
+        result["FunctionArn"] = prefix + ":function:" + name.split(":", 1)[0]
+    environment = dict(result.get("Environment") or {})
+    environment["Variables"] = {key: value for key, value in environment.get("Variables", {}).items() if key not in additions}
+    result["Environment"] = environment
+    if isinstance(result.get("SnapStart"), dict):
+        result["SnapStart"] = {key: value for key, value in result["SnapStart"].items() if key != "OptimizationStatus"}
+    return result
+
+
+def alias_business(alias):
+    return {key: value for key, value in alias.items() if key not in {"RevisionId", "ResponseMetadata"}}
+
+
+def checked_live_alias(lam, function, expected, *, owned_mutation=False):
+    current = get_alias(lam, function)
+    require(current is not None and current.get("RevisionId") and alias_business(current) == alias_business(expected)
+            and (owned_mutation or current["RevisionId"] == expected.get("RevisionId")), "live_alias_changed_during_config_update")
+    return current
+
+
+def checked_config(lam, function, expected, *, owned_mutation=False):
+    current = lam.get_function_configuration(FunctionName=function)
+    stable_config(current)
+    require(business_config(current) == business_config(expected)
+            and (owned_mutation or current["RevisionId"] == expected.get("RevisionId")), "lambda_config_update_not_verified")
+    return current
 
 
 def update_environment(lam, function, additions, expected_sha):
-    """CAS config update; promote a same-code config version for existing live alias."""
+    """CAS only the intended env values; never promote unrelated staged config."""
     before = lam.get_function_configuration(FunctionName=function)
     stable_config(before)
     require(before["CodeSha256"] == expected_sha, "lambda_changed_before_config_update")
     alias = get_alias(lam, function)
     if alias:
+        require(alias.get("RevisionId") and str(alias.get("FunctionVersion", "")).isdigit()
+                and int(alias["FunctionVersion"]) > 0, "live_alias_version_unavailable")
         require(not (alias.get("RoutingConfig") or {}).get("AdditionalVersionWeights"), "weighted_live_alias_requires_review")
         active = lam.get_function_configuration(FunctionName=function, Qualifier=alias["FunctionVersion"])
+        stable_config(active, qualified=True)
         require(active["CodeSha256"] == expected_sha, "live_alias_code_differs_from_verified_latest")
+        require(business_config(active, additions) == business_config(before, additions), "live_latest_config_drift_requires_review")
+        checked_live_alias(lam, function, alias)
     variables = {**before.get("Environment", {}).get("Variables", {}), **additions}
+    desired = {**before, "Environment": {"Variables": variables}}
     lam.update_function_configuration(FunctionName=function, RevisionId=before["RevisionId"], Environment={"Variables": variables})
     # Bounded SDK waiter; no payload or environment is ever emitted.
     lam.get_waiter("function_updated_v2").wait(FunctionName=function, WaiterConfig={"Delay": 3, "MaxAttempts": 100})
-    after = lam.get_function_configuration(FunctionName=function)
-    stable_config(after)
-    require(after["CodeSha256"] == expected_sha and after.get("Environment", {}).get("Variables") == variables, "lambda_config_update_not_verified")
+    after = checked_config(lam, function, desired, owned_mutation=True)
     if alias:
-        require(get_alias(lam, function).get("RevisionId") == alias["RevisionId"], "live_alias_changed_during_config_update")
+        alias = checked_live_alias(lam, function, alias, owned_mutation=True)
         version = lam.publish_version(FunctionName=function, RevisionId=after["RevisionId"], CodeSha256=expected_sha)
-        require(str(version.get("Version", "")).isdigit(), "published_version_missing")
+        require(str(version.get("Version", "")).isdigit() and int(version["Version"]) > 0, "published_version_missing")
+        # Our publish may advance revision metadata, never code/config/routing.
+        after = checked_config(lam, function, after, owned_mutation=True)
+        alias = checked_live_alias(lam, function, alias, owned_mutation=True)
+        candidate = lam.get_function_configuration(FunctionName=function, Qualifier=version["Version"])
+        stable_config(candidate, qualified=True)
+        require(candidate.get("Version") == version["Version"] and business_config(candidate) == business_config(after), "published_config_version_not_verified")
+        # No owned mutations occurred after these baselines: revisions are now
+        # strict too, catching external edits while the candidate was inspected.
+        checked_config(lam, function, after)
+        checked_live_alias(lam, function, alias)
         moved = lam.update_alias(FunctionName=function, Name="live", RevisionId=alias["RevisionId"], FunctionVersion=version["Version"])
-        require(moved.get("FunctionVersion") == version["Version"], "config_version_not_promoted")
+        require(alias_business(moved) == alias_business({**alias, "FunctionVersion": version["Version"]}), "config_version_not_promoted")
+        checked_live_alias(lam, function, moved)
         return {"version": version["Version"], "code_sha256": expected_sha, "environment_keys": len(variables)}
+    require(get_alias(lam, function) is None, "live_alias_created_during_config_update")
     return {"version": "$LATEST", "code_sha256": expected_sha, "environment_keys": len(variables)}
 
 
@@ -244,7 +300,7 @@ class Migration:
                 continue
             result = lam.get_function(FunctionName=function, **({"Qualifier": qualifier} if qualifier else {}))
             config = result["Configuration"]
-            stable_config(config)
+            stable_config(config, qualified=bool(qualifier))
             with self.http(result["Code"]["Location"], timeout=90) as response:
                 raw = bounded_read(response, 250 * 1024 * 1024)
             meta = verify_zip(raw, config, members)

@@ -62,27 +62,46 @@ class MemoryS3:
 class FakeLambda:
     def __init__(self, live=True):
         self.config = {"State": "Active", "LastUpdateStatus": "Successful", "RevisionId": "r1", "CodeSha256": "reviewed",
-                       "Environment": {"Variables": {"UNCHANGED": "preserved"}}, "Role": "arn:aws:iam::857687956942:role/example"}
-        self.alias = {"RevisionId": "a1", "FunctionVersion": "3"} if live else None
+                       "Environment": {"Variables": {"UNCHANGED": "preserved", "AUTH_MODE": "owner"}},
+                       "Role": "arn:aws:iam::857687956942:role/example", "FunctionName": "justhodl-fixture",
+                       "FunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fixture",
+                       "Version": "$LATEST", "Runtime": "python3.12", "Handler": "lambda_function.lambda_handler",
+                       "Timeout": 30, "MemorySize": 256, "Layers": [{"Arn": "arn:layer:core:1"}],
+                       "LastModified": "latest-response-time", "SnapStart": {"ApplyOn": "PublishedVersions", "OptimizationStatus": "Off"},
+                       "RuntimeVersionConfig": {"RuntimeVersionArn": "latest-runtime-patch"}}
+        self.alias = {"RevisionId": "a1", "FunctionVersion": "3", "Name": "live", "Description": "Reviewed production", "RoutingConfig": {}} if live else None
+        self.versions = {"3": self.numbered("3")}
         self.calls = []
         self.race = False
 
+    def numbered(self, version):
+        config = deepcopy(self.config)
+        config.update(Version=version, FunctionArn=config["FunctionArn"]+":"+version,
+                      RevisionId="version-"+version, LastModified="numbered-response-time")
+        config.pop("LastUpdateStatus", None)
+        config["SnapStart"]["OptimizationStatus"] = "On"
+        config["RuntimeVersionConfig"] = {"RuntimeVersionArn": "numbered-runtime-patch"}
+        return config
+
     def get_function_configuration(self, **kw):
         self.calls.append(("read", kw))
-        return deepcopy(self.config)
+        config = deepcopy(self.versions[kw["Qualifier"]] if kw.get("Qualifier") else self.config)
+        config["ResponseMetadata"] = {"RequestId": "read-"+str(len(self.calls))}
+        return config
 
     def get_alias(self, **kw):
         if self.alias is None:
             raise object_error("ResourceNotFoundException")
-        return deepcopy(self.alias)
+        return {**deepcopy(self.alias), "ResponseMetadata": {"RequestId": "alias-"+str(len(self.calls))}}
 
     def update_function_configuration(self, **kw):
         self.calls.append(("update", kw))
         assert kw["RevisionId"] == "r1"
         self.config["Environment"] = deepcopy(kw["Environment"])
         self.config["RevisionId"] = "r2"
+        if self.alias: self.alias["RevisionId"] = "own-config-alias-revision"
         if self.race:
-            self.alias["RevisionId"] = "a2"
+            self.alias["FunctionVersion"] = "5"
 
     def get_waiter(self, name):
         return types.SimpleNamespace(wait=lambda **kw: None)
@@ -90,12 +109,16 @@ class FakeLambda:
     def publish_version(self, **kw):
         self.calls.append(("publish", kw))
         assert kw["RevisionId"] == "r2" and kw["CodeSha256"] == "reviewed"
+        self.versions["4"] = self.numbered("4")
+        self.config["RevisionId"] = "r3"
+        self.alias["RevisionId"] = "own-publish-alias-revision"
         return {"Version": "4"}
 
     def update_alias(self, **kw):
         self.calls.append(("alias", kw))
-        assert kw["RevisionId"] == "a1"
-        return {"FunctionVersion": "4"}
+        assert kw["RevisionId"] == self.alias["RevisionId"] == "own-publish-alias-revision"
+        self.alias.update(FunctionVersion=kw["FunctionVersion"], RevisionId="promoted-alias-revision")
+        return deepcopy(self.alias)
 
 
 class PublicMigrationTests(unittest.TestCase):
@@ -237,6 +260,99 @@ class PublicMigrationTests(unittest.TestCase):
         with self.assertRaisesRegex(migration.MigrationError, "changed_before"):
             migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "wrong")
         self.assertFalse(any(c[0] == "update" for c in lam.calls))
+
+    def test_same_code_latest_business_drift_blocks_before_any_configuration_write(self):
+        changes = [
+            {"Timeout": 900}, {"Handler": "unreviewed.run"}, {"MemorySize": 1024},
+            {"Environment": {"Variables": {"UNCHANGED": "preserved", "AUTH_MODE": "public"}}},
+            {"Layers": [{"Arn": "arn:layer:core:9"}]}, {"Role": "different-role"},
+            {"VpcConfig": {"SubnetIds": ["unreviewed-subnet"]}}, {"KMSKeyArn": "unreviewed-kms"},
+            {"Runtime": "python3.13"}, {"RuntimeManagementConfig": {"UpdateRuntimeOn": "Manual"}},
+            {"SnapStart": {"ApplyOn": "None", "OptimizationStatus": "Off"}},
+            {"UnknownFutureExecutionOption": "changed"},
+        ]
+        for change in changes:
+            with self.subTest(fields=list(change)):
+                lam = FakeLambda()
+                lam.config.update(deepcopy(change))
+                with self.assertRaisesRegex(migration.MigrationError, "config_drift"):
+                    migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+                self.assertFalse(any(c[0] in {"update", "publish", "alias"} for c in lam.calls))
+
+    def test_only_exact_intended_env_keys_may_differ_between_live_and_latest(self):
+        lam = FakeLambda()
+        lam.versions["3"]["Environment"]["Variables"]["JH_SERVICE_TOKEN"] = "previous-token"
+        lam.config["Environment"]["Variables"]["JH_SERVICE_TOKEN"] = "candidate-token"
+        result = migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+        self.assertEqual(result["version"], "4")
+        self.assertEqual(lam.versions["4"]["Environment"]["Variables"],
+                         {"UNCHANGED": "preserved", "AUTH_MODE": "owner", "JH_SERVICE_TOKEN": MARKER})
+        self.assertNotIn(MARKER, json.dumps(result))
+
+    def test_config_mutation_cannot_absorb_concurrent_unintended_config_or_env_changes(self):
+        for change in ({"Timeout": 900}, {"Layers": [{"Arn": "arn:layer:core:9"}]},
+                       {"Environment": {"Variables": {"JH_SERVICE_TOKEN": MARKER, "AUTH_MODE": "public"}}}):
+            class Changed(FakeLambda):
+                def update_function_configuration(self, **kw):
+                    super().update_function_configuration(**kw)
+                    self.config.update(deepcopy(change))
+            lam = Changed()
+            with self.assertRaisesRegex(migration.MigrationError, "config_update_not_verified"):
+                migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+            self.assertFalse(any(c[0] in {"publish", "alias"} for c in lam.calls))
+
+    def test_published_candidate_full_config_hash_and_state_verified_before_alias_cas(self):
+        changes = [{"Timeout": 900}, {"CodeSha256": "unreviewed"}, {"Handler": "other.run"},
+                   {"Layers": [{"Arn": "arn:layer:core:9"}]}, {"State": "Pending"},
+                   {"LastUpdateStatus": "Failed"}, {"Version": "99"},
+                   {"Environment": {"Variables": {"AUTH_MODE": "public", "JH_SERVICE_TOKEN": MARKER}}}]
+        for change in changes:
+            with self.subTest(fields=list(change)):
+                class Changed(FakeLambda):
+                    def publish_version(self, **kw):
+                        result = super().publish_version(**kw)
+                        self.versions["4"].update(deepcopy(change))
+                        return result
+                lam = Changed()
+                with self.assertRaises(migration.MigrationError):
+                    migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+                self.assertFalse(any(c[0] == "alias" for c in lam.calls))
+
+    def test_owned_publish_revision_refresh_rejects_alias_semantic_drift(self):
+        for change in ({"FunctionVersion": "5"}, {"Description": "Unreviewed alias"},
+                       {"RoutingConfig": {"AdditionalVersionWeights": {"5": 0.1}}}):
+            class Changed(FakeLambda):
+                def publish_version(self, **kw):
+                    result = super().publish_version(**kw)
+                    self.alias.update(deepcopy(change))
+                    return result
+            lam = Changed()
+            with self.assertRaisesRegex(migration.MigrationError, "alias_changed"):
+                migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+            self.assertFalse(any(c[0] == "alias" for c in lam.calls))
+
+    def test_external_revision_only_change_after_owned_publish_blocks_promotion(self):
+        for target in ("config", "alias"):
+            class Changed(FakeLambda):
+                def get_function_configuration(self, **kw):
+                    result = super().get_function_configuration(**kw)
+                    if kw.get("Qualifier") == "4":
+                        getattr(self, target)["RevisionId"] = "external-late-revision"
+                    return result
+            lam = Changed()
+            with self.assertRaises(migration.MigrationError):
+                migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+            self.assertFalse(any(c[0] == "alias" for c in lam.calls))
+
+    def test_unreadable_or_unstable_live_configuration_blocks_before_write(self):
+        for change in ({"Environment": {"Error": {"ErrorCode": "KMSAccessDenied"}}},
+                       {"ImageConfigResponse": {"Error": {"ErrorCode": "AccessDenied"}}},
+                       {"State": "Pending"}, {"LastUpdateStatus": "InProgress"}):
+            lam = FakeLambda()
+            lam.versions["3"].update(deepcopy(change))
+            with self.assertRaises(migration.MigrationError):
+                migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+            self.assertFalse(any(c[0] == "update" for c in lam.calls))
 
     def test_s3_scrub_retries_race_without_losing_new_price_or_metadata(self):
         key = "equity-research/NVDA.json"
