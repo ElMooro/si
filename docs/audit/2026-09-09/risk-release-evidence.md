@@ -40,20 +40,24 @@ On 9 September, the offline risk checker was rerun in the shared fixes checkout 
 
 Owned implementation references include `8f0dcb5` (capital/book/expiry), `7169ef2` (governed fusion/UI), `0dcdb7c` (Risk Gate/JPLG), `ef51850` (read-only risk validation), `c843ab2` (critical-input and consumer checks), `8d1b7ba`/`9e690fb` (Risk Sizer privacy), `bd1d797` (shared Khalid release path), `9758409` (layer follow-up), and `8705d12` (controlled revisions/caller-first release/recovery). Commit identifiers document source lineage; each release needs its own exact package and test evidence.
 
-## Ten governed targets, not the whole estate
+## Governed release scope
 
-The source allowlist in `aws/shared/governed_targets.py` contains exactly these ten targets:
+The original core release covered ten targets. Source commit `7cc19c3` adds the new public archive index, bringing the allowlist in `aws/shared/governed_targets.py` to these eleven targets:
 
 | Target | Target | Target |
 |---|---|---|
 | `justhodl-backtest-engine` | `justhodl-calibration-snapshotter` | `justhodl-engine-fusion` |
 | `justhodl-katlin` | `justhodl-khalid` | `justhodl-khalid-risk` |
 | `justhodl-portfolio-snapshot` | `justhodl-research-backtest` | `justhodl-risk-gate` |
-| `justhodl-risk-sizer` | | |
+| `justhodl-risk-sizer` | `justhodl-public-archive-index` | |
 
-For selected governed releases, the shared helper validates the exact ZIP hash, stable configuration, revision-pinned numbered version, actual executed version and metadata schema before alias promotion. The full ten-function allowlist is source coverage; it does not prove all ten were selected, deployed or refreshed in one release.
+For selected governed releases, the shared helper validates the exact ZIP hash, stable configuration, revision-pinned numbered version, actual executed version and metadata schema before alias promotion. The eleven-function allowlist is source coverage; it does not prove every target was selected, deployed or refreshed in one release. New-service bootstrap requires explicit source configuration and a confirmed absent function; missing established dependencies still block deployment. The bootstrap/caller regression handoff at `7cc19c3` passed 21 focused tests.
 
 Alias preparation precedes code staging. Selected scheduler, event coordinator, liveness, backend-agent and portfolio-admin callers are deployed first; exact caller ZIP hash and Active/Successful state must pass before producers can be staged. Caller failure aborts the batch. Bare governed names and `$LATEST` invoked by the corrected routers resolve to `live`; explicit numbered versions and other named aliases remain explicit.
+
+Recovery checkout verifies the requested full commit, its ancestry and identical workflow definition before staging that exact source (`c9b912e`). Metadata preflight rejects unsupported descriptions, structured JSON preserves inherited environment values (`64ea830`), and secret-bearing configuration errors emit only safe metadata (`1fc1b4a`). Schedule normalization (`d76e8d5`) accepts both documented named-rule formats before any staging. Cadence-only strings and abbreviated Scheduler references retain existing bindings and record that decision; they do not create inferred rules. The focused schedule/release handoff passed 52 tests. These are source and offline test results, not successful production rollout receipts.
+
+The read-only verifier addition at `619223b` observes the source-recorded classic EventBridge bindings for liquidity-profile and retail-sentiment, including their actual rule cadence and fully paginated target metadata. Differences from cadence-only configuration remain explicit observations. Its 36-test handoff does not establish that those live reads have run.
 
 The remaining estate does not thereby receive numbered-candidate validation, alias qualification or immutable release guarantees. Legacy engines without the configured contract continue through the general deployment path. Unselected callers, external IAM clients, independent Function URLs, historical versions, and schedules outside inspected targets need their own inventory/evidence. The change does not establish all-fleet immutable inputs, reproducible vintages, or validated execution models.
 
