@@ -1,4 +1,3 @@
-executing-against: f707eaa5dd1373efb041c915dab05971b518d953
-{"ops": 5274, "ok": true, "status": "EXISTING_CREDENTIAL_VALIDATED", "configuration_changed": true}
-{"ops": 5280, "ok": false, "statuses": {"nasdaq-datalink-agent": "SOURCE_PARITY_FAILED", "alphavantage-technical-analysis": "VERIFIED", "alphavantage-market-agent": "ACCEPTANCE_FAILED"}}
-❌ OPS-FAIL: aws/ops/pending/ops_5280_audit_provider_runtime.py
+executing-against: c58c2379de5cc2cdc10113d645f02488662c23c5
+{"ops": 5280, "ok": true, "statuses": {"nasdaq-datalink-agent": "VERIFIED", "alphavantage-technical-analysis": "VERIFIED", "alphavantage-market-agent": "VERIFIED"}}
+{"ops": 5281, "read_only": true, "functions": 2, "rules": 2}
