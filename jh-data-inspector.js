@@ -73,12 +73,15 @@ function validateProjection(entry,data){
 }
 function indexedOutputs(entry,payload){
  const index=entry.archive_index;if(!index)return [];
+ if(index.required_schema&&(!payload||payload.schema_version!==index.required_schema))throw new Error('Archive index schema does not match its reviewed publisher contract');
+ if(index.require_complete&&payload.complete!==true)throw new Error('Archive listing is unavailable or incomplete; no partial archive list is certified');
+ if(index.publisher_engine&&(payload.publisher_engine!==index.publisher_engine||payload.engine!==index.engine||JSON.stringify(payload.families)!==JSON.stringify(index.patterns)))throw new Error('Archive index engine or family provenance does not match its reviewed contract');
  const rows=payload&&payload[index.rows];if(!Array.isArray(rows))throw new Error('Archive index row schema unavailable');
  const pattern=new RegExp(index.key_regex),seen=new Set(),out=[];
  for(const row of rows){
   const key=row&&row[index.key_field];
   if(typeof key!=='string'||key.includes('..')||!pattern.test(key)||!key.endsWith('.json')||seen.has(key))continue;
-  seen.add(key);out.push({engine:entry.engine,key,access:'public',inspection_schema:'json-value.v1',indexed_by:entry.key});
+  seen.add(key);out.push({engine:index.engine||entry.engine,key,access:'public',inspection_schema:'json-value.v1',indexed_by:entry.key,index_publisher:entry.engine});
  }
  return out;
 }
@@ -101,28 +104,40 @@ function observeResponses(fetcher,contracts,onRecord,identity){
   return response;
  };
 }
-const api={type,columns,leafPaths,ptr,inspect,collectionView,fetchArtifact,validateProjection,observeResponses,indexedOutputs};
+const api={type,columns,leafPaths,ptr,inspect,collectionView,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 global.JHDataInspector=api;
 if(typeof document==='undefined')return;
-const observed=new Map();let ownerEpoch=0;let repaintObserved=null;
+const observed=new Map();let ownerEpoch=0;let repaintObserved=null;let clearArtifact=null;
 function currentOwner(){try{const auth=global.JustHodlAuth,user=auth&&auth.getUser&&auth.getUser();return {uid:user&&user.id||null,epoch:ownerEpoch};}catch{return {uid:null,epoch:ownerEpoch};}}
 const apiConfig=document.getElementById('jh-api-data-contract');
 if(apiConfig){
  let contracts=[];try{contracts=JSON.parse(apiConfig.textContent);}catch{}
  if(Array.isArray(contracts)&&contracts.length)global.fetch=observeResponses(global.fetch.bind(global),contracts,record=>{observed.set(record.requestKey,record);if(repaintObserved)repaintObserved();},currentOwner);
 }
-function clearOwnerResponses(){ownerEpoch++;observed.clear();if(repaintObserved)repaintObserved();}
+function clearOwnerResponses(){ownerEpoch++;observed.clear();if(clearArtifact)clearArtifact();if(repaintObserved)repaintObserved();}
 function bindOwnerChanges(){const auth=global.JustHodlAuth;if(auth&&auth.onChange)auth.onChange(clearOwnerResponses);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindOwnerChanges);else bindOwnerChanges();
 const style=node('style');style.textContent='.jdi-panel{margin:24px auto;padding:16px;max-width:1200px;border:1px solid #52606d;border-radius:8px;color:inherit;background:var(--jh-panel,#121820);font:13px system-ui}.jdi-panel summary{cursor:pointer;padding:8px}.jdi-controls{display:flex;gap:12px;align-items:center;margin:8px 0}.jdi-panel button,.jdi-panel select,.jdi-panel input{padding:7px;margin:4px;max-width:100%;color:inherit;background:var(--jh-panel,#18212c);border:1px solid #667788}.jdi-scroll{overflow:auto;max-height:70vh}.jdi-table{border-collapse:collapse;width:100%}.jdi-table th,.jdi-table td{border:1px solid #52606d;padding:8px;vertical-align:top;text-align:left}.jdi-value{white-space:pre-wrap;overflow-wrap:anywhere}.jdi-detail{min-width:140px}.jdi-controls button:disabled{opacity:.4}.jdi-null{font-style:italic}.jdi-error{color:#ffb5a6}';document.head.append(style);
+async function decodeArtifactResponse(response){
+ const bytes=new Uint8Array(await response.arrayBuffer());let decoded=bytes;
+ if(bytes[0]===31&&bytes[1]===139){
+  if(typeof DecompressionStream==='undefined')throw new Error('Gzip decoding unavailable in this browser');
+  decoded=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+ }
+ return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(decoded));
+}
 async function install(){
  const route=decodeURI(location.pathname).replace(/^\//,'')||'index.html';const canonical=route.endsWith('/')?route+'index.html':route;
- const response=await fetch('/config/page-data-contracts.json',{cache:'no-cache'});if(!response.ok)throw new Error('Page data contract unavailable');
- const manifest=await response.json(),engine=new URLSearchParams(location.search).get('engine');
- const contract=canonical==='engine-data.html'&&engine?manifest.engines[engine]:manifest.pages[canonical];if(!contract)return;
- const panel=node('details');panel.className='jdi-panel';panel.id='jh-engine-data';panel.dataset.contractVersion=manifest.schema_version;
- panel.append(node('summary',(engine?engine+' · ':'')+'Complete engine data · '+contract.outputs.length+' outputs'));
+ const engine=new URLSearchParams(location.search).get('engine'),embedded=document.getElementById('jh-page-data-contract');let contract,version='page-data-contract.v1';
+ if(embedded&&!(canonical==='engine-data.html'&&engine))contract=JSON.parse(embedded.textContent);
+ else{
+  const response=await fetch('/config/page-data-contracts.json',{cache:'no-cache'});if(!response.ok)throw new Error('Page data contract unavailable');
+  const manifest=await response.json();version=manifest.schema_version;contract=canonical==='engine-data.html'&&engine?manifest.engines[engine]:manifest.pages[canonical];
+ }
+ if(!contract)return;
+ const panel=node('details');panel.className='jdi-panel';panel.id='jh-engine-data';panel.dataset.contractVersion=version;
+ panel.append(node('summary',(engine?engine+' · ':'')+'Engine data inspector · '+contract.outputs.length+' outputs'));
  if(!engine&&contract.primary_producers)panel.append(node('p',contract.primary_producers.length?'Primary engine references: '+contract.primary_producers.join(', '):'No primary engine output is declared for this page. Shared context does not establish dedicated-engine coverage.'));
  if(!engine&&contract.page_role==='NO_ENGINE_EXPECTED')panel.append(node('p','This route has no dedicated engine: '+contract.role_reason));
  if(!engine&&contract.page_role!=='NO_ENGINE_EXPECTED'&&contract.primary_output_status==='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT')panel.append(node('p','Primary engine output coverage is unresolved.'));
@@ -146,7 +161,7 @@ async function install(){
  if(contract.historical_or_dynamic_family_count)panel.append(node('p',contract.historical_or_dynamic_family_count+' historical or dynamic output families. Reviewed archive indexes expose their listed keys when opened; other families remain unresolved.'));
  if(contract.owner_authenticated_count)panel.append(node('p',contract.owner_authenticated_count+' owner outputs require sign-in and are fetched only through the authenticated account service.'));
  if(contract.restricted_count)panel.append(node('p',contract.restricted_count+' internal, sensitive or unapproved paths are withheld from this inspector.'));
- let run=0;
+ let run=0;clearArtifact=()=>{run++;body.replaceChildren();delete panel.dataset.loadedOutput;delete panel.dataset.loadedLeafPaths;};
  select.addEventListener('change',async()=>{
   const id=++run,entry=contract.outputs.find(o=>o.engine+'::'+o.key===select.value);if(!entry)return;const key=entry.key;
   body.replaceChildren(node('p','Loading '+key+'…'));
@@ -154,8 +169,10 @@ async function install(){
    if(entry.access==='owner_authenticated'&&!global.JustHodlPrivateArtifacts){
     await new Promise((resolve,reject)=>{const script=node('script');script.src='/private-artifacts.js?v=20260909';script.onload=resolve;script.onerror=()=>reject(new Error('Authenticated owner data service unavailable'));document.head.append(script);});
    }
+   const ownerAtRequest=currentOwner();
    const r=await fetchArtifact(entry,global.fetch.bind(global),global.JustHodlPrivateArtifacts);if(!r.ok)throw new Error('HTTP '+r.status);
-   const data=validateProjection(entry,await r.json());if(id!==run)return;inspect(body,data,entry.engine+' → '+key+' · retrieved '+new Date().toISOString());
+   const data=validateProjection(entry,await decodeArtifactResponse(r));if(id!==run)return;
+   const ownerNow=currentOwner();if(entry.access==='owner_authenticated'&&(!ownerAtRequest.uid||ownerAtRequest.uid!==ownerNow.uid||ownerAtRequest.epoch!==ownerNow.epoch))throw new Error('Owner session changed; reload the authenticated output');inspect(body,data,entry.engine+' → '+key+' · retrieved '+new Date().toISOString());
    const enumerated=indexedOutputs(entry,data);
    for(const output of enumerated){if(!contract.outputs.some(o=>o.engine===output.engine&&o.key===output.key)){contract.outputs.push(output);const option=node('option',output.engine+' · '+output.key+' · indexed archive');option.value=output.engine+'::'+output.key;select.append(option);}}
    if(entry.archive_index)body.prepend(node('p',enumerated.length+' source-indexed archive keys are now available in the output selector. This covers the returned index; unindexed storage is not certified complete.'));

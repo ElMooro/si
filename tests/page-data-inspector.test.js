@@ -73,11 +73,11 @@ test('head bootstrap captures first inline application response before DOM ready
  const vm=require('node:vm'),fs=require('node:fs');const events={},head=new Element('head'),body=new Element('body');
  const apiContract={engine:'first-engine',origin:'https://api.justhodl.ai',pathname:'/first',methods:['GET']};
  const config=new Element('script');config.textContent=JSON.stringify([apiContract]);let engineCalls=0,ownerChange;
- const contract={outputs:[],primary_producers:['first-engine'],api_responses:[apiContract]};
- const doc={head,body,readyState:'loading',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-api-data-contract'?config:all(body,n=>n.id===id)[0],addEventListener:(event,fn)=>{(events[event]??=[]).push(fn);}};
+ const contract={outputs:[],primary_producers:['first-engine'],api_responses:[apiContract]},pageConfig=new Element('script');pageConfig.textContent=JSON.stringify(contract);
+ const doc={head,body,readyState:'loading',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-api-data-contract'?config:id==='jh-page-data-contract'?pageConfig:all(body,n=>n.id===id)[0],addEventListener:(event,fn)=>{(events[event]??=[]).push(fn);}};
  const context={document:doc,location:{pathname:'/first.html',href:'https://justhodl.ai/first.html',search:''},URL,URLSearchParams,console,
   JustHodlAuth:{getUser:()=>({id:'owner-a'}),onChange:fn=>{ownerChange=fn;}},
-  fetch:async url=>{if(url==='/config/page-data-contracts.json')return {ok:true,json:async()=>({schema_version:'v1',pages:{'first.html':contract}})};engineCalls++;return new Response(JSON.stringify({first_payload:{zero:0,all_rows:[1,2,3]}}),{status:200});}};
+  fetch:async url=>{if(url==='/config/page-data-contracts.json')throw new Error('Embedded page contract must avoid registry request');engineCalls++;return new Response(JSON.stringify({first_payload:{zero:0,all_rows:[1,2,3]}}),{status:200});}};
  vm.createContext(context);vm.runInContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);
  await vm.runInContext("fetch('https://api.justhodl.ai/first').then(r=>r.json())",context);await new Promise(r=>setImmediate(r));
  for(const fn of events.DOMContentLoaded)await fn();await new Promise(r=>setImmediate(r));
@@ -92,4 +92,19 @@ test('reviewed archive index exposes every listed matching key and rejects unrel
  rows.push(null,{key:'data/brain.json'},{key:'calibration/history/../private.json'},{key:'https://evil.example/private.json'},{key:'calibration/history/week-1.json'});
  const outputs=inspector.indexedOutputs(entry,{snapshots:rows});assert.equal(outputs.length,60);assert.equal(outputs.at(-1).key,'calibration/history/week-59.json');assert.ok(outputs.every(x=>x.access==='public'));
  assert.throws(()=>inspector.indexedOutputs(entry,{snapshots:null}),/schema unavailable/);
+});
+
+test('artifact decoder accepts browser-decoded JSON or real gzip and preserves all values',async()=>{
+ const gzip=require('node:zlib').gzipSync,payload={zero:0,missing:null,nested:[1,false,'complete']},encoded=JSON.stringify(payload);
+ assert.deepEqual(await inspector.decodeArtifactResponse(new Response(encoded)),payload);
+ assert.deepEqual(await inspector.decodeArtifactResponse(new Response(gzip(encoded))),payload);
+ await assert.rejects(inspector.decodeArtifactResponse(new Response('not json')));
+});
+
+
+test('reviewed metadata index preserves original engine and rejects wrong or incomplete provenance',()=>{
+ const entry={engine:'justhodl-public-archive-index',key:'data/archive-indexes/source-engine.json',archive_index:{engine:'source-engine',publisher_engine:'justhodl-public-archive-index',required_schema:'public-engine-archive-index.v1',require_complete:true,rows:'snapshots',key_field:'key',patterns:['data/archive/reviewed/*.json'],key_regex:'^data/archive/reviewed/[^/]+\\.json$'}};
+ const payload={schema_version:'public-engine-archive-index.v1',engine:'source-engine',publisher_engine:entry.engine,complete:true,families:entry.archive_index.patterns,snapshots:[{key:'data/archive/reviewed/2026-09-09.json'}]};
+ const rows=inspector.indexedOutputs(entry,payload);assert.equal(rows.length,1);assert.equal(rows[0].engine,'source-engine');assert.equal(rows[0].index_publisher,entry.engine);
+ for(const change of [{complete:false},{engine:'other'},{publisher_engine:'other'},{families:['data/archive/private/*.json']},{schema_version:'unknown'}])assert.throws(()=>inspector.indexedOutputs(entry,{...payload,...change}));
 });

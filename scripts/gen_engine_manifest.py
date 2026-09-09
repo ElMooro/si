@@ -15,7 +15,7 @@ WRITE_POS = {'put_object': None, 'upload_file': 2, 'upload_fileobj': 2,
              'put_json': 0, 'write_json': 0, 'save_json': 0}
 READ_POS = {'get_object': None, 'head_object': None, 'download_file': 1,
             'download_fileobj': 1, 'get_json': 0, 'read_json': 0}
-KEY_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_./*{}-]*(?:\.json(?:\.gz)?|/\*)$')
+KEY_RE = re.compile(r'^[A-Za-z0-9_][A-Za-z0-9_./=*{}-]*(?:\.json(?:\.gz)?|/\*)$')
 
 def normalise(value):
     if not isinstance(value, str): return None
@@ -24,20 +24,35 @@ def normalise(value):
     return value
 
 class Scan:
-    def __init__(self, code, environment=None):
+    def __init__(self, code, environment=None, initial_symbols=None):
         self.tree = ast.parse(code)
         self.environment = environment or {}
-        self.functions = {n.name:n for n in self.tree.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+        self.executor_names=set()
+        for item in ast.walk(self.tree):
+            if isinstance(item,(ast.With,ast.AsyncWith)):
+                for manager in item.items:
+                    if isinstance(manager.optional_vars,ast.Name) and isinstance(manager.context_expr,ast.Call) and ast.unparse(manager.context_expr.func).split('.')[-1] in ('ThreadPoolExecutor','ProcessPoolExecutor'):self.executor_names.add(manager.optional_vars.id)
+            if isinstance(item,ast.Assign) and isinstance(item.value,ast.Call) and ast.unparse(item.value.func).split('.')[-1] in ('ThreadPoolExecutor','ProcessPoolExecutor'):
+                self.executor_names.update(t.id for t in item.targets if isinstance(t,ast.Name))
+        self.functions={}
+        for node in self.tree.body:
+            if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):self.functions[node.name]=node
+            elif isinstance(node,ast.Assign) and isinstance(node.value,ast.Name) and node.value.id in self.functions:
+                for target in node.targets:
+                    if isinstance(target,ast.Name):self.functions[target.id]=self.functions[node.value.id]
         self.writes, self.reads, self.unresolved, self.defaults = set(),set(),[],{}
         self.proofs = {}
-        self.visited_write_lines=set()
-        self.globals = {}
+        self.visited_write_lines=set();self.called_functions=set();self.other_writes=[]
+        self.globals = dict(initial_symbols or {})
         self.containers={t.id:n.value for n in self.tree.body if isinstance(n,ast.Assign) and isinstance(n.value,(ast.List,ast.Tuple,ast.Dict)) for t in n.targets if isinstance(t,ast.Name)}
         for node in self.tree.body: self.assign(node, self.globals)
 
     def resolve(self, node, env):
         if isinstance(node,ast.Constant): return node.value if isinstance(node.value,str) else None
         if isinstance(node,ast.Name): return env.get(node.id)
+        if isinstance(node,ast.Attribute):
+            base=self.resolve(node.value,env)
+            return base.get(node.attr) if isinstance(base,dict) else None
         if isinstance(node,ast.Dict):
             result={}
             for key,value in zip(node.keys,node.values):
@@ -58,15 +73,39 @@ class Scan:
         if isinstance(node,ast.BinOp):
             l,r=self.resolve(node.left,env),self.resolve(node.right,env)
             if isinstance(node.op,ast.Add): return (l or '*')+(r or '*')
-            if isinstance(node.op,ast.Mod) and l: return re.sub(r'%(?:\([^)]*\))?[-+ 0#]*\d*(?:\.\d+)?[sdifrxX%]','*',l)
+            if isinstance(node.op,ast.Mod) and isinstance(l,str):
+                values=[self.resolve(v,env) for v in node.right.elts] if isinstance(node.right,ast.Tuple) else [self.resolve(node.right,env)]
+                named=values[0] if len(values)==1 and isinstance(values[0],dict) else {};position=0
+                def substitute(match):
+                    nonlocal position
+                    if match.group(0)=='%%':return '%'
+                    field=match.group(1)
+                    if field:value=named.get(field)
+                    else:value=values[position] if position<len(values) else None;position+=1
+                    return value if isinstance(value,str) else '*'
+                return re.sub(r'%(?:\(([^)]*)\))?[-+ 0#]*\d*(?:\.\d+)?[sdifrxX%]',substitute,l)
         if isinstance(node,ast.Call):
+            if isinstance(node.func,ast.Attribute) and node.func.attr in ('replace','strip','lstrip','rstrip','removeprefix','removesuffix','lower','upper'):
+                value=self.resolve(node.func.value,env);args=[self.resolve(arg,env) for arg in node.args]
+                if isinstance(value,str) and all(isinstance(arg,str) for arg in args):
+                    try:return getattr(value,node.func.attr)(*args)
+                    except (TypeError,ValueError):return None
             if isinstance(node.func,ast.Name) and node.func.id=='dict' and not node.args:
                 return {kw.arg:self.resolve(kw.value,env) for kw in node.keywords if kw.arg}
             if isinstance(node.func,ast.Attribute) and node.func.attr=='format':
                 base=self.resolve(node.func.value,env)
                 if base is not None:
                     import string
-                    try: return ''.join(literal+('*' if field is not None else '') for literal,field,spec,conv in string.Formatter().parse(base))
+                    try:
+                        pieces=[];auto=0;values=[self.resolve(v,env) for v in node.args];named={kw.arg:self.resolve(kw.value,env) for kw in node.keywords if kw.arg}
+                        for literal,field,spec,conv in string.Formatter().parse(base):
+                            pieces.append(literal)
+                            if field is None:continue
+                            if field=='':value=values[auto] if auto<len(values) else None;auto+=1
+                            elif field.isdigit():value=values[int(field)] if int(field)<len(values) else None
+                            else:value=named.get(field)
+                            pieces.append(value if isinstance(value,str) else '*')
+                        return ''.join(pieces)
                     except ValueError: return None
             func=ast.unparse(node.func)
             if func in ('os.environ.get','os.getenv','environ.get') and node.args:
@@ -95,13 +134,26 @@ class Scan:
         if isinstance(node,ast.AnnAssign) and node.value:self.assign_target(node.target,node.value,env)
 
     def call(self,node,env,stack):
+        # Standard executor callbacks bind the callable's real argument positions.
+        if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and node.args[0].id in self.functions:
+            callback=node.args[0]
+            if node.func.attr=='submit':
+                self.call(ast.Call(func=callback,args=node.args[1:],keywords=node.keywords),env,stack)
+            else:
+                iterables=[self.containers.get(arg.id,arg) if isinstance(arg,ast.Name) else arg for arg in node.args[1:]]
+                if iterables and all(isinstance(arg,(ast.List,ast.Tuple)) for arg in iterables):
+                    for values in zip(*(arg.elts for arg in iterables)):self.call(ast.Call(func=callback,args=list(values),keywords=[]),env,stack)
+                else:self.call(ast.Call(func=callback,args=[],keywords=[]),env,stack)
+            return
         if isinstance(node.func,ast.Name) and node.func.id in self.functions:
-            name=node.func.id
+            name=node.func.id;self.called_functions.add(name)
             if name in stack or len(stack)>12:return
             fn=self.functions[name]; args=list(fn.args.posonlyargs)+list(fn.args.args)
             bound=dict(self.globals)
             for a in args+list(fn.args.kwonlyargs):bound[a.arg]=None
             for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,env)
+            for a,d in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
+                if d is not None:bound[a.arg]=self.resolve(d,env)
             for a,v in zip(args,node.args):bound[a.arg]=self.resolve(v,env)
             for kw in node.keywords:
                 if kw.arg:bound[kw.arg]=self.resolve(kw.value,env)
@@ -132,7 +184,9 @@ class Scan:
         if key:
             (self.writes if kind=='write' else self.reads).add(key)
             if kind=='write':self.proofs.setdefault(key,set()).add(node.lineno)
-        elif kind=='write':self.unresolved.append({'line':node.lineno,'operation':attr,'reason':'dynamic or unresolved key'})
+        elif kind=='write':
+            if isinstance(keyvalue,str) and '*' not in keyvalue and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_./-]*\.(?:md|txt|html|csv|parquet|jsonl|zip|png|pdf)',keyvalue):self.other_writes.append({'line':node.lineno,'operation':attr,'key':keyvalue,'classification':'non_json_output'})
+            else:self.unresolved.append({'line':node.lineno,'operation':attr,'reason':'dynamic or unresolved key'})
 
     def expr(self,node,env,stack):
         if isinstance(node,ast.Call):self.call(node,env,stack)
@@ -172,20 +226,69 @@ class Scan:
                 self.block(getattr(n,'orelse',[]),dict(env),stack);self.block(getattr(n,'finalbody',[]),dict(env),stack)
             else:self.expr(n,env,stack)
 
-    def run(self):
+    def run(self,entrypoint=None):
         self.block(self.tree.body,dict(self.globals),())
-        # All defined write-capable functions are potential producers; unresolved parameters are reported.
-        for name,fn in self.functions.items():
-            env=dict(self.globals)
+        # Only externally callable roots receive unknown arguments. A helper called
+        # with concrete arguments is not re-invoked with fabricated unknown inputs.
+        roots=[entrypoint] if entrypoint in self.functions else [name for name in ('lambda_handler','handler','main') if name in self.functions]
+        external_roots=set(roots)
+        referenced={n.func.id for n in ast.walk(self.tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name)}
+        # Dispatch-table targets can be referenced as values, so retain their
+        # source-bound writes; do not invent a second invocation of called helpers.
+        roots+= [name for name in self.functions if name not in roots and name not in referenced and name not in self.called_functions]
+        for name in roots:
+            if name in self.called_functions and name not in external_roots:continue
+            fn=self.functions[name];env=dict(self.globals)
             for a in fn.args.posonlyargs+fn.args.args+fn.args.kwonlyargs:env[a.arg]=None
             self.block(fn.body,env,(name,))
         for node in ast.walk(self.tree):
             if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr in WRITE_POS and node.lineno not in self.visited_write_lines:
-                self.unresolved.append({'line':node.lineno,'operation':node.func.attr,'reason':'write site outside analyzed call graph'})
+                self.unresolved.append({'line':node.lineno,'operation':node.func.attr,'reason':'write site outside analyzed entrypoint call graph'})
         return self
 
-def scan_code(code,environment=None):
-    return Scan(code,environment).run()
+def scan_code(code,environment=None,entrypoint=None,initial_symbols=None):
+    return Scan(code,environment,initial_symbols).run(entrypoint)
+
+def imported_symbols(source,roots,environment=None,stack=(),cache=None):
+    """Resolve checked-in module constants through AST only; never import code.
+
+    Function calls across modules remain unresolved. Exact symbols can still bind
+    an actual caller write such as S3Store.put_json(STATE_KEY, payload).
+    """
+    source=source.resolve()
+    if cache is None:cache={}
+    if source in stack:return {}
+    try:tree=ast.parse(source.read_text(errors='replace'))
+    except (OSError,SyntaxError):return {}
+    symbols={}
+    def module_values(module,level=0):
+        parts=(module or '').split('.') if module else []
+        bases=[source.parent] if level else [source.parent,*roots]
+        if level>1:bases=[source.parents[level-1]]
+        for base in bases:
+            path=base.joinpath(*parts).with_suffix('.py') if parts else base/'__init__.py'
+            if not path.is_file():path=base.joinpath(*parts)/'__init__.py'
+            if path.is_file() and any(path.resolve().is_relative_to(root.resolve()) for root in roots):
+                resolved=path.resolve()
+                if resolved in cache:return cache[resolved]
+                if resolved in stack+(source,):return {}
+                try:
+                    values=Scan(path.read_text(errors='replace'),environment,imported_symbols(path,roots,environment,stack+(source,),cache)).globals
+                    cache[resolved]=values
+                    return values
+                except SyntaxError:return {}
+        return {}
+    for node in tree.body:
+        if isinstance(node,ast.ImportFrom):
+            values=module_values(node.module,node.level)
+            for alias in node.names:
+                if alias.name!='*' and alias.name in values:symbols[alias.asname or alias.name]=values[alias.name]
+        elif isinstance(node,ast.Import):
+            for alias in node.names:
+                # Dotted imports without aliases need a package graph, not a
+                # guessed flat mapping; keep those unresolved.
+                if alias.asname or '.' not in alias.name:symbols[alias.asname or alias.name]=module_values(alias.name)
+    return symbols
 
 def ast_keys(code):
     try:s=scan_code(code);return sorted(s.writes),sorted(s.reads),True
@@ -203,7 +306,7 @@ def build(root=ROOT):
         try:cfg=json.loads((d/'config.json').read_text())
         except (OSError,ValueError):pass
         env=cfg.get('environment') or {}; env=env.get('Variables',env) if isinstance(env,dict) else {}
-        keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{};output_roles=[]
+        keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{};output_roles=[];other_writes=[]
         handler=cfg.get('handler') or cfg.get('Handler')
         runtime=cfg.get('runtime') or cfg.get('Runtime')
         module=str(handler or '').rsplit('.',1)[0].replace('.','/')
@@ -211,11 +314,13 @@ def build(root=ROOT):
         if handler and entrypoint is None:unresolved.append({'file':'config.json','reason':'configured handler module missing from source'})
         unsupported=[str(p.relative_to(d/'source')) for p in (d/'source').rglob('*') if p.suffix in ('.js','.mjs','.cjs','.ts') and 'node_modules' not in p.parts]
         for src in unsupported:unresolved.append({'file':src,'reason':'unsupported runtime analysis; API and dynamic outputs require explicit runtime contract'})
+        constant_cache={}
         for src in sorted((d/'source').rglob('*.py')):
             if '__pycache__' in src.parts:continue
             rel=str(src.relative_to(d/'source'))
             try:
-                s=scan_code(src.read_text(errors='replace'),env);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
+                symbols=imported_symbols(src,[d/'source',root/'aws/shared'],env,cache=constant_cache)
+                s=scan_code(src.read_text(errors='replace'),env,str(handler).rsplit('.',1)[-1] if rel==entrypoint else None,symbols);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
                 for key,lines in s.proofs.items():proofs.setdefault(key,[]).extend({'file':rel,'line':line} for line in sorted(lines))
                 for declaration in s.tree.body:
                     if not isinstance(declaration,ast.Assign) or not any(isinstance(t,ast.Name) and t.id=='OUTPUT_OWNERSHIP' for t in declaration.targets) or not isinstance(declaration.value,ast.Dict):continue
@@ -231,14 +336,14 @@ def build(root=ROOT):
                     if key in s.writes and role.get('role')=='augmentation' and role.get('base_producer') and role.get('compare_and_swap') is True and cas:
                         output_roles.append({**role,'cas_write_verified':True,'source':rel,'declaration_line':declaration.lineno})
                     else:raise ValueError('Unproven output augmentation contract: '+d.name+' '+str(key))
-                unresolved.extend(dict(x,file=rel) for x in s.unresolved)
+                unresolved.extend(dict(x,file=rel) for x in s.unresolved);other_writes.extend(dict(x,file=rel) for x in s.other_writes)
             except SyntaxError as exc:unresolved.append({'file':rel,'line':exc.lineno,'reason':'parse failure'})
         # Resolve parameter-only reports only when that exact write site has a concrete or family binding.
         proven={(x['file'],x['line']) for values in proofs.values() for x in values}
         unresolved=[dict(t) for t in sorted({tuple(sorted(x.items())) for x in unresolved})]  # A resolved invocation must not hide another unresolved invocation at the same write site.
         exact=sorted(k for k in keys if '*' not in k);patterns=sorted(k for k in keys if '*' in k)
         engines.append({'engine':d.name,'keys':exact,'n_keys':len(exact),'key_patterns':patterns,
-                        'reads':sorted(reads),'output_roles':output_roles,'method':'ast-call-binding-v3','write_evidence':proofs,
+                        'reads':sorted(reads),'other_format_outputs':other_writes,'output_roles':output_roles,'method':'ast-call-binding-v3','write_evidence':proofs,
                         'unresolved_writes':unresolved,'environment_key_defaults':defaults,
                         'ownership_status':'incomplete' if unresolved else 'source_bound',
                         'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Python source writes; API response bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})

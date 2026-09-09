@@ -178,9 +178,11 @@ def test_inspector_bootstrap_precedes_first_app_request_and_is_idempotent():
     source='<html><head><script>fetch("https://api.justhodl.ai/first")</script></head><body></body></html>'
     apis=[{'engine':'engine','origin':'https://api.justhodl.ai','pathname':'/first','methods':['GET']}]
     result=install_html(source,apis)
-    assert result.index('jh-api-data-contract')<result.index('src="/jh-data-inspector.js"')<result.index('fetch(')
+    assert result.index('jh-api-data-contract')<result.index('src="/jh-data-inspector.js?v=')<result.index('fetch(')
     assert 'defer data-contract' not in result
     assert install_html(result,apis)==result
+    refreshed=install_html(result,apis,asset_version='0123456789abcdef')
+    assert refreshed.count('src="/jh-data-inspector.js?')==1 and 'v=0123456789abcdef' in refreshed
 
 def test_manifest_accepts_only_source_verified_compare_and_swap_augmentation():
     from gen_engine_manifest import build
@@ -193,3 +195,56 @@ def test_manifest_accepts_only_source_verified_compare_and_swap_augmentation():
         try:build(r)
         except ValueError:pass
         else:raise AssertionError('Unsafe shared writer accepted as augmentation')
+
+def test_entrypoint_call_graph_does_not_fabricate_unknown_helper_invocations():
+    from gen_engine_manifest import scan_code
+    code='def save(key):\n s3.put_object(Key=key)\ndef lambda_handler(event,context):\n save("data/real.json")'
+    scan=scan_code(code);assert scan.writes=={'data/real.json'} and not scan.unresolved,scan.unresolved
+    scan=scan_code(code+'\n save(event["dynamic_key"])');assert scan.writes=={'data/real.json'} and scan.unresolved
+    scan=scan_code('def lambda_handler(event,context):\n s3.put_object(Key="reports/readme.md",Body="text")')
+    assert not scan.unresolved and scan.other_writes[0]['classification']=='non_json_output'
+
+def test_indirect_executor_and_dispatch_targets_retain_ownership_or_explicit_uncertainty():
+    from gen_engine_manifest import scan_code
+    code='from concurrent.futures import ThreadPoolExecutor\ndef save(key):\n s3.put_object(Key=key)\ndef lambda_handler(event,context):\n with ThreadPoolExecutor() as pool:\n  pool.submit(save,"data/submitted.json")\n  list(pool.map(save,["data/mapped.json"]))'
+    scan=scan_code(code);assert scan.writes=={'data/submitted.json','data/mapped.json'} and not scan.unresolved,scan.unresolved
+    code='def operation(event):\n s3.put_object(Key=event["key"])\nROUTES={"save":operation}\ndef lambda_handler(event,context):\n return ROUTES[event["action"]](event)'
+    scan=scan_code(code);assert scan.unresolved and not scan.writes
+    code='class DeadWriter:\n def unused(self,key):\n  s3.put_object(Key=key)\ndef lambda_handler(event,context):\n return {"ok":True}'
+    scan=scan_code(code);assert scan.unresolved and not scan.writes
+
+def test_wrapped_handler_aliases_and_known_format_prefixes_preserve_real_output_binding():
+    from gen_engine_manifest import scan_code
+    code='def lambda_handler(event,context):\n s3.put_object(Key="data/base.json")\n_base_handler=lambda_handler\ndef lambda_handler(event,context):\n return _base_handler(event,context)'
+    scan=scan_code(code);assert scan.writes=={'data/base.json'} and not scan.unresolved,scan.unresolved
+    code='PREFIX="data/ledger/"\ns3.put_object(Key="%s%s/%s.json.gz" % (PREFIX,day,run))\ns3.put_object(Key="{prefix}{name}.json".format(prefix=PREFIX,name="latest"))'
+    scan=scan_code(code);assert scan.writes=={'data/ledger/*/*.json.gz','data/ledger/latest.json'} and not scan.unresolved,scan.writes
+
+
+def test_imported_constants_are_source_bound_without_executing_modules():
+    from gen_engine_manifest import imported_symbols,scan_code
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);shared=root/'shared';shared.mkdir();source=root/'source';source.mkdir()
+        (shared/'state_keys.py').write_text('REGISTRY_KEY="data/registry.json"\nraise RuntimeError("must never execute")\n')
+        (source/'local_keys.py').write_text('from state_keys import REGISTRY_KEY\nOUT=REGISTRY_KEY\n')
+        entry=source/'lambda_function.py';entry.write_text('from local_keys import OUT\nimport state_keys as state\ndef lambda_handler(event,context):\n s3.put_json(OUT,{})\n s3.put_object(Key=state.REGISTRY_KEY)\n')
+        symbols=imported_symbols(entry,[source,shared]);scan=scan_code(entry.read_text(),initial_symbols=symbols)
+        assert scan.writes=={'data/registry.json'} and not scan.unresolved
+
+
+def test_separate_archive_index_publisher_keeps_source_engine_and_exact_family_proof():
+    from build_page_data_contracts import add_archive_index_relationships
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);publisher='justhodl-public-archive-index';source=root/'aws/lambdas'/publisher/'source';source.mkdir(parents=True)
+        (source/'lambda_function.py').write_text('REGISTRY=(("source-engine","data/archive/reviewed/*.json"),)')
+        key='data/archive-indexes/source-engine.json';proof=[{'file':'lambda_function.py','line':1}]
+        engines={'source-engine':{'key_patterns':['data/archive/reviewed/*.json'],'write_evidence':{'data/archive/reviewed/*.json':proof}},publisher:{'key_patterns':[]}}
+        emap={'source-engine':{'outputs':[]},publisher:{'outputs':[{'engine':publisher,'key':key,'ownership_evidence':proof}]}}
+        add_archive_index_relationships(emap,engines,root)
+        output=emap['source-engine']['outputs'][0]
+        assert output['engine']==publisher and output['source_engine']=='source-engine' and output['archive_index']['engine']=='source-engine'
+        assert output['archive_family_evidence']==proof
+        engines['other-writer']={'key_patterns':['data/archive/reviewed/*.json']}
+        try:add_archive_index_relationships(emap,engines,root)
+        except ValueError:pass
+        else:raise AssertionError('shared ownership was silently accepted')

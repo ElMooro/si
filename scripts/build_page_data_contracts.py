@@ -2,7 +2,7 @@
 """Build source-bound public output inspection contracts and install the inspector on every public route.
 No network or runtime completeness claim. Dynamic/private/unresolved outputs remain explicitly classified.
 """
-import argparse,ast,json,os,re,shutil,sys
+import argparse,ast,hashlib,json,os,re,shutil,sys
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
@@ -13,8 +13,22 @@ PUBLIC_PREFIXES={'data','screener','etf-flows','macro','sentiment','air','regime
 PUBLIC_EXACT={'intelligence-report.json','liquidity-data.json','ecb_data.json','edge-data.json','flow-data.json','repo-data.json','treasury_historical_comprehensive.json','valuations-data.json','crypto-intel.json','config/engine-contracts.json',
               'data/proven-portfolio.json','data/proven-portfolio-history.json','data/strategy-portfolio.json','data/simulated-portfolio.json','data/forward-orders.json','predictions.json','portfolio/signal-portfolio-state.json','portfolio/signal-portfolio-history.json','portfolio/sizer-v2.json','data/brain-compiler.json','data/trade-journal.json'}
 
+# Source-reviewed public market histories/caches and government data; privacy policy always wins.
+PUBLIC_EXACT.update({
+ '_health/fleet.json',
+ '13f/clone-holdings-cache.json','13f/clone-price-cache.json','asia/kr-flash-tape.json','asia/tw-orders-levels.json',
+ 'boom/boom-stage-history.json','chokepoint/fundamentals-ledger.json','credit/credit-before-equity-history.json',
+ 'data/_cache/chokepoint-irreplaceability.json','data/_ma200/closes.json','data/_ma200/crypto-closes.json',
+ 'data/ecb-hist/_manifest.json','data/portfolio-analytics.json','data/warm/archived-fred/_index.json',
+ 'data/warm/tv-bars/_index.json','domain-barometers/history-ledger.json','estimate-revisions/state.json',
+ 'geo/geopolitical-risk-history.json','investor-debate/_index.json','kcs/flash-cache.json','pboc/afre-flow-cache.json',
+ 'readthrough/consensus-snapshots.json','sec-filings-cache/company-tickers.json','sec/company-tickers.json',
+ 'spx-beaters/ai-cache.json','spx-beaters/weekly-closes.json','spx-ma/member-closes.json','state/universe-discovery-snapshot.json',
+})
+
 # Explicit index schemas from the snapshotter's actual rows and bound family writes.
 ARCHIVE_INDEXES={
+ 'data/snapshots-index.json':{'engine':'justhodl-whats-changed','rows':'snapshots','key_field':'key','family_prefix':'data/snapshots/','required_schema':'daily-snapshot-index.v1','require_complete':True},
  'calibration/index.json':{'engine':'justhodl-calibration-snapshotter','rows':'versions','key_field':'key','pattern':'calibration/versions/cal-*-*-*.json'},
  'calibration/history-index.json':{'engine':'justhodl-calibration-snapshotter','rows':'snapshots','key_field':'key','patterns':['calibration/history/*.json','calibration/versions/cal-*-*-*.json']},
 }
@@ -24,11 +38,12 @@ def access_rules():
     """Read only literal policy data, without importing credential/cloud modules."""
     path=ROOT/'aws/shared/private_artifact.py'
     if not path.exists():return {},set(),()
-    mirrors={};private=set();prefixes=()
+    mirrors={};aliases={};private=set();prefixes=()
     for node in ast.parse(path.read_text()).body:
         if not isinstance(node,ast.Assign):continue
         names={t.id for t in node.targets if isinstance(t,ast.Name)}
         if 'MIRRORED_ARTIFACTS' in names:mirrors=ast.literal_eval(node.value)
+        if 'PRIVATE_ARTIFACT_ALIASES' in names:aliases=ast.literal_eval(node.value)
         if 'PRIVATE_PREFIXES' in names:
             if isinstance(node.value,ast.Tuple):prefixes=ast.literal_eval(node.value)
             elif isinstance(node.value,ast.BinOp) and isinstance(node.value.op,ast.Add) and isinstance(node.value.left,ast.Tuple):
@@ -39,12 +54,36 @@ def access_rules():
         if 'PRIVATE_KEYS' in names:
             for part in ast.walk(node.value):
                 if isinstance(part,ast.Set):private.update(ast.literal_eval(part))
+    for alias,canonical in aliases.items():
+        if canonical not in mirrors:raise ValueError('Owner artifact alias has no canonical mirror: '+alias)
+        mirrors[alias]=mirrors[canonical]
     return mirrors,set(mirrors)|private,tuple(prefixes)
 
 def public_key(key):
     _,private,prefixes=access_rules()
-    return (key.endswith('.json') and '*' not in key and '..' not in key.split('/') and key not in private and not key.startswith(prefixes)
+    return (key.endswith(('.json','.json.gz')) and '*' not in key and '..' not in key.split('/') and key not in private and not key.startswith(prefixes)
             and (key in PUBLIC_EXACT or (not SENSITIVE.search(key) and key.split('/')[0] in PUBLIC_PREFIXES and not any(part.startswith('_') for part in key.split('/')))))
+
+def add_archive_index_relationships(emap,engines,root):
+    """Attach reviewed listings to their source engine without relabeling the writer."""
+    publisher='justhodl-public-archive-index'
+    path=root/'aws/lambdas'/publisher/'source/lambda_function.py'
+    if not path.exists():return
+    registry=None
+    for declaration in ast.parse(path.read_text()).body:
+        if isinstance(declaration,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='REGISTRY' for t in declaration.targets):registry=ast.literal_eval(declaration.value)
+    if not isinstance(registry,(tuple,list)) or publisher not in engines:raise ValueError('Reviewed archive registry missing its source publisher')
+    for name,pattern in registry:
+        key='data/archive-indexes/'+name+'.json'
+        owners={engine for engine,value in engines.items() if pattern in value['key_patterns']}
+        if owners!={name} or not public_key(pattern.replace('*','reviewed-member')):raise ValueError('Archive family ownership or public boundary drift: '+name)
+        index=next((output for output in emap[publisher]['outputs'] if output['key']==key),None)
+        if index is None:raise ValueError('Archive index has no source-bound concrete writer: '+key)
+        emap[name]['outputs'].append({**index,'source_engine':name,
+            'association_basis':'source-owned family enumerated by a separate reviewed metadata publisher',
+            'archive_family_evidence':engines[name]['write_evidence'].get(pattern,[]),
+            'archive_index':{'engine':name,'publisher_engine':publisher,'required_schema':'public-engine-archive-index.v1','require_complete':True,
+                'rows':'snapshots','key_field':'key','patterns':[pattern],'key_regex':'^'+re.escape(pattern).replace(r'\*',r'[^/]+')+'$'}})
 def contract(root):
     mirrors,private_keys,private_prefixes=access_rules()
     role_path=root/'config/page-role-overrides.json'
@@ -63,12 +102,13 @@ def contract(root):
             if (output['key'],name) in augmentations:output['ownership_role']=augmentations[(output['key'],name)]
             index=ARCHIVE_INDEXES.get(output['key'])
             if index and index['engine']==name:
-                patterns=index.get('patterns') or [index['pattern']]
-                if any(pattern not in e['key_patterns'] for pattern in patterns):raise ValueError('Archive index write family drift: '+name)
-                output['archive_index']={**index,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns)+')$'}
+                patterns=[pattern for pattern in e['key_patterns'] if pattern.startswith(index['family_prefix'])] if index.get('family_prefix') else index.get('patterns') or [index['pattern']]
+                if not patterns or any(pattern not in e['key_patterns'] for pattern in patterns):raise ValueError('Archive index write family drift: '+name)
+                output['archive_index']={**index,'patterns':patterns,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns)+')$'}
         emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
                     'historical_or_dynamic_family_count':len(e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
                     'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments'}
+    add_archive_index_relationships(emap,engines,root)
     pmap={};graphs=scan_pages(root);source_usage=defaultdict(int)
     for graph in graphs.values():
         for source in graph['scripts']:source_usage[source]+=1
@@ -93,7 +133,7 @@ def contract(root):
             pipeline=len(bases)==1 and all(augmentations[(key,name)]['base_producer'] in bases for name in owners-bases)
             if len(owners)==1 or pipeline:
                 producers.update(owners)
-                if key in primary_keys:primary.update(owners)
+                if key in primary_keys and not role.get('primary_exclusive'):primary.update(owners)
             elif len(owners)>1:unresolved.append({'reason':'multiple source writers','key':key,'primary':key in primary_keys,'writers':sorted(owners)})
             else:unresolved.append({'reason':'no source-bound writer','key':key,'primary':key in primary_keys})
         outputs=[];seen=set()
@@ -108,13 +148,13 @@ def contract(root):
             if not parsed or key not in written or not public_key(key):raise ValueError('Static output ownership or access invalid: '+route+' '+key)
             outputs.append({'engine':static['engine'],'key':key,'access':'public','inspection_schema':'json-value.v1','ownership_evidence':[{'file':static['source'],'basis':'bound write argument'}]});static_keys.add(key)
         unresolved=[row for row in unresolved if row['key'] not in static_keys]
-        primary_accessible=sum(o['engine'] in primary for o in outputs)+len(api_responses)+len(static_keys)
+        primary_accessible=sum((o.get('source_engine') or o['engine']) in primary for o in outputs)+len(api_responses)+len(static_keys)
         primary_withheld=sum(emap[e]['restricted_count'] for e in primary)
         primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary)
         primary_families=sum(emap[e]['historical_or_dynamic_family_count'] for e in primary)
-        indexed={(o['engine'],pattern) for o in outputs if o['engine'] in primary and o.get('archive_index') for pattern in (o['archive_index'].get('patterns') or [o['archive_index']['pattern']])}
+        indexed={(o.get('source_engine') or o['engine'],pattern) for o in outputs if (o.get('source_engine') or o['engine']) in primary and o.get('archive_index') for pattern in (o['archive_index'].get('patterns') or [o['archive_index']['pattern']])}
         unindexed_families=primary_families-len(indexed)
-        unresolved_primary=[row for row in unresolved if row['primary']]
+        unresolved_primary=[row for row in unresolved if row['primary'] and not role.get('primary_exclusive')]
         role_name='NO_ENGINE_EXPECTED' if graph.get('redirect') else role.get('role','ENGINE_PAGE')
         role_reason='Redirect: '+graph['redirect'] if graph.get('redirect') else role.get('reason')
         missing_primary=not primary_accessible or unresolved_primary or graph['script_parse_errors'] or role.get('unresolved_reason')
@@ -131,13 +171,18 @@ def contract(root):
             'primary_valid_contract':sum(x['coverage_class']=='PRIMARY_VALID_CONTRACT' for x in pmap.values()),'primary_partial':sum(x['coverage_class']=='PRIMARY_PARTIAL' for x in pmap.values()),'support_only':sum(x['coverage_class']=='SUPPORT_ONLY' for x in pmap.values()),'no_association':sum(x['coverage_class']=='NO_ASSOCIATION' for x in pmap.values()),'not_applicable':sum(x['coverage_class']=='NOT_APPLICABLE' for x in pmap.values()),'routes_with_api_response_contract':sum(bool(x['api_responses']) for x in pmap.values()),
             'routes_without_source_bound_outputs':sum(not x['outputs'] for x in pmap.values()),'routes_with_primary_output_access':sum(x['primary_output_status']!='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT' for x in pmap.values()),'routes_with_partial_primary_output_access':sum(x['primary_output_status']=='PARTIAL_PRIMARY_OUTPUT_ACCESS' for x in pmap.values()),'all_routes_receive_inspector':True,
             'claim':'Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit.'}}
-def install_html(source,apis):
+def install_html(source,apis,page_contract=None,asset_version=None):
     # Refresh generated bootstrap even when a build directory is reused.
+    source=re.sub(r'<script\b[^>]*\bid=["\']jh-page-data-contract["\'][^>]*>.*?</script>','',source,flags=re.I|re.S)
     source=re.sub(r'<script\b[^>]*\bid=["\']jh-api-data-contract["\'][^>]*>.*?</script>','',source,flags=re.I|re.S)
-    source=re.sub(r'<script\b[^>]*\bsrc=["\']/jh-data-inspector\.js["\'][^>]*>\s*</script>','',source,flags=re.I|re.S)
+    source=re.sub(r'<script\b[^>]*\bsrc=["\']/jh-data-inspector\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>','',source,flags=re.I|re.S)
     source=re.sub(r'(<head\b[^>]*>)\s*',r'\1',source,count=1,flags=re.I)
     encoded=json.dumps(apis,separators=(',',':')).replace('<','\\u003c')
-    tag='<script id="jh-api-data-contract" type="application/json">'+encoded+'</script><script src="/jh-data-inspector.js" data-contract="page-data-contract.v1"></script>'
+    page_json=json.dumps(page_contract,separators=(',',':')).replace('<','\\u003c') if page_contract is not None else None
+    page_tag='<script id="jh-page-data-contract" type="application/json">'+page_json+'</script>' if page_json is not None else ''
+    version=asset_version or hashlib.sha256((ROOT/'jh-data-inspector.js').read_bytes()).hexdigest()[:16]
+    if not re.fullmatch(r'[a-f0-9]{16}',version):raise ValueError('Invalid inspector content hash')
+    tag=page_tag+'<script id="jh-api-data-contract" type="application/json">'+encoded+'</script><script src="/jh-data-inspector.js?v='+version+'" data-contract="page-data-contract.v1"></script>'
     return re.sub(r'<head\b[^>]*>',lambda m:m[0]+tag,source,count=1,flags=re.I) if re.search(r'<head\b',source,re.I) else tag+source
 
 def main():
@@ -153,6 +198,6 @@ def main():
         for page in pages(site):
             source=page.read_text(errors='replace')
             route=str(page.relative_to(site));apis=doc['pages'].get(route,{}).get('api_responses',[])
-            page.write_text(install_html(source,apis))
+            page.write_text(install_html(source,apis,doc['pages'].get(route)))
     print(json.dumps(doc['coverage']))
 if __name__=='__main__':main()

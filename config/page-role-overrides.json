@@ -837,42 +837,22 @@
       ]
     },
     "archive/pro.html": {
-      "role": "ENGINE_PAGE",
-      "reason": "Legacy archived route fetches root pro-data.json; historical cleanup explicitly records stale sole source. No Lambda writer was found; classify archive, not active dedicated engine.",
+      "role": "NO_ENGINE_EXPECTED",
+      "reason": "Retired historical snapshot view with original date, unverified legacy producer and no current-engine claim",
       "evidence": [
-        {
-          "file": "archive/pro.html",
-          "line": 38,
-          "supports": "Root artifact fetch"
-        },
-        {
-          "file": "aws/ops/historical/204_cleanup_broken_zombies.py",
-          "line": 149,
-          "supports": "Explicit archived stale source record"
-        }
-      ],
-      "primary_engines": [],
-      "api_responses": [],
-      "unresolved_reason": "Legacy archived route fetches root pro-data.json; historical cleanup explicitly records stale sole source. No Lambda writer was found; classify archive, not active dedicated engine."
+        "archive/pro.html"
+      ]
     },
     "stocks/index.html": {
       "role": "ENGINE_PAGE",
-      "reason": "Exact root stock-picks-data.json has no Lambda or ops writer match. Existing fmp-stock-picks-agent writes a different HTML report family to a different bucket and cannot establish this route association.",
-      "evidence": [
-        {
-          "file": "stocks/index.html",
-          "line": 155,
-          "supports": "Exact root fetch"
-        },
-        {
-          "file": "aws/lambdas/fmp-stock-picks-agent/source/lambda_function.py",
-          "line": 426,
-          "supports": "Different report artifact writer"
-        }
+      "reason": "Restored current source-bound invest/0.1 stock-picks research and full returned document",
+      "primary_engines": [
+        "justhodl-invest"
       ],
-      "primary_engines": [],
-      "api_responses": [],
-      "unresolved_reason": "Exact root stock-picks-data.json has no Lambda or ops writer match. Existing fmp-stock-picks-agent writes a different HTML report family to a different bucket and cannot establish this route association."
+      "evidence": [
+        "stocks/index.html",
+        "aws/lambdas/justhodl-invest/source/lambda_function.py"
+      ]
     },
     "intelligence.html": {
       "role": "ENGINE_PAGE",
@@ -989,10 +969,24 @@
     },
     "compare.html": {
       "role": "ENGINE_PAGE",
-      "unresolved_reason": "Parameterized equity-research ticker family; no exact dedicated producer or enumerated family index is established by source scan",
-      "reason": "Parameterized equity-research ticker family; no exact dedicated producer or enumerated family index is established by source scan",
+      "reason": "Selected ticker responses from source-config bound equity research engine; complete documents inspected in page",
+      "primary_engines": [
+        "justhodl-equity-research"
+      ],
       "evidence": [
-        "compare.html"
+        "compare.html",
+        "aws/lambdas/justhodl-equity-research/.function-url"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-equity-research",
+          "origin": "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "exact .function-url binding"
+        }
       ]
     },
     "provider.html": {
@@ -1005,19 +999,21 @@
     },
     "signal-replay.html": {
       "role": "ENGINE_PAGE",
-      "unresolved_reason": "User-selected engine/date snapshot family; fixed primary output unavailable until a source-bound snapshot index is provided",
-      "reason": "User-selected engine/date snapshot family; fixed primary output unavailable until a source-bound snapshot index is provided",
+      "reason": "Actual enumerated public daily captures; mutable daily copies are not certified point-in-time snapshots",
+      "primary_engines": [
+        "justhodl-whats-changed"
+      ],
       "evidence": [
-        "signal-replay.html"
+        "signal-replay.html",
+        "aws/lambdas/justhodl-whats-changed/source/lambda_function.py"
       ]
     },
     "fleet-health.html": {
-      "role": "ENGINE_PAGE",
-      "unresolved_reason": "Legacy _health/fleet.json has no bound engine writer in the checked source catalog",
-      "reason": "Legacy _health/fleet.json has no bound engine writer in the checked source catalog",
-      "evidence": [
-        "fleet-health.html"
-      ]
+      "primary_engines": [
+        "justhodl-fleet-monitor"
+      ],
+      "primary_exclusive": true,
+      "reason": "Exact source writer justhodl-fleet-monitor publishes _health/fleet.json; monitor schema includes compute/static checks, cadence and dependency status. Leading underscore was previously excluded by the ownership parser."
     },
     "frontrun.html": {
       "role": "ENGINE_PAGE",
@@ -1053,10 +1049,113 @@
     },
     "archive/exponential-search-dashboard.html": {
       "role": "ENGINE_PAGE",
-      "unresolved_reason": "Archived OpenBB API application; current dedicated producer binding is not recorded",
-      "reason": "Archived OpenBB API application; current dedicated producer binding is not recorded",
+      "reason": "Restored current source-bound symbol search and series application; all returned rows and full documents inspectable",
+      "primary_engines": [
+        "justhodl-symdir"
+      ],
       "evidence": [
-        "archive/exponential-search-dashboard.html"
+        "archive/exponential-search-dashboard.html",
+        "cloudflare/workers/justhodl-data-proxy/src/index.js"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-symdir",
+          "origin": "https://justhodl-data-proxy.raafouis.workers.dev",
+          "pathname": "/symsearch",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "source-bound Worker symbol-directory route"
+        },
+        {
+          "engine": "justhodl-symdir",
+          "origin": "https://justhodl-data-proxy.raafouis.workers.dev",
+          "pathname": "/series",
+          "methods": [
+            "GET"
+          ],
+          "source_identity": "source-bound Worker symbol-directory route"
+        }
+      ]
+    },
+    "watchlist.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Authenticated owner application responses and canonical private artifacts",
+      "primary_engines": [
+        "justhodl-watchlist"
+      ],
+      "evidence": [
+        "watchlist.html",
+        "cloudflare/workers/justhodl-ai-proxy/src/index.js"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-watchlist",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/owner-api/watchlist",
+          "methods": [
+            "GET",
+            "POST"
+          ],
+          "owner_authenticated": true,
+          "source_identity": "fixed authenticated owner-api mapping to source producer"
+        }
+      ]
+    },
+    "trade-journal.html": {
+      "role": "ENGINE_PAGE",
+      "reason": "Authenticated owner application responses and canonical private artifacts",
+      "primary_engines": [
+        "justhodl-trade-journal"
+      ],
+      "evidence": [
+        "trade-journal.html",
+        "cloudflare/workers/justhodl-ai-proxy/src/index.js"
+      ],
+      "api_responses": [
+        {
+          "engine": "justhodl-trade-journal",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/owner-api/trades",
+          "methods": [
+            "GET"
+          ],
+          "owner_authenticated": true,
+          "source_identity": "fixed authenticated owner-api mapping to source producer"
+        },
+        {
+          "engine": "justhodl-trade-journal",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/owner-api/trades/add",
+          "methods": [
+            "POST"
+          ],
+          "owner_authenticated": true,
+          "source_identity": "fixed authenticated owner-api mapping to source producer"
+        },
+        {
+          "engine": "justhodl-trade-journal",
+          "origin": "https://api.justhodl.ai",
+          "pathname": "/owner-api/trades/close",
+          "methods": [
+            "POST"
+          ],
+          "owner_authenticated": true,
+          "source_identity": "fixed authenticated owner-api mapping to source producer"
+        }
+      ]
+    },
+    "13f.html": {
+      "role": "ENGINE_PAGE",
+      "primary_exclusive": true,
+      "primary_engines": [
+        "justhodl-13f-clone-alpha",
+        "justhodl-13f-positions",
+        "justhodl-13f-price-divergence"
+      ],
+      "reason": "Dedicated 13F engines; the additive Smart Money \u00d7 Your Engines notes/master-ranker join remains supplemental context",
+      "evidence": [
+        "13f.html"
       ]
     }
   }
