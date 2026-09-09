@@ -65,7 +65,10 @@ def check_packages(lam, root, functions):
                 expected = hashlib.sha256(path.read_bytes()).hexdigest()
                 actual = hashlib.sha256(archive.read(name)).hexdigest() if name in archive.namelist() else None
                 row['files'].append({'member': name, 'expected_sha256': expected, 'actual_sha256': actual, 'match': expected == actual})
-            row['configuration_mismatches'] = [remote for local, remote in (('runtime', 'Runtime'), ('handler', 'Handler'), ('timeout', 'Timeout'), ('memory', 'MemorySize'), ('architectures', 'Architectures')) if local in config and config[local] != state.get(remote)]
+            compared = (('runtime', 'Runtime'), ('handler', 'Handler'), ('timeout', 'Timeout'), ('memory', 'MemorySize'), ('architectures', 'Architectures'))
+            row['configuration_mismatches'] = [remote for local, remote in compared if local in config and config[local] != state.get(remote)]
+            row['configuration_differences'] = [{'field':remote,'expected':config[local],'observed':state.get(remote)}
+                                                for local,remote in compared if remote in row['configuration_mismatches']]
             row['pass'] = bool(row['files']) and all(x['match'] for x in row['files']) and not row['configuration_mismatches'] and state.get('State') == 'Active' and state.get('LastUpdateStatus') == 'Successful' and (not qualifier or row.get('alias_verified') is True)
         except Exception as exc:
             # Exceptions can embed signed download URLs: record type only.

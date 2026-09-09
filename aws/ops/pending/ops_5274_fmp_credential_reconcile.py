@@ -29,7 +29,7 @@ def main():
     try:
         require(clients['sts'].get_caller_identity()['Account']==ACCOUNT,'wrong_account')
         package=check_packages(clients['lambda'],ROOT,[report['function']])[0]
-        report['source_package']=package;require(package['pass'],'source_package_mismatch')
+        report['source_package']=package
         config=clients['lambda'].get_function_configuration(FunctionName=report['function'])
         env=config.get('Environment',{}).get('Variables',{})
         candidates=[('environment_FMP_API_KEY',env.get('FMP_API_KEY','')),('environment_FMP_KEY',env.get('FMP_KEY',''))]
@@ -49,6 +49,9 @@ def main():
             if selected is None and result['valid']:selected=(label,value)
         if selected:
             report['selected_source']=selected[0]
+            # Public credential diagnostics may run despite configuration drift;
+            # any mutation still requires exact source AND configuration parity.
+            require(package['pass'],'source_package_mismatch')
             if env.get('FMP_API_KEY')!=selected[1]:
                 report['configuration']=update_environment(clients['lambda'],report['function'],
                     {'FMP_API_KEY':selected[1]},package['code_sha256'])
