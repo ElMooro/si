@@ -26,11 +26,13 @@ import os
 import time
 from datetime import datetime, timezone, timedelta
 import boto3
+from private_artifact import is_private_source
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/whats-changed.json"
 SNAPSHOT_PREFIX = "data/snapshots/"
+SNAPSHOT_INDEX_KEY = "data/snapshots-index.json"
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -64,6 +66,8 @@ def fetch_json(key):
 
 
 def write_snapshot(filename, data, date_str):
+    if is_private_source(filename):
+        raise ValueError("private sources cannot enter the public daily archive")
     safe = filename.replace("/", "_").replace(".json", "")
     snap_key = f"{SNAPSHOT_PREFIX}{safe}-{date_str}.json"
     try:
@@ -77,6 +81,44 @@ def write_snapshot(filename, data, date_str):
         # audit P2.5: emit EMF metric for silent put_object failure
         print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"snapshot write fail {snap_key}: {e}")
+
+
+def build_snapshot_index():
+    """Enumerate actual source-owned daily copies, never inferred calendar dates.
+
+    The legacy writer can replace a day's copy. LastModified is the availability
+    of the listed object version, not proof it was available on its filename date.
+    """
+    allowed = {filename.replace("/", "_").replace(".json", ""): filename
+               for filename, _ in TRACKED if not is_private_source(filename)}
+    rows = []
+    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=SNAPSHOT_PREFIX):
+        for obj in page.get("Contents", []):
+            key = obj["Key"]
+            if not key.startswith(SNAPSHOT_PREFIX) or not key.endswith(".json"):
+                continue
+            stem = key[len(SNAPSHOT_PREFIX):-5]
+            if len(stem) < 12 or stem[-11] != "-":
+                continue
+            name, day = stem[:-11], stem[-10:]
+            if name not in allowed:
+                continue
+            try:
+                if datetime.strptime(day, "%Y-%m-%d").date().isoformat() != day:
+                    continue
+            except ValueError:
+                continue
+            stamp = obj.get("LastModified")
+            available = stamp.astimezone(timezone.utc).isoformat() if isinstance(stamp, datetime) and stamp.tzinfo else None
+            rows.append({"key": key, "source_key": allowed[name], "capture_date": day,
+                         "object_last_modified": available, "size_bytes": obj.get("Size"),
+                         "immutable": False, "point_in_time_certified": False,
+                         "content_status": "LISTED_NOT_CONTENT_VALIDATED"})
+    rows.sort(key=lambda row: (row["capture_date"], row["source_key"]))
+    return {"schema_version": "daily-snapshot-index.v1", "generated_at": datetime.now(timezone.utc).isoformat(),
+            "complete": True, "coverage_scope": "all listed source-owned public daily copies",
+            "semantics": "MUTABLE_DAILY_COPY; filename date is not certified decision-time availability",
+            "n_snapshots": len(rows), "dates": sorted({row["capture_date"] for row in rows}), "snapshots": rows}
 
 
 def fetch_yesterday_snapshot(filename, today_date):
@@ -382,6 +424,9 @@ def lambda_handler(event, context):
     all_changes = []
     files_processed = []
     for filename, key in TRACKED:
+        if is_private_source(filename):
+            files_processed.append({"file": filename, "status": "excluded_private_source"})
+            continue
         today_data = fetch_json(filename)
         if not today_data:
             files_processed.append({"file": filename, "status": "missing_today"})
@@ -418,6 +463,15 @@ def lambda_handler(event, context):
         "files_processed": files_processed,
         "duration_s": round(time.time() - t0, 2),
     }
+
+    # A failed/truncated listing is a publication failure, not a complete empty
+    # timeline. Publish the index only after all paginator pages succeed.
+    snapshot_index = build_snapshot_index()
+    s3.put_object(Bucket=BUCKET, Key=SNAPSHOT_INDEX_KEY,
+                  Body=json.dumps(snapshot_index, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=300")
+    out["snapshot_index"] = {"key": SNAPSHOT_INDEX_KEY, "n_snapshots": snapshot_index["n_snapshots"],
+                             "n_dates": len(snapshot_index["dates"]), "semantics": snapshot_index["semantics"]}
 
     s3.put_object(
         Bucket=BUCKET,

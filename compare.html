@@ -247,7 +247,11 @@ body {
 
 </main>
 
+<script src="/jh-data-inspector.js"></script>
+<script src="/jh-research-inspection.js"></script>
+<div id="complete-research-data" style="max-width:1400px;margin:20px auto;padding:16px"></div>
 <script>
+let compareRevision=0;
 const CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/equity-research";
 const LAMBDA_URL = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/";
 
@@ -300,8 +304,7 @@ async function fetchOneTicker(ticker){
       const doc = await r.json();
       // Stale check (>48h)
       if(doc.generated_at){
-        const ageMs = Date.now() - new Date(doc.generated_at).getTime();
-        if(ageMs < 48 * 3600 * 1000) return doc;
+        if(JHResearchInspection.freshReport(doc,Date.now())) return {document:JHResearchInspection.report(ticker,doc),source:`${CDN_BASE}/${ticker}.json`};
       }
     }
   } catch(e) {/* fall through */}
@@ -311,13 +314,15 @@ async function fetchOneTicker(ticker){
   try {
     const r = await fetch(`${LAMBDA_URL}?ticker=${encodeURIComponent(ticker)}`, { signal: ctrl.signal });
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
+    return {document:JHResearchInspection.report(ticker,await r.json()),source:LAMBDA_URL};
   } finally {
     clearTimeout(timer);
   }
 }
 
 async function fetchAndRender(tickers){
+  const revision=++compareRevision;
+  $('complete-research-data').replaceChildren();
   $('content').innerHTML = `<div class="loading"><div class="spinner"></div>
     <div>Loading research for ${tickers.map(t => `<b style="color:var(--accent)">${esc(t)}</b>`).join(", ")}…
       <div style="color:var(--text-muted); font-size:11px; margin-top:4px">Cached tickers load in 0.2s · uncached take 60-90s each</div>
@@ -325,16 +330,18 @@ async function fetchAndRender(tickers){
   try {
     // Fetch all in parallel
     const results = await Promise.allSettled(tickers.map(fetchOneTicker));
+    if(revision!==compareRevision)return;
     const docs = [];
     const errors = [];
     for(let i = 0; i < tickers.length; i++){
       const r = results[i];
       if(r.status === 'fulfilled' && r.value){
-        docs.push({ticker: tickers[i], doc: r.value});
+        docs.push({ticker: tickers[i], doc: r.value.document, source:r.value.source});
       } else {
         errors.push({ticker: tickers[i], error: (r.reason && r.reason.message) || 'unknown'});
       }
     }
+    JHResearchInspection.show($('complete-research-data'),docs.map(row=>({label:row.ticker+' · justhodl-equity-research',source:row.source,document:row.doc})));
     if(docs.length < 2){
       $('content').innerHTML = `<div class="err">Couldn't load ${errors.map(e => esc(e.ticker)).join(", ")} — ${esc((errors[0]||{}).error)}. Try other tickers (AAPL, MSFT, NVDA, JPM etc are pre-cached).</div>`;
       return;
@@ -344,6 +351,7 @@ async function fetchAndRender(tickers){
       $('content').innerHTML += `<div class="err">Note: failed to load ${errors.map(e => esc(e.ticker)).join(", ")} (${esc((errors[0]||{}).error)})</div>`;
     }
   } catch(e){
+    if(revision!==compareRevision)return;
     $('content').innerHTML = `<div class="err">Error: ${esc(e.message || e)}</div>`;
   }
 }
