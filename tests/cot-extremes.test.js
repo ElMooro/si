@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const cot=require('../cot-extremes.js');
+const now=Date.parse('2026-09-09T18:00:00Z');
+const data={engine:'justhodl-cot-extremes-scanner',schema_version:'cot-extremes.v2',generated_at:'2026-09-09T17:00:00Z',execution_eligible:false};
+const row={contract:'ES',name:'<img src=x onerror=alert(1)>',category:"bad' onclick='x",status:'ok',report_date:'2026-09-01',percentile:0,spec_net:0,open_int:100,trend_4w:0,execution_eligible:false};
+assert(cot.rankAvailable(data,row,now));
+assert(cot.rowOf(data,row,now).includes('0.0%'));
+assert(!cot.rowOf(data,row,now).includes('<img'));
+assert(!cot.rankAvailable(data,{...row,percentile:null},now));
+assert(!cot.rankAvailable({...data,generated_at:'2026-09-09T17:00:00'},row,now));
+assert(!cot.rankAvailable(data,row,now+4*86400000));
+assert(!cot.rankAvailable(data,{...row,report_date:'2026-09-10'},now));
+assert(!cot.rankAvailable(data,{...row,report_date:'2026-02-30'},now));
+assert(cot.rowOf(data,row,now+4*86400000).includes('stale_or_unverified'));
+console.log('COT page: zero values, safe text, typed ranks and expiry passed');

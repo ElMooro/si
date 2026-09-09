@@ -38,6 +38,7 @@ PRIMARY = {
     'justhodl-options-flow-scanner':['data/options-flow-scanner.json'],
     'justhodl-options-flow':['flow-data.json'],
     'justhodl-bloomberg-v8':['data/bloomberg-report.json'],
+    'justhodl-cot-extremes-scanner':['cot/extremes/current.json'],
     'justhodl-daily-report-v3':['data/report.json'],
     'justhodl-ecb-derived':['data/ecb-derived.json'],
     'justhodl-whats-changed':['data/whats-changed.json','data/snapshots-index.json'],
@@ -82,14 +83,16 @@ QUIET_STAGES = (
     ('portfolio-snapshot',),
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
-    ('backtest-engine','research-backtest','options-flow','options-flow-scanner','bloomberg-v8','ecb-derived'),
+    ('backtest-engine','research-backtest','options-flow','options-flow-scanner','bloomberg-v8','ecb-derived','cot-extremes-scanner'),
     ('whats-changed','public-archive-index','fleet-freshness-monitor','fleet-error-monitor'),
 )
-# These two reviewed handler branches suppress all notification/history side effects.
+# These reviewed handler branches suppress notifications. COT retains its public
+# calculation histories; the fleet modes also suppress their notification history.
 # The default event is never used for these notification-capable engines.
 APPROVED_REFRESH_MODES = {
     'justhodl-fleet-freshness-monitor': {'mode':'quiet_refresh'},
     'justhodl-fleet-error-monitor': {'mode':'audit_refresh'},
+    'justhodl-cot-extremes-scanner': {'mode':'audit_refresh'},
 }
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
@@ -113,6 +116,7 @@ OUTPUT_CONTRACTS = {
     'data/khalid-analysis.json': 'macro-analysis.v1_khalid_owned',
     'data/options-flow-scanner.json': 'options_flow_scanner_v1_ranked_equities',
     'flow-data.json': 'options_flow_and_sentiment_v3_nested_market_data',
+    'cot/extremes/current.json': 'cot-extremes.v2_complete_calculation_histories',
     'data/bloomberg-report.json': 'bloomberg_v8_market_report',
     'data/report.json': 'daily_report_v10_market_report',
     'data/ecb-derived.json': 'ecb_derived_3.4_indicators',
@@ -346,6 +350,32 @@ def donor_checks(function, doc, key=None, root=ROOT):
         if doc.get('coverage_status')!='READY':requirements.append('BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE')
         if doc.get('archive_status')!='PUBLISHED':requirements.append('BLOOMBERG_ARCHIVE_PUBLICATION_UNAVAILABLE')
         requirements.append('DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION')
+    elif name=='cot-extremes-scanner':
+        rows=doc.get('contracts');histories=doc.get('histories');summary=doc.get('summary')
+        if (doc.get('engine')!='justhodl-cot-extremes-scanner' or doc.get('schema_version')!='cot-extremes.v2'
+                or doc.get('execution_eligible') is not False or doc.get('point_in_time_certified') is not False
+                or doc.get('scope')!='CURRENT_CONFIGURED_UNIVERSE' or not isinstance(rows,list)
+                or not isinstance(histories,dict) or not isinstance(summary,dict)):
+            errors.append('COT_OUTPUT_CONTRACT_INVALID')
+        else:
+            symbols=[row.get('contract') for row in rows if isinstance(row,dict)]
+            if (len(symbols)!=len(rows) or any(not isinstance(symbol,str) for symbol in symbols) or len(set(symbols))!=len(rows) or set(symbols)!=set(histories)
+                    or summary.get('n_returned')!=len(rows) or summary.get('n_requested')!=len(rows) or summary.get('n_contracts_total')!=len(rows)):
+                errors.append('COT_CONTRACT_COVERAGE_INVALID')
+            for row in rows:
+                if not isinstance(row,dict):continue
+                history=histories.get(row.get('contract'),{})
+                if not isinstance(history,dict) or not isinstance(history.get('history'),list):
+                    errors.append('COT_HISTORY_MISSING');continue
+                if row.get('n_weeks_history')!=len(history['history']):errors.append('COT_HISTORY_TRUNCATED')
+                if row.get('execution_eligible') is not False:errors.append('COT_EXECUTION_PERMISSION_UNCALIBRATED')
+                if row.get('status')!='ok' and (row.get('percentile') is not None or row.get('extreme') is not None):
+                    errors.append('COT_UNAVAILABLE_INPUT_HAS_RANK')
+            if any(row.get('status')!='ok' for row in rows if isinstance(row,dict)):
+                requirements.append('COT_PROVIDER_OR_HISTORY_COVERAGE_INCOMPLETE')
+            if doc.get('universe_status')!='LOADED':requirements.append('COT_EXTENSION_UNIVERSE_COVERAGE_UNPROVEN')
+            counts.update(contracts=len(rows),histories=len(histories),history_rows=sum(len(value.get('history',[])) for value in histories.values() if isinstance(value,dict)))
+        requirements.extend(['COT_CURRENT_VINTAGE_IS_NOT_POINT_IN_TIME_HISTORY','DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION'])
     elif name=='daily-report-v3':
         if doc.get('version')!='V10' or not all(field in doc for field in ('risk_dashboard','net_liquidity','liquidity_credit_engine','tenor_signals','global_business_cycle')):
             errors.append('DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID')
