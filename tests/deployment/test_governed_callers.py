@@ -17,6 +17,7 @@ function_identity = HELPER['function_identity']
 EXPECTED = {
     'justhodl-backtest-engine', 'justhodl-calibration-snapshotter',
     'justhodl-engine-fusion', 'justhodl-katlin', 'justhodl-khalid', 'justhodl-khalid-risk',
+    'justhodl-fleet-freshness-monitor',
     'justhodl-portfolio-snapshot', 'justhodl-research-backtest',
     'justhodl-public-archive-index',
     'justhodl-risk-gate', 'justhodl-risk-sizer',
@@ -60,7 +61,7 @@ class EventRecorder:
             {'Name':'hourly','State':'ENABLED','ScheduleExpression':'rate(1 hour)'}]}]))
 
 
-def test_governed_allowlist_has_exact_eleven_release_functions():
+def test_governed_allowlist_has_exact_twelve_release_functions():
     assert HELPER['GOVERNED_FUNCTIONS'] == EXPECTED
 
 
