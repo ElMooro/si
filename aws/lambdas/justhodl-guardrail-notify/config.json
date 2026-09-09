@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-guardrail-notify",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 30,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ops 5250 - cost/runaway guardrail notifier: CloudWatch alarm -> SNS justhodl-fleet-alerts -> Telegram + S3 ledger",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TELEGRAM_CHAT_ID": "8678089260",
+    "LEDGER_PREFIX": "data/ops/guardrails/"
+  },
+  "triggers": {
+    "sns": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts"
+  }
+}
