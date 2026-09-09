@@ -5,18 +5,26 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 60,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Personal Wealth Compass: Monte Carlo retirement engine. Inputs current_nav+age+retire_age+annual_savings+annual_spending+risk_profile (conservative/moderate/aggressive/lifecycle). 10000-sim lognormal MC using live Capital Compass forward ERs + Markowitz w'Σw + 30y consensus correlation matrix. Outputs prob_success, trajectory percentiles, sequence-of-returns risk, required savings (bisection), inflation-deflated terminal NAV, sensitivities, benchmark comparison, plain-English verdict.",
+  "description": "Owner retirement scenarios using Capital Compass return assumptions, covariance and Monte Carlo paths; reports success probability, trajectory percentiles, savings needs, inflation-adjusted outcomes and sensitivity.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"
   },
   "function_url": {
     "auth_type": "NONE",
     "cors": {
-      "AllowOrigins": ["*"],
-      "AllowMethods": ["*"],
-      "AllowHeaders": ["content-type"],
+      "AllowOrigins": [
+        "*"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowHeaders": [
+        "content-type"
+      ],
       "MaxAge": 300
     }
   }

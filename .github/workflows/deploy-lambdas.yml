@@ -20,6 +20,8 @@ on:
       - 'scripts/prime_governed_aliases.py'
       - 'scripts/release_order.py'
       - 'scripts/pin_release_checkout.py'
+      - 'scripts/validate_lambda_configs.py'
+      - 'scripts/lambda_config_environment.py'
       - 'scripts/scheduler_payload.py'
       - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'
@@ -206,6 +208,7 @@ jobs:
         if: steps.detect.outputs.targets != ''
         run: |
           set -euo pipefail
+          python3 scripts/validate_lambda_configs.py ${{ steps.detect.outputs.targets }}
 
           # These static deployment tests and every selected Lambda's local
           # checks complete before the deployment step can mutate AWS.

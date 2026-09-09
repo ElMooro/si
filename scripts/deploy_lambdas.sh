@@ -6,6 +6,7 @@ set -e
 # Do not put the subshell in an OR/if condition: Bash would disable
 # errexit throughout its body and continue after failed validation.
 declare -a failed_lambdas
+python3 scripts/validate_lambda_configs.py $DEPLOY_TARGETS
 DEPLOY_TARGETS=$(python3 scripts/release_order.py order $DEPLOY_TARGETS)
 for fn in $DEPLOY_TARGETS; do
   caller_phase=0
@@ -40,67 +41,7 @@ for fn in $DEPLOY_TARGETS; do
     fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
     fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$dir/config.json")
     fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
-    env_kv=$(jq -r '(.env // .environment // {}) | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
-    if jq -e '.inherit_env' "$dir/config.json" >/dev/null 2>&1; then
-      ie_type=$(jq -r '.inherit_env | type' "$dir/config.json")
-      if [ "$ie_type" = "boolean" ]; then
-        # Boolean true -- pull standard secrets bundle from confluence-meta
-        if [ "$(jq -r '.inherit_env' "$dir/config.json")" = "true" ]; then
-          src_fn="justhodl-confluence-meta"
-          standard_keys="FMP_KEY FRED_KEY POLYGON_KEY ALPHA_VANTAGE_KEY CMC_KEY ANTHROPIC_API_KEY TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID TELEGRAM_TOKEN NEWSAPI_KEY BLS_KEY BEA_KEY CENSUS_KEY"
-          src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
-          for k in $standard_keys; do
-            v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
-            if [ -n "$v" ] && [ "$v" != "null" ]; then
-              if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
-            fi
-          done
-          echo "  [inherit_env=true] pulled standard secrets bundle from $src_fn"
-        fi
-      elif [ "$ie_type" = "array" ]; then
-        n_entries=$(jq -r '.inherit_env | length' "$dir/config.json")
-        for i in $(seq 0 $((n_entries - 1))); do
-          src_fn=$(jq -r ".inherit_env[$i].from_function" "$dir/config.json")
-          inherit_keys=$(jq -r ".inherit_env[$i].keys | join(\" \")" "$dir/config.json")
-          if [ -n "$src_fn" ] && [ -n "$inherit_keys" ] && [ "$src_fn" != "null" ]; then
-            src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
-            for k in $inherit_keys; do
-              v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
-              if [ -n "$v" ] && [ "$v" != "null" ]; then
-                if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
-                echo "  [inherit_env] inherited $k from $src_fn"
-              else
-                echo "  [inherit_env] WARN $k not found on $src_fn"
-              fi
-            done
-          fi
-        done
-      else
-        src_fn=$(jq -r '.inherit_env.from_function' "$dir/config.json")
-        inherit_keys=$(jq -r '.inherit_env.keys | join(" ")' "$dir/config.json")
-        if [ -n "$src_fn" ] && [ -n "$inherit_keys" ]; then
-          src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
-          for k in $inherit_keys; do
-            v=$(echo "$src_env" | jq -r "."$k" // empty")
-            if [ -n "$v" ] && [ "$v" != "null" ]; then
-              if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
-              echo "  [inherit_env] inherited $k from $src_fn"
-            else
-              echo "  [inherit_env] WARN $k not found on $src_fn"
-            fi
-          done
-        fi
-      fi
-    fi
-    # Convert config-derived env ("K=V,K=V" string) into a JSON object.
-    # Using JSON + file:// avoids the Variables={k=v} shorthand breaking
-    # on values that contain commas or special characters.
-    cfg_env_json="{}"
-    if [ -n "$env_kv" ]; then
-      cfg_env_json=$(echo "$env_kv" | tr ',' '\n' \
-        | jq -R 'select(length>0) | split("=") | {(.[0]): (.[1:] | join("="))}' \
-        | jq -s 'add // {}')
-    fi
+    cfg_env_json=$(python3 scripts/lambda_config_environment.py "$dir/config.json" "$DEPLOY_AWS_REGION")
   fi
 
   tmp=$(mktemp -d)
