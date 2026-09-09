@@ -124,6 +124,9 @@ class FakeLambda:
 class PublicMigrationTests(unittest.TestCase):
     def fixtures(self):
         return {
+            "_health/fleet.json": {"engine": "fleet-monitor", "schema_version": "1.0", "summary": {"lambda_count": 12},
+                                   "data_outputs": {"available": True, "degraded": [{"output": "fixture", "age_hours": 1, "issue": MARKER}]},
+                                   "compute": {"available": False, "error": MARKER}, "dependencies": [{"name": "FRED", "status": "yellow", "detail": MARKER}]},
             "data/brain-compiler.json": {"claims": [{"claim": MARKER, "note_id": "n1", "concepts": ["Rates"], "score": 3}],
                                          "build_queue": [{"concept": "Rates", "sample_claims": [MARKER], "n_claims": 1}]},
             "data/tv-workbench.json": {"symbols": {"NVDA": {"value": 120, "notes": [{"text": MARKER, "note_id": "n1", "ts": 123}]}}},
@@ -403,7 +406,7 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
         self.assertEqual(len(migration.PUBLISHERS), 19)
-        self.assertEqual(len(migration.READINESS), 37)
+        self.assertEqual(len(migration.READINESS), 38)
         self.assertTrue({"wealth-plan", "tax-plan"} <= set(migration.READINESS))
         self.assertFalse({"wealth-plan", "tax-plan"} & set(migration.PUBLISHERS))
 

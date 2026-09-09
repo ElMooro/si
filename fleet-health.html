@@ -44,19 +44,22 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
 .note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
 .empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:8px 4px}
+details{margin:14px 0;border:1px solid var(--line);padding:12px;border-radius:7px}summary{cursor:pointer;color:var(--cyan)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:65vh;overflow:auto}button{color:var(--cyan);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:7px 12px;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>🩺 Fleet Health</h1>
-    <p class="subtitle">Auto-discovering full-fleet observability. Sweeps <b>every</b> data output (no registration needed — new engines are covered the moment they write a file), inventories the Lambda fleet, and actively probes the Anthropic API and every market-data key. The catch-all backstop beneath the curated health-monitor.</p>
+    <p class="subtitle">Published observations from <b>justhodl-fleet-monitor</b>: top-level data JSON outputs, available Lambda inventory, and configured dependency probes. Runs every three hours. Personal output content is excluded from inspection; its age and size remain measurable.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/audit.html">audit</a>
       <a href="/conviction.html">conviction</a>
       <a href="/signal-board.html">signal board</a>
     </nav>
+    <button type="button" onclick="main()">Refresh snapshot</button>
+    <p id="source-status" class="note" role="status"></p>
   </header>
 
   <div id="hero"><div class="loading">LOADING FLEET HEALTH…</div></div>
@@ -67,12 +70,20 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <h2>Data-Output Issues</h2>
   <div id="issues"><div class="loading">…</div></div>
+  <p id="issue-coverage" class="note"></p>
+
+  <h2>Compute Inventory</h2>
+  <div id="compute"></div>
+  <h2>Event-Driven / Static Outputs</h2>
+  <div id="static"></div>
+  <p id="static-coverage" class="note"></p>
+  <details><summary>Complete fleet-monitor response</summary><pre id="full-response"></pre></details>
 
   <p class="note" id="note"></p>
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/_health/";
+const DATA_URL="https://justhodl-data-proxy.raafouis.workers.dev/_health/fleet.json";
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const cls=(s)=>({green:"g",yellow:"y",red:"r"}[s]||"u");
 const sysColor=(s)=>({green:"var(--green)",yellow:"var(--yellow)",red:"var(--red)"}[s]||"var(--dim)");
@@ -86,16 +97,40 @@ function row(name,status,detail){
   </div>`;
 }
 
+let requestRevision=0;
+const array=(value)=>Array.isArray(value)?value:[];
+const shown=(value)=>value==null?'unavailable':String(value);
+function clearSnapshot(){
+  for(const id of ['cards','deps','issues','compute','static','issue-coverage','static-coverage','note','ts','full-response'])document.getElementById(id).textContent='';
+}
 async function main(){
-  let d=null;
-  try{d=await fetch(BASE+"fleet.json?_="+Date.now()).then(r=>r.ok?r.json():null);}catch(e){}
-  if(!d){document.getElementById("hero").innerHTML='<div class="loading">FLEET DATA UNAVAILABLE</div>';return;}
+  const revision=++requestRevision;
+  clearSnapshot();
+  document.getElementById('source-status').textContent='Loading published fleet-monitor snapshot…';
+  document.getElementById('hero').innerHTML='<div class="loading">LOADING FLEET HEALTH…</div>';
+  let d;
+  try{
+    const response=await fetch(DATA_URL+'?_='+Date.now(),{cache:'no-store'});
+    if(!response.ok)throw new Error('unavailable');
+    d=await response.json();
+    if(!d||d.engine!=='fleet-monitor'||d.schema_version!=='1.0'||d.privacy_version!=='fleet-metadata-20260909-v1'||!d.summary||!d.data_outputs||!Array.isArray(d.dependencies))throw new Error('schema');
+  }catch(e){
+    if(revision!==requestRevision)return;
+    document.getElementById('hero').innerHTML='<div class="loading">FLEET DATA UNAVAILABLE</div>';
+    document.getElementById('source-status').textContent='No verified fleet-monitor snapshot. Health is unknown.';
+    return;
+  }
+  if(revision!==requestRevision)return;
+  document.getElementById('full-response').textContent=JSON.stringify(d,null,2);
+  const ageHours=(Date.now()-Date.parse(d.generated_at))/3600000;
+  const ageLabel=!Number.isFinite(ageHours)||ageHours<0?'Snapshot timestamp unavailable or invalid':ageHours>6?'STALE MONITOR SNAPSHOT — current health is unknown':`Snapshot age ${ageHours.toFixed(1)}h`;
+  document.getElementById('source-status').textContent=`justhodl-fleet-monitor · ${ageLabel} · _health/fleet.json`;
   const col=sysColor(d.system_status);
   const s=d.summary||{};
   document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:${col}">
-    <div class="lab">System Status</div>
+    <div class="lab">Status reported at snapshot time</div>
     <div class="big" style="color:${col}">${esc((d.system_status||"?").toUpperCase())}</div>
-    <div class="meta">${s.dependencies_down||0} dependency outage(s) · ${s.data_outputs_stale_or_degraded||0} data output(s) stale/degraded · swept in ${d.elapsed_s||0}s</div>
+    <div class="meta">${esc(shown(s.dependencies_down))} dependency outage(s) · ${esc(shown(s.data_outputs_stale_or_degraded))} data output(s) stale/degraded · swept in ${esc(shown(d.elapsed_s))}s</div>
   </div>`;
 
   document.getElementById("cards").innerHTML=
@@ -104,17 +139,25 @@ async function main(){
      ["Aging",s.data_outputs_aging,"var(--yellow)"],
      ["Stale / Degraded",s.data_outputs_stale_or_degraded,(s.data_outputs_stale_or_degraded>0?"var(--red)":"var(--green)")],
      ["Lambda Fleet",s.lambda_count!=null?s.lambda_count:"—","var(--purple)"],
-     ["Deps Down",s.dependencies_down,(s.dependencies_down>0?"var(--red)":"var(--green)")]
-    ].map(([t,v,c])=>`<div class="card"><h3>${t}</h3><div class="v" style="color:${c}">${v==null?"—":v}</div></div>`).join("");
+     ["Deps Down",s.dependencies_down,(s.dependencies_down>0?"var(--red)":"var(--green)")],
+     ["Deps Degraded",s.dependencies_degraded,"var(--yellow)"],
+     ["Static Outputs",s.data_outputs_static,"var(--purple)"],
+     ["Cadence Mapped",s.data_outputs_cadence_mapped,"var(--cyan)"]
+    ].map(([t,v,c])=>`<div class="card"><h3>${t}</h3><div class="v" style="color:${c}">${esc(v==null?"—":v)}</div></div>`).join("");
 
   document.getElementById("deps").innerHTML=
-    (d.dependencies||[]).map(p=>row(p.name,p.status,p.detail)).join("")||'<div class="empty">no probes</div>';
+    d.dependencies.map(p=>row(p.name,p.status,p.detail)).join("")||'<div class="empty">No dependency probes returned; availability is unknown.</div>';
 
   const dat=d.data_outputs||{};
-  const bad=[].concat((dat.red||[]).map(x=>[x,"red"]),(dat.degraded||[]).map(x=>[x,"red"]),(dat.yellow||[]).map(x=>[x,"yellow"]));
+  const bad=[].concat(array(dat.red).map(x=>[x,"red"]),array(dat.degraded).map(x=>[x,"red"]),array(dat.yellow).map(x=>[x,"yellow"]));
   document.getElementById("issues").innerHTML=bad.length
-    ? bad.map(([x,st])=>row(x.output,st,(x.issue||"")+" · "+x.age_hours+"h")).join("")
-    : '<div class="empty">✓ all data outputs fresh — nothing flagged</div>';
+    ? bad.map(([x,st])=>row(x.output,st,`${x.issue||''} · age ${shown(x.age_hours)}h · size ${shown(x.size)} bytes · cadence ${shown(x.cadence_hours)}h`)).join("")
+    : `<div class="empty">${dat.available===true?'No issue rows returned in this snapshot.':'Data inventory unavailable; output health is unknown.'}</div>`;
+  document.getElementById('issue-coverage').textContent=`Reported totals: ${shown(dat.n_red)} stale/empty, ${shown(dat.n_degraded)} degraded, ${shown(dat.n_yellow)} aging. Showing ${bad.length} returned rows; producer caps are 40 stale, 40 degraded and 25 aging. Private content checks skipped: ${shown(dat.private_content_checks_skipped)}.`;
+  const compute=d.compute||{};
+  document.getElementById('compute').innerHTML=row('Lambda inventory',compute.available===true?'green':'unknown',compute.available===true?`${shown(compute.n_functions)} functions`:(compute.note||compute.error||'No inventory returned'));
+  document.getElementById('static').innerHTML=array(dat.static).map(x=>row(x.output,'unknown',`Age ${shown(x.age_hours)}h; freshness is not judged for event-driven/static outputs.`)).join('')||'<div class="empty">No static rows returned.</div>';
+  document.getElementById('static-coverage').textContent=`Showing ${array(dat.static).length} of ${shown(dat.n_static)} static outputs; producer returns at most 30 rows.`;
 
   document.getElementById("note").textContent=d.note||"";
   document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · schema "+(d.schema_version||"");

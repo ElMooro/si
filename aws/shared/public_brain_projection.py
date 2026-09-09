@@ -5,6 +5,7 @@ removes only known private-text paths, keeping market/risk measurements intact.
 It performs no IO and never logs the input.
 """
 from copy import deepcopy
+import math
 import re
 
 PUBLIC_CONTEXT_PRIVACY_VERSION = "20260909-public-inputs-v1"
@@ -97,13 +98,65 @@ def vault_search_rows(payload):
     return rows
 
 
+def fleet_public(document):
+    """Metadata-only fleet contract; arbitrary engine/SDK/provider text is private."""
+    def numbers(row, keys):
+        return {key: row[key] for key in keys if key in row and
+                (row[key] is None or (type(row[key]) in (int, float) and math.isfinite(row[key])))}
+
+    data = document.get("data_outputs") or {}
+    compute = document.get("compute") or {}
+    out = {"engine": "fleet-monitor", "schema_version": "1.0",
+           "generated_at": document.get("generated_at"),
+           "privacy_version": "fleet-metadata-20260909-v1",
+           "system_status": document.get("system_status") if document.get("system_status") in {"red", "yellow", "green"} else "unknown",
+           "summary": numbers(document.get("summary") or {}, ("data_outputs_total", "data_outputs_fresh", "data_outputs_aging",
+               "data_outputs_stale_or_degraded", "data_outputs_static", "data_outputs_cadence_mapped", "lambda_count", "dependencies_down", "dependencies_degraded")),
+           "data_outputs": {"available": data.get("available") is True, **numbers(data, ("total", "green", "n_yellow", "n_red", "n_degraded", "n_static", "manifest_outputs", "private_content_checks_skipped"))},
+           "compute": {"available": compute.get("available") is True, **numbers(compute, ("n_functions",))},
+           "dependencies": [],
+           "note": "Top-level data JSON age/size and public status checks; personal content is excluded. Dependency diagnostics contain fixed status categories only."}
+    out.update(numbers(document, ("elapsed_s",)))
+    if data.get("error"):
+        out["data_outputs"]["error"] = "DATA_INVENTORY_UNAVAILABLE"
+    if compute.get("available") is not True:
+        out["compute"].update(error="COMPUTE_INVENTORY_UNAVAILABLE", note="Lambda inventory unavailable; data-output health is reported separately.")
+    labels = {"red": "stale or empty output", "yellow": "aging output", "degraded": "engine reports an error"}
+    for group in ("red", "yellow", "degraded", "static"):
+        out["data_outputs"][group] = []
+        for row in _rows(data.get(group)):
+            if not isinstance(row, dict):
+                continue
+            name = row.get("output")
+            safe = {"output": name if isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,180}", name) else "unknown-output",
+                    **numbers(row, ("age_hours", "size", "cadence_hours"))}
+            if group != "static":
+                safe["issue"] = row.get("issue") if row.get("issue") in {"engine reports ok=false", "output status inspection unavailable"} else labels[group]
+            out["data_outputs"][group].append(safe)
+    providers = {"Anthropic API", "FRED", "FMP", "Polygon", "AlphaVantage", "CoinMarketCap"}
+    safe_details = {"ANTHROPIC_API_KEY not set on this function", "responding — credits OK", "CREDIT EXHAUSTED — every AI feature degrades",
+                    "rate limited", "auth failed — bad/expired key", "rate-limit notice in response", "key valid",
+                    "auth failed (HTTP 401) — key dead/expired", "auth failed (HTTP 403) — key dead/expired"}
+    for row in _rows(document.get("dependencies")):
+        if not isinstance(row, dict):
+            continue
+        detail = row.get("detail")
+        if not (isinstance(detail, str) and (detail in safe_details or re.fullmatch(r"dependency unavailable \(HTTP (?:[1-5][0-9]{2}|NO_RESPONSE)\)", detail))):
+            detail = "Dependency diagnostic text withheld; check reported status."
+        out["dependencies"].append({"name": row.get("name") if row.get("name") in providers else "Dependency",
+                                    "status": row.get("status") if row.get("status") in {"green", "yellow", "red", "unknown"} else "unknown", "detail": detail})
+    return out
+
+
 def sanitize_public(key, document, *, vault=None):
     """Return a copy; canonical and historical root-alias keys share one contract."""
     if not isinstance(document, dict):
         raise ValueError("public artifact must be an object")
     out = deepcopy(document)
     name = key.removeprefix("data/")
-    if name == "brain-compiler.json":
+    if name == "_health/fleet.json":
+        out = fleet_public(document)
+    elif name == "brain-compiler.json":
         for row in out.get("claims", []):
             row.pop("claim", None)
             row["claim_text_private"] = True

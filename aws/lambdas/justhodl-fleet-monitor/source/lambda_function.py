@@ -31,6 +31,8 @@ deep, tuned, curated net; this is the catch-all that nothing escapes.
 OUTPUT: _health/fleet.json   SCHEDULE: every 3h
 """
 from managed_secret import managed_secret
+from private_artifact import is_private_source
+from public_brain_projection import sanitize_public
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
@@ -83,8 +85,8 @@ def http(url, method="GET", headers=None, body=None, timeout=14):
             return r.status, r.read().decode("utf-8", "ignore")
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode("utf-8", "ignore")[:400]
-    except Exception as e:
-        return None, str(e)[:200]
+    except Exception:
+        return None, ""
 
 
 # ─────────────────────── 1. DATA OUTPUT SWEEP ───────────────────────
@@ -126,13 +128,14 @@ def sweep_data_outputs():
             token = resp.get("NextContinuationToken")
             if not token:
                 break
-    except Exception as e:
-        return {"available": False, "error": str(e)[:200]}
+    except Exception:
+        return {"available": False, "error": "DATA_INVENTORY_UNAVAILABLE"}
 
     cadence = load_cadence_manifest()
     t = now()
     red, yellow, degraded, static = [], [], [], []
     green = 0
+    private_content_checks_skipped = 0
     for key, lm, size in keys:
         age_h = (t - lm).total_seconds() / 3600.0
         name = key[len("data/"):-len(".json")]
@@ -167,6 +170,12 @@ def sweep_data_outputs():
             red.append(item)
             continue
         if age_h <= green_h:
+            # Personal artifacts remain measurable by metadata; their bodies
+            # must never become public fleet diagnostics.
+            if is_private_source(key):
+                private_content_checks_skipped += 1
+                green += 1
+                continue
             # fresh for its cadence — peek inside for a self-reported failure
             try:
                 d = json.loads(s3.get_object(
@@ -177,12 +186,13 @@ def sweep_data_outputs():
                         degraded.append(item)
                         continue
                     if d.get("error"):
-                        item["issue"] = (f"error field: "
-                                         f"{str(d.get('error'))[:80]}")
+                        item["issue"] = "engine reports an error"
                         degraded.append(item)
                         continue
             except Exception:
-                pass
+                item["issue"] = "output status inspection unavailable"
+                degraded.append(item)
+                continue
             green += 1
         else:
             item["issue"] = f"aging — {age_h:.0f}h since last write"
@@ -194,6 +204,7 @@ def sweep_data_outputs():
             "n_yellow": len(yellow), "n_red": len(red),
             "n_degraded": len(degraded), "n_static": len(static),
             "manifest_outputs": len(cadence),
+            "private_content_checks_skipped": private_content_checks_skipped,
             "red": red[:40], "degraded": degraded[:40],
             "yellow": yellow[:25], "static": static[:30]}
 
@@ -217,10 +228,9 @@ def sweep_compute():
             if not token:
                 break
         return {"available": True, "n_functions": len(names)}
-    except Exception as e:
-        return {"available": False, "error": str(e)[:160],
-                "note": "lambda:ListFunctions not granted to role — "
-                        "data-output sweep covers engine health instead"}
+    except Exception:
+        return {"available": False, "error": "COMPUTE_INVENTORY_UNAVAILABLE",
+                "note": "Lambda inventory unavailable; data-output health is reported separately."}
 
 
 # ─────────────────────── 3. DEPENDENCY PROBES ───────────────────────
@@ -249,7 +259,7 @@ def probe_anthropic():
         return {"name": "Anthropic API", "status": "red",
                 "detail": "auth failed — bad/expired key"}
     return {"name": "Anthropic API", "status": "yellow",
-            "detail": f"HTTP {code}: {str(text)[:80]}"}
+            "detail": f"dependency unavailable (HTTP {code if isinstance(code, int) else 'NO_RESPONSE'})"}
 
 
 def probe_provider(name, url, headers=None, av_check=False):
@@ -266,7 +276,7 @@ def probe_provider(name, url, headers=None, av_check=False):
     if code == 429:
         return {"name": name, "status": "yellow", "detail": "rate limited"}
     return {"name": name, "status": "yellow",
-            "detail": f"HTTP {code}: {str(text)[:70]}"}
+            "detail": f"dependency unavailable (HTTP {code if isinstance(code, int) else 'NO_RESPONSE'})"}
 
 
 def probe_dependencies():
@@ -349,6 +359,7 @@ def lambda_handler(event, context):
                  "engines are covered automatically. Complements the curated "
                  "health-monitor."),
     }
+    out = sanitize_public(OUT_KEY, out)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, default=str).encode("utf-8"),
                   ContentType="application/json",
@@ -388,8 +399,8 @@ def lambda_handler(event, context):
                           Body=json.dumps({"fp": fingerprint,
                                            "at": started.isoformat()}).encode(),
                           ContentType="application/json")
-        except Exception as e:
-            print(f"[fleet-monitor] alert-state write failed: {e}")
+        except Exception:
+            print("[fleet-monitor] alert-state write unavailable")
 
     out["alert_sent"] = alerted
     print(f"[fleet-monitor] system={system} "
