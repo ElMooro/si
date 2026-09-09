@@ -6,9 +6,10 @@ on:
       - '.github/workflows/audit-release-progress.yml'
       - 'scripts/audit_release_progress.py'
       - 'scripts/audit_public_api_status.py'
+      - 'scripts/audit_public_pages.py'
   workflow_dispatch:
   workflow_run:
-    workflows: [Deploy Lambdas, Run Ops Script]
+    workflows: [Deploy Lambdas, Run Ops Script, Deploy site to Pages]
     types: [completed]
 permissions:
   contents: write
@@ -17,6 +18,31 @@ concurrency:
   group: audit-release-progress
   cancel-in-progress: true
 jobs:
+  public-pages:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Deploy site to Pages' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check every published route against the completed deployment
+        env:
+          AUDIT_PAGES_DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+          AUDIT_PAGES_DEPLOYMENT_RUN: ${{ github.event.workflow_run.id }}
+        run: python3 scripts/audit_public_pages.py
+      - name: Preserve public HTML verification receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-page-sweep-${{ github.run_id }}
+          path: aws/ops/reports/5275_public_page_sweep.json
+          retention-days: 30
+      - name: Commit public HTML verification metadata
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add aws/ops/reports/5275_public_page_sweep.json
+          python3 scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'
   public-api:
     # Public HTTP GETs only. This job cannot access runner AWS credentials and
     # need not wait for the serialized cloud migration/deployment queue.
