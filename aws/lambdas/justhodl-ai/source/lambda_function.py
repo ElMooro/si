@@ -48,7 +48,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.2.1"
+VERSION = "1.2.3"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -334,7 +334,12 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
         raise ActionError("no SageMaker execution role bound yet (ops launch writes ai/control.json)")
     spec = sm_hub.describe_model(client("sagemaker"), model_id, body.get("version"))
     serverless = bool(body.get("serverless", policy.get("serverless_default", True)))
-    instance_type = body.get("instance_type") or spec.get("default_inference_instance")
+    instance_type = body.get("instance_type")
+    if not instance_type:
+        allowed = policy.get("allowed_inference_instances") or []
+        sup = [i for i in (spec.get("supported_inference_instances") or []) if i in allowed]
+        cpu = [i for i in sup if re.match(r"^ml\.(m|c|t|r)\d", i)]
+        instance_type = spec.get("default_inference_instance") if spec.get("default_inference_instance") in allowed else (cpu[0] if cpu else (sup[0] if sup else "ml.m5.xlarge"))
     ttl = float(body.get("ttl_hours") or policy.get("endpoint_ttl_hours") or 3)
     if not serverless:
         _guard_instance(policy, instance_type, "hosting", ttl)
@@ -342,7 +347,7 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     res = sm_hub.deploy_model(client("sagemaker"), client("s3"), spec=spec, role_arn=role, endpoint_name=ep, instance_type=instance_type,
                               serverless=serverless, private_bucket=PRIVATE_BUCKET, tags=cg.tags("hub:" + model_id, None if serverless else ttl, bool(body.get("pinned"))),
                               serverless_memory_mb=int(body.get("serverless_memory_mb") or 4096), serverless_max_conc=int(body.get("serverless_max_conc") or 4))
-    res.update({"model_id": model_id, "ttl_hours": None if serverless else ttl, "spec": {k: spec.get(k) for k in ("task", "framework", "hosting_image", "default_inference_instance", "training_supported")}})
+    res.update({"model_id": model_id, "ttl_hours": None if serverless else ttl, "spec": {k: spec.get(k) for k in ("task", "framework", "hosting_image", "default_inference_instance", "supported_inference_instances", "training_supported")}})
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
     return res
 
@@ -708,8 +713,13 @@ def _direct_claude(prompt: str, system: Optional[str], max_tokens: int) -> str:
             pass
         return txt
     except Exception as e:
-        _direct_claude.last_path = "direct-failed:%s" % str(e)[:80]
-        print("[ai] direct claude failed: %s" % str(e)[:160])
+        detail = ""
+        try:
+            detail = e.read().decode()[:300]          # HTTPError: the API's own message (credit balance, bad model id, ...)
+        except Exception:
+            pass
+        _direct_claude.last_path = "direct-failed:%s %s" % (str(e)[:80], detail)
+        print("[ai] direct claude failed: %s %s" % (str(e)[:160], detail))
         return ""
 
 

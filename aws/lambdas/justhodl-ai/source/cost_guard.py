@@ -212,7 +212,9 @@ def enforce_endpoint_ttl(sm, cw, endpoints: List[dict], policy: Dict[str, Any]) 
         inv = endpoint_invocations(cw, name, idle_h) if idle_h > 0 else None
         row.update({"age_hours": round(age_h, 2) if age_h is not None else None, "ttl_hours": ttl, "invocations_window": inv})
         kill = None
-        if ttl and age_h is not None and age_h > ttl:
+        if ep.get("status") in ("Failed", "OutOfService"):
+            kill = "endpoint %s (never bills; blocks the name)" % ep.get("status")
+        elif ttl and age_h is not None and age_h > ttl:
             kill = "past TTL %.1fh (age %.1fh)" % (ttl, age_h)
         elif idle_h and age_h is not None and age_h > idle_h and inv == 0 and ep.get("status") == "InService":
             kill = "idle: 0 invocations in %.0fh" % idle_h

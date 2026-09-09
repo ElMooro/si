@@ -167,10 +167,18 @@ def describe_model(sm, model_id: str, version: Optional[str] = None) -> Dict[str
     if isinstance(ie, list):
         for item in ie:
             if isinstance(item, dict) and item.get("Name") is not None:
-                env[str(item["Name"])] = str(item.get("DefaultValue", item.get("Value", "")))
+                val = None
+                for k in ("DefaultValue", "Value", "Default", "default_value", "value"):
+                    if item.get(k) not in (None, ""):
+                        val = item[k]
+                        break
+                if val is not None:                      # ops 5304: a blank override killed every container ("HF_MODEL_ID must be set")
+                    env[str(item["Name"])] = str(val)
     elif isinstance(ie, dict):
-        env = {str(k): str(v) for k, v in ie.items()}
+        env = {str(k): str(v) for k, v in ie.items() if v not in (None, "")}
     spec["inference_env"] = env
+    spec["inference_env_raw"] = (ie[:12] if isinstance(ie, list) else ie)
+    spec["hosting_variants"] = _first(doc, "HostingInstanceTypeVariants", "hosting_instance_type_variants", default=None)
     hp = {}
     for item in spec["hyperparameters"] or []:
         if isinstance(item, dict) and item.get("Name") is not None:
@@ -178,6 +186,48 @@ def describe_model(sm, model_id: str, version: Optional[str] = None) -> Dict[str
                                      "min": item.get("Min"), "max": item.get("Max"), "options": item.get("Options")}
     spec["hyperparameters"] = hp
     return spec
+
+
+def _resolve_alias(v, aliases: dict):
+    if isinstance(v, str) and v.startswith("$"):
+        return aliases.get(v[1:], aliases.get(v, v))
+    return v
+
+
+def variant_for(spec: dict, instance_type: Optional[str]) -> Dict[str, Any]:
+    """Image + env overrides the hub declares for an instance family (HostingInstanceTypeVariants:
+    {Aliases: {cpu_ecr_uri_1: ..., gpu_ecr_uri_1: ...}, Variants: {"ml.m5": {"properties": {"image_uri": "$cpu_ecr_uri_1", ...}}}}).
+    instance_type None means SERVERLESS -> the CPU variant when one exists (serverless has no GPU and a 10 GB image cap)."""
+    hv = spec.get("hosting_variants") or {}
+    if not isinstance(hv, dict):
+        return {}
+    aliases = hv.get("Aliases") or hv.get("aliases") or {}
+    variants = hv.get("Variants") or hv.get("variants") or {}
+    fam = None
+    if instance_type:
+        fam = instance_type.replace("ml.", "").split(".")[0]          # ml.m5.xlarge -> m5
+    cands = []
+    if fam:
+        cands = [k for k in variants if k.replace("ml.", "").split(".")[0] == fam or k.replace("ml.", "") == instance_type.replace("ml.", "")]
+    else:
+        cands = [k for k in variants if re.match(r"^(ml\.)?(m5|m6i|c5|c6i|c7i|t2|t3|r5|serverless)", k)]
+    out: Dict[str, Any] = {}
+    for k in cands:
+        props = (variants.get(k) or {}).get("properties") or (variants.get(k) or {})
+        img = _resolve_alias(props.get("image_uri") or props.get("ImageUri"), aliases)
+        if img and "image" not in out:
+            out["image"] = img
+            out["variant"] = k
+        envv = props.get("environment_variables") or props.get("EnvironmentVariables") or {}
+        if isinstance(envv, dict) and envv and "env" not in out:
+            out["env"] = {str(a): str(_resolve_alias(b, aliases)) for a, b in envv.items() if b not in (None, "")}
+    if not out.get("image") and not instance_type:
+        for a, v in aliases.items():
+            if "cpu" in a.lower() and isinstance(v, str):
+                out["image"] = v
+                out["variant"] = "alias:" + a
+                break
+    return out
 
 
 # ────────────────────────────────────────────────────────────────────── deploy
@@ -342,14 +392,22 @@ def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, insta
                  serverless_max_conc: int = 2) -> Dict[str, Any]:
     if not spec.get("hosting_image") or not (spec.get("hosting_artifact") or spec.get("hosting_prepacked_artifact")):
         raise RuntimeError("hub document for %s has no hosting image/artifact; keys=%s" % (spec.get("model_id"), spec.get("doc_keys")))
-    env = dict(spec.get("inference_env") or {})
+    var = variant_for(spec, None if serverless else instance_type)
+    image = var.get("image") or spec["hosting_image"]
+    if serverless and re.search(r"-gpu-|tei:[^ ]*-gpu|cu1\d\d", image):
+        raise RuntimeError("serverless needs a CPU image; the hub only declares %s for %s (deploy it real-time on a CPU instance instead)" % (image, spec.get("model_id")))
+    env = {k: v for k, v in (spec.get("inference_env") or {}).items() if v not in (None, "")}
+    env.update(var.get("env") or {})
     md = resolve_model_data(s3, spec, private_bucket, serverless=serverless)
     for k, v in (md.get("env") or {}).items():
         env.setdefault(k, v)
+    if "/tei" in image or "tei:" in image or "text-embeddings" in image:
+        env.setdefault("HF_MODEL_ID", "/opt/ml/model")          # TEI serves the prepacked local model dir (JumpStart's own setting)
     env.setdefault("SAGEMAKER_REGION", REGION)
     env.setdefault("MODEL_CACHE_ROOT", "/opt/ml/model")
+    env = {k: v for k, v in env.items() if v not in (None, "")}
     model_name = _safe_name(endpoint_name, "", _stamp())
-    container = {"Image": spec["hosting_image"], "Environment": env}
+    container = {"Image": image, "Environment": env}
     if md.get("source"):
         container["ModelDataSource"] = md["source"]
     else:
@@ -364,17 +422,31 @@ def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, insta
         variant["InstanceType"] = instance_type
         variant["InitialInstanceCount"] = 1
     sm.create_endpoint_config(EndpointConfigName=cfg_name, ProductionVariants=[variant], Tags=tags)
+    action = "created"
+    existing = None
     try:
-        sm.describe_endpoint(EndpointName=endpoint_name)
+        existing = sm.describe_endpoint(EndpointName=endpoint_name)
+    except Exception:
+        existing = None
+    if existing and existing.get("EndpointStatus") in ("Failed", "OutOfService"):
+        # a Failed namesake never bills but blocks the name and cannot be updated (ops 5304) -- clear it first
+        sm.delete_endpoint(EndpointName=endpoint_name)
+        for _ in range(60):
+            time.sleep(2)
+            try:
+                sm.describe_endpoint(EndpointName=endpoint_name)
+            except Exception:
+                existing = None
+                break
+        action = "recreated-after-failed"
+    if existing and existing.get("EndpointStatus") not in ("Failed", "OutOfService"):
         sm.update_endpoint(EndpointName=endpoint_name, EndpointConfigName=cfg_name)
         action = "updated"
-    except Exception as e:
-        if "Could not find" not in str(e) and "ValidationException" not in type(e).__name__ and "does not exist" not in str(e):
-            pass
+    else:
         sm.create_endpoint(EndpointName=endpoint_name, EndpointConfigName=cfg_name, Tags=tags)
-        action = "created"
     return {"endpoint": endpoint_name, "model": model_name, "endpoint_config": cfg_name, "model_data": model_data, "artifact_how": md.get("how"),
-            "artifact_probes": md.get("probes"), "serverless": serverless, "instance_type": None if serverless else instance_type, "action": action}
+            "artifact_probes": md.get("probes"), "serverless": serverless, "instance_type": None if serverless else instance_type, "action": action,
+            "image": image, "variant": var.get("variant"), "env": env}
 
 
 # ──────────────────────────────────────────────────────────────────── invoke

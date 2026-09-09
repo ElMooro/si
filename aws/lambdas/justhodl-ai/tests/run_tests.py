@@ -55,12 +55,18 @@ class FakeS3:
         return {"Contents": hits, "KeyCount": len(hits)}
 
 
-HUB_DOC = {"HostingEcrUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.8.0-cpu-py37",
+HUB_DOC = {"HostingEcrUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
            "HostingArtifactUri": "s3://jumpstart-cache-prod-us-east-1/mxnet-infer/infer-mxnet-tcembedding-robertafin-base-uncased.tar.gz",
            "HostingScriptUri": "s3://jumpstart-cache-prod-us-east-1/source-directory-tarballs/mxnet/inference/tcembedding/v1.0.0/sourcedir.tar.gz",
            "InferenceEnvironmentVariables": [{"Name": "SAGEMAKER_PROGRAM", "DefaultValue": "inference.py", "Scope": "container"},
-                                             {"Name": "MODEL_CACHE_ROOT", "DefaultValue": "/opt/ml/model", "Scope": "container"}],
-           "DefaultInferenceInstanceType": "ml.m5.xlarge", "SupportedInferenceInstanceTypes": ["ml.m5.xlarge", "ml.m5.2xlarge"],
+                                             {"Name": "MODEL_CACHE_ROOT", "DefaultValue": "/opt/ml/model", "Scope": "container"},
+                                             {"Name": "SAGEMAKER_MODEL_SERVER_WORKERS", "Scope": "container"},
+                                             {"Name": "HF_MODEL_ID", "DefaultValue": "", "Scope": "container"}],
+           "HostingInstanceTypeVariants": {"Aliases": {"cpu_ecr_uri_1": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38",
+                                                        "gpu_ecr_uri_1": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38"},
+                                           "Variants": {"ml.m5": {"properties": {"image_uri": "$cpu_ecr_uri_1"}}, "ml.c5": {"properties": {"image_uri": "$cpu_ecr_uri_1"}},
+                                                        "ml.g4dn": {"properties": {"image_uri": "$gpu_ecr_uri_1", "environment_variables": {"SAGEMAKER_MODEL_SERVER_WORKERS": "1"}}}}},
+           "DefaultInferenceInstanceType": "ml.g4dn.xlarge", "SupportedInferenceInstanceTypes": ["ml.g4dn.xlarge", "ml.m5.xlarge", "ml.m5.2xlarge"],
            "TrainingSupported": False, "Task": "tcembedding", "Framework": "mxnet"}
 FT_DOC = {**HUB_DOC, "TrainingSupported": True, "TrainingEcrUri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04",
           "TrainingArtifactUri": "s3://jumpstart-cache-prod-us-east-1/huggingface-training/train-x.tar.gz",
@@ -268,8 +274,10 @@ def test_describe_model_parses_document():
     store = _install_fakes()
     import sm_hub
     spec = sm_hub.describe_model(store["sagemaker"], "huggingface-llm-finance-x")
-    assert spec["hosting_image"].endswith("mxnet-inference:1.8.0-cpu-py37")
-    assert spec["inference_env"] == {"SAGEMAKER_PROGRAM": "inference.py", "MODEL_CACHE_ROOT": "/opt/ml/model"}
+    assert spec["hosting_image"].endswith("mxnet-inference:1.9.0-gpu-py38")
+    assert spec["inference_env"] == {"SAGEMAKER_PROGRAM": "inference.py", "MODEL_CACHE_ROOT": "/opt/ml/model"}, spec["inference_env"]   # blanks never become overrides
+    assert sm_hub.variant_for(spec, "ml.m5.xlarge")["image"].endswith("1.9.0-cpu-py38") and sm_hub.variant_for(spec, "ml.g4dn.xlarge")["env"] == {"SAGEMAKER_MODEL_SERVER_WORKERS": "1"}
+    assert sm_hub.variant_for(spec, None)["image"].endswith("cpu-py38")   # serverless -> the CPU variant
     assert spec["training_supported"] and spec["hyperparameters"]["epochs"]["default"] == "3"
     assert spec["default_training_instance"] == "ml.g5.2xlarge" and "HostingEcrUri" in spec["doc_keys"]
     return "image/env/hyperparameters/instances parsed"
@@ -329,6 +337,13 @@ def test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes():
     cm = [c for c in store["sagemaker"].calls if c[0] == "create_model"][-1][1]
     assert "ModelDataSource" in cm["PrimaryContainer"] and res["artifact_how"] == "prepacked-prefix"
     assert cm["PrimaryContainer"]["Environment"]["SAGEMAKER_SUBMIT_DIRECTORY"] == "/opt/ml/model/code" and cm["PrimaryContainer"]["Environment"]["SAGEMAKER_PROGRAM"] == "inference.py"
+    assert cm["PrimaryContainer"]["Image"].endswith("1.9.0-cpu-py38") and res["variant"] == "ml.m5" and "" not in cm["PrimaryContainer"]["Environment"].values()
+    gpu_only = dict(spec); gpu_only["hosting_variants"] = None
+    try:
+        sm_hub.deploy_model(store["sagemaker"], s3, spec=gpu_only, role_arn="arn:role", endpoint_name="jh-ai-g", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+        raise AssertionError("gpu-only image must be refused on serverless")
+    except RuntimeError as e:
+        assert "CPU image" in str(e)
     res2 = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p2", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
     cm2 = [c for c in store["sagemaker"].calls if c[0] == "create_model"][-1][1]
     assert res2["artifact_how"] == "prefix-tar-repacked" and cm2["PrimaryContainer"]["ModelDataUrl"] == "s3://private-test/ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz"
@@ -337,6 +352,9 @@ def test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes():
     assert "ServerlessConfig" in [c for c in store["sagemaker"].calls if c[0] == "create_endpoint_config"][-1][1]["ProductionVariants"][0]
     res3 = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p3", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
     assert res3["artifact_how"] == "prefix-tar-cached"
+    store["sagemaker"].endpoints["jh-ai-p3"]["EndpointStatus"] = "Failed"
+    res4 = sm_hub.deploy_model(store["sagemaker"], s3, spec=spec, role_arn="arn:role", endpoint_name="jh-ai-p3", instance_type=None, serverless=True, private_bucket="private-test", tags=[])
+    assert res4["action"] == "recreated-after-failed" and ("delete_endpoint", "jh-ai-p3") in store["sagemaker"].calls
     return "probes named on failure; prepacked > prefix > repack"
 
 
@@ -417,10 +435,11 @@ def test_cost_guard_rules():
     old = (datetime.now(timezone.utc) - timedelta(hours=5)).isoformat()
     eps = [{"name": "jh-ai-old", "status": "InService", "created_at": old, "tags": {"justhodl-ai-managed": "true", "justhodl-ai-ttl-hours": "3"}},
            {"name": "jh-ai-pinned", "status": "InService", "created_at": old, "tags": {"justhodl-ai-managed": "true", "justhodl-ai-pinned": "true"}},
-           {"name": "someone-elses", "status": "InService", "created_at": old, "tags": {}}]
+           {"name": "someone-elses", "status": "InService", "created_at": old, "tags": {}},
+           {"name": "jh-ai-dead", "status": "Failed", "created_at": old, "tags": {"justhodl-ai-managed": "true"}}]
     ledger = cg.enforce_endpoint_ttl(sm, FakeCW(0.0), eps, pol)
     acts = {r["endpoint"]: r["action"] for r in ledger}
-    assert acts == {"jh-ai-old": "deleted", "jh-ai-pinned": "keep", "someone-elses": "keep"}, acts
+    assert acts == {"jh-ai-old": "deleted", "jh-ai-pinned": "keep", "someone-elses": "keep", "jh-ai-dead": "deleted"}, acts
     assert ("delete_endpoint", "jh-ai-old") in sm.calls and ("delete_endpoint", "someone-elses") not in sm.calls
     return "allow-list, budget, unpriced refusal, TTL ledger"
 
