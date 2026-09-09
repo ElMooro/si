@@ -71,6 +71,13 @@ def test_health_and_preflight_do_not_fetch_or_claim_provider_health():
         assert fmp.lambda_handler({'rawPath':'/debug'},None)['statusCode']==404
 
 
+def test_function_url_is_the_only_cors_header_owner():
+    for event in ({'rawPath':'/health'},{'httpMethod':'OPTIONS'},{'httpMethod':'POST'},{'rawPath':'/debug'}):
+        result=fmp.lambda_handler(event,None)
+        assert not any(name.lower().startswith('access-control-') for name in result['headers'])
+        assert result['headers']['Cache-Control']=='no-store'
+
+
 def test_internal_exception_never_leaks_trace_or_secret():
     fmp.CACHE=None
     with patch.object(fmp,'snapshot',side_effect=RuntimeError('SYNTHETIC_SECRET')):result=fmp.lambda_handler({},None)
