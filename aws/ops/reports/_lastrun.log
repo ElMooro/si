@@ -1,4 +1,5 @@
-executing-against: fd6f1b454b7123605d296fb970ad69db88f479f0
-{"ok": true, "events": 18, "report": "aws/ops/reports/5247_research_failure_metadata.json"}
+executing-against: 9e9d103ca8152ac72734ae1d71ef7df887a6e516
+{"actual_workflow_sha": "9e9d103ca8152ac72734ae1d71ef7df887a6e516", "aws_calls": 0, "base_sha": "fee895b944849ac6ae0d7d47359caaba1d653236", "checkout_verification": "REQUIRED_IN_RELEASE_JOB", "expected_checkout_sha": "9e9d103ca8152ac72734ae1d71ef7df887a6e516", "http_status": 200, "operation": "5248", "request_sent": true, "requested_at": "2026-09-09T13:01:38.710263+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34354507709", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34354507709, "workflow_sha": "9e9d103ca8152ac72734ae1d71ef7df887a6e516", "workflow_sha_matches": true}
+[13:01:40] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
 
-→ Report written to aws/ops/reports/latest/ops_5247_research_failure_metadata.md
+→ Report written to aws/ops/reports/latest/ops_5248_retry_pinned_core_release.md
