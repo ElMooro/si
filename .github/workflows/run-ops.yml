@@ -161,13 +161,27 @@ jobs:
         continue-on-error: true
         run: python aws/ops/_gen_state.py || true
 
+      - name: Preserve reviewed audit receipts before commit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-receipts-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: ignore
+          path: |
+            aws/ops/reports/5230_audit_privacy_migration.json
+            aws/ops/reports/5230_audit_privacy_progress.json
+            aws/ops/reports/5231_audit_release_verify.json
+            aws/ops/reports/5234_core_layer_reconciliation.json
+
       - name: Commit any new/changed reports or imports
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Always pull latest to avoid push-rejected races
-          git pull --rebase origin main || true
+          set -euo pipefail
+          # Stage and commit before rebasing. Rebase refuses a dirty tree, and
+          # stale generated manifests must not overwrite newer engine source.
           # Stage the standard ops paths plus root *.html (dashboard pages
           # served by GitHub Pages) and cloudflare/ (CF Worker source).
           # aws/ops/pending/ and aws/ops/ran/ are now both committed so
@@ -182,9 +196,7 @@ jobs:
           # that existed only in S3.
           if [ -n "$(git status --porcelain STATE.md aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ config/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ 2>/dev/null)" ]; then
             git add STATE.md aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ config/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ engine-manifest.json 2>/dev/null || git add STATE.md aws/ops/reports/ aws/ops/audit/ aws/lambdas/
-            git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
-            git push || (git pull --rebase origin main && git push)
-            echo "Committed changes"
+            python scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'
           else
             echo "No changes to commit"
           fi

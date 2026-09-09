@@ -231,6 +231,37 @@ def checked_config(lam, function, expected, *, owned_mutation=False):
     return current
 
 
+def pin_verified_version(lam, function, expected):
+    """Pin exact code/config, reusing an immutable version after a completed retry."""
+    checked_config(lam, function, expected)
+    try:
+        result = lam.publish_version(FunctionName=function, RevisionId=expected['RevisionId'],
+                                     CodeSha256=expected['CodeSha256'])
+        version = str(result.get('Version', ''))
+    except Exception as exc:
+        if error_code(exc) != 'ResourceConflictException':
+            raise
+        checked_config(lam, function, expected)
+        candidates = []
+        for page in lam.get_paginator('list_versions_by_function').paginate(FunctionName=function):
+            candidates.extend(row['Version'] for row in page.get('Versions', [])
+                              if str(row.get('Version', '')).isdigit()
+                              and row.get('CodeSha256') == expected['CodeSha256'])
+        version = ''
+        for candidate in sorted(candidates, key=int, reverse=True):
+            config = lam.get_function_configuration(FunctionName=function, Qualifier=candidate)
+            stable_config(config, qualified=True)
+            if business_config(config) == business_config(expected):
+                version = candidate
+                break
+    require(version.isdigit() and int(version)>0, 'exact_numbered_version_unavailable')
+    pinned = lam.get_function_configuration(FunctionName=function, Qualifier=version)
+    stable_config(pinned, qualified=True)
+    require(business_config(pinned) == business_config(expected), 'pinned_version_config_mismatch')
+    checked_config(lam, function, expected, owned_mutation=True)
+    return version
+
+
 def update_environment(lam, function, additions, expected_sha):
     """CAS only the intended env values; never promote unrelated staged config."""
     before = lam.get_function_configuration(FunctionName=function)
@@ -634,8 +665,7 @@ class Migration:
         _, old = self.read_object("data/search/provider-shards.json")
         self.readiness("provider-catalog")  # Exact source gate immediately before rebuilding.
         cfg = self.ready["provider-catalog"]
-        pinned = self.clients["lambda"].publish_version(FunctionName="justhodl-provider-catalog", RevisionId=cfg["RevisionId"], CodeSha256=cfg["CodeSha256"])
-        version = pinned.get("Version")
+        version = pin_verified_version(self.clients["lambda"], "justhodl-provider-catalog", cfg)
         require(str(version).isdigit(), "provider_rebuild_version_missing")
         started = time.time()
         self.invoke("provider-catalog", {}, version)

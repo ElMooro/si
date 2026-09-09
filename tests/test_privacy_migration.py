@@ -123,6 +123,33 @@ class FakeLambda:
 
 
 class PublicMigrationTests(unittest.TestCase):
+    def test_completed_retry_reuses_only_exact_immutable_code_and_config(self):
+        lam=FakeLambda(live=False)
+        lam.versions['8']=lam.numbered('8')
+        lam.versions['9']={**lam.numbered('9'),'MemorySize':2048}
+        lam.publish_version=lambda **kw: (_ for _ in ()).throw(object_error('ResourceConflictException'))
+        lam.get_paginator=lambda name: types.SimpleNamespace(paginate=lambda **kw:[{'Versions':[
+            {'Version':v,'CodeSha256':c['CodeSha256']} for v,c in lam.versions.items()]}])
+        version=migration.pin_verified_version(lam,'justhodl-fixture',deepcopy(lam.config))
+        self.assertEqual(version,'8')
+        self.assertFalse(any(kind in ('update','alias') for kind,_ in lam.calls))
+
+    def test_completed_retry_rejects_same_code_with_different_execution_config(self):
+        lam=FakeLambda(live=False)
+        lam.versions['3']['MemorySize']=2048
+        lam.publish_version=lambda **kw: (_ for _ in ()).throw(object_error('ResourceConflictException'))
+        lam.get_paginator=lambda name: types.SimpleNamespace(paginate=lambda **kw:[{'Versions':[
+            {'Version':'3','CodeSha256':'reviewed'}]}])
+        with self.assertRaisesRegex(migration.MigrationError,'exact_numbered_version_unavailable'):
+            migration.pin_verified_version(lam,'justhodl-fixture',deepcopy(lam.config))
+
+    def test_version_reuse_does_not_suppress_permission_failures(self):
+        lam=FakeLambda(live=False)
+        lam.publish_version=lambda **kw: (_ for _ in ()).throw(object_error('AccessDeniedException'))
+        with self.assertRaises(RuntimeError) as caught:
+            migration.pin_verified_version(lam,'justhodl-fixture',deepcopy(lam.config))
+        self.assertEqual(migration.error_code(caught.exception),'AccessDeniedException')
+
     def test_temporary_policy_deduplicates_history_without_weakening_protection(self):
         from audit_20260909_security import historical_protection_installed
         class PolicyStore:
