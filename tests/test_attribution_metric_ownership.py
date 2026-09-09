@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'aws/shared'))
 class S3Error(Exception):
     def __init__(self,code): self.response={'Error':{'Code':code}};super().__init__(code)
 class S3:

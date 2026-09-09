@@ -7,6 +7,7 @@ from collections import Counter
 from datetime import datetime, timezone
 
 import boto3
+from public_brain_projection import source_map_public, SOURCE_MAP_FAMILIES, SOURCE_MAP_SYMBOL
 
 MARKER = "source-map engine v3 public-source-map.v1"
 BUCKET = "justhodl-dashboard-live"
@@ -81,8 +82,8 @@ def gj(key, default=None):
 
 
 # Public symbols are qualified market identifiers, never free-form browser labels.
-PUBLIC_SYMBOL = re.compile(r'^(?:ECONOMICS|FRED|NASDAQ|NYSE|AMEX|ARCA|CBOE|CME|CBOT|COMEX|NYMEX|ICEUS|TVC|CRYPTOCAP|BINANCE|COINBASE|BITSTAMP|KRAKEN|OANDA|FX):[A-Z0-9][A-Z0-9_.!^/-]{0,39}$')
-PUBLIC_FAMILIES = frozenset(KNOWN) | {'UNMAPPED', 'OTHER-OFFICIAL'}
+PUBLIC_SYMBOL = SOURCE_MAP_SYMBOL
+PUBLIC_FAMILIES = SOURCE_MAP_FAMILIES
 
 
 def public_number(value):
@@ -175,6 +176,7 @@ def lambda_handler(event, context):
            'public_symbol_count':len(cleaned),'withheld_symbol_count':len(real)-len(cleaned),
            'unmapped_source_rows':families.get('UNMAPPED',0),
            'errors':[] if available else ['SOURCE_INPUT_UNAVAILABLE']}
+    out = source_map_public(out)
     s3.put_object(Bucket=BUCKET,Key='data/source-map.json',Body=json.dumps(out,allow_nan=False),
                   ContentType='application/json',CacheControl='max-age=120')
     return {'statusCode':200,'body':json.dumps({'symbols_with_source':len(real),'public_symbol_count':len(cleaned),'input_status':out['input_status']})}
