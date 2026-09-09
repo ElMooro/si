@@ -1,10 +1,10 @@
 {
   "ops": 5285,
-  "ok": false,
-  "status": "PUBLICATION_PENDING",
+  "ok": true,
+  "status": "VERIFIED",
   "private_payloads_reported": 0,
   "raw_lambda_responses_reported": 0,
-  "checkout_sha": "37027bf9e94bbd52a1002b0196268f65e189774e",
+  "checkout_sha": "d8b369c80a7eb79df63c91d25286c7df131e3cb9",
   "code": {
     "justhodl-bloomberg-v8": {
       "function": "justhodl-bloomberg-v8",
@@ -17,9 +17,15 @@
           "match": true
         },
         {
+          "member": "bloomberg_math.py",
+          "expected_sha256": "9f690e8ab99b59b6215cbb38b22ff5e8cdd64f5af3da22c353351486cdca4c0b",
+          "actual_sha256": "9f690e8ab99b59b6215cbb38b22ff5e8cdd64f5af3da22c353351486cdca4c0b",
+          "match": true
+        },
+        {
           "member": "lambda_function.py",
-          "expected_sha256": "fa1dd454315e0b7cd09fc5fdba51a873b30f84d13a101fc860ee019a3637bd3d",
-          "actual_sha256": "fa1dd454315e0b7cd09fc5fdba51a873b30f84d13a101fc860ee019a3637bd3d",
+          "expected_sha256": "4ac80205b334c9ff5f8f3e511785685e5e7f67c514b2e2e84e56816de5fce43d",
+          "actual_sha256": "4ac80205b334c9ff5f8f3e511785685e5e7f67c514b2e2e84e56816de5fce43d",
           "match": true
         },
         {
@@ -37,10 +43,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "0sLSEI7Yzuew69JUUQ8OpxljW4k2S2HgDgElogZ2KRs=",
+      "code_sha256": "oh6cQvHIYIT6Ci1DG0XgVWd8hoYof6ZGAGuZ2hgM1iw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T17:03:34.000+0000",
+      "last_modified": "2026-09-09T17:21:35.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -89,13 +95,24 @@
     "justhodl-bloomberg-v8": [
       {
         "key": "data/bloomberg-report.json",
-        "status": "PENDING_OUTPUT",
+        "status": "VERIFIED_BLOCKED_REQUIREMENTS",
         "errors": [],
-        "requirements": [],
+        "requirements": [
+          "BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE",
+          "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
+        ],
         "expected_output_contract": "bloomberg_v8_market_report",
         "expected_producer": "justhodl-bloomberg-v8",
-        "error_type": "NoSuchKey",
-        "error_code": "NoSuchKey"
+        "bytes": 3001896,
+        "last_modified": "2026-09-09T17:22:23+00:00",
+        "generated_at": "2026-09-09T17:22:17.165510+00:00",
+        "version_id": "XWBXRGAvkuia2iavI4C4Ygnn_hxbs2hm",
+        "schema_version": "bloomberg-report.v8.1",
+        "producer_version": null,
+        "producer": "justhodl-bloomberg-v8",
+        "source_code_version_marker_present": false,
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {}
       }
     ],
     "justhodl-options-flow": [
@@ -115,27 +132,11 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T17:05:10.024508+00:00",
         "counts": {}
       }
     ]
   },
-  "invocations": [
-    {
-      "function": "justhodl-bloomberg-v8",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T17:05:09.362159+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-options-flow",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T17:05:10.024508+00:00",
-      "mode": "regular_quiet_publish"
-    }
-  ],
+  "invocations": [],
   "requirements": [],
   "artifact_scope": {
     "justhodl-bloomberg-v8": {
@@ -150,5 +151,5 @@
     }
   },
   "source_parity_pending": [],
-  "finished_at": "2026-09-09T17:12:10.282108+00:00"
+  "finished_at": "2026-09-09T17:23:12.749042+00:00"
 }

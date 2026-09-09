@@ -1,25 +1,10 @@
-executing-against: 37027bf9e94bbd52a1002b0196268f65e189774e
-{"ops": 5284, "ok": true, "status": "DUPLICATE_RULES_DISABLED_SCHEDULERS_PRESERVED"}
+executing-against: d8b369c80a7eb79df63c91d25286c7df131e3cb9
+<unknown>:32: SyntaxWarning: invalid escape sequence '\$'
+<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
+<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
+{"ops": 5231, "phase": "package_parity", "matched": 135, "pending": 0}
+{"ops": 5231, "phase": "publication", "stage": ["backtest-engine", "research-backtest", "options-flow", "options-flow-scanner", "bloomberg-v8", "ecb-derived"], "pending": 1}
+{"ops": 5231, "ok": false, "status": "PENDING_SCHEDULED_OUTPUTS", "stage": "final", "code_engines": 135, "pending_outputs": 68, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
+❌ OPS-FAIL: aws/ops/pending/ops_5231_audit_release_verify.py
 {"ops": 5231, "phase": "package_parity", "matched": 2, "pending": 0}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8", "justhodl-options-flow"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "phase": "publication", "pending": ["justhodl-bloomberg-v8"]}
-{"ops": 5285, "ok": false, "status": "PUBLICATION_PENDING"}
-❌ OPS-FAIL: aws/ops/pending/ops_5285_cadence_publication_verify.py
+{"ops": 5285, "ok": true, "status": "VERIFIED"}
