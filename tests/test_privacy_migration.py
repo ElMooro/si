@@ -618,6 +618,44 @@ class PublicMigrationTests(unittest.TestCase):
         sleep.assert_called_once_with(1)
         self.assertNotIn(MARKER, json.dumps(job.rows))
 
+    def test_service_identity_preflight_never_reads_private_body(self):
+        for status, expected in ((200, True), (503, True), (401, False), (403, False)):
+            requests = []
+            class Head:
+                headers = {"Cache-Control": "private, no-store"}
+                def __enter__(self): return self
+                def __exit__(self, *args): pass
+                def read(self, *args): raise AssertionError("HEAD body must not be read")
+            def http(request, timeout):
+                requests.append(request)
+                if status != 200:
+                    raise urllib.error.HTTPError(request.full_url, status, MARKER, Head.headers, io.BytesIO(MARKER.encode()))
+                response = Head();response.status = status;return response
+            job = migration.Migration(ROOT, {}, http=http)
+            if expected: job.verify_service_access(MARKER)
+            else:
+                with self.assertRaisesRegex(migration.MigrationError, "worker_service_identity_not_verified"):
+                    job.verify_service_access(MARKER)
+            self.assertEqual(requests[0].method, "HEAD")
+            self.assertEqual(requests[0].get_header("User-agent"), "JustHodl-PrivateArtifacts/20260909")
+            self.assertIsNone(requests[0].data)
+            self.assertNotIn(MARKER, json.dumps(job.rows))
+
+    def test_seed_http_error_records_only_fixed_key_and_status(self):
+        key = next(iter(migration.MIRRORED_ARTIFACTS))
+        store = MemoryS3({key: {"private_prose": MARKER}})
+        errors = []
+        def http(request, timeout):
+            self.assertEqual(request.get_header("User-agent"), "JustHodl-PrivateArtifacts/20260909")
+            error = urllib.error.HTTPError(request.full_url, 403, MARKER, {}, io.BytesIO(MARKER.encode()))
+            errors.append(error);raise error
+        job = migration.Migration(ROOT, {"s3": store}, http=http)
+        with self.assertRaisesRegex(migration.MigrationError, "private_mirror_write_rejected"):
+            job.seed(MARKER)
+        self.assertEqual(job.rows, [{"check": "private_mirror_write_http_failure", "key": key, "status": 403}])
+        self.assertTrue(errors[0].closed)
+        self.assertNotIn(MARKER, json.dumps(job.rows))
+
     def test_wrong_account_never_mutates_and_code_gate_precedes_identity_or_seed(self):
         job = migration.Migration(ROOT, {"sts": types.SimpleNamespace(get_caller_identity=lambda: {"Account": "other"})})
         with self.assertRaisesRegex(migration.MigrationError, "wrong_aws_account"):

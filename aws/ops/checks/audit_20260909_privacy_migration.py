@@ -461,10 +461,15 @@ class Migration:
                 raw = encoded(doc)
                 require(len(raw) <= 20000000, "private_artifact_exceeds_worker_limit")
                 req = urllib.request.Request(WORKER + "/private-artifact?kind=" + kind, method="PUT", data=raw,
-                    headers={"X-JH-Service-Token": token, "Content-Type": "application/json"})
-                with self.http(req, timeout=30) as response:
-                    ack = json.loads(bounded_read(response, 1024))
-                    require(response.status == 200 and ack.get("ok") is True, "private_mirror_not_acknowledged")
+                    headers={"User-Agent": "JustHodl-PrivateArtifacts/20260909", "X-JH-Service-Token": token, "Content-Type": "application/json"})
+                try:
+                    with self.http(req, timeout=30) as response:
+                        ack = json.loads(bounded_read(response, 1024))
+                        require(response.status == 200 and ack.get("ok") is True, "private_mirror_not_acknowledged")
+                except urllib.error.HTTPError as exc:
+                    self.record("private_mirror_write_http_failure", key=key, status=exc.code)
+                    exc.close()  # Never read or report an error body or request headers.
+                    raise MigrationError("private_mirror_write_rejected") from None
                 head = self.clients["s3"].head_object(Bucket=BUCKET, Key=key)
                 if head.get("ETag") == obj.get("ETag"):
                     break
@@ -529,7 +534,7 @@ class Migration:
         # KV is eventually consistent across locations; retry HEAD only and never
         # fetch a private response body for verification. 63 seconds total delay.
         for attempt in range(7):
-            req = urllib.request.Request(WORKER + "/private-artifact?kind=" + kind, method="HEAD", headers={"X-JH-Service-Token": token})
+            req = urllib.request.Request(WORKER + "/private-artifact?kind=" + kind, method="HEAD", headers={"User-Agent": "JustHodl-PrivateArtifacts/20260909", "X-JH-Service-Token": token})
             try:
                 with self.http(req, timeout=20) as response:
                     if response.status == 200 and "no-store" in response.headers.get("Cache-Control", ""):
@@ -541,6 +546,21 @@ class Migration:
             if attempt < 6:
                 time.sleep(2 ** attempt)
         raise MigrationError("private_mirror_not_readable_after_propagation_window")
+
+    def verify_service_access(self, token):
+        # HEAD establishes the deployed Worker's identity boundary before any
+        # private body is sent. A cold, authenticated mirror may return 503.
+        request = urllib.request.Request(WORKER + "/private-artifact?kind=brain", method="HEAD",
+            headers={"User-Agent": "JustHodl-PrivateArtifacts/20260909", "X-JH-Service-Token": token})
+        try:
+            with self.http(request, timeout=20) as response:
+                status, headers = response.status, response.headers
+        except urllib.error.HTTPError as exc:
+            status, headers = exc.code, exc.headers
+            exc.close()
+        valid = status in (200, 503) and "no-store" in headers.get("Cache-Control", "")
+        self.record("service_identity_head", status=status, ok=valid)
+        require(valid, "worker_service_identity_not_verified")
 
     def scrub(self, key, vault=None, optional=False):
         for attempt in range(3):
@@ -642,6 +662,7 @@ class Migration:
         parameter = self.clients["ssm"].get_parameter(Name=TOKEN_PARAM, WithDecryption=True)["Parameter"]
         require(parameter.get("Type") == "SecureString" and bool(parameter.get("Value")), "managed_service_token_missing")
         token = parameter["Value"]
+        self.verify_service_access(token)
         self.configure(token)
         self.step = "preserve_private_derivative_originals"
         self.bootstrap_private_derivatives()
