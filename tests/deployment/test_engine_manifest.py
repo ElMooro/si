@@ -27,7 +27,9 @@ def lambda_handler(e, c):
     s3.put_object(Bucket="b", Key="data/activity-nowcast/snapshots/%s.json" % "x", Body=b"{}")
 '''
     w, r, ok = m.ast_keys(code)
-    assert ok and w == ["data/activity-nowcast/snapshots/*.json", "etf-flows/composite.json", "etf-flows/daily.json"], w
+    assert ok and w == ["data/activity-nowcast/snapshots/x.json", "etf-flows/composite.json", "etf-flows/daily.json"], w
+    dynamic, _, parsed = m.ast_keys(code.replace('% "x"', '% observed_date'))
+    assert parsed and dynamic == ["data/activity-nowcast/snapshots/*.json", "etf-flows/composite.json", "etf-flows/daily.json"], dynamic
 
 
 def test_a_read_after_a_write_is_not_an_output_and_wrappers_bind_their_key_argument():
@@ -50,7 +52,7 @@ def lambda_handler(e, c):
     assert "data/indicator-bus.json" not in w
 
 
-def test_parse_failure_falls_back_to_the_regex_scanner_flagged_as_such():
+def test_parse_failure_remains_explicit_without_unsafe_regex_fallback():
     m = _mod()
     w, r, ok = m.ast_keys("def broken(:\n  pass")
     assert ok is False and w == [] and r == []
