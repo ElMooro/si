@@ -1,0 +1,197 @@
+{
+  "function": "justhodl-research-backtest",
+  "scope": "READ_ONLY_RUNTIME_METADATA",
+  "configuration": {
+    "FunctionName": "justhodl-research-backtest",
+    "Version": "$LATEST",
+    "Runtime": "python3.12",
+    "Timeout": 900,
+    "MemorySize": 1024,
+    "CodeSha256": "DgVMfE55xSvVZHLScG7MC7zDTAq3KZJ+X+bUyA5Q6sI=",
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "LastModified": "2026-09-09T12:35:17.000+0000"
+  },
+  "versions": [
+    {
+      "FunctionName": "justhodl-research-backtest",
+      "Version": "$LATEST",
+      "Runtime": "python3.12",
+      "Timeout": 900,
+      "MemorySize": 1024,
+      "CodeSha256": "DgVMfE55xSvVZHLScG7MC7zDTAq3KZJ+X+bUyA5Q6sI=",
+      "State": null,
+      "LastUpdateStatus": null,
+      "LastModified": "2026-09-09T12:35:17.000+0000"
+    },
+    {
+      "FunctionName": "justhodl-research-backtest",
+      "Version": "1",
+      "Runtime": "python3.12",
+      "Timeout": 900,
+      "MemorySize": 1024,
+      "CodeSha256": "qIKTDpcYhXqhHaopix9BuHrZ89oMh0cviU63mFM4zag=",
+      "State": null,
+      "LastUpdateStatus": null,
+      "LastModified": "2026-09-09T00:29:17.000+0000"
+    },
+    {
+      "FunctionName": "justhodl-research-backtest",
+      "Version": "2",
+      "Runtime": "python3.12",
+      "Timeout": 900,
+      "MemorySize": 1024,
+      "CodeSha256": "qjEk/L2rYhdBlKFehZ/+GSjxJtvRTMelG5mRcQ3UcYw=",
+      "State": null,
+      "LastUpdateStatus": null,
+      "LastModified": "2026-09-09T05:34:32.000+0000"
+    },
+    {
+      "FunctionName": "justhodl-research-backtest",
+      "Version": "3",
+      "Runtime": "python3.12",
+      "Timeout": 900,
+      "MemorySize": 1024,
+      "CodeSha256": "DgVMfE55xSvVZHLScG7MC7zDTAq3KZJ+X+bUyA5Q6sI=",
+      "State": null,
+      "LastUpdateStatus": null,
+      "LastModified": "2026-09-09T12:35:17.000+0000"
+    }
+  ],
+  "events": [
+    {
+      "timestamp": 1788951616280,
+      "executed_version": "1"
+    },
+    {
+      "timestamp": 1788951616280,
+      "markers": [
+        "[backtest] starting"
+      ]
+    },
+    {
+      "timestamp": 1788952058800,
+      "markers": [
+        "[backtest] universe:"
+      ]
+    },
+    {
+      "timestamp": 1788952127612,
+      "markers": [
+        "[backtest] SPY history:"
+      ]
+    },
+    {
+      "timestamp": 1788952516298,
+      "runtime_report": {
+        "Duration": 521.89,
+        "Billed Duration": 900522.0,
+        "Memory Size": 1024.0,
+        "Max Memory Used": 117.0
+      },
+      "runtime_status": "timeout"
+    },
+    {
+      "timestamp": 1788952573799,
+      "executed_version": "1"
+    },
+    {
+      "timestamp": 1788952573800,
+      "markers": [
+        "[backtest] starting"
+      ]
+    },
+    {
+      "timestamp": 1788953004721,
+      "markers": [
+        "[backtest] universe:"
+      ]
+    },
+    {
+      "timestamp": 1788953076011,
+      "markers": [
+        "[backtest] SPY history:"
+      ]
+    },
+    {
+      "timestamp": 1788953473468,
+      "runtime_report": {
+        "Duration": 900000.0,
+        "Billed Duration": 900000.0,
+        "Memory Size": 1024.0,
+        "Max Memory Used": 116.0
+      },
+      "runtime_status": "timeout"
+    },
+    {
+      "timestamp": 1788953580997,
+      "executed_version": "1"
+    },
+    {
+      "timestamp": 1788953580997,
+      "markers": [
+        "[backtest] starting"
+      ]
+    },
+    {
+      "timestamp": 1788954001300,
+      "markers": [
+        "[backtest] universe:"
+      ]
+    },
+    {
+      "timestamp": 1788954064732,
+      "markers": [
+        "[backtest] SPY history:"
+      ]
+    },
+    {
+      "timestamp": 1788954480675,
+      "runtime_report": {
+        "Duration": 900000.0,
+        "Billed Duration": 900000.0,
+        "Memory Size": 1024.0,
+        "Max Memory Used": 117.0
+      },
+      "runtime_status": "timeout"
+    },
+    {
+      "timestamp": 1788957326913,
+      "executed_version": "3"
+    },
+    {
+      "timestamp": 1788957326914,
+      "markers": [
+        "[backtest] starting"
+      ]
+    },
+    {
+      "timestamp": 1788957825178,
+      "markers": [
+        "Runtime.OutOfMemory"
+      ],
+      "runtime_report": {
+        "Duration": 500.72,
+        "Billed Duration": 498766.0,
+        "Memory Size": 1024.0,
+        "Max Memory Used": 1024.0
+      },
+      "runtime_status": "error"
+    }
+  ],
+  "raw_logs_reported": 0,
+  "application_payloads_reported": 0,
+  "live_alias": {
+    "Name": "live",
+    "FunctionVersion": "1"
+  },
+  "marker_counts": {
+    "[backtest] starting": 4,
+    "[backtest] universe:": 3,
+    "[backtest] SPY history:": 3,
+    "Runtime.OutOfMemory": 1
+  },
+  "pages_read": 3,
+  "listing_exhausted": true,
+  "ok": true
+}
