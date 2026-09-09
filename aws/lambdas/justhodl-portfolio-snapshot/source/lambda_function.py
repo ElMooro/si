@@ -25,7 +25,7 @@ Schedule: every 30 min during market hours · every hour off-hours
 Cost: ~$0 (Polygon free tier, no Claude calls)
 """
 import json
-from private_artifact import publish_private
+from private_artifact import publish_private, private_http_denied
 import math
 import os
 import time
@@ -251,6 +251,9 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
 # ═══════════════════════════════════════════════════════════════════════
 
 def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied:
+        return denied
     started = time.time()
     print(f"=== PORTFOLIO SNAPSHOT · {datetime.now(timezone.utc).isoformat()} ===")
 

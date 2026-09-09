@@ -160,6 +160,21 @@ def test_validate_only_snapshot_skips_sync_and_all_writes():
     assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
 
 
+def test_anonymous_snapshot_http_denied_before_account_reads():
+    import private_artifact
+    mod=_load_snapshot({})
+    original=private_artifact.service_headers
+    private_artifact.service_headers=lambda:{"X-JH-Service-Token":"test-service-token"}
+    def forbidden(*args,**kwargs):raise AssertionError("anonymous HTTP must not read or write account state")
+    mod.load_s3_json=forbidden;mod.query_pk=forbidden;mod.sync_auto_watchlist=forbidden
+    mod.s3.put_object=forbidden;mod.publish_private=forbidden
+    try:
+        response=mod.lambda_handler({"requestContext":{"http":{"method":"POST"}},"headers":{}},None)
+        assert response["statusCode"]==401 and response["headers"]["Cache-Control"]=="private, no-store"
+    finally:
+        private_artifact.service_headers=original
+
+
 def test_private_publication_failure_prevents_snapshot_write():
     mod = _load_snapshot({})
     mod.load_s3_json=lambda key,default:default
