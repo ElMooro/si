@@ -239,3 +239,11 @@ def test_exact_package_with_weighted_or_different_live_alias_fails_release_gate(
             assert result['status']=='SOURCE_PARITY_FAILED' and result['invocations']==[]
             alias.update(FunctionVersion='16',RoutingConfig={})
             assert packages.check_packages(client,root,['justhodl-test'])[0]['pass'] is False
+
+
+def test_dependency_stages_publish_donors_before_their_actual_receivers():
+    stage={name:i for i,names in enumerate(release.QUIET_STAGES) for name in names}
+    assert stage['tradingview'] < stage['risk-gate'] < stage['engine-fusion'] < stage['khalid-risk']
+    assert stage['khalid-risk'] < stage['portfolio-snapshot'] < stage['risk-sizer']
+    assert stage['short-interest'] < stage['squeeze-fuel'] and stage['short-interest'] < stage['trade-tickets']
+    assert stage['crypto-basis'] < stage['sizing-engine'] and stage['factor-risk'] < stage['firm-risk-board']

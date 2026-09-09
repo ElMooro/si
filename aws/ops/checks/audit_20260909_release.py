@@ -44,10 +44,12 @@ PRIMARY = {
 QUIET_STAGES = (
     ('tradingview','short-interest','liquidity-profile','etf-true-flows'),
     ('factor-risk','liquidity-capacity','conviction-engine'),
-    ('risk-gate','engine-fusion'),
+    ('risk-gate',),
+    ('engine-fusion',),
     ('khalid-risk',),
     ('portfolio-snapshot',),
-    ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','sizing-engine','firm-risk-board'),
+    ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
+    ('sizing-engine',),
 )
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 RISK_KINDS = {'katlin','risk-sizer','khalid-risk','risk-gate','engine-fusion'}
