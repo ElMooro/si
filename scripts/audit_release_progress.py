@@ -1,5 +1,5 @@
 """Read GitHub release job metadata only; no cloud clients, log bodies or secrets in reports."""
-import json, os, re, urllib.request, urllib.error
+import json, os, re, time, urllib.request, urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
 repo=os.environ['GITHUB_REPOSITORY']
@@ -30,8 +30,19 @@ def diagnostics(job_id):
                 'failed_functions':sorted(set(re.findall(r'Deploy failed for ([A-Za-z0-9_-]+)',raw))),
                 'deployed_functions':sorted(set(re.findall(r'✅ ([A-Za-z0-9_-]+) deployed',raw)))}
     except Exception as exc: return {'available':False,'error_type':type(exc).__name__}
+# An observer triggered by Run Ops may start before its dispatched release
+# finishes. Follow that bounded pipeline so its final failure/success is retained.
+# These reads and waits never touch cloud services or application payloads.
+follow_paths={'.github/workflows/run-ops.yml','.github/workflows/deploy-lambdas.yml'}
+deadline=time.monotonic()+25*60
+while True:
+    recent=get('/actions/runs?per_page=60')['workflow_runs']
+    active=[run for run in recent if run.get('path') in follow_paths and run.get('status') not in ('completed',)]
+    if not active or time.monotonic()>=deadline: break
+    print('Awaiting completion of',len(active),'release workflows',flush=True)
+    time.sleep(20)
 rows=[]
-for run in get('/actions/runs?per_page=20')['workflow_runs']:
+for run in recent:
     if run['path'] not in {'.github/workflows/run-ops.yml','.github/workflows/deploy-lambdas.yml','.github/workflows/deploy-workers.yml','.github/workflows/pages.yml'}: continue
     row={k:run.get(k) for k in ('id','path','head_sha','status','conclusion','created_at','updated_at')}
     row['jobs']=[]
