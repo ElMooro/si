@@ -1,5 +1,5 @@
-executing-against: a7d15619aba5f6f54eb02fcfc0eaad883ac9e6c6
-Sanitized managed-credential core layer
-[03:39:37] ✅ Verified sanitized layer package and 379 existing consumers; previous layer versions retained for rollback
+executing-against: 709e22a072271aee0f8d01e24e02db14be2c21fc
+{"actual_workflow_sha": "709e22a072271aee0f8d01e24e02db14be2c21fc", "aws_calls": 0, "base_sha": "c167a7541b9b02f849343bad1b4a231e758cadd8", "http_status": 200, "operation": "5233", "request_sent": true, "requested_at": "2026-09-09T03:40:33.385361+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34308035351", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34308035351, "workflow_sha": "709e22a072271aee0f8d01e24e02db14be2c21fc", "workflow_sha_matches": true}
+[03:40:35] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
 
-→ Report written to aws/ops/reports/latest/ops_5232_audit_core_layer.md
+→ Report written to aws/ops/reports/latest/ops_5233_retry_audit_core_release.md
