@@ -499,6 +499,8 @@ def observe_schedules(clients, root, functions):
     result=[]
     for function in functions:
         config=release_config(root,function);specs=[]
+        if function in {'justhodl-liquidity-profile','justhodl-retail-sentiment'} and isinstance(config.get('schedule'),str):
+            result.extend(observe_recorded_cadence(clients['events'],root,function,config['schedule']))
         for field in ('eventbridge_scheduler','eventbridge_scheduler_extra'):
             if isinstance(config.get(field),dict):specs.append(('scheduler',config[field]))
         specs.extend(('scheduler',spec) for spec in config.get('eventbridge_schedulers_extra',[]) if isinstance(spec,dict))
@@ -528,6 +530,41 @@ def observe_schedules(clients, root, functions):
             except Exception as exc:row['error_type']=type(exc).__name__
             result.append(row)
     return result
+
+
+def observe_recorded_cadence(events, root, function, configured_cadence):
+    """Read back recorded identities; a cadence-only declaration changes no rule."""
+    base={'function':function,'service':'events','status':'OBSERVED_CADENCE_ONLY',
+          'configured_cadence':configured_cadence,'mutation_requested':False,
+          'identity_reference':'config/schedule-manifest.json',
+          'discovery_scope':'source-recorded rule identities only; not live fleet enumeration'}
+    rows=[]
+    try:
+        manifest=json.loads((root/'config/schedule-manifest.json').read_text())
+        recorded=[rule for rule in manifest.get('rules',[]) if rule.get('kind')=='events'
+                  and any(target.get('arn','').split(':function:')[-1].split(':')[0]==function for target in rule.get('targets',[]))]
+        for rule in recorded:
+            row={**base,'name':rule['name'],'identity_reference_generated_at':manifest.get('generated_at')}
+            try:
+                current=events.describe_rule(Name=rule['name']);targets=[];token=None;seen=set()
+                while True:
+                    response=events.list_targets_by_rule(Rule=rule['name'],**({'NextToken':token} if token else {}))
+                    targets.extend(response.get('Targets',[]));token=response.get('NextToken')
+                    if not token:break
+                    if token in seen:raise ValueError('repeated_rule_target_page')
+                    seen.add(token)
+                matching=[target['Arn'] for target in targets if target.get('Arn','').split(':function:')[-1].split(':')[0]==function]
+                row.update(observation_status='VERIFIED_IDENTITY' if matching else 'UNPROVEN_IDENTITY',
+                           expression=current.get('ScheduleExpression'),state=current.get('State'),
+                           cadence_matches=current.get('ScheduleExpression')==configured_cadence,
+                           matching_target_arns=matching,target_count=len(targets))
+            except Exception as exc:
+                row.update(observation_status='UNPROVEN_IDENTITY',error_type=type(exc).__name__)
+            rows.append(row)
+        if not rows:rows.append({**base,'name':None,'observation_status':'NO_SOURCE_RECORDED_RULE'})
+    except Exception as exc:
+        rows.append({**base,'name':None,'observation_status':'SOURCE_REFERENCE_UNAVAILABLE','error_type':type(exc).__name__})
+    return rows
 
 
 def observe_function_urls(lam, root):
@@ -652,7 +689,7 @@ class ReleaseVerifier:
         self.report['function_urls']=observe_function_urls(self.clients['lambda'],self.root)
         self.report['schedule_discovery_scope']='declarative config schedules; no claim that unconfigured fleet rules were exhaustively discovered'
         pending=[];failed=[];blocked=[]
-        pending.extend({'function':row['function'],'reason':'SCHEDULE_CONFIGURATION_PENDING','schedule':row['name']} for row in self.report['schedules'] if row['status']!='VERIFIED')
+        pending.extend({'function':row['function'],'reason':'SCHEDULE_CONFIGURATION_PENDING','schedule':row['name']} for row in self.report['schedules'] if row['status'] not in ('VERIFIED','OBSERVED_CADENCE_ONLY'))
         pending.extend({'function':row['function'],'page':row['page'],'reason':row.get('reason','FUNCTION_URL_IDENTITY_UNPROVEN')} for row in self.report['function_urls'] if row['status']!='VERIFIED')
         if self.report['katlin_refresh_schedule'].get('weekly_schedule_present') is False:
             pending.append({'function':'justhodl-katlin','reason':'WEEKLY_BACKTEST_SCHEDULE_MISSING'})

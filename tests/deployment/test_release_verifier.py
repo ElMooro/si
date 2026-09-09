@@ -473,3 +473,31 @@ def test_registry_scope_is_read_from_passed_release_root_without_loading_sdk_cli
         source.parent.mkdir(parents=True)
         source.write_text("raise AssertionError('must not execute module')\nREGISTRY=(('justhodl-reviewed','data/archive/reviewed/*.json'),)\n")
         assert release.public_archive_registry(root)=={'justhodl-reviewed':'data/archive/reviewed/*.json'}
+
+
+def test_cadence_only_schedule_readback_uses_recorded_exact_identity_and_preserves_private_input():
+    expected={'liquidity-profile-fri':'justhodl-liquidity-profile','justhodl-retail-sentiment-30min':'justhodl-retail-sentiment'}
+    calls=[]
+    def describe(**kw):
+        calls.append(('describe',kw['Name']))
+        assert kw['Name'] in expected
+        return {'ScheduleExpression':'cron(0 22 ? * FRI *)','State':'DISABLED'}
+    def targets(**kw):
+        function=expected[kw['Rule']]
+        return {'Targets':[{'Arn':f'arn:aws:lambda:us-east-1:123:function:{function}:live','Input':'DO_NOT_REPORT'},
+                           {'Arn':'arn:aws:sqs:us-east-1:123:other','Input':'DO_NOT_REPORT'}]}
+    client=SimpleNamespace(describe_rule=describe,list_targets_by_rule=targets)
+    rows=release.observe_schedules({'events':client},ROOT,list(expected.values()))
+    assert len(rows)==2 and all(row['status']=='OBSERVED_CADENCE_ONLY' for row in rows)
+    assert all(row['observation_status']=='VERIFIED_IDENTITY' and row['mutation_requested'] is False for row in rows)
+    assert all(row['cadence_matches'] is False for row in rows)
+    assert 'DO_NOT_REPORT' not in json.dumps(rows)
+    assert {name for _,name in calls}==set(expected)
+
+
+def test_recorded_cadence_target_mismatch_is_explicit_information_without_rebinding():
+    client=SimpleNamespace(describe_rule=lambda **kw:{'ScheduleExpression':'rate(1 hour)','State':'ENABLED'},
+                           list_targets_by_rule=lambda **kw:{'Targets':[{'Arn':'arn:aws:lambda:us-east-1:123:function:other'}]})
+    rows=release.observe_schedules({'events':client},ROOT,['justhodl-liquidity-profile'])
+    assert len(rows)==1 and rows[0]['observation_status']=='UNPROVEN_IDENTITY'
+    assert rows[0]['status']=='OBSERVED_CADENCE_ONLY' and rows[0]['matching_target_arns']==[]
