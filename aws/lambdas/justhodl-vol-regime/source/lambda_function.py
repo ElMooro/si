@@ -63,6 +63,8 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 
+from private_artifact import publish_private, private_http_denied
+from public_brain_projection import sanitize_public
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -276,7 +278,7 @@ def load_watchlist_tickers():
         return []
 
 
-def lambda_handler(event, context):
+def _run_private(event, context):
     started = time.time()
 
     watchlist = load_watchlist_tickers()
@@ -323,7 +325,11 @@ def lambda_handler(event, context):
                            for r in sorted_tickers[:10]],
         "duration_s": round(time.time() - started, 1),
     }
-    body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")
+    S3.put_object(Bucket=BUCKET, Key="data/vol-regime-private.json",
+                  Body=json.dumps(payload, default=str).encode(),
+                  ContentType="application/json", CacheControl="private, no-store")
+    publish_private("vol-regime-private", payload)
+    body_bytes = json.dumps(sanitize_public("data/vol-regime.json", payload), indent=2, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,
         ContentType="application/json", CacheControl="max-age=300",
@@ -341,3 +347,13 @@ def lambda_handler(event, context):
             "duration_s": payload["duration_s"],
         }),
     }
+
+
+def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied is not None:
+        return denied
+    response = _run_private(event, context)
+    if isinstance(response, dict) and "statusCode" in response:
+        response["headers"] = {**response.get("headers", {}), "Cache-Control": "private, no-store"}
+    return response

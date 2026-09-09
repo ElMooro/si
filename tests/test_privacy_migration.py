@@ -46,6 +46,8 @@ class MemoryS3:
                 "Metadata": {"operational-tag": "retain"}, "LastModified": datetime.now(timezone.utc)}
 
     def put_object(self, **args):
+        if args.get("IfNoneMatch") == "*" and args["Key"] in self.docs:
+            raise object_error("PreconditionFailed")
         if self.fail_once:
             self.fail_once = False
             self.docs[args["Key"]]["price"] = 234
@@ -116,6 +118,10 @@ class PublicMigrationTests(unittest.TestCase):
                                                       "overlap_flags": ["book:" + MARKER + " ρ0.9", "SPY ρ0.8"]}]},
             "data/ai-commentary/portfolio.json": {"page": "portfolio", "generated_at": "2026-09-09T00:00:00Z",
                                                   "commentary": {"headline": MARKER}, "preserved_from": MARKER},
+            "data/vol-regime.json": {"composite_score": 25, "composite_regime": "NORMAL", "n_tickers": 2,
+                                     "tickers": [{"ticker": "SPY", "regime": "NORMAL", "iv_atm_30d": 20},
+                                                 {"ticker": MARKER, "regime": "PANIC", "iv_atm_30d": 60}],
+                                     "most_stressed": [{"ticker": MARKER}]},
             "data/search/providers/tradingview_vault_live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
             "equity-research/NVDA.json": {"price": 123, "khalid_notes": {"n_notes": 3, "levels": [120, 140], "note_ids": ["n1"], "latest_note": MARKER, "llm_view": MARKER}},
         }
@@ -233,13 +239,58 @@ class PublicMigrationTests(unittest.TestCase):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 
     def test_private_seed_kinds_exclude_raw_tradingview_corpus(self):
-        self.assertEqual(len(migration.MIRRORED_KEYS), 17)
+        self.assertEqual(len(migration.MIRRORED_KEYS), 21)
         self.assertNotIn("data/tradingview-notes.json", migration.MIRRORED_KEYS)
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/snapshot.json"], "portfolio-snapshot")
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
-        self.assertEqual(len(migration.PUBLISHERS), 16)
+        self.assertEqual(len(migration.PUBLISHERS), 19)
+        self.assertEqual(len(migration.READINESS), 35)
+
+    def test_private_vol_bootstrap_preserves_full_original_once_before_public_scrub(self):
+        full = self.fixtures()["data/vol-regime.json"]
+        store = MemoryS3({"data/vol-regime.json": full})
+        job = migration.Migration(ROOT, {"s3": store})
+        job.bootstrap_private_derivatives()
+        self.assertEqual(store.docs["data/vol-regime-private.json"], full)
+        self.assertEqual(store.writes[0]["IfNoneMatch"], "*")
+        job.scrub("data/vol-regime.json")
+        self.assertNotIn(MARKER, json.dumps(store.docs["data/vol-regime.json"]))
+        self.assertIn(MARKER, json.dumps(store.docs["data/vol-regime-private.json"]))
+        count = len(store.writes)
+        job.bootstrap_private_derivatives()
+        self.assertEqual(len(store.writes), count)
+
+    def test_absent_manual_journal_bootstrap_uses_actual_empty_schema_without_pnl(self):
+        store = MemoryS3({"data/vol-regime-private.json": {"tickers": []}})
+        job = migration.Migration(ROOT, {"s3": store})
+        job.bootstrap_private_derivatives()
+        self.assertEqual(store.docs["data/user-trades.json"], {"version": 0, "trades": []})
+        stats = store.docs["data/user-trades-stats.json"]
+        self.assertEqual(set(stats), {"as_of", "n_total", "n_open", "n_closed"})
+        self.assertEqual(stats["n_total"], 0)
+        self.assertTrue(all(w["IfNoneMatch"] == "*" and w["CacheControl"] == "private, no-store" for w in store.writes))
+
+    def test_absent_manual_stats_use_existing_full_ledger_without_overwriting_it(self):
+        ledger = {"version": 4, "trades": [{"ticker": MARKER, "status": "OPEN", "size_usd": 2000,
+                                              "current_pnl_pct": 5}]}
+        store = MemoryS3({"data/vol-regime-private.json": {"tickers": []}, "data/user-trades.json": ledger})
+        job = migration.Migration(ROOT, {"s3": store})
+        job.bootstrap_private_derivatives()
+        self.assertEqual(store.docs["data/user-trades.json"], ledger)
+        stats = store.docs["data/user-trades-stats.json"]
+        self.assertEqual(stats["n_open"], 1)
+        self.assertEqual(stats["open_total_pnl_dollars"], 100)
+        self.assertEqual([w["Key"] for w in store.writes], ["data/user-trades-stats.json"])
+        self.assertNotIn(MARKER, json.dumps(job.rows))
+
+    def test_missing_manual_ledger_with_nonempty_stats_fails_closed(self):
+        store = MemoryS3({"data/vol-regime-private.json": {"tickers": []}, "data/user-trades-stats.json": {"n_total": 2}})
+        job = migration.Migration(ROOT, {"s3": store})
+        with self.assertRaisesRegex(migration.MigrationError, "personal_ledger_missing_with_nonempty_stats"):
+            job.bootstrap_private_derivatives()
+        self.assertFalse(store.writes)
 
     def test_private_mirror_verification_retries_head_without_body_access(self):
         requests = []

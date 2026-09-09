@@ -5,6 +5,7 @@ AWS status metadata. Never log exception messages, payloads, signed URLs or env.
 """
 import ast
 import base64
+from datetime import datetime, timezone
 import gzip
 import hashlib
 import io
@@ -32,7 +33,7 @@ TOKEN_PARAM = "/justhodl/api-admin/token"
 TEMP_SID = "Audit20260909DerivativeMigrationInProgress"
 PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask",
               "portfolio-snapshot", "portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "risk-sizer",
-              "pm-decision", "behavior-mirror", "ai-brief", "history-api")
+              "pm-decision", "behavior-mirror", "ai-brief", "history-api", "watchlist", "vol-regime", "trade-journal")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
@@ -54,6 +55,19 @@ def digest(raw):
 
 def encoded(doc):
     return json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
+
+
+def personal_trade_schema(root):
+    # Reuse the reviewed producer's pure schema and computation, without loading
+    # its AWS clients, HTTP routes, mark-to-market task or any live function.
+    path = root / "aws/lambdas/justhodl-trade-journal/source/lambda_function.py"
+    names = {"empty_private_artifacts", "compute_stats"}
+    functions = [node for node in ast.parse(path.read_text()).body
+                 if isinstance(node, ast.FunctionDef) and node.name in names]
+    require({node.name for node in functions} == names, "personal_trade_bootstrap_schema_missing")
+    scope = {"datetime": datetime, "timezone": timezone}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), str(path), "exec"), scope)
+    return scope["empty_private_artifacts"], scope["compute_stats"]
 
 
 def bounded_read(stream, maximum=MAX_OBJECT):
@@ -310,6 +324,49 @@ class Migration:
             self.record("private_mirror_seeded", key=key, bytes=len(raw), sha256=digest(raw))
         return private
 
+    def bootstrap_private_derivatives(self):
+        # Preserve the existing full volatility view before the public current
+        # object is narrowed to its fixed model universe. Never overwrite a
+        # private object already published by the new producer.
+        key = "data/vol-regime-private.json"
+        _, existing = self.read_object(key, optional=True)
+        if existing is not None:
+            self.record("private_derivative_already_present", key=key)
+        else:
+            _, original = self.read_object("data/vol-regime.json")
+            self.create_private_original(key, original)
+
+        # A personal journal can legitimately be absent before the first manual
+        # trade. Existing journals/stats always win; never replace a live ledger.
+        empty, compute_stats = personal_trade_schema(self.root)
+        ledger_key, stats_key = "data/user-trades.json", "data/user-trades-stats.json"
+        _, ledger = self.read_object(ledger_key, optional=True)
+        _, stats = self.read_object(stats_key, optional=True)
+        if ledger is None:
+            require(stats is None or stats.get("n_total") == 0, "personal_ledger_missing_with_nonempty_stats")
+            ledger = self.create_private_original(ledger_key, empty()["personal-trades"])
+        require(isinstance(ledger.get("trades"), list), "personal_ledger_schema_invalid")
+        if stats is None:
+            self.create_private_original(stats_key, compute_stats(ledger))
+
+    def create_private_original(self, key, original):
+        raw = encoded(original)
+        try:
+            self.clients["s3"].put_object(Bucket=BUCKET, Key=key, Body=raw, ContentType="application/json",
+                                        CacheControl="private, no-store", IfNoneMatch="*")
+        except Exception as exc:
+            if error_code(exc) not in {"PreconditionFailed", "412", "ConditionalRequestConflict", "409"}:
+                raise
+            _, existing = self.read_object(key)
+            require(existing is not None, "private_derivative_creation_race_unresolved")
+            raw = encoded(existing)
+            original = existing
+        else:
+            _, stored = self.read_object(key)
+            require(encoded(stored) == raw, "private_derivative_bootstrap_mismatch")
+        self.record("private_derivative_bootstrapped", key=key, bytes=len(raw), sha256=digest(raw))
+        return original
+
     def mirror_head(self, kind, token):
         # KV is eventually consistent across locations; retry HEAD only and never
         # fetch a private response body for verification. 63 seconds total delay.
@@ -427,6 +484,8 @@ class Migration:
         require(parameter.get("Type") == "SecureString" and bool(parameter.get("Value")), "managed_service_token_missing")
         token = parameter["Value"]
         self.configure(token)
+        self.step = "preserve_private_derivative_originals"
+        self.bootstrap_private_derivatives()
         self.step = "seed_private_mirrors"
         private = self.seed(token)
         self.step = "sanitize_current_public_objects"

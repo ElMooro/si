@@ -8,6 +8,7 @@ from copy import deepcopy
 import re
 
 PUBLIC_CONTEXT_PRIVACY_VERSION = "20260909-public-inputs-v1"
+PUBLIC_VOL_UNIVERSE = ("SPY", "QQQ", "IWM", "DIA", "GLD", "TLT", "IBIT", "VXX")
 
 
 def _rows(value):
@@ -178,6 +179,22 @@ def sanitize_public(key, document, *, vault=None):
                    "privacy_version": PUBLIC_CONTEXT_PRIVACY_VERSION, "private_context_removed": True,
                    "commentary": {"error": "private_context_removed", "headline": "Public research commentary is awaiting regeneration."},
                    "preserved_from": None, "llm_attempt_failed": True}
+    elif name == "vol-regime.json":
+        rows = [r for r in out.get("tickers", []) if isinstance(r, dict) and r.get("ticker") in PUBLIC_VOL_UNIVERSE]
+        out["tickers"] = rows
+        out["n_tickers"] = len(rows)
+        out["n_with_iv"] = sum(r.get("iv_atm_30d") is not None for r in rows)
+        regimes = {}
+        for row in rows:
+            regime = row.get("regime") or "UNKNOWN"
+            regimes[regime] = regimes.get(regime, 0) + 1
+        out["regime_counts"] = regimes
+        ranks = {"COMPLACENT": 0, "NORMAL": 25, "CONCERNED": 60, "PANIC": 100}
+        ranked = sorted([r for r in rows if r.get("regime")],
+                        key=lambda r: ranks.get(r["regime"], 0) + (r.get("rv_z") or 0) * 5, reverse=True)
+        out["most_stressed"] = [{"ticker": r["ticker"], "regime": r["regime"], "rv_z": r.get("rv_z"), "iv_rv": r.get("iv_rv_ratio")}
+                                for r in ranked[:10]]
+        out["universe_scope"] = "PUBLIC_CORE_MODEL"
     elif name == "search/providers/tradingview_vault_live.json.gz":
         if not isinstance(vault, dict):
             raise ValueError("vault source required to rebuild search fields")

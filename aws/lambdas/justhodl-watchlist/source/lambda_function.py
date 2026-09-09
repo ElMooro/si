@@ -3,7 +3,7 @@ justhodl-watchlist — Personal watchlist API (institutional-grade).
 
 ENDPOINTS
 ─────────
-  GET  /             → Returns current watchlist (public read)
+  GET  /             → Returns current watchlist (verified owner service/admin)
   POST /             → Updates watchlist (requires x-justhodl-token header)
   POST /add          → Add single ticker to category (admin token)
   POST /remove       → Remove ticker (admin token)
@@ -37,7 +37,7 @@ INSTITUTIONAL-GRADE SAFEGUARDS
   ✓ Atomic writes — read-modify-write with version increment
   ✓ Optimistic locking — POST must include current version (prevents stale overwrites)
   ✓ Ticker validation — uppercase, alphanumeric, max 6 chars, no whitespace
-  ✓ Auth on all writes — SSM admin token via x-justhodl-token header
+  ✓ Auth on reads and writes — verified owner service/admin token
   ✓ CORS — allowlist justhodl.ai origins only
   ✓ Audit trail — last 50 ops in history field
   ✓ Schema migration — graceful handling of v0 (legacy DEFAULT_WATCHLIST) → v1
@@ -52,6 +52,7 @@ from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
+from private_artifact import publish_private, private_http_denied
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -78,9 +79,11 @@ def cors_headers(origin):
     allow = origin if origin in ALLOWED_ORIGINS else "https://justhodl.ai"
     return {
         "Access-Control-Allow-Origin": allow,
-        "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token",
+        "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token, X-JH-Service-Token",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Content-Type": "application/json",
+        "Cache-Control": "private, no-store",
+        "Vary": "Authorization",
     }
 
 
@@ -169,12 +172,14 @@ def load_watchlist():
         wl = json.loads(obj["Body"].read())
     except ClientError as e:
         if e.response["Error"]["Code"] == "NoSuchKey":
-            return empty_watchlist()
+            return LoadedWatchlist(empty_watchlist(), None)
         raise
 
     # Migration / normalization
     if not isinstance(wl, dict):
-        return empty_watchlist()
+        wl = empty_watchlist()
+    if not obj.get("ETag"):
+        raise RuntimeError("watchlist source revision unavailable")
     wl.setdefault("version", 0)
     wl.setdefault("categories", {})
     wl.setdefault("tags", {})
@@ -186,7 +191,14 @@ def load_watchlist():
         wl["categories"].setdefault(c, [])
     # Drop unknown categories silently
     wl["categories"] = {c: wl["categories"][c] for c in VALID_CATEGORIES if c in wl["categories"]}
-    return wl
+    return LoadedWatchlist(wl, obj["ETag"])
+
+
+class LoadedWatchlist(dict):
+    """Keep storage revision off the serialized owner document."""
+    def __init__(self, value, etag):
+        super().__init__(value)
+        self.source_etag = etag
 
 
 def save_watchlist(wl):
@@ -196,8 +208,10 @@ def save_watchlist(wl):
     body = json.dumps(wl, indent=2, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY, Body=body,
-        ContentType="application/json", CacheControl="max-age=60",
+        ContentType="application/json", CacheControl="private, no-store",
+        **({"IfMatch": wl.source_etag} if wl.source_etag else {"IfNoneMatch": "*"}),
     )
+    publish_private("user-watchlist", wl)
     return wl
 
 
@@ -315,7 +329,7 @@ def op_remove(wl, body):
 
 
 # ─── Lambda handler ─────────────────────────────────────────────────────────
-def lambda_handler(event, context):
+def _run_watchlist(event, context):
     method = (event.get("requestContext", {}).get("http", {}).get("method") or
               event.get("httpMethod") or "GET").upper()
     path = (event.get("rawPath") or event.get("path") or "/").rstrip("/") or "/"
@@ -330,22 +344,24 @@ def lambda_handler(event, context):
         body = json.loads(body_raw) if body_raw else {}
     except json.JSONDecodeError:
         return respond(400, {"ok": False, "err": "Invalid JSON body"}, origin)
+    if not isinstance(body, dict):
+        return respond(400, {"ok": False, "err": "JSON body must be an object"}, origin)
 
     # CORS preflight
     if method == "OPTIONS":
         return respond(200, {"ok": True}, origin)
 
-    # GET: public read
+    # GET: identity was verified by the outer handler.
     if method == "GET":
         wl = load_watchlist()
         return respond(200, {"ok": True, "watchlist": wl}, origin)
 
-    # POST: write — requires auth
+    # POST: identity was verified by the outer handler.
     if method == "POST":
-        if not authorize(headers):
-            return respond(401, {"ok": False, "err": "Missing or invalid x-justhodl-token"}, origin)
-
         wl = load_watchlist()
+        version = body.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version != wl.get("version"):
+            return respond(409, {"ok": False, "err": "Watchlist revision changed or missing; reload before saving.", "code": "version_conflict"}, origin)
         if path in ("/", "/replace"):
             updated, err = op_replace(wl, body)
         elif path == "/add":
@@ -357,7 +373,24 @@ def lambda_handler(event, context):
 
         if err:
             return respond(400, {"ok": False, "err": err}, origin)
-        saved = save_watchlist(updated)
+        try:
+            saved = save_watchlist(updated)
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") in {"PreconditionFailed", "ConditionalRequestConflict", "412", "409"}:
+                return respond(409, {"ok": False, "err": "Watchlist changed while saving; reload before retrying.", "code": "version_conflict"}, origin)
+            raise
         return respond(200, {"ok": True, "watchlist": saved}, origin)
 
     return respond(405, {"ok": False, "err": f"Method {method} not allowed"}, origin)
+
+
+def lambda_handler(event, context):
+    event = event or {}
+    headers = event.get("headers") or {}
+    method = (event.get("requestContext", {}).get("http", {}).get("method") or event.get("httpMethod") or "GET").upper()
+    if method == "OPTIONS":
+        return respond(200, {"ok": True}, headers.get("origin") or headers.get("Origin"))
+    denied = private_http_denied(event)
+    if denied is not None and not authorize(headers):
+        return denied
+    return _run_watchlist(event, context)
