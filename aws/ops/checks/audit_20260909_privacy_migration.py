@@ -206,6 +206,16 @@ def update_environment(lam, function, additions, expected_sha):
         checked_live_alias(lam, function, alias)
     variables = {**before.get("Environment", {}).get("Variables", {}), **additions}
     desired = {**before, "Environment": {"Variables": variables}}
+    if business_config(before) == business_config(desired) and (not alias or business_config(active) == business_config(desired)):
+        # Retry after a completed migration: unchanged code/config cannot always
+        # be published again. Verify both pins strictly and leave them in place.
+        checked_config(lam, function, before)
+        if alias:
+            checked_live_alias(lam, function, alias)
+        else:
+            require(get_alias(lam, function) is None, "live_alias_created_during_config_update")
+        return {"version": alias["FunctionVersion"] if alias else "$LATEST", "code_sha256": expected_sha,
+                "environment_keys": len(variables), "already_configured": True}
     lam.update_function_configuration(FunctionName=function, RevisionId=before["RevisionId"], Environment={"Variables": variables})
     # Bounded SDK waiter; no payload or environment is ever emitted.
     lam.get_waiter("function_updated_v2").wait(FunctionName=function, WaiterConfig={"Delay": 3, "MaxAttempts": 100})

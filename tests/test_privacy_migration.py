@@ -289,6 +289,16 @@ class PublicMigrationTests(unittest.TestCase):
                          {"UNCHANGED": "preserved", "AUTH_MODE": "owner", "JH_SERVICE_TOKEN": MARKER})
         self.assertNotIn(MARKER, json.dumps(result))
 
+    def test_completed_environment_migration_retry_verifies_without_republishing(self):
+        lam = FakeLambda()
+        migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+        before = [c for c in lam.calls if c[0] in {"update", "publish", "alias"}]
+        result = migration.update_environment(lam, "justhodl-fixture", {"JH_SERVICE_TOKEN": MARKER}, "reviewed")
+        self.assertEqual(result["version"], "4")
+        self.assertTrue(result["already_configured"])
+        self.assertEqual([c for c in lam.calls if c[0] in {"update", "publish", "alias"}], before)
+        self.assertNotIn(MARKER, json.dumps(result))
+
     def test_config_mutation_cannot_absorb_concurrent_unintended_config_or_env_changes(self):
         for change in ({"Timeout": 900}, {"Layers": [{"Arn": "arn:layer:core:9"}]},
                        {"Environment": {"Variables": {"JH_SERVICE_TOKEN": MARKER, "AUTH_MODE": "public"}}}):
