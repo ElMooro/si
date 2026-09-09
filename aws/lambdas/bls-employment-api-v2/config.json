@@ -14,14 +14,12 @@
   "layers": [],
   "reserved_concurrency": null,
   "function_url": null,
-  "eventbridge_rules": [
-    "bls-friday-update",
-    "bls-tuesday-update"
-  ],
+  "eventbridge_rules": [],
   "last_modified": "2025-08-18T00:46:45.000+0000",
   "code_size": 5726,
   "files_imported": 2,
   "secrets_sanitized": [],
   "imported_at": "2026-04-22T22:20:20+00:00",
-  "memory": 512
+  "memory": 512,
+  "schedule_audit_note": "On-demand HTTP API; no direct Scheduler or EventBridge trigger found by ops 5283 on 2026-09-09. No periodic S3 publication required. bls.html is supplied separately by bls-labor-agent."
 }

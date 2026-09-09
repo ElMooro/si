@@ -20,13 +20,20 @@
   "layers": [],
   "reserved_concurrency": null,
   "function_url": null,
-  "eventbridge_rules": [
-    "bloomberg-terminal-refresh"
-  ],
+  "eventbridge_rules": [],
   "last_modified": "2026-02-19T17:34:16.354+0000",
   "code_size": 7700,
   "files_imported": 1,
   "secrets_sanitized": [],
   "imported_at": "2026-04-22T22:20:22+00:00",
-  "memory": 2048
+  "memory": 2048,
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-bloomberg-v8-hourly",
+    "cron": "rate(1 hour)",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "timezone": "UTC",
+    "state": "ENABLED",
+    "input": {},
+    "description": "Dedicated hourly Bloomberg research refresh; no active direct trigger found by ops 5283."
+  }
 }
