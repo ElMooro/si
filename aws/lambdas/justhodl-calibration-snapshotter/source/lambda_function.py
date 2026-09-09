@@ -9,9 +9,11 @@ Reads:
   - DynamoDB justhodl-outcomes (last 60d)  → outcome counts per signal type
 
 Writes:
-  - calibration/history/{ISO_WEEK}.json    → one snapshot per week (append-only)
-  - calibration/history-index.json         → manifest of all snapshots
-  - calibration/latest.json                → pointer to the most recent snapshot
+  - calibration/versions/{ID}.json         → immutable model versions
+  - calibration/index.json                → recoverable version index (conditional merge)
+  - calibration/history/{ISO_WEEK}.json    → latest model per week (legacy view)
+  - calibration/history-index.json         → conditional merged weekly manifest
+  - calibration/model-latest.json          → newest model, separate from calibrator report
 
 Schedule: cron(5 0 ? * SUN *) — Sundays 00:05 UTC, after the calibrator runs at 09:00.
 Actually we want this AFTER the calibrator updates SSM (calibrator runs Sundays 09:00 UTC),
@@ -99,6 +101,79 @@ def iso_week_label(dt):
     monday = dt - timedelta(days=iso_weekday - 1)
     sunday = monday + timedelta(days=6)
     return label, iso_year, iso_week, monday.date().isoformat(), sunday.date().isoformat()
+
+
+def _rank(snapshot):
+    stamp = snapshot.get("available_at") or snapshot.get("as_of")
+    value = datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
+    if value.tzinfo is None:
+        raise ValueError("calibration timestamp must have timezone")
+    return value.astimezone(timezone.utc), snapshot.get("snapshot_id", "")
+
+
+def _cas_json(key, default, merge, attempts=8):
+    """A concurrent writer must be merged, never silently overwritten."""
+    for _ in range(attempts):
+        try:
+            found = S3.get_object(Bucket=BUCKET, Key=key)
+            current = json.loads(found["Body"].read())
+            etag = found.get("ETag")
+            if not etag:
+                raise ValueError("conditional calibration update requires ETag")
+            condition = {"IfMatch": etag}
+        except Exception as exc:
+            code = str(getattr(exc, "response", {}).get("Error", {}).get("Code", ""))
+            if code not in ("NoSuchKey", "NotFound", "404"):
+                raise
+            current, condition = default, {"IfNoneMatch": "*"}
+        result = merge(current)
+        try:
+            S3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(result, default=str).encode(),
+                          ContentType="application/json", CacheControl="public, max-age=300", **condition)
+            return result
+        except Exception as exc:
+            code = str(getattr(exc, "response", {}).get("Error", {}).get("Code", ""))
+            if code not in ("PreconditionFailed", "ConditionalRequestConflict", "412", "409"):
+                raise
+    raise RuntimeError("calibration conditional publication exhausted retries; immutable versions remain recoverable")
+
+
+def _version_rows():
+    """Rebuild secondary indexes from the authoritative immutable objects.
+
+    If a prior invocation stopped after creating its version, the next run
+    recovers it. The backtest independently lists this same immutable prefix.
+    """
+    rows = []
+    for page in S3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix="calibration/versions/"):
+        for obj in page.get("Contents", []):
+            key = obj["Key"]
+            if not key.endswith(".json"):
+                continue
+            doc = json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            if not doc.get("snapshot_id") or not isinstance(doc.get("weights"), dict):
+                raise ValueError("invalid immutable calibration version")
+            _rank(doc)
+            rows.append((key, doc))
+    return rows
+
+
+def _merge_index(existing, recovered, field, identity):
+    current = existing.get(field, [])
+    if not isinstance(current, list):
+        raise ValueError("invalid calibration index rows")
+    by_id = {row[identity]: row for row in current}
+    for row in recovered:
+        prior = by_id.get(row[identity])
+        if prior is None or _rank(row) >= _rank(prior):
+            by_id[row[identity]] = row
+    rows = sorted(by_id.values(), key=_rank)
+    latest = (rows[-1].get("available_at") or rows[-1].get("as_of")) if rows else None
+    result = {"v": "2.0", field: rows, "updated_at": latest,
+              "recovery_source": "calibration/versions/"}
+    if field == "snapshots":
+        result.update(last_updated=latest, n_snapshots=len(rows))
+    return result
 
 
 def lambda_handler(event=None, context=None):
@@ -197,66 +272,34 @@ def lambda_handler(event=None, context=None):
     version_key = f"calibration/versions/{snapshot_id}.json"
     S3.put_object(Bucket=BUCKET, Key=version_key, Body=body, IfNoneMatch="*", ContentType="application/json", CacheControl="public, max-age=31536000, immutable")
     snapshot_key = f"calibration/history/{label}.json"
-    S3.put_object(
-        Bucket=BUCKET, Key=snapshot_key, Body=body,
-        ContentType="application/json",
-        CacheControl="public, max-age=3600",
-    )
-    try:
-        idx = json.loads(S3.get_object(Bucket=BUCKET, Key="calibration/index.json")["Body"].read())
-    except Exception:
-        idx = {"v": "1.0", "versions": []}
-    idx["versions"] = [v for v in (idx.get("versions") or []) if v.get("snapshot_id") != snapshot_id]
-    idx["versions"].append({"snapshot_id": snapshot_id, "key": version_key, "available_at": snapshot["available_at"], "calibrated_at": snapshot["calibrated_at"],
-                            "iso_week": label, "n_weights": n_weights})
-    idx["versions"].sort(key=lambda v: v["available_at"])
-    idx["updated_at"] = now.isoformat()
-    S3.put_object(Bucket=BUCKET, Key="calibration/index.json", Body=json.dumps(idx, default=str).encode("utf-8"), ContentType="application/json", CacheControl="public, max-age=300")
+    _cas_json(snapshot_key, {}, lambda old: snapshot if not old or _rank(snapshot) >= _rank(old) else old)
 
-    # Latest pointer
-    S3.put_object(
-        Bucket=BUCKET, Key="calibration/latest.json", Body=body,
-        ContentType="application/json",
-        CacheControl="public, max-age=300",
-    )
+    recovered = _version_rows()
+    version_rows = []
+    weekly_rows = []
+    for key, doc in recovered:
+        version_rows.append({"snapshot_id": doc["snapshot_id"], "key": key,
+                             "available_at": doc["available_at"], "calibrated_at": doc["calibrated_at"],
+                             "iso_week": doc["iso_week"], "n_weights": len(doc["weights"])})
+        weekly_rows.append({"iso_week": doc["iso_week"], "iso_year": doc["iso_year"],
+                            "iso_week_num": doc["iso_week_num"], "snapshot_id": doc["snapshot_id"],
+                            "as_of": doc["as_of"], "available_at": doc["available_at"],
+                            "week_start": doc["week_start"], "week_end": doc["week_end"],
+                            "key": key, "size_bytes": len(json.dumps(doc, default=str).encode()),
+                            "n_weights": len(doc["weights"]),
+                            "n_calibrated_n30": doc["summary"]["n_signals_calibrated_n30"]})
+    _cas_json("calibration/index.json", {},
+              lambda old: _merge_index(old, version_rows, "versions", "snapshot_id"))
+    index = _cas_json("calibration/history-index.json", {},
+                      lambda old: _merge_index(old, weekly_rows, "snapshots", "iso_week"))
+    snapshots = index["snapshots"]
+    # Never collide with calibration/latest.json, owned by the calibrator's
+    # horizon/report schema. A slower earlier invocation cannot regress latest.
+    latest = max((doc for _, doc in recovered), key=_rank)
+    _cas_json("calibration/model-latest.json", {},
+              lambda old: latest if not old or _rank(latest) >= _rank(old) else old)
 
-    # 5. Update history-index manifest
-    try:
-        existing = json.loads(S3.get_object(Bucket=BUCKET, Key="calibration/history-index.json")["Body"].read())
-    except Exception:
-        existing = {"v": "1.0", "snapshots": []}
-
-    snapshots = existing.get("snapshots", [])
-    # Remove any existing entry for this week, then append
-    snapshots = [s for s in snapshots if s.get("iso_week") != label]
-    snapshots.append({
-        "iso_week": label,
-        "iso_year": iso_year,
-        "iso_week_num": iso_week,
-        "as_of": now.isoformat(),
-        "week_start": week_start,
-        "week_end": week_end,
-        "key": snapshot_key,
-        "size_bytes": len(body),
-        "n_weights": n_weights,
-        "n_calibrated_n30": n_calibrated_n30,
-    })
-    snapshots.sort(key=lambda x: (x["iso_year"], x["iso_week_num"]))
-
-    index = {
-        "v": "1.0",
-        "last_updated": now.isoformat(),
-        "n_snapshots": len(snapshots),
-        "snapshots": snapshots,
-    }
-    S3.put_object(
-        Bucket=BUCKET, Key="calibration/history-index.json",
-        Body=json.dumps(index, default=str).encode("utf-8"),
-        ContentType="application/json",
-        CacheControl="public, max-age=300",
-    )
-
-    print(f"[snapshotter] wrote {snapshot_key} ({len(body):,}b), index has {len(snapshots)} snapshots")
+    print(f"[snapshotter] wrote {version_key} ({len(body):,}b), index has {len(snapshots)} weeks")
 
     return {
         "statusCode": 200,

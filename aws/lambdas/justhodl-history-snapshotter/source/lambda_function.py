@@ -82,7 +82,8 @@ FEEDS_TO_SNAPSHOT = [
     "backtest/results.json",
     "backtest/summary.json",
     # Calibration — for walk-forward backtest history
-    "calibration/latest.json",
+    "calibration/latest.json",       # calibrator horizon/report schema
+    "calibration/model-latest.json", # snapshotter model version schema
     "calibration/history-index.json",
     # Alerts + forensic — added 2026-05-06
     "data/alert-history.json",
@@ -93,7 +94,7 @@ FEEDS_TO_SNAPSHOT = [
     "screener/data.json",
     # Crypto / flows / edge (best-effort -- skipped silently if missing)
     "data/crypto-intel.json",
-    "data/options-flow.json",
+    "data/options-flow-scanner.json",
     "data/edge-data.json",
     "data/flow-data.json",
     # Calibration Fleet feeds -- composite-score engines registered for

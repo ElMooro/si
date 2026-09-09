@@ -299,7 +299,7 @@ def compress_calibration(cal):
 
 
 def compress_calibration_v2(latest):
-    """Rich calibration summary from the snapshotter's calibration/latest.json.
+    """Rich calibration summary from the snapshotter's calibration/model-latest.json.
     Surfaces ranked signal trust + per-signal accuracy + n_60d so Claude can cite
     specific signals when synthesizing the brief.
 
@@ -710,7 +710,7 @@ def lambda_handler(event=None, context=None):
     print("[ai-brief] loading sources")
     intel       = load_json("intelligence-report.json")
     cal         = load_json("data/calibration-snapshot.json")
-    cal_latest  = load_json("calibration/latest.json")          # snapshotter ledger w/ full ranked weights
+    cal_latest  = load_json("calibration/model-latest.json")          # snapshotter ledger w/ full ranked weights
     sectors     = load_json("data/sector-rotation.json")
     momentum    = load_json("data/momentum-scanner.json")
     allocator   = load_json("data/allocator.json")

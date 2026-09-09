@@ -152,3 +152,25 @@ Source commits: `7694b4b` accounting truth; `f02bcba` bounded validation modes;
 `bc3d762` promoted snapshot invocation; `7090342` private snapshot publication;
 `233495f` snapshot HTTP guard; `1b6a3e1` daily research ledger. The release team's
 source manifest and live verification report determine which commits are deployed.
+
+The final ownership review found a second calibration defect: the calibrator's
+horizon/report schema and the snapshotter's model schema both overwrote
+`calibration/latest.json`. The snapshotter now owns
+`calibration/model-latest.json`; the calibrator retains its original report key.
+Weights and the AI brief read the model key, Horizons retains the report key,
+and the history archive/health expectations distinguish both. The model checker
+also uses the new key. Existing report bytes need a real calibrator refresh after
+deployment if the old snapshotter had overwritten them; source separation alone
+does not restore a previously overwritten report.
+
+The version and weekly indexes now merge under S3 ETag preconditions, with
+bounded retries. Weekly views/latest compare normalized availability timestamps
+so an earlier invocation finishing last cannot regress the model. Each run also
+recovers index entries by enumerating immutable version objects; the backtest
+already enumerates those objects independently. A denied index read fails the
+run instead of replacing the index with an empty document. If conditional
+publication fails, the immutable object remains available for recovery. Tests
+interleave two actual handlers after the first has read its old ETag, observe the
+conditional-write conflict, and verify both versions and the newest pointer.
+Additional actual-handler cases verify orphan recovery, explicit retry exhaustion,
+report-key preservation and unchanged read-only validation behavior.

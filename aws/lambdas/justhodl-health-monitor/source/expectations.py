@@ -691,9 +691,9 @@ EXPECTATIONS = {
         "note": "Manifest of all calibration snapshots — needed for v2.1 walk-forward.",
         "severity": "important",
     },
-    "s3:calibration/latest.json": {
+    "s3:calibration/model-latest.json": {
         "type": "s3_file",
-        "key": "calibration/latest.json",
+        "key": "calibration/model-latest.json",
         "fresh_max": 7 * 86400 + 3600,    # 7d 1h
         "warn_max": 8 * 86400,
         "expected_size": 1_000,

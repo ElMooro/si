@@ -41,13 +41,26 @@ def test_walkforward_curve_is_labelled_signal_attribution_not_nav(mod):
 
 
 class MemoryS3:
-    def __init__(self): self.objects={}
+    def __init__(self): self.objects={}; self.on_read=None; self.conflicts=0
+    @staticmethod
+    def error(code):
+        error=RuntimeError(code); error.response={"Error":{"Code":code}}; return error
+    def etag(self, key):
+        import hashlib
+        return '"'+hashlib.sha256(self.objects[key]).hexdigest()+'"'
     def put_object(self, **kw):
-        if kw.get("IfNoneMatch")=="*": assert kw["Key"] not in self.objects
+        key=kw["Key"]
+        if ((kw.get("IfNoneMatch")=="*" and key in self.objects) or
+                (kw.get("IfMatch") and (key not in self.objects or kw["IfMatch"]!=self.etag(key)))):
+            self.conflicts+=1
+            raise self.error("PreconditionFailed")
         self.objects[kw["Key"]]=kw["Body"]
     def get_object(self, Bucket, Key):
         import io
-        return {"Body":io.BytesIO(self.objects[Key])}
+        if Key not in self.objects: raise self.error("NoSuchKey")
+        result={"Body":io.BytesIO(self.objects[Key]),"ETag":self.etag(Key)}
+        if self.on_read: self.on_read(Key)
+        return result
     def get_paginator(self, name):
         return types.SimpleNamespace(paginate=lambda **kw:[{"Contents":[{"Key":k} for k in self.objects if k.startswith(kw["Prefix"])]}])
 
@@ -59,14 +72,15 @@ def test_real_snapshotter_preserves_same_week_and_same_second_versions(mod):
     s3=MemoryS3(); producer.S3=s3; mod.S3=s3
     producer.safe_get_ssm=lambda name:{"sig":1.3} if name.endswith("weights") else {}
     producer.count_outcomes_60d=lambda:({},0)
-    producer.datetime=types.SimpleNamespace(now=lambda tz:datetime(2026,9,6,12,0,tzinfo=timezone.utc))
+    producer.datetime=types.SimpleNamespace(now=lambda tz:datetime(2026,9,6,12,0,tzinfo=timezone.utc),fromisoformat=datetime.fromisoformat)
     producer.lambda_handler(); producer.lambda_handler()
-    producer.datetime=types.SimpleNamespace(now=lambda tz:datetime(2026,9,6,18,0,tzinfo=timezone.utc))
+    producer.datetime=types.SimpleNamespace(now=lambda tz:datetime(2026,9,6,18,0,tzinfo=timezone.utc),fromisoformat=datetime.fromisoformat)
     producer.lambda_handler()
     history,info=mod.load_weight_history()
     assert len(history)==3,info
     assert mod.resolve_weight_walkforward("sig","2026-09-06T15:00:00+00:00",history)[0]==1.3
     assert mod.resolve_weight_walkforward("sig","2026-09-06T13:00:00+02:00",history)[0] is None
+    assert "calibration/model-latest.json" in s3.objects and "calibration/latest.json" not in s3.objects
 
 
 def test_publication_gate_blocks_every_attribution_version(mod):

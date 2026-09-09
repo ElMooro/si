@@ -58,7 +58,7 @@ def inspect_payload(key, doc):
         if doc.get('audit_version') != '2026-09-09.1': errors.append('old implementation output')
         calls=doc.get('per_call')
         if not isinstance(calls,list): errors.append('attribution builder did not produce an array')
-    elif key == 'calibration/latest.json':
+    elif key == 'calibration/model-latest.json':
         if doc.get('audit_version') != '2026-09-09.1' or not doc.get('available_at') or not doc.get('snapshot_id'):
             errors.append('missing immutable model provenance')
     elif key == 'data/_freshness-monitor.json':
@@ -94,7 +94,7 @@ def run(repo, region='us-east-1', bucket='justhodl-dashboard-live'):
         except Exception as error:
             # Signed download URLs and environment values must not appear in reports.
             report['code'][name]={'error_type':type(error).__name__}
-    for key,max_age in (('portfolio/snapshot.json',3),('backtest/results.json',8),('analytics/backtest_results.json',30),('calibration/latest.json',192),('data/_freshness-monitor.json',2)):
+    for key,max_age in (('portfolio/snapshot.json',3),('backtest/results.json',8),('analytics/backtest_results.json',30),('calibration/model-latest.json',192),('data/_freshness-monitor.json',2)):
         try:
             response=s3.get_object(Bucket=bucket,Key=key)
             doc=json.loads(response['Body'].read())

@@ -238,7 +238,7 @@ async function load(){
                   .then(r => r.ok ? r.json() : null).catch(() => null);
     if (!idx || !idx.snapshots?.length) {
       // Fallback: just use the latest snapshot
-      const latest = await fetch(`${BUCKET}/calibration/latest.json?t=${Date.now()}`).then(r => r.json());
+      const latest = await fetch(`${BUCKET}/calibration/model-latest.json?t=${Date.now()}`).then(r => r.json());
       allSnapshots = [latest];
     } else {
       // 2. Pull each snapshot in parallel
