@@ -90,6 +90,20 @@ def publication_diagnostics(clients,report):
             result.append(item)
     return result
 
+def reobserve_pending(clients, root, report):
+    # Initial reads can precede publication or schedule creation during a
+    # deployment. Recheck unresolved entries after the longer metadata scan.
+    missing = {row['function'] for row in report['schedules'] if row['status'] == 'PENDING_CONFIGURATION'}
+    if missing:
+        newer = {(row['function'], row['service'], row['name']): row
+                 for row in release.observe_schedules(clients, root, missing)}
+        report['schedules'] = [newer.get((row['function'], row['service'], row['name']), row)
+                               for row in report['schedules']]
+    for name, rows in report['outputs'].items():
+        report['outputs'][name] = [release.inspect_output(clients['s3'], name, row['key'], report['code'][name], root=root)
+                                  if row['status'] == 'PENDING_OUTPUT' else row for row in rows]
+
+
 def observe(root,clients,privacy,parity_seconds=0,progress=lambda report:None):
     scope=release.changed_scope(root);artifacts=release.artifact_map(root,scope)
     report={'ops':5283,'read_only':True,'aws_mutations':0,'private_payloads_reported':0,
@@ -116,6 +130,8 @@ def observe(root,clients,privacy,parity_seconds=0,progress=lambda report:None):
     progress(report)
     missing={row['function'] for row in report['schedules'] if row['status']=='PENDING_CONFIGURATION'}
     report['schedule_discovery']=schedule_discovery(clients,missing) if missing else {'functions':{}}
+    progress(report)
+    reobserve_pending(clients,root,report)
     progress(report)
     report['publication_diagnostics']=publication_diagnostics(clients,report)
     pending=[];failures=[];blocked=[]

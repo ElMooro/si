@@ -442,7 +442,7 @@ def donor_checks(function, doc, key=None, root=ROOT):
 
 
 def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=None, root=ROOT):
-    now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','errors':[],'requirements':[]}
+    now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','observed_at':now.isoformat(),'errors':[],'requirements':[]}
     if key in OUTPUT_CONTRACTS:
         result.update(expected_output_contract=OUTPUT_CONTRACTS[key],expected_producer=function)
     try:

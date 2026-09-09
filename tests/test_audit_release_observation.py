@@ -33,4 +33,12 @@ class BoundaryTests(unittest.TestCase):
   with patch.object(m.release,'changed_scope',return_value={'example':[]}),patch.object(m.release,'artifact_map',return_value={'example':{'primary_keys':[]}}),patch.object(m.release,'git',return_value='0'*40),patch.object(m.release,'check_packages',return_value=[{'function':'example','pass':True}]),patch.object(m.release,'privacy_receipt_summary',return_value={'verified':True}),patch.object(m.release,'observe_schedules',side_effect=RuntimeError('metadata')):
    with self.assertRaises(RuntimeError):m.observe(ROOT,{'lambda':None},None,progress=lambda row:proof.append(row.copy()))
   self.assertTrue(proof[-1]['source_parity_verified']);self.assertEqual(proof[-1]['outputs'],{'example':[]})
+ def test_unresolved_entries_are_rechecked_after_longer_metadata_scan(self):
+  old={'function':'example','service':'scheduler','name':'hourly','status':'PENDING_CONFIGURATION'}
+  new={**old,'status':'VERIFIED'}
+  report={'schedules':[old],'outputs':{'example':[{'key':'data/example.json','status':'PENDING_OUTPUT'}]},'code':{'example':{'pass':True}}}
+  with patch.object(m.release,'observe_schedules',return_value=[new]),patch.object(m.release,'inspect_output',return_value={'key':'data/example.json','status':'VERIFIED','observed_at':'2026-09-09T17:00:00Z'}) as inspect:
+   m.reobserve_pending({'s3':None},ROOT,report)
+  self.assertEqual(report['schedules'][0]['status'],'VERIFIED')
+  self.assertEqual(report['outputs']['example'][0]['status'],'VERIFIED');self.assertEqual(inspect.call_count,1)
 if __name__=='__main__':unittest.main()
