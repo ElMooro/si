@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT / 'aws/shared'), str(ROOT / 'aws/ops/checks'), str(ROOT / 'scripts')]
 from donor_contract import numeric, parse_timestamp
+from private_artifact import is_private_source
 from release_package_evidence import check_packages, release_config, shared_imports
 from scheduler_payload import scheduler_payload
 from audit_20260909_accounting import inspect_payload
@@ -37,6 +38,7 @@ PRIMARY = {
     'justhodl-bloomberg-v8':['data/bloomberg-report.json'],
     'justhodl-daily-report-v3':['data/report.json'],
     'justhodl-ecb-derived':['data/ecb-derived.json'],
+    'justhodl-whats-changed':['data/whats-changed.json','data/snapshots-index.json'],
     'justhodl-portfolio-snapshot':['portfolio/snapshot.json'],
     'justhodl-fleet-freshness-monitor':['data/_freshness-monitor.json'],
     'justhodl-stock-screener':['screener/data.json'],
@@ -59,6 +61,7 @@ QUIET_STAGES = (
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
     ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
+    ('whats-changed',),
 )
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
@@ -77,7 +80,14 @@ OUTPUT_CONTRACTS = {
     'data/bloomberg-report.json': 'bloomberg_v8_market_report',
     'data/report.json': 'daily_report_v10_market_report',
     'data/ecb-derived.json': 'ecb_derived_3.4_indicators',
+    'data/snapshots-index.json': 'daily-snapshot-index.v1_source_owned_mutable_copies',
 }
+DAILY_SNAPSHOT_SOURCES = frozenset((
+    'data/morning-intel.json','data/macro-surprise.json','data/yield-curve.json','data/correlation-surface.json',
+    'data/historical-analogs.json','data/event-study.json','data/ab-test-results.json',
+    'portfolio/signal-portfolio-state.json','data/13f-positions.json','data/short-interest.json',
+    'data/earnings-tracker.json','data/best-setups.json','data/opportunities.json','data/signal-board.json',
+))
 RISK_KINDS = {'katlin','risk-sizer','khalid-risk','risk-gate','engine-fusion'}
 ACCOUNTING_KEYS = {'portfolio/snapshot.json','backtest/results.json','analytics/backtest_results.json',
                    'calibration/model-latest.json','data/_freshness-monitor.json'}
@@ -86,6 +96,7 @@ MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-
              'justhodl-crypto-funding':2,'justhodl-crypto-basis':2,'justhodl-factor-risk':48,
              'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
              'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
+MAX_AGE_H['justhodl-whats-changed']=30
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 
 
@@ -160,7 +171,7 @@ def strict_document(raw):
     return doc
 
 
-def donor_checks(function, doc):
+def donor_checks(function, doc, key=None):
     """D27-D30 semantic checks, returning only fixed codes and aggregate counts."""
     name=function.removeprefix('justhodl-');errors=[];requirements=[];counts={}
     if name=='short-interest':
@@ -248,6 +259,35 @@ def donor_checks(function, doc):
     elif name=='ecb-derived':
         if doc.get('engine')!='ecb-derived' or doc.get('version')!='3.4.0' or not isinstance(doc.get('indicators'),dict):
             errors.append('ECB_DERIVED_OUTPUT_OWNERSHIP_INVALID')
+    elif name=='whats-changed' and key=='data/snapshots-index.json':
+        rows=doc.get('snapshots')
+        if (doc.get('schema_version')!='daily-snapshot-index.v1' or doc.get('complete') is not True
+                or doc.get('coverage_scope')!='all listed source-owned public daily copies'
+                or doc.get('semantics')!='MUTABLE_DAILY_COPY; filename date is not certified decision-time availability'
+                or not isinstance(rows,list)):
+            errors.append('DAILY_SNAPSHOT_INDEX_SCHEMA_INVALID')
+        rows=rows if isinstance(rows,list) else []
+        dates=[];keys=[]
+        for row in rows:
+            if not isinstance(row,dict):errors.append('DAILY_SNAPSHOT_ROW_INVALID');continue
+            source=row.get('source_key');day=row.get('capture_date');size=numeric(row.get('size_bytes'))
+            if not isinstance(source,str) or source not in DAILY_SNAPSHOT_SOURCES or is_private_source(source):
+                errors.append('DAILY_SNAPSHOT_SOURCE_UNREVIEWED');continue
+            try:
+                valid_day=isinstance(day,str) and datetime.strptime(day,'%Y-%m-%d').date().isoformat()==day
+            except ValueError:valid_day=False
+            expected='data/snapshots/'+source.replace('/','_').replace('.json','')+'-'+str(day)+'.json'
+            if not valid_day or row.get('key')!=expected:errors.append('DAILY_SNAPSHOT_KEY_DATE_INVALID')
+            if not parse_timestamp(row.get('object_last_modified')) or size is None or size<0 or not size.is_integer():
+                errors.append('DAILY_SNAPSHOT_OBJECT_METADATA_INVALID')
+            if row.get('immutable') is not False or row.get('point_in_time_certified') is not False or row.get('content_status')!='LISTED_NOT_CONTENT_VALIDATED':
+                errors.append('DAILY_SNAPSHOT_AVAILABILITY_OVERCLAIMED')
+            if valid_day:dates.append(day)
+            keys.append(row.get('key') if isinstance(row.get('key'),str) else None)
+        if not isinstance(doc.get('n_snapshots'),int) or isinstance(doc.get('n_snapshots'),bool) or doc.get('n_snapshots')!=len(rows) or doc.get('dates')!=sorted(set(dates)) or len(set(keys))!=len(keys):
+            errors.append('DAILY_SNAPSHOT_INDEX_COUNTS_INVALID')
+        counts.update(snapshots=len(rows),dates=len(set(dates)))
+        requirements.append('MUTABLE_DAILY_COPIES_NOT_POINT_IN_TIME_CERTIFIED')
     return {'errors':sorted(set(errors)),'requirements':sorted(set(requirements)),'counts':counts}
 
 
@@ -259,7 +299,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
         response=s3.get_object(Bucket=bucket,Key=key);raw=response['Body'].read();doc=strict_document(raw)
         modified=response.get('LastModified');modified=parse_timestamp(modified.isoformat() if isinstance(modified,datetime) else modified)
         deployment=parse_timestamp(code.get('last_modified'))
-        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else None
+        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else None
         generated=parse_timestamp(doc.get(generation_field)) if generation_field else None
         result.update(bytes=len(raw),last_modified=modified.isoformat() if modified else None,
                       generated_at=generated.isoformat() if generated else None,version_id=response.get('VersionId'),
@@ -293,7 +333,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
                 if checked.get('status') in ('DATA_HOLD','BLOCKED'):result['requirements'].append('CAPITAL_OR_SOURCE_REQUIREMENTS_BLOCK_PERMISSION')
             except Exception as exc:
                 result['errors'].append('RISK_CONTRACT_'+type(exc).__name__)
-        checks=donor_checks(function,doc)
+        checks=donor_checks(function,doc,key)
         result['errors'].extend(checks['errors']);result['requirements'].extend(checks['requirements']);result['counts']=checks['counts']
         if doc.get('ok') is False or doc.get('error') or doc.get('_err'):result['requirements'].append('PRODUCER_REPORTED_DATA_UNAVAILABLE')
         result['status']='CONTRACT_FAILED' if result['errors'] else 'VERIFIED_BLOCKED_REQUIREMENTS' if result['requirements'] else 'VERIFIED'

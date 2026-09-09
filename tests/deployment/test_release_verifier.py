@@ -363,3 +363,51 @@ def test_unreviewed_page_url_change_blocks_identity_without_cloud_lookup():
             def get_function_url_config(self,**kw):raise AssertionError('Changed page triggered guessed discovery')
         rows=release.observe_function_urls(NoLookup(),root)
         assert all(row['reason']=='PAGE_URL_CHANGED_SINCE_REVIEW' for row in rows)
+
+
+def snapshot_index_fixture():
+    now=datetime.now(timezone.utc)
+    day=now.date().isoformat()
+    return {'schema_version':'daily-snapshot-index.v1','generated_at':now.isoformat(),'complete':True,
+            'coverage_scope':'all listed source-owned public daily copies',
+            'semantics':'MUTABLE_DAILY_COPY; filename date is not certified decision-time availability',
+            'n_snapshots':1,'dates':[day],
+            'snapshots':[{'key':'data/snapshots/data_yield-curve-'+day+'.json','source_key':'data/yield-curve.json',
+                          'capture_date':day,'object_last_modified':now.isoformat(),'size_bytes':0,
+                          'immutable':False,'point_in_time_certified':False,'content_status':'LISTED_NOT_CONTENT_VALIDATED'}]}
+
+
+def test_daily_snapshot_index_is_primary_and_quiet_publish_follows_other_donors():
+    mapping=release.artifact_map(ROOT,['justhodl-whats-changed'])
+    assert mapping['justhodl-whats-changed']['primary_keys']==['data/whats-changed.json','data/snapshots-index.json']
+    assert release.QUIET_STAGES[-1]==('whats-changed',)
+    checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'$LATEST'}]
+    calls=[]
+    verifier=release.ReleaseVerifier(ROOT,{'lambda':SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})},package_check=checker)
+    verifier.checkpoint=lambda:None
+    assert verifier.invoke_once('justhodl-whats-changed') and calls[0]['Payload']==b'{}'
+
+
+def test_daily_snapshot_index_valid_metadata_preserves_explicit_mutable_availability_limit():
+    doc=snapshot_index_fixture()
+    now=datetime.now(timezone.utc)
+    result=release.inspect_output(fixture_output(doc),'justhodl-whats-changed','data/snapshots-index.json',
+                                  {'last_modified':(now-timedelta(hours=1)).isoformat()},now=now)
+    assert result['status']=='VERIFIED_BLOCKED_REQUIREMENTS' and not result['errors']
+    assert result['counts']=={'snapshots':1,'dates':1}
+    assert result['requirements']==['MUTABLE_DAILY_COPIES_NOT_POINT_IN_TIME_CERTIFIED']
+
+
+def test_daily_snapshot_index_rejects_private_or_fabricated_dates_counts_and_certification():
+    changes=[lambda d:d.update(complete=False),lambda d:d.update(schema_version='legacy'),
+             lambda d:d.update(n_snapshots=2),lambda d:d.update(dates=['1999-01-01']),
+             lambda d:d['snapshots'][0].update(source_key='portfolio/snapshot.json'),
+             lambda d:d['snapshots'][0].update(key='data/snapshots/../private.json'),
+             lambda d:d['snapshots'][0].update(capture_date='2026-02-30'),
+             lambda d:d['snapshots'][0].update(object_last_modified=None),
+             lambda d:d['snapshots'][0].update(size_bytes=-1),
+             lambda d:d['snapshots'][0].update(point_in_time_certified=True),
+             lambda d:d['snapshots'][0].update(immutable=True)]
+    for change in changes:
+        doc=snapshot_index_fixture();change(doc)
+        assert release.donor_checks('justhodl-whats-changed',doc,'data/snapshots-index.json')['errors']
