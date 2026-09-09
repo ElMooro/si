@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ops5230: apply only after the reviewed Worker and Lambda release has deployed.
 
-Retry after Worker vault-slug cache protection: canonical hyphenated shard required; legacy underscore alias optional.
+Retry after successful cloud migration whose receipt commit failed. Preserve safe projections, reuse exact numbered versions, and checkpoint progress.
 Safe to retry. Private originals and object versions are retained. Temporary
 external-read containment stays installed on failure. No source prose, secret,
 environment value, signed URL, or raw Lambda response is written to reports.
@@ -16,16 +16,19 @@ import sys
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT / "aws/ops/checks"), str(ROOT / "aws/shared")]
 from audit_20260909_privacy_migration import Migration, MigrationError, REGION, verify_core_receipt
+from audit_20260909_migration_progress import ProgressCheckpoint
 
 
 def main():
     import boto3
     from botocore.config import Config
     clients = {name: boto3.client(name, region_name=REGION,
-        config=Config(read_timeout=950, connect_timeout=15, tcp_keepalive=True, retries={"max_attempts": 2}) if name == "lambda" else Config(retries={"max_attempts": 4}))
+        config=Config(read_timeout=950, connect_timeout=15, tcp_keepalive=True, retries={"total_max_attempts": 1}) if name == "lambda" else Config(retries={"max_attempts": 4}))
         for name in ("s3", "lambda", "iam", "ssm", "sts")}
-    migration = Migration(ROOT, clients)
     checkout = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    progress = ProgressCheckpoint(ROOT / "aws/ops/reports/5230_audit_privacy_progress.json", checkout)
+    migration = Migration(ROOT, clients, on_progress=progress)
+    progress(migration)
     result = {"ops": 5230, "checkout_sha": checkout, "ops_target_sha": os.environ.get("OPS_TARGET_SHA"), "ok": False}
     try:
         result["core_layer_prerequisite"] = verify_core_receipt(ROOT)
