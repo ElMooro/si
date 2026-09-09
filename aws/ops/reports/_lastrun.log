@@ -1,9 +1,4 @@
-executing-against: 1b76bcf723ef0f311909145cba564aa98becd613
-<unknown>:32: SyntaxWarning: invalid escape sequence '\$'
-<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
-<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
-{"ops": 5231, "phase": "package_parity", "matched": 120, "pending": 15}
-{"ops": 5231, "ok": false, "status": "SOURCE_PARITY_FAILED", "stage": "final", "code_engines": 135, "pending_outputs": 0, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
-❌ OPS-FAIL: aws/ops/pending/ops_5231_audit_release_verify.py
-{"ops": 5274, "ok": false, "status": "RECONCILIATION_FAILED", "configuration_changed": false}
-❌ OPS-FAIL: aws/ops/pending/ops_5274_fmp_credential_reconcile.py
+executing-against: f707eaa5dd1373efb041c915dab05971b518d953
+{"ops": 5274, "ok": true, "status": "EXISTING_CREDENTIAL_VALIDATED", "configuration_changed": true}
+{"ops": 5280, "ok": false, "statuses": {"nasdaq-datalink-agent": "SOURCE_PARITY_FAILED", "alphavantage-technical-analysis": "VERIFIED", "alphavantage-market-agent": "ACCEPTANCE_FAILED"}}
+❌ OPS-FAIL: aws/ops/pending/ops_5280_audit_provider_runtime.py

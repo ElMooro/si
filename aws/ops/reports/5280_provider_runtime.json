@@ -1,0 +1,223 @@
+{
+  "ops": 5280,
+  "read_only": true,
+  "raw_provider_payloads_reported": 0,
+  "secret_values_reported": 0,
+  "source_sha": "f707eaa5dd1373efb041c915dab05971b518d953",
+  "functions": {
+    "nasdaq-datalink-agent": {
+      "package": {
+        "function": "nasdaq-datalink-agent",
+        "qualifier": "$LATEST",
+        "files": [
+          {
+            "member": "lambda_function.py",
+            "expected_sha256": "864f28c4c31f1ab540404cc162978066665dfcd6264d12188bbf6203f0f04ec6",
+            "actual_sha256": "27ae1341244fbe3fd561acfb2ba6d7554092c197a3ac3645290543ab62deb3df",
+            "match": false
+          },
+          {
+            "member": "api_auth.py",
+            "expected_sha256": "68e847610c5c4eeac9d539bc390f82421ce7a2065c61c14aa8d7461490031da8",
+            "actual_sha256": "68e847610c5c4eeac9d539bc390f82421ce7a2065c61c14aa8d7461490031da8",
+            "match": true
+          },
+          {
+            "member": "managed_secret.py",
+            "expected_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "actual_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "match": true
+          },
+          {
+            "member": "public_provider_json.py",
+            "expected_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "actual_sha256": null,
+            "match": false
+          }
+        ],
+        "pass": false,
+        "version": "$LATEST",
+        "code_sha256": "McYup4BcV3O3m3fRsFJuGBYfOoV5R6oHK4NIztP+duA=",
+        "state": "Active",
+        "update_status": "Successful",
+        "last_modified": "2026-09-09T05:58:32.000+0000",
+        "handler": "lambda_function.lambda_handler",
+        "configuration_mismatches": [],
+        "configuration_differences": []
+      },
+      "status": "SOURCE_PARITY_FAILED"
+    },
+    "alphavantage-technical-analysis": {
+      "package": {
+        "function": "alphavantage-technical-analysis",
+        "qualifier": "$LATEST",
+        "files": [
+          {
+            "member": "lambda_function.py",
+            "expected_sha256": "8e43dd0e4aa92fcd91a82cd452e19ead729cc0ac0678770e7d4f6d3a41b95308",
+            "actual_sha256": "8e43dd0e4aa92fcd91a82cd452e19ead729cc0ac0678770e7d4f6d3a41b95308",
+            "match": true
+          },
+          {
+            "member": "managed_secret.py",
+            "expected_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "actual_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "match": true
+          },
+          {
+            "member": "public_provider_json.py",
+            "expected_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "actual_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "match": true
+          }
+        ],
+        "pass": true,
+        "version": "$LATEST",
+        "code_sha256": "K/q9GoZZMNIXZJdJXCdRj5WqIdnNGZYUxa2lt/8LXx4=",
+        "state": "Active",
+        "update_status": "Successful",
+        "last_modified": "2026-09-09T15:20:02.000+0000",
+        "handler": "lambda_function.lambda_handler",
+        "configuration_mismatches": [],
+        "configuration_differences": []
+      },
+      "auth_type": "NONE",
+      "cors": {
+        "AllowHeaders": [
+          "*"
+        ],
+        "AllowMethods": [
+          "*"
+        ],
+        "AllowOrigins": [
+          "*"
+        ],
+        "MaxAge": 86400
+      },
+      "requests": [
+        {
+          "path": "/health",
+          "http_status": 200,
+          "cors_origins": [
+            "https://justhodl.ai"
+          ],
+          "cors_valid": true,
+          "response_bytes": 104,
+          "traceback_present": false,
+          "agent_matches": true,
+          "provider_status": "HANDLER_READY",
+          "handler_error_present": false,
+          "schema_verified": true,
+          "acceptance_verified": true,
+          "elapsed_s": 0.46
+        },
+        {
+          "path": "/",
+          "http_status": 200,
+          "cors_origins": [
+            "https://justhodl.ai"
+          ],
+          "cors_valid": true,
+          "response_bytes": 294,
+          "traceback_present": false,
+          "agent_matches": false,
+          "provider_status": null,
+          "handler_error_present": false,
+          "schema_verified": true,
+          "acceptance_verified": true,
+          "elapsed_s": 0.29
+        }
+      ],
+      "transport_ok": true,
+      "status": "VERIFIED"
+    },
+    "alphavantage-market-agent": {
+      "package": {
+        "function": "alphavantage-market-agent",
+        "qualifier": "$LATEST",
+        "files": [
+          {
+            "member": "lambda_alphavantage_agent.py",
+            "expected_sha256": "1b9003be4e903fb54e80c3ab5a9f6a09a7049d47e22addbf9563811404f8150e",
+            "actual_sha256": "1b9003be4e903fb54e80c3ab5a9f6a09a7049d47e22addbf9563811404f8150e",
+            "match": true
+          },
+          {
+            "member": "managed_secret.py",
+            "expected_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "actual_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+            "match": true
+          },
+          {
+            "member": "public_provider_json.py",
+            "expected_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "actual_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "match": true
+          }
+        ],
+        "pass": true,
+        "version": "$LATEST",
+        "code_sha256": "MDleHRKEKGtCvBI0oCJB9jcKawADv+K10XdVVEyJjLQ=",
+        "state": "Active",
+        "update_status": "Successful",
+        "last_modified": "2026-09-09T15:19:39.000+0000",
+        "handler": "lambda_alphavantage_agent.lambda_handler",
+        "configuration_mismatches": [],
+        "configuration_differences": []
+      },
+      "auth_type": "NONE",
+      "cors": {
+        "AllowHeaders": [
+          "*"
+        ],
+        "AllowMethods": [
+          "*"
+        ],
+        "AllowOrigins": [
+          "*"
+        ]
+      },
+      "requests": [
+        {
+          "path": "/health",
+          "http_status": 200,
+          "cors_origins": [
+            "*",
+            "https://justhodl.ai"
+          ],
+          "cors_valid": false,
+          "response_bytes": 98,
+          "traceback_present": false,
+          "agent_matches": true,
+          "provider_status": "HANDLER_READY",
+          "handler_error_present": false,
+          "schema_verified": true,
+          "acceptance_verified": false,
+          "elapsed_s": 0.56
+        },
+        {
+          "path": "/",
+          "http_status": 200,
+          "cors_origins": [
+            "*",
+            "https://justhodl.ai"
+          ],
+          "cors_valid": false,
+          "response_bytes": 3862,
+          "traceback_present": false,
+          "agent_matches": true,
+          "provider_status": "PARTIAL",
+          "handler_error_present": false,
+          "observed_quotes": 3,
+          "expected_quotes": 17,
+          "schema_verified": true,
+          "acceptance_verified": false,
+          "elapsed_s": 3.7
+        }
+      ],
+      "transport_ok": false,
+      "status": "ACCEPTANCE_FAILED"
+    }
+  },
+  "ok": false
+}
