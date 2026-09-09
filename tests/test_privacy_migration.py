@@ -515,6 +515,14 @@ class PublicMigrationTests(unittest.TestCase):
         job.scrub("brain-compiler.json", optional=True)
         self.assertEqual(job.rows, [{"check": "absent_legacy_alias", "key": "brain-compiler.json"}])
 
+    def test_retry_keeps_already_projected_objects_and_publication_age_unchanged(self):
+        key="data/engine-conflicts.json"
+        store=MemoryS3({key:{"generated_at":"2026-09-09T00:00:00Z","rows":[]}})
+        job=migration.Migration(ROOT,{"s3":store})
+        job.scrub(key)
+        self.assertEqual(store.writes,[])
+        self.assertEqual(job.rows[0]["check"],"public_projection_already_safe")
+
     def test_shard_projection_uses_same_vault_search_helper_and_gzip_roundtrip(self):
         fixtures = self.fixtures()
         vault = fixtures["data/tradingview.json"]

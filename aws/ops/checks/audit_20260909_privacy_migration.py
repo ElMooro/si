@@ -579,6 +579,11 @@ class Migration:
                 self.record("absent_legacy_alias", key=key)
                 return
             projected = project_public(key, doc, vault=vault)
+            if encoded(projected) == encoded(doc):
+                # A retry must not mint a new LastModified or another backup for
+                # an unchanged projection. This also preserves publication age.
+                self.record("public_projection_already_safe", key=key, sha256=digest(encoded(doc)))
+                return
             try:
                 self.put_public(key, projected, obj)
                 return
