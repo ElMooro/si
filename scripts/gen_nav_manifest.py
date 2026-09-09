@@ -89,7 +89,8 @@ FORCE = {  # ops 3302
     "/flow-lookthrough.html": "Equity Signals",           # ops 4559: tier-A mechanical constituent flow
     "/fortress.html": "Equity Signals",   # ops 5081: Fortress Coil dump-resilient accumulation radar
     "/katlin.html": "Equity Signals",     # ops 5203: KATLIN buy desk (war-room posture + asymmetric bottoms across stocks/ETFs/crypto)
-    "/bottom.html": "Equity Signals",     # ops 5290: BOTTOM Wyckoff bottom desk (climax -> rally -> secondary test -> trigger, every asset class)
+    "/bottom.html": "Equity Signals",
+    "/ai.html": "System & Meta",       # ops 5300: AI -- the SageMaker front window (inventory, JumpStart financial models, Brain training pipeline, cost guard)     # ops 5290: BOTTOM Wyckoff bottom desk (climax -> rally -> secondary test -> trigger, every asset class)
     "/floor.html": "Risk & Crisis",   # ops 4919: asset-floor auditor —
     # "auditor" in the title otherwise collides with the System & Meta
     # "audit" keyword and files a risk desk under settings/legal.
