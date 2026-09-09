@@ -17,7 +17,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "aws/shared"), str(ROOT / "aws/ops/checks")]
 import audit_20260909_privacy_migration as migration
-from public_brain_projection import sanitize_public, vault_search_rows
+from public_brain_projection import PUBLIC_DEFAULT_SCENARIO, sanitize_public, vault_search_rows
 
 MARKER = "SYNTHETIC_PRIVATE_PROSE_5230"
 
@@ -122,6 +122,10 @@ class PublicMigrationTests(unittest.TestCase):
                                      "tickers": [{"ticker": "SPY", "regime": "NORMAL", "iv_atm_30d": 20},
                                                  {"ticker": MARKER, "regime": "PANIC", "iv_atm_30d": 60}],
                                      "most_stressed": [{"ticker": MARKER}]},
+            "data/wealth-plan-snapshot.json": {"inputs": {"age": 42, "liquid_assets": 1234567, "name": MARKER},
+                                                "goal": MARKER, "recommendations": [MARKER]},
+            "data/tax-plan-snapshot.json": {"profile": {"income": 765432, "filing_status": MARKER},
+                                             "suggestions": [MARKER]},
             "data/search/providers/tradingview_vault_live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
             "equity-research/NVDA.json": {"price": 123, "khalid_notes": {"n_notes": 3, "levels": [120, 140], "note_ids": ["n1"], "latest_note": MARKER, "llm_view": MARKER}},
         }
@@ -165,6 +169,33 @@ class PublicMigrationTests(unittest.TestCase):
                   "execution_eligible": False, "recommendations": [{"final_w_pct": 2,
                   "overlap_flags": ["correlated existing account exposure"]}]}
         self.assertEqual(sanitize_public("data/sizing.json", future), future)
+
+    def test_calculator_legacy_and_untrusted_markers_drop_whole_private_scenario(self):
+        for key in ("data/wealth-plan-snapshot.json", "data/tax-plan-snapshot.json"):
+            legacy = self.fixtures()[key]
+            placeholder = sanitize_public(key, legacy)
+            self.assertEqual(placeholder["status"], "PUBLIC_MODEL_UNAVAILABLE")
+            self.assertFalse(placeholder["available"])
+            self.assertFalse({"inputs", "profile", "goal", "recommendations", "suggestions"} & set(placeholder))
+            for marker in (None, {}, "PUBLIC_DEFAULT_MODEL",
+                           {**PUBLIC_DEFAULT_SCENARIO, "contains_caller_inputs": 0},
+                           {**PUBLIC_DEFAULT_SCENARIO, "contains_caller_inputs": True},
+                           {**PUBLIC_DEFAULT_SCENARIO, "schema_version": "old"},
+                           {**PUBLIC_DEFAULT_SCENARIO, "scope": "CALLER_SCENARIO"},
+                           {**PUBLIC_DEFAULT_SCENARIO, "extra": MARKER}):
+                self.assertEqual(sanitize_public(key, {**legacy, "publication": marker}), placeholder)
+            s3 = MemoryS3({key: legacy})
+            job = migration.Migration(ROOT, {"s3": s3})
+            job.scrub(key)
+            self.assertEqual(s3.docs[key], placeholder)
+            self.assertNotIn(MARKER, json.dumps(job.rows))
+
+    def test_explicit_public_default_calculator_numbers_and_contract_are_preserved(self):
+        for key in ("data/wealth-plan-snapshot.json", "data/tax-plan-snapshot.json"):
+            model = {"publication": deepcopy(PUBLIC_DEFAULT_SCENARIO), "inputs": {"age": 35, "annual_savings": 20000},
+                     "allocation": {"expected_return_pct": 6.5}, "model_explanation": "Default model scenario"}
+            self.assertEqual(sanitize_public(key, model), model)
+            self.assertEqual(sanitize_public(key.removeprefix("data/"), model), model)
 
     def test_source_zip_exact_hash_and_transitive_private_helpers(self):
         members = migration.desired_members(ROOT, "my-brief")
@@ -246,7 +277,9 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
         self.assertEqual(len(migration.PUBLISHERS), 19)
-        self.assertEqual(len(migration.READINESS), 35)
+        self.assertEqual(len(migration.READINESS), 37)
+        self.assertTrue({"wealth-plan", "tax-plan"} <= set(migration.READINESS))
+        self.assertFalse({"wealth-plan", "tax-plan"} & set(migration.PUBLISHERS))
 
     def test_private_vol_bootstrap_preserves_full_original_once_before_public_scrub(self):
         full = self.fixtures()["data/vol-regime.json"]

@@ -9,6 +9,8 @@ import re
 
 PUBLIC_CONTEXT_PRIVACY_VERSION = "20260909-public-inputs-v1"
 PUBLIC_VOL_UNIVERSE = ("SPY", "QQQ", "IWM", "DIA", "GLD", "TLT", "IBIT", "VXX")
+PUBLIC_DEFAULT_SCENARIO = {"schema_version": "public-default-scenario.v1",
+                           "scope": "PUBLIC_DEFAULT_MODEL", "contains_caller_inputs": False}
 
 
 def _rows(value):
@@ -195,6 +197,17 @@ def sanitize_public(key, document, *, vault=None):
         out["most_stressed"] = [{"ticker": r["ticker"], "regime": r["regime"], "rv_z": r.get("rv_z"), "iv_rv": r.get("iv_rv_ratio")}
                                 for r in ranked[:10]]
         out["universe_scope"] = "PUBLIC_CORE_MODEL"
+    elif name in {"wealth-plan-snapshot.json", "tax-plan-snapshot.json"}:
+        publication = out.get("publication")
+        # Only the producers' new scheduled default-model path can issue this
+        # exact marker. Legacy snapshots may contain any caller's full financial
+        # scenario; retain no input, calculation, timestamp or free text from it.
+        if not (isinstance(publication, dict) and publication == PUBLIC_DEFAULT_SCENARIO
+                and publication.get("contains_caller_inputs") is False):
+            out = {"engine": "justhodl-" + name.removesuffix("-snapshot.json"),
+                   "status": "PUBLIC_MODEL_UNAVAILABLE", "available": False,
+                   "private_scenario_removed": True,
+                   "note": "Public model scenario is awaiting regeneration."}
     elif name == "search/providers/tradingview_vault_live.json.gz":
         if not isinstance(vault, dict):
             raise ValueError("vault source required to rebuild search fields")
