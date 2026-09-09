@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ops5230: apply only after the reviewed Worker and Lambda release has deployed.
 
-Retry verifies service HEAD before private writes and uses the production publisher User-Agent.
+Retry after Worker vault-slug cache protection: canonical hyphenated shard required; legacy underscore alias optional.
 Safe to retry. Private originals and object versions are retained. Temporary
 external-read containment stays installed on failure. No source prose, secret,
 environment value, signed URL, or raw Lambda response is written to reports.
