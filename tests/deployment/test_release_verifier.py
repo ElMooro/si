@@ -2,6 +2,7 @@
 import copy
 import io
 import json
+import runpy
 import sys
 import tempfile
 import zipfile
@@ -380,7 +381,7 @@ def snapshot_index_fixture():
 def test_daily_snapshot_index_is_primary_and_quiet_publish_follows_other_donors():
     mapping=release.artifact_map(ROOT,['justhodl-whats-changed'])
     assert mapping['justhodl-whats-changed']['primary_keys']==['data/whats-changed.json','data/snapshots-index.json']
-    assert release.QUIET_STAGES[-1]==('whats-changed',)
+    assert 'whats-changed' in release.QUIET_STAGES[-1]
     checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'$LATEST'}]
     calls=[]
     verifier=release.ReleaseVerifier(ROOT,{'lambda':SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})},package_check=checker)
@@ -411,3 +412,64 @@ def test_daily_snapshot_index_rejects_private_or_fabricated_dates_counts_and_cer
     for change in changes:
         doc=snapshot_index_fixture();change(doc)
         assert release.donor_checks('justhodl-whats-changed',doc,'data/snapshots-index.json')['errors']
+
+
+def actual_archive_index_fixture():
+    scope=runpy.run_path(str(ROOT/'aws/lambdas/justhodl-public-archive-index/tests/run_tests.py'))
+    fixture=scope['HandlerTests']('test_actual_handler_collects_all_pages_zero_bytes_and_exact_metadata')
+    fixture.setUp()
+    fixture.test_actual_handler_collects_all_pages_zero_bytes_and_exact_metadata()
+    return fixture
+
+
+def test_archive_index_primary_scope_matches_the_exact_anchored_registry():
+    registry=release.public_archive_registry(ROOT)
+    mapping=release.artifact_map(ROOT,['justhodl-public-archive-index'])['justhodl-public-archive-index']
+    assert mapping['primary_keys']==['data/archive-indexes/catalog.json']+['data/archive-indexes/'+engine+'.json' for engine in registry]
+    calls=[]
+    checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'17'}]
+    verifier=release.ReleaseVerifier(ROOT,{'lambda':SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})},package_check=checker)
+    verifier.checkpoint=lambda:None
+    assert verifier.invoke_once('justhodl-public-archive-index') and calls[0]['Qualifier']=='17'
+
+
+def test_actual_archive_handler_outputs_pass_metadata_contract_without_reading_archives():
+    fixture=actual_archive_index_fixture()
+    for key,doc in fixture.s3.writes.items():
+        checked=release.donor_checks('justhodl-public-archive-index',doc,key)
+        assert not checked['errors'],(key,checked['errors'])
+        assert checked['requirements']==['ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY']
+
+
+def test_archive_checker_rejects_forged_membership_partial_rows_and_availability_claims():
+    fixture=actual_archive_index_fixture()
+    original=fixture.s3.writes[fixture.key]
+    changes=[lambda d:d.update(families=['data/archive/*.json']),lambda d:d.update(engine='unreviewed'),
+             lambda d:d.update(n_snapshots=0),lambda d:d.update(complete=False,status='INDEX_UNAVAILABLE'),
+             lambda d:d['snapshots'][0].update(key='backtest/ledger/private.json'),
+             lambda d:d['snapshots'][0].update(last_modified=None),lambda d:d['snapshots'][0].update(size_bytes=-1),
+             lambda d:d['snapshots'][0].update(immutable=True),lambda d:d['snapshots'][0].update(point_in_time_certified=True),
+             lambda d:d['snapshots'][0].update(content_status='VALIDATED')]
+    for change in changes:
+        doc=copy.deepcopy(original);change(doc)
+        assert release.donor_checks('justhodl-public-archive-index',doc,fixture.key)['errors']
+    catalog=copy.deepcopy(fixture.s3.writes['data/archive-indexes/catalog.json'])
+    catalog['indexes'].pop()
+    assert 'ARCHIVE_CATALOG_MEMBERSHIP_INVALID' in release.donor_checks('justhodl-public-archive-index',catalog,'data/archive-indexes/catalog.json')['errors']
+
+
+def test_incomplete_archive_listing_is_explicit_blocked_requirement_without_partial_rows():
+    fixture=actual_archive_index_fixture()
+    fixture.test_access_denial_discards_partial_keys_and_publishes_unavailable()
+    for key in (fixture.key,'data/archive-indexes/catalog.json'):
+        checked=release.donor_checks('justhodl-public-archive-index',fixture.s3.writes[key],key)
+        assert not checked['errors'],checked
+        assert 'REVIEWED_ARCHIVE_LISTING_UNAVAILABLE' in checked['requirements']
+
+
+def test_registry_scope_is_read_from_passed_release_root_without_loading_sdk_clients():
+    with tempfile.TemporaryDirectory() as temp:
+        root=Path(temp);source=root/'aws/lambdas/justhodl-public-archive-index/source/lambda_function.py'
+        source.parent.mkdir(parents=True)
+        source.write_text("raise AssertionError('must not execute module')\nREGISTRY=(('justhodl-reviewed','data/archive/reviewed/*.json'),)\n")
+        assert release.public_archive_registry(root)=={'justhodl-reviewed':'data/archive/reviewed/*.json'}

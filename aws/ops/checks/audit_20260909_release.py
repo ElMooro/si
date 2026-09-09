@@ -5,6 +5,7 @@ is returned. Unknown outputs and absent source-version markers stay explicit.
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 import subprocess
@@ -61,7 +62,7 @@ QUIET_STAGES = (
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
     ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
-    ('whats-changed',),
+    ('whats-changed','public-archive-index'),
 )
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
@@ -97,6 +98,7 @@ MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-
              'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
              'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
 MAX_AGE_H['justhodl-whats-changed']=30
+MAX_AGE_H['justhodl-public-archive-index']=1
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 
 
@@ -144,6 +146,28 @@ def changed_scope(root, base=BASE):
     return {name:sorted(why) for name,why in sorted(reasons.items()) if (root/'aws/lambdas'/name/'source').exists()}
 
 
+def public_archive_registry(root):
+    """Read literal membership from the exact source release, without importing it."""
+    source=root/'aws/lambdas/justhodl-public-archive-index/source/lambda_function.py'
+    tree=ast.parse(source.read_text())
+    assignments=[node.value for node in tree.body if isinstance(node,ast.Assign)
+                 and any(isinstance(target,ast.Name) and target.id=='REGISTRY' for target in node.targets)]
+    if len(assignments)!=1:raise ValueError('archive_registry_missing_or_duplicate')
+    rows=ast.literal_eval(assignments[0])
+    if not isinstance(rows,(tuple,list)) or not rows:raise ValueError('archive_registry_empty')
+    result={}
+    for row in rows:
+        if not isinstance(row,(tuple,list)) or len(row)!=2:raise ValueError('archive_registry_row_invalid')
+        engine,pattern=row
+        if (not safe_label(engine) or engine in result or not isinstance(pattern,str)
+                or not pattern.startswith('data/archive/') or not pattern.endswith('.json')
+                or pattern.count('*')!=1 or '..' in pattern or is_private_source(pattern)):
+            raise ValueError('archive_registry_family_invalid')
+        result[engine]=pattern
+    if len(set(result.values()))!=len(result):raise ValueError('archive_registry_ownership_collision')
+    return result
+
+
 def artifact_map(root, functions):
     manifest=json.loads((root/'engine-manifest.json').read_text())
     engines={row['engine']:row for row in manifest['engines']}
@@ -154,12 +178,16 @@ def artifact_map(root, functions):
         keys=row.get('keys',[])
         conventional='data/'+function.removeprefix('justhodl-')+'.json'
         chosen=PRIMARY.get(function) or ([conventional] if conventional in keys else keys if len(keys)==1 else [])
+        if function=='justhodl-public-archive-index':
+            chosen=['data/archive-indexes/catalog.json']+['data/archive-indexes/'+engine+'.json' for engine in public_archive_registry(root)]
         result[function]={'primary_keys':chosen,'other_source_bound_keys':[key for key in keys if key not in chosen],
                           'expected_output_contracts':{key:OUTPUT_CONTRACTS[key] for key in chosen if key in OUTPUT_CONTRACTS},
                           'unresolved_write_count':len(row.get('unresolved_writes',[])),
                           'primary_resolution':'EXPLICIT_OR_SOURCE_BOUND' if chosen else 'API_OR_PRIMARY_UNRESOLVED',
                           'pages':sorted(page for page,contract in pages.items() if function in contract.get('producers',[])),
                           'page_mapping_scope':'checked-in ownership contract; browser rendering verified separately'}
+        if function=='justhodl-public-archive-index':
+            result[function]['expected_output_contracts']={key:'public-engine-archive-catalog.v1' if key.endswith('/catalog.json') else 'public-engine-archive-index.v1' for key in chosen}
     return result
 
 
@@ -171,7 +199,7 @@ def strict_document(raw):
     return doc
 
 
-def donor_checks(function, doc, key=None):
+def donor_checks(function, doc, key=None, root=ROOT):
     """D27-D30 semantic checks, returning only fixed codes and aggregate counts."""
     name=function.removeprefix('justhodl-');errors=[];requirements=[];counts={}
     if name=='short-interest':
@@ -288,10 +316,67 @@ def donor_checks(function, doc, key=None):
             errors.append('DAILY_SNAPSHOT_INDEX_COUNTS_INVALID')
         counts.update(snapshots=len(rows),dates=len(set(dates)))
         requirements.append('MUTABLE_DAILY_COPIES_NOT_POINT_IN_TIME_CERTIFIED')
+    elif name=='public-archive-index':
+        registry=public_archive_registry(root)
+        if doc.get('publisher_engine')!='justhodl-public-archive-index':errors.append('ARCHIVE_INDEX_PUBLISHER_INVALID')
+        if key=='data/archive-indexes/catalog.json':
+            rows=doc.get('indexes')
+            if (doc.get('schema_version')!='public-engine-archive-catalog.v1'
+                    or doc.get('completeness_scope')!='reviewed family metadata listings only' or not isinstance(rows,list)):
+                errors.append('ARCHIVE_CATALOG_SCHEMA_INVALID')
+            rows=rows if isinstance(rows,list) else []
+            engines=[]
+            for row in rows:
+                if not isinstance(row,dict):errors.append('ARCHIVE_CATALOG_ROW_INVALID');continue
+                engine=row.get('engine')
+                if not isinstance(engine,str) or engine not in registry:errors.append('ARCHIVE_CATALOG_MEMBERSHIP_INVALID');continue
+                engines.append(engine)
+                if row.get('key')!='data/archive-indexes/'+engine+'.json':errors.append('ARCHIVE_CATALOG_KEY_INVALID')
+                if (type(row.get('complete')) is not bool or type(row.get('n_snapshots')) is not int
+                        or row['n_snapshots']<0 or not parse_timestamp(row.get('index_observed_at')) or not isinstance(row.get('errors'),list)):
+                    errors.append('ARCHIVE_CATALOG_ROW_INVALID')
+                if row.get('complete') is False and (row.get('n_snapshots')!=0 or not row.get('errors')):errors.append('ARCHIVE_PARTIAL_LISTING_EXPOSED')
+                if row.get('complete') is True and row.get('errors'):errors.append('ARCHIVE_COMPLETE_LISTING_HAS_ERRORS')
+            if sorted(engines)!=sorted(registry):errors.append('ARCHIVE_CATALOG_MEMBERSHIP_INVALID')
+            if type(doc.get('complete')) is not bool or doc.get('complete')!=all(isinstance(row,dict) and row.get('complete') is True for row in rows):errors.append('ARCHIVE_CATALOG_COMPLETENESS_INVALID')
+            counts['families']=len(rows)
+        else:
+            engine=doc.get('engine');pattern=registry.get(engine) if isinstance(engine,str) else None
+            rows=doc.get('snapshots')
+            if (doc.get('schema_version')!='public-engine-archive-index.v1' or not pattern
+                    or key!='data/archive-indexes/'+str(engine)+'.json' or doc.get('families')!=[pattern]
+                    or doc.get('completeness_scope')!='paginated object listing only'
+                    or doc.get('listing_is_atomic') is not False or type(doc.get('complete')) is not bool
+                    or not isinstance(rows,list) or not isinstance(doc.get('errors'),list)
+                    or not parse_timestamp(doc.get('index_observed_at')) or not parse_timestamp(doc.get('listing_started_at'))):
+                errors.append('ARCHIVE_INDEX_SCHEMA_INVALID')
+            rows=rows if isinstance(rows,list) else []
+            if type(doc.get('n_snapshots')) is not int or doc.get('n_snapshots')!=len(rows) or type(doc.get('listing_pages')) is not int or doc.get('listing_pages',-1)<0:
+                errors.append('ARCHIVE_INDEX_COUNTS_INVALID')
+            complete=doc.get('complete') is True
+            if doc.get('status')!=('INDEX_AVAILABLE' if complete else 'INDEX_UNAVAILABLE'):errors.append('ARCHIVE_INDEX_STATUS_INVALID')
+            if complete and (doc.get('errors') or not doc.get('listing_pages')):errors.append('ARCHIVE_COMPLETE_LISTING_HAS_ERRORS')
+            if not complete and (rows or not doc.get('errors')):errors.append('ARCHIVE_PARTIAL_LISTING_EXPOSED')
+            matcher=re.compile(re.escape(pattern).replace(r'\*',r'[^/]+')) if pattern else None
+            seen=set()
+            for row in rows:
+                if not isinstance(row,dict):errors.append('ARCHIVE_METADATA_ROW_INVALID');continue
+                archive_key=row.get('key')
+                if (not isinstance(archive_key,str) or not matcher or not matcher.fullmatch(archive_key)
+                        or '..' in archive_key or is_private_source(archive_key) or archive_key in seen):
+                    errors.append('ARCHIVE_METADATA_KEY_INVALID')
+                elif isinstance(archive_key,str):seen.add(archive_key)
+                if not parse_timestamp(row.get('last_modified')) or type(row.get('size_bytes')) is not int or row.get('size_bytes',-1)<0:errors.append('ARCHIVE_OBJECT_METADATA_INVALID')
+                if (row.get('immutable') is not False or row.get('point_in_time_certified') is not False
+                        or row.get('availability_basis')!='listed metadata only' or row.get('content_status')!='NOT_READ'):
+                    errors.append('ARCHIVE_AVAILABILITY_OVERCLAIMED')
+            counts['snapshots']=len(rows)
+        if doc.get('complete') is not True:requirements.append('REVIEWED_ARCHIVE_LISTING_UNAVAILABLE')
+        requirements.append('ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY')
     return {'errors':sorted(set(errors)),'requirements':sorted(set(requirements)),'counts':counts}
 
 
-def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=None):
+def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=None, root=ROOT):
     now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','errors':[],'requirements':[]}
     if key in OUTPUT_CONTRACTS:
         result.update(expected_output_contract=OUTPUT_CONTRACTS[key],expected_producer=function)
@@ -333,7 +418,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
                 if checked.get('status') in ('DATA_HOLD','BLOCKED'):result['requirements'].append('CAPITAL_OR_SOURCE_REQUIREMENTS_BLOCK_PERMISSION')
             except Exception as exc:
                 result['errors'].append('RISK_CONTRACT_'+type(exc).__name__)
-        checks=donor_checks(function,doc,key)
+        checks=donor_checks(function,doc,key,root)
         result['errors'].extend(checks['errors']);result['requirements'].extend(checks['requirements']);result['counts']=checks['counts']
         if doc.get('ok') is False or doc.get('error') or doc.get('_err'):result['requirements'].append('PRODUCER_REPORTED_DATA_UNAVAILABLE')
         result['status']='CONTRACT_FAILED' if result['errors'] else 'VERIFIED_BLOCKED_REQUIREMENTS' if result['requirements'] else 'VERIFIED'
@@ -504,7 +589,7 @@ class ReleaseVerifier:
             for row in self.report['outputs'].get(dependency,[]):
                 stamp=parse_timestamp(row.get('last_modified'))
                 if stamp and row['status'].startswith('VERIFIED'):floors.append(stamp)
-        rows=[inspect_output(self.clients['s3'],name,key,code,not_before=max(floors) if floors else None) for key in outputs]
+        rows=[inspect_output(self.clients['s3'],name,key,code,not_before=max(floors) if floors else None,root=self.root) for key in outputs]
         self.report['outputs'][name]=rows
         return bool(rows) and all(row['status'].startswith('VERIFIED') for row in rows)
 
