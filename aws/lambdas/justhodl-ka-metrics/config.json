@@ -17,12 +17,19 @@
   "layers": [],
   "reserved_concurrency": null,
   "function_url": "https://s6ascg5dntry5w5elqedee77na0fcljz.lambda-url.us-east-1.on.aws/",
-  "eventbridge_rules": [
-    "justhodl-khalid-metrics-refresh"
-  ],
-  "description": "KA Metrics owns data/ka-config.json, data/ka-metrics.json and data/ka-analysis.json. Legacy Khalid outputs are owned by justhodl-khalid-metrics. Existing cadence declaration retained; no schedule migration is implied.",
+  "eventbridge_rules": [],
+  "description": "Owns data/ka-config.json, data/ka-metrics.json and data/ka-analysis.json; dedicated hourly Scheduler.",
   "imported_at": "2026-05-06",
   "imported_from": "console (no prior version control)",
   "imported_via": "step 285 \u2014 re-imported after parallel session step 261 audit flagged it as deployed-not-in-repo",
-  "memory": 512
+  "memory": 512,
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-ka-metrics-hourly",
+    "cron": "rate(1 hour)",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "timezone": "UTC",
+    "state": "ENABLED",
+    "input": {},
+    "description": "Dedicated hourly KA metrics and descriptive analysis refresh; verified absent legacy schedules in ops 5281 and 5282."
+  }
 }

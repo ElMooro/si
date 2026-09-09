@@ -536,7 +536,8 @@ def test_metric_shared_rule_binding_observer_paginates_and_never_claims_dedicate
         function='justhodl-ka-metrics' if kw.get('NextToken') else 'justhodl-khalid-metrics'
         return {'Targets':[{'Arn':'arn:aws:lambda:us-east-1:123:function:'+function+':live','Input':'PRIVATE_CONFIG_BODY'}],**({} if kw.get('NextToken') else {'NextToken':'page2'})}
     events=SimpleNamespace(describe_rule=lambda **kw:{'State':'ENABLED','ScheduleExpression':'rate(1 hour)'},list_targets_by_rule=targets)
-    rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
+    with patch.object(release,'release_config',return_value={'eventbridge_rules':['legacy-metric-refresh']}):
+        rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
     assert len(rows)==2 and len(calls)==2
     assert all(row['status']=='PENDING_CONFIGURATION' and row['reason']=='SHARED_RULE_OWNERSHIP_REVIEW_REQUIRED' for row in rows)
     assert all(len(row['observed_lambda_target_arns'])==2 and len(row['matching_target_arns'])==1 and row['dedicated_cadence_verified'] is False for row in rows)
@@ -546,7 +547,8 @@ def test_metric_shared_rule_binding_observer_paginates_and_never_claims_dedicate
 
 def test_metric_rule_missing_one_producer_target_is_explicit_not_a_verified_shared_alias():
     events=SimpleNamespace(describe_rule=lambda **kw:{'State':'ENABLED','ScheduleExpression':'rate(1 hour)'},list_targets_by_rule=lambda **kw:{'Targets':[{'Arn':'arn:aws:lambda:us-east-1:123:function:justhodl-ka-metrics:7'}]})
-    rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
+    with patch.object(release,'release_config',return_value={'eventbridge_rules':['legacy-metric-refresh']}):
+        rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
     khalid=next(row for row in rows if row['function']=='justhodl-khalid-metrics')
     assert khalid['reason']=='DEDICATED_METRIC_TARGET_MISSING' and khalid['matching_target_arns']==[]
 
@@ -578,3 +580,17 @@ def test_owned_metric_and_public_metadata_contracts_reject_previous_writer_paylo
     assert not release.donor_checks('justhodl-fleet-error-monitor',fleet)['errors']
     fleet['telegram_sent']=True
     assert 'QUIET_MONITOR_SENT_NOTIFICATION' in release.donor_checks('justhodl-fleet-error-monitor',fleet)['errors']
+
+
+def test_dedicated_metric_schedulers_require_correct_target_expression_input_and_state():
+    functions=['justhodl-ka-metrics','justhodl-khalid-metrics']
+    for failure in (None,'target','expression','input','state'):
+        def get_schedule(**kw):
+            function=kw['Name'].removesuffix('-hourly')
+            return {'State':'DISABLED' if failure=='state' else 'ENABLED',
+                    'ScheduleExpression':'rate(1 day)' if failure=='expression' else 'rate(1 hour)',
+                    'Target':{'Arn':'arn:aws:lambda:us-east-1:857687956942:function:'+('other' if failure=='target' else function),
+                              'Input':'{"mode":"unreviewed"}' if failure=='input' else '{}'}}
+        rows=release.observe_schedules({'scheduler':SimpleNamespace(get_schedule=get_schedule)},ROOT,functions)
+        assert len(rows)==2 and len({row['name'] for row in rows})==2
+        assert all((row['status']=='VERIFIED')==(failure is None) for row in rows)

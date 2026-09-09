@@ -50,3 +50,19 @@ def test_absent_metrics_and_invalid_weights_cannot_be_neutral_risk():
         doc=json.loads(result['body']);assert doc['risk_index'] is None and doc['status']=='UNAVAILABLE'
         assert 'synthetic-private-error' not in result['body']
         assert not any(key.lower().startswith('access-control-') for key in result['headers'])
+
+
+def test_failed_analysis_replaces_old_report_with_owned_unavailable_snapshot():
+    for short in ('ka','khalid'):
+        module=load(short)
+        for data,reason in (({'risk_index':None},'metrics_unavailable'),({'risk_index':0},'analysis_provider_unavailable')):
+            result=module.run_ai_analysis({'metrics':[],'categories':[]},data)
+            assert result['engine']=='justhodl-'+short+'-metrics'
+            assert result['error']==reason and result['llm_status']=='unavailable' and result['execution_eligible'] is False
+            stored=json.loads(module.s3.put_object.call_args.kwargs['Body'])
+            assert stored==result and stored['generated'].endswith('+00:00')
+            assert module.s3.put_object.call_args.kwargs['Key']=='data/'+short+'-analysis.json'
+        module.ANTHROPIC_KEY='synthetic'
+        with patch.object(module.urllib.request,'urlopen',side_effect=RuntimeError('synthetic-private-url-and-token')):
+            result=module.run_ai_analysis({'metrics':[],'categories':[]},{'risk_index':0})
+        assert result['error']=='analysis_unavailable' and 'synthetic-private' not in json.dumps(result)

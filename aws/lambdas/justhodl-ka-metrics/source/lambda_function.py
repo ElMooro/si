@@ -278,9 +278,20 @@ def refresh_data(config):
 # ═══════════════════════════════════════════
 # AI ANALYSIS
 # ═══════════════════════════════════════════
+def unavailable_analysis(data, reason):
+    # Replace stale prose with a source-bound failure snapshot, never provider errors.
+    analysis={'engine':'justhodl-ka-metrics','schema_version':'macro-analysis.v1',
+              'input_artifact':'data/ka-metrics.json','input_generated':data.get('generated'),
+              'generated':datetime.now(timezone.utc).isoformat(),'llm_status':'unavailable',
+              'status':'UNAVAILABLE','error':reason,'execution_eligible':False,
+              'analysis_basis':'UNCALIBRATED_DESCRIPTIVE_LLM'}
+    s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',
+                  Body=json.dumps(analysis,allow_nan=False).encode('utf-8'),ContentType='application/json')
+    return analysis
+
 def run_ai_analysis(config, data):
-    if data.get('risk_index') is None:return {'status':'UNAVAILABLE','error':'metrics_unavailable','execution_eligible':False}
-    if not ANTHROPIC_KEY:return{"error":"analysis_provider_unavailable"}
+    if data.get('risk_index') is None:return unavailable_analysis(data,'metrics_unavailable')
+    if not ANTHROPIC_KEY:return unavailable_analysis(data,'analysis_provider_unavailable')
     lines=[]
     for cat in config.get('categories',[]):
         cat_risk=data.get('category_risks',{}).get(cat,'N/A')
@@ -343,28 +354,16 @@ Return ONLY valid JSON:
             analysis['input_artifact']='data/ka-metrics.json'
             analysis['input_generated']=data.get('generated')
             analysis['llm_status']='available'
-            analysis['generated']=datetime.now(timezone(timedelta(hours=-5))).isoformat()
+            analysis['generated']=datetime.now(timezone.utc).isoformat()
+            analysis['status']='AVAILABLE'
+            analysis['execution_eligible']=False
+            analysis['analysis_basis']='UNCALIBRATED_DESCRIPTIVE_LLM'
             s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
             return analysis
-    except Exception as e:
-        # ops 4264: LLM outage must not freeze the artifact. Preserve the
-        # last good analysis, stamp honest llm_status, keep freshness true.
-        print(f"AI err:{e}");traceback.print_exc()
-        try:
-            try:prev=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json')['Body'].read())
-            except Exception:prev={}
-            prev['engine']='justhodl-ka-metrics'
-            prev['schema_version']='macro-analysis.v1'
-            prev['input_artifact']='data/ka-metrics.json'
-            prev['llm_status']='unavailable'
-            prev['llm_error']=str(e)[:140]
-            prev['llm_last_attempt']=datetime.now(timezone.utc).isoformat()
-            body=json.dumps(prev,indent=2).encode('utf-8')
-            s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=body,ContentType='application/json')
-            print("[ka] degrade-write: previous analysis preserved + llm_status stamped")
-        except Exception as e2:print(f"[ka] degrade-write failed: {e2}")
-        return{"error":"analysis_unavailable"}
+    except Exception:
+        print('Analysis provider unavailable')
+        return unavailable_analysis(data,'analysis_unavailable')
 
 # ═══════════════════════════════════════════
 # HANDLER
