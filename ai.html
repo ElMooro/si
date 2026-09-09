@@ -160,6 +160,13 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div id="emb-body" class="scroll" style="margin-top:10px"></div></div>
 </div>
 
+<h2>Learning curve — is the classifier actually learning? <span class="help" data-h="Run one training job per nested fraction of the training rows (10% ⊂ 25% ⊂ 50% ⊂ 100%) against the SAME validation set. Validation loss falling as rows grow = it learns from more of your notes; flat = the labels or the embedding carry little signal; train ≪ validation = overfitting. Loss is multiclass log-loss (lower is better; a coin-flip over k classes scores ln k).">?</span></h2>
+<div class="grid2">
+  <div class="wr-panel"><h3>Validation loss vs training rows <span id="curve-id" class="dim"></span></h3><div id="curve-chart"></div><div class="scroll" id="curve-table"></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>fractions</label><input id="curve-fr" value="0.1,0.25,0.5,1"></div><div class="field"><label>&nbsp;</label><button class="btn pri" data-act="curve">Run learning curve (one spot job per fraction)</button></div></div></div>
+  <div class="wr-panel"><h3>Classifier runs over time <span class="help" data-h="Every tier-1 classifier this engine trained, newest last. As the Brain grows and you rebuild the dataset, retrain: a falling validation loss across rebuilds is the learning curve over time.">?</span></h3><div id="runs-chart"></div><div class="scroll" id="runs-table"></div></div>
+</div>
+
 <h2>Playground — read any financial text through your Brain <span class="help" data-h="Embeds the text with the selected endpoint, scores it with the classifier endpoint (if one is live) and retrieves the nearest Brain notes by cosine similarity. This is the article's step 2+3 turned into a desk tool.">?</span></h2>
 <div class="wr-panel">
   <div class="row"><div class="field" style="grid-column:1/-1"><label>text</label><textarea id="pg-text" placeholder="Paste a filing sentence, a headline, a Fed line, a tweet…"></textarea></div></div>
@@ -267,7 +274,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       ["API sections failing", errKeys.length, errKeys.length ? errKeys.join(", ") : "all readable"]
     ].map(function (l) { return '<div class="leg"><div class="k">' + l[0] + '</div><div class="v ' + (l[0].indexOf("failing") >= 0 && l[1] ? "bad" : "") + '">' + l[1] + '</div><div class="s">' + esc(l[2]) + "</div></div>"; }).join("");
     if (errKeys.length) $("inv-err").textContent = errKeys.map(function (k) { return k + ": " + errs[k]; }).join(" · "); else $("inv-err").textContent = "";
-    renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d);
+    renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d);
   }
   function renderPipeline(d) {
     var ds = d.brain_dataset, passes = (ds && ds.embedding_passes) || [], done = passes.filter(function (p) { return p.status === "complete"; }), run = passes.filter(function (p) { return p.status && p.status !== "complete"; });
@@ -364,6 +371,38 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     $("tiers").innerHTML = t.map(function (x) { return '<div class="tier"><div class="no">T' + x.tier + "</div><div><b>" + esc(x.name) + "</b><p>" + esc(x.how) + '</p><span class="tag">' + esc(x.cost) + "</span>" + (x.tier === 4 ? ' <button class="btn sm" data-act="hyperpod">create cluster…</button>' : x.tier === 3 ? ' <button class="btn sm" data-act="automl-tab">Autopilot on a warehouse CSV…</button>' : "") + "</div></div>"; }).join("");
     bindActs($("tiers"));
   }
+  function svgLine(series, w, h, opts) {
+    opts = opts || {}; var pad = { l: 44, r: 12, t: 10, b: 26 };
+    var pts = [].concat.apply([], series.map(function (s) { return s.pts; })).filter(function (p) { return isFinite(p.x) && isFinite(p.y); });
+    if (!pts.length) return '<div class="dim">no completed runs yet</div>';
+    var xs = pts.map(function (p) { return p.x; }), ys = pts.map(function (p) { return p.y; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    if (opts.baseline != null) y1 = Math.max(y1, opts.baseline); if (x1 === x0) { x0 -= 1; x1 += 1; } if (y1 === y0) { y0 -= 0.05; y1 += 0.05; } y0 = Math.max(0, y0 - (y1 - y0) * 0.1); y1 = y1 + (y1 - y0) * 0.1;
+    function X(v) { return pad.l + (v - x0) / (x1 - x0) * (w - pad.l - pad.r); } function Y(v) { return h - pad.b - (v - y0) / (y1 - y0) * (h - pad.t - pad.b); }
+    var out = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="' + h + '" style="max-width:100%;font-family:var(--font-mono);font-size:10px">';
+    for (var i = 0; i <= 4; i++) { var yy = y0 + (y1 - y0) * i / 4; out += '<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + Y(yy) + '" y2="' + Y(yy) + '" stroke="rgba(120,145,180,.15)"/><text x="' + (pad.l - 4) + '" y="' + (Y(yy) + 3) + '" fill="#6b7a92" text-anchor="end">' + yy.toFixed(3) + '</text>'; }
+    for (var j = 0; j <= 4; j++) { var xx = x0 + (x1 - x0) * j / 4; out += '<text x="' + X(xx) + '" y="' + (h - 8) + '" fill="#6b7a92" text-anchor="middle">' + (opts.xfmt ? opts.xfmt(xx) : Math.round(xx)) + '</text>'; }
+    if (opts.baseline != null && opts.baseline <= y1 && opts.baseline >= y0) out += '<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + Y(opts.baseline) + '" y2="' + Y(opts.baseline) + '" stroke="#ff5c7a" stroke-dasharray="2 4"/><text x="' + (w - pad.r) + '" y="' + (Y(opts.baseline) - 3) + '" fill="#ff5c7a" text-anchor="end">coin-flip ln k = ' + opts.baseline.toFixed(3) + '</text>';
+    series.forEach(function (s) { var p = s.pts.filter(function (q) { return isFinite(q.x) && isFinite(q.y); }).sort(function (a, b) { return a.x - b.x; }); if (!p.length) return; out += '<polyline fill="none" stroke="' + s.color + '" stroke-width="2"' + (s.dash ? ' stroke-dasharray="4 3"' : '') + ' points="' + p.map(function (q) { return X(q.x) + "," + Y(q.y); }).join(" ") + '"/>'; p.forEach(function (q) { out += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="3" fill="' + s.color + '"><title>' + esc(s.name + ": " + q.y.toFixed(4) + " @ " + (opts.xfmt ? opts.xfmt(q.x) : q.x)) + '</title></circle>'; }); });
+    out += '<text x="' + pad.l + '" y="' + (pad.t + 2) + '" fill="#a8b3c7">' + series.map(function (s) { return '<tspan fill="' + s.color + '">' + esc(s.name) + '</tspan>'; }).join(" · ") + "</text></svg>";
+    return out;
+  }
+  function renderLearning(d) {
+    var L = d.learning || {}, curves = (L.curves || []).filter(function (c) { return c.curve_id; }), c = curves[curves.length - 1];
+    var k = ((d.brain_dataset || {}).labels || []).length, base = k > 1 ? Math.log(k) : null;
+    if (!c) { $("curve-id").textContent = ""; $("curve-chart").innerHTML = '<div class="dim">no learning curve yet — needs a completed embedding pass; then run it (4 spot jobs, ~5 min each, cents).</div>'; $("curve-table").innerHTML = ""; }
+    else {
+      $("curve-id").textContent = c.curve_id + " · " + c.endpoint;
+      var done = (c.runs || []).filter(function (r) { return r.metrics && r.metrics["validation:mlogloss"] != null; });
+      $("curve-chart").innerHTML = svgLine([{ name: "validation loss", color: "#00d4ff", pts: done.map(function (r) { return { x: r.n_train, y: r.metrics["validation:mlogloss"] }; }) }, { name: "train loss", color: "#a78bfa", dash: true, pts: done.map(function (r) { return { x: r.n_train, y: r.metrics["train:mlogloss"] }; }) }], 560, 220, { baseline: base, xfmt: function (v) { return fmt(v, 0) + " rows"; } });
+      $("curve-table").innerHTML = '<table><thead><tr><th>fraction</th><th>train rows</th><th>status</th><th>validation loss</th><th>train loss</th><th>billable</th><th>job</th></tr></thead><tbody>' + (c.runs || []).map(function (r) { var m = r.metrics || {}; return "<tr><td class=\"mono\">" + fmt(100 * r.fraction, 0) + "%</td><td class=\"mono\">" + fmt(r.n_train, 0) + "</td><td>" + stTag(r.status) + (r.failure ? '<div class="bad">' + esc(r.failure) + "</div>" : "") + "</td><td class=\"mono\">" + (m["validation:mlogloss"] != null ? fmt(m["validation:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (m["train:mlogloss"] != null ? fmt(m["train:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (r.billable_s != null ? fmt(r.billable_s / 60, 1) + " min" : "—") + "</td><td class=\"mono dim\">" + esc(r.job_name) + "</td></tr>"; }).join("") + "</tbody></table>" + (base ? '<div class="note">k = ' + k + " classes → a coin-flip scores ln k = " + base.toFixed(3) + "; anything below it is learned signal. Validation falling with rows = still learning (label more notes); flat = ceiling reached for this embedding.</div>" : "");
+    }
+    var runs = (L.classifier_runs || []).filter(function (r) { return r.job_name; });
+    var doneR = runs.filter(function (r) { return r.metrics && r.metrics["validation:mlogloss"] != null; });
+    $("runs-chart").innerHTML = doneR.length ? svgLine([{ name: "validation loss per full run (newest right)", color: "#38ffa8", pts: doneR.map(function (r, i) { return { x: i + 1, y: r.metrics["validation:mlogloss"] }; }) }], 560, 180, { baseline: base, xfmt: function (v) { return "run " + Math.round(v); } }) : '<div class="dim">no completed classifier run yet</div>';
+    $("runs-table").innerHTML = runs.length ? '<table><thead><tr><th>started</th><th>dataset</th><th>train rows</th><th>status</th><th>validation loss</th><th>job</th></tr></thead><tbody>' + runs.map(function (r) { var m = r.metrics || {}; return "<tr><td class=\"dim\">" + ago(r.started_at) + "</td><td class=\"mono\">" + esc(r.dataset_id) + "</td><td class=\"mono\">" + fmt(r.n_train, 0) + "</td><td>" + stTag(r.status) + "</td><td class=\"mono\">" + (m["validation:mlogloss"] != null ? fmt(m["validation:mlogloss"], 4) : "—") + "</td><td class=\"mono dim\">" + esc(r.job_name) + "</td></tr>"; }).join("") + "</tbody></table>" : "";
+    bindActs($("curve-chart").parentElement);
+  }
   function renderDefs(d) { var defs = d.definitions || {}; $("defs").innerHTML = Object.keys(defs).map(function (k) { return "<dt>" + esc(k) + "</dt><dd>" + esc(defs[k]) + "</dd>"; }).join(""); }
   function fillSelects(d) {
     var eps = ((d.inventory || {}).endpoints || []).filter(function (e) { return e.status === "InService"; });
@@ -382,6 +421,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (a === "dataset") return act("build Brain dataset", "/dataset/build", {});
     if (a === "embed") { var ep = $("emb-ep").value; if (!ep) return log("err", "no InService embedding endpoint — deploy one from the catalog"); return act("embed the Brain via " + ep, "/embed", { endpoint: ep, auto_train: $("emb-auto").value === "1", max_seconds: 600 }); }
     if (a === "classifier") { var ep2 = $("emb-ep").value; return act("train classifier (tier 1)", "/train/classifier", { endpoint: ep2, instance_type: $("tr-inst").value }); }
+    if (a === "curve") { var ep3 = $("emb-ep").value; if (!ep3) return log("err", "no InService embedding endpoint"); var fr = $("curve-fr").value.split(",").map(function (s) { return parseFloat(s); }).filter(function (v) { return v > 0 && v <= 1; }); if (!confirm("Start " + fr.length + " spot training jobs (one per fraction) on " + $("tr-inst").value + "? Minutes each, cents total.")) return; return act("learning curve", "/train/curve", { endpoint: ep3, fractions: fr, instance_type: $("tr-inst").value }); }
     if (a === "automl-text") { if (!confirm("Autopilot text classification fine-tunes a transformer on the Brain rows. It is capped by the policy max runtime but can cost a few dollars. Start it?")) return; return act("Autopilot text (tier 3)", "/train/automl", { kind: "text" }); }
     if (a === "automl-tab") { var uri = prompt("s3:// CSV prefix (header row present) from the warehouse:"); if (!uri) return; var target = prompt("target column name:"); if (!target) return; var pt = prompt("problem type: BinaryClassification / MulticlassClassification / Regression (blank = auto):") || ""; return act("Autopilot tabular (tier 3)", "/train/automl", { kind: "tabular", csv_uri: uri, target: target, problem_type: pt }); }
     if (a === "deploy") { var m = b.getAttribute("data-model"), sv = $("cat-mode").value === "serverless"; if (!confirm((sv ? "Deploy " + m + " SERVERLESS (pay per request, no idle cost)?" : "Deploy " + m + " on " + $("cat-inst").value + " with a " + $("cat-ttl").value + "h TTL (bills per hour while InService)?"))) return; return act("deploy " + m, "/deploy", { model_id: m, serverless: sv, instance_type: $("cat-inst").value, ttl_hours: parseFloat($("cat-ttl").value) || 3 }); }

@@ -47,7 +47,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -239,6 +239,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
                     "article_models_missing": catalog.get("article_models_missing"), "errors": catalog.get("errors"), "refresh_error": catalog.get("refresh_error"),
                     "cards": (catalog.get("cards") or [])[:120]},
         "brain_dataset": _public_dataset_view(ds, passes),
+        "learning": collect_learning(client("sagemaker")),
         "tiers": [
             {"tier": 1, "name": "Transfer learning (article recipe)", "how": "RoBERTa-SEC embedding endpoint -> Brain rows embedded -> XGBoost classifier (spot) -> serverless endpoint", "cost": "cents"},
             {"tier": 2, "name": "JumpStart fine-tune", "how": "any hub card with a training recipe, pretrained weights as the `model` channel", "cost": "instance-hours, capped by MaxRuntime"},
@@ -393,6 +394,75 @@ def action_train_classifier(body: dict, policy: dict) -> Dict[str, Any]:
     return res
 
 
+def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
+    """Learning curve: one classifier job per training-set fraction (nested subsets, same validation set)."""
+    ds_id = body.get("dataset_id") or (bd.latest_dataset(client("s3"), PRIVATE_BUCKET) or {}).get("dataset_id")
+    ep = str(body.get("endpoint") or "").strip()
+    man = bd._get_json(client("s3"), PRIVATE_BUCKET, "ai/datasets/brain/%s/manifest.json" % ds_id) if ds_id else None
+    if not man or not (man.get("embeddings") or {}).get(ep):
+        raise ActionError("dataset %s has no completed embedding pass through %s" % (ds_id, ep))
+    fractions = body.get("fractions") or [0.1, 0.25, 0.5, 1.0]
+    fractions = sorted({min(1.0, max(0.02, float(f))) for f in fractions})
+    it = body.get("instance_type") or "ml.m5.xlarge"
+    spot = bool(body.get("spot", policy.get("training_spot", True)))
+    max_rt = int(body.get("max_runtime_s") or policy.get("training_max_runtime_s") or 3600)
+    price = _guard_instance(policy, it, "training", len(fractions) * max_rt / 3600.0)
+    curve_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    runs = []
+    for f in fractions:
+        sub = bd.write_fraction_csv(client("s3"), PRIVATE_BUCKET, ds_id, ep, f)
+        out_uri = "s3://%s/ai/jobs/curve/%s/f%03d/" % (PRIVATE_BUCKET, curve_id, int(round(f * 100)))
+        res = tr.start_classifier_job(client("sagemaker"), role_arn=execution_role(), train_uri=sub["train_uri"], validation_uri=sub["validation_uri"], out_uri=out_uri,
+                                      n_classes=len(man.get("labels") or bd.CATS), instance_type=it, max_runtime_s=max_rt, spot=spot,
+                                      tags=cg.tags("brain-curve:%s:f%03d" % (curve_id, int(round(f * 100))), None), job_name=tr._name("jh-ai-curve-f%03d" % int(round(f * 100))))
+        runs.append({"fraction": f, "n_train": sub["n_train"], "job_name": res["job_name"]})
+        put_private("ai/jobs/%s.json" % res["job_name"], {**res, "dataset_id": ds_id, "embedding_endpoint": ep, "curve_id": curve_id, "fraction": f, "n_train": sub["n_train"], "kind": "curve"})
+    doc = {"curve_id": curve_id, "dataset_id": ds_id, "endpoint": ep, "instance_type": it, "spot": spot, "labels": man.get("labels"), "n_validation": (man.get("embeddings") or {}).get(ep, {}).get("n_embedded"),
+           "runs": runs, "started_at": now_iso(), "usd_per_hour_each": price.get("usd_per_hour")}
+    put_private("ai/curves/%s.json" % curve_id, doc)
+    return doc
+
+
+def collect_learning(sm) -> Dict[str, Any]:
+    """Every classifier job this engine started (tier-1 runs + curve runs) with its final metrics -> the two curves the
+    page plots: validation loss vs training rows (latest curve) and validation loss over time (every full run)."""
+    s3 = client("s3")
+    curves = []
+    try:
+        keys = [o["Key"] for o in (s3.list_objects_v2(Bucket=PRIVATE_BUCKET, Prefix="ai/curves/").get("Contents") or []) if o["Key"].endswith(".json")]
+        for k in sorted(keys)[-6:]:
+            c = get_json(PRIVATE_BUCKET, k) or {}
+            for r in c.get("runs") or []:
+                r.update(_job_metrics(sm, r.get("job_name")))
+            curves.append(c)
+    except Exception as e:
+        curves.append({"error": str(e)[:160]})
+    runs = []
+    try:
+        keys = [o["Key"] for o in (s3.list_objects_v2(Bucket=PRIVATE_BUCKET, Prefix="ai/jobs/").get("Contents") or []) if o["Key"].endswith(".json")]
+        for k in sorted(keys)[-60:]:
+            j = get_json(PRIVATE_BUCKET, k) or {}
+            if j.get("tier") != 1 or j.get("kind") == "curve":
+                continue
+            j.update(_job_metrics(sm, j.get("job_name")))
+            runs.append({k2: j.get(k2) for k2 in ("job_name", "dataset_id", "embedding_endpoint", "n_train", "instance_type", "spot", "started_at", "status", "metrics", "billable_s", "labels")})
+    except Exception as e:
+        runs.append({"error": str(e)[:160]})
+    return {"curves": curves, "classifier_runs": runs}
+
+
+def _job_metrics(sm, job_name: Optional[str]) -> Dict[str, Any]:
+    if not job_name:
+        return {}
+    try:
+        d = sm.describe_training_job(TrainingJobName=job_name)
+        return {"status": d.get("TrainingJobStatus"), "billable_s": d.get("BillableTimeInSeconds"),
+                "metrics": {m.get("MetricName"): m.get("Value") for m in (d.get("FinalMetricDataList") or [])},
+                "failure": (d.get("FailureReason") or "")[:160]}
+    except Exception as e:
+        return {"status": "unknown", "describe_error": str(e)[:100]}
+
+
 def action_train_finetune(body: dict, policy: dict) -> Dict[str, Any]:
     model_id = str(body.get("model_id") or "").strip()
     uri = str(body.get("training_uri") or "").strip()
@@ -524,6 +594,7 @@ ACTIONS = {
     ("POST", "/embed"): lambda b, p, c: action_embed(b, p, c),
     ("POST", "/train/classifier"): lambda b, p, c: action_train_classifier(b, p),
     ("POST", "/train/finetune"): lambda b, p, c: action_train_finetune(b, p),
+    ("POST", "/train/curve"): lambda b, p, c: action_train_curve(b, p),
     ("POST", "/train/automl"): lambda b, p, c: action_train_automl(b, p),
     ("POST", "/deploy-trained"): lambda b, p, c: action_deploy_trained(b, p),
     ("POST", "/infer"): lambda b, p, c: action_infer(b, p),

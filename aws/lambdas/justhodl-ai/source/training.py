@@ -30,7 +30,8 @@ def now_iso() -> str:
 
 
 def _name(prefix: str) -> str:
-    return re.sub(r"[^A-Za-z0-9-]", "-", "%s-%s" % (prefix, datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")))[:63]
+    now = datetime.now(timezone.utc)
+    return re.sub(r"[^A-Za-z0-9-]", "-", "%s-%s-%03d" % (prefix, now.strftime("%Y%m%d-%H%M%S"), now.microsecond // 1000))[:63]
 
 
 def _stop(max_runtime_s: int, spot: bool) -> Dict[str, int]:
@@ -39,6 +40,13 @@ def _stop(max_runtime_s: int, spot: bool) -> Dict[str, int]:
         sc["MaxWaitTimeInSeconds"] = int(max_runtime_s) * 2
     return sc
 
+
+def _stamp() -> str:
+    """Second-precision names collided when a serverless attempt and its real-time fallback ran in the same
+    second (ops 5301) -- millisecond + counter stamps never do."""
+    global _STAMP_N
+    _STAMP_N = globals().get("_STAMP_N", 0) + 1
+    return "%d-%d" % (int(time.time() * 1000) % 10_000_000_000, _STAMP_N)
 
 # ─────────────────────────────────────────────────────────────────── tier 1
 def start_classifier_job(sm, *, role_arn: str, train_uri: str, validation_uri: str, out_uri: str, n_classes: int,
@@ -143,10 +151,10 @@ def deploy_training_output(sm, *, job_name: str, role_arn: str, endpoint_name: s
     if not art or not img:
         raise RuntimeError("job %s has no artifact/image" % job_name)
     # framework-mode training images double as hosting images for the built-ins
-    model_name = ("%s-%s" % (endpoint_name, int(time.time())))[:63]
+    model_name = ("%s-%s" % (endpoint_name, _stamp()))[:63]
     sm.create_model(ModelName=model_name, ExecutionRoleArn=role_arn, Tags=tags,
                     PrimaryContainer={"Image": img, "ModelDataUrl": art, "Environment": {"SAGEMAKER_REGION": REGION}})
-    cfg_name = ("%s-cfg-%s" % (endpoint_name, int(time.time())))[:63]
+    cfg_name = ("%s-cfg-%s" % (endpoint_name, _stamp()))[:63]
     variant = {"VariantName": "AllTraffic", "ModelName": model_name}
     if serverless:
         variant["ServerlessConfig"] = {"MemorySizeInMB": int(serverless_memory_mb), "MaxConcurrency": int(serverless_max_conc)}
