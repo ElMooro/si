@@ -1,0 +1,241 @@
+"""Ops5231 mutation gates, strict output evidence and schedule preservation; no AWS."""
+import copy
+import io
+import json
+import sys
+import tempfile
+import zipfile
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'aws/ops/checks'))
+import audit_20260909_release as release
+
+
+def test_scope_includes_transitive_shared_importers_and_excludes_archived():
+    with tempfile.TemporaryDirectory() as temp:
+        root=Path(temp);(root/'aws/shared').mkdir(parents=True)
+        (root/'aws/shared/direct.py').write_text('import indirect\n')
+        (root/'aws/shared/indirect.py').write_text('VALUE=1\n')
+        for name,source in (('justhodl-recipient','import direct\n'),('justhodl-changed','VALUE=2\n'),('justhodl-unrelated','import math\n')):
+            path=root/'aws/lambdas'/name/'source';path.mkdir(parents=True);(path/'lambda_function.py').write_text(source)
+        archived=root/'aws/lambdas/_archived/old/source';archived.mkdir(parents=True);(archived/'lambda_function.py').write_text('import indirect\n')
+        changes='aws/shared/indirect.py\naws/lambdas/justhodl-changed/config.json\naws/lambdas/_archived/old/source/lambda_function.py'
+        with patch.object(release,'git',side_effect=lambda root,*args:changes if args[0]=='diff' else ''):
+            scope=release.changed_scope(root)
+        assert set(scope)=={'justhodl-recipient','justhodl-changed'}
+        assert 'shared:indirect' in scope['justhodl-recipient']
+
+
+def test_any_source_mismatch_aborts_before_schedule_or_lambda_mutation():
+    class NoMutation:
+        def __getattr__(self,name):raise AssertionError('Unexpected AWS operation '+name)
+    checker=lambda client,root,names:[{'function':name,'pass':False} for name in names]
+    verifier=release.ReleaseVerifier(ROOT,dict.fromkeys(('lambda','scheduler','s3'),NoMutation()),parity_seconds=0,package_check=checker)
+    verifier.checkpoint=lambda:None
+    with patch.object(release,'changed_scope',return_value={'justhodl-risk-gate':['changed']}), \
+         patch.object(release,'artifact_map',return_value={'justhodl-risk-gate':{'primary_keys':['data/risk-gate.json']}}), \
+         patch.object(release,'git',return_value='0'*40):
+        result=verifier.run()
+    assert result['status']=='SOURCE_PARITY_FAILED' and result['ok'] is False
+    assert result['invocations']==[] and 'katlin_refresh_schedule' not in result
+
+
+class ScheduleClient:
+    class exceptions:
+        class ResourceNotFoundException(Exception):pass
+    def __init__(self):
+        self.schedules={
+            'justhodl-katlin-permission-refresh':{'Name':'justhodl-katlin-permission-refresh','GroupName':'default','ScheduleExpression':'rate(1 hour)','State':'ENABLED',
+                'Target':{'Arn':f'arn:aws:lambda:{release.REGION}:{release.ACCOUNT}:function:justhodl-katlin',
+                          'RoleArn':'existing-role','Input':'{"old":"not printed"}',
+                          'RetryPolicy':{'MaximumRetryAttempts':8},'DeadLetterConfig':{'Arn':'dlq'}},'FlexibleTimeWindow':{'Mode':'OFF'}},
+            'justhodl-katlin-backtest-weekly':{'Name':'justhodl-katlin-backtest-weekly','ScheduleExpression':'cron(30 9 ? * SUN *)','State':'ENABLED',
+                'Target':{'Arn':'weekly:live','Input':'{"mode":"backtest","private":"never report"}'},'FlexibleTimeWindow':{'Mode':'OFF'}}}
+        self.calls=[]
+    def get_schedule(self,Name,GroupName='default'):
+        if Name not in self.schedules:raise self.exceptions.ResourceNotFoundException()
+        return copy.deepcopy(self.schedules[Name])
+    def update_schedule(self,**payload):self.calls.append(payload['Name']);self.schedules[payload['Name']]=copy.deepcopy(payload)
+    create_schedule=update_schedule
+
+
+def test_katlin_refresh_provision_preserves_weekly_and_retry_dlq_without_payload_report():
+    client=ScheduleClient();before=copy.deepcopy(client.schedules['justhodl-katlin-backtest-weekly'])
+    result=release.configure_katlin_refresh(client,ROOT)
+    refresh=client.schedules['justhodl-katlin-permission-refresh']
+    assert refresh['ScheduleExpression']=='rate(15 minutes)'
+    assert refresh['Target']['Arn'].endswith(':live')
+    assert refresh['Target']['RetryPolicy']=={'MaximumRetryAttempts':8}
+    assert refresh['Target']['DeadLetterConfig']=={'Arn':'dlq'}
+    assert json.loads(refresh['Target']['Input'])=={'mode':'permission_refresh'}
+    assert client.schedules['justhodl-katlin-backtest-weekly']==before
+    assert result['weekly_backtest_preserved'] is True
+    assert 'never report' not in json.dumps(result)
+
+
+def test_katlin_refresh_refuses_unrelated_existing_schedule_target():
+    client=ScheduleClient();client.schedules['justhodl-katlin-permission-refresh']['Target']['Arn']='unrelated-function'
+    try:release.configure_katlin_refresh(client,ROOT)
+    except ValueError:pass
+    else:raise AssertionError('Unrelated target overwritten')
+    assert not client.calls
+
+
+def fixture_output(doc, modified=None):
+    now=datetime.now(timezone.utc)
+    return SimpleNamespace(get_object=lambda **kw:{'Body':io.BytesIO(json.dumps(doc).encode()),'LastModified':modified or now,'VersionId':'fixture-version'})
+
+
+def test_rewriting_old_payload_does_not_prove_new_code_generated_it():
+    now=datetime.now(timezone.utc)
+    client=fixture_output({'generated_at':(now-timedelta(days=3)).isoformat(),'secret_note':'DO_NOT_REPORT'})
+    result=release.inspect_output(client,'justhodl-example','data/example.json',{'last_modified':(now-timedelta(hours=1)).isoformat()},now=now)
+    assert result['status']=='PENDING_OUTPUT'
+    assert 'POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN' in result['requirements']
+    assert 'DO_NOT_REPORT' not in json.dumps(result)
+
+
+def test_nonfinite_payload_fails_contract_and_never_prints_source_body():
+    now=datetime.now(timezone.utc)
+    result=release.inspect_output(fixture_output({'generated_at':now.isoformat(),'private':float('nan')}),
+        'justhodl-example','data/example.json',{'last_modified':(now-timedelta(hours=1)).isoformat()},now=now)
+    assert result['status']=='CONTRACT_FAILED' and result['error_type']=='ValueError'
+    assert 'private' not in json.dumps(result)
+
+
+def test_blocked_accounting_contract_is_verified_requirement_not_false_permission():
+    now=datetime.now(timezone.utc)
+    doc={'generated_at':now.isoformat(),'audit_version':'2026-09-09.1','positions':[],
+         'capital_book':{'status':'BLOCKED','equity_nav':None,'allows_new_entries':False},'private_note':'DO_NOT_REPORT'}
+    result=release.inspect_output(fixture_output(doc),'justhodl-portfolio-snapshot','portfolio/snapshot.json',{'last_modified':(now-timedelta(hours=1)).isoformat()},now=now)
+    assert result['status']=='VERIFIED_BLOCKED_REQUIREMENTS' and not result['errors']
+    assert 'BROKER_RECONCILED_CAPITAL_LEDGER_REQUIRED' in result['requirements']
+    assert 'DO_NOT_REPORT' not in json.dumps(result)
+
+
+def test_donor_checker_rejects_locked_funding_and_mixed_short_volume():
+    doc={'measurement_contract':'short-positioning.v2','by_ticker':{'PRIVATE_NAME':{'latest_short_pct':90,'daily_short_volume_pct':20}}}
+    result=release.donor_checks('justhodl-short-interest',doc)
+    assert 'DAILY_VOLUME_ALIAS_MISMATCH' in result['errors'] and 'PRIVATE_NAME' not in json.dumps(result)
+    result=release.donor_checks('justhodl-crypto-basis',{'donor_health':{},'btc':{'execution_eligible':False,'funding_basis_comparison':{'locked_carry':True}},'eth':{'execution_eligible':False}})
+    assert 'FLOATING_FUNDING_TREATED_AS_LOCKED' in result['errors']
+
+
+def test_governed_refresh_invokes_exact_verified_number_not_moving_live_alias():
+    calls=[];client=SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})
+    checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'17'}]
+    verifier=release.ReleaseVerifier(ROOT,{'lambda':client},package_check=checker);verifier.checkpoint=lambda:None
+    assert verifier.invoke_once('justhodl-risk-gate')
+    assert calls[0]['Qualifier']=='17' and calls[0]['InvocationType']=='Event'
+    assert calls[0]['Payload']==b'{}'
+
+
+def test_unreviewed_notification_engine_cannot_be_manually_invoked():
+    verifier=release.ReleaseVerifier(ROOT,{});verifier.checkpoint=lambda:None
+    try:verifier.invoke_once('justhodl-crypto-funding')
+    except ValueError:pass
+    else:raise AssertionError('Notification-capable engine was invoked')
+    assert verifier.report['invocations']==[]
+
+
+def test_package_drift_immediately_before_invoke_aborts():
+    calls=[];client=SimpleNamespace(invoke=lambda **kw:calls.append(kw))
+    verifier=release.ReleaseVerifier(ROOT,{'lambda':client},package_check=lambda client,root,names:[{'function':names[0],'pass':False}])
+    verifier.checkpoint=lambda:None
+    try:verifier.invoke_once('justhodl-risk-gate')
+    except ValueError:pass
+    else:raise AssertionError('Mismatched code invoked')
+    assert calls==[]
+
+
+def test_schedule_metadata_rejects_latest_and_matches_json_without_reporting_input():
+    target=f'arn:aws:lambda:{release.REGION}:{release.ACCOUNT}:function:justhodl-risk-gate'
+    current={'ScheduleExpression':'rate(1 hour)','State':'ENABLED','Target':{'Arn':target,'Input':'{ "private": "DO_NOT_REPORT" }'}}
+    client=SimpleNamespace(get_schedule=lambda **kw:copy.deepcopy(current))
+    config={'release_validation':{'schema_version':'1'},'eventbridge_scheduler':{'schedule_name':'hourly','cron':'rate(1 hour)','input':{'private':'DO_NOT_REPORT'}}}
+    with patch.object(release,'release_config',return_value=config):
+        rows=release.observe_schedules({'scheduler':client},ROOT,['justhodl-risk-gate'])
+        assert rows[0]['status']=='PENDING_CONFIGURATION'
+        current['Target']['Arn']+=':live'
+        rows=release.observe_schedules({'scheduler':client},ROOT,['justhodl-risk-gate'])
+    assert rows[0]['status']=='VERIFIED' and rows[0]['input_preserved_or_matches'] is True
+    assert 'DO_NOT_REPORT' not in json.dumps(rows)
+
+
+def test_code_only_api_engine_keeps_overall_release_pending():
+    checker=lambda client,root,names:[{'function':name,'pass':True,'last_modified':'2026-09-09T00:00:00Z'} for name in names]
+    verifier=release.ReleaseVerifier(ROOT,{'lambda':None,'scheduler':None,'s3':None},package_check=checker)
+    verifier.checkpoint=lambda:None
+    with patch.object(release,'changed_scope',return_value={'justhodl-ask':['source_changed']}), \
+         patch.object(release,'artifact_map',return_value={'justhodl-ask':{'primary_keys':[]}}), \
+         patch.object(release,'configure_katlin_refresh',return_value={'verified':True}), \
+         patch.object(release,'privacy_receipt_summary',return_value={'verified':True}), \
+         patch.object(release,'observe_schedules',return_value=[]), \
+         patch.object(release,'QUIET_STAGES',()),patch.object(release,'git',return_value='0'*40):
+        result=verifier.run()
+    assert result['ok'] is False and result['status']=='PENDING_SCHEDULED_OUTPUTS'
+    assert result['pending_outputs'][0]['reason']=='API_REQUEST_FIXTURE_OR_PRIMARY_OUTPUT_MAPPING_REQUIRED'
+
+
+def test_missing_privacy_receipt_blocks_every_mutation_after_source_parity():
+    class NoMutation:
+        def __getattr__(self,name):raise AssertionError('Unexpected AWS operation '+name)
+    checker=lambda client,root,names:[{'function':name,'pass':True} for name in names]
+    verifier=release.ReleaseVerifier(ROOT,dict.fromkeys(('lambda','scheduler','s3'),NoMutation()),package_check=checker)
+    verifier.checkpoint=lambda:None
+    with patch.object(release,'changed_scope',return_value={'justhodl-risk-gate':['changed']}), \
+         patch.object(release,'artifact_map',return_value={'justhodl-risk-gate':{'primary_keys':['data/risk-gate.json']}}), \
+         patch.object(release,'git',return_value='0'*40):
+        result=verifier.run()
+    assert result['status']=='PRIVACY_PREREQUISITE_BLOCKED' and result['ok'] is False
+    assert result['invocations']==[] and 'katlin_refresh_schedule' not in result
+
+
+def test_privacy_receipt_must_match_every_expected_source_and_publisher():
+    import audit_20260909_privacy_migration as privacy
+    members={'lambda_function.py':b'reviewed_source'}
+    fingerprint=privacy.digest(privacy.encoded({key:privacy.digest(value) for key,value in members.items()}))
+    receipt={'ops':5230,'ok':True,'checks':[
+        {'check':'exact_deployed_code','function':'justhodl-private','source_sha256':fingerprint},
+        {'check':'private_publisher_config','function':'justhodl-private'},
+        {'check':'bucket_policy','private_deny':True,'historical_deny':True,'temporary_current_deny':False}]}
+    with patch.object(privacy,'READINESS',('private',)),patch.object(privacy,'PUBLISHERS',('private',)), \
+         patch.object(privacy,'desired_members',return_value=members):
+        assert release.privacy_receipt_summary(ROOT,receipt)['verified'] is True
+        receipt['checks'][0]['source_sha256']='wrong_source'
+        assert release.privacy_receipt_summary(ROOT,receipt)['verified'] is False
+        receipt['checks'][0]['source_sha256']=fingerprint
+        receipt['checks'].pop(1)
+        assert release.privacy_receipt_summary(ROOT,receipt)['verified'] is False
+
+
+def test_exact_package_with_weighted_or_different_live_alias_fails_release_gate():
+    import release_package_evidence as packages
+    with tempfile.TemporaryDirectory() as temp:
+        root=Path(temp);source=root/'aws/lambdas/justhodl-test/source';source.mkdir(parents=True)
+        (source/'lambda_function.py').write_text('VALUE=1\n')
+        (source.parent/'config.json').write_text('{"release_validation":{"schema_version":"1"}}')
+        archive=io.BytesIO()
+        with zipfile.ZipFile(archive,'w') as zipfile_out:zipfile_out.writestr('lambda_function.py','VALUE=1\n')
+        alias={'FunctionVersion':'17','RoutingConfig':{}}
+        client=SimpleNamespace(get_function=lambda **kw:{'Configuration':{'Version':'17','State':'Active','LastUpdateStatus':'Successful'},'Code':{'Location':'fixture-url'}},
+                               get_alias=lambda **kw:copy.deepcopy(alias))
+        with patch.object(packages.urllib.request,'urlopen',side_effect=lambda *a,**kw:io.BytesIO(archive.getvalue())), \
+             patch.object(packages.subprocess,'check_output',return_value=b'aws/lambdas/justhodl-test/source/lambda_function.py\0'):
+            assert packages.check_packages(client,root,['justhodl-test'])[0]['pass'] is True
+            alias['RoutingConfig']={'AdditionalVersionWeights':{'16':0.1}}
+            weighted=packages.check_packages(client,root,['justhodl-test'])[0]
+            assert weighted['pass'] is False and weighted['alias_verified'] is False
+            verifier=release.ReleaseVerifier(root,{'lambda':client},parity_seconds=0,package_check=packages.check_packages)
+            verifier.checkpoint=lambda:None
+            with patch.object(release,'changed_scope',return_value={'justhodl-test':['changed']}), \
+                 patch.object(release,'artifact_map',return_value={'justhodl-test':{'primary_keys':[]}}), \
+                 patch.object(release,'git',return_value='0'*40):
+                result=verifier.run()
+            assert result['status']=='SOURCE_PARITY_FAILED' and result['invocations']==[]
+            alias.update(FunctionVersion='16',RoutingConfig={})
+            assert packages.check_packages(client,root,['justhodl-test'])[0]['pass'] is False

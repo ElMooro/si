@@ -1,0 +1,3059 @@
+{
+  "ops": 5231,
+  "status": "SOURCE_PLAN_ONLY_NO_AWS_ACCESSED",
+  "release_sha": "3a03760be3b387f3f3bf574913ce56f06d8b8878",
+  "baseline_sha": "125a68a89268c5ff8303dfba4177026dcf1e3c21",
+  "verification_stage": "preliminary",
+  "scope_count": 63,
+  "engines": {
+    "alphavantage-market-agent": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.9",
+        "handler": "lambda_alphavantage_agent.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_alphavantage_agent.py",
+          "sha256": "59dfe829864ff4956d061fea5e87d12cdc76384a2f0fbc92c812786c28501fee"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "alphavantage-technical-analysis": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.9",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 30,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "41b2b01cbcdb71f7e09a9f983b0a16109d83d96d7eb6d9b074d65610f8e56b93"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "bls-employment-api-v2": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "nodejs18.x",
+        "handler": "index.handler",
+        "timeout": 900,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "index.js",
+          "sha256": "ff3edf4b60dc689a202c5f6b9ab5e160418f427935d7d6efec06223428390d65"
+        },
+        {
+          "member": "package.json",
+          "sha256": "60402c26d0fb3faee27ef98c7fc1673cada8ec8e8b81b74931f809a8905dcdc8"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 1,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-ask": {
+      "reasons": [
+        "shared:private_artifact",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "e5296722e0632a45655f6c7150b1dfd0f0a8315683898cf512a50dcf648e3042"
+        },
+        {
+          "member": "anthropic_shim.py",
+          "sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-ask-desk": {
+      "reasons": [
+        "shared:private_artifact",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "c8d6ea9d8270c540c984bc81f255548edd9fb8b283f3b5304cf85060a8432ffd"
+        },
+        {
+          "member": "anthropic_shim.py",
+          "sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c"
+        },
+        {
+          "member": "claude_compat.py",
+          "sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-backend-agent": {
+      "reasons": [
+        "shared:governed_targets",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "d979b66cd392bcfde17ddbd83969682a4c28023a1465f3887a58b10c53fe8087"
+        },
+        {
+          "member": "_sentry_lite.py",
+          "sha256": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44"
+        },
+        {
+          "member": "governed_targets.py",
+          "sha256": "7f3d5e3d7e0cfd12afd4c773065dea9edcc959da67dfbe19c53f789089604d24"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [
+          "data/a2a/inbox/claude-audit.json",
+          "data/a2a/inbox/claude.json",
+          "data/a2a/nudge-ledger.json",
+          "data/backend-agent/bus-health.json",
+          "data/backend-agent/escalations.json",
+          "data/backend-agent/heartbeat.json",
+          "data/backend-agent/log.json",
+          "data/backend-agent/state.json",
+          "data/backend-agent/sweep-cursor.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-backtest-engine": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "89e88ca4c25e2644b92888c48c5f2a196fd44d6771a09d95b7bb6fb1cd0b9353"
+        },
+        {
+          "member": "_sentry_lite.py",
+          "sha256": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "backtest/results.json"
+        ],
+        "other_source_bound_keys": [
+          "backtest/summary.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "backtest.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-best-setups": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "af6853bf7e8f545c57ee2700d77f81d7c540594b1e0e1986303abe23a12bd649"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        },
+        {
+          "member": "signals_emit.py",
+          "sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+        },
+        {
+          "member": "wl_fusion.py",
+          "sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/best-setups.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "chart-pro.html",
+          "cockpit.html",
+          "master-board.html",
+          "my-portfolio.html",
+          "signal-board.html",
+          "why-now.html",
+          "why.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-bloomberg-v8": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 2048,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "_fred_shim.py",
+          "sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "a657051451bc3e02cc11d65aa6f02529867d7f99f2f213d9b0fc367b8648e93b"
+        },
+        {
+          "member": "ka_aliases.py",
+          "sha256": "e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/report.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-bond-warroom": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 240,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "337ccec8e52737d5bf92d6291988b345bf07f8d1c924d25a4b2fd7447ae0810c"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/bond-warroom.json"
+        ],
+        "other_source_bound_keys": [
+          "data/warm/bond-warroom/tv-bank.json.gz",
+          "data/warm/official-yields/_state.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "bonds.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-brain-compiler": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "timeout": 300,
+        "memory": 1024
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "54eac112f93fe91fb34e408ab6237d58d295562588416c8ea7f7e258fafb2924"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/brain-compiler.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "brain-compiler.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-brain-sync": {
+      "reasons": [
+        "shared:private_artifact",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "faca5acf9836aa783aa38acbd234bc1d8c41de2df0e2a22f20fe8ec0391a9a48"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [
+          "data/brain-history.json",
+          "data/brain.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [
+          "cockpit.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-calibration-snapshotter": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "7768fb46471f29d1020e01f7af00fd206b4627bd292b6a159ccee065e6d8e9d7"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "calibration/latest.json"
+        ],
+        "other_source_bound_keys": [
+          "calibration/history-index.json",
+          "calibration/index.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "weights.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-canary-warroom": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "timeout": 60,
+        "memory": 256
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "1929872d8d7a332c30936af136de0ae89652226c5bc8310fd3572a387c364e83"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/canary-warroom.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 2,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "canaries.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-conviction-engine": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "5531d837e41c0684c3a09028dba2b34435701a13d921ca7efca94fa6598f91ae"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/conviction.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-crypto-basis": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 90,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "983ccf07b2f5876e765b80a73fdff85083d5701d7d68b20e7aaac9db874a68d9"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/crypto-basis.json"
+        ],
+        "other_source_bound_keys": [
+          "data/crypto-basis-history.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "crypto-risk.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-crypto-funding": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "03973dddf50973ca2d9a0ab1bdc91220caf662c4b3408d22d372a71f7a367bcf"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/crypto-funding.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "crypto-risk.html",
+          "funding/index.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-devils-advocate": {
+      "reasons": [
+        "shared:private_artifact",
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 90,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "0bd565a9893a201899487f8582270755492e41439abdbae89cab6cfc985d2d38"
+        },
+        {
+          "member": "anthropic_shim.py",
+          "sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c"
+        },
+        {
+          "member": "claude_compat.py",
+          "sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/devils-advocate.json"
+        ],
+        "other_source_bound_keys": [
+          "data/devils-advocate-public.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "chart-pro.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-domain-barometers": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory": 1536,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "39a540d2867d5e81ab9385156bb76bb8721a6c7bc06bac37aafeeb76bd24fe54"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/domain-barometers.json"
+        ],
+        "other_source_bound_keys": [
+          "domain-barometers/history-ledger.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "risk-gate.html",
+          "tradingview.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-engine-conflicts": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "5d9560d64222b2af9cbf5213094d0316be50b663483ca8111d231602a16984a2"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/engine-conflicts.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "cockpit.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-engine-fusion": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 90,
+        "memory": 384,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "fusion-policy.v1.json",
+          "sha256": "15368ee2b93a315c5531f55553deadc72c61ac13434295c9a74e4d726d1032c6"
+        },
+        {
+          "member": "fusion-registry.v1.json",
+          "sha256": "98c86ab08a8324e85a885345c950d0cee487dad49d03fdfb6386be7e5c75ef12"
+        },
+        {
+          "member": "fusion-schema.v1.json",
+          "sha256": "66a69bc44c170a880d01f4d05f479b132fbf9cf26cb29f2a39b2f05dfcbf8b98"
+        },
+        {
+          "member": "fusion-subscriptions.v1.json",
+          "sha256": "d07904d27e94a0f255f67eefba34958ba746cdb90ccecd7cda38f1fa130caa77"
+        },
+        {
+          "member": "fusion_engine.py",
+          "sha256": "c45ccf16da157192e1207edff7a834a5f84ebbb83980214b344030a13865b58f"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "ff10e19ff554e645e743313f1d7f3086a8e391e4aab44413f2b561397a3adc75"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/engine-fusion.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-equity-research": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "fb10207da5d917bfeaad8540e33d0e12c9dbdc92e659cb099a76d263c8758812"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "equity-research/shared/constituents.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-etf-constituents": {
+      "reasons": [
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 400,
+        "memory": 1536,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "1c4b0c07c8d4ccfda8d842af27bd7a441bcd8e8ad531ff39b333af711f8d4607"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "fmp_etf.py",
+          "sha256": "097160b0ba21224f7398e6cd4381d00eea3ffe5b0dab5ed1937f9b5fb9263694"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "etf-flows/constituent-pressure.json"
+        ],
+        "other_source_bound_keys": [
+          "etf-flows/stock-exposure-lookup.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "flows.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-etf-true-flows": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 240,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "dc764eb4787dd5ffd4dac10e06e93187c5ebaba682d0bbce86ba8ef83420b131"
+        },
+        {
+          "member": "edgar.py",
+          "sha256": "a3df42b29dec0865061d2e6c983d257bc5d1210fac52bfbe9d61da434f7e07f8"
+        },
+        {
+          "member": "impact_mapper.py",
+          "sha256": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/etf-true-flows.json"
+        ],
+        "other_source_bound_keys": [
+          "data/etf-shares-history.json",
+          "data/etf-shares-snapshots/latest.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "sector-flow.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-euro-fragmentation": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 150,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "_fred_shim.py",
+          "sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "05deb778bdf5956eb2a8559a4930a1d70da6731e012913d3c9a354d1b82baaa0"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/euro-fragmentation.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-eurodollar-plumbing": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "69f99375f687abff82d4882e8152bb9b1db75f04fc2a7c55668314cce9b50683"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/eurodollar-plumbing.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "eurodollar.html",
+          "risk-regime.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-event-coordinator": {
+      "reasons": [
+        "shared:governed_targets",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "4823d0c6dc71936d1026b5f3a885bad465eb80d4c62345602b1f21e05c79d87d"
+        },
+        {
+          "member": "_sentry_lite.py",
+          "sha256": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44"
+        },
+        {
+          "member": "governed_targets.py",
+          "sha256": "7f3d5e3d7e0cfd12afd4c773065dea9edcc959da67dfbe19c53f789089604d24"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 1,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-factor-risk": {
+      "reasons": [
+        "reviewed_dependency_refresh"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "51d2d65716afd0a9300797ed9b684bb70f0ba7a77d23a3ac3523031637f5a337"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/factor-risk.json"
+        ],
+        "other_source_bound_keys": [
+          "data/factor-loadings-cache.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "factor-risk.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-firm-risk-board": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "a3550bf4221dae2bbeefc6c55e8f4d9f6a95030f7e268d16ee7186c9f95ae78e"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/firm-risk-board.json"
+        ],
+        "other_source_bound_keys": [
+          "data/firm-risk-board-history.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "firm-risk-board.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-fleet-freshness-monitor": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "5322c0b11eb9a78946487ff6046eb2e0d24e0356271976839d406cc5791fdad6"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/_freshness-monitor.json"
+        ],
+        "other_source_bound_keys": [
+          "data/_freshness-alert-history.json",
+          "data/_freshness-manifest.json",
+          "data/_freshness-seen-keys.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "observability.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-fleet-monitor": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "2b9c81998b84ef071256bd0ac6ffc9d5c8b90784e721a1737f99e62590a9a598"
+        },
+        {
+          "member": "anthropic_shim.py",
+          "sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 2,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-journal-grader": {
+      "reasons": [
+        "shared:private_artifact",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "90d4f907c55cfce6240d053595602807ff41d17bdbeae07ef4211a9de59e0e48"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/journal-graded.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "cockpit.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-katlin": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 8192,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "3790014c384d947e9c27839c441f2a54e90f146d39ea990943f0b4e171a97f37"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/katlin.json"
+        ],
+        "other_source_bound_keys": [
+          "data/katlin-backtest.json",
+          "data/warm/katlin/splits.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "katlin.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-khalid-risk": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "input_registry.json",
+          "sha256": "cf995be81b97bcd9c49239a53756210fe5dfb9671e0bbb69b91bef6ba8776cd2"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "dae4df8c2a69082dcc2b264efab74355aedf147113ab14d47888e230e6314a3a"
+        },
+        {
+          "member": "output_schema.json",
+          "sha256": "c7c17e12be1d42e381170b1adb9a47dd8dd0d9268a34f5293ca6f941caed5f0e"
+        },
+        {
+          "member": "risk_engine.py",
+          "sha256": "3da5b6c04d18a28470182a7a1a7aebc9366dbc36be80895948c44cfc512fbb40"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/khalid-risk.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "khalidrisk.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-liquidity-capacity": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 150,
+        "memory": 320,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "282874d41fc09d903e9c534f164a494237c8acf3e673b953f9b6226419eeaf1d"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/liquidity-capacity.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "liquidity-capacity.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-liquidity-credit-engine": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 480,
+        "memory": 512
+      },
+      "expected_members": [
+        {
+          "member": "_fred_shim.py",
+          "sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "b27eda727a7dc759ced5538b08d6aba0f094ae02226b88f9640fb1cc72d995a8"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "system_events.py",
+          "sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/liquidity-credit-engine.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "alpha-scoreboard.html",
+          "analogs.html",
+          "auction-crisis.html",
+          "auctions.html",
+          "bonds.html",
+          "classic-dashboard.html",
+          "compound-signals.html",
+          "cot-extremes.html",
+          "credit-desk.html",
+          "crisis.html",
+          "cross-asset.html",
+          "dealer-survey.html",
+          "desk.html",
+          "flow.html",
+          "gdelt.html",
+          "insiders.html",
+          "intelligence.html",
+          "investor.html",
+          "lce.html",
+          "liquidity.html",
+          "macro-data.html",
+          "master-rank.html",
+          "narrative.html",
+          "nobrainers.html",
+          "options-scanner.html",
+          "portfolio.html",
+          "risk.html",
+          "sentiment.html",
+          "stress.html",
+          "today.html",
+          "treasury-auctions.html",
+          "why-cross-signal.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-liquidity-inflection": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "70a7bf95dedead35ca924210720c0bffbd956ad3301f50deba13fb1c2e8f1f69"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/liquidity-inflection.json"
+        ],
+        "other_source_bound_keys": [
+          "data/composite-snapshots.json",
+          "data/liquidity-inflection-decisive-call.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "inflection.html",
+          "risk-regime.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-liquidity-profile": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "timeout": 600,
+        "memory": 1024
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "a6a87b635a4c36fb71fa2d91554e770fedf8282dc201affc5e04876ca639778c"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/liquidity-profile.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "global-macro.html",
+          "intelligence/index.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-master-allocator": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "61184a0b56b9ef5d05ab7099f6ac7a949011b9e1e08b1f5a59469bd0b3db475c"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/master-allocation.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "master-allocator.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-my-brief": {
+      "reasons": [
+        "shared:private_artifact",
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 90,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "aa6e148ea078f510c51b15651b889f29eb69c19df3808341972d027068a1445c"
+        },
+        {
+          "member": "anthropic_shim.py",
+          "sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c"
+        },
+        {
+          "member": "claude_compat.py",
+          "sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/my-brief.json"
+        ],
+        "other_source_bound_keys": [
+          "data/my-brief-public.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "cockpit.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-notes-intel": {
+      "reasons": [
+        "shared:private_artifact",
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "timeout": 600,
+        "memory": 1024
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "964dca89540f3b739d45ac7861d3a757d9ba62832913d7818e84186bf759a12b"
+        },
+        {
+          "member": "llm_cost.py",
+          "sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d"
+        },
+        {
+          "member": "llm_router.py",
+          "sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [
+          "data/notes-index-public.json",
+          "data/notes-index.json",
+          "data/notes-themes-public.json",
+          "data/notes-themes.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-options-flow": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.11",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "_fred_shim.py",
+          "sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "5c39f0bb6019a3651bfa6a78e3c3df1120d0419f154ed97d0a6dcc18631d5f61"
+        },
+        {
+          "member": "api_auth.py",
+          "sha256": "68e847610c5c4eeac9d539bc390f82421ce7a2065c61c14aa8d7461490031da8"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/options-flow.json"
+        ],
+        "other_source_bound_keys": [
+          "flow-data.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-outcome-checker": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "2a44061d31c72088aa4fb46191eb9c37c80b65f75e8c6c435833071eac062c5c"
+        },
+        {
+          "member": "_sentry_lite.py",
+          "sha256": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "system_events.py",
+          "sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-playbook-engine": {
+      "reasons": [
+        "shared:private_artifact",
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "timeout": 300,
+        "memory": 1024
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "cfbc0237bb9992a7c0160d52fbda66327cf1b9ae83eb89228eab5a850f29dc4e"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "private_artifact.py",
+          "sha256": "f245f594bcdfc6f8182dbad48e422789feae4f671688aec0cc6a157bf77d77b7"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        },
+        {
+          "member": "series_source.py",
+          "sha256": "55b33466a6a97cd2ab16cc9f5c5324a3d92d048257ac3caa618457fe34ed3550"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [
+          "data/playbook-rules-public.json",
+          "data/playbook-rules.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [
+          "panels.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-portfolio-admin": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 30,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-portfolio-snapshot": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "451c2c709a9600545a5297cc0a010bda5d58bd8efe5e2501613fcd162bd6e664"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "portfolio/snapshot.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "portfolio/index.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-position-sizer": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory": 256,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "b12e714292210671ce213e3198e4fc3a0bb30965873a17bc2b5af0f52c5d7159"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/position-sizing.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "cockpit.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-provider-catalog": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 1024
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "d491ffa94605e31c19c792370cadc179076ded73e622b3c721170b760386a779"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/provider-catalog.json"
+        ],
+        "other_source_bound_keys": [
+          "data/audit/provider-join-debug.json",
+          "data/audit/provider-join-lastgood.json",
+          "data/search/provider-shards.json"
+        ],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "chart-pro.html",
+          "data.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-repo": {
+      "reasons": [
+        "shared:donor_contract",
+        "shared:macro_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 1536
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "531a2c5ef08a731c029fb329b7f61123491282946e25a184a804a46a508abf98"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "macro_donor_inputs.py",
+          "sha256": "132ab92b45961d54ce02aceb2af7914ea0157bc624f66d1153c0dd5cb27beadb"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/repo.json"
+        ],
+        "other_source_bound_keys": [
+          "data/warm/dtcc-fails/agency.json",
+          "data/warm/dtcc-fails/treasury.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXAFEGS.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXB.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXBGS.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXEMEGS.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXM.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/RTWEXBGS.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXAFEGSMTH.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXBGSMTH.json",
+          "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXEMEGSMTH.json",
+          "data/warm/nyfed-markets/rates/bgcr.json.gz",
+          "data/warm/nyfed-markets/rates/sofr.json.gz",
+          "data/warm/nyfed-markets/rates/tgcr.json.gz",
+          "data/warm/nyfed-markets/rp-repo-history.json.gz"
+        ],
+        "unresolved_write_count": 3,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "repo.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-research-backtest": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "435caf0e965268901a1d5e3b7cf8fdd7c8949753e1e803c4d49d350a5500fbb5"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "analytics/backtest_results.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "track-record.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-risk-gate": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "donor_contracts.py",
+          "sha256": "c488063d11d44286c7aff7bdb667f47114c5c696b7f5790a19625f3093313a11"
+        },
+        {
+          "member": "lambda_function.py",
+          "sha256": "f214a19ddba8ccec844e771e3c4c0c10767d3b88f05342b74f3aedbb1debe7df"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/risk-gate.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "risk-gate.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-risk-sizer": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "source_or_config_changed"
+      ],
+      "expected_alias": "live",
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "e82227d471109c2b17a6b2c590a938d1a931e12e6b01b8a537f79f7f4a907edb"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/risk-sizer.json",
+          "risk/recommendations.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 1,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "classic-dashboard.html",
+          "desk-v2.html",
+          "desk.html",
+          "risk.html",
+          "ticker.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-schedule-liveness": {
+      "reasons": [
+        "shared:governed_targets",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory": 512
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "42bad802fcb5f7f5e779085518d20a82a2e90c666df9885a817fa055ad80c2a5"
+        },
+        {
+          "member": "governed_targets.py",
+          "sha256": "7f3d5e3d7e0cfd12afd4c773065dea9edcc959da67dfbe19c53f789089604d24"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/schedule-liveness.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "system.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-scheduler": {
+      "reasons": [
+        "shared:governed_targets",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "97fc4bfda6ee2e6bc512bdb8507109b80d72a2c6c249818450aa96568781ba36"
+        },
+        {
+          "member": "governed_targets.py",
+          "sha256": "7f3d5e3d7e0cfd12afd4c773065dea9edcc959da67dfbe19c53f789089604d24"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-sector-rotation": {
+      "reasons": [
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "4e6f4bf47824ddb6971eb2622e8ac29a7f1fa918927a262a2e44daa6af011bb8"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/sector-rotation.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "alpha-scoreboard.html",
+          "rotation/index.html",
+          "sector-flow.html",
+          "sectors.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-short-interest": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "bc2c59ec8a911eb1a66febab8f4c21fdb5113ed5c9c69088664dcec3b1d0b06f"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "finviz.py",
+          "sha256": "a68a6d83a70848e91dc1dbebee8a28ad5e110ce8b672d862c858e08b92346e69"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/short-interest.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "ticker.html",
+          "why.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-sizing-engine": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {},
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "64b28ba8ffa3aff71331e516ec945020a3710101101026fb1984dc8826b033a1"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/sizing.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "sizing.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-squeeze-fuel": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "5b5bdd5086f62c879c9ab436cac84ae7316ab17db620768e80a4065739795e2d"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/squeeze-fuel.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "squeeze-fuel.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-stock-analyzer": {
+      "reasons": [
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "ec1110c3901fb3c5e604ff4c64bce2c20f79ed73dc63abf670bde10de736c703"
+        },
+        {
+          "member": "api_auth.py",
+          "sha256": "68e847610c5c4eeac9d539bc390f82421ce7a2065c61c14aa8d7461490031da8"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "API_OR_PRIMARY_UNRESOLVED",
+        "pages": [],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-stock-screener": {
+      "reasons": [
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.11",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 1280,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "04ddf3f3df9dac6352a492481bb70763a0e11de5311a1c942f8b28f6ab3d7c61"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "fabrication_guard.py",
+          "sha256": "c1d86a2def639832a91c5dc9739ef24df18c4fc393b829d912412e658fdb4747"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "screener/data.json"
+        ],
+        "other_source_bound_keys": [
+          "screener/history.json",
+          "screener/just-crossed.json"
+        ],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "screener/index.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-trade-tickets": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:capital_contract",
+        "shared:donor_contract",
+        "shared:equity_donor_inputs",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory": 512,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "4af131c3096c51cc54a3ae99ce64d09ae567b66b596635505036134bb350f220"
+        },
+        {
+          "member": "capital_contract.py",
+          "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65"
+        },
+        {
+          "member": "donor_contract.py",
+          "sha256": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8"
+        },
+        {
+          "member": "equity_donor_inputs.py",
+          "sha256": "2c6716875f57dfbec39ac6b0a7f7dd908439f4fd169f1b56fe395ecba1432017"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/trade-tickets.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "chart-pro.html",
+          "digest-trends.html",
+          "macro-economic-data.html",
+          "pre-pump-radar.html",
+          "universe-heatmap.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-tradingview": {
+      "reasons": [
+        "reviewed_dependency_refresh",
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 900,
+        "memory": 2048,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "dc6de93eae1078630e9eecda1b068350aee70e5ba10d1d84a173f7b5df034208"
+        },
+        {
+          "member": "managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/tradingview.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "tradingview.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "reviewed quiet handler after package parity",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    },
+    "justhodl-tv-workbench": {
+      "reasons": [
+        "shared:public_brain_projection",
+        "source_or_config_changed"
+      ],
+      "expected_alias": null,
+      "configuration": {
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory": 1024,
+        "architectures": [
+          "x86_64"
+        ]
+      },
+      "expected_members": [
+        {
+          "member": "lambda_function.py",
+          "sha256": "52316071c9594318fee6081f366e0169b0ff40faecdef6ac8d684e1dd9de8de1"
+        },
+        {
+          "member": "public_brain_projection.py",
+          "sha256": "d850255bd9b0294ad70fb37946b672a7112e49189751b350dddbb27f88119c4b"
+        }
+      ],
+      "artifacts": {
+        "primary_keys": [
+          "data/tv-workbench.json"
+        ],
+        "other_source_bound_keys": [],
+        "unresolved_write_count": 0,
+        "primary_resolution": "EXPLICIT_OR_SOURCE_BOUND",
+        "pages": [
+          "tv-workbench.html"
+        ],
+        "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
+      },
+      "refresh_policy": "normal existing schedule or separate explicit API fixture",
+      "deployed_code_parity": "NOT_RUN",
+      "output_contract_parity": "NOT_RUN"
+    }
+  },
+  "dependency_stages": [
+    [
+      "justhodl-tradingview",
+      "justhodl-short-interest",
+      "justhodl-liquidity-profile",
+      "justhodl-etf-true-flows"
+    ],
+    [
+      "justhodl-factor-risk",
+      "justhodl-liquidity-capacity",
+      "justhodl-conviction-engine"
+    ],
+    [
+      "justhodl-risk-gate",
+      "justhodl-engine-fusion"
+    ],
+    [
+      "justhodl-khalid-risk"
+    ],
+    [
+      "justhodl-portfolio-snapshot"
+    ],
+    [
+      "justhodl-katlin",
+      "justhodl-risk-sizer",
+      "justhodl-squeeze-fuel",
+      "justhodl-trade-tickets",
+      "justhodl-crypto-basis",
+      "justhodl-sizing-engine",
+      "justhodl-firm-risk-board"
+    ]
+  ],
+  "schedule_plan": {
+    "name": "justhodl-katlin-permission-refresh",
+    "expression": "rate(15 minutes)",
+    "target_alias": "live",
+    "mode": "permission_refresh",
+    "weekly_backtest": "preserve existing target/Input/retry/DLQ/settings"
+  },
+  "release_anchor_note": "Default first source commit; update explicit anchor after CI recovery/final source release. A mismatch performs zero AWS mutations.",
+  "limitations": [
+    "Live code/alias/schedule/output verification has not run.",
+    "Crypto-funding and other notification-capable engines await normal scheduled publication.",
+    "An API-only or unresolved-primary engine remains pending until a safe fixture or output mapping is supplied.",
+    "No fresh object timestamp alone proves which source version generated a payload.",
+    "First release proof is not final audit completion.",
+    "Execution is intended after privacy5230 and final source deployment; update explicit anchor after CI recovery."
+  ],
+  "prerequisites": [
+    "Complete ops5230 privacy migration; successful receipt must match source fingerprints for all privacy readiness functions and include every private publisher configuration and final policy restoration.",
+    "Verify all desired source packages and stable aliases are Active/Successful before any schedule mutation or invocation."
+  ]
+}

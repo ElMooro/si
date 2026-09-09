@@ -46,7 +46,14 @@ def check_packages(lam, root, functions):
         try:
             deployed = lam.get_function(**request)
             state = deployed['Configuration']
-            row.update(version=state.get('Version'), code_sha256=state.get('CodeSha256'), state=state.get('State'), update_status=state.get('LastUpdateStatus'))
+            row.update(version=state.get('Version'), code_sha256=state.get('CodeSha256'), state=state.get('State'), update_status=state.get('LastUpdateStatus'), last_modified=state.get('LastModified'), handler=state.get('Handler'))
+            if qualifier:
+                alias = lam.get_alias(FunctionName=function, Name=qualifier)
+                weights = (alias.get('RoutingConfig') or {}).get('AdditionalVersionWeights') or {}
+                primary = alias.get('FunctionVersion')
+                row.update(alias_primary_version=primary, alias_additional_versions=sorted(weights),
+                           alias_verified=isinstance(primary,str) and primary.isdigit() and int(primary)>0
+                                          and primary==state.get('Version') and not weights)
             with urllib.request.urlopen(deployed['Code']['Location'], timeout=30) as response:
                 archive = zipfile.ZipFile(io.BytesIO(response.read()))
             source_dir = root / 'aws/lambdas' / function / 'source'
@@ -59,7 +66,7 @@ def check_packages(lam, root, functions):
                 actual = hashlib.sha256(archive.read(name)).hexdigest() if name in archive.namelist() else None
                 row['files'].append({'member': name, 'expected_sha256': expected, 'actual_sha256': actual, 'match': expected == actual})
             row['configuration_mismatches'] = [remote for local, remote in (('runtime', 'Runtime'), ('handler', 'Handler'), ('timeout', 'Timeout'), ('memory', 'MemorySize'), ('architectures', 'Architectures')) if local in config and config[local] != state.get(remote)]
-            row['pass'] = bool(row['files']) and all(x['match'] for x in row['files']) and not row['configuration_mismatches'] and state.get('State') == 'Active' and state.get('LastUpdateStatus') == 'Successful'
+            row['pass'] = bool(row['files']) and all(x['match'] for x in row['files']) and not row['configuration_mismatches'] and state.get('State') == 'Active' and state.get('LastUpdateStatus') == 'Successful' and (not qualifier or row.get('alias_verified') is True)
         except Exception as exc:
             # Exceptions can embed signed download URLs: record type only.
             row['error_type'] = type(exc).__name__
