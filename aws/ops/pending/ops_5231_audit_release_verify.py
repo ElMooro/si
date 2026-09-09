@@ -35,7 +35,7 @@ def require_commit(value):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--release',default=os.environ.get('AUDIT_RELEASE_SHA','859e9617387c891d44920b80656e38359f28dbf2'))
+    parser.add_argument('--release',default=os.environ.get('AUDIT_RELEASE_SHA','b1ef1a937cc8e9170d67bd1d51539f1e63b237f5'))
     parser.add_argument('--stage',choices=('preliminary','final'),default=os.environ.get('AUDIT_RELEASE_STAGE','final'))
     parser.add_argument('--parity-minutes',type=int,default=5)
     parser.add_argument('--publication-minutes',type=int,default=35)

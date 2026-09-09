@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -75,14 +76,19 @@ def publication_diagnostics(clients,report):
             result.append(item)
     return result
 
-def observe(root,clients,privacy):
+def observe(root,clients,privacy,parity_seconds=0):
     scope=release.changed_scope(root);artifacts=release.artifact_map(root,scope)
     report={'ops':5283,'read_only':True,'aws_mutations':0,'private_payloads_reported':0,
             'expected_release_sha':release.git(root,'rev-parse','HEAD'),'engine_scope':scope,
             'artifact_scope':artifacts,'started_at':release.utcnow().isoformat()}
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        code=list(pool.map(lambda name:release.check_packages(clients['lambda'],root,[name])[0],scope))
-    report['code']={row['function']:row for row in code};report['source_parity_verified']=all(row.get('pass') for row in code)
+    deadline=time.monotonic()+max(0,min(300,parity_seconds));pending=set(scope);report['code']={}
+    while pending:
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            code=list(pool.map(lambda name:release.check_packages(clients['lambda'],root,[name])[0],sorted(pending)))
+        report['code'].update({row['function']:row for row in code});pending={name for name in pending if not report['code'][name].get('pass')}
+        if not pending or time.monotonic()>=deadline:break
+        time.sleep(min(30,max(0,deadline-time.monotonic())))
+    report['source_parity_verified']=not pending
     report['privacy_prerequisite']=release.privacy_receipt_summary(root,privacy)
     if not report['source_parity_verified']:
         report.update(ok=False,status='SOURCE_PARITY_FAILED');return report
@@ -124,7 +130,7 @@ def main():
                 from botocore.config import Config
                 clients={name:ReadOnlyClient(boto3.client(name,region_name=release.REGION,config=Config(connect_timeout=10,read_timeout=45,retries={'max_attempts':2})),name) for name in READ_METHODS}
                 privacy=json.loads((ROOT/'aws/ops/reports/5230_audit_privacy_migration.json').read_text())
-                report.update(observe(root,clients,privacy))
+                report.update(observe(root,clients,privacy,parity_seconds=300))
             finally:git('worktree','remove','--force',str(root))
     except Exception as exc:report.update(ok=False,status='OBSERVATION_FAILED',error_type=type(exc).__name__)
     report.update(checker_checkout_sha=git('rev-parse','HEAD'),finished_at=release.utcnow().isoformat(),workflow_run_id=os.environ.get('GITHUB_RUN_ID'))
