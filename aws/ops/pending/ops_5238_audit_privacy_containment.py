@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ops5238: install confidentiality policies before the full source release.
 
+Retry after strict IAM policy normalization and exact fleet/recipient containment.
 Permission changes and cache purge only. All originals/versions are preserved;
 no Lambda invocation, private payload read, mirror seed or service config change.
 Full ops5230 must later complete before temporary public-feed containment lifts.
