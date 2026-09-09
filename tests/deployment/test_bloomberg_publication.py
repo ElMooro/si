@@ -113,3 +113,17 @@ def test_provider_errors_nan_redirects_and_size_limits_cannot_leak_credentials()
         module.fetch_url('https://api.polygon.io.evil.invalid/')
         opener.assert_not_called()
     assert module.NoRedirect().redirect_request(None, None, 302, '', {}, 'https://evil.invalid') is None
+
+
+def test_credit_percent_to_basis_points_and_malformed_optional_donor():
+    module = handler(); today = datetime.now(timezone.utc).date().isoformat()
+    fred = {key: {'value': value, 'date': today, 'chg_1m': 0} for key, value in
+            {'VIXCLS': 20, 'T10Y2Y': 0, 'BAMLH0A0HYM2': 5.5, 'STLFSI4': 0,
+             'WALCL': 1000, 'UNRATE': 4, 'ICSA': 250000, 'DTWEXBGS': 100}.items()}
+    stocks = {ticker: {'date': today, 'above_sma200': False} for ticker in module.TICKERS if '-' not in ticker}
+    for donor in ([1], 'malformed', {'generated_at': 'invalid'}):
+        result = module.calculate_khalid_index(fred, stocks, donor)
+        assert result['components']['credit']['value'] == 550
+        assert result['components']['credit']['units'] == 'basis points'
+        assert result['components']['credit']['score'] == -5
+        assert result['execution_eligible'] is False and 'leading_markets' not in result['components']
