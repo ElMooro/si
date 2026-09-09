@@ -1,0 +1,26 @@
+{
+  "function_name": "justhodl-chain-resumer",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ops 5260 - resumes walk engines parked by chain_guard at hop 12 (fresh Lambda lineage, AWS 16-hop breaker never reached); per-function 24h circuit breaker -> SNS",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "PARK_PREFIX": "data/_state/chain-parked/",
+    "HELD_PREFIX": "data/_state/chain-parked-held/",
+    "LEDGER_PREFIX": "data/_state/chain-resumer/",
+    "RESUME_MAX_PER_DAY": "120",
+    "MAX_PER_RUN": "50",
+    "SNS_ARN": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts"
+  },
+  "scheduler": {
+    "name": "justhodl-chain-resumer-5min",
+    "expr": "rate(5 minutes)",
+    "role": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "input": {"mode": "resume"}
+  }
+}

@@ -34,6 +34,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
 ENGINE_VERSION = "justhodl-gdelt-full v1.0.2 ops4973 v1-unlock"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -282,6 +283,7 @@ def backfill_run(event, t0):
 
 
 def lambda_handler(event, ctx=None):
+    chain_guard.begin(event)  # ops 5260: bounded lineage, parks at hop 12 (AWS drops at 16)
     _bft0 = time.time()
     event = event or {}
     if event.get("backfill_fanout"):
@@ -292,10 +294,9 @@ def lambda_handler(event, ctx=None):
         sent = 0
         for k in range(n):
             try:
-                _l.invoke(FunctionName=fn, InvocationType="Event",
-                          Payload=json.dumps({"backfill": True,
+                chain_guard.chain_invoke({"backfill": True,
                                               "shard": k,
-                                              "shards": n}).encode())
+                                              "shards": n}, context=ctx)
                 sent += 1
             except Exception:
                 pass
@@ -369,13 +370,7 @@ def lambda_handler(event, ctx=None):
     write_manifest(state)
     if chain:
         try:
-            boto3.client("lambda", region_name="us-east-1").invoke(
-                FunctionName=os.environ.get(
-                    "AWS_LAMBDA_FUNCTION_NAME",
-                    "justhodl-gdelt-full"),
-                InvocationType="Event",
-                Payload=json.dumps(
-                    {"chain_depth": depth + 1}).encode())
+            chain_guard.chain_invoke({"chain_depth": depth + 1}, context=ctx)
         except Exception:
             chain = False
     return {"ok": True, "phase": state["phase"],

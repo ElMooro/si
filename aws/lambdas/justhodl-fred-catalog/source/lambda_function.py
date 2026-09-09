@@ -24,6 +24,7 @@ from concurrent.futures import (ThreadPoolExecutor,
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 # ==== ops 4572: priority drain v2 ====
@@ -748,14 +749,8 @@ def _run_scoped_import(t0, now):
         if (st["status"] == "walking" and progress > 0
                 and not _blocked_this_invoke[0]):
             try:
-                _lambda.invoke(
-                    FunctionName=os.environ.get(
-                        "AWS_LAMBDA_FUNCTION_NAME",
-                        "justhodl-fred-catalog"),
-                    InvocationType="Event",
-                    Payload=json.dumps(
-                        {"phase": "scoped_import",
-                         "chain": True}).encode())
+                chain_guard.chain_invoke({"phase": "scoped_import",
+                         "chain": True})
                 manifest["chained"] = True
             except Exception:
                 manifest["chained"] = False
@@ -783,6 +778,7 @@ def _run_scoped_import(t0, now):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event)  # ops 5260: bounded lineage, parks at hop 12 (AWS drops at 16)
     t0 = time.time()
     # ops 4575 (v2 crash, F1): the EventBridge cron sends no payload, so
     # the old default ran the phase-1 category crawl (COMPLETE since

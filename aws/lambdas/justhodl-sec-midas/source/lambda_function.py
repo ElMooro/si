@@ -21,6 +21,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com"}
@@ -135,6 +136,7 @@ def _write_manifest(state):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event)  # ops 5260: bounded lineage, parks at hop 12 (AWS drops at 16)
     t0 = time.time()
     state = _j(STATE_KEY, {}) or {}
     if float(state.get("lease_until") or 0) > time.time():
@@ -189,13 +191,7 @@ def lambda_handler(event, context):
     _put_json(STATE_KEY, state)
     if _chain:
         try:
-            boto3.client("lambda", region_name="us-east-1").invoke(
-                FunctionName=os.environ.get(
-                    "AWS_LAMBDA_FUNCTION_NAME",
-                    "justhodl-sec-midas"),
-                InvocationType="Event",
-                Payload=json.dumps(
-                    {"chain_depth": _depth + 1}).encode())
+            chain_guard.chain_invoke({"chain_depth": _depth + 1}, context=context)
         except Exception as e:
             print("chain failed: %s" % type(e).__name__)
             _chain = False

@@ -28,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/trend-reversal.json"
@@ -444,6 +445,7 @@ def build_universe():
 
 
 def lambda_handler(event=None, context=None):
+    chain_guard.begin(event)  # ops 5260: bounded lineage, parks at hop 12 (AWS drops at 16)
     t0 = time.time()
     event = event or {}
     cursor = int(event.get("cursor", 0))
@@ -478,11 +480,10 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json")
     nxt = cursor + BATCH
     if nxt < len(universe):
-        lam.invoke(FunctionName=SELF_FN, InvocationType="Event",
-                   Payload=json.dumps({
+        chain_guard.chain_invoke({
                        "cursor": nxt, "universe": universe,
                        "sectors": sectors,
-                       "cls": cls_map}).encode())
+                       "cls": cls_map}, context=context)
         print(f"[reversal] chain {cursor}->{nxt}/{len(universe)} "
               f"(+{len(rows)} rows, {len(errs)} errs) "
               f"{time.time()-t0:.0f}s")
