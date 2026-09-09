@@ -123,6 +123,27 @@ class FakeLambda:
 
 
 class PublicMigrationTests(unittest.TestCase):
+    def test_temporary_policy_deduplicates_history_without_weakening_protection(self):
+        from audit_20260909_security import historical_protection_installed
+        class PolicyStore:
+            def __init__(self):
+                self.policy={'Version':'2012-10-17','Statement':[migration.historical_deny_statement(migration.BUCKET)]}
+            def get_bucket_policy(self,**kwargs):return {'Policy':json.dumps(self.policy)}
+            def put_bucket_policy(self,**kwargs):self.policy=json.loads(kwargs['Policy'])
+        store=PolicyStore();job=migration.Migration(ROOT,{'s3':store})
+        job.policy(True)
+        historical=migration.historical_deny_statement(migration.BUCKET)
+        self.assertFalse(migration.has_policy_statement(store.policy,historical))
+        self.assertTrue(historical_protection_installed(store.policy,migration.BUCKET))
+        self.assertLess(len(migration.encoded(store.policy)),len(migration.encoded({**store.policy,'Statement':store.policy['Statement']+[historical]})))
+        weakened=deepcopy(store.policy)
+        next(row for row in weakened['Statement'] if row['Sid']==migration.TEMP_SID)['Action']=['s3:GetObject']
+        self.assertFalse(historical_protection_installed(weakened,migration.BUCKET))
+        job.policy(False)
+        self.assertTrue(migration.has_policy_statement(store.policy,historical))
+        self.assertTrue(migration.has_policy_statement(store.policy,migration.backup_deny_statement()))
+        self.assertFalse(migration.has_policy_statement(store.policy,migration.temporary_statement()))
+
     def test_core_receipt_requires_complete_inventory_and_matching_layer_package(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);path=root/'aws/ops/reports/5234_core_layer_reconciliation.json'

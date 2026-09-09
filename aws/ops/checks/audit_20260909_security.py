@@ -150,6 +150,18 @@ def historical_deny_statement(bucket, owner_account="857687956942"):
             "Condition": {"StringNotEquals": {"aws:PrincipalAccount": owner_account}}}
 
 
+def historical_protection_installed(policy, bucket, owner_account="857687956942"):
+    expected = historical_deny_statement(bucket, owner_account)
+    if has_policy_statement(policy, expected):
+        return True
+    # During migration the same exact resources/condition have the stronger
+    # current+version deny. Keeping both identical resource lists wastes policy
+    # capacity; restoration installs the permanent version-only statement.
+    temporary = {**expected, "Sid": "Audit20260909DerivativeMigrationInProgress",
+                 "Action": ["s3:GetObject", "s3:GetObjectVersion"]}
+    return has_policy_statement(policy, temporary)
+
+
 def _head(url, extra=None):
     request = urllib.request.Request(url, method="HEAD",
         headers={"User-Agent": "JustHodl-Audit20260909/1.0", "Cache-Control": "no-cache", **(extra or {})})
@@ -166,7 +178,7 @@ def check(s3, bucket="justhodl-dashboard-live", service_token=None):
     policy = json.loads(s3.get_bucket_policy(Bucket=bucket)["Policy"])
     statement = anonymous_deny_statement(bucket)
     checks.append({"check": "external_s3_deny_installed", "ok": has_policy_statement(policy, statement)})
-    checks.append({"check": "external_history_deny_installed", "ok": has_policy_statement(policy, historical_deny_statement(bucket))})
+    checks.append({"check": "external_history_deny_installed", "ok": historical_protection_installed(policy, bucket)})
     for key in PRIVATE_KEYS:
         for base in (WORKER, "https://justhodl.ai", "https://www.justhodl.ai"):
             result = _head(base + "/" + key)

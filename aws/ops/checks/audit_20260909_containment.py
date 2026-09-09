@@ -8,9 +8,9 @@ import json
 import urllib.error
 import urllib.request
 
-from audit_20260909_privacy_migration import ACCOUNT, BUCKET, Migration, MigrationError, temporary_statement
+from audit_20260909_privacy_migration import ACCOUNT, BUCKET, Migration, MigrationError, temporary_statement, backup_deny_statement
 from audit_20260909_security import (PRIVATE_KEYS, SANITIZED_KEYS, WORKER, anonymous_deny_statement,
-                                    historical_deny_statement, has_policy_statement, policy_diagnostic, policies_equal)
+                                    historical_protection_installed, has_policy_statement, policy_diagnostic, policies_equal)
 
 
 def head_status(url, http):
@@ -61,11 +61,13 @@ def contain(root, clients, http=urllib.request.urlopen):
             checks.append({"check": "anonymous_worker_denied", "key": key, "status": status, "ok": status in (401, 403)})
         result["s3_denial_verified"] = all(c["ok"] for c in checks if c["check"] == "anonymous_s3_denied")
         result["worker_denial_verified"] = all(c["ok"] for c in checks if c["check"] == "anonymous_worker_denied")
-        # Verify policy still contains all three controls after the HEAD pass.
+        # Verify current, historical and backup controls after the HEAD pass.
         current = json.loads(clients["s3"].get_bucket_policy(Bucket=BUCKET)["Policy"])
-        expected = [anonymous_deny_statement(BUCKET, ACCOUNT), historical_deny_statement(BUCKET, ACCOUNT), temporary_statement()]
+        expected = [anonymous_deny_statement(BUCKET, ACCOUNT), temporary_statement(), backup_deny_statement()]
         result["temporary_containment_retained"] = has_policy_statement(current, temporary_statement())
-        result["policy_verified"] = policies_equal(current, job.policy_expected) and all(has_policy_statement(current, statement) for statement in expected)
+        result["policy_verified"] = (policies_equal(current, job.policy_expected)
+                                     and all(has_policy_statement(current, statement) for statement in expected)
+                                     and historical_protection_installed(current, BUCKET, ACCOUNT))
         checks.append({"check": "final_containment_policy", "ok": result["policy_verified"],
                        **policy_diagnostic(current, job.policy_expected)})
         result["ok"] = result["policy_verified"] and result["s3_denial_verified"] and result["worker_denial_verified"] and result["edge_purge_verified"]

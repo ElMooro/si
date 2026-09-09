@@ -309,10 +309,13 @@ class Migration:
             if error_code(exc) != "NoSuchBucketPolicy":
                 raise
             current = {"Version": "2012-10-17", "Statement": []}
-        statements = [anonymous_deny_statement(BUCKET, ACCOUNT), historical_deny_statement(BUCKET, ACCOUNT), backup_deny_statement()]
+        historical = historical_deny_statement(BUCKET, ACCOUNT)
+        statements = [anonymous_deny_statement(BUCKET, ACCOUNT), backup_deny_statement()]
         if temporary:
             statements.append(temporary_statement())
-        updated = merge_policy(current, statements, remove=(TEMP_SID,))
+        else:
+            statements.append(historical)
+        updated = merge_policy(current, statements, remove=(TEMP_SID, historical["Sid"]))
         # Detect ordinary concurrent policy changes immediately before mutation.
         try:
             reread = json.loads(s3.get_bucket_policy(Bucket=BUCKET)["Policy"])
@@ -333,7 +336,8 @@ class Migration:
         self.temp_installed = has_policy_statement(actual, temporary_statement())
         self.record("bucket_policy_readback", **policy_diagnostic(actual, updated))
         require(policies_equal(actual, updated), "bucket_policy_not_verified")
-        self.record("bucket_policy", private_deny=True, historical_deny=True, temporary_current_deny=temporary)
+        self.record("bucket_policy", private_deny=True, historical_deny=True, temporary_current_deny=temporary,
+                    encoded_bytes=len(policy_text.encode()), redundant_history_covered_by_temporary=temporary)
 
     def cf(self, path, payload=None):
         token = os.environ.get("CLOUDFLARE_API_TOKEN")

@@ -88,3 +88,13 @@ symbol-directory source enumerations do not include this root-level prefix.
 Receipts contain only object keys, counts, hashes and status metadata. They do
 not include original content or its base64 representation. Production completion
 still requires a successful Worker deployment and operation 5230 receipt.
+
+The first full migration attempt stopped at the20KB S3 policy preflight before
+any policy or object write. During temporary containment, the GetObject plus
+GetObjectVersion deny already covers the exact resources and condition of the
+permanent version-only statement. The retry keeps that stronger temporary rule
+and omits the redundant permanent resource list. It reinstalls the exact
+permanent history rule when temporary access restrictions are removed. Current
+and backup protections remain separate. Verification accepts only either exact
+permanent history protection or the exact stronger temporary statement; a rule
+that omits version reads fails the regression test.
