@@ -229,4 +229,3 @@ proof_dir="${GITHUB_WORKSPACE:-$tmp}/release-evidence"
 mkdir -p "$proof_dir"
 jq -n --arg function "$fn" --arg version "$candidate_version" --arg code_sha256 "$candidate_sha" --arg schema "$expected_schema" --arg commit "${GITHUB_SHA:-local-test}" '{function:$function,version:$version,code_sha256:$code_sha256,validation_schema:$schema,commit_sha:$commit,validation_only:true,alias:"live"}' > "$proof_dir/$fn.json"
 echo "  ✅ $fn live alias promoted to validated version $candidate_version"
-
