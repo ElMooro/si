@@ -6,9 +6,15 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/deploy-lambdas.yml"
 CANDIDATE_SCRIPT = ROOT / "scripts/deploy_validated_candidate.sh"
 
+def deployment_source():
+    # Follow the workflow entry point into its real external shell transaction.
+    import textwrap
+    return WORKFLOW.read_text() + "\n" + textwrap.indent((ROOT / "scripts/deploy_lambdas.sh").read_text(), " " * 10)
+
+
 
 def test_required_service_tests_run_before_aws_mutation():
-    workflow = WORKFLOW.read_text()
+    workflow = deployment_source()
     preflight = workflow.index("- name: Run deployment preflight tests")
     deploy = workflow.index("- name: Deploy each changed Lambda")
     first_code_mutation = workflow.index("aws lambda update-function-code")
@@ -23,7 +29,7 @@ def test_required_service_tests_run_before_aws_mutation():
 
 
 def test_governed_engines_use_numbered_candidate_path():
-    workflow = WORKFLOW.read_text()
+    workflow = deployment_source()
     candidate_call = workflow.index("bash scripts/deploy_validated_candidate.sh")
     scheduler_block = workflow.index(
         "# ── EventBridge Scheduler (if config.json has .eventbridge_scheduler)"
@@ -76,7 +82,7 @@ def test_risk_validation_configs_and_minimal_config_preserve_runtime():
     for engine, schema in [("katlin", "1.1"), ("risk-gate", "risk-gate.v2.5"), ("risk-sizer", "3.0")]:
         config = json.loads((ROOT / f"aws/lambdas/justhodl-{engine}/config.json").read_text())
         assert config["release_validation"]["schema_version"] == schema
-    workflow = WORKFLOW.read_text()
+    workflow = deployment_source()
     assert "has(\"timeout\")" in workflow
     assert "has(\"memory\")" in workflow
     assert '"${code_revision_args[@]}"' in workflow
@@ -87,7 +93,7 @@ def test_risk_validation_configs_and_minimal_config_preserve_runtime():
 
 def test_failed_per_engine_command_cannot_continue_to_production_scheduling():
     import subprocess
-    workflow = WORKFLOW.read_text()
+    workflow = deployment_source()
     start = workflow.index("            set +e\n            (", workflow.index("- name: Deploy each changed Lambda"))
     prefix_end = workflow.index("              dir=", start)
     suffix_start = workflow.index("            )\n            deploy_status=$?", prefix_end)
@@ -101,7 +107,7 @@ def test_failed_per_engine_command_cannot_continue_to_production_scheduling():
 
 def test_classic_target_update_preserves_input_retry_and_unrelated_targets():
     import json, re, subprocess
-    workflow = WORKFLOW.read_text()
+    workflow = deployment_source()
     start = workflow.index('              jq --arg arn "$target_fn_arn"')
     snippet = workflow[start:workflow.index('> "$tmp/classic-target-update.json"', start)]
     expression = re.search(r"'([\s\S]+)'", snippet).group(1)

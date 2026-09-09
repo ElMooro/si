@@ -1,0 +1,457 @@
+#!/usr/bin/env bash
+# The reviewed deployment transaction lives outside YAML to avoid GitHub expression size limits.
+: "${DEPLOY_TARGETS:?deployment target list required}"
+: "${DEPLOY_AWS_REGION:?AWS region required}"
+set -e
+# Do not put the subshell in an OR/if condition: Bash would disable
+# errexit throughout its body and continue after failed validation.
+declare -a failed_lambdas
+for fn in $DEPLOY_TARGETS; do
+  set +e
+  (
+    set -e
+    dir="aws/lambdas/$fn"
+    if [ ! -d "$dir/source" ]; then
+      echo "::warning::$dir/source not found — skipping"
+      exit 0
+    fi
+    echo "──── Deploying $fn ────"
+
+  # Read config (function_name + create-time config like runtime/timeout/memory/env)
+  fn_runtime="python3.12"
+  fn_timeout="300"
+  fn_memory="512"
+  fn_ephemeral=""
+  fn_desc="JustHodl.AI Lambda"
+  fn_env_args=""
+  cfg_env_json="{}"
+  if [ -f "$dir/config.json" ]; then
+    cfg_name=$(jq -r '.function_name // empty' "$dir/config.json")
+    [ -n "$cfg_name" ] && fn="$cfg_name"
+    fn_runtime=$(jq -r '.runtime // "python3.12"' "$dir/config.json")
+    fn_timeout=$(jq -r '.timeout // 300' "$dir/config.json")
+    fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
+    fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$dir/config.json")
+    fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
+    env_kv=$(jq -r '(.env // .environment // {}) | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
+    if jq -e '.inherit_env' "$dir/config.json" >/dev/null 2>&1; then
+      ie_type=$(jq -r '.inherit_env | type' "$dir/config.json")
+      if [ "$ie_type" = "boolean" ]; then
+        # Boolean true -- pull standard secrets bundle from confluence-meta
+        if [ "$(jq -r '.inherit_env' "$dir/config.json")" = "true" ]; then
+          src_fn="justhodl-confluence-meta"
+          standard_keys="FMP_KEY FRED_KEY POLYGON_KEY ALPHA_VANTAGE_KEY CMC_KEY ANTHROPIC_API_KEY TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID TELEGRAM_TOKEN NEWSAPI_KEY BLS_KEY BEA_KEY CENSUS_KEY"
+          src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+          for k in $standard_keys; do
+            v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
+            if [ -n "$v" ] && [ "$v" != "null" ]; then
+              if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+            fi
+          done
+          echo "  [inherit_env=true] pulled standard secrets bundle from $src_fn"
+        fi
+      elif [ "$ie_type" = "array" ]; then
+        n_entries=$(jq -r '.inherit_env | length' "$dir/config.json")
+        for i in $(seq 0 $((n_entries - 1))); do
+          src_fn=$(jq -r ".inherit_env[$i].from_function" "$dir/config.json")
+          inherit_keys=$(jq -r ".inherit_env[$i].keys | join(\" \")" "$dir/config.json")
+          if [ -n "$src_fn" ] && [ -n "$inherit_keys" ] && [ "$src_fn" != "null" ]; then
+            src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+            for k in $inherit_keys; do
+              v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
+              if [ -n "$v" ] && [ "$v" != "null" ]; then
+                if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+                echo "  [inherit_env] inherited $k from $src_fn"
+              else
+                echo "  [inherit_env] WARN $k not found on $src_fn"
+              fi
+            done
+          fi
+        done
+      else
+        src_fn=$(jq -r '.inherit_env.from_function' "$dir/config.json")
+        inherit_keys=$(jq -r '.inherit_env.keys | join(" ")' "$dir/config.json")
+        if [ -n "$src_fn" ] && [ -n "$inherit_keys" ]; then
+          src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "$DEPLOY_AWS_REGION" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+          for k in $inherit_keys; do
+            v=$(echo "$src_env" | jq -r "."$k" // empty")
+            if [ -n "$v" ] && [ "$v" != "null" ]; then
+              if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+              echo "  [inherit_env] inherited $k from $src_fn"
+            else
+              echo "  [inherit_env] WARN $k not found on $src_fn"
+            fi
+          done
+        fi
+      fi
+    fi
+    # Convert config-derived env ("K=V,K=V" string) into a JSON object.
+    # Using JSON + file:// avoids the Variables={k=v} shorthand breaking
+    # on values that contain commas or special characters.
+    cfg_env_json="{}"
+    if [ -n "$env_kv" ]; then
+      cfg_env_json=$(echo "$env_kv" | tr ',' '\n' \
+        | jq -R 'select(length>0) | split("=") | {(.[0]): (.[1:] | join("="))}' \
+        | jq -s 'add // {}')
+    fi
+  fi
+
+  tmp=$(mktemp -d)
+  staging="$tmp/stage"
+  mkdir -p "$staging"
+
+  if [ -d aws/shared ]; then
+    find aws/shared -maxdepth 1 -name '*.py' -type f -exec cp {} "$staging/" \;
+  fi
+
+  cp -rT "$dir/source" "$staging"
+
+  (cd "$staging" && zip -qr "$tmp/deploy.zip" .)
+  echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn (with shared/ bundle)"
+
+  if [ -d aws/shared ]; then
+    zip_names=$(python3 -c "import zipfile,sys;print('\n'.join(zipfile.ZipFile(sys.argv[1]).namelist()))" "$tmp/deploy.zip")
+    vmissing=""
+    for sp in aws/shared/*.py; do
+      [ -e "$sp" ] || continue
+      vmod=$(basename "$sp" .py)
+      if grep -rqE "(from|import)[[:space:]]+${vmod}([^a-zA-Z0-9_]|\$)" "$dir/source" 2>/dev/null; then
+        echo "$zip_names" | grep -qx "${vmod}.py" || vmissing="$vmissing ${vmod}.py"
+      fi
+    done
+    if [ -n "$vmissing" ]; then
+      echo "::error::$fn imports shared module(s) missing from its zip:$vmissing — bundling regression, failing build for $fn"
+      exit 1
+    fi
+  fi
+
+  candidate_managed=0
+  candidate_schema=""
+  if [ "$fn" = "justhodl-engine-fusion" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
+    schema_file="$dir/source/output_schema.json"
+    [ "$fn" = "justhodl-engine-fusion" ] && schema_file="$dir/source/fusion-schema.v1.json"
+    candidate_schema=$(jq -er '.schema_version' "$schema_file")
+    candidate_managed=1
+  elif [ -f "$dir/config.json" ] && jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+    candidate_schema=$(jq -er '.release_validation.schema_version' "$dir/config.json")
+    candidate_managed=1
+  fi
+
+  # Check if Lambda exists. If not, create it with defaults / config.json overrides.
+  if aws lambda get-function --function-name "$fn" --region "$DEPLOY_AWS_REGION" >/dev/null 2>&1; then
+    echo "Updating existing Lambda $fn"
+    # Freeze all existing scheduled targets on the previous numbered release.
+    code_revision_args=()
+    if [ "$candidate_managed" -eq 1 ]; then
+      python3 scripts/protect_lambda_alias.py "$fn" "$DEPLOY_AWS_REGION" > "$tmp/production-protection.json"
+      code_revision_args=(--revision-id "$(jq -er '.revision_id' "$tmp/production-protection.json")")
+    fi
+    aws lambda update-function-code \
+      --function-name "$fn" \
+      "${code_revision_args[@]}" \
+      --zip-file "fileb://$tmp/deploy.zip" \
+      --region "$DEPLOY_AWS_REGION" \
+      --query 'LastModified' --output text
+
+    aws lambda wait function-updated \
+      --function-name "$fn" \
+      --region "$DEPLOY_AWS_REGION"
+
+    # Apply config overrides if present (env vars, timeout, memory may have changed)
+    if [ -f "$dir/config.json" ]; then
+      # MERGE env: the function's CURRENT env is the base, config.json
+      # env overrides on top. This preserves ops-patched secrets
+      # (FMP_KEY, TELEGRAM_*, etc.) across redeploys — config.json need
+      # only declare non-secret vars like MAX_WORKERS.
+      #
+      # Hardened (2026-07-07 incident): a FAILED env read must never be
+      # treated as "empty env" — that turned the merge into a replace
+      # and nuked justhodl-equity-research down to its cfg-inherited
+      # vars. On read failure we now SKIP the config update entirely
+      # (code is already deployed; env/timeout can wait) and surface a
+      # warning instead of silently destroying the secrets bundle.
+      env_read_ok=1
+      existing_env=$(aws lambda get-function-configuration \
+        --function-name "$fn" --region "$DEPLOY_AWS_REGION" \
+        --query 'Environment.Variables' --output json 2>/dev/null) || env_read_ok=0
+      if [ "$env_read_ok" = "0" ]; then
+        echo "::error::$fn: env read failed; refusing promotion with unapplied configuration"
+        exit 1
+      else
+      if [ -z "$existing_env" ] || [ "$existing_env" = "null" ]; then
+        existing_env="{}"
+      fi
+      merged_env=$(jq -n --argjson a "$existing_env" --argjson b "$cfg_env_json" '$a * $b')
+      # Skip --environment when empty (AWS rejects an empty Variables map).
+      env_arg=""
+      if [ "$merged_env" != "{}" ] && [ -n "$merged_env" ]; then
+        echo "{\"Variables\": $merged_env}" > "$tmp/env.json"
+        env_arg="--environment file://$tmp/env.json"
+      fi
+      ephemeral_arg=""
+      if [ -n "$fn_ephemeral" ]; then
+        ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
+      fi
+      # Minimal validation-only config files must not reset runtime settings.
+      config_args=()
+      if jq -e 'has("timeout")' "$dir/config.json" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
+      if jq -e 'has("memory")' "$dir/config.json" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
+      if jq -e 'has("description")' "$dir/config.json" >/dev/null; then config_args+=(--description "$fn_desc"); fi
+      aws lambda update-function-configuration \
+        --function-name "$fn" \
+        "${config_args[@]}" \
+        --region "$DEPLOY_AWS_REGION" \
+        $env_arg \
+        $ephemeral_arg \
+        --output text > /dev/null
+      aws lambda wait function-updated \
+        --function-name "$fn" \
+        --region "$DEPLOY_AWS_REGION"
+      fi
+    fi
+  else
+    echo "Lambda $fn does not exist — creating"
+    # Only pass --environment when there are real vars; AWS rejects an
+    # empty Variables map on create, which silently failed no-env engines.
+    env_arg=""
+    if [ "$cfg_env_json" != "{}" ] && [ -n "$cfg_env_json" ]; then
+      echo "{\"Variables\": $cfg_env_json}" > "$tmp/env.json"
+      env_arg="--environment file://$tmp/env.json"
+    fi
+    ephemeral_arg=""
+    if [ -n "$fn_ephemeral" ]; then
+      ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
+    fi
+    aws lambda create-function \
+      --function-name "$fn" \
+      --runtime "$fn_runtime" \
+      --role "arn:aws:iam::857687956942:role/lambda-execution-role" \
+      --handler "lambda_function.lambda_handler" \
+      --zip-file "fileb://$tmp/deploy.zip" \
+      --timeout "$fn_timeout" \
+      --memory-size "$fn_memory" \
+      --description "$fn_desc" \
+      --region "$DEPLOY_AWS_REGION" \
+      $env_arg \
+      $ephemeral_arg \
+      --tracing-config Mode=Active \
+      --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
+      --output text > /dev/null
+
+    aws lambda wait function-active-v2 \
+      --function-name "$fn" \
+      --region "$DEPLOY_AWS_REGION"
+    # Verify creation actually took — surface loudly instead of false success.
+    if ! aws lambda get-function --function-name "$fn" --region "$DEPLOY_AWS_REGION" >/dev/null 2>&1; then
+      echo "::error::create-function for $fn reported done but the function is still missing"
+      exit 1
+    fi
+    echo "✅ Created new Lambda $fn (with X-Ray + DLQ from creation)"
+  fi
+
+  # ── Defense-in-depth: ensure X-Ray + DLQ on existing Lambdas too ──
+  # No-ops on Lambdas that already have these; covers any drift.
+  aws lambda update-function-configuration \
+    --function-name "$fn" \
+    --tracing-config Mode=Active \
+    --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
+    --region "$DEPLOY_AWS_REGION" \
+    --output text > /dev/null 2>&1 || true
+  aws lambda wait function-updated \
+    --function-name "$fn" \
+    --region "$DEPLOY_AWS_REGION" 2>/dev/null || true
+
+  # Every opted-in engine uses exactly one pinned, validated promotion.
+  if [ "$candidate_managed" -eq 1 ]; then
+    bash scripts/deploy_validated_candidate.sh "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$dir/config.json" "$candidate_schema"
+  fi
+
+  # Khalid is promoted atomically: validate $LATEST first, then move
+  # the stable live alias. Its schedule below targets only that alias,
+  # so a failed candidate cannot replace the last known-good version.
+  if [ "$fn" = "justhodl-khalid" ]; then
+    if ! bash scripts/deploy_khalid_candidate.sh \
+      "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$dir"; then
+      echo "::error::Khalid validation or promotion failed"
+      exit 1
+    fi
+  fi
+
+  # ── EventBridge schedule (if config.json has .schedule) ──
+  if [ -f "$dir/config.json" ] && jq -e '.schedule' "$dir/config.json" >/dev/null 2>&1; then
+    rule_name=$(jq -r '.schedule.rule_name' "$dir/config.json")
+    cron_expr=$(jq -r '.schedule.cron' "$dir/config.json")
+    rule_desc=$(jq -r '.schedule.description // "Scheduled run"' "$dir/config.json")
+    region="$DEPLOY_AWS_REGION"
+    acc="857687956942"
+
+    echo "Setting up EventBridge rule $rule_name → $cron_expr"
+    # PutRule and PutTargets replace omitted options. Preserve existing
+    # disabled state, event pattern, role, target input, retry and DLQ.
+    if ! aws events describe-rule --name "$rule_name" --region "$region" --output json > "$tmp/classic-rule.json" 2> "$tmp/classic-rule.error"; then
+      if grep -q ResourceNotFoundException "$tmp/classic-rule.error"; then
+        printf '{}\n' > "$tmp/classic-rule.json"
+      else
+        echo "::error::Could not read classic rule; response withheld"
+        exit 1
+      fi
+    fi
+    jq --arg name "$rule_name" --arg cron "$cron_expr" --arg desc "$rule_desc" '
+      {Name:$name,ScheduleExpression:$cron,State:(.State // "ENABLED"),Description:$desc}
+      + (if .EventPattern then {EventPattern:.EventPattern} else {} end)
+      + (if .RoleArn then {RoleArn:.RoleArn} else {} end)
+    ' "$tmp/classic-rule.json" > "$tmp/classic-rule-update.json"
+    aws events put-rule --cli-input-json "file://$tmp/classic-rule-update.json" \
+      --region "$region" --output text > /dev/null
+
+    target_fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
+    qualifier_arg=""
+    if jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+      target_fn_arn="${target_fn_arn}:live"
+      qualifier_arg="--qualifier live"
+    fi
+    # Grant invoke permission to the same qualified target.
+    aws lambda add-permission \
+      --function-name "$fn" \
+      $qualifier_arg \
+      --statement-id "EventBridge-${rule_name}" \
+      --action "lambda:InvokeFunction" \
+      --principal "events.amazonaws.com" \
+      --source-arn "arn:aws:events:${region}:${acc}:rule/${rule_name}" \
+      --region "$region" 2>/dev/null || echo "  permission already exists"
+
+    # Preserve every matching target and leave unrelated targets alone.
+    aws events list-targets-by-rule --rule "$rule_name" --region "$region" --output json > "$tmp/classic-targets.json"
+    jq --arg arn "$target_fn_arn" --arg base "arn:aws:lambda:${region}:${acc}:function:${fn}" --arg id "audit-${fn}" '
+      [.Targets[] | select(.Arn == $base or .Arn == ($base + ":$LATEST") or .Arn == ($base + ":live")) | .Arn=$arn] as $matched
+      | if ($matched|length)>0 then $matched
+        elif any(.Targets[]; .Id == $id) then error("Configured target ID belongs to another function")
+        else [{Id:$id,Arn:$arn}] end
+    ' "$tmp/classic-targets.json" > "$tmp/classic-target-update.json"
+    aws events put-targets --rule "$rule_name" --targets "file://$tmp/classic-target-update.json" \
+      --region "$region" --output json > "$tmp/classic-target-result.json"
+    jq -e '.FailedEntryCount == 0' "$tmp/classic-target-result.json" >/dev/null
+    echo "  ✅ Schedule attached"
+  fi
+
+  # ── EventBridge Scheduler (if config.json has .eventbridge_scheduler) ──
+  # Go-forward scheduling path. The classic 300-rule EventBridge cap
+  # is saturated, so new engines schedule via EventBridge Scheduler
+  # (1M-schedule quota). Purely additive — Lambdas using the classic
+  # .schedule block above are unaffected. See ops 821.
+  # Candidate helper already applied the complete preserved Scheduler payload.
+  if [ "$candidate_managed" -eq 0 ] && [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
+    sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$dir/config.json")
+    sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$dir/config.json")
+    sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$dir/config.json")
+    sched_role=$(jq -r '.eventbridge_scheduler.role_arn' "$dir/config.json")
+    sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$dir/config.json")
+    region="$DEPLOY_AWS_REGION"
+    acc="857687956942"
+    fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
+    if [ "$fn" = "justhodl-khalid" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
+      fn_arn="${fn_arn}:live"
+    elif jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+      fn_arn="${fn_arn}:live"
+    fi
+    target_json=$(jq -n --arg arn "$fn_arn" --arg role "$sched_role" \
+      '{Arn:$arn,RoleArn:$role,Input:"{}",RetryPolicy:{MaximumRetryAttempts:2,MaximumEventAgeInSeconds:3600}}')
+    echo "Setting up EventBridge Scheduler schedule $sched_name → $sched_cron ($sched_tz)"
+    if aws scheduler get-schedule --name "$sched_name" --region "$region" >/dev/null 2>&1; then
+      aws scheduler update-schedule \
+        --name "$sched_name" \
+        --schedule-expression "$sched_cron" \
+        --schedule-expression-timezone "$sched_tz" \
+        --flexible-time-window '{"Mode":"OFF"}' \
+        --state ENABLED \
+        --description "$sched_desc" \
+        --target "$target_json" \
+        --region "$region" --output text > /dev/null
+      echo "  ✅ Scheduler schedule updated"
+    else
+      aws scheduler create-schedule \
+        --name "$sched_name" \
+        --schedule-expression "$sched_cron" \
+        --schedule-expression-timezone "$sched_tz" \
+        --flexible-time-window '{"Mode":"OFF"}' \
+        --state ENABLED \
+        --description "$sched_desc" \
+        --target "$target_json" \
+        --region "$region" --output text > /dev/null
+      echo "  ✅ Scheduler schedule created"
+    fi
+  fi
+
+  # ── Function URL (if config.json has .function_url.enabled=true) ──
+  if [ -f "$dir/config.json" ] && jq -e '.function_url.enabled' "$dir/config.json" >/dev/null 2>&1; then
+    region="$DEPLOY_AWS_REGION"
+    cors_origins=$(jq -r '.function_url.cors_origins // ["*"] | join(",")' "$dir/config.json")
+    echo "Setting up Function URL for $fn (CORS: $cors_origins)"
+
+    # Check if URL exists, create or use existing
+    existing_url=$(aws lambda get-function-url-config \
+      --function-name "$fn" \
+      --region "$region" \
+      --query 'FunctionUrl' --output text 2>/dev/null || echo "")
+    if [ -z "$existing_url" ] || [ "$existing_url" = "None" ]; then
+      # Build CORS JSON file (CLI shorthand for list values is brittle)
+      jq -n --argjson origins "$(jq '.function_url.cors_origins // ["*"]' "$dir/config.json")" '{AllowOrigins: $origins, AllowMethods: ["GET","OPTIONS"], AllowHeaders: ["content-type"], MaxAge: 86400}' > /tmp/cors.json
+      fn_url=$(aws lambda create-function-url-config \
+        --function-name "$fn" \
+        --auth-type NONE \
+        --cors file:///tmp/cors.json \
+        --region "$region" \
+        --query 'FunctionUrl' --output text)
+      echo "  ✅ Created Function URL: $fn_url"
+    else
+      fn_url="$existing_url"
+      echo "  ℹ️  Existing Function URL: $fn_url"
+    fi
+
+    # Allow public invoke (idempotent)
+    aws lambda add-permission \
+      --function-name "$fn" \
+      --statement-id "FunctionURLAllowPublicAccess" \
+      --action "lambda:InvokeFunctionUrl" \
+      --principal "*" \
+      --function-url-auth-type NONE \
+      --region "$region" 2>/dev/null || echo "  permission already exists"
+
+    # Write the URL into the summary (the visible deploy log)
+    echo "FUNCTION_URL_${fn}=$fn_url" >> $GITHUB_OUTPUT
+    echo "  - **$fn URL**: \`$fn_url\`" >> $GITHUB_STEP_SUMMARY
+
+    # Also write to a tracked file so we can read it from anywhere
+    echo "$fn_url" > "$dir/.function-url"
+    git add "$dir/.function-url" 2>/dev/null || true
+    echo "FN_URL_PATCHED_FILE=$dir/.function-url" >> $GITHUB_ENV
+
+    # If config says to patch a file with this URL, do it
+    patch_target=$(jq -r '.function_url.patch_file // empty' "$dir/config.json")
+    if [ -n "$patch_target" ] && [ -f "$patch_target" ]; then
+      placeholder=$(jq -r '.function_url.placeholder // "__FUNCTION_URL_PLACEHOLDER__"' "$dir/config.json")
+      if grep -q "$placeholder" "$patch_target"; then
+        sed -i "s|$placeholder|$fn_url|g" "$patch_target"
+        echo "  ✅ Patched $patch_target with Function URL"
+        # Stage the change so the post-step commits it back
+        echo "FN_URL_PATCHED_FILE=$patch_target" >> $GITHUB_ENV
+      fi
+    fi
+  fi
+
+  echo "✅ $fn deployed"
+  rm -rf "$tmp"
+  )
+  deploy_status=$?
+  set -e
+  if [ "$deploy_status" -ne 0 ]; then
+    echo "::error::Deploy failed for $fn"
+    failed_lambdas+=("$fn")
+  fi
+done
+
+if [ "${#failed_lambdas[@]}" -gt 0 ]; then
+  echo "::error::Lambdas that failed to deploy: ${failed_lambdas[*]}"
+  exit 1
+fi
+

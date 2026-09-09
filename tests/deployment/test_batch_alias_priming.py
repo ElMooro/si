@@ -40,4 +40,5 @@ def test_batch_priming_runs_after_tests_before_any_code_updates():
     workflow = (ROOT / '.github/workflows/deploy-lambdas.yml').read_text()
     assert workflow.index('- name: Run deployment preflight tests') < workflow.index('- name: Prime selected governed aliases')
     assert workflow.index('python3 scripts/prime_governed_aliases.py') < workflow.index('- name: Deploy each changed Lambda')
-    assert workflow.index('- name: Deploy each changed Lambda') < workflow.index('aws lambda update-function-code')
+    assert workflow.index('- name: Deploy each changed Lambda') < workflow.index('run: bash scripts/deploy_lambdas.sh')
+    assert 'aws lambda update-function-code' in (ROOT / 'scripts/deploy_lambdas.sh').read_text()
