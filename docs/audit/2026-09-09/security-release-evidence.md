@@ -1,6 +1,6 @@
 # Security release handoff — 9 September 2026
 
-Status: implemented and tested in source; production confidentiality closure is pending deployment and the recorded containment checks. The release owner reported that the first core Worker/Pages release is live, while the corresponding Lambda source release had stopped at deployment-primer revision guards. This document does not treat those earlier Lambda changes as deployed. Ops5230 must validate the complete matching 37-function source set before migration, including the earlier core producers.
+Status: implemented and tested in source. Production progress and live receipts are maintained by the release owner; this subteam does not independently attest deployment or confidentiality closure. Ops5230 must validate the complete matching 41-function source set before migration, including all earlier core producers.
 
 No private customer bodies, billing mutations, producer invocations, messages, credentials or deployment operations were used by this security implementation team. Test data are synthetic. The release owner runs the joint release gate and live verification separately.
 
@@ -8,7 +8,7 @@ No private customer bodies, billing mutations, producer invocations, messages, c
 
 | Audit finding | Source result and meaningful verification |
 |---|---|
-| INST-01 personal data | Private corpus, owner account outputs, historical archives and alternate aliases intercept before cache. Owner/service authorization gates 25 exact mirror kinds; only services publish. Raw archives remain IAM-only. Full private originals are preserved. Signed-out, unrelated-account, stale-cache, Range, version and encoded-path fixtures cannot disclose private bodies. |
+| INST-01 personal data | Private corpus, owner account outputs, historical archives and alternate aliases intercept before cache. Owner/service authorization gates 26 exact mirror kinds; only services publish. Raw archives remain IAM-only. Full private originals are preserved. Signed-out, unrelated-account, stale-cache, Range, version and encoded-path fixtures cannot disclose private bodies. |
 | INST-01 locked journal | The existing SQLite Durable Object stores versioned, chunked journals and immutable revision records. Legacy source is retained. Locked entries cannot be edited/deleted; corrections append. Concurrent submissions conflict explicitly; restart and multi-megabyte migration fixtures preserve history. |
 | INST-02 identity isolation | Verified user namespaces and anonymous namespaces remain separate. Existing regression tests still pass. |
 | INST-04 checkout | Verified buyer, server price mapping, pinned return origin and independently proven Stripe customer ownership. Browser profile or request metadata cannot select another customer or grant a plan. |
@@ -17,18 +17,24 @@ No private customer bodies, billing mutations, producer invocations, messages, c
 | Personal watchlist/trades | Read/write Function URLs verify identity before inputs or scheduled flags are processed. Owner pages use fixed authenticated Worker routes, server-held service credentials and no browser admin-token forms. Watchlist S3 revisions use conditional writes and explicit conflicts. Personal trades are distinct from the public simulated trade-evaluator ledger. |
 | Request-specific calculators | Wealth/tax HTTP calculations remain usable anonymously, return private/no-store responses and cannot persist caller financial scenarios. Browser requests use JSON POST bodies instead of URL parameters. Only explicitly marked, input-free default model runs may publish public snapshots. Old current snapshots are withheld until regenerated; old versions remain IAM-only. |
 
+The configured portfolio-manager context is now an authenticated owner artifact. Its actual router handler reads canonical portfolio risk, portfolio snapshot and PM history, publishes the private mirror before its IAM original, rejects anonymous HTTP envelopes before reads, and never replaces the dedicated schema with a public deterministic fallback. Inspection of all 55 checked-in router contexts found only this context consumes account bodies; its downstream uptime reader projects timestamps only. Raw legacy holdings/history and discovered notification-recipient metadata are retained behind exact source/version/archive denies.
+
+Three health reports now expose fixed diagnostic categories and typed metrics only: `_health/fleet.json`, `data/_fleet-monitor.json`, and `data/_freshness-monitor.json`. Existing CloudWatch/provider/SDK error strings are removed by deterministic legacy projections. Freshness reports require an explicit public-health schema marker and exclude private source keys; unmarked legacy reports become an unavailable placeholder. Migration never invokes normal notification handlers.
+
+Ops5238 is a permission-only early containment operation. Its policy verification accepts documented IAM array ordering and scalar/list normalization while preserving exact permissions, conditions, principals, unrelated statements and unknown fields. Receipts distinguish write attempted, write acknowledged, and observed temporary-deny presence (`true`, `false`, or unknown). A failed readback is never evidence that the write did not happen. Safe policy diagnostics contain only hashes, counts and structural differences; object checks use HEAD without bodies. The full migration alone may remove temporary current-object containment after its complete checks.
+
 INST-03's original Enterprise/unmetered bypass was already corrected in the previous source review. Its degraded quota fallback remains per process, not a global cross-container quota guarantee. Provider-literal cleanup and actual provider revocation are tracked by the release owner; source removal alone is not evidence of revocation.
 
-## Frozen source map and migration
+## Reviewed source map and migration
 
-`aws/shared/private_artifact.py` is the canonical map: 25 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 15 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
+`aws/shared/private_artifact.py` is the canonical map: 26 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 18 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
 
-The 37 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
+The 41 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
 
 | Boundary | Engines, all with the `justhodl-` prefix |
 |---|---|
-| Private producers and service readers (19 service-token targets) | brain-sync, journal-grader, my-brief, devils-advocate, notes-intel, playbook-engine, ask, portfolio-snapshot, portfolio-risk, portfolio-sizer, portfolio-catalysts, risk-sizer, pm-decision, behavior-mirror, ai-brief, history-api, watchlist, vol-regime, trade-journal |
-| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog |
+| Private producers and service readers (20 service-token targets) | brain-sync, journal-grader, my-brief, devils-advocate, notes-intel, playbook-engine, ask, portfolio-snapshot, portfolio-risk, portfolio-sizer, portfolio-catalysts, risk-sizer, pm-decision, behavior-mirror, ai-brief, history-api, watchlist, vol-regime, trade-journal, ai-brief-router |
+| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog, fleet-monitor, fleet-error-monitor, fleet-freshness-monitor |
 | Downstream public readers/caches | ask-desk, symdir, ai-chat, page-ai-commentary |
 | Stateless personal scenario calculators | wealth-plan, tax-plan |
 

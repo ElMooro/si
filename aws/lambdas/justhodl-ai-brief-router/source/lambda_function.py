@@ -28,7 +28,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 
 from jhcore import s3io, kb
-from private_artifact import is_private_source
+from private_artifact import is_private_source, private_http_denied, publish_private
 
 REGISTRY_KEY = "config/ai-brief-contexts.json"
 EPISODE_REF_KEY = "data/episode-reference.json"
@@ -38,6 +38,7 @@ FRONTRUN_OUTPUT_KEY = "data/frontrun-sniffer.json"
 FRONTRUN_HISTORY_KEY = "data/frontrun-sniffer-history.json"
 MACRO_FRONTRUN_OUTPUT_KEY = "data/macro-frontrun-sniffer.json"
 MACRO_FRONTRUN_HISTORY_KEY = "data/macro-frontrun-sniffer-history.json"
+PRIVATE_PORTFOLIO_OUTPUT_KEY = "data/portfolio-manager-brief.json"
 SNIFFER_CONTEXTS = {
     "frontrun-sniffer": ("frontrun", "flow_sources"),
     "macro-frontrun-sniffer": ("macro_frontrun", "pillar_feeds"),
@@ -58,6 +59,25 @@ def valid_sniffer_config(ctx_id, cfg):
 
 def sniffer_config_error(ctx_id):
     return {"context_id": ctx_id, "status": "ERR_CONFIG", "err": "sniffer_public_context_contract_mismatch"}
+
+
+def valid_private_portfolio_config(ctx_id, cfg):
+    return (ctx_id == "portfolio-manager-brief" and cfg.get("brief_type") == "portfolio"
+            and cfg.get("output_key") == "portfolio-manager-brief"
+            and cfg.get("primary_feed") == "portfolio/risk.json"
+            and isinstance(cfg.get("cross_feeds", {}), dict)
+            and all(not is_private_source(key) for key in cfg.get("cross_feeds", {}).values()))
+
+
+def private_context_input(cfg):
+    # These fields feed bodies into public model prompts. monitored_briefs is a
+    # separate timestamp-only health projection and never enters a model prompt.
+    sources = [cfg["primary_feed"]] if cfg.get("primary_feed") else []
+    for field in ("cross_feeds", "flow_sources", "pillar_feeds", "secondary_feeds"):
+        value = cfg.get(field) or {}
+        if isinstance(value, dict):
+            sources.extend(value.values())
+    return any(is_private_source(key) for key in sources)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -844,14 +864,20 @@ Return EXACTLY this JSON shape — a personalized portfolio memo:
 
 
 def generate_portfolio_brief(ctx_id, cfg, episode_ref):
+    if not valid_private_portfolio_config(ctx_id, cfg):
+        return {"context_id": ctx_id, "status": "ERR_CONFIG", "err": "private_portfolio_contract_mismatch"}
     t0 = time.time()
     result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key"),
               "brief_type": "portfolio"}
     try:
-        risk_data = s3io.get_json(cfg["primary_feed"], default={})
-        secondary = cfg.get("secondary_feeds") or {}
-        holdings_data = s3io.get_json(secondary.get("holdings", ""), default={}) if secondary.get("holdings") else {}
-        history_data = s3io.get_json(secondary.get("pm_history", ""), default={}) if secondary.get("pm_history") else {}
+        risk_data = s3io.get_json("portfolio/risk.json", default={})
+        # Source-proven canonical owner engines replace unproduced legacy aliases
+        # in the mutable registry. Full account inputs stay in IAM/service paths.
+        holdings_data = s3io.get_json("portfolio/snapshot.json", default={})
+        history_data = s3io.get_json("data/pm-decision-history.json", default={})
+        if not risk_data or not holdings_data:
+            result.update({"status": "ERR_ACCOUNT_INPUTS", "err": "canonical_account_inputs_unavailable"})
+            return result
 
         cross_data = {}
         consensus = None
@@ -895,8 +921,9 @@ def generate_portfolio_brief(ctx_id, cfg, episode_ref):
             "n_cross": len(cross_data),
             "prompt_len_chars": prompt_len,
         }
-        output_key = f"data/{cfg['output_key']}.json"
-        s3io.put_json(output_key, brief, cache_control="private, max-age=300")
+        output_key = PRIVATE_PORTFOLIO_OUTPUT_KEY
+        publish_private("portfolio-manager-brief", brief)
+        s3io.put_json(output_key, brief, cache_control="private, no-store, max-age=0")
 
         result.update({
             "status": "OK",
@@ -3693,6 +3720,12 @@ DET_FALLBACK_V2 = True  # ops 3435 gate marker
 
 
 def generate_one_brief(ctx_id, cfg, episode_ref):
+    is_portfolio = (ctx_id == "portfolio-manager-brief" or cfg.get("brief_type") == "portfolio"
+                    or cfg.get("output_key") == "portfolio-manager-brief")
+    if is_portfolio and not valid_private_portfolio_config(ctx_id, cfg):
+        return {"context_id": ctx_id, "status": "ERR_CONFIG", "err": "private_portfolio_contract_mismatch"}
+    if not is_portfolio and (private_context_input(cfg) or is_private_source("data/" + str(cfg.get("output_key") or ctx_id) + ".json")):
+        return {"context_id": ctx_id, "status": "ERR_CONFIG", "err": "private_feed_forbidden_in_public_context"}
     reserved_outputs = set(SNIFFER_CONTEXTS) | {key + "-history" for key in SNIFFER_CONTEXTS}
     is_sniffer = (ctx_id in SNIFFER_CONTEXTS or cfg.get("brief_type") in ("frontrun", "macro_frontrun")
                   or cfg.get("output_key") in reserved_outputs)
@@ -3702,7 +3735,7 @@ def generate_one_brief(ctx_id, cfg, episode_ref):
     # Generic deterministic briefs have a different schema. Preserve the last
     # valid dedicated brief on failure instead of replacing it with fake normal
     # front-runner readings or using arbitrary fallback input/output aliases.
-    if is_sniffer:
+    if is_sniffer or is_portfolio:
         return r
     try:
         if isinstance(r, dict) and str(r.get("status", "")).startswith("ERR"):
@@ -3814,6 +3847,9 @@ def _generate_regime_brief(ctx_id, cfg, episode_ref):
 # Lambda handler — runs all contexts in the registry in parallel
 # ─────────────────────────────────────────────────────────────────────
 def lambda_handler(event=None, context=None):
+    denied = private_http_denied(event)
+    if denied:
+        return denied
     t0 = time.time()
     event = event or {}
 

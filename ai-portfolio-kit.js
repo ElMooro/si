@@ -15,19 +15,10 @@
 (function () {
   if (window.JHAIPortfolio) return;
 
-  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
-  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-  function jhFetch(slug, suffix) {
-    var ts = Date.now();
-    var p = S3_BASE + "/" + slug + ".json" + (suffix || "") + (suffix && suffix.indexOf("?") >= 0 ? "&" : "?") + "t=" + ts;
-    var f = PROXY   + "/" + slug + ".json" + (suffix || "") + (suffix && suffix.indexOf("?") >= 0 ? "&" : "?") + "t=" + ts;
-    return fetch(p).then(function (r) {
-      if (r.ok) return r;
-      return fetch(f).then(function (r2) {
-        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
-        return r2;
-      });
-    });
+  function jhFetch(slug) {
+    if (slug !== "portfolio-manager-brief") return Promise.reject(new Error("Unsupported private portfolio context"));
+    if (!window.JustHodlPrivateArtifacts) return Promise.reject(new Error("Private account authentication is unavailable"));
+    return window.JustHodlPrivateArtifacts.fetch("https://api.justhodl.ai/data/portfolio-manager-brief.json", {cache:"no-store"});
   }
 
   var DEFAULT_KEY = "portfolio-manager-brief";
@@ -62,18 +53,18 @@
     el.classList.add("jhpf-wrap");
     el.innerHTML = '<div class="jhpf-loading">⚡ generating personalized portfolio brief…</div>';
 
-    var url = PROXY + "/" + (contextSlug || DEFAULT_KEY) + ".json?t=" + Date.now();
-    return fetch(url).then(function (r) {
+    return jhFetch(contextSlug || DEFAULT_KEY).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     }).then(function (b) {
-      var fit = (b.regime_fit || "NEUTRAL").toUpperCase();
+      if (!b || b.context !== DEFAULT_KEY || b.brief_type !== "portfolio") throw new Error("Dedicated private portfolio brief unavailable");
+      var fit = String(b.regime_fit || "UNKNOWN").toUpperCase();
       var html = '';
 
-      html += '<div class="jhpf-headline ' + fit + '">' +
+      html += '<div class="jhpf-headline ' + esc(fit) + '">' +
                 '<div class="jhpf-meta">' +
                   '<span class="jhpf-badge">📓 Personalized PM Brief</span>' +
-                  '<span class="jhpf-fit ' + fit + '">' + esc(fit.replace(/_/g, " ")) + '</span>' +
+                  '<span class="jhpf-fit ' + esc(fit) + '">' + esc(fit.replace(/_/g, " ")) + '</span>' +
                   '<span class="jhpf-age">' + esc(ageStr(b.generated_at)) + '</span>' +
                 '</div>' +
                 (b.headline ? '<div class="jhpf-h">' + esc(b.headline) + '</div>' : '') +

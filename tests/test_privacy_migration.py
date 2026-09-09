@@ -124,9 +124,13 @@ class FakeLambda:
 class PublicMigrationTests(unittest.TestCase):
     def fixtures(self):
         return {
+            "data/_fleet-monitor.json": {"version": "1.0.0", "n_lambdas_scanned": 10, "n_alerts_raised": 1,
+                                          "dlq_status": {"error": MARKER}, "alerts": [{"lambda": "fixture", "severity": "WARNING",
+                                          "invocations": 10, "errors": 2, "error_rate_pct": 20, "last_error_log": MARKER}]},
             "_health/fleet.json": {"engine": "fleet-monitor", "schema_version": "1.0", "summary": {"lambda_count": 12},
                                    "data_outputs": {"available": True, "degraded": [{"output": "fixture", "age_hours": 1, "issue": MARKER}]},
                                    "compute": {"available": False, "error": MARKER}, "dependencies": [{"name": "FRED", "status": "yellow", "detail": MARKER}]},
+            "data/_freshness-monitor.json": {"version": "2.1.0", "status": "UNKNOWN", "reason": MARKER, "results": [{"key": "portfolio/snapshot.json", "reason": MARKER}]},
             "data/brain-compiler.json": {"claims": [{"claim": MARKER, "note_id": "n1", "concepts": ["Rates"], "score": 3}],
                                          "build_queue": [{"concept": "Rates", "sample_claims": [MARKER], "n_claims": 1}]},
             "data/tv-workbench.json": {"symbols": {"NVDA": {"value": 120, "notes": [{"text": MARKER, "note_id": "n1", "ts": 123}]}}},
@@ -399,14 +403,14 @@ class PublicMigrationTests(unittest.TestCase):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 
     def test_private_seed_kinds_exclude_raw_tradingview_corpus(self):
-        self.assertEqual(len(migration.MIRRORED_KEYS), 25)
+        self.assertEqual(len(migration.MIRRORED_KEYS), 26)
         self.assertNotIn("data/tradingview-notes.json", migration.MIRRORED_KEYS)
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/snapshot.json"], "portfolio-snapshot")
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
-        self.assertEqual(len(migration.PUBLISHERS), 19)
-        self.assertEqual(len(migration.READINESS), 38)
+        self.assertEqual(len(migration.PUBLISHERS), 20)
+        self.assertEqual(len(migration.READINESS), 41)
         self.assertTrue({"wealth-plan", "tax-plan"} <= set(migration.READINESS))
         self.assertFalse({"wealth-plan", "tax-plan"} & set(migration.PUBLISHERS))
 

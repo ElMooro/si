@@ -325,12 +325,13 @@ const PRIVATE_ARTIFACTS = {
   'portfolio/risk-alert-history.json':'portfolio-risk-history',
   'portfolio/sizing-alert-history.json':'portfolio-sizing-history',
   'history/behavior-mirror-history.json':'behavior-mirror-history',
+  'portfolio-manager-brief.json':'portfolio-manager-brief',
 };
 const SANITIZED_ARTIFACTS = new Set([
   'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
   'domain-barometers.json', 'best-setups.json', 'master-allocation.json',
   'position-sizing.json', 'engine-conflicts.json', 'search/providers/tradingview_vault_live.json.gz', 'sizing.json', 'ai-commentary/portfolio.json', 'vol-regime.json',
-  'wealth-plan-snapshot.json', 'tax-plan-snapshot.json',
+  'wealth-plan-snapshot.json', 'tax-plan-snapshot.json', '_health/fleet.json', '_fleet-monitor.json', '_freshness-monitor.json',
 ]);
 function sanitizedArtifact(path) {
   const normalized = path.replace(/^data\//, '');
@@ -343,7 +344,7 @@ function privateArtifact(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   return Object.hasOwn(PRIVATE_ARTIFACTS, normalized) ? PRIVATE_ARTIFACTS[normalized] : null;
 }
-const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md', '_telegram-chat.json']);
+const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md', '_telegram-chat.json', 'portfolio/holdings.json', 'portfolio/pm-history.json', 'history/_fleet-monitor-history.jsonl']);
 function privateArchive(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   if (PRIVATE_RAW_ARTIFACTS.has(normalized) || ['_askdesk/', 'search/index/',

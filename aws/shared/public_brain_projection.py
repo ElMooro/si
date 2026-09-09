@@ -148,14 +148,172 @@ def fleet_public(document):
     return out
 
 
+PUBLIC_FRESHNESS_REPORT = {"schema_version": "public-freshness-report.v1",
+                           "scope": "PUBLIC_ENGINE_HEALTH", "contains_private_data": False}
+FRESHNESS_REASONS = {
+    "ZERO_BYTE_OBJECT": "Zero-byte object.", "INVALID_JSON": "Content is not valid JSON.",
+    "EMPTY_JSON": "Empty JSON document.", "REQUIRED_FIELD_MISSING": "Required schema field missing.",
+    "SCHEMA_VERSION_MISMATCH": "Schema version mismatch.", "SOURCE_TIME_FUTURE": "Source timestamp is in the future.",
+    "SOURCE_TIME_STALE": "Source timestamp exceeds the freshness threshold.", "CONTENT_READ_FAILED": "Content inspection unavailable.",
+    "INVALID_FRESHNESS_SLA": "Freshness threshold is invalid.", "FRESHNESS_MANIFEST_UNREADABLE": "Freshness rules unavailable.",
+    "FRESHNESS_MANIFEST_MISSING": "Freshness rules missing.", "FRESHNESS_MANIFEST_INVALID": "Freshness rules are invalid or empty.",
+    "FEED_ENUMERATION_FAILED": "Feed enumeration unavailable.", "EXPECTED_MANIFEST_UNAVAILABLE": "Expected output contract unavailable.",
+    "EXPECTED_HEAD_BUDGET_EXHAUSTED": "Expected-output metadata budget exhausted.",
+    "EXPECTED_OUTPUT_MISSING": "Required declared output absent.", "EXPECTED_OUTPUT_UNREADABLE": "Expected-output metadata unavailable.",
+    "PRIVATE_SOURCE_EXCLUDED": "Private source excluded from public content inspection.",
+    "LEGACY_PUBLIC_REPORT_WITHHELD": "Public health report is awaiting safe regeneration.",
+    "NO_SOURCE_TIMESTAMP": "No valid source timestamp found.",
+}
+
+
+def freshness_public(document):
+    """Only fixed diagnostics and typed public-key health metadata may escape."""
+    from datetime import datetime, timezone
+    from private_artifact import is_private_source
+
+    def timestamp(value):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc).isoformat() if parsed.tzinfo else None
+        except Exception:
+            return None
+
+    def number_fields(row, fields):
+        return {k: row[k] for k in fields if k in row and (row[k] is None or
+                type(row[k]) in (int, float) and math.isfinite(row[k]))}
+
+    def public_path(value):
+        return (isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_./*=-]{1,1024}", value)
+                and not is_private_source(value))
+
+    def reason(row):
+        code = row.get("reason_code")
+        return {"reason_code": code, "reason": FRESHNESS_REASONS[code]} if code in FRESHNESS_REASONS else {}
+
+    def result(row):
+        if not isinstance(row, dict) or not public_path(row.get("key")):
+            return None
+        out = {"key": row["key"], "status": row.get("status") if row.get("status") in
+               {"FRESH", "STALE", "EMPTY", "INVALID", "SOURCE_STALE", "UNKNOWN", "MISSING"} else "UNKNOWN",
+               **number_fields(row, ("age_h", "artifact_age_h", "source_age_h", "max_age_h", "size", "n_top_level")), **reason(row)}
+        for k in ("last_modified", "source_generated_at", "last_seen"):
+            if k in row:
+                out[k] = timestamp(row[k])
+        for k in ("validated", "partial_validation"):
+            if k in row:
+                out[k] = row[k] is True
+        if row.get("source_ts_field") in {"generated_at", "as_of", "updated_at", "updated", "timestamp", "ts", "last_updated", "run_ts", "configured_timestamp_field"}:
+            out["source_ts_field"] = row["source_ts_field"]
+        engine = row.get("engine")
+        if isinstance(engine, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,128}", engine):
+            out["engine"] = engine
+        if row.get("partial_validation"):
+            out["note"] = "Large object: head-only timestamp check; complete JSON validity was not verified."
+        return out
+
+    def rules(rows):
+        return [{"prefix": row["prefix"], "recursive": row.get("recursive") is True,
+                 **number_fields(row, ("default_max_age_h", "n_objects")),
+                 **({"truncated": row["truncated"] is True} if "truncated" in row else {})}
+                for row in rows if isinstance(row, dict) and public_path(row.get("prefix"))]
+
+    marker = document.get("publication")
+    if not (isinstance(marker, dict) and marker == PUBLIC_FRESHNESS_REPORT and marker.get("contains_private_data") is False
+            and document.get("schema_version") == "fleet-freshness-monitor.v3"):
+        return freshness_public({"schema_version": "fleet-freshness-monitor.v3", "publication": dict(PUBLIC_FRESHNESS_REPORT),
+                "version": "3.0.0", "status": "UNKNOWN", "full_expected_coverage": False,
+                "results": [], "coverage": {"results_complete": False, "enumeration_complete": False},
+                "reason_code": "LEGACY_PUBLIC_REPORT_WITHHELD"})
+    out = {"schema_version": "fleet-freshness-monitor.v3", "publication": dict(PUBLIC_FRESHNESS_REPORT),
+           "version": "3.0.0", "generated_at": timestamp(document.get("generated_at")),
+           "status": document.get("status") if document.get("status") in {"UNKNOWN", "HEALTHY", "DEGRADED"} else "UNKNOWN",
+           **reason(document), **number_fields(document, ("n_keys_tracked", "n_stale", "n_fresh", "n_unknown", "n_invalid_or_empty", "n_source_stale", "n_missing", "n_alerts_raised", "n_alerts_suppressed", "elapsed_s"))}
+    for k in ("full_expected_coverage", "telegram_sent", "sns_sent", "notifications_suppressed"):
+        if k in document:
+            out[k] = document[k] is True
+    for group in ("results", "unknown", "missing", "invalid_or_empty", "source_stale", "stale", "stale_top_50", "source_stale_top_50", "declared_absent_never_seen"):
+        out[group] = [safe for row in document.get(group, []) if (safe := result(row)) is not None]
+    coverage = document.get("coverage") or {}
+    out["coverage"] = {**number_fields(coverage, ("keys_enumerated", "bodies_validated", "expected_keys_declared", "expected_keys_checked", "expected_keys_headed", "private_sources_excluded", "expected_private_sources_excluded", "missing", "declared_absent_never_seen", "results_returned")),
+                       "rules": rules(coverage.get("rules") or []),
+                       "truncated_rules": [p for p in coverage.get("truncated_rules", []) if public_path(p)],
+                       "unresolved_key_families": [p for p in coverage.get("unresolved_key_families", []) if public_path(p)]}
+    for k in ("head_budget_exhausted", "results_complete", "enumeration_complete"):
+        out["coverage"][k] = coverage.get(k) is True
+    out["manifest_rules"] = rules(document.get("manifest_rules") or [])
+    out["thresholds"] = number_fields(document.get("thresholds") or {}, ("default_max_age_h", "alert_ratio", "dedupe_hours"))
+    out["semantics"] = "Artifact age measures S3 LastModified; source age measures the parsed source timestamp. FRESH requires both within threshold. UNKNOWN is unresolved content or time provenance. Results include every evaluated public output; coverage separately records enumeration limits, unresolved families and private exclusions."
+    out["summary_limits"] = {"stale_top_50": 50, "source_stale_top_50": 50, "complete_results_field": "results"}
+    return out
+
+
+def fleet_error_category(text, *, throttles=0, errors=0):
+    """Fixed labels only; raw log/error text never crosses the public boundary."""
+    text = text if isinstance(text, str) else ""
+    for label, tokens in (("TIMEOUT", ("Task timed out", "TimeoutError")),
+                          ("THROTTLED", ("TooManyRequestsException", "Rate exceeded")),
+                          ("ACCESS_DENIED", ("AccessDenied", "UnauthorizedOperation")),
+                          ("IMPORT_ERROR", ("Runtime.ImportModuleError", "ModuleNotFoundError")),
+                          ("OUT_OF_MEMORY", ("OutOfMemory", "MemoryError"))):
+        if any(token in text for token in tokens):
+            return label
+    if isinstance(throttles, (int, float)) and throttles > 0:
+        return "THROTTLED"
+    return "RUNTIME_ERROR" if text or (isinstance(errors, (int, float)) and errors > 0) else "DETAIL_UNAVAILABLE"
+
+
+def fleet_errors_public(document):
+    def numeric(row, fields):
+        return {key: row[key] for key in fields if key in row and
+                (row[key] is None or (type(row[key]) in (int, float) and math.isfinite(row[key])))}
+    def dlq(value):
+        value = value if isinstance(value, dict) else {}
+        ready = not value.get("error") and all(type(value.get(key)) in (int, float) and math.isfinite(value[key]) and value[key] >= 0 for key in ("visible", "inflight", "total"))
+        return {"available": ready, **numeric(value, ("visible", "inflight", "total")),
+                **({"error": "DLQ_STATUS_UNAVAILABLE"} if not ready else {})}
+    allowed_categories = {"TIMEOUT", "THROTTLED", "ACCESS_DENIED", "IMPORT_ERROR", "OUT_OF_MEMORY", "RUNTIME_ERROR", "DETAIL_UNAVAILABLE", "METRIC_READ_UNAVAILABLE", "DLQ_BACKLOG"}
+    out = {"engine": "fleet-error-monitor", "version": document.get("version"),
+           "run_id": document.get("run_id"), "generated_at": document.get("generated_at"),
+           "privacy_version": "fleet-errors-metadata-20260909-v1",
+           "alerts_scope": "ALL_CURRENT_ALARMS" if type(document.get("n_alerts_detected")) in (int, float) else "LEGACY_NEW_ALERTS_ONLY",
+           **numeric(document, ("n_lambdas_scanned", "n_alerts_detected", "n_alerts_raised", "n_alerts_suppressed", "elapsed_s")),
+           "dlq_status": dlq(document.get("dlq_status")), "alerts": [],
+           "thresholds": numeric(document.get("thresholds") or {}, ("error_rate_pct", "min_invocations", "lookback_minutes", "dlq_depth", "dedupe_minutes")),
+           "telegram_sent": document.get("telegram_sent") is True, "sns_sent": document.get("sns_sent") is True,
+           "notification_mode": "suppressed_for_audit" if document.get("notification_mode") == "suppressed_for_audit" else "normal",
+           "diagnostic_text_private": True}
+    for row in _rows(document.get("alerts")):
+        if not isinstance(row, dict):
+            continue
+        name = row.get("lambda")
+        category = row.get("error_category")
+        if category not in allowed_categories:
+            category = fleet_error_category(row.get("last_error_log"), throttles=row.get("throttles"), errors=row.get("errors"))
+        safe = {"lambda": name if isinstance(name, str) and (name == "<DLQ>" or re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name)) else "unknown-function",
+                "severity": row.get("severity") if row.get("severity") in {"CRITICAL", "WARNING"} else "UNKNOWN",
+                "error_category": category, "diagnostic_text_private": True,
+                **numeric(row, ("invocations", "errors", "throttles", "error_rate_pct"))}
+        if "dlq_depth" in row:
+            safe["dlq_depth"] = dlq(row["dlq_depth"])
+            safe["error_category"] = "DLQ_BACKLOG"
+        if row.get("metric_status") == "UNAVAILABLE":
+            safe["metric_status"] = "UNAVAILABLE"
+        out["alerts"].append(safe)
+    return out
+
+
 def sanitize_public(key, document, *, vault=None):
     """Return a copy; canonical and historical root-alias keys share one contract."""
     if not isinstance(document, dict):
         raise ValueError("public artifact must be an object")
     out = deepcopy(document)
     name = key.removeprefix("data/")
-    if name == "_health/fleet.json":
+    if name == "_fleet-monitor.json":
+        out = fleet_errors_public(document)
+    elif name == "_health/fleet.json":
         out = fleet_public(document)
+    elif name == "_freshness-monitor.json":
+        out = freshness_public(document)
     elif name == "brain-compiler.json":
         for row in out.get("claims", []):
             row.pop("claim", None)

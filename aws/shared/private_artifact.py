@@ -26,6 +26,7 @@ MIRRORED_ARTIFACTS = {
     "portfolio/risk-alert-history.json": "portfolio-risk-history",
     "portfolio/sizing-alert-history.json": "portfolio-sizing-history",
     "data/history/behavior-mirror-history.json": "behavior-mirror-history",
+    "data/portfolio-manager-brief.json": "portfolio-manager-brief",
 }
 # Equivalent output aliases use the canonical mirror, never a second seed that
 # could replace a current mirror with an older copy after a partial S3 write.
@@ -40,6 +41,8 @@ PRIVATE_KEYS = frozenset(MIRRORED_ARTIFACTS) | {
     "data/tradingview-notes.json", "risk/recommendations.json", "data/ai-brief.md", "data/_telegram-chat.json",
     "data/history/behavior-mirror-history.json", "portfolio/sizing-alert-history.json",
     "portfolio/catalyst-alert-history.json", "portfolio/risk-alert-history.json",
+    "portfolio/holdings.json", "portfolio/pm-history.json",
+    "data/history/_fleet-monitor-history.jsonl",
 }
 PRIVATE_PREFIXES = ("data/_askdesk/", "data/search/index/", "equity-research-history/",
                     "backtest/ledger/", "data/ai-commentary/history/portfolio/") + tuple(
@@ -97,13 +100,13 @@ def private_http_denied(event):
     Function URLs wrap input in requestContext/headers; body contents never
     change that envelope. Check this before reading a private account source.
     """
-    if not isinstance(event, dict) or not (event.get("requestContext") or "headers" in event):
+    if not isinstance(event, dict) or not any(key in event for key in ("requestContext", "headers", "httpMethod")):
         return None
     raw_headers = event.get("headers") or {}
     headers = {str(k).lower(): str(v) for k, v in raw_headers.items()} if isinstance(raw_headers, dict) else {}
     provided = headers.get("x-jh-service-token", "")
     try:
-        expected = service_headers()["X-JH-Service-Token"]
+        expected = service_headers()["X-JH-Service-Token"] if provided else ""
     except Exception:
         expected = ""
     if provided and expected and hmac.compare_digest(provided, expected):

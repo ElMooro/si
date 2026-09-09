@@ -54,3 +54,22 @@ test('Macro history displays dedicated instrument fields and rejects private ali
   await view.window.JHAIFrontHist.mount('panel','brain-history');
   assert.equal(view.calls.length,1);assert.match(view.el.textContent,/Unsupported/);
 });
+
+test('Personalized portfolio renderer uses only owner helper and clears old data on denied refresh',async()=>{
+  const view=kit('ai-portfolio-kit.js',{}), privateCalls=[];
+  let allowed=true;
+  view.window.JustHodlPrivateArtifacts={fetch:async(url,options)=>{
+    privateCalls.push({url,options});
+    return {ok:allowed,status:allowed?200:401,json:async()=>({context:'portfolio-manager-brief',brief_type:'portfolio',headline:'PRIVATE_ACCOUNT_FIXTURE',regime_fit:'NEUTRAL'})};
+  }};
+  await view.window.JHAIPortfolio.mount('panel','portfolio-manager-brief');
+  assert.equal(privateCalls[0].url,'https://api.justhodl.ai/data/portfolio-manager-brief.json');
+  assert.equal(view.calls.length,0);assert.match(view.el.innerHTML,/PRIVATE_ACCOUNT_FIXTURE/);
+  allowed=false;
+  await assert.rejects(view.window.JHAIPortfolio.mount('panel','portfolio-manager-brief'),/401/);
+  assert.doesNotMatch(view.el.innerHTML,/PRIVATE_ACCOUNT_FIXTURE/);assert.equal(view.calls.length,0);
+  await assert.rejects(view.window.JHAIPortfolio.mount('panel','brain'),/Unsupported private portfolio context/);
+  assert.equal(privateCalls.length,2);
+  const html=fs.readFileSync(path.join(__dirname,'../portfolio-manager.html'),'utf8');
+  assert.ok(html.indexOf('/private-artifacts.js')<html.indexOf('/ai-portfolio-kit.js'));
+});

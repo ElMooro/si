@@ -17,6 +17,7 @@
     'portfolio/risk-alert-history.json': 'portfolio-risk-history',
     'portfolio/sizing-alert-history.json': 'portfolio-sizing-history',
     'history/behavior-mirror-history.json': 'behavior-mirror-history',
+    'portfolio-manager-brief.json': 'portfolio-manager-brief',
     'brain.json': 'brain', 'brain-history.json': 'brain-history', 'journal-graded.json': 'journal-graded',
     'my-brief.json': 'my-brief', 'devils-advocate.json': 'devils-advocate',
     'notes-index.json': 'notes-index', 'notes-themes.json': 'notes-themes', 'playbook-rules.json': 'playbook-rules',

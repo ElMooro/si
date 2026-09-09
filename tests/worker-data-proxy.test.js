@@ -426,7 +426,7 @@ test('legacy profile customer binding requires independent Stripe owner proof, i
 test('every private corpus and archive alias is blocked before stale cache, including encoded/range/version attempts',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0;globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})}}};
   const keys=['brain.json','brain-history.json','journal-graded.json','my-brief.json','devils-advocate.json','notes-index.json','notes-themes.json','playbook-rules.json','tradingview-notes.json','_telegram-chat.json','_askdesk/old.json','search/index/provider-search-old.sqlite.gz','equity-research-history/SPY/old.json',
-    'portfolio/snapshot.json','portfolio/risk.json','portfolio/sizing.json','portfolio/catalysts.json',
+    'portfolio/snapshot.json','portfolio/risk.json','portfolio/sizing.json','portfolio/catalysts.json','portfolio/holdings.json','portfolio/pm-history.json','portfolio-manager-brief.json','history/_fleet-monitor-history.jsonl',
     'risk-sizer.json','risk/recommendations.json','pm-decision.json','pm-decision-history.json','behavior-mirror.json','ai-brief.json','ai-brief.md',
     'history/behavior-mirror-history.json','portfolio/sizing-alert-history.json','portfolio/catalyst-alert-history.json','portfolio/risk-alert-history.json',
     'backtest/ledger/latest.json','backtest/ledger/versions/fixture.json','ai-commentary/history/portfolio/old.json',
@@ -441,7 +441,7 @@ test('all dedicated owner account engines publish and read through authenticated
   const {env}=fresh();const w=await worker();const keys={
     'portfolio/snapshot.json':'portfolio-snapshot','portfolio/risk.json':'portfolio-risk','portfolio/sizing.json':'portfolio-sizing','portfolio/catalysts.json':'portfolio-catalysts',
     'data/risk-sizer.json':'risk-sizer','risk/recommendations.json':'risk-sizer','data/pm-decision.json':'pm-decision','data/pm-decision-history.json':'pm-decision-history',
-    'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief',
+    'data/behavior-mirror.json':'behavior-mirror','data/ai-brief.json':'ai-brief','data/portfolio-manager-brief.json':'portfolio-manager-brief',
     'data/user-watchlist.json':'user-watchlist','data/vol-regime-private.json':'vol-regime-private','data/user-trades.json':'personal-trades','data/user-trades-stats.json':'personal-trades-stats',
     'portfolio/catalyst-alert-history.json':'portfolio-catalyst-history','portfolio/risk-alert-history.json':'portfolio-risk-history',
     'portfolio/sizing-alert-history.json':'portfolio-sizing-history','data/history/behavior-mirror-history.json':'behavior-mirror-history'};

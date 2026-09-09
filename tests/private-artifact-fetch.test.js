@@ -28,7 +28,7 @@ test('signed-out private requests never reach network and show sign-in action',a
   state.panels[0].children[1].onclick();assert.equal(state.signIn,true);
 });
 test('every owner feed uses its dedicated private kind with bearer and no-store',async()=>{
-  const {state,window}=setup();const paths={
+  const {state,window}=setup();const paths={'/data/portfolio-manager-brief.json':'portfolio-manager-brief',
     '/portfolio/snapshot.json':'portfolio-snapshot','/portfolio/risk.json':'portfolio-risk','/portfolio/sizing.json':'portfolio-sizing','/portfolio/catalysts.json':'portfolio-catalysts',
     '/data/risk-sizer.json':'risk-sizer','/risk/recommendations.json':'risk-sizer','/data/pm-decision.json':'pm-decision','/data/pm-decision-history.json':'pm-decision-history',
     '/data/behavior-mirror.json':'behavior-mirror','/data/ai-brief.json':'ai-brief',

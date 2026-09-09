@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-ai-brief-router">
+<script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Portfolio Manager · JustHodl.AI</title>
@@ -92,7 +94,7 @@ tr:hover td{background:var(--panel2)}
       // Mount once the gate opens. Re-mount on PIN connect.
       window.addEventListener("DOMContentLoaded", function(){
         if (window.JHAIPortfolio && document.getElementById("ai-portfolio")) {
-          JHAIPortfolio.mount("ai-portfolio","portfolio-manager-brief");
+          JHAIPortfolio.mount("ai-portfolio","portfolio-manager-brief").catch(function(){});
         }
       });
     </script>
