@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      AUDIT_RELEASE_SHA: b1ef1a937cc8e9170d67bd1d51539f1e63b237f5
+      AUDIT_RELEASE_SHA: 76ca831a0597d7f9638716c33b776edee64e6574
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,5 +50,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           test -f aws/ops/reports/5283_release_observation.json
-          git add aws/ops/reports/5283_release_observation.json
+          mkdir -p aws/ops/reports/observations
+          cp aws/ops/reports/5283_release_observation.json 'aws/ops/reports/observations/5283_${{ github.run_id }}.json'
+          git restore -- aws/ops/reports/5283_release_observation.json
+          git add 'aws/ops/reports/observations/5283_${{ github.run_id }}.json'
           python scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'

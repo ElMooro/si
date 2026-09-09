@@ -82,7 +82,7 @@ QUIET_STAGES = (
     ('portfolio-snapshot',),
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
-    ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
+    ('backtest-engine','research-backtest','options-flow','options-flow-scanner','bloomberg-v8','ecb-derived'),
     ('whats-changed','public-archive-index','fleet-freshness-monitor','fleet-error-monitor'),
 )
 # These two reviewed handler branches suppress all notification/history side effects.
@@ -611,7 +611,7 @@ def observe_schedules(clients, root, functions):
         specs.extend(('events',{'name':name}) for name in config.get('eventbridge_rules',[]) if isinstance(name,str))
         seen=set()
         for kind,spec in specs:
-            name=spec.get('schedule_name') or spec.get('name')
+            name=spec.get('schedule_name') or spec.get('rule_name') or spec.get('name')
             if not name or (kind,name) in seen:continue
             seen.add((kind,name));row={'function':function,'service':kind,'name':name,'status':'PENDING_CONFIGURATION'}
             try:
@@ -626,10 +626,11 @@ def observe_schedules(clients, root, functions):
                 governed=bool(config.get('release_validation')) or function in ('justhodl-engine-fusion','justhodl-khalid-risk')
                 qualified=all(target['Arn'].endswith(':live') for target in matching)  # The exact alias whose numbered package was verified above.
                 row.update(expression=current.get('ScheduleExpression'),expected_expression=expected,state=current.get('State'),
+                           timezone=current.get('ScheduleExpressionTimezone','UTC') if kind=='scheduler' else 'UTC',expected_timezone=spec.get('timezone'),
                            target_count=len(targets),matching_target_arns=[target['Arn'] for target in matching],
                            governed_target_qualified=qualified if governed else None,
                            input_configured='input' in spec,input_preserved_or_matches=all(input_matches(target.get('Input'),spec['input']) for target in matching) if 'input' in spec else None)
-                if matching and current.get('State')=='ENABLED' and (not expected or expected==current.get('ScheduleExpression')) and (not governed or qualified) and row['input_preserved_or_matches'] is not False:row['status']='VERIFIED'
+                if matching and current.get('State')=='ENABLED' and (not expected or expected==current.get('ScheduleExpression')) and (not spec.get('timezone') or row['timezone']==spec['timezone']) and (not governed or qualified) and row['input_preserved_or_matches'] is not False:row['status']='VERIFIED'
             except Exception as exc:row['error_type']=type(exc).__name__
             result.append(row)
     return result

@@ -596,10 +596,11 @@ def test_owned_metric_and_public_metadata_contracts_reject_previous_writer_paylo
 
 def test_dedicated_metric_schedulers_require_correct_target_expression_input_and_state():
     functions=['justhodl-ka-metrics','justhodl-khalid-metrics']
-    for failure in (None,'target','expression','input','state'):
+    for failure in (None,'target','expression','input','state','timezone'):
         def get_schedule(**kw):
             function=kw['Name'].removesuffix('-hourly')
-            return {'State':'DISABLED' if failure=='state' else 'ENABLED',
+            return {'ScheduleExpressionTimezone':'America/New_York' if failure=='timezone' else 'UTC',
+                    'State':'DISABLED' if failure=='state' else 'ENABLED',
                     'ScheduleExpression':'rate(1 day)' if failure=='expression' else 'rate(1 hour)',
                     'Target':{'Arn':'arn:aws:lambda:us-east-1:857687956942:function:'+('other' if failure=='target' else function),
                               'Input':'{"mode":"unreviewed"}' if failure=='input' else '{}'}}
