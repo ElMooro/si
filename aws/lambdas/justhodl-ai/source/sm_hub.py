@@ -128,6 +128,9 @@ def describe_model(sm, model_id: str, version: Optional[str] = None) -> Dict[str
         "hosting_image": _first(doc, "HostingEcrUri", "HostingEcrSpecs", "hosting_ecr_uri"),
         "hosting_artifact": _first(doc, "HostingArtifactUri", "hosting_artifact_uri"),
         "hosting_script": _first(doc, "HostingScriptUri", "hosting_script_uri"),
+        "hosting_prepacked_artifact": _first(doc, "HostingPrepackedArtifactUri", "HostingPrepackedArtifactKey", "hosting_prepacked_artifact_uri"),
+        "hosting_artifact_s3_type": _first(doc, "HostingArtifactS3DataType", "hosting_artifact_s3_data_type", default="S3Object"),
+        "hosting_artifact_compression": _first(doc, "HostingArtifactCompressionType", "hosting_artifact_compression_type", default="Gzip"),
         "hosting_use_script": bool(_first(doc, "HostingUseScriptUri", default=False)),
         "inference_env": _first(doc, "InferenceEnvironmentVariables", "inference_environment_variables", default=[]),
         "default_inference_instance": _first(doc, "DefaultInferenceInstanceType", "default_inference_instance_type"),
@@ -217,22 +220,80 @@ def repack_model_with_script(s3, spec: dict, dest_bucket: str, dest_prefix: str,
     return "s3://%s/%s" % (dest_bucket, key)
 
 
+def _s3_exists(s3, uri: str) -> Optional[bool]:
+    """True/False for an object; for a prefix True when at least one key exists; None when unreadable."""
+    try:
+        b, k = _s3_parts(uri)
+    except Exception:
+        return None
+    try:
+        if k.endswith("/"):
+            return bool(s3.list_objects_v2(Bucket=b, Prefix=k, MaxKeys=1).get("KeyCount") or s3.list_objects_v2(Bucket=b, Prefix=k, MaxKeys=1).get("Contents"))
+        s3.head_object(Bucket=b, Key=k)
+        return True
+    except Exception as e:
+        if "404" in str(e) or "Not Found" in str(e) or "NoSuchKey" in str(e):
+            return False
+        return None
+
+
+def resolve_model_data(s3, spec: dict, private_bucket: str) -> Dict[str, Any]:
+    """Pick the hosting artifact the plain control plane can serve, in order of preference:
+      1. a PREPACKED artifact (JumpStart's own copy with the inference code inside)  -> ModelDataUrl / ModelDataSource
+      2. an UNCOMPRESSED S3 prefix artifact                                          -> ModelDataSource (S3Prefix, None)
+      3. a tarball artifact + separate script bundle                                 -> repacked into the private bucket
+      4. a tarball artifact with no script (env carries the program)                 -> ModelDataUrl
+    Every candidate is probed on S3 first; the probes are returned so a failure names what was tried."""
+    probes = []
+    cands = []
+    pre = spec.get("hosting_prepacked_artifact")
+    art = spec.get("hosting_artifact")
+    for label, uri in (("prepacked", pre), ("artifact", art)):
+        if uri:
+            ex = _s3_exists(s3, uri)
+            probes.append({"candidate": label, "uri": uri, "exists": ex})
+            if ex:
+                cands.append((label, uri))
+    if not cands:
+        raise RuntimeError("no hosting artifact reachable for %s: probes=%s doc_keys=%s" % (spec.get("model_id"), json.dumps(probes), spec.get("doc_keys")))
+    label, uri = cands[0]
+    prefix = uri.endswith("/") or str(spec.get("hosting_artifact_s3_type") or "").lower() == "s3prefix" or str(spec.get("hosting_artifact_compression") or "").lower() == "none"
+    env_extra = {}
+    if label == "prepacked":
+        if prefix:
+            return {"source": {"S3DataSource": {"S3Uri": uri, "S3DataType": "S3Prefix", "CompressionType": "None"}}, "how": "prepacked-prefix", "probes": probes, "env": env_extra}
+        return {"url": uri, "how": "prepacked-tar", "probes": probes, "env": env_extra}
+    if prefix:
+        return {"source": {"S3DataSource": {"S3Uri": uri, "S3DataType": "S3Prefix", "CompressionType": "None"}}, "how": "artifact-prefix", "probes": probes, "env": env_extra}
+    if spec.get("hosting_script"):
+        sx = _s3_exists(s3, spec["hosting_script"])
+        probes.append({"candidate": "script", "uri": spec["hosting_script"], "exists": sx})
+        if sx:
+            url = repack_model_with_script(s3, spec, private_bucket, "ai/models/repacked")
+            env_extra = {"SAGEMAKER_PROGRAM": "inference.py", "SAGEMAKER_SUBMIT_DIRECTORY": "/opt/ml/model/code"}
+            return {"url": url, "how": "repacked-artifact+script", "probes": probes, "env": env_extra}
+    return {"url": uri, "how": "artifact-tar", "probes": probes, "env": env_extra}
+
+
 def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, instance_type: Optional[str],
                  serverless: bool, private_bucket: str, tags: List[dict], serverless_memory_mb: int = 4096,
                  serverless_max_conc: int = 2) -> Dict[str, Any]:
-    if not spec.get("hosting_image") or not spec.get("hosting_artifact"):
+    if not spec.get("hosting_image") or not (spec.get("hosting_artifact") or spec.get("hosting_prepacked_artifact")):
         raise RuntimeError("hub document for %s has no hosting image/artifact; keys=%s" % (spec.get("model_id"), spec.get("doc_keys")))
     env = dict(spec.get("inference_env") or {})
-    model_data = spec["hosting_artifact"]
-    if spec.get("hosting_script"):
-        model_data = repack_model_with_script(s3, spec, private_bucket, "ai/models/repacked")
-        env.setdefault("SAGEMAKER_PROGRAM", "inference.py")
-        env.setdefault("SAGEMAKER_SUBMIT_DIRECTORY", "/opt/ml/model/code")
+    md = resolve_model_data(s3, spec, private_bucket)
+    for k, v in (md.get("env") or {}).items():
+        env.setdefault(k, v)
     env.setdefault("SAGEMAKER_REGION", REGION)
     env.setdefault("MODEL_CACHE_ROOT", "/opt/ml/model")
     model_name = ("%s-%s" % (endpoint_name, int(time.time())))[:63]
-    sm.create_model(ModelName=model_name, ExecutionRoleArn=role_arn, Tags=tags,
-                    PrimaryContainer={"Image": spec["hosting_image"], "ModelDataUrl": model_data, "Environment": env})
+    container = {"Image": spec["hosting_image"], "Environment": env}
+    if md.get("source"):
+        container["ModelDataSource"] = md["source"]
+    else:
+        container["ModelDataUrl"] = md["url"]
+    model_data = md.get("url") or (md.get("source") or {}).get("S3DataSource", {}).get("S3Uri")
+    sm.create_model(ModelName=model_name, ExecutionRoleArn=role_arn, Tags=tags, PrimaryContainer=container)
     cfg_name = ("%s-cfg-%s" % (endpoint_name, int(time.time())))[:63]
     variant = {"VariantName": "AllTraffic", "ModelName": model_name}
     if serverless:
@@ -250,8 +311,8 @@ def deploy_model(sm, s3, *, spec: dict, role_arn: str, endpoint_name: str, insta
             pass
         sm.create_endpoint(EndpointName=endpoint_name, EndpointConfigName=cfg_name, Tags=tags)
         action = "created"
-    return {"endpoint": endpoint_name, "model": model_name, "endpoint_config": cfg_name, "model_data": model_data,
-            "serverless": serverless, "instance_type": None if serverless else instance_type, "action": action}
+    return {"endpoint": endpoint_name, "model": model_name, "endpoint_config": cfg_name, "model_data": model_data, "artifact_how": md.get("how"),
+            "artifact_probes": md.get("probes"), "serverless": serverless, "instance_type": None if serverless else instance_type, "action": action}
 
 
 # ──────────────────────────────────────────────────────────────────── invoke
@@ -274,7 +335,7 @@ def _flatten_embedding(obj) -> Optional[List[float]]:
     return None
 
 
-def embed_texts(rt, endpoint: str, texts: List[str], batch_json: bool = True) -> List[Optional[List[float]]]:
+def embed_texts(rt, endpoint: str, texts: List[str], batch_json: bool = True, workers: int = 6) -> List[Optional[List[float]]]:
     """Embeddings for a list of texts. Tries the JSON batch contract first
     ({"text_inputs": [...]} -> {"embedding": [[...], ...]}), then falls back to the
     application/x-text single-text contract the MXNet tcembedding cards speak."""
@@ -289,16 +350,29 @@ def embed_texts(rt, endpoint: str, texts: List[str], batch_json: bool = True) ->
                 return [[float(x) for x in v] for v in vecs]
         except Exception:
             pass
-    for i, t in enumerate(texts):
-        try:
-            r = rt.invoke_endpoint(EndpointName=endpoint, ContentType="application/x-text", Accept="application/json",
-                                   Body=t.encode("utf-8"))
-            out[i] = _flatten_embedding(json.loads(r["Body"].read().decode()))
-        except Exception as e:
-            out[i] = None
-            if i == 0:
-                raise RuntimeError("embedding endpoint %s rejected the first text: %s" % (endpoint, str(e)[:160]))
+    def one(t: str):
+        r = rt.invoke_endpoint(EndpointName=endpoint, ContentType="application/x-text", Accept="application/json", Body=t.encode("utf-8"))
+        return _flatten_embedding(json.loads(r["Body"].read().decode()))
+
+    if not texts:
+        return out
+    try:
+        out[0] = one(texts[0])          # the first text sequentially: a contract error must surface, not hide in a pool
+    except Exception as e:
+        raise RuntimeError("embedding endpoint %s rejected the first text: %s" % (endpoint, str(e)[:160]))
+    if len(texts) > 1:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=min(int(workers), len(texts) - 1)) as ex:
+            for i, v in zip(range(1, len(texts)), ex.map(lambda t: _safe(one, t), texts[1:])):
+                out[i] = v
     return out
+
+
+def _safe(fn, t):
+    try:
+        return fn(t)
+    except Exception:
+        return None
 
 
 def predict_csv(rt, endpoint: str, rows: List[List[float]]) -> List[Any]:

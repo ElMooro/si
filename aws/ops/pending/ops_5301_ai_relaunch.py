@@ -1,4 +1,5 @@
-"""ops_5300 -- launch justhodl-ai (the SageMaker front window) + ai.html, and make it learn from the Brain.
+"""ops_5301 -- RE-ARM of ops_5300 (identical, idempotent) after sm_hub learned the three JumpStart artifact shapes
+(prepacked tar / uncompressed prefix / tar+script). ops_5300 -- launch justhodl-ai (the SageMaker front window) + ai.html, and make it learn from the Brain.
 
 Order of operations (every step idempotent; nothing here creates a persistent hourly-billing resource
 without a TTL, and the only real-time endpoint this op may create is deleted again before it exits):
@@ -57,7 +58,7 @@ lam = boto3.client("lambda", region_name=REGION, config=CFG)
 sch = boto3.client("scheduler", region_name=REGION, config=CFG)
 ssm = boto3.client("ssm", region_name=REGION, config=CFG)
 SHOTS = ROOT / "aws" / "ops" / "reports" / "latest" / "shots"
-UA = {"User-Agent": "justhodl-ops-5300", "Cache-Control": "no-cache", "Pragma": "no-cache"}
+UA = {"User-Agent": "justhodl-ops-5301", "Cache-Control": "no-cache", "Pragma": "no-cache"}
 FAILS, WARNS, NEEDS_KHALID = [], [], []
 
 LAMBDA_CONTROL_POLICY = {
@@ -116,8 +117,8 @@ def denied(e):
     return "AccessDenied" in str(e) or "not authorized" in str(e)
 
 
-with report("ops_5300_ai_launch") as R:
-    R.heading("ops 5300 -- AI launch (SageMaker front window) + learn from the Brain")
+with report("ops_5301_ai_relaunch") as R:
+    R.heading("ops 5301 -- AI relaunch after the artifact-resolution fix (ops 5300 reached the hub deploy and hit a 404 on HostingArtifactUri)")
 
     # ───────────────────────────────────────────────────── 1. IAM
     R.section("1. IAM")
@@ -204,7 +205,7 @@ with report("ops_5300_ai_launch") as R:
     except Exception as e:
         FAILS.append("function url: %s" % str(e)[:120])
     R.log("   state %s/%s %sMB/%ss url %s" % (cfg.get("State"), cfg.get("LastUpdateStatus"), cfg.get("MemorySize"), cfg.get("Timeout"), fn_url))
-    ctl = {"function_url": fn_url, "sagemaker_role_arn": SM_ROLE_ARN, "private_bucket": PRIVATE, "updated_at": datetime.now(timezone.utc).isoformat(), "ops": 5300}
+    ctl = {"function_url": fn_url, "sagemaker_role_arn": SM_ROLE_ARN, "private_bucket": PRIVATE, "updated_at": datetime.now(timezone.utc).isoformat(), "ops": 5301}
     try:
         s3.put_object(Bucket=PRIVATE, Key="ai/control.json", Body=json.dumps(ctl).encode(), ContentType="application/json", ServerSideEncryption="AES256")
         s3.put_object(Bucket=PUBLIC, Key="data/ai/control.json", Body=json.dumps({"function_url": fn_url, "updated_at": ctl["updated_at"], "version": "1.0.0"}).encode(),

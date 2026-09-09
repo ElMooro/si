@@ -66,7 +66,7 @@ def _split(note_id: str, valid_share: float = 0.2) -> str:
 
 # ───────────────────────────────────────────────────────────────── dataset
 def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_chars: int = 24,
-                        brain_key: str = "data/brain.json") -> Dict[str, Any]:
+                        brain_key: str = "data/brain.json", min_class_rows: int = 20) -> Dict[str, Any]:
     brain = _get_json(s3, public_bucket, brain_key) or {}
     notes = brain.get("notes") or []
     rows, by_cat, dropped = [], {}, {"short": 0, "no_cat": 0, "dup": 0}
@@ -91,7 +91,15 @@ def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_char
         rows.append({"id": nid, "text": text, "label": cat, "label_idx": CATS.index(cat), "pinned": bool(n.get("pinned")),
                      "created": n.get("created"), "source": (n.get("source") or "brain")[:40], "split": _split(nid)})
         by_cat[cat] = by_cat.get(cat, 0) + 1
-    ds_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    # classes too small to learn from stay in the corpus (retrieval) but leave the classifier split
+    excluded = sorted(c for c, n in by_cat.items() if n < min_class_rows)
+    trainable = [c for c in CATS if c in by_cat and c not in excluded]
+    for r in rows:
+        if r["label"] in excluded:
+            r["split"] = "excluded"
+        r["label_idx"] = trainable.index(r["label"]) if r["label"] in trainable else -1
+    _now = datetime.now(timezone.utc)
+    ds_id = _now.strftime("%Y%m%dT%H%M%S") + "%06dZ" % _now.microsecond   # microsecond suffix: two builds in one second never collide
     base = "ai/datasets/brain/%s/" % ds_id
     # rows.jsonl.gz (private) -- text lives ONLY here
     buf = io.BytesIO()
@@ -101,10 +109,12 @@ def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_char
     s3.put_object(Bucket=private_bucket, Key=base + "rows.jsonl.gz", Body=buf.getvalue(), ContentType="application/gzip",
                   ServerSideEncryption="AES256")
     n_train = sum(1 for r in rows if r["split"] == "train")
+    n_valid = sum(1 for r in rows if r["split"] == "validation")
     manifest = {
         "dataset_id": ds_id, "kind": "brain-notes", "built_at": now_iso(), "source_key": brain_key,
         "source_generated_at": brain.get("generated_at"), "source_n_notes": len(notes), "n_rows": len(rows),
-        "n_train": n_train, "n_validation": len(rows) - n_train, "by_label": by_cat, "labels": CATS,
+        "n_train": n_train, "n_validation": n_valid, "n_excluded": len(rows) - n_train - n_valid, "by_label": by_cat, "labels": trainable,
+        "excluded_labels": excluded, "min_class_rows_floor": min_class_rows,
         "n_pinned": sum(1 for r in rows if r["pinned"]), "dropped": dropped,
         "min_class_rows": min(by_cat.values()) if by_cat else 0,
         "text_chars_median": sorted(len(r["text"]) for r in rows)[len(rows) // 2] if rows else 0,
@@ -138,7 +148,7 @@ def embedding_status(s3, private_bucket: str, ds_id: str, endpoint: str) -> Opti
 
 
 def run_embedding_pass(s3, rt, private_bucket: str, ds_id: str, endpoint: str, *, embed_fn, budget_s: float = 660.0,
-                       chunk: int = 32) -> Dict[str, Any]:
+                       chunk: int = 48) -> Dict[str, Any]:
     """Embed every dataset row through `endpoint`, resumable. Writes part files and a state
     cursor; when the last row is done it assembles train/validation CSVs (label first, as the
     XGBoost/Linear-Learner built-ins expect) and the binary vector index."""
@@ -204,6 +214,8 @@ def _assemble(s3, bucket, ds_id, endpoint, st, rows):
                 continue
             ids.append(nid)
             flat.extend(vec)
+            if r.get("split") == "excluded" or r.get("label_idx", -1) < 0:
+                continue
             line = "%d,%s" % (r["label_idx"], ",".join("%.6f" % x for x in vec))
             (train_lines if r["split"] == "train" else valid_lines).append(line)
     base = "ai/datasets/brain/%s/emb/%s/" % (ds_id, endpoint)
