@@ -132,6 +132,7 @@ MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-
              'justhodl-crypto-funding':2,'justhodl-crypto-basis':2,'justhodl-factor-risk':48,
              'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
              'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
+MAX_AGE_H.update({'justhodl-ka-metrics':2,'justhodl-khalid-metrics':2})
 MAX_AGE_H['justhodl-whats-changed']=30
 MAX_AGE_H['justhodl-public-archive-index']=1
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
@@ -441,7 +442,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
         response=s3.get_object(Bucket=bucket,Key=key);raw=response['Body'].read();doc=strict_document(raw)
         modified=response.get('LastModified');modified=parse_timestamp(modified.isoformat() if isinstance(modified,datetime) else modified)
         deployment=parse_timestamp(code.get('last_modified'))
-        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else None
+        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else 'generated' if function in ('justhodl-ka-metrics','justhodl-khalid-metrics') else None
         generated=parse_timestamp(doc.get(generation_field)) if generation_field else None
         result.update(bytes=len(raw),last_modified=modified.isoformat() if modified else None,
                       generated_at=generated.isoformat() if generated else None,version_id=response.get('VersionId'),

@@ -1,0 +1,52 @@
+name: Read-only audit release observation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-release-observation.yml'
+      - 'scripts/audit_release_observation.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: audit-release-observation
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AUDIT_RELEASE_SHA: 859e9617387c891d44920b80656e38359f28dbf2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install boto3
+      - name: Verify read-only SDK boundary
+        run: python tests/test_audit_release_observation.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Compare packages, schedules and publications
+        run: python scripts/audit_release_observation.py
+      - name: Preserve observation before committing
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-release-observation-${{ github.run_id }}
+          path: aws/ops/reports/5283_release_observation.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit metadata receipt
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          test -f aws/ops/reports/5283_release_observation.json
+          git add aws/ops/reports/5283_release_observation.json
+          python scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'

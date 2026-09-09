@@ -606,3 +606,14 @@ def test_dedicated_metric_schedulers_require_correct_target_expression_input_and
         rows=release.observe_schedules({'scheduler':SimpleNamespace(get_schedule=get_schedule)},ROOT,functions)
         assert len(rows)==2 and len({row['name'] for row in rows})==2
         assert all((row['status']=='VERIFIED')==(failure is None) for row in rows)
+
+
+def test_metric_generation_uses_the_source_defined_generated_field_and_two_hour_age_limit():
+    now=release.utcnow();code={'last_modified':(now-timedelta(hours=3)).isoformat()}
+    for function in ('justhodl-ka-metrics','justhodl-khalid-metrics'):
+        doc={'engine':function,'schema_version':'macro-metrics.v1','generated':now.isoformat()}
+        result=release.inspect_output(fixture_output(doc),function,'data/'+function.removeprefix('justhodl-')+'.json',code,now=now)
+        assert result['status']=='VERIFIED'
+        doc['generated']=(now-timedelta(hours=2,minutes=1)).isoformat()
+        result=release.inspect_output(fixture_output(doc),function,'data/'+function.removeprefix('justhodl-')+'.json',code,now=now)
+        assert result['status']=='PENDING_OUTPUT' and 'FRESH_GENERATION_PENDING' in result['requirements']

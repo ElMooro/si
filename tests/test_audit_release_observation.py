@@ -1,0 +1,25 @@
+import importlib.util
+from pathlib import Path
+import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
+ROOT=Path(__file__).resolve().parents[1]
+spec=importlib.util.spec_from_file_location('observation',ROOT/'scripts/audit_release_observation.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+class BoundaryTests(unittest.TestCase):
+ def test_sdk_mutations_are_rejected_before_resolving_underlying_client(self):
+  class Spy:
+   def __getattr__(self,name):raise AssertionError('underlying mutation resolved')
+  for service in m.READ_METHODS:
+   client=m.ReadOnlyClient(Spy(),service)
+   for name in ('invoke','put_object','update_schedule','create_schedule','publish_version','delete_object','get_paginator'):
+    with self.assertRaises(RuntimeError):getattr(client,name)
+ def test_explicit_reads_remain_callable(self):
+  for service,names in m.READ_METHODS.items():
+   for name in names:
+    client=m.ReadOnlyClient(SimpleNamespace(**{name:lambda **kw:kw}),service)
+    self.assertEqual(getattr(client,name)(proof=True),{'proof':True})
+ def test_source_failure_stops_before_output_or_schedule_observation(self):
+  with patch.object(m.release,'changed_scope',return_value={'example':[]}),patch.object(m.release,'artifact_map',return_value={}),patch.object(m.release,'git',return_value='0'*40),patch.object(m.release,'check_packages',return_value=[{'function':'example','pass':False}]),patch.object(m.release,'privacy_receipt_summary',return_value={'verified':True}):
+   result=m.observe(ROOT,{'lambda':None},None)
+  self.assertEqual(result['status'],'SOURCE_PARITY_FAILED');self.assertNotIn('outputs',result)
+if __name__=='__main__':unittest.main()
