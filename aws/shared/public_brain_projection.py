@@ -152,6 +152,24 @@ def sanitize_public(key, document, *, vault=None):
             if row.get("type") == "CONVICTION vs YOUR RULES":
                 row["bear"] = "Private rule review flagged a conflict; see the authenticated review for details."
                 row.setdefault("private_review_ref", {"engine": "devils-advocate", "ticker": row.get("ticker")})
+    elif name == "sizing.json":
+        # Prior producer versions mixed actual holdings into public model sizing.
+        # Keep historical computed risk numbers, but remove the private book and
+        # ticker references. Do not relabel old book-adjusted numbers model-only.
+        legacy = not (out.get("holdings") is None and out.get("holdings_publication") == "REDACTED_ACCOUNT_PRIVATE"
+                      and out.get("book_status") in {"READY", "BLOCKED"})
+        had_book = bool(out.get("holdings"))
+        out["holdings"] = None
+        for row in out.get("recommendations", []):
+            flags = row.get("overlap_flags") or []
+            had_book = had_book or any(isinstance(v, str) and v.startswith("book:") for v in flags)
+            row["overlap_flags"] = [v for v in flags if not (isinstance(v, str) and v.startswith("book:"))]
+        if legacy or had_book or out.get("historical_book_context_removed"):
+            out["book_status"] = "BLOCKED"
+            out["historical_book_context_removed"] = True
+            out["execution_eligible"] = False
+            out["publication_note"] = "Personal holdings and book references withheld; historical sizing awaits account reconciliation."
+        out["holdings_publication"] = "REDACTED_ACCOUNT_PRIVATE"
     elif name == "search/providers/tradingview_vault_live.json.gz":
         if not isinstance(vault, dict):
             raise ValueError("vault source required to rebuild search fields")

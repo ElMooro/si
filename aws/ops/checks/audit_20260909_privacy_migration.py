@@ -31,7 +31,7 @@ REGION = "us-east-1"
 TOKEN_PARAM = "/justhodl/api-admin/token"
 TEMP_SID = "Audit20260909DerivativeMigrationInProgress"
 PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask")
-PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers",
+PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir")))
 MAX_OBJECT = 200 * 1024 * 1024

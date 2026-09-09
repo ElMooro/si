@@ -111,6 +111,9 @@ class PublicMigrationTests(unittest.TestCase):
             "data/position-sizing.json": {"risk_posture": MARKER, "posture_mult": 1.3, "regime": {"bond_vol": "NORMAL", "plumbing": "AMPLE", "combined_mult": 1.0},
                                           "sized_positions": [{"ticker": "NVDA", "conviction": 71, "suggested_size_pct": 2.8, "rationale": MARKER}]},
             "data/engine-conflicts.json": {"conflicts": [{"ticker": "NVDA", "type": "CONVICTION vs YOUR RULES", "bear": MARKER}], "n_conflicts": 1},
+            "data/sizing.json": {"holdings": [{"ticker": MARKER, "qty": 20, "weight": 3}], "book_status": MARKER,
+                                 "recommendations": [{"ticker": "NVDA", "baseline_px": 123, "final_w_pct": 2,
+                                                      "overlap_flags": ["book:" + MARKER + " ρ0.9", "SPY ρ0.8"]}]},
             "data/search/providers/tradingview_vault_live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
             "equity-research/NVDA.json": {"price": 123, "khalid_notes": {"n_notes": 3, "levels": [120, 140], "note_ids": ["n1"], "latest_note": MARKER, "llm_view": MARKER}},
         }
@@ -140,6 +143,20 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertEqual(restored["Statement"], result["Statement"][:-1])
         self.assertEqual(statements[0]["Condition"], {"StringNotEquals": {"aws:PrincipalAccount": migration.ACCOUNT}})
         self.assertIn("s3:GetObjectVersion", statements[1]["Action"])
+
+    def test_sizing_legacy_is_blocked_and_validated_future_book_contract_is_preserved(self):
+        legacy = self.fixtures()["data/sizing.json"]
+        clean = sanitize_public("data/sizing.json", legacy)
+        self.assertIsNone(clean["holdings"])
+        self.assertEqual(clean["book_status"], "BLOCKED")
+        self.assertFalse(clean["execution_eligible"])
+        self.assertTrue(clean["historical_book_context_removed"])
+        self.assertEqual(clean["recommendations"][0]["overlap_flags"], ["SPY ρ0.8"])
+        self.assertEqual(clean["recommendations"][0]["final_w_pct"], 2)
+        future = {"holdings": None, "holdings_publication": "REDACTED_ACCOUNT_PRIVATE", "book_status": "READY",
+                  "execution_eligible": False, "recommendations": [{"final_w_pct": 2,
+                  "overlap_flags": ["correlated existing account exposure"]}]}
+        self.assertEqual(sanitize_public("data/sizing.json", future), future)
 
     def test_source_zip_exact_hash_and_transitive_private_helpers(self):
         members = migration.desired_members(ROOT, "my-brief")
