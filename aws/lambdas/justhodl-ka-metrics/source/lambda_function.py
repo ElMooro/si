@@ -1,7 +1,8 @@
 """KA Metrics owns only data/ka-*.json; legacy Khalid outputs have their own producer."""
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
-import json,os,urllib.request,urllib.error,boto3,traceback,time
+import json,os,urllib.request,urllib.error,boto3,traceback,time,math
 from datetime import datetime,timedelta,timezone
+from private_artifact import private_http_denied
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
@@ -227,18 +228,17 @@ def calc_pct_changes(obs):
     return changes
 
 def calc_risk(md,config):
-    tw=0;rs=0
-    for m in config.get('metrics',[]):
-        if not m.get('enabled',True):continue
-        d=md.get(m['id'])
-        if not d:continue
-        w=m.get('weight',5);f=m.get('flash','red_up')
-        c=d.get('3m')if d.get('3m')is not None else d.get('1m')
-        if c is None:continue
-        if f=='red_up':n=min(max((c+5)/10*50,0),100)
-        else:n=min(max((-c+5)/10*50,0),100)
-        rs+=n*w;tw+=w
-    return round(rs/tw,1)if tw>0 else 50
+    total_weight=0;weighted_score=0
+    for metric in config.get('metrics',[]):
+        if not metric.get('enabled',True):continue
+        values=md.get(metric.get('id'),{})
+        change=values.get('3m') if values.get('3m') is not None else values.get('1m')
+        weight=metric.get('weight',5)
+        if any(isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) for value in (change,weight)) or weight<=0:continue
+        direction=1 if metric.get('flash','red_up')=='red_up' else -1
+        score=min(max((direction*change+5)/10*50,0),100)
+        weighted_score+=score*weight;total_weight+=weight
+    return round(weighted_score/total_weight,1) if total_weight>0 else None
 
 def refresh_data(config):
     md={};errors=[];call_count=0
@@ -267,8 +267,9 @@ def refresh_data(config):
     for cat in config.get('categories',[]):
         cm=[m for m in config['metrics']if m.get('category')==cat and m.get('enabled',True)]
         if cm:cr[cat]=calc_risk(md,{'metrics':cm,'categories':[cat]})
-    now=datetime.now(timezone(timedelta(hours=-5)))
+    now=datetime.now(timezone.utc)
     result={'engine':'justhodl-ka-metrics','schema_version':'macro-metrics.v1','configuration_source':config.get('configuration_source'),'metrics':md,'risk_index':ri,'category_risks':cr,'errors':errors,'generated':now.isoformat(),'count':len(md),'version':config.get('version',1)}
+    result.update(status='UNAVAILABLE' if ri is None else 'PARTIAL' if errors else 'READY',generated_at=now.isoformat(),execution_eligible=False,risk_basis='Descriptive weighted change heuristic; not a calibrated probability')
     s3.put_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json',Body=json.dumps(result,indent=2).encode('utf-8'),ContentType='application/json')
     print(f"\n{'='*50}\nPUBLISHED: {len(md)} OK, {len(errors)} errors, risk={ri}\n{'='*50}")
     if errors:print(f"ERRORS: {errors}")
@@ -278,7 +279,8 @@ def refresh_data(config):
 # AI ANALYSIS
 # ═══════════════════════════════════════════
 def run_ai_analysis(config, data):
-    if not ANTHROPIC_KEY:return{"error":"No Anthropic API key"}
+    if data.get('risk_index') is None:return {'status':'UNAVAILABLE','error':'metrics_unavailable','execution_eligible':False}
+    if not ANTHROPIC_KEY:return{"error":"analysis_provider_unavailable"}
     lines=[]
     for cat in config.get('categories',[]):
         cat_risk=data.get('category_risks',{}).get(cat,'N/A')
@@ -362,7 +364,7 @@ Return ONLY valid JSON:
             s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=body,ContentType='application/json')
             print("[ka] degrade-write: previous analysis preserved + llm_status stamped")
         except Exception as e2:print(f"[ka] degrade-write failed: {e2}")
-        return{"error":str(e)}
+        return{"error":"analysis_unavailable"}
 
 # ═══════════════════════════════════════════
 # HANDLER
@@ -377,23 +379,28 @@ def lambda_handler(event,context):
     elif 'httpMethod' in event:hm=event['httpMethod'];path=event.get('path','/');body=event.get('body','')
     if hm=='OPTIONS':return cors_response(200,{'status':'ok'})
     if hm:
+        # Global settings and paid/provider refreshes require the existing service identity.
+        if hm in ('POST','PUT','PATCH','DELETE') or path in ('/refresh','/analyze'):
+            denied=private_http_denied(event)
+            if denied:return denied
+        if hm=='GET' and path=='/health':return cors_response(200,{'engine':'justhodl-ka-metrics','status':'HANDLER_READY','provider_data_verified':False})
         config=load_config()
         if hm=='GET':
             if path=='/config':return cors_response(200,config)
             elif path=='/data':
                 try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');return cors_response(200,json.loads(obj['Body'].read()))
-                except:return cors_response(200,{'metrics':{},'risk_index':50})
+                except:return cors_response(200,{'metrics':{},'risk_index':None,'status':'UNAVAILABLE','execution_eligible':False})
             elif path=='/analysis':
                 try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json');return cors_response(200,json.loads(obj['Body'].read()))
                 except:return cors_response(200,{'error':'No analysis yet'})
             elif path=='/refresh':return cors_response(200,refresh_data(config))
             elif path=='/analyze':
                 try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');data=json.loads(obj['Body'].read())
-                except:data={'metrics':{},'risk_index':50}
+                except:data={'metrics':{},'risk_index':None,'status':'UNAVAILABLE','execution_eligible':False}
                 return cors_response(200,run_ai_analysis(config,data))
             else:
                 try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-metrics.json');data=json.loads(obj['Body'].read())
-                except:data={'metrics':{},'risk_index':50}
+                except:data={'metrics':{},'risk_index':None,'status':'UNAVAILABLE','execution_eligible':False}
                 try:obj2=s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json');analysis=json.loads(obj2['Body'].read())
                 except:analysis=None
                 return cors_response(200,{'config':config,'data':data,'analysis':analysis})
@@ -404,7 +411,7 @@ def lambda_handler(event,context):
                 if 'categories' in nc:config['categories']=nc['categories']
                 config['version']=config.get('version',0)+1;save_config(config);result=refresh_data(config)
                 return cors_response(200,{'status':'saved','config':config,'data':result})
-            except Exception as e:return cors_response(400,{'error':str(e)})
+            except Exception as e:return cors_response(400,{'error':'invalid_configuration'})
     try:
         config=load_config();result=refresh_data(config)
         analysis=run_ai_analysis(config,result)
@@ -414,7 +421,7 @@ def lambda_handler(event,context):
         errs=len(result.get('errors',[]))
         return{'statusCode':200,'body':json.dumps({'status':'refreshed+analyzed','metrics':result['count'],'risk_index':result['risk_index'],'grade':grade,'phase':phase,'crypto':crypto,'errors':errs})}
     except Exception as e:
-        print(f"ERROR:{e}");traceback.print_exc();return{'statusCode':500,'body':json.dumps({'error':str(e)})}
+        print('Metrics snapshot unavailable');return{'statusCode':503,'body':json.dumps({'error':'snapshot_unavailable'})}
 
 
 def _repair_truncated_json(text):
