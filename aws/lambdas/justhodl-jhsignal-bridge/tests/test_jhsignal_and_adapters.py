@@ -166,6 +166,9 @@ class TestAdapters:
         assert ("dealer_gex", "equity:BAD") not in ids                      # err row -> no signal
         assert ("fortress", "equity:NOPE") not in ids                       # SCREENED tier -> no signal
         assert ("short_interest", "equity:AMZN") not in ids                 # NEUTRAL -> no signal
+        assert ("bottom", "equity:OLDFAIL") not in ids                      # failure older than 10 bars -> no signal
+        assert ("bottom", "equity:GONE") not in ids                         # EXPIRED sequence -> no signal
+        assert ("bottom", "equity:NVDA") in ids and ("bottom", "etf:TLT") in ids and ("bottom", "crypto:ETH") in ids
         assert reports["etf_flows"].skipped >= 1 and reports["short_interest"].skipped >= 1
 
     def test_directions_and_vetoes_follow_the_documented_mapping(self, signals_from_artifacts):

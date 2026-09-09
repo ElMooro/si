@@ -700,6 +700,47 @@ class KatlinAdapter(SignalAdapter):
                 }
 
 
+class BottomAdapter(SignalAdapter):
+    """board_all[] (every instrument with a live or recent Wyckoff sequence): state base (MARKUP 0.75, TRIGGERED 0.65,
+    ST_CONFIRMED 0.35, TESTING 0.10, CLIMAX 0.0, FAILED/STOPPED -0.45) + 0.25*(score-50)/50 -> wyckoff_bottom.
+    Confidence = score/100 x freshness of the state (bars_in_state), x0.9 when the frame is daily only. Entity type from
+    asset_class (stock -> equity, etf -> etf, crypto -> crypto). Stale/expired sequences are skipped, never fabricated."""
+    signal_type, category = "wyckoff_bottom", "price_confirmation"
+    BASE = {"MARKUP": 0.75, "TRIGGERED": 0.65, "ST_CONFIRMED": 0.35, "TESTING": 0.10, "CLIMAX": 0.0, "FAILED": -0.45, "STOPPED": -0.45}
+    CLASS = {"stock": "equity", "etf": "etf", "crypto": "crypto"}
+    HORIZON = {"D": "SWING", "W": "INTERMEDIATE"}
+
+    def validate_source(self, doc):
+        return isinstance(doc.get("board_all"), list)
+
+    def rows(self, doc):
+        for r in doc["board_all"]:
+            if not isinstance(r, dict):
+                yield {"skip": "not isinstance(r, dict)"}
+                continue
+            sym = r.get("ticker"); st = r.get("state"); sc = _f(r.get("score"))
+            if not sym or sc is None or st not in self.BASE:
+                yield {"skip": "not sym or sc is None or st not in self.BASE"}
+                continue
+            bars = _f(r.get("bars_in_state"))
+            if bars is not None and st in ("FAILED", "STOPPED") and bars > 10:
+                yield {"skip": "failure older than 10 bars"}
+                continue
+            fresh = 1.0 if bars is None else max(0.4, 1.0 - 0.02 * bars)
+            frame = r.get("frame") or "D"
+            conf = _clip(sc / 100.0 * fresh * (1.0 if frame == "W" or r.get("weekly_state") in ("ST_CONFIRMED", "TRIGGERED", "MARKUP") else 0.9), 0.0, 1.0)
+            et = self.CLASS.get(str(r.get("asset_class") or "").lower())
+            yield {
+                "symbol": sym, "entity_type": et, "score": _clip(self.BASE[st] + 0.25 * (sc - 50.0) / 50.0), "confidence": conf,
+                "confidence_basis": "bottom score/100 x state freshness (bars_in_state) x 0.9 when daily-only", "percentile": sc,
+                "horizon": self.HORIZON.get(frame, "SWING"), "half_life_days": 25.0 if frame == "W" else 10.0,
+                "evidence": _ev(state=st, frame=frame, score=sc, grade=r.get("grade"), sc_date=r.get("sc_date"), st_date=r.get("st_date"), trigger_date=r.get("trigger_date"),
+                                test_volume_vs_climax=r.get("st_vol_ratio_sc"), depth_class=r.get("st_depth_class"), weekly_state=r.get("weekly_state"), fleet_confirmations=r.get("n_confirm")),
+                "metadata": {"state": st, "frame": frame, "desk": r.get("desk"), "sub_class": r.get("sub_class"), "dist_climax_low_pct": r.get("dist_sc_low_pct")},
+                "invalidation": {"type": "text", "description": "a close under the secondary-test low (the protective stop) or a failed test on rising volume"},
+            }
+
+
 # ===========================================================================
 # CATALYST
 # ===========================================================================
@@ -778,6 +819,7 @@ ADAPTERS = {
     "momentum_leaders": MomentumLeadersAdapter,
     "fortress": FortressAdapter,
     "katlin": KatlinAdapter,
+    "bottom": BottomAdapter,
     "catalyst": CatalystAdapter,
     "dealer_gex": DealerGexAdapter,
 }
