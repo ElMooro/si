@@ -3,7 +3,7 @@
   "read_only": true,
   "raw_provider_payloads_reported": 0,
   "secret_values_reported": 0,
-  "source_sha": "f707eaa5dd1373efb041c915dab05971b518d953",
+  "source_sha": "c58c2379de5cc2cdc10113d645f02488662c23c5",
   "functions": {
     "nasdaq-datalink-agent": {
       "package": {
@@ -13,8 +13,8 @@
           {
             "member": "lambda_function.py",
             "expected_sha256": "864f28c4c31f1ab540404cc162978066665dfcd6264d12188bbf6203f0f04ec6",
-            "actual_sha256": "27ae1341244fbe3fd561acfb2ba6d7554092c197a3ac3645290543ab62deb3df",
-            "match": false
+            "actual_sha256": "864f28c4c31f1ab540404cc162978066665dfcd6264d12188bbf6203f0f04ec6",
+            "match": true
           },
           {
             "member": "api_auth.py",
@@ -31,21 +31,83 @@
           {
             "member": "public_provider_json.py",
             "expected_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
-            "actual_sha256": null,
-            "match": false
+            "actual_sha256": "f31ea3d8397310c9e1f26b4c8df683b65a233662a59b4259ec0f5433f760b75d",
+            "match": true
           }
         ],
-        "pass": false,
+        "pass": true,
         "version": "$LATEST",
-        "code_sha256": "McYup4BcV3O3m3fRsFJuGBYfOoV5R6oHK4NIztP+duA=",
+        "code_sha256": "JoQQ4fMbOxlFGdS6ghEhnOnJubvCBvXkpOr2DByQ4vc=",
         "state": "Active",
         "update_status": "Successful",
-        "last_modified": "2026-09-09T05:58:32.000+0000",
+        "last_modified": "2026-09-09T15:20:48.000+0000",
         "handler": "lambda_function.lambda_handler",
         "configuration_mismatches": [],
         "configuration_differences": []
       },
-      "status": "SOURCE_PARITY_FAILED"
+      "auth_type": "NONE",
+      "cors": {
+        "AllowHeaders": [
+          "content-type"
+        ],
+        "AllowMethods": [
+          "GET",
+          "POST"
+        ],
+        "AllowOrigins": [
+          "*"
+        ]
+      },
+      "requests": [
+        {
+          "path": "/health",
+          "http_status": 200,
+          "cors_origins": [
+            "https://justhodl.ai"
+          ],
+          "cors_valid": true,
+          "response_bytes": 110,
+          "traceback_present": false,
+          "agent_matches": true,
+          "provider_status": "HANDLER_READY",
+          "handler_error_present": false,
+          "schema_verified": true,
+          "acceptance_verified": true,
+          "elapsed_s": 0.19
+        },
+        {
+          "path": "/",
+          "http_status": 200,
+          "cors_origins": [
+            "https://justhodl.ai"
+          ],
+          "cors_valid": true,
+          "response_bytes": 2663,
+          "traceback_present": false,
+          "agent_matches": true,
+          "provider_status": "UNAVAILABLE",
+          "handler_error_present": false,
+          "datasets": 24,
+          "history_rows": 0,
+          "available": 0,
+          "unavailable": 24,
+          "schema_verified": true,
+          "provider_http_counts": {
+            "200": 0,
+            "401": 0,
+            "403": 24,
+            "404": 0,
+            "429": 0,
+            "500": 0,
+            "502": 0,
+            "503": 0
+          },
+          "acceptance_verified": true,
+          "elapsed_s": 2.09
+        }
+      ],
+      "transport_ok": true,
+      "status": "VERIFIED"
     },
     "alphavantage-technical-analysis": {
       "package": {
@@ -109,7 +171,7 @@
           "handler_error_present": false,
           "schema_verified": true,
           "acceptance_verified": true,
-          "elapsed_s": 0.46
+          "elapsed_s": 0.42
         },
         {
           "path": "/",
@@ -125,7 +187,7 @@
           "handler_error_present": false,
           "schema_verified": true,
           "acceptance_verified": true,
-          "elapsed_s": 0.29
+          "elapsed_s": 0.16
         }
       ],
       "transport_ok": true,
@@ -138,8 +200,8 @@
         "files": [
           {
             "member": "lambda_alphavantage_agent.py",
-            "expected_sha256": "1b9003be4e903fb54e80c3ab5a9f6a09a7049d47e22addbf9563811404f8150e",
-            "actual_sha256": "1b9003be4e903fb54e80c3ab5a9f6a09a7049d47e22addbf9563811404f8150e",
+            "expected_sha256": "54f50790fe8a3b2920236b2918c2691d44d037cf88e00b1c3ef8d059543bca9d",
+            "actual_sha256": "54f50790fe8a3b2920236b2918c2691d44d037cf88e00b1c3ef8d059543bca9d",
             "match": true
           },
           {
@@ -157,10 +219,10 @@
         ],
         "pass": true,
         "version": "$LATEST",
-        "code_sha256": "MDleHRKEKGtCvBI0oCJB9jcKawADv+K10XdVVEyJjLQ=",
+        "code_sha256": "DzGzSiT928XJoYbQMTh9GLu2UFb3wXgPCL0Xlb9yY7E=",
         "state": "Active",
         "update_status": "Successful",
-        "last_modified": "2026-09-09T15:19:39.000+0000",
+        "last_modified": "2026-09-09T15:33:37.000+0000",
         "handler": "lambda_alphavantage_agent.lambda_handler",
         "configuration_mismatches": [],
         "configuration_differences": []
@@ -182,28 +244,26 @@
           "path": "/health",
           "http_status": 200,
           "cors_origins": [
-            "*",
             "https://justhodl.ai"
           ],
-          "cors_valid": false,
+          "cors_valid": true,
           "response_bytes": 98,
           "traceback_present": false,
           "agent_matches": true,
           "provider_status": "HANDLER_READY",
           "handler_error_present": false,
           "schema_verified": true,
-          "acceptance_verified": false,
-          "elapsed_s": 0.56
+          "acceptance_verified": true,
+          "elapsed_s": 0.34
         },
         {
           "path": "/",
           "http_status": 200,
           "cors_origins": [
-            "*",
             "https://justhodl.ai"
           ],
-          "cors_valid": false,
-          "response_bytes": 3862,
+          "cors_valid": true,
+          "response_bytes": 3848,
           "traceback_present": false,
           "agent_matches": true,
           "provider_status": "PARTIAL",
@@ -211,13 +271,13 @@
           "observed_quotes": 3,
           "expected_quotes": 17,
           "schema_verified": true,
-          "acceptance_verified": false,
-          "elapsed_s": 3.7
+          "acceptance_verified": true,
+          "elapsed_s": 3.65
         }
       ],
-      "transport_ok": false,
-      "status": "ACCEPTANCE_FAILED"
+      "transport_ok": true,
+      "status": "VERIFIED"
     }
   },
-  "ok": false
+  "ok": true
 }
