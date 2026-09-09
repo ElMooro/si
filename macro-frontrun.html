@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-ai-brief-router">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Macro Front-Run Sniffer · Rates / Auctions / Bonds Deep Dive · JustHodl.AI</title>
@@ -111,11 +112,11 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
 
   <!-- THE MACRO SNIFFER OUTPUT -->
   <div id="ai-macro-frontrun"></div>
-  <script>if(window.JHAIMacroFront)JHAIMacroFront.mount("ai-macro-frontrun","macro-frontrun-sniffer");</script>
+  <script>if(window.JHAIMacroFront)JHAIMacroFront.mount("ai-macro-frontrun","macro-frontrun-sniffer").catch(function(){});</script>
 
   <!-- 7-DAY HISTORY (separate file: macro-frontrun-sniffer-history) -->
   <div id="ai-macro-frontrun-history"></div>
-  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-macro-frontrun-history","macro-frontrun-sniffer-history");</script>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-macro-frontrun-history","macro-frontrun-sniffer-history").catch(function(){});</script>
 
   <section class="meth-section">
     <div class="meth-h">📐 How the 7 Macro Pillars Work</div>

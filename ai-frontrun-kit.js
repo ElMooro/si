@@ -9,7 +9,7 @@
  */
 (function () {
   if (window.JHAIFront) return;
-  var PROXY = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
+  var OUTPUT_URL = "https://api.justhodl.ai/data/frontrun-sniffer.json";
   var DEFAULT_KEY = "frontrun-sniffer";
 
   function injectCSS() {
@@ -34,18 +34,22 @@
     var el = document.getElementById(elId); if (!el) return;
     el.classList.add("jhfr-wrap");
     el.innerHTML = '<div class="jhfr-loading">🎯 sniffing 25+ flow feeds for institutional front-running…</div>';
-    var url = PROXY + "/" + (contextSlug || DEFAULT_KEY) + ".json?t=" + Date.now();
-    return fetch(url).then(function (r) {
+    if (contextSlug && contextSlug !== DEFAULT_KEY) {
+      el.textContent = "Unsupported research context.";
+      return Promise.resolve();
+    }
+    return fetch(OUTPUT_URL + "?t=" + Date.now(), {cache: "no-store"}).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     }).then(function (b) {
-      var regime = (b.anomaly_regime || "NORMAL").toUpperCase();
+      if (!b || b.brief_type !== "frontrun" || b.context !== DEFAULT_KEY || b.mode === "deterministic") throw new Error("Dedicated research brief unavailable; latest payload has an incompatible schema");
+      var regime = String(b.anomaly_regime || "UNKNOWN").toUpperCase();
       var html = '';
       // HEADLINE
-      html += '<div class="jhfr-headline ' + regime + '">' +
+      html += '<div class="jhfr-headline ' + esc(regime) + '">' +
                 '<div class="jhfr-meta">' +
                   '<span class="jhfr-badge">🎯 FRONT-RUN SNIFFER · 25-FEED INSTITUTIONAL FLOW SCAN</span>' +
-                  '<span class="jhfr-regime-pill ' + regime + '">' + esc(regime) + '</span>' +
+                  '<span class="jhfr-regime-pill ' + esc(regime) + '">' + esc(regime) + '</span>' +
                   '<span class="jhfr-score-box"><span class="lbl">ANOM</span>' + esc(b.overall_anomaly_score == null ? '—' : b.overall_anomaly_score) + '/100</span>' +
                   '<span class="jhfr-age">' + esc(ageStr(b.generated_at)) + '</span>' +
                 '</div>' +
@@ -72,15 +76,15 @@
       if (b.suspected_setups && b.suspected_setups.length) {
         html += '<div class="jhfr-section-h">🎯 Suspected Front-Run Setups — convergent across 3+ flow categories</div>';
         b.suspected_setups.forEach(function (sx) {
-          var conf = (sx.confidence || "MEDIUM").toUpperCase();
-          var dir = (sx.target_direction || "UPSIDE").toUpperCase();
-          html += '<div class="jhfr-setup ' + conf + '">' +
+          var conf = String(sx.confidence || "UNKNOWN").toUpperCase();
+          var dir = String(sx.target_direction || "UNKNOWN").toUpperCase();
+          html += '<div class="jhfr-setup ' + esc(conf) + '">' +
                     '<div class="jhfr-setup-head">' +
                       '<span class="jhfr-setup-rank">#' + esc(sx.rank) + '</span>' +
                       '<span class="jhfr-setup-target">' + esc(sx.target_asset) + '</span>' +
-                      '<span class="jhfr-setup-dir ' + dir + '">' + esc(dir.replace(/_/g, " ")) + '</span>' +
-                      '<span class="jhfr-setup-conf ' + conf + '">conf: ' + esc(conf) + '</span>' +
-                      '<span class="jhfr-setup-prob">' + esc(sx.probability_pct || '?') + '% prob</span>' +
+                      '<span class="jhfr-setup-dir ' + esc(dir) + '">' + esc(dir.replace(/_/g, " ")) + '</span>' +
+                      '<span class="jhfr-setup-conf ' + esc(conf) + '">conf: ' + esc(conf) + '</span>' +
+                      '<span class="jhfr-setup-prob">' + esc(sx.probability_pct == null ? '?' : sx.probability_pct) + '% prob</span>' +
                     '</div>' +
                     '<div class="jhfr-setup-meta">' +
                       '<span>magnitude: <b>' + esc(sx.magnitude_pct) + '</b></span>' +

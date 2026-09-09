@@ -11,7 +11,10 @@
  */
 (function () {
   if (window.JHAIFrontHist) return;
-  var PROXY = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
+  var OUTPUT_URLS = {
+    "frontrun-sniffer-history": "https://api.justhodl.ai/data/frontrun-sniffer-history.json",
+    "macro-frontrun-sniffer-history": "https://api.justhodl.ai/data/macro-frontrun-sniffer-history.json"
+  };
   var DEFAULT_KEY = "frontrun-sniffer-history";
 
   function injectCSS() {
@@ -110,11 +113,11 @@
     // Dots — each snapshot
     var dots = '';
     validSnaps.forEach(function(s, idx) {
-      var rg = (s.regime || "NORMAL").toUpperCase();
+      var rg = String(s.regime || "UNKNOWN").toUpperCase();
       var r = (s.score >= 60 || rg === "EXTREME") ? 4.5 : 3;
-      dots += '<circle class="jhfh-dot '+rg+'" cx="'+xOf(s.ts)+'" cy="'+yOf(s.score)+'" r="'+r+'" ' +
+      dots += '<circle class="jhfh-dot '+esc(rg)+'" cx="'+xOf(s.ts)+'" cy="'+yOf(s.score)+'" r="'+r+'" ' +
               'data-ts="'+esc(s.ts)+'" data-score="'+esc(s.score)+'" data-regime="'+esc(rg)+'" ' +
-              'data-headline="'+esc(s.headline||"")+'" data-target="'+esc(s.top_setup_asset||"")+'" ' +
+              'data-headline="'+esc(s.headline||"")+'" data-target="'+esc(s.top_setup_asset||s.top_setup_instr||"")+'" ' +
               'data-loudest="'+esc(s.loudest_signal||"")+'"/>';
     });
 
@@ -147,7 +150,7 @@
         var target = dot.getAttribute("data-target");
         var loudest = dot.getAttribute("data-loudest");
         tt.innerHTML = '<div class="tt-ts">'+esc(tsShort(ts))+' UTC</div>' +
-                       '<div class="tt-score '+regime+'">score: '+esc(score)+' · '+esc(regime)+'</div>' +
+                       '<div class="tt-score '+esc(regime)+'">score: '+esc(score)+' · '+esc(regime)+'</div>' +
                        (target ? '<div style="color:#a8b3c7;font-size:10.5px;margin-top:2px">top target: <b style="color:#00d4ff">'+esc(target)+'</b></div>' : '') +
                        (headline ? '<div class="tt-headline">'+esc(headline.substring(0,200))+'</div>' : '') +
                        (loudest ? '<div class="tt-headline" style="color:#ff7a18">⚠ '+esc(loudest.substring(0,150))+'</div>' : '');
@@ -170,14 +173,21 @@
     var el = document.getElementById(elId); if (!el) return;
     el.classList.add("jhfh-wrap");
     el.innerHTML = '<div class="jhfh-loading">📈 loading 7-day anomaly history…</div>';
-    var url = PROXY + "/" + (contextSlug || DEFAULT_KEY) + ".json?t=" + Date.now();
-    return fetch(url).then(function(r) {
+    var key = contextSlug || DEFAULT_KEY;
+    if (!Object.prototype.hasOwnProperty.call(OUTPUT_URLS, key)) {
+      el.textContent = "Unsupported research history context.";
+      return Promise.resolve();
+    }
+    var url = OUTPUT_URLS[key] + "?t=" + Date.now();
+    return fetch(url, {cache: "no-store"}).then(function(r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     }).then(function(b) {
-      var snaps = b.snapshots || [];
+      if (!b || !Array.isArray(b.snapshots)) throw new Error("Invalid history schema");
+      var snaps = b.snapshots;
       var stats = b.stats_7d || {};
-      var events = b.events || [];
+      var events = Array.isArray(b.events) ? b.events : [];
+      var targeted = stats.most_targeted_assets || stats.most_targeted_instruments || [];
 
       var deltaSign = stats.score_delta_vs_mean_7d == null ? null : (stats.score_delta_vs_mean_7d >= 0 ? "+" : "");
       var deltaClass = stats.score_delta_vs_mean_7d == null ? "" : (stats.score_delta_vs_mean_7d > 5 ? "warn" : (stats.score_delta_vs_mean_7d < -5 ? "down" : ""));
@@ -204,11 +214,11 @@
                     '<div class="jhfh-tooltip"></div>' +
                   '</div>';
 
-      if (stats.most_targeted_assets && stats.most_targeted_assets.length) {
+      if (targeted.length) {
         html += '<div class="jhfh-targets-h">🎯 Most-targeted assets (last 7 days)</div>' +
                 '<div class="jhfh-targets">' +
-                  stats.most_targeted_assets.map(function(t) {
-                    return '<span class="jhfh-target-pill">' + esc(t.asset) + '<span class="n">×' + esc(t.n_times) + '</span></span>';
+                  targeted.map(function(t) {
+                    return '<span class="jhfh-target-pill">' + esc(t.asset || t.instrument) + '<span class="n">×' + esc(t.n_times) + '</span></span>';
                   }).join('') +
                 '</div>';
       }
@@ -216,13 +226,13 @@
       if (events.length) {
         html += '<div class="jhfh-events-h">⚠ Anomaly events (score ≥ 60 or EXTREME)</div>';
         events.forEach(function(e) {
-          var rg = (e.regime || "ELEVATED").toUpperCase();
-          html += '<div class="jhfh-event ' + rg + '">' +
+          var rg = String(e.regime || "UNKNOWN").toUpperCase();
+          html += '<div class="jhfh-event ' + esc(rg) + '">' +
                     '<div class="jhfh-event-head">' +
                       '<span class="jhfh-event-ts">' + esc(tsShort(e.ts)) + ' UTC</span>' +
-                      '<span class="jhfh-event-score ' + rg + '">score ' + esc(e.score) + '</span>' +
-                      '<span class="jhfh-event-regime ' + rg + '">' + esc(rg) + '</span>' +
-                      (e.top_setup_asset ? '<span class="jhfh-event-target">target: <b>' + esc(e.top_setup_asset) + '</b> ' + esc(e.top_setup_dir || '') + '</span>' : '') +
+                      '<span class="jhfh-event-score ' + esc(rg) + '">score ' + esc(e.score) + '</span>' +
+                      '<span class="jhfh-event-regime ' + esc(rg) + '">' + esc(rg) + '</span>' +
+                      ((e.top_setup_asset || e.top_setup_instr) ? '<span class="jhfh-event-target">target: <b>' + esc(e.top_setup_asset || e.top_setup_instr) + '</b> ' + esc(e.top_setup_dir || '') + '</span>' : '') +
                     '</div>' +
                     (e.headline ? '<div class="jhfh-event-headline">' + esc(e.headline) + '</div>' : '') +
                   '</div>';

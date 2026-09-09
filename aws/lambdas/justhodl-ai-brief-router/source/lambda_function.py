@@ -28,11 +28,36 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 
 from jhcore import s3io, kb
+from private_artifact import is_private_source
 
 REGISTRY_KEY = "config/ai-brief-contexts.json"
 EPISODE_REF_KEY = "data/episode-reference.json"
 MAX_WORKERS = 12  # 23 contexts → 2 batches; before was 6 → 4 batches
 DEFAULT_TIMEOUT = 95
+FRONTRUN_OUTPUT_KEY = "data/frontrun-sniffer.json"
+FRONTRUN_HISTORY_KEY = "data/frontrun-sniffer-history.json"
+MACRO_FRONTRUN_OUTPUT_KEY = "data/macro-frontrun-sniffer.json"
+MACRO_FRONTRUN_HISTORY_KEY = "data/macro-frontrun-sniffer-history.json"
+SNIFFER_CONTEXTS = {
+    "frontrun-sniffer": ("frontrun", "flow_sources"),
+    "macro-frontrun-sniffer": ("macro_frontrun", "pillar_feeds"),
+}
+
+
+def valid_sniffer_config(ctx_id, cfg):
+    """A context page has one source-owned output pair and public inputs only."""
+    expected = SNIFFER_CONTEXTS.get(ctx_id)
+    if not expected or not isinstance(cfg, dict):
+        return False
+    brief_type, feed_field = expected
+    feeds = cfg.get(feed_field)
+    return (cfg.get("brief_type") == brief_type and cfg.get("output_key") == ctx_id
+            and isinstance(feeds, dict) and bool(feeds)
+            and all(isinstance(key, str) and not is_private_source(key) for key in feeds.values()))
+
+
+def sniffer_config_error(ctx_id):
+    return {"context_id": ctx_id, "status": "ERR_CONFIG", "err": "sniffer_public_context_contract_mismatch"}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -1693,6 +1718,8 @@ CRITICAL: Pay special attention to RATES/MACRO front-runs because they often LEA
 
 
 def generate_frontrun_brief(ctx_id, cfg, episode_ref):
+    if ctx_id != "frontrun-sniffer" or not valid_sniffer_config(ctx_id, cfg):
+        return sniffer_config_error(ctx_id)
     t0 = time.time()
     result = {"context_id": ctx_id, "title": cfg.get("title"),
               "output_key": cfg.get("output_key"), "brief_type": "frontrun"}
@@ -1742,14 +1769,14 @@ def generate_frontrun_brief(ctx_id, cfg, episode_ref):
             "missing": sorted(set(flow_sources.keys()) - set(feeds.keys())),
             "prompt_len_chars": prompt_len,
         }
-        output_key = f"data/{cfg['output_key']}.json"
+        output_key = FRONTRUN_OUTPUT_KEY
         s3io.put_json(output_key, brief, cache_control="public, max-age=900")
 
         # ────────────────────────────────────────────────────────────
         # Append a compact snapshot to the 7-day history file
         # ────────────────────────────────────────────────────────────
         try:
-            history_key = f"data/{cfg['output_key']}-history.json"
+            history_key = FRONTRUN_HISTORY_KEY
             history = s3io.get_json(history_key, default={}) or {}
             snaps = history.get("snapshots") if isinstance(history, dict) else None
             if not isinstance(snaps, list):
@@ -2080,6 +2107,8 @@ Return EXACTLY this JSON. This is a PURE MACRO front-run read — equity microst
 
 
 def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
+    if ctx_id != "macro-frontrun-sniffer" or not valid_sniffer_config(ctx_id, cfg):
+        return sniffer_config_error(ctx_id)
     t0 = time.time()
     result = {"context_id": ctx_id, "title": cfg.get("title"),
               "output_key": cfg.get("output_key"), "brief_type": "macro_frontrun"}
@@ -2128,14 +2157,14 @@ def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
             "missing": sorted(set(pillar_feeds_cfg.keys()) - set(feeds.keys())),
             "prompt_len_chars": prompt_len,
         }
-        output_key = f"data/{cfg['output_key']}.json"
+        output_key = MACRO_FRONTRUN_OUTPUT_KEY
         s3io.put_json(output_key, brief, cache_control="public, max-age=900")
 
         # ────────────────────────────────────────────────────────────
         # 7-day history snapshot (separate file from equity sniffer)
         # ────────────────────────────────────────────────────────────
         try:
-            hist_key = f"data/{cfg['output_key']}-history.json"
+            hist_key = MACRO_FRONTRUN_HISTORY_KEY
             history = s3io.get_json(hist_key, default={}) or {}
             snaps = history.get("snapshots") if isinstance(history, dict) else None
             if not isinstance(snaps, list):
@@ -3664,7 +3693,15 @@ DET_FALLBACK_V2 = True  # ops 3435 gate marker
 
 
 def generate_one_brief(ctx_id, cfg, episode_ref):
+    is_sniffer = ctx_id in SNIFFER_CONTEXTS or cfg.get("brief_type") in ("frontrun", "macro_frontrun")
+    if is_sniffer and not valid_sniffer_config(ctx_id, cfg):
+        return sniffer_config_error(ctx_id)
     r = _generate_one_brief_core(ctx_id, cfg, episode_ref)
+    # Generic deterministic briefs have a different schema. Preserve the last
+    # valid dedicated brief on failure instead of replacing it with fake normal
+    # front-runner readings or using arbitrary fallback input/output aliases.
+    if is_sniffer:
+        return r
     try:
         if isinstance(r, dict) and str(r.get("status", "")).startswith("ERR"):
             det = _det_brief(ctx_id, cfg)

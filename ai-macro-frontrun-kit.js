@@ -10,10 +10,7 @@
  */
 (function () {
   if (window.JHAIMacroFront) return;
-  // Primary: S3 direct (always works since the bucket is public-read on /data/*)
-  // Fallback: Cloudflare Worker proxy (sometimes returns 403 due to misconfig)
-  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
-  var PROXY   = "https://justhodl-data-proxy.raafouis.workers.dev";
+  var OUTPUT_URL = "https://api.justhodl.ai/data/macro-frontrun-sniffer.json";
   var DEFAULT_KEY = "macro-frontrun-sniffer";
 
   function injectCSS() {
@@ -94,26 +91,23 @@
     var el = document.getElementById(elId); if (!el) return;
     el.classList.add("jhmf-wrap");
     el.innerHTML = '<div class="jhmf-loading">🏛 sniffing 20 macro/rates/auction pillars for dealer front-running…</div>';
-    var key = contextSlug || DEFAULT_KEY;
-    var ts = Date.now();
-    // Try S3 direct first; if that fails fall back to the Worker proxy.
-    var primary = S3_BASE + "/" + key + ".json?t=" + ts;
-    var fallback = PROXY + "/" + key + ".json?t=" + ts;
-    return fetch(primary).then(function (r) {
-      if (r.ok) return r.json();
-      return fetch(fallback).then(function (r2) {
-        if (!r2.ok) throw new Error("Both endpoints failed (S3=" + r.status + ", proxy=" + r2.status + ")");
-        return r2.json();
-      });
+    if (contextSlug && contextSlug !== DEFAULT_KEY) {
+      el.textContent = "Unsupported research context.";
+      return Promise.resolve();
+    }
+    return fetch(OUTPUT_URL + "?t=" + Date.now(), {cache: "no-store"}).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
     }).then(function (b) {
-      var regime = (b.macro_regime || "NORMAL").toUpperCase();
+      if (!b || b.brief_type !== "macro_frontrun" || b.context !== DEFAULT_KEY || b.mode === "deterministic") throw new Error("Dedicated research brief unavailable; latest payload has an incompatible schema");
+      var regime = String(b.macro_regime || "UNKNOWN").toUpperCase();
       var html = '';
 
       // HEADLINE
-      html += '<div class="jhmf-headline ' + regime + '">' +
+      html += '<div class="jhmf-headline ' + esc(regime) + '">' +
                 '<div class="jhmf-meta">' +
                   '<span class="jhmf-badge">🏛 MACRO FRONT-RUN · 20-PILLAR RATES/AUCTIONS/BONDS DEEP DIVE</span>' +
-                  '<span class="jhmf-regime-pill ' + regime + '">' + esc(regime) + '</span>' +
+                  '<span class="jhmf-regime-pill ' + esc(regime) + '">' + esc(regime) + '</span>' +
                   '<span class="jhmf-score-box"><span class="lbl">MACRO</span>' + esc(b.overall_macro_score == null ? '—' : b.overall_macro_score) + '/100</span>' +
                   '<span class="jhmf-age">' + esc(ageStr(b.generated_at)) + '</span>' +
                 '</div>' +
@@ -145,12 +139,12 @@
       if (b.macro_setups && b.macro_setups.length) {
         html += '<div class="jhmf-section-h">🎯 Macro Setups — convergent across 3+ rates/macro pillars</div>';
         b.macro_setups.forEach(function (sx) {
-          var conf = (sx.confidence || "MEDIUM").toUpperCase();
-          html += '<div class="jhmf-setup ' + conf + '">' +
+          var conf = String(sx.confidence || "UNKNOWN").toUpperCase();
+          html += '<div class="jhmf-setup ' + esc(conf) + '">' +
                     '<div class="jhmf-setup-head">' +
                       '<span class="jhmf-setup-rank">#' + esc(sx.rank) + '</span>' +
                       '<span class="jhmf-setup-type">' + esc(sx.setup_type || '—') + '</span>' +
-                      '<span class="jhmf-setup-conf ' + conf + '">conf: ' + esc(conf) + '</span>' +
+                      '<span class="jhmf-setup-conf ' + esc(conf) + '">conf: ' + esc(conf) + '</span>' +
                     '</div>' +
                     (sx.headline ? '<div class="jhmf-setup-headline">' + esc(sx.headline) + '</div>' : '') +
                     (sx.thesis ? '<div class="jhmf-setup-thesis">' + esc(sx.thesis) + '</div>' : '') +
@@ -187,12 +181,12 @@
       if (b.upcoming_macro_catalysts && b.upcoming_macro_catalysts.length) {
         html += '<div class="jhmf-section-h">📅 Upcoming Macro Catalysts — what dealers are positioning for</div>';
         b.upcoming_macro_catalysts.forEach(function (c) {
-          var strength = (c.front_run_signal_strength || "NONE").toUpperCase();
+          var strength = String(c.front_run_signal_strength || "UNKNOWN").toUpperCase();
           html += '<div class="jhmf-cal">' +
                     '<div class="jhmf-cal-hdr">' +
                       '<span class="jhmf-cal-event">' + esc(c.event) + '</span>' +
                       (c.date ? '<span class="jhmf-cal-date">' + esc(c.date) + '</span>' : '') +
-                      '<span class="jhmf-cal-strength ' + strength + '">' + esc(strength) + '</span>' +
+                      '<span class="jhmf-cal-strength ' + esc(strength) + '">' + esc(strength) + '</span>' +
                     '</div>' +
                     '<div class="jhmf-cal-body">' +
                       (c.consensus ? '<div><span class="lbl">consensus:</span><b>' + esc(c.consensus) + '</b></div>' : '') +

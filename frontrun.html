@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-ai-brief-router">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Front-Run Sniffer · JustHodl.AI</title>
@@ -94,11 +95,11 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
 
   <!-- THE SNIFFER OUTPUT — the whole page payload -->
   <div id="ai-frontrun"></div>
-  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
+  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer").catch(function(){});</script>
 
   <!-- 7-DAY HISTORY PANEL — score trajectory + events table -->
   <div id="ai-frontrun-history"></div>
-  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history").catch(function(){});</script>
 
   <section class="meth-section">
     <div class="meth-h">📐 How the sniffer works — 35+ flow feeds across 11 categories</div>
