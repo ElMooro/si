@@ -1,4 +1,9 @@
-"""Reconcile current qualified core-layer consumers without guessing prior state."""
+"""Reconcile after the reviewed 70-function batch and all three successful follow-ups.
+
+The original batch's sole failure was research-backtest; its exact recovery run
+is now a required successful dependency. Per-function source parity is checked
+again by operation5231. No cloud calls occur while these follow-ups are active.
+"""
 import json
 import subprocess
 import sys

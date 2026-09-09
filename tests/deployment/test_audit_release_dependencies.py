@@ -14,7 +14,7 @@ def receipt(run_id, **changes):
 
 def test_all_exact_success_receipts_required_before_return():
     rows=dependencies.await_releases(read=receipt, pause=lambda _:None)
-    assert len(rows)==2 and all(row['conclusion']=='success' for row in rows)
+    assert len(rows)==len(dependencies.RELEASES) and all(row['conclusion']=='success' for row in rows)
 
 
 def test_failed_cancelled_or_wrong_source_receipt_blocks():
@@ -31,7 +31,7 @@ def test_waiting_release_must_complete_or_reach_bounded_deadline():
     def read(run_id):
         return receipt(run_id, status='in_progress', conclusion=None) if ticks[0]<30 else receipt(run_id)
     rows=dependencies.await_releases(read=read,clock=lambda:ticks[0],pause=pause,timeout=60)
-    assert len(rows)==2 and ticks[0]==30
+    assert len(rows)==len(dependencies.RELEASES) and ticks[0]==30
     try:dependencies.await_releases(read=lambda run_id:receipt(run_id,status='queued',conclusion=None),
                                    clock=lambda:ticks[0],pause=pause,timeout=30)
     except dependencies.DependencyError as error:assert str(error)=='required_release_wait_expired'

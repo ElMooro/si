@@ -53,6 +53,7 @@ function installFetch(state) {
     }
     if (url.includes("/rest/v1/profiles")) {
       state.profileWrites.push(JSON.parse(init.body));
+      state.profileWriteStarted?.();
       if(state.profileBarrier)await state.profileBarrier;
       return new Response("", { status: state.profileStatus || 201 });
     }
@@ -116,6 +117,7 @@ function fresh(seed) {
       object.ready=import(pathToFileURL(WORKER).href).then(({WorkspaceCoordinator})=>{object.instance=new WorkspaceCoordinator({storage},env)});
     }
     await objects.get(name).ready;
+    state.coordinatorRequestStarted?.(name);
     return objects.get(name).instance.fetch(request);
   }}}};
   return { state, kv, env, objects };
@@ -315,12 +317,16 @@ test('billing does not consume historical status when Stripe is unavailable; lat
   assert.equal((await w.fetch(delivery(),env,{})).status,200);assert.equal(kv._m.get('plan:'+OTHER_UID),'pro');
   assert.ok(objects.get('billing:'+OTHER_UID).data.has('billing:event:evt_residual'));
 });
-test('billing duplicate deliveries are serialized across external awaits and durable restarts', async()=>{
+test('billing duplicate deliveries are serialized across external awaits and durable restarts', {timeout:5000}, async()=>{
   const {env,state,objects}=fresh();const w=await worker();state.subscription={id:'sub_current',status:'active',items:{data:[{price:{id:'price_pro_123'}}]}};
   let release;state.profileBarrier=new Promise(resolve=>release=resolve);
+  const profileStarted=new Promise(resolve=>state.profileWriteStarted=resolve);
   const first=w.fetch(delivery(),env,{});
-  for(let i=0;i<100&&state.profileWrites.length===0;i++)await new Promise(setImmediate);
-  assert.equal(state.profileWrites.length,1);const second=w.fetch(delivery(),env,{});
+  await profileStarted;
+  assert.equal(state.profileWrites.length,1);
+  const secondStarted=new Promise(resolve=>state.coordinatorRequestStarted=resolve);
+  const second=w.fetch(delivery(),env,{});
+  await secondStarted;
   await new Promise(setImmediate);assert.equal(state.profileWrites.length,1,'second delivery cannot overtake a pending external write');
   release();const pair=await Promise.all([first,second]);assert.deepEqual(pair.map(r=>r.status),[200,200]);assert.equal(state.profileWrites.length,1);
   const obj=objects.get('billing:'+OTHER_UID);const {WorkspaceCoordinator}=await import(pathToFileURL(WORKER).href);obj.instance=new WorkspaceCoordinator({storage:obj.storage},env);
