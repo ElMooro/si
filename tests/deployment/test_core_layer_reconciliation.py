@@ -88,6 +88,32 @@ def test_only_core_layer_and_fred_differences_are_permitted_by_drift_comparison(
     assert live['Environment']['Variables']['FRED_API_KEY']=='previous-private-value'
 
 
+def test_unique_sdk_request_metadata_does_not_create_configuration_drift():
+    class RealisticResponses(LambdaFixture):
+        def __init__(self):
+            super().__init__()
+            self.latest['ResponseMetadata']={'RequestId':'latest-initial','HTTPStatusCode':200}
+            self.versions['7']['ResponseMetadata']={'RequestId':'qualified-initial','HTTPStatusCode':200}
+            self.reads=0
+        def get_function_configuration(self,**kwargs):
+            response=super().get_function_configuration(**kwargs)
+            self.reads+=1
+            response['ResponseMetadata']={'RequestId':'read-'+str(self.reads),'HTTPStatusCode':200,
+                                          'HTTPHeaders':{'x-amzn-requestid':'read-'+str(self.reads)},'RetryAttempts':0}
+            return response
+    client=RealisticResponses()
+    result=reconcile(client)
+    assert result['status']=='VERIFIED_CURRENT_STATE' and result['alias_promoted'] is True
+    assert [name for name,_ in client.calls]==['update_configuration','publish_version','update_alias']
+    client.calls.clear()
+    assert reconcile(client)['status']=='VERIFIED_CURRENT_STATE' and client.calls==[]
+    # Removing transport metadata must not hide actual configuration drift.
+    client.latest['Timeout']=901
+    blocked=reconcile(client)
+    assert blocked['reason']=='UNEXPLAINED_CONFIGURATION_DRIFT'
+    assert blocked['differing_fields']==['Timeout'] and client.calls==[]
+
+
 def test_live_only_old_layer_consumer_is_discovered_and_blocked_not_silently_skipped():
     client=LambdaFixture();client.latest['Layers']=[{'Arn':OTHER}]
     found=list(core.discover(client,PREFIX))

@@ -13,7 +13,7 @@ import io
 import zipfile
 
 FRED_KEYS = {'FRED_API_KEY', 'FRED_KEY'}
-RESPONSE_METADATA = {'FunctionName', 'FunctionArn', 'Version', 'RevisionId', 'LastModified',
+RESPONSE_METADATA = {'ResponseMetadata', 'FunctionName', 'FunctionArn', 'Version', 'RevisionId', 'LastModified',
                      'LastUpdateStatus', 'LastUpdateStatusReason', 'LastUpdateStatusReasonCode',
                      'State', 'StateReason', 'StateReasonCode', 'CodeSha256', 'CodeSize'}
 
