@@ -44,14 +44,15 @@ def _iso(hours_ago):
 
 
 def _gate(posture="RISK_ON", sizing=1.0, hours_ago=2):
-    return {"posture": posture, "sizing_multiplier": sizing, "generated_at": _iso(hours_ago)}
+    return {"engine":"justhodl-risk-gate", "posture": posture, "sizing_multiplier": sizing, "generated_at": _iso(hours_ago)}
 
 
 def _auth(cap=50, allows=True, mode="SELECTIVE", hours_ago=1, vetoes=None):
-    return {"generated_at": _iso(hours_ago), "schema_version": "khalid-risk.v1", "status": "OK",
-            "capital_decision": "INVEST SELECTIVELY", "exposure_cap_pct": cap,
-            "policy": {"mode": mode, "allows_new_entries": allows, "exposure_cap_pct": cap, "reasons": ["test"]},
-            "hard_vetoes": vetoes or []}
+    ts = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
+    return {"engine":"justhodl-khalid-risk", "schema_version":"1.0.0", "generated_at":ts.isoformat(), "expires_at":(ts+timedelta(hours=24)).isoformat(), "status":"OK",
+            "capital_decision":"INVEST SELECTIVELY", "exposure_cap_pct":cap, "policy":{"mode":mode,"allows_new_entries":allows,"exposure_cap_pct":cap,"reasons":["test"]},
+            "hard_vetoes":vetoes or [], "critical_failures":[], "source_health":[{"name":"risk_gate","critical":True,"status":"FRESH","as_of":ts.isoformat(),"max_age_h":24.0}]}
+
 
 
 def test_authority_cap_binds_and_desk_opinion_is_kept_separately(mod):
@@ -87,7 +88,7 @@ def test_stale_authority_is_a_data_hold_even_with_a_fresh_gate(mod):
     wr = mod.war_room({"risk_gate": _gate(sizing=1.0), "khalid_risk": _auth(cap=100, hours_ago=30)})
     assert wr["authority"]["status"] == "STALE"
     assert wr["posture"] == "DATA_HOLD" and wr["exposure_cap_pct"] == 0 and wr["entries_allowed"] is False
-    assert "STALE" in wr["hold_reasons"][0]
+    assert any("STALE" in reason for reason in wr["hold_reasons"])
 
 
 def test_zero_sizing_multiplier_is_a_zero_cap(mod):
@@ -107,6 +108,64 @@ def test_missing_authority_never_increases_the_cap(mod):
     fresh = mod.war_room({"risk_gate": _gate(sizing=0.75), "khalid_risk": _auth(cap=100)})
     absent = mod.war_room({"risk_gate": _gate(sizing=0.75)})
     assert absent["exposure_cap_pct"] <= fresh["exposure_cap_pct"]
+
+
+def test_future_invalid_and_stale_local_evidence_cannot_permit_capital(mod):
+    bad_authorities=[_auth(hours_ago=-10000),dict(_auth(),schema_version="wrong"),dict(_auth(),status="INVALID")]
+    for authority in bad_authorities:
+        out=mod.war_room({"risk_gate":_gate(),"khalid_risk":authority})
+        assert out["entries_allowed"] is False and out["exposure_cap_pct"]==0, out
+    out=mod.war_room({"risk_gate":_gate(hours_ago=10000),"khalid_risk":_auth(cap=100)})
+    assert out["posture"]=="DATA_HOLD" and out["exposure_cap_pct"]==0
+    assert out["local"]["posture"]=="UNKNOWN", "stale raw gate cannot remain the sole research leg"
+
+
+def test_permission_expiry_never_outlives_authority(mod):
+    authority=_auth()
+    out=mod.war_room({"risk_gate":_gate(),"khalid_risk":authority})
+    assert datetime.fromisoformat(out["expires_at"]) <= datetime.fromisoformat(authority["expires_at"])
+    assert out["authority"]["schema_version"]=="1.0.0"
+
+
+def test_basket_redistribution_never_exceeds_name_or_total_cap(mod):
+    rows=[{"ticker":"S%d"%i,"tier":"READY","asset_class":"stock","learned_excess_126s_pct":100 if i==0 else 2,"vol_ann_pct":25,"composite":80} for i in range(3)]
+    out=mod.build_basket(rows,{"exposure_cap_pct":100,"entries_allowed":True,"posture":"FULL_RISK"})
+    assert all(r["weight_pct"]<=10 for r in out["core"]), out
+    assert sum(r["weight_pct"] for r in out["core"])==30 and out["cash_pct"]==70
+    assert out["constraints_valid"]
+
+
+def test_permission_refresh_preserves_research_age_and_uses_conditional_write(mod):
+    import io,json
+    class FakeS3:
+        def __init__(self,research,conflict=False):
+            self.research,self.conflict,self.writes=research,conflict,[]
+        def get_object(self,**kw):
+            data=self.research if kw["Key"]==mod.OUT_KEY else _gate() if kw["Key"]=="data/risk-gate.json" else _auth() if kw["Key"]=="data/khalid-risk.json" else {}
+            return {"Body":io.BytesIO(json.dumps(data).encode()),"ETag":"version-one"}
+        def put_object(self,**kw):
+            assert kw.get("IfMatch")=="version-one", "refresh must not overwrite a concurrently rebuilt ranking"
+            if self.conflict:
+                exc=RuntimeError("concurrent research");exc.response={"Error":{"Code":"PreconditionFailed"}};raise exc
+            self.writes.append(json.loads(kw["Body"]))
+    research_at=_iso(1)
+    research={"engine":mod.ENGINE,"generated_at":research_at,"session":datetime.now(timezone.utc).date().isoformat(),"picks":[]}
+    old=mod.s3
+    try:
+        fake=FakeS3(research);mod.s3=fake
+        result=mod.lambda_handler({"mode":"permission_refresh"})
+        assert result["ok"] and result["research_generated_at"]==research_at
+        assert fake.writes[0]["research_generated_at"]==research_at and fake.writes[0]["war_room"]["entries_allowed"]
+        stale=dict(fake.writes[0],research_generated_at="2000-01-01T00:00:00Z")
+        fake=FakeS3(stale);mod.s3=fake
+        result=mod.lambda_handler({"mode":"permission_refresh"})
+        assert result["research_status"]=="STALE" and fake.writes[0]["war_room"]["exposure_cap_pct"]==0
+        assert fake.writes[0]["research_generated_at"]=="2000-01-01T00:00:00Z"
+        fake=FakeS3(research,conflict=True);mod.s3=fake
+        result=mod.lambda_handler({"mode":"permission_refresh"})
+        assert result["status"]=="RESEARCH_CHANGED" and fake.writes==[]
+    finally:
+        mod.s3=old
 
 
 if __name__ == "__main__":

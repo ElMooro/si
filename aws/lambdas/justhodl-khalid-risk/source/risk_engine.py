@@ -11,6 +11,7 @@ import json
 import math
 from datetime import date, datetime, time, timezone
 from typing import Any
+from capital_contract import authority_expiry
 
 SCHEMA_VERSION = "1.0.0"
 MAX_FUTURE_SKEW_HOURS = 5 / 60
@@ -490,6 +491,7 @@ def build_output(registry: dict, feeds: dict[str,dict], metas: dict[str,dict], n
         + " Missing or stale critical evidence never counts as an all-clear."
     )
     payload={"engine":"justhodl-khalid-risk","schema_version":SCHEMA_VERSION,"version":SCHEMA_VERSION,"generated_at":now.astimezone(timezone.utc).isoformat(),"as_of":max((str(h["as_of"]) for h in health if h["status"]=="FRESH" and h.get("as_of")),default=None),"status":status,"policy":policy,"capital_decision":decision,"exposure_cap_pct":policy["exposure_cap_pct"],"risk_score":board["risk_score"],"plain_english":plain_english,"coverage":coverage,"freshness":freshness,"treasury_fails":treasury_fails,"domains":board["domains"],"hard_vetoes":board["hard_vetoes"],"tighteners":board["tighteners"],"conflicts":board["conflicts"],"source_health":health,"missing_inputs":[h for h in health if h["status"]!="FRESH"],"critical_failures":critical_bad,"reasons":policy["reasons"],"risk_board":board,"fusion_context":fusion_context,"methodology":{"authority":"Master risk gate establishes the loosest possible policy; every other rule can only tighten or veto.","aggregation":"No mega-average is authoritative. risk_score is only the maximum fresh observed domain for display.","criticality":registry.get("criticality_policy"),"settlement_fails":"Weekly observation freshness uses treasury.as_of with a 240-hour SLA. Fresh STRESS tightens; fresh CRISIS vetoes."}}
+    payload["expires_at"] = authority_expiry(payload["generated_at"], health)
     validate_output(payload); return payload
 
 
@@ -499,11 +501,17 @@ def validate_output(payload: dict) -> None:
     if missing: raise ValueError("missing output keys: "+", ".join(sorted(missing)))
     if payload.get("schema_version")!=SCHEMA_VERSION or payload.get("version")!=SCHEMA_VERSION: raise ValueError("schema/version mismatch")
     if payload.get("status") not in {"OK","DEGRADED","DATA_HOLD"}: raise ValueError("invalid status")
+    if payload.get("engine") != "justhodl-khalid-risk": raise ValueError("producer mismatch")
+    if parse_time(payload.get("expires_at")) is None: raise ValueError("missing authority expiry")
     policy=mapping(payload.get("policy"))
+    if not isinstance(policy.get("allows_new_entries"), bool): raise ValueError("entry permission must be boolean")
     if policy.get("mode") not in MODES: raise ValueError("invalid policy mode")
     if payload.get("capital_decision") not in DECISIONS or payload.get("capital_decision")!=mapping(payload.get("risk_board")).get("capital_decision"): raise ValueError("capital decision mismatch")
     cap=number(payload.get("exposure_cap_pct"))
     if cap is None or not 0<=cap<=100 or cap!=number(policy.get("exposure_cap_pct")): raise ValueError("exposure cap invalid or inconsistent")
+    if policy.get("mode") == "DATA_HOLD" and (cap != 0 or policy["allows_new_entries"]): raise ValueError("DATA_HOLD cannot permit capital")
+    if policy["allows_new_entries"] and (payload.get("hard_vetoes") or payload.get("critical_failures")): raise ValueError("veto/critical failure cannot permit entries")
+    if payload.get("expires_at") != authority_expiry(payload.get("generated_at"), payload.get("source_health")): raise ValueError("authority expiry does not match input deadlines")
     risk=number(payload.get("risk_score"))
     if payload.get("risk_score") is not None and (risk is None or not 0<=risk<=100): raise ValueError("risk score invalid")
     if not isinstance(payload.get("domains"),list) or not isinstance(payload.get("source_health"),list): raise ValueError("domains/source health must be lists")

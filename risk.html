@@ -254,6 +254,7 @@ table.tbl tr:last-child td{border-bottom:none}
 <div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
 
 </div>
+<section id="capital-evidence" class="card" style="margin:20px;padding:16px;overflow-wrap:anywhere"></section>
 </main>
 
 <footer class="footer">
@@ -263,9 +264,12 @@ table.tbl tr:last-child td{border-bottom:none}
   </div>
 </footer>
 
+<script src="/capital-view.js"></script>
 <script>
 const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com';
 const SRC = `${S3}/risk/recommendations.json`;
+setInterval(renderRiskEvidence,30000);
+document.addEventListener("visibilitychange",renderRiskEvidence);
 
 function fmt$(n,d=2){if(n==null||isNaN(n))return'—';const a=Math.abs(n);if(a>=1e12)return'$'+(n/1e12).toFixed(d)+'T';if(a>=1e9)return'$'+(n/1e9).toFixed(d)+'B';if(a>=1e6)return'$'+(n/1e6).toFixed(d)+'M';if(a>=1e3)return'$'+(n/1e3).toFixed(d)+'K';return'$'+n.toFixed(d)}
 function fmtNum(n,d=1){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -275,6 +279,7 @@ function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>(
 function setCell(name,value,sub,subClass=''){const cell=document.querySelector(`[data-cell="${name}"]`);if(!cell)return;cell.querySelector('.strip-value').textContent=value;const subEl=cell.querySelector('.strip-sub');subEl.textContent=sub;subEl.className='strip-sub'+(subClass?' '+subClass:'')}
 function updateClock(){document.getElementById('clock').textContent=new Date().toISOString().slice(11,16)+' UTC'}
 
+let riskEvidence=null;
 async function load(){
   let d;
   try{
@@ -289,6 +294,14 @@ async function load(){
   }
 
   // ── Strip
+  riskEvidence=d;
+  JHCapitalView.renderEvidence('capital-evidence',d);
+  renderRiskEvidence();
+}
+function renderRiskEvidence(){
+  if(!riskEvidence)return;
+  const failures=JHCapitalView.permissionErrors(riskEvidence,'risk-sizer');
+  const d=JHCapitalView.restrictedCopy(riskEvidence,'risk-sizer',failures);
   const regime = d.regime || 'NEUTRAL';
   const regimeStr = d.regime_strength;
   const regimeCls = regime === 'RISK_ON' ? 'green' : regime === 'RISK_OFF' ? 'red' : 'cyan';

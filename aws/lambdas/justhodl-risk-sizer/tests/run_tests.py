@@ -48,8 +48,21 @@ def _iso(hours_ago=1):
 
 
 def _auth(cap=100, allows=True, mode="SELECTIVE_RISK_ON", hours_ago=1):
-    return {"generated_at": _iso(hours_ago), "status": "OK", "exposure_cap_pct": cap,
-            "policy": {"mode": mode, "allows_new_entries": allows, "exposure_cap_pct": cap}, "hard_vetoes": []}
+    ts = datetime.now(timezone.utc) - timedelta(hours=hours_ago)
+    return {"engine": "justhodl-khalid-risk", "schema_version": "1.0.0", "generated_at": ts.isoformat(), "expires_at": (ts+timedelta(hours=24)).isoformat(),
+            "status": "OK", "exposure_cap_pct": cap, "policy": {"mode": mode, "allows_new_entries": allows, "exposure_cap_pct": cap}, "hard_vetoes": [], "critical_failures": [],
+            "source_health": [{"name":"risk_gate", "critical":True, "status":"FRESH", "as_of":ts.isoformat(), "max_age_h":24.0}]}
+
+
+def _book(positions=None, nav=100000, cash=None, hours_ago=1, orders=None):
+    positions = [dict(p, valuation_status=p.get("valuation_status", "PRICED"), mark_age_h=p.get("mark_age_h", 1.0), sector=p.get("sector", "Tech")) for p in (positions or [])]
+    orders = orders or []
+    net = sum(p.get("market_value") or 0 for p in positions)
+    return {"capital_book": {"schema_version":"1.0", "status":"READY", "allows_new_entries":True, "book_id":"book-test", "account_id":"account-test", "currency":"USD",
+            "as_of":_iso(hours_ago), "reconciled_at":_iso(hours_ago), "equity_nav":nav, "cash":nav-net if cash is None else cash, "liabilities":0.0,
+            "gross_exposure":sum(abs(p.get("market_value") or 0) for p in positions), "net_exposure":net,
+            "reserved_order_exposure":sum(o["remaining_exposure"] for o in orders), "open_orders":orders, "positions":positions, "unpriced_positions":[],
+            "nav_history":[{"as_of":_iso(25),"equity_nav":nav,"book_id":"book-test","account_id":"account-test"}, {"as_of":_iso(hours_ago),"equity_nav":nav,"book_id":"book-test","account_id":"account-test"}]}}
 
 
 def _base_docs(**over):
@@ -62,10 +75,10 @@ def _base_docs(**over):
         "investor-debate/_index.json": {"n_tickers": 0, "tickers": {}},
         "regime/current.json": {"regime": "RISK_ON"},
         "portfolio/pnl-history.json": {"snapshots": [{"as_of": "2026-09-01", "khalid_strategy_value_usd": 100.0}, {"as_of": "2026-09-08", "khalid_strategy_value_usd": 101.0}]},
-        "portfolio/snapshot.json": {"positions": [], "portfolio_summary": {"total_market_value": 0}},
+        "portfolio/snapshot.json": _book(),
         "data/report.json": {"stocks": {}},
         "data/khalid-risk.json": _auth(),
-        "data/risk-gate.json": {"sizing_multiplier": 1.0, "generated_at": _iso(2)},
+        "data/risk-gate.json": {"engine":"justhodl-risk-gate", "posture":"RISK_ON", "sizing_multiplier": 1.0, "generated_at": _iso(2)},
     }
     d.update(over)
     return d
@@ -121,17 +134,17 @@ def test_missing_or_stale_authority_is_a_hold_not_a_default():
 
 
 def test_unknown_drawdown_holds_and_zero_gate_multiplier_is_zero():
-    mod, out = _run(_base_docs(**{"portfolio/pnl-history.json": {"snapshots": []}}))
+    missing = _book(); missing["capital_book"]["nav_history"] = []
+    mod, out = _run(_base_docs(**{"portfolio/snapshot.json": missing}))
     assert out["drawdown_status"]["status"] == "UNKNOWN" and out["entries_allowed"] is False
     assert all(r["recommended_size_pct"] == 0.0 for r in out["sized_recommendations"])
-    mod, out = _run(_base_docs(**{"data/risk-gate.json": {"sizing_multiplier": 0.0, "generated_at": _iso(1)}}))
+    mod, out = _run(_base_docs(**{"data/risk-gate.json": {"engine":"justhodl-risk-gate", "posture":"SEVERE", "sizing_multiplier": 0.0, "generated_at": _iso(1)}}))
     assert out["risk_gate"]["sizing_multiplier"] == 0.0
     assert all(r["recommended_size_pct"] == 0.0 for r in out["sized_recommendations"])
 
 
 def test_existing_book_is_netted_and_counts_against_gross():
-    docs = _base_docs(**{"portfolio/snapshot.json": {"positions": [{"symbol": "AAA", "market_value": 6000}, {"symbol": "ZZZ", "market_value": 90000}],
-                                                     "portfolio_summary": {"total_market_value": 100000}}})
+    docs = _base_docs(**{"portfolio/snapshot.json": _book([{"symbol":"AAA", "market_value":6000, "sector":"Tech"}, {"symbol":"ZZZ", "market_value":90000, "sector":"Other"}])})
     mod, out = _run(docs)
     aaa = next(r for r in out["sized_recommendations"] if r["symbol"] == "AAA")
     assert aaa["currently_held_pct"] == 6.0
@@ -146,6 +159,69 @@ def test_empty_pipeline_replaces_the_previous_actionable_book():
     out = s3.writes.get("risk/recommendations.json")
     assert out and out["status"] == "NO_IDEAS" and out["sized_recommendations"] == []
     assert "data/risk-sizer.json" in s3.writes
+
+
+def test_missing_unpriced_stale_and_short_books_do_not_create_capacity():
+    missing = {}
+    unpriced = _book([{"symbol":"HELD","market_value":None,"valuation_status":"UNPRICED"}]); unpriced["capital_book"]["unpriced_positions"]=["HELD"]
+    stale = _book(hours_ago=1000)
+    shorts = _book([{"symbol":"LONG","market_value":100000},{"symbol":"SHORT","market_value":-100000}])
+    for book in (missing, unpriced, stale):
+        _, out = _run(_base_docs(**{"portfolio/snapshot.json":book}))
+        assert out["entries_allowed"] is False and out["book"]["status"] == "BLOCKED", out
+        assert sum(r["recommended_size_pct"] for r in out["sized_recommendations"]) == 0
+    _, out = _run(_base_docs(**{"portfolio/snapshot.json":shorts}))
+    assert out["book"]["gross_pct"] == 200 and out["book"]["available_gross_pct"] == 0
+    assert sum(r["recommended_size_pct"] for r in out["sized_recommendations"]) == 0
+
+
+def test_nav_and_order_reservations_define_capacity_not_position_sum():
+    book = _book([{"symbol":"ZZZ","market_value":20000,"sector":"Other"}], orders=[{"symbol":"AAA","remaining_exposure":6000,"sector":"Tech"}])
+    _, out = _run(_base_docs(**{"portfolio/snapshot.json":book}))
+    assert out["book"]["gross_pct"] == 26 and out["book"]["available_gross_pct"] == 74, out["book"]
+    aaa = next(r for r in out["sized_recommendations"] if r["symbol"]=="AAA")
+    assert aaa["currently_held_pct"] == 6 and aaa["recommended_size_pct"] <= 2
+
+
+def test_future_malformed_and_expired_authority_fails_closed():
+    bad=[]
+    future=_auth(hours_ago=-24*365); bad.append(future)
+    for cap in ("NaN", float("nan"), float("inf"), True, -1, 101):
+        a=_auth();a["exposure_cap_pct"]=cap;a["policy"]["exposure_cap_pct"]=cap;bad.append(a)
+    a=_auth();a["schema_version"]="wrong";bad.append(a)
+    a=_auth();a["status"]="INVALID";bad.append(a)
+    a=_auth();a["expires_at"]=_iso(1);bad.append(a)
+    for a in bad:
+        _, out=_run(_base_docs(**{"data/khalid-risk.json":a}))
+        assert out["entries_allowed"] is False and all(r["recommended_size_pct"]==0 for r in out["sized_recommendations"]), out
+
+
+def test_rounding_never_publishes_over_budget_rows():
+    ideas=[{"symbol":"S%d"%i,"sector":"Sector%d"%i,"dims_passed":4,"composite_score":95} for i in range(18)]
+    _, out=_run(_base_docs(**{"data/khalid-risk.json":_auth(cap=1),"opportunities/asymmetric-equity.json":{"top_setups":ideas}}))
+    total=sum(r["recommended_size_pct"] for r in out["sized_recommendations"])
+    assert 0 < total <= 1.0, total
+    assert out["final_constraint_check"]["gross_ok"] and out["entries_allowed"]
+
+
+def test_existing_cluster_exposure_and_same_symbol_lots_aggregate():
+    book=_book([{"symbol":"ZZZ","market_value":24000,"sector":"Tech"},{"symbol":"AAA","market_value":1000,"sector":"Tech"}])
+    _,out=_run(_base_docs(**{"portfolio/snapshot.json":book}))
+    aaa=next(r for r in out["sized_recommendations"] if r["symbol"]=="AAA")
+    assert aaa["recommended_size_pct"]==0, aaa
+    lots=_book([{"symbol":"AAA","market_value":3000},{"symbol":"AAA","market_value":4000}])
+    _,out=_run(_base_docs(**{"portfolio/snapshot.json":lots}))
+    aaa=next(r for r in out["sized_recommendations"] if r["symbol"]=="AAA")
+    assert aaa["currently_held_pct"]==7 and aaa["recommended_size_pct"]<=1
+
+
+def test_another_book_nav_history_and_unreconciled_orders_hold():
+    book=_book();book["capital_book"]["nav_history"][-1]["account_id"]="other-account"
+    _,out=_run(_base_docs(**{"portfolio/snapshot.json":book}))
+    assert out["entries_allowed"] is False
+    book=_book();book["capital_book"]["reserved_order_exposure"]=5000
+    _,out=_run(_base_docs(**{"portfolio/snapshot.json":book}))
+    assert out["entries_allowed"] is False
 
 
 if __name__ == "__main__":

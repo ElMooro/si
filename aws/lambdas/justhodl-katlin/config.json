@@ -30,5 +30,17 @@
     "timezone": "UTC",
     "input": "{\"mode\":\"backtest\"}",
     "note": "created by the launch ops (workflow handles only the primary block)"
-  }
+  },
+  "eventbridge_schedulers_extra": [
+    {
+      "schedule_name": "justhodl-katlin-permission-refresh",
+      "expression": "rate(15 minutes)",
+      "timezone": "UTC",
+      "input": {
+        "mode": "permission_refresh"
+      },
+      "target_alias": "live",
+      "description": "Refresh permission only; preserve original research/market dates and hold expired research"
+    }
+  ]
 }

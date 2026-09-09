@@ -201,6 +201,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 <footer>KATLIN · justhodl-katlin · reads only JustHodl warehouse data (Polygon bar store, fleet engines) · <a href="/data/katlin.json" target="_blank" rel="noopener">raw feed</a> · <a href="/fortress.html">Fortress</a> · <a href="/bonds.html">Bonds war room</a> · <a href="/">Command desk</a></footer>
 </div>
 
+<section id="capital-evidence" class="wr-panel" style="margin:20px;padding:16px;overflow-wrap:anywhere"></section>
+<script src="/capital-view.js"></script>
 <script>
 (function () {
   var FEEDS = ["/data/katlin.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/katlin.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/katlin.json"];
@@ -359,7 +361,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     $("wr-banner").className = "wr-banner " + esc(w.posture || "UNKNOWN");
     $("wr-headline").textContent = w.words || "";
     $("wr-brief").textContent = (w.brief || "") + ((D.history && D.history.text) ? " " + D.history.text : "");
-    $("wr-fresh").textContent = "session " + (D.session || "") + " · generated " + ago(D.generated_at) + " · " + (w.legs || []).length + " legs" + (w.missing && w.missing.length ? " · missing: " + w.missing.join(", ") : "");
+    $("wr-fresh").textContent = "session " + (D.session || "") + " · permission updated " + ago(D.permission_refreshed_at || D.generated_at) + " · research " + ago(D.research_generated_at || D.generated_at) + " (" + (D.research_status || "unknown") + ") · " + (w.legs || []).length + " legs" + (w.missing && w.missing.length ? " · missing: " + w.missing.join(", ") : "");
     var A = w.authority || {}, L = w.local || {}, G = w.raw_gate || {};
     var authOk = A.status === "FRESH";
     $("wr-auth").innerHTML =
@@ -438,10 +440,18 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     renderBoard(); renderBasket(); renderChanges(); renderValidation(); renderDefs();
     var first = (D.picks || [])[0]; if (first && !selected) { selected = first.ticker; renderEvidence(); renderBoard(); }
   }
+  var lastEvidence = null;
+  function displayCurrentEvidence() {
+    if (!lastEvidence) return;
+    var failures = JHCapitalView.permissionErrors(lastEvidence, 'katlin');
+    D = JHCapitalView.restrictedCopy(lastEvidence, 'katlin', failures);
+    $("errbox").textContent = failures.join(' · ');
+    renderAll();
+  }
   function load(i) {
     i = i || 0;
     if (i >= FEEDS.length) { $("errbox").textContent = "katlin.json unavailable on every path"; return; }
-    fetch(FEEDS[i] + (FEEDS[i].indexOf("?") < 0 ? "?cb=" : "&cb=") + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) { D = j; $("errbox").textContent = ""; renderAll(); }).catch(function (e) { console.warn("katlin feed", FEEDS[i], e.message); load(i + 1); });
+    fetch(FEEDS[i] + (FEEDS[i].indexOf("?") < 0 ? "?cb=" : "&cb=") + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (j) { lastEvidence = j; JHCapitalView.renderEvidence("capital-evidence", j); displayCurrentEvidence(); }).catch(function (e) { console.warn("katlin feed", FEEDS[i], e.message); load(i + 1); });
   }
   document.querySelectorAll("#tabs button").forEach(function (b) { b.addEventListener("click", function () { document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); tab = b.dataset.t; renderBoard(); }); });
   ["f-class", "f-struct", "f-sniper"].forEach(function (id) { $(id).addEventListener("change", renderBoard); });
@@ -449,6 +459,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
   document.addEventListener("click", function (e) { if (!e.target.closest("th")) document.querySelectorAll("th.pin").forEach(function (t) { t.classList.remove("pin"); }); });
   load(0);
   setInterval(function () { load(0); }, 15 * 60 * 1000);
+  setInterval(displayCurrentEvidence, 30000);
+  document.addEventListener("visibilitychange", displayCurrentEvidence);
 })();
 </script>
 <script src="/jh-page-ai.js" defer></script>

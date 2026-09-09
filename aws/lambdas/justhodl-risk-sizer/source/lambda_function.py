@@ -11,6 +11,8 @@ Pure recommendation layer — execute manually.
 import json
 import os
 import statistics
+import math
+from capital_contract import authority_view, capital_book_view, fresh_timestamp, finite
 from datetime import datetime, timezone, timedelta
 import boto3
 
@@ -59,29 +61,6 @@ def age_hours(ts):
         return round((datetime.now(timezone.utc) - t).total_seconds() / 3600.0, 2)
     except Exception:
         return None
-
-
-def authority_view(kr):
-    """Normalise data/khalid-risk.json into the fields the sizer binds to."""
-    kr = kr if isinstance(kr, dict) else {}
-    pol = kr.get("policy") if isinstance(kr.get("policy"), dict) else {}
-    age = age_hours(kr.get("generated_at"))
-    cap = kr.get("exposure_cap_pct")
-    if cap is None:
-        cap = pol.get("exposure_cap_pct")
-    try:
-        cap = float(cap) if cap is not None else None
-    except (TypeError, ValueError):
-        cap = None
-    allows = pol.get("allows_new_entries")
-    status = "MISSING"
-    if kr and age is not None and cap is not None and isinstance(allows, bool):
-        status = "FRESH" if age <= AUTHORITY_SLA_H else "STALE"
-    elif kr:
-        status = "INVALID"
-    return {"source": "justhodl-khalid-risk", "artifact": "data/khalid-risk.json", "status": status, "age_h": age, "sla_h": AUTHORITY_SLA_H,
-            "generated_at": kr.get("generated_at"), "mode": pol.get("mode") or kr.get("mode"), "exposure_cap_pct": cap,
-            "allows_new_entries": allows, "hard_vetoes": [str(v) for v in (kr.get("hard_vetoes") or [])], "engine_status": kr.get("status")}
 
 
 def get_s3_json(key, default=None):
@@ -309,7 +288,6 @@ def lambda_handler(event, context):
     asym = get_s3_json("opportunities/asymmetric-equity.json", {})
     debate = get_s3_json("investor-debate/_index.json", {})
     regime = get_s3_json("regime/current.json", {})
-    pnl_history = get_s3_json("portfolio/pnl-history.json", {})
     # audit 2026-09-08 FR-04: portfolio/state.json was never written by any engine (dead read);
     # the reconciled book is portfolio/snapshot.json (justhodl-portfolio-snapshot).
     book = get_s3_json("portfolio/snapshot.json", {})
@@ -320,13 +298,13 @@ def lambda_handler(event, context):
     print(f"  asymmetric setups: {len(asym.get('top_setups', []))}")
     print(f"  watchlist debate tickers: {debate.get('n_tickers', 0)}")
     print(f"  regime: {regime.get('regime', 'UNKNOWN')}")
-    print(f"  pnl snapshots: {len(pnl_history.get('snapshots', []))}")
 
     # ─── 2. Compute drawdown status ─────────────────────────────────────
-    snapshots = pnl_history.get("snapshots", [])
+    book_view = capital_book_view(book, now)
+    snapshots = book_view["nav_history"]
     current_dd, peak_date = compute_drawdown(snapshots)
     dd_multiplier = drawdown_size_multiplier(current_dd)
-    hold_reasons = []
+    hold_reasons = list(book_view["errors"])
     if current_dd is None:
         hold_reasons.append("drawdown brake has no trusted NAV history (need >= 2 finite snapshots) -- HOLD")
         print("  current_dd=UNKNOWN -> multiplier 0 (hold)")
@@ -341,7 +319,7 @@ def lambda_handler(event, context):
     max_gross = REGIME_MAX_EXPOSURE.get(regime_str, 0.0)
     # audit 2026-09-08 FR-04: data/khalid-risk.json is the binding permission (same artifact the
     # homepage and Katlin obey). Missing/stale/invalid authority = HOLD, never a default.
-    authority = authority_view(khalid_risk)
+    authority = authority_view(khalid_risk, now)
     if authority["status"] == "FRESH":
         max_gross = min(max_gross, authority["exposure_cap_pct"] / 100.0)
         if authority["allows_new_entries"] is False:
@@ -356,20 +334,23 @@ def lambda_handler(event, context):
     except (TypeError, ValueError):
         gate_mult = None
     gate_age = age_hours(risk_gate.get("generated_at"))
-    if gate_mult is None or gate_age is None or gate_age > GATE_SLA_H:
+    if gate_mult is None or not fresh_timestamp(risk_gate.get("generated_at"), now, GATE_SLA_H) or risk_gate.get("engine") != "justhodl-risk-gate" or risk_gate.get("posture") not in {"RISK_ON", "NEUTRAL", "RISK_OFF", "SEVERE"}:
         hold_reasons.append("risk-gate sizing multiplier unusable (mult=%s age=%sh)" % (gate_mult, gate_age))
     # the existing book counts against the cap: sizing is for NEW entries only
-    book_positions = [p for p in (book.get("positions") or []) if isinstance(p, dict)]
-    book_value = _finite_nonneg((book.get("portfolio_summary") or {}).get("total_market_value"))
-    book_weights = {}
-    if book_value and book_value > 0:
-        for pos in book_positions:
-            mv = _finite_nonneg(pos.get("market_value"))
-            if pos.get("symbol") and mv is not None:
-                book_weights[str(pos["symbol"]).upper()] = mv / book_value
-    current_gross = sum(book_weights.values())
+    capital_book = book_view["contract"]
+    book_positions = capital_book.get("positions") if isinstance(capital_book.get("positions"), list) else []
+    book_value = book_view["equity_nav"]
+    book_weights = book_view["gross_weights"]
+    committed_weights = dict(book_weights)
+    for symbol, weight in book_view["order_weights"].items():
+        committed_weights[symbol] = committed_weights.get(symbol, 0.0) + weight
+    current_gross = sum(committed_weights.values())
     available_gross = max(0.0, max_gross - current_gross)
     print(f"  regime={regime_str}, authority={authority['status']}/{authority['exposure_cap_pct']}, max_gross={max_gross:.0%}, book_gross={current_gross:.0%}, available={available_gross:.0%}")
+    if available_gross <= 0:
+        hold_reasons.append("existing positions and orders exhaust the gross exposure allowance")
+    if dd_multiplier <= 0 or gate_mult == 0 or max_gross <= 0:
+        hold_reasons.append("binding drawdown/gate/capital constraint permits no new risk")
     entries_allowed = not hold_reasons
 
     # ─── 4. Build candidate idea list ───────────────────────────────────
@@ -432,7 +413,7 @@ def lambda_handler(event, context):
 
     if not ideas:
         # audit 2026-09-08 FR-04: an empty pipeline must REPLACE the previous actionable book, not leave it in place
-        empty = {"as_of": now.isoformat(), "v": "2.0", "status": "NO_IDEAS", "regime": regime_str, "entries_allowed": entries_allowed,
+        empty = {"engine": "justhodl-risk-sizer", "schema_version": "3.0", "as_of": now.isoformat(), "expires_at": min(now + timedelta(hours=1), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now).isoformat(), "v": "3.0", "status": "NO_IDEAS", "regime": regime_str, "entries_allowed": entries_allowed,
                  "authority": authority, "hold_reasons": hold_reasons, "max_gross_exposure_pct": round(max_gross * 100, 1),
                  "drawdown_status": {"current_dd_pct": round(current_dd * 100, 2) if current_dd is not None else None, "status": "UNKNOWN" if current_dd is None else "OK",
                                      "peak_date": peak_date, "size_multiplier": dd_multiplier},
@@ -445,7 +426,7 @@ def lambda_handler(event, context):
     # ─── 5. Cluster by correlation ──────────────────────────────────────
     stocks_data = report.get("stocks", {})
     returns_by_symbol = {}
-    for sym in ideas:
+    for sym in set(ideas) | set(committed_weights):
         s = stocks_data.get(sym, {})
         history = s.get("history", [])
         rets = compute_returns(history)
@@ -454,8 +435,8 @@ def lambda_handler(event, context):
 
     print(f"  ideas with return data for clustering: {len(returns_by_symbol)}/{len(ideas)}")
 
-    sector_by_symbol = {sym: idea.get("sector") for sym, idea in ideas.items()}
-    clusters = cluster_by_correlation(list(ideas.keys()), returns_by_symbol, sector_by_symbol)
+    sector_by_symbol = {**book_view["sector_by_symbol"], **{sym: idea.get("sector") or "UNKNOWN" for sym, idea in ideas.items()}}
+    clusters = cluster_by_correlation(sorted(set(ideas) | set(committed_weights)), returns_by_symbol, sector_by_symbol)
     # Sort clusters by size, large clusters first
     clusters.sort(key=lambda c: -c["size"])
     print(f"  clusters: {len(clusters)}")
@@ -497,8 +478,11 @@ def lambda_handler(event, context):
         # Apply drawdown multiplier and the brain risk-gate sizing multiplier (both <= 1)
         adjusted = capped * dd_multiplier * (gate_mult if gate_mult is not None else 0.0)
         # FR-04: sizing is for NEW entries -- an existing holding only gets the increment up to target
-        held = book_weights.get(str(sym).upper(), 0.0)
+        held = committed_weights.get(str(sym).upper(), 0.0)
         adjusted = max(0.0, adjusted - held)
+        if book_view["signed_weights"].get(str(sym).upper(), 0.0) < 0:
+            adjusted = 0.0
+            idea["blocked_reason"] = "Existing short requires an explicit cover/rebalance decision; this engine proposes new long risk only"
         idea["kelly_raw"] = round(kelly, 4)
         idea["quality_weight"] = round(weight, 3)
         idea["single_name_capped"] = round(capped, 4)
@@ -514,16 +498,21 @@ def lambda_handler(event, context):
         cid = idea["cluster"]
         cluster_totals[cid] = cluster_totals.get(cid, 0) + idea["dd_adjusted"]
 
+    cluster_held = {}
+    for symbol, weight in committed_weights.items():
+        cid = sym_to_cluster.get(symbol, "isolated")
+        cluster_held[cid] = cluster_held.get(cid, 0.0) + weight
     cluster_scalings = {}
     for cid, total in cluster_totals.items():
-        if total > MAX_CLUSTER_PCT:
-            cluster_scalings[cid] = MAX_CLUSTER_PCT / total
+        remaining = max(0.0, MAX_CLUSTER_PCT - cluster_held.get(cid, 0.0))
+        if total > remaining:
+            cluster_scalings[cid] = remaining / total
         else:
             cluster_scalings[cid] = 1.0
 
     for idea in sized:
         cluster_scale = cluster_scalings.get(idea["cluster"], 1.0)
-        idea["after_cluster_cap"] = round(idea["dd_adjusted"] * cluster_scale, 4)
+        idea["after_cluster_cap"] = math.floor(idea["dd_adjusted"] * cluster_scale * 100000000 + 1e-8) / 100000000
 
     # ─── 8. Apply gross exposure cap (on the AVAILABLE gross after the existing book) ────
     total_post_cluster = sum(i["after_cluster_cap"] for i in sized)
@@ -533,7 +522,7 @@ def lambda_handler(event, context):
         gross_scale = 1.0
 
     for idea in sized:
-        idea["recommended_size_pct"] = round(idea["after_cluster_cap"] * gross_scale * 100, 2)
+        idea["recommended_size_pct"] = math.floor(idea["after_cluster_cap"] * gross_scale * 10000 + 1e-8) / 100
         if not entries_allowed:
             idea["recommended_size_pct"] = 0.0
             idea["blocked_reason"] = "; ".join(hold_reasons)
@@ -552,6 +541,14 @@ def lambda_handler(event, context):
         final_check["cluster_ok"] = False
     if sum(i["recommended_size_pct"] for i in sized) > available_gross * 100 + 0.01:
         final_check["gross_ok"] = False
+
+    # Any post-rounding invariant failure invalidates the recommendation artifact.
+    if not all(final_check[k] for k in ("single_name_ok", "cluster_ok", "gross_ok")):
+        entries_allowed = False
+        hold_reasons.append("post-rounding allocation constraint failed")
+        for idea in sized:
+            idea["recommended_size_pct"] = 0.0
+            idea["blocked_reason"] = hold_reasons[-1]
 
     # ─── 9. Sort by size descending and build reasoning ─────────────────
     sized.sort(key=lambda x: -x.get("recommended_size_pct", 0))
@@ -603,16 +600,22 @@ def lambda_handler(event, context):
     final_total_size = sum(i["recommended_size_pct"] for i in sized)
 
     snapshot = {
+        "engine": "justhodl-risk-sizer", "schema_version": "3.0",
         "as_of": now.isoformat(),
-        "v": "2.0",
+        "expires_at": min(now + timedelta(hours=1), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now).isoformat(),
+        "v": "3.0",
+        "model_estimates": {"method": "heuristic conviction with symmetric-payoff fractional Kelly", "calibration_status": "UNVALIDATED", "note": "Candidate conviction is not a calibrated win probability; use sized research only after independent review."},
         "status": "ENTRIES_BLOCKED" if not entries_allowed else "OK",
         "entries_allowed": entries_allowed,
         "hold_reasons": hold_reasons,
-        "recommendation_semantics": "target weight of the whole book for a NEW entry; existing holdings are netted out (currently_held_pct) and the existing book's gross counts against max_gross",
+        "recommendation_semantics": "Incremental long exposure as percent of reconciled account equity NAV; absolute positions and remaining orders reserve name, cluster and gross capacity. Existing shorts require a separate cover/rebalance decision.",
         "authority": authority,
         "risk_gate": {"sizing_multiplier": gate_mult, "age_h": gate_age, "sla_h": GATE_SLA_H},
-        "book": {"source": "portfolio/snapshot.json", "as_of": book.get("as_of") or book.get("generated_at"), "n_positions": len(book_positions), "total_market_value": book_value,
-                 "gross_pct": round(current_gross * 100, 2), "available_gross_pct": round(available_gross * 100, 2)},
+        "book": {"source": "portfolio/snapshot.json#capital_book", "schema_version": capital_book.get("schema_version"), "status": book_view["status"],
+                 "as_of": capital_book.get("as_of"), "reconciled_at": capital_book.get("reconciled_at"), "book_id": capital_book.get("book_id"), "account_id": capital_book.get("account_id"),
+                 "currency": capital_book.get("currency"), "n_positions": len(book_positions), "equity_nav": book_value, "cash": capital_book.get("cash"), "liabilities": capital_book.get("liabilities"),
+                 "gross_exposure": book_view["gross_exposure"], "net_exposure": book_view["net_exposure"], "reserved_order_exposure": book_view["reserved_order_exposure"],
+                 "gross_pct": round(current_gross * 100, 4), "available_gross_pct": round(available_gross * 100, 4), "errors": book_view["errors"]},
         "final_constraint_check": final_check,
         "regime": regime_str,
         "regime_strength": regime.get("regime_strength"),

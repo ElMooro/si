@@ -82,8 +82,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from capital_contract import authority_view, fresh_timestamp, age_hours as contract_age_hours
 
-VERSION = "2.3.0"   # audit 2026-09-08 FR-01/FR-02: binding capital authority (khalid-risk), data-hold on missing/stale critical evidence
+VERSION = "2.4.0"   # audit 2026-09-08 FR-01/FR-02: binding capital authority (khalid-risk), data-hold on missing/stale critical evidence
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
@@ -1460,6 +1461,8 @@ def to_fv(t):
     return str(t or "").upper().replace(".", "-")
 
 
+WAR_ROOM_FEEDS = (('bond_warroom', 'data/bond-warroom.json'), ('auction', 'data/auction-desk.json'), ('risk_gate', 'data/risk-gate.json'), ('blackswan', 'data/blackswan-watch.json'), ('crisis', 'data/crisis-composite.json'), ('tail', 'data/tail-risk.json'), ('regime', 'data/regime-composite.json'), ('vol', 'data/vol-regime.json'), ('vix', 'data/vix-curve.json'), ('credit', 'data/credit-stress.json'), ('recession', 'data/global-recession.json'), ('gbc', 'data/global-business-cycle.json'), ('dollar', 'data/dollar-radar.json'), ('liquidity', 'data/global-liquidity.json'), ('xasset', 'data/cross-asset-regime.json'), ('yc', 'data/yield-curve.json'), ('fortress', 'data/fortress.json'), ('accum_radar', 'data/accumulation-radar.json'), ('whales', 'data/whales.json'), ('stealth', 'data/stealth-accumulation.json'), ('squeeze', 'data/volatility-squeeze.json'), ('khalid_risk', 'data/khalid-risk.json'))
+
 def load_feeds():
     F = {"asof": {}}
     t0 = time.time()
@@ -1650,14 +1653,7 @@ def load_feeds():
     F["crypto_cycle"] = s3_json("data/crypto-cycle-risk.json", {}) or {}
     F["crypto_score"] = s3_json("data/crypto-scorecard.json", {}) or {}
     # war-room feeds
-    for name, key in (("bond_warroom", "data/bond-warroom.json"), ("auction", "data/auction-desk.json"), ("risk_gate", "data/risk-gate.json"),
-                      ("blackswan", "data/blackswan-watch.json"), ("crisis", "data/crisis-composite.json"), ("tail", "data/tail-risk.json"),
-                      ("regime", "data/regime-composite.json"), ("vol", "data/vol-regime.json"), ("vix", "data/vix-curve.json"),
-                      ("credit", "data/credit-stress.json"), ("recession", "data/global-recession.json"), ("gbc", "data/global-business-cycle.json"),
-                      ("dollar", "data/dollar-radar.json"), ("liquidity", "data/global-liquidity.json"), ("xasset", "data/cross-asset-regime.json"),
-                      ("yc", "data/yield-curve.json"), ("fortress", "data/fortress.json"), ("accum_radar", "data/accumulation-radar.json"),
-                      ("whales", "data/whales.json"), ("stealth", "data/stealth-accumulation.json"), ("squeeze", "data/volatility-squeeze.json"),
-                      ("khalid_risk", "data/khalid-risk.json")):   # audit 2026-09-08 FR-01: the authoritative capital permission
+    for name, key in WAR_ROOM_FEEDS:
         F[name] = s3_json(key, {}) or {}
     F["backtest"] = s3_json(BACKTEST_KEY, None)
     # secondary accumulation reads from the fleet (radar / whales / stealth / fortress) -> per-ticker booleans.
@@ -1742,6 +1738,19 @@ def war_room(F):
     # leg-scoped reads referenced after their try blocks: a missing feed must not
     # raise UnboundLocalError (audit 2026-09-08: a partial fleet is a DATA_HOLD, not a crash)
     gp = ph = dp6 = cli = crypto_risk = y10 = None
+    now = datetime.now(timezone.utc)
+    F = dict(F)
+    leg_health = []
+    for key, payload in list(F.items()):
+        if key == "khalid_risk" or not isinstance(payload, dict):
+            continue
+        ts = payload.get("generated_at") or payload.get("as_of") or payload.get("asof")
+        is_fresh = fresh_timestamp(ts, now, 36.0)
+        leg_health.append({"source": key, "generated_at": ts, "age_h": contract_age_hours(ts, now), "max_age_h": 36.0, "status": "FRESH" if is_fresh else "UNUSABLE"})
+        if not is_fresh:
+            if payload:
+                missing.append(key + " timestamp missing, stale or future; excluded from local risk")
+            F[key] = {}
 
     def add(name, source, risk, read, value=None, weight=1.0, asof=None):
         if risk is None:
@@ -1973,42 +1982,20 @@ def war_room(F):
     # obey. Effective cap = min(authority cap, desk cap); allows_new_entries=false
     # blocks executable entries whatever the desk ranks; missing/stale critical
     # evidence never widens the cap -- it produces a DATA_HOLD.
-    def _age_h(ts):
-        try:
-            t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
-            if t.tzinfo is None:
-                t = t.replace(tzinfo=timezone.utc)
-            return round((datetime.now(timezone.utc) - t).total_seconds() / 3600.0, 2)
-        except Exception:
-            return None
-    AUTH_SLA_H, GATE_SLA_H = 24.0, 36.0     # khalid-risk is hourly; the raw risk-gate is daily
+    AUTH_SLA_H, GATE_SLA_H = 24.0, 36.0
     kr = F.get("khalid_risk") or {}
-    pol = kr.get("policy") if isinstance(kr.get("policy"), dict) else {}
-    auth_age = _age_h(kr.get("generated_at"))
-    auth_cap = fnum(kr.get("exposure_cap_pct"))
-    if auth_cap is None:
-        auth_cap = fnum(pol.get("exposure_cap_pct"))
-    auth_allows = pol.get("allows_new_entries")
-    auth_vetoes = [str(v) for v in (kr.get("hard_vetoes") or []) if v]
-    auth_mode = pol.get("mode") or kr.get("mode")
-    auth_status = "MISSING"
-    if kr and auth_age is not None and auth_cap is not None and isinstance(auth_allows, bool):
-        auth_status = "FRESH" if auth_age <= AUTH_SLA_H else "STALE"
-    elif kr:
-        auth_status = "INVALID"
-    authority = {"source": "justhodl-khalid-risk", "artifact": "data/khalid-risk.json", "status": auth_status,
-                 "generated_at": kr.get("generated_at"), "age_h": auth_age, "sla_h": AUTH_SLA_H, "schema_version": kr.get("schema_version"),
-                 "mode": auth_mode, "capital_decision": kr.get("capital_decision"), "exposure_cap_pct": auth_cap,
-                 "allows_new_entries": auth_allows, "hard_vetoes": auth_vetoes,
-                 "engine_status": kr.get("status"), "reasons": [str(r) for r in (pol.get("reasons") or [])][:6]}
+    authority = authority_view(kr, now)
+    auth_age, auth_cap = authority["age_h"], authority["exposure_cap_pct"]
+    auth_allows, auth_vetoes = authority["allows_new_entries"], authority["hard_vetoes"]
+    auth_mode, auth_status = authority["mode"], authority["status"]
 
     rg = F.get("risk_gate") or {}
-    gate_age = _age_h(rg.get("generated_at"))
+    gate_age = contract_age_hours(rg.get("generated_at"), now)
     sz = fnum(rg.get("sizing_multiplier"))
-    gate_fresh = bool(rg.get("posture")) and gate_age is not None and gate_age <= GATE_SLA_H
+    gate_fresh = rg.get("engine") == "justhodl-risk-gate" and rg.get("posture") in {"RISK_ON", "NEUTRAL", "RISK_OFF", "SEVERE"} and fresh_timestamp(rg.get("generated_at"), now, GATE_SLA_H)
     gate_cap = int(round(min(max(sz, 0.0), 1.0) * 100)) if (sz is not None and 0.0 <= sz <= 1.5) else None   # FR-02: zero is a valid cap
 
-    hold_reasons = []
+    hold_reasons = list(authority["errors"])
     entries_allowed = True
     if auth_status == "FRESH":
         cap = int(min(local_cap, auth_cap))
@@ -2026,6 +2013,10 @@ def war_room(F):
         entries_allowed = False
     if local_posture == "UNKNOWN":
         hold_reasons.append("desk thermometer has no legs -- DATA_HOLD")
+        cap = 0
+        entries_allowed = False
+    if not gate_fresh or gate_cap is None:
+        hold_reasons.append("raw risk-gate contract missing, stale, future or invalid -- DATA_HOLD")
         cap = 0
         entries_allowed = False
     if gate_fresh and gate_cap is not None:
@@ -2075,7 +2066,8 @@ def war_room(F):
     return {"posture": posture, "exposure_cap_pct": cap, "entries_allowed": entries_allowed, "thermometer": rnd(therm, 1), "n_red": nred, "vetoes": vetoes,
             "authority": authority, "local": {"posture": local_posture, "exposure_cap_pct": local_cap, "note": "desk thermometer -- research opinion, not the binding permission"},
             "raw_gate": {"posture": rg.get("posture"), "sizing_multiplier": sz, "cap_pct": gate_cap, "age_h": gate_age, "fresh": gate_fresh, "sla_h": GATE_SLA_H},
-            "hold_reasons": hold_reasons,
+            "hold_reasons": hold_reasons, "source_health": leg_health,
+            "expires_at": min(now + timedelta(hours=24), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now, datetime.fromisoformat(rg["generated_at"].replace("Z", "+00:00")) + timedelta(hours=GATE_SLA_H) if gate_fresh else now).isoformat(),
             "legs": legs, "missing": missing, "brief": " ".join(brief), "crypto_dump_risk": crypto_risk, "y10": y10,
             "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp},
             "words": words[posture]}
@@ -3433,30 +3425,42 @@ def build_basket(rows, wr):
         e = max(float(r.get("learned_excess_126s_pct") or 0.0), 1.0)
         v = max(float(r.get("vol_ann_pct") or 40.0), 25.0) / 100.0
         raw.append(e / (v * v))
-    tot = sum(raw) or 1.0
-    ws = [core_budget * x / tot for x in raw]
-    # cap at 10% of the book and redistribute once
-    over = sum(max(0.0, w - 10.0) for w in ws)
-    ws = [min(w, 10.0) for w in ws]
-    if over > 0:
-        room = [10.0 - w for w in ws]
-        rt = sum(room) or 1.0
-        ws = [w + over * rm / rt for w, rm in zip(ws, room)]
+    # Feasible weighted water-fill: a budget larger than aggregate name capacity
+    # remains in cash, rather than redistributing it back above the 10% limit.
+    ws = [0.0] * len(raw)
+    remaining = min(core_budget, 10.0 * len(raw))
+    active = set(range(len(raw)))
+    while active and remaining > 1e-9:
+        total_weight = sum(raw[i] for i in active)
+        proposed = {i: remaining * raw[i] / total_weight for i in active}
+        saturated = [i for i in active if proposed[i] >= 10.0 - ws[i]]
+        if not saturated:
+            for i in active:
+                ws[i] += proposed[i]
+            break
+        for i in saturated:
+            remaining -= 10.0 - ws[i]
+            ws[i] = 10.0
+            active.remove(i)
     for r, w in zip(core_pool, ws):
         if w < 0.5:
             continue
         pl = r.get("plan") or {}
-        out["core"].append({"ticker": r["ticker"], "name": r.get("name"), "tier": r["tier"], "asset_class": r["asset_class"], "weight_pct": rnd(w, 1),
+        out["core"].append({"ticker": r["ticker"], "name": r.get("name"), "tier": r["tier"], "asset_class": r["asset_class"], "weight_pct": math.floor(w * 10 + 1e-8) / 10,
                             "expected_excess_126s_pct": r.get("learned_excess_126s_pct"), "vol_ann_pct": r.get("vol_ann_pct"), "composite": r.get("composite"),
                             "entry": r.get("last"), "stop": pl.get("stop"), "target_1": pl.get("target_1"), "sniper": (r.get("sniper") or {}).get("state"),
                             "structure": r.get("structure_state"), "why": (r.get("why") or "")[:220]})
     for r in bb_pool:
         w = bb_budget / len(bb_pool)
-        out["barbell"].append({"ticker": r["ticker"], "name": r.get("name"), "weight_pct": rnd(w, 2), "expected_excess_126s_pct": r.get("learned_excess_126s_pct"),
+        out["barbell"].append({"ticker": r["ticker"], "name": r.get("name"), "weight_pct": math.floor(w * 100 + 1e-8) / 100, "expected_excess_126s_pct": r.get("learned_excess_126s_pct"),
                                "dd_52w_pct": r.get("dd_52w_pct"), "vol_ann_pct": r.get("vol_ann_pct"), "entry": r.get("last"), "knife_why": r.get("knife_why"),
                                "why": (r.get("why") or "")[:200]})
     used = sum(x["weight_pct"] for x in out["core"]) + sum(x["weight_pct"] for x in out["barbell"])
-    out["cash_pct"] = rnd(max(0.0, 100.0 - used), 1)
+    out["constraints_valid"] = used <= cap + 1e-8 and all(x["weight_pct"] <= 10.0 for x in out["core"])
+    if not out["constraints_valid"]:
+        out["core"], out["barbell"], used = [], [], 0.0
+        out["notes"].append("Allocation constraint failed; the model basket is held in cash")
+    out["cash_pct"] = rnd(max(0.0, 100.0 - used), 2)
     out["core_pct"] = rnd(sum(x["weight_pct"] for x in out["core"]), 1)
     out["barbell_pct"] = rnd(sum(x["weight_pct"] for x in out["barbell"]), 1)
     return out
@@ -3551,9 +3555,59 @@ DEFINITIONS = {
 }
 
 
+def refresh_permission(event=None):
+    """Refresh capital permission without refreshing the research/price observations.
+    This mode never calls the market providers, universe scan, sniper, or history writer.
+    """
+    now = datetime.now(timezone.utc)
+    try:
+        stored = s3.get_object(Bucket=BUCKET, Key=OUT_KEY)
+        previous, etag = json.loads(stored["Body"].read()), stored.get("ETag")
+    except Exception:
+        return {"ok":False,"status":"NO_RESEARCH_ARTIFACT","reason":"Daily research is unavailable"}
+    if not etag:
+        return {"ok":False,"status":"NO_RESEARCH_VERSION","reason":"Cannot refresh without a conditional-write version"}
+    if not isinstance(previous, dict) or previous.get("engine") != ENGINE or not isinstance(previous.get("picks"), list):
+        return {"ok": False, "status": "NO_RESEARCH_ARTIFACT", "reason": "Full daily research must publish before permission can refresh"}
+    out = json.loads(json.dumps(previous))
+    research_at = previous.get("research_generated_at") or (None if previous.get("permission_refreshed_at") else previous.get("generated_at"))
+    F = {name: s3_json(key, {}) or {} for name, key in WAR_ROOM_FEEDS}
+    F["crypto_cycle"] = s3_json("data/crypto-cycle-risk.json", {}) or {}
+    wr = war_room(F)
+    research_fresh = fresh_timestamp(research_at, now, 36.0)
+    session_ts = str(previous.get("session") or "") + "T00:00:00+00:00"
+    market_fresh = fresh_timestamp(session_ts, now, 96.0)
+    if not research_fresh or not market_fresh:
+        wr["posture"], wr["exposure_cap_pct"], wr["entries_allowed"] = "DATA_HOLD", 0, False
+        wr["hold_reasons"].append("Research or market observations expired; permission refresh cannot renew them")
+        wr["words"] = "Research observations expired -- watchlist evidence only until the daily engine rebuilds"
+        wr["expires_at"] = now.isoformat()
+    else:
+        wr["expires_at"] = min(datetime.fromisoformat(wr["expires_at"]), datetime.fromisoformat(research_at.replace("Z", "+00:00")) + timedelta(hours=36), datetime.fromisoformat(session_ts)+timedelta(hours=96)).isoformat()
+    rows = out["picks"]
+    for row in rows:
+        row["posture_note"] = "Current permission: " + wr["posture"] + (" -- research only, new entries blocked" if not wr["entries_allowed"] else " -- effective cap %s%%" % wr["exposure_cap_pct"])
+    out.update({"version": VERSION, "schema": "1.1", "generated_at": now.isoformat(), "permission_refreshed_at": now.isoformat(),
+                "research_generated_at": research_at, "research_age_h": contract_age_hours(research_at, now),
+                "research_status": "FRESH" if research_fresh and market_fresh else "STALE", "research_max_age_h": 36.0,
+                "expires_at": wr["expires_at"], "war_room": wr, "basket": build_basket(rows, wr)})
+    if isinstance(out.get("panels"), dict):
+        out["panels"]["war_room"] = [{"key":l["leg"],"label":l["leg"],"last":l["risk"],"kind":"index","unit":"","flag":l["flag"],"read":l["read"],"source":l["source"],"asof":l.get("asof")} for l in wr["legs"]]
+    try:
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out,allow_nan=False).encode(), ContentType="application/json", CacheControl="max-age=60", IfMatch=etag)
+    except Exception as exc:
+        code = ((getattr(exc,"response",{}) or {}).get("Error") or {}).get("Code")
+        if code in {"PreconditionFailed","ConditionalRequestConflict","412","409"}:
+            return {"ok":False,"status":"RESEARCH_CHANGED","reason":"Concurrent full research won; refresh did not overwrite it"}
+        raise
+    return {"ok":True,"mode":"permission_refresh","posture":wr["posture"],"expires_at":wr["expires_at"],"research_generated_at":research_at,"research_status":out["research_status"]}
+
+
 # ── handler ─────────────────────────────────────────────────────────────────
 def lambda_handler(event=None, context=None):
     event = event or {}
+    if event.get("mode") == "permission_refresh":
+        return refresh_permission(event)
     if event.get("mode") == "backtest":
         return run_backtest(event)
     t0 = time.time()
@@ -3577,6 +3631,12 @@ def lambda_handler(event=None, context=None):
     mkt = market_context(spy)
     log("universe: %d stocks, %d etfs, bars for %d tickers, %d sessions %s..%s" % (len(stocks), len(etfs), len(bars), len(dates), dates[0], dates[-1]))
     wr = war_room(F)
+    research_data_fresh = fresh_timestamp(session + "T00:00:00+00:00", datetime.now(timezone.utc), 96.0)
+    if not research_data_fresh:
+        wr["posture"], wr["exposure_cap_pct"], wr["entries_allowed"] = "DATA_HOLD", 0, False
+        wr["hold_reasons"].append("Market observations are stale or future; daily research cannot permit new risk")
+        wr["words"] = "Market observations unavailable -- research evidence only"
+        wr["expires_at"] = now_iso()
     log("war room: %s (therm %s, %d legs, vetoes %s, missing %s)" % (wr["posture"], wr["thermometer"], len(wr["legs"]), wr["vetoes"], wr["missing"]))
     rows = []
     n_thin = n_hyg = 0
@@ -3686,7 +3746,7 @@ def lambda_handler(event=None, context=None):
     tiers = {t: sum(1 for r in rows if r["tier"] == t) for t in TIER_ORDER}
     gates = {g: sum(1 for r in rows if r["gates"].get(g)) for g in ("location", "washout", "oversold", "accumulation", "inflows", "structure", "catalyst", "not_knife", "quality")}
     top_picks = [{"ticker": r["ticker"], "score": r.get("composite"), "tier": r["tier"], "asset_class": r["asset_class"]} for r in rows if r["tier"] in ("KATLIN_PRIME", "READY")][:50]
-    out = {"engine": ENGINE, "version": VERSION, "schema": "1.0", "generated_at": now_iso(), "as_of": session, "session": session, "elapsed_s": rnd(time.time() - t0, 1),
+    out = {"engine": ENGINE, "version": VERSION, "schema": "1.1", "generated_at": now_iso(), "expires_at": wr["expires_at"], "as_of": session, "session": session, "elapsed_s": rnd(time.time() - t0, 1),
            "war_room": wr, "market": {k: rnd(v, 2) if isinstance(v, float) else v for k, v in mkt.items()},
            "history": regime_history(F.get("backtest"), mkt_above),
            "universe": {"stocks_in_universe": len(stocks), "etfs_in_universe": len(etfs), "crypto_symbols": len(P["crypto_symbols"]), "scored": len(rows),
@@ -3701,6 +3761,9 @@ def lambda_handler(event=None, context=None):
                                             "structure_state", "composite", "gates", "pillars", "knife", "tier")} for r in published if r["tier"] == "WATCH"][:400],
            "panels": desk_panels(rows, wr), "changes": changes, "base_rates": base_rates, "validation": validation_summary(F.get("backtest")),
            "feeds_asof": F["asof"], "definitions": DEFINITIONS, "degraded": DEGRADED, "log": LOG[-60:]}
+    out["research_generated_at"] = out["generated_at"]
+    out["research_status"] = "FRESH" if research_data_fresh else "STALE"
+    out["research_max_age_h"] = 36.0
     n = s3_put_json(OUT_KEY, out)
     log("wrote %s (%.1f MB) tiers=%s posture=%s" % (OUT_KEY, n / 1e6, tiers, wr["posture"]))
     return {"ok": True, "session": session, "posture": wr["posture"], "thermometer": wr["thermometer"], "tiers": tiers, "scored": len(rows),
