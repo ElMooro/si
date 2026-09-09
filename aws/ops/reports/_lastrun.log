@@ -1,5 +1,7 @@
-executing-against: f2dfcd0e68794a2620b3ea9cd3c8150f1eff7f0d
-{"actual_workflow_sha": "96955a252d370ef6ecd07374e9bd338f98a347ac", "aws_calls": 0, "base_sha": "c167a7541b9b02f849343bad1b4a231e758cadd8", "checkout_verification": "REQUIRED_IN_RELEASE_JOB", "expected_checkout_sha": "f2dfcd0e68794a2620b3ea9cd3c8150f1eff7f0d", "http_status": 200, "operation": "5236", "request_sent": true, "requested_at": "2026-09-09T04:09:46.552133+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34309882951", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34309882951, "workflow_sha": "f2dfcd0e68794a2620b3ea9cd3c8150f1eff7f0d", "workflow_sha_matches": false}
-[04:09:48] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
+executing-against: c907382cb0a940a3117555d97de007a201c3fe71
+{"actual_workflow_sha": "ce10ad9730c7021400bf93752c8d102ba7cb601a", "aws_calls": 0, "base_sha": "c167a7541b9b02f849343bad1b4a231e758cadd8", "checkout_verification": "REQUIRED_IN_RELEASE_JOB", "expected_checkout_sha": "c907382cb0a940a3117555d97de007a201c3fe71", "http_status": 200, "operation": "5237", "request_sent": true, "requested_at": "2026-09-09T04:25:45.697877+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34310932938", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34310932938, "workflow_sha": "c907382cb0a940a3117555d97de007a201c3fe71", "workflow_sha_matches": false}
+[04:25:47] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
 
-→ Report written to aws/ops/reports/latest/ops_5236_retry_pinned_core_release.md
+→ Report written to aws/ops/reports/latest/ops_5237_retry_pinned_core_release.md
+{"ops": 5238, "ok": false, "policy_verified": false, "edge_purge_verified": false, "temporary_containment_retained": false, "checks": 0, "report": "aws/ops/reports/5238_audit_privacy_containment.json"}
+❌ OPS-FAIL: aws/ops/pending/ops_5238_audit_privacy_containment.py
