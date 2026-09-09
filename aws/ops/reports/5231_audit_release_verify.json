@@ -6,9 +6,9 @@
   "completion_scope": "EXPLICIT_FINAL_RELEASE",
   "private_payloads_reported": 0,
   "raw_lambda_responses_reported": 0,
-  "expected_release_sha": "b1ef1a937cc8e9170d67bd1d51539f1e63b237f5",
-  "checker_checkout_sha": "1c0d90f0af5ab78a559f6b36bb47a1b03aa06f77",
-  "ops_target_sha": "b10ab3cf0cc60212017531909ebcb33efe396aa5",
+  "expected_release_sha": "b2e5d217372985b5bde6fe9d1c7138384a0d6708",
+  "checker_checkout_sha": "d8b369c80a7eb79df63c91d25286c7df131e3cb9",
+  "ops_target_sha": "d8b369c80a7eb79df63c91d25286c7df131e3cb9",
   "code": {
     "alphavantage-market-agent": {
       "function": "alphavantage-market-agent",
@@ -95,10 +95,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "WTyOXypmdQP8Td3Sftcm0yac4xPTrcS8pqzXNcjYmqg=",
+      "code_sha256": "8siMB6eodn98fYnaLbG7jiRNSQsbPZ+jltJmBC5LpCM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T15:34:01.000+0000",
+      "last_modified": "2026-09-09T17:02:46.000+0000",
       "handler": "index.handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -128,10 +128,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "u+VCMn8ydKeYvP9tB3rp6oe5rlbr+U/++0lKNNVnr3A=",
+      "code_sha256": "lLrSI/B9/3iR7NXX+1VlKF4LePOghGAhTEtklNytod0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:07:34.000+0000",
+      "last_modified": "2026-09-09T17:03:10.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -873,9 +873,15 @@
           "match": true
         },
         {
+          "member": "bloomberg_math.py",
+          "expected_sha256": "9f690e8ab99b59b6215cbb38b22ff5e8cdd64f5af3da22c353351486cdca4c0b",
+          "actual_sha256": "9f690e8ab99b59b6215cbb38b22ff5e8cdd64f5af3da22c353351486cdca4c0b",
+          "match": true
+        },
+        {
           "member": "lambda_function.py",
-          "expected_sha256": "fa1dd454315e0b7cd09fc5fdba51a873b30f84d13a101fc860ee019a3637bd3d",
-          "actual_sha256": "fa1dd454315e0b7cd09fc5fdba51a873b30f84d13a101fc860ee019a3637bd3d",
+          "expected_sha256": "4ac80205b334c9ff5f8f3e511785685e5e7f67c514b2e2e84e56816de5fce43d",
+          "actual_sha256": "4ac80205b334c9ff5f8f3e511785685e5e7f67c514b2e2e84e56816de5fce43d",
           "match": true
         },
         {
@@ -893,10 +899,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "+Srts3MmR2blGO4Z8Y7CRk9PkRbMfWd/6IgPSeJqizc=",
+      "code_sha256": "oh6cQvHIYIT6Ci1DG0XgVWd8hoYof6ZGAGuZ2hgM1iw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:05:43.000+0000",
+      "last_modified": "2026-09-09T17:21:35.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3200,10 +3206,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "V1+hjAps6UcxDltsBV6nskyi0vNTcXqNQ+UmvIVQA24=",
+      "code_sha256": "MYnti6SbmhkxH7TBns/+lzBnauPJe04w+UlMFSFjH/M=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:27:17.000+0000",
+      "last_modified": "2026-09-09T17:21:59.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3239,10 +3245,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "JoCWoUb4DlWVPNmajeyN4ogS+F8PTKktZ1+zqIJBrnU=",
+      "code_sha256": "DyK8sMj7gTeC9zAN0L8gze2vgVTWzGfOBIGPYDAhdbI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:13:41.000+0000",
+      "last_modified": "2026-09-09T17:04:00.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3680,10 +3686,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "+ntaTKAmIQxECgcTcqKtQSq4O1PfM+Cu/MKn/B2KNYc=",
+      "code_sha256": "dgavZCZPPmQojLXeAgaAxTguoz+AIOL5NUHZGxv9WEw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:33:51.000+0000",
+      "last_modified": "2026-09-09T17:04:24.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5026,15 +5032,14 @@
         "errors": [],
         "requirements": [],
         "bytes": 12815,
-        "last_modified": "2026-09-09T16:38:23+00:00",
-        "generated_at": "2026-09-09T16:38:22.764405+00:00",
-        "version_id": "7BOGdiGWlMXkj2QFgmgtC5hiiMcP.rNI",
+        "last_modified": "2026-09-09T17:06:45+00:00",
+        "generated_at": "2026-09-09T17:06:44.237045+00:00",
+        "version_id": "bN9.4RAtnSRD0.h4KwQerUhaC4thffJE",
         "schema_version": "macro-metrics.v1",
         "producer_version": null,
         "producer": "justhodl-ka-metrics",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:27.227349+00:00",
         "counts": {}
       },
       {
@@ -5048,15 +5053,14 @@
         "expected_output_contract": "macro-analysis.v1_ka_owned",
         "expected_producer": "justhodl-ka-metrics",
         "bytes": 384,
-        "last_modified": "2026-09-09T16:38:24+00:00",
-        "generated_at": "2026-09-09T16:38:23.354469+00:00",
-        "version_id": "C3qawlF6PROVuC.SZEF3VDKnr.pGGenQ",
+        "last_modified": "2026-09-09T17:06:45+00:00",
+        "generated_at": "2026-09-09T17:06:44.793611+00:00",
+        "version_id": "nmUi109nSvVlyqDxaGrnjj2XdmDHqmaq",
         "schema_version": "macro-analysis.v1",
         "producer_version": null,
         "producer": "justhodl-ka-metrics",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:27.227349+00:00",
         "counts": {}
       }
     ],
@@ -5067,15 +5071,14 @@
         "errors": [],
         "requirements": [],
         "bytes": 12708,
-        "last_modified": "2026-09-09T16:38:22+00:00",
-        "generated_at": "2026-09-09T16:38:21.592250+00:00",
-        "version_id": "xi7zlNmyknHrMfvSTkQ_oDpDj7_.T4Ts",
+        "last_modified": "2026-09-09T17:07:37+00:00",
+        "generated_at": "2026-09-09T17:07:36.580994+00:00",
+        "version_id": "bhfnlnoQlR3WMod6kgAasZXlKbBOTIG0",
         "schema_version": "macro-metrics.v1",
         "producer_version": null,
         "producer": "justhodl-khalid-metrics",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:27.528289+00:00",
         "counts": {}
       },
       {
@@ -5089,15 +5092,14 @@
         "expected_output_contract": "macro-analysis.v1_khalid_owned",
         "expected_producer": "justhodl-khalid-metrics",
         "bytes": 392,
-        "last_modified": "2026-09-09T16:38:23+00:00",
-        "generated_at": "2026-09-09T16:38:22.133526+00:00",
-        "version_id": "4jMfpo3hFgpD5hhEOzcJVP1wEeGWRSgj",
+        "last_modified": "2026-09-09T17:07:38+00:00",
+        "generated_at": "2026-09-09T17:07:37.145041+00:00",
+        "version_id": "RLLh..6for54fife6VF.a2g.DJb1KnFA",
         "schema_version": "macro-analysis.v1",
         "producer_version": null,
         "producer": "justhodl-khalid-metrics",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:27.528289+00:00",
         "counts": {}
       }
     ],
@@ -5116,7 +5118,6 @@
         "producer": "justhodl-tradingview",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:27.916846+00:00",
         "counts": {}
       }
     ],
@@ -5155,7 +5156,6 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:28.291801+00:00",
         "counts": {}
       }
     ],
@@ -5194,7 +5194,6 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:28.589755+00:00",
         "counts": {}
       }
     ],
@@ -5217,7 +5216,6 @@
         "producer": "justhodl-source-map",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:37:28.814889+00:00",
         "counts": {}
       }
     ],
@@ -5236,7 +5234,6 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:43:54.445397+00:00",
         "counts": {}
       }
     ],
@@ -5255,7 +5252,6 @@
         "producer": "justhodl-liquidity-capacity",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:43:54.765017+00:00",
         "counts": {}
       }
     ],
@@ -5303,9 +5299,9 @@
         "errors": [],
         "requirements": [],
         "bytes": 13691,
-        "last_modified": "2026-09-09T16:15:11+00:00",
-        "generated_at": "2026-09-09T16:15:10.912928+00:00",
-        "version_id": "BLTLmtyC7IipYUmINQ_4wqCjJ53mkbED",
+        "last_modified": "2026-09-09T17:15:12+00:00",
+        "generated_at": "2026-09-09T17:15:11.049654+00:00",
+        "version_id": "xSRktvSnfiHjIL6qroVEXy5tFIn_9JJK",
         "schema_version": "1.0.0",
         "producer_version": "1.0.0",
         "producer": "justhodl-engine-fusion",
@@ -5322,9 +5318,9 @@
         "errors": [],
         "requirements": [],
         "bytes": 19851,
-        "last_modified": "2026-09-09T16:20:51+00:00",
-        "generated_at": "2026-09-09T16:20:50.340688+00:00",
-        "version_id": "i9UoxMCPAChgddd9e3OjDvxc4Re1gIl5",
+        "last_modified": "2026-09-09T17:20:51+00:00",
+        "generated_at": "2026-09-09T17:20:50.394986+00:00",
+        "version_id": ".8fuWUmbSX_NLbapmAbmb_KmAyEmq6Py",
         "schema_version": "1.0.0",
         "producer_version": "1.0.0",
         "producer": "justhodl-khalid-risk",
@@ -5360,10 +5356,10 @@
         "status": "VERIFIED",
         "errors": [],
         "requirements": [],
-        "bytes": 2763853,
-        "last_modified": "2026-09-09T16:52:42+00:00",
-        "generated_at": "2026-09-09T16:52:39.719884+00:00",
-        "version_id": "BiO2Q8cB1fg6L.IX73pDhI3UYX7ZfgAc",
+        "bytes": 2763862,
+        "last_modified": "2026-09-09T17:22:42+00:00",
+        "generated_at": "2026-09-09T17:22:39.609322+00:00",
+        "version_id": "iROTjbtd2L44wrv2Xt_r_UY150ntWhQB",
         "schema_version": null,
         "producer_version": "2.5.1",
         "producer": "justhodl-katlin",
@@ -5388,7 +5384,6 @@
         "producer": "justhodl-risk-sizer",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:16.410362+00:00",
         "risk_contract_status": "ENTRIES_BLOCKED",
         "counts": {}
       },
@@ -5406,7 +5401,6 @@
         "producer": "justhodl-risk-sizer",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:16.410362+00:00",
         "counts": {}
       }
     ],
@@ -5487,7 +5481,6 @@
         "producer": "justhodl-firm-risk-board",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:16.986744+00:00",
         "counts": {}
       }
     ],
@@ -5526,7 +5519,7 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:37.863144+00:00",
+        "required_generation_not_before": "2026-09-09T16:37:31+00:00",
         "counts": {}
       }
     ],
@@ -5545,7 +5538,26 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:38.282621+00:00",
+        "counts": {}
+      }
+    ],
+    "justhodl-options-flow": [
+      {
+        "key": "flow-data.json",
+        "status": "VERIFIED",
+        "errors": [],
+        "requirements": [],
+        "expected_output_contract": "options_flow_and_sentiment_v3_nested_market_data",
+        "expected_producer": "justhodl-options-flow",
+        "bytes": 30523,
+        "last_modified": "2026-09-09T17:05:26+00:00",
+        "generated_at": "2026-09-09T17:05:10.607157+00:00",
+        "version_id": "6NpDBOD6RKzUs1QJtFd3R5Z1PcMyp_oB",
+        "schema_version": null,
+        "producer_version": null,
+        "producer": null,
+        "source_code_version_marker_present": false,
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {}
       }
     ],
@@ -5566,20 +5578,31 @@
         "producer": null,
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "required_generation_not_before": "2026-09-09T16:45:38.654477+00:00",
         "counts": {}
       }
     ],
     "justhodl-bloomberg-v8": [
       {
         "key": "data/bloomberg-report.json",
-        "status": "PENDING_OUTPUT",
+        "status": "VERIFIED_BLOCKED_REQUIREMENTS",
         "errors": [],
-        "requirements": [],
+        "requirements": [
+          "BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE",
+          "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
+        ],
         "expected_output_contract": "bloomberg_v8_market_report",
         "expected_producer": "justhodl-bloomberg-v8",
-        "error_type": "NoSuchKey",
-        "error_code": "NoSuchKey"
+        "bytes": 3001896,
+        "last_modified": "2026-09-09T17:22:23+00:00",
+        "generated_at": "2026-09-09T17:22:17.165510+00:00",
+        "version_id": "XWBXRGAvkuia2iavI4C4Ygnn_hxbs2hm",
+        "schema_version": "bloomberg-report.v8.1",
+        "producer_version": null,
+        "producer": "justhodl-bloomberg-v8",
+        "source_code_version_marker_present": false,
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "required_generation_not_before": "2026-09-09T17:22:16.197040+00:00",
+        "counts": {}
       }
     ],
     "justhodl-ecb-derived": [
@@ -5652,9 +5675,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 4600,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:58.678434+00:00",
-        "version_id": "PqjgIh8O2pHm.EwZ6LQTr75owWBA78Nc",
+        "last_modified": "2026-09-09T17:16:01+00:00",
+        "generated_at": "2026-09-09T17:15:58.963385+00:00",
+        "version_id": "vYNDeFBiHE0jc5VtLcS0_5hpJhYjllHn",
         "schema_version": "public-engine-archive-catalog.v1",
         "producer_version": null,
         "producer": null,
@@ -5672,9 +5695,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 27686,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:48.980614+00:00",
-        "version_id": "EJRxnfMt.rWohTQnZcDCHHgVqMWclN2i",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.022155+00:00",
+        "version_id": "C4ULAFgHrhknc7K1GUM1Z.l9X8OPMnpE",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-activity-nowcast",
@@ -5692,9 +5715,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 28178,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:49.060431+00:00",
-        "version_id": "8kWpVrTcqpPADL_Xyt69sroepznhmqng",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.099918+00:00",
+        "version_id": "lbYiRAguEmHL82ayVCCca7ocql1JINt1",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-cb-injection",
@@ -5712,9 +5735,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 27219,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:49.118726+00:00",
-        "version_id": "B3bZo.5XrcSbYINn746DpfWHZam0eAlV",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.164679+00:00",
+        "version_id": "21BPkGuSfQwQULhJH5KpbOcTS28LrBIh",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-consumer-pulse",
@@ -5732,9 +5755,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 25599,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:49.183235+00:00",
-        "version_id": "gITYBXQF5aROo1l4kKsArs1.CXQB0BLK",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.222663+00:00",
+        "version_id": ".XZa2AlZCYeFq9Li0AvHjQxjQMqSsuIx",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-conviction-engine",
@@ -5752,9 +5775,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 2525,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:49.217574+00:00",
-        "version_id": "WuGwbgII.xZAFzDpgv.wfvuTmOMHtKQt",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.257967+00:00",
+        "version_id": "qhQbGoMv5Gk23MQZO3CMA6aKDiy7deLb",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-stock-screener",
@@ -5772,9 +5795,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 21791,
-        "last_modified": "2026-09-09T17:00:59+00:00",
-        "generated_at": "2026-09-09T17:00:49.276123+00:00",
-        "version_id": "IPMejRZ97_CTNGQk07qhYqirY6reGjMn",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.319609+00:00",
+        "version_id": "25kZ7twPcx52zCxZd9ErUhO0cPrtcVAx",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-theme-cascade",
@@ -5792,9 +5815,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 47989,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:49.376154+00:00",
-        "version_id": "qaW39gIdCRsH7iK2S_Taej1XbXN5xwiS",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.422279+00:00",
+        "version_id": "dKBAKRo9lPJmAm0afNh3sDWHatEnRHdJ",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-auction-crisis-ai",
@@ -5812,9 +5835,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 6612,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:49.399729+00:00",
-        "version_id": "fiW6resWFqP.lj1DwbioCWlwqGQbrsYt",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:49.460927+00:00",
+        "version_id": "ucFW4ebHSAOS33IippQLo_pGnSNmhtk_",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-catalyst-classifier",
@@ -5832,9 +5855,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 1183709,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:51.996526+00:00",
-        "version_id": "H.Y2tJ8imITura7ULnf_2..VIaSjjGOv",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.083687+00:00",
+        "version_id": "iEujfLcwkZJq7n_yrbzWXdiLfOBfpzos",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-convergence-radar",
@@ -5852,9 +5875,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 24796,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:52.041783+00:00",
-        "version_id": "KN5kO8dyS4UlkKDATJcHIP_AQ6AwljLO",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.146021+00:00",
+        "version_id": "qtfVm2MNjnt8WvKE_f4UsJiI3vmjqL9r",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-correlation-breaks",
@@ -5872,9 +5895,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 30624,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:52.118712+00:00",
-        "version_id": "NBbhwlZBw_065k9l.n73B9lYZbk99a4a",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.224255+00:00",
+        "version_id": "ZvS5DrWfQHTTkjmI6W3g765mS72gxCv7",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-crisis-plumbing",
@@ -5892,9 +5915,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 1876,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:52.139366+00:00",
-        "version_id": "qU9Jb.tsFmlr2HQT1V2__efA6M0wMLOo",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.244567+00:00",
+        "version_id": "ZTcpFyikHao5rbK0r9tsIwXnc68u.hzE",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-dark-pool",
@@ -5912,9 +5935,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 8001,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:52.165416+00:00",
-        "version_id": "rXCdxCc_dRKoGx4UHo4MeLlfrJ8YNCrY",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.268728+00:00",
+        "version_id": "5ksoh5LV0YVYSm0HHXuCtz5xuA4qAtPR",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-freight-pulse",
@@ -5932,9 +5955,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 7902,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:52.189301+00:00",
-        "version_id": "Rb07pby6.nXYLzBUFUIFjyMHlpo__q1h",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:52.288830+00:00",
+        "version_id": "vB98fxfI4RFY5TgMKDn.lCdrYHlM1emH",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-grid-queue",
@@ -5952,9 +5975,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 585561,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:53.399109+00:00",
-        "version_id": "3SwpTfB2.TsUg6p4xdRKXmJedaqWOk_f",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:53.546484+00:00",
+        "version_id": "9MS7FpYnaDN.dXA2WLQkBvaqgB1h6Mx4",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-momentum-leaders",
@@ -5972,9 +5995,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 574038,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:54.619861+00:00",
-        "version_id": "8Q5uEi1_IFtvZhJvd9U.zF6yGxhhcVU.",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:54.819764+00:00",
+        "version_id": "eA.MxyT23bT1cTL5ugXMDzNEfnEoyh1b",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pair-trades",
@@ -5992,9 +6015,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 8288,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:54.678609+00:00",
-        "version_id": "5CT8Z1_BR8HJB408BKLm4k4eTVSchGbr",
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:54.844680+00:00",
+        "version_id": "OpZMPP4DyMAcTGiFqPpdx6dxBW0mSGU4",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-earnings-nlp",
@@ -6011,17 +6034,17 @@
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 581972,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:55.900099+00:00",
-        "version_id": "fg2w8WkoX0mNg4ajaoLpBBGTL0hn2PmM",
+        "bytes": 582214,
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:56.065935+00:00",
+        "version_id": "1Z.q4gURNsXBNV9WNLyPzrWEn9k1Mzcn",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-mechanics",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 2402
+          "snapshots": 2403
         }
       },
       {
@@ -6031,17 +6054,17 @@
         "requirements": [
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
-        "bytes": 586537,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:57.156392+00:00",
-        "version_id": "Pne_62b5HJiIfK6Cv6PDAIDtmW5sryLr",
+        "bytes": 586781,
+        "last_modified": "2026-09-09T17:16:00+00:00",
+        "generated_at": "2026-09-09T17:15:57.386441+00:00",
+        "version_id": "BiRwy9H5DJ3LFmmZ9BLmERjpbfKncWMI",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-pump-positioning",
         "source_code_version_marker_present": false,
         "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
         "counts": {
-          "snapshots": 2401
+          "snapshots": 2402
         }
       },
       {
@@ -6052,9 +6075,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 9378,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:57.181903+00:00",
-        "version_id": "pC2BYrf07huAGYEg_aw1rX8hMzMJr6w2",
+        "last_modified": "2026-09-09T17:16:01+00:00",
+        "generated_at": "2026-09-09T17:15:57.424686+00:00",
+        "version_id": "S_PVrMkWYNadGlFQk7GOJC1UhNAbU.in",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-signal-fabric",
@@ -6072,9 +6095,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 151828,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:57.481392+00:00",
-        "version_id": "6K4cQDARisXWxgz6iD7njID2B.2q2on1",
+        "last_modified": "2026-09-09T17:16:01+00:00",
+        "generated_at": "2026-09-09T17:15:57.743628+00:00",
+        "version_id": "ECNhPWW8v0HWOU1GjFpY_Vfoz32WA_sh",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-ticker-deep-research",
@@ -6092,9 +6115,9 @@
           "ARCHIVE_METADATA_DOES_NOT_CERTIFY_CONTENT_OR_POINT_IN_TIME_AVAILABILITY"
         ],
         "bytes": 568873,
-        "last_modified": "2026-09-09T17:01:00+00:00",
-        "generated_at": "2026-09-09T17:00:58.677757+00:00",
-        "version_id": "DRGwccqgF3e5bFasl3jzCfZPc3Hf0VJg",
+        "last_modified": "2026-09-09T17:16:01+00:00",
+        "generated_at": "2026-09-09T17:15:58.962636+00:00",
+        "version_id": "V2hbRkolk_ePcuKpj4p9QBjWmCtsXcA6",
         "schema_version": "public-engine-archive-index.v1",
         "producer_version": null,
         "producer": "justhodl-velocity-acceleration",
@@ -6113,10 +6136,10 @@
         "requirements": [],
         "expected_output_contract": "fleet-freshness-monitor.v3",
         "expected_producer": "justhodl-fleet-freshness-monitor",
-        "bytes": 785700,
-        "last_modified": "2026-09-09T16:37:49+00:00",
-        "generated_at": "2026-09-09T16:37:47.765172+00:00",
-        "version_id": "auJ49p3irrefHcShzJPTqA8__L2FEPZi",
+        "bytes": 785413,
+        "last_modified": "2026-09-09T17:07:47+00:00",
+        "generated_at": "2026-09-09T17:07:46.435728+00:00",
+        "version_id": "csKtwC4qg4gxmeD6czYEogOQjeticeUf",
         "schema_version": "fleet-freshness-monitor.v3",
         "producer_version": "3.0.0",
         "producer": null,
@@ -6134,9 +6157,9 @@
         "expected_output_contract": "fleet-errors-metadata-20260909-v1",
         "expected_producer": "justhodl-fleet-error-monitor",
         "bytes": 1061,
-        "last_modified": "2026-09-09T17:02:11+00:00",
-        "generated_at": "2026-09-09T17:02:10.289031+00:00",
-        "version_id": "trU4lhY8HuePaBXcjkpaGrKMH964wcoS",
+        "last_modified": "2026-09-09T17:22:08+00:00",
+        "generated_at": "2026-09-09T17:22:07.636952+00:00",
+        "version_id": "nzoJcWcl2e4MBRXtv4hQIv2p3wRuh_Ec",
         "schema_version": null,
         "producer_version": "1.1.0",
         "producer": "fleet-error-monitor",
@@ -6233,10 +6256,10 @@
         "status": "VERIFIED",
         "errors": [],
         "requirements": [],
-        "bytes": 232592,
-        "last_modified": "2026-09-09T16:07:50+00:00",
-        "generated_at": "2026-09-09T16:07:49.481019+00:00",
-        "version_id": "BYme.Df1DBA2HIKdLMtgmkFLxg.LLU2.",
+        "bytes": 233956,
+        "last_modified": "2026-09-09T17:07:50+00:00",
+        "generated_at": "2026-09-09T17:07:49.312324+00:00",
+        "version_id": "Zpsn47Fw9jx.N25ZAYsXDDqW_fc.o4Is",
         "schema_version": null,
         "producer_version": null,
         "producer": null,
@@ -6362,10 +6385,10 @@
         "status": "VERIFIED",
         "errors": [],
         "requirements": [],
-        "bytes": 280975,
-        "last_modified": "2026-09-09T16:10:21+00:00",
-        "generated_at": "2026-09-09T16:10:20+00:00",
-        "version_id": "HncNsXVkk15KtlhIkmBUatF.TDmzuGKk",
+        "bytes": 263047,
+        "last_modified": "2026-09-09T17:10:21+00:00",
+        "generated_at": "2026-09-09T17:10:20+00:00",
+        "version_id": "e.sMQEqGGSZQMQeBGGfo22TXrbiylcWp",
         "schema_version": "1.0",
         "producer_version": null,
         "producer": null,
@@ -6680,20 +6703,19 @@
     "justhodl-devils-advocate": [
       {
         "key": "data/devils-advocate.json",
-        "status": "PENDING_OUTPUT",
+        "status": "VERIFIED",
         "errors": [],
-        "requirements": [
-          "FIRST_POST_RELEASE_PUBLICATION_PENDING"
-        ],
+        "requirements": [],
         "bytes": 245,
-        "last_modified": "2026-09-09T11:12:34+00:00",
-        "generated_at": "2026-09-09T11:12:33.793484+00:00",
-        "version_id": "5RjDjc1lY3wouN.omK7.MobdtRdYjlJD",
+        "last_modified": "2026-09-09T17:12:35+00:00",
+        "generated_at": "2026-09-09T17:12:34.002558+00:00",
+        "version_id": "nXw6Y8PkMzpb7kd9Rz070Z51akZfhaay",
         "schema_version": null,
         "producer_version": "1.0",
         "producer": "devils-advocate",
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {}
       }
     ],
     "justhodl-domain-barometers": [
@@ -6736,20 +6758,19 @@
     "justhodl-engine-conflicts": [
       {
         "key": "data/engine-conflicts.json",
-        "status": "PENDING_OUTPUT",
+        "status": "VERIFIED",
         "errors": [],
-        "requirements": [
-          "POST_RELEASE_GENERATION_TIMESTAMP_UNPROVEN"
-        ],
-        "bytes": 243,
-        "last_modified": "2026-09-09T13:45:28+00:00",
-        "generated_at": "2026-09-09T11:13:40.152394+00:00",
-        "version_id": "dK7GOw6.8cMbbt69F5SckWYDiyGQNmzs",
+        "requirements": [],
+        "bytes": 259,
+        "last_modified": "2026-09-09T17:13:41+00:00",
+        "generated_at": "2026-09-09T17:13:40.218469+00:00",
+        "version_id": "UfKz2oVU4AGu.cJjRxxOiCcpyOcRaaMH",
         "schema_version": null,
         "producer_version": "1.0",
         "producer": "engine-conflicts",
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
+        "counts": {}
       }
     ],
     "justhodl-equity-research": [
@@ -7246,39 +7267,20 @@
     "justhodl-options-confluence": [
       {
         "key": "data/options-confluence.json",
-        "status": "VERIFIED",
+        "status": "PENDING_OUTPUT",
         "errors": [],
-        "requirements": [],
-        "bytes": 24368,
-        "last_modified": "2026-09-09T16:20:02+00:00",
-        "generated_at": "2026-09-09T16:20:01.247432+00:00",
-        "version_id": "4C7zBpmjzKov1MEZIghUoTsw6hY0f0ul",
+        "requirements": [
+          "FIRST_POST_RELEASE_PUBLICATION_PENDING"
+        ],
+        "bytes": 32240,
+        "last_modified": "2026-09-09T17:20:02+00:00",
+        "generated_at": "2026-09-09T17:20:01.332673+00:00",
+        "version_id": "4MGRdS1fjM..rCDmoVO6BDX0eEwooCAF",
         "schema_version": null,
         "producer_version": "1.0",
         "producer": "options-confluence",
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "counts": {}
-      }
-    ],
-    "justhodl-options-flow": [
-      {
-        "key": "flow-data.json",
-        "status": "VERIFIED",
-        "errors": [],
-        "requirements": [],
-        "expected_output_contract": "options_flow_and_sentiment_v3_nested_market_data",
-        "expected_producer": "justhodl-options-flow",
-        "bytes": 30521,
-        "last_modified": "2026-09-09T15:33:51+00:00",
-        "generated_at": "2026-09-09T15:33:41.532477+00:00",
-        "version_id": "CQOl4fOrDGT5pPQyNz0Hw0veiKzkeB9d",
-        "schema_version": null,
-        "producer_version": null,
-        "producer": null,
-        "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "counts": {}
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
       }
     ],
     "justhodl-outcome-checker": [],
@@ -7414,9 +7416,11 @@
     "justhodl-provider-catalog": [
       {
         "key": "data/provider-catalog.json",
-        "status": "VERIFIED",
+        "status": "PENDING_OUTPUT",
         "errors": [],
-        "requirements": [],
+        "requirements": [
+          "FIRST_POST_RELEASE_PUBLICATION_PENDING"
+        ],
         "bytes": 26816,
         "last_modified": "2026-09-09T16:55:35+00:00",
         "generated_at": "2026-09-09T16:48:53+00:00",
@@ -7425,8 +7429,7 @@
         "producer_version": null,
         "producer": null,
         "source_code_version_marker_present": false,
-        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted",
-        "counts": {}
+        "attribution": "publication timestamp after verified deployed package; no embedded source SHA asserted"
       }
     ],
     "justhodl-pump-mechanics": [
@@ -7435,10 +7438,10 @@
         "status": "VERIFIED",
         "errors": [],
         "requirements": [],
-        "bytes": 10315,
-        "last_modified": "2026-09-09T16:15:43+00:00",
-        "generated_at": "2026-09-09T16:15:42.537158+00:00",
-        "version_id": "lONz2VjH7hI5sr3LbMuZ2IppbKp1InSU",
+        "bytes": 17717,
+        "last_modified": "2026-09-09T17:15:43+00:00",
+        "generated_at": "2026-09-09T17:15:42.585657+00:00",
+        "version_id": "mUrG_KysmQHODViQEW1C_V.l16lANxlM",
         "schema_version": "1.0",
         "producer_version": null,
         "producer": null,
@@ -7638,9 +7641,9 @@
         "errors": [],
         "requirements": [],
         "bytes": 1574,
-        "last_modified": "2026-09-09T16:50:45+00:00",
-        "generated_at": "2026-09-09T16:50:44.488687+00:00",
-        "version_id": "GZzdLHsJfnq_qAOsG0GMHlkdmIlEq6Y_",
+        "last_modified": "2026-09-09T17:20:45+00:00",
+        "generated_at": "2026-09-09T17:20:44.411211+00:00",
+        "version_id": "7RUFO1dscZ6q6leHa9Dze2Mwyo9uo_YQ",
         "schema_version": "2.0",
         "producer_version": null,
         "producer": null,
@@ -7842,108 +7845,17 @@
   },
   "invocations": [
     {
-      "function": "justhodl-ka-metrics",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:27.227349+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-khalid-metrics",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:27.528289+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-tradingview",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:27.916846+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-liquidity-profile",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:28.291801+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-calibration-snapshotter",
-      "qualifier": "2",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:28.589755+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-source-map",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:37:28.814889+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-factor-risk",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:43:54.445397+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-liquidity-capacity",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:43:54.765017+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-risk-sizer",
-      "qualifier": "5",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:45:16.410362+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-firm-risk-board",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:45:16.986744+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-backtest-engine",
-      "qualifier": "2",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:45:37.863144+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-research-backtest",
-      "qualifier": "5",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:45:38.282621+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
-      "function": "justhodl-options-flow-scanner",
-      "qualifier": "$LATEST",
-      "request_status": 202,
-      "requested_at": "2026-09-09T16:45:38.654477+00:00",
-      "mode": "regular_quiet_publish"
-    },
-    {
       "function": "justhodl-bloomberg-v8",
       "qualifier": "$LATEST",
       "request_status": 202,
-      "requested_at": "2026-09-09T16:45:38.951747+00:00",
+      "requested_at": "2026-09-09T17:22:16.197040+00:00",
       "mode": "regular_quiet_publish"
     }
   ],
   "requirements": [],
-  "checkout_sha": "b1ef1a937cc8e9170d67bd1d51539f1e63b237f5",
+  "checkout_sha": "b2e5d217372985b5bde6fe9d1c7138384a0d6708",
   "baseline_sha": "125a68a89268c5ff8303dfba4177026dcf1e3c21",
-  "started_at": "2026-09-09T16:37:05.634525+00:00",
+  "started_at": "2026-09-09T17:21:40.359887+00:00",
   "engine_scope": {
     "alphavantage-market-agent": [
       "shared:public_provider_json",
@@ -8299,6 +8211,7 @@
       "source_or_config_changed"
     ],
     "justhodl-options-flow": [
+      "reviewed_dependency_refresh",
       "source_or_config_changed"
     ],
     "justhodl-options-flow-scanner": [
@@ -10589,25 +10502,58 @@
   },
   "schedules": [
     {
-      "function": "bls-employment-api-v2",
+      "function": "justhodl-ai-infra-stack",
       "service": "events",
-      "name": "bls-friday-update",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "ai-infra-stack-daily",
+      "status": "VERIFIED",
+      "expression": "cron(45 13 * * ? *)",
+      "expected_expression": "cron(45 13 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai-infra-stack"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
-      "function": "bls-employment-api-v2",
+      "function": "justhodl-alpha-score",
       "service": "events",
-      "name": "bls-tuesday-update",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "justhodl-alpha-score-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(7 * * * ? *)",
+      "expected_expression": "cron(7 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-alpha-score"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
-      "function": "fedliquidityapi",
+      "function": "justhodl-attention-confluence",
       "service": "events",
-      "name": "fedliquidityapi-auto-update",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "justhodl-attention-confluence-daily",
+      "status": "VERIFIED",
+      "expression": "cron(10 15 * * ? *)",
+      "expected_expression": "cron(10 15 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-attention-confluence"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
       "function": "justhodl-backend-agent",
@@ -10617,9 +10563,29 @@
       "expression": "rate(15 minutes)",
       "expected_expression": null,
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-backend-agent"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-behavior-mirror",
+      "service": "events",
+      "name": "behavior-mirror-weekly",
+      "status": "VERIFIED",
+      "expression": "cron(0 13 ? * SUN *)",
+      "expected_expression": "cron(0 13 ? * SUN *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-behavior-mirror"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10633,6 +10599,8 @@
       "expression": "cron(10 * * * ? *)",
       "expected_expression": "cron(10 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-best-setups"
@@ -10643,10 +10611,39 @@
     },
     {
       "function": "justhodl-bloomberg-v8",
+      "service": "scheduler",
+      "name": "justhodl-bloomberg-v8-hourly",
+      "status": "VERIFIED",
+      "expression": "rate(1 hour)",
+      "expected_expression": "rate(1 hour)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-bloomberg-v8"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": true,
+      "input_preserved_or_matches": true
+    },
+    {
+      "function": "justhodl-brain-compiler",
       "service": "events",
-      "name": "bloomberg-terminal-refresh",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "justhodl-brain-compiler-monthly",
+      "status": "VERIFIED",
+      "expression": "cron(0 6 1 * ? *)",
+      "expected_expression": "cron(0 6 1 * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brain-compiler"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
       "function": "justhodl-brain-sync",
@@ -10656,9 +10653,29 @@
       "expression": "cron(0 9 1 * ? *)",
       "expected_expression": "cron(0 9 1 * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brain-sync"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-canary-warroom",
+      "service": "events",
+      "name": "justhodl-canary-warroom-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(50 * * * ? *)",
+      "expected_expression": "cron(50 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-canary-warroom"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10672,6 +10689,8 @@
       "expression": "cron(0 14 * * ? *)",
       "expected_expression": "cron(0 14 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-catalyst-classifier"
@@ -10688,6 +10707,8 @@
       "expression": "cron(15 14 * * ? *)",
       "expected_expression": "cron(15 14 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-catalyst-clusters"
@@ -10704,6 +10725,8 @@
       "expression": "cron(30 0 * * ? *)",
       "expected_expression": "cron(30 0 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-catalyst-skew-premove"
@@ -10720,6 +10743,8 @@
       "expression": "cron(50 20 ? * MON-FRI *)",
       "expected_expression": "cron(50 20 ? * MON-FRI *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-catalyst-skew-premove"
@@ -10736,9 +10761,47 @@
       "expression": "cron(*/30 * * * ? *)",
       "expected_expression": "cron(*/30 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-convergence-radar"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-conviction-engine",
+      "service": "events",
+      "name": "conviction-engine-3h",
+      "status": "VERIFIED",
+      "expression": "cron(45 */3 * * ? *)",
+      "expected_expression": "cron(45 */3 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-conviction-engine"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-crypto-basis",
+      "service": "events",
+      "name": "justhodl-crypto-basis-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(25 * * * ? *)",
+      "expected_expression": "cron(25 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-basis"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10752,6 +10815,8 @@
       "expression": "rate(1 day)",
       "expected_expression": null,
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-enricher"
@@ -10768,9 +10833,29 @@
       "expression": "rate(1 hour)",
       "expected_expression": null,
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-funding"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-debate-engine",
+      "service": "events",
+      "name": "justhodl-debate-engine-daily",
+      "status": "VERIFIED",
+      "expression": "cron(15 12 * * ? *)",
+      "expected_expression": "cron(15 12 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-debate-engine"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10784,6 +10869,8 @@
       "expression": "rate(6 hours)",
       "expected_expression": "rate(6 hours)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-devils-advocate"
@@ -10800,6 +10887,8 @@
       "expression": "cron(40 14 * * ? *)",
       "expected_expression": "cron(40 14 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-derived"
@@ -10816,6 +10905,8 @@
       "expression": "rate(6 hours)",
       "expected_expression": "rate(6 hours)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-conflicts"
@@ -10832,6 +10923,8 @@
       "expression": "cron(15 * * * ? *)",
       "expected_expression": "cron(15 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-fusion:live"
@@ -10848,6 +10941,8 @@
       "expression": "cron(45 22 * * ? *)",
       "expected_expression": "cron(45 22 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-constituents"
@@ -10864,6 +10959,8 @@
       "expression": "cron(0 22 * * ? *)",
       "expected_expression": "cron(0 22 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-fund-flows"
@@ -10880,9 +10977,47 @@
       "expression": "cron(45 15 * * ? *)",
       "expected_expression": "cron(45 15 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-true-flows"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-euro-fragmentation",
+      "service": "events",
+      "name": "euro-fragmentation-daily",
+      "status": "VERIFIED",
+      "expression": "cron(20 12 * * ? *)",
+      "expected_expression": "cron(20 12 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-euro-fragmentation"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-eurodollar-plumbing",
+      "service": "events",
+      "name": "eurodollar-plumbing-daily",
+      "status": "VERIFIED",
+      "expression": "cron(0 12 * * ? *)",
+      "expected_expression": "cron(0 12 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-eurodollar-plumbing"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10896,6 +11031,8 @@
       "expression": "cron(30 2 * * ? *)",
       "expected_expression": "cron(30 2 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-factor-risk"
@@ -10912,9 +11049,65 @@
       "expression": "cron(0 4 * * ? *)",
       "expected_expression": "cron(0 4 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-firm-risk-board"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-fleet-error-monitor",
+      "service": "events",
+      "name": "fleet-error-monitor-5min",
+      "status": "VERIFIED",
+      "expression": "rate(5 minutes)",
+      "expected_expression": "rate(5 minutes)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-fleet-freshness-monitor",
+      "service": "events",
+      "name": "fleet-freshness-monitor-30min",
+      "status": "VERIFIED",
+      "expression": "rate(30 minutes)",
+      "expected_expression": "rate(30 minutes)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-freshness-monitor:live"
+      ],
+      "governed_target_qualified": true,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-fleet-monitor",
+      "service": "events",
+      "name": "fleet-monitor-3h",
+      "status": "VERIFIED",
+      "expression": "cron(20 */3 * * ? *)",
+      "expected_expression": "cron(20 */3 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-monitor"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -10928,6 +11121,8 @@
       "expression": "cron(0 14 * * ? *)",
       "expected_expression": "cron(0 14 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-journal-grader"
@@ -10944,6 +11139,8 @@
       "expression": "rate(1 hour)",
       "expected_expression": "rate(1 hour)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ka-metrics"
@@ -10960,6 +11157,8 @@
       "expression": "cron(10 4 ? * TUE-SAT *)",
       "expected_expression": "cron(10 4 ? * TUE-SAT *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-katlin:live"
@@ -10976,6 +11175,8 @@
       "expression": "cron(30 9 ? * SUN *)",
       "expected_expression": "cron(30 9 ? * SUN *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-katlin:live"
@@ -10992,6 +11193,8 @@
       "expression": "rate(15 minutes)",
       "expected_expression": "rate(15 minutes)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-katlin:live"
@@ -11008,6 +11211,8 @@
       "expression": "cron(25 * * * ? *)",
       "expected_expression": "cron(25 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-khalid:live"
@@ -11024,6 +11229,8 @@
       "expression": "rate(1 hour)",
       "expected_expression": "rate(1 hour)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-khalid-metrics"
@@ -11040,6 +11247,8 @@
       "expression": "cron(20 * * * ? *)",
       "expected_expression": "cron(20 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-khalid-risk:live"
@@ -11056,6 +11265,8 @@
       "expression": "cron(0 2 * * ? *)",
       "expected_expression": "cron(0 2 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-liquidity-capacity"
@@ -11091,9 +11302,29 @@
       "expression": "cron(15 22 * * ? *)",
       "expected_expression": "cron(15 22 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-macro-regime"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-massive-signals",
+      "service": "events",
+      "name": "massive-signals-daily",
+      "status": "VERIFIED",
+      "expression": "cron(0 22 * * ? *)",
+      "expected_expression": "cron(0 22 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-massive-signals"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -11107,6 +11338,8 @@
       "expression": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
       "expected_expression": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-master-allocator"
@@ -11123,6 +11356,8 @@
       "expression": "rate(1 day)",
       "expected_expression": null,
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-morning-intelligence"
@@ -11139,6 +11374,8 @@
       "expression": "cron(30 13 * * ? *)",
       "expected_expression": "cron(30 13 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-my-brief"
@@ -11148,16 +11385,36 @@
       "input_preserved_or_matches": null
     },
     {
-      "function": "justhodl-options-flow",
+      "function": "justhodl-notes-intel",
       "service": "events",
-      "name": "justhodl-options-flow-sched",
+      "name": "notes-intel-daily",
       "status": "VERIFIED",
-      "expression": "cron(25 20 ? * MON-FRI *)",
-      "expected_expression": "cron(25 20 ? * MON-FRI *)",
+      "expression": "cron(10 12 * * ? *)",
+      "expected_expression": "cron(10 12 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
-        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-flow"
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-notes-intel"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-options-confluence",
+      "service": "scheduler",
+      "name": "options-confluence-sched",
+      "status": "VERIFIED",
+      "expression": "cron(20 * * * ? *)",
+      "expected_expression": "cron(20 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-confluence"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -11165,10 +11422,57 @@
     },
     {
       "function": "justhodl-options-flow",
+      "service": "scheduler",
+      "name": "justhodl-options-flow-30m",
+      "status": "VERIFIED",
+      "expression": "cron(33 15 * * ? *)",
+      "expected_expression": "cron(33 15 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-flow"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": true,
+      "input_preserved_or_matches": true
+    },
+    {
+      "function": "justhodl-options-flow",
+      "service": "scheduler",
+      "name": "justhodl-options-flow-sched",
+      "status": "VERIFIED",
+      "expression": "cron(25 20 ? * MON-FRI *)",
+      "expected_expression": "cron(25 20 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-flow"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": true,
+      "input_preserved_or_matches": true
+    },
+    {
+      "function": "justhodl-outcome-checker",
       "service": "events",
-      "name": "justhodl-flow-refresh",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "justhodl-outcome-checker-4h",
+      "status": "VERIFIED",
+      "expression": "cron(29 21 * * ? *)",
+      "expected_expression": "cron(29 21 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-outcome-checker"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
       "function": "justhodl-page-ai-commentary",
@@ -11178,11 +11482,103 @@
       "expression": "cron(0 14 ? * MON-FRI *)",
       "expected_expression": "cron(0 14 ? * MON-FRI *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-page-ai-commentary"
       ],
       "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-pm-decision",
+      "service": "events",
+      "name": "pm-decision-daily",
+      "status": "VERIFIED",
+      "expression": "cron(0 14 ? * MON-FRI *)",
+      "expected_expression": "cron(0 14 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-pm-decision"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-portfolio-catalysts",
+      "service": "events",
+      "name": "justhodl-portfolio-catalysts-3x-daily",
+      "status": "VERIFIED",
+      "expression": "cron(0 11,17,23 * * ? *)",
+      "expected_expression": "cron(0 11,17,23 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-catalysts"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-portfolio-risk",
+      "service": "events",
+      "name": "justhodl-portfolio-risk-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(43 * * * ? *)",
+      "expected_expression": "cron(43 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-risk"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-portfolio-sizer",
+      "service": "events",
+      "name": "justhodl-portfolio-sizer-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(45 * * * ? *)",
+      "expected_expression": "cron(45 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-sizer"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-portfolio-snapshot",
+      "service": "events",
+      "name": "justhodl-portfolio-snapshot-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(40 * * * ? *)",
+      "expected_expression": "cron(40 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot:live"
+      ],
+      "governed_target_qualified": true,
       "input_configured": false,
       "input_preserved_or_matches": null
     },
@@ -11194,6 +11590,8 @@
       "expression": "rate(6 hours)",
       "expected_expression": "rate(6 hours)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-position-sizer"
@@ -11205,9 +11603,20 @@
     {
       "function": "justhodl-provider-catalog",
       "service": "events",
-      "name": "justhodl-provider-catalog-daily",
-      "status": "PENDING_CONFIGURATION",
-      "error_type": "ResourceNotFoundException"
+      "name": "justhodl-provider-catalog-hourly",
+      "status": "VERIFIED",
+      "expression": "rate(1 hour)",
+      "expected_expression": "rate(1 hour)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-provider-catalog"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
     },
     {
       "function": "justhodl-public-archive-index",
@@ -11217,6 +11626,8 @@
       "expression": "cron(0/15 * * * ? *)",
       "expected_expression": "cron(0/15 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-public-archive-index:live"
@@ -11233,6 +11644,8 @@
       "expression": "cron(15 * * * ? *)",
       "expected_expression": "cron(15 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-pump-mechanics"
@@ -11249,6 +11662,8 @@
       "expression": "cron(0 0/2 * * ? *)",
       "expected_expression": "cron(0 0/2 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-regime-conditional-router"
@@ -11265,6 +11680,8 @@
       "expression": "cron(10 6 * * ? *)",
       "expected_expression": "cron(10 6 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 2,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-repo"
@@ -11281,6 +11698,8 @@
       "expression": "cron(0 11 * * ? *)",
       "expected_expression": "cron(0 11 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-research-backtest:live"
@@ -11316,6 +11735,8 @@
       "expression": "cron(30 13 * * ? *)",
       "expected_expression": "cron(30 13 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-schedule-liveness"
@@ -11332,6 +11753,8 @@
       "expression": "cron(55 22 ? * MON-FRI *)",
       "expected_expression": "cron(55 22 ? * MON-FRI *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sector-capital-fusion"
@@ -11348,6 +11771,8 @@
       "expression": "cron(5 21 ? * MON-FRI *)",
       "expected_expression": "cron(5 21 ? * MON-FRI *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sector-rotation"
@@ -11364,9 +11789,29 @@
       "expression": "cron(15 21 ? * MON,WED *)",
       "expected_expression": "cron(15 21 ? * MON,WED *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-squeeze-fuel",
+      "service": "events",
+      "name": "justhodl-squeeze-fuel-daily",
+      "status": "VERIFIED",
+      "expression": "cron(30 13 ? * TUE-SAT *)",
+      "expected_expression": "cron(30 13 ? * TUE-SAT *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-squeeze-fuel"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -11380,6 +11825,8 @@
       "expression": "cron(0 23 * * ? *)",
       "expected_expression": "cron(0 23 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-stealth-accumulation"
@@ -11396,9 +11843,29 @@
       "expression": "rate(4 hours)",
       "expected_expression": null,
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-stock-screener"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-tax-plan",
+      "service": "events",
+      "name": "tax-plan-daily",
+      "status": "VERIFIED",
+      "expression": "cron(45 11 ? * * *)",
+      "expected_expression": "cron(45 11 ? * * *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tax-plan"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -11412,6 +11879,8 @@
       "expression": "cron(20,50 * * * ? *)",
       "expected_expression": "cron(20,50 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-cascade"
@@ -11428,6 +11897,8 @@
       "expression": "cron(45 22 * * ? *)",
       "expected_expression": "cron(45 22 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-cascade-backtest"
@@ -11444,9 +11915,47 @@
       "expression": "cron(0 */6 * * ? *)",
       "expected_expression": "cron(0 */6 * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-classifier"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-theme-second-wave",
+      "service": "events",
+      "name": "theme-second-wave-daily",
+      "status": "VERIFIED",
+      "expression": "cron(0 14 * * ? *)",
+      "expected_expression": "cron(0 14 * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-second-wave"
+      ],
+      "governed_target_qualified": null,
+      "input_configured": false,
+      "input_preserved_or_matches": null
+    },
+    {
+      "function": "justhodl-trade-logger",
+      "service": "events",
+      "name": "justhodl-trade-logger-hourly",
+      "status": "VERIFIED",
+      "expression": "cron(50 * * * ? *)",
+      "expected_expression": "cron(50 * * * ? *)",
+      "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
+      "target_count": 1,
+      "matching_target_arns": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-trade-logger"
       ],
       "governed_target_qualified": null,
       "input_configured": false,
@@ -11460,6 +11969,8 @@
       "expression": "cron(25 14,15,16,17,18,19 ? * MON-FRI *)",
       "expected_expression": "cron(25 14,15,16,17,18,19 ? * MON-FRI *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": null,
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-trade-tickets"
@@ -11476,6 +11987,8 @@
       "expression": "cron(30 * * * ? *)",
       "expected_expression": "cron(30 * * * ? *)",
       "state": "ENABLED",
+      "timezone": "UTC",
+      "expected_timezone": "UTC",
       "target_count": 1,
       "matching_target_arns": [
         "arn:aws:lambda:us-east-1:857687956942:function:justhodl-velocity-acceleration"
@@ -11507,41 +12020,6 @@
   ],
   "schedule_discovery_scope": "declarative config schedules; no claim that unconfigured fleet rules were exhaustively discovered",
   "pending_outputs": [
-    {
-      "function": "bls-employment-api-v2",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "bls-friday-update"
-    },
-    {
-      "function": "bls-employment-api-v2",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "bls-tuesday-update"
-    },
-    {
-      "function": "fedliquidityapi",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "fedliquidityapi-auto-update"
-    },
-    {
-      "function": "justhodl-bloomberg-v8",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "bloomberg-terminal-refresh"
-    },
-    {
-      "function": "justhodl-options-flow",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "justhodl-flow-refresh"
-    },
-    {
-      "function": "justhodl-provider-catalog",
-      "reason": "SCHEDULE_CONFIGURATION_PENDING",
-      "schedule": "justhodl-provider-catalog-daily"
-    },
-    {
-      "function": "justhodl-bloomberg-v8",
-      "key": "data/bloomberg-report.json",
-      "reason": "POST_RELEASE_OUTPUT_PENDING"
-    },
     {
       "function": "alphavantage-market-agent",
       "reason": "API_REQUEST_FIXTURE_OR_PRIMARY_OUTPUT_MAPPING_REQUIRED"
@@ -11642,18 +12120,8 @@
       "reason": "FIRST_SCHEDULED_RUN_PENDING"
     },
     {
-      "function": "justhodl-devils-advocate",
-      "key": "data/devils-advocate.json",
-      "reason": "FIRST_SCHEDULED_RUN_PENDING"
-    },
-    {
       "function": "justhodl-domain-barometers",
       "key": "data/domain-barometers.json",
-      "reason": "FIRST_SCHEDULED_RUN_PENDING"
-    },
-    {
-      "function": "justhodl-engine-conflicts",
-      "key": "data/engine-conflicts.json",
       "reason": "FIRST_SCHEDULED_RUN_PENDING"
     },
     {
@@ -11759,6 +12227,11 @@
       "reason": "FIRST_SCHEDULED_RUN_PENDING"
     },
     {
+      "function": "justhodl-options-confluence",
+      "key": "data/options-confluence.json",
+      "reason": "FIRST_SCHEDULED_RUN_PENDING"
+    },
+    {
       "function": "justhodl-outcome-checker",
       "reason": "API_REQUEST_FIXTURE_OR_PRIMARY_OUTPUT_MAPPING_REQUIRED"
     },
@@ -11783,6 +12256,11 @@
     {
       "function": "justhodl-position-sizer",
       "key": "data/position-sizing.json",
+      "reason": "FIRST_SCHEDULED_RUN_PENDING"
+    },
+    {
+      "function": "justhodl-provider-catalog",
+      "key": "data/provider-catalog.json",
       "reason": "FIRST_SCHEDULED_RUN_PENDING"
     },
     {
@@ -11911,6 +12389,14 @@
       "key": "backtest/results.json",
       "requirements": [
         "TRADABLE_PORTFOLIO_NAV_AND_VINTAGES_REQUIRED"
+      ]
+    },
+    {
+      "function": "justhodl-bloomberg-v8",
+      "key": "data/bloomberg-report.json",
+      "requirements": [
+        "BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE",
+        "DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION"
       ]
     },
     {
@@ -12096,5 +12582,5 @@
       ]
     }
   ],
-  "finished_at": "2026-09-09T17:02:52.079887+00:00"
+  "finished_at": "2026-09-09T17:23:09.670174+00:00"
 }
