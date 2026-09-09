@@ -1,3 +1,4 @@
+from managed_secret import managed_secret
 import json
 import urllib.request
 import urllib.parse
@@ -7,7 +8,7 @@ from decimal import Decimal
 def lambda_handler(event, context):
     """AlphaVantage Market Data Agent"""
     
-    api_key = "EOLGKSGAYZUXKPUL"
+    api_key = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
     
     # Define what data to fetch based on path
     path = event.get('path', '/')

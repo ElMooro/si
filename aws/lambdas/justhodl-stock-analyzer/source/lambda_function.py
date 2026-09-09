@@ -1,3 +1,4 @@
+from managed_secret import managed_secret
 import json, os, sys, boto3, urllib.request, math, traceback
 from datetime import datetime, timezone, timedelta
 
@@ -341,7 +342,7 @@ def get_historical_annual(ticker):
 def get_ohlcv(ticker):
     """Fetch weekly OHLCV from Alpha Vantage back to 1999 for candlestick charting"""
     try:
-        AV_KEY = "EOLGKSGAYZUXKPUL"
+        AV_KEY = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
         av_url = f"https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY_ADJUSTED&symbol={ticker}&apikey={AV_KEY}"
         req = urllib.request.Request(av_url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=20) as r:

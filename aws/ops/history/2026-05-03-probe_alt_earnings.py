@@ -4,7 +4,7 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 from ops_report import report
 
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 
 def get(url, timeout=10, headers=None):

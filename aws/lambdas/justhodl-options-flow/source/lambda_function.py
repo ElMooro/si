@@ -1,3 +1,4 @@
+from managed_secret import managed_secret
 import json
 import os
 import sys
@@ -115,7 +116,7 @@ POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/
 
 
 
-AV_KEY = os.environ.get('AV_KEY', 'EOLGKSGAYZUXKPUL')
+AV_KEY = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
 
 
 

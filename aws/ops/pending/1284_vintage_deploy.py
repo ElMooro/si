@@ -25,7 +25,7 @@ try:
     except lam.exceptions.ResourceNotFoundException:
         lam.create_function(FunctionName=LAMBDA,Runtime="python3.12",Role=ROLE,Handler="lambda_function.lambda_handler",
             Code={"ZipFile":zb},Description="Point-in-time vintage FRED (ALFRED)",Timeout=300,MemorySize=512,Architectures=["x86_64"],
-            Environment={"Variables":{"FRED_KEY":"2f057499936072679d8843d7fce99989"}},Publish=False); act="created"
+            Environment={"Variables":{"FRED_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET"}},Publish=False); act="created"
     for _ in range(30):
         time.sleep(2); c=lam.get_function_configuration(FunctionName=LAMBDA)
         if c.get("State")=="Active" and c.get("LastUpdateStatus") in ("Successful",None): break

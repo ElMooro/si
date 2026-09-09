@@ -9,6 +9,7 @@ Real-time data aggregation from 10+ sources
 
 Author: JustHodl.AI
 """
+from managed_secret import managed_secret
 
 try:
     import _fred_shim  # noqa: F401
@@ -36,7 +37,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 # === CONFIG ===
 FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
-ALPHAVANTAGE_KEY = os.environ.get('ALPHAVANTAGE_KEY', 'EOLGKSGAYZUXKPUL')
+ALPHAVANTAGE_KEY = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
 CMC_KEY = managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",))
 NEWS_KEY = managed_secret(('NEWS_KEY', 'NEWSAPI_KEY', 'NEWS_API_KEY'), ("/justhodl/newsapi/api-key",))
 S3_BUCKET = os.environ.get('S3_BUCKET', 'justhodl-bloomberg-terminal')

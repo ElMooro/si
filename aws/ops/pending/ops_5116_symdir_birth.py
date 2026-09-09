@@ -68,7 +68,7 @@ def main():
 
         # ---------------- S1 deploy
         r.section("S1 deploy justhodl-symdir")
-        env = {"S3_BUCKET": B, "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d", "FRED_KEY": "2f057499936072679d8843d7fce99989"}
+        env = {"S3_BUCKET": B, "POLYGON_KEY": "REDACTED_CREDENTIAL_USE_MANAGED_SECRET", "FRED_KEY": "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"}
         try:
             bls = (lam.get_function_configuration(FunctionName="bls-labor-agent").get("Environment") or {}).get("Variables", {}).get("BLS_API_KEY")
             if bls:

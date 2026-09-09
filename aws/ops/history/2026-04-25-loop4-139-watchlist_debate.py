@@ -95,7 +95,7 @@ import boto3
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = os.environ.get("FMP_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
 
 s3 = boto3.client("s3", region_name=REGION)
 ctx = ssl.create_default_context()
@@ -582,7 +582,7 @@ with report("loop4_watchlist_debate") as r:
         FunctionName="justhodl-investor-agents"
     ).get("Environment", {}).get("Variables", {})
     ant_key = ia_env.get("ANTHROPIC_KEY", "")
-    fmp_key = ia_env.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    fmp_key = ia_env.get("FMP_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
 
     try:
         lam.get_function(FunctionName=fname)

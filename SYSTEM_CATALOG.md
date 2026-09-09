@@ -499,15 +499,15 @@ Stored as Lambda env vars. Donor pattern uses `inherit_env` list of `{from_funct
 - `justhodl-vol-surface` donates `TELEGRAM_*`
 - `justhodl-finra-short` donates `POLY_KEY`
 
-Keys (also in memory edit #5, kept here for self-containment):
-- FMP: `wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb` (**`/stable/` only**)
-- FRED: `2f057499936072679d8843d7fce99989`
-- Polygon: `zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d`
-- AlphaVantage: `EOLGKSGAYZUXKPUL`
-- CMC: `17ba8e87-53f0-46f4-abe5-014d9cd99597`
-- BLS: `a759447531f04f1f861f29a381aab863`
-- BEA: `997E5691-4F0E-4774-8B4E-CAE836D4AC47`
-- Census: `8423ffa543d0e95cdba580f2e381649b6772f515`
+Provider credentials must be read from managed environment or SSM configuration; never copy values into this catalogue:
+- FMP: `managed configuration only` (**`/stable/` only**)
+- FRED: `managed configuration only`
+- Polygon: `managed configuration only`
+- AlphaVantage: `managed configuration only`
+- CMC: `managed configuration only`
+- BLS: `managed configuration only`
+- BEA: `managed configuration only`
+- Census: `managed configuration only`
 - Telegram bot: `8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs`, chat_id `8678089260` at `/justhodl/telegram/chat_id`
 
 ## PROTECTED / DO NOT TOUCH WITHOUT EXPLICIT APPROVAL

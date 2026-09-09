@@ -91,7 +91,7 @@ def main():
         cur_env = (lam.get_function_configuration(FunctionName="justhodl-sector-heatmap")
                    .get("Environment") or {}).get("Variables", {}) or {}
         if "FMP_KEY" not in cur_env:
-            fmp = get_param("/justhodl/fmp-key") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+            fmp = get_param("/justhodl/fmp-key") or "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
             cur_env["FMP_KEY"] = fmp
             cur_env.setdefault("TELEGRAM_TOKEN", get_param("/justhodl/telegram/bot_token") or "")
             cur_env.setdefault("TELEGRAM_CHAT_ID", get_param("/justhodl/telegram/chat_id") or "")

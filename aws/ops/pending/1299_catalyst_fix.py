@@ -24,7 +24,7 @@ try:
     c=lam.get_function_configuration(FunctionName="justhodl-catalyst-calendar")
     env=c.get("Environment",{}).get("Variables",{})
     if not env.get("FMP_KEY"):
-        env["FMP_KEY"]="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+        env["FMP_KEY"]="REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
         lam.update_function_configuration(FunctionName="justhodl-catalyst-calendar",Environment={"Variables":env}); time.sleep(5)
 except Exception as e: out["env_err"]=str(e)[:100]
 redeploy("justhodl-catalyst-calendar","aws/lambdas/justhodl-catalyst-calendar/source")

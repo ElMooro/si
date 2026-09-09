@@ -21,8 +21,8 @@ import urllib.error
 import json
 from ops_report import report
 
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
+FMP_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 
 def http(url, timeout=10):

@@ -40,8 +40,8 @@ except ClientError:
     role = lam.get_function(FunctionName="justhodl-historical-analogs")["Configuration"]["Role"]
     rc(lambda: lam.create_function(FunctionName="justhodl-altseason", Runtime="python3.12", Role=role,
         Handler="lambda_function.lambda_handler", Code={"ZipFile":code}, Timeout=900, MemorySize=1024,
-        Environment={"Variables":{"FRED_KEY":"2f057499936072679d8843d7fce99989",
-            "POLYGON_KEY":"zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d","ANTHROPIC_API_KEY": lam.get_function_configuration(FunctionName="justhodl-ai-brief")["Environment"]["Variables"].get("ANTHROPIC_KEY","")}},
+        Environment={"Variables":{"FRED_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET",
+            "POLYGON_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET","ANTHROPIC_API_KEY": lam.get_function_configuration(FunctionName="justhodl-ai-brief")["Environment"]["Variables"].get("ANTHROPIC_KEY","")}},
         Description="Macro regime conductor: GxI quadrants since 1960s, measured playbooks, transition matrix")); out["fn"]="created"
 ready("justhodl-altseason")
 arn=lam.get_function(FunctionName="justhodl-altseason")["Configuration"]["FunctionArn"]
@@ -56,7 +56,7 @@ except ClientError: pass
 cfg_ = lam.get_function_configuration(FunctionName="justhodl-altseason")
 env_ = (cfg_.get("Environment") or {}).get("Variables") or {}
 if "CMC_KEY" not in env_:
-    env_["CMC_KEY"] = "17ba8e87-53f0-46f4-abe5-014d9cd99597"
+    env_["CMC_KEY"] = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
     rc(lambda: lam.update_function_configuration(FunctionName="justhodl-altseason",
         Environment={"Variables": env_}))
     ready("justhodl-altseason")

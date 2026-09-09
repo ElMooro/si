@@ -6,7 +6,7 @@ from ops_report import report
 import boto3
 
 s3 = boto3.client("s3", region_name="us-east-1")
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 
 def main():

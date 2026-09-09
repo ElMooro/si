@@ -37,7 +37,7 @@ REGION = "us-east-1"
 S3_BUCKET = "justhodl-dashboard-live"
 
 # FMP key from environment (provided by Lambda runner via secrets)
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_KEY = os.environ.get("FMP_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
 
 FEEDERS = [
     "data/insider-buys-enriched.json",

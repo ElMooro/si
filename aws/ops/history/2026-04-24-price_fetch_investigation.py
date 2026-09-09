@@ -29,8 +29,8 @@ logs = boto3.client("logs", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION)
 
 # Pull key from Lambda env (same source the outcome-checker uses)
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
+FMP_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 
 def test_polygon(ticker):

@@ -1,10 +1,11 @@
+from managed_secret import managed_secret
 
 import json
 import urllib.request
 import urllib.parse
 
 def lambda_handler(event, context):
-    API_KEY = 'EOLGKSGAYZUXKPUL'
+    API_KEY = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
     
     # Parse request
     body = json.loads(event.get('body', '{}')) if event.get('body') else event

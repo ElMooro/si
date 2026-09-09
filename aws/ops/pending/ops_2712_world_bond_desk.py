@@ -14,7 +14,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 REGION, BUCKET = "us-east-1", "justhodl-dashboard-live"
-FRED_KEY = "2f057499936072679d8843d7fce99989"
+FRED_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=200, retries={"max_attempts": 1}))
 s3 = boto3.client("s3", region_name=REGION)
 R = {"ops": 2712, "ts": datetime.now(timezone.utc).isoformat()}

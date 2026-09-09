@@ -30,6 +30,7 @@ deep, tuned, curated net; this is the catch-all that nothing escapes.
 
 OUTPUT: _health/fleet.json   SCHEDULE: every 3h
 """
+from managed_secret import managed_secret
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
@@ -55,7 +56,7 @@ KEYS = {
     "FRED": managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)),
     "FMP": managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",)),
     "POLYGON": managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",)),
-    "ALPHAVANTAGE": os.environ.get("AV_KEY", "EOLGKSGAYZUXKPUL"),
+    "ALPHAVANTAGE": managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",)),
     "CMC": managed_secret(('CMC_KEY', 'COINMARKETCAP_API_KEY'), ("/justhodl/cmc/api-key",)),
 }
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")

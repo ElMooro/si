@@ -17,7 +17,7 @@ REGION = "us-east-1"
 LAMBDA_NAME = "justhodl-short-interest"
 ROLE_ARN = "arn:aws:iam::857687956942:role/lambda-execution-role"
 
-POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+POLYGON_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 SOURCE_DIR = "aws/lambdas/justhodl-short-interest/source"
 
 lam = boto3.client("lambda", region_name=REGION)

@@ -49,8 +49,8 @@ S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/rv-iv-scanner.json"
 SSM_KEY = "/justhodl/rv-iv-scanner/state"
 
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+FMP_KEY = os.environ.get("FMP_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
+FRED_KEY = os.environ.get("FRED_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
 
 UA = "JustHodlAI-RvIvScanner/1.0"
 

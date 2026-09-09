@@ -28,6 +28,8 @@ permissions:
 jobs:
   run:
     name: Execute ops script
+    # Credential/document cleanup must never execute historical pending operations.
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-ops]')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -56,6 +58,7 @@ jobs:
       - name: Determine script(s) to run
         id: pick
         run: |
+          set -euo pipefail
           if [ -n "${{ github.event.inputs.script }}" ]; then
             echo "scripts=${{ github.event.inputs.script }}" >> $GITHUB_OUTPUT
           else
@@ -64,13 +67,14 @@ jobs:
             BASE="${{ github.event.before }}"
             HEADSHA="${{ github.event.after || github.sha }}"
             if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
-              BASE="HEAD^"
+              echo "::error::No exact push base; dispatch a named script explicitly"
+              exit 1
             fi
-            git fetch -q --depth=50 origin "$BASE" "$HEADSHA" 2>/dev/null || true
-            scripts=$(git diff --name-only "$BASE" "$HEADSHA" 2>/dev/null | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
-            if [ -z "$scripts" ]; then
-              scripts=$(git diff --name-only HEAD^ HEAD | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
-            fi
+            git fetch -q --depth=200 origin "$BASE" "$HEADSHA"
+            git cat-file -e "$BASE^{commit}"
+            git cat-file -e "$HEADSHA^{commit}"
+            range_files=$(git diff --name-only "$BASE" "$HEADSHA")
+            scripts=$(echo "$range_files" | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
             echo "Scripts to run: $scripts"
             echo "scripts=$scripts" >> $GITHUB_OUTPUT
           fi

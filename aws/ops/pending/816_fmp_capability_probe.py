@@ -9,7 +9,7 @@ assumptions (audit-before-build doctrine).
 import json, os, urllib.request
 from datetime import datetime, timezone
 
-FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+FMP = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 BASE = "https://financialmodelingprep.com/stable"
 
 report = {"ops": 816, "ts": datetime.now(timezone.utc).isoformat(),

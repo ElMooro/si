@@ -106,7 +106,7 @@ import boto3
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "REDACTED_CREDENTIAL_USE_MANAGED_SECRET")
 
 s3 = boto3.client("s3", region_name=REGION)
 ctx = ssl.create_default_context()
@@ -438,7 +438,7 @@ with report("loop2_pnl_tracker") as r:
             Architectures=["arm64"],
             Environment={
                 "Variables": {
-                    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+                    "POLYGON_KEY": "REDACTED_CREDENTIAL_USE_MANAGED_SECRET",
                 }
             },
         )

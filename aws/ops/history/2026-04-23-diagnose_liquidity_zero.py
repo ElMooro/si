@@ -91,7 +91,7 @@ with report("diagnose_liquidity_zero") as r:
     # Raw FRED test — fetch WALCL directly right now
     r.section("4. Live FRED API test (WALCL right now)")
     import urllib.request, urllib.error, ssl, os
-    FRED_KEY = "2f057499936072679d8843d7fce99989"
+    FRED_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
     url = f"https://api.stlouisfed.org/fred/series/observations?series_id=WALCL&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=5"
     try:
         ctx = ssl.create_default_context()

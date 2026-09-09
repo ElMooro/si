@@ -380,8 +380,7 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
 // ═══════════════════════════════════════════════════
 //  CONFIGURATION
 // ═══════════════════════════════════════════════════
-const FRED_KEY = '2f057499936072679d8843d7fce99989';
-const FRED_BASE = 'https://api.stlouisfed.org/fred/series/observations';
+const FRED_BASE = 'https://justhodl-data-proxy.raafouis.workers.dev/fred';
 const ECB_API = 'https://2ijajv2pntkgj5yw5c3ukh5oq40xsyaf.lambda-url.us-east-1.on.aws';
 const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data.json';
 const REPORT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/report.json';
@@ -546,13 +545,12 @@ async function fetchAllFred() {
 
 async function fetchFredSeries(seriesId) {
   try {
-    const url = `${FRED_BASE}?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=260`;
+    const url = `${FRED_BASE}?series=${encodeURIComponent(seriesId)}&obs=260`;
     const resp = await fetch(url);
     if (!resp.ok) return null;
     const data = await resp.json();
-    if (!data.observations || data.observations.length === 0) return null;
-    
-    const obs = data.observations.filter(o => o.value !== '.');
+    if (!Array.isArray(data.bars) || data.bars.length === 0) return null;
+    const obs = data.bars.filter(o => Number.isFinite(o.value) && o.date).sort((a,b) => b.date.localeCompare(a.date));
     if (obs.length === 0) return null;
     
     const current = parseFloat(obs[0].value);

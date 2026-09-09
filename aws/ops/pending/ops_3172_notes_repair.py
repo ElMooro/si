@@ -31,7 +31,7 @@ from _lambda_deploy_helpers import deploy_lambda
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 AWS_DIR = Path(__file__).resolve().parents[2]
-FRED_GOOD = "2f057499936072679d8843d7fce99989"
+FRED_GOOD = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 S3 = boto3.client("s3", region_name=REGION)
 LAM = boto3.client("lambda", region_name=REGION)

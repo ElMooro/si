@@ -44,7 +44,7 @@ const BLS_INDICATORS = {
 exports.handler = async (event) => {
   console.log('🚀 BLS API - Full Historical Data Version');
   
-  const apiKey = process.env.BLS_API_KEY || 'a759447531f04f1f861f29a381aab863';
+  const apiKey = process.env.BLS_API_KEY || '';
   
   // Parse mode and historical range
   let mode = 'core';

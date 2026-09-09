@@ -7,13 +7,16 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-DEFAULT_KEY = "2f057499936072679d8843d7fce99989"
+from managed_secret import managed_secret
 BASE = "https://api.stlouisfed.org/fred"
 UA = "JustHodl/jhcore"
 
 
 def _key():
-    return os.environ.get("FRED_KEY", DEFAULT_KEY)
+    key = managed_secret(("FRED_API_KEY", "FRED_KEY"), ("/justhodl/fred/api-key",))
+    if not key:
+        raise RuntimeError("FRED credential is not configured")
+    return key
 
 
 def latest(series_id, key=None):

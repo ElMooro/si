@@ -40,7 +40,7 @@ except ClientError:
     role = lam.get_function(FunctionName="justhodl-historical-analogs")["Configuration"]["Role"]
     rc(lambda: lam.create_function(FunctionName="justhodl-episode-compass", Runtime="python3.12", Role=role,
         Handler="lambda_function.lambda_handler", Code={"ZipFile":code}, Timeout=300, MemorySize=512,
-        Environment={"Variables":{"FRED_KEY":"2f057499936072679d8843d7fce99989",
+        Environment={"Variables":{"FRED_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET",
             "ANTHROPIC_API_KEY": lam.get_function_configuration(FunctionName="justhodl-ai-brief")["Environment"]["Variables"].get("ANTHROPIC_KEY","")}},
         Description="Macro regime conductor: GxI quadrants since 1960s, measured playbooks, transition matrix")); out["fn"]="created"
 ready("justhodl-episode-compass")

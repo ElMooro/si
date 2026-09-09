@@ -40,8 +40,8 @@ except ClientError:
     role = lam.get_function(FunctionName="justhodl-historical-analogs")["Configuration"]["Role"]
     rc(lambda: lam.create_function(FunctionName="justhodl-upside-radar", Runtime="python3.12", Role=role,
         Handler="lambda_function.lambda_handler", Code={"ZipFile":code}, Timeout=900, MemorySize=1024,
-        Environment={"Variables":{"FRED_KEY":"2f057499936072679d8843d7fce99989",
-            "POLYGON_KEY":"zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d","FMP_KEY":"wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"}},
+        Environment={"Variables":{"FRED_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET",
+            "POLYGON_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET","FMP_KEY":"REDACTED_CREDENTIAL_USE_MANAGED_SECRET"}},
         Description="Macro regime conductor: GxI quadrants since 1960s, measured playbooks, transition matrix")); out["fn"]="created"
 ready("justhodl-upside-radar")
 arn=lam.get_function(FunctionName="justhodl-upside-radar")["Configuration"]["FunctionArn"]

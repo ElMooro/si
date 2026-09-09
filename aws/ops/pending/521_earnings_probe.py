@@ -11,7 +11,7 @@ lam = boto3.client("lambda", region_name="us-east-1")
 PROBE_CODE = r"""
 import json, os, urllib.request, time
 
-FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"  # premium
+FMP_KEY = "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"  # premium
 ANTH_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 def http_get(url, timeout=20):

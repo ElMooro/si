@@ -84,8 +84,8 @@ S3_BUCKET="justhodl-dashboard-live"
 CFTC_URL="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/"
 
 # Same keys outcome-checker uses
-POLYGON_KEY="zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-FMP_KEY="wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+POLYGON_KEY="REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
+FMP_KEY="REDACTED_CREDENTIAL_USE_MANAGED_SECRET"
 
 # Cache prices within a single Lambda invocation (one fetch per ticker)
 _PRICE_CACHE={}

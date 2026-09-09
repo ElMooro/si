@@ -92,7 +92,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             r.warn(f"log tail failed: {str(e)[:100]}")
         r.section("S1 redeploy")
-        env = {"S3_BUCKET": B, "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d", "FRED_KEY": "2f057499936072679d8843d7fce99989"}
+        env = {"S3_BUCKET": B, "POLYGON_KEY": "REDACTED_CREDENTIAL_USE_MANAGED_SECRET", "FRED_KEY": "REDACTED_CREDENTIAL_USE_MANAGED_SECRET"}
         cur = lam.get_function_configuration(FunctionName=FN)
         for k in ("BLS_API_KEY",):
             v = (cur.get("Environment") or {}).get("Variables", {}).get(k)
