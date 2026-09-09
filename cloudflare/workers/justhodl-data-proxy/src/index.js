@@ -95,7 +95,8 @@ async function verifyStripeSig(payload, sigHeader, secret) {
 
 async function fetchUpstream(upstreamUrl, ttl) {
   return fetch(upstreamUrl, {
-    cf: { cacheTtl: ttl, cacheEverything: true },
+    cf: { cacheTtl: ttl, cacheEverything: ttl > 0 },
+    ...(ttl === 0 ? { headers: { 'Cache-Control': 'no-cache' } } : {}),
   });
 }
 
@@ -1842,7 +1843,7 @@ export default {
         rr = await fetch(artifactUpstreamUrl(safePath), {
           headers: { "Range": rangeHdr,
                      "User-Agent": "justhodl-data-proxy" },
-          cf: { cacheEverything: false }
+          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) ? { cacheTtl: 0 } : {}) }
         });
       } catch (e) {
         return new Response(
@@ -1860,12 +1861,15 @@ export default {
       rh.set("Accept-Ranges", "bytes");
       rh.set("Access-Control-Expose-Headers",
              "Content-Range, Content-Length, Accept-Ranges");
-      rh.set("Cache-Control", "public, max-age=86400");
+      rh.set("Cache-Control", sanitizedArtifact(safePath) ? "no-store" : "public, max-age=86400");
       rh.set("X-JH-Range", "passthrough");
       return new Response(rr.body, { status: rr.status, headers: rh });
     }
 
-    const ttl = ttlFor(safePath);
+    // These feeds previously copied private note text. Do not let an edge
+    // generation populated before the S3 scrub survive that scrub, even if
+    // the account cannot perform a zone purge. Read the protected origin fresh.
+    const ttl = sanitizedArtifact(safePath) ? 0 : ttlFor(safePath);
     // ops 4528: version-keyed cache — bumping CACHE_VER orphans every
     // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
     // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
@@ -1873,7 +1877,7 @@ export default {
     const CACHE_VER = "v20260909-private-containment";
     const cacheKey = new Request(`${url.origin}/__${CACHE_VER}__/${safePath}`, { method: "GET" });
     const cache = caches.default;
-    let response = await cache.match(cacheKey);
+    let response = ttl > 0 ? await cache.match(cacheKey) : null;
     let cacheStatus = "HIT";
 
     if (!response) {
@@ -1948,7 +1952,7 @@ export default {
 
       const respHeaders = {
         "Content-Type":   upstreamCT,
-        "Cache-Control":  `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}`,
+        "Cache-Control":  ttl > 0 ? `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}` : "no-store",
         "X-Edge-TTL":     String(ttl),
         "X-Upstream":     upstreamUrl,
         ...corsHeaders(),
@@ -1957,7 +1961,7 @@ export default {
       if (etag)    respHeaders["ETag"]          = etag;
 
       response = new Response(body, { status: 200, headers: respHeaders });
-      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      if (ttl > 0) ctx.waitUntil(cache.put(cacheKey, response.clone()));
     }
 
     const headers = new Headers(response.headers);
