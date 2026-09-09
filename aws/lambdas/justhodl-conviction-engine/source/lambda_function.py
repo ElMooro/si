@@ -1,3 +1,4 @@
+from equity_donor_inputs import load_inputs, conviction_members, annotate_book
 """
 justhodl-conviction-engine — Full-System Conviction Layer.
 
@@ -346,7 +347,8 @@ def build_setup(subject, members):
     strength = min(1.0, abs(net) / 2.0)
     breadth = min(1.0, n_fam / 3.0)
     quality = 0.5 + 0.3 * agree + 0.2 * breadth
-    raw = 100 * strength * quality
+    donor_confidence_factor=sum(min(1,max(0,m["skill"])) for m in members)/len(members) if members else 0
+    raw = 100 * strength * quality * donor_confidence_factor
     # corroboration gate — conviction REQUIRES cross-confirmation; a lone
     # engine, however strong, is a watch-item, not a high-conviction call.
     if n_fam >= 3:
@@ -377,7 +379,7 @@ def build_setup(subject, members):
         "subject": subject, "direction": direction,
         "conviction": conviction, "confidence": band,
         "net_signal": round(net, 2), "n_engines": n_eng,
-        "corroboration_capped": capped,
+        "corroboration_capped": capped,"donor_confidence_factor":round(donor_confidence_factor,4),
         "n_agree": max(n_pos, n_neg), "n_disagree": min(n_pos, n_neg),
         "agreement_pct": round(agree * 100), "n_families": n_fam,
         "thesis": thesis, "invalidation": inv,
@@ -385,7 +387,7 @@ def build_setup(subject, members):
             {"engine": m["engine"], "family": m["family"],
              "signal": m["signal"], "signal_label": SIG_LABEL.get(m["signal"]),
              "skill_weight": round(m["skill"], 2),
-             "skill_calibrated": m["calibrated"], "read": m["read"]}
+             "skill_calibrated": m["calibrated"], "read": m["read"],"trust_evidence":m.get("trust_evidence"),"orthogonality":m.get("orthogonality")}
             for m in ranked],
     }
 
@@ -431,6 +433,7 @@ def single_names():
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
+    donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/firm-book.json",6,("equity_book",)),("data/engine-trust.json",48,("engines",)),("data/signal-orthogonality.json",96,("snapshots_total",))],now=now)
     weights = load_skill_weights()
     calibrated_any = bool(weights)
 
@@ -460,6 +463,7 @@ def lambda_handler(event, context):
                         "as_of": (data.get("generated_at")
                                   or (last_mod.isoformat() if last_mod else None))})
 
+    conviction_members(engines,donor_docs["data/engine-trust.json"],donor_docs["data/signal-orthogonality.json"])
     live = [e for e in engines if e["signal"] is not None and not e["stale"]]
 
     # group live engines by subject -> build a conviction setup for each
@@ -475,7 +479,7 @@ def lambda_handler(event, context):
     macro = [e for e in live if e["family"] in
              ("desk-posture", "crisis-monitor", "market-regime",
               "macro-fundamental")]
-    if macro:
+    if macro and sum(e["skill"] for e in macro)>0:
         mnet = sum(e["signal"] * e["skill"] for e in macro) / \
                sum(e["skill"] for e in macro)
     else:
@@ -502,15 +506,13 @@ def lambda_handler(event, context):
         "n_setups": len(setups),
         "n_actionable": len(actionable),
         "setups": setups,
-        "single_names": single_names(),
+        "single_names": annotate_book(single_names(),donor_docs["data/firm-book.json"]),
+        "donor_inputs":donor_receipts,
+        "firm_book_context":{k:donor_docs["data/firm-book.json"].get(k) for k in ("generated_at","macro_book","sector_exposure","conviction_overlap","desk_conflicts")},
         "n_engines": len(engines),
         "n_live": len(live),
         "n_stale": stale,
-        "skill_weighting": ("active — engines weighted by signal-scorecard "
-                            "performance multipliers"
-                            if calibrated_any else
-                            "neutral — signal-scorecard not yet populated; "
-                            "all engines at equal weight until it matures"),
+        "skill_weighting": "Bounded regime/sample/alpha trust replaces the scorecard multiplier; empirical redundancy only reduces confidence. Missing trust gets an explicit conservative factor.",
         "note": ("Skill-weighted, decorrelated synthesis of the platform's "
                  "directional engines into ranked, actionable conviction "
                  "setups. Each engine is weighted by its proven hit-rate and "

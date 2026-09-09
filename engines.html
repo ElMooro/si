@@ -81,7 +81,7 @@ function badge(status){
   // audit 2026-09-08 (section C-3): per-output states -- WIRED now means "a page references a present, fresh output";
   // a referenced-but-stale or referenced-but-missing feed is no longer hidden inside WIRED.
   var map = {wired:["b-wired","REFERENCED · AVAILABLE"], partial:["b-stale","PARTIAL COVERAGE"], "wired-stale-feed":["b-stale","WIRED · STALE FEED"], "wired-missing-feed":["b-dead","WIRED · MISSING FEED"],
-    "declared-absent":["b-dead","UNAVAILABLE / UNRESOLVED"],
+    "declared-absent":["b-dead","CONFIRMED ABSENT (404)"], "declared-unverified":["b-stale","AVAILABILITY UNVERIFIED"], "wired-unverified-feed":["b-stale","REFERENCED · UNVERIFIED"], "wired-invalid-feed":["b-dead","REFERENCED · INVALID JSON"],
     "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
     "orphan-stale":["b-stale","ORPHAN · STALE"], "orphan-dead":["b-dead","ORPHAN · DEAD FEED"],
     "no-outs":["b-noouts","NO CONCRETE OUTPUT BOUND"]};
@@ -100,7 +100,7 @@ document.getElementById("stamp").textContent = "UPDATED " + (D.generated_at || "
 var KPI_DEFS = [
   ["wired", "REFERENCED · AVAILABLE", "wired"], ["partial", "PARTIAL COVERAGE", "stale"], ["wired-stale-feed", "WIRED · STALE FEED", "stale"], ["wired-missing-feed", "WIRED · MISSING FEED", "stale"],
   ["orphan-fresh", "ORPHAN · FRESH", "fresh"], ["orphan-stale", "ORPHAN · STALE", "stale"],
-  ["declared-absent", "DECLARED · ABSENT", "stale"], ["no-outs", "NO CONCRETE OUTPUT BOUND", "noouts"]
+  ["wired-unverified-feed", "REFERENCED · UNVERIFIED", "stale"], ["wired-invalid-feed", "REFERENCED · INVALID JSON", "stale"], ["declared-unverified", "AVAILABILITY UNVERIFIED", "stale"], ["declared-absent", "CONFIRMED ABSENT (404)", "stale"], ["no-outs", "NO CONCRETE OUTPUT BOUND", "noouts"]
 ];
 document.getElementById("kpis").innerHTML = KPI_DEFS.map(function(k){
   var n = (D.counts[k[0]] || 0) + (k[0] === "orphan-stale" ? (D.counts["orphan-dead"] || 0) : 0);

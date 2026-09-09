@@ -1,3 +1,4 @@
+from equity_donor_inputs import load_inputs, sector_flow_context
 """
 justhodl-sector-rotation v1.0.0 — Roadmap #4 SECTOR ROTATION & MONEY FLOW
 ═════════════════════════════════════════════════════════════════════════════
@@ -560,6 +561,8 @@ def lambda_handler(event, context):
                 _s["etf_flow_confirm"] = "NEUTRAL"
     print("  real ETF $ flows applied to %d sectors" % sum(1 for _s in sectors_out if _s.get("etf_flow_z") is not None))
 
+    donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/etf-true-flows.json",48,("by_etf",))])
+    sector_flow_context(sectors_out,donor_docs["data/etf-true-flows.json"])
     valid = [s for s in sectors_out if not s.get("err")]
     valid.sort(key=lambda s: -(s.get("rotation_score") or 0))
     for i, s in enumerate(valid): s["rank"] = i + 1
@@ -592,6 +595,8 @@ def lambda_handler(event, context):
         "generated_at_unix": int(time.time()),
         "version": VERSION,
         "elapsed_seconds": round(time.time() - started, 2),
+        "donor_inputs":donor_receipts,
+        "flow_method":"NAV/share flow contribution replaces the legacy flow vote when dated windows and non-proxy NAV are available",
         "macro_context": {
             "macro_stress_score": mss, "regime_label": regime_label,
             "cycle_phase": cycle_phase, "expected_leaders": expected,

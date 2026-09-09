@@ -1,33 +1,6 @@
-"""
-justhodl-liquidity-profile — per-security tradability scoring.
-
-For S&P 500 + Russell mid-cap proxy, computes:
-  • 20-DAY AVG DAILY VOLUME ($ value)
-  • TYPICAL BID-ASK SPREAD (from Polygon NBBO snapshots)
-  • SPREAD AS % OF PRICE (in basis points)
-  • ADV-TO-MARKET-CAP RATIO (high = retail-friendly, low = stale)
-  • LIQUIDITY SCORE 0-100 composite
-
-Useful for: position sizing (don't be more than 10% of ADV); trade timing
-(avoid wide spreads); finding "stalled" names where liquidity is dropping.
-
-Polygon endpoints:
-  /v3/quotes/{ticker}/{date}  — NBBO ticks (just need a few snapshots)
-  /v2/aggs/ticker/.../range/1/day  — already used elsewhere; get last 20d
-
-Liquidity score 0-100:
-  40%  ADV $ value (>$1B = 100, $100M = 70, $10M = 40, $1M = 10)
-  30%  Spread bps (1bp = 100, 5bp = 70, 20bp = 40, 50bp+ = 10)
-  20%  ADV / market cap (turnover rate, > 1% = high)
-  10%  Consistency (low std-dev of daily volume)
-
-Output: data/liquidity-profile.json
-  • universe_size, generated_at
-  • top_100_liquid (ranked)
-  • bottom_50_illiquid (warning list)
-  • per_ticker: dict {liquidity_score, adv_usd, spread_bps, turnover}
-
-Schedule: cron(0 22 ? * FRI *) — weekly Friday 6PM ET (end of week).
+"""Per-security volume capacity: 20-session ADV, volume consistency and realized volatility.
+Daily high-low is a range statistic, never a bid/ask spread or execution cost.
+Quote/depth availability remains explicit; this output alone cannot authorize an order.
 """
 import json
 import os
@@ -122,16 +95,17 @@ def analyze_one(ticker):
     adv_std = (sum((x - adv_usd)**2 for x in volumes_usd) / len(volumes_usd))**0.5
     consistency = 1 - min(1, adv_std / (adv_usd + 1))  # 0..1, higher = consistent
 
-    # Try to get spread from NBBO (often expensive — use last bar high-low as proxy)
-    last = bars[-1]
-    if last.get("h") and last.get("l") and last.get("c"):
-        # Avg true range as % of close — proxy for spread
-        atr_pct = (last["h"] - last["l"]) / last["c"]
-    else:
-        atr_pct = None
+    last=bars[-1]
+    range_fraction=((last["h"]-last["l"])/last["c"] if last.get("h") is not None and last.get("l") is not None and last.get("c") else None)
+    true_ranges=[]
+    for i,bar in enumerate(bars):
+        if bar.get("h") is None or bar.get("l") is None:continue
+        prior=bars[i-1].get("c") if i else None
+        true_ranges.append(max(bar["h"]-bar["l"],abs(bar["h"]-prior),abs(bar["l"]-prior)) if prior is not None else bar["h"]-bar["l"])
+    atr_pct=(sum(true_ranges)/len(true_ranges)/last["c"]) if true_ranges and last.get("c") else None
 
     # Score components
-    # ADV scoring (40%)
+    # ADV scoring (80%); volume consistency supplies the other 20%.
     if adv_usd >= 1e9: adv_score = 100
     elif adv_usd >= 5e8: adv_score = 90
     elif adv_usd >= 1e8: adv_score = 70
@@ -140,27 +114,23 @@ def analyze_one(ticker):
     elif adv_usd >= 1e6: adv_score = 20
     else: adv_score = 10
 
-    # Spread scoring (30%) — proxy from intraday range; lower = better
-    if atr_pct is None: spread_score = 50
-    elif atr_pct <= 0.003: spread_score = 100  # <30bp range = tight
-    elif atr_pct <= 0.008: spread_score = 80
-    elif atr_pct <= 0.015: spread_score = 60
-    elif atr_pct <= 0.025: spread_score = 40
-    elif atr_pct <= 0.05: spread_score = 25
-    else: spread_score = 10
-
-    # Consistency (10%)
-    consistency_score = consistency * 100
-
-    # Composite (no market cap available without extra call — defer to 90% with 10% consistency)
-    score = round(adv_score * 0.5 + spread_score * 0.35 + consistency_score * 0.15, 1)
+    # Volume capacity only. Missing bid/ask never becomes a neutral or favorable spread score.
+    consistency_score=consistency*100
+    score=round(adv_score*0.8+consistency_score*0.2,1)
 
     return {
         "ticker": ticker,
         "adv_usd": round(adv_usd),
         "adv_usd_str": f"${adv_usd/1e9:.2f}B" if adv_usd >= 1e9 else f"${adv_usd/1e6:.1f}M",
-        "atr_pct": round(atr_pct, 5) if atr_pct else None,
-        "spread_proxy_bps": round(atr_pct * 10000, 1) if atr_pct else None,
+        "atr_pct": round(atr_pct, 5) if atr_pct is not None else None,
+        "spread_proxy_bps": None,
+        "intraday_range_fraction": range_fraction,
+        "intraday_range_bps": round(range_fraction*10000,1) if range_fraction is not None else None,
+        "atr_percent": round(atr_pct*100,4) if atr_pct is not None else None,
+        "spread_bps": None,"quote_status":"UNAVAILABLE","execution_eligible":False,
+        "observed_at":datetime.fromtimestamp(last["t"]/1000,timezone.utc).isoformat() if last.get("t") else None,
+        "liquidity_score_scope":"volume capacity only: 80% ADV, 20% consistency; no spread/depth component",
+        "units":{"adv_usd":"USD per session","atr_pct":"fraction (legacy field)","atr_percent":"percent","intraday_range_bps":"basis points of close"},
         "consistency": round(consistency, 3),
         "liquidity_score": score,
         "n_bars": len(bars),
@@ -189,7 +159,7 @@ def lambda_handler(event, context):
 
     output = {
         "schema_version": "1.0",
-        "method": "liquidity_profile_v1",
+        "method": "liquidity_profile_v2_volume_capacity",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe_size": len(UNIVERSE),
         "n_analyzed": len(valid),

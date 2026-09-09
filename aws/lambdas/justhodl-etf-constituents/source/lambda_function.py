@@ -1,9 +1,10 @@
+from equity_donor_inputs import load_inputs, true_flow_rows
 """justhodl-etf-constituents — Constituent Pull-Through (FMP-powered)
 
 The institutional alpha edge from your FMP subscription.
 
 For each ETF with |z-score| >= INSTITUTIONAL_FLOW_THRESHOLD (default 1.5σ),
-we pull its top 50 constituents by weight from FMP's /stable/etf/holdings
+we pull every returned constituent by weight from FMP's /stable/etf/holdings
 endpoint. We then compute "implied flow pressure" per stock = (ETF flow $)
 × (constituent weight). When the SAME STOCK appears in MULTIPLE high-z ETFs,
 we sum the pressure — that's the true cross-ETF institutional positioning
@@ -21,7 +22,7 @@ Verified ops 1192 (Polygon 403) + 1193 (FMP 200/505 rows).
 
 OUTPUTS:
   etf-flows/constituent-pressure.json  — aggregated by stock
-  etf-flows/constituents/{ETF}.json    — per-ETF top constituents (archive)
+  etf-flows/constituents/{ETF}.json    — complete returned per-ETF holdings (archive)
 """
 import json
 import os
@@ -46,14 +47,14 @@ MAX_WORKERS = 6
 # Only pull constituents for ETFs with this z-score magnitude or higher.
 INSTITUTIONAL_FLOW_THRESHOLD = 1.5
 
-# How many top-weight constituents to pull per ETF.
+# Legacy preview count; producer processing retains every returned constituent.
 TOP_N_CONSTITUENTS = 50
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def fetch_constituents(etf_ticker: str) -> dict:
-    """Fetch top-weight constituents for one ETF from FMP.
+    """Fetch every returned constituent for one ETF from FMP.
 
     FMP response is a JSON array. Each row has:
       symbol (ETF ticker), asset (stock ticker), name (stock name),
@@ -76,7 +77,7 @@ def fetch_constituents(etf_ticker: str) -> dict:
              and (d.get("weightPercentage") is not None or d.get("weight") is not None)],
             key=lambda x: pctf(x.get("weightPercentage") or x.get("weight")),
             reverse=True,
-        )[:TOP_N_CONSTITUENTS]
+        )  # Retain every returned holding; previews are separate from coverage.
         updated_at = sorted_holdings[0].get("updatedAt") if sorted_holdings else None
         return {
             "etf": etf_ticker,
@@ -422,6 +423,8 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": f"Could not read flow data: {str(e)[:200]}"})}
 
     metrics = daily.get("metrics", [])
+    donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/etf-true-flows.json",48,("by_etf",))])
+    true_flow_applied=true_flow_rows(metrics,donor_docs["data/etf-true-flows.json"])
     all_etfs = select_etfs_for_constituents(metrics, mode="all")
     high_z = select_etfs_for_constituents(metrics, mode="high_z")
     print(f"[constituents] ALL mode: {len(all_etfs)} ETFs · "
@@ -512,6 +515,10 @@ def lambda_handler(event, context):
         "n_stocks_with_flow_zscore": quadrant_meta["n_with_zscore"],
         "quadrant_counts": quadrant_meta["quadrant_counts"],
         "top_constituents_by_pressure": pressure[:50],
+        "all_constituents_by_pressure":pressure,
+        "donor_inputs":donor_receipts,"nav_share_flow_fields_applied":true_flow_applied,
+        "etf_flow_context":{r["ticker"]:{k:r.get(k) for k in ("true_flow_status","true_flow_context","true_flow_20d_usd")} for r in metrics if r.get("ticker")},
+        "holdings_coverage":{k:{"as_of":v.get("processed_date"),"returned":v.get("n_constituents"),"source_total":v.get("n_total_holdings"),"complete_returned_payload":v.get("n_constituents")==v.get("n_total_holdings")} for k,v in constituents_map.items()},
         "top_aggregate_exposure": [
             {
                 "stock": s.get("stock"),

@@ -99,6 +99,25 @@ def fetch_json(path, timeout=HTTP_TIMEOUT):
         return json.loads(r.read().decode("utf-8"))
 
 
+def funding_interval(cur,history):
+    """Use the venue schedule, or the latest pair of observed settlements; never assume eight hours."""
+    try:
+        hours=(float(cur["nextFundingTime"])-float(cur["fundingTime"]))/3600000
+        if 0<hours<=24:return hours,"venue_schedule"
+    except (KeyError,TypeError,ValueError):pass
+    times=set()
+    for row in history:
+        try:
+            ts=float(row.get("ts"))
+            if math.isfinite(ts) and ts>0:times.add(ts)
+        except (TypeError,ValueError):continue
+    times=sorted(times)
+    if len(times)>=2:
+        hours=(times[-1]-times[-2])/3600000
+        if 0<hours<=24:return hours,"observed_settlement_interval"
+    return None,"unknown"
+
+
 def fetch_coin_data(coin):
     """Returns dict of all metrics for one coin or None on err."""
     swap = f"{coin}-USDT-SWAP"
@@ -110,9 +129,14 @@ def fetch_coin_data(coin):
         if d.get("code") != "0" or not d.get("data"):
             return None
         cur = d["data"][0]
-        out["current_funding_rate"] = float(cur.get("fundingRate") or 0)
+        raw_rate=cur.get("fundingRate")
+        if raw_rate is None or raw_rate=="":return None
+        out["current_funding_rate"] = float(raw_rate)
+        if not math.isfinite(out["current_funding_rate"]):return None
         out["max_funding_rate"] = float(cur.get("maxFundingRate") or 0)
-        out["next_funding_time"] = cur.get("fundingTime")
+        out["current_funding_time"] = cur.get("fundingTime")
+        out["next_funding_time"] = cur.get("nextFundingTime")
+        out["venue_observed_at"] = cur.get("ts")
 
         # ─── Historical funding (30 periods) ───
         d = fetch_json(f"/api/v5/public/funding-rate-history?instId={swap}&limit=30")
@@ -120,13 +144,18 @@ def fetch_coin_data(coin):
         if d.get("code") == "0":
             for row in d.get("data") or []:
                 try:
-                    history.append({
-                        "ts": row.get("fundingTime"),
-                        "rate": float(row.get("realizedRate") or row.get("fundingRate") or 0),
-                    })
+                    raw_history=row.get("realizedRate")
+                    if raw_history is None or raw_history=="":raw_history=row.get("fundingRate")
+                    if raw_history is None or raw_history=="":continue
+                    rate=float(raw_history)
+                    if not math.isfinite(rate):continue
+                    history.append({"ts":row.get("fundingTime"),"rate":rate})
                 except Exception: continue
         history.reverse()  # ascending
         out["funding_history"] = history
+        interval,interval_source=funding_interval(cur,history)
+        out["funding_interval_hours"]=interval;out["interval_source"]=interval_source;out["funding_interval_source"]=interval_source
+        out["normalized_funding_rate_8h"]=out["current_funding_rate"]*8/interval if interval else None
 
         # ─── Open interest in USD ───
         d = fetch_json(f"/api/v5/public/open-interest?instType=SWAP&instId={swap}")
@@ -150,14 +179,19 @@ def fetch_coin_data(coin):
             except: pass
 
         # ─── Derived stats ───
-        rates = [h["rate"] for h in history]
-        if len(rates) >= 5:
+        rates=[]
+        for i,h in enumerate(history):
+            if i==0:continue
+            try:observed_hours=(float(h["ts"])-float(history[i-1]["ts"]))/3600000
+            except (KeyError,TypeError,ValueError):continue
+            if 0<observed_hours<=24:rates.append(h["rate"]*8/observed_hours)
+        if len(rates) >= 5 and out["normalized_funding_rate_8h"] is not None:
             out["funding_30p_mean"] = _mean(rates)
             out["funding_30p_stdev"] = _stdev(rates)
             out["funding_5p_mean"] = _mean(rates[-5:])
             out["funding_momentum"] = out["funding_5p_mean"] - out["funding_30p_mean"]
             sd = out["funding_30p_stdev"]
-            z = ((out["current_funding_rate"] - out["funding_30p_mean"]) / sd
+            z = ((out["normalized_funding_rate_8h"] - out["funding_30p_mean"]) / sd
                   if sd > 0 else 0)
             out["funding_z_score"] = round(z, 2)
         else:
@@ -165,9 +199,10 @@ def fetch_coin_data(coin):
             out["funding_z_score"] = None
 
         # ─── Annualized + regime ───
-        fr = out["current_funding_rate"]
-        out["annualized_pct"] = round(fr * 3 * 365 * 100, 2)
-        if fr > FUNDING_HIGHLY_BULL: out["regime"] = "HIGHLY_BULLISH_LEVERAGE"
+        fr = out["normalized_funding_rate_8h"]
+        out["annualized_pct"] = round(fr * 3 * 365 * 100, 2) if fr is not None else None
+        if fr is None: out["regime"]="UNKNOWN_INTERVAL"
+        elif fr > FUNDING_HIGHLY_BULL: out["regime"] = "HIGHLY_BULLISH_LEVERAGE"
         elif fr > FUNDING_BULL: out["regime"] = "BULLISH_LEVERAGE"
         elif fr > FUNDING_BEAR: out["regime"] = "BALANCED"
         elif fr > FUNDING_HIGHLY_BEAR: out["regime"] = "BEARISH_LEVERAGE"
@@ -236,14 +271,14 @@ def lambda_handler(event, context):
         return {"statusCode": 500, "body": json.dumps({"err": "no data"})}
 
     # ─── Composite metrics ───
-    valid = [r for r in results.values() if r.get("current_funding_rate") is not None]
-    rates = [r["current_funding_rate"] for r in valid]
+    valid = [r for r in results.values() if r.get("normalized_funding_rate_8h") is not None]
+    rates = [r["normalized_funding_rate_8h"] for r in valid]
     oi_total = sum((r.get("oi_usd") or 0) for r in valid)
-    vw_funding = (sum(r["current_funding_rate"] * (r.get("oi_usd") or 0) for r in valid)
+    vw_funding = (sum(r["normalized_funding_rate_8h"] * (r.get("oi_usd") or 0) for r in valid)
                    / oi_total) if oi_total > 0 else _mean(rates)
 
     sorted_rates = sorted(rates)
-    median_funding = sorted_rates[len(sorted_rates)//2] if sorted_rates else 0
+    median_funding = (sorted_rates[(len(sorted_rates)-1)//2]+sorted_rates[len(sorted_rates)//2])/2 if sorted_rates else 0
     funding_max = max(rates) if rates else 0
     funding_min = min(rates) if rates else 0
     dispersion = funding_max - funding_min
@@ -259,7 +294,9 @@ def lambda_handler(event, context):
 
     # Composite regime
     vw_ann = vw_funding * 3 * 365 * 100
-    if n_highly_bull >= 3:
+    if not valid:
+        composite_regime="DATA_HOLD";composite_signal="Funding intervals unavailable; no comparable annualized funding signal."
+    elif n_highly_bull >= 3:
         composite_regime = "EUPHORIC_LEVERAGE"
         composite_signal = f"{n_highly_bull} coins at extreme bullish funding — long squeeze risk elevated · consider taking profits or hedging"
     elif n_highly_bear >= 3:
@@ -292,7 +329,7 @@ def lambda_handler(event, context):
         "source": "OKX /api/v5/public + /api/v5/market",
         "elapsed_seconds": round(time.time() - started, 2),
         "config": {
-            "coins": COINS, "n_history_periods": 30,
+            "coins": COINS, "n_history_periods": 30,"rate_comparison_basis":"8h equivalent normalized from each observed interval; not locked future carry",
             "thresholds_per_8h": {
                 "highly_bullish": FUNDING_HIGHLY_BULL,
                 "bullish": FUNDING_BULL,
@@ -301,14 +338,15 @@ def lambda_handler(event, context):
             },
         },
         "market_composite": {
-            "n_coins_analyzed": len(valid),
-            "vw_funding_per_8h": round(vw_funding, 7),
-            "vw_funding_annualized_pct": round(vw_ann, 2),
-            "median_funding_per_8h": round(median_funding, 7),
-            "median_funding_annualized_pct": round(median_funding * 3 * 365 * 100, 2),
-            "funding_max": round(funding_max, 7),
-            "funding_min": round(funding_min, 7),
-            "funding_dispersion_pp": round(dispersion * 100, 4),
+            "n_coins_analyzed": len(valid),"n_interval_unknown":len(results)-len(valid),"status":"READY" if valid else "DATA_HOLD",
+            "vw_funding_per_8h": round(vw_funding, 7) if valid else None,
+            "vw_funding_annualized_pct": round(vw_ann, 2) if valid else None,
+            "median_funding_per_8h": round(median_funding, 7) if valid else None,
+            "median_funding_annualized_pct": round(median_funding * 3 * 365 * 100, 2) if valid else None,
+            "funding_max": round(funding_max, 7) if valid else None,
+            "funding_min": round(funding_min, 7) if valid else None,
+            "funding_dispersion_pp": round(dispersion * 100, 4) if valid else None,
+            "funding_weighting_basis":"open_interest_usd" if oi_total>0 else "equal_weight_no_valid_oi" if valid else "UNAVAILABLE",
             "total_oi_usd_billions": round(oi_total / 1e9, 2),
             "n_extreme_long_positioning": n_extreme_long,
             "n_extreme_short_positioning": n_extreme_short,
@@ -335,6 +373,7 @@ def lambda_handler(event, context):
                 "current_funding_rate": r["current_funding_rate"],
                 "current_funding_pct": round(r["current_funding_rate"] * 100, 5),
                 "annualized_pct": r["annualized_pct"],
+                "funding_interval_hours":r.get("funding_interval_hours"),"interval_source":r.get("interval_source"),"funding_interval_source":r.get("interval_source"),"current_funding_time":r.get("current_funding_time"),"next_funding_time":r.get("next_funding_time"),"venue_observed_at":r.get("venue_observed_at"),"funding_rate_units":"fraction_per_observed_interval","funding_moments_units":"fraction_per_8h_equivalent","normalized_funding_rate_8h":r.get("normalized_funding_rate_8h"),
                 "funding_z_score": r.get("funding_z_score"),
                 "funding_5p_mean": r.get("funding_5p_mean"),
                 "funding_30p_mean": r.get("funding_30p_mean"),
@@ -348,7 +387,7 @@ def lambda_handler(event, context):
                 "regime": r["regime"],
                 "crowding_flag": r["crowding_flag"],
                 "n_history_periods": len(r.get("funding_history") or []),
-            } for r in valid
+            } for r in results.values()
         },
     }
 
@@ -362,7 +401,7 @@ def lambda_handler(event, context):
 
     # Alerts
     alert_sent = False
-    if ((prior and prior != composite_regime) or
+    if valid and ((prior and prior != composite_regime) or
         composite_regime in ("EUPHORIC_LEVERAGE", "CAPITULATION_LEVERAGE")):
         lines = [
             f"💹 *Crypto Perp Positioning · {datetime.now(timezone.utc).strftime('%b %d %H:%M')}*\n",
@@ -384,7 +423,7 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({
         "success": True, "version": VERSION,
         "n_coins": len(valid),
-        "vw_funding_ann_pct": round(vw_ann, 2),
+        "vw_funding_ann_pct": round(vw_ann, 2) if valid else None,
         "composite_regime": composite_regime,
         "n_extreme_long": n_extreme_long,
         "n_extreme_short": n_extreme_short,

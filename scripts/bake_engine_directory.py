@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
-"""scripts/bake_engine_directory.py — computes the REAL, live status of all
-661 registered engines and bakes it into engines.html at deploy time (same
-mechanism as bake_right_rail.py: public HTTPS only, no AWS creds needed in
-this workflow — Last-Modified header from data/*.json IS the freshness
-source, exactly like the rail's own feed-freshness checks).
-
-For each engine: is ANY of its declared outs[] referenced by ANY live page's
-actual source (exact string containment, not name-fuzzy-matching)? If yes,
-which page(s). If no, is the underlying feed still fresh (engine running,
-just invisible) or stale/dead? This directly answers 'is my engine wired to
-a page' for the whole fleet in one place, replacing guesswork.
+"""Bake source-bound output references plus separately verified public payload health.
+Only HTTP 404 proves absence; permission, transport, validation and unresolved-family
+failures remain explicit unknown states. A page reference never certifies runtime rendering.
 """
 import glob, json, re, sys, time
 from pathlib import Path
@@ -21,11 +13,13 @@ BUCKET = "https://justhodl.ai"
 
 
 def get(url, to=12):
-    import urllib.request
+    import urllib.request, urllib.error
     try:
         r = urllib.request.urlopen(urllib.request.Request(
             url, headers={"User-Agent": "Mozilla/5.0 jh"}), timeout=to)
         return r.getcode(), r.read(4 * 1024 * 1024 + 1), dict(r.headers)
+    except urllib.error.HTTPError as exc:
+        return exc.code,b"",dict(exc.headers or {})
     except Exception:
         return None, b"", {}
 
@@ -87,7 +81,7 @@ def main(build_dir="."):
         if "*" in key:
             return {"state":"pattern_requires_index","present":None,"valid":False,"age_h":None,"fresh":False}
         code, body, headers = get(f"{BUCKET}/{key}?t={int(time.time())}")
-        result={"http_status":code,"present":code==200,"valid":False,"fresh":False,"age_h":None}
+        result={"http_status":code,"present":True if code==200 else False if code==404 else None,"valid":False,"fresh":False,"age_h":None}
         if code != 200:
             result["state"]="missing" if code==404 else "inaccessible" if code in (401,403) else "fetch_failed"
             return result
@@ -134,6 +128,8 @@ def main(build_dir="."):
         if not outputs:status="no-outs"
         elif ready and len(ready)==len(outputs):status="wired"
         elif ready:status="partial"
+        elif any(o['present'] is None or o['state'] in ('source_time_unknown','future_timestamp','body_exceeds_validation_limit') for o in outputs):status='wired-unverified-feed' if referenced else 'declared-unverified'
+        elif referenced and any(o["state"]=='invalid_or_empty' for o in referenced):status='wired-invalid-feed'
         elif referenced and any(o["valid"] for o in referenced):status="wired-stale-feed"
         elif referenced:status="wired-missing-feed"
         elif not present:status="declared-absent"

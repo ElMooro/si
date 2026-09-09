@@ -10,9 +10,9 @@ ops-4559 rewrite. What changed and why:
          screener, SSGA fund finder, ProShares historical CSV — the last one
          carries FULL history, killing the cold-start problem for the entire
          ProShares complex). FMP is the fallback, not the primary.
-  BUG-3  Distribution correction: on ex-dates, dist_per_share × shares is
-         added back so an NAV drop from a payout doesn't read as an outflow.
-         A TNA-residual cross-check (Morningstar method) runs in parallel;
+  Distributions do not change shares-based external capital flow. Only
+         the separate total-return TNA residual is adjusted for cash payouts.
+         A TNA-residual cross-check runs in parallel;
          disagreement > 25bp of TNA lands in anomalies[].
 
 Tiering (Part 0 discipline — facts vs estimates):
@@ -279,6 +279,67 @@ def dividend_map(tickers, gaps):
     return out
 
 
+def calculate_nav_flows(today,days,prev_shares,prev_nav,prev_tna,div_map,comparison_day,previous_date):
+    """External capital at observed NAV; explicit one/five/twenty-observation baselines."""
+    anomalies=[]
+    # 4) flows at NAV, distribution-corrected, with TNA cross-check
+    results = []
+    for tk, r in today.items():
+        so_now = r["shares_outstanding"]
+        nav = r.get("nav") or r.get("price")   # degraded path already labeled
+        p_so = prev_shares.get(tk)
+        dist = div_map.get(tk, 0.0)
+        nf1 = None
+        if p_so and nav:
+            nf1 = (so_now - p_so) * nav
+            # Shares × NAV already excludes cash distributions from external capital flow.
+            # Adding the dividend here would invent an inflow when fund shares are unchanged.
+            nf1 = round(nf1, 0)
+        # TNA-residual cross-check (Morningstar): TNA_t − TNA_{t−1}×(1+r)
+        tna_now, tna_prev = r.get("tna"), prev_tna.get(tk)
+        nav_prev = prev_nav.get(tk)
+        if tna_now and tna_prev and nav and nav_prev:
+            r_tot = (nav + dist) / nav_prev - 1.0
+            raw_residual = tna_now - tna_prev * (1.0 + r_tot)
+            r["tna_total_return_residual_usd"]=round(raw_residual,0)
+            alt = raw_residual + dist * (p_so or 0)  # Remove paid distributions from external capital flow.
+            r["net_flow_1d_tna_method_usd"] = round(alt, 0)
+            if nf1 is not None and tna_now > 0:
+                dis_bp = abs(nf1 - alt) / tna_now * 1e4
+                if dis_bp > ANOMALY_BP:
+                    anomalies.append({"ticker": tk, "shares_method": nf1,
+                                      "tna_method": round(alt, 0),
+                                      "disagreement_bp_of_tna": round(dis_bp, 1)})
+        def flow_over(n):
+            if len(days) < n:
+                return None
+            old_day = days[-n]
+            old = (old_day.get("shares") or {}).get(tk)
+            old_nav = (old_day.get("nav") or {}).get(tk)
+            base = nav if nav else None
+            if old and base:
+                return round((so_now - old) * base, 0)
+            return None
+        nf5, nf20 = flow_over(5), flow_over(20)
+        shares_5d=(days[-5].get("shares") or {}).get(tk) if len(days)>=5 else None
+        mech = []
+        if r.get("category") == "LEVERED_INVERSE":
+            mech.append("daily_rebalance_mechanical")
+        if dist:
+            mech.append("distribution_ex_date_corrected")
+        results.append({**r,
+                        "mechanical_flags": mech,
+                        "aum_est_b": round((r.get("tna") or (so_now * (nav or 0))) / 1e9, 2) if nav else None,
+                        "net_flow_1d_usd": nf1,
+                        "net_flow_5d_usd": nf5,
+                        "flow_windows":{str(n)+"d":{"prior_observation_date":previous_date if n==1 else days[-n].get("date") if len(days)>=n else None,"comparison_end_run_date":comparison_day,"prior_observations_required":n,"available":value is not None} for n,value in ((1,nf1),(5,nf5),(20,nf20))},
+                        "net_flow_20d_usd": nf20,
+                        "dist_per_share_today": dist or None,
+                        "shares_chg_5d_pct": (round((so_now / shares_5d - 1) * 100, 2) if shares_5d else None)})
+
+    return results,anomalies
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     gaps, probes, anomalies = [], [], []
@@ -355,62 +416,21 @@ def lambda_handler(event=None, context=None):
             days = [by_date[d] for d in sorted(by_date)]
             print("[etf-true-flows] proshares backfill: %d funds, %d dates" % (filled, len(all_dates)))
 
+    # Compare distinct prior observations, including on repeated same-day invocations.
+    comparison_day=datetime.now(timezone.utc).date().isoformat()
+    days=sorted({d["date"]:d for d in days if d.get("date") and str(d["date"])<comparison_day}.values(),key=lambda d:d["date"])
+    previous_date=prev.get("date")
+    if str(prev.get("date", ""))>=comparison_day:
+        prior=days[-1] if days else {}
+        prev_shares=prior.get("shares",{});prev_nav=prior.get("nav",{});prev_tna=prior.get("tna",{});previous_date=prior.get("date")
     div_map = dividend_map(tickers, gaps)
 
-    # 4) flows at NAV, distribution-corrected, with TNA cross-check
-    results = []
-    for tk, r in today.items():
-        so_now = r["shares_outstanding"]
-        nav = r.get("nav") or r.get("price")   # degraded path already labeled
-        p_so = prev_shares.get(tk)
-        dist = div_map.get(tk, 0.0)
-        nf1 = None
-        if p_so and nav:
-            nf1 = (so_now - p_so) * nav
-            if dist:
-                nf1 += dist * so_now   # BUG-3: payout is not an outflow
-            nf1 = round(nf1, 0)
-        # TNA-residual cross-check (Morningstar): TNA_t − TNA_{t−1}×(1+r)
-        tna_now, tna_prev = r.get("tna"), prev_tna.get(tk)
-        nav_prev = prev_nav.get(tk)
-        if tna_now and tna_prev and nav and nav_prev:
-            r_tot = (nav + dist) / nav_prev - 1.0
-            alt = tna_now - tna_prev * (1.0 + r_tot)
-            r["net_flow_1d_tna_method_usd"] = round(alt, 0)
-            if nf1 is not None and tna_now > 0:
-                dis_bp = abs(nf1 - alt) / tna_now * 1e4
-                if dis_bp > ANOMALY_BP:
-                    anomalies.append({"ticker": tk, "shares_method": nf1,
-                                      "tna_method": round(alt, 0),
-                                      "disagreement_bp_of_tna": round(dis_bp, 1)})
-        def flow_over(n):
-            if len(days) < n:
-                return None
-            old_day = days[-n]
-            old = (old_day.get("shares") or {}).get(tk)
-            old_nav = (old_day.get("nav") or {}).get(tk)
-            base = nav if nav else None
-            if old and base:
-                return round((so_now - old) * base, 0)
-            return None
-        nf5, nf20 = flow_over(5), flow_over(20)
-        mech = []
-        if r.get("category") == "LEVERED_INVERSE":
-            mech.append("daily_rebalance_mechanical")
-        if dist:
-            mech.append("distribution_ex_date_corrected")
-        results.append({**r,
-                        "mechanical_flags": mech,
-                        "aum_est_b": round((r.get("tna") or (so_now * (nav or 0))) / 1e9, 2) if nav else None,
-                        "net_flow_1d_usd": nf1,
-                        "net_flow_5d_usd": nf5 if nf5 is not None else nf1,
-                        "net_flow_20d_usd": nf20,
-                        "dist_per_share_today": dist or None,
-                        "shares_chg_5d_pct": (round((so_now / p_so - 1) * 100, 2) if p_so else None)})
+    results,flow_anomalies=calculate_nav_flows(today,days,prev_shares,prev_nav,prev_tna,div_map,comparison_day,previous_date)
+    anomalies.extend(flow_anomalies)
 
     def fm(r):
         v = r.get("net_flow_5d_usd")
-        return v if v is not None else (r.get("net_flow_1d_usd") or 0)
+        return v  # A missing five-observation window never falls back to one-day flow.
     results.sort(key=lambda x: -(fm(x) or 0))
     inflows = [r for r in results if (fm(r) or 0) > 0][:25]
     outflows = sorted([r for r in results if (fm(r) or 0) < 0], key=lambda x: fm(x) or 0)[:20]
@@ -585,8 +605,8 @@ def lambda_handler(event=None, context=None):
         "n_etfs": len(results),
         "maturity": "BOOTSTRAPPING" if bootstrapping else ("BUILDING" if len(days) < 5 else "READY"),
         "evidence_tier": "tier_1_realtime_estimate",
-        "method": ("flow_t = Δ(shares outstanding) × NAV_t, distribution-corrected on "
-                   "ex-dates (ops-4559 BUG-1/3). Baskets settle at NAV; market price is "
+        "method": ("flow_t = Δ(shares outstanding) × NAV_t; payouts are not added to share flow. "
+                   "Distribution-adjusted TNA residual is a separate cross-check. Market price is "
                    "reported only as premium_discount_bps. Shares+NAV from issuer files "
                    "first (iShares/SSGA/ProShares-with-history), FMP fallback. TNA-residual "
                    "cross-check per Morningstar; >%sbp disagreement → anomalies[]." % int(ANOMALY_BP)),

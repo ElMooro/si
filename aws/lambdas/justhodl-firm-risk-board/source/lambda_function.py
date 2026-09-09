@@ -1,3 +1,4 @@
+from equity_donor_inputs import firm_board_contract
 """
 justhodl-firm-risk-board -- the firm CRO Risk Board.
 =====================================================
@@ -601,6 +602,10 @@ def lambda_handler(event, context):
             "advice."),
     }
 
+    firm_board_contract(out,fr,lc,fb,now=now)
+    firm_posture=out["firm_posture"];confidence=out["confidence"]
+    snapshot.update(firm_posture=firm_posture,confidence=confidence,data_contract_status=out['data_contract_status'])
+    binding=out.get('binding_constraint') or binding
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, default=str).encode("utf-8"),
                   ContentType="application/json")

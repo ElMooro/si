@@ -94,3 +94,39 @@ def test_directory_never_fetches_families_or_labels_partial_as_complete():
         assert row['status']!='wired' and not any('*' in u for u in requests)
         assert row['outputs'][0]['state']=='future_timestamp'
         assert row['outputs'][-1]['state']=='pattern_requires_index'
+
+def test_dictionary_kwargs_preserve_key_across_unrelated_conditional_metadata():
+    fixtures=[
+        ('def put(key,body,gz=False):\n kw={"Bucket":"b","Key":key,"ContentType":"application/json"}\n if gz:\n  kw["ContentEncoding"]="gzip"\n s3.put_object(Body=body,**kw)\nput("data/real.json",{"source":"data/read.json"})', ['data/real.json']),
+        ('kw=dict(Bucket="b",Key="data/real.json")\ns3.put_object(**kw)', ['data/real.json']),
+        ('kw={"Key":"data/maybe.json"}\nif other:\n kw["Key"]=dynamic\ns3.put_object(**kw)', []),
+        ('def put(key):\n s3.put_object(Key=key)\nargs={"key":"data/real.json"}\nput(**args)', ['data/real.json']),
+    ]
+    for code,expected in fixtures:
+        writes,_,ok=ast_keys(code);assert ok and writes==expected,(code,writes)
+
+def test_manifest_includes_alternate_entrypoints_and_explicit_unsupported_runtime():
+    from gen_engine_manifest import build
+    with tempfile.TemporaryDirectory() as td:
+        r=Path(td)
+        for name,module,runtime,code in [('alternate','agent.py','python3.12','s3.put_object(Key="data/alternate.json")'),('api','index.js','nodejs18.x','exports.handler=async()=>({ok:true});')]:
+            d=r/'aws/lambdas'/name;(d/'source').mkdir(parents=True)
+            (d/'source'/module).write_text(code)
+            (d/'config.json').write_text(json.dumps({'handler':module.split('.')[0]+'.handler','runtime':runtime}))
+        archive=r/'aws/lambdas/_archived/source';archive.mkdir(parents=True);(archive/'lambda_function.py').write_text('s3.put_object(Key="data/wrong.json")')
+        doc=build(r);rows={x['engine']:x for x in doc['engines']}
+        assert doc['n_engines']==2 and rows['alternate']['keys']==['data/alternate.json']
+        assert rows['api']['entrypoint_verified'] and rows['api']['unresolved_writes'] and not rows['api']['keys']
+
+def test_directory_transport_and_denied_responses_never_claim_absence():
+    for code in [None,403,500,404]:
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td);(r/'engines.html').write_text('__JH_ENGINE_DATA__');(r/'p.html').write_text('<script>fetch("data/one.json")</script>')
+            old_load,old_get=baker.load_entries,baker.get
+            baker.load_entries=lambda _:({'engine':{'outs':['data/one.json']}},None)
+            baker.get=lambda *a,**kw:(code,b'',{})
+            try:baker.main(td)
+            finally:baker.load_entries,baker.get=old_load,old_get
+            row=json.loads((r/'engines.html').read_text())['rows'][0]
+            assert row['status']==('wired-missing-feed' if code==404 else 'wired-unverified-feed'),row
+            assert row['outputs'][0]['present'] is (False if code==404 else None)

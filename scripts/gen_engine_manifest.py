@@ -38,6 +38,21 @@ class Scan:
     def resolve(self, node, env):
         if isinstance(node,ast.Constant): return node.value if isinstance(node.value,str) else None
         if isinstance(node,ast.Name): return env.get(node.id)
+        if isinstance(node,ast.Dict):
+            result={}
+            for key,value in zip(node.keys,node.values):
+                if key is None:
+                    unpack=self.resolve(value,env)
+                    if not isinstance(unpack,dict):return None
+                    result.update(unpack)
+                else:
+                    name=self.resolve(key,env)
+                    if not isinstance(name,str):return None
+                    result[name]=self.resolve(value,env)
+            return result
+        if isinstance(node,ast.Subscript):
+            base=self.resolve(node.value,env);key=self.resolve(node.slice,env)
+            return base.get(key) if isinstance(base,dict) else None
         if isinstance(node,ast.JoinedStr):
             return ''.join(str(v.value) if isinstance(v,ast.Constant) else (self.resolve(v.value,env) or '*') for v in node.values)
         if isinstance(node,ast.BinOp):
@@ -45,6 +60,8 @@ class Scan:
             if isinstance(node.op,ast.Add): return (l or '*')+(r or '*')
             if isinstance(node.op,ast.Mod) and l: return re.sub(r'%(?:\([^)]*\))?[-+ 0#]*\d*(?:\.\d+)?[sdifrxX%]','*',l)
         if isinstance(node,ast.Call):
+            if isinstance(node.func,ast.Name) and node.func.id=='dict' and not node.args:
+                return {kw.arg:self.resolve(kw.value,env) for kw in node.keywords if kw.arg}
             if isinstance(node.func,ast.Attribute) and node.func.attr=='format':
                 base=self.resolve(node.func.value,env)
                 if base is not None:
@@ -64,6 +81,10 @@ class Scan:
 
     def assign_target(self,target,value,env):
         if isinstance(target,ast.Name): env[target.id]=self.resolve(value,env)
+        elif isinstance(target,ast.Subscript) and isinstance(target.value,ast.Name):
+            name=target.value.id;mapping=env.get(name);key=self.resolve(target.slice,env)
+            if isinstance(mapping,dict) and isinstance(key,str):env[name]={**mapping,key:self.resolve(value,env)}
+            else:env[name]=None
         elif isinstance(target,(ast.Tuple,ast.List)) and isinstance(value,(ast.Tuple,ast.List)) and len(target.elts)==len(value.elts):
             vals=[self.resolve(v,env) for v in value.elts]
             for t,v in zip(target.elts,vals):
@@ -84,6 +105,9 @@ class Scan:
             for a,v in zip(args,node.args):bound[a.arg]=self.resolve(v,env)
             for kw in node.keywords:
                 if kw.arg:bound[kw.arg]=self.resolve(kw.value,env)
+                else:
+                    unpack=self.resolve(kw.value,env)
+                    if isinstance(unpack,dict):bound.update(unpack)
             self.block(fn.body,bound,stack+(name,))
             return
         if not isinstance(node.func,ast.Attribute):return
@@ -92,13 +116,19 @@ class Scan:
         if not kind:return
         if kind=='write':self.visited_write_lines.add(node.lineno)
         keynode=next((kw.value for kw in node.keywords if kw.arg=='Key'),None)
+        unpacked={}
+        for kw in node.keywords:
+            if kw.arg is None:
+                mapping=self.resolve(kw.value,env)
+                if isinstance(mapping,dict):unpacked.update(mapping)
+        keyvalue=unpacked.get('Key') if keynode is None else self.resolve(keynode,env)
         pos=(WRITE_POS if kind=='write' else READ_POS)[attr]
-        if keynode is None and pos is not None and len(node.args)>pos:keynode=node.args[pos]
-        if keynode is None:
+        if keynode is None and keyvalue is None and pos is not None and len(node.args)>pos:keynode=node.args[pos];keyvalue=self.resolve(keynode,env)
+        if keynode is None and keyvalue is None:
             # boto3 keyword-only Key binding is intentionally not guessed from Bucket/Body.
             if kind=='write':self.unresolved.append({'line':node.lineno,'operation':attr,'reason':'unresolved key argument'})
             return
-        key=normalise(self.resolve(keynode,env))
+        key=normalise(keyvalue)
         if key:
             (self.writes if kind=='write' else self.reads).add(key)
             if kind=='write':self.proofs.setdefault(key,set()).add(node.lineno)
@@ -118,7 +148,10 @@ class Scan:
                 branches=[]
                 for body in (n.body,n.orelse):
                     branch=dict(env);self.block(body,branch,stack);branches.append(branch)
-                for key in set().union(*branches):env[key]=branches[0].get(key) if branches[0].get(key)==branches[1].get(key) else None
+                for key in set().union(*branches):
+                    left,right=branches[0].get(key),branches[1].get(key)
+                    if isinstance(left,dict) and isinstance(right,dict):env[key]={k:left.get(k) if left.get(k)==right.get(k) else None for k in set(left)|set(right)}
+                    else:env[key]=left if left==right else None
             elif isinstance(n,(ast.For,ast.AsyncFor)):
                 self.expr(n.iter,env,stack)
                 iterator=self.containers.get(n.iter.id,n.iter) if isinstance(n.iter,ast.Name) else n.iter
@@ -165,12 +198,19 @@ def confirmed_write_keys(code):
 def build(root=ROOT):
     engines=[]
     for d in sorted((root/'aws/lambdas').iterdir()):
-        if not (d/'source/lambda_function.py').exists():continue
+        if not d.is_dir() or d.name.startswith('_') or not (d/'source').is_dir():continue
         cfg={}
         try:cfg=json.loads((d/'config.json').read_text())
         except (OSError,ValueError):pass
         env=cfg.get('environment') or {}; env=env.get('Variables',env) if isinstance(env,dict) else {}
         keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{}
+        handler=cfg.get('handler') or cfg.get('Handler')
+        runtime=cfg.get('runtime') or cfg.get('Runtime')
+        module=str(handler or '').rsplit('.',1)[0].replace('.','/')
+        entrypoint=next((module+ext for ext in ('.py','.js','.mjs','.cjs') if module and (d/'source'/str(module+ext)).is_file()),None)
+        if handler and entrypoint is None:unresolved.append({'file':'config.json','reason':'configured handler module missing from source'})
+        unsupported=[str(p.relative_to(d/'source')) for p in (d/'source').rglob('*') if p.suffix in ('.js','.mjs','.cjs','.ts') and 'node_modules' not in p.parts]
+        for src in unsupported:unresolved.append({'file':src,'reason':'unsupported runtime analysis; API and dynamic outputs require explicit runtime contract'})
         for src in sorted((d/'source').rglob('*.py')):
             if '__pycache__' in src.parts:continue
             rel=str(src.relative_to(d/'source'))
@@ -187,7 +227,7 @@ def build(root=ROOT):
                         'reads':sorted(reads),'method':'ast-call-binding-v3','write_evidence':proofs,
                         'unresolved_writes':unresolved,'environment_key_defaults':defaults,
                         'ownership_status':'incomplete' if unresolved else 'source_bound',
-                        'deployment_overrides_verified':False,'description':str(cfg.get('description') or '')[:140]})
+                        'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Python source writes; API response bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})
     return {'schema_version':'engine-manifest.v3','generated_at':datetime.now(timezone.utc).isoformat(),
             'source':'scripts/gen_engine_manifest.py; source-bound outputs, separate families and unresolved writes; runtime not certified',
             'n_engines':len(engines),'engines':engines}

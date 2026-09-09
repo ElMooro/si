@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Attr
+from equity_donor_inputs import load_inputs, constrain_sizes, SIZING_SPECS
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -30,18 +31,13 @@ DDB = boto3.resource("dynamodb", region_name="us-east-1")
 # riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
 # macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
 def _risk_gate_doc():
-    if not hasattr(_risk_gate_doc, "_c"):
-        try:
-            import boto3 as _b3, json as _js
-            from datetime import datetime as _dt, timezone as _tz
-            _d = _js.loads(_b3.client("s3").get_object(
-                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
-            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
-                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
-            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
-        except Exception:
-            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
-    return _risk_gate_doc._c
+    # No warm-container permission cache. Zero and missing data must remain binding.
+    try:
+        d=json.loads(S3.get_object(Bucket="justhodl-dashboard-live",Key="data/risk-gate.json")["Body"].read())
+        age=(datetime.now(timezone.utc)-datetime.fromisoformat(d.get("generated_at", "").replace("Z","+00:00"))).total_seconds()/3600
+        if not 0<=age<=48:raise ValueError("expired gate")
+        return d
+    except Exception:return {"posture":"DATA_HOLD","sizing_multiplier":0.0}
 
 _RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
 
@@ -107,6 +103,7 @@ def corr(a, b):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
+    donor_docs,donor_receipts=load_inputs(S3,BUCKET,SIZING_SPECS)
     cal = (s3json("data/_skill/calibration-config.json") or {}).get("engine_overrides", {})
 
     # ── A) full graded scan → per-engine Kelly table ──
@@ -289,19 +286,21 @@ def lambda_handler(event=None, context=None):
                            "cluster_corr_max": round(mx, 2),
                            "haircut_x": round(hcut, 2)},
                 "spy_corr": round(beta, 2) if beta is not None else None,
-                "final_w_pct": round(w * float(_risk_gate_doc().get("sizing_multiplier") or 1.0), 2),
-                "risk_gate_posture": _risk_gate_doc().get("posture"),
+                "final_w_pct": round(w, 2),
+                "risk_gate_posture": donor_docs.get("data/risk-gate.json",{}).get("posture"),
                 "pre_gate_w_pct": round(w, 2),
                 "dollars_per_100k": int(round(w * 1000)),
                 "overlap_flags": overlaps[:3],
                 "baseline_px": c["px"], "signal_id": c["sid"]}
         recs.append(rec)
         accepted.append({"ticker": c["ticker"], "dir": c["dir"]})
+    donor_constraints=constrain_sizes(recs,donor_docs)
     recs.sort(key=lambda x: -x["final_w_pct"])
     gross = round(sum(r_["final_w_pct"] for r_ in recs), 1)
 
     out = {"engine": "sizing-engine", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
+           "donor_inputs":donor_receipts,"donor_constraint_summary":donor_constraints,"execution_eligible":False,
            "params": {"kelly_fraction": "1/4", "vol_target_ann": VOL_TARGET,
                        "cap_w_pct": CAP_W, "floor_w_pct": FLOOR_W,
                        "starter_w_pct": STARTER_W, "min_n_full": 15},

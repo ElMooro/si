@@ -1,3 +1,4 @@
+from equity_donor_inputs import load_inputs, stock_context
 import json, time, boto3, urllib.request
 try:
     from fabrication_guard import guard_output  # ops 4440 F8 (fixed header)
@@ -1282,6 +1283,9 @@ def lambda_handler(event, context):
             s["maLatestDate"] = None
             s["maLatestCounterparty"] = None
 
+    donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/credit-before-equity.json",48,("names",)),("data/estimate-revisions.json",48,()),("data/earnings-quality.json",72,("all_ranked",))])
+    stock_context(stocks,donor_docs)
+
     # ── STAGE 3: STEAL SCORE post-processing ────────────────────────────
     # 9-factor weighted composite score, percentile-ranked vs the universe.
     print("Computing Steal Score across universe...")
@@ -1296,6 +1300,7 @@ def lambda_handler(event, context):
         "elapsed_seconds":   round(elapsed,1),
         "count":             len(stocks),
         "stocks":            stocks,
+        "donor_inputs":donor_receipts,
     }
     if guard_output:
         try:
