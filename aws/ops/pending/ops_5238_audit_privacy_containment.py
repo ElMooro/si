@@ -29,6 +29,8 @@ def main():
     print(json.dumps({"ops": 5238, "ok": result["ok"], "policy_verified": result.get("policy_verified", False),
                       "edge_purge_verified": result.get("edge_purge_verified", False),
                       "temporary_containment_retained": result.get("temporary_containment_retained", False),
+                      "temporary_containment_state": result["temporary_containment_state"],
+                      "policy_write_acknowledged": result["policy_write_acknowledged"],
                       "checks": len(result["checks"]), "report": str(path.relative_to(ROOT))}))
     if not result["ok"]:
         sys.exit(1)

@@ -21,6 +21,7 @@ import zipfile
 from audit_20260909_security import (
     MIRRORED_ARTIFACTS, MIRRORED_KEYS, SANITIZED_KEYS, SANITIZED_PREFIXES, WORKER,
     anonymous_deny_statement, historical_deny_statement, check,
+    policies_equal, has_policy_statement, policy_diagnostic,
 )
 from public_brain_projection import (
     brief_public, devils_public, notes_public, playbook_public, sanitize_public,
@@ -37,7 +38,7 @@ PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "no
               "pm-decision", "behavior-mirror", "ai-brief", "history-api", "watchlist", "vol-regime", "trade-journal")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog",
-             "wealth-plan", "tax-plan")
+             "wealth-plan", "tax-plan", "fleet-monitor")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
 
@@ -249,7 +250,10 @@ class Migration:
         self.step = "initialization"
         self.epoch = "privacy-5230-" + uuid.uuid4().hex
         self.ready = {}
-        self.temp_installed = False
+        self.temp_installed = None  # Unknown until a policy readback proves it.
+        self.policy_write_attempted = False
+        self.policy_write_acknowledged = False
+        self.policy_expected = None
 
     def record(self, stage, **metadata):
         self.rows.append({"check": stage, **metadata})
@@ -273,13 +277,19 @@ class Migration:
             if error_code(exc) != "NoSuchBucketPolicy":
                 raise
             reread = {"Version": "2012-10-17", "Statement": []}
-        require(reread == current, "bucket_policy_changed_during_merge")
+        require(policies_equal(reread, current), "bucket_policy_changed_during_merge")
         policy_text = encoded(updated).decode()
         require(len(policy_text.encode()) <= 20 * 1024, "merged_bucket_policy_exceeds_s3_limit")
+        self.policy_expected = updated
+        self.policy_write_attempted = True
+        self.policy_write_acknowledged = False
+        self.temp_installed = None
         s3.put_bucket_policy(Bucket=BUCKET, Policy=policy_text)
+        self.policy_write_acknowledged = True
         actual = json.loads(s3.get_bucket_policy(Bucket=BUCKET)["Policy"])
-        require(actual == updated, "bucket_policy_not_verified")
-        self.temp_installed = temporary
+        self.temp_installed = has_policy_statement(actual, temporary_statement())
+        self.record("bucket_policy_readback", **policy_diagnostic(actual, updated))
+        require(policies_equal(actual, updated), "bucket_policy_not_verified")
         self.record("bucket_policy", private_deny=True, historical_deny=True, temporary_current_deny=temporary)
 
     def cf(self, path, payload=None):
@@ -334,7 +344,7 @@ class Migration:
             role = role_arn.rsplit("/", 1)[1]
             iam.put_role_policy(RoleName=role, PolicyName="Audit20260909PrivateArtifactIdentity", PolicyDocument=json.dumps(policy))
             actual = iam.get_role_policy(RoleName=role, PolicyName="Audit20260909PrivateArtifactIdentity")["PolicyDocument"]
-            require(actual == policy, "exact_ssm_grant_not_verified")
+            require(policies_equal(actual, policy), "exact_ssm_grant_not_verified")
             result = update_environment(lam, function, {"JH_SERVICE_TOKEN": token}, self.ready[name]["CodeSha256"])
             self.record("private_publisher_config", function=function, **result)
 

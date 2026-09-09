@@ -9,7 +9,8 @@ import urllib.error
 import urllib.request
 
 from audit_20260909_privacy_migration import ACCOUNT, BUCKET, Migration, MigrationError, temporary_statement
-from audit_20260909_security import PRIVATE_KEYS, SANITIZED_KEYS, WORKER, anonymous_deny_statement, historical_deny_statement
+from audit_20260909_security import (PRIVATE_KEYS, SANITIZED_KEYS, WORKER, anonymous_deny_statement,
+                                    historical_deny_statement, has_policy_statement, policy_diagnostic, policies_equal)
 
 
 def head_status(url, http):
@@ -31,14 +32,13 @@ def contain(root, clients, http=urllib.request.urlopen):
               "producer_invocations": 0, "service_configuration_changes": 0,
               "temporary_containment_removed": False, "checks": []}
     job = Migration(root, clients, http=http)
-    checks = result["checks"]
+    checks = result["checks"] = job.rows
     try:
         result["step"] = "verify_account"
         if clients["sts"].get_caller_identity().get("Account") != ACCOUNT:
             raise MigrationError("wrong_aws_account")
         result["step"] = "install_containment"
         job.policy(True)
-        checks.extend(job.rows)
         result["temporary_containment_retained"] = True
         result["policy_verified"] = True
         result["step"] = "purge_edge_cache"
@@ -62,11 +62,12 @@ def contain(root, clients, http=urllib.request.urlopen):
         result["s3_denial_verified"] = all(c["ok"] for c in checks if c["check"] == "anonymous_s3_denied")
         result["worker_denial_verified"] = all(c["ok"] for c in checks if c["check"] == "anonymous_worker_denied")
         # Verify policy still contains all three controls after the HEAD pass.
-        current = json.loads(clients["s3"].get_bucket_policy(Bucket=BUCKET)["Policy"]).get("Statement", [])
+        current = json.loads(clients["s3"].get_bucket_policy(Bucket=BUCKET)["Policy"])
         expected = [anonymous_deny_statement(BUCKET, ACCOUNT), historical_deny_statement(BUCKET, ACCOUNT), temporary_statement()]
-        result["temporary_containment_retained"] = temporary_statement() in current
-        result["policy_verified"] = all(statement in current for statement in expected)
-        checks.append({"check": "final_containment_policy", "ok": result["policy_verified"]})
+        result["temporary_containment_retained"] = has_policy_statement(current, temporary_statement())
+        result["policy_verified"] = policies_equal(current, job.policy_expected) and all(has_policy_statement(current, statement) for statement in expected)
+        checks.append({"check": "final_containment_policy", "ok": result["policy_verified"],
+                       **policy_diagnostic(current, job.policy_expected)})
         result["ok"] = result["policy_verified"] and result["s3_denial_verified"] and result["worker_denial_verified"] and result["edge_purge_verified"]
         result["step"] = "contained_awaiting_full_migration" if result["ok"] else "partial_containment_requires_followup"
         result["next_step"] = "Complete exact-code release and ops5230 before restoring sanitized public access."
@@ -75,5 +76,20 @@ def contain(root, clients, http=urllib.request.urlopen):
         result["failed_step"] = result["step"]
         result["reason"] = str(error) if isinstance(error, MigrationError) else "containment_failed_details_withheld"
         result["error_class"] = type(error).__name__
-        result.setdefault("temporary_containment_retained", job.temp_installed)
+        # A failed PUT/readback does not prove that the deny was not installed.
+        # Recheck only policy metadata; never remove a policy on this path.
+        result["policy_verified"] = False
+        result["temporary_containment_retained"] = None
+        if job.policy_write_attempted:
+            try:
+                actual = json.loads(clients["s3"].get_bucket_policy(Bucket=BUCKET)["Policy"])
+                result["temporary_containment_retained"] = has_policy_statement(actual, temporary_statement())
+                result["policy_verified"] = policies_equal(actual, job.policy_expected)
+                checks.append({"check": "failure_policy_observation", **policy_diagnostic(actual, job.policy_expected)})
+            except Exception:
+                checks.append({"check": "failure_policy_observation", "ok": False, "reason": "policy_readback_unavailable"})
+    result["policy_write_attempted"] = job.policy_write_attempted
+    result["policy_write_acknowledged"] = job.policy_write_acknowledged
+    result["temporary_containment_state"] = ("verified_present" if result.get("temporary_containment_retained") is True
+        else "verified_missing_or_changed" if result.get("temporary_containment_retained") is False else "unknown")
     return result
