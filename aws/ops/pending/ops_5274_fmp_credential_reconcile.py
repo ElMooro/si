@@ -1,3 +1,4 @@
+# Retry after verified configuration reconciliation from 5231, 2026-09-09T15:01Z.
 """Recover FMP only from its existing Lambda or canonical managed credentials.
 
 No new credential is created, no provider account is changed, and secret values
