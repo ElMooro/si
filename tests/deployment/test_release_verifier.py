@@ -506,7 +506,7 @@ def test_recorded_cadence_target_mismatch_is_explicit_information_without_rebind
 
 
 def test_notification_monitors_receive_only_reviewed_explicit_quiet_modes_and_verified_versions():
-    expected={'justhodl-fleet-freshness-monitor':{'mode':'quiet_refresh'},'justhodl-fleet-error-monitor':{'mode':'audit_refresh'}}
+    expected={'justhodl-fleet-freshness-monitor':{'mode':'quiet_refresh'},'justhodl-fleet-error-monitor':{'mode':'audit_refresh'},'justhodl-cot-extremes-scanner':{'mode':'audit_refresh'}}
     for function,payload in expected.items():
         calls=[]
         checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'23'}]

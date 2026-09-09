@@ -38,6 +38,7 @@ PRIMARY = {
     'justhodl-options-flow-scanner':['data/options-flow-scanner.json'],
     'justhodl-options-flow':['flow-data.json'],
     'justhodl-bloomberg-v8':['data/bloomberg-report.json'],
+    'justhodl-cot-extremes-scanner':['cot/extremes/current.json'],
     'justhodl-daily-report-v3':['data/report.json'],
     'justhodl-ecb-derived':['data/ecb-derived.json'],
     'justhodl-whats-changed':['data/whats-changed.json','data/snapshots-index.json'],
@@ -52,6 +53,22 @@ PRIMARY = {
     'justhodl-sizing-engine':['data/sizing.json'],
     'justhodl-etf-constituents':['etf-flows/constituent-pressure.json'],
     'justhodl-risk-sizer':['data/risk-sizer.json','risk/recommendations.json'],
+    'justhodl-brain-sync':['data/brain.json'],
+    'justhodl-notes-intel':['data/notes-index.json','data/notes-themes.json','data/notes-index-public.json','data/notes-themes-public.json'],
+    'justhodl-playbook-engine':['data/playbook-rules.json','data/playbook-rules-public.json'],
+    'justhodl-ai-brief-router':['data/portfolio-manager-brief.json'],
+    'justhodl-compound-aggregator':['data/compound-signals.json','data/prime-convergence.json'],
+    'justhodl-contract-gate':['data/contract-violations.json'],
+    'justhodl-etf-fund-flows':['etf-flows/daily.json','etf-flows/composite.json','etf-flows/rotation.json','etf-flows/per-ticker-context.json','etf-flows/event-study.json'],
+    'justhodl-fleet-monitor':['_health/fleet.json'],
+    'justhodl-health-monitor':['_health/dashboard.json'],
+    'justhodl-history-snapshotter':['data/history-index.json','data/history-snapshotter-status.json'],
+    'justhodl-portfolio-catalysts':['portfolio/catalysts.json'],
+    'justhodl-portfolio-risk':['portfolio/risk.json'],
+    'justhodl-portfolio-sizer':['portfolio/sizing.json'],
+    'justhodl-theme-classifier':['data/momentum-themes.json'],
+    'justhodl-theme-rotation-engine':['data/theme-momentum.json'],
+    'justhodl-trade-journal':['data/user-trades.json','data/user-trades-stats.json'],
 }
 # Reviewed regular handlers publish research/data only and have no notification
 # path. No generic discovery-based invocation is permitted. Portfolio snapshot's
@@ -66,14 +83,16 @@ QUIET_STAGES = (
     ('portfolio-snapshot',),
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
-    ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
+    ('backtest-engine','research-backtest','options-flow','options-flow-scanner','bloomberg-v8','ecb-derived','cot-extremes-scanner'),
     ('whats-changed','public-archive-index','fleet-freshness-monitor','fleet-error-monitor'),
 )
-# These two reviewed handler branches suppress all notification/history side effects.
+# These reviewed handler branches suppress notifications. COT retains its public
+# calculation histories; the fleet modes also suppress their notification history.
 # The default event is never used for these notification-capable engines.
 APPROVED_REFRESH_MODES = {
     'justhodl-fleet-freshness-monitor': {'mode':'quiet_refresh'},
     'justhodl-fleet-error-monitor': {'mode':'audit_refresh'},
+    'justhodl-cot-extremes-scanner': {'mode':'audit_refresh'},
 }
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
@@ -97,6 +116,7 @@ OUTPUT_CONTRACTS = {
     'data/khalid-analysis.json': 'macro-analysis.v1_khalid_owned',
     'data/options-flow-scanner.json': 'options_flow_scanner_v1_ranked_equities',
     'flow-data.json': 'options_flow_and_sentiment_v3_nested_market_data',
+    'cot/extremes/current.json': 'cot-extremes.v2_complete_calculation_histories',
     'data/bloomberg-report.json': 'bloomberg_v8_market_report',
     'data/report.json': 'daily_report_v10_market_report',
     'data/ecb-derived.json': 'ecb_derived_3.4_indicators',
@@ -116,6 +136,8 @@ MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-
              'justhodl-crypto-funding':2,'justhodl-crypto-basis':2,'justhodl-factor-risk':48,
              'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
              'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
+MAX_AGE_H.update({'justhodl-ka-metrics':2,'justhodl-khalid-metrics':2})
+GENERATION_FIELDS={'justhodl-behavior-mirror':'computed_at','justhodl-earnings-whisper':'as_of','justhodl-master-allocator':'as_of','justhodl-repo':'as_of','justhodl-vol-regime':'as_of','justhodl-provider-catalog':'as_of'}
 MAX_AGE_H['justhodl-whats-changed']=30
 MAX_AGE_H['justhodl-public-archive-index']=1
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
@@ -320,8 +342,40 @@ def donor_checks(function, doc, key=None, root=ROOT):
         if doc.get('engine')!='JustHodl Options Flow & Sentiment Engine v3.0' or not isinstance(data,dict) or not all(field in data for field in ('vix_complex','put_call','gamma_exposure','trading_signals')):
             errors.append('OPTIONS_FLOW_OUTPUT_OWNERSHIP_INVALID')
     elif name=='bloomberg-v8':
-        if not doc.get('utc') or not all(isinstance(doc.get(field),dict) for field in ('fred','stocks','stats','signals')) or not isinstance(doc.get('yield_curve'),list):
+        if (doc.get('engine')!='justhodl-bloomberg-v8' or doc.get('schema_version')!='bloomberg-report.v8.1'
+                or doc.get('execution_eligible') is not False or not doc.get('utc')
+                or not all(isinstance(doc.get(field),dict) for field in ('fred','stocks','stats','signals'))
+                or not isinstance(doc.get('yield_curve'),list)):
             errors.append('BLOOMBERG_V8_OUTPUT_OWNERSHIP_INVALID')
+        if doc.get('coverage_status')!='READY':requirements.append('BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE')
+        if doc.get('archive_status')!='PUBLISHED':requirements.append('BLOOMBERG_ARCHIVE_PUBLICATION_UNAVAILABLE')
+        requirements.append('DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION')
+    elif name=='cot-extremes-scanner':
+        rows=doc.get('contracts');histories=doc.get('histories');summary=doc.get('summary')
+        if (doc.get('engine')!='justhodl-cot-extremes-scanner' or doc.get('schema_version')!='cot-extremes.v2'
+                or doc.get('execution_eligible') is not False or doc.get('point_in_time_certified') is not False
+                or doc.get('scope')!='CURRENT_CONFIGURED_UNIVERSE' or not isinstance(rows,list)
+                or not isinstance(histories,dict) or not isinstance(summary,dict)):
+            errors.append('COT_OUTPUT_CONTRACT_INVALID')
+        else:
+            symbols=[row.get('contract') for row in rows if isinstance(row,dict)]
+            if (len(symbols)!=len(rows) or any(not isinstance(symbol,str) for symbol in symbols) or len(set(symbols))!=len(rows) or set(symbols)!=set(histories)
+                    or summary.get('n_returned')!=len(rows) or summary.get('n_requested')!=len(rows) or summary.get('n_contracts_total')!=len(rows)):
+                errors.append('COT_CONTRACT_COVERAGE_INVALID')
+            for row in rows:
+                if not isinstance(row,dict):continue
+                history=histories.get(row.get('contract'),{})
+                if not isinstance(history,dict) or not isinstance(history.get('history'),list):
+                    errors.append('COT_HISTORY_MISSING');continue
+                if row.get('n_weeks_history')!=len(history['history']):errors.append('COT_HISTORY_TRUNCATED')
+                if row.get('execution_eligible') is not False:errors.append('COT_EXECUTION_PERMISSION_UNCALIBRATED')
+                if row.get('status')!='ok' and (row.get('percentile') is not None or row.get('extreme') is not None):
+                    errors.append('COT_UNAVAILABLE_INPUT_HAS_RANK')
+            if any(row.get('status')!='ok' for row in rows if isinstance(row,dict)):
+                requirements.append('COT_PROVIDER_OR_HISTORY_COVERAGE_INCOMPLETE')
+            if doc.get('universe_status')!='LOADED':requirements.append('COT_EXTENSION_UNIVERSE_COVERAGE_UNPROVEN')
+            counts.update(contracts=len(rows),histories=len(histories),history_rows=sum(len(value.get('history',[])) for value in histories.values() if isinstance(value,dict)))
+        requirements.extend(['COT_CURRENT_VINTAGE_IS_NOT_POINT_IN_TIME_HISTORY','DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION'])
     elif name=='daily-report-v3':
         if doc.get('version')!='V10' or not all(field in doc for field in ('risk_dashboard','net_liquidity','liquidity_credit_engine','tenor_signals','global_business_cycle')):
             errors.append('DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID')
@@ -418,14 +472,14 @@ def donor_checks(function, doc, key=None, root=ROOT):
 
 
 def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=None, root=ROOT):
-    now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','errors':[],'requirements':[]}
+    now=now or utcnow();result={'key':key,'status':'PENDING_OUTPUT','observed_at':now.isoformat(),'errors':[],'requirements':[]}
     if key in OUTPUT_CONTRACTS:
         result.update(expected_output_contract=OUTPUT_CONTRACTS[key],expected_producer=function)
     try:
         response=s3.get_object(Bucket=bucket,Key=key);raw=response['Body'].read();doc=strict_document(raw)
         modified=response.get('LastModified');modified=parse_timestamp(modified.isoformat() if isinstance(modified,datetime) else modified)
         deployment=parse_timestamp(code.get('last_modified'))
-        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else None
+        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else 'generated' if function in ('justhodl-ka-metrics','justhodl-khalid-metrics') else GENERATION_FIELDS.get(function)
         generated=parse_timestamp(doc.get(generation_field)) if generation_field else None
         result.update(bytes=len(raw),last_modified=modified.isoformat() if modified else None,
                       generated_at=generated.isoformat() if generated else None,version_id=response.get('VersionId'),
@@ -464,7 +518,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
         if doc.get('ok') is False or doc.get('error') or doc.get('_err'):result['requirements'].append('PRODUCER_REPORTED_DATA_UNAVAILABLE')
         result['status']='CONTRACT_FAILED' if result['errors'] else 'VERIFIED_BLOCKED_REQUIREMENTS' if result['requirements'] else 'VERIFIED'
     except Exception as exc:
-        result.update(status='PENDING_OUTPUT' if type(exc).__name__ in ('NoSuchKey','ClientError') else 'CONTRACT_FAILED',error_type=type(exc).__name__)
+        result.update(status='PENDING_OUTPUT' if type(exc).__name__ in ('NoSuchKey','ClientError') else 'CONTRACT_FAILED',error_type=type(exc).__name__,error_code=safe_label(getattr(exc,'response',{}).get('Error',{}).get('Code')))
     return result
 
 
@@ -593,7 +647,7 @@ def observe_schedules(clients, root, functions):
         specs.extend(('events',{'name':name}) for name in config.get('eventbridge_rules',[]) if isinstance(name,str))
         seen=set()
         for kind,spec in specs:
-            name=spec.get('schedule_name') or spec.get('name')
+            name=spec.get('schedule_name') or spec.get('rule_name') or spec.get('name')
             if not name or (kind,name) in seen:continue
             seen.add((kind,name));row={'function':function,'service':kind,'name':name,'status':'PENDING_CONFIGURATION'}
             try:
@@ -606,12 +660,13 @@ def observe_schedules(clients, root, functions):
                 expected=spec.get('cron') or spec.get('expression')
                 matching=[target for target in targets if target.get('Arn','').split(':function:')[-1].split(':')[0]==function]
                 governed=bool(config.get('release_validation')) or function in ('justhodl-engine-fusion','justhodl-khalid-risk')
-                qualified=all(':' in target['Arn'].split(':function:')[-1] and not target['Arn'].endswith(':$LATEST') for target in matching)
+                qualified=all(target['Arn'].endswith(':live') for target in matching)  # The exact alias whose numbered package was verified above.
                 row.update(expression=current.get('ScheduleExpression'),expected_expression=expected,state=current.get('State'),
+                           timezone=current.get('ScheduleExpressionTimezone','UTC') if kind=='scheduler' else 'UTC',expected_timezone=spec.get('timezone'),
                            target_count=len(targets),matching_target_arns=[target['Arn'] for target in matching],
                            governed_target_qualified=qualified if governed else None,
                            input_configured='input' in spec,input_preserved_or_matches=all(input_matches(target.get('Input'),spec['input']) for target in matching) if 'input' in spec else None)
-                if matching and current.get('State')=='ENABLED' and (not expected or expected==current.get('ScheduleExpression')) and (not governed or qualified) and row['input_preserved_or_matches'] is not False:row['status']='VERIFIED'
+                if matching and current.get('State')=='ENABLED' and (not expected or expected==current.get('ScheduleExpression')) and (not spec.get('timezone') or row['timezone']==spec['timezone']) and (not governed or qualified) and row['input_preserved_or_matches'] is not False:row['status']='VERIFIED'
             except Exception as exc:row['error_type']=type(exc).__name__
             result.append(row)
     return result
