@@ -288,7 +288,29 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     i = i || 0; if (i >= FEEDS.length) { $("errbox").textContent = "data/ai.json unavailable on every path"; return Promise.resolve(); }
     return fetch(FEEDS[i] + "?cb=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(render).catch(function (e) { console.warn("ai feed", FEEDS[i], e.message); return load(i + 1); });
   }
+  function publicProjection(d) {
+    if (user() || d.access === "PUBLIC_AGGREGATE") return d;
+    var inv = d.inventory || {}, count = function (name) { return { total: (inv[name] || []).length }; };
+    var policy = d.policy || {}, cost = d.cost || {}, catalog = d.catalog || {}, dataset = d.brain_dataset || null, fleet = d.fleet_inputs || {}, verdict = d.pipeline_verdict || null;
+    return {
+      engine: d.engine, version: d.version, generated_at: d.generated_at, elapsed_s: d.elapsed_s, region: d.region,
+      access: "PUBLIC_AGGREGATE",
+      inventory_summary: d.inventory_summary || {
+        endpoints: count("endpoints"), jobs: count("jobs"), models: count("models"),
+        domains: count("domains"), feature_groups: count("feature_groups")
+      },
+      policy: { daily_budget_usd: policy.daily_budget_usd, endpoint_ttl_hours: policy.endpoint_ttl_hours, idle_hours: policy.idle_hours, serverless_default: policy.serverless_default },
+      cost: { projected: cost.projected || {}, mtd: cost.mtd || {} },
+      catalog: { generated_at: catalog.generated_at, n: catalog.n, article_models_present: catalog.article_models_present || [], article_models_missing: catalog.article_models_missing || [] },
+      brain_dataset: dataset && { n_rows: dataset.n_rows, source_n_notes: dataset.source_n_notes, n_labels: dataset.n_labels != null ? dataset.n_labels : Object.keys(dataset.by_label || {}).length, outcome_labels: dataset.outcome_labels },
+      market_read: d.market_read,
+      fleet_inputs: { registry_version: fleet.registry_version, status: fleet.status, summary: fleet.summary || {} },
+      pipeline_verdict: verdict && { status: verdict.status, finished_at: verdict.finished_at },
+      tiers: d.tiers, definitions: d.definitions
+    };
+  }
   function render(d) {
+    d = publicProjection(d);
     D = d; $("errbox").textContent = "";
     var inv = d.inventory || {}, isum = d.inventory_summary || {}, eps = inv.endpoints || [], jobs = inv.jobs || [], live = eps.filter(function (e) { return e.status === "InService"; });
     var running = jobs.filter(function (j) { return /InProgress|Starting|Stopping/.test(j.status || ""); });
@@ -298,7 +320,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     var over = (proj.usd_per_day || 0) > (pol.daily_budget_usd || 0);
     $("wr-headline").innerHTML = live.length + " endpoint" + (live.length === 1 ? "" : "s") + " InService · " + running.length + " job" + (running.length === 1 ? "" : "s") + " running · run-rate <span class=\"" + (over ? "bad" : "ok") + "\">" + usd(proj.usd_per_day) + "/day</span> of a " + usd(pol.daily_budget_usd) + " budget";
     var cat = d.catalog || {}, ds = d.brain_dataset;
-    $("wr-sub").textContent = (cat.n || 0) + " hub cards in the catalog (" + (cat.article_models_present || []).length + " of the article's 4 RoBERTa-SEC cards present)" + (ds ? " · Brain dataset " + ds.dataset_id + ": " + fmt(ds.n_rows, 0) + " labelled rows from " + fmt(ds.source_n_notes, 0) + " notes" : " · no Brain dataset built yet") + " · MTD SageMaker " + (mtd.usd_mtd == null ? "unknown (" + esc(mtd.error || "") + ")" : usd(mtd.usd_mtd)) + ".";
+    $("wr-sub").textContent = (cat.n || 0) + " hub cards in the catalog (" + (cat.article_models_present || []).length + " of the article's 4 RoBERTa-SEC cards present)" + (ds ? " · Brain dataset" + (ds.dataset_id ? " " + ds.dataset_id : "") + ": " + fmt(ds.n_rows, 0) + " labelled rows from " + fmt(ds.source_n_notes, 0) + " notes" : " · no Brain dataset built yet") + " · MTD SageMaker " + (mtd.usd_mtd == null ? "unknown (" + esc(mtd.error || "") + ")" : usd(mtd.usd_mtd)) + ".";
     var errs = d.inventory_errors || {}; var errKeys = Object.keys(errs);
     $("wr-legs").innerHTML = [
       ["Studio domains", inv.domains ? inv.domains.length : ((isum.domains || {}).total || 0), inv.apps ? inv.apps.filter(function (a) { return a.status === "InService"; }).length + " apps running" : "details require owner sign-in"],
@@ -338,7 +360,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     var jobs = (d.inventory || {}).jobs || [], clf = jobs.filter(function (j) { return /jh-ai-brain-clf/.test(j.name || ""); }), clfDone = clf.filter(function (j) { return j.status === "Completed"; }), clfRun = clf.filter(function (j) { return j.status === "InProgress"; });
     var eps = (d.inventory || {}).endpoints || [], served = eps.filter(function (e) { return /jh-ai-clf/.test(e.name || "") && e.status === "InService"; }), embEp = eps.filter(function (e) { return (e.tags || {})["justhodl-ai-purpose"] && /hub:/.test(e.tags["justhodl-ai-purpose"]) && e.status === "InService"; });
     var steps = [
-      ["Dataset", ds ? "done" : "", ds ? fmt(ds.n_rows, 0) + " rows · " + Object.keys(ds.by_label || {}).length + " labels" : "build it from the Brain"],
+      ["Dataset", ds ? "done" : "", ds ? fmt(ds.n_rows, 0) + " rows · " + (ds.n_labels != null ? ds.n_labels : Object.keys(ds.by_label || {}).length) + " labels" : "build it from the Brain"],
       ["Embedding endpoint", embEp.length ? "done" : "", embEp.length ? embEp.map(function (e) { return e.name; }).join(", ") : "deploy a RoBERTa-SEC / embedding card"],
       ["Embeddings", done.length ? "done" : run.length ? "run" : "", done.length ? done.map(function (p) { return p.endpoint + " dim " + p.dim + " · " + p.n_embedded; }).join("; ") : run.length ? run.map(function (p) { return p.endpoint + " " + p.cursor + "/" + p.n_rows; }).join("; ") : "not started"],
       ["Classifier", clfDone.length ? "done" : clfRun.length ? "run" : "", clfDone.length ? clfDone[0].name + (clfDone[0].metrics && clfDone[0].metrics.length ? " · " + clfDone[0].metrics.map(function (m) { return m.name + " " + fmt(m.value, 4); }).join(" ") : "") : clfRun.length ? clfRun[0].name + " running" : "not trained"],
@@ -368,7 +390,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       ["Untimestamped", counts.UNTIMESTAMPED || 0], ["Private excluded", s.private_excluded || 0],
       ["Schema versioned", s.schema_versioned || 0]
     ].map(function(x){return '<div class="leg"><div class="k">' + esc(x[0]) + '</div><div class="v">' + fmt(x[1],0) + '</div></div>';}).join("");
-    if (d.access === "PUBLIC_AGGREGATE") {
+    if (!user() || d.access === "PUBLIC_AGGREGATE") {
       $("fleet-filter").innerHTML = "";
       $("fleet-body").innerHTML = '<div class="note">Feed paths, engine mappings and schema details are private. Sign in as the owner to inspect every registered input.</div>';
       return;
@@ -383,7 +405,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   function renderInventory() {
     var inv = (D && D.inventory) || {};
-    if (D && D.access === "PUBLIC_AGGREGATE") {
+    if (!user() || (D && D.access === "PUBLIC_AGGREGATE")) {
       $("inv-tabs").innerHTML = "";
       $("inv-body").innerHTML = '<div class="note">Resource names, tags, failures and job details are private. Sign in as the owner to load the complete SageMaker inventory.</div>';
       return;
@@ -436,6 +458,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     var ds = d.brain_dataset;
     $("ds-id").textContent = ds ? ds.dataset_id : "";
     if (!ds) { $("ds-body").innerHTML = '<div class="dim">No dataset yet. Build one: every Brain note with a category becomes a labelled row (text stays private).</div>'; return; }
+    if (!user()) {
+      $("ds-body").innerHTML = '<div class="mini"><div><b>' + fmt(ds.n_rows, 0) + '</b><span>rows</span></div><div><b>' + fmt(ds.n_labels, 0) + '</b><span>labels</span></div><div><b>' + fmt(ds.source_n_notes, 0) + '</b><span>source notes</span></div></div><div class="note">Class distribution, split details and note-derived metadata require owner sign-in.</div>';
+      $("emb-body").innerHTML = '<div class="dim">Embedding pass details require owner sign-in.</div>';
+      return;
+    }
     var by = ds.by_label || {}, max = Math.max.apply(null, Object.values(by).concat([1]));
     var h = '<div class="mini"><div><b>' + fmt(ds.n_rows, 0) + "</b><span>rows</span></div><div><b>" + fmt(ds.n_train, 0) + "</b><span>train</span></div><div><b>" + fmt(ds.n_validation, 0) + "</b><span>validation</span></div><div><b>" + fmt(ds.n_pinned, 0) + "</b><span>pinned</span></div><div><b>" + fmt(ds.min_class_rows, 0) + "</b><span>smallest class</span></div></div>";
     h += '<div style="margin-top:10px">' + Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (k) { return '<div style="display:grid;grid-template-columns:90px 1fr 50px;gap:8px;align-items:center;margin:3px 0"><span class="mono">' + esc(k) + '</span><div class="bar"><i style="width:' + Math.round(100 * by[k] / max) + '%"></i></div><span class="mono dim">' + fmt(by[k], 0) + "</span></div>"; }).join("") + "</div>";
@@ -594,7 +621,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   function bindActs(root) { root.querySelectorAll("button[data-act]").forEach(function (b) { b.onclick = function () { dispatch(b); }; }); }
   async function dispatch(b) {
     var a = b.getAttribute("data-act");
-    if (a === "market-read") { if (!confirm("Run a fresh governed read now? It uses eligible fleet evidence plus private Brain references. Valid calls are logged and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(true); return; }
+    if (a === "market-read") { if (!user()) { log("err", "read the market: sign in first"); renderAuth(); return; } if (!confirm("Run a fresh governed read now? It uses eligible fleet evidence plus private Brain references. Valid calls are logged and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(true); return; }
     if (a === "pipeline") { if (!confirm("Run the full Brain pipeline? It deploys an embedding endpoint (serverless when the card allows, else real-time with a 3h TTL that is deleted at the end), embeds all notes, trains the spot classifier, serves it serverless, builds the retrieval endpoint and runs the first market read. Advances every 10 min by schedule; cents to a few dollars.")) return; return act("start pipeline", "/pipeline/start", { force: true }); }
     if (a === "pipeline-stop") { if (!confirm("Stop the pipeline? Live endpoints are left as they are (the hourly guard still applies TTLs).")) return; return act("stop pipeline", "/pipeline/stop", {}); }
     if (a === "dataset") return act("build Brain dataset", "/dataset/build", {});
