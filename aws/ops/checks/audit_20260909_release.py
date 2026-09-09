@@ -133,6 +133,7 @@ MAX_AGE_H = {'justhodl-engine-fusion':2,'justhodl-khalid-risk':2,'justhodl-risk-
              'justhodl-short-interest':72,'justhodl-calibration-snapshotter':192,'justhodl-calibrator':192,
              'justhodl-backtest-engine':8,'justhodl-research-backtest':30}
 MAX_AGE_H.update({'justhodl-ka-metrics':2,'justhodl-khalid-metrics':2})
+GENERATION_FIELDS={'justhodl-behavior-mirror':'computed_at','justhodl-earnings-whisper':'as_of','justhodl-master-allocator':'as_of','justhodl-repo':'as_of','justhodl-vol-regime':'as_of','justhodl-provider-catalog':'as_of'}
 MAX_AGE_H['justhodl-whats-changed']=30
 MAX_AGE_H['justhodl-public-archive-index']=1
 SAFE_STATE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
@@ -442,7 +443,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
         response=s3.get_object(Bucket=bucket,Key=key);raw=response['Body'].read();doc=strict_document(raw)
         modified=response.get('LastModified');modified=parse_timestamp(modified.isoformat() if isinstance(modified,datetime) else modified)
         deployment=parse_timestamp(code.get('last_modified'))
-        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else 'generated' if function in ('justhodl-ka-metrics','justhodl-khalid-metrics') else None
+        generation_field='generated_at' if doc.get('generated_at') else 'updated_at' if doc.get('updated_at') else 'as_of' if function in ('justhodl-risk-sizer','justhodl-calibration-snapshotter','justhodl-whats-changed') else 'utc' if function=='justhodl-bloomberg-v8' else 'timestamp' if function=='justhodl-options-flow' else 'generated' if function in ('justhodl-ka-metrics','justhodl-khalid-metrics') else GENERATION_FIELDS.get(function)
         generated=parse_timestamp(doc.get(generation_field)) if generation_field else None
         result.update(bytes=len(raw),last_modified=modified.isoformat() if modified else None,
                       generated_at=generated.isoformat() if generated else None,version_id=response.get('VersionId'),
@@ -481,7 +482,7 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
         if doc.get('ok') is False or doc.get('error') or doc.get('_err'):result['requirements'].append('PRODUCER_REPORTED_DATA_UNAVAILABLE')
         result['status']='CONTRACT_FAILED' if result['errors'] else 'VERIFIED_BLOCKED_REQUIREMENTS' if result['requirements'] else 'VERIFIED'
     except Exception as exc:
-        result.update(status='PENDING_OUTPUT' if type(exc).__name__ in ('NoSuchKey','ClientError') else 'CONTRACT_FAILED',error_type=type(exc).__name__)
+        result.update(status='PENDING_OUTPUT' if type(exc).__name__ in ('NoSuchKey','ClientError') else 'CONTRACT_FAILED',error_type=type(exc).__name__,error_code=safe_label(getattr(exc,'response',{}).get('Error',{}).get('Code')))
     return result
 
 

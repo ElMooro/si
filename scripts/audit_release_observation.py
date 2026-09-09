@@ -15,14 +15,65 @@ import audit_20260909_release as release
 READ_METHODS={
  'lambda':frozenset(('get_function','get_alias','get_function_url_config')),
  's3':frozenset(('get_object',)),
- 'events':frozenset(('describe_rule','list_targets_by_rule')),
- 'scheduler':frozenset(('get_schedule',)),
+ 'events':frozenset(('describe_rule','list_targets_by_rule','list_rules')),
+ 'scheduler':frozenset(('get_schedule','list_schedules')),
 }
 class ReadOnlyClient:
     def __init__(self,client,service):self._client=client;self._allowed=READ_METHODS[service]
     def __getattr__(self,name):
         if name not in self._allowed:raise RuntimeError('unreviewed_aws_operation')
         return getattr(self._client,name)
+
+def pages(method, field, **kwargs):
+    seen=set();token=None
+    while True:
+        response=method(**kwargs,**({'NextToken':token} if token else {}))
+        yield from response.get(field,[])
+        token=response.get('NextToken')
+        if not token:return
+        if token in seen:raise RuntimeError('repeated_metadata_page')
+        seen.add(token)
+
+def schedule_discovery(clients,functions):
+    result={name:[] for name in functions}
+    def owner(arn):return arn.split(':function:')[-1].split(':')[0] if ':function:' in arn else None
+    for row in pages(clients['scheduler'].list_schedules,'Schedules'):
+        name=owner(row.get('Target',{}).get('Arn',''))
+        if name not in result:continue
+        current=clients['scheduler'].get_schedule(Name=row['Name'],GroupName=row.get('GroupName','default'))
+        result[name].append({'service':'scheduler','name':row['Name'],'group':row.get('GroupName','default'),
+                            'target_arn':current.get('Target',{}).get('Arn'),'state':current.get('State'),
+                            'expression':current.get('ScheduleExpression'),
+                            'input_empty_object':release.input_matches(current.get('Target',{}).get('Input'),{})})
+    def inspect_rule(row):
+        matches=[]
+        for target in pages(clients['events'].list_targets_by_rule,'Targets',Rule=row['Name']):
+            name=owner(target.get('Arn',''))
+            if name in result:matches.append((name,{'service':'events','name':row['Name'],'target_arn':target['Arn'],
+                                'state':row.get('State'),'expression':row.get('ScheduleExpression'),
+                                'input_empty_object':release.input_matches(target.get('Input'),{})}))
+        return matches
+    rules=list(pages(clients['events'].list_rules,'Rules'))
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        for matches in pool.map(inspect_rule,rules):
+            for name,proof in matches:result[name].append(proof)
+    return {'scope':'All Scheduler groups and default EventBridge bus; matches include base, numeric version and alias targets. Input bodies withheld.','functions':result}
+
+def publication_diagnostics(clients,report):
+    result=[]
+    for name,rows in report['outputs'].items():
+        for row in rows:
+            if row['status']!='PENDING_OUTPUT' and name not in ('justhodl-ka-metrics','justhodl-khalid-metrics'):continue
+            item={'function':name,'key':row['key'],'generation_candidates':{}}
+            try:
+                response=clients['s3'].get_object(Bucket=release.BUCKET,Key=row['key']);doc=release.strict_document(response['Body'].read())
+                for field in ('generated_at','generated','computed_at','updated_at','as_of','asof','timestamp','updated','utc','ts'):
+                    if field not in doc:continue
+                    stamp=release.parse_timestamp(doc[field]);item['generation_candidates'][field]={'valid_clock':stamp is not None,'timestamp':stamp.isoformat() if stamp else None}
+                if doc.get('error') in ('metrics_unavailable','analysis_provider_unavailable','analysis_unavailable'):item['fixed_error_code']=doc['error']
+            except Exception as exc:item.update(error_type=type(exc).__name__,error_code=release.safe_label(getattr(exc,'response',{}).get('Error',{}).get('Code')))
+            result.append(item)
+    return result
 
 def observe(root,clients,privacy):
     scope=release.changed_scope(root);artifacts=release.artifact_map(root,scope)
@@ -40,6 +91,9 @@ def observe(root,clients,privacy):
     with ThreadPoolExecutor(max_workers=6) as pool:report['outputs']=dict(pool.map(outputs,scope))
     report['schedules']=release.observe_schedules(clients,root,scope)
     report['function_urls']=release.observe_function_urls(clients['lambda'],root)
+    missing={row['function'] for row in report['schedules'] if row['status']=='PENDING_CONFIGURATION'}
+    report['schedule_discovery']=schedule_discovery(clients,missing) if missing else {'functions':{}}
+    report['publication_diagnostics']=publication_diagnostics(clients,report)
     pending=[];failures=[];blocked=[]
     for name,rows in report['outputs'].items():
         if not rows:pending.append({'function':name,'reason':'API_REQUEST_FIXTURE_OR_PRIMARY_OUTPUT_MAPPING_REQUIRED'})

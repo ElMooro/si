@@ -617,3 +617,15 @@ def test_metric_generation_uses_the_source_defined_generated_field_and_two_hour_
         doc['generated']=(now-timedelta(hours=2,minutes=1)).isoformat()
         result=release.inspect_output(fixture_output(doc),function,'data/'+function.removeprefix('justhodl-')+'.json',code,now=now)
         assert result['status']=='PENDING_OUTPUT' and 'FRESH_GENERATION_PENDING' in result['requirements']
+
+
+def test_source_bound_alternate_generation_fields_preserve_future_and_age_guards():
+    now=release.utcnow();code={'last_modified':(now-timedelta(hours=1)).isoformat()}
+    for name,field in release.GENERATION_FIELDS.items():
+        doc={field:now.isoformat()}
+        with patch.object(release,'donor_checks',return_value={'errors':[],'requirements':[],'counts':{}}):
+            row=release.inspect_output(fixture_output(doc),name,'data/example.json',code,now=now)
+            assert row['status']=='VERIFIED'
+            doc[field]=(now+timedelta(hours=1)).isoformat()
+            row=release.inspect_output(fixture_output(doc),name,'data/example.json',code,now=now)
+            assert row['status']=='CONTRACT_FAILED' and 'GENERATION_TIMESTAMP_INVALID' in row['errors']

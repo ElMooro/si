@@ -22,4 +22,10 @@ class BoundaryTests(unittest.TestCase):
   with patch.object(m.release,'changed_scope',return_value={'example':[]}),patch.object(m.release,'artifact_map',return_value={}),patch.object(m.release,'git',return_value='0'*40),patch.object(m.release,'check_packages',return_value=[{'function':'example','pass':False}]),patch.object(m.release,'privacy_receipt_summary',return_value={'verified':True}):
    result=m.observe(ROOT,{'lambda':None},None)
   self.assertEqual(result['status'],'SOURCE_PARITY_FAILED');self.assertNotIn('outputs',result)
+ def test_schedule_discovery_retains_numeric_targets_and_withholds_input(self):
+  events=SimpleNamespace(list_rules=lambda **kw:{'Rules':[{'Name':'alternate','State':'ENABLED','ScheduleExpression':'rate(1 hour)'}]},list_targets_by_rule=lambda **kw:{'Targets':[{'Arn':'arn:aws:lambda:us-east-1:857687956942:function:sample:23','Input':'PRIVATE_DATA'}]})
+  scheduler=SimpleNamespace(list_schedules=lambda **kw:{'Schedules':[]})
+  result=m.schedule_discovery({'events':events,'scheduler':scheduler},{'sample'})
+  self.assertEqual(result['functions']['sample'][0]['target_arn'].split(':')[-1],'23')
+  self.assertNotIn('PRIVATE_DATA',str(result))
 if __name__=='__main__':unittest.main()
