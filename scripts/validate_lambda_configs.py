@@ -4,6 +4,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from normalize_lambda_config import normalize_config
+
 
 def validate_configs(root, targets):
     errors = []
@@ -12,6 +15,10 @@ def validate_configs(root, targets):
         if not path.exists():
             continue
         config = json.loads(path.read_text())
+        try:
+            normalize_config(config)
+        except ValueError as error:
+            errors.append({"function": target, "field": "schedule", "error_code": str(error)})
         if "description" in config:
             description = config["description"]
             if not isinstance(description, str) or len(description) > 256:

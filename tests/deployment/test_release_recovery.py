@@ -123,13 +123,20 @@ def recovery_5237():
     return runpy.run_path(str(path))['main']
 
 
+def recovery_5239():
+    path=ROOT/'aws/ops/pending/ops_5239_retry_pinned_core_release.py'
+    if not path.exists():path=ROOT/'aws/ops/ran'/path.name
+    assert 'boto3' not in path.read_text()
+    return runpy.run_path(str(path))['main']
+
+
 def test_alias_recovery_uses_distinct_receipt_and_exact_head_once():
     with tempfile.TemporaryDirectory() as temp:
         _alias_recovery_once(Path(temp))
 
 
 def _alias_recovery_once(tmp_path, operation='5235'):
-    main={'5235':recovery_5235,'5236':recovery_5236,'5237':recovery_5237}[operation]();scope=main.__globals__
+    main={'5235':recovery_5235,'5236':recovery_5236,'5237':recovery_5237,'5239':recovery_5239}[operation]();scope=main.__globals__
     assert scope['REPORT'].name=='ops_'+operation+'_core_recovery_dispatch.json'
     report=tmp_path/scope['REPORT'].name
     # A failed earlier attempt must not suppress the independently numbered retry.
@@ -154,7 +161,7 @@ def _alias_recovery_once(tmp_path, operation='5235'):
     saved=json.loads(report.read_text())
     assert saved['operation']==operation and saved['status']=='DISPATCHED'
     assert saved['workflow_sha_matches'] is (operation=='5235') and saved['aws_calls']==0
-    if operation in ('5236','5237'):
+    if operation in ('5236','5237','5239'):
         assert saved['expected_checkout_sha']==head and saved['checkout_verification']=='REQUIRED_IN_RELEASE_JOB'
     assert 'test-secret' not in report.read_text()
 
@@ -167,6 +174,11 @@ def test_pinned_retry_preserves_requested_commit_when_dispatch_branch_advances()
 def test_metadata_retry_is_a_distinct_exact_source_dispatch():
     with tempfile.TemporaryDirectory() as temp:
         _alias_recovery_once(Path(temp), '5237')
+
+
+def test_schedule_retry_is_a_distinct_exact_source_dispatch():
+    with tempfile.TemporaryDirectory() as temp:
+        _alias_recovery_once(Path(temp), '5239')
 
 
 def test_recovery_checkout_is_verified_before_credentials_and_code_staging():

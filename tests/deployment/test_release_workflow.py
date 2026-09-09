@@ -39,7 +39,7 @@ def test_governed_engines_use_numbered_candidate_path():
         'if [ "$fn" = "justhodl-engine-fusion" ] '
         '|| [ "$fn" = "justhodl-khalid-risk" ]'
     ) in workflow
-    assert 'if [ "$candidate_managed" -eq 0 ] && [ -f "$dir/config.json" ]' in workflow
+    assert 'if [ "$candidate_managed" -eq 0 ] && [ -f "$config_file" ]' in workflow
     assert (
         '[ "$fn" = "justhodl-khalid" ] '
         '|| [ "$fn" = "justhodl-khalid-risk" ]'

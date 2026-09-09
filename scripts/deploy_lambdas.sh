@@ -24,6 +24,13 @@ for fn in $DEPLOY_TARGETS; do
       exit 0
     fi
     echo "──── Deploying $fn ────"
+    tmp=$(mktemp -d)
+    config_file="$dir/config.json"
+    if [ -f "$config_file" ]; then
+      python3 scripts/normalize_lambda_config.py "$config_file" > "$tmp/config.json"
+      config_file="$tmp/config.json"
+      jq -c --arg function "$fn" 'select(.release_schedule_note != null) | {phase:"schedule_configuration",function:$function} + .release_schedule_note' "$config_file"
+    fi
 
   # Read config (function_name + create-time config like runtime/timeout/memory/env)
   fn_runtime="python3.12"
@@ -33,18 +40,17 @@ for fn in $DEPLOY_TARGETS; do
   fn_desc="JustHodl.AI Lambda"
   fn_env_args=""
   cfg_env_json="{}"
-  if [ -f "$dir/config.json" ]; then
-    cfg_name=$(jq -r '.function_name // empty' "$dir/config.json")
+  if [ -f "$config_file" ]; then
+    cfg_name=$(jq -r '.function_name // empty' "$config_file")
     [ -n "$cfg_name" ] && fn="$cfg_name"
-    fn_runtime=$(jq -r '.runtime // "python3.12"' "$dir/config.json")
-    fn_timeout=$(jq -r '.timeout // 300' "$dir/config.json")
-    fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
-    fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$dir/config.json")
-    fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
-    cfg_env_json=$(python3 scripts/lambda_config_environment.py "$dir/config.json" "$DEPLOY_AWS_REGION")
+    fn_runtime=$(jq -r '.runtime // "python3.12"' "$config_file")
+    fn_timeout=$(jq -r '.timeout // 300' "$config_file")
+    fn_memory=$(jq -r '.memory // 512' "$config_file")
+    fn_ephemeral=$(jq -r '.ephemeral_storage // empty' "$config_file")
+    fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$config_file")
+    cfg_env_json=$(python3 scripts/lambda_config_environment.py "$config_file" "$DEPLOY_AWS_REGION")
   fi
 
-  tmp=$(mktemp -d)
   staging="$tmp/stage"
   mkdir -p "$staging"
 
@@ -80,8 +86,8 @@ for fn in $DEPLOY_TARGETS; do
     [ "$fn" = "justhodl-engine-fusion" ] && schema_file="$dir/source/fusion-schema.v1.json"
     candidate_schema=$(jq -er '.schema_version' "$schema_file")
     candidate_managed=1
-  elif [ -f "$dir/config.json" ] && jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
-    candidate_schema=$(jq -er '.release_validation.schema_version' "$dir/config.json")
+  elif [ -f "$config_file" ] && jq -e '.release_validation.schema_version' "$config_file" >/dev/null; then
+    candidate_schema=$(jq -er '.release_validation.schema_version' "$config_file")
     candidate_managed=1
   fi
 
@@ -106,7 +112,7 @@ for fn in $DEPLOY_TARGETS; do
       --region "$DEPLOY_AWS_REGION"
 
     # Apply config overrides if present (env vars, timeout, memory may have changed)
-    if [ -f "$dir/config.json" ]; then
+    if [ -f "$config_file" ]; then
       # MERGE env: the function's CURRENT env is the base, config.json
       # env overrides on top. This preserves ops-patched secrets
       # (FMP_KEY, TELEGRAM_*, etc.) across redeploys — config.json need
@@ -142,9 +148,9 @@ for fn in $DEPLOY_TARGETS; do
       fi
       # Minimal validation-only config files must not reset runtime settings.
       config_args=()
-      if jq -e 'has("timeout")' "$dir/config.json" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
-      if jq -e 'has("memory")' "$dir/config.json" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
-      if jq -e 'has("description")' "$dir/config.json" >/dev/null; then config_args+=(--description "$fn_desc"); fi
+      if jq -e 'has("timeout")' "$config_file" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
+      if jq -e 'has("memory")' "$config_file" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
+      if jq -e 'has("description")' "$config_file" >/dev/null; then config_args+=(--description "$fn_desc"); fi
       python3 scripts/secret_lambda_config.py update-function-configuration "$fn" \
         "${config_args[@]}" \
         --region "$DEPLOY_AWS_REGION" \
@@ -209,14 +215,14 @@ for fn in $DEPLOY_TARGETS; do
 
   # Every opted-in engine uses exactly one pinned, validated promotion.
   if [ "$candidate_managed" -eq 1 ]; then
-    bash scripts/deploy_validated_candidate.sh "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$dir/config.json" "$candidate_schema"
+    bash scripts/deploy_validated_candidate.sh "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$config_file" "$candidate_schema"
   fi
 
   # ── EventBridge schedule (if config.json has .schedule) ──
-  if [ -f "$dir/config.json" ] && jq -e '.schedule' "$dir/config.json" >/dev/null 2>&1; then
-    rule_name=$(jq -r '.schedule.rule_name' "$dir/config.json")
-    cron_expr=$(jq -r '.schedule.cron' "$dir/config.json")
-    rule_desc=$(jq -r '.schedule.description // "Scheduled run"' "$dir/config.json")
+  if [ -f "$config_file" ] && jq -e '.schedule' "$config_file" >/dev/null 2>&1; then
+    rule_name=$(jq -r '.schedule.rule_name' "$config_file")
+    cron_expr=$(jq -r '.schedule.cron' "$config_file")
+    rule_desc=$(jq -r '.schedule.description // "Scheduled run"' "$config_file")
     region="$DEPLOY_AWS_REGION"
     acc="857687956942"
 
@@ -241,7 +247,7 @@ for fn in $DEPLOY_TARGETS; do
 
     target_fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
     qualifier_arg=""
-    if jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+    if jq -e '.release_validation.schema_version' "$config_file" >/dev/null; then
       target_fn_arn="${target_fn_arn}:live"
       qualifier_arg="--qualifier live"
     fi
@@ -275,18 +281,18 @@ for fn in $DEPLOY_TARGETS; do
   # (1M-schedule quota). Purely additive — Lambdas using the classic
   # .schedule block above are unaffected. See ops 821.
   # Candidate helper already applied the complete preserved Scheduler payload.
-  if [ "$candidate_managed" -eq 0 ] && [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
-    sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$dir/config.json")
-    sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$dir/config.json")
-    sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$dir/config.json")
-    sched_role=$(jq -r '.eventbridge_scheduler.role_arn' "$dir/config.json")
-    sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$dir/config.json")
+  if [ "$candidate_managed" -eq 0 ] && [ -f "$config_file" ] && jq -e '.eventbridge_scheduler' "$config_file" >/dev/null 2>&1; then
+    sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$config_file")
+    sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$config_file")
+    sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$config_file")
+    sched_role=$(jq -r '.eventbridge_scheduler.role_arn' "$config_file")
+    sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$config_file")
     region="$DEPLOY_AWS_REGION"
     acc="857687956942"
     fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
     if [ "$fn" = "justhodl-khalid" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
       fn_arn="${fn_arn}:live"
-    elif jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+    elif jq -e '.release_validation.schema_version' "$config_file" >/dev/null; then
       fn_arn="${fn_arn}:live"
     fi
     target_json=$(jq -n --arg arn "$fn_arn" --arg role "$sched_role" \
@@ -318,9 +324,9 @@ for fn in $DEPLOY_TARGETS; do
   fi
 
   # ── Function URL (if config.json has .function_url.enabled=true) ──
-  if [ -f "$dir/config.json" ] && jq -e '.function_url.enabled' "$dir/config.json" >/dev/null 2>&1; then
+  if [ -f "$config_file" ] && jq -e '.function_url.enabled' "$config_file" >/dev/null 2>&1; then
     region="$DEPLOY_AWS_REGION"
-    cors_origins=$(jq -r '.function_url.cors_origins // ["*"] | join(",")' "$dir/config.json")
+    cors_origins=$(jq -r '.function_url.cors_origins // ["*"] | join(",")' "$config_file")
     echo "Setting up Function URL for $fn (CORS: $cors_origins)"
 
     # Check if URL exists, create or use existing
@@ -330,7 +336,7 @@ for fn in $DEPLOY_TARGETS; do
       --query 'FunctionUrl' --output text 2>/dev/null || echo "")
     if [ -z "$existing_url" ] || [ "$existing_url" = "None" ]; then
       # Build CORS JSON file (CLI shorthand for list values is brittle)
-      jq -n --argjson origins "$(jq '.function_url.cors_origins // ["*"]' "$dir/config.json")" '{AllowOrigins: $origins, AllowMethods: ["GET","OPTIONS"], AllowHeaders: ["content-type"], MaxAge: 86400}' > /tmp/cors.json
+      jq -n --argjson origins "$(jq '.function_url.cors_origins // ["*"]' "$config_file")" '{AllowOrigins: $origins, AllowMethods: ["GET","OPTIONS"], AllowHeaders: ["content-type"], MaxAge: 86400}' > /tmp/cors.json
       fn_url=$(aws lambda create-function-url-config \
         --function-name "$fn" \
         --auth-type NONE \
@@ -362,9 +368,9 @@ for fn in $DEPLOY_TARGETS; do
     echo "FN_URL_PATCHED_FILE=$dir/.function-url" >> $GITHUB_ENV
 
     # If config says to patch a file with this URL, do it
-    patch_target=$(jq -r '.function_url.patch_file // empty' "$dir/config.json")
+    patch_target=$(jq -r '.function_url.patch_file // empty' "$config_file")
     if [ -n "$patch_target" ] && [ -f "$patch_target" ]; then
-      placeholder=$(jq -r '.function_url.placeholder // "__FUNCTION_URL_PLACEHOLDER__"' "$dir/config.json")
+      placeholder=$(jq -r '.function_url.placeholder // "__FUNCTION_URL_PLACEHOLDER__"' "$config_file")
       if grep -q "$placeholder" "$patch_target"; then
         sed -i "s|$placeholder|$fn_url|g" "$patch_target"
         echo "  ✅ Patched $patch_target with Function URL"
