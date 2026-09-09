@@ -624,7 +624,7 @@ def observe_schedules(clients, root, functions):
                 expected=spec.get('cron') or spec.get('expression')
                 matching=[target for target in targets if target.get('Arn','').split(':function:')[-1].split(':')[0]==function]
                 governed=bool(config.get('release_validation')) or function in ('justhodl-engine-fusion','justhodl-khalid-risk')
-                qualified=all(':' in target['Arn'].split(':function:')[-1] and not target['Arn'].endswith(':$LATEST') for target in matching)
+                qualified=all(target['Arn'].endswith(':live') for target in matching)  # The exact alias whose numbered package was verified above.
                 row.update(expression=current.get('ScheduleExpression'),expected_expression=expected,state=current.get('State'),
                            target_count=len(targets),matching_target_arns=[target['Arn'] for target in matching],
                            governed_target_qualified=qualified if governed else None,

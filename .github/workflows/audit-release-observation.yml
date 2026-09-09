@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/audit-release-observation.yml'
       - 'scripts/audit_release_observation.py'
+      - 'aws/ops/checks/audit_20260909_release.py'
+      - 'tests/test_audit_release_observation.py'
   workflow_dispatch:
 permissions:
   contents: write

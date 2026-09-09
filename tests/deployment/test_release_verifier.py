@@ -629,3 +629,12 @@ def test_source_bound_alternate_generation_fields_preserve_future_and_age_guards
             doc[field]=(now+timedelta(hours=1)).isoformat()
             row=release.inspect_output(fixture_output(doc),name,'data/example.json',code,now=now)
             assert row['status']=='CONTRACT_FAILED' and 'GENERATION_TIMESTAMP_INVALID' in row['errors']
+
+
+def test_governed_schedule_cannot_pass_on_an_unverified_numeric_or_other_named_alias():
+    config={'release_validation':{'schema_version':'1.1'},'eventbridge_scheduler':{'schedule_name':'risk-schedule','cron':'rate(15 minutes)'}}
+    for qualifier in ('live','7','canary','$LATEST',''):
+        arn='arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-gate'+(':'+qualifier if qualifier else '')
+        client=SimpleNamespace(get_schedule=lambda **kw:{'State':'ENABLED','ScheduleExpression':'rate(15 minutes)','Target':{'Arn':arn}})
+        with patch.object(release,'release_config',return_value=config):rows=release.observe_schedules({'scheduler':client},ROOT,['justhodl-risk-gate'])
+        assert (rows[0]['status']=='VERIFIED')==(qualifier=='live')
