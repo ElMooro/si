@@ -19,6 +19,10 @@ def validate_configs(root, targets):
             normalize_config(config)
         except ValueError as error:
             errors.append({"function": target, "field": "schedule", "error_code": str(error)})
+        if config.get("update_runtime") is True and (not isinstance(config.get("runtime"), str) or not config["runtime"]):
+            errors.append({"function": target, "field": "runtime", "error_code": "explicit_runtime_required"})
+        if config.get("update_runtime") is True and (not isinstance(config.get("runtime"),str) or not config["runtime"]):
+            errors.append({"function":target,"field":"runtime","error_code":"explicit_runtime_required"})
         if "description" in config:
             description = config["description"]
             if not isinstance(description, str) or len(description) > 256:

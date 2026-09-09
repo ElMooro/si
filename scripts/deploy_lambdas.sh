@@ -148,6 +148,14 @@ for fn in $DEPLOY_TARGETS; do
       fi
       # Minimal validation-only config files must not reset runtime settings.
       config_args=()
+      # Runtime upgrades require an explicit opt-in; imported legacy metadata alone
+      # must not downgrade a runtime that operations already upgraded.
+      if jq -e ' .update_runtime == true ' "$config_file" >/dev/null; then config_args+=(--runtime "$fn_runtime"); fi
+      # Runtime is historically a create-time field. Upgrades require an explicit
+      # reviewed flag so old imported metadata cannot downgrade other functions.
+      if jq -e '.update_runtime == true' "$config_file" >/dev/null; then
+        config_args+=(--runtime "$fn_runtime")
+      fi
       if jq -e 'has("timeout")' "$config_file" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
       if jq -e 'has("memory")' "$config_file" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
       if jq -e 'has("description")' "$config_file" >/dev/null; then config_args+=(--description "$fn_desc"); fi

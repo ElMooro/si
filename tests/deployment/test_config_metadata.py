@@ -66,3 +66,28 @@ def test_failed_inheritance_does_not_silently_deploy_partial_environment():
     shell=(ROOT / "scripts/deploy_lambdas.sh").read_text()
     assert "cfg_env_json=$(python3 scripts/lambda_config_environment.py" in shell
     assert "env_kv=" not in shell and "tr ','" not in shell
+
+
+def test_runtime_upgrade_is_explicit_and_does_not_apply_create_time_defaults():
+    import tempfile,json
+    from pathlib import Path
+    import runpy
+    root=Path(__file__).resolve().parents[2]
+    validate=runpy.run_path(str(root/'scripts/validate_lambda_configs.py'))['validate_configs']
+    with tempfile.TemporaryDirectory() as temp:
+        folder=Path(temp)/'aws/lambdas/fixture';folder.mkdir(parents=True)
+        (folder/'config.json').write_text(json.dumps({'update_runtime':True}))
+        assert validate(temp,['fixture'])[0]['field']=='runtime'
+        (folder/'config.json').write_text(json.dumps({'runtime':'python3.12','update_runtime':True}))
+        assert validate(temp,['fixture'])==[]
+    script=(root/'scripts/deploy_lambdas.sh').read_text()
+    assert "jq -e '.update_runtime == true'" in script
+    assert 'config_args+=(--runtime "$fn_runtime")' in script
+
+
+def test_runtime_upgrade_is_explicit_and_preserves_legacy_imported_defaults():
+    import json
+    source=(ROOT/'scripts/deploy_lambdas.sh').read_text()
+    assert '.update_runtime == true' in source and 'config_args+=(--runtime "$fn_runtime")' in source
+    config=json.loads((ROOT/'aws/lambdas/fedliquidityapi/config.json').read_text())
+    assert config['update_runtime'] is True and config['runtime']=='python3.12'

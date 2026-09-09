@@ -13,3 +13,7 @@ Recovery5243 selects changes since0c82670, including explicit changes to both fa
 AWS primary references: https://docs.aws.amazon.com/cli/latest/reference/lambda/invoke.html and https://aws.amazon.com/blogs/networking-and-content-delivery/implementing-long-running-tcp-connections-within-vpc-networking/ .
 
 Local verification:214 deployment checks,11 validated-candidate shell scenarios,233 frontend tests,32 selected-engine runners (all passed),14 Brain boundary tests and a9,144-file secret scan with zero findings. Offline Pages assembly stamped517 pages and647 artifacts. Live data baking and final production verification remain pending. Recovery selection contains71 functions.
+
+The queued follow-up also applies the Fed engine’s explicit Python3.12 runtime upgrade. Legacy runtime metadata remains create-time-only unless `update_runtime=true`; this prevents old imports from silently downgrading unrelated functions. The code/source tests run before the upgrade, and final metadata parity must confirm it.
+
+The follow-up explicitly applies fedliquidityapi's configured Python3.12 runtime. General deployment previously updated timeout/memory but ignored runtime changes. Runtime upgrades now require update_runtime=true so an old imported config cannot silently downgrade other functions. Risk Sizer and Fed Liquidity are the only follow-up selections since76e1bc1.
