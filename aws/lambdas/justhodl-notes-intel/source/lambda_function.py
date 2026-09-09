@@ -37,6 +37,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
 import boto3
+from private_artifact import publish_private
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 NOTES_KEY = "data/tradingview-notes.json"
@@ -92,7 +93,26 @@ def s3_get(key, default=None):
 
 def s3_put(key, doc):
     S3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(doc).encode(),
-                  ContentType="application/json")
+                  ContentType="application/json", CacheControl="private, no-store" if key in {OUT_TICKERS, OUT_THEMES} else "public, max-age=300")
+
+
+def public_projection(kind, doc):
+    out = {k: doc[k] for k in ("generated_at", "version", "n_notes", "n_tickers", "n_macro_notes", "theme_counts", "llm_views") if k in doc}
+    out["private_text"] = True
+    if kind == "notes-index":
+        out["index"] = {ticker: {**{k: row[k] for k in ("n_notes", "stance_score", "stance", "last_note_at", "levels", "themes", "note_ids") if k in row},
+                                    "private_text": True} for ticker, row in doc.get("index", {}).items()}
+    else:
+        out["themes"] = {theme: {"n_notes": row.get("n_notes"), "avg_stance": row.get("avg_stance"),
+                                   "recent": [{"note_id": n.get("note_id"), "at": n.get("at"), "private_text": True} for n in row.get("recent", [])]}
+                         for theme, row in doc.get("themes", {}).items()}
+    return out
+
+
+def publish(kind, key, doc):
+    s3_put(key, doc)
+    publish_private(kind, doc)
+    s3_put("data/" + kind + "-public.json", public_projection(kind, doc))
 
 
 def stance_of(text):
@@ -153,7 +173,7 @@ def lambda_handler(event, context):
                 created = created // 1000
         except Exception:
             created = 0
-        rec = {"text": text[:2000], "created": created,
+        rec = {"text": text[:2000], "note_id": n.get("id"), "created": created,
                "stance": stance_of(text), "themes": themes_of(text),
                "levels": levels_of(text)}
         for th in rec["themes"]:
@@ -181,6 +201,7 @@ def lambda_handler(event, context):
         latest = rows[0]
         index[tk] = {
             "n_notes": len(rows),
+            "note_ids": [r["note_id"] for r in rows if r.get("note_id")],
             "stance_score": round(ssum / wsum, 2) if wsum else 0.0,
             "stance": ("BULLISH" if (ssum / wsum if wsum else 0) >= 0.75
                        else "BEARISH" if (ssum / wsum if wsum else 0) <= -0.75
@@ -235,7 +256,7 @@ def lambda_handler(event, context):
                            "decay) so a 2019 opinion never outranks a 2026 "
                            "one. Engines join this by ticker."),
            "index": index}
-    s3_put(OUT_TICKERS, doc)
+    publish("notes-index", OUT_TICKERS, doc)
 
     # ── macro theme index (the untagged half of his brain) ───────────
     by_theme = defaultdict(list)
@@ -248,12 +269,12 @@ def lambda_handler(event, context):
         themes[th] = {
             "n_notes": len(rows),
             "avg_stance": round(sum(r["stance"] for r in rows) / len(rows), 2),
-            "recent": [{"text": r["text"][:280],
+            "recent": [{"text": r["text"][:280], "note_id": r.get("note_id"),
                         "at": (datetime.utcfromtimestamp(r["created"])
                                .date().isoformat() if r["created"] else None)}
                        for r in rows[:5]],
         }
-    s3_put(OUT_THEMES, {"generated_at": now.isoformat(),
+    publish("notes-themes", OUT_THEMES, {"generated_at": now.isoformat(),
                         "n_macro_notes": len(macro),
                         "theme_counts": dict(theme_counts),
                         "themes": themes})

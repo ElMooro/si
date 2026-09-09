@@ -1191,7 +1191,7 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
   function card(title,rows){return '<div style="border:1px solid var(--border,#243044);border-radius:10px;padding:12px 14px;background:var(--card,#0d1320)"><div style="font:600 11px monospace;letter-spacing:.1em;color:var(--accent,#e8b45a);margin-bottom:8px">'+esc(title)+'</div>'+(rows||'<div style="opacity:.5;font:11px monospace">none this quarter</div>')+'</div>';}
   Promise.all([
     gj('/data/13f-positions.json'),
-    gj('/data/notes-index.json').catch(function(){return{};}),
+    gj('/data/notes-index-public.json').catch(function(){return{};}),
     gj('/data/master-ranker.json').catch(function(){return{};})
   ]).then(function(a){
     var pos=a[0]||{},ni=(a[1]||{}).index||{},mr=a[2]||{};

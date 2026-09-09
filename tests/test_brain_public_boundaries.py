@@ -10,6 +10,7 @@ import re
 import runpy
 import sys
 import types
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -50,6 +51,7 @@ class PublicBoundaryTests(unittest.TestCase):
         with patch.dict(sys.modules, {
             "boto3": types.SimpleNamespace(client=lambda *a, **kw: s3),
             "anthropic_shim": types.ModuleType("anthropic_shim"),
+            "series_source": types.SimpleNamespace(fetch=lambda *a: {"2025-01-01": -0.2, "2026-08-01": 0.2}),
             "private_artifact": types.SimpleNamespace(publish_private=lambda kind, doc: private.append((kind, json.loads(json.dumps(doc))))),
         }):
             scope = runpy.run_path(str(source(engine)))
@@ -154,6 +156,67 @@ class PublicBoundaryTests(unittest.TestCase):
         self.assertEqual(out["symbols"][0]["brain_note_ids"], ["note_1"])
         self.assertTrue(out["symbols"][0]["note_text_private"])
         self.assert_public(out)
+
+    def test_notes_intel_keeps_full_iam_and_owner_copy_and_publishes_safe_siblings(self):
+        s3 = S3({"data/tradingview-notes.json": {"notes": [
+            {"id": "stock-note", "symbol": "NVDA", "text": "buy above 100 during " + MARKER, "created": 1788912000},
+            {"id": "macro-note", "symbol": "UNTAGGED", "text": "liquidity crisis " + MARKER, "created": 1788912000}]}})
+        scope, private = self.load("notes-intel", s3)
+        with patch.dict(sys.modules, {"llm_router": types.SimpleNamespace(complete=lambda *a, **kw: json.dumps({"view": MARKER, "stance": "BULLISH", "triggers": [MARKER], "invalidation": MARKER}))}):
+            scope["lambda_handler"]({}, None)
+        self.assertEqual({kind for kind, _ in private}, {"notes-index", "notes-themes"})
+        for kind in ("notes-index", "notes-themes"):
+            self.assertIn(MARKER, json.dumps(s3.writes["data/" + kind + ".json"]))
+            self.assert_public(s3.writes["data/" + kind + "-public.json"])
+        row = s3.writes["data/notes-index-public.json"]["index"]["NVDA"]
+        self.assertEqual(row["note_ids"], ["stock-note"])
+        self.assertEqual(row["levels"], [{"relation": "above", "value": 100.0}])
+        self.assertNotIn("llm_view", row)
+
+    def test_playbook_keeps_full_private_rules_but_publishes_reference_parameters(self):
+        s3 = S3({"data/tradingview-notes.json": {"notes": [{"id": "rule_1", "text": "Yield curve inversion leads crashes by 30 months " + MARKER}]}})
+        scope, private = self.load("playbook-engine", s3)
+        scope["lambda_handler"]({}, None)
+        self.assertIn(MARKER, json.dumps(s3.writes["data/playbook-rules.json"]))
+        self.assertEqual(private[0][0], "playbook-rules")
+        public = s3.writes["data/playbook-rules-public.json"]
+        self.assertEqual(public["rules"][0]["id"], "rule_1")
+        self.assertEqual(public["rules"][0]["params"]["n"], 30)
+        self.assert_public(public)
+
+    def test_equity_research_projection_scrubs_legacy_cache_and_current_note_references(self):
+        project = function("equity-research", "public_notes_block", {})
+        legacy = {"n_notes": 3, "stance": "BULLISH", "stance_score": 1.2, "latest_note": MARKER,
+                  "llm_view": {"view": MARKER}, "note_ids": ["n1"], "unknown_prose": MARKER}
+        public = project(legacy)
+        self.assertEqual(public["n_notes"], 3)
+        self.assertEqual(public["note_ids"], ["n1"])
+        self.assertTrue(public["note_text_private"])
+        self.assert_public(public)
+        current = function("equity-research", "khalid_notes_block", {"_NOTES_IDX": {"v": {"NVDA": {"n_notes": 3, "latest": MARKER, "note_ids": ["n1"]}}}})("NVDA")
+        self.assertEqual(current["note_ids"], ["n1"])
+        self.assert_public(current)
+
+    def test_equity_legacy_cache_is_rewritten_without_note_text_for_public_and_internal_hits(self):
+        tree = ast.parse(source("equity-research").read_text())
+        cache_branch = next(n for n in ast.walk(tree) if isinstance(n, ast.If)
+                            and isinstance(n.test, ast.UnaryOp) and isinstance(n.test.op, ast.Not)
+                            and isinstance(n.test.operand, ast.Name) and n.test.operand.id == "force_refresh")
+        wrapper = ast.parse("def cache_only():\n    pass\n").body[0]
+        wrapper.body = [cache_branch]
+        for internal in (False, True):
+            doc = {"schema_version": "fixture", "generated_at": NOW,
+                   "khalid_notes": {"n_notes": 3, "latest_note": MARKER, "note_ids": ["n1"]}}
+            s3 = S3({"equity-research/NVDA.json": doc})
+            env = {"s3": s3, "force_refresh": False, "cache_key": "equity-research/NVDA.json", "S3_BUCKET": "bucket",
+                   "ticker": "NVDA", "is_internal_async": internal, "json": json, "time": time,
+                   "_iso_to_epoch": lambda _: time.time() - 100, "CACHE_TTL": 3600, "SCHEMA_CURRENT": "fixture", "_http_ok": lambda d: d}
+            function("equity-research", "public_notes_block", env)
+            exec(compile(ast.fix_missing_locations(ast.Module(body=[wrapper], type_ignores=[])), "cache-boundary", "exec"), env)
+            result = env["cache_only"]()
+            self.assert_public(result)
+            self.assert_public(s3.writes["equity-research/NVDA.json"])
+            self.assertEqual(s3.writes["equity-research/NVDA.json"]["khalid_notes"]["note_ids"], ["n1"])
 
     def test_provider_search_never_indexes_cached_private_note_snippets(self):
         fn = function("provider-catalog", "_tradingview_live_search_rows", {})

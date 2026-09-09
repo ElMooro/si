@@ -1516,8 +1516,9 @@ def lambda_handler(event, context):
             for _r in _rules[:3]:
                 _row = {}
                 for k, v in _r.items():
-                    if isinstance(v, (str, int, float, bool)) and len(_row) < 7:
+                    if k in {"id", "symbol", "family", "hit_rate", "score"} and isinstance(v, (str, int, float, bool)):
                         _row[k] = v
+                _row["text_private"] = True
                 _playbook_ctx.append(_row)
         except Exception as _e:
             print(f"[playbook-ctx] {str(_e)[:60]}")

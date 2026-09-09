@@ -18,25 +18,29 @@ function pageFunction(file, changedDuringFetch = false, authenticated = true, al
   if (file === 'cockpit.html') {
     const start = html.indexOf('async function gj('), end = html.indexOf('function rcol', start);
     vm.runInNewContext(html.slice(start, end) + '\nglobalThis.run=()=>gj("data/my-brief.json");', context);
+  } else if(file === 'panels.html') {
+    context.gj = url => context.fetch(url).then(r => r.json());
+    const start=html.indexOf('async function readPlaybook('),end=html.indexOf('async function loadPlayb(',start);
+    vm.runInNewContext(html.slice(start,end)+'\nglobalThis.run=readPlaybook;',context);
   } else {
     const start = html.indexOf('class DataService {'), end = html.indexOf('\n}\n', start) + 3;
     vm.runInNewContext(html.slice(start, end) + '\nglobalThis.run=()=>DataService.privateReview();', context);
   }
   return { run: context.run, calls };
 }
-for (const file of ['cockpit.html', 'chart-pro.html']) {
+for (const file of ['cockpit.html', 'chart-pro.html', 'panels.html']) {
   test(`${file}: private review uses Bearer identity and no-store`, async () => {
     const { run, calls } = pageFunction(file);
     assert.equal((await run()).brief, 'PRIVATE_SYNTHETIC'); assert.equal(calls.length, 1);
     assert.equal(calls[0].opts.headers.Authorization, 'Bearer fixture-token'); assert.equal(calls[0].opts.cache, 'no-store');
-    assert.match(calls[0].url, /\/private-artifact\?kind=(my-brief|devils-advocate)/);
+    assert.match(calls[0].url, /\/private-artifact\?kind=(my-brief|devils-advocate|playbook-rules)/);
   });
   test(`${file}: signed-out and unauthorized readers only receive safe public summaries`, async () => {
     for (const auth of [false, true]) {
       const { run, calls } = pageFunction(file, false, auth, false);
       assert.equal((await run()).private_text, true);
-      assert.match(calls.at(-1).url, /data\/(my-brief|devils-advocate)-public\.json/);
-      assert.ok(!calls.some(c => /data\/(my-brief|devils-advocate)\.json/.test(c.url)));
+      assert.match(calls.at(-1).url, /data\/(my-brief|devils-advocate|playbook-rules)-public\.json/);
+      assert.ok(!calls.some(c => /data\/(my-brief|devils-advocate|playbook-rules)\.json/.test(c.url)));
       if (!auth) assert.equal(calls.length, 1);
     }
   });

@@ -2806,6 +2806,14 @@ def load_macro_regime_snapshot() -> dict:
 _NOTES_IDX = {"v": None}
 
 
+def public_notes_block(note):
+    """Allowlisted numeric/reference projection, including legacy cached note blocks."""
+    if not isinstance(note, dict):
+        return {}
+    return {**{k: note[k] for k in ("n_notes", "stance", "stance_score", "latest_at", "levels", "note_ids") if k in note},
+            "note_text_private": True}
+
+
 def khalid_notes_block(ticker):
     """ops 3259: Khalid's own tested notes attached to the research doc.
     Reads data/notes-index.json once per container. Never raises."""
@@ -2821,8 +2829,8 @@ def khalid_notes_block(ticker):
         return {"n_notes": e.get("n_notes"),
                 "stance": e.get("stance"),
                 "stance_score": e.get("stance_score"),
-                "latest_note": str(e.get("latest") or
-                                   e.get("latest_note") or "")[:400],
+                "note_text_private": True,
+                "note_ids": (e.get("note_ids") or [])[:4],
                 "latest_at": e.get("latest_at") or e.get("latest_ts"),
                 "levels": (e.get("levels") or [])[:4],
                 "note": "from Khalid's TradingView notes "
@@ -5720,6 +5728,13 @@ def lambda_handler(event, context):
             if (cached["cache_age_seconds"] < CACHE_TTL
                     and cached.get("schema_version") == SCHEMA_CURRENT):  # ops 5014: a stale-schema doc is a cache MISS for every ticker
                 print(f"[cache] HIT {ticker} age={cached['cache_age_seconds']}s")
+                if isinstance(cached.get("khalid_notes"), dict):
+                    old_notes = cached["khalid_notes"]
+                    cached["khalid_notes"] = public_notes_block(old_notes)
+                    if old_notes != cached["khalid_notes"]:
+                        s3.put_object(Bucket=S3_BUCKET, Key=cache_key,
+                                      Body=json.dumps(cached, default=str).encode(),
+                                      ContentType="application/json", CacheControl=f"public, max-age={CACHE_TTL}")
                 if is_internal_async:
                     return {"ok": True, "from_cache": True, "ticker": ticker}
                 return _http_ok(cached)

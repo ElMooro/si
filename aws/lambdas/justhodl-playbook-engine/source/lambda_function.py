@@ -25,6 +25,7 @@ import sys
 from datetime import datetime, timezone
 
 import boto3
+from private_artifact import publish_private
 
 sys.path.insert(0, "/var/task")
 import series_source as SS  # bundled shared
@@ -32,6 +33,15 @@ import series_source as SS  # bundled shared
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 OUT_KEY = "data/playbook-rules.json"
+
+
+def public_projection(doc):
+    curve = (doc.get("flagship") or {}).get("yield_curve") or {}
+    return {**{k: doc[k] for k in ("generated_at", "source_notes", "n_rules", "families") if k in doc},
+            "flagship": {"yield_curve": {k: curve[k] for k in ("series", "latest", "most_recent_inversion_onset", "months_elapsed", "khalid_lag_months", "lag_marker_date", "status") if k in curve}},
+            "private_text": True,
+            "rules": [{**{k: r[k] for k in ("id", "symbol", "family", "params") if k in r}, "text_private": True}
+                      for r in doc.get("rules", [])]}
 
 FAMS = [
     ("TIMING", re.compile(
@@ -129,7 +139,11 @@ def lambda_handler(event, context):
                    "notes (deterministic, ops 3263)"}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(doc, ensure_ascii=False),
-                  ContentType="application/json")
+                  ContentType="application/json", CacheControl="private, no-store")
+    publish_private("playbook-rules", doc)
+    S3.put_object(Bucket=BUCKET, Key="data/playbook-rules-public.json",
+                  Body=json.dumps(public_projection(doc), ensure_ascii=False),
+                  ContentType="application/json", CacheControl="public, max-age=300")
     print(f"[playbook] {len(rules)} rules from {len(notes)} notes "
           f"({fams})")
     return {"ok": True, "n_rules": len(rules)}
