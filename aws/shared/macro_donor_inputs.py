@@ -187,7 +187,14 @@ def bis_context(doc, now=None):
                     max_observation_age_hours=24*220,units={'claims':'USD billions','frequency':'quarterly'})
     if c['usable'] and 'CBS' not in str((doc or {}).get('source','')).upper():
         unavailable(c,'Expected BIS consolidated banking statistics CBS source')
+    rows=doc.get('by_counterparty') if isinstance(doc.get('by_counterparty'),list) else []
     return {'contract':c,'source':'BIS CBS consolidated foreign claims; all-currency exposure context',
+            'period':get_path(doc,'total.period') if c['usable'] else None,
+            'total_tn':numeric(doc,'total.latest_tn') if c['usable'] else None,
+            'total_yoy_pct':numeric(doc,'total.yoy_pct') if c['usable'] else None,
+            'offshore_yoy_pct':numeric(doc,'offshore_centres.yoy_pct') if c['usable'] else None,
+            'em_asia_yoy_pct':numeric(doc,'em_asia.yoy_pct') if c['usable'] else None,
+            'china_yoy_pct':next((numeric(r,'yoy_pct') for r in rows if isinstance(r,dict) and r.get('code')=='CN'),None) if c['usable'] else None,
             'total':(doc or {}).get('total') if c['usable'] else None,
             'by_counterparty':(doc or {}).get('by_counterparty') if c['usable'] else [],
             'offshore_centres':(doc or {}).get('offshore_centres') if c['usable'] else None,

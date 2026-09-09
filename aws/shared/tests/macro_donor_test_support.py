@@ -90,9 +90,9 @@ class ContractAblations(unittest.TestCase):
   self.assertFalse(out['term_premium']['contract']['usable'])
   self.assertIsNone(out['foreign_demand']['net_transactions_usd_bn'])
  def test_bis_cbs_is_exposure_not_usd_lbs(self):
-  d={'generated_at':STAMP,'ok':True,'source':'BIS CBS','total':{'period':'2026-Q1','latest_bn':0},'by_counterparty':[{'code':'CN','latest_bn':0}]}
+  d={'generated_at':STAMP,'ok':True,'source':'BIS CBS','total':{'period':'2026-Q1','latest_bn':0,'latest_tn':0},'by_counterparty':[{'code':'CN','latest_bn':0}]}
   out=bis_context(d,NOW)
-  self.assertTrue(out['contract']['usable']);self.assertEqual(out['lbs_usd_funding']['status'],'BLOCKED_MISSING_LBS')
+  self.assertTrue(out['contract']['usable']);self.assertEqual(out['total_tn'],0);self.assertEqual(out['lbs_usd_funding']['status'],'BLOCKED_MISSING_LBS')
   d['source']='BIS LBS';self.assertFalse(bis_context(d,NOW)['contract']['usable'])
  def test_ciss_legacy_excluded_and_dates_not_collapsed(self):
   out=fragmentation_context(ciss(),{'FR':{'name':'France','spread_vs_bund_bp':50,'spread_as_of':'2026-08-31'}},NOW)
