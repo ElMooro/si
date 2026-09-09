@@ -43,6 +43,7 @@ PRIVATE_KEYS = frozenset(MIRRORED_ARTIFACTS) | {
     "portfolio/catalyst-alert-history.json", "portfolio/risk-alert-history.json",
     "portfolio/holdings.json", "portfolio/pm-history.json",
     "data/history/_fleet-monitor-history.jsonl",
+    "data/tv-sources.json",
 }
 PRIVATE_PREFIXES = ("data/_askdesk/", "data/search/index/", "equity-research-history/",
                     "backtest/ledger/", "data/ai-commentary/history/portfolio/") + tuple(

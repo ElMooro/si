@@ -16,6 +16,7 @@ SANITIZED_KEYS = ("data/brain-compiler.json", "data/tv-workbench.json", "data/ca
 SANITIZED_PREFIXES = ("equity-research/",)
 SANITIZED_KEYS += ("data/vol-regime.json", "data/wealth-plan-snapshot.json", "data/tax-plan-snapshot.json", "_health/fleet.json")
 SANITIZED_KEYS += ("data/_fleet-monitor.json", "data/_freshness-monitor.json")
+SANITIZED_KEYS += ("data/source-map.json",)
 
 WORKER = "https://justhodl-data-proxy.raafouis.workers.dev"
 

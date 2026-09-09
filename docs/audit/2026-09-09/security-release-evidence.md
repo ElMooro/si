@@ -1,6 +1,6 @@
 # Security release handoff — 9 September 2026
 
-Status: implemented and tested in source. Production progress and live receipts are maintained by the release owner; this subteam does not independently attest deployment or confidentiality closure. Ops5230 must validate the complete matching 41-function source set before migration, including all earlier core producers.
+Status: implemented and tested in source. Production progress and live receipts are maintained by the release owner; this subteam does not independently attest deployment or confidentiality closure. Ops5230 must validate the complete matching 42-function source set before migration, including all earlier core producers.
 
 No private customer bodies, billing mutations, producer invocations, messages, credentials or deployment operations were used by this security implementation team. Test data are synthetic. The release owner runs the joint release gate and live verification separately.
 
@@ -27,14 +27,14 @@ INST-03's original Enterprise/unmetered bypass was already corrected in the prev
 
 ## Reviewed source map and migration
 
-`aws/shared/private_artifact.py` is the canonical map: 26 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 18 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
+`aws/shared/private_artifact.py` is the canonical map: 26 full private mirror kinds plus raw private exact keys and archive prefixes. `aws/ops/checks/audit_20260909_security.py` exports the 19 deterministic current keys requiring sanitization and their historical-version deny statement. The policy denies both anonymous and unrelated signed AWS accounts while preserving same-account IAM access.
 
-The 41 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
+The 42 exact-source readiness targets in `audit_20260909_privacy_migration.py` comprise:
 
 | Boundary | Engines, all with the `justhodl-` prefix |
 |---|---|
 | Private producers and service readers (20 service-token targets) | brain-sync, journal-grader, my-brief, devils-advocate, notes-intel, playbook-engine, ask, portfolio-snapshot, portfolio-risk, portfolio-sizer, portfolio-catalysts, risk-sizer, pm-decision, behavior-mirror, ai-brief, history-api, watchlist, vol-regime, trade-journal, ai-brief-router |
-| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog, fleet-monitor, fleet-error-monitor, fleet-freshness-monitor |
+| Public projection producers | brain-compiler, tv-workbench, canary-warroom, tradingview, domain-barometers, sizing-engine, best-setups, master-allocator, position-sizer, engine-conflicts, equity-research, provider-catalog, fleet-monitor, fleet-error-monitor, fleet-freshness-monitor, source-map |
 | Downstream public readers/caches | ask-desk, symdir, ai-chat, page-ai-commentary |
 | Stateless personal scenario calculators | wealth-plan, tax-plan |
 
@@ -58,3 +58,5 @@ No new Durable Object binding, migration tag or Supabase DDL is required. Exact-
 Primary security foundation: `eede659`, cache follow-up `75d2d04`, Fusion `4ca378a`, note derivative protection `3facbdf` and `eceb239`. Account foundation/UI: `b7cd7e3`, `98e4776`. Companion account producers: `7090342`, `233495f`, `8d1b7ba`, `9e690fb`, `c1b90b3`, `b99ff75`. Downstream AI/history: `12e9041`. Migration and later extensions: `58d2b32`, `5cef5c2`, `2a6fc87`, `dd2fbe5`. Calculator producer and final browser/cache commits are recorded by the release owner when assembling this handoff.
 
 Rollback must retain permanent privacy policies and durable journal/billing state. Do not restore public original fallbacks or advisory profile/KV authorization. Production closure requires recorded exact-code deployment, temporary-containment removal only after successful scrub/purge, anonymous denial and authenticated no-store access checks. No such closure is asserted here.
+
+The TradingView attribution landing key `data/tv-sources.json` contains authenticated browser source labels, descriptions and diagnostics. It remains IAM-only, including its legacy aliases and historical versions. The separate `data/source-map.json` publishes only fixed family identifiers, qualified market symbols and typed counts/timestamps; source-map no longer rewrites the ingest landing file. Its page rejects legacy unmarked data. The migration replaces unmarked legacy rollups with a fixed unavailable projection and validates every marked field again.

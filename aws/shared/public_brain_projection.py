@@ -302,13 +302,69 @@ def fleet_errors_public(document):
     return out
 
 
+SOURCE_MAP_PUBLICATION = {"scope": "PUBLIC_MARKET_SOURCE_METADATA", "contains_private_data": False,
+                          "raw_source_text_private": True, "raw_diagnostics_private": True}
+SOURCE_MAP_FAMILIES = frozenset({"FRED", "US-TREASURY", "BLS", "BEA", "CENSUS-US", "ECB", "EUROSTAT", "BOJ",
+    "MOF-JAPAN", "ESTAT-JAPAN", "BOE", "SNB", "NORGES", "BCRP-PERU", "BCB-BRAZIL", "PBOC", "MOEA-TAIWAN",
+    "CFTC", "SEC-EDGAR", "OFR", "IMF", "HKMA", "OECD", "WORLD-BANK", "COINMETRICS", "COINGECKO", "EIA",
+    "MARKET-VENUES", "UNMAPPED", "OTHER-OFFICIAL"})
+SOURCE_MAP_SYMBOL = re.compile(r'^(?:ECONOMICS|FRED|NASDAQ|NYSE|AMEX|ARCA|CBOE|CME|CBOT|COMEX|NYMEX|ICEUS|TVC|CRYPTOCAP|BINANCE|COINBASE|BITSTAMP|KRAKEN|OANDA|FX):[A-Z0-9][A-Z0-9_.!^/-]{0,39}$')
+
+
+def source_map_public(document):
+    """A typed public projection; legacy browser prose never becomes public."""
+    from datetime import datetime, timezone
+    def number(value):
+        return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
+    def timestamp(value):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.astimezone(timezone.utc).isoformat() if parsed.tzinfo else None
+        except Exception:
+            return None
+    def families(value):
+        return {key: value for key, value in (value.items() if isinstance(value, dict) else [])
+                if key in SOURCE_MAP_FAMILIES and number(value) is not None}
+    marker = document.get("publication")
+    marked = (document.get("schema_version") == "public-source-map.v1" and document.get("engine") == "justhodl-source-map"
+              and isinstance(marker, dict) and marker == SOURCE_MAP_PUBLICATION
+              and marker.get("contains_private_data") is False and marker.get("raw_source_text_private") is True
+              and marker.get("raw_diagnostics_private") is True)
+    doc = document if marked else {"errors": ["LEGACY_PUBLIC_SOURCE_MAP_WITHHELD"]}
+    out = {"schema_version": "public-source-map.v1", "engine": "justhodl-source-map",
+           "marker": "source-map engine v3 public-source-map.v1", "publication": dict(SOURCE_MAP_PUBLICATION),
+           "input_artifact": "data/tv-sources.json", "input_status": "AVAILABLE" if doc.get("input_status") == "AVAILABLE" else "UNAVAILABLE",
+           "classification_method": "Fixed agency-family keyword classification; no independent publisher attestation. Unrecognized text is withheld."}
+    for key in ("generated_at", "input_generated_at", "macro_input_generated_at"):
+        out[key] = timestamp(doc.get(key))
+    for key in ("symbols_with_source", "distinct_sources", "junk_filtered", "agency_rows", "venue_rows", "economics_symbols",
+                "macro_attributed", "macro_unattributed", "macro_coverage_pct", "public_symbol_count", "withheld_symbol_count", "unmapped_source_rows"):
+        out[key] = number(doc.get(key))
+    for key in ("known_families", "agency_families"):
+        out[key] = families(doc.get(key))
+    out["economics_agencies"] = [{"source_family": row["source_family"], "n_symbols": row["n_symbols"]}
+        for row in _rows(doc.get("economics_agencies")) if isinstance(row, dict)
+        and isinstance(row.get("source_family"), str) and row["source_family"] in SOURCE_MAP_FAMILIES and number(row.get("n_symbols")) is not None]
+    progress = doc.get("harvest_progress") if isinstance(doc.get("harvest_progress"), dict) else {}
+    out["harvest_progress"] = {key: number(progress.get(key)) for key in ("walked", "total", "pct", "tier1_done", "rate_per_min", "elapsed_s", "matched", "eta_hours")}
+    cleaned = doc.get("cleaned_sources") if isinstance(doc.get("cleaned_sources"), dict) else {}
+    out["cleaned_sources"] = {symbol: {"source_family": row["source_family"], "updated": timestamp(row.get("updated"))}
+        for symbol, row in cleaned.items() if isinstance(symbol, str) and SOURCE_MAP_SYMBOL.fullmatch(symbol)
+        and isinstance(row, dict) and isinstance(row.get("source_family"), str) and row["source_family"] in SOURCE_MAP_FAMILIES}
+    out["errors"] = [value for value in _rows(doc.get("errors"))
+                     if value in ("SOURCE_INPUT_UNAVAILABLE", "LEGACY_PUBLIC_SOURCE_MAP_WITHHELD")]
+    return out
+
+
 def sanitize_public(key, document, *, vault=None):
     """Return a copy; canonical and historical root-alias keys share one contract."""
     if not isinstance(document, dict):
         raise ValueError("public artifact must be an object")
     out = deepcopy(document)
     name = key.removeprefix("data/")
-    if name == "_fleet-monitor.json":
+    if name == "source-map.json":
+        return source_map_public(out)
+    elif name == "_fleet-monitor.json":
         out = fleet_errors_public(document)
     elif name == "_health/fleet.json":
         out = fleet_public(document)

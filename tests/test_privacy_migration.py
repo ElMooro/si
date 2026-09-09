@@ -124,6 +124,8 @@ class FakeLambda:
 class PublicMigrationTests(unittest.TestCase):
     def fixtures(self):
         return {
+            "data/source-map.json": {"new_sources": [{"source": MARKER, "examples": [MARKER]}],
+                                      "economics_agencies": [{"source": MARKER, "n_symbols": 1}]},
             "data/_fleet-monitor.json": {"version": "1.0.0", "n_lambdas_scanned": 10, "n_alerts_raised": 1,
                                           "dlq_status": {"error": MARKER}, "alerts": [{"lambda": "fixture", "severity": "WARNING",
                                           "invocations": 10, "errors": 2, "error_rate_pct": 20, "last_error_log": MARKER}]},
@@ -185,6 +187,22 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertEqual(restored["Statement"], result["Statement"][:-1])
         self.assertEqual(statements[0]["Condition"], {"StringNotEquals": {"aws:PrincipalAccount": migration.ACCOUNT}})
         self.assertIn("s3:GetObjectVersion", statements[1]["Action"])
+
+    def test_source_map_marker_never_allows_raw_metadata_or_untyped_values(self):
+        from public_brain_projection import SOURCE_MAP_PUBLICATION
+        source = {"schema_version":"public-source-map.v1", "engine":"justhodl-source-map", "publication":dict(SOURCE_MAP_PUBLICATION),
+                  "generated_at":MARKER, "symbols_with_source":0, "distinct_sources":MARKER, "raw_diag":MARKER,
+                  "known_families":{"FRED":2, MARKER:5}, "economics_agencies":[{"source_family":{},"n_symbols":1}],
+                  "cleaned_sources":{"FRED:DGS10":{"source_family":"FRED","source":MARKER,"updated":MARKER},
+                                     MARKER:{"source_family":"FRED"},"FRED:INVALID":{"source_family":{}}},
+                  "harvest_progress":{"walked":0,"total":True,"note":MARKER}, "errors":[MARKER]}
+        projected = sanitize_public("data/source-map.json",source)
+        self.assertNotIn(MARKER,json.dumps(projected));self.assertEqual(projected["symbols_with_source"],0)
+        self.assertEqual(projected["known_families"],{"FRED":2});self.assertEqual(set(projected["cleaned_sources"]),{"FRED:DGS10"})
+        self.assertIsNone(projected["harvest_progress"]["total"])
+        self.assertEqual(projected,sanitize_public("data/source-map.json",projected))
+        source["publication"]["raw_source_text_private"] = 1
+        self.assertIn("LEGACY_PUBLIC_SOURCE_MAP_WITHHELD",sanitize_public("data/source-map.json",source)["errors"])
 
     def test_sizing_legacy_is_blocked_and_validated_future_book_contract_is_preserved(self):
         legacy = self.fixtures()["data/sizing.json"]
@@ -410,7 +428,7 @@ class PublicMigrationTests(unittest.TestCase):
         self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
         self.assertEqual(len(migration.PUBLISHERS), 20)
-        self.assertEqual(len(migration.READINESS), 41)
+        self.assertEqual(len(migration.READINESS), 42)
         self.assertTrue({"wealth-plan", "tax-plan"} <= set(migration.READINESS))
         self.assertFalse({"wealth-plan", "tax-plan"} & set(migration.PUBLISHERS))
 

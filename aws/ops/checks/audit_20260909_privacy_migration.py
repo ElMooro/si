@@ -38,7 +38,7 @@ PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "no
               "pm-decision", "behavior-mirror", "ai-brief", "history-api", "watchlist", "vol-regime", "trade-journal", "ai-brief-router")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog",
-             "wealth-plan", "tax-plan", "fleet-monitor", "fleet-error-monitor", "fleet-freshness-monitor")
+             "wealth-plan", "tax-plan", "fleet-monitor", "fleet-error-monitor", "fleet-freshness-monitor", "source-map")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
 

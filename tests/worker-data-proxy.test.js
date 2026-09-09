@@ -425,7 +425,7 @@ test('legacy profile customer binding requires independent Stripe owner proof, i
 
 test('every private corpus and archive alias is blocked before stale cache, including encoded/range/version attempts',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0;globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})}}};
-  const keys=['brain.json','brain-history.json','journal-graded.json','my-brief.json','devils-advocate.json','notes-index.json','notes-themes.json','playbook-rules.json','tradingview-notes.json','_telegram-chat.json','_askdesk/old.json','search/index/provider-search-old.sqlite.gz','equity-research-history/SPY/old.json',
+  const keys=['brain.json','brain-history.json','journal-graded.json','my-brief.json','devils-advocate.json','notes-index.json','notes-themes.json','playbook-rules.json','tradingview-notes.json','tv-sources.json','_telegram-chat.json','_askdesk/old.json','search/index/provider-search-old.sqlite.gz','equity-research-history/SPY/old.json',
     'portfolio/snapshot.json','portfolio/risk.json','portfolio/sizing.json','portfolio/catalysts.json','portfolio/holdings.json','portfolio/pm-history.json','portfolio-manager-brief.json','history/_fleet-monitor-history.jsonl',
     'risk-sizer.json','risk/recommendations.json','pm-decision.json','pm-decision-history.json','behavior-mirror.json','ai-brief.json','ai-brief.md',
     'history/behavior-mirror-history.json','portfolio/sizing-alert-history.json','portfolio/catalyst-alert-history.json','portfolio/risk-alert-history.json',
