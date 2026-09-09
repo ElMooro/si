@@ -3,7 +3,7 @@ justhodl-trade-journal — Personal trade journal API (institutional-grade).
 
 ENDPOINTS
 ─────────
-  GET  /                  → Returns trades (public read)
+  GET  /                  → Returns personal trades (owner/service authentication)
   POST /add               → Add new trade (admin token)
   POST /close             → Close existing trade (admin token)
   POST /update            → Update trade fields (admin token)
@@ -65,6 +65,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.exceptions import ClientError
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from private_artifact import private_http_denied, publish_private
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -89,9 +90,10 @@ def cors_headers(origin):
     allow = origin if origin in ALLOWED_ORIGINS else "https://justhodl.ai"
     return {
         "Access-Control-Allow-Origin": allow,
-        "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token",
+        "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token, X-JH-Service-Token",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Content-Type": "application/json",
+        "Cache-Control": "private, no-store",
     }
 
 
@@ -239,8 +241,9 @@ def save_trades(d):
     d["version"] = (d.get("version", 0) or 0) + 1
     d["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     body = json.dumps(d, indent=2, default=str).encode("utf-8")
+    publish_private("personal-trades", d)
     S3.put_object(Bucket=BUCKET, Key=S3_KEY_TRADES, Body=body,
-                   ContentType="application/json", CacheControl="max-age=60")
+                   ContentType="application/json", CacheControl="private, no-store")
     return d
 
 
@@ -457,14 +460,35 @@ def compute_stats(d):
     return stats
 
 
+def empty_private_artifacts():
+    """Legitimately absent personal journal; no manufactured balances or P&L."""
+    ledger = {"version": 0, "trades": []}
+    return {"personal-trades": ledger, "personal-trades-stats": compute_stats(ledger)}
+
+
 def save_stats(stats):
     body = json.dumps(stats, indent=2, default=str).encode("utf-8")
+    publish_private("personal-trades-stats", stats)
     S3.put_object(Bucket=BUCKET, Key=S3_KEY_STATS, Body=body,
-                   ContentType="application/json", CacheControl="max-age=60")
+                   ContentType="application/json", CacheControl="private, no-store")
 
 
 # ─── Lambda handler ──────────────────────────────────────────────────────────
 def lambda_handler(event, context):
+    # Inspect the outer transport envelope before source/scheduled flags or body.
+    # Trusted owner Worker calls authenticate with the private service identity;
+    # existing valid administrative CRUD callers remain supported.
+    is_http = isinstance(event, dict) and any(k in event for k in
+        ("requestContext", "headers", "httpMethod", "rawPath", "path"))
+    service_authenticated = False
+    if is_http:
+        request_headers = event.get("headers") or {}
+        legacy_authenticated = authorize(request_headers) if isinstance(request_headers, dict) else False
+        if not legacy_authenticated:
+            denied = private_http_denied({**event, "headers": request_headers})
+            if denied:
+                return denied
+            service_authenticated = True
     # Scheduled invocation (mark-to-market)
     if event.get("source") == "aws.events" or event.get("scheduled"):
         d = load_trades()
@@ -504,7 +528,7 @@ def lambda_handler(event, context):
         return respond(200, {"ok": True, "trades": d, "stats": stats}, origin)
 
     if method == "POST":
-        if not authorize(headers):
+        if not service_authenticated and not authorize(headers):
             return respond(401, {"ok": False, "err": "Missing or invalid x-justhodl-token"}, origin)
         d = load_trades()
         if path == "/add":
