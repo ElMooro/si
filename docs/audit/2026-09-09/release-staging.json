@@ -1,0 +1,33 @@
+{
+  "schema_version": "audit-release-staging.v1",
+  "recorded_at": "2026-09-09T05:10:00Z",
+  "source_parent": "869adac8dd01b65a2058d74eef5929da66b76f69",
+  "active_core_release": {
+    "commit": "0c82670e9c24925e1b152549a1da167960830b3d",
+    "run_id": 34312891397,
+    "last_observed_status": "IN_PROGRESS"
+  },
+  "next_operations": [
+    {
+      "operation": 5241,
+      "purpose": "Read-only Census function URL owner discovery"
+    },
+    {
+      "operation": 5242,
+      "purpose": "Extend verified anonymous privacy containment; preserve originals and versions"
+    }
+  ],
+  "staged_privacy": {
+    "readiness_functions": 42,
+    "service_publishers": 20,
+    "owner_mirrors": 26,
+    "sanitized_current_keys": 19
+  },
+  "verified_tests": {
+    "deployment_functions": 192,
+    "deployment_shell": 11,
+    "frontend": 224,
+    "census_discovery": 11
+  },
+  "deployment_note": "This source capsule defers Lambda deployment until the current exact-revision release completes. A subsequent explicitly pinned release must include the complete source difference from 0c82670 or the original recovery base if that run fails. The report is staging evidence, not certification of runtime deployment."
+}
