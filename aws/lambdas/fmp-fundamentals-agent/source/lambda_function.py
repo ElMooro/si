@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
+import math
 import time
 import urllib.error
 import urllib.parse
@@ -60,14 +61,20 @@ def snapshot():
     results=dict(zip(requests,values));sources={name:value[1] for name,value in results.items()}
     quotes={row['symbol']:row for row in results['watchlist_quotes'][0]
             if isinstance(row.get('symbol'),str) and row['symbol'] in WATCH}
+    def valid_quote(row):
+        price,stamp=row.get('price'),row.get('timestamp')
+        return (type(price) in (int,float) and math.isfinite(price) and price>0
+                and type(stamp) in (int,float) and math.isfinite(stamp) and 0<stamp<=now.timestamp()+300)
+    valid_symbols={symbol for symbol,row in quotes.items() if valid_quote(row)}
     available=sum(row['status']=='AVAILABLE' for row in sources.values())
-    status='READY' if available==len(sources) and len(quotes)==len(WATCH) else 'PARTIAL' if available else 'UNAVAILABLE'
+    status='READY' if available==len(sources) and len(valid_symbols)==len(WATCH) else 'PARTIAL' if available else 'UNAVAILABLE'
     stamp=datetime.now(timezone.utc).isoformat()
     return {'schema_version':'fmp-market-snapshot.v2','agent':'fmp-fundamentals-agent','ts':stamp,
         'generated_at':stamp,'status':status,'watchlist_quotes':quotes,
         'index_quotes':results['index_quotes'][0],'sector_performance':results['sector_performance'][0],
         'movers':{name:results[name][0] for name in ('gainers','losers','actives')},
-        'watchlist':WATCH,'quotes_ok':len(quotes),'quotes_err':len(WATCH)-len(quotes),
+        'watchlist':WATCH,'quotes_received':len(quotes),'quotes_ok':len(valid_symbols),'quotes_err':len(WATCH)-len(valid_symbols),
+        'invalid_quote_symbols':[symbol for symbol in quotes if symbol not in valid_symbols],
         'missing_quote_symbols':[symbol for symbol in WATCH if symbol not in quotes],
         'source_health':sources,'sector_requested_date':now.date().isoformat(),
         'timestamp_scope':'Response collection time; individual provider observation fields are preserved.',

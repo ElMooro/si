@@ -40,6 +40,7 @@ def test_snapshot_preserves_every_mover_and_nested_provider_field():
     assert len(doc['movers']['gainers'])==30 and len(doc['watchlist_quotes'])==24
     assert doc['watchlist_quotes']['AAPL']['extra']=={'zero':0,'flag':False}
     assert doc['execution_eligible'] is False and doc['generated_at'].endswith('+00:00')
+    assert doc['status']=='PARTIAL' and doc['quotes_ok']==0 and len(doc['invalid_quote_symbols'])==24
 
 
 def test_empty_and_partial_provider_coverage_cannot_be_ready():
@@ -47,7 +48,7 @@ def test_empty_and_partial_provider_coverage_cannot_be_ready():
     with patch.object(fmp,'fetch_rows',side_effect=empty):doc=fmp.snapshot()
     assert doc['status']=='UNAVAILABLE' and doc['quotes_err']==24
     def partial(endpoint,params,key):
-        if params.get('symbols','').startswith('AAPL'):return [{'symbol':'AAPL','price':123}],{'endpoint':endpoint,'status':'AVAILABLE','row_count':1}
+        if params.get('symbols','').startswith('AAPL'):return [{'symbol':'AAPL','price':123,'timestamp':fmp.datetime.now(fmp.timezone.utc).timestamp()}],{'endpoint':endpoint,'status':'AVAILABLE','row_count':1}
         return empty(endpoint,params,key)
     with patch.object(fmp,'fetch_rows',side_effect=partial):doc=fmp.snapshot()
     assert doc['status']=='PARTIAL' and doc['quotes_err']==23
