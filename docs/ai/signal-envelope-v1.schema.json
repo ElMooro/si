@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://justhodl.ai/schemas/signal-envelope-v1.schema.json",
+  "title": "JustHodl Signal Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "signal_id",
+    "engine_id",
+    "asset_scope",
+    "as_of_ts",
+    "available_ts",
+    "generated_ts",
+    "signal",
+    "confidence",
+    "quality",
+    "inputs",
+    "provenance",
+    "taint"
+  ],
+  "properties": {
+    "schema": {"const": "SignalEnvelope/v1"},
+    "signal_id": {"type": "string", "minLength": 8, "maxLength": 160},
+    "engine_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,79}$"},
+    "asset_scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["macro", "stocks", "bonds", "metals", "crypto", "fx", "credit", "commodities", "systemic-risk"]}
+    },
+    "as_of_ts": {"type": "string", "format": "date-time"},
+    "available_ts": {"type": "string", "format": "date-time"},
+    "generated_ts": {"type": "string", "format": "date-time"},
+    "expires_ts": {"type": ["string", "null"], "format": "date-time"},
+    "signal": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["name", "value"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "value": {},
+        "unit": {"type": ["string", "null"]},
+        "horizon_days": {"type": ["integer", "null"], "minimum": 1, "maximum": 756}
+      }
+    },
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["PASS", "WARN", "FAIL"]},
+        "freshness_sla_s": {"type": "integer", "minimum": 1},
+        "warnings": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["uri", "content_sha256", "available_ts"],
+        "properties": {
+          "uri": {"type": "string", "minLength": 1},
+          "content_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "available_ts": {"type": "string", "format": "date-time"},
+          "license_id": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code_commit", "run_id"],
+      "properties": {
+        "code_commit": {"type": "string", "minLength": 7},
+        "run_id": {"type": "string", "minLength": 1},
+        "model_package_arn": {"type": ["string", "null"]},
+        "mlflow_run_id": {"type": ["string", "null"]}
+      }
+    },
+    "taint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["llm_derived", "cornerstone_derived", "training_eligible"],
+      "properties": {
+        "llm_derived": {"type": "boolean"},
+        "cornerstone_derived": {"type": "boolean"},
+        "training_eligible": {"type": "boolean"}
+      }
+    }
+  }
+}

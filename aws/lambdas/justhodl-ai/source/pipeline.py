@@ -125,7 +125,9 @@ class Pipeline:
 
     def _deploy_card(self, st, card, allow_realtime: bool):
         try:
-            dep = self.api["deploy"]({"model_id": card, "serverless": True, "serverless_memory_mb": 6144, "serverless_max_conc": 6})
+            # Stay within the reviewed default serverless ceilings.  The deploy
+            # action still validates these values against the active policy.
+            dep = self.api["deploy"]({"model_id": card, "serverless": True, "serverless_memory_mb": 4096, "serverless_max_conc": 4})
             return dep, False
         except Exception as e:
             self._note(st, st["stage"], "%s serverless: %s" % (card, str(e)[:200]))

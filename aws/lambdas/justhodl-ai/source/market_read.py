@@ -28,6 +28,7 @@ serves it. The public read model carries stances, counts and the graded hit rate
 from __future__ import annotations
 
 import json
+import math
 import re
 import time
 from datetime import datetime, timezone
@@ -37,6 +38,12 @@ SIGNAL_TYPE = "ai_market_read"
 WINDOWS = [5, 21, 63]
 MAX_CALLS = 6
 MIN_READ_GAP_S = 20 * 60
+STANCE_ENUMS = {
+    "stocks": {"RISK_ON", "SELECTIVE", "DEFENSIVE", "AVOID"},
+    "bonds": {"LONG_DURATION", "NEUTRAL", "SHORT_DURATION", "AVOID"},
+    "metals": {"ACCUMULATE", "HOLD", "TRIM", "AVOID"},
+    "crypto": {"ACCUMULATE", "HOLD", "REDUCE", "AVOID"},
+}
 
 SOURCES = {
     # key: (s3 key, freshness SLA hours, private?)
@@ -130,10 +137,11 @@ def _tk(r):
 
 
 # ────────────────────────────────────────────────────────────────── board
-def build_board(s3, public_bucket: str) -> Dict[str, Any]:
+def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) -> Dict[str, Any]:
     docs, sources = {}, {}
     for name, (key, sla_h, private) in SOURCES.items():
-        d = _get(s3, public_bucket, key)
+        source_bucket = (private_bucket or public_bucket) if private else public_bucket
+        d = _get(s3, source_bucket, key)
         st = _stamp(d)
         age = _age_h(st)
         status = "MISSING" if d is None else ("STALE" if (age is None or age > sla_h) else "FRESH")
@@ -254,7 +262,9 @@ def playbook(s3, rt, private_bucket: str, ds_id: Optional[str], endpoint: Option
         if not vec:
             continue
         try:
-            out["notes"][name] = [{"similarity": n["similarity"], "label": n["label"], "pinned": n["pinned"], "text": n["text"][:280]} for n in nearest_fn(s3, private_bucket, ds_id, endpoint, vec, k=k)]
+            out["notes"][name] = [{"similarity": n["similarity"], "label": n["label"], "pinned": n["pinned"],
+                                   "note_id": n.get("note_id") or n.get("id"), "text_private": True}
+                                  for n in nearest_fn(s3, private_bucket, ds_id, endpoint, vec, k=k)]
         except Exception as e:
             out["notes"][name] = [{"error": str(e)[:100]}]
     return out
@@ -279,8 +289,11 @@ SYSTEM = (
 def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn) -> Dict[str, Any]:
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
-    prompt = "BOARD (fleet artifacts, with freshness):\n%s\n\nPLAYBOOK (operator's nearest notes per setup):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
-        json.dumps(slim, default=str)[:24000], json.dumps(play.get("notes") or {"unavailable": play.get("reason")}, default=str)[:9000], ", ".join(board.get("candidates") or []))
+    fleet_digest = slim.pop("fleet_digest", [])
+    prompt = "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
+        json.dumps(slim, default=str)[:24000], json.dumps(fleet_digest, default=str)[:24000],
+        json.dumps(play.get("notes") or {"unavailable": play.get("reason")}, default=str)[:9000],
+        ", ".join(board.get("candidates") or []))
     raw = complete_fn(prompt, tier="critical", max_tokens=2400, contains_proprietary=True, system=SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
     if not txt:
@@ -290,11 +303,61 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn) -> Di
         j = json.loads(m.group(0) if m else txt)
     except Exception:
         return {"parse_error": True, "raw": txt[:2000]}
-    cands = set(board.get("candidates") or [])
-    j["calls"] = [c for c in (j.get("calls") or []) if isinstance(c, dict) and c.get("ticker") in cands and c.get("direction") in ("UP", "DOWN")][:MAX_CALLS]
-    j["best_opportunities"] = [o for o in (j.get("best_opportunities") or []) if isinstance(o, dict) and o.get("ticker") in cands][:8]
-    j["rejected_tickers"] = sorted({c.get("ticker") for c in (j.get("calls_raw") or []) if isinstance(c, dict)} - cands) if j.get("calls_raw") else []
-    return j
+    try:
+        return validate_read(j, set(board.get("candidates") or []))
+    except ValueError as exc:
+        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000]}
+
+
+def _text(value: Any, name: str, minimum: int = 1, maximum: int = 4000) -> str:
+    if not isinstance(value, str) or len(value.strip()) < minimum:
+        raise ValueError("%s must be a non-empty string" % name)
+    return value.strip()[:maximum]
+
+
+def validate_read(doc: Any, candidates: set) -> Dict[str, Any]:
+    if not isinstance(doc, dict):
+        raise ValueError("LLM output must be an object")
+    out = {
+        "overall": _text(doc.get("overall"), "overall", 20, 4000),
+        "macro": _text(doc.get("macro"), "macro", 10, 3000),
+    }
+    for asset, allowed in STANCE_ENUMS.items():
+        row = doc.get(asset)
+        if not isinstance(row, dict) or row.get("stance") not in allowed:
+            raise ValueError("%s.stance is invalid" % asset)
+        out[asset] = {"stance": row["stance"], "read": _text(row.get("read"), "%s.read" % asset, 5, 2400)}
+    out["what_would_change_my_mind"] = [_text(v, "change trigger", 2, 400) for v in (doc.get("what_would_change_my_mind") or []) if isinstance(v, str)][:12]
+    out["data_gaps"] = [_text(v, "data gap", 2, 400) for v in (doc.get("data_gaps") or []) if isinstance(v, str)][:20]
+    opportunities = []
+    for row in doc.get("best_opportunities") or []:
+        if not isinstance(row, dict) or row.get("ticker") not in candidates or row.get("side") not in ("LONG", "SHORT"):
+            continue
+        try:
+            horizon = int(row.get("horizon_days"))
+        except Exception:
+            continue
+        if horizon < 1 or horizon > 365:
+            continue
+        engines = [str(v)[:80] for v in (row.get("from_engines") or []) if isinstance(v, str)][:12]
+        opportunities.append({"ticker": row["ticker"], "side": row["side"], "why": _text(row.get("why"), "opportunity.why", 4, 800),
+                              "horizon_days": horizon, "from_engines": engines})
+    out["best_opportunities"] = opportunities[:8]
+    calls = []
+    for row in doc.get("calls") or []:
+        if not isinstance(row, dict) or row.get("ticker") not in candidates or row.get("direction") not in ("UP", "DOWN"):
+            continue
+        try:
+            horizon = int(row.get("horizon_days"))
+            confidence = float(row.get("confidence"))
+        except Exception:
+            continue
+        if horizon not in (21, 63) or not math.isfinite(confidence) or confidence < 0.5 or confidence > 0.85:
+            continue
+        calls.append({"ticker": row["ticker"], "direction": row["direction"], "horizon_days": horizon,
+                      "confidence": round(confidence, 4), "thesis": _text(row.get("thesis"), "call.thesis", 4, 800)})
+    out["calls"] = calls[:MAX_CALLS]
+    return out
 
 
 # ──────────────────────────────────────────────────────────────── ledger
@@ -327,7 +390,11 @@ def log_calls(table, read_id: str, calls: List[dict], log_signal, yprice) -> Lis
 def grade_calls(table, calls: List[dict]) -> Dict[str, Any]:
     """Pull each call's item back from the ledger: outcome-checker fills outcomes.day_N as windows mature."""
     graded, hits, n = [], {str(w): [0, 0] for w in WINDOWS}, 0
-    for c in calls[-80:]:
+    unique = {}
+    for c in calls:
+        if c.get("signal_id") and c.get("logged") is not False:
+            unique[c["signal_id"]] = c
+    for c in list(unique.values())[-80:]:
         item = None
         try:
             item = table.get_item(Key={"signal_id": c["signal_id"]}).get("Item")

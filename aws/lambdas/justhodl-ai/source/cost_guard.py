@@ -18,6 +18,7 @@ blocks creation -- an unknown price is not a free price).
 from __future__ import annotations
 
 import json
+import math
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -40,6 +41,8 @@ DEFAULT_POLICY = {
     "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge"],
     "allowed_training_instances": ["ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.m5.4xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge", "ml.g4dn.2xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"],
     "serverless_default": True,
+    "serverless_max_memory_mb": 4096,
+    "serverless_max_concurrency": 4,
     "hyperpod_unlocked": False,
     "large_gpu_unlocked": False,
     "updated_at": None,
@@ -62,7 +65,7 @@ def _get_json(s3, bucket, key, default=None):
 
 
 def _put_json(s3, bucket, key, obj):
-    s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(obj, default=str).encode(), ContentType="application/json",
+    s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(obj, default=str, allow_nan=False).encode(), ContentType="application/json",
                   ServerSideEncryption="AES256", CacheControl="private, no-store")
 
 
@@ -73,16 +76,46 @@ def load_policy(s3, bucket) -> Dict[str, Any]:
     return p
 
 
+POLICY_BOUNDS = {
+    "daily_budget_usd": (0.01, 1000.0),
+    "endpoint_ttl_hours": (0.25, 168.0),
+    "idle_hours": (0.25, 168.0),
+    "training_max_runtime_s": (60.0, 604800.0),
+    "serverless_max_memory_mb": (1024.0, 6144.0),
+    "serverless_max_concurrency": (1.0, 20.0),
+}
+INSTANCE_RE = re.compile(r"^ml\.[a-z0-9][a-z0-9.\-]{1,48}$")
+
+
 def save_policy(s3, bucket, patch: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(patch, dict):
+        raise ValueError("policy patch must be an object")
+    unknown = sorted(set(patch) - (set(DEFAULT_POLICY) - {"version", "updated_at"}))
+    if unknown:
+        raise ValueError("unknown policy fields: %s" % ", ".join(unknown))
     p = load_policy(s3, bucket)
     for k, v in (patch or {}).items():
-        if k in DEFAULT_POLICY and k != "version":
-            if isinstance(DEFAULT_POLICY[k], bool):
-                p[k] = bool(v)
-            elif isinstance(DEFAULT_POLICY[k], (int, float)) and DEFAULT_POLICY[k] is not None:
-                p[k] = float(v)
-            elif isinstance(DEFAULT_POLICY[k], list):
-                p[k] = [str(x) for x in v] if isinstance(v, list) else p[k]
+        if k in ("version", "updated_at"):
+            continue
+        if isinstance(DEFAULT_POLICY[k], bool):
+            if type(v) is not bool:
+                raise ValueError("%s must be a JSON boolean" % k)
+            p[k] = v
+        elif isinstance(DEFAULT_POLICY[k], (int, float)) and DEFAULT_POLICY[k] is not None:
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(float(v)):
+                raise ValueError("%s must be a finite number" % k)
+            value = float(v)
+            lo, hi = POLICY_BOUNDS.get(k, (-1e12, 1e12))
+            if value < lo or value > hi:
+                raise ValueError("%s must be between %s and %s" % (k, lo, hi))
+            p[k] = int(value) if isinstance(DEFAULT_POLICY[k], int) else value
+        elif isinstance(DEFAULT_POLICY[k], list):
+            if not isinstance(v, list) or not v:
+                raise ValueError("%s must be a non-empty array" % k)
+            values = [str(x).strip() for x in v]
+            if any(not INSTANCE_RE.fullmatch(x) for x in values):
+                raise ValueError("%s contains an invalid SageMaker instance type" % k)
+            p[k] = sorted(set(values))
     p["updated_at"] = now_iso()
     _put_json(s3, bucket, POLICY_KEY, p)
     return p

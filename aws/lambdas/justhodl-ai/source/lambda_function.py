@@ -39,6 +39,7 @@ from botocore.config import Config
 
 import brain_dataset as bd
 import cost_guard as cg
+import fleet_inputs as fi
 import market_read as mr
 import pipeline as pl
 import sm_hub
@@ -49,16 +50,18 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.3.1"
+VERSION = "2.0.0-review"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
 PRIVATE_BUCKET = os.environ.get("AI_PRIVATE_BUCKET", "justhodl-ai-857687956942")
+BRAIN_SOURCE_BUCKET = os.environ.get("AI_BRAIN_SOURCE_BUCKET", PRIVATE_BUCKET)
 OUT_KEY = "data/ai.json"
 CONTROL_KEY = "data/ai/control.json"
 CATALOG_KEY = "ai/catalog.json"
 READ_KEY = "ai/market-read/latest.json"
 CALLS_KEY = "ai/market-read/calls.json"
+OWNER_READ_MODEL_KEY = "ai/read-model/latest.json"
 VERDICT_KEY = "data/ai/verdict.json"
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
 CFG = Config(retries={"max_attempts": 4, "mode": "adaptive"}, read_timeout=60)
@@ -236,9 +239,16 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
             passes.append({"error": str(e)[:160]})
     cost = cg.mtd_sagemaker_cost(client("ce"))
     role = execution_role()
+    fleet = fi.build_fleet_snapshot(s3, PUBLIC_BUCKET)
+    public_fleet = {k: fleet.get(k) for k in ("registry_key", "registry_version", "status", "summary")}
+    public_fleet["feeds"] = [{
+        "feed": row.get("feed"), "engines": row.get("engines"), "pages": row.get("pages"),
+        "schema_versions": row.get("schema_versions"), "status": row.get("status"),
+        "eligible": row.get("eligible"), "generated_at": row.get("generated_at"),
+        "age_h": row.get("age_h"), "private": row.get("private"),
+    } for row in fleet.get("feeds") or []]
     out = {
         "engine": ENGINE, "version": VERSION, "generated_at": now_iso(), "elapsed_s": round(time.time() - t0, 1), "region": REGION,
-        "account": "857687956942", "sagemaker_role_arn": role, "private_bucket": PRIVATE_BUCKET,
         "policy": policy,
         "inventory": {k: snap.get(k) for k in ("domains", "apps", "endpoints", "models", "endpoint_configs", "jobs", "notebooks", "feature_groups", "clusters")},
         "inventory_errors": snap.get("errors"),
@@ -250,6 +260,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "learning": collect_learning(client("sagemaker")),
         "market_read": _safe(public_market_read),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
+        "fleet_inputs": public_fleet,
         "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
         "tiers": [
             {"tier": 1, "name": "Transfer learning (article recipe)", "how": "RoBERTa-SEC embedding endpoint -> Brain rows embedded -> XGBoost classifier (spot) -> serverless endpoint", "cost": "cents"},
@@ -264,13 +275,62 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
             "hub card": "a JumpStart model card (image + artifact + recipe) in the SageMaker public hub",
         },
     }
-    put_public(OUT_KEY, out)
+    put_private(OWNER_READ_MODEL_KEY, out)
+    put_public(OUT_KEY, _public_read_model(out))
     ctl = get_json(PRIVATE_BUCKET, "ai/control.json") or {}
     ctl.update({"sagemaker_role_arn": role, "private_bucket": PRIVATE_BUCKET, "updated_at": out["generated_at"], "version": VERSION})
     put_private("ai/control.json", ctl)
     pub = {"function_url": ctl.get("function_url"), "updated_at": out["generated_at"], "version": VERSION}
     put_public(CONTROL_KEY, pub)
     return out
+
+
+def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
+    """Publish health and aggregate counts, never account topology or resource identifiers."""
+    inv = out.get("inventory") or {}
+    summary = {}
+    for key in ("domains", "apps", "endpoints", "models", "jobs", "notebooks", "feature_groups", "clusters"):
+        rows = inv.get(key) or []
+        summary[key] = {
+            "total": len(rows),
+            "by_status": {
+                status: sum(1 for row in rows if (row.get("status") or row.get("kind") or "UNKNOWN") == status)
+                for status in sorted({row.get("status") or row.get("kind") or "UNKNOWN" for row in rows})
+            },
+        }
+    policy = out.get("policy") or {}
+    projected = ((out.get("cost") or {}).get("projected") or {})
+    mtd = ((out.get("cost") or {}).get("mtd") or {})
+    catalog = out.get("catalog") or {}
+    dataset = out.get("brain_dataset") or {}
+    verdict = out.get("pipeline_verdict") or {}
+    fleet = out.get("fleet_inputs") or {}
+    return {
+        "engine": out.get("engine"),
+        "version": out.get("version"),
+        "generated_at": out.get("generated_at"),
+        "elapsed_s": out.get("elapsed_s"),
+        "region": out.get("region"),
+        "access": "PUBLIC_AGGREGATE",
+        "inventory_summary": summary,
+        "policy": {k: policy.get(k) for k in ("daily_budget_usd", "endpoint_ttl_hours", "idle_hours", "serverless_default")},
+        "cost": {"projected": {k: projected.get(k) for k in ("usd_per_day", "unknown")},
+                 "mtd": {"usd_mtd": mtd.get("usd_mtd")}},
+        "catalog": {k: catalog.get(k) for k in ("generated_at", "n", "article_models_present", "article_models_missing")},
+        "brain_dataset": ({k: dataset.get(k) for k in ("n_rows", "source_n_notes", "n_labels", "outcome_labels")} if dataset else None),
+        "market_read": out.get("market_read"),
+        "fleet_inputs": {k: fleet.get(k) for k in ("registry_version", "status", "summary")},
+        "pipeline_verdict": ({k: verdict.get(k) for k in ("status", "finished_at")} if verdict else None),
+        "tiers": out.get("tiers"),
+        "definitions": out.get("definitions"),
+    }
+
+
+def owner_read_model() -> Dict[str, Any]:
+    doc = get_json(PRIVATE_BUCKET, OWNER_READ_MODEL_KEY)
+    if not doc:
+        raise ActionError("owner inventory has not been generated yet")
+    return doc
 
 
 def _safe(fn):
@@ -329,6 +389,29 @@ def _guard_instance(policy, instance_type: Optional[str], family: str, hours: fl
     return price
 
 
+def _assert_endpoint_write_allowed(endpoint_name: str) -> None:
+    """A caller-selected name may update only an endpoint already owned by this engine."""
+    sm = client("sagemaker")
+    try:
+        desc = sm.describe_endpoint(EndpointName=endpoint_name)
+    except Exception as exc:
+        if any(token in str(exc).lower() for token in ("not find", "not found", "validationexception", "404")):
+            return
+        raise ActionError("could not verify endpoint ownership for %s" % endpoint_name)
+    if _tags(desc.get("EndpointArn") or "").get(cg.TAG_MANAGED) != "true":
+        raise ActionError("refusing to replace endpoint %s because it is not tagged %s=true" % (endpoint_name, cg.TAG_MANAGED))
+
+
+def _serverless_config(body: dict, policy: dict) -> tuple:
+    memory = int(body.get("serverless_memory_mb") or min(4096, int(policy["serverless_max_memory_mb"])))
+    concurrency = int(body.get("serverless_max_conc") or min(4, int(policy["serverless_max_concurrency"])))
+    if memory not in (1024, 2048, 3072, 4096, 5120, 6144):
+        raise ActionError("serverless_memory_mb must be one of 1024, 2048, 3072, 4096, 5120 or 6144")
+    if memory > int(policy["serverless_max_memory_mb"]) or not 1 <= concurrency <= int(policy["serverless_max_concurrency"]):
+        raise ActionError("serverless configuration exceeds policy limits")
+    return memory, concurrency
+
+
 def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     model_id = str(body.get("model_id") or "").strip()
     if not model_id:
@@ -357,16 +440,18 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     if not serverless:
         _guard_instance(policy, instance_type, "hosting", ttl)
     ep = body.get("endpoint_name") or ("jh-ai-" + re.sub(r"[^a-z0-9]+", "-", model_id.lower()))[:56].rstrip("-")
+    _assert_endpoint_write_allowed(ep)
+    memory, concurrency = _serverless_config(body, policy) if serverless else (4096, 4)
     res = sm_hub.deploy_model(client("sagemaker"), client("s3"), spec=spec, role_arn=role, endpoint_name=ep, instance_type=instance_type,
                               serverless=serverless, private_bucket=PRIVATE_BUCKET, tags=cg.tags("hub:" + model_id, None if serverless else ttl, bool(body.get("pinned"))),
-                              serverless_memory_mb=int(body.get("serverless_memory_mb") or 4096), serverless_max_conc=int(body.get("serverless_max_conc") or 4))
+                              serverless_memory_mb=memory, serverless_max_conc=concurrency)
     res.update({"model_id": model_id, "ttl_hours": None if serverless else ttl, "spec": {k: spec.get(k) for k in ("task", "framework", "hosting_image", "default_inference_instance", "supported_inference_instances", "training_supported")}})
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
     return res
 
 
 def action_dataset_build(body: dict, policy: dict) -> Dict[str, Any]:
-    man = bd.build_brain_dataset(client("s3"), PUBLIC_BUCKET, PRIVATE_BUCKET, min_chars=int(body.get("min_chars") or 24), min_class_rows=int(body.get("min_class_rows") or 20))
+    man = bd.build_brain_dataset(client("s3"), BRAIN_SOURCE_BUCKET, PRIVATE_BUCKET, min_chars=int(body.get("min_chars") or 24), min_class_rows=int(body.get("min_class_rows") or 20))
     # AutoML text CSV (header text,label) alongside, still private
     rows = bd.load_rows(client("s3"), PRIVATE_BUCKET, man["dataset_id"])
     import csv
@@ -547,8 +632,11 @@ def action_deploy_trained(body: dict, policy: dict) -> Dict[str, Any]:
     if not serverless:
         _guard_instance(policy, it, "hosting", ttl)
     ep = body.get("endpoint_name") or ("jh-ai-clf-" + re.sub(r"[^a-z0-9-]", "-", job.lower()))[:56].rstrip("-")
+    _assert_endpoint_write_allowed(ep)
+    memory, concurrency = _serverless_config(body, policy) if serverless else (2048, 2)
     res = tr.deploy_training_output(client("sagemaker"), job_name=job, role_arn=execution_role(), endpoint_name=ep, serverless=serverless, instance_type=it,
-                                    tags=cg.tags("trained:" + job, None if serverless else ttl, bool(body.get("pinned"))))
+                                    tags=cg.tags("trained:" + job, None if serverless else ttl, bool(body.get("pinned"))),
+                                    serverless_memory_mb=memory, serverless_max_conc=concurrency)
     put_private("ai/models/deployments/%s.json" % ep, {**res, "at": now_iso()})
     return res
 
@@ -585,7 +673,16 @@ def action_endpoint_delete(body: dict, policy: dict) -> Dict[str, Any]:
     ep = str(body.get("endpoint") or "").strip()
     if not ep:
         raise ActionError("endpoint required")
-    client("sagemaker").delete_endpoint(EndpointName=ep)
+    sm = client("sagemaker")
+    try:
+        desc = sm.describe_endpoint(EndpointName=ep)
+    except Exception:
+        raise ActionError("endpoint %s was not found" % ep)
+    arn = desc.get("EndpointArn")
+    tags = _tags(arn or "")
+    if tags.get(cg.TAG_MANAGED) != "true":
+        raise ActionError("refusing to delete an endpoint not tagged %s=true" % cg.TAG_MANAGED)
+    sm.delete_endpoint(EndpointName=ep)
     return {"endpoint": ep, "action": "deleting"}
 
 
@@ -594,15 +691,32 @@ def action_job_stop(body: dict, policy: dict) -> Dict[str, Any]:
     kind = body.get("kind") or "training"
     if not name:
         raise ActionError("job_name required")
+    sm = client("sagemaker")
+    arn = None
     if kind == "automl":
-        client("sagemaker").stop_auto_ml_job(AutoMLJobName=name)
+        try:
+            arn = sm.describe_auto_ml_job(AutoMLJobName=name).get("AutoMLJobArn")
+        except Exception:
+            raise ActionError("AutoML job %s was not found or could not be described" % name)
     else:
-        client("sagemaker").stop_training_job(TrainingJobName=name)
+        try:
+            arn = sm.describe_training_job(TrainingJobName=name).get("TrainingJobArn")
+        except Exception:
+            raise ActionError("training job %s was not found or could not be described" % name)
+    if _tags(arn or "").get(cg.TAG_MANAGED) != "true":
+        raise ActionError("refusing to stop a job not tagged %s=true" % cg.TAG_MANAGED)
+    if kind == "automl":
+        sm.stop_auto_ml_job(AutoMLJobName=name)
+    else:
+        sm.stop_training_job(TrainingJobName=name)
     return {"job_name": name, "kind": kind, "action": "stopping"}
 
 
 def action_policy(body: dict, policy: dict) -> Dict[str, Any]:
-    return cg.save_policy(client("s3"), PRIVATE_BUCKET, body.get("patch") or {})
+    try:
+        return cg.save_policy(client("s3"), PRIVATE_BUCKET, body.get("patch") or {})
+    except ValueError as exc:
+        raise ActionError(str(exc))
 
 
 def action_hyperpod(body: dict, policy: dict) -> Dict[str, Any]:
@@ -612,9 +726,12 @@ def action_hyperpod(body: dict, policy: dict) -> Dict[str, Any]:
     it = str(body.get("instance_type") or "")
     if not it or not body.get("lifecycle_s3"):
         raise ActionError("instance_type and lifecycle_s3 (s3:// prefix with on_create.sh) required")
-    _guard_instance(policy, it, "training", 24.0)
+    count = int(body.get("count") or 1)
+    if not 1 <= count <= 8:
+        raise ActionError("HyperPod count must be between 1 and 8 nodes")
+    _guard_instance(policy, it, "training", 24.0 * count)
     return tr.create_hyperpod_cluster(client("sagemaker"), name=body.get("name") or "jh-ai-hyperpod", role_arn=execution_role(), instance_type=it,
-                                      count=int(body.get("count") or 1), lifecycle_s3=body["lifecycle_s3"], tags=cg.tags("hyperpod", None, True))
+                                      count=count, lifecycle_s3=body["lifecycle_s3"], tags=cg.tags("hyperpod", None, False))
 
 
 # ══════════════════════════════════════════════════════════════ market read
@@ -641,17 +758,20 @@ def _live_embedding_endpoint(ds: Optional[dict]) -> Optional[str]:
 def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]:
     s3 = client("s3")
     prev = get_json(PRIVATE_BUCKET, READ_KEY) or {}
-    if not body.get("force") and prev.get("generated_at"):
+    if prev.get("generated_at"):
         try:
             age = (datetime.now(timezone.utc) - datetime.fromisoformat(prev["generated_at"])).total_seconds()
             if age < mr.MIN_READ_GAP_S:
-                raise ActionError("last read is %d min old; a new LLM read is allowed every %d min (pass force=true to override)" % (age // 60, mr.MIN_READ_GAP_S // 60))
+                raise ActionError("last read is %d min old; a new governed read is allowed every %d min" % (age // 60, mr.MIN_READ_GAP_S // 60))
         except ActionError:
             raise
         except Exception:
             pass
     t0 = time.time()
-    board = mr.build_board(s3, PUBLIC_BUCKET)
+    board = mr.build_board(s3, PUBLIC_BUCKET, BRAIN_SOURCE_BUCKET)
+    fleet = fi.build_fleet_snapshot(s3, PUBLIC_BUCKET)
+    board["fleet_coverage"] = {k: fleet.get(k) for k in ("status", "summary")}
+    board["fleet_digest"] = fleet.get("digest") or []
     sentences = mr.setup_sentences(board)
     ds = bd.latest_dataset(s3, PRIVATE_BUCKET)
     ep = body.get("embedding_endpoint") or _live_embedding_endpoint(ds)
@@ -669,12 +789,26 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
             print("[ai] router: %s" % str(e)[:120])
         if txt.strip():
             return txt
-        # the router answers "" on budget/mode gates or its fixed 35s timeout; a user-requested read is worth one direct,
-        # bounded Sonnet call (same key, 120s) -- metered through llm_cost when it is present
-        return _direct_claude(prompt, kw.get("system"), int(kw.get("max_tokens") or 2400))
+        # Fail closed. Budget, mode and timeout decisions in the governed router
+        # must never be silently bypassed by a direct third-party request.
+        return ""
 
     read = mr.compose_read(board, play, complete)
-    read["llm_path"] = getattr(_direct_claude, "last_path", "router")
+    read["llm_path"] = "governed-router"
+    critical = [name for name in ("fusion", "risk_gate", "khalid_risk") if (board.get("sources") or {}).get(name, {}).get("status") != "FRESH"]
+    fleet_summary = fleet.get("summary") or {}
+    unique_feeds = int(fleet_summary.get("unique_feeds") or 0)
+    eligible_feeds = int(fleet_summary.get("eligible") or 0)
+    coverage = (eligible_feeds / unique_feeds) if unique_feeds else 0.0
+    blockers = ["critical source %s is not FRESH" % name for name in critical]
+    if fleet.get("status") != "READY":
+        blockers.append("fleet registry is not READY")
+    elif unique_feeds >= 10 and coverage < 0.80:
+        blockers.append("eligible fleet coverage %.1f%% is below 80%%" % (coverage * 100.0))
+    read["decision_status"] = "ADVISORY_ONLY" if blockers else "EVIDENCE_READY"
+    read["release_blockers"] = blockers
+    if blockers:
+        read["calls"] = []
     read_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logged = []
     if read.get("calls") and not read.get("parse_error"):
@@ -684,7 +818,8 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
         except Exception as e:
             logged = [{"error": "ledger unavailable: %s" % str(e)[:120]}]
     calls_doc = get_json(PRIVATE_BUCKET, CALLS_KEY) or {"calls": []}
-    calls_doc["calls"] = (calls_doc.get("calls") or []) + [r for r in logged if r.get("signal_id")]
+    calls_doc["calls"] = (calls_doc.get("calls") or []) + [r for r in logged if r.get("signal_id") and r.get("logged") is True]
+    calls_doc["calls"] = list({r["signal_id"]: r for r in calls_doc["calls"] if r.get("signal_id")}.values())
     calls_doc["calls"] = calls_doc["calls"][-400:]
     put_private(CALLS_KEY, calls_doc)
     doc = {"read_id": read_id, "generated_at": now_iso(), "elapsed_s": round(time.time() - t0, 1), "engine": ENGINE, "version": VERSION,
@@ -696,44 +831,6 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     except Exception:
         pass
     return {k: doc[k] for k in ("read_id", "generated_at", "elapsed_s", "read", "calls_logged")} | {"playbook_available": play.get("available"), "sources": board["sources"]}
-
-
-def _direct_claude(prompt: str, system: Optional[str], max_tokens: int) -> str:
-    import urllib.request
-    try:
-        import llm_router
-        key = llm_router._anthropic_key()
-        model = getattr(llm_router, "SONNET", "claude-sonnet-4-6")
-    except Exception as e:
-        _direct_claude.last_path = "no-key:%s" % str(e)[:60]
-        return ""
-    payload = {"model": model, "max_tokens": int(max_tokens), "messages": [{"role": "user", "content": prompt}]}
-    if system:
-        payload["system"] = system
-    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(payload).encode(),
-                                 headers={"Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "x-jh-internal": "justhodl-ai"})
-    try:
-        with urllib.request.urlopen(req, timeout=120) as r:
-            d = json.loads(r.read().decode())
-        txt = "".join(b.get("text", "") for b in d.get("content", []))
-        _direct_claude.last_path = "direct:%s" % model
-        try:
-            import llm_cost
-            u = d.get("usage") or {}
-            if hasattr(llm_cost, "record"):
-                llm_cost.record(ENGINE, model, int(u.get("input_tokens") or 0), int(u.get("output_tokens") or 0))
-        except Exception:
-            pass
-        return txt
-    except Exception as e:
-        detail = ""
-        try:
-            detail = e.read().decode()[:300]          # HTTPError: the API's own message (credit balance, bad model id, ...)
-        except Exception:
-            pass
-        _direct_claude.last_path = "direct-failed:%s %s" % (str(e)[:80], detail)
-        print("[ai] direct claude failed: %s %s" % (str(e)[:160], detail))
-        return ""
 
 
 def action_get_read(body: dict, policy: dict) -> Dict[str, Any]:
@@ -845,6 +942,7 @@ def action_pipeline_stop(body: dict, policy: dict) -> Dict[str, Any]:
 
 
 ACTIONS = {
+    ("GET", "/inventory"): lambda b, p, c: owner_read_model(),
     ("POST", "/inventory"): lambda b, p, c: run_inventory(c, refresh_catalog=bool(b.get("refresh_catalog"))),
     ("POST", "/catalog"): lambda b, p, c: run_inventory(c, refresh_catalog=True)["catalog"],
     ("GET", "/model"): lambda b, p, c: sm_hub.describe_model(client("sagemaker"), b.get("model_id", ""), b.get("version")),

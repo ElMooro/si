@@ -23,6 +23,7 @@ sys.path.insert(0, str(HERE.parents[2] / "shared"))
 os.environ["JH_SERVICE_TOKEN"] = "svc_test_token_0123456789abcdef"
 os.environ["AI_PRIVATE_BUCKET"] = "private-test"
 os.environ["AI_PUBLIC_BUCKET"] = "public-test"
+os.environ["AI_BRAIN_SOURCE_BUCKET"] = "public-test"
 os.environ["SAGEMAKER_ROLE_ARN"] = "arn:aws:iam::857687956942:role/justhodl-sagemaker-execution-role"
 
 
@@ -227,7 +228,7 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
 
 
 def _load(store):
-    for m in ("lambda_function", "sm_hub", "brain_dataset", "cost_guard", "training", "market_read", "private_artifact", "managed_secret"):
+    for m in ("lambda_function", "sm_hub", "brain_dataset", "cost_guard", "training", "market_read", "fleet_inputs", "private_artifact", "managed_secret"):
         sys.modules.pop(m, None)
     import lambda_function as lf
     lf._clients.clear()
@@ -483,11 +484,13 @@ def test_handler_auth_and_routing():
     ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
     r = lf.lambda_handler({**ev, "headers": ok, "rawPath": "/nope", "requestContext": {"http": {"method": "POST", "path": "/nope"}}}, None)
     assert r["statusCode"] == 404 and "actions" in json.loads(r["body"])
-    r = lf.lambda_handler({**ev, "headers": ok, "body": json.dumps({"patch": {"daily_budget_usd": 12, "hyperpod_unlocked": "yes", "allowed_inference_instances": ["ml.m5.large"]}})}, None)
+    r = lf.lambda_handler({**ev, "headers": ok, "body": json.dumps({"patch": {"daily_budget_usd": 12, "hyperpod_unlocked": True, "allowed_inference_instances": ["ml.m5.large"]}})}, None)
     assert r["statusCode"] == 200, r
     pol = json.loads(r["body"])["result"]
     assert pol["daily_budget_usd"] == 12.0 and pol["hyperpod_unlocked"] is True and pol["allowed_inference_instances"] == ["ml.m5.large"]
     assert ("private-test", "ai/policy.json") in store["s3"].objs
+    bad = lf.lambda_handler({**ev, "headers": ok, "body": json.dumps({"patch": {"hyperpod_unlocked": "false"}})}, None)
+    assert bad["statusCode"] == 400 and "JSON boolean" in json.loads(bad["body"])["error"]
     # deploy through the handler: budget/allow-list guard is bypassed for serverless, endpoint recorded
     s3 = store["s3"]
     s3.objs[("jumpstart-cache-prod-us-east-1", "mxnet-infer/infer-mxnet-tcembedding-robertafin-base-uncased.tar.gz")] = _tar_bytes({"m": b"w"})
@@ -543,12 +546,21 @@ def test_learning_curve_nested_fractions_and_read_model():
     out = lf.run_inventory(None)
     L = out["learning"]
     assert L["curves"] and L["curves"][-1]["curve_id"] == body["result"]["curve_id"] and L["curves"][-1]["runs"][0]["status"] == "Completed"
-    assert "learning" in json.loads(s3.objs[("public-test", "data/ai.json")]) and "eurodollar" not in json.dumps(out["learning"])
-    return "3 nested-fraction jobs, same validation set, metrics collected into data/ai.json"
+    public = json.loads(s3.objs[("public-test", "data/ai.json")])
+    owner = json.loads(s3.objs[("private-test", "ai/read-model/latest.json")])
+    assert "learning" not in public and owner["learning"]["curves"]
+    assert "eurodollar" not in json.dumps(out["learning"])
+    return "3 nested-fraction jobs, same validation set, metrics kept in owner read model"
 
 
 def _fleet_docs(s3):
     now = datetime.now(timezone.utc).isoformat()
+    s3.put_object("public-test", "data/engine-wiring.json", json.dumps({
+        "v": 1,
+        "wired": [{"engine": "fusion", "feed": "data/jh-fusion.json", "page": "confluence.html", "schema_version": "1"}],
+        "internal": [],
+        "dead": [],
+    }).encode())
     s3.put_object("public-test", "data/jh-fusion.json", json.dumps({"generated_at": now, "regime": {"label": "MILDLY_SUPPORTIVE", "score": 0.27, "legs": [{"engine": "risk_gate", "score": 0.1, "label": "NEUTRAL"}]},
         "entities": {"stock:NVDA": {"best_horizon": "SWING", "horizons": {"SWING": {"fusion_score": 0.61, "direction": "bullish", "confidence": 0.7, "contradiction_score": 20, "horizon": "SWING"}}},
                      "stock:META": {"fusion_score": -0.3, "direction": "bearish", "confidence": 0.5}, "crypto:BTCUSD": {"fusion_score": 0.2, "direction": "bullish", "confidence": 0.4}}}).encode())
@@ -591,7 +603,8 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     assert [o["ticker"] for o in res["read"]["best_opportunities"]] == ["NVDA"]
     assert res["calls_logged"][0]["logged"] is True and res["calls_logged"][0]["baseline_price"] == 120.5
     private = json.loads(s3.objs[("private-test", "ai/market-read/latest.json")])
-    assert private["playbook"]["notes"]["stocks"] and "text" in private["playbook"]["notes"]["stocks"][0]
+    assert private["playbook"]["notes"]["stocks"] and private["playbook"]["notes"]["stocks"][0]["text_private"] is True
+    assert "text" not in private["playbook"]["notes"]["stocks"][0]
     # rate limit
     r2 = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": "{}"}, None)
     assert r2["statusCode"] == 400 and "allowed every" in json.loads(r2["body"])["error"]
@@ -656,6 +669,77 @@ def test_pipeline_state_machine_end_to_end_and_ladder_failover():
     assert st2["status"] == "running" and st2["stage"] == "dataset"
     return "ladder failover with log tail, 13 stages to done, market read + call logged, view sanitized"
 
+def test_fleet_registry_reads_every_unique_feed_and_gates_evidence():
+    s3 = FakeS3()
+    now = datetime.now(timezone.utc).isoformat()
+    registry = {
+        "v": 2,
+        "wired": [
+            {"engine": "engine-a", "feed": "data/a.json", "page": "macro.html", "title": "A", "schema_version": "1"},
+            {"engine": "engine-b", "feed": "data/a.json", "page": "risk.html", "title": "B", "schema_version": "1"},
+            {"engine": "engine-c", "feed": "data/c.json", "page": "crypto.html", "title": "C", "schema_version": "unspecified"},
+            {"engine": "journal", "feed": "data/trade-journal.json", "page": "portfolio.html", "title": "Journal", "schema_version": "1"},
+        ],
+        "internal": [{"engine": "engine-d", "feed": "data/d.json", "class": "INTERNAL-BY-DESIGN"}],
+        "dead": [{"engine": "engine-e", "feed": "data/e.json", "class": "DEAD-FEED"}],
+    }
+    s3.put_object("public-test", "data/engine-wiring.json", json.dumps(registry).encode())
+    s3.put_object("public-test", "data/a.json", json.dumps({"generated_at": now, "regime": "RISK_ON", "score": 0.7, "ticker": "SPY"}).encode())
+    s3.put_object("public-test", "data/c.json", json.dumps({"generated_at": "2020-01-01T00:00:00+00:00", "signal": "OLD"}).encode())
+    s3.put_object("public-test", "data/trade-journal.json", json.dumps({"generated_at": now, "decision": "PRIVATE"}).encode())
+    s3.put_object("public-test", "data/d.json", json.dumps({"status": "OK"}).encode())
+    for name in ("fleet_inputs",):
+        sys.modules.pop(name, None)
+    import fleet_inputs as fi
+    snap = fi.build_fleet_snapshot(s3, "public-test")
+    assert snap["summary"]["declared"] == 6 and snap["summary"]["unique_feeds"] == 5
+    assert snap["summary"]["eligible"] == 1 and snap["summary"]["private_excluded"] == 1
+    by_feed = {r["feed"]: r for r in snap["feeds"]}
+    assert by_feed["data/a.json"]["status"] == "FRESH" and by_feed["data/a.json"]["engines"] == ["engine-a", "engine-b"]
+    assert by_feed["data/c.json"]["status"] == "STALE" and by_feed["data/d.json"]["status"] == "UNTIMESTAMPED"
+    assert by_feed["data/e.json"]["status"] == "DEAD" and by_feed["data/trade-journal.json"]["eligible"] is False
+    assert snap["digest"][0]["symbols"] == ["SPY"] and snap["digest"][0]["signals"]
+    return "all declarations counted, duplicate feed deduped, stale/private/untimestamped/dead evidence gated"
+
+
+def test_destructive_endpoint_action_requires_engine_ownership_tag():
+    store = _install_fakes()
+    lf = _load(store)
+    sm = store["sagemaker"]
+    sm.endpoints["foreign"] = {"EndpointName": "foreign", "EndpointStatus": "InService", "EndpointArn": "arn:ep:foreign", "Tags": []}
+    sm.endpoints["owned"] = {"EndpointName": "owned", "EndpointStatus": "InService", "EndpointArn": "arn:ep:owned",
+                             "Tags": [{"Key": "justhodl-ai-managed", "Value": "true"}]}
+    try:
+        lf.action_endpoint_delete({"endpoint": "foreign"}, {})
+        raise AssertionError("foreign endpoint deletion must fail closed")
+    except lf.ActionError as exc:
+        assert "refusing" in str(exc)
+    assert "foreign" in sm.endpoints
+    out = lf.action_endpoint_delete({"endpoint": "owned"}, {})
+    assert out["action"] == "deleting" and "owned" not in sm.endpoints
+    return "unmanaged endpoint refused; managed endpoint accepted"
+
+
+def test_endpoint_replacement_and_serverless_limits_fail_closed():
+    store = _install_fakes()
+    lf = _load(store)
+    sm = store["sagemaker"]
+    sm.endpoints["foreign"] = {"EndpointName": "foreign", "EndpointStatus": "InService", "EndpointArn": "arn:ep:foreign", "Tags": []}
+    try:
+        lf._assert_endpoint_write_allowed("foreign")
+        raise AssertionError("foreign endpoint replacement must fail closed")
+    except lf.ActionError as exc:
+        assert "refusing to replace" in str(exc)
+    lf._assert_endpoint_write_allowed("new-endpoint")
+    policy = lf._policy()
+    assert lf._serverless_config({}, policy) == (4096, 4)
+    try:
+        lf._serverless_config({"serverless_memory_mb": 6144}, policy)
+        raise AssertionError("serverless policy ceiling must be enforced")
+    except lf.ActionError:
+        pass
+    return "unmanaged replacement blocked; bounded serverless defaults accepted"
+
 
 def test_inventory_writes_public_read_model_without_note_text():
     store = _install_fakes()
@@ -674,7 +758,18 @@ def test_inventory_writes_public_read_model_without_note_text():
     assert "eurodollar" not in json.dumps(pub), "note text leaked into the public read model"
     assert pub["cost"]["projected"]["usd_per_day"] == round(0.23 * 24, 2), pub["cost"]["projected"]
     assert pub["cost"]["mtd"]["usd_mtd"] == 1.25
-    assert pub["catalog"]["n"] == 3 and pub["inventory"]["endpoints"][0]["name"] == "jh-ai-x"
+    assert pub["catalog"]["n"] == 3 and pub["inventory_summary"]["endpoints"]["total"] == 1
+    assert "jh-ai-x" not in json.dumps(pub), "resource name leaked into the public read model"
+    owner = json.loads(s3.objs[("private-test", "ai/read-model/latest.json")])
+    assert owner["inventory"]["endpoints"][0]["name"] == "jh-ai-x"
+    ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
+    event = {"version": "2.0", "rawPath": "/inventory",
+             "requestContext": {"http": {"method": "GET", "path": "/inventory"}},
+             "headers": ok, "body": ""}
+    owner_response = lf.lambda_handler(event, None)
+    assert owner_response["statusCode"] == 200
+    owner_result = json.loads(owner_response["body"])["result"]
+    assert owner_result["inventory"]["endpoints"][0]["name"] == "jh-ai-x"
     assert pub["policy"]["daily_budget_usd"] == 5.0 and len(pub["tiers"]) == 4
     assert ("public-test", "data/ai/control.json") in s3.objs
     return "data/ai.json: inventory + run-rate + MTD + catalog + dataset stats, no text"
@@ -685,12 +780,14 @@ def main():
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
-             test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover, test_inventory_writes_public_read_model_without_note_text]
+             test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover,
+             test_fleet_registry_reads_every_unique_feed_and_gates_evidence, test_destructive_endpoint_action_requires_engine_ownership_tag,
+             test_endpoint_replacement_and_serverless_limits_fail_closed, test_inventory_writes_public_read_model_without_note_text]
     failed = 0
     for t in tests:
         try:
             _install_fakes()
-            for m in ("sm_hub", "brain_dataset", "cost_guard", "training"):
+            for m in ("sm_hub", "brain_dataset", "cost_guard", "training", "fleet_inputs"):
                 sys.modules.pop(m, None)
             msg = t()
             print("PASS %-58s %s" % (t.__name__, msg))

@@ -1,72 +1,62 @@
-# AI — the SageMaker front window (`justhodl-ai` + `ai.html`)
+# JustHodl.AI Cornerstone AI
 
-Launched by ops 5300 (2026-09-09). Khalid's directive: a front window to train SageMaker, an engine
-called `ai` with its page `ai.html`, preload whatever SageMaker already holds, learn from the Brain,
-and reach the most powerful training tiers SageMaker offers — without repeating the August cost mistakes.
+`ai.html` is the owner control desk for the `justhodl-ai` service. The current implementation inventories SageMaker, exposes bounded training and deployment actions, organizes Brain notes for semantic retrieval, reads every registered engine feed, produces a governed cross-asset narrative, and grades eligible calls at 5/21/63 trading-day horizons.
 
-## What it is
+## Honest capability boundary
 
-| Piece | Where | Role |
+- The Brain classifier predicts the operator-assigned note category. It is a semantic organizer and retrieval aid, not an investment-return model.
+- The market read is advisory. It may explain eligible engine evidence, but it cannot allocate capital or override the independent risk authority.
+- A market call is suppressed when fusion, risk-gate, or khalid-risk is not fresh, when the fleet registry is unavailable, or when production-scale eligible feed coverage is below 80%.
+- Every production promotion remains blocked until the P0 exit criteria in `CORNERSTONE_ARCHITECTURE_V2.md` are met.
+
+## Data boundary
+
+| Artifact | Boundary | Content |
 |---|---|---|
-| `justhodl-ai` Lambda | `aws/lambdas/justhodl-ai/` | inventory writer (hourly, `justhodl-ai-inventory` Scheduler) + service-token-gated action API on a Function URL |
-| `ai.html` | repo root | the window: inventory, catalog, Brain pipeline, playground, cost guard, power tiers |
-| `/ai/*` bridge | `cloudflare/workers/justhodl-data-proxy/src/index.js` | owner/service role only; resolves the Function URL from `data/ai/control.json`; forwards with `X-JH-Service-Token` |
-| `data/ai.json` | public bucket | read model (counts, statuses, prices, catalog) — never note text |
-| `justhodl-ai-857687956942` | private bucket | datasets, embeddings, indexes, repacked models, jobs, policy, pricing cache |
-| `justhodl-sagemaker-execution-role` | IAM | the role SageMaker jobs/endpoints assume |
-| `justhodl-ai-sagemaker-control` | IAM inline on `lambda-execution-role` | what the Lambda may do to SageMaker (PassRole scoped to the execution role only) |
+| `data/ai.json` | public read model | statuses, counts, bounded fleet coverage, catalog metadata, safe market-read projection |
+| `data/ai/control.json` | public bridge pointer | Function URL pointer and version only |
+| `ai/*` | private AI bucket | policy, datasets, embeddings, model artifacts, jobs, complete reads, call ledger |
+| Brain note prose | private | may be embedded and retrieved for owner use; never included in the market-read LLM prompt |
 
-## The article, applied (tier 1)
+The canonical Brain source must move behind the private boundary before production approval. Existing public source compatibility is migration-only and is a release blocker.
 
-`Use pre-trained financial language models for transfer learning in Amazon SageMaker JumpStart` (AWS ML blog,
-Sep 2021): deploy a RoBERTa-SEC embedding endpoint → embed your documents → train a classifier on the embeddings.
-Here the documents are the Brain notes and the labels are the categories Khalid gave them (`philosophy`, `rule`,
-`thesis`, `macro`, `watchlist`, `lesson`, `reminder`) plus `pinned`. The classifier is the XGBoost built-in
-(managed spot, `MaxRuntime` capped) served serverless; the embeddings double as a retrieval index
-("which of my notes speak to this text").
+## Current pipeline
 
-Hub card ids the engine looks for first: `mxnet-tcembedding-robertafin-{base,base-wiki,large,large-wiki}-uncased`.
-If the hub no longer lists them the catalog says so and the pipeline uses the best available text-embedding card.
+1. Build a private Brain dataset from note categories.
+2. Deploy a compatible financial text-embedding model.
+3. Embed the Brain and build a private retrieval index.
+4. Train an XGBoost note-category classifier with a runtime cap and managed spot.
+5. Optionally serve the classifier with bounded serverless memory and concurrency.
+6. Read the governed engine registry and inspect every unique feed.
+7. Admit only fresh, timestamped, non-private evidence into the bounded fleet digest.
+8. Ask the governed LLM router for a strict structured interpretation.
+9. Validate the output and log only eligible calls.
 
-## The AI's read of the market (v1.2, ops 5302/5303)
+## Safety controls implemented in the review branch
 
-Quant computes, the AI explains (fusion doctrine). `market_read.py`:
+- Owner and service-token action gate.
+- Strict policy types, numeric bounds, and rejection of unknown fields.
+- Live pricing and allow-list enforcement for instance-backed resources.
+- Serverless memory and concurrency ceilings.
+- Managed-resource tag checks before deleting, stopping, or replacing endpoints.
+- HyperPod node-count bound and whole-cluster cost projection.
+- Endpoint TTL and idle reaping only for engine-managed resources.
+- No direct LLM fallback around router budgets or operating modes.
+- No raw Brain prose in the narrator prompt.
+- Strict stance, side, horizon, confidence, and candidate-symbol validation.
+- Deduplicated, successfully logged prediction rows only.
+- Private result clearing on sign-out.
 
-1. **Board** — the fleet's fresh artifacts with per-source freshness (FRESH/STALE/MISSING, never filled): jh-fusion regime + entities,
-   risk-gate, khalid-risk authority, katlin war room + picks, bottom, fortress, bond war room, crisis composite, GBC, regime composite,
-   `screener/metals-miners.json`, `crypto-intel.json`, `data/crypto-cycle-risk.json`, the Brain's own regime read, the signal scorecard.
-2. **Playbook** — each asset-class setup is written as a sentence from the board, embedded through the live RoBERTa-SEC endpoint and
-   matched to the operator's nearest Brain notes.
-3. **Read** — one Sonnet call (proprietary tier, `on_demand=True`, bounded direct fallback when the router gates) → strict JSON:
-   overall, macro, stocks/bonds/metals/crypto stances + reads, best opportunities, what would change its mind, data gaps, up to 6 dated
-   calls restricted to tickers the fleet surfaced.
-4. **Ledger** — calls are logged as `signal_type=ai_market_read` via `signals_emit.log_signal` (5/21/63d windows); outcome-checker
-   prices them forward; `GET /read` grades every call and the page shows hit rates and per-call returns.
+## Remaining production blockers
 
-Private artifact `ai/market-read/latest.json` (quotes notes → owner route only); public `data/ai.json.market_read` carries stances,
-counts, freshness and hit rates. Daily schedule `justhodl-ai-market-read` cron(45 5 * * ? *) UTC; on-demand from the page (20-min gap).
-The pipeline verdict of the last launch/re-arm op is written to `data/ai/verdict.json` and shown on the page.
+- Dedicated least-privilege Lambda, training, inference, and approval roles.
+- Private canonical Brain migration.
+- Signal Envelope v1 enforcement and point-in-time feature materialization.
+- Outcome labels, transaction costs, liquidity, portfolio exposure, and risk limits.
+- Purged/embargoed walk-forward evaluation, calibration, uncertainty, and regime slices.
+- Model Registry manual approval, Model Cards, MLflow lineage, and blue/green rollback.
+- Append-only prediction ledger with reproducible market data and void reasons.
+- Prompt-injection, poisoning, licensing, and data-retention controls.
+- Successful clean-account canary from dataset through inference and rollback.
 
-## Tiers
-
-1. Transfer learning (above) — cents.
-2. JumpStart fine-tune — any hub card with `TrainingSupported` (weights as the `model` channel, recipe via `sagemaker_submit_directory`).
-3. Autopilot / AutoML V2 — text classification on the Brain CSV, or tabular on any warehouse CSV + target.
-4. HyperPod — locked by policy (`hyperpod_unlocked`) and a typed confirmation; bills per node-hour.
-
-## Cost guard
-
-Live Price List (`pricing:GetProducts`), `daily_budget_usd` (default 5), instance allow-lists, endpoint TTL (default 3h)
-and idle reaping (0 invocations in `idle_hours`), `MaxRuntimeInSeconds` on every job, spot by default, serverless by
-default, Cost Explorer MTD on the page. Only endpoints tagged `justhodl-ai-managed=true` are ever reaped.
-
-## Actions (`POST https://api.justhodl.ai/ai/<action>`, owner sign-in)
-
-`/inventory` `/catalog` `GET /model?model_id=` `/deploy` `/dataset/build` `/embed` `/train/classifier` `/train/finetune`
-`/train/automl` `/deploy-trained` `/infer` `/endpoint/delete` `/job/stop` `/policy` `/hyperpod/create`
-
-## Doctrine kept
-
-No literal keys (env-first, SSM), no classic EventBridge rule, no self-invocation (chain-guard: the hourly
-schedule resumes embedding passes), real data only (a missing hub field is an error with the document's key
-list, never a default), private note text never leaves the private bucket.
+See `CORNERSTONE_ARCHITECTURE_V2.md` and the schemas in this directory.

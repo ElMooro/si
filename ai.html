@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="ai-version" content="ai-v1.3.0">
-<meta name="jh-marker" content="AI_DESK_V1">
+<meta name="ai-version" content="ai-v2.0-review">
+<meta name="jh-marker" content="AI_DESK_V2">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
 <meta name="description" content="AI is the front window to Amazon SageMaker for JustHodl: every SageMaker resource live, the JumpStart financial-model catalog (RoBERTa-SEC transfer learning), the Brain turned into a labelled dataset, four training tiers (transfer learning, JumpStart fine-tune, Autopilot, HyperPod) and a cost guard that prices every action from the live AWS Price List.">
@@ -67,12 +67,19 @@ tr:hover td{background:rgba(0,212,255,.03)}
 button.btn.danger{border-color:var(--red);color:var(--red)} button.btn.ok{border-color:var(--green);color:var(--green)}
 button.btn:disabled{opacity:.45;cursor:not-allowed}
 button.btn.sm{padding:3px 8px;font-size:10px}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--cyan);color:var(--bg-base);padding:8px 12px;border-radius:6px;font-family:var(--font-mono)}
+.skip:focus{left:8px}
+.release-gate{border-left:4px solid var(--red);background:rgba(255,92,122,.06);padding:12px 14px;border-radius:8px}
+.release-gate.ready{border-left-color:var(--green);background:rgba(56,255,168,.05)}
+.fleet-meter{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
+.fleet-filter{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .scroll{overflow-x:auto;max-width:100%}
 .wr-panel table{min-width:420px}
 .help{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid var(--border-strong);font-size:9px;line-height:12px;text-align:center;color:var(--fg-3);margin-left:4px;cursor:help;position:relative;font-family:var(--font-mono)}
 .help:hover::after{content:attr(data-h);position:absolute;left:0;top:18px;z-index:40;background:var(--bg-elevated);border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;width:260px;white-space:normal;color:var(--fg-1);font-size:11px;line-height:1.45;text-transform:none;letter-spacing:0;font-family:var(--font-sans);font-weight:400}
 .field{display:flex;flex-direction:column;gap:3px;min-width:0}
-.field label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3)}
+  .field label{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3)}
 input,select,textarea{background:var(--bg-sunken);border:1px solid var(--border-strong);color:var(--fg-1);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:7px;width:100%;min-width:0}
 textarea{min-height:84px;resize:vertical;font-family:var(--font-sans)}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
@@ -103,23 +110,24 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to AI decision room</a>
 <div class="topbar">
   <div class="brand"><span class="dot"></span>JUSTHODL <span>· AI</span></div>
   <div class="nav-links">
     <a href="/">Command desk</a><a href="/bonds.html">Bonds</a><a href="/katlin.html">Katlin</a><a href="/fortress.html">Fortress</a><a href="/bottom.html">Bottom</a><a href="/brain.html">Brain</a><a class="active" href="/ai.html">AI</a><a href="/fusion.html">Fusion</a><a href="/engines.html">Engines</a><a href="/data.html">Data</a>
   </div>
 </div>
-<div class="container">
+<main class="container" id="main">
 <div class="page-hdr">
   <h1>AI — the SageMaker front window</h1>
-  <p>Everything Amazon SageMaker holds for this account, live: Studio, endpoints, models, training and AutoML jobs, feature groups, HyperPod. The JumpStart catalog of financial language models (the RoBERTa-SEC family pre-trained on ten years of 10-K/10-Q text) deploys from here; the Brain becomes a labelled dataset, gets embedded, and trains a classifier the fleet can call. Every create is priced from the live AWS Price List and bounded by the cost guard.</p>
+  <p>An owner-only control desk for SageMaker inventory, bounded experiments, model deployment and a governed cross-asset market read. The Brain pipeline is a semantic organizer and retrieval aid, not a proven return predictor. Real-time instance creates are live-priced; serverless resources are configuration-bounded and remain subject to usage-based spend monitoring.</p>
   <div class="meta" id="meta">loading data/ai.json…</div>
 </div>
 <div id="authbar" class="banner-auth" style="display:none"></div>
 
 <section class="wr-banner" id="wr-banner">
   <div>
-    <div class="wr-kicker"><span>SAGEMAKER · us-east-1</span><span id="k-acct">account —</span><span id="k-role">role —</span></div>
+    <div class="wr-kicker"><span>SAGEMAKER · us-east-1</span><span id="k-acct">region —</span><span id="k-role">owner control plane</span></div>
     <div class="wr-headline" id="wr-headline">—</div>
     <div class="wr-sub" id="wr-sub">The read model refreshes every hour and after every action.</div>
     <div class="wr-legs" id="wr-legs"></div>
@@ -128,6 +136,15 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="row" style="margin-top:10px"><div class="field"><label>&nbsp;</label><button class="btn pri sm" data-act="pipeline">Run the full pipeline</button></div><div class="field"><label>&nbsp;</label><button class="btn sm danger" data-act="pipeline-stop">stop</button></div></div></div>
 </section>
 
+<h2>Cornerstone release gate</h2>
+<div class="wr-panel release-gate" id="release-gate" role="status" aria-live="polite"></div>
+
+<h2>Fleet input map <span class="help" tabindex="0" data-h="The registry is the source of truth. Every unique declared feed is checked. Only fresh, timestamped, non-private feeds are eligible evidence; stale, missing, malformed, private and dead feeds stay visible but cannot support a market call.">?</span></h2>
+<div class="wr-panel">
+  <div id="fleet-summary" class="fleet-meter"></div>
+  <div class="fleet-filter" id="fleet-filter" role="group" aria-label="Filter fleet inputs"></div>
+  <div class="scroll" id="fleet-body"></div>
+</div>
 
 <h2>The AI's read of the market — right now <span class="help" data-h="Quant computes, the AI explains: the fleet's fresh artifacts (fusion regime, risk gate, Khalid authority, Katlin, Bottom, Fortress, bond war room, crisis, business cycle, metals, crypto) form the BOARD; the setup is embedded through RoBERTa-SEC and matched to your own Brain notes (PLAYBOOK); one LLM call composes the read in strict JSON and may only name tickers the fleet surfaced. Its dated calls go to the signal ledger and are graded against real prices.">?</span></h2>
 <div class="wr-panel" id="read-panel">
@@ -156,7 +173,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 <div class="cards" id="catalog"></div>
 <div class="note" id="cat-note"></div>
 
-<h2>Learn from the Brain — dataset, embeddings, classifier <span class="help" data-h="Step 1 turns every Brain note into a labelled row (label = the category you gave the note; pinned = importance). Step 2 pushes each row through a deployed embedding endpoint (RoBERTa-SEC when the card is available). Step 3 trains an XGBoost classifier on those embeddings with managed spot. Step 4 serves it serverless. Note text stays in the private bucket; only counts are published.">?</span></h2>
+<h2>Organize the Brain — dataset, embeddings, classifier <span class="help" tabindex="0" data-h="Step 1 turns Brain notes into labelled rows using their existing categories. Step 2 embeds each row. Step 3 trains an XGBoost category classifier. Step 4 can serve it serverless. This improves retrieval and taxonomy; it does not learn investment outcomes. Note prose stays in the private boundary and is not sent to the market-read LLM.">?</span></h2>
 <div class="grid2">
   <div class="wr-panel"><h3>Dataset <span id="ds-id" class="dim"></span></h3><div id="ds-body"></div>
     <div class="row" style="margin-top:10px"><div class="field"><label>&nbsp;</label><button class="btn pri" data-act="dataset">Build dataset from the Brain</button></div></div></div>
@@ -174,7 +191,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div id="emb-body" class="scroll" style="margin-top:10px"></div></div>
 </div>
 
-<h2>Learning curve — is the classifier actually learning? <span class="help" data-h="Run one training job per nested fraction of the training rows (10% ⊂ 25% ⊂ 50% ⊂ 100%) against the SAME validation set. Validation loss falling as rows grow = it learns from more of your notes; flat = the labels or the embedding carry little signal; train ≪ validation = overfitting. Loss is multiclass log-loss (lower is better; a coin-flip over k classes scores ln k).">?</span></h2>
+<h2>Taxonomy learning curve <span class="help" tabindex="0" data-h="Run one training job per nested fraction of the training rows against the same validation set. This checks whether the embedding can generalize your note categories. It does not measure trading skill, returns or calibration. Multiclass log-loss is lower-is-better; the uniform-random reference is ln(k).">?</span></h2>
 <div class="grid2">
   <div class="wr-panel"><h3>Validation loss vs training rows <span id="curve-id" class="dim"></span></h3><div id="curve-chart"></div><div class="scroll" id="curve-table"></div>
     <div class="row" style="margin-top:10px"><div class="field"><label>fractions</label><input id="curve-fr" value="0.1,0.25,0.5,1"></div><div class="field"><label>&nbsp;</label><button class="btn pri" data-act="curve">Run learning curve (one spot job per fraction)</button></div></div></div>
@@ -193,7 +210,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   <div id="pg-out" class="scroll" style="margin-top:12px"></div>
 </div>
 
-<h2>Cost guard &amp; policy <span class="help" data-h="Every create checks the allow-list, prices the instance from the AWS Price List (pricing:GetProducts) and refuses when the projected daily run-rate would exceed the budget. Managed endpoints die at their TTL or after idle_hours with zero invocations. MTD spend is Cost Explorer (bill data, ~24h lag).">?</span></h2>
+<h2>Cost guard &amp; policy <span class="help" tabindex="0" data-h="Instance-backed creates check an allow-list and live AWS pricing before launch. Serverless memory and concurrency are policy-bounded, while usage spend is monitored separately. Managed endpoints expire at their TTL or after idle_hours with zero invocations. Cost Explorer data may lag.">?</span></h2>
 <div class="grid2">
   <div class="wr-panel"><h3>Run-rate now</h3><div id="cost-body" class="scroll"></div></div>
   <div class="wr-panel"><h3>Policy</h3><div id="pol-body"></div></div>
@@ -208,20 +225,20 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 <h2>Definitions</h2>
 <div class="wr-panel"><dl class="defs" id="defs"></dl></div>
 <div class="errbox" id="errbox"></div>
-</div>
+</main>
 
 <script>
 (function () {
   "use strict";
   var FEEDS = ["/data/ai.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/ai.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/ai.json"];
   var PROXY = "https://api.justhodl.ai", PROXY_FALLBACK = "https://justhodl-data-proxy.raafouis.workers.dev";
-  var D = null, TAB = "endpoints", BUSY = false;
+  var D = null, TAB = "endpoints", BUSY = false, FLEET_FILTER = "ALL";
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n, d) { if (n == null || isNaN(n)) return "—"; return Number(n).toLocaleString("en-US", { maximumFractionDigits: d == null ? 2 : d }); }
   function usd(n) { return n == null ? "—" : "$" + fmt(n, 2); }
   function ago(iso) { if (!iso) return "—"; var t = Date.parse(iso); if (isNaN(t)) return String(iso).slice(0, 19); var m = Math.round((Date.now() - t) / 60000); if (m < 60) return m + "m ago"; if (m < 1440) return Math.round(m / 60) + "h ago"; return Math.round(m / 1440) + "d ago"; }
-  function stTag(s) { s = String(s || ""); var c = /InService|Completed|Ready|Active/.test(s) ? "g" : /Creating|Updating|InProgress|Starting|Pending|Stopping|Deleting|Assembling|running/i.test(s) ? "a" : /Fail|Error|Stopped|Deleted/.test(s) ? "r" : ""; return '<span class="tag ' + c + '">' + esc(s || "—") + "</span>"; }
+  function stTag(s) { s = String(s || ""); var c = /InService|Completed|Ready|Active|FRESH/i.test(s) ? "g" : /Creating|Updating|InProgress|Starting|Pending|Stopping|Deleting|Assembling|running|STALE|UNTIMESTAMPED/i.test(s) ? "a" : /Fail|Error|Stopped|Deleted|MISSING|DEAD|BLOCKED/i.test(s) ? "r" : ""; return '<span class="tag ' + c + '">' + esc(s || "—") + "</span>"; }
   function log(kind, msg, obj) { var c = $("console"); if (c.firstChild && c.firstChild.className.indexOf("dim") >= 0) c.innerHTML = ""; var l = document.createElement("div"); l.className = "l"; l.innerHTML = '<span class="' + (kind === "err" ? "bad" : kind === "ok" ? "ok" : "dim") + '">' + new Date().toISOString().slice(11, 19) + " " + esc(msg) + "</span>" + (obj ? "\n" + esc(typeof obj === "string" ? obj : JSON.stringify(obj, null, 1).slice(0, 4000)) : ""); c.insertBefore(l, c.firstChild); }
 
   // ── auth (same bridge as brain.html: verified Supabase bearer -> worker owner role) ──
@@ -255,10 +272,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     log("info", name + " …");
     try {
       var r = await api(path, body || {});
-      if (r.status === 200 && r.json && r.json.ok !== false) log("ok", name + " → " + r.status, r.json.result || r.json);
+      if (r.status === 200 && r.json && r.json.ok !== false) log("ok", name + " → " + r.status, /infer|market-read/.test(path) ? null : (r.json.result || r.json));
       else log("err", name + " → " + r.status + " " + ((r.json && (r.json.error || r.json.message)) || ""), r.json);
-      if (path !== "/inventory" && path !== "/infer" && r.status === 200) { var r2 = await api("/inventory", {}); log(r2.status === 200 ? "info" : "err", "inventory refresh → " + r2.status); }
-      await load();
+      if (path !== "/inventory" && path !== "/infer" && r.status === 200) { var r2 = await api("/inventory", {}); log(r2.status === 200 ? "info" : "err", "inventory refresh → " + r2.status); if (r2.status === 200 && r2.json.result) render(r2.json.result); }
+      else if (path === "/inventory" && r.status === 200 && r.json.result) render(r.json.result);
+      else if (user()) await loadOwnerInventory(true); else await load();
       return r;
     } finally { BUSY = false; document.querySelectorAll("button[data-act]").forEach(function (b) { b.disabled = false; }); }
   }
@@ -270,26 +288,26 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   function render(d) {
     D = d; $("errbox").textContent = "";
-    var inv = d.inventory || {}, eps = inv.endpoints || [], jobs = inv.jobs || [], live = eps.filter(function (e) { return e.status === "InService"; });
+    var inv = d.inventory || {}, isum = d.inventory_summary || {}, eps = inv.endpoints || [], jobs = inv.jobs || [], live = eps.filter(function (e) { return e.status === "InService"; });
     var running = jobs.filter(function (j) { return /InProgress|Starting|Stopping/.test(j.status || ""); });
     var pol = d.policy || {}, cost = d.cost || {}, proj = cost.projected || {}, mtd = cost.mtd || {};
-    $("meta").textContent = "engine v" + (d.version || "?") + " · read model " + ago(d.generated_at) + " (" + (d.generated_at || "").slice(0, 19) + "Z) · " + (d.elapsed_s || 0) + "s · private bucket " + (d.private_bucket || "—");
-    $("k-acct").textContent = "account " + (d.account || "—"); $("k-role").textContent = "role " + ((d.sagemaker_role_arn || "not bound").split("/").pop());
+    $("meta").textContent = "engine v" + (d.version || "?") + " · read model " + ago(d.generated_at) + " (" + (d.generated_at || "").slice(0, 19) + "Z) · " + (d.elapsed_s || 0) + "s";
+    $("k-acct").textContent = "region " + (d.region || "—"); $("k-role").textContent = "owner control plane";
     var over = (proj.usd_per_day || 0) > (pol.daily_budget_usd || 0);
     $("wr-headline").innerHTML = live.length + " endpoint" + (live.length === 1 ? "" : "s") + " InService · " + running.length + " job" + (running.length === 1 ? "" : "s") + " running · run-rate <span class=\"" + (over ? "bad" : "ok") + "\">" + usd(proj.usd_per_day) + "/day</span> of a " + usd(pol.daily_budget_usd) + " budget";
     var cat = d.catalog || {}, ds = d.brain_dataset;
     $("wr-sub").textContent = (cat.n || 0) + " hub cards in the catalog (" + (cat.article_models_present || []).length + " of the article's 4 RoBERTa-SEC cards present)" + (ds ? " · Brain dataset " + ds.dataset_id + ": " + fmt(ds.n_rows, 0) + " labelled rows from " + fmt(ds.source_n_notes, 0) + " notes" : " · no Brain dataset built yet") + " · MTD SageMaker " + (mtd.usd_mtd == null ? "unknown (" + esc(mtd.error || "") + ")" : usd(mtd.usd_mtd)) + ".";
     var errs = d.inventory_errors || {}; var errKeys = Object.keys(errs);
     $("wr-legs").innerHTML = [
-      ["Studio domains", (inv.domains || []).length, (inv.apps || []).filter(function (a) { return a.status === "InService"; }).length + " apps running"],
-      ["Endpoints", eps.length, live.length + " InService · " + eps.filter(function (e) { return (e.tags || {})["justhodl-ai-managed"] === "true"; }).length + " managed"],
-      ["Jobs", jobs.length, running.length + " running"],
-      ["Models", (inv.models || []).length, (inv.endpoint_configs || 0) + " endpoint configs"],
-      ["Feature groups", (inv.feature_groups || []).length, (inv.clusters || []).length + " HyperPod clusters"],
+      ["Studio domains", inv.domains ? inv.domains.length : ((isum.domains || {}).total || 0), inv.apps ? inv.apps.filter(function (a) { return a.status === "InService"; }).length + " apps running" : "details require owner sign-in"],
+      ["Endpoints", inv.endpoints ? eps.length : ((isum.endpoints || {}).total || 0), inv.endpoints ? live.length + " InService · " + eps.filter(function (e) { return (e.tags || {})["justhodl-ai-managed"] === "true"; }).length + " managed" : "details require owner sign-in"],
+      ["Jobs", inv.jobs ? jobs.length : ((isum.jobs || {}).total || 0), inv.jobs ? running.length + " running" : "details require owner sign-in"],
+      ["Models", inv.models ? inv.models.length : ((isum.models || {}).total || 0), inv.models ? (inv.endpoint_configs || 0) + " endpoint configs" : "details require owner sign-in"],
+      ["Feature groups", inv.feature_groups ? inv.feature_groups.length : ((isum.feature_groups || {}).total || 0), inv.clusters ? inv.clusters.length + " HyperPod clusters" : "details require owner sign-in"],
       ["API sections failing", errKeys.length, errKeys.length ? errKeys.join(", ") : "all readable"]
     ].map(function (l) { return '<div class="leg"><div class="k">' + l[0] + '</div><div class="v ' + (l[0].indexOf("failing") >= 0 && l[1] ? "bad" : "") + '">' + l[1] + '</div><div class="s">' + esc(l[2]) + "</div></div>"; }).join("");
     if (errKeys.length) $("inv-err").textContent = errKeys.map(function (k) { return k + ": " + errs[k]; }).join(" · "); else $("inv-err").textContent = "";
-    renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d); renderVerdict(d);
+    renderPipeline(d); renderReleaseGate(d); renderFleet(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d); renderVerdict(d);
     if (!READ) renderReadPublic(d);
   }
   function renderPipelineState(d) {
@@ -326,10 +344,51 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     ];
     $("pipe-steps").innerHTML = steps.map(function (s, i) { return '<div class="step ' + s[1] + '"><div class="n">' + (i + 1) + '</div><div class="t"><b>' + esc(s[0]) + "</b><span>" + esc(s[2]) + "</span></div></div>"; }).join("");
   }
+  function renderReleaseGate(d) {
+    var v = d.pipeline_verdict || {}, f = d.fleet_inputs || {}, fs = f.summary || {}, ds = d.brain_dataset || {};
+    var operational = String(v.status || "").toUpperCase() === "GREEN";
+    var coverage = fs.unique_feeds ? (fs.eligible || 0) / fs.unique_feeds : 0;
+    var investable = false;
+    var blockers = [];
+    if (!operational) blockers.push("end-to-end SageMaker canary is not green");
+    if (coverage < 0.8) blockers.push("eligible fleet coverage is " + fmt(coverage * 100, 0) + "%");
+    if (!ds.outcome_labels) blockers.push("Brain model is semantic retrieval/classification, not outcome-trained investing");
+    if (!((d.market_read || {}).performance || {}).n_calls) blockers.push("no matured out-of-sample call history");
+    var g = $("release-gate");
+    g.className = "wr-panel release-gate" + (operational && investable ? " ready" : "");
+    g.innerHTML = '<div class="wr-headline" style="font-size:16px"><span class="tag ' + (operational && investable ? "g" : "r") + '">' + (operational && investable ? "INVESTABLE" : "ADVISORY ONLY") + '</span> ' + (operational ? "pipeline reports green" : "pipeline not proven end to end") + '</div><div class="note">' + (blockers.length ? "Release blockers: " + esc(blockers.join(" · ")) : "All release gates passed.") + '</div><div class="dim">No autonomous allocation or execution. Capital permission remains separate from trade-entry readiness.</div>';
+  }
+  function renderFleet(d) {
+    var f = d.fleet_inputs || {}, s = f.summary || {}, counts = s.by_status || {}, rows = f.feeds || [];
+    $("fleet-summary").innerHTML = [
+      ["Declarations", s.declared], ["Unique feeds", s.unique_feeds], ["Eligible evidence", s.eligible],
+      ["Fresh", counts.FRESH || 0], ["Stale", counts.STALE || 0], ["Missing / error", (counts.MISSING || 0) + (counts.ERROR || 0)],
+      ["Untimestamped", counts.UNTIMESTAMPED || 0], ["Private excluded", s.private_excluded || 0],
+      ["Schema versioned", s.schema_versioned || 0]
+    ].map(function(x){return '<div class="leg"><div class="k">' + esc(x[0]) + '</div><div class="v">' + fmt(x[1],0) + '</div></div>';}).join("");
+    if (d.access === "PUBLIC_AGGREGATE") {
+      $("fleet-filter").innerHTML = "";
+      $("fleet-body").innerHTML = '<div class="note">Feed paths, engine mappings and schema details are private. Sign in as the owner to inspect every registered input.</div>';
+      return;
+    }
+    var statuses = ["ALL", "FRESH", "STALE", "MISSING", "ERROR", "UNTIMESTAMPED", "DEAD"];
+    $("fleet-filter").innerHTML = statuses.map(function(st){return '<button class="btn sm ' + (FLEET_FILTER === st ? "pri" : "") + '" data-fleet="' + st + '">' + st + ' ' + (st === "ALL" ? rows.length : (counts[st] || 0)) + '</button>';}).join("");
+    $("fleet-filter").querySelectorAll("button").forEach(function(b){b.onclick=function(){FLEET_FILTER=b.getAttribute("data-fleet");renderFleet(D);};});
+    var shown = rows.filter(function(r){return FLEET_FILTER === "ALL" || r.status === FLEET_FILTER;});
+    $("fleet-body").innerHTML = '<table><thead><tr><th>feed</th><th>engine(s)</th><th>page family</th><th>status</th><th>age</th><th>schema</th><th>evidence</th></tr></thead><tbody>' +
+      shown.map(function(r){return '<tr><td class="mono">' + esc(r.feed) + '</td><td>' + esc((r.engines || []).join(", ")) + '</td><td>' + esc((r.pages || []).join(", ")) + '</td><td>' + stTag(r.status) + '</td><td class="mono">' + (r.age_h == null ? "—" : fmt(r.age_h,1) + "h") + '</td><td class="mono">' + esc((r.schema_versions || []).join(", ") || "unspecified") + '</td><td>' + (r.eligible ? '<span class="tag g">eligible</span>' : '<span class="tag r">excluded</span>') + (r.private ? ' <span class="tag v">private</span>' : "") + '</td></tr>';}).join("") +
+      (shown.length ? "" : '<tr><td colspan="7" class="dim">no feeds in this state</td></tr>') + '</tbody></table>';
+  }
   function renderInventory() {
     var inv = (D && D.inventory) || {};
+    if (D && D.access === "PUBLIC_AGGREGATE") {
+      $("inv-tabs").innerHTML = "";
+      $("inv-body").innerHTML = '<div class="note">Resource names, tags, failures and job details are private. Sign in as the owner to load the complete SageMaker inventory.</div>';
+      return;
+    }
     var tabs = [["endpoints", "Endpoints"], ["jobs", "Training & AutoML"], ["models", "Models"], ["domains", "Studio"], ["notebooks", "Notebooks"], ["feature_groups", "Feature groups"], ["clusters", "HyperPod"]];
-    $("inv-tabs").innerHTML = tabs.map(function (t) { var n = t[0] === "domains" ? (inv.domains || []).length + (inv.apps || []).length : (inv[t[0]] || []).length; return '<button data-t="' + t[0] + '" class="' + (TAB === t[0] ? "on" : "") + '">' + t[1] + " · " + n + "</button>"; }).join("");
+    $("inv-tabs").setAttribute("role", "tablist");
+    $("inv-tabs").innerHTML = tabs.map(function (t) { var n = t[0] === "domains" ? (inv.domains || []).length + (inv.apps || []).length : (inv[t[0]] || []).length; return '<button role="tab" aria-selected="' + (TAB === t[0]) + '" data-t="' + t[0] + '" class="' + (TAB === t[0] ? "on" : "") + '">' + t[1] + " · " + n + "</button>"; }).join("");
     $("inv-tabs").querySelectorAll("button").forEach(function (b) { b.onclick = function () { TAB = b.getAttribute("data-t"); renderInventory(); }; });
     var h = "";
     if (TAB === "endpoints") {
@@ -338,7 +397,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       if (!eps.length) h += '<tr><td colspan="7" class="dim">no endpoints in the account</td></tr>';
       eps.forEach(function (e) {
         var t = e.tags || {}, v = (e.variants || [])[0] || {};
-        h += "<tr><td class=\"mono\">" + esc(e.name) + (e.failure ? '<div class="bad">' + esc(e.failure) + "</div>" : "") + "</td><td>" + stTag(e.status) + "</td><td class=\"mono\">" + (v.serverless ? "serverless " + (v.serverless_memory_mb || "") + "MB" : esc(v.instance_type || "—") + " ×" + (v.instance_count || 1)) + "</td><td class=\"mono\">" + (e.invocations_24h == null ? "—" : fmt(e.invocations_24h, 0)) + "</td><td>" + (t["justhodl-ai-managed"] === "true" ? '<span class="tag c">managed</span>' + (t["justhodl-ai-pinned"] === "true" ? '<span class="tag v">pinned</span>' : "") + (t["justhodl-ai-ttl-hours"] ? '<span class="tag">TTL ' + esc(t["justhodl-ai-ttl-hours"]) + "h</span>" : "") + '<div class="dim">' + esc(t["justhodl-ai-purpose"] || "") + "</div>" : '<span class="dim">no</span>') + "</td><td class=\"dim\">" + ago(e.created_at) + '</td><td><button class="btn sm danger" data-act="delete-ep" data-ep="' + esc(e.name) + '">delete</button></td></tr>';
+        h += "<tr><td class=\"mono\">" + esc(e.name) + (e.failure ? '<div class="bad">' + esc(e.failure) + "</div>" : "") + "</td><td>" + stTag(e.status) + "</td><td class=\"mono\">" + (v.serverless ? "serverless " + (v.serverless_memory_mb || "") + "MB" : esc(v.instance_type || "—") + " ×" + (v.instance_count || 1)) + "</td><td class=\"mono\">" + (e.invocations_24h == null ? "—" : fmt(e.invocations_24h, 0)) + "</td><td>" + (t["justhodl-ai-managed"] === "true" ? '<span class="tag c">managed</span>' + (t["justhodl-ai-pinned"] === "true" ? '<span class="tag v">pinned</span>' : "") + (t["justhodl-ai-ttl-hours"] ? '<span class="tag">TTL ' + esc(t["justhodl-ai-ttl-hours"]) + "h</span>" : "") + '<div class="dim">' + esc(t["justhodl-ai-purpose"] || "") + "</div>" : '<span class="dim">read only</span>') + "</td><td class=\"dim\">" + ago(e.created_at) + "</td><td>" + (t["justhodl-ai-managed"] === "true" ? '<button class="btn sm danger" data-act="delete-ep" data-ep="' + esc(e.name) + '">delete</button>' : "") + "</td></tr>";
       });
       h += "</tbody></table>";
     } else if (TAB === "jobs") {
@@ -419,7 +478,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     var out = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="' + h + '" style="max-width:100%;font-family:var(--font-mono);font-size:10px">';
     for (var i = 0; i <= 4; i++) { var yy = y0 + (y1 - y0) * i / 4; out += '<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + Y(yy) + '" y2="' + Y(yy) + '" stroke="rgba(120,145,180,.15)"/><text x="' + (pad.l - 4) + '" y="' + (Y(yy) + 3) + '" fill="#6b7a92" text-anchor="end">' + yy.toFixed(3) + '</text>'; }
     for (var j = 0; j <= 4; j++) { var xx = x0 + (x1 - x0) * j / 4; out += '<text x="' + X(xx) + '" y="' + (h - 8) + '" fill="#6b7a92" text-anchor="middle">' + (opts.xfmt ? opts.xfmt(xx) : Math.round(xx)) + '</text>'; }
-    if (opts.baseline != null && opts.baseline <= y1 && opts.baseline >= y0) out += '<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + Y(opts.baseline) + '" y2="' + Y(opts.baseline) + '" stroke="#ff5c7a" stroke-dasharray="2 4"/><text x="' + (w - pad.r) + '" y="' + (Y(opts.baseline) - 3) + '" fill="#ff5c7a" text-anchor="end">coin-flip ln k = ' + opts.baseline.toFixed(3) + '</text>';
+      if (opts.baseline != null && opts.baseline <= y1 && opts.baseline >= y0) out += '<line x1="' + pad.l + '" x2="' + (w - pad.r) + '" y1="' + Y(opts.baseline) + '" y2="' + Y(opts.baseline) + '" stroke="#ff5c7a" stroke-dasharray="2 4"/><text x="' + (w - pad.r) + '" y="' + (Y(opts.baseline) - 3) + '" fill="#ff5c7a" text-anchor="end">uniform random ln k = ' + opts.baseline.toFixed(3) + '</text>';
     series.forEach(function (s) { var p = s.pts.filter(function (q) { return isFinite(q.x) && isFinite(q.y); }).sort(function (a, b) { return a.x - b.x; }); if (!p.length) return; out += '<polyline fill="none" stroke="' + s.color + '" stroke-width="2"' + (s.dash ? ' stroke-dasharray="4 3"' : '') + ' points="' + p.map(function (q) { return X(q.x) + "," + Y(q.y); }).join(" ") + '"/>'; p.forEach(function (q) { out += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="3" fill="' + s.color + '"><title>' + esc(s.name + ": " + q.y.toFixed(4) + " @ " + (opts.xfmt ? opts.xfmt(q.x) : q.x)) + '</title></circle>'; }); });
     out += '<text x="' + pad.l + '" y="' + (pad.t + 2) + '" fill="#a8b3c7">' + series.map(function (s) { return '<tspan fill="' + s.color + '">' + esc(s.name) + '</tspan>'; }).join(" · ") + "</text></svg>";
     return out;
@@ -432,7 +491,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       $("curve-id").textContent = c.curve_id + " · " + c.endpoint;
       var done = (c.runs || []).filter(function (r) { return r.metrics && r.metrics["validation:mlogloss"] != null; });
       $("curve-chart").innerHTML = svgLine([{ name: "validation loss", color: "#00d4ff", pts: done.map(function (r) { return { x: r.n_train, y: r.metrics["validation:mlogloss"] }; }) }, { name: "train loss", color: "#a78bfa", dash: true, pts: done.map(function (r) { return { x: r.n_train, y: r.metrics["train:mlogloss"] }; }) }], 560, 220, { baseline: base, xfmt: function (v) { return fmt(v, 0) + " rows"; } });
-      $("curve-table").innerHTML = '<table><thead><tr><th>fraction</th><th>train rows</th><th>status</th><th>validation loss</th><th>train loss</th><th>billable</th><th>job</th></tr></thead><tbody>' + (c.runs || []).map(function (r) { var m = r.metrics || {}; return "<tr><td class=\"mono\">" + fmt(100 * r.fraction, 0) + "%</td><td class=\"mono\">" + fmt(r.n_train, 0) + "</td><td>" + stTag(r.status) + (r.failure ? '<div class="bad">' + esc(r.failure) + "</div>" : "") + "</td><td class=\"mono\">" + (m["validation:mlogloss"] != null ? fmt(m["validation:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (m["train:mlogloss"] != null ? fmt(m["train:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (r.billable_s != null ? fmt(r.billable_s / 60, 1) + " min" : "—") + "</td><td class=\"mono dim\">" + esc(r.job_name) + "</td></tr>"; }).join("") + "</tbody></table>" + (base ? '<div class="note">k = ' + k + " classes → a coin-flip scores ln k = " + base.toFixed(3) + "; anything below it is learned signal. Validation falling with rows = still learning (label more notes); flat = ceiling reached for this embedding.</div>" : "");
+    $("curve-table").innerHTML = '<table><thead><tr><th>fraction</th><th>train rows</th><th>status</th><th>validation loss</th><th>train loss</th><th>billable</th><th>job</th></tr></thead><tbody>' + (c.runs || []).map(function (r) { var m = r.metrics || {}; return "<tr><td class=\"mono\">" + fmt(100 * r.fraction, 0) + "%</td><td class=\"mono\">" + fmt(r.n_train, 0) + "</td><td>" + stTag(r.status) + (r.failure ? '<div class="bad">' + esc(r.failure) + "</div>" : "") + "</td><td class=\"mono\">" + (m["validation:mlogloss"] != null ? fmt(m["validation:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (m["train:mlogloss"] != null ? fmt(m["train:mlogloss"], 4) : "—") + "</td><td class=\"mono\">" + (r.billable_s != null ? fmt(r.billable_s / 60, 1) + " min" : "—") + "</td><td class=\"mono dim\">" + esc(r.job_name) + "</td></tr>"; }).join("") + "</tbody></table>" + (base ? '<div class="note">k = ' + k + " categories. Uniform-random log-loss is ln(k) = " + base.toFixed(3) + ". Better loss means category generalization only; it is not evidence of market forecasting skill.</div>" : "");
     }
     var runs = (L.classifier_runs || []).filter(function (r) { return r.job_name; });
     var doneR = runs.filter(function (r) { return r.metrics && r.metrics["validation:mlogloss"] != null; });
@@ -491,6 +550,16 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     $("verdict").innerHTML = h;
   }
   var READ_INFLIGHT = false, READ_LAST = 0, READ_ERR_LOGGED = 0;
+  var INVENTORY_INFLIGHT = false;
+  async function loadOwnerInventory(force) {
+    if (!user() || INVENTORY_INFLIGHT) return;
+    INVENTORY_INFLIGHT = true;
+    try {
+      var r = await api("/inventory", null, "GET");
+      if (r.status === 200 && r.json && r.json.result) render(r.json.result);
+      else if (force) log("err", "owner inventory → " + r.status, r.json);
+    } finally { INVENTORY_INFLIGHT = false; }
+  }
   async function loadOwnerRead(force) {
     if (!user() || READ_INFLIGHT) return;
     if (!force && Date.now() - READ_LAST < 30000) return;          // auth onChange can fire in bursts -- one read per 30s
@@ -517,7 +586,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   function bindActs(root) { root.querySelectorAll("button[data-act]").forEach(function (b) { b.onclick = function () { dispatch(b); }; }); }
   async function dispatch(b) {
     var a = b.getAttribute("data-act");
-    if (a === "market-read") { if (!confirm("Run a fresh read now? One Sonnet call over the fleet board + your Brain playbook (cents); its calls are logged to the ledger and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(); return; }
+    if (a === "market-read") { if (!confirm("Run a fresh governed read now? It uses eligible fleet evidence plus private Brain references. Valid calls are logged and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(true); return; }
     if (a === "pipeline") { if (!confirm("Run the full Brain pipeline? It deploys an embedding endpoint (serverless when the card allows, else real-time with a 3h TTL that is deleted at the end), embeds all notes, trains the spot classifier, serves it serverless, builds the retrieval endpoint and runs the first market read. Advances every 10 min by schedule; cents to a few dollars.")) return; return act("start pipeline", "/pipeline/start", { force: true }); }
     if (a === "pipeline-stop") { if (!confirm("Stop the pipeline? Live endpoints are left as they are (the hourly guard still applies TTLs).")) return; return act("stop pipeline", "/pipeline/stop", {}); }
     if (a === "dataset") return act("build Brain dataset", "/dataset/build", {});
@@ -528,7 +597,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (a === "automl-tab") { var uri = prompt("s3:// CSV prefix (header row present) from the warehouse:"); if (!uri) return; var target = prompt("target column name:"); if (!target) return; var pt = prompt("problem type: BinaryClassification / MulticlassClassification / Regression (blank = auto):") || ""; return act("Autopilot tabular (tier 3)", "/train/automl", { kind: "tabular", csv_uri: uri, target: target, problem_type: pt }); }
     if (a === "deploy") { var m = b.getAttribute("data-model"), sv = $("cat-mode").value === "serverless"; if (!confirm((sv ? "Deploy " + m + " SERVERLESS (pay per request, no idle cost)?" : "Deploy " + m + " on " + $("cat-inst").value + " with a " + $("cat-ttl").value + "h TTL (bills per hour while InService)?"))) return; return act("deploy " + m, "/deploy", { model_id: m, serverless: sv, instance_type: $("cat-inst").value, ttl_hours: parseFloat($("cat-ttl").value) || 3 }); }
     if (a === "spec") { var m2 = b.getAttribute("data-model"); if (!user()) { log("err", "sign in to read hub documents"); renderAuth(); return; } log("info", "describe " + m2 + " …"); var r = await api("/model?model_id=" + encodeURIComponent(m2), null, "GET"); log(r.status === 200 ? "ok" : "err", "describe " + m2 + " → " + r.status, r.json.result || r.json); return; }
-    if (a === "finetune") { var m3 = b.getAttribute("data-model"); var tu = prompt("Fine-tune " + m3 + " (tier 2). s3:// training data prefix (the card's own format; the Brain AutoML CSV is s3://" + (D.private_bucket || "") + "/ai/datasets/brain/<id>/automl/):"); if (!tu) return; var inst = prompt("training instance (blank = card default):") || ""; return act("fine-tune " + m3, "/train/finetune", { model_id: m3, training_uri: tu, instance_type: inst || undefined }); }
+    if (a === "finetune") { var m3 = b.getAttribute("data-model"); var tu = prompt("Fine-tune " + m3 + " (tier 2). Enter an approved private s3:// training-data prefix in the model card's required format:"); if (!tu) return; var inst = prompt("training instance (blank = card default):") || ""; return act("fine-tune " + m3, "/train/finetune", { model_id: m3, training_uri: tu, instance_type: inst || undefined }); }
     if (a === "deploy-trained") { var j = b.getAttribute("data-job"); if (!confirm("Serve " + j + " as a SERVERLESS endpoint (pay per request)?")) return; return act("serve " + j, "/deploy-trained", { job_name: j, serverless: true }); }
     if (a === "delete-ep") { var e = b.getAttribute("data-ep"); if (!confirm("Delete endpoint " + e + "? Billing stops; the model and config stay.")) return; return act("delete " + e, "/endpoint/delete", { endpoint: e }); }
     if (a === "stop-job") { var jn = b.getAttribute("data-job"); if (!confirm("Stop " + jn + "?")) return; return act("stop " + jn, "/job/stop", { job_name: jn, kind: b.getAttribute("data-kind") }); }
@@ -549,9 +618,22 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   (async function boot() {
     try { if (await waitForAuth(4000)) { await JustHodlAuth.init(); } } catch (e) { }
     renderAuth();
-    if (window.JustHodlAuth && JustHodlAuth.onChange) JustHodlAuth.onChange(function () { renderAuth(); loadOwnerRead(); });
+    if (window.JustHodlAuth && JustHodlAuth.onChange) JustHodlAuth.onChange(async function () {
+      if (!user()) {
+        READ = null;
+        $("pg-out").innerHTML = "";
+        $("console").innerHTML = '<div class="l dim">private session cleared</div>';
+        await load();
+      } else {
+        await loadOwnerInventory(true);
+        await loadOwnerRead(true);
+      }
+      renderAuth();
+    });
+    document.querySelectorAll(".help").forEach(function(h){h.setAttribute("role","note");});
+    document.querySelectorAll(".field").forEach(function(f){var l=f.querySelector("label"), c=f.querySelector("input,select,textarea,button"); if(l&&c){if(!c.id)c.id="ai-field-"+Math.random().toString(36).slice(2);l.htmlFor=c.id;}});
     await load();
-    loadOwnerRead();
+    if (user()) { await loadOwnerInventory(); await loadOwnerRead(); }
     setInterval(function () { if (!BUSY) load(); }, 300000);
   })();
 })();
