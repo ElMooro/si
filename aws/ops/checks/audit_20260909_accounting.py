@@ -62,7 +62,13 @@ def inspect_payload(key, doc):
         if doc.get('audit_version') != '2026-09-09.1' or not doc.get('available_at') or not doc.get('snapshot_id'):
             errors.append('missing immutable model provenance')
     elif key == 'data/_freshness-monitor.json':
-        if doc.get('version') != '2.1.0': errors.append('old freshness implementation')
+        if doc.get('version') != '3.0.0' or doc.get('schema_version') != 'fleet-freshness-monitor.v3': errors.append('old freshness implementation')
+        marker=doc.get('publication') or {}
+        if marker != {'schema_version':'public-freshness-report.v1','scope':'PUBLIC_ENGINE_HEALTH','contains_private_data':False} or marker.get('contains_private_data') is not False:
+            errors.append('freshness public privacy marker missing')
+        if not isinstance(doc.get('results'),list) or (doc.get('coverage') or {}).get('results_complete') is not True:
+            errors.append('freshness result coverage incomplete')
+        if doc.get('n_keys_tracked') != len(doc.get('results') or []): errors.append('freshness result count does not reconcile')
         if doc.get('status') not in ('HEALTHY','DEGRADED','UNKNOWN'): errors.append('missing explicit health state')
         if doc.get('status') == 'HEALTHY' and (doc.get('n_unknown',0) or not doc.get('full_expected_coverage')):
             errors.append('healthy without verified expected coverage')

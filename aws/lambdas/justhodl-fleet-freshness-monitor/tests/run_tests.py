@@ -16,8 +16,11 @@ sys.path.insert(0, str(HERE.parents[2] / "shared"))
 class _S3:
     def __init__(self, objects):
         self.objects = dict(objects)   # key -> bytes
+        self.reads = []
+        self.writes = []
 
     def get_object(self, Bucket, Key, Range=None):
+        self.reads.append(Key)
         if Key not in self.objects:
             raise Exception("NoSuchKey " + Key)
         b = self.objects[Key]
@@ -27,6 +30,7 @@ class _S3:
         return {"Body": types.SimpleNamespace(read=lambda: b), "LastModified": datetime.now(timezone.utc)}
 
     def put_object(self, **kw):
+        self.writes.append(kw["Key"])
         self.objects[kw["Key"]] = kw["Body"]
 
     def get_paginator(self, name):
@@ -49,8 +53,7 @@ def _load(objects, max_keys=None):
     bc = types.ModuleType("botocore"); bce = types.ModuleType("botocore.exceptions"); bce.ClientError = Exception
     bc.exceptions = bce; sys.modules["botocore"] = bc; sys.modules["botocore.exceptions"] = bce
     import os
-    if max_keys:
-        os.environ["MAX_KEYS_PER_RULE"] = str(max_keys)
+    os.environ["MAX_KEYS_PER_RULE"] = str(max_keys or 10000)
     spec = importlib.util.spec_from_file_location("fm_under_test", SRC)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -152,6 +155,141 @@ def test_actual_handler_missing_registry_publishes_unknown():
     assert result["statusCode"]==503
     state=json.loads(s3.objects["data/_freshness-monitor.json"])
     assert state["status"]=="UNKNOWN" and state["full_expected_coverage"] is False
+
+
+def _handler_fixture(count=1):
+    manifest = {"rules": [{"prefix": "data/", "default_max_age_h": 26, "note": "SYNTHETIC_PRIVATE_DIAGNOSTIC"}]}
+    expected = {"engines": [{"engine": "fixture", "keys": ["data/feed-%03d.json" % i for i in range(count)]}]}
+    return {"data/_freshness-manifest.json": json.dumps(manifest).encode(),
+            "data/engine-manifest.json": json.dumps(expected).encode(),
+            **{"data/feed-%03d.json" % i: json.dumps({"generated_at": _iso(200), "private_canary": "SYNTHETIC_PRIVATE_DIAGNOSTIC"}).encode() for i in range(count)}}
+
+
+def test_actual_handler_quiet_refresh_preserves_all_rows_and_never_notifies_or_updates_history():
+    mod, s3 = _load(_handler_fixture(125))
+    def denied(*a, **k): raise AssertionError("quiet refresh must not notify")
+    mod.send_telegram = denied; mod.publish_sns = denied
+    result = mod.lambda_handler({"mode": "quiet_refresh"})
+    state = json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert state["status"] == "DEGRADED"
+    assert state["n_source_stale"] == len(state["source_stale"]) == 125
+    assert len(state["source_stale_top_50"]) == 50 and state["summary_limits"]["complete_results_field"] == "results"
+    assert state["n_keys_tracked"] == len(state["results"]) == state["coverage"]["results_returned"]
+    assert len(state["stale"]) >= 125 and state["coverage"]["results_complete"] is True
+    assert s3.writes == ["data/_freshness-monitor.json"]
+    assert "data/_freshness-alert-history.json" not in s3.reads
+    assert state["notifications_suppressed"] is True and state["n_alerts_raised"] == 0
+    assert "SYNTHETIC_PRIVATE_DIAGNOSTIC" not in json.dumps(state)
+    checker_path = HERE.parents[2] / "ops/checks/audit_20260909_accounting.py"
+    spec = importlib.util.spec_from_file_location("freshness_release_checker", checker_path)
+    checker = importlib.util.module_from_spec(spec); spec.loader.exec_module(checker)
+    assert checker.inspect_payload("data/_freshness-monitor.json", state) == []
+
+
+def test_actual_handler_complete_unknown_invalid_and_missing_groups_exceed_legacy_caps():
+    objects = _handler_fixture(180)
+    for i in range(110):
+        objects["data/feed-%03d.json" % i] = b'{"rows":[1]}'
+    for i in range(110, 180):
+        objects["data/feed-%03d.json" % i] = b''
+    expected = json.loads(objects["data/engine-manifest.json"])
+    expected["engines"][0]["keys"].extend("public/missing-%03d.json" % i for i in range(60))
+    objects["data/engine-manifest.json"] = json.dumps(expected).encode()
+    mod, s3 = _load(objects)
+    class Missing(Exception):
+        response = {"Error": {"Code": "404"}}
+    s3.head_object = lambda **kw: (_ for _ in ()).throw(Missing())
+    mod.lambda_handler({"mode": "quiet_refresh"})
+    state = json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert state["n_unknown"] == len(state["unknown"]) >= 110
+    assert state["n_invalid_or_empty"] == len(state["invalid_or_empty"]) == 70
+    assert state["n_missing"] == len(state["missing"]) == 60
+    assert state["n_keys_tracked"] == len(state["results"]) == 241
+    assert state["status"] == "DEGRADED" and state["full_expected_coverage"] is False
+
+
+def test_actual_handler_validate_only_computes_without_any_writes_and_preserves_normal_alerts():
+    mod, s3 = _load(_handler_fixture())
+    def denied(*a, **k): raise AssertionError("validation must not notify")
+    mod.send_telegram = denied; mod.publish_sns = denied
+    result = mod.lambda_handler({"mode": "validate_only"})
+    assert result["ok"] is True and result["validation_only"] is True
+    assert result["schema_version"] == "audit-freshness-1.0" and result["artifact_size_bytes"] > 0
+    assert result["report_status"] == "DEGRADED" and s3.writes == []
+    assert "data/feed-000.json" in s3.reads
+    calls = []
+    mod.send_telegram = lambda *a: calls.append("telegram") or True
+    mod.publish_sns = lambda *a: calls.append("sns") or True
+    mod.lambda_handler()
+    assert "telegram" in calls and "sns" in calls
+    assert "data/_freshness-seen-keys.json" in s3.writes and "data/_freshness-alert-history.json" in s3.writes
+
+
+def test_actual_handler_private_key_guards_precede_any_body_or_expected_head_read():
+    objects = _handler_fixture()
+    private_keys = ["data/brain.json", "portfolio/snapshot.json", "data/vol-regime-private.json", "backtest/ledger/versions/private.json"]
+    for key in private_keys: objects[key] = b'{"generated_at":"2000-01-01T00:00:00Z","canary":"SYNTHETIC_PRIVATE_DIAGNOSTIC"}'
+    expected = json.loads(objects["data/engine-manifest.json"])
+    expected["engines"][0]["keys"].extend(private_keys)
+    objects["data/engine-manifest.json"] = json.dumps(expected).encode()
+    mod, s3 = _load(objects)
+    s3.head_object = lambda **kw: (_ for _ in ()).throw(AssertionError("private HEAD not permitted"))
+    mod.lambda_handler({"mode": "quiet_refresh"})
+    state = json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert not set(private_keys) & set(s3.reads)
+    assert all(row["key"] not in private_keys for row in state["results"])
+    assert state["coverage"]["expected_private_sources_excluded"] == len(private_keys)
+    for key in private_keys:
+        assert mod.validate_body(key, 100, 26)["reason_code"] == "PRIVATE_SOURCE_EXCLUDED"
+    assert not set(private_keys) & set(s3.reads)
+
+
+def test_actual_handler_exception_canary_and_incomplete_scan_fail_safely():
+    import contextlib, io
+    canary = "SYNTHETIC_PRIVATE_DIAGNOSTIC"
+    mod, s3 = _load(_handler_fixture())
+    original = s3.get_object
+    def fail_body(**kw):
+        if kw["Key"] == "data/feed-000.json": raise RuntimeError(canary)
+        return original(**kw)
+    s3.get_object = fail_body
+    logs = io.StringIO()
+    with contextlib.redirect_stdout(logs):
+        mod.lambda_handler({"mode": "quiet_refresh"})
+    state = json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert canary not in json.dumps(state) + logs.getvalue()
+    row = next(row for row in state["results"] if row["key"] == "data/feed-000.json")
+    assert row["status"] == "UNKNOWN" and row["reason_code"] == "CONTENT_READ_FAILED"
+    mod.list_keys_under_rule = lambda *a: (_ for _ in ()).throw(RuntimeError(canary))
+    mod.lambda_handler({"mode": "quiet_refresh"})
+    state = json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert state["status"] == "UNKNOWN" and state["reason_code"] == "FEED_ENUMERATION_FAILED"
+    assert state["coverage"]["enumeration_complete"] is False and canary not in json.dumps(state)
+    s3.writes.clear()
+    result = mod.lambda_handler({"mode": "validate_only"})
+    assert result["ok"] is False and result["status"] == "BLOCKED" and not s3.writes
+
+
+def test_actual_handler_http_spoof_denied_before_all_reads_and_writes():
+    mod, s3 = _load(_handler_fixture())
+    response = mod.lambda_handler({"headers": {}, "mode": "quiet_refresh", "source": "aws.events"})
+    assert response["statusCode"] == 405 and not s3.reads and not s3.writes
+
+
+def test_projection_whitelists_diagnostics_and_withholds_unmarked_legacy():
+    from public_brain_projection import PUBLIC_FRESHNESS_REPORT, sanitize_public
+    canary = "SYNTHETIC_PRIVATE_DIAGNOSTIC"
+    old = sanitize_public("data/_freshness-monitor.json", {"reason": canary, "source_stale_top_50": [{"reason": canary}]})
+    assert old["status"] == "UNKNOWN" and old["coverage"]["results_complete"] is False and canary not in json.dumps(old)
+    assert sanitize_public("data/_freshness-monitor.json", old) == old
+    doc = {"publication": PUBLIC_FRESHNESS_REPORT, "schema_version": "fleet-freshness-monitor.v3", "status": "DEGRADED", "reason": canary,
+           "results": [{"key": "data/a.json", "status": "UNKNOWN", "reason": canary, "reason_code": "CONTENT_READ_FAILED", "error": canary, "zero": 0},
+                       {"key": "portfolio/snapshot.json", "status": "FRESH", "reason": canary}],
+           "manifest_rules": [{"prefix": "data/", "note": canary}], "extra": canary}
+    safe = sanitize_public("data/_freshness-monitor.json", doc)
+    assert canary not in json.dumps(safe) and len(safe["results"]) == 1
+    assert safe["results"][0]["reason"] == "Content inspection unavailable."
+    assert sanitize_public("data/_freshness-monitor.json", safe) == safe
 
 
 if __name__ == "__main__":

@@ -31,8 +31,10 @@ import boto3
 from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from private_artifact import is_private_source
+from public_brain_projection import FRESHNESS_REASONS, PUBLIC_FRESHNESS_REPORT, sanitize_public
 
-VERSION = "2.1.0"   # audit 2026-09-08 INST-13: content validation, source-vs-artifact age, missing expected outputs, truncation coverage
+VERSION = "3.0.0"   # audit 2026-09-08 INST-13: content validation, source-vs-artifact age, missing expected outputs, truncation coverage
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -71,7 +73,7 @@ def send_telegram(msg):
                 return True
             raise
     except Exception as e:
-        print(f"[telegram] failed: {e}")
+        print("[telegram] DELIVERY_FAILED")
         return False
 
 
@@ -80,11 +82,11 @@ def publish_sns(subject, msg):
         sns.publish(TopicArn=SNS_ARN, Subject=subject[:100], Message=msg)
         return True
     except Exception as e:
-        print(f"[sns] failed: {e}")
+        print("[sns] DELIVERY_FAILED")
         return False
 
 
-def load_manifest():
+def load_manifest(stamp=True):
     """Load the rules-based manifest from S3. Returns None if missing."""
     try:
         obj = s3.get_object(Bucket=BUCKET, Key='data/_freshness-manifest.json')
@@ -93,7 +95,7 @@ def load_manifest():
         # (4255 forensics flagged this key 651h stale; it is a rules file the
         # monitor consumes, and the honest freshness signal is validation.)
         try:
-            if isinstance(m, dict):
+            if stamp and isinstance(m, dict):
                 m['last_validated'] = datetime.now(timezone.utc).isoformat()
                 m['validated_by'] = 'justhodl-fleet-freshness-monitor'
                 s3.put_object(Bucket=BUCKET,
@@ -102,7 +104,7 @@ def load_manifest():
                               ContentType='application/json',
                               CacheControl='no-store')
         except Exception as e:
-            print(f"[manifest-stamp] {e}")
+            print("[manifest-stamp] WRITE_FAILED")
         return m
     except ClientError as e:
         if e.response['Error']['Code'] in ('NoSuchKey', '404'):
@@ -112,6 +114,8 @@ def load_manifest():
 
 def is_excluded(key, manifest):
     """Check if a key should be skipped (excluded prefix or admin-only)."""
+    if is_private_source(key):
+        return True
     excl_prefixes = manifest.get('exclude_prefixes', []) or []
     if any(key.startswith(p) for p in excl_prefixes):
         return True
@@ -123,6 +127,7 @@ def is_excluded(key, manifest):
         'data/_freshness-manifest.json',
         'data/_freshness-monitor.json',
         'data/_freshness-alert-history.json',
+        'data/_freshness-seen-keys.json',
         'data/_fleet-monitor.json',
         'data/_fleet-monitor-alert-history.json',
     )
@@ -189,9 +194,11 @@ def _parse_ts(v):
 def validate_body(key, size, max_age_h, now=None, schema=None):
     """Fetch (bounded) and classify the object's content. Returns a dict of findings."""
     now = now or datetime.now(timezone.utc)
+    if is_private_source(key):
+        return {'validated': False, 'content_status': 'UNKNOWN', **failure('PRIVATE_SOURCE_EXCLUDED')}
     out = {'validated': False}
     if size == 0:
-        return {'validated': True, 'content_status': 'EMPTY', 'reason': 'zero-byte object'}
+        return {'validated': True, 'content_status': 'EMPTY', **failure('ZERO_BYTE_OBJECT')}
     try:
         ts = None
         if size <= VALIDATE_MAX_BYTES:
@@ -199,25 +206,25 @@ def validate_body(key, size, max_age_h, now=None, schema=None):
             try:
                 doc = json.loads(body)
             except Exception:
-                return {'validated': True, 'content_status': 'INVALID', 'reason': 'not valid JSON'}
+                return {'validated': True, 'content_status': 'INVALID', **failure('INVALID_JSON')}
             if doc in ({}, [], None, ''):
-                return {'validated': True, 'content_status': 'EMPTY', 'reason': 'empty JSON document'}
+                return {'validated': True, 'content_status': 'EMPTY', **failure('EMPTY_JSON')}
             schema = schema if isinstance(schema, dict) else {}
             for field in schema.get('required_fields', []):
                 value = doc
                 for part in field.split('.'):
                     value = value.get(part) if isinstance(value, dict) else None
                 if value is None:
-                    return {'validated': True, 'content_status': 'INVALID', 'reason': 'missing required field: ' + field}
+                    return {'validated': True, 'content_status': 'INVALID', **failure('REQUIRED_FIELD_MISSING')}
             if schema.get('schema_version') is not None and (not isinstance(doc, dict) or doc.get('schema_version') != schema['schema_version']):
-                return {'validated': True, 'content_status': 'INVALID', 'reason': 'schema version mismatch'}
+                return {'validated': True, 'content_status': 'INVALID', **failure('SCHEMA_VERSION_MISMATCH')}
             if isinstance(doc, dict):
                 fields = tuple(schema.get('timestamp_fields') or ()) or TS_FIELDS
                 for f in fields:
                     if doc.get(f) is not None:
                         ts = _parse_ts(doc.get(f))
                         if ts:
-                            out['source_ts_field'] = f
+                            out['source_ts_field'] = f if f in TS_FIELDS else 'configured_timestamp_field'
                             break
             out['n_top_level'] = len(doc) if isinstance(doc, (list, dict)) else None
         else:
@@ -235,18 +242,19 @@ def validate_body(key, size, max_age_h, now=None, schema=None):
             out['source_age_h'] = round(src_age_h, 2)
             if src_age_h < -0.1:
                 out['content_status'] = 'INVALID'
-                out['reason'] = 'future timestamp %s' % ts.isoformat()
+                out.update(failure('SOURCE_TIME_FUTURE'))
             elif src_age_h > max_age_h * ALERT_RATIO:
                 out['content_status'] = 'SOURCE_STALE'
-                out['reason'] = 'artifact rewritten but its own %s is %.0fh old (SLA %.0fh)' % (out.get('source_ts_field'), src_age_h, max_age_h)
+                out.update(failure('SOURCE_TIME_STALE'))
             else:
                 out['content_status'] = 'UNKNOWN' if out.get('partial_validation') else 'OK'
         else:
             out['content_status'] = 'UNKNOWN'
+            out.update(failure('NO_SOURCE_TIMESTAMP'))
             out['note'] = ((out.get('note') or '') + ' no valid source timestamp found').strip()
     except Exception as e:
         out['content_status'] = 'UNKNOWN'
-        out['reason'] = str(e)[:80]
+        out.update(failure('CONTENT_READ_FAILED'))
     return out
 
 
@@ -264,7 +272,7 @@ def load_expected_keys():
     try:
         m = json.loads(s3.get_object(Bucket=BUCKET, Key='data/engine-manifest.json')['Body'].read())
     except Exception as e:
-        print(f"[freshness-monitor] engine-manifest unreadable: {str(e)[:80]}")
+        print("[freshness-monitor] EXPECTED_MANIFEST_UNAVAILABLE")
         raise RuntimeError("expected output manifest unavailable") from e
     if not isinstance(m, dict) or not isinstance(m.get('engines'), list) or not m['engines']:
         raise ValueError("expected output manifest has no engine contracts")
@@ -278,7 +286,8 @@ def load_expected_keys():
 
 def load_seen_keys():
     try:
-        return json.loads(s3.get_object(Bucket=BUCKET, Key='data/_freshness-seen-keys.json')['Body'].read())
+        doc = json.loads(s3.get_object(Bucket=BUCKET, Key='data/_freshness-seen-keys.json')['Body'].read())
+        return doc if isinstance(doc, dict) else {}
     except Exception:
         return {}
 
@@ -299,9 +308,12 @@ def evaluate_key(obj, rule, manifest):
     if not key.endswith('.json'):
         return None
     
-    max_age_h = resolve_max_age(key, rule, manifest)
+    try:
+        max_age_h = resolve_max_age(key, rule, manifest)
+    except Exception:
+        max_age_h = float('nan')
     if not math.isfinite(max_age_h) or max_age_h <= 0:
-        return {'key':key, 'status':'UNKNOWN', 'reason':'invalid freshness SLA', 'age_h':None}
+        return {'key':key, 'status':'UNKNOWN', **failure('INVALID_FRESHNESS_SLA'), 'age_h':None}
     last_modified = obj['LastModified']
     age_h = (datetime.now(timezone.utc) - last_modified).total_seconds() / 3600
     alert_threshold = max_age_h * ALERT_RATIO
@@ -334,7 +346,8 @@ def evaluate_key(obj, rule, manifest):
 def load_alert_history():
     try:
         obj = s3.get_object(Bucket=BUCKET, Key='data/_freshness-alert-history.json')
-        return json.loads(obj['Body'].read().decode())
+        doc = json.loads(obj['Body'].read().decode())
+        return doc if isinstance(doc, dict) else {}
     except Exception:
         return {}
 
@@ -360,46 +373,87 @@ def should_alert(key, history):
         return True
 
 
-def publish_unknown(reason, coverage=None):
-    state={'version':VERSION,'status':'UNKNOWN','generated_at':datetime.now(timezone.utc).isoformat(),
-           'reason':reason,'coverage':coverage or {},'n_fresh':0,'full_expected_coverage':False}
-    s3.put_object(Bucket=BUCKET,Key='data/_freshness-monitor.json',Body=json.dumps(state).encode(),ContentType='application/json',CacheControl='no-store')
-    return {'statusCode':503,'body':json.dumps(state)}
+def failure(code):
+    return {'reason_code': code, 'reason': FRESHNESS_REASONS[code]}
+
+
+def finish(state, mode, status_code=200):
+    state.update(schema_version='fleet-freshness-monitor.v3', publication=dict(PUBLIC_FRESHNESS_REPORT))
+    public = sanitize_public('data/_freshness-monitor.json', state)
+    body = json.dumps(public, allow_nan=False).encode()
+    if mode == 'validate_only':
+        return {'ok': public['status'] != 'UNKNOWN', 'validation_only': True,
+                'schema_version': 'audit-freshness-1.0', 'status': 'BLOCKED' if public['status'] == 'UNKNOWN' else 'READY',
+                'report_status': public['status'], 'artifact_size_bytes': len(body)}
+    s3.put_object(Bucket=BUCKET, Key='data/_freshness-monitor.json', Body=body,
+                  ContentType='application/json', CacheControl='no-store')
+    summary = {'schema_version': public['schema_version'], 'status': public['status'],
+               'reason_code': public.get('reason_code'), 'n_tracked': public.get('n_keys_tracked', 0),
+               'stale': public.get('n_stale', 0), 'fresh': public.get('n_fresh', 0),
+               'alerts': public.get('n_alerts_raised', 0), 'suppressed': public.get('n_alerts_suppressed', 0),
+               'elapsed_s': public.get('elapsed_s'), 'artifact_size_bytes': len(body),
+               'output_key': 'data/_freshness-monitor.json'}
+    return {'statusCode': status_code, 'body': json.dumps(summary)}
+
+
+def publish_unknown(code, coverage=None, mode='normal', results=None):
+    rows = results or []
+    coverage = dict(coverage or {})
+    coverage.update(results_complete=True, results_returned=len(rows), enumeration_complete=False)
+    state = {'version': VERSION, 'status': 'UNKNOWN', 'generated_at': datetime.now(timezone.utc).isoformat(),
+             **failure(code), 'coverage': coverage, 'n_fresh': 0, 'full_expected_coverage': False,
+             'results': rows, 'n_keys_tracked': len(rows), 'notifications_suppressed': mode != 'normal'}
+    return finish(state, mode, 503)
 
 
 def lambda_handler(event=None, context=None):
+    event = event if isinstance(event, dict) else {}
+    if event.get('requestContext') or 'headers' in event:
+        return {'statusCode': 405, 'headers': {'Cache-Control': 'no-store'}, 'body': '{"error":"scheduled monitor only"}'}
+    mode = event.get('mode', 'normal')
+    if mode not in ('normal', 'validate_only', 'quiet_refresh'):
+        return {'statusCode': 400, 'body': '{"error":"unsupported monitor mode"}'}
+    quiet = mode != 'normal'
     started = time.time()
     run_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     print(f"[freshness-monitor] v{VERSION} run_id={run_id}")
     
     try:
-        manifest = load_manifest()
+        manifest = load_manifest(stamp=not quiet)
     except Exception as e:
-        return publish_unknown('freshness manifest unreadable: ' + str(e)[:120])
+        return publish_unknown('FRESHNESS_MANIFEST_UNREADABLE', mode=mode)
     if manifest is None:
         print("[freshness-monitor] manifest missing — cannot run")
-        return publish_unknown('freshness manifest missing')
+        return publish_unknown('FRESHNESS_MANIFEST_MISSING', mode=mode)
     
-    rules = manifest.get('rules', []) or []
-    if not rules:
-        return publish_unknown('no freshness rules in manifest')
+    rules = manifest.get('rules', []) if isinstance(manifest, dict) else []
+    if not isinstance(rules, list) or not rules or any(not isinstance(r, dict) or not isinstance(r.get('prefix', 'data/'), str) for r in rules):
+        return publish_unknown('FRESHNESS_MANIFEST_INVALID', mode=mode)
     print(f"[freshness-monitor] {len(rules)} rule(s) in manifest")
     
     # Walk each rule
     all_results = []
-    coverage = {'rules': [], 'truncated_rules': [], 'keys_enumerated': 0, 'bodies_validated': 0}
+    coverage = {'rules': [], 'truncated_rules': [], 'keys_enumerated': 0, 'bodies_validated': 0, 'private_sources_excluded': 0, 'expected_private_sources_excluded': 0}
     present = set()
     for rule in rules:
+        if is_private_source(rule.get('prefix', 'data/')):
+            coverage['private_sources_excluded'] += 1
+            continue
         try:
             objs, truncated = list_keys_under_rule(rule)
         except Exception as e:
-            return publish_unknown('feed enumeration failed: ' + str(e)[:120], coverage)
-        print(f"[freshness-monitor] rule prefix={rule.get('prefix')} → {len(objs)} objects{' (TRUNCATED at cap)' if truncated else ''}")
+            return publish_unknown('FEED_ENUMERATION_FAILED', coverage, mode, all_results)
+        print(f"[freshness-monitor] enumerated={len(objs)} truncated={truncated}")
         coverage['rules'].append({'prefix': rule.get('prefix'), 'n_objects': len(objs), 'truncated': truncated})
         if truncated:
             coverage['truncated_rules'].append(rule.get('prefix'))
         coverage['keys_enumerated'] += len(objs)
         for obj in objs:
+            if is_private_source(obj['Key']):
+                coverage['private_sources_excluded'] += 1
+                continue
+            if obj['Key'] in present:
+                continue
             present.add(obj['Key'])
             r = evaluate_key(obj, rule, manifest)
             if r is not None:
@@ -410,12 +464,9 @@ def lambda_handler(event=None, context=None):
     # audit 2026-09-08 INST-13: expected outputs that are ABSENT never entered the result set before.
     try:
         expected = load_expected_keys()
-    except Exception as e:
-        state = {'version': VERSION, 'status': 'UNKNOWN', 'generated_at': datetime.now(timezone.utc).isoformat(),
-                 'reason': str(e), 'coverage': coverage, 'n_fresh': 0, 'full_expected_coverage': False}
-        s3.put_object(Bucket=BUCKET, Key='data/_freshness-monitor.json', Body=json.dumps(state).encode(), ContentType='application/json', CacheControl='no-store')
-        return {'statusCode': 503, 'body': json.dumps(state)}
-    seen = load_seen_keys()
+    except Exception:
+        return publish_unknown('EXPECTED_MANIFEST_UNAVAILABLE', coverage, mode, all_results)
+    seen = {k: v for k, v in load_seen_keys().items() if not is_private_source(k)}
     now_iso_seen = datetime.now(timezone.utc).isoformat()
     missing, declared_absent = [], []
     prefixes = [r.get('prefix', 'data/') for r in rules]
@@ -425,6 +476,9 @@ def lambda_handler(event=None, context=None):
     unknown = []
     family_keys = []
     for k, eng in expected.items():
+        if is_private_source(k):
+            coverage['expected_private_sources_excluded'] += 1
+            continue
         if is_excluded(k, manifest):
             continue
         if '*' in k:
@@ -437,7 +491,7 @@ def lambda_handler(event=None, context=None):
         rule = max((r for r in rules if k.startswith(r.get('prefix','data/'))),
                    key=lambda r:len(r.get('prefix','data/')), default={'default_max_age_h':DEFAULT_MAX_AGE_H})
         if heads >= HEAD_BUDGET:
-            unknown.append({'key':k,'engine':eng,'status':'UNKNOWN','reason':'expected-key HEAD budget exhausted','age_h':None})
+            unknown.append({'key':k,'engine':eng,'status':'UNKNOWN',**failure('EXPECTED_HEAD_BUDGET_EXHAUSTED'),'age_h':None})
             continue
         heads += 1
         try:
@@ -446,10 +500,10 @@ def lambda_handler(event=None, context=None):
             code = str(getattr(e, 'response', {}).get('Error', {}).get('Code', ''))
             if code in ('404', 'NoSuchKey', 'NotFound'):
                 missing.append({'key':k,'engine':eng,'status':'MISSING','last_seen':seen.get(k),
-                                'reason':'required declared output absent','max_age_h':resolve_max_age(k,rule,manifest),'age_h':None})
+                                **failure('EXPECTED_OUTPUT_MISSING'),'max_age_h':resolve_max_age(k,rule,manifest),'age_h':None})
                 expected_evaluated += 1
             else:
-                unknown.append({'key':k,'engine':eng,'status':'UNKNOWN','reason':'expected output could not be read','age_h':None})
+                unknown.append({'key':k,'engine':eng,'status':'UNKNOWN',**failure('EXPECTED_OUTPUT_UNREADABLE'),'age_h':None})
             continue
         obj['Key'] = k
         obj['Size'] = obj.get('ContentLength', obj.get('Size', 0))
@@ -462,11 +516,12 @@ def lambda_handler(event=None, context=None):
         seen[k] = now_iso_seen
         expected_evaluated += 1
     try:
-        save_seen_keys(seen)
+        if not quiet:
+            save_seen_keys(seen)
     except Exception as e:
-        print(f"[freshness-monitor] seen-keys save failed: {str(e)[:80]}")
+        print("[freshness-monitor] SEEN_KEYS_WRITE_FAILED")
     all_results.extend(missing + unknown)
-    coverage.update({'expected_keys_declared': len(expected), 'expected_keys_checked': expected_evaluated, 'unresolved_key_families': family_keys, 'head_budget_exhausted': any(r.get('reason') == 'expected-key HEAD budget exhausted' for r in unknown), 'expected_keys_headed': heads, 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
+    coverage.update({'expected_keys_declared': len(expected), 'expected_keys_checked': expected_evaluated, 'unresolved_key_families': family_keys, 'head_budget_exhausted': any(r.get('reason_code') == 'EXPECTED_HEAD_BUDGET_EXHAUSTED' for r in unknown), 'expected_keys_headed': heads, 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
 
     stale = [r for r in all_results if r.get('status') == 'STALE']
     fresh = [r for r in all_results if r.get('status') == 'FRESH']
@@ -478,7 +533,7 @@ def lambda_handler(event=None, context=None):
     stale = stale + invalid + source_stale + missing + unknown
     
     # Dedupe alerts
-    history = load_alert_history()
+    history = load_alert_history() if not quiet else {}
     new_alerts = [r for r in stale if should_alert(r['key'], history)]
 
     # v1.2 escalation: persistent staleness must not hide behind dedupe.
@@ -492,7 +547,7 @@ def lambda_handler(event=None, context=None):
         critical = [r for r in stale if _scoped(r) and ((r.get('age_h') or 0) > 3 * (r.get('max_age_h') or 26) or r.get('status') in ('INVALID', 'EMPTY', 'MISSING'))]
         now_ts = datetime.now(timezone.utc).timestamp()
         last_esc = history.get('_escalation', 0)
-        if (critical or len(stale) >= 10) and now_ts - last_esc > 6 * 3600:
+        if not quiet and (critical or len(stale) >= 10) and now_ts - last_esc > 6 * 3600:
             worst = sorted(stale, key=lambda r: -(r.get('age_h') or 0))[:8]
             lines = [f"🚨 *FRESHNESS ESCALATION* — {len(stale)} stale ({len(critical)} critical >3×SLA)"]
             for r in worst:
@@ -500,14 +555,14 @@ def lambda_handler(event=None, context=None):
             send_telegram("\n".join(lines))
             history['_escalation'] = now_ts
     except Exception as e:
-        print(f"[escalation] {e}")
+        print("[escalation] ALERT_FAILED")
 
     suppressed = len(stale) - len(new_alerts)
     
     # Send digest
     sent_telegram = False
     sent_sns = False
-    if new_alerts:
+    if new_alerts and not quiet:
         new_alerts.sort(key=lambda r: ((r.get('age_h') or 0) / (r.get('max_age_h') or 1)) if r.get('status') == 'STALE' else 1e9, reverse=True)
         lines = [f"🕰️ *FRESHNESS MONITOR* — {len(new_alerts)} new stale key(s)"]
         for r in new_alerts[:12]:
@@ -538,7 +593,7 @@ def lambda_handler(event=None, context=None):
         'version': VERSION,
         'status': 'DEGRADED' if stale or coverage['truncated_rules'] or family_keys else 'HEALTHY',
         'full_expected_coverage': not unknown and not coverage['truncated_rules'] and not family_keys,
-        'n_unknown': len(unknown), 'unknown': unknown[:100],
+        'n_unknown': len(unknown), 'unknown': unknown,
         'run_id': run_id,
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'n_keys_tracked': len(all_results),
@@ -547,13 +602,15 @@ def lambda_handler(event=None, context=None):
         'n_invalid_or_empty': len(invalid),
         'n_source_stale': len(source_stale),
         'n_missing': len(missing),
-        'missing': missing[:50],
-        'invalid_or_empty': invalid[:50],
+        'missing': missing,
+        'invalid_or_empty': invalid,
         'source_stale_top_50': sorted(source_stale, key=lambda r: -(r.get('source_age_h') or 0))[:50],
-        'declared_absent_never_seen': declared_absent[:100],
-        'coverage': coverage,
+        'declared_absent_never_seen': declared_absent,
+        'coverage': {**coverage, 'results_complete': True, 'results_returned': len(all_results), 'enumeration_complete': not coverage['truncated_rules']},
+        'results': all_results, 'stale': stale_sorted, 'source_stale': source_stale,
+        'notifications_suppressed': quiet,
         'semantics': "artifact_age_h = S3 LastModified age (a writer ran); source_age_h = the document's own timestamp age (what it wrote). FRESH requires both within SLA for scoped feeds; EMPTY/INVALID = zero-byte or non-JSON; SOURCE_STALE = rewritten with old data; MISSING = a required declared output does not exist; UNKNOWN = missing/invalid time provenance, partial validation or unreadable content (audit 2026-09-08 INST-13)",
-        'n_alerts_raised': len(new_alerts),
+        'n_alerts_raised': len(new_alerts) if not quiet else 0,
         'n_alerts_suppressed': suppressed,
         'stale_top_50': stale_sorted[:50],
         'elapsed_s': round(time.time() - started, 2),
@@ -566,26 +623,8 @@ def lambda_handler(event=None, context=None):
         'telegram_sent': sent_telegram,
         'sns_sent': sent_sns,
     }
-    s3.put_object(
-        Bucket=BUCKET,
-        Key='data/_freshness-monitor.json',
-        Body=json.dumps(state, default=str).encode(),
-        ContentType='application/json',
-        CacheControl='max-age=60, public',
-    )
-    
-    print(f"[freshness-monitor] done — {len(new_alerts)} alerts, {suppressed} suppressed, {round(time.time()-started,1)}s")
-    return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'n_tracked': len(all_results),
-            'stale': len(stale),
-            'fresh': len(fresh),
-            'alerts': len(new_alerts),
-            'suppressed': suppressed,
-            'elapsed_s': round(time.time() - started, 2),
-        }),
-    }
+    print(f"[freshness-monitor] done tracked={len(all_results)} mode={mode}")
+    return finish(state, mode)
 
 
 if __name__ == "__main__":
