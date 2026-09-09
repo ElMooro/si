@@ -40,7 +40,7 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(doc['engine'],self.engine);self.assertEqual(doc['publisher_engine'],'justhodl-public-archive-index')
         self.assertEqual(doc['listing_pages'],2);self.assertFalse(doc['listing_is_atomic'])
         self.assertTrue(all(r['immutable'] is False and r['content_status']=='NOT_READ' for r in doc['snapshots']))
-        self.assertTrue(all(call['Prefix'].startswith('data/archive/') for call in self.s3.calls))
+        self.assertEqual({call["Prefix"] for call in self.s3.calls}, {p.rsplit("/",1)[0]+"/" for _,p in self.mod.REGISTRY})
         catalog=self.s3.writes['data/archive-indexes/catalog.json'];self.assertEqual(len(catalog['indexes']),len(self.mod.REGISTRY))
 
     def test_access_denial_discards_partial_keys_and_publishes_unavailable(self):
@@ -64,6 +64,29 @@ class HandlerTests(unittest.TestCase):
             self.assertFalse(self.s3.writes[self.key]['complete']);self.assertEqual(self.s3.writes[self.key]['snapshots'],[])
             self.assertLessEqual(len([r for r in self.s3.calls if r['Prefix']==self.prefix]),2)
 
+    def test_new_reviewed_history_prefixes_are_exact_and_not_inferred_from_their_root(self):
+        candidates = {
+            "justhodl-activity-nowcast": "data/activity-nowcast/snapshots/*.json",
+            "justhodl-cb-injection": "data/cb-injection/snapshots/*.json",
+            "justhodl-consumer-pulse": "data/consumer-pulse/snapshots/*.json",
+            "justhodl-conviction-engine": "data/conviction/snapshots/*.json",
+            "justhodl-stock-screener": "screener/snapshots/*.json",
+            "justhodl-theme-cascade": "data/theme-cascade-history/*.json",
+        }
+        for engine, pattern in candidates.items():
+            self.assertIn((engine, pattern), self.mod.REGISTRY)
+            prefix = pattern.rsplit("/", 1)[0] + "/"
+            self.s3.routes[(prefix, None)] = {"IsTruncated": True, "NextContinuationToken": "later", "Contents": [obj(prefix+"2026-09-01.json")]}
+            self.s3.routes[(prefix, "later")] = {"IsTruncated": False, "Contents": [obj(prefix+"2026-09-09.json"), obj(prefix+"nested/unreviewed.json"), obj(prefix+"cache/2026-09-09.json")]}
+            doc = self.mod.build_index(engine, pattern)
+            self.assertTrue(doc["complete"])
+            self.assertEqual([row["key"] for row in doc["snapshots"]], [prefix+"2026-09-01.json", prefix+"2026-09-09.json"])
+            self.assertEqual(doc["families"], [pattern])
+            with self.assertRaises(ValueError):
+                self.mod.build_index(engine, pattern.replace("/*.json", "/cache/*.json"))
+        self.assertNotIn("justhodl-etf-fund-flows", {engine for engine,_ in self.mod.REGISTRY})
+        self.assertNotIn("justhodl-macro-regime", {engine for engine,_ in self.mod.REGISTRY})
+
     def test_validate_only_runs_real_listings_but_zero_publication(self):
         self.s3.routes[(self.prefix,None)]={'IsTruncated':False,'Contents':[obj(self.prefix+'x.json')]}
         result=self.mod.lambda_handler({'mode':'validate_only'},None)
@@ -75,7 +98,7 @@ class HandlerTests(unittest.TestCase):
         self.assertEqual(len({e for e,p in self.mod.REGISTRY}),len(self.mod.REGISTRY))
         self.assertEqual(len({p for e,p in self.mod.REGISTRY}),len(self.mod.REGISTRY))
         for engine,pattern in self.mod.REGISTRY:
-            self.assertTrue(pattern.startswith('data/archive/'));self.assertEqual(pattern.count('*'),1)
+            self.assertNotIn('*',pattern.rsplit('/',1)[0]);self.assertEqual(pattern.count('*'),1)
             self.assertNotIn(pattern,('data/archive/*.json','data/archive/auction-crisis/*.json'))
         with self.assertRaises(ValueError):self.mod.build_index('owner','backtest/ledger/*.json')
         # The weekly family's literal prefix also rejects unrelated daily files.

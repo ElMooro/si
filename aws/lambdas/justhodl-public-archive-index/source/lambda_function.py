@@ -20,8 +20,16 @@ S3 = boto3.client("s3", region_name="us-east-1")
 # Exact unique source writers reviewed 2026-09-09. Shared auction-crisis output
 # and all private/redacted historical families are deliberately excluded.
 # pump-radar-brief is also excluded: some historical narrative donors have no
-# source-proven writer/public provenance. Metadata does not certify their text.
+# source-proven writer/public provenance. ETF fund flows and macro-regime
+# histories are excluded until their raw provider-diagnostic fields are removed
+# from historical objects. Metadata does not certify their text.
 REGISTRY = (
+    ("justhodl-activity-nowcast", "data/activity-nowcast/snapshots/*.json"),
+    ("justhodl-cb-injection", "data/cb-injection/snapshots/*.json"),
+    ("justhodl-consumer-pulse", "data/consumer-pulse/snapshots/*.json"),
+    ("justhodl-conviction-engine", "data/conviction/snapshots/*.json"),
+    ("justhodl-stock-screener", "screener/snapshots/*.json"),
+    ("justhodl-theme-cascade", "data/theme-cascade-history/*.json"),
     ("justhodl-auction-crisis-ai", "data/archive/auction-crisis-ai/*.json"),
     ("justhodl-catalyst-classifier", "data/archive/catalysts/*.json"),
     ("justhodl-convergence-radar", "data/archive/convergence-radar/*.json"),
@@ -56,7 +64,7 @@ def build_index(engine, pattern):
     if (engine, pattern) not in REGISTRY:
         raise ValueError("archive family is not in the reviewed registry")
     prefix = pattern.rsplit("/", 1)[0] + "/"
-    if not prefix.startswith("data/archive/") or is_private_source(prefix):
+    if not re.fullmatch(r"[A-Za-z0-9_/-]+/[A-Za-z0-9_-]*\*[A-Za-z0-9_.-]*\.json", pattern) or is_private_source(prefix):
         raise ValueError("archive family is not public")
     matcher = re.compile(re.escape(pattern).replace(r"\*", r"[^/]+"))
     started = datetime.now(timezone.utc).isoformat()
