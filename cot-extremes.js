@@ -63,8 +63,9 @@ function render(){
 }
 async function load(){
  try{
-  const response=await fetch('/cot/extremes/current.json',{cache:'no-store',credentials:'same-origin'});
+  const response=await fetch('https://justhodl-data-proxy.raafouis.workers.dev/cot/extremes/current.json?exact=1&nogen=1',{cache:'no-store',credentials:'omit'});
   if(!response.ok)throw new Error('unavailable');
+  if(response.headers.get('X-JH-Artifact-Key')!=='cot/extremes/current.json')throw new Error('unverified route');
   const result=await response.json();
   if(!result||result.engine!==ENGINE||result.schema_version!=='cot-extremes.v2'||!Array.isArray(result.contracts))throw new Error('invalid');
   data=result;render();

@@ -61,8 +61,18 @@ async function fetchArtifact(entry,fetcher,privateClient){
   if(!privateClient||privateClient.kindFor('/'+entry.key)!==entry.private_kind)throw new Error('Authenticated owner data route unavailable');
   return privateClient.fetch('/'+entry.key,{cache:'no-store',credentials:'same-origin'});
  }
- if(entry.access&&entry.access!=='public')throw new Error('Artifact access is not approved');
- return fetcher('/'+entry.key,{cache:'no-store',credentials:'same-origin'});
+ if(entry.access!=='public')throw new Error('Artifact access is not approved');
+ const key=entry.key;
+ if(typeof key!=='string'||!/^[A-Za-z0-9_./-]+\.json(?:\.gz)?$/.test(key)||key.startsWith('/')||key.includes('..')||key.includes('//'))throw new Error('Artifact key is not supported by the reviewed data proxy');
+ // Only /data/* has a zone route on the Pages domain. Other approved
+ // namespaces must use the existing read-only data proxy, verbatim; never
+ // retry under /data/, strip a prefix, or fall back to an unauthenticated
+ // owner artifact. Cross-origin public reads carry no browser credentials.
+ const sameOrigin=key.startsWith('data/');
+ const url=(sameOrigin?'/'+key:'https://justhodl-data-proxy.raafouis.workers.dev/'+key)+'?exact=1&nogen=1';
+ const response=await fetcher(url,{cache:'no-store',credentials:sameOrigin?'same-origin':'omit'});
+ if(response.ok&&response.headers?.get('X-JH-Artifact-Key')!==key)throw new Error('Exact artifact identity is unverified; no alternate feed is accepted');
+ return response;
 }
 function validateProjection(entry,data){
  const required=entry.required_projection;
