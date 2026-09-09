@@ -15,7 +15,7 @@ import math
 from capital_contract import authority_view, capital_book_view, fresh_timestamp, finite, publication_summary
 from datetime import datetime, timezone, timedelta
 import boto3
-from private_artifact import publish_private
+from private_artifact import publish_private, private_http_denied
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -282,6 +282,9 @@ def kelly_size(conviction_pct, edge_pct=0.05):
 
 
 def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied:
+        return denied
     validate_only = isinstance(event, dict) and (event.get("mode") == "validate_only" or event.get("validate_only") is True)
     print("=== RISK SIZER v3 ===")
     now = datetime.now(timezone.utc)

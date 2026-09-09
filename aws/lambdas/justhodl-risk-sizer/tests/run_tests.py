@@ -23,8 +23,10 @@ class _FakeS3:
         self.writes = {}
         self.write_options = {}
         self.private_publications = []
+        self.reads = []
 
     def get_object(self, Bucket, Key):
+        self.reads.append(Key)
         if Key not in self.docs:
             raise Exception("NoSuchKey " + Key)
         body = json.dumps(self.docs[Key]).encode()
@@ -41,6 +43,7 @@ def _load(docs):
     fake.client = lambda *a, **k: s3
     sys.modules["boto3"] = fake
     private = types.ModuleType("private_artifact")
+    private.private_http_denied = lambda event: {"statusCode":401,"body":"unauthorized"} if isinstance(event,dict) and ("requestContext" in event or "httpMethod" in event) else None
     private.publish_private = lambda kind, doc: s3.private_publications.append((kind, json.loads(json.dumps(doc))))
     sys.modules["private_artifact"] = private
     spec = importlib.util.spec_from_file_location("risk_sizer_under_test", SRC)
@@ -254,6 +257,14 @@ def test_normal_and_empty_results_use_one_owner_mirror_and_private_iam_originals
             assert s3.write_options[key]["CacheControl"]=="private, no-store, max-age=0"
         if artifact["status"]!="NO_IDEAS":
             assert artifact["book"]["account_id"]=="account-test"  # owner details retained only behind private routes
+
+
+def test_unauthenticated_http_is_rejected_before_reads_or_validation():
+    for event in [{"requestContext":{"http":{"method":"GET"}}}, {"httpMethod":"GET","mode":"validate_only"}, {"requestContext":{"http":{"method":"POST"}},"validate_only":True}]:
+        mod,s3=_load(_base_docs())
+        out=mod.lambda_handler(event,None)
+        assert out["statusCode"]==401
+        assert s3.reads==[] and s3.writes=={} and s3.private_publications==[]
 
 
 if __name__ == "__main__":
