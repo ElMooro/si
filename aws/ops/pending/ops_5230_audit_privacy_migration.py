@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ops5230: apply only after the reviewed Worker and Lambda release has deployed.
 
+Retry uses equivalent compact temporary/history protection within S3's policy limit.
 Safe to retry. Private originals and object versions are retained. Temporary
 external-read containment stays installed on failure. No source prose, secret,
 environment value, signed URL, or raw Lambda response is written to reports.

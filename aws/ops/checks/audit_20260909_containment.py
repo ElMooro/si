@@ -10,7 +10,8 @@ import urllib.request
 
 from audit_20260909_privacy_migration import ACCOUNT, BUCKET, Migration, MigrationError, temporary_statement, backup_deny_statement
 from audit_20260909_security import (PRIVATE_KEYS, SANITIZED_KEYS, WORKER, anonymous_deny_statement,
-                                    historical_protection_installed, has_policy_statement, policy_diagnostic, policies_equal)
+                                    historical_deny_statement, historical_protection_installed,
+                                    has_policy_statement, policy_diagnostic, policies_equal)
 
 
 def head_status(url, http):
