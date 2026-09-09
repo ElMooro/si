@@ -37,7 +37,7 @@ test('object field pagination exposes every scalar beyond the old eight-field ca
 test('owner artifact inspection requires matching authenticated route and never uses public fallback', async()=>{
  const api=require('../jh-data-inspector.js');let publicCalls=0,ownerCalls=0;
  const entry={key:'portfolio/snapshot.json',access:'owner_authenticated',private_kind:'portfolio-snapshot'};
- const publicFetch=async()=>{publicCalls++;return {ok:true};};
+ const publicFetch=async()=>{publicCalls++;return {ok:true,headers:new Headers({'X-JH-Artifact-Key':'backtest/results.json'})};};
  await assert.rejects(api.fetchArtifact(entry,publicFetch,null),/Authenticated owner/);
  await assert.rejects(api.fetchArtifact(entry,publicFetch,{kindFor:()=>null,fetch:publicFetch}),/Authenticated owner/);
  const response=await api.fetchArtifact(entry,publicFetch,{kindFor:()=>entry.private_kind,fetch:async()=>{ownerCalls++;return {status:401};}});
@@ -50,6 +50,29 @@ test('legacy account and note payloads cannot bypass required public projection'
  assert.throws(()=>api.validateProjection({required_projection:'sizing'},{holdings:[{ticker:'PRIVATE'}]}),/not yet redacted/);
  assert.throws(()=>api.validateProjection({required_projection:'brain-compiler'},{claims:[{claim:'PRIVATE'}]}),/not yet redacted/);
  assert.deepEqual(api.validateProjection({required_projection:'brain-compiler'},{claims:[{claim_text_private:true,count:0}]}),{claims:[{claim_text_private:true,count:0}]});
+});
+
+test('approved non-data namespaces use the actual proxy route without credentials or key rewriting',async()=>{
+ const calls=[],fetcher=async(url,options)=>{calls.push({url,options});return {ok:false,status:404};};
+ for(const key of ['cot/extremes/current.json','backtest/results.json','screener/data.json','repo-data.json','calibration/history/2026-09-09.json','data/_backtest/graded.json.gz']){
+  const response=await inspector.fetchArtifact({key,access:'public'},fetcher,null);
+  assert.equal(response.status,404);const call=calls.at(-1);
+  assert.equal(call.url,(key.startsWith('data/')?'/':'https://justhodl-data-proxy.raafouis.workers.dev/')+key+'?exact=1&nogen=1');
+  assert.equal(call.options.credentials,key.startsWith('data/')?'same-origin':'omit');
+ }
+ assert.equal(calls.length,6); // Missing keys never cause a guessed alternate request.
+});
+
+test('unsupported public paths and unknown access modes cannot escape the reviewed proxy',async()=>{
+ let calls=0;const fetcher=async()=>{calls++;};
+ for(const key of ['../private.json','/cot/ES.json','cot/../secret.json','https://evil.invalid/x.json','cot/x.json?secret=1','cot//x.json']){
+  await assert.rejects(inspector.fetchArtifact({key,access:'public'},fetcher,null));
+ }
+ await assert.rejects(inspector.fetchArtifact({key:'cot/extremes/current.json'},fetcher,null));
+ assert.equal(calls,0);
+ for(const header of [null,'data/cot/extremes/current.json']){
+  await assert.rejects(inspector.fetchArtifact({key:'cot/extremes/current.json',access:'public'},async()=>({ok:true,headers:new Headers(header?{'X-JH-Artifact-Key':header}:{})}),null),/Exact artifact identity/);
+ }
 });
 
 test('response observation matches exact reviewed API, performs no extra request, and preserves every field',async()=>{

@@ -58,6 +58,7 @@ function corsHeaders() {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "GET, HEAD, PUT, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With, X-JH-Service-Token",
+    "Access-Control-Expose-Headers": "X-JH-Artifact-Key, Last-Modified, ETag",
     "Access-Control-Max-Age":       "86400",
     "Vary":                         "Accept-Encoding",
   };
@@ -1859,6 +1860,10 @@ export default {
     if (!/^[a-zA-Z0-9_\-./]+$/.test(safePath) || safePath.includes("..")) {
       return new Response("invalid path", { status: 400, headers: corsHeaders() });
     }
+    // Exact inspection is a read-only request for this object identity. It
+    // cannot use legacy key aliases, old alias-populated cache entries or
+    // trigger a cold research-generation request.
+    const exactArtifact = url.searchParams.get("exact") === "1";
 
     // ops 4526: native cache-clear — no CLOUDFLARE_API_TOKEN needed, this
     // runs inside the Worker with direct caches.default access. Clears a
@@ -1925,7 +1930,7 @@ export default {
     // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
     // verified fresh; query-param busting is useless since we strip it).
     const CACHE_VER = "v20260909-private-containment";
-    const cacheKey = new Request(`${url.origin}/__${CACHE_VER}__/${safePath}`, { method: "GET" });
+    const cacheKey = new Request(`${url.origin}/__${CACHE_VER}${exactArtifact ? '-exact-v1' : ''}__/${safePath}`, { method: "GET" });
     const cache = caches.default;
     let response = ttl > 0 ? await cache.match(cacheKey) : null;
     let cacheStatus = "HIT";
@@ -1946,7 +1951,7 @@ export default {
       // Backward-compat fallback for callers using legacy paths.
       // S3 returns 403 (AccessDenied) — not 404 — for a missing key when
       // ListBucket is denied, so retry under /data/ on BOTH.
-      if (!upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
+      if (!exactArtifact && !upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
         const fallbackUrl = artifactUpstreamUrl(`data/${safePath}`);
         try {
           const fallback = await fetchUpstream(fallbackUrl, ttl);
@@ -1963,7 +1968,7 @@ export default {
           safePath.startsWith("equity-research/") && safePath.endsWith(".json")) {
         const tkr = safePath.slice("equity-research/".length, -5)
                             .toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
-        const noGen    = url.searchParams.get("nogen") === "1";   // polling: pure S3 read, never re-trigger
+        const noGen    = exactArtifact || url.searchParams.get("nogen") === "1";   // pure read, never re-trigger
         const asyncGen = url.searchParams.get("async") === "1";   // trigger: kick off in background, return 202
         if (tkr && !noGen) {
           const RESEARCH_LAMBDA = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/";
@@ -2005,6 +2010,7 @@ export default {
         "Cache-Control":  ttl > 0 ? `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}` : "no-store",
         "X-Edge-TTL":     String(ttl),
         "X-Upstream":     upstreamUrl,
+        ...(exactArtifact ? { "X-JH-Artifact-Key": safePath } : {}),
         ...corsHeaders(),
       };
       if (lastMod) respHeaders["Last-Modified"] = lastMod;
