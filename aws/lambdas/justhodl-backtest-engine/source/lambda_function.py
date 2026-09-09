@@ -33,6 +33,7 @@ Writes:
   - backtest/summary.json   (slim KPIs only)
 """
 import json
+import math
 import os
 import time
 import urllib.request
@@ -133,13 +134,10 @@ DDB = boto3.resource("dynamodb", region_name=REGION)
 
 
 def to_float(v):
-    if v is None:
-        return None
-    if isinstance(v, Decimal):
-        return float(v)
     try:
-        return float(v)
-    except Exception:
+        value=float(v)
+        return value if math.isfinite(value) else None
+    except (ValueError, TypeError, OverflowError):
         return None
 
 
@@ -202,96 +200,124 @@ def resolve_weight(stype, window, flat_weights, horizon_weights):
 # s3://justhodl-dashboard-live/calibration/history/{ISO_WEEK}.json with
 # schema {week_start, week_end, weights:{}, accuracy:{}}.
 
-def load_weight_history():
-    """Load all calibration snapshots and build a sorted timeline.
-
-    Returns: list of {"week_start": iso, "week_end": iso, "weights": {...}, "accuracy": {...}}
-    sorted by week_end ascending, plus a manifest of failures for visibility.
-    Returns ([], {error: ...}) on missing/failed.
-    """
-    out = []
-    info = {"n_snapshots": 0, "earliest_week_start": None, "latest_week_end": None,
-            "fetch_errors": []}
+def _utc_timestamp(value):
     try:
-        idx_obj = S3.get_object(Bucket=BUCKET, Key="calibration/history-index.json")
-        idx = json.loads(idx_obj["Body"].read())
+        text = str(value)
+        if len(text) == 10:
+            text += "T00:00:00+00:00"
+        ts = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        return ts.astimezone(timezone.utc) if ts.tzinfo is not None else None
+    except (ValueError, TypeError):
+        return None
+
+
+def load_weight_history():
+    """Read immutable versions by listing, independent of concurrently updated indexes.
+
+    Legacy weekly objects are permitted only as explicitly labelled legacy evidence;
+    timestamps without availability provenance are excluded, never backdated to Monday.
+    """
+    info = {"n_snapshots": 0, "fetch_errors": [], "point_in_time_rule": "UTC available_at <= UTC decision timestamp"}
+    keys=[]
+    try:
+        for page in S3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix="calibration/versions/"):
+            keys.extend(o["Key"] for o in page.get("Contents", []) if o["Key"].endswith(".json"))
     except Exception as e:
-        info["error"] = f"history-index.json not available: {e}"
-        return out, info
-
-    snapshots_meta = idx.get("snapshots") or idx.get("entries") or []
-    # Try common shapes: list of {key, week_start, week_end} or list of week-ids
-    for s in snapshots_meta:
-        if isinstance(s, str):
-            # Just an ISO week string — construct the path
-            key = f"calibration/history/{s}.json"
-        elif isinstance(s, dict):
-            key = s.get("key") or s.get("path") or f"calibration/history/{s.get('iso_week')}.json"
-        else:
-            continue
+        info["error"] = "immutable history enumeration failed: " + str(e)[:120]
+        return [], info
+    # Pre-migration weekly snapshots are honest availability lower bounds, but mutable.
+    # They cannot satisfy immutable performance provenance. They stay diagnostic only.
+    info["legacy_weekly_snapshots_used"] = False
+    out=[]
+    for key in sorted(set(keys)):
         try:
-            body = S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
-            snap = json.loads(body)
-            ws = snap.get("week_start")
-            we = snap.get("week_end")
-            w = snap.get("weights") or {}
-            if not (ws and we and w):
-                continue
-            # audit 2026-09-08 INST-09: the point-in-time key is the AVAILABILITY timestamp, never the
-            # start of the calibration week. v2 snapshots carry available_at; v1 snapshots are dated by
-            # their as_of (the moment they were computed) -- the honest lower bound.
-            available_at = snap.get("available_at") or snap.get("as_of")
-            if not available_at:
-                info["fetch_errors"].append({"key": key, "err": "snapshot has no available_at/as_of -- excluded (cannot be placed in time)"})
-                continue
-            out.append({
-                "week_start": ws,
-                "week_end": we,
-                "iso_week": snap.get("iso_week"),
-                "snapshot_id": snap.get("snapshot_id") or snap.get("iso_week"),
-                "available_at": available_at,
-                "weights": {k: to_float(v) for k, v in w.items() if to_float(v) is not None},
-                "accuracy": snap.get("accuracy") or {},
-            })
+            snap=json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            available=_utc_timestamp(snap.get("available_at"))
+            weights={k:to_float(v) for k,v in (snap.get("weights") or {}).items() if to_float(v) is not None}
+            if available is None or not snap.get("snapshot_id") or not weights:
+                raise ValueError("missing valid availability, snapshot_id or weights")
+            if available > datetime.now(timezone.utc) + timedelta(minutes=5):
+                raise ValueError("future availability timestamp")
+            out.append({"snapshot_id":snap["snapshot_id"],"available_at":available.isoformat(),
+                        "week_start":snap.get("week_start"),"week_end":snap.get("week_end"),"iso_week":snap.get("iso_week"),
+                        "weights":weights,"accuracy":snap.get("accuracy") or {},"source_key":key})
         except Exception as e:
-            info["fetch_errors"].append({"key": key, "err": str(e)[:120]})
-
-    out.sort(key=lambda x: x["available_at"])
-    info["n_snapshots"] = len(out)
-    info["point_in_time_rule"] = "snapshot usable when available_at <= decision timestamp (audit 2026-09-08 INST-09)"
+            info["fetch_errors"].append({"key":key,"err":str(e)[:120]})
+    out.sort(key=lambda r:(_utc_timestamp(r["available_at"]),r["snapshot_id"]))
+    info["n_snapshots"]=len(out)
     if out:
-        info["earliest_available_at"] = out[0]["available_at"]
-        info["latest_available_at"] = out[-1]["available_at"]
-        info["earliest_week_start"] = out[0]["week_start"]
-        info["latest_week_end"] = out[-1]["week_end"]
-    return out, info
+        info.update(earliest_available_at=out[0]["available_at"],latest_available_at=out[-1]["available_at"],
+                    earliest_week_start=out[0]["week_start"],latest_week_end=out[-1]["week_end"])
+    return out,info
 
 
 def resolve_weight_walkforward(stype, trade_ts_iso, history):
-    """Find the calibration snapshot that was AVAILABLE at the trade's logged_at TIMESTAMP.
+    decision=_utc_timestamp(trade_ts_iso)
+    if decision is None or not history:
+        return None, "no_history" if not history else "invalid_decision_timestamp"
+    eligible=[s for s in history if _utc_timestamp(s.get("available_at")) is not None
+              and _utc_timestamp(s["available_at"]) <= decision]
+    if not eligible:
+        return None,"trade_predates_all_snapshots"
+    chosen=max(eligible,key=lambda s:(_utc_timestamp(s["available_at"]),s.get("snapshot_id", "")))
+    weight=chosen["weights"].get(stype)
+    if weight is None:
+        return None,"signal_not_in_snapshot:"+str(chosen.get("snapshot_id"))
+    return weight,"walkforward:%s@%s" % (chosen.get("snapshot_id"),chosen.get("available_at"))
 
-    audit 2026-09-08 INST-09: the newest snapshot whose full availability timestamp is no later
-    than the decision time. A snapshot computed on Sunday is NOT applied to that week's Tuesday
-    trade (the old rule matched on week_start <= trade DATE and stripped timestamps).
-    Returns (weight, source) or (None, reason).
+
+def vintage_at_decision(doc, decision_iso):
+    """D13: select an unrevised value only after its known availability instant.
+
+    ALFRED known_on dates provide no release hour. Conservatively wait until the
+    following UTC day; never use that date's midnight for an intraday decision.
     """
-    if not trade_ts_iso or not history:
-        return None, "no_history" if not history else "no_date"
-    t = str(trade_ts_iso)
-    if len(t) == 10:
-        t = t + "T00:00:00+00:00"   # a bare date is the START of that day: nothing computed later that day counts
-    chosen = None
-    for snap in history:
-        if str(snap["available_at"]) <= t:
-            chosen = snap
-        else:
-            break  # history is sorted by available_at
-    if chosen is None:
-        return None, "trade_predates_all_snapshots"
-    w = chosen["weights"].get(stype)
-    if w is None:
-        return None, f"signal_not_in_snapshot:{chosen.get('snapshot_id')}"
-    return w, f"walkforward:{chosen.get('snapshot_id')}@{chosen.get('available_at')}"
+    decision=_utc_timestamp(decision_iso)
+    if decision is None:
+        return None
+    candidates=[]
+    for row in (doc or {}).get("vintages", []):
+        raw=row.get("available_at") or row.get("known_on")
+        available=_utc_timestamp(raw)
+        if available is not None and len(str(raw)) == 10:
+            available += timedelta(days=1)
+        observed=_utc_timestamp(row.get("date"))
+        value=to_float(row.get("value"))
+        if available is not None and observed is not None and value is not None and available <= decision and observed <= decision:
+            candidates.append((observed,available,{"date":row["date"],"value":value,"known_on":row.get("known_on"),
+                           "available_at":available.isoformat(),"availability_rule":"date-only known_on usable next UTC day" if len(str(raw))==10 else "provider availability timestamp"}))
+    return max(candidates,key=lambda r:(r[0],r[1]))[2] if candidates else None
+
+
+def historical_input_readiness(decision_iso):
+    """Publish genuine donor availability without pretending it made old decisions."""
+    sources={}
+    for series in ("UNRATE", "DGS10", "WALCL", "RRPONTSYD"):
+        key="data/vintage/%s.json" % series
+        try:
+            doc=json.loads(S3.get_object(Bucket=BUCKET,Key=key)["Body"].read())
+            value=vintage_at_decision(doc,decision_iso)
+            sources[series]={"source_key":key,"status":"AVAILABLE" if value else "BLOCKED", "selected":value,"provider_updated_at":doc.get("updated")}
+        except Exception as e:
+            sources[series]={"source_key":key,"status":"BLOCKED","reason":"vintage unavailable: "+str(e)[:100]}
+    return {"decision_at":decision_iso,"sources":sources,"use":"availability evidence only; current attribution does not reconstruct historical macro features",
+            "historical_feature_replay_ready":False,"reason":"complete feature definitions and decision-time snapshots are required"}
+
+
+def gate_performance_results(results_doc, decision_iso):
+    """No attribution curve may be sold to consumers as an investable NAV."""
+    reason="Missing immutable fills, cash ledger, daily instrument marks, corporate actions, borrow/financing and decision-time capital constraints"
+    for name in ("summary", "realistic_summary", "honest_summary", "walkforward_summary"):
+        section=results_doc.get(name)
+        if isinstance(section,dict):
+            section.update(curve_semantics="signal_attribution", tradable_portfolio_nav=False,
+                           headline_eligible=False, publication_status="BLOCKED", publication_reason=reason)
+    results_doc["publication"]={"status":"BLOCKED","headline_eligible":False,"reason":reason,
+        "required_inputs":["immutable decision and fill ledger","session-aligned daily marks and corporate actions",
+                           "cash, financing, borrow and fees","historical gross/net/concentration/capacity constraints"]}
+    results_doc["portfolio_performance"]={"status":"BLOCKED","nav_curve":[],"daily_returns":[],"reason":reason}
+    results_doc["historical_inputs"]=historical_input_readiness(decision_iso)
+    return results_doc
 
 
 def dir_sign(predicted_dir):
@@ -1187,23 +1213,10 @@ def lambda_handler(event=None, context=None):
     # 9. Build full results
     results_doc = {
         "v": "2.1",
+        "audit_version": "2026-09-09.1",
         "generated_at": now.isoformat(),
         "method": "v2_1_walkforward_calibration_with_v2_0_1_honest_baseline",
-        "method_description": (
-            "v2.1 (NEW HEADLINE when coverage>=50%): walk-forward calibration. "
-            "Each trade's weight is resolved from the calibration snapshot in effect at "
-            "the trade's logged_at date — eliminates in-sample look-ahead bias. Snapshots "
-            "are written every Sunday 12:00 UTC by justhodl-calibration-snapshotter to "
-            "s3://justhodl-dashboard-live/calibration/history/{ISO_WEEK}.json. Coverage "
-            "metric tells you how trustworthy the v2.1 number is — if most trades pre-date "
-            "the earliest snapshot, walkforward_summary.data_sufficient=false and the "
-            "v2.0.1 honest_summary remains the headline.\n\n"
-            "v2.0.1 (still computed): same lump-sum daily aggregation but using current "
-            "SSM weights (in-sample bias). Reports arithmetic Sharpe with bootstrap CI "
-            "and a 0.5y data-sufficiency gate.\n\n"
-            "v1.1/v1.2 (preserved for comparison): original idealized + realistic with "
-            "the broken std-over-active-days math that produced Sharpe ~10."
-        ),
+        "method_description": "Signal attribution only. Completed horizon returns are assigned to decision dates; these series are not daily portfolio NAV or investable performance. Immutable calibration versions are joined in UTC. All performance publication is blocked pending a complete marked ledger.",
         "constants": {
             "POSITION_SIZE": POSITION_SIZE,
             "SLIPPAGE_BPS_PER_LEG": SLIPPAGE_BPS_PER_LEG,
@@ -1262,15 +1275,21 @@ def lambda_handler(event=None, context=None):
         "walkforward_daily_curve": walkforward_daily_curve,
     }
 
+    gate_performance_results(results_doc, now.isoformat())
+
     # Slim summary for fast page loads
     summary_doc = {
         "v": "2.1",
+        "audit_version": "2026-09-09.1",
         "generated_at": now.isoformat(),
         "summary": results_doc["summary"],
         "realistic_summary": results_doc["realistic_summary"],
         "honest_summary": results_doc["honest_summary"],
         "walkforward_summary": results_doc["walkforward_summary"],
         "constants": results_doc["constants"],
+        "publication": results_doc["publication"],
+        "portfolio_performance": results_doc["portfolio_performance"],
+        "historical_inputs": results_doc["historical_inputs"],
         "top_5_contributors": signal_summary[:5],
         "bottom_5_contributors": signal_summary[-5:] if len(signal_summary) >= 5 else signal_summary,
     }
@@ -1314,7 +1333,8 @@ def lambda_handler(event=None, context=None):
             "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
             "n_concentration_capped_days": n_concentration_capped_days,
             "n_gross_capped_days": n_gross_capped_days,
-            # v2.0 honest stats — the headline number to publish
+            "headline_eligible": False, "curve_semantics": "signal_attribution",
+            # Historical attribution diagnostics only
             "honest_sharpe_point": (honest_summary or {}).get("sharpe_point"),
             "honest_sharpe_p5": (honest_summary or {}).get("sharpe_p5"),
             "honest_sharpe_median": (honest_summary or {}).get("sharpe_median"),

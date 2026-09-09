@@ -25,6 +25,7 @@ Schedule: every 30 min during market hours · every hour off-hours
 Cost: ~$0 (Polygon free tier, no Claude calls)
 """
 import json
+import math
 import os
 import time
 import urllib.request
@@ -315,14 +316,23 @@ def lambda_handler(event, context):
         cost_total = qty * cost_per
         side = "LONG" if qty >= 0 else "SHORT"
         cur_price = e.get("current_price")
+        try:
+            cur_price = float(cur_price)
+            if not math.isfinite(cur_price) or cur_price <= 0:
+                cur_price = None
+        except (TypeError, ValueError):
+            cur_price = None
+        e["current_price"] = cur_price
         mark_age_h = None
         if e.get("price_asof_unix_ms"):
             try:
                 mark_age_h = round((datetime.now(timezone.utc).timestamp() - float(e["price_asof_unix_ms"]) / 1000.0) / 3600.0, 1)
             except Exception:
                 mark_age_h = None
-        priced = cur_price is not None and cur_price > 0 and (mark_age_h is None or mark_age_h <= STALE_MARK_H)
-        valuation_status = "PRICED" if priced else ("STALE_MARK" if cur_price else "UNPRICED")
+        priced = (cur_price is not None and mark_age_h is not None
+                  and math.isfinite(mark_age_h) and -0.0833 <= mark_age_h <= STALE_MARK_H)
+        valuation_status = ("PRICED" if priced else "UNPRICED" if cur_price is None else
+                            "STALE_MARK" if mark_age_h is not None and mark_age_h > STALE_MARK_H else "INVALID_MARK")
         if priced:
             market_value = qty * cur_price
             pnl_dollars = market_value - cost_total
@@ -363,7 +373,8 @@ def lambda_handler(event, context):
             total_value += market_value
         total_cost += cost_total
         sec = e.get("sector") or p.get("sector") or "Unknown"
-        sector_value[sec] = sector_value.get(sec, 0.0) + market_value
+        if market_value is not None:
+            sector_value[sec] = sector_value.get(sec, 0.0) + market_value
 
     # Compute current weights
     for rec in position_records:
@@ -413,6 +424,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "audit_version": "2026-09-09.1",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -432,6 +444,19 @@ def lambda_handler(event, context):
             "stops_not_evaluable": [r["symbol"] for r in position_records if r.get("stop_loss") is not None and r.get("stop_hit") is None],
         },
 
+        # A marked holdings sum is not account equity: no cash/liability/order ledger exists here.
+        # Consumers must not size from this incomplete book.
+        "capital_book": {
+            "schema_version": "1.0", "status": "BLOCKED", "allows_new_entries": False,
+            "reason_codes": ["MISSING_RECONCILED_CAPITAL_LEDGER"],
+            "as_of": datetime.now(timezone.utc).isoformat(), "book_id": None, "account_id": None,
+            "currency": None, "equity_nav": None, "cash": None, "liabilities": None,
+            "reconciled_at": None, "reserved_order_exposure": None, "nav_history": [], "open_orders": [],
+            "gross_exposure": round(sum(abs(r["market_value"]) for r in position_records if r["market_value"] is not None), 2),
+            "net_exposure": round(total_value, 2),
+            "exposure_scope": "PRICED_POSITIONS_ONLY" if unpriced else "ALL_POSITIONS",
+            "positions": position_records, "unpriced_positions": unpriced,
+        },
         # Positions + watchlist
         "positions": position_records,
         "watchlist": watchlist_records,

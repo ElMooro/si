@@ -114,6 +114,46 @@ def test_scoped_keys_are_depth_one_feeds_and_overrides():
     assert mod.scoped_key("data/warm/special/feed.json", manifest)
 
 
+def test_real_evaluator_propagates_unknown_and_nested_empty():
+    mod,_=_load({"data/a.json":b'{"generated_at":"garbage","rows":[1]}',"data/nested/empty.json":b''})
+    def obj(key,size): return {"Key":key,"Size":size,"LastModified":datetime.now(timezone.utc)}
+    rule={"default_max_age_h":26}
+    assert mod.evaluate_key(obj("data/a.json",40),rule,{})["status"]=="UNKNOWN"
+    assert mod.evaluate_key(obj("data/unreadable.json",40),rule,{})["status"]=="UNKNOWN"
+    assert mod.evaluate_key(obj("data/nested/empty.json",0),rule,{})["status"]=="EMPTY"
+    assert mod.validate_body("data/a.json",40,26,schema={"required_fields":["score"]})["content_status"]=="INVALID"
+
+
+def test_actual_handler_validates_expected_nested_feeds_and_reports_missing():
+    manifest={"rules":[{"prefix":"data/","default_max_age_h":26}]}
+    engine_manifest={"engines":[{"engine":"fixture","keys":["portfolio/deep.json","portfolio/missing.json"]}]}
+    objects={"data/_freshness-manifest.json":json.dumps(manifest).encode(),
+             "data/engine-manifest.json":json.dumps(engine_manifest).encode(),
+             "portfolio/deep.json":b''}
+    mod,s3=_load(objects)
+    class Absent(Exception): response={"Error":{"Code":"404"}}
+    def head(**kw):
+        if kw["Key"] not in s3.objects: raise Absent()
+        return {"ContentLength":len(s3.objects[kw["Key"]]),"LastModified":datetime.now(timezone.utc)}
+    s3.head_object=head
+    mod.send_telegram=lambda *_:False; mod.publish_sns=lambda *_:False
+    mod.lambda_handler()
+    payload=json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert payload["status"]=="DEGRADED",payload
+    assert payload["n_missing"]==1 and payload["n_invalid_or_empty"]>=1,payload
+    assert any(r["key"]=="portfolio/deep.json" for r in payload["invalid_or_empty"])
+    assert payload["coverage"]["expected_keys_checked"]==2
+
+
+def test_actual_handler_missing_registry_publishes_unknown():
+    mod,s3=_load({"data/_freshness-manifest.json":json.dumps({"rules":[{"prefix":"data/"}]}).encode()})
+    mod.send_telegram=lambda *_:False; mod.publish_sns=lambda *_:False
+    result=mod.lambda_handler()
+    assert result["statusCode"]==503
+    state=json.loads(s3.objects["data/_freshness-monitor.json"])
+    assert state["status"]=="UNKNOWN" and state["full_expected_coverage"] is False
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     for name, fn in tests:

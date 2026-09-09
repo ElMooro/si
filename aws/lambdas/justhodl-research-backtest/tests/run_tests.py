@@ -40,6 +40,31 @@ def test_no_latest_regime_fallback_in_source(mod):
     assert '"regime_source"' in src and '"critique_source"' in src
 
 
+def test_real_attribution_builder_returns_historical_rows_without_future_join(mod):
+    docs = {"current":{"ticker":"X","generated_at":"2026-09-08T09:00:00Z","quote":{"price":120},"regime_at_generation":{"regime":"TODAY"}},
+            "entry":{"ticker":"X","generated_at":"2026-08-01T09:00:00Z","quote":{"price":100},"verdict":{"rating":"BUY"}},
+            "critic":{"ticker":"X","generated_at":"2026-09-08T09:00:00Z","critique":{"alternative_rating":"SELL","disagreement_score":99}}}
+    mod.list_keys_under = lambda prefix: ["current"] if prefix == mod.RESEARCH_PREFIX else ["critic"]
+    mod.read_s3_json = lambda key: docs[key]
+    mod.list_history_for_ticker = lambda ticker:[("2026-08-01","entry")]
+    rows=mod.build_per_call_attribution({"X":120},100,{"2026-08-01":100})
+    assert len(rows)==2 and rows[0]["disagreement_score"] is None and rows[0]["regime_at_generation"] is None
+    rows.sort(key=lambda r:r["alpha_pct"] if r["alpha_pct"] is not None else -999, reverse=True)
+    assert rows[0]["alpha_pct"]==20
+    critique={"generated_at":"2026-09-06T12:00:00+00:00"}
+    assert mod.critique_available_at(critique,"2026-09-06T13:00:00+02:00") is None
+
+
+def test_significance_requires_twenty_actual_alpha_pairs(mod):
+    calls=[]
+    for contested,vals in ((False,[4,6]),(True,[-4,-6])):
+        for i in range(20):
+            calls.append(dict(disagreement_score=90 if contested else 10,rating_diverges=contested,
+                              ticker_return_pct=1,alpha_pct=vals[i] if i<2 else None))
+    result=mod.build_ensemble_attribution(calls)
+    assert result["significant"] is False and result["n_alpha_consensus"]==2
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

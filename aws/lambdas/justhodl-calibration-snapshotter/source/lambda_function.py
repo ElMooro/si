@@ -42,6 +42,7 @@ Output schema:
 import json
 import os
 import time
+import uuid
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 
@@ -155,9 +156,10 @@ def lambda_handler(event=None, context=None):
     # audit 2026-09-08 INST-09: a snapshot is an IMMUTABLE, availability-stamped model version.
     # It becomes usable for decisions only from available_at (= now) onward; it is never labelled with
     # the Monday of the week it was computed in (that backdated Sunday weights onto the week's trades).
-    snapshot_id = "cal-%s-%s" % (now.strftime("%Y%m%dT%H%M%SZ"), label)
+    snapshot_id = "cal-%s-%s-%s" % (now.strftime("%Y%m%dT%H%M%S%fZ"), label, uuid.uuid4().hex)
     snapshot = {
         "v": "2.0",
+        "audit_version": "2026-09-09.1",
         "snapshot_id": snapshot_id,
         "as_of": now.isoformat(),
         "calibrated_at": now.isoformat(),
@@ -190,7 +192,7 @@ def lambda_handler(event=None, context=None):
     # 4. Write the IMMUTABLE version (unique id) + the legacy weekly key (kept for old readers) + an index
     body = json.dumps(snapshot, default=str).encode("utf-8")
     version_key = f"calibration/versions/{snapshot_id}.json"
-    S3.put_object(Bucket=BUCKET, Key=version_key, Body=body, ContentType="application/json", CacheControl="public, max-age=31536000, immutable")
+    S3.put_object(Bucket=BUCKET, Key=version_key, Body=body, IfNoneMatch="*", ContentType="application/json", CacheControl="public, max-age=31536000, immutable")
     snapshot_key = f"calibration/history/{label}.json"
     S3.put_object(
         Bucket=BUCKET, Key=snapshot_key, Body=body,

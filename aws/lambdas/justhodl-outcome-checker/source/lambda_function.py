@@ -5,6 +5,7 @@ has elapsed, fetches the actual market price and scores the prediction.
 """
 
 import gzip
+import math
 import json
 import re
 import boto3
@@ -133,8 +134,8 @@ def get_mark_at(ticker, date_iso):
                 except Exception:
                     j = json.loads(body)
                 for r in j.get("results") or []:
-                    if r.get("T") in (ticker, sym) and r.get("c"):
-                        mark = {"price": float(r["c"]), "as_of": d, "provider": "s3:polygon-grouped adjusted daily close", "requested": date_iso[:10]}
+                    if r.get("T") in (ticker, sym) and r.get("c") and math.isfinite(float(r["c"])) and float(r["c"]) > 0:
+                        mark = {"price": float(r["c"]), "as_of": d, "provider": "s3:polygon-grouped adjusted daily close", "adjustment_basis": "split_adjusted_price", "requested": date_iso[:10], "source_key": k}
                         break
                 if mark or j.get("results") is not None:
                     break
@@ -143,9 +144,7 @@ def get_mark_at(ticker, date_iso):
     except Exception as e:
         print(f"[MARK-AT] warehouse {ticker}@{date_iso}: {str(e)[:60]}")
     if mark is None:
-        px = get_price_at_yahoo(ticker, date_iso)
-        if px:
-            mark = {"price": float(px), "as_of": date_iso[:10], "provider": "yahoo:daily chart close (on/before date)", "requested": date_iso[:10]}
+        mark = get_mark_at_yahoo(ticker, date_iso)
     _mark_cache[key] = mark
     return mark
 
@@ -156,6 +155,11 @@ def get_price_at(ticker, date_iso):
 
 
 def get_price_at_yahoo(ticker, date_iso):
+    mark = get_mark_at_yahoo(ticker, date_iso)
+    return mark["price"] if mark else None
+
+
+def get_mark_at_yahoo(ticker, date_iso):
     """checker-v3 (ops 3411): close ON/BEFORE date_iso via Yahoo daily chart.
     Elapsed windows are graded at their own date, not at check-time."""
     key = (ticker, date_iso)
@@ -169,12 +173,15 @@ def get_price_at_yahoo(ticker, date_iso):
             j = json.loads(r.read())
         res = j["chart"]["result"][0]
         ts = res.get("timestamp") or []
-        cl = res["indicators"]["quote"][0]["close"]
+        adjusted = (res.get("indicators", {}).get("adjclose") or [{}])[0].get("adjclose")
+        cl = adjusted or res["indicators"]["quote"][0]["close"]
+        basis = "total_return_adjusted" if adjusted else "UNVERIFIED"
         best = None
         for i, t in enumerate(ts):
             d = datetime.fromtimestamp(t, tz=timezone.utc).date().isoformat()
-            if d <= date_iso and cl[i] is not None:
-                best = float(cl[i])
+            if d <= date_iso and cl[i] is not None and math.isfinite(float(cl[i])) and float(cl[i]) > 0:
+                best = {"price": float(cl[i]), "as_of": d, "observed_at": datetime.fromtimestamp(t, tz=timezone.utc).isoformat(),
+                        "provider": "yahoo:daily chart", "adjustment_basis": basis, "requested": date_iso[:10]}
             elif d > date_iso:
                 break
         _hist_cache[key] = best
@@ -398,8 +405,24 @@ def check_pending_signals():
             # runs; asset and benchmark marks come from the same function (shared session +
             # adjustment basis) and carry provenance; a missing mark leaves the window PENDING
             # with a retry policy -- it is never finalised as a zero excess return.
-            _as_of = check_time_iso[:10]
+            try:
+                deadline = datetime.fromisoformat(check_time_iso.replace("Z", "+00:00")).astimezone(timezone.utc)
+            except (ValueError, TypeError):
+                continue
+            _as_of = deadline.date().isoformat()
+            # Final daily bars are not available during the target session. A delayed run
+            # grades the same completed session, never an intraday or previous-day substitute.
+            if now < datetime.fromisoformat(_as_of).replace(tzinfo=timezone.utc) + timedelta(days=1):
+                continue
             pend = existing_outcomes.setdefault("_pending", {})
+            previous = pend.get(window_key) or {}
+            if previous.get("last_try"):
+                try:
+                    retry_at = datetime.fromisoformat(previous["last_try"].replace("Z", "+00:00")) + timedelta(hours=6)
+                    if now < retry_at:
+                        continue
+                except (ValueError, TypeError):
+                    pass
             _pk = (ticker, _as_of)
             if _pk not in price_cache:
                 price_cache[_pk] = get_mark_at(ticker, _as_of)
@@ -413,6 +436,16 @@ def check_pending_signals():
                     time.sleep(0.2)
                 bm_mark = price_cache.get(_bk)
             missing = [n for n, m in (("asset", asset_mark), ("benchmark", bm_mark if pred_type == "relative" else asset_mark)) if not m]
+            if not missing:
+                basis = asset_mark.get("adjustment_basis")
+                if not basis or basis == "UNVERIFIED":
+                    missing.append("verified asset adjustment basis")
+                if bm_mark and (asset_mark["as_of"] != bm_mark["as_of"] or basis != bm_mark.get("adjustment_basis")):
+                    missing.append("aligned asset/benchmark session and adjustment basis")
+                asset_basis = signal.get("baseline_price_basis") or (signal.get("baseline_mark") or {}).get("adjustment_basis")
+                benchmark_basis = signal.get("baseline_benchmark_price_basis") or (signal.get("baseline_benchmark_mark") or {}).get("adjustment_basis")
+                if asset_basis != basis or (pred_type == "relative" and benchmark_basis != basis):
+                    missing.append("baseline adjustment provenance compatible with endpoint marks")
             if missing:
                 prev = pend.get(window_key) or {}
                 attempts = int(prev.get("attempts") or 0) + 1

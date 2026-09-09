@@ -68,7 +68,7 @@ def test_falls_back_to_yahoo_when_the_warehouse_has_no_session_and_none_when_not
     t = int(_dt.datetime(2026, 9, 4, 20, tzinfo=_dt.timezone.utc).timestamp())
     mod = _load({}, yahoo_closes=[(t - 86400 * 3, 99.0), (t, 101.0)])
     m = mod.get_mark_at("XYZ", "2026-09-05")
-    assert m and m["price"] == 101.0 and m["provider"].startswith("yahoo"), m
+    assert m and m["price"] == 101.0 and m["provider"].startswith("yahoo") and m["as_of"]=="2026-09-04", m
     mod2 = _load({})
     assert mod2.get_mark_at("NOPE", "2026-09-05") is None
 
@@ -80,6 +80,45 @@ def test_pending_policy_contract_no_zero_grades_and_shared_mark_function():
     assert 'float(excess) if excess else 0.0' not in src, "missing marks must never finalise as a 0.0 excess return"
     assert "get_mark_at(benchmark, _as_of)" in src and "get_mark_at(ticker, _as_of)" in src
     assert '"graded_at_session"' in src and '"marks"' in src
+
+
+def _run_checker(mod, signal, marks):
+    outputs=[]; updates=[]
+    table=types.SimpleNamespace(scan=lambda **kw:{"Items":[signal]},update_item=lambda **kw:updates.append(kw))
+    mod.dynamodb=types.SimpleNamespace(Table=lambda name:table if name==mod.SIGNALS_TABLE else types.SimpleNamespace(put_item=lambda **kw:outputs.append(kw["Item"])))
+    mod.Attr=lambda name:types.SimpleNamespace(is_in=lambda vals:None)
+    mod.time.sleep=lambda *_:None
+    mod.get_mark_at=lambda ticker, date:marks.get(ticker)
+    mod.check_pending_signals()
+    return outputs,updates
+
+
+def test_actual_checker_keeps_misaligned_or_unverified_marks_pending():
+    signal={"signal_id":"fixture","signal_type":"fixture","ticker":"AAA","benchmark":"SPY","predicted_direction":"OUTPERFORM",
+            "baseline_price":100,"baseline_benchmark_price":100,"baseline_price_basis":"split_adjusted_price","baseline_benchmark_price_basis":"split_adjusted_price",
+            "check_timestamps":{"day_1":"2026-09-05T00:00:00+00:00"}}
+    marks={"AAA":{"price":120,"as_of":"2026-09-03","provider":"warehouse","adjustment_basis":"split_adjusted_price"},
+           "SPY":{"price":110,"as_of":"2026-09-04","provider":"warehouse","adjustment_basis":"split_adjusted_price"}}
+    mod=_load({}); outputs,updates=_run_checker(mod,signal,marks)
+    assert not outputs and updates[-1]["ExpressionAttributeValues"][":s"]=="pending"
+    assert "aligned" in updates[-1]["ExpressionAttributeValues"][":o"]["_pending"]["day_1"]["reason"]
+    marks["AAA"]["as_of"]="2026-09-04"
+    mod=_load({}); outputs,updates=_run_checker(mod,signal,marks)
+    assert outputs and updates[-1]["ExpressionAttributeValues"][":s"]=="complete"
+    assert outputs[0]["outcome"]["marks"]["asset"]["as_of"]==outputs[0]["outcome"]["marks"]["benchmark"]["as_of"]
+    legacy=dict(signal); legacy.pop("baseline_price_basis")
+    mod=_load({}); outputs,updates=_run_checker(mod,legacy,marks)
+    assert not outputs and updates[-1]["ExpressionAttributeValues"][":s"]=="pending"
+
+
+def test_missing_benchmark_never_finalizes_zero_and_retry_is_enforced():
+    signal={"signal_id":"fixture","signal_type":"fixture","ticker":"AAA","benchmark":"SPY","predicted_direction":"OUTPERFORM",
+            "baseline_price":100,"baseline_benchmark_price":100,"check_timestamps":{"day_1":"2026-09-05T00:00:00+00:00"}}
+    mod=_load({}); outputs,updates=_run_checker(mod,signal,{"AAA":{"price":120,"as_of":"2026-09-04","provider":"fixture","adjustment_basis":"split_adjusted_price"}})
+    assert not outputs and updates[-1]["ExpressionAttributeValues"][":o"]["_pending"]["day_1"]["attempts"]==1
+    signal["outcomes"]=updates[-1]["ExpressionAttributeValues"][":o"]
+    mod=_load({}); outputs,updates=_run_checker(mod,signal,{})
+    assert not outputs and not updates
 
 
 if __name__ == "__main__":

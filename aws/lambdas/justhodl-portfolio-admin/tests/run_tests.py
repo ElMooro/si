@@ -100,37 +100,46 @@ def _load_snapshot(prices):
     return mod
 
 
-def test_missing_price_never_becomes_cost_and_pnl_is_scoped_to_priced_sleeve():
-    mod = _load_snapshot({"AAA": {"price": 110.0, "as_of_unix_ms": 1_700_000_000_000 + 10 ** 12}})
-    # no timestamp sanity for the fake beyond 'present'; the harness marks AAA priced and BBB unpriced
-    positions = [
-        {"symbol": "AAA", "qty": 10, "cost_basis_per_share": 100, "cost_basis_total": 999, "position_type": "LONG", "stop_loss": 105},   # stale stored total ignored
-        {"symbol": "BBB", "qty": 10, "cost_basis_per_share": 50, "position_type": "LONG", "stop_loss": 45},                              # no price
-        {"symbol": "CCC", "qty": -5, "cost_basis_per_share": 20, "position_type": "LONG"},                                               # sign says SHORT
-    ]
-    src = Path(mod.__file__).read_text()
-    assert 'cur_price = e.get("current_price") or cost_per' not in src, "cost-as-price fallback must be gone"
-    # drive the valuation loop through a minimal enriched map
-    enriched = {"AAA": {"symbol": "AAA", "current_price": 110.0, "price_asof_unix_ms": None}, "BBB": {"symbol": "BBB", "current_price": None}, "CCC": {"symbol": "CCC", "current_price": None}}
-    # replicate the loop by calling the module's code path via exec of the relevant function is impractical;
-    # instead assert the contract on a synthetic run of the same arithmetic rules
-    recs = []
-    for p in positions:
-        e = enriched[p["symbol"]]
-        qty = float(p["qty"]); cost_per = float(p["cost_basis_per_share"]); cost_total = qty * cost_per
-        side = "LONG" if qty >= 0 else "SHORT"
-        priced = e.get("current_price") is not None
-        mv = qty * e["current_price"] if priced else None
-        recs.append({"symbol": p["symbol"], "cost_basis_total": cost_total, "market_value": mv, "side": side,
-                     "pnl": (mv - cost_total) if priced else None, "stop_hit": ((e["current_price"] <= p["stop_loss"]) if side == "LONG" else (e["current_price"] >= p["stop_loss"])) if (priced and p.get("stop_loss")) else None})
-    aaa = next(r for r in recs if r["symbol"] == "AAA")
-    assert aaa["cost_basis_total"] == 1000.0 and aaa["pnl"] == 100.0, aaa      # stale 999 total ignored
-    bbb = next(r for r in recs if r["symbol"] == "BBB")
-    assert bbb["market_value"] is None and bbb["pnl"] is None and bbb["stop_hit"] is None, bbb
-    ccc = next(r for r in recs if r["symbol"] == "CCC")
-    assert ccc["side"] == "SHORT" and ccc["cost_basis_total"] == -100.0
-    # source-level contract for the summary scope
-    assert "priced_cost = total_cost - unpriced_cost" in src and '"unpriced_positions": unpriced' in src and '"stops_not_evaluable"' in src
+def _snapshot_run(prices, positions):
+    mod = _load_snapshot(prices)
+    mod.load_s3_json = lambda key, default: default
+    mod.sync_auto_watchlist = lambda _: dict(added_S=[], added_A=[], removed_S=[], removed_A=[])
+    mod.query_pk = lambda key: positions if key == "POSITION" else []
+    written = []
+    mod.s3.put_object = lambda **kw: written.append(json.loads(kw["Body"]))
+    result = mod.lambda_handler({}, None)
+    assert result["statusCode"] == 200 and len(written) == 1
+    return written[0]
+
+
+def test_actual_handler_handles_mixed_priced_unpriced_book():
+    from datetime import datetime, timezone
+    now_ms = datetime.now(timezone.utc).timestamp() * 1000
+    positions = [{"symbol":"AAA", "qty":10, "cost_basis_per_share":100, "cost_basis_total":999, "stop_loss":105},
+                 {"symbol":"BBB", "qty":10, "cost_basis_per_share":50, "stop_loss":45},
+                 {"symbol":"CCC", "qty":-5, "cost_basis_per_share":20, "position_type":"LONG"}]
+    payload = _snapshot_run({"AAA":{"price":110, "as_of_unix_ms":now_ms}}, positions)
+    a, b, c = payload["positions"]
+    assert a["cost_basis_total"] == 1000 and a["pnl_dollars"] == 100
+    assert b["market_value"] is None and b["stop_hit"] is None
+    assert c["position_type"] == "SHORT" and c["market_value"] is None
+    assert payload["portfolio_summary"]["total_pnl_dollars"] == 100
+    assert payload["portfolio_summary"]["stops_not_evaluable"] == ["BBB"]
+    assert payload["capital_book"]["status"] == "BLOCKED"
+    assert payload["capital_book"]["equity_nav"] is None
+
+
+def test_actual_handler_rejects_missing_future_stale_and_nonfinite_marks():
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).timestamp() * 1000
+    for price, stamp, status in [(100,None,"INVALID_MARK"), (100,now+10*86400000,"INVALID_MARK"),
+                                  (100,now-10*86400000,"STALE_MARK"), (float("inf"),now,"UNPRICED")]:
+        payload = _snapshot_run({"AAA":{"price":price,"as_of_unix_ms":stamp}},
+                                 [{"symbol":"AAA","qty":10,"cost_basis_per_share":100,"stop_loss":90}])
+        row = payload["positions"][0]
+        assert row["valuation_status"] == status, row
+        assert row["market_value"] is None and row["pnl_dollars"] is None and row["stop_hit"] is None
+        assert payload["portfolio_summary"]["total_pnl_dollars"] == 0
 
 
 if __name__ == "__main__":

@@ -26,13 +26,13 @@ Output:
   data/_freshness-monitor.json with last run state
   Telegram + SNS alerts (deduped 4h per key)
 """
-import os, json, re, time, urllib.request, urllib.parse
+import os, json, re, time, math, urllib.request, urllib.parse
 import boto3
 from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "2.0.0"   # audit 2026-09-08 INST-13: content validation, source-vs-artifact age, missing expected outputs, truncation coverage
+VERSION = "2.1.0"   # audit 2026-09-08 INST-13: content validation, source-vs-artifact age, missing expected outputs, truncation coverage
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -136,7 +136,8 @@ def resolve_max_age(key, rule, manifest):
     overrides = manifest.get('key_overrides', {}) or {}
     if key in overrides:
         try:
-            return float(overrides[key])
+            value = overrides[key]
+            return float(value.get('max_age_h', value.get('default_max_age_h', DEFAULT_MAX_AGE_H)) if isinstance(value, dict) else value)
         except Exception:
             pass
     return float(rule.get('default_max_age_h', DEFAULT_MAX_AGE_H))
@@ -170,8 +171,8 @@ def list_keys_under_rule(rule):
 # non-JSON object is EMPTY/INVALID, a fresh wrapper whose OWN generated_at is stale is
 # SOURCE_STALE (a writer copying old data forward), and a future timestamp is INVALID.
 VALIDATE_MAX_BYTES = int(os.environ.get('VALIDATE_MAX_BYTES', str(3 * 1024 * 1024)))
-TS_FIELDS = ('generated_at', 'as_of', 'updated_at', 'timestamp', 'ts', 'last_updated', 'run_ts')
-_ts_re = re.compile(r'"(generated_at|as_of|updated_at|timestamp|ts|last_updated|run_ts)"\s*:\s*"([^"]{8,40})"')
+TS_FIELDS = ('generated_at', 'as_of', 'updated_at', 'updated', 'timestamp', 'ts', 'last_updated', 'run_ts')
+_ts_re = re.compile(r'"(generated_at|as_of|updated_at|updated|timestamp|ts|last_updated|run_ts)"\s*:\s*"([^"]{8,40})"')
 
 
 def _parse_ts(v):
@@ -185,7 +186,7 @@ def _parse_ts(v):
         return None
 
 
-def validate_body(key, size, max_age_h, now=None):
+def validate_body(key, size, max_age_h, now=None, schema=None):
     """Fetch (bounded) and classify the object's content. Returns a dict of findings."""
     now = now or datetime.now(timezone.utc)
     out = {'validated': False}
@@ -201,8 +202,18 @@ def validate_body(key, size, max_age_h, now=None):
                 return {'validated': True, 'content_status': 'INVALID', 'reason': 'not valid JSON'}
             if doc in ({}, [], None, ''):
                 return {'validated': True, 'content_status': 'EMPTY', 'reason': 'empty JSON document'}
+            schema = schema if isinstance(schema, dict) else {}
+            for field in schema.get('required_fields', []):
+                value = doc
+                for part in field.split('.'):
+                    value = value.get(part) if isinstance(value, dict) else None
+                if value is None:
+                    return {'validated': True, 'content_status': 'INVALID', 'reason': 'missing required field: ' + field}
+            if schema.get('schema_version') is not None and (not isinstance(doc, dict) or doc.get('schema_version') != schema['schema_version']):
+                return {'validated': True, 'content_status': 'INVALID', 'reason': 'schema version mismatch'}
             if isinstance(doc, dict):
-                for f in TS_FIELDS:
+                fields = tuple(schema.get('timestamp_fields') or ()) or TS_FIELDS
+                for f in fields:
                     if doc.get(f) is not None:
                         ts = _parse_ts(doc.get(f))
                         if ts:
@@ -216,7 +227,8 @@ def validate_body(key, size, max_age_h, now=None):
             if m:
                 out['source_ts_field'] = m.group(1)
             out['note'] = 'large object: head-only timestamp check, JSON validity not verified'
-        out['validated'] = True
+            out['partial_validation'] = True
+        out['validated'] = not out.get('partial_validation', False)
         if ts is not None:
             src_age_h = (now - ts).total_seconds() / 3600
             out['source_generated_at'] = ts.isoformat()
@@ -228,12 +240,12 @@ def validate_body(key, size, max_age_h, now=None):
                 out['content_status'] = 'SOURCE_STALE'
                 out['reason'] = 'artifact rewritten but its own %s is %.0fh old (SLA %.0fh)' % (out.get('source_ts_field'), src_age_h, max_age_h)
             else:
-                out['content_status'] = 'OK'
+                out['content_status'] = 'UNKNOWN' if out.get('partial_validation') else 'OK'
         else:
-            out['content_status'] = 'OK'
-            out['note'] = ((out.get('note') or '') + ' no timestamp field found').strip()
+            out['content_status'] = 'UNKNOWN'
+            out['note'] = ((out.get('note') or '') + ' no valid source timestamp found').strip()
     except Exception as e:
-        out['content_status'] = 'UNVERIFIED'
+        out['content_status'] = 'UNKNOWN'
         out['reason'] = str(e)[:80]
     return out
 
@@ -253,7 +265,9 @@ def load_expected_keys():
         m = json.loads(s3.get_object(Bucket=BUCKET, Key='data/engine-manifest.json')['Body'].read())
     except Exception as e:
         print(f"[freshness-monitor] engine-manifest unreadable: {str(e)[:80]}")
-        return {}
+        raise RuntimeError("expected output manifest unavailable") from e
+    if not isinstance(m, dict) or not isinstance(m.get('engines'), list) or not m['engines']:
+        raise ValueError("expected output manifest has no engine contracts")
     out = {}
     for eng in (m.get('engines') or []):
         for k in (eng.get('keys') or []):
@@ -286,6 +300,8 @@ def evaluate_key(obj, rule, manifest):
         return None
     
     max_age_h = resolve_max_age(key, rule, manifest)
+    if not math.isfinite(max_age_h) or max_age_h <= 0:
+        return {'key':key, 'status':'UNKNOWN', 'reason':'invalid freshness SLA', 'age_h':None}
     last_modified = obj['LastModified']
     age_h = (datetime.now(timezone.utc) - last_modified).total_seconds() / 3600
     alert_threshold = max_age_h * ALERT_RATIO
@@ -303,14 +319,15 @@ def evaluate_key(obj, rule, manifest):
     else:
         result['status'] = 'FRESH'
     # audit 2026-09-08 INST-13: a fresh LastModified is not a fresh feed -- inspect scoped bodies
-    if scoped_key(key, manifest):
-        v = validate_body(key, obj.get('Size', 0), max_age_h)
+    if True:  # Every declared/enumerated JSON feed is validated, including nested outputs.
+        schema = (manifest.get('key_overrides') or {}).get(key)
+        v = validate_body(key, obj.get('Size', 0), max_age_h, schema=schema)
         result.update(v)
         cs = v.get('content_status')
         if cs in ('EMPTY', 'INVALID'):
             result['status'] = cs
-        elif cs == 'SOURCE_STALE':
-            result['status'] = 'SOURCE_STALE'
+        elif cs in ('SOURCE_STALE', 'UNKNOWN', 'UNVERIFIED'):
+            result['status'] = 'UNKNOWN' if cs == 'UNVERIFIED' else cs
     return result
 
 
@@ -343,19 +360,29 @@ def should_alert(key, history):
         return True
 
 
+def publish_unknown(reason, coverage=None):
+    state={'version':VERSION,'status':'UNKNOWN','generated_at':datetime.now(timezone.utc).isoformat(),
+           'reason':reason,'coverage':coverage or {},'n_fresh':0,'full_expected_coverage':False}
+    s3.put_object(Bucket=BUCKET,Key='data/_freshness-monitor.json',Body=json.dumps(state).encode(),ContentType='application/json',CacheControl='no-store')
+    return {'statusCode':503,'body':json.dumps(state)}
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     run_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     print(f"[freshness-monitor] v{VERSION} run_id={run_id}")
     
-    manifest = load_manifest()
+    try:
+        manifest = load_manifest()
+    except Exception as e:
+        return publish_unknown('freshness manifest unreadable: ' + str(e)[:120])
     if manifest is None:
         print("[freshness-monitor] manifest missing — cannot run")
-        return {'statusCode': 500, 'body': json.dumps({'error': 'manifest missing'})}
+        return publish_unknown('freshness manifest missing')
     
     rules = manifest.get('rules', []) or []
     if not rules:
-        return {'statusCode': 500, 'body': json.dumps({'error': 'no rules in manifest'})}
+        return publish_unknown('no freshness rules in manifest')
     print(f"[freshness-monitor] {len(rules)} rule(s) in manifest")
     
     # Walk each rule
@@ -363,7 +390,10 @@ def lambda_handler(event=None, context=None):
     coverage = {'rules': [], 'truncated_rules': [], 'keys_enumerated': 0, 'bodies_validated': 0}
     present = set()
     for rule in rules:
-        objs, truncated = list_keys_under_rule(rule)
+        try:
+            objs, truncated = list_keys_under_rule(rule)
+        except Exception as e:
+            return publish_unknown('feed enumeration failed: ' + str(e)[:120], coverage)
         print(f"[freshness-monitor] rule prefix={rule.get('prefix')} → {len(objs)} objects{' (TRUNCATED at cap)' if truncated else ''}")
         coverage['rules'].append({'prefix': rule.get('prefix'), 'n_objects': len(objs), 'truncated': truncated})
         if truncated:
@@ -378,45 +408,74 @@ def lambda_handler(event=None, context=None):
                     coverage['bodies_validated'] += 1
 
     # audit 2026-09-08 INST-13: expected outputs that are ABSENT never entered the result set before.
-    expected = load_expected_keys()
+    try:
+        expected = load_expected_keys()
+    except Exception as e:
+        state = {'version': VERSION, 'status': 'UNKNOWN', 'generated_at': datetime.now(timezone.utc).isoformat(),
+                 'reason': str(e), 'coverage': coverage, 'n_fresh': 0, 'full_expected_coverage': False}
+        s3.put_object(Bucket=BUCKET, Key='data/_freshness-monitor.json', Body=json.dumps(state).encode(), ContentType='application/json', CacheControl='no-store')
+        return {'statusCode': 503, 'body': json.dumps(state)}
     seen = load_seen_keys()
     now_iso_seen = datetime.now(timezone.utc).isoformat()
     missing, declared_absent = [], []
     prefixes = [r.get('prefix', 'data/') for r in rules]
     heads = 0
     HEAD_BUDGET = int(os.environ.get('EXPECTED_HEAD_BUDGET', '2500'))
+    expected_evaluated = 0
+    unknown = []
+    family_keys = []
     for k, eng in expected.items():
-        if not any(k.startswith(p) for p in prefixes) or is_excluded(k, manifest):
+        if is_excluded(k, manifest):
             continue
-        if k.endswith('*') or '*' in k:
-            continue                       # key FAMILIES (dynamic segments) cannot be existence-checked by name
-        if k not in present and heads < HEAD_BUDGET:
-            heads += 1
-            try:
-                s3.head_object(Bucket=BUCKET, Key=k)
-                present.add(k)
-            except Exception:
-                pass
+        if '*' in k:
+            family_keys.append(k)
+            continue
         if k in present:
             seen[k] = now_iso_seen
-        elif k in seen:
-            missing.append({'key': k, 'engine': eng, 'status': 'MISSING', 'last_seen': seen[k], 'max_age_h': resolve_max_age(k, rules[0], manifest), 'age_h': None})
-        else:
-            declared_absent.append({'key': k, 'engine': eng})
+            expected_evaluated += 1
+            continue
+        rule = max((r for r in rules if k.startswith(r.get('prefix','data/'))),
+                   key=lambda r:len(r.get('prefix','data/')), default={'default_max_age_h':DEFAULT_MAX_AGE_H})
+        if heads >= HEAD_BUDGET:
+            unknown.append({'key':k,'engine':eng,'status':'UNKNOWN','reason':'expected-key HEAD budget exhausted','age_h':None})
+            continue
+        heads += 1
+        try:
+            obj = s3.head_object(Bucket=BUCKET, Key=k)
+        except Exception as e:
+            code = str(getattr(e, 'response', {}).get('Error', {}).get('Code', ''))
+            if code in ('404', 'NoSuchKey', 'NotFound'):
+                missing.append({'key':k,'engine':eng,'status':'MISSING','last_seen':seen.get(k),
+                                'reason':'required declared output absent','max_age_h':resolve_max_age(k,rule,manifest),'age_h':None})
+                expected_evaluated += 1
+            else:
+                unknown.append({'key':k,'engine':eng,'status':'UNKNOWN','reason':'expected output could not be read','age_h':None})
+            continue
+        obj['Key'] = k
+        obj['Size'] = obj.get('ContentLength', obj.get('Size', 0))
+        result = evaluate_key(obj, rule, manifest)
+        if result is not None:
+            result['engine'] = eng
+            all_results.append(result)
+            coverage['bodies_validated'] += int(result.get('validated', False))
+        present.add(k)
+        seen[k] = now_iso_seen
+        expected_evaluated += 1
     try:
         save_seen_keys(seen)
     except Exception as e:
         print(f"[freshness-monitor] seen-keys save failed: {str(e)[:80]}")
-    all_results.extend(missing)
-    coverage.update({'expected_keys_checked': len(expected), 'expected_keys_headed': heads, 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
+    all_results.extend(missing + unknown)
+    coverage.update({'expected_keys_declared': len(expected), 'expected_keys_checked': expected_evaluated, 'unresolved_key_families': family_keys, 'head_budget_exhausted': any(r.get('reason') == 'expected-key HEAD budget exhausted' for r in unknown), 'expected_keys_headed': heads, 'missing': len(missing), 'declared_absent_never_seen': len(declared_absent)})
 
     stale = [r for r in all_results if r.get('status') == 'STALE']
     fresh = [r for r in all_results if r.get('status') == 'FRESH']
     invalid = [r for r in all_results if r.get('status') in ('INVALID', 'EMPTY')]
     source_stale = [r for r in all_results if r.get('status') == 'SOURCE_STALE']
+    unknown = [r for r in all_results if r.get('status') == 'UNKNOWN']
     print(f"[freshness-monitor] tracked={len(all_results)}  stale={len(stale)}  fresh={len(fresh)}  invalid/empty={len(invalid)}  source_stale={len(source_stale)}  missing={len(missing)}")
     # alerts cover every non-fresh state, not only LastModified age
-    stale = stale + invalid + source_stale + missing
+    stale = stale + invalid + source_stale + missing + unknown
     
     # Dedupe alerts
     history = load_alert_history()
@@ -477,6 +536,9 @@ def lambda_handler(event=None, context=None):
     stale_sorted = sorted(stale, key=lambda r: ((r.get('age_h') or 0) / (r.get('max_age_h') or 1)) if r.get('status') == 'STALE' else 1e9, reverse=True)
     state = {
         'version': VERSION,
+        'status': 'DEGRADED' if stale or coverage['truncated_rules'] or family_keys else 'HEALTHY',
+        'full_expected_coverage': not unknown and not coverage['truncated_rules'] and not family_keys,
+        'n_unknown': len(unknown), 'unknown': unknown[:100],
         'run_id': run_id,
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'n_keys_tracked': len(all_results),
@@ -490,7 +552,7 @@ def lambda_handler(event=None, context=None):
         'source_stale_top_50': sorted(source_stale, key=lambda r: -(r.get('source_age_h') or 0))[:50],
         'declared_absent_never_seen': declared_absent[:100],
         'coverage': coverage,
-        'semantics': "artifact_age_h = S3 LastModified age (a writer ran); source_age_h = the document's own timestamp age (what it wrote). FRESH requires both within SLA for scoped feeds; EMPTY/INVALID = zero-byte or non-JSON; SOURCE_STALE = rewritten with old data; MISSING = a previously-seen declared output no longer exists (audit 2026-09-08 INST-13)",
+        'semantics': "artifact_age_h = S3 LastModified age (a writer ran); source_age_h = the document's own timestamp age (what it wrote). FRESH requires both within SLA for scoped feeds; EMPTY/INVALID = zero-byte or non-JSON; SOURCE_STALE = rewritten with old data; MISSING = a required declared output does not exist; UNKNOWN = missing/invalid time provenance, partial validation or unreadable content (audit 2026-09-08 INST-13)",
         'n_alerts_raised': len(new_alerts),
         'n_alerts_suppressed': suppressed,
         'stale_top_50': stale_sorted[:50],

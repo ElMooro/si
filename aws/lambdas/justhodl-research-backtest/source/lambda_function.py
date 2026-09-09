@@ -114,157 +114,108 @@ def read_s3_json(key: str) -> Optional[dict]:
 # ═════════════════════════════════════════════════════════════════════
 # Core backtest
 # ═════════════════════════════════════════════════════════════════════
-def list_history_for_ticker(ticker: str) -> list:
-    """List all historical snapshots for a ticker, sorted by date ascending.
+_history_by_ticker = None
 
-    Returns: [(date_str, key), ...] from oldest to newest. Empty if no history.
-    """
-    snapshots = []
-    pag = s3.get_paginator("list_objects_v2")
-    # equity-research-history/YYYY-MM-DD/{TICKER}.json
-    for page in pag.paginate(Bucket=S3_BUCKET, Prefix=HISTORY_PREFIX):
-        for obj in (page.get("Contents") or []):
-            key = obj["Key"]
-            # Parse date and ticker from path
-            parts = key[len(HISTORY_PREFIX):].split("/")
-            if len(parts) == 2 and parts[1] == f"{ticker}.json":
-                snapshots.append((parts[0], key))
-    snapshots.sort(key=lambda x: x[0])
-    return snapshots
+
+def list_history_for_ticker(ticker: str) -> list:
+    """Enumerate history once per invocation, retaining every dated decision."""
+    global _history_by_ticker
+    if _history_by_ticker is None:
+        catalog={}
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET,Prefix=HISTORY_PREFIX):
+            for obj in page.get("Contents",[]):
+                key=obj["Key"]
+                parts=key[len(HISTORY_PREFIX):].split("/")
+                if len(parts)==2 and parts[1].endswith(".json"):
+                    catalog.setdefault(parts[1][:-5],[]).append((parts[0],key))
+        _history_by_ticker={sym:sorted(entries) for sym,entries in catalog.items()}
+    return _history_by_ticker.get(ticker,[])
+
+
+def _utc_timestamp(value):
+    try:
+        ts = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if ts.tzinfo is None:
+            return None
+        return ts.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return None
+
+
+def critique_available_at(critique, decision_iso):
+    """Only data known by the decision instant may enter attribution."""
+    if not isinstance(critique, dict):
+        return None
+    available = _utc_timestamp(critique.get("available_at") or critique.get("generated_at"))
+    decision = _utc_timestamp(decision_iso)
+    return critique if available is not None and decision is not None and available <= decision else None
 
 
 def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
                                 spy_then_cache: dict) -> list:
-    """For each research file, compute return + alpha attribution.
-
-    Returns list of dicts, one per (ticker, generated_at) pair.
-
-    Strategy: use the OLDEST historical snapshot as the "entry" point so
-    days_held > 0 and we can measure real performance. If no history exists,
-    fall back to the latest research (days_held=0, return=0 — sample
-    needs to mature).
-    """
-    per_call = []
-    research_keys = list_keys_under(RESEARCH_PREFIX)
-    print(f"[backtest] found {len(research_keys)} current research files")
-
-    # Build critique lookup. audit 2026-09-08 INST-11: a critique is joined to a historical call only
-    # when it existed at (or before) the call's decision time -- today's Devil's-Advocate note must never
-    # colour an August call. The critique's own generated_at is its availability time.
-    critique_lookup = {}
-    for ck in list_keys_under(CRITIQUE_PREFIX):
-        cd = read_s3_json(ck)
-        if cd and cd.get("ticker"):
-            critique_lookup[cd["ticker"]] = cd
-
-
-def critique_available_at(critique, decision_iso):
-    """Return the critique if it was available at decision time, else None (UNKNOWN)."""
-    if not critique:
-        return None
-    avail = critique.get("available_at") or critique.get("generated_at")
-    if not avail or not decision_iso:
-        return None
-    return critique if str(avail) <= str(decision_iso) else None
-
+    """One attribution per immutable research decision; never substitute today's context."""
+    research_keys=list_keys_under(RESEARCH_PREFIX)
+    critique_lookup={}
+    for key in list_keys_under(CRITIQUE_PREFIX):
+        doc=read_s3_json(key)
+        if isinstance(doc,dict) and doc.get("ticker"):
+            critique_lookup.setdefault(doc["ticker"],[]).append(doc)
+    rows=[]
+    seen=set()
     for key in research_keys:
-        latest_doc = read_s3_json(key)
-        if not latest_doc:
+        latest=read_s3_json(key)
+        if not isinstance(latest,dict) or not latest.get("ticker"):
             continue
-        ticker = latest_doc.get("ticker")
-        if not ticker:
-            continue
-
-        # Try to find oldest historical snapshot (true entry point)
-        history = list_history_for_ticker(ticker)
-        if history:
-            oldest_date, oldest_key = history[0]
-            entry_doc = read_s3_json(oldest_key)
-            if entry_doc:
-                gen_at = entry_doc.get("generated_at") or f"{oldest_date}T00:00:00+00:00"
-                entry_price = (entry_doc.get("quote") or {}).get("price")
-                # Verdict from oldest (the original call to evaluate)
-                verdict = entry_doc.get("verdict") or {}
-            else:
-                gen_at = latest_doc.get("generated_at")
-                entry_price = (latest_doc.get("quote") or {}).get("price")
-                verdict = latest_doc.get("verdict") or {}
-        else:
-            # No history — use latest (will show 0% return)
-            gen_at = latest_doc.get("generated_at")
-            entry_price = (latest_doc.get("quote") or {}).get("price")
-            verdict = latest_doc.get("verdict") or {}
-
-        if not entry_price or not gen_at:
-            continue
-
-        rating = verdict.get("rating")
-        pt = verdict.get("price_target_12m")
-
-        current_price = now_prices.get(ticker)
-        if not current_price:
-            per_call.append({
-                "ticker": ticker,
-                "generated_at": gen_at,
-                "rating": rating,
-                "entry_price": entry_price,
-                "current_price": None,
-                "ticker_return_pct": None,
-                "spy_return_pct": None,
-                "alpha_pct": None,
-                "days_held": days_between(gen_at, datetime.now(timezone.utc).isoformat()),
-                "status": "no_current_price",
-                "n_history_snapshots": len(history),
-            })
-            continue
-
-        ticker_ret = pct_change(entry_price, current_price)
-        days = days_between(gen_at, datetime.now(timezone.utc).isoformat())
-
-        spy_then = spy_then_cache.get(gen_at[:10])
-        spy_ret = pct_change(spy_then, spy_now) if (spy_then and spy_now) else None
-        alpha = round(ticker_ret - spy_ret, 2) if (ticker_ret is not None and spy_ret is not None) else None
-
-        # Regime stamp ONLY from the entry snapshot (the regime active when the call was made).
-        # audit 2026-09-08 INST-11: no fallback to the latest document -- an old call without a stamp
-        # is UNKNOWN, never relabelled with today's regime.
-        regime_stamp = None
-        if history:
-            regime_stamp = (entry_doc or {}).get("regime_at_generation")
-        regime_at_gen = (regime_stamp or {}).get("regime") if isinstance(regime_stamp, dict) else None
-        regime_source = "entry_snapshot" if regime_at_gen else "unknown"
-
-        critique = critique_available_at(critique_lookup.get(ticker, {}), gen_at)
-        c_obj = (critique or {}).get("critique", {})
-        critique_source = ("critique@" + str((critique or {}).get("available_at") or (critique or {}).get("generated_at"))) if critique else "unknown_at_decision_time"
-        per_call.append({
-            "ticker": ticker,
-            "generated_at": gen_at,
-            "days_held": days,
-            "rating": rating,
-            "conviction_grade": verdict.get("conviction_grade"),
-            "price_target_12m": pt,
-            "entry_price": entry_price,
-            "current_price": current_price,
-            "ticker_return_pct": ticker_ret,
-            "spy_return_pct": spy_ret,
-            "alpha_pct": alpha,
-            "pt_progress_pct": pct_change(entry_price, pt) if pt else None,
-            "pt_capture_pct": (
-                round(((current_price - entry_price) / (pt - entry_price)) * 100, 1)
-                if pt and pt != entry_price else None
-            ),
-            "critic_rating":       c_obj.get("alternative_rating"),
-            "disagreement_score":  c_obj.get("disagreement_score"),
-            "rating_diverges":     bool(c_obj.get("alternative_rating") and rating
-                                         and c_obj.get("alternative_rating") != rating),
-            "regime_at_generation": regime_at_gen,
-            "regime_source": regime_source,
-            "critique_source": critique_source,
-            "n_history_snapshots": len(history),
-        })
-
-    return per_call
+        ticker=latest["ticker"]
+        history=list_history_for_ticker(ticker)
+        entries=[(key,read_s3_json(key)) for _date,key in history]
+        entries.append((key,latest))
+        for source_key,entry in entries:
+            if not isinstance(entry,dict):
+                continue
+            generated=entry.get("generated_at")
+            decision=_utc_timestamp(entry.get("available_at") or generated)
+            if decision is None or decision > datetime.now(timezone.utc):
+                continue
+            research_id=entry.get("research_id") or entry.get("id")
+            identity=str(research_id or (ticker+"@"+decision.isoformat()))
+            if identity in seen:
+                continue
+            seen.add(identity)
+            entry_price=(entry.get("quote") or {}).get("price")
+            current=now_prices.get(ticker)
+            if not entry_price or not generated:
+                continue
+            verdict=entry.get("verdict") or {}
+            rating=verdict.get("rating")
+            target=verdict.get("price_target_12m")
+            ticker_ret=pct_change(entry_price,current) if current else None
+            spy_then=spy_then_cache.get(generated[:10])
+            spy_ret=pct_change(spy_then,spy_now) if spy_then and spy_now else None
+            alpha=round(ticker_ret-spy_ret,2) if ticker_ret is not None and spy_ret is not None else None
+            candidates=[]
+            for cd in critique_lookup.get(ticker,[]):
+                # A critique of another call is not evidence for this decision, even if older.
+                same_call=(research_id is not None and cd.get("research_id")==research_id) or cd.get("research_generated_at")==generated
+                if same_call and critique_available_at(cd,decision.isoformat()) is not None:
+                    candidates.append(cd)
+            critique=max(candidates,key=lambda cd:_utc_timestamp(cd.get("available_at") or cd.get("generated_at"))) if candidates else {}
+            c=critique.get("critique") or {}
+            stamp=entry.get("regime_at_generation") or {}
+            regime=stamp.get("regime") if isinstance(stamp,dict) else None
+            rows.append({"research_id":identity,"source_key":source_key,"ticker":ticker,"generated_at":generated,
+                         "available_at":decision.isoformat(),"days_held":days_between(generated,datetime.now(timezone.utc).isoformat()),
+                         "rating":rating,"conviction_grade":verdict.get("conviction_grade"),"price_target_12m":target,
+                         "entry_price":entry_price,"current_price":current,"ticker_return_pct":ticker_ret,"spy_return_pct":spy_ret,
+                         "alpha_pct":alpha,"status":"priced_attribution" if alpha is not None else "incomplete_marks",
+                         "pt_progress_pct":pct_change(entry_price,target) if target else None,
+                         "pt_capture_pct":round(((current-entry_price)/(target-entry_price))*100,1) if current and target and target!=entry_price else None,
+                         "critic_rating":c.get("alternative_rating"),"disagreement_score":c.get("disagreement_score"),
+                         "rating_diverges":bool(c.get("alternative_rating") and rating and c["alternative_rating"]!=rating),
+                         "regime_at_generation":regime,"regime_source":"entry_snapshot" if regime else "unknown",
+                         "critique_source":("critique@"+str(critique.get("available_at") or critique.get("generated_at"))) if critique else "unknown_call_identity_or_availability",
+                         "n_history_snapshots":len(history),"headline_eligible":False})
+    return rows
 
 
 def aggregate_by_field(calls: list, field: str, group_label: str = "value") -> list:
@@ -339,11 +290,14 @@ def build_ensemble_attribution(calls: list) -> dict:
     contested_stats = stats(contested)
     # Spread = consensus_alpha - contested_alpha, with a Welch t-test and coverage requirement.
     # audit 2026-09-08 INST-11: a positive mean spread is NOT "alpha" without significance and coverage.
+    a, b = [], []
     spread = None
     t_stat = None
     ci95 = None
+    degrees_of_freedom = None
+    critical_t = None
     n_total = len(calls)
-    coverage = (len(with_critique) / n_total) if n_total else 0.0
+    coverage = (sum(c.get("alpha_pct") is not None for c in with_critique) / n_total) if n_total else 0.0
     if consensus_stats.get("mean_alpha_pct") is not None and contested_stats.get("mean_alpha_pct") is not None:
         spread = round(consensus_stats["mean_alpha_pct"] - contested_stats["mean_alpha_pct"], 2)
         a = [c["alpha_pct"] for c in consensus if c.get("alpha_pct") is not None]
@@ -355,28 +309,37 @@ def build_ensemble_attribution(calls: list) -> dict:
             se = (va / len(a) + vb / len(b)) ** 0.5
             if se > 0:
                 t_stat = round((ma - mb) / se, 3)
-                ci95 = [round(ma - mb - 1.96 * se, 2), round(ma - mb + 1.96 * se, 2)]
+                denominator = (va/len(a))**2/(len(a)-1) + (vb/len(b))**2/(len(b)-1)
+                degrees_of_freedom = se**4/denominator if denominator else None
+                # Conservative lower-df Student-t critical value (two-sided 95%).
+                critical_t = 12.706
+                for df,critical in ((1,12.706),(2,4.303),(5,2.571),(10,2.228),(15,2.131),(20,2.086),(30,2.042),(40,2.021),(60,2.000),(120,1.980)):
+                    if degrees_of_freedom is not None and degrees_of_freedom >= df:
+                        critical_t=critical
+                ci95 = [round(ma-mb-critical_t*se,2), round(ma-mb+critical_t*se,2)]
     min_n = 20
-    significant = t_stat is not None and abs(t_stat) >= 2.0 and len(consensus) >= min_n and len(contested) >= min_n and coverage >= 0.5
+    significant = t_stat is not None and critical_t is not None and abs(t_stat) >= critical_t and len(a) >= min_n and len(b) >= min_n and coverage >= 0.5
     if spread is None:
         interp = "Sample too small for meaningful inference"
     elif significant and spread > 0:
-        interp = "Consensus picks outperformed contested ones with statistical significance (|t|>=2, n>=%d each, critique coverage>=50%%) — ensemble signal shows alpha in this sample" % min_n
+        interp = "Positive consensus/contested association in this paired sample (Welch-t threshold met, paired n>=%d each, coverage>=50%%); overlapping calls and market factors prevent an investable alpha claim" % min_n
     elif significant and spread < 0:
         interp = "Contested picks outperformed consensus with statistical significance — counter to the ensemble premise"
     else:
-        interp = "Spread %s%% is NOT statistically distinguishable from zero (t=%s, n=%d/%d, coverage %.0f%%) — no alpha claim" % (spread, t_stat, len(consensus), len(contested), coverage * 100)
+        interp = "Spread %s%% does not meet the evidence threshold (t=%s, paired-alpha n=%d/%d, coverage %.0f%%) — no alpha claim" % (spread, t_stat, len(a), len(b), coverage * 100)
 
     return {
         "n_calls_total":      n_total,
         "n_with_critique":    len(with_critique),
+        "n_alpha_consensus": len(a), "n_alpha_contested": len(b),
         "critique_coverage_pct": round(coverage * 100, 1),
         "consensus":          consensus_stats,
         "contested":          contested_stats,
         "alpha_spread_pct":   spread,
         "t_stat":             t_stat,
+        "welch_degrees_of_freedom": degrees_of_freedom, "critical_t_95": critical_t,
         "ci95_spread_pct":    ci95,
-        "significance_rule":  "|t| >= 2 and n >= %d per group and critique coverage >= 50%%; critiques joined only when available at each call's decision time" % min_n,
+        "significance_rule":  "two-sided conservative Welch-t 95%% threshold, paired alpha n >= %d per group, paired coverage >= 50%%; critique matched to call identity and availability" % min_n,
         "significant":        bool(significant),
         "interpretation":     interp,
     }
@@ -515,6 +478,8 @@ def build_regime_attribution(calls: list) -> dict:
 
 
 def lambda_handler(event, context):
+    global _history_by_ticker
+    _history_by_ticker = None
     t0 = time.time()
     print(f"[backtest] starting at {datetime.now(timezone.utc).isoformat()}")
 
@@ -543,7 +508,8 @@ def lambda_handler(event, context):
     print(f"[backtest] SPY current: {spy_now}")
 
     # 3. Build SPY history covering the research date range
-    start_date = (earliest_gen or "2025-01-01")[:10]
+    historical_dates=[date for ticker in universe for date,_ in list_history_for_ticker(ticker)]
+    start_date = min(historical_dates + [(earliest_gen or "2025-01-01")[:10]])
     end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     spy_history = build_spy_history(start_date, end_date)
     print(f"[backtest] SPY history: {len(spy_history)} days from {start_date} to {end_date}")
@@ -557,6 +523,10 @@ def lambda_handler(event, context):
             if d not in spy_then_cache:
                 spy_then_cache[d] = get_spy_then(spy_history, d)
 
+    for ticker in universe:
+        for date, _key in list_history_for_ticker(ticker):
+            if date not in spy_then_cache:
+                spy_then_cache[date] = get_spy_then(spy_history, date)
     per_call = build_per_call_attribution(now_prices, spy_now, spy_then_cache)
     # Sort by alpha desc for the report
     per_call.sort(key=lambda c: c.get("alpha_pct") if c.get("alpha_pct") is not None else -999, reverse=True)
@@ -587,6 +557,7 @@ def lambda_handler(event, context):
 
     out = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "audit_version": "2026-09-09.1",
         "elapsed_s": round(time.time() - t0, 1),
         "universe_size": len(universe),
         "n_research_files": len(research_keys),

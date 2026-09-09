@@ -127,7 +127,7 @@ table td.num{text-align:right}
 <main>
   <header class="hero">
     <h1>Backtest</h1>
-    <p class="lede">Calibrated alpha replay — what cumulative P&L would the system have generated if every realized signal had been sized by its current calibration weight? This page replays the entire historical signal ledger using today's trust weights to estimate the strategy's hypothetical NAV.</p>
+    <p class="lede">Historical signal attribution and data-quality diagnostics. Portfolio performance is blocked until an immutable daily marked ledger reconciles fills, cash, costs, corporate actions and capital limits.</p>
     <div class="meta" id="meta">
       <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
       <span>Outcomes <b id="n-outcomes">—</b></span>
@@ -138,26 +138,15 @@ table td.num{text-align:right}
 
   <div class="method-card">
     <h3>Methodology</h3>
-    The headline numbers below come from <strong>v2.0 (Honest Backtest)</strong>:
-    each scored realistic trade's net P&L (post-slippage, post-concentration-cap, post-gross-cap)
-    is booked on its <code>logged_at</code> firing date, then a complete business-day calendar is
-    constructed from first to last date — every Mon–Fri without a trade contributes <strong>0</strong> to that
-    day's P&L. Annualized return is computed geometrically from the compounded NAV; Sharpe subtracts
-    the 5% risk-free rate. The headline Sharpe is then bracketed by a 1000-sample <strong>block
-    bootstrap</strong> (5-day blocks) to give an honest [p5, p95] confidence interval. v1.1 (idealized,
-    no friction) and v1.2 (with frictions but only counting trade days in vol) are kept below for
-    comparison so methodology drag and friction drag are both visible.
-    <br><br>
-    <em>Known limitation:</em> calibration weights are still fitted in-sample. Walk-forward
-    out-of-sample calibration is v2.1 (next ship). Auto-recomputes every 6 hours.
+    <strong>Performance publication blocked.</strong> The legacy v1/v2 curves allocate completed horizon returns to signal dates. They omit the daily path and overlapping capital usage, and cannot establish investable NAV, Sharpe or drawdown. Walk-forward calibration improves model timing but does not turn attribution into a tradable portfolio. Full engine diagnostics remain available below. A longer sample never bypasses this gate.
   </div>
 
   <div id="notice-area"></div>
 
   <!-- ─── v2.0 HONEST BACKTEST (HEADLINE) ─── -->
   <div class="section" id="honest-section">
-    <h2>v2.0 Honest Backtest <span style="font-size:11px;color:var(--green);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">Headline</span></h2>
-    <p class="sub">The number to publish. Lump-sum P&L on each trade's firing day, full business-day calendar (zero-trade days included in volatility), 5% risk-free rate subtracted, Sharpe reported with bootstrap [p5, p95] confidence interval.</p>
+    <h2>v2.0 Signal Attribution <span style="font-size:11px;color:var(--green);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">Research only</span></h2>
+    <p class="sub">Completed outcomes attributed to signal dates. These diagnostics are not portfolio performance; publication stays blocked regardless of coverage or sample length.</p>
     <div id="honest-notice"></div>
     <div class="kpis" id="honest-kpi-row"><div class="kpi"><h3>Loading…</h3></div></div>
     <div class="card" style="padding:20px;margin-top:18px">
@@ -173,7 +162,7 @@ table td.num{text-align:right}
 
   <!-- ─── v2.1 WALK-FORWARD CALIBRATION ─── -->
   <div class="section" id="walkforward-section">
-    <h2>v2.1 Walk-Forward Calibration <span style="font-size:11px;color:var(--cyan);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">future headline</span></h2>
+    <h2>v2.1 Walk-Forward Calibration <span style="font-size:11px;color:var(--cyan);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">Research only</span></h2>
     <p class="sub">Each trade's weight resolved from the newest calibration snapshot whose <code>available_at</code> is no later than the trade's <code>logged_at</code> timestamp (a snapshot computed on Sunday never applies to that week's earlier trades). This is a <b>signal-attribution</b> curve: each trade's completed horizon return is credited on its signal date — no daily marks, no overlap/gross/concentration constraints, no costs — so it is not a tradable NAV and is not promoted to a headline number. Coverage tells you how much of the book the point-in-time weights actually cover.</p>
     <div id="walkforward-notice"></div>
     <div class="kpis" id="walkforward-kpi-row"><div class="kpi"><h3>Loading…</h3></div></div>
@@ -190,8 +179,8 @@ table td.num{text-align:right}
   </div>
 
   <div class="section">
-    <h2>Cumulative NAV — calibrated alpha replay</h2>
-    <p class="sub">Starting at $100,000. Each step compounds that day's net contribution at the calibrated weight. Drawdowns shaded.</p>
+    <h2>Legacy attribution index</h2>
+    <p class="sub">Legacy compounded attribution diagnostics are retained in the full engine output. They are not a marked portfolio equity path.</p>
     <div class="card" style="padding:20px">
       <svg id="nav-chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
     </div>
@@ -243,8 +232,8 @@ table td.num{text-align:right}
 
   <!-- ─── REALISTIC vs IDEALIZED COMPARISON (v1.2) ─── -->
   <div class="section" style="margin-top:48px;padding-top:36px;border-top:1px solid var(--brd2)">
-    <h2>Realistic backtest — friction applied (v1.2)</h2>
-    <p class="sub">The headline backtest above is idealized: no slippage, no exposure caps, no concentration limits. v1.2 applies real-world frictions to the same trades to see how much survives: <strong>5 bps slippage per leg</strong> (10 bps round-trip), <strong>40% NAV cap per signal type per day</strong>, and <strong>100% NAV gross exposure cap per day</strong>. The drag between the two is what the system would have actually paid in a live account.</p>
+    <h2>Friction sensitivity — attribution only (v1.2)</h2>
+    <p class="sub">Sensitivity of legacy signal attribution to assumed slippage and daily caps. It does not model real fills, overlapping positions or an executable portfolio, and cannot establish live account costs.</p>
     <div id="realistic-notice"></div>
     <div class="kpis" id="realistic-kpi-row"></div>
     <div class="card" style="padding:24px 26px;margin-top:18px">
@@ -343,6 +332,7 @@ async function load(){
       document.getElementById('notice-area').innerHTML = `<div class="warn">⚠ No scored outcomes yet — backtest will populate after the calibrator processes recent outcomes.</div>`;
     }
 
+    renderFullEngineOutput(DATA);
     renderKPIs(summ);
     renderHonest(DATA.honest_summary, DATA.honest_daily_curve);
     renderWalkforward(DATA.walkforward_summary);
@@ -413,149 +403,42 @@ function renderHorizonAttribution(summ){
   document.getElementById('horizon-attribution').innerHTML = head + bars;
 }
 
+/* AUDIT PUBLICATION GATE START */
+function renderFullEngineOutput(data){
+  let box=document.getElementById('full-backtest-engine-output');
+  if (!box) {
+    box=document.createElement('details'); box.id='full-backtest-engine-output';
+    const title=document.createElement('summary'); title.textContent='Full engine output — research diagnostics';
+    box.appendChild(title); box.appendChild(document.createElement('pre'));
+    document.querySelector('main').appendChild(box);
+  }
+  box.querySelector('pre').textContent=JSON.stringify(data,null,2);
+}
+function renderAttributionGate(data,prefix){
+  const notice=document.getElementById(prefix+'-notice');
+  const kpi=document.getElementById(prefix+'-kpi-row');
+  const body=document.getElementById(prefix+'-stats-body');
+  if (notice) notice.textContent='PERFORMANCE BLOCKED — signal attribution is not daily portfolio performance. Fills, cash, daily marks, costs and capital constraints must reconcile first.';
+  if (kpi) kpi.textContent='Research diagnostics only. Portfolio NAV, return, Sharpe and drawdown are unavailable.';
+  if (body) {
+    body.replaceChildren();
+    const row=document.createElement('tr'), cell=document.createElement('td'), detail=document.createElement('details');
+    cell.colSpan=2;
+    const label=document.createElement('summary'); label.textContent='All attribution fields (legacy NAV fields are diagnostic indices)';
+    const pre=document.createElement('pre'); pre.textContent=JSON.stringify(data || {status:'UNAVAILABLE'},null,2);
+    detail.appendChild(label); detail.appendChild(pre); cell.appendChild(detail); row.appendChild(cell); body.appendChild(row);
+  }
+  const chart=document.getElementById(prefix+'-nav-chart');
+  if(chart) chart.textContent='No verified portfolio equity path';
+}
+/* AUDIT PUBLICATION GATE END */
+
 function renderKPIs(summ){
-  const ret = summ.total_return_pct;
-  const winRate = summ.win_rate;
-  const sharpe = summ.sharpe_proxy;
-  const dd = summ.max_drawdown_pct;
-  const spy = summ.spy_return_pct;
-  const alpha = summ.alpha_vs_spy_pct;
-
-  const tiles = [
-    {h:'Strategy Return', v: ret != null ? fmtPct(ret, 2) : '—', cls:pctClass(ret||0),
-     sub: `${fmt(summ.initial_nav, {maximumFractionDigits:0})} → ${fmt(summ.final_nav,{maximumFractionDigits:0})} over ${summ.n_days||0} days`},
-    {h:'SPY Buy & Hold', v: spy != null ? fmtPct(spy, 2) : '—', cls:pctClass(spy||0),
-     sub: spy != null ? `Same window benchmark` : 'fetching SPY...'},
-    {h:'Alpha vs SPY', v: alpha != null ? fmtPct(alpha, 2) : '—',
-     cls: alpha != null ? (alpha > 0 ? 'up' : 'down') : '',
-     sub: 'strategy − SPY'},
-    {h:'Win Rate', v: winRate != null ? `${(winRate*100).toFixed(1)}%` : '—',
-     cls: winRate >= 0.55 ? 'up' : (winRate < 0.45 ? 'down' : ''),
-     sub: `${summ.n_correct||0} of ${summ.n_outcomes||0} trades`},
-    {h:'Max Drawdown', v: dd != null ? `-${fmt(dd,{maximumFractionDigits:2})}%` : '—',
-     cls: dd > 10 ? 'down' : '',
-     sub: `Sharpe ${sharpe != null ? sharpe.toFixed(2) : '—'}`},
-  ];
-  document.getElementById('kpi-row').innerHTML = tiles.map(t =>
-    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
-  ).join('');
+  document.getElementById('kpi-row').textContent='Performance blocked — research attribution only. Full source metrics are available in engine diagnostics.';
 }
 
-// ── v2.0 Honest Backtest renderer ─────────────────────────────────
-function renderHonest(honest, curve){
-  const noticeEl = document.getElementById('honest-notice');
-  const kpiEl    = document.getElementById('honest-kpi-row');
-  const bodyEl   = document.getElementById('honest-stats-body');
-
-  if (!honest || honest.error) {
-    noticeEl.innerHTML = `<div class="warn">⚠ v2.0 honest backtest not yet computed${honest?.error ? `: ${honest.error}` : ''}. Engine recomputes every 6h — wait for next tick.</div>`;
-    kpiEl.innerHTML = '';
-    bodyEl.innerHTML = '<tr><td colspan="2" class="loading">Pending engine v2.0 deployment + next 6h tick</td></tr>';
-    return;
-  }
-
-  // Data sufficiency banner — when window <0.5y, annualized stats are unreliable
-  const sufficient = honest.data_sufficient !== false;
-  if (!sufficient) {
-    noticeEl.innerHTML = `<div class="warn" style="background:#fef3c7;border-color:#f59e0b;color:#92400e;padding:14px 18px;font-size:13px;line-height:1.5">
-      <strong>⚠ Data sufficiency: insufficient for annualized Sharpe.</strong>
-      Window is ${honest.n_business_days || 0} business days (~${honest.n_years || 0} years).
-      Annualized Sharpe estimates are unreliable for windows under ${honest.data_sufficiency_min_years || 0.5} years.
-      <strong>Use the unannualized period stats below as the headline number.</strong>
-      Window will widen as new outcomes accumulate — calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL.
-    </div>`;
-  } else {
-    noticeEl.innerHTML = '';
-  }
-
-  // Always-reliable PERIOD stats (no annualization)
-  const periodRet = honest.period_total_return_pct ?? honest.total_return_pct;
-  const periodDD  = honest.period_max_drawdown_pct ?? honest.max_drawdown_pct;
-  const periodN   = honest.period_n_business_days ?? honest.n_business_days;
-  const periodAlp = honest.period_alpha_vs_spy_pct ?? honest.alpha_vs_spy_pct;
-
-  // Annualized stats — only show if data_sufficient
-  const sp   = sufficient ? honest.sharpe_point : null;
-  const p5   = sufficient ? honest.sharpe_p5    : null;
-  const p95  = sufficient ? honest.sharpe_p95   : null;
-  const aRet = sufficient ? honest.annualized_return_pct : null;
-  const aVol = sufficient ? honest.annualized_vol_pct    : null;
-
-  let tiles;
-  if (sufficient) {
-    // Window long enough — annualized Sharpe is the headline
-    const sharpeDisplay = sp != null
-      ? `${sp.toFixed(2)}<span style="font-size:13px;color:var(--t3);font-weight:400"> [${(p5 ?? 0).toFixed(2)}, ${(p95 ?? 0).toFixed(2)}]</span>`
-      : '—';
-    const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
-    tiles = [
-      {h:'Sharpe (rf=5%)',
-       v: sharpeDisplay, cls: sharpeClass,
-       sub: `bootstrap p5 / p95 from ${honest.n_bootstrap_samples || 0} samples`},
-      {h:'Annualized Return',
-       v: aRet != null ? fmtPct(aRet, 2) : '—', cls: pctClass((aRet||0)/100),
-       sub: `${honest.n_years != null ? honest.n_years.toFixed(2) : '—'}y · ${honest.n_business_days || 0} biz days`},
-      {h:'Annualized Vol',
-       v: aVol != null ? fmtPct(aVol, 2) : '—', cls: '',
-       sub: `daily hit rate ${honest.daily_hit_rate != null ? (honest.daily_hit_rate*100).toFixed(0)+'%' : '—'}`},
-      {h:'Max Drawdown',
-       v: periodDD != null ? `-${periodDD.toFixed(2)}%` : '—', cls: 'down',
-       sub: periodAlp != null ? `Alpha vs SPY ${fmtPct(periodAlp, 2)}` : 'compounded NAV peak-to-trough'},
-    ];
-  } else {
-    // Window too short — lead with period stats, gray out annualized
-    tiles = [
-      {h:'Period Return',
-       v: periodRet != null ? fmtPct(periodRet, 2) : '—', cls: pctClass((periodRet||0)/100),
-       sub: `${periodN || 0} biz days · ${honest.n_trades_distributed || 0} trades`},
-      {h:'Period Alpha vs SPY',
-       v: periodAlp != null ? fmtPct(periodAlp, 2) : '—',
-       cls: periodAlp != null ? (periodAlp > 0 ? 'up' : 'down') : '',
-       sub: 'unannualized excess return'},
-      {h:'Max Drawdown (period)',
-       v: periodDD != null ? `-${periodDD.toFixed(2)}%` : '—', cls: 'down',
-       sub: 'NAV peak-to-trough'},
-      {h:'Daily Hit Rate',
-       v: honest.daily_hit_rate != null ? `${(honest.daily_hit_rate*100).toFixed(1)}%` : '—',
-       cls: (honest.daily_hit_rate||0) >= 0.55 ? 'up' : '',
-       sub: `${honest.n_pos_days||0} pos · ${honest.n_neg_days||0} neg · ${honest.n_flat_days||0} flat`},
-    ];
-  }
-  kpiEl.innerHTML = tiles.map(t =>
-    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
-  ).join('');
-
-  // Stats table (full breakdown)
-  const sufficientTag = sufficient ? '✓ sufficient' : '⚠ insufficient (window <0.5y)';
-  const rows = [
-    ['Method', honest.method || '—'],
-    ['Data sufficiency', sufficientTag],
-    ['Risk-free rate (annual)', honest.rf_annual != null ? `${(honest.rf_annual*100).toFixed(2)}%` : '—'],
-    ['Window', `${honest.n_business_days || 0} business days (${(honest.n_years||0).toFixed(2)}y)`],
-    ['Trades booked', `${honest.n_trades_distributed || 0} (skipped ${honest.n_trades_skipped || 0})`],
-    ['Initial NAV', `$${(honest.initial_nav || 0).toLocaleString()}`],
-    ['Final NAV', `$${(honest.final_nav || 0).toLocaleString()}`],
-    ['Period Total Return', periodRet != null ? fmtPct(periodRet, 2) : '—'],
-    ['Period Max DD', periodDD != null ? `-${periodDD.toFixed(2)}%` : '—'],
-    ['Period Alpha vs SPY', periodAlp != null ? fmtPct(periodAlp, 2) : '—'],
-    ['Annualized Return (arith)', sufficient && aRet != null ? fmtPct(aRet, 2) : '—  <em style="color:#92400e">gated</em>'],
-    ['Annualized Volatility', sufficient && aVol != null ? fmtPct(aVol, 2) : '—  <em style="color:#92400e">gated</em>'],
-    ['Sharpe (point estimate)', sufficient && sp != null ? sp.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
-    ['Sharpe (bootstrap p5)', sufficient && p5 != null ? p5.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
-    ['Sharpe (bootstrap median)', sufficient && honest.sharpe_median != null ? honest.sharpe_median.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
-    ['Sharpe (bootstrap p95)', sufficient && p95 != null ? p95.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
-    ['Daily P&L distribution', `${honest.n_pos_days || 0} pos · ${honest.n_neg_days || 0} neg · ${honest.n_flat_days || 0} flat`],
-  ];
-  if (Array.isArray(honest.known_limitations)) {
-    rows.push(['<em>Known limitations</em>', honest.known_limitations.map(l => `• ${l}`).join('<br>')]);
-  }
-  bodyEl.innerHTML = rows.map(([k, v]) =>
-    `<tr><td>${k}</td><td class="num" style="font-family:var(--mono)">${v}</td></tr>`
-  ).join('');
-
-  // NAV chart
-  renderHonestChart(curve || []);
-}
+// ── v2.0 Signal Attribution renderer ─────────────────────────────────
+function renderHonest(honest, curve){ renderAttributionGate(honest,'honest'); }
 
 function renderHonestChart(curve){
   const svg = document.getElementById('honest-nav-chart');
@@ -604,218 +487,10 @@ function renderHonestChart(curve){
   `;
 }
 
-function renderWalkforward(wf){
-  const noticeEl = document.getElementById('walkforward-notice');
-  const kpiEl    = document.getElementById('walkforward-kpi-row');
-  const bodyEl   = document.getElementById('walkforward-stats-body');
-
-  if (!wf) {
-    noticeEl.innerHTML = `<div class="warn">⚠ v2.1 walk-forward not yet computed. Engine recomputes every 6h.</div>`;
-    kpiEl.innerHTML = '';
-    bodyEl.innerHTML = '<tr><td colspan="2" class="loading">Pending engine v2.1 next tick</td></tr>';
-    return;
-  }
-  if (wf.error) {
-    noticeEl.innerHTML = `<div class="warn">⚠ v2.1 walk-forward error: ${wf.error}</div>`;
-    kpiEl.innerHTML = '';
-    bodyEl.innerHTML = '<tr><td colspan="2">—</td></tr>';
-    return;
-  }
-  if (!wf.available) {
-    noticeEl.innerHTML = `<div class="warn" style="background:#fef3c7;border-color:#f59e0b;color:#92400e;padding:14px 18px;font-size:13px;line-height:1.5">
-      <strong>⚠ Walk-forward not yet applicable.</strong>
-      ${wf.reason || 'No calibration snapshots available.'}
-      Snapshots are written every Sunday 12:00 UTC by <code>justhodl-calibration-snapshotter</code>.
-      As snapshots accumulate the walk-forward Sharpe becomes the headline number.
-    </div>`;
-    kpiEl.innerHTML = '';
-    bodyEl.innerHTML = '<tr><td colspan="2">—</td></tr>';
-    return;
-  }
-
-  // Coverage banner: low coverage = not yet publishable
-  const cov = wf.coverage_pct ?? 0;
-  const sufficient = wf.data_sufficient === true;
-  if (!sufficient) {
-    const noteColor = cov < 50 ? '#92400e' : '#1e40af';
-    noticeEl.innerHTML = `<div class="warn" style="background:${cov<50?'#fef3c7':'#dbeafe'};border-color:${cov<50?'#f59e0b':'#3b82f6'};color:${noteColor};padding:14px 18px;font-size:13px;line-height:1.5">
-      <strong>⚠ Walk-forward not yet publishable</strong> — coverage ${cov.toFixed(1)}%, window ${(wf.n_business_days||0)} biz days (${(wf.n_years||0).toFixed(2)}y).
-      Of ${wf.n_trades_total||0} total trades, ${wf.n_trades_walkforward_resolved||0} had a historical weight snapshot
-      (${wf.n_trades_predates_snapshots||0} pre-date all snapshots${wf.n_trades_signal_missing ? `, ${wf.n_trades_signal_missing} had signals not in snapshots` : ''}).
-      Becomes the headline when coverage ≥50% AND window ≥0.5y.
-    </div>`;
-  } else {
-    noticeEl.innerHTML = '';
-  }
-
-  // KPI tiles — when sufficient lead with Sharpe; when insufficient lead with coverage
-  let tiles;
-  if (sufficient) {
-    const sp = wf.sharpe_point;
-    const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
-    tiles = [
-      {h:'Walk-forward Sharpe',
-       v: sp != null ? sp.toFixed(2) : '—', cls: sharpeClass,
-       sub: `coverage ${cov.toFixed(1)}% · ${wf.n_snapshots||0} snapshots`},
-      {h:'Annualized Return',
-       v: wf.annualized_return_pct != null ? `${wf.annualized_return_pct.toFixed(2)}%` : '—',
-       cls: pctClass((wf.annualized_return_pct||0)/100),
-       sub: `walk-forward, no in-sample bias`},
-      {h:'Period Total Return',
-       v: wf.period_total_return_pct != null ? `${wf.period_total_return_pct.toFixed(2)}%` : '—',
-       cls: pctClass((wf.period_total_return_pct||0)/100),
-       sub: `${wf.n_business_days||0} biz days`},
-      {h:'Period Max DD',
-       v: wf.period_max_drawdown_pct != null ? `-${wf.period_max_drawdown_pct.toFixed(2)}%` : '—',
-       cls: 'down',
-       sub: wf.period_alpha_vs_spy_pct != null ? `Alpha vs SPY ${wf.period_alpha_vs_spy_pct.toFixed(2)}%` : ''},
-    ];
-  } else {
-    tiles = [
-      {h:'Coverage',
-       v: `${cov.toFixed(1)}%`,
-       cls: cov >= 50 ? 'up' : (cov >= 10 ? 'flat' : 'down'),
-       sub: `${wf.n_trades_walkforward_resolved||0} of ${wf.n_trades_total||0} trades`},
-      {h:'Snapshots',
-       v: `${wf.n_snapshots||0}`,
-       cls: '',
-       sub: wf.snapshots_earliest ? `earliest ${wf.snapshots_earliest}` : 'none yet'},
-      {h:'Trades pre-dating',
-       v: `${wf.n_trades_predates_snapshots||0}`,
-       cls: 'flat',
-       sub: 'before earliest snapshot'},
-      {h:'Walk-forward Sharpe',
-       v: '— gated',
-       cls: '',
-       sub: 'wait for ≥50% coverage & ≥0.5y window'},
-    ];
-  }
-  kpiEl.innerHTML = tiles.map(t =>
-    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
-  ).join('');
-
-  // Stats table
-  const sufTag = sufficient ? '✓ publishable' : `⚠ ${cov < 50 ? 'low coverage' : 'short window'}`;
-  const rows = [
-    ['Method', wf.method || 'walk_forward_calibration'],
-    ['Available', wf.available ? '✓' : '✗'],
-    ['Status', sufTag],
-    ['Risk-free rate', wf.rf_annual != null ? `${(wf.rf_annual*100).toFixed(2)}%` : '—'],
-    ['Snapshots loaded', `${wf.n_snapshots || 0}`],
-    ['Snapshot range', `${wf.snapshots_earliest || '—'} → ${wf.snapshots_latest || '—'}`],
-    ['Total trades', `${wf.n_trades_total || 0}`],
-    ['Walk-forward resolved', `${wf.n_trades_walkforward_resolved || 0} (${cov.toFixed(2)}%)`],
-    ['Predate all snapshots', `${wf.n_trades_predates_snapshots || 0}`],
-    ['Signal missing in snapshot', `${wf.n_trades_signal_missing_in_snapshot || 0}`],
-    ['Window', `${wf.n_business_days || 0} biz days (${(wf.n_years||0).toFixed(2)}y)`],
-    ['Final NAV', `$${(wf.final_nav || 0).toLocaleString()}`],
-    ['Period total return', wf.period_total_return_pct != null ? `${wf.period_total_return_pct.toFixed(2)}%` : '—'],
-    ['Period max DD', wf.period_max_drawdown_pct != null ? `-${wf.period_max_drawdown_pct.toFixed(2)}%` : '—'],
-    ['Period alpha vs SPY', wf.period_alpha_vs_spy_pct != null ? `${wf.period_alpha_vs_spy_pct.toFixed(2)}%` : '—'],
-    ['Daily P&L', `${wf.n_pos_days||0} pos · ${wf.n_neg_days||0} neg`],
-    ['Daily hit rate', wf.daily_hit_rate != null ? `${(wf.daily_hit_rate*100).toFixed(1)}%` : '—'],
-    ['Annualized Return', sufficient && wf.annualized_return_pct != null ? `${wf.annualized_return_pct.toFixed(2)}%` : '—  <em style="color:#92400e">gated</em>'],
-    ['Annualized Vol', sufficient && wf.annualized_vol_pct != null ? `${wf.annualized_vol_pct.toFixed(2)}%` : '—  <em style="color:#92400e">gated</em>'],
-    ['Sharpe (point)', sufficient && wf.sharpe_point != null ? wf.sharpe_point.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
-  ];
-  bodyEl.innerHTML = rows.map(([k, v]) =>
-    `<tr><td>${k}</td><td class="num" style="font-family:var(--mono)">${v}</td></tr>`
-  ).join('');
-}
+function renderWalkforward(wf){ renderAttributionGate(wf,'walkforward'); }
 
 function renderNavChart(nav){
-  const svg = document.getElementById('nav-chart');
-  if (!nav.length){
-    svg.innerHTML = '<text x="550" y="160" fill="#6f7b91" font-family="IBM Plex Mono" font-size="12" text-anchor="middle">No NAV history yet — engine has not run or no scored outcomes available.</text>';
-    return;
-  }
-
-  const W = 1100, H = 320, padL = 70, padR = 30, padT = 20, padB = 36;
-  const innerW = W - padL - padR, innerH = H - padT - padB;
-
-  const navs = nav.map(n => Number(n.nav));
-  const spyNavs = nav.map(n => n.spy_nav != null ? Number(n.spy_nav) : null).filter(v => v !== null);
-  const allValues = [...navs, ...spyNavs, 100000];
-  const yMin = Math.min(...allValues) * 0.998;
-  const yMax = Math.max(...allValues) * 1.002;
-  const yRange = yMax - yMin;
-
-  const xScale = i => padL + (nav.length<=1 ? innerW/2 : (i/(nav.length-1))*innerW);
-  const yScale = v => padT + innerH - ((v - yMin)/yRange)*innerH;
-
-  const stratLine = nav.map((n, i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
-
-  // SPY line — only if we have data
-  const hasSpy = nav.some(n => n.spy_nav != null);
-  const spyLine = hasSpy ? nav
-    .filter(n => n.spy_nav != null)
-    .map((n, i, arr) => `${i===0?'M':'L'}${xScale(nav.indexOf(n)).toFixed(1)},${yScale(n.spy_nav).toFixed(1)}`)
-    .join(' ') : '';
-
-  // Drawdown shading on strategy line
-  let runningMax = 100000;
-  const ddPoints = nav.map((n, i) => {
-    runningMax = Math.max(runningMax, n.nav);
-    return {x: xScale(i), yMax: yScale(runningMax), yNav: yScale(n.nav)};
-  });
-  const ddArea = ddPoints.length > 1
-    ? `M${ddPoints[0].x},${ddPoints[0].yMax} ` +
-      ddPoints.slice(1).map(p => `L${p.x},${p.yMax}`).join(' ') +
-      ` L${ddPoints[ddPoints.length-1].x},${ddPoints[ddPoints.length-1].yNav} ` +
-      ddPoints.slice(0,-1).reverse().map(p => `L${p.x},${p.yNav}`).join(' ') + ' Z'
-    : '';
-
-  // Y-axis labels
-  const yTicks = [yMin, (yMin+yMax)/2, yMax];
-  const yLabels = yTicks.map(v =>
-    `<text x="${padL-8}" y="${yScale(v)+4}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">$${fmt(v,{maximumFractionDigits:0})}</text>`
-  ).join('');
-  const grid = yTicks.map(v =>
-    `<line x1="${padL}" x2="${W-padR}" y1="${yScale(v)}" y2="${yScale(v)}" stroke="#1c2433" stroke-width="1"/>`
-  ).join('');
-
-  // X-axis labels
-  let xLabels = '';
-  const step = Math.max(1, Math.floor(nav.length / 6));
-  for (let i = 0; i < nav.length; i += step) {
-    xLabels += `<text x="${xScale(i)}" y="${H-padB+18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${fmtDate(nav[i].date)}</text>`;
-  }
-
-  // Baseline at $100k
-  const baseline = `<line x1="${padL}" x2="${W-padR}" y1="${yScale(100000)}" y2="${yScale(100000)}" stroke="#475064" stroke-width="1" stroke-dasharray="3,3"/>`;
-
-  // Final value annotations
-  const lastNav = nav[nav.length-1];
-  const stratReturn = (lastNav.nav - 100000) / 1000;
-  const stratColor = stratReturn >= 0 ? '#00e676' : '#ff174a';
-  const lastSpyEntry = [...nav].reverse().find(n => n.spy_nav != null);
-  const spyReturn = lastSpyEntry ? (lastSpyEntry.spy_nav - 100000) / 1000 : null;
-  const spyColor = '#00d4ff';
-
-  // Legend (top-left of chart)
-  const legend = `
-    <g transform="translate(${padL+8}, ${padT+8})" font-family="IBM Plex Mono" font-size="11">
-      <rect x="-4" y="-4" width="200" height="${hasSpy ? 36 : 16}" fill="rgba(15,19,26,0.85)" stroke="#1c2433" rx="3"/>
-      <line x1="0" x2="20" y1="3" y2="3" stroke="${stratColor}" stroke-width="2.5"/>
-      <text x="26" y="7" fill="#e9eef7">Strategy NAV</text>
-      ${hasSpy ? `<line x1="0" x2="20" y1="22" y2="22" stroke="${spyColor}" stroke-width="2" stroke-dasharray="4,3"/>
-      <text x="26" y="26" fill="#e9eef7">SPY Buy & Hold</text>` : ''}
-    </g>
-  `;
-
-  svg.innerHTML = `
-    ${grid}
-    ${baseline}
-    <path d="${ddArea}" fill="rgba(255,23,74,0.06)" stroke="none"/>
-    ${hasSpy ? `<path d="${spyLine}" fill="none" stroke="${spyColor}" stroke-width="2" stroke-dasharray="4,3" opacity="0.85"/>` : ''}
-    <path d="${stratLine}" fill="none" stroke="${stratColor}" stroke-width="2.5"/>
-    ${yLabels}
-    ${xLabels}
-    <text x="${padL+8}" y="${yScale(100000)-4}" fill="#475064" font-family="IBM Plex Mono" font-size="9">$100K BASE</text>
-    <text x="${W-padR-4}" y="${yScale(lastNav.nav)-8}" fill="${stratColor}" font-family="IBM Plex Mono" font-size="11" text-anchor="end" font-weight="600">$${fmt(lastNav.nav,{maximumFractionDigits:0})}  (${stratReturn>=0?'+':''}${stratReturn.toFixed(2)}%)</text>
-    ${lastSpyEntry ? `<text x="${W-padR-4}" y="${yScale(lastSpyEntry.spy_nav)+18}" fill="${spyColor}" font-family="IBM Plex Mono" font-size="10" text-anchor="end">SPY $${fmt(lastSpyEntry.spy_nav,{maximumFractionDigits:0})}  (${spyReturn>=0?'+':''}${spyReturn.toFixed(2)}%)</text>` : ''}
-    ${legend}
-  `;
+  document.getElementById('nav-chart').textContent='No verified portfolio equity path; raw attribution data is in full engine output.';
 }
 
 function renderContributors(byList){
@@ -1044,52 +719,13 @@ async function loadRealistic(){
       return;
     }
     const d = await r.json();
-    const ideal = d.summary || {};
-    const real = d.realistic_summary || {};
-    if (!real.final_nav) {
-      document.getElementById('realistic-notice').innerHTML =
-        `<div class="warn">⚠ Backtest engine not yet on v1.2. Waiting for next 6h tick.</div>`;
-      return;
-    }
-    document.getElementById('realistic-notice').innerHTML = '';
-
-    // KPIs
-    const tiles = [
-      {h:'Realistic Return', v:fmtPct(real.total_return_pct,2), klass:pctClass(real.total_return_pct/100),
-       sub:`vs idealized ${(ideal.total_return_pct || 0).toFixed(2)}%`},
-      {h:'Realistic Sharpe', v:(real.sharpe_proxy || 0).toFixed(2), klass:'',
-       sub:`vs idealized ${(ideal.sharpe_proxy || 0).toFixed(2)}`},
-      {h:'Friction Drag', v:`-${(real.friction_drag_pct || 0).toFixed(2)}%`, klass:'down',
-       sub:`slippage + caps cost`},
-      {h:'Max DD',         v:`-${(real.max_drawdown_pct || 0).toFixed(2)}%`, klass:'down',
-       sub:`vs idealized -${(ideal.max_drawdown_pct || 0).toFixed(2)}%`},
-    ];
-    document.getElementById('realistic-kpi-row').innerHTML = tiles.map(t =>
-      `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.klass}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
-    ).join('');
-
-    // Comparison table
-    const rows = [
-      ['Total Return',         `${(ideal.total_return_pct || 0).toFixed(2)}%`,  `${(real.total_return_pct || 0).toFixed(2)}%`,  `-${(real.friction_drag_pct || 0).toFixed(2)}%`],
-      ['Final NAV',            `$${(ideal.final_nav || 0).toLocaleString()}`,    `$${(real.final_nav || 0).toLocaleString()}`,    `-$${((ideal.final_nav || 0) - (real.final_nav || 0)).toLocaleString()}`],
-      ['Sharpe Proxy',         (ideal.sharpe_proxy || 0).toFixed(2),              (real.sharpe_proxy || 0).toFixed(2),              `-${((ideal.sharpe_proxy || 0) - (real.sharpe_proxy || 0)).toFixed(2)}`],
-      ['Max Drawdown',         `${(ideal.max_drawdown_pct || 0).toFixed(2)}%`,    `${(real.max_drawdown_pct || 0).toFixed(2)}%`,    `+${((real.max_drawdown_pct || 0) - (ideal.max_drawdown_pct || 0)).toFixed(2)}%`],
-      ['Alpha vs SPY',         `${(ideal.alpha_vs_spy_pct || 0).toFixed(2)}%`,    `${(real.alpha_vs_spy_pct || 0).toFixed(2)}%`,    `-${((ideal.alpha_vs_spy_pct || 0) - (real.alpha_vs_spy_pct || 0)).toFixed(2)}%`],
-      ['N Trades',             (ideal.n_outcomes || 0).toLocaleString(),          (real.n_trades || 0).toLocaleString(),            '—'],
-      ['Slippage Total Cost',  '—',                                                `${(real.total_slippage_cost_pct || 0).toFixed(4)}%`, `applied to all ${real.n_trades} trades`],
-      ['Concentration-Capped Days', '—',                                           (real.n_concentration_capped_days || 0).toLocaleString(), `out of ${real.n_total_days} days`],
-      ['Gross-Capped Days',    '—',                                                (real.n_gross_capped_days || 0).toLocaleString(),     `out of ${real.n_total_days} days`],
-    ];
-    document.getElementById('realistic-body').innerHTML = rows.map(([m, i, r, dr]) => `
-      <tr>
-        <td><strong>${m}</strong></td>
-        <td class="num" style="color:#a8b3c7">${i}</td>
-        <td class="num" style="color:#26ffaf;font-weight:600">${r}</td>
-        <td class="num" style="color:#ff7a18;font-size:11px">${dr}</td>
-      </tr>`).join('');
-
-    // Dual-line NAV chart: idealized vs realistic
-    renderRealisticNavChart(d.nav_curve || [], d.realistic_nav_curve || []);
+    document.getElementById('realistic-notice').textContent='PERFORMANCE BLOCKED — friction sensitivity is signal attribution, not investable results.';
+    document.getElementById('realistic-kpi-row').textContent='Full friction diagnostics are included in the engine output.';
+    const detail=document.createElement('pre'); detail.textContent=JSON.stringify(d.realistic_summary || {},null,2);
+    const cell=document.createElement('td'); cell.colSpan=4; cell.appendChild(detail);
+    const row=document.createElement('tr'); row.appendChild(cell);
+    document.getElementById('realistic-body').replaceChildren(row);
+    return;
   } catch (err) {
     console.error('realistic backtest:', err);
     document.getElementById('realistic-notice').innerHTML =
