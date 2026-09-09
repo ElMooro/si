@@ -1,6 +1,5 @@
-executing-against: bca5a136de46a38fe76654830b49d82d16566fd9
-Managed provider configuration migration
-[02:38:38] ✅ Managed configuration is available before code migration
-[02:38:38] ⚠ External provider revocation/rotation is not performed by this migration
+executing-against: 709e22a072271aee0f8d01e24e02db14be2c21fc
+{"actual_workflow_sha": "709e22a072271aee0f8d01e24e02db14be2c21fc", "aws_calls": 0, "base_sha": "c167a7541b9b02f849343bad1b4a231e758cadd8", "http_status": 200, "operation": "5233", "request_sent": true, "requested_at": "2026-09-09T03:40:33.385361+00:00", "run_url": "https://github.com/ElMooro/si/actions/runs/34308035351", "status": "DISPATCHED", "workflow": "deploy-lambdas.yml", "workflow_run_id": 34308035351, "workflow_sha": "709e22a072271aee0f8d01e24e02db14be2c21fc", "workflow_sha_matches": true}
+[03:40:35] ✅ Exact-revision recovery dispatch recorded; deployment remains separately verified
 
-→ Report written to aws/ops/reports/latest/ops_5229_audit_provider_configuration.md
+→ Report written to aws/ops/reports/latest/ops_5233_retry_audit_core_release.md
