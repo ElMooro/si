@@ -1,177 +1,83 @@
-from managed_secret import managed_secret
+"""Observed ETF quotes and explicitly limited sector-ETF breadth."""
 import json
-import urllib.request
+import math
+import time
 import urllib.parse
-from datetime import datetime
-from decimal import Decimal
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timezone
+from managed_secret import managed_secret
+from public_provider_json import ProviderError, error_metadata, get_json
 
-def lambda_handler(event, context):
-    """AlphaVantage Market Data Agent"""
-    
-    api_key = managed_secret(("AV_KEY", "ALPHAVANTAGE_KEY", "ALPHA_VANTAGE_API_KEY", "ALPHAVANTAGE_API_KEY"), ("/justhodl/alphavantage/api-key",))
-    
-    # Define what data to fetch based on path
-    path = event.get('path', '/')
-    
-    results = {}
-    
-    # Core market data endpoints
-    endpoints = {
-        'market_overview': {
-            'SPY': 'SPY',
-            'QQQ': 'QQQ', 
-            'IWM': 'IWM',
-            'DIA': 'DIA',
-            'VTI': 'VTI'
-        },
-        'sector_etfs': {
-            'XLF': 'XLF',  # Financials
-            'XLK': 'XLK',  # Technology
-            'XLE': 'XLE',  # Energy
-            'XLV': 'XLV',  # Healthcare
-            'XLI': 'XLI',  # Industrials
-            'XLY': 'XLY',  # Consumer Discretionary
-            'XLP': 'XLP',  # Consumer Staples
-            'XLU': 'XLU',  # Utilities
-            'XLRE': 'XLRE', # Real Estate
-            'XLB': 'XLB',  # Materials
-            'XLC': 'XLC'   # Communications
-        }
-    }
-    
-    # Fetch real-time quotes
-    for category, symbols in endpoints.items():
-        results[category] = {}
-        for name, symbol in symbols.items():
-            try:
-                url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={api_key}"
-                
-                with urllib.request.urlopen(url) as response:
-                    data = json.loads(response.read())
-                
-                if 'Global Quote' in data:
-                    quote = data['Global Quote']
-                    results[category][name] = {
-                        'symbol': quote.get('01. symbol'),
-                        'price': float(quote.get('05. price', 0)),
-                        'change': float(quote.get('09. change', 0)),
-                        'change_percent': quote.get('10. change percent', '0%').replace('%', ''),
-                        'volume': int(quote.get('06. volume', 0)),
-                        'latest_trading_day': quote.get('07. latest trading day'),
-                        'previous_close': float(quote.get('08. previous close', 0))
-                    }
-                    
-            except Exception as e:
-                print(f"Error fetching {symbol}: {str(e)}")
-    
-    # Fetch market sentiment indicators
+ENDPOINTS={'market_overview':['SPY','QQQ','IWM','DIA','VTI'],
+           'sector_etfs':['XLF','XLK','XLE','XLV','XLI','XLY','XLP','XLU','XLRE','XLB','XLC']}
+_CACHE=None
+_CACHE_AT=0
+
+def numeric(value):
     try:
-        # Get Fear & Greed data (using VIX as proxy)
-        vix_url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=VIX&apikey={api_key}"
-        with urllib.request.urlopen(vix_url) as response:
-            vix_data = json.loads(response.read())
-            
-        if 'Global Quote' in vix_data:
-            vix_quote = vix_data['Global Quote']
-            results['sentiment'] = {
-                'vix': float(vix_quote.get('05. price', 0)),
-                'fear_greed': calculate_fear_greed(float(vix_quote.get('05. price', 20)))
-            }
-    except:
-        pass
-    
-    # Analyze market breadth
-    analysis = analyze_market_breadth(results)
-    
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': json.dumps({
-            'timestamp': datetime.now().isoformat(),
-            'market_data': results,
-            'analysis': analysis,
-            'recommendations': generate_av_recommendations(analysis, results)
-        }, cls=DecimalEncoder)
-    }
+        n=float(value)
+        return n if not isinstance(value,bool) and math.isfinite(n) else None
+    except (ValueError,TypeError):return None
 
-def calculate_fear_greed(vix):
-    """Convert VIX to fear/greed score"""
-    if vix > 30:
-        return {'level': 'EXTREME_FEAR', 'score': 10}
-    elif vix > 25:
-        return {'level': 'FEAR', 'score': 25}
-    elif vix > 20:
-        return {'level': 'NEUTRAL_FEAR', 'score': 40}
-    elif vix > 15:
-        return {'level': 'NEUTRAL', 'score': 50}
-    elif vix > 12:
-        return {'level': 'GREED', 'score': 65}
-    else:
-        return {'level': 'EXTREME_GREED', 'score': 80}
+def fetch_quote(symbol,key):
+    try:
+        data=get_json('https://www.alphavantage.co/query?'+urllib.parse.urlencode({'function':'GLOBAL_QUOTE','symbol':symbol,'apikey':key}))
+        if any(k in data for k in ('Error Message','Note','Information')):raise ProviderError('PROVIDER_REJECTED_OR_RATE_LIMITED')
+        q=data.get('Global Quote')
+        if not isinstance(q,dict) or q.get('01. symbol')!=symbol:raise ProviderError('PROVIDER_SCHEMA_INVALID')
+        price=numeric(q.get('05. price'));day=q.get('07. latest trading day')
+        if price is None or price<=0:raise ProviderError('PROVIDER_PRICE_UNAVAILABLE')
+        try:observed=date.fromisoformat(day)
+        except (ValueError,TypeError):raise ProviderError('PROVIDER_OBSERVATION_DATE_INVALID')
+        if observed>datetime.now(timezone.utc).date():raise ProviderError('PROVIDER_OBSERVATION_DATE_INVALID')
+        volume=numeric(q.get('06. volume'));previous=numeric(q.get('08. previous close'))
+        return {'symbol':symbol,'status':'OBSERVED','price':price,'change':numeric(q.get('09. change')),
+                'change_percent':numeric(str(q.get('10. change percent','')).removesuffix('%')),
+                'volume':int(volume) if volume is not None and volume>=0 and volume.is_integer() else None,
+                'latest_trading_day':day,'previous_close':previous if previous is not None and previous>0 else None,
+                'provider_quote':q,'freshness_status':'CALENDAR_AND_SESSION_UNVERIFIED'}
+    except ProviderError as exc:return {'symbol':symbol,'status':'UNAVAILABLE',**error_metadata(exc)}
+    except Exception:return {'symbol':symbol,'status':'UNAVAILABLE','error':'PROVIDER_SCHEMA_INVALID'}
 
 def analyze_market_breadth(data):
-    """Analyze market internals"""
-    
-    breadth = {
-        'advancing': 0,
-        'declining': 0,
-        'unchanged': 0
-    }
-    
-    # Check sectors
-    if 'sector_etfs' in data:
-        for sector, values in data['sector_etfs'].items():
-            if values and 'change' in values:
-                if values['change'] > 0:
-                    breadth['advancing'] += 1
-                elif values['change'] < 0:
-                    breadth['declining'] += 1
-                else:
-                    breadth['unchanged'] += 1
-    
-    # Calculate breadth ratio
-    total = breadth['advancing'] + breadth['declining']
-    breadth_ratio = breadth['advancing'] / total if total > 0 else 0.5
-    
-    if breadth_ratio > 0.7:
-        market_breadth = 'POSITIVE'
-    elif breadth_ratio > 0.3:
-        market_breadth = 'NEUTRAL'
-    else:
-        market_breadth = 'NEGATIVE'
-    
-    return {
-        'market_breadth': market_breadth,
-        'breadth_ratio': breadth_ratio,
-        'advancing_sectors': breadth['advancing'],
-        'declining_sectors': breadth['declining']
-    }
+    rows=list(data.get('sector_etfs',{}).values());expected=len(ENDPOINTS['sector_etfs'])
+    usable=[r for r in rows if r.get('status')=='OBSERVED' and numeric(r.get('change')) is not None]
+    days={r['latest_trading_day'] for r in usable};complete=len(usable)==expected and len(days)==1
+    advancing=sum(r['change']>0 for r in usable);declining=sum(r['change']<0 for r in usable)
+    unchanged=sum(r['change']==0 for r in usable)
+    ratio=advancing/(advancing+declining) if complete and advancing+declining else None
+    direction=('POSITIVE' if ratio>0.7 else 'NEGATIVE' if ratio<=0.3 else 'NEUTRAL') if ratio is not None else ('UNCHANGED' if complete else 'UNKNOWN')
+    return {'market_breadth':direction,'breadth_ratio':ratio,'advancing_sectors':advancing,'declining_sectors':declining,
+            'unchanged_sectors':unchanged,'observed_sectors':len(usable),'expected_sectors':expected,
+            'same_observation_date':len(days)==1,'observation_dates':sorted(days),
+            'scope':'11 sector ETFs; not exchange-wide advance/decline breadth',
+            'freshness_status':'CALENDAR_AND_SESSION_UNVERIFIED','execution_eligible':False}
 
-def generate_av_recommendations(analysis, data):
-    """Generate recommendations based on AlphaVantage data"""
-    
-    recommendations = []
-    
-    if analysis['market_breadth'] == 'POSITIVE':
-        recommendations.append('Broad market participation - risk-on environment')
-    elif analysis['market_breadth'] == 'NEGATIVE':
-        recommendations.append('Narrow market breadth - selective positioning advised')
-    
-    # Check sentiment
-    if 'sentiment' in data:
-        vix = data['sentiment'].get('vix', 20)
-        if vix > 30:
-            recommendations.append('VIX > 30: Extreme fear - contrarian buying opportunity')
-        elif vix < 12:
-            recommendations.append('VIX < 12: Complacency high - consider hedging')
-    
-    return recommendations
+def response(status,body):
+    return {'statusCode':status,'headers':{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'},'body':json.dumps(body,allow_nan=False)}
 
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        return super(DecimalEncoder, self).default(obj)
+def lambda_handler(event,context):
+    global _CACHE,_CACHE_AT
+    event=event if isinstance(event,dict) else {}
+    path=event.get('rawPath',event.get('path','/'))
+    if path=='/health':return response(200,{'agent':'alphavantage-market-agent','status':'HANDLER_READY','provider_data_verified':False})
+    if path!='/':return response(404,{'error':'unknown_route'})
+    if _CACHE is not None and time.monotonic()-_CACHE_AT<300:return response(200,{**_CACHE,'served_from_warm_cache':True})
+    try:
+        key=managed_secret(('AV_KEY','ALPHAVANTAGE_KEY','ALPHA_VANTAGE_API_KEY','ALPHAVANTAGE_API_KEY'),('/justhodl/alphavantage/api-key',))
+        symbols=[s for group in ENDPOINTS.values() for s in group]+['VIX']
+        if key:
+            with ThreadPoolExecutor(max_workers=4) as pool:rows=dict(zip(symbols,pool.map(lambda s:fetch_quote(s,key),symbols)))
+        else:rows={s:{'symbol':s,'status':'UNAVAILABLE','error':'PROVIDER_CREDENTIAL_UNAVAILABLE'} for s in symbols}
+        results={group:{s:rows[s] for s in names} for group,names in ENDPOINTS.items()}
+        vix=rows['VIX']
+        results['sentiment']={'vix':vix.get('price'),'vix_quote':vix,'fear_greed':None,
+                              'scope':'VIX quote only; no Fear & Greed index supplied'}
+        count=sum(r['status']=='OBSERVED' for r in rows.values());stamp=datetime.now(timezone.utc).isoformat()
+        body={'agent':'alphavantage-market-agent','status':'READY' if count==len(symbols) else 'PARTIAL' if count else 'UNAVAILABLE',
+              'generated_at':stamp,'timestamp':stamp,'market_data':results,'analysis':analyze_market_breadth(results),
+              'coverage':{'expected_quotes':len(symbols),'observed_quotes':count},'recommendations':[],
+              'execution_eligible':False,'served_from_warm_cache':False}
+        _CACHE=body;_CACHE_AT=time.monotonic()
+        return response(200,body)
+    except Exception:return response(503,{'agent':'alphavantage-market-agent','status':'UNAVAILABLE','error':'snapshot_unavailable'})
