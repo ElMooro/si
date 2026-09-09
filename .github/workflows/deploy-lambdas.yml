@@ -22,6 +22,7 @@ on:
       - 'scripts/pin_release_checkout.py'
       - 'scripts/validate_lambda_configs.py'
       - 'scripts/lambda_config_environment.py'
+      - 'scripts/secret_lambda_config.py'
       - 'scripts/scheduler_payload.py'
       - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'

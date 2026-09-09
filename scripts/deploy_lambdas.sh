@@ -145,8 +145,7 @@ for fn in $DEPLOY_TARGETS; do
       if jq -e 'has("timeout")' "$dir/config.json" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
       if jq -e 'has("memory")' "$dir/config.json" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
       if jq -e 'has("description")' "$dir/config.json" >/dev/null; then config_args+=(--description "$fn_desc"); fi
-      aws lambda update-function-configuration \
-        --function-name "$fn" \
+      python3 scripts/secret_lambda_config.py update-function-configuration "$fn" \
         "${config_args[@]}" \
         --region "$DEPLOY_AWS_REGION" \
         $env_arg \
@@ -170,8 +169,7 @@ for fn in $DEPLOY_TARGETS; do
     if [ -n "$fn_ephemeral" ]; then
       ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
     fi
-    aws lambda create-function \
-      --function-name "$fn" \
+    python3 scripts/secret_lambda_config.py create-function "$fn" \
       --runtime "$fn_runtime" \
       --role "arn:aws:iam::857687956942:role/lambda-execution-role" \
       --handler "lambda_function.lambda_handler" \
