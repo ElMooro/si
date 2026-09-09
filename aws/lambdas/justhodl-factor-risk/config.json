@@ -13,6 +13,7 @@
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-factor-risk-daily",
     "cron": "cron(30 2 * * ? *)",
-    "description": "Factor risk model - daily 02:30 UTC, after firm-book / risk-monitor / liquidity-capacity"
+    "description": "Factor risk model - daily 02:30 UTC, after firm-book / risk-monitor / liquidity-capacity",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
   }
 }

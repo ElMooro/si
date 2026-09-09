@@ -2,7 +2,9 @@ import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import json
 import urllib.request
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import math
+from concurrent.futures import ThreadPoolExecutor
 import time
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -346,7 +348,8 @@ def fetch_fred_data(series_id, start_date=None, end_date=None, _max_retries=4):
             for obs in observations:
                 try:
                     value = float(obs['value'])
-                    clean_observations.append({'date': obs['date'], 'value': value})
+                    if math.isfinite(value):
+                        clean_observations.append({'date': obs['date'], 'value': value})
                 except (ValueError, KeyError):
                     continue
             return clean_observations
@@ -365,17 +368,17 @@ def fetch_fred_data(series_id, start_date=None, end_date=None, _max_retries=4):
             last_err = e
             if attempt < _max_retries - 1:
                 backoff = 2 ** attempt
-                print(f"FRED {series_id} URLError {e.reason}, retry in {backoff}s")
+                print("FRED_TRANSPORT_RETRY")
                 time.sleep(backoff)
                 continue
-            print(f"Error fetching {series_id}: URLError {e.reason}")
+            print("FRED_TRANSPORT_UNAVAILABLE")
             return []
         except Exception as e:
             # Anything else — log and stop retrying
-            print(f"Error fetching {series_id}: {type(e).__name__}: {e}")
+            print("FRED_INVALID_RESPONSE")
             return []
     # Exhausted retries
-    print(f"FRED {series_id}: exhausted {_max_retries} retries, last={last_err}")
+    print("FRED_RETRIES_EXHAUSTED")
     return []
 
 def get_series_metadata(series_id):
@@ -410,6 +413,25 @@ def calculate_change(current, previous):
     if previous and previous != 0:
         return round(((current - previous) / abs(previous)) * 100, 2)
     return None
+
+def summarize_series(series_id):
+    observations=sorted(fetch_fred_data(series_id,_max_retries=1),key=lambda row:row['date'],reverse=True)
+    if not observations: return series_id, None
+    latest=observations[0]
+    day=datetime.fromisoformat(latest['date']).date()
+    previous_month=day.replace(day=1)-timedelta(days=1)
+    month_day=previous_month.replace(day=min(day.day,previous_month.day))
+    def previous(cutoff):
+        return next((row for row in observations if row['date'] <= cutoff.isoformat()),None)
+    week,month=previous(day-timedelta(days=7)),previous(month_day)
+    return series_id, {'name':FED_LIQUIDITY_SERIES.get(series_id,series_id),
+        'latest_value':latest['value'],'latest_date':latest['date'],
+        'week_change':calculate_change(latest['value'],week['value']) if week else None,
+        'month_change':calculate_change(latest['value'],month['value']) if month else None,
+        'week_comparison_date':week['date'] if week else None,
+        'month_comparison_date':month['date'] if month else None,
+        'change_basis':'calendar_cutoff_on_or_before'}
+
 
 def lambda_handler(event, context):
     """Main Lambda handler"""
@@ -462,27 +484,16 @@ def lambda_handler(event, context):
                          'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2']
             summary = {}
             
-            for series_id in key_series:
-                if series_id in FED_LIQUIDITY_SERIES:
-                    data = fetch_fred_data(series_id)
-                    if data:
-                        latest = data[0]
-                        prev_week = data[7] if len(data) > 7 else None
-                        prev_month = data[30] if len(data) > 30 else None
-                        
-                        summary[series_id] = {
-                            'name': FED_LIQUIDITY_SERIES.get(series_id, series_id),
-                            'latest_value': latest['value'],
-                            'latest_date': latest['date'],
-                            'week_change': calculate_change(latest['value'], prev_week['value']) if prev_week else None,
-                            'month_change': calculate_change(latest['value'], prev_month['value']) if prev_month else None
-                        }
-            
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                rows=dict(pool.map(summarize_series,key_series))
+            summary={key:value for key,value in rows.items() if value is not None}
             response_data = {
-                'summary': summary,
-                'last_updated': datetime.now().isoformat()
+                'summary':summary,'last_updated':datetime.now(timezone.utc).isoformat(),
+                'requested_series':key_series,'missing_series':[key for key in key_series if key not in summary],
+                'status':'COMPLETE' if len(summary)==len(key_series) else 'PARTIAL',
+                'schema_version':'fed-liquidity-summary.v2'
             }
-            
+
         elif series_param == 'batch':
             # Handle batch request
             series_list = query_params.get('list', '').split(',')
@@ -568,5 +579,5 @@ def lambda_handler(event, context):
             'headers': {
                 'Content-Type': 'application/json'
             },
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': 'DATA_UNAVAILABLE'})
         }

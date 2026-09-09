@@ -35,6 +35,14 @@ def normalize_config(config):
     if not isinstance(config, dict):
         raise ValueError("lambda_configuration_not_object")
     result = copy.deepcopy(config)
+    scheduler = result.get("eventbridge_scheduler")
+    if scheduler is not None:
+        if not isinstance(scheduler, dict): raise ValueError("scheduler_schema_invalid")
+        schedule_name(scheduler.get("schedule_name"))
+        expression(scheduler.get("cron"))
+        role = scheduler.get("role_arn")
+        if not isinstance(role, str) or not re.fullmatch(r"arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+", role):
+            raise ValueError("scheduler_role_required")
     raw = result.get("schedule")
     if raw is None or raw is False:
         result.pop("schedule", None)

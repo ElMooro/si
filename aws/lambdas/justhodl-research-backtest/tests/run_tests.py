@@ -78,6 +78,28 @@ def test_validate_only_real_research_handler_writes_nothing(mod):
     assert result["ok"] and result["validation_only"] and result["artifact_size_bytes"]>0,result
 
 
+def test_repeated_full_document_reads_are_memoized_only_in_invocation(mod):
+    local=_load()
+    calls=[]
+    class Body:
+        def read(self): return b'{"all_fields":[0,false,null]}'
+    local.s3.get_object=lambda **kwargs:(calls.append(kwargs) or {"Body":Body()})
+    first=local.read_s3_json("fixture")
+    second=local.read_s3_json("fixture")
+    assert first==second=={"all_fields":[0,False,None]} and len(calls)==1
+    local._document_cache={}
+    local.read_s3_json("fixture")
+    assert len(calls)==2
+
+
+def test_deadline_exhaustion_never_publishes_or_returns_success(mod):
+    local=_load()
+    local._deadline=local.time.monotonic()-1
+    try: local.read_s3_json("fixture")
+    except RuntimeError as exc: assert str(exc)=="RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION"
+    else: raise AssertionError("Expired computation continued")
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

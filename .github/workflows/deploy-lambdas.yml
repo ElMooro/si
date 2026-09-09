@@ -25,6 +25,7 @@ on:
       - 'scripts/secret_lambda_config.py'
       - 'scripts/normalize_lambda_config.py'
       - 'scripts/scheduler_payload.py'
+      - 'scripts/apply_direct_scheduler.py'
       - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'
   workflow_dispatch:
@@ -230,7 +231,7 @@ jobs:
             fi
 
             case "$fn" in
-              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid|justhodl-katlin|justhodl-risk-sizer|justhodl-risk-gate|justhodl-tradingview|justhodl-portfolio-admin|justhodl-portfolio-snapshot|justhodl-calibration-snapshotter|justhodl-backtest-engine|justhodl-research-backtest|justhodl-outcome-checker|justhodl-fleet-freshness-monitor|justhodl-brain-sync|justhodl-journal-grader|justhodl-ask|justhodl-ask-desk|justhodl-ai-brief|justhodl-behavior-mirror|justhodl-pm-decision|justhodl-portfolio-risk|justhodl-portfolio-sizer|justhodl-portfolio-catalysts|justhodl-ai-chat|justhodl-history-api|justhodl-page-ai-commentary|justhodl-watchlist|justhodl-vol-regime|justhodl-trade-journal|justhodl-wealth-plan|justhodl-tax-plan|justhodl-fleet-monitor|justhodl-whats-changed|justhodl-public-archive-index|justhodl-ai-brief-router|justhodl-theme-classifier|justhodl-theme-rotation-engine|justhodl-fleet-error-monitor)
+              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid|justhodl-katlin|justhodl-risk-sizer|justhodl-risk-gate|justhodl-tradingview|justhodl-portfolio-admin|justhodl-portfolio-snapshot|justhodl-calibration-snapshotter|justhodl-backtest-engine|justhodl-research-backtest|justhodl-outcome-checker|justhodl-fleet-freshness-monitor|justhodl-brain-sync|justhodl-journal-grader|justhodl-ask|justhodl-ask-desk|justhodl-ai-brief|justhodl-behavior-mirror|justhodl-pm-decision|justhodl-portfolio-risk|justhodl-portfolio-sizer|justhodl-portfolio-catalysts|justhodl-ai-chat|justhodl-history-api|justhodl-page-ai-commentary|justhodl-watchlist|justhodl-vol-regime|justhodl-trade-journal|justhodl-wealth-plan|justhodl-tax-plan|justhodl-fleet-monitor|justhodl-whats-changed|justhodl-public-archive-index|justhodl-ai-brief-router|justhodl-theme-classifier|justhodl-theme-rotation-engine|justhodl-fleet-error-monitor|justhodl-contract-gate|justhodl-etf-fund-flows|justhodl-macro-regime|fedliquidityapi)
                 if [ ! -f "$dir/tests/run_tests.py" ]; then
                   echo "::error::$fn requires dependency-free tests/run_tests.py"
                   exit 1
@@ -254,6 +255,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/prime_governed_aliases.py "${{ secrets.AWS_REGION }}" ${{ steps.detect.outputs.targets }}
+
+      - name: Preserve long validation connections on the ephemeral runner
+        if: steps.detect.outputs.targets != ''
+        run: |
+          set -euo pipefail
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_time=60
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_intvl=30
+          sudo -n sysctl -w net.ipv4.tcp_keepalive_probes=5
+          aws configure set tcp_keepalive true
 
       - name: Deploy each changed Lambda
         if: steps.detect.outputs.targets != ''

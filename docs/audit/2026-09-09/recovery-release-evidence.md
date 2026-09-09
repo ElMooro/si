@@ -1,0 +1,13 @@
+# Recovery release evidence — 2026-09-09
+
+Core run34312891397 at0c82670 completed with two failed engines. All other selected engines reported deployment success. This document records source fixes; it is not a production completion receipt.
+
+- Factor risk: runner diagnostics identify UpdateSchedule / ValidationException / target.roleArn. Configuration now supplies the established execution role. Direct schedule replacement preserves existing input, disabled state, retry, DLQ and other supported settings. Identity conflicts, read failures and concurrent changes stop mutation; readback is required.
+- Research backtest: validation reached a pinned candidate and then its client connection closed. The runner enables OS and AWS CLI TCP keepalive as recommended by AWS for long synchronous Lambda invocations. Duplicate source reads are cached within one invocation and provider calls use four workers; source prefetch uses eight. Every source row remains eligible for computation. Deadline exhaustion stops publication. Successful validation remains mandatory for live alias promotion.
+- Fed Liquidity Terminal (`census.html`): complete metadata discovery5241 enumerated884 functions and152 Function URL configurations with zero errors; the former hostname has no owner. The page now uses fedliquidityapi's configured hostname and actual summary/catalog/series schema. Summary/calendar comparison dates, zero values, partial coverage, all catalog entries, categories, returned observations and metadata are accessible. HTML uses escaped values or textContent. No risk probabilities are invented.
+- Fed engine: comparisons use calendar cutoffs, finite observations, explicit missing-series coverage, bounded parallel summary reads and fixed provider-error categories. Rerun5240 verifies corrected URL identities.
+- Provider privacy and contract completeness fixes from798e2da and page roles/observability fixes fromb4572ae are included in this recovery range. Static route coverage is362 valid,113 partial and42 not applicable across517 routes. Remaining route reasons are committed in page-coverage-remaining.json; static accessibility is not proof of live availability.
+
+Recovery5243 selects changes since0c82670, including explicit changes to both failed engines. Final order remains core deployment, layer reconcile5234, privacy migration5230, then final verifier5231. Pending production checks must remain pending until their receipts exist.
+
+AWS primary references: https://docs.aws.amazon.com/cli/latest/reference/lambda/invoke.html and https://aws.amazon.com/blogs/networking-and-content-delivery/implementing-long-running-tcp-connections-within-vpc-networking/ .

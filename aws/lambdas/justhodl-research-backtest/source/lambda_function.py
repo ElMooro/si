@@ -32,6 +32,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 
 import boto3
 
@@ -45,18 +46,26 @@ FMP_KEY = os.environ.get("FMP_KEY", "")
 FMP_BASE = "https://financialmodelingprep.com/stable"
 
 s3 = boto3.client("s3", region_name="us-east-1")
+_document_cache = {}
+_key_cache = {}
+_deadline = None
+
+def require_time():
+    if _deadline is not None and time.monotonic() >= _deadline:
+        raise RuntimeError("RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION")
 
 
 # ═════════════════════════════════════════════════════════════════════
 # Helpers
 # ═════════════════════════════════════════════════════════════════════
 def http_get_json(url: str, timeout: int = 15) -> Optional[list]:
+    require_time()
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-Backtest/1.0"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read())
     except Exception as e:
-        print(f"[fmp] {url[:80]}...: {e}")
+        print("[fmp] PROVIDER_UNAVAILABLE")
         return None
 
 
@@ -92,6 +101,8 @@ def pct_change(start: float, end: float) -> Optional[float]:
 # ═════════════════════════════════════════════════════════════════════
 def list_keys_under(prefix: str) -> list:
     """List all .json keys under prefix."""
+    require_time()
+    if prefix in _key_cache: return _key_cache[prefix]
     keys = []
     pag = s3.get_paginator("list_objects_v2")
     for page in pag.paginate(Bucket=S3_BUCKET, Prefix=prefix):
@@ -99,15 +110,20 @@ def list_keys_under(prefix: str) -> list:
             k = obj["Key"]
             if k.endswith(".json") and not k.endswith("manifest.json"):
                 keys.append(k)
+    _key_cache[prefix] = keys
     return keys
 
 
 def read_s3_json(key: str) -> Optional[dict]:
+    require_time()
+    if key in _document_cache: return _document_cache[key]
     try:
         body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-        return json.loads(body)
+        document=json.loads(body)
+        _document_cache[key]=document
+        return document
     except Exception as e:
-        print(f"[read] {key}: {e}")
+        print("[read] SOURCE_UNAVAILABLE")
         return None
 
 
@@ -478,13 +494,20 @@ def build_regime_attribution(calls: list) -> dict:
 
 
 def lambda_handler(event, context):
-    global _history_by_ticker
+    global _history_by_ticker, _document_cache, _key_cache, _deadline
     _history_by_ticker = None
+    _document_cache = {}
+    _key_cache = {}
+    remaining=context.get_remaining_time_in_millis()/1000 if context and hasattr(context,"get_remaining_time_in_millis") else 900
+    _deadline=time.monotonic()+max(1,remaining-45)
     t0 = time.time()
     print(f"[backtest] starting at {datetime.now(timezone.utc).isoformat()}")
 
     # 1. Find every unique ticker in the research universe
     research_keys = list_keys_under(RESEARCH_PREFIX)
+    # Cache each full source document once; eight reads at a time retain all rows.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(read_s3_json,research_keys))
     universe = set()
     earliest_gen = None
     for k in research_keys:
@@ -497,15 +520,12 @@ def lambda_handler(event, context):
     print(f"[backtest] universe: {len(universe)} unique tickers; earliest research: {earliest_gen}")
 
     # 2. Fetch current prices for all tickers + SPY
-    now_prices = {}
-    for t in universe:
-        p = get_current_price(t)
-        if p:
-            now_prices[t] = p
-    print(f"[backtest] fetched current prices for {len(now_prices)}/{len(universe)} tickers")
-
-    spy_now = get_current_price("SPY")
-    print(f"[backtest] SPY current: {spy_now}")
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        tickers=sorted(universe | {"SPY"})
+        prices=dict(zip(tickers,pool.map(get_current_price,tickers)))
+    now_prices={ticker:prices[ticker] for ticker in universe if prices.get(ticker) is not None}
+    spy_now=prices.get("SPY")
+    print(f"[backtest] price coverage {len(now_prices)}/{len(universe)}")
 
     # 3. Build SPY history covering the research date range
     historical_dates=[date for ticker in universe for date,_ in list_history_for_ticker(ticker)]
@@ -527,6 +547,9 @@ def lambda_handler(event, context):
         for date, _key in list_history_for_ticker(ticker):
             if date not in spy_then_cache:
                 spy_then_cache[date] = get_spy_then(spy_history, date)
+    historical_keys=[key for ticker in universe for _date,key in list_history_for_ticker(ticker)]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(read_s3_json,historical_keys+list_keys_under(CRITIQUE_PREFIX)))
     per_call = build_per_call_attribution(now_prices, spy_now, spy_then_cache)
     # Sort by alpha desc for the report
     per_call.sort(key=lambda c: c.get("alpha_pct") if c.get("alpha_pct") is not None else -999, reverse=True)
@@ -574,6 +597,8 @@ def lambda_handler(event, context):
         "regime_attribution":   regime_attr,
     }
 
+    # An incomplete computation never replaces the last complete publication.
+    require_time()
     # Write to S3
     body = json.dumps(out, default=str).encode()
     if isinstance(event, dict) and event.get("mode") == "validate_only":

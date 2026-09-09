@@ -349,7 +349,8 @@ def test_function_url_identity_uses_only_reviewed_names_and_hostname_metadata():
                 'AuthType':'NONE','OtherSensitiveMetadata':'DO_NOT_REPORT'}
     rows=release.observe_function_urls(SimpleNamespace(get_function_url_config=config),ROOT)
     assert all(row['status']=='VERIFIED' for row in rows if row['function'] is not None)
-    assert [r for r in rows if r['function'] is None][0]['reason']=='FUNCTION_URL_OWNER_UNRESOLVED_AFTER_SCHEMA_MISMATCH'
+    assert not any(row['function'] is None for row in rows)
+    assert lookup['fedliquidityapi']=='mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws'
     assert calls==[{'FunctionName':function} for _,function,_ in release.FUNCTION_URL_BINDINGS]
     assert 'DO_NOT_REPORT' not in json.dumps(rows)
     lookup['fmp-fundamentals-agent']='different.lambda-url.us-east-1.on.aws'

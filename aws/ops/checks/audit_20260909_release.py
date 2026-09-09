@@ -81,10 +81,11 @@ QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 OBSERVED_FUNCTIONS = {'justhodl-calibrator','justhodl-ka-metrics','justhodl-khalid-metrics'}
 FUNCTION_URL_BINDINGS = (
     ('fmp.html','fmp-fundamentals-agent','nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws'),
+    ('census.html','fedliquidityapi','mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws'),
 )
-# Source schema and deployed URL rejected the guessed fedliquidityapi owner.
-# Metadata-only fleet discovery must identify the real owner before this clears.
-UNRESOLVED_FUNCTION_URLS = (('census.html','gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws'),)
+# The retired Census URL was not found in the complete metadata scan5241.
+# Page now consumes fedliquidityapi's source-defined summary/catalog/series schema.
+UNRESOLVED_FUNCTION_URLS = ()
 REFRESH_DEPENDENCIES = {'justhodl-backtest-engine': ('justhodl-calibration-snapshotter',)}
 OUTPUT_CONTRACTS = {
     'calibration/model-latest.json': 'immutable_model_snapshot_with_availability',

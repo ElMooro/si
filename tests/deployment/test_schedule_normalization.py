@@ -64,7 +64,7 @@ def test_ambiguous_or_incomplete_schedule_is_rejected_by_selected_preflight():
 def test_normalization_preserves_complete_other_config_and_existing_target_payload_logic():
     config={"env":{"TOKEN":"synthetic,value=="},"release_validation":{"schema_version":"v1"},
             "schedule":{"name":"daily","expression":"cron(0 20 * * ? *)"},
-            "eventbridge_scheduler":{"schedule_name":"explicit","cron":"rate(1 hour)","input":{"mode":"research"}}}
+            "eventbridge_scheduler":{"schedule_name":"explicit","cron":"rate(1 hour)","role_arn":"arn:aws:iam::123456789012:role/scheduler","input":{"mode":"research"}}}
     result=normalize(config)
     for key in ("env","release_validation","eventbridge_scheduler"):
         assert result[key]==config[key]
@@ -74,3 +74,11 @@ def test_normalization_preserves_complete_other_config_and_existing_target_paylo
     assert 'State:(.State // "ENABLED")' in shell
     assert '.Targets[] | select(.Arn == $base' in shell and '| .Arn=$arn]' in shell
     assert 'phase:"schedule_configuration"' in shell
+
+
+def test_scheduler_roles_are_checked_before_code_staging():
+    for role in (None, "null", "not-an-arn"):
+        try:
+            normalize({"eventbridge_scheduler":{"schedule_name":"daily","cron":"rate(1 hour)","role_arn":role}})
+        except ValueError as exc: assert str(exc)=="scheduler_role_required"
+        else: raise AssertionError("Missing execution role was accepted")

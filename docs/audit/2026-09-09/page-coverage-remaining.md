@@ -4,21 +4,21 @@ Every field and row in an opened artifact or observed contracted API response is
 
 | Classification | Routes |
 |---|---:|
-| primary_valid_contract | 353 |
-| primary_partial | 120 |
-| support_only | 2 |
+| primary_valid_contract | 362 |
+| primary_partial | 113 |
+| support_only | 0 |
 | no_association | 0 |
 | not_applicable | 42 |
 
-21 routes have exact reviewed API response contracts, installed before the first application request. Each route embeds its own small access contract; the full registry is fetched only by the generic engine browser. Public JSON/gzip, authenticated owner mirrors and reviewed archive indexes remain separate access mechanisms.
+23 routes have exact reviewed API response contracts, installed before the first application request. Each route embeds its own small access contract; the full registry is fetched only by the generic engine browser. Public JSON/gzip, authenticated owner mirrors and reviewed archive indexes remain separate access mechanisms.
 
-23 exact source-reviewed operational storage keys remain withheld and visible in the inspection inventory. They are excluded from published analytical-result completeness; meaningful health, model grades and historical observations remain required. Dedicated AI-router context scopes are checked against literal writer constants, preserving separate report and history contracts for each context.
+69 source-reviewed operational storage keys or exact writer families remain withheld and visible in the inspection inventory. They are excluded from published analytical-result completeness; meaningful health, model grades and accumulated historical observations remain required. Family exclusions are tied to reviewed writer function fingerprints and fail if their source changes. Dedicated AI-router context scopes are checked against literal writer constants, preserving separate report and history contracts for each context.
 
 ## Partial categories
 
 | Reason combination | Routes |
 |---|---:|
-| unindexed families | 53 |
+| unindexed families | 48 |
 | unresolved references | 18 |
 | withheld + unindexed families | 8 |
 | unresolved writes | 8 |
@@ -28,8 +28,8 @@ Every field and row in an opened artifact or observed contracted API response is
 | withheld + unresolved references | 4 |
 | withheld + unresolved writes | 4 |
 | unresolved writes + unindexed families + unresolved references | 3 |
-| withheld | 3 |
-| withheld + unresolved writes + unindexed families | 2 |
+| withheld | 2 |
+| withheld + unresolved writes + unindexed families | 1 |
 | unindexed families + unresolved references + explicit unresolved | 1 |
 | unresolved writes + unresolved references | 1 |
 
@@ -40,7 +40,6 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | Route | Classification | Remaining reason |
 |---|---|---|
 | 13f.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| activity-nowcast.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | agent/index.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | ai_predictions.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | alpha/index.html | PRIMARY_PARTIAL | unindexed families: 1 |
@@ -53,22 +52,17 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | auction-crisis.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | auctions.html | PRIMARY_PARTIAL | unindexed families: 2 |
 | audit.html | PRIMARY_PARTIAL | unresolved writes: 1; unresolved primary references: 1 |
-| blackswan-watch.html | PRIMARY_PARTIAL | unindexed families: 6 |
 | bonds.html | PRIMARY_PARTIAL | withheld: 1; unindexed families: 4 |
-| bottom-signals.html | PRIMARY_PARTIAL | unindexed families: 8 |
+| bottom-signals.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | capital-flow.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | carry.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | cb/index.html | PRIMARY_PARTIAL | unresolved writes: 1 |
-| cb-injection.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| census.html | SUPPORT_ONLY | Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade. |
-| chart-pro.html | PRIMARY_PARTIAL | withheld: 5; unresolved writes: 4; unindexed families: 13; unresolved primary references: 1 |
+| chart-pro.html | PRIMARY_PARTIAL | withheld: 5; unresolved writes: 4; unindexed families: 12; unresolved primary references: 1 |
 | classic-dashboard.html | PRIMARY_PARTIAL | unresolved writes: 2; unindexed families: 2; unresolved primary references: 1 |
 | comeback.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
 | compare.html | PRIMARY_PARTIAL | withheld: 1; unindexed families: 3 |
 | compounders.html | PRIMARY_PARTIAL | unindexed families: 2 |
 | confluence.html | PRIMARY_PARTIAL | unindexed families: 1; unresolved primary references: 1 |
-| consumer-pulse.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| conviction.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | cot-extremes.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | crisis.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
 | crypto/index.html | PRIMARY_PARTIAL | unresolved writes: 1 |
@@ -79,13 +73,12 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | digest-archive.html | PRIMARY_PARTIAL | withheld: 10; unresolved writes: 1; unindexed families: 1; unresolved primary references: 1 |
 | digest-trends.html | PRIMARY_PARTIAL | withheld: 1; unindexed families: 3 |
 | dossier.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| dxy-predict.html | PRIMARY_PARTIAL | unindexed families: 8 |
+| dxy-predict.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | earnings/index.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | eurodollar.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | fleet-map.html | PRIMARY_PARTIAL | unresolved primary references: 2 |
 | floor.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | flows.html | PRIMARY_PARTIAL | unindexed families: 5 |
-| fmp.html | SUPPORT_ONLY | fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence. |
 | fomc.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | foreign-flows.html | PRIMARY_PARTIAL | unindexed families: 8 |
 | fortress.html | PRIMARY_PARTIAL | unindexed families: 1 |
@@ -104,24 +97,22 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | investor.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | katlin.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | lce.html | PRIMARY_PARTIAL | unresolved writes: 1 |
-| liq-indicators.html | PRIMARY_PARTIAL | unindexed families: 7 |
-| liquidity-reversal.html | PRIMARY_PARTIAL | unindexed families: 7 |
+| liq-indicators.html | PRIMARY_PARTIAL | unindexed families: 1 |
+| liquidity-reversal.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | llm-cost.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
 | ma-reversion.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
-| macro-predict.html | PRIMARY_PARTIAL | unindexed families: 7 |
+| macro-predict.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | master-rank.html | PRIMARY_PARTIAL | unresolved writes: 1 |
 | methodology.html | PRIMARY_PARTIAL | unresolved writes: 1 |
 | my-portfolio.html | PRIMARY_PARTIAL | unindexed families: 2 |
 | news.html | PRIMARY_PARTIAL | withheld: 1; unindexed families: 1 |
 | nobrainers.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| observability.html | PRIMARY_PARTIAL | withheld: 2 |
 | ofr.html | PRIMARY_PARTIAL | unresolved primary references: 2 |
 | opportunities.html | PRIMARY_PARTIAL | unindexed families: 2 |
 | panels.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | performance.html | PRIMARY_PARTIAL | unresolved primary references: 3 |
-| portfolio-manager.html | PRIMARY_PARTIAL | withheld: 10; unresolved writes: 1; unindexed families: 1 |
 | portfolio.html | PRIMARY_PARTIAL | unresolved primary references: 2 |
-| pre-pump-radar.html | PRIMARY_PARTIAL | withheld: 5; unindexed families: 7 |
+| pre-pump-radar.html | PRIMARY_PARTIAL | withheld: 5; unindexed families: 6 |
 | primary-dealers.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
 | proof.html | PRIMARY_PARTIAL | withheld: 2; unresolved writes: 1 |
 | provider.html | PRIMARY_PARTIAL | unindexed families: 8 |
@@ -131,7 +122,7 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | research.html | PRIMARY_PARTIAL | withheld: 1; unindexed families: 1 |
 | resilience.html | PRIMARY_PARTIAL | withheld: 2; unresolved writes: 1 |
 | risk-regime.html | PRIMARY_PARTIAL | unindexed families: 2 |
-| screener/index.html | PRIMARY_PARTIAL | unindexed families: 2; unresolved primary references: 1 |
+| screener/index.html | PRIMARY_PARTIAL | unindexed families: 1; unresolved primary references: 1 |
 | sector-flow.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | sectors.html | PRIMARY_PARTIAL | unindexed families: 2 |
 | signal-board.html | PRIMARY_PARTIAL | unresolved writes: 1; unindexed families: 1 |
@@ -141,7 +132,7 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | sizing.html | PRIMARY_PARTIAL | unresolved primary references: 1 |
 | skill.html | PRIMARY_PARTIAL | withheld: 10; unresolved writes: 1; unindexed families: 1; unresolved primary references: 3 |
 | stock/index.html | PRIMARY_PARTIAL | unindexed families: 2 |
-| stock-buying.html | PRIMARY_PARTIAL | unindexed families: 2 |
+| stock-buying.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | stocks/index.html | PRIMARY_PARTIAL | unresolved writes: 1 |
 | strategist.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | system.html | PRIMARY_PARTIAL | withheld: 2; unindexed families: 9 |
@@ -149,7 +140,7 @@ The JSON companion enumerates source write locations, exact withheld paths, form
 | themes.html | PRIMARY_PARTIAL | withheld: 1 |
 | ticker.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | today.html | PRIMARY_PARTIAL | unindexed families: 1 |
-| top-signals.html | PRIMARY_PARTIAL | unindexed families: 8 |
+| top-signals.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | tradingview.html | PRIMARY_PARTIAL | withheld: 2 |
 | treasury-desk.html | PRIMARY_PARTIAL | unindexed families: 1 |
 | tv-notes.html | PRIMARY_PARTIAL | unresolved primary references: 2 |

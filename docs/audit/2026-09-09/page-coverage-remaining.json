@@ -5,15 +5,15 @@
     "public_routes": 517,
     "engines": 883,
     "routes_with_source_bound_outputs": 506,
-    "primary_valid_contract": 353,
-    "primary_partial": 120,
-    "support_only": 2,
+    "primary_valid_contract": 362,
+    "primary_partial": 113,
+    "support_only": 0,
     "no_association": 0,
     "not_applicable": 42,
-    "routes_with_api_response_contract": 21,
+    "routes_with_api_response_contract": 23,
     "routes_without_source_bound_outputs": 11,
-    "routes_with_primary_output_access": 472,
-    "routes_with_partial_primary_output_access": 119,
+    "routes_with_primary_output_access": 474,
+    "routes_with_partial_primary_output_access": 112,
     "all_routes_receive_inspector": true,
     "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
   },
@@ -78,6 +78,394 @@
           27,
           262,
           361
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          592
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          266
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          210
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          348,
+          355
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          515
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-blackswan-watch",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-blackswan-watch/source/lambda_function.py",
+        "lines": [
+          137,
+          150
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          870
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/bn_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          757,
+          767
+        ],
+        "functions": [
+          {
+            "name": "binance_fallback",
+            "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          302
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          246
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          384,
+          391
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          551
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-bottom-signals",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+        "lines": [
+          173,
+          186
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          819
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/bn_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          727,
+          737
+        ],
+        "functions": [
+          {
+            "name": "binance_fallback",
+            "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          289
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          233
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          371,
+          378
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          538
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-dxy-predict",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+        "lines": [
+          160,
+          173
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
         ]
       },
       "public_access_approved": false
@@ -230,6 +618,354 @@
       "public_access_approved": false
     },
     {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          717
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          286
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          230
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          368,
+          375
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          535
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liq-indicators",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+        "lines": [
+          157,
+          170
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          717
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          286
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          230
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          368,
+          375
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          535
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+        "lines": [
+          157,
+          170
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          717
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          286
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          230
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          368,
+          375
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          535
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-macro-predict",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+        "lines": [
+          157,
+          170
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
       "engine": "justhodl-market-map",
       "key": "data/_map/state.json",
       "role": "internal_input_cache",
@@ -244,6 +980,25 @@
           109,
           152,
           155
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-stock-buying",
+      "key": "data/warm/blackswan/sb_sur_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FMP earnings-surprises input. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-stock-buying/source/lambda_function.py",
+        "lines": [
+          126
+        ],
+        "functions": [
+          {
+            "name": "warm_fmp",
+            "ast_sha256": "72c6ba4cf58faa3bf54a6f966b772c4dd254d62790b7e4e75b742b1345046bfe"
+          }
         ]
       },
       "public_access_approved": false
@@ -399,6 +1154,142 @@
       "public_access_approved": false
     },
     {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          870
+        ],
+        "functions": [
+          {
+            "name": "fred_fallback",
+            "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/bn_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          757,
+          767
+        ],
+        "functions": [
+          {
+            "name": "binance_fallback",
+            "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/cb_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          302
+        ],
+        "functions": [
+          {
+            "name": "cboe_fallback",
+            "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/mp_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          246
+        ],
+        "functions": [
+          {
+            "name": "multpl_fallback",
+            "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/nq_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          384,
+          391
+        ],
+        "functions": [
+          {
+            "name": "nasdaq_fallback",
+            "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/te_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          551
+        ],
+        "functions": [
+          {
+            "name": "te_hist_fallback",
+            "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
+      "engine": "justhodl-top-signals",
+      "key": "data/warm/blackswan/yh_*.json",
+      "role": "internal_input_cache",
+      "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+      "evidence": {
+        "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+        "lines": [
+          173,
+          186
+        ],
+        "functions": [
+          {
+            "name": "yahoo_fallback",
+            "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+          }
+        ]
+      },
+      "public_access_approved": false
+    },
+    {
       "engine": "justhodl-trend-reversal",
       "key": "data/_tmp/trend-reversal-partial.json",
       "role": "internal_operational_storage",
@@ -420,10 +1311,10 @@
     }
   ],
   "partial_reason_combinations": {
-    "unindexed families": 53,
+    "unindexed families": 48,
     "unresolved references": 18,
     "unresolved writes + unindexed families": 5,
-    "withheld + unresolved writes + unindexed families": 2,
+    "withheld + unresolved writes + unindexed families": 1,
     "unindexed families + unresolved references + explicit unresolved": 1,
     "unresolved writes + unresolved references": 1,
     "withheld + unindexed families": 8,
@@ -432,8 +1323,8 @@
     "unresolved writes + unindexed families + unresolved references": 3,
     "unindexed families + unresolved references": 5,
     "withheld + unresolved references": 4,
-    "withheld": 3,
-    "withheld + unresolved writes": 4
+    "withheld + unresolved writes": 4,
+    "withheld": 2
   },
   "remaining_routes": [
     {
@@ -466,36 +1357,6 @@
           "other_format_outputs": []
         },
         "justhodl-13f-price-divergence": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "activity-nowcast.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-activity-nowcast",
-        "justhodl-gap-metrics"
-      ],
-      "reasons": [
-        "unindexed families: 1"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-activity-nowcast": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/activity-nowcast/snapshots/*.json"
-          ],
-          "other_format_outputs": []
-        },
-        "justhodl-gap-metrics": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
@@ -933,33 +1794,6 @@
       }
     },
     {
-      "route": "blackswan-watch.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-blackswan-watch"
-      ],
-      "reasons": [
-        "unindexed families: 6"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-blackswan-watch": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
-          ],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
       "route": "bonds.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
@@ -1044,23 +1878,153 @@
         "justhodl-bottom-signals"
       ],
       "reasons": [
-        "unindexed families: 8"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-bottom-signals": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  870
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/bn_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  757,
+                  767
+                ],
+                "functions": [
+                  {
+                    "name": "binance_fallback",
+                    "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  302
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  246
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  384,
+                  391
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  551
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-bottom-signals",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-bottom-signals/source/lambda_function.py",
+                "lines": [
+                  173,
+                  186
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/bn_*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }
@@ -1146,38 +2110,6 @@
       }
     },
     {
-      "route": "cb-injection.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-cb-injection"
-      ],
-      "reasons": [
-        "unindexed families: 1"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-cb-injection": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/cb-injection/snapshots/*.json"
-          ],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "census.html",
-      "classification": "SUPPORT_ONLY",
-      "primary_engines": [],
-      "reasons": [
-        "Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade."
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {}
-    },
-    {
       "route": "chart-pro.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
@@ -1216,7 +2148,7 @@
       "reasons": [
         "withheld: 5",
         "unresolved writes: 4",
-        "unindexed families: 13",
+        "unindexed families: 12",
         "unresolved primary references: 1"
       ],
       "unresolved_primary_references": [
@@ -1469,9 +2401,7 @@
           ],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/theme-cascade-history/*.json"
-          ],
+          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         },
         "justhodl-ticket-ai-rationale": {
@@ -1790,50 +2720,6 @@
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "consumer-pulse.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-consumer-pulse"
-      ],
-      "reasons": [
-        "unindexed families: 1"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-consumer-pulse": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/consumer-pulse/snapshots/*.json"
-          ],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "conviction.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-conviction-engine"
-      ],
-      "reasons": [
-        "unindexed families: 1"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-conviction-engine": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/conviction/snapshots/*.json"
-          ],
           "other_format_outputs": []
         }
       }
@@ -2365,23 +3251,153 @@
         "justhodl-dxy-predict"
       ],
       "reasons": [
-        "unindexed families: 8"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-dxy-predict": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  819
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/bn_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  727,
+                  737
+                ],
+                "functions": [
+                  {
+                    "name": "binance_fallback",
+                    "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  289
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  233
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  371,
+                  378
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  538
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-dxy-predict",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-dxy-predict/source/lambda_function.py",
+                "lines": [
+                  160,
+                  173
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/bn_*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }
@@ -2544,16 +3560,6 @@
           "other_format_outputs": []
         }
       }
-    },
-    {
-      "route": "fmp.html",
-      "classification": "SUPPORT_ONLY",
-      "primary_engines": [],
-      "reasons": [
-        "fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence."
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {}
     },
     {
       "route": "fomc.html",
@@ -3248,22 +4254,133 @@
         "justhodl-liq-indicators"
       ],
       "reasons": [
-        "unindexed families: 7"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-liq-indicators": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  717
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  286
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  230
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  368,
+                  375
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  535
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liq-indicators",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liq-indicators/source/lambda_function.py",
+                "lines": [
+                  157,
+                  170
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }
@@ -3276,22 +4393,133 @@
         "justhodl-liquidity-reversal"
       ],
       "reasons": [
-        "unindexed families: 7"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-liquidity-reversal": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  717
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  286
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  230
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  368,
+                  375
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  535
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-liquidity-reversal",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py",
+                "lines": [
+                  157,
+                  170
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }
@@ -3356,22 +4584,133 @@
         "justhodl-macro-predict"
       ],
       "reasons": [
-        "unindexed families: 7"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-macro-predict": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  717
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  286
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  230
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  368,
+                  375
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  535
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-macro-predict",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-macro-predict/source/lambda_function.py",
+                "lines": [
+                  157,
+                  170
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }
@@ -3636,112 +4975,6 @@
           "unindexed_dynamic_families": [
             "data/nobrainer-thesis/*_*.json"
           ],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "observability.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-fleet-error-monitor",
-        "justhodl-fleet-freshness-monitor",
-        "justhodl-llm-health"
-      ],
-      "reasons": [
-        "withheld: 2"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-fleet-error-monitor": {
-          "withheld_result_keys": [
-            "data/_fleet-monitor.json"
-          ],
-          "excluded_internal_outputs": [
-            {
-              "engine": "justhodl-fleet-error-monitor",
-              "key": "data/_fleet-monitor-alert-history.json",
-              "role": "internal_operational_storage",
-              "purpose": "Notification deduplication timestamps, separate from required current monitor results.",
-              "evidence": {
-                "source": "aws/lambdas/justhodl-fleet-error-monitor/source/lambda_function.py",
-                "lines": [
-                  144,
-                  145,
-                  147,
-                  153,
-                  156
-                ]
-              },
-              "public_access_approved": false
-            }
-          ],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-fleet-freshness-monitor": {
-          "withheld_result_keys": [
-            "data/_freshness-monitor.json"
-          ],
-          "excluded_internal_outputs": [
-            {
-              "engine": "justhodl-fleet-freshness-monitor",
-              "key": "data/_freshness-alert-history.json",
-              "role": "internal_operational_storage",
-              "purpose": "Notification deduplication and escalation timestamps; not the required current freshness findings.",
-              "evidence": {
-                "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
-                "lines": [
-                  27,
-                  484,
-                  501,
-                  531
-                ]
-              },
-              "public_access_approved": false
-            },
-            {
-              "engine": "justhodl-fleet-freshness-monitor",
-              "key": "data/_freshness-seen-keys.json",
-              "role": "internal_operational_storage",
-              "purpose": "Resumable source-key discovery state; availability/freshness results remain required.",
-              "evidence": {
-                "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
-                "lines": [
-                  281,
-                  287
-                ]
-              },
-              "public_access_approved": false
-            },
-            {
-              "engine": "justhodl-fleet-freshness-monitor",
-              "key": "data/_freshness-manifest.json",
-              "role": "internal_configuration",
-              "purpose": "Operational SLA/rule configuration revalidated by the monitor; not a data observation or freshness result.",
-              "evidence": {
-                "source": "aws/lambdas/justhodl-fleet-freshness-monitor/source/lambda_function.py",
-                "lines": [
-                  10,
-                  90,
-                  92,
-                  97,
-                  100
-                ]
-              },
-              "public_access_approved": false
-            }
-          ],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-llm-health": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         }
       }
@@ -4035,56 +5268,6 @@
       }
     },
     {
-      "route": "portfolio-manager.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-ai-brief-router",
-        "justhodl-portfolio-admin"
-      ],
-      "reasons": [
-        "withheld: 10",
-        "unresolved writes: 1",
-        "unindexed families: 1"
-      ],
-      "unresolved_primary_references": [],
-      "engine_gaps": {
-        "justhodl-ai-brief-router": {
-          "withheld_result_keys": [
-            "data/_alerts/digest-latest.json",
-            "data/_alerts/digests-index.json",
-            "data/_alerts/frontrun-sniffer-alert-state.json",
-            "data/_alerts/macro-frontrun-sniffer-alert-state.json",
-            "data/_alerts/targets-index.json",
-            "data/_alerts/uptime-state.json",
-            "data/_alerts/uptime-status.json",
-            "data/_skill/calibration-config.json",
-            "data/_skill/frontrun-skill-index.json",
-            "data/_skill/opportunity-rankings.json"
-          ],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [
-            {
-              "file": "lambda_function.py",
-              "line": 2658,
-              "operation": "put_json",
-              "reason": "dynamic or unresolved key"
-            }
-          ],
-          "unindexed_dynamic_families": [
-            "data/*.json"
-          ],
-          "other_format_outputs": []
-        },
-        "justhodl-portfolio-admin": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
       "route": "portfolio.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
@@ -4167,7 +5350,7 @@
       ],
       "reasons": [
         "withheld: 5",
-        "unindexed families: 7"
+        "unindexed families: 6"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
@@ -4296,9 +5479,7 @@
           ],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/theme-cascade-history/*.json"
-          ],
+          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         },
         "justhodl-theme-classifier": {
@@ -5266,7 +6447,7 @@
         "justhodl-stock-screener"
       ],
       "reasons": [
-        "unindexed families: 2",
+        "unindexed families: 1",
         "unresolved primary references: 1"
       ],
       "unresolved_primary_references": [
@@ -5318,9 +6499,7 @@
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "screener/snapshots/*.json"
-          ],
+          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         }
       }
@@ -6038,7 +7217,7 @@
         "justhodl-stock-buying"
       ],
       "reasons": [
-        "unindexed families: 2"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
@@ -6074,11 +7253,29 @@
         },
         "justhodl-stock-buying": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [
-            "data/warm/blackswan/sb_sur_*.json"
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-stock-buying",
+              "key": "data/warm/blackswan/sb_sur_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FMP earnings-surprises input. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-stock-buying/source/lambda_function.py",
+                "lines": [
+                  126
+                ],
+                "functions": [
+                  {
+                    "name": "warm_fmp",
+                    "ast_sha256": "72c6ba4cf58faa3bf54a6f966b772c4dd254d62790b7e4e75b742b1345046bfe"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
           ],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         }
       }
@@ -6552,23 +7749,153 @@
         "justhodl-top-signals"
       ],
       "reasons": [
-        "unindexed families: 8"
+        "unindexed families: 1"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-top-signals": {
           "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable FRED observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  870
+                ],
+                "functions": [
+                  {
+                    "name": "fred_fallback",
+                    "ast_sha256": "8130bff4fbdc8531b90e282430a37eec2f25e6ac6a77b108d6f06af2de1963f5"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/bn_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Binance daily klines and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  757,
+                  767
+                ],
+                "functions": [
+                  {
+                    "name": "binance_fallback",
+                    "ast_sha256": "2f06329f61588348e7633d7e8e17dffbc98556989c3910a9a09d4620ab583aa0"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/cb_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable CBOE daily market history. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  302
+                ],
+                "functions": [
+                  {
+                    "name": "cboe_fallback",
+                    "ast_sha256": "2760c985c4789b85887872b211127bb03e157524547860ebabda181bc0cb0ad1"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/mp_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Multpl historical table. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  246
+                ],
+                "functions": [
+                  {
+                    "name": "multpl_fallback",
+                    "ast_sha256": "fdea4c3a14ecd537d45c65ca9d26d94ed935fdab6510b7ce6b698952cd9aee64"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/nq_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Nasdaq index observations and negative-fetch cache. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  384,
+                  391
+                ],
+                "functions": [
+                  {
+                    "name": "nasdaq_fallback",
+                    "ast_sha256": "3b6c7e855664e6b1d53d8c45621f9430e07d573e3d5dc680cc976c2113d00fc4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/te_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Trading Economics historical observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  551
+                ],
+                "functions": [
+                  {
+                    "name": "te_hist_fallback",
+                    "ast_sha256": "cec1d13b19dddcf259c73067cbbc065a36b21ff3f8c67c6c30562d8e82e978f4"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            },
+            {
+              "engine": "justhodl-top-signals",
+              "key": "data/warm/blackswan/yh_*.json",
+              "role": "internal_input_cache",
+              "purpose": "Re-fetchable Yahoo daily chart observations. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-top-signals/source/lambda_function.py",
+                "lines": [
+                  173,
+                  186
+                ],
+                "functions": [
+                  {
+                    "name": "yahoo_fallback",
+                    "ast_sha256": "5813badfbfdacd38216ef095eb30354a9b019b310144e49f0c864c133c8d9737"
+                  }
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/warm/blackswan/*.json",
-            "data/warm/blackswan/bn_*.json",
-            "data/warm/blackswan/cb_*.json",
-            "data/warm/blackswan/cc_*.json",
-            "data/warm/blackswan/mp_*.json",
-            "data/warm/blackswan/nq_*.json",
-            "data/warm/blackswan/te_*.json",
-            "data/warm/blackswan/yh_*.json"
+            "data/warm/blackswan/cc_*.json"
           ],
           "other_format_outputs": []
         }

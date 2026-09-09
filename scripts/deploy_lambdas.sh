@@ -282,45 +282,8 @@ for fn in $DEPLOY_TARGETS; do
   # .schedule block above are unaffected. See ops 821.
   # Candidate helper already applied the complete preserved Scheduler payload.
   if [ "$candidate_managed" -eq 0 ] && [ -f "$config_file" ] && jq -e '.eventbridge_scheduler' "$config_file" >/dev/null 2>&1; then
-    sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$config_file")
-    sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$config_file")
-    sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$config_file")
-    sched_role=$(jq -r '.eventbridge_scheduler.role_arn' "$config_file")
-    sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$config_file")
-    region="$DEPLOY_AWS_REGION"
-    acc="857687956942"
-    fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
-    if [ "$fn" = "justhodl-khalid" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
-      fn_arn="${fn_arn}:live"
-    elif jq -e '.release_validation.schema_version' "$config_file" >/dev/null; then
-      fn_arn="${fn_arn}:live"
-    fi
-    target_json=$(jq -n --arg arn "$fn_arn" --arg role "$sched_role" \
-      '{Arn:$arn,RoleArn:$role,Input:"{}",RetryPolicy:{MaximumRetryAttempts:2,MaximumEventAgeInSeconds:3600}}')
-    echo "Setting up EventBridge Scheduler schedule $sched_name → $sched_cron ($sched_tz)"
-    if aws scheduler get-schedule --name "$sched_name" --region "$region" >/dev/null 2>&1; then
-      aws scheduler update-schedule \
-        --name "$sched_name" \
-        --schedule-expression "$sched_cron" \
-        --schedule-expression-timezone "$sched_tz" \
-        --flexible-time-window '{"Mode":"OFF"}' \
-        --state ENABLED \
-        --description "$sched_desc" \
-        --target "$target_json" \
-        --region "$region" --output text > /dev/null
-      echo "  ✅ Scheduler schedule updated"
-    else
-      aws scheduler create-schedule \
-        --name "$sched_name" \
-        --schedule-expression "$sched_cron" \
-        --schedule-expression-timezone "$sched_tz" \
-        --flexible-time-window '{"Mode":"OFF"}' \
-        --state ENABLED \
-        --description "$sched_desc" \
-        --target "$target_json" \
-        --region "$region" --output text > /dev/null
-      echo "  ✅ Scheduler schedule created"
-    fi
+    python3 scripts/apply_direct_scheduler.py "$config_file" \
+      "arn:aws:lambda:${DEPLOY_AWS_REGION}:857687956942:function:${fn}" "$DEPLOY_AWS_REGION"
   fi
 
   # ── Function URL (if config.json has .function_url.enabled=true) ──

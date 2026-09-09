@@ -770,32 +770,21 @@
     },
     "census.html": {
       "role": "ENGINE_PAGE",
-      "reason": "Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade.",
-      "evidence": [
-        {
-          "file": "census.html",
-          "line": 721,
-          "supports": "Direct unknown Function URL"
-        },
-        {
-          "file": "census.html",
-          "line": 735,
-          "supports": "series=summary request"
-        },
-        {
-          "file": "aws/lambdas/fedliquidityapi/source/lambda_function.py",
-          "line": 459,
-          "supports": "Candidate summary handler"
-        },
-        {
-          "file": "aws/lambdas/census-economic-agent/source/lambda_census_agent.py",
-          "line": 2,
-          "supports": "Census economic is retail, not this UI"
-        }
+      "primary_engines": [
+        "fedliquidityapi"
       ],
-      "primary_engines": [],
-      "api_responses": [],
-      "unresolved_reason": "Despite filename, page title and UI are Fed Liquidity Dashboard and call ?series=summary. fedliquidityapi has matching summary handler but hardcoded URL has no source-config binding. Do not map to census-economic-agent, whose output is retail trade."
+      "primary_exclusive": true,
+      "reason": "Fed Liquidity Terminal consumes the checked-in fedliquidityapi Function URL and its summary, full series catalog, and selected observations with metadata; all complete responses remain inspectable. Retired URL discovery5241 is complete with no owner found.",
+      "api_responses": [
+        {
+          "engine": "fedliquidityapi",
+          "origin": "https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ]
+        }
+      ]
     },
     "ask.html": {
       "role": "ENGINE_PAGE",

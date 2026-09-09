@@ -549,15 +549,15 @@
             .title {
                 font-size: 1.8rem;
             }
-            
+
             .series-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-row {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .risk-grid {
                 grid-template-columns: 1fr;
             }
@@ -599,7 +599,7 @@
             <div class="header-content">
                 <div>
                     <h1 class="title">Fed Liquidity Terminal</h1>
-                    <div class="subtitle">Real-time Federal Reserve & Market Intelligence</div>
+                    <div class="subtitle">Federal Reserve series · observation dates and calendar changes</div>
                 </div>
                 <div class="status-bar">
                     <div class="status-pill">
@@ -612,7 +612,7 @@
                     <div class="status-pill">
                         <span id="last-update">--:--</span>
                     </div>
-                    <button class="btn" onclick="refreshData()">
+                    <button class="btn" onclick="refreshData(this)">
                         Refresh
                     </button>
                 </div>
@@ -627,8 +627,7 @@
             </h2>
             <div class="risk-grid" id="risk-grid">
                 <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Analyzing market conditions...</p>
+                    <p>This engine supplies economic observations. Risk probabilities are unavailable from this source.</p>
                 </div>
             </div>
         </div>
@@ -663,13 +662,13 @@
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('all')">
+            <button class="tab active" onclick="switchTab('all', this)">
                 All Series
             </button>
-            <button class="tab" onclick="switchTab('favorites')">
+            <button class="tab" onclick="switchTab('favorites', this)">
                 ⭐ Favorites
             </button>
-            <button class="tab" onclick="switchTab('critical')">
+            <button class="tab" onclick="switchTab('critical', this)">
                 🔴 Critical Indicators
             </button>
         </div>
@@ -677,8 +676,8 @@
         <!-- Controls -->
         <div class="controls">
             <div class="search-box">
-                <input type="text" class="search-input" id="search-input" 
-                       placeholder="Search by series ID or name..." 
+                <input type="text" class="search-input" id="search-input"
+                       placeholder="Search by series ID or name..."
                        oninput="filterSeries()">
             </div>
             <div class="filter-group">
@@ -717,100 +716,74 @@
         </div>
     </div>
 
+    <section class="dashboard">
+      <details><summary>Complete summary response</summary><pre id="summary-payload" style="white-space:pre-wrap;overflow-wrap:anywhere">Unavailable</pre></details>
+      <h2>Explore every available series</h2>
+      <label for="series-picker">Series catalog</label> <select id="series-picker"></select>
+      <button class="btn" onclick="loadSeries()">Load observations and metadata</button>
+      <pre id="series-payload" style="white-space:pre-wrap;overflow-wrap:anywhere">Choose a series to load its observations, metadata, and counts.</pre>
+      <details><summary>Complete catalog and category mapping</summary><pre id="catalog-payload" style="white-space:pre-wrap;overflow-wrap:anywhere">Unavailable</pre></details>
+    </section>
     <script>
-        const API_URL = 'https://gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws';
-        
+        const API_URL = 'https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws';
+
         let allSeries = [];
         let enhancedData = [];
         let currentFilter = 'all';
-        let favorites = JSON.parse(localStorage.getItem('fedFavorites') || '[]');
-        let customNames = JSON.parse(localStorage.getItem('fedCustomNames') || '{}');
-        
+        let favorites = [];
+        try { const value=JSON.parse(localStorage.getItem('fedFavorites') || '[]'); if(Array.isArray(value)) favorites=value.filter(x=>typeof x==='string'); } catch {}
+        let customNames = {};
+        try { const value=JSON.parse(localStorage.getItem('fedCustomNames') || '{}'); if(value && !Array.isArray(value) && typeof value==='object') customNames=value; } catch {}
+        const esc=value=>String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
         const CRITICAL_SERIES = ['WALCL', 'RRPONTSYD', 'M2SL', 'VIXCLS', 'T10Y2Y', 'DFF', 'UNRATE', 'TEDRATE', 'STLFSI2', 'DTWEXBGS'];
 
         async function fetchData() {
             try {
                 document.getElementById('api-status').textContent = 'Loading...';
-                
+
                 const response = await fetch(`${API_URL}/?series=summary`);
+                if (!response.ok) throw new Error('DATA_UNAVAILABLE');
                 const result = await response.json();
-                
-                console.log('API Response:', result);
-                
-                if (result.data) {
-                    allSeries = result.data;
-                    document.getElementById('series-count').textContent = `${result.series_returned || allSeries.length} Series`;
-                }
-                
-                if (result.enhanced_data) {
-                    enhancedData = result.enhanced_data;
-                }
-                
-                if (result.risk_indicators) {
-                    displayRiskIndicators(result.risk_indicators);
-                }
-                
+
+                if (!result.summary || typeof result.summary!=='object' || Array.isArray(result.summary)) throw new Error('INVALID_SCHEMA');
+                allSeries = Object.entries(result.summary).filter(([id,row])=>/^[A-Z0-9_]+$/.test(id) && row && typeof row==='object').map(([series_id,row])=>({
+                    ...row,series_id,name:row.name || series_id,value:row.latest_value,date:row.latest_date,
+                    changes:{wow:row.week_change,mom:row.month_change}
+                }));
+                enhancedData=[];
+                document.getElementById('series-count').textContent=`${allSeries.length} Summary Series`;
+                document.getElementById('summary-payload').textContent=JSON.stringify(result,null,2);
+                document.getElementById('risk-grid').textContent='Risk probabilities are unavailable from this engine. Summary values retain their individual observation dates.';
                 displaySeries();
                 updateStats();
-                
-                document.getElementById('api-status').textContent = 'Live';
-                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-                
+
+                document.getElementById('api-status').textContent = allSeries.length ? (result.status === 'COMPLETE' ? 'Loaded' : 'Partial') : 'Unavailable';
+                document.getElementById('last-update').textContent = result.last_updated || 'Generation time unavailable';
+
             } catch (error) {
-                console.error('Error:', error);
+                allSeries=[]; enhancedData=[]; updateStats();
                 document.getElementById('api-status').textContent = 'Error';
                 showError();
             }
-        }
-
-        function displayRiskIndicators(indicators) {
-            const grid = document.getElementById('risk-grid');
-            
-            if (!indicators) {
-                grid.innerHTML = '<div class="no-data">No risk data available</div>';
-                return;
-            }
-            
-            let html = '';
-            
-            Object.entries(indicators).forEach(([key, data]) => {
-                const name = key.replace(/_/g, ' ').toUpperCase();
-                const statusClass = data.probability > 50 ? 'high' : data.probability > 25 ? 'medium' : '';
-                
-                html += `
-                    <div class="risk-card">
-                        <div class="risk-name">${name}</div>
-                        <div class="risk-value">${data.probability}%</div>
-                        <div class="risk-bar">
-                            <div class="risk-fill ${statusClass}" style="width: ${data.probability}%"></div>
-                        </div>
-                        <span class="risk-status ${statusClass}">${data.status}</span>
-                        ${data.signals && data.signals.length ? 
-                            `<div class="risk-signals">Signals: ${data.signals.join(', ')}</div>` : ''
-                        }
-                    </div>
-                `;
-            });
-            
-            grid.innerHTML = html;
         }
 
         function displaySeries() {
             const allGrid = document.getElementById('all-series');
             const favGrid = document.getElementById('favorites-series');
             const criticalGrid = document.getElementById('critical-series');
-            
+
             const dataToUse = enhancedData.length > 0 ? enhancedData : allSeries;
-            
+
             let filtered = filterAndSearch(dataToUse);
-            
+
             // All series
             if (filtered.length === 0) {
                 allGrid.innerHTML = '<div class="no-data">No series match your criteria</div>';
             } else {
                 allGrid.innerHTML = filtered.map(series => createSeriesCard(series)).join('');
             }
-            
+
             // Favorites
             const favoriteSeries = dataToUse.filter(s => favorites.includes(s.series_id));
             if (favoriteSeries.length === 0) {
@@ -823,7 +796,7 @@
             } else {
                 favGrid.innerHTML = favoriteSeries.map(series => createSeriesCard(series)).join('');
             }
-            
+
             // Critical indicators
             const criticalSeries = dataToUse.filter(s => CRITICAL_SERIES.includes(s.series_id));
             if (criticalSeries.length === 0) {
@@ -837,23 +810,23 @@
             const isFavorite = favorites.includes(series.series_id);
             const customName = customNames[series.series_id] || series.name;
             const value = series.value !== null && series.value !== undefined ? formatValue(series.value) : 'N/A';
-            const date = series.date || '--';
-            
+            const date = esc(series.date || '--');
+
             const changes = series.changes || {};
-            
+
             return `
                 <div class="series-card" data-series="${series.series_id}">
                     <div class="series-header">
                         <div class="series-info">
                             <div class="series-id">${series.series_id}</div>
                             <div class="series-name">
-                                <input type="text" 
-                                       value="${customName}" 
+                                <input type="text"
+                                       value="${esc(customName)}"
                                        onblur="updateCustomName('${series.series_id}', this.value)"
                                        onclick="event.stopPropagation()">
                             </div>
                         </div>
-                        <button class="favorite-btn ${isFavorite ? 'active' : ''}" 
+                        <button class="favorite-btn ${isFavorite ? 'active' : ''}"
                                 onclick="toggleFavorite('${series.series_id}')">
                             ${isFavorite ? '⭐' : '☆'}
                         </button>
@@ -863,15 +836,14 @@
                     <div class="changes-grid">
                         ${createChangeItem('WoW', changes.wow)}
                         ${createChangeItem('MoM', changes.mom)}
-                        ${createChangeItem('QoQ', changes.qoq)}
-                        ${createChangeItem('YoY', changes.yoy)}
+                        <div>Week comparison: ${esc(series.week_comparison_date || 'Unavailable')}</div><div>Month comparison: ${esc(series.month_comparison_date || 'Unavailable')}</div>
                     </div>
                 </div>
             `;
         }
 
         function createChangeItem(label, value) {
-            if (value === null || value === undefined) {
+            if (typeof value !== 'number' || !Number.isFinite(value)) {
                 return `
                     <div class="change-item">
                         <div class="change-label">${label}</div>
@@ -879,10 +851,10 @@
                     </div>
                 `;
             }
-            
+
             const colorClass = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
             const arrow = value > 0 ? '↑' : value < 0 ? '↓' : '';
-            
+
             return `
                 <div class="change-item">
                     <div class="change-label">${label}</div>
@@ -895,31 +867,33 @@
 
         function updateStats() {
             const dataToUse = enhancedData.length > 0 ? enhancedData : allSeries;
-            
+
+            for (const id of ['fed-balance','m2-supply','vix-index','yield-spread','dollar-index','fed-rate']) document.getElementById(id).textContent='Unavailable';
             // Update key stats
             const walcl = dataToUse.find(s => s.series_id === 'WALCL');
             if (walcl) document.getElementById('fed-balance').textContent = formatValue(walcl.value);
-            
+
             const m2 = dataToUse.find(s => s.series_id === 'M2SL');
             if (m2) document.getElementById('m2-supply').textContent = formatValue(m2.value);
-            
+
             const vix = dataToUse.find(s => s.series_id === 'VIXCLS');
             if (vix) document.getElementById('vix-index').textContent = formatValue(vix.value);
-            
+
             const spread = dataToUse.find(s => s.series_id === 'T10Y2Y');
             if (spread) document.getElementById('yield-spread').textContent = formatValue(spread.value);
-            
+
             const dollar = dataToUse.find(s => s.series_id === 'DTWEXBGS');
             if (dollar) document.getElementById('dollar-index').textContent = formatValue(dollar.value);
-            
+
             const rate = dataToUse.find(s => s.series_id === 'DFF');
             if (rate) document.getElementById('fed-rate').textContent = formatValue(rate.value) + '%';
         }
 
         function formatValue(value) {
             if (value === null || value === undefined || value === 'N/A') return 'N/A';
-            
-            const num = parseFloat(value);
+
+            const num = Number(value);
+            if (!Number.isFinite(num)) return 'Unavailable';
             if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
             if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
             if (Math.abs(num) >= 1e3) return (num / 1e3).toFixed(2) + 'K';
@@ -929,27 +903,27 @@
 
         function filterAndSearch(data) {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            
+
             let filtered = data;
-            
+
             if (searchTerm) {
                 filtered = filtered.filter(s => {
-                    const customName = customNames[s.series_id] || s.name;
+                    const customName = String(customNames[s.series_id] || s.name || '');
                     return s.series_id.toLowerCase().includes(searchTerm) ||
                            customName.toLowerCase().includes(searchTerm);
                 });
             }
-            
+
             if (currentFilter === 'positive') {
-                filtered = filtered.filter(s => 
+                filtered = filtered.filter(s =>
                     s.changes && (s.changes.wow > 0 || s.changes.mom > 0 || s.changes.yoy > 0)
                 );
             } else if (currentFilter === 'negative') {
-                filtered = filtered.filter(s => 
+                filtered = filtered.filter(s =>
                     s.changes && (s.changes.wow < 0 || s.changes.mom < 0 || s.changes.yoy < 0)
                 );
             }
-            
+
             return filtered;
         }
 
@@ -964,11 +938,11 @@
             displaySeries();
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, button) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
+
+            button.classList.add('active');
             document.getElementById(`${tab}-tab`).classList.add('active');
         }
 
@@ -990,11 +964,11 @@
             }
         }
 
-        function refreshData() {
-            const btn = event.target;
+        function refreshData(btn) {
+            btn=btn || document.querySelector('.status-bar .btn');
             btn.disabled = true;
             btn.textContent = 'Refreshing...';
-            
+
             fetchData().finally(() => {
                 btn.disabled = false;
                 btn.textContent = 'Refresh';
@@ -1008,7 +982,7 @@
                     <div class="no-data">
                         <div class="no-data-icon">⚠️</div>
                         <p>Unable to load data. Please try again.</p>
-                        <button class="btn" onclick="refreshData()" style="margin-top: 20px;">
+                        <button class="btn" onclick="refreshData(this)" style="margin-top: 20px;">
                             Retry
                         </button>
                     </div>
@@ -1016,10 +990,37 @@
             });
         }
 
+        async function loadCatalog() {
+            try {
+                const response=await fetch(`${API_URL}/?series=all`);
+                if(!response.ok) throw new Error('unavailable');
+                const result=await response.json();
+                if(!result.series || Array.isArray(result.series)) throw new Error('schema');
+                const picker=document.getElementById('series-picker'); picker.replaceChildren();
+                for(const [id,name] of Object.entries(result.series)) {
+                    if(!/^[A-Z0-9_]+$/.test(id)) continue;
+                    const option=document.createElement('option'); option.value=id; option.textContent=`${id} · ${name}`; picker.append(option);
+                }
+                document.getElementById('catalog-payload').textContent=JSON.stringify(result,null,2);
+            } catch { document.getElementById('catalog-payload').textContent='Catalog unavailable'; }
+        }
+        async function loadSeries() {
+            const id=document.getElementById('series-picker').value;
+            if(!/^[A-Z0-9_]+$/.test(id)) return;
+            const output=document.getElementById('series-payload');output.textContent='Loading...';
+            try {
+                const response=await fetch(`${API_URL}/?series=${encodeURIComponent(id)}`);
+                if(!response.ok) throw new Error('unavailable');
+                const result=await response.json();
+                if(result.series_id!==id || !Array.isArray(result.data)) throw new Error('schema');
+                output.textContent=JSON.stringify(result,null,2);
+            } catch { output.textContent='Series unavailable'; }
+        }
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             fetchData();
-            
+            loadCatalog();
+
             // Auto-refresh every 5 minutes
             setInterval(fetchData, 300000);
         });

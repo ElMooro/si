@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[3]
+# Recheck the corrected Census page against the actual source-defined URL.
 TARGETS = frozenset(('fmp-fundamentals-agent', 'fedliquidityapi'))
 REPORT = ROOT / 'aws/ops/reports/latest/ops_5240_page_api_identity.json'
 HOST = re.compile(r'^[a-z0-9]+\.lambda-url\.us-east-1\.on\.aws$')
