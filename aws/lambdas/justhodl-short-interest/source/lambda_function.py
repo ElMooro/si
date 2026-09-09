@@ -31,6 +31,8 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import gzip
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from equity_donor_inputs import safe_evidence
+from donor_contract import numeric
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -368,15 +370,22 @@ def lambda_handler(event=None, context=None):
                                         si_change, price_change)
         by_ticker[sym] = {
             "ticker": sym,
-            "latest_short_pct": latest_pct,
+            "latest_short_pct": latest_pct,  # compatibility alias; always daily short volume
+            "daily_short_volume_pct": latest_pct,
+            "daily_short_volume_as_of": h[0].get("date") if h else None,
+            "daily_short_volume_source": "FINRA daily RegSHO" if h else None,
             "trend_pct": trend_pct,
             "recent_5d_avg": r_avg,
             "prior_9d_avg": p_avg,
             "days_to_cover": days_to_cover,
+            "days_to_cover_source": "FINRA consolidated short interest" if days_to_cover is not None else None,
+            "days_to_cover_as_of": (si or {}).get("settlement_date") if days_to_cover is not None else None,
             "si_change_pct": si_change,
             "price_change_pct": price_change,
             "price_window_days": pw.get("window_days"),
             "short_interest": (si or {}).get("short_interest"),
+            "short_interest_source": "FINRA consolidated short interest" if si else None,
+            "short_interest_as_of": (si or {}).get("settlement_date"),
             "settlement_date": (si or {}).get("settlement_date"),
             "signal": signal,
             "score": score,
@@ -384,22 +393,27 @@ def lambda_handler(event=None, context=None):
         }
 
     # ── Finviz whole-market short-float overlay ──
-    # Keeps data/short-interest.json fresh fleet-wide even when FINRA/Polygon are
-    # sparse or frozen. Consumers read latest_short_pct at runtime, so this single
-    # producer fix refreshes every short-interest consumer with zero redeploys.
+    # Finviz float/ratio fields retain independent provenance. A retrieval time
+    # cannot establish their observation date or refresh FINRA daily/inventory data.
     try:
         import finviz as FV
         fvs = FV.load_short()
         n_new = n_enr = 0
         for tk, d in fvs.items():
-            sf = d.get("short_float_pct")
+            sf = numeric(d.get("short_float_pct"))
             if sf is None:
                 continue
             rec = by_ticker.get(tk)
             if rec is None:
                 by_ticker[tk] = {
-                    "ticker": tk, "latest_short_pct": sf, "short_float_pct": sf,
-                    "days_to_cover": d.get("short_ratio"),
+                    "ticker": tk, "latest_short_pct": None, "daily_short_volume_pct": None,
+                    "daily_short_volume_as_of": None, "daily_short_volume_source": None,
+                    "short_float_pct": sf, "short_float_source": "Finviz", "short_float_as_of": None,
+                    "finviz_retrieved_at": datetime.now(timezone.utc).isoformat(),
+                    "days_to_cover_source": "Finviz short ratio", "days_to_cover_as_of": None,
+                    "short_interest": None, "short_interest_source": None, "short_interest_as_of": None,
+                    "settlement_date": None,
+                    "days_to_cover": numeric(d.get("short_ratio")),
                     "float_shares": d.get("float_shares"),
                     "rel_volume": d.get("rel_volume"),
                     "short_src": "finviz", "signal": "NEUTRAL", "score": 0,
@@ -407,9 +421,13 @@ def lambda_handler(event=None, context=None):
                 n_new += 1
             else:
                 rec["short_float_pct"] = sf
-                rec["latest_short_pct"] = sf
+                rec["short_float_source"] = "Finviz"
+                rec["short_float_as_of"] = None
+                rec["finviz_retrieved_at"] = datetime.now(timezone.utc).isoformat()
                 if rec.get("days_to_cover") is None:
-                    rec["days_to_cover"] = d.get("short_ratio")
+                    rec["days_to_cover"] = numeric(d.get("short_ratio"))
+                    rec["days_to_cover_source"] = "Finviz short ratio"
+                    rec["days_to_cover_as_of"] = None
                 rec.setdefault("float_shares", d.get("float_shares"))
                 rec["short_src"] = "finviz"
                 n_enr += 1
@@ -433,6 +451,10 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "version": "1.1",
+        "measurement_contract": "short-positioning.v2",
+        "measurement_units": {"short_interest": "shares", "days_to_cover": "days", "si_change_pct": "percent",
+                              "daily_short_volume_pct": "percent of daily reported volume", "short_float_pct": "percent of float"},
+        "compatibility_fields": {"latest_short_pct": "alias of daily_short_volume_pct; never short float"},
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "watchlist_size": len(WATCHLIST),
         "n_tickers_with_data": len(by_ticker),
@@ -450,7 +472,7 @@ def lambda_handler(event=None, context=None):
         "data_sources": {
             "short_volume": "FINRA daily RegSHO files (free)",
             "short_interest": "FINRA Consolidated Short Interest API (official bi-monthly settlement; replaced dead Polygon feed)",
-            "short_float": "Finviz Elite whole-market short float (fresh, primary for latest_short_pct)",
+            "short_float": "Finviz whole-market short float / missing-DTC fallback; observation dates unavailable, retrieval time only",
             "price_window": "Polygon daily aggregates over the SI settlement window (canary #19 flat-price leg)",
         },
         "signal_definitions": {
@@ -464,7 +486,7 @@ def lambda_handler(event=None, context=None):
         },
     }
 
-    body = json.dumps(out, default=str).encode("utf-8")
+    body = json.dumps(safe_evidence(out), default=str, allow_nan=False).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET,
         Key=KEY,

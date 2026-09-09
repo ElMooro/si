@@ -47,6 +47,8 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from donor_contract import inspect_donor, numeric, parse_timestamp
+from equity_donor_inputs import safe_evidence, load_inputs, short_context
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -232,6 +234,7 @@ def fmp_float_and_price(sym):
         f = json.loads(_http(f"https://financialmodelingprep.com/stable/shares-float?symbol={sym}&apikey={FMP_KEY}", timeout=12))
         if isinstance(f, list) and f:
             out["float_shares"] = f[0].get("floatShares")
+            out["float_as_of"] = f[0].get("date")
     except Exception:
         pass
     try:
@@ -239,6 +242,7 @@ def fmp_float_and_price(sym):
         if isinstance(q, list) and q:
             qq = q[0]
             out["price"] = qq.get("price")
+            out["quote_timestamp"] = qq.get("timestamp")
             out["ma50"] = qq.get("priceAvg50")
             out["year_high"] = qq.get("yearHigh")
     except Exception:
@@ -256,7 +260,11 @@ def score_name(si, ftd, daily, enrich):
     cur_si = si.get("short_interest")
     dtc = si.get("days_to_cover")
     chg = si.get("si_change_pct")
-    flt = (enrich or {}).get("float_shares")
+    flt = numeric((enrich or {}).get("float_shares"))
+    float_date = parse_timestamp((enrich or {}).get("float_as_of"))
+    float_age = (datetime.now(timezone.utc) - float_date).total_seconds() / 86400 if float_date else None
+    float_usable = flt is not None and flt > 0 and float_age is not None and 0 <= float_age <= 90
+    if not float_usable: flt = None
 
     # crowding (max 35): short % of float, else days-to-cover proxy
     pct_float = None
@@ -337,6 +345,9 @@ def score_name(si, ftd, daily, enrich):
         "score": score, "state": state, "price_confirm": price_confirm,
         "pct_of_float": pct_float, "days_to_cover": dtc,
         "short_interest": cur_si, "si_change_pct": chg,
+        "float_evidence": {"source": "FMP shares-float", "as_of": (enrich or {}).get("float_as_of"),
+                           "float_shares": numeric((enrich or {}).get("float_shares")), "unit": "shares",
+                           "status": "DATED" if float_usable else "UNAVAILABLE_OR_STALE", "max_age_days": 90},
         "components": {"crowding": round(crowding, 1), "exit_difficulty": round(exit_diff, 1),
                        "building": round(building, 1), "ftd_pressure": round(ftd_p, 1),
                        "ignition": round(ignition, 1)},
@@ -344,16 +355,69 @@ def score_name(si, ftd, daily, enrich):
     }
 
 
+def merge_short_interest(si_map, doc, now=None):
+    """D27: newest dated position inventory replaces older direct FINRA evidence.
+
+    latest_short_pct is deliberately excluded. The v2 measurement contract
+    keeps daily flow, short float and dated FINRA inventory independently sourced.
+    """
+    now = now or datetime.now(timezone.utc)
+    merged, evidence = dict(si_map), {}
+    rows = doc.get("by_ticker", {}) if isinstance(doc, dict) else {}
+    if not isinstance(rows, dict): return merged, evidence
+    for ticker, source in rows.items():
+        if not isinstance(source, dict): continue
+        if ticker not in si_map and ticker not in CORE_WATCHLIST and (source.get("short_interest") is None or not source.get("settlement_date")): continue
+        context = short_context(ticker, doc, now)
+        receipt = inspect_donor({**source, "generated_at": doc.get("generated_at")},
+            "data/short-interest.json", 72, observed_paths=("settlement_date",),
+            required_paths=("short_interest", "days_to_cover", "short_interest_source", "short_interest_as_of", "days_to_cover_source", "days_to_cover_as_of"),
+            units={"short_interest": "shares", "days_to_cover": "days", "si_change_pct": "percent"},
+            max_observation_age_hours=35*24, now=now)
+        shares, dtc, change = numeric(source.get("short_interest")), numeric(source.get("days_to_cover")), numeric(source.get("si_change_pct"))
+        if (doc.get("version") != "1.1" or doc.get("measurement_contract") != "short-positioning.v2"
+                or any((doc.get("measurement_units") if isinstance(doc.get("measurement_units"), dict) else {}).get(k) != unit for k, unit in
+                       {"short_interest": "shares", "days_to_cover": "days", "si_change_pct": "percent"}.items())
+                or source.get("short_interest_source") != "FINRA consolidated short interest"
+                or source.get("days_to_cover_source") != "FINRA consolidated short interest"
+                or parse_timestamp(source.get("short_interest_as_of")) != parse_timestamp(source.get("settlement_date"))
+                or parse_timestamp(source.get("days_to_cover_as_of")) != parse_timestamp(source.get("settlement_date"))
+                or source.get("ticker", ticker) != ticker
+                or shares is None or shares < 0 or dtc is None or dtc < 0
+                or (source.get("si_change_pct") is not None and change is None)):
+            receipt.update(status="INVALID", usable=False); receipt["errors"].append("Invalid dated short-position fields")
+        context.update(source_metadata=doc.get("data_sources"), health=receipt, positioning_usable=receipt["usable"], applied=False,
+                       daily_short_volume_used=False, float_shares_used=False,
+                       latest_short_pct_semantics="compatibility alias of daily short volume; excluded from inventory calculations")
+        evidence[ticker] = context
+        if not receipt["usable"] or shares < 1_000_000 or not 0.3 <= dtc <= 40: continue
+        # DTC is SI divided by average volume; keep this inferred screening
+        # quantity explicit. It is never treated as an executable liquidity quote.
+        implied_adv = shares / dtc
+        if implied_adv < 500_000: continue
+        previous = merged.get(ticker) or {}
+        if previous.get("settlementDate") and previous["settlementDate"] > source["settlement_date"]: continue
+        merged[ticker] = {**previous, "settlementDate": source["settlement_date"],
+                         "short_interest": shares, "days_to_cover": dtc, "si_change_pct": change,
+                         "implied_avg_daily_vol": implied_adv, "source_artifact": "data/short-interest.json"}
+        context["applied"] = True
+    return merged, evidence
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     si_map, settlement = _safe(fetch_finra_si, "FINRA SI") or ({}, None)
+    donor_docs, donor_receipts = load_inputs(S3, BUCKET, [("data/short-interest.json", 72, ("by_ticker",))])
+    si_map, positioning = merge_short_interest(si_map, donor_docs.get("data/short-interest.json", {}))
+    settlement = max((row.get("settlementDate") for row in si_map.values() if row.get("settlementDate")), default=settlement)
     ftd_map, ftd_file = _safe(fetch_sec_ftd, "SEC FTD") or ({}, None)
     daily_map = _safe(fetch_daily_shortvol, "daily short-vol") or {}
 
     if not si_map:
         payload = {"engine": "justhodl-squeeze-fuel", "ok": False,
-                   "error": "FINRA SI unavailable", "generated_at": datetime.now(timezone.utc).isoformat()}
-        S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(payload).encode(),
+                   "error": "No usable dated short interest", "generated_at": datetime.now(timezone.utc).isoformat(),
+                   "donor_health": donor_receipts, "short_positioning": positioning}
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(safe_evidence(payload), allow_nan=False).encode(),
                       ContentType="application/json")
         return {"statusCode": 200, "body": json.dumps({"ok": False})}
 
@@ -368,6 +432,8 @@ def lambda_handler(event, context):
     finra_syms = sorted(si_map.keys(), key=pre, reverse=True)
     candidates = list(dict.fromkeys([s for s in CORE_WATCHLIST if s in si_map] + finra_syms[:280]))
 
+    positioning = {symbol: positioning[symbol] for symbol in candidates if symbol in positioning}
+
     # enrich candidates with float + price (threaded)
     enrich = {}
     with ThreadPoolExecutor(max_workers=12) as ex:
@@ -381,7 +447,12 @@ def lambda_handler(event, context):
         rec = score_name(si_map.get(sym, {}), ftd_map.get(sym), daily_map.get(sym), enrich.get(sym))
         if rec["score"] <= 0:
             continue
-        rec.update({"ticker": sym, "name": (si_map.get(sym) or {}).get("name")})
+        rec.update({"ticker": sym, "name": (si_map.get(sym) or {}).get("name"),
+                    "settlement_date": (si_map.get(sym) or {}).get("settlementDate"),
+                    "short_positioning": positioning.get(sym),
+                    "daily_short_volume": {"source_artifact": "data/finra-short.json", "record": daily_map.get(sym),
+                                           "classification": "daily flow; not outstanding short interest"},
+                    "borrow_availability": None, "locate_verified": False, "execution_eligible": False})
         scored.append(rec)
     scored.sort(key=lambda r: r["score"], reverse=True)
 
@@ -406,6 +477,8 @@ def lambda_handler(event, context):
                    "short-volume + float). Fuel ≠ ignition: this scores trapped short "
                    "capital, not the catalyst. Pair with earnings/guidance/flow engines."),
         "si_settlement_date": settlement,
+        "donor_health": donor_receipts,
+        "short_positioning": positioning,
         "ftd_file": ftd_file,
         "n_finra_universe": len(si_map),
         "n_scored": len(scored),
@@ -413,7 +486,7 @@ def lambda_handler(event, context):
         "board": board,
         "top_picks": top_picks,
         "data_sources": {
-            "short_interest": "FINRA Consolidated Short Interest API (official, bi-monthly)",
+            "short_interest": "FINRA direct plus newer dated data/short-interest.json positions; daily short volume never substitutes for SI",
             "fails_to_deliver": "SEC CNS fails-to-deliver (semi-monthly)",
             "daily_short_volume": "justhodl-finra-short (FINRA Reg SHO daily, T+1)",
             "float_and_price": "FMP /stable/ shares-float + quote",
@@ -423,14 +496,14 @@ def lambda_handler(event, context):
             "for forward excess-vs-SPY grading; NOT wired into best-setups/master-ranker until "
             "the scorecard proves net-of-cost alpha (~3-4 weeks).",
             "Official SI is bi-monthly with ~1wk lag; FTD is semi-monthly with ~T+15 lag. "
-            "The daily short-volume 'ignition' component is the only intraday-fresh input.",
+            "Daily short volume is a separate delayed flow, not outstanding short interest.",
             "Free data has no real-time borrow fee / utilization — the live squeeze fuse. "
             "If this engine proves alpha, a paid borrow feed (Ortex/S3) is the justified upgrade.",
         ],
         "elapsed_s": round(time.time() - t0, 1),
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(payload, default=str).encode(),
+                  Body=json.dumps(safe_evidence(payload), default=str, allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[squeeze-fuel] DONE scored={len(scored)} loaded={dist['n_loaded']} "
           f"building={dist['n_building']} picks={len(top_picks)} in {payload['elapsed_s']}s")

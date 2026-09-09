@@ -25,6 +25,7 @@ Max_loss = shares × (entry - stop) = position_pct × (atr_mult × atr/entry × 
 OUTPUT: data/trade-tickets.json
 """
 import json
+import math
 import os
 import time
 import urllib.request
@@ -34,6 +35,8 @@ from typing import Optional, List
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from donor_contract import inspect_donor, numeric, parse_timestamp
+from equity_donor_inputs import safe_evidence, load_inputs, ticket_context
 
 S3_BUCKET = "justhodl-dashboard-live"
 POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
@@ -627,6 +630,73 @@ def build_ticket(candidate: dict, bars: List[dict],
     }
 
 
+def enrich_ticket_donors(ticket, short_doc, options_doc, now=None):
+    """D28/D29: dated positioning review and option-volatility cost context.
+
+    The underlying stock ticket retains its price/ATR calculation. These
+    diagnostics trigger implementation review, never fabricate an option fill,
+    a short locate or a new statistically calibrated sizing multiplier.
+    """
+    now = now or datetime.now(timezone.utc)
+    ticket_context(ticket, short_doc, options_doc)
+    short = ticket["short_positioning"]; row = short.get("record") or {}
+    srec = inspect_donor({**row, "generated_at": short_doc.get("generated_at")},
+        "data/short-interest.json", 72, observed_paths=("settlement_date",),
+        required_paths=("short_interest", "days_to_cover", "short_interest_source", "short_interest_as_of", "days_to_cover_source", "days_to_cover_as_of"), max_observation_age_hours=35*24,
+        units={"short_interest": "shares", "days_to_cover": "days", "si_change_pct": "percent"}, now=now)
+    shares, dtc, change = numeric(row.get("short_interest")), numeric(row.get("days_to_cover")), numeric(row.get("si_change_pct"))
+    if (short_doc.get("version") != "1.1" or short_doc.get("measurement_contract") != "short-positioning.v2"
+                or any((short_doc.get("measurement_units") if isinstance(short_doc.get("measurement_units"), dict) else {}).get(k) != unit for k, unit in
+                       {"short_interest": "shares", "days_to_cover": "days", "si_change_pct": "percent"}.items())
+                or row.get("short_interest_source") != "FINRA consolidated short interest"
+                or row.get("days_to_cover_source") != "FINRA consolidated short interest"
+                or parse_timestamp(row.get("short_interest_as_of")) != parse_timestamp(row.get("settlement_date"))
+                or parse_timestamp(row.get("days_to_cover_as_of")) != parse_timestamp(row.get("settlement_date"))
+                or row.get("ticker", ticket.get("ticker")) != ticket.get("ticker")
+            or shares is None or shares < 0 or dtc is None or dtc < 0
+            or (row.get("si_change_pct") is not None and change is None)):
+        srec.update(status="INVALID", usable=False); srec["errors"].append("Position inventory must contain finite shares and days-to-cover")
+    crowding = srec["usable"] and (dtc >= 5 or (change is not None and change >= 25))
+    short.update(source_metadata=short_doc.get("data_sources"), health=srec, positioning_usable=srec["usable"], covering_risk="ELEVATED" if crowding else "NO_THRESHOLD_TRIGGER" if srec["usable"] else "UNKNOWN",
+                 daily_short_volume_used=False, latest_short_pct_semantics="compatibility alias of daily short volume; excluded from inventory calculations", borrow_fee=None, recall_status="UNKNOWN")
+    options = ticket["options_context"]; o = options.get("record") or {}
+    orec = inspect_donor({**o, "generated_at": options_doc.get("generated_at")},
+        "data/options-analytics.json", 30, required_paths=("atm_iv_front", "expiries"),
+        units={"atm_iv_front": "annualized fraction", "hv20": "annualized fraction", "vrp": "fraction difference", "skew_25d": "IV fraction difference", "iv_rank": "percentile"}, now=now)
+    iv, hv, vrp, rank = (numeric(o.get(key)) for key in ("atm_iv_front", "hv20", "vrp", "iv_rank"))
+    expiries = o.get("expiries") if isinstance(o.get("expiries"), list) else []
+    front_expiry = parse_timestamp(expiries[0]) if expiries else None
+    if (options_doc.get("engine") != "justhodl-options-analytics" or options_doc.get("version") != "1.0.0"
+            or o.get("ticker") != ticket.get("ticker")
+            or iv is None or iv <= 0 or front_expiry is None or front_expiry.date() < now.date()):
+        orec.update(status="INVALID", usable=False); orec["errors"].append("Front-expiry IV is invalid, missing or expired")
+    for field in ("hv20", "vrp", "iv_rank", "skew_25d", "term_slope", "gamma_flip_strike", "call_wall", "put_wall"):
+        if o.get(field) is not None and numeric(o[field]) is None:
+            orec.update(status="INVALID", usable=False); orec["errors"].append("Invalid option context field: " + field)
+    if (rank is not None and not 0 <= rank <= 100) or (hv is not None and hv < 0):
+        orec.update(status="INVALID", usable=False); orec["errors"].append("Option rank/realized volatility outside its domain")
+    days = numeric(ticket.get("expected_horizon_days"))
+    model_move = iv * math.sqrt(days / 252) * 100 if orec["usable"] and days is not None and days > 0 else None
+    expensive = orec["usable"] and ((rank is not None and rank >= 80) or (vrp is not None and vrp >= 0.10))
+    event_review = orec["usable"] and (ticket.get("earnings_in_window") or o.get("term_structure") == "BACKWARDATION")
+    options.update(source_metadata=options_doc.get("data_sources"), health=orec, usable=orec["usable"], front_expiry=expiries[0] if expiries else None,
+                   atm_iv_annualized_pct=iv*100 if orec["usable"] else None,
+                   premium_vs_realized_vol_pp=vrp*100 if orec["usable"] and vrp is not None else None,
+                   model_one_sigma_horizon_move_pct=round(model_move, 4) if model_move is not None else None,
+                   model_basis="IV × sqrt(trading days / 252); volatility scale, not an executable option premium or price target",
+                   premium_cost_review=bool(expensive), event_volatility_review=bool(event_review), quote_timestamp=None)
+    reasons = []
+    if crowding: reasons.append("Dated short positioning warrants covering-risk review (DTC >=5 or SI change >=25%).")
+    if expensive: reasons.append("Option volatility is expensive on the donor's IV-rank/IV-minus-realized measures; review implementation cost.")
+    if event_review: reasons.append("Earnings or front-loaded term volatility warrants event-volatility review.")
+    if not srec["usable"]: reasons.append("Dated short positioning unavailable; borrow and covering-risk diligence remains open.")
+    if not orec["usable"]: reasons.append("Current front-expiry option analytics unavailable; no option-cost inference is permitted.")
+    ticket.update(donor_review_required=bool(reasons), donor_review_reasons=reasons,
+                  donor_analysis_status="REVIEW_REQUIRED" if reasons else "CONTEXT_COMPLETE",
+                  ticket_scope="underlying-equity research scenario; not an order instruction")
+    return ticket
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print("[trade-tickets] starting")
@@ -652,6 +722,9 @@ def lambda_handler(event, context):
     best_horizons = get_horizon_attribution()
     tier_confidence = get_tier_confidence()
     earnings_calendar = get_earnings_calendar()
+    donor_docs, donor_receipts = load_inputs(s3, S3_BUCKET, [
+        ("data/short-interest.json", 72, ("by_ticker",)),
+        ("data/options-analytics.json", 30, ("board",))])
     if best_horizons:
         print(f"[trade-tickets] horizon-aware mode: {len(best_horizons)} features have learned horizons")
     else:
@@ -666,8 +739,9 @@ def lambda_handler(event, context):
     # Parallel fetch + ticket build
     def _build(c):
         bars = fetch_polygon_ohlc(c["ticker"], days=25)
-        return build_ticket(c, bars, portfolio_usd, best_horizons,
-                              tier_confidence, earnings_calendar)
+        ticket = build_ticket(c, bars, portfolio_usd, best_horizons, tier_confidence, earnings_calendar)
+        return enrich_ticket_donors(ticket, donor_docs.get("data/short-interest.json", {}),
+                                   donor_docs.get("data/options-analytics.json", {}))
 
     tickets = []
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:
@@ -687,6 +761,7 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": elapsed,
         "portfolio_usd": portfolio_usd,
+        "donor_health": donor_receipts,
         "n_tickets": len(valid_tickets),
         "n_errors": len(invalid_tickets),
         "tickets": valid_tickets,
@@ -703,7 +778,7 @@ def lambda_handler(event, context):
 
     s3.put_object(
         Bucket=S3_BUCKET, Key="data/trade-tickets.json",
-        Body=json.dumps(output, default=str).encode(),
+        Body=json.dumps(safe_evidence(output), default=str, allow_nan=False).encode(),
         ContentType="application/json", CacheControl="public, max-age=600",
     )
 
