@@ -1,0 +1,219 @@
+{
+ "ops": 5260,
+ "ts": "2026-09-09T13:29:52.039254+00:00",
+ "resumer": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-chain-resumer",
+ "deployed": {
+  "justhodl-worldbank-full": {
+   "ok": true,
+   "size": 191151,
+   "mem": 1024,
+   "timeout": 850,
+   "modified": "2026-09-09T13:29:57.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-bls-full": {
+   "ok": true,
+   "size": 191760,
+   "mem": 1024,
+   "timeout": 850,
+   "modified": "2026-09-09T13:30:03.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-ecb-deep": {
+   "ok": true,
+   "size": 193640,
+   "mem": 4096,
+   "timeout": 900,
+   "modified": "2026-09-09T13:30:10.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-finra-full": {
+   "ok": true,
+   "size": 192381,
+   "mem": 1024,
+   "timeout": 780,
+   "modified": "2026-09-09T13:30:16.000+0000",
+   "env_keys_before": 4,
+   "env_keys_after": 4
+  },
+  "justhodl-fiscaldata-full": {
+   "ok": true,
+   "size": 192107,
+   "mem": 1024,
+   "timeout": 850,
+   "modified": "2026-09-09T13:30:22.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-fred-catalog": {
+   "ok": true,
+   "size": 198738,
+   "mem": 2048,
+   "timeout": 850,
+   "modified": "2026-09-09T13:30:29.000+0000",
+   "env_keys_before": 2,
+   "env_keys_after": 2
+  },
+  "justhodl-gdelt-full": {
+   "ok": true,
+   "size": 192827,
+   "mem": 1024,
+   "timeout": 850,
+   "modified": "2026-09-09T13:30:35.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-hist-banker": {
+   "ok": true,
+   "size": 191268,
+   "mem": 2048,
+   "timeout": 900,
+   "modified": "2026-09-09T13:30:41.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-imf-full": {
+   "ok": true,
+   "size": 191453,
+   "mem": 1024,
+   "timeout": 850,
+   "modified": "2026-09-09T13:30:47.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-polygon-full": {
+   "ok": true,
+   "size": 190305,
+   "mem": 1024,
+   "timeout": 780,
+   "modified": "2026-09-09T13:30:53.000+0000",
+   "env_keys_before": 2,
+   "env_keys_after": 2
+  },
+  "justhodl-sec-midas": {
+   "ok": true,
+   "size": 190691,
+   "mem": 2048,
+   "timeout": 900,
+   "modified": "2026-09-09T13:30:59.000+0000",
+   "env_keys_before": 1,
+   "env_keys_after": 1
+  },
+  "justhodl-trend-reversal": {
+   "ok": true,
+   "size": 196270,
+   "mem": 512,
+   "timeout": 240,
+   "modified": "2026-09-09T13:31:06.000+0000",
+   "env_keys_before": 4,
+   "env_keys_after": 4
+  }
+ },
+ "resume_proof": {
+  "resumed": true,
+  "deleted": true,
+  "notifier_ledger": "2026-09-09T13:31:14.589115+00:00"
+ },
+ "telegram": {
+  "ssm_getme": "ERR HTTP Error 401: Unauthorized",
+  "secret_getme": "absent",
+  "healed": false,
+  "delivery_ok": false
+ },
+ "errors": {
+  "tot_7d": 373,
+  "tot_24h": 62,
+  "top": [
+   [
+    "justhodl-market-tape",
+    99
+   ],
+   [
+    "manufacturing-global-agent",
+    93
+   ],
+   [
+    "fedliquidityapi",
+    62
+   ],
+   [
+    "justhodl-research-backtest",
+    28
+   ],
+   [
+    "justhodl-analytics-snapshot",
+    18
+   ],
+   [
+    "justhodl-census-us",
+    8
+   ],
+   [
+    "justhodl-risk-gate",
+    7
+   ],
+   [
+    "justhodl-katlin",
+    6
+   ],
+   [
+    "justhodl-event-flow-monitor",
+    6
+   ],
+   [
+    "justhodl-cds-proxy",
+    4
+   ],
+   [
+    "justhodl-symdir",
+    4
+   ],
+   [
+    "justhodl-cb-injection",
+    4
+   ],
+   [
+    "justhodl-bloomberg-v8",
+    4
+   ],
+   [
+    "justhodl-imf-full",
+    3
+   ],
+   [
+    "enhanced-repo-agent",
+    3
+   ]
+  ],
+  "samples": {
+   "justhodl-market-tape": [],
+   "manufacturing-global-agent": [],
+   "fedliquidityapi": [],
+   "justhodl-research-backtest": [],
+   "justhodl-analytics-snapshot": [],
+   "justhodl-census-us": [],
+   "justhodl-risk-gate": [],
+   "justhodl-katlin": []
+  }
+ },
+ "crypto_fanin": {
+  "trigger_keys": [
+   "{\"prefix\": \"data/cq-feed.json\"}",
+   "{\"prefix\": \"data/cryptoquant-onchain.json\"}",
+   "{\"prefix\": \"data/altseason.json\"}",
+   "{\"prefix\": \"data/crypto-dvol.json\"}",
+   "{\"prefix\": \"data/crypto-funding.json\"}",
+   "{\"prefix\": \"data/dealer-gex.json\"}",
+   "{\"prefix\": \"data/fanin-canary\"}"
+  ],
+  "writes": [
+   "crypto-intel.json",
+   "data/crypto-intel-history.json"
+  ],
+  "overlap": []
+ },
+ "fails": []
+}
