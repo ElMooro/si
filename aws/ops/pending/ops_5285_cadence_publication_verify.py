@@ -1,3 +1,4 @@
+# Requeued after Bloomberg destination and dated-calculation recovery.
 """Refresh only the two reviewed public research publishers after cadence repair."""
 import json
 import os

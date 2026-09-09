@@ -345,10 +345,11 @@ def test_colliding_outputs_have_explicit_distinct_canonical_keys_and_schemas():
 
 def test_bloomberg_uses_its_actual_utc_generation_field_and_rejects_wrong_report():
     now=datetime.now(timezone.utc)
-    doc={'utc':now.isoformat(),'fred':{},'stocks':{},'stats':{},'signals':{},'yield_curve':[]}
+    doc={'engine':'justhodl-bloomberg-v8','schema_version':'bloomberg-report.v8.1','execution_eligible':False,
+         'utc':now.isoformat(),'fred':{},'stocks':{},'stats':{},'signals':{},'yield_curve':[]}
     code={'last_modified':(now-timedelta(hours=1)).isoformat()}
     result=release.inspect_output(fixture_output(doc),'justhodl-bloomberg-v8','data/bloomberg-report.json',code,now=now)
-    assert result['status']=='VERIFIED' and result['generated_at']==now.isoformat()
+    assert result['status']=='VERIFIED_BLOCKED_REQUIREMENTS' and result['generated_at']==now.isoformat()
     assert release.donor_checks('justhodl-daily-report-v3',doc)['errors']==['DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID']
 
 

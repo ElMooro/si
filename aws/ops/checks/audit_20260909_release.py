@@ -338,8 +338,14 @@ def donor_checks(function, doc, key=None, root=ROOT):
         if doc.get('engine')!='JustHodl Options Flow & Sentiment Engine v3.0' or not isinstance(data,dict) or not all(field in data for field in ('vix_complex','put_call','gamma_exposure','trading_signals')):
             errors.append('OPTIONS_FLOW_OUTPUT_OWNERSHIP_INVALID')
     elif name=='bloomberg-v8':
-        if not doc.get('utc') or not all(isinstance(doc.get(field),dict) for field in ('fred','stocks','stats','signals')) or not isinstance(doc.get('yield_curve'),list):
+        if (doc.get('engine')!='justhodl-bloomberg-v8' or doc.get('schema_version')!='bloomberg-report.v8.1'
+                or doc.get('execution_eligible') is not False or not doc.get('utc')
+                or not all(isinstance(doc.get(field),dict) for field in ('fred','stocks','stats','signals'))
+                or not isinstance(doc.get('yield_curve'),list)):
             errors.append('BLOOMBERG_V8_OUTPUT_OWNERSHIP_INVALID')
+        if doc.get('coverage_status')!='READY':requirements.append('BLOOMBERG_PROVIDER_COVERAGE_INCOMPLETE')
+        if doc.get('archive_status')!='PUBLISHED':requirements.append('BLOOMBERG_ARCHIVE_PUBLICATION_UNAVAILABLE')
+        requirements.append('DESCRIPTIVE_HEURISTICS_REQUIRE_INDEPENDENT_CALIBRATION')
     elif name=='daily-report-v3':
         if doc.get('version')!='V10' or not all(field in doc for field in ('risk_dashboard','net_liquidity','liquidity_credit_engine','tenor_signals','global_business_cycle')):
             errors.append('DAILY_REPORT_V10_OUTPUT_OWNERSHIP_INVALID')
