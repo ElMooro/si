@@ -4,7 +4,8 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-mkdir -p "$work/bin"
+mkdir -p "$work/bin" "$work/output"
+: > "$work/output/deploy.zip"
 
 cat > "$work/bin/aws" <<'MOCK'
 #!/usr/bin/env bash
@@ -18,7 +19,7 @@ operation="$2"
 shift 2
 case "$service/$operation" in
   lambda/get-function-configuration)
-    printf '%s\n' '{"RevisionId":"candidate-revision","CodeSha256":"candidate-sha","FunctionArn":"arn:aws:lambda:us-east-1:123456789012:function:justhodl-khalid-risk"}'
+    printf '%s\n' '{"RevisionId":"candidate-revision","CodeSha256":"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=","FunctionArn":"arn:aws:lambda:us-east-1:123456789012:function:justhodl-khalid-risk"}'
     ;;
   lambda/publish-version)
     printf '%s\n' '42'
@@ -99,7 +100,7 @@ test "$publish_line" -lt "$invoke_line"
 test "$invoke_line" -lt "$promote_line"
 test "$promote_line" -lt "$schedule_line"
 grep -q -- '--revision-id candidate-revision' "$work/aws.log"
-grep -q -- '--code-sha256 candidate-sha' "$work/aws.log"
+grep -q -- '--code-sha256 47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=' "$work/aws.log"
 grep -q -- '--qualifier 42' "$work/aws.log"
 grep -q -- ':live' "$work/aws.log"
 

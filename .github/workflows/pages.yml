@@ -53,6 +53,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Block published credentials
+        run: python3 scripts/check_secrets.py
       # audit 2026-09-08 INST-14: EVERY frontend/worker suite gates the Pages deploy, not one file.
       - name: Frontend + worker behavioural tests
         run: node --test tests/*.test.js
@@ -90,11 +92,11 @@ jobs:
           done
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)
-        run: python3 scripts/build_workspaces.py _site || true
+        run: python3 scripts/build_workspaces.py _site
       - name: Bake section numbers into every page + ship home layout/registry (ops 5200)
-        run: python3 scripts/bake_sections.py _site || true
+        run: python3 scripts/bake_sections.py _site
       - name: Bake last-known values into homepage (zero em-dash first paint)
-        run: python3 scripts/bake_homepage.py _site/index.html || true
+        run: python3 scripts/bake_homepage.py _site/index.html
       - name: CI gate — template leaks + dead-paint ratchet
         run: |
           python3 - <<'G'
@@ -117,40 +119,24 @@ jobs:
               print(f'gate clean: 0 leaks, dashes {dashes} <= budget {budget}')
           G
       - name: Bake right-rail insight panel (Design audit sec8-C)
-        run: python3 scripts/bake_right_rail.py _site || true
+        run: python3 scripts/bake_right_rail.py _site
 
       - name: Bake engine directory (real live wiring status)
-        run: python3 scripts/bake_engine_directory.py _site || true
+        run: python3 scripts/bake_engine_directory.py _site
 
       - name: "Bake data-plane inventory into data.html (ops 5129 - non-JS readers see all providers)"
-        run: python3 scripts/bake_data_inventory.py _site || true
+        run: python3 scripts/bake_data_inventory.py _site
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
-        run: python3 scripts/reskin_site.py _site || true
+        run: python3 scripts/reskin_site.py _site
       - name: Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)  # ops 3370
         run: python3 scripts/stamp_assets.py _site
       - name: Bake SEO layer (canonical/OG/description + sitemap)
-        run: python3 scripts/bake_seo.py _site || true
-      - name: Stamp commit-bound build manifest
-        run: |
-          python3 - <<'PY'
-          import hashlib, json, os
-          path = "_site/chart-pro.html"
-          text = open(path, encoding="utf-8").read()
-          stamp = ('<meta name="jh-build-commit" content="%s">'
-                   % os.environ["GITHUB_SHA"])
-          if stamp not in text:
-              text = text.replace("</head>", stamp + "\n</head>", 1)
-              with open(path, "w", encoding="utf-8") as dst:
-                  dst.write(text)
-          page = open(path, "rb").read()
-          manifest = {
-              "commit_sha": os.environ["GITHUB_SHA"],
-              "chart_pro_sha256": hashlib.sha256(page).hexdigest(),
-          }
-          with open("_site/build-manifest.json", "w") as dst:
-              json.dump(manifest, dst, separators=(",", ":"))
-          PY
+        run: python3 scripts/bake_seo.py _site
+      - name: Build complete producer-to-page data contracts
+        run: python3 scripts/build_page_data_contracts.py --site _site
+      - name: Stamp every page and asset in commit-bound build manifest
+        run: python3 scripts/stamp_build_manifest.py _site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

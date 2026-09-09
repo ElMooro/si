@@ -26,14 +26,10 @@ alias_name="live"
 
 mkdir -p "$tmp"
 
-if ! jq -e '
-  .eventbridge_scheduler
-  and (.eventbridge_scheduler.schedule_name | type == "string" and length > 0)
-  and (.eventbridge_scheduler.cron | type == "string" and length > 0)
-  and (.eventbridge_scheduler.role_arn | type == "string" and length > 0)
-' "$config" > /dev/null; then
-  echo "::error::$fn candidate deployment requires a complete eventbridge_scheduler config"
-  exit 1
+# Some engines use existing classic rules or schedules managed outside config.
+# protect_lambda_alias.py already pinned those targets before staging $LATEST.
+if jq -e '.eventbridge_scheduler' "$config" >/dev/null; then
+  jq -e '.eventbridge_scheduler | (.schedule_name|type=="string" and length>0) and (.cron|type=="string" and length>0) and (.role_arn|type=="string" and length>0)' "$config" >/dev/null
 fi
 
 validation_event="$tmp/${fn}-validation-event.json"
@@ -51,6 +47,13 @@ candidate_info=$(aws lambda get-function-configuration \
 candidate_revision=$(jq -er '.RevisionId | select(type == "string" and length > 0)' <<<"$candidate_info")
 candidate_sha=$(jq -er '.CodeSha256 | select(type == "string" and length > 0)' <<<"$candidate_info")
 function_arn=$(jq -er '.FunctionArn | select(type == "string" and length > 0)' <<<"$candidate_info")
+
+# Pin to the artifact built by this exact workflow, not merely whatever happens
+# to be in $LATEST after a concurrent configuration/code mutation.
+[ -f "$tmp/deploy.zip" ] || { echo "::error::Candidate zip missing"; exit 1; }
+expected_sha=$(openssl dgst -sha256 -binary "$tmp/deploy.zip" | openssl base64 -A)
+[ "$candidate_sha" = "$expected_sha" ] || { echo "::error::Candidate code hash differs from the reviewed zip"; exit 1; }
+validation_timeout=$(jq -r '(.timeout // 900) + 60' "$config")
 
 candidate_version=$(aws lambda publish-version \
   --function-name "$fn" \
@@ -70,14 +73,14 @@ aws lambda invoke \
   --function-name "$fn" \
   --qualifier "$candidate_version" \
   --region "$region" \
-  --cli-read-timeout 310 \
+  --cli-read-timeout "$validation_timeout" \
   --cli-binary-format raw-in-base64-out \
   --payload "fileb://$validation_event" \
   "$validation_payload" > "$validation_meta"
 
 if jq -e '.FunctionError != null' "$validation_meta" > /dev/null 2>&1; then
   echo "::error::$fn candidate returned FunctionError; live alias and schedule are unchanged"
-  cat "$validation_payload"
+  echo "Validation response withheld; inspect private runner logs for source errors"
   exit 1
 fi
 
@@ -93,7 +96,7 @@ if ! jq -e --arg schema "$expected_schema" '
   )
 ' "$validation_payload" > /dev/null; then
   echo "::error::$fn candidate returned an invalid validation envelope; live alias and schedule are unchanged"
-  cat "$validation_payload"
+  echo "Validation response withheld; inspect private runner logs for source errors"
   exit 1
 fi
 
@@ -178,6 +181,7 @@ promoted=1
 # Scheduler mutation deliberately occurs only after the numbered candidate has
 # passed validation and the stable alias has moved. The schedule never targets
 # $LATEST or a transient numbered version.
+if jq -e '.eventbridge_scheduler' "$config" >/dev/null; then
 sched_name=$(jq -er '.eventbridge_scheduler.schedule_name' "$config")
 sched_cron=$(jq -er '.eventbridge_scheduler.cron' "$config")
 sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$config")
@@ -219,5 +223,10 @@ else
   false
 fi
 
+fi
 trap - ERR
-echo "  ✅ $fn live alias promoted to version $candidate_version; $sched_name targets ${function_arn}:${alias_name}"
+proof_dir="${GITHUB_WORKSPACE:-$tmp}/release-evidence"
+mkdir -p "$proof_dir"
+jq -n --arg function "$fn" --arg version "$candidate_version" --arg code_sha256 "$candidate_sha" --arg schema "$expected_schema" --arg commit "${GITHUB_SHA:-local-test}" '{function:$function,version:$version,code_sha256:$code_sha256,validation_schema:$schema,commit_sha:$commit,validation_only:true,alias:"live"}' > "$proof_dir/$fn.json"
+echo "  ✅ $fn live alias promoted to validated version $candidate_version"
+
