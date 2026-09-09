@@ -1,48 +1,15 @@
-executing-against: e1e5e1ad79231bdd65e576cc542a25ddc339cf94
+executing-against: 6c594c3e689d2b8dd6d2eda528e8c366646dc2da
 ops 5221 -- audit 2026-09-08 Release A2 gate: fleet credential sweep
-[01:54:15] 329 engines read credentials through managed_secret
+[01:59:52] 329 engines read credentials through managed_secret
 ── 1. redeploy state ──
-[01:55:03] ✅ every live rewritten engine redeployed after the push
-── 2. log scan for managed_secret failures since the push ──
-[01:56:54] scanned 329 log groups
+[02:00:47] ✅ every live rewritten engine redeployed after the push
+── 2. log scan for managed_secret failures since the env backfill (ops 5227) ──
+[02:00:47] log window starts 2026-09-09T01:53:38+00:00
+[02:03:36] scanned 329 log groups
+[02:03:36] ✅ no managed_secret import/resolution failures logged since the push
 ── 3. residual literals ──
-[01:56:54] ✅ zero residual credential literals in the tree (excluding aws/lambdas/_archived)
+[02:03:37] ✅ zero residual credential literals in the tree (excluding aws/lambdas/_archived)
 ── verdict ──
-[01:56:54] ✗ fedliquidityapi: [managed_secret] /justhodl/fred/api-key unavailable: An error occurred (AccessDeniedException) when calling the GetParameter operatio
-
-[01:56:54] ✗ fmp-stock-picks-agent: [managed_secret] /justhodl/fred/api-key unavailable: An error occurred (AccessDeniedException) when calling the GetParameter operatio
-
-[01:56:54] RED: 2 failure(s)
+[02:03:37] ✅ GREEN -- fleet reads credentials from managed configuration; the provider keys can now be ROTATED (Khalid)
 
 → Report written to aws/ops/reports/latest/ops_5221_key_sweep_gate.md
-❌ OPS-FAIL: aws/ops/pending/ops_5221_key_sweep_gate.py
-ops 5223 -- Release B2 gate: risk-gate v2.5 pure replay / disclosed overlays / native-month indicators / page contract
-[01:56:55] justhodl-risk-gate LastModified 2026-09-09T01:54:41.000+0000 (push 2026-09-09T01:53:38+00:00)
-[01:57:06] invoke -> {"ok": true, "posture": "NEUTRAL", "composite": -0.125, "sizing_multiplier": 0.75, "n_flips": 35}
-[01:57:06] ✅ invoke succeeded (FunctionError=None)
-[01:57:07] ✅ artifact version 2.5 (got 2.5)
-[01:57:07] ✅ replay_purity declared
-[01:57:07] ✅ 2 disclosed overlays with contribution/status/eligible: [('collateral', 'OK', 0.0), ('foreign_official', 'STALE', 0.0)]
-[01:57:07] ✅ composite -0.125 == weighted legs -0.125 + overlays 0.000
-[01:57:07] ✅ composite_identity.check_ok
-[01:57:07] ✅ every leg publishes engine_score/fleet_fused_score/state/drivers
-[01:57:07] ✅ fleet_context.inputs dict with 30 entries
-[01:57:07] ✅ sahm_rule is native-month (basis+observation_date) or honestly pending: {'value': -0.07, 'signal': 'CLEAR', 'basis': 'native monthly UNRATE; 3-mo avg minus min of prior 12 3-mo avgs (official formula)', 'observation_date': '2026-08-01', 'pending_source': None}
-[01:57:07] ✅ truck_transport is native-month (basis+observation_date) or honestly pending: {'value': -0.3, 'signal': 'SOFT', 'basis': 'native monthly TRUCKD11 vs the observation 12 calendar months earlier', 'observation_date': '2026-06-01', 'pending_source': None}
-[01:57:07] posture=NEUTRAL composite=-0.125 (replay FRED-only NEUTRAL/-0.1) sizing x0.75 | sahm -0.07 CLEAR | truck -0.3 SOFT | elapsed 10.7s
-[01:57:07] ✅ risk-gate.html carries the indicators/overlays panels at the edge
-── verdict ──
-[01:57:07] ✅ GREEN -- risk-gate replay is FRED-pure, overlays disclosed with identity, monthly indicators native
-
-→ Report written to aws/ops/reports/latest/ops_5223_risk_gate_gate.md
-ops 5227 -- managed_secret env backfill (no runtime SSM dependency)
-[01:57:07] 329 engines reference 6 providers via managed_secret
-── results ──
-[01:58:07] env vars ADDED on 159 functions: coinmarketcap-agent[CMC_KEY], daily-liquidity-report[FRED_API_KEY], economyapi[FRED_API_KEY], enhanced-repo-agent[FRED_API_KEY], fedliquidityapi[FRED_API_KEY], fmp-stock-picks-agent[FRED_API_KEY], justhodl-52wk-quality-breakout[TELEGRAM_BOT_TOKEN], justhodl-activity-nowcast[FRED_API_KEY], justhodl-ai-chat[CMC_KEY,POLYGON_API_KEY], justhodl-ai-infra-stack[FMP_KEY], justhodl-ai-rerating-radar[FMP_KEY], justhodl-ai-website-synthesis[TELEGRAM_BOT_TOKEN], justhodl-apex-fusion[TELEGRAM_BOT_TOKEN], justhodl-asia-leads[NEWSAPI_KEY], justhodl-auction-crisis-ai[TELEGRAM_BOT_TOKEN], justhodl-auction-desk[FRED_API_KEY], justhodl-backlog[FMP_KEY], justhodl-backtest-engine[POLYGON_API_KEY], justhodl-beta-laggard[FMP_KEY], justhodl-blackswan-watch[FRED_API_KEY], justhodl-bloomberg-v8[CMC_KEY], justhodl-bond-desk[FMP_KEY,FRED_API_KEY], justhodl-boom-stage[FRED_API_KEY], justhodl-bottom-signals[FRED_API_KEY], justhodl-brain-sync[FRED_API_KEY], justhodl-breadth-thrust[TELEGRAM_BOT_TOKEN], justhodl-buyback-scanner[TELEGRAM_BOT_TOKEN], justhodl-buzz-velocity[FMP_KEY,NEWSAPI_KEY], justhodl-capex-pulse[FMP_KEY], justhodl-capital-flow[FMP_KEY], justhodl-cascade-recalibrator[TELEGRAM_BOT_TOKEN], justhodl-cascade-validator[FMP_KEY], justhodl-catalyst-skew-premove[TELEGRAM_BOT_TOKEN], justhodl-cef-discount[TELEGRAM_BOT_TOKEN], justhodl-chokepoint[FMP_KEY], justhodl-convergence-radar[TELEGRAM_BOT_TOKEN], justhodl-crypto-cycle-risk[FRED_API_KEY,TELEGRAM_BOT_TOKEN], justhodl-crypto-emergence[POLYGON_API_KEY], justhodl-crypto-etf-arb[TELEGRAM_BOT_TOKEN], justhodl-crypto-opportunities[TELEGRAM_BOT_TOKEN]
-[01:58:07] 0 functions carry a value that DIFFERS from SSM (reconcile at rotation): 
-[01:58:08] ✅ fedliquidityapi carries a FRED env var: True
-[01:58:08] ✅ fmp-stock-picks-agent carries a FRED env var: True
-── verdict ──
-[01:58:08] ✅ GREEN -- every managed_secret consumer carries its provider env vars; SSM is a fallback, never a dependency
-
-→ Report written to aws/ops/reports/latest/ops_5227_managed_secret_env_backfill.md
