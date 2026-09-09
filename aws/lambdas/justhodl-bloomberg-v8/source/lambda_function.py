@@ -254,6 +254,7 @@ def calculate_khalid_index(fred, stocks, leading=None):
         return {'score': None, 'regime': 'UNAVAILABLE', 'components': {}, 'missing_inputs': missing,
                 'analysis_basis': 'UNCALIBRATED_DESCRIPTIVE_HEURISTIC', 'execution_eligible': False}
     # Optional cross-engine context must carry an explicit recent UTC clock.
+    leading = leading if isinstance(leading, dict) else None
     if leading:
         try:
             stamp = datetime.fromisoformat(leading.get('generated_at', '').replace('Z', '+00:00'))
@@ -293,7 +294,7 @@ def calculate_khalid_index(fred, stocks, leading=None):
     elif hy < 500: cs_score = 5
     elif hy < 700: cs_score = -5
     else: cs_score = -15
-    components['credit'] = {'value': hy, 'score': cs_score, 'label': 'HY Spread'}
+    components['credit'] = {'value': hy, 'score': cs_score, 'label': 'HY Spread', 'units': 'basis points'}
 
     # 4. Financial Stress (0-10 pts)
     stress = fred.get('STLFSI4', {}).get('value', 0)
@@ -562,7 +563,7 @@ def lambda_handler(event, context):
                                   and payload['stats']['stock_count'] == payload['stats']['stock_expected'] else 'PARTIAL')
     payload['archive_status'] = 'PUBLISHED'
     try:
-        s3.put_object(Bucket=S3_BUCKET, Key=f"data/bloomberg-archive/{now.strftime('%Y/%m/%d/%H%M%S')}.json",
+        s3.put_object(Bucket=S3_BUCKET, Key=f"data/bloomberg-archive/{now.strftime('%Y%m%dT%H%M%SZ')}.json",
                       Body=json.dumps(payload, allow_nan=False), ContentType='application/json')
     except Exception:
         payload['archive_status'] = 'UNAVAILABLE'
