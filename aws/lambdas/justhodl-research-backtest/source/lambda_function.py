@@ -280,7 +280,7 @@ def aggregate_by_field(calls: list, field: str, group_label: str = "value") -> l
 
         # Median
         sr = sorted(returns)
-        median_ret = sr[len(sr)//2] if sr else None
+        median_ret = (sr[(len(sr)-1)//2] + sr[len(sr)//2]) / 2 if sr else None
 
         out.append({
             group_label:       v,

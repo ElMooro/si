@@ -34,6 +34,15 @@ def test_no_alpha_claim_without_significance_and_coverage(mod):
     assert r["significant"] is True and r["t_stat"] > 2 and r["ci95_spread_pct"][0] > 0, r
 
 
+def test_rating_median_averages_the_middle_pair_and_preserves_zero(mod):
+    local=_load()
+    def result(values):
+        rows=[{'rating':'BUY','ticker_return_pct':value,'alpha_pct':None,'days_held':1} for value in values]
+        return local.aggregate_by_field(rows,'rating','rating')[0]
+    assert result([0,10])['median_return_pct']==5
+    assert result([-10,0,20])['median_return_pct']==0
+
+
 def test_no_latest_regime_fallback_in_source(mod):
     src = SRC.read_text()
     assert 'latest_doc.get("regime_at_generation")' not in src
