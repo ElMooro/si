@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import sys
 import types
+import tempfile
 import urllib.error
 import unittest
 from unittest.mock import patch
@@ -122,6 +123,24 @@ class FakeLambda:
 
 
 class PublicMigrationTests(unittest.TestCase):
+    def test_core_receipt_requires_complete_inventory_and_matching_layer_package(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);path=root/'aws/ops/reports/5234_core_layer_reconciliation.json'
+            with self.assertRaisesRegex(migration.MigrationError,'successful_core_layer_receipt_required'):
+                migration.verify_core_receipt(root)
+            path.parent.mkdir(parents=True)
+            doc={'ok':True,'status':'VERIFIED_CURRENT_STATE','unresolved_count':0,'consumer_count':1,
+                 'consumers':[{'status':'VERIFIED_CURRENT_STATE'}],'expected_layer_sha256':'reviewed'}
+            path.write_text(json.dumps(doc))
+            with patch.object(migration,'layer_package',return_value=(b'', 'reviewed')):
+                self.assertEqual(migration.verify_core_receipt(root)['consumer_count'],1)
+                path.write_text(json.dumps({**doc,'consumer_count':2}))
+                with self.assertRaisesRegex(migration.MigrationError,'complete_core_layer'):
+                    migration.verify_core_receipt(root)
+                path.write_text(json.dumps({**doc,'expected_layer_sha256':'different'}))
+                with self.assertRaisesRegex(migration.MigrationError,'source_package_mismatch'):
+                    migration.verify_core_receipt(root)
+
     def fixtures(self):
         return {
             "etf-flows/daily.json": {"generated_at": "2026-09-09T00:00:00Z", "metrics": [{"ticker": "SPY", "error": MARKER, "body": MARKER, "nav": 0}, {"ticker": "QQQ", "daily_flow_usd": 0}]},

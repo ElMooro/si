@@ -27,6 +27,7 @@ from public_brain_projection import (
     brief_public, devils_public, notes_public, playbook_public, sanitize_public,
 )
 from private_artifact import OWNER_HISTORY_DEFAULTS
+from core_layer_reconciliation import layer_package
 
 BUCKET = "justhodl-dashboard-live"
 ACCOUNT = "857687956942"
@@ -72,6 +73,22 @@ def encoded(doc):
 
 def gzip_object(key, metadata):
     return key.endswith(".gz") or "gzip" in {item.strip() for item in str(metadata.get("ContentEncoding", "")).lower().split(",")}
+
+
+def verify_core_receipt(root):
+    path = Path(root) / "aws/ops/reports/5234_core_layer_reconciliation.json"
+    require(path.exists(), "successful_core_layer_receipt_required")
+    receipt = json.loads(path.read_text())
+    rows = receipt.get("consumers", [])
+    require(receipt.get("ok") is True and receipt.get("status") == "VERIFIED_CURRENT_STATE"
+            and receipt.get("unresolved_count") == 0 and bool(rows)
+            and receipt.get("consumer_count") == len(rows)
+            and all(row.get("status") == "VERIFIED_CURRENT_STATE" for row in rows),
+            "complete_core_layer_reconciliation_required")
+    require(receipt.get("expected_layer_sha256") == layer_package(Path(root))[1],
+            "core_layer_receipt_source_package_mismatch")
+    return {"consumer_count": len(rows), "desired_layer": receipt.get("desired_layer"),
+            "expected_layer_sha256": receipt["expected_layer_sha256"]}
 
 
 def personal_trade_schema(root):
