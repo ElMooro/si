@@ -1,147 +1,30 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Data Provider — JustHodl.AI</title>
 <style>
-body{margin:0;background:#070b10;color:#dfe9f2;font-family:'SF Mono',Consolas,monospace}
-.wrap{max-width:1240px;margin:0 auto;padding:26px 16px}
-a.back{color:#4fc3f7;text-decoration:none;font-size:11px}
-h1{font-size:19px;color:#e8f1f8;margin:8px 0 2px}
-.api{color:#5d7285;font-size:11px}.eng{color:#7d95a8;font-size:10px;margin:6px 0 14px}
-.tot{display:flex;gap:22px;margin:12px 0 18px;flex-wrap:wrap}
-.tot div{background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:9px 16px}
-.tot b{display:block;font-size:19px}.tot span{font-size:10px;color:#5d7285}
-h2{font-size:12px;letter-spacing:2px;color:#8fa3b8;border-bottom:1px solid #1c2733;padding-bottom:5px;margin:22px 0 10px}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{color:#5d7285;text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid #1c2733;letter-spacing:1px}
-td{padding:5px 8px;border-bottom:1px solid #121b25;color:#c3d3e0;word-break:break-all}
-td.n{text-align:right;color:#9fd0a8;white-space:nowrap}
-.hot{color:#ffd479}.miss{color:#e05252}
-.series{display:flex;flex-wrap:wrap;gap:5px}
-.series span{background:#0d141c;border:1px solid #1c2733;border-radius:5px;padding:2px 7px;font-size:10px;color:#9fb4c7}
-</style></head><body><div class="wrap">
-<a class="back" href="/data.html">← DATA</a>
-<h1 id="nm">…</h1><div class="api" id="api"></div><div class="eng" id="eng"></div>
-<div class="tot" id="tot"></div>
-<div id="tabs" style="display:none;margin:16px 0 0;border-bottom:1px solid #1c2733">
- <button id="tabFiles" style="background:none;border:none;color:#8fd0ff;padding:8px 16px;cursor:pointer;font-family:inherit;border-bottom:2px solid #8fd0ff">Files</button>
- <button id="tabSeries" style="background:none;border:none;color:#5d7285;padding:8px 16px;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent">Series</button>
-</div>
-<div id="filesPane">
-<h2>EVERY DATASET / KEY PULLED FROM THIS PROVIDER</h2>
-<div style="margin:8px 0"><input id="q" placeholder="filter keys… (2+ chars)" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px 10px;border-radius:7px;font-family:inherit;width:260px">
-<select id="stf" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px;border-radius:7px;font-family:inherit"><option value="">all status</option><option>live</option><option>cold</option><option>missing</option></select></div>
-<table><thead><tr><th>KEY</th><th style="text-align:right">SIZE</th><th style="text-align:right">AGE</th></tr></thead><tbody id="tb"><tr><td colspan="3">Loading…</td></tr></tbody></table>
-<div id="serwrap" style="display:none"><h2>FULL SERIES INVENTORY (<span id="serc"></span>)</h2><div class="series" id="ser"></div></div>
-</div>
-<div id="seriesPane" style="display:none">
- <div id="serNote" style="font-size:11px;color:#5d7285;margin:8px 0"></div>
- <div style="margin:8px 0"><input id="sq" placeholder="search series — type 2+ characters to see results" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:8px 12px;border-radius:7px;font-family:inherit;width:340px"></div>
- <div id="sHint" style="color:#5d7285;font-size:12px;padding:20px 0">Type at least 2 characters to search — this provider may have thousands of series, so nothing renders unfiltered.</div>
- <table style="width:100%;border-collapse:collapse;font-size:11px" id="sTbl"><thead><tr><th style="text-align:left;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">SERIES</th><th style="text-align:left;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">GEO</th><th style="text-align:right;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">LAST VALUE</th><th style="text-align:right;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">AS OF</th></tr></thead><tbody id="sBody"></tbody></table>
-</div>
-<script>
-var slug=new URLSearchParams(location.search).get('p');
-function sz(b){return b>=1e9?(b/1e9).toFixed(2)+' GB':b>=1e6?(b/1e6).toFixed(1)+' MB':b>=1024?(b/1024).toFixed(0)+' KB':b+' B';}
-fetch('/data/providers/'+slug+'.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(function(d){
-document.title=d.name+' — Data — JustHodl.AI';
-document.getElementById('nm').textContent=d.name;
-document.getElementById('api').textContent='API: '+d.api;
-document.getElementById('eng').textContent='Pulled by: '+(d.engines||[]).join(' · ');
-document.getElementById('tot').innerHTML=
- '<div><b>'+d.n_keys+'</b><span>KEYS</span></div>'+
- '<div><b>'+d.total_mb+' MB</b><span>STORED</span></div>'+
- (d.series&&d.series.count?'<div><b>'+d.series.count.toLocaleString()+'</b><span>SERIES CATALOGUED</span></div>':'')+
- '<div><b>'+(d.freshest_h==null?'—':d.freshest_h+'h')+'</b><span>FRESHEST</span></div>'+
- (d.series&&d.series.depth&&d.series.depth.keys?'<div><b>'+Math.round(d.series.depth.n_obs_sum/d.series.depth.keys)+' obs</b><span>MEAN DEPTH · since '+String(d.series.depth.first_min||'—').slice(0,4)+'</span></div>':'');
-var tb=document.getElementById('tb');tb.innerHTML='';
-(d.keys||[]).forEach(function(k){var tr=document.createElement('tr');
- tr.innerHTML='<td class="'+(k.hot?'hot':'')+(k.missing?' miss':'')+'">'+k.key+(k.hot?' ·HOT':'')+(k.missing?' ·MISSING':'')+'</td>'+
- '<td class="n">'+(k.bytes!=null?sz(k.bytes):'—')+'</td><td class="n">'+(k.age_h!=null?k.age_h+'h':'—')+'</td>';
- tb.appendChild(tr);});
-window._pv={slug:slug,n:d.n_pages||0,next:0};
-if(window._pv.n>0){var lm=document.createElement('button');lm.id='lm';
- lm.textContent='Load 500 more ('+window._pv.n+' pages)';
- lm.style.cssText='margin:10px 0;padding:8px 16px;background:#0d141c;border:1px solid #2f4a6a;color:#8fd0ff;border-radius:8px;cursor:pointer;font-family:inherit';
- lm.onclick=function(){fetch('/data/providers/'+slug+'/page-'+String(window._pv.next).padStart(3,'0')+'.json?t='+Date.now()).then(r=>r.json()).then(function(pg){
-  (pg.keys||[]).forEach(function(k){var tr=document.createElement('tr');
-   tr.innerHTML='<td class="'+(k.status==='missing'?'miss':k.hot?'hot':'')+'">'+k.key+(k.engines&&k.engines.length?' <span style="color:#4f6a7d;font-size:9px">['+k.engines.join(',')+']</span>':'')+'</td>'+
-   '<td class="n">'+(k.bytes!=null?sz(k.bytes):'—')+'</td><td class="n">'+(k.age_h!=null?k.age_h+'h':'—')+'</td>';
-   tb.appendChild(tr);});
-  window._pv.next++;if(window._pv.next>=window._pv.n){lm.remove();}
-  else{lm.textContent='Load 500 more ('+(window._pv.n-window._pv.next)+' left)';}});};
- tb.parentElement.parentElement.after(lm);}
-if(d.series&&d.series.ids){document.getElementById('serwrap').style.display='block';
- document.getElementById('serc').textContent=d.series.count.toLocaleString();
- var s=document.getElementById('ser');
- d.series.ids.forEach(function(i){var e=document.createElement('span');e.textContent=i;s.appendChild(e);});}
-function _flt(){var q=(document.getElementById('q').value||'').toLowerCase();var st=document.getElementById('stf').value;
- Array.prototype.forEach.call(tb.children,function(tr){var txt=tr.textContent.toLowerCase();
-  var ok=(q.length<2||txt.indexOf(q)>=0)&&(!st||txt.indexOf('·'+st)>=0||tr.firstChild.className.indexOf(st==='missing'?'miss':'')>=0&&st!=='live'||st==='live'&&tr.children[2].textContent!=='—');
-  tr.style.display=ok?'':'none';});}
-document.getElementById('q').addEventListener('input',_flt);
-document.getElementById('stf').addEventListener('change',_flt);
-var _seriesCache=null,_seriesLoading=false;
-function _loadSeriesManifest(){
- fetch('/data/providers/'+slug+'/series-manifest.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()})
- .then(function(m){document.getElementById('tabs').style.display='block';
-  document.getElementById('serNote').textContent=m.series_extracted.toLocaleString()+' series extracted from '+m.flows_parsed+'/'+m.flows_total+' files parsed so far (separate from the datasets headline until fully complete).';
-  window._serManifest=m;}).catch(function(){});}
-_loadSeriesManifest();
-document.getElementById('tabFiles').onclick=function(){document.getElementById('filesPane').style.display='block';document.getElementById('seriesPane').style.display='none';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabSeries').style.borderBottomColor='transparent';document.getElementById('tabSeries').style.color='#5d7285';};
-document.getElementById('tabSeries').onclick=function(){document.getElementById('filesPane').style.display='none';document.getElementById('seriesPane').style.display='block';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabFiles').style.borderBottomColor='transparent';document.getElementById('tabFiles').style.color='#5d7285';};
-var _idx=null,_idxErr=false,_curFlow=null;
-async function _getIdx(){
- if(_idx||_idxErr)return _idx;
- try{var r=await fetch('/data/index/'+slug+'/flows.json.gz');if(!r.ok)throw 0;_idx=await r.json();}catch(e){_idxErr=true;}
- return _idx;}
-function _e(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
-function _td(v,al,col){return '<td style="padding:5px 8px;border-bottom:1px solid #121b25;color:'+(col||'#c3d3e0')+';text-align:'+(al||'left')+'">'+v+'</td>';}
-async function _loadFlow(f){
- var rec=(_idx.flows||{})[f]||{};
- try{
-  var bm=await(await fetch('/data/index/'+slug+'/t1/'+encodeURIComponent(f)+'.blocks.json')).json();
-  var b=(bm.blocks||[])[0];
-  var rs=await fetch('/data/index/'+slug+'/t1/'+encodeURIComponent(f)+'.jsonl',{headers:{'Range':'bytes='+b.o+'-'+(b.o+b.c-1)}});
-  if(rs.status!==206)throw 0;                       /* full body would defeat the point */
-  var rows=(await rs.text()).trim().split('\n').map(function(l){return JSON.parse(l);});
-  return {rows:rows,src:'block 1 of '+bm.blocks.length+' · '+(bm.n||0).toLocaleString()+' series indexed · '+Math.round(b.c/1024)+' KB fetched'};
- }catch(e){}
- var lo=rec.lo||0,hi=Math.min(rec.hi==null?lo:rec.hi,(rec.lo||0)+9),out=[];
- for(var p=lo;p<=hi;p++){try{
-  var d=await(await fetch('/data/providers/'+slug+'/series/page-'+String(p).padStart(4,'0')+'.json')).json();
-  (d.rows||[]).forEach(function(r){if(r.flow===f)out.push(r);});}catch(e2){}}
- return {rows:out,src:'pages '+lo+'–'+hi+' of '+(rec.lo||0)+'–'+(rec.hi||0)};}
-async function _showFlow(f){
- _curFlow=f;var hint=document.getElementById('sHint'),tbl=document.getElementById('sTbl'),body=document.getElementById('sBody');
- hint.style.display='block';hint.textContent='Loading '+f+'…';tbl.style.display='none';
- var res=await _loadFlow(f);hint.style.display='none';tbl.style.display='table';
- body.innerHTML='<tr><td colspan="4" style="padding:6px 8px;color:#8fd0ff;cursor:pointer" onclick="_curFlow=null;_runSearch()">← all datasets</td></tr>'+
-  '<tr><td colspan="4" style="padding:4px 8px;color:#5d7285;font-size:10px">'+_e(f)+' · '+_e(res.src)+'</td></tr>'+
-  res.rows.slice(0,400).map(function(s){
-   var v=(s.last_value!=null?s.last_value:s.v);
-   var lo=(s.last_obs||s.l||'—'), fo=(s.first_obs||s.f||null), nb=(s.n_obs!=null?s.n_obs:s.n);
-   return '<tr>'+_td(_e(s.name||s.id))+_td(_e(s.geo||s.g||'—'))+
-    _td(v!=null?Number(v).toLocaleString():(nb!=null?nb+' obs':'—'),'right','#9fd0a8')+
-    _td(_e(fo&&fo!==lo?fo+'–'+lo:lo),'right','#5d7285')+'</tr>';}).join('');}
-async function _runSearch(){
- var q=(document.getElementById('sq').value||'').trim();
- var hint=document.getElementById('sHint'),tbl=document.getElementById('sTbl'),body=document.getElementById('sBody');
- if(q.length<2){hint.style.display='block';hint.textContent='Type 2+ characters to search datasets';tbl.style.display='none';_curFlow=null;return;}
- var idx=await _getIdx();
- if(!idx){hint.textContent='Series index not built for this provider yet';hint.style.display='block';tbl.style.display='none';return;}
- if(_curFlow)return;
- var ql=q.toLowerCase(),fl=idx.flows||{};
- var hits=Object.keys(fl).filter(function(f){return f.toLowerCase().indexOf(ql)>=0;})
-   .sort(function(a,b){return (fl[b].series||0)-(fl[a].series||0);}).slice(0,300);
- hint.style.display='none';tbl.style.display='table';
- body.innerHTML=hits.length?hits.map(function(f){var r=fl[f];
-   return '<tr style="cursor:pointer" onclick="_showFlow(\''+f.replace(/'/g,"\\'")+'\')">'+
-    _td('<span style="color:#8fd0ff">'+_e(f)+'</span>')+
-    _td((r.series!=null?r.series.toLocaleString()+' series':'—')+(r.exact?'':' (est)'))+
-    _td((r.hi-r.lo+1)+' pages','right','#5d7285')+_td('open →','right','#4f6a7d')+'</tr>';}).join('')
-  :'<tr>'+_td('No dataset matches “'+_e(q)+'” in '+Object.keys(fl).length.toLocaleString()+' datasets')+'</tr>';}
-document.getElementById('sq').addEventListener('input',_runSearch);
-}).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — next hourly catalog run adds it';document.getElementById('tb').innerHTML='';});
-</script>
-<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
-</body></html>
+body{margin:0;background:#070b10;color:#dfe9f2;font-family:'SF Mono',Consolas,monospace}.wrap{max-width:1240px;margin:auto;padding:26px 16px}a{color:#4fc3f7}h1{font-size:22px}h2{font-size:16px;margin-top:30px}p,.muted{font-size:12px;line-height:1.6;color:#9aafc2}button,input,select{font:inherit;font-size:12px;background:#0d141c;color:#dfe9f2;border:1px solid #36516c;border-radius:5px;padding:7px;margin:4px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}input[type=number]{width:95px}details{margin:12px 0;border:1px solid #233748;border-radius:6px;padding:10px}summary{cursor:pointer}table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:7px;text-align:left;border-bottom:1px solid #233748;overflow-wrap:anywhere}.table-wrap{overflow:auto}ul{padding-left:20px}label{font-size:12px}.status{color:#d5bc83}#source-pages{display:flex;flex-wrap:wrap}[hidden]{display:none!important}
+</style>
+<script src="/jh-data-inspector.js" defer></script><script src="/jh-provider-data.js" defer></script>
+</head><body><main class="wrap" id="provider-app">
+<a href="/data.html">← DATA</a><h1 id="name">Data provider</h1>
+<p id="provider-meta"></p><p id="status" class="status" role="status">Loading catalogue…</p>
+<h2>Provider catalogue</h2>
+<p>Inspect the manifest and every continuation page. These are catalogue records, not the contents of every listed source file. Listed paths are displayed as metadata and are never fetched automatically.</p>
+<details><summary>Complete catalogue manifest</summary><div id="catalog-manifest-data"></div></details>
+<label>Catalogue page <input id="catalog-page" type="number" min="-1" value="-1" step="1"></label><button id="catalog-load" disabled>Open page</button><span id="catalog-range" class="muted"></span>
+<div><label>Filter selected page <input id="file-filter" type="search" placeholder="Key contains…"></label><label>Status <select id="file-status"><option value="">All</option><option>live</option><option>cold</option><option>missing</option><option>unknown</option></select></label></div>
+<p id="file-count"></p><div class="table-wrap"><table><thead><tr><th>Key</th><th>Status</th><th>Bytes</th><th>Age (hours)</th><th>Referenced engines</th></tr></thead><tbody id="files"></tbody></table></div>
+<details><summary>All fields in the selected catalogue page</summary><div id="catalog-data"></div></details>
+<h2>Series outputs</h2><p id="series-note">Series availability depends on the selected provider’s published contract.</p>
+<details><summary>Complete series manifest</summary><div id="series-manifest-data"></div></details>
+<div id="series-controls" hidden><label>Original series page <input id="series-page" type="number" min="0" value="0" step="1"></label><button id="series-load">Open full source page</button><span id="series-range" class="muted"></span></div>
+<p id="series-status" class="status" role="status"></p><div id="series-data"></div>
+<h2>Dataset index navigation</h2>
+<p>The flow inventory was generated by repository operations. Its page ranges guide navigation; they do not prove a complete or current extract. Every manifest page is independently reachable above. The block map and byte range are mutable current files; matching offsets and row counts do not establish an immutable historical snapshot.</p>
+<details><summary>Complete operations-generated flow inventory</summary><div id="flow-index-data"></div></details>
+<label>Search dataset identifiers <input id="flow-search" type="search" placeholder="At least 2 characters"></label>
+<p id="flow-count">Select a provider with a reviewed series index.</p><button id="flow-prev" disabled>Previous matches</button><button id="flow-next" disabled>Next matches</button><ul id="flows"></ul>
+<details><summary>Complete selected dataset block manifest</summary><div id="block-manifest-data"></div></details>
+<div id="block-controls" hidden><label>Index block <input id="block-number" type="number" min="0" value="0" step="1"></label><button id="block-load">Open block</button><span id="block-range" class="muted"></span></div>
+<p id="block-status" class="status" role="status"></p><div id="source-pages"></div><div id="block-data"></div>
+</main><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>
