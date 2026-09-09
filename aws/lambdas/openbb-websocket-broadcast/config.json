@@ -1,7 +1,7 @@
 {
   "name": "openbb-websocket-broadcast",
-  "runtime": "python3.11",
-  "handler": "lambda_function.broadcast_handler",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
   "memory_mb": 512,
   "timeout_s": 60,
   "code_size_bytes": 560,

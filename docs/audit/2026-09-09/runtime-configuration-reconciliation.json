@@ -1,0 +1,152 @@
+{
+  "source_receipt": "aws/ops/reports/5231_audit_release_verify.json",
+  "runner_checkout": "1b76bcf723ef0f311909145cba564aa98becd613",
+  "observed_at": "2026-09-09T15:01:41.732954+00:00",
+  "scope": "Match imported configuration metadata to verified active runtime; code member hashes matched for every reconciled function. No architecture or runtime migration.",
+  "changes": [
+    {
+      "function": "alphavantage-market-agent",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "alphavantage-technical-analysis",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "fedliquidityapi",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "fmp-fundamentals-agent",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-bloomberg-v8",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-crypto-enricher",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-ka-metrics",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-khalid-metrics",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-morning-intelligence",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-options-flow",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-outcome-checker",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "justhodl-stock-screener",
+      "field": "Runtime",
+      "expected": "python3.11",
+      "observed": "python3.12"
+    },
+    {
+      "function": "nasdaq-datalink-agent",
+      "field": "Architectures",
+      "expected": [
+        "x86_64"
+      ],
+      "observed": [
+        "arm64"
+      ]
+    },
+    {
+      "function": "openbb-websocket-broadcast",
+      "field": "Runtime",
+      "expected": "python3.11",
+      "observed": "python3.12"
+    },
+    {
+      "function": "openbb-websocket-broadcast",
+      "field": "Handler",
+      "expected": "lambda_function.broadcast_handler",
+      "observed": "lambda_function.lambda_handler"
+    },
+    {
+      "function": "openbb-websocket-handler",
+      "field": "Runtime",
+      "expected": "python3.11",
+      "observed": "python3.12"
+    }
+  ]
+}
