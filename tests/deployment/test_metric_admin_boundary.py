@@ -49,3 +49,4 @@ def test_absent_metrics_and_invalid_weights_cannot_be_neutral_risk():
         result=module.lambda_handler({'requestContext':{'http':{'method':'GET'}},'rawPath':'/data'},None)
         doc=json.loads(result['body']);assert doc['risk_index'] is None and doc['status']=='UNAVAILABLE'
         assert 'synthetic-private-error' not in result['body']
+        assert not any(key.lower().startswith('access-control-') for key in result['headers'])
