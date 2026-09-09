@@ -1,6 +1,8 @@
 from managed_secret import managed_secret
-import json, urllib.request, os, sys, traceback
-from datetime import datetime
+import json, urllib.parse, os, sys, math
+from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+from public_provider_json import ProviderError, error_metadata, get_json
 
 # Bundle api_auth.py alongside lambda_function.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -53,61 +55,62 @@ DATASETS = {
 
 def fetch(code, limit=24):
     try:
-        url = f"https://data.nasdaq.com/api/v3/datasets/{code}/data.json?api_key={API_KEY}&limit={limit}&order=desc"
-        req = urllib.request.Request(url, headers={'User-Agent': 'JustHodl/1.0'})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            d = json.loads(r.read().decode())
-            ds = d.get('dataset_data', {})
-            rows, cols = ds.get('data', []), ds.get('column_names', [])
-            if not rows:
-                return {"error": "empty dataset"}
-            latest = dict(zip(cols, rows[0]))
-            previous = dict(zip(cols, rows[1])) if len(rows) > 1 else {}
-            # Calculate change
-            val_col = cols[1] if len(cols) > 1 else None
-            cur_val = latest.get(val_col) if val_col else None
-            prev_val = previous.get(val_col) if val_col else None
-            chg = None
-            if cur_val is not None and prev_val is not None and prev_val != 0:
-                try:
-                    chg = round((float(cur_val) - float(prev_val)) / abs(float(prev_val)) * 100, 2)
-                except:
-                    pass
-            return {
-                "columns": cols,
-                "latest": latest,
-                "previous": previous,
-                "value": cur_val,
-                "change_pct": chg,
-                "history": [dict(zip(cols, r)) for r in rows[:24]],
-                "count": len(rows)
-            }
-    except Exception as e:
-        return {"error": str(e)}
+        url = f"https://data.nasdaq.com/api/v3/datasets/{code}/data.json?" + urllib.parse.urlencode({'api_key':API_KEY,'limit':limit,'order':'desc'})
+        d = get_json(url)
+        ds = d.get('dataset_data', {})
+        rows, cols = ds.get('data', []), ds.get('column_names', [])
+        if not rows:return {"error":"EMPTY_DATASET"}
+        if not isinstance(rows,list) or not isinstance(cols,list) or not cols or len(cols)!=len(set(cols)) or any(not isinstance(c,str) for c in cols) or any(not isinstance(row,list) or len(row)!=len(cols) for row in rows):
+            return {"error":"PROVIDER_SCHEMA_INVALID"}
+        latest = dict(zip(cols, rows[0]))
+        previous = dict(zip(cols, rows[1])) if len(rows) > 1 else {}
+        val_col = cols[1] if len(cols)>1 else None
+        def numeric(value):
+            try:
+                result=float(value)
+                return result if not isinstance(value,bool) and math.isfinite(result) else None
+            except (TypeError,ValueError):return None
+        cur_val,prev_val=numeric(latest.get(val_col)),numeric(previous.get(val_col))
+        change=round((cur_val-prev_val)/abs(prev_val)*100,2) if cur_val is not None and prev_val not in (None,0) else None
+        if change is not None and not math.isfinite(change):change=None
+        return {"columns":cols,"latest":latest,"previous":previous,"value":cur_val,
+                "change_pct":change,"change_scope":"latest versus immediately preceding provider observation",
+                "history":[dict(zip(cols,row)) for row in rows],"count":len(rows),"requested_history_rows":limit,
+                **({"error":"LATEST_VALUE_UNAVAILABLE"} if cur_val is None else {})}
+    except ProviderError as e:
+        return error_metadata(e)
+    except Exception:
+        return {"error":"PROVIDER_SCHEMA_INVALID"}
 
 def lambda_handler(event, context):
-    h = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'}
+    # Function URL configuration owns CORS; duplicate response headers break browsers.
+    h = {'Content-Type': 'application/json', 'Cache-Control':'no-store'}
     if isinstance(event, dict) and event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {'statusCode': 200, 'headers': h, 'body': '{}'}
 
-    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    # Auth gate also enforces the shared bounded anonymous-access contract.
     key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
     if err:
+        err['headers']={k:v for k,v in err.get('headers',{}).items() if not k.lower().startswith('access-control-')}
         return err
 
     path = event.get('rawPath', '') if isinstance(event, dict) else ''
-    if '/health' in path:
-        return {'statusCode': 200, 'headers': h, 'body': json.dumps({'status': 'healthy', 'agent': 'nasdaq-datalink-agent', 'datasets': sum(len(v) for v in DATASETS.values())})}
-    if '/debug' in path:
-        test = fetch('FRED/GDP')
-        return {'statusCode': 200, 'headers': h, 'body': json.dumps({'debug': True, 'dataset': 'FRED/GDP', 'result': test}, default=str)}
+    if path == '/health':
+        return {'statusCode': 200, 'headers': h, 'body': json.dumps({'status': 'HANDLER_READY', 'provider_data_verified':False, 'agent': 'nasdaq-datalink-agent', 'datasets': sum(len(v) for v in DATASETS.values())})}
+    if path not in ('','/'):
+        return {'statusCode':404,'headers':h,'body':json.dumps({'error':'unknown_route'})}
     try:
-        result = {"agent": "nasdaq-datalink-agent", "ts": datetime.utcnow().isoformat(), "categories": {}}
+        stamp=datetime.now(timezone.utc).isoformat()
+        result = {"agent": "nasdaq-datalink-agent", "ts":stamp, "generated_at":stamp, "categories": {},
+                  "execution_eligible":False}
+        codes=[code for datasets in DATASETS.values() for code in datasets]
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            responses=dict(zip(codes,pool.map(fetch,codes)))
         ok = err = 0
         for cat, datasets in DATASETS.items():
             cr = {}
             for code, name in datasets.items():
-                d = fetch(code)
+                d = responses[code]
                 cr[code] = {"name": name, **d}
                 if 'error' in d:
                     err += 1
@@ -116,6 +119,8 @@ def lambda_handler(event, context):
             result["categories"][cat] = cr
         result["metrics_ok"] = ok
         result["metrics_err"] = err
-        return {'statusCode': 200, 'headers': h, 'body': json.dumps(result, default=str)}
-    except Exception as e:
-        return {'statusCode': 500, 'headers': h, 'body': json.dumps({'error': str(e), 'trace': traceback.format_exc()})}
+        result['ts']=result['generated_at']=datetime.now(timezone.utc).isoformat()
+        result['status']='READY' if ok and not err else 'PARTIAL' if ok else 'UNAVAILABLE'
+        return {'statusCode': 200, 'headers': h, 'body': json.dumps(result,allow_nan=False)}
+    except Exception:
+        return {'statusCode': 503, 'headers': h, 'body': json.dumps({'agent':'nasdaq-datalink-agent','status':'UNAVAILABLE','error':'snapshot_unavailable'})}

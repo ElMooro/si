@@ -59,10 +59,13 @@ exports.handler = async (event) => {
       endYear = body.endYear || endYear;
     }
   } catch (e) {
-    console.log('Using default parameters');
+    return {statusCode:400,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:'invalid_request'})};
   }
   
   try {
+    if (!Number.isInteger(startYear) || !Number.isInteger(endYear) || startYear < 1900 || endYear > new Date().getFullYear() || startYear > endYear || !['core','comprehensive','demographics','states','employment','all'].includes(mode)) {
+      return {statusCode:400,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:'invalid_request'})};
+    }
     // Get series based on mode
     let seriesToFetch = [];
     switch(mode) {
@@ -175,7 +178,7 @@ exports.handler = async (event) => {
     };
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('BLS snapshot unavailable');
     return {
       statusCode: 500,
       headers: {
@@ -184,7 +187,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         success: false,
-        error: error.message,
+        error: 'snapshot_unavailable',
         timestamp: new Date().toISOString(),
         data_authenticity: 'Real data only - no mock data used'
       })
