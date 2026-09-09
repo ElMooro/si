@@ -39,6 +39,21 @@ def inspect_payload(key, doc):
                 errors.append(name+' incorrectly publication eligible')
         if (doc.get('publication') or {}).get('status') != 'BLOCKED': errors.append('missing publication gate')
         if not isinstance(doc.get('historical_inputs'),dict): errors.append('missing vintage readiness contract')
+        ledger=doc.get('portfolio_performance') or {}
+        if ledger.get('schema_version') != 'research-capital-ledger-1.0' or ledger.get('adapter_implemented') is not True:
+            errors.append('daily research ledger adapter contract absent')
+        if ledger.get('publication_eligible') is not False:
+            errors.append('research ledger cannot unlock performance publication')
+        if ledger.get('status') == 'BLOCKED':
+            if ledger.get('nav_curve') or ledger.get('daily_returns'):
+                errors.append('blocked ledger exposes partial performance')
+        elif ledger.get('status') == 'READY':
+            if not (ledger.get('input_contract') or {}).get('hash_verified'):
+                errors.append('ready ledger lacks verified immutable input')
+            if not ledger.get('nav_curve') or any(row.get('reconciled') is not True for row in ledger['nav_curve']):
+                errors.append('ready ledger contains unreconciled sessions')
+        else:
+            errors.append('unknown ledger adapter state')
     elif key == 'analytics/backtest_results.json':
         if doc.get('audit_version') != '2026-09-09.1': errors.append('old implementation output')
         calls=doc.get('per_call')
