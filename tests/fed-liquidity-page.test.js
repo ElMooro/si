@@ -27,3 +27,9 @@ test('full catalog is rendered as text without dropping series or categories',as
  const {context,ids}=page({ok:true,json:async()=>payload});await context.loadCatalog();assert.equal(ids.get('series-picker').children.length,2);
  assert.deepEqual(JSON.parse(ids.get('catalog-payload').textContent),payload);
 });
+
+test('native money units normalize explicitly and absent values never become zeros',()=>{
+ const {context}=page({});assert.equal(context.metricValue(6700000,'Millions of U.S. Dollars'),'6.70T USD');
+ assert.equal(context.metricValue(23000,'Billions of Dollars'),'23.00T USD');
+ assert.equal(context.metricValue(0,'Percent'),'0.0000%');assert.equal(context.metricValue(null,'Percent'),'Unavailable');
+});

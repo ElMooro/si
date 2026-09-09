@@ -25,7 +25,7 @@ FED_LIQUIDITY_SERIES = {
     'WRBWFRBL': 'Reserve Balances Weekly',
     'WREPODEL': 'Reverse Repo Foreign Official',
     'WREPOFOR': 'Reverse Repo Foreign',
-    
+
     # Money Supply (10)
     'M1SL': 'M1 Money Supply',
     'M2SL': 'M2 Money Supply',
@@ -37,7 +37,7 @@ FED_LIQUIDITY_SERIES = {
     'MZMSL': 'MZM Money Stock',
     'SAVINGS': 'Savings Deposits',
     'DPSACBW027SBOG': 'Deposits All Commercial Banks',
-    
+
     # Treasury Rates (11)
     'DGS1MO': '1-Month Treasury Rate',
     'DGS3MO': '3-Month Treasury Rate',
@@ -50,7 +50,7 @@ FED_LIQUIDITY_SERIES = {
     'DGS10': '10-Year Treasury Rate',
     'DGS20': '20-Year Treasury Rate',
     'DGS30': '30-Year Treasury Rate',
-    
+
     # Yield Spreads & Inflation (8)
     'T10Y2Y': '10Y-2Y Treasury Spread',
     'T10Y3M': '10Y-3M Treasury Spread',
@@ -60,7 +60,7 @@ FED_LIQUIDITY_SERIES = {
     'T5YIFR': '5-Year Forward Inflation',
     'TEDRATE': 'TED Spread',
     'TB3SMFFM': '3-Month Treasury vs Fed Funds',
-    
+
     # Bond Market Stress (10)
     'MORTGAGE30US': '30-Year Fixed Mortgage Rate',
     'MORTGAGE15US': '15-Year Fixed Mortgage Rate',
@@ -72,7 +72,7 @@ FED_LIQUIDITY_SERIES = {
     'DFII10': '10-Year Treasury Inflation-Indexed',
     'DFII5': '5-Year Treasury Inflation-Indexed',
     'DFII30': '30-Year Treasury Inflation-Indexed',
-    
+
     # Corporate Bond Spreads (15)
     'AAA10Y': 'AAA Corporate vs 10Y Treasury Spread',
     'BAA10Y': 'BAA Corporate vs 10Y Treasury Spread',
@@ -89,7 +89,7 @@ FED_LIQUIDITY_SERIES = {
     'BAMLC0A0CMEY': 'Investment Grade Effective Yield',
     'DAAA': 'AAA Corporate Bond Yield',
     'DBAA': 'BAA Corporate Bond Yield',
-    
+
     # Emerging Markets (8)
     'BAMLEMCBPIOAS': 'Emerging Markets Corporate Bond OAS',
     'BAMLEMHYHYCEY': 'High Yield EM Corporate Yield',
@@ -99,7 +99,7 @@ FED_LIQUIDITY_SERIES = {
     'DEXBZUS': 'USD/Brazilian Real',
     'DEXINUS': 'USD/Indian Rupee',
     'DEXSFUS': 'USD/South African Rand',
-    
+
     # Bank Stress (7)
     'DRTSCIS': 'Banks Tightening Standards - Small Firms',
     'DRTSCILM': 'Banks Tightening Standards - Large Firms',
@@ -108,7 +108,7 @@ FED_LIQUIDITY_SERIES = {
     'STLFSI3': 'St. Louis Financial Stress Index',
     'NFCI': 'Chicago Fed Financial Conditions',
     'ANFCI': 'Adjusted Financial Conditions',
-    
+
     # Liquidity & Funding (9)
     'WLRRAL': 'Liquidity Risk Ratio',
     'IOER': 'Interest on Excess Reserves',
@@ -119,7 +119,7 @@ FED_LIQUIDITY_SERIES = {
     'DFF': 'Federal Funds Rate',
     'RRPONTTLD': 'RRP Treasury Securities',
     'RPONTSYD': 'Repo Operations',
-    
+
     # Volatility (8)
     'VIXCLS': 'VIX Index',
     'VXVCLS': 'VIX of VIX',
@@ -129,7 +129,7 @@ FED_LIQUIDITY_SERIES = {
     'RVXCLS': 'Russell 2000 Volatility',
     'TYVIX': '10-Year Treasury Volatility',
     'SRVIX': 'Interest Rate Swap Volatility',
-    
+
     # Dollar & Currencies (10)
     'DTWEXBGS': 'Dollar Index Broad',
     'DTWEXAFEGS': 'Dollar Index Advanced Foreign',
@@ -141,14 +141,14 @@ FED_LIQUIDITY_SERIES = {
     'DEXSZUS': 'USD/CHF Exchange Rate',
     'DEXCAUS': 'USD/CAD Exchange Rate',
     'DEXUSAL': 'USD/AUD Exchange Rate',
-    
+
     # Commodities (5)
     'DCOILWTICO': 'WTI Crude Oil Price',
     'DCOILBRENTEU': 'Brent Crude Oil Price',
     'GASREGW': 'Regular Gasoline Price',
     'DHHNGSP': 'Natural Gas Price',
     'GOLDAMGBD228NLBM': 'Gold Price London Fix',
-    
+
     # Economic Indicators (6)
     'DSPIC96': 'Personal Income',
     'GFDEBTN': 'Federal Debt Total',
@@ -156,17 +156,17 @@ FED_LIQUIDITY_SERIES = {
     'FYGFD': 'Federal Debt Held by Public',
     'FDHBFIN': 'Federal Debt Held by Foreign',
     'FYGFGDN': 'Gross Federal Debt',
-    
+
     # Fed Policy Rates (2)
     'DFEDTARU': 'Fed Funds Target Upper',
     'DFEDTARL': 'Fed Funds Target Lower',
-    
+
     # Financial Leverage (4)
     'NFCINONFINLEVERAGE': 'Nonfinancial Leverage',
     'NFCILEVERAGE': 'Financial Leverage',
     'NFCICREDIT': 'Credit Conditions',
     'NFCIRISK': 'Risk Indicators',
-    
+
     # Special Liquidity Series from v2 (17)
     'RESPPALGUOXAWXCH52NWW': 'Reserve Position All Other',
     'RESPPALGUONNWW': 'Reserve Position ON',
@@ -185,18 +185,18 @@ FED_LIQUIDITY_SERIES = {
     'SWP15': 'Swap Lines 15',
     'RESPPALGUMDXCH1NWW': 'Reserve Position MX',
     'REP1690': 'Repo 1690',
-    
+
     # Central Bank Assets (4)
     'JPNASSETS': 'Japan Central Bank Assets',
     'ECBASSETSW': 'ECB Total Assets',
     'BSFGLV02EZM460S': 'ECB Balance Sheet FG',
     'BSOBLV02EZM460S': 'ECB Other Liabilities',
-    
+
     # Additional Fed Reserve Data (3)
     'WRESBAL': 'Reserve Balances',
     'NONBORRES': 'Non-Borrowed Reserves',
     'G7LOLITOAASTSA': 'G7 Central Banks Assets',
-    
+
     # More Economic Indicators (9)
     'GDP': 'Gross Domestic Product',
     'CPIAUCSL': 'Consumer Price Index',
@@ -207,18 +207,18 @@ FED_LIQUIDITY_SERIES = {
     'RETAILIMSA': 'Retail Imports SA',
     'INTGSTMXM193N': 'Interest Rate MX',
     'AMERIBOR': 'AMERIBOR Rate',
-    
+
     # Market Indicators (5)
     'SP500': 'S&P 500 Index',
     'IGREA': 'IG Real Estate',
-    
+
     # Treasury & Money Market (5)
     'TREAS911Y': 'Treasury 911Y',
     'TREAS1590': 'Treasury 1590',
     'MABMM301EZM189S': 'Money Market EU',
     'MABMM301JPM189S': 'Money Market JP',
     'DRISCFS': 'Discount Rate FS',
-    
+
     # Additional Balance Sheet Items (original)
     'RESBALNS': 'Reserve Balances with Federal Reserve Banks',
     'WLCFLPCL': 'Liabilities: Total',
@@ -267,7 +267,7 @@ FED_LIQUIDITY_SERIES = {
     'WIMFCL': 'Special Drawing Rights',
     'WGCRL': 'Gold Stock',
     'DPCREDIT': 'Domestic Nonfinancial Credit',
-    
+
     # HQM Bond Yields - Spot Rates (37 maturities)
     'HQMCB01YR': 'HQM Spot Rate 1Y',
     'HQMCB02YR': 'HQM Spot Rate 2Y',
@@ -306,7 +306,7 @@ FED_LIQUIDITY_SERIES = {
     'HQMCB80YR': 'HQM Spot Rate 80Y',
     'HQMCB90YR': 'HQM Spot Rate 90Y',
     'HQMCB100YR': 'HQM Spot Rate 100Y',
-    
+
     # HQM Par Yields (8 maturities)
     'HQMCB1YRP': 'HQM Par Yield 1Y',
     'HQMCB5YRP': 'HQM Par Yield 5Y',
@@ -390,12 +390,12 @@ def get_series_metadata(series_id):
             'api_key': FRED_API_KEY,
             'file_type': 'json'
         }
-        
+
         url = f"{base_url}?{urllib.parse.urlencode(params)}"
-        
+
         with urllib.request.urlopen(url, timeout=10) as response:
             data = json.loads(response.read())
-            
+
         if data.get('seriess'):
             series = data['seriess'][0]
             return {
@@ -421,21 +421,33 @@ def summarize_series(series_id):
     day=datetime.fromisoformat(latest['date']).date()
     previous_month=day.replace(day=1)-timedelta(days=1)
     month_day=previous_month.replace(day=min(day.day,previous_month.day))
+    metadata=get_series_metadata(series_id) or {}
+    frequency=str(metadata.get('frequency','UNKNOWN'))
+    cadence='Daily' if frequency.startswith('Daily') else 'Weekly' if frequency.startswith('Weekly') else 'Monthly' if frequency=='Monthly' else 'Quarterly' if frequency=='Quarterly' else 'Annual' if frequency=='Annual' else 'UNKNOWN'
+    tolerance={'Daily':4,'Weekly':3,'Monthly':4}.get(cadence)
     def previous(cutoff):
-        return next((row for row in observations if row['date'] <= cutoff.isoformat()),None)
-    week,month=previous(day-timedelta(days=7)),previous(month_day)
+        row=next((row for row in observations if row['date'] <= cutoff.isoformat()),None)
+        return row if row and tolerance is not None and (cutoff-datetime.fromisoformat(row['date']).date()).days<=tolerance else None
+    week=previous(day-timedelta(days=7)) if cadence in ('Daily','Weekly') else None
+    month=previous(month_day) if cadence in ('Daily','Weekly','Monthly') else None
+    age=(datetime.now(timezone.utc).date()-day).days
+    limit={'Daily':7,'Weekly':21,'Monthly':100,'Quarterly':190,'Annual':550}.get(cadence)
+    quality='UNKNOWN' if limit is None else 'INVALID_FUTURE_DATE' if age<0 else 'STALE' if age>limit else 'WITHIN_CADENCE_LIMIT'
+    if 'DISCONTINUED' in str(metadata.get('title','')).upper():quality='DISCONTINUED'
     return series_id, {'name':FED_LIQUIDITY_SERIES.get(series_id,series_id),
         'latest_value':latest['value'],'latest_date':latest['date'],
         'week_change':calculate_change(latest['value'],week['value']) if week else None,
         'month_change':calculate_change(latest['value'],month['value']) if month else None,
         'week_comparison_date':week['date'] if week else None,
         'month_comparison_date':month['date'] if month else None,
-        'change_basis':'calendar_cutoff_on_or_before'}
+        'change_basis':'calendar_cutoff_on_or_before_with_cadence_tolerance',
+        'units':metadata.get('units'), 'frequency':frequency, 'metadata':metadata,
+        'observation_age_days':age,'freshness_limit_days':limit,'data_quality':quality}
 
 
 def lambda_handler(event, context):
     """Main Lambda handler"""
-    
+
     # Handle OPTIONS request for CORS preflight
     if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {
@@ -445,16 +457,16 @@ def lambda_handler(event, context):
             },
             'body': json.dumps({'message': 'OK'})
         }
-    
+
     # Get query parameters
     query_params = event.get('queryStringParameters', {}) or {}
     series_param = query_params.get('series', 'summary').lower()
     category = query_params.get('category', '').lower()
     start_date = query_params.get('start_date')
     end_date = query_params.get('end_date')
-    
+
     response_data = {}
-    
+
     try:
         # Handle different request types
         if series_param == 'all':
@@ -477,20 +489,21 @@ def lambda_handler(event, context):
                     'hqm_bonds': ['HQMCB10YR', 'HQMCB20YR', 'HQMCB30YR']
                 }
             }
-            
+
         elif series_param == 'summary':
             # Get key metrics with latest values
-            key_series = ['WALCL', 'RESBALNS', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS', 
+            key_series = ['WALCL', 'WRBWFRBL', 'RRPONTSYD', 'M2SL', 'DFF', 'DGS10', 'VIXCLS',
                          'DTWEXBGS', 'SP500', 'STLFSI3', 'T10Y2Y', 'BAMLH0A0HYM2']
             summary = {}
-            
+
             with ThreadPoolExecutor(max_workers=4) as pool:
                 rows=dict(pool.map(summarize_series,key_series))
             summary={key:value for key,value in rows.items() if value is not None}
             response_data = {
                 'summary':summary,'last_updated':datetime.now(timezone.utc).isoformat(),
                 'requested_series':key_series,'missing_series':[key for key in key_series if key not in summary],
-                'status':'COMPLETE' if len(summary)==len(key_series) else 'PARTIAL',
+                'status':'COMPLETE' if len(summary)==len(key_series) and all(row['data_quality']=='WITHIN_CADENCE_LIMIT' for row in summary.values()) else 'PARTIAL',
+                'degraded_series':[key for key,row in summary.items() if row['data_quality']!='WITHIN_CADENCE_LIMIT'],
                 'schema_version':'fed-liquidity-summary.v2'
             }
 
@@ -498,7 +511,7 @@ def lambda_handler(event, context):
             # Handle batch request
             series_list = query_params.get('list', '').split(',')
             batch_data = {}
-            
+
             for series_id in series_list[:20]:  # Limit to 20 series
                 series_id = series_id.strip().upper()
                 if series_id in FED_LIQUIDITY_SERIES:
@@ -508,9 +521,9 @@ def lambda_handler(event, context):
                             'name': FED_LIQUIDITY_SERIES[series_id],
                             'data': data[:100]  # Limit data points
                         }
-            
+
             response_data = {'batch': batch_data}
-            
+
         elif category:
             # Get series by category
             category_map = {
@@ -527,7 +540,7 @@ def lambda_handler(event, context):
                 'liquidity': ['SOFR', 'EFFR', 'DFF', 'IORB', 'OBFR'],
                 'economic': ['GDP', 'CPIAUCSL', 'UNRATE', 'DSPIC96', 'GFDEBTN']
             }
-            
+
             if category in category_map:
                 category_data = {}
                 for series_id in category_map[category]:
@@ -539,21 +552,21 @@ def lambda_handler(event, context):
                                 'latest': data[0] if data else None,
                                 'data_points': len(data)
                             }
-                
+
                 response_data = {
                     'category': category,
                     'series': category_data
                 }
             else:
                 response_data = {'error': f'Unknown category: {category}'}
-                
+
         else:
             # Get specific series
             series_id = series_param.upper()
             if series_id in FED_LIQUIDITY_SERIES:
                 data = fetch_fred_data(series_id, start_date, end_date)
                 metadata = get_series_metadata(series_id)
-                
+
                 response_data = {
                     'series_id': series_id,
                     'name': FED_LIQUIDITY_SERIES[series_id],
@@ -563,7 +576,7 @@ def lambda_handler(event, context):
                 }
             else:
                 response_data = {'error': f'Unknown series: {series_id}'}
-        
+
         # Return WITHOUT CORS headers (Function URL handles them)
         return {
             'statusCode': 200,
@@ -572,7 +585,7 @@ def lambda_handler(event, context):
             },
             'body': json.dumps(response_data)
         }
-        
+
     except Exception as e:
         return {
             'statusCode': 500,

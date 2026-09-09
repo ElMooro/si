@@ -809,7 +809,7 @@
         function createSeriesCard(series) {
             const isFavorite = favorites.includes(series.series_id);
             const customName = customNames[series.series_id] || series.name;
-            const value = series.value !== null && series.value !== undefined ? formatValue(series.value) : 'N/A';
+            const value = metricValue(series.value,series.units);
             const date = esc(series.date || '--');
 
             const changes = series.changes || {};
@@ -832,7 +832,7 @@
                         </button>
                     </div>
                     <div class="series-value">${value}</div>
-                    <div class="series-date">Last Update: ${date}</div>
+                    <div class="series-date">Observation: ${date} · ${esc(series.frequency || 'Frequency unavailable')} · ${esc(series.data_quality || 'Quality unknown')}</div>
                     <div class="changes-grid">
                         ${createChangeItem('WoW', changes.wow)}
                         ${createChangeItem('MoM', changes.mom)}
@@ -871,22 +871,31 @@
             for (const id of ['fed-balance','m2-supply','vix-index','yield-spread','dollar-index','fed-rate']) document.getElementById(id).textContent='Unavailable';
             // Update key stats
             const walcl = dataToUse.find(s => s.series_id === 'WALCL');
-            if (walcl) document.getElementById('fed-balance').textContent = formatValue(walcl.value);
+            if (walcl) document.getElementById('fed-balance').textContent = metricValue(walcl.value,walcl.units);
 
             const m2 = dataToUse.find(s => s.series_id === 'M2SL');
-            if (m2) document.getElementById('m2-supply').textContent = formatValue(m2.value);
+            if (m2) document.getElementById('m2-supply').textContent = metricValue(m2.value,m2.units);
 
             const vix = dataToUse.find(s => s.series_id === 'VIXCLS');
-            if (vix) document.getElementById('vix-index').textContent = formatValue(vix.value);
+            if (vix) document.getElementById('vix-index').textContent = metricValue(vix.value,vix.units);
 
             const spread = dataToUse.find(s => s.series_id === 'T10Y2Y');
-            if (spread) document.getElementById('yield-spread').textContent = formatValue(spread.value);
+            if (spread) document.getElementById('yield-spread').textContent = metricValue(spread.value,spread.units);
 
             const dollar = dataToUse.find(s => s.series_id === 'DTWEXBGS');
-            if (dollar) document.getElementById('dollar-index').textContent = formatValue(dollar.value);
+            if (dollar) document.getElementById('dollar-index').textContent = metricValue(dollar.value,dollar.units);
 
             const rate = dataToUse.find(s => s.series_id === 'DFF');
-            if (rate) document.getElementById('fed-rate').textContent = formatValue(rate.value) + '%';
+            if (rate) document.getElementById('fed-rate').textContent = metricValue(rate.value,rate.units);
+        }
+
+        function metricValue(value,units) {
+            if(typeof value!=='number' || !Number.isFinite(value)) return 'Unavailable';
+            const native=String(units || '');
+            if(/Millions of.*Dollars/i.test(native)) return formatValue(value*1e6)+' USD';
+            if(/Billions of.*Dollars/i.test(native)) return formatValue(value*1e9)+' USD';
+            if(native==='Percent') return formatValue(value)+'%';
+            return formatValue(value)+(native ? ' '+native : '');
         }
 
         function formatValue(value) {
@@ -894,6 +903,7 @@
 
             const num = Number(value);
             if (!Number.isFinite(num)) return 'Unavailable';
+            if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(2) + 'T';
             if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(2) + 'B';
             if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(2) + 'M';
             if (Math.abs(num) >= 1e3) return (num / 1e3).toFixed(2) + 'K';

@@ -9,6 +9,7 @@ sys.modules['_fred_shim']=types.ModuleType('_fred_shim')
 secret=types.ModuleType('managed_secret');secret.managed_secret=lambda *a:'';sys.modules['managed_secret']=secret
 spec=importlib.util.spec_from_file_location('fed_under_test',Path(__file__).resolve().parents[1]/'source/lambda_function.py')
 mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+mod.get_series_metadata=lambda *a:{'frequency':'Weekly, Ending Wednesday','units':'Millions of U.S. Dollars','title':'Fixture'}
 
 def test_calendar_changes_use_observation_dates_and_preserve_zero():
     mod.fetch_fred_data=lambda *a,**kw:[{'date':'2026-09-09','value':0},{'date':'2026-09-08','value':120},
@@ -33,6 +34,14 @@ def test_summary_error_never_publishes_provider_response():
     mod.fetch_fred_data=fail
     result=mod.lambda_handler({'queryStringParameters':{'series':'summary'}},None)
     assert result['statusCode']==500 and json.loads(result['body'])=={'error':'DATA_UNAVAILABLE'}
+
+def test_monthly_series_never_invents_a_weekly_return_and_stale_dates_are_flagged():
+    mod.get_series_metadata=lambda *a:{'frequency':'Monthly','units':'Billions of Dollars','title':'Money'}
+    mod.fetch_fred_data=lambda *a,**kw:[{'date':'2020-08-01','value':110},{'date':'2020-07-01','value':100}]
+    _,row=mod.summarize_series('M2SL')
+    assert row['week_change'] is None and row['month_change']==10 and row['data_quality']=='STALE'
+    mod.get_series_metadata=lambda *a:{'frequency':'Weekly, Ending Wednesday','units':'Millions of U.S. Dollars','title':'Fixture'}
+
 
 tests=[fn for name,fn in sorted(globals().items()) if name.startswith('test_')]
 for test in tests:test()
