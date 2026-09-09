@@ -6,12 +6,19 @@ set -e
 # Do not put the subshell in an OR/if condition: Bash would disable
 # errexit throughout its body and continue after failed validation.
 declare -a failed_lambdas
+DEPLOY_TARGETS=$(python3 scripts/release_order.py order $DEPLOY_TARGETS)
 for fn in $DEPLOY_TARGETS; do
+  caller_phase=0
+  if python3 scripts/release_order.py is-caller "$fn"; then caller_phase=1; fi
   set +e
   (
     set -e
     dir="aws/lambdas/$fn"
     if [ ! -d "$dir/source" ]; then
+      if [ "$caller_phase" -eq 1 ]; then
+        echo "::error::Required caller source missing for $fn; producer staging blocked"
+        exit 1
+      fi
       echo "::warning::$dir/source not found — skipping"
       exit 0
     fi
@@ -428,6 +435,9 @@ for fn in $DEPLOY_TARGETS; do
     fi
   fi
 
+  if [ "$caller_phase" -eq 1 ]; then
+    python3 scripts/release_order.py verify-caller "$fn" "$DEPLOY_AWS_REGION" "$tmp/deploy.zip"
+  fi
   echo "✅ $fn deployed"
   rm -rf "$tmp"
   )
@@ -436,6 +446,10 @@ for fn in $DEPLOY_TARGETS; do
   if [ "$deploy_status" -ne 0 ]; then
     echo "::error::Deploy failed for $fn"
     failed_lambdas+=("$fn")
+    if [ "$caller_phase" -eq 1 ]; then
+      echo "::error::Required alias-aware caller failed; producer staging blocked"
+      exit 1
+    fi
   fi
 done
 
@@ -443,4 +457,3 @@ if [ "${#failed_lambdas[@]}" -gt 0 ]; then
   echo "::error::Lambdas that failed to deploy: ${failed_lambdas[*]}"
   exit 1
 fi
-

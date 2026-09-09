@@ -11,6 +11,36 @@ import json
 import sys
 
 
+def function_identity(config):
+    # Publishing a version / changing the resource policy can advance AWS's
+    # revision metadata without changing the function being protected. Keep
+    # every configuration field and the code hash in the comparison.
+    return {key: value for key, value in config.items()
+            if key not in {"ResponseMetadata", "RevisionId", "LastModified"}}
+
+
+def alias_identity(alias):
+    return {key: value for key, value in alias.items()
+            if key not in {"ResponseMetadata", "RevisionId"}}
+
+
+def checked_function(lam, function, expected, *, owned_mutation=False):
+    current = lam.get_function_configuration(FunctionName=function)
+    if (current.get("State") != "Active" or current.get("LastUpdateStatus") != "Successful"
+            or not current.get("RevisionId") or function_identity(current) != function_identity(expected)
+            or (not owned_mutation and current["RevisionId"] != expected.get("RevisionId"))):
+        raise RuntimeError("Function changed during target protection")
+    return current
+
+
+def checked_alias(lam, function, expected, *, owned_mutation=False):
+    current = lam.get_alias(FunctionName=function, Name="live")
+    if (not current.get("RevisionId") or alias_identity(current) != alias_identity(expected)
+            or (not owned_mutation and current["RevisionId"] != expected.get("RevisionId"))):
+        raise RuntimeError("Production alias changed during target protection")
+    return current
+
+
 def pages(client, method, result, **kwargs):
     while True:
         response = getattr(client, method)(**kwargs)
@@ -33,8 +63,13 @@ def protect(lam, scheduler, events, function):
         previous = lam.publish_version(FunctionName=function, RevisionId=config["RevisionId"], CodeSha256=config["CodeSha256"])
         if not str(previous.get("Version", "")).isdigit() or int(previous["Version"]) < 1:
             raise RuntimeError("Cannot protect production with an unnumbered version")
+        config = checked_function(lam, function, config, owned_mutation=True)
         alias = lam.create_alias(FunctionName=function, Name="live", FunctionVersion=previous["Version"],
                                  Description="Pinned production before candidate replacement")
+        # Rebase only across an operation we performed, and only after checking
+        # that no code/configuration/alias routing changed in the same window.
+        config = checked_function(lam, function, config, owned_mutation=True)
+        alias = checked_alias(lam, function, alias, owned_mutation=True)
     result = {"function": function, "protected_version": alias["FunctionVersion"], "revision_id": config["RevisionId"],
               "schedules": [], "rules": []}
     for group in pages(scheduler, "list_schedule_groups", "ScheduleGroups"):
@@ -65,6 +100,9 @@ def protect(lam, scheduler, events, function):
                     expected = [statement for statement in policy.get("Statement", []) if statement.get("Sid") == sid]
                     if len(expected) != 1 or expected[0].get("Effect") != "Allow" or expected[0].get("Principal") != {"Service": "events.amazonaws.com"} or expected[0].get("Action") != "lambda:InvokeFunction" or expected[0].get("Resource") != live or expected[0].get("Condition", {}).get("ArnLike", {}).get("AWS:SourceArn") != info["Arn"]:
                         raise RuntimeError("Existing alias invoke permission does not match the scheduled rule") from None
+                else:
+                    config = checked_function(lam, function, config, owned_mutation=True)
+                    alias = checked_alias(lam, function, alias, owned_mutation=True)
                 matched = []
                 for row in pages(events, "list_targets_by_rule", "Targets", Rule=rule, EventBusName=bus["Name"]):
                     if row.get("Arn") in (arn, arn + ":$LATEST"):
@@ -76,15 +114,15 @@ def protect(lam, scheduler, events, function):
                 if matched:
                     result["rules"].append(f'{bus["Name"]}/{rule}')
     # Abort before code staging if a concurrent edit changed either pin.
-    if lam.get_alias(FunctionName=function, Name="live").get("RevisionId") != alias.get("RevisionId"):
-        raise RuntimeError("Production alias changed during target protection")
-    latest = lam.get_function_configuration(FunctionName=function)
-    if latest.get("RevisionId") != config["RevisionId"] or latest.get("CodeSha256") != config["CodeSha256"]:
-        raise RuntimeError("Function changed during target protection")
+    checked_alias(lam, function, alias)
+    latest = checked_function(lam, function, config)
+    # The next update-function-code uses this exact, current revision as CAS.
+    result["revision_id"] = latest["RevisionId"]
     return result
 
 
 if __name__ == "__main__":
     import boto3
     function, region = sys.argv[1:3]
+    print(json.dumps({"phase": "protecting_production", "function": function}), file=sys.stderr, flush=True)
     print(json.dumps(protect(*(boto3.client(service, region_name=region) for service in ("lambda", "scheduler", "events")), function), sort_keys=True))

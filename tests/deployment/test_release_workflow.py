@@ -99,7 +99,7 @@ def test_failed_per_engine_command_cannot_continue_to_production_scheduling():
     suffix_start = workflow.index("            )\n            deploy_status=$?", prefix_end)
     suffix_end = workflow.index("          done", suffix_start)
     prefix, suffix = workflow[start:prefix_end], workflow[suffix_start:suffix_end]
-    script = 'set -e\nfn=test\nfailed_lambdas=()\n' + prefix + 'false\nprintf forbidden-production-mutation\n' + suffix
+    script = 'set -e\nfn=test\ncaller_phase=0\nfailed_lambdas=()\n' + prefix + 'false\nprintf forbidden-production-mutation\n' + suffix
     result = subprocess.run(["bash"], input=script, text=True, capture_output=True, check=True)
     assert "forbidden-production-mutation" not in result.stdout
     assert "Deploy failed for test" in result.stdout

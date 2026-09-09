@@ -7,6 +7,9 @@ import subprocess
 import tempfile
 import textwrap
 from pathlib import Path
+from types import SimpleNamespace
+
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / '.github/workflows/deploy-lambdas.yml'
@@ -83,3 +86,71 @@ def test_ops_recovery_dispatch_pins_workflow_and_original_base_without_aws():
     else:raise AssertionError('Unpinned workflow recovery accepted')
     assert 'boto3' not in path.read_text()
     assert 'actions: write' in (ROOT/'.github/workflows/run-ops.yml').read_text()
+
+
+def recovery_5235():
+    path=ROOT/'aws/ops/pending/ops_5235_retry_alias_protected_release.py'
+    if not path.exists():path=ROOT/'aws/ops/ran'/path.name
+    assert 'boto3' not in path.read_text()
+    return runpy.run_path(str(path))['main']
+
+
+def test_alias_recovery_uses_distinct_receipt_and_exact_head_once():
+    with tempfile.TemporaryDirectory() as temp:
+        _alias_recovery_once(Path(temp))
+
+
+def _alias_recovery_once(tmp_path):
+    main=recovery_5235();scope=main.__globals__
+    assert scope['REPORT'].name=='ops_5235_core_recovery_dispatch.json'
+    report=tmp_path/scope['REPORT'].name
+    # A failed earlier attempt must not suppress the independently numbered retry.
+    (tmp_path/'ops_5233_core_recovery_dispatch.json').write_text('{"request_sent":true}')
+    scope['REPORT']=report
+    head='a'*40;git_calls=[];requests=[]
+    scope['subprocess']=SimpleNamespace(
+        check_output=lambda *args,**kw:head+'\n',
+        run=lambda *args,**kw:git_calls.append((args,kw)))
+    def request(repository,token,path,payload=None):
+        requests.append((path,payload))
+        assert json.loads(report.read_text())['request_sent'] is True
+        if payload is not None:
+            assert payload=={'ref':'main','inputs':{
+                'base_sha':'c167a7541b9b02f849343bad1b4a231e758cadd8','expected_sha':head}}
+            return 200,{'workflow_run_id':123}
+        return 200,{'head_sha':head}
+    scope['request']=request
+    with patch.dict(os.environ,{'GITHUB_REPOSITORY':'owner/repo','GH_API_TOKEN':'test-secret-never-logged'}):
+        main();main()
+    assert len(requests)==2 and len(git_calls)==2
+    saved=json.loads(report.read_text())
+    assert saved['operation']=='5235' and saved['status']=='DISPATCHED'
+    assert saved['workflow_sha_matches'] is True and saved['aws_calls']==0
+    assert 'test-secret' not in report.read_text()
+
+
+def test_alias_recovery_uncertain_request_never_auto_duplicates_or_logs_body():
+    with tempfile.TemporaryDirectory() as temp:
+        _alias_recovery_uncertain(Path(temp))
+
+
+def _alias_recovery_uncertain(tmp_path):
+    main=recovery_5235();scope=main.__globals__
+    report=tmp_path/'receipt.json';calls=[]
+    scope['REPORT']=report
+    scope['subprocess']=SimpleNamespace(
+        check_output=lambda *args,**kw:'b'*40,
+        run=lambda *args,**kw:None)
+    def request(*args):
+        calls.append(args)
+        raise RuntimeError('sensitive-response-body')
+    scope['request']=request
+    with patch.dict(os.environ,{'GITHUB_REPOSITORY':'owner/repo','GH_API_TOKEN':'test-secret'}):
+        try:main()
+        except RuntimeError as error:assert 'no automatic duplicate' in str(error)
+        else:raise AssertionError('Uncertain request reported success')
+        main()
+    assert len(calls)==1
+    saved=json.loads(report.read_text())
+    assert saved['status']=='DISPATCH_STATUS_UNCERTAIN'
+    assert 'sensitive-response-body' not in report.read_text()

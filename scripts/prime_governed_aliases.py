@@ -44,4 +44,5 @@ if __name__ == "__main__":
     for function in targets_to_prime(selected, configs):
         # An absent dependency fails closed. Newly introduced services require
         # a validated bootstrap before automated callers may target them.
+        print(json.dumps({"phase": "protecting_production", "function": function}), file=sys.stderr, flush=True)
         print(json.dumps(protect(*clients, function), sort_keys=True))
