@@ -1,18 +1,547 @@
 {
   "ops": 5238,
-  "checkout_sha": "c907382cb0a940a3117555d97de007a201c3fe71",
-  "ops_target_sha": "c907382cb0a940a3117555d97de007a201c3fe71",
-  "ok": false,
+  "checkout_sha": "0c82670e9c24925e1b152549a1da167960830b3d",
+  "ops_target_sha": "0c82670e9c24925e1b152549a1da167960830b3d",
+  "ok": true,
   "containment_only": true,
   "private_payloads_read": 0,
   "original_objects_written": 0,
   "producer_invocations": 0,
   "service_configuration_changes": 0,
   "temporary_containment_removed": false,
-  "checks": [],
-  "step": "install_containment",
-  "failed_step": "install_containment",
-  "reason": "bucket_policy_not_verified",
-  "error_class": "MigrationError",
-  "temporary_containment_retained": false
+  "checks": [
+    {
+      "check": "bucket_policy_readback",
+      "equivalent": true,
+      "raw_equal": false,
+      "expected_sha256": "d1ce39e15936e23791b1ed42c15d9837934d8dc0b2ef4aed0ee38fed1e1c025c",
+      "observed_sha256": "d1ce39e15936e23791b1ed42c15d9837934d8dc0b2ef4aed0ee38fed1e1c025c",
+      "expected_statements": 29,
+      "observed_statements": 29,
+      "required_statements": [
+        {
+          "sid": "Audit20260909PrivatePersonalArtifacts",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        },
+        {
+          "sid": "Audit20260909PrivateDerivativeHistory",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        },
+        {
+          "sid": "Audit20260909DerivativeMigrationInProgress",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        }
+      ]
+    },
+    {
+      "check": "bucket_policy",
+      "private_deny": true,
+      "historical_deny": true,
+      "temporary_current_deny": true
+    },
+    {
+      "check": "cloudflare_zone_purge",
+      "ok": true
+    },
+    {
+      "check": "edge_cache_purge",
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "_health/fleet.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/_telegram-chat.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/ai-brief.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/ai-brief.md",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/ai-commentary/portfolio.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/behavior-mirror.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/best-setups.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/brain-compiler.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/brain-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/brain.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/canary-warroom.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/devils-advocate.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/domain-barometers.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/engine-conflicts.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/history/behavior-mirror-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/journal-graded.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/master-allocation.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/my-brief.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/notes-index.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/notes-themes.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/playbook-rules.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/pm-decision-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/pm-decision.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/position-sizing.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/risk-sizer.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/search/providers/tradingview_vault_live.json.gz",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/sizing.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/tax-plan-snapshot.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/tradingview-notes.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/tradingview.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/tv-workbench.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/user-trades-stats.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/user-trades.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/user-watchlist.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/vol-regime-private.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/vol-regime.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "data/wealth-plan-snapshot.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/catalyst-alert-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/catalysts.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/risk-alert-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/risk.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/sizing-alert-history.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/sizing.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "portfolio/snapshot.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_s3_denied",
+      "key": "risk/recommendations.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/_telegram-chat.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/ai-brief.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/ai-brief.md",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/behavior-mirror.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/brain-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/brain.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/devils-advocate.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/history/behavior-mirror-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/journal-graded.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/my-brief.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/notes-index.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/notes-themes.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/playbook-rules.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/pm-decision-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/pm-decision.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/risk-sizer.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/tradingview-notes.json",
+      "status": 403,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/user-trades-stats.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/user-trades.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/user-watchlist.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "data/vol-regime-private.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/catalyst-alert-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/catalysts.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/risk-alert-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/risk.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/sizing-alert-history.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/sizing.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "portfolio/snapshot.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "anonymous_worker_denied",
+      "key": "risk/recommendations.json",
+      "status": 401,
+      "ok": true
+    },
+    {
+      "check": "final_containment_policy",
+      "ok": true,
+      "equivalent": true,
+      "raw_equal": false,
+      "expected_sha256": "d1ce39e15936e23791b1ed42c15d9837934d8dc0b2ef4aed0ee38fed1e1c025c",
+      "observed_sha256": "d1ce39e15936e23791b1ed42c15d9837934d8dc0b2ef4aed0ee38fed1e1c025c",
+      "expected_statements": 29,
+      "observed_statements": 29,
+      "required_statements": [
+        {
+          "sid": "Audit20260909PrivatePersonalArtifacts",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        },
+        {
+          "sid": "Audit20260909PrivateDerivativeHistory",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        },
+        {
+          "sid": "Audit20260909DerivativeMigrationInProgress",
+          "observed_matches": 1,
+          "equivalent": true,
+          "different_fields": [],
+          "unknown_elements_changed": false
+        }
+      ]
+    }
+  ],
+  "step": "contained_awaiting_full_migration",
+  "temporary_containment_retained": true,
+  "policy_verified": true,
+  "edge_purge_verified": true,
+  "s3_denial_verified": true,
+  "worker_denial_verified": true,
+  "next_step": "Complete exact-code release and ops5230 before restoring sanitized public access.",
+  "policy_write_attempted": true,
+  "policy_write_acknowledged": true,
+  "temporary_containment_state": "verified_present"
 }

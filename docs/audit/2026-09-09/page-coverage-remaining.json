@@ -5,15 +5,15 @@
     "public_routes": 517,
     "engines": 883,
     "routes_with_source_bound_outputs": 506,
-    "primary_valid_contract": 349,
-    "primary_partial": 124,
+    "primary_valid_contract": 353,
+    "primary_partial": 120,
     "support_only": 2,
     "no_association": 0,
     "not_applicable": 42,
     "routes_with_api_response_contract": 21,
     "routes_without_source_bound_outputs": 11,
     "routes_with_primary_output_access": 472,
-    "routes_with_partial_primary_output_access": 123,
+    "routes_with_partial_primary_output_access": 119,
     "all_routes_receive_inspector": true,
     "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
   },
@@ -420,22 +420,20 @@
     }
   ],
   "partial_reason_combinations": {
-    "unindexed families": 49,
-    "unresolved references": 23,
+    "unindexed families": 53,
+    "unresolved references": 18,
     "unresolved writes + unindexed families": 5,
     "withheld + unresolved writes + unindexed families": 2,
     "unindexed families + unresolved references + explicit unresolved": 1,
-    "unindexed families + unresolved references": 8,
-    "unresolved writes + unresolved references": 2,
-    "withheld + unindexed families + unresolved references": 2,
-    "unresolved writes": 7,
+    "unresolved writes + unresolved references": 1,
+    "withheld + unindexed families": 8,
+    "unresolved writes": 8,
     "withheld + unresolved writes + unindexed families + unresolved references": 5,
     "unresolved writes + unindexed families + unresolved references": 3,
-    "withheld + unindexed families": 5,
-    "withheld + unresolved references": 6,
-    "withheld": 2,
-    "withheld + unresolved writes": 3,
-    "withheld + unresolved writes + unresolved references": 1
+    "unindexed families + unresolved references": 5,
+    "withheld + unresolved references": 4,
+    "withheld": 3,
+    "withheld + unresolved writes": 4
   },
   "remaining_routes": [
     {
@@ -834,28 +832,28 @@
       "route": "auction-crisis.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
-        "justhodl-auction-crisis-ai"
+        "justhodl-auction-crisis-ai",
+        "justhodl-auction-crisis-detector"
       ],
       "reasons": [
-        "unresolved primary references: 1"
+        "unindexed families: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-auction-crisis-ai": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
+        "justhodl-auction-crisis-detector": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [
+            "data/archive/auction-crisis/*.json"
+          ],
           "other_format_outputs": []
         }
       }
@@ -864,31 +862,29 @@
       "route": "auctions.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
+        "justhodl-auction-crisis-detector",
         "justhodl-auction-desk",
         "justhodl-auction-interpreter"
       ],
       "reasons": [
-        "unindexed families: 2",
-        "unresolved primary references: 1"
+        "unindexed families: 2"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
+        "justhodl-auction-crisis-detector": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [
+            "data/archive/auction-crisis/*.json"
+          ],
+          "other_format_outputs": []
+        },
         "justhodl-auction-desk": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [
-            "data/archive/auction-crisis/*.json",
             "data/warm/treasury-auctions/daily/*.json"
           ],
           "other_format_outputs": []
@@ -967,6 +963,7 @@
       "route": "bonds.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
+        "justhodl-auction-crisis-detector",
         "justhodl-bond-regime-detector",
         "justhodl-bond-warroom",
         "justhodl-crisis-plumbing",
@@ -976,21 +973,19 @@
       ],
       "reasons": [
         "withheld: 1",
-        "unindexed families: 3",
-        "unresolved primary references: 1"
+        "unindexed families: 4"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
+        "justhodl-auction-crisis-detector": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [
+            "data/archive/auction-crisis/*.json"
+          ],
+          "other_format_outputs": []
+        },
         "justhodl-bond-regime-detector": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
@@ -1219,7 +1214,7 @@
         "justhodl-whales"
       ],
       "reasons": [
-        "withheld: 4",
+        "withheld: 5",
         "unresolved writes: 4",
         "unindexed families: 13",
         "unresolved primary references: 1"
@@ -1495,7 +1490,8 @@
         },
         "justhodl-tv-notes-ingest": {
           "withheld_result_keys": [
-            "data/tradingview-notes.json"
+            "data/tradingview-notes.json",
+            "data/tv-sources.json"
           ],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
@@ -2219,7 +2215,7 @@
           "unresolved_writes": [
             {
               "file": "lambda_function.py",
-              "line": 2655,
+              "line": 2658,
               "operation": "put_json",
               "reason": "dynamic or unresolved key"
             }
@@ -2882,55 +2878,6 @@
       }
     },
     {
-      "route": "harvest-monitor.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-source-map",
-        "justhodl-tv-notes-ingest",
-        "justhodl-tv-workbench"
-      ],
-      "reasons": [
-        "withheld: 1",
-        "unresolved primary references: 1"
-      ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/tv-sources.json",
-          "primary": true,
-          "writers": [
-            "justhodl-source-map",
-            "justhodl-tv-notes-ingest"
-          ]
-        }
-      ],
-      "engine_gaps": {
-        "justhodl-source-map": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-tv-notes-ingest": {
-          "withheld_result_keys": [
-            "data/tradingview-notes.json"
-          ],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-tv-workbench": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
       "route": "horizons.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
@@ -3062,132 +3009,6 @@
           "other_format_outputs": []
         },
         "justhodl-share-flows": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "intel/index.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-activist-filings-scanner",
-        "justhodl-asymmetric-hunter",
-        "justhodl-compound-aggregator",
-        "justhodl-cross-asset-regime",
-        "justhodl-earnings-pead",
-        "justhodl-microcap-float-squeeze",
-        "justhodl-narrative-density-tracker",
-        "justhodl-options-flow-scanner",
-        "justhodl-pre-pump-detector",
-        "justhodl-revenue-acceleration",
-        "justhodl-sector-earnings-diffusion",
-        "justhodl-universe-builder",
-        "justhodl-volatility-squeeze-hunter"
-      ],
-      "reasons": [
-        "unresolved primary references: 1"
-      ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/theme-rotation.json",
-          "primary": true,
-          "writers": [
-            "justhodl-theme-rotation",
-            "justhodl-theme-rotation-engine"
-          ]
-        }
-      ],
-      "engine_gaps": {
-        "justhodl-activist-filings-scanner": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-asymmetric-hunter": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-compound-aggregator": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-cross-asset-regime": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-earnings-pead": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-microcap-float-squeeze": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-narrative-density-tracker": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-options-flow-scanner": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-pre-pump-detector": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-revenue-acceleration": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-sector-earnings-diffusion": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-universe-builder": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-volatility-squeeze-hunter": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
@@ -3694,6 +3515,7 @@
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
         "justhodl-alert-router",
+        "justhodl-auction-crisis-detector",
         "justhodl-correlation-surface",
         "justhodl-divergence-scanner",
         "justhodl-earnings-tracker",
@@ -3703,19 +3525,9 @@
       ],
       "reasons": [
         "withheld: 1",
-        "unresolved primary references: 1"
+        "unindexed families: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-alert-router": {
           "withheld_result_keys": [
@@ -3724,6 +3536,15 @@
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
+        "justhodl-auction-crisis-detector": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [
+            "data/archive/auction-crisis/*.json"
+          ],
           "other_format_outputs": []
         },
         "justhodl-correlation-surface": {
@@ -4244,7 +4065,7 @@
           "unresolved_writes": [
             {
               "file": "lambda_function.py",
-              "line": 2655,
+              "line": 2658,
               "operation": "put_json",
               "reason": "dynamic or unresolved key"
             }
@@ -4338,27 +4159,17 @@
         "justhodl-radar-backtest",
         "justhodl-self-improvement",
         "justhodl-theme-cascade",
+        "justhodl-theme-classifier",
         "justhodl-ticker-deep-research",
         "justhodl-ticket-ai-rationale",
         "justhodl-trade-tickets",
         "justhodl-velocity-acceleration"
       ],
       "reasons": [
-        "withheld: 4",
-        "unindexed families: 7",
-        "unresolved primary references: 1"
+        "withheld: 5",
+        "unindexed families: 7"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/themes.json",
-          "primary": true,
-          "writers": [
-            "justhodl-market-map",
-            "justhodl-theme-classifier"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-cascade-recalibrator": {
           "withheld_result_keys": [],
@@ -4488,6 +4299,15 @@
           "unindexed_dynamic_families": [
             "data/theme-cascade-history/*.json"
           ],
+          "other_format_outputs": []
+        },
+        "justhodl-theme-classifier": {
+          "withheld_result_keys": [
+            "data/_cache/ticker-profiles.json"
+          ],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
           "other_format_outputs": []
         },
         "justhodl-ticker-deep-research": {
@@ -4888,20 +4708,9 @@
       ],
       "reasons": [
         "withheld: 2",
-        "unresolved writes: 1",
-        "unresolved primary references: 1"
+        "unresolved writes: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/theme-rotation.json",
-          "primary": true,
-          "writers": [
-            "justhodl-theme-rotation",
-            "justhodl-theme-rotation-engine"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-merger-arb": {
           "withheld_result_keys": [],
@@ -5014,79 +4823,10 @@
       }
     },
     {
-      "route": "risk-desk.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-coffee-can",
-        "justhodl-cro-digest",
-        "justhodl-cro-escalation",
-        "justhodl-ka-metrics",
-        "justhodl-khalid-metrics",
-        "justhodl-stress-loadings"
-      ],
-      "reasons": [
-        "unresolved primary references: 1"
-      ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/khalid-analysis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-ka-metrics",
-            "justhodl-khalid-metrics"
-          ]
-        }
-      ],
-      "engine_gaps": {
-        "justhodl-coffee-can": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-cro-digest": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-cro-escalation": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-ka-metrics": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-khalid-metrics": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-stress-loadings": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
       "route": "risk-regime.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
+        "justhodl-auction-crisis-detector",
         "justhodl-auction-grader",
         "justhodl-bank-stress",
         "justhodl-boj-detail",
@@ -5140,21 +4880,19 @@
         "justhodl-yield-curve"
       ],
       "reasons": [
-        "unindexed families: 1",
-        "unresolved primary references: 1"
+        "unindexed families: 2"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
+        "justhodl-auction-crisis-detector": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [
+            "data/archive/auction-crisis/*.json"
+          ],
+          "other_format_outputs": []
+        },
         "justhodl-auction-grader": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
@@ -6245,7 +5983,7 @@
           "unresolved_writes": [
             {
               "file": "lambda_function.py",
-              "line": 2655,
+              "line": 2658,
               "operation": "put_json",
               "reason": "dynamic or unresolved key"
             }
@@ -6570,7 +6308,7 @@
           "unresolved_writes": [
             {
               "file": "lambda_function.py",
-              "line": 2655,
+              "line": 2658,
               "operation": "put_json",
               "reason": "dynamic or unresolved key"
             }
@@ -6586,23 +6324,59 @@
       "route": "themes.html",
       "classification": "PRIMARY_PARTIAL",
       "primary_engines": [
+        "justhodl-market-map",
+        "justhodl-theme-classifier",
+        "justhodl-theme-rotation-engine",
         "justhodl-theme-second-wave"
       ],
       "reasons": [
-        "unresolved primary references: 1"
+        "withheld: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/themes.json",
-          "primary": true,
-          "writers": [
-            "justhodl-market-map",
-            "justhodl-theme-classifier"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
+        "justhodl-market-map": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-market-map",
+              "key": "data/_map/state.json",
+              "role": "internal_input_cache",
+              "purpose": "Weekly market-cap/revenue fetch cache used by mcap_state; market-map.json and sector-groups.json are published results.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-market-map/source/lambda_function.py",
+                "lines": [
+                  25,
+                  78,
+                  81,
+                  106,
+                  109,
+                  152,
+                  155
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
+        "justhodl-theme-classifier": {
+          "withheld_result_keys": [
+            "data/_cache/ticker-profiles.json"
+          ],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
+        "justhodl-theme-rotation-engine": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
         "justhodl-theme-second-wave": {
           "withheld_result_keys": [],
           "excluded_internal_outputs": [],
@@ -6809,7 +6583,7 @@
         "justhodl-tv-notes-ingest"
       ],
       "reasons": [
-        "withheld: 1"
+        "withheld: 2"
       ],
       "unresolved_primary_references": [],
       "engine_gaps": {
@@ -6829,7 +6603,8 @@
         },
         "justhodl-tv-notes-ingest": {
           "withheld_result_keys": [
-            "data/tradingview-notes.json"
+            "data/tradingview-notes.json",
+            "data/tv-sources.json"
           ],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
@@ -6846,20 +6621,9 @@
         "justhodl-gap-metrics"
       ],
       "reasons": [
-        "unindexed families: 1",
-        "unresolved primary references: 1"
+        "unindexed families: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/auction-crisis.json",
-          "primary": true,
-          "writers": [
-            "justhodl-auction-crisis-detector",
-            "justhodl-auction-desk"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-auction-crisis-detector": {
           "withheld_result_keys": [],
@@ -7037,7 +6801,7 @@
         "justhodl-tv-notes-ingest"
       ],
       "reasons": [
-        "withheld: 1",
+        "withheld: 2",
         "unresolved primary references: 1"
       ],
       "unresolved_primary_references": [
@@ -7057,134 +6821,9 @@
         },
         "justhodl-tv-notes-ingest": {
           "withheld_result_keys": [
-            "data/tradingview-notes.json"
+            "data/tradingview-notes.json",
+            "data/tv-sources.json"
           ],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        }
-      }
-    },
-    {
-      "route": "web/intel/index.html",
-      "classification": "PRIMARY_PARTIAL",
-      "primary_engines": [
-        "justhodl-activist-filings-scanner",
-        "justhodl-asymmetric-hunter",
-        "justhodl-compound-aggregator",
-        "justhodl-cross-asset-regime",
-        "justhodl-earnings-pead",
-        "justhodl-microcap-float-squeeze",
-        "justhodl-narrative-density-tracker",
-        "justhodl-options-flow-scanner",
-        "justhodl-pre-pump-detector",
-        "justhodl-revenue-acceleration",
-        "justhodl-sector-earnings-diffusion",
-        "justhodl-universe-builder",
-        "justhodl-volatility-squeeze-hunter"
-      ],
-      "reasons": [
-        "unresolved primary references: 1"
-      ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/theme-rotation.json",
-          "primary": true,
-          "writers": [
-            "justhodl-theme-rotation",
-            "justhodl-theme-rotation-engine"
-          ]
-        }
-      ],
-      "engine_gaps": {
-        "justhodl-activist-filings-scanner": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-asymmetric-hunter": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-compound-aggregator": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-cross-asset-regime": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-earnings-pead": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-microcap-float-squeeze": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-narrative-density-tracker": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-options-flow-scanner": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-pre-pump-detector": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-revenue-acceleration": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-sector-earnings-diffusion": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-universe-builder": {
-          "withheld_result_keys": [],
-          "excluded_internal_outputs": [],
-          "unresolved_writes": [],
-          "unindexed_dynamic_families": [],
-          "other_format_outputs": []
-        },
-        "justhodl-volatility-squeeze-hunter": {
-          "withheld_result_keys": [],
           "excluded_internal_outputs": [],
           "unresolved_writes": [],
           "unindexed_dynamic_families": [],
@@ -7202,6 +6841,7 @@
         "justhodl-deep-value-screener",
         "justhodl-eps-revision-velocity",
         "justhodl-insider-trades",
+        "justhodl-market-map",
         "justhodl-master-ranker",
         "justhodl-microcap-float-squeeze",
         "justhodl-momentum-breakout",
@@ -7215,20 +6855,9 @@
         "justhodl-theme-tier-classifier"
       ],
       "reasons": [
-        "unresolved writes: 1",
-        "unresolved primary references: 1"
+        "unresolved writes: 1"
       ],
-      "unresolved_primary_references": [
-        {
-          "reason": "multiple source writers",
-          "key": "data/themes.json",
-          "primary": true,
-          "writers": [
-            "justhodl-market-map",
-            "justhodl-theme-classifier"
-          ]
-        }
-      ],
+      "unresolved_primary_references": [],
       "engine_gaps": {
         "justhodl-asymmetric-hunter": {
           "withheld_result_keys": [],
@@ -7282,6 +6911,33 @@
                   629,
                   631,
                   632
+                ]
+              },
+              "public_access_approved": false
+            }
+          ],
+          "unresolved_writes": [],
+          "unindexed_dynamic_families": [],
+          "other_format_outputs": []
+        },
+        "justhodl-market-map": {
+          "withheld_result_keys": [],
+          "excluded_internal_outputs": [
+            {
+              "engine": "justhodl-market-map",
+              "key": "data/_map/state.json",
+              "role": "internal_input_cache",
+              "purpose": "Weekly market-cap/revenue fetch cache used by mcap_state; market-map.json and sector-groups.json are published results.",
+              "evidence": {
+                "source": "aws/lambdas/justhodl-market-map/source/lambda_function.py",
+                "lines": [
+                  25,
+                  78,
+                  81,
+                  106,
+                  109,
+                  152,
+                  155
                 ]
               },
               "public_access_approved": false

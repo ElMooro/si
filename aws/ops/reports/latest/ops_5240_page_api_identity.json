@@ -1,0 +1,47 @@
+{
+  "schema_version": "page-api-identity-metadata.v1",
+  "operation": "5240",
+  "observed_at": "2026-09-09T04:56:10.846820+00:00",
+  "checkout_sha": "0c82670e9c24925e1b152549a1da167960830b3d",
+  "read_only": true,
+  "payload_requests": 0,
+  "lambda_invokes": 0,
+  "binding_source": "aws/ops/checks/audit_20260909_release.py:FUNCTION_URL_BINDINGS",
+  "bindings": [
+    {
+      "page": "fmp.html",
+      "function": "fmp-fundamentals-agent",
+      "expected_page_hostname": "nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws",
+      "page_contains_expected_hostname": true,
+      "actual_function_url": "https://nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws/",
+      "actual_hostname": "nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws",
+      "url_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fmp-fundamentals-agent",
+      "configuration_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fmp-fundamentals-agent",
+      "code_sha256": "czOnbmBxn3SKyqCgQXJtuRiyQDFoph2InjwBJo4f0iI=",
+      "state": "Active",
+      "url_hostname_matches": true,
+      "metadata_calls_attempted": 2,
+      "errors": [],
+      "function_arn_matches": true,
+      "status": "VERIFIED"
+    },
+    {
+      "page": "census.html",
+      "function": "fedliquidityapi",
+      "expected_page_hostname": "gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws",
+      "page_contains_expected_hostname": true,
+      "actual_function_url": "https://mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws/",
+      "actual_hostname": "mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws",
+      "url_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fedliquidityapi",
+      "configuration_function_arn": "arn:aws:lambda:us-east-1:857687956942:function:fedliquidityapi",
+      "code_sha256": "V4Z0AG7M3c0M+JK6AohmbMuxWsCHJ+k3r1/0ypPTFao=",
+      "state": "Active",
+      "url_hostname_matches": false,
+      "metadata_calls_attempted": 2,
+      "errors": [],
+      "function_arn_matches": true,
+      "status": "MISMATCH"
+    }
+  ],
+  "all_verified": false
+}
