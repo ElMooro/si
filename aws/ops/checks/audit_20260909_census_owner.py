@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 ACCOUNT = "857687956942"
 REGION = "us-east-1"
 TARGET_HOST = "gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws"
-MAX_WORKERS = 6
+MAX_WORKERS = 2
 MAX_FUNCTIONS = 10000
 MAX_FUNCTION_PAGES = 200
 MAX_URL_PAGES = 20
