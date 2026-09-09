@@ -34,6 +34,7 @@ function riskFixture() {
     schema_version: "1.0.0",
     version: "1.0.0",
     generated_at: new Date(generatedAt).toISOString(),
+    expires_at: new Date(generatedAt + 2 * HOUR).toISOString(),
     as_of: new Date(sourceAsOf).toISOString(),
     status: "OK",
     policy: {
@@ -129,6 +130,17 @@ const riskValidators = [
 test("both frontends directly accept a fresh, internally consistent risk artifact", () => {
   for (const [name, validate] of riskValidators) {
     assert.equal(validate(riskFixture(), NOW).ok, true, name);
+  }
+});
+
+test("both frontends require explicit unexpired capital permission", () => {
+  for (const [name, validate] of riskValidators) {
+    const missing = riskFixture(); delete missing.expires_at;
+    assert.equal(validate(missing, NOW).ok, false, `${name}: missing expiry`);
+    const expired = riskFixture(); expired.expires_at = new Date(NOW).toISOString();
+    assert.equal(validate(expired, NOW).ok, false, `${name}: expiry boundary`);
+    const before = riskFixture(); before.expires_at = new Date(NOW + 1).toISOString();
+    assert.equal(validate(before, NOW).ok, true, `${name}: just before expiry`);
   }
 });
 
@@ -285,4 +297,58 @@ test("homepage rejects fusion that can loosen risk or carries an opaque verdict"
   const opaque = fusionFixture();
   opaque.authoritative_verdict = "RISK_ON";
   assert.equal(homeValidation.validateFusionArtifact(opaque, NOW).ok, false);
+});
+
+test("homepage distinguishes governed policy exclusions from unavailable scoring evidence", () => {
+  const data = fusionFixture();
+  data.inactive_packets.push({ source_id: "view", active: false, freshness: "MISSING", scoring_excluded: true });
+  data.trace.push({ source_id: "view", active: false, freshness: "MISSING", scoring_excluded: true });
+  data.coverage.freshness.missing = 1;
+  data.coverage.policy_excluded_sources = 1;
+  data.coverage.unavailable_scoring_sources = 0;
+  assert.equal(homeValidation.validateFusionArtifact(data, NOW).ok, true);
+  data.status = "DEGRADED";
+  assert.equal(homeValidation.validateFusionArtifact(data, NOW).ok, false);
+  data.status = "OK";
+  data.trace[1].scoring_excluded = false;
+  assert.equal(homeValidation.validateFusionArtifact(data, NOW).ok, false, "packet/trace mismatch");
+  data.inactive_packets[0].scoring_excluded = false;
+  data.coverage.policy_excluded_sources = 0;
+  data.coverage.unavailable_scoring_sources = 1;
+  assert.equal(homeValidation.validateFusionArtifact(data, NOW).ok, false, "missing eligible evidence must degrade");
+  data.status = "DEGRADED";
+  data.coverage.allowlisted_sources = 2;
+  data.coverage.ratio = 0.5;
+  assert.equal(homeValidation.validateFusionArtifact(data, NOW).ok, true);
+});
+
+test("homepage clears a displayed cap when the actual render timer expires", () => {
+  const fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
+  const source = fs.readFileSync(path.join(__dirname, "..", "home.js"), "utf8");
+  const renderSource = source.slice(source.indexOf("  function authorityValue("), source.indexOf("  async function loadAuthority("));
+  const nodes = new Map(), timers = new Map();
+  let now = NOW, serial = 0;
+  class Clock extends Date { static now() { return now; } }
+  const data = riskFixture(); data.expires_at = new Date(NOW + 1000).toISOString();
+  const context = vm.createContext({
+    Date: Clock, authorityExpiryTimer: null, authority: { risk: data, fusion: null },
+    JustHodlArtifactValidation: homeValidation,
+    $(id) { if (!nodes.has(id)) nodes.set(id, {}); return nodes.get(id); },
+    pick(data, paths) { for (const path of paths) { const value = path.split(".").reduce((obj, key) => obj == null ? undefined : obj[key], data); if (value != null && value !== "") return value; } },
+    has(value) { return value != null && value !== ""; },
+    restrictiveDecision() { return false; },
+    asCount(value) { return Array.isArray(value) ? value.length : typeof value === "number" ? value : null; },
+    heartbeat() {},
+    setTimeout(fn, delay) { const id = ++serial; timers.set(id, { fn, delay }); return id; },
+    clearTimeout(id) { timers.delete(id); },
+  });
+  vm.runInContext(renderSource, context);
+  context.renderAuthority();
+  assert.equal(nodes.get("hd-risk-cap").textContent, "80%");
+  const timer = [...timers.values()][0]; assert.equal(timer.delay, 1000);
+  now += 1000; timer.fn();
+  assert.equal(nodes.get("hd-risk-cap").textContent, "—");
+  assert.equal(context.authority.risk, null);
+  assert.equal(context.authority.restrictive, true);
+  assert.match(nodes.get("hd-authority-title").textContent, /unavailable/);
 });

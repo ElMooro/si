@@ -48,6 +48,9 @@ var JustHodlRiskArtifactValidation = (function () {
     if (generatedAt === null) return fail("generated_at is missing or invalid");
     if (generatedAt - nowMs > FUTURE_TOLERANCE_MS) return fail("generated_at is too far in the future");
     if (nowMs - generatedAt > MAX_ARTIFACT_AGE_MS) return fail("Risk artifact is stale");
+    var expiresAt = timestamp(data.expires_at);
+    if (expiresAt === null || expiresAt <= generatedAt) return fail("Risk expiry is missing or invalid");
+    if (nowMs >= expiresAt) return fail("Risk artifact permission has expired");
     var required = ["as_of", "status", "policy", "capital_decision", "exposure_cap_pct", "risk_score", "plain_english", "coverage", "freshness", "treasury_fails", "domains", "conflicts", "source_health", "reasons", "methodology", "risk_board"];
     var missing = required.filter(function (key) { return !own(data, key); });
     if (missing.length) return fail("Risk artifact is missing " + missing.join(", "));
@@ -120,7 +123,13 @@ var JustHodlRiskArtifactValidation = (function () {
          !finite(data.treasury_fails.ftd_bn) || !finite(data.treasury_fails.ftr_bn) || !finite(data.treasury_fails.gross_bn))) {
       return fail("Fresh Treasury-fails data is malformed");
     }
-    return { ok: true, generatedAt: generatedAt };
+    var validUntil = Math.min(expiresAt, generatedAt + MAX_ARTIFACT_AGE_MS + 1);
+    data.source_health.forEach(function (source) {
+      if (source.critical && source.status === "FRESH") {
+        validUntil = Math.min(validUntil, timestamp(source.as_of) + source.max_age_h * HOUR_MS + FUTURE_TOLERANCE_MS + 1);
+      }
+    });
+    return { ok: true, generatedAt: generatedAt, validUntil: validUntil };
   }
   return {
     version: VERSION,
@@ -139,6 +148,7 @@ if (typeof module === "object" && module.exports) {
   var PROXY = (window.JUSTHODL_AUTH_CONFIG && window.JUSTHODL_AUTH_CONFIG.syncBase) || "https://justhodl-data-proxy.raafouis.workers.dev";
   var DATA_PATH = "/data/khalid-risk.json";
   var $ = function (id) { return document.getElementById(id); };
+  var currentArtifact = null, expiryTimer = null, loadVersion = 0;
 
   function isObj(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
   function has(value) { return value !== undefined && value !== null && value !== ""; }
@@ -211,7 +221,7 @@ if (typeof module === "object" && module.exports) {
   }
   function timeText(value) {
     if (!has(value)) return "—";
-    var t = Date.parse(String(value));
+    var t = typeof value === "number" ? value : Date.parse(String(value));
     if (Number.isNaN(t)) return String(value);
     return new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   }
@@ -225,18 +235,70 @@ if (typeof module === "object" && module.exports) {
     return pick(item, ["label", "name", "domain", "key", "code", "severity", "status"]) || fallback;
   }
 
+  // Preserve every leaf, including nulls, empty containers and long text. The
+  // summary cards may format numbers; these details retain exact JSON values.
+  function appendValue(target, value) {
+    if (value && typeof value === "object") {
+      var keys = Object.keys(value);
+      if (!keys.length) { target.append(node("span", "kr-empty-value", Array.isArray(value) ? "[]" : "{}")); return; }
+      var fields = node("dl", "kr-fields");
+      keys.forEach(function (key) {
+        var row = node("div"), dd = node("dd");
+        row.append(node("dt", "", Array.isArray(value) ? "[" + key + "]" : key));
+        appendValue(dd, value[key]); row.append(dd); fields.append(row);
+      });
+      target.append(fields);
+    } else {
+      target.append(node("span", value === null ? "kr-empty-value" : "", value === null ? "null (not supplied)" : value === undefined ? "undefined (not supplied)" : typeof value === "string" && value === "" ? '"" (empty string)' : String(value)));
+    }
+  }
+  function detailBlock(title, value, open) {
+    var details = node("details", "kr-details"); details.open = !!open;
+    details.append(node("summary", "", title)); appendValue(details, value); return details;
+  }
+  function renderEvidence(data) {
+    var target = $("kr-evidence-fields"); clear(target);
+    var priority = ["policy", "critical_failures", "reasons", "methodology", "fusion_context"];
+    if (isObj(data)) {
+      Object.keys(data).sort(function (a, b) {
+        var ai = priority.indexOf(a), bi = priority.indexOf(b);
+        return (ai < 0 ? priority.length : ai) - (bi < 0 ? priority.length : bi);
+      }).forEach(function (key) { target.append(detailBlock(label(key) + " · " + key, data[key], priority.indexOf(key) >= 0)); });
+    } else appendValue(target, data);
+    set("kr-raw-payload", JSON.stringify(data, null, 2));
+    $("kr-evidence").hidden = false;
+  }
+  function showUnavailable(error) {
+    if (expiryTimer !== null) clearTimeout(expiryTimer);
+    expiryTimer = null; currentArtifact = null;
+    $("kr-loading").hidden = true; $("kr-board").hidden = true; $("kr-error").hidden = false;
+    set("kr-decision", "Unavailable"); set("kr-cap", "—"); set("kr-mode", "Unavailable");
+    set("kr-error-copy", "No current capital permission can be shown. " + error);
+    set("kr-contract-state", "UNAVAILABLE — evidence only; " + error);
+  }
+  function checkFreshness() {
+    if (!currentArtifact) return false;
+    var validation = JustHodlRiskArtifactValidation.validateRiskArtifact(currentArtifact, Date.now());
+    if (!validation.ok) { showUnavailable(validation.error); return false; }
+    if (expiryTimer !== null) clearTimeout(expiryTimer);
+    expiryTimer = setTimeout(checkFreshness, Math.max(1, validation.validUntil - Date.now()));
+    return true;
+  }
+
   async function fetchRisk() {
-    var urls = [DATA_PATH, PROXY + DATA_PATH], last;
+    var urls = [DATA_PATH, PROXY + DATA_PATH], last, lastData;
     for (var i = 0; i < urls.length; i += 1) {
       try {
         var response = await fetch(urls[i] + "?t=" + Date.now(), { cache: "no-store", headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("HTTP " + response.status);
         var data = await response.json();
+        lastData = data;
         var validation = JustHodlRiskArtifactValidation.validateRiskArtifact(data, Date.now());
         if (!validation.ok) throw new Error(validation.error);
         return data;
       } catch (error) { last = error; }
     }
+    if (lastData !== undefined) return lastData;
     throw last || new Error("Risk artifact unavailable");
   }
 
@@ -308,6 +370,9 @@ if (typeof module === "object" && module.exports) {
       ["Fresh", pick(coverage, ["fresh", "fresh_count"])],
       ["Stale", pick(coverage, ["stale", "stale_count"])],
       ["Missing", pick(coverage, ["missing", "missing_count"])],
+      ["Invalid", coverage.invalid],
+      ["Unknown", coverage.unknown],
+      ["Total", coverage.total],
       ["Freshness", pick(freshness, ["status", "state", "label"])],
       ["Oldest input", pick(freshness, ["oldest_age_h", "max_age_h", "oldest"])]
     ];
@@ -341,18 +406,16 @@ if (typeof module === "object" && module.exports) {
       var severity = pick(domain, ["severity", "regime", "state", "status"]) || "unknown";
       head.append(node("h3", "", label(name)), node("span", "kr-badge " + severityClass(severity), label(severity)));
       article.append(head, node("p", "", pick(domain, ["plain_english", "summary", "interpretation", "reason", "detail"]) || "No interpretation supplied."));
-      var dl = node("dl"), skip = /^(label|domain|name|key|severity|regime|state|status|plain_english|summary|interpretation|reason|detail|metrics)$/;
+      var dl = node("dl"), skip = /^(label|domain|name|key|plain_english|summary|interpretation|reason|detail|metrics)$/;
       var metrics = list(domain.metrics);
-      if (!metrics.length) {
-        Object.keys(domain).filter(function (key) { return !skip.test(key) && !isObj(domain[key]) && !Array.isArray(domain[key]); }).slice(0, 8).forEach(function (key) {
-          metrics.push({ label: key, value: domain[key] });
-        });
-      }
+      Object.keys(domain).filter(function (key) { return !skip.test(key) && !isObj(domain[key]) && !Array.isArray(domain[key]); }).forEach(function (key) {
+        metrics.push({ label: key, value: domain[key] });
+      });
       metrics.forEach(function (metric) {
         var dt = itemLabel(metric, "Metric"), value = isObj(metric) ? pick(metric, ["value", "level", "score", "status"]) : metric;
         var wrap = node("div"); wrap.append(node("dt", "", label(dt)), node("dd", "", fmt(value, isObj(metric) ? metric.unit : ""))); dl.append(wrap);
       });
-      article.append(dl); box.append(article);
+      article.append(dl, detailBlock("Complete domain evidence", domain)); box.append(article);
     });
     if (!domains.length) box.append(node("p", "kr-empty", "No independent risk domains were supplied by the artifact."));
     set("kr-domain-count", domains.length + (domains.length === 1 ? " domain" : " domains"));
@@ -380,8 +443,11 @@ if (typeof module === "object" && module.exports) {
         [pick(source, ["source", "name", "label", "key", "producer"]), ""],
         [status, "kr-status-" + keyForm(status)],
         [age, ""],
-        [pick(source, ["coverage", "coverage_pct", "ratio", "detail"]), ""]
+        [source.critical === true ? "Critical" : "Optional", ""],
+        [has(source.max_age_h) ? fmt(source.max_age_h, "h") : "—", ""],
+        [source.error, ""]
       ].forEach(function (cell) { tr.append(node("td", cell[1], fmt(cell[0]))); });
+      var evidence = node("td"); evidence.append(detailBlock("Source, timestamps and full record", source)); tr.append(evidence);
       body.append(tr);
     });
     $("kr-source-empty").hidden = sources.length > 0;
@@ -392,6 +458,10 @@ if (typeof module === "object" && module.exports) {
   }
 
   function render(data) {
+    renderEvidence(data);
+    var validation = JustHodlRiskArtifactValidation.validateRiskArtifact(data, Date.now());
+    if (!validation.ok) { showUnavailable(validation.error); return false; }
+    currentArtifact = data;
     var board = isObj(data.risk_board) ? data.risk_board : data;
     var decision = pick(data, ["risk_board.capital_decision", "capital_decision", "decision.capital_decision", "decision.posture", "posture"]);
     var cap = pick(data, ["risk_board.exposure_cap_pct", "exposure_cap_pct", "risk_control.exposure_cap_pct", "gross_exposure_cap_pct"]);
@@ -404,6 +474,10 @@ if (typeof module === "object" && module.exports) {
     set("kr-cap", has(cap) ? (typeof cap === "number" ? fmt(cap, "%") : String(cap)) : null);
     set("kr-mode", mode);
     set("kr-asof", timeText(asof));
+    set("kr-risk-score", data.risk_score === null ? "Not supplied" : fmt(data.risk_score, "/100"));
+    set("kr-entry-permission", data.policy.allows_new_entries ? "Allowed within cap" : "Blocked");
+    set("kr-valid-until", timeText(validation.validUntil));
+    set("kr-contract-state", "VALIDATED — current capital permission expires " + timeText(validation.validUntil));
     set("kr-interpretation", interpretation, "No plain-English interpretation was supplied by the risk engine.");
     $("kr-title").closest(".kr-decision").classList.toggle("safe", /allow|normal|risk.?on|deploy/i.test(String(decision || "")) && !/hold|defens|cash|wait|veto|block/i.test(String(decision || "")));
 
@@ -414,25 +488,34 @@ if (typeof module === "object" && module.exports) {
     var conflicts = pick(data, ["conflicts", "disagreements", "risk_board.conflicts", "risk_board.disagreements", "coordination.disagreements"]);
     set("kr-conflict-count", renderLineList("kr-conflicts", conflicts, "No conflict or disagreement list was supplied.", "CONFLICT") + " reported");
     renderCoverage(data); renderFails(data); renderDomains(data); renderSources(data);
+    checkFreshness();
+    return true;
   }
 
   async function load() {
+    var version = ++loadVersion;
+    if (expiryTimer !== null) clearTimeout(expiryTimer);
+    expiryTimer = null; currentArtifact = null;
     $("kr-loading").hidden = false; $("kr-error").hidden = true; $("kr-board").hidden = true;
-    try { render(await fetchRisk()); }
+    set("kr-contract-state", "Checking current artifact; prior evidence is not current permission.");
+    try { var data = await fetchRisk(); if (version === loadVersion) render(data); }
     catch (error) {
-      $("kr-loading").hidden = true; $("kr-board").hidden = true; $("kr-error").hidden = false;
-      set("kr-error-copy", "No capital decision can be shown safely. " + (error && error.message ? error.message : "The risk artifact could not be read."));
+      if (version === loadVersion) showUnavailable(error && error.message ? error.message : "The risk artifact could not be read.");
     }
   }
 
   $("kr-retry").addEventListener("click", load);
   $("kr-refresh").addEventListener("click", load);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkFreshness(); });
+  window.addEventListener("pageshow", checkFreshness);
+  window.addEventListener("focus", checkFreshness);
   if (window.JustHodlAuth && window.JustHodlAuth.init) {
     try { window.JustHodlAuth.init(); } catch (error) { /* Anonymous mode remains usable. */ }
   }
   window.JustHodlRisk = {
     render: render,
     load: load,
+    checkFreshness: checkFreshness,
     normalizeDomains: domainArray,
     sourceArray: sourceArray,
     validateRiskArtifact: JustHodlRiskArtifactValidation.validateRiskArtifact

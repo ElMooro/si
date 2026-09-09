@@ -64,6 +64,9 @@ var JustHodlArtifactValidation = (function () {
     if (!Number.isFinite(nowMs)) return fail("Validation time is invalid");
     var envelope = validateEnvelope(data, "justhodl-khalid-risk", nowMs);
     if (!envelope.ok) return envelope;
+    var expiresAt = timestamp(data.expires_at);
+    if (expiresAt === null || expiresAt <= envelope.generatedAt) return fail("Risk expiry is missing or invalid");
+    if (nowMs >= expiresAt) return fail("Risk artifact permission has expired");
     var required = ["as_of", "status", "policy", "capital_decision", "exposure_cap_pct", "risk_score", "plain_english", "coverage", "freshness", "treasury_fails", "domains", "conflicts", "source_health", "reasons", "methodology", "risk_board"];
     var missing = required.filter(function (key) { return !own(data, key); });
     if (missing.length) return fail("Risk artifact is missing " + missing.join(", "));
@@ -138,7 +141,13 @@ var JustHodlArtifactValidation = (function () {
         return fail("Fresh Treasury-fails data is malformed");
       }
     }
-    return { ok: true, generatedAt: envelope.generatedAt };
+    var validUntil = Math.min(expiresAt, envelope.generatedAt + MAX_ARTIFACT_AGE_MS + 1);
+    data.source_health.forEach(function (source) {
+      if (source.critical && source.status === "FRESH") {
+        validUntil = Math.min(validUntil, timestamp(source.as_of) + source.max_age_h * HOUR_MS + FUTURE_TOLERANCE_MS + 1);
+      }
+    });
+    return { ok: true, generatedAt: envelope.generatedAt, validUntil: validUntil };
   }
   function validateFusionArtifact(data, now) {
     var nowMs = now == null ? Date.now() : (now instanceof Date ? now.getTime() : Number(now));
@@ -150,13 +159,17 @@ var JustHodlArtifactValidation = (function () {
         !object(data.coverage.freshness) || !object(data.dedupe) || !object(data.subscriptions) || !object(data.methodology) ||
         requiredArrays.some(function (key) { return !Array.isArray(data[key]); })) return fail("Fusion artifact shape/status is invalid");
     var traceStatuses = { FRESH: "fresh", STALE: "stale", MISSING: "missing", INVALID: "invalid", UNKNOWN: "unknown" };
-    var traceSeen = {}, activeTraceCount = 0, inactiveTraceCount = 0;
+    var traceSeen = {}, activeTraceCount = 0, inactiveTraceCount = 0, unavailableScoringCount = 0, excludedCount = 0;
     for (var i = 0; i < data.trace.length; i += 1) {
       var row = data.trace[i];
       if (!object(row) || typeof row.source_id !== "string" || traceSeen[row.source_id] || !own(traceStatuses, row.freshness) ||
           typeof row.active !== "boolean") return fail("Fusion trace is malformed or duplicated");
-      traceSeen[row.source_id] = true;
+      if (own(row, "scoring_excluded") && typeof row.scoring_excluded !== "boolean") return fail("Fusion scoring exclusion is invalid");
+      if (row.scoring_excluded === true && row.active) return fail("Excluded fusion source cannot be active");
+      traceSeen[row.source_id] = row;
       if (row.active) activeTraceCount += 1; else inactiveTraceCount += 1;
+      if (row.scoring_excluded === true) excludedCount += 1;
+      else if (!row.active) unavailableScoringCount += 1;
       if (row.freshness === "FRESH") {
         var freshRow = { name: row.source_id, age_h: row.age_h, max_age_h: row.max_age_h, as_of: row.as_of };
         var freshness = validateFreshSource(freshRow, envelope.generatedAt, nowMs);
@@ -182,6 +195,11 @@ var JustHodlArtifactValidation = (function () {
       if (!object(inactivePacket) || inactivePacket.active !== false || !own(traceStatuses, inactivePacket.freshness)) {
         return fail("Inactive fusion packet is invalid");
       }
+      var inactiveTrace = traceSeen[inactivePacket.source_id];
+      if (!inactiveTrace || inactiveTrace.active ||
+          (inactivePacket.scoring_excluded === true) !== (inactiveTrace.scoring_excluded === true)) {
+        return fail("Inactive fusion packet contradicts source trace");
+      }
     }
     for (var v = 0; v < data.vetoes.length; v += 1) {
       var veto = data.vetoes[v];
@@ -190,6 +208,10 @@ var JustHodlArtifactValidation = (function () {
       }
     }
     var coverage = data.coverage;
+    if ((own(coverage, "policy_excluded_sources") && coverage.policy_excluded_sources !== excludedCount) ||
+        (own(coverage, "unavailable_scoring_sources") && coverage.unavailable_scoring_sources !== unavailableScoringCount)) {
+      return fail("Fusion scoring coverage is inconsistent");
+    }
     if (!integer(coverage.allowlisted_sources) || !integer(coverage.fresh_active_before_dedupe) ||
         !integer(coverage.active_after_dedupe) || coverage.active_after_dedupe !== data.packets.length ||
         coverage.fresh_active_before_dedupe !== activeTraceCount || data.inactive_packets.length !== inactiveTraceCount ||
@@ -199,8 +221,8 @@ var JustHodlArtifactValidation = (function () {
       return fail("Fusion coverage is inconsistent");
     }
     if ((data.status === "NO_ACTIVE_EVIDENCE" && data.packets.length !== 0) ||
-        (data.status === "OK" && (data.packets.length === 0 || data.inactive_packets.length !== 0)) ||
-        (data.status === "DEGRADED" && (data.packets.length === 0 || data.inactive_packets.length === 0))) {
+        (data.status === "OK" && (data.packets.length === 0 || unavailableScoringCount !== 0)) ||
+        (data.status === "DEGRADED" && (data.packets.length === 0 || unavailableScoringCount === 0))) {
       return fail("Fusion status contradicts active evidence");
     }
     return { ok: true, generatedAt: envelope.generatedAt };
@@ -235,6 +257,7 @@ if (typeof module === "object" && module.exports) {
   var feedCache = new Map(), embedMeta = new Map(), saveTimer = null, cloudUser = null, cloudRevision = 0, scope = "local";
   var palette = { items: [], sel: -1, q: "" };
   var authority = { risk: null, fusion: null, restrictive: true, riskError: "Risk artifact loading", fusionError: "Fusion artifact loading" };
+  var authorityExpiryTimer = null;
   var composer = { step: 0, kind: null, source: null, feed: "", panel: "", fields: [], columns: [], title: "", width: 1, data: null };
 
   // ------------------------------------------------------------------ helpers
@@ -712,6 +735,17 @@ if (typeof module === "object" && module.exports) {
   }
   function authorityValue(data, paths) { return data ? pick(data, paths) : undefined; }
   function renderAuthority() {
+    if (authorityExpiryTimer !== null) clearTimeout(authorityExpiryTimer);
+    authorityExpiryTimer = null;
+    var nextCheck = Infinity;
+    [["risk", JustHodlArtifactValidation.validateRiskArtifact], ["fusion", JustHodlArtifactValidation.validateFusionArtifact]].forEach(function (entry) {
+      var key = entry[0];
+      if (!authority[key]) return;
+      var validation = entry[1](authority[key], Date.now());
+      if (!validation.ok) { authority[key] = null; authority[key + "Error"] = validation.error; }
+      else nextCheck = Math.min(nextCheck, validation.validUntil || (validation.generatedAt + JustHodlArtifactValidation.maxArtifactAgeMs + 1));
+    });
+    if (Number.isFinite(nextCheck)) authorityExpiryTimer = setTimeout(renderAuthority, Math.max(1, nextCheck - Date.now()));
     var risk = authority.risk, fusion = authority.fusion;
     var decision = authorityValue(risk, ["risk_board.capital_decision", "capital_decision", "decision.capital_decision", "decision.posture", "posture"]);
     var cap = authorityValue(risk, ["risk_board.exposure_cap_pct", "exposure_cap_pct", "risk_control.exposure_cap_pct", "gross_exposure_cap_pct"]);
@@ -1014,8 +1048,11 @@ if (typeof module === "object" && module.exports) {
   document.addEventListener("dragend", function () { dragId = null; document.querySelectorAll(".hd-block.drag,.hd-block.over").forEach(function (x) { x.classList.remove("drag", "over"); }); });
   $("hd-reset").addEventListener("click", function () { if (!confirm("Reset the desk to the default layout?")) return; getJson(["/config/home-layout.json"]).catch(function () { return null; }).then(function (d) { state = fromDefaults(d); state.revision = cloudRevision; embedMeta.clear(); scheduleSave(); render(); toast("desk reset"); }); });
   $("hd-export").addEventListener("click", function () { var txt = JSON.stringify({ schema: SCHEMA, blocks: state.blocks.map(function (b) { var o = Object.assign({}, b); delete o.id; delete o.expand; return o; }) }, null, 1); try { navigator.clipboard.writeText(txt); toast("layout JSON copied — paste it to me to make it the site default"); } catch (e) { prompt("layout JSON", txt); } });
-  $("hd-refresh").addEventListener("click", function () { feedCache.clear(); embedMeta.clear(); render(); toast("refreshing every block"); });
-  setInterval(function () { feedCache.clear(); state.blocks.forEach(function (b) { if (b.type !== "engine") return; var n = document.querySelector('[data-bid="' + b.id + '"]'); if (n) renderEngine(n, b); }); }, 5 * 60000);
+  $("hd-refresh").addEventListener("click", function () { feedCache.clear(); embedMeta.clear(); render(); loadAuthority(); toast("refreshing every block"); });
+  setInterval(function () { loadAuthority(); feedCache.clear(); state.blocks.forEach(function (b) { if (b.type !== "engine") return; var n = document.querySelector('[data-bid="' + b.id + '"]'); if (n) renderEngine(n, b); }); }, 5 * 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) renderAuthority(); });
+  window.addEventListener("pageshow", renderAuthority);
+  window.addEventListener("focus", renderAuthority);
 
   // ------------------------------------------------------------------ directory (every page, nothing hidden)
   function renderDirectory() {

@@ -61,7 +61,11 @@ def contract_error(spec: dict,payload: dict) -> str | None:
         valid=(expected=="number" and isinstance(value,(int,float)) and not isinstance(value,bool) and number(value) is not None) or (expected=="string" and isinstance(value,str) and bool(value.strip())) or (expected=="dict" and isinstance(value,dict)) or (expected=="list" and isinstance(value,list)) or (expected=="boolean" and isinstance(value,bool))
         if not valid: return f"{path} must be {expected}"
     for path,limits in (contract.get("ranges") or {}).items():
-        value=number(get(payload,path))
+        raw=get(payload,path)
+        # Presence belongs to required/required_any. Optional aliases must not
+        # become mandatory merely because they have a range contract.
+        if raw is None: continue
+        value=number(raw)
         if value is None or not limits[0]<=value<=limits[1]: return f"{path} must be finite and within {limits[0]}..{limits[1]}"
     if spec.get("adapter")=="settlement_fails":
         treasury=get(payload,"treasury") or {}
@@ -157,6 +161,8 @@ def make_packet(spec: dict,payload: dict,meta: dict,policy: dict,now: datetime) 
     active=freshness=="FRESH" and score is not None and direction is not None and not spec.get("exclude_from_scoring")
     packet={"evidence_id":_evidence_id(spec,as_of,score,direction,detail),"source_id":spec["id"],"subject":"GLOBAL","domain":spec["domain"],"direction":direction,"score":round(score,2) if score is not None else None,"confidence":number(spec.get("confidence")),"freshness":freshness,"age_h":age,"as_of":as_of,"provenance":{"artifact":spec["artifact"],"producer":spec["producer"],"adapter":spec.get("adapter"),"registry_version":VERSION},"ancestry":[{"id":dep,"relationship":"declared_upstream"} for dep in spec.get("depends_on") or []],"source_family":spec["source_family"],"evidence_level":spec["evidence_level"],"role":spec["role"],"independence_eligible":bool(spec.get("independence_eligible")),"active":active,"detail":detail,"error":error}
     trace={"source_id":spec["id"],"artifact":spec["artifact"],"freshness":freshness,"as_of":as_of,"age_h":age,"max_age_h":spec["max_age_hours"],"active":active,"error":error,"role":spec["role"]}
+    packet["scoring_excluded"]=bool(spec.get("exclude_from_scoring"))
+    trace["scoring_excluded"]=packet["scoring_excluded"]
     return packet,trace
 
 
@@ -215,6 +221,10 @@ def build_output(registry: dict,subscriptions: dict,policy: dict,schema: dict,fe
     hard=number((policy.get("thresholds") or {}).get("hard_veto") or 80)
     vetoes=[{"evidence_id":p["evidence_id"],"source_id":p["source_id"],"domain":p["domain"],"active":True,"reason":f"{p['source_id']} is RISK_OFF at {p['score']:.0f}/100","effect":"TIGHTEN_OR_VETO_ONLY","may_loosen_risk":False} for p in deduped if p["direction"]=="RISK_OFF" and p["score"]>=hard]
     allowlisted=[s for s in registry.get("sources") or [] if not s.get("exclude_from_scoring")]
-    status="NO_ACTIVE_EVIDENCE" if not deduped else "DEGRADED" if inactive else "OK"
+    unavailable=[p for p in inactive if not p["scoring_excluded"]]
+    status="NO_ACTIVE_EVIDENCE" if not deduped else "DEGRADED" if unavailable else "OK"
     payload={"engine":"justhodl-engine-fusion","schema_version":VERSION,"version":VERSION,"generated_at":now.astimezone(timezone.utc).isoformat(),"status":status,"authoritative_verdict":None,"packets":deduped,"inactive_packets":inactive,"coverage":{"allowlisted_sources":len(allowlisted),"fresh_active_before_dedupe":len(active),"active_after_dedupe":len(deduped),"ratio":round(len(deduped)/len(allowlisted),4) if allowlisted else 0,"independent_root_evidence":sum(p["independence_eligible"] for p in deduped),"synthesized_views":sum(not p["independence_eligible"] for p in deduped),"freshness":{"fresh":sum(t["freshness"]=="FRESH" for t in trace),"stale":sum(t["freshness"]=="STALE" for t in trace),"missing":sum(t["freshness"]=="MISSING" for t in trace),"invalid":sum(t["freshness"]=="INVALID" for t in trace),"unknown":sum(t["freshness"]=="UNKNOWN" for t in trace)}},"dedupe":{"dropped_count":len(dropped),"dropped":dropped},"disagreements":disagreements,"vetoes":vetoes,"subscriptions":_subscriptions(subscriptions,deduped),"trace":trace,"methodology":{"allowlist":"config/fusion-registry.v1.json only; engine manifest is never read","decision":"No aggregate verdict. Packets, disagreements, source health and vetoes remain visible.","lineage":"Every packet carries a deterministic root evidence ID, provenance and declared ancestry.","independence":"L2/L3 synthesized or consumer views are never counted as independent root evidence.","risk":"Fusion can enrich/tighten consumers but may never loosen or override a risk veto.","cycle_policy":"Reject the entire output before writes if the declared DAG contains a cycle."}}
+    payload["coverage"]["policy_excluded_sources"]=sum(p["scoring_excluded"] for p in all_packets)
+    payload["coverage"]["unavailable_scoring_sources"]=len(unavailable)
+    payload["methodology"]["health"]="Status reflects scoring-eligible evidence only. Policy exclusions remain in inactive_packets and source freshness counts for inspection."
     validate_output(payload,schema); return payload

@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 SOURCE=Path(__file__).parents[1]/"source"
 sys.path.insert(0,str(SOURCE))
-from fusion_engine import build_output,dedupe_packets,graph_cycles  # noqa:E402
+from fusion_engine import build_output,contract_error,dedupe_packets,graph_cycles  # noqa:E402
 NOW=datetime(2026,9,4,20,0,tzinfo=timezone.utc)
 POLICY=json.loads((SOURCE/"fusion-policy.v1.json").read_text())
 SCHEMA=json.loads((SOURCE/"fusion-schema.v1.json").read_text())
@@ -97,3 +97,37 @@ def test_small_clock_skew_remains_fresh():
     out=build(registry(spec("skew","family")),{"skew":{"generated_at":future,"composite":20}})
     assert out["packets"][0]["freshness"]=="FRESH"
     assert out["packets"][0]["age_h"] < 0
+
+def test_production_credit_alias_contract_accepts_each_supported_producer_shape():
+    production=json.loads((SOURCE/"fusion-registry.v1.json").read_text())
+    credit=next(source for source in production["sources"] if source["id"]=="credit_composite")
+    for fields in ({"composite":42},{"composite_score":42},{"composite":42,"composite_score":42}):
+        out=build(registry(credit),{"credit_composite":{"as_of":NOW.isoformat(),**fields}})
+        assert out["status"]=="OK"
+        assert out["packets"][0]["score"]==42
+    for fields in ({},{"composite":101},{"composite_score":-1},{"composite":42,"composite_score":float("nan")},{"composite":"42"}):
+        assert contract_error(credit,{"as_of":NOW.isoformat(),**fields}) is not None
+
+def test_optional_ranges_do_not_weaken_required_fields():
+    source=spec("credit","family")
+    assert contract_error(source,{"generated_at":NOW.isoformat()}) is not None
+
+def test_policy_exclusions_do_not_degrade_healthy_scoring_sources():
+    source=spec("credit","family")
+    excluded=spec("view","view_family")
+    excluded.update(exclude_from_scoring=True,adapter="excluded_view",contract={})
+    for view in ({"generated_at":NOW.isoformat()},{"generated_at":(NOW-timedelta(days=10)).isoformat()},{}):
+        out=build(registry(source,excluded),{"credit":{"generated_at":NOW.isoformat(),"composite":42},"view":view})
+        assert out["status"]=="OK"
+        assert out["coverage"]["ratio"]==1
+        assert out["coverage"]["policy_excluded_sources"]==1
+        assert out["coverage"]["unavailable_scoring_sources"]==0
+        assert out["inactive_packets"][0]["scoring_excluded"] is True
+        assert out["trace"][1]["scoring_excluded"] is True
+
+def test_unavailable_scoring_source_still_degrades_with_policy_exclusions():
+    healthy,missing,excluded=spec("healthy","h"),spec("missing","m"),spec("view","v")
+    excluded.update(exclude_from_scoring=True,adapter="excluded_view",contract={})
+    out=build(registry(healthy,missing,excluded),{"healthy":{"generated_at":NOW.isoformat(),"composite":42}})
+    assert out["status"]=="DEGRADED"
+    assert out["coverage"]["unavailable_scoring_sources"]==1

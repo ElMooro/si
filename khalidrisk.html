@@ -49,6 +49,9 @@
           <div><dt>Exposure cap</dt><dd id="kr-cap">—</dd></div>
           <div><dt>Risk mode</dt><dd id="kr-mode">—</dd></div>
           <div><dt>As of</dt><dd id="kr-asof">—</dd></div>
+          <div><dt>New entries</dt><dd id="kr-entry-permission">—</dd></div>
+          <div><dt>Risk score · display only</dt><dd id="kr-risk-score">—</dd></div>
+          <div><dt>Permission valid until</dt><dd id="kr-valid-until">—</dd></div>
         </dl>
       </section>
 
@@ -94,7 +97,7 @@
           <header><p class="kr-eyebrow">SOURCE HEALTH</p><span id="kr-source-summary">Unknown</span></header>
           <div class="kr-table-wrap">
             <table>
-              <thead><tr><th>Source</th><th>Status</th><th>Age / as of</th><th>Coverage</th></tr></thead>
+              <thead><tr><th>Source</th><th>Status</th><th>Age / as of</th><th>Criticality</th><th>Age limit</th><th>Error</th><th>Full evidence</th></tr></thead>
               <tbody id="kr-sources"></tbody>
             </table>
           </div>
@@ -111,6 +114,13 @@
         <button id="kr-refresh" type="button">Refresh risk artifact</button>
       </footer>
     </div>
+    <section id="kr-evidence" class="kr-section kr-panel" aria-labelledby="kr-evidence-title" hidden>
+      <header><h2 id="kr-evidence-title">Complete engine evidence</h2></header>
+      <p id="kr-contract-state" class="kr-contract-state" role="status" aria-live="polite">Evidence only; no current permission has been validated.</p>
+      <p class="kr-evidence-note">Every field from the loaded artifact is available below, including policy, source errors, critical failures, methodology and fusion lineage. Evidence remains available for inspection after permission expires.</p>
+      <div id="kr-evidence-fields"></div>
+      <details class="kr-details"><summary>Complete original JSON</summary><pre id="kr-raw-payload"></pre></details>
+    </section>
   </main>
 
   <script src="/auth-config.js"></script>

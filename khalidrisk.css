@@ -43,7 +43,7 @@ a { color: inherit; }
 .kr-decision h1 { margin: 10px 0 12px; max-width: 26ch; color: var(--kr-red); font: 800 clamp(24px, 3vw, 38px)/1.12 var(--kr-sans); letter-spacing: -.025em; }
 .kr-decision.safe h1 { color: var(--kr-green); }
 .kr-interpretation { margin: 0; max-width: 72ch; color: #c9c2b2; font-size: 15px; }
-.kr-command-metrics { margin: 0; display: grid; grid-template-rows: repeat(3, 1fr); }
+.kr-command-metrics { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .kr-command-metrics div { padding: 18px 24px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid var(--kr-line); }
 .kr-command-metrics div:last-child { border: 0; }
 .kr-command-metrics dt { color: var(--kr-dim); font: 700 10px var(--kr-mono); letter-spacing: .12em; text-transform: uppercase; }
@@ -96,6 +96,18 @@ td:not(:first-child) { font-family: var(--kr-mono); font-size: 11px; }
 .kr-status-ok, .kr-status-fresh, .kr-status-live { color: var(--kr-green); }
 .kr-status-stale, .kr-status-missing, .kr-status-error, .kr-status-failed { color: var(--kr-red); }
 .kr-empty { margin: 0; padding: 18px 12px; color: var(--kr-dim); }
+.kr-details { min-width: 0; padding: 10px 12px; border-top: 1px solid var(--kr-line); overflow-wrap: anywhere; }
+.kr-details > summary { cursor: pointer; color: var(--kr-amber); font-size: 12px; }
+.kr-fields { display: block !important; margin: 8px 0 0 !important; min-width: 0; }
+.kr-fields > div { padding: 5px 0; border-bottom: 1px solid var(--kr-line); }
+.kr-fields dt { color: var(--kr-dim); font: 600 11px var(--kr-mono); overflow-wrap: anywhere; }
+.kr-fields dd { margin: 3px 0 0 10px; font: 12px/1.5 var(--kr-mono); overflow-wrap: anywhere; white-space: pre-wrap; }
+.kr-empty-value { color: var(--kr-dim); }
+.kr-domain > .kr-details { margin: 10px -6px 0; }
+.kr-contract-state, .kr-evidence-note { padding: 0 12px; overflow-wrap: anywhere; }
+.kr-contract-state { color: var(--kr-amber); }
+.kr-evidence-note { color: var(--kr-dim); }
+#kr-raw-payload { max-height: 70vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--kr-mono); }
 .kr-footer { margin-top: 24px; padding: 14px 16px; border-top: 1px solid var(--kr-line); display: flex; justify-content: space-between; align-items: center; gap: 20px; color: var(--kr-dim); }
 .kr-footer p { margin: 0; max-width: 92ch; }
 .kr-footer strong { color: var(--kr-ink); }
