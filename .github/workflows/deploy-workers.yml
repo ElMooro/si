@@ -37,6 +37,11 @@ jobs:
           node-version: '22'
       - name: Block published credentials
         run: python3 scripts/check_secrets.py
+      - name: Brain publication boundaries
+        run: |
+          if [ -f tests/test_brain_public_boundaries.py ]; then
+            python3 tests/test_brain_public_boundaries.py
+          fi
       - name: Syntax-check every worker entrypoint
         run: |
           set -e

@@ -16,6 +16,9 @@ on:
       - 'aws/lambdas/*/tests/**'
       - 'tests/deployment/**'
       - 'scripts/deploy_*.sh'
+      - 'scripts/protect_lambda_alias.py'
+      - 'scripts/scheduler_payload.py'
+      - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'
   workflow_dispatch:
     inputs:
@@ -172,6 +175,9 @@ jobs:
           python3 -m pip install -q boto3
           python3 scripts/check_secrets.py
           python3 tests/deployment/run_tests.py
+          if [ -f tests/test_brain_public_boundaries.py ]; then
+            python3 tests/test_brain_public_boundaries.py
+          fi
           for fn in ${{ steps.detect.outputs.targets }}; do
             dir="aws/lambdas/$fn"
             [ -d "$dir/source" ] || continue
@@ -182,7 +188,7 @@ jobs:
             fi
 
             case "$fn" in
-              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid|justhodl-katlin|justhodl-risk-sizer|justhodl-risk-gate|justhodl-portfolio-admin|justhodl-portfolio-snapshot|justhodl-calibration-snapshotter|justhodl-backtest-engine|justhodl-research-backtest|justhodl-outcome-checker|justhodl-fleet-freshness-monitor|justhodl-brain-sync|justhodl-journal-grader|justhodl-ask|justhodl-ask-desk)
+              justhodl-settlement-fails|justhodl-engine-fusion|justhodl-khalid-risk|justhodl-khalid|justhodl-katlin|justhodl-risk-sizer|justhodl-risk-gate|justhodl-tradingview|justhodl-portfolio-admin|justhodl-portfolio-snapshot|justhodl-calibration-snapshotter|justhodl-backtest-engine|justhodl-research-backtest|justhodl-outcome-checker|justhodl-fleet-freshness-monitor|justhodl-brain-sync|justhodl-journal-grader|justhodl-ask|justhodl-ask-desk)
                 if [ ! -f "$dir/tests/run_tests.py" ]; then
                   echo "::error::$fn requires dependency-free tests/run_tests.py"
                   exit 1
@@ -205,10 +211,11 @@ jobs:
         if: steps.detect.outputs.targets != ''
         run: |
           set -e
-          # Outer guard: per-Lambda failures recorded but don't kill the loop.
-          # `set +e` inside subshell pairs with `|| failures=...` so we surface a final exit.
+          # Do not put the subshell in an OR/if condition: Bash would disable
+          # errexit throughout its body and continue after failed validation.
           declare -a failed_lambdas
           for fn in ${{ steps.detect.outputs.targets }}; do
+            set +e
             (
               set -e
               dir="aws/lambdas/$fn"
@@ -225,6 +232,7 @@ jobs:
             fn_ephemeral=""
             fn_desc="JustHodl.AI Lambda"
             fn_env_args=""
+            cfg_env_json="{}"
             if [ -f "$dir/config.json" ]; then
               cfg_name=$(jq -r '.function_name // empty' "$dir/config.json")
               [ -n "$cfg_name" ] && fn="$cfg_name"
@@ -325,15 +333,30 @@ jobs:
               fi
             fi
 
+            candidate_managed=0
+            candidate_schema=""
+            if [ "$fn" = "justhodl-engine-fusion" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
+              schema_file="$dir/source/output_schema.json"
+              [ "$fn" = "justhodl-engine-fusion" ] && schema_file="$dir/source/fusion-schema.v1.json"
+              candidate_schema=$(jq -er '.schema_version' "$schema_file")
+              candidate_managed=1
+            elif [ -f "$dir/config.json" ] && jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
+              candidate_schema=$(jq -er '.release_validation.schema_version' "$dir/config.json")
+              candidate_managed=1
+            fi
+
             # Check if Lambda exists. If not, create it with defaults / config.json overrides.
             if aws lambda get-function --function-name "$fn" --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
               echo "Updating existing Lambda $fn"
               # Freeze all existing scheduled targets on the previous numbered release.
-              if [ "$fn" = "justhodl-engine-fusion" ] || [ "$fn" = "justhodl-khalid-risk" ] || { [ -f "$dir/config.json" ] && jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; }; then
-                python3 scripts/protect_lambda_alias.py "$fn" "${{ secrets.AWS_REGION }}"
+              code_revision_args=()
+              if [ "$candidate_managed" -eq 1 ]; then
+                python3 scripts/protect_lambda_alias.py "$fn" "${{ secrets.AWS_REGION }}" > "$tmp/production-protection.json"
+                code_revision_args=(--revision-id "$(jq -er '.revision_id' "$tmp/production-protection.json")")
               fi
               aws lambda update-function-code \
                 --function-name "$fn" \
+                "${code_revision_args[@]}" \
                 --zip-file "fileb://$tmp/deploy.zip" \
                 --region "${{ secrets.AWS_REGION }}" \
                 --query 'LastModified' --output text
@@ -360,7 +383,8 @@ jobs:
                   --function-name "$fn" --region "${{ secrets.AWS_REGION }}" \
                   --query 'Environment.Variables' --output json 2>/dev/null) || env_read_ok=0
                 if [ "$env_read_ok" = "0" ]; then
-                  echo "::warning::$fn: env read FAILED — skipping config update to preserve the existing env bundle (code deploy already applied)"
+                  echo "::error::$fn: env read failed; refusing promotion with unapplied configuration"
+                  exit 1
                 else
                 if [ -z "$existing_env" ] || [ "$existing_env" = "null" ]; then
                   existing_env="{}"
@@ -376,11 +400,14 @@ jobs:
                 if [ -n "$fn_ephemeral" ]; then
                   ephemeral_arg="--ephemeral-storage Size=$fn_ephemeral"
                 fi
+                # Minimal validation-only config files must not reset runtime settings.
+                config_args=()
+                if jq -e 'has("timeout")' "$dir/config.json" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
+                if jq -e 'has("memory")' "$dir/config.json" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
+                if jq -e 'has("description")' "$dir/config.json" >/dev/null; then config_args+=(--description "$fn_desc"); fi
                 aws lambda update-function-configuration \
                   --function-name "$fn" \
-                  --timeout "$fn_timeout" \
-                  --memory-size "$fn_memory" \
-                  --description "$fn_desc" \
+                  "${config_args[@]}" \
                   --region "${{ secrets.AWS_REGION }}" \
                   $env_arg \
                   $ephemeral_arg \
@@ -442,24 +469,8 @@ jobs:
               --function-name "$fn" \
               --region "${{ secrets.AWS_REGION }}" 2>/dev/null || true
 
-            # Governed releases publish the exact $LATEST revision/code hash, invoke
-            # that numbered version in validate_only mode, and only then move
-            # :live and update its Scheduler target. The helper rolls the alias
-            # back if the post-promotion Scheduler operation fails.
-            if [ "$fn" = "justhodl-engine-fusion" ] || [ "$fn" = "justhodl-khalid-risk" ]; then
-              schema_file="$dir/source/output_schema.json"
-              [ "$fn" = "justhodl-engine-fusion" ] && schema_file="$dir/source/fusion-schema.v1.json"
-              candidate_schema=$(jq -er '.schema_version' "$schema_file")
-              if ! bash scripts/deploy_validated_candidate.sh \
-                "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir/config.json" "$candidate_schema"; then
-                echo "::error::$fn candidate validation or promotion failed"
-                exit 1
-              fi
-            fi
-
-            # Additional audited engines implement the same read-only validation envelope.
-            if [ -f "$dir/config.json" ] && jq -e '.release_validation.schema_version' "$dir/config.json" >/dev/null; then
-              candidate_schema=$(jq -er '.release_validation.schema_version' "$dir/config.json")
+            # Every opted-in engine uses exactly one pinned, validated promotion.
+            if [ "$candidate_managed" -eq 1 ]; then
               bash scripts/deploy_validated_candidate.sh "$fn" "${{ secrets.AWS_REGION }}" "$tmp" "$dir/config.json" "$candidate_schema"
             fi
 
@@ -483,13 +494,23 @@ jobs:
               acc="857687956942"
 
               echo "Setting up EventBridge rule $rule_name → $cron_expr"
-              aws events put-rule \
-                --name "$rule_name" \
-                --schedule-expression "$cron_expr" \
-                --state ENABLED \
-                --description "$rule_desc" \
-                --region "$region" \
-                --output text > /dev/null
+              # PutRule and PutTargets replace omitted options. Preserve existing
+              # disabled state, event pattern, role, target input, retry and DLQ.
+              if ! aws events describe-rule --name "$rule_name" --region "$region" --output json > "$tmp/classic-rule.json" 2> "$tmp/classic-rule.error"; then
+                if grep -q ResourceNotFoundException "$tmp/classic-rule.error"; then
+                  printf '{}\n' > "$tmp/classic-rule.json"
+                else
+                  echo "::error::Could not read classic rule; response withheld"
+                  exit 1
+                fi
+              fi
+              jq --arg name "$rule_name" --arg cron "$cron_expr" --arg desc "$rule_desc" '
+                {Name:$name,ScheduleExpression:$cron,State:(.State // "ENABLED"),Description:$desc}
+                + (if .EventPattern then {EventPattern:.EventPattern} else {} end)
+                + (if .RoleArn then {RoleArn:.RoleArn} else {} end)
+              ' "$tmp/classic-rule.json" > "$tmp/classic-rule-update.json"
+              aws events put-rule --cli-input-json "file://$tmp/classic-rule-update.json" \
+                --region "$region" --output text > /dev/null
 
               target_fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
               qualifier_arg=""
@@ -507,12 +528,17 @@ jobs:
                 --source-arn "arn:aws:events:${region}:${acc}:rule/${rule_name}" \
                 --region "$region" 2>/dev/null || echo "  permission already exists"
 
-              # Attach target
-              aws events put-targets \
-                --rule "$rule_name" \
-                --targets "Id=target1,Arn=${target_fn_arn}" \
-                --region "$region" \
-                --output text > /dev/null
+              # Preserve every matching target and leave unrelated targets alone.
+              aws events list-targets-by-rule --rule "$rule_name" --region "$region" --output json > "$tmp/classic-targets.json"
+              jq --arg arn "$target_fn_arn" --arg base "arn:aws:lambda:${region}:${acc}:function:${fn}" --arg id "audit-${fn}" '
+                [.Targets[] | select(.Arn == $base or .Arn == ($base + ":$LATEST") or .Arn == ($base + ":live")) | .Arn=$arn] as $matched
+                | if ($matched|length)>0 then $matched
+                  elif any(.Targets[]; .Id == $id) then error("Configured target ID belongs to another function")
+                  else [{Id:$id,Arn:$arn}] end
+              ' "$tmp/classic-targets.json" > "$tmp/classic-target-update.json"
+              aws events put-targets --rule "$rule_name" --targets "file://$tmp/classic-target-update.json" \
+                --region "$region" --output json > "$tmp/classic-target-result.json"
+              jq -e '.FailedEntryCount == 0' "$tmp/classic-target-result.json" >/dev/null
               echo "  ✅ Schedule attached"
             fi
 
@@ -521,7 +547,8 @@ jobs:
             # is saturated, so new engines schedule via EventBridge Scheduler
             # (1M-schedule quota). Purely additive — Lambdas using the classic
             # .schedule block above are unaffected. See ops 821.
-            if [ "$fn" != "justhodl-engine-fusion" ] && [ "$fn" != "justhodl-khalid-risk" ] && [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
+            # Candidate helper already applied the complete preserved Scheduler payload.
+            if [ "$candidate_managed" -eq 0 ] && [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
               sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$dir/config.json")
               sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$dir/config.json")
               sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$dir/config.json")
@@ -622,11 +649,13 @@ jobs:
 
             echo "✅ $fn deployed"
             rm -rf "$tmp"
-            ) || {
-              # subshell failed — record and continue
+            )
+            deploy_status=$?
+            set -e
+            if [ "$deploy_status" -ne 0 ]; then
               echo "::error::Deploy failed for $fn"
               failed_lambdas+=("$fn")
-            }
+            fi
           done
 
           if [ "${#failed_lambdas[@]}" -gt 0 ]; then

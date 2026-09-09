@@ -8,7 +8,7 @@
 #
 # The Lambda must implement the dependency-free validation contract returned by
 # {"mode":"validate_only"}:
-#   statusCode=200 and a JSON body containing ok=true, validation_only=true,
+#   a direct object, or statusCode=200 and a JSON body, containing ok=true, validation_only=true,
 #   the expected schema_version, a non-empty status, and artifact_size_bytes.
 set -euo pipefail
 
@@ -25,6 +25,12 @@ expected_schema="$5"
 alias_name="live"
 
 mkdir -p "$tmp"
+# A missing engine config is equivalent to no optional scheduler/config override.
+if [ ! -f "$config" ]; then
+  config="$tmp/${fn}-empty-config.json"
+  printf '%s\n' '{}' > "$config"
+fi
+jq -e 'type == "object"' "$config" >/dev/null
 
 # Some engines use existing classic rules or schedules managed outside config.
 # protect_lambda_alias.py already pinned those targets before staging $LATEST.
@@ -44,6 +50,7 @@ candidate_info=$(aws lambda get-function-configuration \
   --function-name "$fn" \
   --region "$region" \
   --output json)
+jq -e '.State == "Active" and .LastUpdateStatus == "Successful"' <<<"$candidate_info" >/dev/null
 candidate_revision=$(jq -er '.RevisionId | select(type == "string" and length > 0)' <<<"$candidate_info")
 candidate_sha=$(jq -er '.CodeSha256 | select(type == "string" and length > 0)' <<<"$candidate_info")
 function_arn=$(jq -er '.FunctionArn | select(type == "string" and length > 0)' <<<"$candidate_info")
@@ -78,6 +85,11 @@ aws lambda invoke \
   --payload "fileb://$validation_event" \
   "$validation_payload" > "$validation_meta"
 
+if ! jq -e --arg version "$candidate_version" '.StatusCode == 200 and .FunctionError == null and .ExecutedVersion == $version' "$validation_meta" > /dev/null 2>&1; then
+  echo "::error::$fn invocation did not confirm execution of the pinned version; response withheld"
+  exit 1
+fi
+
 if jq -e '.FunctionError != null' "$validation_meta" > /dev/null 2>&1; then
   echo "::error::$fn candidate returned FunctionError; live alias and schedule are unchanged"
   echo "Validation response withheld; inspect private runner logs for source errors"
@@ -85,10 +97,11 @@ if jq -e '.FunctionError != null' "$validation_meta" > /dev/null 2>&1; then
 fi
 
 if ! jq -e --arg schema "$expected_schema" '
-  .statusCode == 200
-  and (
-    (.body | fromjson? // {}) as $body
-    | $body.ok == true
+  (if has("statusCode") then
+     if .statusCode == 200 then (.body | if type == "string" then fromjson else . end) else {} end
+   else . end) as $body
+  | (
+      $body.ok == true
       and $body.validation_only == true
       and $body.schema_version == $schema
       and ($body.status | type == "string" and length > 0)
@@ -119,7 +132,7 @@ elif grep -q 'ResourceNotFoundException' "$alias_error"; then
   rm -f "$alias_error"
 else
   echo "::error::Could not read $fn:$alias_name; promotion aborted"
-  cat "$alias_error"
+  echo "AWS error response withheld"
   exit 1
 fi
 
@@ -139,14 +152,14 @@ rollback_alias() {
         --name "$alias_name" \
         --function-version "$previous_version" \
         --revision-id "$promoted_alias_revision" \
+        --routing-config "$(jq -c '.RoutingConfig // {AdditionalVersionWeights:{}}' "$alias_state")" \
         --region "$region" \
         --output text > /dev/null || restore_failed=1
     else
-      aws lambda delete-alias \
-        --function-name "$fn" \
-        --name "$alias_name" \
-        --revision-id "$promoted_alias_revision" \
-        --region "$region" > /dev/null || restore_failed=1
+      # DeleteAlias has no RevisionId/CAS parameter. Keep the validated new
+      # alias rather than risk deleting a concurrently edited production alias.
+      echo "::error::$fn had no previous alias; the validated alias is retained for reconciliation"
+      restore_failed=1
     fi
 
     if [ "$restore_failed" -ne 0 ]; then
@@ -165,6 +178,7 @@ if [ "$alias_existed" -eq 1 ]; then
     --name "$alias_name" \
     --function-version "$candidate_version" \
     --revision-id "$previous_alias_revision" \
+    --routing-config '{"AdditionalVersionWeights":{}}' \
     --region "$region" \
     --query 'RevisionId' --output text)
 else
@@ -183,44 +197,31 @@ promoted=1
 # $LATEST or a transient numbered version.
 if jq -e '.eventbridge_scheduler' "$config" >/dev/null; then
 sched_name=$(jq -er '.eventbridge_scheduler.schedule_name' "$config")
-sched_cron=$(jq -er '.eventbridge_scheduler.cron' "$config")
-sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$config")
-sched_role=$(jq -er '.eventbridge_scheduler.role_arn' "$config")
-sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$config")
-target_json=$(jq -n \
-  --arg arn "${function_arn}:${alias_name}" \
-  --arg role "$sched_role" \
-  '{Arn:$arn,RoleArn:$role,Input:"{}",RetryPolicy:{MaximumRetryAttempts:2,MaximumEventAgeInSeconds:3600}}')
-
+sched_group=$(jq -r '.eventbridge_scheduler.group_name // "default"' "$config")
 schedule_state="$tmp/${fn}-schedule.json"
 schedule_error="$tmp/${fn}-schedule.error"
+schedule_update="$tmp/${fn}-schedule-update.json"
+schedule_exists=0
 if aws scheduler get-schedule \
-  --name "$sched_name" \
-  --region "$region" \
-  --output json > "$schedule_state" 2> "$schedule_error"; then
-  aws scheduler update-schedule \
-    --name "$sched_name" \
-    --schedule-expression "$sched_cron" \
-    --schedule-expression-timezone "$sched_tz" \
-    --flexible-time-window '{"Mode":"OFF"}' \
-    --state ENABLED \
-    --description "$sched_desc" \
-    --target "$target_json" \
-    --region "$region" --output text > /dev/null
+  --name "$sched_name" --group-name "$sched_group" \
+  --region "$region" --output json > "$schedule_state" 2> "$schedule_error"; then
+  schedule_exists=1
 elif grep -q 'ResourceNotFoundException' "$schedule_error"; then
-  aws scheduler create-schedule \
-    --name "$sched_name" \
-    --schedule-expression "$sched_cron" \
-    --schedule-expression-timezone "$sched_tz" \
-    --flexible-time-window '{"Mode":"OFF"}' \
-    --state ENABLED \
-    --description "$sched_desc" \
-    --target "$target_json" \
+  printf '%s\n' '{}' > "$schedule_state"
+else
+  echo "::error::Could not read EventBridge Scheduler schedule $sched_name; response withheld"
+  false
+fi
+# UpdateSchedule is replacement, not a patch. Preserve every writable field,
+# including Input, retry/DLQ settings, DISABLED state, dates, encryption and window.
+python3 "$(dirname "${BASH_SOURCE[0]}")/scheduler_payload.py" \
+  "$config" "$schedule_state" "${function_arn}:${alias_name}" > "$schedule_update"
+if [ "$schedule_exists" -eq 1 ]; then
+  aws scheduler update-schedule --cli-input-json "file://$schedule_update" \
     --region "$region" --output text > /dev/null
 else
-  echo "::error::Could not read EventBridge Scheduler schedule $sched_name"
-  cat "$schedule_error"
-  false
+  aws scheduler create-schedule --cli-input-json "file://$schedule_update" \
+    --region "$region" --output text > /dev/null
 fi
 
 fi
