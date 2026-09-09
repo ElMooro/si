@@ -246,7 +246,7 @@ def rule_eurodollar_stress(scores, evidence):
 
 def rule_auction_crisis(scores, evidence):
     d = fs3("data/auction-crisis.json")
-    score = d.get("composite_score") or d.get("crisis_score")
+    score = d.get("composite_score")
     if score is None:
         return
     score = float(score)

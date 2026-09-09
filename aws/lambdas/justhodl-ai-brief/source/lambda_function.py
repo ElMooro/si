@@ -600,9 +600,9 @@ def compress_auction(a):
     if not a:
         return None
     return {
-        "score": a.get("composite_score") or a.get("crisis_score"),
+        "score": a.get("composite_score"),
         "regime": a.get("regime"),
-        "regime_desc": a.get("regime_description"),
+        "regime_desc": a.get("interpretation"),
     }
 
 

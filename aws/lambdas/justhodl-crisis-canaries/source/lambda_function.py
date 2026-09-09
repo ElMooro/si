@@ -556,7 +556,7 @@ def lambda_handler(event=None, context=None):
     auc = None
     try:
         a = json.loads(S3.get_object(Bucket=BUCKET, Key="data/auction-crisis.json")["Body"].read())
-        comp = a.get("composite_score") or a.get("score") or a.get("composite")
+        comp = a.get("composite_score")
         if comp is not None:
             auc = float(comp)
     except Exception:

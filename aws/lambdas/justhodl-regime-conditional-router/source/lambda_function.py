@@ -265,15 +265,13 @@ def detect_eurodollar_stress(eds, gs, ds):
 
 
 def detect_treasury_auction_crisis(ac, signal_board):
-    score = safe_get(ac, "score") or safe_get(ac, "crisis_score") or 0
-    state = safe_get(ac, "state")
+    score = safe_get(ac, "composite_score")
+    state = safe_get(ac, "regime")
     evidence = {
         "auction_crisis_score": score,
         "auction_state": state,
         "signal_board_posture": safe_get(signal_board, "posture"),
     }
-    if isinstance(state, str) and "CRISIS" in state.upper():
-        score = max(score, 75)
     return int(score) if isinstance(score, (int, float)) else 0, evidence
 
 

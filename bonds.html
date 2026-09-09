@@ -1385,18 +1385,23 @@ function renderCall(subRegimeKey){
 let AUCTION_DATA = null;
 function renderAuctionSummary(){
   const el = document.getElementById('auction-summary');
+  const escapeAuction = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   if(!AUCTION_DATA){
     el.innerHTML = '<div style="color:var(--fg-3);font-size:12px;font-family:var(--font-mono)">Auction crisis detector not yet bootstrapped — see <a href="/auction-crisis.html" style="color:var(--cyan)">/auction-crisis.html</a> in ~hourly refresh after Phase 10 deploys.</div>';
     return;
   }
   if(AUCTION_DATA.status === 'no_data'){
-    el.innerHTML = `<div style="color:var(--fg-3);font-size:12px">Auction data unavailable: ${AUCTION_DATA.message || 'unknown'}</div>`;
+    el.textContent = 'Auction data unavailable: ' + (AUCTION_DATA.message || 'unknown');
     return;
   }
-  const r = AUCTION_DATA.regime || 'CALM';
-  const score = AUCTION_DATA.composite_score || 0;
+  const r = AUCTION_DATA.regime;
+  const score = AUCTION_DATA.composite_score;
   const colors = {ACUTE_STRESS:'red',ELEVATED:'amber',WATCH:'amber',CALM:'green'};
-  const color = colors[r] || 'green';
+  if(!Object.prototype.hasOwnProperty.call(colors,r) || typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100){
+    el.textContent = 'Auction detector data is incomplete: score or regime unavailable.';
+    return;
+  }
+  const color = colors[r];
   const agg = AUCTION_DATA.indicator_aggregate_14d || {};
   const issuance = AUCTION_DATA.issuance_anomaly;
   const firedIndicators = Object.keys(agg);
@@ -1411,11 +1416,11 @@ function renderAuctionSummary(){
       <div>
         <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:4px">AUCTION REGIME · 14d ROLLING</div>
         <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--${color});margin-bottom:6px">${r}</div>
-        <div style="color:var(--fg-2);font-size:12.5px;line-height:1.5">${AUCTION_DATA.interpretation || ''}</div>
-        ${firedIndicators.length ? `<div style="margin-top:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)">Firing: <strong style="color:var(--${color})">${firedIndicators.join(', ')}</strong></div>` : ''}
+        <div style="color:var(--fg-2);font-size:12.5px;line-height:1.5">${escapeAuction(AUCTION_DATA.interpretation)}</div>
+        ${firedIndicators.length ? `<div style="margin-top:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)">Firing: <strong style="color:var(--${color})">${escapeAuction(firedIndicators.join(', '))}</strong></div>` : ''}
       </div>
       <div style="text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">
-        <div>${AUCTION_DATA.n_recent_auctions_14d ?? '—'} auctions / 14d</div>
+        <div>${escapeAuction(AUCTION_DATA.n_recent_auctions_14d ?? '—')} auctions / 14d</div>
         <div style="margin-top:6px"><a href="/auction-crisis.html" style="color:var(--cyan)">full detail →</a></div>
       </div>
     </div>`;

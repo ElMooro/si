@@ -319,7 +319,7 @@ async function load(){
 
   // 7. AUCTION
   if(auction){
-    const score = auction.composite_score || auction.crisis_score;
+    const score = auction.composite_score;
     const regime = auction.regime;
     if(score != null){
       events.push({
@@ -327,7 +327,7 @@ async function load(){
         sev: score >= 60 ? "HIGH" : score >= 30 ? "MED" : "LOW",
         time: parseTime(auction.generated_at) || new Date(),
         title: `Treasury auction stress: ${score}/100`,
-        detail: `Regime: ${regime} · ${auction.regime_description || ''}`,
+        detail: `Regime: ${regime} · ${auction.interpretation || ''}`,
         sortKey: 0,
       });
     }

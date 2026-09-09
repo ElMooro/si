@@ -9,5 +9,5 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
   "environment_keys": ["ANTHROPIC_API_KEY"],
-  "description": "AI institutional auction brief — reads auction-crisis tape + cross-context regimes + crisis-KB, asks Claude for regime/confidence/thesis/historical-analogs/cross-asset/trade-ideas/tripwires/next-auctions. 4hourly schedule. Output: data/auction-decisive-call.json."
+  "description": "AI Treasury auction brief: detector metrics, cross-market regimes and crisis research inform a separate narrative with historical analogs, trade ideas and tripwires. Output: data/auction-decisive-call.json."
 }

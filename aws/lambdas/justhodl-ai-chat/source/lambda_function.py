@@ -932,7 +932,7 @@ def build_context(message):
         # Auction crisis
         ac = get_s3('data/auction-crisis.json')
         if ac:
-            score_a = ac.get('composite_score') or ac.get('score')
+            score_a = ac.get('composite_score')
             regime_ac = ac.get('regime')
             lines.append(f"[TREASURY AUCTION] Score:{score_a}/100  Regime:{regime_ac}")
         # Correlation breaks

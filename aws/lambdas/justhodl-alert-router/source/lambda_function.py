@@ -388,7 +388,7 @@ def check_eurodollar_stress(alerts):
 
 def check_auction_crisis(alerts):
     d = load_json("data/auction-crisis.json")
-    score = d.get("composite_score") or d.get("crisis_score")
+    score = d.get("composite_score")
     regime = d.get("regime")
     if score is not None and score >= 60:
         alerts.append({
@@ -396,7 +396,7 @@ def check_auction_crisis(alerts):
             "category": "TREASURY",
             "severity": "HIGH",
             "title": f"🏛️ Treasury auction stress: {score}/100",
-            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+            "detail": f"Regime: {regime}. {d.get('interpretation', '')}",
         })
 
 

@@ -606,7 +606,7 @@ def extract_metrics(data,weights):
         })(),
         # Auction crisis (Treasury auction stress)
         **(lambda a=data.get("auction_crisis", {}): {
-            "auction_score": a.get("composite_score") or a.get("score"),
+            "auction_score": a.get("composite_score"),
             "auction_regime": a.get("regime"),
         })(),
         # Liquidity & Credit Engine (FRED + ICE BofA spreads + HQM + SLOOS + INTERPRETATION)

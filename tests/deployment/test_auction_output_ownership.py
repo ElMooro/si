@@ -191,3 +191,70 @@ def test_grader_actual_handler_consumes_detector_rows_without_changing_base():
     assert graded["n_graded"] == 1 and graded["graded_auctions"][0]["cusip"] == auction()["cusip"]
     assert graded["regime_from_crisis_detector"] == base["regime"]
     assert graded["composite_score_crisis"] == base["composite_score"]
+
+
+def functions(engine, names, env=None):
+    tree = ast.parse(source(engine).read_text())
+    nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
+    scope = dict(env or {})
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id in {"REGIMES", "ASSETS"}:
+                    scope[target.id] = ast.literal_eval(node.value)
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source(engine)), "exec"), scope)
+    return scope
+
+
+def test_chart_reader_uses_nested_detector_history_and_observation_time():
+    detector, _ = detector_fixture()
+    doc = detector.docs[BASE]
+    store = Store({BASE: doc})
+    reader = load("chart-data", store)["fetch_internal"]
+    expected = [{"time": row["date"], "value": row["composite"]}
+                for row in doc["composite_history"]["series"] if row["composite"] is not None]
+    assert reader("auction_crisis") == expected
+    store.docs[BASE] = {"composite_score": 0, "generated_at": "2026-08-31T13:00:00Z"}
+    assert reader("auction_crisis") == [{"time": "2026-08-31", "value": 0}]
+    store.docs[BASE] = {"composite_score": 0}
+    assert reader("auction_crisis") is None  # no invented current observation date
+
+
+def test_regime_router_and_brief_read_the_detector_score_including_zero():
+    route = functions("regime-conditional-router", {"detect_treasury_auction_crisis"},
+                      {"safe_get": lambda d, key: (d or {}).get(key)})["detect_treasury_auction_crisis"]
+    compress = functions("ai-brief", {"compress_auction"})["compress_auction"]
+    for score, regime in ((0, "CALM"), (80, "ACUTE_STRESS")):
+        doc = {"composite_score": score, "regime": regime, "interpretation": "Fixture detector explanation"}
+        value, evidence = route(doc, {})
+        assert value == score and evidence["auction_state"] == regime
+        assert evidence["auction_crisis_score"] == score
+        assert compress(doc) == {"score": score, "regime": regime, "regime_desc": doc["interpretation"]}
+
+
+def test_canary_zero_score_is_retained_in_actual_read_block():
+    tree = ast.parse(source("crisis-canaries").read_text())
+    handler = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "lambda_handler")
+    block = next(n for n in handler.body if isinstance(n, ast.Try)
+                 and any(isinstance(c, ast.Constant) and c.value == BASE for c in ast.walk(n)))
+    store = Store({BASE: {"composite_score": 0}})
+    env = {"S3": store, "BUCKET": "fixture", "json": json, "auc": None}
+    exec(compile(ast.Module(body=[block], type_ignores=[]), "actual-auction-canary-read", "exec"), env)
+    assert env["auc"] == 0 and store.writes == []
+
+
+def test_interpreter_prompt_preserves_actual_tenor_metrics_calendar_and_aggregate():
+    scope = functions("auction-interpreter", {"_fmt_indicator", "_recent_auctions_summary", "build_prompt"}, {"json": json})
+    detector, _ = detector_fixture()
+    doc = deepcopy(detector.docs[BASE])
+    doc["indicator_aggregate_14d"] = {"pd_absorption": {"n_fired": 2, "max_score": 70}}
+    doc["recent_auctions"][0].update({"indirect_pct": 0, "primary_dealer_pct": 0, "tail_bp": 0})
+    doc["forward_calendar"] = [{"auction_date": "2026-09-10", "security_term": "10-Year", "offering_amount_billions": 42}]
+    row = scope["_recent_auctions_summary"](doc)[0]
+    assert row["tenor"] == "10-Year" and row["btc"] == 2.4
+    assert row["indirect_pct"] == row["primary_dealer_pct"] == row["tail_bps"] == 0
+    assert "not a when-issued quote" in row["tail_measurement"]
+    prompt = scope["build_prompt"](doc, {}, [], {})
+    assert '"n_fired_14d": 2' in prompt and '"max_score_14d": 70' in prompt
+    assert '"amount_b": 42' in prompt and '"tenor": "10-Year"' in prompt
+    assert "30-day calendar" in prompt

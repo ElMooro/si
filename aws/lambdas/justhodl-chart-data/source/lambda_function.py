@@ -350,7 +350,7 @@ INTERNAL_SERIES_MAP = {
     "macro_nowcast": ("data/macro-nowcast-v2.json", "history", "score"),
     "eurodollar_stress": ("data/eurodollar-stress.json", None, "composite_score"),
     "plumbing_stress": ("data/plumbing-stress.json", None, "composite_score"),
-    "auction_crisis": ("data/auction-crisis.json", "history", "crisis_score"),
+    "auction_crisis": ("data/auction-crisis.json", "composite_history.series", "composite"),
     "compound_signals": ("data/compound-signals.json", "history", "score"),
     "yield_curve": ("data/yield-curve.json", "history", "value"),
 }
@@ -367,9 +367,12 @@ def fetch_internal(series_id):
     except Exception:
         return None
 
-    if history_field and history_field in d and isinstance(d[history_field], list):
+    history = d
+    for part in (history_field or "").split("."):
+        history = history.get(part) if isinstance(history, dict) else None
+    if isinstance(history, list):
         obs = []
-        for entry in d[history_field]:
+        for entry in history:
             t = entry.get("date") or entry.get("ts") or entry.get("time")
             v = entry.get(value_field)
             if t and v is not None:
@@ -384,8 +387,11 @@ def fetch_internal(series_id):
             obs.sort(key=lambda o: o["time"])
             return obs
     # Single-point fallback (current value only)
-    v = d.get(value_field)
-    t = d.get("as_of") or d.get("date") or datetime.now(timezone.utc).isoformat()
+    v = d.get("composite_score" if series_id == "auction_crisis" else value_field)
+    t = (d.get("generated_at") if series_id == "auction_crisis" else
+         d.get("as_of") or d.get("date") or datetime.now(timezone.utc).isoformat())
+    if not t:
+        return None
     if "T" in str(t):
         t = str(t).split("T")[0]
     if v is not None:

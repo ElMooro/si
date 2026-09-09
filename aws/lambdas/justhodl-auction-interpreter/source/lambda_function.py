@@ -158,16 +158,15 @@ def _safe_read(key, default=None):
 
 
 def _fmt_indicator(d, name):
-    """Format indicator summary from auction-crisis.json"""
-    ind = (d.get("indicators") or {}).get(name, {})
+    """Project the detector's fired-indicator aggregate, without inventing states."""
+    ind = (d.get("indicator_aggregate_14d") or {}).get(name, {})
     if not ind:
         return None
     return {
         "name": name,
-        "score": ind.get("score"),
-        "state": ind.get("state"),
-        "value": ind.get("value"),
-        "threshold": ind.get("threshold_short") or ind.get("threshold"),
+        "n_fired_14d": ind.get("n_fired"),
+        "max_score_14d": ind.get("max_score"),
+        "firing_threshold": 50,
     }
 
 
@@ -177,11 +176,12 @@ def _recent_auctions_summary(d, n=6):
     for a in (d.get("recent_auctions") or [])[:n]:
         out.append({
             "date": a.get("auction_date") or a.get("date"),
-            "tenor": a.get("tenor") or a.get("term"),
-            "btc": a.get("bid_to_cover"),
-            "indirect_pct": a.get("indirect_pct") or a.get("indirect_acceptance_pct"),
-            "primary_dealer_pct": a.get("primary_dealer_pct") or a.get("aah_pct"),
-            "tail_bps": a.get("tail_bps"),
+            "tenor": a.get("security_term"),
+            "btc": a.get("btc"),
+            "indirect_pct": a.get("indirect_pct"),
+            "primary_dealer_pct": a.get("primary_dealer_pct"),
+            "tail_bps": a.get("tail_bp"),
+            "tail_measurement": "auction high-minus-median yield/rate; not a when-issued quote",
         })
     return out
 
@@ -194,8 +194,8 @@ def build_prompt(auction, cross_regimes, kb_chunks, episode_ref):
     fed_funds = auction.get("fed_funds_rate")
 
     indicators = []
-    for ind_name in ["zero_rate_floor", "btc_extreme", "indirect_drought",
-                      "aah_dependency", "tail_blowout", "ratio_inversion"]:
+    for ind_name in ["zero_rate_floor", "btc_extreme", "tail_stress",
+                      "pd_absorption", "indirect_collapse"]:
         i = _fmt_indicator(auction, ind_name)
         if i:
             indicators.append(i)
@@ -230,13 +230,13 @@ def build_prompt(auction, cross_regimes, kb_chunks, episode_ref):
         )
 
     # Auctions calendar
-    upcoming = auction.get("upcoming_auctions") or []
+    upcoming = auction.get("forward_calendar") or []
     upcoming_compact = []
     for u in upcoming[:8]:
         upcoming_compact.append({
             "date": u.get("auction_date") or u.get("date"),
-            "tenor": u.get("tenor") or u.get("term") or u.get("security_type"),
-            "amount_b": u.get("amount_billions") or u.get("size_billions"),
+            "tenor": u.get("security_term"),
+            "amount_b": u.get("offering_amount_billions"),
         })
 
     prompt = f"""# AUCTION TAPE BRIEF — INSTITUTIONAL ANALYSIS
@@ -247,13 +247,13 @@ def build_prompt(auction, cross_regimes, kb_chunks, episode_ref):
 - Issuance anomaly: {issuance.get('pct_above_baseline')}% above baseline
 - Fed funds rate: {fed_funds}%
 
-## 6 CRISIS-PATTERN INDICATORS (auction-tape signatures)
+## FIRED AUCTION INDICATORS (14-day aggregates; issuance overlay shown separately above)
 {json.dumps(indicators, indent=2, default=str)}
 
 ## LAST 6 AUCTIONS (compact)
 {json.dumps(recent, indent=2, default=str)}
 
-## UPCOMING AUCTIONS (next ~14 days)
+## UPCOMING AUCTIONS (first 8 rows from the detector's 30-day calendar)
 {json.dumps(upcoming_compact, indent=2, default=str)}
 
 ## CROSS-CONTEXT REGIMES (other markets right now)

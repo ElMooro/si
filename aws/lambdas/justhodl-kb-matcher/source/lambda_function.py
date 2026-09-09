@@ -83,7 +83,7 @@ def build_today_state():
     if isinstance(lz, (int, float)):
         st["net_liquidity"] = {"value": lz, "chg": lz}
     au = s3j("data/auction-crisis.json") or {}
-    ac = au.get("composite_score") or au.get("score")
+    ac = au.get("composite_score")
     if isinstance(ac, (int, float)):
         st["auction_stress"] = {"value": ac, "chg": None}
     return st
