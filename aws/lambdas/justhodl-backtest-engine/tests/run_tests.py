@@ -114,6 +114,35 @@ def test_validate_only_snapshotter_writes_nothing(mod):
     assert not producer.S3.objects
 
 
+def test_real_ledger_adapter_bookkeeping_regressions(mod):
+    import unittest
+    sys.path.insert(0,str(HERE.parents[2]/"shared/tests"))
+    from test_research_capital_ledger import LedgerTests
+    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromTestCase(LedgerTests))
+    assert result.wasSuccessful()
+
+
+def test_content_addressed_ledger_reader_rejects_tampering_and_preserves_publication_gate(mod):
+    import hashlib,json
+    sys.path.insert(0,str(HERE.parents[2]/"shared/tests"))
+    from test_research_capital_ledger import fixture
+    raw=json.dumps(fixture()).encode();checksum=hashlib.sha256(raw).hexdigest()
+    key="backtest/ledger/versions/"+checksum+".json"
+    mod.S3=MemoryS3();mod.S3.objects[key]=raw
+    mod.S3.objects["backtest/ledger/latest.json"]=json.dumps({"source_key":key,"sha256":checksum}).encode()
+    doc={};mod.gate_performance_results(doc,"2026-09-09T00:00:00Z")
+    assert doc["portfolio_performance"]["status"]=="READY",doc["portfolio_performance"]
+    assert doc["portfolio_performance"]["final_nav"]==948
+    assert doc["publication"]["status"]=="BLOCKED"
+    mod.get_weights=lambda:{};mod.get_horizon_weights=lambda:{}
+    mod.scan_scored_outcomes=lambda:([],0);mod.fetch_spy_window=lambda *args:{}
+    writes=[];mod.S3.put_object=lambda **kw:writes.append(kw)
+    validated=mod.lambda_handler({"mode":"validate_only"},None)
+    assert validated["ok"] and validated["validation_only"] and validated["status"]=="BLOCKED" and not writes
+    mod.S3.objects[key]=raw+b" "
+    assert mod.load_research_capital_ledger("2026-09-09T00:00:00Z")["status"]=="BLOCKED"
+
+
 if __name__ == "__main__":
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

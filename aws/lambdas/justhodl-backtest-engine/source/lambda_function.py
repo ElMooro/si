@@ -304,6 +304,38 @@ def historical_input_readiness(decision_iso):
             "historical_feature_replay_ready":False,"reason":"complete feature definitions and decision-time snapshots are required"}
 
 
+def load_research_capital_ledger(decision_iso):
+    """Load only checksum-addressed immutable research versions; never infer trades."""
+    import hashlib
+    import re
+    from research_capital_ledger import replay_research_ledger, blocked
+    manifest_key="backtest/ledger/latest.json"
+    try:
+        manifest_raw=S3.get_object(Bucket=BUCKET,Key=manifest_key)["Body"].read(65537)
+        if len(manifest_raw)>65536:
+            raise ValueError("ledger manifest exceeds 64KiB")
+        manifest=json.loads(manifest_raw)
+        checksum=manifest.get("sha256")
+        if not isinstance(checksum,str) or not re.fullmatch(r"[0-9a-f]{64}",checksum):
+            raise ValueError("manifest SHA-256 required")
+        key="backtest/ledger/versions/"+checksum+".json"
+        if manifest.get("source_key") != key:
+            raise ValueError("ledger must be stored under its exact content-addressed version key")
+        response=S3.get_object(Bucket=BUCKET,Key=key)
+        if response.get("ContentLength",0)>25*1024*1024:
+            raise ValueError("immutable ledger exceeds 25MiB")
+        raw=response["Body"].read(25*1024*1024+1)
+        if len(raw)>25*1024*1024 or hashlib.sha256(raw).hexdigest()!=checksum:
+            raise ValueError("immutable ledger checksum/size validation failed")
+        result=replay_research_ledger(json.loads(raw),now=_utc_timestamp(decision_iso))
+        result["input_contract"]={"source_key":key,"sha256":checksum,"hash_verified":True}
+        return result
+    except Exception as exc:
+        result=blocked("Historical research ledger unavailable or invalid: "+str(exc)[:180])
+        result["input_contract"]={"manifest_key":manifest_key,"hash_verified":False}
+        return result
+
+
 def gate_performance_results(results_doc, decision_iso):
     """No attribution curve may be sold to consumers as an investable NAV."""
     reason="Missing immutable fills, cash ledger, daily instrument marks, corporate actions, borrow/financing and decision-time capital constraints"
@@ -318,7 +350,10 @@ def gate_performance_results(results_doc, decision_iso):
     results_doc["publication"]={"status":"BLOCKED","headline_eligible":False,"reason":reason,
         "required_inputs":["immutable decision and fill ledger","session-aligned daily marks and corporate actions",
                            "cash, financing, borrow and fees","historical gross/net/concentration/capacity constraints"]}
-    results_doc["portfolio_performance"]={"status":"BLOCKED","nav_curve":[],"daily_returns":[],"reason":reason}
+    results_doc["portfolio_performance"]=load_research_capital_ledger(decision_iso)
+    results_doc["publication"]["ledger_adapter_status"]=results_doc["portfolio_performance"]["status"]
+    if results_doc["portfolio_performance"]["status"] == "READY":
+        results_doc["publication"]["reason"]="Daily research ledger reconciled; independent model review and provenance certification required before publication"
     results_doc["historical_inputs"]=historical_input_readiness(decision_iso)
     return results_doc
 

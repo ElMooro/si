@@ -142,6 +142,12 @@ table td.num{text-align:right}
   </div>
 
   <div id="notice-area"></div>
+  <section class="section" id="daily-ledger-section">
+    <h2>Daily research ledger</h2>
+    <p class="sub">A separate replay of supplied historical fills, cash, raw closing marks, costs and capital limits. Model review and provenance certification remain required for performance publication.</p>
+    <div id="daily-ledger-status">Loading ledger contract…</div>
+    <div id="daily-ledger-table" class="card" style="overflow:auto;margin-top:12px"></div>
+  </section>
 
   <!-- ─── v2.0 HONEST BACKTEST (HEADLINE) ─── -->
   <div class="section" id="honest-section">
@@ -333,6 +339,7 @@ async function load(){
     }
 
     renderFullEngineOutput(DATA);
+    renderDailyLedger(DATA.portfolio_performance);
     renderKPIs(summ);
     renderHonest(DATA.honest_summary, DATA.honest_daily_curve);
     renderWalkforward(DATA.walkforward_summary);
@@ -430,6 +437,23 @@ function renderAttributionGate(data,prefix){
   }
   const chart=document.getElementById(prefix+'-nav-chart');
   if(chart) chart.textContent='No verified portfolio equity path';
+}
+function renderDailyLedger(ledger){
+  const status=document.getElementById('daily-ledger-status'),box=document.getElementById('daily-ledger-table');
+  if(!status||!box)return;
+  box.replaceChildren();
+  const ready=ledger?.status==='READY' && ledger?.schema_version==='research-capital-ledger-1.0' && ledger?.input_contract?.hash_verified===true && ledger?.curve_semantics==='daily_marked_capital_ledger';
+  if(!ready){status.textContent='BLOCKED — '+(ledger?.reason||'Immutable research fills, session marks and independent reconciliations are unavailable.');return;}
+  status.textContent='Reconciled research replay: '+ledger.n_sessions+' sessions, '+ledger.n_fills+' fills. Publication blocked pending independent model review. Latest 20 sessions shown; every session is in full engine output.';
+  const table=document.createElement('table'),head=document.createElement('tr');
+  for(const label of ['Session','Model NAV ($)','Cash ($)','Gross exposure ($)','External flow ($)']){const th=document.createElement('th');th.textContent=label;head.appendChild(th);}
+  table.appendChild(head);
+  for(const row of (ledger.nav_curve||[]).slice(-20)){
+    const tr=document.createElement('tr');
+    for(const key of ['date','equity_nav','cash','gross_exposure','external_flow']){const td=document.createElement('td');td.textContent=key==='date'?String(row[key]??'—'):(typeof row[key]==='number'&&Number.isFinite(row[key])?row[key].toLocaleString('en-US',{maximumFractionDigits:2}):'—');tr.appendChild(td);}
+    table.appendChild(tr);
+  }
+  box.appendChild(table);
 }
 /* AUDIT PUBLICATION GATE END */
 
