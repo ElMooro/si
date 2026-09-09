@@ -52,7 +52,7 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from managed_secret import managed_secret  # env first, then SSM -- no literal credentials
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 ENGINE = "justhodl-bottom"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/bottom.json"
@@ -79,18 +79,22 @@ P = {
     "class_rows": 80,
     "recent_closed_bars": {"D": 25, "W": 8},   # a closed event stays visible on the row this long
     # --- the algorithm (daily / weekly) ---
-    "D": {"atr_n": 14, "vol_n": 50, "decline_lookback": 60, "decline_min_atr": 5.0, "decline_min_pct": 7.0,
-          "newlow_lookback": 20, "climax_vol_x": 2.0, "climax_range_x": 1.5, "cluster_bars": 3,
+    "D": {"atr_n": 14, "vol_n": 50, "vol_regime_n": 250, "decline_lookback": 120, "decline_min_atr": 6.0, "decline_min_pct": 12.0,
+          "newlow_lookback": 120, "vol_dominance_n": 60, "downtrend_min_bars": 15, "crash_pct": 25.0, "ma_n": 50, "range_n": 252, "pos_max_pct": 35.0,
+          "climax_vol_x": 2.0, "climax_range_x": 1.5, "cluster_bars": 3,
           "ar_window": 15, "ar_min_atr": 2.0, "ar_confirm_bars": 2,
           "test_zone_atr": 1.0, "undercut_atr": 0.25, "spring_atr": 1.0, "spring_recover_bars": 3,
           "max_test_bars": 90, "trigger_window": 15, "max_wait_bars": 40, "outcome_bars": 63,
           "stop_buffer_atr": 0.10, "fail_vol_x": 0.70, "fail_vol_avg_x": 1.5},
-    "W": {"atr_n": 10, "vol_n": 26, "decline_lookback": 26, "decline_min_atr": 4.0, "decline_min_pct": 12.0,
-          "newlow_lookback": 8, "climax_vol_x": 1.8, "climax_range_x": 1.4, "cluster_bars": 2,
+    "W": {"atr_n": 10, "vol_n": 26, "vol_regime_n": 104, "decline_lookback": 52, "decline_min_atr": 5.0, "decline_min_pct": 20.0,
+          "newlow_lookback": 26, "vol_dominance_n": 26, "downtrend_min_bars": 6, "crash_pct": 35.0, "ma_n": 26, "range_n": 104, "pos_max_pct": 35.0,
+          "climax_vol_x": 1.8, "climax_range_x": 1.4, "cluster_bars": 2,
           "ar_window": 8, "ar_min_atr": 1.5, "ar_confirm_bars": 1,
           "test_zone_atr": 1.0, "undercut_atr": 0.25, "spring_atr": 1.0, "spring_recover_bars": 2,
           "max_test_bars": 40, "trigger_window": 8, "max_wait_bars": 20, "outcome_bars": 26,
           "stop_buffer_atr": 0.10, "fail_vol_x": 0.70, "fail_vol_avg_x": 1.4},
+    "decline_min_pct_by_desk": {"bonds": 6.0, "currencies": 5.0, "gold_metals": 10.0, "commodities": 10.0, "countries": 10.0, "equity_etfs": 10.0, "stocks": 12.0, "crypto": 18.0},
+    "decline_min_pct_by_desk_W": {"bonds": 10.0, "currencies": 8.0, "gold_metals": 15.0, "commodities": 15.0, "countries": 15.0, "equity_etfs": 15.0, "stocks": 20.0, "crypto": 30.0},
     "crypto_symbols": ["BTC", "ETH", "SOL", "XRP", "BNB", "ADA", "DOGE", "AVAX", "LINK", "DOT", "LTC",
                        "BCH", "UNI", "ATOM", "NEAR", "APT", "ARB", "OP", "SUI", "POL", "TRX",
                        "XLM", "HBAR", "ICP", "FIL", "AAVE", "MKR", "INJ", "TIA", "SEI", "RENDER",
@@ -554,37 +558,83 @@ def _close_event(E, i, outcome, why):
     E["why_closed"] = why
 
 
-def detect(o, h, l, c, v, prm, frame):
+def detect(o, h, l, c, v, prm, frame, decline_min_pct=None, diag=None):
     """Causal Wyckoff bottom state machine. Returns (events, active) where events are closed sequences and active is the
-    open one (or None). Every index is a position in the arrays given."""
+    open one (or None). Every index is a position in the arrays given.
+
+    The climax gates (v1.2.0, per Wyckoff/SMI: 'the highest intensity of speculative supply within a downtrend ... only after
+    a move has been in effect for some time ... if it does not have this it is not a selling climax'):
+      1. a real decline: close >= decline_min_pct and >= decline_min_atr under the 120-bar high (weekly: 52)
+      2. a prolonged one: that high printed >= downtrend_min_bars earlier, or the decline is a crash (>= crash_pct)
+      3. at the LOW of the move: the bar makes a new 120-bar low (weekly: 26) and sits below the 50-bar average (weekly: 26)
+         with the close in the bottom pos_max_pct of the 252-bar range (weekly: 104)
+      4. climactic volume: >= climax_vol_x times the prior 50-bar average, the HIGHEST volume of the prior 60 bars, and
+         >= climax_vol_x times the prior 250-bar average when that history exists (an ETF whose volume regime is simply
+         growing does not qualify)
+      5. climactic spread: range >= climax_range_x ATR."""
     n = len(c)
+    dmin = decline_min_pct if decline_min_pct is not None else prm["decline_min_pct"]
     atr = wilder_atr(h, l, c, prm["atr_n"])
     vavg = sma_prev(v, prm["vol_n"])
-    hi_prev = rolling_max_prev(h, prm["decline_lookback"])
-    lo_prev = rolling_min_prev(l, prm["newlow_lookback"])
+    vreg = sma_prev(v, prm["vol_regime_n"])
+    vmax = rolling_max_prev(v, prm["vol_dominance_n"], min_bars=prm["vol_dominance_n"] // 2)
+    hi_prev = rolling_max_prev(h, prm["decline_lookback"], min_bars=min(prm["decline_lookback"], 40))
+    hi_range = rolling_max_prev(h, prm["range_n"], min_bars=min(prm["range_n"], 60))
+    lo_range = rolling_min_prev(l, prm["range_n"], min_bars=min(prm["range_n"], 60))
+    lo_prev = rolling_min_prev(l, prm["newlow_lookback"], min_bars=min(prm["newlow_lookback"], 40))
+    ma = sma_prev(c, prm["ma_n"])
     rng = [h[i] - l[i] for i in range(n)]
     events = []
     E = None
-    warm = max(prm["atr_n"] + 1, prm["vol_n"] + 1, 30)
+    warm = max(prm["atr_n"] + 1, prm["vol_n"] + 1, prm["ma_n"] + 1, 40)
+    D = diag if diag is not None else {}
+
+    def bump(k):
+        D[k] = D.get(k, 0) + 1
 
     def is_climax(i):
         a = atr[i]; va = vavg[i]; hp = hi_prev[i]; lp = lo_prev[i]
         if a is None or va is None or hp is None or lp is None or a <= 0 or va <= 0:
             return None
-        decline_pct = 100.0 * (c[i] / hp - 1.0)
-        decline_atr = (hp - c[i]) / a
-        if decline_atr < prm["decline_min_atr"] or -decline_pct < prm["decline_min_pct"]:
-            return None
         vol_x = v[i] / va
         if vol_x < prm["climax_vol_x"]:
             return None
+        bump("vol_x_ok")
         range_x = rng[i] / a
         if range_x < prm["climax_range_x"]:
-            return None
-        if l[i] > lp:            # the climax bar must make a new low
-            return None
+            bump("rej_range"); return None
+        if l[i] > lp:                                  # the low of the whole move, not a 3-week dip
+            bump("rej_not_new_low"); return None
+        decline_pct = 100.0 * (c[i] / hp - 1.0)
+        decline_atr = (hp - c[i]) / a
+        if decline_atr < prm["decline_min_atr"] or -decline_pct < dmin:
+            bump("rej_shallow"); return None
+        j0 = max(0, i - prm["decline_lookback"])
+        pre_i = max(range(j0, i), key=lambda k: h[k]) if i > j0 else i
+        if (i - pre_i) < prm["downtrend_min_bars"] and -decline_pct < prm["crash_pct"]:
+            bump("rej_not_prolonged"); return None      # the move has not been in effect for some time
+        m = ma[i]
+        if m is not None and c[i] >= m:
+            bump("rej_above_ma"); return None            # a climax prints under the average, not on it
+        hr, lr = hi_range[i], lo_range[i]
+        if hr is not None and lr is not None and hr > lr:
+            pos = 100.0 * (c[i] - lr) / (hr - lr)
+            if pos > prm["pos_max_pct"]:
+                bump("rej_position"); return None        # not at the lows of its own yearly range
+        else:
+            pos = None
+        vm = vmax[i]
+        if vm is not None and v[i] < vm:
+            bump("rej_not_dominant"); return None        # not the heaviest volume of the decline
+        vr = vreg[i]
+        if vr is not None and vr > 0 and v[i] < prm["climax_vol_x"] * vr:
+            bump("rej_volume_regime"); return None      # heavy only vs a recently rising volume regime
+        bump("climax")
         clv = (c[i] - l[i]) / rng[i] if rng[i] > 0 else 0.5
-        return {"vol_x": vol_x, "range_x": range_x, "clv": clv, "decline_pct": decline_pct, "pre_high": hp}
+        pre_vol = mean([v[k] for k in range(max(0, i - 5), i)]) if i >= 5 else None
+        return {"vol_x": vol_x, "range_x": range_x, "clv": clv, "decline_pct": decline_pct, "pre_high": hp, "pre_high_i": pre_i,
+                "pos_range_pct": pos, "vol_vs_regime": (v[i] / vr) if (vr and vr > 0) else None, "prelim_vol_x": (pre_vol / va) if (pre_vol and va) else None,
+                "bars_down": i - pre_i}
 
     for i in range(warm, n):
         a = atr[i]
@@ -596,12 +646,7 @@ def detect(o, h, l, c, v, prm, frame):
             if cx is None:
                 continue
             E = _mk_event(i, frame)
-            E["sc_low"] = l[i]; E["sc_vol"] = v[i]; E["sc_vol_x"] = cx["vol_x"]; E["sc_range_x"] = cx["range_x"]; E["sc_clv"] = cx["clv"]
-            E["sc_decline_pct"] = cx["decline_pct"]; E["pre_high"] = cx["pre_high"]; E["atr"] = a
-            E["sc_close_off_low"] = cx["clv"] >= 0.3
-            # locate the pre-climax swing high index (target_2 later)
-            j0 = max(0, i - prm["decline_lookback"])
-            E["pre_high_i"] = max(range(j0, i), key=lambda k: h[k]) if i > j0 else i
+            _fill_climax(E, i, l, v, a, cx)
             continue
         st = E["state"]
         sc_low = E["sc_low"]
@@ -621,11 +666,13 @@ def detect(o, h, l, c, v, prm, frame):
                 events.append(E); E = None
                 if cx is not None:   # this bar is itself a (deeper) climax -> a new sequence starts here
                     E = _mk_event(i, frame)
-                    E["sc_low"] = l[i]; E["sc_vol"] = v[i]; E["sc_vol_x"] = cx["vol_x"]; E["sc_range_x"] = cx["range_x"]; E["sc_clv"] = cx["clv"]
-                    E["sc_decline_pct"] = cx["decline_pct"]; E["pre_high"] = cx["pre_high"]; E["atr"] = a; E["sc_close_off_low"] = cx["clv"] >= 0.3
-                    j0 = max(0, i - prm["decline_lookback"]); E["pre_high_i"] = max(range(j0, i), key=lambda k: h[k]) if i > j0 else i
+                    _fill_climax(E, i, l, v, a, cx)
                 continue
-            # rally tracking
+            # rally tracking (and the post-climax volume signature: it must diminish)
+            if E.get("post_vols") is None:
+                E["post_vols"] = []
+            if len(E["post_vols"]) < 5:
+                E["post_vols"].append(v[i])
             if E["ar_high"] is None or h[i] > E["ar_high"]:
                 E["ar_high"] = h[i]; E["ar_i"] = i
             rally_atr = (E["ar_high"] - sc_low) / E["atr"]
@@ -635,6 +682,8 @@ def detect(o, h, l, c, v, prm, frame):
                 # AR peak confirmed once `ar_confirm_bars` bars fail to exceed it
                 if i - E["ar_i"] >= prm["ar_confirm_bars"]:
                     E["ar_rally_atr"] = rally_atr; E["ar_rally_pct"] = 100.0 * (E["ar_high"] / sc_low - 1.0)
+                    pv = E.get("post_vols") or []
+                    E["post_vol_ratio"] = (mean(pv) / E["sc_vol"]) if (pv and E["sc_vol"]) else None
                     E["state"] = "TESTING"; E["test_start_i"] = i
                     E["appr"] = {"lows": [], "vols": [], "rngs": []}
                     continue
@@ -802,6 +851,14 @@ def _outcomes(ev, c, l, h, prm):
         ev["ar_hole"] = bool(lows and min(lows) < lo)
 
 
+def _fill_climax(E, i, l, v, a, cx):
+    E["sc_low"] = l[i]; E["sc_vol"] = v[i]; E["sc_vol_x"] = cx["vol_x"]; E["sc_range_x"] = cx["range_x"]; E["sc_clv"] = cx["clv"]
+    E["sc_decline_pct"] = cx["decline_pct"]; E["pre_high"] = cx["pre_high"]; E["pre_high_i"] = cx["pre_high_i"]; E["atr"] = a
+    E["sc_close_off_low"] = cx["clv"] >= 0.3
+    E["sc_pos_range_pct"] = cx.get("pos_range_pct"); E["sc_vol_vs_regime"] = cx.get("vol_vs_regime"); E["sc_prelim_vol_x"] = cx.get("prelim_vol_x")
+    E["sc_bars_down"] = cx.get("bars_down")
+
+
 def _trigger(E, i, c, v, va, prm, sma_ref=None):
     E["state"] = "TRIGGERED"; E["trig_i"] = i; E["trig_level"] = E["st_bar_high"]; E["trig_fill"] = c[i]
     E["trig_vol_x"] = (v[i] / va) if va else None
@@ -824,7 +881,16 @@ def score_event(E, prm):
         reasons.append("climax bar closed %.0f%% off its low (absorption)" % (100 * (E.get("sc_clv") or 0)))
     dp = E.get("sc_decline_pct") or 0.0
     s["climax"] += clamp(-dp / 10.0, 0, 2)
-    reasons.insert(0, "selling climax: %.1fx average volume, %.1fx ATR range after a %.0f%% decline" % (vx, E.get("sc_range_x") or 0, -dp))
+    reasons.insert(0, "selling climax: %.1fx average volume (heaviest of the decline), %.1fx ATR range, %.0f%% under the swing high after %s bars down" % (vx, E.get("sc_range_x") or 0, -dp, E.get("sc_bars_down") if E.get("sc_bars_down") is not None else "?"))
+    pv = E.get("post_vol_ratio")
+    if pv is not None:
+        if pv <= 0.6:
+            reasons.append("volume diminished to %.0f%% of the climax over the next bars" % (100 * pv))
+        elif pv >= 1.0:
+            risks.append("volume did NOT diminish after the climax (%.0f%%) -- supply still active" % (100 * pv))
+            s["climax"] = max(0.0, s["climax"] - 6)
+    if (E.get("sc_prelim_vol_x") or 0) >= 1.3:
+        reasons.append("preliminary supply: volume was already %.1fx average into the climax" % E["sc_prelim_vol_x"])
     # rally quality (0-15)
     if E.get("ar_valid_i") is not None:
         ra = E.get("ar_rally_atr") or 0.0
@@ -1122,7 +1188,9 @@ def _event_view(E, dates, b_d, frame, prm):
               "lower_vol_than_prev": t.get("lower_vol_than_prev"), "kind": t.get("kind")} for t in (E.get("tests") or [])]
     return {"frame": frame, "state": E.get("state"), "why_closed": E.get("why_closed"),
             "sc": {"date": dt(E.get("sc_i")), "end": dt(E.get("sc_end")), "low": rnd(E.get("sc_low"), 4), "vol_x": rnd(E.get("sc_vol_x"), 2), "range_x": rnd(E.get("sc_range_x"), 2),
-                   "clv": rnd(E.get("sc_clv"), 2), "decline_pct": rnd(E.get("sc_decline_pct"), 1), "pre_high": rnd(E.get("pre_high"), 4)},
+                   "clv": rnd(E.get("sc_clv"), 2), "decline_pct": rnd(E.get("sc_decline_pct"), 1), "pre_high": rnd(E.get("pre_high"), 4), "pre_high_date": dt(E.get("pre_high_i")),
+                   "bars_down": E.get("sc_bars_down"), "pos_range_pct": rnd(E.get("sc_pos_range_pct"), 0), "vol_vs_regime": rnd(E.get("sc_vol_vs_regime"), 2),
+                   "prelim_vol_x": rnd(E.get("sc_prelim_vol_x"), 2), "post_vol_ratio": rnd(E.get("post_vol_ratio"), 2)},
             "ar": {"date": dt(E.get("ar_i")), "high": rnd(E.get("ar_high"), 4), "rally_pct": rnd(E.get("ar_rally_pct"), 1), "rally_atr": rnd(E.get("ar_rally_atr"), 2),
                    "crowd_buy_date": dt(E.get("ar_valid_i")), "crowd_buy_px": rnd(E.get("ar_buy_px"), 4)},
             "st": {"date": dt(E.get("st_i")), "low": rnd(E.get("st_low"), 4), "bar_high": rnd(E.get("st_bar_high"), 4), "vol_ratio_sc": rnd(E.get("st_vol_ratio_sc"), 2),
@@ -1211,16 +1279,21 @@ def chart_payload(b, dates, E, n_bars=70):
             "c": [g(b.c, k) for k in idx], "v": [round(b.v[k]) for k in idx], "marks": marks}
 
 
-def run_frame(b, dates, frame):
+GATE_DIAG = {"D": {}, "W": {}}
+
+
+def run_frame(b, dates, frame, desk="stocks"):
     prm = P[frame]
     if frame == "D":
         o, h, l, c, v, d = b.o, b.h, b.l, b.c, b.v, b.d
+        dmin = P["decline_min_pct_by_desk"].get(desk, prm["decline_min_pct"])
     else:
         W = resample_weekly(b, dates)
         o, h, l, c, v, d = W["o"], W["h"], W["l"], W["c"], W["v"], W["d"]
         if len(c) < P["min_weeks"]:
             return None, [], None, None
-    events, active = detect(o, h, l, c, v, prm, frame)
+        dmin = P["decline_min_pct_by_desk_W"].get(desk, prm["decline_min_pct"])
+    events, active = detect(o, h, l, c, v, prm, frame, decline_min_pct=dmin, diag=GATE_DIAG[frame])
     n = len(c)
     cur = active
     if cur is None and events:
@@ -1234,8 +1307,9 @@ def build_row(sym, asset_class, sub_class, b, dates, F, session_idx):
     last = b.c[-1]
     fv = F["finviz"].get(to_fv(sym)) or {}
     adv = mean([b.v[k] * b.c[k] for k in range(max(0, len(b.c) - 20), len(b.c))]) if asset_class != "crypto" else mean([b.v[k] for k in range(max(0, len(b.c) - 20), len(b.c))])
-    curD, evD, dD, arrD = run_frame(b, dates, "D")
-    curW, evW, dW, arrW = run_frame(b, dates, "W")
+    desk = DESK.get(sub_class, "stocks")
+    curD, evD, dD, arrD = run_frame(b, dates, "D", desk)
+    curW, evW, dW, arrW = run_frame(b, dates, "W", desk)
     if curD is None and curW is None:
         return None, evD, evW
     mcap = fnum(fv.get("market_cap"))
@@ -1259,12 +1333,20 @@ def build_row(sym, asset_class, sub_class, b, dates, F, session_idx):
         score = clamp(score + 6)
         reasons.append("weekly frame agrees (%s)" % curW["state"].lower().replace("_", " "))
     sma200 = sma_series(list(b.c), 200)[-1] if len(b.c) >= 200 else None
+    hi252 = max(b.h[max(0, len(b.h) - 252):]); lo252 = min(b.l[max(0, len(b.l) - 252):])
+    pos_52w = 100.0 * (last - lo252) / (hi252 - lo252) if hi252 > lo252 else None
     bd = b.d if head_frame == "D" else dW
     ev = _event_view(E, dates, bd, head_frame, prm)
     plan = plan_for(E, last, prm)
     state = E["state"]
     since_i = {"CLIMAX": E.get("sc_i"), "TESTING": E.get("test_start_i"), "ST_CONFIRMED": E.get("st_confirm_i"), "TRIGGERED": E.get("trig_i"), "MARKUP": E.get("sos_i")}.get(state, E.get("end_i"))
     bars_in_state = (len(arrD[3]) - 1 - since_i) if (head_frame == "D" and since_i is not None) else ((len(arrW[3]) - 1 - since_i) if (since_i is not None and arrW) else None)
+    # actionable = the paper's entry is still available: a confirmed test awaiting its trigger, or a fresh trigger with price
+    # still inside the range (not a name that already ran to the top of the chart)
+    trig_lvl = E.get("trig_level") or E.get("st_bar_high")
+    rng_w = (E["ar_high"] - E["sc_low"]) if (E.get("ar_high") and E.get("sc_low") and E["ar_high"] > E["sc_low"]) else None
+    still_low = bool(trig_lvl and rng_w and last <= trig_lvl + 0.6 * rng_w)
+    actionable = (state == "ST_CONFIRMED") or (state == "TRIGGERED" and (bars_in_state if bars_in_state is not None else 99) <= 10 and still_low)
     r = {"ticker": sym, "company": (fv.get("company") or sym)[:60], "asset_class": asset_class, "sub_class": sub_class, "desk": DESK.get(sub_class, "stocks"),
          "sector": fv.get("sector") or None, "industry": fv.get("industry") or None, "country": fv.get("country") or None,
          "last": rnd(last, 4 if last < 1 else 2), "mcap": mcap, "aum": aum, "adv_usd": rnd(adv, 0),
@@ -1277,6 +1359,8 @@ def build_row(sym, asset_class, sub_class, b, dates, F, session_idx):
          "trigger_date": ev["trigger"]["date"], "trigger_level": ev["trigger"]["level"],
          "dist_sc_low_pct": rnd(100.0 * (last / E["sc_low"] - 1.0), 1) if E.get("sc_low") else None,
          "dist_sma200_pct": rnd(100.0 * (last / sma200 - 1.0), 1) if sma200 else None,
+         "pos_52w_pct": rnd(pos_52w, 0), "dist_52w_high_pct": rnd(100.0 * (last / hi252 - 1.0), 1) if hi252 else None,
+         "actionable": bool(actionable), "still_in_range": still_low, "sc_pos_range_pct": ev["sc"]["pos_range_pct"], "sc_bars_down": ev["sc"]["bars_down"],
          "plan": plan, "event": ev, "weekly_state": curW["state"] if curW else None, "daily_state": curD["state"] if curD else None,
          "weekly": _event_view(curW, dates, dW, "W", P["W"]) if (curW is not None and head_frame == "D") else None,
          "confirm": confirm, "n_confirm": n_conf, "reasons": reasons, "risks": risks,
@@ -1444,7 +1528,8 @@ def market_context(rows, bench_rows, F, n_scored):
 
 
 DEFINITIONS = {
-    "selling_climax": "A steep decline that ends in one or a few very wide-range bars on climactic volume (>=2x the prior 50-bar average, >=1.5x ATR range, a new 20-bar low). The panic; large operators absorb it. The engine also requires the decline itself to be real (>=5 ATR and >=7% off the 60-bar high on the daily frame).",
+    "selling_climax": "The highest intensity of supply within a downtrend, only after the move has been in effect for some time (Wyckoff/SMI). The engine requires all of: a real decline (>= 12% for stocks / 6% bonds / 5% currencies / 10% wrappers / 18% crypto, and >= 6 ATR, under the 120-bar high), a prolonged one (that high printed >= 15 bars earlier, or a >= 25% crash), the bar makes a NEW 120-bar LOW under the 50-bar average with the close in the bottom 35% of the yearly range, climactic volume (>= 2x the prior 50-bar average, the heaviest of the prior 60 bars, and >= 2x the 250-bar average so a rising volume regime does not qualify) and a wide spread (>= 1.5 ATR). Weekly frame: 52-week high, 26-week low, 26-week average, >= 6 weeks down. A pullback to a 3-week low in an uptrend is NOT a climax.",
+    "actionable": "The paper's entry is still available: a confirmed secondary test awaiting its trigger, or a trigger no older than 10 bars with price still inside the range (no more than 60% of the range width above the trigger level). Names that already ran to the top of the chart are shown as resolved (MARKUP), never as bottoms to buy.",
     "automatic_rally": "The sharp bounce that follows a climax because sellers are exhausted (>=2 ATR off the climax low within 15 bars). Its high and the climax low define the trading range. The crowd buys this bounce; the engine records the crowd's entry to measure it.",
     "secondary_test": "Price drifts back toward the climax low. The signal is the VOLUME: the test candle's volume vs the climax volume (vol_ratio_sc), vs the 50-bar average (vol_ratio_avg), the slope of volume on the way down (approach_vol_slope) and bar narrowing (approach_range_x). A quiet test says the supply is gone.",
     "depth_class": "Where the test low sits vs the climax low in ATR units: HIGHER_LOW (buyers stepped in early -- the strongest), EQUAL_LOW (within 0.25 ATR), SPRING (light-volume undercut that recovered), UNDERCUT.",
@@ -1506,8 +1591,8 @@ def _run(event=None):
         b = bars.get(bsym)
         if b is None or len(b.c) < P["min_sessions"]:
             continue
-        curD, evD, _, _ = run_frame(b, dates, "D")
-        curW, evW, _, _ = run_frame(b, dates, "W")
+        curD, evD, _, _ = run_frame(b, dates, "D", "equity_etfs")
+        curW, evW, _, _ = run_frame(b, dates, "W", "equity_etfs")
         bench_rows[bsym] = {"last": rnd(b.c[-1], 2), "daily": (curD or {}).get("state") or "NONE", "weekly": (curW or {}).get("state") or "NONE",
                             "daily_sc_date": dates[b.d[curD["sc_i"]]] if curD else None, "n_sequences_5y": len(evD)}
     # crypto lane (spot, dollar volume, its own calendar)
@@ -1528,14 +1613,14 @@ def _run(event=None):
                 rows.append(r)
         if "BTC" in cbars:
             b = cbars["BTC"]
-            curD, evD, _, _ = run_frame(b, cdates, "D")
+            curD, evD, _, _ = run_frame(b, cdates, "D", "crypto")
             bench_rows["BTC"] = {"last": rnd(b.c[-1], 0), "daily": (curD or {}).get("state") or "NONE", "weekly": None, "daily_sc_date": cdates[b.d[curD["sc_i"]]] if curD else None, "n_sequences_5y": len(evD)}
     except Exception as e:
         DEGRADED.append("crypto lane failed: %s" % str(e)[:120])
         log("crypto lane failed: %s" % traceback.format_exc()[-400:])
     # ranking: live states first, then score
-    order = {"TRIGGERED": 0, "MARKUP": 1, "ST_CONFIRMED": 2, "TESTING": 3, "CLIMAX": 4, "COMPLETED": 5, "STOPPED": 6, "FAILED": 6, "NO_TEST_BREAKOUT": 7, "EXPIRED": 8, "NO_RALLY": 8}
-    rows.sort(key=lambda r: (order.get(r["state"], 9), -r["score"], -(r.get("adv_usd") or 0)))
+    order = {"TRIGGERED": 1, "ST_CONFIRMED": 2, "TESTING": 3, "CLIMAX": 4, "MARKUP": 5, "COMPLETED": 6, "STOPPED": 7, "FAILED": 7, "NO_TEST_BREAKOUT": 8, "EXPIRED": 9, "NO_RALLY": 9}
+    rows.sort(key=lambda r: (0 if r.get("actionable") else 1, order.get(r["state"], 9), -r["score"], -(r.get("adv_usd") or 0)))
     # the page carries: full board (bounded, charts on the top rows), per-desk boards, weekly board
     board = rows[:P["board_rows"]]
     for r in rows[P["board_rows"]:]:
@@ -1548,7 +1633,7 @@ def _run(event=None):
     # harvester contract: fresh triggers (<=5 bars) with a real score
     top_picks = [{"ticker": (r["ticker"] + "-USD") if r["asset_class"] == "crypto" else r["ticker"], "score": r["score"], "grade": r["grade"], "state": r["state"], "frame": r["frame"], "asset_class": r["asset_class"], "desk": r["desk"],
                   "entry": (r.get("plan") or {}).get("entry"), "stop": (r.get("plan") or {}).get("stop"), "target_1": (r.get("plan") or {}).get("target_1"), "last": r["last"]}
-                 for r in rows if r["state"] in ("TRIGGERED", "MARKUP") and (r.get("bars_in_state") or 99) <= 5 and r["score"] >= 55][:60]
+                 for r in rows if r.get("actionable") and r["state"] == "TRIGGERED" and (r.get("bars_in_state") or 99) <= 5 and r["score"] >= 55][:60]
     # changes vs the prior snapshot
     prev = s3_json(OUT_KEY, {}, quiet=True) or {}
     prev_state = {r.get("ticker"): r.get("state") for r in (prev.get("board_all") or []) if isinstance(r, dict)}
@@ -1563,7 +1648,9 @@ def _run(event=None):
                       "frames": ["D", "W"], "params": {"D": P["D"], "W": P["W"]}, "hygiene": {k: P[k] for k in ("min_price", "min_adv_usd", "min_mcap", "min_etf_aum", "min_sessions", "min_weeks")}},
            "universe": {"instruments": len(uni), "scored": n_scored, "rows": len(rows), "sessions": len(dates), "window": [dates[0], dates[-1]], "crypto_symbols": len(P["crypto_symbols"])},
            "market": market_context(rows, bench_rows, F, n_scored),
-           "counts": {"by_state": {}, "by_desk": {}},
+           "counts": {"by_state": {}, "by_desk": {}, "actionable": sum(1 for r in rows if r.get("actionable"))},
+           "climax_gates": {"D": dict(GATE_DIAG["D"]), "W": dict(GATE_DIAG["W"]),
+                            "note": "how many candidate bars (>= climax_vol_x volume) each gate rejected over the whole window: range, not a new low of the move, shallow decline, not prolonged, above the average, not in the bottom of the yearly range, not the heaviest volume of the decline, heavy only vs a rising volume regime"},
            "board": board, "board_all": [{k: r.get(k) for k in ("ticker", "company", "asset_class", "sub_class", "desk", "frame", "state", "grade", "score", "last", "sc_date", "st_date", "trigger_date", "st_vol_ratio_sc", "st_depth_class", "bars_in_state", "weekly_state", "daily_state", "n_confirm", "dist_sc_low_pct")} for r in rows],
            "by_desk": by_desk, "desk_labels": DESK_LABEL, "weekly_live": weekly_live, "top_picks": top_picks, "changes": changes,
            "base_rates": br, "definitions": DEFINITIONS, "feeds_asof": F["asof"], "degraded": DEGRADED, "row_errors": ROW_ERRS, "log": LOG[-60:]}
@@ -1580,7 +1667,7 @@ def _run(event=None):
 
 
 def lambda_handler(event=None, context=None):
-    LOG.clear(); DEGRADED.clear(); ROW_ERRS.clear()
+    LOG.clear(); DEGRADED.clear(); ROW_ERRS.clear(); GATE_DIAG["D"].clear(); GATE_DIAG["W"].clear()
     try:
         return _run(event or {})
     except Exception as e:

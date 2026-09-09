@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="bottom-version" content="bottom-v1.1.0">
+<meta name="bottom-version" content="bottom-v1.2.0">
 <meta name="jh-marker" content="BOTTOM_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Bottom · the Wyckoff bottom desk · selling climax → automatic rally → secondary test → trigger, across every asset class · JustHodl.AI</title>
@@ -82,7 +82,7 @@ th:hover .tip,th.pin .tip{display:block}
 .tabs button{background:var(--bg-card);border:1px solid var(--border);color:var(--fg-2);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:6px 12px;border-radius:6px;cursor:pointer}
 .tabs button.on{color:var(--cyan);border-color:var(--cyan)}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
-.filters select,.filters input{background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-1);padding:5px 8px;border-radius:5px;font-size:12px}
+.filters select,.filters input{background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-1);padding:5px 8px;border-radius:5px;font-size:12px;max-width:100%}
 .board{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:14px}
 @media(max-width:1100px){.board{grid-template-columns:1fr}}
 .evid{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;position:sticky;top:60px;max-height:calc(100vh - 80px);overflow:auto}
@@ -124,7 +124,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 <div class="container">
 <div class="page-hdr">
   <h1>BOTTOM · the Wyckoff bottom desk</h1>
-  <p><b>A bottom is a process, not a price.</b> The engine watches every asset with real volume in the warehouse — stocks, bond / gold / metal / commodity / currency / country / sector wrappers and spot crypto — for the sequence the paper describes: a <b>selling climax</b> (panic on climactic volume), the <b>automatic rally</b> (the bounce the crowd buys), and the <b>secondary test</b> (price returns to the low; the signal is the <i>silence</i> in the volume). It buys nothing at the level: the <b>trigger</b> is a close above the high of the candle that made the test low, the <b>stop</b> sits just under that low, and every historical sequence is graded from the tape so the base rates below are measured, not quoted.</p>
+  <p><b>A bottom is a process, not a price — and a climax prints at the LOW of a real decline, on the heaviest volume of that decline, never on a pullback near the highs.</b> The engine watches every asset with real volume in the warehouse — stocks, bond / gold / metal / commodity / currency / country / sector wrappers and spot crypto — for the sequence the paper describes: a <b>selling climax</b> (panic on climactic volume), the <b>automatic rally</b> (the bounce the crowd buys), and the <b>secondary test</b> (price returns to the low; the signal is the <i>silence</i> in the volume). It buys nothing at the level: the <b>trigger</b> is a close above the high of the candle that made the test low, the <b>stop</b> sits just under that low, and every historical sequence is graded from the tape so the base rates below are measured, not quoted.</p>
   <div class="meta" id="meta">loading data/bottom.json…</div>
 </div>
 <div id="errbox"></div>
@@ -151,7 +151,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
   <button data-t="all" class="on">All desks</button><button data-t="stocks">Stocks</button><button data-t="equity_etfs">Equity &amp; sector ETFs</button><button data-t="countries">Countries</button><button data-t="bonds">Bonds</button><button data-t="gold_metals">Gold &amp; metals</button><button data-t="commodities">Commodities</button><button data-t="currencies">Currencies</button><button data-t="crypto">Crypto</button><button data-t="weekly">Weekly · major bottoms</button><button data-t="changes">What changed</button><button data-t="rates">Base rates</button><button data-t="defs">Definitions</button>
 </div>
 <div class="filters" id="filters">
-  <select id="f-state"><option value="">Any state</option><option value="LIVE">Live sequences</option><option value="TRIGGERED">Triggered</option><option value="MARKUP">Markup</option><option value="ST_CONFIRMED">Test confirmed · awaiting trigger</option><option value="TESTING">Testing the low</option><option value="CLIMAX">Fresh climax</option><option value="FAILED">Failed / stopped</option></select>
+  <select id="f-state"><option value="ACTIONABLE" selected>Actionable · at the lows</option><option value="">Any state</option><option value="LIVE">Live sequences</option><option value="TRIGGERED">Triggered</option><option value="MARKUP">Markup</option><option value="ST_CONFIRMED">Test confirmed · awaiting trigger</option><option value="TESTING">Testing the low</option><option value="CLIMAX">Fresh climax</option><option value="FAILED">Failed / stopped</option></select>
   <select id="f-grade"><option value="">Any grade</option><option value="A">A only</option><option value="AB">A + B</option></select>
   <select id="f-frame"><option value="">Any frame</option><option value="D">Daily</option><option value="W">Weekly</option></select>
   <input id="f-q" placeholder="ticker / name / industry" style="min-width:180px">
@@ -204,6 +204,9 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     trigger_date: ["Trigger", "The date price closed above the high of the test candle — the entry by the paper's rule.", ""],
     bars_in_state: ["Bars", "Bars (sessions or weeks) since the current state began. A trigger 1-3 bars old is fresh; a test confirmed 20 bars ago is getting stale.", "fresh triggers = low numbers"],
     dist_sc_low_pct: ["vs climax low", "Distance of the last close from the climax low. Near zero while testing; rising through the range after the trigger.", ""],
+    pos_52w_pct: ["52w pos", "Where the last close sits in its own 52-week range: 0 = at the low, 100 = at the high. A bottom to buy sits low; a name at 80-100 has already run (shown as resolved, never as a bottom).", "lower = still at the lows"],
+    dist_52w_high_pct: ["vs 52w high", "Distance of the last close from the 52-week high.", "more negative = further from the top"],
+    actionable: ["Actionable", "The paper's entry is still available: a confirmed test awaiting its trigger, or a trigger no older than 10 bars with price still inside the range (<= 60% of the range above the trigger level).", "yes = buyable by the rules"],
     rr_1: ["R/R", "Reward to risk of the plan: (rally high − entry) / (entry − stop).", "higher"],
     risk_pct: ["Risk", "Entry-to-stop distance in percent — the loss defined before entry.", "lower = tighter"],
     n_confirm: ["Fleet", "Number of fleet engines confirming (accumulation-radar, phase-detector, fortress, katlin, 13F, insiders, dark pool, ETF flows). Evidence, never a gate.", "more is better"],
@@ -215,7 +218,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     { k: "ticker", l: "Ticker" }, { k: "state", l: "State" }, { k: "grade", l: "Grade" }, { k: "score", l: "Score", r: 1 }, { k: "frame", l: "Frame" },
     { k: "last", l: "Price", r: 1 }, { k: "sc_date", l: "Climax" }, { k: "sc_vol_x", l: "Climax vol", r: 1 }, { k: "sc_decline_pct", l: "Decline", r: 1 },
     { k: "ar_rally_pct", l: "Rally", r: 1 }, { k: "st_date", l: "Test" }, { k: "st_vol_ratio_sc", l: "Test vol / climax", r: 1 }, { k: "st_depth_class", l: "Depth" },
-    { k: "n_tests", l: "Tests", r: 1 }, { k: "trigger_date", l: "Trigger" }, { k: "bars_in_state", l: "Bars", r: 1 }, { k: "dist_sc_low_pct", l: "vs climax low", r: 1 },
+    { k: "n_tests", l: "Tests", r: 1 }, { k: "trigger_date", l: "Trigger" }, { k: "bars_in_state", l: "Bars", r: 1 }, { k: "actionable", l: "Actionable" }, { k: "dist_sc_low_pct", l: "vs climax low", r: 1 }, { k: "pos_52w_pct", l: "52w pos", r: 1 }, { k: "dist_52w_high_pct", l: "vs 52w high", r: 1 },
     { k: "rr_1", l: "R/R", r: 1 }, { k: "risk_pct", l: "Risk", r: 1 }, { k: "n_confirm", l: "Fleet", r: 1 }, { k: "weekly_state", l: "Weekly" }, { k: "adv_usd", l: "ADV $", r: 1 }
   ];
 
@@ -226,6 +229,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
   }
   function sortVal(r, k) {
     var v = val(r, k);
+    if (k === "actionable") return v ? 0 : 1;
     if (k === "state") return STATE_RANK[v] == null ? 9 : STATE_RANK[v];
     if (k === "grade") return { A: 0, B: 1, C: 2, D: 3 }[v] == null ? 4 : { A: 0, B: 1, C: 2, D: 3 }[v];
     if (k === "st_depth_class") return DEPTH_RANK[v] == null ? 4 : DEPTH_RANK[v];
@@ -233,7 +237,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     if (typeof v === "string") return v.toLowerCase();
     return v == null ? null : Number(v);
   }
-  var BEST_ASC = { state: 1, grade: 1, st_depth_class: 1, weekly_state: 1, st_vol_ratio_sc: 1, bars_in_state: 1, risk_pct: 1, ticker: 1, sc_date: 1, st_date: 1, trigger_date: 1, frame: 1 };
+  var BEST_ASC = { actionable: 1, pos_52w_pct: 1, state: 1, grade: 1, st_depth_class: 1, weekly_state: 1, st_vol_ratio_sc: 1, bars_in_state: 1, risk_pct: 1, ticker: 1, sc_date: 1, st_date: 1, trigger_date: 1, frame: 1 };
 
   function rows() {
     if (!D) return [];
@@ -243,7 +247,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     else if (tab !== "all" && tab !== "changes" && tab !== "rates" && tab !== "defs") out = all.filter(function (r) { return r.desk === tab; });
     var fs = $("f-state").value, fg = $("f-grade").value, ff = $("f-frame").value, q = ($("f-q").value || "").trim().toLowerCase();
     if (funnelState) out = out.filter(function (r) { return funnelState === "FAILED" ? (r.state === "FAILED" || r.state === "STOPPED") : r.state === funnelState; });
-    if (fs === "LIVE") out = out.filter(function (r) { return LIVE[r.state]; });
+    if (fs === "ACTIONABLE") out = out.filter(function (r) { return r.actionable; });
+    else if (fs === "LIVE") out = out.filter(function (r) { return LIVE[r.state]; });
     else if (fs === "FAILED") out = out.filter(function (r) { return r.state === "FAILED" || r.state === "STOPPED"; });
     else if (fs) out = out.filter(function (r) { return r.state === fs; });
     if (fg === "A") out = out.filter(function (r) { return r.grade === "A"; });
@@ -279,7 +284,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
         "<td>" + num(r.last, r.last < 1 ? 4 : 2) + "</td><td>" + esc(r.sc_date || "—") + "</td><td>" + num(r.sc_vol_x, 1) + "x</td><td class=\"neg\">" + pct(r.sc_decline_pct, 0) + "</td>" +
         '<td class="pos">' + pct(r.ar_rally_pct, 1) + "</td><td>" + esc(r.st_date || "—") + '</td><td class="' + (r.st_vol_ratio_sc == null ? "flat" : r.st_vol_ratio_sc <= 0.4 ? "pos" : r.st_vol_ratio_sc > 0.7 ? "neg" : "") + '">' + (r.st_vol_ratio_sc == null ? "—" : num(100 * r.st_vol_ratio_sc, 0) + "%") + "</td>" +
         "<td>" + esc(r.st_depth_class ? r.st_depth_class.replace(/_/g, " ").toLowerCase() : "—") + "</td><td>" + (r.n_tests == null ? "—" : r.n_tests) + "</td><td>" + esc(r.trigger_date || "—") + "</td><td>" + (r.bars_in_state == null ? "—" : r.bars_in_state) + "</td>" +
-        '<td class="' + cls(r.dist_sc_low_pct) + '">' + pct(r.dist_sc_low_pct, 1) + "</td><td>" + (p.rr_1 == null ? "—" : num(p.rr_1, 1) + "R") + "</td><td>" + (p.risk_pct == null ? "—" : num(p.risk_pct, 1) + "%") + "</td>" +
+        "<td>" + (r.actionable ? '<span class="state TRIGGERED">YES</span>' : '<span class="flat">—</span>') + "</td>" +
+        '<td class="' + cls(r.dist_sc_low_pct) + '">' + pct(r.dist_sc_low_pct, 1) + "</td><td class=\"" + (r.pos_52w_pct == null ? "flat" : r.pos_52w_pct <= 35 ? "pos" : r.pos_52w_pct >= 70 ? "neg" : "") + "\">" + (r.pos_52w_pct == null ? "—" : num(r.pos_52w_pct, 0) + "%") + "</td><td class=\"neg\">" + pct(r.dist_52w_high_pct, 1) + "</td><td>" + (p.rr_1 == null ? "—" : num(p.rr_1, 1) + "R") + "</td><td>" + (p.risk_pct == null ? "—" : num(p.risk_pct, 1) + "%") + "</td>" +
         "<td>" + (r.n_confirm || 0) + "</td><td>" + (r.weekly_state ? '<span class="state ' + esc(r.weekly_state) + '">' + esc(STATE_LABEL[r.weekly_state] || r.weekly_state) + "</span>" : "—") + "</td><td>" + big(r.adv_usd) + "</td></tr>";
     });
     html += "</tbody>";
@@ -419,6 +425,8 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
       h += ratesTable(br.by_grade, "By grade (score at the time of the trigger)");
       h += ratesTable(br.by_test_volume, "By test volume — the paper's variable");
       h += ratesTable(br.by_depth_class, "By test depth");
+      var cg = D.climax_gates || {};
+      if (cg.D) { h += '<h2>Climax gates — how selective the definition is</h2><div class="note">' + esc(cg.note || "") + '</div><div class="mini">' + ["D", "W"].map(function (fr) { var g = cg[fr] || {}; return Object.keys(g).sort().map(function (k) { return '<div><div class="t">' + esc(fr + " · " + k.replace(/_/g, " ")) + '</div><div class="v">' + g[k] + "</div></div>"; }).join(""); }).join("") + "</div>"; }
       a.innerHTML = h;
     } else if (tab === "changes") {
       var ch = D.changes || {};
@@ -450,8 +458,9 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
     $("wr-session").textContent = D.session || "";
     // funnel
     var bs = (D.counts || {}).by_state || {};
-    var F = [["CLIMAX", "Climax"], ["TESTING", "Testing"], ["ST_CONFIRMED", "Test confirmed"], ["TRIGGERED", "Triggered"], ["MARKUP", "Markup"], ["FAILED", "Failed / stopped"], ["COMPLETED", "Completed"]];
+    var F = [["CLIMAX", "Climax"], ["TESTING", "Testing"], ["ST_CONFIRMED", "Test confirmed"], ["TRIGGERED", "Triggered"], ["MARKUP", "Markup (resolved)"], ["FAILED", "Failed / stopped"], ["COMPLETED", "Completed"]];
     $("funnel").innerHTML = F.map(function (f) { var n = f[0] === "FAILED" ? (bs.FAILED || 0) + (bs.STOPPED || 0) : (bs[f[0]] || 0); return '<div class="' + f[0] + (funnelState === f[0] ? " on" : "") + '" data-s="' + f[0] + '"><div class="t">' + f[1] + '</div><div class="v">' + n + "</div></div>"; }).join("");
+    if (D.counts && D.counts.actionable != null) $("wr-brief").innerHTML += " <b>" + D.counts.actionable + "</b> are actionable right now (test confirmed or fresh trigger, price still at the lows).";
     Array.prototype.forEach.call($("funnel").querySelectorAll("div[data-s]"), function (el) { el.addEventListener("click", function () { funnelState = funnelState === el.getAttribute("data-s") ? "" : el.getAttribute("data-s"); renderTop(); renderBoard(); }); });
     var deg = (D.degraded || []);
     $("degraded").textContent = deg.length ? "degraded inputs: " + deg.join(" · ") : "";
