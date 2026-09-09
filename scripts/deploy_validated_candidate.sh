@@ -107,7 +107,7 @@ if ! jq -e --arg schema "$expected_schema" '
       and ($body.status | type == "string" and length > 0)
       and ($body.artifact_size_bytes | type == "number" and . >= 0)
   )
-' "$validation_payload" > /dev/null; then
+' "$validation_payload" > /dev/null 2>&1; then
   echo "::error::$fn candidate returned an invalid validation envelope; live alias and schedule are unchanged"
   echo "Validation response withheld; inspect private runner logs for source errors"
   exit 1

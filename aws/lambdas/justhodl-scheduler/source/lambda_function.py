@@ -36,6 +36,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
+from governed_targets import governed_target, function_identity
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -70,7 +71,7 @@ def _load_manifest():
 def _invoke_one(fn_name):
     """Async invoke — returns (fn_name, status_code, err_str)."""
     try:
-        r = lam.invoke(FunctionName=fn_name, InvocationType="Event", Payload=b"{}")
+        r = lam.invoke(FunctionName=governed_target(fn_name), InvocationType="Event", Payload=b"{}")
         return fn_name, r.get("StatusCode"), None
     except Exception as e:
         return fn_name, None, str(e)[:200]

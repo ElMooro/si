@@ -34,6 +34,7 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from governed_targets import governed_target, function_identity
 from botocore.config import Config
 
 try:
@@ -103,7 +104,7 @@ def _cap_restart_engine(fn):
                           f"(D5 guard). Did you mean: {near}?",
                 "escalate": True}
     try:
-        lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
+        lam.invoke(FunctionName=governed_target(fn), InvocationType="Event", Payload=b"{}")
         return {"ok": True, "detail": f"invoked {fn}"}
     except Exception as e:
         return {"ok": False, "detail": f"{type(e).__name__}: {str(e)[:80]}"}
@@ -135,9 +136,10 @@ def _cap_rebind_schedule(fn, rule):
                           Description=f"backend-agent rebind: {fn}"
                           )["RuleArn"]
         fa = lam.get_function_configuration(FunctionName=fn)["FunctionArn"]
+        fa = governed_target(fa)
         ev.put_targets(Rule=rule, Targets=[{"Id": fn[:60], "Arn": fa}])
         try:
-            lam.add_permission(FunctionName=fn,
+            lam.add_permission(FunctionName=governed_target(fn),
                                StatementId=("ba-" + rule)[:100],
                                Action="lambda:InvokeFunction",
                                Principal="events.amazonaws.com",

@@ -35,6 +35,9 @@ case "$service/$operation" in
       jq '.body | fromjson' "$output" > "$output.direct"
       mv "$output.direct" "$output"
     fi
+    if [ "${MOCK_MALFORMED_BODY:-0}" = 1 ]; then
+      printf '%s\n' '{"statusCode":200,"body":"MALFORMED_PRIVATE_CANARY"}' > "$output"
+    fi
     printf '{"StatusCode":200,"ExecutedVersion":"%s"}\n' "${MOCK_EXECUTED_VERSION:-42}"
     ;;
   lambda/get-alias)
@@ -88,6 +91,7 @@ run_candidate() {
   PATH="$work/bin:$PATH" \
   MOCK_AWS_LOG="$work/aws.log" \
   MOCK_DIRECT="${MOCK_DIRECT:-0}" \
+  MOCK_MALFORMED_BODY="${MOCK_MALFORMED_BODY:-0}" \
   MOCK_EXECUTED_VERSION="${MOCK_EXECUTED_VERSION:-42}" \
   MOCK_VALIDATION_OK="${MOCK_VALIDATION_OK:-1}" \
   MOCK_ALIAS_EXISTS="${MOCK_ALIAS_EXISTS:-1}" \
@@ -169,4 +173,10 @@ printf '{}\n' > "$work/empty-config.json"
 MOCK_CONFIG="$work/empty-config.json" run_candidate > "$work/no-schedule.out"
 ! grep -q '^scheduler ' "$work/aws.log"
 
-echo "Validated candidate shell tests passed: 9"
+# Malformed JSON must not echo any part of a private validation body.
+: > "$work/aws.log"
+if MOCK_MALFORMED_BODY=1 run_candidate > "$work/private-body.out" 2>&1; then exit 1; fi
+! grep -q MALFORMED_PRIVATE_CANARY "$work/private-body.out"
+! grep -q '^lambda update-alias ' "$work/aws.log"
+
+echo "Validated candidate shell tests passed: 10"

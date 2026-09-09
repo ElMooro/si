@@ -25,6 +25,7 @@ import urllib.parse
 from datetime import datetime, timezone
 
 import boto3
+from governed_targets import governed_target, function_identity
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -54,6 +55,7 @@ SKIP_FN_SUBSTR = ("telegram", "-bot", "digest", "escalation", "harvester",
 
 
 def feed_for(fn):
+    fn = function_identity(fn)
     if fn in FEED_OVERRIDE:
         return FEED_OVERRIDE[fn]
     return "data/" + fn.replace("justhodl-", "") + ".json"
@@ -113,20 +115,26 @@ def telegram(text):
 def rebuild_binding(fn, rule, cron):
     """Idempotent rebuild of rule->target->permission. Returns True on success."""
     try:
-        EVENTS.put_rule(Name=rule, ScheduleExpression=cron, State="ENABLED")
+        target = governed_target(fn)
+        identity = function_identity(fn)
+        target_arn = target if target.startswith("arn:") else f"arn:aws:lambda:{REGION}:{ACCT}:function:{target}"
+        # Keep existing rule/target configuration. Liveness repair must not
+        # delete unrelated targets or erase payload, retry or DLQ settings.
         ex = EVENTS.list_targets_by_rule(Rule=rule).get("Targets", [])
-        if len(ex) > 1:
-            EVENTS.remove_targets(Rule=rule, Ids=[t["Id"] for t in ex])
-        EVENTS.put_targets(Rule=rule, Targets=[
-            {"Id": "1", "Arn": f"arn:aws:lambda:{REGION}:{ACCT}:function:{fn}"}])
-        sid = f"{rule}-invoke"
+        matched = [{**row, "Arn": governed_target(row["Arn"])} for row in ex
+                   if ":function:" in row.get("Arn", "") and function_identity(row["Arn"]) == identity]
+        if not matched:
+            matched = [{"Id": "live-" + identity[:59], "Arn": target_arn}]
+        response = EVENTS.put_targets(Rule=rule, Targets=matched)
+        if response.get("FailedEntryCount", 0):
+            raise RuntimeError("Target repair failed")
+        sid = f"{rule}-live-invoke"[:100]
         try:
-            LAM.remove_permission(FunctionName=fn, StatementId=sid)
-        except Exception:
+            LAM.add_permission(FunctionName=target, StatementId=sid, Action="lambda:InvokeFunction",
+                               Principal="events.amazonaws.com",
+                               SourceArn=f"arn:aws:events:{REGION}:{ACCT}:rule/{rule}")
+        except LAM.exceptions.ResourceConflictException:
             pass
-        LAM.add_permission(FunctionName=fn, StatementId=sid, Action="lambda:InvokeFunction",
-                           Principal="events.amazonaws.com",
-                           SourceArn=f"arn:aws:events:{REGION}:{ACCT}:rule/{rule}")
         return True
     except Exception as e:
         print(f"  rebuild {fn}/{rule} ERR {type(e).__name__}: {e}")
@@ -175,7 +183,7 @@ def lambda_handler(event, context):
         prev_consec = prev.get("consecutive_revives", 0)
         ok = rebuild_binding(fn, rule, cron)
         try:
-            LAM.invoke(FunctionName=fn, InvocationType="Event")
+            LAM.invoke(FunctionName=governed_target(fn), InvocationType="Event")
         except Exception as e:
             rec["invoke_err"] = f"{type(e).__name__}"
         rec["binding_rebuilt"] = ok

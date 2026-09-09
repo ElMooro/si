@@ -17,6 +17,7 @@ on:
       - 'tests/deployment/**'
       - 'scripts/deploy_*.sh'
       - 'scripts/protect_lambda_alias.py'
+      - 'scripts/prime_governed_aliases.py'
       - 'scripts/scheduler_payload.py'
       - 'tests/test_brain_public_boundaries.py'
       - '.github/workflows/deploy-lambdas.yml'
@@ -206,6 +207,12 @@ jobs:
               PYTHONPATH="aws/shared:$dir/source:$dir/tests" python3 -m pytest -q "$dir/tests" -x
             fi
           done
+
+      - name: Prime selected governed aliases before any code staging
+        if: steps.detect.outputs.targets != ''
+        run: |
+          set -euo pipefail
+          python3 scripts/prime_governed_aliases.py "${{ secrets.AWS_REGION }}" ${{ steps.detect.outputs.targets }}
 
       - name: Deploy each changed Lambda
         if: steps.detect.outputs.targets != ''

@@ -56,6 +56,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+from governed_targets import governed_target, function_identity
 
 from _sentry_lite import track_errors
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
@@ -328,7 +329,7 @@ def invoke_target(fn_name: str, event_name: str, detail: dict) -> dict:
             "triggered_at": datetime.now(timezone.utc).isoformat(),
         }).encode()
         resp = lam.invoke(
-            FunctionName=fn_name,
+            FunctionName=governed_target(fn_name),
             InvocationType="Event",   # async
             Payload=payload,
         )
