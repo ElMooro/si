@@ -13,6 +13,8 @@
       for (const [code, item] of Object.entries(datasets)) {
         if (!object(item)) throw new Error('invalid dataset');
         html += '<article class="cd"><h3 class="cn">' + escape(item.name || code) + '</h3><p class="cc">' + escape(code) + '</p>';
+        html += '<p>Provider: ' + escape(item.provider || 'Unverified') + (item.fallback_used ? ' · fallback active' : '') + '</p>';
+        if (item.primary_provider_status) html += '<p>NASDAQ availability: ' + escape(item.primary_provider_status.error) + ' · HTTP ' + escape(item.primary_provider_status.http_status ?? 'Unavailable') + '</p>';
         if (item.error) html += '<p>Unavailable: ' + escape(item.error) + (item.http_status ? ' · HTTP ' + escape(item.http_status) : '') + '</p>';
         html += '<p>Observation change: ' + (typeof item.change_pct === 'number' && Number.isFinite(item.change_pct) ? escape(item.change_pct) + '%' : 'Unavailable') + '</p><p>' + escape(item.change_scope || 'Observation interval unavailable') + '</p>';
         for (const [title, row] of [['Latest observation',item.latest],['Previous observation',item.previous]]) {
@@ -33,7 +35,7 @@
     let delay = 300000;
     const status = document.getElementById('sb'), output = document.getElementById('out'), payload = document.getElementById('nasdaq-payload');
     try {
-      const response = await fetch(NASDAQ_API_URL,{cache:'no-store',signal:AbortSignal.timeout(75000)});
+      const response = await fetch(NASDAQ_API_URL,{cache:'no-store',signal:AbortSignal.timeout(110000)});
       if (!response.ok) throw new Error('unavailable response');
       const data = await response.json(), view = render(data);
       status.textContent = view.status + ' · ' + view.summary;

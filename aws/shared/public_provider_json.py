@@ -4,7 +4,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-HOSTS = {'www.alphavantage.co', 'data.nasdaq.com'}
+HOSTS = {'www.alphavantage.co', 'data.nasdaq.com', 'api.stlouisfed.org'}
 
 
 class ProviderError(RuntimeError):

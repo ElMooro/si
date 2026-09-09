@@ -66,6 +66,27 @@ class NasdaqTests(unittest.TestCase):
         self.assertEqual(sum(len(v) for v in d['categories'].values()),24)
         self.assertNotIn('Access-Control-Allow-Origin',r['headers']);self.assertNotIn('traceback',r['body'])
 
+    def test_direct_fred_fallback_retains_provenance_and_all_observations(self):
+        def get(url):
+            if 'data.nasdaq.com' in url:raise provider.ProviderError('PROVIDER_HTTP_ERROR',403)
+            return {'realtime_start':'2026-09-09','realtime_end':'2026-09-09','units':'lin','observations':[
+                {'date':'2026-08-01','value':'0','realtime_start':'2026-09-09'},
+                {'date':'2026-07-01','value':'2','realtime_start':'2026-09-09'}]}
+        self.module.get_json=get
+        d=self.module.fetch('FRED/GDP')
+        self.assertEqual(d['provider'],'FRED_DIRECT');self.assertTrue(d['fallback_used'])
+        self.assertEqual(d['value'],0);self.assertEqual(d['change_pct'],-100)
+        self.assertEqual(d['primary_provider_status']['http_status'],403)
+        self.assertEqual(len(d['provider_observations']),2);self.assertEqual(len(d['history']),2)
+        self.assertIn('not point-in-time',d['vintage_scope'])
+    def test_fred_missing_latest_and_index_access_remain_explicit(self):
+        self.module.fetch_nasdaq=lambda *args:{'error':'PROVIDER_HTTP_ERROR','http_status':403}
+        self.module.get_json=lambda url:{'observations':[{'date':'2026-08-01','value':'.'},{'date':'2026-07-01','value':'2'}]}
+        d=self.module.fetch('FRED/GDP');self.assertIsNone(d['value']);self.assertIsNone(d['change_pct']);self.assertEqual(len(d['history']),2)
+        self.module.fetch_fred=MagicMock(side_effect=AssertionError('index is not a FRED series'))
+        d=self.module.fetch('NASDAQOMX/NDX-NASDAQ');self.assertFalse(d['fallback_used']);self.assertEqual(d['http_status'],403)
+        self.module.fetch_fred.assert_not_called()
+
 class TechnicalTests(unittest.TestCase):
     def setUp(self):self.module=handler('alphavantage-technical-analysis')
     def test_invalid_input_does_not_spend_provider_quota(self):
