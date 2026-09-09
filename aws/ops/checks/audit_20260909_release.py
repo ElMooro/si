@@ -74,7 +74,7 @@ PRIMARY = {
 # ordinary watchlist synchronization and ECB-derived's dated research-signal
 # recording are part of their authorized normal refresh; neither submits trades.
 QUIET_STAGES = (
-    ('tradingview','short-interest','liquidity-profile','etf-true-flows','calibration-snapshotter','source-map'),
+    ('ka-metrics','khalid-metrics','tradingview','short-interest','liquidity-profile','etf-true-flows','calibration-snapshotter','source-map'),
     ('factor-risk','liquidity-capacity','conviction-engine'),
     ('risk-gate',),
     ('engine-fusion',),
@@ -94,7 +94,7 @@ APPROVED_REFRESH_MODES = {
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
 # normal publication only; its report must replace any old colliding model file.
-OBSERVED_FUNCTIONS = {'justhodl-calibrator','justhodl-ka-metrics','justhodl-khalid-metrics'}
+OBSERVED_FUNCTIONS = {'justhodl-calibrator'}
 FUNCTION_URL_BINDINGS = (
     ('fmp.html','fmp-fundamentals-agent','nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws'),
     ('census.html','fedliquidityapi','mjqyipzzwjcmx44irtvijecswm0nkikf.lambda-url.us-east-1.on.aws'),
@@ -594,7 +594,8 @@ def observe_metric_rule_bindings(events, root, functions):
 
 def observe_schedules(clients, root, functions):
     """Read configured schedules; report target metadata without Input bodies."""
-    metric_functions=set(functions)&{'justhodl-ka-metrics','justhodl-khalid-metrics'}
+    metric_functions={name for name in set(functions)&{'justhodl-ka-metrics','justhodl-khalid-metrics'}
+                      if release_config(root,name).get('eventbridge_rules')}
     result=observe_metric_rule_bindings(clients['events'],root,metric_functions) if metric_functions else []
     for function in functions:
         if function in metric_functions:continue
