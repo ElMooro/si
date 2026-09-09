@@ -487,7 +487,7 @@ def cors_response(status, body):
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Content-Type",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "private, no-store",
         },
         "body": json.dumps(body, default=str),
     }
@@ -495,12 +495,17 @@ def cors_response(status, body):
 
 def lambda_handler(event=None, context=None):
     started = time.time()
-    method = (event or {}).get("requestContext", {}).get("http", {}).get("method", "GET")
+    event = event if isinstance(event, dict) else {}
+    # Transport identity precedes all caller flags: HTTP can never publish a
+    # shared scenario, even when its body claims to be a scheduled event.
+    is_http = any(k in event for k in ("requestContext", "headers", "httpMethod", "rawPath", "path"))
+    method = ((event.get("requestContext") or {}).get("http") or {}).get("method") or event.get("httpMethod", "GET")
     if method == "OPTIONS":
         return cors_response(200, {"ok": True})
 
-    inputs = parse_inputs(event)
-    print(f"[wealth-plan] v{VERSION} inputs={inputs}")
+    # Trusted scheduled invocations publish only the model's fixed defaults.
+    # Custom scenarios exist only in their own no-store HTTP response.
+    inputs = parse_inputs(event if is_http else {})
 
     # 1. Load Capital Compass forward ERs
     compass = load_compass()
@@ -644,15 +649,17 @@ def lambda_handler(event=None, context=None):
         ),
     }
 
-    # Cache the latest snapshot for reference (overwrites each call)
-    try:
+    if not is_http:
+        result["publication"] = {
+            "schema_version": "public-default-scenario.v1",
+            "scope": "PUBLIC_DEFAULT_MODEL",
+            "contains_caller_inputs": False,
+        }
         s3.put_object(
             Bucket=BUCKET, Key=OUT_KEY,
             Body=json.dumps(result, default=str, indent=2).encode(),
             ContentType="application/json",
             CacheControl="no-cache",
         )
-    except Exception as e:
-        print(f"[s3 snapshot] {e}")
 
     return cors_response(200, result)

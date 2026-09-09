@@ -575,10 +575,30 @@ def parse_event(event):
     }
 
 
+def cors_response(status, body):
+    return {
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Cache-Control": "private, no-store",
+        },
+        "body": json.dumps(body, default=str),
+    }
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
-    inputs = parse_event(event)
-    print(f"[tax-plan] v{VERSION} inputs={inputs}")
+    event = event if isinstance(event, dict) else {}
+    # HTTP transport is authoritative; body/source flags cannot authorize a
+    # shared snapshot containing a caller's personal financial scenario.
+    is_http = any(k in event for k in ("requestContext", "headers", "httpMethod", "rawPath", "path"))
+    method = ((event.get("requestContext") or {}).get("http") or {}).get("method") or event.get("httpMethod", "GET")
+    if method == "OPTIONS":
+        return cors_response(200, {"ok": True})
+    inputs = parse_event(event if is_http else {})
 
     federal_pct = inputs["federal_bracket"]
     state_pct = inputs["state_rate"]
@@ -635,23 +655,18 @@ def lambda_handler(event=None, context=None):
         "disclaimer": "Estimates based on 2026 US federal/state tax rules. Not tax advice. Consult a tax professional for material decisions. State-specific rules (especially CA, NY, NJ) may differ.",
     }
 
-    # Write to S3 (default-profile snapshot or full result depending on caller)
-    s3.put_object(
-        Bucket=BUCKET,
-        Key=OUT_KEY,
-        Body=json.dumps(result, default=str, indent=2).encode(),
-        ContentType="application/json",
-    )
+    if not is_http:
+        result["publication"] = {
+            "schema_version": "public-default-scenario.v1",
+            "scope": "PUBLIC_DEFAULT_MODEL",
+            "contains_caller_inputs": False,
+        }
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=OUT_KEY,
+            Body=json.dumps(result, default=str, indent=2).encode(),
+            ContentType="application/json",
+            CacheControl="no-cache",
+        )
 
-    print(f"[tax-plan] done · {len(pos_rows)} positions · {len(tlh)} TLH candidates · {len(verdict.get('action_items', []))} actions · elapsed={result['elapsed_seconds']}s")
-
-    # Function URL response
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-cache",
-        },
-        "body": json.dumps(result, default=str),
-    }
+    return cors_response(200, result)

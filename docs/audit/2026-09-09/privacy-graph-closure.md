@@ -45,3 +45,26 @@ This is a bounded direct-source closure check, not a claim that every possible
 computed/runtime path or live endpoint was tested. The security migration must still
 deploy the private keys/Worker routes, protect historical aliases, and verify live
 anonymous denial and authenticated owner access.
+
+The subsequent API route review found a separate caller-input disclosure: Wealth
+Plan and Tax Plan copied every HTTP calculation, including its submitted financial
+profile, into their shared public snapshot. This does not arise from a private
+portfolio donor: Tax Plan's position source is the modeled signal portfolio.
+
+Both calculator handlers now return HTTP scenarios with `private, no-store` and
+never persist them. HTTP transport takes precedence over spoofed scheduled/body
+flags. OPTIONS returns before model reads; GET and JSON POST remain supported.
+Input/result printing is removed. A trusted non-HTTP invocation ignores supplied
+scenario parameters, computes the existing default model, and publishes only a
+snapshot labeled `publication.schema_version=public-default-scenario.v1`,
+`scope=PUBLIC_DEFAULT_MODEL`, `contains_caller_inputs=false`. Existing calculation
+fields and default numeric behavior are preserved. Each producer's actual handler
+runner covers GET, POST, scheduled spoof, v1 HTTP, preflight, default publication,
+and HTTP-default nonpublication with in-memory S3. Wealth Monte Carlo executes
+its real arithmetic with a small test sample; these tests certify publication
+isolation, not financial model calibration.
+
+Historical/current unsafe snapshots still require the coordinated deployment
+migration. The security release owns replacement of unmarked snapshots with a
+whole-document unavailable marker, historical access denial, cache handling, and
+browser POST transport. Source changes alone do not prove those live controls.
