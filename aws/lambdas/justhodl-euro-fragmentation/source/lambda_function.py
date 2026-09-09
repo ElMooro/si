@@ -63,6 +63,20 @@ FRED_10Y = {cc: f"IRLTLT01{cc}M156N" for cc in COUNTRIES}
 
 
 # ───────────────────────── data fetch ─────────────────────────
+def build_audit_donor_context(countries, now=None):
+    from macro_donor_inputs import fragmentation_context
+    return fragmentation_context(read_existing("data/ciss-stress.json"), countries, now)
+
+
+def matched_spread_history(country, benchmark):
+    """Only matched 10-year observations; no subtraction of different month ends."""
+    from donor_contract import numeric
+    c={d:numeric(v) for d,v in (country or [])}
+    b={d:numeric(v) for d,v in (benchmark or [])}
+    return sorted([(d, (c[d]-b[d])*100) for d in c.keys() & b.keys()
+                   if c[d] is not None and b[d] is not None], reverse=True)
+
+
 def _get(url, timeout=25):
     last = None
     for attempt in range(3):
@@ -224,15 +238,11 @@ def lambda_handler(event, context):
         sc = latest(s)
         pct = percentile(s)
         y = latest(y10.get(cc))
-        spread_bp = (round((y - bund) * 100, 1)
-                     if y is not None and bund is not None else None)
-
+        matched = matched_spread_history(y10.get(cc), y10.get(BENCH))
+        spread_bp = round(matched[0][1],1) if matched else None
         def sp_chg(days):
-            yc = level_change(y10.get(cc), days)
-            yb = level_change(y10.get(BENCH), days)
-            if yc is None or yb is None:
-                return None
-            return round((yc - yb) * 100, 1)
+            change=level_change(matched, days)
+            return round(change,1) if change is not None else None
 
         countries[cc] = {
             "name": NAME[cc],
@@ -248,6 +258,11 @@ def lambda_handler(event, context):
             "sovciss_regime": sovciss_regime(pct, sc),
             "yield_10y_pct": round(y, 3) if y is not None else None,
             "spread_vs_bund_bp": spread_bp,
+            "spread_as_of": matched[0][0] if matched else None,
+            "spread_maturity_years": 10,
+            "yield_as_of": y10[cc][0][0] if y10.get(cc) else None,
+            "sovciss_as_of": s[0][0] if s else None,
+            "spread_pair_status": "MATCHED_DATES" if matched else "BLOCKED_NO_COMMON_OBSERVATION",
             "spread_change_1m_bp": sp_chg(30),
             "spread_change_3m_bp": sp_chg(91),
             "spread_change_6m_bp": sp_chg(182),
@@ -419,6 +434,7 @@ def lambda_handler(event, context):
         "france_focus": france_focus,
         "ecb_backstop": ecb_backstop,
         "cross_reference": cross,
+        "ciss_context": build_audit_donor_context(countries, now),
         "sources": ["ECB Data Portal — SovCISS (sovereign stress, daily)",
                     "FRED — OECD 10Y government bond yields"],
         "errors": errors,

@@ -59,6 +59,11 @@ DATE_KEYS = ("date", "d", "asofdate", "as_of_date", "observation_date",
 VAL_KEYS = ("value", "v", "val", "rate", "close", "VALUE", "obs_value")
 
 
+def build_audit_donor_context(now=None):
+    from macro_donor_inputs import fails_context
+    return fails_context(sread("data/settlement-fails.json"), now)
+
+
 def sread(key):
     raw = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
     if key.endswith(".gz") or raw[:2] == b"\x1f\x8b":
@@ -1502,6 +1507,8 @@ def lambda_handler(event, context):
             "groups": [{"name": g, "series": groups[g]}
                         for g in sorted(groups)],
             "skipped": skipped[:40], "dollar_missing": dollar_miss}
+    out["settlement_fails"] = build_audit_donor_context()
+    out["barometer"]["settlement_watch"] = out["settlement_fails"]["watch"]
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")

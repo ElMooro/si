@@ -66,8 +66,6 @@ HTTP_TIMEOUT = 50
 # ---- model assumptions (clearly labelled - liquidity needs a $ size) -------
 NOTIONAL_AUM = 50_000_000.0    # notional book AUM the % weights scale to
 PARTICIPATION_CAP = 0.20       # max share of a name's daily volume per day
-ADV_FLOOR = 5.0e5              # floor on dollar ADV so micro names do not
-#                                divide by ~zero - treated as very illiquid
 BUILD_DAYS = 1.0               # comfortable position = 1 day at the cap
 
 # liquidity tiers, in days-to-liquidate
@@ -77,6 +75,11 @@ TIER_T3 = 5.0    # moderate - up to a week
 #                  above TIER_T3 -> illiquid / trapped tail
 
 
+def build_audit_donor_context(firm, now=None):
+    from macro_donor_inputs import capacity_donors
+    return capacity_donors(firm, get_json("data/repo-market.json"), now)
+
+
 def http_json(url, timeout=HTTP_TIMEOUT):
     req = urllib.request.Request(url, headers={"User-Agent": "justhodl/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -84,11 +87,8 @@ def http_json(url, timeout=HTTP_TIMEOUT):
 
 
 def num(v):
-    try:
-        f = float(v)
-        return f if f == f else None
-    except (TypeError, ValueError):
-        return None
+    from donor_contract import numeric
+    return numeric(v)
 
 
 def get_json(key):
@@ -144,11 +144,14 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
 
     firm = get_json(FIRM_KEY)
-    if not firm or not firm.get("equity_book"):
+    donor_inputs = build_audit_donor_context(firm, now)
+    if not donor_inputs["firm_book"]["contract"]["usable"]:
         out = {"schema_version": SCHEMA,
                "engine": "justhodl-liquidity-capacity",
                "generated_at": now.isoformat(), "ok": False,
-               "error": "firm-book.json unavailable or empty - cannot "
+               "donor_inputs": donor_inputs,
+               "execution_eligible": False,
+               "error": "firm-book.json unavailable, stale or empty - cannot "
                         "measure book liquidity without the consolidated "
                         "book"}
         s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
@@ -165,9 +168,12 @@ def lambda_handler(event, context):
     for b in equity_book:
         sym = (b.get("symbol") or "").upper().strip()
         net = num(b.get("net_pct"))
-        if not sym or net is None or abs(net) < 1e-6:
+        from donor_contract import numeric
+        gross = numeric(b, "gross_pct")
+        if not sym or net is None or gross is None or gross < abs(net) or gross <= 0:
             continue
-        pos_usd = abs(net) / 100.0 * NOTIONAL_AUM
+        pos_usd = gross / 100.0 * NOTIONAL_AUM
+        net_usd = abs(net) / 100.0 * NOTIONAL_AUM
         vinfo = vol_map.get(sym)
         # price preference: firm book price, else screener price
         price = num(b.get("price")) or (vinfo or {}).get("price")
@@ -176,24 +182,28 @@ def lambda_handler(event, context):
             days = None
             n_unknown += 1
         else:
-            capacity_per_day = max(dollar_vol, ADV_FLOOR) * PARTICIPATION_CAP
+            capacity_per_day = dollar_vol * PARTICIPATION_CAP
             days = pos_usd / capacity_per_day if capacity_per_day > 0 else None
-        comfortable = (max(dollar_vol or 0.0, ADV_FLOOR)
-                       * PARTICIPATION_CAP * BUILD_DAYS)
-        over_x = (pos_usd / comfortable) if comfortable > 0 else None
+        comfortable = (dollar_vol * PARTICIPATION_CAP * BUILD_DAYS) if dollar_vol and dollar_vol > 0 else None
+        over_x = (pos_usd / comfortable) if comfortable is not None and comfortable > 0 else None
         positions.append({
             "symbol": sym,
             "name": b.get("name"),
             "sector": b.get("sector") or "Unknown",
             "side": b.get("side"),
             "net_pct": round(net, 4),
+            "gross_pct": round(gross, 4),
+            "net_position_usd": round(net_usd, 0),
+            "net_days_to_liquidate": round(net_usd / (dollar_vol * PARTICIPATION_CAP),2) if dollar_vol and dollar_vol > 0 else None,
+            "desk_conflict": bool(b.get("desk_conflict")),
+            "participation_scenarios": [{"participation_pct": p, "gross_days": round(pos_usd / (dollar_vol*p/100),2) if dollar_vol and dollar_vol > 0 else None} for p in (20,10,5)],
             "position_usd": round(pos_usd, 0),
             "dollar_volume_usd": (round(dollar_vol, 0)
                                   if dollar_vol is not None else None),
             "days_to_liquidate": (round(days, 2)
                                   if days is not None else None),
             "liquidity_tier": tier_of(days),
-            "comfortable_position_usd": round(comfortable, 0),
+            "comfortable_position_usd": round(comfortable, 0) if comfortable is not None else None,
             "size_vs_comfortable_x": (round(over_x, 2)
                                       if over_x is not None else None),
             "desks": list((b.get("desks") or {}).keys()),
@@ -207,7 +217,7 @@ def lambda_handler(event, context):
     def liquidatable_within(day_bar):
         got = sum(p["position_usd"] for p in measured
                   if p["days_to_liquidate"] <= day_bar)
-        return (100.0 * got / measured_usd) if measured_usd > 0 else 0.0
+        return (100.0 * got / book_usd) if book_usd > 0 else 0.0
 
     pct_1d = liquidatable_within(1.0)
     pct_3d = liquidatable_within(3.0)
@@ -308,7 +318,11 @@ def lambda_handler(event, context):
         "engine": "justhodl-liquidity-capacity",
         "generated_at": now.isoformat(),
         "build_seconds": round(time.time() - t0, 2),
-        "headline": headline,
+        "headline": "Modeled gross exposure sensitivity: " + headline,
+        "donor_inputs": donor_inputs,
+        "execution_eligible": False,
+        "capacity_basis": "GROSS_MODEL_EXPOSURE_LATEST_SESSION_VOLUME_PROXY",
+        "positions": positions,
         "liquidity_posture": posture,
         "liquidity_score": score,
         "firm": {
@@ -317,6 +331,8 @@ def lambda_handler(event, context):
             "n_measured": len(measured),
             "n_unknown_volume": n_unknown,
             "book_usd": round(book_usd, 0),
+            "net_book_usd": round(sum(p["net_position_usd"] for p in positions),0),
+            "measured_gross_coverage_pct": round(100*measured_usd/book_usd,2) if book_usd else 0,
             "pct_liquidatable_1d": round(pct_1d, 2),
             "pct_liquidatable_3d": round(pct_3d, 2),
             "pct_liquidatable_5d": round(pct_5d, 2),
@@ -340,9 +356,8 @@ def lambda_handler(event, context):
         },
         "how_to_read": (
             "Days-to-liquidate is how long it takes to exit a position "
-            "without trading more than 20% of the name's daily volume - "
-            "the rate above which a desk starts moving the price against "
-            "itself. T1 names clear within half a session; T4 names take "
+            "at an assumed 20% participation in latest observed session volume. This is a sensitivity proxy; "
+            "execution requires trailing ADV, spreads, depth and impact calibration. T1 names model half a session; T4 names model "
             "more than a week and are the trapped tail - the part of the "
             "book that cannot be cut quickly in a drawdown. The liquidity "
             "score weights same-day liquidatability and a low average "
@@ -350,7 +365,7 @@ def lambda_handler(event, context):
             "well above its comfortable size is one the strategy has "
             "outgrown at this book size."),
         "methodology": (
-            "Positions come from the consolidated firm book as a percent "
+            "Gross positions retain offsetting desk holdings; net exposure is reported separately. Unknown volume has no inferred capacity, and no volume floor is applied. Positions come from the consolidated firm book as a percent "
             "of capital and are scaled to dollars against a notional "
             "%s book AUM - a labelled assumption, since liquidity is "
             "undefined without a size. Dollar volume is the FMP screener's "

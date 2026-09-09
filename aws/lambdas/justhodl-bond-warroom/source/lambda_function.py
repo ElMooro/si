@@ -106,6 +106,11 @@ THRESH = {"yield_us": (10, 6), "yield_dm": (10, 6), "yield_jp": (7, 4), "yield_e
           "oas_hy": (20, 12), "oas_ig": (7, 4), "oas_ccc": (35, 20), "oas_em": (15, 10), "price_bond": (1.5, 0.9), "move": (10, 6), "index": (999, 999), "vix": (5, 3)}
 
 
+def build_audit_donor_context(now=None):
+    from macro_donor_inputs import bond_donors, BOND_KEYS
+    return bond_donors({key: _s3_json(key) for key in BOND_KEYS}, now)
+
+
 def _now():
     return datetime.now(timezone.utc)
 
@@ -972,6 +977,9 @@ def lambda_handler(event, ctx):
     eq = equity_risk(m)
     ed = eurodollar_shortage(m, fleet)
     hb = heartbeat(m, eq, ed)
+    donor_inputs = build_audit_donor_context()
+    hb["funding_review"] = donor_inputs["funding_review"]
+    hb["donor_score_contribution"] = 0
 
     # panels in display order
     def rows(keys):
@@ -989,6 +997,7 @@ def lambda_handler(event, ctx):
     flags = {"RED": [k for k, v in m.items() if v["flag"] == "RED"], "AMBER": [k for k, v in m.items() if v["flag"] == "AMBER"]}
     out = {"version": VERSION, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes, "freshness": freshness,
            "heartbeat": hb, "equity_risk": eq, "eurodollar_shortage": ed, "flags": flags, "panels": panels, "jgb_curve": {k: jgb.get(k) for k in ("today", "tenors", "curve", "error")},
+           "donor_inputs": donor_inputs,
            "auction": auction, "fleet": ff, "n_series": len(m),
            "sources_doctrine": "warehouse first: every series is read from our own AWS (fred-scoped, treasury-par, boe iadb, tv-bars, official-yields) through the symdir resolver, the official origin only adds the same-day tail, and whatever the warehouse lacked is banked into data/warm/official-yields/ so data.html and chart-pro serve it next",
            "methodology": {"dod": "day-over-day change: bp for yields and spreads, % for bond ETFs and the dollar, points for MOVE/VIX; z = today's change vs the trailing 250 daily changes",

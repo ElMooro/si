@@ -262,6 +262,16 @@ SERIES_MAP = [
 # ────────────────────────────────────────────────────────────────────────
 # Helpers
 # ────────────────────────────────────────────────────────────────────────
+def build_audit_donor_context(base_score, now=None):
+    from macro_donor_inputs import credit_donors
+    def donor(key):
+        try:
+            return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return None
+    return credit_donors(donor("data/repo-market.json"), donor("data/ciss-stress.json"), base_score, now)
+
+
 def _now_iso():
     return datetime.now(timezone.utc).isoformat()
 
@@ -1023,6 +1033,11 @@ def _do_handler(event=None, context=None):
 
     # Composite + regime
     comp = composite_signal(series_out)
+    donor_inputs = build_audit_donor_context(comp.get("score"))
+    comp["base_score"] = comp.get("score")
+    comp["score"] = donor_inputs["review_score"]
+    comp["score_rule"] = donor_inputs["score_rule"]
+    comp["calibration_status"] = "HEURISTIC_REVIEW_ONLY"
     regime = regime_classification(comp, series_out)
 
     # Detect transitions vs prior run
@@ -1037,6 +1052,9 @@ def _do_handler(event=None, context=None):
         "series": series_out,
         "by_category": by_category,
         "reference": ref_yields,
+        "donor_inputs": donor_inputs,
+        "data_status": donor_inputs["coverage_status"],
+        "execution_eligible": False,
     }
     transitions = detect_transitions(output, prior)
     output["transitions"] = transitions

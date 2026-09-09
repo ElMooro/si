@@ -33,6 +33,31 @@ Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
 
 
+def build_audit_donor_context(now=None):
+    from macro_donor_inputs import vintage_net_liquidity
+    return vintage_net_liquidity({sid:s3_json("data/vintage/"+sid+".json")
+                                 for sid in ("WALCL","WTREGEN","RRPONTSYD")}, now)
+
+
+def gate_historical_outputs(out, pit):
+    """No revised multi-factor history can support prospective performance claims."""
+    out["historical_validation"]={k:v for k,v in pit.items() if k != "series"}
+    out["historical_validation"]["replay_series"]=[[d,v] for d,v in pit.get("series",{}).items()]
+    out["historical_validation"]["publication_eligible"]=False
+    out["usd"]["history_basis"]="LATEST_REVISED_DESCRIPTIVE_CONTEXT"
+    out["publication_eligible"]=False
+    # The composite has additional unreconstructed historical inputs beyond net liquidity.
+    for key in ("analogs","regime_returns_composite","forward_expectation_composite"):
+        out[key]={"status":"BLOCKED", "reason":"Complete immutable point-in-time composite inputs are not available", "publication_eligible":False}
+    out["backtest"]={"status":"BLOCKED", "verdict":"BLOCKED: capital-constrained daily marked portfolio ledger and out-of-sample policy required", "publication_eligible":False}
+    if pit['status'] != 'READY':
+        for key in ("event_study_after_flips","lead_estimates","regime_returns","lead_curves","flip_log"):
+            out[key]={}
+        out["forward_expectation"]={"status":"BLOCKED","reason":"Net liquidity vintage replay unavailable","assets":{}}
+    out["methodology"]="Current USD net liquidity is descriptive revised data in USD millions (WALCL minus WTREGEN minus RRPONTSYD converted from billions). Historical event studies require release-time vintage replay for all three inputs and are descriptive in-sample associations. Portfolio-performance publication requires a reconciled daily marked ledger and predeclared out-of-sample policy. Composite historical performance is blocked pending all-component immutable inputs."
+    return out
+
+
 def fred(sid, start="2010-01-01"):
     u = ("https://api.stlouisfed.org/fred/series/observations?"
          + urllib.parse.urlencode({"series_id": sid, "api_key": FRED_KEY,
@@ -953,7 +978,11 @@ def lambda_handler(event=None, context=None):
     avail = {}
 
     # USD net liquidity
-    walcl = fred("WALCL"); tga = fred("WTREGEN"); rrp = fred("RRPONTSYD")
+    walcl = fred("WALCL"); tga = fred("WTREGEN")
+    rrp = {d:v*1000.0 for d,v in fred("RRPONTSYD").items()}  # FRED billions -> common USD millions
+    pit = build_audit_donor_context()
+    pit_dates, pit_z = build_impulse(pit["series"]) if pit["status"] == "READY" else ([], [])
+    pit_flips = find_flips(pit_dates, pit_z) if pit_dates else []
     avail["usd"] = bool(walcl and tga and rrp)
     usd_dates, usd_z, usd_flips = [], [], []
     net = {}
@@ -1027,43 +1056,21 @@ def lambda_handler(event=None, context=None):
     hyg = polygon_closes("HYG")
     studies, leads = {}, {}
     regime_returns, lead_curves, flip_logs = {}, {}, {}
-    flips10 = [f for f in usd_flips if f["date"] >= "2015-06-01"]
+    flips10 = [f for f in pit_flips if f["date"] >= "2015-06-01"]
     for name, px in (("SPX_proxy", spx), ("BTC", btc), ("HYG", hyg)):
-        if len(px) > 500:
+        if len(px) > 500 and pit_dates:
             dd = sorted(px)
             if flips10:
                 studies[name] = event_study(flips10, px, dd)
                 flip_logs[name] = flip_log(flips10, px, dd)
-            leads[name] = best_lead(usd_dates, usd_z, px)
-            regime_returns[name] = regime_conditioned_study(usd_dates, usd_z, px)
-            lead_curves[name] = lead_curve(usd_dates, usd_z, px)
+            leads[name] = best_lead(pit_dates, pit_z, px)
+            regime_returns[name] = regime_conditioned_study(pit_dates, pit_z, px)
+            lead_curves[name] = lead_curve(pit_dates, pit_z, px)
 
     # closed-loop: log a NEW flip (≤5 sessions)
     n_logged = 0
-    new_flip = usd_flips[-1] if usd_flips and usd_flips[-1]["date"] >= usd_dates[-5] else None
-    if new_flip:
-        try:
-            spy = polygon_closes("SPY", start=(datetime.now(timezone.utc) - timedelta(days=10)).date().isoformat())
-            px0 = spy[sorted(spy)[-1]] if spy else None
-            if px0:
-                nowt = datetime.now(timezone.utc)
-                DDB.Table("justhodl-signals").put_item(Item={
-                    "signal_id": f"liquidity-inflection#USD#{new_flip['date']}",
-                    "signal_type": "liquidity_inflection", "signal_value": str(new_flip["z"]),
-                    "predicted_direction": new_flip["direction"],
-                    "confidence": Decimal("0.58"), "measure_against": "ticker",
-                    "baseline_price": str(px0), "benchmark": "SPY",
-                    "check_windows": ["day_5", "day_21", "day_63"],
-                    "check_timestamps": {f"day_{w}": (nowt + timedelta(days=w)).isoformat() for w in (5, 21, 63)},
-                    "outcomes": {}, "accuracy_scores": {}, "logged_at": nowt.isoformat(),
-                    "logged_epoch": int(nowt.timestamp()), "status": "pending", "schema_version": "2",
-                    "horizon_days_primary": 21, "regime_at_log": "UNKNOWN",
-                    "ttl": int(nowt.timestamp()) + 120 * 86400,
-                    "metadata": {"engine": "liquidity-inflection", "v": VERSION, "flip_z": str(new_flip["z"])},
-                    "rationale": f"USD net-liquidity impulse flipped {new_flip['direction']} on {new_flip['date']} (z {new_flip['z']})"})
-                n_logged = 1
-        except Exception as e:
-            print(f"[signals] {str(e)[:80]}")
+    new_flip = pit_flips[-1] if pit_flips and len(pit_dates)>=5 and pit_flips[-1]["date"] >= pit_dates[-5] else None
+    signal_logging_status = {"status":"BLOCKED", "reason":"Requires verified aligned adjusted baseline session marks and basis metadata"}
 
     # US money block (brain-gap: M2 30×, real-money mirror of EU real-M1)
     us_money = None
@@ -1618,6 +1625,7 @@ def lambda_handler(event=None, context=None):
            "event_study_after_flips": studies, "lead_estimates": leads,
            "regime_returns": regime_returns, "lead_curves": lead_curves, "flip_log": flip_logs,
            "signals_logged": n_logged,
+           "signal_logging": signal_logging_status,
            "brain_predictors": _bp,
            "methodology": ("Net-liquidity impulse = 13-week slope of WALCL−TGA−RRP, 3y z-score; flips "
                            "debounced |Δz|≥0.25. The composite liquidity regime blends the second "
@@ -1626,6 +1634,7 @@ def lambda_handler(event=None, context=None):
                            "credit spreads (inverted). Edge tables are real event studies over the last "
                            "decade's net-liq flips (n shown), not assertions. New flips are logged to the "
                            "closed loop vs SPY at 5/21/63d.")}
+    out = gate_historical_outputs(out, pit)
     try:
         snap_meta = snapshot_composite(out)
         if snap_meta:

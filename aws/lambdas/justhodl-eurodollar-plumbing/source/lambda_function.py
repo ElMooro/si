@@ -35,6 +35,11 @@ OUT_KEY = "data/eurodollar-plumbing.json"
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 
 
+def build_audit_donor_context(now=None):
+    from macro_donor_inputs import bis_context
+    return bis_context(gj("data/bis-crossborder.json"), now)
+
+
 def http_get(url, timeout=25):
     req = urllib.request.Request(url, headers={"User-Agent": "justhodl-eurodollar/2.0"})
     return urllib.request.urlopen(req, timeout=timeout).read()
@@ -533,29 +538,7 @@ def lambda_handler(event, context):
     health, verdict, reds, yellows = composite(layers)
     massive_fx = _massive_fx_block()
     ai = ai_scan(layers, health, verdict, reds, yellows, fx_context=massive_fx)
-    # ops 3651: BIS cross-border foreign-claims pulse (offshore-USD
-    # credit growth) — additive block from data/bis-crossborder.json
-    bis_cb = None
-    try:
-        _b = __import__("json").loads(S3.get_object(
-            Bucket=BUCKET,
-            Key="data/bis-crossborder.json")["Body"].read())
-        if _b.get("ok"):
-            bis_cb = {
-                "period": (_b.get("total") or {}).get("period"),
-                "total_tn": (_b.get("total") or {}).get("latest_tn"),
-                "total_yoy_pct": (_b.get("total") or {}).get("yoy_pct"),
-                "offshore_yoy_pct": (_b.get("offshore_centres")
-                                       or {}).get("yoy_pct"),
-                "em_asia_yoy_pct": (_b.get("em_asia")
-                                      or {}).get("yoy_pct"),
-                "china_yoy_pct": next(
-                    (r.get("yoy_pct") for r in
-                     _b.get("by_counterparty") or []
-                     if r.get("code") == "CN"), None),
-                "source": "BIS CBS foreign claims (quarterly)"}
-    except Exception as _e:
-        print("[plumbing] bis_cb skip", str(_e)[:60])
+    bis_cb = build_audit_donor_context()
 
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
