@@ -17,6 +17,7 @@ auditable — a real desk's morning decision, not a narrative.
 
 OUTPUT: data/pm-decision.json   Schedule: daily (after upstream engines).
 """
+from private_artifact import publish_private, private_http_denied
 import json, os, time
 from datetime import datetime, timezone
 import boto3
@@ -55,7 +56,7 @@ def maybe_telegram(msg):
         print(f"[tg] err: {e}")
 
 
-def lambda_handler(event, context):
+def _run_private(event, context):
     t0 = time.time()
     print(f"[pm-decision] starting {datetime.now(timezone.utc).isoformat()}")
 
@@ -269,7 +270,8 @@ def lambda_handler(event, context):
 
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                    Body=json.dumps(out, default=str).encode("utf-8"),
-                   ContentType="application/json", CacheControl="public, max-age=900")
+                   ContentType="application/json", CacheControl="private, no-store")
+    publish_private("pm-decision", out)
 
     hist = get_s3(S3_HISTORY_KEY) or {"snapshots": []}
     if not isinstance(hist, dict) or "snapshots" not in hist:
@@ -282,7 +284,8 @@ def lambda_handler(event, context):
     hist["updated_at"] = out["generated_at"]
     s3.put_object(Bucket=S3_BUCKET, Key=S3_HISTORY_KEY,
                    Body=json.dumps(hist, default=str).encode("utf-8"),
-                   ContentType="application/json", CacheControl="public, max-age=900")
+                   ContentType="application/json", CacheControl="private, no-store")
+    publish_private("pm-decision-history", hist)
 
     if prior_posture and prior_posture != posture_word:
         maybe_telegram(
@@ -294,3 +297,13 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "posture_word": posture_word, "headline": headline,
         "n_trim": len(trim), "n_add": len(add), "n_hedge": len(hedge)})}
+
+
+def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied is not None:
+        return denied
+    response = _run_private(event, context)
+    if isinstance(response, dict) and "statusCode" in response:
+        response["headers"] = {**response.get("headers", {}), "Cache-Control": "private, no-store", "Vary": "Authorization"}
+    return response

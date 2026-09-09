@@ -18,7 +18,7 @@ import uuid
 import zipfile
 
 from audit_20260909_security import (
-    MIRRORED_KEYS, SANITIZED_KEYS, SANITIZED_PREFIXES, WORKER,
+    MIRRORED_ARTIFACTS, MIRRORED_KEYS, SANITIZED_KEYS, SANITIZED_PREFIXES, WORKER,
     anonymous_deny_statement, historical_deny_statement, check,
 )
 from public_brain_projection import (
@@ -30,7 +30,9 @@ ACCOUNT = "857687956942"
 REGION = "us-east-1"
 TOKEN_PARAM = "/justhodl/api-admin/token"
 TEMP_SID = "Audit20260909DerivativeMigrationInProgress"
-PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask")
+PUBLISHERS = ("brain-sync", "journal-grader", "my-brief", "devils-advocate", "notes-intel", "playbook-engine", "ask",
+              "portfolio-snapshot", "portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "risk-sizer",
+              "pm-decision", "behavior-mirror", "ai-brief")
 PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", "domain-barometers", "sizing-engine",
              "best-setups", "master-allocator", "position-sizer", "engine-conflicts", "equity-research", "provider-catalog")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir")))
@@ -286,8 +288,7 @@ class Migration:
 
     def seed(self, token):
         private = {}
-        for key in MIRRORED_KEYS:
-            kind = key.removeprefix("data/").removesuffix(".json")
+        for key, kind in MIRRORED_ARTIFACTS.items():
             for attempt in range(3):
                 obj, doc = self.read_object(key)
                 raw = encoded(doc)

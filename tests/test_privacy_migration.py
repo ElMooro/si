@@ -231,10 +231,13 @@ class PublicMigrationTests(unittest.TestCase):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 
     def test_private_seed_kinds_exclude_raw_tradingview_corpus(self):
-        self.assertEqual(len(migration.MIRRORED_KEYS), 8)
+        self.assertEqual(len(migration.MIRRORED_KEYS), 17)
         self.assertNotIn("data/tradingview-notes.json", migration.MIRRORED_KEYS)
+        self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/snapshot.json"], "portfolio-snapshot")
+        self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")
+        self.assertNotIn("risk/recommendations.json", migration.MIRRORED_ARTIFACTS)
         self.assertNotIn("ask-desk", migration.PUBLISHERS)
-        self.assertEqual(len(migration.PUBLISHERS), 7)
+        self.assertEqual(len(migration.PUBLISHERS), 15)
 
     def test_private_mirror_verification_retries_head_without_body_access(self):
         requests = []

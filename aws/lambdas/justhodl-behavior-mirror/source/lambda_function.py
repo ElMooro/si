@@ -20,6 +20,7 @@ position open/close timestamps vs signal fire timestamps.
 
 v2 (future) = direct Telegram reply capture via webhook handler.
 """
+from private_artifact import publish_private, private_http_denied
 import json, os, logging, urllib.request
 import boto3
 from datetime import datetime, timezone, timedelta
@@ -366,12 +367,12 @@ def update_history(payload):
         s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
                       Body=json.dumps(old, indent=2).encode(),
                       ContentType="application/json",
-                      CacheControl="max-age=3600")
+                      CacheControl="private, no-store")
     except Exception as e:
         logger.error(f"history_write_fail: {e}")
 
 
-def lambda_handler(event, context):
+def _run_private(event, context):
     started = datetime.now(timezone.utc)
     logger.info("behavior-mirror starting")
 
@@ -420,7 +421,8 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(payload, default=str, indent=2).encode(),
                   ContentType="application/json",
-                  CacheControl="max-age=3600, public")
+                  CacheControl="private, no-store")
+    publish_private("behavior-mirror", payload)
     update_history(payload)
     logger.info(f"wrote {OUT_KEY}")
 
@@ -446,3 +448,13 @@ def lambda_handler(event, context):
             "elapsed": round(elapsed, 2),
         }),
     }
+
+
+def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied is not None:
+        return denied
+    response = _run_private(event, context)
+    if isinstance(response, dict) and "statusCode" in response:
+        response["headers"] = {**response.get("headers", {}), "Cache-Control": "private, no-store", "Vary": "Authorization"}
+    return response

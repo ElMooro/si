@@ -59,6 +59,7 @@ DRAWDOWN MULTIPLIER (current portfolio P&L circuit breaker)
 
 ═══════════════════════════════════════════════════════════════════════
 """
+from private_artifact import publish_private, private_http_denied
 import json
 import os
 import time
@@ -282,7 +283,7 @@ def save_alert_history(h):
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY,
             Body=json.dumps(h, separators=(",", ":")).encode("utf-8"),
-            ContentType="application/json")
+            ContentType="application/json", CacheControl="private, no-store")
     except Exception as e: print(f"  hist err: {e}")
 
 
@@ -299,7 +300,7 @@ def should_alert(history, key):
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _run_private(event, context):
     started = time.time()
     print(f"=== PORTFOLIO SIZER v{VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
 
@@ -556,7 +557,8 @@ def lambda_handler(event, context):
         s3.put_object(Bucket=S3_BUCKET, Key=SIZING_KEY,
             Body=json.dumps(payload, separators=(",", ":"), default=str).encode("utf-8"),
             ContentType="application/json",
-            CacheControl="public, max-age=1800")
+            CacheControl="private, no-store")
+        publish_private("portfolio-sizing", payload)
         print(f"  ✓ sizing.json written")
     except Exception as e:
         # audit P2.5: emit EMF metric for silent put_object failure
@@ -574,3 +576,13 @@ def lambda_handler(event, context):
         "alerts_sent": alerts_sent,
         "elapsed_seconds": round(time.time() - started, 2),
     })}
+
+
+def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied is not None:
+        return denied
+    response = _run_private(event, context)
+    if isinstance(response, dict) and "statusCode" in response:
+        response["headers"] = {**response.get("headers", {}), "Cache-Control": "private, no-store", "Vary": "Authorization"}
+    return response

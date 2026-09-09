@@ -27,6 +27,7 @@ holding, then computes the full risk dashboard a hedge fund desk runs:
 
 ═══════════════════════════════════════════════════════════════════════
 """
+from private_artifact import publish_private, private_http_denied
 import json
 import math
 import os
@@ -310,7 +311,7 @@ def save_alert_history(h):
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY,
             Body=json.dumps(h, separators=(",", ":")).encode("utf-8"),
-            ContentType="application/json")
+            ContentType="application/json", CacheControl="private, no-store")
     except Exception as e: print(f"  hist err: {e}")
 
 
@@ -327,7 +328,7 @@ def should_alert(history, key):
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _run_private(event, context):
     started = time.time()
     print(f"=== PORTFOLIO RISK ENGINE · {datetime.now(timezone.utc).isoformat()} ===")
 
@@ -340,13 +341,11 @@ def lambda_handler(event, context):
     positions = snapshot.get("positions") or []
     if not positions:
         # Write minimal empty risk report
-        s3.put_object(Bucket=S3_BUCKET, Key=RISK_KEY,
-            Body=json.dumps({
+        publish_risk({
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "status": "no_positions",
                 "message": "No positions yet. Use justhodl-portfolio-admin Lambda to add positions.",
-            }).encode("utf-8"),
-            ContentType="application/json")
+            })
         return {"statusCode": 200, "body": json.dumps({
             "success": True, "status": "no_positions",
             "elapsed_seconds": round(time.time() - started, 2),
@@ -593,10 +592,7 @@ def lambda_handler(event, context):
     payload["alerts_sent"] = alerts_sent
 
     # ─── Write sidecar ───
-    s3.put_object(Bucket=S3_BUCKET, Key=RISK_KEY,
-        Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
-        ContentType="application/json",
-        CacheControl="public, max-age=1800")
+    publish_risk(payload)
 
     print(f"  ✓ risk written · alerts sent={alerts_sent}")
 
@@ -613,3 +609,20 @@ def lambda_handler(event, context):
         "alerts_sent": alerts_sent,
         "elapsed_seconds": round(elapsed, 2),
     })}
+
+
+def publish_risk(payload):
+    s3.put_object(Bucket=S3_BUCKET, Key=RISK_KEY,
+                  Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+                  ContentType="application/json", CacheControl="private, no-store")
+    publish_private("portfolio-risk", payload)
+
+
+def lambda_handler(event, context):
+    denied = private_http_denied(event)
+    if denied is not None:
+        return denied
+    response = _run_private(event, context)
+    if isinstance(response, dict) and "statusCode" in response:
+        response["headers"] = {**response.get("headers", {}), "Cache-Control": "private, no-store", "Vary": "Authorization"}
+    return response
