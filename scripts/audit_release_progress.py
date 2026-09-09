@@ -23,6 +23,7 @@ def diagnostics(job_id):
         with response: raw=response.read(20_000_000).decode('utf-8','replace')
         return {'available':True,
                 'exception_types':sorted(set(re.findall(r'\b[A-Z][A-Za-z]*(?:Error|Exception)\b',raw))),
+                'aws_error_codes':sorted(set(re.findall(r'An error occurred \(([A-Za-z0-9_.-]+)\) when calling',raw))),
                 'missing_modules':sorted(set(re.findall(r"No module named ['\"]([A-Za-z0-9_.-]+)['\"]",raw))),
                 'traceback_locations':[{'path':m[0],'line':int(m[1])} for m in re.findall(r'File "/home/runner/work/si/si/([A-Za-z0-9_./-]+)", line ([0-9]+)',raw)],
                 'failed_test_names':sorted(set(re.findall(r'FAIL(?:ED)?:? (test_[A-Za-z0-9_]+)',raw))),
