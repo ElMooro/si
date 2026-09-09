@@ -9,6 +9,7 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -45,12 +46,10 @@ def _load():
     fake_exc = types.ModuleType("botocore.exceptions")
     fake_exc.ClientError = _FakeClientError
     fake_bc.exceptions = fake_exc
-    sys.modules["boto3"] = fake_boto3
-    sys.modules["botocore"] = fake_bc
-    sys.modules["botocore.exceptions"] = fake_exc
     spec = importlib.util.spec_from_file_location("api_auth_under_test", ROOT / "aws" / "shared" / "api_auth.py")
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    with patch.dict(sys.modules, {"boto3": fake_boto3, "botocore": fake_bc, "botocore.exceptions": fake_exc}):
+        spec.loader.exec_module(mod)
     return mod, ddb
 
 

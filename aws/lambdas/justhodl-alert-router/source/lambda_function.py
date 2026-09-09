@@ -33,6 +33,8 @@ from datetime import datetime, timezone, timedelta
 import boto3
 from _sentry_lite import track_errors
 from bottom_context import context_rows
+from cot_context import extreme_rows
+from donor_contract import numeric
 
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -757,29 +759,19 @@ def check_divergences(alerts):
 
 
 def check_cot_extremes(alerts):
-    d = load_json("data/cot-extremes.json") or load_json("cot/extremes.json")
-    extremes = (d.get("extremes") or []) if d else []
-    for e in extremes[:3]:
-        pct = e.get("percentile_rank") or e.get("pct_rank")
-        if pct is None:
-            continue
-        contract = e.get("contract") or e.get("name")
-        if pct >= 95:
-            alerts.append({
-                "id": f"cot_long_{contract}",
-                "category": "COT",
-                "severity": "MEDIUM",
-                "title": f"📍 COT extreme LONG: {contract}",
-                "detail": f"Percentile rank {pct}% (5y window). Net spec position is at extreme high.",
-            })
-        elif pct <= 5:
-            alerts.append({
-                "id": f"cot_short_{contract}",
-                "category": "COT",
-                "severity": "MEDIUM",
-                "title": f"📍 COT extreme SHORT: {contract}",
-                "detail": f"Percentile rank {pct}% (5y window). Net spec position is at extreme low.",
-            })
+    d = load_json("cot/extremes/current.json")
+    for row in extreme_rows(d)[:3]:
+        contract, side = row['contract'], row['side']
+        alerts.append({
+            "id": f"cot_{side}_{contract}_{row['report_type']}_{row['report_date']}",
+            "category": "COT", "severity": "MEDIUM",
+            "title": f"📍 COT positioning extreme {side.upper()}: {contract}",
+            "detail": (f"Percentile {row['percentile']} against {row['n_prior_observations']} prior observations. "
+                       f"Report {row['report_date']} ({row['report_type']}); current provider vintage. "
+                       "Descriptive positioning only; no calibrated reversal probability."),
+            "source_engine": "justhodl-cot-extremes-scanner",
+            "source_artifact": "cot/extremes/current.json", "execution_eligible": False,
+        })
 
 
 def format_telegram_msg(alert):
@@ -797,21 +789,27 @@ def check_bottom(alerts):
     weekly (major) trigger, a confirmed secondary test on silence awaiting its trigger, and a benchmark (SPY/QQQ/IWM/
     TLT/GLD/BTC) entering the bottom process. Ids carry the session so each event fires once."""
     d = load_json("data/bottom.json")
-    _,health=context_rows(d)
+    reviewed,health=context_rows(d)
     if not health.get("usable") or health.get("invalid_rows") or health.get("provider_degraded"):return
     session = d.get("session") or "?"
-    ch = d.get("changes") or {}
-    board = {r.get("ticker"): r for r in (d.get("board") or []) if isinstance(r, dict)}
+    ch = d.get("changes") if isinstance(d.get("changes"), dict) else {}
+    # Use the complete validated rows, not a separate unvalidated display subset.
+    board = {r['ticker'].upper(): r for r in d['board_all'] if r['ticker'].upper() in reviewed}
+
+    def changed(name):
+        values = ch.get(name)
+        return list(dict.fromkeys(value.upper() for value in values if isinstance(value, str))) if isinstance(values, list) else []
 
     def fmt(x, nd=2, suf=""):
-        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+        return ("%.*f%s" % (nd, numeric(x), suf)) if numeric(x) is not None else "n/a"
 
     def md(x):
         return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
 
     def line(r):
-        p = r.get("plan") or {}
-        tv = (r.get("st_vol_ratio_sc") or 0) * 100 if r.get("st_vol_ratio_sc") is not None else None
+        p = r.get("plan") if isinstance(r.get("plan"), dict) else {}
+        ratio = numeric(r.get("st_vol_ratio_sc"))
+        tv = ratio * 100 if ratio is not None else None
         return (f"{md(r.get('company'))} · {md(r.get('desk'))} · {md(r.get('frame'))} frame · score {fmt(r.get('score'), 0)} {md(r.get('grade'))}\n"
                 f"climax {md(r.get('sc_date'))} on {fmt(r.get('sc_vol_x'), 1, 'x')} volume after {fmt(r.get('sc_decline_pct'), 0, '%')} · rally {fmt(r.get('ar_rally_pct'), 1, '%')} · "
                 f"test {md(r.get('st_date'))} on {fmt(tv, 0, '%')} of climax volume ({md(r.get('st_depth_class'))})\n"
@@ -819,9 +817,9 @@ def check_bottom(alerts):
                 f"https://justhodl.ai/bottom.html?ticker={r.get('ticker')}")
 
     n = 0
-    for t in (ch.get("new_triggered") or []):
+    for t in changed("new_triggered"):
         r = board.get(t) or {}
-        if not r or r.get("grade") not in ("A", "B") or n >= 6:
+        if not r or r.get("state") not in ("TRIGGERED", "MARKUP") or r.get("grade") not in ("A", "B") or n >= 6:
             continue
         n += 1
         major = r.get("frame") == "W" or r.get("weekly_state") in ("TRIGGERED", "MARKUP")
@@ -833,19 +831,22 @@ def check_bottom(alerts):
             "detail": line(r),
         })
     n = 0
-    for t in (ch.get("new_test_confirmed") or []):
+    for t in changed("new_test_confirmed"):
         r = board.get(t) or {}
-        if not r or r.get("grade") not in ("A", "B") or (r.get("st_vol_ratio_sc") or 1.0) > 0.5 or n >= 4:
+        ratio = reviewed.get(t, {}).get("st_vol_ratio_sc")
+        if not r or r.get("state") != "ST_CONFIRMED" or r.get("grade") not in ("A", "B") or ratio is None or not 0 <= ratio <= 0.5 or n >= 4:
             continue
         n += 1
+        plan = r.get("plan") if isinstance(r.get("plan"), dict) else {}
         alerts.append({
             "id": f"bottom_test_{t}_{session}",
             "category": "BOTTOM",
             "severity": "MEDIUM",
-            "title": f"🔍 BOTTOM: {t} tested its climax low on silence -- trigger above {fmt((r.get('plan') or {}).get('entry'))}",
+            "title": f"🔍 BOTTOM: {t} tested its climax low on silence -- trigger above {fmt(plan.get('entry'))}",
             "detail": line(r),
         })
-    bench = ((d.get("market") or {}).get("benchmarks") or {})
+    market = d.get("market") if isinstance(d.get("market"), dict) else {}
+    bench = market.get("benchmarks") if isinstance(market.get("benchmarks"), dict) else {}
     for b, x in bench.items():
         if not isinstance(x, dict):
             continue

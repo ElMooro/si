@@ -1,0 +1,11 @@
+# Alert donor consumer recovery
+
+The alert router still requested `data/cot-extremes.json` / `cot/extremes.json` and legacy `extremes[].percentile_rank` fields after the dedicated COT producer moved to `cot/extremes/current.json`. It also treated a zero percentile as missing and asserted a five-year window without checking the actual sample. The consumer now reads the exact owned v2 artifact and its `contracts` rows.
+
+COT evidence requires the expected engine and schema, explicit execution ineligibility, a timezone-qualified generation timestamp no more than eight days old, an `ok` contract row, a report date no more than ten days old, a supported report type, at least 26 prior observations and a finite percentile in [0,100]. Future dates, duplicate contracts and inconsistent extreme directions are withheld. Alerts describe the rank relative to the actual sample; a high/low percentile does not imply that the absolute net position is long/short or that a reversal is calibrated. The source artifact, report date and report type remain attached to the constructed alert.
+
+BOTTOM previously validated `board_all` but constructed alerts from a separate, unvalidated `board` subset. It also replaced a real zero secondary-test volume ratio with 1.0, suppressing the qualifying event. The consumer now uses the complete validated board, joins changes by normalized ticker, requires matching current states and preserves zero. Missing, negative, nonfinite or over-threshold ratios do not qualify. Malformed change lists and optional plan/market structures cannot introduce unreviewed rows or cause the tested failures.
+
+Six offline behavior cases exercise the actual alert-construction functions and the COT validator. They initialize no Lambda SDK clients and have no message transport. Production verification checks deployed package/configuration parity; the notification handler is not invoked as a test. Existing scheduled notification behavior is retained.
+
+Remaining requirements: point-in-time COT publication vintages and independent event calibration; validated historical BOTTOM features before any scoring or capital uplift. These changes repair consumer identity and data handling, not investment efficacy.
