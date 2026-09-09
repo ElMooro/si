@@ -18,6 +18,9 @@ SANITIZED_KEYS += ("data/vol-regime.json", "data/wealth-plan-snapshot.json", "da
 SANITIZED_KEYS += ("data/_fleet-monitor.json", "data/_freshness-monitor.json")
 SANITIZED_KEYS += ("data/source-map.json",)
 SANITIZED_KEYS += ("etf-flows/daily.json", "macro/regime.json")
+# The producer replaces underscores with hyphens before writing shard slugs.
+# Retain the legacy spelling in containment in case an older writer used it.
+SANITIZED_KEYS += ("data/search/providers/tradingview-vault-live.json.gz",)
 
 WORKER = "https://justhodl-data-proxy.raafouis.workers.dev"
 

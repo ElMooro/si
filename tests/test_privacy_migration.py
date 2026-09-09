@@ -201,6 +201,7 @@ class PublicMigrationTests(unittest.TestCase):
             "data/tax-plan-snapshot.json": {"profile": {"income": 765432, "filing_status": MARKER},
                                              "suggestions": [MARKER]},
             "data/search/providers/tradingview_vault_live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
+            "data/search/providers/tradingview-vault-live.json.gz": {"rows": [["tradingview-vault-live:NVDA", "NVDA", "instrument_ref", MARKER, 123, 2, True]], "count": 1},
             "equity-research/NVDA.json": {"price": 123, "khalid_notes": {"n_notes": 3, "levels": [120, 140], "note_ids": ["n1"], "latest_note": MARKER, "llm_view": MARKER}},
         }
 
@@ -210,14 +211,14 @@ class PublicMigrationTests(unittest.TestCase):
         vault = fixtures["data/tradingview.json"]
         for key, doc in fixtures.items():
             before = deepcopy(doc)
-            projected = sanitize_public(key, doc, vault=vault)
+            projected = migration.project_public(key, doc, vault=vault)
             self.assertNotIn(MARKER, json.dumps(projected), key)
             self.assertEqual(doc, before, key)
-            self.assertEqual(projected, sanitize_public(key, projected, vault=vault), key)
+            self.assertEqual(projected, migration.project_public(key, projected, vault=vault), key)
             if key.startswith("data/"):
-                self.assertEqual(projected, sanitize_public(key.removeprefix("data/"), doc, vault=vault), key)
-        self.assertEqual(sanitize_public("equity-research/NVDA.json", fixtures["equity-research/NVDA.json"])["khalid_notes"]["levels"], [120, 140])
-        self.assertEqual(sanitize_public("data/position-sizing.json", fixtures["data/position-sizing.json"])["sized_positions"][0]["suggested_size_pct"], 2.8)
+                self.assertEqual(projected, migration.project_public(key.removeprefix("data/"), doc, vault=vault), key)
+        self.assertEqual(migration.project_public("equity-research/NVDA.json", fixtures["equity-research/NVDA.json"])["khalid_notes"]["levels"], [120, 140])
+        self.assertEqual(migration.project_public("data/position-sizing.json", fixtures["data/position-sizing.json"])["sized_positions"][0]["suggested_size_pct"], 2.8)
 
     def test_policy_merge_preserves_unrelated_access_and_uses_exact_parent_denies(self):
         original = {"Version": "2012-10-17", "Statement": [{"Sid": "ExistingPublic", "Effect": "Allow", "Resource": "unchanged"}]}
@@ -516,13 +517,16 @@ class PublicMigrationTests(unittest.TestCase):
 
     def test_shard_projection_uses_same_vault_search_helper_and_gzip_roundtrip(self):
         fixtures = self.fixtures()
-        key = "data/search/providers/tradingview_vault_live.json.gz"
         vault = fixtures["data/tradingview.json"]
-        s3 = MemoryS3({key: fixtures[key]})
-        job = migration.Migration(ROOT, {"s3": s3})
-        job.scrub(key, vault=vault)
-        self.assertEqual(s3.docs[key]["rows"][0][3], vault_search_rows(vault)[0]["search"])
-        self.assertEqual(s3.docs[key]["rows"][0][4:6], [123, 2])
+        for key in (migration.VAULT_SHARD_KEY, migration.LEGACY_VAULT_SHARD_KEY):
+            s3 = MemoryS3({key: fixtures[migration.LEGACY_VAULT_SHARD_KEY]})
+            job = migration.Migration(ROOT, {"s3": s3})
+            job.scrub(key, vault=vault)
+            self.assertEqual(s3.docs[key]["rows"][0][3], vault_search_rows(vault)[0]["search"])
+            self.assertEqual(s3.docs[key]["rows"][0][4:6], [123, 2])
+            self.assertNotIn(MARKER, json.dumps(s3.docs[key]))
+        self.assertIn(migration.VAULT_SHARD_KEY, migration.SANITIZED_KEYS)
+        self.assertIn(migration.LEGACY_VAULT_SHARD_KEY, migration.SANITIZED_KEYS)
         with self.assertRaises(migration.MigrationError):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 

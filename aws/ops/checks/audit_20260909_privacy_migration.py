@@ -45,6 +45,16 @@ PRODUCERS = ("brain-compiler", "tv-workbench", "canary-warroom", "tradingview", 
              "etf-fund-flows", "macro-regime")
 READINESS = tuple(dict.fromkeys(PUBLISHERS + PRODUCERS + ("ask-desk", "symdir", "ai-chat", "page-ai-commentary")))
 MAX_OBJECT = 200 * 1024 * 1024
+VAULT_SHARD_KEY = "data/search/providers/tradingview-vault-live.json.gz"
+LEGACY_VAULT_SHARD_KEY = "data/search/providers/tradingview_vault_live.json.gz"
+
+
+def project_public(key, document, vault=None):
+    # The reviewed projection's identifier predates the producer's slug
+    # normalization. Map the actual storage key to that same pure contract;
+    # runtime producers already use vault_search_rows directly.
+    projection_key = LEGACY_VAULT_SHARD_KEY if key.removeprefix("data/") == VAULT_SHARD_KEY.removeprefix("data/") else key
+    return sanitize_public(projection_key, document, vault=vault)
 
 
 def backup_deny_statement():
@@ -568,7 +578,7 @@ class Migration:
             if doc is None:
                 self.record("absent_legacy_alias", key=key)
                 return
-            projected = sanitize_public(key, doc, vault=vault)
+            projected = project_public(key, doc, vault=vault)
             try:
                 self.put_public(key, projected, obj)
                 return
@@ -581,7 +591,7 @@ class Migration:
         _, vault = self.read_object("data/tradingview.json")
         vault = sanitize_public("data/tradingview.json", vault)
         for key in SANITIZED_KEYS:
-            self.scrub(key, vault=vault)
+            self.scrub(key, vault=vault, optional=key == LEGACY_VAULT_SHARD_KEY)
             alias = key.removeprefix("data/")
             if alias != key:
                 self.scrub(alias, vault=vault, optional=True)
@@ -636,8 +646,8 @@ class Migration:
             stream.close()
         require(sha.hexdigest() == meta.get("sha256"), "provider_index_digest_mismatch")
         _, vault = self.read_object("data/tradingview.json")
-        _, shard = self.read_object("data/search/providers/tradingview_vault_live.json.gz")
-        require(encoded(shard) == encoded(sanitize_public("data/search/providers/tradingview_vault_live.json.gz", shard, vault=vault)), "provider_rebuild_contains_nonpublic_search_fields")
+        _, shard = self.read_object(VAULT_SHARD_KEY)
+        require(encoded(shard) == encoded(project_public(VAULT_SHARD_KEY, shard, vault=vault)), "provider_rebuild_contains_nonpublic_search_fields")
         self.record("provider_catalog_rebuilt", version=version, index_sha256=sha.hexdigest(), index_bytes=meta["bytes"], documents=new.get("documents"))
         # A unique config creates new environments; force warm also reloads SQLite.
         result = update_environment(self.clients["lambda"], "justhodl-symdir", {"JH_PRIVACY_CACHE_EPOCH": self.epoch}, self.ready["symdir"]["CodeSha256"])
