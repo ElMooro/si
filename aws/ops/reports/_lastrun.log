@@ -1,2 +1,9 @@
-executing-against: 2f567b8331cb3552da584dd1ff50b4e7aa46115d
-{"ops": 5230, "ok": true, "checks": 4929, "failed_step": null, "report": "aws/ops/reports/5230_audit_privacy_migration.json"}
+executing-against: 1b76bcf723ef0f311909145cba564aa98becd613
+<unknown>:32: SyntaxWarning: invalid escape sequence '\$'
+<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
+<unknown>:45: SyntaxWarning: invalid escape sequence '\$'
+{"ops": 5231, "phase": "package_parity", "matched": 120, "pending": 15}
+{"ops": 5231, "ok": false, "status": "SOURCE_PARITY_FAILED", "stage": "final", "code_engines": 135, "pending_outputs": 0, "contract_failures": 0, "report": "aws/ops/reports/5231_audit_release_verify.json"}
+❌ OPS-FAIL: aws/ops/pending/ops_5231_audit_release_verify.py
+{"ops": 5274, "ok": false, "status": "RECONCILIATION_FAILED", "configuration_changed": false}
+❌ OPS-FAIL: aws/ops/pending/ops_5274_fmp_credential_reconcile.py
