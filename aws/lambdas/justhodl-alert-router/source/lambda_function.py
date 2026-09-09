@@ -32,6 +32,7 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 import boto3
 from _sentry_lite import track_errors
+from bottom_context import context_rows
 
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -796,6 +797,8 @@ def check_bottom(alerts):
     weekly (major) trigger, a confirmed secondary test on silence awaiting its trigger, and a benchmark (SPY/QQQ/IWM/
     TLT/GLD/BTC) entering the bottom process. Ids carry the session so each event fires once."""
     d = load_json("data/bottom.json")
+    _,health=context_rows(d)
+    if not health.get("usable") or health.get("invalid_rows") or health.get("provider_degraded"):return
     session = d.get("session") or "?"
     ch = d.get("changes") or {}
     board = {r.get("ticker"): r for r in (d.get("board") or []) if isinstance(r, dict)}
