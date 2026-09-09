@@ -35,5 +35,8 @@
     "state": "ENABLED",
     "input": {},
     "description": "Dedicated hourly Bloomberg research refresh; no active direct trigger found by ops 5283."
+  },
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
   }
 }

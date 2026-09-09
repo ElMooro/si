@@ -5,8 +5,11 @@
   "memory": 512,
   "timeout": 120,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "schedule": {
-    "rule_name": "justhodl-options-confluence-hourly",
-    "cron": "cron(20 * * * ? *)"
-  }
+  "eventbridge_schedulers_extra": [
+    {
+      "schedule_name": "options-confluence-sched",
+      "expression": "cron(20 * * * ? *)"
+    }
+  ],
+  "schedule_audit_note": "Ops 5283 run34380409144 observed this enabled Scheduler targeting this function, alongside the disabled legacy justhodl-options-confluence-hourly EventBridge rule. Existing Scheduler input and delivery settings are retained; this metadata does not modify them."
 }
