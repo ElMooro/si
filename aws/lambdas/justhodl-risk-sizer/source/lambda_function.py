@@ -15,6 +15,7 @@ import math
 from capital_contract import authority_view, capital_book_view, fresh_timestamp, finite, publication_summary
 from datetime import datetime, timezone, timedelta
 import boto3
+from private_artifact import publish_private
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -72,7 +73,7 @@ def get_s3_json(key, default=None):
         return default
 
 
-def put_s3_json(key, body, cache="public, max-age=900"):
+def put_s3_json(key, body, cache="private, no-store, max-age=0"):
     s3.put_object(
         Bucket=BUCKET, Key=key,
         Body=json.dumps(body, default=str).encode("utf-8"),
@@ -424,6 +425,7 @@ def lambda_handler(event, context):
         validation = publication_summary(empty, "risk-sizer")
         if validate_only:
             return validation
+        publish_private("risk-sizer", empty)
         put_s3_json("risk/recommendations.json", empty)
         put_s3_json("data/risk-sizer.json", empty)
         return {"statusCode": 200, "body": json.dumps({"warning": "no_ideas_in_pipeline", "regime": regime_str, "drawdown": current_dd, "status": "NO_IDEAS"})}
@@ -654,6 +656,7 @@ def lambda_handler(event, context):
     validation = publication_summary(snapshot, "risk-sizer")
     if validate_only:
         return validation
+    publish_private("risk-sizer", snapshot)
     put_s3_json("risk/recommendations.json", snapshot)
     # Mirror to canonical data/ path so consumers using either naming convention work.
     put_s3_json("data/risk-sizer.json", snapshot)

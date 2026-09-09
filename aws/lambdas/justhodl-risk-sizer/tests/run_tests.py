@@ -21,6 +21,8 @@ class _FakeS3:
     def __init__(self, docs):
         self.docs = dict(docs)
         self.writes = {}
+        self.write_options = {}
+        self.private_publications = []
 
     def get_object(self, Bucket, Key):
         if Key not in self.docs:
@@ -30,6 +32,7 @@ class _FakeS3:
 
     def put_object(self, Bucket, Key, Body, **kw):
         self.writes[Key] = json.loads(Body)
+        self.write_options[Key] = kw
 
 
 def _load(docs):
@@ -37,6 +40,9 @@ def _load(docs):
     s3 = _FakeS3(docs)
     fake.client = lambda *a, **k: s3
     sys.modules["boto3"] = fake
+    private = types.ModuleType("private_artifact")
+    private.publish_private = lambda kind, doc: s3.private_publications.append((kind, json.loads(json.dumps(doc))))
+    sys.modules["private_artifact"] = private
     spec = importlib.util.spec_from_file_location("risk_sizer_under_test", SRC)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -230,10 +236,24 @@ def test_validate_only_computes_real_output_without_publishing():
     mod,s3=_load(_base_docs())
     out=mod.lambda_handler({"mode":"validate_only"},None)
     assert out["ok"] and out["validation_only"] and out["schema_version"]=="3.0" and out["artifact_size_bytes"]>0
-    assert out["status"]=="OK" and s3.writes=={}
+    assert out["status"]=="OK" and s3.writes=={} and s3.private_publications==[]
     mod,s3=_load(_base_docs(**{"opportunities/asymmetric-equity.json":{"top_setups":[]}}))
     out=mod.lambda_handler({"validate_only":True},None)
-    assert out["status"]=="NO_IDEAS" and out["validation_only"] and s3.writes=={}
+    assert out["status"]=="NO_IDEAS" and out["validation_only"] and s3.writes=={} and s3.private_publications==[]
+
+
+def test_normal_and_empty_results_use_one_owner_mirror_and_private_iam_originals():
+    for docs in [_base_docs(), _base_docs(**{"opportunities/asymmetric-equity.json":{"top_setups":[]}})]:
+        mod,s3=_load(docs)
+        mod.lambda_handler({},None)
+        assert len(s3.private_publications)==1
+        kind,artifact=s3.private_publications[0]
+        assert kind=="risk-sizer"
+        for key in ["risk/recommendations.json","data/risk-sizer.json"]:
+            assert s3.writes[key]==artifact
+            assert s3.write_options[key]["CacheControl"]=="private, no-store, max-age=0"
+        if artifact["status"]!="NO_IDEAS":
+            assert artifact["book"]["account_id"]=="account-test"  # owner details retained only behind private routes
 
 
 if __name__ == "__main__":
