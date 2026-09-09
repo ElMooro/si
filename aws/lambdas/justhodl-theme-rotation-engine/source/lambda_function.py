@@ -20,7 +20,7 @@ INPUTS:
   - Top constituents for each theme (FMP holdings or top-10 SPDR-style)
 
 OUTPUTS:
-  data/theme-rotation.json — full state
+  data/theme-momentum.json — full state
   data/theme-rotation-state.json — yesterday's state for delta tracking
 
 ALERT TRIGGERS:
@@ -39,8 +39,8 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-S3_KEY = os.environ.get("S3_KEY", "data/theme-rotation.json")
-STATE_KEY = os.environ.get("STATE_KEY", "data/theme-rotation-state.json")
+S3_KEY = "data/theme-momentum.json"  # Fixed owner; legacy deployment overrides cannot collide with RRG.
+STATE_KEY = "data/theme-rotation-state.json"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 N_WORKERS = int(os.environ.get("N_WORKERS", "12"))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
@@ -601,6 +601,7 @@ def lambda_handler(event=None, context=None):
     out = {
         "schema_version": 1,
         "method": "theme_rotation_engine_v1",
+        "producer": "justhodl-theme-rotation-engine",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "spy_ret_20d": round(spy_ret_20, 2),

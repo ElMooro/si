@@ -5,7 +5,7 @@ likely to pump especially if capital and money has rotated to that theme."
 
 SCHEMA REALITY (validated 2026-06-02 via ops 1206):
 
-theme-rotation.json:
+theme-momentum.json:
   - all_themes (LIST of 114 ETF themes): ticker, category, momentum_score,
     rs_5d/20d/60d, rs_acceleration, rs_rank_20d, rs_rank_delta,
     vol_ratio_20v60, money_flow_ratio
@@ -527,9 +527,9 @@ def lambda_handler(event, context):
     print(f"[theme-cascade] starting at {datetime.now(timezone.utc).isoformat()}")
 
     velocity = _read_json("data/velocity-acceleration.json") or {}
-    theme_rotation = _read_json("data/theme-rotation.json") or {}
+    theme_rotation = _read_json("data/theme-momentum.json") or {}
     exposure_lookup = _read_json("etf-flows/stock-exposure-lookup.json") or {}
-    themes_doc = _read_json("data/themes.json") or {}
+    themes_doc = _read_json("data/momentum-themes.json") or {}
     macro = _read_json("macro/regime.json") or {}
     print(f"[theme-cascade] loaded: velocity={bool(velocity)} "
           f"theme_rot={bool(theme_rotation)} exposure={bool(exposure_lookup)} "

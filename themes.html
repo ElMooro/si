@@ -40,7 +40,7 @@ function dlCSV(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>col
 const pc=v=>v==null?'—':(v>0?'+':'')+v+'%';
 let D=null;
 (async()=>{D=await gj('data/themes.json');
-  if(!D){document.getElementById('meta').textContent='first run pending';return;}
+  if(!D || !Array.isArray(D.themes)){document.getElementById('meta').textContent='Curated theme data unavailable or incompatible';return;}
   const T=D.themes||[];
   document.getElementById('grid').innerHTML=T.map((t,i)=>{const p=t.perf||{};
     return `<div class="card"><div class="rank">#${i+1} BY 1M MOMENTUM · ${t.n} NAMES · BREADTH ${esc(t.breadth_1d)}</div>
@@ -55,7 +55,7 @@ let D=null;
       <span class="chip">P/S med <b>${t.ps_median??'—'}×</b></span>
     </div>
     <div class="mem">leader 1M <b class="hi">${esc(t.leader_1m)}</b> · laggard <b class="lo">${esc(t.laggard_1m)}</b><br>${
-      (t.members||[]).slice().sort((a,b)=>(b.m1??-99)-(a.m1??-99)).map(m=>`<b>${m.t}</b> ${pc(m.m1)}`).join(' · ')}</div></div>`;}).join('');
+      (t.members||[]).slice().sort((a,b)=>(b.m1??-99)-(a.m1??-99)).map(m=>`<b>${esc(m.t)}</b> ${pc(m.m1)}`).join(' · ')}</div></div>`;}).join('');
   document.getElementById('meta').textContent=`${T.length} themes · as of ${esc(D.as_of_session)}`;
   document.getElementById('note').textContent=`${D.methodology} · v${D.version} · ${D.generated_at} · Research, not advice.`;
   document.getElementById('dl').onclick=()=>{const rows=[];T.forEach(t=>(t.members||[]).forEach(m=>rows.push({theme:t.theme,...m})));
@@ -65,6 +65,6 @@ let D=null;
 <script src="/jh-nav-drawer.js" defer></script>
 <!-- P0-7 wave 2 · dark engine wired (perplexity, 2026-08-05) -->
 <script src="/jh-wire.js" defer
-  data-feeds="data/theme-second-wave.json|justhodl-theme-second-wave|THEME SECOND-WAVE (picks-and-shovels)"></script>
+  data-feeds="data/theme-second-wave.json|justhodl-theme-second-wave|THEME SECOND-WAVE (picks-and-shovels);data/momentum-themes.json|justhodl-theme-classifier|MOMENTUM INDUSTRY THEMES;data/theme-momentum.json|justhodl-theme-rotation-engine|ETF THEME MOMENTUM"></script>
 <script src="/sidebar.js" defer></script>
 </body></html>

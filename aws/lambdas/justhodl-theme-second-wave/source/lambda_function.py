@@ -223,9 +223,9 @@ def select_hot_themes(tr):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    tr = _read("data/theme-rotation.json")
+    tr = _read("data/theme-momentum.json")
     if not tr:
-        return {"statusCode": 500, "body": json.dumps({"err": "no theme-rotation.json"})}
+        return {"statusCode": 500, "body": json.dumps({"err": "no theme-momentum.json"})}
     universe = _read("data/universe.json")
     uni, by_industry = build_universe_index(universe)
     flows = build_flow_index()

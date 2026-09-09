@@ -62,7 +62,7 @@ INPUTS
 ══════
 data/catalysts.json          (per-ticker catalyst records, just built)
 data/pump-positioning.json   (aggressive basket positions)
-data/themes.json             (theme membership)
+data/momentum-themes.json             (theme membership)
 data/earnings-tracker.json   (calendar overlay)
 data/ai-website-synthesis.json (macro regime context)
 
@@ -104,7 +104,7 @@ OUTPUT_KEY    = "data/catalyst-clusters.json"
 INPUT_KEYS = {
     "catalysts":    "data/catalysts.json",
     "positioning":  "data/pump-positioning.json",
-    "themes":       "data/themes.json",
+    "themes":       "data/momentum-themes.json",
     "earnings_cal": "data/earnings-tracker.json",
     "macro":        "data/ai-website-synthesis.json",
     "momentum":     "data/momentum-leaders.json",

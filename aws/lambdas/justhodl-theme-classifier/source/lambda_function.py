@@ -29,7 +29,7 @@ correlation within a hot industry is almost always high anyway. We get
 
 OUTPUT
 ══════
-data/themes.json
+data/momentum-themes.json
 {
   "schema_version": "1.0",
   "generated_at":   "...",
@@ -76,7 +76,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 S3_BUCKET   = "justhodl-dashboard-live"
 MOMENTUM_KEY = "data/momentum-leaders.json"
 PROFILE_CACHE_KEY = "data/_cache/ticker-profiles.json"
-OUTPUT_KEY  = "data/themes.json"
+OUTPUT_KEY  = "data/momentum-themes.json"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 MIN_TICKERS_FOR_THEME = 3   # need ≥3 momentum leaders in an industry to call it a theme
@@ -292,6 +292,7 @@ def lambda_handler(event, context):
 
     output = {
         "schema_version":     "1.0",
+        "producer":           "justhodl-theme-classifier",
         "generated_at":       datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":        round(time.time() - t0, 2),
         "n_momentum_leaders": len(leader_tickers),

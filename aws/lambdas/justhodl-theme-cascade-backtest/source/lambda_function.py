@@ -5,7 +5,7 @@ in hot themes? If yes → the cascade has predictive value. If no → reconsider
 
 METHOD:
   1. Read momentum-leaders.json (60 stocks with perf_5d, perf_20d, perf_60d)
-  2. Read theme-rotation.json (current hot themes with momentum_score / RS rank)
+  2. Read theme-momentum.json (current hot themes with momentum_score / RS rank)
   3. Read stock-exposure-lookup.json (ticker → ETFs that hold it)
   4. For each pumper (5d perf >= +5%), find its hottest ETF theme
   5. Compute aggregate stats:
@@ -137,7 +137,7 @@ def lambda_handler(event, context):
 
     # Load data sources
     momentum = _read_json("data/momentum-leaders.json") or {}
-    theme_rotation = _read_json("data/theme-rotation.json") or {}
+    theme_rotation = _read_json("data/theme-momentum.json") or {}
     exposure_lookup = _read_json("etf-flows/stock-exposure-lookup.json") or {}
 
     leaders = momentum.get("leaders") or []

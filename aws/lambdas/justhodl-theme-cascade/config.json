@@ -5,13 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 60,
   "memory": 512,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Theme cascade synthesizer — combines theme-rotation × velocity-acceleration × constituent-pressure to rank tickers in hot themes that are accumulating. Built in response to user's insight that stocks in already-pumping themes are highest-probability next-pump candidates.",
+  "description": "Ranks accumulating tickers in strong ETF themes using theme momentum, velocity acceleration, constituent breadth and exposure data.",
   "environment_keys": [],
   "schedule": {
     "expression": "cron(20,50 * * * ? *)",
     "name": "justhodl-theme-cascade-twice-per-hour",
-    "description": "Every 30 min — 5 min after velocity-acceleration runs"
+    "description": "Every 30 min \u2014 5 min after velocity-acceleration runs"
   }
 }

@@ -65,7 +65,7 @@ data/momentum-leaders.json     (full top-30 list)
 data/ticker-research-bundle.json (Claude dossiers for context)
 data/pump-earnings-nlp.json    (transcript NLP)
 data/earnings-tracker.json     (upcoming earnings dates)
-data/themes.json               (active themes)
+data/momentum-themes.json               (active themes)
 
 PROCESS
 ═══════
@@ -127,7 +127,7 @@ INPUT_KEYS = {
     "research":     "data/ticker-research-bundle.json",
     "nlp":          "data/pump-earnings-nlp.json",
     "earnings_cal": "data/earnings-tracker.json",
-    "themes":       "data/themes.json",
+    "themes":       "data/momentum-themes.json",
     "mechanics":    "data/pump-mechanics.json",
 }
 

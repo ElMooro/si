@@ -104,7 +104,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 S3_BUCKET   = "justhodl-dashboard-live"
 MOMENTUM_KEY = "data/momentum-leaders.json"
-THEMES_KEY   = "data/themes.json"
+THEMES_KEY   = "data/momentum-themes.json"
 RADAR_KEY    = "data/convergence-radar.json"
 MOMBO_KEY    = "data/momentum-breakout.json"
 OFLOW_KEY    = "data/options-flow-scanner.json"

@@ -3,7 +3,7 @@
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
  "n_pages": 42,
- "n_wired": 167,
+ "n_wired": 169,
  "wired": [
   {
    "engine": "justhodl-13f-positions",
@@ -895,9 +895,9 @@
   },
   {
    "engine": "justhodl-theme-rotation-engine",
-   "feed": "data/theme-rotation-state.json",
+   "feed": "data/theme-momentum.json",
    "page": "resilience.html",
-   "title": "THEME ROTATION ENGINE",
+   "title": "THEME MOMENTUM",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
@@ -1242,6 +1242,22 @@
    "feed": "data/theme-second-wave.json",
    "page": "themes.html",
    "title": "THEME SECOND-WAVE (picks-and-shovels)",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-theme-classifier",
+   "feed": "data/momentum-themes.json",
+   "page": "themes.html",
+   "title": "MOMENTUM INDUSTRY THEMES",
+   "schema_version": "unspecified",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-theme-rotation-engine",
+   "feed": "data/theme-momentum.json",
+   "page": "themes.html",
+   "title": "ETF THEME MOMENTUM",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },
