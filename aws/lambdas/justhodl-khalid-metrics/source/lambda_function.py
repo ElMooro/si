@@ -15,7 +15,7 @@ ANTHROPIC_KEY=os.environ.get('ANTHROPIC_API_KEY','')
 s3=boto3.client('s3',region_name='us-east-1')
 
 def cors_response(status,body):
-    return{'statusCode':status,'headers':{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'*','Access-Control-Allow-Headers':'Content-Type'},'body':json.dumps(body,default=str)}
+    return{'statusCode':status,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':json.dumps(body,default=str)}
 
 def load_config():
     try:obj=s3.get_object(Bucket=S3_BUCKET,Key='data/khalid-config.json');return json.loads(obj['Body'].read())
