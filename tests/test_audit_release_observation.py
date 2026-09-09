@@ -28,4 +28,9 @@ class BoundaryTests(unittest.TestCase):
   result=m.schedule_discovery({'events':events,'scheduler':scheduler},{'sample'})
   self.assertEqual(result['functions']['sample'][0]['target_arn'].split(':')[-1],'23')
   self.assertNotIn('PRIVATE_DATA',str(result))
+ def test_source_evidence_is_checkpointed_before_later_metadata_failure(self):
+  proof=[]
+  with patch.object(m.release,'changed_scope',return_value={'example':[]}),patch.object(m.release,'artifact_map',return_value={'example':{'primary_keys':[]}}),patch.object(m.release,'git',return_value='0'*40),patch.object(m.release,'check_packages',return_value=[{'function':'example','pass':True}]),patch.object(m.release,'privacy_receipt_summary',return_value={'verified':True}),patch.object(m.release,'observe_schedules',side_effect=RuntimeError('metadata')):
+   with self.assertRaises(RuntimeError):m.observe(ROOT,{'lambda':None},None,progress=lambda row:proof.append(row.copy()))
+  self.assertTrue(proof[-1]['source_parity_verified']);self.assertEqual(proof[-1]['outputs'],{'example':[]})
 if __name__=='__main__':unittest.main()

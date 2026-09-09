@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import threading
 from concurrent.futures import ThreadPoolExecutor
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -20,10 +21,23 @@ READ_METHODS={
  'scheduler':frozenset(('get_schedule','list_schedules')),
 }
 class ReadOnlyClient:
-    def __init__(self,client,service):self._client=client;self._allowed=READ_METHODS[service]
+    def __init__(self,client,service):
+        self._client=client;self._allowed=READ_METHODS[service];self._service=service
+        self._lock=threading.Lock();self._next=0;self.last_error=None
+        self._interval={'events':0.5,'scheduler':0.5,'lambda':0.125,'s3':0}.get(service,1)
     def __getattr__(self,name):
         if name not in self._allowed:raise RuntimeError('unreviewed_aws_operation')
-        return getattr(self._client,name)
+        method=getattr(self._client,name)
+        def read(*args,**kwargs):
+            with self._lock:
+                now=time.monotonic();slot=max(now,self._next);self._next=slot+self._interval
+            if slot>now:time.sleep(slot-now)
+            try:return method(*args,**kwargs)
+            except Exception as exc:
+                self.last_error={'service':self._service,'method':name,'error_type':type(exc).__name__,
+                                 'error_code':release.safe_label(getattr(exc,'response',{}).get('Error',{}).get('Code'))}
+                raise
+        return read
 
 def pages(method, field, **kwargs):
     seen=set();token=None
@@ -76,7 +90,7 @@ def publication_diagnostics(clients,report):
             result.append(item)
     return result
 
-def observe(root,clients,privacy,parity_seconds=0):
+def observe(root,clients,privacy,parity_seconds=0,progress=lambda report:None):
     scope=release.changed_scope(root);artifacts=release.artifact_map(root,scope)
     report={'ops':5283,'read_only':True,'aws_mutations':0,'private_payloads_reported':0,
             'expected_release_sha':release.git(root,'rev-parse','HEAD'),'engine_scope':scope,
@@ -90,15 +104,19 @@ def observe(root,clients,privacy,parity_seconds=0):
         time.sleep(min(30,max(0,deadline-time.monotonic())))
     report['source_parity_verified']=not pending
     report['privacy_prerequisite']=release.privacy_receipt_summary(root,privacy)
+    progress(report)
     if not report['source_parity_verified']:
         report.update(ok=False,status='SOURCE_PARITY_FAILED');return report
     def outputs(name):
         return name,[release.inspect_output(clients['s3'],name,key,report['code'][name],root=root) for key in artifacts[name]['primary_keys']]
     with ThreadPoolExecutor(max_workers=6) as pool:report['outputs']=dict(pool.map(outputs,scope))
+    progress(report)
     report['schedules']=release.observe_schedules(clients,root,scope)
     report['function_urls']=release.observe_function_urls(clients['lambda'],root)
+    progress(report)
     missing={row['function'] for row in report['schedules'] if row['status']=='PENDING_CONFIGURATION'}
     report['schedule_discovery']=schedule_discovery(clients,missing) if missing else {'functions':{}}
+    progress(report)
     report['publication_diagnostics']=publication_diagnostics(clients,report)
     pending=[];failures=[];blocked=[]
     for name,rows in report['outputs'].items():
@@ -120,6 +138,11 @@ def main():
     if not re.fullmatch('[a-f0-9]{40}',anchor):raise ValueError('explicit_source_sha_required')
     report={'ops':5283,'ok':False,'read_only':True,'status':'INITIALIZATION_FAILED','aws_mutations':0,'private_payloads_reported':0}
     def git(*args):return release.git(ROOT,*args)
+    clients={}
+    path=ROOT/'aws/ops/reports/5283_release_observation.json'
+    def progress(partial):
+        report.update(partial,checker_checkout_sha=git('rev-parse','HEAD'),workflow_run_id=os.environ.get('GITHUB_RUN_ID'))
+        path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
     try:
         git('fetch','--no-tags','origin',anchor)
         git('cat-file','-e',release.BASE+'^{commit}')
@@ -128,11 +151,11 @@ def main():
             try:
                 import boto3
                 from botocore.config import Config
-                clients={name:ReadOnlyClient(boto3.client(name,region_name=release.REGION,config=Config(connect_timeout=10,read_timeout=45,retries={'max_attempts':2})),name) for name in READ_METHODS}
+                clients={name:ReadOnlyClient(boto3.client(name,region_name=release.REGION,config=Config(connect_timeout=10,read_timeout=45,retries={'mode':'adaptive','max_attempts':8})),name) for name in READ_METHODS}
                 privacy=json.loads((ROOT/'aws/ops/reports/5230_audit_privacy_migration.json').read_text())
-                report.update(observe(root,clients,privacy,parity_seconds=300))
+                report.update(observe(root,clients,privacy,parity_seconds=300,progress=progress))
             finally:git('worktree','remove','--force',str(root))
-    except Exception as exc:report.update(ok=False,status='OBSERVATION_FAILED',error_type=type(exc).__name__)
+    except Exception as exc:report.update(ok=False,status='OBSERVATION_FAILED',error_type=type(exc).__name__,aws_error_metadata=[client.last_error for client in clients.values() if client.last_error])
     report.update(checker_checkout_sha=git('rev-parse','HEAD'),finished_at=release.utcnow().isoformat(),workflow_run_id=os.environ.get('GITHUB_RUN_ID'))
     path=ROOT/'aws/ops/reports/5283_release_observation.json';path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
     print(json.dumps({k:report.get(k) for k in ('ops','ok','status','source_parity_verified','expected_release_sha','aws_mutations')}))
