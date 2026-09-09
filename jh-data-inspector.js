@@ -65,6 +65,17 @@ async function fetchArtifact(entry,fetcher,privateClient){
  return fetcher('/'+entry.key,{cache:'no-store',credentials:'same-origin'});
 }
 function validateProjection(entry,data){
+ const required=entry.required_projection;
+ if(required&&(!data||typeof data!=='object'||Array.isArray(data)))throw new Error('Required public projection is unavailable');
+ const publication=data&&data.publication;
+ const safe={
+  'fleet-health':()=>data.privacy_version==='fleet-metadata-20260909-v1',
+  'fleet-errors':()=>data.privacy_version==='fleet-errors-metadata-20260909-v1'&&data.diagnostic_text_private===true,
+  'fleet-freshness':()=>publication&&publication.schema_version==='public-freshness-report.v1'&&publication.scope==='PUBLIC_ENGINE_HEALTH'&&publication.contains_private_data===false,
+  'source-map':()=>data.schema_version==='public-source-map.v1'&&publication&&publication.scope==='PUBLIC_MARKET_SOURCE_METADATA'&&publication.contains_private_data===false,
+  'provider-metrics':()=>publication&&publication.schema_version==='public-provider-metrics.v1'&&publication.contains_provider_response_text===false&&publication.diagnostics==='FIXED_CATEGORIES_ONLY'
+ };
+ if(safe[required]&&!safe[required]())throw new Error('Required public projection is unavailable');
  if(entry.required_projection==='brain-compiler'){
   if((data.claims||[]).some(row=>Object.hasOwn(row,'claim'))||(data.build_queue||[]).some(row=>Object.hasOwn(row,'sample_claims')))throw new Error('Public projection not yet redacted');
  }

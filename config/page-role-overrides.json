@@ -581,7 +581,7 @@
     },
     "portfolio-manager.html": {
       "role": "ENGINE_PAGE",
-      "reason": "Actual positions CRUD API with explicit Worker route producer mapping. No fixed S3 artifact from admin; snapshot is a separate downstream producer and AI brief supporting.",
+      "reason": "Authenticated actual-position CRUD and its dedicated private portfolio-manager brief. Other AI router contexts have separate pages; private source holdings and PM operational history remain IAM-only.",
       "evidence": [
         {
           "file": "portfolio-manager.html",
@@ -600,7 +600,8 @@
         }
       ],
       "primary_engines": [
-        "justhodl-portfolio-admin"
+        "justhodl-portfolio-admin",
+        "justhodl-ai-brief-router"
       ],
       "api_responses": [
         {
@@ -614,7 +615,22 @@
           "owner_authenticated": true,
           "source_identity": "reviewed source association; live deployed identity unverified"
         }
-      ]
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-ai-brief-router": [
+          "data/portfolio-manager-brief.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-ai-brief-router": {
+          "source": "aws/lambdas/justhodl-ai-brief-router/source/lambda_function.py",
+          "constants": [
+            "PRIVATE_PORTFOLIO_OUTPUT_KEY"
+          ],
+          "purpose": "The router pins the actual-owner portfolio-manager brief to its private canonical key and publishes the authenticated mirror. This page does not own the other public or private router contexts."
+        }
+      }
     },
     "tax-plan.html": {
       "role": "ENGINE_PAGE",
@@ -730,23 +746,27 @@
       ]
     },
     "fmp.html": {
-      "role": "ENGINE_PAGE",
-      "reason": "fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence.",
-      "evidence": [
-        {
-          "file": "fmp.html",
-          "line": 54,
-          "supports": "Direct URL and response fields"
-        },
-        {
-          "file": "aws/lambdas/fmp-fundamentals-agent/source/lambda_function.py",
-          "line": 50,
-          "supports": "Matching response fields"
-        }
+      "primary_engines": [
+        "fmp-fundamentals-agent"
       ],
-      "primary_engines": [],
-      "api_responses": [],
-      "unresolved_reason": "fmp-fundamentals-agent emits exact UI fields sector_performance/movers/ratings/insider_trading, but the hardcoded page URL has no config binding and no explicit page ownership was found. Keep unresolved until endpoint-to-function evidence."
+      "primary_exclusive": true,
+      "reason": "Exact live Function URL identity verified by read-only operation5240 on2026-09-09: actual function/configuration ARN match and current page hostname equals deployed FunctionUrl. Full existing GET responses are captured before rendering; no additional API call.",
+      "api_responses": [
+        {
+          "engine": "fmp-fundamentals-agent",
+          "origin": "https://nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws",
+          "pathname": "/",
+          "methods": [
+            "GET"
+          ],
+          "identity_evidence": {
+            "receipt": "aws/ops/reports/latest/ops_5240_page_api_identity.json",
+            "commit": "885b08d",
+            "observed_at": "2026-09-09T04:56:10.846820+00:00",
+            "status": "VERIFIED"
+          }
+        }
+      ]
     },
     "census.html": {
       "role": "ENGINE_PAGE",

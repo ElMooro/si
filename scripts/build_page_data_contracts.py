@@ -22,7 +22,7 @@ PUBLIC_EXACT={'intelligence-report.json','liquidity-data.json','ecb_data.json','
 
 # Source-reviewed public market histories/caches and government data; privacy policy always wins.
 PUBLIC_EXACT.update({
- '_health/fleet.json',
+ '_health/fleet.json','data/_fleet-monitor.json','data/_freshness-monitor.json',
  'data/_altseason/global-history.json','data/_backtest/graded.json.gz',
  '13f/clone-holdings-cache.json','13f/clone-price-cache.json','asia/kr-flash-tape.json','asia/tw-orders-levels.json',
  'boom/boom-stage-history.json','chokepoint/fundamentals-ledger.json','credit/credit-before-equity-history.json',
@@ -109,9 +109,22 @@ def internal_output_roles(root,engines):
         source=evidence.get('source','');approved_roles={'internal_input_cache','internal_operational_storage','private_operational_state','internal_configuration'}
         proofs=engine.get('write_evidence',{}).get(key,[]) if engine else []
         proven_sources={'aws/lambdas/'+name+'/source/'+p['file'] for p in proofs}
-        if (not engine or key not in engine['keys'] or source not in proven_sources or not (root/source).is_file()
+        known=set(engine.get('keys',[]))|set(engine.get('key_patterns',[])) if engine else set()
+        if (not engine or key not in known or source not in proven_sources or not (root/source).is_file()
                 or row.get('role') not in approved_roles or not row.get('purpose') or row.get('public_access_approved') is not False
                 or (name,key) in required or key in result[name]):raise ValueError('Unproven or conflicting internal output role: '+name+' '+key)
+        if '*' in key:
+            # A family exclusion is tied to reviewed function bodies, not its name
+            # or a permissive prefix. Changed cache semantics require new review.
+            functions=evidence.get('functions',[]);reviewed=[]
+            nodes={node.name:node for node in ast.walk(ast.parse((root/source).read_text())) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef))}
+            for function in functions:
+                node=nodes.get(function.get('name'))
+                if node is None or hashlib.sha256(ast.dump(node,include_attributes=False).encode()).hexdigest()!=function.get('ast_sha256'):
+                    raise ValueError('Internal family source review drift: '+name+' '+key)
+                reviewed.append(node)
+            if not reviewed or any(not any(node.lineno<=proof.get('line',0)<=node.end_lineno for node in reviewed) for proof in proofs):
+                raise ValueError('Internal family writer not covered by source review: '+name+' '+key)
         result[name][key]=row
     return result
 
@@ -149,7 +162,7 @@ def contract(root):
             if role.get('role')=='augmentation' and role.get('cas_write_verified') and role.get('base_producer') in writers.get(role.get('key'),set()):augmentations[(role['key'],name)]=role
     internal_roles=internal_output_roles(root,engines);emap={}
     for name,e in engines.items():
-        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':'brain-compiler' if k=='data/brain-compiler.json' else 'sizing' if k=='data/sizing.json' else None,'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
+        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
         for output in allowed:
             if (output['key'],name) in augmentations:output['ownership_role']=augmentations[(output['key'],name)]
             index=ARCHIVE_INDEXES.get(output['key'])
@@ -160,7 +173,7 @@ def contract(root):
                 output['archive_index']={**index,'patterns':patterns,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns+exacts)+')$'}
         emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
                     'excluded_internal_outputs':list(internal_roles.get(name,{}).values()),
-                    'historical_or_dynamic_family_count':len(e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
+                    'historical_or_dynamic_family_count':sum(pattern not in internal_roles.get(name,{}) for pattern in e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
                     'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments'}
     add_archive_index_relationships(emap,engines,root)
     pmap={};graphs=scan_pages(root);source_usage=defaultdict(int)
@@ -217,7 +230,7 @@ def contract(root):
         primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary if e not in scopes)
         primary_families=sum(emap[e]['historical_or_dynamic_family_count'] for e in primary if e not in scopes)
         indexed={(o.get('source_engine') or o['engine'],pattern) for o in outputs if (o.get('source_engine') or o['engine']) in primary and o.get('archive_index') for pattern in (o['archive_index'].get('patterns') or [o['archive_index']['pattern']])}
-        unindexed_families=primary_families-len(indexed)
+        unindexed_families=primary_families-sum(pattern not in internal_roles.get(name,{}) for name,pattern in indexed)
         scoped_keys={key for keys in scopes.values() for key in keys}
         unresolved_primary=[row for row in unresolved if row['primary'] and (not role.get('primary_exclusive') or row['key'] in scoped_keys or set(row.get('writers',[]))&primary)]
         role_name='NO_ENGINE_EXPECTED' if graph.get('redirect') else role.get('role','ENGINE_PAGE')

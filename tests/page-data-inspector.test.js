@@ -120,3 +120,18 @@ test('reviewed symbol manifests traverse object keys, values and ticker lists wi
   assert.deepEqual(result.map(row=>row.key),['data/reviewed/A.json']);
  }
 });
+
+
+test('health and provider inspection requires reviewed public publication markers',()=>{
+ const fixtures={
+  'fleet-health':{privacy_version:'fleet-metadata-20260909-v1'},
+  'fleet-errors':{privacy_version:'fleet-errors-metadata-20260909-v1',diagnostic_text_private:true},
+  'fleet-freshness':{publication:{schema_version:'public-freshness-report.v1',scope:'PUBLIC_ENGINE_HEALTH',contains_private_data:false}},
+  'source-map':{schema_version:'public-source-map.v1',publication:{scope:'PUBLIC_MARKET_SOURCE_METADATA',contains_private_data:false}},
+  'provider-metrics':{publication:{schema_version:'public-provider-metrics.v1',diagnostics:'FIXED_CATEGORIES_ONLY',contains_provider_response_text:false}}
+ };
+ for(const [required_projection,doc] of Object.entries(fixtures)){
+  assert.equal(inspector.validateProjection({required_projection},doc),doc);
+  for(const legacy of [null,{},[],{error:'SYNTHETIC_PRIVATE_DIAGNOSTIC'}])assert.throws(()=>inspector.validateProjection({required_projection},legacy),/public projection/);
+ }
+});

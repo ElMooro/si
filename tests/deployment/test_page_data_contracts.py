@@ -285,6 +285,28 @@ def test_internal_storage_roles_require_source_proof_and_cannot_exclude_required
         except ValueError:pass
         else:raise AssertionError('required result was excluded')
 
+def test_internal_family_review_is_exact_and_changes_require_semantic_rereview():
+    import ast,hashlib
+    from build_page_data_contracts import internal_output_roles
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);(root/'config').mkdir();source=root/'aws/lambdas/engine/source';source.mkdir(parents=True)
+        code='def fetch_input(symbol):\n cached=read_cache(symbol)\n s3.put_object(Key="data/input/"+symbol+".json",Body=cached)\n return cached\n'
+        target=source/'lambda_function.py';target.write_text(code)
+        node=ast.parse(code).body[0];pattern='data/input/*.json'
+        row={'engine':'engine','key':pattern,'role':'internal_input_cache','purpose':'Reviewed provider input materialization only','public_access_approved':False,'evidence':{'source':'aws/lambdas/engine/source/lambda_function.py','functions':[{'name':node.name,'ast_sha256':hashlib.sha256(ast.dump(node,include_attributes=False).encode()).hexdigest()}]}}
+        path=root/'config/engine-output-roles.json';path.write_text(json.dumps({'roles':[row]}))
+        engines={'engine':{'keys':[],'key_patterns':[pattern,'data/self-built-history/*.json'],'write_evidence':{pattern:[{'file':'lambda_function.py','line':3}]}}}
+        result=internal_output_roles(root,engines)
+        assert set(result['engine'])=={pattern} and 'data/self-built-history/*.json' not in result['engine']
+        target.write_text(code.replace('read_cache(symbol)','accumulate_observation(symbol)'))
+        try:internal_output_roles(root,engines)
+        except ValueError:pass
+        else:raise AssertionError('changed storage semantics inherited an old exclusion')
+        target.write_text(code);row['key']='data/*.json';path.write_text(json.dumps({'roles':[row]}))
+        try:internal_output_roles(root,engines)
+        except ValueError:pass
+        else:raise AssertionError('broad unproven family exclusion accepted')
+
 def test_nested_sibling_call_does_not_inherit_caller_local_shadow():
     from gen_engine_manifest import scan_code
     code='''
