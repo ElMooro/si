@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT / 'aws/shared'), str(ROOT / 'aws/ops/checks'), str(ROOT / 'scripts')]
 from donor_contract import numeric, parse_timestamp
 from private_artifact import is_private_source
+from public_brain_projection import source_map_public, fleet_errors_public
 from release_package_evidence import check_packages, release_config, shared_imports
 from scheduler_payload import scheduler_payload
 from audit_20260909_accounting import inspect_payload
@@ -42,6 +43,10 @@ PRIMARY = {
     'justhodl-whats-changed':['data/whats-changed.json','data/snapshots-index.json'],
     'justhodl-portfolio-snapshot':['portfolio/snapshot.json'],
     'justhodl-fleet-freshness-monitor':['data/_freshness-monitor.json'],
+    'justhodl-fleet-error-monitor':['data/_fleet-monitor.json'],
+    'justhodl-source-map':['data/source-map.json'],
+    'justhodl-ka-metrics':['data/ka-metrics.json','data/ka-analysis.json'],
+    'justhodl-khalid-metrics':['data/khalid-metrics.json','data/khalid-analysis.json'],
     'justhodl-stock-screener':['screener/data.json'],
     'justhodl-conviction-engine':['data/conviction.json'],
     'justhodl-sizing-engine':['data/sizing.json'],
@@ -53,7 +58,7 @@ PRIMARY = {
 # ordinary watchlist synchronization and ECB-derived's dated research-signal
 # recording are part of their authorized normal refresh; neither submits trades.
 QUIET_STAGES = (
-    ('tradingview','short-interest','liquidity-profile','etf-true-flows','calibration-snapshotter'),
+    ('tradingview','short-interest','liquidity-profile','etf-true-flows','calibration-snapshotter','source-map'),
     ('factor-risk','liquidity-capacity','conviction-engine'),
     ('risk-gate',),
     ('engine-fusion',),
@@ -62,20 +67,33 @@ QUIET_STAGES = (
     ('katlin','risk-sizer','squeeze-fuel','trade-tickets','crypto-basis','firm-risk-board'),
     ('sizing-engine',),
     ('backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'),
-    ('whats-changed','public-archive-index'),
+    ('whats-changed','public-archive-index','fleet-freshness-monitor','fleet-error-monitor'),
 )
+# These two reviewed handler branches suppress all notification/history side effects.
+# The default event is never used for these notification-capable engines.
+APPROVED_REFRESH_MODES = {
+    'justhodl-fleet-freshness-monitor': {'mode':'quiet_refresh'},
+    'justhodl-fleet-error-monitor': {'mode':'audit_refresh'},
+}
 QUIET_FUNCTIONS = {'justhodl-'+name for stage in QUIET_STAGES for name in stage}
 # Calibrator changes live SSM weights and emits an EventBridge event. Observe its
 # normal publication only; its report must replace any old colliding model file.
-OBSERVED_FUNCTIONS = {'justhodl-calibrator'}
+OBSERVED_FUNCTIONS = {'justhodl-calibrator','justhodl-ka-metrics','justhodl-khalid-metrics'}
 FUNCTION_URL_BINDINGS = (
     ('fmp.html','fmp-fundamentals-agent','nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws'),
-    ('census.html','fedliquidityapi','gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws'),
 )
+# Source schema and deployed URL rejected the guessed fedliquidityapi owner.
+# Metadata-only fleet discovery must identify the real owner before this clears.
+UNRESOLVED_FUNCTION_URLS = (('census.html','gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws'),)
 REFRESH_DEPENDENCIES = {'justhodl-backtest-engine': ('justhodl-calibration-snapshotter',)}
 OUTPUT_CONTRACTS = {
     'calibration/model-latest.json': 'immutable_model_snapshot_with_availability',
     'calibration/latest.json': 'calibrator_horizon_and_accuracy_report',
+    'data/source-map.json': 'public-source-map.v1',
+    'data/_freshness-monitor.json': 'fleet-freshness-monitor.v3',
+    'data/_fleet-monitor.json': 'fleet-errors-metadata-20260909-v1',
+    'data/ka-analysis.json': 'macro-analysis.v1_ka_owned',
+    'data/khalid-analysis.json': 'macro-analysis.v1_khalid_owned',
     'data/options-flow-scanner.json': 'options_flow_scanner_v1_ranked_equities',
     'flow-data.json': 'options_flow_and_sentiment_v3_nested_market_data',
     'data/bloomberg-report.json': 'bloomberg_v8_market_report',
@@ -160,8 +178,9 @@ def public_archive_registry(root):
         if not isinstance(row,(tuple,list)) or len(row)!=2:raise ValueError('archive_registry_row_invalid')
         engine,pattern=row
         if (not safe_label(engine) or engine in result or not isinstance(pattern,str)
-                or not pattern.startswith('data/archive/') or not pattern.endswith('.json')
-                or pattern.count('*')!=1 or '..' in pattern or is_private_source(pattern)):
+                or not re.fullmatch(r'[A-Za-z0-9_/-]+/[A-Za-z0-9_-]*\*[A-Za-z0-9_.-]*\.json',pattern)
+                or pattern.count('*')!=1 or '..' in pattern or is_private_source(pattern)
+                or is_private_source(pattern.rsplit('/',1)[0]+'/')):
             raise ValueError('archive_registry_family_invalid')
         result[engine]=pattern
     if len(set(result.values()))!=len(result):raise ValueError('archive_registry_ownership_collision')
@@ -202,7 +221,28 @@ def strict_document(raw):
 def donor_checks(function, doc, key=None, root=ROOT):
     """D27-D30 semantic checks, returning only fixed codes and aggregate counts."""
     name=function.removeprefix('justhodl-');errors=[];requirements=[];counts={}
-    if name=='short-interest':
+    if name=='source-map':
+        if (doc.get('schema_version')!='public-source-map.v1' or doc.get('engine')!='justhodl-source-map'
+                or doc != source_map_public(doc)):errors.append('PUBLIC_SOURCE_MAP_PROJECTION_INVALID')
+        if doc.get('input_status')!='AVAILABLE':requirements.append('PRIVATE_ATTRIBUTION_INPUT_UNAVAILABLE')
+        requirements.append('RAW_SOURCE_TEXT_AND_DIAGNOSTICS_REQUIRE_AUTHENTICATED_ACCESS')
+    elif name=='fleet-error-monitor':
+        if (doc.get('version')!='1.1.0' or doc.get('privacy_version')!='fleet-errors-metadata-20260909-v1'
+                or doc.get('alerts_scope')!='ALL_CURRENT_ALARMS' or doc != fleet_errors_public(doc)):
+            errors.append('FLEET_ERROR_PUBLIC_CONTRACT_INVALID')
+        if not isinstance(doc.get('alerts'),list) or type(doc.get('n_alerts_detected')) is not int or doc.get('n_alerts_detected')!=len(doc.get('alerts',[])):
+            errors.append('FLEET_ERROR_ALARM_COVERAGE_INVALID')
+        if doc.get('notification_mode')=='suppressed_for_audit' and (doc.get('telegram_sent') or doc.get('sns_sent')):
+            errors.append('QUIET_MONITOR_SENT_NOTIFICATION')
+        if doc.get('dlq_status',{}).get('available') is not True:requirements.append('DLQ_METADATA_UNAVAILABLE')
+    elif name in ('ka-metrics','khalid-metrics'):
+        analysis=bool(key and key.endswith('-analysis.json'))
+        if doc.get('engine')!=function or doc.get('schema_version')!=('macro-analysis.v1' if analysis else 'macro-metrics.v1'):
+            errors.append('METRIC_OUTPUT_OWNER_OR_SCHEMA_INVALID')
+        if analysis:
+            if doc.get('input_artifact')!='data/'+name+'.json':errors.append('METRIC_ANALYSIS_INPUT_OWNER_INVALID')
+            if doc.get('llm_status')!='available':requirements.append('CURRENT_MODEL_ANALYSIS_UNAVAILABLE')
+    elif name=='short-interest':
         if doc.get('measurement_contract')!='short-positioning.v2': errors.append('SHORT_MEASUREMENT_CONTRACT_MISSING')
         rows=doc.get('by_ticker',{})
         if not isinstance(rows,dict): errors.append('SHORT_ROWS_INVALID');rows={}
@@ -494,10 +534,53 @@ def privacy_receipt_summary(root, receipt):
     return result
 
 
+def observe_metric_rule_bindings(events, root, functions):
+    """Report the source-declared KA/Khalid rule collision without rebinding it."""
+    owners=('justhodl-ka-metrics','justhodl-khalid-metrics')
+    declared={name:release_config(root,name).get('eventbridge_rules',[]) for name in owners}
+    rules=sorted({rule for rows in declared.values() for rule in rows if isinstance(rule,str)})
+    results=[]
+    for rule in rules:
+        claimants=[name for name in owners if rule in declared[name]]
+        try:
+            current=events.describe_rule(Name=rule);targets=[];token=None;seen=set()
+            while True:
+                response=events.list_targets_by_rule(Rule=rule,**({'NextToken':token} if token else {}))
+                targets.extend(response.get('Targets',[]));token=response.get('NextToken')
+                if not token:break
+                if token in seen:raise ValueError('repeated_rule_target_page')
+                seen.add(token)
+            arns=[target['Arn'] for target in targets if isinstance(target.get('Arn'),str)
+                  and re.fullmatch(r'arn:aws:lambda:[a-z0-9-]+:[0-9]+:function:[A-Za-z0-9_-]+(?::[A-Za-z0-9_$-]+)?',target['Arn'])]
+            for function in claimants:
+                if function not in functions:continue
+                matching=[arn for arn in arns if arn.split(':function:')[1].split(':')[0]==function]
+                shared=len(claimants)>1
+                row={'function':function,'service':'events','name':rule,'status':'PENDING_CONFIGURATION',
+                     'reason':'SHARED_RULE_OWNERSHIP_REVIEW_REQUIRED' if shared else 'TARGET_BINDING_UNPROVEN',
+                     'shared_declared_functions':claimants,'observed_lambda_target_arns':arns,
+                     'matching_target_arns':matching,'target_count':len(targets),
+                     'expression':current.get('ScheduleExpression'),'state':current.get('State'),
+                     'dedicated_cadence_verified':bool(not shared and matching and current.get('State')=='ENABLED'),
+                     'mutation_requested':False,'scope':'exact source-declared EventBridge rules; Input bodies withheld'}
+                if not shared and matching and current.get('State')=='ENABLED':row.update(status='VERIFIED',reason='DEDICATED_TARGET_VERIFIED')
+                elif not matching:row['reason']='DEDICATED_METRIC_TARGET_MISSING'
+                results.append(row)
+        except Exception as exc:
+            for function in claimants:
+                if function in functions:results.append({'function':function,'service':'events','name':rule,
+                    'status':'PENDING_CONFIGURATION','reason':'METRIC_RULE_BINDING_UNAVAILABLE',
+                    'shared_declared_functions':claimants,'dedicated_cadence_verified':False,
+                    'mutation_requested':False,'error_type':type(exc).__name__})
+    return results
+
+
 def observe_schedules(clients, root, functions):
     """Read configured schedules; report target metadata without Input bodies."""
-    result=[]
+    metric_functions=set(functions)&{'justhodl-ka-metrics','justhodl-khalid-metrics'}
+    result=observe_metric_rule_bindings(clients['events'],root,metric_functions) if metric_functions else []
     for function in functions:
+        if function in metric_functions:continue
         config=release_config(root,function);specs=[]
         if function in {'justhodl-liquidity-profile','justhodl-retail-sentiment'} and isinstance(config.get('schedule'),str):
             result.extend(observe_recorded_cadence(clients['events'],root,function,config['schedule']))
@@ -568,7 +651,7 @@ def observe_recorded_cadence(events, root, function, configured_cadence):
 
 
 def observe_function_urls(lam, root):
-    """Prove only the two reviewed candidate identities; never call their URLs."""
+    """Prove source-reviewed identities; unknown URL owners remain explicit."""
     rows=[]
     for page,function,expected_host in FUNCTION_URL_BINDINGS:
         row={'page':page,'function':function,'page_hostname':expected_host,
@@ -588,6 +671,10 @@ def observe_function_urls(lam, root):
         except Exception as exc:
             row.update(reason='FUNCTION_URL_IDENTITY_UNPROVEN',error_type=type(exc).__name__)
         rows.append(row)
+    for page,host in UNRESOLVED_FUNCTION_URLS:
+        rows.append({'page':page,'function':None,'page_hostname':host,'status':'PENDING_IDENTITY',
+                     'reason':'FUNCTION_URL_OWNER_UNRESOLVED_AFTER_SCHEMA_MISMATCH',
+                     'rejected_candidate':'fedliquidityapi','scope':'metadata owner discovery required; no guessed endpoint invocation'})
     return rows
 
 
@@ -632,8 +719,9 @@ class ReleaseVerifier:
 
     def invoke_once(self, name):
         if name not in QUIET_FUNCTIONS:raise ValueError('unreviewed_manual_invocation')
+        payload=APPROVED_REFRESH_MODES.get(name,{})
         source_files=(self.root/'aws/lambdas'/name/'source').rglob('*.py')
-        if any(re.search(r'api\.telegram\.org|sendMessage|send_telegram|send_email|\.invoke\(',path.read_text(errors='replace')) for path in source_files):
+        if not payload and any(re.search(r'api\.telegram\.org|sendMessage|send_telegram|send_email|\.invoke\(',path.read_text(errors='replace')) for path in source_files):
             self.report['requirements'].append({'function':name,'reason':'NOTIFICATION_OR_CASCADE_PATH_REQUIRES_NORMAL_SCHEDULE'})
             return False
         # A fresh package check immediately precedes every invocation. Pin the
@@ -641,12 +729,12 @@ class ReleaseVerifier:
         code=self.package_check(self.clients['lambda'],self.root,[name])[0]
         self.report['code'][name]=code
         if not code.get('pass'):raise ValueError('code_changed_before_invocation')
-        args={'FunctionName':name,'InvocationType':'Event','Payload':b'{}'}
+        args={'FunctionName':name,'InvocationType':'Event','Payload':json.dumps(payload,separators=(',',':')).encode()}
         if code.get('qualifier')=='live':args['Qualifier']=code['version']
         requested_at=utcnow()
         response=self.clients['lambda'].invoke(**args)
         self.report['invocations'].append({'function':name,'qualifier':args.get('Qualifier','$LATEST'),
-            'request_status':response.get('StatusCode'),'requested_at':requested_at.isoformat(),'mode':'regular_quiet_publish'})
+            'request_status':response.get('StatusCode'),'requested_at':requested_at.isoformat(),'mode':payload.get('mode','regular_quiet_publish')})
         if response.get('StatusCode')!=202:raise ValueError('async_invocation_not_accepted')
         self.requested_after[name]=requested_at
         self.checkpoint();return True

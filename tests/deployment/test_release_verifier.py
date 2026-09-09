@@ -276,7 +276,7 @@ def test_calibrator_old_snapshot_cannot_satisfy_report_contract():
     assert result['status']=='VERIFIED' and not result['errors']
 
 
-def test_calibration_snapshot_and_backtests_are_reviewed_quiet_but_calibrator_and_fleet_are_not():
+def test_calibration_snapshot_and_backtests_are_reviewed_quiet_but_calibrator_is_not():
     for name in ('calibration-snapshotter','backtest-engine','research-backtest','options-flow-scanner','bloomberg-v8','ecb-derived'):
         calls=[]
         checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'17'}]
@@ -285,7 +285,7 @@ def test_calibration_snapshot_and_backtests_are_reviewed_quiet_but_calibrator_an
         assert verifier.invoke_once('justhodl-'+name)
         assert calls[0]['Qualifier']=='17' and calls[0]['Payload']==b'{}'
         assert 'justhodl-'+name in verifier.requested_after
-    for name in ('calibrator','fleet-freshness-monitor'):
+    for name in ('calibrator',):
         verifier=release.ReleaseVerifier(ROOT,{})
         try:verifier.invoke_once('justhodl-'+name)
         except ValueError:pass
@@ -348,12 +348,13 @@ def test_function_url_identity_uses_only_reviewed_names_and_hostname_metadata():
         return {'FunctionUrl':'https://'+lookup[kw['FunctionName']]+'/?ignored=DO_NOT_REPORT',
                 'AuthType':'NONE','OtherSensitiveMetadata':'DO_NOT_REPORT'}
     rows=release.observe_function_urls(SimpleNamespace(get_function_url_config=config),ROOT)
-    assert all(row['status']=='VERIFIED' for row in rows)
+    assert all(row['status']=='VERIFIED' for row in rows if row['function'] is not None)
+    assert [r for r in rows if r['function'] is None][0]['reason']=='FUNCTION_URL_OWNER_UNRESOLVED_AFTER_SCHEMA_MISMATCH'
     assert calls==[{'FunctionName':function} for _,function,_ in release.FUNCTION_URL_BINDINGS]
     assert 'DO_NOT_REPORT' not in json.dumps(rows)
-    lookup['fedliquidityapi']='different.lambda-url.us-east-1.on.aws'
+    lookup['fmp-fundamentals-agent']='different.lambda-url.us-east-1.on.aws'
     rows=release.observe_function_urls(SimpleNamespace(get_function_url_config=config),ROOT)
-    assert rows[1]['status']=='PENDING_IDENTITY' and rows[1]['reason']=='FUNCTION_URL_HOSTNAME_MISMATCH'
+    assert rows[0]['status']=='PENDING_IDENTITY' and rows[0]['reason']=='FUNCTION_URL_HOSTNAME_MISMATCH'
 
 
 def test_unreviewed_page_url_change_blocks_identity_without_cloud_lookup():
@@ -363,7 +364,7 @@ def test_unreviewed_page_url_change_blocks_identity_without_cloud_lookup():
         class NoLookup:
             def get_function_url_config(self,**kw):raise AssertionError('Changed page triggered guessed discovery')
         rows=release.observe_function_urls(NoLookup(),root)
-        assert all(row['reason']=='PAGE_URL_CHANGED_SINCE_REVIEW' for row in rows)
+        assert all(row['reason']=='PAGE_URL_CHANGED_SINCE_REVIEW' for row in rows if row['function'] is not None)
 
 
 def snapshot_index_fixture():
@@ -501,3 +502,78 @@ def test_recorded_cadence_target_mismatch_is_explicit_information_without_rebind
     rows=release.observe_schedules({'events':client},ROOT,['justhodl-liquidity-profile'])
     assert len(rows)==1 and rows[0]['observation_status']=='UNPROVEN_IDENTITY'
     assert rows[0]['status']=='OBSERVED_CADENCE_ONLY' and rows[0]['matching_target_arns']==[]
+
+
+def test_notification_monitors_receive_only_reviewed_explicit_quiet_modes_and_verified_versions():
+    expected={'justhodl-fleet-freshness-monitor':{'mode':'quiet_refresh'},'justhodl-fleet-error-monitor':{'mode':'audit_refresh'}}
+    for function,payload in expected.items():
+        calls=[]
+        checker=lambda client,root,names:[{'function':names[0],'pass':True,'qualifier':'live','version':'23'}]
+        verifier=release.ReleaseVerifier(ROOT,{'lambda':SimpleNamespace(invoke=lambda **kw:calls.append(kw) or {'StatusCode':202})},package_check=checker)
+        verifier.checkpoint=lambda:None
+        assert verifier.invoke_once(function)
+        assert json.loads(calls[0]['Payload'])==payload and calls[0]['Qualifier']=='23'
+        assert verifier.report['invocations'][0]['mode']==payload['mode']
+        assert calls[0]['InvocationType']=='Event'
+        assert set(release.APPROVED_REFRESH_MODES)==set(expected)
+
+
+def test_quiet_mode_does_not_bypass_immediate_source_and_alias_parity_guard():
+    for function in release.APPROVED_REFRESH_MODES:
+        class NoInvoke:
+            def invoke(self,**kw):raise AssertionError('Source drift must reject before any invocation')
+        verifier=release.ReleaseVerifier(ROOT,{'lambda':NoInvoke()},package_check=lambda client,root,names:[{'function':names[0],'pass':False}])
+        try:verifier.invoke_once(function)
+        except ValueError as error:assert str(error)=='code_changed_before_invocation'
+        else:raise AssertionError('Old notification-capable source was invoked')
+
+
+def test_metric_shared_rule_binding_observer_paginates_and_never_claims_dedicated_cadence():
+    calls=[]
+    def targets(**kw):
+        calls.append(kw)
+        function='justhodl-ka-metrics' if kw.get('NextToken') else 'justhodl-khalid-metrics'
+        return {'Targets':[{'Arn':'arn:aws:lambda:us-east-1:123:function:'+function+':live','Input':'PRIVATE_CONFIG_BODY'}],**({} if kw.get('NextToken') else {'NextToken':'page2'})}
+    events=SimpleNamespace(describe_rule=lambda **kw:{'State':'ENABLED','ScheduleExpression':'rate(1 hour)'},list_targets_by_rule=targets)
+    rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
+    assert len(rows)==2 and len(calls)==2
+    assert all(row['status']=='PENDING_CONFIGURATION' and row['reason']=='SHARED_RULE_OWNERSHIP_REVIEW_REQUIRED' for row in rows)
+    assert all(len(row['observed_lambda_target_arns'])==2 and len(row['matching_target_arns'])==1 and row['dedicated_cadence_verified'] is False for row in rows)
+    assert 'PRIVATE_CONFIG_BODY' not in json.dumps(rows)
+    assert all(row['mutation_requested'] is False for row in rows)
+
+
+def test_metric_rule_missing_one_producer_target_is_explicit_not_a_verified_shared_alias():
+    events=SimpleNamespace(describe_rule=lambda **kw:{'State':'ENABLED','ScheduleExpression':'rate(1 hour)'},list_targets_by_rule=lambda **kw:{'Targets':[{'Arn':'arn:aws:lambda:us-east-1:123:function:justhodl-ka-metrics:7'}]})
+    rows=release.observe_schedules({'events':events},ROOT,['justhodl-ka-metrics','justhodl-khalid-metrics'])
+    khalid=next(row for row in rows if row['function']=='justhodl-khalid-metrics')
+    assert khalid['reason']=='DEDICATED_METRIC_TARGET_MISSING' and khalid['matching_target_arns']==[]
+
+
+def test_archive_registry_accepts_only_anchored_single_basename_families_and_rejects_private_or_traversal():
+    with tempfile.TemporaryDirectory() as temp:
+        root=Path(temp);source=root/'aws/lambdas/justhodl-public-archive-index/source/lambda_function.py';source.parent.mkdir(parents=True)
+        rows=(('justhodl-reviewed','data/activity-nowcast/snapshots/*.json'),('justhodl-reviewed2','screener/snapshots/*.json'))
+        source.write_text('REGISTRY='+repr(rows)+'\n')
+        assert release.public_archive_registry(root)==dict(rows)
+        for pattern in ('data/../secret/*.json','data/*/snapshots/*.json','data/brain.json','backtest/ledger/*.json'):
+            source.write_text('REGISTRY='+repr((('justhodl-reviewed',pattern),))+'\n')
+            try:release.public_archive_registry(root)
+            except ValueError:pass
+            else:raise AssertionError('Unsafe archive family accepted '+pattern)
+
+
+def test_owned_metric_and_public_metadata_contracts_reject_previous_writer_payloads():
+    doc={'schema_version':'macro-analysis.v1','engine':'justhodl-ka-metrics','input_artifact':'data/ka-metrics.json','llm_status':'available'}
+    assert not release.donor_checks('justhodl-ka-metrics',doc,'data/ka-analysis.json')['errors']
+    assert 'METRIC_OUTPUT_OWNER_OR_SCHEMA_INVALID' in release.donor_checks('justhodl-khalid-metrics',doc,'data/khalid-analysis.json')['errors']
+    public=release.source_map_public({})
+    assert not release.donor_checks('justhodl-source-map',public)['errors']
+    assert 'PRIVATE_ATTRIBUTION_INPUT_UNAVAILABLE' in release.donor_checks('justhodl-source-map',public)['requirements']
+    public['raw_description']='DO_NOT_REPORT'
+    checked=release.donor_checks('justhodl-source-map',public)
+    assert checked['errors']==['PUBLIC_SOURCE_MAP_PROJECTION_INVALID'] and 'DO_NOT_REPORT' not in json.dumps(checked)
+    fleet=release.fleet_errors_public({'version':'1.1.0','n_alerts_detected':0,'alerts':[],'dlq_status':{'visible':0,'inflight':0,'total':0},'notification_mode':'suppressed_for_audit'})
+    assert not release.donor_checks('justhodl-fleet-error-monitor',fleet)['errors']
+    fleet['telegram_sent']=True
+    assert 'QUIET_MONITOR_SENT_NOTIFICATION' in release.donor_checks('justhodl-fleet-error-monitor',fleet)['errors']
