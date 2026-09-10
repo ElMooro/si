@@ -1,0 +1,180 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PrivateAiBucketLocation",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-857687956942"
+    },
+    {
+      "Sid": "ListReviewedRuntimePrefixes",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-857687956942",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "ai/curves",
+            "ai/curves/*",
+            "ai/datasets/brain",
+            "ai/datasets/brain/*",
+            "ai/jobs",
+            "ai/jobs/*",
+            "ai/market-read",
+            "ai/market-read/*",
+            "ai/models",
+            "ai/models/*",
+            "ai/read-model",
+            "ai/read-model/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadReviewedRuntimeObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/catalog.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/control.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/policy.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/pricing.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/curves/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/brain/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/market-read/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/read-model/*"
+      ]
+    },
+    {
+      "Sid": "ReadVersionedTrainingEvidence",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-857687956942/ai/governance/training-evidence/v1/*"
+    },
+    {
+      "Sid": "ReadVersionedGovernedTrainingSources",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*"
+      ]
+    },
+    {
+      "Sid": "TrainingInputBucketLocation",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1"
+    },
+    {
+      "Sid": "ListContentAddressedTrainingInputs",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "sha256/*/train/",
+            "sha256/*/validation/"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "MaterializeContentAddressedTrainingInputs",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/train/payload.data",
+        "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/validation/payload.data"
+      ]
+    },
+    {
+      "Sid": "ReadPublicEngineFeeds",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-dashboard-live/data/*"
+    },
+    {
+      "Sid": "PublicDashboardBucketLocation",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-dashboard-live"
+    },
+    {
+      "Sid": "ListPublicEngineFeeds",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-dashboard-live",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "data",
+            "data/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PublishOnlyAiReadModels",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-dashboard-live/data/ai.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/ai/control.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/ai/verdict.json"
+      ]
+    },
+    {
+      "Sid": "WriteReviewedRuntimeObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/catalog.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/control.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/policy.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/pricing.json",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/curves/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/brain/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/market-read/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/read-model/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/feature-store-query-results/*"
+      ]
+    }
+  ]
+}

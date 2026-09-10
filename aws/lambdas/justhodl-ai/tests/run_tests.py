@@ -7,6 +7,7 @@ describe_endpoint / invoke_endpoint / get_products / get_metric_statistics) so a
 from __future__ import annotations
 
 import gzip
+import hashlib
 import io
 import json
 import os
@@ -22,23 +23,52 @@ sys.path.insert(0, str(SRC))
 sys.path.insert(0, str(HERE.parents[2] / "shared"))
 os.environ["JH_SERVICE_TOKEN"] = "svc_test_token_0123456789abcdef"
 os.environ["AI_PRIVATE_BUCKET"] = "private-test"
+os.environ["AI_ENVIRONMENT"] = "test"
 os.environ["AI_PUBLIC_BUCKET"] = "public-test"
 os.environ["AI_BRAIN_SOURCE_BUCKET"] = "public-test"
 os.environ["SAGEMAKER_ROLE_ARN"] = "arn:aws:iam::857687956942:role/justhodl-sagemaker-execution-role"
+os.environ["AI_EVENT_BUS"] = "justhodl-ai-test"
+os.environ["SIGNAL_FEATURE_GROUP"] = "justhodl-ai-signal-test"
+os.environ["PREDICTION_FEATURE_GROUP"] = "justhodl-ai-prediction-test"
+os.environ["PREDICTION_LEDGER_TABLE"] = "justhodl-ai-prediction-ledger-test"
+os.environ["PREDICTION_LEDGER_ARCHIVE_BUCKET"] = "ledger-archive-test"
+os.environ["MODEL_PACKAGE_GROUP"] = "justhodl-ai-test"
+os.environ["MLFLOW_TRACKING_SERVER_NAME"] = "justhodl-ai-test"
+os.environ["MLFLOW_TRACKING_SERVER_ARN"] = "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-test"
+os.environ["MLFLOW_EXPERIMENT_NAME"] = "justhodl-ai-test"
+os.environ["TRAINING_INPUT_BUCKET"] = "training-inputs-test"
 
 
 # ─────────────────────────────────────────────────────────────── fake AWS
 class FakeS3:
     def __init__(self):
         self.objs = {}
+        self.fail_next_put = False
+
+    @staticmethod
+    def _etag(body):
+        return '"%s"' % hashlib.md5(body).hexdigest()  # nosec - models S3 ETag only
 
     def get_object(self, Bucket, Key):
         if (Bucket, Key) not in self.objs:
             raise KeyError("NoSuchKey %s/%s" % (Bucket, Key))
-        return {"Body": io.BytesIO(self.objs[(Bucket, Key)])}
+        body = self.objs[(Bucket, Key)]
+        return {"Body": io.BytesIO(body), "ETag": self._etag(body)}
 
     def put_object(self, Bucket, Key, Body, **kw):
-        self.objs[(Bucket, Key)] = Body if isinstance(Body, bytes) else str(Body).encode()
+        if self.fail_next_put:
+            self.fail_next_put = False
+            raise RuntimeError("simulated archive failure")
+        if kw.get("IfNoneMatch") == "*" and (Bucket, Key) in self.objs:
+            raise Exception("PreconditionFailed: object already exists")
+        current = self.objs.get((Bucket, Key))
+        if kw.get("IfMatch") is not None and (
+            current is None or self._etag(current) != kw["IfMatch"]
+        ):
+            raise Exception("PreconditionFailed: object changed")
+        body = Body if isinstance(Body, bytes) else str(Body).encode()
+        self.objs[(Bucket, Key)] = body
+        return {"ETag": self._etag(body)}
 
     def head_object(self, Bucket, Key):
         if (Bucket, Key) not in self.objs:
@@ -124,6 +154,32 @@ class FakeSM:
         self.calls.append(("create_training_job", kw))
         self.jobs[kw["TrainingJobName"]] = kw
 
+    def create_model_package(self, **kw):
+        self.calls.append(("create_model_package", kw))
+        return {
+            "ModelPackageArn": (
+                "arn:aws:sagemaker:us-east-1:857687956942:"
+                "model-package/justhodl-ai-test/1"
+            )
+        }
+
+    def describe_model_package(self, ModelPackageName):
+        self.calls.append(("describe_model_package", ModelPackageName))
+        return {"ModelApprovalStatus": "PendingManualApproval"}
+
+    def create_model_card(self, **kw):
+        self.calls.append(("create_model_card", kw))
+        return {
+            "ModelCardArn": (
+                "arn:aws:sagemaker:us-east-1:857687956942:model-card/"
+                + kw["ModelCardName"]
+            )
+        }
+
+    def describe_model_card(self, ModelCardName):
+        self.calls.append(("describe_model_card", ModelCardName))
+        return {"ModelCardStatus": "Draft"}
+
     def create_auto_ml_job_v2(self, **kw):
         self.calls.append(("create_auto_ml_job_v2", kw))
 
@@ -179,15 +235,44 @@ class FakeTable:
     def __init__(self):
         self.items = {}
 
-    def put_item(self, Item):
-        self.items[Item["signal_id"]] = Item
+    def put_item(self, Item, ConditionExpression=None):
+        if "signal_id" in Item:
+            key = Item["signal_id"]
+        else:
+            key = (Item["prediction_id"], Item["created_at"])
+        if ConditionExpression and key in self.items:
+            raise Exception("ConditionalCheckFailedException")
+        self.items[key] = Item
 
-    def get_item(self, Key):
-        it = self.items.get(Key["signal_id"])
+    def get_item(self, Key, **kw):
+        if "signal_id" in Key:
+            key = Key["signal_id"]
+        elif "created_at" in Key:
+            key = (Key["prediction_id"], Key["created_at"])
+        else:
+            hits = [value for key, value in self.items.items()
+                    if isinstance(key, tuple) and key[0] == Key["prediction_id"]]
+            it = hits[0] if len(hits) == 1 else None
+            return {"Item": it} if it else {}
+        it = self.items.get(key)
         return {"Item": it} if it else {}
+
+    def query(self, ExpressionAttributeValues, **kw):
+        prediction_id = ExpressionAttributeValues[":prediction_id"]
+        return {"Items": [value for key, value in self.items.items()
+                          if isinstance(key, tuple) and key[0] == prediction_id]}
 
 
 FAKE_TABLE = FakeTable()
+
+
+class FakeEvents:
+    def __init__(self):
+        self.entries = []
+
+    def put_events(self, Entries):
+        self.entries.extend(Entries)
+        return {"FailedEntryCount": 0, "Entries": [{"EventId": "event-1"} for _ in Entries]}
 
 
 def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
@@ -216,6 +301,7 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
     se.yprice = lambda sym: {"NVDA": 120.5, "GLD": 250.0}.get(sym)
     sys.modules["signals_emit"] = se
     store = {"s3": s3 or FakeS3(), "sagemaker": sm or FakeSM(), "sagemaker-runtime": rt or FakeRT(), "cloudwatch": cw or FakeCW(), "pricing": pricing or FakePricing(),
+             "events": FakeEvents(),
              "ce": types.SimpleNamespace(get_cost_and_usage=lambda **k: {"ResultsByTime": [{"TimePeriod": {"Start": "2026-09-01"}, "Total": {"UnblendedCost": {"Amount": "1.25"}}}]}),
              "ssm": types.SimpleNamespace(get_parameter=lambda **k: {"Parameter": {"Value": ""}}),
              "logs": types.SimpleNamespace(describe_log_streams=lambda **k: {"logStreams": [{"logStreamName": "s1"}]},
@@ -452,30 +538,49 @@ def test_cost_guard_rules():
 
 def test_training_requests_shape():
     import training as tr
+    import training_eligibility as te
+    from test_training_eligibility import evidence as eligibility_evidence, trusted
     sm = FakeSM()
-    r = tr.start_classifier_job(sm, role_arn="arn:role", train_uri="s3://p/train/", validation_uri="s3://p/val/", out_uri="s3://p/out/", n_classes=7,
-                                instance_type="ml.m5.xlarge", max_runtime_s=1800, spot=True, tags=[])
+    classifier_gate = te.evaluate_training_eligibility(
+        trusted(eligibility_evidence(
+            "s3://private/ai/datasets/train/",
+            "s3://private/ai/datasets/validation/",
+        )),
+        expected_training_uri="s3://private/ai/datasets/train/",
+        expected_validation_uri="s3://private/ai/datasets/validation/",
+    )
+    r = tr.start_classifier_job(sm, role_arn="arn:role", train_uri=classifier_gate.training_uri, validation_uri=classifier_gate.validation_uri, out_uri="s3://p/out/", n_classes=2,
+                                instance_type="ml.m5.xlarge", max_runtime_s=1800, spot=True, tags=[], eligibility=classifier_gate)
     kw = sm.jobs[r["job_name"]]
-    assert kw["HyperParameters"]["num_class"] == "7" and kw["HyperParameters"]["objective"] == "multi:softprob"
+    assert kw["HyperParameters"]["num_class"] == "2" and kw["HyperParameters"]["objective"] == "multi:softprob"
     assert kw["StoppingCondition"] == {"MaxRuntimeInSeconds": 1800, "MaxWaitTimeInSeconds": 3600} and kw["EnableManagedSpotTraining"]
     assert kw["AlgorithmSpecification"]["TrainingImage"] == tr.XGB_IMAGE
+    assert kw["Environment"]["JH_TRAINING_ELIGIBILITY_DIGEST"] == classifier_gate.evidence_digest
     import sm_hub
     spec = sm_hub.describe_model(sm, "huggingface-llm-finance-x")
-    r2 = tr.start_jumpstart_finetune(sm, spec=spec, role_arn="arn:role", training_uri="s3://p/ft/", out_uri="s3://p/out/", instance_type=None, max_runtime_s=3600, spot=False, tags=[])
+    finetune_gate = te.evaluate_training_eligibility(
+        trusted(eligibility_evidence("s3://private/ai/datasets/ft/")),
+        expected_training_uri="s3://private/ai/datasets/ft/",
+    )
+    r2 = tr.start_jumpstart_finetune(sm, spec=spec, role_arn="arn:role", training_uri=finetune_gate.training_uri, out_uri="s3://p/out/", instance_type=None, max_runtime_s=3600, spot=False, tags=[], eligibility=finetune_gate)
     kw2 = sm.jobs[r2["job_name"]]
     assert kw2["ResourceConfig"]["InstanceType"] == "ml.g5.2xlarge"
     assert kw2["HyperParameters"]["sagemaker_submit_directory"].endswith("sourcedir.tar.gz") and kw2["HyperParameters"]["epochs"] == "3"
     assert [c["ChannelName"] for c in kw2["InputDataConfig"]] == ["training", "model"]
     assert "MaxWaitTimeInSeconds" not in kw2["StoppingCondition"]
     try:
-        tr.start_jumpstart_finetune(sm, spec=sm_hub.describe_model(sm, "mxnet-tcembedding-robertafin-base-uncased"), role_arn="a", training_uri="s3://p/", out_uri="s3://o/", instance_type=None, max_runtime_s=10, spot=False, tags=[])
+        no_recipe_gate = te.evaluate_training_eligibility(
+            trusted(eligibility_evidence("s3://private/ai/datasets/no-recipe/")),
+            expected_training_uri="s3://private/ai/datasets/no-recipe/",
+        )
+        tr.start_jumpstart_finetune(sm, spec=sm_hub.describe_model(sm, "mxnet-tcembedding-robertafin-base-uncased"), role_arn="a", training_uri=no_recipe_gate.training_uri, out_uri="s3://o/", instance_type=None, max_runtime_s=10, spot=False, tags=[], eligibility=no_recipe_gate)
         raise AssertionError("fine-tune on a card without a recipe must refuse")
     except RuntimeError as e:
         assert "training recipe" in str(e)
     assert "locked" in tr.hyperpod_gate({"hyperpod_unlocked": False}, tr.HYPERPOD_CONFIRM)
     assert "confirmation" in tr.hyperpod_gate({"hyperpod_unlocked": True}, "nope")
     assert tr.hyperpod_gate({"hyperpod_unlocked": True}, tr.HYPERPOD_CONFIRM) is None
-    return "xgboost + spot + recipe channels + hyperpod gate"
+    return "governed XGBoost + fine-tune requests carry mandatory eligibility lineage"
 
 
 def test_handler_auth_and_routing():
@@ -532,28 +637,19 @@ def test_learning_curve_nested_fractions_and_read_model():
     bd.run_embedding_pass(s3, FakeRT(dim=6), "private-test", man["dataset_id"], "jh-ai-roberta", embed_fn=sm_hub.embed_texts, budget_s=30)
     ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
     ev = {"version": "2.0", "rawPath": "/train/curve", "requestContext": {"http": {"method": "POST", "path": "/train/curve"}}, "headers": ok,
-          "body": json.dumps({"endpoint": "jh-ai-roberta", "fractions": [0.1, 0.5, 1.0]})}
+          "body": json.dumps({
+              "endpoint": "jh-ai-roberta", "fractions": [0.1, 0.5, 1.0],
+              "governance_evidence": {
+                  "uri": "s3://private-test/full-dataset-receipt.json",
+                  "version_id": "v1", "sha256": "a" * 64,
+              },
+          })}
     r = lf.lambda_handler(ev, None)
     body = json.loads(r["body"])
-    assert r["statusCode"] == 200, body
-    runs = body["result"]["runs"]
-    assert [x["fraction"] for x in runs] == [0.1, 0.5, 1.0] and runs[0]["n_train"] < runs[1]["n_train"] < runs[2]["n_train"] == man["n_train"], runs
-    sm = store["sagemaker"]
-    assert len({x["job_name"] for x in runs}) == 3 and all(x["job_name"] in sm.jobs for x in runs)
-    # nested: the 10% subset is contained in the 50% subset
-    base = "ai/datasets/brain/%s/emb/jh-ai-roberta/curve/" % man["dataset_id"]
-    from collections import Counter
-    f10 = Counter(s3.objs[("private-test", base + "f010/train.csv")].decode().splitlines())
-    f50 = Counter(s3.objs[("private-test", base + "f050/train.csv")].decode().splitlines())
-    assert all(f50[k] >= v for k, v in f10.items()) and sum(f10.values()) == runs[0]["n_train"]   # nested, with multiplicity (the fake embedder can collide)
-    out = lf.run_inventory(None)
-    L = out["learning"]
-    assert L["curves"] and L["curves"][-1]["curve_id"] == body["result"]["curve_id"] and L["curves"][-1]["runs"][0]["status"] == "Completed"
-    public = json.loads(s3.objs[("public-test", "data/ai.json")])
-    owner = json.loads(s3.objs[("private-test", "ai/read-model/latest.json")])
-    assert "learning" not in public and owner["learning"]["curves"]
-    assert "eurodollar" not in json.dumps(out["learning"])
-    return "3 nested-fraction jobs, same validation set, metrics kept in owner read model"
+    assert r["statusCode"] == 400, body
+    assert "fraction_governance_evidence" in body["error"]
+    assert store["sagemaker"].jobs == {}
+    return "full-dataset evidence cannot authorize fraction URIs; no curve job starts"
 
 
 def _fleet_docs(s3):
@@ -642,10 +738,32 @@ def test_pipeline_state_machine_end_to_end_and_ladder_failover():
     lf = _load(store)
     import pipeline as pl
     sm = store["sagemaker"]
+    governance_ref = {
+        "uri": "s3://private-test/ai/governance/training-evidence/v1/receipts/pipeline.json",
+        "version_id": "receipt-v1",
+        "sha256": "a" * 64,
+    }
+    # The pipeline state-machine test isolates orchestration. Dedicated
+    # eligibility tests exercise immutable receipt resolution in full; this
+    # boundary double proves that the pipeline forwards the opaque receipt and
+    # cannot silently launch its classifier without governance evidence.
+    def governed_pipeline_train(body, policy):
+        assert body.get("governance_evidence") == governance_ref
+        job_name = "jh-ai-governed-pipeline-test"
+        sm.create_training_job(TrainingJobName=job_name)
+        return {
+            "job_name": job_name,
+            "instance_type": "ml.m5.xlarge",
+            "spot": True,
+        }
+    lf.action_train_classifier = governed_pipeline_train
     lf.put_private(lf.CATALOG_KEY, {"generated_at": datetime.now(timezone.utc).isoformat(), "n": 2, "article_models_present": ["mxnet-tcembedding-robertafin-base-uncased"],
                                      "cards": [{"model_id": "mxnet-tcembedding-robertafin-base-uncased"}, {"model_id": "huggingface-textembedding-bge-base-en-v1-5"}]})
     pol = lf._policy()
-    st = lf.action_pipeline_start({"ladder": ["huggingface-llm-finance-x", "mxnet-tcembedding-robertafin-base-uncased"]}, pol)
+    st = lf.action_pipeline_start({
+        "ladder": ["huggingface-llm-finance-x", "mxnet-tcembedding-robertafin-base-uncased"],
+        "governance_evidence": governance_ref,
+    }, pol)
     assert st["status"] == "running" and st["stage"] == "wait_embedding" and st["embedding_card"] == "huggingface-llm-finance-x", (st["stage"], st.get("embedding_card"))
     # first card fails -> log tail recorded, endpoint deleted, ladder advances to the article card
     sm.endpoints[st["embedding_endpoint"]]["EndpointStatus"] = "Failed"
@@ -760,6 +878,24 @@ def test_endpoint_replacement_and_serverless_limits_fail_closed():
         assert "refusing to replace" in str(exc)
     lf._assert_endpoint_write_allowed("new-endpoint")
     policy = lf._policy()
+    old_environment = os.environ["AI_ENVIRONMENT"]
+    os.environ["AI_ENVIRONMENT"] = "production"
+    try:
+        for callback, body in (
+            (lf.action_deploy, {"model_id": "model-a"}),
+            (lf.action_deploy_trained, {"job_name": "job-a"}),
+        ):
+            try:
+                callback(body, policy)
+                raise AssertionError("direct production deployment must be disabled")
+            except lf.ActionError as exc:
+                assert "disabled in production" in str(exc)
+        assert not any(
+            name in {"create_model", "create_endpoint_config", "create_endpoint"}
+            for name, _ in sm.calls
+        )
+    finally:
+        os.environ["AI_ENVIRONMENT"] = old_environment
     assert lf._serverless_config({}, policy) == (4096, 4)
     try:
         lf._serverless_config({"serverless_memory_mb": 6144}, policy)
@@ -818,6 +954,395 @@ def test_inventory_writes_public_read_model_without_note_text():
     return "data/ai.json: inventory + run-rate + MTD + catalog + dataset stats, no text"
 
 
+def _governed_envelope():
+    return {
+        "schema_version": "1.0",
+        "signal_id": "sig-test-1",
+        "source": "test-engine",
+        "entity_id": "SPY",
+        "event_time": "2026-09-09T12:00:00Z",
+        "available_at": "2026-09-09T12:01:00Z",
+        "produced_at": "2026-09-09T12:02:00Z",
+        "payload": {"value": 1.25},
+        "provenance": [{"source_id": "fixture", "fingerprint": "a" * 64, "tainted": False}],
+        "taint": {"status": "CLEAN", "reasons": []},
+    }
+
+
+def test_governance_signal_feature_label_and_split_routes():
+    store = _install_fakes()
+    lf = _load(store)
+    policy = {}
+    validated = lf.action_signal_validate({"envelope": _governed_envelope()}, policy)
+    assert validated["status"] == "CLEAN" and len(validated["fingerprint"]) == 64
+    planned = lf.action_signal_ingest({"envelope": _governed_envelope()}, policy)
+    assert planned["mode"] == "DRY_RUN" and planned["side_effects"] == 0
+    assert planned["outbox_key"].startswith("ai/signals/outbox/v1/")
+    ingested = lf.action_signal_ingest(
+        {"envelope": _governed_envelope(), "dry_run": False},
+        policy, s3_client=store["s3"], events_client=store["events"],
+    )
+    duplicate = lf.action_signal_ingest(
+        {"envelope": _governed_envelope(), "dry_run": False},
+        policy, s3_client=store["s3"], events_client=store["events"],
+    )
+    assert ingested["published"] and ingested["status"] == "PUBLISHED"
+    assert ingested["side_effects"] == 5
+    assert duplicate["duplicate"] and not duplicate["delivery_attempted"]
+    assert len(store["events"].entries) == 1
+
+    # A publication failure leaves PENDING state. Repeating the same envelope
+    # redrives it rather than treating the archive as a completed duplicate.
+    failed_envelope = {**_governed_envelope(), "signal_id": "sig-test-redrive"}
+    flaky = FakeEvents()
+    original_put = flaky.put_events
+    failures = [True]
+    def fail_once(Entries):
+        if failures.pop(0) if failures else False:
+            return {"FailedEntryCount": 1, "Entries": [{"ErrorCode": "InternalFailure"}]}
+        return original_put(Entries)
+    flaky.put_events = fail_once
+    try:
+        lf.action_signal_ingest(
+            {"envelope": failed_envelope, "dry_run": False},
+            policy, s3_client=store["s3"], events_client=flaky,
+        )
+        raise AssertionError("failed EventBridge publication must fail closed")
+    except lf.ActionError:
+        pass
+    redriven = lf.action_signal_ingest(
+        {"envelope": failed_envelope, "dry_run": False},
+        policy, s3_client=store["s3"], events_client=flaky,
+    )
+    assert redriven["published"] and redriven["redriven"] and redriven["attempts"] == 2
+
+    feature = lf.action_feature_assemble({
+        "entity_id": "SPY",
+        "as_of": "2026-09-09T12:05:00Z",
+        "feature_names": ["momentum"],
+        "observations": [
+            {"entity_id": "SPY", "feature_name": "momentum", "event_time": "2026-09-09T12:00:00Z",
+             "available_at": "2026-09-09T12:01:00Z", "value": 0.5, "source": "fixture"},
+            {"entity_id": "SPY", "feature_name": "momentum", "event_time": "2026-09-09T12:04:00Z",
+             "available_at": "2026-09-09T12:06:00Z", "value": 99, "source": "future"},
+        ],
+    }, policy)
+    assert feature["mode"] == "SUPPLIED_OBSERVATIONS_DRY_RUN"
+    assert feature["values"] == {"momentum": 0.5} and len(feature["fingerprint"]) == 64
+
+    class InjectedStore:
+        def observations(self, entity_id, feature_names, as_of):
+            assert entity_id == "SPY" and feature_names == ("momentum",)
+            return [lf.pit.FeatureObservation(
+                "SPY", "momentum",
+                datetime(2026, 9, 9, 12, 0, tzinfo=timezone.utc),
+                datetime(2026, 9, 9, 12, 1, tzinfo=timezone.utc),
+                0.75, "feature-store",
+            )]
+    live_feature = lf.action_feature_assemble({
+        "entity_id": "SPY",
+        "as_of": "2026-09-09T12:05:00Z",
+        "feature_names": ["momentum"],
+    }, policy, store=InjectedStore())
+    assert live_feature["mode"] == "SAGEMAKER_FEATURE_STORE"
+    assert live_feature["values"] == {"momentum": 0.75}
+
+    outcome = lf.action_outcome_labels({
+        "prediction_time": "2026-09-01T00:00:00Z",
+        "prices": [
+            {"timestamp": "2026-09-01T00:00:00Z", "price": 100},
+            {"timestamp": "2026-09-03T00:00:00Z", "price": 105},
+        ],
+        "horizons": [{"value": 2, "unit": "calendar_days"}],
+        "side": "LONG",
+    }, policy)
+    assert outcome["labels"][0]["matured"] and outcome["labels"][0]["label"] == "POSITIVE"
+
+    intervals = [{"start": i, "end": i + 0.25} for i in range(12)]
+    walk = lf.action_walk_forward({
+        "intervals": intervals, "n_splits": 2, "test_size": 2, "min_train_size": 4,
+        "purge": 0, "embargo": 0,
+    }, policy)
+    cpcv = lf.action_cpcv({
+        "intervals": intervals, "n_groups": 4, "test_groups": 1, "purge": 0, "embargo": 0,
+    }, policy)
+    assert walk["split_count"] == 2 and cpcv["split_count"] == 4
+    assert len(walk["split_digest"]) == 64 and "train" not in walk["splits"][0]
+    return "signal validation/ingestion, PIT features, labels, and split summaries are integrated"
+
+
+def test_governance_append_only_ledger_and_model_requests():
+    store = _install_fakes()
+    FAKE_TABLE.items.clear()
+    lf = _load(store)
+    import prediction_ledger as pl
+    import model_registry as rg
+    prediction = pl.build_prediction(
+        model_id="model-a", model_version="1", entity_id="SPY",
+        prediction_time="2026-09-09T12:00:00Z", feature_as_of="2026-09-09T11:59:00Z",
+        feature_fingerprint="b" * 64, horizon_value=1, horizon_unit="calendar_days",
+        prediction="POSITIVE", score=0.8, created_at="2026-09-09T12:00:01Z",
+    )
+    rejected = pl.build_prediction(
+        model_id="model-a", model_version="1", entity_id="QQQ",
+        prediction_time="2026-09-09T12:00:00Z", feature_as_of="2026-09-09T11:59:00Z",
+        feature_fingerprint="c" * 64, horizon_value=1, horizon_unit="calendar_days",
+        prediction="NEGATIVE", score=0.6, created_at="2026-09-09T12:00:01Z",
+    )
+    store["s3"].fail_next_put = True
+    try:
+        lf.action_prediction_write(
+            {"prediction": rejected}, {}, table=FAKE_TABLE, s3_client=store["s3"]
+        )
+        raise AssertionError("archive failure must reject prediction write")
+    except RuntimeError as exc:
+        assert "archive failure" in str(exc)
+    assert FAKE_TABLE.items == {}, FAKE_TABLE.items
+    first = lf.action_prediction_write({"prediction": prediction}, {}, table=FAKE_TABLE, s3_client=store["s3"])
+    second = lf.action_prediction_write({"prediction": prediction}, {}, table=FAKE_TABLE, s3_client=store["s3"])
+    assert first["written"] and second["duplicate"]
+    outcome = {
+        "schema_version": "1.0", "label": "POSITIVE",
+        "entry_time": "2026-09-09T12:01:00Z", "exit_time": "2026-09-10T12:01:00Z",
+        "net_return": 0.03, "transaction_cost": 0.001,
+    }
+    grade = {"prediction_id": prediction["prediction_id"], "outcome": outcome, "graded_at": "2026-09-10T12:02:00Z"}
+    before_grade = dict(FAKE_TABLE.items)
+    store["s3"].fail_next_put = True
+    try:
+        lf.action_prediction_grade(
+            grade, {}, table=FAKE_TABLE, s3_client=store["s3"]
+        )
+        raise AssertionError("archive failure must reject grade write")
+    except RuntimeError as exc:
+        assert "archive failure" in str(exc)
+    assert FAKE_TABLE.items == before_grade
+    graded = lf.action_prediction_grade(grade, {}, table=FAKE_TABLE, s3_client=store["s3"])
+    repeated = lf.action_prediction_grade(grade, {}, table=FAKE_TABLE, s3_client=store["s3"])
+    assert graded["graded"] and graded["correct"] and repeated["duplicate"]
+    assert all(item.get("event_type") != "OUTCOME_GRADE" or item["subject_prediction_id"] == prediction["prediction_id"]
+               for item in FAKE_TABLE.items.values())
+
+    package = lf.action_model_package_request({
+        "model_data_url": "s3://private-test/model.tar.gz",
+        "image_uri": "857687956942.dkr.ecr.us-east-1.amazonaws.com/model:sha",
+        "content_types": ["application/json"], "response_types": ["application/json"],
+    }, {})
+    assert package["side_effects"] == 0
+    assert package["request"]["ModelApprovalStatus"] == "PendingManualApproval"
+    card = lf.action_model_card({
+        "model_card_name": "model-a-card", "model_id": "model-a", "model_version": "1",
+        "owner": "JustHodl", "intended_use": "governed research", "limitations": ["not investment advice"],
+        "risk_rating": "HIGH", "training_dataset": {"digest": "a" * 64},
+        "evaluation": {
+            "accuracy": 0.7,
+            "training_eligibility_digest": "d" * 64,
+            "walk_forward_split_digest": "e" * 64,
+            "cpcv_split_digest": "f" * 64,
+        },
+        "lineage": {"run_id": "run-1"},
+        "created_at": "2026-09-09T12:00:00Z",
+    }, {})
+    assert card["request"]["ModelCardStatus"] == "Draft" and card["side_effects"] == 0
+    lineage = rg.build_mlflow_lineage_metadata(
+        run_id="run-1", experiment_name="justhodl-ai-test", dataset_digest="a" * 64,
+        feature_schema_digest="b" * 64,
+        walk_forward_split_digest="c" * 64,
+        cpcv_split_digest="d" * 64,
+        code_revision="abcdef1",
+        signal_envelope_version="1.0", training_data_uri="s3://private-test/train",
+        artifact_uri="s3://private-test/model",
+    )
+    checked = lf.action_mlflow_lineage({"metadata": lineage}, {})
+    assert checked["valid"] and checked["metadata"] == lineage
+    os.environ["AI_GOVERNANCE_APPROVAL_TOKEN"] = "approval-token-123456"
+    os.environ["AI_GOVERNANCE_OWNER"] = "JustHodl"
+    live_package = lf._governance_model_package_http({
+        "dry_run": False,
+        "approval_token": "approval-token-123456",
+        "owner": "JustHodl",
+        "model_data_url": "s3://private-test/model.tar.gz",
+        "image_uri": "857687956942.dkr.ecr.us-east-1.amazonaws.com/model:sha",
+        "content_types": ["application/json"],
+        "response_types": ["application/json"],
+    }, {})
+    assert live_package["approval_status"] == "PendingManualApproval"
+    live_card_body = {
+        "dry_run": False,
+        "approval_token": "approval-token-123456",
+        **{key: value for key, value in {
+            "model_card_name": "jh-ai-model-a-card", "model_id": "model-a",
+            "model_version": "1", "owner": "JustHodl",
+            "intended_use": "governed research",
+            "limitations": ["not investment advice"], "risk_rating": "HIGH",
+            "training_dataset": {"digest": "a" * 64},
+            "evaluation": {
+                "training_eligibility_digest": "d" * 64,
+                "walk_forward_split_digest": "e" * 64,
+                "cpcv_split_digest": "f" * 64,
+            },
+            "lineage": {"run_id": "run-1"},
+            "created_at": "2026-09-09T12:00:00Z",
+        }.items()},
+    }
+    live_card = lf._governance_model_card_http(live_card_body, {})
+    assert live_card["model_card_status"] == "Draft"
+
+    class Writer:
+        def log_lineage(self, metadata):
+            return {
+                "run_id": metadata["run_id"],
+                "artifact_uri": metadata["artifacts"]["model_artifact_uri"],
+            }
+
+    original_writer = lf._managed_mlflow_writer
+    lf._managed_mlflow_writer = lambda: Writer()
+    try:
+        live_lineage = lf._governance_mlflow_http({
+            "metadata": lineage, "dry_run": False,
+            "approval_token": "approval-token-123456", "owner": "JustHodl",
+        }, {})
+    finally:
+        lf._managed_mlflow_writer = original_writer
+    assert live_lineage["mode"] == "LIVE"
+    return "archive-first routes and controlled live registry/card/lineage handlers pass"
+
+
+def test_governance_owner_only_exact_routes_and_canary_fail_closed():
+    store = _install_fakes()
+    lf = _load(store)
+    required = {
+        ("POST", "/governance/signals/validate"), ("POST", "/governance/signals/ingest"),
+        ("POST", "/governance/features/assemble"), ("POST", "/governance/outcomes/label"),
+        ("POST", "/governance/splits/walk-forward"), ("POST", "/governance/splits/cpcv"),
+        ("POST", "/governance/predictions/write"), ("POST", "/governance/predictions/grade"),
+        ("POST", "/governance/models/package-request"), ("POST", "/governance/models/card"),
+        ("POST", "/governance/models/mlflow-lineage/validate"),
+        ("POST", "/governance/deployment/readiness"), ("POST", "/governance/deployment/canary-plan"),
+    }
+    assert required == set(lf.GOVERNANCE_ACTIONS)
+    denied = lf.lambda_handler({"mode": "governance/signals/validate", "body": {"envelope": _governed_envelope()}}, None)
+    assert denied["ok"] is False and "owner-authenticated" in denied["error"]
+    headers = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
+    event = {
+        "version": "2.0", "rawPath": "/governance/signals/validate",
+        "requestContext": {"http": {"method": "POST", "path": "/governance/signals/validate"}},
+        "headers": headers, "body": json.dumps({"envelope": _governed_envelope()}),
+    }
+    response = lf.lambda_handler(event, None)
+    assert response["statusCode"] == 200, response
+
+    good_green = {
+        "endpoint_status": "InService", "model_approval_status": "Approved", "samples": 200,
+        "error_rate": 0.001, "p95_latency_ms": 110, "drift_score": 0.02,
+        "prediction_match_rate": 0.98,
+        "baseline": {"endpoint_status": "InService", "error_rate": 0.0, "p95_latency_ms": 100},
+    }
+    readiness = lf.action_deployment_readiness({
+        "blue": {"p95_latency_ms": 100}, "green": good_green,
+    }, {})
+    assert readiness["allowed"] and readiness["action"] == "PROMOTE"
+    plan = lf.action_canary_plan({"context": {"blue_metrics": {"p95_latency_ms": 100}}}, {})
+    assert plan["status"] == "PLANNED" and plan["side_effects"] == 0
+    try:
+        lf.action_canary_plan({"dry_run": False, "approval_token": "approval-token-123456"}, {})
+        raise AssertionError("HTTP canary path must not execute without injected clients/actions")
+    except lf.ActionError:
+        pass
+    calls = []
+    actions = {
+        "validate": lambda c, clients: calls.append("validate") or {},
+        "deploy_green": lambda c, clients: calls.append("deploy_green") or {},
+        "wait_green": lambda c, clients: calls.append("wait_green") or {},
+        "run_canary": lambda c, clients: calls.append("run_canary") or good_green,
+        "promote": lambda c, clients: calls.append("promote") or {},
+        "rollback": lambda c, clients: calls.append("rollback") or {
+            "requested": True,
+        },
+        "verify_rollback": lambda c, clients: calls.append("verify_rollback") or {
+            "restored_endpoint_config": "blue-config-7",
+            "traffic_restored": True,
+            "successful_health_checks": 3,
+            "verified_at": "2026-09-09T12:10:00Z",
+            "evidence_digest": "b" * 64,
+        },
+        "cleanup_green": lambda c, clients: calls.append("cleanup_green") or {
+            "evidence_digest": "c" * 64,
+            "endpoint_action": "DELETED",
+        },
+    }
+    os.environ["AI_CANARY_APPROVAL_TOKEN"] = "approval-token-123456"
+    os.environ["AI_GOVERNANCE_OWNER"] = "JustHodl"
+    live = lf.action_canary_plan({
+        "dry_run": False,
+        "approval_token": "approval-token-123456",
+        "owner": "JustHodl",
+        "estimated_cost_usd": 0.25,
+        "context": {
+            "blue_metrics": {"p95_latency_ms": 100},
+            "model_owner": "JustHodl",
+            "endpoint_owner": "JustHodl",
+            "green_estimated_hourly_cost_usd": 0.42,
+            "rollback_plan": {
+                "blue_endpoint_config": "blue-config-7",
+                "blue_variant": "AllTraffic",
+                "captured_at": "2026-09-09T12:00:00Z",
+                "evidence_digest": "a" * 64,
+            },
+        },
+    }, {}, aws_clients={"sagemaker": object(), "sagemaker-runtime": object(), "cloudwatch": object()}, canary_actions=actions)
+    assert live["status"] == "PROMOTED" and calls[-1] == "cleanup_green"
+    assert live["control_evidence"]["estimated_cost_usd"] == 0.25
+    assert "approval-token-123456" not in json.dumps(live)
+
+    # The actual HTTP composition can construct and execute all concrete
+    # callbacks when its controlled clients and configuration are present.
+    from test_deployment_gates import (
+        FakeCanaryCloudWatch, FakeCanaryRuntime, FakeCanarySageMaker,
+    )
+    concrete_sm = FakeCanarySageMaker()
+    concrete_sm.owners["arn:endpoint:jh-ai-blue"] = "JustHodl"
+    concrete_sm.owners["arn:package:approved/1"] = "JustHodl"
+    concrete_sm.owners["arn:config:green-config-8"] = "JustHodl"
+    lf._clients["sagemaker"] = concrete_sm
+    concrete_runtime = FakeCanaryRuntime()
+    lf._clients["sagemaker-runtime"] = concrete_runtime
+    lf._clients["cloudwatch"] = FakeCanaryCloudWatch(
+        concrete_runtime, datetime.now(timezone.utc)
+    )
+    concrete_live = lf._governance_canary_http({
+        "dry_run": False,
+        "approval_token": "approval-token-123456",
+        "owner": "JustHodl",
+        "context": {
+            "model_owner": "JustHodl",
+            "endpoint_owner": "JustHodl",
+            "green_estimated_hourly_cost_usd": 0.42,
+            "endpoint_name": "jh-ai-blue",
+            "green_endpoint_name": "jh-ai-green",
+            "green_endpoint_config": "green-config-8",
+            "model_package_arn": "arn:package:approved/1",
+            "health_probe": {
+                "content_type": "application/json",
+                "body": '{"inputs":["health"]}',
+            },
+            "canary_requests": [{
+                "content_type": "application/json",
+                "body": '{"inputs":["canary"]}',
+            }],
+            "rollback_plan": {
+                "blue_endpoint_config": "blue-config-7",
+                "blue_variant": "AllTraffic",
+                "captured_at": "2026-09-09T12:00:00Z",
+                "evidence_digest": "a" * 64,
+            },
+        },
+    }, {})
+    assert concrete_live["status"] == "PROMOTED", concrete_live
+    assert concrete_sm.configs["jh-ai-blue"] == "green-config-8"
+    return "exact owner routes enforced; controlled concrete HTTP canary composition executes offline"
+
+
 def main():
     tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
@@ -826,7 +1351,10 @@ def main():
              test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover,
              test_fleet_registry_reads_every_unique_feed_and_gates_evidence, test_private_feed_future_timestamp_and_registry_controls_fail_closed,
              test_destructive_endpoint_action_requires_engine_ownership_tag, test_endpoint_replacement_and_serverless_limits_fail_closed,
-             test_inventory_writes_public_read_model_without_note_text]
+             test_inventory_writes_public_read_model_without_note_text,
+             test_governance_signal_feature_label_and_split_routes,
+             test_governance_append_only_ledger_and_model_requests,
+             test_governance_owner_only_exact_routes_and_canary_fail_closed]
     failed = 0
     for t in tests:
         try:

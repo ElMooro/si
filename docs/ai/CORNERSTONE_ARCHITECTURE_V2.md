@@ -89,4 +89,3 @@ Add Chronos-2, the tabular fusion meta-model, finance-specific text features, hy
 ### Institutional autonomy
 
 Add AgentCore investigation workflows, challenger scheduling, conformal intervals, automated reasoning for prohibited claim classes, and independent challenge with block authority. None of these expands execution authority without a separate human-approved mandate.
-

@@ -19,6 +19,12 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from training_eligibility import (
+    TrainingEligibility,
+    TrainingEligibilityError,
+    require_training_eligibility,
+)
+
 REGION = "us-east-1"
 # SageMaker built-in XGBoost (framework-mode image, us-east-1 registry account 683313688378).
 XGB_IMAGE = "683313688378.dkr.ecr.us-east-1.amazonaws.com/sagemaker-xgboost:1.7-1"
@@ -58,7 +64,21 @@ def _stamp() -> str:
 # ─────────────────────────────────────────────────────────────────── tier 1
 def start_classifier_job(sm, *, role_arn: str, train_uri: str, validation_uri: str, out_uri: str, n_classes: int,
                          instance_type: str, max_runtime_s: int, spot: bool, tags: List[dict], num_round: int = 300,
-                         max_depth: int = 4, eta: float = 0.08, job_name: Optional[str] = None) -> Dict[str, Any]:
+                         max_depth: int = 4, eta: float = 0.08, job_name: Optional[str] = None,
+                         eligibility: TrainingEligibility) -> Dict[str, Any]:
+    eligibility = require_training_eligibility(eligibility)
+    if train_uri != eligibility.training_uri:
+        raise TrainingEligibilityError(
+            "classifier input must match verified eligibility training_uri"
+        )
+    if validation_uri != eligibility.validation_uri:
+        raise TrainingEligibilityError(
+            "classifier input must match verified eligibility validation_uri"
+        )
+    if int(n_classes) != len(eligibility.labels):
+        raise TrainingEligibilityError(
+            "n_classes must match verified outcome-label classes"
+        )
     name = job_name or _name("jh-ai-brain-clf")
     hp = {"objective": "multi:softprob", "num_class": str(int(n_classes)), "num_round": str(int(num_round)), "max_depth": str(int(max_depth)),
           "eta": str(eta), "subsample": "0.85", "colsample_bytree": "0.7", "min_child_weight": "2", "eval_metric": "mlogloss",
@@ -75,15 +95,41 @@ def start_classifier_job(sm, *, role_arn: str, train_uri: str, validation_uri: s
         ResourceConfig={"InstanceType": instance_type, "InstanceCount": 1, "VolumeSizeInGB": 20},
         StoppingCondition=_stop(max_runtime_s, spot),
         EnableManagedSpotTraining=bool(spot), Tags=tags,
+        Environment={
+            "JH_TRAINING_ELIGIBILITY_DIGEST": eligibility.evidence_digest,
+            "JH_DATASET_DIGEST": eligibility.dataset_digest,
+            "JH_TRAINING_INPUT_DIGEST": eligibility.training_input_digest,
+            "JH_VALIDATION_INPUT_DIGEST": eligibility.validation_input_digest,
+            "JH_TRAINING_INPUT_VERSION_ID": eligibility.training_input_version_id,
+            "JH_VALIDATION_INPUT_VERSION_ID": eligibility.validation_input_version_id,
+            "JH_WALK_FORWARD_SPLIT_DIGEST": eligibility.walk_forward_split_digest,
+            "JH_CPCV_SPLIT_DIGEST": eligibility.cpcv_split_digest,
+        },
     )
     sm.create_training_job(**kw)
-    return {"job_name": name, "tier": 1, "image": XGB_IMAGE, "instance_type": instance_type, "spot": spot, "hyperparameters": hp, "started_at": now_iso()}
+    return {
+        "job_name": name,
+        "tier": 1,
+        "image": XGB_IMAGE,
+        "instance_type": instance_type,
+        "spot": spot,
+        "hyperparameters": hp,
+        "training_eligibility_digest": eligibility.evidence_digest,
+        "walk_forward_split_digest": eligibility.walk_forward_split_digest,
+        "cpcv_split_digest": eligibility.cpcv_split_digest,
+        "started_at": now_iso(),
+    }
 
 
 # ─────────────────────────────────────────────────────────────────── tier 2
 def start_jumpstart_finetune(sm, *, spec: dict, role_arn: str, training_uri: str, out_uri: str, instance_type: Optional[str],
                              max_runtime_s: int, spot: bool, tags: List[dict], hyperparameters: Optional[Dict[str, str]] = None,
-                             job_name: Optional[str] = None) -> Dict[str, Any]:
+                             job_name: Optional[str] = None, eligibility: TrainingEligibility) -> Dict[str, Any]:
+    eligibility = require_training_eligibility(eligibility)
+    if training_uri != eligibility.training_uri:
+        raise TrainingEligibilityError(
+            "fine-tune input must match verified eligibility training_uri"
+        )
     if not spec.get("training_supported") or not spec.get("training_image"):
         raise RuntimeError("hub card %s does not publish a training recipe (TrainingSupported=%s); keys=%s" % (spec.get("model_id"), spec.get("training_supported"), spec.get("doc_keys")))
     it = instance_type or spec.get("default_training_instance")
@@ -109,9 +155,23 @@ def start_jumpstart_finetune(sm, *, spec: dict, role_arn: str, training_uri: str
         HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": out_uri},
         ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 100 if gpu else 30},
         StoppingCondition=_stop(max_runtime_s, spot), EnableManagedSpotTraining=bool(spot), Tags=tags,
+        Environment={
+            "JH_TRAINING_ELIGIBILITY_DIGEST": eligibility.evidence_digest,
+            "JH_DATASET_DIGEST": eligibility.dataset_digest,
+            "JH_TRAINING_INPUT_DIGEST": eligibility.training_input_digest,
+            "JH_VALIDATION_INPUT_DIGEST": eligibility.validation_input_digest,
+            "JH_TRAINING_INPUT_VERSION_ID": eligibility.training_input_version_id,
+            "JH_VALIDATION_INPUT_VERSION_ID": eligibility.validation_input_version_id,
+            "JH_WALK_FORWARD_SPLIT_DIGEST": eligibility.walk_forward_split_digest,
+            "JH_CPCV_SPLIT_DIGEST": eligibility.cpcv_split_digest,
+        },
     )
     return {"job_name": name, "tier": 2, "model_id": spec["model_id"], "image": spec["training_image"], "instance_type": it, "spot": spot,
-            "hyperparameters": {k: v for k, v in hp.items() if not k.startswith("sagemaker_")}, "started_at": now_iso()}
+            "hyperparameters": {k: v for k, v in hp.items() if not k.startswith("sagemaker_")},
+            "training_eligibility_digest": eligibility.evidence_digest,
+            "walk_forward_split_digest": eligibility.walk_forward_split_digest,
+            "cpcv_split_digest": eligibility.cpcv_split_digest,
+            "started_at": now_iso()}
 
 
 # ─────────────────────────────────────────────────────────────────── tier 3

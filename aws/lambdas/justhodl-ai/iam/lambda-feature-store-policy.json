@@ -1,0 +1,83 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WriteOwnedFeatureGroups",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:BatchGetRecord",
+        "sagemaker:GetRecord",
+        "sagemaker:PutRecord"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-prediction-*"
+      ]
+    },
+    {
+      "Sid": "DescribeSignalFeatureGroupForOfflineRead",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeFeatureGroup"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*"
+    },
+    {
+      "Sid": "QuerySignalFeatureHistory",
+      "Effect": "Allow",
+      "Action": [
+        "athena:GetQueryExecution",
+        "athena:GetQueryResults",
+        "athena:StartQueryExecution",
+        "athena:StopQueryExecution"
+      ],
+      "Resource": "arn:aws:athena:us-east-1:857687956942:workgroup/primary"
+    },
+    {
+      "Sid": "ReadSignalFeatureCatalog",
+      "Effect": "Allow",
+      "Action": [
+        "glue:GetDatabase",
+        "glue:GetPartitions",
+        "glue:GetTable"
+      ],
+      "Resource": [
+        "arn:aws:glue:us-east-1:857687956942:catalog",
+        "arn:aws:glue:us-east-1:857687956942:database/sagemaker_featurestore",
+        "arn:aws:glue:us-east-1:857687956942:table/sagemaker_featurestore/justhodl_ai_signal_prod*"
+      ]
+    },
+    {
+      "Sid": "SignalFeatureHistoryBucketLocation",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1"
+    },
+    {
+      "Sid": "ListSignalFeatureHistory",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "offline",
+            "offline/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadSignalFeatureHistoryObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1/offline/*"
+    }
+  ]
+}

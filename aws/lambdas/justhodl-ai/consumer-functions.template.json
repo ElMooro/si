@@ -1,0 +1,609 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staged-disabled Lambda consumers for the JustHodl AI EventBridge-to-SQS governance queues. This template does not enable any queue mapping.",
+  "Parameters": {
+    "CodeBucket": {
+      "Type": "String",
+      "Description": "Reviewed deployment artifact bucket"
+    },
+    "CodeKey": {
+      "Type": "String",
+      "Description": "Immutable zip key containing the justhodl-ai source modules"
+    },
+    "SignalQueueArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:aws:sqs:[a-z0-9-]+:[0-9]{12}:.+$"
+    },
+    "PredictionQueueArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:aws:sqs:[a-z0-9-]+:[0-9]{12}:.+$"
+    },
+    "ModelGovernanceQueueArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:aws:sqs:[a-z0-9-]+:[0-9]{12}:.+$"
+    },
+    "PrivateBucket": {
+      "Type": "String"
+    },
+    "SignalFeatureGroup": {
+      "Type": "String",
+      "Default": "justhodl-ai-signal-prod"
+    },
+    "PredictionLedgerTable": {
+      "Type": "String",
+      "Default": "justhodl-ai-prediction-ledger-prod"
+    },
+    "PredictionArchiveBucket": {
+      "Type": "String"
+    },
+    "ModelPackageGroup": {
+      "Type": "String",
+      "Default": "justhodl-ai-prod"
+    },
+    "AiDataKeyArn": {
+      "Type": "String",
+      "AllowedPattern": "^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[A-Za-z0-9-]+$",
+      "Description": "Reviewed KMS key used by the private governance data stores"
+    }
+  },
+  "Resources": {
+    "SignalFeatureConsumerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/justhodl-ai-signal-feature-consumer-prod",
+        "RetentionInDays": 30
+      }
+    },
+    "SignalFeatureConsumerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-signal-feature-consumer-prod",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-signal-feature-consumer-prod-data-plane",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "PollOnlySourceQueue",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:ChangeMessageVisibility",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": {
+                    "Ref": "SignalQueueArn"
+                  }
+                },
+                {
+                  "Sid": "WriteOnlyOwnLogStreams",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/justhodl-ai-signal-feature-consumer-prod:*"
+                  }
+                },
+                {
+                  "Sid": "UseReviewedDataKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey"
+                  ],
+                  "Resource": {
+                    "Ref": "AiDataKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:CallerAccount": {
+                        "Ref": "AWS::AccountId"
+                      },
+                      "kms:ViaService": {
+                        "Fn::Sub": "s3.${AWS::Region}.amazonaws.com"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReadWriteSignalReceipts",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${PrivateBucket}/ai/consumers/signal-feature/v1/*"
+                  }
+                },
+                {
+                  "Sid": "PutOnlyGovernedSignalFeatures",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sagemaker:PutRecord"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:sagemaker:${AWS::Region}:${AWS::AccountId}:feature-group/${SignalFeatureGroup}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "PredictionLedgerConsumerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/justhodl-ai-prediction-ledger-consumer-prod",
+        "RetentionInDays": 30
+      }
+    },
+    "PredictionLedgerConsumerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-prediction-ledger-consumer-prod",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-prediction-ledger-consumer-prod-data-plane",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "PollOnlySourceQueue",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:ChangeMessageVisibility",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": {
+                    "Ref": "PredictionQueueArn"
+                  }
+                },
+                {
+                  "Sid": "WriteOnlyOwnLogStreams",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/justhodl-ai-prediction-ledger-consumer-prod:*"
+                  }
+                },
+                {
+                  "Sid": "UseReviewedDataKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey"
+                  ],
+                  "Resource": {
+                    "Ref": "AiDataKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:CallerAccount": {
+                        "Ref": "AWS::AccountId"
+                      }
+                    },
+                    "ForAnyValue:StringEquals": {
+                      "kms:ViaService": [
+                        {
+                          "Fn::Sub": "s3.${AWS::Region}.amazonaws.com"
+                        },
+                        {
+                          "Fn::Sub": "dynamodb.${AWS::Region}.amazonaws.com"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReadWritePredictionReceipts",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${PrivateBucket}/ai/consumers/prediction-ledger/v1/*"
+                  }
+                },
+                {
+                  "Sid": "AppendPredictionArchive",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${PredictionArchiveBucket}/predictions/records/*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${PredictionArchiveBucket}/predictions/grades/*"
+                    }
+                  ]
+                },
+                {
+                  "Sid": "AppendPredictionIndex",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${PredictionLedgerTable}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ModelGovernanceConsumerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/justhodl-ai-model-governance-consumer-prod",
+        "RetentionInDays": 30
+      }
+    },
+    "ModelGovernanceConsumerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-model-governance-consumer-prod",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-model-governance-consumer-prod-data-plane",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "PollOnlySourceQueue",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:ChangeMessageVisibility",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": {
+                    "Ref": "ModelGovernanceQueueArn"
+                  }
+                },
+                {
+                  "Sid": "WriteOnlyOwnLogStreams",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/justhodl-ai-model-governance-consumer-prod:*"
+                  }
+                },
+                {
+                  "Sid": "UseReviewedDataKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey"
+                  ],
+                  "Resource": {
+                    "Ref": "AiDataKeyArn"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:CallerAccount": {
+                        "Ref": "AWS::AccountId"
+                      },
+                      "kms:ViaService": {
+                        "Fn::Sub": "s3.${AWS::Region}.amazonaws.com"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReadWriteGovernanceReceiptsAndArchive",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:PutObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${PrivateBucket}/ai/consumers/model-governance/v1/*"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${PrivateBucket}/ai/governance/model-package-events/v1/*"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "SignalFeatureConsumer": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "justhodl-ai-signal-feature-consumer-prod",
+        "Description": "Materialize clean SignalEnvelope/v1 records into Feature Store; staged disabled",
+        "Runtime": "python3.12",
+        "Architectures": [
+          "x86_64"
+        ],
+        "Handler": "signal_feature_consumer.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "SignalFeatureConsumerRole",
+            "Arn"
+          ]
+        },
+        "MemorySize": 512,
+        "Timeout": 60,
+        "ReservedConcurrentExecutions": 2,
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeBucket"
+          },
+          "S3Key": {
+            "Ref": "CodeKey"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "AI_PRIVATE_BUCKET": {
+              "Ref": "PrivateBucket"
+            },
+            "SIGNAL_FEATURE_GROUP": {
+              "Ref": "SignalFeatureGroup"
+            }
+          }
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "signal-feature-consumer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "SignalFeatureConsumerLogGroup"
+      ]
+    },
+    "PredictionLedgerConsumer": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "justhodl-ai-prediction-ledger-consumer-prod",
+        "Description": "Archive-first Prediction/v2 ingestion and grading; staged disabled",
+        "Runtime": "python3.12",
+        "Architectures": [
+          "x86_64"
+        ],
+        "Handler": "prediction_ledger_consumer.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "PredictionLedgerConsumerRole",
+            "Arn"
+          ]
+        },
+        "MemorySize": 512,
+        "Timeout": 60,
+        "ReservedConcurrentExecutions": 2,
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeBucket"
+          },
+          "S3Key": {
+            "Ref": "CodeKey"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "AI_PRIVATE_BUCKET": {
+              "Ref": "PrivateBucket"
+            },
+            "PREDICTION_LEDGER_TABLE": {
+              "Ref": "PredictionLedgerTable"
+            },
+            "PREDICTION_LEDGER_ARCHIVE_BUCKET": {
+              "Ref": "PredictionArchiveBucket"
+            }
+          }
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "prediction-ledger-consumer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "PredictionLedgerConsumerLogGroup"
+      ]
+    },
+    "ModelGovernanceConsumer": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "justhodl-ai-model-governance-consumer-prod",
+        "Description": "Persist validated model-package approval state evidence; staged disabled",
+        "Runtime": "python3.12",
+        "Architectures": [
+          "x86_64"
+        ],
+        "Handler": "model_governance_consumer.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "ModelGovernanceConsumerRole",
+            "Arn"
+          ]
+        },
+        "MemorySize": 256,
+        "Timeout": 30,
+        "ReservedConcurrentExecutions": 2,
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeBucket"
+          },
+          "S3Key": {
+            "Ref": "CodeKey"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "AI_PRIVATE_BUCKET": {
+              "Ref": "PrivateBucket"
+            },
+            "MODEL_PACKAGE_GROUP": {
+              "Ref": "ModelPackageGroup"
+            }
+          }
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "model-governance-consumer"
+          }
+        ]
+      },
+      "DependsOn": [
+        "ModelGovernanceConsumerLogGroup"
+      ]
+    },
+    "SignalFeatureConsumerMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": {
+          "Ref": "SignalQueueArn"
+        },
+        "FunctionName": {
+          "Ref": "SignalFeatureConsumer"
+        },
+        "Enabled": false,
+        "BatchSize": 10,
+        "MaximumBatchingWindowInSeconds": 5,
+        "FunctionResponseTypes": [
+          "ReportBatchItemFailures"
+        ]
+      }
+    },
+    "PredictionLedgerConsumerMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": {
+          "Ref": "PredictionQueueArn"
+        },
+        "FunctionName": {
+          "Ref": "PredictionLedgerConsumer"
+        },
+        "Enabled": false,
+        "BatchSize": 10,
+        "MaximumBatchingWindowInSeconds": 5,
+        "FunctionResponseTypes": [
+          "ReportBatchItemFailures"
+        ]
+      }
+    },
+    "ModelGovernanceConsumerMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": {
+          "Ref": "ModelGovernanceQueueArn"
+        },
+        "FunctionName": {
+          "Ref": "ModelGovernanceConsumer"
+        },
+        "Enabled": false,
+        "BatchSize": 10,
+        "MaximumBatchingWindowInSeconds": 5,
+        "FunctionResponseTypes": [
+          "ReportBatchItemFailures"
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "MappingsEnabled": {
+      "Value": "false",
+      "Description": "All event source mappings are deliberately disabled until the consumer canary and DLQ alarm review pass"
+    }
+  }
+}

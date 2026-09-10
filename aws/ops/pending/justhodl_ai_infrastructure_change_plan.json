@@ -1,0 +1,634 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-control-core",
+      "passed": true,
+      "detail": "justhodl-ai-control-core standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-training-deployment-control",
+      "passed": true,
+      "detail": "justhodl-ai-training-deployment-control standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-feature-store-access",
+      "passed": true,
+      "detail": "justhodl-ai-feature-store-access standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-runtime-data",
+      "passed": true,
+      "detail": "justhodl-ai-runtime-data standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-brain-signal-boundary",
+      "passed": true,
+      "detail": "justhodl-ai-brain-signal-boundary standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_policy_template_parity.justhodl-ai-ledger-archive",
+      "passed": true,
+      "detail": "justhodl-ai-ledger-archive standalone and CloudFormation managed policies are identical"
+    },
+    {
+      "name": "iam.lambda_trust_template_parity",
+      "passed": true,
+      "detail": "standalone and CloudFormation Lambda trust policies are identical"
+    },
+    {
+      "name": "iam.sagemaker_policy_template_parity",
+      "passed": true,
+      "detail": "standalone and CloudFormation SageMaker policies are identical"
+    },
+    {
+      "name": "iam.sagemaker_trust_template_parity",
+      "passed": true,
+      "detail": "standalone and CloudFormation SageMaker trust policies are identical"
+    },
+    {
+      "name": "iam.lambda_managed_policy_attachments",
+      "passed": true,
+      "detail": "the Lambda role attaches exactly the six domain-separated managed policies"
+    },
+    {
+      "name": "iam.lambda_managed_policy_attachment_quota",
+      "passed": true,
+      "detail": "managed-policy attachments stay within the IAM role quota"
+    },
+    {
+      "name": "iam.lambda_managed_policy_document_quotas",
+      "passed": true,
+      "detail": "each domain policy stays within the IAM managed-policy document quota"
+    },
+    {
+      "name": "iam.lambda_inline_policy_aggregate_quota",
+      "passed": true,
+      "detail": "remaining inline role policies stay within the IAM aggregate quota"
+    },
+    {
+      "name": "iam.dedicated_lambda_role",
+      "passed": true,
+      "detail": "the stack creates a role dedicated to justhodl-ai"
+    },
+    {
+      "name": "iam.lambda_trust_scope",
+      "passed": true,
+      "detail": "Lambda trust permits only the Lambda service; assignment is to the dedicated role"
+    },
+    {
+      "name": "iam.dedicated_sagemaker_role",
+      "passed": true,
+      "detail": "the stack creates a dedicated SageMaker execution role"
+    },
+    {
+      "name": "iam.dedicated_feature_store_role",
+      "passed": true,
+      "detail": "the stack creates a dedicated Feature Store service role"
+    },
+    {
+      "name": "iam.feature_store_trust_scope",
+      "passed": true,
+      "detail": "Feature Store trust is bound to governed feature groups"
+    },
+    {
+      "name": "iam.sagemaker_trust_scope",
+      "passed": true,
+      "detail": "SageMaker trust is bound to the target account"
+    },
+    {
+      "name": "iam.dedicated_mlflow_role",
+      "passed": true,
+      "detail": "the stack creates a dedicated MLflow tracking-server role"
+    },
+    {
+      "name": "iam.mlflow_role_retention",
+      "passed": true,
+      "detail": "the role required by the retained MLflow server is also retained"
+    },
+    {
+      "name": "iam.mlflow_trust_scope",
+      "passed": true,
+      "detail": "MLflow trust is bound to its named server in the target account"
+    },
+    {
+      "name": "iam.no_sagemaker_wildcard",
+      "passed": true,
+      "detail": "no Allow statement grants sagemaker:*"
+    },
+    {
+      "name": "iam.no_global_action_wildcard",
+      "passed": true,
+      "detail": "no Allow statement grants Action '*'"
+    },
+    {
+      "name": "iam.no_managed_full_access",
+      "passed": true,
+      "detail": "AmazonSageMakerFullAccess is absent"
+    },
+    {
+      "name": "iam.resource_star_allowlist",
+      "passed": true,
+      "detail": "Resource '*' is limited to explicitly reviewed non-resource APIs"
+    },
+    {
+      "name": "iam.pass_role",
+      "passed": true,
+      "detail": "PassRole is limited to the dedicated role and SageMaker service"
+    },
+    {
+      "name": "iam.create_scope",
+      "passed": true,
+      "detail": "SageMaker creates require ownership tags and jh-ai-* names"
+    },
+    {
+      "name": "iam.mutation_scope",
+      "passed": true,
+      "detail": "SageMaker mutations require ownership tags and jh-ai-* names"
+    },
+    {
+      "name": "iam.sagemaker_no_dashboard_access",
+      "passed": true,
+      "detail": "SageMaker execution has no dashboard-bucket access"
+    },
+    {
+      "name": "iam.canonical_brain_read_only",
+      "passed": true,
+      "detail": "Lambda canonical Brain access is read-only and limited to data/brain.json"
+    },
+    {
+      "name": "iam.canonical_brain_list_scope",
+      "passed": true,
+      "detail": "canonical Brain listing is limited to the exact reviewed object"
+    },
+    {
+      "name": "iam.governed_signal_write_prefixes",
+      "passed": true,
+      "detail": "Lambda writes canonical signals and private outbox state only in governed prefixes"
+    },
+    {
+      "name": "s3.canonical_brain_lambda_mutation_deny",
+      "passed": true,
+      "detail": "bucket policy denies Lambda canonical-object mutation outside governed signals"
+    },
+    {
+      "name": "iam.lambda_domain_policy_separation",
+      "passed": true,
+      "detail": "Lambda permissions are split across six reviewed domain policies"
+    },
+    {
+      "name": "iam.sagemaker_brain_read_only",
+      "passed": true,
+      "detail": "SageMaker can read only the canonical Brain object and cannot write Brain data"
+    },
+    {
+      "name": "iam.sagemaker_feature_store_prefix",
+      "passed": true,
+      "detail": "SageMaker Feature Store object access is limited to offline/*"
+    },
+    {
+      "name": "iam.feature_store_role_data_boundary",
+      "passed": true,
+      "detail": "Feature Store role is isolated from Brain and training/model prefixes"
+    },
+    {
+      "name": "iam.mlflow_artifact_scope",
+      "passed": true,
+      "detail": "MLflow service-role S3 access is limited to its artifact bucket"
+    },
+    {
+      "name": "iam.mlflow_no_wildcard_resources",
+      "passed": true,
+      "detail": "MLflow service-role permissions contain no wildcard resource"
+    },
+    {
+      "name": "iam.mlflow_service_role_no_registry_access",
+      "passed": true,
+      "detail": "automatic registration is off and the MLflow service role has no registry access"
+    },
+    {
+      "name": "iam.mlflow_kms_scope",
+      "passed": true,
+      "detail": "MLflow KMS use is limited to the stack key through regional S3"
+    },
+    {
+      "name": "s3.mlflow_artifact_policy",
+      "passed": true,
+      "detail": "the retained artifact policy denies insecure, cross-account, and public-ACL access"
+    },
+    {
+      "name": "s3.dashboard_brain_read_deny",
+      "passed": true,
+      "detail": "public dashboard Brain reads are explicitly denied"
+    },
+    {
+      "name": "s3.dashboard_brain_read_deny_unconditional",
+      "passed": true,
+      "detail": "the dashboard Brain-read deny applies to every principal"
+    },
+    {
+      "name": "s3.dashboard_brain_write_deny",
+      "passed": true,
+      "detail": "new Brain objects cannot be written to dashboard prefixes"
+    },
+    {
+      "name": "CanonicalBrainBucket.public_access_block",
+      "passed": true,
+      "detail": "all four public-access-block controls are enabled"
+    },
+    {
+      "name": "CanonicalBrainBucket.encryption",
+      "passed": true,
+      "detail": "default SSE-KMS encryption is configured"
+    },
+    {
+      "name": "CanonicalBrainBucket.versioning",
+      "passed": true,
+      "detail": "versioning is enabled"
+    },
+    {
+      "name": "CanonicalBrainBucket.lifecycle",
+      "passed": true,
+      "detail": "at least one lifecycle rule is defined"
+    },
+    {
+      "name": "CanonicalBrainBucket.eventing",
+      "passed": true,
+      "detail": "S3 events are enabled for EventBridge"
+    },
+    {
+      "name": "FeatureStoreBucket.public_access_block",
+      "passed": true,
+      "detail": "all four public-access-block controls are enabled"
+    },
+    {
+      "name": "FeatureStoreBucket.encryption",
+      "passed": true,
+      "detail": "default SSE-KMS encryption is configured"
+    },
+    {
+      "name": "FeatureStoreBucket.versioning",
+      "passed": true,
+      "detail": "versioning is enabled"
+    },
+    {
+      "name": "FeatureStoreBucket.lifecycle",
+      "passed": true,
+      "detail": "at least one lifecycle rule is defined"
+    },
+    {
+      "name": "FeatureStoreBucket.eventing",
+      "passed": true,
+      "detail": "S3 events are enabled for EventBridge"
+    },
+    {
+      "name": "MlflowArtifactBucket.public_access_block",
+      "passed": true,
+      "detail": "all four public-access-block controls are enabled"
+    },
+    {
+      "name": "MlflowArtifactBucket.encryption",
+      "passed": true,
+      "detail": "default SSE-KMS encryption is configured"
+    },
+    {
+      "name": "MlflowArtifactBucket.versioning",
+      "passed": true,
+      "detail": "versioning is enabled"
+    },
+    {
+      "name": "MlflowArtifactBucket.lifecycle",
+      "passed": true,
+      "detail": "at least one lifecycle rule is defined"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.public_access_block",
+      "passed": true,
+      "detail": "all four public-access-block controls are enabled"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.encryption",
+      "passed": true,
+      "detail": "default SSE-KMS encryption is configured"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.versioning",
+      "passed": true,
+      "detail": "versioning is enabled"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.lifecycle",
+      "passed": true,
+      "detail": "at least one lifecycle rule is defined"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.eventing",
+      "passed": true,
+      "detail": "S3 events are enabled for EventBridge"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.object_lock",
+      "passed": true,
+      "detail": "object lock is enabled at bucket creation"
+    },
+    {
+      "name": "PredictionLedgerArchiveBucket.retention",
+      "passed": true,
+      "detail": "WORM retention is COMPLIANCE mode for at least seven years"
+    },
+    {
+      "name": "TrainingInputBucket.public_access_block",
+      "passed": true,
+      "detail": "all four public-access-block controls are enabled"
+    },
+    {
+      "name": "TrainingInputBucket.encryption",
+      "passed": true,
+      "detail": "default SSE-KMS encryption is configured"
+    },
+    {
+      "name": "TrainingInputBucket.versioning",
+      "passed": true,
+      "detail": "versioning is enabled"
+    },
+    {
+      "name": "TrainingInputBucket.lifecycle",
+      "passed": true,
+      "detail": "at least one lifecycle rule is defined"
+    },
+    {
+      "name": "TrainingInputBucket.object_lock",
+      "passed": true,
+      "detail": "object lock is enabled at bucket creation"
+    },
+    {
+      "name": "TrainingInputBucket.retention",
+      "passed": true,
+      "detail": "WORM retention is COMPLIANCE mode for at least seven years"
+    },
+    {
+      "name": "eventing.custom_bus",
+      "passed": true,
+      "detail": "a custom JustHodl AI event bus is defined"
+    },
+    {
+      "name": "eventing.rules",
+      "passed": true,
+      "detail": "signal, prediction, and model-governance rules are defined"
+    },
+    {
+      "name": "eventing.safe_initial_state",
+      "passed": true,
+      "detail": "rules are staged disabled until consumers pass canaries"
+    },
+    {
+      "name": "eventing.dead_letters",
+      "passed": true,
+      "detail": "every EventBridge target has a dead-letter queue"
+    },
+    {
+      "name": "feature_store.groups",
+      "passed": true,
+      "detail": "signal and prediction feature groups are defined"
+    },
+    {
+      "name": "feature_store.online_offline",
+      "passed": true,
+      "detail": "every feature group has online and offline stores"
+    },
+    {
+      "name": "feature_store.keys",
+      "passed": true,
+      "detail": "record identifiers and event times are declared features"
+    },
+    {
+      "name": "feature_store.dedicated_role",
+      "passed": true,
+      "detail": "every feature group uses the dedicated Feature Store role"
+    },
+    {
+      "name": "registry.model_package_group",
+      "passed": true,
+      "detail": "the governed SageMaker Model Package Group is defined"
+    },
+    {
+      "name": "registry.retention",
+      "passed": true,
+      "detail": "the model package group is retained on deletion and replacement"
+    },
+    {
+      "name": "mlflow.tracking_server",
+      "passed": true,
+      "detail": "a small governed MLflow server uses the dedicated private artifact store"
+    },
+    {
+      "name": "mlflow.retention",
+      "passed": true,
+      "detail": "the MLflow tracking server is retained on deletion and replacement"
+    },
+    {
+      "name": "registry.separate_manual_approval",
+      "passed": true,
+      "detail": "automated roles cannot approve packages and MLflow auto-registration is disabled"
+    },
+    {
+      "name": "iam.mlflow_client_scope",
+      "passed": true,
+      "detail": "training clients can write governed runs only on the named server without delete access"
+    },
+    {
+      "name": "ledger.index_protection",
+      "passed": true,
+      "detail": "ledger index has deletion protection, PITR, and KMS encryption"
+    },
+    {
+      "name": "ledger.append_only_writer",
+      "passed": true,
+      "detail": "the new ledger writer cannot update or delete index rows"
+    },
+    {
+      "name": "safety.no_lambda_mutation",
+      "passed": true,
+      "detail": "the stack does not mutate or replace the existing Lambda"
+    },
+    {
+      "name": "outputs.registry_mlflow",
+      "passed": true,
+      "detail": "registry, tracking-server, and artifact-bucket outputs are defined"
+    },
+    {
+      "name": "outputs.registry_mlflow_environment",
+      "passed": true,
+      "detail": "the stack emits all registry and MLflow Lambda bindings"
+    },
+    {
+      "name": "config.registry_mlflow_environment",
+      "passed": true,
+      "detail": "repository Lambda config matches the registry and MLflow resources"
+    }
+  ],
+  "change_plan": {
+    "schema": "JustHodlAiInfrastructureChangePlan/v1",
+    "mode": "offline-dry-run",
+    "aws_api_calls": 0,
+    "target": {
+      "account": "857687956942",
+      "region": "us-east-1"
+    },
+    "observed_repository_config": {
+      "function_name": "justhodl-ai",
+      "role": "arn:aws:iam::857687956942:role/justhodl-ai-lambda-prod",
+      "shared_role_detected": false,
+      "brain_source_bucket_configured": true,
+      "model_package_group_configured": true,
+      "mlflow_tracking_server_configured": true
+    },
+    "artifacts": {
+      "aws/lambdas/justhodl-ai/iam/production-gates.template.json": {
+        "sha256": "b3c4cd11acee0f57b59ee011f36c72d509841343af7503a9c92cadb9b31ab70f"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-control-policy.json": {
+        "sha256": "897c2d8b7117ef6aa3a0dea36bf159a465d656db1bc25a17d98b0e0f452aac02"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-training-deployment-policy.json": {
+        "sha256": "0116258b50b3e506c8e6776af25cff6e2f4634395822be4a2eea581b91a92332"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-feature-store-policy.json": {
+        "sha256": "5f2239a1735196a70466b49b74f0ec135631ef99eedc15ced31766a085931c58"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-runtime-data-policy.json": {
+        "sha256": "5b59679af29f60383aeb9b67ae7d2dd578f1b972901670c2c2c644d5cbd6f201"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-brain-signal-policy.json": {
+        "sha256": "7e02154be15ecda1ab4db84359250ec572d1cdb901740aa22cdc5787d3a4c230"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-ledger-archive-policy.json": {
+        "sha256": "daff2a3ba7d57274623c49f41554794a29f5a3906c67939a5c020565f7cd2193"
+      },
+      "aws/lambdas/justhodl-ai/iam/lambda-execution-role-trust.json": {
+        "sha256": "64d592f660d2d192bc6091f0dfd83f30bf9c6835a1f1c09b06b1adae8d5886e7"
+      },
+      "aws/lambdas/justhodl-ai/iam/sagemaker-execution-role-inline.json": {
+        "sha256": "76a09a4fead2a5af8241ad316c0d50b46601aad0899a3e74732a567056aa512f"
+      },
+      "aws/lambdas/justhodl-ai/iam/sagemaker-execution-role-trust.json": {
+        "sha256": "75eb8e7933ebf2a1ddddecca14f11c90dbdd9e88a70e0a2e9007bb15f62fafc1"
+      },
+      "aws/lambdas/justhodl-ai/iam/dashboard-brain-deny-policy.json": {
+        "sha256": "3bbc83b85fbfd0485d8ff2f85011ab22d832264b610fef45ae9a79907d8b21df"
+      }
+    },
+    "changes": [
+      {
+        "order": 10,
+        "action": "CREATE_CHANGE_SET",
+        "artifact": "aws/lambdas/justhodl-ai/iam/production-gates.template.json",
+        "execution": "manual-and-separately-approved",
+        "creates": [
+          "dedicated Lambda role with six domain-separated managed policies",
+          "least-privilege SageMaker training/deployment role",
+          "dedicated Feature Store offline-materialization role",
+          "KMS key",
+          "private canonical Brain bucket",
+          "Feature Store bucket and two online/offline feature groups",
+          "retained SageMaker Model Package Group",
+          "retained Managed MLflow tracking server, dedicated role, and private KMS-encrypted artifact bucket",
+          "custom event bus, staged-disabled rules, queues, and DLQs",
+          "append-only prediction archive and protected DynamoDB index"
+        ]
+      },
+      {
+        "order": 20,
+        "action": "MIGRATE_AND_VERIFY_BRAIN",
+        "from": "justhodl-dashboard-live/data/brain.json",
+        "to": "s3://justhodl-ai-brain-857687956942-us-east-1/data/brain.json",
+        "preconditions": [
+          "copy with checksum evidence",
+          "verify object is SSE-KMS encrypted and not publicly reachable",
+          "retain source only until owner read canary succeeds"
+        ]
+      },
+      {
+        "order": 30,
+        "action": "UPDATE_EXISTING_LAMBDA_CONFIGURATION",
+        "target": "justhodl-ai",
+        "role": "arn:aws:iam::857687956942:role/justhodl-ai-lambda-prod",
+        "environment_merge": {
+          "AI_BRAIN_SOURCE_BUCKET": "justhodl-ai-brain-857687956942-us-east-1",
+          "PREDICTION_LEDGER_TABLE": "justhodl-ai-prediction-ledger-prod",
+          "AI_EVENT_BUS": "justhodl-ai-prod",
+          "SIGNAL_FEATURE_GROUP": "justhodl-ai-signal-prod",
+          "PREDICTION_FEATURE_GROUP": "justhodl-ai-prediction-prod",
+          "PREDICTION_LEDGER_ARCHIVE_BUCKET": "justhodl-ai-prediction-ledger-857687956942-us-east-1",
+          "MODEL_PACKAGE_GROUP": "justhodl-ai-prod",
+          "MLFLOW_TRACKING_SERVER_NAME": "justhodl-ai-prod",
+          "MLFLOW_TRACKING_SERVER_ARN": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod",
+          "MLFLOW_EXPERIMENT_NAME": "justhodl-ai-prod",
+          "SAGEMAKER_ROLE_ARN": "arn:aws:iam::857687956942:role/justhodl-ai-sagemaker-prod"
+        },
+        "precondition": "manual approval after IAM simulation; preserve all other environment variables"
+      },
+      {
+        "order": 40,
+        "action": "CANARY",
+        "checks": [
+          "signed-out dashboard cannot read any Brain prefix",
+          "owner can build a dataset from the canonical private Brain object",
+          "unprefixed or untagged SageMaker create is denied",
+          "tagged jh-ai-* create works within budget policy",
+          "prediction archive failure creates no DynamoDB index row",
+          "prediction retry verifies the immutable archive before conditionally creating the index row",
+          "Lambda cannot overwrite canonical Brain objects outside signals/v1/",
+          "new model packages remain PendingManualApproval",
+          "training can log an MLflow run and cannot delete it or access another tracking server",
+          "MLflow artifacts are private, versioned, and encrypted with alias/justhodl-ai-prod",
+          "rollback restores the prior Lambda role and environment"
+        ]
+      },
+      {
+        "order": 50,
+        "action": "MERGE_BUCKET_POLICY",
+        "artifact": "aws/lambdas/justhodl-ai/iam/dashboard-brain-deny-policy.json",
+        "target": "justhodl-dashboard-live",
+        "precondition": "merge with the live policy after private-read canary; never replace unseen statements"
+      },
+      {
+        "order": 60,
+        "action": "ENABLE_EVENT_RULES",
+        "rules": [
+          "justhodl-ai-signal-envelope-v1-prod",
+          "justhodl-ai-prediction-v2-prod",
+          "justhodl-ai-model-package-state-prod"
+        ],
+        "precondition": "queue consumers, replay protection, and DLQ alarms are separately reviewed"
+      }
+    ],
+    "blockers": [
+      {
+        "id": "LAMBDA_ROLE_CUTOVER_PENDING",
+        "active": false,
+        "detail": "repository config binds the dedicated Lambda role"
+      },
+      {
+        "id": "BRAIN_SOURCE_CUTOVER_PENDING",
+        "active": false,
+        "detail": "repository config binds the canonical Brain bucket"
+      },
+      {
+        "id": "MODEL_REGISTRY_BINDING_PENDING",
+        "active": false,
+        "detail": "repository config binds the governed model package group"
+      },
+      {
+        "id": "MLFLOW_BINDING_PENDING",
+        "active": false,
+        "detail": "repository config binds the governed MLflow tracking server"
+      },
+      {
+        "id": "NO_LIVE_AWS_DIFF",
+        "active": true,
+        "detail": "offline plan intentionally does not inspect AWS; create-set review is mandatory"
+      }
+    ]
+  }
+}

@@ -2,11 +2,20 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "SageMakerServiceAssumeRole",
       "Effect": "Allow",
       "Principal": {
         "Service": "sagemaker.amazonaws.com"
       },
-      "Action": "sts:AssumeRole"
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "857687956942"
+        },
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:sagemaker:us-east-1:857687956942:*"
+        }
+      }
     }
   ]
 }

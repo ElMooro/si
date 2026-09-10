@@ -26,24 +26,36 @@ private bucket ai/{policy,pricing,catalog,datasets,models,jobs}.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import re
 import time
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 import boto3
 from botocore.config import Config
 
 import brain_dataset as bd
 import cost_guard as cg
+import deployment_gates as dg
 import fleet_inputs as fi
+import governance_control as governance
 import market_read as mr
 import pipeline as pl
+import model_registry as registry
+import outcome_labels as labels
+import point_in_time as pit
+import prediction_ledger as ledger
+import s3_event_outbox as event_outbox
+import sagemaker_feature_store as feature_store
+import signal_envelope as signals
 import sm_hub
 import training as tr
+import training_eligibility as training_gate
+import validation_splits as splits
 
 try:
     from private_artifact import private_http_denied  # shared: service-token gate for Function URL calls
@@ -64,6 +76,21 @@ CALLS_KEY = "ai/market-read/calls.json"
 OWNER_READ_MODEL_KEY = "ai/read-model/latest.json"
 VERDICT_KEY = "data/ai/verdict.json"
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
+AI_EVENT_BUS = os.environ.get("AI_EVENT_BUS", "")
+SIGNAL_FEATURE_GROUP = os.environ.get("SIGNAL_FEATURE_GROUP", "")
+PREDICTION_FEATURE_GROUP = os.environ.get("PREDICTION_FEATURE_GROUP", "")
+PREDICTION_LEDGER_TABLE = os.environ.get("PREDICTION_LEDGER_TABLE", "")
+PREDICTION_LEDGER_ARCHIVE_BUCKET = os.environ.get("PREDICTION_LEDGER_ARCHIVE_BUCKET", "")
+MODEL_PACKAGE_GROUP = os.environ.get("MODEL_PACKAGE_GROUP", "")
+MLFLOW_TRACKING_SERVER_NAME = os.environ.get("MLFLOW_TRACKING_SERVER_NAME", "")
+MLFLOW_TRACKING_SERVER_ARN = os.environ.get("MLFLOW_TRACKING_SERVER_ARN", "")
+MLFLOW_EXPERIMENT_NAME = os.environ.get("MLFLOW_EXPERIMENT_NAME", "")
+TRAINING_INPUT_BUCKET = os.environ.get("TRAINING_INPUT_BUCKET", "")
+FEATURE_STORE_ATHENA_WORKGROUP = os.environ.get("FEATURE_STORE_ATHENA_WORKGROUP", "primary")
+FEATURE_STORE_QUERY_OUTPUT = os.environ.get(
+    "FEATURE_STORE_QUERY_OUTPUT",
+    "s3://%s/ai/feature-store-query-results/" % PRIVATE_BUCKET,
+)
 CFG = Config(retries={"max_attempts": 4, "mode": "adaptive"}, read_timeout=60)
 
 _clients: Dict[str, Any] = {}
@@ -425,7 +452,16 @@ def _reject_pinned(body: dict) -> None:
         raise ActionError("pinned endpoints are disabled; all billable endpoints require an enforced TTL")
 
 
+def _reject_direct_production_deploy() -> None:
+    if os.environ.get("AI_ENVIRONMENT", "production").strip().lower() == "production":
+        raise ActionError(
+            "direct deployment is disabled in production; use the approval-gated "
+            "blue-green canary workflow"
+        )
+
+
 def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
+    _reject_direct_production_deploy()
     _reject_pinned(body)
     model_id = str(body.get("model_id") or "").strip()
     if not model_id:
@@ -511,15 +547,37 @@ def action_train_classifier(body: dict, policy: dict) -> Dict[str, Any]:
     emb = (man.get("embeddings") or {}).get(ep)
     if not emb:
         raise ActionError("dataset %s has no completed embedding pass through %s (available: %s)" % (ds_id, ep, list((man.get("embeddings") or {}).keys())))
+    try:
+        eligibility = training_gate.evaluate_training_eligibility(
+            training_gate.S3TrainingEvidenceResolver(
+                client("s3"),
+                PRIVATE_BUCKET,
+                materialization_bucket=_required_setting(
+                    "TRAINING_INPUT_BUCKET", TRAINING_INPUT_BUCKET
+                ),
+            ).resolve(body.get("governance_evidence")),
+            expected_dataset_id=ds_id,
+            expected_training_uri=emb["train_uri"],
+            expected_validation_uri=emb["validation_uri"],
+        )
+    except training_gate.TrainingEligibilityError as exc:
+        raise ActionError("classifier training is governance-ineligible: %s" % exc) from exc
+    manifest_labels = tuple(sorted(man.get("labels") or ()))
+    if manifest_labels != eligibility.labels:
+        raise ActionError(
+            "classifier training is governance-ineligible: dataset labels are not "
+            "the verified outcome-label classes"
+        )
     role = execution_role()
     it = body.get("instance_type") or "ml.m5.xlarge"
     spot = bool(body.get("spot", policy.get("training_spot", True)))
     max_rt = _capped_runtime(body, policy)
     _guard_instance(policy, it, "training", max_rt / 3600.0)
     out_uri = "s3://%s/ai/jobs/classifier/%s/%s/" % (PRIVATE_BUCKET, ds_id, re.sub(r"[^a-z0-9-]", "-", ep.lower()))
-    res = tr.start_classifier_job(client("sagemaker"), role_arn=role, train_uri=emb["train_uri"], validation_uri=emb["validation_uri"], out_uri=out_uri,
-                                  n_classes=len(man.get("labels") or bd.CATS), instance_type=it, max_runtime_s=max_rt, spot=spot,
-                                  tags=cg.tags("brain-classifier:%s:%s" % (ds_id, ep), None))
+    res = tr.start_classifier_job(client("sagemaker"), role_arn=role, train_uri=eligibility.training_uri, validation_uri=eligibility.validation_uri, out_uri=out_uri,
+                                  n_classes=len(manifest_labels), instance_type=it, max_runtime_s=max_rt, spot=spot,
+                                  tags=cg.tags("brain-classifier:%s:%s" % (ds_id, ep), None),
+                                  eligibility=eligibility)
     res.update({"dataset_id": ds_id, "embedding_endpoint": ep, "labels": man.get("labels") or bd.CATS, "n_train": emb.get("n_embedded")})
     put_private("ai/jobs/%s.json" % res["job_name"], res)
     return res
@@ -532,20 +590,57 @@ def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
     man = bd._get_json(client("s3"), PRIVATE_BUCKET, "ai/datasets/brain/%s/manifest.json" % ds_id) if ds_id else None
     if not man or not (man.get("embeddings") or {}).get(ep):
         raise ActionError("dataset %s has no completed embedding pass through %s" % (ds_id, ep))
+    emb = (man.get("embeddings") or {})[ep]
     fractions = body.get("fractions") or [0.1, 0.25, 0.5, 1.0]
     fractions = sorted({min(1.0, max(0.02, float(f))) for f in fractions})
+    evidence_by_fraction = body.get("fraction_governance_evidence")
+    if not isinstance(evidence_by_fraction, Mapping):
+        raise ActionError(
+            "classifier curve requires fraction_governance_evidence for every "
+            "materialized subset"
+        )
+    # Materialize all subsets and verify every exact subset URI before any
+    # training call. A full-dataset receipt can never authorize a fraction URI.
+    verified_subsets = []
+    resolver = training_gate.S3TrainingEvidenceResolver(
+        client("s3"),
+        PRIVATE_BUCKET,
+        materialization_bucket=_required_setting(
+            "TRAINING_INPUT_BUCKET", TRAINING_INPUT_BUCKET
+        ),
+    )
+    manifest_labels = tuple(sorted(man.get("labels") or ()))
+    try:
+        for fraction in fractions:
+            fraction_key = "f%03d" % int(round(fraction * 100))
+            sub = bd.write_fraction_csv(
+                client("s3"), PRIVATE_BUCKET, ds_id, ep, fraction
+            )
+            eligibility = training_gate.evaluate_training_eligibility(
+                resolver.resolve(evidence_by_fraction.get(fraction_key)),
+                expected_dataset_id=ds_id,
+                expected_training_uri=sub["train_uri"],
+                expected_validation_uri=sub["validation_uri"],
+            )
+            if manifest_labels != eligibility.labels:
+                raise training_gate.TrainingEligibilityError(
+                    "dataset labels are not the verified outcome-label classes"
+                )
+            verified_subsets.append((fraction, sub, eligibility))
+    except training_gate.TrainingEligibilityError as exc:
+        raise ActionError("classifier curve is governance-ineligible: %s" % exc) from exc
     it = body.get("instance_type") or "ml.m5.xlarge"
     spot = bool(body.get("spot", policy.get("training_spot", True)))
     max_rt = _capped_runtime(body, policy)
     price = _guard_instance(policy, it, "training", len(fractions) * max_rt / 3600.0)
     curve_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     runs = []
-    for f in fractions:
-        sub = bd.write_fraction_csv(client("s3"), PRIVATE_BUCKET, ds_id, ep, f)
+    for f, sub, eligibility in verified_subsets:
         out_uri = "s3://%s/ai/jobs/curve/%s/f%03d/" % (PRIVATE_BUCKET, curve_id, int(round(f * 100)))
-        res = tr.start_classifier_job(client("sagemaker"), role_arn=execution_role(), train_uri=sub["train_uri"], validation_uri=sub["validation_uri"], out_uri=out_uri,
-                                      n_classes=len(man.get("labels") or bd.CATS), instance_type=it, max_runtime_s=max_rt, spot=spot,
-                                      tags=cg.tags("brain-curve:%s:f%03d" % (curve_id, int(round(f * 100))), None), job_name=tr._name("jh-ai-curve-f%03d" % int(round(f * 100))))
+        res = tr.start_classifier_job(client("sagemaker"), role_arn=execution_role(), train_uri=eligibility.training_uri, validation_uri=eligibility.validation_uri, out_uri=out_uri,
+                                      n_classes=len(manifest_labels), instance_type=it, max_runtime_s=max_rt, spot=spot,
+                                      tags=cg.tags("brain-curve:%s:f%03d" % (curve_id, int(round(f * 100))), None), job_name=tr._name("jh-ai-curve-f%03d" % int(round(f * 100))),
+                                      eligibility=eligibility)
         runs.append({"fraction": f, "n_train": sub["n_train"], "job_name": res["job_name"]})
         put_private("ai/jobs/%s.json" % res["job_name"], {**res, "dataset_id": ds_id, "embedding_endpoint": ep, "curve_id": curve_id, "fraction": f, "n_train": sub["n_train"], "kind": "curve"})
     doc = {"curve_id": curve_id, "dataset_id": ds_id, "endpoint": ep, "instance_type": it, "spot": spot, "labels": man.get("labels"), "n_validation": (man.get("embeddings") or {}).get(ep, {}).get("n_embedded"),
@@ -599,14 +694,29 @@ def action_train_finetune(body: dict, policy: dict) -> Dict[str, Any]:
     uri = str(body.get("training_uri") or "").strip()
     if not model_id or not uri.startswith("s3://"):
         raise ActionError("model_id and an s3:// training_uri are required")
+    try:
+        eligibility = training_gate.evaluate_training_eligibility(
+            training_gate.S3TrainingEvidenceResolver(
+                client("s3"),
+                PRIVATE_BUCKET,
+                materialization_bucket=_required_setting(
+                    "TRAINING_INPUT_BUCKET", TRAINING_INPUT_BUCKET
+                ),
+            ).resolve(body.get("governance_evidence")),
+            expected_dataset_id=str(body.get("dataset_id") or "").strip() or None,
+            expected_training_uri=uri,
+        )
+    except training_gate.TrainingEligibilityError as exc:
+        raise ActionError("fine-tune training is governance-ineligible: %s" % exc) from exc
     spec = sm_hub.describe_model(client("sagemaker"), model_id, body.get("version"))
     it = body.get("instance_type") or spec.get("default_training_instance")
     max_rt = _capped_runtime(body, policy)
     spot = bool(body.get("spot", policy.get("training_spot", True)))
     _guard_instance(policy, it, "training", max_rt / 3600.0)
     out_uri = "s3://%s/ai/jobs/finetune/%s/" % (PRIVATE_BUCKET, re.sub(r"[^a-z0-9-]", "-", model_id.lower()))
-    res = tr.start_jumpstart_finetune(client("sagemaker"), spec=spec, role_arn=execution_role(), training_uri=uri, out_uri=out_uri, instance_type=it,
-                                      max_runtime_s=max_rt, spot=spot, tags=cg.tags("finetune:" + model_id, None), hyperparameters=body.get("hyperparameters") or {})
+    res = tr.start_jumpstart_finetune(client("sagemaker"), spec=spec, role_arn=execution_role(), training_uri=eligibility.training_uri, out_uri=out_uri, instance_type=it,
+                                      max_runtime_s=max_rt, spot=spot, tags=cg.tags("finetune:" + model_id, None), hyperparameters=body.get("hyperparameters") or {},
+                                      eligibility=eligibility)
     put_private("ai/jobs/%s.json" % res["job_name"], res)
     return res
 
@@ -616,6 +726,7 @@ def action_train_automl(body: dict, policy: dict) -> Dict[str, Any]:
 
 
 def action_deploy_trained(body: dict, policy: dict) -> Dict[str, Any]:
+    _reject_direct_production_deploy()
     _reject_pinned(body)
     job = str(body.get("job_name") or "").strip()
     if not job:
@@ -909,8 +1020,21 @@ def action_pipeline_start(body: dict, policy: dict, context=None) -> Dict[str, A
         ladder += [c["model_id"] for c in (cat.get("cards") or []) if c["model_id"] in pl.RETRIEVAL_LADDER][:2]
     if not ladder:
         raise ActionError("no embedding card in the catalog yet -- refresh the catalog first")
+    evidence = body.get("governance_evidence")
+    if evidence is not None:
+        if not isinstance(evidence, Mapping):
+            raise ActionError("governance_evidence must be an immutable receipt reference")
+        unknown = sorted(set(evidence) - {"uri", "version_id", "sha256"})
+        if unknown:
+            raise ActionError(
+                "governance_evidence contains unknown fields: %s" % ", ".join(unknown)
+            )
     p = _pipeline(policy, context)
-    st = p.start(ladder, force=bool(body.get("force")))
+    st = p.start(
+        ladder,
+        force=bool(body.get("force")),
+        governance_evidence=dict(evidence) if evidence is not None else None,
+    )
     if body.get("tick", True):
         st = p.tick(budget_s=_budget(context))
     return pl.public_view(st)
@@ -934,6 +1058,775 @@ def action_pipeline_stop(body: dict, policy: dict) -> Dict[str, Any]:
         st["stopped_at"] = now_iso()
         put_private(pl.STATE_KEY, st)
     return pl.public_view(st)
+
+
+# ═══════════════════════════════════════════════════════════ AI governance
+def _required_setting(name: str, value: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ActionError("%s is not configured" % name)
+    return value.strip()
+
+
+def _object(value: Any, field: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ActionError("%s must be an object" % field)
+    return value
+
+
+def _only_keys(value: Mapping[str, Any], allowed: Sequence[str], field: str = "request") -> None:
+    unknown = sorted(set(value) - set(allowed))
+    if unknown:
+        raise ActionError("%s contains unknown fields: %s" % (field, ", ".join(unknown)))
+
+
+def _boolean(value: Any, field: str, default: bool) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise ActionError("%s must be boolean" % field)
+    return value
+
+
+def _bounded_list(value: Any, field: str, *, maximum: int) -> list:
+    if not isinstance(value, list) or not value:
+        raise ActionError("%s must be a non-empty list" % field)
+    if len(value) > maximum:
+        raise ActionError("%s exceeds the %d-item limit" % (field, maximum))
+    return value
+
+
+def _json_digest(value: Any) -> str:
+    try:
+        raw = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False, default=str).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ActionError("request must contain finite JSON") from exc
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _conditional_conflict(exc: Exception) -> bool:
+    text = (type(exc).__name__ + " " + str(exc)).lower()
+    return "precondition" in text or "conditional" in text or "already exists" in text
+
+
+def _put_immutable(s3: Any, bucket: str, key: str, document: Mapping[str, Any]) -> bool:
+    """Put a JSON object once. Return False only for an existing immutable key."""
+    body = json.dumps(document, sort_keys=True, separators=(",", ":"), allow_nan=False, default=str).encode("utf-8")
+    try:
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=body,
+            ContentType="application/json",
+            CacheControl="private, no-store",
+            IfNoneMatch="*",
+        )
+        return True
+    except Exception as exc:
+        if _conditional_conflict(exc):
+            return False
+        raise
+
+
+def _governance_call(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except ActionError:
+        raise
+    except (ValueError, TypeError, KeyError) as exc:
+        raise ActionError(str(exc)) from exc
+
+
+def _strict_envelope(value: Any, *, clean: bool = False) -> Dict[str, Any]:
+    envelope = _object(value, "envelope")
+    _only_keys(
+        envelope,
+        ("schema_version", "signal_id", "source", "entity_id", "event_time",
+         "available_at", "produced_at", "payload", "provenance", "taint"),
+        "envelope",
+    )
+    return signals.require_clean(envelope, purpose="governed ingestion") if clean else signals.validate_signal_envelope(envelope)
+
+
+def action_signal_validate(body: dict, policy: dict) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("envelope",))
+    normalized = _strict_envelope(body.get("envelope"))
+    return {
+        "schema_version": normalized["schema_version"],
+        "signal_id": normalized["signal_id"],
+        "status": normalized["taint"]["status"],
+        "fingerprint": signals.envelope_fingerprint(normalized),
+        "envelope": normalized,
+    }
+
+
+def action_signal_ingest(
+    body: dict,
+    policy: dict,
+    *,
+    s3_client: Any = None,
+    events_client: Any = None,
+    outbox: Any = None,
+) -> Dict[str, Any]:
+    """Stage one clean envelope in the durable outbox, archive, then publish.
+
+    Dry-run is the default. Repeating the same envelope is idempotent after a
+    PUBLISHED receipt and redrives a prior PENDING/expired delivery.
+    EventBridge and the outbox retain at-least-once semantics.
+    """
+    body = _object(body, "request")
+    _only_keys(body, ("envelope", "dry_run"))
+    normalized = _strict_envelope(body.get("envelope"), clean=True)
+    fingerprint = signals.envelope_fingerprint(normalized)
+    dry_run = _boolean(body.get("dry_run"), "dry_run", True)
+    archive_key = "signals/v1/%s.json" % fingerprint
+    outbox_key = "ai/signals/outbox/v1/%s.json" % fingerprint
+    event_contract = {"source": "justhodl.engine", "detail_type": "SignalEnvelope/v1"}
+    result = {
+        "mode": "DRY_RUN" if dry_run else "INGEST",
+        "signal_id": normalized["signal_id"],
+        "fingerprint": fingerprint,
+        "archive_key": archive_key,
+        "outbox_key": outbox_key,
+        "event_contract": event_contract,
+        "side_effects": 0,
+    }
+    if dry_run:
+        return result
+    archive_bucket = _required_setting("AI_BRAIN_SOURCE_BUCKET", BRAIN_SOURCE_BUCKET)
+    outbox_bucket = _required_setting("AI_PRIVATE_BUCKET", PRIVATE_BUCKET)
+    bus = _required_setting("AI_EVENT_BUS", AI_EVENT_BUS)
+    s3 = s3_client or client("s3")
+    events = events_client or client("events")
+    queue = outbox or event_outbox.S3EventOutbox(
+        s3,
+        outbox_bucket=outbox_bucket,
+        archive_bucket=archive_bucket,
+    )
+
+    def publish(payload: Mapping[str, Any], contract: Mapping[str, str]) -> str:
+        response = events.put_events(Entries=[{
+            "Source": contract["source"],
+            "DetailType": contract["detail_type"],
+            "Detail": json.dumps(
+                payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+            ),
+            "EventBusName": bus,
+        }])
+        if not isinstance(response, Mapping) or response.get("FailedEntryCount") != 0:
+            raise event_outbox.OutboxError("EventBridge rejected the outbox event")
+        entries = response.get("Entries") or []
+        if len(entries) != 1 or not entries[0].get("EventId"):
+            raise event_outbox.OutboxError("EventBridge did not confirm the outbox event")
+        return str(entries[0]["EventId"])
+
+    try:
+        outcome = queue.ingest(
+            message_id=fingerprint,
+            payload=normalized,
+            archive_key=archive_key,
+            event_contract=event_contract,
+            publisher=publish,
+        )
+    except Exception as exc:
+        raise ActionError(
+            "signal ingestion failed closed; retry the same envelope to redrive its durable outbox"
+        ) from exc
+    side_effects = (
+        int(bool(outcome.get("created")))
+        + int(bool(outcome.get("archive_created")))
+        + (3 if outcome.get("delivery_attempted") else 0)
+    )
+    result.update({
+        key: outcome.get(key)
+        for key in (
+            "archived", "published", "duplicate", "redriven", "status",
+            "attempts", "event_id", "outbox_key", "delivery_attempted",
+        )
+    })
+    result["side_effects"] = side_effects
+    return result
+
+
+def action_feature_assemble(
+    body: dict,
+    policy: dict,
+    *,
+    store: Any = None,
+    sagemaker_client: Any = None,
+    athena_client: Any = None,
+) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("entity_id", "as_of", "feature_names", "observations", "max_age_seconds", "require_all", "allow_tainted"))
+    names = _bounded_list(
+        body.get("feature_names"),
+        "feature_names",
+        maximum=feature_store.MAX_FEATURE_NAMES,
+    )
+    entity_id = str(body.get("entity_id") or "").strip()
+    as_of = signals.parse_timestamp(body.get("as_of"), "as_of")
+    supplied = body.get("observations") is not None
+    if supplied:
+        observations = _bounded_list(body.get("observations"), "observations", maximum=10_000)
+        rows = []
+        allowed = ("entity_id", "feature_name", "event_time", "available_at", "value", "source", "revision", "tainted")
+        for index, item in enumerate(observations):
+            item = _object(item, "observations[%d]" % index)
+            _only_keys(item, allowed, "observations[%d]" % index)
+            rows.append(pit.FeatureObservation(
+                entity_id=item.get("entity_id"),
+                feature_name=item.get("feature_name"),
+                event_time=signals.parse_timestamp(item.get("event_time"), "observations[%d].event_time" % index),
+                available_at=signals.parse_timestamp(item.get("available_at"), "observations[%d].available_at" % index),
+                value=item.get("value"),
+                source=item.get("source"),
+                revision=item.get("revision", 0),
+                tainted=item.get("tainted", False),
+            ))
+        selected_store = pit.InMemoryFeatureStore(rows)
+        retrieval_mode = "SUPPLIED_OBSERVATIONS_DRY_RUN"
+    else:
+        if _boolean(body.get("allow_tainted"), "allow_tainted", False):
+            raise ActionError("allow_tainted is not permitted for Feature Store retrieval")
+        group_name = _required_setting("SIGNAL_FEATURE_GROUP", SIGNAL_FEATURE_GROUP)
+        if store is None:
+            query = feature_store.AthenaFeatureStoreQuery(
+                sagemaker_client or client("sagemaker"),
+                athena_client or client("athena"),
+                output_location=FEATURE_STORE_QUERY_OUTPUT,
+                workgroup=FEATURE_STORE_ATHENA_WORKGROUP,
+            )
+            selected_store = feature_store.SageMakerFeatureStore(query, group_name)
+        else:
+            selected_store = store
+        retrieval_mode = "SAGEMAKER_FEATURE_STORE"
+    max_age = body.get("max_age_seconds")
+    if max_age is not None:
+        if isinstance(max_age, bool) or not isinstance(max_age, (int, float)) or max_age < 0:
+            raise ActionError("max_age_seconds must be a non-negative number")
+        max_age = timedelta(seconds=float(max_age))
+    vector = pit.PointInTimeFeatureAssembler(selected_store).assemble(
+        entity_id,
+        as_of,
+        names,
+        max_age=max_age,
+        require_all=_boolean(body.get("require_all"), "require_all", True),
+        allow_tainted=(
+            _boolean(body.get("allow_tainted"), "allow_tainted", False)
+            if supplied else False
+        ),
+    )
+    return {
+        "mode": retrieval_mode,
+        "entity_id": vector.entity_id,
+        "as_of": vector.as_of.isoformat().replace("+00:00", "Z"),
+        "values": dict(vector.values),
+        "lineage": list(vector.lineage),
+        "fingerprint": vector.fingerprint,
+        "feature_group": _required_setting("SIGNAL_FEATURE_GROUP", SIGNAL_FEATURE_GROUP),
+    }
+
+
+def _label_result(value: labels.OutcomeLabel) -> Dict[str, Any]:
+    return {
+        "matured": value.matured,
+        "label": value.label,
+        "side": value.side,
+        "horizon": {"value": value.horizon.value, "unit": value.horizon.unit, "anchor": value.horizon.anchor},
+        "entry_time": value.entry_time.isoformat().replace("+00:00", "Z") if value.entry_time else None,
+        "exit_time": value.exit_time.isoformat().replace("+00:00", "Z") if value.exit_time else None,
+        "entry_price": value.entry_price,
+        "exit_price": value.exit_price,
+        "gross_return": value.gross_return,
+        "transaction_cost": value.transaction_cost,
+        "net_return": value.net_return,
+        "reason": value.reason,
+    }
+
+
+def action_outcome_labels(body: dict, policy: dict) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("prediction_time", "prices", "horizons", "side", "transaction_cost_bps", "flat_threshold_bps"))
+    price_items = _bounded_list(body.get("prices"), "prices", maximum=100_000)
+    prices = []
+    for index, item in enumerate(price_items):
+        item = _object(item, "prices[%d]" % index)
+        _only_keys(item, ("timestamp", "price"), "prices[%d]" % index)
+        prices.append(labels.PricePoint(signals.parse_timestamp(item.get("timestamp"), "prices[%d].timestamp" % index), item.get("price")))
+    horizon_items = _bounded_list(body.get("horizons"), "horizons", maximum=100)
+    horizons = []
+    for index, item in enumerate(horizon_items):
+        item = _object(item, "horizons[%d]" % index)
+        _only_keys(item, ("value", "unit", "anchor"), "horizons[%d]" % index)
+        horizons.append(labels.Horizon(item.get("value"), item.get("unit", "calendar_days"), item.get("anchor", "entry")))
+    results = labels.labels_for_horizons(
+        prices,
+        signals.parse_timestamp(body.get("prediction_time"), "prediction_time"),
+        horizons,
+        side=body.get("side", "LONG"),
+        transaction_cost_bps=body.get("transaction_cost_bps", 0.0),
+        flat_threshold_bps=body.get("flat_threshold_bps", 0.0),
+    )
+    return {"labels": [_label_result(item) for item in results], "count": len(results)}
+
+
+def _split_inputs(body: Mapping[str, Any]):
+    interval_items = _bounded_list(body.get("intervals"), "intervals", maximum=100_000)
+    first = _object(interval_items[0], "intervals[0]")
+    datetime_axis = isinstance(first.get("start"), str)
+    rows = []
+    for index, item in enumerate(interval_items):
+        item = _object(item, "intervals[%d]" % index)
+        _only_keys(item, ("start", "end"), "intervals[%d]" % index)
+        if datetime_axis:
+            start = signals.parse_timestamp(item.get("start"), "intervals[%d].start" % index)
+            end = signals.parse_timestamp(item.get("end"), "intervals[%d].end" % index)
+        else:
+            start, end = item.get("start"), item.get("end")
+            if any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in (start, end)):
+                raise ActionError("all interval bounds must be consistently numeric or RFC3339")
+        rows.append(splits.SampleInterval(start, end))
+    def gap(name: str):
+        value = body.get(name, 0)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+            raise ActionError("%s must be a non-negative number" % name)
+        return timedelta(seconds=float(value)) if datetime_axis else value
+    return rows, gap("purge"), gap("embargo")
+
+
+def _split_summary(rows: Sequence[splits.SampleInterval], values: Sequence[splits.Split], kind: str) -> Dict[str, Any]:
+    canonical = [{
+        "train": list(item.train_indices),
+        "test": list(item.test_indices),
+        "test_groups": list(item.test_groups),
+    } for item in values]
+    summaries = [{
+        "split": index,
+        "train_count": len(item.train_indices),
+        "test_count": len(item.test_indices),
+        "train_first": item.train_indices[0] if item.train_indices else None,
+        "train_last": item.train_indices[-1] if item.train_indices else None,
+        "test_first": item.test_indices[0] if item.test_indices else None,
+        "test_last": item.test_indices[-1] if item.test_indices else None,
+        "test_groups": list(item.test_groups),
+    } for index, item in enumerate(values)]
+    return {
+        "kind": kind,
+        "sample_count": len(rows),
+        "split_count": len(values),
+        "splits": summaries,
+        "split_digest": _json_digest(canonical),
+    }
+
+
+def action_walk_forward(body: dict, policy: dict) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("intervals", "n_splits", "test_size", "min_train_size", "purge", "embargo"))
+    rows, purge, embargo = _split_inputs(body)
+    values = splits.purged_walk_forward_splits(
+        rows,
+        n_splits=body.get("n_splits"),
+        test_size=body.get("test_size"),
+        min_train_size=body.get("min_train_size"),
+        purge=purge,
+        embargo=embargo,
+    )
+    return _split_summary(rows, values, "PURGED_WALK_FORWARD")
+
+
+def action_cpcv(body: dict, policy: dict) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("intervals", "n_groups", "test_groups", "purge", "embargo"))
+    rows, purge, embargo = _split_inputs(body)
+    values = splits.combinatorial_purged_cv_splits(
+        rows,
+        n_groups=body.get("n_groups"),
+        test_groups=body.get("test_groups"),
+        purge=purge,
+        embargo=embargo,
+    )
+    return _split_summary(rows, values, "CPCV")
+
+
+def _prediction_table():
+    name = _required_setting("PREDICTION_LEDGER_TABLE", PREDICTION_LEDGER_TABLE)
+    return boto3.resource("dynamodb", region_name=REGION).Table(name)
+
+
+def _prediction_archive_key(kind: str, identifier: str, created_at: str) -> str:
+    stamp = re.sub(r"[^0-9A-Za-z_.-]", "-", created_at)
+    return "predictions/%s/%s/%s.json" % (kind, identifier, stamp)
+
+
+def action_prediction_write(body: dict, policy: dict, *, table: Any = None, s3_client: Any = None) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("prediction",))
+    normalized = ledger.validate_prediction(_object(body.get("prediction"), "prediction"))
+    target = table or _prediction_table()
+    archive_bucket = _required_setting("PREDICTION_LEDGER_ARCHIVE_BUCKET", PREDICTION_LEDGER_ARCHIVE_BUCKET)
+    outcome = ledger.ArchiveFirstPredictionLedger(
+        target, s3_client or client("s3"), archive_bucket
+    ).write(normalized)
+    return {
+        "prediction_id": normalized["prediction_id"],
+        "written": outcome["written"],
+        "duplicate": outcome["duplicate"],
+        "archived": outcome["archived"] or outcome["archive_duplicate"],
+        "archive_key": outcome["archive_key"],
+    }
+
+
+def _append_ledger_event(table: Any, item: Dict[str, Any]) -> bool:
+    try:
+        table.put_item(Item=item, ConditionExpression="attribute_not_exists(prediction_id)")
+        return True
+    except Exception as exc:
+        if not _conditional_conflict(exc):
+            raise
+    try:
+        current = table.get_item(
+            Key={"prediction_id": item["prediction_id"], "created_at": item["created_at"]},
+            ConsistentRead=True,
+        ).get("Item")
+    except TypeError:
+        current = table.get_item(Key={"prediction_id": item["prediction_id"], "created_at": item["created_at"]}).get("Item")
+    if current is None or _json_digest(current) != _json_digest(item):
+        raise ledger.PredictionConflictError("grade event identity collides with different content")
+    return False
+
+
+def action_prediction_grade(body: dict, policy: dict, *, table: Any = None, s3_client: Any = None) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("prediction_id", "outcome", "graded_at"))
+    prediction_id = str(body.get("prediction_id") or "").strip()
+    if not re.fullmatch(r"pred-[a-f0-9]{40}", prediction_id):
+        raise ActionError("prediction_id is invalid")
+    target = table or _prediction_table()
+    original = ledger.PredictionLedger(target)._get(prediction_id)
+    if original is None:
+        raise ActionError("prediction does not exist")
+    normalized_outcome = ledger.validate_outcome(_object(body.get("outcome"), "outcome"))
+    graded_at = signals.format_timestamp(signals.parse_timestamp(body.get("graded_at"), "graded_at"))
+    outcome_digest = _json_digest(normalized_outcome)
+    grade_id = "grade-" + _json_digest({"prediction_id": prediction_id, "outcome": normalized_outcome})[:40]
+    event = {
+        "schema_version": "1.0",
+        "event_type": "OUTCOME_GRADE",
+        "prediction_id": grade_id,
+        "subject_prediction_id": prediction_id,
+        "created_at": normalized_outcome["exit_time"],
+        "graded_at": graded_at,
+        "outcome": normalized_outcome,
+        "outcome_digest": outcome_digest,
+        "correct": original.get("prediction") == normalized_outcome["label"],
+        "model_id": original.get("model_id"),
+        "model_version": original.get("model_version"),
+        "entity_id": original.get("entity_id"),
+    }
+    archive_bucket = _required_setting("PREDICTION_LEDGER_ARCHIVE_BUCKET", PREDICTION_LEDGER_ARCHIVE_BUCKET)
+    outcome = ledger.ArchiveFirstPredictionLedger(
+        target, s3_client or client("s3"), archive_bucket
+    ).append_grade(event)
+    return {
+        "grade_id": grade_id,
+        "subject_prediction_id": prediction_id,
+        "graded": outcome["written"],
+        "duplicate": outcome["duplicate"],
+        "correct": event["correct"],
+        "archived": outcome["archived"] or outcome["archive_duplicate"],
+        "archive_key": outcome["archive_key"],
+    }
+
+
+def action_model_package_request(
+    body: dict,
+    policy: dict,
+    *,
+    sagemaker_client: Any = None,
+    control: Optional[governance.ControlledExecution] = None,
+) -> Dict[str, Any]:
+    body = _object(body, "request")
+    allowed = ("package_group_name", "model_data_url", "image_uri", "content_types", "response_types",
+               "model_metrics", "customer_metadata", "description", "tags", "dry_run",
+               "approval_token", "owner", "estimated_cost_usd")
+    _only_keys(body, allowed)
+    configured = _required_setting("MODEL_PACKAGE_GROUP", MODEL_PACKAGE_GROUP)
+    supplied = body.get("package_group_name")
+    if supplied is not None and supplied != configured:
+        raise ActionError("package_group_name must match the configured governance boundary")
+    args = {key: value for key, value in body.items() if key not in (
+        "dry_run", "approval_token", "owner", "estimated_cost_usd"
+    )}
+    args["package_group_name"] = configured
+    dry_run = _boolean(body.get("dry_run"), "dry_run", True)
+    result = registry.register_model_package(
+        sagemaker_client,
+        live=not dry_run,
+        control=control,
+        approval_token=body.get("approval_token"),
+        owner=body.get("owner"),
+        estimated_cost_usd=body.get("estimated_cost_usd", 0.0),
+        **args,
+    )
+    if dry_run:
+        result["mode"] = "REQUEST_ONLY"
+    return result
+
+
+def action_model_card(
+    body: dict,
+    policy: dict,
+    *,
+    model_card_client: Any = None,
+    control: Optional[governance.ControlledExecution] = None,
+) -> Dict[str, Any]:
+    body = _object(body, "request")
+    allowed = ("model_card_name", "model_id", "model_version", "owner", "intended_use", "limitations",
+               "risk_rating", "training_dataset", "evaluation", "lineage", "created_at", "model_package_arn", "tags",
+               "dry_run", "approval_token", "estimated_cost_usd")
+    _only_keys(body, allowed)
+    args = {key: value for key, value in body.items() if key not in (
+        "dry_run", "approval_token", "estimated_cost_usd", "owner"
+    )}
+    dry_run = _boolean(body.get("dry_run"), "dry_run", True)
+    result = registry.create_model_card(
+        model_card_client,
+        live=not dry_run,
+        control=control,
+        approval_token=body.get("approval_token"),
+        owner=body.get("owner"),
+        estimated_cost_usd=body.get("estimated_cost_usd", 0.0),
+        **args,
+    )
+    if dry_run:
+        result["mode"] = "REQUEST_ONLY"
+    return result
+
+
+def action_mlflow_lineage(
+    body: dict,
+    policy: dict,
+    *,
+    writer: Any = None,
+    control: Optional[governance.ControlledExecution] = None,
+) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("metadata", "dry_run", "approval_token", "owner", "estimated_cost_usd"))
+    normalized = registry.validate_mlflow_lineage_metadata(_object(body.get("metadata"), "metadata"))
+    experiment = _required_setting("MLFLOW_EXPERIMENT_NAME", MLFLOW_EXPERIMENT_NAME)
+    if normalized["experiment_name"] != experiment:
+        raise ActionError("lineage experiment_name must match the configured governance boundary")
+    dry_run = _boolean(body.get("dry_run"), "dry_run", True)
+    result = registry.publish_mlflow_lineage(
+        writer,
+        normalized,
+        live=not dry_run,
+        control=control,
+        approval_token=body.get("approval_token"),
+        owner=body.get("owner"),
+        estimated_cost_usd=body.get("estimated_cost_usd", 0.0),
+    )
+    result.update({
+        "valid": True,
+        "tracking_server": {
+            "name": _required_setting("MLFLOW_TRACKING_SERVER_NAME", MLFLOW_TRACKING_SERVER_NAME),
+            "arn": _required_setting("MLFLOW_TRACKING_SERVER_ARN", MLFLOW_TRACKING_SERVER_ARN),
+        },
+    })
+    return result
+
+
+def _governance_live_control(policy: Mapping[str, Any]) -> governance.ControlledExecution:
+    token = _required_setting(
+        "AI_GOVERNANCE_APPROVAL_TOKEN",
+        os.environ.get("AI_GOVERNANCE_APPROVAL_TOKEN", ""),
+    )
+    owner = _required_setting(
+        "AI_GOVERNANCE_OWNER", os.environ.get("AI_GOVERNANCE_OWNER", "")
+    )
+    return governance.ControlledExecution(
+        expected_approval_token=token,
+        expected_owner=owner,
+        budget=governance.ExecutionBudget(
+            max_api_calls=int(policy.get("governance_max_api_calls", 8)),
+            max_estimated_cost_usd=float(
+                policy.get("governance_max_estimated_cost_usd", 5.0)
+            ),
+        ),
+    )
+
+
+def _governance_model_package_http(body: dict, policy: dict) -> Dict[str, Any]:
+    live = body.get("dry_run") is False
+    return action_model_package_request(
+        body,
+        policy,
+        sagemaker_client=client("sagemaker") if live else None,
+        control=_governance_live_control(policy) if live else None,
+    )
+
+
+def _governance_model_card_http(body: dict, policy: dict) -> Dict[str, Any]:
+    live = body.get("dry_run") is False
+    if live and not str(body.get("model_card_name") or "").startswith("jh-ai-"):
+        raise ActionError("live model_card_name must use the governed jh-ai- prefix")
+    return action_model_card(
+        body,
+        policy,
+        model_card_client=client("sagemaker") if live else None,
+        control=_governance_live_control(policy) if live else None,
+    )
+
+
+def _managed_mlflow_writer() -> registry.ManagedMlflowWriter:
+    try:
+        from mlflow import MlflowClient
+        from mlflow.entities import Param, RunTag
+    except Exception as exc:
+        raise ActionError("the managed MLflow client dependency is unavailable") from exc
+    tracking_arn = _required_setting(
+        "MLFLOW_TRACKING_SERVER_ARN", MLFLOW_TRACKING_SERVER_ARN
+    )
+    return registry.ManagedMlflowWriter(
+        MlflowClient(tracking_uri=tracking_arn),
+        expected_experiment_name=_required_setting(
+            "MLFLOW_EXPERIMENT_NAME", MLFLOW_EXPERIMENT_NAME
+        ),
+        param_factory=Param,
+        tag_factory=RunTag,
+    )
+
+
+def _governance_mlflow_http(body: dict, policy: dict) -> Dict[str, Any]:
+    live = body.get("dry_run") is False
+    return action_mlflow_lineage(
+        body,
+        policy,
+        writer=_managed_mlflow_writer() if live else None,
+        control=_governance_live_control(policy) if live else None,
+    )
+
+
+def _thresholds(value: Any) -> dg.ReadinessThresholds:
+    if value is None:
+        return dg.ReadinessThresholds()
+    value = _object(value, "thresholds")
+    _only_keys(value, ("min_samples", "max_error_rate", "max_p95_latency_ms",
+                       "max_latency_regression_ratio", "max_drift_score", "min_prediction_match_rate"), "thresholds")
+    return dg.ReadinessThresholds(**dict(value))
+
+
+def _decision(value: dg.GateDecision) -> Dict[str, Any]:
+    return {
+        "allowed": value.allowed,
+        "action": value.action,
+        "reasons": list(value.reasons),
+        "evidence": dict(value.evidence),
+    }
+
+
+def action_deployment_readiness(body: dict, policy: dict) -> Dict[str, Any]:
+    body = _object(body, "request")
+    _only_keys(body, ("blue", "green", "thresholds"))
+    decision = dg.evaluate_blue_green_readiness(
+        _object(body.get("blue"), "blue"),
+        _object(body.get("green"), "green"),
+        thresholds=_thresholds(body.get("thresholds")),
+    )
+    return _decision(decision)
+
+
+def action_canary_plan(
+    body: dict,
+    policy: dict,
+    *,
+    aws_clients: Optional[Mapping[str, Any]] = None,
+    canary_actions: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Plan by default; live execution is possible only through explicit DI."""
+    body = _object(body, "request")
+    _only_keys(body, (
+        "context", "thresholds", "dry_run", "approval_token", "owner",
+        "estimated_cost_usd",
+    ))
+    dry_run = _boolean(body.get("dry_run"), "dry_run", True)
+    context = _object(body.get("context", {}), "context")
+    thresholds = _thresholds(body.get("thresholds"))
+    bound_actions = {}
+    if not dry_run:
+        if not isinstance(aws_clients, Mapping) or not aws_clients or any(value is None for value in aws_clients.values()):
+            raise ActionError("live canary execution requires dependency-injected AWS clients")
+        missing_clients = {"sagemaker", "sagemaker-runtime", "cloudwatch"} - set(aws_clients)
+        if missing_clients:
+            raise ActionError("live canary execution is missing injected clients: %s" % ", ".join(sorted(missing_clients)))
+        if not isinstance(canary_actions, Mapping) or not canary_actions:
+            raise ActionError("live canary execution requires dependency-injected actions")
+        # Bind clients into every callback rather than consulting the module's
+        # global boto3 cache. This keeps live execution testable and fail closed.
+        bound_actions = {
+            name: (lambda context, callback=callback: callback(context, aws_clients))
+            for name, callback in canary_actions.items()
+        }
+    machine = dg.CanaryStateMachine(
+        bound_actions,
+        expected_approval_token=os.environ.get("AI_CANARY_APPROVAL_TOKEN"),
+        expected_owner=os.environ.get("AI_GOVERNANCE_OWNER"),
+        budget=governance.ExecutionBudget(
+            max_api_calls=int(policy.get("canary_max_api_calls", 9)),
+            max_estimated_cost_usd=float(
+                policy.get("canary_max_estimated_cost_usd", 25.0)
+            ),
+        ),
+        thresholds=thresholds,
+    )
+    return machine.run(
+        context,
+        live=not dry_run,
+        approval_token=body.get("approval_token"),
+        owner=body.get("owner"),
+        estimated_cost_usd=body.get("estimated_cost_usd", 0.0),
+    )
+
+
+def _governance_canary_http(body: dict, policy: dict) -> Dict[str, Any]:
+    """Compose concrete AWS canary callbacks only for an explicit live request."""
+    if body.get("dry_run") is not False:
+        return action_canary_plan(body, policy)
+    aws_clients = {
+        "sagemaker": client("sagemaker"),
+        "sagemaker-runtime": client("sagemaker-runtime"),
+        "cloudwatch": client("cloudwatch"),
+    }
+    concrete = dg.SageMakerCanaryActions(
+        aws_clients["sagemaker"],
+        aws_clients["sagemaker-runtime"],
+        aws_clients["cloudwatch"],
+        sleep_fn=time.sleep,
+    )
+    actions = {
+        name: (lambda context, clients, callback=callback: callback(context))
+        for name, callback in concrete.callbacks().items()
+    }
+    return action_canary_plan(
+        body, policy, aws_clients=aws_clients, canary_actions=actions
+    )
+
+
+GOVERNANCE_ACTIONS = {
+    ("POST", "/governance/signals/validate"): lambda b, p, c: _governance_call(action_signal_validate, b, p),
+    ("POST", "/governance/signals/ingest"): lambda b, p, c: _governance_call(action_signal_ingest, b, p),
+    ("POST", "/governance/features/assemble"): lambda b, p, c: _governance_call(action_feature_assemble, b, p),
+    ("POST", "/governance/outcomes/label"): lambda b, p, c: _governance_call(action_outcome_labels, b, p),
+    ("POST", "/governance/splits/walk-forward"): lambda b, p, c: _governance_call(action_walk_forward, b, p),
+    ("POST", "/governance/splits/cpcv"): lambda b, p, c: _governance_call(action_cpcv, b, p),
+    ("POST", "/governance/predictions/write"): lambda b, p, c: _governance_call(action_prediction_write, b, p),
+    ("POST", "/governance/predictions/grade"): lambda b, p, c: _governance_call(action_prediction_grade, b, p),
+    ("POST", "/governance/models/package-request"): lambda b, p, c: _governance_call(_governance_model_package_http, b, p),
+    ("POST", "/governance/models/card"): lambda b, p, c: _governance_call(_governance_model_card_http, b, p),
+    ("POST", "/governance/models/mlflow-lineage/validate"): lambda b, p, c: _governance_call(_governance_mlflow_http, b, p),
+    ("POST", "/governance/deployment/readiness"): lambda b, p, c: _governance_call(action_deployment_readiness, b, p),
+    ("POST", "/governance/deployment/canary-plan"): lambda b, p, c: _governance_call(_governance_canary_http, b, p),
+}
 
 
 ACTIONS = {
@@ -960,6 +1853,7 @@ ACTIONS = {
     ("POST", "/pipeline/stop"): lambda b, p, c: action_pipeline_stop(b, p),
     ("GET", "/pipeline"): lambda b, p, c: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {}),
     ("GET", "/read"): lambda b, p, c: action_get_read(b, p),
+    **GOVERNANCE_ACTIONS,
 }
 
 
@@ -1031,7 +1925,10 @@ def lambda_handler(event=None, context=None):
     if mode == "inventory":
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))
         return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"]}
-    fn = ACTIONS.get(("POST", "/" + mode.strip("/"))) or ACTIONS.get(("GET", "/" + mode.strip("/")))
+    direct_path = "/" + mode.strip("/")
+    if any(path == direct_path for _, path in GOVERNANCE_ACTIONS):
+        return {"ok": False, "error": "governance actions require the owner-authenticated HTTP route"}
+    fn = ACTIONS.get(("POST", direct_path)) or ACTIONS.get(("GET", direct_path))
     if not fn:
         return {"ok": False, "error": "unknown mode %s" % mode}
     try:

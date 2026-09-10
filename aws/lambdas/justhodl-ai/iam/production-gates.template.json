@@ -1,0 +1,3384 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Review-only JustHodl AI production gates: dedicated roles, private data plane, EventBridge, Feature Store, Model Registry, Managed MLflow, and prediction ledger. Does not modify the existing Lambda or dashboard bucket policy.",
+  "Rules": {
+    "TargetAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "857687956942"
+            ]
+          },
+          "AssertDescription": "This reviewed artifact is pinned to the JustHodl AWS account."
+        }
+      ]
+    },
+    "TargetRegionOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "AWS::Region"
+              },
+              "us-east-1"
+            ]
+          },
+          "AssertDescription": "This reviewed artifact is pinned to us-east-1."
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "AiDataKey": {
+      "Type": "AWS::KMS::Key",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Description": "JustHodl AI private data, Feature Store, MLflow artifacts, and prediction-ledger key",
+        "EnableKeyRotation": true,
+        "KeySpec": "SYMMETRIC_DEFAULT",
+        "KeyUsage": "ENCRYPT_DECRYPT",
+        "PendingWindowInDays": 30,
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "EnableAccountIAM",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            },
+            {
+              "Sid": "AllowLambdaLogEncryption",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "logs.us-east-1.amazonaws.com"
+              },
+              "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+              ],
+              "Resource": "*",
+              "Condition": {
+                "ArnEquals": {
+                  "kms:EncryptionContext:aws:logs:arn": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/lambda/justhodl-ai"
+                }
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "data-key"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "private"
+          }
+        ]
+      }
+    },
+    "AiDataKeyAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": "alias/justhodl-ai-prod",
+        "TargetKeyId": {
+          "Ref": "AiDataKey"
+        }
+      }
+    },
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-lambda-prod",
+        "Description": "Dedicated execution role for only the justhodl-ai Lambda",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "LambdaServiceAssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "MaxSessionDuration": 3600,
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-basic-logs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "CreateOwnedLogGroup",
+                  "Effect": "Allow",
+                  "Action": "logs:CreateLogGroup",
+                  "Resource": "arn:aws:logs:us-east-1:857687956942:*"
+                },
+                {
+                  "Sid": "WriteOwnedLogGroup",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/lambda/justhodl-ai:*"
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "lambda-role"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ],
+        "ManagedPolicyArns": [
+          {
+            "Ref": "LambdaControlCorePolicy"
+          },
+          {
+            "Ref": "LambdaTrainingDeploymentPolicy"
+          },
+          {
+            "Ref": "LambdaFeatureStoreAccessPolicy"
+          },
+          {
+            "Ref": "LambdaRuntimeDataPolicy"
+          },
+          {
+            "Ref": "LambdaBrainSignalBoundaryPolicy"
+          },
+          {
+            "Ref": "LambdaLedgerArchivePolicy"
+          }
+        ]
+      }
+    },
+    "SageMakerExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-sagemaker-prod",
+        "Description": "Least-privilege execution role for JustHodl AI training, inference, and Feature Store",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SageMakerServiceAssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sagemaker.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "857687956942"
+                },
+                "ArnLike": {
+                  "aws:SourceArn": "arn:aws:sagemaker:us-east-1:857687956942:*"
+                }
+              }
+            }
+          ]
+        },
+        "MaxSessionDuration": 3600,
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-sagemaker-data-plane",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "ReadPrivateTrainingInputs",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/train/payload.data",
+                    "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/validation/payload.data",
+                    "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/*",
+                    "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+                    "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+                    "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/data/brain.json",
+                    "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1/offline/*"
+                  ]
+                },
+                {
+                  "Sid": "PrivateTrainingBucketLocations",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
+                    "arn:aws:s3:::justhodl-ai-857687956942",
+                    "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+                    "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1"
+                  ]
+                },
+                {
+                  "Sid": "ListPrivateAiTrainingInputs",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": "arn:aws:s3:::justhodl-ai-857687956942",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "ai/datasets",
+                        "ai/datasets/*",
+                        "ai/jobs",
+                        "ai/jobs/*",
+                        "ai/models",
+                        "ai/models/*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ListImmutableTrainingInputPrefixes",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "sha256/*/train/",
+                        "sha256/*/validation/"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ListCanonicalBrainInput",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "data/brain.json"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ListFeatureStoreOffline",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "offline",
+                        "offline/*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "WriteOwnedTrainingAndModelOutputs",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:PutObject"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+                    "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*"
+                  ]
+                },
+                {
+                  "Sid": "ReadJumpStartArtifacts",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*",
+                    "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1/*"
+                  ]
+                },
+                {
+                  "Sid": "ListJumpStartArtifacts",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+                    "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1"
+                  ]
+                },
+                {
+                  "Sid": "PullApprovedTrainingImages",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:BatchGetImage",
+                    "ecr:GetDownloadUrlForLayer"
+                  ],
+                  "Resource": [
+                    "arn:aws:ecr:us-east-1:683313688378:repository/sagemaker-xgboost",
+                    "arn:aws:ecr:us-east-1:*:repository/*jumpstart*",
+                    "arn:aws:ecr:us-east-1:*:repository/sagemaker-*"
+                  ]
+                },
+                {
+                  "Sid": "EcrAuthorization",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetAuthorizationToken"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Sid": "WriteSageMakerLogs",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Clusters/jh-ai-*:*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*:*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/ProcessingJobs/jh-ai-*:*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/TrainingJobs/jh-ai-*:*"
+                  ]
+                },
+                {
+                  "Sid": "PublishNamespacedMetrics",
+                  "Effect": "Allow",
+                  "Action": [
+                    "cloudwatch:PutMetricData"
+                  ],
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "cloudwatch:namespace": [
+                        "AWS/SageMaker",
+                        "JustHodl/AI"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "WriteOwnedFeatureGroups",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sagemaker:GetRecord",
+                    "sagemaker:PutRecord"
+                  ],
+                  "Resource": [
+                    "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*",
+                    "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-prediction-*"
+                  ]
+                },
+                {
+                  "Sid": "DescribeGovernedMlflowTrackingServer",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sagemaker:DescribeMlflowTrackingServer"
+                  ],
+                  "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+                },
+                {
+                  "Sid": "WriteGovernedMlflowRuns",
+                  "Effect": "Allow",
+                  "Action": [
+                    "sagemaker-mlflow:CreateExperiment",
+                    "sagemaker-mlflow:CreateRun",
+                    "sagemaker-mlflow:GetExperiment",
+                    "sagemaker-mlflow:GetExperimentByName",
+                    "sagemaker-mlflow:GetMetricHistory",
+                    "sagemaker-mlflow:GetRun",
+                    "sagemaker-mlflow:ListArtifacts",
+                    "sagemaker-mlflow:LogBatch",
+                    "sagemaker-mlflow:LogInputs",
+                    "sagemaker-mlflow:LogMetric",
+                    "sagemaker-mlflow:LogModel",
+                    "sagemaker-mlflow:LogParam",
+                    "sagemaker-mlflow:SearchExperiments",
+                    "sagemaker-mlflow:SearchRuns",
+                    "sagemaker-mlflow:SetExperimentTag",
+                    "sagemaker-mlflow:SetTag",
+                    "sagemaker-mlflow:UpdateRun"
+                  ],
+                  "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+                },
+                {
+                  "Sid": "UseAiDataKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:DescribeKey",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey"
+                  ],
+                  "Resource": "arn:aws:kms:us-east-1:857687956942:key/*",
+                  "Condition": {
+                    "ForAnyValue:StringEquals": {
+                      "kms:ResourceAliases": "alias/justhodl-ai-prod"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "sagemaker-role"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "FeatureStoreExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "justhodl-ai-feature-store-prod",
+        "Description": "Dedicated service role for JustHodl AI Feature Store offline materialization",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SageMakerFeatureStoreAssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sagemaker.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "857687956942"
+                },
+                "ArnLike": {
+                  "aws:SourceArn": "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-*"
+                }
+              }
+            }
+          ]
+        },
+        "MaxSessionDuration": 3600,
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-feature-store-offline",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "FeatureStoreBucketMetadata",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "FeatureStoreBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Sid": "ListFeatureStoreOfflinePrefix",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "FeatureStoreBucket",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "offline",
+                        "offline/*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ManageFeatureStoreOfflineObjects",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${FeatureStoreBucket.Arn}/offline/*"
+                  }
+                },
+                {
+                  "Sid": "FeatureStoreGlueDatabase",
+                  "Effect": "Allow",
+                  "Action": [
+                    "glue:CreateDatabase",
+                    "glue:GetDatabase"
+                  ],
+                  "Resource": [
+                    "arn:aws:glue:us-east-1:857687956942:catalog",
+                    "arn:aws:glue:us-east-1:857687956942:database/sagemaker_featurestore"
+                  ]
+                },
+                {
+                  "Sid": "FeatureStoreGlueTables",
+                  "Effect": "Allow",
+                  "Action": [
+                    "glue:CreateTable",
+                    "glue:GetTable",
+                    "glue:UpdateTable"
+                  ],
+                  "Resource": [
+                    "arn:aws:glue:us-east-1:857687956942:catalog",
+                    "arn:aws:glue:us-east-1:857687956942:database/sagemaker_featurestore",
+                    "arn:aws:glue:us-east-1:857687956942:table/sagemaker_featurestore/justhodl_ai_*"
+                  ]
+                },
+                {
+                  "Sid": "UseFeatureStoreEncryptionKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:DescribeKey",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AiDataKey",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:CallerAccount": "857687956942",
+                      "kms:ViaService": [
+                        "s3.us-east-1.amazonaws.com",
+                        "glue.us-east-1.amazonaws.com"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "feature-store-role"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "MlflowTrackingRole": {
+      "Type": "AWS::IAM::Role",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "RoleName": "justhodl-ai-mlflow-prod",
+        "Description": "Dedicated service role for the JustHodl AI Managed MLflow artifact store",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SageMakerMlflowServiceAssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sagemaker.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "857687956942"
+                },
+                "ArnLike": {
+                  "aws:SourceArn": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+                }
+              }
+            }
+          ]
+        },
+        "MaxSessionDuration": 3600,
+        "Policies": [
+          {
+            "PolicyName": "justhodl-ai-mlflow-artifacts",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "ReadArtifactBucketMetadata",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation",
+                    "s3:ListBucketMultipartUploads"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "MlflowArtifactBucket",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Sid": "ListArtifactPrefix",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "MlflowArtifactBucket",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "artifacts",
+                        "artifacts/*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ManageArtifactObjects",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:DeleteObject",
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:ListMultipartUploadParts",
+                    "s3:PutObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${MlflowArtifactBucket.Arn}/artifacts/*"
+                  }
+                },
+                {
+                  "Sid": "UseArtifactEncryptionKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:Decrypt",
+                    "kms:Encrypt",
+                    "kms:GenerateDataKey*",
+                    "kms:ReEncrypt*"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AiDataKey",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:CallerAccount": "857687956942",
+                      "kms:ViaService": "s3.us-east-1.amazonaws.com"
+                    }
+                  }
+                },
+                {
+                  "Sid": "DescribeArtifactEncryptionKey",
+                  "Effect": "Allow",
+                  "Action": [
+                    "kms:DescribeKey"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AiDataKey",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "mlflow-role"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "CanonicalBrainBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "AiDataKey",
+                    "Arn"
+                  ]
+                }
+              },
+              "BucketKeyEnabled": true
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "NotificationConfiguration": {
+          "EventBridgeConfiguration": {
+            "EventBridgeEnabled": true
+          }
+        },
+        "BucketName": "justhodl-ai-brain-857687956942-us-east-1",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "RetainCanonicalBrainHistory",
+              "Status": "Enabled",
+              "Prefix": "",
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+              },
+              "NoncurrentVersionTransitions": [
+                {
+                  "StorageClass": "GLACIER_IR",
+                  "TransitionInDays": 30
+                }
+              ],
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 2555,
+                "NewerNoncurrentVersions": 10
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "canonical-brain"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "CanonicalBrainBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "CanonicalBrainBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CanonicalBrainBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "CanonicalBrainBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            },
+            {
+              "Sid": "DenyCrossAccountAccess",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CanonicalBrainBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "CanonicalBrainBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:PrincipalAccount": "857687956942"
+                }
+              }
+            },
+            {
+              "Sid": "DenyPublicObjectAcl",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:PutObjectAcl",
+                "s3:PutBucketAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "CanonicalBrainBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "CanonicalBrainBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:x-amz-acl": [
+                    "public-read",
+                    "public-read-write",
+                    "authenticated-read"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "DenyLambdaCanonicalBrainMutation",
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "LambdaExecutionRole",
+                    "Arn"
+                  ]
+                }
+              },
+              "Action": [
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:DeleteObjectVersion"
+              ],
+              "NotResource": {
+                "Fn::Sub": "${CanonicalBrainBucket.Arn}/signals/v1/*"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "FeatureStoreBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "AiDataKey",
+                    "Arn"
+                  ]
+                }
+              },
+              "BucketKeyEnabled": true
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "NotificationConfiguration": {
+          "EventBridgeConfiguration": {
+            "EventBridgeEnabled": true
+          }
+        },
+        "BucketName": "justhodl-ai-feature-store-857687956942-us-east-1",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "RetainPointInTimeFeatures",
+              "Status": "Enabled",
+              "Prefix": "",
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+              },
+              "Transitions": [
+                {
+                  "StorageClass": "INTELLIGENT_TIERING",
+                  "TransitionInDays": 30
+                }
+              ],
+              "NoncurrentVersionTransitions": [
+                {
+                  "StorageClass": "GLACIER_IR",
+                  "TransitionInDays": 30
+                }
+              ],
+              "ExpirationInDays": 2555,
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 2555
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "feature-store"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "FeatureStoreBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "FeatureStoreBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FeatureStoreBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "FeatureStoreBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            },
+            {
+              "Sid": "DenyCrossAccountAccess",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FeatureStoreBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "FeatureStoreBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:PrincipalAccount": "857687956942"
+                }
+              }
+            },
+            {
+              "Sid": "DenyPublicObjectAcl",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:PutObjectAcl",
+                "s3:PutBucketAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "FeatureStoreBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "FeatureStoreBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:x-amz-acl": [
+                    "public-read",
+                    "public-read-write",
+                    "authenticated-read"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "MlflowArtifactBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "AiDataKey",
+                    "Arn"
+                  ]
+                }
+              },
+              "BucketKeyEnabled": true
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketName": "justhodl-ai-mlflow-857687956942-us-east-1",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "RetainMlflowArtifacts",
+              "Status": "Enabled",
+              "Prefix": "",
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+              },
+              "NoncurrentVersionTransitions": [
+                {
+                  "StorageClass": "GLACIER_IR",
+                  "TransitionInDays": 30
+                }
+              ],
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 2555,
+                "NewerNoncurrentVersions": 10
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "mlflow-artifacts"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "MlflowArtifactBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Bucket": {
+          "Ref": "MlflowArtifactBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MlflowArtifactBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${MlflowArtifactBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            },
+            {
+              "Sid": "DenyCrossAccountAccess",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:ListBucket",
+                "s3:PutObject"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MlflowArtifactBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${MlflowArtifactBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:PrincipalAccount": "857687956942"
+                }
+              }
+            },
+            {
+              "Sid": "DenyPublicObjectAcl",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:PutBucketAcl",
+                "s3:PutObjectAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MlflowArtifactBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${MlflowArtifactBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:x-amz-acl": [
+                    "public-read",
+                    "public-read-write",
+                    "authenticated-read"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "PredictionLedgerArchiveBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "AiDataKey",
+                    "Arn"
+                  ]
+                }
+              },
+              "BucketKeyEnabled": true
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "NotificationConfiguration": {
+          "EventBridgeConfiguration": {
+            "EventBridgeEnabled": true
+          }
+        },
+        "BucketName": "justhodl-ai-prediction-ledger-857687956942-us-east-1",
+        "ObjectLockEnabled": true,
+        "ObjectLockConfiguration": {
+          "ObjectLockEnabled": "Enabled",
+          "Rule": {
+            "DefaultRetention": {
+              "Mode": "COMPLIANCE",
+              "Years": 7
+            }
+          }
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "ArchiveImmutablePredictions",
+              "Status": "Enabled",
+              "Prefix": "predictions/",
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+              },
+              "Transitions": [
+                {
+                  "StorageClass": "GLACIER_IR",
+                  "TransitionInDays": 30
+                },
+                {
+                  "StorageClass": "DEEP_ARCHIVE",
+                  "TransitionInDays": 180
+                }
+              ],
+              "ExpirationInDays": 3650,
+              "NoncurrentVersionTransitions": [
+                {
+                  "StorageClass": "DEEP_ARCHIVE",
+                  "TransitionInDays": 30
+                }
+              ],
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 3650
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "prediction-ledger-archive"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "PredictionLedgerArchiveBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "PredictionLedgerArchiveBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "PredictionLedgerArchiveBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "PredictionLedgerArchiveBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            },
+            {
+              "Sid": "DenyCrossAccountAccess",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+                "s3:DeleteObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "PredictionLedgerArchiveBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "PredictionLedgerArchiveBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:PrincipalAccount": "857687956942"
+                }
+              }
+            },
+            {
+              "Sid": "DenyPublicObjectAcl",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:PutObjectAcl",
+                "s3:PutBucketAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "PredictionLedgerArchiveBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": [
+                    "${BucketArn}/*",
+                    {
+                      "BucketArn": {
+                        "Fn::GetAtt": [
+                          "PredictionLedgerArchiveBucket",
+                          "Arn"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:x-amz-acl": [
+                    "public-read",
+                    "public-read-write",
+                    "authenticated-read"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "PredictionLedgerTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "justhodl-ai-prediction-ledger-prod",
+        "BillingMode": "PAY_PER_REQUEST",
+        "DeletionProtectionEnabled": true,
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "prediction_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "prediction_id",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "created_at",
+            "KeyType": "RANGE"
+          }
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "SSESpecification": {
+          "SSEEnabled": true,
+          "SSEType": "KMS",
+          "KMSMasterKeyId": {
+            "Fn::GetAtt": [
+              "AiDataKey",
+              "Arn"
+            ]
+          }
+        },
+        "StreamSpecification": {
+          "StreamViewType": "NEW_IMAGE"
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "prediction-ledger-index"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "AiEventBus": {
+      "Type": "AWS::Events::EventBus",
+      "Properties": {
+        "Name": "justhodl-ai-prod",
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "event-bus"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "AiEventBusPolicy": {
+      "Type": "AWS::Events::EventBusPolicy",
+      "Properties": {
+        "EventBusName": {
+          "Ref": "AiEventBus"
+        },
+        "StatementId": "OnlyTargetAccountMayPublish",
+        "Action": "events:PutEvents",
+        "Principal": "857687956942"
+      }
+    },
+    "EventRuleDeadLetterQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "justhodl-ai-event-dlq-prod",
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600,
+        "VisibilityTimeout": 300,
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-event-dlq-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "SignalValidationQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "justhodl-ai-signal-validation-prod",
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600,
+        "VisibilityTimeout": 300,
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-signal-validation-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ],
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "EventRuleDeadLetterQueue",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 5
+        }
+      }
+    },
+    "PredictionLedgerQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "justhodl-ai-prediction-ledger-prod",
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600,
+        "VisibilityTimeout": 300,
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-prediction-ledger-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ],
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "EventRuleDeadLetterQueue",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 5
+        }
+      }
+    },
+    "ModelGovernanceQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "justhodl-ai-model-governance-prod",
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600,
+        "VisibilityTimeout": 300,
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-model-governance-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ],
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "EventRuleDeadLetterQueue",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 5
+        }
+      }
+    },
+    "SignalEnvelopeIngressRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Name": "justhodl-ai-signal-envelope-v1-prod",
+        "Description": "Route SignalEnvelope/v1 events to the validation boundary",
+        "EventBusName": {
+          "Ref": "AiEventBus"
+        },
+        "State": "DISABLED",
+        "EventPattern": {
+          "source": [
+            "justhodl.engine"
+          ],
+          "detail-type": [
+            "SignalEnvelope/v1"
+          ]
+        },
+        "Targets": [
+          {
+            "Id": "SignalValidationQueue",
+            "Arn": {
+              "Fn::GetAtt": [
+                "SignalValidationQueue",
+                "Arn"
+              ]
+            },
+            "DeadLetterConfig": {
+              "Arn": {
+                "Fn::GetAtt": [
+                  "EventRuleDeadLetterQueue",
+                  "Arn"
+                ]
+              }
+            },
+            "RetryPolicy": {
+              "MaximumEventAgeInSeconds": 3600,
+              "MaximumRetryAttempts": 8
+            }
+          }
+        ]
+      }
+    },
+    "PredictionLedgerIngressRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Name": "justhodl-ai-prediction-v2-prod",
+        "Description": "Route governed Prediction/v2 events to immutable-ledger ingestion",
+        "EventBusName": {
+          "Ref": "AiEventBus"
+        },
+        "State": "DISABLED",
+        "EventPattern": {
+          "source": [
+            "justhodl.ai"
+          ],
+          "detail-type": [
+            "Prediction/v2"
+          ]
+        },
+        "Targets": [
+          {
+            "Id": "PredictionLedgerQueue",
+            "Arn": {
+              "Fn::GetAtt": [
+                "PredictionLedgerQueue",
+                "Arn"
+              ]
+            },
+            "DeadLetterConfig": {
+              "Arn": {
+                "Fn::GetAtt": [
+                  "EventRuleDeadLetterQueue",
+                  "Arn"
+                ]
+              }
+            },
+            "RetryPolicy": {
+              "MaximumEventAgeInSeconds": 86400,
+              "MaximumRetryAttempts": 16
+            }
+          }
+        ]
+      }
+    },
+    "ModelPackageStateRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Name": "justhodl-ai-model-package-state-prod",
+        "Description": "Capture SageMaker model package approval changes for independent review",
+        "State": "DISABLED",
+        "EventPattern": {
+          "source": [
+            "aws.sagemaker"
+          ],
+          "detail-type": [
+            "SageMaker Model Package State Change"
+          ],
+          "detail": {
+            "ModelApprovalStatus": [
+              "PendingManualApproval",
+              "Approved",
+              "Rejected"
+            ]
+          }
+        },
+        "Targets": [
+          {
+            "Id": "ModelGovernanceQueue",
+            "Arn": {
+              "Fn::GetAtt": [
+                "ModelGovernanceQueue",
+                "Arn"
+              ]
+            },
+            "DeadLetterConfig": {
+              "Arn": {
+                "Fn::GetAtt": [
+                  "EventRuleDeadLetterQueue",
+                  "Arn"
+                ]
+              }
+            },
+            "RetryPolicy": {
+              "MaximumEventAgeInSeconds": 86400,
+              "MaximumRetryAttempts": 16
+            }
+          }
+        ]
+      }
+    },
+    "EventQueuePolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "Queues": [
+          {
+            "Ref": "SignalValidationQueue"
+          },
+          {
+            "Ref": "PredictionLedgerQueue"
+          },
+          {
+            "Ref": "ModelGovernanceQueue"
+          },
+          {
+            "Ref": "EventRuleDeadLetterQueue"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowOnlyDeclaredEventRules",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sqs:SendMessage",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "SignalValidationQueue",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "PredictionLedgerQueue",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "ModelGovernanceQueue",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "EventRuleDeadLetterQueue",
+                    "Arn"
+                  ]
+                }
+              ],
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": [
+                    {
+                      "Fn::GetAtt": [
+                        "SignalEnvelopeIngressRule",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "PredictionLedgerIngressRule",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "ModelPackageStateRule",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "SignalFeatureGroup": {
+      "Type": "AWS::SageMaker::FeatureGroup",
+      "DependsOn": [
+        "AiDataKeyAlias",
+        "FeatureStoreBucketPolicy"
+      ],
+      "Properties": {
+        "FeatureGroupName": "justhodl-ai-signal-prod",
+        "Description": "justhodl-ai-signal-prod point-in-time governed features",
+        "RecordIdentifierFeatureName": "record_id",
+        "EventTimeFeatureName": "event_time",
+        "FeatureDefinitions": [
+          {
+            "FeatureName": "record_id",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "event_time",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "available_time",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "asset_id",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "signal_name",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "signal_value",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "confidence",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "source_uri",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "content_hash",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "schema_version",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "lineage_id",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "quality_status",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "taint",
+            "FeatureType": "String"
+          }
+        ],
+        "OnlineStoreConfig": {
+          "EnableOnlineStore": true,
+          "SecurityConfig": {
+            "KmsKeyId": {
+              "Fn::GetAtt": [
+                "AiDataKey",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "OfflineStoreConfig": {
+          "DisableGlueTableCreation": false,
+          "S3StorageConfig": {
+            "S3Uri": {
+              "Fn::Sub": "s3://${FeatureStoreBucket}/offline/"
+            },
+            "KmsKeyId": {
+              "Fn::GetAtt": [
+                "AiDataKey",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "FeatureStoreExecutionRole",
+            "Arn"
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-signal-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "PredictionFeatureGroup": {
+      "Type": "AWS::SageMaker::FeatureGroup",
+      "DependsOn": [
+        "AiDataKeyAlias",
+        "FeatureStoreBucketPolicy"
+      ],
+      "Properties": {
+        "FeatureGroupName": "justhodl-ai-prediction-prod",
+        "Description": "justhodl-ai-prediction-prod point-in-time governed features",
+        "RecordIdentifierFeatureName": "prediction_id",
+        "EventTimeFeatureName": "event_time",
+        "FeatureDefinitions": [
+          {
+            "FeatureName": "prediction_id",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "event_time",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "as_of_time",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "asset_id",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "horizon_days",
+            "FeatureType": "Integral"
+          },
+          {
+            "FeatureName": "side",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "confidence",
+            "FeatureType": "Fractional"
+          },
+          {
+            "FeatureName": "model_package_arn",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "feature_snapshot_uri",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "market_data_hash",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "verdict_version",
+            "FeatureType": "String"
+          },
+          {
+            "FeatureName": "risk_status",
+            "FeatureType": "String"
+          }
+        ],
+        "OnlineStoreConfig": {
+          "EnableOnlineStore": true,
+          "SecurityConfig": {
+            "KmsKeyId": {
+              "Fn::GetAtt": [
+                "AiDataKey",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "OfflineStoreConfig": {
+          "DisableGlueTableCreation": false,
+          "S3StorageConfig": {
+            "S3Uri": {
+              "Fn::Sub": "s3://${FeatureStoreBucket}/offline/"
+            },
+            "KmsKeyId": {
+              "Fn::GetAtt": [
+                "AiDataKey",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "FeatureStoreExecutionRole",
+            "Arn"
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "justhodl-ai-prediction-prod"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "restricted"
+          }
+        ]
+      }
+    },
+    "ModelPackageGroup": {
+      "Type": "AWS::SageMaker::ModelPackageGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "ModelPackageGroupName": "justhodl-ai-prod",
+        "ModelPackageGroupDescription": "Governed JustHodl AI candidate models; promotion requires independent manual approval",
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "model-registry"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "MlflowTrackingServer": {
+      "Type": "AWS::SageMaker::MlflowTrackingServer",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "DependsOn": [
+        "AiDataKeyAlias",
+        "MlflowArtifactBucketPolicy"
+      ],
+      "Properties": {
+        "TrackingServerName": "justhodl-ai-prod",
+        "ArtifactStoreUri": {
+          "Fn::Sub": "s3://${MlflowArtifactBucket}/artifacts/"
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "MlflowTrackingRole",
+            "Arn"
+          ]
+        },
+        "TrackingServerSize": "Small",
+        "AutomaticModelRegistration": false,
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "mlflow-tracking"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "LambdaLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/justhodl-ai",
+        "RetentionInDays": 365,
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "AiDataKey",
+            "Arn"
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-managed",
+            "Value": "true"
+          },
+          {
+            "Key": "component",
+            "Value": "lambda-logs"
+          },
+          {
+            "Key": "data-classification",
+            "Value": "internal"
+          }
+        ]
+      }
+    },
+    "LambdaControlCorePolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-control-core",
+        "Description": "Core guardrails, encryption, observability, and approved parameter access for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyDashboardBrainReadsAndWrites",
+              "Effect": "Deny",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:GetObjectAttributes",
+                "s3:PutObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-dashboard-live/brain",
+                "arn:aws:s3:::justhodl-dashboard-live/brain/*",
+                "arn:aws:s3:::justhodl-dashboard-live/data/brain.json",
+                "arn:aws:s3:::justhodl-dashboard-live/data/brain/*",
+                "arn:aws:s3:::justhodl-dashboard-live/data/brain-history.json",
+                "arn:aws:s3:::justhodl-dashboard-live/data/brain-history/*"
+              ]
+            },
+            {
+              "Sid": "UseAiDataKey",
+              "Effect": "Allow",
+              "Action": [
+                "kms:Decrypt",
+                "kms:DescribeKey",
+                "kms:Encrypt",
+                "kms:GenerateDataKey"
+              ],
+              "Resource": "arn:aws:kms:us-east-1:857687956942:key/*",
+              "Condition": {
+                "ForAnyValue:StringEquals": {
+                  "kms:ResourceAliases": "alias/justhodl-ai-prod"
+                }
+              }
+            },
+            {
+              "Sid": "PriceAndCostRead",
+              "Effect": "Allow",
+              "Action": [
+                "ce:GetCostAndUsage",
+                "pricing:GetProducts"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "SageMakerMetricsRead",
+              "Effect": "Allow",
+              "Action": [
+                "cloudwatch:GetMetricData",
+                "cloudwatch:GetMetricStatistics"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "ReadEndpointLogs",
+              "Effect": "Allow",
+              "Action": [
+                "logs:DescribeLogStreams",
+                "logs:FilterLogEvents"
+              ],
+              "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*:*"
+            },
+            {
+              "Sid": "ReadOnlyApprovedParameters",
+              "Effect": "Allow",
+              "Action": [
+                "ssm:GetParameter",
+                "ssm:GetParameters"
+              ],
+              "Resource": [
+                "arn:aws:ssm:us-east-1:857687956942:parameter/justhodl/api-admin/token",
+                "arn:aws:ssm:us-east-1:857687956942:parameter/justhodl/llm/*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "LambdaTrainingDeploymentPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-training-deployment-control",
+        "Description": "Training and deployment control plane for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SageMakerInventory",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:ListApps",
+                "sagemaker:ListAutoMLJobs",
+                "sagemaker:ListClusters",
+                "sagemaker:ListDomains",
+                "sagemaker:ListEndpointConfigs",
+                "sagemaker:ListEndpoints",
+                "sagemaker:ListFeatureGroups",
+                "sagemaker:ListHubContents",
+                "sagemaker:ListModels",
+                "sagemaker:ListNotebookInstances",
+                "sagemaker:ListTrainingJobs"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "SageMakerPublicHubRead",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:DescribeHubContent"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "DescribeOwnedSageMakerResources",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:DescribeAutoMLJob",
+                "sagemaker:DescribeCluster",
+                "sagemaker:DescribeEndpoint",
+                "sagemaker:DescribeEndpointConfig",
+                "sagemaker:DescribeModel",
+                "sagemaker:DescribeTrainingJob",
+                "sagemaker:ListTags"
+              ],
+              "Resource": [
+                "arn:aws:sagemaker:us-east-1:857687956942:automl-job/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:model/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+              ]
+            },
+            {
+              "Sid": "CreateTaggedSageMakerResources",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:CreateCluster",
+                "sagemaker:CreateEndpoint",
+                "sagemaker:CreateEndpointConfig",
+                "sagemaker:CreateModel",
+                "sagemaker:CreateTrainingJob"
+              ],
+              "Resource": [
+                "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:model/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:RequestTag/justhodl": "ai",
+                  "aws:RequestTag/justhodl-ai-managed": "true"
+                },
+                "ForAllValues:StringEquals": {
+                  "aws:TagKeys": [
+                    "justhodl",
+                    "justhodl-ai-managed",
+                    "justhodl-ai-purpose",
+                    "justhodl-ai-ttl-hours",
+                    "justhodl-ai-pinned",
+                    "justhodl-ai-owner",
+                    "justhodl-ai-canary-retired"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "MutateTaggedSageMakerResources",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:DeleteCluster",
+                "sagemaker:DeleteEndpoint",
+                "sagemaker:DeleteEndpointConfig",
+                "sagemaker:AddTags",
+                "sagemaker:StopAutoMLJob",
+                "sagemaker:StopTrainingJob",
+                "sagemaker:UpdateEndpoint"
+              ],
+              "Resource": [
+                "arn:aws:sagemaker:us-east-1:857687956942:automl-job/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:ResourceTag/justhodl": "ai",
+                  "aws:ResourceTag/justhodl-ai-managed": "true"
+                }
+              }
+            },
+            {
+              "Sid": "InvokeOwnedEndpoints",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:InvokeEndpoint"
+              ],
+              "Resource": "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+              "Condition": {
+                "StringEquals": {
+                  "aws:ResourceTag/justhodl": "ai",
+                  "aws:ResourceTag/justhodl-ai-managed": "true"
+                }
+              }
+            },
+            {
+              "Sid": "CreatePendingGovernedModelPackages",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:CreateModelPackage",
+                "sagemaker:DescribeModelPackage",
+                "sagemaker:ListTags"
+              ],
+              "Resource": [
+                "arn:aws:sagemaker:us-east-1:857687956942:model-package-group/justhodl-ai-prod",
+                "arn:aws:sagemaker:us-east-1:857687956942:model-package/justhodl-ai-prod/*"
+              ]
+            },
+            {
+              "Sid": "CreateDraftGovernedModelCards",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:CreateModelCard",
+                "sagemaker:DescribeModelCard"
+              ],
+              "Resource": "arn:aws:sagemaker:us-east-1:857687956942:model-card/jh-ai-*"
+            },
+            {
+              "Sid": "PublishGovernedMlflowLineage",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker-mlflow:GetRun",
+                "sagemaker-mlflow:GetExperiment",
+                "sagemaker-mlflow:LogBatch"
+              ],
+              "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+            },
+            {
+              "Sid": "PassOnlyDedicatedSageMakerRole",
+              "Effect": "Allow",
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Resource": "arn:aws:iam::857687956942:role/justhodl-ai-sagemaker-prod",
+              "Condition": {
+                "StringEquals": {
+                  "iam:PassedToService": "sagemaker.amazonaws.com"
+                }
+              }
+            },
+            {
+              "Sid": "JumpStartCacheRead",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*",
+                "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1/*"
+              ]
+            },
+            {
+              "Sid": "JumpStartCacheList",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+                "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "LambdaFeatureStoreAccessPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-feature-store-access",
+        "Description": "Feature Store API and query access for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "WriteOwnedFeatureGroups",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:BatchGetRecord",
+                "sagemaker:GetRecord",
+                "sagemaker:PutRecord"
+              ],
+              "Resource": [
+                "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*",
+                "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-prediction-*"
+              ]
+            },
+            {
+              "Sid": "DescribeSignalFeatureGroupForOfflineRead",
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:DescribeFeatureGroup"
+              ],
+              "Resource": "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*"
+            },
+            {
+              "Sid": "QuerySignalFeatureHistory",
+              "Effect": "Allow",
+              "Action": [
+                "athena:GetQueryExecution",
+                "athena:GetQueryResults",
+                "athena:StartQueryExecution",
+                "athena:StopQueryExecution"
+              ],
+              "Resource": "arn:aws:athena:us-east-1:857687956942:workgroup/primary"
+            },
+            {
+              "Sid": "ReadSignalFeatureCatalog",
+              "Effect": "Allow",
+              "Action": [
+                "glue:GetDatabase",
+                "glue:GetPartitions",
+                "glue:GetTable"
+              ],
+              "Resource": [
+                "arn:aws:glue:us-east-1:857687956942:catalog",
+                "arn:aws:glue:us-east-1:857687956942:database/sagemaker_featurestore",
+                "arn:aws:glue:us-east-1:857687956942:table/sagemaker_featurestore/justhodl_ai_signal_prod*"
+              ]
+            },
+            {
+              "Sid": "SignalFeatureHistoryBucketLocation",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1"
+            },
+            {
+              "Sid": "ListSignalFeatureHistory",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1",
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": [
+                    "offline",
+                    "offline/*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadSignalFeatureHistoryObjects",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1/offline/*"
+            }
+          ]
+        }
+      }
+    },
+    "LambdaRuntimeDataPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-runtime-data",
+        "Description": "Explicit runtime data prefixes for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PrivateAiBucketLocation",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-857687956942"
+            },
+            {
+              "Sid": "ListReviewedRuntimePrefixes",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-857687956942",
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": [
+                    "ai/curves",
+                    "ai/curves/*",
+                    "ai/datasets/brain",
+                    "ai/datasets/brain/*",
+                    "ai/jobs",
+                    "ai/jobs/*",
+                    "ai/market-read",
+                    "ai/market-read/*",
+                    "ai/models",
+                    "ai/models/*",
+                    "ai/read-model",
+                    "ai/read-model/*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadReviewedRuntimeObjects",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/catalog.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/control.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/policy.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/pricing.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/curves/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/brain/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/market-read/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/read-model/*"
+              ]
+            },
+            {
+              "Sid": "ReadVersionedTrainingEvidence",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-857687956942/ai/governance/training-evidence/v1/*"
+            },
+            {
+              "Sid": "ReadVersionedGovernedTrainingSources",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*"
+              ]
+            },
+            {
+              "Sid": "TrainingInputBucketLocation",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1"
+            },
+            {
+              "Sid": "ListContentAddressedTrainingInputs",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": [
+                    "sha256/*/train/",
+                    "sha256/*/validation/"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "MaterializeContentAddressedTrainingInputs",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/train/payload.data",
+                "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/validation/payload.data"
+              ]
+            },
+            {
+              "Sid": "ReadPublicEngineFeeds",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live/data/*"
+            },
+            {
+              "Sid": "PublicDashboardBucketLocation",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live"
+            },
+            {
+              "Sid": "ListPublicEngineFeeds",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-dashboard-live",
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": [
+                    "data",
+                    "data/*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "PublishOnlyAiReadModels",
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-dashboard-live/data/ai.json",
+                "arn:aws:s3:::justhodl-dashboard-live/data/ai/control.json",
+                "arn:aws:s3:::justhodl-dashboard-live/data/ai/verdict.json"
+              ]
+            },
+            {
+              "Sid": "WriteReviewedRuntimeObjects",
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Resource": [
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/catalog.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/control.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/policy.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/pricing.json",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/curves/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/brain/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/market-read/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/read-model/*",
+                "arn:aws:s3:::justhodl-ai-857687956942/ai/feature-store-query-results/*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "LambdaBrainSignalBoundaryPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-brain-signal-boundary",
+        "Description": "Read-only canonical Brain and governed signal/outbox prefixes for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "CanonicalBrainBucketMetadata",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1"
+            },
+            {
+              "Sid": "ReadCanonicalBrainObject",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/data/brain.json"
+            },
+            {
+              "Sid": "PublishGovernedEvents",
+              "Effect": "Allow",
+              "Action": [
+                "events:PutEvents"
+              ],
+              "Resource": "arn:aws:events:us-east-1:857687956942:event-bus/justhodl-ai-prod"
+            },
+            {
+              "Sid": "ListCanonicalBrainObject",
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+              "Condition": {
+                "StringLike": {
+                  "s3:prefix": [
+                    "data/brain.json"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadWriteGovernedSignalArchive",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/signals/v1/*"
+            },
+            {
+              "Sid": "ReadWriteGovernedSignalOutbox",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-857687956942/ai/signals/outbox/v1/*"
+            }
+          ]
+        }
+      }
+    },
+    "LambdaLedgerArchivePolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "justhodl-ai-ledger-archive",
+        "Description": "Immutable prediction archive and append-only query index access for justhodl-ai Lambda",
+        "Path": "/justhodl-ai/",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PredictionLedgerIndex",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Query"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-ai-prediction-ledger-prod",
+                "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-ai-prediction-ledger-prod/index/*"
+              ]
+            },
+            {
+              "Sid": "LegacySignalLedgerCompatibility",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals",
+                "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals/index/*"
+              ]
+            },
+            {
+              "Sid": "AppendPredictionArchive",
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Resource": "arn:aws:s3:::justhodl-ai-prediction-ledger-857687956942-us-east-1/predictions/*"
+            }
+          ]
+        }
+      }
+    },
+    "TrainingInputBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "BucketName": "justhodl-ai-training-inputs-857687956942-us-east-1",
+        "ObjectLockEnabled": true,
+        "ObjectLockConfiguration": {
+          "ObjectLockEnabled": "Enabled",
+          "Rule": {
+            "DefaultRetention": {
+              "Mode": "COMPLIANCE",
+              "Years": 7
+            }
+          }
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "aws:kms",
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "AiDataKey",
+                    "Arn"
+                  ]
+                }
+              },
+              "BucketKeyEnabled": true
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "RetainLockedInputs",
+              "Status": "Enabled",
+              "NoncurrentVersionTransitions": [
+                {
+                  "StorageClass": "GLACIER",
+                  "TransitionInDays": 30
+                }
+              ]
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "justhodl",
+            "Value": "ai"
+          },
+          {
+            "Key": "justhodl-ai-purpose",
+            "Value": "immutable-training-inputs"
+          }
+        ]
+      }
+    },
+    "TrainingInputBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "Bucket": {
+          "Ref": "TrainingInputBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "DenyInsecureTransport",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "TrainingInputBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${TrainingInputBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            },
+            {
+              "Sid": "DenyObjectDeletion",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": [
+                "s3:DeleteObject",
+                "s3:DeleteObjectVersion"
+              ],
+              "Resource": {
+                "Fn::Sub": "${TrainingInputBucket.Arn}/*"
+              }
+            },
+            {
+              "Sid": "DenyNonLambdaWrites",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:PutObject",
+              "Resource": {
+                "Fn::Sub": "${TrainingInputBucket.Arn}/*"
+              },
+              "Condition": {
+                "StringNotEquals": {
+                  "aws:PrincipalArn": {
+                    "Fn::GetAtt": [
+                      "LambdaExecutionRole",
+                      "Arn"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "Sid": "DenyLambdaSiblingWrites",
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "LambdaExecutionRole",
+                    "Arn"
+                  ]
+                }
+              },
+              "Action": "s3:PutObject",
+              "NotResource": [
+                {
+                  "Fn::Sub": "${TrainingInputBucket.Arn}/sha256/*/train/payload.data"
+                },
+                {
+                  "Fn::Sub": "${TrainingInputBucket.Arn}/sha256/*/validation/payload.data"
+                }
+              ]
+            },
+            {
+              "Sid": "RequireWriteOnceConditional",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:PutObject",
+              "Resource": {
+                "Fn::Sub": "${TrainingInputBucket.Arn}/*"
+              },
+              "Condition": {
+                "StringNotEquals": {
+                  "s3:if-none-match": "*"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "DedicatedLambdaRoleArn": {
+      "Description": "Set this on justhodl-ai only after policy simulation and canary approval.",
+      "Value": {
+        "Fn::GetAtt": [
+          "LambdaExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "SageMakerExecutionRoleArn": {
+      "Description": "Pass only this role to governed SageMaker resources.",
+      "Value": {
+        "Fn::GetAtt": [
+          "SageMakerExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "MlflowTrackingRoleArn": {
+      "Description": "Dedicated role assumed only by the governed MLflow tracking server.",
+      "Value": {
+        "Fn::GetAtt": [
+          "MlflowTrackingRole",
+          "Arn"
+        ]
+      }
+    },
+    "CanonicalBrainBucketName": {
+      "Value": {
+        "Ref": "CanonicalBrainBucket"
+      }
+    },
+    "FeatureStoreBucketName": {
+      "Value": {
+        "Ref": "FeatureStoreBucket"
+      }
+    },
+    "MlflowArtifactBucketName": {
+      "Value": {
+        "Ref": "MlflowArtifactBucket"
+      }
+    },
+    "PredictionLedgerArchiveBucketName": {
+      "Value": {
+        "Ref": "PredictionLedgerArchiveBucket"
+      }
+    },
+    "PredictionLedgerTableName": {
+      "Value": {
+        "Ref": "PredictionLedgerTable"
+      }
+    },
+    "EventBusName": {
+      "Value": {
+        "Ref": "AiEventBus"
+      }
+    },
+    "ModelPackageGroupName": {
+      "Value": "justhodl-ai-prod"
+    },
+    "ModelPackageGroupArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ModelPackageGroup",
+          "ModelPackageGroupArn"
+        ]
+      }
+    },
+    "MlflowTrackingServerName": {
+      "Value": {
+        "Ref": "MlflowTrackingServer"
+      }
+    },
+    "MlflowTrackingServerArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MlflowTrackingServer",
+          "TrackingServerArn"
+        ]
+      }
+    },
+    "DataKeyArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AiDataKey",
+          "Arn"
+        ]
+      }
+    },
+    "RequiredLambdaEnvironment": {
+      "Description": "Review and apply separately; this stack never mutates the existing Lambda.",
+      "Value": {
+        "Fn::Sub": "{\"AI_BRAIN_SOURCE_BUCKET\":\"${CanonicalBrainBucket}\",\"AI_EVENT_BUS\":\"${AiEventBus}\",\"SIGNAL_FEATURE_GROUP\":\"${SignalFeatureGroup}\",\"PREDICTION_FEATURE_GROUP\":\"${PredictionFeatureGroup}\",\"PREDICTION_LEDGER_TABLE\":\"${PredictionLedgerTable}\",\"PREDICTION_LEDGER_ARCHIVE_BUCKET\":\"${PredictionLedgerArchiveBucket}\",\"MODEL_PACKAGE_GROUP\":\"justhodl-ai-prod\",\"MLFLOW_TRACKING_SERVER_NAME\":\"${MlflowTrackingServer}\",\"MLFLOW_TRACKING_SERVER_ARN\":\"${MlflowTrackingServer.TrackingServerArn}\",\"MLFLOW_EXPERIMENT_NAME\":\"justhodl-ai-prod\",\"SAGEMAKER_ROLE_ARN\":\"${SageMakerExecutionRole.Arn}\",\"TRAINING_INPUT_BUCKET\":\"${TrainingInputBucket}\"}"
+      }
+    },
+    "FeatureStoreExecutionRoleArn": {
+      "Description": "Dedicated role used only by governed Feature Store groups.",
+      "Value": {
+        "Fn::GetAtt": [
+          "FeatureStoreExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "TrainingInputBucketName": {
+      "Value": {
+        "Ref": "TrainingInputBucket"
+      }
+    }
+  }
+}

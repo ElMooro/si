@@ -2,40 +2,249 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "ReadPrivateTrainingInputs",
       "Effect": "Allow",
       "Action": [
         "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/train/payload.data",
+        "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1/sha256/*/validation/payload.data",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/datasets/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*",
+        "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/data/brain.json",
+        "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1/offline/*"
+      ]
+    },
+    {
+      "Sid": "PrivateTrainingBucketLocations",
+      "Effect": "Allow",
+      "Action": [
         "s3:GetBucketLocation"
       ],
       "Resource": [
+        "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
         "arn:aws:s3:::justhodl-ai-857687956942",
-        "arn:aws:s3:::justhodl-ai-857687956942/*",
-        "arn:aws:s3:::justhodl-dashboard-live",
-        "arn:aws:s3:::justhodl-dashboard-live/*",
-        "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+        "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+        "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1"
+      ]
+    },
+    {
+      "Sid": "ListPrivateAiTrainingInputs",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-857687956942",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "ai/datasets",
+            "ai/datasets/*",
+            "ai/jobs",
+            "ai/jobs/*",
+            "ai/models",
+            "ai/models/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ListImmutableTrainingInputPrefixes",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-training-inputs-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "sha256/*/train/",
+            "sha256/*/validation/"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ListCanonicalBrainInput",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "data/brain.json"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ListFeatureStoreOffline",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-feature-store-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "offline",
+            "offline/*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "WriteOwnedTrainingAndModelOutputs",
+      "Effect": "Allow",
+      "Action": [
+        "s3:AbortMultipartUpload",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/jobs/*",
+        "arn:aws:s3:::justhodl-ai-857687956942/ai/models/*"
+      ]
+    },
+    {
+      "Sid": "ReadJumpStartArtifacts",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
         "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*",
-        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1",
         "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1/*"
       ]
     },
     {
+      "Sid": "ListJumpStartArtifacts",
       "Effect": "Allow",
-      "Resource": "*",
       "Action": [
-        "ecr:GetAuthorizationToken",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1"
+      ]
+    },
+    {
+      "Sid": "PullApprovedTrainingImages",
+      "Effect": "Allow",
+      "Action": [
         "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
         "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ],
+      "Resource": [
+        "arn:aws:ecr:us-east-1:683313688378:repository/sagemaker-xgboost",
+        "arn:aws:ecr:us-east-1:*:repository/*jumpstart*",
+        "arn:aws:ecr:us-east-1:*:repository/sagemaker-*"
+      ]
+    },
+    {
+      "Sid": "EcrAuthorization",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WriteSageMakerLogs",
+      "Effect": "Allow",
+      "Action": [
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
-        "logs:PutLogEvents",
         "logs:DescribeLogStreams",
-        "cloudwatch:PutMetricData",
-        "sagemaker:*"
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Clusters/jh-ai-*:*",
+        "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*:*",
+        "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/ProcessingJobs/jh-ai-*:*",
+        "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/TrainingJobs/jh-ai-*:*"
       ]
+    },
+    {
+      "Sid": "PublishNamespacedMetrics",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutMetricData"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "cloudwatch:namespace": [
+            "AWS/SageMaker",
+            "JustHodl/AI"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "WriteOwnedFeatureGroups",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:GetRecord",
+        "sagemaker:PutRecord"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-signal-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:feature-group/justhodl-ai-prediction-*"
+      ]
+    },
+    {
+      "Sid": "DescribeGovernedMlflowTrackingServer",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeMlflowTrackingServer"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+    },
+    {
+      "Sid": "WriteGovernedMlflowRuns",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker-mlflow:CreateExperiment",
+        "sagemaker-mlflow:CreateRun",
+        "sagemaker-mlflow:GetExperiment",
+        "sagemaker-mlflow:GetExperimentByName",
+        "sagemaker-mlflow:GetMetricHistory",
+        "sagemaker-mlflow:GetRun",
+        "sagemaker-mlflow:ListArtifacts",
+        "sagemaker-mlflow:LogBatch",
+        "sagemaker-mlflow:LogInputs",
+        "sagemaker-mlflow:LogMetric",
+        "sagemaker-mlflow:LogModel",
+        "sagemaker-mlflow:LogParam",
+        "sagemaker-mlflow:SearchExperiments",
+        "sagemaker-mlflow:SearchRuns",
+        "sagemaker-mlflow:SetExperimentTag",
+        "sagemaker-mlflow:SetTag",
+        "sagemaker-mlflow:UpdateRun"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+    },
+    {
+      "Sid": "UseAiDataKey",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey"
+      ],
+      "Resource": "arn:aws:kms:us-east-1:857687956942:key/*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "kms:ResourceAliases": "alias/justhodl-ai-prod"
+        }
+      }
     }
   ]
 }

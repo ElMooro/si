@@ -69,13 +69,24 @@ class Pipeline:
         if note:
             self._note(st, stage, note)
 
-    def start(self, ladder: List[str], retrieval_ladder: Optional[List[str]] = None, force: bool = False) -> Dict[str, Any]:
+    def start(
+        self,
+        ladder: List[str],
+        retrieval_ladder: Optional[List[str]] = None,
+        force: bool = False,
+        governance_evidence: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         st = self.load()
         if st.get("status") == "running" and not force:
             return st
         st = {"pipeline_id": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"), "status": "running", "started_at": now_iso(),
               "ladder": ladder, "ladder_idx": 0, "retrieval_ladder": retrieval_ladder or RETRIEVAL_LADDER, "retrieval_idx": 0,
               "history": [], "errors": [], "warnings": [], "attempts": {}}
+        if governance_evidence is not None:
+            # Keep only the opaque immutable-receipt reference in private
+            # pipeline state. The training action still resolves and verifies
+            # the receipt, artifacts, versions and digests before launching.
+            st["governance_evidence"] = governance_evidence
         self._goto(st, "dataset", "pipeline started; ladder %s" % ladder)
         self.save(st)
         return st
@@ -187,7 +198,11 @@ class Pipeline:
             self._note(st, "embed", "cursor %s/%s" % (est.get("cursor"), est.get("n_rows")))
 
     def s_train(self, st, budget):
-        res = self.api["train_classifier"]({"dataset_id": st["dataset_id"], "endpoint": st["embedding_endpoint"]})
+        res = self.api["train_classifier"]({
+            "dataset_id": st["dataset_id"],
+            "endpoint": st["embedding_endpoint"],
+            "governance_evidence": st.get("governance_evidence"),
+        })
         st["classifier_job"] = res["job_name"]
         self._goto(st, "wait_train", "classifier job %s on %s spot=%s" % (res["job_name"], res.get("instance_type"), res.get("spot")))
 

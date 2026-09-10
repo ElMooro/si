@@ -19,5 +19,29 @@ custom_domain = true
 [observability]
 enabled = true
 
-# No public vars — auth token is set as an encrypted Secret via `wrangler secret put AI_CHAT_TOKEN`
-# (done automatically by the GitHub Actions deploy workflow, sourced from AWS SSM).
+# AI control identity configuration. The publishable Supabase key and JWKS URL
+# are public identifiers (not secrets). Tokens are verified locally against the
+# issuer's asymmetric keys; /auth/v1/user is the fail-closed verifier for any
+# legacy symmetric Supabase tokens during key migration.
+[vars]
+SUPABASE_URL = "https://bdmjenqcyvzouusfcgow.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_W6V6OaQ9aXvpVVV9k4Lrpg_pCPuBLvB"
+AUTH_JWKS_URL = "https://bdmjenqcyvzouusfcgow.supabase.co/auth/v1/.well-known/jwks.json"
+AUTH_ISSUER = "https://bdmjenqcyvzouusfcgow.supabase.co/auth/v1"
+AUTH_AUDIENCE = "authenticated"
+OWNER_EMAILS = "raafouis@gmail.com"
+ADMIN_ROLES = "admin"
+AI_MAX_BODY_BYTES = "65536"
+AI_REPLAY_WINDOW_SECONDS = "300"
+
+# Atomic per-verified-subject quotas and replay nonces for /ai control routes.
+[[durable_objects.bindings]]
+name = "AI_REQUEST_GUARD"
+class_name = "AiRequestGuard"
+
+[[migrations]]
+tag = "ai-request-guard-v1"
+new_sqlite_classes = ["AiRequestGuard"]
+
+# AI_CHAT_TOKEN and portfolio credentials remain encrypted Worker Secrets set
+# by the GitHub Actions deploy workflow from AWS SSM.

@@ -1,0 +1,4 @@
+# Managed SageMaker MLflow tracking-URI plugin and its MLflow client dependency.
+# Installed only into the governed Lambda deployment artifact; application code
+# imports it lazily, so offline tests and dry-run handlers remain dependency-free.
+sagemaker-mlflow==0.1.0

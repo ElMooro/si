@@ -1,0 +1,63 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CanonicalBrainBucketMetadata",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1"
+    },
+    {
+      "Sid": "ReadCanonicalBrainObject",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/data/brain.json"
+    },
+    {
+      "Sid": "PublishGovernedEvents",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutEvents"
+      ],
+      "Resource": "arn:aws:events:us-east-1:857687956942:event-bus/justhodl-ai-prod"
+    },
+    {
+      "Sid": "ListCanonicalBrainObject",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "data/brain.json"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadWriteGovernedSignalArchive",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-brain-857687956942-us-east-1/signals/v1/*"
+    },
+    {
+      "Sid": "ReadWriteGovernedSignalOutbox",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-857687956942/ai/signals/outbox/v1/*"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyPublicBrainReads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetObjectAttributes"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-dashboard-live/brain",
+        "arn:aws:s3:::justhodl-dashboard-live/brain/*",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain/*",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain-history.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain-history/*"
+      ]
+    },
+    {
+      "Sid": "DenyDashboardBrainWrites",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::justhodl-dashboard-live/brain",
+        "arn:aws:s3:::justhodl-dashboard-live/brain/*",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain/*",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain-history.json",
+        "arn:aws:s3:::justhodl-dashboard-live/data/brain-history/*"
+      ]
+    }
+  ]
+}

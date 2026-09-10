@@ -1,0 +1,194 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SageMakerInventory",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:ListApps",
+        "sagemaker:ListAutoMLJobs",
+        "sagemaker:ListClusters",
+        "sagemaker:ListDomains",
+        "sagemaker:ListEndpointConfigs",
+        "sagemaker:ListEndpoints",
+        "sagemaker:ListFeatureGroups",
+        "sagemaker:ListHubContents",
+        "sagemaker:ListModels",
+        "sagemaker:ListNotebookInstances",
+        "sagemaker:ListTrainingJobs"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SageMakerPublicHubRead",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeHubContent"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DescribeOwnedSageMakerResources",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeAutoMLJob",
+        "sagemaker:DescribeCluster",
+        "sagemaker:DescribeEndpoint",
+        "sagemaker:DescribeEndpointConfig",
+        "sagemaker:DescribeModel",
+        "sagemaker:DescribeTrainingJob",
+        "sagemaker:ListTags"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:automl-job/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:model/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+      ]
+    },
+    {
+      "Sid": "CreateTaggedSageMakerResources",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateCluster",
+        "sagemaker:CreateEndpoint",
+        "sagemaker:CreateEndpointConfig",
+        "sagemaker:CreateModel",
+        "sagemaker:CreateTrainingJob"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:model/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/justhodl": "ai",
+          "aws:RequestTag/justhodl-ai-managed": "true"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "justhodl",
+            "justhodl-ai-managed",
+            "justhodl-ai-purpose",
+            "justhodl-ai-ttl-hours",
+            "justhodl-ai-pinned",
+            "justhodl-ai-owner",
+            "justhodl-ai-canary-retired"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "MutateTaggedSageMakerResources",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DeleteCluster",
+        "sagemaker:DeleteEndpoint",
+        "sagemaker:DeleteEndpointConfig",
+        "sagemaker:AddTags",
+        "sagemaker:StopAutoMLJob",
+        "sagemaker:StopTrainingJob",
+        "sagemaker:UpdateEndpoint"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:automl-job/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:cluster/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:endpoint-config/jh-ai-*",
+        "arn:aws:sagemaker:us-east-1:857687956942:training-job/jh-ai-*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/justhodl": "ai",
+          "aws:ResourceTag/justhodl-ai-managed": "true"
+        }
+      }
+    },
+    {
+      "Sid": "InvokeOwnedEndpoints",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:InvokeEndpoint"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:endpoint/jh-ai-*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/justhodl": "ai",
+          "aws:ResourceTag/justhodl-ai-managed": "true"
+        }
+      }
+    },
+    {
+      "Sid": "CreatePendingGovernedModelPackages",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateModelPackage",
+        "sagemaker:DescribeModelPackage",
+        "sagemaker:ListTags"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:us-east-1:857687956942:model-package-group/justhodl-ai-prod",
+        "arn:aws:sagemaker:us-east-1:857687956942:model-package/justhodl-ai-prod/*"
+      ]
+    },
+    {
+      "Sid": "CreateDraftGovernedModelCards",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateModelCard",
+        "sagemaker:DescribeModelCard"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:model-card/jh-ai-*"
+    },
+    {
+      "Sid": "PublishGovernedMlflowLineage",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker-mlflow:GetRun",
+        "sagemaker-mlflow:GetExperiment",
+        "sagemaker-mlflow:LogBatch"
+      ],
+      "Resource": "arn:aws:sagemaker:us-east-1:857687956942:mlflow-tracking-server/justhodl-ai-prod"
+    },
+    {
+      "Sid": "PassOnlyDedicatedSageMakerRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::857687956942:role/justhodl-ai-sagemaker-prod",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "JumpStartCacheRead",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1/*",
+        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1/*"
+      ]
+    },
+    {
+      "Sid": "JumpStartCacheList",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::jumpstart-cache-prod-us-east-1",
+        "arn:aws:s3:::jumpstart-private-cache-prod-us-east-1"
+      ]
+    }
+  ]
+}

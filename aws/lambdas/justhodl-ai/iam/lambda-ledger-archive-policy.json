@@ -1,0 +1,42 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PredictionLedgerIndex",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:Query"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-ai-prediction-ledger-prod",
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-ai-prediction-ledger-prod/index/*"
+      ]
+    },
+    {
+      "Sid": "LegacySignalLedgerCompatibility",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals",
+        "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-signals/index/*"
+      ]
+    },
+    {
+      "Sid": "AppendPredictionArchive",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::justhodl-ai-prediction-ledger-857687956942-us-east-1/predictions/*"
+    }
+  ]
+}
