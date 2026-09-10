@@ -1,0 +1,75 @@
+{
+  "schema": "JustHodlAiLiveRolloutReport/v1",
+  "run_id": "a96e77f985fdccf7a87c",
+  "mode": "plan",
+  "started_at": "2026-09-10T12:47:32.832066Z",
+  "target": {
+    "account": "857687956942",
+    "region": "us-east-1"
+  },
+  "status": "PLANNED",
+  "steps": [],
+  "artifacts": {
+    "aws/lambdas/justhodl-ai/iam/production-gates.template.json": {
+      "sha256": "b3c4cd11acee0f57b59ee011f36c72d509841343af7503a9c92cadb9b31ab70f"
+    },
+    "aws/lambdas/justhodl-ai/consumer-functions.template.json": {
+      "sha256": "9112e2d3a681a25ff1934539a40b960b6b169a945014f55c7d879f7744ddc031"
+    },
+    "aws/lambdas/justhodl-ai/iam/dashboard-brain-deny-policy.json": {
+      "sha256": "3bbc83b85fbfd0485d8ff2f85011ab22d832264b610fef45ae9a79907d8b21df"
+    },
+    "consumer-package": {
+      "sha256": "43a577af39b43c826f51436c92d69b150a61e4a856f82408f508311f5da285fd",
+      "bytes": 308938
+    },
+    "main-lambda-package": {
+      "dependency_manifest_sha256": "d076b11e3f4c177b861d52c25274c4e2925af716c4d18695862b0389940b6b67",
+      "built_during_apply_only": true
+    }
+  },
+  "change_sets": [],
+  "checks": [
+    {
+      "name": "aws_target",
+      "passed": true,
+      "at": "2026-09-10T12:47:33.193508Z",
+      "account": "857687956942",
+      "region": "us-east-1"
+    }
+  ],
+  "activation": {
+    "rules": "disabled",
+    "mappings": "disabled"
+  },
+  "next_steps": [
+    {
+      "schema": "JustHodlAiExternalDeploymentNextStep/v1",
+      "system": "cloudflare",
+      "component": "justhodl-ai-proxy",
+      "status": "REQUIRED_MANUAL_ACTION",
+      "path": "cloudflare/workers/justhodl-ai-proxy",
+      "reason": "Cloudflare credentials and deployment are outside this AWS rollout."
+    }
+  ],
+  "canary_candidates": {
+    "managed_in_service_endpoints": [],
+    "approved_model_packages": []
+  },
+  "plan": {
+    "base_stack": "justhodl-ai-production-gates",
+    "consumer_stack": "justhodl-ai-consumers",
+    "function": "justhodl-ai",
+    "brain_migration": "s3://justhodl-dashboard-live/data/brain.json -> private canonical bucket",
+    "dashboard_policy": "merge reviewed Sids; preserve unrelated statements",
+    "initial_state": "all EventBridge rules and SQS mappings disabled",
+    "activation_gate": [
+      "live canary",
+      "DLQ/error alarms OK",
+      "rollback evidence"
+    ],
+    "approval_secret": "<redacted>",
+    "canary_input": "aws/ops/pending/justhodl_ai_canary_input.json"
+  },
+  "finished_at": "2026-09-10T12:47:33.798569Z"
+}
