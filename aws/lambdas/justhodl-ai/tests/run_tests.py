@@ -289,6 +289,13 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
         "what_would_change_my_mind": ["HY OAS > 500"], "data_gaps": ["metals stale"],
         "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 63, "confidence": 0.7, "thesis": "leader"}, {"ticker": "FAKEX", "direction": "UP", "horizon_days": 21, "confidence": 0.9, "thesis": "no"}, {"ticker": "GLD", "direction": "SIDEWAYS", "horizon_days": 21, "confidence": 0.6, "thesis": "bad direction"}]})
     lr.complete = complete
+    lr.GLM_REASON = "glm-5.1"
+    lr.glm_calls = []
+    def _glm(prompt, model, max_tokens, system=None):
+        lr.glm_calls.append(prompt)
+        return (json.dumps({"overall": "GLM view: regime supportive, breadth improving, funding stable.", "macro": "Funding conditions stable; no stress.", "stocks": {"stance": "SELECTIVE", "read": "pick the leaders"}, "bonds": {"stance": "NEUTRAL", "read": "curve flat, wait"},
+                            "metals": {"stance": "HOLD", "read": "gold bid, hold"}, "crypto": {"stance": "HOLD", "read": "cycle mid, hold"}, "best_opportunities": [], "what_would_change_my_mind": [], "data_gaps": [], "calls": []}), 100, 50)
+    lr._glm = _glm
     sys.modules["llm_router"] = lr
     se = types.ModuleType("signals_emit")
     def _log(table, signal_type, ticker, direction, windows, baseline_price, confidence=0.55, rationale="", metadata=None, benchmark=None, signal_value=""):
@@ -729,6 +736,35 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     assert pub["market_read"]["performance"]["by_window"]["5"]["hit_rate"] == 1.0 and pub["market_read"]["sources"]["bonds"] == "STALE"
     assert "eurodollar" not in json.dumps(pub) and "Regime mildly supportive" not in json.dumps(pub)
     return "board freshness, candidates guard, LLM JSON, ledger + graded hit rate, public summary clean"
+
+
+def test_market_read_falls_back_to_glm_without_note_text_when_claude_is_offline():
+    s3 = FakeS3()
+    FAKE_TABLE.items.clear()
+    s3.put_object("public-test", "data/brain.json", json.dumps(_brain(30)).encode())
+    _fleet_docs(s3)
+    rt = FakeRT(dim=6)
+    store = _install_fakes(s3=s3, rt=rt)
+    lf = _load(store)
+    import brain_dataset as bd
+    import sm_hub
+    man = bd.build_brain_dataset(s3, "public-test", "private-test", min_class_rows=3)
+    bd.run_embedding_pass(s3, rt, "private-test", man["dataset_id"], "jh-ai-roberta", embed_fn=sm_hub.embed_texts, budget_s=30)
+    store["sagemaker"].endpoints["jh-ai-roberta"] = {"EndpointName": "jh-ai-roberta", "EndpointStatus": "InService", "EndpointArn": "arn:ep:x", "CreationTime": datetime.now(timezone.utc), "ProductionVariants": [], "Tags": []}
+    lr = sys.modules["llm_router"]
+    lr.complete = lambda *a, **k: ""                      # Anthropic offline (credits)
+    lf._direct_claude = lambda prompt, system, max_tokens: ""
+    ok = {"x-jh-service-token": os.environ["JH_SERVICE_TOKEN"]}
+    r = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": json.dumps({"force": True})}, None)
+    body = json.loads(r["body"])
+    assert r["statusCode"] == 200, body
+    read = body["result"]["read"]
+    assert read.get("voice") == "fallback" and read["stocks"]["stance"] == "SELECTIVE" and "glm-5.1 fallback" in read["llm_path"], read.get("llm_path")
+    assert lr.glm_calls and all("eurodollar" not in pr for pr in lr.glm_calls), "note text must never reach the fallback provider"
+    lf.run_inventory(None)
+    pub = json.loads(s3.objs[("public-test", "data/ai.json")])
+    assert pub["scoreboard"]["voice"].startswith("online (fallback voice GLM-5.1"), pub["scoreboard"]["voice"]
+    return "Claude empty -> GLM-5.1 answered without note text; page voice labelled"
 
 
 def test_pipeline_state_machine_end_to_end_and_ladder_failover():
@@ -1313,6 +1349,12 @@ def test_governance_owner_only_exact_routes_and_canary_fail_closed():
     lf._clients["sagemaker"] = concrete_sm
     concrete_runtime = FakeCanaryRuntime()
     lf._clients["sagemaker-runtime"] = concrete_runtime
+    import deployment_gates as _dg
+    _tick = [0.0]
+    def _clock():
+        _tick[0] += 0.0001            # 0.1 ms per probe step: deterministic, never a 'latency regression' on a busy runner
+        return _tick[0]
+    _dg.PROBE_CLOCK = _clock
     lf._clients["cloudwatch"] = FakeCanaryCloudWatch(
         concrete_runtime, datetime.now(timezone.utc)
     )
@@ -1354,7 +1396,7 @@ def main():
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
-             test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover,
+             test_market_read_board_playbook_llm_ledger_and_grading, test_market_read_falls_back_to_glm_without_note_text_when_claude_is_offline, test_pipeline_state_machine_end_to_end_and_ladder_failover,
              test_fleet_registry_reads_every_unique_feed_and_gates_evidence, test_private_feed_future_timestamp_and_registry_controls_fail_closed,
              test_destructive_endpoint_action_requires_engine_ownership_tag, test_endpoint_replacement_and_serverless_limits_fail_closed,
              test_inventory_writes_public_read_model_without_note_text,

@@ -294,7 +294,7 @@ LESSON_SYSTEM = ("You are the AI desk's own post-mortem. You get the desk's past
                  "{\"lessons\": [{\"lesson\": string, \"evidence\": string, \"weight\": 1-5}], \"summary\": string}. Max 6 lessons. Use only the graded rows given.")
 
 
-def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn) -> Dict[str, Any]:
+def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn, fallback_fn=None) -> Dict[str, Any]:
     """Learn from mistakes: turn graded calls into carried lessons (only when new graded rows exist)."""
     rows = [r for r in graded_rows if r.get("windows")]
     if not rows:
@@ -307,6 +307,8 @@ def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn) -
         json.dumps((prior or {}).get("lessons") or [], default=str)[:3000], json.dumps(rows[-40:], default=str)[:12000])
     raw = complete_fn(prompt, tier="critical", max_tokens=1200, contains_proprietary=True, system=LESSON_SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
+    if not txt and fallback_fn is not None:
+        txt = str(fallback_fn(prompt, max_tokens=1200, system=LESSON_SYSTEM) or "").strip()
     mm = re.search(r"\{.*\}", txt, re.S)
     try:
         j = json.loads(mm.group(0) if mm else txt)

@@ -62,7 +62,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.1.0"
+VERSION = "2.2.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -119,8 +119,12 @@ def put_public(key: str, obj: Any):
                             CacheControl="max-age=60")
 
 
+def _nan_safe(obj):
+    return json.loads(json.dumps(obj, default=str), parse_constant=lambda c: None)
+
+
 def put_private(key: str, obj: Any):
-    client("s3").put_object(Bucket=PRIVATE_BUCKET, Key=key, Body=json.dumps(obj, default=str).encode(), ContentType="application/json",
+    client("s3").put_object(Bucket=PRIVATE_BUCKET, Key=key, Body=json.dumps(_nan_safe(obj), default=str).encode(), ContentType="application/json",
                             ServerSideEncryption="AES256", CacheControl="private, no-store")
 
 
@@ -333,6 +337,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
     dataset = out.get("brain_dataset") or {}
     verdict = out.get("pipeline_verdict") or {}
     fleet = out.get("fleet_inputs") or {}
+    pipe = out.get("pipeline") or {}
     return {
         "engine": out.get("engine"),
         "version": out.get("version"),
@@ -347,8 +352,10 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "catalog": {k: catalog.get(k) for k in ("generated_at", "n", "article_models_present", "article_models_missing")},
         "brain_dataset": ({k: dataset.get(k) for k in ("n_rows", "source_n_notes", "n_labels", "outcome_labels")} if dataset else None),
         "market_read": out.get("market_read"),
+        "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
+        "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
         "fleet_inputs": {k: fleet.get(k) for k in ("registry_version", "status", "summary")},
-        "pipeline_verdict": ({k: verdict.get(k) for k in ("status", "finished_at")} if verdict else None),
+        "pipeline_verdict": ({k: verdict.get(k) for k in ("status", "finished_at", "ops", "title", "steps", "fails", "warns", "report", "duration_s")} if verdict else None),
         "tiers": out.get("tiers"),
         "definitions": out.get("definitions"),
     }
@@ -906,13 +913,24 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     try:
         prev_calls = (get_json(PRIVATE_BUCKET, CALLS_KEY) or {}).get("calls") or []
         graded = mr.grade_calls(_signals_table(), prev_calls) if prev_calls else {"rows": []}
-        lessons = mr.write_lessons(graded.get("rows") or [], lessons, complete)
+        lessons = mr.write_lessons(graded.get("rows") or [], lessons, complete, fallback_fn=_glm_complete)
         put_private(mr.LESSONS_KEY, lessons)
     except Exception as e:
         lessons = {**lessons, "error": "grading/lessons: %s" % str(e)[:160]}
     read = mr.compose_read(board, play, complete, lessons=lessons, playbook_text=bool(policy.get("playbook_text_to_llm", True)))
-    read["lessons_carried"] = len(lessons.get("lessons") or [])
     read["llm_path"] = "governed-router"
+    if read.get("parse_error") or read.get("empty"):
+        # the Anthropic voice is offline (credits / outage): speak through the fleet's second provider, GLM-5.1 on Z.ai,
+        # with NO operator note text in the prompt (the proprietary boundary stays Anthropic-only); the page labels it
+        claude_path = read.get("llm_path")
+        read2 = mr.compose_read(board, play, _glm_complete, lessons=lessons, playbook_text=False)
+        if not (read2.get("parse_error") or read2.get("empty")):
+            read = read2
+            read["llm_path"] = "glm-5.1 fallback (no note text) -- claude: %s" % str(claude_path)[:120]
+            read["voice"] = "fallback"
+        else:
+            read["llm_path"] = "%s | glm: %s" % (claude_path, getattr(_glm_complete, "last_path", ""))
+    read["lessons_carried"] = len(lessons.get("lessons") or [])
     critical = [name for name in ("fusion", "risk_gate", "khalid_risk") if (board.get("sources") or {}).get(name, {}).get("status") != "FRESH"]
     fleet_summary = fleet.get("summary") or {}
     unique_feeds = int(fleet_summary.get("unique_feeds") or 0)
@@ -950,6 +968,56 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     except Exception:
         pass
     return {k: doc[k] for k in ("read_id", "generated_at", "elapsed_s", "read", "calls_logged")} | {"playbook_available": play.get("available"), "sources": board["sources"]}
+
+
+def _anthropic_health() -> str:
+    """Why the primary voice is silent: a bounded diagnostic GET (no generation, no cost) so the page can say 'credits'
+    instead of 'offline'. Cached 30 minutes in the private bucket."""
+    doc = get_json(PRIVATE_BUCKET, "ai/market-read/anthropic-health.json") or {}
+    try:
+        if doc.get("at") and (datetime.now(timezone.utc) - datetime.fromisoformat(doc["at"])).total_seconds() < 1800:
+            return doc.get("status", "")
+    except Exception:
+        pass
+    status = "unknown"
+    try:
+        import urllib.request
+        import llm_router
+        key = llm_router._anthropic_key()
+        req = urllib.request.Request("https://api.anthropic.com/v1/models?limit=1", headers={"x-api-key": key, "anthropic-version": "2023-06-01"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            status = "ok" if r.status == 200 else "http %s" % r.status
+    except Exception as e:
+        detail = ""
+        try:
+            detail = e.read().decode()[:300]
+        except Exception:
+            pass
+        status = "credit balance too low" if "credit balance" in detail else ("%s %s" % (str(e)[:60], detail[:120])).strip()
+    try:
+        put_private("ai/market-read/anthropic-health.json", {"status": status, "at": now_iso()})
+    except Exception:
+        pass
+    return status
+
+
+def _glm_complete(prompt: str, **kw) -> str:
+    """Second voice: GLM-5.1 on Z.ai via the router's own client (130s). Never receives operator note text."""
+    try:
+        import llm_router
+        txt, it, ot = llm_router._glm(prompt, getattr(llm_router, "GLM_REASON", "glm-5.1"), int(kw.get("max_tokens") or 2400), kw.get("system"))
+        _glm_complete.last_path = "glm-5.1 ok (%d in / %d out)" % (it, ot)
+        try:
+            import llm_cost
+            if hasattr(llm_cost, "record"):
+                llm_cost.record(ENGINE, "glm-5.1", it, ot)
+        except Exception:
+            pass
+        return txt or ""
+    except Exception as e:
+        _glm_complete.last_path = "glm failed: %s" % str(e)[:120]
+        print("[ai] glm fallback failed: %s" % str(e)[:160])
+        return ""
 
 
 def action_get_read(body: dict, policy: dict) -> Dict[str, Any]:
@@ -993,7 +1061,16 @@ def learning_scoreboard() -> Dict[str, Any]:
     lessons = get_json(PRIVATE_BUCKET, mr.LESSONS_KEY) or {}
     rd = get_json(PRIVATE_BUCKET, READ_KEY) or {}
     llm_path = str(((rd.get("read") or {}).get("llm_path")) or "")
-    voice = "online" if rd.get("read") and not (rd.get("read") or {}).get("parse_error") else ("offline: Anthropic credits exhausted" if "credit balance" in llm_path else ("offline: %s" % llm_path[:80] if llm_path else "no read yet"))
+    rr = rd.get("read") or {}
+    if rr and not rr.get("parse_error") and rr.get("voice") != "fallback":
+        voice = "online"
+    else:
+        why = _anthropic_health()
+        reason = "Anthropic credits exhausted" if "credit" in why else ("Anthropic: %s" % why[:80] if why and why != "ok" else "primary voice silent")
+        if rr and not rr.get("parse_error") and rr.get("voice") == "fallback":
+            voice = "online (fallback voice GLM-5.1, without your notes -- %s)" % reason
+        else:
+            voice = ("offline: %s" % reason) if rd else "no read yet"
     return {"notes_studied": ds.get("n_rows"), "categories_learned": labels, "categories_excluded": ds.get("excluded_labels"),
             "understanding_score": round(understanding, 3) if understanding is not None else None, "latest_validation_loss": losses[-1] if losses else None,
             "coin_flip_loss": round(math.log(k), 3) if k > 1 else None, "retrains": len(runs), "trend": trend, "loss_history": losses[-8:],

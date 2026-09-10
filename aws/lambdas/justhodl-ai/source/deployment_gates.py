@@ -18,6 +18,10 @@ from governance_control import (
 )
 
 
+# Tests may install a deterministic clock here; production leaves it None (real perf_counter).
+PROBE_CLOCK = None
+
+
 class DeploymentGateError(ValueError):
     pass
 
@@ -145,7 +149,7 @@ class SageMakerCanaryActions:
         metric_wait_seconds: float = 10.0,
         metric_period_seconds: int = 60,
         metric_ingestion_window_seconds: int = 180,
-        monotonic_fn: Callable[[], float] = time.perf_counter,
+        monotonic_fn: Optional[Callable[[], float]] = None,
     ) -> None:
         if any(client is None for client in (sagemaker, runtime, cloudwatch)):
             raise DeploymentGateError("all SageMaker canary clients are required")
@@ -171,7 +175,7 @@ class SageMakerCanaryActions:
         self.metric_wait_seconds = metric_wait_seconds
         self.metric_period_seconds = metric_period_seconds
         self.metric_ingestion_window_seconds = metric_ingestion_window_seconds
-        self.monotonic = monotonic_fn
+        self.monotonic = monotonic_fn or PROBE_CLOCK or time.perf_counter
 
     def callbacks(self) -> Dict[str, Callable[[Mapping[str, Any]], Any]]:
         return {
