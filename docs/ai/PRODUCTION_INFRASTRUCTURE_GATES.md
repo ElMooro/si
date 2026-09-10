@@ -26,6 +26,13 @@ data, or enable event consumers.
 | `aws/lambdas/justhodl-ai/iam/test_production_gates.py` | Standard-library regression tests |
 | `aws/lambdas/justhodl-ai/consumer-functions.template.json` | Three deployable queue-consumer Lambdas with every event source mapping staged disabled |
 | `aws/ops/pending/justhodl_ai_infrastructure_dry_run.py` | Operator-facing wrapper that emits the local plan without AWS access |
+| `aws/ops/pending/justhodl_ai_live_rollout.py` | Production-safe, resumable plan/apply orchestrator for the approved AWS rollout |
+| `docs/ai/LIVE_ROLLOUT_AUTOMATION.md` | Operator contract, canary-input schema, GitHub Actions procedure, reports, and rollback behavior |
+
+The offline dry-run remains the no-credentials static validator. The live
+orchestrator is a separate fail-closed operation: it defaults to a read-only
+AWS plan, requires an exact phrase with `--apply`, stages consumers disabled,
+and activates them only after the live canary, rollback drill, and alarm gates.
 
 ## Identity boundary
 

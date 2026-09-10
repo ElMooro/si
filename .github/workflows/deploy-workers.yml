@@ -27,6 +27,7 @@ jobs:
   # (tests/worker-*.test.js run the real module in Node with fake KV/Supabase/Stripe).
   test:
     name: Worker behavioural tests
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-deploy]')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
