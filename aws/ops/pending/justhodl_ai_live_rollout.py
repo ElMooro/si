@@ -413,6 +413,7 @@ class Rollout:
         """Report managed live endpoints and approved packages without mutation."""
         sm = self.aws["sagemaker"]
         endpoints = []
+        endpoint_inventory = []
         token = None
         while True:
             request = {
@@ -424,27 +425,41 @@ class Rollout:
                 request["NextToken"] = token
             page = sm.list_endpoints(**request)
             for item in page.get("Endpoints", []):
-                if item.get("EndpointStatus") != "InService":
+                name = str(item.get("EndpointName") or "")
+                if not any(marker in name.lower() for marker in ("jh-ai", "justhodl")):
                     continue
-                described = sm.describe_endpoint(EndpointName=item["EndpointName"])
+                described = sm.describe_endpoint(EndpointName=name)
                 arn = described.get("EndpointArn", "")
                 tags = {
                     tag.get("Key"): tag.get("Value")
                     for tag in sm.list_tags(ResourceArn=arn).get("Tags", [])
                 }
-                if tags.get("justhodl-ai-managed") != "true":
-                    continue
                 config_name = described.get("EndpointConfigName", "")
                 config = sm.describe_endpoint_config(EndpointConfigName=config_name)
+                summary = {
+                    "endpoint_name": name,
+                    "status": item.get("EndpointStatus"),
+                    "endpoint_config": config_name,
+                    "variants": [
+                        variant.get("VariantName")
+                        for variant in config.get("ProductionVariants", [])
+                        if variant.get("VariantName")
+                    ],
+                    "managed": tags.get("justhodl-ai-managed") == "true",
+                    "owner": tags.get("justhodl-ai-owner"),
+                    "created_at": item.get("CreationTime"),
+                }
+                endpoint_inventory.append(summary)
+                if (
+                    item.get("EndpointStatus") != "InService"
+                    or tags.get("justhodl-ai-managed") != "true"
+                ):
+                    continue
                 endpoints.append(
                     {
-                        "endpoint_name": item["EndpointName"],
+                        "endpoint_name": name,
                         "endpoint_config": config_name,
-                        "variants": [
-                            variant.get("VariantName")
-                            for variant in config.get("ProductionVariants", [])
-                            if variant.get("VariantName")
-                        ],
+                        "variants": summary["variants"],
                         "created_at": item.get("CreationTime"),
                     }
                 )
@@ -486,9 +501,76 @@ class Rollout:
             if not token:
                 break
 
+        models = []
+        token = None
+        while True:
+            request = {
+                "SortBy": "CreationTime",
+                "SortOrder": "Descending",
+                "MaxResults": 100,
+            }
+            if token:
+                request["NextToken"] = token
+            page = sm.list_models(**request)
+            for item in page.get("Models", []):
+                name = str(item.get("ModelName") or "")
+                if not any(marker in name.lower() for marker in ("jh-ai", "justhodl")):
+                    continue
+                described = sm.describe_model(ModelName=name)
+                container = described.get("PrimaryContainer") or {}
+                models.append(
+                    {
+                        "model_name": name,
+                        "image": container.get("Image"),
+                        "model_data_url": container.get("ModelDataUrl"),
+                        "created_at": item.get("CreationTime"),
+                    }
+                )
+            token = page.get("NextToken")
+            if not token:
+                break
+
+        training_jobs = []
+        token = None
+        while True:
+            request = {
+                "SortBy": "CreationTime",
+                "SortOrder": "Descending",
+                "MaxResults": 100,
+            }
+            if token:
+                request["NextToken"] = token
+            page = sm.list_training_jobs(**request)
+            for item in page.get("TrainingJobSummaries", []):
+                name = str(item.get("TrainingJobName") or "")
+                if not any(marker in name.lower() for marker in ("jh-ai", "justhodl")):
+                    continue
+                described = sm.describe_training_job(TrainingJobName=name)
+                training_jobs.append(
+                    {
+                        "training_job_name": name,
+                        "status": described.get("TrainingJobStatus"),
+                        "image": (described.get("AlgorithmSpecification") or {}).get(
+                            "TrainingImage"
+                        ),
+                        "model_data_url": (
+                            described.get("ModelArtifacts") or {}
+                        ).get("S3ModelArtifacts"),
+                        "created_at": item.get("CreationTime"),
+                    }
+                )
+            token = page.get("NextToken")
+            if not token:
+                break
+
         self.report.data["canary_candidates"] = {
             "managed_in_service_endpoints": endpoints,
             "approved_model_packages": packages,
+        }
+        self.report.data["legacy_sagemaker_inventory"] = {
+            "ai_endpoints": endpoint_inventory,
+            "ai_models": models,
+            "ai_training_jobs": training_jobs,
         }
         self.report.flush()
 

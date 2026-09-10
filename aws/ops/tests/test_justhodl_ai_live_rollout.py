@@ -294,6 +294,37 @@ class DiscoverySageMaker:
             }
         return {"ModelPackageSummaryList": []}
 
+    def list_models(self, **kwargs):
+        return {
+            "Models": [
+                {"ModelName": "jh-ai-classifier-model"},
+                {"ModelName": "unrelated-model"},
+            ]
+        }
+
+    def describe_model(self, ModelName):
+        return {
+            "PrimaryContainer": {
+                "Image": "xgboost:governed",
+                "ModelDataUrl": "s3://private/model.tar.gz",
+            }
+        }
+
+    def list_training_jobs(self, **kwargs):
+        return {
+            "TrainingJobSummaries": [
+                {"TrainingJobName": "jh-ai-classifier-training"},
+                {"TrainingJobName": "unrelated-training"},
+            ]
+        }
+
+    def describe_training_job(self, TrainingJobName):
+        return {
+            "TrainingJobStatus": "Completed",
+            "AlgorithmSpecification": {"TrainingImage": "xgboost:governed"},
+            "ModelArtifacts": {"S3ModelArtifacts": "s3://private/output.tar.gz"},
+        }
+
 
 class RolloutSafetyTests(unittest.TestCase):
     def test_account_mismatch_fails_before_mutation(self):
@@ -323,6 +354,14 @@ class RolloutSafetyTests(unittest.TestCase):
         )
         self.assertEqual(sagemaker.endpoint_pages, 2)
         self.assertEqual(sagemaker.package_pages, 2)
+        inventory = operation.report.data["legacy_sagemaker_inventory"]
+        self.assertEqual(len(inventory["ai_endpoints"]), 2)
+        self.assertEqual(
+            inventory["ai_models"][0]["model_name"], "jh-ai-classifier-model"
+        )
+        self.assertEqual(
+            inventory["ai_training_jobs"][0]["status"], "Completed"
+        )
 
     def test_failed_stack_is_reported_and_not_accepted(self):
         cfn = FakeFailedCloudFormation()
