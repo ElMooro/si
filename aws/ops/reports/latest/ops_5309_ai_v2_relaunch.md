@@ -1,0 +1,64 @@
+# ops 5309 -- AI v2.2.1 re-arm (5308: training needed TRAINING_INPUT_BUCKET, owner read model missing, page marker is V2 now): GLM-5.1 fallback voice, lessons, scoreboard;  (Perplexity governance modules + Claude pipeline/read/lessons) deployed in review mode on the live role; GET /inventory for the page; RoBERTa-SEC on GPU + CPU retrieval cards; learn-from-mistakes loop
+
+**Status:** failure  
+**Duration:** 1231.5s  
+**Finished:** 2026-09-10T17:38:52+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. IAM
+
+- `17:18:21`    justhodl-sagemaker-execution-role exists
+- `17:18:21` ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
+- `17:18:21` ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
+- `17:18:21` ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
+## 2. private ML bucket
+
+- `17:18:21`    justhodl-ai-857687956942 exists
+- `17:18:22` ✅    public access block ok
+- `17:18:22` ✅    default encryption ok
+- `17:18:22` ✅    lifecycle ok
+- `17:18:22` ✅    tags ok
+## 3. Lambda justhodl-ai
+
+- `17:18:23`   Lambda exists — updating
+- `17:18:26` ✅   ✓ updated justhodl-ai
+- `17:18:32`    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+- `17:18:32` ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
+- `17:18:33` ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
+## 4. schedule (EventBridge Scheduler)
+
+- `17:18:33` ✅    justhodl-ai-inventory updated cron(7 * * * ? *)
+- `17:18:34` ✅    justhodl-ai-market-read updated cron(45 5 * * ? *)
+- `17:18:34` ✅    justhodl-ai-pipeline updated rate(10 minutes)
+## 5. inventory (async + poll data/ai.json)
+
+- `17:18:49`    v2.2.1 in 6.3s | domains 0 apps 0 endpoints 0 models 0 jobs 0 notebooks 0 feature_groups 0 clusters 0
+- `17:18:49`    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors None refresh_error None
+- `17:18:49`    run-rate 0.0 | MTD 1.03 | ttl ledger null
+- `17:18:49`    policy {"daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "serverless_default": true}
+- `17:18:49` ✅    GET /inventory (owner read model) -> 200 keys ['brain_dataset', 'catalog', 'cost', 'definitions', 'elapsed_s', 'engine', 'fleet_inputs', 'generated_at', 'inventory', 'inventory_errors', 'learning', 'market_read']
+## 6. Brain pipeline -- start + observe (the engine finishes it on its own 10-minute ticks)
+
+- `17:18:54`    started 20260910T171850Z: stage wait_embedding | ladder ['mxnet-tcembedding-robertafin-base-uncased', 'tensorflow-tcembedding-bert-en-uncased-L-12-H-768-A-12-2', 'huggingface-sentencesimilarity-all-MiniLM-L6-v2']
+- `17:33:48`    wait_embedding -> train | ERROR train: classifier training is governance-ineligible: governance_evidence must be an object
+- `17:37:49`    train -> failed | stage train failed 3 times: classifier training is governance-ineligible: governance_evidence must be an object
+- `17:37:49`    after 19 min: status failed stage failed | endpoint jh-ai-mxnet-tcembedding-robertafin-base-uncased | classifier None | retrieval None
+- `17:37:49`    error: train: classifier training is governance-ineligible: governance_evidence must be an object
+- `17:37:49`    error: train: classifier training is governance-ineligible: governance_evidence must be an object
+- `17:37:49`    error: train: classifier training is governance-ineligible: governance_evidence must be an object
+## 7. page
+
+- `17:37:49`    ai.html carries marker AI_DESK_V2 at the edge: True
+- `17:38:41`    1440px: {"plain": "No market view yet \u2014 the AI's voice is offline (see above).", "voice": "AI voice: OFFLINE", "headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 0, "rows": 0, "cards": 0, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `17:38:52`     390px: {"plain": "No market view yet \u2014 the AI's voice is offline (see above).", "voice": "AI voice: OFFLINE", "headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, "tabs": 0, "rows": 0, "cards": 0, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `17:38:52` ⚠    1440px: catalog rendered zero cards
+- `17:38:52` ⚠    390px: catalog rendered zero cards
+- `17:38:52` ✗    pipeline failed at failed: stage train failed 3 times: classifier training is governance-ineligible: governance_evidence must be an object
+- `17:38:52` ✗    1440px render: {"plain": "No market view yet \u2014 the AI's voice is offline (see above).", "voice": "AI voice: OFFLINE", "headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, " errors=[]
+- `17:38:52` ✗    390px render: {"plain": "No market view yet \u2014 the AI's voice is offline (see above).", "voice": "AI voice: OFFLINE", "headline": "0 endpoints InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 1, " errors=[]
