@@ -1,0 +1,80 @@
+# ops 5306 -- AI v1.3.0: the Brain pipeline as a scheduler-driven state machine (ops 5305 hit the 90-min runner cap); this op launches, observes, and leaves the engine to finish
+
+**Status:** success  
+**Duration:** 2694.5s  
+**Finished:** 2026-09-10T03:14:06+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+## 1. IAM
+
+- `02:29:12`    justhodl-sagemaker-execution-role exists
+- `02:29:12` ✅    AmazonSageMakerFullAccess attached to justhodl-sagemaker-execution-role
+- `02:29:12` ✅    inline bucket/ecr/logs policy on justhodl-sagemaker-execution-role
+- `02:29:12` ✅    control policy justhodl-ai-sagemaker-control on lambda-execution-role
+## 2. private ML bucket
+
+- `02:29:12`    justhodl-ai-857687956942 exists
+- `02:29:13` ✅    public access block ok
+- `02:29:13` ✅    default encryption ok
+- `02:29:13` ✅    lifecycle ok
+- `02:29:13` ✅    tags ok
+## 3. Lambda justhodl-ai
+
+- `02:29:14`   Lambda exists — updating
+- `02:29:17` ✅   ✓ updated justhodl-ai
+- `02:29:23`    state Active/Successful 3008MB/900s url https://kedjcxg4bsjdpe3ebib6gnj3ee0yphhm.lambda-url.us-east-1.on.aws/
+- `02:29:24` ✅    control pointers written (private ai/control.json, public data/ai/control.json for the worker bridge)
+- `02:29:25` ✅    unauthenticated POST to the Function URL -> HTTP 401 (gate holds)
+## 4. schedule (EventBridge Scheduler)
+
+- `02:29:25` ✅    justhodl-ai-inventory updated cron(7 * * * ? *)
+- `02:29:25` ✅    justhodl-ai-market-read updated cron(45 5 * * ? *)
+- `02:29:25` ✅    justhodl-ai-pipeline created rate(10 minutes)
+## 5. inventory (async + poll data/ai.json)
+
+- `02:29:41`    v1.3.0 in 1.6s | domains 2 apps 0 endpoints 0 models 16 jobs 0 notebooks 0 feature_groups 0 clusters 0
+- `02:29:41`       domain d-yxi0afwkz879 QuickSetupDomain-20250528T180672 status InService
+- `02:29:41`       domain d-60hhwdwn03rz QuickSetupDomain-20250528T094736 status InService
+- `02:29:41`    catalog 37 cards; article RoBERTa-SEC present ['mxnet-tcembedding-robertafin-base-uncased', 'mxnet-tcembedding-robertafin-base-wiki-uncased', 'mxnet-tcembedding-robertafin-large-uncased', 'mxnet-tcembedding-robertafin-large-wiki-uncased'] missing []; errors [] refresh_error None
+- `02:29:41`    run-rate 0.0 | MTD 0.16 | ttl ledger []
+- `02:29:41`    policy {"version": 1, "daily_budget_usd": 5.0, "endpoint_ttl_hours": 3.0, "idle_hours": 2.0, "training_max_runtime_s": 3600, "training_spot": true, "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge
+## 6. Brain pipeline -- start + observe (the engine finishes it on its own 10-minute ticks)
+
+- `02:29:45`    started 20260910T022941Z: stage wait_embedding | ladder ['mxnet-tcembedding-robertafin-base-uncased', 'huggingface-sentencesimilarity-all-MiniLM-L6-v2', 'huggingface-sentencesimilarity-bge-small-en-v1-5']
+- `03:13:33`    wait_embedding -> embed | cursor 7872/13051
+- `03:13:33`    embedding 7872/13051 dim 384
+- `03:13:33`    after 44 min: status running stage embed | endpoint jh-ai-huggingface-sentencesimilarity-all-minilm-l6-v2 | classifier None | retrieval None
+- `03:13:33`    error: jh-ai-mxnet-tcembedding-robertafin-base-uncased: The primary container for production variant AllTraffic did not pass the ping health check. Please check CloudWatch logs for this endpoint.
+- `03:13:33`       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_containe
+- `03:13:33`       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+- `03:13:33`       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_containe
+- `03:13:33`       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+- `03:13:33`       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_containe
+- `03:13:33`       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+- `03:13:33`       log: Traceback (most recent call last):
+  File "/usr/local/bin/dockerd-entrypoint.py", line 20, in <module>
+    from sagemaker_mxnet_serving_container import serving
+  File "/usr/local/lib/python3.8/dist-packages/sagemaker_mxnet_serving_containe
+- `03:13:33`       log: OSError: libcuda.so.1: cannot open shared object file: No such file or directory
+## 7. page
+
+- `03:13:34`    ai.html carries marker AI_DESK_V1 at the edge: True
+- `03:13:56`    1440px: {"headline": "1 endpoint InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 2, "tabs": 7, "rows": 1, "cards": 37, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `03:14:05`     390px: {"headline": "1 endpoint InService \u00b7 0 jobs running \u00b7 run-rate $0/day of a $5 budget", "legs": 6, "steps": 5, "done": 2, "tabs": 7, "rows": 1, "cards": 37, "helps": 14, "tiers": 4, "defs": 4, "pol": 10, "overflow": 0, "err": ""} errors=[]
+- `03:14:05` ⚠    pipeline still running at stage embed when the observation window closed; the 10-minute schedule finishes it (watch ai.html)
+- `03:14:06` ✅    GREEN: AI live -- IAM, private bucket, engine, Function URL gate, schedules, inventory, Brain pipeline, market read, page (with warnings)
