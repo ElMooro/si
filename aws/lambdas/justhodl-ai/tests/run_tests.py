@@ -496,6 +496,18 @@ def test_handler_auth_and_routing():
                            "body": json.dumps({"model_id": "mxnet-tcembedding-robertafin-base-uncased"})}, None)
     body = json.loads(r["body"])
     assert r["statusCode"] == 200 and body["result"]["endpoint"] == "jh-ai-mxnet-tcembedding-robertafin-base-uncased", body
+    # a GPU-only card (no CPU variant) deployed real-time lands on the allowed GPU instance, not a CPU box
+    store["sagemaker"].describe_hub_content = lambda **kw: {"HubContentVersion": "1", "HubContentDisplayName": kw["HubContentName"], "HubContentDescription": "d",
+        "HubContentDocument": json.dumps({**HUB_DOC, "HostingInstanceTypeVariants": None, "DefaultInferenceInstanceType": "ml.p3.2xlarge", "SupportedInferenceInstanceTypes": ["ml.p3.2xlarge", "ml.g4dn.xlarge", "ml.m5.xlarge"]})}
+    r = lf.lambda_handler({**ev, "headers": ok, "rawPath": "/deploy", "requestContext": {"http": {"method": "POST", "path": "/deploy"}},
+                           "body": json.dumps({"model_id": "mxnet-tcembedding-robertafin-base-uncased", "serverless": False, "endpoint_name": "jh-ai-gpu"})}, None)
+    assert r["statusCode"] == 400 and "GPU-only" in json.loads(r["body"])["error"]          # policy has no GPU instance -> refused, named
+    lf.lambda_handler({**ev, "headers": ok, "body": json.dumps({"patch": {"allowed_inference_instances": ["ml.m5.large", "ml.g4dn.xlarge"]}})}, None)
+    r = lf.lambda_handler({**ev, "headers": ok, "rawPath": "/deploy", "requestContext": {"http": {"method": "POST", "path": "/deploy"}},
+                           "body": json.dumps({"model_id": "mxnet-tcembedding-robertafin-base-uncased", "serverless": False, "endpoint_name": "jh-ai-gpu"})}, None)
+    bd_ = json.loads(r["body"])
+    assert r["statusCode"] == 200 and bd_["result"]["instance_type"] == "ml.g4dn.xlarge", bd_
+    store["sagemaker"].describe_hub_content = FakeSM.describe_hub_content.__get__(store["sagemaker"])
     # real-time deploy on a disallowed instance is refused with the policy reason (400, not 500)
     r = lf.lambda_handler({**ev, "headers": ok, "rawPath": "/deploy", "requestContext": {"http": {"method": "POST", "path": "/deploy"}},
                            "body": json.dumps({"model_id": "mxnet-tcembedding-robertafin-base-uncased", "serverless": False, "instance_type": "ml.p4d.24xlarge"})}, None)

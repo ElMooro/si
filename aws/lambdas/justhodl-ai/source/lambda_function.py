@@ -49,7 +49,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -339,11 +339,20 @@ def action_deploy(body: dict, policy: dict) -> Dict[str, Any]:
     spec = sm_hub.describe_model(client("sagemaker"), model_id, body.get("version"))
     serverless = bool(body.get("serverless", policy.get("serverless_default", True)))
     instance_type = body.get("instance_type")
-    if not instance_type:
+    if not instance_type and not serverless:
         allowed = policy.get("allowed_inference_instances") or []
         sup = [i for i in (spec.get("supported_inference_instances") or []) if i in allowed]
         cpu = [i for i in sup if re.match(r"^ml\.(m|c|t|r)\d", i)]
-        instance_type = spec.get("default_inference_instance") if spec.get("default_inference_instance") in allowed else (cpu[0] if cpu else (sup[0] if sup else "ml.m5.xlarge"))
+        gpu = [i for i in sup if re.match(r"^ml\.(g|p)\d", i)] or [i for i in allowed if re.match(r"^ml\.(g|p)\d", i)]
+        # a card whose hub document offers no CPU image needs a GPU instance (ops 5306: libcuda.so.1 missing on ml.m5)
+        cpu_image = sm_hub.variant_for(spec, cpu[0] if cpu else "ml.m5.xlarge").get("image") or ""
+        gpu_only = bool(re.search(r"-gpu-|cu1\d\d", spec.get("hosting_image") or "")) and not re.search(r"-cpu-", cpu_image)
+        if gpu_only:
+            if not gpu:
+                raise ActionError("%s ships a GPU-only image; no GPU instance is in policy.allowed_inference_instances (add ml.g4dn.xlarge)" % model_id)
+            instance_type = spec.get("default_inference_instance") if spec.get("default_inference_instance") in gpu else gpu[0]
+        else:
+            instance_type = spec.get("default_inference_instance") if spec.get("default_inference_instance") in allowed else (cpu[0] if cpu else (sup[0] if sup else "ml.m5.xlarge"))
     ttl = float(body.get("ttl_hours") or policy.get("endpoint_ttl_hours") or 3)
     if not serverless:
         _guard_instance(policy, instance_type, "hosting", ttl)
