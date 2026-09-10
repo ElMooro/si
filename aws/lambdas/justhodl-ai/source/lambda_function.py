@@ -40,6 +40,7 @@ from botocore.config import Config
 import brain_dataset as bd
 import cost_guard as cg
 import market_read as mr
+import pipeline as pl
 import sm_hub
 import training as tr
 
@@ -48,7 +49,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "1.2.3"
+VERSION = "1.3.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -209,6 +210,8 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
     # datasets + embedding continuation
     ds = bd.latest_dataset(s3, PRIVATE_BUCKET)
     passes = []
+    if continue_embeddings and (get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {}).get("status") == "running":
+        continue_embeddings = False          # the pipeline owns the passes while it runs (no double-writing of parts)
     if ds:
         live = {e["name"] for e in (snap.get("endpoints") or []) if e.get("status") == "InService"}
         for ep_name, meta in (ds.get("embeddings") or {}).items():
@@ -246,6 +249,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "brain_dataset": _public_dataset_view(ds, passes),
         "learning": collect_learning(client("sagemaker")),
         "market_read": _safe(public_market_read),
+        "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
         "tiers": [
             {"tier": 1, "name": "Transfer learning (article recipe)", "how": "RoBERTa-SEC embedding endpoint -> Brain rows embedded -> XGBoost classifier (spot) -> serverless endpoint", "cost": "cents"},
@@ -755,6 +759,82 @@ def public_market_read() -> Optional[dict]:
             "parse_error": bool(rd.get("parse_error"))}
 
 
+# ══════════════════════════════════════════════════════════════ pipeline
+def endpoint_log_tail(name: str, n: int = 40) -> List[str]:
+    logs = client("logs")
+    group = "/aws/sagemaker/Endpoints/%s" % name
+    out: List[str] = []
+    try:
+        streams = logs.describe_log_streams(logGroupName=group, orderBy="LastEventTime", descending=True, limit=3).get("logStreams") or []
+        for stm in streams[:2]:
+            ev = logs.get_log_events(logGroupName=group, logStreamName=stm["logStreamName"], limit=150, startFromHead=False).get("events") or []
+            msgs = [e.get("message", "").rstrip()[:240] for e in ev]
+            keep = [m for m in msgs if re.search(r"error|exception|traceback|fail|cannot|no module|not found|killed|memory|worker|exit|must be", m, re.I)]
+            out.append("== %s (%d events)" % (stm["logStreamName"][-32:], len(msgs)))
+            out.extend((keep or msgs)[-n:])
+        if not streams:
+            out.append("no log streams (container never started: image pull / artifact stage)")
+    except Exception as e:
+        out.append("log tail unavailable: %s" % str(e)[:120])
+    return out
+
+
+def pipeline_api(policy: dict, context=None) -> Dict[str, Any]:
+    sm = client("sagemaker")
+    return {
+        "dataset_build": lambda b: action_dataset_build(b, policy),
+        "deploy": lambda b: action_deploy(b, policy),
+        "describe_endpoint": lambda name: sm.describe_endpoint(EndpointName=name),
+        "endpoint_delete": lambda name: sm.delete_endpoint(EndpointName=name),
+        "log_tail": endpoint_log_tail,
+        "embed": lambda b: action_embed(b, policy, context),
+        "train_classifier": lambda b: action_train_classifier(b, policy),
+        "describe_training_job": lambda name: sm.describe_training_job(TrainingJobName=name),
+        "deploy_trained": lambda b: action_deploy_trained(b, policy),
+        "infer": lambda b: action_infer(b, policy),
+        "market_read": lambda b: action_market_read(b, policy, context),
+    }
+
+
+def _pipeline(policy: dict, context=None) -> pl.Pipeline:
+    return pl.Pipeline(pipeline_api(policy, context), lambda b, k: get_json(b, k), lambda b, k, o: put_private(k, o) if b == PRIVATE_BUCKET else put_public(k, o), PRIVATE_BUCKET)
+
+
+def action_pipeline_start(body: dict, policy: dict, context=None) -> Dict[str, Any]:
+    cat = get_json(PRIVATE_BUCKET, CATALOG_KEY) or {}
+    ladder = body.get("ladder")
+    if not ladder:
+        ladder = [m for m in (cat.get("article_models_present") or []) if "base" in m and "wiki" not in m][:1]
+        ladder += [c["model_id"] for c in (cat.get("cards") or []) if c["model_id"] in pl.RETRIEVAL_LADDER][:2]
+    if not ladder:
+        raise ActionError("no embedding card in the catalog yet -- refresh the catalog first")
+    p = _pipeline(policy, context)
+    st = p.start(ladder, force=bool(body.get("force")))
+    if body.get("tick", True):
+        st = p.tick(budget_s=_budget(context))
+    return pl.public_view(st)
+
+
+def _budget(context, reserve_s: float = 90.0) -> float:
+    if context is None:
+        return 540.0
+    return max(60.0, context.get_remaining_time_in_millis() / 1000.0 - reserve_s)
+
+
+def action_pipeline_tick(body: dict, policy: dict, context=None) -> Dict[str, Any]:
+    st = _pipeline(policy, context).tick(budget_s=_budget(context))
+    return pl.public_view(st)
+
+
+def action_pipeline_stop(body: dict, policy: dict) -> Dict[str, Any]:
+    st = get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {}
+    if st.get("status") == "running":
+        st["status"] = "stopped"
+        st["stopped_at"] = now_iso()
+        put_private(pl.STATE_KEY, st)
+    return pl.public_view(st)
+
+
 ACTIONS = {
     ("POST", "/inventory"): lambda b, p, c: run_inventory(c, refresh_catalog=bool(b.get("refresh_catalog"))),
     ("POST", "/catalog"): lambda b, p, c: run_inventory(c, refresh_catalog=True)["catalog"],
@@ -773,6 +853,10 @@ ACTIONS = {
     ("POST", "/policy"): lambda b, p, c: action_policy(b, p),
     ("POST", "/hyperpod/create"): lambda b, p, c: action_hyperpod(b, p),
     ("POST", "/market-read"): lambda b, p, c: action_market_read(b, p, c),
+    ("POST", "/pipeline/start"): lambda b, p, c: action_pipeline_start(b, p, c),
+    ("POST", "/pipeline/tick"): lambda b, p, c: action_pipeline_tick(b, p, c),
+    ("POST", "/pipeline/stop"): lambda b, p, c: action_pipeline_stop(b, p),
+    ("GET", "/pipeline"): lambda b, p, c: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {}),
     ("GET", "/read"): lambda b, p, c: action_get_read(b, p),
 }
 
@@ -834,6 +918,14 @@ def lambda_handler(event=None, context=None):
             return _resp(500, {"ok": False, "action": path, "error": str(e)[:400], "type": type(e).__name__})
     # EventBridge Scheduler / direct invoke: inventory (+ continuation of embedding passes)
     mode = (event.get("mode") if isinstance(event, dict) else None) or "inventory"
+    if mode == "pipeline":
+        st = _pipeline(_policy(), context).tick(budget_s=_budget(context))
+        if st.get("status") in ("running", "done", "failed"):
+            try:
+                run_inventory(context, continue_embeddings=False)
+            except Exception:
+                pass
+        return {"ok": True, "status": st.get("status"), "stage": st.get("stage")}
     if mode == "inventory":
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))
         return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"]}

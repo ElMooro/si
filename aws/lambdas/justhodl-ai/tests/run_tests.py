@@ -130,14 +130,14 @@ class FakeSM:
         return {"TrainingJobStatus": "Completed", "ModelArtifacts": {"S3ModelArtifacts": "s3://private-test/ai/jobs/x/model.tar.gz"},
                 "AlgorithmSpecification": {"TrainingImage": "683313688378.dkr.ecr.us-east-1.amazonaws.com/sagemaker-xgboost:1.7-1"}}
 
-    def list_training_jobs(self, **kw):
-        return {"TrainingJobSummaries": []}
-
     def list_auto_ml_jobs(self, **kw):
         return {"AutoMLJobSummaries": []}
 
     def list_endpoints(self, **kw):
         return {"Endpoints": list(self.endpoints.values())}
+
+    def list_training_jobs(self, **kw):
+        return {"TrainingJobSummaries": [{"TrainingJobName": n, "TrainingJobStatus": "Completed", "CreationTime": datetime.now(timezone.utc)} for n in self.jobs][:20]}
 
 
 class FakeRT:
@@ -213,7 +213,9 @@ def _install_fakes(s3=None, sm=None, rt=None, cw=None, pricing=None):
     sys.modules["signals_emit"] = se
     store = {"s3": s3 or FakeS3(), "sagemaker": sm or FakeSM(), "sagemaker-runtime": rt or FakeRT(), "cloudwatch": cw or FakeCW(), "pricing": pricing or FakePricing(),
              "ce": types.SimpleNamespace(get_cost_and_usage=lambda **k: {"ResultsByTime": [{"TimePeriod": {"Start": "2026-09-01"}, "Total": {"UnblendedCost": {"Amount": "1.25"}}}]}),
-             "ssm": types.SimpleNamespace(get_parameter=lambda **k: {"Parameter": {"Value": ""}})}
+             "ssm": types.SimpleNamespace(get_parameter=lambda **k: {"Parameter": {"Value": ""}}),
+             "logs": types.SimpleNamespace(describe_log_streams=lambda **k: {"logStreams": [{"logStreamName": "s1"}]},
+                                           get_log_events=lambda **k: {"events": [{"message": "booting"}, {"message": "HF_MODEL_ID must be set"}]})}
     fake.client = lambda name, **k: store[name]
     sys.modules["boto3"] = fake
     bc = types.ModuleType("botocore")
@@ -597,6 +599,52 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     return "board freshness, candidates guard, LLM JSON, ledger + graded hit rate, public summary clean"
 
 
+def test_pipeline_state_machine_end_to_end_and_ladder_failover():
+    s3 = FakeS3()
+    FAKE_TABLE.items.clear()
+    s3.put_object("public-test", "data/brain.json", json.dumps(_brain(30)).encode())
+    _fleet_docs(s3)
+    for b, k in (("jumpstart-cache-prod-us-east-1", "mxnet-infer/infer-mxnet-tcembedding-robertafin-base-uncased.tar.gz"),):
+        s3.objs[(b, k)] = _tar_bytes({"m": b"w"})
+    s3.objs[("jumpstart-cache-prod-us-east-1", "source-directory-tarballs/mxnet/inference/tcembedding/v1.0.0/sourcedir.tar.gz")] = _tar_bytes({"inference.py": b"x"})
+    rt = FakeRT(dim=6)
+    store = _install_fakes(s3=s3, rt=rt)
+    lf = _load(store)
+    import pipeline as pl
+    sm = store["sagemaker"]
+    lf.put_private(lf.CATALOG_KEY, {"generated_at": datetime.now(timezone.utc).isoformat(), "n": 2, "article_models_present": ["mxnet-tcembedding-robertafin-base-uncased"],
+                                     "cards": [{"model_id": "mxnet-tcembedding-robertafin-base-uncased"}, {"model_id": "huggingface-textembedding-bge-base-en-v1-5"}]})
+    pol = lf._policy()
+    st = lf.action_pipeline_start({"ladder": ["huggingface-llm-finance-x", "mxnet-tcembedding-robertafin-base-uncased"]}, pol)
+    assert st["status"] == "running" and st["stage"] == "wait_embedding" and st["embedding_card"] == "huggingface-llm-finance-x", (st["stage"], st.get("embedding_card"))
+    # first card fails -> log tail recorded, endpoint deleted, ladder advances to the article card
+    sm.endpoints[st["embedding_endpoint"]]["EndpointStatus"] = "Failed"
+    sm.endpoints[st["embedding_endpoint"]]["FailureReason"] = "model process exited"
+    st = lf.action_pipeline_tick({}, pol)
+    assert st["ladder_idx"] == 1 and "HF_MODEL_ID must be set" in json.dumps(st["errors"]), st["errors"]
+    assert st["stage"] == "wait_embedding" and st["embedding_card"] == "mxnet-tcembedding-robertafin-base-uncased" and st["embedding_realtime"] is False
+    st = lf.action_pipeline_tick({}, pol)              # still Creating -> no change
+    assert st["stage"] == "wait_embedding"
+    sm.endpoints[st["embedding_endpoint"]]["EndpointStatus"] = "InService"
+    st = lf.action_pipeline_tick({}, pol)              # InService -> embed (complete) -> train -> wait_train (Completed) -> serve -> wait_serve (Creating)
+    assert st["stage"] == "wait_serve" and st["embed_progress"]["status"] == "complete" and st["classifier_job"] in sm.jobs and st["classifier_endpoint"].startswith("jh-ai-clf-"), (st["stage"], st.get("embed_progress"))
+    st = lf.action_pipeline_tick({}, pol)              # still Creating
+    assert st["stage"] == "wait_serve"
+    sm.endpoints[st["classifier_endpoint"]]["EndpointStatus"] = "InService"
+    st = lf.action_pipeline_tick({}, pol)              # infer_proof -> retrieval (serverless doubles) -> cleanup -> market_read -> done
+    assert st["infer_proof"]["nearest"] and st["retrieval_endpoint"] == st["embedding_endpoint"], st.get("infer_proof")
+    assert st["status"] == "done" and st["stage"] == "done" and st["market_read"]["stances"]["stocks"] == "SELECTIVE", st.get("market_read")
+    assert st["market_read"]["n_calls"] == 1
+    # read model carries the pipeline view, no note text
+    out = lf.run_inventory(None)
+    assert out["pipeline"]["status"] == "done" and out["pipeline"]["stage_index"] == pl.STAGES.index("done")
+    assert "eurodollar" not in json.dumps(out["pipeline"])
+    # idempotent start: a finished pipeline restarts only with force
+    st2 = lf.action_pipeline_start({"ladder": ["mxnet-tcembedding-robertafin-base-uncased"], "tick": False}, pol)
+    assert st2["status"] == "running" and st2["stage"] == "dataset"
+    return "ladder failover with log tail, 13 stages to done, market read + call logged, view sanitized"
+
+
 def test_inventory_writes_public_read_model_without_note_text():
     store = _install_fakes()
     s3 = store["s3"]
@@ -625,7 +673,7 @@ def main():
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
-             test_market_read_board_playbook_llm_ledger_and_grading, test_inventory_writes_public_read_model_without_note_text]
+             test_market_read_board_playbook_llm_ledger_and_grading, test_pipeline_state_machine_end_to_end_and_ladder_failover, test_inventory_writes_public_read_model_without_note_text]
     failed = 0
     for t in tests:
         try:

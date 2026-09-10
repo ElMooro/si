@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="ai-version" content="ai-v1.2.2">
+<meta name="ai-version" content="ai-v1.3.0">
 <meta name="jh-marker" content="AI_DESK_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
@@ -124,7 +124,8 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="wr-sub" id="wr-sub">The read model refreshes every hour and after every action.</div>
     <div class="wr-legs" id="wr-legs"></div>
   </div>
-  <div class="pipe" id="pipe"><h3>Learn from the Brain — pipeline</h3><div id="pipe-steps"></div></div>
+  <div class="pipe" id="pipe"><h3>Learn from the Brain — pipeline</h3><div id="pipe-state"></div><div id="pipe-steps"></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>&nbsp;</label><button class="btn pri sm" data-act="pipeline">Run the full pipeline</button></div><div class="field"><label>&nbsp;</label><button class="btn sm danger" data-act="pipeline-stop">stop</button></div></div></div>
 </section>
 
 
@@ -291,7 +292,28 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     renderPipeline(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d); renderVerdict(d);
     if (!READ) renderReadPublic(d);
   }
+  function renderPipelineState(d) {
+    var p = d.pipeline || {};
+    if (!p.status || p.status === "idle") { $("pipe-state").innerHTML = '<div class="dim" style="font-size:11.5px;margin-bottom:8px">No pipeline run yet. "Run the full pipeline" walks dataset → embedding endpoint → embeddings → classifier → serving → retrieval endpoint → market read, advancing every 10 minutes by schedule; you can leave the page.</div>'; return; }
+    var idx = p.stage_index == null ? 0 : p.stage_index, n = (p.stages || []).length || 16;
+    var cls = p.status === "done" ? "ok" : p.status === "failed" ? "bad" : "warn";
+    var last = (p.history || []).slice(-1)[0];
+    var h = '<div style="font-size:11.5px;margin-bottom:8px"><span class="tag ' + (p.status === "done" ? "g" : p.status === "failed" ? "r" : "a") + '">' + esc(p.status) + '</span> <b class="mono">' + esc(p.stage || "") + '</b> <span class="dim">stage ' + (idx + 1) + "/" + n + " · since " + ago(p.stage_since) + " · run " + esc(p.pipeline_id || "") + '</span><div class="bar" style="margin:6px 0"><i style="width:' + Math.round(100 * (idx + 1) / n) + '%;background:var(--' + (p.status === "failed" ? "red" : p.status === "done" ? "green" : "amber") + ')"></i></div>' + (last ? '<div class="dim">' + esc((last.note || "").slice(0, 220)) + "</div>" : "") + "</div>";
+    var facts = [];
+    if (p.embedding_endpoint) facts.push("embedding: " + p.embedding_endpoint + (p.embedding_realtime ? " (real-time, TTL)" : " (serverless)"));
+    if (p.embed_progress && p.embed_progress.status !== "complete") facts.push("embedding " + (p.embed_progress.cursor || 0) + "/" + (p.embed_progress.n_rows || "?"));
+    if (p.classifier_metrics) facts.push("classifier " + Object.keys(p.classifier_metrics).map(function (k) { return k + " " + fmt(p.classifier_metrics[k], 4); }).join(" "));
+    if (p.classifier_endpoint) facts.push("serving: " + p.classifier_endpoint);
+    if (p.retrieval_endpoint) facts.push("retrieval: " + p.retrieval_endpoint);
+    if (p.retrieval_progress && p.retrieval_progress.status !== "complete") facts.push("retrieval index " + (p.retrieval_progress.cursor || 0) + "/" + (p.retrieval_progress.n_rows || "?"));
+    if (p.market_read) facts.push("read " + (p.market_read.read_id || "") + (p.market_read.parse_error ? " (LLM empty: " + esc(p.market_read.llm_path || "") + ")" : " ok"));
+    if (facts.length) h += '<div class="dim mono" style="font-size:10.5px;margin-bottom:6px">' + facts.map(esc).join(" · ") + "</div>";
+    if ((p.errors || []).length) h += '<details style="margin-bottom:6px"><summary class="bad" style="cursor:pointer;font-size:11px">' + p.errors.length + " error" + (p.errors.length > 1 ? "s" : "") + " recorded (with container log lines)</summary>" + p.errors.slice(-4).map(function (e) { return '<div class="console" style="max-height:140px;margin:4px 0">' + esc(e.error) + ((e.log || []).length ? "\n" + esc(e.log.join("\n")) : "") + "</div>"; }).join("") + "</details>";
+    if ((p.warnings || []).length) h += '<div class="warn" style="font-size:11px;margin-bottom:6px">' + p.warnings.map(function (w) { return "⚠ " + esc(w); }).join("<br>") + "</div>";
+    $("pipe-state").innerHTML = h;
+  }
   function renderPipeline(d) {
+    renderPipelineState(d);
     var ds = d.brain_dataset, passes = (ds && ds.embedding_passes) || [], done = passes.filter(function (p) { return p.status === "complete"; }), run = passes.filter(function (p) { return p.status && p.status !== "complete"; });
     var jobs = (d.inventory || {}).jobs || [], clf = jobs.filter(function (j) { return /jh-ai-brain-clf/.test(j.name || ""); }), clfDone = clf.filter(function (j) { return j.status === "Completed"; }), clfRun = clf.filter(function (j) { return j.status === "InProgress"; });
     var eps = (d.inventory || {}).endpoints || [], served = eps.filter(function (e) { return /jh-ai-clf/.test(e.name || "") && e.status === "InService"; }), embEp = eps.filter(function (e) { return (e.tags || {})["justhodl-ai-purpose"] && /hub:/.test(e.tags["justhodl-ai-purpose"]) && e.status === "InService"; });
@@ -496,6 +518,8 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   async function dispatch(b) {
     var a = b.getAttribute("data-act");
     if (a === "market-read") { if (!confirm("Run a fresh read now? One Sonnet call over the fleet board + your Brain playbook (cents); its calls are logged to the ledger and graded.")) return; var rr = await act("read the market", "/market-read", { force: false }); if (rr && rr.status === 200) await loadOwnerRead(); return; }
+    if (a === "pipeline") { if (!confirm("Run the full Brain pipeline? It deploys an embedding endpoint (serverless when the card allows, else real-time with a 3h TTL that is deleted at the end), embeds all notes, trains the spot classifier, serves it serverless, builds the retrieval endpoint and runs the first market read. Advances every 10 min by schedule; cents to a few dollars.")) return; return act("start pipeline", "/pipeline/start", { force: true }); }
+    if (a === "pipeline-stop") { if (!confirm("Stop the pipeline? Live endpoints are left as they are (the hourly guard still applies TTLs).")) return; return act("stop pipeline", "/pipeline/stop", {}); }
     if (a === "dataset") return act("build Brain dataset", "/dataset/build", {});
     if (a === "embed") { var ep = $("emb-ep").value; if (!ep) return log("err", "no InService embedding endpoint — deploy one from the catalog"); return act("embed the Brain via " + ep, "/embed", { endpoint: ep, auto_train: $("emb-auto").value === "1", max_seconds: 600 }); }
     if (a === "classifier") { var ep2 = $("emb-ep").value; return act("train classifier (tier 1)", "/train/classifier", { endpoint: ep2, instance_type: $("tr-inst").value }); }
