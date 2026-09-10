@@ -9,6 +9,7 @@ on:
     paths:
       - 'cloudflare/workers/*/**'
       - 'tests/worker-*.test.js'
+      - 'tests/reviewed-artifacts.test.js'
       - '.github/workflows/deploy-workers.yml'
   workflow_dispatch:
     inputs:
@@ -47,7 +48,7 @@ jobs:
           set -e
           for f in cloudflare/workers/*/src/*.js; do node --check "$f"; done
       - name: Run worker test suites
-        run: node --test tests/worker-*.test.js
+        run: node --test tests/worker-*.test.js tests/reviewed-artifacts.test.js
 
   deploy:
     name: Deploy changed Workers

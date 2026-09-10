@@ -44,3 +44,43 @@ test('every reviewed history family and current head requires the versioned mark
     }
   } finally { globalThis.fetch = original; }
 });
+
+test('valid markers never authorize nested raw diagnostics or alert transport replies', async () => {
+  const {reviewedArtifact,serveReviewedArtifact} = await import(modulePath);
+  const original = globalThis.fetch;
+  try {
+    const fixtures = [
+      ['data/floor-audit/history/x.json',{public_history_review:'20260910.v1',raw_response:'SYNTHETIC_SECRET'}],
+      ['macro/history/x.json',{public_history_review:'20260910.v1',partial:{metric:0,headers:{token:'SYNTHETIC_SECRET'}}}],
+      ['stock-analysis/SPY.json',{public_history_review:'20260910.v1',nested:[{error:'SYNTHETIC_SECRET'}]}],
+      ['data/carry-surface.json',{public_history_review:'20260910.v1',errors:[{message:'SYNTHETIC_SECRET'}]}],
+      ['data/alert-history.json',{public_alert_schema:'alert-history-public.v1',alerts:[{telegram_info:'SYNTHETIC_SECRET'}]}],
+      ['data/alert-history.json',{public_alert_schema:'alert-history-public.v1',alerts:[{webhook_results:[{ok:false,type:'generic',url:'SYNTHETIC_SECRET'}]}]}],
+    ];
+    for (const [key,document] of fixtures) {
+      globalThis.fetch = async()=>Response.json(document);
+      const response = await serveReviewedArtifact(new Request('https://example.test/'+key),reviewedArtifact(key),'https://origin.test',{});
+      assert.equal(response.status,503,key);
+      assert.ok(!(await response.text()).includes('SYNTHETIC_SECRET'));
+    }
+  } finally {globalThis.fetch=original;}
+});
+
+test('legitimate redacted history and alerts retain analytics including zero and fixed reason codes', async () => {
+  const {reviewedArtifact,serveReviewedArtifact} = await import(modulePath);
+  const original = globalThis.fetch;
+  try {
+    const fixtures = [
+      ['data/cascade-validation-log.json',{public_history_review:'20260910.v1',generated_at:'2020-01-01',
+        all_results:[{ticker:'SPY',metric:0,error:'no_price_at_pred_date',reason:'No observation at prediction date',raw_response:'DIAGNOSTIC_REDACTED'}],errors:0}],
+      ['data/alert-history.json',{public_alert_schema:'alert-history-public.v1',alerts:[{ticker:'SPY',price:0,detail:'Market observation',
+        webhook_results:[{ok:false,type:'generic',details:'REDACTED_PRIVATE_DESTINATION'}]}]}],
+    ];
+    for (const [key,document] of fixtures) {
+      globalThis.fetch=async()=>Response.json(document);
+      const response=await serveReviewedArtifact(new Request('https://example.test/'+key),reviewedArtifact(key),'https://origin.test',{});
+      assert.equal(response.status,200,key);
+      assert.deepEqual(await response.json(),document);
+    }
+  } finally {globalThis.fetch=original;}
+});
