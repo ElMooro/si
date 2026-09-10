@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="ai-version" content="ai-v2.0-review">
+<meta name="ai-version" content="ai-v2.1.0">
 <meta name="jh-marker" content="AI_DESK_V2">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>AI · the SageMaker front window · inventory, JumpStart financial models, learn from the Brain, train, serve, cost guard · JustHodl.AI</title>
@@ -125,6 +125,34 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 </div>
 <div id="authbar" class="banner-auth" style="display:none"></div>
 
+<section class="wr-panel" id="plain" style="border-color:rgba(0,212,255,.35)">
+  <div class="wr-kicker"><span>IN PLAIN ENGLISH</span><span id="pl-voice">—</span></div>
+  <div id="pl-banner"></div>
+  <div class="wr-headline" style="font-size:18px" id="pl-headline">Loading the AI desk…</div>
+  <div class="wr-sub" id="pl-sub"></div>
+  <div class="grid2" style="margin-top:14px">
+    <div>
+      <h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">WHAT IT THINKS RIGHT NOW</h3>
+      <div class="mini" id="pl-stances"></div>
+      <div id="pl-read" style="margin-top:10px;font-size:13px;line-height:1.55"></div>
+    </div>
+    <div>
+      <h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">IS IT LEARNING? <span class="help" data-h="Understanding = how well it separates your note categories (1 − validation loss ÷ coin-flip loss). Track record = its dated market calls graded against real prices at 5/21/63 days. Lessons = what it wrote down about its own graded mistakes and carries into the next read.">?</span></h3>
+      <div class="mini" id="pl-learning"></div>
+      <div id="pl-trend" style="margin-top:10px;font-size:12.5px"></div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div><h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">WHAT IT READS FROM YOUR SYSTEM</h3><div id="pl-inputs" style="font-size:12.5px"></div></div>
+    <div><h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">WHAT IT IS DOING NOW</h3><div id="pl-doing" style="font-size:12.5px"></div></div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <div class="field"><label>&nbsp;</label><button class="btn pri" data-act="market-read">Ask it to read the market now</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn" data-act="pipeline">Teach it the Brain again (full pipeline)</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn" id="pl-toggle">Show engineering &amp; controls</button></div>
+  </div>
+</section>
+
 <section class="wr-banner" id="wr-banner">
   <div>
     <div class="wr-kicker"><span>SAGEMAKER · us-east-1</span><span id="k-acct">region —</span><span id="k-role">owner control plane</span></div>
@@ -136,6 +164,10 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="row" style="margin-top:10px"><div class="field"><label>&nbsp;</label><button class="btn pri sm" data-act="pipeline">Run the full pipeline</button></div><div class="field"><label>&nbsp;</label><button class="btn sm danger" data-act="pipeline-stop">stop</button></div></div></div>
 </section>
 
+
+
+
+<div id="eng" style="display:none">
 <h2>Cornerstone release gate</h2>
 <div class="wr-panel release-gate" id="release-gate" role="status" aria-live="polite"></div>
 
@@ -225,6 +257,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 <h2>Definitions</h2>
 <div class="wr-panel"><dl class="defs" id="defs"></dl></div>
 <div class="errbox" id="errbox"></div>
+</div>
 </main>
 
 <script>
@@ -292,8 +325,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (user() || d.access === "PUBLIC_AGGREGATE") return d;
     var inv = d.inventory || {}, count = function (name) { return { total: (inv[name] || []).length }; };
     var policy = d.policy || {}, cost = d.cost || {}, catalog = d.catalog || {}, dataset = d.brain_dataset || null, fleet = d.fleet_inputs || {}, verdict = d.pipeline_verdict || null;
+    var sb = d.scoreboard || null, mr = d.market_read || null, pl = d.pipeline || null;
     return {
       engine: d.engine, version: d.version, generated_at: d.generated_at, elapsed_s: d.elapsed_s, region: d.region,
+      scoreboard: sb, market_read: mr && { generated_at: mr.generated_at, stances: mr.stances, n_opportunities: mr.n_opportunities, n_calls_this_read: mr.n_calls_this_read, playbook_available: mr.playbook_available, performance: mr.performance, parse_error: mr.parse_error, sources: mr.sources },
+      pipeline: pl && { status: pl.status, stage: pl.stage, stage_index: pl.stage_index, stages: pl.stages, stage_since: pl.stage_since, finished_at: pl.finished_at, classifier_metrics: pl.classifier_metrics, retrieval_endpoint: pl.retrieval_endpoint, error: pl.error },
       access: "PUBLIC_AGGREGATE",
       inventory_summary: d.inventory_summary || {
         endpoints: count("endpoints"), jobs: count("jobs"), models: count("models"),
@@ -331,6 +367,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       ["API sections failing", errKeys.length, errKeys.length ? errKeys.join(", ") : "all readable"]
     ].map(function (l) { return '<div class="leg"><div class="k">' + l[0] + '</div><div class="v ' + (l[0].indexOf("failing") >= 0 && l[1] ? "bad" : "") + '">' + l[1] + '</div><div class="s">' + esc(l[2]) + "</div></div>"; }).join("");
     if (errKeys.length) $("inv-err").textContent = errKeys.map(function (k) { return k + ": " + errs[k]; }).join(" · "); else $("inv-err").textContent = "";
+    try { renderPlain(d); } catch (e) { console.warn('plain', e); }
     renderPipeline(d); renderReleaseGate(d); renderFleet(d); renderInventory(); renderCatalog(); renderDataset(d); renderLearning(d); renderCost(d); renderPolicy(d); renderTiers(d); renderDefs(d); fillSelects(d); renderVerdict(d);
     if (!READ) renderReadPublic(d);
   }
@@ -543,6 +580,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   function renderReadOwner(doc) {
     READ = doc; var rd = doc.read || {}, pb = doc.playbook || {}, notes = pb.notes || {};
+    if (D) { try { renderPlain(D); } catch (e) { } }
     $("read-meta").textContent = "read " + doc.read_id + " · " + ago(doc.generated_at) + " · " + (doc.elapsed_s || 0) + "s · playbook " + (pb.available ? "on via " + pb.endpoint : "off — " + esc(pb.reason || ""));
     if (rd.parse_error) { $("read-body").innerHTML = '<div class="bad">The LLM answer did not parse as JSON. Raw:</div><div class="console">' + esc(rd.raw || "") + "</div>"; return; }
     var h = '<div style="margin-bottom:8px">' + srcChips((doc.board || {}).sources) + "</div>";
@@ -606,6 +644,49 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       else if (Date.now() - READ_ERR_LOGGED > 60000) { READ_ERR_LOGGED = Date.now(); log("err", "read → " + r.status, r.json); }
     } finally { READ_INFLIGHT = false; }
   }
+  // ── plain-English layer ──
+  var SHOW_ENG = false;
+  function plainStance(k, s) { var words = { RISK_ON: "lean in", SELECTIVE: "pick carefully", DEFENSIVE: "play defence", AVOID: "stay out", LONG_DURATION: "own duration", NEUTRAL: "neutral", SHORT_DURATION: "keep it short", ACCUMULATE: "accumulate", HOLD: "hold", TRIM: "trim", REDUCE: "reduce" }; return words[s] || (s ? String(s).toLowerCase().replace(/_/g, " ") : "no view yet"); }
+  function renderPlain(d) {
+    var sb = d.scoreboard || {}, mr = d.market_read || {}, p = d.pipeline || {}, fi = d.fleet_inputs || {}, fs = fi.summary || {};
+    var voiceOff = !!(sb.voice && sb.voice.indexOf("offline") === 0);
+    $("pl-voice").textContent = voiceOff ? "AI voice: OFFLINE" : (sb.voice === "online" ? "AI voice: online" : "AI voice: " + (sb.voice || "—"));
+    $("pl-banner").innerHTML = voiceOff && /credit/i.test(sb.voice) ? '<div class="banner-auth" style="margin:10px 0"><span>The AI cannot speak right now: the Anthropic API account is out of credits. Everything else keeps running (learning, grading, inputs). Fix: console.anthropic.com → Plans &amp; Billing → add credits; the next scheduled read (05:45 UTC) or the button below then works.</span></div>' : "";
+    var st = mr.stances || {};
+    var hasView = Object.keys(st).some(function (k) { return !!st[k]; });
+    $("pl-headline").textContent = hasView ? "Stocks: " + plainStance("stocks", st.stocks) + " · Bonds: " + plainStance("bonds", st.bonds) + " · Metals: " + plainStance("metals", st.metals) + " · Crypto: " + plainStance("crypto", st.crypto) : (voiceOff ? "No market view yet — the AI's voice is offline (see above)." : "No market view yet — ask it to read the market.");
+    $("pl-sub").textContent = (mr.generated_at ? "Last read " + ago(mr.generated_at) + ". " : "") + (mr.n_opportunities ? mr.n_opportunities + " opportunities named, " + (mr.n_calls_this_read || 0) + " dated calls made. " : "") + "Sign in to read the full interpretation, the opportunities and every call.";
+    $("pl-stances").innerHTML = ["stocks", "bonds", "metals", "crypto"].map(function (k) { var c = stanceClass(st[k]); return '<div><b class="' + (c === "g" ? "ok" : c === "a" ? "warn" : c === "r" ? "bad" : "") + '">' + esc(plainStance(k, st[k])) + "</b><span>" + k + "</span></div>"; }).join("");
+    $("pl-read").innerHTML = (typeof READ !== "undefined" && READ && READ.read && READ.read.overall) ? esc(READ.read.overall) : '<span class="dim">' + (hasView ? "Sign in to read what it thinks in full." : "Nothing to read yet.") + "</span>";
+    var u = sb.understanding_score, hr = (sb.hit_rate_by_window || {})["21"] || {}, hr5 = (sb.hit_rate_by_window || {})["5"] || {};
+    $("pl-learning").innerHTML = [
+      ["<b>" + (sb.notes_studied ? fmt(sb.notes_studied, 0) : "—") + "</b>", "of your notes studied"],
+      ['<b class="' + (u == null ? "" : u >= 0.6 ? "ok" : u >= 0.3 ? "warn" : "bad") + '">' + (u == null ? "—" : fmt(100 * u, 0) + "%") + "</b>", "understands your categories" + (sb.categories_learned && sb.categories_learned.length ? " (" + sb.categories_learned.join(", ") + ")" : "")],
+      ["<b>" + fmt(sb.calls_made || 0, 0) + "</b>", "market calls made"],
+      ['<b class="' + (hr.hit_rate == null ? "" : hr.hit_rate >= 0.55 ? "ok" : hr.hit_rate < 0.45 ? "bad" : "warn") + '">' + (hr.hit_rate == null ? (hr5.hit_rate == null ? "—" : fmt(100 * hr5.hit_rate, 0) + "% (5d)") : fmt(100 * hr.hit_rate, 0) + "%") + "</b>", "calls right (21-day)" + (sb.calls_graded ? " · " + sb.calls_graded + " graded" : "")],
+      ["<b>" + fmt(sb.lessons_carried || 0, 0) + "</b>", "lessons it carries from its own mistakes"],
+      ["<b>" + fmt(sb.retrains || 0, 0) + "</b>", "retrains · " + (sb.trend || "no trend yet")]
+    ].map(function (r) { return "<div>" + r[0] + "<span>" + esc(r[1]) + "</span></div>"; }).join("");
+    var tr = "";
+    if (sb.latest_validation_loss != null) tr += "Latest understanding test: loss " + fmt(sb.latest_validation_loss, 3) + " vs " + fmt(sb.coin_flip_loss, 3) + " for guessing — " + (u >= 0.6 ? "it has clearly learned the distinction." : u >= 0.3 ? "it is learning; more labelled notes will sharpen it." : "barely better than guessing yet.") + " ";
+    if (sb.categories_excluded && sb.categories_excluded.length) tr += "It could not learn " + sb.categories_excluded.join(", ") + " yet — fewer than 20 notes each; label more and rerun.";
+    $("pl-trend").textContent = tr;
+    var total = fs.unique_feeds != null ? fs.unique_feeds : (fs.total != null ? fs.total : null);
+    $("pl-inputs").innerHTML = (total != null ? '<div class="mini"><div><b>' + fmt(total, 0) + '</b><span>engine feeds</span></div><div><b class="ok">' + fmt(fs.fresh || 0, 0) + '</b><span>fresh now</span></div><div><b class="warn">' + fmt(fs.stale || 0, 0) + '</b><span>stale</span></div><div><b class="bad">' + fmt((fs.missing || 0) + (fs.error || 0), 0) + "</b><span>missing</span></div></div>" : '<div class="dim">The feed census fills once the engine v2 read model is live.</div>') + '<div class="note">It reads every registered engine output — regime, risk gate, capital authority, Katlin, Bottom, Fortress, bonds, crisis, cycle, metals, crypto and the rest — plus your Brain notes. Stale or missing feeds are shown, never guessed.</div>';
+    var doing = [];
+    if (p.status === "running") doing.push("Learning run in progress — stage " + String(p.stage || "").replace(/_/g, " ") + " (" + ((p.stage_index || 0) + 1) + "/" + ((p.stages || []).length || 16) + "), since " + ago(p.stage_since) + ".");
+    else if (p.status === "done") doing.push("Last learning run finished " + ago(p.finished_at) + ": " + (p.classifier_metrics ? "classifier trained (loss " + fmt(p.classifier_metrics["validation:mlogloss"], 3) + ")" : "no classifier") + (p.retrieval_endpoint ? ", retrieval endpoint live." : ", no retrieval endpoint yet (the playbook lens is off until one comes up)."));
+    else if (p.status === "failed") doing.push("Last learning run failed at " + p.stage + ": " + (p.error || "") + ".");
+    else doing.push("No learning run yet.");
+    var eps = ((d.inventory || {}).endpoints || []).filter(function (e) { return e.status === "InService"; });
+    doing.push(eps.length ? eps.length + " model endpoint" + (eps.length > 1 ? "s" : "") + " live: " + eps.map(function (e) { return e.name; }).join(", ") + "." : "No model endpoints running right now (nothing billing by the hour).");
+    var c = (d.cost || {}), pr = c.projected || {}, m = c.mtd || {};
+    doing.push("Spend: " + (m.usd_mtd == null ? "—" : usd(m.usd_mtd)) + " this month on SageMaker; run-rate " + usd(pr.usd_per_day) + "/day of a " + usd((d.policy || {}).daily_budget_usd) + " daily budget. Next scheduled read 05:45 UTC.");
+    $("pl-doing").innerHTML = doing.map(function (s) { return '<div style="margin:3px 0">' + esc(s) + "</div>"; }).join("");
+    $("pl-toggle").textContent = SHOW_ENG ? "Hide engineering & controls" : "Show engineering & controls";
+    $("eng").style.display = SHOW_ENG ? "" : "none";
+    bindActs($("plain"));
+  }
   function renderDefs(d) { var defs = d.definitions || {}; $("defs").innerHTML = Object.keys(defs).map(function (k) { return "<dt>" + esc(k) + "</dt><dd>" + esc(defs[k]) + "</dd>"; }).join(""); }
   function fillSelects(d) {
     var eps = ((d.inventory || {}).endpoints || []).filter(function (e) { return e.status === "InService"; });
@@ -648,6 +729,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   }
   document.querySelectorAll("button[data-act]").forEach(function (b) { if (!b.onclick) b.onclick = function () { dispatch(b); }; });
   $("cat-q").addEventListener("input", renderCatalog);
+  $("pl-toggle").onclick = function () { SHOW_ENG = !SHOW_ENG; $("eng").style.display = SHOW_ENG ? "" : "none"; $("pl-toggle").textContent = SHOW_ENG ? "Hide engineering & controls" : "Show engineering & controls"; };
   $("cat-refresh").onclick = function () { act("refresh catalog", "/catalog", {}); };
 
   (async function boot() {

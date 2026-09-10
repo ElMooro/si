@@ -26,8 +26,9 @@ STATE_KEY = "ai/pipeline/state.json"
 STAGES = ["dataset", "deploy_embedding", "wait_embedding", "embed", "train", "wait_train", "serve", "wait_serve", "infer_proof",
           "retrieval", "wait_retrieval", "embed_retrieval", "cleanup", "market_read", "done", "failed"]
 PROBE_TEXT = "Dollar funding is tightening as the Fed's balance sheet runoff drains reserves while Treasury bill issuance surges."
-RETRIEVAL_LADDER = ["huggingface-textembedding-bge-base-en-v1-5", "huggingface-textembedding-all-MiniLM-L6-v2",
-                    "huggingface-sentencesimilarity-all-MiniLM-L6-v2", "huggingface-sentencesimilarity-bge-small-en-v1-5"]
+RETRIEVAL_LADDER = ["tensorflow-tcembedding-bert-en-uncased-L-12-H-768-A-12-2", "tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-base-1",
+                    "tensorflow-tcembedding-bert-en-uncased-L-12-H-256-A-4", "huggingface-textembedding-bge-base-en-v1-5",
+                    "huggingface-textembedding-all-MiniLM-L6-v2", "huggingface-sentencesimilarity-all-MiniLM-L6-v2"]
 
 
 def now_iso() -> str:

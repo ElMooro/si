@@ -62,7 +62,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.0.0-review"
+VERSION = "2.1.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -285,6 +285,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
                     "cards": (catalog.get("cards") or [])[:120]},
         "brain_dataset": _public_dataset_view(ds, passes),
         "learning": collect_learning(client("sagemaker")),
+        "scoreboard": _safe(learning_scoreboard),
         "market_read": _safe(public_market_read),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
@@ -863,11 +864,13 @@ def _live_embedding_endpoint(ds: Optional[dict]) -> Optional[str]:
 def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]:
     s3 = client("s3")
     prev = get_json(PRIVATE_BUCKET, READ_KEY) or {}
-    if prev.get("generated_at"):
+    # the 20-minute gap is a cost control; an explicit owner/ops force (cents per read) overrides it, and an
+    # EMPTY previous read (LLM offline) never blocks a retry
+    if prev.get("generated_at") and not body.get("force") and not (prev.get("read") or {}).get("parse_error"):
         try:
             age = (datetime.now(timezone.utc) - datetime.fromisoformat(prev["generated_at"])).total_seconds()
             if age < mr.MIN_READ_GAP_S:
-                raise ActionError("last read is %d min old; a new governed read is allowed every %d min" % (age // 60, mr.MIN_READ_GAP_S // 60))
+                raise ActionError("last read is %d min old; a new governed read is allowed every %d min (force=true overrides)" % (age // 60, mr.MIN_READ_GAP_S // 60))
         except ActionError:
             raise
         except Exception:
@@ -898,7 +901,17 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
         # must never be silently bypassed by a direct third-party request.
         return ""
 
-    read = mr.compose_read(board, play, complete)
+    # learn from mistakes: grade what was called before, distil lessons, carry them into this read
+    lessons = get_json(PRIVATE_BUCKET, mr.LESSONS_KEY) or {}
+    try:
+        prev_calls = (get_json(PRIVATE_BUCKET, CALLS_KEY) or {}).get("calls") or []
+        graded = mr.grade_calls(_signals_table(), prev_calls) if prev_calls else {"rows": []}
+        lessons = mr.write_lessons(graded.get("rows") or [], lessons, complete)
+        put_private(mr.LESSONS_KEY, lessons)
+    except Exception as e:
+        lessons = {**lessons, "error": "grading/lessons: %s" % str(e)[:160]}
+    read = mr.compose_read(board, play, complete, lessons=lessons, playbook_text=bool(policy.get("playbook_text_to_llm", True)))
+    read["lessons_carried"] = len(lessons.get("lessons") or [])
     read["llm_path"] = "governed-router"
     critical = [name for name in ("fusion", "risk_gate", "khalid_risk") if (board.get("sources") or {}).get(name, {}).get("status") != "FRESH"]
     fleet_summary = fleet.get("summary") or {}
@@ -949,7 +962,43 @@ def action_get_read(body: dict, policy: dict) -> Dict[str, Any]:
     except Exception as e:
         perf = {"error": str(e)[:140], "n_calls": len(calls)}
     doc["performance"] = perf
+    doc["lessons"] = get_json(PRIVATE_BUCKET, mr.LESSONS_KEY) or {}
     return doc
+
+
+def learning_scoreboard() -> Dict[str, Any]:
+    """Plain-English learning facts for the page: what it studied, how well it understands, calls made/graded, hit rate,
+    trend across retrains, lessons carried, and whether the LLM voice is online."""
+    import math
+    ds = bd.latest_dataset(client("s3"), PRIVATE_BUCKET) or {}
+    labels = ds.get("labels") or []
+    k = len(labels)
+    runs = [r for r in (collect_learning(client("sagemaker")).get("classifier_runs") or []) if (r.get("metrics") or {}).get("validation:mlogloss") is not None]
+    runs.sort(key=lambda r: r.get("started_at") or "")
+    losses = [float(r["metrics"]["validation:mlogloss"]) for r in runs]
+    understanding = None
+    if losses and k > 1:
+        understanding = max(0.0, min(1.0, 1.0 - losses[-1] / math.log(k)))
+    trend = None
+    if len(losses) >= 2:
+        trend = "improving" if losses[-1] < losses[-2] * 0.97 else ("worse" if losses[-1] > losses[-2] * 1.03 else "stable")
+    calls = (get_json(PRIVATE_BUCKET, CALLS_KEY) or {}).get("calls") or []
+    perf = {}
+    try:
+        g = mr.grade_calls(_signals_table(), calls)
+        perf = g.get("by_window") or {}
+        graded_n = sum(int(v.get("n") or 0) for v in perf.values())
+    except Exception:
+        graded_n = 0
+    lessons = get_json(PRIVATE_BUCKET, mr.LESSONS_KEY) or {}
+    rd = get_json(PRIVATE_BUCKET, READ_KEY) or {}
+    llm_path = str(((rd.get("read") or {}).get("llm_path")) or "")
+    voice = "online" if rd.get("read") and not (rd.get("read") or {}).get("parse_error") else ("offline: Anthropic credits exhausted" if "credit balance" in llm_path else ("offline: %s" % llm_path[:80] if llm_path else "no read yet"))
+    return {"notes_studied": ds.get("n_rows"), "categories_learned": labels, "categories_excluded": ds.get("excluded_labels"),
+            "understanding_score": round(understanding, 3) if understanding is not None else None, "latest_validation_loss": losses[-1] if losses else None,
+            "coin_flip_loss": round(math.log(k), 3) if k > 1 else None, "retrains": len(runs), "trend": trend, "loss_history": losses[-8:],
+            "calls_made": len(calls), "calls_graded": graded_n, "hit_rate_by_window": perf, "lessons_carried": len(lessons.get("lessons") or []),
+            "lessons_updated_at": lessons.get("updated_at"), "last_read_at": rd.get("generated_at"), "voice": voice, "as_of": now_iso()}
 
 
 def public_market_read() -> Optional[dict]:

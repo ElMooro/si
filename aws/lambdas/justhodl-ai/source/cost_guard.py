@@ -42,6 +42,7 @@ DEFAULT_POLICY = {
     "allowed_inference_instances": ["ml.t2.medium", "ml.t2.large", "ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge"],
     "allowed_training_instances": ["ml.m5.large", "ml.m5.xlarge", "ml.m5.2xlarge", "ml.m5.4xlarge", "ml.c5.xlarge", "ml.c5.2xlarge", "ml.g4dn.xlarge", "ml.g4dn.2xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"],
     "serverless_default": True,
+    "playbook_text_to_llm": True,
     "serverless_max_memory_mb": 4096,
     "serverless_max_concurrency": 4,
     "hyperpod_unlocked": False,
@@ -244,6 +245,11 @@ def enforce_endpoint_ttl(sm, cw, endpoints: List[dict], policy: Dict[str, Any]) 
         inv = endpoint_invocations(cw, name, idle_h) if idle_h > 0 else None
         row.update({"age_hours": round(age_h, 2) if age_h is not None else None, "ttl_hours": ttl, "invocations_window": inv})
         kill = None
+        serverless_only = bool(ep.get("variants")) and all(v.get("serverless") for v in ep.get("variants") or [])
+        if serverless_only and ep.get("status") not in ("Failed", "OutOfService"):
+            row["reason"] = "serverless (pay per request): no TTL/idle reaping"
+            ledger.append(row)
+            continue
         if ep.get("status") in ("Failed", "OutOfService"):
             kill = "endpoint %s (never bills; blocks the name)" % ep.get("status")
         elif ttl and age_h is not None and age_h > ttl:

@@ -288,13 +288,43 @@ SYSTEM = (
 )
 
 
-def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn) -> Dict[str, Any]:
+LESSONS_KEY = "ai/market-read/lessons.json"
+LESSON_SYSTEM = ("You are the AI desk's own post-mortem. You get the desk's past dated calls with their graded real-price outcomes. Write the lessons the "
+                 "desk should carry into its next read: what it got right, what it got wrong, and the mechanism behind each miss. Output STRICT JSON: "
+                 "{\"lessons\": [{\"lesson\": string, \"evidence\": string, \"weight\": 1-5}], \"summary\": string}. Max 6 lessons. Use only the graded rows given.")
+
+
+def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn) -> Dict[str, Any]:
+    """Learn from mistakes: turn graded calls into carried lessons (only when new graded rows exist)."""
+    rows = [r for r in graded_rows if r.get("windows")]
+    if not rows:
+        return prior or {"lessons": [], "summary": "", "graded_rows_seen": 0, "updated_at": None}
+    key = sorted(r["ticker"] + ":" + str(r.get("logged_at")) for r in rows)
+    fingerprint = "|".join(key)[:2000]
+    if prior and prior.get("fingerprint") == fingerprint:
+        return prior
+    prompt = "PRIOR LESSONS:\n%s\n\nGRADED CALLS (direction, horizon, thesis, returns %% since call at 5/21/63 trading days, correct?):\n%s\n\nProduce the JSON." % (
+        json.dumps((prior or {}).get("lessons") or [], default=str)[:3000], json.dumps(rows[-40:], default=str)[:12000])
+    raw = complete_fn(prompt, tier="critical", max_tokens=1200, contains_proprietary=True, system=LESSON_SYSTEM, on_demand=True, no_cache=True)
+    txt = str(raw or "").strip()
+    mm = re.search(r"\{.*\}", txt, re.S)
+    try:
+        j = json.loads(mm.group(0) if mm else txt)
+        lessons = [l for l in (j.get("lessons") or []) if isinstance(l, dict) and l.get("lesson")][:6]
+    except Exception:
+        return {**(prior or {}), "error": "lessons did not parse", "raw": txt[:300], "updated_at": now_iso()}
+    return {"lessons": lessons, "summary": str(j.get("summary") or "")[:600], "graded_rows_seen": len(rows), "fingerprint": fingerprint, "updated_at": now_iso()}
+
+
+def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True) -> Dict[str, Any]:
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
     fleet_digest = slim.pop("fleet_digest", [])
-    play_refs = {name: [{k: note.get(k) for k in ("similarity", "label", "pinned", "note_id", "text_private")}
+    # The operator's notes go to the proprietary tier only (same boundary brain-sync already uses); text is bounded.
+    play_refs = {name: [{k: note.get(k) for k in ("similarity", "label", "pinned", "note_id")} | ({"text": str(note.get("text") or "")[:280]} if playbook_text else {"text_private": True})
                         for note in notes] for name, notes in (play.get("notes") or {}).items()}
-    prompt = "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
+    lesson_block = json.dumps((lessons or {}).get("lessons") or [], default=str)[:3000]
+    prompt = "LESSONS FROM YOUR OWN GRADED CALLS (carry them; do not repeat a graded mistake):\n%s\n\n" % lesson_block + "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
         json.dumps(slim, default=str)[:24000], json.dumps(fleet_digest, default=str)[:24000],
         json.dumps(play_refs or {"unavailable": play.get("reason")}, default=str)[:9000],
         ", ".join(board.get("candidates") or []))

@@ -705,7 +705,13 @@ def test_market_read_board_playbook_llm_ledger_and_grading():
     private = json.loads(s3.objs[("private-test", "ai/market-read/latest.json")])
     assert private["playbook"]["notes"]["stocks"] and private["playbook"]["notes"]["stocks"][0]["text_private"] is True
     assert private["playbook"]["notes"]["stocks"][0]["text"]
-    assert "eurodollar" not in sys.modules["llm_router"].last_prompt
+    assert "eurodollar" in sys.modules["llm_router"].last_prompt          # bounded note text goes to the proprietary tier (fleet doctrine, as brain-sync)
+    assert "LESSONS FROM YOUR OWN GRADED CALLS" in sys.modules["llm_router"].last_prompt
+    # the owner can switch the playbook text off; refs only then reach the LLM
+    lf.lambda_handler({**{"version": "2.0", "rawPath": "/policy", "requestContext": {"http": {"method": "POST", "path": "/policy"}}, "headers": ok}, "body": json.dumps({"patch": {"playbook_text_to_llm": False}})}, None)
+    r_off = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": json.dumps({"force": True})}, None)
+    assert r_off["statusCode"] == 200, r_off["body"][:300]
+    assert "eurodollar" not in sys.modules["llm_router"].last_prompt, sys.modules["llm_router"].last_prompt[:300]
     # rate limit
     r2 = lf.lambda_handler({"version": "2.0", "rawPath": "/market-read", "requestContext": {"http": {"method": "POST", "path": "/market-read"}}, "headers": ok, "body": "{}"}, None)
     assert r2["statusCode"] == 400 and "allowed every" in json.loads(r2["body"])["error"]
