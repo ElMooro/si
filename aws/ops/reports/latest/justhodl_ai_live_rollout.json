@@ -2,7 +2,7 @@
   "schema": "JustHodlAiLiveRolloutReport/v1",
   "run_id": "a96e77f985fdccf7a87c",
   "mode": "plan",
-  "started_at": "2026-09-10T12:47:32.832066Z",
+  "started_at": "2026-09-10T12:54:15.226495Z",
   "target": {
     "account": "857687956942",
     "region": "us-east-1"
@@ -33,7 +33,7 @@
     {
       "name": "aws_target",
       "passed": true,
-      "at": "2026-09-10T12:47:33.193508Z",
+      "at": "2026-09-10T12:54:15.418646Z",
       "account": "857687956942",
       "region": "us-east-1"
     }
@@ -56,6 +56,134 @@
     "managed_in_service_endpoints": [],
     "approved_model_packages": []
   },
+  "legacy_sagemaker_inventory": {
+    "ai_endpoints": [],
+    "ai_models": [
+      {
+        "model_name": "jh-ai-clf-jh-ai-brain-clf-20260910-032814-500-9011609144-1",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/sagemaker-xgboost:1.7-1",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/jobs/classifier/20260910T022942283354Z/jh-ai-huggingface-sentencesimilarity-all-minilm-l6-v2/jh-ai-brain-clf-20260910-032814-500/output/model.tar.gz",
+        "created_at": "2026-09-10 03:40:09.819000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-sentencesimilarity-all-minilm-l6-9008835752-3",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04",
+        "model_data_url": null,
+        "created_at": "2026-09-10 02:53:56.434000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-9007383650-1",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-10 02:29:44.391000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-sentencesimilarity-bge-base-en-v-8992630909-3",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04",
+        "model_data_url": null,
+        "created_at": "2026-09-09 22:23:51.633000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-textembedding-all-minilm-l6-v2-8991236813-1",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04",
+        "model_data_url": null,
+        "created_at": "2026-09-09 22:00:37.562000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-textembedding-bge-base-en-v1-5-8989862223-1",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04",
+        "model_data_url": null,
+        "created_at": "2026-09-09 21:37:42.914000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8988366610-1",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 21:12:47.329000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-sentencesimilarity-bge-base-en-v-8987297214-3",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-sentencesimilarity-bge-base-en-v1-5/model.tar.gz",
+        "created_at": "2026-09-09 20:54:57.847000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-textembedding-all-minilm-l6-v2-8986953221-1",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-textembedding-all-MiniLM-L6-v2/model.tar.gz",
+        "created_at": "2026-09-09 20:49:13.957000+00:00"
+      },
+      {
+        "model_name": "jh-ai-huggingface-textembedding-bge-base-en-v1-5-8986285259-5",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/tei:2.0.1-tei1.4.0-gpu-py310-cu122-ubuntu22.04",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/huggingface-textembedding-bge-base-en-v1-5/model.tar.gz",
+        "created_at": "2026-09-09 20:38:06.011000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8985582840-3",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 20:26:23.564000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8985578937-1",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz",
+        "created_at": "2026-09-09 20:26:19.590000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8984358055-1",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz",
+        "created_at": "2026-09-09 20:05:58.787000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8983966864-3",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 19:59:27.583000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-8983965754-1",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/models/repacked/mxnet-tcembedding-robertafin-base-uncased/model.tar.gz",
+        "created_at": "2026-09-09 19:59:26.447000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-1788979151",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 18:39:12.715000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-1788979150",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 18:39:11.018000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-1788977618",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 18:13:39.681000+00:00"
+      },
+      {
+        "model_name": "jh-ai-mxnet-tcembedding-robertafin-base-uncased-1788977617",
+        "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38",
+        "model_data_url": null,
+        "created_at": "2026-09-09 18:13:37.991000+00:00"
+      }
+    ],
+    "ai_training_jobs": [
+      {
+        "training_job_name": "jh-ai-brain-clf-20260910-032814-500",
+        "status": "Completed",
+        "image": "683313688378.dkr.ecr.us-east-1.amazonaws.com/sagemaker-xgboost:1.7-1",
+        "model_data_url": "s3://justhodl-ai-857687956942/ai/jobs/classifier/20260910T022942283354Z/jh-ai-huggingface-sentencesimilarity-all-minilm-l6-v2/jh-ai-brain-clf-20260910-032814-500/output/model.tar.gz",
+        "created_at": "2026-09-10 03:28:14.560000+00:00"
+      }
+    ]
+  },
   "plan": {
     "base_stack": "justhodl-ai-production-gates",
     "consumer_stack": "justhodl-ai-consumers",
@@ -71,5 +199,5 @@
     "approval_secret": "<redacted>",
     "canary_input": "aws/ops/pending/justhodl_ai_canary_input.json"
   },
-  "finished_at": "2026-09-10T12:47:33.798569Z"
+  "finished_at": "2026-09-10T12:54:18.303653Z"
 }
