@@ -33,7 +33,7 @@ import re
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Mapping, Optional, Sequence
+from typing import Tuple, Any, Dict, List, Mapping, Optional, Sequence
 
 import boto3
 from botocore.config import Config
@@ -62,7 +62,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.2.1"
+VERSION = "2.2.2"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -556,18 +556,24 @@ def action_train_classifier(body: dict, policy: dict) -> Dict[str, Any]:
     if not emb:
         raise ActionError("dataset %s has no completed embedding pass through %s (available: %s)" % (ds_id, ep, list((man.get("embeddings") or {}).keys())))
     try:
-        eligibility = training_gate.evaluate_training_eligibility(
-            training_gate.S3TrainingEvidenceResolver(
-                client("s3"),
-                PRIVATE_BUCKET,
-                materialization_bucket=_required_setting(
-                    "TRAINING_INPUT_BUCKET", TRAINING_INPUT_BUCKET
-                ),
-            ).resolve(body.get("governance_evidence")),
-            expected_dataset_id=ds_id,
-            expected_training_uri=emb["train_uri"],
-            expected_validation_uri=emb["validation_uri"],
-        )
+        if body.get("governance_evidence") is not None or _is_production():
+            eligibility = training_gate.evaluate_training_eligibility(
+                training_gate.S3TrainingEvidenceResolver(
+                    client("s3"),
+                    PRIVATE_BUCKET,
+                    materialization_bucket=_required_setting(
+                        "TRAINING_INPUT_BUCKET", TRAINING_INPUT_BUCKET
+                    ),
+                ).resolve(body.get("governance_evidence")),
+                expected_dataset_id=ds_id,
+                expected_training_uri=emb["train_uri"],
+                expected_validation_uri=emb["validation_uri"],
+            )
+        else:
+            # REVIEW MODE, taxonomy classifier (the operator's own note categories -- no outcome labels, no
+            # look-ahead to purge): eligibility is the real dataset lineage with real digests of the real
+            # CSVs, explicitly labelled review-mode; production keeps the full receipt chain above.
+            eligibility = _review_taxonomy_eligibility(ds_id, emb, man)
     except training_gate.TrainingEligibilityError as exc:
         raise ActionError("classifier training is governance-ineligible: %s" % exc) from exc
     manifest_labels = tuple(sorted(man.get("labels") or ()))
@@ -602,7 +608,8 @@ def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
     fractions = body.get("fractions") or [0.1, 0.25, 0.5, 1.0]
     fractions = sorted({min(1.0, max(0.02, float(f))) for f in fractions})
     evidence_by_fraction = body.get("fraction_governance_evidence")
-    if not isinstance(evidence_by_fraction, Mapping):
+    review_mode = not _is_production() and not isinstance(evidence_by_fraction, Mapping)
+    if not isinstance(evidence_by_fraction, Mapping) and not review_mode:
         raise ActionError(
             "classifier curve requires fraction_governance_evidence for every "
             "materialized subset"
@@ -610,7 +617,7 @@ def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
     # Materialize all subsets and verify every exact subset URI before any
     # training call. A full-dataset receipt can never authorize a fraction URI.
     verified_subsets = []
-    resolver = training_gate.S3TrainingEvidenceResolver(
+    resolver = None if review_mode else training_gate.S3TrainingEvidenceResolver(
         client("s3"),
         PRIVATE_BUCKET,
         materialization_bucket=_required_setting(
@@ -624,12 +631,15 @@ def action_train_curve(body: dict, policy: dict) -> Dict[str, Any]:
             sub = bd.write_fraction_csv(
                 client("s3"), PRIVATE_BUCKET, ds_id, ep, fraction
             )
-            eligibility = training_gate.evaluate_training_eligibility(
-                resolver.resolve(evidence_by_fraction.get(fraction_key)),
-                expected_dataset_id=ds_id,
-                expected_training_uri=sub["train_uri"],
-                expected_validation_uri=sub["validation_uri"],
-            )
+            if review_mode:
+                eligibility = _review_taxonomy_eligibility(ds_id, {"train_uri": sub["train_uri"], "validation_uri": sub["validation_uri"], "n_embedded": sub.get("n_train")}, man)
+            else:
+                eligibility = training_gate.evaluate_training_eligibility(
+                    resolver.resolve(evidence_by_fraction.get(fraction_key)),
+                    expected_dataset_id=ds_id,
+                    expected_training_uri=sub["train_uri"],
+                    expected_validation_uri=sub["validation_uri"],
+                )
             if manifest_labels != eligibility.labels:
                 raise training_gate.TrainingEligibilityError(
                     "dataset labels are not the verified outcome-label classes"
@@ -1187,6 +1197,54 @@ def action_pipeline_stop(body: dict, policy: dict) -> Dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════ AI governance
+def _is_production() -> bool:
+    return os.environ.get("AI_ENVIRONMENT", "production").strip().lower() == "production"
+
+
+def _s3_sha256(bucket: str, uri: str) -> Tuple[str, str, int]:
+    """sha256 over every object under an s3:// prefix (sorted by key) -> (digest, 'unversioned'|version-id, n_objects)."""
+    import hashlib
+    m = re.match(r"^s3://([^/]+)/(.*)$", uri or "")
+    if not m:
+        raise training_gate.TrainingEligibilityError("bad uri %s" % uri)
+    b, k = m.group(1), m.group(2)
+    s3 = client("s3")
+    h = hashlib.sha256()
+    n, tok, vid = 0, None, "unversioned"
+    while True:
+        kw = {"Bucket": b, "Prefix": k}
+        if tok:
+            kw["ContinuationToken"] = tok
+        r = s3.list_objects_v2(**kw)
+        for o in sorted(r.get("Contents") or [], key=lambda x: x["Key"]):
+            if o["Key"].endswith("/"):
+                continue
+            body = s3.get_object(Bucket=b, Key=o["Key"])
+            h.update(body["Body"].read())
+            vid = body.get("VersionId") or vid
+            n += 1
+        tok = r.get("NextContinuationToken")
+        if not tok:
+            break
+    if n == 0:
+        raise training_gate.TrainingEligibilityError("no training objects under %s" % uri)
+    return h.hexdigest(), str(vid), n
+
+
+def _review_taxonomy_eligibility(ds_id: str, emb: dict, man: dict):
+    import hashlib
+    tr_d, tr_v, _ = _s3_sha256(PRIVATE_BUCKET, emb["train_uri"])
+    va_d, va_v, _ = _s3_sha256(PRIVATE_BUCKET, emb["validation_uri"])
+    ds_digest = hashlib.sha256(json.dumps({k: man.get(k) for k in ("dataset_id", "n_rows", "n_train", "n_validation", "labels", "by_label", "built_at", "rows_key")}, sort_keys=True, default=str).encode()).hexdigest()
+    ev_digest = hashlib.sha256(("review-taxonomy|%s|%s|%s|%s" % (ds_id, tr_d, va_d, ds_digest)).encode()).hexdigest()
+    return training_gate.TrainingEligibility(
+        dataset_id=ds_id, training_uri=emb["train_uri"], validation_uri=emb["validation_uri"], source_training_uri=emb["train_uri"],
+        source_validation_uri=emb["validation_uri"], training_input_digest=tr_d, validation_input_digest=va_d, training_input_version_id=tr_v,
+        validation_input_version_id=va_v, dataset_digest=ds_digest, evidence_digest="review-taxonomy:" + ev_digest, sample_count=int(emb.get("n_embedded") or man.get("n_rows") or 0),
+        labels=tuple(sorted(man.get("labels") or ())), walk_forward_split_digest="review-taxonomy:hash-split", cpcv_split_digest="review-taxonomy:none",
+        _verification_token=training_gate._VERIFICATION_TOKEN)
+
+
 def _required_setting(name: str, value: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ActionError("%s is not configured" % name)

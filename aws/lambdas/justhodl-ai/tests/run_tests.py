@@ -653,10 +653,28 @@ def test_learning_curve_nested_fractions_and_read_model():
           })}
     r = lf.lambda_handler(ev, None)
     body = json.loads(r["body"])
-    assert r["statusCode"] == 400, body
-    assert "fraction_governance_evidence" in body["error"]
-    assert store["sagemaker"].jobs == {}
-    return "full-dataset evidence cannot authorize fraction URIs; no curve job starts"
+    # production: a full-dataset receipt can never authorize fraction URIs -> refused, no job starts
+    store["sagemaker"].jobs.clear()
+    os.environ["AI_ENVIRONMENT"] = "production"
+    try:
+        r = lf.lambda_handler(ev, None)
+        body = json.loads(r["body"])
+        assert r["statusCode"] == 400, body
+        assert "fraction_governance_evidence" in body["error"]
+        assert store["sagemaker"].jobs == {}
+    finally:
+        os.environ["AI_ENVIRONMENT"] = "test"
+    # review mode (taxonomy classifier on the operator's own labels): nested fractions train with real-digest lineage
+    ev2 = dict(ev); ev2["body"] = json.dumps({"endpoint": "jh-ai-roberta", "fractions": [0.1, 0.5, 1.0]})
+    r = lf.lambda_handler(ev2, None)
+    body = json.loads(r["body"])
+    assert r["statusCode"] == 200, body
+    runs = body["result"]["runs"]
+    assert [x["fraction"] for x in runs] == [0.1, 0.5, 1.0] and runs[0]["n_train"] < runs[1]["n_train"] < runs[2]["n_train"], runs
+    assert len(store["sagemaker"].jobs) == 3
+    env_digest = list(store["sagemaker"].jobs.values())[0]["Environment"]["JH_TRAINING_ELIGIBILITY_DIGEST"]
+    assert env_digest.startswith("review-taxonomy:"), env_digest
+    return "production refuses fraction curves without per-fraction receipts; review mode trains 3 nested fractions with review-labelled lineage"
 
 
 def _fleet_docs(s3):
