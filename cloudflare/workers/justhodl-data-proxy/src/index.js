@@ -1,3 +1,5 @@
+import { handleAskDesk } from './ask_desk_api.js';
+import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
 /**
  * justhodl-data-proxy v2.1.0
  *
@@ -345,6 +347,7 @@ const PRIVATE_ARTIFACTS = {
   'portfolio/sizing-alert-history.json':'portfolio-sizing-history',
   'history/behavior-mirror-history.json':'behavior-mirror-history',
   'portfolio-manager-brief.json':'portfolio-manager-brief',
+  'tradingview-notes.json':'tradingview-notes', 'tv-sources.json':'tv-sources',
 };
 const SANITIZED_ARTIFACTS = new Set([
   'brain-compiler.json', 'tv-workbench.json', 'canary-warroom.json', 'tradingview.json',
@@ -364,7 +367,7 @@ function privateArtifact(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   return Object.hasOwn(PRIVATE_ARTIFACTS, normalized) ? PRIVATE_ARTIFACTS[normalized] : null;
 }
-const PRIVATE_RAW_ARTIFACTS = new Set(['tradingview-notes.json', 'ai-brief.md', '_telegram-chat.json', 'portfolio/holdings.json', 'portfolio/pm-history.json', 'history/_fleet-monitor-history.jsonl', 'tv-sources.json']);
+const PRIVATE_RAW_ARTIFACTS = new Set(['ai-brief.md', '_telegram-chat.json', 'portfolio/holdings.json', 'portfolio/pm-history.json', 'history/_fleet-monitor-history.jsonl']);
 function privateArchive(path) {
   const normalized = path.replace(/^\/+/, '').replace(/^data\//, '');
   if (PRIVATE_RAW_ARTIFACTS.has(normalized) || ['_askdesk/', 'search/index/',
@@ -1356,6 +1359,10 @@ export default {
       } catch (e) { return jsonResp({ error: 'AI engine unavailable', detail: String(e).slice(0, 140) }, 502); }
     }
 
+    if (url.pathname === "/ask-desk") {
+      return handleAskDesk(request, env, {resolveIdentity, corsHeaders, boundedBody, jsonResp, unauthorized, forbidden});
+    }
+
     if (url.pathname === "/ask") {
       // Proxy natural-language questions to the justhodl-ask Lambda Function URL.
       const ASK_URL = "https://mxfefd5s3l4kp7ywx4ztlboqui0jrmkc.lambda-url.us-east-1.on.aws/";
@@ -1928,6 +1935,9 @@ export default {
       }
       return jsonResp({ ok: true, results });
     }
+
+    const reviewed = reviewedArtifact(safePath);
+    if (reviewed) return serveReviewedArtifact(request, reviewed, BUCKET_BASE, corsHeaders());
 
     // ops 5053: forward Range. Tier-1 series blocks are read by asking
     // for a byte window of a large .jsonl -- without this the proxy

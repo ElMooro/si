@@ -490,9 +490,9 @@ test('manual owner APIs authenticate all reads and mutations before fixed servic
 });
 test('sanitized public derivatives bypass old Worker and upstream cache generations',async()=>{
   const {env}=fresh();const w=await worker();let cacheReads=0,upstreamUrl,upstreamOptions;
-  globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})},async put(){throw new Error('private-derived payload recached')}}};globalThis.fetch=async(url,opts)=>{upstreamUrl=String(url);upstreamOptions=opts;return Response.json({safe:true})};
+  globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})},async put(){throw new Error('private-derived payload recached')}}};globalThis.fetch=async(url,opts)=>{upstreamUrl=String(url);upstreamOptions=opts;return Response.json({safe:true,public_history_review:"20260910.v1"})};
   for(const key of ['search/providers/tradingview-vault-live.json.gz','search/providers/tradingview_vault_live.json.gz','brain-compiler.json','wealth-plan-snapshot.json','tax-plan-snapshot.json','source-map.json','etf-flows/daily.json','macro/regime.json','etf-flows/history/2026-09-09.json','macro/history/2026-09-09.json']){
-    const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909'));assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);assert.equal(r.headers.get('Cache-Control'),'no-store');
+    const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909') || upstreamUrl.endsWith('?public_review=20260910.v1'));assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);assert.equal(r.headers.get('Cache-Control'),'no-store');
   }
 });
 test('AI proxy forwards authoritative entitlement and private-artifact auth without caching or synthesizing tiers',async()=>{
@@ -516,4 +516,18 @@ test('personal Ask route authorizes owner before forwarding the service token; u
   globalThis.fetch=async(url,init)=>{if(String(url).includes('.lambda-url.')){upstream++;assert.equal(init.headers['X-JH-Service-Token'],ADMIN);return Response.json({answer:'synthetic private answer'})}return priorFetch(url,init)};
   for(const headers of [{},{Authorization:'Bearer other_tok_000000000000'}])assert.ok([401,403].includes((await w.fetch(req('/ask',{method:'POST',headers,body:'{"q":"fixture?"}'}),env,{})).status));assert.equal(upstream,0);
   const r=await w.fetch(req('/ask',{method:'POST',headers:{Authorization:'Bearer owner_tok_000000000000'},body:'{"q":"fixture?"}'}),env,{});assert.equal(r.status,200);assert.equal(upstream,1);assert.match(r.headers.get('Cache-Control'),/no-store/);
+});
+
+test('TV owner mirrors require identity and never expose raw notes to anonymous or unrelated accounts', async()=>{
+  const {env,kv}=fresh();const w=await worker();
+  for (const kind of ['tradingview-notes','tv-sources']) {
+    const body=JSON.stringify({fixture:'SYNTHETIC_PRIVATE_NOTE',records:[{value:0}]});
+    assert.equal((await w.fetch(req('/private-artifact?kind='+kind,{method:'PUT',headers:{'X-JH-Service-Token':ADMIN},body}),env,{})).status,200);
+    for(const key of ['/'+kind+'.json','/data/'+kind+'.json']) {
+      assert.equal((await w.fetch(req(key),env,{})).status,401);
+      assert.equal((await w.fetch(req(key,{headers:{Authorization:'Bearer other_tok_000000000000'}}),env,{})).status,403);
+      const response=await w.fetch(req(key,{headers:{Authorization:'Bearer owner_tok_000000000000'}}),env,{});
+      assert.equal(response.status,200);assert.equal((await response.json()).records[0].value,0);assert.match(response.headers.get('Cache-Control'),/no-store/);
+    }
+  }
 });
