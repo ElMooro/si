@@ -1,0 +1,47 @@
+# ops 5421 -- stock-buying FMP key diagnose / repair / re-verify
+
+**Status:** failure  
+**Duration:** 1215.7s  
+**Finished:** 2026-09-11T20:37:39+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| env_effective_ok | env_equals_ssm | ssm_ok | step |
+|---|---|---|---|
+| None | False | True | probe |
+
+## Log
+## 1. keys: function env vs SSM (hash-compared)
+
+- `20:17:24` env var names: FMP_API_KEY
+- `20:17:24` SSM /justhodl/fmp/api-key: sha256:f2356cd4d6 len=32
+- `20:17:24` env FMP_API_KEY: sha256:285d179363 len=32  (differs from SSM)
+- `20:17:24` env FMP_KEY:     (empty)  
+- `20:17:24` key the engine effectively uses: sha256:285d179363 len=32 (env FMP_API_KEY)
+## 2. probes from the runner (HTTP status + shape; no values)
+
+- `20:17:24`   [env-effective] stable/earnings                -> HTTP 401  {
+  "Error Message": "Invalid API KEY. Feel free to create a Free API Key or visit https://site.financialmodelingprep.com/faqs?search=why-is-my-api-key-invalid 
+- `20:17:24`   [env-effective] stable/income-statement        -> HTTP 401  {
+  "Error Message": "Invalid API KEY. Feel free to create a Free API Key or visit https://site.financialmodelingprep.com/faqs?search=why-is-my-api-key-invalid 
+- `20:17:24`   [env-effective] legacy v3 earnings-surprises   -> HTTP 401  {
+  "Error Message": "Invalid API KEY. Feel free to create a Free API Key or visit https://site.financialmodelingprep.com/faqs?search=why-is-my-api-key-invalid 
+- `20:17:25`   [ssm] stable/earnings                -> HTTP 200  list[3] keys=['date', 'epsActual', 'epsEstimated', 'lastUpdated', 'revenueActual', 'revenueEstimated', 'symbol']
+- `20:17:25`   [ssm] stable/income-statement        -> HTTP 200  list[3] keys=['acceptedDate', 'bottomLineNetIncome', 'cik', 'costAndExpenses', 'costOfRevenue', 'date', 'depreciationAndAmortization', 'ebit']
+- `20:17:25`   [ssm] legacy v3 earnings-surprises   -> HTTP 403  {
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subs
+## 3. repair
+
+- `20:17:30` ✅ env FMP_API_KEY + FMP_KEY set to the SSM value (was sha256:285d179363 len=32) -- update settled
+## 4. re-run and re-check the feed
+
+- `20:17:30` invoked (Event) at 2026-09-11T20:17:30+00:00; baseline generated_at=None
+## verdict
+
+- `20:37:39` ✗ feed did not regenerate within 20 min
