@@ -36,8 +36,6 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/best-ideas.json"
 
-# id, human label, S3 key, list path, symbol field, score field, family,
-# the plain-English phrase, optional cap on how many top-by-score to keep
 SPECS = [
     ("bagger", "Bagger Engine", "data/bagger-engine.json", ["top_100"],
      "symbol", "bagger_score", "GROWTH",
@@ -113,14 +111,14 @@ SPECS = [
      "tracked smart-money 13F filers are net adding shares this "
      "quarter (consensus institutional accumulation)", 25),
     ("stealth", "Stealth Accumulation", "data/stealth-accumulation.json",
-     ["all_qualifying"], "symbol", "score", "SMART_MONEY",
+     ["convergence"], "symbol", "score", "SMART_MONEY",
      "shows stealth accumulation on the tape (volume without headlines)",
      40),
     ("optflow", "Options Flow", "data/options-flow.json",
      ["unusual"], "symbol", "score", "FLOW",
      "unusual options flow is confirming the cash-equity setup", 40),
     ("squeeze", "Squeeze Pre-Trigger", "data/squeeze-pretrigger.json",
-     ["setups"], "symbol", "score", "RISK",
+     ["imminent_setups"], "symbol", "score", "RISK",
      "sits in a short-squeeze pre-trigger (crowding / borrow stress)", 25),
 ]
 
@@ -162,6 +160,28 @@ def harvest(spec):
     except Exception as e:
         return {}, f"unreadable: {str(e)[:80]}"
     lst = dig(obj, path)
+    if not isinstance(lst, list) or not lst:
+        if isinstance(obj, dict):
+            for k in (
+                "all_qualifying", "convergence", "top_smart_money_only",
+                "unusual", "imminent_setups", "pretrigger_setups",
+                "early_setups", "setups", "candidates", "items",
+                "rows", "names", "top",
+            ):
+                v = obj.get(k)
+                if isinstance(v, list) and v:
+                    lst = v
+                    break
+            if not isinstance(lst, list) or not lst:
+                data = obj.get("data")
+                if isinstance(data, list) and data:
+                    lst = data
+                elif isinstance(data, dict):
+                    for k in ("unusual", "flow", "rows", "items"):
+                        v = data.get(k)
+                        if isinstance(v, list) and v:
+                            lst = v
+                            break
     if not isinstance(lst, list) or not lst:
         return {}, "empty"
     rows = []
@@ -350,7 +370,7 @@ def lambda_handler(event, context):
     titans = [s for s in stack if s["conviction_tier"] == "CONVICTION TITAN"]
     high = [s for s in stack if s["conviction_tier"] == "HIGH CONVICTION"]
     out = {
-        "schema_version": "1.1-grok-fusion",
+        "schema_version": "1.1.1-grok-fusion",
         "method": "cross_engine_factor_confluence",
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
