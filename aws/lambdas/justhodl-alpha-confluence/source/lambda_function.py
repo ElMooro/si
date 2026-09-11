@@ -70,6 +70,20 @@ DEFAULT_REGIME_CONFIDENCE = 0.70
 
 s3 = boto3.client("s3", region_name="us-east-1")
 lam_client = boto3.client("lambda", region_name="us-east-1")
+VERSION = "1.1"
+
+
+def _s3j(key):
+    try:
+        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
+
+
+def _tkmap(key):
+    doc = _s3j(key)
+    tm = doc.get("ticker_map") if isinstance(doc, dict) else None
+    return tm if isinstance(tm, dict) else {}
 
 
 def get_current_regime():
@@ -168,6 +182,15 @@ def lambda_handler(event, context):
         print(f"  loaded prev state: {len(prev_stocks_by_sym)} stocks")
     except Exception:
         print(f"  no prev state (first run)")
+    fc_map = _tkmap("data/flow-confluence.json")
+    oc_map = _tkmap("data/options-confluence.json")
+    bad = set()
+    bn = _s3j("data/beneish.json")
+    for it in (bn.get("manipulators") or bn.get("high_risk") or bn.get("flags") or []):
+        if isinstance(it, dict):
+            sy = str(it.get("ticker") or it.get("symbol") or "").upper().strip()
+            if sy:
+                bad.add(sy)
     confluence_records = []
     for s in stocks:
         components = s.get("components") or {}
@@ -175,6 +198,17 @@ def lambda_handler(event, context):
         confluence_tier = classify_confluence_tier(confluence_count)
         regime_adj_score, regime_adj = apply_regime_adjustment(
             s.get("alpha_score"), s.get("sector"), regime)
+        sy = str(s.get("symbol") or "").upper()
+        overlays = []
+        fp = fc_map.get(sy) or {}
+        op = oc_map.get(sy) or {}
+        if isinstance(fp, dict) and fp.get("posture"):
+            overlays.append("flow:" + str(fp.get("posture")))
+        if isinstance(op, dict) and op.get("posture"):
+            overlays.append("opt:" + str(op.get("posture")))
+        if sy in bad:
+            regime_adj_score = max(0.0, (regime_adj_score or 0) * 0.75)
+            overlays.append("Beneish flag")
         confluence_records.append({
             "symbol": s["symbol"],
             "name": s.get("name"),
@@ -191,6 +225,7 @@ def lambda_handler(event, context):
             "regime_adj_score": regime_adj_score,
             "top_signals": s.get("top_signals") or [],
             "risk_flags": s.get("risk_flags") or [],
+            "overlays": overlays,
         })
     tier_s = [r for r in confluence_records if r["confluence_tier"] == "S"]
     tier_a = [r for r in confluence_records if r["confluence_tier"] == "A"]
@@ -211,6 +246,8 @@ def lambda_handler(event, context):
         key=lambda r: r["regime_adj_score"])[:20]
     elapsed = time.time() - started
     confluence_payload = {
+        "engine": "justhodl-alpha-confluence",
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_at_unix": int(time.time()),
         "regime": regime,
@@ -237,6 +274,8 @@ def lambda_handler(event, context):
         ContentType="application/json",
         CacheControl="public, max-age=1800")
     regime_payload = {
+        "engine": "justhodl-alpha-confluence",
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_at_unix": int(time.time()),
         "regime": regime,
