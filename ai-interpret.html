@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI fleet interpretation · JustHodl.AI</title>
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.45 ui-sans-serif,system-ui}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.card{border:1px solid #2a241c;border-radius:10px;padding:14px;margin:0 0 12px;background:#100e0c}
+.k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8a7f6e}
+h1{font-size:22px;margin:6px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}}
+.stat{border:1px solid #2a241c;border-radius:8px;padding:10px;background:#0c0b09}
+.stat b{display:block;font-size:16px;margin-top:4px}
+.ok{color:#22c55e}.bad{color:#ef4444}.dim{color:#8a7f6e}
+a{color:#c4a574}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="k">AI interpretation desk</p>
+  <h1>How the system reads the fleet right now</h1>
+  <p class="dim">Grounded in live public feeds — risk-gate, fusion sources on data/ai.json, Brain constitution, settlement fails. Not a new model endpoint.</p>
+  <div class="card" id="voice"></div>
+  <div class="grid" id="stances"></div>
+  <div class="card" id="score"></div>
+  <div class="card" id="const"></div>
+  <div class="card" id="fails"></div>
+  <p class="dim">Full SageMaker inventory stays on <a href="/ai.html">ai.html</a>.</p>
+</main>
+<script>
+function gj(p){return fetch(p,{cache:"no-store"}).then(function(r){if(!r.ok) throw r.status; return r.json();});}
+function el(id, html){document.getElementById(id).innerHTML=html;}
+Promise.allSettled([
+  gj("/data/ai.json"),
+  gj("/data/brain-constitution.json"),
+  gj("/data/settlement-fails.json"),
+  gj("/data/risk-gate.json")
+]).then(function(xs){
+  var ai=xs[0].status==="fulfilled"?xs[0].value:{};
+  var br=xs[1].status==="fulfilled"?xs[1].value:null;
+  var fl=xs[2].status==="fulfilled"?xs[2].value:{};
+  var rg=xs[3].status==="fulfilled"?xs[3].value:{};
+  var mr=ai.market_read||{}, sb=ai.scoreboard||{}, pipe=ai.pipeline||{};
+  el("voice", "<p class=k>Voice / pipeline</p><p><b>"+(pipe.status||"?")+"</b> · stage "+(pipe.stage||"?")+" · "+
+    (sb.voice||"")+" · parse_error "+String(mr.parse_error)+
+    " · calls "+(sb.calls_made||0)+"</p>");
+  var st=mr.stances||{};
+  var keys=["stocks","bonds","metals","crypto"];
+  document.getElementById("stances").innerHTML=keys.map(function(k){
+    var v=st[k];
+    var label=(v&&v.stance)||v||"—";
+    return "<div class=stat><div class=k>"+k+"</div><b>"+label+"</b></div>";
+  }).join("");
+  el("score", "<p class=k>What it learned from Brain notes</p><p>notes "+(sb.notes_studied||0)+
+    " · understanding "+(sb.understanding_score||"—")+
+    " · val loss "+(sb.latest_validation_loss||"—")+
+    " · retrains "+(sb.retrains||0)+"</p><p class=dim>This is taxonomy of your notes, not market P&amp;L. Hit rate stays empty until calls exist.</p>");
+  if(br){
+    el("const", "<p class=k>Brain constitution</p><p>"+(br.risk_posture||"")+"</p><p class=dim>"+
+      ((br.hard_rules||[]).slice(0,4).join(" · ")||"waiting for public constitution")+"</p>");
+  } else {
+    el("const", "<p class=k>Brain constitution</p><p class=dim>Not public yet (403). After brain-sync deploy this card fills.</p>");
+  }
+  var sig=fl.signal||{};
+  el("fails", "<p class=k>Settlement fails (NY Fed)</p><p>regime <b>"+(sig.regime||"?")+"</b> score "+(sig.score||"—")+
+    " · FTD "+((fl.treasury||{}).ftd_bn||"—")+"bn · FTR "+((fl.treasury||{}).ftr_bn||"—")+"bn</p><p class=dim>Risk-gate posture: "+(rg.posture||"?")+" · sizing "+(rg.sizing_multiplier||"—")+"</p>");
+});
+</script>
+</body>
+</html>
