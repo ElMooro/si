@@ -35,44 +35,48 @@ fetch('/data/import-health.json?t='+Date.now()).then(r=>r.ok?r.json():null).then
  el.innerHTML='<span style="color:'+(C[h.overall]||'#e8e8e8')+';font-weight:800">IMPORT '+h.overall+'</span>'+fr+'<div style="margin-top:6px">'+chips+'</div>'+act+
  '<div style="color:#5b6479;margin-top:4px">sentinel sweep '+(h.generated_at||'')+' · '+((h.incidents||[]).length)+' incidents logged</div>';
 }).catch(function(){});
-function paintConsume(c){
+function paint(d,c){
  window.__jhConsume=c||null;
-}
-fetch('/data/provider-consumption.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(paintConsume).catch(function(){});
-fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
-var t=d.totals||{};var tot=document.getElementById('tot');
-tot.innerHTML=
- '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
- '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / FILES</span></div>'+
- '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
- '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
- '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
- var cc=(window.__jhConsume&&window.__jhConsume.counts)||null;
+ var t=d.totals||{};var tot=document.getElementById('tot');
+ tot.innerHTML=
+  '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
+  '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / FILES</span></div>'+
+  '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
+  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
+  '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
+ var cc=(c&&c.counts)||null;
  if(cc){
   tot.innerHTML +=
    '<div><b>'+String(cc.orphan||0)+'</b><span>ORPHAN PROVIDERS</span></div>'+
    '<div><b>'+String(cc.cancel_or_dead||0)+'</b><span>CANCEL CANDIDATES</span></div>';
  }
-var g=document.getElementById('g');g.innerHTML='';
-(d.providers||[]).forEach(function(p){
- var a=document.createElement('a');a.className='card';a.href='/provider.html?p='+p.slug;
- var fh=p.freshest_h,fc=fh==null?'#5d7285':(fh<=26?'#5fbf7f':'#e05252');
- a.innerHTML='<div class="nm">'+p.name+'</div><div class="api">'+p.api+'</div>'+
-  '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
-  (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
-  (p.unit==='instruments'&&p.datasets?'<span><b>'+p.datasets.toLocaleString()+'</b> <i>instruments</i></span>':'')+
-  '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
-  '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
-  (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div><div style="font-size:9px;color:#5d7285;margin-top:2px">'+p.coverage_pct+'% of '+(p.datasets_target||0).toLocaleString()+' target</div>':'')+
-  (p.catalog_note?'<div style="font-size:9px;color:#7fb0d0;margin-top:3px">'+p.catalog_note+'</div>':'');
- var cmap={}; try{(window.__jhConsume&&window.__jhConsume.providers||[]).forEach(function(x){if(x&&x.slug)cmap[x.slug]=x;});}catch(e0){}
- var cv=cmap[p.slug];
- if(cv&&cv.verdict){
-  var col=cv.verdict==='KEEP'?'#5fbf7f':(cv.verdict==='ORPHAN'?'#e0b552':'#e05252');
-  a.innerHTML += '<div style="font-size:9px;margin-top:4px;color:'+col+'">'+cv.verdict+(cv.repo_refs!=null?' · '+cv.repo_refs+' refs':'')+'</div>';
- }
- g.appendChild(a);});
-}).catch(function(e){document.getElementById('g').textContent='catalog unavailable';});
+ var cmap={};
+ try{(c&&c.providers||[]).forEach(function(x){if(x&&x.slug)cmap[x.slug]=x;});}catch(e0){}
+ var g=document.getElementById('g');g.innerHTML='';
+ (d.providers||[]).forEach(function(p){
+  var a=document.createElement('a');a.className='card';a.href='/provider.html?p='+p.slug;
+  var fh=p.freshest_h,fc=fh==null?'#5d7285':(fh<=26?'#5fbf7f':'#e05252');
+  var cv=cmap[p.slug];
+  a.innerHTML='<div class="nm">'+p.name+'</div><div class="api">'+p.api+'</div>'+
+   '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
+   (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
+   (p.unit==='instruments'&&p.datasets?'<span><b>'+p.datasets.toLocaleString()+'</b> <i>instruments</i></span>':'')+
+   '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
+   '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
+   (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div>':'')+
+   (p.catalog_note?'<div style="font-size:9px;color:#7fb0d0;margin-top:3px">'+p.catalog_note+'</div>':'');
+  if(cv&&cv.verdict){
+   var col=cv.verdict==='KEEP'?'#5fbf7f':(cv.verdict==='ORPHAN'?'#e0b552':'#e05252');
+   a.innerHTML += '<div style="font-size:9px;margin-top:4px;color:'+col+'">'+cv.verdict+(cv.repo_refs!=null?' · '+cv.repo_refs+' refs':'')+'</div>';
+  }
+  g.appendChild(a);
+ });
+}
+Promise.all([
+ fetch('/data/provider-catalog.json?t='+Date.now()).then(function(r){return r.json();}),
+ fetch('/data/provider-consumption.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+]).then(function(pair){paint(pair[0],pair[1]);})
+ .catch(function(){document.getElementById('g').textContent='catalog unavailable';});
 </script>
 <script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
 </body></html>
