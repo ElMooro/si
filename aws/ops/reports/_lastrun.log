@@ -1,21 +1,6 @@
-executing-against: dc9689835f35558108f926745ae1f86784824f2f
-ops 5404 -- Cleveland + research index + stale map
-[19:34:53] ✅ atlantafed rows=61 keys=['observation_date', 'GDPNOW']
-[19:34:53] ✅ clevelandfed rows=314 keys=['PK\x03\x04\x14\x00\x00\x00\x08\x00\t\x1a+]b�ӿs\x01\x00\x00�\x03\x00\x00']
-[19:34:53] research prefix data/warm/equity-research/ files=0 dirs=0
-[19:34:53] research prefix data/equity-research/ files=0 dirs=0
-[19:34:53] research prefix data/warm/equity-research-tickers/ files=0 dirs=0
-[19:34:53] research prefix data/research/ files=50 dirs=0
-[19:34:54] ✅ research index prefix=data/research/ n=40
-[19:34:54] ⚠ miss data/brief.json
-[19:34:54] ⚠ miss data/brief/latest.json
-[19:34:54] ⚠ miss data/daily-brief.json
-[19:34:54] ⚠ miss data/engines/brief.json
-[19:34:54] ⚠ miss data/decisive-call.json
-[19:34:54] ⚠ miss data/decisive_call.json
-[19:34:54] ⚠ miss data/calls/decisive.json
-[19:34:54] ⚠ miss data/khalid-brief.json
-── verdict ──
-[19:34:55] ✅ GREEN -- join v3 + research index + stale-feed-map
+executing-against: 8409758a0c66b250818ddcc03282d5ec921d2181
+ops 5405 -- freshness audit (no invokes)
+[19:36:58] overall=DEGRADED stale_providers=0 bad_pipes=['dead-lanes']
+[19:36:58] ✅ GREEN -- data/freshness-audit.json
 
-→ Report written to aws/ops/reports/latest/ops_5404_cleveland_research_stale.md
+→ Report written to aws/ops/reports/latest/ops_5405_freshness_audit.md
