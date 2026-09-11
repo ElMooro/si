@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Macro war rooms · JustHodl.AI</title>
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,system-ui,sans-serif}
+.page{max-width:1320px;margin:0 auto;padding:16px}
+.wr{border:1px solid #2a241c;border-radius:10px;margin:0 0 16px;background:#100e0c;padding:14px 14px 8px}
+.wr-kicker{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8a7f6e;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.wr-head{display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center;margin:10px 0}
+.wr-ring{width:88px;height:88px}
+.wr-headline{font-size:18px;font-weight:700;margin:0 0 6px;line-height:1.35}
+.wr-sub{color:#8a7f6e;font-size:12px}
+.wr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:980px){.wr-grid{grid-template-columns:1fr}}
+.wr-panel{border:1px solid #2a241c;border-radius:8px;overflow:hidden;background:#0c0b09}
+.wr-panel h3{margin:0;padding:8px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#c4a574;border-bottom:1px solid #2a241c}
+.wr-panel table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.wr-panel th,.wr-panel td{padding:5px 8px;border-bottom:1px solid #1c1814;text-align:left}
+.wr-panel th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a7f6e;font-weight:500}
+.wr-panel tr{cursor:pointer}
+.wr-panel tr:hover td{background:#16130f}
+.pos{color:#22c55e}.neg{color:#ef4444}.flat{color:#8a7f6e}
+.wr-flag{font-size:10px;font-weight:700;letter-spacing:.08em}
+.wr-flag.RED{color:#ef4444}.wr-flag.AMBER{color:#f59e0b}.wr-flag.GREEN{color:#22c55e}
+.wr-spark{width:88px;height:22px;display:block}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal.on{display:flex}
+.sheet{width:min(980px,100%);background:#120f0c;border:1px solid #3a3226;border-radius:12px;padding:16px}
+.sheet h2{margin:0 0 8px;font-size:16px}
+.sheet svg{width:100%;height:280px}
+.close{float:right;background:0;border:0;color:#8a7f6e;font-size:22px;cursor:pointer}
+</style>
+</head>
+<body>
+<main class="page">
+<section class="wr" data-jh-axis data-jh-key="dollar-war-room" data-jh-title="Dollar war room" id="dollar-room"></section>
+<section class="wr" data-jh-axis data-jh-key="liquidity-war-room" data-jh-title="Liquidity war room" id="liq-room"></section>
+<section class="wr" data-jh-axis data-jh-key="risk-war-room" data-jh-title="Risk war room" id="risk-room"></section>
+</main>
+<div class="modal" id="modal"><div class="sheet"><button class="close" id="x">×</button><h2 id="mt"></h2><p class="wr-sub" id="ms"></p><svg id="full" viewBox="0 0 900 280"></svg></div></div>
+<script>
+(function(){
+  var $ = function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c];});}
+  function spark(pts, flag){
+    pts = (pts||[]).map(Number).filter(isFinite);
+    if(pts.length<2) return "";
+    var min=Math.min.apply(null,pts), max=Math.max.apply(null,pts), W=88,H=22;
+    var x=function(i){return 2+i*(W-4)/(pts.length-1)};
+    var y=function(v){return H-3-(H-6)*(v-min)/Math.max(max-min,1e-9)};
+    var d=pts.map(function(v,i){return (i?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1)}).join(" ");
+    var col=flag==="RED"?"#ef4444":flag==="AMBER"?"#f59e0b":"#38bdf8";
+    return '<svg class="wr-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.4"/></svg>';
+  }
+  function flagOf(z, pct){
+    if(z!=null && Math.abs(z)>=2) return "RED";
+    if(z!=null && Math.abs(z)>=1) return "AMBER";
+    if(pct!=null && (pct>=90||pct<=10)) return "AMBER";
+    return "GREEN";
+  }
+  function fmt(v, dec){ if(v==null||!isFinite(v)) return "—"; return Number(v).toFixed(dec==null?2:dec); }
+  function chg(v, unit){
+    if(v==null||!isFinite(v)) return "—";
+    var s=(v>0?"+":"")+(unit==="bp"?v.toFixed(1)+"bp":v.toFixed(2)+(unit==="pct"?"%":""));
+    return s;
+  }
+  function cls(v){ return v==null||Math.abs(v)<1e-9?"flat":(v>0?"neg":"pos"); }
+  function pairsVals(pairs){ return (pairs||[]).map(function(p){return Array.isArray(p)?+p[1]:+p;}).filter(isFinite); }
+  function lastN(pairs,n){ var a=pairsVals(pairs); return a.slice(Math.max(0,a.length-n)); }
+  function delta(pairs,n){
+    var a=pairsVals(pairs); if(a.length<=n) return null; return a[a.length-1]-a[a.length-1-n];
+  }
+  function drawFull(pairs){
+    var svg=$("full"); svg.innerHTML="";
+    var pts=(pairs||[]).filter(function(p){return Array.isArray(p)&&isFinite(+p[1]);});
+    if(pts.length<2) return;
+    var ys=pts.map(function(p){return +p[1]}); var mn=Math.min.apply(null,ys), mx=Math.max.apply(null,ys); if(mx===mn) mx=mn+1;
+    var w=900,h=280,pad=16;
+    var d=pts.map(function(p,i){
+      var x=pad+(w-2*pad)*i/(pts.length-1);
+      var y=h-pad-(h-2*pad)*((+p[1]-mn)/(mx-mn));
+      return (i?"L":"M")+x.toFixed(1)+","+y.toFixed(1);
+    }).join(" ");
+    var el=document.createElementNS("http://www.w3.org/2000/svg","path");
+    el.setAttribute("d",d); el.setAttribute("fill","none"); el.setAttribute("stroke","#c4a574"); el.setAttribute("stroke-width","1.6");
+    svg.appendChild(el);
+  }
+  var HIST={};
+  function openHist(title, key){
+    var pairs=HIST[key]||[];
+    $("mt").textContent=title;
+    $("ms").textContent=pairs.length? (pairs[0][0]+" → "+pairs[pairs.length-1][0]+" · "+pairs.length+" points"):"no history on this row";
+    drawFull(pairs);
+    $("modal").classList.add("on");
+  }
+  $("x").onclick=$("modal").onclick=function(e){ if(e.target.id==="modal"||e.target.id==="x") $("modal").classList.remove("on"); };
+
+  function panelHtml(title, rows){
+    var body=rows.map(function(r){
+      return "<tr data-hk=\""+esc(r.hk)+"\" data-title=\""+esc(r.label)+"\">"+
+        "<td>"+esc(r.label)+"<div class=wr-sub>"+esc(r.meta||"")+"</div></td>"+
+        "<td>"+esc(r.level)+"</td>"+
+        "<td class=\""+cls(r.d1)+"\"><b>"+chg(r.d1,r.unit)+"</b></td>"+
+        "<td class=\""+cls(r.d2)+"\">"+chg(r.d2,r.unit)+"</td>"+
+        "<td class=\""+cls(r.d3)+"\">"+chg(r.d3,r.unit)+"</td>"+
+        "<td>"+spark(r.spark,r.flag)+"</td>"+
+        "<td><span class=\"wr-flag "+r.flag+"\">"+r.flag+"</span></td></tr>";
+    }).join("");
+    return '<div class="wr-panel"><h3>'+esc(title)+' · '+rows.length+' series</h3><table><thead><tr><th>Series</th><th>Level</th><th>1m</th><th>3m</th><th>1y</th><th></th><th></th></tr></thead><tbody>'+body+"</tbody></table></div>";
+  }
+  function room(el, title, fresh, score, headline, panels){
+    var color=score>=70?"#ef4444":score>=45?"#f59e0b":score>=22?"#eab308":"#22c55e";
+    el.innerHTML='<div class="wr-kicker"><span>'+esc(title)+'</span><span>'+esc(fresh)+'</span></div>'+
+      '<div class="wr-head"><svg class="wr-ring" viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" fill="none" stroke="#2a241c" stroke-width="7"/><circle cx="44" cy="44" r="36" fill="none" stroke="'+color+'" stroke-width="7" stroke-dasharray="'+(226*Math.min(score,100)/100).toFixed(1)+' 226" stroke-linecap="round" transform="rotate(-90 44 44)"/></svg>'+
+      '<div><p class="wr-headline">'+esc(headline)+'</p><p class="wr-sub">Double-click a row for full history.</p></div></div>'+
+      '<div class="wr-grid">'+panels.join("")+'</div>';
+    el.querySelectorAll("tr[data-hk]").forEach(function(tr){
+      tr.ondblclick=function(){ openHist(tr.getAttribute("data-title"), tr.getAttribute("data-hk")); };
+    });
+  }
+
+  function get(url){ return fetch(url,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }); }
+
+  get("/data/dollar-radar.json").then(function(d){
+    var idx=(d.indices||[]).map(function(x){
+      var hk="d-"+x.key; HIST[hk]=x.series||[];
+      return {hk:hk,label:x.name||x.fred_id,meta:x.fred_id,level:fmt(x.level,3),unit:"pct",d1:x.chg_1m_pct,d2:x.chg_3m_pct,d3:x.chg_1y_pct,spark:lastN(x.series,60),flag:flagOf(null,x.range_pctile_1y)};
+    });
+    var bil=(d.bilaterals||[]).map(function(x){
+      var hk="b-"+x.key; HIST[hk]=x.series||[];
+      return {hk:hk,label:(x.currency||x.key)+" · "+(x.fred_id||""),meta:x.quote,level:x.level==null?"—":fmt(x.level,4),unit:"pct",d1:x.chg_1m_pct,d2:x.chg_3m_pct,d3:x.chg_1y_pct,spark:lastN(x.series,60),flag:flagOf(null,null)};
+    });
+    var bb=d.bbdxy||{}; var hk="bbdxy"; HIST[hk]=bb.series||[];
+    var bbd=[{hk:hk,label:bb.name||"BBDXY",meta:"replica",level:fmt(bb.level,2),unit:"pct",d1:bb.chg_1m_pct,d2:bb.chg_3m_pct,d3:bb.chg_1y_pct,spark:lastN(bb.series,60),flag:"GREEN"}];
+    var score=Math.abs(d.dollar_pressure||0);
+    room($("dollar-room"),"Dollar war room", d.generated_at||"", score,
+      (d.headline||("Dollar pressure "+(d.dollar_pressure||"—")+" · "+(d.regime||""))),
+      [panelHtml("FRED dollar indices", idx), panelHtml("FRED bilaterals", bil), panelHtml("BBDXY", bbd)]);
+  }).catch(function(e){ $("dollar-room").textContent="Dollar feed unavailable: "+e; });
+
+  get("/data/liquidity-pulse.json").then(function(d){
+    var series=d.series||{}, groups={};
+    Object.keys(series).forEach(function(k){
+      var s=series[k]||{}, g=s.group||"other";
+      var hk="l-"+k; HIST[hk]=s.history||s.series||[];
+      var deltas=s.deltas||{};
+      var row={hk:hk,label:s.label||k,meta:s.series_id||k,level:fmt(s.latest_value,2),unit:"pct",d1:deltas["4w"]||deltas.w4||deltas.m1,d2:deltas["13w"]||deltas.w13||deltas.m3,d3:s.z_score,spark:lastN(HIST[hk],60),flag:flagOf(s.z_score,null)};
+      (groups[g]=groups[g]||[]).push(row);
+    });
+    var panels=Object.keys(groups).map(function(g){ return panelHtml(g, groups[g]); });
+    var sum=d.summary||{}, score=sum.score||sum.composite||50;
+    room($("liq-room"),"Liquidity war room", d.generated_at||"", Number(score)||50,
+      sum.headline||sum.text||("Liquidity pulse · "+(d.n_series_ok||0)+" live series"),
+      panels.slice(0,3));
+  }).catch(function(e){ $("liq-room").textContent="Liquidity feed unavailable: "+e; });
+
+  Promise.all([get("/data/risk-gate.json"), get("/data/settlement-fails.json"), get("/data/eurodollar-stress.json")]).then(function(xs){
+    var rg=xs[0], fl=xs[1], ed=xs[2];
+    var legs=rg.legs||{}, legRows=[];
+    Object.keys(legs).forEach(function(k){
+      var L=legs[k]||{}, hk="rg-"+k; HIST[hk]=[];
+      legRows.push({hk:hk,label:k.replace(/_/g," "),meta:(L.why&&L.why[0])||"",level:fmt(L.score,1),unit:"",d1:L.score,d2:null,d3:null,spark:[],flag:flagOf(L.score,null)});
+    });
+    var ftd=fl.treasury&&fl.treasury.ftd||[], ftr=fl.treasury&&fl.treasury.ftr||[];
+    HIST["ftd"]=ftd; HIST["ftr"]=ftr; HIST["fgross"]=(fl.totals&&fl.totals.ftd)||[];
+    var failRows=[
+      {hk:"ftd",label:"Treasury fails to deliver",meta:"NY Fed FR 2004",level:fmt(fl.treasury&&fl.treasury.ftd_bn,1)+"bn",unit:"",d1:null,d2:null,d3:fl.headline&&fl.headline.z,spark:lastN(ftd,60),flag:flagOf(fl.headline&&fl.headline.z,fl.headline&&fl.headline.pctile)},
+      {hk:"ftr",label:"Treasury fails to receive",meta:"NY Fed FR 2004",level:fmt(fl.treasury&&fl.treasury.ftr_bn,1)+"bn",unit:"",d1:null,d2:null,d3:null,spark:lastN(ftr,60),flag:"GREEN"},
+      {hk:"fgross",label:"Treasury combined",meta:"gross",level:fmt(fl.treasury&&fl.treasury.gross_bn,1)+"bn",unit:"",d1:null,d2:null,d3:null,spark:lastN(HIST.fgross,60),flag:"GREEN"}
+    ];
+    var sigs=(ed.signals||ed.hot_signals||[]).slice(0,12).map(function(s,i){
+      var hk="ed-"+i; HIST[hk]=s.history||[];
+      return {hk:hk,label:s.name||s.id||("signal "+i),meta:s.state||"",level:fmt(s.level!=null?s.level:s.score,2),unit:"",d1:s.z,d2:null,d3:null,spark:lastN(HIST[hk],60),flag:flagOf(s.z,null)};
+    });
+    var score=(rg.composite&&rg.composite.score)||(ed.composite_score)||40;
+    room($("risk-room"),"Risk war room", rg.generated_at||fl.generated_at||"", Math.abs(Number(score))||40,
+      (rg.posture&&(rg.posture.label||rg.posture.mode)) || (fl.signal&&fl.signal.regime) || "Risk legs + Treasury fails + eurodollar",
+      [panelHtml("Risk-gate legs", legRows), panelHtml("Treasury fails FTD / FTR", failRows), panelHtml("Eurodollar signals", sigs)]);
+  }).catch(function(e){ $("risk-room").textContent="Risk feeds unavailable: "+e; });
+})();
+</script>
+</body>
+</html>
