@@ -1,8 +1,20 @@
-executing-against: 72cd7a13e11f0faaab81e463f2e3297e615f4b31
-ops 5402 -- parse regional Fed canary CSVs
-[19:09:17] ✅ atlantafed rows=61 last_keys=['observation_date', 'GDPNOW']
-[19:09:17] ⚠ clevelandfed: new-line character seen in unquoted field - do you need to open the file with newline=''?
+executing-against: 9073913367b28d57f421cbf03f224bb1cf5b64f3
+ops 5403 -- Eurostat/GDELT themes + desk diagnosis
+[19:12:36] data/provider-catalog.json ok=True bytes=26816
+[19:12:36] data/provider-consumption.json ok=True bytes=34198
+[19:12:36] data/import-health.json ok=True bytes=1888
+[19:12:36] data/fed-nowcast-join.json ok=True bytes=564
+[19:12:36] data/activity-nowcast.json ok=True bytes=3275
+[19:12:36] data/ciss-stress.json ok=True bytes=1563861
+[19:12:36] data/bond-warroom.json ok=True bytes=911769
+[19:12:37] data/khalid.json ok=True bytes=13100466
+[19:12:37] data/brief.json ok=False bytes=0
+[19:12:37] data/decisive-call.json ok=False bytes=0
+[19:12:37] ✅ wrote data/theme-eurostat.json
+[19:12:37] ✅ wrote data/theme-gdelt.json
+[19:12:37] ✅ wrote data/desk-rollup.json
 ── verdict ──
-[19:09:17] ✅ GREEN -- fed-nowcast-join.json v2 with parsed last rows
+[19:12:37] eurostat prefixes=2 gdelt prefixes=1 alerts=1
+[19:12:37] ✅ GREEN -- theme rollups + desk-rollup live
 
-→ Report written to aws/ops/reports/latest/ops_5402_fed_nowcast_values.md
+→ Report written to aws/ops/reports/latest/ops_5403_theme_desk_rollup.md
