@@ -1,0 +1,62 @@
+name: Apply staged large-file patches
+
+# Agent lanes that cannot PUT a 40 KB file via the Contents API write a tiny
+# patcher under aws/ops/staged/grok_*.py instead. This workflow runs ON THE
+# RUNNER (real git checkout), applies the patcher to the large source, size-
+# guards the result, and pushes. deploy-lambdas.yml then fires on that push.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aws/ops/staged/grok_*.py'
+      - '.github/workflows/apply-staged-large-files.yml'
+      - 'scripts/guard_stub_lambdas.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-staged-main
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - name: Apply grok staged patchers
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=0
+          for f in aws/ops/staged/grok_*.py; do
+            echo "── $f"
+            python3 "$f"
+            found=1
+          done
+          if [ "$found" != 1 ]; then
+            echo "no aws/ops/staged/grok_*.py patchers"
+          fi
+
+      - name: Guard against stub bodies
+        run: python3 scripts/guard_stub_lambdas.py
+
+      - name: Commit and push patched large sources
+        run: |
+          set -euo pipefail
+          git config user.email "github-actions@justhodl.ai"
+          git config user.name "github-actions"
+          git add -A 'aws/lambdas/*/source/*.py' || true
+          if git diff --cached --quiet; then
+            echo "no lambda source changes after patchers"
+            exit 0
+          fi
+          python3 scripts/guard_stub_lambdas.py
+          git commit -m "apply staged large-file patch from runner"
+          git pull --rebase origin main
+          git push origin main

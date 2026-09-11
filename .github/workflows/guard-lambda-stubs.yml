@@ -1,0 +1,21 @@
+name: Guard lambda stubs
+
+# Fast check on every lambda source push. Does not replace deploy-lambdas;
+# it fails the SHA so a truncated Contents-API write is visible.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aws/lambdas/*/source/**'
+      - 'scripts/guard_stub_lambdas.py'
+  pull_request:
+    paths:
+      - 'aws/lambdas/*/source/**'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject stub lambda bodies
+        run: python3 scripts/guard_stub_lambdas.py
