@@ -1,5 +1,5 @@
 """
-justhodl-flow-confluence  ·  v1.0  —  THE FLOW / POSITIONING SYNTHESIZER
+justhodl-flow-confluence  ·  v1.1  —  THE FLOW / POSITIONING SYNTHESIZER
 ================================================================================
 Companion to options-confluence. The audit found the flow/positioning cluster
 even more fragmented (~35 engines, ~1 cross-read): 13F institutional buying, dark-
@@ -15,6 +15,8 @@ Fuses (per ticker, alpha-gated):
   • ETF look-through     — flow-lookthrough actual_accumulation/distribution, capital-flow
   • short positioning    — short-interest (squeeze risk / covering), finra-short squeeze
   • stealth              — stealth-accumulation convergence
+  • options flow         — unusual tape confirm
+  • squeeze pre-trigger  — crowding flag (heavy_short, no extra score)
 
 Posture: SHORT_SQUEEZE_SETUP (heavy short + accumulation/covering) / ACCUMULATION /
 DISTRIBUTION / STEALTH_ACCUMULATION / *_LEAN / MIXED. ALPHA_NEGATIVE flow engines
@@ -25,7 +27,7 @@ import json, time
 from datetime import datetime, timezone
 import boto3
 
-VERSION = "1.0"
+VERSION = "1.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/flow-confluence.json"
 s3 = boto3.client("s3", "us-east-1")
@@ -67,14 +69,12 @@ def lambda_handler(event, context):
         if stealth: a["stealth"] = True
         if tag and tag not in a["tags"]: a["tags"].append(tag)
 
-    # 1. 13F institutional — most_bought (+) / most_sold (-)
     pos = _read("data/13f-positions.json")
     for it in (pos.get("most_bought") or []):
         if isinstance(it, dict): add(_tk(it), "13f", 0.7, tag="13F institutions adding")
     for it in (pos.get("most_sold") or []):
         if isinstance(it, dict): add(_tk(it), "13f", -0.7, tag="13F institutions trimming")
 
-    # 2. smart-money clusters — n_buyers vs n_sellers
     for it in (_read("data/smart-money-clusters.json").get("clusters") or []):
         if not isinstance(it, dict): continue
         nb, ns = it.get("n_buyers") or 0, it.get("n_sellers") or 0
@@ -82,14 +82,12 @@ def lambda_handler(event, context):
             d = 0.6 if nb > ns else (-0.6 if ns > nb else 0.0)
             add(_tk(it), "smart-money", d, tag="smart-money cluster buying" if d > 0 else None)
 
-    # 3. dark pool — accumulation (+) / distribution (-)
     dp = _read("data/dark-pool.json")
     for it in (dp.get("top_accumulation") or []):
         if isinstance(it, dict): add(_tk(it), "dark-pool", 0.7, tag="dark-pool accumulation")
     for it in (dp.get("top_distribution") or []):
         if isinstance(it, dict): add(_tk(it), "dark-pool", -0.7, tag="dark-pool distribution")
 
-    # 4. ETF look-through flow
     inc, lift = gated("flow-lookthrough")
     if inc:
         fl = _read("data/flow-lookthrough.json")
@@ -98,7 +96,6 @@ def lambda_handler(event, context):
         for it in (fl.get("actual_distribution") or []):
             if isinstance(it, dict): add(_tk(it), "etf-lookthrough", -0.6 * lift, tag="ETF outflow")
 
-    # 5. capital-flow — accumulating (+) / distributing (-)
     inc, lift = gated("capital-flow")
     if inc:
         cf = _read("data/capital-flow.json")
@@ -107,7 +104,6 @@ def lambda_handler(event, context):
         for it in (cf.get("distributing") or []):
             if isinstance(it, dict): add(_tk(it), "capital-flow", -0.5 * lift)
 
-    # 6. short positioning — squeeze risk / crowded (heavy short) + covering (bullish)
     si = _read("data/short-interest.json")
     for bk in ("top_squeeze_risk", "top_crowded_shorts", "top_high_dtc"):
         for it in (si.get(bk) or []):
@@ -117,18 +113,41 @@ def lambda_handler(event, context):
     for it in (_read("data/finra-short.json").get("squeeze_candidates") or []):
         if isinstance(it, dict): add(_tk(it), "finra-short", 0.0, heavy_short=True, tag="FINRA squeeze candidate")
 
-    # 7. stealth accumulation — convergence + smart-money-only
     sa = _read("data/stealth-accumulation.json")
-    for bk in ("convergence", "top_smart_money_only"):
+    for bk in ("convergence", "top_smart_money_only", "all_qualifying"):
         for it in (sa.get(bk) or []):
             if isinstance(it, dict): add(_tk(it), "stealth", 0.5, stealth=True, tag="stealth accumulation")
 
-    # 8. insider buying clusters — corporate insiders buying is independent positioning flow
+    of = _read("data/options-flow.json") or _read("data/flow-data.json")
+    of_lists = []
+    for bk in ("unusual", "flow", "rows", "items"):
+        v = of.get(bk)
+        if isinstance(v, list): of_lists.append(v)
+    data = of.get("data")
+    if isinstance(data, list): of_lists.append(data)
+    elif isinstance(data, dict):
+        for bk in ("unusual", "flow", "rows"):
+            v = data.get(bk)
+            if isinstance(v, list): of_lists.append(v)
+    seen_of = set()
+    for lst in of_lists:
+        for it in lst:
+            if not isinstance(it, dict): continue
+            tk = _tk(it)
+            if not tk or tk in seen_of: continue
+            seen_of.add(tk)
+            add(tk, "options-flow", 0.35, tag="unusual options flow")
+
+    sq = _read("data/squeeze-pretrigger.json")
+    for bk in ("imminent_setups", "pretrigger_setups", "early_setups", "setups", "candidates"):
+        for it in (sq.get(bk) or []):
+            if isinstance(it, dict):
+                add(_tk(it), "squeeze", 0.0, heavy_short=True, tag="squeeze pre-trigger")
+
     for it in (_read("data/insider-clusters.json").get("clusters") or []):
         if isinstance(it, dict):
             ni = it.get("n_insiders") or 0
             add(_tk(it), "insider", min(0.9, 0.4 + 0.1 * ni), tag=f"insider cluster ({ni})")
-    # 9. corporate buybacks — a company buying its own stock is a flow tailwind (net buyback yield)
     bb = _read("data/buyback-yield-ranking.json")
     for bk in ("top_20_ranked", "all_ranked"):
         for it in (bb.get(bk) or []):
@@ -136,15 +155,40 @@ def lambda_handler(event, context):
                 ny = it.get("ttm_buyback_yield_net_pct") or 0
                 if ny > 1:
                     add(_tk(it), "buyback", min(0.7, 0.3 + 0.05 * ny), tag=f"buyback yield {ny:.1f}%")
-    # 10. insider + buyback confluence — both at once is the strongest corporate-flow tell
     ibc = _read("data/insider-buyback-confluence.json")
     for bk in ("top_confluences", "all_confluences", "high_conviction"):
         for it in (ibc.get(bk) or []):
             if isinstance(it, dict): add(_tk(it), "insider-buyback", 0.8, tag="insider+buyback confluence")
 
-    # ---- classify posture ----
+    hair, hair_why = 1.0, None
+    bv = _read("data/bond-vol.json") or {}
+    rg = _read("data/regime.json") or {}
+    state = str(bv.get("regime") or bv.get("state") or rg.get("regime") or rg.get("state") or "").lower()
+    try:
+        move = float(bv.get("move") or bv.get("composite") or bv.get("level") or 0)
+    except (TypeError, ValueError):
+        move = 0
+    if "risk-off" in state or "risk_off" in state or "stress" in state:
+        hair, hair_why = 0.82, "regime risk-off haircut"
+    elif move >= 130:
+        hair, hair_why = 0.88, "elevated bond-vol haircut"
+    bad = set()
+    bn = _read("data/beneish.json") or {}
+    for it in (bn.get("manipulators") or bn.get("high_risk") or bn.get("flags") or []):
+        if isinstance(it, dict):
+            sy = _tk(it)
+            if sy: bad.add(sy)
+
     book = []
     for tk, a in acc.items():
+        if hair < 1.0:
+            a["score"] = a["score"] * hair
+            if hair_why and hair_why not in a["tags"]:
+                a["tags"].append(hair_why)
+        if tk in bad:
+            a["score"] = a["score"] * 0.75
+            a["forensic_flag"] = "Beneish manipulation flag"
+            a["tags"].append("Beneish flag")
         a["n_engines"] = len(a["engines"]); a["engines"] = sorted(a["engines"]); a["score"] = round(a["score"], 3)
         s = a["score"]
         if a["heavy_short"] and (s > 0.3 or a["covering"]):
@@ -184,6 +228,8 @@ def lambda_handler(event, context):
            "ticker_map": {b["ticker"]: {"posture": b["posture"], "score": b["score"], "n_engines": b["n_engines"],
                                         "heavy_short": b["heavy_short"], "stealth": b["stealth"], "tags": b["tags"]}
                           for b in book},
+           "overlays": {"regime_haircut": hair, "regime_state": state or None,
+                        "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so flow confluence counts as one coherent factor."}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
