@@ -1,17 +1,20 @@
 {
  "schema": 2,
- "note": "Tight public desk 2026-09-11. No full-page embeds (bonds#2/ai/katlin/bottom dump flags). No auction 200-row dump. No alpha-confluence until S3 is public (403). Reset on / reloads this.",
+ "note": "War-room desk: macro + risk + liquidity + Treasury fails. Engine panels only (bond-warroom table style). Reset on / to load. 2026-09-11.",
  "blocks": [
-  {"type": "engine", "ref": "khalid", "panel": "overview", "w": 3, "feed": "data/khalid.json", "title": "Khalid · stance"},
-  {"type": "engine", "ref": "katlin", "panel": "prime", "w": 1, "feed": "data/katlin.json", "title": "Katlin PRIME"},
-  {"type": "engine", "ref": "katlin", "panel": "ready", "w": 1, "feed": "data/katlin.json", "title": "Katlin READY"},
-  {"type": "engine", "ref": "katlin", "panel": "war_room", "w": 1, "feed": "data/katlin.json", "title": "Katlin risk legs"},
-  {"type": "engine", "ref": "bottom", "panel": "top_picks", "w": 2, "feed": "data/bottom.json", "title": "Bottom triggers"},
-  {"type": "engine", "ref": "best-ideas", "panel": "", "w": 3, "feed": "data/best-ideas.json", "title": "Best Ideas"},
-  {"type": "engine", "ref": "flow-confluence", "panel": "", "w": 1, "feed": "data/flow-confluence.json", "title": "Flow confluence"},
-  {"type": "engine", "ref": "options-confluence", "panel": "", "w": 1, "feed": "data/options-confluence.json", "title": "Options confluence"},
-  {"type": "engine", "ref": "boom-radar", "panel": "", "w": 1, "feed": "data/boom-radar.json", "title": "Boom radar"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 2, "feed": "data/bond-warroom.json", "title": "US rates"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1, "feed": "data/bond-warroom.json", "title": "Bond vol / MOVE"}
+  {"type": "engine", "ref": "khalid", "panel": "overview", "w": 3, "feed": "data/khalid.json", "title": "Capital stance"},
+  {"type": "engine", "ref": "risk-gate", "panel": "", "w": 1, "feed": "data/risk-gate.json", "title": "Risk gate"},
+  {"type": "engine", "ref": "settlement-fails", "panel": "treasury", "w": 2, "feed": "data/settlement-fails.json", "title": "Treasury fails (receive / deliver / totals)"},
+  {"type": "engine", "ref": "settlement-fails", "panel": "totals", "w": 1, "feed": "data/settlement-fails.json", "title": "Fails totals"},
+  {"type": "engine", "ref": "plumbing-stress", "panel": "", "w": 2, "feed": "data/plumbing-stress.json", "title": "Plumbing / liquidity stress"},
+  {"type": "engine", "ref": "repo", "panel": "", "w": 1, "feed": "data/repo.json", "title": "Repo + dollar funding"},
+  {"type": "engine", "ref": "eurodollar-stress", "panel": "", "w": 1, "feed": "data/eurodollar-stress.json", "title": "Eurodollar shortage"},
+  {"type": "engine", "ref": "liquidity-pulse", "panel": "", "w": 2, "feed": "data/liquidity-pulse.json", "title": "Liquidity pulse"},
+  {"type": "engine", "ref": "treasury-rehypo", "panel": "", "w": 1, "feed": "data/treasury-rehypo.json", "title": "Treasury rehypothecation"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "funding", "w": 2, "feed": "data/bond-warroom.json", "title": "Funding / liquidity (war room)"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 2, "feed": "data/bond-warroom.json", "title": "US Treasury curve"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1, "feed": "data/bond-warroom.json", "title": "MOVE / bond vol"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "credit", "w": 1, "feed": "data/bond-warroom.json", "title": "Credit OAS"},
+  {"type": "engine", "ref": "katlin", "panel": "war_room", "w": 3, "feed": "data/katlin.json", "title": "Risk legs (Katlin)"}
  ]
 }
