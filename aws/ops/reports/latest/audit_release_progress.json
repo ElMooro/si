@@ -1,22 +1,22 @@
 {
-  "observed_at": "2026-09-11T23:38:22.546284+00:00",
+  "observed_at": "2026-09-11T23:38:38.216410+00:00",
   "runs": [
     {
       "id": 34658702206,
       "path": ".github/workflows/pages.yml",
       "head_sha": "55eab600fa588bb4ea81a5be2bb14f2cd2a153f3",
-      "status": "in_progress",
+      "status": "waiting",
       "conclusion": null,
       "created_at": "2026-09-11T23:36:31Z",
-      "updated_at": "2026-09-11T23:36:35Z",
+      "updated_at": "2026-09-11T23:38:23Z",
       "jobs": [
         {
           "id": 103456504679,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-11T23:36:35Z",
-          "completed_at": null,
+          "completed_at": "2026-09-11T23:38:21Z",
           "steps": [
             {
               "number": 1,
@@ -173,44 +173,61 @@
             {
               "number": 20,
               "name": "Build complete producer-to-page data contracts",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-11T23:38:10Z",
-              "completed_at": null
+              "completed_at": "2026-09-11T23:38:16Z"
             },
             {
               "number": 21,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-11T23:38:16Z",
+              "completed_at": "2026-09-11T23:38:17Z"
             },
             {
               "number": 22,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-11T23:38:17Z",
+              "completed_at": "2026-09-11T23:38:19Z"
             },
             {
               "number": 43,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-11T23:38:19Z",
+              "completed_at": "2026-09-11T23:38:19Z"
             },
             {
               "number": 44,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-11T23:38:19Z",
+              "completed_at": "2026-09-11T23:38:19Z"
+            },
+            {
+              "number": 45,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-11T23:38:19Z",
+              "completed_at": "2026-09-11T23:38:19Z"
             }
           ]
+        },
+        {
+          "id": 103456841728,
+          "name": "deploy",
+          "status": "queued",
+          "conclusion": null,
+          "started_at": "2026-09-11T23:38:22Z",
+          "completed_at": null,
+          "steps": []
         }
       ]
     },
