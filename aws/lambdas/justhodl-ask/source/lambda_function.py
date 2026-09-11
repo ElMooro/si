@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 import boto3
 import hmac
 from private_artifact import service_headers
+from consume_brain import load_constitution
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 MODEL = "claude-haiku-4-5-20251001"
@@ -107,8 +108,17 @@ def build_context():
                               "pt": v.get("price_target_12m"), "theme": v.get("theme")}
                         for tk, v in list((da.get("by_ticker") or {}).items())[:15]}
     brain = read_json("data/brain.json") or {}
-    ctx["_brain"] = {"prompt_block": brain.get("prompt_block"), "tickers": brain.get("mentioned_tickers"),
-                     "directive": brain.get("directive")}
+    constitution = load_constitution(s3)
+    if constitution.get("ok"):
+        directive = {k: constitution.get(k) for k in
+                     ("investor_profile", "hard_rules", "themes", "sector_tilts",
+                      "risk_posture", "signal_emphasis", "avoid", "regime_read")}
+        prompt_block = None
+    else:
+        directive = brain.get("directive")
+        prompt_block = brain.get("prompt_block")
+    ctx["_brain"] = {"directive": directive, "constitution_ok": bool(constitution.get("ok")),
+                     "prompt_block": prompt_block}
     return ctx
 
 

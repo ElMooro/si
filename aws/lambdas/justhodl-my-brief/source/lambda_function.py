@@ -7,6 +7,7 @@ catalyst-calendar. Asks Claude to write a tight, personalized brief in the
 user's own frame. OUTPUT: data/my-brief.json · SCHEDULE: daily 13:30 UTC.
 """
 from public_brain_projection import brief_public
+from consume_brain import load_constitution
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
@@ -58,7 +59,21 @@ def claude(system, prompt, mx=1100):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     brain = rj("data/brain.json") or {}
-    directive = brain.get("directive")
+    constitution = load_constitution(s3)
+    directive = None
+    if constitution.get("ok"):
+        directive = {
+            "investor_profile": constitution.get("investor_profile"),
+            "hard_rules": constitution.get("hard_rules"),
+            "themes": constitution.get("themes"),
+            "sector_tilts": constitution.get("sector_tilts"),
+            "risk_posture": constitution.get("risk_posture"),
+            "signal_emphasis": constitution.get("signal_emphasis"),
+            "avoid": constitution.get("avoid"),
+            "regime_read": constitution.get("regime_read"),
+        }
+    else:
+        directive = brain.get("directive")
     if not directive:
         out = {"engine": "my-brief", "generated_at": datetime.now(timezone.utc).isoformat(),
                "brief": None, "note": "Add notes to your Brain to get a personalized brief."}

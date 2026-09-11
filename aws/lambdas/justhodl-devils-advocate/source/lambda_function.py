@@ -10,6 +10,7 @@ flagging when a setup violates one of the user's own stated rules.
 OUTPUT: data/devils-advocate.json  ·  SCHEDULE: every 6h (after best-setups).
 """
 from public_brain_projection import devils_public
+from consume_brain import load_constitution
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
@@ -67,7 +68,16 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     bs = read_json("data/best-setups.json") or {}
     brain = read_json("data/brain.json") or {}
-    directive = brain.get("directive") or {}
+    constitution = load_constitution(s3)
+    if constitution.get("ok"):
+        directive = {
+            "hard_rules": constitution.get("hard_rules") or [],
+            "avoid": constitution.get("avoid") or [],
+            "themes": constitution.get("themes") or [],
+            "risk_posture": constitution.get("risk_posture"),
+        }
+    else:
+        directive = brain.get("directive") or {}
 
     # take the strongest setups (where over-confidence is most dangerous)
     setups = (bs.get("top_setups") or [])[:12]

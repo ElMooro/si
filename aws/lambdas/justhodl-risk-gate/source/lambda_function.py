@@ -48,6 +48,7 @@ because posture is a PURE FUNCTION of trailing series values (no lookahead).
 Output: data/risk-gate.json
 """
 import json
+from consume_brain import load_constitution, overlay_payload
 import os
 import time
 import urllib.request
@@ -1069,6 +1070,7 @@ def lambda_handler(event, context):
                       "buyer posture only (cash/gold/quality per pinned seed1)",
         "elapsed_s": round(time.time() - t0, 1),
     }
+    out = overlay_payload(out, load_constitution(s3))
     artifact = json.dumps(out, default=str, allow_nan=False)
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": out["schema_version"],

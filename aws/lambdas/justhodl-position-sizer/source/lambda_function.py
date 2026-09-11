@@ -6,6 +6,7 @@ style scaling (capped, conservative). Not advice — a disciplined sizing frame.
 OUTPUT: data/position-sizing.json · SCHEDULE: every 6h.
 """
 from public_brain_projection import sanitize_public
+from consume_brain import load_constitution, overlay_payload
 import json, time
 from datetime import datetime, timezone
 import boto3
@@ -24,13 +25,17 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     bs = rj("data/best-setups.json") or {}
     brain = rj("data/brain.json") or {}
+    constitution = load_constitution(s3)
     bv = rj("data/bond-vol.json") or {}
     fp = rj("data/funding-plumbing.json") or {}
     dg = rj("data/dealer-gex.json") or {}
     vs = rj("data/vol-surface.json") or {}
 
-    directive = brain.get("directive") or {}
-    posture = (directive.get("risk_posture") or "balanced").lower()
+    if constitution.get("ok"):
+        posture = (constitution.get("risk_posture") or "balanced")
+    else:
+        posture = ((brain.get("directive") or {}).get("risk_posture") or "balanced")
+    posture = str(posture).lower()
     posture_mult = 1.3 if "aggressive" in posture else 0.6 if "defensive" in posture else 1.0
     # Publish a controlled enum, never the operator's private directive prose.
     posture = "aggressive" if posture_mult == 1.3 else "defensive" if posture_mult == 0.6 else "balanced"
@@ -74,7 +79,7 @@ def lambda_handler(event=None, context=None):
     sized.sort(key=lambda x: -x["suggested_size_pct"])
     total = round(sum(x["suggested_size_pct"] for x in sized[:15]), 1)
 
-    out = {"engine": "position-sizer", "version": "1.0",
+    out = {"engine": "position-sizer", "version": "1.1",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "risk_posture": posture, "posture_mult": posture_mult,
@@ -86,6 +91,7 @@ def lambda_handler(event=None, context=None):
            "note": ("Disciplined sizing frame: fractional-Kelly scaled by your risk posture and the "
                     "current regime. Conservative caps (8%/name). Research, not advice."),
            "caveat": "Sizes shrink automatically when the macro regime deteriorates."}
+    out = overlay_payload(out, constitution)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[position-sizer] {len(sized)} sized, posture={posture_mult}x regime={round(regime_mult,2)}x gamma={gamma_regime} gv_mult={gamma_vol_mult}")

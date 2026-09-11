@@ -349,7 +349,7 @@ def lambda_handler(event=None, context=None):
         print(f"[brain-sync] heartbeat err: {str(_e)[:60]}")
 
     out = {
-        "engine": "brain-sync", "version": "2.0",
+        "engine": "brain-sync", "version": "2.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_updated_at": d.get("updated_at"),
         "content_hash": content_hash,
@@ -371,6 +371,30 @@ def lambda_handler(event=None, context=None):
     # audit-20260909-private-artifacts-v1: owner UI uses an authenticated mirror.
     publish_private("brain", out)
     publish_private("brain-history", {"history": read_history(), "last_checked": out["generated_at"]})
+    direc = directive if isinstance(directive, dict) else {}
+    constitution = {
+        "engine": "brain-sync",
+        "schema_version": "1.0",
+        "version": "2.1",
+        "generated_at": out["generated_at"],
+        "content_hash": content_hash,
+        "n_notes": len(notes),
+        "n_pinned": len(pinned),
+        "investor_profile": direc.get("investor_profile"),
+        "hard_rules": direc.get("hard_rules") or [],
+        "themes": direc.get("themes") or [],
+        "sector_tilts": direc.get("sector_tilts") or {},
+        "risk_posture": direc.get("risk_posture"),
+        "signal_emphasis": direc.get("signal_emphasis") or [],
+        "avoid": direc.get("avoid") or [],
+        "regime_read": regime_read if isinstance(regime_read, dict) else None,
+        "distill_cadence": out.get("distill_cadence"),
+        "note": "Public constitution for fleet scoring. Raw notes stay private.",
+    }
+    s3.put_object(Bucket=BUCKET, Key="data/brain-constitution.json",
+                  Body=json.dumps(constitution, default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="public, max-age=60")
     print(f"[brain-sync] DONE {round(time.time()-t0,1)}s — {len(notes)} notes ({len(pinned)} pinned), "
           f"directive={'fresh' if (directive and prev.get('content_hash') != content_hash) else 'cached' if directive else 'none'}")
     return {"statusCode": 200, "body": json.dumps({"n_notes": len(notes), "n_pinned": len(pinned)})}

@@ -39,6 +39,7 @@ CONSUMES  data/brain.json, data/tradingview.json, data/risk-gate.json,
 EMITS     data/domain-barometers.json
 """
 from public_brain_projection import sanitize_public
+from consume_brain import load_constitution, overlay_payload
 import json
 import math
 import re
@@ -531,6 +532,7 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
                             "lists are informational — percent change is meaningless for "
                             "index-level series that oscillate around zero (CFNAI et al).",
         }
+    out = overlay_payload(out, constitution)
     return out
 
 
@@ -698,6 +700,7 @@ def lambda_handler(event, context):
     print(f"[barometers] {MARKER}")
 
     brain = gj("data/brain.json") or {}
+    constitution = load_constitution(__import__("boto3").client("s3"))
     vault = gj("data/tradingview.json") or {}
     # ops4216 BUS WAVE-1: beyond-book indicators join as drivers —
     # suffix-filtered to polarity-resolvable families only, so the

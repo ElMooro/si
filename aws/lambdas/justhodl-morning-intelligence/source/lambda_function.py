@@ -216,7 +216,7 @@ def load_all():
         "crypto_funding":"data/crypto-funding.json",
         # ─── The Brain: Khalid's investing philosophy/rules/theses (read so the
         # brief reflects what HE cares about, not just generic signals) ──
-        "brain":"data/brain.json",
+        "brain":"data/brain-constitution.json",
         # ─── Crypto cycle dump-risk gauge (halving + macro + flows + AI rotation) ──
         "crypto_dump_risk":"data/crypto-cycle-risk.json",
         # ─── Capital cycle / bottleneck-boom (Druckenmiller supply-destruction read) ──

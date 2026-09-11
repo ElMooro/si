@@ -75,7 +75,13 @@ CONCEPTS = {
     "GEX / gamma":               (r"\bgex\b|gamma", ["gex", "gamma"]),
     "seasonality":               (r"seasonal", ["seasonal"]),
     "stablecoins":               (r"stablecoin|usdt|usdc", ["stablecoin", "usdt", "usdc"]),
+    "settlement fails / FTD / FTR": (r"fail(s)? to (deliver|receive)|\bftd\b|\bftr\b|settlement fail", ["settlement-fails", "fails", "ftd", "ftr"]),
+    "eurodollar shortage":       (r"eurodollar|offshore dollar|dollar shortage", ["eurodollar", "eurodollar-stress"]),
+    "plumbing / OFR / NYPD":     (r"plumbing|ofr |nypd|dealer positioning", ["plumbing", "ofr", "nypd"]),
+    "treasury rehypothecation":  (r"rehypothec", ["rehypo", "treasury-rehypo"]),
+    "net liquidity WALCL/TGA/RRP": (r"net (system )?liquidity|walcl|wtregen|rrpontsyd", ["WALCL", "WTREGEN", "RRPONTSYD", "liquidity-pulse"]),
 }
+
 
 REL = re.compile(r"predict|precede|lead(s|ing)? |front.?run|always |every time|historic(ally)?|"
                  r"before (a|the) (crash|dump|crisis|recession|rally|bottom|top)|causes|forces|"

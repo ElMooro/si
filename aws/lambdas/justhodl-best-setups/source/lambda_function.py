@@ -24,6 +24,7 @@ Consumed by chart-pro "⚡ Today's Setups" board + Telegram morning push.
 SCHEDULE: hourly (after trade-tickets + signals refresh).
 """
 from public_brain_projection import sanitize_public
+from consume_brain import load_constitution
 import json
 import time
 from datetime import datetime, timezone
@@ -611,7 +612,16 @@ def lambda_handler(event, context):
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
     # that align with what's on his mind so the board surfaces HIS theses. ──
     brain = read_json("data/brain.json") or {}
-    brain_directive = brain.get("directive") or {}
+    constitution = load_constitution(s3)
+    if constitution.get("ok"):
+        brain_directive = {
+            "themes": constitution.get("themes") or [],
+            "sector_tilts": constitution.get("sector_tilts") or {},
+            "hard_rules": constitution.get("hard_rules") or [],
+            "risk_posture": constitution.get("risk_posture"),
+        }
+    else:
+        brain_directive = brain.get("directive") or {}
     brain_themes = [t.lower() for t in (brain_directive.get("themes") or [])]
     brain_tilts = {k.lower(): v for k, v in (brain_directive.get("sector_tilts") or {}).items()}
     def brain_match(sector, signal_keys=None):
