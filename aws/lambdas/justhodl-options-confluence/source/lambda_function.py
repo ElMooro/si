@@ -1,5 +1,5 @@
 """
-justhodl-options-confluence  ·  v1.0  —  THE OPTIONS/DEALER SYNTHESIZER
+justhodl-options-confluence  ·  v1.1  —  THE OPTIONS/DEALER SYNTHESIZER
 ================================================================================
 The audit found the options/dealer cluster was fragmented: ~21 engines, none
 cross-reading each other. Each saw one slice (dealer gamma, call/put flow, skew,
@@ -25,14 +25,13 @@ import json, time, re
 from datetime import datetime, timezone
 import boto3
 
-VERSION = "1.0"
+VERSION = "1.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/options-confluence.json"
 s3 = boto3.client("s3", "us-east-1")
 
-# engine file -> the engine-trust signal_type to gate on (where one exists)
 TRUST_KEY = {"dealer-gex": "dealer_gex", "options-analytics": "options_analytics",
-             "volatility-squeeze": "squeeze_risk"}  # vol-squeeze inherits the PROVEN squeeze engine
+             "volatility-squeeze": "squeeze_risk"}
 
 _BULL = re.compile(r"bull|call|long|accumulat|buy|up\b", re.I)
 _BEAR = re.compile(r"bear|put|short|distribut|sell|down\b", re.I)
@@ -54,21 +53,17 @@ def _rows(doc):
         for v in doc.values():
             if isinstance(v, list) and v and isinstance(v[0], dict) and _tk(v[0]):
                 out.extend(v)
-        # also handle a {ticker: {...}} map
         for k, v in doc.items():
             if isinstance(v, dict) and isinstance(k, str) and 1 <= len(k) <= 6 and k.isupper():
                 vv = dict(v); vv.setdefault("ticker", k); out.append(vv)
     return out
 
 def _dir_from(item):
-    """Infer (direction in -1..1, magnitude 0..1) from whatever fields an engine exposes."""
-    # explicit direction/signal/side text
     for f in ("direction", "signal", "side", "bias", "sentiment", "posture"):
         val = item.get(f)
         if isinstance(val, str):
             if _BULL.search(val) and not _BEAR.search(val): return 1.0, 0.6
             if _BEAR.search(val) and not _BULL.search(val): return -1.0, 0.6
-    # call/put premium or ratio
     for f in ("call_put_ratio", "cpr", "pc_call_ratio"):
         v = item.get(f)
         if isinstance(v, (int, float)) and v > 0:
@@ -88,7 +83,6 @@ def lambda_handler(event, context):
     et = _read("data/engine-trust.json")
     trust_by = {e.get("signal_type"): e for e in (et.get("engines") or []) if isinstance(e, dict)}
     def gated(file_key):
-        """(include?, lift_mult) per the alpha gate."""
         st = TRUST_KEY.get(file_key)
         info = trust_by.get(st) if st else None
         if not info: return True, 1.0
@@ -97,7 +91,7 @@ def lambda_handler(event, context):
             return True, max(1.0, min(1.35, info.get("effective_trust") or 1.0))
         return True, 1.0
 
-    acc = {}  # ticker -> aggregates
+    acc = {}
     def touch(tk):
         return acc.setdefault(tk, {"ticker": tk, "score": 0.0, "engines": set(),
                                    "neg_gamma": False, "coiled": False, "tags": []})
@@ -108,7 +102,6 @@ def lambda_handler(event, context):
         if coiled: a["coiled"] = True
         if tag and tag not in a["tags"]: a["tags"].append(tag)
 
-    # 1. options-analytics — the richest source: board(58)+top_picks+squeeze_setups+most_unusual
     inc, lift = gated("options-analytics")
     if inc:
         oa = _read("data/options-analytics.json")
@@ -131,7 +124,6 @@ def lambda_handler(event, context):
                 add(tk, "options-analytics", d * lift, neg_gamma=neg, coiled=(bk == "squeeze_setups"),
                     tag=("squeeze setup" if bk == "squeeze_setups" else ("dealers short gamma" if neg else None)))
 
-    # 2. dealer-gex — underlyings MAP + squeeze_candidates
     inc, _ = gated("dealer-gex")
     if inc:
         dg = _read("data/dealer-gex.json")
@@ -147,7 +139,6 @@ def lambda_handler(event, context):
         for it in (dg.get("squeeze_candidates") or []):
             if isinstance(it, dict): add(_tk(it), "dealer-gex", 0.2, neg_gamma=True, tag="GEX squeeze candidate")
 
-    # 3. polygon-options-flow — bullish/extreme call-flow lists (+) + all_results cv_pv_ratio
     inc, _ = gated("polygon-options-flow")
     if inc:
         pf = _read("data/polygon-options-flow.json")
@@ -160,7 +151,6 @@ def lambda_handler(event, context):
             if isinstance(r, (int, float)) and r > 0:
                 add(_tk(it), "polygon-options-flow", 0.4 if r >= 1.3 else (-0.4 if r <= 0.7 else 0.0))
 
-    # 4. catalyst-skew-premove — directional pre-catalyst skew books
     inc, _ = gated("catalyst-skew-premove")
     if inc:
         cs = _read("data/catalyst-skew-premove.json")
@@ -169,7 +159,6 @@ def lambda_handler(event, context):
         for it in (cs.get("bear_skew_setups") or []):
             if isinstance(it, dict): add(_tk(it), "catalyst-skew", -0.6, tag="pre-catalyst bear skew")
 
-    # 5. Scanner flow tiers and volatility compression have separate contracts.
     for fk, key in [("options-flow-scanner", "data/options-flow-scanner.json"),
                     ("volatility-squeeze", "data/volatility-squeeze.json")]:
         inc, _ = gated(fk)
@@ -181,7 +170,22 @@ def lambda_handler(event, context):
             elif fk == "volatility-squeeze" and (it.get("tier") or "").upper() in ("S", "A"):
                 add(_tk(it), fk, 0.0, coiled=True, tag="coiled (vol compression)")
 
-    # earnings IV — options pricing into earnings is vol context for the options posture
+    of = _read("data/options-flow.json") or _read("data/flow-data.json")
+    seen_of = set()
+    for it in _rows(of):
+        tk = _tk(it)
+        if not tk or tk in seen_of:
+            continue
+        seen_of.add(tk)
+        d, mag = _dir_from(it)
+        add(tk, "options-flow", round(0.35 * d * (mag or 0.6), 3), tag="unusual options flow")
+
+    sq = _read("data/squeeze-pretrigger.json")
+    for bk in ("imminent_setups", "pretrigger_setups", "early_setups", "setups", "candidates"):
+        for it in (sq.get(bk) or []):
+            if isinstance(it, dict):
+                add(_tk(it), "squeeze-pretrigger", 0.0, coiled=True, tag="squeeze pre-trigger")
+
     ivc = _read("data/earnings-iv-crush.json")
     for L, ds, tg in (("top_rich", -0.1, "rich IV into earnings (crush risk)"),
                       ("top_cheap", 0.15, "cheap IV into earnings (catalyst)")):
@@ -191,9 +195,36 @@ def lambda_handler(event, context):
                 if etk:
                     add(etk, "earnings-iv", ds, tag=tg)
 
-    # ---- classify posture ----
+    hair, hair_why = 1.0, None
+    bv = _read("data/bond-vol.json") or {}
+    rg = _read("data/regime.json") or {}
+    state = str(bv.get("regime") or bv.get("state") or rg.get("regime") or rg.get("state") or "").lower()
+    try:
+        move = float(bv.get("move") or bv.get("composite") or bv.get("level") or 0)
+    except (TypeError, ValueError):
+        move = 0
+    if "risk-off" in state or "risk_off" in state or "stress" in state:
+        hair, hair_why = 0.82, "regime risk-off haircut"
+    elif move >= 130:
+        hair, hair_why = 0.88, "elevated bond-vol haircut"
+    bad = set()
+    bn = _read("data/beneish.json") or {}
+    for it in (bn.get("manipulators") or bn.get("high_risk") or bn.get("flags") or []):
+        if isinstance(it, dict):
+            sy = _tk(it)
+            if sy:
+                bad.add(sy)
+
     book = []
     for tk, a in acc.items():
+        if hair < 1.0:
+            a["score"] = a["score"] * hair
+            if hair_why and hair_why not in a["tags"]:
+                a["tags"].append(hair_why)
+        if tk in bad:
+            a["score"] = a["score"] * 0.75
+            a["forensic_flag"] = "Beneish manipulation flag"
+            a["tags"].append("Beneish flag")
         a["n_engines"] = len(a["engines"]); a["engines"] = sorted(a["engines"])
         a["score"] = round(a["score"], 3)
         s = a["score"]
@@ -232,6 +263,8 @@ def lambda_handler(event, context):
            "ticker_map": {b["ticker"]: {"posture": b["posture"], "score": b["score"],
                                         "n_engines": b["n_engines"], "neg_gamma": b["neg_gamma"],
                                         "coiled": b["coiled"], "tags": b["tags"]} for b in book},
+           "overlays": {"regime_haircut": hair, "regime_state": state or None,
+                        "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so options confluence finally counts as one coherent factor."}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
