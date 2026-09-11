@@ -438,8 +438,7 @@ def us_returns(symbols):
     out = {}
     for sym in sorted(set(symbols)):
         row = None
-        for url in ("https://financialmodelingprep.com/stable/stock-price-change?symbol=%s&apikey=%s" % (sym, key),
-                    "https://financialmodelingprep.com/api/v3/stock-price-change/%s?apikey=%s" % (sym, key)):
+        for url in ("https://financialmodelingprep.com/stable/stock-price-change?symbol=%s&apikey=%s" % (sym, key),):
             try:
                 doc = _get_json(url, timeout=15)
                 row = doc[0] if isinstance(doc, list) and doc else (doc if isinstance(doc, dict) and doc else None)
