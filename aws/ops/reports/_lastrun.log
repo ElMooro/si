@@ -1,6 +1,12 @@
-executing-against: bcc63c4e59b7aece44897db342822a4dbc29ec5f
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5400_provider_consumption.py", line 1, in <module>
-    placeholder
-NameError: name 'placeholder' is not defined
-❌ OPS-FAIL: aws/ops/pending/ops_5400_provider_consumption.py
+executing-against: 35f63a2d88d69db86a22cf929143650b5b713f69
+ops 5400 -- provider consumption / cancel map
+[18:36:42] catalog as_of=2026-09-11T17:48:53+00:00 providers=58
+[18:36:52] lambda functions listed=888
+[18:36:54] repo files scanned=3740
+── verdict ──
+[18:36:55] KEEP=47 ORPHAN=5 CANCEL/DEAD=6
+[18:36:55] cancel/dead: te-mirror, yahoo, ofr-bsrm, te-feed, dbnomics, kr-ecos
+[18:36:55] orphans (first 20): cl-datos, hk-data, clevelandfed, atlantafed, equity-research-tickers
+[18:36:55] ✅ GREEN -- data/provider-consumption.json written and read back
+
+→ Report written to aws/ops/reports/latest/ops_5400_provider_consumption.md
