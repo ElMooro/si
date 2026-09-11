@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settlement Fails War Room · JustHodl.AI</title>
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+:root{--bg:#0c0b09;--card:#14120f;--line:#2a261f;--gold:#c4a574;--red:#e07a5f;--green:#7d9b76;--muted:#8a7f6e;--fg:#e8e0d4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.45 ui-sans-serif,system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:18px 16px 48px}
+.wr{border:1px solid #3a3226;border-radius:10px;background:linear-gradient(180deg,#16130f,#0e0c0a);padding:16px 18px 10px}
+.kicker{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero{display:grid;grid-template-columns:88px 1fr;gap:18px;align-items:center;margin:12px 0 8px}
+.ring{width:88px;height:88px;border-radius:50%;border:6px solid #3a3226;display:grid;place-items:center;position:relative}
+.ring b{font-size:28px;letter-spacing:-.04em}
+.ring span{position:absolute;bottom:8px;font-size:9px;letter-spacing:.12em;color:var(--gold)}
+.headline{font-size:18px;font-weight:600;margin:0 0 8px}
+.sub{color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#100e0c}
+.stat .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:22px;font-variant-numeric:tabular-nums;margin-top:4px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:10px;margin-top:10px}
+.panel{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#100e0c;min-height:220px}
+.panel h3{margin:0 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.hint{color:var(--muted);font-size:11px;margin:0 0 8px}
+svg.chart{width:100%;height:160px;display:block;cursor:crosshair}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 4px;border-bottom:1px solid #241f18}
+th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr{cursor:pointer}
+tr:hover td{background:#1b1814}
+.up{color:var(--red)}
+.dn{color:var(--green)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:40;padding:24px}
+.modal.on{display:flex}
+.sheet{width:min(960px,100%);background:#120f0c;border:1px solid #3a3226;border-radius:12px;padding:16px 18px}
+.sheet h2{margin:0 0 6px;font-size:16px}
+.sheet svg{width:100%;height:280px}
+.close{float:right;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="wr" data-jh-axis data-jh-key="fails-war-room" data-jh-title="Settlement fails war room">
+    <div class="kicker"><span>Settlement fails war room</span><span id="fresh">loading data/settlement-fails.json</span></div>
+    <div class="hero">
+      <div class="ring" id="ring"><b id="score">—</b><span id="regime">—</span></div>
+      <div>
+        <p class="headline" id="headline">Reading dealer settlement fails…</p>
+        <p class="sub" id="drivers"></p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="l">Fails to deliver</div><div class="v" id="ftd">—</div></div>
+      <div class="stat"><div class="l">Fails to receive</div><div class="v" id="ftr">—</div></div>
+      <div class="stat"><div class="l">Treasury combined</div><div class="v" id="comb">—</div></div>
+      <div class="stat"><div class="l">Percentile / z</div><div class="v" id="pz">—</div></div>
+    </div>
+    <p class="hint">Double-click a chart or a class row for the full weekly history (NY Fed FR 2004, $bn par).</p>
+    <div class="grid">
+      <div class="panel">
+        <h3>Treasury FTD vs FTR · full sample</h3>
+        <svg class="chart" id="svg-main" viewBox="0 0 640 160" role="img"></svg>
+      </div>
+      <div class="panel">
+        <h3>All-asset combined totals</h3>
+        <svg class="chart" id="svg-tot" viewBox="0 0 640 160" role="img"></svg>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:10px">
+      <h3>Classes</h3>
+      <table>
+        <thead><tr><th>Class</th><th>Latest</th><th>Points</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<div class="modal" id="modal"><div class="sheet">
+  <button class="close" id="x" aria-label="Close">×</button>
+  <h2 id="mt">History</h2>
+  <p class="sub" id="ms"></p>
+  <svg id="svg-full" viewBox="0 0 900 280"></svg>
+</div></div>
+<script>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function bn(x){return (x==null||!isFinite(x))?"—":(Math.abs(x)>=100?x.toFixed(0):x.toFixed(1))+"bn"}
+  function last(pairs){return Array.isArray(pairs)&&pairs.length?pairs[pairs.length-1]:null}
+  function path(pairs, w, h, pad){
+    if(!pairs||pairs.length<2) return "";
+    var ys=pairs.map(function(p){return +p[1]}).filter(isFinite);
+    var mn=Math.min.apply(null,ys), mx=Math.max.apply(null,ys); if(mx===mn) mx=mn+1;
+    var n=pairs.length;
+    return pairs.map(function(p,i){
+      var x=pad+(w-2*pad)*i/(n-1);
+      var y=h-pad-(h-2*pad)*((+p[1]-mn)/(mx-mn));
+      return (i?"L":"M")+x.toFixed(1)+","+y.toFixed(1);
+    }).join(" ");
+  }
+  function draw(svg, series, colors){
+    svg.innerHTML="";
+    var w=svg.viewBox.baseVal.width, h=svg.viewBox.baseVal.height;
+    series.forEach(function(s,i){
+      var d=path(s.pairs,w,h,8);
+      if(!d) return;
+      var el=document.createElementNS("http://www.w3.org/2000/svg","path");
+      el.setAttribute("d",d); el.setAttribute("fill","none");
+      el.setAttribute("stroke",colors[i%colors.length]); el.setAttribute("stroke-width","1.6");
+      svg.appendChild(el);
+    });
+  }
+  function openHist(title, pairs, note){
+    $("mt").textContent=title;
+    var a=last(pairs);
+    $("ms").textContent=(note||"")+(a?(" · last "+a[0]+" · "+bn(a[1])+" · "+pairs.length+" weeks"):"");
+    draw($("svg-full"), [{pairs:pairs}], ["#c4a574"]);
+    $("modal").classList.add("on");
+  }
+  $("x").onclick=$("modal").onclick=function(e){ if(e.target.id==="modal"||e.target.id==="x") $("modal").classList.remove("on"); };
+  fetch("/data/settlement-fails.json",{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){
+    var t=d.treasury||{}, h=d.headline||{}, s=d.signal||{};
+    $("score").textContent=s.score==null?"—":s.score;
+    $("regime").textContent=s.regime||"—";
+    $("headline").textContent="Treasury fails to deliver "+bn(t.ftd_bn)+" · fails to receive "+bn(t.ftr_bn)+" · combined "+bn(t.gross_bn)+".";
+    $("drivers").textContent=(s.drivers||[]).join(" · ");
+    $("ftd").textContent=bn(t.ftd_bn); $("ftr").textContent=bn(t.ftr_bn);
+    $("comb").textContent=bn(t.gross_bn);
+    $("pz").textContent=(h.pctile==null?"—":Math.round(h.pctile)+"p")+" / z "+(h.z==null?"—":h.z.toFixed(1));
+    $("fresh").textContent=(d.as_of||d.generated_at||"")+" · NY Fed FR 2004";
+    var ftd=t.ftd||[], ftr=t.ftr||[], tot=(d.totals&&d.totals.ftd)||[];
+    draw($("svg-main"),[{pairs:ftd},{pairs:ftr}],["#e07a5f","#7d9b76"]);
+    draw($("svg-tot"),[{pairs:tot}],["#c4a574"]);
+    $("svg-main").ondblclick=function(){ openHist("Treasury FTD + FTR", ftd.concat([]), "Red = deliver, green = receive — opening deliver history"); openHist("Treasury fails to deliver", ftd, "FTD $bn par"); };
+    $("svg-tot").ondblclick=function(){ openHist("All-asset fails (deliver)", tot, "Totals across classes"); };
+    var tb=$("tbody"); tb.innerHTML="";
+    (d.classes||[]).forEach(function(c){
+      var series=c.deep||c.ftd||c.history||[];
+      var L=last(series);
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+(c.label||c.key)+"</td><td>"+(L?bn(L[1]):"—")+"</td><td>"+series.length+"</td>";
+      tr.ondblclick=function(){ openHist(c.label||c.key, series, "Class history"); };
+      tb.appendChild(tr);
+    });
+  }).catch(function(e){ $("headline").textContent="Fails feed unavailable: "+e; });
+})();
+</script>
+</body>
+</html>
