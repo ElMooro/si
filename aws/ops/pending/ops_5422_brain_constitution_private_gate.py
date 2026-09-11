@@ -10,7 +10,8 @@ The fix keeps the feature and the boundary: the constitution is a registered pri
 consumers read it through IAM exactly as before. This gate proves all of that live.
 
 Checks (no secret value is ever printed):
-  1. the four functions carry code from THIS commit (CodeSha256 == zip built from the checkout)
+  1. every function's release receipt (data/ops/releases/<fn>.json) matches the live CodeSha256 AND the
+     checkout's source hashes -- proof by receipt, not by re-zipping (zips are not byte-reproducible)
   2. brain-sync ran and rewrote data/brain-constitution.json with CacheControl private, no-store,
      producer stamp engine=brain-sync + content_hash, and NO note bodies
   3. edge: anonymous GET /data/brain-constitution.json -> 401 (NOT 200); service-token GET
@@ -21,9 +22,7 @@ Checks (no secret value is ever printed):
 """
 from __future__ import annotations
 
-import base64
 import hashlib
-import io
 import json
 import os
 import re
@@ -32,7 +31,6 @@ import sys
 import time
 import urllib.error
 import urllib.request
-import zipfile
 from pathlib import Path
 
 import boto3
@@ -64,17 +62,27 @@ def fail(msg):
     FAILS.append(msg)
 
 
-def zip_sha(fn: str) -> str:
-    """Rebuild the deploy zip exactly like scripts/deploy_lambdas.sh (source/ + aws/shared/*.py) and hash it."""
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for p in sorted((ROOT / "aws/shared").glob("*.py")):
-            z.write(p, p.name)
-        src = ROOT / "aws/lambdas" / fn / "source"
-        for p in sorted(src.rglob("*")):
-            if p.is_file() and "__pycache__" not in p.parts:
-                z.write(p, str(p.relative_to(src)))
-    return base64.b64encode(hashlib.sha256(buf.getvalue()).digest()).decode()
+def source_hashes(fn: str) -> dict:
+    src = ROOT / "aws/lambdas" / fn / "source"
+    return {str(p.relative_to(src)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(src.rglob("*")) if p.is_file() and "__pycache__" not in p.parts}
+
+
+def runs_checkout(fn: str):
+    """Proof by release receipt (published by scripts/deploy_lambdas.sh after its own CodeSha256 check).
+    A zip rebuilt here can never hash-match the deployed zip (timestamps/ordering), which is why the
+    first run of this gate went RED on step 1 while all 13 functions had in fact just deployed."""
+    cfg = lam.get_function_configuration(FunctionName=fn)
+    try:
+        rec = json.loads(s3.get_object(Bucket=BUCKET, Key=f"data/ops/releases/{fn}.json")["Body"].read())
+    except Exception:  # noqa: BLE001
+        return False, "no release receipt (last deploy predates receipts)", cfg["LastModified"]
+    if rec.get("code_sha256") != cfg["CodeSha256"]:
+        return False, "receipt code_sha256 %s != live %s" % (str(rec.get("code_sha256"))[:10], cfg["CodeSha256"][:10]), cfg["LastModified"]
+    theirs = {k: v.get("sha256") for k, v in (rec.get("source") or {}).items()}
+    if theirs != source_hashes(fn):
+        return False, "deployed source (commit %s) differs from this checkout" % str(rec.get("commit"))[:10], cfg["LastModified"]
+    return True, "receipt commit %s run %s" % (str(rec.get("commit"))[:10], rec.get("run_id") or "-"), cfg["LastModified"]
 
 
 def http(url, method="GET", headers=None, body=None, timeout=30):
@@ -156,11 +164,9 @@ with report("ops_5422_brain_constitution_private_gate") as R:
     def mismatched():
         out = []
         for fn in FUNCTIONS:
-            cfg = lam.get_function_configuration(FunctionName=fn)
-            live, local = cfg["CodeSha256"], zip_sha(fn)
-            (R.ok if live == local else R.warn)("%s: live %s… %s checkout %s… (LastModified %s)"
-                                                 % (fn, live[:10], "==" if live == local else "!=", local[:10], cfg["LastModified"]))
-            if live != local:
+            ok, why, lm = runs_checkout(fn)
+            (R.ok if ok else R.warn)("%s: %s (LastModified %s)" % (fn, why, lm))
+            if not ok:
                 out.append(fn)
         return out
     behind = mismatched()
