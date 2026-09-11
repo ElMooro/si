@@ -53,17 +53,20 @@ tr:hover td{background:var(--panel2)}
 <div class="container">
   <header>
     <h1>📡 Activity Nowcast</h1>
-    <p class="subtitle">The monthly data — payrolls, production, retail sales — lands weeks stale. This is the high-frequency read that turns first: a basket of weekly and daily FRED series (Weekly Economic Index, jobless claims, financial conditions, credit spreads) blended into a real-time <b>Activity Index</b>. The divergence block flags when this fast read has rolled over below — or run hotter than — the lagging monthly composite.</p>
+    <p class="subtitle">The monthly data — payrolls, production, retail sales — lands weeks stale. This is the high-frequency read that turns first: a basket of weekly and daily FRED series blended into a real-time <b>Activity Index</b>, joined to Atlanta Fed GDPNow and the Cleveland Fed yield-curve model from the warehouse (ops 5401/5402).</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/signal-board.html">signal board</a>
       <a href="/conviction.html">conviction</a>
       <a href="/macro-nowcast.html">monthly nowcast</a>
+      <a href="/data.html">data plane</a>
     </nav>
   </header>
 
   <div id="hero"><div class="loading">LOADING ACTIVITY NOWCAST…</div></div>
   <div id="div"></div>
+  <h2>Regional Fed — warehouse join</h2>
+  <div class="card"><table id="fedjoin"><tbody><tr><td class="loading">loading fed-nowcast-join…</td></tr></tbody></table></div>
 
   <h2>High-Frequency Components</h2>
   <div class="card"><table id="comps"><tbody><tr><td class="loading">…</td></tr></tbody></table></div>
@@ -75,7 +78,7 @@ tr:hover td{background:var(--panel2)}
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 const SC={2:"s2",1:"s1",0:"s0","-1":"sm1","-2":"sm2"};
-const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"<",">":">","&":"&"}[c]));
 const regColor=(r)=>({ACCELERATING:"var(--green)",EXPANDING:"var(--green)",STEADY:"var(--yellow)",SLOWING:"var(--orange)",CONTRACTING:"var(--red)"}[r]||"var(--mute)");
 const momArrow=(m)=>m==="RISING"?"▲":m==="FALLING"?"▼":"▬";
 
@@ -102,8 +105,32 @@ function diverge(dv){
   </div>`;
 }
 
+function lastLine(last){
+  if(!last) return "DATA_HOLD";
+  const keys=Object.keys(last);
+  return keys.slice(0,6).map(k=>esc(k)+": "+esc(last[k])).join(" · ")||"DATA_HOLD";
+}
+
+async function paintFed(){
+  const j=await J("fed-nowcast-join.json");
+  const el=document.getElementById("fedjoin");
+  if(!j){el.innerHTML="<tbody><tr><td>fed-nowcast-join unavailable</td></tr></tbody>";return;}
+  const series=j.series||{};
+  const slugs=Object.keys(series);
+  if(!slugs.length){
+    el.innerHTML="<tbody><tr><td>status "+esc(j.status)+" · schema "+esc(j.schema_version)+" · waiting for parsed rows</td></tr></tbody>";
+    return;
+  }
+  const rows=slugs.map(s=>{
+    const x=series[s]||{};
+    return "<tr><td><b>"+esc(s)+"</b><br><span style=\"color:var(--dim);font-size:10px\">"+esc(x.key||"")+" · rows "+esc(x.n_rows)+"</span></td><td>"+lastLine(x.last)+"</td></tr>";
+  }).join("");
+  el.innerHTML="<thead><tr><th>Source</th><th>Latest warehouse row</th></tr></thead><tbody>"+rows+"</tbody>";
+}
+
 async function main(){
   const d=await J("activity-nowcast.json");
+  paintFed();
   if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">ACTIVITY NOWCAST UNAVAILABLE</div>';return;}
   document.getElementById("hero").innerHTML=hero(d);
   document.getElementById("div").innerHTML=diverge(d.divergence);
@@ -128,7 +155,7 @@ main();
 </script>
 
 <div class="container" style="padding-top:0">
-  <h2>Historical Context — vs Crises, Tops &amp; Bottoms</h2>
+  <h2>Historical Context — vs Crises, Tops & Bottoms</h2>
   <div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div>
 </div>
 <script src="/interp-kit.js"></script>
