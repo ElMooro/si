@@ -1,20 +1,39 @@
 {
  "schema": 2,
- "note": "War-room desk: macro + risk + liquidity + Treasury fails. Engine panels only (bond-warroom table style). Reset on / to load. 2026-09-11.",
+ "note": "Bond war room + dollar / liquidity / risk / repo war rooms. Same engine-panel table style as bond-warroom. Reset on / to load. 2026-09-11.",
  "blocks": [
   {"type": "engine", "ref": "khalid", "panel": "overview", "w": 3, "feed": "data/khalid.json", "title": "Capital stance"},
-  {"type": "engine", "ref": "risk-gate", "panel": "", "w": 1, "feed": "data/risk-gate.json", "title": "Risk gate"},
-  {"type": "engine", "ref": "settlement-fails", "panel": "treasury", "w": 2, "feed": "data/settlement-fails.json", "title": "Treasury fails (receive / deliver / totals)"},
-  {"type": "engine", "ref": "settlement-fails", "panel": "totals", "w": 1, "feed": "data/settlement-fails.json", "title": "Fails totals"},
-  {"type": "engine", "ref": "plumbing-stress", "panel": "", "w": 2, "feed": "data/plumbing-stress.json", "title": "Plumbing / liquidity stress"},
-  {"type": "engine", "ref": "repo", "panel": "", "w": 1, "feed": "data/repo.json", "title": "Repo + dollar funding"},
-  {"type": "engine", "ref": "eurodollar-stress", "panel": "", "w": 1, "feed": "data/eurodollar-stress.json", "title": "Eurodollar shortage"},
-  {"type": "engine", "ref": "liquidity-pulse", "panel": "", "w": 2, "feed": "data/liquidity-pulse.json", "title": "Liquidity pulse"},
-  {"type": "engine", "ref": "treasury-rehypo", "panel": "", "w": 1, "feed": "data/treasury-rehypo.json", "title": "Treasury rehypothecation"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "funding", "w": 2, "feed": "data/bond-warroom.json", "title": "Funding / liquidity (war room)"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 2, "feed": "data/bond-warroom.json", "title": "US Treasury curve"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1, "feed": "data/bond-warroom.json", "title": "MOVE / bond vol"},
-  {"type": "engine", "ref": "bond-warroom", "panel": "credit", "w": 1, "feed": "data/bond-warroom.json", "title": "Credit OAS"},
-  {"type": "engine", "ref": "katlin", "panel": "war_room", "w": 3, "feed": "data/katlin.json", "title": "Risk legs (Katlin)"}
+
+  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 2, "feed": "data/bond-warroom.json", "title": "Bond war room · US curve"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "funding", "w": 1, "feed": "data/bond-warroom.json", "title": "Bond war room · funding"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1, "feed": "data/bond-warroom.json", "title": "Bond war room · MOVE"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "credit", "w": 2, "feed": "data/bond-warroom.json", "title": "Bond war room · credit"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "europe_spreads", "w": 1, "feed": "data/bond-warroom.json", "title": "Bond war room · Europe"},
+
+  {"type": "engine", "ref": "dollar-radar", "panel": "indices", "w": 2, "feed": "data/dollar-radar.json", "title": "Dollar war room · DXY / indices"},
+  {"type": "engine", "ref": "dollar-radar", "panel": "bilaterals", "w": 1, "feed": "data/dollar-radar.json", "title": "Dollar war room · FRED bilaterals"},
+  {"type": "engine", "ref": "dollar-radar", "panel": "bbdxy", "w": 1, "feed": "data/dollar-radar.json", "title": "Dollar war room · BBDXY"},
+  {"type": "engine", "ref": "dxy-predict", "panel": "rows", "w": 2, "feed": "data/dxy-predict.json", "title": "Dollar war room · DXY barometer"},
+  {"type": "engine", "ref": "fx-intelligence", "panel": "currencies", "w": 1, "feed": "data/fx-intelligence.json", "title": "Dollar war room · FX tape"},
+
+  {"type": "engine", "ref": "liquidity-pulse", "panel": "series", "w": 2, "feed": "data/liquidity-pulse.json", "title": "Liquidity war room · series"},
+  {"type": "engine", "ref": "liquidity-pulse", "panel": "composites", "w": 1, "feed": "data/liquidity-pulse.json", "title": "Liquidity war room · composites"},
+  {"type": "engine", "ref": "global-liquidity", "panel": "", "w": 1, "feed": "data/global-liquidity.json", "title": "Liquidity war room · global / Fed net"},
+  {"type": "engine", "ref": "liquidity-credit-engine", "panel": "series", "w": 2, "feed": "data/liquidity-credit-engine.json", "title": "Liquidity war room · credit impulse"},
+  {"type": "engine", "ref": "plumbing-stress", "panel": "", "w": 1, "feed": "data/plumbing-stress.json", "title": "Liquidity war room · plumbing"},
+
+  {"type": "engine", "ref": "risk-gate", "panel": "legs", "w": 2, "feed": "data/risk-gate.json", "title": "Risk war room · legs"},
+  {"type": "engine", "ref": "risk-gate", "panel": "indicators", "w": 1, "feed": "data/risk-gate.json", "title": "Risk war room · indicators"},
+  {"type": "engine", "ref": "eurodollar-stress", "panel": "signals", "w": 2, "feed": "data/eurodollar-stress.json", "title": "Risk war room · eurodollar"},
+  {"type": "engine", "ref": "katlin", "panel": "war_room", "w": 1, "feed": "data/katlin.json", "title": "Risk war room · Katlin legs"},
+  {"type": "engine", "ref": "settlement-fails", "panel": "treasury", "w": 2, "feed": "data/settlement-fails.json", "title": "Risk war room · Treasury fails R/D"},
+  {"type": "engine", "ref": "settlement-fails", "panel": "totals", "w": 1, "feed": "data/settlement-fails.json", "title": "Risk war room · fails totals"},
+
+  {"type": "engine", "ref": "repo-market", "panel": "rates", "w": 2, "feed": "data/repo-market.json", "title": "Repo war room · rates"},
+  {"type": "engine", "ref": "repo-market", "panel": "spreads", "w": 1, "feed": "data/repo-market.json", "title": "Repo war room · spreads"},
+  {"type": "engine", "ref": "repo-market", "panel": "facilities", "w": 1, "feed": "data/repo-market.json", "title": "Repo war room · facilities"},
+  {"type": "engine", "ref": "repo-market", "panel": "reserves", "w": 1, "feed": "data/repo-market.json", "title": "Repo war room · reserves"},
+  {"type": "engine", "ref": "repo", "panel": "groups", "w": 2, "feed": "data/repo.json", "title": "Repo war room · groups / dollar FRED"},
+  {"type": "engine", "ref": "treasury-rehypo", "panel": "", "w": 1, "feed": "data/treasury-rehypo.json", "title": "Repo war room · rehypothecation"}
  ]
 }
