@@ -1,9 +1,9 @@
 name: Apply staged large-file patches
 
-# Agent lanes that cannot PUT a 40 KB file via the Contents API write a tiny
-# patcher under aws/ops/staged/grok_*.py instead. This workflow runs ON THE
-# RUNNER (real git checkout), applies the patcher to the large source, size-
-# guards the result, and pushes. deploy-lambdas.yml then fires on that push.
+# Agent Contents-API writes cannot carry ~40 KB. Write a tiny patcher at
+# aws/ops/staged/grok_*.py instead. This job checks out main on the runner,
+# applies the patcher, py_compile + stub-guards the result, and git-pushes.
+# deploy-lambdas.yml then fires on the large source change.
 on:
   push:
     branches: [main]
@@ -12,6 +12,11 @@ on:
       - '.github/workflows/apply-staged-large-files.yml'
       - 'scripts/guard_stub_lambdas.py'
   workflow_dispatch:
+    inputs:
+      patcher:
+        description: 'Optional single patcher filename under aws/ops/staged/ (e.g. grok_apac_flows_drop_v3.py). Blank = all grok_*.py'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -28,20 +33,41 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 20
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Apply grok staged patchers
+        env:
+          PATCHER: ${{ github.event.inputs.patcher }}
         run: |
           set -euo pipefail
           shopt -s nullglob
-          found=0
-          for f in aws/ops/staged/grok_*.py; do
+          if [ -n "${PATCHER:-}" ]; then
+            f="aws/ops/staged/${PATCHER}"
+            [ -f "$f" ] || { echo "::error::$f missing"; exit 1; }
             echo "── $f"
             python3 "$f"
-            found=1
-          done
-          if [ "$found" != 1 ]; then
-            echo "no aws/ops/staged/grok_*.py patchers"
+          else
+            found=0
+            for f in aws/ops/staged/grok_*.py; do
+              echo "── $f"
+              python3 "$f"
+              found=1
+            done
+            if [ "$found" != 1 ]; then
+              echo "no aws/ops/staged/grok_*.py patchers"
+            fi
           fi
+
+      - name: Compile changed lambda sources
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only -- 'aws/lambdas/*/source/*.py')
+          if [ "${#changed[@]}" -eq 0 ]; then
+            echo "no lambda source diffs"
+            exit 0
+          fi
+          python3 -m py_compile "${changed[@]}"
+          echo "compiled ${#changed[@]} file(s)"
 
       - name: Guard against stub bodies
         run: python3 scripts/guard_stub_lambdas.py
