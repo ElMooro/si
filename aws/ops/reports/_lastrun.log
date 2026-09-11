@@ -1,13 +1,9 @@
-executing-against: 787395fd3fb56c2e0c17fe327443bdceec65aea5
-ops 5407 -- Polygon short-interest
-[19:43:07] ✅ SSM parameter present (not logged)
-[19:43:07] ✅ https://api.polygon.io HTTP 200 n=1000
-[19:43:07] page 2 +1000
-[19:43:07] page 3 +1000
-[19:43:08] page 4 +1000
-[19:43:08] page 5 +1000
-── verdict ──
-[19:43:08] n=5000 status=LIVE
-[19:43:08] ✅ GREEN -- data/polygon-short-interest.json written
+executing-against: 68cb12f29a370455310b039f66daa6ff4c55e948
+ops 5408 -- Cleveland ZIP + IMF schedule
+[19:45:41] ✅ atlantafed container=gzip rows=61 last_keys=['observation_date', 'GDPNOW']
+[19:45:41] ✅ clevelandfed container=gzip rows=314 last_keys=['PK\x03\x04\x14\x00\x00\x00\x08\x00\t\x1a+]b�ӿs\x01\x00\x00�\x03\x00\x00']
+[19:45:41] schedule justhodl-imf-full-6h DISABLED rate(24 hours)
+[19:45:41] schedule justhodl-imf-full-weekly ENABLED rate(7 days)
+[19:45:42] ✅ GREEN -- join v4 + imf-cadence.json (no invoke)
 
-→ Report written to aws/ops/reports/latest/ops_5407_polygon_short_interest.md
+→ Report written to aws/ops/reports/latest/ops_5408_cleveland_zip_imf.md
