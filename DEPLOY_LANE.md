@@ -1,54 +1,115 @@
-# Deploy lane — how a change reaches AWS
+# Deploy lane — how a change reaches AWS (v2, 2026-09-11)
 
-Push to `main` **is** the deploy. There is no separate AWS step from a laptop.
+Push to `main` **is** the deploy. There is no laptop-side AWS step. Everything AWS
+happens on the GitHub Actions runner, which holds the credentials.
 
 ## What runs, by path
 
 | You changed | Workflow | Result |
 |---|---|---|
-| `aws/lambdas/<name>/**` | `deploy-lambdas.yml` | zip + update live function |
-| `aws/ops/pending/*.py` | `run-ops.yml` | script runs with AWS creds; report committed |
+| `aws/lambdas/<fn>/**`, `aws/shared/*.py` | `deploy-lambdas.yml` | preflight → zip → update function → **CodeSha256 proof** → receipt |
+| `aws/ops/pending/*.py` | `run-ops.yml` | script runs with AWS creds; ledger + report committed |
 | `cloudflare/workers/**` | `deploy-workers.yml` | worker deploy |
-| root `*.html` / `*.js` | `pages.yml` | site publish |
-| `aws/ops/staged/grok_*.py` | `apply-staged-large-files.yml` | runner patches the **large** source, then the lambda deploy fires |
+| root `*.html` / `*.js`, `assets/`, `js/`, `css/` | `pages.yml` | site publish |
+| `aws/ops/patchers/**`, `aws/ops/staged/grok_*.py` | `apply-staged-large-files.yml` | runner assembles/patches, pushes, **dispatches a pinned deploy** |
 
-One pending-ops push at a time. `[skip-deploy]` skips pages **and** lambdas — do not use it on page-only commits. `[skip-ops]` skips the ops runner.
+`[skip-deploy]` skips pages **and** lambdas — never use it on page-only commits.
+`[skip-ops]` skips the ops runner. `[shrink-ok]` permits a deliberate >50% source shrink.
 
-## Why agent lanes struggle with big files
+## Which lane are you?
 
-GitHub **Contents API** (what Grok/connector `push_files` uses) cannot carry ~40 KB bodies. Writes come back as 9-byte or 441-byte stubs. AWS is fine; the blob on `main` is not.
+| Lane | Has a shell + git? | Write path |
+|---|---|---|
+| Khalid (Git Bash), Claude (sandbox) | yes | normal git push — any file size, nothing special |
+| Grok / connector `push_files` (Contents API) | no — one file per write, ~40 KB bodies truncate | **multipart upload** or a tiny patcher (below) |
 
-**Do not** PUT `justhodl-stock-buying` (~40 KB) or other 30 KB+ sources through Contents API.
+The staged-patcher path exists only for lanes without a shell. It is not the general push path.
 
-## Large / complicated change (the path we use now)
+## Proof, not green checks
 
-1. Keep the real engine file untouched on `main`.
-2. Add a **tiny** patcher: `aws/ops/staged/grok_<engine>_<slug>.py`.
-   - It must `read_text` / `replace` / `write_text` the large file.
-   - It must be idempotent (`already clean` if the needle is gone).
-   - It must **not** live in `aws/ops/pending/` (that queue is serial AWS work).
-3. Push the patcher. The apply workflow checks out `main` on the runner (real git), patches, `py_compile`s, stub-guards (≥500 bytes), commits `apply staged large-file patch from runner`.
-4. `deploy-lambdas.yml` sees the large source diff and deploys.
-5. Proof is the op report / fresh `data/<engine>.json`, not a green check by itself.
+A green workflow proves the runner finished, not that AWS runs your bytes. The
+deploy transaction now compares the live `CodeSha256` to the zip it built and
+fails hard on mismatch, then publishes a receipt any lane can read over HTTPS:
 
-Manual replay: Actions → **Apply staged large-file patches** → Run workflow → optional patcher filename.
+```
+https://justhodl.ai/data/ops/releases/<function>.json
+python3 scripts/verify_release.py <function> --commit <sha> --data data/<engine>.json
+```
 
-## Small change (≲ ~18 KB after GET size check)
+The receipt carries the commit, run id, `CodeSha256`, zip bytes and every source
+file's sha256. Compare `commit` to what you pushed; that is the proof.
 
-Direct Contents write is OK **if** you immediately GET `size` and cancel `deploy-lambdas` when the blob is short.
+## Large / complicated change without a shell — multipart upload (any size)
 
-## Local shell (Claude / Khalid laptop)
+Upload the file the way S3 does a multipart upload:
+
+```
+aws/ops/patchers/parts/<upload-id>/manifest.json
+   {"target": "aws/lambdas/justhodl-stock-buying/source/lambda_function.py",
+    "parts": ["part-001", "part-002", "part-003"],
+    "sha256": "<hex sha256 of the whole file>",      # best; or at least
+    "bytes": 40564,                                    # exact byte count
+    "note": "stock-buying v1.5.2 full source"}
+aws/ops/patchers/parts/<upload-id>/part-001 …        # raw bytes, each ≤ 16 KB
+```
+
+Push the folder (any order, several commits are fine — an incomplete upload is
+skipped, never failed). When every listed part exists the runner concatenates,
+verifies sha256/bytes, compiles it if it is Python, writes the target, guards it,
+commits, pushes, and dispatches `deploy-lambdas.yml` pinned to that commit.
+Nothing is written to the target unless the check passes.
+
+Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root
+`*.html|*.js|*.css`, `assets/`, `js/`, `css/`. Pages/workers get their own dispatch.
+
+With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` writes the folder.
+
+## Small surgical change without a shell — patcher
+
+Add `aws/ops/patchers/<slug>.py` (legacy `aws/ops/staged/grok_<slug>.py` still works):
+`read_text` / `replace` / `write_text`, idempotent (`already clean` if the needle
+is gone). Applied patchers move to `aws/ops/patchers/applied/`. Never put a
+patcher in `aws/ops/pending/` (that queue is serial AWS work) and never put an
+ops script in `aws/ops/patchers/`.
+
+## Why the old apply lane never deployed
+
+A push made with `GITHUB_TOKEN` does **not** fire push-triggered workflows
+(GitHub rule). The 2026-09-11 apac-flows apply (`d02838a`) landed on `main`
+and produced zero `deploy-lambdas` runs. The v2 lane dispatches the deploy
+explicitly with `expected_sha=<result commit>` and fails if no run appears.
+
+## Ops queue (run-ops.yml)
+
+GitHub keeps one pending run per concurrency group; a third push used to cancel
+the queued run and its scripts silently never ran. `scripts/ops_queue.py` now
+runs the push range **plus** any never-recorded pending script (7-day window;
+`[skip-ops]` pushes, held scripts and the rollout plan are excluded). Every
+execution is recorded in `aws/ops/reports/_ops_ledger.json` with its content
+hash; a failed script is not retried until its content changes. Legacy scripts
+that sat in `pending/` before the ledger existed are frozen and never auto-run.
+
+## Stub / truncation guard
+
+`scripts/guard_stub_lambdas.py` fails the SHA if any `lambda_function.py` is
+under 500 bytes **or** lost more than half its size versus the push base while
+previously ≥ 2 KB. `[shrink-ok]` in the commit message overrides the second rule.
+
+## Audit receipts
+
+Release/audit receipts are published to the `ops-evidence` branch by
+`scripts/push_evidence.py`, never to `main` (they were 117 bot commits/day).
+
+## Local shell (Claude / Khalid, Git Bash)
 
 ```
 cd ~/work/si
 git pull --rebase origin main
-# edit aws/lambdas/<name>/source/lambda_function.py
-python3 -m py_compile aws/lambdas/<name>/source/lambda_function.py
-python3 aws/ops/_preflight.py aws/lambdas/<name>/source
+# edit aws/lambdas/<fn>/source/lambda_function.py
+python -m py_compile aws/lambdas/<fn>/source/lambda_function.py
+python scripts/guard_stub_lambdas.py
 git add -A && git commit -m "<engine>: <what and why>"
 git pull --rebase origin main && git push origin main
+# then, once the run finishes:
+python scripts/verify_release.py <fn> --commit $(git rev-parse HEAD)
 ```
-
-## Stub rule
-
-`scripts/guard_stub_lambdas.py` fails the SHA if any tracked `lambda_function.py` is under 500 bytes. Real small engines (~1 KB) are allowed. Keep-alive placeholders are not.

@@ -117,6 +117,22 @@ for fn in $DEPLOY_TARGETS; do
     aws lambda wait function-updated \
       --function-name "$fn" \
       --region "$DEPLOY_AWS_REGION"
+    # ── Deploy lane v2 (2026-09-11): a green step is not proof. Prove the live
+    # CodeSha256 equals the zip built from this checkout, then publish a receipt
+    # to S3 (data/ops/releases/<fn>.json) that any lane can verify over HTTPS.
+    local_code_sha=$(openssl dgst -sha256 -binary "$tmp/deploy.zip" | base64 -w0)
+    live_code_sha=$(aws lambda get-function-configuration \
+      --function-name "$fn" --region "$DEPLOY_AWS_REGION" \
+      --query 'CodeSha256' --output text)
+    if [ "$local_code_sha" != "$live_code_sha" ]; then
+      echo "::error::$fn: live CodeSha256 $live_code_sha != built zip $local_code_sha -- AWS is NOT running this commit"
+      exit 1
+    fi
+    echo "  ✅ CodeSha256 verified ($live_code_sha)"
+    DEPLOY_COMMIT="${DEPLOY_COMMIT:-$(git rev-parse HEAD)}" DEPLOY_RUN_ID="${DEPLOY_RUN_ID:-}" \
+    DEPLOY_WORKFLOW="${DEPLOY_WORKFLOW:-deploy-lambdas.yml}" DEPLOY_ACTOR="${DEPLOY_ACTOR:-}" \
+      python3 scripts/release_receipt.py "$fn" "$tmp/deploy.zip" "$dir/source" "$live_code_sha" \
+      || echo "::warning::$fn: release receipt not published"
 
     # Apply config overrides if present (env vars, timeout, memory may have changed)
     if [ -f "$config_file" ]; then
@@ -214,6 +230,23 @@ for fn in $DEPLOY_TARGETS; do
       exit 1
     fi
     echo "✅ Created new Lambda $fn (with X-Ray + DLQ from creation)"
+
+    # ── Deploy lane v2 (2026-09-11): a green step is not proof. Prove the live
+    # CodeSha256 equals the zip built from this checkout, then publish a receipt
+    # to S3 (data/ops/releases/<fn>.json) that any lane can verify over HTTPS.
+    local_code_sha=$(openssl dgst -sha256 -binary "$tmp/deploy.zip" | base64 -w0)
+    live_code_sha=$(aws lambda get-function-configuration \
+      --function-name "$fn" --region "$DEPLOY_AWS_REGION" \
+      --query 'CodeSha256' --output text)
+    if [ "$local_code_sha" != "$live_code_sha" ]; then
+      echo "::error::$fn: live CodeSha256 $live_code_sha != built zip $local_code_sha -- AWS is NOT running this commit"
+      exit 1
+    fi
+    echo "  ✅ CodeSha256 verified ($live_code_sha)"
+    DEPLOY_COMMIT="${DEPLOY_COMMIT:-$(git rev-parse HEAD)}" DEPLOY_RUN_ID="${DEPLOY_RUN_ID:-}" \
+    DEPLOY_WORKFLOW="${DEPLOY_WORKFLOW:-deploy-lambdas.yml}" DEPLOY_ACTOR="${DEPLOY_ACTOR:-}" \
+      python3 scripts/release_receipt.py "$fn" "$tmp/deploy.zip" "$dir/source" "$live_code_sha" \
+      || echo "::warning::$fn: release receipt not published"
   fi
 
   # ── Defense-in-depth: ensure X-Ray + DLQ on existing Lambdas too ──

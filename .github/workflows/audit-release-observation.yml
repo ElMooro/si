@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 20
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -44,14 +44,11 @@ jobs:
           path: aws/ops/reports/5283_release_observation.json
           if-no-files-found: error
           retention-days: 30
-      - name: Commit metadata receipt
+      - name: Publish observation receipt (ops-evidence branch, never main)
         if: always()
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           test -f aws/ops/reports/5283_release_observation.json
           mkdir -p aws/ops/reports/observations
           cp aws/ops/reports/5283_release_observation.json 'aws/ops/reports/observations/5283_${{ github.run_id }}.json'
-          git restore -- aws/ops/reports/5283_release_observation.json
-          git add 'aws/ops/reports/observations/5283_${{ github.run_id }}.json'
-          python scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'
+          python3 scripts/push_evidence.py --run-id '${{ github.run_id }}' --message 'audit: release observation' \
+            aws/ops/reports/5283_release_observation.json 'aws/ops/reports/observations/5283_${{ github.run_id }}.json'

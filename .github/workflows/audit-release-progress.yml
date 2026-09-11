@@ -1,4 +1,8 @@
 name: Audit release progress
+# Deploy lane v2 (2026-09-11): receipts are published to the ops-evidence branch.
+# This workflow used to commit 2-3 files to main after EVERY completed workflow
+# (117 bot commits on 2026-09-11), racing every lane's push and burying real
+# history. Same receipts, same retention, zero main churn.
 on:
   push:
     branches: [main]
@@ -37,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 20
       - name: Check every published route against the completed deployment
         env:
           AUDIT_PAGES_DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha || inputs.pages_deployed_sha }}
@@ -49,12 +53,9 @@ jobs:
           name: public-page-sweep-${{ github.run_id }}
           path: aws/ops/reports/5275_public_page_sweep.json
           retention-days: 30
-      - name: Commit public HTML verification metadata
+      - name: Publish public HTML verification receipt (ops-evidence branch, never main)
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add aws/ops/reports/5275_public_page_sweep.json
-          python3 scripts/commit_ops_evidence.py --run-id '${{ github.run_id }}' --job-status '${{ job.status }}'
+          python3 scripts/push_evidence.py --run-id '${{ github.run_id }}' --message 'audit: public page sweep' aws/ops/reports/5275_public_page_sweep.json
   public-api:
     # Public HTTP GETs only. This job cannot access runner AWS credentials and
     # need not wait for the serialized cloud migration/deployment queue.
@@ -63,40 +64,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 20
       - name: Check public engine response and CORS metadata
         run: python3 scripts/audit_public_api_status.py
-      - name: Commit public response metadata
+      - name: Publish public response receipt (ops-evidence branch, never main)
         run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add aws/ops/reports/5272_public_api_runtime.json
-          git commit -m 'audit: record public FMP HTTP metadata [skip-deploy] [skip-ops]' || exit 0
-          for attempt in 1 2 3; do
-            git fetch origin main
-            git rebase origin/main
-            if git push origin HEAD:main; then exit 0; fi
-          done
-          exit 1
+          python3 scripts/push_evidence.py --run-id '${{ github.run_id }}' --message 'audit: public FMP HTTP metadata' aws/ops/reports/5272_public_api_runtime.json
   observe:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 20
       - name: Read release job metadata
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/audit_release_progress.py
-      - name: Commit metadata evidence
+      - name: Publish release-progress receipt (ops-evidence branch, never main)
         run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add aws/ops/reports/latest/audit_release_progress.json
-          git commit -m 'audit: record release workflow progress [skip-deploy] [skip-ops]' || exit 0
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          python3 scripts/push_evidence.py --run-id '${{ github.run_id }}' --message 'audit: release workflow progress' aws/ops/reports/latest/audit_release_progress.json

@@ -1,21 +1,34 @@
 name: Apply staged large-file patches
 
+# Deploy lane v2 (2026-09-11) -- the runner-side write path for lanes without
+# a shell (GitHub Contents API: one file per write, ~40 KB bodies truncate).
+#
+#   aws/ops/patchers/parts/<upload>/{manifest.json,part-001..}  multipart upload of ANY file size
+#   aws/ops/patchers/<slug>.py                                  tiny idempotent patcher (read/replace/write)
+#   aws/ops/staged/grok_*.py                                    legacy patcher location, still honoured
+#
+# The runner assembles uploads, runs patchers against the FRESHEST main,
+# py_compiles, stub/shrink-guards, commits, pushes -- and then DISPATCHES
+# deploy-lambdas.yml pinned to that exact commit. The dispatch is not optional:
+# a push made with GITHUB_TOKEN never fires push-triggered workflows (GitHub
+# rule), which is why the 2026-09-11 apac-flows apply (d02838a) never deployed.
 on:
   push:
     branches: [main]
     paths:
+      - 'aws/ops/patchers/**'
       - 'aws/ops/staged/grok_*.py'
       - '.github/workflows/apply-staged-large-files.yml'
-      - 'scripts/guard_stub_lambdas.py'
   workflow_dispatch:
     inputs:
       patcher:
-        description: 'Optional single patcher filename under aws/ops/staged/'
+        description: 'Optional single patcher path (aws/ops/patchers/x.py or aws/ops/staged/grok_x.py). Blank = every pending patcher + upload.'
         required: false
         default: ''
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: apply-staged-main
@@ -24,61 +37,181 @@ concurrency:
 jobs:
   apply:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 20
+          fetch-depth: 50
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Apply grok staged patchers
+      - name: Apply against the freshest main
+        run: |
+          git fetch -q origin main
+          git reset -q --hard origin/main
+          echo "applying-against: $(git rev-parse HEAD) — $(git log -1 --pretty=%s | head -c 80)"
+          echo "BASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Assemble multipart uploads
+        run: python3 scripts/assemble_parts.py
+
+      - name: Run patchers
         env:
           PATCHER: ${{ github.event.inputs.patcher }}
         run: |
           set -euo pipefail
           shopt -s nullglob
+          mkdir -p aws/ops/patchers/applied
           if [ -n "${PATCHER:-}" ]; then
-            f="aws/ops/staged/${PATCHER}"
-            [ -f "$f" ] || { echo "::error::$f missing"; exit 1; }
+            [ -f "$PATCHER" ] || { echo "::error::$PATCHER missing"; exit 1; }
+            patchers=("$PATCHER")
+          else
+            patchers=(aws/ops/patchers/*.py aws/ops/staged/grok_*.py)
+          fi
+          applied=""
+          for f in "${patchers[@]}"; do
             echo "── $f"
             python3 "$f"
-          else
-            found=0
-            for f in aws/ops/staged/grok_*.py; do
-              echo "── $f"
-              python3 "$f"
-              found=1
-            done
-            if [ "$found" != 1 ]; then
-              echo "no aws/ops/staged/grok_*.py patchers"
-            fi
-          fi
+            applied="$applied $(basename "$f")"
+            git mv -f "$f" "aws/ops/patchers/applied/$(basename "$f")"
+          done
+          [ -n "$applied" ] && echo "applied:$applied" || echo "no patchers (uploads only)"
+          echo "APPLIED=$applied" >> "$GITHUB_ENV"
 
-      - name: Compile changed lambda sources
+      - name: Compile changed sources
         run: |
           set -euo pipefail
-          mapfile -t changed < <(git diff --name-only -- 'aws/lambdas/*/source/*.py')
-          if [ "${#changed[@]}" -eq 0 ]; then
-            echo "no lambda source diffs"
-            exit 0
-          fi
+          mapfile -t changed < <(git diff --name-only HEAD -- 'aws/lambdas/*/source/*.py' 'aws/shared/*.py')
+          if [ "${#changed[@]}" -eq 0 ]; then echo "no python source diffs"; exit 0; fi
           python3 -m py_compile "${changed[@]}"
           echo "compiled ${#changed[@]} file(s)"
 
-      - name: Guard against stub bodies
+      - name: Guard against stub or truncated bodies
+        env:
+          GUARD_BASE_SHA: HEAD
         run: python3 scripts/guard_stub_lambdas.py
 
-      - name: Commit and push patched tracked files
+      - name: Determine deploy targets
+        id: targets
+        run: |
+          targets=$(git diff --name-only HEAD -- 'aws/lambdas/' | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
+          shared=$(git diff --name-only HEAD -- 'aws/shared/*.py' | paste -sd ' ' -)
+          workers=$(git diff --name-only HEAD -- 'cloudflare/workers/' | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
+          pages=$(git diff --name-only HEAD -- '*.html' '*.js' '*.css' 'assets/' 'js/' 'css/' | paste -sd ' ' -)
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+          echo "shared=$shared" >> "$GITHUB_OUTPUT"
+          echo "workers=$workers" >> "$GITHUB_OUTPUT"
+          echo "pages=$pages" >> "$GITHUB_OUTPUT"
+          echo "lambda targets: ${targets:-none}; shared: ${shared:-none}; workers: ${workers:-none}; pages: ${pages:-none}"
+
+      - name: Commit and push the applied result
+        id: push
         run: |
           set -euo pipefail
           git config user.email "github-actions@justhodl.ai"
           git config user.name "github-actions"
+          # Grok 38f7e24: commit ANY tracked file a patcher touched (config/, docs, pages) -- plus the lane's new trees.
           git add -u
+          git add -A aws/lambdas aws/shared cloudflare/workers assets js css aws/ops/patchers aws/ops/staged
+          git add -A -- '*.html' '*.js' '*.css' 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "no tracked-file changes after patchers"
+            echo "nothing changed after patchers/uploads"
+            echo "sha=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          python3 scripts/guard_stub_lambdas.py
-          git commit -m "apply staged large-file patch from runner"
-          git pull --rebase origin main
-          git push origin main
+          git commit -q -m "apply-lane: ${APPLIED:-uploads} -> ${{ steps.targets.outputs.targets }} [skip-ops]" \
+                        -m "Applied on the runner from base $BASE_SHA. Deploy is dispatched by this run (GITHUB_TOKEN pushes do not trigger push workflows)."
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin main
+            if git rebase -q origin/main && git push -q origin HEAD:main; then break; fi
+            git rebase --abort 2>/dev/null || true
+            [ "$attempt" = 5 ] && { echo "::error::push to main failed after 5 attempts"; exit 1; }
+            sleep $((attempt * 5))
+          done
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "pushed $(git rev-parse HEAD)"
+
+      - name: Dispatch a pinned Lambda deploy
+        if: steps.push.outputs.sha != '' && (steps.targets.outputs.targets != '' || steps.targets.outputs.shared != '')
+        env:
+          # PAGES_PAT (the deploy PAT) first: the 2026-07 pages self-heal proved a GITHUB_TOKEN
+          # dispatch can be dropped silently; GITHUB_TOKEN is the fallback (proved working ops 5235).
+          GH_TOKEN: ${{ secrets.PAGES_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          TARGETS: ${{ steps.targets.outputs.targets }}
+          SHARED: ${{ steps.targets.outputs.shared }}
+          SHA: ${{ steps.push.outputs.sha }}
+        run: |
+          set -euo pipefail
+          before=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          if [ -n "$SHARED" ] && [ -z "$TARGETS" ]; then
+            # Shared-module-only change: let the workflow's importer closure decide via a recovery range.
+            gh workflow run deploy-lambdas.yml --ref main -f base_sha="$BASE_SHA" -f expected_sha="$SHA"
+          else
+            gh workflow run deploy-lambdas.yml --ref main -f function="$TARGETS" -f expected_sha="$SHA"
+          fi
+          echo "dispatched deploy-lambdas.yml for [${TARGETS:-importers of $SHARED}] pinned to $SHA"
+          # A dispatch that returns 204 but spawns no run is the failure mode we are killing. Prove the run exists.
+          for i in $(seq 1 12); do
+            sleep 5
+            run_id=$(gh run list --workflow deploy-lambdas.yml --event workflow_dispatch --limit 5 \
+                       --json databaseId,createdAt --jq ".[] | select(.createdAt >= \"$before\") | .databaseId" | head -n1)
+            if [ -n "$run_id" ]; then
+              echo "deploy run: https://github.com/$GH_REPO/actions/runs/$run_id"
+              echo "DEPLOY_RUN_ID=$run_id" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "::error::deploy-lambdas.yml dispatch produced no run within 60s — the patch is on main but NOT deployed; dispatch manually: gh workflow run deploy-lambdas.yml -f function=\"$TARGETS\" -f expected_sha=$SHA"
+          exit 1
+
+      - name: Dispatch worker / pages deploys when those trees changed
+        if: steps.push.outputs.sha != '' && (steps.targets.outputs.workers != '' || steps.targets.outputs.pages != '')
+        env:
+          GH_TOKEN: ${{ secrets.PAGES_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          WORKERS: ${{ steps.targets.outputs.workers }}
+          PAGES: ${{ steps.targets.outputs.pages }}
+        run: |
+          set -euo pipefail
+          for w in $WORKERS; do gh workflow run deploy-workers.yml --ref main -f worker="$w"; echo "dispatched deploy-workers.yml for $w"; done
+          if [ -n "$PAGES" ]; then gh workflow run pages.yml --ref main; echo "dispatched pages.yml"; fi
+
+      - name: Publish handoff receipt (ops-evidence branch, never main)
+        if: always() && steps.push.outputs.sha != ''
+        run: |
+          mkdir -p aws/ops/reports/apply-lane
+          python3 - <<'PY'
+          import json, os, time
+          receipt = {
+            "schema": "apply-lane-receipt.v1",
+            "run_id": os.environ.get("GITHUB_RUN_ID"),
+            "run_url": f"https://github.com/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}",
+            "base_sha": os.environ.get("BASE_SHA"),
+            "result_sha": "${{ steps.push.outputs.sha }}",
+            "patchers": (os.environ.get("APPLIED") or "").split(),
+            "targets": "${{ steps.targets.outputs.targets }}".split(),
+            "shared": "${{ steps.targets.outputs.shared }}".split(),
+            "deploy_dispatched": True,
+            "deploy_run_id": os.environ.get("DEPLOY_RUN_ID"),
+            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+          }
+          path = f"aws/ops/reports/apply-lane/{os.environ.get('GITHUB_RUN_ID')}.json"
+          open(path, "w").write(json.dumps(receipt, indent=1) + "\n")
+          print(open(path).read())
+          PY
+          python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" \
+            --message "apply-lane: ${{ steps.targets.outputs.targets }} -> ${{ steps.push.outputs.sha }}" \
+            "aws/ops/reports/apply-lane/${{ github.run_id }}.json"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Apply lane"
+            echo "- base: \`$BASE_SHA\`"
+            echo "- result: \`${{ steps.push.outputs.sha }}\`"
+            echo "- patchers: \`${APPLIED:-none}\`"
+            echo "- deploy targets: \`${{ steps.targets.outputs.targets }}\`"
+            echo "- verify: \`python3 scripts/verify_release.py <function> --commit ${{ steps.push.outputs.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

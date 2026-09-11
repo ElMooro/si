@@ -270,6 +270,10 @@ jobs:
         env:
           DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
           DEPLOY_AWS_REGION: ${{ secrets.AWS_REGION }}
+          # Deploy lane v2: release receipts (data/ops/releases/<fn>.json) carry the proven commit.
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_WORKFLOW: deploy-lambdas.yml
+          DEPLOY_ACTOR: ${{ github.actor }}
         run: bash scripts/deploy_lambdas.sh
 
       - name: Preserve numbered candidate release evidence
@@ -298,8 +302,15 @@ jobs:
             exit 0
           fi
           git status --short
-          git commit -m "ops: auto-commit Function URL setup [skip-deploy]"
-          git push origin main || echo "push failed — changes applied locally only"
+          git commit -m "ops: auto-commit Function URL setup [skip-deploy] [skip-ops]"
+          # Deploy lane v2: main moves constantly (parallel AI lanes) — rebase + retry, never lose the URL.
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin main
+            if git rebase -q origin/main && git push -q origin HEAD:main; then echo "committed back"; exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((attempt * 5))
+          done
+          echo "::warning::Function URL commit-back failed after 5 attempts — URL is live in AWS; re-run to record it"
 
       - name: Summary
         if: always()

@@ -70,15 +70,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Determine script(s) to run
+      - name: Sync to freshest main (kill stale-checkout race)
+        run: |
+          # Execution always happens against the newest main at run time — a
+          # dispatch or delayed run can never zip/deploy from a stale tree
+          # (the 2026-07-05 stale-artifact incident). Selection below anchors the
+          # push range to the push's own SHAs, so this cannot skip scripts.
+          git fetch -q origin main
+          git reset --hard origin/main >/dev/null
+          echo "executing-against: $(git rev-parse HEAD) — $(git log -1 --pretty=%s | head -c 70)"
+
+      - name: Determine script(s) to run (ops queue)
         id: pick
         run: |
           set -euo pipefail
+          # Deploy lane v2 (2026-09-11): the queue is the source of truth, not the
+          # event. GitHub keeps ONE pending run per concurrency group, so a third
+          # push used to cancel the queued run and its scripts silently never ran.
+          # scripts/ops_queue.py runs the push range PLUS any never-recorded
+          # pending script (see the ledger aws/ops/reports/_ops_ledger.json).
           if [ -n "${{ github.event.inputs.script }}" ]; then
-            echo "scripts=${{ github.event.inputs.script }}" >> $GITHUB_OUTPUT
+            scripts=$(python3 scripts/ops_queue.py select --explicit ${{ github.event.inputs.script }})
           else
-            # Anchor detection to the EXACT push boundaries — immune to auto-commits
-            # landing on main between the push and this run (the ops-1004 missed-script mode).
             BASE="${{ github.event.before }}"
             HEADSHA="${{ github.event.after || github.sha }}"
             if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
@@ -88,21 +101,10 @@ jobs:
             git fetch -q --depth=200 origin "$BASE" "$HEADSHA"
             git cat-file -e "$BASE^{commit}"
             git cat-file -e "$HEADSHA^{commit}"
-            range_files=$(git diff --name-only "$BASE" "$HEADSHA")
-            scripts=$(echo "$range_files" | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
-            echo "Scripts to run: $scripts"
-            echo "scripts=$scripts" >> $GITHUB_OUTPUT
+            scripts=$(python3 scripts/ops_queue.py select --base "$BASE" --head "$HEADSHA")
           fi
-
-      - name: Sync to freshest main (kill stale-checkout race)
-        run: |
-          # Execution always happens against the newest main at run time — a
-          # dispatch or delayed run can never zip/deploy from a stale tree
-          # (the 2026-07-05 stale-artifact incident). Detection above already
-          # ran against the push's own SHAs, so this cannot skip scripts.
-          git fetch -q origin main
-          git reset --hard origin/main >/dev/null
-          echo "executing-against: $(git rev-parse HEAD) — $(git log -1 --pretty=%s | head -c 70)"
+          echo "Scripts to run: $scripts"
+          echo "scripts=$scripts" >> $GITHUB_OUTPUT
 
       - name: Refresh engine manifest (fleet self-knowledge)
         run: |
@@ -168,6 +170,7 @@ jobs:
             fi
             if ( set -o pipefail; python3 "$s" "${OPS_ARGS[@]}" 2>&1 | tee -a aws/ops/reports/_lastrun.log ); then
               echo "✅ $s completed"
+              python3 scripts/ops_queue.py record "$s" success --run-id "${{ github.run_id }}" --commit "$(git rev-parse HEAD)"
               # Auto-move successful scripts to ran/ so the pending dir
               # only contains scripts that are still pending or failed.
               # The AI rollout's default push behavior is plan-only; retain it
@@ -183,6 +186,7 @@ jobs:
               fi
             else
               echo "❌ OPS-FAIL: $s" | tee -a aws/ops/reports/_lastrun.log
+              python3 scripts/ops_queue.py record "$s" failure --run-id "${{ github.run_id }}" --commit "$(git rev-parse HEAD)"
               FAIL=1
             fi
           done

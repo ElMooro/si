@@ -17,5 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reject stub lambda bodies
-        run: python3 scripts/guard_stub_lambdas.py
+        with:
+          fetch-depth: 50
+      - name: Reject stub or truncated lambda bodies
+        # Deploy lane v2: compares every body against the push base (or the PR base),
+        # so a 40 KB -> 18 KB truncation fails even though it clears the 500-byte floor.
+        env:
+          GUARD_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$GUARD_BASE_SHA" ] && [ "$GUARD_BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            git fetch -q --depth=200 origin "$GUARD_BASE_SHA" 2>/dev/null || true
+          else
+            unset GUARD_BASE_SHA
+          fi
+          python3 scripts/guard_stub_lambdas.py
