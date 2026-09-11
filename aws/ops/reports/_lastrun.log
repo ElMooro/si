@@ -1,26 +1,13 @@
-executing-against: 5e3cba063ffe8d7e90036157d1b25060f411e9d5
-ops 5406 -- Polygon/Finviz coverage gaps
-[19:40:57] ✅ grouped_daily_aggs IN
-[19:40:57] ✅ ticker_reference IN
-[19:40:57] ✅ related_tickers IN
-[19:40:57] ⚠ snapshots GAP
-[19:40:57] ⚠ minute_aggs GAP
-[19:40:57] ⚠ trades GAP
-[19:40:57] ⚠ quotes_nbbo GAP
-[19:40:57] ⚠ options GAP
-[19:40:57] ⚠ fundamentals_ratios GAP
-[19:40:57] ⚠ news GAP
-[19:40:57] ⚠ technicals GAP
-[19:40:57] ⚠ forex GAP
-[19:40:57] ⚠ crypto GAP
-[19:40:57] ⚠ indices GAP
-[19:40:57] ✅ screener_universe IN
-[19:40:57] ✅ signals_export IN
-[19:40:57] ⚠ insider GAP
-[19:40:57] ✅ news IN
-[19:40:57] ⚠ options_skew GAP
-[19:40:57] ⚠ maps GAP
-[19:40:57] ⚠ earnings GAP
-[19:40:57] ✅ GREEN -- data/provider-coverage-gaps.json gaps_p=['snapshots', 'minute_aggs', 'trades', 'quotes_nbbo', 'options', 'fundamentals_ratios', 'news', 'technicals', 'forex', 'crypto', 'indices'] gaps_f=['insider', 'options_skew', 'maps', 'earnings']
+executing-against: 787395fd3fb56c2e0c17fe327443bdceec65aea5
+ops 5407 -- Polygon short-interest
+[19:43:07] ✅ SSM parameter present (not logged)
+[19:43:07] ✅ https://api.polygon.io HTTP 200 n=1000
+[19:43:07] page 2 +1000
+[19:43:07] page 3 +1000
+[19:43:08] page 4 +1000
+[19:43:08] page 5 +1000
+── verdict ──
+[19:43:08] n=5000 status=LIVE
+[19:43:08] ✅ GREEN -- data/polygon-short-interest.json written
 
-→ Report written to aws/ops/reports/latest/ops_5406_provider_coverage_gaps.md
+→ Report written to aws/ops/reports/latest/ops_5407_polygon_short_interest.md
