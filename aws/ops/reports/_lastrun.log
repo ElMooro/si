@@ -1,15 +1,8 @@
-executing-against: 0a703abe18ed195791a9dc3f602a472aeb0c0b9f
-ops 5401 -- Atlanta + Cleveland Fed join
-[18:48:56] ✅ hit data/providers/atlantafed.json 589B
-[18:48:56] ✅ hit data/providers/clevelandfed.json 467B
-[18:48:56] ⚠ miss data/atlantafed.json
-[18:48:56] ⚠ miss data/clevelandfed.json
-[18:48:56] ⚠ miss data/gdpnow.json
-[18:48:56] ⚠ miss data/cleveland-fed.json
-[18:48:56] prefix data/warm/atlantafed/ n=0
-[18:48:56] prefix data/warm/clevelandfed/ n=0
+executing-against: 72cd7a13e11f0faaab81e463f2e3297e615f4b31
+ops 5402 -- parse regional Fed canary CSVs
+[19:09:17] ✅ atlantafed rows=61 last_keys=['observation_date', 'GDPNOW']
+[19:09:17] ⚠ clevelandfed: new-line character seen in unquoted field - do you need to open the file with newline=''?
 ── verdict ──
-[18:48:56] hits=2 missing=4 status=LIVE
-[18:48:56] ✅ GREEN -- data/fed-nowcast-join.json written and read back
+[19:09:17] ✅ GREEN -- fed-nowcast-join.json v2 with parsed last rows
 
-→ Report written to aws/ops/reports/latest/ops_5401_fed_nowcast_join.md
+→ Report written to aws/ops/reports/latest/ops_5402_fed_nowcast_values.md
