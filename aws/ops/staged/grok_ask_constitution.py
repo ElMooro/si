@@ -4,29 +4,30 @@ TARGET = Path(__file__).resolve().parents[2] / "lambdas/justhodl-ask/source/lamb
 
 def main():
     t = TARGET.read_text()
-    if "load_constitution" in t:
+    if "from consume_brain import load_constitution" in t:
         print("ask already on constitution")
         return 0
-    # add import after first import block — look for boto3 or json import near top
-    needle = "import json"
-    if "from consume_brain import load_constitution" not in t:
-        t = t.replace("import json", "import json\nfrom consume_brain import load_constitution", 1)
+    a = "from private_artifact import service_headers\n"
+    b = a + "from consume_brain import load_constitution\n"
+    if a not in t:
+        raise SystemExit("ask import anchor miss")
+    t = t.replace(a, b, 1)
     a = '''    brain = read_json("data/brain.json") or {}
     ctx["_brain"] = {"prompt_block": brain.get("prompt_block"), "tickers": brain.get("mentioned_tickers"),
                      "directive": brain.get("directive")}
 '''
     b = '''    brain = read_json("data/brain.json") or {}
     constitution = load_constitution(s3)
-    directive = None
     if constitution.get("ok"):
         directive = {k: constitution.get(k) for k in
                      ("investor_profile", "hard_rules", "themes", "sector_tilts",
                       "risk_posture", "signal_emphasis", "avoid", "regime_read")}
+        prompt_block = None
     else:
         directive = brain.get("directive")
-    ctx["_brain"] = {"directive": directive,
-                     "constitution_ok": bool(constitution.get("ok")),
-                     "prompt_block": None if constitution.get("ok") else brain.get("prompt_block")}
+        prompt_block = brain.get("prompt_block")
+    ctx["_brain"] = {"directive": directive, "constitution_ok": bool(constitution.get("ok")),
+                     "prompt_block": prompt_block}
 '''
     if a not in t:
         raise SystemExit("ask brain block miss")
