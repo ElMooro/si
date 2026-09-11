@@ -1,9 +1,5 @@
 name: Apply staged large-file patches
 
-# Agent Contents-API writes cannot carry ~40 KB. Write a tiny patcher at
-# aws/ops/staged/grok_*.py instead. This job checks out main on the runner,
-# applies the patcher, py_compile + stub-guards the result, and git-pushes.
-# deploy-lambdas.yml then fires on the large source change.
 on:
   push:
     branches: [main]
@@ -14,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       patcher:
-        description: 'Optional single patcher filename under aws/ops/staged/ (e.g. grok_apac_flows_drop_v3.py). Blank = all grok_*.py'
+        description: 'Optional single patcher filename under aws/ops/staged/'
         required: false
         default: ''
 
@@ -72,14 +68,14 @@ jobs:
       - name: Guard against stub bodies
         run: python3 scripts/guard_stub_lambdas.py
 
-      - name: Commit and push patched large sources
+      - name: Commit and push patched tracked files
         run: |
           set -euo pipefail
           git config user.email "github-actions@justhodl.ai"
           git config user.name "github-actions"
-          git add -A 'aws/lambdas/*/source/*.py' || true
+          git add -u
           if git diff --cached --quiet; then
-            echo "no lambda source changes after patchers"
+            echo "no tracked-file changes after patchers"
             exit 0
           fi
           python3 scripts/guard_stub_lambdas.py
