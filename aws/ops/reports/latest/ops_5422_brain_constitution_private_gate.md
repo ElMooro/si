@@ -1,51 +1,49 @@
 # ops 5422 -- Brain constitution as a private artifact
 
-**Status:** failure  
-**Duration:** 1539.4s  
-**Finished:** 2026-09-11T23:42:17+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 25.7s  
+**Finished:** 2026-09-11T23:46:40+00:00  
 
 ## Data
 
-| commit | conclusion | deploy_run |
-|---|---|---|
-| 55eab600fa |  |  |
-|  | success | https://github.com/ElMooro/si/actions/runs/34657440076 |
+| cache_control | commit | consumed | content_hash | engine | n_hard_rules | n_notes | posture_mult | risk_posture | sized | version |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  | c3832f0257 |  |  |  |  |  |  |  |  |  |
+| private, no-store |  |  | fd46fcdcf716 | brain-sync | 0 | 13057 |  |  |  | 2.1 |
+|  |  | True | fd46fcdcf716 |  |  |  | 1.0 | balanced | 3 | 1.1 |
 
 ## Log
 ## 1. live code == this commit (deploy through the audited workflow if not)
 
-- `23:16:38` ⚠ justhodl-brain-sync: live 546yoCalvY… != checkout O1Tn0RIqG2… (LastModified 2026-09-09T13:26:56.000+0000)
-- `23:16:38` ⚠ justhodl-position-sizer: live WHksnhbvcR… != checkout dJypiXkyQG… (LastModified 2026-09-09T12:33:25.000+0000)
-- `23:16:38` ⚠ justhodl-ask: live 61GoQfbE/n… != checkout NdK64CeS6L… (LastModified 2026-09-11T23:15:13.000+0000)
-- `23:16:38` ⚠ justhodl-ai: live +BgigbIe81… != checkout am80ft9ynH… (LastModified 2026-09-11T23:13:44.000+0000)
-- `23:16:39` ⚠ justhodl-alpha-confluence: live 9kExLlIQL5… != checkout GFHV48xZz2… (LastModified 2026-09-11T21:07:11.000+0000)
-- `23:16:39` ⚠ justhodl-apac-flows: live fS+2J+TG+v… != checkout jg/E84lGUF… (LastModified 2026-07-05T01:41:42.000+0000)
-- `23:16:39` ⚠ justhodl-best-setups: live +wyzHQwHJf… != checkout 5OCpiwmyhB… (LastModified 2026-09-11T23:16:20.000+0000)
-- `23:16:39` ⚠ justhodl-brain-compiler: live kY5hepi/Jf… != checkout T0XHiNODHz… (LastModified 2026-09-11T23:16:32.000+0000)
-- `23:16:39` ⚠ justhodl-devils-advocate: live YtjNI9PoD5… != checkout NTwoR3ofie… (LastModified 2026-09-09T13:27:08.000+0000)
-- `23:16:40` ⚠ justhodl-domain-barometers: live P4115ZSMpP… != checkout PBE8utbtSQ… (LastModified 2026-09-09T12:21:39.000+0000)
-- `23:16:40` ⚠ justhodl-morning-intelligence: live Jgx2TtFGyf… != checkout l/pEursCSw… (LastModified 2026-09-09T12:29:02.000+0000)
-- `23:16:40` ⚠ justhodl-my-brief: live I4CY96l3xp… != checkout RtA+rUWywe… (LastModified 2026-09-09T13:27:04.000+0000)
-- `23:16:40` ⚠ justhodl-risk-gate: live qzSNic1Qg+… != checkout 6vKx5j/Sxo… (LastModified 2026-09-09T05:49:55.000+0000)
-- `23:16:40` behind main: justhodl-brain-sync, justhodl-position-sizer, justhodl-ask, justhodl-ai, justhodl-alpha-confluence, justhodl-apac-flows, justhodl-best-setups, justhodl-brain-compiler, justhodl-devils-advocate, justhodl-domain-barometers, justhodl-morning-intelligence, justhodl-my-brief, justhodl-risk-gate
-- `23:16:41` ✅ dispatched deploy-lambdas.yml for 13 function(s) pinned to 55eab600fa
-- `23:42:15` ⚠ justhodl-brain-sync: live JgrcNSmYlT… != checkout O1Tn0RIqG2… (LastModified 2026-09-11T23:36:18.000+0000)
-- `23:42:15` ⚠ justhodl-position-sizer: live BNpj4DFJt8… != checkout dJypiXkyQG… (LastModified 2026-09-11T23:36:45.000+0000)
-- `23:42:15` ⚠ justhodl-ask: live XzM3TNDh3c… != checkout NdK64CeS6L… (LastModified 2026-09-11T23:37:12.000+0000)
-- `23:42:15` ⚠ justhodl-ai: live 3jrkPAdWOV… != checkout am80ft9ynH… (LastModified 2026-09-11T23:37:35.000+0000)
-- `23:42:16` ⚠ justhodl-alpha-confluence: live U5CS1W1toJ… != checkout GFHV48xZz2… (LastModified 2026-09-11T23:38:01.000+0000)
-- `23:42:16` ⚠ justhodl-apac-flows: live Eqafdq9AGr… != checkout jg/E84lGUF… (LastModified 2026-09-11T23:38:28.000+0000)
-- `23:42:16` ⚠ justhodl-best-setups: live mFvlSERtvq… != checkout 5OCpiwmyhB… (LastModified 2026-09-11T23:38:52.000+0000)
-- `23:42:16` ⚠ justhodl-brain-compiler: live 5EwiU48Qe2… != checkout T0XHiNODHz… (LastModified 2026-09-11T23:39:19.000+0000)
-- `23:42:16` ⚠ justhodl-devils-advocate: live k5MZd12Llb… != checkout NTwoR3ofie… (LastModified 2026-09-11T23:39:46.000+0000)
-- `23:42:16` ⚠ justhodl-domain-barometers: live jU9oJmeUPm… != checkout PBE8utbtSQ… (LastModified 2026-09-11T23:40:14.000+0000)
-- `23:42:17` ⚠ justhodl-morning-intelligence: live P1abfLV+7M… != checkout l/pEursCSw… (LastModified 2026-09-11T23:40:37.000+0000)
-- `23:42:17` ⚠ justhodl-my-brief: live octHmWc0ZX… != checkout RtA+rUWywe… (LastModified 2026-09-11T23:41:01.000+0000)
-- `23:42:17` ⚠ justhodl-risk-gate: live nQwfwkO+3P… != checkout 6vKx5j/Sxo… (LastModified 2026-09-11T23:41:31.000+0000)
-- `23:42:17` ✗ justhodl-brain-sync still does not run commit 55eab600fa after the workflow deploy; justhodl-position-sizer still does not run commit 55eab600fa after the workflow deploy; justhodl-ask still does not run commit 55eab600fa after the workflow deploy; justhodl-ai still does not run commit 55eab600fa after the workflow deploy; justhodl-alpha-confluence still does not run commit 55eab600fa after the workflow deploy; justhodl-apac-flows still does not run commit 55eab600fa after the workflow deploy; justhodl-best-setups still does not run commit 55eab600fa after the workflow deploy; justhodl-brain-compiler still does not run commit 55eab600fa after the workflow deploy; justhodl-devils-advocate still does not run commit 55eab600fa after the workflow deploy; justhodl-domain-barometers still does not run commit 55eab600fa after the workflow deploy; justhodl-morning-intelligence still does not run commit 55eab600fa after the workflow deploy; justhodl-my-brief still does not run commit 55eab600fa after the workflow deploy; justhodl-risk-gate still does not run commit 55eab600fa after the workflow deploy
+- `23:46:15` ✅ justhodl-brain-sync: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:36:18.000+0000)
+- `23:46:15` ✅ justhodl-position-sizer: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:36:45.000+0000)
+- `23:46:15` ✅ justhodl-ask: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:37:12.000+0000)
+- `23:46:15` ✅ justhodl-ai: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:37:35.000+0000)
+- `23:46:16` ✅ justhodl-alpha-confluence: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:01.000+0000)
+- `23:46:16` ✅ justhodl-apac-flows: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:28.000+0000)
+- `23:46:16` ✅ justhodl-best-setups: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:52.000+0000)
+- `23:46:16` ✅ justhodl-brain-compiler: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:39:19.000+0000)
+- `23:46:16` ✅ justhodl-devils-advocate: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:39:46.000+0000)
+- `23:46:17` ✅ justhodl-domain-barometers: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:40:14.000+0000)
+- `23:46:17` ✅ justhodl-morning-intelligence: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:40:37.000+0000)
+- `23:46:17` ✅ justhodl-my-brief: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:41:01.000+0000)
+- `23:46:17` ✅ justhodl-risk-gate: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:41:31.000+0000)
+- `23:46:17` ✅ all 13 functions run commit c3832f0257
+## 2. brain-sync writes a PRIVATE constitution
+
+- `23:46:30` ✅ artifact rewritten 2026-09-11T23:46:26+00:00
+## 3. edge boundary (deploy-workers lands asynchronously: wait up to 10 min for the deny)
+
+- `23:46:30` ✅ anonymous GET https://justhodl.ai/data/brain-constitution.json -> 401
+- `23:46:30` ✅ anonymous GET https://justhodl-data-proxy.raafouis.workers.dev/data/brain-constitution.json -> 401
+- `23:46:31` ✅ service-token GET /private-artifact?kind=brain-constitution -> 200, hash match=True
+## 4. position-sizer consumes it
+
+- `23:46:38` ✅ consumed=True posture=balanced
+## 5. ask / ai
+
+- `23:46:40` ✅ ask anonymous POST -> 401 (expect 401)
+- `23:46:40` ✅ ai: code verified in step 1; its 22 tests ran in the deploy preflight
+## verdict
+
+- `23:46:40` ✅ GREEN -- constitution private at the edge, consumed by position-sizer, 13 functions on commit c3832f0257
