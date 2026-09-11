@@ -17,9 +17,11 @@ a.card:hover{border-color:#2f4a6a}
 .stats{display:flex;gap:14px;font-size:11px}
 .stats b{color:#9fd0a8}.stats i{font-style:normal;color:#69808f}
 .fr{font-size:10px;margin-top:6px}
+.roll{margin:0 0 18px;padding:12px 14px;background:#0d141c;border:1px solid #1c2733;border-radius:10px;font-size:11px;color:#9db4c6}
 </style></head><body><div class="wrap">
-<h1>DATA</h1><div class="sub">Every provider · every dataset we pull · auto-inventoried daily by justhodl-provider-catalog · consumption map ops 5400</div>
+<h1>DATA</h1><div class="sub">Every provider · catalog + consumption + theme rollups (ops 5400-5403). Eurostat/GDELT shown as themes, not raw dumps.</div>
 <div id="ih" style="display:none;margin:10px 0 14px;padding:10px 14px;background:#0d141c;border:1px solid #1c2733;border-radius:10px;font:12px ui-monospace,Menlo,monospace"></div>
+<div id="roll" class="roll">theme rollups loading…</div>
 <div class="tot" id="tot"></div><div class="grid" id="g">Loading…</div>
 </div>
 <script>
@@ -29,26 +31,34 @@ fetch('/data/import-health.json?t='+Date.now()).then(r=>r.ok?r.json():null).then
  var f=(h.pipelines||[]).filter(function(p){return p.name==='fred'})[0]||{};
  var chips=(h.pipelines||[]).map(function(p){var c=PC[p.status]||'#5b6479';
   return '<span title="'+((p.detail||'')+(p.age_min!=null?' · '+p.age_min+'m':''))+'" style="display:inline-block;margin:2px 8px 2px 0;color:'+c+'">●&nbsp;'+p.name+' <b>'+p.status+'</b></span>';}).join('');
- var fr=f.imported!=null?('&nbsp;·&nbsp;FRED '+(f.imported||0).toLocaleString()+' series'+(f.queue_total?(' · queue '+(f.queue_cursor||0)+'/'+f.queue_total):'')+(f.series_per_hour?(' · '+f.series_per_hour+'/h'):'')+(f.eta_hours?(' · ETA '+f.eta_hours+'h'):'')+' · scope '+(f.scope||'')):'';
- var act=(h.actions_this_sweep&&h.actions_this_sweep.length)?('<div style="color:#F0B429;margin-top:4px">sentinel: '+h.actions_this_sweep.join(' · ')+'</div>'):'';
+ var fr=f.imported!=null?('&nbsp;·&nbsp;FRED '+(f.imported||0).toLocaleString()+' series'):'';
  var el=document.getElementById('ih');el.style.display='block';
- el.innerHTML='<span style="color:'+(C[h.overall]||'#e8e8e8')+';font-weight:800">IMPORT '+h.overall+'</span>'+fr+'<div style="margin-top:6px">'+chips+'</div>'+act+
- '<div style="color:#5b6479;margin-top:4px">sentinel sweep '+(h.generated_at||'')+' · '+((h.incidents||[]).length)+' incidents logged</div>';
+ el.innerHTML='<span style="color:'+(C[h.overall]||'#e8e8e8')+';font-weight:800">IMPORT '+h.overall+'</span>'+fr+'<div style="margin-top:6px">'+chips+'</div>';
 }).catch(function(){});
+Promise.all([
+ fetch('/data/theme-eurostat.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+ fetch('/data/theme-gdelt.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+ fetch('/data/desk-rollup.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+]).then(function(x){
+ var eu=x[0]||{}, gd=x[1]||{}, d=x[2]||{};
+ var alerts=((d.import_health_alerts)||[]).map(function(p){return (p.name||'?')+':'+(p.status||'');}).join(' · ')||'none';
+ document.getElementById('roll').innerHTML=
+  '<b style="color:#8fd0ff">THEMES</b> · Eurostat '+(eu.series_count?eu.series_count.toLocaleString()+' series / ':'')+(eu.mb||'—')+' MB · GDELT '+(gd.datasets?gd.datasets.toLocaleString()+' files / ':'')+(gd.mb||'—')+' MB'
+  +'<div style="margin-top:6px;color:#e0b552">desk alerts: '+alerts+'</div>'
+  +'<div style="margin-top:4px;color:#5d7285">'+(d.how_to_read_command_desk_flags||'command-desk RED/AMBER = section flags + freshness, not one bug')+'</div>';
+}).catch(function(){document.getElementById('roll').textContent='theme rollups not written yet — ops 5403';});
 function paint(d,c){
- window.__jhConsume=c||null;
  var t=d.totals||{};var tot=document.getElementById('tot');
  tot.innerHTML=
   '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
   '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / FILES</span></div>'+
   '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
-  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
-  '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
+  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>';
  var cc=(c&&c.counts)||null;
  if(cc){
   tot.innerHTML +=
-   '<div><b>'+String(cc.orphan||0)+'</b><span>ORPHAN PROVIDERS</span></div>'+
-   '<div><b>'+String(cc.cancel_or_dead||0)+'</b><span>CANCEL CANDIDATES</span></div>';
+   '<div><b>'+String(cc.orphan||0)+'</b><span>ORPHAN</span></div>'+
+   '<div><b>'+String(cc.cancel_or_dead||0)+'</b><span>CANCEL</span></div>';
  }
  var cmap={};
  try{(c&&c.providers||[]).forEach(function(x){if(x&&x.slug)cmap[x.slug]=x;});}catch(e0){}
@@ -58,16 +68,11 @@ function paint(d,c){
   var fh=p.freshest_h,fc=fh==null?'#5d7285':(fh<=26?'#5fbf7f':'#e05252');
   var cv=cmap[p.slug];
   a.innerHTML='<div class="nm">'+p.name+'</div><div class="api">'+p.api+'</div>'+
-   '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
-   (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
-   (p.unit==='instruments'&&p.datasets?'<span><b>'+p.datasets.toLocaleString()+'</b> <i>instruments</i></span>':'')+
-   '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
-   '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
-   (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div>':'')+
-   (p.catalog_note?'<div style="font-size:9px;color:#7fb0d0;margin-top:3px">'+p.catalog_note+'</div>':'');
+   '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span><span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
+   '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>';
   if(cv&&cv.verdict){
    var col=cv.verdict==='KEEP'?'#5fbf7f':(cv.verdict==='ORPHAN'?'#e0b552':'#e05252');
-   a.innerHTML += '<div style="font-size:9px;margin-top:4px;color:'+col+'">'+cv.verdict+(cv.repo_refs!=null?' · '+cv.repo_refs+' refs':'')+'</div>';
+   a.innerHTML += '<div style="font-size:9px;margin-top:4px;color:'+col+'">'+cv.verdict+'</div>';
   }
   g.appendChild(a);
  });
