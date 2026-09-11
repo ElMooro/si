@@ -1,4 +1,4 @@
-"""ops_5422 -- Brain constitution shipped as a PRIVATE artifact: brain-sync, position-sizer, ask, ai.
+"""ops_5422 -- Brain constitution shipped as a PRIVATE artifact + every engine Grok's apply lane left undeployed.
 
 Why this op exists (2026-09-11): Grok's Brain/AI patches (apply commit 8d37a5e) could not pass
 deploy-lambdas because brain-sync wrote data/brain-constitution.json with Cache-Control public --
@@ -24,6 +24,8 @@ import base64
 import hashlib
 import io
 import json
+import os
+import re
 import subprocess
 import sys
 import time
@@ -40,7 +42,13 @@ from ops_report import report  # noqa: E402
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-FUNCTIONS = ["justhodl-brain-sync", "justhodl-position-sizer", "justhodl-ask", "justhodl-ai"]
+# Everything Grok's apply lane left on main but never deployed (GITHUB_TOKEN pushes fire no workflows),
+# plus the four Grok asked for. Live CodeSha256 is compared to a zip built from THIS checkout.
+FUNCTIONS = ["justhodl-brain-sync", "justhodl-position-sizer", "justhodl-ask", "justhodl-ai",
+             "justhodl-alpha-confluence", "justhodl-apac-flows", "justhodl-best-setups", "justhodl-brain-compiler",
+             "justhodl-devils-advocate", "justhodl-domain-barometers", "justhodl-morning-intelligence",
+             "justhodl-my-brief", "justhodl-risk-gate"]
+WORKFLOW = "deploy-lambdas.yml"
 EDGE = "https://justhodl.ai"
 WORKER = "https://justhodl-data-proxy.raafouis.workers.dev"
 UA = {"User-Agent": "JustHodl-ops5422/1.0"}
@@ -86,6 +94,47 @@ def head(key):
         return None
 
 
+def gh(path, payload=None):
+    repo = os.environ.get("GITHUB_REPOSITORY", "ElMooro/si")
+    token = os.environ.get("GH_API_TOKEN", "")
+    if not token:
+        raise RuntimeError("GH_API_TOKEN missing on the runner")
+    req = urllib.request.Request("https://api.github.com/repos/" + repo + path,
+                                 data=None if payload is None else json.dumps(payload).encode(),
+                                 headers={"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json",
+                                          "Content-Type": "application/json", "X-GitHub-Api-Version": "2026-03-10", **UA},
+                                 method="GET" if payload is None else "POST")
+    with urllib.request.urlopen(req, timeout=45) as r:
+        body = r.read()
+        return r.status, (json.loads(body) if body else {})
+
+
+def deploy_through_workflow(R, functions, commit, wait_s=2400):
+    """No raw update-function-code: dispatch deploy-lambdas.yml pinned to this commit (preflight,
+    tests, alias protection, CodeSha256 proof all run there) and wait for that run to finish."""
+    if not re.fullmatch(r"[a-f0-9]{40}", commit):
+        raise RuntimeError("exact commit required")
+    started = time.time()
+    status, _ = gh("/actions/workflows/%s/dispatches" % WORKFLOW,
+                   {"ref": "main", "inputs": {"function": " ".join(functions), "expected_sha": commit}})
+    if status not in (200, 204):
+        raise RuntimeError("GitHub refused the dispatch: HTTP %s" % status)
+    R.ok("dispatched %s for %d function(s) pinned to %s" % (WORKFLOW, len(functions), commit[:10]))
+    run = None
+    while time.time() - started < wait_s:
+        time.sleep(20)
+        _, runs = gh("/actions/workflows/%s/runs?event=workflow_dispatch&per_page=5" % WORKFLOW)
+        for r in runs.get("workflow_runs") or []:
+            if r.get("created_at", "") >= time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started - 60)):
+                run = r
+                break
+        if run and run.get("status") == "completed":
+            R.kv(deploy_run=run.get("html_url"), conclusion=run.get("conclusion"))
+            return run.get("conclusion") == "success"
+    R.warn("deploy run not completed within %ds: %s" % (wait_s, (run or {}).get("html_url")))
+    return False
+
+
 def invoke_and_wait(fn, key, before_ts, budget_s=240):
     lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
     t0 = time.time()
@@ -102,18 +151,28 @@ with report("ops_5422_brain_constitution_private_gate") as R:
     R.heading("ops 5422 -- Brain constitution as a private artifact")
     R.kv(commit=commit[:10])
 
-    R.section("1. live code == this commit")
-    for fn in FUNCTIONS:
-        cfg = lam.get_function_configuration(FunctionName=fn)
-        live, local = cfg["CodeSha256"], zip_sha(fn)
-        if live == local:
-            R.ok(f"{fn}: CodeSha256 {live[:12]}... matches the checkout (LastModified {cfg['LastModified']})")
-        else:
-            fail(f"{fn}: live CodeSha256 {live[:12]} != checkout {local[:12]} -- the deploy has not landed")
-            R.fail(f"{fn}: live {live[:12]} != checkout {local[:12]}")
-    if FAILS:
-        R.warn("code mismatch -- dispatch deploy-lambdas.yml (function=\"%s\") then re-run this gate" % " ".join(FUNCTIONS))
+    R.section("1. live code == this commit (deploy through the audited workflow if not)")
+    def mismatched():
+        out = []
+        for fn in FUNCTIONS:
+            cfg = lam.get_function_configuration(FunctionName=fn)
+            live, local = cfg["CodeSha256"], zip_sha(fn)
+            (R.ok if live == local else R.warn)("%s: live %s… %s checkout %s… (LastModified %s)"
+                                                 % (fn, live[:10], "==" if live == local else "!=", local[:10], cfg["LastModified"]))
+            if live != local:
+                out.append(fn)
+        return out
+    behind = mismatched()
+    if behind:
+        R.log("behind main: " + ", ".join(behind))
+        deploy_through_workflow(R, behind, commit)
+        behind = mismatched()
+    if behind:
+        for fn in behind:
+            fail("%s still does not run commit %s after the workflow deploy" % (fn, commit[:10]))
+        R.fail("; ".join(FAILS))
         sys.exit(1)
+    R.ok("all %d functions run commit %s" % (len(FUNCTIONS), commit[:10]))
 
     R.section("2. brain-sync writes a PRIVATE constitution")
     before = time.time()
@@ -134,12 +193,17 @@ with report("ops_5422_brain_constitution_private_gate") as R:
         fail("constitution carries note bodies -- boundary violation")
     R.ok("artifact rewritten %s" % h["LastModified"].isoformat()) if not FAILS else R.fail("; ".join(FAILS))
 
-    R.section("3. edge boundary")
+    R.section("3. edge boundary (deploy-workers lands asynchronously: wait up to 10 min for the deny)")
     for host in (EDGE, WORKER):
-        st, _ = http(f"{host}/data/brain-constitution.json")
+        st = None
+        for _ in range(30):
+            st, _ = http(f"{host}/data/brain-constitution.json")
+            if st in (401, 403):
+                break
+            time.sleep(20)
         (R.ok if st in (401, 403) else R.fail)(f"anonymous GET {host}/data/brain-constitution.json -> {st}")
         if st not in (401, 403):
-            fail(f"anonymous read at {host} returned {st}")
+            fail(f"anonymous read at {host} returned {st} -- the data-proxy worker with the private registration is not live")
     token = ssm.get_parameter(Name="/justhodl/api-admin/token", WithDecryption=True)["Parameter"]["Value"]
     st, body = http(f"{WORKER}/private-artifact?kind=brain-constitution", headers={"X-JH-Service-Token": token})
     ok = False
@@ -188,4 +252,4 @@ with report("ops_5422_brain_constitution_private_gate") as R:
         for f in FAILS:
             R.fail(f)
         sys.exit(1)
-    R.ok("GREEN -- constitution private at the edge, consumed by position-sizer, four functions on commit %s" % commit[:10])
+    R.ok("GREEN -- constitution private at the edge, consumed by position-sizer, %d functions on commit %s" % (len(FUNCTIONS), commit[:10]))

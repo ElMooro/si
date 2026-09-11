@@ -34,15 +34,25 @@ def load_constitution(s3, bucket="justhodl-dashboard-live"):
     }
 
 
+def posture_enum(value):
+    """Map the directive's posture (free text distilled from private notes) to a public enum."""
+    p = str(value or "").lower().strip()
+    if not p:
+        return None
+    return "aggressive" if "aggressive" in p else "defensive" if "defensive" in p else "balanced"
+
+
 def overlay_payload(payload, constitution):
-    """Attach constitution receipt. Does not change scores by itself."""
+    """Attach a constitution RECEIPT to a public payload: counts, hash and an enum posture only.
+    Never the directive text -- most consumers' outputs are public (risk-gate, position-sizing,
+    domain-barometers) and the Sep-8 audit boundary forbids Brain prose there."""
     if not isinstance(payload, dict):
         return payload
     payload = dict(payload)
     payload["brain_constitution"] = {
         "consumed": bool(constitution and constitution.get("ok")),
         "content_hash": (constitution or {}).get("content_hash"),
-        "risk_posture": (constitution or {}).get("risk_posture"),
+        "risk_posture": posture_enum((constitution or {}).get("risk_posture")),
         "n_hard_rules": len((constitution or {}).get("hard_rules") or []),
         "n_themes": len((constitution or {}).get("themes") or []),
     }

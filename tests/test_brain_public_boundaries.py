@@ -131,6 +131,26 @@ class PublicBoundaryTests(unittest.TestCase):
         self.assertTrue(out["sized_positions"])
         self.assert_public(out)
 
+    def test_constitution_receipt_in_public_outputs_is_enum_and_counts_only(self):
+        # A REAL constitution (the fixtures above never supply one): its posture is note-derived prose
+        # and must reach public payloads only as an enum + counts + hash.
+        constitution = {"engine": "brain-sync", "content_hash": "abc123", "risk_posture": "aggressive because " + MARKER,
+                        "hard_rules": ["never " + MARKER, "size " + MARKER], "themes": [MARKER], "investor_profile": MARKER,
+                        "avoid": [MARKER], "sector_tilts": {"energy": "overweight " + MARKER}}
+        s3 = S3({"data/brain-constitution.json": constitution,
+                 "data/best-setups.json": {"top_setups": [{"ticker": "NVDA", "conviction": 90}]}})
+        scope, _ = self.load("position-sizer", s3)
+        scope["lambda_handler"]()
+        out = s3.writes["data/position-sizing.json"]
+        self.assertEqual(out["posture_mult"], 1.3)
+        self.assertEqual(out["risk_posture"], "aggressive")
+        self.assertEqual(out["brain_constitution"], {"consumed": True, "content_hash": "abc123", "risk_posture": "aggressive",
+                                                     "n_hard_rules": 2, "n_themes": 1})
+        self.assert_public(out)
+        import consume_brain
+        for raw in ("balanced but " + MARKER, None, "", "DEFENSIVE: " + MARKER):
+            self.assertNotIn(MARKER, json.dumps(consume_brain.overlay_payload({}, {**constitution, "risk_posture": raw})))
+
     def test_best_setups_theme_and_sector_alignment_explanations_do_not_quote_policy(self):
         for tilts, themes in [({"technology": "overweight because " + MARKER}, []), ({}, ["technology " + MARKER])]:
             fn = function("best-setups", "brain_match", {"brain_tilts": tilts, "brain_themes": themes})
