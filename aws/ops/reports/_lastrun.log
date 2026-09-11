@@ -1,20 +1,21 @@
-executing-against: 9073913367b28d57f421cbf03f224bb1cf5b64f3
-ops 5403 -- Eurostat/GDELT themes + desk diagnosis
-[19:12:36] data/provider-catalog.json ok=True bytes=26816
-[19:12:36] data/provider-consumption.json ok=True bytes=34198
-[19:12:36] data/import-health.json ok=True bytes=1888
-[19:12:36] data/fed-nowcast-join.json ok=True bytes=564
-[19:12:36] data/activity-nowcast.json ok=True bytes=3275
-[19:12:36] data/ciss-stress.json ok=True bytes=1563861
-[19:12:36] data/bond-warroom.json ok=True bytes=911769
-[19:12:37] data/khalid.json ok=True bytes=13100466
-[19:12:37] data/brief.json ok=False bytes=0
-[19:12:37] data/decisive-call.json ok=False bytes=0
-[19:12:37] ✅ wrote data/theme-eurostat.json
-[19:12:37] ✅ wrote data/theme-gdelt.json
-[19:12:37] ✅ wrote data/desk-rollup.json
+executing-against: dc9689835f35558108f926745ae1f86784824f2f
+ops 5404 -- Cleveland + research index + stale map
+[19:34:53] ✅ atlantafed rows=61 keys=['observation_date', 'GDPNOW']
+[19:34:53] ✅ clevelandfed rows=314 keys=['PK\x03\x04\x14\x00\x00\x00\x08\x00\t\x1a+]b�ӿs\x01\x00\x00�\x03\x00\x00']
+[19:34:53] research prefix data/warm/equity-research/ files=0 dirs=0
+[19:34:53] research prefix data/equity-research/ files=0 dirs=0
+[19:34:53] research prefix data/warm/equity-research-tickers/ files=0 dirs=0
+[19:34:53] research prefix data/research/ files=50 dirs=0
+[19:34:54] ✅ research index prefix=data/research/ n=40
+[19:34:54] ⚠ miss data/brief.json
+[19:34:54] ⚠ miss data/brief/latest.json
+[19:34:54] ⚠ miss data/daily-brief.json
+[19:34:54] ⚠ miss data/engines/brief.json
+[19:34:54] ⚠ miss data/decisive-call.json
+[19:34:54] ⚠ miss data/decisive_call.json
+[19:34:54] ⚠ miss data/calls/decisive.json
+[19:34:54] ⚠ miss data/khalid-brief.json
 ── verdict ──
-[19:12:37] eurostat prefixes=2 gdelt prefixes=1 alerts=1
-[19:12:37] ✅ GREEN -- theme rollups + desk-rollup live
+[19:34:55] ✅ GREEN -- join v3 + research index + stale-feed-map
 
-→ Report written to aws/ops/reports/latest/ops_5403_theme_desk_rollup.md
+→ Report written to aws/ops/reports/latest/ops_5404_cleveland_research_stale.md
