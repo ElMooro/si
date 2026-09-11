@@ -20,6 +20,7 @@ def test_apply_lane_dispatches_a_pinned_deploy_after_its_token_push():
     assert "aws/ops/patchers/**" in text and "aws/ops/staged/grok_*.py" in text
     assert "python3 -m py_compile" in text
     assert "scripts/push_evidence.py" in text and "git push -q origin HEAD:main" in text
+    assert 'if [ -e "$tree" ]; then git add -A "$tree"; fi' in text   # js/ and css/ do not exist; git add must not fatal
 
 
 def test_apply_lane_never_executes_the_staged_ops_scripts():

@@ -1,4 +1,5 @@
 """ops_5422 -- Brain constitution shipped as a PRIVATE artifact + every engine Grok's apply lane left undeployed.
+(re-armed 2026-09-11 23:20 UTC: the ship push carried a skip marker inside its body, so run-ops skipped it)
 
 Why this op exists (2026-09-11): Grok's Brain/AI patches (apply commit 8d37a5e) could not pass
 deploy-lambdas because brain-sync wrote data/brain-constitution.json with Cache-Control public --

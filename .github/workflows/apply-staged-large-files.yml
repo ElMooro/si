@@ -112,7 +112,9 @@ jobs:
           git config user.name "github-actions"
           # Grok 38f7e24: commit ANY tracked file a patcher touched (config/, docs, pages) -- plus the lane's new trees.
           git add -u
-          git add -A aws/lambdas aws/shared cloudflare/workers assets js css aws/ops/patchers aws/ops/staged
+          for tree in aws/lambdas aws/shared cloudflare/workers assets js css aws/ops/patchers aws/ops/staged; do
+            if [ -e "$tree" ]; then git add -A "$tree"; fi     # a missing tree is not an error (js/, css/ do not exist)
+          done
           git add -A -- '*.html' '*.js' '*.css' 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "nothing changed after patchers/uploads"
