@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "aws/shared") not in sys.path:
+    sys.path.insert(0, str(ROOT / "aws/shared"))  # engines import consume_brain / private_artifact from the bundle
 
 
 class Response:
@@ -70,7 +72,9 @@ def run(engine):
             assert reads and published
             assert all(w.get("CacheControl") == "private, no-store" for w in s3.writes)
             if engine.endswith("brain-sync"):
-                assert {p[0] for p in published} == {"brain", "brain-history"}
+                assert {p[0] for p in published} == {"brain", "brain-history", "brain-constitution"}
+                assert s3.docs["data/brain-constitution.json"]["hard_rules"] == ["fixture"]
+                assert "notes" not in s3.docs["data/brain-constitution.json"]
                 assert s3.docs["data/brain.json"]["notes"][0]["text"] == "SYNTHETIC PRIVATE NOTE"
             else:
                 assert published[0][0] == "journal-graded"

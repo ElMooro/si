@@ -13,7 +13,10 @@ def load_constitution(s3, bucket="justhodl-dashboard-live"):
         )
     except Exception:
         return {"ok": False, "hard_rules": [], "themes": [], "risk_posture": None}
-    if not isinstance(doc, dict):
+    # A partial write, an empty body or a foreign document must not count as a
+    # constitution: `ok` requires the producer stamp AND a content hash, so a
+    # consumer falls back to its own private directive read instead of "balanced".
+    if not isinstance(doc, dict) or doc.get("engine") != "brain-sync" or not doc.get("content_hash"):
         return {"ok": False, "hard_rules": [], "themes": [], "risk_posture": None}
     return {
         "ok": True,

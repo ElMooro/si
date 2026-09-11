@@ -332,7 +332,8 @@ async function accountRequest(env, name, operation, input) {
 // proxy alias before consulting ANY edge cache. S3 anonymous-read denial is a
 // required companion deployment control; IAM engine readers retain access.
 const PRIVATE_ARTIFACTS = {
-  'brain.json': 'brain', 'brain-history.json': 'brain-history', 'journal-graded.json': 'journal-graded',
+  'brain.json': 'brain', 'brain-history.json': 'brain-history', 'brain-constitution.json': 'brain-constitution',
+  'journal-graded.json': 'journal-graded',
   'my-brief.json': 'my-brief', 'devils-advocate.json': 'devils-advocate',
   'notes-index.json': 'notes-index', 'notes-themes.json': 'notes-themes', 'playbook-rules.json': 'playbook-rules',
   'portfolio/snapshot.json':'portfolio-snapshot', 'portfolio/risk.json':'portfolio-risk',

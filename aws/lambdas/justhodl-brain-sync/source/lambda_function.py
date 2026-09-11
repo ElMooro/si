@@ -389,12 +389,17 @@ def lambda_handler(event=None, context=None):
         "avoid": direc.get("avoid") or [],
         "regime_read": regime_read if isinstance(regime_read, dict) else None,
         "distill_cadence": out.get("distill_cadence"),
-        "note": "Public constitution for fleet scoring. Raw notes stay private.",
+        "note": "Fleet constitution — PRIVATE artifact. Engines read it via IAM; the owner reads it "
+                "signed-in via /private-artifact?kind=brain-constitution. Never served anonymously.",
     }
+    # audit 2026-09-08 Brain boundary: the constitution is model prose distilled from private
+    # notes (hard rules, tilts, posture, avoid list). It stays IAM-readable on S3 and is denied
+    # anonymously at the edge — consumers (position-sizer, ask, ai) already read it with boto3.
     s3.put_object(Bucket=BUCKET, Key="data/brain-constitution.json",
                   Body=json.dumps(constitution, default=str).encode(),
                   ContentType="application/json",
-                  CacheControl="public, max-age=60")
+                  CacheControl="private, no-store")
+    publish_private("brain-constitution", constitution)
     print(f"[brain-sync] DONE {round(time.time()-t0,1)}s — {len(notes)} notes ({len(pinned)} pinned), "
           f"directive={'fresh' if (directive and prev.get('content_hash') != content_hash) else 'cached' if directive else 'none'}")
     return {"statusCode": 200, "body": json.dumps({"n_notes": len(notes), "n_pinned": len(pinned)})}

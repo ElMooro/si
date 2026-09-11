@@ -276,7 +276,7 @@ test('private artifact aliases reject anonymous and unrelated users before consu
   const {env,kv}=fresh({'private-artifact:brain':JSON.stringify({notes:[{id:'fixture',text:'synthetic private text'}]})});
   const w=await worker();let cacheReads=0;
   globalThis.caches={default:{async match(){cacheReads++;throw new Error('private route consulted cache')}}};
-  for(const p of ['/brain.json','/data/brain.json','/brain-history.json','/data/brain-history.json','/data/journal-graded.json','/private-artifact?kind=brain']){
+  for(const p of ['/brain.json','/data/brain.json','/brain-history.json','/data/brain-history.json','/data/brain-constitution.json','/brain-constitution.json','/data/journal-graded.json','/private-artifact?kind=brain','/private-artifact?kind=brain-constitution']){
     assert.equal((await w.fetch(req(p),env,{})).status,401,p);
     assert.equal((await w.fetch(req(p,{headers:{Authorization:'Bearer other_tok_000000000000'}}),env,{})).status,403,p);
   }

@@ -26,13 +26,11 @@ MIN_UNIQUE_FEEDS = 150
 MAX_VALUE_CHARS = 96
 SIGNAL_KEYS = re.compile(
     r"(score|signal|stance|regime|state|status|verdict|posture|trend|direction|"
-    r"probability|confidence|risk|phase|decision|allow|veto|rating|"
-    r"profile|themes|rules|emphasis)$",
+    r"probability|confidence|risk|phase|decision|allow|veto|rating)$",
     re.I,
 )
 SYMBOL_KEYS = {"ticker", "symbol", "asset", "entity_id"}
 PRIVATE_TOKENS = ("brain", "note", "journal", "portfolio", "credential", "secret")
-CONSTITUTION_FEED = "data/brain-constitution.json"
 PRIVATE_FEEDS = frozenset({
     "data/brain.json", "data/brain-history.json", "data/journal-graded.json",
     "data/my-brief.json", "data/devils-advocate.json", "data/notes-index.json",
@@ -132,8 +130,6 @@ def _walk_symbols(value: Any, depth: int = 0) -> Iterable[str]:
 
 def _is_private(row: Dict[str, Any]) -> bool:
     feed = str(row.get("feed") or "").lstrip("/")
-    if feed == CONSTITUTION_FEED:
-        return False
     if ((_canonical_private_source is not None and _canonical_private_source(feed))
             or row.get("declared_class") == "INTERNAL" or row.get("private") is True
             or feed in PRIVATE_FEEDS or any(feed.startswith(prefix) for prefix in PRIVATE_PREFIXES)):
@@ -183,17 +179,6 @@ def build_fleet_snapshot(s3, public_bucket: str, registry_key: str = REGISTRY_KE
             if value and value not in item[target]:
                 item[target].append(value)
         item["private"] = item["private"] or _is_private(row)
-
-    if CONSTITUTION_FEED not in by_feed:
-        by_feed[CONSTITUTION_FEED] = {
-            "feed": CONSTITUTION_FEED,
-            "engines": ["brain-sync"],
-            "pages": ["brain"],
-            "titles": ["Brain constitution"],
-            "schema_versions": ["1.0"],
-            "declared_classes": ["WIRED"],
-            "private": False,
-        }
 
     feeds: List[Dict[str, Any]] = []
     for feed, item in sorted(by_feed.items()):

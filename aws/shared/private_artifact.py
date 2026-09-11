@@ -12,6 +12,7 @@ from managed_secret import managed_secret
 
 MIRRORED_ARTIFACTS = {
     "data/brain.json": "brain", "data/brain-history.json": "brain-history",
+    "data/brain-constitution.json": "brain-constitution",
     "data/journal-graded.json": "journal-graded", "data/my-brief.json": "my-brief",
     "data/devils-advocate.json": "devils-advocate", "data/notes-index.json": "notes-index",
     "data/notes-themes.json": "notes-themes", "data/playbook-rules.json": "playbook-rules",

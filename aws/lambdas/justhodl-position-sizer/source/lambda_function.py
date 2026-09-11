@@ -31,10 +31,8 @@ def lambda_handler(event=None, context=None):
     dg = rj("data/dealer-gex.json") or {}
     vs = rj("data/vol-surface.json") or {}
 
-    if constitution.get("ok"):
-        posture = (constitution.get("risk_posture") or "balanced")
-    else:
-        posture = ((brain.get("directive") or {}).get("risk_posture") or "balanced")
+    posture = ((constitution.get("risk_posture") if constitution.get("ok") else None)
+               or (brain.get("directive") or {}).get("risk_posture") or "balanced")
     posture = str(posture).lower()
     posture_mult = 1.3 if "aggressive" in posture else 0.6 if "defensive" in posture else 1.0
     # Publish a controlled enum, never the operator's private directive prose.
