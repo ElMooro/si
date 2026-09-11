@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Refuse to commit or deploy a truncated Lambda body.
+"""Refuse a truncated Lambda body.
 
-The GitHub Contents API used by some agent lanes cannot carry ~40 KB files
-and has already written 441-byte keep-alive stubs onto main. This guard
-fails if any justhodl-*/source/lambda_function.py in the worktree (or in
-the index) is smaller than MIN_BYTES.
+Contents-API stubs have been 9–441 bytes. Several real engines are 900–1400
+bytes (subscribe, dex-scanner, daily-macro-report). Only flag sub-500.
 """
 from pathlib import Path
 import subprocess
 import sys
 
-MIN_BYTES = 1500
+MIN_BYTES = 500
 ROOT = Path(__file__).resolve().parents[1]
 
 
