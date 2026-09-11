@@ -318,6 +318,41 @@ def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn, f
     return {"lessons": lessons, "summary": str(j.get("summary") or "")[:600], "graded_rows_seen": len(rows), "fingerprint": fingerprint, "updated_at": now_iso()}
 
 
+
+def deterministic_read(board):
+    """When the voice is silent, still publish an engine-grounded read."""
+    rg = (board.get("regime") or {})
+    posture = str(rg.get("risk_gate_posture") or "").upper()
+    sizing = rg.get("risk_gate_sizing")
+    fusion = rg.get("fusion_regime") or "unknown"
+    if any(x in posture for x in ("SEVERE", "OFF", "DEFENS")):
+        stocks, bonds, metals, crypto = "DEFENSIVE", "LONG_DURATION", "HOLD", "REDUCE"
+    elif any(x in posture for x in ("ON", "RISK_ON")):
+        stocks, bonds, metals, crypto = "SELECTIVE", "NEUTRAL", "HOLD", "HOLD"
+    else:
+        stocks, bonds, metals, crypto = "SELECTIVE", "NEUTRAL", "HOLD", "HOLD"
+    overall = (
+        "Deterministic fleet read (LLM voice offline). Risk-gate posture %s, sizing %s, fusion %s. "
+        "Stances map the gate onto stocks/bonds/metals/crypto until the critical voice returns."
+        % (posture or "n/a", sizing if sizing is not None else "n/a", fusion)
+    )
+    macro = "Risk-gate and fusion are the governors. Other engines stay on the board as evidence, not as a second vote."
+    def arm(st, txt):
+        return {"stance": st, "read": txt}
+    return {
+        "overall": overall,
+        "macro": macro,
+        "stocks": arm(stocks, "Mapped from risk-gate %s." % (posture or "n/a")),
+        "bonds": arm(bonds, "Duration stance follows the same gate, not a separate bond vote."),
+        "metals": arm(metals, "Default hold unless the gate is severe."),
+        "crypto": arm(crypto, "Crypto sized last; gate-off cuts risk."),
+        "what_would_change_my_mind": ["Critical voice returns a valid parse", "Risk-gate posture flip"],
+        "data_gaps": ["LLM market-read empty"],
+        "best_opportunities": [],
+        "calls": [],
+        "fallback": True,
+    }
+
 def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True) -> Dict[str, Any]:
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
@@ -333,7 +368,11 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lesso
     raw = complete_fn(prompt, tier="critical", max_tokens=2400, contains_proprietary=True, system=SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
     if not txt:
-        return {"parse_error": True, "raw": "", "empty": True}
+        fb = deterministic_read(board)
+        fb["parse_error"] = False
+        fb["empty"] = True
+        fb["fallback"] = True
+        return fb
     m = re.search(r"\{.*\}", txt, re.S)
     try:
         j = json.loads(m.group(0) if m else txt)
