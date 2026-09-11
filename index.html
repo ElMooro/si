@@ -4,7 +4,7 @@
 <script src="/private-artifacts.js?v=20260909"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="JustHodl.AI command desk — every numbered section of every page and every engine panel on one screen, in the war-room table you read the bond heartbeat from.">
+  <meta name="description" content="JustHodl.AI command desk — pick engines and page sections, then the exact fields to show.">
   <meta name="theme-color" content="#0C0B09">
   <title>Command Desk · JustHodl.AI</title>
   <link id="jh-theme" rel="stylesheet" href="/jh-theme.css">
@@ -54,9 +54,9 @@
       </div>
       <div class="hd-side">
         <div class="hd-add">
-          <div class="l"><span>Compose the desk</span><span>guided builder</span></div>
-          <button class="hd-compose-open" id="hd-compose-open" type="button">Build a block</button>
-          <p class="hint">Choose a source, exact panel or page section, then the fields you want to see.</p>
+          <div class="l"><span>Compose the desk</span><span>engine or page section</span></div>
+          <button class="hd-compose-open" id="hd-compose-open" type="button">Choose engines &amp; fields</button>
+          <p class="hint">Engine data = a feed + panel + columns. Page = a live numbered section from that engine&rsquo;s page. Public default is <code>config/home-layout.json</code>; this browser (or your signed-in account) overrides it. Reset restores the site default.</p>
           <details class="hd-advanced">
             <summary>Advanced address</summary>
             <div class="hd-palette">
@@ -98,8 +98,8 @@
           <fieldset>
             <legend>What belongs on your desk?</legend>
             <div class="hd-kind-grid">
-              <button type="button" data-kind="engine"><b>Engine data</b><span>Select an exact output feed, panel, and individual fields or table columns.</span></button>
-              <button type="button" data-kind="page"><b>Landing page</b><span>Add a whole live page or one of its numbered sections.</span></button>
+              <button type="button" data-kind="engine"><b>Engine data</b><span>Pick the engine, its JSON feed, a panel, then individual fields or table columns.</span></button>
+              <button type="button" data-kind="page"><b>Page section</b><span>Embed a whole live page or one numbered section (the engine&rsquo;s own UI).</span></button>
             </div>
           </fieldset>
         </section>

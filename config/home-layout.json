@@ -1,132 +1,29 @@
 {
  "schema": 2,
- "note": "Default command-desk layout (ops 5200). Blocks are addresses: page#n (a page's numbered section, rendered live by the page), engine/panel (a feed panel in the war-room table), page (whole page). Edit here or say the line to Claude; the account layout overrides this. Katlin (ops 5203) sits first: the war-room section + PRIME/READY panels + risk legs. Bottom (ops 5290) sits after Katlin: the Wyckoff tape read + fresh triggers.",
+ "note": "Public default command-desk. Account / localStorage overrides this. Reset on the landing page reloads this file. Khalid+Katlin+Bottom kept from ops 5200/5203/5290. Fusion engines appended 2026-09-11.",
  "blocks": [
-  {
-   "type": "engine",
-   "ref": "khalid",
-   "panel": "overview",
-   "w": 3,
-   "feed": "data/khalid.json",
-   "title": "Khalid \u00b7 Risk & Opportunity Engine"
-  },
-  {
-   "type": "section",
-   "page": "katlin",
-   "sec": "2",
-   "w": 3,
-   "title": "Katlin buy desk -- war room"
-  },
-  {
-   "type": "engine",
-   "ref": "katlin",
-   "panel": "prime",
-   "w": 1,
-   "feed": "data/katlin.json",
-   "title": "Katlin -- PRIME picks"
-  },
-  {
-   "type": "engine",
-   "ref": "katlin",
-   "panel": "ready",
-   "w": 1,
-   "feed": "data/katlin.json",
-   "title": "Katlin -- READY picks"
-  },
-  {
-   "type": "engine",
-   "ref": "katlin",
-   "panel": "war_room",
-   "w": 1,
-   "feed": "data/katlin.json",
-   "title": "Katlin -- risk legs"
-  },
-  {
-   "type": "section",
-   "page": "bottom",
-   "sec": "2",
-   "w": 3,
-   "title": "Bottom -- the Wyckoff bottom desk (tape read + process)"
-  },
-  {
-   "type": "engine",
-   "ref": "bottom",
-   "panel": "top_picks",
-   "w": 1,
-   "feed": "data/bottom.json",
-   "title": "Bottom -- fresh triggers (close above the test candle)"
-  },
-  {
-   "type": "engine",
-   "ref": "bottom",
-   "panel": "changes",
-   "w": 1,
-   "feed": "data/bottom.json",
-   "title": "Bottom -- what changed"
-  },
-  {
-   "type": "engine",
-   "ref": "bottom",
-   "panel": "market.breadth",
-   "w": 1,
-   "feed": "data/bottom.json",
-   "title": "Bottom -- breadth of the bottoming process"
-  },
-  {
-   "type": "section",
-   "page": "ai",
-   "sec": "1",
-   "w": 3,
-   "title": "AI -- the SageMaker front window (inventory, Brain pipeline, cost guard)"
-  },
-  {
-   "type": "section",
-   "page": "bonds",
-   "sec": "2",
-   "w": 3,
-   "title": "Global bond war room"
-  },
-  {
-   "type": "engine",
-   "ref": "bond-warroom",
-   "panel": "us_rates",
-   "w": 1,
-   "feed": "data/bond-warroom.json"
-  },
-  {
-   "type": "engine",
-   "ref": "bond-warroom",
-   "panel": "japan",
-   "w": 1,
-   "feed": "data/bond-warroom.json"
-  },
-  {
-   "type": "engine",
-   "ref": "bond-warroom",
-   "panel": "credit",
-   "w": 1,
-   "feed": "data/bond-warroom.json"
-  },
-  {
-   "type": "engine",
-   "ref": "bond-warroom",
-   "panel": "europe_spreads",
-   "w": 1,
-   "feed": "data/bond-warroom.json"
-  },
-  {
-   "type": "engine",
-   "ref": "bond-warroom",
-   "panel": "volatility",
-   "w": 1,
-   "feed": "data/bond-warroom.json"
-  },
-  {
-   "type": "engine",
-   "ref": "auction-desk",
-   "panel": "",
-   "w": 1,
-   "feed": "data/auction-desk.json"
-  }
+  {"type": "engine", "ref": "khalid", "panel": "overview", "w": 3, "feed": "data/khalid.json", "title": "Khalid · Risk & Opportunity Engine"},
+  {"type": "section", "page": "katlin", "sec": "2", "w": 3, "title": "Katlin buy desk -- war room"},
+  {"type": "engine", "ref": "katlin", "panel": "prime", "w": 1, "feed": "data/katlin.json", "title": "Katlin -- PRIME picks"},
+  {"type": "engine", "ref": "katlin", "panel": "ready", "w": 1, "feed": "data/katlin.json", "title": "Katlin -- READY picks"},
+  {"type": "engine", "ref": "katlin", "panel": "war_room", "w": 1, "feed": "data/katlin.json", "title": "Katlin -- risk legs"},
+  {"type": "section", "page": "bottom", "sec": "2", "w": 3, "title": "Bottom -- the Wyckoff bottom desk (tape read + process)"},
+  {"type": "engine", "ref": "bottom", "panel": "top_picks", "w": 1, "feed": "data/bottom.json", "title": "Bottom -- fresh triggers (close above the test candle)"},
+  {"type": "engine", "ref": "bottom", "panel": "changes", "w": 1, "feed": "data/bottom.json", "title": "Bottom -- what changed"},
+  {"type": "engine", "ref": "bottom", "panel": "market.breadth", "w": 1, "feed": "data/bottom.json", "title": "Bottom -- breadth of the bottoming process"},
+  {"type": "section", "page": "ai", "sec": "1", "w": 3, "title": "AI -- the SageMaker front window (inventory, Brain pipeline, cost guard)"},
+  {"type": "section", "page": "bonds", "sec": "2", "w": 3, "title": "Global bond war room"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "us_rates", "w": 1, "feed": "data/bond-warroom.json"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "japan", "w": 1, "feed": "data/bond-warroom.json"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "credit", "w": 1, "feed": "data/bond-warroom.json"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "europe_spreads", "w": 1, "feed": "data/bond-warroom.json"},
+  {"type": "engine", "ref": "bond-warroom", "panel": "volatility", "w": 1, "feed": "data/bond-warroom.json"},
+  {"type": "engine", "ref": "auction-desk", "panel": "", "w": 1, "feed": "data/auction-desk.json"},
+  {"type": "engine", "ref": "best-ideas", "panel": "", "w": 3, "feed": "data/best-ideas.json", "title": "Best Ideas -- multi-family confluence"},
+  {"type": "engine", "ref": "flow-confluence", "panel": "", "w": 1, "feed": "data/flow-confluence.json", "title": "Flow confluence"},
+  {"type": "engine", "ref": "options-confluence", "panel": "", "w": 1, "feed": "data/options-confluence.json", "title": "Options confluence"},
+  {"type": "engine", "ref": "boom-radar", "panel": "", "w": 1, "feed": "data/boom-radar.json", "title": "Boom radar"},
+  {"type": "engine", "ref": "alpha-confluence", "panel": "", "w": 2, "feed": "data/alpha-confluence.json", "title": "Alpha confluence"},
+  {"type": "section", "page": "best-ideas", "sec": "1", "w": 3, "title": "Best Ideas page -- live section 1"}
  ]
 }
