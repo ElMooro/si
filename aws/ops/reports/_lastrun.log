@@ -1,6 +1,26 @@
-executing-against: 8409758a0c66b250818ddcc03282d5ec921d2181
-ops 5405 -- freshness audit (no invokes)
-[19:36:58] overall=DEGRADED stale_providers=0 bad_pipes=['dead-lanes']
-[19:36:58] ✅ GREEN -- data/freshness-audit.json
+executing-against: 5e3cba063ffe8d7e90036157d1b25060f411e9d5
+ops 5406 -- Polygon/Finviz coverage gaps
+[19:40:57] ✅ grouped_daily_aggs IN
+[19:40:57] ✅ ticker_reference IN
+[19:40:57] ✅ related_tickers IN
+[19:40:57] ⚠ snapshots GAP
+[19:40:57] ⚠ minute_aggs GAP
+[19:40:57] ⚠ trades GAP
+[19:40:57] ⚠ quotes_nbbo GAP
+[19:40:57] ⚠ options GAP
+[19:40:57] ⚠ fundamentals_ratios GAP
+[19:40:57] ⚠ news GAP
+[19:40:57] ⚠ technicals GAP
+[19:40:57] ⚠ forex GAP
+[19:40:57] ⚠ crypto GAP
+[19:40:57] ⚠ indices GAP
+[19:40:57] ✅ screener_universe IN
+[19:40:57] ✅ signals_export IN
+[19:40:57] ⚠ insider GAP
+[19:40:57] ✅ news IN
+[19:40:57] ⚠ options_skew GAP
+[19:40:57] ⚠ maps GAP
+[19:40:57] ⚠ earnings GAP
+[19:40:57] ✅ GREEN -- data/provider-coverage-gaps.json gaps_p=['snapshots', 'minute_aggs', 'trades', 'quotes_nbbo', 'options', 'fundamentals_ratios', 'news', 'technicals', 'forex', 'crypto', 'indices'] gaps_f=['insider', 'options_skew', 'maps', 'earnings']
 
-→ Report written to aws/ops/reports/latest/ops_5405_freshness_audit.md
+→ Report written to aws/ops/reports/latest/ops_5406_provider_coverage_gaps.md
