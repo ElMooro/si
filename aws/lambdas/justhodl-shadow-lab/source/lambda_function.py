@@ -1,4 +1,4 @@
-"""justhodl-shadow-lab v1.0 — where borrowed ideas earn their seats.
+"""justhodl-shadow-lab v1.0.1 — where borrowed ideas earn their seats.
 Reads data/methodology-gaps.json, spawns the first two shadow
 indicators (ATR volatility-regime, ADX trend-strength) on real OHLC,
 logs signals via the shared emitter (hereditary fabric stamping from
@@ -31,9 +31,6 @@ def ohlc(sym, n=60):
             "https://financialmodelingprep.com/stable/"
             "historical-price-eod/full?symbol=%s&apikey=%s"
             % (sym, FMP),
-            "https://financialmodelingprep.com/api/v3/"
-            "historical-price-full/%s?timeseries=%d&apikey=%s"
-            % (sym, n + 5, FMP),
             "https://api.tiingo.com/tiingo/daily/%s/prices"
             "?startDate=2026-04-01&token=%s"
             % (sym.lower(), TIINGO)):
@@ -83,7 +80,6 @@ def atr_adx(bars, per=14):
     adx = wilder(dx)[-1] if len(dx) >= per else None
     c0 = bars[-1][2]
     atr_pct = 100.0 * atr[-1] / c0 if c0 else None
-    # ATR percentile vs its own trail
     trail = [100.0 * a / b[2] for a, b in
              zip(atr, bars[per:]) if b[2]]
     pr = (100.0 * sum(1 for x in trail if x <= atr_pct)
@@ -139,7 +135,7 @@ def lambda_handler(event=None, context=None):
             except Exception as e:
                 print("[shadow] log fail %s: %s"
                       % (sym, str(e)[:60]))
-    out = {"engine": "justhodl-shadow-lab", "version": "1.0",
+    out = {"engine": "justhodl-shadow-lab", "version": "1.0.1",
            "debug_key_len": len(FMP),
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
