@@ -1140,7 +1140,7 @@
     },
     {
       "engine": "justhodl-stock-buying",
-      "key": "data/warm/blackswan/sb_sur_*.json",
+      "key": "data/warm/blackswan/sb_earn_*.json",
       "role": "internal_input_cache",
       "purpose": "Re-fetchable FMP earnings-surprises input. Helper reads this TTL cache before provider fetch and returns it as scoring input; current ranked results are published separately. This is not the self-accumulating cryptocap history, which remains required.",
       "evidence": {
