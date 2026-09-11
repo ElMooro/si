@@ -7,8 +7,8 @@ agree (convergence) — convergence is far more predictive than any single signa
   BEAT     earnings-tracker  — recent EPS+revenue surprise (Benzinga PEAD)
   ANALYST  analyst-actions   — guidance raise / PT raise / upgrade (Benzinga)
   ESTIMATE estimate-revisions— forward-EPS growth + upward revision (FMP+Benzinga)
-  FLOW     flow-lookthrough  — actual ETF mechanical accumulation (Constituents)
-  SQUEEZE  squeeze-pretrigger— short-squeeze pressure (squeeze_risk = proven alpha)
+  FLOW     flow-lookthrough + flow-confluence fill
+  SQUEEZE  squeeze-pretrigger + options-confluence SQUEEZE_FUEL fill
   BREAKOUT 52wk-quality-breakout — technical breakout confirmation
 
 boom_score = sum(dimension sub-scores) x convergence multiplier. Names with >=3
@@ -27,7 +27,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/boom-radar.json"
 
 DIM_WEIGHT = {"BEAT": 1.0, "ANALYST": 1.1, "ESTIMATE": 1.0, "FLOW": 1.0,
-              "SQUEEZE": 1.2, "BREAKOUT": 0.8}  # squeeze slightly up (proven alpha)
+              "SQUEEZE": 1.2, "BREAKOUT": 0.8}
 
 
 def getj(key):
@@ -54,10 +54,8 @@ def _clamp(x, lo=0.0, hi=1.0):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    # dim -> {ticker: (subscore, reason)}
     dims = defaultdict(dict)
 
-    # BEAT
     et = getj("data/earnings-tracker.json") or {}
     for s in et.get("pead_signals", []) or []:
         tk = _tk(s)
@@ -65,7 +63,6 @@ def lambda_handler(event=None, context=None):
         if tk and isinstance(sc, (int, float)) and sc >= 60:
             dims["BEAT"][tk] = (_clamp((sc - 50) / 40), f"{s.get('pead_label','beat')} ({sc})")
 
-    # ANALYST
     aa = getj("data/analyst-actions.json") or {}
     for g in aa.get("guidance_raises", []) or []:
         tk = _tk(g)
@@ -80,7 +77,6 @@ def lambda_handler(event=None, context=None):
         if tk and tk not in dims["ANALYST"] and isinstance(ns, (int, float)) and ns > 0:
             dims["ANALYST"][tk] = (_clamp(ns / 15, 0.3, 1.0), f"net analyst +{ns}")
 
-    # ESTIMATE
     er = getj("data/estimate-revisions.json") or {}
     for s in er.get("estimate_strength_leaders", []) or []:
         tk = _tk(s); st = s.get("estimate_strength")
@@ -92,7 +88,6 @@ def lambda_handler(event=None, context=None):
         if tk and tk not in dims["ESTIMATE"] and isinstance(rv, (int, float)):
             dims["ESTIMATE"][tk] = (_clamp(0.5 + rv / 20, 0.3, 1.0), f"EPS est revised +{rv}%")
 
-    # FLOW (widen to all published flow lists for real coverage)
     fl = getj("data/flow-lookthrough.json") or {}
     for s in fl.get("actual_accumulation", []) or []:
         tk = _tk(s); bps = s.get("delta_bps_mcap")
@@ -110,9 +105,24 @@ def lambda_handler(event=None, context=None):
         tk = _tk(s)
         if tk and tk not in dims["FLOW"]:
             dims["FLOW"][tk] = (0.6, "ETF flow pick")
+    fc = getj("data/flow-confluence.json") or {}
+    for s in (fc.get("by_posture") or {}).get("ACCUMULATION") or []:
+        tk = _tk(s)
+        if tk and tk not in dims["FLOW"]:
+            dims["FLOW"][tk] = (0.7, "flow-confluence ACCUMULATION")
+    for s in (fc.get("by_posture") or {}).get("STEALTH_ACCUMULATION") or []:
+        tk = _tk(s)
+        if tk and tk not in dims["FLOW"]:
+            dims["FLOW"][tk] = (0.55, "flow-confluence STEALTH")
+    tm = fc.get("ticker_map") or {}
+    if isinstance(tm, dict):
+        for tk, rec in tm.items():
+            if not isinstance(rec, dict):
+                continue
+            post = rec.get("posture") or ""
+            if post in ("ACCUMULATION", "STEALTH_ACCUMULATION", "ACCUMULATION_LEAN") and tk not in dims["FLOW"]:
+                dims["FLOW"][tk] = (0.5 if "LEAN" in post else 0.65, f"flow-confluence {post}")
 
-    # SQUEEZE (squeeze-pretrigger is a market-regime engine; use per-name setups when present,
-    # and surface regime strength as context)
     sq = getj("data/squeeze-pretrigger.json") or {}
     squeeze_regime_strength = sq.get("signal_strength")
     squeeze_state = sq.get("state")
@@ -122,8 +132,12 @@ def lambda_handler(event=None, context=None):
             tk = _tk(s)
             if tk and tk not in dims["SQUEEZE"]:
                 dims["SQUEEZE"][tk] = (0.8, f"squeeze {lk.replace('_', ' ')}")
+    oc = getj("data/options-confluence.json") or {}
+    for s in (oc.get("by_posture") or {}).get("SQUEEZE_FUEL") or []:
+        tk = _tk(s)
+        if tk and tk not in dims["SQUEEZE"]:
+            dims["SQUEEZE"][tk] = (0.7, "options-confluence SQUEEZE_FUEL")
 
-    # BREAKOUT (52wk-quality-breakout publishes under 'picks')
     bo = getj("data/52wk-quality-breakout.json") or {}
     bo_list = bo if isinstance(bo, list) else (bo.get("picks") or bo.get("breakouts")
               or bo.get("top_picks") or bo.get("results") or bo.get("candidates") or [])
@@ -133,7 +147,6 @@ def lambda_handler(event=None, context=None):
             dims["BREAKOUT"][tk] = (0.7, "52wk quality breakout")
 
     dims_present = {d: len(v) for d, v in dims.items() if v}
-    # aggregate per ticker
     agg = defaultdict(lambda: {"ticker": None, "dims": [], "raw": 0.0, "reasons": []})
     for d, m in dims.items():
         w = DIM_WEIGHT.get(d, 1.0)
@@ -144,24 +157,54 @@ def lambda_handler(event=None, context=None):
             a["raw"] += sub * w
             a["reasons"].append(f"{d}: {reason}")
 
+    hair, hair_why = 1.0, None
+    bv = getj("data/bond-vol.json") or {}
+    rg = getj("data/regime.json") or {}
+    state = str(bv.get("regime") or bv.get("state") or rg.get("regime") or rg.get("state") or "").lower()
+    try:
+        move = float(bv.get("move") or bv.get("composite") or bv.get("level") or 0)
+    except (TypeError, ValueError):
+        move = 0
+    if "risk-off" in state or "risk_off" in state or "stress" in state:
+        hair, hair_why = 0.82, "regime risk-off haircut"
+    elif move >= 130:
+        hair, hair_why = 0.88, "elevated bond-vol haircut"
+    bad = set()
+    bn = getj("data/beneish.json") or {}
+    for it in (bn.get("manipulators") or bn.get("high_risk") or bn.get("flags") or []):
+        if isinstance(it, dict):
+            sy = _tk(it)
+            if sy:
+                bad.add(sy)
+
     cands = []
     for tk, a in agg.items():
         n = len(a["dims"])
-        boom = round(a["raw"] * (1 + 0.4 * (n - 1)), 2)  # convergence multiplier
-        cands.append({"ticker": tk, "boom_score": boom, "convergence": n,
-                      "dimensions": sorted(a["dims"]), "reasons": a["reasons"]})
+        boom = a["raw"] * (1 + 0.4 * (n - 1))
+        notes = []
+        if hair < 1.0:
+            boom *= hair
+            notes.append(hair_why)
+        if tk in bad:
+            boom *= 0.75
+            notes.append("Beneish flag")
+        boom = round(boom, 2)
+        rec = {"ticker": tk, "boom_score": boom, "convergence": n,
+               "dimensions": sorted(a["dims"]), "reasons": a["reasons"]}
+        if notes:
+            rec["overlays"] = notes
+        cands.append(rec)
     cands.sort(key=lambda c: (c["convergence"], c["boom_score"]), reverse=True)
 
     boom_candidates = [c for c in cands if c["convergence"] >= 2][:60]
     high_conviction = [c for c in cands if c["convergence"] >= 3]
-    # picks: prefer >=3-way; in quiet regimes fall back to strong 2-way (score floor)
     pick_pool = high_conviction or [c for c in cands if c["convergence"] >= 2 and c["boom_score"] >= 1.6]
     top_picks = [{"ticker": c["ticker"], "score": c["boom_score"],
                   "convergence": c["convergence"], "dimensions": c["dimensions"]}
                  for c in pick_pool][:15]
 
     out = {
-        "engine": "justhodl-boom-radar", "version": "1.0.0",
+        "engine": "justhodl-boom-radar", "version": "1.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "Booms come from CONVERGENCE — independent bullish signals stacking on "
                   "one name. Fuses earnings beats, analyst guidance/PT, estimate strength, "
@@ -186,6 +229,8 @@ def lambda_handler(event=None, context=None):
             "still being graded vs SPY; convergence raises the bar but does not bypass measurement.",
             "Squeeze + breakout dimensions can favour high-volatility small-caps.",
         ],
+        "overlays": {"regime_haircut": hair, "regime_state": state or None,
+                     "forensic_flagged": len(bad)},
         "elapsed_s": round(time.time() - t0, 1),
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
