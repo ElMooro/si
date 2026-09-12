@@ -1,6 +1,171 @@
 {
-  "observed_at": "2026-09-12T03:57:47.234997+00:00",
+  "observed_at": "2026-09-12T03:59:40.574269+00:00",
   "runs": [
+    {
+      "id": 34671745576,
+      "path": ".github/workflows/run-ops.yml",
+      "head_sha": "1fd0db0a334bd0792d33f1775cc259a608fe75d1",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-12T03:57:52Z",
+      "updated_at": "2026-09-12T03:59:13Z",
+      "jobs": [
+        {
+          "id": 103494272157,
+          "name": "Execute ops script",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-09-12T03:57:55Z",
+          "completed_at": "2026-09-12T03:59:12Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:57:56Z",
+              "completed_at": "2026-09-12T03:57:57Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:57:57Z",
+              "completed_at": "2026-09-12T03:58:02Z"
+            },
+            {
+              "number": 3,
+              "name": "Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:02Z",
+              "completed_at": "2026-09-12T03:58:03Z"
+            },
+            {
+              "number": 4,
+              "name": "Install dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:03Z",
+              "completed_at": "2026-09-12T03:58:10Z"
+            },
+            {
+              "number": 5,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:10Z",
+              "completed_at": "2026-09-12T03:58:10Z"
+            },
+            {
+              "number": 6,
+              "name": "Sync to freshest main (kill stale-checkout race)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:10Z",
+              "completed_at": "2026-09-12T03:58:11Z"
+            },
+            {
+              "number": 7,
+              "name": "Determine script(s) to run (ops queue)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:11Z",
+              "completed_at": "2026-09-12T03:58:12Z"
+            },
+            {
+              "number": 8,
+              "name": "Refresh engine manifest (fleet self-knowledge)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:12Z",
+              "completed_at": "2026-09-12T03:58:48Z"
+            },
+            {
+              "number": 9,
+              "name": "Preserve long verification connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:48Z",
+              "completed_at": "2026-09-12T03:58:49Z"
+            },
+            {
+              "number": 10,
+              "name": "Run script(s)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:58:49Z",
+              "completed_at": "2026-09-12T03:59:08Z"
+            },
+            {
+              "number": 11,
+              "name": "Regenerate STATE.md snapshot",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:08Z",
+              "completed_at": "2026-09-12T03:59:08Z"
+            },
+            {
+              "number": 12,
+              "name": "Preserve reviewed audit receipts before commit",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:08Z",
+              "completed_at": "2026-09-12T03:59:09Z"
+            },
+            {
+              "number": 13,
+              "name": "Commit any new/changed reports or imports",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:09Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            },
+            {
+              "number": 14,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:11Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:11Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            },
+            {
+              "number": 27,
+              "name": "Post Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:11Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            },
+            {
+              "number": 28,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:11Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            },
+            {
+              "number": 29,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T03:59:11Z",
+              "completed_at": "2026-09-12T03:59:11Z"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": 34671666214,
       "path": ".github/workflows/deploy-lambdas.yml",
@@ -5772,147 +5937,6 @@
             "failed_functions": [],
             "deployed_functions": []
           }
-        }
-      ]
-    },
-    {
-      "id": 34667702483,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "a53497c74a83af7855e32667e3a1d0bba8152dd8",
-      "status": "completed",
-      "conclusion": "success",
-      "created_at": "2026-09-12T02:27:17Z",
-      "updated_at": "2026-09-12T02:27:30Z",
-      "jobs": [
-        {
-          "id": 103482884290,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "success",
-          "started_at": "2026-09-12T02:27:20Z",
-          "completed_at": "2026-09-12T02:27:30Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:21Z",
-              "completed_at": "2026-09-12T02:27:22Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:22Z",
-              "completed_at": "2026-09-12T02:27:26Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:26Z",
-              "completed_at": "2026-09-12T02:27:26Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:26Z",
-              "completed_at": "2026-09-12T02:27:26Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:26Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 10,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:27Z"
-            },
-            {
-              "number": 11,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:27Z",
-              "completed_at": "2026-09-12T02:27:28Z"
-            },
-            {
-              "number": 12,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:28Z",
-              "completed_at": "2026-09-12T02:27:28Z"
-            },
-            {
-              "number": 23,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:28Z",
-              "completed_at": "2026-09-12T02:27:28Z"
-            },
-            {
-              "number": 24,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:28Z",
-              "completed_at": "2026-09-12T02:27:28Z"
-            },
-            {
-              "number": 25,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T02:27:28Z",
-              "completed_at": "2026-09-12T02:27:28Z"
-            }
-          ]
         }
       ]
     },
