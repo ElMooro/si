@@ -2,6 +2,34 @@
    Derives the page from the URL, fetches data/page-ai/{page}.json, renders a floating
    panel. Degrades silently if no AI data exists yet for the page. */
 (function () {
+  if (!/chart-pro\.html/i.test(location.pathname || "")) return;
+  function hide() {
+    document.querySelectorAll(".ai-index-strip").forEach(function (el) { el.style.display = "none"; });
+  }
+  hide();
+  document.addEventListener("DOMContentLoaded", hide);
+  fetch("/data/macro-tape.json?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .catch(function () {
+      return fetch("https://justhodl-data-proxy.raafouis.workers.dev/data/macro-tape.json?t=" + Date.now())
+        .then(function (r) { return r.ok ? r.json() : null; });
+    })
+    .then(function (j) {
+      if (!j || !j.fields) return;
+      var f = j.fields;
+      var want = { VIX: f.vix, DXY: f.dxy_broad, US10Y: f.us10y, "US CPI": f.us_cpi };
+      document.querySelectorAll("span, a, div").forEach(function (n) {
+        if (n.children && n.children.length) return;
+        var t = (n.textContent || "").replace(/\s+/g, " ").trim();
+        Object.keys(want).forEach(function (k) {
+          if (!want[k] || t.indexOf(k) !== 0) return;
+          if (/\d/.test(t) && t.length > k.length + 2) return;
+          n.textContent = k + " " + want[k].value;
+        });
+      });
+    });
+})();
+(function () {
   "use strict";
   if (window.__jhPageAI) return; window.__jhPageAI = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
@@ -11,7 +39,7 @@
     p = p.replace(/\.html?$/i, "");
     return p || "index";
   }
-  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">");}
 
   function gj(path) {
     return fetch("https://justhodl.ai/" + path + "?t=" + Date.now()).then(function (r) {
@@ -113,7 +141,7 @@
   function init() {
     css();
     var fab = document.createElement("button"); fab.id = "jhpai-fab";
-    fab.innerHTML = '<span class="d"></span><span>AI: explain &amp; outlook</span>';
+    fab.innerHTML = '<span class="d"></span><span>AI: explain & outlook</span>';
     var panel = document.createElement("div"); panel.id = "jhpai-panel";
     document.body.appendChild(fab); document.body.appendChild(panel);
     var loaded = false, data = null;
