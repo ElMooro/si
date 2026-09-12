@@ -1,17 +1,8 @@
-executing-against: 33e51b203daa77c2e3d1d9e18bd7881c77d708de
-ops 5483 macro-tape
-[17:57:26] ✅ GDPNOW 2026-07-01 4.4164
-[17:57:26] ✅ PAYEMS 2026-08-01 159075
-[17:57:26] ✅ CPIAUCSL 2026-08-01 334.131
-[17:57:26] ✅ T10Y3M 2026-09-11 0.89
-[17:57:26] ✅ SOFR 2026-09-10 3.62
-[17:57:26] ✅ DTWEXBGS 2026-09-04 118.0732
-[17:57:26] ✅ BAMLH0A0HYM2 2026-09-10 2.7
-[17:57:26] ✅ VIXCLS 2026-09-10 17.84
-[17:57:26] ✅ NFCI 2026-09-04 -0.56400
-[17:57:26] ✅ UNRATE 2026-08-01 4.1
-[17:57:26] ✅ DGS10 2026-09-10 4.95
-[17:57:26] ✅ DCOILWTICO 2026-09-09 97.26
-[17:57:26] ✅ wrote data/macro-tape.json fields=12
+executing-against: 6fcd789a0b0ffd790faaa4d0f40dd65f4bf9c4d8
+ops 5484 CFTC surface
+[18:02:32] ✅ data/warm/cftc/ n=3
+[18:02:32] ✅ data/cftc/ n=0
+[18:02:32] ✅ data/warm/cftc-cot/ n=0
+[18:02:32] ✅ wrote data/cftc-surface.json n_total=3
 
-→ Report written to aws/ops/reports/latest/ops_5483_macro_tape.md
+→ Report written to aws/ops/reports/latest/ops_5484_cftc_surface.md
