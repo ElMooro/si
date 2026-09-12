@@ -1,14 +1,13 @@
-executing-against: b6d35ec652cc23f9bcfd16dd80110b7eb4452929
-ops 5437 -- market_tape_brief fusion leg (MARKET, shadow): receipts + one bridge run + verdict
-[04:25:45] ✅ justhodl-jhsignal-bridge receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=waGBqQAsCKjO
-[04:25:45] ✅ justhodl-jhsignal-bridge zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
-[04:25:45] ✅ justhodl-jh-fusion receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=CKkwLex/jj68
-[04:25:45] ✅ justhodl-jh-fusion zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
-[04:25:56] ✅ bridge run 20260912T042546Z-8405d0f7: n_signals=1967 n_entities=1583 market_tape_brief={"engine_id": "market_tape_brief", "family": "MARKET", "criticality": "NONCRITICAL", "n_signals": 1, "n_rejected": 0, "n_skipped": 0, "skip_reasons": {}, "source_status": "OK", "data_asof": "2026-09-12T04:13:51Z", "asof_basis": "engine", "diagnostics": []}
-[04:25:57] ✅ state store: market_tape_brief market rows=1 {"signal_type": "market_tape_flow", "score": -0.25, "confidence": 0.133333, "horizon": "INTERMEDIATE", "freshness": "FRESH", "data_asof": "2026-09-12T04:13:51Z"}
-[04:25:57] ✅ state store: positioning_flow untouched: rows=1 score before=0.27186 after=0.27186 freshness=FRESH
-[04:26:07] ✅ fusion run 20260912T042556Z-516e28a5 at 2026-09-12T04:25:56Z: market leg present=True shadow=True best=INTERMEDIATE fusion=0.1884 coverage=0.9231 missing=['CATALYST'] confidence=0.8011
-[04:26:07] ✅ verdict reprojected from fusion run 20260912T042556Z-516e28a5: coverage=0.9231 score=0.1884 missing=['CATALYST']
-[04:26:07] ✅ GREEN -- market_tape_brief is a live MARKET leg in shadow: receipts carry the row, bridge OK/1 signal, state FRESH (-0.25 @ conf ~0.13), positioning untouched, fusion coverage 0.9231 missing ['CATALYST'], verdict reprojected
+executing-against: 4028960356e06617f432ead9e7def1697f563c30
+ops 5438 brief compiler schedule
+[04:31:45] ✅ plumbing status=LIVE plumbing-stress composite_label=NORMAL score=44.1
+[04:31:45] ✅ official_stats status=LIVE GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11
+[04:31:46] ✅ market_tape status=LIVE session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 3/5/52 basis=uncapped
+[04:31:47] ✅ positioning status=LIVE 13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 0/0/0 of 0
+[04:31:47] ✅ event status=LIVE finviz-signals n_screens=None confluence_n=385
+[04:31:47] ✅ verdict coverage=0.9231 missing=['CATALYST']
+[04:31:47] ✅ manifest rules=455 added=['brief-compiler-plumbing-6h', 'brief-compiler-market-tape-6h', 'brief-compiler-official-stats-daily', 'brief-compiler-positioning-daily', 'brief-compiler-event-6h', 'brief-compiler-verdict-3h']
+[04:32:05] ✅ reconciler drift=309
+[04:32:06] ✅ compiler verdict invoke: {"ok": true, "results": {"verdict": {"coverage": 0.9231, "score": 0.1884, "missing": ["CATALYST"], "as_of": "2026-09-12T04:25:56Z"}}}
 
-→ Report written to aws/ops/reports/latest/ops_5437_market_tape_brief_fusion_leg_proof.md
+→ Report written to aws/ops/reports/latest/ops_5438_brief_compiler_schedule.md
