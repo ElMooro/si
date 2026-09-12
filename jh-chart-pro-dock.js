@@ -1,4 +1,4 @@
-/* jh-chart-pro-dock.js -- warehouse rail; uses Chart Pro layout switcher, does not rebuild TV */
+/* jh-chart-pro-dock.js -- warehouse rail; uses Chart Pro layout + ChartSync range */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
   if (window.__jhChartDock) return;
@@ -23,6 +23,15 @@
     var btn = document.querySelector('.layout-btn[data-layout="' + id + '"]');
     if (btn) btn.click();
   }
+  function applyRange(to) {
+    if (!to || !window.ChartSync || !ChartSync.charts) return;
+    var toD = new Date(String(to).slice(0, 10) + "T00:00:00Z");
+    var from = new Date(toD.getTime() - 365 * 86400000).toISOString().slice(0, 10);
+    var toS = String(to).slice(0, 10);
+    ChartSync.charts.forEach(function (c) {
+      try { c.timeScale().setVisibleRange({ from: from, to: toS }); } catch (e) {}
+    });
+  }
   var box = document.createElement("aside");
   box.id = "jh-chart-dock";
   box.style.cssText = "position:fixed;left:10px;top:88px;z-index:40;width:200px;max-height:72vh;overflow:auto;padding:10px 12px;border:1px solid #1d2636;border-radius:10px;background:rgba(10,13,18,.94);color:#a8b3c7;font:12px Inter,sans-serif";
@@ -38,7 +47,10 @@
     }
   }
   if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
-  window.addEventListener("jh-chart-asof", function () { clickLayout("1x2"); });
+  window.addEventListener("jh-chart-asof", function (ev) {
+    clickLayout("1x2");
+    applyRange(ev && ev.detail);
+  });
   Promise.all([
     gj("data/plumbing-brief.json"),
     gj("data/official-stats-brief.json"),
