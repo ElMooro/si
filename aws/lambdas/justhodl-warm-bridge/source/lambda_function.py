@@ -17,6 +17,8 @@ from datetime import datetime, timezone
 
 import boto3
 
+from ofr_funding import build_funding
+
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 try:
@@ -72,53 +74,9 @@ def _pub(key, doc):
 
 
 def _ofr(now):
-    out = {"as_of": now, "source": "OFR Short-Term Funding Monitor"}
-    for mn, label in [("REPO-TRI_AR_OO-P", "triparty_rate"),
-                      ("REPO-TRI_TV_OO-P", "triparty_volume"),
-                      ("REPO-DVP_AR_OO-P", "dvp_rate"),
-                      ("REPO-GCF_AR_OO-P", "gcf_rate"),
-                      ("FNYR-SOFR-A", "sofr")]:
-        try:
-            d = _get(f"data/warm/ofr/series/{mn}.json.gz")
-            # ops 4498: OFR file shape drifted at 100%-completion —
-            # adaptive extractor over the known containers, last
-            # non-null observation wins.
-            pl = d.get("payload", {})
-            ts = []
-            node = pl.get("timeseries", pl)
-            for k in ("aggregation", "data", "observations",
-                      "values", "series"):
-                v = node.get(k) if isinstance(node, dict) else None
-                if isinstance(v, list) and v:
-                    ts = v
-                    break
-            if not ts and isinstance(pl, list):
-                ts = pl
-            last = None
-            for row in reversed(ts):
-                if isinstance(row, (list, tuple)) and len(row) >= 2 \
-                        and row[1] is not None:
-                    last = row
-                    break
-                if isinstance(row, dict) and row.get("value") \
-                        is not None:
-                    last = [row.get("date") or row.get("d"),
-                            row.get("value")]
-                    break
-            if last:
-                out[label] = wrap(
-                    last[1], source_url=d.get("source_url"),
-                    raw_snapshot_key=d.get("raw_snapshot_key"),
-                    provider="ofr", observed=str(last[0]),
-                    fetched_at=d.get("as_of"))
-            else:
-                out[label] = missing("empty timeseries", provider="ofr")
-        except Exception as e:
-            out[label] = missing(f"{type(e).__name__}: {str(e)[:50]}",
-                                 provider="ofr")
+    out = build_funding(_get, now)
     _pub("data/ofr-funding.json", out)
-    return sum(1 for v in out.values()
-               if isinstance(v, dict) and "value" in v)
+    return out["available_fields"]
 
 
 def _soma(now):
@@ -241,6 +199,11 @@ def _bea(now):
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if isinstance(event, dict) and event.get("feed") == "ofr":
+        # Bounded repair/verification invocation: only the OFR hot key is written.
+        count = _ofr(now)
+        return {"statusCode": 200, "body": json.dumps({
+            "ok": count == 5, "wrapped": {"ofr": count}})}
     res = {"ok": True,
            "wrapped": {"ofr": _ofr(now), "soma": _soma(now),
                        "treasury": _treasury(now), "bls": _bls(now),
