@@ -1,0 +1,17 @@
+# ops 5491 verify hot keys
+
+**Status:** success  
+**Duration:** 0.3s  
+**Finished:** 2026-09-12T20:28:19+00:00  
+
+## Log
+- `20:28:19` ✅ data/real-economy-summary.json 911 2026-09-12 20:26:18+00:00
+- `20:28:19` ✅ data/treasury-auctions-composite.json 66931 2026-09-12 20:26:19+00:00
+- `20:28:19` ✅ data/dtcc-fails-agency.json 11251 2026-09-12 20:26:19+00:00
+- `20:28:19` ✅ data/tic-state.json 2514 2026-09-12 20:26:19+00:00
+- `20:28:19` ✅ data/fiscaldata-state.json 10713 2026-09-12 20:26:19+00:00
+- `20:28:19` ✅ data/census-us-state.json 34904 2026-09-12 20:26:20+00:00
+- `20:28:19` ✅ data/bls-full-state.json 193782 2026-09-12 20:26:20+00:00
+- `20:28:19` ✅ data/macro-tape.json 1698 2026-09-12 17:57:27+00:00
+- `20:28:19` ✅ data/inst-public-join.json 11429 2026-09-12 16:39:22+00:00
+- `20:28:19` ✅ data/cftc-join.json 729 2026-09-12 18:46:34+00:00
