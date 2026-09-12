@@ -1,11 +1,10 @@
 /* jh-page-ai.js — universal per-page AI panel (explain + analyze + grounded outlook). */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
-  ["jh-chart-pro-dock", "jh-tv-lists-bridge"].forEach(function (name) {
+  ["jh-chart-pro-dock", "jh-tv-lists-bridge", "jh-chart-tf-fix", "jh-chart-audit-fix"].forEach(function (name) {
     if (document.querySelector('script[src*="' + name + '"]')) return;
     var s = document.createElement("script");
-    s.src = "/" + name + ".js?t=" + Date.now();
-    s.defer = true;
+    s.src = "/" + name + ".js?v=20260912c";
     (document.head || document.documentElement).appendChild(s);
   });
   function hide() {
@@ -21,43 +20,6 @@
   hide();
   document.addEventListener("DOMContentLoaded", hide);
   setTimeout(hide, 1200);
-  fetch("/data/macro-tape.json?t=" + Date.now(), { cache: "no-store" })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-    .catch(function () {
-      return fetch("https://justhodl-data-proxy.raafouis.workers.dev/data/macro-tape.json?t=" + Date.now())
-        .then(function (r) { return r.ok ? r.json() : null; });
-    })
-    .then(function (j) {
-      if (!j || !j.fields) return;
-      var f = j.fields;
-      var want = { VIX: f.vix, DXY: f.dxy_broad, US10Y: f.us10y, "US CPI": f.us_cpi };
-      document.querySelectorAll("span, a, div").forEach(function (n) {
-        if (n.children && n.children.length) return;
-        var t = (n.textContent || "").replace(/\s+/g, " ").trim();
-        Object.keys(want).forEach(function (k) {
-          if (!want[k] || t.indexOf(k) !== 0) return;
-          if (/\d/.test(t) && t.length > k.length + 2) return;
-          n.textContent = k + " " + want[k].value;
-        });
-      });
-    });
-  fetch("/data/verdict.json?t=" + Date.now(), { cache: "no-store" })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-    .catch(function () {
-      return fetch("https://justhodl-data-proxy.raafouis.workers.dev/data/verdict.json?t=" + Date.now())
-        .then(function (r) { return r.ok ? r.json() : null; });
-    })
-    .then(function (v) {
-      if (!v) return;
-      var label = [v.bias || v.call, v.regime, v.coverage != null ? ("cov " + v.coverage) : ""]
-        .filter(Boolean).join(" · ");
-      document.querySelectorAll("div, span").forEach(function (n) {
-        var t = (n.textContent || "").trim();
-        if (t === "Live Signals: No active JustHodl signals" || t === "No active JustHodl signals") {
-          n.textContent = "Live Signals: " + label;
-        }
-      });
-    });
 })();
 (function () {
   "use strict";
