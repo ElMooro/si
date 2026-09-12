@@ -1,0 +1,61 @@
+name: Pin official-stats registry
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/pin-official-stats-registry.yml"
+permissions:
+  contents: write
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Append official_stats_brief if missing
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          frag = json.loads(Path("config/brief-engine-official-stats.json").read_text())
+          paths = [
+            Path("config/engine-registry.v1.json"),
+            Path("aws/lambdas/justhodl-jhsignal-bridge/source/engine-registry.v1.json"),
+            Path("aws/lambdas/justhodl-jh-fusion/source/engine-registry.v1.json"),
+          ]
+          changed = False
+          texts = []
+          for p in paths:
+              raw = p.read_text()
+              doc = json.loads(raw)
+              ids = [e["engine_id"] for e in doc["engines"]]
+              if "official_stats_brief" in ids:
+                  texts.append(raw)
+                  continue
+              idx = raw.rfind("      }\n    }\n  ]\n}")
+              if idx < 0:
+                  raise SystemExit("cannot patch %s" % p)
+              block = json.dumps(frag, indent=2)
+              # indent block as an engines[] item (2 spaces already from dumps; need 4 more)
+              indented = "\n".join(("    " + line if line else line) for line in block.splitlines())
+              raw2 = raw[:idx] + "      }\n    },\n" + indented + "\n  ]\n}\n"
+              json.loads(raw2)  # validate
+              p.write_text(raw2)
+              changed = True
+              texts.append(raw2)
+          # force byte identity
+          if changed:
+              gold = Path("config/engine-registry.v1.json").read_text()
+              for p in paths[1:]:
+                  p.write_text(gold)
+          print("changed", changed, "engines", len(json.loads(Path(paths[0]).read_text())["engines"]))
+          PY
+      - name: Commit if needed
+        run: |
+          git config user.name "ElMooro"
+          git config user.email "raafouis@gmail.com"
+          git add config/engine-registry.v1.json aws/lambdas/justhodl-jhsignal-bridge/source/engine-registry.v1.json aws/lambdas/justhodl-jh-fusion/source/engine-registry.v1.json
+          if git diff --cached --quiet; then echo no-op; exit 0; fi
+          git commit -m "registry: official_stats_brief in all three copies [Grok]"
+          git push
