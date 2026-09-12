@@ -1,8 +1,7 @@
-executing-against: 7c2ba88bde4272768d634515b5edfb5bbc778382
+executing-against: fd2b110d5e79e46a5ec4aa8106509e22d33f7c92
 OFR deployed source and warehouse-to-hot verification
-[14:07:08] nyfed_warehouse_sofr={"key": "data/warm/nyfed/sofr.json.gz", "as_of": null, "latest": [{"date": "2026-09-08", "rate": 3.64}, {"date": "2026-09-09", "rate": 3.64}, {"date": "2026-09-10", "rate": 3.62}]}
-[14:07:11] ✅ Verified public feed: https://justhodl.ai/data/ofr-funding.json
-[14:07:11] ✅ Verified public feed: https://justhodl-data-proxy.raafouis.workers.dev/data/ofr-funding.json
-[14:07:11] ✅ PASS: five warehouse observations and provenance verified in S3 and both public routes
+[14:14:38] ✅ Verified public feed: https://justhodl.ai/data/ofr-funding.json
+[14:14:38] ✅ Verified public feed: https://justhodl-data-proxy.raafouis.workers.dev/data/ofr-funding.json
+[14:14:38] ✅ PASS: five current warehouse observations and provenance verified in S3 and both public routes
 
-→ Report written to aws/ops/reports/latest/ops_5442_verify_ofr_funding_repair.md
+→ Report written to aws/ops/reports/latest/ops_5444_verify_current_ofr_funding.md

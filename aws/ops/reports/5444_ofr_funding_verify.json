@@ -1,0 +1,107 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-09-12T14:14:38.190211+00:00",
+  "function": "justhodl-warm-bridge",
+  "release_commit": "a31baa50623ace7b13752d1aa3a1ab5dde300b60",
+  "deployment_run": "34698517763",
+  "code_sha256": "HWtQbCZyHYnP8xcA3TGuxiR1nt7dGBXfi4eTcqQag3A=",
+  "before": {
+    "triparty_rate": {
+      "value": 3.68,
+      "unit": "Percent",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "triparty_volume": {
+      "value": 2325530510643.57,
+      "unit": "USD",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_TV_TOT-P",
+      "provider": "ofr"
+    },
+    "dvp_rate": {
+      "value": 3.63,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-DVP_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "gcf_rate": {
+      "value": 3.69,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-GCF_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "sofr": {
+      "value": 3.66,
+      "unit": "Percent",
+      "as_of": "2026-08-04",
+      "data_unavailable": false,
+      "stale": true,
+      "series": "FNYR-SOFR-A",
+      "provider": "ofr"
+    }
+  },
+  "after": {
+    "triparty_rate": {
+      "value": 3.68,
+      "unit": "Percent",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "triparty_volume": {
+      "value": 2325530510643.57,
+      "unit": "USD",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_TV_TOT-P",
+      "provider": "ofr"
+    },
+    "dvp_rate": {
+      "value": 3.63,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-DVP_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "gcf_rate": {
+      "value": 3.69,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-GCF_AR_TOT-P",
+      "provider": "ofr"
+    },
+    "sofr": {
+      "value": 3.62,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "SOFR",
+      "provider": "nyfed"
+    }
+  },
+  "public_routes": [
+    "https://justhodl.ai/data/ofr-funding.json",
+    "https://justhodl-data-proxy.raafouis.workers.dev/data/ofr-funding.json"
+  ],
+  "published_at": "2026-09-12T14:14:36+00:00"
+}
