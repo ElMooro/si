@@ -9,6 +9,10 @@
     ["data/official-stats-brief.json", "Official-stats brief"],
     ["data/positioning-brief.json", "Positioning brief"],
     ["data/event-brief.json", "Event brief"],
+    ["data/ofr-funding.json", "OFR funding"],
+    ["data/theme-eurostat.json", "Eurostat theme"],
+    ["data/theme-gdelt.json", "GDELT theme"],
+    ["data/warehouse-use.json", "Warehouse surface"],
     ["data/polygon-snapshot.json", "Polygon snapshot"],
     ["data/polygon-short-interest.json", "Polygon short interest"],
     ["data/polygon-news.json", "Polygon news"],
@@ -40,8 +44,8 @@
     box.innerHTML = "<div style=\"font:11px 'IBM Plex Mono',monospace;color:#22d3ee;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px\">Briefs + paid feeds</div>";
     var grid = el("div", "display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px");
     box.appendChild(grid);
-    var host = document.querySelector(".shell, main, #app, body");
-    if (host && host.firstChild) host.insertBefore(box, host.firstChild === document.body ? host.children[1] : host.firstChild);
+    var host = document.querySelector(".wrap, .shell, main, #app, body");
+    if (host && host.firstChild) host.insertBefore(box, host.children[1] || host.firstChild);
     else document.body.appendChild(box);
     KEYS.forEach(function (pair) {
       var key = pair[0], label = pair[1];
@@ -54,13 +58,16 @@
           if (j.why) bits.push(j.why);
           if (j.score != null) bits.push("score=" + j.score);
           if (j.horizon) bits.push(j.horizon);
+          if (j.available_fields != null) bits.push("fields " + j.available_fields);
           if (j.fields && j.fields.composite_label) bits.push(j.fields.composite_label + " " + j.fields.composite_score);
           if (j.fields && j.fields.session) bits.push("session " + j.fields.session);
           if (j.fields && j.fields.n_tickers) bits.push("tickers " + j.fields.n_tickers);
           if (j.n != null) bits.push("n=" + j.n);
           if (j.n_accumulating != null) bits.push("buy=" + j.n_accumulating);
-          if (j.n_distributing != null) bits.push("sell=" + j.n_distributing);
-          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ");
+          if (j.series_count != null) bits.push("series " + j.series_count);
+          if (j.n_prefixes != null) bits.push("prefixes " + j.n_prefixes);
+          if (j.n_hot != null) bits.push("hot " + j.n_hot);
+          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ") || JSON.stringify(j).slice(0, 120);
         })
         .catch(function (e) {
           card.querySelector(".jh-df-stat").textContent = "missing " + e;
