@@ -10,6 +10,7 @@
     ["data/polygon-options.json", "Polygon options"],
     ["data/polygon-ratios.json", "Polygon financials"],
     ["data/finviz-insider.json", "Finviz insider"],
+    ["data/finviz-inst-flow.json", "Finviz institutional flow"],
     ["data/fed-nowcast-join.json", "Fed nowcast join"]
   ];
   function el(tag, css, html) {
@@ -40,6 +41,9 @@
           if (j.n != null) bits.push("n=" + j.n);
           if (j.n_ok != null) bits.push("ok=" + j.n_ok);
           if (j.n_screens != null) bits.push("screens=" + j.n_screens);
+          if (j.n_with_inst_trans != null) bits.push("inst=" + j.n_with_inst_trans);
+          if (j.n_accumulating != null) bits.push("buy=" + j.n_accumulating);
+          if (j.n_distributing != null) bits.push("sell=" + j.n_distributing);
           if (j.series && j.series.clevelandfed && j.series.clevelandfed.last)
             bits.push("Cle " + JSON.stringify(j.series.clevelandfed.last));
           if (j.series && j.series.atlantafed && j.series.atlantafed.last)
