@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finiviz · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--bd:#1c2330;--tx:#e8edf4;--dim:#8b96a8;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+a{color:var(--info);text-decoration:none}.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 64px}
+h1{font-size:22px;margin:8px 0 4px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--info);margin:22px 0 8px}
+.sub{color:var(--dim);max-width:720px}.meta{font-family:var(--mono);font-size:11px;color:var(--dim);margin:8px 0 16px}.meta b{color:var(--info)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.card h3{margin:0;padding:10px 12px;border-bottom:1px solid var(--bd);font-size:13px;display:flex;justify-content:space-between}
+.scroll{max-height:420px;overflow:auto}table{width:100%;border-collapse:collapse}
+th,td{padding:6px 10px;font-family:var(--mono);font-size:11px;text-align:right;border-bottom:1px solid rgba(28,35,48,.6)}
+th.l,td.l{text-align:left}.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--dim)}
+.chips span{display:inline-block;font-family:var(--mono);font-size:11px;border:1px solid var(--bd);border-radius:4px;padding:2px 7px;margin:2px}
+.tabs button{background:var(--panel);color:var(--dim);border:1px solid var(--bd);border-radius:5px;padding:6px 10px;margin:0 6px 10px 0;cursor:pointer;font-family:var(--mono);font-size:11px}
+.tabs button.on{background:var(--info);color:#0a0e14;border-color:var(--info);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/">← JustHodl.AI</a>
+  <h1>Finiviz</h1>
+  <p class="sub">Every Finviz Elite surface we already warehouse — institutional 3-month footprint, insider tape, event screens, news. No new crawler. Source: finviz-universe + finviz-signals + inst-flow + insider + news.</p>
+  <div class="meta">inst-flow <b id="m-inst">—</b> · signals <b id="m-sig">—</b> · insider <b id="m-ins">—</b> · news <b id="m-news">—</b></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view">loading Finviz warehouse…</div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const KEYS={
+  flow:"data/finviz-inst-flow.json",
+  signals:"data/finviz-signals.json",
+  insider:"data/finviz-insider.json",
+  news:"data/finviz-news.json"
+};
+let FLOW=null, SIG=null, INS=null, NEWS=null, tab="Institutions";
+const pct=v=>v==null?"—":((v>0?"+":"")+Number(v).toFixed(1)+"%");
+const cls=v=>v==null?"dim":v>0?"pos":"neg";
+function load(k){return fetch(S3+"/"+k+"?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)}
+function tbl(rows, cols){
+  if(!rows||!rows.length) return "<div style=\"padding:16px;color:var(--dim)\">empty</div>";
+  const head="<tr>"+cols.map(c=>"<th class=\""+(c.l?"l":"")+"\">"+c.h+"</th>").join("")+"</tr>";
+  const body=rows.slice(0,80).map(r=>"<tr>"+cols.map(c=>{
+    const v=typeof c.get==="function"?c.get(r):r[c.k];
+    const klass=(c.l?"l ":"")+(c.cls?c.cls(v):"");
+    const show=c.fmt?c.fmt(v):(v==null?"—":v);
+    return "<td class=\""+klass+"\">"+show+"</td>";
+  }).join("")+"</tr>").join("");
+  return "<div class=\"scroll\"><table><thead>"+head+"</thead><tbody>"+body+"</tbody></table></div>";
+}
+function instCols(){return [
+  {h:"Ticker",k:"ticker",l:1},
+  {h:"Company",k:"company",l:1},
+  {h:"Inst own",k:"inst_own_pct",fmt:pct,cls:cls},
+  {h:"Inst 3m",k:"inst_trans_pct",fmt:pct,cls:cls},
+  {h:"Insider 6m",k:"insider_trans_pct",fmt:pct,cls:cls},
+  {h:"Px",k:"price",fmt:v=>v==null?"—":Number(v).toFixed(2)}
+];}
+function render(){
+  const names=["Institutions","Insider","Signals","News"];
+  document.getElementById("tabs").innerHTML=names.map(n=>"<button class=\""+(n===tab?"on":"")+"\" data-t=\""+n+"\">"+n+"</button>").join("");
+  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();});
+  let html="";
+  if(tab==="Institutions"){
+    const f=FLOW||{};
+    html="<h2>Accumulating</h2><div class=\"card\">"+tbl(f.accumulating,instCols())+"</div>";
+    html+="<h2>Distributing</h2><div class=\"card\">"+tbl(f.distributing,instCols())+"</div>";
+    html+="<h2>Institutions + insiders both buying</h2><div class=\"card\">"+tbl(f.inst_and_insider_buying,instCols())+"</div>";
+    html+="<h2>High own still buying (≥50%)</h2><div class=\"card\">"+tbl(f.high_own_still_buying,instCols())+"</div>";
+  } else if(tab==="Insider"){
+    const s=(INS&&INS.screens)||(SIG&&SIG.signals)||{};
+    html="<h2>Insider buys</h2><div class=\"card\">"+tbl(s.insider_buys,["ticker","company","price","change_pct","perf_m"].map(k=>({h:k,k:k,l:k!=="price"&&!k.includes("pct"),fmt:k.includes("pct")||k==="perf_m"?pct:null,cls:k.includes("pct")||k==="perf_m"?cls:null})))+"</div>";
+    html+="<h2>Insider sales</h2><div class=\"card\">"+tbl(s.insider_sales,["ticker","company","price","change_pct","perf_m"].map(k=>({h:k,k:k,l:k!=="price"&&!k.includes("pct"),fmt:k.includes("pct")||k==="perf_m"?pct:null,cls:k.includes("pct")||k==="perf_m"?cls:null})))+"</div>";
+  } else if(tab==="Signals"){
+    const c=(SIG&&SIG.counts)||{};
+    const keys=Object.keys(c);
+    html="<div class=\"chips\">"+keys.map(k=>"<span>"+k+" <b>"+c[k]+"</b></span>").join("")+"</div>";
+    html+="<p class=\"sub\">Full screen tables stay on <a href=\"/finviz-signals.html\">finviz-signals.html</a>. This desk is the institutional book plus counts.</p>";
+    const cf=(SIG&&SIG.confluence)||{};
+    html+="<h2>Confluence</h2><div class=\"card\" style=\"padding:12px\">"+Object.keys(cf).map(k=>"<div style=\"margin:8px 0\"><b>"+k+"</b><div class=\"chips\">"+(cf[k]||[]).slice(0,24).map(t=>"<span>"+t+"</span>").join("")+"</div></div>").join("")+"</div>";
+  } else {
+    const items=(NEWS&&(NEWS.items||NEWS.news||NEWS.rows))||[];
+    if(!items.length && NEWS) html="<pre style=\"font-size:11px;color:var(--dim);white-space:pre-wrap\">"+JSON.stringify({keys:Object.keys(NEWS),n:NEWS.n||NEWS.n_news},null,2)+"</pre>";
+    html+="<div class=\"card\">"+tbl(items.slice(0,60),[{"h":"Ticker","k":"ticker",l:1},{"h":"Title","k":"title",l:1},{"h":"Source","k":"source",l:1},{"h":"Date","k":"date",l:1}])+"</div>";
+  }
+  document.getElementById("view").innerHTML=html;
+}
+Promise.all([load(KEYS.flow),load(KEYS.signals),load(KEYS.insider),load(KEYS.news)]).then(([f,s,i,n])=>{
+  FLOW=f; SIG=s; INS=i; NEWS=n;
+  document.getElementById("m-inst").textContent=f?(f.n_with_inst_trans||"LIVE")+" @ "+(f.generated_at||"").slice(0,19):"miss";
+  document.getElementById("m-sig").textContent=s?(s.generated_at||"").slice(0,19):"miss";
+  document.getElementById("m-ins").textContent=i?(i.n_screens||i.status||"LIVE"):"miss";
+  document.getElementById("m-news").textContent=n?(n.n_news||n.n||n.status||"LIVE"):"miss";
+  render();
+});
+</script>
+</body>
+</html>
