@@ -1,8 +1,10 @@
-executing-against: 41f73030d48ae2c756f846bd7b657958424118d3
-ops 5485 CFTC join
-[18:46:33] ✅ data/warm/cftc/disaggregated_futures.json.gz n=5000
-[18:46:33] ✅ data/warm/cftc/latest-summary.json n=None
-[18:46:33] ✅ data/warm/cftc/legacy_futures.json.gz n=5000
-[18:46:33] ✅ wrote data/cftc-join.json files=3
+executing-against: ebcc76468ff64886f1abd6fe6bc6e40225f5593f
+ops 5486 regional Fed surface
+[18:58:48] ✅ data/warm/nyfed-research/ n=513 newest=data/warm/nyfed-research/_last-check.json
+[18:58:48] ✅ data/warm/nyfed/ n=6 newest=data/warm/nyfed/effr.json.gz
+[18:58:48] ✅ data/warm/nyfed-sce/ n=0 newest=None
+[18:58:48] ✅ data/warm/sffed/ n=0 newest=None
+[18:58:48] ✅ data/warm/philadelphiafed/ n=0 newest=None
+[18:58:48] ✅ wrote data/regional-fed-surface.json n_total=519
 
-→ Report written to aws/ops/reports/latest/ops_5485_cftc_join.md
+→ Report written to aws/ops/reports/latest/ops_5486_nyfed_research_surface.md
