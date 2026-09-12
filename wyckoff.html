@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head>
+<script src="/private-artifacts.js?v=20260912"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Wyckoff · JustHodl.AI</title><meta name="robots" content="noindex">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#5ad2e8;--green:#26ffaf;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
+.brand{font-family:var(--mono);font-weight:700}.wrap{max-width:1100px;margin:0 auto;padding:22px}
+h1{font-size:26px;color:var(--fg-0)}h1 span{color:var(--cyan)}.sub{color:var(--fg-3);margin:6px 0 16px;max-width:720px;line-height:1.5}
+.box{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px}
+textarea{width:100%;min-height:90px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--fg-1);padding:12px;font:15px var(--sans)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{font-family:var(--mono);font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--fg-3)}
+.chip.on{background:var(--cyan);color:#111;border-color:var(--cyan);font-weight:700}
+.btn{background:var(--cyan);border:0;color:#111;font-weight:800;padding:10px 16px;border-radius:8px;cursor:pointer;margin-top:8px}
+.badge{font-family:var(--mono);font-size:11px;color:var(--fg-3);margin-left:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--fg-3);padding:7px;border-bottom:1px solid var(--border)}
+td{padding:7px;border-bottom:1px solid var(--border)}td.num{font-family:var(--mono);text-align:right}.pos{color:var(--green)}.neg{color:var(--red)}
+.saved{font-family:var(--mono);font-size:11px;color:var(--fg-3);margin-top:10px}
+</style></head><body>
+<header class="header">
+  <div class="brand">JustHodl<span style="color:var(--fg-3)">.AI</span></div>
+  <a href="/">Desk</a><a href="/brain.html">Brain</a><a href="/livermore.html">Livermore</a><a href="/wyckoff.html" style="color:var(--cyan)">Wyckoff</a>
+  <span class="badge" id="savebadge"></span>
+</header>
+<div class="wrap">
+  <h1>Richard <span>Wyckoff</span></h1>
+  <p class="sub">Composite operator. Accumulation, spring, SOS, distribution, upthrust. The engine does not chase the Livermore trend print — it looks for effort vs result and who is absorbing. Brief is stored on this device and in Brain when you are signed in.</p>
+  <div class="box">
+    <div class="chips" id="chips"></div>
+    <textarea id="q" placeholder="e.g. names in accumulation after a spring, institutional absorption, no markup until SOS. Flag distribution / upthrust after effort-without-result. Include ETFs where flow is rotating out of the crowd."></textarea>
+    <button class="btn" id="go">Save campaign & scan range</button>
+    <span class="badge" id="meta"></span>
+    <div class="saved" id="history"></div>
+  </div>
+  <div id="out">No scan yet.</div>
+</div>
+<script>
+const PROXY="https://api.justhodl.ai";
+const LS="jh_wyckoff_v1";
+const PRESETS=["accumulation","spring","sign of strength","markup","distribution","upthrust","markdown","effort vs result","absorption"];
+const on=new Set();
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&','<':'<','>':'>'}[c]));}
+function deviceId(){let d='';try{d=localStorage.getItem('jh_brain_device')||'';}catch(e){} if(!d){d='dev-'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36));try{localStorage.setItem('jh_brain_device',d);}catch(e){}} return d;}
+async function authHdr(){try{var t=window.JustHodlAuth&&JustHodlAuth.getAccessToken?await JustHodlAuth.getAccessToken():null;return t?{'Authorization':'Bearer '+t}:{};}catch(e){return {};}}
+function uid(){var u=window.JustHodlAuth&&JustHodlAuth.getUser&&JustHodlAuth.getUser();return u&&u.id?u.id:deviceId();}
+function loadState(){try{return JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){return {};}}
+function saveState(s){localStorage.setItem(LS,JSON.stringify(s));}
+function chips(){document.getElementById('chips').innerHTML=PRESETS.map(p=>'<span class="chip'+(on.has(p)?' on':'')+'" data-p="'+p+'">'+p+'</span>').join('');
+ document.querySelectorAll('#chips .chip').forEach(el=>el.onclick=()=>{if(on.has(el.dataset.p))on.delete(el.dataset.p);else on.add(el.dataset.p);chips();});}
+chips();
+const st0=loadState();if(st0.brief)document.getElementById('q').value=st0.brief;if(Array.isArray(st0.presets))st0.presets.forEach(p=>on.add(p));chips();
+renderHist(st0);
+function renderHist(s){const h=s.history||[];document.getElementById('history').innerHTML=h.slice(0,8).map(x=>'· '+esc(x.at.slice(0,16))+' — '+esc((x.brief||'').slice(0,80))).join('<br>');}
+async function persist(brief){
+  const s=loadState();s.brief=brief;s.presets=[...on];s.history=[{at:new Date().toISOString(),brief}].concat(s.history||[]).slice(0,40);saveState(s);renderHist(s);
+  const note={id:'wyc-'+Date.now().toString(36),cat:'thesis',text:'[WYCKOFF] '+brief,created:Date.now(),pinned:true};
+  try{
+    const headers=Object.assign({'Content-Type':'text/plain'},await authHdr());
+    await fetch(PROXY+'/brain?uid='+encodeURIComponent(uid()),{method:'PUT',headers,body:JSON.stringify({upsert:note})});
+    document.getElementById('savebadge').textContent='saved · brain + device';
+  }catch(e){document.getElementById('savebadge').textContent='saved · device only';}
+}
+function tokens(q){return (q||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);}
+function phaseHint(q){
+  const t=(q+' '+[...on].join(' ')).toLowerCase();
+  if(/distribut|upthrust|markdown/.test(t))return 'dist';
+  if(/accumul|spring|absorption|sos|sign of strength|markup/.test(t))return 'acc';
+  return 'both';
+}
+function scoreWyc(row,q,kind){
+  const t=tokens(q+' '+[...on].join(' '));
+  const blob=((row.ticker||'')+' '+(row.sector||'')+' '+(row.industry||'')+' '+(row.name||'')+' '+(row.flow_signal||'')).toLowerCase();
+  let s=0;t.forEach(w=>{if(blob.indexOf(w)>=0)s+=2;});
+  const it=parseFloat(row.inst_trans_pct);const ch=parseFloat(row.change||row.chg||row.change_pct);
+  const ph=phaseHint(q);
+  if(ph==='acc'||ph==='both'){
+    if(it>0)s+=4;if(it>8)s+=2;
+    if(!isNaN(ch)&&Math.abs(ch)<1.5&&it>0)s+=3;
+    if(on.has('spring')&&!isNaN(ch)&&ch< -2&&it>0)s+=4;
+  }
+  if(ph==='dist'||ph==='both'){
+    if(it<0)s+=4;if(it<-8)s+=2;
+    if(!isNaN(ch)&&ch>2&&it<0)s+=3;
+    if(on.has('upthrust')&&!isNaN(ch)&&ch>3&&it<0)s+=4;
+  }
+  if(on.has('effort vs result')&&!isNaN(ch)&&Math.abs(ch)<0.5)s+=2;
+  if(kind==='etf'){
+    const fs=String(row.flow_signal||'').toUpperCase();
+    if(ph==='acc'&&(fs.indexOf('INFLOW')>=0||fs.indexOf('_IN')>=0))s+=3;
+    if(ph==='dist'&&(fs.indexOf('OUTFLOW')>=0||fs.indexOf('_OUT')>=0))s+=3;
+    if(fs.indexOf('ROTATION')>=0)s+=2;
+  }
+  return s;
+}
+async function scan(){
+  const brief=(document.getElementById('q').value+' '+[...on].join(' ')).trim();
+  if(!brief){alert('Write a Wyckoff campaign first');return;}
+  document.getElementById('out').textContent='Scanning range…';
+  await persist(brief);
+  let uni={},etf={};
+  try{uni=await (await fetch('/data/finviz-universe.json?t='+Date.now())).json();}catch(e){}
+  try{etf=await (await fetch('/data/etf-flows.json?t='+Date.now())).json();}catch(e){}
+  const by=uni.by_ticker||uni.tickers||{};
+  const stocks=[];
+  Object.keys(by).forEach(k=>{const r=by[k]||{};r.ticker=r.ticker||k;r._s=scoreWyc(r,brief,'eq');if(r._s>0)stocks.push(r);});
+  stocks.sort((a,b)=>b._s-a._s);
+  const eby=etf.by_etf||{};
+  const etfs=[];
+  Object.keys(eby).forEach(k=>{const r=eby[k]||{};r.ticker=r.ticker||k;r._s=scoreWyc(r,brief,'etf');if(r._s>0)etfs.push(r);});
+  etfs.sort((a,b)=>b._s-a._s);
+  document.getElementById('meta').textContent=stocks.length+' names · '+etfs.length+' ETFs · phase '+phaseHint(brief);
+  function table(title,rows){
+    if(!rows.length)return '<div class="box">'+title+': none in this campaign</div>';
+    return '<div class="box"><b>'+title+'</b><table class="tbl"><thead><tr><th>Ticker</th><th>Tape</th><th>Inst %</th><th>Chg</th><th>Score</th></tr></thead><tbody>'+
+      rows.slice(0,40).map(r=>'<tr><td>'+esc(r.ticker)+'</td><td>'+esc(r.sector||r.flow_signal||r.name||'')+'</td><td class="num '+(r.inst_trans_pct>0?'pos':r.inst_trans_pct<0?'neg':'')+'">'+(r.inst_trans_pct==null?'—':Number(r.inst_trans_pct).toFixed(1))+'</td><td class="num">'+(r.change||r.chg||'—')+'</td><td class="num">'+r._s+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+  document.getElementById('out').innerHTML=table('Equities (Wyckoff range)',stocks)+table('ETFs / rotation vehicles',etfs);
+}
+document.getElementById('go').onclick=scan;
+</script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>
