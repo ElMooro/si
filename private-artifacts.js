@@ -73,7 +73,6 @@
   }
   let ready = null, observedUid;
   function reloadPrivateView() {
-    // Discard a prior account's already-rendered DOM before navigation starts.
     document.documentElement.style.visibility = 'hidden';
     location.reload();
   }
@@ -110,8 +109,6 @@
       const response = await nativeFetch(PRIVATE_API + (ownerApi || '/private-artifact?kind=' + encodeURIComponent(kind)), {
         method, body: requestBody, headers: {Authorization: 'Bearer ' + token, ...(ownerApi ? {'Content-Type':'application/json'} : {})}, cache: 'no-store', signal: init?.signal || input?.signal,
       });
-      // Buffer before releasing the response, so a delayed body from a previous
-      // account cannot repopulate a page after sign-out or account replacement.
       const body = method === 'HEAD' ? null : await response.arrayBuffer();
       if (auth.getUser()?.id !== uid) return unavailable('Account session changed.', 401);
       if ([401, 403, 503].includes(response.status)) showAccessStatus(response.status);
@@ -121,4 +118,13 @@
   window.JustHodlPrivateArtifacts = {kindFor, fetch: privateFetch, ready: authReady};
   window.fetch = privateFetch;
   window.addEventListener('pageshow', event => { if (event.persisted) reloadPrivateView(); });
+  try {
+    var p = (location.pathname || '').toLowerCase();
+    if ((/ticker\.html$/).test(p) || p === '/ticker') {
+      var s = document.createElement('script');
+      s.src = '/jh-ticker-research.js';
+      s.defer = true;
+      (document.head || document.documentElement).appendChild(s);
+    }
+  } catch (_) {}
 })();
