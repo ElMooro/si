@@ -127,5 +127,6 @@
     }
     if ((/ticker\.html$/).test(p) || p === '/ticker') inject('/jh-ticker-research.js');
     if ((/data\.html$/).test(p) || p === '/data') inject('/jh-data-feeds.js');
+    if (p === '/' || p === '/index.html' || p === '' || /command/.test(p)) inject('/jh-verdict-header.js?v=20260912');
   } catch (_) {}
 })();
