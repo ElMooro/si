@@ -1,9 +1,9 @@
-executing-against: 079aaa8d985b51befe9b1ed1cae50863d3e8425d
-ops 5445 imf-full kick
-[14:33:02] ✅ before newest=data/warm/imf-full/_state/state.json lm=2026-09-07 11:56:51+00:00
-[14:33:02] ✅ lambda last_modified=2026-09-09T13:30:47.000+0000
-[14:33:02] ✅ invoke status=202
-[14:33:10] ✅ after 8s newest=data/warm/imf-full/_state/state.json lm=2026-09-12 14:33:05+00:00
-[14:33:10] ✅ Event kick only — full drain is 850s; sentinel will drop STALE when state writes
+executing-against: c311d88a7bf2b33d6f50ee437513b25e599e41f7
+ops 5446 import-health refresh
+[14:35:05] ✅ sentinel invoke http=200 fn_error=None
+[14:35:07] ✅ overall=HEALTHY worst=fred generated=2026-09-12T14:35:04+00:00
+[14:35:07] ✅ fred status=COMPLETE detail=COMPLETE_WITH_LEAKS
+[14:35:07] ✅ dead-lanes status=OK detail=all 14 lanes wrote state within 48h
+[14:35:07] ✅ provider-catalog status=OK detail=hub index freshness
 
-→ Report written to aws/ops/reports/latest/ops_5445_imf_full_kick.md
+→ Report written to aws/ops/reports/latest/ops_5446_refresh_import_health.md
