@@ -10,6 +10,7 @@
     ["data/positioning-brief.json", "Positioning brief"],
     ["data/event-brief.json", "Event brief"],
     ["data/ofr-funding.json", "OFR funding"],
+    ["data/inst-public-join.json", "Free institutional feeds"],
     ["data/theme-eurostat.json", "Eurostat theme"],
     ["data/theme-gdelt.json", "GDELT theme"],
     ["data/warehouse-use.json", "Warehouse surface"],
@@ -59,6 +60,8 @@
           if (j.score != null) bits.push("score=" + j.score);
           if (j.horizon) bits.push(j.horizon);
           if (j.available_fields != null) bits.push("fields " + j.available_fields);
+          if (j.n_live != null) bits.push("live " + j.n_live);
+          if (j.n_fail != null) bits.push("fail " + j.n_fail);
           if (j.fields && j.fields.composite_label) bits.push(j.fields.composite_label + " " + j.fields.composite_score);
           if (j.fields && j.fields.session) bits.push("session " + j.fields.session);
           if (j.fields && j.fields.n_tickers) bits.push("tickers " + j.fields.n_tickers);
