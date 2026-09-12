@@ -1,9 +1,11 @@
-executing-against: c806552f942c9df5ad555e58020f823725dfa47c
-ops 5493 plumbing OFR proof after 3212
-[20:36:27] ✅ invoke status=200
-[20:36:29] ✅ brief status=LIVE source=justhodl-brief-compiler at=2026-09-12T20:36:27.500874+00:00
-[20:36:29] ✅ why=plumbing-stress composite_label=NORMAL score=44.1 | OFR SOFR=3.62 triparty=3.68 dvp=3.63 gcf=3.69 fresh=5
-[20:36:29] ✅ ofr required=False freshness=FRESH
-[20:36:29] ✅ ofr_sofr=3.62 triparty=3.68 dvp=3.63 gcf=3.69
+executing-against: e550bef47010392cafe6ebf2ed1dfcdd4c5525e1
+ops 5494 official_stats fusion leg
+[20:55:52] ✅ justhodl-jhsignal-bridge zip {'n_engines': 21, 'official_stats_brief': False, 'jh_brief_adapters': True}
+[20:55:52] ⚠ justhodl-jhsignal-bridge package missing official_stats_brief row
+[20:55:53] ✅ justhodl-jh-fusion zip {'n_engines': 21, 'official_stats_brief': False, 'jh_brief_adapters': True}
+[20:55:53] ⚠ justhodl-jh-fusion package missing official_stats_brief row
+[20:55:53] ✅ brief status=LIVE gdpnow=4.4164
+[20:55:59] ✅ bridge invoke 200
+[20:55:59] ⚠ no official_stats_brief row in state yet (package or event shape)
 
-→ Report written to aws/ops/reports/latest/ops_5493_plumbing_ofr_proof.md
+→ Report written to aws/ops/reports/latest/ops_5494_official_stats_fusion_leg_proof.md
