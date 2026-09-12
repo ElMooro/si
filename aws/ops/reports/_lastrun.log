@@ -1,7 +1,6 @@
-executing-against: e1ec073561f1a15e9bf45cf1f9476c04b2af1dca
-ops 5416 -- audit refresh
-[01:21:00] ✅ catalog n=58 stale=[] unknown=['kr-ecos']
-[01:21:00] ✅ import overall=DEGRADED worst=dead-lanes
-[01:21:00] ✅ GREEN -- freshness-audit v2 overall=DEGRADED cle={'schema_version': 6, 'picked_member': 'daily.csv', 'last': {'observation_date': '2026-09-11', 'T10Y3M': '0.89'}, 'atlanta_last': {'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}}
+executing-against: 4a7768dd96149acb2a8d38b9c1a0804ec7e4c76f
+ops 5417 -- Finviz institutional footprint
+[01:33:31] ✅ universe n=11633 generated=2026-09-11T22:00:37.858984+00:00
+[01:33:32] ✅ GREEN -- n=5064 buy=100 sell=100 top=[('CPHI', 479.65), ('ARBK', 475.46), ('GMRS', 464.45), ('ENIC', 444.68), ('ISPC', 382.06), ('ELMT', 371.97), ('INDP', 368.46), ('CRE', 354.81)] dump=[('STFS', -99.96), ('XTLB', -99.83), ('TKLF', -99.63), ('BSAC', -97.36), ('SOS', -96.5), ('RADX', -96.22), ('TLK', -91.89), ('LCFY', -91.2)]
 
-→ Report written to aws/ops/reports/latest/ops_5416_audit_refresh.md
+→ Report written to aws/ops/reports/latest/ops_5417_finviz_inst_flow.md
