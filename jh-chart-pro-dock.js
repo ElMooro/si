@@ -1,7 +1,7 @@
 /* jh-chart-pro-dock.js -- warehouse rail; lists merge-only */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
-  ["jh-chart-pro-tvux", "jh-chart-tf-fix", "jh-tv-lists-bridge", "jh-chart-audit-fix"].forEach(function (name) {
+  ["jh-chart-search-guard", "jh-chart-pro-tvux", "jh-chart-tf-fix", "jh-tv-lists-bridge", "jh-chart-audit-fix"].forEach(function (name) {
     if (document.querySelector('script[src*="' + name + '"]')) return;
     var ux = document.createElement("script");
     ux.src = "/" + name + ".js?t=" + Date.now();
@@ -28,10 +28,10 @@
   }
   var box = document.createElement("aside");
   box.id = "jh-chart-dock";
-  box.style.cssText = "position:fixed;left:8px;top:120px;z-index:25;width:200px;max-height:60vh;overflow:auto;padding:10px 12px;border:1px solid #1d2636;border-radius:10px;background:rgba(10,13,18,.94);color:#a8b3c7;font:12px Inter,sans-serif";
+  box.style.cssText = "position:fixed;left:8px;top:168px;z-index:20;width:200px;max-height:50vh;overflow:auto;padding:10px 12px;border:1px solid #1d2636;border-radius:10px;background:rgba(10,13,18,.94);color:#a8b3c7;font:12px Inter,sans-serif";
   var tog = document.createElement("button");
   tog.textContent = "WH";
-  tog.style.cssText = "position:fixed;left:8px;top:96px;z-index:26;width:32px;height:24px;border:1px solid #1d2636;border-radius:6px;background:#0a0d12;color:#22d3ee;font:10px IBM Plex Mono,monospace;cursor:pointer";
+  tog.style.cssText = "position:fixed;left:8px;top:144px;z-index:21;width:32px;height:24px;border:1px solid #1d2636;border-radius:6px;background:#0a0d12;color:#22d3ee;font:10px IBM Plex Mono,monospace;cursor:pointer";
   tog.onclick = function () { box.style.display = box.style.display === "none" ? "block" : "none"; };
   function mount() {
     if (!document.getElementById("jh-chart-dock")) { document.body.appendChild(tog); document.body.appendChild(box); }
