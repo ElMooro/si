@@ -159,3 +159,71 @@ def test_positioning_held_or_wrong_mode_is_a_missing_vote(registry, universe, no
     for doc in (_pos_brief(status="HELD"), {**_pos_brief(), "mode": "plumbing"}, {**_pos_brief(), "fields": {"funds_total": 18}}):
         res = adapter_for(spec, universe, now=now).parse_existing_output(doc, {"last_modified": ts(0)})
         assert res.signals == [], (doc.get("status"), doc.get("mode"))
+
+
+# ── Third leg: market_tape_brief (MARKET, shadow) -- uncapped ETF heavy-flow breadth (ops 5436) ──────────────────────
+
+def _tape_spec(registry):
+    rows = [e for e in registry.doc["engines"] if e["engine_id"] == "market_tape_brief"]
+    assert len(rows) == 1, "market_tape_brief must appear exactly once in the registry"
+    return rows[0]
+
+
+def _tape_brief(n_in=3, n_out=5, other=52, n_etfs=60, status="LIVE", basis="uncapped", mode="market_tape"):
+    f = {"session": "2026-09-10", "n_tickers": 12572, "n_etfs": n_etfs, "other_flow_n": other, "breadth_pct": -0.25}
+    if n_in is not None:
+        f["heavy_inflow_n"] = n_in
+    if n_out is not None:
+        f["heavy_outflow_n"] = n_out
+    if basis:
+        f["breadth_basis"] = basis
+    return {"schema": "brief-1.0", "mode": mode, "status": status, "generated_at": ts(1), "source": "ops_5436", "fields": f}
+
+
+def test_market_tape_row_is_shadow_market_noncritical_and_registries_do_not_drift(registry):
+    spec = _tape_spec(registry)
+    assert spec["engine_family"] == "MARKET" and spec["status"] == "shadow" and spec["criticality"] == "NONCRITICAL"
+    assert spec["adapter"] == "market_tape_brief" and "market_tape_flow" in spec["signal_types"]
+    assert spec["signal_types"]["market_tape_flow"]["cluster"] == "price_confirmation"
+    assert "market_tape_brief" not in registry.critical_engines()
+    cfg = (REPO / "config" / "engine-registry.v1.json").read_bytes()
+    frag = json.loads((REPO / "config" / "brief-engine-market-tape.json").read_text())
+    assert frag == spec, "registry row must equal config/brief-engine-market-tape.json"
+    for fn in ("justhodl-jhsignal-bridge", "justhodl-jh-fusion"):
+        assert (REPO / "aws" / "lambdas" / fn / "source" / "engine-registry.v1.json").read_bytes() == cfg, fn
+
+
+def test_market_tape_live_uncapped_is_one_market_signal_with_honest_confidence(registry, universe, now):
+    from jh_adapters import adapter_for
+    res = adapter_for(_tape_spec(registry), universe, now=now).parse_existing_output(_tape_brief(), {"last_modified": ts(0)})
+    assert res.source_status == "OK" and len(res.signals) == 1 and res.skipped == 0, res.diagnostics
+    s = res.signals[0]
+    assert s["entity_id"] == "market:US_EQUITY" and s["signal_type"] == "market_tape_flow" and s["category"] == "price_confirmation"
+    assert abs(s["score"] - (3 - 5) / (3 + 5)) < 1e-9                       # -0.25
+    assert abs(s["confidence"] - (3 + 5) / 60) < 1e-5                       # 0.1333… (rounded by the validator) -- 8 classified ETFs are NOT a full-universe tape
+    assert s["confidence"] < 0.2
+    assert s["metadata"]["confidence_basis"] == "(heavy_in+heavy_out)/n_etfs"
+    assert s["horizon"] == "INTERMEDIATE"
+    assert J.validate(s) == []
+
+
+def test_market_tape_missing_or_capped_basis_and_zero_heavy_are_skips_not_zero_votes(registry, universe, now):
+    from jh_adapters import adapter_for
+    spec = _tape_spec(registry)
+    for doc in (_tape_brief(n_in=0, n_out=0, basis=None),      # no basis + 0/0: the fabricated-neutral case
+                _tape_brief(n_in=0, n_out=0, basis="capped"),
+                _tape_brief(n_in=3, n_out=5, basis=None),      # real counts but no declared basis: still not a vote
+                _tape_brief(n_in=3, n_out=5, basis="capped"),
+                _tape_brief(n_in=0, n_out=0, basis="uncapped")):  # uncapped but empty: skip, never 0.0
+        res = adapter_for(spec, universe, now=now).parse_existing_output(doc, {"last_modified": ts(0)})
+        assert res.signals == [] and res.skipped == 1, (doc["fields"], res.skip_reasons)
+        assert not any(sig.get("score") == 0.0 for sig in res.signals)
+
+
+def test_market_tape_held_wrong_mode_or_missing_counts_is_a_missing_vote(registry, universe, now):
+    from jh_adapters import adapter_for
+    spec = _tape_spec(registry)
+    for doc in (_tape_brief(status="HELD"), _tape_brief(mode="positioning"), _tape_brief(n_in=None), _tape_brief(n_out=None),
+                {**_tape_brief(), "fields": {"n_etfs": 60}}):
+        res = adapter_for(spec, universe, now=now).parse_existing_output(doc, {"last_modified": ts(0)})
+        assert res.signals == [], (doc.get("status"), doc.get("mode"), doc["fields"])

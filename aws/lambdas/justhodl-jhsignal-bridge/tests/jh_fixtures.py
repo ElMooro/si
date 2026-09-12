@@ -110,6 +110,9 @@ def artifacts():
         "data/positioning-brief.json": {"schema": "brief-1.0", "mode": "positioning", "status": "LIVE", "generated_at": ts(3), "source": "ops_5433",
                                         "fields": {"as_of_quarter": "2026-06-30", "funds_total": 18, "funds_parsed": 15, "stale_funds": ["PERSHING", "GREENLIGHT", "SCION"],
                                                    "accumulating": 3200, "distributing": 1832, "flat": 32, "n_with_inst_trans": 5064, "breadth_pct": 0.27186, "breadth_basis": "uncapped"}},
+        "data/market-tape-brief.json": {"schema": "brief-1.0", "mode": "market_tape", "status": "LIVE", "generated_at": ts(1), "source": "ops_5436",
+                                        "fields": {"session": "2026-09-10", "n_tickers": 12572, "n_etfs": 60, "heavy_inflow_n": 3, "heavy_outflow_n": 5,
+                                                   "other_flow_n": 52, "breadth_pct": -0.25, "breadth_basis": "uncapped"}},
     }
 
 
