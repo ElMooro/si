@@ -42,7 +42,6 @@ def test_registry_row_is_shadow_risk_and_never_critical(registry):
     assert spec["criticality"] != "CRITICAL", "a one-shot brief must not be able to block capital"
     assert spec["adapter"] == "plumbing_brief" and "plumbing_stress" in spec["signal_types"]
     assert "plumbing_brief" not in registry.critical_engines(), "shadow brief leg must not be a CRITICAL dependency"
-    # the three bundled copies are byte-identical (deploy contract)
     cfg = (REPO / "config" / "engine-registry.v1.json").read_bytes()
     for fn in ("justhodl-jhsignal-bridge", "justhodl-jh-fusion"):
         assert (REPO / "aws" / "lambdas" / fn / "source" / "engine-registry.v1.json").read_bytes() == cfg, fn
@@ -51,7 +50,7 @@ def test_registry_row_is_shadow_risk_and_never_critical(registry):
 def test_brief_adapter_resolves_in_either_import_order(registry, universe, now):
     for mod in ("jh_brief_adapters", "jh_adapters"):
         sys.modules.pop(mod, None)
-    importlib.import_module("jh_brief_adapters")           # brief module first: used to be a circular import
+    importlib.import_module("jh_brief_adapters")
     ja = importlib.import_module("jh_adapters")
     assert "plumbing_brief" in ja.all_adapters()
     assert "plumbing_brief" not in ja.ADAPTERS, "brief adapters live in jh_brief_adapters, not the core map"
@@ -67,8 +66,8 @@ def test_live_brief_becomes_one_market_risk_signal(registry, universe, now):
     s = res.signals[0]
     assert s["entity_id"] == "market:US_EQUITY" and s["signal_type"] == "plumbing_stress" and s["category"] == "risk"
     assert s["horizon"] == "INTERMEDIATE"
-    assert abs(s["score"] - (-(44.1 - 50.0) / 50.0)) < 1e-9          # 44.1 stress -> mildly supportive
-    assert abs(s["confidence"] - 11 / 12) < 1e-5   # base rounds to 6 dp
+    assert abs(s["score"] - (-(44.1 - 50.0) / 50.0)) < 1e-9
+    assert abs(s["confidence"] - 11 / 12) < 1e-5
     assert s["metadata"]["confidence_basis"] == "n_with_data/n_indicators"
     assert J.validate(s) == []
 
@@ -85,10 +84,10 @@ def test_held_or_malformed_brief_is_a_missing_vote_not_a_zero(registry, universe
     from jh_adapters import adapter_for
     spec = _spec(registry)
     for doc in (
-        _live_brief(status="HELD"),                                   # contract held the brief
-        {**_live_brief(), "mode": "market-tape"},                     # wrong brief
-        {**_live_brief(), "schema": "brief-0.9"},                     # wrong contract
-        {**_live_brief(), "fields": {"composite_label": "NORMAL"}},   # no composite score
+        _live_brief(status="HELD"),
+        {**_live_brief(), "mode": "market-tape"},
+        {**_live_brief(), "schema": "brief-0.9"},
+        {**_live_brief(), "fields": {"composite_label": "NORMAL"}},
     ):
         res = adapter_for(spec, universe, now=now).parse_existing_output(doc, {"last_modified": ts(0)})
         assert res.signals == [] and res.source_status == "INVALID", (doc.get("status"), doc.get("mode"), res.diagnostics)
@@ -106,14 +105,13 @@ def test_stale_brief_is_stale_not_fresh(registry, universe, now):
     assert res.source_status == "STALE"
 
 
-# ------------------------------------------------------------ positioning_brief (FLOW, shadow) ------
 def _pos_spec(registry):
     rows = [e for e in registry.doc["engines"] if e["engine_id"] == "positioning_brief"]
     assert len(rows) == 1
     return rows[0]
 
 
-def _pos_brief(acc=3200, dist=1832, parsed=15, total=18, status="LIVE", basis="uncapped"):
+def _pos_brief(acc=3200, dist=1832, parsed=18, total=18, status="LIVE", basis="uncapped"):
     f = {"as_of_quarter": "2026-06-30", "funds_total": total, "funds_parsed": parsed, "stale_funds": ["PERSHING", "GREENLIGHT", "SCION"],
          "accumulating": acc, "distributing": dist, "flat": 32, "n_with_inst_trans": 5064}
     if basis:
@@ -137,22 +135,20 @@ def test_positioning_live_brief_is_one_market_flow_signal_with_real_breadth(regi
     assert res.source_status == "OK" and len(res.signals) == 1 and res.skipped == 0, res.diagnostics
     s = res.signals[0]
     assert s["entity_id"] == "market:US_EQUITY" and s["signal_type"] == "positioning_flow" and s["category"] == "institutional_flow"
-    assert abs(s["score"] - (3200 - 1832) / (3200 + 1832)) < 1e-4      # +0.2719 on the 2026-09-12 universe
+    assert abs(s["score"] - (3200 - 1832) / (3200 + 1832)) < 1e-4
     assert abs(s["confidence"] - 15 / 18) < 1e-5
+    assert s["metadata"]["confidence_basis"] == "(funds_parsed - stale_funds)/funds_total"
     assert J.validate(s) == []
 
 
 def test_positioning_capped_lists_never_score(registry, universe, now):
-    """ops 5417 published len(top-100 lists) as breadth -> 100/100. That must be a skip, not a 0.0 vote."""
     from jh_adapters import adapter_for
     spec = _pos_spec(registry)
     for acc, dist in ((100, 100), (200, 200), (250, 250)):
         res = adapter_for(spec, universe, now=now).parse_existing_output(_pos_brief(acc=acc, dist=dist, basis=None), {"last_modified": ts(0)})
         assert res.signals == [] and res.skipped == 1 and any("cap" in k for k in res.skip_reasons), (acc, dist, res.skip_reasons)
-    # an explicit uncapped basis with genuinely equal counts is a real 0.0 (rare, but honest)
     res = adapter_for(spec, universe, now=now).parse_existing_output(_pos_brief(acc=100, dist=100, basis="uncapped"), {"last_modified": ts(0)})
     assert len(res.signals) == 1 and res.signals[0]["score"] == 0.0
-    # zero breadth on both sides -> skip, never a division by zero
     res = adapter_for(spec, universe, now=now).parse_existing_output(_pos_brief(acc=0, dist=0), {"last_modified": ts(0)})
     assert res.signals == [] and res.skipped == 1
 
