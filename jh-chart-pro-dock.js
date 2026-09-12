@@ -1,7 +1,7 @@
 /* jh-chart-pro-dock.js -- warehouse rail; lists merge-only */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
-  ["jh-chart-search-guard", "jh-chart-series-fallback", "jh-chart-pro-tvux", "jh-chart-tf-fix", "jh-tv-lists-bridge", "jh-chart-audit-fix"].forEach(function (name) {
+  ["jh-chart-search-guard", "jh-chart-series-fallback", "jh-chart-suggest", "jh-chart-pro-tvux", "jh-chart-tf-fix", "jh-tv-lists-bridge", "jh-chart-audit-fix"].forEach(function (name) {
     if (document.querySelector('script[src*="' + name + '"]')) return;
     var ux = document.createElement("script");
     ux.src = "/" + name + ".js?t=" + Date.now();
