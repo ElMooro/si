@@ -859,6 +859,44 @@
           "category": "price_confirmation"
         }
       }
+    },
+    {
+      "engine_id": "official_stats_brief",
+      "engine_name": "Official-stats brief (GDPNow + curve)",
+      "engine_family": "MARKET",
+      "description": "GDPNow and T10Y3M from official-stats-brief.json. Skip if not LIVE or gdpnow missing. Shadow until registry merge.",
+      "owner": "justhodl",
+      "producer": "justhodl-brief-compiler",
+      "artifact": "data/official-stats-brief.json",
+      "timestamp_paths": [
+        "generated_at"
+      ],
+      "version": "1.0",
+      "status": "shadow",
+      "criticality": "NONCRITICAL",
+      "default_horizon": "INTERMEDIATE",
+      "expected_update_frequency": "scheduled compiler",
+      "freshness_ttl_seconds": 129600,
+      "half_life_days": 3,
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "fed-nowcast-join"
+      ],
+      "historical_backtest_available": false,
+      "calibration_available": false,
+      "hard_veto_capable": false,
+      "soft_veto_capable": false,
+      "signal_schema_version": "JHSIGNAL-1.0",
+      "adapter": "official_stats_brief",
+      "trust_key": "official-stats-brief",
+      "signal_types": {
+        "official_stats_nowcast": {
+          "cluster": "price_confirmation",
+          "category": "price_confirmation"
+        }
+      }
     }
   ]
 }
