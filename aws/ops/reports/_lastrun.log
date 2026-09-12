@@ -1,7 +1,9 @@
-executing-against: b22f52a117397973bd69633aaec11e15c731e133
-ops 5424 -- brief v3 plumbing + verdict projection
-[02:31:58] shared path /home/runner/work/si/si/aws/shared/brief_contract.py exists=True
-[02:31:59] ✅ plumbing-brief status=LIVE freshness=FRESH score=44.1
-[02:31:59] ✅ verdict bias=risk-on score=0.2161 horizon=INTERMEDIATE shadow=True missing=['CATALYST', 'FLOW', 'MARKET', 'RISK']
+executing-against: cd3602af54c493c15a68cddc9cf38ee7a25895f8
+ops 5425 -- verdict header edge gate (read-only)
+[02:53:43] ✅ private-artifacts.js 200 -- exact home matcher live, empty-path branch gone
+[02:53:43] ✅ jh-verdict-header.js status=200 marker=True bucket_url=False same_origin=True type=application/javascript; charset=utf-8
+[02:53:43] ✅ /data/verdict.json status=200 writer=jh-fusion-projection bias=risk-on score=0.2161 horizon=INTERMEDIATE shadow=True missing=['CATALYST', 'FLOW', 'MARKET', 'RISK'] as_of=2026-09-12T01:56:00Z age_h=0.96 cache=-
+[02:53:48] ✅ home render painted=True marker=JH_VERDICT_HEADER_V1 prepended=True text='CALL RISK-ON · score 0.216 · INTERMEDIATE slightly_bullish · regime MILDLY_SUPPORTIVE · coverage 0.31 · SHADOW missing C' nav_links=973 binder=True header=True pageerrors=[] verdict_req_failed=[]
+[02:53:48] ✅ GREEN -- verdict header live at the edge: binder exact-path, header same-origin, verdict via zone route, banner painted on / with nav intact
 
-→ Report written to aws/ops/reports/latest/ops_5424_brief_plumbing_verdict.md
+→ Report written to aws/ops/reports/latest/ops_5425_verdict_header_edge_gate.md
