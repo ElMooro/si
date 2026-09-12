@@ -1,15 +1,72 @@
-executing-against: 72d3a2d691039c39533e99ab13cfc6d42b477335
-ops 5487 census/sec/eia
-[19:10:18] ✅ data/warm/census/ n=0
-[19:10:18] ✅ data/warm/sec/ n=0
-[19:10:18] ✅ data/warm/sec-edgar/ n=0
-[19:10:18] ✅ data/warm/sec-midas/ n=51
-[19:10:18] ✅ data/warm/sec-dera/ n=73
-[19:10:18] ✅ data/warm/edgar/ n=0
-[19:10:18] ✅ data/warm/emma/ n=0
-[19:10:18] ✅ data/warm/msrb/ n=0
-[19:10:18] ✅ data/warm/eia/ n=0
-[19:10:18] ✅ data/warm/usda/ n=0
-[19:10:18] ✅ wrote data/census-sec-surface.json n_total=124
+executing-against: ab87356860a79190d2a9a2f6cb6b6f28a85381a3
+ops 5488 warm prefix index
+[19:19:59] ✅ data/warm/_audit/ sample_n=5 more=False
+[19:19:59] ✅ data/warm/archived-fred/ sample_n=5 more=True
+[19:19:59] ✅ data/warm/asia-trade/ sample_n=5 more=True
+[19:19:59] ✅ data/warm/backlog/ sample_n=5 more=True
+[19:19:59] ✅ data/warm/banxico/ sample_n=1 more=False
+[19:19:59] ✅ data/warm/bis/ sample_n=5 more=True
+[19:19:59] ✅ data/warm/blackswan/ sample_n=5 more=True
+[19:19:59] ✅ data/warm/bls-full/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/boe-full/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/boe/ sample_n=1 more=False
+[19:20:00] ✅ data/warm/boj-full/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/bond-warroom/ sample_n=1 more=False
+[19:20:00] ✅ data/warm/census-econ/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/census-us/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/cftc/ sample_n=3 more=False
+[19:20:00] ✅ data/warm/dol-full/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/dtcc-fails/ sample_n=2 more=False
+[19:20:00] ✅ data/warm/dtcc/ sample_n=1 more=False
+[19:20:00] ✅ data/warm/ecb-mmsr/ sample_n=4 more=False
+[19:20:00] ✅ data/warm/ecb/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/edgar-filings/ sample_n=5 more=True
+[19:20:00] ✅ data/warm/eiopa/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/eurostat/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/finra-full/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/fiscaldata-full/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/frbddp-full/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/fred-canary/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/fred-catalog/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/fred-scoped/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/gdelt-full/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/gdelt/ sample_n=1 more=False
+[19:20:01] ✅ data/warm/gleif/ sample_n=2 more=False
+[19:20:01] ✅ data/warm/icma-sftr/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/imf-full/ sample_n=5 more=True
+[19:20:01] ✅ data/warm/inst-public/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/katlin/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/nasa-power/ sample_n=1 more=False
+[19:20:02] ✅ data/warm/nyfed-markets/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/nyfed-research/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/nyfed/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/oecd/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/official-yields/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/ofr-bsrm/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/ofr-fsi/ sample_n=1 more=False
+[19:20:02] ✅ data/warm/ofr-hfm/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/ofr-site/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/ofr/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/playbooks/ sample_n=2 more=False
+[19:20:02] ✅ data/warm/polygon-full/ sample_n=5 more=True
+[19:20:02] ✅ data/warm/portwatch/ sample_n=2 more=False
+[19:20:03] ✅ data/warm/real-economy/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/repo-master/ sample_n=1 more=False
+[19:20:03] ✅ data/warm/sec-bulk/ sample_n=2 more=False
+[19:20:03] ✅ data/warm/sec-dera/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/sec-ftd/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/sec-midas/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/statcan/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/te-mirror/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/te-yields/ sample_n=4 more=False
+[19:20:03] ✅ data/warm/tic-full/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/treasury-auctions/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/treasury-par/ sample_n=1 more=False
+[19:20:03] ✅ data/warm/treasury/ sample_n=5 more=True
+[19:20:03] ✅ data/warm/tv-bars/ sample_n=5 more=True
+[19:20:04] ✅ data/warm/us-equities-daily/ sample_n=5 more=True
+[19:20:04] ✅ data/warm/usgov/ sample_n=5 more=True
+[19:20:04] ✅ data/warm/worldbank-full/ sample_n=5 more=True
+[19:20:04] ✅ wrote data/warm-prefix-index.json n=67
 
-→ Report written to aws/ops/reports/latest/ops_5487_census_sec_surface.md
+→ Report written to aws/ops/reports/latest/ops_5488_warm_prefix_index.md
