@@ -1,10 +1,7 @@
-executing-against: 8fbb849e49a35028c710fa8b447e8dd76c4dfddf
-[14:54:50] ✅ six ENABLED compiler schedules verified; drift 309 -> 303; other live schedules unchanged=950
-[14:54:56] ✅ data/plumbing-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler plumbing-stress composite_label=NORMAL score=44.1
-[14:54:56] ✅ data/market-tape-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 2/3/55 basis=uncapped
-[14:54:56] ✅ data/event-brief.json lm=2026-09-12T14:54:56+00:00 source=justhodl-brief-compiler finviz-signals n_screens=None confluence_n=387
-[14:54:56] ✅ data/official-stats-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11
-[14:54:56] ✅ data/positioning-brief.json lm=2026-09-12T14:54:56+00:00 source=justhodl-brief-compiler 13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064
-[14:54:56] ✅ PASS: manifest, six schedules, unchanged other wires, compiler package, and five live briefs verified
+executing-against: 382e00d1c3fbeceeaab40b48810cbb74d355ac7e
+[15:00:05] ✅ IMF status=NO_DRAIN_PROGRESS_OBSERVED phase=DRAIN banked=218 queue=3 lm=2026-09-12T14:48:18+00:00
+[15:00:05] IMF execution reports=[{"at": "2026-09-12T14:47:13.339000+00:00", "Duration": "850000.00 ms", "Billed Duration": "850588 ms", "Max Memory Used": "174 MB", "Status": "timeout"}]
+[15:00:05] No kick sent; state age 0.196h; additional-kick threshold >48h
+[15:00:05] ✅ Health=HEALTHY; FRED stored=277599; event source=justhodl-brief-compiler confluence=387
 
-→ Report written to aws/ops/reports/latest/ops_5448_attach_brief_compiler.md
+→ Report written to aws/ops/reports/latest/ops_5449_imf_progress_proof.md

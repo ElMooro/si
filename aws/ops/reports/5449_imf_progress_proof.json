@@ -1,0 +1,136 @@
+{
+  "at": "2026-09-12T15:00:03.191079+00:00",
+  "objects": {
+    "data/warm/imf-full/_state/state.json": {
+      "last_modified": "2026-09-12T14:48:18+00:00",
+      "age_hours": 0.1959
+    },
+    "data/import-health.json": {
+      "last_modified": "2026-09-12T14:55:06+00:00",
+      "age_hours": 0.0826
+    },
+    "data/provider-catalog.json": {
+      "last_modified": "2026-09-12T14:55:18+00:00",
+      "age_hours": 0.0792
+    },
+    "data/event-brief.json": {
+      "last_modified": "2026-09-12T14:54:56+00:00",
+      "age_hours": 0.0853
+    },
+    "data/finviz-signals.json": {
+      "last_modified": "2026-09-12T14:02:34+00:00",
+      "age_hours": 0.9581
+    }
+  },
+  "invocations_sent": 0,
+  "imf": {
+    "phase": "DRAIN",
+    "as_of": "2026-09-02T02:43:15+00:00",
+    "n_banked": 218,
+    "have_count": 218,
+    "queue_left": 3,
+    "queued_flow_ids": [
+      "PIP",
+      "IMTS",
+      "IMTS_2026_MAY_VINTAGE"
+    ],
+    "queue_attempts": [
+      3,
+      0,
+      0
+    ],
+    "failure_count": 2,
+    "last_discover": {
+      "at": "2026-09-12T14:33:04+00:00",
+      "flows": 222,
+      "queued_new": 1
+    },
+    "lease_until": "2026-09-12T15:02:16.979711+00:00",
+    "lease_active": true
+  },
+  "progress_since_5447": {
+    "last_modified_advanced": true,
+    "banked_delta": 0,
+    "queue_delta": 0,
+    "as_of_advanced": false
+  },
+  "execution_reports": [
+    {
+      "at": "2026-09-12T14:47:13.339000+00:00",
+      "Duration": "850000.00 ms",
+      "Billed Duration": "850588 ms",
+      "Max Memory Used": "174 MB",
+      "Status": "timeout"
+    }
+  ],
+  "lambda_metrics": {
+    "Invocations": 1.0,
+    "Errors": 1.0,
+    "Throttles": 0.0
+  },
+  "drain_status": "NO_DRAIN_PROGRESS_OBSERVED",
+  "kick_threshold_exceeded": false,
+  "health": {
+    "overall": "HEALTHY",
+    "generated_at": "2026-09-12T14:55:04+00:00",
+    "pipelines": [
+      {
+        "name": "fred",
+        "status": "COMPLETE",
+        "detail": "COMPLETE_WITH_LEAKS",
+        "age_min": 0.8,
+        "scope": "full_catalog",
+        "engine_version": "2.3.0",
+        "imported": 282141,
+        "queue_total": 275299,
+        "queue_cursor": 275299,
+        "rate_rpm": 24.0,
+        "throttles_15m": 2,
+        "errors_15m": 0,
+        "last_crash": null,
+        "series_per_hour": 0.0,
+        "expand_all_knob": "1"
+      },
+      {
+        "name": "dead-lanes",
+        "status": "OK",
+        "detail": "all 14 lanes wrote state within 48h"
+      }
+    ]
+  },
+  "fred_stored_series": 277599,
+  "event": {
+    "source": "justhodl-brief-compiler",
+    "status": "LIVE",
+    "fields": {
+      "n_screens": null,
+      "status_signals": null,
+      "confluence_keys": [
+        "bottom_squeeze_insider",
+        "bottom_insider",
+        "bottom_oversold",
+        "top_insider_sell",
+        "top_overbought",
+        "ath_momentum",
+        "breakout_52w_vol",
+        "ma200_reclaim_vol",
+        "trend_flip_up",
+        "base_breakout",
+        "low_sweep",
+        "bear_break"
+      ],
+      "confluence_n": 387
+    },
+    "inputs": {
+      "data/finviz-signals.json": {
+        "required": true,
+        "last_modified": "2026-09-12T14:02:34+00:00",
+        "as_of": "2026-09-12T14:02:32.770071+00:00",
+        "freshness": "FRESH",
+        "error": null
+      }
+    }
+  },
+  "signed_count_candidate_paths": [],
+  "inspection_status": "PASS"
+}
