@@ -1,0 +1,29 @@
+# ops 5481 wave2
+
+**Status:** success  
+**Duration:** 24.7s  
+**Finished:** 2026-09-12T16:35:06+00:00  
+
+## Log
+- `16:34:43` ✅ FRED ANFCI n=2905
+- `16:34:43` ⚠ FRED FRBATLWGT HTTP Error 400: Bad Request
+- `16:34:44` ⚠ FRED ATLWGT HTTP Error 400: Bad Request
+- `16:34:45` ✅ FRED WPU01 n=1364
+- `16:34:46` ✅ FRED PWHEAMTUSDM n=415
+- `16:34:47` ✅ FRED PCOTTINDUSDM n=415
+- `16:34:48` ✅ FRED PSOILUSDM n=415
+- `16:34:49` ✅ FRED WTREGEN n=1239
+- `16:34:50` ✅ FRED FDHBFIN n=224
+- `16:34:51` ✅ FRED FDHBATN n=181
+- `16:34:58` ⚠ ALFRED GDP HTTP Error 429: Too Many Requests
+- `16:34:58` ⚠ ALFRED PAYEMS HTTP Error 429: Too Many Requests
+- `16:34:59` ⚠ ALFRED CPIAUCSL HTTP Error 429: Too Many Requests
+- `16:34:59` ⚠ ALFRED PCEPI HTTP Error 429: Too Many Requests
+- `16:34:59` ⚠ ALFRED UNRATE HTTP Error 429: Too Many Requests
+- `16:34:59` ⚠ SF https://www.frbsf.org/wp-content/uploads/sites/4/news_sentiment_data.csv HTTP Error 404: Not Found
+- `16:35:00` ⚠ SF https://www.frbsf.org/research-and-insights/data/daily-news-sentiment-index/files/news_sentiment_data.csv HTTP Error 404: Not Found
+- `16:35:00` ⚠ SF https://raw.githubusercontent.com/federalreserve/The-Fed-NLP/master/data/news_sentiment.csv HTTP Error 404: Not Found
+- `16:35:00` ⚠ tic_debt_to_penny HTTP Error 404: Not Found
+- `16:35:06` ✅ fdic_financials_sample bytes=1908621 n=10000
+- `16:35:06` ✅ fomc_press bytes=995606 n=4629
+- `16:35:06` ✅ hot live=43 fail=12
