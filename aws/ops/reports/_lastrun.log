@@ -1,15 +1,12 @@
-executing-against: 9fcfe41b32bb193d559d4e6f0fef4d822e5fa2a7
-ops 5489 priority warm heads
-[19:23:31] ✅ data/warm/census-econ/ n=9913 data/warm/census-econ/cps/cps_basic_aug/2026/g2-c8.json.gz
-[19:23:31] ✅ data/warm/census-us/ n=359 data/warm/census-us/_state/state.json
-[19:23:31] ✅ data/warm/tic-full/ n=10 data/warm/tic-full/_state/state.json
-[19:23:31] ✅ data/warm/edgar-filings/ n=138 data/warm/edgar-filings/2026/QTR3.json.gz
-[19:23:31] ✅ data/warm/fiscaldata-full/ n=35 data/warm/fiscaldata-full/_state/state.json
-[19:23:31] ✅ data/warm/treasury-auctions/ n=9 data/warm/treasury-auctions/composite-history.json
-[19:23:32] ✅ data/warm/bls-full/ n=1661 data/warm/bls-full/_state/state.json
-[19:23:32] ✅ data/warm/real-economy/ n=33 data/warm/real-economy/_summary.json
-[19:23:32] ✅ data/warm/sec-ftd/ n=410 data/warm/sec-ftd/_manifest.json
-[19:23:32] ✅ data/warm/dtcc-fails/ n=2 data/warm/dtcc-fails/agency.json
-[19:23:32] ✅ wrote data/priority-warm-heads.json n_total=12570
+executing-against: 782d34f458d0354fa9ce45efed7bdf89074f633e
+ops 5490 hot copies
+[20:26:17] ✅ data/warm/real-economy/_summary.json -> data/real-economy-summary.json bytes=911
+[20:26:18] ✅ data/warm/treasury-auctions/composite-history.json -> data/treasury-auctions-composite.json bytes=66931
+[20:26:18] ✅ data/warm/dtcc-fails/agency.json -> data/dtcc-fails-agency.json bytes=11251
+[20:26:18] ✅ data/warm/tic-full/_state/state.json -> data/tic-state.json bytes=2514
+[20:26:19] ✅ data/warm/fiscaldata-full/_state/state.json -> data/fiscaldata-state.json bytes=10713
+[20:26:19] ✅ data/warm/census-us/_state/state.json -> data/census-us-state.json bytes=34904
+[20:26:19] ✅ data/warm/bls-full/_state/state.json -> data/bls-full-state.json bytes=193782
+[20:26:19] ✅ live copies=7
 
-→ Report written to aws/ops/reports/latest/ops_5489_priority_warm_heads.md
+→ Report written to aws/ops/reports/latest/ops_5490_priority_hot_copies.md
