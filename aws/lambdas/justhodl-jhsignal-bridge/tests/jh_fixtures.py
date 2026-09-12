@@ -107,6 +107,9 @@ def artifacts():
         "data/plumbing-brief.json": {"schema": "brief-1.0", "mode": "plumbing", "status": "LIVE", "generated_at": ts(1), "source": "ops_5424",
                                      "fields": {"composite_score": 44.1, "composite_label": "NORMAL", "n_indicators": 12, "n_with_data": 11, "as_of": ts(2),
                                                 "layer_scores": {"funding": 40.0, "reserves": 48.0}}},
+        "data/positioning-brief.json": {"schema": "brief-1.0", "mode": "positioning", "status": "LIVE", "generated_at": ts(3), "source": "ops_5433",
+                                        "fields": {"as_of_quarter": "2026-06-30", "funds_total": 18, "funds_parsed": 15, "stale_funds": ["PERSHING", "GREENLIGHT", "SCION"],
+                                                   "accumulating": 3200, "distributing": 1832, "flat": 32, "n_with_inst_trans": 5064, "breadth_pct": 0.27186, "breadth_basis": "uncapped"}},
     }
 
 

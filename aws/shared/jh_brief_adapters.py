@@ -71,6 +71,11 @@ class PositioningBriefAdapter(SignalAdapter):
         if denom <= 0:
             yield {"skip": "zero accum+dist"}
             return
+        # ops 5417 truncated both lists at 100 and published len() as breadth -> 100/100 -> 0.0 forever.
+        # Equal counts sitting exactly on a round cap are a truncation artifact; never score them.
+        if acc == dist and acc >= 100 and acc % 50 == 0 and (fields.get("breadth_basis") != "uncapped"):
+            yield {"skip": "breadth counts equal at a round cap (%d/%d) -- capped lists, not breadth" % (int(acc), int(dist))}
+            return
         conf = (parsed / total) if (parsed is not None and total) else None
         yield {
             "symbol": "US_EQUITY",
