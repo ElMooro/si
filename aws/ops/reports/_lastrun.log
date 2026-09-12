@@ -1,8 +1,7 @@
-executing-against: 3d0f02337e072b0849ef1f5952d43f89ce078342
-ops 5410 -- Cleveland ZIP members
-[00:31:21] ✅ atlanta {'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}
-[00:31:21] members [{'name': 'README.txt', 'bytes': 975}, {'name': 'monthly.csv', 'bytes': 11490}, {'name': 'daily.csv', 'bytes': 185877}]
-[00:31:21] ✅ picked daily.csv header=['observation_date', 'T10Y3M']
-[00:31:21] ✅ GREEN -- join v6 status=LIVE members=['README.txt', 'monthly.csv', 'daily.csv']
+executing-against: 895a7fcc84d723172facaf6d29b0d397816e255b
+ops 5411 -- Polygon snapshot
+[00:33:08] ✅ SSM present
+[00:33:08] ✅ https://api.polygon.io HTTP 200 n=20
+[00:33:09] ✅ GREEN -- snapshot n=20 status=LIVE
 
-→ Report written to aws/ops/reports/latest/ops_5410_cleveland_zip_members.md
+→ Report written to aws/ops/reports/latest/ops_5411_polygon_snapshot.md
