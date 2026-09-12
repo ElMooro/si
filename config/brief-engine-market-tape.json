@@ -1,0 +1,29 @@
+{
+  "engine_id": "market_tape_brief",
+  "engine_name": "Market-tape brief (v3 MARKET tape)",
+  "engine_family": "MARKET",
+  "description": "Uncapped ETF heavy-flow breadth (in-out)/(in+out). Skip 0/0 and any brief without breadth_basis=uncapped.",
+  "owner": "justhodl",
+  "producer": "ops_5436",
+  "artifact": "data/market-tape-brief.json",
+  "timestamp_paths": ["generated_at"],
+  "version": "1.0",
+  "status": "shadow",
+  "criticality": "NONCRITICAL",
+  "default_horizon": "INTERMEDIATE",
+  "expected_update_frequency": "ops then scheduled compiler",
+  "freshness_ttl_seconds": 129600,
+  "half_life_days": 3,
+  "entities_supported": ["market"],
+  "dependencies": ["etf-flows", "us-equities-daily"],
+  "historical_backtest_available": false,
+  "calibration_available": false,
+  "hard_veto_capable": false,
+  "soft_veto_capable": false,
+  "signal_schema_version": "JHSIGNAL-1.0",
+  "adapter": "market_tape_brief",
+  "trust_key": "market-tape-brief",
+  "signal_types": {
+    "market_tape_flow": {"cluster": "price_confirmation", "category": "price_confirmation"}
+  }
+}
