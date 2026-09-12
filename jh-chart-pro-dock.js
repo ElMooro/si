@@ -46,6 +46,9 @@
     var pf = p.fields || {}, of = o.fields || {}, ps = pos.fields || {};
     var sofr = pf.ofr_sofr != null ? pf.ofr_sofr : (f.sofr && f.sofr.value);
     var alfredN = (al.series || []).reduce(function (n, s) { return n + (s.n_vintages_banked || 0); }, 0);
+    var asof = (p.generated_at || o.generated_at || "").slice(0, 10);
+    var saved = "";
+    try { saved = localStorage.getItem("jh-chart-asof") || ""; } catch (e) {}
     box.innerHTML =
       "<div style=\"font:10px IBM Plex Mono,monospace;color:#22d3ee;letter-spacing:1.4px;margin-bottom:8px\">WAREHOUSE</div>" +
       cell("PLUMBING", (pf.composite_label || "") + " " + (pf.composite_score != null ? pf.composite_score : "")) +
@@ -56,6 +59,14 @@
       cell("INST BREADTH", [ps.accumulating, ps.distributing, ps.flat].filter(function (x) { return x != null; }).join(" / ")) +
       cell("CFTC ROWS", ps.cftc_rows) +
       cell("ALFRED", alfredN ? (alfredN + " vintages") : null) +
-      cell("VERDICT", [v.bias || v.call, v.regime].filter(Boolean).join(" \u00b7 "));
+      cell("VERDICT", [v.bias || v.call, v.regime].filter(Boolean).join(" \u00b7 ")) +
+      "<div style=\"padding-top:8px;font:10px IBM Plex Mono,monospace;color:#7dd3fc\">AS OF</div>" +
+      "<input id=\"jh-chart-asof\" type=\"date\" value=\"" + (saved || asof) + "\" style=\"width:100%;margin-top:4px;background:#0a0d12;color:#e8edf5;border:1px solid #1d2636;border-radius:6px;padding:4px\"/>" +
+      "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin-top:4px\">briefs " + (asof || "—") + " · does not drive TV</div>";
+    var inp = document.getElementById("jh-chart-asof");
+    if (inp) inp.addEventListener("change", function () {
+      try { localStorage.setItem("jh-chart-asof", inp.value); } catch (e) {}
+      window.dispatchEvent(new CustomEvent("jh-chart-asof", { detail: inp.value }));
+    });
   });
 })();
