@@ -5,6 +5,7 @@
   var KEYS = [
     ["data/verdict.json", "System verdict"],
     ["data/plumbing-brief.json", "Plumbing brief"],
+    ["data/market-tape-brief.json", "Market-tape brief"],
     ["data/polygon-snapshot.json", "Polygon snapshot"],
     ["data/polygon-short-interest.json", "Polygon short interest"],
     ["data/polygon-news.json", "Polygon news"],
@@ -50,9 +51,10 @@
           if (j.score != null) bits.push("score=" + j.score);
           if (j.horizon) bits.push(j.horizon);
           if (j.fields && j.fields.composite_label) bits.push(j.fields.composite_label + " " + j.fields.composite_score);
+          if (j.fields && j.fields.session) bits.push("session " + j.fields.session);
+          if (j.fields && j.fields.n_tickers) bits.push("tickers " + j.fields.n_tickers);
+          if (j.fields && j.fields.n_etfs) bits.push("etfs " + j.fields.n_etfs);
           if (j.n != null) bits.push("n=" + j.n);
-          if (j.n_ok != null) bits.push("ok=" + JSON.stringify(j.n_ok));
-          if (j.n_with_inst_trans != null) bits.push("inst=" + j.n_with_inst_trans);
           if (j.n_accumulating != null) bits.push("buy=" + j.n_accumulating);
           if (j.n_distributing != null) bits.push("sell=" + j.n_distributing);
           if (j.series && j.series.atlantafed && j.series.atlantafed.last)
