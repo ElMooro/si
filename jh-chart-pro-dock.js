@@ -1,4 +1,4 @@
-/* jh-chart-pro-dock.js -- left rail of warehouse numbers on chart-pro only */
+/* jh-chart-pro-dock.js -- warehouse rail; uses Chart Pro layout switcher, does not rebuild TV */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
   if (window.__jhChartDock) return;
@@ -19,6 +19,10 @@
   function pane(title, body) {
     return "<div style=\"margin-top:10px;padding-top:8px;border-top:1px solid #1d2636\"><div style=\"font:10px IBM Plex Mono,monospace;color:#22d3ee;letter-spacing:1.2px\">" + title + "</div>" + body + "</div>";
   }
+  function clickLayout(id) {
+    var btn = document.querySelector('.layout-btn[data-layout="' + id + '"]');
+    if (btn) btn.click();
+  }
   var box = document.createElement("aside");
   box.id = "jh-chart-dock";
   box.style.cssText = "position:fixed;left:10px;top:88px;z-index:40;width:200px;max-height:72vh;overflow:auto;padding:10px 12px;border:1px solid #1d2636;border-radius:10px;background:rgba(10,13,18,.94);color:#a8b3c7;font:12px Inter,sans-serif";
@@ -34,6 +38,7 @@
     }
   }
   if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
+  window.addEventListener("jh-chart-asof", function () { clickLayout("1x2"); });
   Promise.all([
     gj("data/plumbing-brief.json"),
     gj("data/official-stats-brief.json"),
@@ -51,12 +56,15 @@
     var saved = "";
     try { saved = localStorage.getItem("jh-chart-asof") || ""; } catch (e) {}
     box.innerHTML =
-      "<div style=\"font:10px IBM Plex Mono,monospace;color:#22d3ee;letter-spacing:1.4px;margin-bottom:8px\">WAREHOUSE</div>" +
       pane("PLUMBING", cell("LABEL", pf.composite_label) + cell("SOFR", sofr) + cell("TRIPARTY", pf.ofr_triparty_rate) + cell("DVP", pf.ofr_dvp_rate)) +
       pane("STATS", cell("GDPNOW", of.gdpnow) + cell("T10Y3M", of.t10y3m)) +
       pane("FLOW", cell("ETF IN/OUT", [mf.heavy_inflow_n, mf.heavy_outflow_n].join(" / ")) + cell("INST", [ps.accumulating, ps.distributing, ps.flat].join(" / ")) + cell("CFTC", ps.cftc_rows)) +
       pane("TAPE", cell("ALFRED", alfredN || null) + cell("VERDICT", [v.bias || v.call, v.regime].filter(Boolean).join(" \u00b7 "))) +
+      "<div style=\"display:flex;gap:4px;margin-top:8px\"><button type=\"button\" data-lay=\"1x2\" style=\"flex:1;background:#0a0d12;color:#22d3ee;border:1px solid #1d2636;border-radius:6px;padding:4px;font:10px IBM Plex Mono,monospace;cursor:pointer\">1x2</button><button type=\"button\" data-lay=\"2x1\" style=\"flex:1;background:#0a0d12;color:#22d3ee;border:1px solid #1d2636;border-radius:6px;padding:4px;font:10px IBM Plex Mono,monospace;cursor:pointer\">2x1</button></div>" +
       "<input id=\"jh-chart-asof\" type=\"date\" value=\"" + (saved || asof) + "\" style=\"width:100%;margin-top:8px;background:#0a0d12;color:#e8edf5;border:1px solid #1d2636;border-radius:6px;padding:4px\"/>";
+    box.querySelectorAll("[data-lay]").forEach(function (b) {
+      b.addEventListener("click", function () { clickLayout(b.getAttribute("data-lay")); });
+    });
     var inp = document.getElementById("jh-chart-asof");
     if (inp) inp.addEventListener("change", function () {
       try { localStorage.setItem("jh-chart-asof", inp.value); } catch (e) {}
