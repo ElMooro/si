@@ -1,7 +1,22 @@
-executing-against: 895a7fcc84d723172facaf6d29b0d397816e255b
-ops 5411 -- Polygon snapshot
-[00:33:08] ✅ SSM present
-[00:33:08] ✅ https://api.polygon.io HTTP 200 n=20
-[00:33:09] ✅ GREEN -- snapshot n=20 status=LIVE
+executing-against: be1d4eb52d4ecfafe2e065fd21272d9049c5b7c0
+ops 5412 -- Polygon ratios
+[00:47:02] ✅ SSM present
+[00:47:03] AAPL /stocks/financials/v1/ratios HTTP 403
+[00:47:03] ✅ AAPL via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:03] MSFT /stocks/financials/v1/ratios HTTP 403
+[00:47:03] ✅ MSFT via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:03] NVDA /stocks/financials/v1/ratios HTTP 403
+[00:47:04] ✅ NVDA via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:04] AMZN /stocks/financials/v1/ratios HTTP 403
+[00:47:04] ✅ AMZN via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:04] META /stocks/financials/v1/ratios HTTP 403
+[00:47:04] ✅ META via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:05] GOOGL /stocks/financials/v1/ratios HTTP 403
+[00:47:05] ✅ GOOGL via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:05] JPM /stocks/financials/v1/ratios HTTP 403
+[00:47:05] ✅ JPM via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:05] XOM /stocks/financials/v1/ratios HTTP 403
+[00:47:06] ✅ XOM via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
+[00:47:06] ✅ GREEN -- ratios n_ok=8/8 status=LIVE
 
-→ Report written to aws/ops/reports/latest/ops_5411_polygon_snapshot.md
+→ Report written to aws/ops/reports/latest/ops_5412_polygon_ratios.md
