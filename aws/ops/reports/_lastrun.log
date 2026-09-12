@@ -1,32 +1,7 @@
-executing-against: c3832f02571bc149e446ffc7d9c4521b65eeed29
-ops 5422 -- Brain constitution as a private artifact
-── 1. live code == this commit (deploy through the audited workflow if not) ──
-[23:46:15] ✅ justhodl-brain-sync: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:36:18.000+0000)
-[23:46:15] ✅ justhodl-position-sizer: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:36:45.000+0000)
-[23:46:15] ✅ justhodl-ask: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:37:12.000+0000)
-[23:46:15] ✅ justhodl-ai: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:37:35.000+0000)
-[23:46:16] ✅ justhodl-alpha-confluence: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:01.000+0000)
-[23:46:16] ✅ justhodl-apac-flows: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:28.000+0000)
-[23:46:16] ✅ justhodl-best-setups: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:38:52.000+0000)
-[23:46:16] ✅ justhodl-brain-compiler: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:39:19.000+0000)
-[23:46:16] ✅ justhodl-devils-advocate: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:39:46.000+0000)
-[23:46:17] ✅ justhodl-domain-barometers: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:40:14.000+0000)
-[23:46:17] ✅ justhodl-morning-intelligence: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:40:37.000+0000)
-[23:46:17] ✅ justhodl-my-brief: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:41:01.000+0000)
-[23:46:17] ✅ justhodl-risk-gate: receipt commit 55eab600fa run 34657440076 (LastModified 2026-09-11T23:41:31.000+0000)
-[23:46:17] ✅ all 13 functions run commit c3832f0257
-── 2. brain-sync writes a PRIVATE constitution ──
-[23:46:30] ✅ artifact rewritten 2026-09-11T23:46:26+00:00
-── 3. edge boundary (deploy-workers lands asynchronously: wait up to 10 min for the deny) ──
-[23:46:30] ✅ anonymous GET https://justhodl.ai/data/brain-constitution.json -> 401
-[23:46:30] ✅ anonymous GET https://justhodl-data-proxy.raafouis.workers.dev/data/brain-constitution.json -> 401
-[23:46:31] ✅ service-token GET /private-artifact?kind=brain-constitution -> 200, hash match=True
-── 4. position-sizer consumes it ──
-[23:46:38] ✅ consumed=True posture=balanced
-── 5. ask / ai ──
-[23:46:40] ✅ ask anonymous POST -> 401 (expect 401)
-[23:46:40] ✅ ai: code verified in step 1; its 22 tests ran in the deploy preflight
-── verdict ──
-[23:46:40] ✅ GREEN -- constitution private at the edge, consumed by position-sizer, 13 functions on commit c3832f0257
+executing-against: 68e72a3f9070d0081aa0e46d22bfe881df0a92a5
+ops 5409 -- Cleveland gzip+ZIP unwrap
+[00:28:47] ✅ atlantafed unwrap=['gunzip'] header=['observation_date', 'GDPNOW'] last={'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}
+[00:28:47] ✅ clevelandfed unwrap=['gunzip', 'unzip:README.txt'] header=['----------------------------------------------------------------'] last={'----------------------------------------------------------------': '-------------  ------------------------------------------------------------------  ------------------------'}
+[00:28:47] ✅ GREEN -- join v5 Cleveland header=['----------------------------------------------------------------']
 
-→ Report written to aws/ops/reports/latest/ops_5422_brain_constitution_private_gate.md
+→ Report written to aws/ops/reports/latest/ops_5409_cleveland_unzip.md
