@@ -1,11 +1,9 @@
-executing-against: e550bef47010392cafe6ebf2ed1dfcdd4c5525e1
-ops 5494 official_stats fusion leg
-[20:55:52] ✅ justhodl-jhsignal-bridge zip {'n_engines': 21, 'official_stats_brief': False, 'jh_brief_adapters': True}
-[20:55:52] ⚠ justhodl-jhsignal-bridge package missing official_stats_brief row
-[20:55:53] ✅ justhodl-jh-fusion zip {'n_engines': 21, 'official_stats_brief': False, 'jh_brief_adapters': True}
-[20:55:53] ⚠ justhodl-jh-fusion package missing official_stats_brief row
-[20:55:53] ✅ brief status=LIVE gdpnow=4.4164
-[20:55:59] ✅ bridge invoke 200
-[20:55:59] ⚠ no official_stats_brief row in state yet (package or event shape)
+executing-against: 570c061f81ebafa9bc0023d97a7480aef0f82a1c
+ops 5495 after deploy 3216
+[21:05:05] ✅ justhodl-jhsignal-bridge {'n_engines': 22, 'official_stats_brief': True, 'jh_brief_adapters': True}
+[21:05:05] ✅ justhodl-jh-fusion {'n_engines': 22, 'official_stats_brief': True, 'jh_brief_adapters': True}
+[21:05:05] ✅ brief LIVE gdpnow=4.4164
+[21:05:12] ✅ bridge invoke 200
+[21:05:13] ✅ state score=0.6041 conf=0.7 type=official_stats_nowcast
 
-→ Report written to aws/ops/reports/latest/ops_5494_official_stats_fusion_leg_proof.md
+→ Report written to aws/ops/reports/latest/ops_5495_official_stats_fusion_leg_proof.md
