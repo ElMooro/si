@@ -1,7 +1,8 @@
-executing-against: a89ae5d4dca4a667b0e9fb8c530d49e4352f6423
-ops 5498 ALFRED vintage cube index
-[21:25:44] ✅ warm objects 0
-[21:25:44] ✅ indexed 0 series -> data/alfred-vintages.json
-[21:25:44] ⚠ warm/alfred empty -- 5482 may not have landed objects
+executing-against: 696193b058078de83d7fd8763caa3aa46eacd275
+ops 5499 ALFRED real prefix
+[21:27:26] ✅ data/warm/inst-public/alfred/ n=5
+[21:27:26] ✅ data/warm/alfred/ n=0
+[21:27:26] ✅ data/alfred/ n=0
+[21:27:26] ✅ indexed 5 -> data/alfred-vintages.json
 
-→ Report written to aws/ops/reports/latest/ops_5498_alfred_hot_index.md
+→ Report written to aws/ops/reports/latest/ops_5499_alfred_hot_index.md
