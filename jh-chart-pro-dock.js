@@ -1,6 +1,12 @@
 /* jh-chart-pro-dock.js -- warehouse rail + merge-only TV list import */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
+  if (!document.querySelector('script[src*="jh-chart-pro-tvux"]')) {
+    var ux = document.createElement("script");
+    ux.src = "/jh-chart-pro-tvux.js?t=" + Date.now();
+    ux.defer = true;
+    (document.head || document.documentElement).appendChild(ux);
+  }
   if (window.__jhChartDock) return;
   window.__jhChartDock = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
@@ -37,7 +43,7 @@
     if (!tickers.length || !window.WatchlistManager) return 0;
     var id = WatchlistManager.createCustom(name || ("TV import " + new Date().toISOString().slice(0, 10)));
     tickers.forEach(function (t) { WatchlistManager.addTicker(id, t); });
-    if (typeof WatchlistManager.render === "function") WatchlistManager.render();
+    if (window.UI && UI.refreshWatchlist) UI.refreshWatchlist();
     return tickers.length;
   }
   var box = document.createElement("aside");
@@ -63,7 +69,7 @@
     box.innerHTML =
       pane("PLUMBING", cell("SOFR", sofr) + cell("GDPNOW", of.gdpnow) + cell("VERDICT", [v.bias || v.call, v.regime].filter(Boolean).join(" \u00b7 "))) +
       pane("FLOW", cell("ETF", [mf.heavy_inflow_n, mf.heavy_outflow_n].join(" / ")) + cell("INST", [ps.accumulating, ps.distributing].join(" / "))) +
-      pane("LISTS", cell("CUSTOM LISTS", nCustom) + "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin:6px 0\">Not deleted. Open right-rail WATCHLIST. Sign in to sync. Import TV .txt merges a new list.</div><input id=\"jh-tv-import\" type=\"file\" accept=\".txt,.csv\" style=\"width:100%;font-size:10px\"/>") +
+      pane("LISTS", cell("CUSTOM LISTS", nCustom) + "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin:6px 0\">Lists are never deleted. Import creates a new list.</div><input id=\"jh-tv-import\" type=\"file\" accept=\".txt,.csv\" style=\"width:100%;font-size:10px\"/>") +
       "<input id=\"jh-chart-q\" placeholder=\"search / jump\" style=\"width:100%;margin-top:8px;background:#0a0d12;color:#e8edf5;border:1px solid #1d2636;border-radius:6px;padding:4px\"/>";
     var fi = document.getElementById("jh-tv-import");
     if (fi) fi.addEventListener("change", function () {
