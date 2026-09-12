@@ -20,13 +20,9 @@ WARM = "data/warm/inst-public/"
 HOT = "data/inst-public-join.json"
 
 FRED_RETRY = [
-    ("ANFCI", "philly_ads_proxy_anfci"),  # ADS 400'd; keep a daily conditions series labeled
     ("FRBATLWGT", "atlanta_wage_tracker"),
-    ("ATLWGT", "atlanta_wage_alt"),
     ("WPU01", "usda_farm_ppi"),
     ("PWHEAMTUSDM", "wheat_usd"),
-    ("PCOTTINDUSDM", "cotton_usd"),
-    ("PSOILUSDM", "palm_oil_usd"),
     ("WTREGEN", "tic_foreign_ust_official_fred"),
     ("FDHBFIN", "tic_foreign_official_fed"),
     ("FDHBATN", "tic_all_foreign_ust"),
@@ -35,10 +31,9 @@ ALFRED = ["GDP", "PAYEMS", "CPIAUCSL", "PCEPI", "UNRATE"]
 SF_URLS = [
     "https://www.frbsf.org/wp-content/uploads/sites/4/news_sentiment_data.csv",
     "https://www.frbsf.org/research-and-insights/data/daily-news-sentiment-index/files/news_sentiment_data.csv",
-    "https://raw.githubusercontent.com/federalreserve/The-Fed-NLP/master/data/news_sentiment.csv",
 ]
 TIC_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/debt_to_penny?sort=-record_date&page[size]=100"
-FDIC_URL = "https://banks.data.fdic.gov/api/financials?filters=ACTIVE%3A1&fields=CERT,REPDTE,ASSET,DEP,EQ,NETINC,ROA,ROE,EEFFR&sort_by=REPDTE&sort_order=DESC&limit=10000&format=json"
+FDIC_URL = "https://banks.data.fdic.gov/api/financials?filters=ACTIVE%3A1&fields=CERT,REPDTE,ASSET,DEP,EQ,NETINC,ROA,ROE,EEFFR&sort_by=REPDTE&sort_order=DESC&limit=1000&format=json"
 FOMC_URL = "https://www.federalreserve.gov/json/ne-press.json"
 
 
@@ -68,6 +63,18 @@ def _load_hot(s3):
         return json.loads(b)
     except Exception:
         return {"schema": "inst-public-join.v1", "feeds": []}
+
+
+def _count_payload(doc):
+    if isinstance(doc, list):
+        return len(doc)
+    if not isinstance(doc, dict):
+        return None
+    for k in ("data", "financials", "observations", "items", "results"):
+        v = doc.get(k)
+        if isinstance(v, list):
+            return len(v)
+    return None
 
 
 def main():
@@ -134,7 +141,7 @@ def main():
                 s3.put_object(Bucket=B, Key=WARM + "csv/sf_news_sentiment.csv.gz", Body=gzip.compress(raw),
                               ContentType="text/csv", ContentEncoding="gzip")
                 new.append({"id": "sf_news_sentiment", "bytes": len(raw), "status": "LIVE", "source": url})
-                R.ok("SF sentiment %s bytes=%s" % (url, len(raw)))
+                R.ok("SF sentiment bytes=%s" % len(raw))
                 sf_ok = True
                 break
             except Exception as e:
@@ -142,10 +149,10 @@ def main():
         if not sf_ok:
             new.append({"id": "sf_news_sentiment", "status": "FAIL", "error": "all urls missed"})
 
-        for label, url, keyname in (
-            ("tic_debt_to_penny", TIC_URL, "treasury_tic"),
-            ("fdic_financials_sample", FDIC_URL, "fdic"),
-            ("fomc_press", FOMC_URL, "fomc"),
+        for label, url in (
+            ("tic_debt_to_penny", TIC_URL),
+            ("fdic_financials_sample", FDIC_URL),
+            ("fomc_press", FOMC_URL),
         ):
             try:
                 raw = _get(url, timeout=120)
@@ -153,13 +160,8 @@ def main():
                     doc = json.loads(raw)
                     s3.put_object(Bucket=B, Key=WARM + "json/%s.json.gz" % label, Body=gzip.compress(raw),
                                   ContentType="application/json", ContentEncoding="gzip")
-                    n = None
-                    if isinstance(doc, dict):
-                        n = len(doc.get("data") or doc.get("financials") or doc.get() or [])
-                    elif isinstance(doc, list):
-                        n = len(doc)
-                    new.append({"id": label, "slug": keyname, "n": n, "bytes": len(raw), "status": "LIVE"})
-                    R.ok("%s bytes=%s n=%s" % (label, len(raw), n))
+                    new.append({"id": label, "n": _count_payload(doc), "bytes": len(raw), "status": "LIVE"})
+                    R.ok("%s bytes=%s n=%s" % (label, len(raw), _count_payload(doc)))
                 except Exception:
                     s3.put_object(Bucket=B, Key=WARM + "raw/%s.bin.gz" % label, Body=gzip.compress(raw),
                                   ContentType="application/octet-stream", ContentEncoding="gzip")
