@@ -1,14 +1,9 @@
-executing-against: bb90bd705cc0543c67bbc1a69f22d65650654f1f
-ops 5491 verify hot keys
-[20:28:19] ✅ data/real-economy-summary.json 911 2026-09-12 20:26:18+00:00
-[20:28:19] ✅ data/treasury-auctions-composite.json 66931 2026-09-12 20:26:19+00:00
-[20:28:19] ✅ data/dtcc-fails-agency.json 11251 2026-09-12 20:26:19+00:00
-[20:28:19] ✅ data/tic-state.json 2514 2026-09-12 20:26:19+00:00
-[20:28:19] ✅ data/fiscaldata-state.json 10713 2026-09-12 20:26:19+00:00
-[20:28:19] ✅ data/census-us-state.json 34904 2026-09-12 20:26:20+00:00
-[20:28:19] ✅ data/bls-full-state.json 193782 2026-09-12 20:26:20+00:00
-[20:28:19] ✅ data/macro-tape.json 1698 2026-09-12 17:57:27+00:00
-[20:28:19] ✅ data/inst-public-join.json 11429 2026-09-12 16:39:22+00:00
-[20:28:19] ✅ data/cftc-join.json 729 2026-09-12 18:46:34+00:00
+executing-against: c2fc0022875272f8e9e7e3f2e536774fd10cd339
+ops 5492 plumbing OFR proof
+[20:32:45] ✅ invoke status=200
+[20:32:47] ✅ brief status=LIVE source=justhodl-brief-compiler
+[20:32:47] ✅ why=plumbing-stress composite_label=NORMAL score=44.1
+[20:32:47] ✗ ofr-funding missing from inputs
 
-→ Report written to aws/ops/reports/latest/ops_5491_data_html_card_note.md
+→ Report written to aws/ops/reports/latest/ops_5492_plumbing_ofr_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_5492_plumbing_ofr_proof.py
