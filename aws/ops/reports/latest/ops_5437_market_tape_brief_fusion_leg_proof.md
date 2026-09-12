@@ -1,18 +1,28 @@
 # ops 5437 -- market_tape_brief fusion leg (MARKET, shadow): receipts + one bridge run + verdict
 
 **Status:** success  
-**Duration:** 1.4s  
-**Finished:** 2026-09-12T04:24:47+00:00  
+**Duration:** 22.6s  
+**Finished:** 2026-09-12T04:26:07+00:00  
 
 ## Data
 
-| head | row_commit |
-|---|---|
-| 1298c02f66 | 4ad5c2a518 |
+| coverage | fusion | head | leg_present | missing | n_signals | positioning_rows | positioning_score | row_commit | run_id | score | shadow | step | tape_asof | tape_conf | tape_fresh | tape_n | tape_score | tape_status |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | b6d35ec652 |  |  |  |  |  | 4ad5c2a518 |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  | 1 | 0.27186 |  |  |  |  | pre |  |  |  |  |  |  |
+|  |  |  |  |  | 1967 |  |  |  | 20260912T042546Z-8405d0f7 |  |  | bridge | 2026-09-12T04:13:51Z |  |  | 1 |  | OK |
+|  |  |  |  |  |  |  | 0.27186 |  |  |  |  | state |  | 0.133333 | FRESH |  | -0.25 |  |
+| 0.9231 | 0.1884 |  | True | ["CATALYST"] |  |  |  |  | 20260912T042556Z-516e28a5 |  | True | fusion |  |  |  |  |  |  |
+| 0.9231 |  |  |  | ["CATALYST"] |  |  |  |  |  | 0.1884 |  | verdict |  |  |  |  |  |  |
 
 ## Log
-- `04:24:46` ✗ justhodl-jhsignal-bridge receipt commit=29c0af6 run=34672490182 sha_match=False carries_row=False live=waGBqQAsCKjO
-- `04:24:46` ✅ justhodl-jhsignal-bridge zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
-- `04:24:46` ✅ justhodl-jh-fusion receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=CKkwLex/jj68
-- `04:24:47` ✅ justhodl-jh-fusion zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
-- `04:24:47` ✗ RED before touching anything -- receipt:justhodl-jhsignal-bridge (dispatch deploy-lambdas.yml for justhodl-jhsignal-bridge justhodl-jh-fusion and re-run)
+- `04:25:45` ✅ justhodl-jhsignal-bridge receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=waGBqQAsCKjO
+- `04:25:45` ✅ justhodl-jhsignal-bridge zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
+- `04:25:45` ✅ justhodl-jh-fusion receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=CKkwLex/jj68
+- `04:25:45` ✅ justhodl-jh-fusion zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
+- `04:25:56` ✅ bridge run 20260912T042546Z-8405d0f7: n_signals=1967 n_entities=1583 market_tape_brief={"engine_id": "market_tape_brief", "family": "MARKET", "criticality": "NONCRITICAL", "n_signals": 1, "n_rejected": 0, "n_skipped": 0, "skip_reasons": {}, "source_status": "OK", "data_asof": "2026-09-12T04:13:51Z", "asof_basis": "engine", "diagnostics": []}
+- `04:25:57` ✅ state store: market_tape_brief market rows=1 {"signal_type": "market_tape_flow", "score": -0.25, "confidence": 0.133333, "horizon": "INTERMEDIATE", "freshness": "FRESH", "data_asof": "2026-09-12T04:13:51Z"}
+- `04:25:57` ✅ state store: positioning_flow untouched: rows=1 score before=0.27186 after=0.27186 freshness=FRESH
+- `04:26:07` ✅ fusion run 20260912T042556Z-516e28a5 at 2026-09-12T04:25:56Z: market leg present=True shadow=True best=INTERMEDIATE fusion=0.1884 coverage=0.9231 missing=['CATALYST'] confidence=0.8011
+- `04:26:07` ✅ verdict reprojected from fusion run 20260912T042556Z-516e28a5: coverage=0.9231 score=0.1884 missing=['CATALYST']
+- `04:26:07` ✅ GREEN -- market_tape_brief is a live MARKET leg in shadow: receipts carry the row, bridge OK/1 signal, state FRESH (-0.25 @ conf ~0.13), positioning untouched, fusion coverage 0.9231 missing ['CATALYST'], verdict reprojected
