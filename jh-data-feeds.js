@@ -9,6 +9,7 @@
     ["data/official-stats-brief.json", "Official-stats brief"],
     ["data/positioning-brief.json", "Positioning brief"],
     ["data/event-brief.json", "Event brief"],
+    ["data/alfred-vintages.json", "ALFRED vintages"],
     ["data/ofr-funding.json", "OFR funding"],
     ["data/macro-tape.json", "Macro tape"],
     ["data/inst-public-join.json", "Free institutional feeds"],
@@ -68,6 +69,7 @@
         .then(function (j) {
           var bits = [j.status || j.bias || "", j.source || j.writer || ""];
           if (j.why) bits.push(j.why);
+          if (j.n_indexed != null) bits.push("indexed " + j.n_indexed);
           if (j.n_live != null) bits.push("live " + j.n_live);
           if (j.available_fields != null) bits.push("fields " + j.available_fields);
           if (j.n_fields != null) bits.push("fields " + j.n_fields);
