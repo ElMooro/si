@@ -1,6 +1,7 @@
-executing-against: fe6797c450cbe33900a250844695942adadc9ec5
-ops 5415 -- Finviz insider split
-[01:12:53] ✅ signal keys=['golden_cross', 'death_cross', 'sma20_cross50a', 'sma20_cross50b', 'price_cross200a', 'price_cross200b', 'price_cross50a', 'price_cross50b', 'price_cross20a', 'price_cross20b', 'new_high_alltime', 'new_low_alltime', 'new_high_52w', 'new_low_52w', 'new_high_50d', 'new_low_50d', 'new_high_20d', 'new_low_20d', 'unusual_volume', 'most_active'] insider_keys=['insider_buys', 'insider_sales']
-[01:12:53] ✅ GREEN -- insider screens=2 status=LIVE
+executing-against: e1ec073561f1a15e9bf45cf1f9476c04b2af1dca
+ops 5416 -- audit refresh
+[01:21:00] ✅ catalog n=58 stale=[] unknown=['kr-ecos']
+[01:21:00] ✅ import overall=DEGRADED worst=dead-lanes
+[01:21:00] ✅ GREEN -- freshness-audit v2 overall=DEGRADED cle={'schema_version': 6, 'picked_member': 'daily.csv', 'last': {'observation_date': '2026-09-11', 'T10Y3M': '0.89'}, 'atlanta_last': {'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}}
 
-→ Report written to aws/ops/reports/latest/ops_5415_finviz_insider_split.md
+→ Report written to aws/ops/reports/latest/ops_5416_audit_refresh.md
