@@ -1,7 +1,5 @@
-"""Brief-domain adapters (Layer 3 briefs as fusion legs). jh_adapters.adapter_for resolves
-BRIEF_ADAPTERS lazily, so add new brief adapters here and register them in BRIEF_ADAPTERS.
-
-score = -(composite_score-50)/50. LIVE briefs only. market:US_EQUITY INTERMEDIATE.
+"""Brief-domain adapters. Register in BRIEF_ADAPTERS only. jh_adapters.adapter_for falls through.
+LIVE briefs only. market:US_EQUITY INTERMEDIATE.
 """
 from jh_adapters import SignalAdapter, _f, _clip, _ev
 
@@ -48,6 +46,53 @@ class PlumbingBriefAdapter(SignalAdapter):
         }
 
 
+class PositioningBriefAdapter(SignalAdapter):
+    """Inst buy vs sell breadth. score=(accum-dist)/(accum+dist). No signal if both missing."""
+    signal_type, category = "positioning_flow", "institutional_flow"
+
+    def validate_source(self, doc):
+        if doc.get("schema") != "brief-1.0" or doc.get("mode") != "positioning":
+            return False
+        if doc.get("status") != "LIVE":
+            return False
+        fields = doc.get("fields") or {}
+        return _f(fields.get("accumulating")) is not None or _f(fields.get("funds_parsed")) is not None
+
+    def rows(self, doc):
+        fields = doc.get("fields") or {}
+        acc = _f(fields.get("accumulating"))
+        dist = _f(fields.get("distributing"))
+        parsed = _f(fields.get("funds_parsed"))
+        total = _f(fields.get("funds_total"))
+        if acc is None or dist is None:
+            yield {"skip": "no accum/dist breadth"}
+            return
+        denom = acc + dist
+        if denom <= 0:
+            yield {"skip": "zero accum+dist"}
+            return
+        conf = (parsed / total) if (parsed is not None and total) else None
+        yield {
+            "symbol": "US_EQUITY",
+            "entity_type": "market",
+            "score": _clip((acc - dist) / denom),
+            "confidence": conf,
+            "confidence_basis": "funds_parsed/funds_total",
+            "horizon": "INTERMEDIATE",
+            "evidence": _ev(
+                accumulating=acc,
+                distributing=dist,
+                funds_parsed=parsed,
+                funds_total=total,
+                as_of_quarter=fields.get("as_of_quarter"),
+                stale_funds=fields.get("stale_funds"),
+            ),
+            "metadata": {"brief_source": doc.get("source"), "quarter": fields.get("as_of_quarter")},
+            "invalidation": {"type": "state", "description": "next 13F or inst-flow flip buy/sell breadth"},
+        }
+
+
 BRIEF_ADAPTERS = {
     "plumbing_brief": PlumbingBriefAdapter,
+    "positioning_brief": PositioningBriefAdapter,
 }
