@@ -2,7 +2,10 @@
 (function () {
   if (window.JH_VERDICT_HEADER) return;
   window.JH_VERDICT_HEADER = 1;
-  var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/verdict.json?t=" + Date.now();
+  // Same-origin first (Cloudflare zone route justhodl.ai/data/*), data-proxy as fallback —
+  // the same path every page uses. Never the bucket URL: it bypasses the edge and CSP.
+  var PROXY = (window.JUSTHODL_AUTH_CONFIG && window.JUSTHODL_AUTH_CONFIG.syncBase) || "https://justhodl-data-proxy.raafouis.workers.dev";
+  var PATHS = ["/data/verdict.json", PROXY + "/data/verdict.json"];
   function el(tag, css, text) {
     var n = document.createElement(tag);
     if (css) n.style.cssText = css;
@@ -34,5 +37,12 @@
       " <a href='/fusion.html' style='color:#22d3ee;margin-left:8px'>fusion</a>";
     document.body.prepend(bar);
   }
-  fetch(S3, {cache: "no-store"}).then(function (r) { return r.ok ? r.json() : null; }).then(paint).catch(function () { paint(null); });
+  function load(i) {
+    if (i >= PATHS.length) { paint(null); return; }
+    fetch(PATHS[i], {cache: "no-store", headers: {Accept: "application/json"}})
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (v) { if (v && typeof v === "object") paint(v); else load(i + 1); })
+      .catch(function () { load(i + 1); });
+  }
+  load(0);
 })();

@@ -127,6 +127,8 @@
     }
     if ((/ticker\.html$/).test(p) || p === '/ticker') inject('/jh-ticker-research.js');
     if ((/data\.html$/).test(p) || p === '/data') inject('/jh-data-feeds.js');
-    if (p === '/' || p === '/index.html' || p === '' || /command/.test(p)) inject('/jh-verdict-header.js?v=20260912');
+    // Home only. Exact paths: a browser never yields '' (only the test fixture does) and a
+    // substring match would bind the header to any page whose name contains a word.
+    if (p === '/' || p === '/index.html') inject('/jh-verdict-header.js?v=20260912');
   } catch (_) {}
 })();
