@@ -1,12 +1,13 @@
 /* jh-page-ai.js — universal per-page AI panel (explain + analyze + grounded outlook). */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
-  if (!document.querySelector('script[src*="jh-chart-pro-dock"]')) {
+  ["jh-chart-pro-dock", "jh-tv-lists-bridge"].forEach(function (name) {
+    if (document.querySelector('script[src*="' + name + '"]')) return;
     var s = document.createElement("script");
-    s.src = "/jh-chart-pro-dock.js?t=" + Date.now();
+    s.src = "/" + name + ".js?t=" + Date.now();
     s.defer = true;
     (document.head || document.documentElement).appendChild(s);
-  }
+  });
   function hide() {
     document.querySelectorAll(".ai-index-strip").forEach(function (el) { el.style.display = "none"; });
     var rows = [];
