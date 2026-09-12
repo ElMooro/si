@@ -1,0 +1,18 @@
+# ops 5489 priority warm heads
+
+**Status:** success  
+**Duration:** 5.8s  
+**Finished:** 2026-09-12T19:23:32+00:00  
+
+## Log
+- `19:23:31` ✅ data/warm/census-econ/ n=9913 data/warm/census-econ/cps/cps_basic_aug/2026/g2-c8.json.gz
+- `19:23:31` ✅ data/warm/census-us/ n=359 data/warm/census-us/_state/state.json
+- `19:23:31` ✅ data/warm/tic-full/ n=10 data/warm/tic-full/_state/state.json
+- `19:23:31` ✅ data/warm/edgar-filings/ n=138 data/warm/edgar-filings/2026/QTR3.json.gz
+- `19:23:31` ✅ data/warm/fiscaldata-full/ n=35 data/warm/fiscaldata-full/_state/state.json
+- `19:23:31` ✅ data/warm/treasury-auctions/ n=9 data/warm/treasury-auctions/composite-history.json
+- `19:23:32` ✅ data/warm/bls-full/ n=1661 data/warm/bls-full/_state/state.json
+- `19:23:32` ✅ data/warm/real-economy/ n=33 data/warm/real-economy/_summary.json
+- `19:23:32` ✅ data/warm/sec-ftd/ n=410 data/warm/sec-ftd/_manifest.json
+- `19:23:32` ✅ data/warm/dtcc-fails/ n=2 data/warm/dtcc-fails/agency.json
+- `19:23:32` ✅ wrote data/priority-warm-heads.json n_total=12570
