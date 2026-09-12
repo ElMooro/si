@@ -825,9 +825,28 @@ ADAPTERS = {
 }
 
 
+def _brief_adapters() -> Dict[str, type]:
+    """Brief-domain adapters (Layer 3 briefs registered as fusion legs) live in
+    jh_brief_adapters and subclass SignalAdapter, so that module imports this one.
+    Resolving them lazily here keeps import order irrelevant (no circular import)
+    and keeps this file untouched when a new brief adapter is added."""
+    try:
+        from jh_brief_adapters import BRIEF_ADAPTERS
+    except ImportError:
+        return {}
+    return dict(BRIEF_ADAPTERS)
+
+
+def all_adapters() -> Dict[str, type]:
+    """Every adapter name the registry may reference: core + brief-domain."""
+    out = dict(ADAPTERS)
+    out.update(_brief_adapters())
+    return out
+
+
 def adapter_for(spec: Dict[str, Any], universe: Dict[str, Dict[str, Any]], *, now: Optional[datetime] = None) -> SignalAdapter:
     name = spec.get("adapter")
-    cls = ADAPTERS.get(name)
+    cls = ADAPTERS.get(name) or _brief_adapters().get(name)
     if cls is None:
         raise J.JHSignalError([f"no adapter named {name!r} for engine {spec.get('engine_id')}"])
     a = cls(spec, universe, now=now)

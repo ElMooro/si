@@ -104,6 +104,9 @@ def artifacts():
                                                                        "BAD": {"err": "no chain"}}},
         "data/short-interest.json": {"generated_at": ts(7), "by_ticker": {"MSFT": {"ticker": "MSFT", "signal": "COVERING", "score": 60.0, "latest_short_pct": 44.0, "days_to_cover": 2.1, "si_change_pct": -8.0, "trend_pct": -6.0},
                                                                           "AMZN": {"ticker": "AMZN", "signal": "NEUTRAL", "score": 10.0}}},
+        "data/plumbing-brief.json": {"schema": "brief-1.0", "mode": "plumbing", "status": "LIVE", "generated_at": ts(1), "source": "ops_5424",
+                                     "fields": {"composite_score": 44.1, "composite_label": "NORMAL", "n_indicators": 12, "n_with_data": 11, "as_of": ts(2),
+                                                "layer_scores": {"funding": 40.0, "reserves": 48.0}}},
     }
 
 

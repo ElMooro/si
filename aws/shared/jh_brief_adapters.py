@@ -1,4 +1,5 @@
-"""Brief-domain adapters. Import PlumbingBriefAdapter into jh_adapters.ADAPTERS as plumbing_brief.
+"""Brief-domain adapters (Layer 3 briefs as fusion legs). jh_adapters.adapter_for resolves
+BRIEF_ADAPTERS lazily, so add new brief adapters here and register them in BRIEF_ADAPTERS.
 
 score = -(composite_score-50)/50. LIVE briefs only. market:US_EQUITY INTERMEDIATE.
 """
@@ -45,3 +46,8 @@ class PlumbingBriefAdapter(SignalAdapter):
                 "description": "plumbing composite back under 35",
             },
         }
+
+
+BRIEF_ADAPTERS = {
+    "plumbing_brief": PlumbingBriefAdapter,
+}

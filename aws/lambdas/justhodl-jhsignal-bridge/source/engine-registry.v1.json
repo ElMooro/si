@@ -742,6 +742,45 @@
           "category": "positioning"
         }
       }
+    },
+    {
+      "engine_id": "plumbing_brief",
+      "engine_name": "Plumbing brief (v3 RISK tape)",
+      "engine_family": "RISK",
+      "description": "Domain brief over scheduled plumbing-stress. Market-level INTERMEDIATE risk from composite 0-100.",
+      "owner": "justhodl",
+      "producer": "ops_5424",
+      "artifact": "data/plumbing-brief.json",
+      "timestamp_paths": [
+        "generated_at",
+        "fields.as_of"
+      ],
+      "version": "1.0",
+      "status": "shadow",
+      "criticality": "IMPORTANT",
+      "default_horizon": "INTERMEDIATE",
+      "expected_update_frequency": "ops then scheduled compiler",
+      "freshness_ttl_seconds": 129600,
+      "half_life_days": 3,
+      "entities_supported": [
+        "market"
+      ],
+      "dependencies": [
+        "plumbing-aggregator"
+      ],
+      "historical_backtest_available": false,
+      "calibration_available": false,
+      "hard_veto_capable": false,
+      "soft_veto_capable": true,
+      "signal_schema_version": "JHSIGNAL-1.0",
+      "adapter": "plumbing_brief",
+      "trust_key": "plumbing-brief",
+      "signal_types": {
+        "plumbing_stress": {
+          "cluster": "risk",
+          "category": "risk"
+        }
+      }
     }
   ]
 }
