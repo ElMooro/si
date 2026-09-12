@@ -1,0 +1,22 @@
+{
+  "schema": "engine-data-contract.v1",
+  "owner": "khalid",
+  "written": "2026-09-12",
+  "intent": "Every compute engine may read any warehouse key under data/. It may ADD an input. It may never DELETE a warehouse object, drop a registered input, or shrink a series without an explicit Khalid consent note in this file.",
+  "rules": {
+    "read": "Engines read S3 warehouse only (data/, data/warm/, data/hot). No vendor HTTP from a brief compiler or fusion projection.",
+    "choose": "An engine picks which keys it needs. Fusion only sees registered legs. Missing data is a missing vote, never a fabricated 0.0.",
+    "add": "Adding a key is allowed: append to the engine's inputs[] and to engine-registry.v1.json (all three copies). Do not remove another key to make room.",
+    "delete_forbidden": "No s3.delete_object on data/ from an engine. No inputs[] removal. No dropping a brief field. Quarantine is named-fail, not delete.",
+    "improve": "Accuracy changes are additive: new adapter, new field, new trust weight. Shadow stays on until Khalid flips it. AI / page-brain may propose an added input; it may not ship a delete.",
+    "consent": "The only delete path is a signed row in consent_deletes[] below with slug, key, reason, date. Empty list means nothing may be deleted."
+  },
+  "consent_deletes": [],
+  "self_improve": {
+    "brain_notes": true,
+    "livermore_briefs": true,
+    "wyckoff_briefs": true,
+    "may_add_inputs": true,
+    "may_delete_inputs": false
+  }
+}
