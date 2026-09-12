@@ -1,14 +1,24 @@
 {
-  "observed_at": "2026-09-12T21:42:18.488286+00:00",
+  "observed_at": "2026-09-12T21:43:14.556805+00:00",
   "runs": [
+    {
+      "id": 34720728252,
+      "path": ".github/workflows/pages.yml",
+      "head_sha": "55c501b87bd91fe6b0e0aa8a6f8b69a44dd6f49d",
+      "status": "pending",
+      "conclusion": null,
+      "created_at": "2026-09-12T21:42:49Z",
+      "updated_at": "2026-09-12T21:42:50Z",
+      "jobs": []
+    },
     {
       "id": 34720686097,
       "path": ".github/workflows/pages.yml",
       "head_sha": "5fae1df03f46781a6418dd5fe5838c3a89f193c7",
-      "status": "pending",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "cancelled",
       "created_at": "2026-09-12T21:41:53Z",
-      "updated_at": "2026-09-12T21:41:53Z",
+      "updated_at": "2026-09-12T21:42:50Z",
       "jobs": []
     },
     {
@@ -55,97 +65,97 @@
             {
               "number": 4,
               "name": "Block published credentials",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-12T21:42:01Z",
-              "completed_at": null
+              "completed_at": "2026-09-12T21:42:05Z"
             },
             {
               "number": 5,
               "name": "Brain publication boundaries",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:05Z",
+              "completed_at": "2026-09-12T21:42:08Z"
             },
             {
               "number": 6,
               "name": "Frontend + worker behavioural tests",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:08Z",
+              "completed_at": "2026-09-12T21:42:09Z"
             },
             {
               "number": 7,
               "name": "Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:09Z",
+              "completed_at": "2026-09-12T21:42:10Z"
             },
             {
               "number": 8,
               "name": "Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:10Z",
+              "completed_at": "2026-09-12T21:42:10Z"
             },
             {
               "number": 9,
               "name": "Assemble lean site artifact",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:10Z",
+              "completed_at": "2026-09-12T21:42:44Z"
             },
             {
               "number": 10,
               "name": "Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:44Z",
+              "completed_at": "2026-09-12T21:42:44Z"
             },
             {
               "number": 11,
               "name": "Bake section numbers into every page + ship home layout/registry (ops 5200)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:44Z",
+              "completed_at": "2026-09-12T21:42:44Z"
             },
             {
               "number": 12,
               "name": "Bake last-known values into homepage (zero em-dash first paint)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:44Z",
+              "completed_at": "2026-09-12T21:42:44Z"
             },
             {
               "number": 13,
               "name": "CI gate \u2014 template leaks + dead-paint ratchet",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:44Z",
+              "completed_at": "2026-09-12T21:42:44Z"
             },
             {
               "number": 14,
               "name": "Bake right-rail insight panel (Design audit sec8-C)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T21:42:44Z",
+              "completed_at": "2026-09-12T21:42:59Z"
             },
             {
               "number": 15,
               "name": "Bake engine directory (real live wiring status)",
-              "status": "pending",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-09-12T21:42:59Z",
               "completed_at": null
             },
             {
@@ -5347,147 +5357,6 @@
             "failed_functions": [],
             "deployed_functions": []
           }
-        }
-      ]
-    },
-    {
-      "id": 34717344868,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "6a11e1a79bac69532adef36bad564e168c0751ea",
-      "status": "completed",
-      "conclusion": "success",
-      "created_at": "2026-09-12T20:31:25Z",
-      "updated_at": "2026-09-12T20:33:07Z",
-      "jobs": [
-        {
-          "id": 103616858769,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "success",
-          "started_at": "2026-09-12T20:32:13Z",
-          "completed_at": "2026-09-12T20:33:06Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:13Z",
-              "completed_at": "2026-09-12T20:32:14Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:14Z",
-              "completed_at": "2026-09-12T20:32:18Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:18Z",
-              "completed_at": "2026-09-12T20:32:18Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:18Z",
-              "completed_at": "2026-09-12T20:32:18Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:18Z",
-              "completed_at": "2026-09-12T20:32:19Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:19Z",
-              "completed_at": "2026-09-12T20:32:35Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:35Z",
-              "completed_at": "2026-09-12T20:32:35Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:35Z",
-              "completed_at": "2026-09-12T20:32:39Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:32:39Z",
-              "completed_at": "2026-09-12T20:33:03Z"
-            },
-            {
-              "number": 10,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:03Z",
-              "completed_at": "2026-09-12T20:33:03Z"
-            },
-            {
-              "number": 11,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:03Z",
-              "completed_at": "2026-09-12T20:33:04Z"
-            },
-            {
-              "number": 12,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:04Z",
-              "completed_at": "2026-09-12T20:33:04Z"
-            },
-            {
-              "number": 23,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:04Z",
-              "completed_at": "2026-09-12T20:33:04Z"
-            },
-            {
-              "number": 24,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:04Z",
-              "completed_at": "2026-09-12T20:33:04Z"
-            },
-            {
-              "number": 25,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-12T20:33:04Z",
-              "completed_at": "2026-09-12T20:33:04Z"
-            }
-          ]
         }
       ]
     },
