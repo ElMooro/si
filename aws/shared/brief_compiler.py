@@ -69,6 +69,13 @@ def _finalize(s3, key, mode, source, inputs, fields, why, required_ok):
     return brief
 
 
+def _ofr_val(doc, name):
+    row = (doc or {}).get(name) if isinstance(doc, dict) else None
+    if isinstance(row, dict):
+        return row.get("value"), row.get("as_of") or row.get("observed")
+    return None, None
+
+
 def compile_plumbing(s3, source="brief-compiler"):
     ttl = TTL_HOURS["plumbing"]
     doc, lm, err = _load(s3, "data/plumbing-stress.json")
@@ -86,13 +93,32 @@ def compile_plumbing(s3, source="brief-compiler"):
                 for k, v in (doc.get("layers") or {}).items()
             } or doc.get("layer_scores"),
         }
+    ofr, olm, oerr = _load(s3, "data/ofr-funding.json")
+    o_asof = (ofr or {}).get("as_of") or olm
+    sofr_v, sofr_d = _ofr_val(ofr, "sofr")
+    tri_v, tri_d = _ofr_val(ofr, "triparty_rate")
+    dvp_v, dvp_d = _ofr_val(ofr, "dvp_rate")
+    gcf_v, gcf_d = _ofr_val(ofr, "gcf_rate")
+    fields["ofr_sofr"] = sofr_v
+    fields["ofr_sofr_date"] = sofr_d
+    fields["ofr_triparty_rate"] = tri_v
+    fields["ofr_triparty_date"] = tri_d
+    fields["ofr_dvp_rate"] = dvp_v
+    fields["ofr_gcf_rate"] = gcf_v
+    fields["ofr_fresh_fields"] = (ofr or {}).get("fresh_fields") if isinstance(ofr, dict) else None
+    fields["ofr_available_fields"] = (ofr or {}).get("available_fields") if isinstance(ofr, dict) else None
     ok = not err and doc and freshness(as_of, ttl) != "EXPIRED"
+    why = "plumbing-stress composite_label=%s score=%s | OFR SOFR=%s triparty=%s dvp=%s gcf=%s fresh=%s" % (
+        fields.get("composite_label"), fields.get("composite_score"),
+        sofr_v, tri_v, dvp_v, gcf_v, fields.get("ofr_fresh_fields"))
     return _finalize(
         s3, "data/plumbing-brief.json", "plumbing", source,
-        {"data/plumbing-stress.json": _inp(True, lm, as_of, ttl, err)},
+        {
+            "data/plumbing-stress.json": _inp(True, lm, as_of, ttl, err),
+            "data/ofr-funding.json": _inp(False, olm, o_asof, ttl, oerr),
+        },
         fields,
-        "plumbing-stress composite_label=%s score=%s" % (
-            fields.get("composite_label"), fields.get("composite_score")),
+        why,
         ok,
     )
 
