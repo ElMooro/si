@@ -1,0 +1,3669 @@
+{
+  "at": "2026-09-12T14:53:28.549546+00:00",
+  "objects": {
+    "config/schedule-manifest.json": {
+      "last_modified": "2026-09-12T14:54:16+00:00"
+    },
+    "data/schedule-drift.json": {
+      "last_modified": "2026-09-12T14:54:32+00:00"
+    },
+    "data/plumbing-brief.json": {
+      "last_modified": "2026-09-12T14:54:53+00:00"
+    },
+    "data/market-tape-brief.json": {
+      "last_modified": "2026-09-12T14:54:53+00:00"
+    },
+    "data/event-brief.json": {
+      "last_modified": "2026-09-12T14:54:56+00:00"
+    },
+    "data/official-stats-brief.json": {
+      "last_modified": "2026-09-12T14:54:53+00:00"
+    },
+    "data/positioning-brief.json": {
+      "last_modified": "2026-09-12T14:54:56+00:00"
+    },
+    "data/verdict.json": {
+      "last_modified": "2026-09-12T14:54:57+00:00"
+    },
+    "data/import-health.json": {
+      "last_modified": "2026-09-12T14:45:06+00:00"
+    },
+    "data/warm/imf-full/_state/state.json": {
+      "last_modified": "2026-09-12T14:48:18+00:00"
+    }
+  },
+  "actions": [
+    "granted reconciler create/get only for six schedules and pass only compiler execution role",
+    "migrated exactly six compiler manifest declarations to Scheduler"
+  ],
+  "reconciler_package": {
+    "code_sha256": "JVk7XpNiRnUALYZovbtwRd/3WcnXTJbACLcnTBdc/6c=",
+    "last_modified": "2026-09-12T14:44:02.000+0000",
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "files": {
+      "lambda_function.py": "192a9fa4cadfe8226968b49c56481ef288d2119e40aa3488475ca60dbda3ee61",
+      "brief_schedules.py": "c732d99c0b7b20045caf19e682ab0f1a4d67311343d4cd5d2c5ab4b45291379d"
+    }
+  },
+  "compiler_package": {
+    "code_sha256": "qArluhFMj0dB2kug+iKUpbb+xx3TG/Ah9vPw4ZtX86o=",
+    "last_modified": "2026-09-12T04:44:24.000+0000",
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "files": {
+      "lambda_function.py": "3f5f8ee1b71226f62f8fbe6f008d9a4319375ee8c2474eaa71ce03981b5eb6a0",
+      "brief_compiler.py": "741a10c15f34c7508b301ef2e45eb40f68e13598e5d9b9ab16bc7491867ad792",
+      "brief_contract.py": "9d5b0844a96c5b489217c06c8ef00fd210ca612ac472daa0446e867c0dc15c0a"
+    }
+  },
+  "audit_before": {
+    "ok": true,
+    "mode": "audit",
+    "drift_count": 309,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 7
+    },
+    "enforced": 0
+  },
+  "drift_before": {
+    "drift_count": 309,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 7
+    },
+    "drifts": [
+      {
+        "drift": "STATE_DRIFT",
+        "key": "activity-nowcast-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "behavior-mirror-weekly",
+        "detail": "live cron(0 13 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "benzinga-news-agent-warm",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "best-ideas-daily",
+        "detail": "live cron(45 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "beta-laggard-daily",
+        "detail": "live cron(30 13 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "buzz-velocity-4x-daily",
+        "detail": "live=cron(0 10,14,18,22 * * ? *) manifest=cron(49 14 * * ? *)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "carry-surface-4h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "causality-scanner-weekly",
+        "detail": "live cron(0 21 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cds-proxy-tri-daily",
+        "detail": "live=cron(0 13,17,21 ? * MON-FRI *) manifest=cron(13 18 * * ? *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cftc-cot-weekly-update",
+        "detail": "live=rate(6 hours) manifest=cron(0 18 ? * FRI *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "concentration-liquidity-daily",
+        "detail": "live cron(0 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "convexity-scorer-daily",
+        "detail": "live cron(0 14 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cross-asset-confirm-3h",
+        "detail": "live=rate(3 hours) manifest=cron(10 15 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "crypto-narratives-6h",
+        "detail": "live cron(0 */6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "divergence-interpreter-4hourly",
+        "detail": "live cron(30 0/4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "dr-snapshot-daily",
+        "detail": "live cron(0 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "engine-contribution-weekly",
+        "detail": "live cron(0 2 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "engine-robustness-weekly",
+        "detail": "live cron(0 4 ? * TUE *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "event-flow-monitor-hourly",
+        "detail": "live=cron(0 * * * ? *) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fleet-error-monitor-5min",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "live=rate(30 minutes) manifest=rate(3 hours)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "fleet-monitor-3h",
+        "detail": "live=cron(20 */3 * * ? *) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "fleet-monitor-3h",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fmp-movers-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fmp-stock-picks-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "gap-metrics-daily",
+        "detail": "live=rate(2 hours) manifest=cron(45 21 * * ? *)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-13f-positions-6h",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-13f-positions-sched",
+        "detail": "live=rate(2 hours) manifest=cron(10 21 ? * MON-FRI *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-aaii-sentiment-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-alpha-confluence-hourly",
+        "detail": "live cron(12 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-alpha-council-cadence",
+        "detail": "live cron(55 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-alpha-daily-brief",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-anomaly-detector-hourly",
+        "detail": "live=cron(33 * * * ? *) manifest=cron(24 19 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-audit-loop-2h",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-backend-agent-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-backfill-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-backtest-engine-6h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-bis-gleif-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-bond-trace-cadence",
+        "detail": "live cron(0 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-canary-macro-hourly",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cftc-full-daily",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-chokepoint-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cot-tracker-weekly",
+        "detail": "live cron(0 22 ? * FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-coverage-gap-daily",
+        "detail": "live cron(45 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-credit-stress-cadence",
+        "detail": "live cron(10 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crisis-knowledge-base-cadence",
+        "detail": "live cron(20 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cross-asset-rv-cadence",
+        "detail": "live cron(45 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-basis-hourly",
+        "detail": "live cron(25 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-enricher-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-funding-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cusip-map-rebuild-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cyclical-bagger-daily",
+        "detail": "live cron(0 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-d1-scan-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-daily-8am",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-daily-v3",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-debate-engine-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-devils-advocate-6h",
+        "detail": "live=rate(6 hours) manifest=cron(0 14 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-dex-scanner-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-earnings-sentiment-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-edgar-full-index-daily",
+        "detail": "live cron(35 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-engine-conflicts-6h",
+        "detail": "live=rate(6 hours) manifest=cron(48 12 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-engine-leaderboard-cadence",
+        "detail": "live cron(40 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-eurostat-oecd-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-event-study-cadence",
+        "detail": "live cron(30 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fabrication-weekly-cron",
+        "detail": "live cron(30 6 ? * MON *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fedwatch-rate-probability-daily",
+        "detail": "live cron(0 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-feed-catalog-cadence",
+        "detail": "live cron(50 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-fleet-freshness-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-fleet-freshness-monitor-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fred-catalog-5min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fred-catalog-daily",
+        "detail": "live cron(50 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-freshness-30m",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-gdelt-sentiment-30min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-global-expansion-hourly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-global-macro-cadence",
+        "detail": "live cron(15 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-historical-analogs-cadence",
+        "detail": "live cron(35 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-hot-stocks-digest-am",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-ici-flows-weekly",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-implied-prob-cadence",
+        "detail": "live cron(25 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-insider-trades-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-intel-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-intel-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-inventory-drawdown-weekly",
+        "detail": "live cron(30 23 ? * TUE *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-labor-leading-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-lambda-inventory-daily",
+        "detail": "live cron(0 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-liquidity-flow-cadence",
+        "detail": "live cron(5 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-liquidity-flow-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-ma-tracker-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-methodology-scout-cadence",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-morning-brief-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-dealer-survey-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-full-history-daily",
+        "detail": "live cron(25 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-markets-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-repo-deep-daily",
+        "detail": "live cron(22 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-oecd-cli-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-ofr-stfm-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-options-flow-30m",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-options-flow-sched",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-options-gamma-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-peru-copper-daily",
+        "detail": "live=rate(2 hours) manifest=cron(0 4 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-plumbing-aggregator-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-plumbing-panel-weekly",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-polygon-daily-2130",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-portfolio-catalysts-3x-daily",
+        "detail": "live=cron(0 11,17,23 * * ? *) manifest=cron(5 14 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-risk-hourly",
+        "detail": "live cron(43 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-sizer-hourly",
+        "detail": "live cron(45 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-snapshot-hourly",
+        "detail": "live cron(40 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-position-sizer-6h",
+        "detail": "live=rate(6 hours) manifest=cron(9 13 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-price-redundancy-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-provenance-rollup-daily",
+        "detail": "live cron(45 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-provider-catalog-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-redflag-alerter-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-repo-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-repo-daily",
+        "detail": "live cron(10 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-research-backtest-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-risk-gate-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sdmx-walker-hourly",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-10kq-4h",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-13f-daily",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-8k-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-bulk-hourly",
+        "detail": "live rate(12 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-self-critique-daily",
+        "detail": "live cron(20 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sentiment-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-series-extractor-5min",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-shadow-lab-cadence",
+        "detail": "live cron(30 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-signal-fabric-cadence",
+        "detail": "live cron(10 0 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-signal-optimizer-cadence",
+        "detail": "live cron(50 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-smart-money-holdings-daily",
+        "detail": "live cron(30 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-smart-money-tracker-daily",
+        "detail": "live cron(0 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-stock-screener-4h",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-symbology-master-daily",
+        "detail": "live cron(15 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-taiwan-moea-daily",
+        "detail": "live=rate(2 hours) manifest=cron(30 3 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-te-fred-mirror-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-theme-cascade-twice-per-hour",
+        "detail": "live=cron(20,50 * * * ? *) manifest=cron(54 13 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-tiingo-news-cadence",
+        "detail": "live cron(45 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-trade-logger-hourly",
+        "detail": "live cron(50 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-treasury-fiscal-daily",
+        "detail": "live cron(55 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-tv-bars-hourly",
+        "detail": "live rate(1 hour) (DISABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-usd-funding-daily",
+        "detail": "live cron(20 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-usgov-direct-daily",
+        "detail": "live cron(40 12 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-vix-curve-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-warm-bridge-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "macro-calendar-daily",
+        "detail": "live cron(0 11 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "macro-financial-daily-execution",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "meta-improver-weekly",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "news-wire-15m",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "null",
+        "detail": "live=cron(30 7 ? * * *) manifest=cron(35 21 ? * * *)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "null",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "premortem-engine-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "repo-metrics-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "rotation-chain-2x-daily",
+        "detail": "live=cron(0 12,20 * * ? *) manifest=cron(50 15 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "secretary-4h-scan",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "tax-plan-daily",
+        "detail": "live cron(45 11 ? * * *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "ticker-trends-2x-daily",
+        "detail": "live=cron(0 13,21 * * ? *) manifest=cron(2 17 * * ? *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/fleet-monitor-sched",
+        "detail": "live=rate(24 hours) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-asia-trade-24h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-results",
+        "detail": "live cron(40 13 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boj-full-fanout",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bottom-signals",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-catalyst",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-catalyst-chain-daily",
+        "detail": "live cron(15 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-cef-discount-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-census-us-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-finra-full-6h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fiscaldata-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-risk-hourly",
+        "detail": "live cron(20 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-momentum-leaders-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-full-history-nightly",
+        "detail": "live cron(40 4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-pjm-grid",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-plumbing-composite-daily",
+        "detail": "live cron(45 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-prepump-summary-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/treasury-rehypo-daily",
+        "detail": "live cron(40 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/calibration-snapshotter-weekly",
+        "detail": "live cron(0 4 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-evening",
+        "detail": "live cron(15 19 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-census-econ-dispatch",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-dol-full-6h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-impact-graph-daily",
+        "detail": "live cron(10 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-daily",
+        "detail": "live cron(10 4 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-liquidity-reversal",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-physical-econ",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-spac-floor-warrant-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-ustbank",
+        "detail": "live cron(30 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-worldbank-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/crypto-gex-sched",
+        "detail": "live=rate(6 hours) manifest=rate(30 minutes)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/house-ptr-extract-6h",
+        "detail": "live cron(10 1,7,13,19 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-pipeline",
+        "detail": "live rate(10 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bls-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-mid",
+        "detail": "live cron(0 10 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-distribution-composite-daily",
+        "detail": "live cron(0 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-dxy-predict",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-engine-fusion-hourly",
+        "detail": "live cron(15 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fiscaldata-full-2h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ka-metrics-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-lockup-expiration-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-markets-hourly-s",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-official-pulse-weekly",
+        "detail": "live cron(0 9 ? * FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-options-flow-30m",
+        "detail": "live cron(33 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-provider-window-sentinel-weekly",
+        "detail": "live cron(0 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-statcan-retry-hourly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/risk-gate-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/compound-aggregator-daily",
+        "detail": "live cron(15 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boj-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-close",
+        "detail": "live cron(45 16 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-crypto-etf-arb-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-gdelt-full-30m",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-hourly",
+        "detail": "live cron(25 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-liquidity-capacity-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-market-machine",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-repo-deep-daily",
+        "detail": "live cron(22 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-ofr-stfm-daily",
+        "detail": "live=rate(24 hours) manifest=cron(30 11 ? * TUE-SAT *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-portwatch-daily",
+        "detail": "live=cron(20 11 * * ? *) manifest=cron(10 12 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-stock-buying",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-supabase-keepalive",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-build",
+        "detail": "live cron(40 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-codelists",
+        "detail": "live rate(20 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-fredfresh",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/portfolio-snapshot-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/quantum-desk-sched",
+        "detail": "live cron(55 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/fleet-error-monitor-sched",
+        "detail": "live=rate(24 hours) manifest=rate(1 hour)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/fleet-freshness-monitor-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-chain-resumer-5min",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-finra-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-gsi-calibrator-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-liq-indicators",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-polygon-full-2h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-precatalyst-vol-expansion-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-public-archive-index-15min",
+        "detail": "live cron(0/15 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-tic-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-top-signals",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-late",
+        "detail": "live cron(35 16 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-backlog-miner",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bloomberg-v8-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ecb-rewalk-weekly",
+        "detail": "live cron(15 3 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fortress-backtest-weekly",
+        "detail": "live cron(0 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-frbddp-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-invest-daily",
+        "detail": "live cron(0 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-pair-trades-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-radar-backtest-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-bulk-daily",
+        "detail": "live cron(20 4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-signal-fabric-hourly",
+        "detail": "live cron(5 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-worldbank-full-2h",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-market-read",
+        "detail": "live cron(45 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-cycle-features-daily",
+        "detail": "live cron(30 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ecb-deep-10min",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-backtest-weekly",
+        "detail": "live cron(30 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-metrics-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-repo-daily",
+        "detail": "live cron(10 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-midas-weekly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-spx-beaters-weekly",
+        "detail": "live cron(0 13 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-tv-bars-universe-refresh",
+        "detail": "live cron(30 2 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-accum-composite-daily",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-buyback",
+        "detail": "live cron(10 12 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-morning",
+        "detail": "live cron(15 9 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boe-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-early",
+        "detail": "live cron(30 7 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bottom-daily",
+        "detail": "live cron(45 3 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-divcut-warning-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-firm-risk-board-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-foreign-flows-daily",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-permission-refresh",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-real-economy-collector",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-bulk-weekly",
+        "detail": "live cron(0 9 ? * MON *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-theme-classifier-6h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-blackswan-watch",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-after-auction",
+        "detail": "live cron(35 13 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-earnings-iv-crush-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-floor-audit-daily",
+        "detail": "live cron(35 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fortress-daily",
+        "detail": "live cron(30 3 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-gap-metrics-daily",
+        "detail": "live=rate(24 hours) manifest=cron(45 21 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-hist-banker-weekly",
+        "detail": "live cron(45 4 ? * WED *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-hot-money-daily",
+        "detail": "live cron(50 9 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-imf-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-import-sentinel-10min",
+        "detail": "live rate(10 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-macro-predict",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-reit-nav-discount-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-repo-market-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-risk-regime-daily",
+        "detail": "live cron(45 12 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sp500-daily",
+        "detail": "live cron(45 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-src-mirror-daily",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-stealth-accumulation-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-fredupdates",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-warm",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/ma-tracker-sched",
+        "detail": "live=rate(24 hours) manifest=rate(1 hour)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/trend-reversal-daily",
+        "detail": "live cron(50 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-inventory",
+        "detail": "live cron(7 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-base-rates-weekly",
+        "detail": "live cron(30 14 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-beaters-grader-weekly",
+        "detail": "live cron(0 15 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-failed-pattern-reversal-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-global-flows-daily",
+        "detail": "live cron(0 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-imf-full-6h",
+        "detail": "live rate(24 hours) (DISABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-jh-fusion-daily",
+        "detail": "live cron(20 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-jhsignal-bridge-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-multi-tf-convergence-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-markets-full-hourly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-oecd-retry-hourly",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-options-flow-sched",
+        "detail": "live cron(25 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-port-cargo-daily",
+        "detail": "live cron(40 12 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-titles",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/te-feed-daily",
+        "detail": "live=rate(24 hours) manifest=cron(0 11 * * ? *)"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-plumbing-6h",
+        "detail": "declared cron(20 */6 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-market-tape-6h",
+        "detail": "declared cron(25 */6 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-official-stats-daily",
+        "detail": "declared cron(40 1 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-positioning-daily",
+        "detail": "declared cron(50 1 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-event-6h",
+        "detail": "declared cron(35 */6 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "brief-compiler-verdict-3h",
+        "detail": "declared cron(10 */3 * * ? *) but absent from AWS"
+      },
+      {
+        "drift": "MISSING",
+        "key": "default/portwatch-sched",
+        "detail": "declared cron(20 11 * * ? *) but absent from AWS"
+      }
+    ]
+  },
+  "reconciler_managed_policy": "arn:aws:iam::857687956942:policy/justhodl-reconcile-six-brief-schedules",
+  "manifest_backup_key": "config/ops/5448/schedule-manifest-15ac1ef0c20e8584225edb5882239f06393b21af32fb0c1082fbdc070ae479ec.json",
+  "attach_invoke": {
+    "ok": true,
+    "mode": "attach-brief-compiler",
+    "drift_count": 303,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 1
+    },
+    "enforced": 0
+  },
+  "other_manifest_sha256": "77d5ef7b2d83a4e110e17a6e7f851a8018f959992a9ceaa1e5633da0e21a98a9",
+  "other_live_sha256": "48f4f71f680e71cdc30ba07cb7f235d54c83b8c66b05581644b98b7fc1b88fb9",
+  "other_live_unchanged_count": 950,
+  "schedules": [
+    {
+      "Name": "brief-compiler-plumbing-6h",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-plumbing-6h",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(20 */6 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.858000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"plumbing\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    },
+    {
+      "Name": "brief-compiler-market-tape-6h",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-market-tape-6h",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(25 */6 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.898000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"market_tape\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    },
+    {
+      "Name": "brief-compiler-event-6h",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-event-6h",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(35 */6 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.914000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"event\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    },
+    {
+      "Name": "brief-compiler-official-stats-daily",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-official-stats-daily",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(40 1 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.931000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"official_stats\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    },
+    {
+      "Name": "brief-compiler-positioning-daily",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-positioning-daily",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(50 1 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.947000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"positioning\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    },
+    {
+      "Name": "brief-compiler-verdict-3h",
+      "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-verdict-3h",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(10 */3 * * ? *)",
+      "ScheduleExpressionTimezone": "UTC",
+      "LastModificationDate": "2026-09-12 14:54:15.967000+00:00",
+      "Target": {
+        "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+        "Input": "{\"mode\": \"verdict\"}",
+        "RetryPolicy": {
+          "MaximumEventAgeInSeconds": 3600,
+          "MaximumRetryAttempts": 2
+        },
+        "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+      }
+    }
+  ],
+  "drift_after": {
+    "drift_count": 303,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 1
+    },
+    "drifts": [
+      {
+        "drift": "STATE_DRIFT",
+        "key": "activity-nowcast-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "behavior-mirror-weekly",
+        "detail": "live cron(0 13 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "benzinga-news-agent-warm",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "best-ideas-daily",
+        "detail": "live cron(45 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "beta-laggard-daily",
+        "detail": "live cron(30 13 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "buzz-velocity-4x-daily",
+        "detail": "live=cron(0 10,14,18,22 * * ? *) manifest=cron(49 14 * * ? *)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "carry-surface-4h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "causality-scanner-weekly",
+        "detail": "live cron(0 21 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cds-proxy-tri-daily",
+        "detail": "live=cron(0 13,17,21 ? * MON-FRI *) manifest=cron(13 18 * * ? *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cftc-cot-weekly-update",
+        "detail": "live=rate(6 hours) manifest=cron(0 18 ? * FRI *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "concentration-liquidity-daily",
+        "detail": "live cron(0 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "convexity-scorer-daily",
+        "detail": "live cron(0 14 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "cross-asset-confirm-3h",
+        "detail": "live=rate(3 hours) manifest=cron(10 15 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "crypto-narratives-6h",
+        "detail": "live cron(0 */6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "divergence-interpreter-4hourly",
+        "detail": "live cron(30 0/4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "dr-snapshot-daily",
+        "detail": "live cron(0 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "engine-contribution-weekly",
+        "detail": "live cron(0 2 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "engine-robustness-weekly",
+        "detail": "live cron(0 4 ? * TUE *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "event-flow-monitor-hourly",
+        "detail": "live=cron(0 * * * ? *) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fleet-error-monitor-5min",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "live=rate(30 minutes) manifest=rate(3 hours)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "fleet-freshness-monitor-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "fleet-monitor-3h",
+        "detail": "live=cron(20 */3 * * ? *) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "fleet-monitor-3h",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fmp-movers-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "fmp-stock-picks-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "gap-metrics-daily",
+        "detail": "live=rate(2 hours) manifest=cron(45 21 * * ? *)"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-13f-positions-6h",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-13f-positions-sched",
+        "detail": "live=rate(2 hours) manifest=cron(10 21 ? * MON-FRI *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-aaii-sentiment-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-alpha-confluence-hourly",
+        "detail": "live cron(12 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-alpha-council-cadence",
+        "detail": "live cron(55 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-alpha-daily-brief",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-anomaly-detector-hourly",
+        "detail": "live=cron(33 * * * ? *) manifest=cron(24 19 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-audit-loop-2h",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-backend-agent-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-backfill-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-backtest-engine-6h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-bis-gleif-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-bond-trace-cadence",
+        "detail": "live cron(0 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-canary-macro-hourly",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cftc-full-daily",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-chokepoint-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cot-tracker-weekly",
+        "detail": "live cron(0 22 ? * FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-coverage-gap-daily",
+        "detail": "live cron(45 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-credit-stress-cadence",
+        "detail": "live cron(10 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crisis-knowledge-base-cadence",
+        "detail": "live cron(20 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cross-asset-rv-cadence",
+        "detail": "live cron(45 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-basis-hourly",
+        "detail": "live cron(25 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-enricher-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-crypto-funding-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cusip-map-rebuild-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-cyclical-bagger-daily",
+        "detail": "live cron(0 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-d1-scan-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-daily-8am",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-daily-v3",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-debate-engine-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-devils-advocate-6h",
+        "detail": "live=rate(6 hours) manifest=cron(0 14 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-dex-scanner-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-earnings-sentiment-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-edgar-full-index-daily",
+        "detail": "live cron(35 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-engine-conflicts-6h",
+        "detail": "live=rate(6 hours) manifest=cron(48 12 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-engine-leaderboard-cadence",
+        "detail": "live cron(40 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-eurostat-oecd-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-event-study-cadence",
+        "detail": "live cron(30 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fabrication-weekly-cron",
+        "detail": "live cron(30 6 ? * MON *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fedwatch-rate-probability-daily",
+        "detail": "live cron(0 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-feed-catalog-cadence",
+        "detail": "live cron(50 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-fleet-freshness-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-fleet-freshness-monitor-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fred-catalog-5min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-fred-catalog-daily",
+        "detail": "live cron(50 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-freshness-30m",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-gdelt-sentiment-30min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-global-expansion-hourly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-global-macro-cadence",
+        "detail": "live cron(15 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-historical-analogs-cadence",
+        "detail": "live cron(35 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-hot-stocks-digest-am",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-ici-flows-weekly",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-implied-prob-cadence",
+        "detail": "live cron(25 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-insider-trades-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-intel-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-intel-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-inventory-drawdown-weekly",
+        "detail": "live cron(30 23 ? * TUE *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-labor-leading-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-lambda-inventory-daily",
+        "detail": "live cron(0 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-liquidity-flow-cadence",
+        "detail": "live cron(5 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-liquidity-flow-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-ma-tracker-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-methodology-scout-cadence",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-morning-brief-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-dealer-survey-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-full-history-daily",
+        "detail": "live cron(25 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-markets-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-nyfed-repo-deep-daily",
+        "detail": "live cron(22 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-oecd-cli-weekly",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-ofr-stfm-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-options-flow-30m",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "justhodl-options-flow-sched",
+        "detail": "live=DISABLED manifest=ENABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-options-gamma-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-peru-copper-daily",
+        "detail": "live=rate(2 hours) manifest=cron(0 4 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-plumbing-aggregator-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-plumbing-panel-weekly",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-polygon-daily-2130",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-portfolio-catalysts-3x-daily",
+        "detail": "live=cron(0 11,17,23 * * ? *) manifest=cron(5 14 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-risk-hourly",
+        "detail": "live cron(43 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-sizer-hourly",
+        "detail": "live cron(45 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-portfolio-snapshot-hourly",
+        "detail": "live cron(40 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-position-sizer-6h",
+        "detail": "live=rate(6 hours) manifest=cron(9 13 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-price-redundancy-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-provenance-rollup-daily",
+        "detail": "live cron(45 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-provider-catalog-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-redflag-alerter-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-repo-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-repo-daily",
+        "detail": "live cron(10 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "justhodl-research-backtest-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-risk-gate-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sdmx-walker-hourly",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-10kq-4h",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-13f-daily",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-8k-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sec-bulk-hourly",
+        "detail": "live rate(12 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-self-critique-daily",
+        "detail": "live cron(20 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-sentiment-daily",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-series-extractor-5min",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-shadow-lab-cadence",
+        "detail": "live cron(30 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-signal-fabric-cadence",
+        "detail": "live cron(10 0 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-signal-optimizer-cadence",
+        "detail": "live cron(50 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-smart-money-holdings-daily",
+        "detail": "live cron(30 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-smart-money-tracker-daily",
+        "detail": "live cron(0 14 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-stock-screener-4h",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-symbology-master-daily",
+        "detail": "live cron(15 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-taiwan-moea-daily",
+        "detail": "live=rate(2 hours) manifest=cron(30 3 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-te-fred-mirror-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "justhodl-theme-cascade-twice-per-hour",
+        "detail": "live=cron(20,50 * * * ? *) manifest=cron(54 13 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-tiingo-news-cadence",
+        "detail": "live cron(45 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-trade-logger-hourly",
+        "detail": "live cron(50 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-treasury-fiscal-daily",
+        "detail": "live cron(55 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-tv-bars-hourly",
+        "detail": "live rate(1 hour) (DISABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-usd-funding-daily",
+        "detail": "live cron(20 22 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-usgov-direct-daily",
+        "detail": "live cron(40 12 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-vix-curve-30min",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "justhodl-warm-bridge-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "macro-calendar-daily",
+        "detail": "live cron(0 11 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "macro-financial-daily-execution",
+        "detail": "live rate(1 day) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "meta-improver-weekly",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "news-wire-15m",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "null",
+        "detail": "live=cron(30 7 ? * * *) manifest=cron(35 21 ? * * *)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "null",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "STATE_DRIFT",
+        "key": "premortem-engine-daily",
+        "detail": "live=ENABLED manifest=DISABLED"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "repo-metrics-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "rotation-chain-2x-daily",
+        "detail": "live=cron(0 12,20 * * ? *) manifest=cron(50 15 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "secretary-4h-scan",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "tax-plan-daily",
+        "detail": "live cron(45 11 ? * * *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "ticker-trends-2x-daily",
+        "detail": "live=cron(0 13,21 * * ? *) manifest=cron(2 17 * * ? *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/fleet-monitor-sched",
+        "detail": "live=rate(24 hours) manifest=rate(6 hours)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-asia-trade-24h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-results",
+        "detail": "live cron(40 13 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boj-full-fanout",
+        "detail": "live rate(30 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bottom-signals",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-catalyst",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-catalyst-chain-daily",
+        "detail": "live cron(15 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-cef-discount-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-census-us-15min",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-finra-full-6h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fiscaldata-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-risk-hourly",
+        "detail": "live cron(20 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-momentum-leaders-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-full-history-nightly",
+        "detail": "live cron(40 4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-pjm-grid",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-plumbing-composite-daily",
+        "detail": "live cron(45 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-prepump-summary-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/treasury-rehypo-daily",
+        "detail": "live cron(40 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/calibration-snapshotter-weekly",
+        "detail": "live cron(0 4 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-evening",
+        "detail": "live cron(15 19 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-census-econ-dispatch",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-dol-full-6h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-impact-graph-daily",
+        "detail": "live cron(10 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-daily",
+        "detail": "live cron(10 4 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-liquidity-reversal",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-physical-econ",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-spac-floor-warrant-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-ustbank",
+        "detail": "live cron(30 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-worldbank-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/crypto-gex-sched",
+        "detail": "live=rate(6 hours) manifest=rate(30 minutes)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/house-ptr-extract-6h",
+        "detail": "live cron(10 1,7,13,19 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-pipeline",
+        "detail": "live rate(10 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bls-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-mid",
+        "detail": "live cron(0 10 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-distribution-composite-daily",
+        "detail": "live cron(0 22 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-dxy-predict",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-engine-fusion-hourly",
+        "detail": "live cron(15 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fiscaldata-full-2h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ka-metrics-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-lockup-expiration-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-markets-hourly-s",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-official-pulse-weekly",
+        "detail": "live cron(0 9 ? * FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-options-flow-30m",
+        "detail": "live cron(33 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-provider-window-sentinel-weekly",
+        "detail": "live cron(0 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-statcan-retry-hourly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/risk-gate-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/compound-aggregator-daily",
+        "detail": "live cron(15 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boj-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-close",
+        "detail": "live cron(45 16 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-crypto-etf-arb-30min",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-gdelt-full-30m",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-hourly",
+        "detail": "live cron(25 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-liquidity-capacity-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-market-machine",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-repo-deep-daily",
+        "detail": "live cron(22 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-ofr-stfm-daily",
+        "detail": "live=rate(24 hours) manifest=cron(30 11 ? * TUE-SAT *)"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-portwatch-daily",
+        "detail": "live=cron(20 11 * * ? *) manifest=cron(10 12 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-stock-buying",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-supabase-keepalive",
+        "detail": "live rate(4 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-build",
+        "detail": "live cron(40 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-codelists",
+        "detail": "live rate(20 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-fredfresh",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/portfolio-snapshot-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/quantum-desk-sched",
+        "detail": "live cron(55 23 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/fleet-error-monitor-sched",
+        "detail": "live=rate(24 hours) manifest=rate(1 hour)"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/fleet-freshness-monitor-sched",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-chain-resumer-5min",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-finra-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-gsi-calibrator-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-liq-indicators",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-polygon-full-2h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-precatalyst-vol-expansion-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-public-archive-index-15min",
+        "detail": "live cron(0/15 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-tic-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-top-signals",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-late",
+        "detail": "live cron(35 16 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-backlog-miner",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bloomberg-v8-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ecb-rewalk-weekly",
+        "detail": "live cron(15 3 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fortress-backtest-weekly",
+        "detail": "live cron(0 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-frbddp-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-invest-daily",
+        "detail": "live cron(0 15 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-pair-trades-hourly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-radar-backtest-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-bulk-daily",
+        "detail": "live cron(20 4 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-signal-fabric-hourly",
+        "detail": "live cron(5 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-worldbank-full-2h",
+        "detail": "live rate(2 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-market-read",
+        "detail": "live cron(45 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-cycle-features-daily",
+        "detail": "live cron(30 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ecb-deep-10min",
+        "detail": "live rate(6 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-backtest-weekly",
+        "detail": "live cron(30 9 ? * SUN *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-khalid-metrics-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-repo-daily",
+        "detail": "live cron(10 6 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-midas-weekly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-spx-beaters-weekly",
+        "detail": "live cron(0 13 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-tv-bars-universe-refresh",
+        "detail": "live cron(30 2 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-accum-composite-daily",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-buyback",
+        "detail": "live cron(10 12 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-auction-desk-morning",
+        "detail": "live cron(15 9 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-boe-full-12h",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-early",
+        "detail": "live cron(30 7 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bottom-daily",
+        "detail": "live cron(45 3 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-divcut-warning-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-firm-risk-board-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-foreign-flows-daily",
+        "detail": "live cron(30 21 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-katlin-permission-refresh",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-real-economy-collector",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sec-bulk-weekly",
+        "detail": "live cron(0 9 ? * MON *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-theme-classifier-6h",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-blackswan-watch",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-bond-warroom-after-auction",
+        "detail": "live cron(35 13 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-earnings-iv-crush-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-floor-audit-daily",
+        "detail": "live cron(35 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-fortress-daily",
+        "detail": "live cron(30 3 ? * TUE-SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/justhodl-gap-metrics-daily",
+        "detail": "live=rate(24 hours) manifest=cron(45 21 * * ? *)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-hist-banker-weekly",
+        "detail": "live cron(45 4 ? * WED *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-hot-money-daily",
+        "detail": "live cron(50 9 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-imf-full-weekly",
+        "detail": "live rate(7 days) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-import-sentinel-10min",
+        "detail": "live rate(10 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-macro-predict",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-reit-nav-discount-weekly",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-repo-market-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-risk-regime-daily",
+        "detail": "live cron(45 12 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-sp500-daily",
+        "detail": "live cron(45 21 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-src-mirror-daily",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-stealth-accumulation-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-fredupdates",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-warm",
+        "detail": "live rate(5 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/ma-tracker-sched",
+        "detail": "live=rate(24 hours) manifest=rate(1 hour)"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/trend-reversal-daily",
+        "detail": "live cron(50 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-ai-inventory",
+        "detail": "live cron(7 * * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-base-rates-weekly",
+        "detail": "live cron(30 14 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-beaters-grader-weekly",
+        "detail": "live cron(0 15 ? * SAT *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-failed-pattern-reversal-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-global-flows-daily",
+        "detail": "live cron(0 10 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-imf-full-6h",
+        "detail": "live rate(24 hours) (DISABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-jh-fusion-daily",
+        "detail": "live cron(20 5 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-jhsignal-bridge-hourly",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "TARGET_DRIFT",
+        "key": "default/justhodl-multi-tf-convergence-daily",
+        "detail": "target set differs from the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-nyfed-markets-full-hourly",
+        "detail": "live rate(24 hours) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-oecd-retry-hourly",
+        "detail": "live rate(15 minutes) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-options-flow-sched",
+        "detail": "live cron(25 20 ? * MON-FRI *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-port-cargo-daily",
+        "detail": "live cron(40 12 * * ? *) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "UNDECLARED",
+        "key": "default/justhodl-symdir-titles",
+        "detail": "live rate(1 hour) (ENABLED) is not in the manifest"
+      },
+      {
+        "drift": "EXPR_DRIFT",
+        "key": "default/te-feed-daily",
+        "detail": "live=rate(24 hours) manifest=cron(0 11 * * ? *)"
+      },
+      {
+        "drift": "MISSING",
+        "key": "default/portwatch-sched",
+        "detail": "declared cron(20 11 * * ? *) but absent from AWS"
+      }
+    ],
+    "compiler_attachment": {
+      "created": [
+        "brief-compiler-plumbing-6h",
+        "brief-compiler-market-tape-6h",
+        "brief-compiler-event-6h",
+        "brief-compiler-official-stats-daily",
+        "brief-compiler-positioning-daily",
+        "brief-compiler-verdict-3h"
+      ],
+      "verified": [
+        {
+          "name": "brief-compiler-plumbing-6h",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-plumbing-6h",
+          "state": "ENABLED",
+          "expr": "cron(20 */6 * * ? *)",
+          "input": {
+            "mode": "plumbing"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        },
+        {
+          "name": "brief-compiler-market-tape-6h",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-market-tape-6h",
+          "state": "ENABLED",
+          "expr": "cron(25 */6 * * ? *)",
+          "input": {
+            "mode": "market_tape"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        },
+        {
+          "name": "brief-compiler-event-6h",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-event-6h",
+          "state": "ENABLED",
+          "expr": "cron(35 */6 * * ? *)",
+          "input": {
+            "mode": "event"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        },
+        {
+          "name": "brief-compiler-official-stats-daily",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-official-stats-daily",
+          "state": "ENABLED",
+          "expr": "cron(40 1 * * ? *)",
+          "input": {
+            "mode": "official_stats"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        },
+        {
+          "name": "brief-compiler-positioning-daily",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-positioning-daily",
+          "state": "ENABLED",
+          "expr": "cron(50 1 * * ? *)",
+          "input": {
+            "mode": "positioning"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        },
+        {
+          "name": "brief-compiler-verdict-3h",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-verdict-3h",
+          "state": "ENABLED",
+          "expr": "cron(10 */3 * * ? *)",
+          "input": {
+            "mode": "verdict"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        }
+      ]
+    }
+  },
+  "compiler_all": {
+    "ok": true,
+    "results": {
+      "plumbing": {
+        "status": "LIVE",
+        "why": "plumbing-stress composite_label=NORMAL score=44.1",
+        "held_reason": null
+      },
+      "official_stats": {
+        "status": "LIVE",
+        "why": "GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11",
+        "held_reason": null
+      },
+      "market_tape": {
+        "status": "LIVE",
+        "why": "session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 2/3/55 basis=uncapped",
+        "held_reason": null
+      },
+      "positioning": {
+        "status": "LIVE",
+        "why": "13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064",
+        "held_reason": null
+      },
+      "event": {
+        "status": "LIVE",
+        "why": "finviz-signals n_screens=None confluence_n=387",
+        "held_reason": null
+      },
+      "verdict": {
+        "coverage": 0.9231,
+        "score": 0.1923,
+        "missing": [
+          "CATALYST"
+        ],
+        "as_of": "2026-09-12T13:56:00Z"
+      }
+    }
+  },
+  "briefs": {
+    "data/plumbing-brief.json": {
+      "schema": "brief-1.0",
+      "mode": "plumbing",
+      "status": "LIVE",
+      "generated_at": "2026-09-12T14:54:52.358360+00:00",
+      "source": "justhodl-brief-compiler",
+      "inputs": {
+        "data/plumbing-stress.json": {
+          "required": true,
+          "last_modified": "2026-09-12T14:38:59+00:00",
+          "as_of": "2026-09-12T14:38:52+00:00",
+          "freshness": "FRESH",
+          "error": null
+        }
+      },
+      "fields": {
+        "composite_score": 44.1,
+        "composite_label": "NORMAL",
+        "n_indicators": 40,
+        "n_with_data": 53,
+        "as_of": "2026-09-12T14:38:52+00:00",
+        "layer_scores": {
+          "L0": 45.6,
+          "L1": 29.0,
+          "L2": 71.1,
+          "L3": 47.0,
+          "L4": 43.3
+        }
+      },
+      "why": "plumbing-stress composite_label=NORMAL score=44.1"
+    },
+    "data/market-tape-brief.json": {
+      "schema": "brief-1.0",
+      "mode": "market_tape",
+      "status": "LIVE",
+      "generated_at": "2026-09-12T14:54:52.552367+00:00",
+      "source": "justhodl-brief-compiler",
+      "inputs": {
+        "data/warm/us-equities-daily/latest-summary.json": {
+          "required": true,
+          "last_modified": "2026-09-11T21:30:24+00:00",
+          "as_of": "2026-09-11T21:30:21+00:00",
+          "freshness": "FRESH",
+          "error": null
+        },
+        "data/etf-flows.json": {
+          "required": true,
+          "last_modified": "2026-09-12T11:35:43+00:00",
+          "as_of": "2026-09-12T11:35:42.619696+00:00",
+          "freshness": "FRESH",
+          "error": null
+        }
+      },
+      "fields": {
+        "session": "2026-09-10",
+        "n_tickers": 12572,
+        "equities_as_of": "2026-09-11T21:30:21+00:00",
+        "n_etfs": 60,
+        "heavy_inflow_n": 2,
+        "heavy_outflow_n": 3,
+        "other_flow_n": 55,
+        "etf_generated_at": "2026-09-12T11:35:42.619696+00:00",
+        "breadth_basis": "uncapped",
+        "breadth_pct": -0.2
+      },
+      "why": "session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 2/3/55 basis=uncapped"
+    },
+    "data/event-brief.json": {
+      "schema": "brief-1.0",
+      "mode": "event",
+      "status": "LIVE",
+      "generated_at": "2026-09-12T14:54:55.897255+00:00",
+      "source": "justhodl-brief-compiler",
+      "inputs": {
+        "data/finviz-signals.json": {
+          "required": true,
+          "last_modified": "2026-09-12T14:02:34+00:00",
+          "as_of": "2026-09-12T14:02:32.770071+00:00",
+          "freshness": "FRESH",
+          "error": null
+        }
+      },
+      "fields": {
+        "n_screens": null,
+        "status_signals": null,
+        "confluence_keys": [
+          "bottom_squeeze_insider",
+          "bottom_insider",
+          "bottom_oversold",
+          "top_insider_sell",
+          "top_overbought",
+          "ath_momentum",
+          "breakout_52w_vol",
+          "ma200_reclaim_vol",
+          "trend_flip_up",
+          "base_breakout",
+          "low_sweep",
+          "bear_break"
+        ],
+        "confluence_n": 387
+      },
+      "why": "finviz-signals n_screens=None confluence_n=387"
+    },
+    "data/official-stats-brief.json": {
+      "schema": "brief-1.0",
+      "mode": "official_stats",
+      "status": "LIVE",
+      "generated_at": "2026-09-12T14:54:52.421906+00:00",
+      "source": "justhodl-brief-compiler",
+      "inputs": {
+        "data/fed-nowcast-join.json": {
+          "required": true,
+          "last_modified": "2026-09-12T00:31:22+00:00",
+          "as_of": "2026-09-12T00:31:21.701795+00:00",
+          "freshness": "FRESH",
+          "error": null
+        }
+      },
+      "fields": {
+        "gdpnow": "4.4164",
+        "gdpnow_date": "2026-07-01",
+        "t10y3m": "0.89",
+        "t10y3m_date": "2026-09-11",
+        "nowcast_status": "LIVE"
+      },
+      "why": "GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11"
+    },
+    "data/positioning-brief.json": {
+      "schema": "brief-1.0",
+      "mode": "positioning",
+      "status": "LIVE",
+      "generated_at": "2026-09-12T14:54:55.474012+00:00",
+      "source": "justhodl-brief-compiler",
+      "inputs": {
+        "data/13f-positions.json": {
+          "required": true,
+          "last_modified": "2026-09-12T13:07:31+00:00",
+          "as_of": "2026-09-12T13:06:59+00:00",
+          "freshness": "FRESH",
+          "error": null
+        },
+        "data/finviz-universe.json": {
+          "required": false,
+          "last_modified": "2026-09-12T14:00:40+00:00",
+          "as_of": "2026-09-12T14:00:37.905076+00:00",
+          "freshness": "FRESH",
+          "error": null
+        }
+      },
+      "fields": {
+        "as_of_quarter": "2026-06-30",
+        "funds_total": 18,
+        "funds_parsed": 18,
+        "stale_funds": [
+          "PERSHING",
+          "GREENLIGHT",
+          "SCION"
+        ],
+        "accumulating": 3200,
+        "distributing": 1832,
+        "flat": 32,
+        "n_with_inst_trans": 5064,
+        "breadth_pct": 0.2718600953895072,
+        "breadth_basis": "uncapped"
+      },
+      "why": "13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064"
+    }
+  },
+  "verdict": {
+    "writer": "jh-fusion-projection",
+    "as_of": "2026-09-12T13:56:00Z",
+    "coverage": 0.9231,
+    "missing_families": [
+      "CATALYST"
+    ],
+    "shadow_mode": true
+  },
+  "health": {
+    "engine": "import-sentinel",
+    "version": "1.0",
+    "generated_at": "2026-09-12T14:45:03+00:00",
+    "duration_s": 1.7,
+    "overall": "HEALTHY",
+    "worst": "fred",
+    "pipelines": [
+      {
+        "name": "fred",
+        "status": "COMPLETE",
+        "detail": "COMPLETE_WITH_LEAKS",
+        "age_min": 5.7,
+        "scope": "full_catalog",
+        "engine_version": "2.3.0",
+        "imported": 282141,
+        "queue_total": 275299,
+        "queue_cursor": 275299,
+        "rate_rpm": 24.0,
+        "throttles_15m": 2,
+        "errors_15m": 0,
+        "last_crash": null,
+        "series_per_hour": 0.0,
+        "expand_all_knob": "1"
+      },
+      {
+        "name": "nyfed",
+        "status": "OK",
+        "detail": "rates 9.3h \u00b7 pd 1539/? \u00b7 repo 8.5h"
+      },
+      {
+        "name": "sdmx-eurostat",
+        "status": "COMPLETE",
+        "detail": "8156/8156, 6 source-side failures",
+        "age_min": null
+      },
+      {
+        "name": "sdmx-oecd",
+        "status": "COMPLETE",
+        "detail": "1549/1546, 376 source-side failures",
+        "age_min": null
+      },
+      {
+        "name": "sdmx-statcan",
+        "status": "COMPLETE",
+        "detail": "8270/8270, 5 source-side failures",
+        "age_min": null
+      },
+      {
+        "name": "sdmx-bis",
+        "status": "COMPLETE",
+        "detail": "29/29, 1 source-side failures",
+        "age_min": null
+      },
+      {
+        "name": "sdmx-ecb",
+        "status": "COMPLETE",
+        "detail": "214/214, 7 source-side failures",
+        "age_min": null
+      },
+      {
+        "name": "census-us",
+        "status": "COMPLETE",
+        "detail": "COMPLETE 55/50 datasets \u00b7 4614562 rows \u00b7 1 source failures logged",
+        "age_min": 10.2
+      },
+      {
+        "name": "dead-lanes",
+        "status": "OK",
+        "detail": "all 14 lanes wrote state within 48h"
+      },
+      {
+        "name": "provider-catalog",
+        "status": "OK",
+        "detail": "hub index freshness",
+        "age_min": 56.2
+      }
+    ],
+    "velocity": {
+      "at": "2026-09-12T14:45:03+00:00",
+      "imported": 282141,
+      "cursor": 275299
+    },
+    "actions_this_sweep": [],
+    "incidents": [],
+    "remediation_allowlist": [
+      "fred: wedged-lease clear",
+      "fred: stalled async kick",
+      "fred: expansion flip on scoped COMPLETE"
+    ],
+    "rule": "403/KEY_INVALID are never auto-kicked; Event invokes only (queue cleanly at RC=1); every action logged as an incident"
+  },
+  "imf": {
+    "phase": "DRAIN",
+    "as_of": "2026-09-02T02:43:15+00:00",
+    "n_banked": 218,
+    "queue_left": 3,
+    "have_count": 218,
+    "failure_count": 2,
+    "lease_until": 1789225336.979711,
+    "last_modified": "2026-09-12T14:48:18+00:00"
+  },
+  "status": "PASS",
+  "finished_at": "2026-09-12T14:54:56.314958+00:00"
+}

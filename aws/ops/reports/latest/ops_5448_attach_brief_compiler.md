@@ -1,27 +1,12 @@
-
-**Status:** failure  
-**Duration:** 85.4s  
-**Finished:** 2026-09-12T14:50:49+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5448_attach_brief_compiler.py", line 161, in main
-    iam.put_role_policy(RoleName=reconciler_role.rsplit("/", 1)[1], PolicyName="ReconcileSixBriefSchedules", PolicyDocument=json.dumps(scoped_policy))
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.LimitExceededException: An error occurred (LimitExceeded) when calling the PutRolePolicy operation: Maximum policy size of 10240 bytes exceeded for role lambda-execution-role
-
-```
+- `14:54:50` ✅ six ENABLED compiler schedules verified; drift 309 -> 303; other live schedules unchanged=950
+- `14:54:56` ✅ data/plumbing-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler plumbing-stress composite_label=NORMAL score=44.1
+**Status:** success  
+**Duration:** 87.8s  
+**Finished:** 2026-09-12T14:54:56+00:00  
 
 ## Log
-
+- `14:54:56` ✅ data/market-tape-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 2/3/55 basis=uncapped
+- `14:54:56` ✅ data/event-brief.json lm=2026-09-12T14:54:56+00:00 source=justhodl-brief-compiler finviz-signals n_screens=None confluence_n=387
+- `14:54:56` ✅ data/official-stats-brief.json lm=2026-09-12T14:54:53+00:00 source=justhodl-brief-compiler GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11
+- `14:54:56` ✅ data/positioning-brief.json lm=2026-09-12T14:54:56+00:00 source=justhodl-brief-compiler 13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064
+- `14:54:56` ✅ PASS: manifest, six schedules, unchanged other wires, compiler package, and five live briefs verified
