@@ -1,14 +1,7 @@
-executing-against: 4df854795f702eabef86948b073af987156f79cb
-ops 5413 -- Polygon news
-[00:55:48] ✅ SSM present
-[00:55:48] ✅ AAPL HTTP 200 n=5
-[00:55:48] ✅ MSFT HTTP 200 n=5
-[00:55:49] ✅ NVDA HTTP 200 n=5
-[00:55:49] ✅ AMZN HTTP 200 n=5
-[00:55:50] ✅ META HTTP 200 n=5
-[00:55:50] ✅ GOOGL HTTP 200 n=5
-[00:55:50] ✅ JPM HTTP 200 n=5
-[00:55:51] ✅ XOM HTTP 200 n=5
-[00:55:52] ✅ GREEN -- news n_ok=8 status=LIVE
+executing-against: 78b576c38eaeb4cde770fe4cc232e8c7ac4d49a6
+ops 5414 -- Polygon options SPY
+[01:02:54] ✅ SSM present
+[01:02:54] ✅ https://api.polygon.io HTTP 200 n=10
+[01:02:54] ✅ GREEN -- options n=10 status=LIVE
 
-→ Report written to aws/ops/reports/latest/ops_5413_polygon_news.md
+→ Report written to aws/ops/reports/latest/ops_5414_polygon_options.md
