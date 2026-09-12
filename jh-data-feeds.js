@@ -10,7 +10,10 @@
     ["data/positioning-brief.json", "Positioning brief"],
     ["data/event-brief.json", "Event brief"],
     ["data/ofr-funding.json", "OFR funding"],
+    ["data/macro-tape.json", "Macro tape"],
     ["data/inst-public-join.json", "Free institutional feeds"],
+    ["data/cftc-join.json", "CFTC join"],
+    ["data/finra-surface.json", "FINRA surface"],
     ["data/theme-eurostat.json", "Eurostat theme"],
     ["data/theme-gdelt.json", "GDELT theme"],
     ["data/warehouse-use.json", "Warehouse surface"],
@@ -62,14 +65,12 @@
           if (j.available_fields != null) bits.push("fields " + j.available_fields);
           if (j.n_live != null) bits.push("live " + j.n_live);
           if (j.n_fail != null) bits.push("fail " + j.n_fail);
+          if (j.n_fields != null) bits.push("fields " + j.n_fields);
+          if (j.n_files != null) bits.push("files " + j.n_files);
+          if (j.n_total != null) bits.push("n=" + j.n_total);
           if (j.fields && j.fields.composite_label) bits.push(j.fields.composite_label + " " + j.fields.composite_score);
-          if (j.fields && j.fields.session) bits.push("session " + j.fields.session);
-          if (j.fields && j.fields.n_tickers) bits.push("tickers " + j.fields.n_tickers);
+          if (j.fields && j.fields.vix) bits.push("vix " + j.fields.vix.value);
           if (j.n != null) bits.push("n=" + j.n);
-          if (j.n_accumulating != null) bits.push("buy=" + j.n_accumulating);
-          if (j.series_count != null) bits.push("series " + j.series_count);
-          if (j.n_prefixes != null) bits.push("prefixes " + j.n_prefixes);
-          if (j.n_hot != null) bits.push("hot " + j.n_hot);
           card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ") || JSON.stringify(j).slice(0, 120);
         })
         .catch(function (e) {
