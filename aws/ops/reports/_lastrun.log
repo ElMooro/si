@@ -1,8 +1,8 @@
-executing-against: 6fcd789a0b0ffd790faaa4d0f40dd65f4bf9c4d8
-ops 5484 CFTC surface
-[18:02:32] ✅ data/warm/cftc/ n=3
-[18:02:32] ✅ data/cftc/ n=0
-[18:02:32] ✅ data/warm/cftc-cot/ n=0
-[18:02:32] ✅ wrote data/cftc-surface.json n_total=3
+executing-against: 41f73030d48ae2c756f846bd7b657958424118d3
+ops 5485 CFTC join
+[18:46:33] ✅ data/warm/cftc/disaggregated_futures.json.gz n=5000
+[18:46:33] ✅ data/warm/cftc/latest-summary.json n=None
+[18:46:33] ✅ data/warm/cftc/legacy_futures.json.gz n=5000
+[18:46:33] ✅ wrote data/cftc-join.json files=3
 
-→ Report written to aws/ops/reports/latest/ops_5484_cftc_surface.md
+→ Report written to aws/ops/reports/latest/ops_5485_cftc_join.md
