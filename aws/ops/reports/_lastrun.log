@@ -1,6 +1,7 @@
-executing-against: ab1bec28fca7ee6fec7fd4d3e95600518266ee91
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5424_brief_plumbing_verdict.py", line 20, in <module>
-    from brief_contract import (  # noqa: E402
-ModuleNotFoundError: No module named 'brief_contract'
-❌ OPS-FAIL: aws/ops/pending/ops_5424_brief_plumbing_verdict.py
+executing-against: b22f52a117397973bd69633aaec11e15c731e133
+ops 5424 -- brief v3 plumbing + verdict projection
+[02:31:58] shared path /home/runner/work/si/si/aws/shared/brief_contract.py exists=True
+[02:31:59] ✅ plumbing-brief status=LIVE freshness=FRESH score=44.1
+[02:31:59] ✅ verdict bias=risk-on score=0.2161 horizon=INTERMEDIATE shadow=True missing=['CATALYST', 'FLOW', 'MARKET', 'RISK']
+
+→ Report written to aws/ops/reports/latest/ops_5424_brief_plumbing_verdict.md
