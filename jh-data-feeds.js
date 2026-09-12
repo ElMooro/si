@@ -14,6 +14,14 @@
     ["data/inst-public-join.json", "Free institutional feeds"],
     ["data/cftc-join.json", "CFTC join"],
     ["data/finra-surface.json", "FINRA surface"],
+    ["data/real-economy-summary.json", "Real economy"],
+    ["data/treasury-auctions-composite.json", "Treasury auctions"],
+    ["data/dtcc-fails-agency.json", "DTCC fails"],
+    ["data/tic-state.json", "TIC state"],
+    ["data/fiscaldata-state.json", "FiscalData state"],
+    ["data/census-us-state.json", "Census US state"],
+    ["data/bls-full-state.json", "BLS full state"],
+    ["data/warm-prefix-index.json", "Warm prefix index"],
     ["data/theme-eurostat.json", "Eurostat theme"],
     ["data/theme-gdelt.json", "GDELT theme"],
     ["data/warehouse-use.json", "Warehouse surface"],
@@ -60,18 +68,14 @@
         .then(function (j) {
           var bits = [j.status || j.bias || "", j.source || j.writer || ""];
           if (j.why) bits.push(j.why);
-          if (j.score != null) bits.push("score=" + j.score);
-          if (j.horizon) bits.push(j.horizon);
-          if (j.available_fields != null) bits.push("fields " + j.available_fields);
           if (j.n_live != null) bits.push("live " + j.n_live);
-          if (j.n_fail != null) bits.push("fail " + j.n_fail);
+          if (j.available_fields != null) bits.push("fields " + j.available_fields);
           if (j.n_fields != null) bits.push("fields " + j.n_fields);
-          if (j.n_files != null) bits.push("files " + j.n_files);
+          if (j.n_prefixes != null) bits.push("prefixes " + j.n_prefixes);
           if (j.n_total != null) bits.push("n=" + j.n_total);
-          if (j.fields && j.fields.composite_label) bits.push(j.fields.composite_label + " " + j.fields.composite_score);
           if (j.fields && j.fields.vix) bits.push("vix " + j.fields.vix.value);
           if (j.n != null) bits.push("n=" + j.n);
-          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ") || JSON.stringify(j).slice(0, 120);
+          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ") || JSON.stringify(j).slice(0, 140);
         })
         .catch(function (e) {
           card.querySelector(".jh-df-stat").textContent = "missing " + e;
