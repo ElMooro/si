@@ -158,7 +158,21 @@ def main():
                 {"Effect": "Allow", "Action": ["scheduler:CreateSchedule", "scheduler:GetSchedule"], "Resource": resources},
                 {"Effect": "Allow", "Action": "iam:PassRole", "Resource": ROLE_ARN,
                  "Condition": {"StringEquals": {"iam:PassedToService": "scheduler.amazonaws.com"}}}]}
-            iam.put_role_policy(RoleName=reconciler_role.rsplit("/", 1)[1], PolicyName="ReconcileSixBriefSchedules", PolicyDocument=json.dumps(scoped_policy))
+            # The shared execution role is already at IAM's 10,240-byte inline
+            # policy quota. Use one exact, reviewed managed policy; do not edit
+            # or compress any of its existing permissions to make room.
+            policy_name = "justhodl-reconcile-six-brief-schedules"
+            policy_arn = "arn:aws:iam::857687956942:policy/" + policy_name
+            try:
+                policy = iam.get_policy(PolicyArn=policy_arn)["Policy"]
+                current_policy = iam.get_policy_version(PolicyArn=policy_arn,
+                    VersionId=policy["DefaultVersionId"])["PolicyVersion"]["Document"]
+                assert current_policy == scoped_policy, "Existing managed policy differs from reviewed six-schedule scope"
+            except iam.exceptions.NoSuchEntityException:
+                iam.create_policy(PolicyName=policy_name, PolicyDocument=json.dumps(scoped_policy),
+                    Description="Reconcile only the six reviewed JustHodl brief compiler schedules")
+            iam.attach_role_policy(RoleName=reconciler_role.rsplit("/", 1)[1], PolicyArn=policy_arn)
+            proof["reconciler_managed_policy"] = policy_arn
             proof["actions"].append("granted reconciler create/get only for six schedules and pass only compiler execution role")
         # Role propagation only; no wait for cron and no vendor or Lambda warmup.
         if proof["actions"]: time.sleep(12)
