@@ -1,7 +1,10 @@
-executing-against: 382e00d1c3fbeceeaab40b48810cbb74d355ac7e
-[15:00:05] ✅ IMF status=NO_DRAIN_PROGRESS_OBSERVED phase=DRAIN banked=218 queue=3 lm=2026-09-12T14:48:18+00:00
-[15:00:05] IMF execution reports=[{"at": "2026-09-12T14:47:13.339000+00:00", "Duration": "850000.00 ms", "Billed Duration": "850588 ms", "Max Memory Used": "174 MB", "Status": "timeout"}]
-[15:00:05] No kick sent; state age 0.196h; additional-kick threshold >48h
-[15:00:05] ✅ Health=HEALTHY; FRED stored=277599; event source=justhodl-brief-compiler confluence=387
+executing-against: 52d9939387581b4503944cb7352062fe2881ebf9
+[15:30:05] before={"observed_at": "2026-09-12T15:30:05.882947+00:00", "last_modified": "2026-09-12T15:04:36+00:00", "state_age_h": 0.4249674852777778, "phase": "DRAIN", "as_of": "2026-09-02T02:43:15+00:00", "banked": 218, "queued": 2, "failure_count": 2, "lease_until": 1789226315.1350305, "lease_active_with_margin": false, "ids": [{"id": "PIP", "status": "THREE_ATTEMPT_QUARANTINE", "queued_attempts": null, "prior_5449_attempts": 3, "failure": null, "banked": null, "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"}, {"id": "IMTS", "status": "PENDING_OR_IN_FLIGHT", "queued_attempts": 1, "prior_5449_attempts": 0, "failure": null, "banked": null, "quarantine_basis": null}, {"id": "IMTS_2026_MAY_VINTAGE", "status": "UNTRIED", "queued_attempts": 0, "prior_5449_attempts": 0, "failure": null, "banked": null, "quarantine_basis": null}]}
+[15:30:06] ✅ one Event invocation accepted; watching existing IMF state
+[15:30:31] state write banked=218 queued=2 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', 2), ('IMTS_2026_MAY_VINTAGE', 'UNTRIED', 0)]
+[15:45:34] state write banked=218 queued=2 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', 3), ('IMTS_2026_MAY_VINTAGE', 'UNTRIED', 0)]
+[16:01:28] state write banked=218 queued=1 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', None), ('IMTS_2026_MAY_VINTAGE', 'PENDING_OR_IN_FLIGHT', 1)]
+[16:05:14] ✗ {"type": "RuntimeError", "message": "IMF IDs still unaccounted after bounded observation; no second kick"}
 
-→ Report written to aws/ops/reports/latest/ops_5449_imf_progress_proof.md
+→ Report written to aws/ops/reports/latest/ops_5450_finish_imf_queue.md
+❌ OPS-FAIL: aws/ops/pending/ops_5450_finish_imf_queue.py

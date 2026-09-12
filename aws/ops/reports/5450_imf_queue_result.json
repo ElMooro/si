@@ -1,0 +1,3548 @@
+{
+  "op": 5450,
+  "started_at": "2026-09-12T15:30:05.746752+00:00",
+  "invocations_sent_this_run": 1,
+  "snapshots": [
+    {
+      "observed_at": "2026-09-12T15:30:05.882947+00:00",
+      "last_modified": "2026-09-12T15:04:36+00:00",
+      "state_age_h": 0.4249674852777778,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789226315.1350305,
+      "lease_active_with_margin": false,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:30:31.295758+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.006748821666666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:30:56.397190+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.013721441666666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:31:21.506819+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.020696338611111108,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:31:46.617176+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.027671437777777776,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:32:11.705678+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.034640466111111115,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:32:36.782728+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.04160631333333333,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:33:01.890900+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.04858080555555555,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:33:26.994523+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.05555403416666666,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:33:52.084702+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.06252352833333333,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:34:17.168818+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.06949133833333333,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:34:42.243548+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.07645654111111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:35:07.411163+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.08344754527777777,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:35:32.504732+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.09041798111111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:35:57.673610+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.0974093361111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:36:22.749690+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.10437491388888888,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:36:47.829929+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.11134164694444444,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:37:12.912295+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.11830897083333333,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:37:38.044150+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.12529004166666666,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:38:03.131989+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.13225888583333334,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:38:28.207475+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.1392242986111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:38:53.279972+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.1461888811111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:39:18.372191+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.15315894194444446,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:39:43.451652+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.16012545888888888,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:40:08.531603+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.16709211194444445,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:40:33.620159+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.17406115527777777,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:40:58.699303+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.18102758416666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:41:23.794844+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.1879985677777778,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:41:48.876612+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.19496572555555555,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:42:13.956808+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.20193244666666668,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:42:39.055683+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.2089043563888889,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:43:04.134903+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.2158708063888889,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:43:29.207261+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.2228353502777778,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:43:54.296798+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.2298046661111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:44:19.371596+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.23676988777777777,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:44:44.439728+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.24373325777777777,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:45:09.520256+00:00",
+      "last_modified": "2026-09-12T15:30:07+00:00",
+      "state_age_h": 0.2507000711111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789227846.9205985,
+      "lease_active_with_margin": false,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 2,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:45:34.671127+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.0029642019444444446,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:45:59.791407+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.0099420575,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:46:24.886295+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.016912859722222222,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:46:49.992469+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.023886796944444445,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:47:15.095010+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.030859725,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:47:40.190067+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.037830574166666665,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:48:05.293671+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.0448037975,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:48:30.435405+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.0517876125,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:48:55.526882+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.05875746722222222,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:49:20.589559+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.06571932194444445,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:49:45.673129+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.07268698027777779,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:50:10.816239+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.0796711775,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:50:35.920257+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.08664451583333332,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:51:01.084423+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.09363456194444444,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:51:26.156670+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.10059907500000001,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:51:51.297425+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.10758261805555555,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:52:16.376562+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.11454904499999999,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:52:41.446634+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.1215129538888889,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:53:06.528659+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.12848018305555556,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:53:31.675906+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.13546552944444445,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:53:56.815876+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.14244885444444444,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:54:21.931451+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.14942540305555557,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:54:47.023246+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.1563953461111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:55:12.102882+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.16336191166666666,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:55:37.183537+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.17032876027777777,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:56:02.271992+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.17729777555555554,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:56:27.347612+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.18426322555555558,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:56:52.434086+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.19123169055555556,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:57:17.522894+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.1982008038888889,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:57:42.599486+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.20516652388888887,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:58:07.707964+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.2121411011111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:58:32.783498+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.21910652722222224,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:58:57.882264+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.22607840666666665,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:59:22.958621+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.2330440613888889,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T15:59:48.066985+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.24001860694444446,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:00:13.205138+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.24700142722222224,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": false,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:00:38.302012+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.2539727811111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": false,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:01:03.400172+00:00",
+      "last_modified": "2026-09-12T15:45:24+00:00",
+      "state_age_h": 0.2609444922222222,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 2,
+      "failure_count": 2,
+      "lease_until": 1789228763.3454204,
+      "lease_active_with_margin": false,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS",
+          "status": "THREE_ATTEMPT_QUARANTINE",
+          "queued_attempts": 3,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "UNTRIED",
+          "queued_attempts": 0,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:01:28.571444+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.001825401111111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:01:53.657963+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.008793878611111111,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:02:18.747418+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.01576317166666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:02:43.852975+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.0227369375,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:03:08.960128+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.029711146666666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:03:34.054251+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.036681736388888886,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:03:59.157359+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.04365482194444445,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:04:24.252289+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.05062563583333333,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:04:49.328590+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.057591275,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-09-12T16:05:14.416690+00:00",
+      "last_modified": "2026-09-12T16:01:22+00:00",
+      "state_age_h": 0.06456019166666667,
+      "phase": "DRAIN",
+      "as_of": "2026-09-02T02:43:15+00:00",
+      "banked": 218,
+      "queued": 1,
+      "failure_count": 2,
+      "lease_until": 1789229721.5406823,
+      "lease_active_with_margin": true,
+      "ids": [
+        {
+          "id": "PIP",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 3,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": null,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        },
+        {
+          "id": "IMTS_2026_MAY_VINTAGE",
+          "status": "PENDING_OR_IN_FLIGHT",
+          "queued_attempts": 1,
+          "prior_5449_attempts": 0,
+          "failure": null,
+          "banked": null,
+          "quarantine_basis": null
+        }
+      ]
+    }
+  ],
+  "shadow_mode": true,
+  "before": {
+    "observed_at": "2026-09-12T15:30:05.882947+00:00",
+    "last_modified": "2026-09-12T15:04:36+00:00",
+    "state_age_h": 0.4249674852777778,
+    "phase": "DRAIN",
+    "as_of": "2026-09-02T02:43:15+00:00",
+    "banked": 218,
+    "queued": 2,
+    "failure_count": 2,
+    "lease_until": 1789226315.1350305,
+    "lease_active_with_margin": false,
+    "ids": [
+      {
+        "id": "PIP",
+        "status": "THREE_ATTEMPT_QUARANTINE",
+        "queued_attempts": null,
+        "prior_5449_attempts": 3,
+        "failure": null,
+        "banked": null,
+        "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"
+      },
+      {
+        "id": "IMTS",
+        "status": "PENDING_OR_IN_FLIGHT",
+        "queued_attempts": 1,
+        "prior_5449_attempts": 0,
+        "failure": null,
+        "banked": null,
+        "quarantine_basis": null
+      },
+      {
+        "id": "IMTS_2026_MAY_VINTAGE",
+        "status": "UNTRIED",
+        "queued_attempts": 0,
+        "prior_5449_attempts": 0,
+        "failure": null,
+        "banked": null,
+        "quarantine_basis": null
+      }
+    ]
+  },
+  "invocation_receipt": {
+    "op": 5450,
+    "function": "justhodl-imf-full",
+    "kicked_by": "ops_5450",
+    "claimed_at": "2026-09-12T15:30:05.900724+00:00",
+    "before_last_modified": "2026-09-12T15:04:36+00:00",
+    "status": "ACCEPTED_202",
+    "accepted_at": "2026-09-12T15:30:06.132976+00:00"
+  },
+  "status": "FAIL",
+  "error": {
+    "type": "RuntimeError",
+    "message": "IMF IDs still unaccounted after bounded observation; no second kick"
+  }
+}
