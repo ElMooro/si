@@ -170,22 +170,34 @@ def compile_market_tape(s3, source="brief-compiler"):
     )
 
 
+def _stale_names(raw):
+    out = []
+    for x in raw or []:
+        if isinstance(x, str):
+            out.append(x)
+        elif isinstance(x, dict):
+            out.append(x.get("fund_key") or x.get("name") or "")
+    return [n for n in out if n]
+
+
 def compile_positioning(s3, source="brief-compiler"):
     ttl = TTL_HOURS["positioning"]
     a, alm, aerr = _load(s3, "data/13f-positions.json")
     u, ulm, uerr = _load(s3, "data/finviz-universe.json")
     a_asof = (a or {}).get("generated_at") or alm
     n_acc = n_dist = n_flat = n_val = 0
-    rows = None
+    by = {}
     if isinstance(u, dict):
-        rows = u.get("rows") or u.get("universe") or u.get("tickers")
-    if isinstance(rows, list):
-        for r in rows:
+        by = u.get("by_ticker") or u.get("tickers") or {}
+        if isinstance(by, list):
+            by = {(r.get("ticker") or r.get("Ticker") or "").upper(): r for r in by if isinstance(r, dict)}
+    if isinstance(by, dict):
+        for r in by.values():
             if not isinstance(r, dict):
                 continue
             v = r.get("inst_trans_pct")
             if v is None:
-                v = r.get("instTrans")
+                continue
             try:
                 fv = float(v)
             except (TypeError, ValueError):
@@ -202,7 +214,7 @@ def compile_positioning(s3, source="brief-compiler"):
         fields["as_of_quarter"] = a.get("as_of_quarter")
         fields["funds_total"] = a.get("funds_total")
         fields["funds_parsed"] = a.get("funds_parsed")
-        fields["stale_funds"] = [x.get("fund_key") for x in (a.get("stale_funds") or [])]
+        fields["stale_funds"] = _stale_names(a.get("stale_funds"))
     fields.update({
         "accumulating": n_acc,
         "distributing": n_dist,
