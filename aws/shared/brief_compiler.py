@@ -249,18 +249,29 @@ def compile_positioning(s3, source="brief-compiler"):
         "breadth_pct": ((n_acc - n_dist) / (n_acc + n_dist)) if (n_acc + n_dist) else None,
         "breadth_basis": "uncapped",
     })
+    c, clm, cerr = _load(s3, "data/cftc-join.json")
+    c_asof = (c or {}).get("generated_at") or clm
+    if isinstance(c, dict):
+        live = [f for f in (c.get("files") or []) if isinstance(f, dict) and f.get("status") == "LIVE"]
+        fields["cftc_n_files"] = c.get("n_files")
+        fields["cftc_source"] = c.get("source")
+        fields["cftc_generated_at"] = c.get("generated_at")
+        fields["cftc_n_live"] = len(live)
+        fields["cftc_rows"] = sum(int(f.get("n") or 0) for f in live)
     ok = not aerr and a and freshness(a_asof, ttl) != "EXPIRED"
     return _finalize(
         s3, "data/positioning-brief.json", "positioning", source,
         {
             "data/13f-positions.json": _inp(True, alm, a_asof, ttl, aerr),
             "data/finviz-universe.json": _inp(False, ulm, (u or {}).get("generated_at") or ulm, ttl, uerr),
+            "data/cftc-join.json": _inp(False, clm, c_asof, ttl, cerr),
         },
         fields,
-        "13F quarter %s funds=%s stale=%s | inst breadth (uncapped) buy/sell/flat %s/%s/%s of %s" % (
+        "13F quarter %s funds=%s stale=%s | inst breadth (uncapped) buy/sell/flat %s/%s/%s of %s | CFTC files=%s live=%s rows=%s" % (
             fields.get("as_of_quarter"), fields.get("funds_total"),
             ",".join(fields.get("stale_funds") or []) or "none",
-            n_acc, n_dist, n_flat, n_val),
+            n_acc, n_dist, n_flat, n_val,
+            fields.get("cftc_n_files"), fields.get("cftc_n_live"), fields.get("cftc_rows")),
         ok,
     )
 
