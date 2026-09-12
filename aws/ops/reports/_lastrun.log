@@ -1,7 +1,8 @@
-executing-against: 68e72a3f9070d0081aa0e46d22bfe881df0a92a5
-ops 5409 -- Cleveland gzip+ZIP unwrap
-[00:28:47] ✅ atlantafed unwrap=['gunzip'] header=['observation_date', 'GDPNOW'] last={'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}
-[00:28:47] ✅ clevelandfed unwrap=['gunzip', 'unzip:README.txt'] header=['----------------------------------------------------------------'] last={'----------------------------------------------------------------': '-------------  ------------------------------------------------------------------  ------------------------'}
-[00:28:47] ✅ GREEN -- join v5 Cleveland header=['----------------------------------------------------------------']
+executing-against: 3d0f02337e072b0849ef1f5952d43f89ce078342
+ops 5410 -- Cleveland ZIP members
+[00:31:21] ✅ atlanta {'observation_date': '2026-07-01', 'GDPNOW': '4.4164'}
+[00:31:21] members [{'name': 'README.txt', 'bytes': 975}, {'name': 'monthly.csv', 'bytes': 11490}, {'name': 'daily.csv', 'bytes': 185877}]
+[00:31:21] ✅ picked daily.csv header=['observation_date', 'T10Y3M']
+[00:31:21] ✅ GREEN -- join v6 status=LIVE members=['README.txt', 'monthly.csv', 'daily.csv']
 
-→ Report written to aws/ops/reports/latest/ops_5409_cleveland_unzip.md
+→ Report written to aws/ops/reports/latest/ops_5410_cleveland_zip_members.md
