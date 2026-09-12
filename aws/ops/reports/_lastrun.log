@@ -1,9 +1,5 @@
-executing-against: a6270c9762586f6bfc9829efa0fc4da12adab8d5
-ops 5426 market-tape-brief scheduled inputs only
-[03:01:18] ✅ market-tape-brief status=LIVE why=session=2026-09-10 n_tickers=12572 etfs=60 inflow=0 outflow=0
-[03:01:18] ✅ data/warm/us-equities-daily/latest-summary.json req=True fresh=FRESH err=None
-[03:01:18] ✅ data/etf-flows.json req=True fresh=FRESH err=None
-[03:01:18] ✅ data/finviz-inst-flow.json req=False fresh=FRESH err=None
-[03:01:18] ✅ data/finviz-signals.json req=False fresh=FRESH err=None
+executing-against: 678613b9745cdbe0bdf0ac0e03feecff60a05c98
+ops 5427 official-stats-brief
+[03:04:02] ✅ official-stats-brief status=LIVE GDPNow 4.4164 on 2026-07-01; T10Y3M 0.89 on 2026-09-11
 
-→ Report written to aws/ops/reports/latest/ops_5426_market_tape_brief.md
+→ Report written to aws/ops/reports/latest/ops_5427_official_stats_brief.md
