@@ -1,0 +1,9 @@
+# ops 5415 -- Finviz insider split
+
+**Status:** success  
+**Duration:** 0.7s  
+**Finished:** 2026-09-12T01:12:53+00:00  
+
+## Log
+- `01:12:53` ✅ signal keys=['golden_cross', 'death_cross', 'sma20_cross50a', 'sma20_cross50b', 'price_cross200a', 'price_cross200b', 'price_cross50a', 'price_cross50b', 'price_cross20a', 'price_cross20b', 'new_high_alltime', 'new_low_alltime', 'new_high_52w', 'new_low_52w', 'new_high_50d', 'new_low_50d', 'new_high_20d', 'new_low_20d', 'unusual_volume', 'most_active'] insider_keys=['insider_buys', 'insider_sales']
+- `01:12:53` ✅ GREEN -- insider screens=2 status=LIVE
