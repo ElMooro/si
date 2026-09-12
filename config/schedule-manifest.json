@@ -10223,6 +10223,144 @@
    "cron": "cron(50 20 ? * MON-FRI *)",
    "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-trend-reversal",
    "note": "ops 4302"
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-plumbing-6h",
+   "group": "default",
+   "expr": "cron(20 */6 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"plumbing\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-market-tape-6h",
+   "group": "default",
+   "expr": "cron(25 */6 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"market_tape\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-event-6h",
+   "group": "default",
+   "expr": "cron(35 */6 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"event\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-official-stats-daily",
+   "group": "default",
+   "expr": "cron(40 1 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"official_stats\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-positioning-daily",
+   "group": "default",
+   "expr": "cron(50 1 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"positioning\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
+  },
+  {
+   "kind": "scheduler",
+   "name": "brief-compiler-verdict-3h",
+   "group": "default",
+   "expr": "cron(10 */3 * * ? *)",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "flexible_time_window": {
+    "Mode": "OFF"
+   },
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+     "role_arn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler",
+     "input": "{\"mode\": \"verdict\"}",
+     "path": null,
+     "retry_policy": {
+      "MaximumEventAgeInSeconds": 3600,
+      "MaximumRetryAttempts": 2
+     }
+    }
+   ]
   }
  ]
 }
