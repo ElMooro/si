@@ -1,10 +1,17 @@
-executing-against: 52d9939387581b4503944cb7352062fe2881ebf9
-[15:30:05] before={"observed_at": "2026-09-12T15:30:05.882947+00:00", "last_modified": "2026-09-12T15:04:36+00:00", "state_age_h": 0.4249674852777778, "phase": "DRAIN", "as_of": "2026-09-02T02:43:15+00:00", "banked": 218, "queued": 2, "failure_count": 2, "lease_until": 1789226315.1350305, "lease_active_with_margin": false, "ids": [{"id": "PIP", "status": "THREE_ATTEMPT_QUARANTINE", "queued_attempts": null, "prior_5449_attempts": 3, "failure": null, "banked": null, "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred"}, {"id": "IMTS", "status": "PENDING_OR_IN_FLIGHT", "queued_attempts": 1, "prior_5449_attempts": 0, "failure": null, "banked": null, "quarantine_basis": null}, {"id": "IMTS_2026_MAY_VINTAGE", "status": "UNTRIED", "queued_attempts": 0, "prior_5449_attempts": 0, "failure": null, "banked": null, "quarantine_basis": null}]}
-[15:30:06] ✅ one Event invocation accepted; watching existing IMF state
-[15:30:31] state write banked=218 queued=2 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', 2), ('IMTS_2026_MAY_VINTAGE', 'UNTRIED', 0)]
-[15:45:34] state write banked=218 queued=2 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', 3), ('IMTS_2026_MAY_VINTAGE', 'UNTRIED', 0)]
-[16:01:28] state write banked=218 queued=1 ids=[('PIP', 'PENDING_OR_IN_FLIGHT', None), ('IMTS', 'PENDING_OR_IN_FLIGHT', None), ('IMTS_2026_MAY_VINTAGE', 'PENDING_OR_IN_FLIGHT', 1)]
-[16:05:14] ✗ {"type": "RuntimeError", "message": "IMF IDs still unaccounted after bounded observation; no second kick"}
+executing-against: 5faee7a7f0fd58773e9207bb8d2f31e6c6064abe
+ops 5470 warehouse-use surface
+[16:06:22] ⚠ empty data/warm/finra/
+[16:06:22] ✅ data/warm/census-us/ n=50 age_h=0.0 state=data/warm/census-us/_state/state.json
+[16:06:23] ✅ data/warm/sec-midas/ n=50 age_h=13.6 state=None
+[16:06:23] ✅ data/warm/sec-dera/ n=50 age_h=0.8 state=None
+[16:06:23] ✅ data/warm/sec-bulk/ n=2 age_h=8.5 state=None
+[16:06:24] ⚠ empty data/warm/sec-edgar/
+[16:06:24] ✅ data/warm/nyfed-research/ n=50 age_h=13.6 state=None
+[16:06:24] ✅ data/warm/imf-full/ n=50 age_h=0.1 state=data/warm/imf-full/_state/state.json
+[16:06:24] ✅ data/warm/ofr/ n=50 age_h=0.8 state=data/warm/ofr/state.json
+[16:06:24] ⚠ empty data/warm/bls/
+[16:06:25] ✅ data/warm/eurostat/ n=50 age_h=2.5 state=None
+[16:06:25] ✅ data/warm/gdelt/ n=1 age_h=0.8 state=None
+[16:06:25] ✅ wrote data/warehouse-use.json live=8/12
 
-→ Report written to aws/ops/reports/latest/ops_5450_finish_imf_queue.md
-❌ OPS-FAIL: aws/ops/pending/ops_5450_finish_imf_queue.py
+→ Report written to aws/ops/reports/latest/ops_5470_warehouse_use_surface.md
