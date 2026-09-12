@@ -13,9 +13,11 @@ from pathlib import Path
 
 import boto3
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "aws" / "shared"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+HERE = Path(__file__).resolve()
+# pending/ -> ops/ -> aws/ -> repo root
+REPO = HERE.parents[3]
+sys.path.insert(0, str(REPO / "aws" / "shared"))
+sys.path.insert(0, str(HERE.parents[1]))
 from ops_report import report  # noqa: E402
 from brief_contract import (  # noqa: E402
     BRIEF_SCHEMA, TTL_HOURS, freshness, project_verdict,
@@ -41,6 +43,7 @@ def _load(s3, key):
 def main():
     with report("ops_5424_brief_plumbing_verdict") as R:
         R.heading("ops 5424 -- brief v3 plumbing + verdict projection")
+        R.log("shared path %s exists=%s" % (REPO / "aws" / "shared" / "brief_contract.py", (REPO / "aws" / "shared" / "brief_contract.py").exists()))
         s3 = boto3.client("s3", region_name="us-east-1")
         stress, stress_lm, stress_err = _load(s3, PLUMB_KEY)
         fusion, fusion_lm, fusion_err = _load(s3, FUSION_KEY)
@@ -78,7 +81,6 @@ def main():
             layers = stress.get("layers") or {}
             fields["layer_scores"] = {k: (v or {}).get("score") for k, v in layers.items() if isinstance(v, dict)}
         if isinstance(nfci, dict):
-            fields["nfci"] = {k: nfci.get(k) for k in ("value", "as_of", "level", "nfci") if k in nfci or True}
             fields["nfci"] = {"present": True, "keys": list(nfci.keys())[:12]}
 
         brief = {
