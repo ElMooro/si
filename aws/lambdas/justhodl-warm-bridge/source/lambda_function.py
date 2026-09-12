@@ -60,11 +60,15 @@ def missing(reason, **kw):
     return {"data_unavailable": True, "reason": reason, **kw}
 
 
-def _get(k):
-    b = s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()
+def _get(k, *, storage_metadata=False):
+    obj = s3.get_object(Bucket=BUCKET, Key=k)
+    b = obj["Body"].read()
     if k.endswith(".gz"):
         b = gzip.decompress(b)
-    return json.loads(b)
+    doc = json.loads(b)
+    if storage_metadata and isinstance(doc, dict) and obj.get("LastModified"):
+        doc["_warehouse_last_modified"] = obj["LastModified"].isoformat()
+    return doc
 
 
 def _pub(key, doc):
@@ -74,7 +78,7 @@ def _pub(key, doc):
 
 
 def _ofr(now):
-    out = build_funding(_get, now)
+    out = build_funding(lambda key: _get(key, storage_metadata=True), now)
     _pub("data/ofr-funding.json", out)
     return out["available_fields"]
 

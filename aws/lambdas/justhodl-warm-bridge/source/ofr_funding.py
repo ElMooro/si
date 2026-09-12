@@ -10,6 +10,7 @@ from datetime import date, datetime, timezone
 
 DATASET_KEYS = tuple(f"data/warm/ofr/dataset-{name}.json.gz"
                      for name in ("repo", "nypd", "mmf"))
+NYFED_SOFR_KEY = "data/warm/nyfed/sofr.json.gz"
 FIELDS = {
     "triparty_rate": ("REPO-TRI_AR_TOT-P",),
     "triparty_volume": ("REPO-TRI_TV_TOT-P",),
@@ -106,7 +107,7 @@ def series_unit(node, field):
 
 
 def build_funding(get_document, now):
-    """At most three datasets plus five exact series objects per invocation."""
+    """At most nine stored objects; SOFR may use its fresher NY Fed archive."""
     published = datetime.fromisoformat(now.replace("Z", "+00:00"))
     if published.tzinfo is None:
         published = published.replace(tzinfo=timezone.utc)
@@ -124,7 +125,7 @@ def build_funding(get_document, now):
 
     for key in DATASET_KEYS:
         read(key)
-    out = {"as_of": now, "source": "OFR Short-Term Funding Monitor",
+    out = {"as_of": now, "source": "OFR STFM / NY Fed funding warehouse",
            "schema_version": "ofr-funding.v2", "source_mode": "warehouse"}
     for field, mnemonics in FIELDS.items():
         candidates = []
@@ -138,7 +139,22 @@ def build_funding(get_document, now):
                 unit = series_unit(node, field)
                 if point and unit and (field != "triparty_volume" or point[1] >= 0):
                     candidates.append((point[0], -priority, key, mnemonic,
-                                       point[1], unit, doc))
+                                       point[1], unit, doc, "ofr"))
+        if field == "sofr":
+            # ops 5442 verified this archive has the same official SOFR
+            # measurement through Sep 10; OFR's per-series copy stops Aug 4.
+            # Keep provenance truthful: this is a NY Fed source, not an OFR fetch.
+            doc = read(NYFED_SOFR_KEY)
+            if isinstance(doc, dict) and doc.get("rate") == "sofr" \
+                    and doc.get("data_unavailable") is not True:
+                rows = [[row.get("date"), row.get("rate")]
+                        for row in (doc.get("observations") or []) if isinstance(row, dict)]
+                point = latest(rows, today)
+                if point:
+                    # OFR wins a same-date tie; only a newer NY Fed reading
+                    # supersedes it. No substitution with EFFR or other rates.
+                    candidates.append((point[0], -1, NYFED_SOFR_KEY, "SOFR",
+                                       point[1], "Percent", doc, "nyfed"))
         if not candidates:
             out[field] = {
                 "field": field, "value": None, "unit": None,
@@ -148,24 +164,28 @@ def build_funding(get_document, now):
                            "series_id": None, "fetched_at": None},
             }
             continue
-        day, _, key, mnemonic, value, unit, doc = max(
+        day, _, key, mnemonic, value, unit, doc, provider = max(
             candidates, key=lambda item: (item[0], item[1]))
         age_days = (published.date() - date.fromisoformat(day)).days
         stale = age_days > 7
-        fetched_at = doc.get("as_of") or doc.get("fetched_at")
+        fetched_at = doc.get("as_of") or doc.get("fetched_at") or doc.get("_warehouse_last_modified")
+        fetched_basis = ("warehouse_as_of" if doc.get("as_of") else
+                         "recorded_fetch_time" if doc.get("fetched_at") else
+                         "warehouse_last_modified" if doc.get("_warehouse_last_modified") else "unknown")
         source_url = doc.get("source_url")
         out[field] = {
             "field": field, "value": value, "unit": unit, "as_of": day,
             "observed": day, "data_unavailable": False, "stale": stale,
             "observation_age_days": age_days,
             "freshness_policy": "stale when observation is more than 7 calendar days old",
-            "confidence": 1.0, "provider": "ofr", "series": mnemonic,
+            "confidence": 1.0, "provider": provider, "series": mnemonic,
             "source_url": source_url, "raw_snapshot_key": key,
             "fetched_at": fetched_at,
             "source": {
-                "kind": "cache-stale" if stale else "cache", "provider": "ofr",
+                "kind": "cache-stale" if stale else "cache", "provider": provider,
                 "series_id": mnemonic, "url": source_url,
                 "fetched_at": fetched_at, "fetched_by": "justhodl-warm-bridge",
+                "fetched_at_basis": fetched_basis,
                 "raw_snapshot_key": key,
                 "upstream_raw_snapshot_key": doc.get("raw_snapshot_key"),
             },

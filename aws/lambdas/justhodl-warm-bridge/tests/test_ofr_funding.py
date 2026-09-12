@@ -125,6 +125,37 @@ class FundingTests(unittest.TestCase):
             "name": "USD", "magnitude": 6}
         self.assertTrue(self.build(doc)["triparty_volume"]["data_unavailable"])
 
+    def test_newer_primary_sofr_preserves_nyfed_provenance(self):
+        doc = dataset()
+        doc["payload"]["timeseries"]["FNYR-SOFR-A"]["timeseries"] = {
+            "aggregation": [["2026-08-04", 3.66]]}
+        nyfed = {"rate": "sofr", "observations": [
+            {"date": "2026-09-10", "rate": 3.62}],
+            "source_url": "https://example.test/nyfed-fixture",
+            "raw_snapshot_key": "raw/nyfed/fixture.json",
+            "_warehouse_last_modified": "2026-09-11T01:00:00+00:00"}
+        out = self.build(doc, {funding.NYFED_SOFR_KEY: nyfed})
+        self.assertEqual(out["sofr"]["value"], 3.62)
+        self.assertEqual(out["sofr"]["as_of"], "2026-09-10")
+        self.assertEqual(out["sofr"]["provider"], "nyfed")
+        self.assertEqual(out["sofr"]["series"], "SOFR")
+        self.assertEqual(out["sofr"]["source"]["raw_snapshot_key"], funding.NYFED_SOFR_KEY)
+        self.assertEqual(out["sofr"]["source"]["fetched_at_basis"], "warehouse_last_modified")
+        self.assertEqual(out["sofr"]["source"]["fetched_at"], nyfed["_warehouse_last_modified"])
+        self.assertEqual(out["fresh_fields"], 5)
+
+    def test_another_nyfed_rate_cannot_replace_sofr(self):
+        out = self.build(extra={funding.NYFED_SOFR_KEY: {
+            "rate": "effr", "observations": [{"date": "2026-09-12", "rate": 9.9}]}})
+        self.assertEqual(out["sofr"]["provider"], "ofr")
+        self.assertEqual(out["sofr"]["value"], 1.5)
+
+    def test_older_nyfed_copy_does_not_replace_newer_ofr(self):
+        out = self.build(extra={funding.NYFED_SOFR_KEY: {
+            "rate": "sofr", "observations": [{"date": "2026-08-01", "rate": 9.9}]}})
+        self.assertEqual(out["sofr"]["provider"], "ofr")
+        self.assertEqual(out["sofr"]["as_of"], "2026-09-11")
+
     def test_volume_unit_must_be_known(self):
         doc = dataset()
         del doc["payload"]["timeseries"]["REPO-TRI_TV_TOT-P"]["metadata"]
@@ -157,7 +188,7 @@ class FundingTests(unittest.TestCase):
             self.assertIsNone(out[field]["value"])
             self.assertIsNone(out[field]["as_of"])
             self.assertTrue(out[field]["data_unavailable"])
-        self.assertLessEqual(len(out["warehouse_read_errors"]), 8)
+        self.assertLessEqual(len(out["warehouse_read_errors"]), 9)
 
     def test_series_identity_mismatch_is_rejected(self):
         key = "data/warm/ofr/series/FNYR-SOFR-A.json.gz"
@@ -191,9 +222,10 @@ class FundingTests(unittest.TestCase):
             response = bridge.lambda_handler({"feed": "ofr"}, None)
         self.assertEqual(json.loads(response["body"])["wrapped"]["ofr"], 5)
         self.assertEqual([write["Key"] for write in writes], ["data/ofr-funding.json"])
-        self.assertLessEqual(len(reads), 8)
+        self.assertLessEqual(len(reads), 9)
         self.assertEqual(len(reads), len(set(reads)))
-        self.assertTrue(all(key.startswith("data/warm/ofr/") for key in reads))
+        self.assertTrue(all(key.startswith("data/warm/ofr/") or key == funding.NYFED_SOFR_KEY
+                            for key in reads))
 
 
 if __name__ == "__main__":
