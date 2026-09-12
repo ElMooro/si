@@ -39,8 +39,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.0"
-MARKER = "schedule-reconciler v1.1.0 ops4239 enforce-duplicates"
+VERSION = "1.2.0"
+MARKER = "schedule-reconciler v1.2.0 scoped brief compiler attachment"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 MANIFEST_KEY = "config/schedule-manifest.json"
@@ -198,6 +198,11 @@ def lambda_handler(event=None, context=None):
         print("[reconciler] NO MANIFEST (%s) — refusing to act" % str(e)[:90])
         return {"ok": False, "error": "manifest missing"}
 
+    scoped = None
+    if mode == "attach-brief-compiler":
+        from brief_schedules import attach
+        scoped = attach(want_doc, sch, evb)
+
     want = {}
     for r in want_doc.get("rules", []):
         want[r["name"]] = r
@@ -235,7 +240,8 @@ def lambda_handler(event=None, context=None):
            "manifest_generated_at": want_doc.get("generated_at"),
            "live_count": len(live), "declared_count": len(want),
            "drift_count": len(drifts), "by_class": by,
-           "drifts": drifts[:500], "enforced": acted}
+           "drifts": drifts[:500], "enforced": acted,
+           "compiler_attachment": scoped}
     s3.put_object(Bucket=BUCKET, Key=DRIFT_KEY,
                   Body=json.dumps(doc).encode(),
                   ContentType="application/json",
