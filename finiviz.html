@@ -6,15 +6,13 @@
 <title>Finiviz · JustHodl.AI</title>
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--bd:#1c2330;--tx:#e8edf4;--dim:#8b96a8;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
-a{color:var(--info);text-decoration:none}.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 64px}
-h1{font-size:22px;margin:8px 0 4px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--info);margin:22px 0 8px}
-.sub{color:var(--dim);max-width:720px}.meta{font-family:var(--mono);font-size:11px;color:var(--dim);margin:8px 0 16px}.meta b{color:var(--info)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
-.card h3{margin:0;padding:10px 12px;border-bottom:1px solid var(--bd);font-size:13px;display:flex;justify-content:space-between}
-.scroll{max-height:420px;overflow:auto}table{width:100%;border-collapse:collapse}
-th,td{padding:6px 10px;font-family:var(--mono);font-size:11px;text-align:right;border-bottom:1px solid rgba(28,35,48,.6)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+a{color:var(--info);text-decoration:none}.wrap{max-width:1220px;margin:0 auto;padding:18px 16px 72px}
+h1{font-size:22px;margin:8px 0 4px}h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--info);margin:20px 0 8px}
+.sub{color:var(--dim);max-width:780px}.meta{font-family:var(--mono);font-size:11px;color:var(--dim);margin:8px 0 14px}.meta b{color:var(--info)}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.scroll{max-height:440px;overflow:auto}table{width:100%;border-collapse:collapse}
+th,td{padding:6px 10px;font-family:var(--mono);font-size:11px;text-align:right;border-bottom:1px solid rgba(28,35,48,.55)}
 th.l,td.l{text-align:left}.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--dim)}
 .chips span{display:inline-block;font-family:var(--mono);font-size:11px;border:1px solid var(--bd);border-radius:4px;padding:2px 7px;margin:2px}
 .tabs button{background:var(--panel);color:var(--dim);border:1px solid var(--bd);border-radius:5px;padding:6px 10px;margin:0 6px 10px 0;cursor:pointer;font-family:var(--mono);font-size:11px}
@@ -23,79 +21,92 @@ th.l,td.l{text-align:left}.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color
 </head>
 <body>
 <div class="wrap">
-  <a href="/">← JustHodl.AI</a>
+  <a href="/">← JustHodl.AI</a> · <a href="/finviz-signals.html">signals tables</a> · <a href="/data.html">data plane</a>
   <h1>Finiviz</h1>
-  <p class="sub">Every Finviz Elite surface we already warehouse — institutional 3-month footprint, insider tape, event screens, news. No new crawler. Source: finviz-universe + finviz-signals + inst-flow + insider + news.</p>
-  <div class="meta">inst-flow <b id="m-inst">—</b> · signals <b id="m-sig">—</b> · insider <b id="m-ins">—</b> · news <b id="m-news">—</b></div>
+  <p class="sub">All Finviz Elite objects in the warehouse. Engine remains justhodl-finviz-signals + universe + news + groups — this page is the desk. Universe (~11k × 72 fields) is not dumped raw; institutional ranks and every signal screen are.</p>
+  <div class="meta" id="meta">loading…</div>
   <div class="tabs" id="tabs"></div>
-  <div id="view">loading Finviz warehouse…</div>
+  <div id="view">loading warehouse…</div>
 </div>
 <script>
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
-const KEYS={
-  flow:"data/finviz-inst-flow.json",
-  signals:"data/finviz-signals.json",
-  insider:"data/finviz-insider.json",
-  news:"data/finviz-news.json"
-};
-let FLOW=null, SIG=null, INS=null, NEWS=null, tab="Institutions";
-const pct=v=>v==null?"—":((v>0?"+":"")+Number(v).toFixed(1)+"%");
-const cls=v=>v==null?"dim":v>0?"pos":"neg";
+const FEEDS=[
+  ["flow","data/finviz-inst-flow.json"],
+  ["sig","data/finviz-signals.json"],
+  ["ins","data/finviz-insider.json"],
+  ["news","data/finviz-news.json"],
+  ["grp","data/finviz-groups.json"],
+  ["short","data/finviz-short.json"]
+];
+let D={}, tab="Institutions";
+const pct=v=>v==null||v===""?"—":((Number(v)>0?"+":"")+Number(v).toFixed(1)+"%");
+const cls=v=>v==null||isNaN(Number(v))?"dim":Number(v)>0?"pos":"neg";
 function load(k){return fetch(S3+"/"+k+"?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)}
 function tbl(rows, cols){
-  if(!rows||!rows.length) return "<div style=\"padding:16px;color:var(--dim)\">empty</div>";
-  const head="<tr>"+cols.map(c=>"<th class=\""+(c.l?"l":"")+"\">"+c.h+"</th>").join("")+"</tr>";
-  const body=rows.slice(0,80).map(r=>"<tr>"+cols.map(c=>{
-    const v=typeof c.get==="function"?c.get(r):r[c.k];
-    const klass=(c.l?"l ":"")+(c.cls?c.cls(v):"");
-    const show=c.fmt?c.fmt(v):(v==null?"—":v);
-    return "<td class=\""+klass+"\">"+show+"</td>";
+  if(!rows||!rows.length) return "<div style='padding:14px;color:var(--dim)'>empty</div>";
+  const head="<tr>"+cols.map(c=>"<th class='"+(c.l?"l":"")+"'>"+c.h+"</th>").join("")+"</tr>";
+  const body=rows.slice(0,100).map(r=>"<tr>"+cols.map(c=>{
+    const v=r[c.k]; const show=c.fmt?c.fmt(v):(v==null?"—":v);
+    return "<td class='"+(c.l?"l ":"")+(c.cls?c.cls(v):"")+"'>"+show+"</td>";
   }).join("")+"</tr>").join("");
-  return "<div class=\"scroll\"><table><thead>"+head+"</thead><tbody>"+body+"</tbody></table></div>";
+  return "<div class='scroll'><table><thead>"+head+"</thead><tbody>"+body+"</tbody></table></div>";
 }
-function instCols(){return [
-  {h:"Ticker",k:"ticker",l:1},
-  {h:"Company",k:"company",l:1},
-  {h:"Inst own",k:"inst_own_pct",fmt:pct,cls:cls},
-  {h:"Inst 3m",k:"inst_trans_pct",fmt:pct,cls:cls},
-  {h:"Insider 6m",k:"insider_trans_pct",fmt:pct,cls:cls},
-  {h:"Px",k:"price",fmt:v=>v==null?"—":Number(v).toFixed(2)}
-];}
+const INST=[
+  {h:"Ticker",k:"ticker",l:1},{h:"Company",k:"company",l:1},
+  {h:"Inst own",k:"inst_own_pct",fmt:pct,cls:cls},{h:"Inst 3m",k:"inst_trans_pct",fmt:pct,cls:cls},
+  {h:"Insider 6m",k:"insider_trans_pct",fmt:pct,cls:cls},{h:"Px",k:"price",fmt:v=>v==null?"—":Number(v).toFixed(2)}
+];
+const SIGC=[
+  {h:"Ticker",k:"ticker",l:1},{h:"Company",k:"company",l:1},
+  {h:"Px",k:"price",fmt:v=>v==null?"—":Number(v).toFixed(2)},
+  {h:"Chg",k:"change_pct",fmt:pct,cls:cls},{h:"1M",k:"perf_m",fmt:pct,cls:cls}
+];
 function render(){
-  const names=["Institutions","Insider","Signals","News"];
-  document.getElementById("tabs").innerHTML=names.map(n=>"<button class=\""+(n===tab?"on":"")+"\" data-t=\""+n+"\">"+n+"</button>").join("");
+  const names=["Institutions","Screens","Groups","Insider","News"];
+  document.getElementById("tabs").innerHTML=names.map(n=>"<button class='"+(n===tab?"on":"")+"' data-t='"+n+"'>"+n+"</button>").join("");
   document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();});
+  const f=D.flow||{}, s=D.sig||{}, i=D.ins||{}, n=D.news||{}, g=D.grp||{};
   let html="";
   if(tab==="Institutions"){
-    const f=FLOW||{};
-    html="<h2>Accumulating</h2><div class=\"card\">"+tbl(f.accumulating,instCols())+"</div>";
-    html+="<h2>Distributing</h2><div class=\"card\">"+tbl(f.distributing,instCols())+"</div>";
-    html+="<h2>Institutions + insiders both buying</h2><div class=\"card\">"+tbl(f.inst_and_insider_buying,instCols())+"</div>";
-    html+="<h2>High own still buying (≥50%)</h2><div class=\"card\">"+tbl(f.high_own_still_buying,instCols())+"</div>";
+    html+="<h2>Accumulating</h2><div class='card'>"+tbl(f.accumulating,INST)+"</div>";
+    html+="<h2>Distributing</h2><div class='card'>"+tbl(f.distributing,INST)+"</div>";
+    html+="<h2>Inst + insider buying</h2><div class='card'>"+tbl(f.inst_and_insider_buying,INST)+"</div>";
+    html+="<h2>High own still buying</h2><div class='card'>"+tbl(f.high_own_still_buying,INST)+"</div>";
+  } else if(tab==="Screens"){
+    const signals=s.signals||{};
+    const counts=s.counts||{};
+    html+="<div class='chips'>"+Object.keys(counts).map(k=>"<span>"+k+" <b>"+counts[k]+"</b></span>").join("")+"</div>";
+    const cf=s.confluence||{};
+    html+="<h2>Confluence</h2><div class='card' style='padding:12px'>"+Object.keys(cf).map(k=>"<div style='margin:8px 0'><b>"+k+"</b> <span class='dim'>"+(cf[k]||[]).length+"</span><div class='chips'>"+(cf[k]||[]).slice(0,30).map(t=>"<span>"+t+"</span>").join("")+"</div></div>").join("")+"</div>";
+    Object.keys(signals).forEach(k=>{
+      html+="<h2>"+k+"</h2><div class='card'>"+tbl(signals[k],SIGC)+"</div>";
+    });
+  } else if(tab==="Groups"){
+    const gcols=[{h:"Name",k:"name",l:1},{h:"1W",k:"perf_w",fmt:pct,cls:cls},{h:"1M",k:"perf_m",fmt:pct,cls:cls},{h:"YTD",k:"perf_ytd",fmt:pct,cls:cls},{h:"1Y",k:"perf_y",fmt:pct,cls:cls},{h:"P/E",k:"pe"}];
+    html+="<h2>Sectors</h2><div class='card'>"+tbl(g.sectors,gcols)+"</div>";
+    html+="<h2>Industries</h2><div class='card'>"+tbl(g.industries,gcols)+"</div>";
+    if(g.countries) html+="<h2>Countries</h2><div class='card'>"+tbl(g.countries,gcols)+"</div>";
+    if(g.mktcaps||g.capitalization) html+="<h2>Cap buckets</h2><div class='card'>"+tbl(g.mktcaps||g.capitalization,gcols)+"</div>";
   } else if(tab==="Insider"){
-    const s=(INS&&INS.screens)||(SIG&&SIG.signals)||{};
-    html="<h2>Insider buys</h2><div class=\"card\">"+tbl(s.insider_buys,["ticker","company","price","change_pct","perf_m"].map(k=>({h:k,k:k,l:k!=="price"&&!k.includes("pct"),fmt:k.includes("pct")||k==="perf_m"?pct:null,cls:k.includes("pct")||k==="perf_m"?cls:null})))+"</div>";
-    html+="<h2>Insider sales</h2><div class=\"card\">"+tbl(s.insider_sales,["ticker","company","price","change_pct","perf_m"].map(k=>({h:k,k:k,l:k!=="price"&&!k.includes("pct"),fmt:k.includes("pct")||k==="perf_m"?pct:null,cls:k.includes("pct")||k==="perf_m"?cls:null})))+"</div>";
-  } else if(tab==="Signals"){
-    const c=(SIG&&SIG.counts)||{};
-    const keys=Object.keys(c);
-    html="<div class=\"chips\">"+keys.map(k=>"<span>"+k+" <b>"+c[k]+"</b></span>").join("")+"</div>";
-    html+="<p class=\"sub\">Full screen tables stay on <a href=\"/finviz-signals.html\">finviz-signals.html</a>. This desk is the institutional book plus counts.</p>";
-    const cf=(SIG&&SIG.confluence)||{};
-    html+="<h2>Confluence</h2><div class=\"card\" style=\"padding:12px\">"+Object.keys(cf).map(k=>"<div style=\"margin:8px 0\"><b>"+k+"</b><div class=\"chips\">"+(cf[k]||[]).slice(0,24).map(t=>"<span>"+t+"</span>").join("")+"</div></div>").join("")+"</div>";
+    const sc=(i&&i.screens)||{};
+    html+="<h2>Buys</h2><div class='card'>"+tbl(sc.insider_buys||(s.signals||{}).insider_buys,SIGC)+"</div>";
+    html+="<h2>Sales</h2><div class='card'>"+tbl(sc.insider_sales||(s.signals||{}).insider_sales,SIGC)+"</div>";
   } else {
-    const items=(NEWS&&(NEWS.items||NEWS.news||NEWS.rows))||[];
-    if(!items.length && NEWS) html="<pre style=\"font-size:11px;color:var(--dim);white-space:pre-wrap\">"+JSON.stringify({keys:Object.keys(NEWS),n:NEWS.n||NEWS.n_news},null,2)+"</pre>";
-    html+="<div class=\"card\">"+tbl(items.slice(0,60),[{"h":"Ticker","k":"ticker",l:1},{"h":"Title","k":"title",l:1},{"h":"Source","k":"source",l:1},{"h":"Date","k":"date",l:1}])+"</div>";
+    const tops=n.top_tickers||[];
+    html+="<div class='chips'>"+tops.map(t=>"<span>"+t.ticker+" <b>"+t.n+"</b></span>").join("")+"</div>";
+    const ncol=[{h:"Ticker",k:"ticker",l:1},{h:"Title",k:"title",l:1},{h:"Source",k:"source",l:1},{h:"Date",k:"date",l:1}];
+    html+="<h2>News</h2><div class='card'>"+tbl(n.news,ncol)+"</div>";
+    html+="<h2>Blogs</h2><div class='card'>"+tbl(n.blogs,ncol)+"</div>";
   }
   document.getElementById("view").innerHTML=html;
 }
-Promise.all([load(KEYS.flow),load(KEYS.signals),load(KEYS.insider),load(KEYS.news)]).then(([f,s,i,n])=>{
-  FLOW=f; SIG=s; INS=i; NEWS=n;
-  document.getElementById("m-inst").textContent=f?(f.n_with_inst_trans||"LIVE")+" @ "+(f.generated_at||"").slice(0,19):"miss";
-  document.getElementById("m-sig").textContent=s?(s.generated_at||"").slice(0,19):"miss";
-  document.getElementById("m-ins").textContent=i?(i.n_screens||i.status||"LIVE"):"miss";
-  document.getElementById("m-news").textContent=n?(n.n_news||n.n||n.status||"LIVE"):"miss";
+Promise.all(FEEDS.map(p=>load(p[1]).then(j=>(D[p[0]]=j)))).then(()=>{
+  const bits=[];
+  if(D.flow) bits.push("inst "+(D.flow.n_with_inst_trans||0));
+  if(D.sig) bits.push("screens "+Object.keys((D.sig.counts)||{}).length);
+  if(D.news) bits.push("news "+(D.news.n_news||0));
+  if(D.grp) bits.push("sectors "+((D.grp.sectors||[]).length));
+  document.getElementById("meta").innerHTML=bits.map(x=>"<b>"+x+"</b>").join(" · ")||"feeds missing";
   render();
 });
 </script>
