@@ -1,10 +1,12 @@
-executing-against: d9ede31f6f8b65806761a853ab7c8ac329348937
-ops 5430 coverage map (read-only)
-[03:15:04] ✅ missing=['CATALYST', 'FLOW', 'MARKET', 'RISK']
-[03:15:04] ✅ MACRO brief=LIVE fills=False
-[03:15:04] ✅ RISK brief=LIVE fills=True
-[03:15:04] ✅ FLOW brief=LIVE fills=True
-[03:15:04] ✅ MARKET brief=LIVE fills=True
-[03:15:04] ✅ CATALYST brief=LIVE fills=True
+executing-against: 0e2ba4616f431ba7d7d82f382dc2c2f266c34a99
+ops 5431 -- plumbing_brief fusion leg: receipts + one bridge run
+[03:36:46] ✅ justhodl-jhsignal-bridge receipt commit=9494d42 run=34670592916 sha_match=True live=mo/k+0qB3BiA
+[03:36:46] ✅ justhodl-jhsignal-bridge zip: registry engines=19 plumbing_brief=True jh_brief_adapters.py=True
+[03:36:46] ✅ justhodl-jh-fusion receipt commit=9494d42 run=34670592916 sha_match=True live=j0onZ7GvQa8F
+[03:36:46] ✅ justhodl-jh-fusion zip: registry engines=19 plumbing_brief=True jh_brief_adapters.py=True
+[03:37:02] ✅ bridge run 20260912T033647Z-61ad31ae: n_signals=1992 n_entities=1596 plumbing_brief={"engine_id": "plumbing_brief", "family": "RISK", "criticality": "IMPORTANT", "n_signals": 1, "n_rejected": 0, "n_skipped": 0, "skip_reasons": {}, "source_status": "OK", "data_asof": "2026-09-12T02:31:59Z", "asof_basis": "engine", "diagnostics": []}
+[03:37:03] ✅ state store: plumbing_brief market rows=1 {"signal_type": "plumbing_stress", "score": 0.118, "confidence": 1.0, "horizon": "INTERMEDIATE", "freshness": "FRESH", "data_asof": "2026-09-12T02:31:59Z"}
+[03:37:13] ✅ fusion run 20260912T033703Z-0c56cdac at 2026-09-12T03:37:03Z: market leg present=True shadow=True best=INTERMEDIATE fusion=0.1834 coverage=0.6154 confidence=0.731
+[03:37:13] ✅ GREEN -- plumbing_brief is a live RISK leg in shadow: receipts match 9494d42, bridge OK/1 signal, state FRESH, fusion market entity carries it
 
-→ Report written to aws/ops/reports/latest/ops_5430_brief_fusion_coverage.md
+→ Report written to aws/ops/reports/latest/ops_5431_plumbing_brief_fusion_leg_proof.md
