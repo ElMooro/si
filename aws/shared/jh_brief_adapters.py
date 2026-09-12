@@ -47,7 +47,7 @@ class PlumbingBriefAdapter(SignalAdapter):
 
 
 class PositioningBriefAdapter(SignalAdapter):
-    """Inst buy vs sell breadth. score=(accum-dist)/(accum+dist). No signal if both missing."""
+    """Inst buy vs sell breadth. score=(accum-dist)/(accum+dist). Confidence discounts stale 13F funds."""
     signal_type, category = "positioning_flow", "institutional_flow"
 
     def validate_source(self, doc):
@@ -64,6 +64,8 @@ class PositioningBriefAdapter(SignalAdapter):
         dist = _f(fields.get("distributing"))
         parsed = _f(fields.get("funds_parsed"))
         total = _f(fields.get("funds_total"))
+        stale = fields.get("stale_funds") or []
+        n_stale = float(len(stale)) if isinstance(stale, list) else 0.0
         if acc is None or dist is None:
             yield {"skip": "no accum/dist breadth"}
             return
@@ -71,26 +73,31 @@ class PositioningBriefAdapter(SignalAdapter):
         if denom <= 0:
             yield {"skip": "zero accum+dist"}
             return
-        # ops 5417 truncated both lists at 100 and published len() as breadth -> 100/100 -> 0.0 forever.
-        # Equal counts sitting exactly on a round cap are a truncation artifact; never score them.
         if acc == dist and acc >= 100 and acc % 50 == 0 and (fields.get("breadth_basis") != "uncapped"):
             yield {"skip": "breadth counts equal at a round cap (%d/%d) -- capped lists, not breadth" % (int(acc), int(dist))}
             return
-        conf = (parsed / total) if (parsed is not None and total) else None
+        if parsed is not None and total:
+            conf = max(0.0, (parsed - n_stale) / total)
+            basis = "(funds_parsed - stale_funds)/funds_total"
+        else:
+            conf = None
+            basis = "missing 13F fund counts"
         yield {
             "symbol": "US_EQUITY",
             "entity_type": "market",
             "score": _clip((acc - dist) / denom),
             "confidence": conf,
-            "confidence_basis": "funds_parsed/funds_total",
+            "confidence_basis": basis,
             "horizon": "INTERMEDIATE",
             "evidence": _ev(
                 accumulating=acc,
                 distributing=dist,
                 funds_parsed=parsed,
                 funds_total=total,
+                n_stale=n_stale,
                 as_of_quarter=fields.get("as_of_quarter"),
-                stale_funds=fields.get("stale_funds"),
+                stale_funds=stale,
+                breadth_basis=fields.get("breadth_basis"),
             ),
             "metadata": {"brief_source": doc.get("source"), "quarter": fields.get("as_of_quarter")},
             "invalidation": {"type": "state", "description": "next 13F or inst-flow flip buy/sell breadth"},
