@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polygon · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--bd:#1c2330;--tx:#e8edf4;--dim:#8b96a8;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+a{color:var(--info);text-decoration:none}.wrap{max-width:1220px;margin:0 auto;padding:18px 16px 72px}
+h1{font-size:22px;margin:8px 0 4px}h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--info);margin:20px 0 8px}
+.sub{color:var(--dim);max-width:800px}.meta{font-family:var(--mono);font-size:11px;color:var(--dim);margin:8px 0 14px}.meta b{color:var(--info)}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.scroll{max-height:460px;overflow:auto}table{width:100%;border-collapse:collapse}
+th,td{padding:6px 10px;font-family:var(--mono);font-size:11px;text-align:right;border-bottom:1px solid rgba(28,35,48,.55)}
+th.l,td.l{text-align:left}.pos{color:var(--pos)}.neg{color:var(--neg)}
+.tabs button{background:var(--panel);color:var(--dim);border:1px solid var(--bd);border-radius:5px;padding:6px 10px;margin:0 6px 10px 0;cursor:pointer;font-family:var(--mono);font-size:11px}
+.tabs button.on{background:var(--info);color:#0a0e14;border-color:var(--info);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/">← JustHodl.AI</a> · <a href="/finiviz.html">finiviz</a> · <a href="/data.html">data plane</a>
+  <h1>Polygon</h1>
+  <p class="sub">Every Polygon object already in the warehouse. Engines stay justhodl-polygon-daily + the 5407–5414 bounded pulls. No new Lambda. Grouped-daily files (1.45GB / 1265 sessions) stay in S3 warm — this desk shows the hot JSON surfaces.</p>
+  <div class="meta" id="meta">loading…</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view">loading Polygon warehouse…</div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const FEEDS=[
+  ["snap","data/polygon-snapshot.json"],
+  ["si","data/polygon-short-interest.json"],
+  ["news","data/polygon-news.json"],
+  ["opt","data/polygon-options.json"],
+  ["fin","data/polygon-ratios.json"],
+  ["rel","data/polygon-related-graph.json"]
+];
+let D={}, tab="Snapshot";
+const pct=v=>v==null||v===""?"—":((Number(v)>0?"+":"")+Number(v).toFixed(2)+"%");
+const cls=v=>v==null||isNaN(Number(v))?"":Number(v)>0?"pos":"neg";
+const n=v=>v==null?"—":Number(v).toLocaleString();
+function load(k){return fetch(S3+"/"+k+"?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)}
+function tbl(rows, cols){
+  if(!rows||!rows.length) return "<div style='padding:14px;color:var(--dim)'>empty</div>";
+  const head="<tr>"+cols.map(c=>"<th class='"+(c.l?"l":"")+"'>"+c.h+"</th>").join("")+"</tr>";
+  const body=rows.slice(0,120).map(r=>"<tr>"+cols.map(c=>{
+    const v=typeof c.get==="function"?c.get(r):r[c.k];
+    const show=c.fmt?c.fmt(v):(v==null?"—":v);
+    return "<td class='"+(c.l?"l ":"")+(c.cls?c.cls(v):"")+"'>"+show+"</td>";
+  }).join("")+"</tr>").join("");
+  return "<div class='scroll'><table><thead>"+head+"</thead><tbody>"+body+"</tbody></table></div>";
+}
+function flattenNews(doc){
+  const out=[];
+  const t=doc&&doc.tickers;
+  if(t&&typeof t==="object"){
+    Object.keys(t).forEach(sym=>{(t[sym].items||[]).forEach(it=>out.push({ticker:sym,title:it.title,publisher:it.publisher,published_utc:it.published_utc,url:it.article_url}));});
+  }
+  return out;
+}
+function flattenOpt(doc){
+  const out=[];
+  const c=doc&&(doc.contracts||doc.results||doc.items);
+  if(Array.isArray(c)) return c;
+  if(c&&typeof c==="object") Object.keys(c).forEach(k=>{
+    const arr=Array.isArray(c[k])?c[k]:(c[k]&&c[k].results)||[];
+    arr.forEach(r=>out.push(Object.assign({underlier:k},r)));
+  });
+  return out;
+}
+function flattenSI(doc){
+  return (doc&&(doc.rows||doc.results||doc.items))||[];
+}
+function flattenFin(doc){
+  const out=[];
+  const t=doc&&(doc.tickers||doc.by_ticker);
+  if(t&&typeof t==="object"&&!Array.isArray(t)){
+    Object.keys(t).forEach(sym=>{
+      const rec=t[sym];
+      if(rec&&typeof rec==="object") out.push(Object.assign({ticker:sym},rec.error?{error:rec.error}:rec));
+    });
+  } else if(Array.isArray(doc&&doc.rows)) return doc.rows;
+  return out;
+}
+function flattenRel(doc){
+  const out=[];
+  const g=doc&&(doc.graph||doc.by_ticker||doc.tickers);
+  if(g&&typeof g==="object"){
+    Object.keys(g).forEach(sym=>{
+      const arr=g[sym].related||g[sym].tickers||g[sym]||[];
+      (Array.isArray(arr)?arr:[]).forEach(r=>out.push({ticker:sym,related:r.ticker||r,score:r.score}));
+    });
+  }
+  return out;
+}
+function render(){
+  const names=["Snapshot","Short interest","News","Options","Financials","Related"];
+  document.getElementById("tabs").innerHTML=names.map(n=>"<button class='"+(n===tab?"on":"")+"' data-t='"+n+"'>"+n+"</button>").join("");
+  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();});
+  let html="";
+  if(tab==="Snapshot"){
+    const rows=(D.snap&&D.snap.tickers)||[];
+    html+="<div class='card'>"+tbl(rows,[
+      {h:"Ticker",k:"ticker",l:1},{h:"Last",k:"day_c",fmt:v=>v==null?"—":Number(v).toFixed(2)},
+      {h:"Prev",k:"prev_c",fmt:v=>v==null?"—":Number(v).toFixed(2)},
+      {h:"Chg %",k:"todaysChangePerc",fmt:pct,cls:cls},{h:"Vol",k:"day_v",fmt:n}
+    ])+"</div>";
+  } else if(tab==="Short interest"){
+    const rows=flattenSI(D.si);
+    const cols=rows[0]?Object.keys(rows[0]).slice(0,8).map((k,i)=>({h:k,k:k,l:i===0})):[{h:"—",k:"x"}];
+    html+="<div class='card'>"+tbl(rows,cols)+"</div>";
+  } else if(tab==="News"){
+    html+="<div class='card'>"+tbl(flattenNews(D.news),[
+      {h:"Ticker",k:"ticker",l:1},{h:"Title",k:"title",l:1},{h:"Publisher",k:"publisher",l:1},{h:"UTC",k:"published_utc",l:1}
+    ])+"</div>";
+  } else if(tab==="Options"){
+    const rows=flattenOpt(D.opt);
+    const cols=rows[0]?Object.keys(rows[0]).slice(0,8).map((k,i)=>({h:k,k:k,l:i<2})):[{h:"—",k:"x"}];
+    html+="<div class='card'>"+tbl(rows,cols)+"</div>";
+  } else if(tab==="Financials"){
+    const rows=flattenFin(D.fin);
+    const cols=rows[0]?Object.keys(rows[0]).slice(0,8).map((k,i)=>({h:k,k:k,l:i===0})):[{h:"—",k:"x"}];
+    html+="<p class='sub'>Ratios add-on returned 403 on this key; VX financials fallback if present.</p>";
+    html+="<div class='card'>"+tbl(rows,cols)+"</div>";
+  } else {
+    html+="<div class='card'>"+tbl(flattenRel(D.rel),[
+      {h:"Ticker",k:"ticker",l:1},{h:"Related",k:"related",l:1},{h:"Score",k:"score"}
+    ])+"</div>";
+  }
+  document.getElementById("view").innerHTML=html;
+}
+Promise.all(FEEDS.map(p=>load(p[1]).then(j=>(D[p[0]]=j)))).then(()=>{
+  const bits=[];
+  if(D.snap) bits.push("snap "+(D.snap.n||(D.snap.tickers||[]).length));
+  if(D.si) bits.push("SI "+(D.si.n||flattenSI(D.si).length));
+  if(D.news) bits.push("news "+(D.news.n_ok||flattenNews(D.news).length));
+  if(D.opt) bits.push("opt "+flattenOpt(D.opt).length);
+  if(D.fin) bits.push("fin "+(D.fin.status||""));
+  if(D.rel) bits.push("related");
+  document.getElementById("meta").innerHTML=bits.map(x=>"<b>"+x+"</b>").join(" · ")||"feeds missing";
+  render();
+});
+</script>
+</body>
+</html>
