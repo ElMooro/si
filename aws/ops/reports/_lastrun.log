@@ -1,6 +1,7 @@
-executing-against: 48b3602790800a18c717712ac230e6702a4b849d
-ops 5439 positioning by_ticker
-[04:36:17] ✅ status=LIVE acc=3200 dist=1832 flat=32 n=5064 pct=0.2718600953895072
-[04:36:17] ✅ 13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064
+executing-against: 3e5d7b04dbf34ba5b6b2524449ba6cbc759b0d10
+ops 5440 live compiler positioning
+[04:44:51] ✅ code_sha256=qArluhFMj0dB2kug+iKUpbb+xx3TG/Ah9vPw4ZtX86o= last_modified=2026-09-12T04:44:24.000+0000
+[04:44:55] ✅ invoke: {"ok": true, "results": {"positioning": {"status": "LIVE", "why": "13F quarter 2026-06-30 funds=18 stale=PERSHING,GREENLIGHT,SCION | inst breadth (uncapped) buy/sell/flat 3200/1832/32 of 5064", "held_reason": null}}}
+[04:44:56] ✅ s3 source=justhodl-brief-compiler status=LIVE acc=3200 dist=1832 n=5064 pct=0.2718600953895072
 
-→ Report written to aws/ops/reports/latest/ops_5439_recompile_positioning.md
+→ Report written to aws/ops/reports/latest/ops_5440_compiler_lambda_positioning_proof.md
