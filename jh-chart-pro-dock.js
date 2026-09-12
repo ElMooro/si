@@ -1,12 +1,13 @@
 /* jh-chart-pro-dock.js -- warehouse rail + merge-only TV list import */
 (function () {
   if (!/chart-pro\.html/i.test(location.pathname || "")) return;
-  if (!document.querySelector('script[src*="jh-chart-pro-tvux"]')) {
+  ["jh-chart-pro-tvux", "jh-chart-tf-fix"].forEach(function (name) {
+    if (document.querySelector('script[src*="' + name + '"]')) return;
     var ux = document.createElement("script");
-    ux.src = "/jh-chart-pro-tvux.js?t=" + Date.now();
+    ux.src = "/" + name + ".js?t=" + Date.now();
     ux.defer = true;
     (document.head || document.documentElement).appendChild(ux);
-  }
+  });
   if (window.__jhChartDock) return;
   window.__jhChartDock = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
@@ -62,32 +63,13 @@
     gj("data/verdict.json"), gj("data/positioning-brief.json"), gj("data/alfred-vintages.json"), gj("data/market-tape-brief.json")
   ]).then(function (arr) {
     var p = arr[0] || {}, o = arr[1] || {}, f = arr[2] || {}, v = arr[3] || {}, pos = arr[4] || {}, al = arr[5] || {}, mt = arr[6] || {};
-    var pf = p.fields || {}, of = o.fields || {}, ps = pos.fields || {}, mf = mt.fields || {};
+    var of = o.fields || {}, ps = pos.fields || {}, mf = mt.fields || {}, pf = p.fields || {};
     var sofr = pf.ofr_sofr != null ? pf.ofr_sofr : (f.sofr && f.sofr.value);
     var nCustom = 0;
     try { nCustom = Object.keys((window.State && State.customWatchlists) || {}).length; } catch (e) {}
     box.innerHTML =
       pane("PLUMBING", cell("SOFR", sofr) + cell("GDPNOW", of.gdpnow) + cell("VERDICT", [v.bias || v.call, v.regime].filter(Boolean).join(" \u00b7 "))) +
       pane("FLOW", cell("ETF", [mf.heavy_inflow_n, mf.heavy_outflow_n].join(" / ")) + cell("INST", [ps.accumulating, ps.distributing].join(" / "))) +
-      pane("LISTS", cell("CUSTOM LISTS", nCustom) + "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin:6px 0\">Lists are never deleted. Import creates a new list.</div><input id=\"jh-tv-import\" type=\"file\" accept=\".txt,.csv\" style=\"width:100%;font-size:10px\"/>") +
-      "<input id=\"jh-chart-q\" placeholder=\"search / jump\" style=\"width:100%;margin-top:8px;background:#0a0d12;color:#e8edf5;border:1px solid #1d2636;border-radius:6px;padding:4px\"/>";
-    var fi = document.getElementById("jh-tv-import");
-    if (fi) fi.addEventListener("change", function () {
-      var file = fi.files && fi.files[0]; if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        var n = importTv(String(reader.result || ""), file.name.replace(/\.[^.]+$/, ""));
-        if (window.jhToast) jhToast("imported " + n + " symbols");
-      };
-      reader.readAsText(file);
-    });
-    var q = document.getElementById("jh-chart-q");
-    if (q) q.addEventListener("input", function () {
-      var src = document.querySelector(".universe-search input, #dx-search, input[placeholder*='search' i]");
-      if (!src) return;
-      src.value = q.value;
-      src.dispatchEvent(new Event("input", { bubbles: true }));
-      src.focus();
-    });
+      pane("LISTS", cell("CUSTOM LISTS", nCustom) + "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin:6px 0\">Lists are never deleted.</div>");
   });
 })();
