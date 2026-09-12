@@ -1,5 +1,10 @@
-executing-against: 7640d417ef66a849d86b6bdf7cf0ea1e386b6720
-ops 5436 market-tape uncapped ETF breadth
-[04:13:52] ✅ status=LIVE session=2026-09-10 n_tickers=12572 etfs=60 heavy in/out/other 3/5/52 basis=uncapped
+executing-against: 1298c02f66395fc34705ba499393b02d717d20ec
+ops 5437 -- market_tape_brief fusion leg (MARKET, shadow): receipts + one bridge run + verdict
+[04:24:46] ✗ justhodl-jhsignal-bridge receipt commit=29c0af6 run=34672490182 sha_match=False carries_row=False live=waGBqQAsCKjO
+[04:24:46] ✅ justhodl-jhsignal-bridge zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
+[04:24:46] ✅ justhodl-jh-fusion receipt commit=4ad5c2a run=34672885394 sha_match=True carries_row=True live=CKkwLex/jj68
+[04:24:47] ✅ justhodl-jh-fusion zip: registry engines=21 market_tape_brief=True jh_brief_adapters.py=True
+[04:24:47] ✗ RED before touching anything -- receipt:justhodl-jhsignal-bridge (dispatch deploy-lambdas.yml for justhodl-jhsignal-bridge justhodl-jh-fusion and re-run)
 
-→ Report written to aws/ops/reports/latest/ops_5436_market_tape_uncapped.md
+→ Report written to aws/ops/reports/latest/ops_5437_market_tape_brief_fusion_leg_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_5437_market_tape_brief_fusion_leg_proof.py
