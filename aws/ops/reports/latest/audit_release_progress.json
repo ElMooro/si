@@ -1,14 +1,24 @@
 {
-  "observed_at": "2026-09-12T22:14:16.088111+00:00",
+  "observed_at": "2026-09-12T22:14:51.307802+00:00",
   "runs": [
+    {
+      "id": 34722196219,
+      "path": ".github/workflows/pages.yml",
+      "head_sha": "07114709648c9ae4552eb5f974913a3b0177f8af",
+      "status": "pending",
+      "conclusion": null,
+      "created_at": "2026-09-12T22:14:31Z",
+      "updated_at": "2026-09-12T22:14:32Z",
+      "jobs": []
+    },
     {
       "id": 34722161778,
       "path": ".github/workflows/pages.yml",
       "head_sha": "13dea37a69aad16514fc01fdbc7374187f83a968",
-      "status": "pending",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "cancelled",
       "created_at": "2026-09-12T22:13:49Z",
-      "updated_at": "2026-09-12T22:13:56Z",
+      "updated_at": "2026-09-12T22:14:32Z",
       "jobs": []
     },
     {
@@ -95,49 +105,49 @@
             {
               "number": 9,
               "name": "Assemble lean site artifact",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-12T22:13:54Z",
-              "completed_at": null
+              "completed_at": "2026-09-12T22:14:31Z"
             },
             {
               "number": 10,
               "name": "Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T22:14:31Z",
+              "completed_at": "2026-09-12T22:14:31Z"
             },
             {
               "number": 11,
               "name": "Bake section numbers into every page + ship home layout/registry (ops 5200)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T22:14:31Z",
+              "completed_at": "2026-09-12T22:14:31Z"
             },
             {
               "number": 12,
               "name": "Bake last-known values into homepage (zero em-dash first paint)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T22:14:31Z",
+              "completed_at": "2026-09-12T22:14:31Z"
             },
             {
               "number": 13,
               "name": "CI gate \u2014 template leaks + dead-paint ratchet",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-12T22:14:31Z",
+              "completed_at": "2026-09-12T22:14:31Z"
             },
             {
               "number": 14,
               "name": "Bake right-rail insight panel (Design audit sec8-C)",
-              "status": "pending",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-09-12T22:14:31Z",
               "completed_at": null
             },
             {
