@@ -1,4 +1,4 @@
-"""Runner-only IMF queue accounting; at most one explicitly authorized Event kick.
+"""Runner-only fix-forward IMF accounting; no additional Event invocation.
 
 No source HTTP, Lambda deployment, timeout edits, or state/queue rewrites.
 The invocation receipt prevents a fix-forward rerun from sending another kick.
@@ -36,6 +36,45 @@ def main():
     output = ROOT / "aws/ops/reports/5450_imf_queue_result.json"
     prior = json.loads((ROOT / "aws/ops/reports/5449_imf_progress_proof.json").read_text())
     old_attempts = dict(zip(prior["imf"]["queued_flow_ids"], prior["imf"]["queue_attempts"]))
+    previous = json.loads(output.read_text())
+    proof["previous_run"] = {k: previous.get(k) for k in ("status", "before", "error", "invocation_receipt", "invocations_sent_this_run")}
+    for observed in previous.get("snapshots", []):
+        for row in observed["ids"]:
+            old_attempts[row["id"]] = max(old_attempts.get(row["id"], 0), row.get("queued_attempts") or 0, row.get("max_observed_attempts") or 0)
+    proof["max_observed_attempts_before"] = dict(old_attempts)
+    config = lam.get_function_configuration(FunctionName=FN)
+    timeout_s = config["Timeout"]
+    budget_s = int(config.get("Environment", {}).get("Variables", {}).get("IMF_BUDGET_S", "640"))
+    proof["execution_limits"] = {"timeout_s": timeout_s, "budget_s": budget_s}
+
+    def timeout_for_current_attempt(state, obj):
+        # The writer persists lease_until at invocation entry and increments the
+        # queue head before drain_one. Correlate an unchanged queue-head write
+        # with the REPORT for that lease, not an unrelated historical timeout.
+        lease = float(state.get("lease_until") or 0)
+        started = lease - budget_s - 200
+        if not started or obj["LastModified"].timestamp() < started - 2:
+            return None
+        events = logs.filter_log_events(logGroupName="/aws/lambda/"+FN,
+            startTime=int(started*1000), filterPattern='"REPORT RequestId:"', limit=100)
+        expected_end = started + timeout_s
+        for event in events.get("events", []):
+            message = event["message"]
+            duration = re.search(r"\bDuration:\s*([0-9.]+) ms", message)
+            request = re.search(r"REPORT RequestId:\s*(\S+)", message)
+            if ("Status: timeout" in message and duration and request
+                and abs(float(duration.group(1))/1000-timeout_s) <= 2
+                and abs(event["timestamp"]/1000-expected_end) <= 20):
+                check = s3.head_object(Bucket=B, Key=KEY)
+                if check["ETag"] != obj["ETag"]:
+                    return None
+                return {"kind": "NAMED_EXECUTION_TIMEOUT", "request_id": request.group(1),
+                    "report_at": datetime.fromtimestamp(event["timestamp"]/1000, timezone.utc).isoformat(),
+                    "duration_ms": float(duration.group(1)), "timeout_s": timeout_s,
+                    "attempt_started_at_from_lease": datetime.fromtimestamp(started, timezone.utc).isoformat(),
+                    "basis": "unchanged state ETag; current queue head; lease-correlated Lambda REPORT timeout",
+                    "source_refusal_recorded": False, "written_to_importer_state": False}
+        return None
 
     def snapshot():
         o = s3.get_object(Bucket=B, Key=KEY)
@@ -46,19 +85,25 @@ def main():
         # a margin rather than racing the execution that still owns the state.
         active = float(d.get("lease_until") or 0) + 45 > now.timestamp()
         rows = []
+        timeout = timeout_for_current_attempt(d, o) if not active and queue else None
+        head = d.get("queue", [[None]])[0][0] if queue else None
         for fid in IDS:
+            old_attempts[fid] = max(old_attempts.get(fid, 0), queue.get(fid, 0))
             failure = (d.get("failures") or {}).get(fid)
             banked = (d.get("have") or {}).get(fid)
             if banked:
                 status = "BANKED"
             elif failure:
                 status = "NAMED_SOURCE_FAILURE"
-            elif not active and (queue.get(fid, 0) >= 3 or (fid not in queue and old_attempts.get(fid, 0) >= 3)):
+            elif (fid not in queue and old_attempts.get(fid, 0) >= 3) or (not active and queue.get(fid, 0) >= 3):
                 status = "THREE_ATTEMPT_QUARANTINE"
+            elif fid == head and timeout and queue.get(fid, 0) > 0:
+                status = "NAMED_EXECUTION_TIMEOUT"
             else:
                 status = "UNTRIED" if queue.get(fid) == 0 else "PENDING_OR_IN_FLIGHT"
             rows.append({"id": fid, "status": status, "queued_attempts": queue.get(fid),
-                         "prior_5449_attempts": old_attempts.get(fid), "failure": failure,
+                         "max_observed_attempts": old_attempts.get(fid), "failure": failure,
+                         "execution_failure": timeout if status == "NAMED_EXECUTION_TIMEOUT" else None,
                          "banked": banked,
                          "quarantine_basis": "existing importer skips queue attempts >=3; no source refusal inferred" if status == "THREE_ATTEMPT_QUARANTINE" else None})
         snap = {"observed_at": now.isoformat(), "last_modified": o["LastModified"].isoformat(),
@@ -71,7 +116,7 @@ def main():
         return snap, o, d
 
     def finished(snap):
-        return all(x["status"] in ("BANKED", "NAMED_SOURCE_FAILURE", "THREE_ATTEMPT_QUARANTINE") for x in snap["ids"])
+        return all(x["status"] in ("BANKED", "NAMED_SOURCE_FAILURE", "THREE_ATTEMPT_QUARANTINE", "NAMED_EXECUTION_TIMEOUT") for x in snap["ids"])
 
     with report("ops_5450_finish_imf_queue") as r:
         try:
@@ -82,32 +127,15 @@ def main():
             snap, obj, state = snapshot()
             proof["before"] = snap
             r.log("before=" + json.dumps(snap, default=str))
-            # Respect an already-running invocation; one new kick is permitted
-            # for genuinely untried entries, or for state older than 48 hours.
-            deadline = time.monotonic() + 2100
-            receipt = None
-            try:
-                receipt = json.loads(s3.get_object(Bucket=B, Key=RECEIPT)["Body"].read())
-                proof["existing_invocation_receipt"] = receipt
-            except ClientError as exc:
-                if exc.response["Error"]["Code"] not in ("NoSuchKey", "404"): raise
+            # Same op, read-only fix-forward. The original receipt proves the
+            # single permitted manual kick; this revision cannot invoke Lambda.
+            deadline = time.monotonic() + 1500
+            receipt = json.loads(s3.get_object(Bucket=B, Key=RECEIPT)["Body"].read())
+            if receipt.get("status") != "ACCEPTED_202":
+                raise RuntimeError("Expected original accepted invocation receipt")
+            proof["existing_invocation_receipt"] = receipt
+            proof["classification_note"] = "PASS means original IDs accounted as banked or named failures, not queue empty. Execution timeouts are not source refusals or three-strike quarantine. Importer state is unchanged."
             while not finished(snap):
-                untried = any(x["status"] == "UNTRIED" for x in snap["ids"])
-                if not snap["lease_active_with_margin"] and receipt is None and (untried or snap["state_age_h"] > 48):
-                    receipt = {"op": 5450, "function": FN, "kicked_by": "ops_5450",
-                               "claimed_at": datetime.now(timezone.utc).isoformat(),
-                               "before_last_modified": snap["last_modified"], "status": "CLAIMED"}
-                    s3.put_object(Bucket=B, Key=RECEIPT, Body=json.dumps(receipt).encode(),
-                                  ContentType="application/json", IfNoneMatch="*")
-                    inv = lam.invoke(FunctionName=FN, InvocationType="Event", Payload=b'{"kicked_by":"ops_5450"}')
-                    if inv.get("StatusCode") != 202:
-                        raise RuntimeError("IMF Event invocation not accepted")
-                    receipt["status"] = "ACCEPTED_202"
-                    receipt["accepted_at"] = datetime.now(timezone.utc).isoformat()
-                    s3.put_object(Bucket=B, Key=RECEIPT, Body=json.dumps(receipt).encode(), ContentType="application/json")
-                    proof["invocations_sent_this_run"] = 1
-                    proof["invocation_receipt"] = receipt
-                    r.ok("one Event invocation accepted; watching existing IMF state")
                 if time.monotonic() > deadline:
                     raise RuntimeError("IMF IDs still unaccounted after bounded observation; no second kick")
                 time.sleep(25)
