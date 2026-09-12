@@ -1,0 +1,97 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-09-12T14:07:11.969046+00:00",
+  "function": "justhodl-warm-bridge",
+  "release_commit": "a26699d7f92317f01e71c5d2698ebc0d231795ec",
+  "deployment_run": "34698152865",
+  "code_sha256": "WtjhtRTAj6JHjsxcpPbZI7iJlyUQP8UX63e2HBQXZz4=",
+  "before": {
+    "triparty_rate": {
+      "value": null,
+      "unit": null,
+      "as_of": "2026-09-12T13:29:55+00:00",
+      "data_unavailable": true,
+      "stale": null,
+      "series": null
+    },
+    "triparty_volume": {
+      "value": null,
+      "unit": null,
+      "as_of": "2026-09-12T13:29:55+00:00",
+      "data_unavailable": true,
+      "stale": null,
+      "series": null
+    },
+    "dvp_rate": {
+      "value": null,
+      "unit": null,
+      "as_of": "2026-09-12T13:29:55+00:00",
+      "data_unavailable": true,
+      "stale": null,
+      "series": null
+    },
+    "gcf_rate": {
+      "value": null,
+      "unit": null,
+      "as_of": "2026-09-12T13:29:55+00:00",
+      "data_unavailable": true,
+      "stale": null,
+      "series": null
+    },
+    "sofr": {
+      "value": null,
+      "unit": null,
+      "as_of": "2026-09-12T13:29:55+00:00",
+      "data_unavailable": true,
+      "stale": null,
+      "series": null
+    }
+  },
+  "after": {
+    "triparty_rate": {
+      "value": 3.68,
+      "unit": "Percent",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_AR_TOT-P"
+    },
+    "triparty_volume": {
+      "value": 2325530510643.57,
+      "unit": "USD",
+      "as_of": "2026-09-09",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-TRI_TV_TOT-P"
+    },
+    "dvp_rate": {
+      "value": 3.63,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-DVP_AR_TOT-P"
+    },
+    "gcf_rate": {
+      "value": 3.69,
+      "unit": "Percent",
+      "as_of": "2026-09-10",
+      "data_unavailable": false,
+      "stale": false,
+      "series": "REPO-GCF_AR_TOT-P"
+    },
+    "sofr": {
+      "value": 3.66,
+      "unit": "Percent",
+      "as_of": "2026-08-04",
+      "data_unavailable": false,
+      "stale": true,
+      "series": "FNYR-SOFR-A"
+    }
+  },
+  "public_routes": [
+    "https://justhodl.ai/data/ofr-funding.json",
+    "https://justhodl-data-proxy.raafouis.workers.dev/data/ofr-funding.json"
+  ],
+  "published_at": "2026-09-12T14:07:09+00:00"
+}
