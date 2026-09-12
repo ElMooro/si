@@ -1,6 +1,7 @@
-executing-against: 5c606c4decccfa63823935ccea5ed980472d36c8
-ops 5497 compiler CFTC persistence
-[21:23:18] ✅ invoke 200
-[21:23:19] ✅ status=LIVE acc/dist/flat=3200/1832/32 cftc live=3 rows=10000 required=False
+executing-against: a89ae5d4dca4a667b0e9fb8c530d49e4352f6423
+ops 5498 ALFRED vintage cube index
+[21:25:44] ✅ warm objects 0
+[21:25:44] ✅ indexed 0 series -> data/alfred-vintages.json
+[21:25:44] ⚠ warm/alfred empty -- 5482 may not have landed objects
 
-→ Report written to aws/ops/reports/latest/ops_5497_positioning_cftc_compiler_proof.md
+→ Report written to aws/ops/reports/latest/ops_5498_alfred_hot_index.md
