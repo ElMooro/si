@@ -1,14 +1,17 @@
-executing-against: 78a04801adc6b82cd61be496684d139731b9d388
-ops 5482
-[16:37:31] ✅ FINRA data/warm/finra/ n=0 newest=None
-[16:37:31] ✅ FINRA data/warm/finra-full/ n=10 newest=data/warm/finra-full/_state/state.json
-[16:37:31] ✅ FINRA data/finra/ n=0 newest=None
-[16:37:32] ✅ TIC v2 n=100
-[16:37:57] ✅ ALFRED GDP avail=414 banked=12
-[16:38:19] ✅ ALFRED PAYEMS avail=859 banked=12
-[16:38:38] ✅ ALFRED CPIAUCSL avail=669 banked=12
-[16:38:58] ✅ ALFRED PCEPI avail=315 banked=12
-[16:39:19] ✅ ALFRED UNRATE avail=799 banked=12
-[16:39:21] ✅ hot live=50 fail=6
+executing-against: 33e51b203daa77c2e3d1d9e18bd7881c77d708de
+ops 5483 macro-tape
+[17:57:26] ✅ GDPNOW 2026-07-01 4.4164
+[17:57:26] ✅ PAYEMS 2026-08-01 159075
+[17:57:26] ✅ CPIAUCSL 2026-08-01 334.131
+[17:57:26] ✅ T10Y3M 2026-09-11 0.89
+[17:57:26] ✅ SOFR 2026-09-10 3.62
+[17:57:26] ✅ DTWEXBGS 2026-09-04 118.0732
+[17:57:26] ✅ BAMLH0A0HYM2 2026-09-10 2.7
+[17:57:26] ✅ VIXCLS 2026-09-10 17.84
+[17:57:26] ✅ NFCI 2026-09-04 -0.56400
+[17:57:26] ✅ UNRATE 2026-08-01 4.1
+[17:57:26] ✅ DGS10 2026-09-10 4.95
+[17:57:26] ✅ DCOILWTICO 2026-09-09 97.26
+[17:57:26] ✅ wrote data/macro-tape.json fields=12
 
-→ Report written to aws/ops/reports/latest/ops_5482_finra_alfred_tic.md
+→ Report written to aws/ops/reports/latest/ops_5483_macro_tape.md
