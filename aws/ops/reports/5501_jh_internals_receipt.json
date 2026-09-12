@@ -1,0 +1,255 @@
+{
+  "op": 5501,
+  "started_at": "2026-09-12T23:18:57.981764+00:00",
+  "source_mode": "S3 warehouse only",
+  "objects": {
+    "data/fred-cache.json": {
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "bytes": 1028703,
+      "etag": "\"9a6f992479ba12380bc1aa75de8bd838\""
+    },
+    "data/warm/fred-scoped/Interest_Rates/DGS10.json": {
+      "last_modified": "2026-09-09T20:46:14+00:00",
+      "bytes": 1536200,
+      "etag": "\"8cb0f051ffb446914942423071ef6398\""
+    },
+    "data/warm/fred-scoped/Interest_Rates/DGS2.json": {
+      "last_modified": "2026-09-09T20:46:13+00:00",
+      "bytes": 1202014,
+      "etag": "\"5a7f32786b2dfbd9a6e27a7b0e75ebd8\""
+    },
+    "data/warm/fred-scoped/Monetary_Data/WALCL.json": {
+      "last_modified": "2026-09-06T00:54:00+00:00",
+      "bytes": 122480,
+      "etag": "\"b9ff11acf6d7b861bed8387f57777ec1\""
+    },
+    "data/warm/fred-scoped/Monetary_Data/WTREGEN.json": {
+      "last_modified": "2026-09-06T00:54:07+00:00",
+      "bytes": 122416,
+      "etag": "\"9583255c530b12fb311c2c4b52936344\""
+    },
+    "data/warm/fred-scoped/FRED_Repo_Complex/RRPONTSYD.json": {
+      "last_modified": "2026-09-12T06:10:44+00:00",
+      "bytes": 123703,
+      "etag": "\"a864eba44192061af89b3aa387528b84\""
+    },
+    "data/warm/fred-scoped/Monetary_Data/RRPONTSYD.json": {
+      "last_modified": "2026-09-09T00:53:57+00:00",
+      "bytes": 323099,
+      "etag": "\"57f71db8e7b61357b863e03444742931\""
+    },
+    "data/warm/fred-scoped/Financial_Indicators/NFCI.json": {
+      "last_modified": "2026-09-10T15:52:10+00:00",
+      "bytes": 286701,
+      "etag": "\"28bd16411907c179ab8c69fe9fb27f23\""
+    },
+    "data/finviz-universe.json": {
+      "last_modified": "2026-09-12T22:00:40+00:00",
+      "bytes": 16047683,
+      "etag": "\"7fdc6f8a85281bcb0c0476343c21b925\""
+    },
+    "data/jh-internals.json": {
+      "last_modified": "2026-09-12T23:19:09+00:00",
+      "bytes": 285,
+      "etag": "\"b4f66d3e8da85705df1dc68a22787240\""
+    }
+  },
+  "fred": {
+    "DGS10": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-10",
+      "value": 4.95,
+      "units": "Percent",
+      "compiler_multiplier": 1.0,
+      "compiler_value": 4.95,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.95,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Interest_Rates/DGS10.json",
+          "as_of": "2026-09-08",
+          "value": 4.8,
+          "last_modified": "2026-09-09T20:46:14+00:00"
+        }
+      ]
+    },
+    "DGS2": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-10",
+      "value": 4.56,
+      "units": "Percent",
+      "compiler_multiplier": 1.0,
+      "compiler_value": 4.56,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.56,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Interest_Rates/DGS2.json",
+          "as_of": "2026-09-08",
+          "value": 4.39,
+          "last_modified": "2026-09-09T20:46:13+00:00"
+        }
+      ]
+    },
+    "WALCL": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-09",
+      "value": 6740619.0,
+      "units": "Millions of USD",
+      "compiler_multiplier": 1.0,
+      "compiler_value": 6740619.0,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 6740619.0,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Monetary_Data/WALCL.json",
+          "as_of": "2026-09-02",
+          "value": 6737204.0,
+          "last_modified": "2026-09-06T00:54:00+00:00"
+        }
+      ]
+    },
+    "WTREGEN": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-09",
+      "value": 883335.0,
+      "units": "Millions of USD",
+      "compiler_multiplier": 1.0,
+      "compiler_value": 883335.0,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 883335.0,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Monetary_Data/WTREGEN.json",
+          "as_of": "2026-09-02",
+          "value": 967935.0,
+          "last_modified": "2026-09-06T00:54:07+00:00"
+        }
+      ]
+    },
+    "RRPONTSYD": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-11",
+      "value": 5.255,
+      "units": "Billions of USD",
+      "compiler_multiplier": 1000.0,
+      "compiler_value": 5255.0,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-11",
+          "value": 5.255,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/FRED_Repo_Complex/RRPONTSYD.json",
+          "as_of": "2026-09-11",
+          "value": 5.255,
+          "last_modified": "2026-09-12T06:10:44+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Monetary_Data/RRPONTSYD.json",
+          "as_of": "2026-09-08",
+          "value": 0.626,
+          "last_modified": "2026-09-09T00:53:57+00:00"
+        }
+      ]
+    },
+    "NFCI": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-04",
+      "value": -0.564,
+      "units": "Index",
+      "compiler_multiplier": 1.0,
+      "compiler_value": -0.564,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "selection": "latest valid observation date, then newest warehouse object",
+      "candidates": [
+        {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-04",
+          "value": -0.564,
+          "last_modified": "2026-09-12T16:38:08+00:00"
+        },
+        {
+          "key": "data/warm/fred-scoped/Financial_Indicators/NFCI.json",
+          "as_of": "2026-09-04",
+          "value": -0.564,
+          "last_modified": "2026-09-10T15:52:10+00:00"
+        }
+      ]
+    }
+  },
+  "mutated_keys": [
+    "data/jh-internals.json"
+  ],
+  "breadth": {
+    "n_univ": 11633,
+    "n_with_change": 11618,
+    "n_missing_change": 15,
+    "basis": "all by_ticker rows; n_tickers must equal full row count; no slicing",
+    "reason": "up/down cannot cover the full declared universe",
+    "key": "data/finviz-universe.json",
+    "as_of": "2026-09-12T22:00:37.733393+00:00"
+  },
+  "compiler_sha256": "656598b8a26ebf74f40224969b6671989fc09fb52585db00245e2aa595a5120c",
+  "payload": {
+    "schema_version": 1,
+    "source": "compile_jh_internals",
+    "generated_at": "2026-09-12T23:19:08.458114+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564
+    },
+    "skipped": [
+      "ECONOMICS:* licensed PMI",
+      "USI:TICKBA.* intraday"
+    ]
+  },
+  "body_sha256": "0f4765b0c3a805e2b0c0045d90ba5fddfe290455b1ed49f3b20c7f3345fa0fb9",
+  "live": {
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-12T23:19:09+00:00",
+    "fields_present": [
+      "liq_proxy_bn",
+      "nfci",
+      "twos_tens"
+    ],
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564
+    },
+    "schema_version": 1,
+    "source": "compile_jh_internals"
+  },
+  "status": "PASS",
+  "finished_at": "2026-09-12T23:19:08.738054+00:00"
+}

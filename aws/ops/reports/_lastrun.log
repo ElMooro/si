@@ -1,25 +1,11 @@
-executing-against: 78315c58d5e65a66225f95dda0eeac250b865612
-ops 5500 ALFRED deepen
-[21:31:02] ✅ GDP avail=414 have=12 fetch=56
-[21:31:46] ⚠ GDP 2022-12-22 HTTP Error 429: Too Many Requests
-[21:31:47] ⚠ GDP 2023-12-21 HTTP Error 429: Too Many Requests
-[21:31:49] ⚠ GDP 2024-12-19 HTTP Error 429: Too Many Requests
-[21:31:50] ⚠ GDP 2023-08-30 HTTP Error 429: Too Many Requests
-[21:31:52] ⚠ GDP 2023-09-28 HTTP Error 429: Too Many Requests
-[21:31:53] ⚠ GDP 2023-10-26 HTTP Error 429: Too Many Requests
-[21:31:54] ⚠ GDP 2023-11-29 HTTP Error 429: Too Many Requests
-[21:31:56] ⚠ GDP 2024-01-25 HTTP Error 429: Too Many Requests
-[21:31:57] ⚠ GDP 2024-02-28 HTTP Error 429: Too Many Requests
-[21:31:58] ⚠ GDP 2024-03-28 HTTP Error 429: Too Many Requests
-[21:32:22] ✅ GDP banked now 58
-[21:32:24] ✅ PAYEMS avail=859 have=12 fetch=68
-[21:34:03] ✅ PAYEMS banked now 80
-[21:34:04] ✅ CPIAUCSL avail=669 have=12 fetch=68
-[21:35:40] ✅ CPIAUCSL banked now 80
-[21:35:42] ✅ PCEPI avail=315 have=12 fetch=47
-[21:36:52] ✅ PCEPI banked now 59
-[21:36:53] ✅ UNRATE avail=799 have=12 fetch=68
-[21:38:31] ✅ UNRATE banked now 80
-[21:38:32] ✅ hot index refreshed
+executing-against: daa07693dfec4085fe771a0843804fe943e0cacb
+[23:19:00] ✅ DGS10 last obs 2026-09-10 = 4.95 Percent from data/fred-cache.json
+[23:19:01] ✅ DGS2 last obs 2026-09-10 = 4.56 Percent from data/fred-cache.json
+[23:19:03] ✅ WALCL last obs 2026-09-09 = 6740619.0 Millions of USD from data/fred-cache.json
+[23:19:04] ✅ WTREGEN last obs 2026-09-09 = 883335.0 Millions of USD from data/fred-cache.json
+[23:19:06] ✅ RRPONTSYD last obs 2026-09-11 = 5.255 Billions of USD from data/fred-cache.json
+[23:19:07] ✅ NFCI last obs 2026-09-04 = -0.564 Index from data/fred-cache.json
+[23:19:08] ad_breadth omitted: {"n_univ": 11633, "n_with_change": 11618, "n_missing_change": 15, "basis": "all by_ticker rows; n_tickers must equal full row count; no slicing", "reason": "up/down cannot cover the full declared universe"}
+[23:19:08] ✅ LastModified=2026-09-12T23:19:09+00:00 fields={"twos_tens": 0.39, "liq_proxy_bn": 5852.0, "nfci": -0.564}
 
-→ Report written to aws/ops/reports/latest/ops_5500_alfred_deepen.md
+→ Report written to aws/ops/reports/latest/ops_5501_compile_jh_internals.md
