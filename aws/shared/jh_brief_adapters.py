@@ -102,8 +102,38 @@ class MarketTapeBriefAdapter(SignalAdapter):
         }
 
 
+class OfficialStatsBriefAdapter(SignalAdapter):
+    """GDPNow vs 2% trend. Skip missing/non-LIVE. Not a CATALYST vote."""
+    signal_type, category = "official_stats_nowcast", "price_confirmation"
+
+    def validate_source(self, doc):
+        if doc.get("schema") != "brief-1.0" or doc.get("mode") != "official_stats" or doc.get("status") != "LIVE":
+            return False
+        return _f((doc.get("fields") or {}).get("gdpnow")) is not None
+
+    def rows(self, doc):
+        fields = doc.get("fields") or {}
+        gdp = _f(fields.get("gdpnow"))
+        if gdp is None:
+            yield {"skip": "no gdpnow"}
+            return
+        curve = _f(fields.get("t10y3m"))
+        conf = 0.5 if curve is None else 0.7
+        yield {
+            "symbol": "US_EQUITY", "entity_type": "market",
+            "score": _clip((gdp - 2.0) / 4.0), "confidence": conf,
+            "confidence_basis": "gdpnow vs 2pct trend; curve present lifts conf",
+            "horizon": "INTERMEDIATE",
+            "evidence": _ev(gdpnow=gdp, gdpnow_date=fields.get("gdpnow_date"),
+                            t10y3m=curve, t10y3m_date=fields.get("t10y3m_date")),
+            "metadata": {"brief_source": doc.get("source")},
+            "invalidation": {"type": "level", "description": "GDPNow back under 2"},
+        }
+
+
 BRIEF_ADAPTERS = {
     "plumbing_brief": PlumbingBriefAdapter,
     "positioning_brief": PositioningBriefAdapter,
     "market_tape_brief": MarketTapeBriefAdapter,
+    "official_stats_brief": OfficialStatsBriefAdapter,
 }
