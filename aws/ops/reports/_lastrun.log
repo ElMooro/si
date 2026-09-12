@@ -1,22 +1,14 @@
-executing-against: be1d4eb52d4ecfafe2e065fd21272d9049c5b7c0
-ops 5412 -- Polygon ratios
-[00:47:02] ✅ SSM present
-[00:47:03] AAPL /stocks/financials/v1/ratios HTTP 403
-[00:47:03] ✅ AAPL via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:03] MSFT /stocks/financials/v1/ratios HTTP 403
-[00:47:03] ✅ MSFT via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:03] NVDA /stocks/financials/v1/ratios HTTP 403
-[00:47:04] ✅ NVDA via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:04] AMZN /stocks/financials/v1/ratios HTTP 403
-[00:47:04] ✅ AMZN via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:04] META /stocks/financials/v1/ratios HTTP 403
-[00:47:04] ✅ META via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:05] GOOGL /stocks/financials/v1/ratios HTTP 403
-[00:47:05] ✅ GOOGL via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:05] JPM /stocks/financials/v1/ratios HTTP 403
-[00:47:05] ✅ JPM via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:05] XOM /stocks/financials/v1/ratios HTTP 403
-[00:47:06] ✅ XOM via /vX/reference/financials keys=['start_date', 'end_date', 'fiscal_period', 'fiscal_year']
-[00:47:06] ✅ GREEN -- ratios n_ok=8/8 status=LIVE
+executing-against: 4df854795f702eabef86948b073af987156f79cb
+ops 5413 -- Polygon news
+[00:55:48] ✅ SSM present
+[00:55:48] ✅ AAPL HTTP 200 n=5
+[00:55:48] ✅ MSFT HTTP 200 n=5
+[00:55:49] ✅ NVDA HTTP 200 n=5
+[00:55:49] ✅ AMZN HTTP 200 n=5
+[00:55:50] ✅ META HTTP 200 n=5
+[00:55:50] ✅ GOOGL HTTP 200 n=5
+[00:55:50] ✅ JPM HTTP 200 n=5
+[00:55:51] ✅ XOM HTTP 200 n=5
+[00:55:52] ✅ GREEN -- news n_ok=8 status=LIVE
 
-→ Report written to aws/ops/reports/latest/ops_5412_polygon_ratios.md
+→ Report written to aws/ops/reports/latest/ops_5413_polygon_news.md
