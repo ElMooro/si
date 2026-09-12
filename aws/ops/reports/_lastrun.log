@@ -1,5 +1,6 @@
-executing-against: fc091ec0747a1f33d2f8217e793cddbc3dd9e4f3
-ops 5419 -- equity tape brief
-[02:08:17] ✅ GREEN -- brief LIVE spot=20 etf=8 accum=15
-
-→ Report written to aws/ops/reports/latest/ops_5419_equity_tape_brief.md
+executing-against: ab1bec28fca7ee6fec7fd4d3e95600518266ee91
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5424_brief_plumbing_verdict.py", line 20, in <module>
+    from brief_contract import (  # noqa: E402
+ModuleNotFoundError: No module named 'brief_contract'
+❌ OPS-FAIL: aws/ops/pending/ops_5424_brief_plumbing_verdict.py
