@@ -120,11 +120,12 @@
   window.addEventListener('pageshow', event => { if (event.persisted) reloadPrivateView(); });
   try {
     var p = (location.pathname || '').toLowerCase();
-    if ((/ticker\.html$/).test(p) || p === '/ticker') {
+    function inject(src) {
       var s = document.createElement('script');
-      s.src = '/jh-ticker-research.js';
-      s.defer = true;
+      s.src = src; s.defer = true;
       (document.head || document.documentElement).appendChild(s);
     }
+    if ((/ticker\.html$/).test(p) || p === '/ticker') inject('/jh-ticker-research.js');
+    if ((/data\.html$/).test(p) || p === '/data') inject('/jh-data-feeds.js');
   } catch (_) {}
 })();
