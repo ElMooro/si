@@ -113,6 +113,8 @@ def artifacts():
         "data/market-tape-brief.json": {"schema": "brief-1.0", "mode": "market_tape", "status": "LIVE", "generated_at": ts(1), "source": "ops_5436",
                                         "fields": {"session": "2026-09-10", "n_tickers": 12572, "n_etfs": 60, "heavy_inflow_n": 3, "heavy_outflow_n": 5,
                                                    "other_flow_n": 52, "breadth_pct": -0.25, "breadth_basis": "uncapped"}},
+        "data/official-stats-brief.json": {"schema": "brief-1.0", "mode": "official_stats", "status": "LIVE", "generated_at": ts(1), "source": "justhodl-brief-compiler",
+                                          "fields": {"gdpnow": "4.4164", "gdpnow_date": "2026-07-01", "t10y3m": "0.89", "t10y3m_date": "2026-09-11", "nowcast_status": "LIVE"}},
     }
 
 
