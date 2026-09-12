@@ -1,9 +1,6 @@
-executing-against: c311d88a7bf2b33d6f50ee437513b25e599e41f7
-ops 5446 import-health refresh
-[14:35:05] ✅ sentinel invoke http=200 fn_error=None
-[14:35:07] ✅ overall=HEALTHY worst=fred generated=2026-09-12T14:35:04+00:00
-[14:35:07] ✅ fred status=COMPLETE detail=COMPLETE_WITH_LEAKS
-[14:35:07] ✅ dead-lanes status=OK detail=all 14 lanes wrote state within 48h
-[14:35:07] ✅ provider-catalog status=OK detail=hub index freshness
+executing-against: 77a34f8d3b02e1036ce834995dff93fd409cb1f5
+[14:40:03] ✅ health=HEALTHY lanes=[{"name": "fred", "status": "COMPLETE", "detail": "COMPLETE_WITH_LEAKS", "age_min": 10.8, "imported": 282141}, {"name": "dead-lanes", "status": "OK", "detail": "all 14 lanes wrote state within 48h", "age_min": null, "imported": null}]
+[14:40:19] ✅ drift=309 split={'STATE_DRIFT': 15, 'UNDECLARED': 226, 'TARGET_DRIFT': 33, 'EXPR_DRIFT': 28, 'MISSING': 7}
+[14:40:21] ✅ Inventory saved; no schedule or importer changes
 
-→ Report written to aws/ops/reports/latest/ops_5446_refresh_import_health.md
+→ Report written to aws/ops/reports/latest/ops_5447_sunday_inventory.md
