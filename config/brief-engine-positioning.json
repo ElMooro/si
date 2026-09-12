@@ -1,0 +1,29 @@
+{
+  "engine_id": "positioning_brief",
+  "engine_name": "Positioning brief (v3 FLOW tape)",
+  "engine_family": "FLOW",
+  "description": "13F + Finviz inst breadth as a market-level FLOW leg. score=(accum-dist)/(accum+dist).",
+  "owner": "justhodl",
+  "producer": "ops_5428",
+  "artifact": "data/positioning-brief.json",
+  "timestamp_paths": ["generated_at"],
+  "version": "1.0",
+  "status": "shadow",
+  "criticality": "NONCRITICAL",
+  "default_horizon": "INTERMEDIATE",
+  "expected_update_frequency": "ops then scheduled compiler",
+  "freshness_ttl_seconds": 604800,
+  "half_life_days": 21,
+  "entities_supported": ["market"],
+  "dependencies": ["13f-positions", "finviz-inst-flow"],
+  "historical_backtest_available": false,
+  "calibration_available": false,
+  "hard_veto_capable": false,
+  "soft_veto_capable": false,
+  "signal_schema_version": "JHSIGNAL-1.0",
+  "adapter": "positioning_brief",
+  "trust_key": "positioning-brief",
+  "signal_types": {
+    "positioning_flow": {"cluster": "institutional_flow", "category": "institutional_flow"}
+  }
+}
