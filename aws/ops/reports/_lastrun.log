@@ -1,20 +1,9 @@
-executing-against: 8eabd119de7af77e46482633fb14a7d0124ba559
-ops 5537 (restage) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
-[23:06:51] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
-[23:06:52] ✅ ECR justhodl/factory-train exists
-{
-  "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-aa0746fa2c0b0382.tar.gz",
-  "bundle_sha256": "aa0746fa2c0b0382429695bddc2b8d0b5596aaa62cc4d0188a86a5c81dc36e75",
-  "pin_key": "factory/training/current.json",
-  "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
-}
-[23:06:52] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
-[23:06:54] ✅ pricing + processing-job (jh-stage-*) policies attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 45 s
-[23:08:24] ✅ pricing cache: 0 cached misses purged ()
-[23:08:24] ✅ processing price ml.m5.xlarge = $0.2300/h (source aws-price-list); job cap $0.4600 at 7200s
-[23:08:24] log tail unavailable: An error occurred (InvalidParameterException) when calling the DescribeLogStreams operation: Cannot 
-[23:08:25] ✅ processing job jh-stage-qwen2-5-coder-7b-ins-20260913-230824 launched: Qwen/Qwen2.5-Coder-7B-Instruct@main -> s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/<revision>/ (cap $0.4600)
-[23:08:25] ✅ GREEN -- owned lane staged: ECR repo, pinned recipe, weight staging job running (CPU, capped); Gear B untouched until 5529 validates the manifest
+executing-against: 765107e1507c882f6bbb69ba2f610a766a1c65d1
+ops 5538 (re-arm of 5536) -- owned base weights: wait for staging, validate manifest + objects, flip Gear B to model_source=own
+[23:11:53] ✅ staging job from record: jh-stage-qwen2-5-coder-7b-ins-20260913-230824
+[23:11:53] ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-230824 -> Failed (AlgorithmError: , exit code: 2)
+[23:11:53] ✗ no manifest at factory/models/base/qwen2-5-coder-7b-instruct/manifest.json after 55 min (job status Failed)
+[23:11:53] ✗ RED -- manifest-missing
 
-→ Report written to aws/ops/reports/latest/ops_5537_own_weights_restage.md
+→ Report written to aws/ops/reports/latest/ops_5538_own_weights_validate_and_flip2.md
+❌ OPS-FAIL: aws/ops/pending/ops_5538_own_weights_validate_and_flip2.py
