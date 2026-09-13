@@ -322,7 +322,7 @@
         if(typeof tm==="string") tm=Math.floor(Date.parse(tm.length<=10?tm+"T00:00:00Z":tm)/1000);
         if(tm>1e12) tm=Math.floor(tm/1000);
         var c3=+c2; if(!isFinite(c3)) continue;
-        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(b.volume||b.v||b.value||b.vol||0)});
+        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(b.volume||b.v||b.vol||b.Volume||0)});
       }
     }
     if(!out.length && j.chart && j.chart.result && j.chart.result[0]){
@@ -534,14 +534,14 @@
       else if(kind==="bars"){ c=chart.addBarSeries({upColor:UP,downColor:DN}); c.setData(display); }
       else { var upC=kind==="hollow"?BG:(kind==="volcandle"?null:UP); var volMed=0, vi0;
         if(kind==="volcandle"){ for(vi0=0;vi0<display.length;vi0++) volMed+=display[vi0].volume; volMed/=display.length||1; }
-        c=chart.addCandlestickSeries({ upColor: kind==="hollow"?BG:UP, downColor:DN, borderUpColor:UP, borderDownColor:DN, wickUpColor:UP, wickDownColor:DN });
+        c=chart.addCandlestickSeries({ upColor: kind==="hollow"?BG:UP, downColor:DN, borderVisible:true, borderUpColor:UP, borderDownColor:DN, wickVisible:true, wickUpColor:UP, wickDownColor:DN });
         if(kind==="volcandle") c.setData(display.map(function(b){ var hot=b.volume>volMed*1.5; return {time:b.time,open:b.open,high:b.high,low:b.low,close:b.close, color: b.close>=b.open?(hot?"#00695c":UP):(hot?"#b71c1c":DN)}; }));
         else c.setData(display);
       }
       mainSeries=c; series.push(c);
       if(volOn){
         var v=chart.addHistogramSeries({ priceFormat:{type:"volume"}, priceScaleId:"vol" });
-        chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.82, bottom:0 } });
+        chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.74, bottom:0 } });
         v.setData(display.map(function(b,ix){
           var look=Math.min(20, ix), avg=0, j;
           for(j=Math.max(0,ix-look); j<ix; j++) avg+=display[j].volume;
