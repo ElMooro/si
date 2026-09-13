@@ -1456,6 +1456,51 @@ export default {
       return new Response(null, { status: 101, webSocket: client });
     }
 
+    if (url.pathname === "/aggTrades" || url.pathname === "/api/trades") {
+      const symbol = String(url.searchParams.get("symbol") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get("limit") || 500) || 500));
+      if (!symbol) return jsonResp({ error: "missing symbol" }, 400);
+      const hosts = ["https://api.binance.com", "https://data-api.binance.vision"];
+      let raw = null, book = null, hostUsed = "";
+      for (const host of hosts) {
+        const r = await fetch(host + "/api/v3/aggTrades?symbol=" + encodeURIComponent(symbol) + "&limit=" + limit, { cf: { cacheTtl: 2 } });
+        if (!r.ok) continue;
+        raw = await r.json();
+        hostUsed = host;
+        try {
+          const b = await fetch(host + "/api/v3/ticker/bookTicker?symbol=" + encodeURIComponent(symbol), { cf: { cacheTtl: 2 } });
+          if (b.ok) book = await b.json();
+        } catch (e) {}
+        break;
+      }
+      if (!Array.isArray(raw) || !raw.length) {
+        return jsonResp({ source: "unavailable", symbol, trades: [], note: "no public prints" }, 200);
+      }
+      const trades = raw.map((row) => ({
+        t: Number(row.T) || 0,
+        px: +row.p,
+        sz: +row.q,
+        side: row.m ? "sell" : "buy",
+        id: String(row.a || row.T),
+      })).filter((x) => x.t && Number.isFinite(x.px) && x.sz > 0);
+      let pv = 0, vv = 0, buyVol = 0, sellVol = 0;
+      for (const x of trades) {
+        pv += x.px * x.sz; vv += x.sz;
+        if (x.side === "buy") buyVol += x.sz; else sellVol += x.sz;
+      }
+      return jsonResp({
+        source: "binance",
+        host: hostUsed,
+        symbol,
+        trades,
+        vwap: vv ? pv / vv : null,
+        buyVol, sellVol, delta: buyVol - sellVol,
+        bid: book ? +book.bidPrice : null,
+        ask: book ? +book.askPrice : null,
+        bidSz: book ? +book.bidQty : null,
+        askSz: book ? +book.askQty : null,
+      }, 200, { "cache-control": "public, max-age=2" });
+    }
     if (url.pathname === "/quotes") {
       const tickersParam = (url.searchParams.get("tickers") || "").trim();
       if (!tickersParam) {
