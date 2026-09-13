@@ -44,7 +44,8 @@ class InternalsTests(unittest.TestCase):
         self.assertTrue(receipt["ok"])
         self.assertEqual(out["fields"], {"twos_tens":.39,"liq_proxy_bn":5852.,"nfci":-.564,"custom":42,
                           "ad_breadth":.4,"n_up":700,"n_down":300,"n_univ":1000,"n_missing":0,
-                          "n_above_50":0,"n_sma50":0,"n_above_200":0,"n_sma200":0})
+                          "n_above_50":0,"n_sma50":0,"n_above_200":0,"n_sma200":0,
+                          "n_new_high":0,"n_new_low":0,"nh_nl":0,"n_range52":0})
         self.assertEqual(out["unrelated"], {"keep":True})
         self.assertEqual(out["warehouse"]["fresh_fred_legs"],6)
         self.assertEqual(out["warehouse"]["fred_http_requests"],0)
@@ -117,6 +118,42 @@ class InternalsTests(unittest.TestCase):
         universe["capped"] = True
         with self.assertRaisesRegex(ValueError,"flagged capped"):
             iw.merge_sma(s3.rows[iw.KEY],universe,"stamp")
+    def test_range52_inclusive_boundaries_and_independent_sides(self):
+        pairs = [(-1,1),(-1.0001,1.0001),(0,0),(-.5,None),(None,.5),(None,None)]
+        universe = {"n_tickers":len(pairs),"by_ticker":{
+            str(i):{"off_52w_high_pct":h,"off_52w_low_pct":l} for i,(h,l) in enumerate(pairs)}}
+        out = iw.merge_range52({"schema_version":1,"fields":{}},universe,"stamp")
+        self.assertEqual(out["fields"],{"n_new_high":3,"n_new_low":3,"nh_nl":0,"n_range52":3})
+        self.assertEqual(out["range52_breadth"]["n_valid_high"],4)
+        self.assertEqual(out["range52_breadth"]["n_valid_low"],4)
+    def test_range52_uncapped_and_entire_existing_document_preserved(self):
+        before = {"schema_version":1,"fields":{"twos_tens":.39,"liq_proxy_bn":5852.,"nfci":-.564,
+            "ad_breadth":.3238,"n_up":7421,"n_down":3659,"n_univ":11618,
+            "pct_above_50":4983/11621,"pct_above_200":6108/11621,"custom":42},
+            "warehouse":{"fred_http_requests":0,"fred":{"DGS10":{"as_of":"2026-09-10"}}},
+            "sma_breadth":{"custom_proof":[1,2]},"other":{"keep":True}}
+        snapshot = copy.deepcopy(before)
+        rows = {str(i):{"off_52w_high_pct":-.5 if i<700 else -3,
+                         "off_52w_low_pct":.5 if i>=700 else 3} for i in range(1000)}
+        out = iw.merge_range52(before,{"n_tickers":1000,"by_ticker":rows},"stamp")
+        self.assertEqual({k:out["fields"][k] for k in ("n_new_high","n_new_low","nh_nl","n_range52")},
+                         {"n_new_high":700,"n_new_low":300,"nh_nl":400,"n_range52":1000})
+        for key, value in before.items():
+            if key == "fields":
+                self.assertTrue(all(out[key][k] == v for k,v in value.items()))
+            else:
+                self.assertEqual(out[key],value)
+        self.assertEqual(before,snapshot)
+    def test_range52_nonfinite_values_and_negative_net(self):
+        values = [True,float("nan"),float("inf"),float("-inf"),None,"bad"]
+        pairs = [(v,v) for v in values] + [("-1","1"),(-4,-.2),(-5,0)]
+        universe = {"n_tickers":len(pairs),"by_ticker":{
+            str(i):{"off_52w_high_pct":h,"off_52w_low_pct":l} for i,(h,l) in enumerate(pairs)}}
+        out = iw.merge_range52({"schema_version":1,"fields":{}},universe,"stamp")
+        self.assertEqual(out["fields"],{"n_new_high":1,"n_new_low":3,"nh_nl":-2,"n_range52":3})
+        universe["n_tickers"] += 1
+        with self.assertRaisesRegex(ValueError,"Full declared"):
+            iw.merge_range52({"schema_version":1,"fields":{}},universe,"stamp")
     def test_coverage_denominator_includes_unchanged_and_missing(self):
         pairs = [(2,1)]*3 + [(1,2)]*2 + [(1,1)]*3 + [(None,1)]*2
         self.assertTrue(iw.count_pairs(pairs)["eligible"])
@@ -135,7 +172,8 @@ class InternalsTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("canonical",ROOT/"scripts/compile_jh_internals.py")
         canonical = importlib.util.module_from_spec(spec); spec.loader.exec_module(canonical)
         legs = dict(dgs10=4.95,dgs2=4.56,walcl=6740619,tga=883335,rrp=5255,nfci=-.564,
-                    n_up=7421,n_down=3659,n_univ=11618,n_above_50=700,n_sma50=800,n_above_200=600,n_sma200=900)
+                    n_up=7421,n_down=3659,n_univ=11618,n_above_50=700,n_sma50=800,n_above_200=600,n_sma200=900,
+                    n_new_high=700,n_new_low=300)
         self.assertEqual(compiler.compute(legs)["fields"],canonical.compute(legs)["fields"])
         self.assertEqual(compiler.FRED_LEGS,canonical.FRED_LEGS)
 

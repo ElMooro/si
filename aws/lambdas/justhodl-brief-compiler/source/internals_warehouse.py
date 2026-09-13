@@ -146,6 +146,47 @@ def read(s3, key, optional=False):
     return json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw), obj
 
 
+def merge_range52(before, universe, last_modified, generated_at=None):
+    """Count each finite offset independently; paired coverage is separate."""
+    if before.get("schema_version") != 1 or not isinstance(before.get("fields"), dict):
+        raise ValueError("Existing internals must have schema_version 1")
+    rows = universe.get("by_ticker") if isinstance(universe, dict) else None
+    if not isinstance(rows, dict) or not rows or universe.get("n_tickers") != len(rows):
+        raise ValueError("Full declared Finviz universe required for range52 breadth")
+    if any(universe.get(k) for k in ("capped", "truncated", "data_unavailable", "stale")):
+        raise ValueError("Finviz range52 source flagged capped, truncated, stale or unavailable")
+    high = low = paired = valid_high = valid_low = 0
+    for row in rows.values():
+        if not isinstance(row, dict):
+            continue
+        high_offset = number(row.get("off_52w_high_pct"))
+        low_offset = number(row.get("off_52w_low_pct"))
+        if high_offset is not None:
+            valid_high += 1
+            high += high_offset >= -1
+        if low_offset is not None:
+            valid_low += 1
+            low += low_offset <= 1
+        paired += high_offset is not None and low_offset is not None
+    counts = {"n_new_high": high, "n_new_low": low, "nh_nl": high - low,
+              "n_range52": paired}
+    out = copy.deepcopy(before)
+    out["fields"].update(counts)
+    out["range52_breadth"] = {
+        "source": "finviz-universe", "key": "data/finviz-universe.json",
+        "as_of": universe.get("generated_at"), "last_modified": last_modified,
+        "generated_at": generated_at or datetime.now(timezone.utc).isoformat(),
+        "basis": "uncapped full universe; each finite offset counted independently",
+        "high_predicate": "finite off_52w_high_pct >= -1",
+        "low_predicate": "finite off_52w_low_pct <= 1",
+        "n_range52_basis": "rows with both off_52w_high_pct and off_52w_low_pct finite",
+        **counts, "n_total": len(rows), "n_valid_high": valid_high, "n_valid_low": valid_low,
+        "n_missing_high": len(rows) - valid_high, "n_missing_low": len(rows) - valid_low,
+        "coverage": paired / len(rows),
+    }
+    return out
+
+
 def build(s3):
     """Read-only build, also used by runner verification with HTTP blocked.
 
@@ -222,6 +263,7 @@ def build(s3):
                         "fred_http_requests": 0,
                         "fresh_fred_legs": sum(x["fresh_36h"] for x in provenance.values())}
     out = merge_sma(out, universe, universe_obj["LastModified"].isoformat(), stamp.isoformat())
+    out = merge_range52(out, universe, universe_obj["LastModified"].isoformat(), stamp.isoformat())
     return out, obj["ETag"]
 
 
@@ -235,6 +277,6 @@ def run(s3):
         raise ValueError("Internals readback differs")
     receipt = {"ok": True, "key": KEY, "last_modified": obj["LastModified"].isoformat(),
                "fields": live["fields"], "warehouse": live["warehouse"],
-               "sma_breadth": live["sma_breadth"]}
+               "sma_breadth": live["sma_breadth"], "range52_breadth": live["range52_breadth"]}
     print(json.dumps({"internals_receipt": receipt}))
     return receipt
