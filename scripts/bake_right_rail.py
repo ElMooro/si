@@ -50,7 +50,7 @@ FEEDS_INTO = {
   "liquidity-credit-engine": [{"label":"KA Index","href":"/index.html"}],
 }
 EXCLUDE = {"index.html","screener.html","directory.html","about.html","glossary.html","terms.html",
-           "privacy.html","pricing.html","contact.html","api-docs.html"}
+           "privacy.html","pricing.html","contact.html","api-docs.html","chart.html","jh-chart.html"}
 GENERIC_META = "institutional market intelligence"
 
 

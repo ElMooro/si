@@ -34,7 +34,7 @@ from pathlib import Path
 WARM_RAMP = [(0.10, "0C0B09"), (0.16, "12110C"), (0.24, "17150E"),
              (0.34, "2B2820"), (0.46, "3A3628"), (0.60, "6a6455"),
              (0.75, "8a836f"), (0.86, "b5ad99"), (2.00, "e8e2d4")]
-SKIP_NAMES = {"index.html", "service-worker.js", "jh-theme.css"}
+SKIP_NAMES = {"index.html", "service-worker.js", "jh-theme.css", "chart.html", "jh-chart.html", "jh-chart-engine.js"}
 
 
 def hsl(r, g, b):
@@ -141,6 +141,8 @@ def main(root):
         total_f += 1
         try:
             s = p.read_text(encoding="utf-8", errors="replace")
+            if "jh-reskin-skip" in s:
+                continue
             s2 = reskin_text(s)
             if p.suffix.lower() == ".html":
                 if THEME_META.search(s2):

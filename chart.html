@@ -2,22 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- jh-reskin-skip: tradingview-native light terminal; Chart Pro is the safety net -->
 <title>Chart · JustHodl.AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="canonical" href="https://justhodl.ai/chart.html">
 <meta name="jh-engine" content="justhodl-chart">
 <meta name="jh-output" content="data/jh-internals.json">
+<meta name="jh-chrome" content="off">
+<meta name="theme-color" content="#ffffff">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="/jh-warehouse-routing.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#fff;--raised:#f8f9fd;--chip:#eef0f6;--fg:#131722;--mut:#6a6d78;--line:#e0e3eb;--up:#089981;--dn:#f23645;--acc:#2962ff}
 *{box-sizing:border-box}html,body{height:100%;margin:0;background:#fff;color:var(--fg);font-family:"IBM Plex Sans",system-ui,sans-serif;overflow:hidden}
 button,select,input{background:none;border:0;color:inherit;font:inherit}button{cursor:pointer}
+a{color:inherit;text-decoration:none}
 #app{display:flex;flex-direction:column;height:100%}
 .tabs{display:flex;height:36px;border-bottom:1px solid var(--line);background:var(--raised);overflow-x:auto}
-.tab{display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mut);white-space:nowrap}
+.tab{display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mut);white-space:nowrap;height:36px}
 .tab.on{background:#fff;color:var(--fg)}.up{color:var(--up)}.dn{color:var(--dn)}
+.tab.brand{font-weight:600;color:var(--acc);letter-spacing:.02em}
+.tab.pro{margin-left:auto;color:var(--mut)}
 .bar{display:flex;align-items:center;gap:2px;height:34px;padding:0 8px;border-bottom:1px solid var(--line);overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;flex-wrap:nowrap}
 .bar button{padding:4px 7px;border-radius:4px;color:var(--mut)}.bar button.on{background:var(--chip);color:var(--acc)}
 .row{display:flex;flex:1;min-height:0}
@@ -51,7 +56,8 @@ button,select,input{background:none;border:0;color:inherit;font:inherit}button{c
 #intel b{letter-spacing:1px;color:var(--acc);font-size:10px}
 .cell{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--chip)}
 .buy{background:#e6f6f2;color:var(--up);padding:2px 8px;border-radius:4px}.sell{background:#fde8ea;color:var(--dn);padding:2px 8px;border-radius:4px}
-.foot{height:26px;border-top:1px solid var(--line);display:flex;align-items:center;padding:0 10px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mut);background:var(--raised)}
+.foot{height:26px;border-top:1px solid var(--line);display:flex;align-items:center;padding:0 10px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mut);background:var(--raised);gap:12px}
+.foot a{color:var(--acc)}
 @media(max-width:720px){.watch{position:absolute;inset:36px 0 26px auto;z-index:8;width:min(100%,360px);box-shadow:0 0 0 1px var(--line)}.rail{display:none}}
 </style>
 </head>
@@ -72,14 +78,14 @@ button,select,input{background:none;border:0;color:inherit;font:inherit}button{c
       <div class="filt"><input id="q" placeholder="Search any list symbol"></div>
       <div class="filt"><input id="paste" placeholder="Paste NVDA,AAPL,FRED:DGS10 — new list"></div>
       <div id="hits"></div>
-      <div class="cols"><span>Symbol</span><span style="text-align:right">Last</span><span style="text-align:right">Chg</span><span style="text-align:right">Chg%</span></div>
+      <div class="cols"><span>Symbol</span><span style="text-align:right">Last</span><span style="text-align:right">Chg%</span><span style="text-align:right">Chg</span></div>
       <div id="wlist"></div>
       <div class="detail" id="detail"></div>
       <div id="intel"></div>
     </aside>
   </div>
-  <div class="foot"><span id="clock"></span><span style="margin-left:auto">Chart engine · lists copied from Pro · Pro not modified</span></div>
+  <div class="foot"><span id="clock"></span><span style="margin-left:auto"><a href="/chart-pro.html">Chart Pro</a> · lists copied, never deleted · TV light</span></div>
 </div>
-<script src="/jh-chart-engine.js"></script>
+<script src="/jh-chart-engine.js?v=tv3"></script>
 </body>
 </html>
