@@ -43,3 +43,11 @@
 #factory-pane .factory-chat textarea{min-height:72px;margin:10px 0 8px}
 #factory-pane .factory-agent{cursor:pointer}
 #factory-pane .factory-agent:hover,#factory-pane .factory-agent.on{border-color:#d6b66e}
+
+/* chain of command (factory-doctrine.v1) */
+.factory-ranks{margin:14px 0}
+.factory-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.factory-table th,.factory-table td{padding:4px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap}
+.factory-table th{opacity:.7;font-weight:600}
+.factory-table td small{opacity:.6}
+.factory-retired td{opacity:.45;text-decoration:line-through}

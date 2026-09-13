@@ -71,8 +71,8 @@ def git_sha():
 class Warehouse:
     """Bounded S3 reads/writes; every read returns (doc, raw_sha256, key)."""
 
-    def __init__(self, s3):
-        self.s3 = s3
+    def __init__(self, s3, private=PRIVATE, public=PUBLIC):
+        self.s3, self.private, self.public = s3, private, public
 
     def get(self, bucket, key, limit=64 * 1024 * 1024):
         try:
@@ -99,7 +99,7 @@ class Warehouse:
 def grouped_row(wh, day, symbol):
     """(row, raw_sha, key) for one session's grouped-daily file, or raise Missing."""
     for key in (GROUPED + "%s/%s.json.gz" % (day[:4], day), GROUPED + "%s/%s.json.gz" % (day[:4], day.replace("-", ""))):
-        raw, raw_sha = wh.get(PUBLIC, key)
+        raw, raw_sha = wh.get(wh.public, key)
         if raw is None:
             continue
         try:
@@ -187,7 +187,7 @@ def etf_print(wh, season, week, symbol, window, now, *, poly_key, fetch=fetch_js
         redacted = json.dumps({"kind": kind, "ticker": symbol, "gte": first, "lte": last, "results": results}, sort_keys=True).encode()
         key = "data/warm/polygon-full/reference/%s/%s-%s.json" % (week, symbol, kind)
         if bank and not dry_run:
-            wh.put_if_absent(PUBLIC, key, redacted)
+            wh.put_if_absent(wh.public, key, redacted)
         actions[kind] = {"results": results, "key": key, "sha256": sha(redacted)}
     splits = actions["splits"]["results"]
     doc.update(corporate_action=bool(splits),
@@ -211,7 +211,7 @@ def btc_print(wh, season, week, symbol, window, now, *, fetch=fetch_json, bank=T
         raw, rows = coinbase_candles(query_at - timedelta(minutes=2), query_at + timedelta(minutes=3), fetch=fetch)
         key = "data/warm/coinbase/BTC-USD/1m/%s/%s.json" % (week, label.replace(":", "-"))
         if bank and not dry_run:
-            wh.put_if_absent(PUBLIC, key, raw)
+            wh.put_if_absent(wh.public, key, raw)
         banked.append({"bucket": "public", "key": key, "sha256": sha(raw), "boundary": iso(at)})
         if label == "open":
             opening = boundary_price(rows, query_at, "open")
@@ -253,9 +253,9 @@ def default_week(season, now):
 
 
 def load_season(wh):
-    raw, _ = wh.get(PRIVATE, "factory/control/season.json")
+    raw, _ = wh.get(wh.private, "factory/control/season.json")
     if raw is None:
-        raw, _ = wh.get(PUBLIC, "factory/salon/season.json")
+        raw, _ = wh.get(wh.public, "factory/salon/season.json")
     if raw is None:
         raise Missing("season_missing")
     season = json.loads(raw)
@@ -282,7 +282,7 @@ def run(wh, *, week=None, symbols=SYMBOLS, dry_run=False, now=None, fetch=fetch_
                 raise Missing("print_failed_grader_shape")
             doc["print_hash"] = digest(doc)
             key = "factory/official-prints/%s/%s.json" % (week, symbol)
-            status = "dry_run" if dry_run else wh.put_if_absent(PRIVATE, key, canonical(doc))
+            status = "dry_run" if dry_run else wh.put_if_absent(wh.private, key, canonical(doc))
             report["symbols"][symbol] = {"status": status, "key": key, "opening": doc["opening"], "closes": doc["closes"],
                                          "corporate_action": doc["corporate_action"], "dividends": len(doc["dividends_in_window"]),
                                          "print_hash": doc["print_hash"]}

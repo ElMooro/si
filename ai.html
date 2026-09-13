@@ -108,8 +108,8 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 .spend{display:flex;gap:3px;align-items:flex-end;height:60px;margin-top:8px}
 .spend i{flex:1;background:var(--violet);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
 </style>
-<link rel="stylesheet" href="/factory-desk.css?v=chat4">
-<script src="/factory-desk.js?v=chat6" defer></script>
+<link rel="stylesheet" href="/factory-desk.css?v=ranks1">
+<script src="/factory-desk.js?v=ranks1" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to AI decision room</a>
@@ -185,6 +185,12 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   </div>
   <p id="factory-exam-note" class="factory-muted"></p>
   <div id="factory-agents" data-jh-chrome><article class="factory-agent"><b>Student</b><span>Sign in for live status</span><p>Select bounded experiments and retain verified skills</p></article><article class="factory-agent"><b>Coder</b><span>Sign in for live status</span><p>Generate restricted repair proposals</p></article><article class="factory-agent"><b>Researcher</b><span>Sign in for live status</span><p>Validate external sources and provenance</p></article><article class="factory-agent"><b>Investor</b><span>Sign in for live status</span><p>Weekly research forecasts</p></article><article class="factory-agent"><b>Deployer</b><span>Queue only</span><p>Owner releases reviewed artifacts</p></article><article class="factory-agent"><b>Livermore</b><span>Principle card</span><p>Trend discipline; do not average losers</p></article><article class="factory-agent"><b>Wyckoff</b><span>Principle card</span><p>Test market phase hypotheses</p></article><article class="factory-agent"><b>Soros</b><span>Principle card</span><p>Test flow, expectation and price feedback</p></article><article class="factory-agent"><b>Druckenmiller</b><span>Principle card</span><p>Preserve capital; require evidence for conviction</p></article></div>
+  <section class="factory-ranks" id="factory-ranks-block" data-jh-chrome>
+    <p class="factory-kicker">Chain of command · factory-doctrine.v1 · student → colonel → captain → nco → specialist → recruit</p>
+    <p id="factory-ranks-note" class="factory-muted">Ranks move only on warehouse-graded windows (21 days, ≥8 graded tasks, error rate ≤15%, pass rate improving). Retired cards keep their evidence and are never invoked.</p>
+    <div class="factory-scroll"><table class="factory-table"><thead><tr><th>Card</th><th>Rank</th><th>Status</th><th>Graded · 21d</th><th>Errors</th><th>Pass rate</th><th>Prior</th><th>Last verdict</th></tr></thead><tbody id="factory-ranks"><tr><td colspan="8" class="factory-muted">Awaiting the first discipline pass.</td></tr></tbody></table></div>
+    <p id="factory-discipline" class="factory-muted"></p>
+  </section>
   <div class="factory-chat" id="factory-chat-box">
     <div class="factory-chat-head">
       <div>

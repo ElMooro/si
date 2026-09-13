@@ -100,3 +100,41 @@ The live runner receipt is `aws/ops/reports/5510.json`; the factory access bound
 - A fresh browser load showed nine role cards and CLUB WALL on the same gold desk, with no duplicate section badges. The browser was signed out, so live authenticated metrics were verified through the runner handler check, not through an owner browser session. Cloudflare blocked the runner's website HTTP probe with 403/1010; its browser controls were not bypassed.
 
 The visible role cards are responsibilities and principle cards. They are not nine independently running language models. The current deployment does not establish a general generative coder, a working official price adapter, a validated historical crisis exam, or any weight-training run.
+
+## Discipline in the tick + official prints — September 13, 2026 (Claude, ops 5520)
+
+- **Tick repair.** Since 26c4ac6 the fleet drain in `student_lambda.tick` reused the state ETag variable for
+  `factory/fleet/meta.json`, so `commit_state` raised `Conflict("state_changed")` on every tick. The drain is
+  gone (the gateway owns `factory/fleet/*` per factory-doctrine.v1); the tick commits again. Public mirrors that
+  the student role cannot write are reported in `health.errors[phase=projection]`, never fatal.
+- **Chain of command enforced.** `aws/shared/factory_discipline.py` runs inside the tick every 15 minutes:
+  one card per alias built from warehouse-graded evidence only (market results on official prints, grader
+  verdicts on traces and code), a 21-day window versus the prior one, `factory_doctrine.verdict` →
+  promote / hold / retire. Ranks live in the authoritative state (`factory/runtime/current.json → ranks`) and
+  in the public projection as aliases only; every promote/retire is an immutable `discipline` event under
+  `factory/events/`. Voids count as errors; the supervisor card (`student`) is never auto-retired — that is an
+  owner control. Recruits are materialized from gateway spawn requests (`factory/queue/spawn-*.json`), bounded
+  by the parent's `SPAWN_CAP` and a roster of 48 active cards; they start recruit and retire as `stalled`
+  after 14 days without a graded task. `spawn_workers` takes the parent's rank from the chain of command,
+  never from the request body; retired cards cannot spawn.
+- **Evidence contract.** `aws/shared/factory_evidence.py`: `factory-evidence.v1` (claim + falsifier, warehouse
+  keys with sha256, holdout untouched, checker id, grade window; grades are the grader's only) and
+  `factory-reading.v1` receipts for anything read outside (citable, `trainable: false`, never a lesson). The
+  gateway's learn tracks and research banks now write receipts under `factory/fleet/reading/`.
+- **Outside voice.** `factory_gateway._public_think` no longer calls z.ai directly; it goes through
+  `llm_router.complete(tier="reason", on_demand=True)` (daily budget, on-demand gate, cost attribution) and is
+  a chat voice only — nothing it says is written as evidence.
+- **Official prints (Ship 1).** `scripts/factory_official_prints.py`, run by `factory-official-prints.yml`
+  (Sat 04:45 UTC, Sun 12:00 UTC retry, dispatchable): SPY/QQQ/IWM/TLT/GLD from the warehouse's Polygon
+  grouped-daily session files (first-session open, per-session official closes; adjusted=true is split-adjusted
+  and split weeks are void); BTC from Coinbase Exchange minute candles at the New York boundaries (09:30 ET
+  open of the first session, 16:00 ET or the season's early close per session), banked to
+  `data/warm/coinbase/BTC-USD/1m/<week>/` first so provenance is a warehouse key — no UTC daily bar is ever
+  substituted. Corporate-action check = Polygon reference splits for the week (banked to
+  `data/warm/polygon-full/reference/<week>/`); dividends are reported in `dividends_in_window` and do not void
+  (season-1 price definition is unadjusted OHLC; SPY/QQQ/IWM go ex-div in week 1 and TLT monthly). Prints are
+  written create-if-absent to the private `factory/official-prints/<week>/<symbol>.json` with
+  `verified_by: owner_runner` only when they pass the grader's own shape checks; a missing input leaves the
+  symbol unwritten and the wall entry pending. Season 2 should re-freeze with dividend-adjusted closes.
+- **Not done here.** No holdout manifest yet (Ship 2), no generative model, Gear B off, xai tier
+  (`grok_xai_tier`) not live fleet-wide — its shared-module deploy failed preflight on the importer closure.

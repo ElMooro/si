@@ -1,0 +1,67 @@
+# Factory official prints (2026-09-13, Claude Ship 1).
+#
+# The wall (justhodl-factory-grader.grade_market) grades a week only from
+# factory/official-prints/<week>/<symbol>.json written by the runner with
+# verified_by=owner_runner. The student role cannot write that prefix. Friday's
+# grouped-daily session file lands in the warehouse within the polygon-full
+# rate(2h) edge, so the first pass runs Saturday 04:45 UTC; Sunday 12:00 UTC
+# retries anything still incomplete (prints are create-if-absent, so a retry
+# never rewrites a print). A missing input leaves the symbol unwritten -- the
+# grader keeps that entry pending; nothing is fabricated.
+name: Factory official prints
+on:
+  schedule:
+    - cron: '45 4 * * 6'
+    - cron: '0 12 * * 0'
+  workflow_dispatch:
+    inputs:
+      week:
+        description: 'Monday ISO date of the season week (empty = latest closed week)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'compute + validate only, write nothing'
+        required: false
+        default: 'false'
+permissions:
+  contents: write
+concurrency:
+  group: factory-official-prints
+  cancel-in-progress: false
+jobs:
+  prints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Write the week's official prints
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q boto3
+          ARGS=""
+          if [ -n "${{ github.event.inputs.week }}" ]; then ARGS="$ARGS --week ${{ github.event.inputs.week }}"; fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python3 scripts/factory_official_prints.py $ARGS --report "aws/ops/reports/factory-prints/${{ github.run_id }}.json"
+      - name: Publish the receipt to ops-evidence
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAGES_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -f "aws/ops/reports/factory-prints/${{ github.run_id }}.json" ]; then
+            python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" --message "factory prints receipt" "aws/ops/reports/factory-prints/${{ github.run_id }}.json" || echo "::warning::receipt publish skipped"
+          fi

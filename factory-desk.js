@@ -85,6 +85,7 @@
     text('exam-note', doc.fit ? doc.fit.n + ' protected coding cases; baseline ' + Math.round(doc.fit.baseline * 100) + '%. This measures one repair family.' : 'Only independently checked results appear here.');
     text('errors', doc.health.errors.length ? doc.health.errors.map(e => e.phase + ': ' + (e.detail || e.error)).join(' · ') : 'State and worker checks passed.');
     $('agents').innerHTML = doc.agents.map(a => '<article class="factory-agent"><b>' + safe(a.name) + '</b><span>' + safe(a.status.replaceAll('_', ' ')) + '</span><p>' + safe(a.purpose) + '</p></article>').join('');
+    paintRanks(doc);
     const funding = doc.outer_status.funding || {}, tape = doc.outer_status.tape || {};
     const rows = [...Object.entries(funding), ...Object.entries(tape)];
     $('sources').innerHTML = rows.map(([name, f]) => '<tr><td>' + safe(name.toUpperCase().replaceAll('_', ' ')) + '</td><td>' + safe(money(f.value)) + '</td><td>' + safe(f.unit || '—') + '</td><td>' + safe(f.observed_at ? f.observed_at.slice(0, 10) : 'Unavailable') + '</td><td>' + (f.retained ? 'Last good retained' : f.stale ? 'Stale / missing' : 'Observed') + '</td></tr>').join('');
@@ -99,6 +100,23 @@
     if (week && !week.value) week.value = season.starts_on;
     if ($('prediction-json') && !$('prediction-json').value) predictionTemplate();
   }
+  function paintRanks(doc) {
+    const body = $('ranks');
+    if (!body) return;
+    const ranks = doc.ranks || {};
+    const cards = Array.isArray(ranks.cards) ? ranks.cards : [];
+    const pct = v => (v === null || v === undefined) ? '—' : Math.round(Number(v) * 100) + '%';
+    body.innerHTML = cards.length ? cards.map(c => '<tr class="' + (c.status === 'retired' ? 'factory-retired' : '') + '"><td>' + safe(c.alias) +
+      (c.co ? ' <small>← ' + safe(c.co) + '</small>' : '') + '</td><td>' + safe(c.rank || 'recruit') + '</td><td>' + safe(c.status || 'active') +
+      '</td><td>' + (c.graded_window || 0) + '</td><td>' + (c.errors_window || 0) + '</td><td>' + pct(c.pass_rate) + '</td><td>' + pct(c.prior_pass_rate) +
+      '</td><td>' + safe((c.last_verdict || 'awaiting window').replaceAll('_', ' ').replaceAll(':', ' · ')) + '</td></tr>').join('')
+      : '<tr><td colspan="8" class="factory-muted">Awaiting the first discipline pass.</td></tr>';
+    const d = doc.discipline || {};
+    const changes = Array.isArray(d.changes) ? d.changes.slice(-5) : [];
+    text('discipline', (ranks.active || 0) + ' active · ' + (ranks.retired || 0) + ' retired · last pass ' + (d.last_run_at ? age(d.last_run_at) : 'pending') +
+      (changes.length ? ' · latest: ' + changes.map(x => x.alias + ' ' + x.decision + ' (' + x.reason + ')').join(' | ') : ' · no promotions or retirements yet'));
+  }
+
   async function wall() {
     try {
       let board;

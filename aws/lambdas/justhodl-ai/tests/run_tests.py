@@ -1409,6 +1409,23 @@ def test_governance_owner_only_exact_routes_and_canary_fail_closed():
     return "exact owner routes enforced; controlled concrete HTTP canary composition executes offline"
 
 
+
+def test_factory_gateway_outside_voice_is_governed_and_reading_is_not_learning():
+    """2026-09-13 doctrine: no direct provider call from the factory gateway (the z.ai bypass is gone), the
+    owner voice goes through llm_router.complete (budget + on-demand gates), outside reading is a
+    factory-reading.v1 receipt (never a lesson), and spawn caps come from the chain of command."""
+    src = (SRC / "factory_gateway.py").read_text()
+    for needle in ("api.z.ai", "ZAI_BASE_URL", "_zai_key", "factory-lesson.v1", "factory/fleet/learn/research/"):
+        assert needle not in src, "forbidden in factory_gateway: " + needle
+    assert "from llm_router import complete" in src and 'tier="reason"' in src and "on_demand=True" in src
+    assert "reading_receipt(" in src and "factory/fleet/reading/" in src
+    assert "factory_discipline.check_spawn(" in src and "factory/queue/spawn-" in src
+    # the governed router must be the only provider path: a silent/gated router returns "" and the desk stands alone
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("fg_boundary", str(SRC / "factory_gateway.py"))
+    return "no provider bypass; reading receipts only; rank-capped spawn (module %s)" % ("parsed" if spec else "missing")
+
+
 def main():
     tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
@@ -1420,7 +1437,8 @@ def main():
              test_inventory_writes_public_read_model_without_note_text,
              test_governance_signal_feature_label_and_split_routes,
              test_governance_append_only_ledger_and_model_requests,
-             test_governance_owner_only_exact_routes_and_canary_fail_closed]
+             test_governance_owner_only_exact_routes_and_canary_fail_closed,
+             test_factory_gateway_outside_voice_is_governed_and_reading_is_not_learning]
     failed = 0
     for t in tests:
         try:
