@@ -140,7 +140,8 @@ def main():
             original_send = URLLib3Session.send
             def send(session,request):
                 host = urllib.parse.urlsplit(request.url).hostname or ""
-                if not (host == BUCKET+".s3.us-east-1.amazonaws.com" or host == "s3.us-east-1.amazonaws.com"):
+                if host not in {BUCKET+".s3.us-east-1.amazonaws.com", "s3.us-east-1.amazonaws.com",
+                                BUCKET+".s3.amazonaws.com", "s3.amazonaws.com"}:
                     network["other_http_attempts"] += 1
                     raise RuntimeError("Non-S3 HTTP forbidden in compiler verification")
                 network["s3_requests"] += 1
