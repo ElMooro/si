@@ -169,7 +169,7 @@
     const r = await fetch('/api/v1/factory/' + action, { method: body ? 'POST' : 'GET',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: body ? JSON.stringify(body) : undefined });
     const doc = await r.json();
-    if (!r.ok) throw Error(doc.error || 'Factory request failed');
+    if (!r.ok) throw Error((doc.error || 'Factory request failed') + (doc.detail ? ' — ' + doc.detail : ''));
     return doc;
   }
   function predictionTemplate() {
