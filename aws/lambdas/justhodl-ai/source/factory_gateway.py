@@ -147,8 +147,10 @@ def _snapshot_text(state):
 
 
 CRUMB_NOTE = re.compile(
-    r"(?i)^(do you already|let me know if|we.?ll bypass|how do i run|would i pull|"
-    r"what about|can you|wait,?|hold on|ok\b|okay\b|thanks\b|i think it)"
+    r"(?i)(do you already|let me know if|we.?ll bypass|how do i run|would i pull|"
+    r"what about|^can you|^could you|wait,?|hold on|^ok\b|^okay\b|thanks\b|i think it|"
+    r"that line should not|want me to write|let it run|you.?ll see a message|"
+    r"thousands of lines of code|once it.?s done|not part of the dockerfile)"
 )
 
 
@@ -431,6 +433,79 @@ def _detect_tracks(text, target):
     return out[:1]
 
 
+CHAT_WRAP = re.compile(r"(?i)^\s*(can you|could you|would you|do you|are you able to|are you|please|hey|hi|ok|okay)\b[\s,:]*")
+STOP_WORDS = set("a an the of to for and or in on is are can you do does how what this that with from just".split())
+
+
+def _intent(text, target):
+    low = " ".join((text or "").lower().split())
+    learn = any(w in low for w in ("learn", "study", "teach", "curriculum", "how to learn"))
+    codeish = target == "coder" or any(w in low for w in ("code", "coding", "python", "program", "engineer", "lambda", "bug", "script", "function"))
+    marketish = any(w in low for w in ("market", "stock", "bond", "yield", "tape", "spy", "qqq"))
+    investish = target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") or any(
+        w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")
+    )
+    if learn and codeish:
+        return "learn-code"
+    if learn and marketish:
+        return "learn-markets"
+    if learn and investish:
+        return "learn-investing"
+    if codeish:
+        return "code"
+    if investish:
+        return "investing"
+    if marketish:
+        return "markets"
+    return "lookup"
+
+
+def _search_query(text, intent):
+    if intent in ("code", "learn-code"):
+        return "software engineering Python unit testing"
+    if intent in ("markets", "learn-markets"):
+        return "stock market bond yield curve"
+    if intent in ("investing", "learn-investing"):
+        return "value investing Jesse Livermore"
+    q = CHAT_WRAP.sub("", text or "")
+    q = re.sub(r"[?!.]+$", "", q)
+    q = re.sub(r"(?i)\b(for me|please|thanks)\b", " ", q)
+    q = " ".join(q.split())
+    if len(q) < 6:
+        return ""
+    return q[:180]
+
+
+def _relevant(hit, q):
+    blob = ("%s %s" % ((hit or {}).get("title") or "", (hit or {}).get("snippet") or "")).lower()
+    words = [w for w in re.findall(r"[a-z0-9]{4,}", (q or "").lower()) if w not in STOP_WORDS]
+    if not words:
+        return False
+    return sum(1 for w in words if w in blob) >= min(2, len(words))
+
+
+def _compose_answer(text, intent, hits, state):
+    if intent in ("code", "learn-code"):
+        skills = (state or {}).get("skillbook") or (state or {}).get("verified_skills") or []
+        n = len(skills) if isinstance(skills, list) else skills
+        return (
+            "Yes. Not as a chat model dumping files — as this factory's Coder. "
+            "I queue a bounded patch against the protected exam and keep only what grades. "
+            "I will not write thousands of lines in this box. Point at a failing test or a JustHodl file.\n"
+            "How I get good: Ericsson (deliberate practice), worked examples, TDD. "
+            "Verified skills on the books: %s. Click Learn how to learn code for Stage 0." % n
+        )
+    if intent in ("markets", "investing", "learn-markets", "learn-investing"):
+        return (
+            "Research only. Delayed warehouse tape plus public market structure. No orders. "
+            "Ask a ticker or click Learn markets / Learn investing."
+        )
+    if hits:
+        titles = ", ".join((h.get("title") or "") for h in hits[:3] if h.get("title"))
+        return "I looked outside and kept only pages that match the question: %s. Narrower name, ticker, or file if you want a deeper look." % titles
+    return "I will not invent a page. Ask a name, ticker, library, or file."
+
+
 def _wiki_summary(title):
     slug = title.replace(" ", "_")
     url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(slug, safe="()_,-")
@@ -515,26 +590,6 @@ def _learn_track(store, track, state):
         except Exception:
             pass
     return lesson
-    low = " ".join((text or "").lower().split())
-    asked = any(w in low for w in ("learn", "study", "teach", "curriculum", "go look", "how to code", "how to invest"))
-    if not asked:
-        return []
-    found = []
-    if target == "coder" or any(w in low for w in ("code", "coding", "python", "unit test", "git", "program")):
-        found.append("code")
-    if any(w in low for w in ("market", "stock", "bond", "yield", "tape", "spy", "qqq")):
-        found.append("markets")
-    if target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") or any(
-        w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")
-    ):
-        found.append("investing")
-    if not found:
-        found = ["code", "markets", "investing"]
-    out = []
-    for name in ("code", "markets", "investing"):
-        if name in found:
-            out.append(name)
-    return out[:3]
 
 
 def _brain_chat(store, target, text, state, owner):
@@ -546,7 +601,10 @@ def _brain_chat(store, target, text, state, owner):
     ep = pipe.get("retrieval_endpoint") or pipe.get("embedding_endpoint")
     clf = pipe.get("classifier_endpoint")
     ds_id = pipe.get("dataset_id")
+    intent = _intent(text, target)
     tracks = _detect_tracks(text, target)
+    if intent.startswith("learn-") and not tracks:
+        tracks = [intent.split("-", 1)[-1]]
     lessons = []
     hits = []
     if tracks:
@@ -558,18 +616,23 @@ def _brain_chat(store, target, text, state, owner):
             if lesson:
                 lessons.append(lesson)
                 hits.extend(lesson.get("hits") or [])
+    elif intent == "code":
+        hits = _wiki_many(["Computer programming", "Python (programming language)", "Test-driven development"])
     else:
-        hits = _look_outside(text)
+        query = _search_query(text, intent)
+        if query:
+            hits = [h for h in (_look_outside(query) or []) if _relevant(h, query)]
     try:
         _bank_research(store, text, hits)
     except Exception:
         pass
-    outside = _outside_facts(store, state) if not lessons else ""
+    skip_brain = bool(lessons or intent == "code")
+    outside = _outside_facts(store, state) if not skip_brain else ""
     lines = []
     model = "brain+look"
-    if lessons:
-        lines.append("INSIDE — Brain notes skipped this turn so the curriculum look finishes inside the Worker budget.")
-        model = "curriculum+" + (lessons[0].get("track") or "look")
+    if skip_brain:
+        lines.append("INSIDE — skipped nearest-notes. 'Can you code?' is a capability question, not a search of chat logs.")
+        model = "coder" if intent == "code" else ("curriculum+" + ((lessons[0].get("track") if lessons else intent) or "look"))
     elif not ep:
         lines.append("INSIDE: Brain retrieval is not InService.")
     else:
@@ -638,14 +701,11 @@ def _brain_chat(store, target, text, state, owner):
     if outside:
         lines.append("WAREHOUSE — " + outside[:500])
     public_ctx = json.dumps(hits)[:2200] + "\n" + (outside or "")
-    think = "" if lessons else (_public_think(text, public_ctx) if hits else "")
-    if think:
-        lines.append("THINKING")
-        lines.append(think)
-    elif hits:
-        lines.append("THINKING: I left the box and pulled the citations above. Your notes stayed private. Next question can go narrower (a file, a ticker, a name).")
-    else:
-        lines.append("THINKING: Outside look was empty and I will not hallucinate. Retry with a name, ticker, paper, or library.")
+    think = ""
+    if not skip_brain and hits:
+        think = _public_think(text, public_ctx)
+    lines.append("THINKING")
+    lines.append(think or _compose_answer(text, intent, hits, state))
     return "\n".join(lines), model
 
 
