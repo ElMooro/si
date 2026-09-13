@@ -1,0 +1,486 @@
+{
+  "functions": {
+    "justhodl-ai": {
+      "CodeSha256": "3jrkPAdWOVhaSqp7rgUNlOu7QrCVikxrbCw5grxyido=",
+      "Handler": "lambda_function.lambda_handler",
+      "LastUpdateStatus": "Successful",
+      "MemorySize": 3008,
+      "Runtime": "python3.12",
+      "State": "Active",
+      "Timeout": 900,
+      "environment_keys": [
+        "AI_BRAIN_SOURCE_BUCKET",
+        "AI_ENVIRONMENT",
+        "AI_GOVERNANCE_OWNER",
+        "AI_PRIVATE_BUCKET",
+        "AI_PUBLIC_BUCKET",
+        "JH_SERVICE_TOKEN",
+        "SAGEMAKER_ROLE_ARN",
+        "TRAINING_INPUT_BUCKET"
+      ],
+      "exists": true
+    },
+    "justhodl-finviz-signals": {
+      "CodeSha256": "5xbRxlJEbG03WHSgwJgaLEE72Rd2ZIJHDEYddg+Qk0c=",
+      "Handler": "lambda_function.lambda_handler",
+      "LastUpdateStatus": "Successful",
+      "MemorySize": 512,
+      "Runtime": "python3.12",
+      "State": "Active",
+      "Timeout": 300,
+      "environment_keys": [],
+      "exists": true
+    },
+    "justhodl-student-rsi": {
+      "error": "ResourceNotFoundException",
+      "exists": false
+    }
+  },
+  "generated_at": "2026-09-13T13:59:33.441150+00:00",
+  "model_inventory": {
+    "details": "private inventory only",
+    "endpoint_count": 2,
+    "in_service": 2,
+    "inference_attempted": false
+  },
+  "mutations": [
+    "add-only inventory in existing private bucket"
+  ],
+  "private_factory": {
+    "accessible": true,
+    "key_count_sample": 0
+  },
+  "private_inventory_key": "factory/inventory/2026-09-13T13-59-33.441150+00-00.json",
+  "schedules": {
+    "events": [],
+    "scheduler": []
+  },
+  "schema": "factory-inventory.v1",
+  "sources": {
+    "data/ai.json": {
+      "bytes": 5820,
+      "exists": true,
+      "field_shapes": {
+        "access": {
+          "type": "str"
+        },
+        "brain_dataset": {
+          "keys": [
+            "n_labels",
+            "n_rows",
+            "outcome_labels",
+            "source_n_notes"
+          ],
+          "type": "dict"
+        },
+        "catalog": {
+          "keys": [
+            "article_models_missing",
+            "article_models_present",
+            "generated_at",
+            "n"
+          ],
+          "type": "dict"
+        },
+        "cost": {
+          "keys": [
+            "mtd",
+            "projected"
+          ],
+          "type": "dict"
+        },
+        "definitions": {
+          "keys": [
+            "TTL",
+            "endpoint",
+            "hub card",
+            "spot"
+          ],
+          "type": "dict"
+        },
+        "elapsed_s": {
+          "type": "float"
+        },
+        "engine": {
+          "type": "str"
+        },
+        "fleet_inputs": {
+          "keys": [
+            "registry_version",
+            "status",
+            "summary"
+          ],
+          "type": "dict"
+        },
+        "generated_at": {
+          "type": "str"
+        },
+        "inventory_summary": {
+          "keys": [
+            "apps",
+            "clusters",
+            "domains",
+            "endpoints",
+            "feature_groups",
+            "jobs",
+            "models",
+            "notebooks"
+          ],
+          "type": "dict"
+        },
+        "market_read": {
+          "keys": [
+            "generated_at",
+            "n_calls_this_read",
+            "n_opportunities",
+            "parse_error",
+            "performance",
+            "playbook_available",
+            "read_id",
+            "sources",
+            "stances"
+          ],
+          "type": "dict"
+        },
+        "pipeline": {
+          "keys": [
+            "classifier_metrics",
+            "error",
+            "finished_at",
+            "retrieval_endpoint",
+            "stage",
+            "stage_index",
+            "stage_since",
+            "stages",
+            "status"
+          ],
+          "type": "dict"
+        },
+        "pipeline_verdict": {
+          "keys": [
+            "duration_s",
+            "fails",
+            "finished_at",
+            "ops",
+            "report",
+            "status",
+            "steps",
+            "title",
+            "warns"
+          ],
+          "type": "dict"
+        },
+        "policy": {
+          "keys": [
+            "daily_budget_usd",
+            "endpoint_ttl_hours",
+            "idle_hours",
+            "serverless_default"
+          ],
+          "type": "dict"
+        },
+        "region": {
+          "type": "str"
+        },
+        "scoreboard": {
+          "keys": [
+            "as_of",
+            "calls_graded",
+            "calls_made",
+            "categories_excluded",
+            "categories_learned",
+            "coin_flip_loss",
+            "hit_rate_by_window",
+            "last_read_at",
+            "latest_validation_loss",
+            "lessons_carried",
+            "lessons_updated_at",
+            "loss_history",
+            "notes_studied",
+            "retrains",
+            "trend",
+            "understanding_score",
+            "voice"
+          ],
+          "type": "dict"
+        },
+        "tiers": {
+          "first_keys": [
+            "cost",
+            "how",
+            "name",
+            "tier"
+          ],
+          "length": 4,
+          "type": "list"
+        },
+        "version": {
+          "type": "str"
+        }
+      },
+      "generated_at": "2026-09-13T13:50:13.754190+00:00",
+      "keys": [
+        "access",
+        "brain_dataset",
+        "catalog",
+        "cost",
+        "definitions",
+        "elapsed_s",
+        "engine",
+        "fleet_inputs",
+        "generated_at",
+        "inventory_summary",
+        "market_read",
+        "pipeline",
+        "pipeline_verdict",
+        "policy",
+        "region",
+        "scoreboard",
+        "tiers",
+        "version"
+      ],
+      "last_modified": "2026-09-13T13:50:15+00:00",
+      "sha256": "1425c612caf4a0c48526569b9f225922b60b6583a1a747cf73560d55174592b4",
+      "type": "dict",
+      "version": "2.2.2"
+    },
+    "data/fed-liquidity.json": {
+      "error": "NoSuchKey"
+    },
+    "data/macro-regime.json": {
+      "error": "NoSuchKey"
+    },
+    "data/market-overview.json": {
+      "error": "NoSuchKey"
+    },
+    "data/ofr-funding.json": {
+      "as_of": "2026-09-13T13:29:55+00:00",
+      "bytes": 5051,
+      "exists": true,
+      "field_shapes": {
+        "as_of": {
+          "type": "str"
+        },
+        "available_fields": {
+          "type": "int"
+        },
+        "dvp_rate": {
+          "keys": [
+            "as_of",
+            "confidence",
+            "data_unavailable",
+            "fetched_at",
+            "field",
+            "freshness_policy",
+            "observation_age_days",
+            "observed",
+            "provider",
+            "raw_snapshot_key",
+            "series",
+            "source",
+            "source_url",
+            "stale",
+            "trace_id",
+            "unit",
+            "value"
+          ],
+          "type": "dict"
+        },
+        "fresh_fields": {
+          "type": "int"
+        },
+        "gcf_rate": {
+          "keys": [
+            "as_of",
+            "confidence",
+            "data_unavailable",
+            "fetched_at",
+            "field",
+            "freshness_policy",
+            "observation_age_days",
+            "observed",
+            "provider",
+            "raw_snapshot_key",
+            "series",
+            "source",
+            "source_url",
+            "stale",
+            "trace_id",
+            "unit",
+            "value"
+          ],
+          "type": "dict"
+        },
+        "schema_version": {
+          "type": "str"
+        },
+        "sofr": {
+          "keys": [
+            "as_of",
+            "confidence",
+            "data_unavailable",
+            "fetched_at",
+            "field",
+            "freshness_policy",
+            "observation_age_days",
+            "observed",
+            "provider",
+            "raw_snapshot_key",
+            "series",
+            "source",
+            "source_url",
+            "stale",
+            "trace_id",
+            "unit",
+            "value"
+          ],
+          "type": "dict"
+        },
+        "source": {
+          "type": "str"
+        },
+        "source_mode": {
+          "type": "str"
+        },
+        "stale_fields": {
+          "first_keys": [],
+          "length": 0,
+          "type": "list"
+        },
+        "triparty_rate": {
+          "keys": [
+            "as_of",
+            "confidence",
+            "data_unavailable",
+            "fetched_at",
+            "field",
+            "freshness_policy",
+            "observation_age_days",
+            "observed",
+            "provider",
+            "raw_snapshot_key",
+            "series",
+            "source",
+            "source_url",
+            "stale",
+            "trace_id",
+            "unit",
+            "value"
+          ],
+          "type": "dict"
+        },
+        "triparty_volume": {
+          "keys": [
+            "as_of",
+            "confidence",
+            "data_unavailable",
+            "fetched_at",
+            "field",
+            "freshness_policy",
+            "observation_age_days",
+            "observed",
+            "provider",
+            "raw_snapshot_key",
+            "series",
+            "source",
+            "source_url",
+            "stale",
+            "trace_id",
+            "unit",
+            "value"
+          ],
+          "type": "dict"
+        },
+        "warehouse_read_errors": {
+          "keys": [],
+          "type": "dict"
+        }
+      },
+      "keys": [
+        "as_of",
+        "available_fields",
+        "dvp_rate",
+        "fresh_fields",
+        "gcf_rate",
+        "schema_version",
+        "sofr",
+        "source",
+        "source_mode",
+        "stale_fields",
+        "triparty_rate",
+        "triparty_volume",
+        "warehouse_read_errors"
+      ],
+      "last_modified": "2026-09-13T13:29:57+00:00",
+      "schema_version": "ofr-funding.v2",
+      "sha256": "82f7ef7b7a0a44310945014df0fa7a0f140a680db4f38b9a3e2da276abe5675c",
+      "type": "dict"
+    },
+    "data/sofr.json": {
+      "error": "NoSuchKey"
+    },
+    "data/student-state.json": {
+      "error": "NoSuchKey"
+    },
+    "data/tv-bars/state.json": {
+      "error": "NoSuchKey"
+    },
+    "data/warm/ofr/state.json": {
+      "as_of": "2026-09-13T13:30:57+00:00",
+      "bytes": 20337,
+      "exists": true,
+      "field_shapes": {
+        "as_of": {
+          "type": "str"
+        },
+        "catalog": {
+          "first_keys": [],
+          "length": 442,
+          "type": "list"
+        },
+        "catalog_checked_at": {
+          "type": "str"
+        },
+        "catalog_source": {
+          "type": "str"
+        },
+        "done": {
+          "first_keys": [],
+          "length": 442,
+          "type": "list"
+        },
+        "progress_pct": {
+          "type": "float"
+        },
+        "status": {
+          "type": "str"
+        }
+      },
+      "keys": [
+        "as_of",
+        "catalog",
+        "catalog_checked_at",
+        "catalog_source",
+        "done",
+        "progress_pct",
+        "status"
+      ],
+      "last_modified": "2026-09-13T13:30:59+00:00",
+      "sha256": "c8ff16151b5d74459ab701812ae390b83765653a989665f3199e1a3b696efdf7",
+      "status": "COMPLETE-maintaining",
+      "type": "dict"
+    },
+    "factory/salon/board.json": {
+      "error": "NoSuchKey"
+    },
+    "factory/salon/season.json": {
+      "error": "NoSuchKey"
+    },
+    "factory/scoreboard.json": {
+      "error": "NoSuchKey"
+    },
+    "student-state.json": {
+      "error": "NoSuchKey"
+    }
+  }
+}
