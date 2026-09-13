@@ -561,7 +561,14 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
         out["refusal"] = manifest.get("reason") or "launch disabled"
         return out
     try:
-        spec = describe_card(control["model_id"], control.get("model_version"))
+        if str(control.get("model_source") or "hub") == "own":
+            import gear_b_own  # owned weights + recipe + image in Khalid's S3/ECR (2026-09-13); same refusal chain
+            try:
+                spec = gear_b_own.own_spec(s3, private_bucket, control)
+            except gear_b_own.OwnSpecRefused as exc:
+                raise GearBRefused("own model source: %s" % exc)
+        else:
+            spec = describe_card(control["model_id"], control.get("model_version"))
         out["launched"] = launch_sft(sm, s3, spec=spec, role_arn=role_arn, private_bucket=private_bucket, control=control, policy=policy,
                                      manifest=manifest, projected=projected, pricing=pricing, region=region)
     except GearBRefused as exc:

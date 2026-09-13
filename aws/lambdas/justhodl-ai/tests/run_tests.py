@@ -1426,6 +1426,24 @@ def test_factory_gateway_outside_voice_is_governed_and_reading_is_not_learning()
     return "no provider bypass; reading receipts only; rank-capped spawn (module %s)" % ("parsed" if spec else "missing")
 
 
+
+def test_gear_b_owned_model_source_suite():
+    """Runs tests/factory/test_gear_b.py and test_gear_b_own.py (owned weights/recipe/image) under this preflight."""
+    import runpy
+    root = HERE.parents[3]
+    rc = 0
+    for name in ("test_gear_b.py", "test_gear_b_own.py"):
+        path = root / "tests" / "factory" / name
+        if not path.exists():
+            continue
+        try:
+            runpy.run_path(str(path), run_name="__main__")
+        except SystemExit as exc:
+            rc |= int(exc.code or 0)
+    assert rc == 0, "factory gear_b suites failed"
+    return "gear_b + gear_b_own suites green"
+
+
 def main():
     tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
@@ -1438,7 +1456,8 @@ def main():
              test_governance_signal_feature_label_and_split_routes,
              test_governance_append_only_ledger_and_model_requests,
              test_governance_owner_only_exact_routes_and_canary_fail_closed,
-             test_factory_gateway_outside_voice_is_governed_and_reading_is_not_learning]
+             test_factory_gateway_outside_voice_is_governed_and_reading_is_not_learning,
+             test_gear_b_owned_model_source_suite]
     failed = 0
     for t in tests:
         try:

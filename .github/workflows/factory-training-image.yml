@@ -1,0 +1,59 @@
+# Owned training image (2026-09-13). Mirrors the pinned AWS Deep Learning Container into Khalid's own ECR
+# with skopeo (streams layers; no runner disk), resolves the digest, and re-pins factory/training/current.json
+# with the digest-pinned uri so every Gear B job runs the exact image bytes that were reviewed. On demand only.
+name: Factory training image (mirror + pin)
+on:
+  workflow_dispatch:
+    inputs:
+      source_image:
+        description: 'source image (default: HF PyTorch training DLC, us-east-1)'
+        required: false
+        default: '763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04'
+      target_tag:
+        description: 'tag in <account>.dkr.ecr.us-east-1.amazonaws.com/justhodl/factory-train'
+        required: false
+        default: 'hf-pt2.3-tf4.46-cu121'
+permissions:
+  contents: read
+concurrency:
+  group: factory-training-image
+  cancel-in-progress: false
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Mirror the pinned DLC into the owned ECR repository (streamed, no local disk)
+        id: mirror
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq skopeo >/dev/null
+          ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+          REGION=${{ secrets.AWS_REGION }}
+          aws ecr describe-repositories --repository-names justhodl/factory-train >/dev/null 2>&1 || \
+            aws ecr create-repository --repository-name justhodl/factory-train --image-scanning-configuration scanOnPush=true --image-tag-mutability IMMUTABLE >/dev/null
+          SRC='${{ github.event.inputs.source_image }}'
+          DST="$ACCOUNT.dkr.ecr.$REGION.amazonaws.com/justhodl/factory-train:${{ github.event.inputs.target_tag }}"
+          SRC_PW=$(aws ecr get-login-password --region us-east-1)
+          DST_PW=$(aws ecr get-login-password --region "$REGION")
+          skopeo copy --src-creds "AWS:$SRC_PW" --dest-creds "AWS:$DST_PW" "docker://$SRC" "docker://$DST" >/dev/null
+          DIGEST=$(skopeo inspect --creds "AWS:$DST_PW" "docker://$DST" | python3 -c 'import json,sys; print(json.load(sys.stdin)["Digest"])')
+          echo "pinned=$DST@$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "mirrored $DST@$DIGEST"
+      - name: Re-pin the training lane with the digest-pinned image
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q boto3
+          python3 scripts/factory_training_pin.py --image '${{ steps.mirror.outputs.pinned }}' --require-digest
