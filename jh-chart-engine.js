@@ -1030,6 +1030,7 @@
   notes=loadJSON(NOTE_KEY,{}); flags=loadJSON(FLAG_KEY,{});
   var lay=loadJSON(LAY_KEY,null); if(lay){ if(lay.gridOn!=null) gridOn=lay.gridOn; if(lay.magnet!=null) magnet=lay.magnet; if(lay.kind) kind=lay.kind; if(lay.tf) tf=lay.tf; if(lay.invert!=null) invert=lay.invert; if(lay.hiLo!=null) hiLo=lay.hiLo; if(lay.crossMode!=null) crossMode=lay.crossMode; if(lay.tzName) tzName=lay.tzName; if(lay.tzOff!=null) tzOff=lay.tzOff; if(lay.stayTool!=null) stayTool=lay.stayTool; if(lay.layout) layout=lay.layout; }
   loadDraw();
+  if(window.innerWidth<720){ watchOpen=false; var w=document.getElementById("watch"); if(w) w.className="watch hide"; }
   renderTabs(); renderTf(); renderRail(); renderLetters(); renderWtabs(); renderLegend();
   if(layout>1) setLayout(layout);
   loadLists().then(renderList);
