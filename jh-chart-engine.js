@@ -839,7 +839,7 @@
     function tms(ms){ var d=new Date(ms+(tzOff||0)*3600*1000); return d.toISOString().slice(11,23); }
     var srcLab=tape.src==="binance"?"Binance prints": tape.src==="yahoo-1m"?"1m recap": (tape.src||"loading");
     if(!tape.prints.length){
-      el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+active+" <span>loading prints…</span></div><div class=qrbody style=padding:10px;color:var(--mut)>Waiting for tape</div>";
+      el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+active+" <span>no tick tape</span></div><div class=qrbody style=padding:10px;color:var(--mut)>No public prints for this symbol (warehouse is daily bars; tick tape is crypto/Binance only)</div>";
       return;
     }
     el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+active+" <span>"+tape.prints.length+" prints</span> <span>VWAP "+(tape.vwap!=null?fmt(tape.vwap):"—")+"</span> <span class=up>B "+fmtVol(tape.buyVol)+"</span> <span class=dn>S "+fmtVol(tape.sellVol)+"</span> <span>Δ <span class="+(tape.delta>=0?"up":"dn")+">"+(tape.delta>=0?"+":"")+fmtVol(Math.abs(tape.delta))+"</span></span>"+
@@ -2363,6 +2363,6 @@
   load();
   clock(); setInterval(clock,1000);
   liveT=setInterval(tickLive, 15000);
-  tapeT=setInterval(function(){ if(liveOn && !replay.on) loadTape(false); }, 2500);
+  tapeT=setInterval(function(){ if(liveOn && !replay.on && /USDT$|BUSD$|USDC$/.test(resolveSym(active).ticker)) loadTape(false); }, 4000);
   if(window.Notification && Notification.permission==="default") Notification.requestPermission().catch(function(){});
 })();
