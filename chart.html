@@ -17,7 +17,7 @@
 *{box-sizing:border-box}html,body{height:100%;margin:0;background:#fff;color:var(--fg);font-family:"IBM Plex Sans",system-ui,sans-serif;overflow:hidden}
 button,select,input,textarea{background:none;border:0;color:inherit;font:inherit}button{cursor:pointer}
 a{color:inherit;text-decoration:none}
-#app{display:flex;flex-direction:column;height:100%}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
 .tabs{display:flex;height:36px;border-bottom:1px solid var(--line);background:var(--raised);overflow-x:auto;align-items:stretch}
 .tab{display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mut);white-space:nowrap;height:36px}
 .tab.on{background:#fff;color:var(--fg)}.up{color:var(--up)}.dn{color:var(--dn)}
@@ -31,16 +31,16 @@ a{color:inherit;text-decoration:none}
 .rail{width:44px;border-right:1px solid var(--line);background:var(--raised);display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:1px;overflow-y:auto;position:relative;z-index:7}
 .rail .gbtn{width:34px;height:28px;border-radius:4px;color:var(--mut);font-size:11px;position:relative}
 .rail .sep{height:1px;background:var(--line);width:24px;margin:4px 0}
-.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
 .quote{display:flex;gap:10px;align-items:center;height:30px;padding:0 12px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;overflow-x:auto}
 #stage{flex:1;display:grid;grid-template-columns:1fr;grid-template-rows:1fr;min-height:0;position:relative;background:#fff}
 #stage.split2{grid-template-columns:1fr 1fr}
 #stage.split4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-.pane{position:relative;min-height:0;min-width:0;background:#fff;overflow:hidden}
+.pane{position:relative;min-height:0;min-width:0;background:#fff;overflow:hidden;height:100%}
 .pane + .pane{border-left:1px solid var(--line)}
 #stage.split4 .pane:nth-child(3),#stage.split4 .pane:nth-child(4){border-top:1px solid var(--line);border-left:1px solid var(--line)}
 #stage.split4 .pane:nth-child(3){border-left:0}
-.host{position:absolute;inset:0}
+.host{position:absolute;inset:0;width:100%;height:100%}
 #oscwrap{height:132px;border-top:1px solid var(--line);position:relative;display:none;background:#fff}
 #oscwrap.on{display:block}
 #osc{position:absolute;inset:0}
@@ -61,10 +61,10 @@ a{color:inherit;text-decoration:none}
 .letters button.on{background:var(--acc);color:#fff}
 .filt{display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--line)}
 .filt input{flex:1;font-family:"IBM Plex Mono",monospace;font-size:12px;outline:none}
-.cols{display:grid;grid-template-columns:16px 1fr 64px 52px 48px 40px;padding:4px 10px;font-size:10px;color:var(--mut);font-family:"IBM Plex Mono",monospace;border-bottom:1px solid var(--line)}
+.cols{display:grid;grid-template-columns:16px 1fr 58px 48px 48px 44px 40px;padding:4px 10px;font-size:10px;color:var(--mut);font-family:"IBM Plex Mono",monospace;border-bottom:1px solid var(--line)}
 .cols span{cursor:pointer}
 #wlist{flex:1;overflow:auto;min-height:80px}
-.wrow{display:grid;grid-template-columns:16px 1fr 64px 52px 48px 40px;width:100%;padding:4px 10px;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:left;align-items:center}
+.wrow{display:grid;grid-template-columns:16px 1fr 58px 48px 48px 44px 40px;width:100%;padding:4px 10px;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:left;align-items:center}
 .wrow:hover,.wrow.on{background:var(--chip)}.wrow span:nth-child(n+3){text-align:right}
 .flag{width:8px;height:8px;border-radius:50%;background:var(--line);display:inline-block}
 .spark{width:40px;height:16px}
@@ -75,8 +75,8 @@ a{color:inherit;text-decoration:none}
 .detail .px{font-size:22px;font-weight:500;font-family:"IBM Plex Mono",monospace;margin-top:4px}
 .rg{height:6px;background:var(--chip);border-radius:99px;margin:6px 0 4px;position:relative}
 .rg i{position:absolute;inset:0 auto 0 0;background:var(--up);border-radius:99px}.rg b{position:absolute;top:-2px;width:8px;height:10px;background:var(--fg);border-radius:2px}
-#intel,#news,#alerts,#tech,#cal,#notes{border-top:1px solid var(--line);padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;max-height:220px;overflow:auto}
-#intel b,#news b,#alerts b,#tech b,#cal b,#notes b{letter-spacing:1px;color:var(--acc);font-size:10px}
+#intel,#news,#alerts,#tech,#cal,#notes,#heat{border-top:1px solid var(--line);padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;max-height:220px;overflow:auto}
+#intel b,#news b,#alerts b,#tech b,#cal b,#notes b,#heat b{letter-spacing:1px;color:var(--acc);font-size:10px}
 .cell{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--chip)}
 .nitem{display:block;padding:6px 0;border-bottom:1px solid var(--chip);color:var(--fg);text-align:left}
 .nitem span{display:block;color:var(--mut);font-size:10px}
@@ -121,7 +121,18 @@ a{color:inherit;text-decoration:none}
 .sw{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
 .sw i{width:16px;height:16px;border-radius:50%;display:block;cursor:pointer;border:2px solid transparent}
 .sw i.on{border-color:#131722}
-@media(max-width:720px){.watch{position:absolute;inset:36px 0 26px auto;z-index:8;width:min(100%,360px);box-shadow:0 0 0 1px var(--line)}.rail{display:none}#stage.split2,#stage.split4{grid-template-columns:1fr;grid-template-rows:1fr}.pane:nth-child(n+2){display:none!important}}
+#typeq{display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:46;background:#fff;border:1px solid var(--line);border-radius:8px;min-width:min(420px,92vw);max-height:50vh;overflow:auto;box-shadow:0 12px 32px rgba(19,23,34,.14);font-family:"IBM Plex Mono",monospace;font-size:12px}
+#typeq.on{display:block}
+#typeq .lab{padding:8px 14px;font-size:10px;letter-spacing:1px;color:var(--mut)}
+#typeq button{display:flex;justify-content:space-between;width:100%;padding:8px 14px;text-align:left}
+#typeq button:hover{background:var(--chip)}
+#typeq button span{color:var(--mut)}
+.heatgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 0}
+.hcell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;border-radius:4px;font-family:"IBM Plex Mono",monospace;font-size:10px;padding:4px}
+.hcell span{opacity:.9;font-size:9px}
+#app.chart-only .watch{display:none}
+#app.chart-only .rail{width:0;overflow:hidden;border:0;padding:0}
+@media(max-width:720px){.watch{position:absolute;inset:36px 0 26px auto;z-index:8;width:min(100%,360px);box-shadow:0 0 0 1px var(--line)}.rail{display:none}#stage.split2,#stage.split4{grid-template-columns:1fr;grid-template-rows:1fr}.pane:nth-child(n+2){display:none!important}.heatgrid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
@@ -168,11 +179,12 @@ a{color:inherit;text-decoration:none}
         <div class="filt"><input id="q" placeholder="Search any list symbol  (Ctrl+K)"></div>
         <div class="filt"><input id="paste" placeholder="Paste NVDA,AAPL,FRED:DGS10 — new list"></div>
         <div id="hits"></div>
-        <div class="cols" id="cols"><span></span><span data-s="sym">Symbol</span><span data-s="last">Last</span><span data-s="chg">Chg%</span><span data-s="chgv">Chg</span><span>Spark</span></div>
+        <div class="cols" id="cols"><span></span><span data-s="sym">Symbol</span><span data-s="last">Last</span><span data-s="chg">Chg%</span><span data-s="chgv">Chg</span><span>Vol</span><span>Spark</span></div>
         <div id="wlist"></div>
       </div>
       <div class="detail" id="detail"></div>
       <div id="intel"></div>
+      <div id="heat" style="display:none"></div>
       <div id="news" style="display:none"></div>
       <div id="alerts" style="display:none"></div>
       <div id="tech" style="display:none"></div>
@@ -180,13 +192,14 @@ a{color:inherit;text-decoration:none}
       <div id="notes" style="display:none"></div>
     </aside>
   </div>
-  <div class="foot"><span id="clock"></span><span id="tzlab">UTC</span><span id="cd"></span><span id="stat"></span><span style="margin-left:auto"><a href="/chart-pro.html">Chart Pro</a> · 492 lists merge-only · Ctrl+K command · Alt+T/H/F drawings</span></div>
+  <div class="foot"><span id="clock"></span><span id="tzlab">UTC</span><span id="cd"></span><span id="stat"></span><span style="margin-left:auto"><a href="/chart-pro.html">Chart Pro</a> · lists merge-only · type ticker · Ctrl+K · Shift+click measure</span></div>
 </div>
 <div id="fly"></div>
 <div id="modal"><div class="box" id="mbox"></div></div>
 <div id="cmdk"><div class="box"><input id="cmdin" placeholder="Search symbols, indicators, drawings, commands…"><div class="res" id="cmdres"></div></div></div>
+<div id="typeq"></div>
 <div id="ctx"></div>
 <div id="toast"></div>
-<script src="/jh-chart-engine.js?v=tv5.1"></script>
+<script src="/jh-chart-engine.js?v=tv6.3"></script>
 </body>
 </html>
