@@ -362,11 +362,53 @@ def _public_think(question, facts):
 
 LEARN_TRACKS = {
     "code": {
-        "title": "How to code",
+        "title": "How to learn to code — then get good",
         "agent": "coder",
-        "pages": ["Python (programming language)", "Unit testing", "Git"],
-        "hf": "code generation python",
-        "why": "Leave the box, study public software practice, then keep only what grades on the protected exam.",
+        "why": "First learn how to learn. Then climb a public engineering ladder. Keep only what grades on the protected exam. No weight training.",
+        "stages": [
+            {
+                "id": "learn-how-to-learn",
+                "title": "Stage 0 — How to learn how to code",
+                "pages": ["Deliberate practice", "Test-driven development", "Rubber duck debugging"],
+                "drill": "Do not binge tutorials. Pick one failing protected-exam case. Restate the failure in one sentence. Write a smaller failing test. That loop is how Microsoft-level engineers actually get good: feedback, not videos.",
+            },
+            {
+                "id": "language",
+                "title": "Stage 1 — Language as a tool",
+                "pages": ["Python (programming language)", "Software documentation", "Readability"],
+                "drill": "Read 40 lines of JustHodl Python. Name every identifier. If you cannot, the code is the lesson.",
+            },
+            {
+                "id": "correctness",
+                "title": "Stage 2 — Correctness before cleverness",
+                "pages": ["Unit testing", "Debugging", "Code coverage"],
+                "drill": "A repair that does not raise the protected exam is not a skill. Green tests or it did not happen.",
+            },
+            {
+                "id": "cs",
+                "title": "Stage 3 — Structures and cost",
+                "pages": ["Data structure", "Algorithm", "Time complexity"],
+                "drill": "For the next factory patch, state O() of the hot path. If you cannot, you are guessing.",
+            },
+            {
+                "id": "collab",
+                "title": "Stage 4 — Work like a team that ships",
+                "pages": ["Git", "Code review", "Software versioning"],
+                "drill": "One bounded diff. One reason. One test. That is a Microsoft review, not a dump.",
+            },
+            {
+                "id": "production",
+                "title": "Stage 5 — Production craft",
+                "pages": ["Software design", "Reliability engineering", "Site reliability engineering"],
+                "drill": "Missing input stays missing. No fake zeros. That is already JustHodl doctrine; now treat it as an SLO.",
+            },
+            {
+                "id": "caliber",
+                "title": "Stage 6 — Senior-caliber taste",
+                "pages": ["Software quality", "Abstraction (computer science)", "Application programming interface"],
+                "drill": "Prefer a smaller interface that cannot lie. If a helper exists for one call, inline it. You are not done until a stranger can grade the patch from the exam alone.",
+            },
+        ],
     },
     "markets": {
         "title": "Financial markets — stocks, bonds, tape",
@@ -419,9 +461,23 @@ def _wiki_summary(title):
 
 def _learn_track(store, track, state):
     spec = LEARN_TRACKS[track]
+    stage = None
+    stage_idx = 0
+    stages = spec.get("stages") or []
+    if stages:
+        cur_key = "factory/fleet/learn/%s/cursor.json" % track
+        row, etag = store.read(store.private, cur_key)
+        stage_idx = int((row or {}).get("stage") or 0)
+        if stage_idx >= len(stages):
+            stage_idx = 0
+        stage = stages[stage_idx]
+        pages = stage.get("pages") or []
+    else:
+        cur_key, etag = None, None
+        pages = spec.get("pages") or []
     hits = []
     t0 = time.time()
-    for page in spec.get("pages") or []:
+    for page in pages:
         if time.time() - t0 > 10:
             break
         try:
@@ -431,6 +487,18 @@ def _learn_track(store, track, state):
                 hits.extend(_look_outside(page)[:1])
             except Exception:
                 pass
+    if track == "code" and stage_idx == 0 and time.time() - t0 < 10:
+        try:
+            repo = _http_json("https://api.github.com/repos/ossu/computer-science", timeout=5,
+                              headers={"Accept": "application/vnd.github+json"})
+            hits.append({
+                "source": "github",
+                "title": repo.get("full_name") or "ossu/computer-science",
+                "url": repo.get("html_url") or "https://github.com/ossu/computer-science",
+                "snippet": (repo.get("description") or "Open Source Society University — CS path")[:300],
+            })
+        except Exception:
+            pass
     if spec.get("hf") and time.time() - t0 < 10:
         try:
             models = _http_json(
@@ -451,20 +519,31 @@ def _learn_track(store, track, state):
             pass
     warehouse = _outside_facts(store, state) if track in ("markets", "investing") else ""
     now = iso(store.clock())
+    title = (stage or {}).get("title") or spec["title"]
+    why = (stage or {}).get("drill") or spec.get("why") or ""
     lesson = {
         "schema_version": "factory-lesson.v1",
         "track": track,
-        "title": spec["title"],
-        "why": spec["why"],
+        "stage": (stage or {}).get("id"),
+        "stage_idx": stage_idx if stages else None,
+        "title": title,
+        "why": why,
         "at": now,
         "hits": hits,
         "warehouse": warehouse[:800],
         "n": len(hits),
+        "next": (stages[stage_idx + 1]["id"] if stages and stage_idx + 1 < len(stages) else "repeat-from-stage-0"),
     }
     try:
         store.immutable(store.private, "factory/fleet/learn/%s/%s.json" % (track, digest(track + now)[:16]), lesson)
     except Exception:
         pass
+    if cur_key:
+        try:
+            store.put(store.private, cur_key, {"stage": stage_idx + 1, "last": (stage or {}).get("id"), "updated_at": now},
+                      etag=etag, absent=etag is None)
+        except Exception:
+            pass
     return lesson
 
 
@@ -545,7 +624,12 @@ def _brain_chat(store, target, text, state, owner):
     if lessons:
         lines.append("LEARNED THIS TURN — left the box on purpose.")
         for lesson in lessons:
-            lines.append("%s: %s" % ((lesson.get("track") or "").upper(), lesson.get("why") or lesson.get("title") or ""))
+            head = (lesson.get("title") or (lesson.get("track") or "").upper())
+            lines.append(head)
+            if lesson.get("why"):
+                lines.append(lesson["why"])
+            if lesson.get("next"):
+                lines.append("Next stage: %s" % lesson["next"])
             for hit in (lesson.get("hits") or [])[:4]:
                 lines.append("• [%s] %s — %s %s" % (hit.get("source"), hit.get("title"), (hit.get("snippet") or "")[:220], hit.get("url") or ""))
             if lesson.get("warehouse"):
