@@ -1,0 +1,43 @@
+{
+  "op": 5503,
+  "started_at": "2026-09-13T00:36:43.182513+00:00",
+  "actions": [],
+  "packages": {
+    "justhodl-schedule-reconciler": {
+      "files": {
+        "lambda_function.py": "fe8b35a518ada919e77a1c9917a6f4596044bdc5166f9dfc245cbf1dd5ce5a05",
+        "internals_schedule.py": "c9eaba1fd0bec9a8b33754169c63e870fdf6aa90d89029f4e280a9b8828fdb78",
+        "brief_schedules.py": "c732d99c0b7b20045caf19e682ab0f1a4d67311343d4cd5d2c5ab4b45291379d"
+      },
+      "code_sha256": "TGXisyG6KjVWbXcB85iPsi5SGfyt+CWZFTtxjYmqOWM=",
+      "last_modified": "2026-09-13T00:28:56.000+0000",
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+    },
+    "justhodl-brief-compiler": {
+      "files": {
+        "lambda_function.py": "cd046bdbfa0cd60d14d7505999445cb0c989a3a04c15e121e9e96268f7398c4d",
+        "compile_jh_internals.py": "03359aed02648cb98c51c56069543c0453a157c5e10bc4ef9988a82b6b59dae1",
+        "internals_warehouse.py": "c7c963f3fc400776d1faeee4b35ba9b2607561192141889754397abcd34e5018",
+        "brief_compiler.py": "49854f723d87901dd2e9f16437d8cc450967c3584aca7d893636087caf81519d",
+        "brief_contract.py": "9d5b0844a96c5b489217c06c8ef00fd210ca612ac472daa0446e867c0dc15c0a"
+      },
+      "code_sha256": "TK0ivuyRxjh0+mGjGe/DLkBe1S3EHccuu7ARYYDl6k4=",
+      "last_modified": "2026-09-13T00:28:38.000+0000",
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+    },
+    "justhodl-symdir": {
+      "files": {
+        "lambda_function.py": "63f772a55e1cb9826b02d4f8a0c741d5714b60c814df2419396fad44c60231fb",
+        "warehouse_routing.py": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1"
+      },
+      "code_sha256": "f0S6dlhGmsoBGPgpr+L6XNjtmD6f71pHp7Ee5j24JGI=",
+      "last_modified": "2026-09-13T00:31:59.000+0000",
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+    }
+  },
+  "status": "FAIL",
+  "error": {
+    "type": "ValueError",
+    "message": "Pages routing assets did not reach the edge within the readiness window"
+  }
+}
