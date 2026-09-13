@@ -1,0 +1,178 @@
+{
+  "checks": {
+    "brain_endpoints": {
+      "by_status": {
+        "InService": 2
+      },
+      "total": 2
+    },
+    "brain_feed_preserved": true,
+    "brain_version": "2.2.2",
+    "factory/salon/events.jsonl": {
+      "lines": 1,
+      "sha256": "620d5633ec7f6cee8e1b98dfc45f6c274b3907b8f1136914d1ac8c222426cd3b"
+    },
+    "factory/salon/wall.jsonl": {
+      "lines": 1,
+      "sha256": "620d5633ec7f6cee8e1b98dfc45f6c274b3907b8f1136914d1ac8c222426cd3b"
+    },
+    "gateway": {
+      "missing_service_identity": 401,
+      "owner_view": 200,
+      "signed_in_browser_check": "not_performed",
+      "transport": "IAM invocation of the HTTP handler; existing service identity kept private",
+      "uninvited_view": 403,
+      "website_probe": "Cloudflare 403 / 1010 from runner; no fingerprint or firewall changes"
+    },
+    "site_s3_mirrors": [
+      "ai.html",
+      "factory-desk.js",
+      "factory-desk.css"
+    ]
+  },
+  "coding": {
+    "baseline": {
+      "critical_failures": 48,
+      "evaluation_id": "code-identity-v1-d804f37d7cca68c9",
+      "held_out": true,
+      "independent": true,
+      "n": 64,
+      "passed": 16,
+      "score": 0.25
+    },
+    "candidate": {
+      "critical_failures": 0,
+      "evaluation_id": "code-identity-v1-d804f37d7cca68c9",
+      "held_out": true,
+      "independent": true,
+      "n": 64,
+      "passed": 64,
+      "score": 1.0
+    },
+    "scope": "one bounded repair family, not model training",
+    "source_sha256": "857565f178505b22a11477463a55b6cdebab4f6a4b4c3cd28340db5e70e297f9"
+  },
+  "functions": {
+    "justhodl-ai": {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai",
+      "code_sha256": "HbYsehtForuUbBbzrph4V927CybYZeCFsQmkQsKqhhw=",
+      "memory": 3008,
+      "package_parity": true,
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "source_commit": "cb195e5143a4a5fb91a51d848aea2d732bc9b81b",
+      "timeout": 900
+    },
+    "justhodl-factory-grader": {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-factory-grader",
+      "code_sha256": "LCVAMzpoaUtLTO9Au6ihBnihlxQEJy0Rz10TmCUGmMg=",
+      "memory": 256,
+      "package_parity": true,
+      "role": "arn:aws:iam::857687956942:role/justhodl-factory-grader-role",
+      "source_commit": "bdbbe91f61da0d7387a49108ab69f34bbd11b05a",
+      "timeout": 45
+    },
+    "justhodl-student-rsi": {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-student-rsi",
+      "code_sha256": "Cgij/YDrcoGiFZr5Dax8/RzfnWIcdHziNImnLjLogLQ=",
+      "memory": 512,
+      "package_parity": true,
+      "role": "arn:aws:iam::857687956942:role/justhodl-student-rsi-role",
+      "source_commit": "bdbbe91f61da0d7387a49108ab69f34bbd11b05a",
+      "timeout": 120
+    }
+  },
+  "ok": true,
+  "permission_denials": [
+    {
+      "action": "iam:CreateRole",
+      "decision": "explicitDeny",
+      "resource": "*"
+    },
+    {
+      "action": "events:PutRule",
+      "decision": "explicitDeny",
+      "resource": "*"
+    },
+    {
+      "action": "scheduler:CreateSchedule",
+      "decision": "explicitDeny",
+      "resource": "*"
+    },
+    {
+      "action": "sagemaker:CreateEndpoint",
+      "decision": "explicitDeny",
+      "resource": "*"
+    },
+    {
+      "action": "sagemaker:CreateTrainingJob",
+      "decision": "explicitDeny",
+      "resource": "*"
+    },
+    {
+      "action": "lambda:InvokeFunction",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai"
+    },
+    {
+      "action": "s3:GetObject",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:s3:::justhodl-ai-857687956942/factory/exams/code-identity-v1.json"
+    },
+    {
+      "action": "s3:GetObject",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:s3:::justhodl-ai-857687956942/brain/notes.json"
+    },
+    {
+      "action": "s3:PutObject",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:s3:::justhodl-ai-857687956942/factory/control/policy.json"
+    },
+    {
+      "action": "s3:PutObject",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:s3:::justhodl-dashboard-live/data/ai.json"
+    },
+    {
+      "action": "s3:PutObject",
+      "decision": "implicitDeny",
+      "resource": "arn:aws:s3:::justhodl-dashboard-live/factory/champions/current.json"
+    }
+  ],
+  "schedule": {
+    "Name": "justhodl-student-rsi-1m",
+    "ScheduleExpression": "rate(1 minute)",
+    "State": "ENABLED",
+    "service": "EventBridge Scheduler"
+  },
+  "schema_version": "factory-live-smoke.v1",
+  "state": {
+    "checksum": "093b16003d198b719fc08f440dc68a88adbc444119de035bffa12c49f4a261ca",
+    "fit": {
+      "baseline": 0.25,
+      "domain": "code",
+      "independent": true,
+      "market_score": null,
+      "n": 64,
+      "score": 1.0
+    },
+    "gen": 1,
+    "health": {
+      "elapsed_seconds": 0.844,
+      "errors": [],
+      "general_coding": "blocked_no_verified_generative_model",
+      "last_tick_at": "2026-09-13T14:42:57+00:00",
+      "lease_fence": 14,
+      "protected_exam": "independent_grader_role",
+      "state_authority": "private_conditional_s3",
+      "status": "running"
+    },
+    "model": {
+      "adapter": null,
+      "status": "blocked_no_verified_generative_model",
+      "training_runs": 0
+    },
+    "state_version": 14
+  },
+  "verified_at": "2026-09-13T14:42:55.740677+00:00"
+}
