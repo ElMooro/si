@@ -243,7 +243,7 @@
     const send = $('chat-send');
     const log = $('chat-log');
     if (log && log.textContent && !log.querySelector('.factory-msg')) log.textContent = '';
-    if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg me"><small>you → ' + safe(to) + '</small>' + safe(typed) + '</div>');
+    if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg me"><small>you → ' + safe(to) + '</small>' + safe(typed) + '</div><div class="factory-msg bot" id="factory-chat-wait"><small>' + safe(to) + '</small>thinking…</div>');
     if (log) log.scrollTop = log.scrollHeight;
     if (input) input.value = '';
     if (send) send.disabled = true;
