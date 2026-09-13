@@ -10,12 +10,12 @@
         if (d[j].high > d[i].high) isH = false;
         if (d[j].low < d[i].low) isL = false;
       }
-      if (isH) hi.push({ i: i, px: d[i].high, t: d[i].time, v: d[i].volume || 0 });
-      if (isL) lo.push({ i: i, px: d[i].low, t: d[i].time, v: d[i].volume || 0 });
+      if (isH) hi.push({ i: i, px: d[i].high, t: d[i].time });
+      if (isL) lo.push({ i: i, px: d[i].low, t: d[i].time });
     }
     return { hi: hi, lo: lo };
   }
-  function mk(t, pos, color, shape, text) {
+  function tag(t, pos, color, shape, text) {
     return { time: t, position: pos, color: color, shape: shape, text: text };
   }
   function livermore(d, sw) {
@@ -47,36 +47,35 @@
     }
     var mid = (maxH + minL) / 2;
     var last = win[win.length - 1];
-    var off = d.length - win.length;
     if (minI > 2 && minI < win.length - 2) {
       var sc = win[minI];
-      if ((sc.volume || 0) > vAvg * 1.4) out.push(mk(sc.time, "belowBar", "#f23645", "arrowDown", "SC"));
+      if ((sc.volume || 0) > vAvg * 1.4) out.push(tag(sc.time, "belowBar", "#f23645", "arrowDown", "SC"));
       if (minI >= 3) {
         var ps = win[minI - 2];
-        if ((ps.volume || 0) > vAvg && ps.close < ps.open) out.push(mk(ps.time, "belowBar", "#ab47bc", "circle", "PS"));
+        if ((ps.volume || 0) > vAvg && ps.close < ps.open) out.push(tag(ps.time, "belowBar", "#ab47bc", "circle", "PS"));
       }
       if (minI + 2 < win.length) {
         var ar = win[minI + 2];
-        if (ar.close > sc.close) out.push(mk(ar.time, "aboveBar", "#089981", "circle", "AR"));
+        if (ar.close > sc.close) out.push(tag(ar.time, "aboveBar", "#089981", "circle", "AR"));
       }
     }
     if (maxI > 2) {
       var bc = win[maxI];
-      if ((bc.volume || 0) > vAvg * 1.4 && bc.close > mid) out.push(mk(bc.time, "aboveBar", "#089981", "arrowUp", "BC"));
+      if ((bc.volume || 0) > vAvg * 1.4 && bc.close > mid) out.push(tag(bc.time, "aboveBar", "#089981", "arrowUp", "BC"));
     }
     if (last.low < minL * 1.004 && last.close > minL && last.close < mid)
-      out.push(mk(last.time, "belowBar", "#089981", "square", "SPRING"));
+      out.push(tag(last.time, "belowBar", "#089981", "square", "SPRING"));
     if (last.high > maxH * 0.996 && last.close < maxH && last.close > mid)
-      out.push(mk(last.time, "aboveBar", "#f23645", "square", "UT"));
+      out.push(tag(last.time, "aboveBar", "#f23645", "square", "UT"));
     if (last.close > mid && (last.volume || 0) > vAvg * 1.2 && last.close > last.open)
-      out.push(mk(last.time, "aboveBar", "#089981", "arrowUp", "SOS"));
+      out.push(tag(last.time, "aboveBar", "#089981", "arrowUp", "SOS"));
     if (last.close < mid && (last.volume || 0) > vAvg * 1.2 && last.close < last.open)
-      out.push(mk(last.time, "belowBar", "#f23645", "arrowDown", "SOW"));
+      out.push(tag(last.time, "belowBar", "#f23645", "arrowDown", "SOW"));
     var prev = win[win.length - 5];
     if (prev && last.close > mid && last.low > minL && (last.volume || 0) < vAvg)
-      out.push(mk(last.time, "belowBar", "#2962ff", "circle", "LPS"));
+      out.push(tag(last.time, "belowBar", "#2962ff", "circle", "LPS"));
     if (prev && last.close < mid && last.high < maxH && (last.volume || 0) < vAvg)
-      out.push(mk(last.time, "aboveBar", "#2962ff", "circle", "LPSY"));
+      out.push(tag(last.time, "aboveBar", "#2962ff", "circle", "LPSY"));
     return out;
   }
   function effort(d) {
@@ -88,7 +87,7 @@
       var body = Math.abs(d[i].close - d[i].open);
       var vol = d[i].volume || 0;
       if (vA && vol > vA * 1.7 && pA && body < pA * 0.55) {
-        out.push(mk(d[i].time, d[i].close >= d[i].open ? "aboveBar" : "belowBar", "#ff9800", "circle",
+        out.push(tag(d[i].time, d[i].close >= d[i].open ? "aboveBar" : "belowBar", "#ff9800", "circle",
           d[i].close >= d[i].open ? "E↑noR" : "E↓noR"));
       }
     }
@@ -98,14 +97,14 @@
     if (!d || d.length < 40) return { markers: [], panel: "tape: short" };
     var sw = swings(d);
     var lv = livermore(d, sw);
-    var mk = [];
-    lv.hs.slice(-3).forEach(function (p) { mk.push(mk ? { time: p.t, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "PH" } : null); });
-    lv.ls.slice(-3).forEach(function (p) { mk.push({ time: p.t, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "PL" }); });
-    mk = mk.concat(wyckoffFull(d)).concat(effort(d));
-    if (window.jhVolEvents) mk = (window.jhVolEvents(d) || []).concat(mk);
-    if (lv.trend === "REV-UP") mk.push({ time: d[d.length - 1].time, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "REV-UP" });
-    if (lv.trend === "REV-DN") mk.push({ time: d[d.length - 1].time, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "REV-DN" });
-    var panel = "LIVERMORE " + lv.trend + " " + lv.note + " | WYCKOFF PS/SC/AR/SPRING/UT/SOS/SOW/LPS | effort vs result on";
-    return { markers: mk, panel: panel, livermore: lv };
+    var marks = [];
+    lv.hs.slice(-3).forEach(function (p) { marks.push(tag(p.t, "aboveBar", "#2962ff", "arrowDown", "PH")); });
+    lv.ls.slice(-3).forEach(function (p) { marks.push(tag(p.t, "belowBar", "#2962ff", "arrowUp", "PL")); });
+    marks = marks.concat(wyckoffFull(d)).concat(effort(d));
+    if (window.jhVolEvents) marks = (window.jhVolEvents(d) || []).concat(marks);
+    if (lv.trend === "REV-UP") marks.push(tag(d[d.length - 1].time, "belowBar", "#2962ff", "arrowUp", "REV-UP"));
+    if (lv.trend === "REV-DN") marks.push(tag(d[d.length - 1].time, "aboveBar", "#2962ff", "arrowDown", "REV-DN"));
+    var panel = "LIVERMORE " + lv.trend + " " + lv.note + " | WYCKOFF PS SC AR SPRING UT SOS SOW LPS | E vs result";
+    return { markers: marks, panel: panel, livermore: lv };
   };
 })();
