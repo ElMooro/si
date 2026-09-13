@@ -28,20 +28,20 @@
   ];
   var INDS = [
     {id:"sma9",n:"SMA 9",c:"#26c6da",on:0,k:"sma",p:9,cat:"MA"},
-    {id:"sma20",n:"SMA 20",c:"#26c6da",on:1,k:"sma",p:20,cat:"MA"},
-    {id:"sma50",n:"SMA 50",c:"#2962ff",on:1,k:"sma",p:50,cat:"MA"},
+    {id:"sma20",n:"SMA 20",c:"#26c6da",on:0,k:"sma",p:20,cat:"MA"},
+    {id:"sma50",n:"SMA 50",c:"#2962ff",on:0,k:"sma",p:50,cat:"MA"},
     {id:"sma100",n:"SMA 100",c:"#7e57c2",on:0,k:"sma",p:100,cat:"MA"},
-    {id:"sma200",n:"SMA 200",c:"#ff6d00",on:1,k:"sma",p:200,cat:"MA"},
-    {id:"sma250",n:"SMA 250",c:"#e91e63",on:1,k:"sma",p:250,cat:"MA"},
+    {id:"sma200",n:"SMA 200",c:"#ff6d00",on:0,k:"sma",p:200,cat:"MA"},
+    {id:"sma250",n:"SMA 250",c:"#e91e63",on:0,k:"sma",p:250,cat:"MA"},
     {id:"ema9",n:"EMA 9",c:"#26a69a",on:0,k:"ema",p:9,cat:"MA"},
     {id:"ema21",n:"EMA 21",c:"#42a5f5",on:0,k:"ema",p:21,cat:"MA"},
     {id:"ema50",n:"EMA 50",c:"#5c6bc0",on:0,k:"ema",p:50,cat:"MA"},
     {id:"ema200",n:"EMA 200",c:"#8d6e63",on:0,k:"ema",p:200,cat:"MA"},
-    {id:"ema250",n:"EMA 250",c:"#089981",on:1,k:"ema",p:250,cat:"MA"},
+    {id:"ema250",n:"EMA 250",c:"#089981",on:0,k:"ema",p:250,cat:"MA"},
     {id:"wma20",n:"WMA 20",c:"#78909c",on:0,k:"wma",p:20,cat:"MA"},
     {id:"hull20",n:"Hull 20",c:"#00897b",on:0,k:"hull",p:20,cat:"MA"},
     {id:"vwma20",n:"VWMA 20",c:"#42a5f5",on:0,k:"vwma",p:20,cat:"MA"},
-    {id:"vwap",n:"VWAP",c:"#ab47bc",on:1,k:"vwap",cat:"Volume"},
+    {id:"vwap",n:"VWAP",c:"#ab47bc",on:0,k:"vwap",cat:"Volume"},
     {id:"bb",n:"Bollinger 20",c:"#ab47bc",on:0,k:"bb",cat:"Channel"},
     {id:"kc",n:"Keltner 20",c:"#5c6bc0",on:0,k:"kc",cat:"Channel"},
     {id:"dc",n:"Donchian 20",c:"#00897b",on:0,k:"dc",cat:"Channel"},
@@ -53,7 +53,7 @@
     {id:"allig",n:"Alligator",c:"#43a047",on:0,k:"allig",cat:"Trend"},
     {id:"zz",n:"ZigZag 5%",c:"#6d4c41",on:0,k:"zz",cat:"Trend"},
     {id:"linreg",n:"LinReg 20",c:"#3949ab",on:0,k:"linreg",p:20,cat:"Trend"},
-    {id:"pc",n:"Prev close",c:"#787b86",on:1,k:"pc",cat:"Levels"},
+    {id:"pc",n:"Prev close",c:"#787b86",on:0,k:"pc",cat:"Levels"},
     {id:"dema20",n:"DEMA 20",c:"#00838f",on:0,k:"dema",p:20,cat:"MA"},
     {id:"tema20",n:"TEMA 20",c:"#6a1b9a",on:0,k:"tema",p:20,cat:"MA"},
     {id:"t3",n:"T3 8",c:"#ef6c00",on:0,k:"t3",p:8,cat:"MA"},
@@ -98,7 +98,7 @@
     {id:"cmo",n:"CMO 14",on:0,cat:"Momentum"},
     {id:"mass",n:"Mass Index",on:0,cat:"Volatility"},
     {id:"copp",n:"Coppock",on:0,cat:"Momentum"},
-    {id:"cvd",n:"CVD (est.)",on:1,cat:"Volume"},
+    {id:"cvd",n:"CVD (est.)",on:0,cat:"Volume"},
     {id:"rvol",n:"RVOL 20",on:0,cat:"Volume"}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
@@ -536,7 +536,7 @@
         if(kind==="volcandle"){ for(vi0=0;vi0<display.length;vi0++) volMed+=display[vi0].volume; volMed/=display.length||1; }
         c=chart.addCandlestickSeries({ upColor: kind==="hollow"?BG:UP, downColor:DN, borderVisible:true, borderUpColor:UP, borderDownColor:DN, wickVisible:true, wickUpColor:UP, wickDownColor:DN });
         if(kind==="volcandle") c.setData(display.map(function(b){ var hot=b.volume>volMed*1.5; return {time:b.time,open:b.open,high:b.high,low:b.low,close:b.close, color: b.close>=b.open?(hot?"#00695c":UP):(hot?"#b71c1c":DN)}; }));
-        else c.setData(display);try{if(window.jhNyVwap){var vw=window.jhNyVwap(display);if(vw&&vw.length){var vs=chart.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"VWAP NY"});vs.setData(vw);series.push(vs);}}}catch(e){}
+        else c.setData(display);try{if(window.jhNyVwap && window.INDS && INDS.some(function(i){return i.id==="vwap"&&i.on;})){var vw=window.jhNyVwap(display);if(vw&&vw.length){var vs=chart.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"VWAP NY"});vs.setData(vw);series.push(vs);}}}catch(e){}
         try{var fn=window.jhTapeRead||window.jhVolEvents;if(fn){var out=fn(display);var mk=out&&out.markers?out.markers:out;if(mk&&mk.length){mk=mk.slice(-3);c.setMarkers(mk)};try{if(window.jhRsReady){window.jhRsReady(display).then(function(rs){if(rs&&rs.length&&c.setMarkers){var cur=c.markers||[];try{c.setMarkers((window.jhTapeRead?((window.jhTapeRead(display).markers)||[]):[]).concat(rs));}catch(e2){}}});}}catch(e){}try{if(window.jhMacroIntel){window.jhMacroIntel(display).then(function(mm){});}}catch(e){}if(out&&out.panel){var q=document.getElementById("quote"); if(q&&!/LIVERMORE/.test(q.textContent)){var n=document.createElement("div");n.style.cssText="flex-basis:100%;font-size:10px;color:var(--mut)";n.textContent=out.panel;q.appendChild(n);}}}}catch(e){}
       }
       mainSeries=c; series.push(c);
