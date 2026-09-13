@@ -4,8 +4,8 @@
   var css = document.createElement("style");
   css.id = "jh-studio-css-runtime";
   css.textContent = [
-    ".watch,#watch{width:28px!important;min-width:28px!important;max-width:28px!important;overflow:hidden!important;transition:width .16s ease}",
-    ".watch:hover,.watch.open,.watch:focus-within,#watch:hover,#watch.open,#watch:focus-within{width:320px!important;min-width:280px!important;max-width:360px!important;overflow:auto!important}",
+    ".watch,#watch{width:280px!important;min-width:260px!important;max-width:320px!important;overflow:auto!important}",
+    ".watch.hide,#watch.hide{width:0!important;min-width:0!important;max-width:0!important;overflow:hidden!important;border:0!important}",
     "@media(max-width:900px){.watch,#watch{width:100%!important;max-width:none!important;min-width:0!important}}"
   ].join("");
   document.documentElement.appendChild(css);

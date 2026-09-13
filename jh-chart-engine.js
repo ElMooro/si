@@ -115,7 +115,7 @@
   var chart, chart2, chart3, chart4, oscSeries=[];
   var lastSource="—", volOn=true, chartOnly=false, clipDraw=null, typeBuf="", typeT=null, favs=[], syncing=false;
   var overlayMap={}, ghostPt=null, dragState=null, patternsOn=true, newsMarks=true, magnetMode=2;
-  var dark=false, liveOn=true, liveT=null, dwinOn=false, miniOn=false, leftOn=false, dockTab="";
+  var dark=true, liveOn=true, liveT=null, dwinOn=false, miniOn=false, leftOn=false, dockTab="";
   var oscCharts=[], lastTest=null, screenFilt="", paper={cash:100000,positions:{},trades:[],realized:0};
   var lastVP={poc:null,vah:null,val:null};
   var tape={prints:[],src:"",vwap:null,buyVol:0,sellVol:0,delta:0,bid:null,ask:null,bidSz:null,askSz:null,filt:"all",sym:"",note:""};

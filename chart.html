@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" data-jh-sections="off">
+<html lang="en" data-jh-sections="off" data-theme="dark">
 <head><style id=jh-studio-css>
-#watch{width:28px;min-width:28px;overflow:hidden;transition:width .18s ease;border-left:1px solid var(--bd,#2a2e39)}
-#watch:hover,#watch.open,#watch:focus-within{width:320px;min-width:280px;overflow:auto}
+#watch{width:280px;min-width:260px;max-width:320px;overflow:auto;border-left:1px solid var(--bd,#2a2e39)}
+#watch.hide{width:0;min-width:0;max-width:0;overflow:hidden;border:0}
 #quote .jh-dump{display:none}
-</style><style>#tape{display:none!important}</style>
+#tape{display:none!important}
+#listfab{display:none!important}
+</style>
 <meta charset="utf-8">
-<!-- jh-reskin-skip: tradingview-native light terminal; Chart Pro is the safety net -->
+<!-- jh-reskin-skip: tradingview supercharts dark terminal; Chart Pro is the safety net -->
 <title>Chart · JustHodl.AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="canonical" href="https://justhodl.ai/chart.html">
 <meta name="jh-engine" content="justhodl-chart">
 <meta name="jh-output" content="data/jh-internals.json">
 <meta name="jh-chrome" content="off">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#131722">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
@@ -358,8 +360,9 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
-<script src="/jh-chart-studio.js?v=1"></script>
-<script src="/jh-chart-engine.js?v=v12.2"></script>
+<script src="/jh-chart-studio.js?v=2"></script>
+<script src="/jh-chart-engine.js?v=v12.3"></script>
+<script src="/jh-chart-tvux.js?v=1"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>
