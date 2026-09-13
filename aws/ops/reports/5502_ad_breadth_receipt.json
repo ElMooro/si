@@ -1,0 +1,135 @@
+{
+  "op": 5502,
+  "started_at": "2026-09-13T00:04:16.738066+00:00",
+  "source_mode": "warehouse only",
+  "objects": {
+    "data/jh-internals.json": {
+      "last_modified": "2026-09-13T00:04:19+00:00",
+      "bytes": 1111,
+      "etag": "\"010c906eae3b1afc3f0964a10fa25dad\""
+    },
+    "data/finviz-universe.json": {
+      "last_modified": "2026-09-12T22:00:40+00:00",
+      "bytes": 16047683,
+      "etag": "\"7fdc6f8a85281bcb0c0476343c21b925\""
+    }
+  },
+  "candidates": [
+    {
+      "source": "finviz-universe",
+      "keys": [
+        "data/finviz-universe.json"
+      ],
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_unchanged": 538,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "n_total": 11633,
+      "coverage": 0.9987105647726295,
+      "eligible": true,
+      "denominator": "rows with both finite positive prices; includes unchanged rows",
+      "breadth_basis": "uncapped; all source rows; no price, volume or ranking filter",
+      "current_price_field": "by_ticker.*.price",
+      "previous_price_field": "by_ticker.*.prev_close",
+      "as_of": "2026-09-12T22:00:37.733393+00:00"
+    }
+  ],
+  "mutated_keys": [
+    "data/jh-internals.json"
+  ],
+  "before": {
+    "last_modified": "2026-09-12T23:19:09+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564
+    }
+  },
+  "preserved_fields": {
+    "liq_proxy_bn": 5852.0,
+    "nfci": -0.564,
+    "twos_tens": 0.39
+  },
+  "payload": {
+    "schema_version": 1,
+    "source": "compile_jh_internals",
+    "generated_at": "2026-09-13T00:04:18.615682+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238
+    },
+    "skipped": [
+      "ECONOMICS:* licensed PMI",
+      "USI:TICKBA.* intraday"
+    ],
+    "breadth": {
+      "source": "finviz-universe",
+      "keys": [
+        "data/finviz-universe.json"
+      ],
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_unchanged": 538,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "n_total": 11633,
+      "coverage": 0.9987105647726295,
+      "eligible": true,
+      "denominator": "rows with both finite positive prices; includes unchanged rows",
+      "breadth_basis": "uncapped; all source rows; no price, volume or ranking filter",
+      "current_price_field": "by_ticker.*.price",
+      "previous_price_field": "by_ticker.*.prev_close",
+      "as_of": "2026-09-12T22:00:37.733393+00:00",
+      "status": "LIVE",
+      "generated_at": "2026-09-13T00:04:18.615682+00:00",
+      "minimum_coverage": 0.8
+    }
+  },
+  "body_sha256": "7fbcaa205bd17c1d2d24f267b140b8f09843360c9c74f18ec0799bb1351741c4",
+  "live": {
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-13T00:04:19+00:00",
+    "schema_version": 1,
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238
+    },
+    "breadth": {
+      "source": "finviz-universe",
+      "keys": [
+        "data/finviz-universe.json"
+      ],
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_unchanged": 538,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "n_total": 11633,
+      "coverage": 0.9987105647726295,
+      "eligible": true,
+      "denominator": "rows with both finite positive prices; includes unchanged rows",
+      "breadth_basis": "uncapped; all source rows; no price, volume or ranking filter",
+      "current_price_field": "by_ticker.*.price",
+      "previous_price_field": "by_ticker.*.prev_close",
+      "as_of": "2026-09-12T22:00:37.733393+00:00",
+      "status": "LIVE",
+      "generated_at": "2026-09-13T00:04:18.615682+00:00",
+      "minimum_coverage": 0.8
+    }
+  },
+  "status": "PASS_BREADTH",
+  "finished_at": "2026-09-13T00:04:18.881296+00:00"
+}

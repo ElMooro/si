@@ -1,0 +1,8 @@
+- `00:04:18` ✅ breadth={"source": "finviz-universe", "keys": ["data/finviz-universe.json"], "n_up": 7421, "n_down": 3659, "n_unchanged": 538, "n_univ": 11618, "n_missing": 15, "n_total": 11633, "coverage": 0.9987105647726295, "eligible": true, "denominator": "rows with both finite positive prices; includes unchanged rows", "breadth_basis": "uncapped; all source rows; no price, volume or ranking filter", "current_price_field": "by_ticker.*.price", "previous_price_field": "by_ticker.*.prev_close", "as_of": "2026-09-12T22:00:37.733393+00:00", "status": "LIVE", "generated_at": "2026-09-13T00:04:18.615682+00:00", "minimum_coverage": 0.8}
+- `00:04:18` ✅ LastModified=2026-09-13T00:04:19+00:00 fields={"twos_tens": 0.39, "liq_proxy_bn": 5852.0, "nfci": -0.564, "n_up": 7421, "n_down": 3659, "n_univ": 11618, "n_missing": 15, "ad_breadth": 0.3238}
+**Status:** success  
+**Duration:** 2.1s  
+**Finished:** 2026-09-13T00:04:18+00:00  
+
+## Log
+
