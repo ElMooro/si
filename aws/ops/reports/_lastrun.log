@@ -1,16 +1,27 @@
-executing-against: 9c83efab19dc347f8753db1ad2dec7c9c8dca72f
-ops 5539 -- why did jh-stage-* exit 2? log tails + bucket listing; nothing launched
-[23:17:20] ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-230824 status=Failed exit=None reason=AlgorithmError: , exit code: 2 start=2026-09-13 23:09:06.413000+00:00 end=2026-09-13 23:10:25.423000+00:00
-[23:17:20] ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-214158 status=Failed exit=None reason=AlgorithmError: , exit code: 2 start=2026-09-13 21:43:03.491000+00:00 end=2026-09-13 21:44:22.630000+00:00
-[23:17:21] ✅ stream jh-stage-qwen2-5-coder-7b-ins-20260913-230824/algo-1-1789340945: 3 events
-[23:17:21]   [notice] A new release of pip is available: 25.2 -> 26.0.1
-[23:17:21]   [notice] To update, run: pip install --upgrade pip
-[23:17:21]   python3: can't open file '/opt/ml/processing/input/code/stage_base_weights.py': [Errno 2] No such file or directory
-[23:17:21] ✅ stream jh-stage-qwen2-5-coder-7b-ins-20260913-214158/algo-1-1789335782: 3 events
-[23:17:21]   [notice] A new release of pip is available: 25.2 -> 26.0.1
-[23:17:21]   [notice] To update, run: pip install --upgrade pip
-[23:17:21]   python3: can't open file '/opt/ml/processing/input/code/stage_base_weights.py': [Errno 2] No such file or directory
-[23:17:21] ✅ bucket objects under factory/models/base/qwen2-5-coder-7b-instruct/: 2 -> [["factory/models/base/qwen2-5-coder-7b-instruct/staging-20260913-214158.json", 495], ["factory/models/base/qwen2-5-coder-7b-instruct/staging-20260913-230824.json", 495]]
-[23:17:21] ✅ GREEN -- forensics recorded
+executing-against: bd57efd6949a66b799a0bf72abfc7c046f1debaa
+ops 5540 (restage 2) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
+[23:20:56] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
+[23:20:56] ✅ ECR justhodl/factory-train exists
+{
+  "bundle": "written",
+  "bundle_key": "factory/training/bundles/train-54b17b22a8858db8.tar.gz",
+  "bundle_sha256": "54b17b22a8858db8b80f819b7bfbe93cb814e5b049ea90243d4825f06637a3e6",
+  "pin_key": "factory/training/current.json",
+  "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
+}
+[23:20:57] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
+[23:20:58] ✅ pricing + processing-job (jh-stage-*) policies attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 45 s
+[23:22:28] ✅ pricing cache: 0 cached misses purged ()
+[23:22:28] ✅ processing price ml.m5.xlarge = $0.2300/h (source aws-price-list); job cap $0.4600 at 7200s
+[23:22:28] log tail unavailable: An error occurred (InvalidParameterException) when calling the DescribeLogStreams operation: Cannot 
+[23:22:29] ✅ processing job jh-stage-qwen2-5-coder-7b-ins-20260913-232228 launched: Qwen/Qwen2.5-Coder-7B-Instruct@main -> s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/<revision>/ (cap $0.4600)
+[23:22:29] ✅ GREEN -- owned lane staged: ECR repo, pinned recipe, weight staging job running (CPU, capped); Gear B untouched until 5529 validates the manifest
 
-→ Report written to aws/ops/reports/latest/ops_5539_staging_job_forensics.md
+→ Report written to aws/ops/reports/latest/ops_5540_own_weights_restage2.md
+ops 5541 (re-arm of 5536/5538) -- owned base weights: wait for staging, validate manifest + objects, flip Gear B to model_source=own
+[23:22:29] ✅ staging job from record: jh-stage-qwen2-5-coder-7b-ins-20260913-232228
+[23:27:02] ✗ manifest refused: unhashed or empty file in base manifest: .cache/huggingface/.gitignore.sagemaker-uploaded
+[23:27:02] ✗ RED -- manifest
+
+→ Report written to aws/ops/reports/latest/ops_5541_own_weights_validate_and_flip3.md
+❌ OPS-FAIL: aws/ops/pending/ops_5541_own_weights_validate_and_flip3.py
