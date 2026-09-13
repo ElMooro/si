@@ -1,6 +1,171 @@
 {
-  "observed_at": "2026-09-12T23:51:02.715747+00:00",
+  "observed_at": "2026-09-13T00:04:47.440138+00:00",
   "runs": [
+    {
+      "id": 34726970138,
+      "path": ".github/workflows/run-ops.yml",
+      "head_sha": "d2310a81666c421e0220588cf97356855cee26c3",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-09-13T00:03:08Z",
+      "updated_at": "2026-09-13T00:04:27Z",
+      "jobs": [
+        {
+          "id": 103642689078,
+          "name": "Execute ops script",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-09-13T00:03:11Z",
+          "completed_at": "2026-09-13T00:04:27Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:12Z",
+              "completed_at": "2026-09-13T00:03:13Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:13Z",
+              "completed_at": "2026-09-13T00:03:18Z"
+            },
+            {
+              "number": 3,
+              "name": "Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:18Z",
+              "completed_at": "2026-09-13T00:03:18Z"
+            },
+            {
+              "number": 4,
+              "name": "Install dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:18Z",
+              "completed_at": "2026-09-13T00:03:21Z"
+            },
+            {
+              "number": 5,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:21Z",
+              "completed_at": "2026-09-13T00:03:21Z"
+            },
+            {
+              "number": 6,
+              "name": "Sync to freshest main (kill stale-checkout race)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:21Z",
+              "completed_at": "2026-09-13T00:03:22Z"
+            },
+            {
+              "number": 7,
+              "name": "Determine script(s) to run (ops queue)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:22Z",
+              "completed_at": "2026-09-13T00:03:23Z"
+            },
+            {
+              "number": 8,
+              "name": "Refresh engine manifest (fleet self-knowledge)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:03:23Z",
+              "completed_at": "2026-09-13T00:04:15Z"
+            },
+            {
+              "number": 9,
+              "name": "Preserve long verification connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:15Z",
+              "completed_at": "2026-09-13T00:04:16Z"
+            },
+            {
+              "number": 10,
+              "name": "Run script(s)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:16Z",
+              "completed_at": "2026-09-13T00:04:19Z"
+            },
+            {
+              "number": 11,
+              "name": "Regenerate STATE.md snapshot",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:19Z",
+              "completed_at": "2026-09-13T00:04:19Z"
+            },
+            {
+              "number": 12,
+              "name": "Preserve reviewed audit receipts before commit",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:19Z",
+              "completed_at": "2026-09-13T00:04:20Z"
+            },
+            {
+              "number": 13,
+              "name": "Commit any new/changed reports or imports",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:20Z",
+              "completed_at": "2026-09-13T00:04:22Z"
+            },
+            {
+              "number": 14,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:22Z",
+              "completed_at": "2026-09-13T00:04:22Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:22Z",
+              "completed_at": "2026-09-13T00:04:23Z"
+            },
+            {
+              "number": 27,
+              "name": "Post Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:23Z",
+              "completed_at": "2026-09-13T00:04:23Z"
+            },
+            {
+              "number": 28,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:23Z",
+              "completed_at": "2026-09-13T00:04:23Z"
+            },
+            {
+              "number": 29,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-13T00:04:23Z",
+              "completed_at": "2026-09-13T00:04:23Z"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": 34726389598,
       "path": ".github/workflows/pages.yml",
@@ -6273,16 +6438,6 @@
           "steps": []
         }
       ]
-    },
-    {
-      "id": 34721917533,
-      "path": ".github/workflows/pages.yml",
-      "head_sha": "cc66860e73d3fb262b77adf980f7136730a2fbaf",
-      "status": "completed",
-      "conclusion": "cancelled",
-      "created_at": "2026-09-12T22:08:40Z",
-      "updated_at": "2026-09-12T22:11:12Z",
-      "jobs": []
     },
     {
       "id": 34312891397,
