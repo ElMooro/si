@@ -536,7 +536,7 @@
         if(kind==="volcandle"){ for(vi0=0;vi0<display.length;vi0++) volMed+=display[vi0].volume; volMed/=display.length||1; }
         c=chart.addCandlestickSeries({ upColor: kind==="hollow"?BG:UP, downColor:DN, borderVisible:true, borderUpColor:UP, borderDownColor:DN, wickVisible:true, wickUpColor:UP, wickDownColor:DN });
         if(kind==="volcandle") c.setData(display.map(function(b){ var hot=b.volume>volMed*1.5; return {time:b.time,open:b.open,high:b.high,low:b.low,close:b.close, color: b.close>=b.open?(hot?"#00695c":UP):(hot?"#b71c1c":DN)}; }));
-        else c.setData(display);try{if(window.jhVolEvents){var mk=window.jhVolEvents(display);if(mk&&mk.length)c.setMarkers(mk);}}catch(e){}
+        else c.setData(display);try{var fn=window.jhTapeRead||window.jhVolEvents;if(fn){var out=fn(display);var mk=out&&out.markers?out.markers:out;if(mk&&mk.length)c.setMarkers(mk);if(out&&out.panel){var q=document.getElementById("quote"); if(q&&!/LIVERMORE/.test(q.textContent)){var n=document.createElement("div");n.style.cssText="flex-basis:100%;font-size:10px;color:var(--mut)";n.textContent=out.panel;q.appendChild(n);}}}}catch(e){}
       }
       mainSeries=c; series.push(c);
       if(volOn){
