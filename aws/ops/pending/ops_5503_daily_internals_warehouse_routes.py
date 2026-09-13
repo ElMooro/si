@@ -12,6 +12,7 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import time
@@ -37,6 +38,19 @@ RECEIPT = ROOT / "aws/ops/reports/5503_daily_internals_warehouse_receipt.json"
 
 def digest(value):
     return hashlib.sha256(json.dumps(value,sort_keys=True,default=str).encode()).hexdigest()
+
+
+def public_bytes(url):
+    if urllib.parse.urlsplit(url).hostname not in {"justhodl.ai","justhodl-data-proxy.raafouis.workers.dev"}:
+        raise ValueError("Public verification host not allowed")
+    result = subprocess.run(["curl","--fail","--silent","--show-error","--location","--compressed",
+                             "--max-time","90","--user-agent","JustHodl-Ops/5503","--write-out","\n%{http_code}",url],capture_output=True)
+    if result.returncode:
+        raise RuntimeError("Public verification HTTP failed: "+result.stderr.decode()[:150])
+    body, status = result.stdout.rsplit(b"\n",1)
+    if status != b"200":
+        raise RuntimeError("Public verification expected HTTP 200; observed "+status.decode())
+    return body
 
 
 class PageScripts(HTMLParser):
@@ -111,23 +125,29 @@ def main():
             compiler_zip = package(COMPILER,("lambda_function.py","compile_jh_internals.py","internals_warehouse.py","brief_compiler.py","brief_contract.py"))
             package("justhodl-symdir",("lambda_function.py","warehouse_routing.py"))
             # Check all production artifacts before scheduling or publishing.
-            for attempt in range(31):
+            nonce = os.environ["GITHUB_RUN_ID"]
+            for attempt in range(7):
                 try:
-                    with urllib.request.urlopen("https://justhodl.ai/jh-warehouse-routing.js?ops=5503&verify="+str(attempt),timeout=60) as response:
-                        deployed_js = response.read()
-                    with urllib.request.urlopen("https://justhodl.ai/chart-pro.html?ops=5503&verify="+str(attempt),timeout=60) as response:
-                        html = response.read().decode()
+                    query = "?ops=5503&run="+nonce+"&verify="+str(attempt)
+                    deployed_js = public_bytes("https://justhodl.ai/jh-warehouse-routing.js"+query)
+                    html = public_bytes("https://justhodl.ai/chart-pro.html"+query).decode()
                     tags = PageScripts()
                     tags.feed(html)
-                    ready = (deployed_js == (ROOT / "jh-warehouse-routing.js").read_bytes()
-                             and "/jh-warehouse-routing.js" in tags.paths
-                             and "&days=2&tail=1" in html and "window.jhWarehouseDailyTail(" in html)
+                    state = {"asset_sha256":hashlib.sha256(deployed_js).hexdigest(),
+                             "expected_sha256":hashlib.sha256((ROOT / "jh-warehouse-routing.js").read_bytes()).hexdigest(),
+                             "script_present":"/jh-warehouse-routing.js" in tags.paths,
+                             "tail_query_present":"&days=2&tail=1" in html,
+                             "tail_normalizer_present":"window.jhWarehouseDailyTail(" in html}
+                    ready = state["asset_sha256"] == state["expected_sha256"] and all(state[k] for k in ("script_present","tail_query_present","tail_normalizer_present"))
+                    proof["pages_readiness"] = state
+                    print(json.dumps({"phase":"pages_readiness",**state}),flush=True)
                     if ready: break
-                except Exception:
-                    pass
-                if attempt == 30:
+                except Exception as exc:
+                    proof["pages_readiness"] = {"error":str(exc)[:180]}
+                    print(json.dumps({"phase":"pages_readiness",**proof["pages_readiness"]}),flush=True)
+                if attempt == 6:
                     raise ValueError("Pages routing assets did not reach the edge within the readiness window")
-                time.sleep(10)
+                time.sleep(5)
             proof["pages"] = {"routing_js_sha256":hashlib.sha256(deployed_js).hexdigest(),"chart_hooks_present":True}
             bank = invoke("justhodl-symdir",{"mode":"warehouse-ohlc","symbol":"AAPL","span":"day"},http=True)
             if bank.get("warehouse_empty") is not False or not bank.get("bars") or bank.get("vendor_requests") != 0:
@@ -135,9 +155,8 @@ def main():
             proof["symdir"] = {k:v for k,v in bank.items() if k != "bars"}
             proof["symdir"]["count"] = len(bank["bars"])
             url = "https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=AAPL&span=day&days=12000&ops=5503"
-            with urllib.request.urlopen(url,timeout=90) as response:
-                worker = json.load(response)
-                worker_status = response.status
+            worker = json.loads(public_bytes(url+"&run="+nonce))
+            worker_status = 200
             if worker.get("source") != "warehouse" or worker.get("warehouse_key") != bank["warehouse_key"]:
                 raise ValueError("Worker did not serve the verified AAPL warehouse bank")
             if len(worker.get("bars",[])) != len(bank["bars"]):
