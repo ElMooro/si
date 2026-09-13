@@ -65,21 +65,6 @@ def _workers(store):
     return row, etag
 
 
-def chat_snapshot(store, agent, owner):
-    log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
-    workers, _ = _workers(store)
-    return {
-        "ok": True,
-        "agent": agent,
-        "owner": owner,
-        "roster": list(ROSTER),
-        "messages": (log or {}).get("messages", [])[-CHAT_KEEP:],
-        "workers": {"active": len((workers or {}).get("active") or []), "queued": len((workers or {}).get("queued") or []),
-                    "retired": (workers or {}).get("retired") or 0, "cap": ACTIVE_WORKER_CAP},
-    }
-
-
-
 def _fleet_meta(store):
     row, etag = store.read(store.private, "factory/fleet/meta.json")
     if not isinstance(row, dict):
@@ -369,13 +354,13 @@ LEARN_TRACKS = {
             {
                 "id": "learn-how-to-learn",
                 "title": "Stage 0 — How to learn how to code",
-                "pages": ["Deliberate practice", "Test-driven development", "Rubber duck debugging"],
+                "pages": ["K. Anders Ericsson", "Worked-example effect", "Test-driven development"],
                 "drill": "Do not binge tutorials. Pick one failing protected-exam case. Restate the failure in one sentence. Write a smaller failing test. That loop is how Microsoft-level engineers actually get good: feedback, not videos.",
             },
             {
                 "id": "language",
                 "title": "Stage 1 — Language as a tool",
-                "pages": ["Python (programming language)", "Software documentation", "Readability"],
+                "pages": ["Python (programming language)", "Software documentation", "Programming style"],
                 "drill": "Read 40 lines of JustHodl Python. Name every identifier. If you cannot, the code is the lesson.",
             },
             {
@@ -393,7 +378,7 @@ LEARN_TRACKS = {
             {
                 "id": "collab",
                 "title": "Stage 4 — Work like a team that ships",
-                "pages": ["Git", "Code review", "Software versioning"],
+                "pages": ["Git", "Code review", "Version control"],
                 "drill": "One bounded diff. One reason. One test. That is a Microsoft review, not a dump.",
             },
             {
@@ -419,7 +404,7 @@ LEARN_TRACKS = {
     "investing": {
         "title": "Investing doctrine",
         "agent": "investor",
-        "pages": ["Jesse Livermore", "Wyckoff method", "George Soros", "Stanley Druckenmiller"],
+        "pages": ["Jesse Livermore", "Richard Wyckoff", "George Soros", "Stanley Druckenmiller"],
         "why": "Principle cards from the public record. Evidence before size. No orders.",
     },
 }
@@ -431,32 +416,46 @@ def _detect_tracks(text, target):
     if not asked:
         return []
     found = []
-    if target == "coder" or any(w in low for w in ("code", "coding", "python", "unit test", "git", "program")):
+    if any(w in low for w in ("code", "coding", "python", "unit test", "git", "program", "engineer")):
         found.append("code")
     if any(w in low for w in ("market", "stock", "bond", "yield", "tape", "spy", "qqq")):
         found.append("markets")
-    if target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") or any(
-        w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")
-    ):
+    if any(w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")):
         found.append("investing")
     if not found:
-        found = ["code", "markets", "investing"]
+        found = ["code"] if target == "coder" else (["investing"] if target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") else ["code"])
     out = []
     for name in ("code", "markets", "investing"):
         if name in found:
             out.append(name)
-    return out[:3]
+    return out[:1]
 
 
 def _wiki_summary(title):
     slug = title.replace(" ", "_")
     url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(slug, safe="()_,-")
-    data = _http_json(url, timeout=5)
+    data = _http_json(url, timeout=4)
     extract = re.sub(r"\s+", " ", (data.get("extract") or "")).strip()
     page = ((data.get("content_urls") or {}).get("desktop") or {}).get("page") or ("https://en.wikipedia.org/wiki/" + slug)
     if not extract:
         raise RuntimeError("empty_summary")
     return {"source": "wikipedia", "title": data.get("title") or title, "url": page, "snippet": extract[:520]}
+
+
+def _wiki_many(titles):
+    from concurrent.futures import ThreadPoolExecutor
+    hits = []
+    titles = [t for t in (titles or []) if t][:4]
+    if not titles:
+        return hits
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futs = [pool.submit(_wiki_summary, t) for t in titles]
+        for fut in futs:
+            try:
+                hits.append(fut.result(timeout=5))
+            except Exception:
+                pass
+    return hits
 
 
 def _learn_track(store, track, state):
@@ -475,21 +474,10 @@ def _learn_track(store, track, state):
     else:
         cur_key, etag = None, None
         pages = spec.get("pages") or []
-    hits = []
-    t0 = time.time()
-    for page in pages:
-        if time.time() - t0 > 10:
-            break
+    hits = _wiki_many(pages)
+    if track == "code" and stage_idx == 0:
         try:
-            hits.append(_wiki_summary(page))
-        except Exception:
-            try:
-                hits.extend(_look_outside(page)[:1])
-            except Exception:
-                pass
-    if track == "code" and stage_idx == 0 and time.time() - t0 < 10:
-        try:
-            repo = _http_json("https://api.github.com/repos/ossu/computer-science", timeout=5,
+            repo = _http_json("https://api.github.com/repos/ossu/computer-science", timeout=4,
                               headers={"Accept": "application/vnd.github+json"})
             hits.append({
                 "source": "github",
@@ -497,24 +485,6 @@ def _learn_track(store, track, state):
                 "url": repo.get("html_url") or "https://github.com/ossu/computer-science",
                 "snippet": (repo.get("description") or "Open Source Society University — CS path")[:300],
             })
-        except Exception:
-            pass
-    if spec.get("hf") and time.time() - t0 < 10:
-        try:
-            models = _http_json(
-                "https://huggingface.co/api/models?search=%s&limit=3" % urllib.parse.quote(spec["hf"]),
-                timeout=5,
-            )
-            if isinstance(models, list):
-                for model in models[:3]:
-                    mid = model.get("modelId") or model.get("id") or ""
-                    if mid:
-                        hits.append({
-                            "source": "huggingface",
-                            "title": mid,
-                            "url": "https://huggingface.co/" + mid,
-                            "snippet": "downloads=%s tags=%s" % (model.get("downloads"), (model.get("tags") or [])[:5]),
-                        })
         except Exception:
             pass
     warehouse = _outside_facts(store, state) if track in ("markets", "investing") else ""
@@ -538,13 +508,33 @@ def _learn_track(store, track, state):
         store.immutable(store.private, "factory/fleet/learn/%s/%s.json" % (track, digest(track + now)[:16]), lesson)
     except Exception:
         pass
-    if cur_key:
+    if cur_key and hits:
         try:
             store.put(store.private, cur_key, {"stage": stage_idx + 1, "last": (stage or {}).get("id"), "updated_at": now},
                       etag=etag, absent=etag is None)
         except Exception:
             pass
     return lesson
+    low = " ".join((text or "").lower().split())
+    asked = any(w in low for w in ("learn", "study", "teach", "curriculum", "go look", "how to code", "how to invest"))
+    if not asked:
+        return []
+    found = []
+    if target == "coder" or any(w in low for w in ("code", "coding", "python", "unit test", "git", "program")):
+        found.append("code")
+    if any(w in low for w in ("market", "stock", "bond", "yield", "tape", "spy", "qqq")):
+        found.append("markets")
+    if target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") or any(
+        w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")
+    ):
+        found.append("investing")
+    if not found:
+        found = ["code", "markets", "investing"]
+    out = []
+    for name in ("code", "markets", "investing"):
+        if name in found:
+            out.append(name)
+    return out[:3]
 
 
 def _brain_chat(store, target, text, state, owner):
@@ -574,17 +564,20 @@ def _brain_chat(store, target, text, state, owner):
         _bank_research(store, text, hits)
     except Exception:
         pass
-    outside = _outside_facts(store, state)
+    outside = _outside_facts(store, state) if not lessons else ""
     lines = []
     model = "brain+look"
-    if not ep:
+    if lessons:
+        lines.append("INSIDE — Brain notes skipped this turn so the curriculum look finishes inside the Worker budget.")
+        model = "curriculum+" + (lessons[0].get("track") or "look")
+    elif not ep:
         lines.append("INSIDE: Brain retrieval is not InService.")
     else:
         try:
             import brain_dataset as bd
             import sm_hub
             rt = boto3.client("sagemaker-runtime", region_name="us-east-1",
-                              config=Config(connect_timeout=3, read_timeout=15, retries={"max_attempts": 2}))
+                              config=Config(connect_timeout=2, read_timeout=8, retries={"max_attempts": 1}))
             vecs = sm_hub.embed_texts(rt, ep, [text[:1500]])
             vec = vecs[0] if vecs else None
         except Exception as exc:
@@ -645,7 +638,7 @@ def _brain_chat(store, target, text, state, owner):
     if outside:
         lines.append("WAREHOUSE — " + outside[:500])
     public_ctx = json.dumps(hits)[:2200] + "\n" + (outside or "")
-    think = _public_think(text, public_ctx) if hits else ""
+    think = "" if lessons else (_public_think(text, public_ctx) if hits else "")
     if think:
         lines.append("THINKING")
         lines.append(think)
