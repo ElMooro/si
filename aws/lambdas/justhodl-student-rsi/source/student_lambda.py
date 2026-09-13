@@ -309,7 +309,7 @@ def tick(event, store, lam):
         if policy['enabled']:
             try:
                 meta, etag = store.read(store.private, 'factory/fleet/meta.json')
-                if isinstance(meta, dict):
+                if isinstance(meta, dict) and etag:
                     queued = max(0, int(meta.get('queued') or 0))
                     take = min(100, queued)
                     meta = {**meta, 'queued': queued - take,
@@ -317,7 +317,7 @@ def tick(event, store, lam):
                             'inflight': min(8, queued),
                             'learn_bytes': int(meta.get('learn_bytes') or 0) + take * 64,
                             'updated_at': iso(now)}
-                    store.put(store.private, 'factory/fleet/meta.json', meta, etag=etag, absent=etag is None)
+                    store.put(store.private, 'factory/fleet/meta.json', meta, etag=etag, absent=False)
             except Exception as exc:
                 state['health']['errors'].append({'phase': 'fleet', 'error': code(exc), 'detail': str(exc)[:120]})
             outer = state['outer_status']
