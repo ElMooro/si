@@ -48,7 +48,7 @@ def actor(event, invites):
 
 
 
-ROSTER = ("student", "coder", "researcher", "investor", "deployer", "livermore", "wyckoff", "soros", "druckenmiller")
+ROSTER = ("model", "student", "coder", "researcher", "investor", "deployer", "livermore", "wyckoff", "soros", "druckenmiller")
 COMPUTE_INFLIGHT = 8
 MATERIALIZE_PER_TICK = 100
 DECLARE_CAP = 1000000
@@ -89,7 +89,7 @@ def chat_snapshot(store, agent, owner):
     log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
     meta, _ = _fleet_meta(store)
     return {
-        "ok": True, "agent": agent, "owner": owner, "roster": list(ROSTER),
+        "ok": True, "agent": agent, "owner": owner, "roster": list(ROSTER), "live_model": "brain",
         "messages": (log or {}).get("messages", [])[-CHAT_KEEP:],
         "workers": {
             "active": int(meta.get("inflight") or 0),
@@ -156,48 +156,70 @@ def _snapshot_text(state):
         len(book) if isinstance(book, list) else book, exam, wall.get("graded"), wall.get("pending"), state.get("generation"))
 
 
-def _fallback_reply(target, text, state, spawned):
-    low = (text or "").lower()
-    if any(w in low for w in ("code", "coding", "program", "script", "learn to code", "write code")):
-        return ("Yes. Coding is already a live Gear A loop, not a slogan. Every tick I sit a protected exam "
-                "(64 cases, baseline 25 percent) and I keep only repairs that grade independently. That is how I learn to code: "
-                "verified skillbook entries, not weight training. Tell me a JustHodl file, a failing test, or a chart/volume bug "
-                "and I will dispatch Coder with a bounded patch. I will not claim I became a new model in this chat.")
-    if any(w in low for w in ("chart", "volume", "qr", "tape", "pepe")):
-        return "Coder: chart v12 is live on /chart.html with QR tape, warehouse volume and value-area profile. What should change next?"
-    if any(w in low for w in ("spy", "qqq", "market", "predict", "crisis", "wall")):
-        return "Investor: CLUB WALL opens Monday 09:30 ET and locks 09:35. I can draft SPY/QQQ/IWM/TLT/GLD/BTC from Livermore/Wyckoff/Soros/Druckenmiller. I do not place orders."
-    if spawned:
-        return "Fleet accepted %s task cards on the same 8 compute slots. They queue; they are not new Lambdas. What should those cards work on?" % spawned
-    return ("I am %s. Ask a concrete JustHodl job — a file to repair, a name to research, a wall card, a fleet task. "
-            "I will not recap infrastructure unless you ask how the factory scales." % target)
 
-
-def _llm_reply(target, text, state, owner, history):
+def _brain_chat(store, target, text, state, owner):
+    """Talk to Khalid's SageMaker Brain — retrieval + classifier + his notes. Never Claude."""
+    if not owner:
+        return "Owner Brain chat only.", "guest-blocked"
+    pipe, _ = store.read(store.private, "ai/pipeline/state.json")
+    pipe = pipe if isinstance(pipe, dict) else {}
+    ep = pipe.get("retrieval_endpoint") or pipe.get("embedding_endpoint")
+    clf = pipe.get("classifier_endpoint")
+    ds_id = pipe.get("dataset_id")
+    if not ep:
+        return ("Your Brain has no live retrieval endpoint. I will not answer as Claude. "
+                "Run Learn from the Brain on this page so your embedding endpoint is InService."), "brain-offline"
     try:
-        from llm_router import complete
-    except Exception:
-        return ""
-    prior = []
-    for row in (history or [])[-8:]:
-        who = "Khalid" if row.get("role") in ("owner", "guest") else (row.get("from") or "agent")
-        prior.append("%s: %s" % (who, str(row.get("text") or "")[:500]))
-    system = VOICES.get(target, VOICES["student"]) + (
-        " Owner is Khalid. Answer the actual question in first person. Be specific. "
-        "Do not repeat a canned infrastructure paragraph. Do not claim ASI or illegal access. "
-        "If asked whether you can learn to code, explain the protected exam and skillbook, then offer the next concrete step."
-    )
-    prompt = "Factory snapshot: %s\n\nRecent chat:\n%s\n\nKhalid: %s\n%s:" % (
-        _snapshot_text(state), "\n".join(prior) or "(none)", text.strip(), target)
+        import brain_dataset as bd
+        import sm_hub
+    except Exception as exc:
+        return ("Brain modules unavailable (%s). Not falling back to Claude." % type(exc).__name__), "brain-import"
+    rt = boto3.client("sagemaker-runtime", region_name="us-east-1",
+                      config=Config(connect_timeout=3, read_timeout=25, retries={"max_attempts": 2}))
     try:
-        out = complete(prompt, tier="critical" if owner else "bulk", max_tokens=700,
-                       contains_proprietary=bool(owner), system=system, on_demand=True, no_cache=True)
-        text_out = (out or "").strip()
-        if text_out.lower().startswith("heard:"):
-            return ""
-        return text_out[:4000]
-    except Exception:
-        return ""
+        vecs = sm_hub.embed_texts(rt, ep, [text[:1500]])
+        vec = vecs[0] if vecs else None
+    except Exception as exc:
+        return ("Your embedding endpoint %s did not answer (%s). Not Claude." % (ep, type(exc).__name__), "brain-error")
+    if not vec:
+        return ("Your model %s returned an empty vector. Not Claude." % ep), "brain-empty"
+    ranked = []
+    if clf:
+        try:
+            pred = sm_hub.predict_csv(rt, clf, [vec])
+            man = None
+            if ds_id:
+                man, _ = store.read(store.private, "ai/datasets/brain/%s/manifest.json" % ds_id)
+            labels = (man or {}).get("labels") or bd.CATS
+            p0 = pred[0] if pred else None
+            if isinstance(p0, list) and labels and len(p0) == len(labels):
+                ranked = sorted(zip(labels, [float(x) for x in p0]), key=lambda kv: -kv[1])
+        except Exception:
+            ranked = []
+    notes = []
+    if ds_id:
+        try:
+            notes = bd.nearest_notes(store.s3, store.private, ds_id, ep, vec, k=6) or []
+        except Exception:
+            notes = []
+    lines = ["This is YOUR Brain — SageMaker `%s`, not Claude." % ep]
+    if ranked:
+        lines.append("Classifier: " + ", ".join("%s %.0f%%" % (lab, p * 100) for lab, p in ranked[:4]))
+    if notes:
+        lines.append("Closest of your notes:")
+        for n in notes[:5]:
+            snippet = " ".join(str(n.get("text") or "").split())[:240]
+            lines.append("• [%s · %.2f] %s" % (n.get("label") or "note", float(n.get("similarity") or 0), snippet))
+    else:
+        lines.append("No nearby notes in the index yet. Label more Brain notes and re-embed.")
+    low = text.lower()
+    if target == "coder" or any(w in low for w in ("code", "coding", "program")):
+        lines.append("I learn to code the way this factory is built: protected exams, keep what grades. Point me at a JustHodl file or a failing test and Coder will queue a bounded repair.")
+    elif target == "investor" or any(w in low for w in ("spy", "qqq", "market", "predict")):
+        lines.append("Investor stays research-only. I can draft a CLUB WALL card from your notes plus delayed tape. I do not place orders.")
+    else:
+        lines.append("Ask the next concrete thing. I will keep answering from this Brain.")
+    return "\n".join(lines), ep
 
 
 def chat_post(store, agent, owner, body, policy):
@@ -208,11 +230,11 @@ def chat_post(store, agent, owner, body, policy):
     if not isinstance(text, str) or not text.strip() or len(text) > 4000:
         raise Invalid("chat_text_required")
     try:
-        target = identifier(str(body.get("to") or "student"))
+        target = identifier(str(body.get("to") or "model"))
     except Invalid:
-        target = "student"
+        target = "model"
     if target not in ROSTER:
-        target = "student"
+        target = "model"
     spawn_n = 0
     if "spawn" in body and body.get("spawn") not in (None, "", 0, "0"):
         try:
@@ -221,8 +243,7 @@ def chat_post(store, agent, owner, body, policy):
             raise Invalid("spawn_count_required")
     spawned = None
     want = spawn_n
-    low = text.lower()
-    if owner and not want and any(w in low for w in ("spawn", "create agents", "create workers", "hire")):
+    if owner and not want and any(w in text.lower() for w in ("spawn", "create agents", "create workers", "hire")):
         want = 8
     if want:
         if not owner:
@@ -232,16 +253,18 @@ def chat_post(store, agent, owner, body, policy):
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
     history = list((log or {}).get("messages") or [])
-    reply = _llm_reply(target, text, state, owner, history) or _fallback_reply(target, text, state, (spawned or {}).get("created"))
+    reply, model = _brain_chat(store, target, text, state, owner)
     now = iso(store.clock())
     user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
-    bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "spawn": (spawned or {}).get("created")}
+    bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "model": model,
+               "spawn": (spawned or {}).get("created")}
     messages = (history + [user_msg, bot_msg])[-CHAT_KEEP:]
-    store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now},
+    store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now, "model": model},
               etag=etag, absent=etag is None)
     store.immutable(store.private, "factory/fleet/learn/chat/" + user_msg["id"] + ".json",
-                    {"kind": "chat", "at": now, "from": agent, "to": target, "text": text.strip()[:500], "reply": reply[:500]})
-    return {"ok": True, "to": target, "reply": reply, "messages": messages[-12:], "workers": spawned or chat_snapshot(store, agent, owner).get("workers")}
+                    {"kind": "chat", "at": now, "from": agent, "to": target, "text": text.strip()[:500], "model": model})
+    snap = spawned or chat_snapshot(store, agent, owner).get("workers")
+    return {"ok": True, "to": target, "reply": reply, "model": model, "messages": messages[-16:], "workers": snap}
 
 
 
