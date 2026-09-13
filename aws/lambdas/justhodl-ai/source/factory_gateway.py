@@ -49,8 +49,9 @@ def actor(event, invites):
 
 
 ROSTER = ("student", "coder", "researcher", "investor", "deployer", "livermore", "wyckoff", "soros", "druckenmiller")
-ACTIVE_WORKER_CAP = 48
-SPAWN_PER_MESSAGE = 25
+COMPUTE_INFLIGHT = 8
+MATERIALIZE_PER_TICK = 100
+DECLARE_CAP = 1000000
 CHAT_KEEP = 80
 
 
@@ -75,6 +76,33 @@ def chat_snapshot(store, agent, owner):
     }
 
 
+
+def _fleet_meta(store):
+    row, etag = store.read(store.private, "factory/fleet/meta.json")
+    if not isinstance(row, dict):
+        row = {"schema_version": "factory-fleet.v1", "declared": 0, "materialized": 0, "inflight": 0,
+               "queued": 0, "retired": 0, "learn_bytes": 0, "compute_inflight_cap": COMPUTE_INFLIGHT}
+    return row, etag
+
+
+def chat_snapshot(store, agent, owner):
+    log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
+    meta, _ = _fleet_meta(store)
+    return {
+        "ok": True, "agent": agent, "owner": owner, "roster": list(ROSTER),
+        "messages": (log or {}).get("messages", [])[-CHAT_KEEP:],
+        "workers": {
+            "active": int(meta.get("inflight") or 0),
+            "queued": int(meta.get("queued") or 0),
+            "declared": int(meta.get("declared") or 0),
+            "materialized": int(meta.get("materialized") or 0),
+            "retired": int(meta.get("retired") or 0),
+            "cap": COMPUTE_INFLIGHT,
+            "note": "Same 8 compute slots at 1 or 1,000,000 agents. Extra cards queue. Learning log expands.",
+        },
+    }
+
+
 def spawn_workers(store, agent, body, policy):
     task = str(body.get("task") or body.get("text") or "").strip()
     role = identifier(str(body.get("role") or "researcher"))[:40]
@@ -84,115 +112,87 @@ def spawn_workers(store, agent, body, policy):
         count = 0
     if count < 0:
         raise Invalid("spawn_count_required")
-    if count > SPAWN_PER_MESSAGE:
-        count = SPAWN_PER_MESSAGE
+    count = min(count, DECLARE_CAP)
     if not task or len(task) > 2000:
         raise Invalid("spawn_task_required")
     if role in ("owner",) or role.startswith("teacher-"):
         raise Invalid("reserved_agent_name")
-    workers, etag = _workers(store)
-    active = list(workers.get("active") or [])
-    queued = list(workers.get("queued") or [])
-    created = []
     now = iso(store.clock())
-    for i in range(count):
-        wid = identifier(role) + "-" + digest({"t": task, "i": i, "at": now})[:10]
-        card = {"id": wid, "role": role, "task": task[:500], "status": "active" if len(active) < ACTIVE_WORKER_CAP else "queued",
-                "spawned_by": agent, "spawned_at": now}
-        if card["status"] == "active":
-            active.append(card)
-        else:
-            queued.append(card)
-        created.append(card)
-        store.immutable(store.private, "factory/workers/" + wid + ".json", card)
-    workers = {**workers, "active": active[-ACTIVE_WORKER_CAP:], "queued": queued[-500:],
-               "updated_at": now, "spawned_by": agent}
-    store.put(store.private, "factory/salon/workers.json", workers, etag=etag, absent=etag is None)
-    return {"ok": True, "created": len(created), "active": len(active), "queued": len(queued),
-            "cap": ACTIVE_WORKER_CAP, "note": "Live workers are capped at %s. Extra cards queue; they are not new AWS accounts or Lambdas." % ACTIVE_WORKER_CAP,
-            "workers": created[:SPAWN_PER_MESSAGE]}
+    batch_id = "batch-" + digest({"agent": agent, "task": task, "at": now, "n": count})[:16]
+    batch = {"schema_version": "factory-fleet-batch.v1", "id": batch_id, "role": role, "task": task[:500],
+             "requested": count, "remaining": count, "materialized": 0, "spawned_by": agent, "spawned_at": now}
+    store.immutable(store.private, "factory/fleet/batches/" + batch_id + ".json", batch)
+    store.immutable(store.private, "factory/fleet/inbox/" + batch_id + ".json", {"batch": batch_id, "at": now})
+    meta, etag = _fleet_meta(store)
+    meta = {**meta, "declared": int(meta.get("declared") or 0) + count,
+            "queued": int(meta.get("queued") or 0) + count, "updated_at": now, "last_batch": batch_id}
+    store.put(store.private, "factory/fleet/meta.json", meta, etag=etag, absent=etag is None)
+    return {"ok": True, "created": count, "batch": batch_id, "active": int(meta.get("inflight") or 0),
+            "queued": int(meta.get("queued") or 0), "declared": meta["declared"], "cap": COMPUTE_INFLIGHT,
+            "note": "Accepted %s %s cards. Compute stays %s live slots. The tick materializes 100/min so the control plane never changes." % (count, role, COMPUTE_INFLIGHT)}
 
 
 def _fallback_reply(target, text, state, spawned):
-    agents = ", ".join(a.get("name") or a.get("id") for a in (state or {}).get("agents") or [])
     bits = [
         "I am %s on Khalid's factory desk." % target,
-        "Live roster: %s." % (agents or "Student, Coder, Researcher, Investor, Deployer and the four principle cards"),
+        "Same infrastructure at any fleet size: 8 live compute slots, a queue, an expanding learning log.",
         "I will not place orders, touch IAM, or train weights.",
     ]
     low = text.lower()
     if any(w in low for w in ("chart", "volume", "qr", "tape", "pepe")):
-        bits.append("Coder/Researcher: chart v12 is live on /chart.html — QR tape, warehouse volume, VP. Say what to change.")
+        bits.append("Coder: chart v12 is live on /chart.html (QR tape, warehouse volume, VP). Tell me the next repair.")
     if any(w in low for w in ("spy", "qqq", "market", "wall", "predict", "crisis")):
-        bits.append("Investor: CLUB WALL locks Monday 09:30 ET. I can draft a SPY/QQQ/IWM/TLT/GLD/BTC card for you to lock.")
+        bits.append("Investor: CLUB WALL locks Monday 09:30 ET. I can draft SPY/QQQ/IWM/TLT/GLD/BTC from here.")
     if spawned:
-        bits.append("Spawned %s task worker(s). Live cap is %s concurrent cards; the rest queue." % (spawned, ACTIVE_WORKER_CAP))
+        bits.append("Fleet batch accepted: %s cards. They queue; they do not create new Lambdas." % spawned)
     if "billion" in low or "million" in low:
-        bits.append("I will not create millions of AWS functions. I will create task cards up to the cap and queue the rest.")
+        bits.append("A million cards is a counter + queue. Learning storage grows. Compute does not.")
     bits.append("Heard: %s" % text[:280])
     return " ".join(bits)
 
 
-def _llm_reply(target, text, state, owner):
-    try:
-        from llm_router import complete
-    except Exception:
-        return ""
-    season = (state or {}).get("season") or {}
-    wall = (state or {}).get("wall") or {}
-    system = (
-        "You are %s, a named agent on JustHodl Compound Factory (Gear A). "
-        "Owner is Khalid. Speak in first person as that agent. Be concrete. "
-        "You may propose repairs, research, wall cards, and spawning task workers. "
-        "You may not hack, place broker orders, request IAM, paid-API keys, or claim ASI. "
-        "Live workers cap %s; extra spawn queues. Principle cards stay doctrine, not personas. "
-        "Season %s. Wall graded %s pending %s. "
-        "If the owner asks for millions of agents, explain the cap and still spawn a useful batch."
-        % (target, ACTIVE_WORKER_CAP, season.get("id"), wall.get("graded"), wall.get("pending"))
-    )
-    prompt = "Owner message:\n%s" % text
-    try:
-        out = complete(prompt, tier="critical" if owner else "bulk", max_tokens=700,
-                       contains_proprietary=bool(owner), system=system, on_demand=True, no_cache=True)
-        return (out or "").strip()[:4000]
-    except Exception:
-        return ""
-
-
 def chat_post(store, agent, owner, body, policy):
-    if set(body) - {"text", "to", "spawn", "role", "task"}:
+    allowed = {"text", "to", "spawn", "role", "task"}
+    if set(body) - allowed:
         raise Invalid("chat_schema_required")
     text = body.get("text")
     if not isinstance(text, str) or not text.strip() or len(text) > 4000:
         raise Invalid("chat_text_required")
-    target = identifier(str(body.get("to") or "student"))
+    try:
+        target = identifier(str(body.get("to") or "student"))
+    except Invalid:
+        target = "student"
     if target not in ROSTER:
         target = "student"
     spawn_n = 0
-    if "spawn" in body:
+    if "spawn" in body and body.get("spawn") not in (None, "", 0, "0"):
         try:
             spawn_n = max(0, int(body.get("spawn") or 0))
         except (TypeError, ValueError):
             raise Invalid("spawn_count_required")
     spawned = None
-    if spawn_n or (owner and any(w in text.lower() for w in ("spawn", "create agents", "create workers", "hire"))):
+    want = spawn_n
+    low = text.lower()
+    if owner and not want and any(w in low for w in ("spawn", "create agents", "create workers", "hire", "million", "billion")):
+        want = 100
+    if want:
         if not owner:
             raise Invalid("owner_invitation_required")
-        n = spawn_n or 8
-        spawned = spawn_workers(store, agent, {"count": n, "role": body.get("role") or "researcher", "task": body.get("task") or text}, policy)
+        spawned = spawn_workers(store, agent, {"count": want, "role": body.get("role") or "researcher", "task": body.get("task") or text}, policy)
     state, _ = store.read(store.public, "data/student-state.json")
-    reply = _llm_reply(target, text, state, owner) or _fallback_reply(target, text, state, (spawned or {}).get("created"))
+    reply = _fallback_reply(target, text, state, (spawned or {}).get("created"))
     now = iso(store.clock())
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
     messages = list((log or {}).get("messages") or [])
-    messages.append({"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()})
-    messages.append({"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply,
-                     "spawn": (spawned or {}).get("created")})
-    messages = messages[-CHAT_KEEP:]
+    user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
+    bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "spawn": (spawned or {}).get("created")}
+    messages = (messages + [user_msg, bot_msg])[-CHAT_KEEP:]
     store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now},
               etag=etag, absent=etag is None)
-    return {"ok": True, "to": target, "reply": reply, "messages": messages[-12:], "workers": spawned}
+    store.immutable(store.private, "factory/fleet/learn/chat/" + user_msg["id"] + ".json",
+                    {"kind": "chat", "at": now, "from": agent, "to": target, "text": text.strip()[:500]})
+    return {"ok": True, "to": target, "reply": reply, "messages": messages[-12:], "workers": spawned or chat_snapshot(store, agent, owner).get("workers")}
 
 
 
