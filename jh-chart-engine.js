@@ -385,7 +385,7 @@
       lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
     var urls=[
-      PROXY+"/ohlc?ticker="+encodeURIComponent(t),
+      PROXY+"/ohlc?ticker="+encodeURIComponent(t)+"&span="+((/^[0-9]+[sm]$/.test(tfId)||tfId==="1m"||tfId==="3m"||tfId==="5m"||tfId==="15m"||tfId==="30m"||tfId==="45m")?"minute": (/h$/.test(tfId)?"hour":"day")),
       PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
       PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+sp[3]+"&interval="+sp[2],
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
@@ -398,7 +398,7 @@
     for(var i=0;i<urls.length;i++){
       try{
         var raw=await fetchJson(urls[i]); var d=toBars(raw);
-        if(d.length>=8){
+        if(d.length>8000) d=d.slice(-8000); if(d.length>=8){
           lastSource=(raw&& (raw.warehouse_key||raw.source)) || (urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           if(!raw.warehouse_key && scored<d.length*0.2 && i<urls.length-1) continue;
@@ -1301,7 +1301,7 @@
     var t=atTime, last=lastBars.length?lastBars[lastBars.length-1]:null;
     if(t==null && last) t=last.time;
     function v(id){ var n=valAt(overlayMap[id], t); return n==null?"": " "+fmt(n); }
-    document.getElementById("legend").innerHTML="<div style='color:var(--fg);font-weight:500;margin-bottom:4px'>"+active+" · "+tf+(compare.length?" + "+compare.join(" "):"")+"</div>"+INDS.filter(function(i){return i.on;}).map(function(i){ return "<button style=color:"+i.c+" data-i='"+i.id+"'>"+i.n+v(i.id)+"</button>"; }).join("")+OSC.filter(function(o){return o.on;}).map(function(o){ return "<button style=color:"+ACC+" data-o='"+o.id+"'>"+o.n+"</button>"; }).join("");
+    document.getElementById("legend").innerHTML="<div style='color:var(--fg);font-weight:500;margin-bottom:4px'>"+active+" · "+tf+(compare.length?" + "+compare.join(" "):"")+"</div>"+INDS.map(function(i){ return "<button style=color:"+i.c+";opacity:"+(i.on?1:.35)+" data-i='"+i.id+"'>"+(i.on?"◉ ":"○ ")+i.n+v(i.id)+"</button>"; }).join("")+OSC.filter(function(o){return o.on;}).map(function(o){ return "<button style=color:"+ACC+" data-o='"+o.id+"'>"+o.n+"</button>"; }).join("");
     document.querySelectorAll("#legend [data-i]").forEach(function(b){ b.onclick=function(e){ var i=INDS.find(function(x){return x.id===b.dataset.i;}); if(e.shiftKey && i.p){ var n=+prompt("Period", i.p); if(n>1){ i.p=n; i.n=i.n.replace(/\d+/, String(n)); } } else i.on=!i.on; if(lastBars.length) paint(lastBars); }; });
     document.querySelectorAll("#legend [data-o]").forEach(function(b){ b.onclick=function(){ var o=OSC.find(function(x){return x.id===b.dataset.o;}); o.on=!o.on; if(lastBars.length) paint(lastBars); }; });
   }
