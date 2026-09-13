@@ -168,25 +168,33 @@ def hourly_price(pricing, s3, bucket, instance_type: str, family: str = "hosting
         return ent
     usd, err = None, None
     try:
-        r = pricing.get_products(ServiceCode="AmazonSageMaker", MaxResults=100, Filters=[
-            {"Type": "TERM_MATCH", "Field": "regionCode", "Value": "us-east-1"},
-            {"Type": "TERM_MATCH", "Field": "instanceName", "Value": instance_type},
-        ])
-        usd = _price_from_products(r.get("PriceList") or [], SM_PRODUCT_FAMILY.get(family, family))
-        if usd is None:
-            r2 = pricing.get_products(ServiceCode="AmazonSageMaker", MaxResults=100, Filters=[
-                {"Type": "TERM_MATCH", "Field": "location", "Value": "US East (N. Virginia)"},
-                {"Type": "TERM_MATCH", "Field": "instanceName", "Value": instance_type},
-            ])
-            usd = _price_from_products(r2.get("PriceList") or [], SM_PRODUCT_FAMILY.get(family, family))
+        # Common instance types (ml.m5.*) carry more than 100 Price List rows across Hosting/Notebook/Studio/
+        # Training/Processing; the wanted family can sit on a later page, so pages are followed (bounded).
+        for filters in (
+            [{"Type": "TERM_MATCH", "Field": "regionCode", "Value": "us-east-1"}, {"Type": "TERM_MATCH", "Field": "instanceName", "Value": instance_type}],
+            [{"Type": "TERM_MATCH", "Field": "location", "Value": "US East (N. Virginia)"}, {"Type": "TERM_MATCH", "Field": "instanceName", "Value": instance_type}],
+        ):
+            token = None
+            for _page in range(6):
+                kwargs = {"ServiceCode": "AmazonSageMaker", "MaxResults": 100, "Filters": filters}
+                if token:
+                    kwargs["NextToken"] = token
+                r = pricing.get_products(**kwargs)
+                usd = _price_from_products(r.get("PriceList") or [], SM_PRODUCT_FAMILY.get(family, family))
+                token = r.get("NextToken")
+                if usd is not None or not token:
+                    break
+            if usd is not None:
+                break
         if usd is None:
             err = "no on-demand %s price row for %s in the Price List" % (family, instance_type)
     except Exception as e:
         err = str(e)[:140]
     ent = {"instance_type": instance_type, "family": family, "usd_per_hour": usd, "source": "aws-price-list", "fetched_at": time.time(),
            "fetched_at_iso": now_iso(), "error": err}
-    cache.setdefault("prices", {})[k] = ent
-    cache["updated_at"] = now_iso()
+    if usd is not None:      # never cache a miss: a transient Price List gap must not block spend for 24h
+        cache.setdefault("prices", {})[k] = ent
+        cache["updated_at"] = now_iso()
     try:
         _put_json(s3, bucket, PRICING_KEY, cache)
     except Exception:
