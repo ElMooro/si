@@ -64,13 +64,29 @@ def measure(program, cases, evaluation_id):
             'n': len(cases), 'passed': passed, 'score': passed / len(cases), 'critical_failures': len(cases) - passed}
 
 
-def quota(store, policy):
-    day = store.clock().date().isoformat()
-    key = 'factory/grader/daily/' + day + '.json'
+def quota_limit(policy):
+    return min(50, int(policy.get('max_grades_per_day', 0)))
+
+
+def quota_key(store):
+    return 'factory/grader/daily/' + store.clock().date().isoformat() + '.json'
+
+
+def quota_check(store, policy):
+    """Refuse before doing any work once the day's verdict budget is spent."""
+    current, _ = store.read(store.private, quota_key(store))
+    if (current or {}).get('count', 0) >= quota_limit(policy):
+        raise Invalid('grader_daily_limit')
+
+
+def quota_take(store, policy):
+    """Count one VERDICT. Polls that come back pending (week open, prints not yet written) cost nothing:
+    the wall may ask every few minutes and must not starve the day's real grades."""
+    key, day = quota_key(store), store.clock().date().isoformat()
     for _ in range(3):
         current, etag = store.read(store.private, key)
         count = (current or {}).get('count', 0)
-        if count >= min(50, int(policy.get('max_grades_per_day', 0))):
+        if count >= quota_limit(policy):
             raise Invalid('grader_daily_limit')
         try:
             store.put(store.private, key, {'count': count + 1, 'day': day}, etag=etag, absent=etag is None)
@@ -189,8 +205,11 @@ def handle(event, store):
     policy, _ = store.read(store.private, 'factory/control/policy.json')
     if not policy or policy.get('enabled') is not True:
         return {'ok': False, 'status': 'paused'}
-    quota(store, policy)
-    return {'code': grade_code, 'trace': grade_trace, 'market': grade_market}[event['kind']](store, event['id'])
+    quota_check(store, policy)
+    verdict = {'code': grade_code, 'trace': grade_trace, 'market': grade_market}[event['kind']](store, event['id'])
+    if verdict.get('status') != 'pending':
+        quota_take(store, policy)
+    return verdict
 
 
 def lambda_handler(event, context):

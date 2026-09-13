@@ -138,3 +138,24 @@ The visible role cards are responsibilities and principle cards. They are not ni
   symbol unwritten and the wall entry pending. Season 2 should re-freeze with dividend-adjusted closes.
 - **Not done here.** No holdout manifest yet (Ship 2), no generative model, Gear B off, xai tier
   (`grok_xai_tier`) not live fleet-wide — its shared-module deploy failed preflight on the importer closure.
+
+## Addendum 2026-09-13 (ops 5523) -- audit fixes: wall ledger, grader quota, verifier isolation, snapshot retention
+
+- **Wall ledger** (`factory/runtime/wall-ledger.json`, private, student-writable): a per-season memo of immutable
+  objects, never an authority. A wall pass now costs the *unfinalized* entries only: finalized weeks are never listed
+  again, only first-seen entries are read, the grader is asked only when official prints exist (one probe per
+  week/symbol per hour while they do not), and the pass stops at the tick deadline. Measured at 10 agents x 6
+  names x 13 weeks: ~100 S3 requests/pass steady (was ~3,100), 8 once every week is final, each entry graded once.
+  Losing the ledger costs one re-scan (`test_lost_ledger_costs_one_rescan_not_history`).
+- **Grader quota** counts terminal verdicts only; pending polls are free (`quota_check` before, `quota_take` after).
+  The 50/day ceiling is a work-unit limit: at 10 guests + student a week needs 60 verdicts, so raise
+  `max_grades_per_day` and the `min(50, ...)` clamp before inviting ten guests.
+- **Verifier** (`scripts/factory_code_verify.py`): each candidate runs as `nobody` in its own scratch directory;
+  the results directory is not writable by the candidate; rows record `verify_isolation`.
+- **Curriculum**: MBPP reference solutions carry CRLF (463/464) -- normalized in the fetcher and again at Gear B
+  dataset build, so rows already written keep their bytes in S3 and the training file is LF-only.
+- **Snapshots**: lifecycle rule `jh-factory-runtime-snapshots-3d` expires `factory/runtime/snapshots/` after 3
+  days (the store reads the newest 8). Sources under `factory/sources/` are evidence and are not expired.
+- **Student role** (runner-made, ops 5523): may read `factory/official-prints/*` and write the ledger key.
+- **Gate doctrine**: prove deploys by receipt CONTENT (source sha256s == checkout, code_sha256 == live), never by
+  `receipt.commit == HEAD` -- ops 5521 went RED on a commit that touched no Lambda.

@@ -224,66 +224,150 @@ def student_forecasts(store, state, now):
         store.immutable(store.private, 'factory/salon/accepted/' + entry_id + '.json', accepted)
 
 
-def market_wall(store, lam, state, now, deadline):
-    season = state['season']
-    records, grades, pending, events = [], [], 0, []
-    # Season bounded to 13 weeks and <=10 invited agents; older event objects remain immutable.
-    first = date.fromisoformat(season['starts_on'])
-    for week_i in range(season['weeks']):
-        week = (first + timedelta(weeks=week_i)).isoformat()
-        for key in keys(store, 'factory/salon/accepted/' + week + '-'):
-            entry, _ = store.read(store.private, key)
-            records.append(entry)
-            events.append(store.append_event('prediction', entry['id'], entry, public=True))
-            result, _ = store.read(store.private, 'factory/salon/results/' + entry['id'] + '.json')
-            if not result and timestamp(entry['window']['grade_after']) <= now and time.monotonic() < deadline:
-                outcome = grade(lam, 'market', entry['id'])
-                result, _ = store.read(store.private, 'factory/salon/results/' + entry['id'] + '.json')
-                if result and outcome != result:
-                    raise Invalid('protected_market_verdict_mismatch')
-            if result:
-                grades.append(result)
-                events.append(store.append_event('market-grade', 'grade-' + entry['id'], result, public=True))
-            else:
-                pending += 1
+LEDGER_KEY = 'factory/runtime/wall-ledger.json'
+TERMINAL = ('graded', 'void')
+POLL_BACKOFF_S = 3600
+
+
+def wall_ledger(store, season):
+    """Per-season memo of what the wall already knows. It is a cache of immutable objects, never an
+    authority: losing it costs one re-scan, and every event/result object stays where it was."""
+    ledger, etag = store.recoverable(store.private, LEDGER_KEY)
+    if not isinstance(ledger, dict) or ledger.get('season') != season['id'] or ledger.get('schema_version') != 'factory-wall-ledger.v1':
+        ledger = {'schema_version': 'factory-wall-ledger.v1', 'season': season['id'], 'entries': {}, 'final_weeks': [],
+                  'polls': {}, 'updated_at': None}
+    return ledger, etag
+
+
+def wall_scores(ledger, season):
+    graded = [dict(r, id=eid) for eid, r in ledger['entries'].items() if r.get('status') == 'graded' and r.get('metrics')]
     scores = {}
-    for result in grades:
-        if result.get('status') != 'graded':
-            continue
-        agent = result['agent']
+    for r in graded:
+        agent = r['agent']
         row = scores.setdefault(agent, {'agent': agent, 'graded_predictions': 0, 'weeks': set(), 'sum': 0,
               'crisis_brier_sum': 0, 'no_crisis_baseline_brier_sum': 0, 'missed_crises': 0, 'false_alarms': 0, 'elo': 1000.0})
+        m = r['metrics']
         row['graded_predictions'] += 1
-        row['weeks'].add(result['week'])
-        row['sum'] += result['metrics']['score']
-        row['crisis_brier_sum'] += result['metrics']['crisis_brier']
-        row['no_crisis_baseline_brier_sum'] += result['metrics']['no_crisis_baseline_brier']
-        row['missed_crises'] += int(result['metrics']['missed_crisis'])
-        row['false_alarms'] += int(result['metrics']['false_alarm'])
-    # Elo moves once per independent week, against a fixed 1000 reference.
+        row['weeks'].add(r['week'])
+        row['sum'] += m['score']
+        row['crisis_brier_sum'] += m['crisis_brier']
+        row['no_crisis_baseline_brier_sum'] += m['no_crisis_baseline_brier']
+        row['missed_crises'] += int(m['missed_crisis'])
+        row['false_alarms'] += int(m['false_alarm'])
+    # Elo moves once per independent week, against a fixed 1000 reference (display only).
     for agent, row in scores.items():
         for week in sorted(row['weeks']):
-            weekly = [r['metrics']['score'] for r in grades if r.get('status') == 'graded' and r['agent'] == agent and r['week'] == week]
+            weekly = [r['metrics']['score'] for r in graded if r['agent'] == agent and r['week'] == week]
             expected = 1 / (1 + 10 ** ((1000 - row['elo']) / 400))
             row['elo'] += season['elo_k'] * (sum(weekly) / len(weekly) - expected)
         row.update(independent_weeks=len(row.pop('weeks')), score=row.pop('sum') / row['graded_predictions'],
                    promotion_eligible=False, elo_use='display_only')
     rows = sorted(scores.values(), key=lambda row: (-row['score'], row['agent']))[:50]
+    return rows, len({r['week'] for r in graded})
+
+
+def market_wall(store, lam, state, now, deadline):
+    """One bounded pass. Costs scale with UNFINALIZED entries, not with the season: finalized weeks are
+    never listed again, first-seen entries are the only ones read, the independent grader is asked only
+    when official prints exist (or once an hour when their existence cannot be checked), and the pass
+    stops at the tick deadline instead of running into the Lambda timeout."""
+    season = state['season']
+    ledger, ledger_etag = wall_ledger(store, season)
+    entries, final_weeks, polls = ledger['entries'], set(ledger['final_weeks']), ledger['polls']
+    events, changed, complete, prints_seen, grader_calls = [], False, True, {}, 0
+    first = date.fromisoformat(season['starts_on'])
+    for week_i in range(season['weeks']):
+        week = (first + timedelta(weeks=week_i)).isoformat()
+        if week in final_weeks:
+            continue
+        window = week_window(week, season)
+        if timestamp(window['opens_at']) > now:
+            break  # future weeks hold nothing yet
+        if time.monotonic() >= deadline:
+            complete = False
+            break
+        week_keys = keys(store, 'factory/salon/accepted/' + week + '-')
+        for key in week_keys:
+            if time.monotonic() >= deadline:
+                complete = False
+                break
+            eid = key.rsplit('/', 1)[-1].removesuffix('.json')
+            rec = entries.get(eid)
+            if rec is None:
+                entry, _ = store.read(store.private, key)
+                events.append(store.append_event('prediction', entry['id'], entry, public=True))
+                rec = {'agent': entry['agent'], 'week': entry['week'], 'symbol': entry['symbol'], 'status': 'pending',
+                       'direction': entry['direction'], 'regime': entry['regime'], 'crisis_probability': entry['crisis_probability'],
+                       'grade_after': entry['window']['grade_after'], 'metrics': None}
+                entries[eid] = rec
+                changed = True
+            if rec['status'] in TERMINAL or timestamp(rec['grade_after']) > now:
+                continue
+            pk = rec['week'] + '/' + rec['symbol']
+            if pk not in prints_seen:
+                try:
+                    prints_seen[pk] = store.read(store.private, 'factory/official-prints/' + pk + '.json')[0] is not None
+                except Exception:  # read not granted yet -> unknown; poll the grader at most hourly instead
+                    prints_seen[pk] = None
+            may_ask = prints_seen[pk] is True or (prints_seen[pk] is None and (
+                not polls.get(pk) or (now - timestamp(polls[pk])).total_seconds() >= POLL_BACKOFF_S))
+            result = None
+            if prints_seen[pk] is not False:
+                result, _ = store.read(store.private, 'factory/salon/results/' + eid + '.json')
+            if not result and may_ask:
+                outcome = grade(lam, 'market', eid)
+                grader_calls += 1
+                if outcome.get('status') in TERMINAL:
+                    prints_seen[pk] = True       # the grader found verified prints: grade the rest of this week/symbol now
+                elif prints_seen[pk] is None:
+                    prints_seen[pk] = False      # one probe per week/symbol per hour is enough while prints are absent
+                    polls[pk] = iso(now)
+                    changed = True
+                result, _ = store.read(store.private, 'factory/salon/results/' + eid + '.json')
+                if result and outcome != result:
+                    raise Invalid('protected_market_verdict_mismatch')
+            if result and result.get('status') in TERMINAL:
+                events.append(store.append_event('market-grade', 'grade-' + eid, result, public=True))
+                metrics = result.get('metrics') or {}
+                rec.update(status=result['status'], reason=result.get('reason'), graded_at=result.get('graded_at'),
+                           metrics={k: metrics[k] for k in ('score', 'crisis_brier', 'no_crisis_baseline_brier', 'missed_crisis', 'false_alarm')} if metrics else None)
+                changed = True
+        else:
+            # Entries are only accepted inside the 5-minute open window; ten minutes after lock the set is fixed.
+            settled = timestamp(window['locks_at']) + timedelta(minutes=10) <= now
+            ids = [k.rsplit('/', 1)[-1].removesuffix('.json') for k in week_keys]
+            if settled and all(entries.get(i, {}).get('status') in TERMINAL for i in ids):
+                final_weeks.add(week)
+                changed = True
+            continue
+        break  # inner loop hit the deadline
+    if changed:
+        ledger.update(entries=entries, final_weeks=sorted(final_weeks), polls=polls, updated_at=iso(now))
+        try:
+            store.put(store.private, LEDGER_KEY, ledger, etag=ledger_etag, absent=ledger_etag is None)
+        except Exception as exc:  # a lost memo costs one re-scan; the immutable objects remain the authority
+            state['health']['errors'].append({'phase': 'wall-ledger', 'error': code(exc)})
+    rows, independent_weeks = wall_scores(ledger, season)
+    pending = sum(1 for r in entries.values() if r['status'] not in TERMINAL)
+    summaries = sorted(({'id': eid, **{k: r.get(k) for k in ('agent', 'week', 'symbol', 'direction', 'regime', 'crisis_probability', 'status')}}
+                        for eid, r in entries.items()), key=lambda r: (r['week'], r['agent'], r['symbol']))
     invitations, _ = store.read(store.private, 'factory/control/invites.json')
     invited = [{'agent': r['agent'], 'enabled': r['enabled']} for r in invitations['allowlist']]
     replace_view(store, 'factory/invites.json', {'capacity': 10, 'invited': invited, 'worldwide_after_completed_seasons': 3,
         'want_ads': [{'task': 'verified-math-traces', 'status': 'invite_only'}, {'task': 'weekly-market-forecasts', 'status': 'invite_only'}]})
     replace_view(store, 'factory/salon/board.json', {'schema_version': 'factory-board.v1', 'season': season['id'],
-        'generated_at': iso(now), 'top50': rows, 'invited': invited, 'entries': records[-100:], 'pending': pending,
+        'generated_at': iso(now), 'top50': rows, 'invited': invited, 'entries': summaries[-100:], 'pending': pending,
         'grade_status': 'official_prints_required', 'trace_passes_affect_elo': False})
     replace_view(store, 'factory/scoreboard.json', {'schema_version': 'factory-scoreboard.v1', 'season': season['id'],
-        'generated_at': iso(now), 'rows': rows, 'independent_weeks': len({r['week'] for r in grades if r.get('status') == 'graded'}),
+        'generated_at': iso(now), 'rows': rows, 'independent_weeks': independent_weeks,
         'promotion_status': 'insufficient_protected_market_history', 'crisis_metric': season['crisis_definition']})
     for key in ('factory/salon/wall.jsonl', 'factory/salon/events.jsonl'):
-        store.jsonl_view(key, events)
-    state['wall'] = {'last_checked_at': iso(now), 'pending': pending, 'graded': len(grades),
-                     'independent_weeks': len({r['week'] for r in grades if r.get('status') == 'graded'}),
-                     'entries': len(records), 'official_data_status': 'pending_verified_adapter'}
+        if events:
+            store.jsonl_view(key, events)
+    state['wall'] = {'last_checked_at': iso(now), 'pending': pending, 'graded': len(entries) - pending,
+                     'independent_weeks': independent_weeks, 'entries': len(entries), 'final_weeks': len(final_weeks),
+                     'pass_complete': complete, 'grader_calls': grader_calls, 'new_events': len(events),
+                     'official_data_status': 'runner_written_prints_required'}
 
 
 def tick(event, store, lam):

@@ -48,6 +48,13 @@ MBPP_TRAIN_IDS = range(601, 975)       # official train split
 MBPP_VALIDATION_IDS = range(511, 601)  # official validation split (used for training here; test ids 11-510 stay out)
 
 
+def clean_text(value) -> str:
+    """Training targets are LF-only with no trailing whitespace: 463/464 MBPP reference solutions ship
+    CRLF, which would otherwise be learned verbatim (2026-09-13 audit)."""
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    return "\n".join(line.rstrip() for line in text.split("\n")).strip("\n") + "\n"
+
+
 def sha(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
@@ -80,7 +87,7 @@ def mbpp_rows(raw: bytes):
         prompt = "%s\nYour code should pass these tests:\n%s" % (str(row.get("text") or "").strip(), tests)
         yield {"task_id": "mbpp-%d" % tid, "kind": src["kind"], "family": "mbpp", "license": src["license"], "source_url": src["url"],
                "citation": src["citation"], "source_sha": sha(line.encode("utf-8")), "prompt": prompt,
-               "solution": str(row.get("code") or ""), "tests": (setup + "\n" + tests).strip(), "timeout_s": 8}
+               "solution": clean_text(row.get("code")), "tests": clean_text(setup + "\n" + tests), "timeout_s": 8}
 
 
 def apps_rows(max_rows: int):

@@ -260,7 +260,13 @@ def _row_from_verified(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]
     return {"kind": kind, "family": str(doc.get("family") or doc.get("repo") or "public"),
             "license": str(doc.get("license") or ""), "source": str(doc.get("source_url")), "checker": str(doc.get("checker") or "factory-code-exam"),
             "task_id": str(doc.get("task_id") or ""), "source_sha": str(doc.get("source_sha") or ""),
-            "prompt": prompt, "solution": solution}
+            "prompt": _lf(prompt), "solution": _lf(solution)}
+
+
+def _lf(text: str) -> str:
+    """LF-only, no trailing whitespace: verified rows written before 2026-09-13 carry CRLF from the MBPP source."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    return "\n".join(line.rstrip() for line in text.split("\n")).strip("\n") + "\n"
 
 
 def collect_rows(s3, private_bucket: str, public_bucket: str, limit_per_source: int = 20000) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
