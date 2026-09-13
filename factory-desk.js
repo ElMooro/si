@@ -29,14 +29,27 @@
     if (kept.length !== pieces.length - 1) throw Error('Missing integrity checksum');
     return '{' + kept.join(',') + '}';
   }
-  async function checkedState(kind) {
-    const payload = await api('view?kind=' + encodeURIComponent(kind));
-    const raw = payload.raw, doc = JSON.parse(raw);
+  async function verifyStateRaw(raw) {
+    const doc = JSON.parse(raw);
     if (doc.schema_version !== 'student-state.v1' || !Number.isInteger(doc.state_version) || !Number.isInteger(doc.gen) || !Array.isArray(doc.skillbook)) throw Error('State schema mismatch');
     const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(checksumBody(raw)));
     const hex = Array.from(new Uint8Array(hash), x => x.toString(16).padStart(2, '0')).join('');
     if (hex !== doc.checksum) throw Error('State checksum mismatch');
     return doc;
+  }
+  async function checkedState(kind) {
+    const payload = await api('view?kind=' + encodeURIComponent(kind));
+    return verifyStateRaw(payload.raw);
+  }
+  async function publicState() {
+    for (const url of ['/data/student-state.json', '/student-state.json']) {
+      try {
+        const r = await fetch(url, { cache: 'no-store' });
+        if (!r.ok) continue;
+        return await verifyStateRaw(await r.text());
+      } catch (e) {}
+    }
+    return null;
   }
   function age(value) {
     const ms = Date.now() - Date.parse(value);
@@ -67,12 +80,19 @@
     text('crisis', season.crisis_definition.replaceAll('_', ' '));
     text('wall-status', (doc.wall.entries || 0) + ' entries · ' + (doc.wall.graded || 0) + ' outcomes · ' + (doc.wall.pending || 0) + ' pending. Official prints required.');
     const week = $('week');
-    if (!week.value) week.value = season.starts_on;
-    if (!$('prediction-json').value) predictionTemplate();
+    if (week && !week.value) week.value = season.starts_on;
+    if ($('prediction-json') && !$('prediction-json').value) predictionTemplate();
   }
   async function wall() {
     try {
-      const board = JSON.parse((await api('view?kind=board')).raw);
+      let board;
+      try {
+        board = JSON.parse((await api('view?kind=board')).raw);
+      } catch (authErr) {
+        const r = await fetch('/factory/salon/board.json', { cache: 'no-store' });
+        if (!r.ok) throw authErr;
+        board = await r.json();
+      }
       $('leaders').innerHTML = board.top50.length ? board.top50.map(r => '<tr><td>' + safe(r.agent) + '</td><td>' + Math.round(r.elo) + '</td><td>' + Math.round(r.score * 100) + '%</td><td>' + r.independent_weeks + '</td><td>' + r.graded_predictions + '</td></tr>').join('') : '<tr><td colspan="5">No held-out market results yet. Elo starts after grading.</td></tr>';
       text('invited', board.invited.length ? 'Invited: ' + board.invited.map(r => r.agent).join(', ') : 'Invite-only pilot: no guests invited yet.');
       $('entries').innerHTML = (board.entries || []).slice(-12).reverse().map(e => '<li><a href="#factory-event=' + encodeURIComponent(e.id) + '">' + safe(e.agent + ' · ' + e.symbol + ' · ' + e.week) + '</a> — ' + safe(e.direction + ' / ' + e.regime) + '</li>').join('') || '<li>The next entries open Monday at 09:30 ET and lock at 09:35.</li>';
@@ -91,9 +111,25 @@
     } catch (e) { text('event', e.message); }
   }
   async function refresh() {
-    const result = await Promise.allSettled(['state', 'mirror'].map(checkedState));
-    const good = result.filter(r => r.status === 'fulfilled').map(r => r.value).sort((a, b) => b.state_version - a.state_version);
-    if (!good.length) { text('status', state ? 'Feed unavailable · retaining last verified state' : 'Sign in and connect to view the private factory state.'); return; }
+    const token = window.JustHodlAuth && JustHodlAuth.getAccessToken ? await JustHodlAuth.getAccessToken() : null;
+    let good = [];
+    if (token) {
+      const result = await Promise.allSettled(['state', 'mirror'].map(checkedState));
+      good = result.filter(r => r.status === 'fulfilled').map(r => r.value).sort((a, b) => b.state_version - a.state_version);
+    }
+    if (!good.length) {
+      const pub = await publicState();
+      if (pub) {
+        if (state && pub.state_version < state.state_version) return;
+        state = pub;
+        paint(state);
+        await wall();
+        text('status', (state.health && state.health.status ? state.health.status : 'live') + ' · public feed · tick ' + age(state.generated_at));
+        return;
+      }
+      text('status', state ? 'Feed unavailable · retaining last verified state' : 'Sign in to post to the wall. Public factory feed is unavailable.');
+      return;
+    }
     if (good.length > 1 && good[0].state_version === good[1].state_version && good[0].checksum !== good[1].checksum) { text('status', 'State conflict · retaining last verified state'); return; }
     if (state && good[0].state_version < state.state_version) return;
     state = good[0]; paint(state); await wall();
