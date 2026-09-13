@@ -208,7 +208,12 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     </div>
     <div id="factory-chat-log" class="factory-chat-log" role="log" aria-live="polite">Connecting to the factory… click an agent, then type.</div>
     <form id="factory-chat-form">
-      <textarea id="factory-chat-in" maxlength="4000" placeholder="Talk like you talk here. Click Student/Coder/Investor first. Queue task cards without adding servers."></textarea>
+      <textarea id="factory-chat-in" maxlength="4000" placeholder="Ask it to learn code, markets, or investing. It leaves the box, cites, and banks the lesson."></textarea>
+      <div class="factory-learn" aria-label="Learning tracks">
+        <button type="button" class="btn sm" data-learn="code">Learn code</button>
+        <button type="button" class="btn sm" data-learn="markets">Learn markets · stocks/bonds</button>
+        <button type="button" class="btn sm" data-learn="investing">Learn investing · Livermore→Druckenmiller</button>
+      </div>
       <div class="factory-chat-bar">
         <label>Queue <input id="factory-spawn-n" type="number" min="0" max="1000000" value="0"> task cards (compute stays 8 live)</label>
         <button class="btn pri" id="factory-chat-send" type="submit">Send</button>
