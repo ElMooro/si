@@ -1,0 +1,115 @@
+# Factory code exam + outside-world curriculum (2026-09-13, Claude Ship 2).
+#
+# The student learns to code from public, permissively licensed task sets whose tests
+# are the checker (MBPP CC-BY-4.0, APPS MIT). HumanEval (MIT) is EXAM ONLY. Rows become
+# training rows only after this workflow executed them to PASS inside a container with
+# NO network and NO AWS credentials; the `write` job stamps verified_by=owner_runner and
+# writes create-if-absent. Nothing from the si repo, from Khalid, or from a paid model
+# enters the lake here. The Lambda never runs this; the runner owns it.
+name: Factory code exam
+on:
+  schedule:
+    - cron: '20 3 * * *'
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: 'comma list: mbpp,apps'
+        required: false
+        default: 'mbpp,apps'
+      max_apps:
+        description: 'max APPS introductory tasks per run'
+        required: false
+        default: '600'
+      freeze_holdout:
+        description: 'also freeze factory/holdout/manifest.json (create-if-absent) and the HumanEval exam'
+        required: false
+        default: 'false'
+      dry_run:
+        description: 'fetch + verify only; write nothing to S3'
+        required: false
+        default: 'false'
+permissions:
+  contents: read
+concurrency:
+  group: factory-code-exam
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fetch deps
+        run: pip install --quiet boto3 datasets
+      - name: Fetch public candidates (network on, no execution)
+        env:
+          SOURCES: ${{ github.event.inputs.sources || 'mbpp,apps' }}
+          MAX_APPS: ${{ github.event.inputs.max_apps || '600' }}
+        run: |
+          mkdir -p work
+          python scripts/factory_oss_curriculum.py fetch --sources "$SOURCES" --max "$MAX_APPS" --out work/candidates.jsonl
+          cp scripts/factory_code_verify.py work/verify.py
+          wc -l work/candidates.jsonl
+      - name: Freeze exam + holdout (owner-dispatched only)
+        if: ${{ github.event.inputs.freeze_holdout == 'true' && github.event.inputs.dry_run != 'true' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          python scripts/factory_oss_curriculum.py exam --ids-out work/humaneval-ids.json --write
+          python scripts/factory_holdout.py --code-ids-file work/humaneval-ids.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidates
+          path: work/
+          retention-days: 3
+  verify:
+    needs: fetch
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # No secrets are referenced in this job. The container has no network.
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: candidates
+          path: work
+      - name: Execute candidates in a network-less container
+        run: |
+          docker run --rm --network none --memory 1g --cpus 1 --pids-limit 256 \
+            --read-only --tmpfs /tmp:rw,size=256m -v "$PWD/work:/work:rw" \
+            -w /work python:3.12-slim python /work/verify.py /work/candidates.jsonl /work/verified.jsonl
+          tail -n 1 work/verified.jsonl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified
+          path: work/verified.jsonl
+          retention-days: 7
+  write:
+    needs: verify
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet boto3
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified
+          path: work
+      - name: Write verified rows (create-if-absent, verified_by=owner_runner)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: python scripts/factory_oss_curriculum.py write --in work/verified.jsonl --run-id "${{ github.run_id }}"

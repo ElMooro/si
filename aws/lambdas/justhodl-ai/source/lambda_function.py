@@ -42,6 +42,7 @@ import brain_dataset as bd
 import cost_guard as cg
 import deployment_gates as dg
 import fleet_inputs as fi
+import gear_b
 import governance_control as governance
 import market_read as mr
 import pipeline as pl
@@ -294,6 +295,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
         "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
+        "gear_b": _safe(lambda: gear_b.public_status(s3, PRIVATE_BUCKET, policy)),   # counts + money only; no job names/ARNs
         "tiers": [
             {"tier": 1, "name": "Transfer learning (article recipe)", "how": "RoBERTa-SEC embedding endpoint -> Brain rows embedded -> XGBoost classifier (spot) -> serverless endpoint", "cost": "cents"},
             {"tier": 2, "name": "JumpStart fine-tune", "how": "any hub card with a training recipe, pretrained weights as the `model` channel", "cost": "instance-hours, capped by MaxRuntime"},
@@ -358,6 +360,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "pipeline_verdict": ({k: verdict.get(k) for k in ("status", "finished_at", "ops", "title", "steps", "fails", "warns", "report", "duration_s")} if verdict else None),
         "tiers": out.get("tiers"),
         "definitions": out.get("definitions"),
+        "gear_b": out.get("gear_b"),
     }
 
 
@@ -1996,6 +1999,23 @@ def _governance_canary_http(body: dict, policy: dict) -> Dict[str, Any]:
     )
 
 
+def _gear_b_tick(*, launch: bool) -> Dict[str, Any]:
+    """Gear B hourly controller: poll jobs, build/reuse an eligible dataset, launch <= 1 capped spot SFT."""
+    s3 = client("s3")
+    policy = cg.load_policy(s3, PRIVATE_BUCKET)
+    projected, _ = _projected(policy)
+    return gear_b.tick(client("sagemaker"), s3, private_bucket=PRIVATE_BUCKET, public_bucket=PUBLIC_BUCKET, policy=policy,
+                       role_arn=execution_role(), projected=projected, pricing=client("pricing"),
+                       describe_card=lambda mid, ver: sm_hub.describe_model(client("sagemaker"), mid, ver), region=REGION, launch=launch)
+
+
+GEAR_B_ACTIONS = {
+    ("GET", "/gearb/status"): lambda b, p, c: gear_b.public_status(client("s3"), PRIVATE_BUCKET, p),
+    ("POST", "/gearb/tick"): lambda b, p, c: _gear_b_tick(launch=bool((b or {}).get("launch"))),
+    ("POST", "/gearb/build"): lambda b, p, c: gear_b.build_dataset(client("s3"), PRIVATE_BUCKET, PUBLIC_BUCKET, gear_b.load_control(client("s3"), PRIVATE_BUCKET)),
+}
+
+
 GOVERNANCE_ACTIONS = {
     ("POST", "/governance/signals/validate"): lambda b, p, c: _governance_call(action_signal_validate, b, p),
     ("POST", "/governance/signals/ingest"): lambda b, p, c: _governance_call(action_signal_ingest, b, p),
@@ -2038,6 +2058,7 @@ ACTIONS = {
     ("GET", "/pipeline"): lambda b, p, c: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {}),
     ("GET", "/read"): lambda b, p, c: action_get_read(b, p),
     **GOVERNANCE_ACTIONS,
+    **GEAR_B_ACTIONS,
 }
 
 
@@ -2112,7 +2133,12 @@ def lambda_handler(event=None, context=None):
         return {"ok": True, "status": st.get("status"), "stage": st.get("stage")}
     if mode == "inventory":
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))
-        return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"]}
+        gb = _safe(lambda: _gear_b_tick(launch=True))
+        return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"],
+                "gear_b": {k: (gb or {}).get(k) for k in ("refusal", "built", "launched")} if isinstance(gb, dict) else gb}
+    if mode == "gearb":
+        body = event.get("body") or {}
+        return {"ok": True, "result": _gear_b_tick(launch=bool(body.get("launch")))}
     direct_path = "/" + mode.strip("/")
     if any(path == direct_path for _, path in GOVERNANCE_ACTIONS):
         return {"ok": False, "error": "governance actions require the owner-authenticated HTTP route"}
