@@ -262,6 +262,23 @@
     if (send) send.disabled = false;
     if (input) input.focus();
   });
+  const LEARN = {
+    code: { to: 'coder', text: 'Go learn how to code. Study Python, unit testing, and Git outside this system, then apply it to the protected exam. Do not train weights.' },
+    markets: { to: 'investor', text: 'Go learn financial markets — stocks, bonds, and the yield curve — from public sources and the warehouse delayed tape. No orders.' },
+    investing: { to: 'investor', text: 'Go learn investing from Jesse Livermore, Wyckoff, George Soros, and Stanley Druckenmiller. Cite them. Evidence before size. No orders.' }
+  };
+  root.querySelectorAll('[data-learn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const spec = LEARN[btn.getAttribute('data-learn')];
+      if (!spec) return;
+      const to = $('chat-to');
+      const input = $('chat-in');
+      if (to) to.value = spec.to;
+      if (input) input.value = spec.text;
+      if (form && form.requestSubmit) form.requestSubmit();
+      else if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+  });
   document.querySelectorAll('#factory-agents .factory-agent').forEach((card, i) => {
     card.addEventListener('click', () => {
       const ids = ['student','coder','researcher','investor','deployer','livermore','wyckoff','soros','druckenmiller'];
