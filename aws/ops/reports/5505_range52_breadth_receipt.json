@@ -1,0 +1,192 @@
+{
+  "op": 5505,
+  "started_at": "2026-09-13T01:44:38.169507+00:00",
+  "source_mode": "data/finviz-universe.json only; no vendor HTTP",
+  "mutated_keys": [
+    "data/jh-internals.json"
+  ],
+  "transport": {
+    "s3_requests": [
+      {
+        "method": "GET",
+        "key": "data/jh-internals.json"
+      },
+      {
+        "method": "GET",
+        "key": "data/finviz-universe.json"
+      },
+      {
+        "method": "PUT",
+        "key": "data/jh-internals.json"
+      },
+      {
+        "method": "GET",
+        "key": "data/jh-internals.json"
+      }
+    ],
+    "other_http_attempts": 0
+  },
+  "deployed_package": {
+    "files": {
+      "compile_jh_internals.py": "c425e12a6312439308cbc41bbb4d8dac7b2719f74f2e37f96b4ea5cda070be6b",
+      "internals_warehouse.py": "6540f7107a1a33237bbdde8506c3a8fc094cb0544ccc7658e5513da249c4cd8b"
+    },
+    "last_modified": "2026-09-13T01:42:17.000+0000",
+    "code_sha256": "LAMGCkILjReUJZm0ORKONzCliZs8UDis/WAhNz/dg50="
+  },
+  "before": {
+    "last_modified": "2026-09-13T01:34:38+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238,
+      "n_above_50": 4983,
+      "n_sma50": 11621,
+      "pct_above_50": 0.4287927028655021,
+      "n_above_200": 6108,
+      "n_sma200": 11621,
+      "pct_above_200": 0.5256002065226745
+    }
+  },
+  "source": {
+    "key": "data/finviz-universe.json",
+    "etag": "\"7fdc6f8a85281bcb0c0476343c21b925\"",
+    "last_modified": "2026-09-12T22:00:40+00:00",
+    "as_of": "2026-09-12T22:00:37.733393+00:00",
+    "n_tickers": 11633
+  },
+  "preserved_fields": {
+    "ad_breadth": 0.3238,
+    "liq_proxy_bn": 5852.0,
+    "n_above_200": 6108,
+    "n_above_50": 4983,
+    "n_down": 3659,
+    "n_missing": 15,
+    "n_sma200": 11621,
+    "n_sma50": 11621,
+    "n_univ": 11618,
+    "n_up": 7421,
+    "nfci": -0.564,
+    "pct_above_200": 0.5256002065226745,
+    "pct_above_50": 0.4287927028655021,
+    "twos_tens": 0.39
+  },
+  "warehouse_before_sha256": "0ae8aa59e6adca12e029b1a4e700a9b0ee28af67405752d91bbbef9a0104683f",
+  "body_sha256": "80944bb5020f952372bafa62f20d17b2ee5c5dc0708f896fb3d8404e3547e0d9",
+  "warehouse_preserved": true,
+  "warehouse_after_sha256": "0ae8aa59e6adca12e029b1a4e700a9b0ee28af67405752d91bbbef9a0104683f",
+  "live": {
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-13T01:44:40+00:00",
+    "schema_version": 1,
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238,
+      "n_above_50": 4983,
+      "n_sma50": 11621,
+      "pct_above_50": 0.4287927028655021,
+      "n_above_200": 6108,
+      "n_sma200": 11621,
+      "pct_above_200": 0.5256002065226745,
+      "n_new_high": 876,
+      "n_new_low": 1387,
+      "nh_nl": -511,
+      "n_range52": 11617
+    },
+    "range52_breadth": {
+      "source": "finviz-universe",
+      "key": "data/finviz-universe.json",
+      "as_of": "2026-09-12T22:00:37.733393+00:00",
+      "last_modified": "2026-09-12T22:00:40+00:00",
+      "generated_at": "2026-09-13T01:44:39.855065+00:00",
+      "basis": "uncapped full universe; each finite offset counted independently",
+      "high_predicate": "finite off_52w_high_pct >= -1",
+      "low_predicate": "finite off_52w_low_pct <= 1",
+      "n_range52_basis": "rows with both off_52w_high_pct and off_52w_low_pct finite",
+      "n_new_high": 876,
+      "n_new_low": 1387,
+      "nh_nl": -511,
+      "n_range52": 11617,
+      "n_total": 11633,
+      "n_valid_high": 11618,
+      "n_valid_low": 11617,
+      "n_missing_high": 15,
+      "n_missing_low": 16,
+      "coverage": 0.9986246024241382
+    },
+    "warehouse": {
+      "mode": "S3 only; no vendor HTTP fallback",
+      "fred": {
+        "DGS10": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.95,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "DGS2": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.56,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WALCL": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 6740619.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WTREGEN": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 883335.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "RRPONTSYD": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-11",
+          "value": 5.255,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1000
+        },
+        "NFCI": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-04",
+          "value": -0.564,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        }
+      },
+      "fred_http_requests": 0,
+      "fresh_fred_legs": 6
+    }
+  },
+  "status": "PASS",
+  "finished_at": "2026-09-13T01:44:39.996279+00:00"
+}

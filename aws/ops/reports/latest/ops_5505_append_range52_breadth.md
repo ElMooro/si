@@ -1,0 +1,8 @@
+- `01:44:39` ✅ LastModified=2026-09-13T01:44:40+00:00 fields={"twos_tens": 0.39, "liq_proxy_bn": 5852.0, "nfci": -0.564, "n_up": 7421, "n_down": 3659, "n_univ": 11618, "n_missing": 15, "ad_breadth": 0.3238, "n_above_50": 4983, "n_sma50": 11621, "pct_above_50": 0.4287927028655021, "n_above_200": 6108, "n_sma200": 11621, "pct_above_200": 0.5256002065226745, "n_new_high": 876, "n_new_low": 1387, "nh_nl": -511, "n_range52": 11617}
+- `01:44:39` ✅ Range52 evidence={"source": "finviz-universe", "key": "data/finviz-universe.json", "as_of": "2026-09-12T22:00:37.733393+00:00", "last_modified": "2026-09-12T22:00:40+00:00", "generated_at": "2026-09-13T01:44:39.855065+00:00", "basis": "uncapped full universe; each finite offset counted independently", "high_predicate": "finite off_52w_high_pct >= -1", "low_predicate": "finite off_52w_low_pct <= 1", "n_range52_basis": "rows with both off_52w_high_pct and off_52w_low_pct finite", "n_new_high": 876, "n_new_low": 1387, "nh_nl": -511, "n_range52": 11617, "n_total": 11633, "n_valid_high": 11618, "n_valid_low": 11617, "n_missing_high": 15, "n_missing_low": 16, "coverage": 0.9986246024241382}
+**Status:** success  
+**Duration:** 1.8s  
+**Finished:** 2026-09-13T01:44:39+00:00  
+
+## Log
+- `01:44:39` ✅ Existing fields preserved; vendor HTTP attempts=0
