@@ -10,6 +10,9 @@ from brief_compiler import MODES, run
 def lambda_handler(event, context):
     event = event or {}
     mode = event.get("mode") or (event.get("detail") or {}).get("mode")
+    if mode == "internals":
+        from internals_warehouse import run as run_internals
+        return run_internals(boto3.client("s3", region_name="us-east-1"))
     if mode == "all" or not mode:
         modes = list(MODES)
     else:

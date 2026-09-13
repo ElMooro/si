@@ -2137,6 +2137,12 @@ def _fred_tail_refresh(root, sid, j, freq, force=False):
     obs = (j or {}).get("observations") or []
     if not obs or not FRED_KEY:
         return j, 0
+    try:
+        head = s3.head_object(Bucket=BUCKET, Key="data/warm/fred-scoped/%s/%s.json" % (root, sid))
+        if (_now()-head["LastModified"]).total_seconds() <= 36*3600:
+            return j, 0
+    except Exception:  # noqa: BLE001
+        pass
     last = max((o.get("date") or "") for o in obs)
     try:
         age = (_now().date() - date.fromisoformat(last[:10])).days
@@ -2172,14 +2178,25 @@ def _fred_tail_refresh(root, sid, j, freq, force=False):
 def r_fred(sid, rest, d):
     root = d[D_KEY] if d else None
     obs, src, name = [], None, d[D_TITLE] if d else rest
+    fresh_cache = []
+    try:
+        cache_obj = s3.get_object(Bucket=BUCKET, Key="data/fred-cache.json")
+        if (_now()-cache_obj["LastModified"]).total_seconds() <= 36*3600:
+            cached_leg = json.loads(cache_obj["Body"].read()).get(rest, {})
+            fresh_cache = cached_leg if isinstance(cached_leg, list) else cached_leg.get("observations", [])
+    except Exception:  # noqa: BLE001
+        pass
     if root:
         try:
             j = _get_json("data/warm/fred-scoped/%s/%s.json" % (root, rest))
-            j, added = _fred_tail_refresh(root, rest, j, (d[D_FREQ] if d else None) or ((j or {}).get("meta") or {}).get("frequency"))
+            j, added = (j, 0) if fresh_cache else _fred_tail_refresh(root, rest, j, (d[D_FREQ] if d else None) or ((j or {}).get("meta") or {}).get("frequency"))
             obs = [(o.get("date"), o.get("value")) for o in (j or {}).get("observations") or []]
             src = "warehouse:fred-scoped/%s" % root + (" (+%d obs tail from FRED, bank healed)" % added if added else "")
         except Exception:  # noqa: BLE001
             obs = []
+    if fresh_cache:
+        obs.extend((o.get("date"), o.get("value")) for o in fresh_cache)
+        src = (src + " + " if src else "") + "warehouse:fred-cache (fresh within 36h)"
     if not obs and FRED_KEY:
         j = fred_get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=1776-07-04&limit=100000"
                      % (urllib.parse.quote(rest), FRED_KEY), timeout=30)
@@ -2657,24 +2674,32 @@ def r_tvsym(sid, sym, d):
     ex = (d[D_EXTRA] or {}) if d else {}
     src_prov, src_id = (ex.get("src") or "").lower(), ex.get("sid")
     name = (d[D_TITLE] if d else None) or sym
-    # 1. OHLC bank (candles) -- banked on first open, healed when stale
+    from warehouse_routing import banked_ohlc
+    banked = banked_ohlc(s3, BUCKET, sym)
+    if not banked["warehouse_empty"]:
+        return _bars_result(sid, "tv", banked, name, "warehouse:"+banked["warehouse_key"],
+                            extra={"tv_symbol":sym,"last_modified":banked["last_modified"]})
+    # Existing bars are served at any age. Resolve known IDs before any
+    # on-demand TV/Yahoo bank request, including when that resolution fails.
     doc = _tv_bank_doc(sym)
-    src, bank_err = "warehouse:tv-bars", "bank not attempted"
-    if doc and _bank_stale(doc):
-        res = _tv_pull([sym], refresh=True)
-        if (res.get(sym) or {}).get("ok"):
-            doc = _tv_bank_doc(sym)
-            src = "warehouse:tv-bars (tail healed)"
-    if not doc:
-        res = _tv_pull([sym])
-        r0 = res.get(sym) or {}
-        if r0.get("ok"):
-            doc = _tv_bank_doc(sym)
-            src = "warehouse:tv-bars (banked just now)"
-        else:
-            bank_err = r0.get("error") or "unknown"
-    if doc:
-        return _bars_result(sid, "tv", doc, name, src + " · " + str(doc.get("source") or ""), extra={"tv_symbol": sym, "banked_at": doc.get("as_of")})
+    src, bank_err = "warehouse:tv-bars", "bank empty"
+    if doc and doc.get("bars"):
+        return _bars_result(sid, "tv", doc, name, src, extra={"tv_symbol": sym, "banked_at": doc.get("as_of")})
+    cached, _ = _cache_get(sid, float("inf"))
+    if cached and cached.get("ohlc"):
+        return cached
+    from warehouse_routing import resolved_id
+    resolved = resolved_id(sym, _get_json, ex)
+    if resolved:
+        if resolved == "SKIP" or resolved.startswith("COMPUTE:"):
+            raise ValueError("Resolved symbol is held: " + resolved)
+        if resolved.upper() == sid.upper():
+            raise ValueError("Self-referencing symbol map: " + resolved)
+        out = _fetch_series(resolved)
+        if not out.get("n"):
+            raise ValueError("Resolved warehouse series has no observations: " + resolved)
+        out.update(id=sid, tv_symbol=sym, via=resolved)
+        return out
     # 2. curated warehouse equivalents first (TVC:DE10Y -> Bundesbank daily before the OECD monthly the dictionary knows)
     alt_err = []
     for pid, note in tv_equivalents(sym):
@@ -2701,6 +2726,13 @@ def r_tvsym(sid, sym, d):
                 return out
         except Exception as e:  # noqa: BLE001
             dict_err = "dictionary %s:%s failed: %s" % (src_prov, inner, str(e)[:60])     # a wrong source_id must not end the search
+    if not tv_equivalents(sym) and not src_id:
+        res = _tv_pull([sym]).get(sym) or {}
+        if res.get("ok"):
+            doc = _tv_bank_doc(sym)
+            if doc and doc.get("bars"):
+                return _bars_result(sid, "tv", doc, name, "warehouse:tv-bars (banked just now)")
+        bank_err = res.get("error") or "bank empty"
     err = ValueError("no market feed for %s and no warehouse equivalent (%s%s)" % (sym, bank_err[:100], ("; " + dict_err) if dict_err else ""))
     err.alternatives = [{"id": pid, "note": note, "error": dict(alt_err).get(pid)} for pid, note in tv_equivalents(sym)]
     raise err
@@ -2724,6 +2756,11 @@ def r_equity(sid, ticker, d):
     """Bare US ticker -> warehouse bars: us-equities-daily if present, else the TradingView universe
     (banked on demand under the ticker's primary exchange; NASDAQ/NYSE/AMEX/CBOE/OTC tried in turn)."""
     t = ticker.upper()
+    from warehouse_routing import banked_ohlc
+    banked = banked_ohlc(s3, BUCKET, t)
+    if not banked["warehouse_empty"]:
+        return _bars_result(sid, "equity", banked, (d[D_TITLE] if d else t),
+                            "warehouse:"+banked["warehouse_key"], extra={"last_modified":banked["last_modified"]})
     j = _get_json("data/warm/us-equities-daily/%s.json.gz" % t) or _get_json("data/warm/us-equities-daily/%s.json" % t)
     if isinstance(j, dict) and (j.get("bars") or j.get("observations")):
         bars = j.get("bars") or []
@@ -2745,11 +2782,17 @@ def r_equity(sid, ticker, d):
     else:
         ysym, bank = core.replace(".", "-").replace("/", "-"), "US:" + core
     doc = _tv_bank_doc(bank)
-    if doc and _bank_stale(doc):
-        if (_tv_pull([bank], budget=25, ysym={bank: ysym}, refresh=True).get(bank) or {}).get("ok"):
-            doc = _tv_bank_doc(bank)
-            return _bars_result(sid, "equity", doc or {}, (d[D_TITLE] if d else t), "warehouse:tv-bars (tail healed) · " + str((doc or {}).get("source") or ""), extra={"bank": bank, "ysym": ysym})
-    if not doc:
+    if not (doc and doc.get("bars")) and bank.startswith("US:"):
+        for exchange in ("NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"):
+            candidate = _tv_bank_doc(exchange + ":" + core)
+            if candidate and candidate.get("bars"):
+                doc, bank = candidate, exchange + ":" + core
+                break
+    if not (doc and doc.get("bars")):
+        cached, _ = _cache_get(sid, float("inf"))
+        if cached and cached.get("ohlc"):
+            return cached
+    if not (doc and doc.get("bars")):
         res = _tv_pull([bank], budget=25, ysym={bank: ysym}).get(bank) or {}
         if not res.get("ok"):
             raise ValueError("no warehouse bars for %s (%s -> %s): %s" % (t, bank, ysym, (res.get("error") or "")[:120]))
@@ -3151,6 +3194,15 @@ def lambda_handler(event, context):
     mode = event.get("mode")
     path = (event.get("rawPath") or "").rstrip("/")
     qs = event.get("queryStringParameters") or {}
+    if mode == "warehouse-ohlc" or path == "/warehouse-ohlc":
+        from warehouse_routing import banked_ohlc
+        try:
+            out = banked_ohlc(s3, BUCKET, qs.get("symbol") or event.get("symbol") or "",
+                              qs.get("span") or event.get("span") or "day",
+                              int(qs.get("mult") or event.get("mult") or 1))
+            return _resp(out, ttl=60)
+        except Exception:
+            return _resp({"error":"warehouse lookup failed", "warehouse_empty":False},502,ttl=0)
     if mode == "build":
         return build(event, context)
     if mode == "titles":

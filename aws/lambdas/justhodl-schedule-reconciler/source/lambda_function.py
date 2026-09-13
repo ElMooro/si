@@ -202,6 +202,9 @@ def lambda_handler(event=None, context=None):
     if mode == "attach-brief-compiler":
         from brief_schedules import attach
         scoped = attach(want_doc, sch, evb)
+    elif mode == "attach-internals":
+        from internals_schedule import attach
+        scoped = attach(want_doc, sch, evb)
 
     want = {}
     for r in want_doc.get("rules", []):

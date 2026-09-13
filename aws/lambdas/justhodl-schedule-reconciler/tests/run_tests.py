@@ -158,5 +158,23 @@ class ScheduleTests(unittest.TestCase):
         self.assertIsNotNone(saved["compiler_attachment"])
 
 
+class InternalsScheduleTests(unittest.TestCase):
+    def test_only_internals_created_and_idempotent(self):
+        import internals_schedule as ins
+        root = SOURCE.parents[3]
+        doc = json.loads((root / "config/schedule-manifest.json").read_text())
+        scheduler = FakeScheduler()
+        scheduler.rows["unrelated"] = {"State":"DISABLED"}
+        first = ins.attach(doc,scheduler,FakeEvents())
+        second = ins.attach(doc,scheduler,FakeEvents())
+        self.assertEqual(first["created"],[ins.NAME])
+        self.assertEqual(second["created"],[])
+        self.assertEqual(len(scheduler.created),1)
+        self.assertEqual(scheduler.rows["unrelated"],{"State":"DISABLED"})
+        doc["schedules"][-1]["targets"][0]["input"] = '{"mode":"all"}'
+        with self.assertRaises(ValueError):
+            ins.attach(doc,scheduler,FakeEvents())
+
+
 if __name__ == "__main__":
     unittest.main()
