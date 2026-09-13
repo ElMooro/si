@@ -8,6 +8,36 @@
 #listfab{display:none!important}
 </style>
 <meta charset="utf-8">
+<script>
+(function(){
+  var G="jh-tvux-2";
+  try{
+    if(localStorage.getItem("jh_chart_ux")===G) return;
+    if(sessionStorage.getItem("jh_chart_ux_try")===G){
+      localStorage.setItem("jh_chart_ux",G);
+      return;
+    }
+    sessionStorage.setItem("jh_chart_ux_try",G);
+    var done=function(){
+      try{ localStorage.setItem("jh_chart_ux",G); }catch(e){}
+      try{ location.reload(); }catch(e){}
+    };
+    var jobs=[];
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+        return Promise.all(rs.map(function(r){ return r.unregister(); }));
+      }).catch(function(){}));
+    }
+    if(window.caches&&caches.keys){
+      jobs.push(caches.keys().then(function(ks){
+        return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+      }).catch(function(){}));
+    }
+    if(jobs.length) Promise.all(jobs).then(done,done);
+    else try{ localStorage.setItem("jh_chart_ux",G); }catch(e){}
+  }catch(e){}
+})();
+</script>
 <!-- jh-reskin-skip: tradingview supercharts dark terminal; Chart Pro is the safety net -->
 <title>Chart · JustHodl.AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -256,6 +286,22 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
   #legend{max-width:70%}
   #wm{font-size:36px}
 }
+/* Supercharts chrome — first paint, not a delayed overlay */
+#tfbar{height:38px;padding:0 8px;gap:2px;background:#131722}
+#tfbar button{height:28px;padding:0 8px;font-size:13px;border-radius:4px}
+.tabs{height:38px;background:#1e222d}
+.rail{width:52px;background:#1e222d}
+.watch,#watch{width:280px;min-width:260px;max-width:320px}
+.jh-tv-trade{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding-left:12px}
+#quote .sell,#tfbar .sell,.jh-tv-sell{background:#f23645;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
+#quote .buy,#tfbar .buy,.jh-tv-buy{background:#2962ff;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
+html[data-theme=dark] #quote .sell,html[data-theme=dark] #tfbar .sell{background:#f23645;color:#fff}
+html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#2962ff;color:#fff}
+#dock .dtabs{height:32px}
+#dock .dtabs button{padding:0 14px;font-size:12px}
+#dock .dtabs button.on{color:#2962ff;border-top:0;border-bottom:2px solid #2962ff;background:transparent}
+#tape,#listfab,#chgbar{display:none!important}
+@media(max-width:720px){ #listfab{display:none!important} }
 </style>
 </head>
 <body>
@@ -360,9 +406,9 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
-<script src="/jh-chart-studio.js?v=2"></script>
-<script src="/jh-chart-engine.js?v=v12.3"></script>
-<script src="/jh-chart-tvux.js?v=1"></script>
+<script src="/jh-chart-studio.js?v=3"></script>
+<script src="/jh-chart-engine.js?v=12"></script>
+<script src="/jh-chart-tvux.js?v=2"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>

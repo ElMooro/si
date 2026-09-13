@@ -16,7 +16,7 @@
      GEN bumped 3310->3335: benzinga.html 'Failed to fetch' traced to a
      stale SW intercepting the agent Function URL; force clients fresh. */
   try {
-    var GEN = "3368"; /* 3368: color tags on drawer rows + filter + per-user sync */
+    var GEN = "3372"; /* 3372: Supercharts chart.html cache flush */
     if (localStorage.getItem("jh_sw_gen") !== GEN &&
         sessionStorage.getItem("jh_fresh_try") !== GEN) {
       sessionStorage.setItem("jh_fresh_try", GEN);

@@ -1,7 +1,7 @@
-/* JustHodl Chart engine v12.1 — no synth candles; warehouse series first; footer v12 QR. Chart Pro untouched. */
+/* JustHodl Chart engine v12.4 — Supercharts chrome; warehouse series first; Chart Pro untouched. */
 (function () {
-  if (window.__jhChartEngineV12) return;
-  window.__jhChartEngineV12 = true;
+  if (window.__jhChartEngineV124) return;
+  window.__jhChartEngineV124 = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
   var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","1d","10y"]];
@@ -102,7 +102,7 @@
     {id:"rvol",n:"RVOL 20",on:0,cat:"Volume"}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
-  var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v8-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
+  var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
   var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
   var quotes={}, lists=[], listId="ishares", letter="", filter="", sortCol="sym", sortDir=1;
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null;
@@ -438,6 +438,7 @@
   (function bootLay(){
     var lay=loadJSON(LAY_KEY,null);
     if(lay){ if(lay.gridOn!=null) gridOn=lay.gridOn; if(lay.magnet!=null) magnet=lay.magnet; if(lay.magnetMode!=null) magnetMode=lay.magnetMode; if(lay.kind) kind=lay.kind; if(lay.tf) tf=lay.tf; if(lay.invert!=null) invert=lay.invert; if(lay.hiLo!=null) hiLo=lay.hiLo; if(lay.crossMode!=null) crossMode=lay.crossMode; if(lay.tzName) tzName=lay.tzName; if(lay.tzOff!=null) tzOff=lay.tzOff; if(lay.stayTool!=null) stayTool=lay.stayTool; if(lay.layout) layout=lay.layout; if(lay.dark!=null) dark=lay.dark; if(lay.liveOn!=null) liveOn=lay.liveOn; if(lay.dwinOn!=null) dwinOn=lay.dwinOn; if(lay.miniOn!=null) miniOn=lay.miniOn; if(lay.leftOn!=null) leftOn=lay.leftOn; }
+    dark=true;
     volOn=true; vpOn=true;
     magnet=magnetMode>0;
     try{
@@ -1178,35 +1179,57 @@
     var kindLab=(KINDS.filter(function(k){return k[0]===kind;})[0]||KINDS[0])[1];
     var scLab=(SCALES.filter(function(s){return +s[0]===scaleMode;})[0]||SCALES[0])[1];
     var mdLab=(CHG.filter(function(t){return t[0]===mode;})[0]||CHG[0])[1];
+    var TF_FAVS=["1m","5m","15m","1h","1d","1w","1M"];
+    var favOn=TF_FAVS.indexOf(tf)>=0;
+    var tfHtml=TFS.filter(function(t){ return TF_FAVS.indexOf(t[0])>=0; }).map(function(t){
+      return "<button class='"+(t[0]===tf?"on":"")+"' data-tf='"+t[0]+"'>"+t[1]+"</button>";
+    }).join("");
+    if(!favOn){
+      var cur=spec(tf);
+      tfHtml+="<button class='on' data-tf='"+tf+"'>"+cur[1]+"</button>";
+    }
+    var lastPx=lastBars.length?fmt(lastBars[lastBars.length-1].close):"";
     document.getElementById("tfbar").innerHTML=
-      TFS.map(function(t){ return "<button class='"+(t[0]===tf?"on":"")+"' data-tf='"+t[0]+"'>"+t[1]+"</button>"; }).join("")+
+      tfHtml+
+      "<button class=drop id=btn-tfmore title='All intervals'>▾</button>"+
       "<span class=sep></span>"+
       "<button class=drop id=btn-kind>"+kindLab+" ▾</button>"+
-      "<button class=drop id=btn-sc>"+scLab+" ▾</button>"+
-      "<button class=drop id=btn-md>"+mdLab+" ▾</button>"+
+      "<button class=drop id=btn-sc style=display:none>"+scLab+" ▾</button>"+
+      "<button class=drop id=btn-md style=display:none>"+mdLab+" ▾</button>"+
       "<span class=sep></span>"+
-      "<button id=btn-ind title='Indicators Ctrl+I'>fx</button>"+
-      "<button id=btn-cmp title=Compare>Cmp</button>"+
-      "<button id=btn-rep title=Replay>Rep</button>"+
-      "<button id=btn-al title=Alert>Alrt</button>"+
-      "<button id=btn-shot title='Snapshot Ctrl+S'>Cam</button>"+
-      "<button id=btn-zm title=Zoom>−</button><button id=btn-zp>+</button>"+
+      "<button id=btn-ind title='Indicators Ctrl+I'>Indicators</button>"+
+      "<button id=btn-cmp title=Compare>Compare</button>"+
+      "<button id=btn-rep title=Replay>Replay</button>"+
+      "<button id=btn-al title=Alert>Alert</button>"+
+      "<span class=sep></span>"+
+      "<button id=btn-shot title='Snapshot Ctrl+S'>Snapshot</button>"+
+      "<button id=btn-zm title=Zoom style=display:none>−</button><button id=btn-zp style=display:none>+</button>"+
       "<button id=btn-fs title=Fullscreen>⛶</button>"+
-      "<button id=btn-lay1 class='"+(layout===1?"on":"")+"'>1</button>"+
-      "<button id=btn-lay2 class='"+(layout===2?"on":"")+"'>2</button>"+
-      "<button id=btn-lay4 class='"+(layout===4?"on":"")+"'>4</button>"+
-      "<button id=btn-vol class='"+(volOn?"on":"")+"'>Vol</button>"+
-      "<button id=btn-watch title=Watchlist>List</button>"+
-      "<button id=btn-co class='"+(chartOnly?"on":"")+"'>Only</button>"+
+      "<button id=btn-lay1 class='"+(layout===1?"on":"")+"' style=display:none>1</button>"+
+      "<button id=btn-lay2 class='"+(layout===2?"on":"")+"' style=display:none>2</button>"+
+      "<button id=btn-lay4 class='"+(layout===4?"on":"")+"' style=display:none>4</button>"+
+      "<button id=btn-vol class='"+(volOn?"on":"")+"' style=display:none>Vol</button>"+
+      "<button id=btn-watch title=Watchlist style=display:none>List</button>"+
+      "<button id=btn-co class='"+(chartOnly?"on":"")+"' style=display:none>Only</button>"+
       "<button id=btn-theme title=Theme>"+(dark?"Day":"Night")+"</button>"+
-      "<button id=btn-live class='"+(liveOn?"on":"")+"'>Live</button>"+
-      "<button id=btn-dwin class='"+(dwinOn?"on":"")+"'>Data</button>"+
-      "<button id=btn-mini class='"+(miniOn?"on":"")+"'>Nav</button>"+
-      "<button id=btn-left class='"+(leftOn?"on":"")+"'>L</button>"+
-      "<button id=btn-set>⚙</button>"+
-      "<button id=btn-cmd>⌘K</button>"+
-      "<input id=goto type=date title='Go to date'>";
+      "<button id=btn-live class='"+(liveOn?"on":"")+"' style=display:none>Live</button>"+
+      "<button id=btn-dwin class='"+(dwinOn?"on":"")+"' style=display:none>Data</button>"+
+      "<button id=btn-mini class='"+(miniOn?"on":"")+"' style=display:none>Nav</button>"+
+      "<button id=btn-left class='"+(leftOn?"on":"")+"' style=display:none>L</button>"+
+      "<button id=btn-set title=Settings>⚙</button>"+
+      "<button id=btn-cmd title='Quick search'>⌘K</button>"+
+      "<input id=goto type=date title='Go to date' style=display:none>"+
+      "<span class=jh-tv-trade>"+
+        "<button type=button class=sell id=btn-tv-sell>"+(lastPx?lastPx+" ":"")+"SELL</button>"+
+        "<button type=button class=buy id=btn-tv-buy>"+(lastPx?lastPx+" ":"")+"BUY</button>"+
+      "</span>";
     document.querySelectorAll("#tfbar [data-tf]").forEach(function(b){ b.onclick=function(){ tf=b.dataset.tf; renderTf(); load(); }; });
+    var more=document.getElementById("btn-tfmore");
+    if(more) more.onclick=function(){
+      var self=this;
+      openMenu(self, "<div class=lab>Interval</div>"+TFS.map(function(t){ return "<button class='"+(t[0]===tf?"on":"")+"' data-tfm='"+t[0]+"'>"+t[1]+"</button>"; }).join(""));
+      document.querySelectorAll("#menu [data-tfm]").forEach(function(b){ b.onclick=function(){ tf=b.dataset.tfm; closeMenu(); renderTf(); load(); }; });
+    };
     document.getElementById("btn-kind").onclick=function(){
       var self=this;
       openMenu(self, "<div class=lab>Chart type</div>"+KINDS.map(function(k){ return "<button class='"+(k[0]===kind?"on":"")+"' data-k='"+k[0]+"'>"+k[1]+"</button>"; }).join(""));
@@ -2300,7 +2323,7 @@
   function renderDock(){
     var tabs=document.getElementById("dtabs"), body=document.getElementById("dockbody"), dock=document.getElementById("dock");
     if(!tabs) return;
-    var items=[["","—"],["screen","Screener"],["trade","Paper"],["test","Strategy"],["over","Overview"],["fin","Financials"],["notes","Notes"],["season","Season"],["corr","Corr"],["keys","Hotkeys"]];
+    var items=[["screen","Stock Screener"],["trade","Trading Panel"],["test","Strategy Tester"],["over","Overview"],["fin","Financials"],["notes","Pine Editor"],["season","Season"],["corr","Corr"],["keys","Hotkeys"]];
     tabs.innerHTML=items.map(function(t){ return "<button class='"+(dockTab===t[0]?"on":"")+"' data-d='"+t[0]+"'>"+t[1]+"</button>"; }).join("");
     dock.className=dockTab?"on":"";
     tabs.querySelectorAll("[data-d]").forEach(function(b){ b.onclick=function(){
