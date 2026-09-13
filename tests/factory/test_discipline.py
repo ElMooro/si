@@ -178,6 +178,43 @@ class DisciplineTests(Base):
 
 
 class EvidenceTests(Base):
+    def test_guest_prediction_with_envelope_is_stored_as_evidence_and_linked(self):
+        self.store.immutable('private', 'factory/holdout/manifest.json', {'schema_version': 'factory-holdout.v1', 'holdout_blocks': ['x']})
+        manifest_hash = digest({'schema_version': 'factory-holdout.v1', 'holdout_blocks': ['x']})
+        invites = {'allowlist': [{'uid': 'u-7', 'agent': 'guest-07', 'enabled': True}], 'capacity': 10}
+        self.cloud.rows[('private', 'factory/control/invites.json')] = json.dumps(invites).encode()
+        opened = datetime(2026, 9, 14, 13, 31, tzinfo=timezone.utc)
+        store = Store(self.cloud, 'private', 'public', lambda: opened)
+        pub = student.initial_state(opened, self.season, self.policy); pub['state_version'] = 1
+        self.cloud.rows[('public', 'data/student-state.json')] = json.dumps(seal_state(pub)).encode()
+        body = {'id': 'g7-spy', 'week': '2026-09-14', 'symbol': 'SPY', 'direction': 'UP', 'regime': 'TREND', 'crisis_probability': .1,
+                'direction_probabilities': {'DOWN': .2, 'FLAT': .2, 'UP': .6}, 'regime_probabilities': {'RANGE': .2, 'TRANSITION': .2, 'TREND': .6},
+                'price_source': 'official-consolidated:SPY', 'data_cutoff': '2026-09-14T13:00:00+00:00', 'model_revision': 'rrp-corridor-v1',
+                'evidence': {'claim': {'text': 'SPY closes the week above its Monday open while RRP stays dead', 'falsifier': 'Friday close below the Monday open by more than the band'},
+                             'data': {'keys': [{'bucket': 'public', 'key': 'data/ofr-funding.json', 'sha256': 'b' * 64}]},
+                             'holdout': {'manifest_hash': manifest_hash},
+                             'author': {'kind': 'lane', 'alias': 'teacher-x'}, 'checker': 'grader:code_v1'}}   # body cannot choose identity or checker
+        event = {'headers': {'x-jh-factory-role': 'user', 'x-jh-factory-uid': 'u-7'}, 'requestContext': {'http': {'method': 'POST'}}}
+        out = gateway.handle(event, 'POST', '/factory/predictions', copy.deepcopy(body), store)
+        self.assertTrue(out['ok']); self.assertTrue(out['learnable'])
+        accepted = json.loads(self.cloud.rows[('private', 'factory/salon/accepted/2026-09-14-guest-07-SPY.json')])
+        self.assertEqual(accepted['evidence_id'], out['evidence_id'])
+        evidence = json.loads(self.cloud.rows[('private', 'factory/evidence/market/' + out['evidence_id'] + '.json')])
+        self.assertEqual(evidence['author'], {'kind': 'guest', 'alias': 'guest-07'})
+        self.assertEqual(evidence['checker'], 'grader:market_v1')
+        self.assertEqual(evidence['grade_after']['5'], accepted['window']['grade_after'])
+        self.assertEqual(evidence['holdout']['manifest_hash'], manifest_hash)
+        # a wrong manifest hash is refused, and nothing is written
+        bad = copy.deepcopy(body); bad['id'] = 'g7-qqq'; bad['symbol'] = 'QQQ'; bad['price_source'] = 'official-consolidated:QQQ'
+        bad['evidence']['holdout']['manifest_hash'] = 'c' * 64
+        with self.assertRaises(Invalid):
+            gateway.handle(event, 'POST', '/factory/predictions', bad, store)
+        self.assertNotIn(('private', 'factory/salon/accepted/2026-09-14-guest-07-QQQ.json'), self.cloud.rows)
+        # sandbox publishes the contract and the hash, never the manifest
+        sb = gateway.handle(event, 'GET', '/factory/sandbox', {}, store)
+        self.assertEqual(sb['evidence_contract']['holdout_manifest_hash'], manifest_hash)
+        self.assertNotIn('holdout_blocks', json.dumps(sb))
+
     def doc(self):
         keys = [{'bucket': 'public', 'key': 'data/ofr-funding.json', 'sha256': 'a' * 64, 'last_modified': '2026-09-11T00:00:00+00:00'}]
         claim = 'SPY closes the week above its Monday open when RRP is dead and SOFR sits inside the corridor'

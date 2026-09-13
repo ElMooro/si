@@ -17,7 +17,7 @@ import boto3
 from botocore.config import Config
 
 from factory_core import Invalid, canonical, digest, identifier, iso, validate_prediction, verify_state
-from factory_evidence import reading_receipt
+from factory_evidence import SCHEMA_EVIDENCE, reading_receipt, validate_evidence
 from factory_store import Conflict, Store
 import factory_discipline
 
@@ -100,6 +100,50 @@ def ranks_view(store):
     except Exception:  # noqa: BLE001
         state = None
     return (state or {}).get("ranks") or factory_discipline.default_ranks(store.clock())
+
+
+def holdout_manifest_hash(store):
+    """Digest of the frozen private holdout manifest (never its content). None until it is frozen."""
+    manifest, _ = store.read(store.private, "factory/holdout/manifest.json")
+    return digest(manifest) if isinstance(manifest, dict) else None
+
+
+def evidence_contract(store):
+    return {"schema_version": SCHEMA_EVIDENCE, "attach_to": "predictions.evidence (optional)",
+            "holdout_manifest_hash": holdout_manifest_hash(store),
+            "required": ["claim{type=weekly_forecast,text,horizon_days=5,falsifier}", "data{keys[{bucket,key,sha256}],data_cutoff}",
+                         "holdout{manifest_hash,touched=false}", "grade_after{5=window.grade_after}", "checker=grader:market_v1", "id=sha256(claim,keys,alias)[:16]"],
+            "rule": "no evidence, no learning: entries without an envelope are graded on the wall but never feed the skillbook",
+            "data_keys_must_start_with": ["data/", "factory/"], "author": "taken from the verified identity, never from the body"}
+
+
+def attach_evidence(store, agent, prediction, envelope):
+    """Validate a guest's evidence envelope against the locked entry. Identity and window come from the server."""
+    if not isinstance(envelope, dict):
+        raise Invalid("evidence_envelope_invalid")
+    doc = dict(envelope)
+    doc["schema_version"] = SCHEMA_EVIDENCE
+    doc["domain"] = "market"
+    doc["author"] = {"kind": "student" if agent == "student" else "guest", "alias": agent}
+    doc["checker"] = "grader:market_v1"
+    claim = dict(doc.get("claim") or {})
+    claim["type"] = "weekly_forecast"
+    claim["horizon_days"] = 5
+    doc["claim"] = claim
+    doc["grade_after"] = {"5": prediction["window"]["grade_after"]}
+    data = dict(doc.get("data") or {})
+    data["data_cutoff"] = prediction["data_cutoff"]
+    doc["data"] = data
+    holdout = dict(doc.get("holdout") or {})
+    holdout["touched"] = False if holdout.get("touched") in (False, None) else holdout["touched"]
+    doc["holdout"] = holdout
+    manifest_hash = holdout_manifest_hash(store)
+    if manifest_hash is None and holdout.get("manifest_hash") is not None:
+        raise Invalid("evidence_holdout_not_frozen_yet")
+    from factory_evidence import evidence_id
+    keys = [k.get("key") for k in (data.get("keys") or []) if isinstance(k, dict)]
+    doc["id"] = evidence_id(str(claim.get("text") or "").strip(), keys, agent)
+    return validate_evidence(doc, received_at=prediction["received_at"], holdout_hash=manifest_hash)
 
 
 def chat_snapshot(store, agent, owner):
@@ -819,7 +863,8 @@ def handle(event, method, path, body, store):
         outer = state['outer_status']
         return {'ok': True, 'agent': agent, 'owner': owner, 'sandbox': {'funding': outer.get('funding', {}),
                 'tape': outer.get('tape', {}), 'research_only': True}, 'policy': {'enabled': policy['enabled'],
-                'gear_b_enabled': False, 'max_traces_per_day': policy['max_guest_traces_per_day']}}
+                'gear_b_enabled': False, 'max_traces_per_day': policy['max_guest_traces_per_day']},
+                'evidence_contract': evidence_contract(store)}
     if method == 'GET' and action == 'chat':
         return chat_snapshot(store, agent, owner)
     if method != 'POST':
@@ -862,6 +907,7 @@ def handle(event, method, path, body, store):
         season, _ = store.read(store.private, 'factory/control/season.json')
         if season.get('calendar_review_required') is not False:
             raise Invalid('season_calendar_not_frozen')
+        envelope = body.pop('evidence', None) if isinstance(body, dict) else None
         prediction = validate_prediction(body, season, store.clock(), agent)
         if prediction['price_source'] != season['price_sources'][prediction['symbol']]:
             raise Invalid('season_price_source_required')
@@ -869,8 +915,14 @@ def handle(event, method, path, body, store):
         event_id = prediction['week'] + '-' + agent + '-' + prediction['symbol']
         prediction['submitted_id'] = prediction['id']
         prediction['id'] = event_id
+        evidence = attach_evidence(store, agent, prediction, envelope) if envelope is not None else None
+        prediction['evidence_id'] = evidence['id'] if evidence else None
+        prediction['evidence_hash'] = evidence['evidence_hash'] if evidence else None
         store.immutable(store.private, 'factory/salon/accepted/' + event_id + '.json', prediction)
-        return {'ok': True, 'id': event_id, 'status': 'locked', 'permalink': '/ai.html#factory-event=' + event_id}
+        if evidence:
+            store.immutable(store.private, 'factory/evidence/market/' + evidence['id'] + '.json', evidence)
+        return {'ok': True, 'id': event_id, 'status': 'locked', 'permalink': '/ai.html#factory-event=' + event_id,
+                'evidence_id': prediction['evidence_id'], 'learnable': bool(evidence)}
     if action == 'traces':
         if set(body) != {'domain', 'task', 'provenance', 'solution_notes'}:
             raise Invalid('trace_schema_required')
