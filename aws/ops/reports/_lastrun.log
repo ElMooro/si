@@ -1,17 +1,18 @@
-executing-against: f2fc74cd4ad4d3b13cb541589e854950fe7e16a8
-ops 5530 (re-arm of 5528/5529) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
-[21:15:38] ✅ justhodl-ai receipt commit=0cfdd34 source_identical=True sha_match=True run=34782830752
-[21:15:38] ⚠ ECR unavailable to the runner user (An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10); mirror workflow deferred -- pin uses the AWS DLC by tag
+executing-against: bea299a719b66747903f8c146647dd0fc79fdd26
+ops 5531 (re-arm of 5528-5530) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
+[21:20:26] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
+[21:20:47] ⚠ ECR unavailable to the runner user (An error occurred (AccessDeniedException) when calling the DescribeRepositories operation: User: arn:aws:iam::857687956942:user/github-actio); mirror workflow deferred -- pin uses the AWS DLC by tag
 {
   "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-e7df77e97320623e.tar.gz",
-  "bundle_sha256": "e7df77e97320623e736cd5de1784068aa021279a45fa5ade09f00a7bedb3ad85",
+  "bundle_key": "factory/training/bundles/train-aa4fb80d9f8048c7.tar.gz",
+  "bundle_sha256": "aa4fb80d9f8048c7d9d5e09c06bee6d83c6a626d170677d6534e9680e4388b26",
   "pin_key": "factory/training/current.json",
   "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
 }
-[21:15:39] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
-[21:15:39] ✗ no live processing price for ml.m5.xlarge -- refusing unpriced spend
-[21:15:39] ✗ RED -- price
+[21:20:48] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
+[21:20:48] ✅ pricing cache: 2 cached misses purged (ml.m5.xlarge|training, ml.m5.xlarge|processing)
+[21:20:48] ✗ no live processing price for ml.m5.xlarge -- refusing unpriced spend
+[21:20:48] ✗ RED -- price
 
-→ Report written to aws/ops/reports/latest/ops_5530_own_training_lane_rearm2.md
-❌ OPS-FAIL: aws/ops/pending/ops_5530_own_training_lane_rearm2.py
+→ Report written to aws/ops/reports/latest/ops_5531_own_training_lane_rearm3.md
+❌ OPS-FAIL: aws/ops/pending/ops_5531_own_training_lane_rearm3.py
