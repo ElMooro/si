@@ -1,0 +1,187 @@
+{
+  "op": 5504,
+  "started_at": "2026-09-13T01:34:35.468401+00:00",
+  "source_mode": "data/finviz-universe.json only; no vendor HTTP",
+  "mutated_keys": [
+    "data/jh-internals.json"
+  ],
+  "transport": {
+    "s3_requests": [
+      {
+        "method": "GET",
+        "key": "data/jh-internals.json"
+      },
+      {
+        "method": "GET",
+        "key": "data/finviz-universe.json"
+      },
+      {
+        "method": "PUT",
+        "key": "data/jh-internals.json"
+      },
+      {
+        "method": "GET",
+        "key": "data/jh-internals.json"
+      }
+    ],
+    "other_http_attempts": 0
+  },
+  "deployed_package": {
+    "files": {
+      "compile_jh_internals.py": "caa6c6e8cf183939fcb85c965936a1361b65418806be3376115bfe50d1f0f64c",
+      "internals_warehouse.py": "4b77884f553289836d0b43664a50599582c989cb1c91a3795cfe4f21621968cf"
+    },
+    "last_modified": "2026-09-13T01:32:04.000+0000",
+    "code_sha256": "/I108Xr2lGZOSIEMTH6SlGMBp1iNUMOyuU0n4OIuUro="
+  },
+  "before": {
+    "last_modified": "2026-09-13T00:52:27+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238
+    }
+  },
+  "source": {
+    "key": "data/finviz-universe.json",
+    "etag": "\"7fdc6f8a85281bcb0c0476343c21b925\"",
+    "last_modified": "2026-09-12T22:00:40+00:00",
+    "as_of": "2026-09-12T22:00:37.733393+00:00",
+    "n_tickers": 11633
+  },
+  "preserved_fields": {
+    "ad_breadth": 0.3238,
+    "liq_proxy_bn": 5852.0,
+    "n_down": 3659,
+    "n_missing": 15,
+    "n_univ": 11618,
+    "n_up": 7421,
+    "nfci": -0.564,
+    "twos_tens": 0.39
+  },
+  "warehouse_before_sha256": "0ae8aa59e6adca12e029b1a4e700a9b0ee28af67405752d91bbbef9a0104683f",
+  "body_sha256": "75a6c529aa818ededce2c050680e598500da3dd50071bbf0a14eb3674ef4d09f",
+  "warehouse_preserved": true,
+  "warehouse_after_sha256": "0ae8aa59e6adca12e029b1a4e700a9b0ee28af67405752d91bbbef9a0104683f",
+  "live": {
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-13T01:34:38+00:00",
+    "schema_version": 1,
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238,
+      "n_above_50": 4983,
+      "n_sma50": 11621,
+      "pct_above_50": 0.4287927028655021,
+      "n_above_200": 6108,
+      "n_sma200": 11621,
+      "pct_above_200": 0.5256002065226745
+    },
+    "sma_breadth": {
+      "source": "finviz-universe",
+      "key": "data/finviz-universe.json",
+      "as_of": "2026-09-12T22:00:37.733393+00:00",
+      "last_modified": "2026-09-12T22:00:40+00:00",
+      "generated_at": "2026-09-13T01:34:37.433828+00:00",
+      "minimum_coverage": 0.8,
+      "unit": "fraction",
+      "n_total": 11633,
+      "denominator": "all rows with finite sma50_pct or sma200_pct, respectively",
+      "basis": "uncapped full universe; signed SMA percentage > 0; zero is not above",
+      "windows": {
+        "50": {
+          "n_above_50": 4983,
+          "n_sma50": 11621,
+          "n_total": 11633,
+          "n_missing": 12,
+          "coverage": 0.9989684518181037,
+          "source_field": "by_ticker.*.sma50_pct",
+          "status": "LIVE"
+        },
+        "200": {
+          "n_above_200": 6108,
+          "n_sma200": 11621,
+          "n_total": 11633,
+          "n_missing": 12,
+          "coverage": 0.9989684518181037,
+          "source_field": "by_ticker.*.sma200_pct",
+          "status": "LIVE"
+        }
+      }
+    },
+    "warehouse": {
+      "mode": "S3 only; no vendor HTTP fallback",
+      "fred": {
+        "DGS10": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.95,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "DGS2": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.56,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WALCL": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 6740619.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WTREGEN": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 883335.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "RRPONTSYD": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-11",
+          "value": 5.255,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1000
+        },
+        "NFCI": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-04",
+          "value": -0.564,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        }
+      },
+      "fred_http_requests": 0,
+      "fresh_fred_legs": 6
+    }
+  },
+  "status": "PASS",
+  "finished_at": "2026-09-13T01:34:37.617715+00:00"
+}
