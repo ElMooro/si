@@ -330,3 +330,5 @@ def route(event, method, path, body):
         return status, {'ok': False, 'error': reason}
     except Conflict:
         return 409, {'ok': False, 'error': 'immutable_entry_or_concurrent_update_conflict'}
+    except Exception as exc:
+        return 500, {'ok': False, 'error': 'factory_internal', 'detail': type(exc).__name__ + ':' + str(exc)[:160]}
