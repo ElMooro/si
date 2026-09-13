@@ -1,4 +1,5 @@
-executing-against: f9032113658687e291e717a28d8829aa3967f963
-[14:29:07] ✅ Existing DLQ and tracing supported. No read/receive/delete queue rights or management rights granted.
+executing-against: cb195e5143a4a5fb91a51d848aea2d732bc9b81b
 
-→ Report written to aws/ops/reports/latest/5509_factory_runtime_integrations.md
+→ Report written to aws/ops/reports/latest/5510_factory_live_smoke.md
+Factory smoke failed: RuntimeError public_admission_boundary:403
+❌ OPS-FAIL: aws/ops/pending/ops_5510_factory_live_smoke.py
