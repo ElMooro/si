@@ -819,10 +819,18 @@
   }
   function renderQR(){
     fillTape(document.getElementById("qr"));
-    fillTape(document.getElementById("tape"));
+    /* tape strip above chart disabled */
   }
   function fillTape(el){
     if(!el) return;
+    if((!tape.prints || !tape.prints.length) && window.lastBars && lastBars.length){
+      var lb=lastBars.slice(-40), i, html="<div class=qrbar><b>QR</b> "+active+" <span>daily warehouse — not SIP ticks</span></div><div class=qrbody>";
+      for(i=lb.length-1;i>=0;i--){
+        var b=lb[i], up=b.close>=b.open, d=new Date(b.time*1000);
+        html+="<div style=display:flex;gap:8px;font-variant-numeric:tabular-nums><span>"+d.toISOString().slice(0,10)+"</span><span style=color:"+(up?"#089981":"#f23645")+">"+b.close.toFixed(2)+"</span><span>"+Math.round(b.volume||0).toLocaleString()+"</span></div>";
+      }
+      el.innerHTML=html+"</div>"; return;
+    }
     var rows=tape.prints.slice().reverse();
     var med=0;
     if(rows.length){

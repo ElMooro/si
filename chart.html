@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off">
-<head>
+<head><style>#tape{display:none!important}</style>
 <meta charset="utf-8">
 <!-- jh-reskin-skip: tradingview-native light terminal; Chart Pro is the safety net -->
 <title>Chart · JustHodl.AI</title>
@@ -293,7 +293,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
         <button id="rp-exit">Exit replay</button>
       </div>
     </div>
-    <aside class="watch" id="watch">
+    <aside class="watch" id="watch"><div id="desk-intel" style="font-size:10px;line-height:1.35;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--mut)"></div>
       <div class="whead">
         <select id="list"></select>
         <span id="nlists" style="font-size:10px;color:var(--mut)"></span>
@@ -353,6 +353,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 <script src="/jh-chart-ai-desk.js?v=1"></script>
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
+<script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-engine.js?v=v12.2"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
