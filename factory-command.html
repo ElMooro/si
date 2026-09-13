@@ -20,23 +20,23 @@ a{color:#c4a574}
 <main class="wrap">
   <p class="k">Factory command doctrine</p>
   <h1>Army of agents — ranks, evidence, kill</h1>
-  <p class="dim">Teachers (Claude / Grok) install skills, then leave. Daily thought does not call them. Student-state is private; this page is the public standing order.</p>
+  <p class="dim">Teachers install skills, then leave. Daily thought does not call them. Student-state stays private.</p>
   <div class="card" id="doc"></div>
-  <p class="dim"><a href="/ai.html">AI desk</a> · constitution stays 401 anonymous</p>
+  <p class="dim"><a href="/ai.html">AI desk</a></p>
 </main>
 <script>
-fetch("/config/factory-doctrine.json",{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){
+fetch("/factory-doctrine.json",{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){
   var ranks=(d.ranks||[]).map(function(x){
     return "<tr><td>"+x.rank+"</td><td>spawn "+x.can_spawn+"</td><td>"+x.authority+"</td></tr>";
   }).join("");
   document.getElementById("doc").innerHTML =
     "<p class=k>Standing order</p><p>"+d.purpose+"</p>"+
     "<table><thead><tr><th>Rank</th><th>Spawn</th><th>Authority</th></tr></thead><tbody>"+ranks+"</tbody></table>"+
-    "<p class=k style=margin-top:12px>Promote</p><p>"+JSON.stringify(d.promotion)+"</p>"+
-    "<p class=k>Eliminate</p><p>rogue / hallucinating / stalled → retire the card. Evidence stays.</p>"+
-    "<p class=k>Command</p><p>"+d.chain_of_command.orders_flow+". Grader is not the student. Teachers cannot mint owner.</p>";
+    "<p class=k style=margin-top:12px>Promote</p><p>21d window, ≥8 graded tasks, error ≤15%, pass rate must rise. Warehouse marks only.</p>"+
+    "<p class=k>Eliminate</p><p>rogue (writes outside factory/*) · hallucinating (no warehouse key) · stalled (no grades / falling pass rate) → retire. Evidence stays.</p>"+
+    "<p class=k>Command</p><p>"+((d.chain_of_command||{}).orders_flow||"")+". Lower rank cannot countermand. Grader is not the student.</p>";
 }).catch(function(){
-  document.getElementById("doc").textContent="doctrine file not on this bake yet";
+  document.getElementById("doc").textContent="waiting for Pages bake";
 });
 </script>
 </body>
