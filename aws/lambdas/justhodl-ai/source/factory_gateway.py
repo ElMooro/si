@@ -91,6 +91,8 @@ def chat_snapshot(store, agent, owner):
     }
 
 
+from factory_doctrine import can_spawn, child_card
+
 def spawn_workers(store, agent, body, policy):
     task = str(body.get("task") or body.get("text") or "").strip()
     role = identifier(str(body.get("role") or "researcher"))[:40]
@@ -101,6 +103,11 @@ def spawn_workers(store, agent, body, policy):
     if count < 0:
         raise Invalid("spawn_count_required")
     count = min(count, DECLARE_CAP)
+    parent = {"id": agent, "rank": (policy or {}).get("rank") or "student"}
+    ok, why = can_spawn(parent, count)
+    if not ok:
+        raise Invalid(why)
+    count = why if isinstance(why, int) else count
     if not task or len(task) > 2000:
         raise Invalid("spawn_task_required")
     if role in ("owner",) or role.startswith("teacher-"):
