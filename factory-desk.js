@@ -221,7 +221,8 @@
     }
     log.innerHTML = msgs.map(m => {
       const mine = m.role === 'owner' || m.role === 'guest';
-      return '<div class="factory-msg ' + (mine ? 'me' : 'bot') + '"><small>' + safe((m.from || '') + ' → ' + (m.to || '')) + '</small>' + safe(m.text || '') + '</div>';
+      const tag = mine ? ((m.from || '') + ' → ' + (m.to || '')) : ((m.from || 'brain') + (m.model ? ' · ' + m.model : ''));
+      return '<div class="factory-msg ' + (mine ? 'me' : 'bot') + '"><small>' + safe(tag) + '</small>' + safe(m.text || '').replace(/\n/g,'<br>') + '</div>';
     }).join('');
     log.scrollTop = log.scrollHeight;
   }
@@ -238,7 +239,7 @@
     const input = $('chat-in');
     const typed = (input && input.value || '').trim();
     if (!typed) return;
-    const to = ($('chat-to') && $('chat-to').value) || 'student';
+    const to = ($('chat-to') && $('chat-to').value) || 'model';
     const spawn = Number(($('spawn-n') && $('spawn-n').value) || 0);
     const send = $('chat-send');
     const log = $('chat-log');
