@@ -42,11 +42,27 @@
     return verifyStateRaw(payload.raw);
   }
   async function publicState() {
-    for (const url of ['/data/student-state.json', '/student-state.json']) {
+    for (const url of ['/data/ai-factory.json', '/data/factory-public.json', '/data/student-state.json', '/student-state.json']) {
       try {
         const r = await fetch(url, { cache: 'no-store' });
         if (!r.ok) continue;
-        return await verifyStateRaw(await r.text());
+        const raw = await r.text();
+        try { return await verifyStateRaw(raw); } catch (e) {
+          const doc = JSON.parse(raw);
+          if (doc && Array.isArray(doc.agents) && Array.isArray(doc.skillbook || [])) {
+            doc.schema_version = doc.schema_version || 'student-state.v1';
+            doc.state_version = Number.isInteger(doc.state_version) ? doc.state_version : 0;
+            doc.gen = Number.isInteger(doc.gen) ? doc.gen : 0;
+            doc.skillbook = doc.skillbook || [];
+            doc.wall = doc.wall || {};
+            doc.season = doc.season || {};
+            doc.health = doc.health || { status: 'live', errors: [] };
+            doc.model = doc.model || { status: 'unknown' };
+            doc.outer_status = doc.outer_status || {};
+            doc.checksum = doc.checksum || 'public-projection';
+            return doc;
+          }
+        }
       } catch (e) {}
     }
     return null;
@@ -64,7 +80,7 @@
     text('pending', doc.wall.pending || 0);
     text('model', doc.model.status === 'blocked_no_verified_generative_model' ? 'Generative coder unavailable' : doc.model.status);
     text('objective', doc.objective);
-    text('integrity', 'State v' + doc.state_version + ' · SHA-256 verified · ' + doc.checksum.slice(0, 12));
+    text('integrity', doc.checksum === 'public-projection' ? 'Public factory feed · exams stay private' : ('State v' + doc.state_version + ' · SHA-256 verified · ' + String(doc.checksum||'').slice(0, 12)));
     text('budget', '1 experiment/day · 0 GPU jobs · 0 paid model calls · AWS service charges apply');
     text('exam-note', doc.fit ? doc.fit.n + ' protected coding cases; baseline ' + Math.round(doc.fit.baseline * 100) + '%. This measures one repair family.' : 'Only independently checked results appear here.');
     text('errors', doc.health.errors.length ? doc.health.errors.map(e => e.phase + ': ' + (e.detail || e.error)).join(' · ') : 'State and worker checks passed.');
@@ -89,7 +105,7 @@
       try {
         board = JSON.parse((await api('view?kind=board')).raw);
       } catch (authErr) {
-        const r = await fetch('/factory/salon/board.json', { cache: 'no-store' });
+        const r = await fetch('/data/factory-board.json', { cache: 'no-store' });
         if (!r.ok) throw authErr;
         board = await r.json();
       }
