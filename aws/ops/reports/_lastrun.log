@@ -1,18 +1,8 @@
-executing-against: 2ba9b4a025e83ef32dc070a2073105886047fcbd
-ops 5520 -- factory discipline in the tick + official prints lane: receipts, live ticks, dry-run prints, boundaries
-[17:58:55] ✅ justhodl-ai receipt commit=2ba9b4a sha_match=True run=34773160897
-[17:59:55] ✅ justhodl-student-rsi receipt commit=2ba9b4a sha_match=True run=34773160897
-[17:59:56] ✅ student role justhodl-student-rsi-role/factory-gear-a: mirrors widened (4 resource entries added; the two board/wall statements only)
-[17:59:58] ✗ tick 1 ok status=running state_version=479 errors=[{"phase": "projection", "error": "AccessDenied", "key": "data/ai-factory.json"}, {"phase": "projection", "error": "AccessDenied", "key": "data/factory-public.json"}]
-[18:00:03] ✗ tick 2 ok status=running state_version=480 errors=[{"phase": "projection", "error": "AccessDenied", "key": "data/ai-factory.json"}, {"phase": "projection", "error": "AccessDenied", "key": "data/factory-public.json"}]
-[18:00:06] ✅ private authority ranks: schema=factory-ranks.v1 cards=5 student=student active=5
-[18:00:06] ⚠ public projection ranks: schema=None cards=0 generated=2026-09-13T14:52:34+00:00
-[18:00:12] ✅ prints dry-run 2026-09-07 complete=True {"SPY": ["dry_run", 769.07, 764.29, false, null], "QQQ": ["dry_run", 720.909, 714.88, false, null], "IWM": ["dry_run", 295.34, 288.89, false, null], "TLT": ["dry_run", 82.44, 80.87, false, null], "GLD": ["dry_run", 403.56, 398.77, false, null], "BTC": ["dry_run", 78301.23, 77257.36, false, null]}
-[18:00:12] ✅ factory-official-prints.yml present: True (cron Sat 04:45 UTC, Sun 12:00 UTC)
-[18:00:12] ✅ anonymous https://justhodl.ai/factory/salon/season.json -> 403 (want 401/403)
-[18:00:12] ✅ anonymous https://justhodl.ai/data/brain-constitution.json -> 401 (want 401)
-[18:00:12] ✅ live justhodl-ai factory_gateway.py: provider bypass absent=True reading_receipts=True check_spawn=True
-[18:00:12] ✗ RED -- tick-errors
+executing-against: ee52393364791d19c95a6c0747af7664ecbc1e54
+ops 5521 (re-arm of 5520) -- factory discipline in the tick + official prints lane: receipts, live ticks, dry-run prints, boundaries
+[18:50:34] ✗ justhodl-student-rsi: no release receipt for ee52393 within 45 min
+[18:50:34] ✗ justhodl-ai: no release receipt for ee52393 within 45 min
+[18:50:34] ✗ RED -- receipt-missing:justhodl-student-rsi, receipt-missing:justhodl-ai
 
-→ Report written to aws/ops/reports/latest/ops_5520_factory_discipline_prints_gate.md
-❌ OPS-FAIL: aws/ops/pending/ops_5520_factory_discipline_prints_gate.py
+→ Report written to aws/ops/reports/latest/ops_5521_factory_discipline_prints_regate.md
+❌ OPS-FAIL: aws/ops/pending/ops_5521_factory_discipline_prints_regate.py
