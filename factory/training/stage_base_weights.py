@@ -41,11 +41,21 @@ def main() -> int:
     dest = OUT / model_id / revision
     dest.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
-    snapshot_download(repo_id=repo, revision=revision, local_dir=str(dest), local_dir_use_symlinks=False,
+    snapshot_download(repo_id=repo, revision=revision, local_dir=str(dest),
                       allow_patterns=["*.json", "*.safetensors", "*.txt", "*.model", "*.tiktoken", "LICENSE*", "README.md", "*.py"])
     card = (dest / "README.md").read_text(errors="ignore") if (dest / "README.md").exists() else ""
     m = LICENSE_RX.search(card)
     license_found = (m.group(1).lower() if m else "unknown")
+    if license_found == "unknown":
+        for name in ("LICENSE", "LICENSE.txt", "LICENSE.md"):
+            if (dest / name).exists():
+                head = (dest / name).read_text(errors="ignore")[:600].lower()
+                if "apache license" in head and "2.0" in head:
+                    license_found = "apache-2.0"
+                elif "mit license" in head:
+                    license_found = "mit"
+                break
+    print(json.dumps({"stage": "downloaded", "license": license_found, "files": sum(1 for _ in dest.rglob("*") if _.is_file()), "seconds": round(time.time() - t0, 1)}))
     files, total = [], 0
     for p in sorted(dest.rglob("*")):
         if p.is_file():
