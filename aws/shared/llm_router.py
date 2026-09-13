@@ -97,6 +97,17 @@ def _claude(prompt, model, max_tokens, system=None):
 
 
 def _glm(prompt, model, max_tokens, system=None):
+    if kind == "xai":
+        try:
+            import xai_voice
+            txt = xai_voice.complete(prompt, system=system, max_tokens=max_tokens)
+        except Exception as e:
+            print("[llm_router] xai", type(e).__name__)
+            txt = ""
+        if txt:
+            return txt
+        print("[llm_router] xai empty -> deterministic caller fallback")
+        return ""
     msgs = _msgs(prompt)
     if system:
         msgs = [{"role": "system", "content": system}] + msgs
@@ -139,6 +150,8 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
         model, kind = SONNET, "claude"
     elif tier == "reason":
         model, kind = GLM_REASON, "glm"
+    elif tier == "grok":
+        model, kind = "grok-4.3", "xai"
     else:
         model, kind = HAIKU, "claude"
 
