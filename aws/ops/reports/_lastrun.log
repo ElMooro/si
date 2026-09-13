@@ -1,27 +1,25 @@
-executing-against: da0959ca4f86f1ac60b8527f1278539f43620f99
-ops 5533 (re-arm of 5528-5532) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
-[21:30:31] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
-[21:30:32] ✅ ECR justhodl/factory-train exists
+executing-against: 4f3fdafda5548ffbfddf96fbf0170a8816ed9d82
+ops 5534 (re-arm of 5528-5533) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
+[21:35:22] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
+[21:35:22] ✅ ECR justhodl/factory-train exists
 {
   "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-6eeaa9e537804b39.tar.gz",
-  "bundle_sha256": "6eeaa9e537804b3933eff1bcdd92f55cc684a73447d682f38e857ae668fce4cb",
+  "bundle_key": "factory/training/bundles/train-0acb87135ec96f3e.tar.gz",
+  "bundle_sha256": "0acb87135ec96f3eed7bdd511640f3157ae18c602f7337c93b89eae07d147a41",
   "pin_key": "factory/training/current.json",
   "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
 }
-[21:30:32] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
-[21:30:33] ✅ pricing:GetProducts granted to github-actions-justhodl via group justhodl-runner-ecr; waiting 45 s for propagation
-[21:31:18] ✅ pricing cache: 0 cached misses purged ()
-[21:31:19] price probe instanceType=ml.m5.xlarge-Processing failed An error occurred (AccessDeniedException) when calling the GetProducts operation: User: arn:aws:iam:
-[21:31:19] ✅ priced by component=Processing: $0.2300/h {"instanceType": "ml.m5.xlarge-Processing", "usagetype": "USE1-Processing:ml.m5.xlarge", "component": "Processing"}
-[21:31:19] ✅ processing price ml.m5.xlarge = $0.2300/h (source aws-price-list:component=Processing); job cap $0.4600 at 7200s
+[21:35:22] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
+[21:35:23] ✅ pricing + processing-job (jh-stage-*) policies attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 45 s
+[21:36:08] ✅ pricing cache: 0 cached misses purged ()
+[21:36:08] ✅ processing price ml.m5.xlarge = $0.2300/h (source aws-price-list); job cap $0.4600 at 7200s
 
-→ Report written to aws/ops/reports/latest/ops_5533_own_training_lane_rearm5.md
+→ Report written to aws/ops/reports/latest/ops_5534_own_training_lane_rearm6.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5533_own_training_lane_rearm5.py", line 274, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5534_own_training_lane_rearm6.py", line 290, in <module>
     if main() != 0:
        ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5533_own_training_lane_rearm5.py", line 246, in main
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5534_own_training_lane_rearm6.py", line 262, in main
     sm.create_processing_job(
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
     return self._make_api_call(operation_name, kwargs)
@@ -31,5 +29,5 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (AccessDeniedException) when calling the CreateProcessingJob operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sagemaker:AddTags on resource: arn:aws:sagemaker:us-east-1:857687956942:processing-job/jh-stage-qwen2-5-coder-7b-ins-20260913-213120 because no identity-based policy allows the sagemaker:AddTags action
-❌ OPS-FAIL: aws/ops/pending/ops_5533_own_training_lane_rearm5.py
+botocore.exceptions.ClientError: An error occurred (AccessDeniedException) when calling the CreateProcessingJob operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sagemaker:AddTags on resource: arn:aws:sagemaker:us-east-1:857687956942:processing-job/jh-stage-qwen2-5-coder-7b-ins-20260913-213608 because no identity-based policy allows the sagemaker:AddTags action
+❌ OPS-FAIL: aws/ops/pending/ops_5534_own_training_lane_rearm6.py
