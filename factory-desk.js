@@ -150,9 +150,22 @@
     if (state && good[0].state_version < state.state_version) return;
     state = good[0]; paint(state); await wall();
   }
+  async function waitToken() {
+    if (window.JustHodlAuth && JustHodlAuth.init) {
+      try { await JustHodlAuth.init(); } catch (e) {}
+    }
+    if (window.JustHodlAuth && JustHodlAuth.getAccessToken) {
+      for (let i = 0; i < 8; i++) {
+        const token = await JustHodlAuth.getAccessToken();
+        if (token) return token;
+        await new Promise(r => setTimeout(r, 250));
+      }
+    }
+    return null;
+  }
   async function api(action, body) {
-    const token = window.JustHodlAuth && JustHodlAuth.getAccessToken ? await JustHodlAuth.getAccessToken() : null;
-    if (!token) throw Error('Sign in to use the invite-only factory.');
+    const token = await waitToken();
+    if (!token) throw Error('Still restoring your session — wait a second, you are signed in on the page.');
     const r = await fetch('/api/v1/factory/' + action, { method: body ? 'POST' : 'GET',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: body ? JSON.stringify(body) : undefined });
     const doc = await r.json();
@@ -213,29 +226,40 @@
     log.scrollTop = log.scrollHeight;
   }
   async function loadChat() {
+    const log = $('chat-log');
     try { paintChat(await api('chat')); }
-    catch (e) { const log = $('chat-log'); if (log) log.textContent = e.message; }
+    catch (e) {
+      if (log) log.textContent = (e && e.message) || 'Chat is waking up…';
+    }
   }
   const form = $('chat-form');
   if (form) form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const input = $('chat-in');
-    const text = (input && input.value || '').trim();
-    if (!text) return;
+    const typed = (input && input.value || '').trim();
+    if (!typed) return;
     const to = ($('chat-to') && $('chat-to').value) || 'student';
     const spawn = Number(($('spawn-n') && $('spawn-n').value) || 0);
     const send = $('chat-send');
+    const log = $('chat-log');
+    if (log && log.textContent && !log.querySelector('.factory-msg')) log.textContent = '';
+    if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg me"><small>you → ' + safe(to) + '</small>' + safe(typed) + '</div>');
+    if (log) log.scrollTop = log.scrollHeight;
+    if (input) input.value = '';
     if (send) send.disabled = true;
     try {
-      const doc = await api('chat', { text, to, spawn: spawn > 0 ? spawn : 0, role: to === 'coder' ? 'coder' : 'researcher', task: text });
+      const payload = { text: typed, to: to };
+      if (spawn > 0) { payload.spawn = spawn; payload.role = to === 'coder' ? 'coder' : 'researcher'; payload.task = typed; }
+      const doc = await api('chat', payload);
       paintChat(doc);
-      if (input) input.value = '';
-      if (doc.workers && doc.workers.note) text('admission', doc.workers.note + ' created ' + (doc.workers.created || 0));
+      if (doc.workers && doc.workers.note) text('admission', doc.workers.note);
+      if (doc.workers && doc.workers.declared != null) text('chat-workers', 'Fleet ' + (doc.workers.declared||0) + ' declared · ' + (doc.workers.active||0) + ' live / ' + (doc.workers.queued||0) + ' queued · compute cap ' + (doc.workers.cap||8));
     } catch (e) {
-      const log = $('chat-log');
-      if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg bot"><small>desk</small>' + safe(e.message) + '</div>');
+      if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg bot"><small>desk</small>' + safe((e && e.message) || 'send failed') + '</div>');
+      if (log) log.scrollTop = log.scrollHeight;
     }
     if (send) send.disabled = false;
+    if (input) input.focus();
   });
   document.querySelectorAll('#factory-agents .factory-agent').forEach((card, i) => {
     card.addEventListener('click', () => {
@@ -252,5 +276,13 @@
 
   window.addEventListener('hashchange', permalink);
   document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { refresh(); loadChat(); timer = setInterval(refresh, 60000); } });
-  refresh(); loadChat(); timer = setInterval(refresh, 60000);
+  (async () => {
+    if (window.JustHodlAuth && JustHodlAuth.init) { try { await JustHodlAuth.init(); } catch (e) {} }
+    await refresh();
+    await loadChat();
+    if (window.JustHodlAuth && JustHodlAuth.onChange) {
+      JustHodlAuth.onChange(() => { refresh(); loadChat(); });
+    }
+  })();
+  timer = setInterval(() => { refresh(); loadChat(); }, 60000);
 })();
