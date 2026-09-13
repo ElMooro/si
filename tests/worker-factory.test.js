@@ -29,7 +29,10 @@ test('factory identity headers come only from verified identity, never caller he
   assert.equal(r.calls.length,1);assert.equal(r.calls[0].url,base+'factory/traces');
   assert.equal(r.calls[0].init.headers['X-JH-Factory-Uid'],'real-guest');
   assert.equal(r.calls[0].init.headers['X-JH-Factory-Role'],'user');
-  assert.equal(r.calls[0].init.redirect,'error');
+  assert.equal(r.calls[0].init.redirect, undefined);
+  const chat=await run('chat',{role:'owner',uid:'owner'},{method:'GET'});
+  assert.equal(chat.response.status,200);
+  assert.equal(chat.calls[0].url, base.replace(/\/$/,'')+'/factory/chat');
 });
 test('factory bounds bodies and prevents wrong verbs',async()=>{
   assert.equal((await run('traces',{role:'user',uid:'real'}, {oversize:true})).response.status,413);
