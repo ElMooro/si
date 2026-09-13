@@ -322,7 +322,7 @@
         if(typeof tm==="string") tm=Math.floor(Date.parse(tm.length<=10?tm+"T00:00:00Z":tm)/1000);
         if(tm>1e12) tm=Math.floor(tm/1000);
         var c3=+c2; if(!isFinite(c3)) continue;
-        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(b.volume||b.v||b.vol||b.Volume||0)});
+        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(function(){var cand=b.volume!=null?b.volume:(b.v!=null?b.v:(b.vol!=null?b.vol:(b.Volume!=null?b.Volume:b.value)));var n=+cand;if(!isFinite(n)||n<0)return 0;if(b.volume==null&&b.v==null&&b.vol==null&&b.Volume==null&&n>0&&n<c3*8)return 0;return n;})()});
       }
     }
     if(!out.length && j.chart && j.chart.result && j.chart.result[0]){
@@ -401,7 +401,7 @@
         if(d.length>=8){
           lastSource=(raw&& (raw.warehouse_key||raw.source)) || (urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
-          if(scored<d.length*0.2 && i<urls.length-1) continue;
+          if(!raw.warehouse_key && scored<d.length*0.2 && i<urls.length-1) continue;
           barCache[key]={d:d, at:now, src:lastSource};
           return d;
         }
