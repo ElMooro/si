@@ -13,6 +13,11 @@
     var f = j.fields;
     var ad = f.ad_breadth;
     if (ad != null) ad = Number(ad).toFixed(3) + (f.n_up != null ? " (" + f.n_up + "/" + f.n_down + ")" : "");
+    var nhnl = f.nh_nl;
+    if (nhnl != null) {
+      nhnl = (Number(nhnl) > 0 ? "+" : "") + String(nhnl);
+      if (f.n_new_high != null) nhnl += " (" + f.n_new_high + "H / " + f.n_new_low + "L)";
+    }
     var box = document.createElement("div");
     box.innerHTML = "<div style=\"margin-top:10px;padding-top:8px;border-top:1px solid #1d2636\">" +
       "<div style=\"font:10px IBM Plex Mono,monospace;color:#22d3ee;letter-spacing:1.2px\">INTERNALS</div>" +
@@ -22,7 +27,8 @@
       cell("A-D", ad) +
       cell("%>50d", pct(f.pct_above_50)) +
       cell("%>200d", pct(f.pct_above_200)) +
-      "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin-top:6px\">" + String(j.generated_at || "").slice(0, 19) + "Z · warehouse</div></div>";
+      cell("NH-NL", nhnl) +
+      "<div style=\"font:10px Inter,sans-serif;color:#6b7480;margin-top:6px\">" + String(j.generated_at || "").slice(0, 19) + "Z · warehouse · 0 HTTP</div></div>";
     host.appendChild(box);
   }
   fetch("/data/jh-internals.json?t=" + Date.now(), { cache: "no-store" })
