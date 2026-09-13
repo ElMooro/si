@@ -109,7 +109,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 .spend i{flex:1;background:var(--violet);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
 </style>
 <link rel="stylesheet" href="/factory-desk.css?v=chat4">
-<script src="/factory-desk.js?v=chat4" defer></script>
+<script src="/factory-desk.js?v=chat5" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to AI decision room</a>
@@ -205,11 +205,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
         </select>
       </label>
     </div>
-    <div id="factory-chat-log" class="factory-chat-log" role="log" aria-live="polite">Sign in, then type. Click an agent card to talk to them.</div>
+    <div id="factory-chat-log" class="factory-chat-log" role="log" aria-live="polite">Connecting to the factory… click an agent, then type.</div>
     <form id="factory-chat-form">
-      <textarea id="factory-chat-in" maxlength="4000" placeholder="Tell them what to do — research a name, fix volume, lock Monday’s wall, spawn workers for a task…"></textarea>
+      <textarea id="factory-chat-in" maxlength="4000" placeholder="Talk like you talk here. Click Student/Coder/Investor first. Queue task cards without adding servers."></textarea>
       <div class="factory-chat-bar">
-        <label>Spawn <input id="factory-spawn-n" type="number" min="0" max="25" value="0"> workers (cap 48 live)</label>
+        <label>Queue <input id="factory-spawn-n" type="number" min="0" max="1000000" value="0"> task cards (compute stays 8 live)</label>
         <button class="btn pri" id="factory-chat-send" type="submit">Send</button>
       </div>
     </form>
