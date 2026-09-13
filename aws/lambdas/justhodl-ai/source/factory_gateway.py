@@ -8,6 +8,8 @@ import hashlib
 import json
 import os
 import re
+import time
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
@@ -211,8 +213,121 @@ def _outside_facts(store, state):
     return " | ".join(bits)[:3500]
 
 
+def _http_json(url, timeout=6, headers=None):
+    hdr = {"User-Agent": "JustHodlResearch/1.0 (https://justhodl.ai; factory desk)", "Accept": "application/json"}
+    if headers:
+        hdr.update(headers)
+    req = urllib.request.Request(url, headers=hdr)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode())
+
+
+def _look_outside(question):
+    """Live public look. Missing source = missing, never invented. Private notes never sent."""
+    q = " ".join((question or "").split())[:180]
+    if not q:
+        return []
+    hits = []
+    t0 = time.time()
+    quoted = urllib.parse.quote(q)
+    try:
+        data = _http_json(
+            "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&srlimit=3&format=json" % quoted,
+            timeout=6,
+        )
+        for row in ((data.get("query") or {}).get("search") or [])[:3]:
+            title = row.get("title") or ""
+            snippet = re.sub(r"<[^>]+>", "", row.get("snippet") or "")
+            snippet = re.sub(r"\s+", " ", snippet).strip()
+            if title:
+                hits.append({
+                    "source": "wikipedia",
+                    "title": title,
+                    "url": "https://en.wikipedia.org/wiki/" + title.replace(" ", "_"),
+                    "snippet": snippet[:320],
+                })
+    except Exception:
+        pass
+    low = q.lower()
+    if time.time() - t0 < 8:
+        try:
+            data = _http_json(
+                "https://api.duckduckgo.com/?q=%s&format=json&no_html=1&skip_disambig=1" % quoted,
+                timeout=5,
+            )
+            if data.get("AbstractText") or data.get("Abstract"):
+                hits.append({
+                    "source": "duckduckgo",
+                    "title": data.get("Heading") or q,
+                    "url": data.get("AbstractURL") or "",
+                    "snippet": (data.get("AbstractText") or data.get("Abstract") or "")[:400],
+                })
+            for topic in (data.get("RelatedTopics") or [])[:3]:
+                if isinstance(topic, dict) and topic.get("Text"):
+                    hits.append({
+                        "source": "duckduckgo",
+                        "title": (topic.get("FirstURL") or "related").rsplit("/", 1)[-1],
+                        "url": topic.get("FirstURL") or "",
+                        "snippet": topic.get("Text")[:300],
+                    })
+        except Exception:
+            pass
+    if time.time() - t0 < 8 and any(w in low for w in ("code", "model", "agent", "learn", "huggingface", "llm", "train")):
+        try:
+            models = _http_json("https://huggingface.co/api/models?search=%s&limit=3" % urllib.parse.quote(q[:80]), timeout=5)
+            if isinstance(models, list):
+                for model in models[:3]:
+                    mid = model.get("modelId") or model.get("id") or ""
+                    if not mid:
+                        continue
+                    hits.append({
+                        "source": "huggingface",
+                        "title": mid,
+                        "url": "https://huggingface.co/" + mid,
+                        "snippet": "downloads=%s tags=%s" % (model.get("downloads"), (model.get("tags") or [])[:5]),
+                    })
+        except Exception:
+            pass
+    if time.time() - t0 < 8 and any(w in low for w in ("code", "github", "python", "chart", "lambda", "agent")):
+        try:
+            data = _http_json(
+                "https://api.github.com/search/repositories?q=%s&per_page=3" % urllib.parse.quote(q[:80]),
+                timeout=5,
+                headers={"Accept": "application/vnd.github+json"},
+            )
+            for repo in (data.get("items") or [])[:3]:
+                hits.append({
+                    "source": "github",
+                    "title": repo.get("full_name") or "",
+                    "url": repo.get("html_url") or "",
+                    "snippet": (repo.get("description") or "")[:300],
+                })
+        except Exception:
+            pass
+    seen = set()
+    out = []
+    for hit in hits:
+        url = hit.get("url") or hit.get("title")
+        if url in seen:
+            continue
+        seen.add(url)
+        out.append(hit)
+    return out[:8]
+
+
+def _bank_research(store, question, hits):
+    if not hits:
+        return
+    now = iso(store.clock())
+    store.immutable(
+        store.private,
+        "factory/fleet/learn/research/" + digest(question + now)[:16] + ".json",
+        {"schema_version": "factory-research.v1", "at": now, "q": question[:500], "hits": hits, "n": len(hits)},
+    )
+
+
 def _public_think(question, facts):
-    """GLM on warehouse facts only. Private Brain notes never leave the box. No Anthropic."""
+    """GLM on public look + warehouse only. Private Brain notes never leave the box. No Anthropic."""
     try:
         from llm_router import ZAI_BASE_URL, GLM_REASON, _zai_key
         key = (_zai_key() or "").strip()
@@ -225,10 +340,10 @@ def _public_think(question, facts):
         "max_tokens": 500,
         "messages": [
             {"role": "system", "content": (
-                "You are JustHodl's outside reasoner. You see public warehouse facts and factory scores only — never private notes. "
-                "Answer Khalid's question. Think about code, markets, and the factory. No broker orders, no IAM, no fake training. Be concrete."
+                "You are JustHodl's outside reasoner. You see a live public look (Wikipedia, search, GitHub, HuggingFace) "
+                "plus warehouse scores. You never see private notes. Answer Khalid. Cite sources by name. No orders, no IAM."
             )},
-            {"role": "user", "content": "QUESTION:\n%s\n\nPUBLIC FACTS:\n%s" % (question[:1500], facts[:3200])},
+            {"role": "user", "content": "QUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (question[:1500], facts[:3500])},
         ],
     }
     req = urllib.request.Request(
@@ -237,7 +352,7 @@ def _public_think(question, facts):
         headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
     )
     try:
-        with urllib.request.urlopen(req, timeout=12) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             body = json.loads(resp.read().decode())
         msg = ((body.get("choices") or [{}])[0].get("message") or {})
         return (msg.get("content") or msg.get("reasoning_content") or "").strip()[:2200]
@@ -246,7 +361,7 @@ def _public_think(question, facts):
 
 
 def _brain_chat(store, target, text, state, owner):
-    """Inside = SageMaker Brain. Outside = warehouse + public GLM. Never Anthropic. Never send notes off-box."""
+    """Inside = SageMaker Brain. Outside = live public look, then warehouse. Never Anthropic. Notes stay private."""
     if not owner:
         return "Owner Brain chat only.", "guest-blocked"
     pipe, _ = store.read(store.private, "ai/pipeline/state.json")
@@ -254,9 +369,14 @@ def _brain_chat(store, target, text, state, owner):
     ep = pipe.get("retrieval_endpoint") or pipe.get("embedding_endpoint")
     clf = pipe.get("classifier_endpoint")
     ds_id = pipe.get("dataset_id")
+    hits = _look_outside(text)
+    try:
+        _bank_research(store, text, hits)
+    except Exception:
+        pass
     outside = _outside_facts(store, state)
     lines = []
-    model = "brain+warehouse"
+    model = "brain+look"
     if not ep:
         lines.append("INSIDE: Brain retrieval is not InService.")
     else:
@@ -264,7 +384,7 @@ def _brain_chat(store, target, text, state, owner):
             import brain_dataset as bd
             import sm_hub
             rt = boto3.client("sagemaker-runtime", region_name="us-east-1",
-                              config=Config(connect_timeout=3, read_timeout=20, retries={"max_attempts": 2}))
+                              config=Config(connect_timeout=3, read_timeout=15, retries={"max_attempts": 2}))
             vecs = sm_hub.embed_texts(rt, ep, [text[:1500]])
             vec = vecs[0] if vecs else None
         except Exception as exc:
@@ -291,33 +411,34 @@ def _brain_chat(store, target, text, state, owner):
                     notes = bd.nearest_notes(store.s3, store.private, ds_id, ep, vec, k=16) or []
                 except Exception:
                     notes = []
-        usable = [n for n in notes if _usable_note(n)][:5]
+        usable = [n for n in notes if _usable_note(n)][:4]
         lines.append("INSIDE — your Brain `%s`" % ep)
         if ranked:
             lines.append("Classifier: " + ", ".join("%s %.0f%%" % (lab, p * 100) for lab, p in ranked[:4]))
         if usable:
             for n in usable:
-                snippet = " ".join(str(n.get("text") or "").split())[:240]
+                snippet = " ".join(str(n.get("text") or "").split())[:200]
                 lines.append("• [%s · %.2f] %s" % (n.get("label") or "note", float(n.get("similarity") or 0), snippet))
         else:
-            lines.append("Nearest hits were chat crumbs, not doctrine. Pin real philosophy/thesis/macro/code notes and re-embed.")
-    lines.append("OUTSIDE — warehouse (fusion, risk, factory scores, delayed tape). Not the open web from this function.")
-    if outside:
-        lines.append(outside[:700])
-    think = _public_think(text, outside)
-    if think:
-        lines.append("THINKING (public GLM on warehouse facts; your notes stayed private)")
-        lines.append(think)
+            lines.append("No usable notes (chat crumbs filtered).")
+    lines.append("OUTSIDE — live look beyond this system (Wikipedia, public search, HuggingFace, GitHub). Cited or missing, never invented.")
+    if hits:
+        for hit in hits[:6]:
+            lines.append("• [%s] %s — %s %s" % (hit.get("source"), hit.get("title"), (hit.get("snippet") or "")[:180], hit.get("url") or ""))
     else:
-        low = text.lower()
-        if any(w in low for w in ("code", "coding", "program", "learn")):
-            lines.append("THINKING: I learn code inside via the protected exam and skillbook. I learn outside via warehouse engines, guest traces on CLUB WALL, and delayed tape — other agents teach by posting graded work, not by me scraping the internet here. Point at a file or a market question.")
-        elif any(w in low for w in ("spy", "qqq", "market", "predict", "crisis")):
-            lines.append("THINKING: Inside is your Brain lens. Outside is the fleet stances and warehouse series above. I will not invent a print. Ask for a ticker or a Monday wall card.")
-        else:
-            lines.append("THINKING: Inside = your notes after the crumb filter. Outside = warehouse facts above. Ask a concrete job.")
+        lines.append("Live look returned nothing this turn. Declared gap, not a fake page.")
+    if outside:
+        lines.append("WAREHOUSE — " + outside[:500])
+    public_ctx = json.dumps(hits)[:2200] + "\n" + (outside or "")
+    think = _public_think(text, public_ctx) if hits else ""
+    if think:
+        lines.append("THINKING")
+        lines.append(think)
+    elif hits:
+        lines.append("THINKING: I left the box and pulled the citations above. Your notes stayed private. Next question can go narrower (a file, a ticker, a name).")
+    else:
+        lines.append("THINKING: Outside look was empty and I will not hallucinate. Retry with a name, ticker, paper, or library.")
     return "\n".join(lines), model
-
 
 
 def chat_post(store, agent, owner, body, policy):
