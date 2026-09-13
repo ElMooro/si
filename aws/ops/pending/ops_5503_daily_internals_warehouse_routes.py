@@ -6,6 +6,7 @@ the reviewed Lambda, Worker and Pages deployments before this op is pushed.
 import copy
 from datetime import datetime, timezone
 import hashlib
+from html.parser import HTMLParser
 import importlib.util
 import io
 import json
@@ -36,6 +37,16 @@ RECEIPT = ROOT / "aws/ops/reports/5503_daily_internals_warehouse_receipt.json"
 
 def digest(value):
     return hashlib.sha256(json.dumps(value,sort_keys=True,default=str).encode()).hexdigest()
+
+
+class PageScripts(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.paths = []
+
+    def handle_starttag(self,tag,attrs):
+        if tag == "script":
+            self.paths.append(urllib.parse.urlsplit(dict(attrs).get("src", "")).path)
 
 
 def main():
@@ -106,8 +117,10 @@ def main():
                         deployed_js = response.read()
                     with urllib.request.urlopen("https://justhodl.ai/chart-pro.html?ops=5503&verify="+str(attempt),timeout=60) as response:
                         html = response.read().decode()
+                    tags = PageScripts()
+                    tags.feed(html)
                     ready = (deployed_js == (ROOT / "jh-warehouse-routing.js").read_bytes()
-                             and '<script src="/jh-warehouse-routing.js"></script>' in html
+                             and "/jh-warehouse-routing.js" in tags.paths
                              and "&days=2&tail=1" in html and "window.jhWarehouseDailyTail(" in html)
                     if ready: break
                 except Exception:
