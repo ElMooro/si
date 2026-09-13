@@ -8,11 +8,11 @@ The factory is a pane of the existing `/ai.html` SageMaker desk. It preserves th
 
 | Component | Responsibility |
 |---|---|
-| `justhodl-student-rsi` | One-minute Gear A tick, external evidence, finite coding search, training-eligible pass archive, research baseline forecasts, public views and state repair |
+| `justhodl-student-rsi` | One-minute Gear A tick, external evidence, finite coding search, training-eligible pass archive, research baseline forecasts, desk views and state repair |
 | `justhodl-factory-grader` | Private frozen coding exam, exact decimal guest checker, official-print market grading |
 | Existing `justhodl-ai` | Service-authenticated admission handler; retains all existing Brain behavior |
 | Existing data proxy | Verifies the user's identity and admits only the five named factory API routes |
-| Existing S3 buckets | Private controls/exams/evidence and sanitized public desk state |
+| Existing S3 buckets | Private controls/exams/evidence and authenticated desk state |
 | `justhodl-student-rsi-1m` | EventBridge **Scheduler** `rate(1 minute)`; classic rule quota was already full |
 
 The student uses 512 MB with a 120-second Lambda hard timeout, a 40-second work deadline, one coding experiment per day, 15-minute source refreshes and no GPU jobs. Time spent in in-flight network requests can exceed the work deadline. Cloud service charges remain billable; work-unit limits are not a billing guarantee. A private pause switch stops research work. The student cannot change it, its budget, IAM, schedules, endpoints, exams, or the champion.
@@ -86,3 +86,17 @@ AWS changes use the existing GitHub Actions runner only. Do not run AWS locally 
 Guest admission uses a bounded ten-key cursor and immutable terminal receipts. Season scans stop explicitly rather than truncate if a weekly prefix exceeds 1,000 items. The JSONL read guard is 4 MiB. Before broadening the pilot, release archival views that preserve original event bytes. No old event is deleted to get around those limits.
 
 Anonymous S3 publication was rejected by automatic approval review. No bucket policy was expanded. The factory pane uses the existing authenticated service to read an exact allowlist of views; signed-out visitors see role definitions and an explicit sign-in message, never simulated metrics.
+
+## Verified deployment — September 13, 2026
+
+The live runner receipt is `aws/ops/reports/5510.json`; the factory access boundary receipt is `aws/ops/reports/5512.json`.
+
+- Student ARN: `arn:aws:lambda:us-east-1:857687956942:function:justhodl-student-rsi`.
+- Grader ARN: `arn:aws:lambda:us-east-1:857687956942:function:justhodl-factory-grader`.
+- Scheduler: `justhodl-student-rsi-1m`, enabled at `rate(1 minute)`.
+- First coding family: candidate 64/64, old behavior 16/64. Generation 1 and both checksummed state mirrors verified. These results apply only to the configured role/handler repair family.
+- Package parity passed. Eleven prohibited permission probes were denied. Existing Brain feed version 2.2.2 and two in-service SageMaker endpoints were preserved.
+- Protected handler checks returned 401 without service identity, 200 for the owner, and 403 for an uninvited identity. Anonymous S3 access to the new factory keys is denied; the existing Brain feed remains accessible.
+- A fresh browser load showed nine role cards and CLUB WALL on the same gold desk, with no duplicate section badges. The browser was signed out, so live authenticated metrics were verified through the runner handler check, not through an owner browser session. Cloudflare blocked the runner's website HTTP probe with 403/1010; its browser controls were not bypassed.
+
+The visible role cards are responsibilities and principle cards. They are not nine independently running language models. The current deployment does not establish a general generative coder, a working official price adapter, a validated historical crisis exam, or any weight-training run.

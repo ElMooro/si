@@ -2,6 +2,13 @@ JUSTHODL COMPOUND FACTORY — IMPLEMENTED GEAR A HANDOFF
 Owner: Khalid. Repo: ElMooro/si main. Site: https://justhodl.ai/ai.html.
 Use existing GitHub Actions for all AWS operations. No local AWS calls.
 
+DEPLOYED AND VERIFIED — 2026-09-13
+Student ARN: arn:aws:lambda:us-east-1:857687956942:function:justhodl-student-rsi
+Grader ARN: arn:aws:lambda:us-east-1:857687956942:function:justhodl-factory-grader
+Schedule: justhodl-student-rsi-1m, enabled, rate(1 minute).
+Receipts: aws/ops/reports/5510.json and 5512.json.
+First bounded coding repair: 64/64 protected cases, previous behavior 16/64. Generation 1, both state mirrors, package parity, eleven permission denials, unchanged Brain feed and two existing endpoints verified. Fresh browser load shows nine role cards and CLUB WALL on the gold desk. Owner/invited sign-in is required for live evidence; authenticated handler checks passed, but an owner browser session was not tested. Role cards are responsibilities, not nine running language models.
+
 Preserve the gold SageMaker Brain desk and data/ai.json. The factory is a pane of that desk. No new endpoint, paid model API, GPU job, brokerage, role creation by the student, schedule creation by the student, or automatic release.
 
 Objective: improve independently verified useful work, reliability and efficiency within owner-owned limits. Do not describe it as ASI, general autonomous coding, or weight training.
