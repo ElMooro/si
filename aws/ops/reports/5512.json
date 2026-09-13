@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "anonymous_before": {
+    "student-state.json": "public",
+    "data/student-state.json": "public",
+    "factory/salon/season.json": "public"
+  },
+  "anonymous_after": {
+    "student-state.json": "denied",
+    "data/student-state.json": "denied",
+    "factory/salon/season.json": "denied"
+  },
+  "restriction_added": true,
+  "scope": "new factory/* and two student-state keys only",
+  "existing_brain_feed_preserved": true,
+  "public_access_granted": false,
+  "bucket_policy_existing_statements_preserved": true
+}
