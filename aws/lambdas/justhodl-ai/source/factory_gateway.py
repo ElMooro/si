@@ -132,23 +132,72 @@ def spawn_workers(store, agent, body, policy):
             "note": "Accepted %s %s cards. Compute stays %s live slots. The tick materializes 100/min so the control plane never changes." % (count, role, COMPUTE_INFLIGHT)}
 
 
+
+VOICES = {
+    "student": "You are Student, supervisor of Khalid's JustHodl factory. You pick bounded experiments, keep verified skills, and dispatch Coder, Researcher, Investor, Deployer. You already run a 64-case protected coding exam. You do not train weights or place orders.",
+    "coder": "You are Coder on JustHodl. You propose restricted repair programs against protected tests. You do not get IAM, AWS console, or unbounded generation. Chart Pro, volume, QR tape, and factory code are in-scope when asked.",
+    "researcher": "You are Researcher. You validate public sources, provenance, delayed tape, OFR, FRED, Yahoo, Binance. You never invent a print.",
+    "investor": "You are Investor. Research forecasts only for SPY QQQ IWM TLT GLD BTC. Livermore, Wyckoff, Soros, Druckenmiller are principle cards. No broker orders. CLUB WALL locks Monday 09:30 ET.",
+    "deployer": "You are Deployer. You queue exact artifacts for Khalid. You never ship yourself.",
+    "livermore": "You are the Livermore principle card. Trend discipline. Do not average losers. Answer as that doctrine applied to the question.",
+    "wyckoff": "You are the Wyckoff principle card. Accumulation, markup, distribution, markdown. Test the hypothesis; do not preach.",
+    "soros": "You are the Soros principle card. Reflexivity: flows, expectations, prices. Test the feedback loop.",
+    "druckenmiller": "You are the Druckenmiller principle card. Preserve capital. Size only with evidence.",
+}
+
+
+def _snapshot_text(state):
+    if not isinstance(state, dict):
+        return "state unavailable"
+    wall = state.get("wall") or {}
+    book = state.get("skillbook") or state.get("verified_skills") or []
+    exam = ((state.get("exams") or {}).get("coding") or {})
+    return "skills=%s exam=%s wall_graded=%s pending=%s gen=%s" % (
+        len(book) if isinstance(book, list) else book, exam, wall.get("graded"), wall.get("pending"), state.get("generation"))
+
+
 def _fallback_reply(target, text, state, spawned):
-    bits = [
-        "I am %s on Khalid's factory desk." % target,
-        "Same infrastructure at any fleet size: 8 live compute slots, a queue, an expanding learning log.",
-        "I will not place orders, touch IAM, or train weights.",
-    ]
-    low = text.lower()
+    low = (text or "").lower()
+    if any(w in low for w in ("code", "coding", "program", "script", "learn to code", "write code")):
+        return ("Yes. Coding is already a live Gear A loop, not a slogan. Every tick I sit a protected exam "
+                "(64 cases, baseline 25 percent) and I keep only repairs that grade independently. That is how I learn to code: "
+                "verified skillbook entries, not weight training. Tell me a JustHodl file, a failing test, or a chart/volume bug "
+                "and I will dispatch Coder with a bounded patch. I will not claim I became a new model in this chat.")
     if any(w in low for w in ("chart", "volume", "qr", "tape", "pepe")):
-        bits.append("Coder: chart v12 is live on /chart.html (QR tape, warehouse volume, VP). Tell me the next repair.")
-    if any(w in low for w in ("spy", "qqq", "market", "wall", "predict", "crisis")):
-        bits.append("Investor: CLUB WALL locks Monday 09:30 ET. I can draft SPY/QQQ/IWM/TLT/GLD/BTC from here.")
+        return "Coder: chart v12 is live on /chart.html with QR tape, warehouse volume and value-area profile. What should change next?"
+    if any(w in low for w in ("spy", "qqq", "market", "predict", "crisis", "wall")):
+        return "Investor: CLUB WALL opens Monday 09:30 ET and locks 09:35. I can draft SPY/QQQ/IWM/TLT/GLD/BTC from Livermore/Wyckoff/Soros/Druckenmiller. I do not place orders."
     if spawned:
-        bits.append("Fleet batch accepted: %s cards. They queue; they do not create new Lambdas." % spawned)
-    if "billion" in low or "million" in low:
-        bits.append("A million cards is a counter + queue. Learning storage grows. Compute does not.")
-    bits.append("Heard: %s" % text[:280])
-    return " ".join(bits)
+        return "Fleet accepted %s task cards on the same 8 compute slots. They queue; they are not new Lambdas. What should those cards work on?" % spawned
+    return ("I am %s. Ask a concrete JustHodl job — a file to repair, a name to research, a wall card, a fleet task. "
+            "I will not recap infrastructure unless you ask how the factory scales." % target)
+
+
+def _llm_reply(target, text, state, owner, history):
+    try:
+        from llm_router import complete
+    except Exception:
+        return ""
+    prior = []
+    for row in (history or [])[-8:]:
+        who = "Khalid" if row.get("role") in ("owner", "guest") else (row.get("from") or "agent")
+        prior.append("%s: %s" % (who, str(row.get("text") or "")[:500]))
+    system = VOICES.get(target, VOICES["student"]) + (
+        " Owner is Khalid. Answer the actual question in first person. Be specific. "
+        "Do not repeat a canned infrastructure paragraph. Do not claim ASI or illegal access. "
+        "If asked whether you can learn to code, explain the protected exam and skillbook, then offer the next concrete step."
+    )
+    prompt = "Factory snapshot: %s\n\nRecent chat:\n%s\n\nKhalid: %s\n%s:" % (
+        _snapshot_text(state), "\n".join(prior) or "(none)", text.strip(), target)
+    try:
+        out = complete(prompt, tier="critical" if owner else "bulk", max_tokens=700,
+                       contains_proprietary=bool(owner), system=system, on_demand=True, no_cache=True)
+        text_out = (out or "").strip()
+        if text_out.lower().startswith("heard:"):
+            return ""
+        return text_out[:4000]
+    except Exception:
+        return ""
 
 
 def chat_post(store, agent, owner, body, policy):
@@ -173,25 +222,25 @@ def chat_post(store, agent, owner, body, policy):
     spawned = None
     want = spawn_n
     low = text.lower()
-    if owner and not want and any(w in low for w in ("spawn", "create agents", "create workers", "hire", "million", "billion")):
-        want = 100
+    if owner and not want and any(w in low for w in ("spawn", "create agents", "create workers", "hire")):
+        want = 8
     if want:
         if not owner:
             raise Invalid("owner_invitation_required")
         spawned = spawn_workers(store, agent, {"count": want, "role": body.get("role") or "researcher", "task": body.get("task") or text}, policy)
     state, _ = store.read(store.public, "data/student-state.json")
-    reply = _fallback_reply(target, text, state, (spawned or {}).get("created"))
-    now = iso(store.clock())
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
-    messages = list((log or {}).get("messages") or [])
+    history = list((log or {}).get("messages") or [])
+    reply = _llm_reply(target, text, state, owner, history) or _fallback_reply(target, text, state, (spawned or {}).get("created"))
+    now = iso(store.clock())
     user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
     bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "spawn": (spawned or {}).get("created")}
-    messages = (messages + [user_msg, bot_msg])[-CHAT_KEEP:]
+    messages = (history + [user_msg, bot_msg])[-CHAT_KEEP:]
     store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now},
               etag=etag, absent=etag is None)
     store.immutable(store.private, "factory/fleet/learn/chat/" + user_msg["id"] + ".json",
-                    {"kind": "chat", "at": now, "from": agent, "to": target, "text": text.strip()[:500]})
+                    {"kind": "chat", "at": now, "from": agent, "to": target, "text": text.strip()[:500], "reply": reply[:500]})
     return {"ok": True, "to": target, "reply": reply, "messages": messages[-12:], "workers": spawned or chat_snapshot(store, agent, owner).get("workers")}
 
 
