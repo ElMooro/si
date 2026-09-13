@@ -1,5 +1,8 @@
-executing-against: 55c2f7501d32733ac333af9c338d829a7f547356
-[00:48:10] ✗ {"type": "ValueError", "message": "Pages routing assets did not reach the edge within the readiness window"}
+executing-against: 8a6e78c387c3b7b1f9f23c180233f8c1242afc43
+{"phase": "pages_readiness", "asset_sha256": "1fde53ec62b63dba369dfd3d67ba5b777275d09df98db74d0aecd02c3327973e", "expected_sha256": "1fde53ec62b63dba369dfd3d67ba5b777275d09df98db74d0aecd02c3327973e", "script_present": true, "tail_query_present": true, "tail_normalizer_present": true}
+[00:51:53] ✅ Chart/SymDir: AAPL banked bars=11698 key=data/warm/tv-bars/universe/US__AAPL.json.gz
+[00:51:53] ✅ Deployed compiler read six fresh warehouse FRED legs; vendor HTTP attempts=0
+[00:52:24] ✅ Daily schedule ENABLED: arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-internals-daily
+[00:52:27] ✅ LastModified=2026-09-13T00:52:27+00:00 fields={"twos_tens": 0.39, "liq_proxy_bn": 5852.0, "nfci": -0.564, "n_up": 7421, "n_down": 3659, "n_univ": 11618, "n_missing": 15, "ad_breadth": 0.3238}
 
 → Report written to aws/ops/reports/latest/ops_5503_daily_internals_warehouse_routes.md
-❌ OPS-FAIL: aws/ops/pending/ops_5503_daily_internals_warehouse_routes.py

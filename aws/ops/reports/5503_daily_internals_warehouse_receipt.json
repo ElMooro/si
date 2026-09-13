@@ -1,7 +1,11 @@
 {
   "op": 5503,
-  "started_at": "2026-09-13T00:43:07.934545+00:00",
-  "actions": [],
+  "started_at": "2026-09-13T00:51:50.619113+00:00",
+  "actions": [
+    "attached exact one-schedule reconciler policy",
+    "appended one daily internals manifest declaration",
+    "invoked internals compiler once"
+  ],
   "packages": {
     "justhodl-schedule-reconciler": {
       "files": {
@@ -35,9 +39,272 @@
       "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
     }
   },
-  "status": "FAIL",
-  "error": {
-    "type": "ValueError",
-    "message": "Pages routing assets did not reach the edge within the readiness window"
-  }
+  "pages_readiness": {
+    "asset_sha256": "1fde53ec62b63dba369dfd3d67ba5b777275d09df98db74d0aecd02c3327973e",
+    "expected_sha256": "1fde53ec62b63dba369dfd3d67ba5b777275d09df98db74d0aecd02c3327973e",
+    "script_present": true,
+    "tail_query_present": true,
+    "tail_normalizer_present": true
+  },
+  "pages": {
+    "routing_js_sha256": "1fde53ec62b63dba369dfd3d67ba5b777275d09df98db74d0aecd02c3327973e",
+    "chart_hooks_present": true
+  },
+  "symdir": {
+    "warehouse_empty": false,
+    "source": "warehouse",
+    "warehouse_key": "data/warm/tv-bars/universe/US__AAPL.json.gz",
+    "last_modified": "2026-09-12T02:30:06+00:00",
+    "source_span": "day",
+    "source_mult": 1,
+    "vendor_requests": 0,
+    "count": 11698
+  },
+  "worker": {
+    "ticker": "AAPL",
+    "source": "warehouse",
+    "warehouse_key": "data/warm/tv-bars/universe/US__AAPL.json.gz",
+    "last_modified": "2026-09-12T02:30:06+00:00",
+    "span": "day",
+    "mult": 1,
+    "count": 11698,
+    "http_status": 200
+  },
+  "deployed_build_network_guard": {
+    "s3_requests": 3,
+    "other_http_attempts": 0
+  },
+  "fred_sources": {
+    "DGS10": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-10",
+      "value": 4.95,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1
+    },
+    "DGS2": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-10",
+      "value": 4.56,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1
+    },
+    "WALCL": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-09",
+      "value": 6740619.0,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1
+    },
+    "WTREGEN": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-09",
+      "value": 883335.0,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1
+    },
+    "RRPONTSYD": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-11",
+      "value": 5.255,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1000
+    },
+    "NFCI": {
+      "key": "data/fred-cache.json",
+      "as_of": "2026-09-04",
+      "value": -0.564,
+      "last_modified": "2026-09-12T16:38:08+00:00",
+      "age_h": 8.2293,
+      "fresh_36h": true,
+      "compiler_multiplier": 1
+    }
+  },
+  "scheduler_invoke_permission": "allowed; default schedule-group trust verified",
+  "reconciler": {
+    "ok": true,
+    "mode": "attach-internals",
+    "drift_count": 303,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 1
+    },
+    "enforced": 0
+  },
+  "schedule": {
+    "Arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-internals-daily",
+    "State": "ENABLED",
+    "ScheduleExpression": "cron(20 22 * * ? *)",
+    "ScheduleExpressionTimezone": "UTC",
+    "LastModificationDate": "2026-09-13 00:52:08.162000+00:00",
+    "Target": {
+      "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler",
+      "Input": "{\"mode\":\"internals\"}",
+      "RetryPolicy": {
+        "MaximumEventAgeInSeconds": 3600,
+        "MaximumRetryAttempts": 2
+      },
+      "RoleArn": "arn:aws:iam::857687956942:role/justhodl-brief-compiler-scheduler"
+    }
+  },
+  "other_manifest_sha256": "49e7b51f01c1046bd67efdc16b77c940798d9fcd2a5da6241673f9bc461aa78b",
+  "original_six_schedules_unchanged": true,
+  "manifest_last_modified": "2026-09-13T00:52:08+00:00",
+  "drift": {
+    "drift_count": 303,
+    "by_class": {
+      "STATE_DRIFT": 15,
+      "UNDECLARED": 226,
+      "TARGET_DRIFT": 33,
+      "EXPR_DRIFT": 28,
+      "MISSING": 1
+    },
+    "enforced": [],
+    "compiler_attachment": {
+      "created": [
+        "brief-compiler-internals-daily"
+      ],
+      "verified": [
+        {
+          "name": "brief-compiler-internals-daily",
+          "arn": "arn:aws:scheduler:us-east-1:857687956942:schedule/default/brief-compiler-internals-daily",
+          "state": "ENABLED",
+          "expr": "cron(20 22 * * ? *)",
+          "input": {
+            "mode": "internals"
+          },
+          "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-brief-compiler"
+        }
+      ]
+    }
+  },
+  "compiler_invoke": {
+    "ok": true,
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-13T00:52:27+00:00",
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238
+    },
+    "warehouse": {
+      "mode": "S3 only; no vendor HTTP fallback",
+      "fred": {
+        "DGS10": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.95,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "DGS2": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-10",
+          "value": 4.56,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WALCL": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 6740619.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "WTREGEN": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-09",
+          "value": 883335.0,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        },
+        "RRPONTSYD": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-11",
+          "value": 5.255,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1000
+        },
+        "NFCI": {
+          "key": "data/fred-cache.json",
+          "as_of": "2026-09-04",
+          "value": -0.564,
+          "last_modified": "2026-09-12T16:38:08+00:00",
+          "age_h": 8.2381,
+          "fresh_36h": true,
+          "compiler_multiplier": 1
+        }
+      },
+      "fred_http_requests": 0,
+      "fresh_fred_legs": 6
+    }
+  },
+  "live": {
+    "key": "data/jh-internals.json",
+    "last_modified": "2026-09-13T00:52:27+00:00",
+    "schema_version": 1,
+    "fields": {
+      "twos_tens": 0.39,
+      "liq_proxy_bn": 5852.0,
+      "nfci": -0.564,
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "ad_breadth": 0.3238
+    },
+    "breadth": {
+      "n_up": 7421,
+      "n_down": 3659,
+      "n_unchanged": 538,
+      "n_univ": 11618,
+      "n_missing": 15,
+      "n_total": 11633,
+      "coverage": 0.9987105647726295,
+      "eligible": true,
+      "denominator": "rows with both finite positive prices; includes unchanged rows",
+      "breadth_basis": "uncapped; all source rows; no price, volume or ranking filter",
+      "current_price_field": "by_ticker.*.price",
+      "previous_price_field": "by_ticker.*.prev_close",
+      "as_of": "2026-09-12T22:00:37.733393+00:00",
+      "source": "finviz-universe",
+      "keys": [
+        "data/finviz-universe.json"
+      ],
+      "status": "LIVE",
+      "minimum_coverage": 0.8,
+      "generated_at": "2026-09-13T00:52:25.190352+00:00",
+      "last_modified": "2026-09-12T22:00:40+00:00"
+    }
+  },
+  "status": "PASS",
+  "finished_at": "2026-09-13T00:52:27.093249+00:00"
 }
