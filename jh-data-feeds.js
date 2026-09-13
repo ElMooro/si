@@ -4,6 +4,7 @@
   window.__jhDataFeeds = true;
   var KEYS = [
     ["data/verdict.json", "System verdict"],
+    ["data/jh-internals.json", "JH internals (computed)"],
     ["data/plumbing-brief.json", "Plumbing brief"],
     ["data/market-tape-brief.json", "Market-tape brief"],
     ["data/official-stats-brief.json", "Official-stats brief"],
@@ -63,12 +64,15 @@
     KEYS.forEach(function (pair) {
       var key = pair[0], label = pair[1];
       var card = el("div", "padding:12px;border:1px solid #1d2636;border-radius:10px;background:#0a0d12;font:12px Inter,system-ui,sans-serif;color:#a8b3c7");
-      card.innerHTML = "<b style=\"color:#e8edf5\">" + label + "</b><div class=\"jh-df-stat\">loading…</div>";
+      card.innerHTML = "<b style=\"color:#e8edf5\">" + label + "</b><div class=\"jh-df-stat\">loading\u2026</div>";
       grid.appendChild(card);
       load(key)
         .then(function (j) {
           var bits = [j.status || j.bias || "", j.source || j.writer || ""];
           if (j.why) bits.push(j.why);
+          if (j.fields && j.fields.twos_tens != null) bits.push("2s10s " + j.fields.twos_tens);
+          if (j.fields && j.fields.ad_breadth != null) bits.push("A-D " + j.fields.ad_breadth);
+          if (j.fields && j.fields.liq_proxy_bn != null) bits.push("liq " + j.fields.liq_proxy_bn);
           if (j.n_indexed != null) bits.push("indexed " + j.n_indexed);
           if (j.n_live != null) bits.push("live " + j.n_live);
           if (j.available_fields != null) bits.push("fields " + j.available_fields);
@@ -77,7 +81,7 @@
           if (j.n_total != null) bits.push("n=" + j.n_total);
           if (j.fields && j.fields.vix) bits.push("vix " + j.fields.vix.value);
           if (j.n != null) bits.push("n=" + j.n);
-          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" · ") || JSON.stringify(j).slice(0, 140);
+          card.querySelector(".jh-df-stat").textContent = bits.filter(Boolean).join(" \u00b7 ") || JSON.stringify(j).slice(0, 140);
         })
         .catch(function (e) {
           card.querySelector(".jh-df-stat").textContent = "missing " + e;
