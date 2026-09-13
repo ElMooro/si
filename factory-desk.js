@@ -193,7 +193,64 @@
       $('event-details').open = true;
     } catch (e) { text('admission', e.message); }
   }));
+  
+  function paintChat(doc) {
+    const log = $('chat-log');
+    if (!log) return;
+    const msgs = (doc && doc.messages) || [];
+    if (doc && doc.workers) {
+      const w = doc.workers;
+      text('chat-workers', 'Workers: ' + (w.active || 0) + ' live / ' + (w.queued || 0) + ' queued · cap ' + (w.cap || 48));
+    }
+    if (!msgs.length) {
+      log.textContent = 'Signed in. Talk to Student, Coder, Researcher, Investor, Deployer or a principle card. Spawn workers for a task — live cap 48, extras queue.';
+      return;
+    }
+    log.innerHTML = msgs.map(m => {
+      const mine = m.role === 'owner' || m.role === 'guest';
+      return '<div class="factory-msg ' + (mine ? 'me' : 'bot') + '"><small>' + safe((m.from || '') + ' → ' + (m.to || '')) + '</small>' + safe(m.text || '') + '</div>';
+    }).join('');
+    log.scrollTop = log.scrollHeight;
+  }
+  async function loadChat() {
+    try { paintChat(await api('chat')); }
+    catch (e) { const log = $('chat-log'); if (log) log.textContent = e.message; }
+  }
+  const form = $('chat-form');
+  if (form) form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const input = $('chat-in');
+    const text = (input && input.value || '').trim();
+    if (!text) return;
+    const to = ($('chat-to') && $('chat-to').value) || 'student';
+    const spawn = Number(($('spawn-n') && $('spawn-n').value) || 0);
+    const send = $('chat-send');
+    if (send) send.disabled = true;
+    try {
+      const doc = await api('chat', { text, to, spawn: spawn > 0 ? spawn : 0, role: to === 'coder' ? 'coder' : 'researcher', task: text });
+      paintChat(doc);
+      if (input) input.value = '';
+      if (doc.workers && doc.workers.note) text('admission', doc.workers.note + ' created ' + (doc.workers.created || 0));
+    } catch (e) {
+      const log = $('chat-log');
+      if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg bot"><small>desk</small>' + safe(e.message) + '</div>');
+    }
+    if (send) send.disabled = false;
+  });
+  document.querySelectorAll('#factory-agents .factory-agent').forEach((card, i) => {
+    card.addEventListener('click', () => {
+      const ids = ['student','coder','researcher','investor','deployer','livermore','wyckoff','soros','druckenmiller'];
+      const sel = $('chat-to');
+      if (sel && ids[i]) sel.value = ids[i];
+      document.querySelectorAll('#factory-agents .factory-agent').forEach(c => c.classList.remove('on'));
+      card.classList.add('on');
+      const box = document.getElementById('factory-chat-box');
+      if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = $('chat-in'); if (input) input.focus();
+    });
+  });
+
   window.addEventListener('hashchange', permalink);
-  document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { refresh(); timer = setInterval(refresh, 60000); } });
-  refresh(); timer = setInterval(refresh, 60000);
+  document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { refresh(); loadChat(); timer = setInterval(refresh, 60000); } });
+  refresh(); loadChat(); timer = setInterval(refresh, 60000);
 })();
