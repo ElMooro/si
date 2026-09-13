@@ -113,6 +113,35 @@ class OwnSpecTests(unittest.TestCase):
         pin = module('pin_under_test', 'scripts/factory_training_pin.py')
         data = pin.bundle_bytes()
         self.assertEqual(data, pin.bundle_bytes())          # deterministic bundle -> content-addressed key
+        import tarfile
+        names = sorted(tarfile.open(fileobj=io.BytesIO(data), mode='r:gz').getnames())
+        self.assertEqual(names, ['generate.py', 'requirements.txt', 'train_qlora.py'])
+
+    def test_burst_generator_refuses_holdout_tasks_and_plans_sampling(self):
+        import tempfile
+        gen = module('generate_under_test', 'factory/training/generate.py')
+        self.assertEqual(gen.plan({'samples_per_task': '8', 'temperature': '1.1'}, 'burst')['samples_per_task'], 8)
+        self.assertEqual(gen.plan({'samples_per_task': '8', 'temperature': '1.1'}, 'exam'), {**gen.plan({}, 'exam')})
+        self.assertEqual(gen.plan({}, 'exam')['temperature'], 0.0)
+        self.assertEqual(gen.plan({'samples_per_task': '99'}, 'burst')['samples_per_task'], 16)
+        with tempfile.TemporaryDirectory() as tmp:
+            tasks = Path(tmp) / 'tasks'; tasks.mkdir()
+            (tasks / 't.jsonl').write_text('\n'.join(json.dumps(r) for r in [
+                {'task_id': 'a', 'prompt': 'def f():', 'family': 'code'},
+                {'task_id': 'h', 'prompt': 'secret', 'family': 'code', 'holdout': True},
+                {'task_id': 'b', 'prompt': 'def g():'}]) + '\n')
+            rows, refused = gen.load_tasks(tasks, 'burst', 100)
+            self.assertEqual(([r['task_id'] for r in rows], refused), (['a', 'b'], 1))
+            rows, refused = gen.load_tasks(tasks, 'exam', 100)
+            self.assertEqual(([r['task_id'] for r in rows], refused), (['a', 'h', 'b'], 0))
+        spec = own.burst_spec(self.s3, PRI, self.control, tasks_uri='s3://private-test/factory/curriculum/code/2026-09-13/', samples_per_task=6, temperature=0.9)
+        self.assertEqual(spec['hyperparameters']['sagemaker_program']['default'], 'generate.py')
+        self.assertEqual(spec['hyperparameters']['samples_per_task']['default'], '6')
+        self.assertEqual(spec['training_image'], good_pin()['training_image'])
+        exam = own.burst_spec(self.s3, PRI, self.control, mode='exam', tasks_uri='s3://private-test/factory/exams/code/', adapter_uri='s3://private-test/factory/champions/gen-3/adapter/')
+        self.assertEqual((exam['hyperparameters']['temperature']['default'], exam['hyperparameters']['adapter_generation']['default']), ('0.0', 'adapter'))
+        with self.assertRaises(own.OwnSpecRefused):
+            own.burst_spec(self.s3, PRI, self.control)
 
 
 if __name__ == '__main__':

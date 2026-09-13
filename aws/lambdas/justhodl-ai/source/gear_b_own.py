@@ -94,3 +94,19 @@ def own_spec(s3, private_bucket: str, control: Dict[str, Any]) -> Dict[str, Any]
             "default_training_instance": pin.get("default_instance", "ml.g5.2xlarge"),
             "supported_training_instances": pin.get("instances", ["ml.g5.2xlarge", "ml.g5.4xlarge", "ml.g5.12xlarge"]),
             "gated": False, "fetched_at": pin.get("pinned_at")}
+
+
+def burst_spec(s3, private_bucket: str, control: Dict[str, Any], *, mode: str = "burst", adapter_uri: str = None,
+               tasks_uri: str = None, samples_per_task: int = 4, temperature: float = 0.8) -> Dict[str, Any]:
+    """Spec for a trace burst / exam job on the owned image: same weights, same bundle, generate.py as the program.
+    Bursts sample K candidates per task (creativity); the unprivileged verifier turns passes into training rows."""
+    base = own_spec(s3, private_bucket, control)
+    hyper = {"sagemaker_program": {"default": "generate.py"}, "mode": {"default": mode},
+             "samples_per_task": {"default": str(samples_per_task if mode == "burst" else 1)},
+             "temperature": {"default": str(temperature if mode == "burst" else 0.0)},
+             "max_new_tokens": {"default": "1024"}, "task_cap": {"default": "2000"},
+             "adapter_generation": {"default": (adapter_uri or "base").rstrip("/").split("/")[-1]}}
+    spec = {**base, "kind": mode, "hyperparameters": hyper, "adapter_uri": adapter_uri, "tasks_uri": tasks_uri}
+    if not tasks_uri or not str(tasks_uri).startswith("s3://"):
+        raise OwnSpecRefused("tasks_uri (s3://) is required for a %s job" % mode)
+    return spec

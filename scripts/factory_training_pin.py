@@ -24,7 +24,7 @@ SRC = REPO / "factory" / "training"
 PRIVATE = os.environ.get("FACTORY_PRIVATE_BUCKET", "justhodl-ai-857687956942")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 PIN_KEY = "factory/training/current.json"
-FILES = ("train_qlora.py", "requirements.txt")
+FILES = ("train_qlora.py", "generate.py", "requirements.txt")
 
 
 def bundle_bytes() -> bytes:
@@ -41,7 +41,7 @@ def bundle_bytes() -> bytes:
 
 def build_pin(image: str, bundle_uri: str, bundle_sha: str, require_digest: bool) -> dict:
     return {"schema_version": "factory-training-pin.v1", "training_image": image, "require_digest": bool(require_digest),
-            "bundle_uri": bundle_uri, "bundle_sha256": bundle_sha, "program": "train_qlora.py",
+            "bundle_uri": bundle_uri, "bundle_sha256": bundle_sha, "program": "train_qlora.py", "burst_program": "generate.py",
             "requirements_sha256": hashlib.sha256((SRC / "requirements.txt").read_bytes()).hexdigest(),
             "default_instance": "ml.g5.2xlarge", "instances": ["ml.g5.2xlarge", "ml.g5.4xlarge", "ml.g5.12xlarge"],
             "max_steps": 400, "lora_r": 16, "learning_rate": "2e-4", "max_seq_len": 2048, "epochs": 1,
