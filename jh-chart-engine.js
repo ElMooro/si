@@ -385,21 +385,21 @@
       lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
     var urls=[
+      PROXY+"/ohlc?ticker="+encodeURIComponent(t),
+      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
+      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+sp[3]+"&interval="+sp[2],
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json",
       "/api/klines?symbol="+encodeURIComponent(t)+"&interval="+encodeURIComponent(sp[0])+"&limit=1000",
       "/api/yahoo?ticker="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
-      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
-      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+sp[3]+"&interval="+sp[2],
-      PROXY+"/ohlc?ticker="+encodeURIComponent(t),
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json"
     ];
     for(var i=0;i<urls.length;i++){
       try{
-        var d=toBars(await fetchJson(urls[i]));
+        var raw=await fetchJson(urls[i]); var d=toBars(raw);
         if(d.length>=8){
-          lastSource=urls[i].indexOf("/api/klines")===0?"binance/local": urls[i].indexOf("/api/")===0?"local": urls[i].indexOf(PROXY)===0?"proxy": urls[i].indexOf(LIVE)===0?"warehouse":"feed";
+          lastSource=(raw&& (raw.warehouse_key||raw.source)) || (urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           if(scored<d.length*0.2 && i<urls.length-1) continue;
           barCache[key]={d:d, at:now, src:lastSource};
@@ -508,7 +508,7 @@
   }
   async function paint(d){
     if(!d||!d.length){ document.getElementById("quote").textContent="No bars for "+active; return; }
-    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;}catch(e){}
+    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.lastSource=lastSource;}catch(e){}
     var p=pal();
     chart.applyOptions({
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } },
@@ -855,14 +855,14 @@
   async function load(){
     try{
       var d=await klines(active,tf);
-      if(!d.length){ d=synth(bare(active),400); lastSource="synth"; }
+      if(!d.length){ lastSource="unavailable"; }
       if(replay.on) d=d.slice(0, replay.i||d.length);
       await paint(d);
       if(layout>1) paintPanes();
       loadTape(true);
     }catch(e){
       try{
-        var d2=synth(bare(active),400); lastSource="synth";
+        var d2=[]; lastSource="unavailable";
         await paint(d2);
         toast("Vendor miss · showing synth tape");
       }catch(e2){
