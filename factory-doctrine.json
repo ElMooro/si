@@ -1,0 +1,35 @@
+{
+  "schema_version": "factory-doctrine.v1",
+  "updated": "2026-09-13",
+  "purpose": "Teachers (Claude/Grok) install the curve then leave the hot path. The factory runs itself against warehouse evidence.",
+  "teachers_are_not_runtime": true,
+  "no_learn_coding_from_khalid_or_repo": true,
+  "compute_inflight_cap_owned_by_factory_gateway": true,
+  "ranks": [
+    {"rank": "recruit", "can_spawn": 0, "authority": "execute assigned drill only"},
+    {"rank": "specialist", "can_spawn": 0, "authority": "own one verified skill"},
+    {"rank": "nco", "can_spawn": 3, "authority": "train recruits; recommend kill"},
+    {"rank": "captain", "can_spawn": 8, "authority": "open a squad; assign tasks; write lessons"},
+    {"rank": "colonel", "can_spawn": 15, "authority": "own a desk; promote/demote one rank"},
+    {"rank": "student", "can_spawn": 20, "authority": "supervisor; cannot mint owner or teacher-*"}
+  ],
+  "promotion": {
+    "window_days": 21,
+    "min_graded_tasks": 8,
+    "max_error_rate": 0.15,
+    "must_self_improve": "pass_rate this window > pass_rate prior window",
+    "evidence": "warehouse marks only"
+  },
+  "elimination": {
+    "rogue": "writes outside factory/* or claims iam/events",
+    "hallucinating": "claim without warehouse key + holdout id",
+    "stalled": "zero graded tasks in 14d or pass_rate falling two windows",
+    "action": "retire card; do not invoke; keep evidence immutable"
+  },
+  "chain_of_command": {
+    "orders_flow": "student -> colonel -> captain -> nco -> specialist -> recruit",
+    "lower_cannot_countermand": true,
+    "teacher_lessons_advisory_until_grader_pass": true,
+    "grader_is_not_the_student": true
+  }
+}
