@@ -1,4 +1,4 @@
-"""ops 5522 -- re-arm of 5520/5521 with the right receipt test (Claude Ship 1, 2026-09-13).
+"""ops 5525 -- re-arm of 5520/5521 with the right receipt test (Claude Ship 1, 2026-09-13).
 
 5521 waited for receipts carrying its own ops-only commit, which never deploys anything. The right test: the
 receipt commit must leave the function's source (aws/lambdas/<fn>/source + aws/shared) byte-identical to HEAD
@@ -120,8 +120,8 @@ def main() -> int:
     lam = boto3.client("lambda", region_name=REGION, config=cfg)
     iam = boto3.client("iam")
     head = _head()
-    with report("ops_5522_factory_discipline_prints_regate2") as R:
-        R.heading("ops 5522 (re-arm of 5520/5521) -- factory discipline in the tick + official prints lane: receipts, live ticks, dry-run prints, boundaries")
+    with report("ops_5525_factory_discipline_prints_regate2") as R:
+        R.heading("ops 5525 (re-arm of 5520/5521) -- factory discipline in the tick + official prints lane: receipts, live ticks, dry-run prints, boundaries")
         R.kv(head=head[:10])
 
         # 1. receipts (wait for the deploy of this push)
