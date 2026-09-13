@@ -70,6 +70,16 @@ class WarehouseTests(unittest.TestCase):
         self.assertEqual(doc["bars"][0][0],946684800)
         self.assertIn("NASDAQ__AAPL",doc["warehouse_key"])
         self.assertTrue(warehouse_routing.banked_ohlc(s3,"bucket","AAPL","minute")["warehouse_empty"])
+    def test_katlin_crypto_bank_is_served_without_vendor(self):
+        s3=Mock()
+        def read(**kw):
+            self.assertEqual(kw["Key"],"data/warm/katlin/crypto-bars/BTC.json.gz")
+            return {"Body":io.BytesIO(json.dumps({"rows":[["2026-09-11",100,110,95,105,500]]}).encode()),"LastModified":datetime.now(timezone.utc)}
+        s3.get_object.side_effect=read
+        for symbol in ("X:BTCUSD","BTC-USD"):
+            result=warehouse_routing.banked_ohlc(s3,"bucket",symbol)
+            self.assertEqual(result["bars"][0][4],105)
+            self.assertEqual(result["vendor_requests"],0)
 
 
 if __name__ == "__main__":

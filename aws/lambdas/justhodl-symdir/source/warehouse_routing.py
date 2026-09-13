@@ -32,6 +32,9 @@ def banked_ohlc(s3, bucket, symbol, span="day", mult=1):
     else:
         banks = [ex+":"+symbol for ex in ("US","NASDAQ","NYSE","AMEX","ARCA","BATS","CBOE","OTC")]
     keys = []
+    crypto = re.fullmatch(r"(?:X:)?([A-Z0-9]+)-?USD",symbol) if (symbol.startswith("X:") or symbol.endswith("-USD")) else None
+    if crypto:
+        keys.append("data/warm/katlin/crypto-bars/"+crypto.group(1)+".json.gz")
     if re.fullmatch(r"[A-Z0-9.\-]+", symbol):
         keys.extend("data/warm/us-equities-daily/"+symbol+ext for ext in (".json.gz",".json"))
     keys.extend("data/warm/tv-bars/universe/"+re.sub(r"[^A-Za-z0-9_.\-!]", "__", s)+".json.gz" for s in banks)
@@ -57,7 +60,7 @@ def banked_ohlc(s3, bucket, symbol, span="day", mult=1):
                 or (source_mult > 1 and source_span != span)):
             continue
         bars = []
-        for row in doc.get("bars") or doc.get("ohlc") or []:
+        for row in doc.get("bars") or doc.get("ohlc") or doc.get("rows") or []:
             try:
                 a = row if isinstance(row,list) else [row.get("time",row.get("date",row.get("t"))),
                     row.get("open",row.get("o")),row.get("high",row.get("h")),row.get("low",row.get("l")),row.get("close",row.get("c")),row.get("volume",row.get("value",row.get("v",0))) ]
