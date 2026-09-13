@@ -1,102 +1,111 @@
-/* Livermore + Wyckoff + reversal sequences. Labels only. */
+/* Livermore + full Wyckoff labels. Effort vs result. No orders. */
 (function () {
-  function swings(d, left, right) {
-    left = left || 4; right = right || 4;
-    var hi = [], lo = [], i, j;
-    for (i = left; i < d.length - right; i++) {
+  function avg(a) { var s = 0, i; for (i = 0; i < a.length; i++) s += a[i]; return a.length ? s / a.length : 0; }
+  function swings(d, n) {
+    n = n || 4; var hi = [], lo = [], i, j;
+    for (i = n; i < d.length - n; i++) {
       var isH = true, isL = true;
-      for (j = i - left; j <= i + right; j++) {
+      for (j = i - n; j <= i + n; j++) {
         if (j === i) continue;
         if (d[j].high > d[i].high) isH = false;
         if (d[j].low < d[i].low) isL = false;
       }
-      if (isH) hi.push({ i: i, px: d[i].high, t: d[i].time });
-      if (isL) lo.push({ i: i, px: d[i].low, t: d[i].time });
+      if (isH) hi.push({ i: i, px: d[i].high, t: d[i].time, v: d[i].volume || 0 });
+      if (isL) lo.push({ i: i, px: d[i].low, t: d[i].time, v: d[i].volume || 0 });
     }
     return { hi: hi, lo: lo };
   }
-
+  function mk(t, pos, color, shape, text) {
+    return { time: t, position: pos, color: color, shape: shape, text: text };
+  }
   function livermore(d, sw) {
-    var hs = sw.hi.slice(-4), ls = sw.lo.slice(-4);
-    var trend = "—", note = "need two pivots";
+    var hs = sw.hi.slice(-5), ls = sw.lo.slice(-5);
+    var trend = "—", note = "need pivots";
     if (hs.length >= 2 && ls.length >= 2) {
       var hh = hs[hs.length - 1].px > hs[hs.length - 2].px;
       var hl = ls[ls.length - 1].px > ls[ls.length - 2].px;
       var lh = hs[hs.length - 1].px < hs[hs.length - 2].px;
       var ll = ls[ls.length - 1].px < ls[ls.length - 2].px;
-      if (hh && hl) { trend = "UPTREND"; note = "HH + HL"; }
-      else if (lh && ll) { trend = "DOWNTREND"; note = "LH + LL"; }
-      else { trend = "TEST"; note = "one side failed"; }
+      if (hh && hl) { trend = "UPTREND"; note = "HH+HL"; }
+      else if (lh && ll) { trend = "DOWNTREND"; note = "LH+LL"; }
+      else { trend = "TEST"; note = "failed side"; }
     }
     var last = d[d.length - 1];
-    if (ls.length && (trend === "UPTREND" || trend === "TEST") && last.close < ls[ls.length - 1].px) {
-      trend = "REV-DN"; note = "broke last reaction low";
-    }
-    if (hs.length && (trend === "DOWNTREND" || trend === "TEST") && last.close > hs[hs.length - 1].px) {
-      trend = "REV-UP"; note = "broke last rally high";
-    }
-    return { trend: trend, note: note, pivotsH: hs, pivotsL: ls };
+    if (ls.length && last.close < ls[ls.length - 1].px && trend !== "DOWNTREND") { trend = "REV-DN"; note = "broke reaction low"; }
+    if (hs.length && last.close > hs[hs.length - 1].px && trend !== "UPTREND") { trend = "REV-UP"; note = "broke rally high"; }
+    return { trend: trend, note: note, hs: hs, ls: ls };
   }
-
-  function wyckoff(d) {
-    if (d.length < 30) return { phase: "—", events: [], note: "short" };
-    var win = d.slice(-40), maxH = -1e99, minL = 1e99, i;
+  function wyckoffFull(d) {
+    var out = [];
+    if (d.length < 40) return out;
+    var win = d.slice(-60);
+    var vAvg = avg(win.map(function (b) { return b.volume || 0; }));
+    var maxH = -1e99, minL = 1e99, maxI = 0, minI = 0, i;
     for (i = 0; i < win.length; i++) {
-      if (win[i].high > maxH) maxH = win[i].high;
-      if (win[i].low < minL) minL = win[i].low;
+      if (win[i].high > maxH) { maxH = win[i].high; maxI = i; }
+      if (win[i].low < minL) { minL = win[i].low; minI = i; }
     }
-    var mid = (maxH + minL) / 2, last = win[win.length - 1], vAvg = 0;
-    for (i = 0; i < win.length; i++) vAvg += win[i].volume || 0;
-    vAvg /= win.length;
-    var ev = [];
-    if (last.low < minL * 1.003 && last.close > minL && last.close < mid)
-      ev.push({ t: last.time, text: "SPRING", pos: "belowBar", color: "#089981" });
-    if (last.high > maxH * 0.997 && last.close < maxH && last.close > mid)
-      ev.push({ t: last.time, text: "UT", pos: "aboveBar", color: "#f23645" });
-    return { phase: ev.length ? ev[0].text : "range", events: ev, support: minL, resist: maxH, note: minL.toFixed(2) + "–" + maxH.toFixed(2) };
+    var mid = (maxH + minL) / 2;
+    var last = win[win.length - 1];
+    var off = d.length - win.length;
+    if (minI > 2 && minI < win.length - 2) {
+      var sc = win[minI];
+      if ((sc.volume || 0) > vAvg * 1.4) out.push(mk(sc.time, "belowBar", "#f23645", "arrowDown", "SC"));
+      if (minI >= 3) {
+        var ps = win[minI - 2];
+        if ((ps.volume || 0) > vAvg && ps.close < ps.open) out.push(mk(ps.time, "belowBar", "#ab47bc", "circle", "PS"));
+      }
+      if (minI + 2 < win.length) {
+        var ar = win[minI + 2];
+        if (ar.close > sc.close) out.push(mk(ar.time, "aboveBar", "#089981", "circle", "AR"));
+      }
+    }
+    if (maxI > 2) {
+      var bc = win[maxI];
+      if ((bc.volume || 0) > vAvg * 1.4 && bc.close > mid) out.push(mk(bc.time, "aboveBar", "#089981", "arrowUp", "BC"));
+    }
+    if (last.low < minL * 1.004 && last.close > minL && last.close < mid)
+      out.push(mk(last.time, "belowBar", "#089981", "square", "SPRING"));
+    if (last.high > maxH * 0.996 && last.close < maxH && last.close > mid)
+      out.push(mk(last.time, "aboveBar", "#f23645", "square", "UT"));
+    if (last.close > mid && (last.volume || 0) > vAvg * 1.2 && last.close > last.open)
+      out.push(mk(last.time, "aboveBar", "#089981", "arrowUp", "SOS"));
+    if (last.close < mid && (last.volume || 0) > vAvg * 1.2 && last.close < last.open)
+      out.push(mk(last.time, "belowBar", "#f23645", "arrowDown", "SOW"));
+    var prev = win[win.length - 5];
+    if (prev && last.close > mid && last.low > minL && (last.volume || 0) < vAvg)
+      out.push(mk(last.time, "belowBar", "#2962ff", "circle", "LPS"));
+    if (prev && last.close < mid && last.high < maxH && (last.volume || 0) < vAvg)
+      out.push(mk(last.time, "aboveBar", "#2962ff", "circle", "LPSY"));
+    return out;
   }
-
-  function sequences(d, volRows, lv, wy) {
-    var mk = [];
-    var last = d[d.length - 1];
-    var recent = (volRows || []).filter(function (e) { return e._i >= d.length - 25; });
-    var hasSC = recent.some(function (e) { return e.text === "SC" || e.text === "CAPIT"; });
-    var hasBC = recent.some(function (e) { return e.text === "BC" || e.text === "BC+"; });
-    var hasNS = recent.some(function (e) { return e.text === "NS" || e.text === "ACC"; });
-    var spring = (wy.events || []).some(function (e) { return e.text === "SPRING"; });
-    var ut = (wy.events || []).some(function (e) { return e.text === "UT"; });
-    if ((hasSC && (hasNS || spring)) || lv.trend === "REV-UP") {
-      mk.push({ time: last.time, position: "belowBar", color: "#089981", shape: "arrowUp", text: "BOTTOM" });
+  function effort(d) {
+    var out = [], i;
+    for (i = 10; i < d.length; i++) {
+      var vA = 0, pA = 0, j;
+      for (j = i - 10; j < i; j++) { vA += d[j].volume || 0; pA += Math.abs(d[j].close - d[j].open); }
+      vA /= 10; pA /= 10;
+      var body = Math.abs(d[i].close - d[i].open);
+      var vol = d[i].volume || 0;
+      if (vA && vol > vA * 1.7 && pA && body < pA * 0.55) {
+        out.push(mk(d[i].time, d[i].close >= d[i].open ? "aboveBar" : "belowBar", "#ff9800", "circle",
+          d[i].close >= d[i].open ? "E↑noR" : "E↓noR"));
+      }
     }
-    if ((hasBC && ut) || lv.trend === "REV-DN") {
-      mk.push({ time: last.time, position: "aboveBar", color: "#f23645", shape: "arrowDown", text: "TOP" });
-    }
-    if (lv.trend === "REV-UP")
-      mk.push({ time: last.time, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "REV-UP" });
-    if (lv.trend === "REV-DN")
-      mk.push({ time: last.time, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "REV-DN" });
-    return mk;
+    return out.slice(-8);
   }
-
   window.jhTapeRead = function (d) {
-    if (!d || d.length < 55) return { markers: [], panel: "tape: need 55 bars" };
+    if (!d || d.length < 40) return { markers: [], panel: "tape: short" };
     var sw = swings(d);
     var lv = livermore(d, sw);
-    var wy = wyckoff(d);
-    var volRows = window.jhVolEventTable ? window.jhVolEventTable(d) : [];
     var mk = [];
-    lv.pivotsH.slice(-3).forEach(function (p) {
-      mk.push({ time: p.t, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "PH" });
-    });
-    lv.pivotsL.slice(-3).forEach(function (p) {
-      mk.push({ time: p.t, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "PL" });
-    });
-    wy.events.forEach(function (e) {
-      mk.push({ time: e.t, position: e.pos, color: e.color, shape: "square", text: e.text });
-    });
+    lv.hs.slice(-3).forEach(function (p) { mk.push(mk ? { time: p.t, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "PH" } : null); });
+    lv.ls.slice(-3).forEach(function (p) { mk.push({ time: p.t, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "PL" }); });
+    mk = mk.concat(wyckoffFull(d)).concat(effort(d));
     if (window.jhVolEvents) mk = (window.jhVolEvents(d) || []).concat(mk);
-    mk = mk.concat(sequences(d, volRows, lv, wy));
-    var panel = "LIVERMORE " + lv.trend + " (" + lv.note + ") | WYCKOFF " + wy.phase + " " + wy.note;
-    return { markers: mk, panel: panel, livermore: lv, wyckoff: wy };
+    if (lv.trend === "REV-UP") mk.push({ time: d[d.length - 1].time, position: "belowBar", color: "#2962ff", shape: "arrowUp", text: "REV-UP" });
+    if (lv.trend === "REV-DN") mk.push({ time: d[d.length - 1].time, position: "aboveBar", color: "#2962ff", shape: "arrowDown", text: "REV-DN" });
+    var panel = "LIVERMORE " + lv.trend + " " + lv.note + " | WYCKOFF PS/SC/AR/SPRING/UT/SOS/SOW/LPS | effort vs result on";
+    return { markers: mk, panel: panel, livermore: lv };
   };
 })();
