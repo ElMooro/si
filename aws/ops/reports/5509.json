@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "checks": {
+    "justhodl-student-rsi-role": {
+      "dlq_before": "implicitDeny",
+      "dlq_target": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+      "trace_write_only": true
+    },
+    "justhodl-factory-grader-role": {
+      "dlq_before": "implicitDeny",
+      "dlq_target": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+      "trace_write_only": true
+    }
+  }
+}
