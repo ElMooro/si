@@ -17,7 +17,9 @@ import boto3
 from botocore.config import Config
 
 from factory_core import Invalid, canonical, digest, identifier, iso, validate_prediction, verify_state
+from factory_evidence import reading_receipt
 from factory_store import Conflict, Store
+import factory_discipline
 
 CFG = Config(connect_timeout=3, read_timeout=10, retries={'max_attempts': 2})
 
@@ -73,12 +75,41 @@ def _fleet_meta(store):
     return row, etag
 
 
+def drain_fleet(store):
+    """Bounded materialization of declared cards (MATERIALIZE_PER_TICK per call); compute stays COMPUTE_INFLIGHT.
+    Owned by the gateway per factory-doctrine.v1; the student tick never writes factory/fleet/*."""
+    meta, etag = _fleet_meta(store)
+    queued = max(0, int(meta.get("queued") or 0))
+    if not queued or not etag:
+        return meta
+    take = min(MATERIALIZE_PER_TICK, queued)
+    meta = {**meta, "queued": queued - take, "materialized": int(meta.get("materialized") or 0) + take,
+            "inflight": min(COMPUTE_INFLIGHT, queued), "learn_bytes": int(meta.get("learn_bytes") or 0) + take * 64,
+            "updated_at": iso(store.clock())}
+    try:
+        store.put(store.private, "factory/fleet/meta.json", meta, etag=etag, absent=False)
+    except Conflict:
+        pass
+    return meta
+
+
+def ranks_view(store):
+    """Current chain of command from the authoritative student state (aliases only)."""
+    try:
+        state, _ = store.load_state()
+    except Exception:  # noqa: BLE001
+        state = None
+    return (state or {}).get("ranks") or factory_discipline.default_ranks(store.clock())
+
+
 def chat_snapshot(store, agent, owner):
     log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
-    meta, _ = _fleet_meta(store)
+    meta = drain_fleet(store)
+    ranks = ranks_view(store)
     return {
         "ok": True, "agent": agent, "owner": owner, "roster": list(ROSTER), "live_model": "brain",
         "messages": (log or {}).get("messages", [])[-CHAT_KEEP:],
+        "ranks": factory_discipline.projection(ranks),
         "workers": {
             "active": int(meta.get("inflight") or 0),
             "queued": int(meta.get("queued") or 0),
@@ -103,8 +134,8 @@ def spawn_workers(store, agent, body, policy):
     if count < 0:
         raise Invalid("spawn_count_required")
     count = min(count, DECLARE_CAP)
-    parent = {"id": agent, "rank": (policy or {}).get("rank") or "student"}
-    ok, why = can_spawn(parent, count)
+    # Rank comes from the chain of command the student tick maintains, never from the request body.
+    ok, why = factory_discipline.check_spawn(ranks_view(store), agent, count)
     if not ok:
         raise Invalid(why)
     count = why if isinstance(why, int) else count
@@ -118,6 +149,9 @@ def spawn_workers(store, agent, body, policy):
              "requested": count, "remaining": count, "materialized": 0, "spawned_by": agent, "spawned_at": now}
     store.immutable(store.private, "factory/fleet/batches/" + batch_id + ".json", batch)
     store.immutable(store.private, "factory/fleet/inbox/" + batch_id + ".json", {"batch": batch_id, "at": now})
+    # The student's role reads factory/queue/*; recruits are materialized there by the tick, bounded by ROSTER_CAP.
+    store.immutable(store.private, "factory/queue/spawn-" + batch_id + ".json",
+                    {"schema_version": "factory-spawn-request.v1", **batch})
     meta, etag = _fleet_meta(store)
     meta = {**meta, "declared": int(meta.get("declared") or 0) + count,
             "queued": int(meta.get("queued") or 0) + count, "updated_at": now, "last_batch": batch_id}
@@ -310,48 +344,37 @@ def _look_outside(question):
 
 
 def _bank_research(store, question, hits):
+    """A search is a reading receipt (factory-reading.v1): citable, never a lesson, never trainable."""
     if not hits:
         return
     now = iso(store.clock())
-    store.immutable(
-        store.private,
-        "factory/fleet/learn/research/" + digest(question + now)[:16] + ".json",
-        {"schema_version": "factory-research.v1", "at": now, "q": question[:500], "hits": hits, "n": len(hits)},
-    )
+    store.immutable(store.private, "factory/fleet/reading/research/" + digest(question + now)[:16] + ".json",
+                    reading_receipt("research", question[:200], hits, now, why="owner question; outside look"))
+
+
+OUTSIDE_VOICE_SYSTEM = (
+    "You are JustHodl's outside reasoner. You see a live public look (Wikipedia, search, GitHub, HuggingFace) "
+    "plus warehouse scores. You never see private notes. Answer Khalid. Cite sources by name. No orders, no IAM."
+)
 
 
 def _public_think(question, facts):
-    """GLM on public look + warehouse only. Private Brain notes never leave the box. No Anthropic."""
+    """Owner chat voice only, through the governed router (daily budget, on-demand gate, cost attribution).
+
+    Never a grader, never a lesson source: nothing this returns is written as evidence. An empty string
+    means the voice is gated or silent and the deterministic answer stands on its own.
+    """
     try:
-        from llm_router import ZAI_BASE_URL, GLM_REASON, _zai_key
-        key = (_zai_key() or "").strip()
-    except Exception:
+        from llm_router import complete
+    except Exception:  # noqa: BLE001
         return ""
-    if not key:
-        return ""
-    payload = {
-        "model": GLM_REASON,
-        "max_tokens": 500,
-        "messages": [
-            {"role": "system", "content": (
-                "You are JustHodl's outside reasoner. You see a live public look (Wikipedia, search, GitHub, HuggingFace) "
-                "plus warehouse scores. You never see private notes. Answer Khalid. Cite sources by name. No orders, no IAM."
-            )},
-            {"role": "user", "content": "QUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (question[:1500], facts[:3500])},
-        ],
-    }
-    req = urllib.request.Request(
-        ZAI_BASE_URL.rstrip("/") + "/chat/completions",
-        data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
-    )
+    prompt = "QUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (question[:1500], facts[:3500])
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = json.loads(resp.read().decode())
-        msg = ((body.get("choices") or [{}])[0].get("message") or {})
-        return (msg.get("content") or msg.get("reasoning_content") or "").strip()[:2200]
-    except Exception:
+        txt = complete(prompt, tier="reason", max_tokens=500, contains_proprietary=False,
+                       system=OUTSIDE_VOICE_SYSTEM, on_demand=True, no_cache=True)
+    except Exception:  # noqa: BLE001
         return ""
+    return str(txt or "").strip()[:2200]
 
 
 LEARN_TRACKS = {
@@ -573,21 +596,13 @@ def _learn_track(store, track, state):
     now = iso(store.clock())
     title = (stage or {}).get("title") or spec["title"]
     why = (stage or {}).get("drill") or spec.get("why") or ""
-    lesson = {
-        "schema_version": "factory-lesson.v1",
-        "track": track,
-        "stage": (stage or {}).get("id"),
-        "stage_idx": stage_idx if stages else None,
-        "title": title,
-        "why": why,
-        "at": now,
-        "hits": hits,
-        "warehouse": warehouse[:800],
-        "n": len(hits),
-        "next": (stages[stage_idx + 1]["id"] if stages and stage_idx + 1 < len(stages) else "repeat-from-stage-0"),
-    }
+    # Reading is not learning. A track step is a citable reading receipt (factory-reading.v1); a lesson
+    # only exists as factory-evidence.v1 with a checker and a grade window, and none is written here.
+    lesson = reading_receipt(track, title, hits, now, stage=(stage or {}).get("id"), why=why)
+    lesson.update(stage_idx=stage_idx if stages else None, warehouse=warehouse[:800],
+                  next=(stages[stage_idx + 1]["id"] if stages and stage_idx + 1 < len(stages) else "repeat-from-stage-0"))
     try:
-        store.immutable(store.private, "factory/fleet/learn/%s/%s.json" % (track, digest(track + now)[:16]), lesson)
+        store.immutable(store.private, "factory/fleet/reading/%s/%s.json" % (track, digest(track + now)[:16]), lesson)
     except Exception:
         pass
     if cur_key and hits:

@@ -17,6 +17,7 @@ from botocore.config import Config
 
 from factory_core import (AGENTS, DIRECTIONS, Invalid, NY, REGIMES, SCHEMA, SYMBOLS, VERSION, WORKERS,
     canonical, digest, iso, retain_fact, timestamp, validate_prediction, validate_task, week_window)
+import factory_discipline
 from factory_repair import propose
 from factory_sources import sense
 from factory_store import Busy, Conflict, Store, code
@@ -65,6 +66,10 @@ def public_projection(state):
         },
         "outer_status": state.get("outer_status") or {},
         "budget": state.get("budget"),
+        "ranks": factory_discipline.projection(state.get("ranks")),
+        "discipline": {"last_run_at": (state.get("discipline") or {}).get("last_run_at"),
+                       "changes": (state.get("discipline") or {}).get("changes") or [],
+                       "doctrine": "factory-doctrine.v1"},
         "checksum": "public-projection",
     }
 
@@ -307,19 +312,9 @@ def tick(event, store, lam):
             state['budget'] = {'day': now.date().isoformat(), 'experiments': 0, 'gpu_jobs': 0, 'paid_model_calls': 0}
         deadline = started + min(40, int(policy.get('max_tick_seconds', 0)))
         if policy['enabled']:
-            try:
-                meta, etag = store.read(store.private, 'factory/fleet/meta.json')
-                if isinstance(meta, dict) and etag:
-                    queued = max(0, int(meta.get('queued') or 0))
-                    take = min(100, queued)
-                    meta = {**meta, 'queued': queued - take,
-                            'materialized': int(meta.get('materialized') or 0) + take,
-                            'inflight': min(8, queued),
-                            'learn_bytes': int(meta.get('learn_bytes') or 0) + take * 64,
-                            'updated_at': iso(now)}
-                    store.put(store.private, 'factory/fleet/meta.json', meta, etag=etag, absent=False)
-            except Exception as exc:
-                state['health']['errors'].append({'phase': 'fleet', 'error': code(exc), 'detail': str(exc)[:120]})
+            # Fleet counters (factory/fleet/meta.json) are owned by the gateway (doctrine: compute cap
+            # owned by factory_gateway). The old drain here reused the state ETag variable and made every
+            # commit raise Conflict('state_changed'); it is gone. Recruits are materialized in `discipline`.
             outer = state['outer_status']
             if not outer.get('observed_at') or (now - timestamp(outer['observed_at'])).total_seconds() >= max(900, policy.get('sense_interval_seconds', 900)):
                 try:
@@ -343,6 +338,18 @@ def tick(event, store, lam):
                     market_wall(store, lam, state, now, deadline)
                 except Exception as exc:
                     state['health']['errors'].append({'phase': 'wall', 'error': code(exc), 'detail': str(exc)[:120]})
+            # Chain of command: warehouse-graded windows -> promote / hold / retire (factory-doctrine.v1).
+            ran = (state.get('discipline') or {}).get('last_run_at')
+            if time.monotonic() < deadline and (not ran or (now - timestamp(ran)).total_seconds() >= 900):
+                try:
+                    created = factory_discipline.materialize(store, state, now)
+                    changes = factory_discipline.apply_verdicts(store, state, now)
+                    prior = (state.get('discipline') or {}).get('changes') or []
+                    state['discipline'] = {'last_run_at': iso(now), 'materialized': len(created),
+                                           'changes': (prior + changes)[-20:], 'doctrine': 'factory-doctrine.v1',
+                                           'cards_active': factory_discipline.active_count(state['ranks'])}
+                except Exception as exc:
+                    state['health']['errors'].append({'phase': 'discipline', 'error': code(exc), 'detail': str(exc)[:120]})
         state['agents'] = [{'id': aid, 'name': name, 'purpose': purpose,
             'status': 'principle_card' if aid in ('livermore', 'wyckoff', 'soros', 'druckenmiller') else
                       'queue_only' if aid == 'deployer' else 'bounded_program_search' if aid == 'coder' else
@@ -356,14 +363,19 @@ def tick(event, store, lam):
             scope='work-unit limits; AWS service charges still apply')
         state['health'].update(lease_fence=store.lease['fence'], last_tick_at=iso(now),
             elapsed_seconds=round(time.monotonic() - started, 3), state_authority='private_conditional_s3',
-            protected_exam='independent_grader_role', general_coding='blocked_no_verified_generative_model')
+            protected_exam='independent_grader_role', general_coding='blocked_no_verified_generative_model',
+            discipline='factory-doctrine.v1')
         if state['health']['errors']:
             state['health']['status'] = 'degraded'
         state['state_version'] += 1
         state['generated_at'] = iso(now)
         sealed = store.commit_state(state, etag)
-        replace_view(store, 'data/ai-factory.json', public_projection(sealed))
-        replace_view(store, 'data/factory-public.json', public_projection(sealed))
+        projection = public_projection(sealed)
+        for key in ('data/ai-factory.json', 'data/factory-public.json'):
+            try:
+                replace_view(store, key, projection)
+            except Exception as exc:  # the private authority is committed; a denied mirror is reported, not fatal
+                state['health']['errors'].append({'phase': 'projection', 'error': code(exc), 'key': key})
         return {'ok': True, 'version': VERSION, 'status': state['health']['status'], 'state_version': sealed['state_version'],
                 'gen': state['gen'], 'checksum': sealed['checksum'], 'errors': state['health']['errors']}
     finally:
