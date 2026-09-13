@@ -29,10 +29,9 @@
     if (kept.length !== pieces.length - 1) throw Error('Missing integrity checksum');
     return '{' + kept.join(',') + '}';
   }
-  async function checkedState(url) {
-    const r = await fetch(url + '?v=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(12000) });
-    if (!r.ok) throw Error('State HTTP ' + r.status);
-    const raw = await r.text(), doc = JSON.parse(raw);
+  async function checkedState(kind) {
+    const payload = await api('view?kind=' + encodeURIComponent(kind));
+    const raw = payload.raw, doc = JSON.parse(raw);
     if (doc.schema_version !== 'student-state.v1' || !Number.isInteger(doc.state_version) || !Number.isInteger(doc.gen) || !Array.isArray(doc.skillbook)) throw Error('State schema mismatch');
     const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(checksumBody(raw)));
     const hex = Array.from(new Uint8Array(hash), x => x.toString(16).padStart(2, '0')).join('');
@@ -62,7 +61,7 @@
     $('sources').innerHTML = rows.map(([name, f]) => '<tr><td>' + safe(name.toUpperCase().replaceAll('_', ' ')) + '</td><td>' + safe(money(f.value)) + '</td><td>' + safe(f.unit || '—') + '</td><td>' + safe(f.observed_at ? f.observed_at.slice(0, 10) : 'Unavailable') + '</td><td>' + (f.retained ? 'Last good retained' : f.stale ? 'Stale / missing' : 'Observed') + '</td></tr>').join('');
     const oss = Object.values(doc.outer_status.oss || {});
     text('oss', oss.map(r => r.repository + ': ' + (r.license || 'license review required') + ' · ' + r.status).join(' | ') || 'OSS metadata awaiting first observation.');
-    $('skillbook').innerHTML = doc.skillbook.length ? doc.skillbook.map(s => '<li><a href="' + safe(sourcePath(s.evidence)) + '" target="_blank" rel="noopener">' + safe(s.summary) + '</a> · ' + s.independent_cases + ' cases</li>').join('') : '<li>No verified skills retained yet.</li>';
+    $('skillbook').innerHTML = doc.skillbook.length ? doc.skillbook.map(s => '<li><a href="' + safe('#factory-event=' + s.id) + '" target="_blank" rel="noopener">' + safe(s.summary) + '</a> · ' + s.independent_cases + ' cases</li>').join('') : '<li>No verified skills retained yet.</li>';
     const season = doc.season;
     text('season', season.id + ' · ' + season.weeks + ' weeks · America/New_York');
     text('crisis', season.crisis_definition.replaceAll('_', ' '));
@@ -73,9 +72,7 @@
   }
   async function wall() {
     try {
-      const response = await fetch('/factory/salon/board.json?v=' + Date.now(), { cache: 'no-store' });
-      if (!response.ok) throw Error('Wall awaiting first publication');
-      const board = await response.json();
+      const board = JSON.parse((await api('view?kind=board')).raw);
       $('leaders').innerHTML = board.top50.length ? board.top50.map(r => '<tr><td>' + safe(r.agent) + '</td><td>' + Math.round(r.elo) + '</td><td>' + Math.round(r.score * 100) + '%</td><td>' + r.independent_weeks + '</td><td>' + r.graded_predictions + '</td></tr>').join('') : '<tr><td colspan="5">No held-out market results yet. Elo starts after grading.</td></tr>';
       text('invited', board.invited.length ? 'Invited: ' + board.invited.map(r => r.agent).join(', ') : 'Invite-only pilot: no guests invited yet.');
       $('entries').innerHTML = (board.entries || []).slice(-12).reverse().map(e => '<li><a href="#factory-event=' + encodeURIComponent(e.id) + '">' + safe(e.agent + ' · ' + e.symbol + ' · ' + e.week) + '</a> — ' + safe(e.direction + ' / ' + e.regime) + '</li>').join('') || '<li>The next entries open Monday at 09:30 ET and lock at 09:35.</li>';
@@ -87,17 +84,16 @@
     const id = decodeURIComponent(location.hash.slice('#factory-event='.length));
     if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$/.test(id)) return;
     try {
-      const r = await fetch('/factory/salon/events/' + id + '.json');
-      if (!r.ok) throw Error('Event has not been published yet; check again after the next tick.');
-      text('event', JSON.stringify(await r.json(), null, 2));
+      const event = JSON.parse((await api('view?kind=event&id=' + encodeURIComponent(id))).raw);
+      text('event', JSON.stringify(event, null, 2));
       $('event-details').open = true;
       $('event-details').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (e) { text('event', e.message); }
   }
   async function refresh() {
-    const result = await Promise.allSettled(['/data/student-state.json', '/student-state.json'].map(checkedState));
+    const result = await Promise.allSettled(['state', 'mirror'].map(checkedState));
     const good = result.filter(r => r.status === 'fulfilled').map(r => r.value).sort((a, b) => b.state_version - a.state_version);
-    if (!good.length) { text('status', state ? 'Feed unavailable · retaining last verified state' : 'Awaiting the first verified factory state'); return; }
+    if (!good.length) { text('status', state ? 'Feed unavailable · retaining last verified state' : 'Sign in and connect to view the private factory state.'); return; }
     if (good.length > 1 && good[0].state_version === good[1].state_version && good[0].checksum !== good[1].checksum) { text('status', 'State conflict · retaining last verified state'); return; }
     if (state && good[0].state_version < state.state_version) return;
     state = good[0]; paint(state); await wall();
@@ -125,7 +121,7 @@
   $('week').addEventListener('change', predictionTemplate);
   $('refresh').addEventListener('click', refresh);
   $('connect').addEventListener('click', async () => {
-    try { const r = await api('sandbox'); text('admission', 'Connected as ' + r.agent + '. Delayed tape and SOFR only.'); $('owner').hidden = !r.owner; }
+    try { const r = await api('sandbox'); text('admission', 'Connected as ' + r.agent + '. Delayed tape and SOFR only.'); $('owner').hidden = !r.owner; await refresh(); }
     catch (e) { text('admission', e.message); }
   });
   for (const [id, action, input] of [['send-prediction', 'predictions', 'prediction-json'], ['send-trace', 'traces', 'trace-json'], ['send-invite', 'invites', 'invite-json']]) {
@@ -138,6 +134,13 @@
     try { const doc = await api('control', { enabled }); text('admission', doc.enabled ? 'Factory resumed.' : 'Factory paused.'); await refresh(); }
     catch (e) { text('admission', e.message); }
   });
+  root.querySelectorAll('[data-factory-view]').forEach(button => button.addEventListener('click', async () => {
+    try {
+      const payload = await api('view?kind=' + button.dataset.factoryView);
+      text('event', payload.content_type === 'application/json' ? JSON.stringify(JSON.parse(payload.raw), null, 2) : payload.raw);
+      $('event-details').open = true;
+    } catch (e) { text('admission', e.message); }
+  }));
   window.addEventListener('hashchange', permalink);
   document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { refresh(); timer = setInterval(refresh, 60000); } });
   refresh(); timer = setInterval(refresh, 60000);

@@ -46,7 +46,7 @@ Individual immutable `factory/salon/events/<event-id>.json` objects are the sour
 
 ## Storage and authority
 
-Public keys:
+Site-bucket keys (factory evidence requires owner/invited access; anonymous S3 publication was not approved):
 
 - `ai.html`, `factory-desk.js`, `factory-desk.css`
 - `student-state.json`, `data/student-state.json`, existing `data/ai.json`
@@ -65,11 +65,11 @@ Private prefixes in existing `justhodl-ai-857687956942`:
 
 All mutable writes require an ETag or a create-if-absent condition. Evidence writes use create-if-absent permissions. The private state commits before the mirrors. Checksums and increasing versions protect the read model; last-good mirrors and snapshots support recovery. Corruption cannot cause an empty `{}` initialization over existing state. The student is not allowed to write the model champion.
 
-The initial pilot is capped at ten invited accounts. Only the owner adds verified user IDs. No invitation messages are sent. Public views contain aliases, not user IDs. Public expansion requires three completed seasons and a separate owner release.
+The initial pilot is capped at ten invited accounts. Only the owner adds verified user IDs. No invitation messages are sent. Views contain aliases, not user IDs, and require owner/invited authentication. Public expansion requires three completed seasons and a separate owner release.
 
 ## API and operator controls
 
-Authenticated same-origin routes: `GET /api/v1/factory/sandbox`; `POST /api/v1/factory/traces`, `/predictions`, `/control`, `/invites`. The last two are owner-only. The desk supplies examples and uses the existing sign-in token. The proxy overwrites identity headers with verified identity; the Brain service token is never returned to a guest or student.
+Authenticated same-origin routes: `GET /api/v1/factory/sandbox` and `/view?kind=state|mirror|board|season|scoreboard|exams|wall|event|trace`; `POST /api/v1/factory/traces`, `/predictions`, `/control`, `/invites`. The last two are owner-only. The desk supplies examples and uses the existing sign-in token. The proxy overwrites identity headers with verified identity; the Brain service token is never returned to a guest or student.
 
 Pause: owner opens Salon, connects, and presses **Pause factory**. Resume uses the same control. A hard stop can additionally disable `justhodl-student-rsi-1m` through an owner-authored GitHub runner operation. Future deployment candidates remain queued for human review.
 
@@ -84,3 +84,5 @@ AWS changes use the existing GitHub Actions runner only. Do not run AWS locally 
 - Hard refresh `/ai.html`, confirm the original SageMaker desk still paints and the Student factory/CLUB WALL pane displays real state.
 
 Guest admission uses a bounded ten-key cursor and immutable terminal receipts. Season scans stop explicitly rather than truncate if a weekly prefix exceeds 1,000 items. The JSONL read guard is 4 MiB. Before broadening the pilot, release archival views that preserve original event bytes. No old event is deleted to get around those limits.
+
+Anonymous S3 publication was rejected by automatic approval review. No bucket policy was expanded. The factory pane uses the existing authenticated service to read an exact allowlist of views; signed-out visitors see role definitions and an explicit sign-in message, never simulated metrics.

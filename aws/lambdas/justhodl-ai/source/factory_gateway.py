@@ -56,6 +56,33 @@ def handle(event, method, path, body, store):
     if not isinstance(body, dict) or len(canonical(body)) > 16384:
         raise Invalid('invalid_or_oversized_body')
     action = path.removeprefix('/factory/')
+    if method == 'GET' and action == 'view':
+        if set(body) - {'kind', 'id'}:
+            raise Invalid('unknown_view_argument')
+        kind = body.get('kind')
+        mapping = {'state': 'data/student-state.json', 'mirror': 'student-state.json',
+            'board': 'factory/salon/board.json', 'season': 'factory/salon/season.json',
+            'scoreboard': 'factory/scoreboard.json', 'exams': 'factory/exams/index.json',
+            'wall': 'factory/salon/wall.jsonl'}
+        if kind == 'event':
+            key = 'factory/salon/events/' + identifier(body.get('id')) + '.json'
+        elif kind == 'trace':
+            key = 'factory/traces/code/' + identifier(body.get('id')) + '.json'
+        elif kind in mapping:
+            key = mapping[kind]
+        else:
+            raise Invalid('view_not_allowed')
+        if kind == 'wall':
+            raw = store.s3.get_object(Bucket=store.public, Key=key)['Body'].read(4 * 1024 * 1024 + 1)
+            if len(raw) > 4 * 1024 * 1024:
+                raise Invalid('wall_archive_view_required')
+            return {'ok': True, 'raw': raw.decode(), 'content_type': 'application/x-ndjson'}
+        value, _ = store.read(store.public, key)
+        if value is None:
+            raise Invalid('factory_view_not_ready')
+        if kind in ('state', 'mirror'):
+            verify_state(value)
+        return {'ok': True, 'raw': canonical(value).decode(), 'content_type': 'application/json'}
     if method == 'GET' and action == 'sandbox':
         state, _ = store.read(store.public, 'data/student-state.json')
         verify_state(state)

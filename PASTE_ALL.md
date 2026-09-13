@@ -20,7 +20,7 @@ scripts/lambda_identity.py + configured role/handler use in scripts/deploy_lambd
 RUNNING CONTRACT
 EventBridge Scheduler justhodl-student-rsi-1m, rate(1 minute), us-east-1.
 Student 512 MB / 120-second hard timeout; separate protected grader.
-Six worker names only. Private policy owns pause/budgets. Immutable evidence, conditional state, dual checked mirrors. Trace failures never become positive training examples. Code passes enter the release queue; a human ships.
+Six worker names only. Private policy owns pause/budgets. Factory views require owner/invited sign-in; no anonymous bucket-policy expansion was made. Immutable evidence, conditional state, dual checked mirrors. Trace failures never become positive training examples. Code passes enter the release queue; a human ships.
 
 The first coding family searches eight typed programs to repair ignored Lambda role/handler configuration. The grader checks 64 protected cases and compares the previous behavior. This is one bounded repair, not model learning. General coding remains blocked until a verified compatible generative model and isolated executor exist.
 

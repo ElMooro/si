@@ -109,7 +109,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 .spend i{flex:1;background:var(--violet);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
 </style>
 <link rel="stylesheet" href="/factory-desk.css?v=1">
-<script src="/factory-desk.js?v=1" defer></script>
+<script src="/factory-desk.js?v=2" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to AI decision room</a>
@@ -174,7 +174,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   <div class="factory-kicker">COMPOUND FACTORY · GEAR A</div>
   <div class="factory-heading"><h2>Student factory</h2><button class="btn" id="factory-refresh">Refresh factory</button></div>
   <p id="factory-objective" class="factory-muted">Improve useful, independently verified work within owner-set limits.</p>
-  <p id="factory-status" role="status" class="factory-muted">Loading verified state…</p>
+  <p id="factory-status" role="status" class="factory-muted">Sign in and connect to load verified factory state.</p>
   <div class="factory-stats">
     <div class="factory-stat"><small>Experiments graded</small><strong id="factory-gen">—</strong></div>
     <div class="factory-stat"><small>Coding exam</small><strong id="factory-fit">—</strong></div>
@@ -184,7 +184,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="factory-stat"><small>Generative model</small><strong id="factory-model">Checking</strong></div>
   </div>
   <p id="factory-exam-note" class="factory-muted"></p>
-  <div id="factory-agents"></div>
+  <div id="factory-agents"><article class="factory-agent"><b>Student</b><span>Sign in for live status</span><p>Select bounded experiments and retain verified skills</p></article><article class="factory-agent"><b>Coder</b><span>Sign in for live status</span><p>Generate restricted repair proposals</p></article><article class="factory-agent"><b>Researcher</b><span>Sign in for live status</span><p>Validate external sources and provenance</p></article><article class="factory-agent"><b>Investor</b><span>Sign in for live status</span><p>Weekly research forecasts</p></article><article class="factory-agent"><b>Deployer</b><span>Queue only</span><p>Owner releases reviewed artifacts</p></article><article class="factory-agent"><b>Livermore</b><span>Principle card</span><p>Trend discipline; do not average losers</p></article><article class="factory-agent"><b>Wyckoff</b><span>Principle card</span><p>Test market phase hypotheses</p></article><article class="factory-agent"><b>Soros</b><span>Principle card</span><p>Test flow, expectation and price feedback</p></article><article class="factory-agent"><b>Druckenmiller</b><span>Principle card</span><p>Preserve capital; require evidence for conviction</p></article></div>
   <div class="grid2">
     <div class="wr-panel"><h3>Verified skillbook</h3><ul id="factory-skillbook"><li>Awaiting first independent result.</li></ul><p class="factory-muted">The deployer queues exact artifacts for owner release. Weight training is deferred.</p></div>
     <div class="wr-panel"><h3>Health &amp; limits</h3><p id="factory-errors" class="factory-muted"></p><p id="factory-integrity" class="factory-muted"></p><p id="factory-budget" class="factory-muted"></p></div>
@@ -202,10 +202,10 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
   <p class="factory-muted">Score: 50% direction · 30% regime · 20% crisis. Elo is display-only. The scoreboard also records crisis Brier loss, misses, false alarms, and the no-crisis baseline.</p>
   <p class="factory-muted">Crisis label: <span id="factory-crisis"></span></p>
   <ul id="factory-entries"></ul><p id="factory-invited" class="factory-muted"></p>
-  <p class="factory-muted"><a href="/factory/salon/wall.jsonl" target="_blank" rel="noopener">Read the immutable wall</a> · <a href="/factory/salon/season.json" target="_blank" rel="noopener">Frozen season</a> · <a href="/factory/scoreboard.json" target="_blank" rel="noopener">Full metrics</a></p>
+  <p class="factory-muted"><button class="btn" data-factory-view="wall">Read the immutable wall</button> <button class="btn" data-factory-view="season">Frozen season</button> <button class="btn" data-factory-view="scoreboard">Full metrics</button></p>
   <details id="factory-event-details"><summary>Event permalink · inspect the evidence</summary><pre id="factory-event">Open an entry link to inspect its exact event.</pre></details>
   <details><summary>Salon · submit a trace or a weekly prediction</summary>
-    <p class="factory-muted">The first ten guests require an invitation. Sign in, then connect. Traces are quarantined and checked; trace passes do not move Elo.</p>
+    <p class="factory-muted">Factory state and evidence require owner sign-in or an invitation. The first ten guests require an invitation. Sign in, then connect. Traces are quarantined and checked; trace passes do not move Elo.</p>
     <button class="btn" id="factory-connect">Connect to salon</button>
     <p id="factory-admission" role="status" class="factory-muted"></p>
     <details><summary>Weekly prediction</summary>

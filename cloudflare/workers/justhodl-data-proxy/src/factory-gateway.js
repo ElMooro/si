@@ -3,8 +3,8 @@ export async function factoryGateway(request, env, url, deps) {
   const { resolveIdentity, aiLambdaUrl, corsHeaders, boundedBody, jsonResp } = deps;
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders() });
   const action = url.pathname.slice('/api/v1/factory/'.length);
-  if (!['sandbox', 'predictions', 'traces', 'control', 'invites'].includes(action)) return jsonResp({ error: 'unknown factory action' }, 404);
-  if ((action === 'sandbox' && request.method !== 'GET') || (action !== 'sandbox' && request.method !== 'POST')) return jsonResp({ error: 'method not allowed' }, 405);
+  if (!['sandbox', 'view', 'predictions', 'traces', 'control', 'invites'].includes(action)) return jsonResp({ error: 'unknown factory action' }, 404);
+  if ((['sandbox', 'view'].includes(action) && request.method !== 'GET') || (!['sandbox', 'view'].includes(action) && request.method !== 'POST')) return jsonResp({ error: 'method not allowed' }, 405);
   const identity = await resolveIdentity(request, env);
   if (!['owner', 'user'].includes(identity.role) || !identity.uid) return jsonResp({ error: 'factory sign-in required' }, 401);
   if (['control', 'invites'].includes(action) && identity.role !== 'owner') return jsonResp({ error: 'owner action' }, 403);
@@ -19,7 +19,7 @@ export async function factoryGateway(request, env, url, deps) {
       'X-JH-Factory-Uid': identity.uid, 'X-JH-Factory-Role': identity.role
     }};
     if (body !== undefined) init.body = body;
-    const upstream = await fetch(base.replace(/\/$/, '') + '/factory/' + action, init);
+    const upstream = await fetch(base.replace(/\/$/, '') + '/factory/' + action + (action === 'view' ? url.search : ''), init);
     return new Response(await upstream.text(), { status: upstream.status, headers: {
       ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store', 'Vary': 'Authorization'
     }});

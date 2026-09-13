@@ -174,6 +174,13 @@ class FactoryTests(unittest.TestCase):
         p['id']='different-id'; p['direction']='DOWN'
         with self.assertRaises(Conflict):gateway.handle(self.guest_event(),'POST','/factory/predictions',p,self.store)
         with self.assertRaises(Invalid):gateway.handle(self.guest_event(),'POST','/factory/control',{'enabled':False},self.store)
+    def test_private_views_require_admission_and_cannot_select_arbitrary_keys(self):
+        self.store.immutable('public','data/student-state.json',self.state())
+        result=gateway.handle(self.guest_event(),'GET','/factory/view',{'kind':'state'},self.store)
+        self.assertEqual(json.loads(result['raw'])['checksum'],self.state()['checksum'])
+        for body in ({'kind':'state','key':'factory/exams/private.json'},{'kind':'control'},{'kind':'event','id':'../control/policy'}):
+            with self.assertRaises(Invalid):gateway.handle(self.guest_event(),'GET','/factory/view',body,self.store)
+        with self.assertRaises(Invalid):gateway.handle(self.guest_event(uid='not-invited'),'GET','/factory/view',{'kind':'state'},self.store)
     def test_guest_fails_are_not_training_eligible(self):
         trace={'domain':'math','task':{'operation':'add','a':'.1','b':'.2','answer':'.4'},
                'provenance':{'license':'original','source':'test'},'solution_notes':'A proposed answer'}
