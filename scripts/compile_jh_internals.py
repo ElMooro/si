@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Add-only JustHodl internals. Runner/Codex: read warehouse, write data/jh-internals.json.
-Never call licensed PMI. Never delete watchlists.
-"""
+"""Add-only JustHodl internals. Warehouse only. No licensed PMI. No watchlist deletes."""
 from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-# FRED ids already banked. Values filled by the runner from S3/FRED.
 FRED_LEGS = {
     "dgs10": "DGS10",
     "dgs2": "DGS2",
@@ -25,8 +22,7 @@ def compute(legs: dict) -> dict:
         "fields": {},
         "skipped": ["ECONOMICS:* licensed PMI", "USI:TICKBA.* intraday"],
     }
-    d10 = legs.get("dgs10")
-    d2 = legs.get("dgs2")
+    d10, d2 = legs.get("dgs10"), legs.get("dgs2")
     if d10 is not None and d2 is not None:
         out["fields"]["twos_tens"] = round(float(d10) - float(d2), 4)
     w, t, r = legs.get("walcl"), legs.get("tga"), legs.get("rrp")
@@ -34,12 +30,21 @@ def compute(legs: dict) -> dict:
         out["fields"]["liq_proxy_bn"] = round((float(w) - float(t) - float(r)) / 1000.0, 1)
     if legs.get("nfci") is not None:
         out["fields"]["nfci"] = float(legs["nfci"])
-    # Breadth keys only if the runner supplied uncapped counts (never 100/100 cap).
     acc, dist, n = legs.get("n_up"), legs.get("n_down"), legs.get("n_univ")
     if acc is not None and dist is not None and n:
         out["fields"]["ad_breadth"] = round((float(acc) - float(dist)) / float(n), 4)
+        out["fields"]["n_up"] = int(acc)
+        out["fields"]["n_down"] = int(dist)
+        out["fields"]["n_univ"] = int(n)
+    # Optional: only if universe already has sma50/sma200 (no new API).
+    a50, n50 = legs.get("n_above_50"), legs.get("n_sma50")
+    if a50 is not None and n50:
+        out["fields"]["pct_above_50"] = round(float(a50) / float(n50), 4)
+    a200, n200 = legs.get("n_above_200"), legs.get("n_sma200")
+    if a200 is not None and n200:
+        out["fields"]["pct_above_200"] = round(float(a200) / float(n200), 4)
     return out
 
 
 if __name__ == "__main__":
-    print(json.dumps({"ok": True, "fred_legs": FRED_LEGS, "note": "fill legs from warehouse then put_object data/jh-internals.json"}))
+    print(json.dumps({"ok": True, "fred_legs": FRED_LEGS}))
