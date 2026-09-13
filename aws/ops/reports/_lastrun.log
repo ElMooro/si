@@ -1,19 +1,9 @@
-executing-against: 3a16ba66cc3b4f910c418646c95e42030e82fee7
-ops 5535 (re-arm of 5528-5534) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
-[21:40:26] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
-[21:40:26] ✅ ECR justhodl/factory-train exists
-{
-  "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-85e80f93ec03e572.tar.gz",
-  "bundle_sha256": "85e80f93ec03e57256359a17b34c4da3f05e1093d49e2814e5946b78ebf44ff3",
-  "pin_key": "factory/training/current.json",
-  "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
-}
-[21:40:27] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
-[21:40:28] ✅ pricing + processing-job (jh-stage-*) policies attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 45 s
-[21:41:58] ✅ pricing cache: 0 cached misses purged ()
-[21:41:58] ✅ processing price ml.m5.xlarge = $0.2300/h (source aws-price-list); job cap $0.4600 at 7200s
-[21:41:59] ✅ processing job jh-stage-qwen2-5-coder-7b-ins-20260913-214158 launched: Qwen/Qwen2.5-Coder-7B-Instruct@main -> s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/<revision>/ (cap $0.4600)
-[21:41:59] ✅ GREEN -- owned lane staged: ECR repo, pinned recipe, weight staging job running (CPU, capped); Gear B untouched until 5529 validates the manifest
+executing-against: b95912802db447dd529bf8484bcbd77cb370acf8
+ops 5536 -- owned base weights: wait for staging, validate manifest + objects, flip Gear B to model_source=own
+[23:01:28] ✅ staging job from record: jh-stage-qwen2-5-coder-7b-ins-20260913-214158
+[23:01:28] ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-214158 -> Failed (AlgorithmError: , exit code: 2)
+[23:01:28] ✗ no manifest at factory/models/base/qwen2-5-coder-7b-instruct/manifest.json after 50 min (job status Failed)
+[23:01:28] ✗ RED -- manifest-missing
 
-→ Report written to aws/ops/reports/latest/ops_5535_own_training_lane_rearm7.md
+→ Report written to aws/ops/reports/latest/ops_5536_own_weights_validate_and_flip.md
+❌ OPS-FAIL: aws/ops/pending/ops_5536_own_weights_validate_and_flip.py
