@@ -536,7 +536,7 @@
         if(kind==="volcandle"){ for(vi0=0;vi0<display.length;vi0++) volMed+=display[vi0].volume; volMed/=display.length||1; }
         c=chart.addCandlestickSeries({ upColor: kind==="hollow"?BG:UP, downColor:DN, borderVisible:true, borderUpColor:UP, borderDownColor:DN, wickVisible:true, wickUpColor:UP, wickDownColor:DN });
         if(kind==="volcandle") c.setData(display.map(function(b){ var hot=b.volume>volMed*1.5; return {time:b.time,open:b.open,high:b.high,low:b.low,close:b.close, color: b.close>=b.open?(hot?"#00695c":UP):(hot?"#b71c1c":DN)}; }));
-        else c.setData(display);
+        else c.setData(display);try{if(window.jhVolEvents){var mk=window.jhVolEvents(display);if(mk&&mk.length)c.setMarkers(mk);}}catch(e){}
       }
       mainSeries=c; series.push(c);
       if(volOn){
