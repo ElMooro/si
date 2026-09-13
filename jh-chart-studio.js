@@ -1,70 +1,93 @@
-/* TV-style indicator list + watch hover drawer. Does not touch tv-watchlists.json. */
+/* Watch drawer + indicator studio. CSS injected so a stale chart.html cannot ignore it. */
 (function () {
   var KEY = "jh-chart-ind-layout-v1";
-  function load() {
-    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; }
-  }
-  function save(st) {
-    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+  var css = document.createElement("style");
+  css.id = "jh-studio-css-runtime";
+  css.textContent = [
+    ".watch,#watch{width:28px!important;min-width:28px!important;max-width:28px!important;overflow:hidden!important;transition:width .16s ease}",
+    ".watch:hover,.watch.open,.watch:focus-within,#watch:hover,#watch.open,#watch:focus-within{width:320px!important;min-width:280px!important;max-width:360px!important;overflow:auto!important}",
+    "@media(max-width:900px){.watch,#watch{width:100%!important;max-width:none!important;min-width:0!important}}"
+  ].join("");
+  document.documentElement.appendChild(css);
+
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; } }
+  function save(st) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function ensureTapeInds() {
+    if (typeof INDS === "undefined") return;
+    var extra = [
+      { id: "tape", n: "Tape / Wyckoff", c: "#2962ff", on: false, k: "tape", cat: "Tape" },
+      { id: "volev", n: "Vol events SC/DIST", c: "#f23645", on: false, k: "volev", cat: "Tape" },
+      { id: "rs", n: "RS / beta vs SPY", c: "#089981", on: false, k: "rs", cat: "Tape" },
+      { id: "macro", n: "Macro rail tags", c: "#ff9800", on: false, k: "macro", cat: "Tape" }
+    ];
+    extra.forEach(function (x) {
+      if (!INDS.some(function (i) { return i.id === x.id; })) INDS.push(x);
+    });
   }
   function applySaved() {
-    if (!window.INDS && !document.getElementById("legend")) return false;
+    if (typeof INDS === "undefined") return;
+    ensureTapeInds();
     var st = load();
-    if (typeof INDS === "undefined") return false;
+    var first = !Object.keys(st).length;
     INDS.forEach(function (i) {
       if (st[i.id]) {
         if (st[i.id].on != null) i.on = !!st[i.id].on;
         if (st[i.id].c) i.c = st[i.id].c;
-      } else {
-        i.on = false;
-      }
+      } else if (first) i.on = false;
     });
-    if (typeof OSC !== "undefined") {
-      OSC.forEach(function (o) {
-        if (st["o:" + o.id] && st["o:" + o.id].on != null) o.on = !!st["o:" + o.id].on;
-        else o.on = false;
-      });
-    }
-    return true;
   }
-  function snapshot() {
-    var st = {};
+  function snap() {
     if (typeof INDS === "undefined") return;
+    var st = {};
     INDS.forEach(function (i) { st[i.id] = { on: !!i.on, c: i.c }; });
-    if (typeof OSC !== "undefined") OSC.forEach(function (o) { st["o:" + o.id] = { on: !!o.on }; });
     save(st);
   }
+  function tapeOn(id) {
+    if (typeof INDS === "undefined") return false;
+    var i = INDS.find(function (x) { return x.id === id; });
+    return !!(i && i.on);
+  }
+  var _tr = window.jhTapeRead;
+  window.jhTapeRead = function (d) {
+    if (!tapeOn("tape")) return { markers: [], panel: "" };
+    return _tr ? _tr(d) : { markers: [], panel: "" };
+  };
+  var _ve = window.jhVolEvents;
+  window.jhVolEvents = function (d) {
+    if (!tapeOn("volev")) return [];
+    return _ve ? _ve(d) : [];
+  };
+  var _rs = window.jhRsReady;
+  window.jhRsReady = function (d) {
+    if (!tapeOn("rs")) return Promise.resolve([]);
+    return _rs ? _rs(d) : Promise.resolve([]);
+  };
+
   function panel() {
+    if (typeof INDS === "undefined") return;
+    ensureTapeInds();
     var box = document.getElementById("ind-studio");
     if (!box) {
       box = document.createElement("div");
       box.id = "ind-studio";
-      box.style.cssText = "position:fixed;right:12px;bottom:48px;width:280px;max-height:52vh;overflow:auto;background:var(--bg,#131722);border:1px solid var(--bd,#2a2e39);z-index:40;display:none;font-size:11px;padding:8px";
+      box.style.cssText = "position:fixed;left:44px;top:86px;width:260px;max-height:60vh;overflow:auto;background:#131722;color:#d1d4dc;border:1px solid #2a2e39;z-index:50;padding:8px;font:11px/1.35 sans-serif";
       document.body.appendChild(box);
     }
-    if (typeof INDS === "undefined") { box.innerHTML = "engine not ready"; return; }
-    var html = "<div style=display:flex;justify-content:space-between;align-items:center><b>Indicators</b><span style=opacity:.6>eye = on chart · color</span></div>";
-    html += "<div style=margin:6px 0><button id=ind-none>Hide all</button> <button id=ind-tv>TV set</button></div>";
+    var html = "<div style=display:flex;justify-content:space-between><b>Indicators</b><button id=ind-x>x</button></div>";
+    html += "<div style=margin:6px 0><button id=ind-none>Hide all</button></div>";
     INDS.forEach(function (i) {
-      html += "<div style=display:flex;align-items:center;gap:6px;padding:2px 0>";
-      html += "<button data-eye='" + i.id + "' title='show/hide'>" + (i.on ? "◉" : "○") + "</button>";
-      html += "<input type=color data-col='" + i.id + "' value='" + (i.c && i.c[0] === "#" ? i.c : "#2962ff") + "' style=width:22px;height:18px;border:0;background:transparent>";
+      html += "<div style=display:flex;align-items:center;gap:6px>";
+      html += "<button data-eye='" + i.id + "'>" + (i.on ? "◉" : "○") + "</button>";
+      html += "<input type=color data-col='" + i.id + "' value='" + ((i.c && i.c[0] === "#") ? i.c : "#2962ff") + "' style=width:20px;height:16px;border:0>";
       html += "<span>" + i.n + "</span></div>";
     });
-    if (typeof OSC !== "undefined") {
-      html += "<div style=margin-top:8px;opacity:.6>Oscillators</div>";
-      OSC.forEach(function (o) {
-        html += "<div style=display:flex;gap:6px;align-items:center><button data-oeye='" + o.id + "'>" + (o.on ? "◉" : "○") + "</button><span>" + o.n + "</span></div>";
-      });
-    }
     box.innerHTML = html;
     box.querySelectorAll("[data-eye]").forEach(function (b) {
       b.onclick = function () {
         var i = INDS.find(function (x) { return x.id === b.getAttribute("data-eye"); });
         if (!i) return;
-        i.on = !i.on;
-        snapshot();
-        if (window.lastBars && lastBars.length) paint(lastBars);
+        i.on = !i.on; snap();
+        if (window.lastBars && lastBars.length && window.paint) paint(lastBars);
         panel();
       };
     });
@@ -72,55 +95,35 @@
       inp.oninput = function () {
         var i = INDS.find(function (x) { return x.id === inp.getAttribute("data-col"); });
         if (!i) return;
-        i.c = inp.value;
-        snapshot();
-        if (window.lastBars && lastBars.length) paint(lastBars);
+        i.c = inp.value; snap();
+        if (window.lastBars && lastBars.length && window.paint) paint(lastBars);
       };
     });
-    box.querySelectorAll("[data-oeye]").forEach(function (b) {
-      b.onclick = function () {
-        var o = OSC.find(function (x) { return x.id === b.getAttribute("data-oeye"); });
-        if (!o) return;
-        o.on = !o.on;
-        snapshot();
-        if (window.lastBars && lastBars.length) paint(lastBars);
-        panel();
-      };
-    });
-    var n = document.getElementById("ind-none");
-    if (n) n.onclick = function () {
-      INDS.forEach(function (i) { i.on = false; });
-      if (typeof OSC !== "undefined") OSC.forEach(function (o) { o.on = false; });
-      snapshot();
-      if (window.lastBars && lastBars.length) paint(lastBars);
+    document.getElementById("ind-none").onclick = function () {
+      INDS.forEach(function (i) { i.on = false; }); snap();
+      if (window.lastBars && lastBars.length && window.paint) paint(lastBars);
       panel();
     };
-    var tv = document.getElementById("ind-tv");
-    if (tv) tv.onclick = function () {
-      INDS.forEach(function (i) { i.on = /sma20|sma50|sma200|vwap/.test(i.id); });
-      snapshot();
-      if (window.lastBars && lastBars.length) paint(lastBars);
-      panel();
-    };
+    document.getElementById("ind-x").onclick = function () { box.style.display = "none"; };
   }
   function boot() {
     applySaved();
-    var btn = document.getElementById("fx");
-    if (btn && !btn.dataset.studio) {
-      btn.dataset.studio = "1";
-      btn.addEventListener("click", function () {
+    var fx = document.getElementById("fx");
+    if (fx && !fx.dataset.st) {
+      fx.dataset.st = "1";
+      fx.addEventListener("click", function (e) {
+        e.stopPropagation();
+        panel();
         var box = document.getElementById("ind-studio");
-        if (!box) panel();
-        box = document.getElementById("ind-studio");
-        box.style.display = box.style.display === "none" ? "block" : "none";
-        if (box.style.display === "block") panel();
+        box.style.display = box.style.display === "none" ? "block" : (box.style.display ? "none" : "block");
       });
     }
-    var w = document.getElementById("watch");
-    if (w && !w.dataset.drawer) {
-      w.dataset.drawer = "1";
-      w.title = "Hover edge to open watchlists — lists are not deleted";
-    }
   }
-  window.addEventListener("load", function () { setTimeout(boot, 600); setTimeout(applySaved, 1200); });
+  window.addEventListener("load", function () {
+    setTimeout(boot, 400);
+    setTimeout(applySaved, 1500);
+    setTimeout(function () {
+      if (window.lastBars && lastBars.length && window.paint) paint(lastBars);
+    }, 1600);
+  });
 })();
