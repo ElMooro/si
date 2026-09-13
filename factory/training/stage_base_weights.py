@@ -58,7 +58,8 @@ def main() -> int:
     print(json.dumps({"stage": "downloaded", "license": license_found, "files": sum(1 for _ in dest.rglob("*") if _.is_file()), "seconds": round(time.time() - t0, 1)}))
     files, total = [], 0
     for p in sorted(dest.rglob("*")):
-        if p.is_file():
+        rel = p.relative_to(dest).as_posix()
+        if p.is_file() and not rel.startswith(".cache/") and not rel.endswith(".sagemaker-uploaded"):
             size = p.stat().st_size
             total += size
             files.append({"path": p.relative_to(dest).as_posix(), "sha256": sha256(p), "bytes": size})

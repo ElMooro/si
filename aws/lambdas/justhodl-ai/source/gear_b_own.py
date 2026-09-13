@@ -29,6 +29,11 @@ class OwnSpecRefused(RuntimeError):
     pass
 
 
+def is_metadata_path(path: str) -> bool:
+    """Hub download caches and SageMaker upload markers are not weights and carry no hash."""
+    return path.startswith(".cache/") or path.endswith(".sagemaker-uploaded") or path.endswith("/.gitignore") or path == ".gitattributes"
+
+
 def _get_json(s3, bucket: str, key: str):
     try:
         return json.loads(s3.get_object(Bucket=bucket, Key=key)["Body"].read())
@@ -44,7 +49,7 @@ def validate_base_manifest(manifest: Dict[str, Any], model_id: str) -> Dict[str,
     lic = str(manifest.get("license") or "").lower()
     if lic not in PERMISSIVE:
         raise OwnSpecRefused("license %r is not permissive; refusing to train on it" % lic)
-    files = manifest.get("files") or []
+    files = [f for f in (manifest.get("files") or []) if not is_metadata_path(str(f.get("path") or ""))]
     if not files or not any(f.get("path") == "config.json" for f in files):
         raise OwnSpecRefused("base weights incomplete: config.json not listed")
     for f in files:
