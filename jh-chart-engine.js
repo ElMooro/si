@@ -7,7 +7,7 @@
   var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","1d","10y"]];
   var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPY"]];
   var BARS = { dod:1, wow:5, mom:21, qoq:63, yoy:252 };
-  var TABS = ["BTCUSDT","ETHB","PEPEUSDT","CNEQ","PURR","BMNR","ATO"];
+  var TABS = ["SPY","QQQ","IWM","AAPL","MSFT","NVDA","AMZN","META","TSLA","XLE","TLT","GLD"];
   var ISHARES = ["GSG","COMT","EWZS","CMDY","EWZ","LOCK","IAT","IVV","IWM","EEM","LQD","HYG","TLT","IEI"];
   var KINDS = [["candles","Candles"],["hollow","Hollow"],["bars","Bars"],["line","Line"],["area","Area"],["baseline","Baseline"],["heikin","Heikin"],["columns","Columns"],["step","Step"],["hlc","HLC"],["volcandle","Vol candles"],["renko","Renko"],["kagi","Kagi"],["linebreak","Line break"],["pnf","Point & Figure"],["range","Range"]];
   var SCALES = [["0","Linear"],["1","Log"],["2","Percent"],["3","Index"]];
@@ -103,7 +103,7 @@
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v8-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
-  var active="PEPEUSDT", tf="1d", mode="price", kind="candles", scaleMode=0;
+  var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
   var quotes={}, lists=[], listId="ishares", letter="", filter="", sortCol="sym", sortDir=1;
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null;
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
@@ -508,7 +508,7 @@
   }
   async function paint(d){
     if(!d||!d.length){ document.getElementById("quote").textContent="No bars for "+active; return; }
-    wipe(); lastBars=d;
+    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;}catch(e){}
     var p=pal();
     chart.applyOptions({
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } },
