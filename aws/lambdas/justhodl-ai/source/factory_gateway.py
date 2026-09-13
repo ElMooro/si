@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import urllib.request
 from datetime import datetime, timezone
 
 import boto3
@@ -157,8 +158,95 @@ def _snapshot_text(state):
 
 
 
+
+CRUMB_NOTE = re.compile(
+    r"(?i)^(do you already|let me know if|we.?ll bypass|how do i run|would i pull|"
+    r"what about|can you|wait,?|hold on|ok\b|okay\b|thanks\b|i think it)"
+)
+
+
+def _usable_note(note):
+    text = " ".join(str((note or {}).get("text") or "").split())
+    if len(text) < 48 or text.count(" ") < 7:
+        return False
+    if CRUMB_NOTE.search(text):
+        return False
+    if text.endswith("?") and len(text) < 96:
+        return False
+    return True
+
+
+def _outside_facts(store, state):
+    bits = []
+    factory = state if isinstance(state, dict) else {}
+    wall = factory.get("wall") or {}
+    skills = factory.get("skillbook") or factory.get("verified_skills") or []
+    exam = ((factory.get("exams") or {}).get("coding") or factory.get("coding_exam") or {})
+    bits.append("factory wall pending=%s graded=%s" % (wall.get("pending"), wall.get("graded")))
+    bits.append("verified_skills=%s" % (len(skills) if isinstance(skills, list) else skills))
+    if exam:
+        bits.append("coding_exam=%s" % json.dumps(exam)[:280])
+    agents = factory.get("agents") or []
+    if agents:
+        bits.append("roster=%s" % ",".join(str(a.get("id") or a) for a in (agents[:8] if isinstance(agents, list) else [])))
+    ai, _ = store.read(store.public, "data/ai.json")
+    ai = ai if isinstance(ai, dict) else {}
+    mr = ai.get("market_read") or {}
+    if mr.get("stances"):
+        bits.append("fleet_stances=%s" % json.dumps(mr.get("stances"))[:400])
+    if mr.get("generated_at"):
+        bits.append("fleet_read_at=%s" % mr.get("generated_at"))
+    pipe = ai.get("pipeline") or {}
+    bits.append("pipeline=%s retrieval=%s" % (pipe.get("status"), pipe.get("retrieval_endpoint")))
+    for key in ("data/risk-gate.json", "data/khalid-risk.json", "data/verdict.json", "data/ai-factory.json"):
+        try:
+            doc, _ = store.read(store.public, key)
+        except Exception:
+            doc = None
+        if not isinstance(doc, dict) or not doc:
+            continue
+        keep = {k: doc.get(k) for k in ("posture", "sizing", "stance", "verdict", "regime", "as_of", "status", "gate", "generation") if k in doc}
+        if keep:
+            bits.append("%s %s" % (key.split("/")[-1], json.dumps(keep)[:280]))
+    return " | ".join(bits)[:3500]
+
+
+def _public_think(question, facts):
+    """GLM on warehouse facts only. Private Brain notes never leave the box. No Anthropic."""
+    try:
+        from llm_router import ZAI_BASE_URL, GLM_REASON, _zai_key
+        key = (_zai_key() or "").strip()
+    except Exception:
+        return ""
+    if not key:
+        return ""
+    payload = {
+        "model": GLM_REASON,
+        "max_tokens": 500,
+        "messages": [
+            {"role": "system", "content": (
+                "You are JustHodl's outside reasoner. You see public warehouse facts and factory scores only — never private notes. "
+                "Answer Khalid's question. Think about code, markets, and the factory. No broker orders, no IAM, no fake training. Be concrete."
+            )},
+            {"role": "user", "content": "QUESTION:\n%s\n\nPUBLIC FACTS:\n%s" % (question[:1500], facts[:3200])},
+        ],
+    }
+    req = urllib.request.Request(
+        ZAI_BASE_URL.rstrip("/") + "/chat/completions",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            body = json.loads(resp.read().decode())
+        msg = ((body.get("choices") or [{}])[0].get("message") or {})
+        return (msg.get("content") or msg.get("reasoning_content") or "").strip()[:2200]
+    except Exception:
+        return ""
+
+
 def _brain_chat(store, target, text, state, owner):
-    """Talk to Khalid's SageMaker Brain — retrieval + classifier + his notes. Never Claude."""
+    """Inside = SageMaker Brain. Outside = warehouse + public GLM. Never Anthropic. Never send notes off-box."""
     if not owner:
         return "Owner Brain chat only.", "guest-blocked"
     pipe, _ = store.read(store.private, "ai/pipeline/state.json")
@@ -166,60 +254,70 @@ def _brain_chat(store, target, text, state, owner):
     ep = pipe.get("retrieval_endpoint") or pipe.get("embedding_endpoint")
     clf = pipe.get("classifier_endpoint")
     ds_id = pipe.get("dataset_id")
+    outside = _outside_facts(store, state)
+    lines = []
+    model = "brain+warehouse"
     if not ep:
-        return ("Your Brain has no live retrieval endpoint. I will not answer as Claude. "
-                "Run Learn from the Brain on this page so your embedding endpoint is InService."), "brain-offline"
-    try:
-        import brain_dataset as bd
-        import sm_hub
-    except Exception as exc:
-        return ("Brain modules unavailable (%s). Not falling back to Claude." % type(exc).__name__), "brain-import"
-    rt = boto3.client("sagemaker-runtime", region_name="us-east-1",
-                      config=Config(connect_timeout=3, read_timeout=25, retries={"max_attempts": 2}))
-    try:
-        vecs = sm_hub.embed_texts(rt, ep, [text[:1500]])
-        vec = vecs[0] if vecs else None
-    except Exception as exc:
-        return ("Your embedding endpoint %s did not answer (%s). Not Claude." % (ep, type(exc).__name__), "brain-error")
-    if not vec:
-        return ("Your model %s returned an empty vector. Not Claude." % ep), "brain-empty"
-    ranked = []
-    if clf:
+        lines.append("INSIDE: Brain retrieval is not InService.")
+    else:
         try:
-            pred = sm_hub.predict_csv(rt, clf, [vec])
-            man = None
+            import brain_dataset as bd
+            import sm_hub
+            rt = boto3.client("sagemaker-runtime", region_name="us-east-1",
+                              config=Config(connect_timeout=3, read_timeout=20, retries={"max_attempts": 2}))
+            vecs = sm_hub.embed_texts(rt, ep, [text[:1500]])
+            vec = vecs[0] if vecs else None
+        except Exception as exc:
+            vec = None
+            lines.append("INSIDE: embedding endpoint %s failed (%s)." % (ep, type(exc).__name__))
+        ranked = []
+        notes = []
+        if vec:
+            model = ep
+            if clf:
+                try:
+                    pred = sm_hub.predict_csv(rt, clf, [vec])
+                    man = None
+                    if ds_id:
+                        man, _ = store.read(store.private, "ai/datasets/brain/%s/manifest.json" % ds_id)
+                    labels = (man or {}).get("labels") or bd.CATS
+                    p0 = pred[0] if pred else None
+                    if isinstance(p0, list) and labels and len(p0) == len(labels):
+                        ranked = sorted(zip(labels, [float(x) for x in p0]), key=lambda kv: -kv[1])
+                except Exception:
+                    ranked = []
             if ds_id:
-                man, _ = store.read(store.private, "ai/datasets/brain/%s/manifest.json" % ds_id)
-            labels = (man or {}).get("labels") or bd.CATS
-            p0 = pred[0] if pred else None
-            if isinstance(p0, list) and labels and len(p0) == len(labels):
-                ranked = sorted(zip(labels, [float(x) for x in p0]), key=lambda kv: -kv[1])
-        except Exception:
-            ranked = []
-    notes = []
-    if ds_id:
-        try:
-            notes = bd.nearest_notes(store.s3, store.private, ds_id, ep, vec, k=6) or []
-        except Exception:
-            notes = []
-    lines = ["This is YOUR Brain — SageMaker `%s`, not Claude." % ep]
-    if ranked:
-        lines.append("Classifier: " + ", ".join("%s %.0f%%" % (lab, p * 100) for lab, p in ranked[:4]))
-    if notes:
-        lines.append("Closest of your notes:")
-        for n in notes[:5]:
-            snippet = " ".join(str(n.get("text") or "").split())[:240]
-            lines.append("• [%s · %.2f] %s" % (n.get("label") or "note", float(n.get("similarity") or 0), snippet))
+                try:
+                    notes = bd.nearest_notes(store.s3, store.private, ds_id, ep, vec, k=16) or []
+                except Exception:
+                    notes = []
+        usable = [n for n in notes if _usable_note(n)][:5]
+        lines.append("INSIDE — your Brain `%s`" % ep)
+        if ranked:
+            lines.append("Classifier: " + ", ".join("%s %.0f%%" % (lab, p * 100) for lab, p in ranked[:4]))
+        if usable:
+            for n in usable:
+                snippet = " ".join(str(n.get("text") or "").split())[:240]
+                lines.append("• [%s · %.2f] %s" % (n.get("label") or "note", float(n.get("similarity") or 0), snippet))
+        else:
+            lines.append("Nearest hits were chat crumbs, not doctrine. Pin real philosophy/thesis/macro/code notes and re-embed.")
+    lines.append("OUTSIDE — warehouse (fusion, risk, factory scores, delayed tape). Not the open web from this function.")
+    if outside:
+        lines.append(outside[:700])
+    think = _public_think(text, outside)
+    if think:
+        lines.append("THINKING (public GLM on warehouse facts; your notes stayed private)")
+        lines.append(think)
     else:
-        lines.append("No nearby notes in the index yet. Label more Brain notes and re-embed.")
-    low = text.lower()
-    if target == "coder" or any(w in low for w in ("code", "coding", "program")):
-        lines.append("I learn to code the way this factory is built: protected exams, keep what grades. Point me at a JustHodl file or a failing test and Coder will queue a bounded repair.")
-    elif target == "investor" or any(w in low for w in ("spy", "qqq", "market", "predict")):
-        lines.append("Investor stays research-only. I can draft a CLUB WALL card from your notes plus delayed tape. I do not place orders.")
-    else:
-        lines.append("Ask the next concrete thing. I will keep answering from this Brain.")
-    return "\n".join(lines), ep
+        low = text.lower()
+        if any(w in low for w in ("code", "coding", "program", "learn")):
+            lines.append("THINKING: I learn code inside via the protected exam and skillbook. I learn outside via warehouse engines, guest traces on CLUB WALL, and delayed tape — other agents teach by posting graded work, not by me scraping the internet here. Point at a file or a market question.")
+        elif any(w in low for w in ("spy", "qqq", "market", "predict", "crisis")):
+            lines.append("THINKING: Inside is your Brain lens. Outside is the fleet stances and warehouse series above. I will not invent a print. Ask for a ticker or a Monday wall card.")
+        else:
+            lines.append("THINKING: Inside = your notes after the crumb filter. Outside = warehouse facts above. Ask a concrete job.")
+    return "\n".join(lines), model
+
 
 
 def chat_post(store, agent, owner, body, policy):
