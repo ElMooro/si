@@ -1,0 +1,22 @@
+# ops 5542 (curate + flip) -- owned base weights: wait for staging, validate manifest + objects, flip Gear B to model_source=own
+
+**Status:** success  
+**Duration:** 2.3s  
+**Finished:** 2026-09-13T23:58:39+00:00  
+
+## Data
+
+| head | model_id |
+|---|---|
+| 9e44bae93f | qwen2-5-coder-7b-instruct |
+
+## Log
+- `23:58:37` ✅ staging job from record: jh-stage-qwen2-5-coder-7b-ins-20260913-232228
+- `23:58:37` ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-232228 -> Completed ()
+- `23:58:38` ✅ manifest curated: dropped 68 metadata paths (.cache/huggingface/.gitignore, .cache/huggingface/.gitignore.sagemaker-uploaded, .cache/huggingface/download/-dFtyT7kcgbTHt1cy9JKqruJCR4=.5aa6e5cbe642377fd441fb4e60e83cca96b2bcd9820e245b9ea06d94653f17); raw copy kept
+- `23:58:38` ✅ manifest valid: repo=Qwen/Qwen2.5-Coder-7B-Instruct revision=c03e6d358207 license=apache-2.0 files=13 total=15.24 GB status=staged
+- `23:58:38` ✅ bucket objects under factory/models/base/qwen2-5-coder-7b-instruct/: 49 (30.47 GB); missing vs manifest: 0
+- `23:58:38` ✅ manifest s3_prefix pinned to the revision folder: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/
+- `23:58:38` ✅ own_spec builds: image=factory-train:hf-pt2.3-tf4.46-cu121@sha256:39b1be47f293d0cb6 bundle=train-00432192e1b2b157.tar.gz artifact=s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/
+- `23:58:39` ✅ gearb control flipped: enabled=True model_source=own model=qwen2-5-coder-7b-instruct@c03e6d358207 budget $20.0/day $600.0/season (dated copy kept)
+- `23:58:39` ✅ GREEN -- weights owned and validated; Gear B may now train on Khalid's own lane inside its refusal chain
