@@ -1,7 +1,52 @@
-executing-against: e138c7ae668733b291811911bee839ba9742d66a
-ops 5522 -- arm Gear B: budget, coder card, owner control, holdout freeze dispatch, refusal chain
-[19:36:46] ✗ no release receipt for e138c7a within 45 min
-[19:36:46] ✗ RED -- receipt-missing
+executing-against: 7f20e605176f95959f55a519b87e8904b8102509
+ops 5525 (re-arm of 5520/5521) -- factory discipline in the tick + official prints lane: receipts, live ticks, dry-run prints, boundaries
+[19:38:01] ✅ justhodl-ai receipt commit=6d1617d (source identical to HEAD 7f20e60) sha_match=True run=34776809605
+[19:38:01] ✅ justhodl-student-rsi receipt commit=6d1617d (source identical to HEAD 7f20e60) sha_match=True run=34776809605
+[19:38:01] ✅ student role justhodl-student-rsi-role/factory-gear-a: mirrors already allowed (0 resource entries added; the two board/wall statements only)
+[19:38:03] ✅ role propagated: tick state_version=580 without projection errors
+[19:38:05] ✅ tick 1 ok status=running state_version=581 errors=[]
+[19:38:09] ✅ tick 2 ok status=running state_version=582 errors=[]
+[19:38:12] ✅ private authority ranks: schema=factory-ranks.v1 cards=5 student=student active=5
+[19:38:12] ✅ public projection ranks: schema=factory-ranks.v1 cards=5 generated=2026-09-13T19:38:08+00:00
+[19:38:16] ✅ prints dry-run 2026-09-07 complete=True {"SPY": ["dry_run", 769.07, 764.29, false, null], "QQQ": ["dry_run", 720.909, 714.88, false, null], "IWM": ["dry_run", 295.34, 288.89, false, null], "TLT": ["dry_run", 82.44, 80.87, false, null], "GLD": ["dry_run", 403.56, 398.77, false, null], "BTC": ["dry_run", 78301.23, 77257.36, false, null]}
+[19:38:16] ✅ factory-official-prints.yml present: True (cron Sat 04:45 UTC, Sun 12:00 UTC)
+[19:38:17] ✅ anonymous https://justhodl.ai/factory/salon/season.json -> 403 (want 401/403)
+[19:38:17] ✅ anonymous https://justhodl.ai/data/brain-constitution.json -> 401 (want 401)
+[19:38:17] ✅ live justhodl-ai factory_gateway.py: provider bypass absent=True reading_receipts=True check_spawn=True
+[19:38:17] ✅ GREEN -- tick commits again (no Conflict), chain of command live in state + projection, prints adapter proven dry against the warehouse, boundaries intact
 
-→ Report written to aws/ops/reports/latest/ops_5522_gear_b_arm.md
-❌ OPS-FAIL: aws/ops/pending/ops_5522_gear_b_arm.py
+→ Report written to aws/ops/reports/latest/ops_5525_factory_discipline_prints_regate2.md
+ops 5523 -- factory audit fixes: wall ledger, grader quota, verifier isolation, snapshot retention
+[19:38:18] ✅ justhodl-factory-grader: receipt commit 6d1617d3ac run 34776809605
+[19:38:18] ✅ justhodl-student-rsi: receipt commit 6d1617d3ac run 34776809605
+[19:38:18] ✅ justhodl-ai: receipt commit 6d1617d3ac run 34776809605
+[19:38:18] ✅ student role justhodl-student-rsi-role/factory-gear-a: prints read + ledger write widened (3 changes)
+[19:38:19] ✅ lifecycle jh-factory-runtime-snapshots-3d: expire factory/runtime/snapshots/ after 3 days (2 other rules kept)
+[19:38:19] ✅ waiting 75 s for IAM propagation before the live tick
+[19:39:36] ✅ tick_ok=True
+[19:39:36] ✅ no_wall_errors=True
+[19:39:36] ✅ elapsed_lt_40s=True
+[19:39:36] ✅ wall_pass_complete=True
+[19:39:36] ✅ state_version_advanced=True
+[19:39:36] ✅ ledger_present_or_empty_season=True
+[19:39:38] ✅ grader probe status=rejected reason=prediction_missing quota 1 -> 1 (not consumed)
+[19:39:38] ✅ Gear B untouched by this op: no job launched, no budget changed; a job needs >= 1,500 verified rows
+[19:39:38] ✅ GREEN -- wall ledger live, grader polls free, verifier unprivileged, snapshots capped
+
+→ Report written to aws/ops/reports/latest/ops_5523_factory_wall_ledger_gate.md
+ops 5524 (re-arm of 5522) -- arm Gear B: budget, coder card, owner control, holdout freeze dispatch, refusal chain
+[19:39:39] ✅ justhodl-ai receipt commit=6d1617d run=34776809605: source == checkout, code_sha256 == live
+[19:39:39] ✅ cost-guard policy.daily_budget_usd=20.00 (training_max_runtime_s=3600, spot=True)
+[19:39:39] ⚠ catalog has no qwen+coder card; probing default ids ['huggingface-llm-qwen2-5-coder-7b-instruct', 'huggingface-llm-qwen2-5-coder-7b']
+[19:39:39] card huggingface-llm-qwen2-5-coder-7b-instruct: no training recipe (False)
+[19:39:40] card huggingface-llm-qwen2-5-coder-7b: no training recipe (None)
+[19:39:40] ✅ wrote factory/control/gearb.json (enabled=False model=unresolved)
+[19:39:41] gearb pre-freeze: {"at": "2026-09-13T19:39:41.009999Z", "polled": [], "built": null, "launched": null, "refusal": "gearb.enabled is false"}
+[19:39:41] ✅ pre-freeze refusal is the right one: gearb.enabled is false
+[19:39:42] ✅ dispatched factory-code-exam.yml freeze_holdout=true http=200
+[19:59:47] ⚠ holdout manifest not frozen within 20 min -- check the factory-code-exam.yml run; the hourly tick keeps refusing until it exists
+[19:59:47] ✅ data/ai.json gear_b: status=off budget={'daily_usd': 20.0, 'season_cap_usd': 600.0, 'committed_today_usd': 0.0, 'committed_season_usd': 0.0} leak=False
+[19:59:47] ✗ RED -- coder-card
+
+→ Report written to aws/ops/reports/latest/ops_5524_gear_b_rearm.md
+❌ OPS-FAIL: aws/ops/pending/ops_5524_gear_b_rearm.py
