@@ -360,6 +360,114 @@ def _public_think(question, facts):
         return ""
 
 
+LEARN_TRACKS = {
+    "code": {
+        "title": "How to code",
+        "agent": "coder",
+        "pages": ["Python (programming language)", "Unit testing", "Git"],
+        "hf": "code generation python",
+        "why": "Leave the box, study public software practice, then keep only what grades on the protected exam.",
+    },
+    "markets": {
+        "title": "Financial markets — stocks, bonds, tape",
+        "agent": "investor",
+        "pages": ["Stock market", "Bond (finance)", "Yield curve"],
+        "why": "Public market structure plus the warehouse delayed tape. Research only — no broker orders.",
+    },
+    "investing": {
+        "title": "Investing doctrine",
+        "agent": "investor",
+        "pages": ["Jesse Livermore", "Wyckoff method", "George Soros", "Stanley Druckenmiller"],
+        "why": "Principle cards from the public record. Evidence before size. No orders.",
+    },
+}
+
+
+def _detect_tracks(text, target):
+    low = " ".join((text or "").lower().split())
+    asked = any(w in low for w in ("learn", "study", "teach", "curriculum", "go look", "how to code", "how to invest"))
+    if not asked:
+        return []
+    found = []
+    if target == "coder" or any(w in low for w in ("code", "coding", "python", "unit test", "git", "program")):
+        found.append("code")
+    if any(w in low for w in ("market", "stock", "bond", "yield", "tape", "spy", "qqq")):
+        found.append("markets")
+    if target in ("investor", "livermore", "wyckoff", "soros", "druckenmiller") or any(
+        w in low for w in ("invest", "livermore", "wyckoff", "soros", "druckenmiller")
+    ):
+        found.append("investing")
+    if not found:
+        found = ["code", "markets", "investing"]
+    out = []
+    for name in ("code", "markets", "investing"):
+        if name in found:
+            out.append(name)
+    return out[:3]
+
+
+def _wiki_summary(title):
+    slug = title.replace(" ", "_")
+    url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(slug, safe="()_,-")
+    data = _http_json(url, timeout=5)
+    extract = re.sub(r"\s+", " ", (data.get("extract") or "")).strip()
+    page = ((data.get("content_urls") or {}).get("desktop") or {}).get("page") or ("https://en.wikipedia.org/wiki/" + slug)
+    if not extract:
+        raise RuntimeError("empty_summary")
+    return {"source": "wikipedia", "title": data.get("title") or title, "url": page, "snippet": extract[:520]}
+
+
+def _learn_track(store, track, state):
+    spec = LEARN_TRACKS[track]
+    hits = []
+    t0 = time.time()
+    for page in spec.get("pages") or []:
+        if time.time() - t0 > 10:
+            break
+        try:
+            hits.append(_wiki_summary(page))
+        except Exception:
+            try:
+                hits.extend(_look_outside(page)[:1])
+            except Exception:
+                pass
+    if spec.get("hf") and time.time() - t0 < 10:
+        try:
+            models = _http_json(
+                "https://huggingface.co/api/models?search=%s&limit=3" % urllib.parse.quote(spec["hf"]),
+                timeout=5,
+            )
+            if isinstance(models, list):
+                for model in models[:3]:
+                    mid = model.get("modelId") or model.get("id") or ""
+                    if mid:
+                        hits.append({
+                            "source": "huggingface",
+                            "title": mid,
+                            "url": "https://huggingface.co/" + mid,
+                            "snippet": "downloads=%s tags=%s" % (model.get("downloads"), (model.get("tags") or [])[:5]),
+                        })
+        except Exception:
+            pass
+    warehouse = _outside_facts(store, state) if track in ("markets", "investing") else ""
+    now = iso(store.clock())
+    lesson = {
+        "schema_version": "factory-lesson.v1",
+        "track": track,
+        "title": spec["title"],
+        "why": spec["why"],
+        "at": now,
+        "hits": hits,
+        "warehouse": warehouse[:800],
+        "n": len(hits),
+    }
+    try:
+        store.immutable(store.private, "factory/fleet/learn/%s/%s.json" % (track, digest(track + now)[:16]), lesson)
+    except Exception:
+        pass
+    return lesson
+
+
 def _brain_chat(store, target, text, state, owner):
     """Inside = SageMaker Brain. Outside = live public look, then warehouse. Never Anthropic. Notes stay private."""
     if not owner:
@@ -369,7 +477,20 @@ def _brain_chat(store, target, text, state, owner):
     ep = pipe.get("retrieval_endpoint") or pipe.get("embedding_endpoint")
     clf = pipe.get("classifier_endpoint")
     ds_id = pipe.get("dataset_id")
-    hits = _look_outside(text)
+    tracks = _detect_tracks(text, target)
+    lessons = []
+    hits = []
+    if tracks:
+        for name in tracks:
+            try:
+                lesson = _learn_track(store, name, state)
+            except Exception:
+                lesson = None
+            if lesson:
+                lessons.append(lesson)
+                hits.extend(lesson.get("hits") or [])
+    else:
+        hits = _look_outside(text)
     try:
         _bank_research(store, text, hits)
     except Exception:
@@ -421,8 +542,18 @@ def _brain_chat(store, target, text, state, owner):
                 lines.append("• [%s · %.2f] %s" % (n.get("label") or "note", float(n.get("similarity") or 0), snippet))
         else:
             lines.append("No usable notes (chat crumbs filtered).")
-    lines.append("OUTSIDE — live look beyond this system (Wikipedia, public search, HuggingFace, GitHub). Cited or missing, never invented.")
-    if hits:
+    if lessons:
+        lines.append("LEARNED THIS TURN — left the box on purpose.")
+        for lesson in lessons:
+            lines.append("%s: %s" % ((lesson.get("track") or "").upper(), lesson.get("why") or lesson.get("title") or ""))
+            for hit in (lesson.get("hits") or [])[:4]:
+                lines.append("• [%s] %s — %s %s" % (hit.get("source"), hit.get("title"), (hit.get("snippet") or "")[:220], hit.get("url") or ""))
+            if lesson.get("warehouse"):
+                lines.append("Warehouse for this track: " + lesson["warehouse"][:360])
+    lines.append("OUTSIDE — live look beyond this system. Cited or missing, never invented.")
+    if lessons:
+        lines.append("Curriculum look is under LEARNED. Not a second scrape.")
+    elif hits:
         for hit in hits[:6]:
             lines.append("• [%s] %s — %s %s" % (hit.get("source"), hit.get("title"), (hit.get("snippet") or "")[:180], hit.get("url") or ""))
     else:
