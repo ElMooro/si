@@ -199,6 +199,10 @@
     }
     return uniq(out);
   }
+  function warehouse(path){
+    if(/justhodl\.ai$/i.test(location.hostname)) return [path, LIVE+path];
+    return [LIVE+path];
+  }
   async function fetchJson(url){ var r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(String(r.status)); return r.json(); }
   async function klines(sym, tfId){
     var t=bare(sym), sp=spec(tfId), ys=yahooSym(t);
@@ -766,14 +770,14 @@
     var local=[{id:"ishares",name:"iShares ETFs — BlackRock",symbols:ISHARES,n:ISHARES.length},{id:"tabs",name:"Open tabs",symbols:TABS,n:TABS.length}];
     var custom=loadJSON(CUSTOM_KEY,[]); if(!Array.isArray(custom)) custom=[];
     var copied=[];
-    var urls=["/data/tv-watchlists.json", LIVE+"/data/tv-watchlists.json"];
+    var urls=warehouse("/data/tv-watchlists.json");
     for(var i=0;i<urls.length && !copied.length;i++){
       try{ var j=await fetchJson(urls[i]); var arr=Array.isArray(j)?j:(j.lists||[]); copied=arr.filter(function(l){return l&&l.name&&Array.isArray(l.symbols);}).map(function(l){ return {id:String(l.id||l.name),name:l.name,symbols:l.symbols,n:l.n||l.symbols.length}; }); }catch(e){}
     }
     lists=custom.concat(local, copied);
   }
   async function loadIntel(){
-    var urls=["/data/jh-internals.json", LIVE+"/data/jh-internals.json"];
+    var urls=warehouse("/data/jh-internals.json");
     for(var i=0;i<urls.length;i++){
       try{ var j=await fetchJson(urls[i]); var f=j.fields||j;
         document.getElementById("intel").innerHTML="<b>INTERNALS · warehouse</b>"+[["2s10s",f.twos_tens!=null?f.twos_tens+"%":"—"],["LIQ $B",f.liq_proxy_bn!=null?f.liq_proxy_bn:"—"],["NFCI",f.nfci!=null?f.nfci:"—"],["A-D",f.ad_breadth!=null?Number(f.ad_breadth).toFixed(3):"—"],["NH-NL",f.nh_nl!=null?f.nh_nl+" ("+(f.n_new_high||"—")+"H / "+(f.n_new_low||"—")+"L)":"—"]].map(function(x){return "<div class=cell><span>"+x[0]+"</span><span>"+x[1]+"</span></div>";}).join("");
@@ -782,7 +786,7 @@
     }
   }
   async function loadNews(){
-    var urls=["/data/finviz-news.json", LIVE+"/data/finviz-news.json"];
+    var urls=warehouse("/data/finviz-news.json");
     for(var i=0;i<urls.length;i++){
       try{ var j=await fetchJson(urls[i]); news=j.news||j.items||(Array.isArray(j)?j:[]); renderNews(); return; }catch(e){}
     }
