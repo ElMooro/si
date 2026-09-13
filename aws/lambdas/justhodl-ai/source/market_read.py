@@ -319,8 +319,11 @@ def write_lessons(graded_rows: List[dict], prior: Dict[str, Any], complete_fn, f
 
 
 
+from deterministic_desk import desk_read
+
 def deterministic_read(board):
-    """When the voice is silent, still publish an engine-grounded read."""
+    """LLM-silent path: table-driven desk. Missing gate = NO_READ."""
+    return desk_read(board)
     rg = (board.get("regime") or {})
     posture = str(rg.get("risk_gate_posture") or "").upper()
     sizing = rg.get("risk_gate_sizing")
