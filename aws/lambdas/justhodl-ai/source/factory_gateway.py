@@ -47,6 +47,155 @@ def actor(event, invites):
     raise Invalid('invitation_required')
 
 
+
+ROSTER = ("student", "coder", "researcher", "investor", "deployer", "livermore", "wyckoff", "soros", "druckenmiller")
+ACTIVE_WORKER_CAP = 48
+SPAWN_PER_MESSAGE = 25
+CHAT_KEEP = 80
+
+
+def _workers(store):
+    row, etag = store.read(store.private, "factory/salon/workers.json")
+    if not isinstance(row, dict):
+        row = {"schema_version": "factory-workers.v1", "active": [], "queued": [], "retired": 0}
+    return row, etag
+
+
+def chat_snapshot(store, agent, owner):
+    log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
+    workers, _ = _workers(store)
+    return {
+        "ok": True,
+        "agent": agent,
+        "owner": owner,
+        "roster": list(ROSTER),
+        "messages": (log or {}).get("messages", [])[-CHAT_KEEP:],
+        "workers": {"active": len((workers or {}).get("active") or []), "queued": len((workers or {}).get("queued") or []),
+                    "retired": (workers or {}).get("retired") or 0, "cap": ACTIVE_WORKER_CAP},
+    }
+
+
+def spawn_workers(store, agent, body, policy):
+    task = str(body.get("task") or body.get("text") or "").strip()
+    role = identifier(str(body.get("role") or "researcher"))[:40]
+    try:
+        count = int(body.get("count") or 0)
+    except (TypeError, ValueError):
+        count = 0
+    if count < 0:
+        raise Invalid("spawn_count_required")
+    if count > SPAWN_PER_MESSAGE:
+        count = SPAWN_PER_MESSAGE
+    if not task or len(task) > 2000:
+        raise Invalid("spawn_task_required")
+    if role in ("owner",) or role.startswith("teacher-"):
+        raise Invalid("reserved_agent_name")
+    workers, etag = _workers(store)
+    active = list(workers.get("active") or [])
+    queued = list(workers.get("queued") or [])
+    created = []
+    now = iso(store.clock())
+    for i in range(count):
+        wid = identifier(role) + "-" + digest({"t": task, "i": i, "at": now})[:10]
+        card = {"id": wid, "role": role, "task": task[:500], "status": "active" if len(active) < ACTIVE_WORKER_CAP else "queued",
+                "spawned_by": agent, "spawned_at": now}
+        if card["status"] == "active":
+            active.append(card)
+        else:
+            queued.append(card)
+        created.append(card)
+        store.immutable(store.private, "factory/workers/" + wid + ".json", card)
+    workers = {**workers, "active": active[-ACTIVE_WORKER_CAP:], "queued": queued[-500:],
+               "updated_at": now, "spawned_by": agent}
+    store.put(store.private, "factory/salon/workers.json", workers, etag=etag, absent=etag is None)
+    return {"ok": True, "created": len(created), "active": len(active), "queued": len(queued),
+            "cap": ACTIVE_WORKER_CAP, "note": "Live workers are capped at %s. Extra cards queue; they are not new AWS accounts or Lambdas." % ACTIVE_WORKER_CAP,
+            "workers": created[:SPAWN_PER_MESSAGE]}
+
+
+def _fallback_reply(target, text, state, spawned):
+    agents = ", ".join(a.get("name") or a.get("id") for a in (state or {}).get("agents") or [])
+    bits = [
+        "I am %s on Khalid's factory desk." % target,
+        "Live roster: %s." % (agents or "Student, Coder, Researcher, Investor, Deployer and the four principle cards"),
+        "I will not place orders, touch IAM, or train weights.",
+    ]
+    low = text.lower()
+    if any(w in low for w in ("chart", "volume", "qr", "tape", "pepe")):
+        bits.append("Coder/Researcher: chart v12 is live on /chart.html — QR tape, warehouse volume, VP. Say what to change.")
+    if any(w in low for w in ("spy", "qqq", "market", "wall", "predict", "crisis")):
+        bits.append("Investor: CLUB WALL locks Monday 09:30 ET. I can draft a SPY/QQQ/IWM/TLT/GLD/BTC card for you to lock.")
+    if spawned:
+        bits.append("Spawned %s task worker(s). Live cap is %s concurrent cards; the rest queue." % (spawned, ACTIVE_WORKER_CAP))
+    if "billion" in low or "million" in low:
+        bits.append("I will not create millions of AWS functions. I will create task cards up to the cap and queue the rest.")
+    bits.append("Heard: %s" % text[:280])
+    return " ".join(bits)
+
+
+def _llm_reply(target, text, state, owner):
+    try:
+        from llm_router import complete
+    except Exception:
+        return ""
+    season = (state or {}).get("season") or {}
+    wall = (state or {}).get("wall") or {}
+    system = (
+        "You are %s, a named agent on JustHodl Compound Factory (Gear A). "
+        "Owner is Khalid. Speak in first person as that agent. Be concrete. "
+        "You may propose repairs, research, wall cards, and spawning task workers. "
+        "You may not hack, place broker orders, request IAM, paid-API keys, or claim ASI. "
+        "Live workers cap %s; extra spawn queues. Principle cards stay doctrine, not personas. "
+        "Season %s. Wall graded %s pending %s. "
+        "If the owner asks for millions of agents, explain the cap and still spawn a useful batch."
+        % (target, ACTIVE_WORKER_CAP, season.get("id"), wall.get("graded"), wall.get("pending"))
+    )
+    prompt = "Owner message:\n%s" % text
+    try:
+        out = complete(prompt, tier="critical" if owner else "bulk", max_tokens=700,
+                       contains_proprietary=bool(owner), system=system, on_demand=True, no_cache=True)
+        return (out or "").strip()[:4000]
+    except Exception:
+        return ""
+
+
+def chat_post(store, agent, owner, body, policy):
+    if set(body) - {"text", "to", "spawn", "role", "task"}:
+        raise Invalid("chat_schema_required")
+    text = body.get("text")
+    if not isinstance(text, str) or not text.strip() or len(text) > 4000:
+        raise Invalid("chat_text_required")
+    target = identifier(str(body.get("to") or "student"))
+    if target not in ROSTER:
+        target = "student"
+    spawn_n = 0
+    if "spawn" in body:
+        try:
+            spawn_n = max(0, int(body.get("spawn") or 0))
+        except (TypeError, ValueError):
+            raise Invalid("spawn_count_required")
+    spawned = None
+    if spawn_n or (owner and any(w in text.lower() for w in ("spawn", "create agents", "create workers", "hire"))):
+        if not owner:
+            raise Invalid("owner_invitation_required")
+        n = spawn_n or 8
+        spawned = spawn_workers(store, agent, {"count": n, "role": body.get("role") or "researcher", "task": body.get("task") or text}, policy)
+    state, _ = store.read(store.public, "data/student-state.json")
+    reply = _llm_reply(target, text, state, owner) or _fallback_reply(target, text, state, (spawned or {}).get("created"))
+    now = iso(store.clock())
+    key = "factory/salon/chat/" + agent + ".json"
+    log, etag = store.read(store.private, key)
+    messages = list((log or {}).get("messages") or [])
+    messages.append({"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()})
+    messages.append({"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply,
+                     "spawn": (spawned or {}).get("created")})
+    messages = messages[-CHAT_KEEP:]
+    store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now},
+              etag=etag, absent=etag is None)
+    return {"ok": True, "to": target, "reply": reply, "messages": messages[-12:], "workers": spawned}
+
+
+
 def handle(event, method, path, body, store):
     invites, invite_etag = store.read(store.private, 'factory/control/invites.json')
     if not invites:
@@ -90,8 +239,16 @@ def handle(event, method, path, body, store):
         return {'ok': True, 'agent': agent, 'owner': owner, 'sandbox': {'funding': outer.get('funding', {}),
                 'tape': outer.get('tape', {}), 'research_only': True}, 'policy': {'enabled': policy['enabled'],
                 'gear_b_enabled': False, 'max_traces_per_day': policy['max_guest_traces_per_day']}}
+    if method == 'GET' and action == 'chat':
+        return chat_snapshot(store, agent, owner)
     if method != 'POST':
         raise Invalid('factory_action_not_allowed')
+    if action == 'chat':
+        return chat_post(store, agent, owner, body, policy)
+    if action == 'spawn':
+        if not owner:
+            raise Invalid('owner_invitation_required')
+        return spawn_workers(store, agent, body, policy)
     if action == 'control':
         if not owner or set(body) != {'enabled'} or type(body['enabled']) is not bool:
             raise Invalid('owner_pause_control_required')
