@@ -263,7 +263,7 @@
     if (input) input.focus();
   });
   const LEARN = {
-    code: { to: 'coder', text: 'Go learn how to code. Study Python, unit testing, and Git outside this system, then apply it to the protected exam. Do not train weights.' },
+    code: { to: 'coder', text: 'Go learn how to learn how to code. Start at stage 0: deliberate practice, TDD as a learning device, rubber-duck until you can teach it. Then climb toward production-engineer caliber. Keep only what grades on the protected exam. Do not train weights. Do not binge tutorials.' },
     markets: { to: 'investor', text: 'Go learn financial markets — stocks, bonds, and the yield curve — from public sources and the warehouse delayed tape. No orders.' },
     investing: { to: 'investor', text: 'Go learn investing from Jesse Livermore, Wyckoff, George Soros, and Stanley Druckenmiller. Cite them. Evidence before size. No orders.' }
   };
