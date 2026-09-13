@@ -7,6 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from normalize_lambda_config import normalize_config
 from lambda_architecture import architecture
+from lambda_identity import resolve_identity
 
 
 def validate_configs(root, targets):
@@ -16,6 +17,10 @@ def validate_configs(root, targets):
         if not path.exists():
             continue
         config = json.loads(path.read_text())
+        try:
+            resolve_identity(config)
+        except ValueError as error:
+            errors.append({"function": target, "field": "identity", "error_code": str(error)})
         try:
             normalize_config(config)
         except ValueError as error:

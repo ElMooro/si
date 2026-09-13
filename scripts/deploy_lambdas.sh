@@ -34,6 +34,8 @@ for fn in $DEPLOY_TARGETS; do
 
   # Read config (function_name + create-time config like runtime/timeout/memory/env)
   fn_runtime="python3.12"
+  fn_role="arn:aws:iam::857687956942:role/lambda-execution-role"
+  fn_handler="lambda_function.lambda_handler"
   fn_timeout="300"
   fn_memory="512"
   fn_ephemeral=""
@@ -45,6 +47,9 @@ for fn in $DEPLOY_TARGETS; do
   if [ -f "$config_file" ]; then
     cfg_name=$(jq -r '.function_name // empty' "$config_file")
     [ -n "$cfg_name" ] && fn="$cfg_name"
+    identity_json=$(python3 scripts/lambda_identity.py "$config_file")
+    fn_role=$(jq -er '.role' <<< "$identity_json")
+    fn_handler=$(jq -er '.handler' <<< "$identity_json")
     fn_runtime=$(jq -r '.runtime // "python3.12"' "$config_file")
     fn_timeout=$(jq -r '.timeout // 300' "$config_file")
     fn_memory=$(jq -r '.memory // 512' "$config_file")
@@ -178,6 +183,12 @@ for fn in $DEPLOY_TARGETS; do
       if jq -e '.update_runtime == true' "$config_file" >/dev/null; then
         config_args+=(--runtime "$fn_runtime")
       fi
+      if jq -e '.update_role == true' "$config_file" >/dev/null; then
+        config_args+=(--role "$fn_role")
+      fi
+      if jq -e '.update_handler == true' "$config_file" >/dev/null; then
+        config_args+=(--handler "$fn_handler")
+      fi
       if jq -e 'has("timeout")' "$config_file" >/dev/null; then config_args+=(--timeout "$fn_timeout"); fi
       if jq -e 'has("memory")' "$config_file" >/dev/null; then config_args+=(--memory-size "$fn_memory"); fi
       if jq -e 'has("description")' "$config_file" >/dev/null; then config_args+=(--description "$fn_desc"); fi
@@ -208,8 +219,8 @@ for fn in $DEPLOY_TARGETS; do
     python3 scripts/secret_lambda_config.py create-function "$fn" \
       "${architecture_create_args[@]}" \
       --runtime "$fn_runtime" \
-      --role "arn:aws:iam::857687956942:role/lambda-execution-role" \
-      --handler "lambda_function.lambda_handler" \
+      --role "$fn_role" \
+      --handler "$fn_handler" \
       --zip-file "fileb://$tmp/deploy.zip" \
       --timeout "$fn_timeout" \
       --memory-size "$fn_memory" \

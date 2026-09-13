@@ -1,3 +1,4 @@
+import { factoryGateway } from './factory-gateway.js';
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
 import {warehouseOHLC, formingSession} from './warehouse-ohlc.js';
@@ -427,6 +428,7 @@ export class WorkspaceCoordinator {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/v1/factory/')) return factoryGateway(request, env, url, { resolveIdentity, aiLambdaUrl, corsHeaders, boundedBody, jsonResp });
     // ops 5215: JustHodl Intelligence Network read API (fusion / signals / regime / opportunities)
     if (url.pathname === "/api/v1" || url.pathname.startsWith("/api/v1/")) { return handleFusionApi(request, env, ctx, url); }
     if (url.pathname === "/gov") { return handleGov(url); }

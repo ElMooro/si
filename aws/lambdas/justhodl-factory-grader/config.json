@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-factory-grader",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "role": "arn:aws:iam::857687956942:role/justhodl-factory-grader-role",
+  "timeout": 45,
+  "memory": 256,
+  "update_role": true,
+  "update_handler": true,
+  "description": "Independent bounded checker for JustHodl Gear A. Protected exam; no code execution, IAM, training, or deployment.",
+  "env": {"FACTORY_PRIVATE_BUCKET": "justhodl-ai-857687956942", "FACTORY_PUBLIC_BUCKET": "justhodl-dashboard-live"}
+}

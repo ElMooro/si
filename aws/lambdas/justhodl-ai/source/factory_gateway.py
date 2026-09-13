@@ -1,0 +1,148 @@
+"""Authenticated factory admission; guests never receive the Brain action surface.
+
+Called only after private_http_denied has verified the existing service token.
+The Worker supplies an identity derived from a verified bearer token. Request
+bodies cannot choose that identity, grant roles, schedule work or release code.
+"""
+import hashlib
+import json
+import os
+import re
+from datetime import datetime, timezone
+
+import boto3
+from botocore.config import Config
+
+from factory_core import Invalid, canonical, digest, identifier, iso, validate_prediction, verify_state
+from factory_store import Conflict, Store
+
+CFG = Config(connect_timeout=3, read_timeout=10, retries={'max_attempts': 2})
+
+
+def admit_quota(store, agent, maximum):
+    key = 'factory/admission/daily/' + store.clock().date().isoformat() + '-' + agent + '.json'
+    for _ in range(3):
+        row, etag = store.read(store.private, key)
+        count = (row or {}).get('count', 0)
+        if count >= maximum:
+            raise Invalid('daily_submission_limit')
+        try:
+            store.put(store.private, key, {'count': count + 1}, etag=etag, absent=etag is None)
+            return
+        except Conflict:
+            pass
+    raise Conflict('admission_busy')
+
+
+def actor(event, invites):
+    headers = {k.lower(): str(v) for k, v in (event.get('headers') or {}).items()}
+    uid, role = headers.get('x-jh-factory-uid', ''), headers.get('x-jh-factory-role', '')
+    if not uid or len(uid) > 160 or role not in ('owner', 'user'):
+        raise Invalid('verified_factory_identity_required')
+    if role == 'owner':
+        return 'owner', True
+    for invitation in invites.get('allowlist', []):
+        if invitation.get('uid') == uid and invitation.get('enabled') is True:
+            return identifier(invitation['agent']), False
+    raise Invalid('invitation_required')
+
+
+def handle(event, method, path, body, store):
+    invites, invite_etag = store.read(store.private, 'factory/control/invites.json')
+    if not invites:
+        raise Invalid('factory_not_initialized')
+    agent, owner = actor(event, invites)
+    policy, policy_etag = store.read(store.private, 'factory/control/policy.json')
+    if not isinstance(body, dict) or len(canonical(body)) > 16384:
+        raise Invalid('invalid_or_oversized_body')
+    action = path.removeprefix('/factory/')
+    if method == 'GET' and action == 'sandbox':
+        state, _ = store.read(store.public, 'data/student-state.json')
+        verify_state(state)
+        outer = state['outer_status']
+        return {'ok': True, 'agent': agent, 'owner': owner, 'sandbox': {'funding': outer.get('funding', {}),
+                'tape': outer.get('tape', {}), 'research_only': True}, 'policy': {'enabled': policy['enabled'],
+                'gear_b_enabled': False, 'max_traces_per_day': policy['max_guest_traces_per_day']}}
+    if method != 'POST':
+        raise Invalid('factory_action_not_allowed')
+    if action == 'control':
+        if not owner or set(body) != {'enabled'} or type(body['enabled']) is not bool:
+            raise Invalid('owner_pause_control_required')
+        policy = {**policy, 'enabled': body['enabled'], 'changed_at': iso(store.clock()), 'changed_by': agent}
+        store.put(store.private, 'factory/control/policy.json', policy, etag=policy_etag)
+        return {'ok': True, 'enabled': policy['enabled']}
+    if action == 'invites':
+        if not owner or set(body) != {'uid', 'agent', 'enabled'} or type(body['enabled']) is not bool:
+            raise Invalid('owner_invitation_required')
+        name = identifier(body['agent'])
+        if len(name) > 40:
+            raise Invalid('agent_name_maximum_40_characters')
+        if name in ('owner', 'student') or name.startswith('teacher-'):
+            raise Invalid('reserved_agent_name')
+        uid = body['uid']
+        if not isinstance(uid, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,128}', uid):
+            raise Invalid('verified_user_id_required')
+        rows = list(invites['allowlist'])
+        if any(r['agent'] == name and r['uid'] != uid for r in rows):
+            raise Invalid('agent_name_taken')
+        rows = [r for r in rows if r['uid'] != uid]
+        rows.append({'uid': uid, 'agent': name, 'enabled': body['enabled'], 'invited_at': iso(store.clock())})
+        if len(rows) > min(10, invites.get('capacity', 10)):
+            raise Invalid('initial_invitation_cap')
+        store.put(store.private, 'factory/control/invites.json', {**invites, 'allowlist': rows}, etag=invite_etag)
+        return {'ok': True, 'agent': name, 'enabled': body['enabled'], 'message_sent': False}
+    if policy.get('enabled') is not True:
+        raise Invalid('factory_paused')
+    if action == 'predictions':
+        season, _ = store.read(store.private, 'factory/control/season.json')
+        if season.get('calendar_review_required') is not False:
+            raise Invalid('season_calendar_not_frozen')
+        prediction = validate_prediction(body, season, store.clock(), agent)
+        if prediction['price_source'] != season['price_sources'][prediction['symbol']]:
+            raise Invalid('season_price_source_required')
+        # Exactly one immutable entry per agent/week/symbol, irrespective of a supplied ID.
+        event_id = prediction['week'] + '-' + agent + '-' + prediction['symbol']
+        prediction['submitted_id'] = prediction['id']
+        prediction['id'] = event_id
+        store.immutable(store.private, 'factory/salon/accepted/' + event_id + '.json', prediction)
+        return {'ok': True, 'id': event_id, 'status': 'locked', 'permalink': '/ai.html#factory-event=' + event_id}
+    if action == 'traces':
+        if set(body) != {'domain', 'task', 'provenance', 'solution_notes'}:
+            raise Invalid('trace_schema_required')
+        if body['domain'] not in ('code', 'math', 'tape', 'sec') or not isinstance(body['task'], dict):
+            raise Invalid('trace_domain_required')
+        provenance = body['provenance']
+        if not isinstance(provenance, dict) or set(provenance) != {'license', 'source'}:
+            raise Invalid('trace_provenance_required')
+        if provenance['license'] not in ('CC0-1.0', 'MIT', 'Apache-2.0', 'BSD-3-Clause', 'original'):
+            raise Invalid('trace_license_not_allowed')
+        if not isinstance(provenance['source'], str) or len(provenance['source']) > 512:
+            raise Invalid('trace_source_required')
+        if not isinstance(body['solution_notes'], str) or len(body['solution_notes']) > 4000:
+            raise Invalid('short_solution_notes_required')
+        text = canonical(body).decode().lower()
+        if any(x in text for x in ('iam:', 'putrule', 'createrole', 'api.openai.com', 'api.anthropic.com', 'access_key', 'secret_key')):
+            raise Invalid('void_trace_prohibited_capability')
+        trace_id = agent + '-' + digest(body)[:32]
+        previous, _ = store.read(store.private, 'factory/quarantine/' + trace_id + '.json')
+        if previous:
+            return {'ok': True, 'id': trace_id, 'status': 'already_received'}
+        admit_quota(store, agent, min(10, int(policy.get('max_guest_traces_per_day', 0))))
+        store.immutable(store.private, 'factory/quarantine/' + trace_id + '.json', {'schema_version': 'factory-submission.v1',
+            'id': trace_id, 'agent': agent, 'received_at': iso(store.clock()), 'trace': body})
+        return {'ok': True, 'id': trace_id, 'status': 'quarantined_for_independent_check'}
+    raise Invalid('factory_action_not_allowed')
+
+
+def route(event, method, path, body):
+    store = Store(boto3.client('s3', region_name='us-east-1', config=CFG),
+        os.environ.get('AI_PRIVATE_BUCKET', 'justhodl-ai-857687956942'),
+        os.environ.get('AI_PUBLIC_BUCKET', 'justhodl-dashboard-live'), lambda: datetime.now(timezone.utc))
+    try:
+        return 200, handle(event, method, path, body, store)
+    except Invalid as exc:
+        reason = str(exc)
+        status = 403 if reason in ('invitation_required', 'verified_factory_identity_required', 'owner_pause_control_required', 'owner_invitation_required') else 429 if 'limit' in reason else 400
+        return status, {'ok': False, 'error': reason}
+    except Conflict:
+        return 409, {'ok': False, 'error': 'immutable_entry_or_concurrent_update_conflict'}

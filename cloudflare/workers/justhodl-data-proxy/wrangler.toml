@@ -10,6 +10,10 @@ workers_dev = true
 # a class defect: the domain never had a /data/* route; legacy pages used
 # absolute proxy URLs, this month's pages use the clean relative form).
 routes = [
+  { pattern = "justhodl.ai/factory/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/factory/*", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/student-state.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/student-state.json", zone_name = "justhodl.ai" },
   { pattern = "justhodl.ai/data/*", zone_name = "justhodl.ai" },
   { pattern = "www.justhodl.ai/data/*", zone_name = "justhodl.ai" },
   # ops 5215: versioned read API for the fusion layer (src/fusion_api.js)

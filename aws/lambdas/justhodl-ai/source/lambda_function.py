@@ -2081,6 +2081,10 @@ def lambda_handler(event=None, context=None):
         if denied:
             return denied
         method, path, body = _parse_http(event)
+        if path.startswith("/factory/"):
+            from factory_gateway import route
+            status, payload = route(event, method, path, body)
+            return _resp(status, payload)
         if method == "GET" and path in ("/", "/status", "/health"):
             snap = get_json(PUBLIC_BUCKET, OUT_KEY) or {}
             return _resp(200, {"engine": ENGINE, "version": VERSION, "read_model_generated_at": snap.get("generated_at"), "ok": True})

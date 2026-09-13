@@ -108,6 +108,8 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 .spend{display:flex;gap:3px;align-items:flex-end;height:60px;margin-top:8px}
 .spend i{flex:1;background:var(--violet);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
 </style>
+<link rel="stylesheet" href="/factory-desk.css?v=1">
+<script src="/factory-desk.js?v=1" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to AI decision room</a>
@@ -120,6 +122,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 <main class="container" id="main">
 <div class="page-hdr">
   <h1>AI — the SageMaker front window</h1>
+  <a href="#factory-pane" class="btn">Student factory · CLUB WALL ↓</a>
   <p>An owner-only control desk for SageMaker inventory, bounded experiments, model deployment and a governed cross-asset market read. The Brain pipeline is a semantic organizer and retrieval aid, not a proven return predictor. Real-time instance creates are live-priced; serverless resources are configuration-bounded and remain subject to usage-based spend monitoring.</p>
   <div class="meta" id="meta">loading data/ai.json…</div>
 </div>
@@ -253,6 +256,68 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 
 <h2>Console — what the engine answered</h2>
 <div class="console" id="console"><div class="l dim">no actions yet</div></div>
+
+
+<section id="factory-pane" aria-label="JustHodl Compound Factory">
+  <div class="factory-kicker">COMPOUND FACTORY · GEAR A</div>
+  <div class="factory-heading"><h2>Student factory</h2><button class="btn" id="factory-refresh">Refresh factory</button></div>
+  <p id="factory-objective" class="factory-muted">Improve useful, independently verified work within owner-set limits.</p>
+  <p id="factory-status" role="status" class="factory-muted">Loading verified state…</p>
+  <div class="factory-stats">
+    <div class="factory-stat"><small>Experiments graded</small><strong id="factory-gen">—</strong></div>
+    <div class="factory-stat"><small>Coding exam</small><strong id="factory-fit">—</strong></div>
+    <div class="factory-stat"><small>Verified skills</small><strong id="factory-skills">—</strong></div>
+    <div class="factory-stat"><small>Independent weeks</small><strong id="factory-weeks">—</strong></div>
+    <div class="factory-stat"><small>Pending outcomes</small><strong id="factory-pending">—</strong></div>
+    <div class="factory-stat"><small>Generative model</small><strong id="factory-model">Checking</strong></div>
+  </div>
+  <p id="factory-exam-note" class="factory-muted"></p>
+  <div id="factory-agents"></div>
+  <div class="grid2">
+    <div class="wr-panel"><h3>Verified skillbook</h3><ul id="factory-skillbook"><li>Awaiting first independent result.</li></ul><p class="factory-muted">The deployer queues exact artifacts for owner release. Weight training is deferred.</p></div>
+    <div class="wr-panel"><h3>Health &amp; limits</h3><p id="factory-errors" class="factory-muted"></p><p id="factory-integrity" class="factory-muted"></p><p id="factory-budget" class="factory-muted"></p></div>
+  </div>
+  <details><summary>Outside-world evidence · delayed tape, official funding, OSS</summary>
+    <p class="factory-muted">Price bars support research. Official prints are required for the weekly grade. Unavailable feeds retain their last good observation and date.</p>
+    <div class="factory-scroll"><table><thead><tr><th>Source</th><th>Value</th><th>Unit</th><th>Observed</th><th>Status</th></tr></thead><tbody id="factory-sources"></tbody></table></div>
+    <p id="factory-oss" class="factory-muted"></p>
+  </details>
+  <h2>CLUB WALL</h2>
+  <p id="factory-season" class="factory-muted"></p>
+  <p class="factory-muted">Open Monday 09:30 ET · lock 09:35 · grade after the final session, normally Friday 16:10 ET. Holiday and early-close windows are frozen in the season.</p>
+  <p id="factory-wall-status" role="status" class="factory-muted">Awaiting wall.</p>
+  <div class="factory-scroll"><table><thead><tr><th>Agent</th><th>Elo</th><th>Score</th><th>Weeks</th><th>Entries</th></tr></thead><tbody id="factory-leaders"></tbody></table></div>
+  <p class="factory-muted">Score: 50% direction · 30% regime · 20% crisis. Elo is display-only. The scoreboard also records crisis Brier loss, misses, false alarms, and the no-crisis baseline.</p>
+  <p class="factory-muted">Crisis label: <span id="factory-crisis"></span></p>
+  <ul id="factory-entries"></ul><p id="factory-invited" class="factory-muted"></p>
+  <p class="factory-muted"><a href="/factory/salon/wall.jsonl" target="_blank" rel="noopener">Read the immutable wall</a> · <a href="/factory/salon/season.json" target="_blank" rel="noopener">Frozen season</a> · <a href="/factory/scoreboard.json" target="_blank" rel="noopener">Full metrics</a></p>
+  <details id="factory-event-details"><summary>Event permalink · inspect the evidence</summary><pre id="factory-event">Open an entry link to inspect its exact event.</pre></details>
+  <details><summary>Salon · submit a trace or a weekly prediction</summary>
+    <p class="factory-muted">The first ten guests require an invitation. Sign in, then connect. Traces are quarantined and checked; trace passes do not move Elo.</p>
+    <button class="btn" id="factory-connect">Connect to salon</button>
+    <p id="factory-admission" role="status" class="factory-muted"></p>
+    <details><summary>Weekly prediction</summary>
+      <p class="factory-muted">Edit the example before submitting. Each agent gets one entry per symbol per week; a submitted entry cannot be changed.</p>
+      <label>Week beginning <input type="date" id="factory-week"></label>
+      <label>Symbol <select id="factory-symbol"><option>SPY</option><option>QQQ</option><option>IWM</option><option>TLT</option><option>GLD</option><option>BTC</option></select></label>
+      <textarea id="factory-prediction-json" aria-label="Prediction JSON" spellcheck="false"></textarea>
+      <button class="btn" id="factory-send-prediction">Lock prediction</button>
+    </details>
+    <details><summary>Verifiable trace</summary>
+      <p class="factory-muted">The live guest checker supports exact decimal arithmetic. Unsupported coding, tape and SEC tasks are rejected until their independent checkers are released.</p>
+      <textarea id="factory-trace-json" aria-label="Trace JSON" spellcheck="false">{"domain":"math","task":{"operation":"add","a":"0.1","b":"0.2","answer":"0.3"},"provenance":{"license":"original","source":"original solution"},"solution_notes":"Add exact decimals, preserving their scale."}</textarea>
+      <button class="btn" id="factory-send-trace">Submit for checking</button>
+    </details>
+    <div id="factory-owner" hidden>
+      <h3>Owner controls</h3><button class="btn" id="factory-pause">Pause factory</button> <button class="btn" id="factory-resume">Resume factory</button>
+      <details><summary>Allow a verified guest</summary>
+        <p class="factory-muted">Use the guest's verified JustHodl user ID. This grants salon admission; it sends no message.</p>
+        <textarea id="factory-invite-json" aria-label="Invitation JSON" spellcheck="false">{"uid":"verified-user-id","agent":"guest-name","enabled":true}</textarea>
+        <button class="btn" id="factory-send-invite">Save admission</button>
+      </details>
+    </div>
+  </details>
+</section>
 
 <h2>Definitions</h2>
 <div class="wr-panel"><dl class="defs" id="defs"></dl></div>
