@@ -1,4 +1,4 @@
-/* JustHodl Chart engine v12 — QR tape always on. Does not touch Chart Pro. */
+/* JustHodl Chart engine v12.1 — no synth candles; warehouse series first; footer v12 QR. Chart Pro untouched. */
 (function () {
   if (window.__jhChartEngineV12) return;
   window.__jhChartEngineV12 = true;
@@ -385,6 +385,8 @@
       lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
     var urls=[
+      LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
+      LIVE+"/data/series/"+encodeURIComponent(t)+".json",
       "/api/klines?symbol="+encodeURIComponent(t)+"&interval="+encodeURIComponent(sp[0])+"&limit=1000",
       "/api/yahoo?ticker="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
       PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
@@ -405,10 +407,9 @@
         }
       }catch(e){}
     }
-    lastSource="synth";
-    var fb=synth(t, 400);
-    barCache[key]={d:fb, at:now, src:"synth"};
-    return fb;
+    lastSource="unavailable";
+    barCache[key]={d:[], at:now, src:"unavailable"};
+    return [];
   }
   function computeChange(d,m){
     if(m==="price"||!d.length) return null;
@@ -623,7 +624,7 @@
     paintMini(d);
     writeState();
     var st=document.getElementById("stat");
-    if(st) st.textContent="v12 QR · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12 QR"; if(st) st.textContent="v12 QR · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
