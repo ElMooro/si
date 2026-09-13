@@ -207,6 +207,7 @@
     } catch (e) { text('admission', e.message); }
   }));
   
+  let chatBusy = false;
   function paintChat(doc) {
     const log = $('chat-log');
     if (!log) return;
@@ -227,6 +228,7 @@
     log.scrollTop = log.scrollHeight;
   }
   async function loadChat() {
+    if (chatBusy) return;
     const log = $('chat-log');
     try { paintChat(await api('chat')); }
     catch (e) {
@@ -239,6 +241,7 @@
     const input = $('chat-in');
     const typed = (input && input.value || '').trim();
     if (!typed) return;
+    chatBusy = true;
     const to = ($('chat-to') && $('chat-to').value) || 'model';
     const spawn = Number(($('spawn-n') && $('spawn-n').value) || 0);
     const send = $('chat-send');
@@ -256,9 +259,12 @@
       if (doc.workers && doc.workers.note) text('admission', doc.workers.note);
       if (doc.workers && doc.workers.declared != null) text('chat-workers', 'Fleet ' + (doc.workers.declared||0) + ' declared · ' + (doc.workers.active||0) + ' live / ' + (doc.workers.queued||0) + ' queued · compute cap ' + (doc.workers.cap||8));
     } catch (e) {
+      const wait = document.getElementById('factory-chat-wait');
+      if (wait) wait.remove();
       if (log) log.insertAdjacentHTML('beforeend', '<div class="factory-msg bot"><small>desk</small>' + safe((e && e.message) || 'send failed') + '</div>');
       if (log) log.scrollTop = log.scrollHeight;
     }
+    chatBusy = false;
     if (send) send.disabled = false;
     if (input) input.focus();
   });
@@ -279,17 +285,20 @@
       else if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     });
   });
-  document.querySelectorAll('#factory-agents .factory-agent').forEach((card, i) => {
-    card.addEventListener('click', () => {
-      const ids = ['student','coder','researcher','investor','deployer','livermore','wyckoff','soros','druckenmiller'];
-      const sel = $('chat-to');
-      if (sel && ids[i]) sel.value = ids[i];
-      document.querySelectorAll('#factory-agents .factory-agent').forEach(c => c.classList.remove('on'));
-      card.classList.add('on');
-      const box = document.getElementById('factory-chat-box');
-      if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = $('chat-in'); if (input) input.focus();
-    });
+  const agentsRoot = $('agents');
+  if (agentsRoot) agentsRoot.addEventListener('click', (ev) => {
+    const card = ev.target.closest('.factory-agent');
+    if (!card) return;
+    const name = ((card.querySelector('b') || {}).textContent || '').trim().toLowerCase();
+    const map = { student: 'student', coder: 'coder', researcher: 'researcher', investor: 'investor', deployer: 'deployer',
+      livermore: 'livermore', wyckoff: 'wyckoff', soros: 'soros', druckenmiller: 'druckenmiller', 'your brain': 'model', brain: 'model' };
+    const sel = $('chat-to');
+    if (sel && map[name]) sel.value = map[name];
+    agentsRoot.querySelectorAll('.factory-agent').forEach(c => c.classList.remove('on'));
+    card.classList.add('on');
+    const box = document.getElementById('factory-chat-box');
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = $('chat-in'); if (input) input.focus();
   });
 
   window.addEventListener('hashchange', permalink);
