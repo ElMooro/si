@@ -1,0 +1,47 @@
+# ops 5527 -- preload step 1: live hub inventory for coding / forecasting / finance cards (no spend)
+
+**Status:** success  
+**Duration:** 11.6s  
+**Finished:** 2026-09-13T20:52:27+00:00  
+
+## Data
+
+| head | hub |
+|---|---|
+| 7e4674b9d1 | SageMakerPublicHub |
+
+## Log
+- `20:52:23` ✅ hub cards seen=70 coding=29 forecasting=6 finance_text=5
+- `20:52:23` coding         tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-bas recipe=False cpu=True gated=False lic=None
+- `20:52:23` coding         tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-lar recipe=False cpu=True gated=False lic=None
+- `20:52:23` coding         huggingface-llm-qwen2-5-coder-32b-instruct                 recipe=False cpu=False gated=False lic=qwen
+- `20:52:23` coding         huggingface-llm-qwen2-5-coder-7b-instruct                  recipe=False cpu=False gated=False lic=qwen
+- `20:52:24` coding         huggingface-llm-starcoder                                  recipe=False cpu=False gated=False lic=None
+- `20:52:24` coding         huggingface-llm-starcoderbase                              recipe=False cpu=False gated=False lic=None
+- `20:52:24` coding         huggingface-reasoning-qwen3-coder-30b-a3b-instruct         recipe=False cpu=False gated=False lic=qwen
+- `20:52:24` coding         huggingface-reasoning-qwen3-coder-next                     recipe=False cpu=False gated=False lic=qwen
+- `20:52:24` coding         huggingface-txt2img-black-forest-labs-flux-2-small-decoder recipe=False cpu=False gated=False lic=None
+- `20:52:24` coding         huggingface-zstc-cross-encoder-nli-deberta-base            recipe=False cpu=True gated=False lic=None
+- `20:52:24` coding         huggingface-zstc-cross-encoder-nli-distilroberta-base      recipe=False cpu=True gated=False lic=None
+- `20:52:24` coding         huggingface-zstc-cross-encoder-nli-minilm2-l6-h768         recipe=False cpu=True gated=False lic=None
+- `20:52:25` coding         huggingface-zstc-cross-encoder-nli-roberta-base            recipe=False cpu=True gated=False lic=None
+- `20:52:25` coding         inception-mercury-coder                                    recipe=False cpu=False gated=False lic=None
+- `20:52:25` coding         meta-textgeneration-llama-codellama-13b                    recipe=True cpu=False gated=True lic=None
+- `20:52:25` coding         meta-textgeneration-llama-codellama-13b-instruct           recipe=False cpu=False gated=True lic=None
+- `20:52:25` forecasting    autogluon-forecasting-chronos-bolt-base                    recipe=False cpu=True gated=False lic=None
+- `20:52:25` forecasting    autogluon-forecasting-chronos-bolt-small                   recipe=False cpu=True gated=False lic=None
+- `20:52:25` forecasting    autogluon-forecasting-chronos-t5-base                      recipe=False cpu=False gated=False lic=None
+- `20:52:25` forecasting    autogluon-forecasting-chronos-t5-large                     recipe=False cpu=False gated=False lic=None
+- `20:52:26` forecasting    autogluon-forecasting-chronos-t5-small                     recipe=False cpu=False gated=False lic=None
+- `20:52:26` forecasting    pytorch-forecasting-chronos-2                              recipe=False cpu=True gated=False lic=None
+- `20:52:26` finance_text   mxnet-tcembedding-robertafin-base-uncased                  recipe=False cpu=True gated=False lic=None
+- `20:52:26` finance_text   mxnet-tcembedding-robertafin-base-wiki-uncased             recipe=False cpu=True gated=False lic=None
+- `20:52:26` finance_text   mxnet-tcembedding-robertafin-large-uncased                 recipe=False cpu=True gated=False lic=None
+- `20:52:26` finance_text   mxnet-tcembedding-robertafin-large-wiki-uncased            recipe=False cpu=True gated=False lic=None
+- `20:52:26` finance_text   writer-palmyra-fin-70b-32k                                 recipe=False cpu=False gated=False lic=None
+- `20:52:26` ✅ student base candidates with a training recipe: ['meta-textgeneration-llama-codellama-13b']
+- `20:52:26` ✅ forecast teacher candidates with a CPU variant: ['autogluon-forecasting-chronos-bolt-base', 'autogluon-forecasting-chronos-bolt-small', 'pytorch-forecasting-chronos-2']
+- `20:52:27` ✅ wrote s3://justhodl-ai-857687956942/factory/teachers/models/catalog.json (18087 bytes)
+- `20:52:27` ✅ wrote s3://justhodl-ai-857687956942/factory/teachers/models/catalog-2026-09-13.json (18087 bytes)
+- `20:52:27` ✅ wrote s3://justhodl-dashboard-live/factory/teachers/model-catalog.json (18087 bytes)
+- `20:52:27` ✅ GREEN -- catalog staged; next: forecast teacher deploy (serverless) if a CPU chronos card exists, Gear B model_id flip to a recipe card

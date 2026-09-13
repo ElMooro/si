@@ -1,10 +1,38 @@
-executing-against: 6de40ca1f1e7790477d47923a40f81c01ee96048
-ops 5526 -- evidence envelope on wall entries: receipt, live bytes, owner sandbox probe, boundaries
-[20:02:28] ✅ justhodl-ai receipt commit=099f465 source_identical_to_HEAD=True sha_match=True run=34779186512
-[20:02:28] ✅ live zip: envelope code=True provider bypass absent=True
-[20:02:28] ✅ missing service identity -> 401 (want 401)
-[20:02:29] ✅ owner GET /factory/sandbox -> 200 contract=factory-evidence.v1 holdout_hash=None leak=False
-[20:02:31] ✅ anonymous factory/salon/season.json -> 403
-[20:02:31] ✅ GREEN -- evidence envelope live: contract + manifest digest on the sandbox, envelope code in the live zip, identity still server-side
+executing-against: 7e4674b9d18c3d6d8c88586e4ec8ae52d05f0384
+ops 5527 -- preload step 1: live hub inventory for coding / forecasting / finance cards (no spend)
+[20:52:23] ✅ hub cards seen=70 coding=29 forecasting=6 finance_text=5
+[20:52:23] coding         tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-bas recipe=False cpu=True gated=False lic=None
+[20:52:23] coding         tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-lar recipe=False cpu=True gated=False lic=None
+[20:52:23] coding         huggingface-llm-qwen2-5-coder-32b-instruct                 recipe=False cpu=False gated=False lic=qwen
+[20:52:23] coding         huggingface-llm-qwen2-5-coder-7b-instruct                  recipe=False cpu=False gated=False lic=qwen
+[20:52:24] coding         huggingface-llm-starcoder                                  recipe=False cpu=False gated=False lic=None
+[20:52:24] coding         huggingface-llm-starcoderbase                              recipe=False cpu=False gated=False lic=None
+[20:52:24] coding         huggingface-reasoning-qwen3-coder-30b-a3b-instruct         recipe=False cpu=False gated=False lic=qwen
+[20:52:24] coding         huggingface-reasoning-qwen3-coder-next                     recipe=False cpu=False gated=False lic=qwen
+[20:52:24] coding         huggingface-txt2img-black-forest-labs-flux-2-small-decoder recipe=False cpu=False gated=False lic=None
+[20:52:24] coding         huggingface-zstc-cross-encoder-nli-deberta-base            recipe=False cpu=True gated=False lic=None
+[20:52:24] coding         huggingface-zstc-cross-encoder-nli-distilroberta-base      recipe=False cpu=True gated=False lic=None
+[20:52:24] coding         huggingface-zstc-cross-encoder-nli-minilm2-l6-h768         recipe=False cpu=True gated=False lic=None
+[20:52:25] coding         huggingface-zstc-cross-encoder-nli-roberta-base            recipe=False cpu=True gated=False lic=None
+[20:52:25] coding         inception-mercury-coder                                    recipe=False cpu=False gated=False lic=None
+[20:52:25] coding         meta-textgeneration-llama-codellama-13b                    recipe=True cpu=False gated=True lic=None
+[20:52:25] coding         meta-textgeneration-llama-codellama-13b-instruct           recipe=False cpu=False gated=True lic=None
+[20:52:25] forecasting    autogluon-forecasting-chronos-bolt-base                    recipe=False cpu=True gated=False lic=None
+[20:52:25] forecasting    autogluon-forecasting-chronos-bolt-small                   recipe=False cpu=True gated=False lic=None
+[20:52:25] forecasting    autogluon-forecasting-chronos-t5-base                      recipe=False cpu=False gated=False lic=None
+[20:52:25] forecasting    autogluon-forecasting-chronos-t5-large                     recipe=False cpu=False gated=False lic=None
+[20:52:26] forecasting    autogluon-forecasting-chronos-t5-small                     recipe=False cpu=False gated=False lic=None
+[20:52:26] forecasting    pytorch-forecasting-chronos-2                              recipe=False cpu=True gated=False lic=None
+[20:52:26] finance_text   mxnet-tcembedding-robertafin-base-uncased                  recipe=False cpu=True gated=False lic=None
+[20:52:26] finance_text   mxnet-tcembedding-robertafin-base-wiki-uncased             recipe=False cpu=True gated=False lic=None
+[20:52:26] finance_text   mxnet-tcembedding-robertafin-large-uncased                 recipe=False cpu=True gated=False lic=None
+[20:52:26] finance_text   mxnet-tcembedding-robertafin-large-wiki-uncased            recipe=False cpu=True gated=False lic=None
+[20:52:26] finance_text   writer-palmyra-fin-70b-32k                                 recipe=False cpu=False gated=False lic=None
+[20:52:26] ✅ student base candidates with a training recipe: ['meta-textgeneration-llama-codellama-13b']
+[20:52:26] ✅ forecast teacher candidates with a CPU variant: ['autogluon-forecasting-chronos-bolt-base', 'autogluon-forecasting-chronos-bolt-small', 'pytorch-forecasting-chronos-2']
+[20:52:27] ✅ wrote s3://justhodl-ai-857687956942/factory/teachers/models/catalog.json (18087 bytes)
+[20:52:27] ✅ wrote s3://justhodl-ai-857687956942/factory/teachers/models/catalog-2026-09-13.json (18087 bytes)
+[20:52:27] ✅ wrote s3://justhodl-dashboard-live/factory/teachers/model-catalog.json (18087 bytes)
+[20:52:27] ✅ GREEN -- catalog staged; next: forecast teacher deploy (serverless) if a CPU chronos card exists, Gear B model_id flip to a recipe card
 
-→ Report written to aws/ops/reports/latest/ops_5526_factory_evidence_envelope_gate.md
+→ Report written to aws/ops/reports/latest/ops_5527_preload_model_catalog.md

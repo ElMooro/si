@@ -1,0 +1,319 @@
+{
+  "generated_at": "2026-09-13T20:52:26.871108+00:00",
+  "families": {
+    "coding": 29,
+    "forecasting": 6,
+    "finance_text": 5
+  },
+  "recommendations": {
+    "student_base_candidates": [
+      "meta-textgeneration-llama-codellama-13b"
+    ],
+    "forecast_teacher_candidates": [
+      "autogluon-forecasting-chronos-bolt-base",
+      "autogluon-forecasting-chronos-bolt-small",
+      "pytorch-forecasting-chronos-2"
+    ],
+    "finance_text_cards": [
+      "mxnet-tcembedding-robertafin-base-uncased",
+      "mxnet-tcembedding-robertafin-base-wiki-uncased",
+      "mxnet-tcembedding-robertafin-large-uncased",
+      "mxnet-tcembedding-robertafin-large-wiki-uncased",
+      "writer-palmyra-fin-70b-32k"
+    ],
+    "notes": [
+      "Gear B refuses any card without training_supported+training_image (ops 5524 RED on qwen2-5-coder ids)",
+      "a forecasting teacher is graded on the wall with an evidence envelope like any guest; it is never a free vote",
+      "finance-text cards are already the desk's stack (robertafin embeddings + classifier); nothing new to preload there without a graded consumer"
+    ]
+  },
+  "described": [
+    {
+      "model_id": "tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-base-1",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "tensorflow-tcembedding-universal-sentc-encoder-cmlm-en-large-1",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-llm-qwen2-5-coder-32b-instruct",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": "qwen"
+    },
+    {
+      "model_id": "huggingface-llm-qwen2-5-coder-7b-instruct",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": "qwen"
+    },
+    {
+      "model_id": "huggingface-llm-starcoder",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-llm-starcoderbase",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-reasoning-qwen3-coder-30b-a3b-instruct",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": "qwen"
+    },
+    {
+      "model_id": "huggingface-reasoning-qwen3-coder-next",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": "qwen"
+    },
+    {
+      "model_id": "huggingface-txt2img-black-forest-labs-flux-2-small-decoder",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-zstc-cross-encoder-nli-deberta-base",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-zstc-cross-encoder-nli-distilroberta-base",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-zstc-cross-encoder-nli-minilm2-l6-h768",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "huggingface-zstc-cross-encoder-nli-roberta-base",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "inception-mercury-coder",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "meta-textgeneration-llama-codellama-13b",
+      "family": "coding",
+      "training_supported": true,
+      "cpu_variants": [],
+      "gated": true,
+      "license_hint": null
+    },
+    {
+      "model_id": "meta-textgeneration-llama-codellama-13b-instruct",
+      "family": "coding",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": true,
+      "license_hint": null
+    },
+    {
+      "model_id": "autogluon-forecasting-chronos-bolt-base",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.4xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.2xlarge",
+        "ml.m5.4xlarge",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "autogluon-forecasting-chronos-bolt-small",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.4xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.2xlarge",
+        "ml.m5.4xlarge",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "autogluon-forecasting-chronos-t5-base",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "autogluon-forecasting-chronos-t5-large",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "autogluon-forecasting-chronos-t5-small",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "pytorch-forecasting-chronos-2",
+      "family": "forecasting",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.4xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.2xlarge",
+        "ml.m5.4xlarge",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "mxnet-tcembedding-robertafin-base-uncased",
+      "family": "finance_text",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "mxnet-tcembedding-robertafin-base-wiki-uncased",
+      "family": "finance_text",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "mxnet-tcembedding-robertafin-large-uncased",
+      "family": "finance_text",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "mxnet-tcembedding-robertafin-large-wiki-uncased",
+      "family": "finance_text",
+      "training_supported": false,
+      "cpu_variants": [
+        "ml.c5.2xlarge",
+        "ml.c5.xlarge",
+        "ml.m5.large",
+        "ml.m5.xlarge"
+      ],
+      "gated": false,
+      "license_hint": null
+    },
+    {
+      "model_id": "writer-palmyra-fin-70b-32k",
+      "family": "finance_text",
+      "training_supported": false,
+      "cpu_variants": [],
+      "gated": false,
+      "license_hint": null
+    }
+  ]
+}
