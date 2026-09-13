@@ -17,3 +17,9 @@ test('missing or duplicate root checksum is rejected',()=>{
   assert.throws(()=>context.check('{"gen":1}'));
   assert.throws(()=>context.check('{"checksum":"one","checksum":"two","gen":1}'));
 });
+
+test('factory pane stays visible outside the collapsed engineering controls',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../ai.html'),'utf8');
+  assert.ok(html.indexOf('<section id="factory-pane"') < html.indexOf('<div id="eng"'));
+  assert.ok(html.includes('"/data/ai.json"'));
+});
