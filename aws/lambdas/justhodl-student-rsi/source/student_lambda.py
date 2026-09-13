@@ -35,6 +35,41 @@ def replace_view(store, key, value):
     store.put(store.public, key, value, etag=etag, absent=etag is None, public=True)
 
 
+def public_projection(state):
+    season = state.get("season") or {}
+    model = state.get("model") or {}
+    health = state.get("health") or {}
+    return {
+        "schema_version": "student-state.v1",
+        "projection": "public-factory.v1",
+        "generated_at": state.get("generated_at"),
+        "state_version": int(state.get("state_version") or 0),
+        "gen": int(state.get("gen") or 0),
+        "objective": state.get("objective"),
+        "agents": state.get("agents") or [],
+        "skillbook": state.get("skillbook") or [],
+        "wall": state.get("wall") or {},
+        "season": {
+            "id": season.get("id"),
+            "weeks": season.get("weeks"),
+            "starts_on": season.get("starts_on"),
+            "crisis_definition": season.get("crisis_definition"),
+            "price_sources": season.get("price_sources") or {},
+        },
+        "fit": state.get("fit"),
+        "model": {"status": model.get("status"), "training_runs": 0},
+        "health": {
+            "status": health.get("status") or "live",
+            "last_tick_at": health.get("last_tick_at"),
+            "errors": health.get("errors") or [],
+        },
+        "outer_status": state.get("outer_status") or {},
+        "budget": state.get("budget"),
+        "checksum": "public-projection",
+    }
+
+
+
 def keys(store, prefix, *, limit=1000):
     result, token = [], None
     while True:
@@ -314,6 +349,8 @@ def tick(event, store, lam):
         state['state_version'] += 1
         state['generated_at'] = iso(now)
         sealed = store.commit_state(state, etag)
+        replace_view(store, 'data/ai-factory.json', public_projection(sealed))
+        replace_view(store, 'data/factory-public.json', public_projection(sealed))
         return {'ok': True, 'version': VERSION, 'status': state['health']['status'], 'state_version': sealed['state_version'],
                 'gen': state['gen'], 'checksum': sealed['checksum'], 'errors': state['health']['errors']}
     finally:
