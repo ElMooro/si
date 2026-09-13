@@ -1,0 +1,19 @@
+# ops 5539 -- why did jh-stage-* exit 2? log tails + bucket listing; nothing launched
+
+**Status:** success  
+**Duration:** 1.5s  
+**Finished:** 2026-09-13T23:17:21+00:00  
+
+## Log
+- `23:17:20` ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-230824 status=Failed exit=None reason=AlgorithmError: , exit code: 2 start=2026-09-13 23:09:06.413000+00:00 end=2026-09-13 23:10:25.423000+00:00
+- `23:17:20` ✅ job jh-stage-qwen2-5-coder-7b-ins-20260913-214158 status=Failed exit=None reason=AlgorithmError: , exit code: 2 start=2026-09-13 21:43:03.491000+00:00 end=2026-09-13 21:44:22.630000+00:00
+- `23:17:21` ✅ stream jh-stage-qwen2-5-coder-7b-ins-20260913-230824/algo-1-1789340945: 3 events
+- `23:17:21`   [notice] A new release of pip is available: 25.2 -> 26.0.1
+- `23:17:21`   [notice] To update, run: pip install --upgrade pip
+- `23:17:21`   python3: can't open file '/opt/ml/processing/input/code/stage_base_weights.py': [Errno 2] No such file or directory
+- `23:17:21` ✅ stream jh-stage-qwen2-5-coder-7b-ins-20260913-214158/algo-1-1789335782: 3 events
+- `23:17:21`   [notice] A new release of pip is available: 25.2 -> 26.0.1
+- `23:17:21`   [notice] To update, run: pip install --upgrade pip
+- `23:17:21`   python3: can't open file '/opt/ml/processing/input/code/stage_base_weights.py': [Errno 2] No such file or directory
+- `23:17:21` ✅ bucket objects under factory/models/base/qwen2-5-coder-7b-instruct/: 2 -> [["factory/models/base/qwen2-5-coder-7b-instruct/staging-20260913-214158.json", 495], ["factory/models/base/qwen2-5-coder-7b-instruct/staging-20260913-230824.json", 495]]
+- `23:17:21` ✅ GREEN -- forensics recorded
