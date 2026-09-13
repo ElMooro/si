@@ -1,5 +1,6 @@
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
+import {warehouseOHLC, formingSession} from './warehouse-ohlc.js';
 /**
  * justhodl-data-proxy v2.1.0
  *
@@ -1526,7 +1527,13 @@ export default {
         return new Response(JSON.stringify({ error: "invalid symbol" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const yCacheKey = new Request(`https://yf.cache/${symbol}/${range}/${interval}`, { method: "GET" });
+      try {
+        const warm = await warehouseOHLC(BUCKET_BASE, symbol, {"1d":"day","1wk":"week","1mo":"month"}[interval],1,env.SYMDIR_URL || "");
+        if (warm) return new Response(JSON.stringify({symbol, ...warm, count:warm.bars.length}), {headers:{"Content-Type":"application/json", "X-Source":"warehouse", ...corsHeaders()}});
+      } catch (e) {
+        return new Response(JSON.stringify({error:"warehouse lookup failed"}), {status:502,headers:{"Content-Type":"application/json",...corsHeaders()}});
+      }
+      const yCacheKey = new Request(`https://yf.cache/warehouse-v1/${symbol}/${range}/${interval}`, { method: "GET" });
       const yc = caches.default;
       const yhit = await yc.match(yCacheKey);
       if (yhit) { const b = await yhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
@@ -1690,12 +1697,27 @@ export default {
         return new Response(JSON.stringify({ error: "invalid params" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
+      const tail = url.searchParams.get("tail") === "1";
+      if (tail && (span !== "day" || mult !== 1)) {
+        return new Response(JSON.stringify({error:"forming tail requires span=day and mult=1"}), {status:400,headers:{"Content-Type":"application/json",...corsHeaders()}});
+      }
+      if (tail && !formingSession()) {
+        return new Response(JSON.stringify({ticker,span,mult,bars:[],count:0,source:"no forming session"}), {headers:{"Content-Type":"application/json",...corsHeaders()}});
+      }
+      if (!tail) {
+        try {
+          const warm = await warehouseOHLC(BUCKET_BASE,ticker,span,mult,env.SYMDIR_URL || "");
+          if (warm) return new Response(JSON.stringify({ticker,...warm,count:warm.bars.length}), {headers:{"Content-Type":"application/json","X-Source":"warehouse",...corsHeaders()}});
+        } catch (e) {
+          return new Response(JSON.stringify({error:"warehouse lookup failed"}), {status:502,headers:{"Content-Type":"application/json",...corsHeaders()}});
+        }
+      }
       const polygonKey = env.POLYGON_KEY || ""   /* audit 2026-09-08 INST-06: secret only, no literal fallback */;
       const to = new Date();
-      const from = new Date(to.getTime() - days * 86400000);
+      const from = new Date(to.getTime() - (tail ? 1 : days) * 86400000);
       const fmt = (d) => d.toISOString().slice(0, 10);
       const ttl = span === "minute" ? 60 : span === "hour" ? 120 : 300;
-      const ohlcKey = new Request(`https://ohlc.cache/${ticker}/${mult}${span}/${days}`, { method: "GET" });
+      const ohlcKey = new Request(`https://ohlc.cache/warehouse-v1/${ticker}/${mult}${span}/${tail ? 'tail2' : days}`, { method: "GET" });
       const oc = caches.default;
       let cached = await oc.match(ohlcKey);
       if (cached) {
@@ -1706,10 +1728,10 @@ export default {
         const aggUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/${mult}/${span}/${fmt(from)}/${fmt(to)}?adjusted=true&sort=asc&limit=50000&apiKey=${polygonKey}`;
         const resp = await fetch(aggUrl, { cf: { cacheTtl: ttl, cacheEverything: true } });
         const data = await resp.json();
-        const bars = (data.results || []).map(b => ({
+        const bars = (tail ? (data.results || []).slice(-2) : (data.results || [])).map(b => ({
           time: Math.floor(b.t / 1000), open: b.o, high: b.h, low: b.l, close: b.c, value: b.v,
         }));
-        const out = JSON.stringify({ ticker, span, mult, bars, count: bars.length });
+        const out = JSON.stringify({ ticker, span, mult, bars, count: bars.length, source: tail ? "forming-session tail" : "polygon (warehouse empty)" });
         const finalResp = new Response(out, {
           headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}`, "X-Cache": "MISS", ...corsHeaders() },
         });
