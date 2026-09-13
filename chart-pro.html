@@ -8138,7 +8138,7 @@ class NativeChart {
             if (/^[A-Z][A-Z.\-]{0,9}$/.test(ticker) && tf.span === 'day' && (tf.mult || 1) === 1) {
               try {
                 const lr = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=1&span=day&days=2&tail=1`);
-                const live = jhCleanBars(lr.ok ? ((await lr.json()).bars || []).slice(-2) : []);
+                const live = jhCleanBars(window.jhWarehouseDailyTail(lr.ok ? ((await lr.json()).bars || []) : []));
                 const lastT = bars.length ? bars[bars.length - 1].time : '';
                 const fresh = live.filter(b => b.time && b.time >= lastT && isFinite(b.close)).map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.value || b.volume || 0, value: b.value || b.volume || 0 }));
                 if (fresh.length) { bars = jhCleanBars(bars.concat(fresh)); jhSrc += ' · live ' + fresh[fresh.length - 1].time; }

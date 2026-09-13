@@ -3,6 +3,12 @@
   'use strict';
   if (window.__jhWarehouseRouting) return;
   window.__jhWarehouseRouting = true;
+  window.jhWarehouseDailyTail = function (rows) {
+    return (rows || []).slice(-2).map(b => {
+      const t = typeof b.time === 'number' ? new Date(b.time > 1e12 ? b.time : b.time*1000).toISOString().slice(0,10) : String(b.time).slice(0,10);
+      return {...b,time:t};
+    });
+  };
   const original = window.fetch.bind(window);
   const proxy = 'https://justhodl-data-proxy.raafouis.workers.dev';
   const tvHost = 'nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws';

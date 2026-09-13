@@ -15,7 +15,7 @@ function setup({resolver={},map={},seriesStatus=200,failedMap=false}={}){
     return Response.json({obs:[['2026-09-10',4.95]]},{status:seriesStatus});
   }};
   vm.runInNewContext(source,{window,location:{href:'https://justhodl.ai/chart-pro.html'},URL,Response,Promise,Date});
-  return {fetch:window.fetch,calls};
+  return {fetch:window.fetch,calls,dailyTail:window.jhWarehouseDailyTail};
 }
 test('exact resolver and symbol-map IDs never call TV, including failed series',async()=>{
   for(const spec of [
@@ -45,4 +45,12 @@ test('SKIP and computed IDs remain held without invented points',async()=>{
 test('non-TV requests pass through; diagnostics do not invoke TV',async()=>{
   const s=setup();await s.fetch('/unrelated');await s.fetch(tv+'/?diag=1');
   assert.deepEqual(s.calls,['/unrelated']);
+});
+test('daily tail has at most two bars and matches warehouse date strings',()=>{
+  const s=setup();
+  const rows=s.dailyTail([{time:1},{time:Date.parse('2026-09-10T14:00:00Z')/1000,close:10},{time:Date.parse('2026-09-11T14:00:00Z'),close:11}]);
+  assert.equal(rows.length,2);
+  assert.equal(rows[0].time,'2026-09-10');
+  assert.equal(rows[1].time,'2026-09-11');
+  assert(rows[1].time >= '2026-09-11');
 });
