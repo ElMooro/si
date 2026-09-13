@@ -1,18 +1,22 @@
-executing-against: bea299a719b66747903f8c146647dd0fc79fdd26
-ops 5531 (re-arm of 5528-5530) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
-[21:20:26] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
-[21:20:47] ⚠ ECR unavailable to the runner user (An error occurred (AccessDeniedException) when calling the DescribeRepositories operation: User: arn:aws:iam::857687956942:user/github-actio); mirror workflow deferred -- pin uses the AWS DLC by tag
+executing-against: c2ec7c82753b37a33c3a020c178777403c7c0217
+ops 5532 (re-arm of 5528-5531) -- owned training lane: ECR repo, pinned recipe bundle, base-weight staging job (CPU, priced), no flip
+[21:25:59] ✅ justhodl-ai receipt commit=bea299a source_identical=True sha_match=True run=34783469659
+[21:26:00] ✅ ECR justhodl/factory-train created
 {
   "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-aa4fb80d9f8048c7.tar.gz",
-  "bundle_sha256": "aa4fb80d9f8048c7d9d5e09c06bee6d83c6a626d170677d6534e9680e4388b26",
+  "bundle_key": "factory/training/bundles/train-f8a06bdd7d81c9e2.tar.gz",
+  "bundle_sha256": "f8a06bdd7d81c9e227cd217161201f4f9cf8a71378cd010c5682d6e758b4d567",
   "pin_key": "factory/training/current.json",
   "image": "763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:2.3.0-transformers4.46.1-gpu-py311-cu121-ubuntu20.04"
 }
-[21:20:48] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
-[21:20:48] ✅ pricing cache: 2 cached misses purged (ml.m5.xlarge|training, ml.m5.xlarge|processing)
-[21:20:48] ✗ no live processing price for ml.m5.xlarge -- refusing unpriced spend
-[21:20:48] ✗ RED -- price
+[21:26:00] ✅ recipe bundled + pinned (image by tag until the mirror workflow pins the digest)
+[21:26:00] ✅ pricing cache: 0 cached misses purged ()
+[21:26:00] price probe instanceType=ml.m5.xlarge-Processing failed An error occurred (AccessDeniedException) when calling the GetProducts operation: User: arn:aws:iam:
+[21:26:00] price probe component=Processing failed An error occurred (AccessDeniedException) when calling the GetProducts operation: User: arn:aws:iam:
+[21:26:01] price probe instanceType=ml.m5.xlarge-Training failed An error occurred (AccessDeniedException) when calling the GetProducts operation: User: arn:aws:iam:
+[21:26:01] price probe component=Training failed An error occurred (AccessDeniedException) when calling the GetProducts operation: User: arn:aws:iam:
+[21:26:01] ✗ no live processing price for ml.m5.xlarge -- refusing unpriced spend
+[21:26:01] ✗ RED -- price
 
-→ Report written to aws/ops/reports/latest/ops_5531_own_training_lane_rearm3.md
-❌ OPS-FAIL: aws/ops/pending/ops_5531_own_training_lane_rearm3.py
+→ Report written to aws/ops/reports/latest/ops_5532_own_training_lane_rearm4.md
+❌ OPS-FAIL: aws/ops/pending/ops_5532_own_training_lane_rearm4.py
