@@ -75,6 +75,65 @@ def finviz_counts(doc):
             "previous_price_field": "by_ticker.*.prev_close", "as_of": doc.get("generated_at")}
 
 
+def merge_sma(before, universe, last_modified, generated_at=None):
+    """Merge breadth from finite, signed Finviz SMA percentage distances.
+
+    A finite percentage is sufficient: >0 is above, while zero is in the
+    denominator but not the numerator. Prices and SMA levels are not required.
+    The two windows have independent 80% gates and no universe cap or filter.
+    """
+    if before.get("schema_version") != 1 or not isinstance(before.get("fields"), dict):
+        raise ValueError("Existing internals must have schema_version 1")
+    rows = universe.get("by_ticker") if isinstance(universe, dict) else None
+    if not isinstance(rows, dict) or not rows or universe.get("n_tickers") != len(rows):
+        raise ValueError("Full declared Finviz universe required for SMA coverage")
+    if any(universe.get(k) for k in ("capped", "truncated", "data_unavailable", "stale")):
+        raise ValueError("Finviz SMA source flagged capped, truncated, stale or unavailable")
+    out = copy.deepcopy(before)
+    metadata = {
+        "source": "finviz-universe", "key": "data/finviz-universe.json",
+        "as_of": universe.get("generated_at"), "last_modified": last_modified,
+        "generated_at": generated_at or datetime.now(timezone.utc).isoformat(),
+        "minimum_coverage": 0.8, "unit": "fraction", "n_total": len(rows),
+        "denominator": "all rows with finite sma50_pct or sma200_pct, respectively",
+        "basis": "uncapped full universe; signed SMA percentage > 0; zero is not above",
+        "windows": {},
+    }
+    for window in (50, 200):
+        source_field = f"sma{window}_pct"
+        usable = above = 0
+        for row in rows.values():
+            if not isinstance(row, dict):
+                continue
+            value = number(row.get(source_field))
+            if value is None:
+                continue
+            usable += 1
+            above += value > 0
+        total = len(rows)
+        eligible = bool(usable and usable * 5 >= total * 4)
+        counts = {f"n_above_{window}": above, f"n_sma{window}": usable}
+        out["fields"].update(counts)
+        field = f"pct_above_{window}"
+        result = {
+            **counts, "n_total": total, "n_missing": total - usable,
+            "coverage": usable / total, "source_field": "by_ticker.*." + source_field,
+            "status": "LIVE" if eligible else "SKIPPED",
+        }
+        if eligible:
+            out["fields"][field] = above / usable
+        else:
+            if field in before["fields"]:
+                raise ValueError("SMA refresh skipped; preserving existing publication: " + field)
+            result["skip_reason"] = (
+                f"Only {usable}/{total} rows ({usable/total:.2%}) have finite "
+                f"{source_field}; minimum 80%."
+            )
+        metadata["windows"][str(window)] = result
+    out["sma_breadth"] = metadata
+    return out
+
+
 def read(s3, key, optional=False):
     try:
         obj = s3.get_object(Bucket=BUCKET, Key=key)
@@ -162,6 +221,7 @@ def build(s3):
     out["warehouse"] = {"mode": "S3 only; no vendor HTTP fallback", "fred": provenance,
                         "fred_http_requests": 0,
                         "fresh_fred_legs": sum(x["fresh_36h"] for x in provenance.values())}
+    out = merge_sma(out, universe, universe_obj["LastModified"].isoformat(), stamp.isoformat())
     return out, obj["ETag"]
 
 
@@ -174,6 +234,7 @@ def run(s3):
     if live != out:
         raise ValueError("Internals readback differs")
     receipt = {"ok": True, "key": KEY, "last_modified": obj["LastModified"].isoformat(),
-               "fields": live["fields"], "warehouse": live["warehouse"]}
+               "fields": live["fields"], "warehouse": live["warehouse"],
+               "sma_breadth": live["sma_breadth"]}
     print(json.dumps({"internals_receipt": receipt}))
     return receipt
