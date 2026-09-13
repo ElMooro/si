@@ -508,7 +508,7 @@
   }
   async function paint(d){
     if(!d||!d.length){ document.getElementById("quote").textContent="No bars for "+active; return; }
-    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.lastSource=lastSource;}catch(e){}
+    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;}catch(e){}
     var p=pal();
     chart.applyOptions({
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } },

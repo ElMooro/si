@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off">
-<head><style>#tape{display:none!important}</style>
+<head><style id=jh-studio-css>
+#watch{width:28px;min-width:28px;overflow:hidden;transition:width .18s ease;border-left:1px solid var(--bd,#2a2e39)}
+#watch:hover,#watch.open,#watch:focus-within{width:320px;min-width:280px;overflow:auto}
+#quote .jh-dump{display:none}
+</style><style>#tape{display:none!important}</style>
 <meta charset="utf-8">
 <!-- jh-reskin-skip: tradingview-native light terminal; Chart Pro is the safety net -->
 <title>Chart · JustHodl.AI</title>
@@ -354,6 +358,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
+<script src="/jh-chart-studio.js?v=1"></script>
 <script src="/jh-chart-engine.js?v=v12.2"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
