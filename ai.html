@@ -108,7 +108,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 .spend{display:flex;gap:3px;align-items:flex-end;height:60px;margin-top:8px}
 .spend i{flex:1;background:var(--violet);opacity:.75;border-radius:2px 2px 0 0;min-height:2px}
 </style>
-<link rel="stylesheet" href="/factory-desk.css?v=1">
+<link rel="stylesheet" href="/factory-desk.css?v=3">
 <script src="/factory-desk.js?v=2" defer></script>
 </head>
 <body>
@@ -172,7 +172,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
 
 <section id="factory-pane" aria-label="JustHodl Compound Factory">
   <div class="factory-kicker">COMPOUND FACTORY · GEAR A</div>
-  <div class="factory-heading"><h2>Student factory</h2><button class="btn" id="factory-refresh">Refresh factory</button></div>
+  <h2 id="factory-title">Student factory</h2><button class="btn" id="factory-refresh">Refresh factory</button>
   <p id="factory-objective" class="factory-muted">Improve useful, independently verified work within owner-set limits.</p>
   <p id="factory-status" role="status" class="factory-muted">Sign in and connect to load verified factory state.</p>
   <div class="factory-stats">
@@ -184,7 +184,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     <div class="factory-stat"><small>Generative model</small><strong id="factory-model">Checking</strong></div>
   </div>
   <p id="factory-exam-note" class="factory-muted"></p>
-  <div id="factory-agents"><article class="factory-agent"><b>Student</b><span>Sign in for live status</span><p>Select bounded experiments and retain verified skills</p></article><article class="factory-agent"><b>Coder</b><span>Sign in for live status</span><p>Generate restricted repair proposals</p></article><article class="factory-agent"><b>Researcher</b><span>Sign in for live status</span><p>Validate external sources and provenance</p></article><article class="factory-agent"><b>Investor</b><span>Sign in for live status</span><p>Weekly research forecasts</p></article><article class="factory-agent"><b>Deployer</b><span>Queue only</span><p>Owner releases reviewed artifacts</p></article><article class="factory-agent"><b>Livermore</b><span>Principle card</span><p>Trend discipline; do not average losers</p></article><article class="factory-agent"><b>Wyckoff</b><span>Principle card</span><p>Test market phase hypotheses</p></article><article class="factory-agent"><b>Soros</b><span>Principle card</span><p>Test flow, expectation and price feedback</p></article><article class="factory-agent"><b>Druckenmiller</b><span>Principle card</span><p>Preserve capital; require evidence for conviction</p></article></div>
+  <div id="factory-agents" data-jh-chrome><article class="factory-agent"><b>Student</b><span>Sign in for live status</span><p>Select bounded experiments and retain verified skills</p></article><article class="factory-agent"><b>Coder</b><span>Sign in for live status</span><p>Generate restricted repair proposals</p></article><article class="factory-agent"><b>Researcher</b><span>Sign in for live status</span><p>Validate external sources and provenance</p></article><article class="factory-agent"><b>Investor</b><span>Sign in for live status</span><p>Weekly research forecasts</p></article><article class="factory-agent"><b>Deployer</b><span>Queue only</span><p>Owner releases reviewed artifacts</p></article><article class="factory-agent"><b>Livermore</b><span>Principle card</span><p>Trend discipline; do not average losers</p></article><article class="factory-agent"><b>Wyckoff</b><span>Principle card</span><p>Test market phase hypotheses</p></article><article class="factory-agent"><b>Soros</b><span>Principle card</span><p>Test flow, expectation and price feedback</p></article><article class="factory-agent"><b>Druckenmiller</b><span>Principle card</span><p>Preserve capital; require evidence for conviction</p></article></div>
   <div class="grid2">
     <div class="wr-panel"><h3>Verified skillbook</h3><ul id="factory-skillbook"><li>Awaiting first independent result.</li></ul><p class="factory-muted">The deployer queues exact artifacts for owner release. Weight training is deferred.</p></div>
     <div class="wr-panel"><h3>Health &amp; limits</h3><p id="factory-errors" class="factory-muted"></p><p id="factory-integrity" class="factory-muted"></p><p id="factory-budget" class="factory-muted"></p></div>

@@ -28,3 +28,5 @@
 #factory-pane #factory-admission{white-space:pre-wrap;overflow-wrap:anywhere;min-height:22px}
 @media(max-width:760px){#factory-pane .factory-stats{grid-template-columns:repeat(3,minmax(0,1fr))}#factory-pane #factory-agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:460px){#factory-pane #factory-agents{grid-template-columns:1fr}#factory-pane .factory-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+#factory-pane > #factory-title{display:inline-block;margin:0 0 10px}#factory-refresh{float:right;margin-top:2px}

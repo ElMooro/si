@@ -32,6 +32,7 @@ def main(rep):
     sch = boto3.client('scheduler', region_name=REGION, config=CFG)
     def read(bucket, key):
         return json.loads(s3.get_object(Bucket=bucket, Key=key)['Body'].read())
+    brain_service_token = None
     result = {'schema_version':'factory-live-smoke.v1', 'verified_at':datetime.now(timezone.utc).isoformat(), 'functions':{}, 'checks':{}}
     for name in ('justhodl-ai','justhodl-factory-grader','justhodl-student-rsi'):
         # Ops and function deploys share the same push. Wait for this checkout's
@@ -67,6 +68,8 @@ def main(rep):
                 raise RuntimeError('shared_source_not_this_release:' + module)
         if name != 'justhodl-ai' and config['Role'] != 'arn:aws:iam::857687956942:role/' + name + '-role':
             raise RuntimeError('incorrect_factory_execution_role')
+        if name == 'justhodl-ai':
+            brain_service_token = config.get('Environment',{}).get('Variables',{}).get('JH_SERVICE_TOKEN')
         result['functions'][name] = {'arn':config['FunctionArn'],'role':config['Role'],'code_sha256':config['CodeSha256'],
             'source_commit':receipt['commit'],'memory':config['MemorySize'],'timeout':config['Timeout'],'package_parity':True}
     student = result['functions']['justhodl-student-rsi']
@@ -126,15 +129,30 @@ def main(rep):
         if not lines:raise RuntimeError('wall_evidence_missing')
         for line in lines:json.loads(line)
         result['checks'][key]={'lines':len(lines),'sha256':hashlib.sha256(b'\n'.join(lines)).hexdigest()}
-    # Verify the public unauthenticated boundary. No credentials or private data are transmitted.
-    request=urllib.request.Request('https://justhodl.ai/api/v1/factory/traces',data=b'{}',method='POST',headers={'Content-Type':'application/json'})
-    try:
-        with urllib.request.urlopen(request,timeout=20) as response:
-            status=response.status
-    except urllib.error.HTTPError as exc:
-        status=exc.code
-    if status!=401:raise RuntimeError('public_admission_boundary:'+str(status))
-    result['checks']['unauthenticated_trace_status']=status
+    # The runner's website probe was screened by Cloudflare (403 / 1010).
+    # Do not evade that screen or report it as an application authentication result.
+    # Check the actual HTTP handler through the already authorized AWS runner.
+    def http_handler(headers):
+        event = {'version':'2.0','rawPath':'/factory/view','rawQueryString':'kind=state',
+            'requestContext':{'http':{'method':'GET','path':'/factory/view'}},
+            'queryStringParameters':{'kind':'state'},'headers':headers}
+        response=lam.invoke(FunctionName='justhodl-ai',InvocationType='RequestResponse',Payload=json.dumps(event).encode())
+        payload=json.loads(response['Payload'].read())
+        if response.get('FunctionError'):raise RuntimeError('gateway_handler_failed')
+        return payload
+    denied=http_handler({})
+    if denied.get('statusCode')!=401:raise RuntimeError('gateway_missing_service_identity_not_rejected')
+    if not brain_service_token:raise RuntimeError('existing_gateway_service_identity_unavailable')
+    owner=http_handler({'x-jh-service-token':brain_service_token,'x-jh-factory-role':'owner','x-jh-factory-uid':'factory-owner-verification'})
+    if owner.get('statusCode')!=200:raise RuntimeError('owner_factory_view_unavailable')
+    owner_view=json.loads(owner['body'])
+    verify_state(json.loads(owner_view['raw']))
+    guest=http_handler({'x-jh-service-token':brain_service_token,'x-jh-factory-role':'user','x-jh-factory-uid':'uninvited-verification-probe'})
+    if guest.get('statusCode')!=403:raise RuntimeError('uninvited_factory_view_not_rejected')
+    result['checks']['gateway']={'missing_service_identity':401,'owner_view':200,'uninvited_view':403,
+        'transport':'IAM invocation of the HTTP handler; existing service identity kept private',
+        'website_probe':'Cloudflare 403 / 1010 from runner; no fingerprint or firewall changes',
+        'signed_in_browser_check':'not_performed'}
     # Maintain the owner's requested S3 site copies as well as the Pages release.
     # Archive the previous object before a conditional replacement; never touch data/ai.json.
     mirrored = []

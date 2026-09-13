@@ -23,3 +23,10 @@ test('factory pane stays visible outside the collapsed engineering controls',()=
   assert.ok(html.indexOf('<section id="factory-pane"') < html.indexOf('<div id="eng"'));
   assert.ok(html.includes('"/data/ai.json"'));
 });
+
+test('factory badges cannot become grid items or duplicate nested heading badges',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../ai.html'),'utf8');
+  assert.ok(html.includes('<div id="factory-agents" data-jh-chrome>'));
+  assert.ok(html.includes('<h2 id="factory-title">Student factory</h2>'));
+  assert.ok(!html.includes('<div class="factory-heading"><h2>'));
+});
