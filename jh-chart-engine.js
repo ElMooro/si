@@ -769,10 +769,16 @@
       if(!r.ok) return null;
       return r.json();
     }
-    try{
-      var j=await tryUrl("/api/trades?symbol="+encodeURIComponent(tkr)+"&limit=500");
-      if(j && j.trades && j.trades.length) pack=j;
-    }catch(e){}
+    var tradeUrls=["/api/trades?symbol="+encodeURIComponent(tkr)+"&limit=500",
+      PROXY+"/aggTrades?symbol="+encodeURIComponent(tkr)+"&limit=500"];
+    var ui;
+    for(ui=0;ui<tradeUrls.length && !pack;ui++){
+      try{
+        var j=await tryUrl(tradeUrls[ui]);
+        if(j && j.trades && j.trades.length) pack=j;
+        else if(Array.isArray(j) && j.length) pack=null;
+      }catch(e){}
+    }
     if(!pack && /USDT$|BUSD$|USDC$/.test(tkr)){
       var hosts=["https://api.binance.com","https://data-api.binance.vision"];
       var hi;
