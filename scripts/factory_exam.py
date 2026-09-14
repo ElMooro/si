@@ -53,19 +53,44 @@ def cmd_tasks(args):
 FENCE = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.S)
 
 
+def truncate_body(code):
+    """HumanEval post-processing: keep the function under test only. Cut at the first column-0 statement after the
+    body -- a second def, a class, `if __name__`, prints, asserts, self-tests, prose. A restated function keeps its
+    imports/decorators/def line and body, then stops the same way."""
+    out, started_def = [], False
+    for line in code.split("\n"):
+        stripped = line.strip()
+        top_level = bool(stripped) and not line.startswith((" ", "\t"))
+        if not top_level:
+            out.append(line); continue
+        if stripped.startswith((")", "]", "}")):                      # closing bracket of a multi-line literal
+            out.append(line); continue
+        header_like = stripped.startswith(("def ", "async def ", "from ", "import ", "@"))
+        if not out and header_like:                                   # restated function / leading imports
+            out.append(line); started_def = stripped.startswith(("def ", "async def ", "@")); continue
+        if not out:
+            out.append(line); continue                                # an unindented body start (indented by the joiner)
+        if not started_def and header_like and all(not o.strip() or o.strip().startswith(("from ", "import ", "@")) for o in out):
+            out.append(line); started_def = stripped.startswith(("def ", "async def ", "@")); continue
+        break                                                         # any other top-level statement ends the function
+    return "\n".join(out)
+
+
 def join_solution(prompt, completion, entry_point):
     """HumanEval convention is prompt + body continuation; an instruct model may instead answer in prose with a fenced
     block, or restate the whole function. Take, in order: (1) prompt + completion if it compiles; (2) prompt + fenced/plain
     code indented as a body; (3) the fenced/plain code alone when it defines the entry point (plus the prompt's imports).
     Nothing here changes what the model wrote; it only chooses which byte range is the program."""
     text = completion.replace("\r\n", "\n")
-    code = (FENCE.search(text).group(1) if FENCE.search(text) else text).rstrip() + "\n"
+    code = (FENCE.search(text).group(1) if FENCE.search(text) else text.split("```")[0])
+    code = truncate_body(code).rstrip() + "\n"
     imports = "\n".join(l for l in prompt.splitlines() if l.startswith(("import ", "from "))) + "\n"
     defines = re.search(r"^\s*def\s+%s\s*\(" % re.escape(entry_point), code, flags=re.M) is not None
     candidates = []
     if not defines:
-        candidates.append(prompt + text)
-        candidates.append(prompt + textwrap.indent(code, "    ") if not code.startswith((" ", "\t")) else prompt + code)
+        candidates.append(prompt + code)                                          # body continuation (already truncated)
+        if not code.startswith((" ", "\t")):
+            candidates.append(prompt + textwrap.indent(code, "    "))            # unindented body
     else:
         candidates.append(imports + code)
     candidates.append(prompt + code)
