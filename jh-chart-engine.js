@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.22 — full history loaded; readable candles; polygon+yahoo merge. */
+/* JustHodl Chart engine v12.23 — D/W/M from daily tape then resample; no week+day mix. */
 (function () {
-  if (window.__jhChartEngineV1222) return;
+  if (window.__jhChartEngineV1223) return;
+  window.__jhChartEngineV1223 = true;
   window.__jhChartEngineV1222 = true;
   window.__jhChartEngineV1221 = true;
   window.__jhChartEngineV1220 = true;
@@ -1091,7 +1092,7 @@
         if(typeof tm==="string") tm=Math.floor(Date.parse(tm.length<=10?tm+"T00:00:00Z":tm)/1000);
         if(tm>1e12) tm=Math.floor(tm/1000);
         var c3=+c2; if(!isFinite(c3)) continue;
-        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(function(){var cand=b.volume!=null?b.volume:(b.v!=null?b.v:(b.vol!=null?b.vol:(b.Volume!=null?b.Volume:b.value)));var n=+cand;if(!isFinite(n)||n<0)return 0;if(b.volume==null&&b.v==null&&b.vol==null&&b.Volume==null&&n>0&&n<c3*8)return 0;return n;})()});
+        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(function(){var hasVol=b.volume!=null||b.v!=null||b.vol!=null||b.Volume!=null;var cand=hasVol?(b.volume!=null?b.volume:(b.v!=null?b.v:(b.vol!=null?b.vol:b.Volume))):b.value;var n=+cand;if(!isFinite(n)||n<0)return 0;if(!hasVol){if(Math.abs(n-c3)<1e-6||Math.abs(n-(+b.open||c3))<1e-6||Math.abs(n-(+b.high||c3))<1e-6||Math.abs(n-(+b.low||c3))<1e-6)return 0;}return n;})()});
       }
     }
     if(!out.length && j.chart && j.chart.result && j.chart.result[0]){
@@ -1183,13 +1184,10 @@
     if(id==="2h") return {span:"hour",mult:2,days:730};
     if(id==="4h") return {span:"hour",mult:4,days:1500};
     if(id==="12h") return {span:"hour",mult:12,days:2000};
-    if(id==="2d") return {span:"day",mult:2,days:12000};
-    if(id==="3d") return {span:"day",mult:3,days:12000};
-    if(id==="5d") return {span:"day",mult:5,days:12000};
-    if(id==="1w") return {span:"week",mult:1,days:12000};
-    if(id==="2w") return {span:"week",mult:2,days:12000};
-    if(id==="1M") return {span:"month",mult:1,days:12000};
-    if(id==="3M") return {span:"month",mult:3,days:12000};
+    /* Always daily for D+, then resampleToTf. Native week/month + yahoo 1d
+       merge produced BMNR W = 549 frankenstein bars (screenshot v12.22). */
+    if(id==="2d"||id==="3d"||id==="5d"||id==="1w"||id==="2w"||id==="1M"||id==="3M")
+      return {span:"day",mult:1,days:12000};
     return {span:"day",mult:1,days:12000};
   }
   async function klines(sym, tfId){
@@ -1199,14 +1197,15 @@
       lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
     var ws=warehouseSpec(tfId);
+    var yInt=(ws.span==="day")?"1d":sp[2], yRange=(ws.span==="day")?"max":sp[3];
     var urls=[
       PROXY+"/ohlc?ticker="+encodeURIComponent(t)+"&span="+ws.span+"&mult="+ws.mult+"&days="+ws.days,
-      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
-      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+sp[3]+"&interval="+sp[2],
+      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+yRange+"&interval="+yInt,
+      PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+yRange+"&interval="+yInt,
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json",
       "/api/klines?symbol="+encodeURIComponent(t)+"&interval="+encodeURIComponent(sp[0])+"&limit=1000",
-      "/api/yahoo?ticker="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
+      "/api/yahoo?ticker="+encodeURIComponent(ys)+"&range="+yRange+"&interval="+yInt,
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json"
     ];
@@ -1220,24 +1219,24 @@
       try{
         var raw=await fetchJson(urls[i]); var d=toBars(raw);
         if(d.length>=8){
-          d=resampleToTf(d, tfId);
-          if(d.length<2) continue;
-          if(looksCloseOnly(d)) d=fillCandleBodies(d);
           lastSource=(raw&& (raw.warehouse_key||raw.source||raw.provider)) || (urls[i].indexOf("/series")>=0?"fred": urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           var isSeries=urls[i].indexOf("/series")>=0 || rs.engine==="fred";
           if(!raw.warehouse_key && !isSeries && scored<d.length*0.2 && i<urls.length-1) continue;
-          if(ws.span==="day"||ws.span==="week"||ws.span==="month"){
+          if(ws.span==="day"){
             d=asDaily(d);
             d=cleanWildTicks(d);
             if(!raw.warehouse_key && String(raw.source||lastSource).indexOf("polygon")>=0){
               try{
                 var yraw=await fetchJson(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range=max&interval=1d");
-                var yd=asDaily(toBars(yraw));
+                var yd=asDaily(cleanWildTicks(toBars(yraw)));
                 if(yd.length>=8){ d=mergeByDay(d, yd); lastSource="polygon+yahoo"; }
               }catch(eY){}
             }
           }
+          d=resampleToTf(d, tfId);
+          if(d.length<2) continue;
+          if(looksCloseOnly(d)) d=fillCandleBodies(d);
           if(d.length<8) continue;
           barCache[key]={d:d, at:now, src:lastSource};
           return d;
@@ -1641,7 +1640,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.22"; if(st) st.textContent="v12.22 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.23"; if(st) st.textContent="v12.23 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
