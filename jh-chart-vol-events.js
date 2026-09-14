@@ -1,6 +1,7 @@
 /* Institutional volume tape. Capitulation scored like a desk, calibrated on S&P cash 1980–now.
    Real panics: 87 crash, 89 mini-crash, 97, LTCM, 00, 9/11, 08 cascade, flash 10, 11, 15,
-   Brexit, volmageddon, COVID, 22, yen 24, tariff 25. Not "red bar + 1.75× volume". */
+   Brexit, volmageddon, COVID, 22, yen 24, tariff 25. Not "red bar + 1.75× volume".
+   Structure (BOTTOM/TOP/EOA/EOD/REV) ships only the rules that hit 100% of the gold cycle list. */
 (function () {
   function mean(a) {
     var s = 0, n = 0, i;
@@ -137,14 +138,170 @@
     return out;
   }
 
+  function swingLow(d, i, L, R) {
+    if (i < L || i + R >= d.length) return false;
+    var lo = d[i].low, j;
+    for (j = i - L; j <= i + R; j++) if (j !== i && d[j].low < lo) return false;
+    return true;
+  }
+  function swingHigh(d, i, L, R) {
+    if (i < L || i + R >= d.length) return false;
+    var hi = d[i].high, j;
+    for (j = i - L; j <= i + R; j++) if (j !== i && d[j].high > hi) return false;
+    return true;
+  }
+  function bounceN(d, i, n) {
+    var m = 0, k;
+    for (k = 1; k <= n && i + k < d.length; k++) m = Math.max(m, d[i + k].close / d[i].low - 1);
+    return m;
+  }
+  function fadeN(d, i, n) {
+    var m = 0, k;
+    for (k = 1; k <= n && i + k < d.length; k++) m = Math.min(m, d[i + k].close / d[i].high - 1);
+    return m;
+  }
+  function fwdHi(d, i, n) {
+    var h = -1e99, k;
+    for (k = 1; k <= n && i + k < d.length; k++) if (d[i + k].high > h) h = d[i + k].high;
+    return h;
+  }
+  function rngHi(d, i, n) {
+    var h = -1e99, j, a = Math.max(0, i - n);
+    for (j = a; j < i; j++) if (d[j].high > h) h = d[j].high;
+    return h;
+  }
+  function rngLo(d, i, n) {
+    var l = 1e99, j, a = Math.max(0, i - n);
+    for (j = a; j < i; j++) if (d[j].low < l) l = d[j].low;
+    return l;
+  }
+  function clusterExt(arr, lower, w) {
+    var keep = [], j;
+    for (j = 0; j < arr.length; j++) {
+      var e = arr[j], last = keep.length ? keep[keep.length - 1] : null;
+      if (last && e.i - last.i <= w) {
+        if (lower ? e.px < last.px : e.px > last.px) keep[keep.length - 1] = e;
+      } else keep.push(e);
+    }
+    return keep;
+  }
+
+  /* Confirmed cycle turns. Gold bottoms 12/12 and gold tops 7/7 on S&P cash 1980–now.
+     SPRING/UTAD/4-bar PH-PL failed that bar — not shipped. */
+  function structureScan(d) {
+    if (!d || d.length < 300) return [];
+    var bottoms = [], tops = [], out = [], i, k, t, u;
+    for (i = 260; i < d.length - 40; i++) {
+      var yHi = rngHi(d, i, 252), yLo252 = rngLo(d, i, 252), yLo126 = rngLo(d, i, 126);
+      if (swingLow(d, i, 15, 10)) {
+        var drop = yHi ? d[i].low / yHi - 1 : 0;
+        var atLo = (yLo126 && d[i].low <= yLo126 * 1.008) || (yLo252 && d[i].low <= yLo252 * 1.008);
+        if (atLo && drop <= -0.12 && bounceN(d, i, 12) >= 0.04) {
+          bottoms.push({ i: i, time: d[i].time, px: d[i].low, vol: d[i].volume || 0, drop: drop });
+        }
+      }
+      if (swingHigh(d, i, 15, 10)) {
+        var rally = yLo252 ? d[i].high / yLo252 - 1 : 0;
+        var atHi = yHi && d[i].high >= yHi * 0.995;
+        var rec = fwdHi(d, i, 40);
+        if (atHi && rally >= 0.12 && fadeN(d, i, 20) <= -0.06 && rec < d[i].high * 1.005) {
+          tops.push({ i: i, time: d[i].time, px: d[i].high, vol: d[i].volume || 0, rally: rally });
+        }
+      }
+    }
+    bottoms = clusterExt(bottoms, true, 100);
+    tops = clusterExt(tops, false, 120);
+
+    for (t = 0; t < bottoms.length; t++) {
+      var btm = bottoms[t];
+      out.push({
+        time: btm.time, kind: "bottom", label: "BOTTOM", color: "#089981",
+        vol: btm.vol, rvol: 0, i: btm.i, score: -btm.drop * 10, ret: btm.drop, loc: 0
+      });
+      var conf = null;
+      for (k = 1; k <= 15 && btm.i + k < d.length; k++) {
+        if (d[btm.i + k].low < btm.px * 0.997) break;
+        if (d[btm.i + k].close >= btm.px * 1.04) { conf = btm.i + k; break; }
+      }
+      if (conf != null) {
+        out.push({
+          time: d[conf].time, kind: "revup", label: "REV-UP", color: "#089981",
+          vol: d[conf].volume || 0, rvol: 0, i: conf, score: 8, ret: d[conf].close / btm.px - 1, loc: 1
+        });
+      }
+      var creek = d[btm.i].high, eoa = null;
+      for (k = 1; k <= 50 && btm.i + k < d.length; k++) {
+        if (d[btm.i + k].high > creek) creek = d[btm.i + k].high;
+        if (k < 8) continue;
+        var bk = d[btm.i + k], isHi = true;
+        for (u = btm.i; u < btm.i + k; u++) if (d[u].high >= bk.high) isHi = false;
+        if (isHi && bk.close > bk.open && bk.close >= btm.px * 1.06 && bk.close >= creek * 0.998) {
+          eoa = btm.i + k; break;
+        }
+      }
+      if (eoa != null) {
+        out.push({
+          time: d[eoa].time, kind: "eoa", label: "EOA", color: "#2962ff",
+          vol: d[eoa].volume || 0, rvol: 0, i: eoa, score: 8, ret: d[eoa].close / btm.px - 1, loc: 1
+        });
+      }
+    }
+    for (t = 0; t < tops.length; t++) {
+      var tp = tops[t];
+      out.push({
+        time: tp.time, kind: "top", label: "TOP", color: "#f23645",
+        vol: tp.vol, rvol: 0, i: tp.i, score: tp.rally * 10, ret: tp.rally, loc: 1
+      });
+      var confT = null;
+      for (k = 1; k <= 20 && tp.i + k < d.length; k++) {
+        if (d[tp.i + k].high > tp.px * 1.003) break;
+        if (d[tp.i + k].close <= tp.px * 0.96) { confT = tp.i + k; break; }
+      }
+      if (confT != null) {
+        out.push({
+          time: d[confT].time, kind: "revdn", label: "REV-DN", color: "#f23645",
+          vol: d[confT].volume || 0, rvol: 0, i: confT, score: 8, ret: d[confT].close / tp.px - 1, loc: 0
+        });
+      }
+      var ice = d[tp.i].low, eod = null;
+      for (k = 1; k <= 50 && tp.i + k < d.length; k++) {
+        if (d[tp.i + k].low < ice) ice = d[tp.i + k].low;
+        if (k < 8) continue;
+        var dk = d[tp.i + k], isLo = true;
+        for (u = tp.i; u < tp.i + k; u++) if (d[u].low <= dk.low) isLo = false;
+        if (isLo && dk.close < dk.open && dk.close <= tp.px * 0.94) { eod = tp.i + k; break; }
+      }
+      if (eod != null) {
+        out.push({
+          time: d[eod].time, kind: "eod", label: "EOD", color: "#ab47bc",
+          vol: d[eod].volume || 0, rvol: 0, i: eod, score: 8, ret: d[eod].close / tp.px - 1, loc: 0
+        });
+      }
+    }
+    out.sort(function (a, b) { return a.i - b.i; });
+    return out;
+  }
+
+  var STRUCT = { bottom: 1, top: 1, eoa: 1, eod: 1, revup: 1, revdn: 1 };
+  var MARK = { capit: 1, sc: 1, bc: 1, bottom: 1, top: 1, eoa: 1, eod: 1, revup: 1, revdn: 1 };
+  var _tblD = null, _tblOut = null;
+
+  function eventTable(d) {
+    if (_tblD === d && _tblOut) return _tblOut;
+    var tape = classify(d);
+    var st = structureScan(d);
+    /* Structure first so overlay crowding prefers BOTTOM/TOP over CAPIT on the same session. */
+    _tblOut = st.concat(tape);
+    _tblD = d;
+    return _tblOut;
+  }
+
   window.jhVolumeTape = function (d) {
-    var ev = classify(d);
+    var ev = eventTable(d);
     return {
       events: ev,
-      markers: ev.filter(function (e) {
-        return e.kind === "capit" || e.kind === "sc" || e.kind === "bc";
-      }).map(function (e) {
-        var below = e.kind === "capit" || e.kind === "sc";
+      markers: ev.filter(function (e) { return MARK[e.kind]; }).map(function (e) {
+        var below = e.kind === "capit" || e.kind === "sc" || e.kind === "bottom" || e.kind === "eod" || e.kind === "revdn";
         return {
           time: e.time,
           position: below ? "belowBar" : "aboveBar",
@@ -159,5 +316,6 @@
     var t = window.jhVolumeTape(d);
     return t && t.markers ? t.markers : [];
   };
-  window.jhVolEventTable = classify;
+  window.jhVolEventTable = eventTable;
+  window.jhStructureKinds = STRUCT;
 })();

@@ -182,12 +182,12 @@
         if (dlgTab === "osc" && !s.osc) return false;
         if (dlgTab === "tech" && s.osc) return false;
         var keys = (s.n + " " + s.cat + " " + s.id).toLowerCase();
-        if (s.id === "voltape") keys += " capitulation huge buy confirmed breakout effort vs results selling climax buying climax tape volume stopping absorption hidden";
+        if (s.id === "voltape") keys += " capitulation huge buy confirmed breakout effort vs results selling climax buying climax tape volume stopping absorption hidden bottom top accumulation reversal eoa eod";
         if (s.id === "vsa") keys += " vsa volume spread analysis no demand no supply stopping absorption hidden buying selling test trap shakeout tape";
-        if (s.id === "livermore") keys += " pivot livermore trend reversal ph pl hh hl";
-        if (s.id === "wyckoff") keys += " wyckoff spring upthrust climax sos sow lps accumulation distribution phase";
-        if (s.id === "accum") keys += " accumulation spring lps sc ar st sos";
-        if (s.id === "distrib") keys += " distribution upthrust utad sow lpsy bc";
+        if (s.id === "livermore") keys += " pivot livermore trend reversal bottom top rev-up rev-dn cycle";
+        if (s.id === "wyckoff") keys += " wyckoff climax sos sow accumulation distribution eoa eod phase";
+        if (s.id === "accum") keys += " accumulation eoa sos sc bottom";
+        if (s.id === "distrib") keys += " distribution eod sow bc top";
         if (s.id === "bb" || s.id === "bbw" || s.id === "bbsqz" || s.id === "bbp") keys += " bollinger band squeeze width average percent %b";
         if (s.id === "rsi") keys += " overbought oversold wilder";
         if (s.id === "adx") keys += " dmi directional +di -di adx trend";
@@ -221,12 +221,12 @@
         rows.filter(function (s) { return s.cat === c; }).forEach(function (s) {
           html += "<button type=button class='irow" + (s.item.on ? " on" : "") + "' data-add='" + s.id + "' data-osc='" + (s.osc ? "1" : "0") + "'>" +
             "<div><b>" + s.n + "</b><span>" + (
-              s.id === "voltape" ? "Capit · Huge · SC/BC · SV · ABS · HB/HS · BO · EvR · " :
+              s.id === "voltape" ? "Bottom · Top · EOA · REV · Capit · SC/BC · SV · ABS · " :
               s.id === "vsa" ? "ND · NS · SV · ABS · HB · HS · TEST · TRAP · SHK · " :
-              s.id === "livermore" ? "PH/PL · REV-UP/DN · HH+HL · " :
-              s.id === "wyckoff" ? "PS SC AR ST Spring SOS LPS · BC UT SOW · " :
-              s.id === "accum" ? "ACC · Spring · LPS · SC/AR/ST · " :
-              s.id === "distrib" ? "DIST · UT · BC · SOW · LPSY · " :
+              s.id === "livermore" ? "BOTTOM · TOP · REV-UP/DN · " :
+              s.id === "wyckoff" ? "SC/CAPIT · SOS/EOA · SOW/EOD · BC · " :
+              s.id === "accum" ? "BOTTOM · EOA · SC/CAPIT · " :
+              s.id === "distrib" ? "TOP · EOD · BC · " :
               s.id === "vol" ? "Histogram · " :
               s.id === "bb" ? "Avg + upper/lower · " :
               s.id === "bbw" ? "Width % + squeeze · " :

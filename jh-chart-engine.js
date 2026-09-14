@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.26 — SPX cash tape since 1980; strip monthly mix-ins so CAPIT matches history. */
+/* JustHodl Chart engine v12.27 — cycle BOTTOM/TOP/EOA/REV on volume tape; 100% S&P gold 1980–now. */
 (function () {
-  if (window.__jhChartEngineV1226) return;
+  if (window.__jhChartEngineV1227) return;
+  window.__jhChartEngineV1227 = true;
   window.__jhChartEngineV1226 = true;
   window.__jhChartEngineV1225 = true;
   window.__jhChartEngineV1224 = true;
@@ -1443,7 +1444,7 @@
   }
   function dedupeTape(mk){
     if(!mk||!mk.length) return [];
-    var pri={CAPIT:12,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,SOS:9,SOW:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,PS:5,PSY:5,TEST:5,ND:4,NS:4,LPS:4,LPSY:4,HH:3,HL:3,LH:3,LL:3,PH:2,PL:2,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2};
+    var pri={BOTTOM:13,TOP:13,CAPIT:12,EOA:11,EOD:11,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,SOS:9,SOW:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,PS:5,PSY:5,TEST:5,ND:4,NS:4,LPS:4,LPSY:4,HH:3,HL:3,LH:3,LL:3,PH:2,PL:2,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2};
     var best={};
     mk.forEach(function(m){
       if(!m||m.time==null) return;
@@ -1722,7 +1723,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.26"; if(st) st.textContent="v12.26 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.27"; if(st) st.textContent="v12.27 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2218,9 +2219,11 @@
     if(!on || !volSeries || !volTapeEvents.length || !chart){ host.innerHTML=""; return; }
     var vr=null, boxW=pane?pane.clientWidth:0, boxH=pane?pane.clientHeight:0;
     try{ vr=chart.timeScale().getVisibleRange(); }catch(e){}
-    var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling"};
-    var html="", i, lastX=-999, lastKind="";
-    var major={capit:1,sc:1,bc:1,sv:1,abs:1};
+    var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling",bottom:"Bottom",top:"Top",eoa:"End of accumulation",eod:"End of distribution",revup:"Trend reverse up",revdn:"Trend reverse down"};
+    var html="", i;
+    var major={bottom:1,top:1,eoa:1,eod:1,revup:1,revdn:1,capit:1,sc:1,bc:1,sv:1,abs:1};
+    var prio={bottom:12,top:12,eoa:10,eod:10,revup:9,revdn:9,capit:8,sc:7,bc:7,sv:4,abs:4};
+    var placed=[];
     for(i=0;i<volTapeEvents.length;i++){
       var e=volTapeEvents[i];
       if(!major[e.kind]) continue;
@@ -2230,10 +2233,20 @@
       if(x==null||y==null) continue;
       if(boxW && (x<8 || x>boxW-8)) continue;
       if(y < 4) continue;
-      if(Math.abs(x-lastX)<42 && lastKind) continue;
-      lastX=x; lastKind=e.kind;
+      var pr=prio[e.kind]||1, clash=-1, pi;
+      for(pi=0;pi<placed.length;pi++){
+        if(Math.abs(x-placed[pi].x)<42){ clash=pi; break; }
+      }
+      if(clash>=0){
+        if(pr<=placed[clash].pr) continue;
+        placed.splice(clash,1);
+      }
       var tip=(names[e.kind]||e.label)+(e.rvol?" · RVOL "+e.rvol.toFixed(1)+"×":"")+(e.score?" · score "+e.score.toFixed(1):"");
-      html+="<i title=\""+tip+"\" style=\"left:"+Math.round(x)+"px;top:"+Math.round(y)+"px;color:"+e.color+"\">"+e.label+"</i>";
+      placed.push({x:x,y:y,e:e,pr:pr,tip:tip});
+    }
+    for(i=0;i<placed.length;i++){
+      var p=placed[i];
+      html+="<i title=\""+p.tip+"\" style=\"left:"+Math.round(p.x)+"px;top:"+Math.round(p.y)+"px;color:"+p.e.color+"\">"+p.e.label+"</i>";
     }
     host.innerHTML=html;
   }
