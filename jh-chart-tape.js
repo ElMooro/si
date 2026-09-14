@@ -112,6 +112,9 @@
   function wyckoffScan(d) {
     var out = [];
     if (d.length < 55) return out;
+    var tapeRows = (window.jhVolEventTable && window.jhVolEventTable(d)) || [];
+    var tapeAt = {};
+    tapeRows.forEach(function (e) { if (e && e.i != null) tapeAt[e.i] = e; });
     var lastSC = null, lastAR = null, lastST = null, lastSpring = null;
     var lastBC = null, lastUT = null, lastSOS = -99, lastSOW = -99, lastLPS = -99, lastLPSY = -99, i, j;
     for (i = 25; i < d.length; i++) {
@@ -121,16 +124,17 @@
       var rallied = d[i - 8].close < b.close * 0.996;
       var isLow = b.low <= ll(d, i, 12), isHigh = b.high >= hh(d, i, 12);
 
-      if (isLow && declined && m.rvol >= 1.45 && m.closeLoc <= 0.40 && m.rng >= rAvg * 1.08) {
+      var clim = tapeAt[i];
+      if (clim && (clim.kind === "capit" || clim.kind === "sc")) {
         for (j = Math.max(0, i - 5); j < i; j++) {
           var pm = metaBar(d, j);
           if (pm.down && pm.rvol >= 1.1) { out.push(tag(d[j].time, "belowBar", "#ab47bc", "circle", "PS")); break; }
         }
-        out.push(tag(b.time, "belowBar", "#f23645", "arrowDown", "SC"));
+        out.push(tag(b.time, "belowBar", "#f23645", "arrowDown", clim.kind === "capit" ? "CAPIT" : "SC"));
         lastSC = { i: i, low: b.low, close: b.close, rvol: m.rvol, time: b.time };
         lastAR = lastST = lastSpring = null;
       }
-      if (isHigh && rallied && m.rvol >= 1.45 && m.closeLoc >= 0.60 && m.rng >= rAvg * 1.08) {
+      if (clim && clim.kind === "bc") {
         for (j = Math.max(0, i - 5); j < i; j++) {
           var qm = metaBar(d, j);
           if (qm.up && qm.rvol >= 1.1) { out.push(tag(d[j].time, "aboveBar", "#ab47bc", "circle", "PSY")); break; }

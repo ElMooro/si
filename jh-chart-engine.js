@@ -1,6 +1,8 @@
-/* JustHodl Chart engine v12.24 — H/L + VP follow the visible window, not IPO pennies. */
+/* JustHodl Chart engine v12.26 — SPX cash tape since 1980; strip monthly mix-ins so CAPIT matches history. */
 (function () {
-  if (window.__jhChartEngineV1224) return;
+  if (window.__jhChartEngineV1226) return;
+  window.__jhChartEngineV1226 = true;
+  window.__jhChartEngineV1225 = true;
   window.__jhChartEngineV1224 = true;
   window.__jhChartEngineV1223 = true;
   window.__jhChartEngineV1222 = true;
@@ -206,7 +208,7 @@
       "DXY":"DX-Y.NYB","TVC:DXY":"DX-Y.NYB",
       "GOLD":"GC=F","TVC:GOLD":"GC=F","XAU":"GC=F",
       "USOIL":"CL=F","TVC:USOIL":"CL=F","WTI":"CL=F","CRUDE":"CL=F",
-      "SPX":"SPY","SP500":"SPY","NDX":"QQQ","RUT":"IWM"
+      "SPX":"^GSPC","SP500":"^GSPC","NDX":"^NDX","RUT":"^RUT"
     };
     if(ALIAS[s]) s=ALIAS[s];
     if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
@@ -1033,17 +1035,56 @@
   function asDaily(d){
     if(!d||!d.length) return d||[];
     var m={}, i, t, b, o;
+    function spr(x){ return x && x.close ? (x.high-x.low)/Math.abs(x.close) : 99; }
     for(i=0;i<d.length;i++){
       t=utcMidnight(d[i].time); if(!t) continue;
       b=d[i]; o=m[t];
       if(!o) m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
-      else {
+      else if(spr(b)+0.015 < spr(o) || ((b.volume||0)>0 && (o.volume||0)>0 && (b.volume||0)*4 < (o.volume||0) && spr(b)<=spr(o)+0.03)){
+        m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+      } else if(Math.abs(spr(b)-spr(o))<0.02){
         if(b.high>o.high) o.high=b.high;
         if(b.low<o.low) o.low=b.low;
         o.close=b.close; o.volume+=(b.volume||0);
       }
     }
     return Object.keys(m).map(Number).sort(function(a,b){return a-b;}).map(function(k){return m[k];});
+  }
+  function stripMixInBars(d){
+    if(!d||d.length<24) return d;
+    function med(a){ var b=a.filter(function(x){return x>0;}).sort(function(x,y){return x-y;}); return b.length?b[Math.floor(b.length/2)]:0; }
+    function spr(x){ return x&&x.close?(x.high-x.low)/Math.abs(x.close):0; }
+    var keep=new Array(d.length), i, j, vols, b, nxt, mega, sameOpen;
+    for(i=0;i<d.length;i++) keep[i]=true;
+    for(i=0;i<d.length;i++){
+      vols=[];
+      for(j=Math.max(0,i-60);j<i;j++) if(keep[j] && (d[j].volume||0)>0) vols.push(d[j].volume);
+      var medV=med(vols);
+      b=d[i]; nxt=d[i+1];
+      if(spr(b)>0.50){ keep[i]=false; continue; }
+      mega=medV>0 && (b.volume||0)>medV*8;
+      sameOpen=nxt && b.open && Math.abs(nxt.open-b.open)/Math.abs(b.open)<0.006;
+      if(mega && sameOpen){ keep[i]=false; continue; }
+      if(mega && spr(b)>0.08 && (b.volume||0)>medV*20){ keep[i]=false; continue; }
+    }
+    var out=[];
+    for(i=0;i<d.length;i++) if(keep[i]) out.push(d[i]);
+    var out2=[];
+    for(i=0;i<out.length;i++){
+      b=out[i]; var prev=out2.length?out2[out2.length-1]:null; nxt=out[i+1];
+      if(prev && nxt && prev.close){
+        var ret=b.close/prev.close-1, back=nxt.close/b.close-1;
+        vols=[];
+        for(j=Math.max(0,out2.length-40);j<out2.length;j++) if(out2[j].volume>0) vols.push(out2[j].volume);
+        var medV2=med(vols);
+        var snap=Math.abs(ret)>0.07 && Math.abs(back)>0.55*Math.abs(ret) && ret*back<0;
+        var fat=medV2>0 && (b.volume||0)>medV2*6;
+        sameOpen=b.open && Math.abs(nxt.open-b.open)/Math.abs(b.open)<0.008;
+        if(snap && (fat || sameOpen || Math.abs(ret)>0.12)) continue;
+      }
+      out2.push(b);
+    }
+    return out2.length>=24?out2:d;
   }
   function cleanWildTicks(d){
     if(!d||d.length<8) return d;
@@ -1234,6 +1275,7 @@
                 if(yd.length>=8){ d=mergeByDay(d, yd); lastSource="polygon+yahoo"; }
               }catch(eY){}
             }
+            d=stripMixInBars(d);
           }
           d=resampleToTf(d, tfId);
           if(d.length<2) continue;
@@ -1680,7 +1722,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.24"; if(st) st.textContent="v12.24 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.26"; if(st) st.textContent="v12.26 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2177,18 +2219,21 @@
     var vr=null, boxW=pane?pane.clientWidth:0, boxH=pane?pane.clientHeight:0;
     try{ vr=chart.timeScale().getVisibleRange(); }catch(e){}
     var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling"};
-    var html="", i, lastX=-999;
+    var html="", i, lastX=-999, lastKind="";
+    var major={capit:1,sc:1,bc:1,sv:1,abs:1};
     for(i=0;i<volTapeEvents.length;i++){
       var e=volTapeEvents[i];
+      if(!major[e.kind]) continue;
       if(vr && (e.time<vr.from || e.time>vr.to)) continue;
       var x=chart.timeScale().timeToCoordinate(e.time);
       var y=volSeries.priceToCoordinate(e.vol);
       if(x==null||y==null) continue;
-      if(boxW && (x<6 || x>boxW-6)) continue;
+      if(boxW && (x<8 || x>boxW-8)) continue;
       if(y < 4) continue;
-      if(Math.abs(x-lastX)<28) continue;
-      lastX=x;
-      html+="<i title=\""+(names[e.kind]||e.label)+(e.rvol?" · RVOL "+e.rvol.toFixed(1)+"x":"")+"\" style=\"left:"+Math.round(x)+"px;top:"+Math.round(y)+"px;color:"+e.color+"\">"+e.label+"</i>";
+      if(Math.abs(x-lastX)<42 && lastKind) continue;
+      lastX=x; lastKind=e.kind;
+      var tip=(names[e.kind]||e.label)+(e.rvol?" · RVOL "+e.rvol.toFixed(1)+"×":"")+(e.score?" · score "+e.score.toFixed(1):"");
+      html+="<i title=\""+tip+"\" style=\"left:"+Math.round(x)+"px;top:"+Math.round(y)+"px;color:"+e.color+"\">"+e.label+"</i>";
     }
     host.innerHTML=html;
   }
@@ -2774,7 +2819,7 @@
     {q:["dxy","dollar index","tvc:dxy"], s:"DX-Y.NYB", n:"US Dollar Index", type:"index"},
     {q:["gold","xau","tvc:gold"], s:"GC=F", n:"Gold futures", type:"commodity"},
     {q:["wti","oil","crude","usoil","tvc:usoil"], s:"CL=F", n:"WTI Crude Oil", type:"commodity"},
-    {q:["spx","sp500","s&p 500","s&p"], s:"SPY", n:"S&P 500 (SPY)", type:"etf"},
+    {q:["spx","sp500","s&p 500","s&p"], s:"^GSPC", n:"S&P 500 (cash)", type:"index"},
     {q:["ndx","nasdaq 100"], s:"QQQ", n:"Nasdaq 100 (QQQ)", type:"etf"},
     {q:["fed funds","dff","fedfunds"], s:"FRED:DFF", n:"Effective Federal Funds Rate", type:"economy"},
     {q:["cpi","inflation"], s:"FRED:CPIAUCSL", n:"US CPI", type:"economy"}
