@@ -1856,22 +1856,26 @@
     var ql=q.toLowerCase();
     var dest=document.getElementById("symsearch").dataset.dest||"chart";
     var rows=[], seen={};
-    function push(s, name, extra, type){
-      s=String(s); var k=bare(s);
-      if(!k||seen[k]) return; seen[k]=1;
+    function push(s, name, extra, type, force){
+      s=String(s);
+      var full=/^FRED:/i.test(s)||/^\^/.test(s)||s.indexOf("=")>=0 ? s.toUpperCase() : bare(s);
+      var k=full.toUpperCase();
+      if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;
       var cls=classifySym(s);
-      if(ssTab==="stocks"&&cls!=="stock") return;
-      if(ssTab==="etfs"&&cls!=="etf") return;
-      if(ssTab==="crypto"&&cls!=="crypto") return;
-      if(ssTab==="fx"&&cls!=="fx") return;
-      if(ssTab==="macro"&&cls!=="macro") return;
-      if(ssTab==="notes" && !noteObj(s).text) return;
+      if(!force){
+        if(ssTab==="stocks"&&cls!=="stock") return;
+        if(ssTab==="etfs"&&cls!=="etf") return;
+        if(ssTab==="crypto"&&cls!=="crypto") return;
+        if(ssTab==="fx"&&cls!=="fx") return;
+        if(ssTab==="macro"&&cls!=="macro"&&cls!=="economy") return;
+        if(ssTab==="notes" && !noteObj(s).text) return;
+        if(ql && String(s).toLowerCase().indexOf(ql)<0 && String(name||"").toLowerCase().indexOf(ql)<0 && String(extra||"").toLowerCase().indexOf(ql)<0) return;
+      }
       if(ssTab==="lists") extra=extra||"";
-      if(ql && String(s).toLowerCase().indexOf(ql)<0 && String(name||"").toLowerCase().indexOf(ql)<0 && String(extra||"").toLowerCase().indexOf(ql)<0) return;
-      rows.push({s:k, name:name||"", extra:extra||"", type:type||cls});
+      rows.push({s:full, name:name||"", extra:extra||"", type:type||cls});
     }
+    aliasHits(q).forEach(function(a){ push(a.s, a.name, "alias · "+a.q[0], a.type, true); });
     TABS.forEach(function(s){ push(s, s, "open tab", "tab"); });
-    aliasHits(q).forEach(function(a){ push(a.s, a.name, a.extra, a.type); });
     lists.forEach(function(L){ (L.symbols||[]).forEach(function(s){ push(s, L.name, L.name, classifySym(s)); }); });
     Object.keys(notes).forEach(function(s){ var n=noteObj(s); if(n.text) push(s, n.text.slice(0,60), "note", "note"); });
     if(q && /^[A-Z0-9:.\-]{1,20}$/i.test(q)) push(q.toUpperCase(), "Open "+q.toUpperCase(), "direct", classifySym(q));
@@ -1887,8 +1891,10 @@
       if(!id) return;
       var s=chartId(id);
       if(!s) s=String(id);
-      if(ssRows.some(function(r){ return bare(r.s)===bare(s) || String(r.s).toUpperCase()===String(s).toUpperCase(); })) return;
-      ssRows.push({s:s, name:name||"", extra:extra||"", type:type||classifySym(s)});
+      if(ssRows.some(function(r){ return String(r.s).toUpperCase()===String(s).toUpperCase() || bare(r.s)===bare(s); })) return;
+      var kindType=type||classifySym(s);
+      if(kindType==="dataset") return;
+      ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType});
     }
     try{
       var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=40");
