@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz", "keylv", "pvwap", "ddown", "alpha", "rngpos"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
@@ -199,6 +199,16 @@
         if (s.id === "gmma" || s.id === "ribbon") keys += " guppy ribbon multiple moving average ema";
         if (s.id === "kama") keys += " kaufman adaptive ama";
         if (s.id === "seb") keys += " standard error linear regression bands";
+        if (s.id === "keylv") keys += " pdh pdl pdc pwh pwl pmh pml previous day week month high low close session levels";
+        if (s.id === "gaps") keys += " unfilled gap up down support resistance";
+        if (s.id === "pvwap") keys += " ytd monthly weekly period vwap volume weighted year to date";
+        if (s.id === "athln") keys += " all time high ath peak avwap anchored from high";
+        if (s.id === "htfma") keys += " weekly sma 10 40 higher timeframe htf guppy bias";
+        if (s.id === "struct") keys += " market structure hh hl lh ll swing fractal";
+        if (s.id === "rsidiv") keys += " rsi divergence regular hidden bullish bearish";
+        if (s.id === "ddown") keys += " drawdown from ath underwater maxdd risk";
+        if (s.id === "alpha") keys += " jensen residual alpha vs spy beta adjusted excess";
+        if (s.id === "rngpos") keys += " range position 52 week percentile high low";
         if (q && keys.indexOf(q) < 0) return false;
         return true;
       });
@@ -231,6 +241,16 @@
               s.id === "gmma" ? "Short 3–15 / Long 30–60 · " :
               s.id === "fibauto" ? "Swing 0–100% · " :
               s.id === "volosc" ? "Vol SMA 5−20 · " :
+              s.id === "keylv" ? "PDH PDL PDC · PWH PWL · PMH PML · " :
+              s.id === "gaps" ? "Unfilled gap up/down · " :
+              s.id === "pvwap" ? "YTD + monthly + weekly · " :
+              s.id === "athln" ? "ATH line + AVWAP from high · " :
+              s.id === "htfma" ? "Weekly SMA 10 / 40 · " :
+              s.id === "struct" ? "HH HL LH LL swings · " :
+              s.id === "rsidiv" ? "RSI regular + hidden · " :
+              s.id === "ddown" ? "% from ATH · " :
+              s.id === "alpha" ? "Residual vs SPY · " :
+              s.id === "rngpos" ? "Close in 52w range · " :
               s.osc ? "New pane · " : "Overlay · "
             ) + s.cat + "</span></div>" +
             "<span class='star" + (isFav(s.id) ? " on" : "") + "' data-star='" + s.id + "'>" + (isFav(s.id) ? "★" : "☆") + "</span></button>";
@@ -288,7 +308,7 @@
       var body = document.getElementById("setbody");
       if (tab === "in") {
         var extra = "";
-        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi" || item.id === "bbp" || item.id === "dem") {
+        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi" || item.id === "bbp" || item.id === "dem" || item.id === "rngpos") {
           extra = "<div class=srow><span>Overbought</span><input id=sob type=number min=50 max=99 value='" + (item.ob != null ? item.ob : 70) + "'></div>" +
             "<div class=srow><span>Oversold</span><input id=sos type=number min=1 max=50 value='" + (item.os != null ? item.os : 30) + "'></div>";
         }

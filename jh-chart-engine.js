@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.19 — Bloomberg GP studies; DMI uses true Wilder smoothing. */
+/* JustHodl Chart engine v12.20 — Bloomberg analysis: key levels, period VWAP, drawdown, alpha, gaps, structure, RSI divergence. */
 (function () {
-  if (window.__jhChartEngineV1219) return;
+  if (window.__jhChartEngineV1220) return;
+  window.__jhChartEngineV1220 = true;
   window.__jhChartEngineV1219 = true;
   window.__jhChartEngineV1218 = true;
   window.__jhChartEngineV1217 = true;
@@ -94,7 +95,14 @@
     {id:"accum",n:"Accumulation",c:"#089981",on:0,k:"accum",cat:"Tape"},
     {id:"distrib",n:"Distribution",c:"#f23645",on:0,k:"distrib",cat:"Tape"},
     {id:"vsa",n:"VSA Tape",c:"#ff9800",on:0,k:"vsa",cat:"Tape"},
-    {id:"voltape",n:"Volume Tape",c:"#f0b429",on:0,k:"voltape",cat:"Volume"}
+    {id:"voltape",n:"Volume Tape",c:"#f0b429",on:0,k:"voltape",cat:"Volume"},
+    {id:"keylv",n:"Key Levels",c:"#787b86",on:0,k:"keylv",cat:"Levels"},
+    {id:"gaps",n:"Unfilled Gaps",c:"#26c6da",on:0,k:"gaps",cat:"Levels"},
+    {id:"pvwap",n:"Period VWAP",c:"#f0b429",on:0,k:"pvwap",cat:"Volume"},
+    {id:"athln",n:"All-Time High",c:"#f0b429",on:0,k:"athln",cat:"Levels"},
+    {id:"htfma",n:"Weekly SMA 10/40",c:"#2962ff",on:0,k:"htfma",cat:"MA"},
+    {id:"struct",n:"Market Structure",c:"#d1d4dc",on:0,k:"struct",cat:"Trend"},
+    {id:"rsidiv",n:"RSI Divergence",c:"#f0b429",on:0,k:"rsidiv",cat:"Momentum"}
   ];
   var OSC = [
     {id:"rsi",n:"RSI 14",on:0,cat:"Momentum",p:14,ob:70,os:30,c:"#f0b429"},
@@ -145,7 +153,10 @@
     {id:"natr",n:"ATR %",on:0,cat:"Volatility",p:14},
     {id:"ac",n:"Accelerator",on:0,cat:"Momentum"},
     {id:"bop",n:"Balance of Power",on:0,cat:"Momentum"},
-    {id:"dem",n:"DeMarker 14",on:0,cat:"Momentum",p:14,ob:70,os:30}
+    {id:"dem",n:"DeMarker 14",on:0,cat:"Momentum",p:14,ob:70,os:30},
+    {id:"ddown",n:"Drawdown",on:0,cat:"Risk"},
+    {id:"alpha",n:"Alpha vs SPY",on:0,cat:"Stats",p:60},
+    {id:"rngpos",n:"Range Position",on:0,cat:"Stats",p:252,ob:80,os:20}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
@@ -732,6 +743,210 @@
     }
     return o;
   }
+  function nyYMD(ts){
+    var s=new Date(ts*1000).toLocaleString("en-US",{timeZone:"America/New_York",hour12:false});
+    var p=s.match(/(\d+)\/(\d+)\/(\d+)/);
+    if(!p) return {y:1970,m:1,d:1};
+    return {y:+p[3], m:+p[1], d:+p[2]};
+  }
+  function periodKey(ts, kind){
+    var p=nyYMD(ts);
+    if(kind==="day") return p.y+"-"+p.m+"-"+p.d;
+    if(kind==="month") return p.y+"-"+p.m;
+    if(kind==="year") return String(p.y);
+    if(kind==="week"){
+      var dt=new Date(Date.UTC(p.y, p.m-1, p.d));
+      var back=(dt.getUTCDay()+6)%7;
+      dt.setUTCDate(dt.getUTCDate()-back);
+      return dt.getUTCFullYear()+"-"+String(dt.getUTCMonth()+1)+"-"+dt.getUTCDate();
+    }
+    return "all";
+  }
+  function periodVwap(d, kind){
+    var o=[], pv=0, vv=0, key=null, i;
+    for(i=0;i<d.length;i++){
+      var k=periodKey(d[i].time, kind);
+      if(k!==key){ key=k; pv=0; vv=0; }
+      var tp=(d[i].high+d[i].low+d[i].close)/3;
+      pv+=tp*(d[i].volume||0); vv+=d[i].volume||0;
+      if(vv) o.push({time:d[i].time,value:pv/vv});
+    }
+    return o;
+  }
+  function keyLevels(d){
+    if(!d||d.length<2) return null;
+    var now=Date.now()/1000, last=d[d.length-1];
+    if(last.time>now) now=last.time;
+    var curD=periodKey(now,"day"), curW=periodKey(now,"week"), curM=periodKey(now,"month");
+    var day={hi:-1e99,lo:1e99,c:null}, week={hi:-1e99,lo:1e99,c:null}, month={hi:-1e99,lo:1e99,c:null};
+    var prevD=null, prevW=null, prevM=null, i;
+    for(i=d.length-1;i>=0;i--){
+      var dk=periodKey(d[i].time,"day"), wk=periodKey(d[i].time,"week"), mk=periodKey(d[i].time,"month");
+      if(!prevD && dk!==curD) prevD=dk;
+      if(!prevW && wk!==curW) prevW=wk;
+      if(!prevM && mk!==curM) prevM=mk;
+      if(prevD&&prevW&&prevM) break;
+    }
+    for(i=0;i<d.length;i++){
+      var dk=periodKey(d[i].time,"day"), wk=periodKey(d[i].time,"week"), mk=periodKey(d[i].time,"month");
+      if(dk===prevD){ if(d[i].high>day.hi)day.hi=d[i].high; if(d[i].low<day.lo)day.lo=d[i].low; day.c=d[i].close; }
+      if(wk===prevW){ if(d[i].high>week.hi)week.hi=d[i].high; if(d[i].low<week.lo)week.lo=d[i].low; week.c=d[i].close; }
+      if(mk===prevM){ if(d[i].high>month.hi)month.hi=d[i].high; if(d[i].low<month.lo)month.lo=d[i].low; month.c=d[i].close; }
+    }
+    function ok(x){ return x && isFinite(x.hi) && x.hi>-1e90 && isFinite(x.lo) && x.lo<1e90 && x.c!=null; }
+    return {day:ok(day)?day:null, week:ok(week)?week:null, month:ok(month)?month:null};
+  }
+  function unfilledGaps(d){
+    if(!d||d.length<3) return [];
+    var gaps=[], i, j;
+    for(i=1;i<d.length;i++){
+      var ref=Math.abs(d[i-1].close)||1;
+      if(d[i].low>d[i-1].high && (d[i].low-d[i-1].high)/ref>=0.0005) gaps.push({t:d[i].time, lo:d[i-1].high, hi:d[i].low, dir:1});
+      else if(d[i].high<d[i-1].low && (d[i-1].low-d[i].high)/ref>=0.0005) gaps.push({t:d[i].time, lo:d[i].high, hi:d[i-1].low, dir:-1});
+    }
+    var out=[];
+    for(i=0;i<gaps.length;i++){
+      var g=gaps[i], filled=false;
+      for(j=0;j<d.length;j++){
+        if(d[j].time<=g.t) continue;
+        if(g.dir>0 && d[j].low<=g.lo){ filled=true; break; }
+        if(g.dir<0 && d[j].high>=g.hi){ filled=true; break; }
+      }
+      if(!filled) out.push(g);
+    }
+    return out.slice(-6);
+  }
+  function runningAth(d){
+    var o=[], peak=-1e99, i;
+    for(i=0;i<d.length;i++){ if(d[i].high>peak) peak=d[i].high; o.push({time:d[i].time,value:peak}); }
+    return o;
+  }
+  function avwapFromAth(d){
+    if(!d||!d.length) return [];
+    var peak=-1e99, i0=0, i;
+    for(i=0;i<d.length;i++){ if(d[i].high>=peak){ peak=d[i].high; i0=i; } }
+    var o=[], pv=0, vv=0;
+    for(i=i0;i<d.length;i++){
+      var tp=(d[i].high+d[i].low+d[i].close)/3;
+      pv+=tp*(d[i].volume||0); vv+=d[i].volume||0;
+      if(vv) o.push({time:d[i].time,value:pv/vv});
+    }
+    return o;
+  }
+  function drawdownPct(d){
+    var o=[], peak=-1e99, i;
+    for(i=0;i<d.length;i++){
+      if(d[i].high>peak) peak=d[i].high;
+      o.push({time:d[i].time,value:peak?100*(d[i].close/peak-1):0});
+    }
+    return o;
+  }
+  function rangePos(d, n){
+    n=n||252; var o=[], i, j;
+    for(i=0;i<d.length;i++){
+      var a=Math.max(0, i-n+1), hi=-1e99, lo=1e99;
+      for(j=a;j<=i;j++){ if(d[j].high>hi)hi=d[j].high; if(d[j].low<lo)lo=d[j].low; }
+      if(i>=n-1) o.push({time:d[i].time,value:hi===lo?50:100*(d[i].close-lo)/(hi-lo)});
+    }
+    return o;
+  }
+  function weekBars(d){
+    var map={}, order=[], i;
+    for(i=0;i<d.length;i++){
+      var k=periodKey(d[i].time,"week");
+      if(!map[k]){ map[k]={time:d[i].time,open:d[i].open,high:d[i].high,low:d[i].low,close:d[i].close,volume:d[i].volume||0}; order.push(k); }
+      else {
+        var w=map[k];
+        if(d[i].high>w.high) w.high=d[i].high;
+        if(d[i].low<w.low) w.low=d[i].low;
+        w.close=d[i].close; w.volume+=(d[i].volume||0); w.time=d[i].time;
+      }
+    }
+    return order.map(function(k){ return map[k]; });
+  }
+  function htfSma(d){
+    var w=weekBars(d), s10=sma(w,10), s40=sma(w,40), s10k={}, s40k={}, wkey={}, i;
+    w.forEach(function(b){ wkey[b.time]=periodKey(b.time,"week"); });
+    s10.forEach(function(p){ var k=wkey[p.time]; if(k) s10k[k]=p.value; });
+    s40.forEach(function(p){ var k=wkey[p.time]; if(k) s40k[k]=p.value; });
+    var o10=[], o40=[], last10=null, last40=null;
+    for(i=0;i<d.length;i++){
+      var k=periodKey(d[i].time,"week");
+      if(s10k[k]!=null) last10=s10k[k];
+      if(s40k[k]!=null) last40=s40k[k];
+      if(last10!=null) o10.push({time:d[i].time,value:last10});
+      if(last40!=null) o40.push({time:d[i].time,value:last40});
+    }
+    return {s10:o10,s40:o40};
+  }
+  function swingPts(d){
+    var fr=fractals(d), pts=[];
+    (fr.up||[]).forEach(function(p){ pts.push({time:p.time,value:p.value,kind:"h"}); });
+    (fr.dn||[]).forEach(function(p){ pts.push({time:p.time,value:p.value,kind:"l"}); });
+    pts.sort(function(a,b){ return a.time-b.time; });
+    return pts;
+  }
+  function structureMarks(d){
+    var pts=swingPts(d), mk=[], i, lastH=null, lastL=null;
+    for(i=0;i<pts.length;i++){
+      var p=pts[i];
+      if(p.kind==="h"){
+        if(lastH) mk.push({time:p.time, position:"aboveBar", color:p.value>lastH.value?UP:DN, shape:"circle", text:p.value>lastH.value?"HH":"LH"});
+        lastH=p;
+      } else {
+        if(lastL) mk.push({time:p.time, position:"belowBar", color:p.value<lastL.value?DN:UP, shape:"circle", text:p.value<lastL.value?"LL":"HL"});
+        lastL=p;
+      }
+    }
+    return mk.slice(-36);
+  }
+  function rsiDivMarks(d, n){
+    n=n||14;
+    var r=rsi(d,n), rm={}, i;
+    r.forEach(function(p){ rm[p.time]=p.value; });
+    var pts=swingPts(d), hs=[], ls=[], mk=[];
+    for(i=0;i<pts.length;i++){
+      if(rm[pts[i].time]==null) continue;
+      if(pts[i].kind==="h") hs.push({t:pts[i].time, px:pts[i].value, r:rm[pts[i].time]});
+      else ls.push({t:pts[i].time, px:pts[i].value, r:rm[pts[i].time]});
+    }
+    var barSec=d.length>1?Math.max(1, d[d.length-1].time-d[d.length-2].time):86400;
+    function spanOk(a,b){ var bars=(b.t-a.t)/barSec; return bars>=5 && bars<=80; }
+    for(i=1;i<hs.length;i++){
+      var a=hs[i-1], b=hs[i];
+      if(!spanOk(a,b)) continue;
+      if(b.px>a.px && b.r<a.r-2) mk.push({time:b.t, position:"aboveBar", color:DN, shape:"arrowDown", text:"DIV↓"});
+      else if(b.px<a.px && b.r>a.r+2) mk.push({time:b.t, position:"aboveBar", color:"#ff6d00", shape:"arrowDown", text:"hDIV"});
+    }
+    for(i=1;i<ls.length;i++){
+      var a2=ls[i-1], b2=ls[i];
+      if(!spanOk(a2,b2)) continue;
+      if(b2.px<a2.px && b2.r>a2.r+2) mk.push({time:b2.t, position:"belowBar", color:UP, shape:"arrowUp", text:"DIV↑"});
+      else if(b2.px>a2.px && b2.r<a2.r-2) mk.push({time:b2.t, position:"belowBar", color:"#26c6da", shape:"arrowUp", text:"hDIV"});
+    }
+    return mk.slice(-16);
+  }
+  function alphaVs(d, spy, n){
+    n=n||60;
+    var j=alignSpy(d,spy), i, k;
+    if(j.length<n+5) return [];
+    var ra=[], rs=[];
+    for(i=1;i<j.length;i++){
+      ra.push(j[i-1].a?j[i].a/j[i-1].a-1:0);
+      rs.push(j[i-1].s?j[i].s/j[i-1].s-1:0);
+    }
+    var o=[], cum=100;
+    for(i=n-1;i<ra.length;i++){
+      var sa=0,ss=0,sas=0,ss2=0;
+      for(k=0;k<n;k++){ sa+=ra[i-n+1+k]; ss+=rs[i-n+1+k]; }
+      var ma=sa/n, ms=ss/n;
+      for(k=0;k<n;k++){ var xa=ra[i-n+1+k]-ma, xs=rs[i-n+1+k]-ms; sas+=xa*xs; ss2+=xs*xs; }
+      var b=ss2?sas/ss2:1;
+      cum=cum*(1+(ra[i]-b*rs[i]));
+      o.push({time:j[i+1].time,value:cum});
+    }
+    return o;
+  }
   function pal(){ return dark?{bg:"#131722",text:"#787b86",grid:"#1e222d",border:"#2a2e39",fg:"#d1d4dc",hud:"rgba(19,23,34,.92)"}:{bg:"#ffffff",text:"#6a6d78",grid:"#f0f3fa",border:"#e0e3eb",fg:"#131722",hud:"rgba(255,255,255,.92)"}; }
   function applyTheme(repaint){
     document.documentElement.setAttribute("data-theme", dark?"dark":"light");
@@ -1092,7 +1307,7 @@
   function addPriceLine(px, color, title){ if(!mainSeries||px==null) return; try{ mainSeries.createPriceLine({ price:px, color:color||"#787b86", lineWidth:1, lineStyle:2, axisLabelVisible:true, title:title||"" }); }catch(e){} }
   function dedupeTape(mk){
     if(!mk||!mk.length) return [];
-    var pri={CAPIT:12,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,SOS:9,SOW:9,ABS:8,SV:8,UT:8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,PS:5,PSY:5,TEST:5,ND:4,NS:4,LPS:4,LPSY:4,HH:3,HL:3,LH:3,LL:3,PH:2,PL:2,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2};
+    var pri={CAPIT:12,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,SOS:9,SOW:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,PS:5,PSY:5,TEST:5,ND:4,NS:4,LPS:4,LPSY:4,HH:3,HL:3,LH:3,LL:3,PH:2,PL:2,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2};
     var best={};
     mk.forEach(function(m){
       if(!m||m.time==null) return;
@@ -1180,6 +1395,8 @@
               prevG=dir;
             }
           }
+          if(INDS.some(function(i){ return i.id==="struct"&&i.on&&!i.hide; })) mk=mk.concat(structureMarks(display));
+          if(INDS.some(function(i){ return i.id==="rsidiv"&&i.on&&!i.hide; })) mk=mk.concat(rsiDivMarks(display, 14));
           if(window.jhRsReady){
             window.jhRsReady(display).then(function(rs){
               if(seq!==paintSeq) return;
@@ -1233,7 +1450,7 @@
         if(ind.k==="hull") store(ind.id, hull(d,ind.p));
         if(ind.k==="vwma") store(ind.id, vwma(d,ind.p));
         if(ind.k==="vwap") store(ind.id, vwap(d));
-        if(ind.k==="svwap") store(ind.id, vwap(d));
+        if(ind.k==="svwap") store(ind.id, periodVwap(d,"day"));
         if(ind.k==="linreg") store(ind.id, linreg(d,ind.p));
         if(ind.k==="dema") store(ind.id, dema(d,ind.p));
         if(ind.k==="tema") store(ind.id, tema(d,ind.p));
@@ -1271,6 +1488,51 @@
         if(ind.k==="demark"){ var dp=demarkPivots(d); if(dp && !ind.hide){ addPriceLine(dp.pp.value,"#546e7a","P"); addPriceLine(dp.r1.value,DN,"R1"); addPriceLine(dp.s1.value,UP,"S1"); } }
         if(ind.k==="fibauto"){ var fa=fibAuto(d); if(fa && fa.length && !ind.hide){ var fc=["#f23645","#ff6d00","#f0b429","#787b86","#26c6da","#2962ff","#089981"]; fa.forEach(function(lv,ix){ addPriceLine(lv.value, fc[ix]||"#787b86", (lv.p*100).toFixed(1)+"%"); }); } }
         if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"||ind.k==="vsa"||ind.k==="tape"){ /* markers applied on the candle series */ }
+        if(ind.k==="struct"||ind.k==="rsidiv"){ /* markers applied on the candle series */ }
+        if(ind.k==="keylv"){
+          var kl=keyLevels(d);
+          if(kl && kl.day) overlayMap[ind.id]=[{time:d[d.length-1].time,value:kl.day.c}];
+          if(kl && !ind.hide){
+            if(kl.day){ addPriceLine(kl.day.hi, "#089981", "PDH"); addPriceLine(kl.day.lo, "#f23645", "PDL"); addPriceLine(kl.day.c, "#787b86", "PDC"); }
+            if(kl.week){ addPriceLine(kl.week.hi, "#2962ff", "PWH"); addPriceLine(kl.week.lo, "#7e57c2", "PWL"); }
+            if(kl.month){ addPriceLine(kl.month.hi, "#ff6d00", "PMH"); addPriceLine(kl.month.lo, "#8d6e63", "PML"); }
+          }
+        }
+        if(ind.k==="gaps"){
+          var gp=unfilledGaps(d);
+          if(gp.length) overlayMap[ind.id]=[{time:d[d.length-1].time,value:gp[gp.length-1].hi}];
+          if(!ind.hide) gp.forEach(function(g){
+            addPriceLine(g.hi, g.dir>0?"#26c6da":"#ff6d00", g.dir>0?"GAP↑":"GAP↓");
+            addPriceLine(g.lo, g.dir>0?"#26c6da":"#ff6d00", "");
+          });
+        }
+        if(ind.k==="pvwap"){
+          var yv=periodVwap(d,"year"), mv=periodVwap(d,"month"), wv=periodVwap(d,"week");
+          overlayMap[ind.id]=yv;
+          if(!ind.hide){
+            addLine(yv, "#f0b429", 2, {last:true, title:"YTD VWAP"});
+            addLine(mv, "#ab47bc", 1.5, {last:true, title:"M VWAP"});
+            addLine(wv, "#26c6da", 1, {last:true, title:"W VWAP"});
+          }
+        }
+        if(ind.k==="athln"){
+          var ath=runningAth(d);
+          overlayMap[ind.id]=ath;
+          if(!ind.hide && ath.length){
+            addLine(ath, "#f0b429", 1, {last:true, title:"ATH"});
+            addPriceLine(ath[ath.length-1].value, "#f0b429", "ATH");
+            var av=avwapFromAth(d);
+            if(av.length) addLine(av, "#ab47bc", 1.5, {last:true, title:"AVWAP ATH"});
+          }
+        }
+        if(ind.k==="htfma"){
+          var hm=htfSma(d);
+          overlayMap[ind.id]=hm.s10;
+          if(!ind.hide){
+            addLine(hm.s10, "#2962ff", 2, {last:true, title:"W SMA 10"});
+            addLine(hm.s40, "#ff6d00", 2, {last:true, title:"W SMA 40"});
+          }
+        }
       });
       for(var ci=0;ci<compare.length;ci++){
         try{
@@ -1303,7 +1565,7 @@
     } else {
       showRecentBars(200);
     }
-    if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"); })){
+    if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"||o.id==="alpha"); })){
       try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf); }catch(e){}
     }
     paintOsc(d);
@@ -1324,7 +1586,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.19"; if(st) st.textContent="v12.19 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.20"; if(st) st.textContent="v12.20 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -1536,6 +1798,35 @@
       else if(o.id==="ac"){ var acs=accel(d); var hac=c.addHistogramSeries({lastValueVisible:false,priceLineVisible:false}); hac.setData(acs.map(function(p,i){ var prev=i?acs[i-1].value:p.value; return {time:p.time,value:p.value,color:p.value>=0?(p.value>=prev?"#089981":"#26a69a"):(p.value>=prev?"#ef9a9a":"#f23645")}; })); oscSeries.push(hac); if(acs.length){ var veAc=head.querySelector(".osc-v"); var lastAc=acs[acs.length-1].value; if(veAc&&lastAc!=null) veAc.textContent=fmt(lastAc); } }
       else if(o.id==="bop"){ addO(bop(d), "#3949ab"); try{ var zB=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lastValueVisible:false,priceLineVisible:false}); zB.setData((d||[]).map(function(b){return {time:b.time,value:0};})); oscSeries.push(zB); }catch(e){} }
       else if(o.id==="dem"){ addO(demarker(d, o.p||14), "#e91e63"); bands(o.os!=null?o.os:30, o.ob!=null?o.ob:70); }
+      else if(o.id==="ddown"){
+        var dd=drawdownPct(d);
+        var hd=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,title:"DD %"});
+        hd.setData(dd.map(function(p){
+          var a=Math.min(1, Math.abs(p.value)/25);
+          return {time:p.time,value:p.value,color:"rgba(242,54,69,"+(0.35+0.55*a)+")"};
+        }));
+        oscSeries.push(hd);
+        try{
+          var zD=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+          zD.setData(dd.map(function(p){ return {time:p.time,value:0}; })); oscSeries.push(zD);
+        }catch(e){}
+        if(dd.length){ var veD=head.querySelector(".osc-v"); var lastD=dd[dd.length-1].value; if(veD&&lastD!=null) veD.textContent=lastD.toFixed(2)+"% from ATH"; }
+      }
+      else if(o.id==="alpha"){
+        var al=alphaVs(d, spyBars, o.p||60);
+        addO(al, "#7e57c2");
+        try{
+          var a100=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false});
+          a100.setData((al.length?al:d).map(function(p){ return {time:p.time,value:100}; })); oscSeries.push(a100);
+        }catch(e){}
+        if(al.length){ var veAl=head.querySelector(".osc-v"); var lastAl=al[al.length-1].value; if(veAl&&lastAl!=null) veAl.textContent=lastAl.toFixed(2)+(lastAl>=100?" +α":" −α"); }
+      }
+      else if(o.id==="rngpos"){
+        var rp=rangePos(d, o.p||252);
+        addO(rp, "#2962ff");
+        bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80);
+        if(rp.length){ var veRp=head.querySelector(".osc-v"); var lastRp=rp[rp.length-1].value; if(veRp&&lastRp!=null) veRp.textContent=lastRp.toFixed(1)+"% of range"; }
+      }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
