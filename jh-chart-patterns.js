@@ -208,10 +208,14 @@
     var read = root.jhTapeRead || root.__jhTapeReadRaw;
     if (!read) return [];
     var pack = read(d) || {};
-    var want = { BOTTOM: 1, TOP: 1, "REV-UP": 1, "REV-DN": 1, SC: 1, CAPIT: 1, SOS: 1, SOW: 1, BC: 1, EOA: 1, EOD: 1 };
+    var wantLv = { BOTTOM: 1, TOP: 1, "REV-UP": 1, "REV-DN": 1 };
+    var wantWy = { SC: 1, CAPIT: 1, SOS: 1, SOW: 1, BC: 1, EOA: 1, EOD: 1 };
     var src = (pack.livermore && pack.livermore.markers || []).concat(pack.wyckoff && pack.wyckoff.markers || []);
     if (!src.length && pack.markers) src = pack.markers;
-    return src.filter(function (m) { return m && want[m.text]; });
+    var lv = src.filter(function (m) { return m && wantLv[m.text]; });
+    var wy = src.filter(function (m) { return m && wantWy[m.text]; });
+    function lastN(a, n) { return a.length <= n ? a : a.slice(-n); }
+    return lastN(lv, 8).concat(lastN(wy, 8));
   }
 
   function detect(d) {
