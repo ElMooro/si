@@ -17,7 +17,16 @@ from factory_core import digest, identifier, iso
 
 INSIDE_ACTIONS = {"burst": "dispatch a trace burst on the curriculum (ops)", "verify": "run factory-trace-verify on the last burst",
                   "exam": "run the frozen HumanEval exam on the current adapter", "status": "self-report", "spawn": "materialize recruits"}
-STATUS_WORDS = ("status", "where do you stand", "where are you", "what did you learn", "what have you learned", "progress", "report", "how far")
+STATUS_WORDS = ("status", "where do you stand", "where are you", "what did you learn", "what have you learned", "progress", "report", "how far",
+                "are you learning", "learning to code", "can you code", "do you code", "can you program", "what can you do", "how do you learn",
+                "how are you learning", "are you getting smarter", "what have you done", "how smart", "what do you know")
+
+
+def capability_text():
+    return ("How I answer on this route: self-reports and capability answers come from objects; reading (Wikipedia, docs, search) "
+            "produces receipts, never lessons; there is no live model inference behind this chat box by design. "
+            "To get code from me: `task: <what you want> tests: <python asserts>` -- the next burst samples solutions from the owned "
+            "model and only what passes the independent verifier is kept and reported here.")
 
 
 def _get(store, bucket, key):
@@ -100,6 +109,11 @@ def status_text(store):
     lines.append("Wall: %s entries posted, %s graded; season %s. Chain of command: %s active cards, %s retired. Health: %s (%d errors)." % (
         wall.get("posted", wall.get("entries", "?")), wall.get("graded", "?"), (st.get("season") or {}).get("id") if isinstance(st.get("season"), dict) else st.get("season"),
         ranks.get("active", "?"), ranks.get("retired", "?"), health.get("status", "?"), len(health.get("errors") or [])))
+    cards = [k for k in _list(store, store.private, "factory/queue/tasks/task-", cap=500)]
+    results = [k for k in cards if "-result-" in k]
+    queued = [k for k in cards if "-result-" not in k]
+    if cards:
+        lines.append("Owner tasks: %d filed, %d with a verified solution (results sit next to the cards under factory/queue/tasks/)." % (len(queued), len(results)))
     lines.append("What I have learned so far = the rows above that passed an independent checker; nothing else counts. Read receipts are not lessons.")
     return "\n".join(lines)
 

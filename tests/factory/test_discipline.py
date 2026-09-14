@@ -427,6 +427,16 @@ class StatusAndTasksTests(Base):
         self.assertIn('1765 candidates, 1165 passed (66.0%), 399 rows kept', out['reply'])
         self.assertIn('Verified curriculum rows on disk: 5', out['reply'])
         self.assertIn('Read receipts are not lessons', out['reply'])
+        # the question that used to advance a curriculum step is a capability question -> objects, not a lesson
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'are you learning to code?'}, store)
+        self.assertEqual(out['model'], 'factory-status:objects')
+        self.assertIn('no live model inference behind this chat box', out['reply'])
+        self.assertNotIn('LEARNED THIS TURN', out['reply'])
+        # an explicit order advances the reading track and is labelled as reading, never learning
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'learn code'}, store)
+        self.assertTrue(out['model'].startswith('reading-receipt:'), out['model'])
+        self.assertNotIn('LEARNED THIS TURN', out['reply'])
+        self.assertNotIn('thousands of lines', out['reply'])
         out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'task: write a function that parses ISO weeks tests: assert parse_week("2026-W38") == (2026, 38)'}, store)
         self.assertEqual(out['model'], 'factory-task-intake')
         card_key = [k for b, k in self.cloud.rows if k.startswith('factory/queue/tasks/task-')][0]

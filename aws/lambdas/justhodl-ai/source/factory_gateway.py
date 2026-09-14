@@ -410,7 +410,7 @@ OUTSIDE_VOICE_SYSTEM = (
 )
 
 
-def _public_think(question, facts):
+def _public_think(question, facts, history=None):
     """Owner chat voice only, through the governed router (daily budget, on-demand gate, cost attribution).
 
     Never a grader, never a lesson source: nothing this returns is written as evidence. An empty string
@@ -420,7 +420,10 @@ def _public_think(question, facts):
         from llm_router import complete
     except Exception:  # noqa: BLE001
         return ""
-    prompt = "QUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (question[:1500], facts[:3500])
+    turns = ""
+    for m in (history or [])[-6:]:
+        turns += "%s: %s\n" % ("OWNER" if m.get("role") == "owner" else "FACTORY", str(m.get("text") or "")[:400])
+    prompt = "RECENT TURNS:\n%s\nQUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (turns[-2400:], question[:1500], facts[:3500])
     try:
         txt = complete(prompt, tier="reason", max_tokens=500, contains_proprietary=False,
                        system=OUTSIDE_VOICE_SYSTEM, on_demand=True, no_cache=True)
@@ -568,15 +571,10 @@ def _relevant(hit, q):
 
 def _compose_answer(text, intent, hits, state):
     if intent in ("code", "learn-code"):
-        skills = (state or {}).get("skillbook") or (state or {}).get("verified_skills") or []
-        n = len(skills) if isinstance(skills, list) else skills
-        return (
-            "Yes. Not as a chat model dumping files — as this factory's Coder. "
-            "I queue a bounded patch against the protected exam and keep only what grades. "
-            "I will not write thousands of lines in this box. Point at a failing test or a JustHodl file.\n"
-            "How I get good: Ericsson (deliberate practice), worked examples, TDD. "
-            "Verified skills on the books: %s. Click Learn how to learn code for Stage 0." % n
-        )
+        return ("No live model inference runs on this chat route (no always-on endpoint by design). "
+                "My code is produced in graded bursts: file `task: <what you want> tests: <python asserts>` and the next burst "
+                "samples solutions from the owned model; only what passes the independent verifier is kept. "
+                "Ask `status` for the real numbers (bursts, pass rate, kept rows, training jobs).")
     if intent in ("markets", "investing", "learn-markets", "learn-investing"):
         return (
             "Research only. Delayed warehouse tape plus public market structure. No orders. "
@@ -666,7 +664,14 @@ def _learn_track(store, track, state):
     return lesson
 
 
-def _brain_chat(store, target, text, state, owner):
+def _explicit_learn_command(text):
+    """A curriculum step advances only on a direct order ("learn code", "study markets", "next stage"), never
+    because a question happens to contain the words learn and code."""
+    low = " ".join((text or "").lower().split())
+    return low.startswith(("learn ", "study ", "next stage", "teach yourself", "go learn", "read up on")) or low in ("learn", "next stage")
+
+
+def _brain_chat(store, target, text, state, owner, history=None):
     """Inside = SageMaker Brain. Outside = live public look, then warehouse. Never Anthropic. Notes stay private."""
     if not owner:
         return "Owner Brain chat only.", "guest-blocked"
@@ -676,7 +681,9 @@ def _brain_chat(store, target, text, state, owner):
     clf = pipe.get("classifier_endpoint")
     ds_id = pipe.get("dataset_id")
     intent = _intent(text, target)
-    tracks = _detect_tracks(text, target)
+    tracks = _detect_tracks(text, target) if _explicit_learn_command(text) else []
+    if intent.startswith("learn-") and not _explicit_learn_command(text):
+        intent = intent.split("-", 1)[-1]          # a question about learning is a question, not a lesson
     if intent.startswith("learn-") and not tracks:
         tracks = [intent.split("-", 1)[-1]]
     lessons = []
@@ -705,8 +712,8 @@ def _brain_chat(store, target, text, state, owner):
     lines = []
     model = "brain+look"
     if skip_brain:
-        lines.append("INSIDE — skipped nearest-notes. 'Can you code?' is a capability question, not a search of chat logs.")
-        model = "coder" if intent == "code" else ("curriculum+" + ((lessons[0].get("track") if lessons else intent) or "look"))
+        lines.append("INSIDE — nearest-notes skipped (capability question or curriculum step; not a search of chat logs).")
+        model = "no-inference:honest" if intent == "code" else ("reading-receipt:" + ((lessons[0].get("track") if lessons else intent) or "look"))
     elif not ep:
         lines.append("INSIDE: Brain retrieval is not InService.")
     else:
@@ -752,7 +759,7 @@ def _brain_chat(store, target, text, state, owner):
         else:
             lines.append("No usable notes (chat crumbs filtered).")
     if lessons:
-        lines.append("LEARNED THIS TURN — left the box on purpose.")
+        lines.append("READ THIS TURN — reading receipts only; reading is not learning (a skill counts when an independent test passes).")
         for lesson in lessons:
             head = (lesson.get("title") or (lesson.get("track") or "").upper())
             lines.append(head)
@@ -766,7 +773,7 @@ def _brain_chat(store, target, text, state, owner):
                 lines.append("Warehouse for this track: " + lesson["warehouse"][:360])
     lines.append("OUTSIDE — live look beyond this system. Cited or missing, never invented.")
     if lessons:
-        lines.append("Curriculum look is under LEARNED. Not a second scrape.")
+        lines.append("Curriculum look is under READ. Not a second scrape.")
     elif hits:
         for hit in hits[:6]:
             lines.append("• [%s] %s — %s %s" % (hit.get("source"), hit.get("title"), (hit.get("snippet") or "")[:180], hit.get("url") or ""))
@@ -777,8 +784,8 @@ def _brain_chat(store, target, text, state, owner):
     public_ctx = json.dumps(hits)[:2200] + "\n" + (outside or "")
     think = ""
     if not skip_brain and hits:
-        think = _public_think(text, public_ctx)
-    lines.append("THINKING")
+        think = _public_think(text, public_ctx, history)
+    lines.append("VOICE — " + ("outside reasoner via llm_router (explains; never grades, never a lesson)" if think else "deterministic (router silent or not needed)"))
     lines.append(think or _compose_answer(text, intent, hits, state))
     return "\n".join(lines), model
 
@@ -822,9 +829,9 @@ def chat_post(store, agent, owner, body, policy):
         reply = "Task %s recorded (%s, %s). Route: %s" % (task_card["id"], task_card["scope"], "gradable" if task_card["gradable"] else "ungraded", task_card["route"])
         model = "factory-task-intake"
     elif factory_status.is_status_request(text):
-        reply, model = factory_status.status_text(store), "factory-status:objects"
+        reply, model = factory_status.status_text(store) + "\n\n" + factory_status.capability_text(), "factory-status:objects"
     else:
-        reply, model = _brain_chat(store, target, text, state, owner)
+        reply, model = _brain_chat(store, target, text, state, owner, history)
     now = iso(store.clock())
     user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
     bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "model": model,

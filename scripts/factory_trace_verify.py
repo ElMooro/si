@@ -46,6 +46,14 @@ def cmd_join(args) -> int:
             row = json.loads(line)
             if row.get("task_id") and isinstance(row.get("tests"), str):
                 tests[str(row["task_id"])] = row
+    if args.task_cards and os.path.exists(args.task_cards):
+        for line in open(args.task_cards, encoding="utf-8"):
+            if not line.strip():
+                continue
+            card = json.loads(line)
+            if card.get("id") and isinstance(card.get("tests"), str) and card["tests"].strip():
+                tests[str(card["id"])] = {"task_id": card["id"], "prompt": card.get("text"), "tests": card["tests"], "timeout_s": 12, "family": "owner-task",
+                                          "source_sha": sha(json.dumps(card, sort_keys=True).encode()), "source_url": "factory/queue/tasks/%s.json" % card["id"], "citation": "owner task card"}
     holdout = set()
     if args.holdout_ids and os.path.exists(args.holdout_ids):
         holdout = set(json.load(open(args.holdout_ids)).get("ids") or json.load(open(args.holdout_ids)) or [])
@@ -98,6 +106,11 @@ def cmd_write(args) -> int:
             except Exception as exc:  # noqa: BLE001
                 if "PreconditionFailed" not in str(exc) and "412" not in str(exc):
                     raise
+            if str(row.get("family")) == "owner-task":
+                s3.put_object(Bucket=PRIVATE, Key="factory/queue/tasks/%s-result-%s.json" % (row["task_id"], vid[:8]),
+                              Body=json.dumps({"schema_version": "factory-task-result.v1", "task": row["task_id"], "burst": args.burst, "passed": True,
+                                               "solution": row["solution"], "verified_by": "owner_runner", "run_id": args.run_id, "at": verdict["at"]}, sort_keys=True).encode(),
+                              ContentType="application/json", IfNoneMatch="*")
             if row["task_id"] in seen_tasks and not args.all_samples:
                 continue          # one kept row per task per burst unless asked: diversity comes from tasks, not duplicates
             seen_tasks.add(row["task_id"])
@@ -124,7 +137,7 @@ def cmd_write(args) -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    j = sub.add_parser("join"); j.add_argument("--traces", required=True); j.add_argument("--candidates", required=True); j.add_argument("--out", required=True); j.add_argument("--holdout-ids")
+    j = sub.add_parser("join"); j.add_argument("--traces", required=True); j.add_argument("--candidates", required=True); j.add_argument("--out", required=True); j.add_argument("--holdout-ids"); j.add_argument("--task-cards")
     w = sub.add_parser("write"); w.add_argument("--in", dest="inp", required=True); w.add_argument("--burst", required=True); w.add_argument("--run-id", required=True); w.add_argument("--all-samples", action="store_true")
     args = ap.parse_args(argv)
     return cmd_join(args) if args.cmd == "join" else cmd_write(args)
