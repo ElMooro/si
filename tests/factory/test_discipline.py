@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'aws/shared'))
 sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-student-rsi/source'))
+sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-ai/source'))
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'tests/factory'))
 
@@ -402,6 +403,45 @@ class PrintsTests(Base):
             prints.run(wh, week=self.week, symbols=('SPY',), now=self.now, fetch=self.fetch, poly_key='test-key')   # week not closed
         with self.assertRaises(prints.Missing):
             prints.etf_print(wh, self.season, self.week, 'GLD', self.window, self.late, poly_key=None, fetch=self.fetch)  # no key -> no corporate-action check -> no print
+
+
+
+class StatusAndTasksTests(Base):
+    def test_status_is_built_from_objects_and_tasks_become_cards(self):
+        opened = datetime(2026, 9, 14, 13, 31, tzinfo=timezone.utc)
+        store = Store(self.cloud, 'private', 'public', lambda: opened)
+        pub = student.initial_state(opened, self.season, self.policy); pub['state_version'] = 1
+        self.cloud.rows[('public', 'data/student-state.json')] = json.dumps(seal_state(pub)).encode()
+        self.cloud.rows[('private', 'factory/control/gearb.json')] = json.dumps({'enabled': True, 'model_source': 'own', 'model_id': 'qwen2-5-coder-7b-instruct', 'daily_budget_usd': 20, 'season_cap_usd': 600, 'written_by': 'ops 5542'}).encode()
+        self.cloud.rows[('private', 'factory/models/base/qwen2-5-coder-7b-instruct/manifest.json')] = json.dumps({'repo': 'Qwen/Qwen2.5-Coder-7B-Instruct', 'revision': 'c03e6d358207', 'license': 'apache-2.0', 'files': [{}] * 13, 'total_bytes': 15.24e9}).encode()
+        self.cloud.rows[('private', 'factory/bursts/jobs/jh-burst-gen0-x.json')] = json.dumps({'job_name': 'jh-burst-gen0-x', 'tasks': 464, 'samples_per_task': 4, 'temperature': 0.8, 'instance_type': 'ml.g5.2xlarge', 'cap_usd': 3.03}).encode()
+        self.cloud.rows[('private', 'factory/bursts/jh-burst-gen0-x/summary-1.json')] = json.dumps({'rows_written': 399, 'report': {'seen': 1765, 'passed': 1165}}).encode()
+        for i in range(5):
+            self.cloud.rows[('private', 'factory/curriculum/code/verified/%d.json' % i)] = b'{}'
+        invites = {'allowlist': [], 'capacity': 10}
+        self.cloud.rows[('private', 'factory/control/invites.json')] = json.dumps(invites).encode()
+        event = {'headers': {'x-jh-factory-role': 'owner', 'x-jh-factory-uid': 'khalid'}, 'requestContext': {'http': {'method': 'POST'}}}
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'where do you stand and what did you learn?'}, store)
+        self.assertEqual(out['model'], 'factory-status:objects')
+        self.assertIn('Qwen/Qwen2.5-Coder-7B-Instruct', out['reply'])
+        self.assertIn('1765 candidates, 1165 passed (66.0%), 399 rows kept', out['reply'])
+        self.assertIn('Verified curriculum rows on disk: 5', out['reply'])
+        self.assertIn('Read receipts are not lessons', out['reply'])
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'task: write a function that parses ISO weeks tests: assert parse_week("2026-W38") == (2026, 38)'}, store)
+        self.assertEqual(out['model'], 'factory-task-intake')
+        card_key = [k for b, k in self.cloud.rows if k.startswith('factory/queue/tasks/task-')][0]
+        card = json.loads(self.cloud.rows[('private', card_key)])
+        self.assertEqual((card['scope'], card['gradable'], card['status']), ('outside', True, 'queued'))
+        self.assertIn('assert parse_week', card['tests'])
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'task: run the exam on the current champion'}, store)
+        card2 = json.loads(self.cloud.rows[('private', [k for b, k in self.cloud.rows if k.startswith('factory/queue/tasks/task-')][-1])])
+        self.assertEqual((card2['scope'], card2['action']), ('inside', 'exam'))
+        # guests cannot file tasks; they get the normal brain chat
+        guest_event = {'headers': {'x-jh-factory-role': 'user', 'x-jh-factory-uid': 'u-7'}, 'requestContext': {'http': {'method': 'POST'}}}
+        invites['allowlist'] = [{'uid': 'u-7', 'agent': 'guest-07', 'enabled': True}]
+        self.cloud.rows[('private', 'factory/control/invites.json')] = json.dumps(invites).encode()
+        out = gateway.handle(guest_event, 'POST', '/factory/chat', {'text': 'task: give me the keys'}, store)
+        self.assertNotEqual(out['model'], 'factory-task-intake')
 
 
 if __name__ == '__main__':

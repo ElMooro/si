@@ -95,7 +95,14 @@ def apps_rows(max_rows: int):
     from datasets import load_dataset  # type: ignore
 
     src = SOURCES["apps"]
-    ds = load_dataset(src["hf"], split="train", trust_remote_code=False)
+    try:
+        ds = load_dataset(src["hf"], split="train", trust_remote_code=False)
+    except Exception as first:  # noqa: BLE001 -- script-backed hub datasets are refused by datasets>=3; use the parquet conversion
+        try:
+            ds = load_dataset("parquet", data_files="hf://datasets/%s@refs/convert/parquet/all/train/*.parquet" % src["hf"], split="train")
+        except Exception as second:  # noqa: BLE001
+            print(json.dumps({"apps": "unavailable", "direct": str(first)[:160], "parquet": str(second)[:160]}), file=sys.stderr)
+            return
     n = 0
     for row in ds:
         if n >= max_rows:
@@ -116,22 +123,40 @@ def apps_rows(max_rows: int):
         pid = str(row.get("problem_id"))
         yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-introductory", "license": src["license"],
                "source_url": "https://huggingface.co/datasets/%s" % src["hf"], "citation": src["citation"],
-               "source_sha": sha(("apps:" + pid).encode("utf-8")), "prompt": str(row.get("question") or "").strip(),
+               "source_sha": sha(("apps:" + pid + "\n" + str(row.get("question") or "") + "\n" + tests).encode("utf-8")), "prompt": str(row.get("question") or "").strip(),
                "solution": _as_function(str(solutions[0])), "tests": tests, "timeout_s": 12}
         n += 1
 
 
 def _as_function(program: str) -> str:
-    """Wrap a stdin/stdout program so the verifier can call it per test case."""
-    body = "\n".join("    " + ln for ln in program.splitlines())
-    return "import sys\nfrom io import StringIO\n\ndef __run(stdin_text):\n    _in, _out = sys.stdin, sys.stdout\n    sys.stdin, sys.stdout = StringIO(stdin_text), StringIO()\n    try:\n%s\n        return sys.stdout.getvalue()\n    finally:\n        sys.stdin, sys.stdout = _in, _out\n" % body
+    """A stdin/stdout program stays a program. The test preamble (see _stdio_tests) executes the candidate source
+    per case with redirected stdio, so nothing is re-indented and `if __name__ == "__main__":` guards work."""
+    return program.replace("\r\n", "\n").rstrip() + "\n"
+
+
+# First line marks a stdio task for the verifier runner: it must NOT import the candidate as a module (a stdin
+# program would block on input()); the preamble runs the candidate source per case instead.
+STDIO_PREAMBLE = """#stdio
+import sys as __sys, io as __io
+def __run(stdin_text):
+    _in, _out = __sys.stdin, __sys.stdout
+    __sys.stdin, __sys.stdout = __io.StringIO(stdin_text), __io.StringIO()
+    try:
+        exec(compile(__src, "candidate.py", "exec"), {"__name__": "__main__"})
+    except SystemExit:
+        pass
+    finally:
+        _text = __sys.stdout.getvalue()
+        __sys.stdin, __sys.stdout = _in, _out
+    return _text
+"""
 
 
 def _stdio_tests(io_pairs: dict) -> str:
     inputs, outputs = io_pairs.get("inputs") or [], io_pairs.get("outputs") or []
     if len(inputs) != len(outputs) or not inputs:
         return ""
-    lines = []
+    lines = [STDIO_PREAMBLE.rstrip("\n")]
     for i, (inp, out) in enumerate(zip(inputs[:8], outputs[:8])):
         if not isinstance(inp, str) or not isinstance(out, str):
             return ""

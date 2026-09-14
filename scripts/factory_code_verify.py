@@ -30,8 +30,9 @@ except (OSError, ValueError, IndexError):
     nonce = ""
 src = open(sys.argv[1], encoding="utf-8").read()
 tests = open(sys.argv[2], encoding="utf-8").read()
-ns = {"__name__": "__candidate__"}
-exec(compile(src, "candidate.py", "exec"), ns)
+ns = {"__name__": "__candidate__", "__src": src}
+if not tests.startswith("#stdio"):          # stdio tasks are executed per case by the test preamble
+    exec(compile(src, "candidate.py", "exec"), ns)
 exec(compile(tests, "tests.py", "exec"), ns)
 sys.stdout.flush()
 sys.stdout.write("\n" + nonce + ":PASS\n")
@@ -40,9 +41,10 @@ sys.stdout.flush()
 
 # Candidate source that tries to talk to the process, the supervisor, the interpreter's internals or the network is
 # refused before it runs. Sampled completions never need these; a model that learns them would be reward-hacking.
-FORBIDDEN = ("os._exit", "sys.exit", "subprocess", "sys._getframe", "gc.get_objects", "ctypes", "importlib", "__builtins__",
-             "socket", "urllib", "requests", "http.client", "signal.", "os.kill", "os.fork", "os.execv", "open(\'/proc", "open(\"/proc",
-             "sys.settrace", "sys.setprofile", "inspect.", "PASS")
+# Exits are allowed (a stdio program may call exit(); without the nonce an early exit simply fails the case).
+FORBIDDEN = ("subprocess", "sys._getframe", "gc.get_objects", "gc.get_referrers", "ctypes", "importlib", "__builtins__",
+             "socket", "urllib", "requests", "http.client", "signal.", "os.kill", "os.fork", "os.execv", "os.popen", "open(\'/proc", "open(\"/proc",
+             "sys.settrace", "sys.setprofile", "inspect.", "__loader__", "__spec__")
 
 
 def _drop_privileges():

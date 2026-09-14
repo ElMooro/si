@@ -20,6 +20,14 @@ from factory_core import Invalid, canonical, digest, identifier, iso, validate_p
 from factory_evidence import SCHEMA_EVIDENCE, reading_receipt, validate_evidence
 from factory_store import Conflict, Store
 import factory_discipline
+try:
+    import factory_status
+except ImportError:  # loaded by path (tests); the module sits next to this file
+    import importlib.util as _ilu
+    import os as _os
+    _spec = _ilu.spec_from_file_location("factory_status", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "factory_status.py"))
+    factory_status = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(factory_status)
 
 CFG = Config(connect_timeout=3, read_timeout=10, retries={'max_attempts': 2})
 
@@ -806,11 +814,21 @@ def chat_post(store, agent, owner, body, policy):
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
     history = list((log or {}).get("messages") or [])
-    reply, model = _brain_chat(store, target, text, state, owner)
+    task_card = None
+    if factory_status.is_task_request(text) and owner:
+        # "task: ..." -> immutable card, routed to what can actually be graded/executed; nothing runs from chat text
+        task_text, tests = factory_status.split_tests(text)
+        task_card = factory_status.intake_task(store, agent, owner, task_text, tests=tests)
+        reply = "Task %s recorded (%s, %s). Route: %s" % (task_card["id"], task_card["scope"], "gradable" if task_card["gradable"] else "ungraded", task_card["route"])
+        model = "factory-task-intake"
+    elif factory_status.is_status_request(text):
+        reply, model = factory_status.status_text(store), "factory-status:objects"
+    else:
+        reply, model = _brain_chat(store, target, text, state, owner)
     now = iso(store.clock())
     user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
     bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "model": model,
-               "spawn": (spawned or {}).get("created")}
+               "spawn": (spawned or {}).get("created"), "task": (task_card or {}).get("id")}
     messages = (history + [user_msg, bot_msg])[-CHAT_KEEP:]
     store.put(store.private, key, {"schema_version": "factory-chat.v1", "agent": agent, "messages": messages, "updated_at": now, "model": model},
               etag=etag, absent=etag is None)

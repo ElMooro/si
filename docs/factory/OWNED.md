@@ -55,3 +55,15 @@ Substantiated, not fixed here (other lane's files, noted for them): APPS wrapper
 interface, diversity ceiling math, job double-counting in the budget, APPS source hash by id, persistent
 curriculum cursor. Interface honesty items ("LEARNED THIS TURN" → read/practiced/passed/retained; the coding chat
 does not call the model; report "success" vs RED) are queued for the desk.
+
+## The engine's page and chat (2026-09-14)
+
+The engine sits on `https://justhodl.ai/ai.html` (factory pane: chat box, chain of command, wall, exams). In the chat:
+`where do you stand / what did you learn / status` returns a self-report assembled from objects only
+(`factory_status.status_text`: base manifest, gearb control, champion, bursts + verifier summaries, verified row
+count, training jobs, wall, ranks, health) — never an LLM, never a guess. `task: ...` (owner only) files an
+immutable card under `factory/queue/tasks/`; with `tests: <asserts>` the task is gradable and rides the next
+burst as a prompt the verifier grades; inside tasks map to lane actions (burst / verify / exam / status / spawn);
+outside tasks without tests are answered from reading receipts and marked ungraded. APPS is a second graded
+family again: stdio programs run per test case through a preamble (no re-indentation), source hashed by content,
+and the dataset is loaded from the Hub's parquet conversion when the script-backed load is refused.
