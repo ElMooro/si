@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-14T05:55:20.055812+00:00",
+  "observed_at": "2026-09-14T05:56:16.011459+00:00",
   "runs": [
     {
       "id": 34811035304,
@@ -1586,18 +1586,18 @@
       "id": 34809206930,
       "path": ".github/workflows/run-ops.yml",
       "head_sha": "63e9decc5f0f56c746d8cc19e6f999ae1757aff8",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-09-14T05:19:18Z",
-      "updated_at": "2026-09-14T05:19:21Z",
+      "updated_at": "2026-09-14T05:55:58Z",
       "jobs": [
         {
           "id": 103866967123,
           "name": "Execute ops script",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "started_at": "2026-09-14T05:19:21Z",
-          "completed_at": null,
+          "completed_at": "2026-09-14T05:55:57Z",
           "steps": [
             {
               "number": 1,
@@ -1674,68 +1674,90 @@
             {
               "number": 10,
               "name": "Run script(s)",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "failure",
               "started_at": "2026-09-14T05:20:27Z",
-              "completed_at": null
+              "completed_at": "2026-09-14T05:55:53Z"
             },
             {
               "number": 11,
               "name": "Regenerate STATE.md snapshot",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:53Z",
+              "completed_at": "2026-09-14T05:55:54Z"
             },
             {
               "number": 12,
               "name": "Preserve reviewed audit receipts before commit",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:54Z",
+              "completed_at": "2026-09-14T05:55:54Z"
             },
             {
               "number": 13,
               "name": "Commit any new/changed reports or imports",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:54Z",
+              "completed_at": "2026-09-14T05:55:56Z"
             },
             {
               "number": 14,
               "name": "Summary",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:56Z",
+              "completed_at": "2026-09-14T05:55:56Z"
             },
             {
               "number": 26,
               "name": "Post Configure AWS credentials",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:56Z",
+              "completed_at": "2026-09-14T05:55:56Z"
             },
             {
               "number": 27,
               "name": "Post Set up Python",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-09-14T05:55:56Z",
+              "completed_at": "2026-09-14T05:55:56Z"
             },
             {
               "number": 28,
               "name": "Post Checkout",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:56Z",
+              "completed_at": "2026-09-14T05:55:57Z"
+            },
+            {
+              "number": 29,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:55:57Z",
+              "completed_at": "2026-09-14T05:55:57Z"
             }
-          ]
+          ],
+          "failure_diagnostics": {
+            "available": true,
+            "function_failures": [],
+            "exception_types": [],
+            "aws_error_codes": [],
+            "missing_modules": [],
+            "traceback_locations": [],
+            "failed_test_names": [],
+            "javascript_test_locations": [],
+            "failed_javascript_test_numbers": [],
+            "validation_failures": [],
+            "failed_functions": [],
+            "deployed_functions": []
+          }
         }
       ]
     },
