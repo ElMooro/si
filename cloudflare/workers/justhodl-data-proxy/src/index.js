@@ -1592,16 +1592,20 @@ export default {
         dividends: `/v3/reference/dividends?ticker=${ticker}&limit=20&order=desc`,
         splits: `/v3/reference/splits?ticker=${ticker}&limit=12&order=desc`,
         ticker: `/v3/reference/tickers/${ticker}`,
+        related: `/v1/related-companies/${ticker}`,
+        events: `/vX/reference/tickers/${ticker}/events?limit=20`,
+        snapshot: `/v2/snapshot/locale/us/markets/stocks/tickers/${ticker}`,
         rsi: `/v1/indicators/rsi/${ticker}?timespan=day&window=14&limit=30&order=desc`,
         sma: `/v1/indicators/sma/${ticker}?timespan=day&window=50&limit=30&order=desc`,
         ema: `/v1/indicators/ema/${ticker}?timespan=day&window=20&limit=30&order=desc`,
         macd: `/v1/indicators/macd/${ticker}?timespan=day&limit=30&order=desc`,
+        vwap: `/v1/indicators/vwap/${ticker}?timespan=day&limit=5&order=desc`,
         short: `/stocks/v1/short-interest?ticker=${ticker}&limit=8&sort=settlement_date.desc`,
         options: `/v3/snapshot/options/${ticker}?limit=40`,
         contracts: `/v3/reference/options/contracts?underlying_ticker=${ticker}&expired=false&limit=20&sort=expiration_date`,
         etfFlows: `/etf-global/v1/fund-flows?composite_ticker=${ticker}&sort=processed_date.desc&limit=40`,
         etfProfile: `/etf-global/v1/profiles?composite_ticker=${ticker}&sort=processed_date.desc&limit=4`,
-        etfHold: `/etf-global/v1/constituents?composite_ticker=${ticker}&sort=constituent_rank.asc&limit=20`,
+        etfHold: `/etf-global/v1/constituents?composite_ticker=${ticker}&sort=processed_date.desc&limit=80`,
       };
       async function poly(path) {
         let last = { error: "no host" };
@@ -1623,9 +1627,10 @@ export default {
         let out = { ticker, kind, source: "massive" };
         if (kind === "etf") {
           const [fl, pr, ho] = await Promise.all([poly(paths.etfFlows), poly(paths.etfProfile), poly(paths.etfHold)]);
+          const holds = ((ho.body && ho.body.results) || []).slice().sort((a, b) => (b.weight || 0) - (a.weight || 0));
           out.flows = fl.body;
           out.profile = pr.body;
-          out.holdings = ho.body;
+          out.holdings = Object.assign({}, ho.body || {}, { results: holds.slice(0, 40) });
           out.http = { flows: fl.status, profile: pr.status, holdings: ho.status };
         } else if (kind === "tech" || kind === "indicators") {
           const [rsi, sma, ema, macd] = await Promise.all([poly(paths.rsi), poly(paths.sma), poly(paths.ema), poly(paths.macd)]);
@@ -1634,11 +1639,16 @@ export default {
           out.ema = ema.body;
           out.macd = macd.body;
         } else if (kind === "ref") {
-          const [tk, dv, sp, nw] = await Promise.all([poly(paths.ticker), poly(paths.dividends), poly(paths.splits), poly(paths.news)]);
+          const [tk, dv, sp, nw, rel, snap] = await Promise.all([
+            poly(paths.ticker), poly(paths.dividends), poly(paths.splits), poly(paths.news),
+            poly(paths.related), poly(paths.snapshot)
+          ]);
           out.tickerDetail = tk.body;
           out.dividends = dv.body;
           out.splits = sp.body;
           out.news = nw.body;
+          out.related = rel.body;
+          out.snapshot = snap.body;
         } else {
           const p = paths[kind];
           if (!p) {

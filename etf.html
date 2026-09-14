@@ -45,8 +45,8 @@
 </main>
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-desk-core.js?v=20260914g"></script>
-<script src="/jh-etf-engine.js?v=20260914g"></script>
+<script src="/jh-desk-core.js?v=20260914h"></script>
+<script src="/jh-etf-engine.js?v=20260914h"></script>
 <script>
 (function(){
   var D=JHDesk, cat="ALL", sortK="d", sortDir=-1, DATA=null;
@@ -88,6 +88,10 @@
       return "<tr><td><a class=tk href='/chart.html?s="+r.ticker+"'>"+r.ticker+"</a></td><td class='nm'>"+D.esc(r.name)+"</td>"+cell(r.h.d)+"<td>"+money(r.flow1d)+"</td><td>"+tag(r.flow)+"</td></tr>";
     }).join("")+"</tbody></table>";
   }
+  function fmtEr(v){
+    if(v==null||!isFinite(v)) return "—";
+    return (v<1?v.toFixed(3):v.toFixed(2))+"%";
+  }
   function openLook(r){
     var box=document.getElementById("look"), h=document.getElementById("lookh"), b=document.getElementById("lookb");
     if(!box) return;
@@ -95,20 +99,36 @@
     h.textContent=r.ticker+" · "+(r.name||"")+" · look-through";
     var sec=(r.sector||[]).map(function(x){ return D.esc(x.k)+" "+((x.w<1?x.w*100:x.w).toFixed(1))+"%"; }).join(" · ")||"—";
     var geo=(r.geo||[]).map(function(x){ return D.esc(x.k)+" "+((x.w<1?x.w*100:x.w).toFixed(1))+"%"; }).join(" · ")||"—";
-    var holds=(r.top||[]).map(function(x){
+    var holdsRows=(r.top||[]).map(function(x){
       var w=x.w==null?"—":((x.w<1?x.w*100:x.w).toFixed(2)+"%");
       return "<tr><td>"+D.esc(x.t||"")+"</td><td class=nm>"+D.esc(x.n||"")+"</td><td>"+w+"</td><td>"+D.fmtUsd(x.mv)+"</td></tr>";
-    }).join("")||"<tr><td colspan=4 class=nm>Holdings not in this print.</td></tr>";
-    b.innerHTML="<div class='jh-kpis' style='margin:8px 0'>"+
-      [["Issuer", D.esc(r.issuer||"—"), r.assetClass||""],
-       ["AUM", D.fmtUsd(r.aum), "NAV "+(r.nav==null?"—":D.fmtPx(r.nav))],
-       ["Expense", r.er==null?"—":r.er.toFixed(3)+"%", r.benchmark||""],
-       ["HHI", r.hhi==null?"—":r.hhi.toFixed(0), (r.holdingsN||"—")+" names"],
-       ["Flow 1D / 5D / 21D", D.fmtUsd(r.flow1d), D.fmtUsd(r.flow5d)+" · "+D.fmtUsd(r.flow21d)]
-      ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("")+
-      "</div><div class=nm style='margin:6px 0 10px'>Sector "+sec+"<br>Geo "+geo+"</div>"+
-      "<table class=jh-tbl><thead><tr><th>Ticker</th><th>Holding</th><th>Wgt</th><th>Mkt val</th></tr></thead><tbody>"+holds+"</tbody></table>"+
-      "<p class=jh-note style='margin-top:8px'><a href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>Open chart →</a></p>";
+    }).join("");
+    function paintHolds(html){
+      b.innerHTML="<div class='jh-kpis' style='margin:8px 0'>"+
+        [["Issuer", D.esc(r.issuer||"—"), r.assetClass||""],
+         ["AUM", D.fmtUsd(r.aum), "NAV "+(r.nav==null?"—":D.fmtPx(r.nav))],
+         ["Expense", fmtEr(r.er), r.benchmark||""],
+         ["HHI", r.hhi==null?"—":r.hhi.toFixed(0), (r.holdingsN||"—")+" names"],
+         ["Flow 1D / 5D / 21D", D.fmtUsd(r.flow1d), D.fmtUsd(r.flow5d)+" · "+D.fmtUsd(r.flow21d)]
+        ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("")+
+        "</div><div class=nm style='margin:6px 0 10px'>Sector "+sec+"<br>Geo "+geo+"</div>"+
+        "<table class=jh-tbl><thead><tr><th>Ticker</th><th>Holding</th><th>Wgt</th><th>Mkt val</th></tr></thead><tbody>"+(html||"<tr><td colspan=4 class=nm>Pulling ETF Global holdings…</td></tr>")+"</tbody></table>"+
+        "<p class=jh-note style='margin-top:8px'><a href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>Open chart →</a></p>";
+    }
+    paintHolds(holdsRows);
+    if(!holdsRows){
+      fetch("https://justhodl-data-proxy.raafouis.workers.dev/poly/etf?ticker="+encodeURIComponent(r.ticker))
+        .then(function(res){ return res.json(); })
+        .then(function(j){
+          var rows=((j&&j.holdings&&j.holdings.results)||[]).slice(0,12);
+          if(!rows.length){ paintHolds(""); return; }
+          r.top=rows.map(function(h){ return {t:h.constituent_ticker,n:h.constituent_name,w:h.weight,mv:h.market_value}; });
+          paintHolds(r.top.map(function(x){
+            var w=x.w==null?"—":((x.w<1?x.w*100:x.w).toFixed(2)+"%");
+            return "<tr><td>"+D.esc(x.t||"")+"</td><td class=nm>"+D.esc(x.n||"")+"</td><td>"+w+"</td><td>"+D.fmtUsd(x.mv)+"</td></tr>";
+          }).join(""));
+        }).catch(function(){ paintHolds(""); });
+    }
     box.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
   function draw(){
@@ -137,7 +157,7 @@
         cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
         "<td>"+money(r.flow1d)+"</td><td>"+money(r.flow5d)+"</td>"+
         "<td>"+tag(r.flow)+"</td><td>"+tag(r.ad)+"</td><td>"+tag(r.pattern)+"</td>"+
-        "<td>"+D.fmtUsd(r.aum)+"</td><td>"+(r.er==null?"—":r.er.toFixed(2)+"%")+"</td></tr>";
+        "<td>"+D.fmtUsd(r.aum)+"</td><td>"+fmtEr(r.er)+"</td></tr>";
     }).join("");
     document.querySelector("#tbl thead").innerHTML=thead;
     document.querySelector("#tbl tbody").innerHTML=body||"<tr><td colspan=18 class=jh-load>No names in this sleeve.</td></tr>";

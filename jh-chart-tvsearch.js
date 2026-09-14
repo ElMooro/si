@@ -176,6 +176,19 @@
     return "<div class=kpi>" + kpis + "</div>" + blk("Total return", retHtml) + blk("Profile", profile);
   }
 
+  function renderRelated(pack) {
+    var j = pack.related || {};
+    var rows = polyRows(j);
+    if (!rows.length && j.results && Array.isArray(j.results)) rows = j.results;
+    if (!rows.length) return "";
+    return blk("Related (Polygon reference)", "<table><thead><tr><th>Ticker</th><th>Name</th></tr></thead><tbody>" +
+      rows.slice(0, 12).map(function (r) {
+        var t = r.ticker || r.symbol || "";
+        return "<tr><td><a href='/chart.html?s=" + encodeURIComponent(t) + "'>" + esc(t) + "</a></td><td>" +
+          esc(r.name || r.company_name || "") + "</td></tr>";
+      }).join("") + "</tbody></table>");
+  }
+
   function renderStats(d, bars) {
     var x = pick(d);
     var last = bars && bars.length ? bars[bars.length - 1] : null;
@@ -473,7 +486,7 @@
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
-    if (tab === "over") html = renderOver(d, bars, q);
+    if (tab === "over") html = renderOver(d, bars, q) + renderRelated(pack);
     else if (tab === "stats") html = renderStats(d, bars);
     else if (tab === "val") html = renderVal(d);
     else if (tab === "fin") html = renderFin(d);
@@ -578,7 +591,9 @@
         pack.polyDiv = j4.dividends;
         pack.tickerDetail = j4.tickerDetail;
         pack.polySplits = j4.splits;
-        pack.src.push("Polygon news/div/splits");
+        pack.related = j4.related;
+        pack.snapshot = j4.snapshot;
+        pack.src.push("Polygon news/div/splits/related");
       }
     } catch (e5) {}
     return pack;

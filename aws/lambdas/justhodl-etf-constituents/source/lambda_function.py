@@ -1,24 +1,13 @@
-from equity_donor_inputs import load_inputs, true_flow_rows
-"""justhodl-etf-constituents — Constituent Pull-Through (FMP-powered)
+"""justhodl-etf-constituents — Constituent Pull-Through (Polygon ETF Global first)
 
-The institutional alpha edge from your FMP subscription.
+Paid Massive ETF Global constituents ($99 add-on) is the primary holdings feed.
+FMP /stable/etf/holdings remains the fallback if Polygon 400/empty.
 
 For each ETF with |z-score| >= INSTITUTIONAL_FLOW_THRESHOLD (default 1.5σ),
-we pull every returned constituent by weight from FMP's /stable/etf/holdings
-endpoint. We then compute "implied flow pressure" per stock = (ETF flow $)
-× (constituent weight). When the SAME STOCK appears in MULTIPLE high-z ETFs,
-we sum the pressure — that's the true cross-ETF institutional positioning
+we pull constituents by weight and compute implied flow pressure per stock =
+(ETF flow $) × (constituent weight). When the SAME STOCK appears in MULTIPLE
+high-z ETFs, we sum the pressure — that's the true cross-ETF positioning
 signal.
-
-Example: AAPL is in XLK (-$458M flow, 11% weight), QQQ (-$1500M, 7%), and
-SPY (-$80M, 7%). Total implied pressure = -$458×.11 + -$1500×.07 + -$80×.07
-= -$161M of institutional selling pressure on AAPL via ETF channels.
-
-WHY FMP NOT POLYGON:
-The user's Polygon ETF Global subscription covers Fund Flows but NOT
-Constituents (separate $99/mo product on Polygon). FMP $99/mo includes
-ETF Holdings as part of the existing plan — same data, zero incremental cost.
-Verified ops 1192 (Polygon 403) + 1193 (FMP 200/505 rows).
 
 OUTPUTS:
   etf-flows/constituent-pressure.json  — aggregated by stock
@@ -32,6 +21,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from fmp_etf import holdings as fmp_holdings, pctf  # ops 3374 shared hardened client
+from equity_donor_inputs import load_inputs, true_flow_rows
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
@@ -62,8 +52,8 @@ def fetch_constituents_polygon(etf_ticker: str) -> dict:
         return {"etf": etf_ticker, "error": "no_polygon_key"}
     params = urllib.parse.urlencode({
         "composite_ticker": etf_ticker,
-        "sort": "constituent_rank.asc",
-        "limit": "500",
+        "sort": "processed_date.desc",
+        "limit": "1000",
         "apiKey": POLYGON_KEY,
     })
     last_err = "no_host"

@@ -267,9 +267,9 @@ def recession_section():
     return out
 
 
-# ─── Section 3: Index implied moves (SPY/QQQ/BTC via FRED VIX-family) ────────
-# Polygon /v3/snapshot/options is paid-tier-locked (HTTP 403 NOT_AUTHORIZED).
-# FRED publishes the same CBOE vol indices daily, FREE.
+# ─── Section 3: Index implied moves (SPY/QQQ/BTC via Options Starter + FRED) ──
+# Options Starter ($29) unlocks /v3/snapshot/options with greeks + IV.
+# FRED VIX-family is the fallback when the snapshot is empty or delayed.
 INDEX_IV_FRED = {
     "SPY":  ("VIXCLS", "VXVCLS"),  # 30-day VIX, 3-month VIX
     "QQQ":  ("VXNCLS", None),
@@ -299,10 +299,57 @@ def get_spot_price(ticker):
     return None
 
 
-def get_atm_iv(ticker, expiry_target_days):
-    """Returns (spot_price, iv_decimal) from FRED VIX-family.
-    expiry_target_days: 30 → use front-month VIX; 90 → use 3-month VIX (where available)."""
+def poly_atm_iv(ticker, dte_lo=5, dte_hi=45):
+    """ATM IV from Options Starter snapshot. Returns (spot, iv_decimal) or (spot, None)."""
     spot = get_spot_price(ticker)
+    if not POLY_KEY:
+        return spot, None
+    results = []
+    for host in ("https://api.polygon.io", "https://api.massive.com"):
+        d = http_get_json(f"{host}/v3/snapshot/options/{ticker}?limit=250&apiKey={POLY_KEY}", timeout=18)
+        results = (d or {}).get("results") or []
+        if results:
+            break
+    if not results or not spot:
+        return spot, None
+    today = date.today()
+    scored = []
+    for r in results:
+        det = r.get("details") or {}
+        strike = det.get("strike_price")
+        exp = (det.get("expiration_date") or "")[:10]
+        iv = r.get("implied_volatility")
+        if strike is None or iv is None or not exp:
+            continue
+        try:
+            ed = datetime.strptime(exp, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        dte = (ed - today).days
+        if dte < dte_lo or dte > dte_hi:
+            continue
+        moneyness = abs(float(strike) / float(spot) - 1.0)
+        if moneyness > 0.06:
+            continue
+        scored.append((moneyness, dte, float(iv)))
+    if not scored:
+        return spot, None
+    scored.sort(key=lambda x: (x[0], x[1]))
+    ivs = [x[2] for x in scored[:8]]
+    return spot, sum(ivs) / len(ivs)
+
+
+def get_atm_iv(ticker, expiry_target_days):
+    """Returns (spot_price, iv_decimal). Polygon options first, FRED VIX-family fallback."""
+    spot, iv = poly_atm_iv(
+        ticker,
+        dte_lo=5 if expiry_target_days < 60 else 50,
+        dte_hi=45 if expiry_target_days < 60 else 120,
+    )
+    if iv:
+        return spot, iv
+
+    spot = spot or get_spot_price(ticker)
     if not spot:
         return None, None
 
@@ -327,8 +374,6 @@ def get_atm_iv(ticker, expiry_target_days):
         v = o.get("value")
         if v and v != ".":
             try:
-                # FRED VIX series are quoted in % terms (e.g., 16.5)
-                # We need IV as decimal for log-normal calculations
                 return spot, float(v) / 100.0
             except ValueError:
                 continue
@@ -366,13 +411,10 @@ def index_implied_moves(ticker):
 
 # ─── Section 4: Earnings implied moves ───────────────────────────────────────
 def earnings_implied_moves():
-    """Single-stock IV requires Polygon options snapshot (paid-tier-only).
-    Returning empty list with explanatory note. Restore when premium tier active."""
+    """Front-month ATM IV from Options Starter for names reporting in the next 14d."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/earnings-tracker.json")
         d = json.loads(obj["Body"].read())
-        # We can still surface upcoming earnings names + days_to (free data).
-        # Just can't compute implied move without single-stock IV.
         out = []
         today = date.today()
         upcoming = (d.get("upcoming_14d") or [])[:10]
@@ -388,14 +430,18 @@ def earnings_implied_moves():
             days_to = (ed - today).days
             if days_to < 0 or days_to > 14:
                 continue
-            out.append({
+            spot, iv = poly_atm_iv(ticker, dte_lo=max(1, days_to), dte_hi=max(21, days_to + 21))
+            row = {
                 "ticker": ticker,
                 "name": (u.get("name") or "")[:40],
                 "earnings_date": ed_str,
                 "days_to": days_to,
-                "spot": None, "iv_pct": None, "expected_move_pct": None,
-                "note": "Single-stock IV requires Polygon premium tier",
-            })
+                "spot": round(spot, 2) if spot else None,
+                "iv_pct": round(iv * 100, 2) if iv else None,
+                "expected_move_pct": round(iv * math.sqrt(max(days_to, 1) / 365) * 100, 2) if iv else None,
+                "source": "polygon-options-starter" if iv else "no-iv",
+            }
+            out.append(row)
         out.sort(key=lambda r: r["days_to"])
         return out
     except Exception as e:

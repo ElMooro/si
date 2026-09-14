@@ -23,11 +23,11 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
-UA = {"User-Agent": "JustHodl-ETFGlobalDesk/1.0"}
+UA = {"User-Agent": "JustHodl-ETFGlobalDesk/1.1"}
 s3 = boto3.client("s3", region_name="us-east-1")
 
 # Liquid wrappers the ETF / Strong desks actually render. Keep this in lockstep
@@ -57,26 +57,63 @@ def _num(v):
         return None
 
 
+def _http(url, timeout=25):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = json.loads(r.read().decode("utf-8", "replace"))
+        return r.status, body
+
+
+def _with_key(url):
+    if not KEY:
+        return url
+    if "apiKey=" in url:
+        return url
+    return url + ("&" if "?" in url else "?") + "apiKey=" + urllib.parse.quote(KEY)
+
+
 def _get(path, extra, timeout=20):
     params = {"limit": extra.pop("limit", "120"), "apiKey": KEY}
     params.update({k: v for k, v in extra.items() if v is not None})
-    last = (0, {"error": "no host"})
+    last = (0, {"error": "no host"}, HOSTS[0])
     for host in HOSTS:
         url = host + path + "?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers=UA)
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                body = json.loads(r.read().decode("utf-8", "replace"))
-                rows = body.get("results") if isinstance(body, dict) else None
-                if r.status == 200 and isinstance(rows, list):
-                    return 200, body, host
-                last = (r.status, body)
+            status, body = _http(url, timeout=timeout)
+            rows = body.get("results") if isinstance(body, dict) else None
+            if status == 200 and isinstance(rows, list):
+                return 200, body, host
+            last = (status, body, host)
         except urllib.error.HTTPError as e:
             raw = e.read().decode("utf-8", "replace")[:240]
-            last = (e.code, {"error": raw, "status": "HTTP_%s" % e.code})
+            last = (e.code, {"error": raw, "status": "HTTP_%s" % e.code}, host)
         except Exception as e:
-            last = (0, {"error": str(e)[:180]})
-    return last[0], last[1], HOSTS[0]
+            last = (0, {"error": str(e)[:180]}, host)
+    return last[0], last[1], last[2]
+
+
+def _pages(path, extra, max_pages=6, timeout=25):
+    """First page + next_url follow. Returns (http, rows, host, err)."""
+    st, body, host = _get(path, dict(extra), timeout=timeout)
+    if st != 200:
+        return st, [], host, (body or {}).get("error") or (body or {}).get("status")
+    rows = list((body or {}).get("results") or [])
+    nxt = (body or {}).get("next_url")
+    pages = 1
+    while nxt and pages < max_pages and KEY:
+        try:
+            status, more = _http(_with_key(nxt), timeout=timeout)
+            if status != 200 or not isinstance(more, dict):
+                break
+            chunk = more.get("results") or []
+            if not chunk:
+                break
+            rows.extend(chunk)
+            nxt = more.get("next_url")
+            pages += 1
+        except Exception:
+            break
+    return 200, rows, host, None
 
 
 def _latest(rows, date_key="processed_date"):
@@ -107,19 +144,43 @@ def _top_exp(obj, n=6):
 
 
 def _fee(p):
+    """Normalize ETF Global fee fields to percent (0.0945 = 9.45 bps).
+
+    Vendor mixes three encodings: fraction (0.000945), percent (0.0945),
+    and occasionally bps (9.45). The v1.0 scaler treated anything < 0.2 as a
+    fraction, so SPY printed as 9.0% instead of 0.09%.
+    """
     for k in ("net_expense_ratio", "expense_ratio", "net_expenses", "management_fee",
               "net_expense", "total_expense_ratio"):
         v = _num(p.get(k))
         if v is None:
             continue
-        # ETF Global stores some fees as decimals (0.000945) and some as percent.
-        return v * 100 if v < 0.2 else v
+        if v <= 0.005:
+            v = v * 100.0
+        elif v >= 1.5:
+            v = v / 100.0
+        return round(v, 4)
     return None
 
 
+def _constituents(ticker):
+    """ETF Global constituents. sort=constituent_rank.asc 400s — do not use it."""
+    attempts = [
+        {"composite_ticker": ticker, "sort": "processed_date.desc", "limit": "1000"},
+        {"composite_ticker": ticker, "limit": "1000"},
+        {"ticker": ticker, "sort": "processed_date.desc", "limit": "500"},
+    ]
+    last_st, last_err, last_host = 0, "no attempt", HOSTS[0]
+    for extra in attempts:
+        st, rows, host, err = _pages("/etf-global/v1/constituents", extra, max_pages=5)
+        last_st, last_err, last_host = st, err, host
+        if st == 200 and rows:
+            return st, rows, host, None
+    return last_st, [], last_host, last_err
+
+
 def harvest_one(ticker):
-    out = {"ticker": ticker, "ok": {}, "http": {}}
-    # flows — last ~90 sessions, newest first
+    out = {"ticker": ticker, "ok": {}, "http": {}, "err": {}}
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=130)
     st, body, host = _get("/etf-global/v1/fund-flows", {
@@ -182,6 +243,7 @@ def harvest_one(ticker):
         out["adv"] = _num(p.get("avg_daily_trading_volume"))
         out["spread"] = _num(p.get("bid_ask_spread"))
         out["leverage"] = p.get("leverage") or p.get("leverage_factor")
+        out["creation_unit"] = p.get("creation_unit_size")
         out["sector"] = _top_exp(p.get("sector_exposure") or p.get("industry_exposure") or {})
         out["geo"] = _top_exp(p.get("geographic_exposure") or p.get("country_exposure") or {})
         out["ccy"] = _top_exp(p.get("currency_exposure") or {})
@@ -190,20 +252,18 @@ def harvest_one(ticker):
         out["ok"]["profiles"] = False
         out["aum"] = out.get("aum_from_nav")
 
-    st, body, host = _get("/etf-global/v1/constituents", {
-        "composite_ticker": ticker,
-        "sort": "constituent_rank.asc",
-        "limit": "80",
-    })
+    st, crows, host, err = _constituents(ticker)
     out["http"]["constituents"] = st
-    crows = (body or {}).get("results") if st == 200 else []
-    # Keep only the newest processed_date slice so we don't mix as-ofs.
+    if err:
+        out["err"]["constituents"] = str(err)[:160]
     if crows:
-        asof = max(str(r.get("processed_date") or "") for r in crows)
-        crows = [r for r in crows if str(r.get("processed_date") or "") == asof]
+        asof = max(str(r.get("processed_date") or r.get("effective_date") or "") for r in crows)
+        if asof:
+            crows = [r for r in crows if str(r.get("processed_date") or r.get("effective_date") or "") == asof]
         crows.sort(key=lambda r: _num(r.get("weight")) or 0, reverse=True)
         weights = [_num(r.get("weight")) or 0 for r in crows]
-        hhi = sum(w * w for w in weights) * 10000  # weights are fractions
+        # weights are fractions (0.07 = 7%). HHI on percent weights: sum((100w)^2).
+        hhi = sum((w * 100.0) ** 2 for w in weights)
         out["ok"]["constituents"] = True
         out["holdings_n"] = out.get("holdings_n") or len(crows)
         out["hhi"] = round(hhi, 1)
@@ -266,6 +326,7 @@ def lambda_handler(event, context=None):
     tickers = list(dict.fromkeys(DESK))
     by = {}
     http = {"flows": {}, "profiles": {}, "constituents": {}}
+    errs = {}
     with ThreadPoolExecutor(max_workers=8) as ex:
         futs = {ex.submit(harvest_one, t): t for t in tickers}
         for fut in as_completed(futs):
@@ -277,6 +338,8 @@ def lambda_handler(event, context=None):
             by[t] = row
             for prod in ("flows", "profiles", "constituents"):
                 http[prod][t] = (row.get("http") or {}).get(prod)
+            if row.get("err"):
+                errs[t] = row["err"]
     n_ok = {
         prod: sum(1 for r in by.values() if (r.get("ok") or {}).get(prod))
         for prod in ("flows", "profiles", "constituents")
@@ -299,6 +362,8 @@ def lambda_handler(event, context=None):
             "hhi": r.get("hhi"),
             "adv": r.get("adv"),
             "spread": r.get("spread"),
+            "leverage": r.get("leverage"),
+            "creation_unit": r.get("creation_unit"),
             "flow_1d": r.get("flow_1d"),
             "flow_5d": r.get("flow_5d"),
             "flow_21d": r.get("flow_21d"),
@@ -340,18 +405,22 @@ def lambda_handler(event, context=None):
         "n_ok": n_ok,
         "n": len(desk),
         "products": ["fund-flows", "constituents", "profiles"],
+        "version": VERSION,
     })
     _put("data/etf-global-desk-meta.json", {
         "generated_at": generated,
         "n_ok": n_ok,
         "http": http,
+        "errors": {k: v for k, v in list(errs.items())[:12]},
         "elapsed_s": payload["elapsed_s"],
+        "version": VERSION,
     })
     return {
         "status": payload["status"],
         "n": len(desk),
         "n_ok": n_ok,
         "elapsed_s": payload["elapsed_s"],
+        "version": VERSION,
     }
 
 
