@@ -1,3 +1,4 @@
+/* jh-reskin-skip */
 /* Institutional volume tape. Capitulation scored like a desk; Selling Climax is Wyckoff
    (markdown + climactic effort + close off the low or AR). Calibrated on S&P cash 1980–now. */
 (function () {

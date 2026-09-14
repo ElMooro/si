@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.32 — ETF / Strong / Bonds workspace icons on the Supercharts rail. */
+/* JustHodl Chart engine v12.33 — deep-link ?s=, session/YTD VWAP, tape zoom, toolbar. */
 (function () {
-  if (window.__jhChartEngineV1232) return;
+  if (window.__jhChartEngineV1233) return;
+  window.__jhChartEngineV1233 = true;
   window.__jhChartEngineV1232 = true;
   window.__jhChartEngineV1231 = true;
   window.__jhChartEngineV1230 = true;
@@ -1386,11 +1387,11 @@
       return {span:"day",mult:1,days:12000};
     return {span:"day",mult:1,days:12000};
   }
-  async function klines(sym, tfId){
+  async function klines(sym, tfId, quiet){
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var key=t+"|"+tfId, now=Date.now();
     if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=8){
-      lastSource=barCache[key].src||lastSource; return barCache[key].d;
+      if(!quiet) lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
     var ws=warehouseSpec(tfId);
     var yInt=(ws.span==="day")?"1d":sp[2], yRange=(ws.span==="day")?"max":sp[3];
@@ -1415,18 +1416,18 @@
       try{
         var raw=await fetchJson(urls[i]); var d=toBars(raw);
         if(d.length>=8){
-          lastSource=(raw&& (raw.warehouse_key||raw.source||raw.provider)) || (urls[i].indexOf("/series")>=0?"fred": urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
+          var src=(raw&& (raw.warehouse_key||raw.source||raw.provider)) || (urls[i].indexOf("/series")>=0?"fred": urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           var isSeries=urls[i].indexOf("/series")>=0 || rs.engine==="fred";
           if(!raw.warehouse_key && !isSeries && scored<d.length*0.2 && i<urls.length-1) continue;
           if(ws.span==="day"){
             d=asDaily(d);
             d=cleanWildTicks(d);
-            if(!raw.warehouse_key && String(raw.source||lastSource).indexOf("polygon")>=0){
+            if(!raw.warehouse_key && String(raw.source||src).indexOf("polygon")>=0){
               try{
                 var yraw=await fetchJson(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range=max&interval=1d");
                 var yd=asDaily(cleanWildTicks(toBars(yraw)));
-                if(yd.length>=8){ d=mergeByDay(d, yd); lastSource="polygon+yahoo"; }
+                if(yd.length>=8){ d=mergeByDay(d, yd); src="polygon+yahoo"; }
               }catch(eY){}
             }
             d=stripMixInBars(d);
@@ -1435,12 +1436,13 @@
           if(d.length<2) continue;
           if(looksCloseOnly(d)) d=fillCandleBodies(d);
           if(d.length<8) continue;
-          barCache[key]={d:d, at:now, src:lastSource};
+          if(!quiet) lastSource=src;
+          barCache[key]={d:d, at:now, src:src};
           return d;
         }
       }catch(e){}
     }
-    lastSource="unavailable";
+    if(!quiet) lastSource="unavailable";
     barCache[key]={d:[], at:now, src:"unavailable"};
     return [];
   }
@@ -1452,9 +1454,9 @@
     var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;
   }
   async function vsSpy(d){
-    spyBars=await klines("SPY", tf);
+    spyBars=await klines("SPY", tf, true);
     var spy=spyBars||[];
-    if(spy.length<2) spy=await klines("SPY","1d");
+    if(spy.length<2) spy=await klines("SPY","1d", true);
     if(spy.length<2) return [];
     var j=0, joined=[];
     for(var i=0;i<d.length;i++){
@@ -1495,8 +1497,16 @@
     }
     if(lay){ applySnap(INDS, lay.inds); applySnap(OSC, lay.osc); }
     try{
-      var h=String(location.hash||"").replace(/^#/,"");
-      if(h){ var sp=new URLSearchParams(h); if(sp.get("s")) active=sp.get("s").toUpperCase(); if(sp.get("tf")) tf=sp.get("tf"); if(sp.get("k")) kind=sp.get("k"); if(sp.get("m")) mode=sp.get("m"); if(sp.get("th")==="d") dark=true; if(TABS.indexOf(bare(active))<0) TABS.unshift(bare(active)); }
+      var qs=new URLSearchParams(String(location.search||"").replace(/^\?/,""));
+      var hs=new URLSearchParams(String(location.hash||"").replace(/^#/,""));
+      function pick(k){ return qs.get(k) || hs.get(k); }
+      var s=pick("s")||pick("symbol");
+      if(s) active=String(s).toUpperCase();
+      if(pick("tf")) tf=pick("tf");
+      if(pick("k")) kind=pick("k");
+      if(pick("m")) mode=pick("m");
+      if(pick("th")==="d") dark=true;
+      if(TABS.indexOf(bare(active))<0) TABS.unshift(bare(active));
     }catch(e){}
     document.documentElement.setAttribute("data-theme", dark?"dark":"light");
     BG=pal().bg;
@@ -1869,7 +1879,7 @@
       });
       for(var ci=0;ci<compare.length;ci++){
         try{
-          var cb=await klines(compare[ci], tf);
+          var cb=await klines(compare[ci], tf, true);
           if(cb.length<2||d.length<2) continue;
           var joined=[], k=0, j;
           for(j=0;j<d.length;j++){
@@ -1899,7 +1909,7 @@
     }
     try{ requestAnimationFrame(function(){ refreshHiLoVP(); }); }catch(eR){}
     if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"||o.id==="alpha"); })){
-      try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf); }catch(e){}
+      try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf, true); }catch(e){}
     }
     paintOsc(d);
     drawSVG();
@@ -1920,12 +1930,15 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.32"; if(st) st.textContent="v12.32 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.33"; if(st) st.textContent="v12.33 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
     var chg=prev.close?(last.close-prev.close)/prev.close:0, up=chg>=0, dlt=last.close-prev.close;
-    var vwapPts=vwap(d), vw=vwapPts.length?vwapPts[vwapPts.length-1].value:null;
+    var intra=/^(1m|3m|5m|15m|30m|45m|1h|2h|4h|6h|8h|12h)$/.test(tf);
+    var vwapPts=intra?periodVwap(d,"day"):periodVwap(d,"year");
+    var vw=vwapPts.length?vwapPts[vwapPts.length-1].value:null;
+    var vwLab=intra?"VWAP":"YTD VWAP";
     var tw=twap(d), twv=tw.length?tw[tw.length-1].value:null;
     var vs=0, n=Math.min(20,d.length-1), i4;
     for(i4=d.length-1-n;i4<d.length-1;i4++) if(i4>=0) vs+=d[i4].volume;
@@ -1933,10 +1946,10 @@
     var deltaEst=last.high>last.low? ((last.close-last.low)/(last.high-last.low)*2-1)*last.volume : 0;
     var vsPx=vw? (last.close-vw)/vw : 0;
     var heat=rvol>=2?"HOT": rvol>=1.4?"elevated": rvol>=0.8?"normal":"thin";
-    var stance=vw==null?"—": last.close>vw?"above VWAP": last.close<vw?"below VWAP":"at VWAP";
+    var stance=vw==null?"—": last.close>vw?"above "+vwLab: last.close<vw?"below "+vwLab:"at "+vwLab;
     var loc=lastVP.poc==null?"—": last.close>lastVP.vah?"above value": last.close<lastVP.val?"below value":"in value";
     var dltTape=tape.delta;
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='vs 20-bar average'>RVOL "+(rvol?rvol.toFixed(2)+"x":"—")+" "+heat+"</span> <span>VWAP "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span> <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='vs 20-bar average'>RVOL "+(rvol?rvol.toFixed(2)+"x":"—")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span> <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -1949,7 +1962,7 @@
     var yp=Math.min(100,Math.max(0,(last.close-ylo)/(yhi-ylo||1)*100));
     var atr14=atr(d,14), atrv=atr14.length?atr14[atr14.length-1].value:0;
     var vwapBias=vw&&twv? (vw>twv?"size at highs": vw<twv?"size at lows":"even"):"—";
-    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol?rvol.toFixed(2)+"x "+heat:"—")+"</span></div><div class=cell><span>VWAP</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div><div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
+    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol?rvol.toFixed(2)+"x "+heat:"—")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div><div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
@@ -2400,7 +2413,7 @@
         if(refs[i]){ try{ refs[i].remove(); }catch(e){} }
         refs[i]=mkChart(el);
         bindSync(refs[i]);
-        var d=await klines(sym,tf); if(d.length<2) continue;
+        var d=await klines(sym,tf,true); if(d.length<2) continue;
         var c=refs[i].addCandlestickSeries({upColor:UP,downColor:DN,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN});
         c.setData(d); refs[i].timeScale().fitContent();
       }catch(e){}
@@ -2480,11 +2493,19 @@
     if(!on || !volSeries || !volTapeEvents.length || !chart){ host.innerHTML=""; return; }
     var vr=null, boxW=pane?pane.clientWidth:0, boxH=pane?pane.clientHeight:0;
     try{ vr=chart.timeScale().getVisibleRange(); }catch(e){}
+    var barPx=6;
+    try{
+      var lr=chart.timeScale().getVisibleLogicalRange();
+      if(lr && lr.to>lr.from) barPx=(boxW||800)/Math.max(1, lr.to-lr.from);
+    }catch(e){}
+    if(barPx<1.2){ host.innerHTML=""; return; }
     var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling",bottom:"Bottom",top:"Top",eoa:"End of accumulation",eod:"End of distribution",revup:"Trend reverse up",revdn:"Trend reverse down"};
     var html="", i;
     var major={bottom:1,top:1,eoa:1,eod:1,revup:1,revdn:1,capit:1,sc:1,bc:1,sv:1,abs:1};
+    if(barPx<2.6) major={bottom:1,top:1,sc:1,capit:1,eoa:1,eod:1};
     var prio={bottom:12,top:12,sc:11,eoa:10,eod:10,revup:9,revdn:9,capit:8,bc:7,sv:4,abs:4};
     var placed=[];
+    var minGap=barPx<2.6?80:42;
     for(i=0;i<volTapeEvents.length;i++){
       var e=volTapeEvents[i];
       if(!major[e.kind]) continue;
@@ -2496,7 +2517,7 @@
       if(y < 4) continue;
       var pr=prio[e.kind]||1, clash=-1, pi;
       for(pi=0;pi<placed.length;pi++){
-        if(Math.abs(x-placed[pi].x)<42){ clash=pi; break; }
+        if(Math.abs(x-placed[pi].x)<minGap){ clash=pi; break; }
       }
       if(clash>=0){
         if(pr<=placed[clash].pr) continue;
@@ -2812,14 +2833,12 @@
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
-      chgHtml+
-      "<span class=sep></span>"+
       tfHtml+
       "<button class=drop id=btn-tfmore title='All intervals'>▾</button>"+
       "<span class=sep></span>"+
       "<button class=drop id=btn-kind>"+kindLab+" ▾</button>"+
+      "<button class=drop id=btn-md title='Price change / relative'>"+mdLab+" ▾</button>"+
       "<button class=drop id=btn-sc style=display:none>"+scLab+" ▾</button>"+
-      "<button class=drop id=btn-md style=display:none>"+mdLab+" ▾</button>"+
       "<span class=sep></span>"+
       "<button id=btn-ind title='Indicators Ctrl+I'>Indicators</button>"+
       "<button id=btn-cmp title=Compare>Compare</button>"+
@@ -3467,7 +3486,7 @@
   }
   async function lastPx(sym){
     try{
-      var d=await klines(sym,"1d"); if(d.length<2) return null;
+      var d=await klines(sym,"1d",true); if(d.length<2) return null;
       var hit=barCache[resolveSym(sym).ticker+"|1d"];
       if(hit && hit.src==="synth") return null;
       var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -4023,19 +4042,21 @@
   function writeState(){
     try{
       var q="s="+encodeURIComponent(active)+"&tf="+tf+"&k="+kind+"&m="+mode+(dark?"&th=d":"");
-      history.replaceState(null,"",location.pathname+location.search+"#"+q);
+      history.replaceState(null,"",location.pathname+"#"+q);
     }catch(e){}
   }
   function readState(){
     try{
-      var h=String(location.hash||"").replace(/^#/,"");
-      if(!h) return;
-      var sp=new URLSearchParams(h);
-      if(sp.get("s")) active=sp.get("s").toUpperCase();
-      if(sp.get("tf")) tf=sp.get("tf");
-      if(sp.get("k")) kind=sp.get("k");
-      if(sp.get("m")) mode=sp.get("m");
-      if(sp.get("th")==="d") dark=true;
+      var qs=new URLSearchParams(String(location.search||"").replace(/^\?/,""));
+      var hs=new URLSearchParams(String(location.hash||"").replace(/^#/,""));
+      function pick(k){ return qs.get(k) || hs.get(k); }
+      var s=pick("s")||pick("symbol");
+      if(!s && !pick("tf") && !pick("k") && !pick("m")) return;
+      if(s) active=String(s).toUpperCase();
+      if(pick("tf")) tf=pick("tf");
+      if(pick("k")) kind=pick("k");
+      if(pick("m")) mode=pick("m");
+      if(pick("th")==="d") dark=true;
       if(TABS.indexOf(bare(active))<0) TABS.unshift(bare(active));
     }catch(e){}
   }
@@ -4187,7 +4208,7 @@
     el.querySelectorAll("[data-s]").forEach(function(b){ b.onclick=function(){ var s=b.dataset.s; if(TABS.indexOf(bare(s))<0) TABS.push(bare(s)); active=bare(s); loadDraw(); renderTabs(); load(); }; });
     (L.symbols||[]).slice(0,24).forEach(function(s){
       if(quotes[s] && quotes[s].rsi!=null) return;
-      klines(s,"1d").then(function(d){
+      klines(s,"1d",true).then(function(d){
         if(!d||d.length<30) return;
         var last=d[d.length-1], prev=d[d.length-2]||last;
         var q=quotes[s]||{}; q.last=last.close; q.chg=prev.close?(last.close-prev.close)/prev.close:0; q.rsi=lastOsc(rsi(d,14));
@@ -4236,7 +4257,7 @@
     var el=document.getElementById("corr"); if(!el) return;
     var syms=TABS.slice(0,8); el.innerHTML="<b>CORR · open tabs</b><div class=cell>Computing…</div>";
     var series=[], i, j;
-    for(i=0;i<syms.length;i++){ try{ var d=await klines(syms[i], tf==="1d"?tf:"1d"); series.push({s:syms[i], r:rets(d).slice(-120)}); }catch(e){ series.push({s:syms[i], r:[]}); } }
+    for(i=0;i<syms.length;i++){ try{ var d=await klines(syms[i], tf==="1d"?tf:"1d", true); series.push({s:syms[i], r:rets(d).slice(-120)}); }catch(e){ series.push({s:syms[i], r:[]}); } }
     var html="<b>CORR · "+tf+"</b><div class=corm style='grid-template-columns:64px repeat("+syms.length+",1fr)'><span></span>"+syms.map(function(s){return "<span>"+bare(s).slice(0,5)+"</span>";}).join("");
     for(i=0;i<series.length;i++){
       html+="<span>"+bare(series[i].s).slice(0,6)+"</span>";

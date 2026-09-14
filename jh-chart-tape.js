@@ -1,3 +1,4 @@
+/* jh-reskin-skip */
 /* Bloomberg-grade tape: Livermore + Wyckoff consume the 100% gold-list table only.
    No 4-bar PH/PL wallpaper, no SPRING/UTAD/AR/ST — those failed the S&P 1980–now bar. */
 (function () {
