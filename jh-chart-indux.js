@@ -139,7 +139,16 @@
       return n == null ? "" : ctx.fmt(n);
     }
     var tfLab = ctx.spec(ctx.tf)[1] || ctx.tf;
-    var html = "<div class=leg-sym><button type=button class=leg-dia title='Chart / company info'>◆</button> " + ctx.active + " · " + tfLab + "</div>";
+    var html = "<div class=leg-sym><button type=button class=leg-dia title='Chart / company info'>◆</button> " + ctx.active + " · " + tfLab + (ctx.compare && ctx.compare.length ? " · %" : "") + "</div>";
+    (ctx.compare || []).forEach(function (s, i) {
+      var col = (ctx.COLORS || ["#2962ff", "#089981", "#f23645", "#ff6d00"])[(i + 1) % 8];
+      html += "<div class='leg-row' data-kind=cmp data-id='" + s + "'>" +
+        "<i class=leg-sw style=background:" + col + "></i>" +
+        "<span class=leg-n style=color:" + col + ">" + s + "</span>" +
+        "<span class=leg-v>compare</span>" +
+        "<span class=leg-ops>" +
+          "<button type=button data-act=x title='Remove overlay'>×</button></span></div>";
+    });
     INDS.filter(function (i) { return i.on; }).forEach(function (i) {
       html += "<div class='leg-row" + (i.hide ? " dim" : "") + "' data-kind=ov data-id='" + i.id + "'>" +
         "<i class=leg-sw style=background:" + (i.c || ctx.ACC) + "></i>" +
@@ -169,6 +178,10 @@
         var act = btn ? btn.getAttribute("data-act") : "set";
         if (row.getAttribute("data-kind") === "vol") {
           if (act === "x" || act === "eye") ctx.setVol(false);
+          return;
+        }
+        if (row.getAttribute("data-kind") === "cmp") {
+          if (window.jhDelCompare) window.jhDelCompare(row.getAttribute("data-id"));
           return;
         }
         var i = INDS.find(function (x) { return x.id === row.getAttribute("data-id"); });

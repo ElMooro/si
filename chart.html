@@ -13,7 +13,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-35";
+  var G="jh-tvux-36";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -313,8 +313,9 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 /* Supercharts chrome — first paint, not a delayed overlay */
 #tabbar,.tabs,#tabs{height:48px;min-height:48px;background:#1e222d}
 .tab{height:48px;font-size:13px}
-.tab-search{flex:none;width:220px;display:flex;align-items:center;gap:8px;height:48px;padding:0 12px;border-right:1px solid #2a2e39;background:#131722;color:#787b86}
-.tab-search .ts-ico{font-size:16px;color:#787b86}
+.tab-search{flex:1;min-width:0;display:none;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;background:transparent;color:#787b86}
+.tv-symwrap.searching .tab-search{display:flex}
+.tab-search .ts-ico{font-size:15px;color:#787b86;flex:none}
 .tab-search input{flex:1;min-width:0;font-size:14px;background:transparent;color:#d1d4dc;outline:none}
 .tab-search input::placeholder{color:#787b86}
 .tab-strip{flex:1;min-width:0;display:flex;overflow-x:auto;align-items:stretch}
@@ -359,15 +360,89 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #watch.is-collapsed{width:0!important;min-width:0!important;max-width:0!important;border:0;overflow:hidden}
 #watch.is-open{width:var(--watch-w,320px)!important;min-width:220px!important}
 @media(max-width:720px){ #listfab{display:none!important} }
+/* TradingView symbol widget + compare + data-type */
+.tv-symwrap{display:flex;align-items:center;gap:4px;height:48px;padding:0 8px 0 10px;border-right:1px solid #2a2e39;background:#131722;flex:none}
+.tv-symchip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 8px 0 4px;border:1px solid #2a2e39;border-radius:4px;background:#1e222d;color:#d1d4dc;min-width:148px;max-width:220px}
+.tv-symwrap.searching .tv-symchip{display:none}
+.tv-symwrap.searching{min-width:280px}
+.tv-symwrap.searching .tab-search{height:34px;border:1px solid #2962ff;border-radius:4px;background:#1e222d;padding:0 10px;box-shadow:0 0 0 1px rgba(41,98,255,.25)}
+.tv-symlogo{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex:none;letter-spacing:0}
+.tv-symid{font-size:14px;font-weight:600;letter-spacing:.02em;font-family:"IBM Plex Sans",system-ui,sans-serif}
+.tv-caret{color:#787b86;font-size:11px;margin-left:auto}
+.tv-symchip:hover{border-color:#434651;background:#2a2e39}
+.tv-iconbtn{width:34px;height:34px;border:1px solid #2a2e39;border-radius:4px;background:#1e222d;color:#d1d4dc;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;flex:none;line-height:1}
+.tv-iconbtn:hover,.tv-iconbtn.on{border-color:#2962ff;color:#fff;background:#2962ff}
+.tv-iconbtn svg{display:block}
+#symsearch .sbox{width:min(640px,94vw)}
+#symsearch.compare .sbox{width:min(520px,94vw)}
+#symsearch.compare .sschips{display:none}
+#symsearch .ssearch input::placeholder{color:#787b86}
+.ss-sec{padding:10px 16px 4px;font-size:11px;letter-spacing:.08em;color:#787b86;font-weight:600}
+.ss-hit{grid-template-columns:36px minmax(0,1fr) auto 28px;gap:10px}
+.ss-hit > span:nth-child(2){display:flex;flex-direction:column;min-width:0;align-items:flex-start;gap:1px}
+.ss-hit .nm{font-size:14px;font-weight:600;color:#2962ff}
+.ss-hit .ds{grid-column:auto;font-size:12px;color:#d1d4dc;margin-top:0;max-width:100%}
+.ss-hit .ss-ex{font-size:12px;color:#787b86;text-align:right;line-height:1.35}
+.ss-hit .ss-check{width:22px;height:22px;border-radius:50%;border:1.5px solid #434651;color:transparent;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+.ss-hit.on-cmp .ss-check,.ss-hit .ss-check.on{background:#2962ff;border-color:#2962ff;color:#fff}
+#symsearch.compare .ss-more{display:none}
+#cmpchips{position:absolute;left:12px;top:auto;bottom:36px;z-index:8;display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto;max-width:70%}
+#cmpchips .chip{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px 0 6px;border-radius:11px;background:rgba(30,34,45,.92);border:1px solid #2a2e39;font-size:11px;color:#d1d4dc;font-family:"IBM Plex Sans",system-ui,sans-serif}
+#cmpchips .chip i{width:8px;height:8px;border-radius:50%;flex:none}
+#cmpchips .chip button{width:16px;height:16px;color:#787b86;font-size:13px;line-height:16px}
+#cmpchips .chip button:hover{color:#f23645}
+#dtype{display:none;position:fixed;inset:0;z-index:48;background:rgba(19,23,34,.62);align-items:flex-start;justify-content:center;padding:4vh 16px 16px}
+#dtype.on{display:flex}
+#dtype .dtbox{width:min(1180px,96vw);height:min(88vh,920px);background:#131722;border:1px solid #2a2e39;border-radius:10px;box-shadow:0 24px 64px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;color:#d1d4dc}
+#dtype .dthd{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #2a2e39;background:#1e222d;flex:none}
+#dtype .dthd .nm{font-size:16px;font-weight:600}
+#dtype .dthd .px{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600;margin-left:4px}
+#dtype .dthd .chg{font-family:"IBM Plex Mono",monospace;font-size:13px}
+#dtype .dthd .x,#dtype .dthd .back{width:32px;height:32px;border-radius:4px;color:#787b86;margin-left:auto}
+#dtype .dthd .back{margin-left:auto;margin-right:4px;width:auto;padding:0 10px;font-size:12px;font-weight:600;color:#d1d4dc;border:1px solid #2a2e39}
+#dtype .dthd .x:hover,#dtype .dthd .back:hover{background:#2a2e39;color:#fff}
+#dtype .dttabs{display:flex;gap:0;padding:0 8px;border-bottom:1px solid #2a2e39;background:#1e222d;flex:none;overflow-x:auto}
+#dtype .dttabs button{height:38px;padding:0 14px;font-size:13px;color:#787b86;white-space:nowrap;border-bottom:2px solid transparent}
+#dtype .dttabs button.on{color:#d1d4dc;border-bottom-color:#2962ff;font-weight:600}
+#dtype .dtbody{flex:1;overflow:auto;padding:16px 18px 24px}
+#dtype .kpi{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:16px}
+#dtype .kpi .k{background:#1e222d;border:1px solid #2a2e39;border-radius:6px;padding:10px 12px}
+#dtype .kpi .k span{display:block;font-size:10px;letter-spacing:.08em;color:#787b86;text-transform:uppercase}
+#dtype .kpi .k b{display:block;margin-top:4px;font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:600}
+#dtype .blk{margin:0 0 18px}
+#dtype .blk h4{margin:0 0 8px;font-size:11px;letter-spacing:.1em;color:#2962ff;font-weight:600}
+#dtype table{width:100%;border-collapse:collapse;font-size:13px}
+#dtype th{text-align:left;font-size:10px;letter-spacing:.08em;color:#787b86;font-weight:600;padding:6px 8px;border-bottom:1px solid #2a2e39}
+#dtype td{padding:7px 8px;border-bottom:1px solid #2a2e39;font-family:"IBM Plex Mono",monospace}
+#dtype td:first-child,#dtype th:first-child{color:#787b86;font-family:"IBM Plex Sans",system-ui,sans-serif;width:42%}
+#dtype tr:hover td{background:#1e222d}
+#dtype .src{margin-top:16px;font-size:11px;color:#787b86}
+#dtype .empty{padding:40px 12px;color:#787b86;text-align:center}
+@media(max-width:900px){
+  #dtype .kpi{grid-template-columns:repeat(3,1fr)}
+  .tv-symwrap{padding-left:6px}
+  .tv-symchip{min-width:120px}
+}
 </style>
 </head>
 <body>
 <div id="app" data-engine="justhodl-chart" data-output="data/jh-internals.json" data-jh-sections="off">
   <div class="tabs" id="tabbar">
-    <label class="tab-search" id="tab-search">
-      <span class="ts-ico">⌕</span>
-      <input id="symin" placeholder="Search" autocomplete="off">
-    </label>
+    <div class="tv-symwrap" id="tv-symwrap">
+      <button type="button" class="tv-symchip" id="symchip" title="Symbol search">
+        <i class="tv-symlogo" id="symlogo">S</i>
+        <span class="tv-symid" id="symchip-id">SPY</span>
+        <span class="tv-caret">▾</span>
+      </button>
+      <label class="tab-search" id="tab-search">
+        <span class="ts-ico">⌕</span>
+        <input id="symin" placeholder="Symbol, ISIN, or CUSIP" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="button" class="tv-iconbtn" id="btn-addcmp" title="Compare symbols">+</button>
+      <button type="button" class="tv-iconbtn" id="btn-dtype" title="Financials, ratios & statistics">
+        <svg viewBox="0 0 18 18" width="15" height="15" aria-hidden="true"><rect x="2.2" y="3.2" width="13.6" height="11.6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.2 7.2h13.6M7.4 3.2v11.6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      </button>
+    </div>
     <div class="tab-strip" id="tabs"></div>
   </div>
   <div class="bar" id="tfbar"></div>
@@ -386,6 +461,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
           <svg id="patov"></svg>
           <svg id="draw"></svg>
           <div id="legend"></div>
+          <div id="cmpchips"></div>
           <div id="hud"></div>
           <div id="dwin"></div>
           <div id="ohlc"></div>
@@ -482,10 +558,21 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="cmdk"><div class="box"><input id="cmdin" placeholder="Search symbols, notes, financials, indicators…"><div class="res" id="cmdres"></div></div></div>
 <div id="typeq"></div>
 <div id="symsearch"><div class="sbox">
-  <div class="shd"><b>Symbol search</b><button type="button" id="ssx" title="Close">×</button></div>
-  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Search" autocomplete="off"></div>
+  <div class="shd"><b id="sshd">Symbol search</b><button type="button" id="ssx" title="Close">×</button></div>
+  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Symbol, ISIN, or CUSIP" autocomplete="off"></div>
   <div class="sschips" id="sschips"></div>
   <div id="ssres"></div>
+</div></div>
+<div id="dtype"><div class="dtbox">
+  <div class="dthd">
+    <span class="nm" id="dt-name">—</span>
+    <span class="px" id="dt-px">—</span>
+    <span class="chg" id="dt-chg"></span>
+    <button type="button" class="back" id="dt-chart">Chart</button>
+    <button type="button" class="x" id="dtx" title="Close">×</button>
+  </div>
+  <div class="dttabs" id="dttabs"></div>
+  <div class="dtbody" id="dtbody"></div>
 </div></div>
 <div id="ctx"></div>
 <div id="toast"></div>
@@ -501,9 +588,10 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
 <script src="/jh-chart-tvrail.js?v=9"></script>
-<script src="/jh-chart-engine.js?v=39"></script>
-<script src="/jh-chart-tvux.js?v=11"></script>
-<script src="/jh-chart-indux.js?v=13"></script>
+<script src="/jh-chart-engine.js?v=40"></script>
+<script src="/jh-chart-tvux.js?v=12"></script>
+<script src="/jh-chart-indux.js?v=14"></script>
+<script src="/jh-chart-tvsearch.js?v=1"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>

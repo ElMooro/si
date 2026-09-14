@@ -37,7 +37,10 @@
     "html[data-theme=light] #tv-zoom button{color:#131722;border-color:#e0e3eb}",
     "#voltape{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}",
     "#voltape i{position:absolute;transform:translate(-50%,-118%);font:10px/1 IBM Plex Sans,system-ui,sans-serif;font-weight:700;white-space:nowrap;letter-spacing:.03em;text-shadow:0 1px 3px rgba(19,23,34,.92);pointer-events:auto;cursor:help}",
-    "#voltape i em{display:inline-block;margin-left:3px;width:11px;height:11px;border-radius:50%;border:1px solid currentColor;font:700 8px/9px IBM Plex Sans,sans-serif;text-align:center;font-style:normal;opacity:.9;vertical-align:2px}"
+    ".tv-symwrap{background:#131722}",
+    "html[data-theme=light] .tv-symwrap{background:#ffffff}",
+    "html[data-theme=light] .tv-symchip,html[data-theme=light] .tv-iconbtn{background:#fff;border-color:#e0e3eb;color:#131722}",
+    "#cmpchips .chip{background:rgba(19,23,34,.92)}"
   ].join("");
   (document.head || document.documentElement).appendChild(css);
 })();
