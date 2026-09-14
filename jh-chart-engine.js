@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.18 — Bloomberg GP studies (Avg&Dev, DMI, %B, HV, Beta, RS, Fib, GMMA). */
+/* JustHodl Chart engine v12.19 — Bloomberg GP studies; DMI uses true Wilder smoothing. */
 (function () {
-  if (window.__jhChartEngineV1218) return;
+  if (window.__jhChartEngineV1219) return;
+  window.__jhChartEngineV1219 = true;
   window.__jhChartEngineV1218 = true;
   window.__jhChartEngineV1217 = true;
   window.__jhChartEngineV1216 = true;
@@ -462,7 +463,7 @@
       pdm.push(up>dn&&up>0?up:0); mdm.push(dn>up&&dn>0?dn:0);
       tr.push(Math.max(d[i].high-d[i].low, Math.abs(d[i].high-d[i-1].close), Math.abs(d[i].low-d[i-1].close)));
     }
-    function wild(a,n){ var o=[],s=0,i; for(i=0;i<a.length;i++){ if(i<n){ s+=a[i]; if(i===n-1) o.push(s/n); } else { s=s-(s/n)+a[i]; o.push(s); } } return o; }
+    function wild(a,n){ var o=[],s=0,i; for(i=0;i<a.length;i++){ if(i<n){ s+=a[i]; if(i===n-1){ s=s/n; o.push(s); } } else { s=(s*(n-1)+a[i])/n; o.push(s); } } return o; }
     var str=wild(tr,n), sp=wild(pdm,n), sm=wild(mdm,n), dx=[], pdi=[], mdi=[];
     for(i=0;i<str.length;i++){
       var p=str[i]?100*sp[i]/str[i]:0, m=str[i]?100*sm[i]/str[i]:0, sum=p+m;
@@ -1323,7 +1324,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.18"; if(st) st.textContent="v12.18 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.19"; if(st) st.textContent="v12.19 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
