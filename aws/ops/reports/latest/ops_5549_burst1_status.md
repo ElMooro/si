@@ -1,0 +1,33 @@
+# ops 5549 -- burst 1 job status + outputs (read-only)
+
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-09-14T02:45:13+00:00  
+
+## Log
+- `02:45:12` ✅ job jh-burst-gen0b1-20260914-022049 status=InProgress secondary=Training training_s=703 billable_s=None failure=
+- `02:45:12`   Starting 2026-09-14 02:22:21.650000+00:00 Preparing the instances for training
+- `02:45:12`   Downloading 2026-09-14 02:33:29.638000+00:00 Downloading the training image
+- `02:45:12`   Training 2026-09-14 02:37:26.577000+00:00 Training image download completed. Training in progress.
+- `02:45:12` ✅ output keys: []
+- `02:45:13`   Processed prompts:  71%|███████   | 403/570 [03:58<01:37,  1.72it/s, est. speed input: 263.42 toks/s, output: 1194.59 toks/s]
+- `02:45:13`   Processed prompts:  71%|███████   | 404/570 [03:58<01:38,  1.69it/s, est. speed input: 263.30 toks/s, output: 1195.05 toks/s]
+- `02:45:13`   Processed prompts:  71%|███████   | 405/570 [04:00<02:30,  1.10it/s, est. speed input: 261.64 toks/s, output: 1188.39 toks/s]
+- `02:45:13`   Processed prompts:  71%|███████▏  | 407/570 [04:01<01:45,  1.54it/s, est. speed input: 262.01 toks/s, output: 1190.62 toks/s]
+- `02:45:13`   Processed prompts:  72%|███████▏  | 409/570 [04:01<01:17,  2.08it/s, est. speed input: 262.58 toks/s, output: 1193.10 toks/s]
+- `02:45:13`   Processed prompts:  72%|███████▏  | 411/570 [04:01<00:59,  2.68it/s, est. speed input: 262.93 toks/s, output: 1195.11 toks/s]
+- `02:45:13`   Processed prompts:  72%|███████▏  | 412/570 [04:02<01:04,  2.45it/s, est. speed input: 264.72 toks/s, output: 1199.51 toks/s]
+- `02:45:13`   Processed prompts:  73%|███████▎  | 414/570 [04:02<00:44,  3.48it/s, est. speed input: 265.05 toks/s, output: 1204.96 toks/s]
+- `02:45:13`   Processed prompts:  73%|███████▎  | 415/570 [04:03<01:09,  2.23it/s, est. speed input: 264.25 toks/s, output: 1202.09 toks/s]
+- `02:45:13`   Processed prompts:  73%|███████▎  | 416/570 [04:03<01:04,  2.39it/s, est. speed input: 264.16 toks/s, output: 1202.02 toks/s]
+- `02:45:13`   Processed prompts:  73%|███████▎  | 417/570 [04:04<01:20,  1.90it/s, est. speed input: 265.51 toks/s, output: 1210.21 toks/s]
+- `02:45:13`   Processed prompts:  73%|███████▎  | 418/570 [04:05<01:15,  2.02it/s, est. speed input: 265.50 toks/s, output: 1210.06 toks/s]
+- `02:45:13`   Processed prompts:  74%|███████▎  | 419/570 [04:05<01:16,  1.96it/s, est. speed input: 265.35 toks/s, output: 1210.72 toks/s]
+- `02:45:13`   Processed prompts:  74%|███████▍  | 422/570 [04:06<00:50,  2.95it/s, est. speed input: 265.70 toks/s, output: 1215.30 toks/s]
+- `02:45:13`   Processed prompts:  74%|███████▍  | 423/570 [04:07<00:59,  2.46it/s, est. speed input: 265.49 toks/s, output: 1213.48 toks/s]
+- `02:45:13`   Processed prompts:  74%|███████▍  | 424/570 [04:07<01:12,  2.00it/s, est. speed input: 264.95 toks/s, output: 1214.77 toks/s]
+- `02:45:13`   Processed prompts:  75%|███████▍  | 425/570 [04:08<01:07,  2.14it/s, est. speed input: 264.93 toks/s, output: 1216.13 toks/s]
+- `02:45:13`   Processed prompts:  75%|███████▍  | 426/570 [04:08<01:03,  2.28it/s, est. speed input: 264.92 toks/s, output: 1216.96 toks/s]
+- `02:45:13`   Processed prompts:  75%|███████▍  | 427/570 [04:09<01:30,  1.58it/s, est. speed input: 264.11 toks/s, output: 1215.19 toks/s]
+- `02:45:13`   Processed prompts:  75%|███████▌  | 428/570 [04:09<01:12,  1.95it/s, est. speed input: 264.10 toks/s, output: 1217.08 toks/s]
+- `02:45:13` ✅ GREEN -- status recorded
