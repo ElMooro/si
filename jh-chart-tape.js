@@ -283,7 +283,7 @@
     var vs = vsaScan(d);
     var ef = effort(d);
     var ad = accumDistrib(d, wy);
-    var wyMarks = keepLast(wy.concat(ef), 80);
+    var wyMarks = wy;
     var vsaMarks = keepLast(vs, 90);
     var all = lv.markers.concat(wyMarks).concat(vsaMarks);
     var panel = "LIVERMORE " + lv.trend + " · " + lv.note + " | WYCKOFF PS SC AR ST SPRING SOS LPS · BC UT SOW | VSA ND NS SV ABS HB HS TEST TRAP SHK";
