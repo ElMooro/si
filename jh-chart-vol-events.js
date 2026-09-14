@@ -1,6 +1,5 @@
-/* Volume Tape — Bloomberg-style effort/result events on the volume pane. */
+/* Volume Tape — climactic + stopping + absorption events on the volume pane. */
 (function () {
-  function avg(a) { var s = 0, i; for (i = 0; i < a.length; i++) s += a[i]; return a.length ? s / a.length : 0; }
   function mean(d, i, n, key) {
     var a = Math.max(0, i - n), s = 0, j, c = 0;
     for (j = a; j < i; j++) { s += d[j][key] || 0; c++; }
@@ -39,6 +38,14 @@
         kind = "sc"; label = "SC"; color = "#ef5350";
       } else if (rvol >= 1.45 && up && closeLoc >= 0.62 && spr >= sprAvg * 1.05) {
         kind = "bc"; label = "BC"; color = "#26a69a";
+      } else if (rvol >= 1.5 && down && closeLoc >= 0.55) {
+        kind = "sv"; label = "SV"; color = "#26a69a";
+      } else if (rvol >= 1.55 && body / rng <= 0.34 && spr <= sprAvg * 1.05) {
+        kind = "abs"; label = "ABS"; color = "#ff9800";
+      } else if (rvol >= 1.28 && down && closeLoc >= 0.62) {
+        kind = "hb"; label = "HB"; color = "#089981";
+      } else if (rvol >= 1.28 && up && closeLoc <= 0.38) {
+        kind = "hs"; label = "HS"; color = "#f23645";
       } else if (up && b.close > donHi && rvol >= 1.22 && prev && prev.close <= donHi) {
         kind = "breakout"; label = "BO"; color = "#2962ff";
       } else if (rvol >= 1.35 && body / rng <= 0.40) {
@@ -60,7 +67,7 @@
     return {
       events: ev,
       markers: ev.map(function (e) {
-        var below = e.kind === "capit" || e.kind === "sc" || e.kind === "evr";
+        var below = e.kind === "capit" || e.kind === "sc" || e.kind === "evr" || e.kind === "hs";
         return { time: e.time, position: below ? "belowBar" : "aboveBar", color: e.color, shape: below ? "arrowDown" : "arrowUp", text: e.label };
       })
     };

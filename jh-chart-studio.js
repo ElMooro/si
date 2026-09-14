@@ -18,6 +18,7 @@
     if (typeof INDS === "undefined") return;
     var extra = [
       { id: "tape", n: "Tape / Wyckoff", c: "#2962ff", on: false, k: "tape", cat: "Tape" },
+      { id: "vsa", n: "VSA Tape", c: "#ff9800", on: false, k: "vsa", cat: "Tape" },
       { id: "volev", n: "Vol events SC/DIST", c: "#f23645", on: false, k: "volev", cat: "Tape" },
       { id: "rs", n: "RS / beta vs SPY", c: "#089981", on: false, k: "rs", cat: "Tape" },
       { id: "macro", n: "Macro rail tags", c: "#ff9800", on: false, k: "macro", cat: "Tape" }

@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.16 — Bloomberg-grade candles/volume, BB squeeze/width/avg, MACD, RSI, volume tape. */
+/* JustHodl Chart engine v12.17 — Bloomberg tape (Livermore, Wyckoff, VSA) + candles/volume/BB/MACD/RSI. */
 (function () {
-  if (window.__jhChartEngineV1216) return;
+  if (window.__jhChartEngineV1217) return;
+  window.__jhChartEngineV1217 = true;
   window.__jhChartEngineV1216 = true;
   window.__jhChartEngineV1215 = true;
   window.__jhChartEngineV1214 = true;
@@ -76,6 +77,7 @@
     {id:"wyckoff",n:"Wyckoff phases",c:"#ab47bc",on:0,k:"wyckoff",cat:"Tape"},
     {id:"accum",n:"Accumulation",c:"#089981",on:0,k:"accum",cat:"Tape"},
     {id:"distrib",n:"Distribution",c:"#f23645",on:0,k:"distrib",cat:"Tape"},
+    {id:"vsa",n:"VSA Tape",c:"#ff9800",on:0,k:"vsa",cat:"Tape"},
     {id:"voltape",n:"Volume Tape",c:"#f0b429",on:0,k:"voltape",cat:"Volume"}
   ];
   var OSC = [
@@ -768,6 +770,18 @@
     s.setData(pts); series.push(s); return s;
   }
   function addPriceLine(px, color, title){ if(!mainSeries||px==null) return; try{ mainSeries.createPriceLine({ price:px, color:color||"#787b86", lineWidth:1, lineStyle:2, axisLabelVisible:true, title:title||"" }); }catch(e){} }
+  function dedupeTape(mk){
+    if(!mk||!mk.length) return [];
+    var pri={CAPIT:12,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,SOS:9,SOW:9,ABS:8,SV:8,UT:8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,PS:5,PSY:5,TEST:5,ND:4,NS:4,LPS:4,LPSY:4,HH:3,HL:3,LH:3,LL:3,PH:2,PL:2,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2};
+    var best={};
+    mk.forEach(function(m){
+      if(!m||m.time==null) return;
+      var p=pri[m.text]!=null?pri[m.text]:1;
+      var cur=best[m.time];
+      if(!cur||p>cur.p) best[m.time]={m:m,p:p};
+    });
+    return Object.keys(best).map(function(k){ return best[k].m; }).sort(function(a,b){ return a.time-b.time; });
+  }
 
   function displayBars(d){
     if(kind==="heikin") return heikin(d);
@@ -817,7 +831,8 @@
         else c.setData(display);
         try{if(window.jhNyVwap && window.INDS && INDS.some(function(i){return i.id==="vwap"&&i.on;})){var vw=window.jhNyVwap(display);if(vw&&vw.length){var vs=chart.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"VWAP NY"});vs.setData(vw);series.push(vs);}}}catch(e){}
         try{
-          var tapeOn=INDS.filter(function(i){ return i.on && !i.hide && (i.k==="livermore"||i.k==="wyckoff"||i.k==="accum"||i.k==="distrib"); });
+          var tapeK={livermore:1,wyckoff:1,accum:1,distrib:1,vsa:1,tape:1};
+          var tapeOn=INDS.filter(function(i){ return i.on && !i.hide && tapeK[i.k]; });
           var mk=[];
           if(tapeOn.length && (window.__jhTapeReadRaw || window.jhTapeRead)){
             var tout=(window.__jhTapeReadRaw || window.jhTapeRead)(display);
@@ -825,6 +840,7 @@
               var pack=tout[ind.k];
               if(pack && pack.markers && pack.markers.length) mk=mk.concat(pack.markers);
             });
+            mk=dedupeTape(mk);
           }
           var sqzInd=INDS.filter(function(i){ return i.on && !i.hide && i.k==="sqz"; })[0];
           if(sqzInd){
@@ -910,7 +926,7 @@
         if(ind.k==="ce") store(ind.id, chandelier(d));
         if(ind.k==="vwapb"){ var vb=vwapBands(d); store(ind.id, vb.m); line(vb.up); line(vb.dn); }
         if(ind.k==="cam"){ var cm=camarilla(d); if(cm && !ind.hide){ addPriceLine(cm.r4.value,DN,"R4"); addPriceLine(cm.r3.value,DN,"R3"); addPriceLine(cm.s3.value,UP,"S3"); addPriceLine(cm.s4.value,UP,"S4"); } }
-        if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"){ /* markers applied on the candle series */ }
+        if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"||ind.k==="vsa"||ind.k==="tape"){ /* markers applied on the candle series */ }
       });
       for(var ci=0;ci<compare.length;ci++){
         try{
@@ -961,7 +977,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.16"; if(st) st.textContent="v12.16 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.17"; if(st) st.textContent="v12.17 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -1372,7 +1388,7 @@
     if(!on || !volSeries || !volTapeEvents.length || !chart){ host.innerHTML=""; return; }
     var vr=null, boxW=pane?pane.clientWidth:0, boxH=pane?pane.clientHeight:0;
     try{ vr=chart.timeScale().getVisibleRange(); }catch(e){}
-    var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result"};
+    var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling"};
     var html="", i, lastX=-999;
     for(i=0;i<volTapeEvents.length;i++){
       var e=volTapeEvents[i];
