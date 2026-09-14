@@ -1,16 +1,30 @@
-executing-against: 50bec91e0ac3f7df2ad34650eafb8e066f2091e2
-ops 5554 (re-arm of 5553) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
-[13:11:23] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
-[13:11:24] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
-[13:12:54] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
-[13:12:55] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
-[13:12:56] ✅ model jh-owned-coder-20260914-131255 created from the owned weights
-[13:12:58] ✅ endpoint jh-owned-coder-async creating (async)
-[13:24:34] ✅ endpoint InService
-[13:24:36] ✅ autoscaling 0..1 registered: backlog target + wake-from-zero alarm (scale-in cooldown 15 min)
-[13:24:36] ✗ lambda role grant failed: An error occurred (NoSuchEntity) when calling the PutRolePolicy operation: The role with name justhodl-lambda-execution-role cannot be found.
-[13:24:47] ✗ cleanup: deleted
-[13:24:47] ✗ RED -- lambda-role
+executing-against: c4aff69f18c4356bd87928b5cbc2e9c912a5448e
+ops 5555 -- learning scorecard: supply (rows/receipts) vs learning (exam delta), from objects only
+[17:22:35] ✅ verified rows on disk: 2102 (listing truncated=False); by checker: {"factory-code-exam:a340d8ebd559": 464, "factory-trace-verify:network-less-container": 1529, "factory-code-exam:caf2b53d3151": 106, "factory-code-verify:v3-supervisor-judge": 3}
+[17:22:35] ✅ ELIGIBLE through the curator (receipt resolved, hashes bound, supervisor judge, cases>=1): 570 rows over 570 distinct tasks; families {"mbpp": 464, "apps-introductory": 106}
+[17:22:35] ✅ bursts launched: 3; failed-attempt records on disk: 1454
+[17:22:36] ✅ Gear B training jobs (deduplicated): 0; champion: none (base model)
+[17:22:36] ✅ frozen holdout exam: prompts MISSING; exam result objects: 0; base exam: not run yet; promoted candidate exam: none
+[17:22:36] ✅ owned serving endpoint: absent; chat control enabled=None
+[17:22:36] ✅ pipeline stages: weights staged=yes, bursts produced candidates=yes, independent judge admitted rows=yes, supply floor reached=no, base exam measured=no, adapter trained=no, candidate examined and promoted=no -> 3/7
+[17:22:36] ✅ SUPPLY READINESS 38.0% (570/1500 eligible rows) | LEARNING 0.0% (exam delta; 0 until an adapter is trained and examined)
+[17:22:36] ✅ GREEN -- scorecard recorded
 
-→ Report written to aws/ops/reports/latest/ops_5554_owned_async_endpoint_rearm3.md
-❌ OPS-FAIL: aws/ops/pending/ops_5554_owned_async_endpoint_rearm3.py
+→ Report written to aws/ops/reports/latest/ops_5555_learning_scorecard.md
+ops 5556 (re-arm of 5554) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+[17:22:36] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+[17:22:37] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+[17:24:07] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+[17:24:07] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+[17:24:08] ✅ model jh-owned-coder-20260914-172407 created from the owned weights
+[17:24:10] ✅ endpoint jh-owned-coder-async creating (async)
+[17:36:44] ✅ endpoint InService
+[17:36:46] ✅ autoscaling 0..1 registered: backlog target + wake-from-zero alarm (scale-in cooldown 15 min)
+[17:36:46] ✅ justhodl-ai execution role: lambda-execution-role
+[17:36:46] ✅ lambda-execution-role may InvokeEndpointAsync on jh-owned-coder-async
+[17:36:47] ✅ probe submitted through factory_inference.submit: req-8c9c72f440c6ada8366c798d -> s3://justhodl-ai-857687956942/factory/inference/outputs/0db5dde8-b2b2-4072-9550-2f0583ef5f11.out
+[17:37:07] ✅ round trip OK (owned:qwen2-5-coder-7b-instruct@c03e6d358207): Certainly! Below is a Python function `is_palindrome(s)` that checks if a given string `s` is a palindrome, ignoring case and non-letter characters. I've also included two example calls to demonstrate its usage. ```python import re def is_palindrome(s): # Remove non-letter characters and convert to 
+[17:37:07] ✅ factory/control/inference.json written: enabled=True -> the chat routes ordinary and coding questions to the owned model
+[17:37:07] ✅ GREEN -- the owned model is reachable from the chat (async, scale-to-zero)
+
+→ Report written to aws/ops/reports/latest/ops_5556_owned_async_endpoint_rearm4.md
