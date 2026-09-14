@@ -29,7 +29,7 @@ on:
         required: false
         default: 'false'
 permissions:
-  contents: read
+  contents: write   # only to publish a failure log excerpt to the ops-evidence branch (Actions logs are unreachable from the Claude sandbox)
 concurrency:
   group: factory-code-exam
   cancel-in-progress: false
@@ -51,8 +51,13 @@ jobs:
           SOURCES: ${{ github.event.inputs.sources || 'mbpp,apps' }}
           MAX_APPS: ${{ github.event.inputs.max_apps || '600' }}
         run: |
-          mkdir -p work
-          python scripts/factory_oss_curriculum.py fetch --sources "$SOURCES" --max "$MAX_APPS" --out work/candidates.jsonl
+          set -o pipefail
+          mkdir -p work aws/ops/reports/code-exam
+          if ! python scripts/factory_oss_curriculum.py fetch --sources "$SOURCES" --max "$MAX_APPS" --out work/candidates.jsonl 2>&1 | tee "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log"; then
+            tail -c 6000 "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log" > "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" || true
+            python scripts/push_evidence.py --run-id "${GITHUB_RUN_ID}" --message "code-exam fetch failure log" "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" || true
+            exit 1
+          fi
           cp scripts/factory_code_verify.py work/verify.py
           wc -l work/candidates.jsonl
       - name: Freeze exam + holdout (owner-dispatched only)
