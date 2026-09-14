@@ -1,9 +1,10 @@
-executing-against: 03505de0e641739ef046cd7d060e6ffcb5f90ef5
-ops 5546 (re-arm of 5545) -- first owned trace burst: prompts-only tasks, runner rights, live price, spot job on the digest-pinned image
-[00:58:26] ✅ tasks: 464 prompts (holdout excluded 164, scanned 464) families={"mbpp": 464} -> s3://justhodl-ai-857687956942/factory/bursts/tasks/20260914-005825/
-[00:58:26] ✅ training-job rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
-[00:59:57] ✅ training price ml.g5.2xlarge = $1.5150/h (aws-price-list); burst cap $3.0300 at 7200s (spot bills less)
-[00:59:58] ✅ burst jh-burst-gen0-20260914-005825 launched: 464 tasks x K=4 at T=0.8 on ml.g5.2xlarge spot, image sha256:39b1be47f293 (cap $3.0300)
-[00:59:58] ✅ GREEN -- first burst running; on Completed, dispatch factory-trace-verify.yml (burst=jh-burst-gen0-20260914-005825) to keep only passes
+executing-against: ee3546441638516e75fdf13e4b1e5a129bb89098
+ops 5547 -- burst 0 scorecard: job, verifier summary, kept rows, pass rate at K, cost per pass
+[01:22:31] ✅ job jh-burst-gen0-20260914-005825 status=Completed training_s=596 billable_s=512 spot_savings=14.1% failure=
+[01:22:31] ✅ verifier summary: {"run_id": "34795385750", "rows_written": 399, "rows_existing": 0, "verdicts": 1161}
+[01:22:31] ✅ candidates seen=1765 passed=1165 failed=600 timeouts=1 malformed=0
+[01:22:56] ✅ rows: self_trace kept=399 of 863 verified rows total; tasks=464 K=4 candidates=1765
+[01:22:56] ✅ PASS RATE at K=4: 0.6601 (1165/1765); cost on-demand basis $0.2508, spot-billed basis $0.2155 -> cost per verified pass $0.00018 (spot) / $0.00022 (on-demand)
+[01:22:56] ✅ GREEN -- scorecard recorded
 
-→ Report written to aws/ops/reports/latest/ops_5546_first_trace_burst_rearm2.md
+→ Report written to aws/ops/reports/latest/ops_5547_burst0_scorecard.md
