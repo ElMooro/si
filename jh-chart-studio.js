@@ -35,7 +35,7 @@
       if (st[i.id]) {
         if (st[i.id].on != null) i.on = !!st[i.id].on;
         if (st[i.id].c) i.c = st[i.id].c;
-      } else if (first) i.on = false;
+      }
     });
   }
   function snap() {
@@ -55,8 +55,8 @@
   };
   var _ve = window.jhVolEvents;
   window.jhVolEvents = function (d) {
-    if (!tapeOn("volev")) return [];
-    return _ve ? _ve(d) : [];
+    if (tapeOn("voltape") || tapeOn("volev")) return _ve ? _ve(d) : [];
+    return [];
   };
   var _rs = window.jhRsReady;
   window.jhRsReady = function (d) {

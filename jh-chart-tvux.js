@@ -33,7 +33,9 @@
     "html[data-theme=light] .rail{background:#f8f9fd}",
     "#tv-zoom{position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:12!important;display:flex!important;flex-direction:row;width:auto!important;height:auto!important;pointer-events:auto}",
     "html[data-theme=light] #tv-zoom{background:#ffffff;border-color:#e0e3eb}",
-    "html[data-theme=light] #tv-zoom button{color:#131722;border-color:#e0e3eb}"
+    "html[data-theme=light] #tv-zoom button{color:#131722;border-color:#e0e3eb}",
+    "#voltape{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}",
+    "#voltape i{position:absolute;transform:translate(-50%,-118%);font:10px/1 IBM Plex Sans,system-ui,sans-serif;font-weight:700;white-space:nowrap;letter-spacing:.03em;text-shadow:0 1px 3px rgba(19,23,34,.92)}"
   ].join("");
   (document.head || document.documentElement).appendChild(css);
 })();

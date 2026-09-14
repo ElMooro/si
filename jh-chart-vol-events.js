@@ -1,7 +1,17 @@
-/* Volume events. 50-bar RVOL so crash weeks still print vs the quiet base. */
+/* Volume Tape — Bloomberg-style effort/result events on the volume pane. */
 (function () {
   function avg(a) { var s = 0, i; for (i = 0; i < a.length; i++) s += a[i]; return a.length ? s / a.length : 0; }
-  function events(d) {
+  function hh(d, i, n) {
+    var h = -1e99, j, a = Math.max(0, i - n);
+    for (j = a; j < i; j++) if (d[j].high > h) h = d[j].high;
+    return h;
+  }
+  function ll(d, i, n) {
+    var l = 1e99, j, a = Math.max(0, i - n);
+    for (j = a; j < i; j++) if (d[j].low < l) l = d[j].low;
+    return l;
+  }
+  function classify(d) {
     if (!d || d.length < 55) return [];
     var out = [], i;
     for (i = 50; i < d.length; i++) {
@@ -10,35 +20,51 @@
       var sprAvg = avg(win.map(function (b) { return b.close ? (b.high - b.low) / b.close : 0; }));
       var b = d[i], v = b.volume || 0;
       var spr = b.close ? (b.high - b.low) / b.close : 0;
-      var rng = b.high - b.low;
-      var clv = rng ? ((b.close - b.low) - (b.high - b.close)) / rng : 0;
+      var rng = b.high - b.low || 1e-12;
+      var body = Math.abs(b.close - b.open);
+      var closeLoc = (b.close - b.low) / rng;
       var rvol = vAvg ? v / vAvg : 0;
       var down = b.close < b.open, up = b.close > b.open;
-      var tag = null, pos = "aboveBar", color = "#787b86", shape = "circle";
-      if (rvol >= 2.2 && down && clv <= -0.3 && spr >= sprAvg * 1.2) {
-        tag = (rvol >= 3.2 && clv <= -0.45) ? "CAPIT" : "SC";
-        pos = "belowBar"; color = "#f23645"; shape = "arrowDown";
-      } else if (rvol >= 2.2 && up && clv >= 0.3 && spr >= sprAvg * 1.2) {
-        tag = (rvol >= 3.2 && clv >= 0.45) ? "BC+" : "BC";
-        pos = "aboveBar"; color = "#089981"; shape = "arrowUp";
-      } else if (rvol >= 1.8 && down && clv <= -0.15) {
-        tag = "DIST"; pos = "aboveBar"; color = "#ab47bc"; shape = "square";
-      } else if (rvol <= 0.55) {
-        var prior = out.filter(function (e) { return e._i >= i - 18 && (e.text === "SC" || e.text === "CAPIT"); });
-        if (prior.length && Math.abs(b.low - d[prior[prior.length - 1]._i].low) / b.close < 0.025) {
-          tag = "NS"; pos = "belowBar"; color = "#2962ff"; shape = "circle";
-        } else if (rvol <= 0.45 && spr < sprAvg * 0.75 && !down) {
-          tag = "ACC"; pos = "belowBar"; color = "#089981"; shape = "circle";
-        }
+      var prev = d[i - 1];
+      var kind = null, label = null, color = "#787b86";
+      var donHi = hh(d, i, 20), donLo = ll(d, i, 20);
+      if (rvol >= 3.0 && down && closeLoc <= 0.22 && spr >= sprAvg * 1.25) {
+        kind = "capit"; label = "CAPIT"; color = "#f23645";
+      } else if (rvol >= 2.5 && up && closeLoc >= 0.72) {
+        kind = "hugebuy"; label = "HUGE"; color = "#089981";
+      } else if (rvol >= 2.2 && down && closeLoc <= 0.35 && spr >= sprAvg * 1.15) {
+        kind = "sc"; label = "SC"; color = "#ef5350";
+      } else if (rvol >= 2.2 && up && closeLoc >= 0.65 && spr >= sprAvg * 1.15) {
+        kind = "bc"; label = "BC"; color = "#26a69a";
+      } else if (up && b.close > donHi && rvol >= 1.55 && prev && prev.close <= donHi) {
+        kind = "breakout"; label = "BO"; color = "#2962ff";
+      } else if (rvol >= 1.8 && body / rng <= 0.38 && spr >= sprAvg * 0.9) {
+        kind = "evr"; label = "EvR"; color = "#f0b429";
       }
-      if (tag) out.push({ time: b.time, position: pos, color: color, shape: shape, text: tag, _i: i, rvol: rvol });
+      if (kind) out.push({ time: b.time, kind: kind, label: label, color: color, vol: v, rvol: rvol, i: i });
     }
-    return out;
+    var seen = {}, keep = [];
+    for (i = out.length - 1; i >= 0; i--) {
+      if (seen[out[i].time]) continue;
+      seen[out[i].time] = 1;
+      keep.push(out[i]);
+    }
+    keep.reverse();
+    return keep;
   }
-  window.jhVolEvents = function (d) {
-    return events(d).map(function (e) {
-      return { time: e.time, position: e.position, color: e.color, shape: e.shape, text: e.text };
-    });
+  window.jhVolumeTape = function (d) {
+    var ev = classify(d);
+    return {
+      events: ev,
+      markers: ev.map(function (e) {
+        var below = e.kind === "capit" || e.kind === "sc" || e.kind === "evr";
+        return { time: e.time, position: below ? "belowBar" : "aboveBar", color: e.color, shape: below ? "arrowDown" : "arrowUp", text: e.label };
+      })
+    };
   };
-  window.jhVolEventTable = events;
+  window.jhVolEvents = function (d) {
+    var t = window.jhVolumeTape(d);
+    return t && t.markers ? t.markers : [];
+  };
+  window.jhVolEventTable = classify;
 })();
