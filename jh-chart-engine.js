@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.20 — Bloomberg analysis: key levels, period VWAP, drawdown, alpha, gaps, structure, RSI divergence. */
+/* JustHodl Chart engine v12.21 — full stock history on first paint; no 8000-bar clip. */
 (function () {
-  if (window.__jhChartEngineV1220) return;
+  if (window.__jhChartEngineV1221) return;
+  window.__jhChartEngineV1221 = true;
   window.__jhChartEngineV1220 = true;
   window.__jhChartEngineV1219 = true;
   window.__jhChartEngineV1218 = true;
@@ -15,7 +16,7 @@
   window.__jhChartEngineV129 = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
-  var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","3mo","10y"]];
+  var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","max"],["2d","2D","1d","max"],["3d","3D","1d","max"],["5d","5D","1d","max"],["1w","W","1wk","max"],["2w","2W","1wk","max"],["1M","M","1mo","max"],["3M","3M","3mo","max"]];
   var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPY"]];
   var BARS = { dod:1, wow:5, mom:21, qoq:63, yoy:252 };
   var TABS = ["SPY","QQQ","IWM","AAPL","MSFT","NVDA","AMZN","META","TSLA","XLE","TLT","GLD"];
@@ -1176,7 +1177,7 @@
     for(var i=0;i<urls.length;i++){
       try{
         var raw=await fetchJson(urls[i]); var d=toBars(raw);
-        if(d.length>8000) d=d.slice(-8000); if(d.length>=8){
+        if(d.length>=8){
           d=resampleToTf(d, tfId);
           if(d.length<2) continue;
           if(looksCloseOnly(d)) d=fillCandleBodies(d);
@@ -1264,7 +1265,7 @@
       grid:{ vertLines:{ color: gridOn?p.grid:"transparent" }, horzLines:{ color: gridOn?p.grid:"transparent" } },
       rightPriceScale:{ borderColor:p.border, scaleMargins:{ top:0.06, bottom:0.18 }, invertScaledValues:invert },
       leftPriceScale:{ visible:leftOn, borderColor:p.border },
-      timeScale:{ borderColor:p.border, timeVisible:true, rightOffset:6 },
+      timeScale:{ borderColor:p.border, timeVisible:true, rightOffset:6, minBarSpacing:0.001 },
       crosshair:{ mode: crossMode },
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } }
     });
@@ -1343,7 +1344,7 @@
       grid:{ vertLines:{color:gridOn?p.grid:"transparent"}, horzLines:{color:gridOn?p.grid:"transparent"} },
       rightPriceScale:{ invertScaledValues:invert, borderColor:p.border, scaleMargins:{ top:0.06, bottom:bot } },
       leftPriceScale:{ visible:leftOn, borderColor:p.border },
-      timeScale:{ borderColor:p.border },
+      timeScale:{ borderColor:p.border, minBarSpacing:0.001 },
       crosshair:{ mode: crossMode }
     });
     try{ chart.priceScale("right").applyOptions({ mode: mode==="price"?scaleMode:0, scaleMargins:{ top:0.06, bottom:bot } }); }catch(e){}
@@ -1561,9 +1562,9 @@
     }
     if(seq!==paintSeq) return;
     if(preserveView && saved && saved.from!=null && saved.to!=null && saved.to>saved.from+1){
-      try{ chart.timeScale().setVisibleLogicalRange(saved); }catch(e){ showRecentBars(200); }
+      try{ chart.timeScale().setVisibleLogicalRange(saved); }catch(e){ try{ chart.timeScale().fitContent(); }catch(e2){} }
     } else {
-      showRecentBars(200);
+      try{ chart.timeScale().fitContent(); }catch(e){}
     }
     if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"||o.id==="alpha"); })){
       try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf); }catch(e){}
@@ -1586,7 +1587,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.20"; if(st) st.textContent="v12.20 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.21"; if(st) st.textContent="v12.21 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
