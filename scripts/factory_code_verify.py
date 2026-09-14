@@ -225,7 +225,9 @@ def main(argv=None):
         return 2
     src_path, out_path = argv
     report = {"seen": 0, "passed": 0, "failed": 0, "timeouts": 0, "malformed": 0, "refused_suites": 0, "refused_static": 0, "partial_judge": 0, "checker": CHECKER}
-    with open(src_path, encoding="utf-8") as fin, open(out_path, "w", encoding="utf-8") as fout, tempfile.TemporaryDirectory() as tmp:
+    failures_path = out_path + ".failures.jsonl"       # passes only in the main file (consumers rely on it); failures kept beside it (F10)
+    with open(src_path, encoding="utf-8") as fin, open(out_path, "w", encoding="utf-8") as fout, open(failures_path, "w", encoding="utf-8") as ffail, \
+            tempfile.TemporaryDirectory() as tmp:
         os.chmod(tmp, 0o755)
         for line in fin:
             line = line.strip()
@@ -254,8 +256,8 @@ def main(argv=None):
                     report["refused_suites"] += 1
                 elif reason.startswith("refused_forbidden_token"):
                     report["refused_static"] += 1
-                fout.write(json.dumps({"task_id": row["task_id"], "sample": row.get("sample"), "passed": False, "reason": str(res.get("stderr", ""))[:200],
-                                       "cases": res["cases"], "judge": res["judge"], "checker": CHECKER, "_failure": True}, sort_keys=True) + "\n")
+                ffail.write(json.dumps({"task_id": row["task_id"], "sample": row.get("sample"), "passed": False, "reason": str(res.get("stderr", ""))[:200],
+                                        "cases": res["cases"], "judge": res["judge"], "checker": CHECKER, "_failure": True}, sort_keys=True) + "\n")
         fout.write(json.dumps({"_report": report}, sort_keys=True) + "\n")
     print(json.dumps(report))
     return 0

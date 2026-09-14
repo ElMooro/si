@@ -24,7 +24,7 @@ STATUS_WORDS = ("status", "where do you stand", "where are you", "what did you l
 
 def capability_text():
     return ("How I answer on this route: self-reports and capability answers come from objects; reading (Wikipedia, docs, search) "
-            "produces receipts, never lessons; there is no live model inference behind this chat box by design. "
+            "produces receipts, never lessons; no OWNED-model inference runs behind this chat box (an optional outside voice may explain, via llm_router, and is labelled when it does). "
             "To get code from me: `task: <what you want> tests: <python asserts>` -- the next burst samples solutions from the owned "
             "model and only what passes the independent verifier is kept and reported here.")
 

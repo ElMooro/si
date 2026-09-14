@@ -242,7 +242,8 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stderr)
             lines = [json.loads(l) for l in Path(out).read_text().splitlines()]
             self.assertEqual([l['task_id'] for l in lines if 'task_id' in l], ['ok'])
-            self.assertEqual(lines[-1]['_report'], {'seen': 4, 'passed': 1, 'failed': 2, 'timeouts': 1, 'malformed': 1})
+            rep = lines[-1]['_report']
+            self.assertEqual({k: rep[k] for k in ('seen', 'passed', 'failed', 'timeouts', 'malformed')}, {'seen': 4, 'passed': 1, 'failed': 2, 'timeouts': 1, 'malformed': 1})
 
 
 if __name__ == '__main__':

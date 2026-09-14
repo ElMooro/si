@@ -86,8 +86,11 @@ def cmd_write(args) -> int:
     import boto3
     s3 = boto3.client("s3", region_name=REGION)
     written, exists, verdicts, seen_tasks = 0, 0, 0, set()
+    import itertools
+    sidecar = args.inp + ".failures.jsonl"
+    sources = [open(args.inp, encoding="utf-8")] + ([open(sidecar, encoding="utf-8")] if os.path.exists(sidecar) else [])
     with open(args.inp, encoding="utf-8") as f:
-        for line in f:
+        for line in itertools.chain(*sources):
             if not line.strip():
                 continue
             row = json.loads(line)

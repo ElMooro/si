@@ -27,7 +27,8 @@ class VerifierJudgeTests(unittest.TestCase):
             (tmp / 'in.jsonl').write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
             v.main([str(tmp / 'in.jsonl'), str(tmp / 'out.jsonl')])
             out = [json.loads(l) for l in (tmp / 'out.jsonl').read_text().splitlines()]
-        return sorted(r['task_id'] for r in out if r.get('passed')), {r['task_id']: r['reason'] for r in out if r.get('_failure')}, out[-1]['_report']
+            fails = [json.loads(l) for l in (tmp / 'out.jsonl.failures.jsonl').read_text().splitlines()]
+        return sorted(r['task_id'] for r in out if r.get('passed')), {r['task_id']: r['reason'] for r in fails}, out[-1]['_report']
 
     def test_supervisor_is_the_judge(self):
         cur = module('cur_audit', 'scripts/factory_oss_curriculum.py')

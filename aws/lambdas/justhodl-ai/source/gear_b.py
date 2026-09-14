@@ -561,7 +561,7 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
         return out
     out["polled"] = poll_jobs(sm, s3, private_bucket)
     if any(u.get("status") in ("launching", "InProgress", "Stopping", "unknown") for u in out["polled"]):
-        out["refusal"] = "a job is still running or its state is unknown (reconcile before reserving more compute)"
+        out["refusal"] = "a job is still running" if not any(u.get("status") == "unknown" for u in out["polled"]) else "a job's state is unknown (reconcile before reserving more compute)"
         return out
     manifest = latest_unlaunched_manifest(s3, private_bucket)
     if manifest is None:
