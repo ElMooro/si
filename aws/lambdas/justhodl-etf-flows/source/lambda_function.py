@@ -59,10 +59,15 @@ ETF_CATEGORIES = {
         "XLRE",  # Real Estate
         "XLK",   # Tech
         "XLC",   # Communications
+        "SMH",   # Semis
+        "XBI",   # Biotech
+        "KRE",   # Regional banks
+        "SOXX",  # PHLX semi
+        "ARKK",  # ARK innovation
     ],
     "RATES_TREASURIES": ["TLT", "IEF", "SHY", "GOVT", "BIL", "TIP"],
-    "CREDIT": ["AGG", "HYG", "LQD", "JNK", "BND", "EMB"],
-    "COMMODITIES": ["GLD", "IAU", "SLV", "USO", "UNG", "DBA", "DBC"],
+    "CREDIT": ["AGG", "HYG", "LQD", "JNK", "BND", "EMB", "USHY", "FALN", "ANGL"],
+    "COMMODITIES": ["GLD", "IAU", "SLV", "GDX", "USO", "UNG", "DBA", "DBC"],
     "INTERNATIONAL": ["EEM", "EFA", "VWO", "IEFA", "IEMG", "FXI", "EWJ", "EWZ", "INDA"],
     "VOLATILITY": ["VXX", "UVXY", "SVXY"],
     "CRYPTO": ["IBIT", "FBTC", "BITO", "ETHA", "BITB"],
@@ -84,7 +89,7 @@ def http_get(url, timeout=15):
         return json.loads(r.read())
 
 
-def fetch_polygon_aggs(ticker, days=70):
+def fetch_polygon_aggs(ticker, days=160):
     """Last N days of daily bars."""
     today = datetime.now(timezone.utc).date()
     start = today - timedelta(days=days + 14)  # cushion for weekends
@@ -116,15 +121,17 @@ def fetch_polygon_ticker(ticker):
         return None
 
 
-def analyze_etf(ticker, category):
-    """Compute return + flow proxy metrics."""
-    bars = fetch_polygon_aggs(ticker, days=70)
+def analyze_etf(ticker, category, spy_closes=None):
+    """Compute return + flow + A/D + pattern vs SPY."""
+    bars = fetch_polygon_aggs(ticker, days=160)
     info = fetch_polygon_ticker(ticker)
     if not bars or len(bars) < 25:
         return None
 
     bars_sorted = sorted(bars, key=lambda b: b.get("t", 0))
     closes = [b["c"] for b in bars_sorted if b.get("c")]
+    highs = [b.get("h", b.get("c", 0)) for b in bars_sorted]
+    lows = [b.get("l", b.get("c", 0)) for b in bars_sorted]
     volumes = [b.get("v", 0) for b in bars_sorted]
     dollar_vols = [b.get("c", 0) * b.get("v", 0) for b in bars_sorted]
 
@@ -134,34 +141,81 @@ def analyze_etf(ticker, category):
     latest_close = closes[-1]
     today_dvol = dollar_vols[-1]
 
-    # Returns
     def ret_n(n):
-        if len(closes) > n:
+        if len(closes) > n and closes[-1 - n]:
             return round(((closes[-1] - closes[-1 - n]) / closes[-1 - n]) * 100, 2)
         return None
+
     r1d = ret_n(1)
     r5d = ret_n(5)
+    r21d = ret_n(21)
     r20d = ret_n(20)
+    r63d = ret_n(63)
+
+    def vs_spy(r, n):
+        if r is None or not spy_closes or len(spy_closes) <= n or not spy_closes[-1 - n]:
+            return None
+        sr = ((spy_closes[-1] - spy_closes[-1 - n]) / spy_closes[-1 - n]) * 100
+        return round(r - sr, 2)
 
     # $ volume stats
     dvol_5d = mean(dollar_vols[-5:]) if len(dollar_vols) >= 5 else None
     dvol_20d = mean(dollar_vols[-20:]) if len(dollar_vols) >= 20 else None
     dvol_60d = mean(dollar_vols[-60:]) if len(dollar_vols) >= 60 else None
 
-    # $ volume z-score: today vs 60d distribution
     dvol_z = None
     if len(dollar_vols) >= 60:
-        baseline = dollar_vols[-60:-1]  # excl today
+        baseline = dollar_vols[-60:-1]
         m, s = mean(baseline), stdev(baseline) if len(baseline) > 1 else 0
         if s > 0:
             dvol_z = round((today_dvol - m) / s, 2)
 
-    # AUM proxy
     aum_b = None
     if info and info.get("market_cap"):
         aum_b = round(info["market_cap"] / 1e9, 2)
     elif info and info.get("share_class_shares_outstanding") and latest_close:
         aum_b = round((info["share_class_shares_outstanding"] * latest_close) / 1e9, 2)
+
+    # 20d Chaikin money flow → accumulation / distribution
+    sl = bars_sorted[-20:]
+    nume = den = 0.0
+    for b in sl:
+        h, l, c, v = b.get("h"), b.get("l"), b.get("c"), b.get("v") or 0
+        if not h or not l or h == l or c is None:
+            continue
+        nume += (((c - l) - (h - c)) / (h - l)) * v
+        den += v
+    cmf = (nume / den) if den else None
+    ad_phase = "NEUTRAL"
+    if cmf is not None:
+        if cmf > 0.06 and (r21d is None or r21d > 0):
+            ad_phase = "ACCUMULATION"
+        elif cmf < -0.06 and (r21d is None or r21d < 0):
+            ad_phase = "DISTRIBUTION"
+        elif cmf > 0.06 and r21d is not None and r21d < 0:
+            ad_phase = "ABSORPTION"
+        elif cmf < -0.06 and r21d is not None and r21d > 0:
+            ad_phase = "HIDDEN SELLING"
+
+    pattern = "RANGE"
+    if len(closes) >= 40:
+        ma10 = mean(closes[-10:])
+        ma40 = mean(closes[-40:])
+        hi20 = max(highs[-20:])
+        lo20 = min(lows[-20:])
+        rng = (hi20 - lo20) / latest_close if latest_close else 0
+        if rng < 0.035:
+            pattern = "COIL"
+        elif len(closes) >= 50 and ma10 > ma40 and mean(closes[-20:-10]) <= mean(closes[-50:-40]):
+            pattern = "GOLDEN CROSS"
+        elif latest_close >= hi20 * 0.999:
+            pattern = "BREAKOUT"
+        elif latest_close <= lo20 * 1.001:
+            pattern = "BREAKDOWN"
+        elif ma10 > ma40:
+            pattern = "UPTREND"
+        elif ma10 < ma40:
+            pattern = "DOWNTREND"
 
     return {
         "ticker": ticker,
@@ -172,6 +226,12 @@ def analyze_etf(ticker, category):
         "return_1d_pct": r1d,
         "return_5d_pct": r5d,
         "return_20d_pct": r20d,
+        "return_21d_pct": r21d,
+        "return_63d_pct": r63d,
+        "vs_spy_1d_pct": vs_spy(r1d, 1),
+        "vs_spy_5d_pct": vs_spy(r5d, 5),
+        "vs_spy_21d_pct": vs_spy(r21d, 21),
+        "vs_spy_63d_pct": vs_spy(r63d, 63),
         "today_dollar_vol_b": round(today_dvol / 1e9, 3),
         "avg_5d_dollar_vol_b": round(dvol_5d / 1e9, 3) if dvol_5d else None,
         "avg_20d_dollar_vol_b": round(dvol_20d / 1e9, 3) if dvol_20d else None,
@@ -181,6 +241,9 @@ def analyze_etf(ticker, category):
             round(((dvol_5d - dvol_20d) / dvol_20d) * 100, 1)
             if dvol_5d and dvol_20d and dvol_20d > 0 else None
         ),
+        "cmf_20": round(cmf, 4) if cmf is not None else None,
+        "ad_phase": ad_phase,
+        "pattern": pattern,
     }
 
 
@@ -215,6 +278,9 @@ def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[etf-flows] start — {len(ALL_ETFS)} ETFs across {len(ETF_CATEGORIES)} categories")
 
+    spy_bars = fetch_polygon_aggs("SPY", days=160)
+    spy_closes = [b["c"] for b in sorted(spy_bars or [], key=lambda b: b.get("t", 0)) if b.get("c")]
+
     by_etf = {}
 
     def task(ticker):
@@ -222,7 +288,9 @@ def lambda_handler(event=None, context=None):
             if ticker in ets:
                 category = cat
                 break
-        return analyze_etf(ticker, category)
+        else:
+            category = "OTHER"
+        return analyze_etf(ticker, category, spy_closes)
 
     with ThreadPoolExecutor(max_workers=10) as ex:
         futures = {ex.submit(task, t): t for t in ALL_ETFS}
@@ -276,7 +344,7 @@ def lambda_handler(event=None, context=None):
         L.sort(key=lambda e: -(abs(e.get("dvol_5d_vs_20d_pct") or 0)))
 
     out = {
-        "version": "1.0",
+        "version": "1.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "n_etfs_analyzed": len(by_etf),
         "by_etf": by_etf,
@@ -298,6 +366,25 @@ def lambda_handler(event=None, context=None):
             "ROTATION_IN": "5d vs 20d $ vol up 25%+ + price up",
             "ROTATION_OUT": "5d vs 20d $ vol up 25%+ + price down",
             "QUIET": "no notable flow signal",
+            "ad_phase": "20d Chaikin money flow vs 21d return (ACCUMULATION / DISTRIBUTION / ABSORPTION / HIDDEN SELLING)",
+        },
+        "spy": {
+            "return_1d_pct": (
+                round(((spy_closes[-1] - spy_closes[-2]) / spy_closes[-2]) * 100, 2)
+                if len(spy_closes) > 1 and spy_closes[-2] else None
+            ),
+            "return_5d_pct": (
+                round(((spy_closes[-1] - spy_closes[-6]) / spy_closes[-6]) * 100, 2)
+                if len(spy_closes) > 6 and spy_closes[-6] else None
+            ),
+            "return_21d_pct": (
+                round(((spy_closes[-1] - spy_closes[-22]) / spy_closes[-22]) * 100, 2)
+                if len(spy_closes) > 22 and spy_closes[-22] else None
+            ),
+            "return_63d_pct": (
+                round(((spy_closes[-1] - spy_closes[-64]) / spy_closes[-64]) * 100, 2)
+                if len(spy_closes) > 64 and spy_closes[-64] else None
+            ),
         },
     }
 

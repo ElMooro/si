@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Strength vs S&P 500 · JustHodl.AI</title>
+<meta name="description" content="Relative-strength engine versus the S&P 500 — ETFs, stocks, metals, crypto. Surfaces names that dump less, stay flat, or rise while SPX dumps.">
+<link rel="stylesheet" href="/jh-theme.css">
+<link rel="stylesheet" href="/jh-desk.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-engine="justhodl-etf-flows" data-output="data/etf-flows.json">
+<header class="jh-ws-header">
+  <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
+  <span class="jh-ws-crumb">STRONG ENGINE · relative strength vs S&P 500 · D / W / M / 3M</span>
+  <nav class="jh-ws-links">
+    <a href="/etf.html">ETF</a>
+    <a href="/strong.html" class="on">Strong</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/universe-heatmap.html">Heatmap</a>
+    <a href="/chart.html">Chart</a>
+  </nav>
+</header>
+<main class="jh-desk" id="app">
+  <div class="jh-hero">
+    <div>
+      <h1>STRENGTH vs S&P 500</h1>
+      <p>The board is built for the session where the index is under pressure. We keep names that are dumping only a little while SPX dumps hard, that are flat, or that are actually up. Strength on each horizon is asset return minus SPY return. Composite weights 35% day / 30% week / 20% month / 15% three-month.</p>
+    </div>
+    <div class="jh-stamp" id="stamp">loading engine…</div>
+  </div>
+  <div class="jh-kpis" id="kpis"></div>
+  <div class="jh-card jh-focus" style="margin-bottom:14px">
+    <h3>Focus — holding up while the index is heavy</h3>
+    <div class="jh-tblwrap" style="max-height:320px" id="focus"></div>
+  </div>
+  <div class="jh-chips" id="chips"></div>
+  <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="12">Comparing every sleeve to SPY…</td></tr></tbody></table></div>
+  <p class="jh-note" id="note"></p>
+</main>
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-desk-core.js"></script>
+<script src="/jh-strong-engine.js"></script>
+<script>
+(function(){
+  var D=JHDesk, sleeve="ALL", sortK="score", sortDir=-1, DATA=null;
+  function cell(v){ return '<td class="'+D.cls(v)+'">'+D.fmtPct(v)+"</td>"; }
+  function tag(p){ return '<span class="tag '+(p&&p.code||"")+'">'+D.esc(p&&p.label||"—")+"</span>"; }
+  function kpis(d){
+    var s=d.spy.h||{};
+    var n=d.focus.length;
+    var best=d.rows.slice().sort(function(a,b){return (b.score||-999)-(a.score||-999);})[0];
+    document.getElementById("kpis").innerHTML=[
+      ["SPX D / W / M / 3M", D.fmtPct(s.d), "<span class='"+D.cls(s.w)+"'>"+D.fmtPct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+D.fmtPct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+D.fmtPct(s.q)+"</span>"],
+      ["Regime", d.dump?"SPX HEAVY":"SPX NOT DUMPING", d.dump?"Focus board is live":"Leaders still ranked by RS"],
+      ["Holding up", n+" names", "bid / flat / dumping less"],
+      ["Strongest RS", best?best.ticker+" "+D.fmtPct(best.score):"—", best?best.name+" · composite":""]
+    ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
+  }
+  function draw(){
+    if(!DATA) return;
+    kpis(DATA);
+    document.getElementById("chips").innerHTML=["ALL"].concat(DATA.sleeves).map(function(c){
+      return '<button type="button" class="jh-chip'+(c===sleeve?" on":"")+'" data-s="'+c+'">'+c+"</button>";
+    }).join("");
+    document.querySelectorAll("#chips [data-s]").forEach(function(b){ b.onclick=function(){ sleeve=b.getAttribute("data-s"); draw(); }; });
+    function get(r,k){
+      if(k==="d") return r.h.d; if(k==="w") return r.h.w; if(k==="m") return r.h.m; if(k==="q") return r.h.q;
+      if(k==="vd") return r.vs.d; if(k==="vw") return r.vs.w; if(k==="vm") return r.vs.m; if(k==="vq") return r.vs.q;
+      if(k==="post") return r.post&&r.post.rs;
+      return r[k];
+    }
+    function sortFn(a,b){
+      var av=get(a,sortK), bv=get(b,sortK);
+      if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
+      if(typeof av==="string") return sortDir*(av<bv?1:av>bv?-1:0);
+      return sortDir*((bv>av?1:bv<av?-1:0));
+    }
+    function tbody(rows){
+      return rows.map(function(r){
+        return "<tr><td><a class=tk href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>"+r.ticker+"</a></td>"+
+          "<td class=nm>"+D.esc(r.name)+"</td><td class=nm>"+r.sleeve+"</td><td>"+D.fmtPx(r.px)+"</td>"+
+          cell(r.h.d)+cell(r.h.w)+cell(r.h.m)+cell(r.h.q)+
+          cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
+          "<td class='"+D.cls(r.score)+"'>"+D.fmtPct(r.score)+"</td><td>"+tag(r.post)+"</td></tr>";
+      }).join("");
+    }
+    var heads=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","RS D"],["vw","RS W"],["vm","RS M"],["vq","RS 3M"],["score","Composite"],["post","Read"]];
+    var headHtml="<tr>"+heads.map(function(h){ return "<th data-k='"+h[0]+"'>"+h[1]+(sortK===h[0]?(sortDir<0?" ▾":" ▴"):"")+"</th>"; }).join("")+"</tr>";
+    var focus=DATA.focus.slice().sort(sortFn).slice(0,14);
+    document.getElementById("focus").innerHTML="<table class=jh-tbl><thead>"+headHtml+"</thead><tbody>"+(tbody(focus)||"<tr><td colspan=14 class=jh-load>No names holding up this session — SPX may not be dumping, or everything is in line.</td></tr>")+"</tbody></table>";
+    var rows=DATA.rows.filter(function(r){ return sleeve==="ALL"||r.sleeve===sleeve; }).slice().sort(sortFn);
+    document.querySelector("#tbl thead").innerHTML=headHtml;
+    document.querySelector("#tbl tbody").innerHTML=tbody(rows)||"<tr><td colspan=14 class=jh-load>No names in this sleeve.</td></tr>";
+    document.querySelectorAll("th[data-k]").forEach(function(th){
+      th.onclick=function(){ var k=th.getAttribute("data-k"); if(sortK===k) sortDir*=-1; else { sortK=k; sortDir=-1; } draw(); };
+    });
+    document.getElementById("stamp").innerHTML=(DATA.generated_at||"").slice(0,16).replace("T"," ")+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+"  "+D.fmtPct(DATA.spy.h.d);
+    document.getElementById("note").innerHTML="<b>Definition.</b> "+DATA.sources.definition+" "+DATA.sources.quotes+". Research, not advice.";
+  }
+  JHStrong.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
+    document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=12 class=jh-load>Engine failed: "+D.esc(e&&e.message||e)+"</td></tr>";
+  });
+})();
+</script>
+</body>
+</html>

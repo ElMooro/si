@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETF Desk · JustHodl.AI</title>
+<meta name="description" content="Institutional ETF desk — live prices, D/W/M/3M vs S&P 500, Polygon creation/redemption flow, accumulation vs distribution, chart pattern.">
+<link rel="stylesheet" href="/jh-theme.css">
+<link rel="stylesheet" href="/jh-desk.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-engine="justhodl-etf-flows" data-output="data/etf-flows.json">
+<header class="jh-ws-header">
+  <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
+  <span class="jh-ws-crumb">ETF ENGINE · prices · flow · accumulation · vs S&P 500</span>
+  <nav class="jh-ws-links">
+    <a href="/etf.html" class="on">ETF</a>
+    <a href="/strong.html">Strong</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/universe-heatmap.html">Heatmap</a>
+    <a href="/macro-economic-data.html">Macro</a>
+    <a href="/chart.html">Chart</a>
+  </nav>
+</header>
+<main class="jh-desk" id="app">
+  <div class="jh-hero">
+    <div>
+      <h1>ETF DESK</h1>
+      <p>Liquid wrappers ranked by the session’s move. Daily change on top; weekly, monthly and 3-month underneath. Flow is Polygon dollar-volume z vs the trailing 60 sessions (creation/redemption proxy). Accumulation / distribution is 20-day Chaikin money flow against price. Every return is shown versus SPY on the same window.</p>
+    </div>
+    <div class="jh-stamp" id="stamp">loading engine…</div>
+  </div>
+  <div class="jh-kpis" id="kpis"></div>
+  <div class="jh-chips" id="chips"></div>
+  <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="14">Loading Polygon snapshot + warehouse history…</td></tr></tbody></table></div>
+  <div class="jh-split">
+    <div class="jh-card"><h3>Inflows · unusual buying</h3><div id="inflow" class="jh-load">—</div></div>
+    <div class="jh-card"><h3>Outflows · unusual selling</h3><div id="outflow" class="jh-load">—</div></div>
+  </div>
+  <p class="jh-note" id="note"></p>
+</main>
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-desk-core.js"></script>
+<script src="/jh-etf-engine.js"></script>
+<script>
+(function(){
+  var D=JHDesk, cat="ALL", sortK="d", sortDir=-1, DATA=null;
+  function cell(v){ return '<td class="'+D.cls(v)+'">'+D.fmtPct(v)+"</td>"; }
+  function tag(s){
+    var k=(s||"").split(" ")[0];
+    return '<span class="tag '+k+'">'+D.esc(s||"—")+"</span>";
+  }
+  function kpis(d){
+    var spy=d.spy.h||{};
+    var byD=D.sortRows(d.rows.map(function(r){return Object.assign({},r,{_d:r.h.d});}), "_d", -1);
+    var g=byD[0], l=byD[byD.length-1];
+    var net=d.rows.reduce(function(s,r){return s+(r.dvol||0)*( /OUTFLOW/.test(r.flow)?-1: /INFLOW/.test(r.flow)?1:0);},0);
+    document.getElementById("kpis").innerHTML=[
+      ["S&P 500 D / W / M / 3M", D.fmtPct(spy.d),"<span class='"+D.cls(spy.w)+"'>"+D.fmtPct(spy.w)+"</span> · <span class='"+D.cls(spy.m)+"'>"+D.fmtPct(spy.m)+"</span> · <span class='"+D.cls(spy.q)+"'>"+D.fmtPct(spy.q)+"</span>"],
+      ["Breadth", d.breadth.adv+" adv / "+d.breadth.dec+" dec", d.breadth.n+" wrappers"],
+      ["Biggest D", g?g.ticker+" "+D.fmtPct(g.h.d):"—", g?g.name:""],
+      ["Worst D", l?l.ticker+" "+D.fmtPct(l.h.d):"—", l?l.name:""],
+      ["Flow notables", (d.inflows.length)+" in / "+(d.outflows.length)+" out", "z-score vs 60d $volume"]
+    ].map(function(x){
+      return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>";
+    }).join("");
+  }
+  function chips(){
+    document.getElementById("chips").innerHTML=JHEtf.CATS.map(function(c){
+      return '<button type="button" class="jh-chip'+(c===cat?" on":"")+'" data-c="'+c+'">'+c+"</button>";
+    }).join("");
+    document.querySelectorAll("#chips [data-c]").forEach(function(b){
+      b.onclick=function(){ cat=b.getAttribute("data-c"); draw(); };
+    });
+  }
+  function tape(list){
+    if(!list.length) return '<div class="nm">None printing as unusual this session.</div>';
+    return '<table class="jh-tbl"><tbody>'+list.slice(0,8).map(function(r){
+      return "<tr><td><a class=tk href='/chart.html?s="+r.ticker+"'>"+r.ticker+"</a></td><td class='nm'>"+D.esc(r.name)+"</td>"+cell(r.h.d)+"<td>"+tag(r.flow)+"</td><td class='nm'>z "+(r.z==null?"—":r.z.toFixed(2))+"</td></tr>";
+    }).join("")+"</tbody></table>";
+  }
+  function draw(){
+    if(!DATA) return;
+    kpis(DATA); chips();
+    var rows=DATA.rows.filter(function(r){ return cat==="ALL"||r.cat===cat; });
+    var keyMap={tk:"ticker",name:"name",px:"px",d:"h.d",w:"h.w",m:"h.m",q:"h.q",vd:"vs.d",vw:"vs.w",vm:"vs.m",vq:"vs.q",flow:"z",ad:"ad",pat:"pattern",aum:"aum"};
+    function get(r,k){
+      if(k==="d") return r.h.d; if(k==="w") return r.h.w; if(k==="m") return r.h.m; if(k==="q") return r.h.q;
+      if(k==="vd") return r.vs.d; if(k==="vw") return r.vs.w; if(k==="vm") return r.vs.m; if(k==="vq") return r.vs.q;
+      return r[k];
+    }
+    rows=rows.slice().sort(function(a,b){
+      var av=get(a,sortK), bv=get(b,sortK);
+      if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
+      if(typeof av==="string") return sortDir*(av<bv?1:av>bv?-1:0);
+      return sortDir*((bv>av?1:bv<av?-1:0));
+    });
+    var heads=[["tk","Ticker"],["name","Name"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","vs SPX D"],["vw","W"],["vm","M"],["vq","3M"],["flow","Flow"],["ad","A/D"],["pat","Pattern"],["aum","AUM $M"]];
+    var thead="<tr>"+heads.map(function(h){ return "<th data-k='"+h[0]+"'>"+h[1]+(sortK===h[0]?(sortDir<0?" ▾":" ▴"):"")+"</th>"; }).join("")+"</tr>";
+    var body=rows.map(function(r){
+      return "<tr><td><a class=tk href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>"+r.ticker+"</a></td>"+
+        "<td class=nm>"+D.esc(r.name)+"</td><td>"+D.fmtPx(r.px)+"</td>"+
+        cell(r.h.d)+cell(r.h.w)+cell(r.h.m)+cell(r.h.q)+
+        cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
+        "<td>"+tag(r.flow)+"</td><td>"+tag(r.ad)+"</td><td>"+tag(r.pattern)+"</td>"+
+        "<td>"+(r.aum==null?"—":D.fmtUsd(r.aum*1e6).replace(/M$/,""))+"</td></tr>";
+    }).join("");
+    document.querySelector("#tbl thead").innerHTML=thead;
+    document.querySelector("#tbl tbody").innerHTML=body||"<tr><td colspan=15 class=jh-load>No names in this sleeve.</td></tr>";
+    document.querySelectorAll("#tbl th[data-k]").forEach(function(th){
+      th.onclick=function(){ var k=th.getAttribute("data-k"); if(sortK===k) sortDir*=-1; else { sortK=k; sortDir=-1; } draw(); };
+    });
+    document.getElementById("inflow").innerHTML=tape(DATA.inflows);
+    document.getElementById("outflow").innerHTML=tape(DATA.outflows);
+    document.getElementById("stamp").innerHTML=(DATA.generated_at||"").slice(0,16).replace("T"," ")+" UTC<br>SPY "+D.fmtPx(DATA.spy.px);
+    document.getElementById("note").innerHTML="<b>Sources.</b> "+DATA.sources.quotes+" · "+DATA.sources.history+" · "+DATA.sources.flows+" · "+DATA.sources.census+". Research, not advice.";
+  }
+  JHEtf.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
+    document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=15 class=jh-load>Engine failed: "+D.esc(e&&e.message||e)+"</td></tr>";
+  });
+})();
+</script>
+</body>
+</html>

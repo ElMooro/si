@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.31 — Wyckoff selling climax (S&P 1980–now) on the volume tape. */
+/* JustHodl Chart engine v12.32 — ETF / Strong / Bonds workspace icons on the Supercharts rail. */
 (function () {
-  if (window.__jhChartEngineV1231) return;
+  if (window.__jhChartEngineV1232) return;
+  window.__jhChartEngineV1232 = true;
   window.__jhChartEngineV1231 = true;
   window.__jhChartEngineV1230 = true;
   window.__jhChartEngineV1229 = true;
@@ -1919,7 +1920,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.31"; if(st) st.textContent="v12.31 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.32"; if(st) st.textContent="v12.32 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2803,10 +2804,13 @@
       return "<button class='chg "+(t[0]===mode?"on":"")+"' data-chg='"+t[0]+"' title='"+t[1]+"'>"+t[1]+"</button>";
     }).join("");
     document.getElementById("tfbar").innerHTML=
-      "<button class=wsico id=btn-macro title='Macro & Economic Data'>📈</button>"+
-      "<button class=wsico id=btn-heat title='Universe Heatmap'>▦</button>"+
-      "<button class=wsico id=btn-corm title='Correlation Matrix'>▣</button>"+
-      "<button class=wsico id=btn-alrt title='Alert Center'>🔔</button>"+
+      "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
+      "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
+      "<button class='wsico wsdesk' id=btn-corm title='Correlation Matrix'><span class=g>▣</span><span class=l>Corr</span></button>"+
+      "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
+      "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
+      "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
+      "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       chgHtml+
       "<span class=sep></span>"+
@@ -2844,6 +2848,9 @@
     var bmac=document.getElementById("btn-macro"); if(bmac) bmac.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("macro"); };
     var bht=document.getElementById("btn-heat"); if(bht) bht.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("heat"); };
     var bcm=document.getElementById("btn-corm"); if(bcm) bcm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("corr"); };
+    var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };
+    var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
+    var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var more=document.getElementById("btn-tfmore");
     if(more) more.onclick=function(){

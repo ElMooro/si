@@ -218,6 +218,8 @@ footer a{margin:0 10px}
     <a href="/regime.html">Regime</a>
     <a href="/correlation.html">Correlations</a>
     <a href="/macro-data.html">Macro</a>
+    <a href="/etf.html">ETF</a>
+    <a href="/strong.html">Strong</a>
     <a href="/bonds.html" class="active">Bonds</a>
     <a href="/auction-crisis.html">Auctions</a>
     <a href="/repo.html">Repo</a><a href="/sovereign.html">Sovereign</a>
@@ -239,6 +241,78 @@ footer a{margin:0 10px}
   </div>
 
   <div id="errorBanner" class="error-banner"></div>
+
+<section class="fi-board" id="fi-board">
+  <div class="fi-head">
+    <div>
+      <h2>GLOBAL FIXED INCOME BOARD</h2>
+      <p>Yields and total return on D / W / M / 3M. ICE BofA OAS from FRED. Price return from the listed bond ETF (or ICE BofA total-return index when no liquid wrapper). Frontier is an equity-proxy sleeve — labelled as such.</p>
+    </div>
+    <div class="fi-stamp" id="fi-stamp">loading bonds engine…</div>
+  </div>
+  <div class="fi-kpis" id="fi-kpis"></div>
+  <div class="fi-grid" id="fi-grid"><div class="jh-load" style="padding:28px;color:var(--fg-3)">Pulling FRED ICE BofA + Treasury + JGB/Europe + ETF total return…</div></div>
+  <p class="fi-note" id="fi-note"></p>
+</section>
+
+<style>
+.fi-board{margin:0 0 28px}
+.fi-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.fi-head h2{margin:0;font:700 15px var(--font-mono);letter-spacing:.12em;color:var(--fg-1)}
+.fi-head p{margin:6px 0 0;max-width:760px;color:var(--fg-3);font-size:12.5px;line-height:1.5}
+.fi-stamp{font:11px var(--font-mono);color:var(--fg-3);text-align:right}
+.fi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:12px}
+.fi-kpi{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.fi-kpi .l{font:10px var(--font-mono);letter-spacing:.1em;color:var(--fg-3);text-transform:uppercase}
+.fi-kpi .v{font:700 20px var(--font-mono);margin-top:4px}
+.fi-kpi .s{font:10.5px var(--font-mono);color:var(--fg-3);margin-top:2px}
+.fi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px}
+.fi-panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.fi-panel h3{margin:0;padding:10px 12px;font:11px var(--font-mono);letter-spacing:.1em;color:var(--fg-2);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg-elevated)}
+.fi-panel table{width:100%;border-collapse:collapse;font:11px var(--font-mono);font-variant-numeric:tabular-nums}
+.fi-panel th{text-align:right;color:var(--fg-3);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border)}
+.fi-panel td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.fi-panel th:first-child,.fi-panel td:first-child{text-align:left}
+.fi-panel .up{color:var(--green)}.fi-panel .dn{color:var(--red)}.fi-panel .flat{color:var(--fg-3)}
+.fi-note{font-size:11.5px;color:var(--fg-3);margin-top:10px;line-height:1.5}
+@media(max-width:700px){.fi-grid{grid-template-columns:1fr}}
+</style>
+<script src="/jh-desk-core.js"></script>
+<script src="/jh-bonds-engine.js"></script>
+<script>
+(function(){
+  function cls(v){ return (window.JHDesk?JHDesk.cls(v):(v>0?"up":v<0?"dn":"flat")); }
+  function fp(v){ return window.JHDesk?JHDesk.fmtPct(v):(v==null?"—":(v>0?"+":"")+v.toFixed(2)+"%"); }
+  function fb(v){ return window.JHDesk?JHDesk.fmtBp(v):(v==null?"—":(v>0?"+":"")+v.toFixed(1)+"bp"); }
+  function cellY(v, kind){ return '<td class="'+cls(kind==="oas"||kind==="yield"?-v:v)+'">'+(kind==="proxy"?"—":fb(v))+"</td>"; }
+  function cellR(v){ return '<td class="'+cls(v)+'">'+fp(v)+"</td>"; }
+  JHBonds.run().then(function(d){
+    var wr=d.warroom||{};
+    document.getElementById("fi-stamp").textContent=(d.generated_at||"").slice(0,16).replace("T"," ")+" UTC"+(wr.regime?" · "+wr.regime:"");
+    var u10=(d.cats[0]&&d.cats[0].rows||[]).filter(function(r){return /10Y/.test(r.label);})[0];
+    var hy=(d.cats.filter(function(c){return c.id==="hy";})[0]||{}).rows||[];
+    var ccc=(d.cats.filter(function(c){return c.id==="ccc";})[0]||{}).rows||[];
+    document.getElementById("fi-kpis").innerHTML=[
+      ["War-room", wr.score==null?"—":wr.score, wr.headline||wr.regime||""],
+      ["US 10Y", u10&&u10.level!=null?u10.level.toFixed(3)+"%":"—", u10?fb(u10.y.d)+" d":""],
+      ["HY OAS", hy[0]&&hy[0].level!=null?(hy[0].level*100).toFixed(0)+"bp":"—", hy[0]?fb(hy[0].y.d)+" d":""],
+      ["CCC OAS", ccc[0]&&ccc[0].level!=null?(ccc[0].level*100).toFixed(0)+"bp":"—", ccc[0]?fb(ccc[0].y.d)+" d":""]
+    ].map(function(x){ return '<div class="fi-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
+    document.getElementById("fi-grid").innerHTML=d.cats.map(function(c){
+      var rows=c.rows.map(function(r){
+        var lvl=r.level==null?"—":(c.kind==="oas"?(Number(r.level)*100).toFixed(0)+"bp":(c.kind==="yield"?Number(r.level).toFixed(3)+"%":Number(r.level).toFixed(2)));
+        return "<tr><td>"+JHDesk.esc(r.label)+(r.proxy?" <span class=flat>proxy</span>":"")+"</td><td>"+lvl+"</td>"+
+          cellY(r.y.d,c.kind)+cellY(r.y.w,c.kind)+cellY(r.y.m,c.kind)+cellY(r.y.q,c.kind)+
+          cellR(r.r.d)+cellR(r.r.w)+cellR(r.r.m)+cellR(r.r.q)+"</tr>";
+      }).join("");
+      return '<div class="fi-panel"><h3>'+JHDesk.esc(c.title)+'</h3><div style="overflow:auto"><table><thead><tr><th>Series</th><th>Level</th><th>Y D</th><th>Y W</th><th>Y M</th><th>Y 3M</th><th>R D</th><th>R W</th><th>R M</th><th>R 3M</th></tr></thead><tbody>'+rows+"</tbody></table></div></div>";
+    }).join("");
+    document.getElementById("fi-note").innerHTML="<b>Y</b> = yield / OAS change in bp (red = cheaper credit / lower yield is green on price). <b>R</b> = total return. "+d.sources.yields+". "+d.sources.returns+". "+d.sources.warroom+".";
+  }).catch(function(e){
+    document.getElementById("fi-grid").innerHTML='<div class="jh-load" style="padding:20px;color:var(--red)">Bonds engine failed: '+(e&&e.message||e)+"</div>";
+  });
+})();
+</script>
 
 <!-- ═══════════════ BOND WAR ROOM (justhodl-bond-warroom · data/bond-warroom.json) ═══════════════ -->
 <style>

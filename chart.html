@@ -13,7 +13,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-33";
+  var G="jh-tvux-34";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -318,8 +318,9 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 .tab-search input{flex:1;min-width:0;font-size:14px;background:transparent;color:#d1d4dc;outline:none}
 .tab-search input::placeholder{color:#787b86}
 .tab-strip{flex:1;min-width:0;display:flex;overflow-x:auto;align-items:stretch}
-#tfbar{height:48px;min-height:48px;padding:0 10px;gap:2px;background:#131722}
+#tfbar{height:52px;min-height:52px;padding:0 10px;gap:2px;background:#131722}
 #tfbar button{height:34px;padding:0 10px;font-size:14px;border-radius:4px}
+#tfbar .wsico,#tfbar .wsdesk{height:44px;padding:2px 8px}
 .rail{width:52px;background:#1e222d}
 .watch,#watch{width:var(--watch-w,320px);min-width:180px;max-width:none}
 .jh-tv-trade{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding-left:12px}
@@ -349,7 +350,9 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #voltape{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}
 #voltape i{position:absolute;transform:translate(-50%,-120%);font:10px/1 IBM Plex Sans,system-ui,sans-serif;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px rgba(19,23,34,.9);letter-spacing:.02em;pointer-events:auto;cursor:help}
 #voltape i em{display:inline-block;margin-left:3px;width:11px;height:11px;border-radius:50%;border:1px solid currentColor;font:700 8px/9px IBM Plex Sans,sans-serif;text-align:center;font-style:normal;opacity:.9;vertical-align:2px}
-#tfbar .wsico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86}
+#tfbar .wsico{min-width:52px;width:auto;height:44px;padding:2px 8px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;color:#787b86;gap:0;line-height:1}
+#tfbar .wsico .g{font-size:16px;line-height:18px}
+#tfbar .wsico .l{font-size:9px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 #tfbar .wsico:hover{background:#2a2e39;color:#d1d4dc}
 #tfbar .chg{height:32px;padding:0 9px;font-size:13px;color:#787b86}
 #tfbar .chg.on{background:#7c5cea;color:#fff}
@@ -497,9 +500,9 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
-<script src="/jh-chart-tvrail.js?v=8"></script>
-<script src="/jh-chart-engine.js?v=37"></script>
-<script src="/jh-chart-tvux.js?v=10"></script>
+<script src="/jh-chart-tvrail.js?v=9"></script>
+<script src="/jh-chart-engine.js?v=38"></script>
+<script src="/jh-chart-tvux.js?v=11"></script>
 <script src="/jh-chart-indux.js?v=13"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>

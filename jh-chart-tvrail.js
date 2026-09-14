@@ -81,13 +81,17 @@
     "#chartm .lab{padding:8px 14px 4px;font-size:10px;letter-spacing:.1em;color:#787b86}",
     "#chartm button{display:block;width:100%;text-align:left;padding:7px 16px;color:#d1d4dc}",
     "#chartm button:hover{background:#2a2e39}",
-    "#tfbar .wsico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86;border-radius:4px}",
+    "#tfbar .wsico{min-width:52px;width:auto;height:44px;padding:2px 8px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:#787b86;border-radius:4px;line-height:1}",
+    "#tfbar .wsico .g{font-size:16px;line-height:18px}",
+    "#tfbar .wsico .l{font-size:9px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:#787b86}",
     "#tfbar .wsico:hover,#tfbar .wsico.on{background:#2a2e39;color:#d1d4dc}",
+    "#tfbar .wsico:hover .l,#tfbar .wsico.on .l{color:#d1d4dc}",
+    "#tfbar .wsdesk{min-width:56px}",
     "#tfbar .chg{height:32px;padding:0 9px;font-size:13px;letter-spacing:.02em;color:#787b86;border-radius:4px}",
     "#tfbar .chg.on{background:#7c5cea;color:#fff}",
     "#tfbar .chg:hover{color:#d1d4dc}",
     "#tabbar,.tabs{height:48px!important;min-height:48px!important}",
-    "#tfbar{height:48px!important;min-height:48px!important}",
+    "#tfbar{height:52px!important;min-height:52px!important}",
     ".listbtn{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;text-align:left;background:#131722;border:1px solid #2a2e39;border-radius:4px;font-size:13px;color:#d1d4dc}",
     ".listbtn .n{color:#787b86;flex:none}",
     "#listdrop{display:none;position:fixed;z-index:85;max-height:60vh;background:#1e222d;border:1px solid #2a2e39;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,.5);flex-direction:column;overflow:hidden}",
@@ -202,8 +206,17 @@
 
   window.jhOpenWorkspace = function (kind) {
     var ov = el("ws-overlay");
-    var title = kind === "macro" ? "Macro & Economic Data" : kind === "heat" ? "Universe Heatmap" : kind === "corr" ? "Correlation Matrix · ALERT" : "Alert Center";
-    var href = kind === "macro" ? "/macro-economic-data.html" : kind === "heat" ? "/universe-heatmap.html" : kind === "corr" ? "/correlation.html" : "/alerts.html";
+    var meta = {
+      macro: ["Macro & Economic Data", "/macro-economic-data.html"],
+      heat: ["Universe Heatmap", "/universe-heatmap.html"],
+      corr: ["Correlation Matrix · ALERT", "/correlation.html"],
+      etf: ["ETF Desk", "/etf.html"],
+      strong: ["Strength vs S&P 500", "/strong.html"],
+      bonds: ["Bonds & Yields", "/bonds.html"],
+      alert: ["Alert Center", "/alerts.html"]
+    };
+    var pair = meta[kind] || meta.alert;
+    var title = pair[0], href = pair[1];
     ov.className = "on";
     ov.innerHTML = "<div class=wsbox><div class=wshd><span>" + title + "</span><a href='" + href + "' target=_blank rel=noopener>Open page ↗</a><button type=button class=x id=wsx>×</button></div>" +
       (kind === "corr" ? "<div id=ws-corr></div>" : "<iframe src='" + href + "' title='" + title + "'></iframe>") +
