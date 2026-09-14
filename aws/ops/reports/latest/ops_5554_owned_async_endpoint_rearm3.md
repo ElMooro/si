@@ -1,0 +1,24 @@
+# ops 5554 (re-arm of 5553) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+
+**Status:** failure  
+**Duration:** 804.3s  
+**Finished:** 2026-09-14T13:24:47+00:00  
+
+## Data
+
+| endpoint | head | instance |
+|---|---|---|
+| jh-owned-coder-async | 50bec91e0a | ml.g5.xlarge |
+
+## Log
+- `13:11:23` ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+- `13:11:24` ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+- `13:12:54` ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+- `13:12:55` ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+- `13:12:56` ✅ model jh-owned-coder-20260914-131255 created from the owned weights
+- `13:12:58` ✅ endpoint jh-owned-coder-async creating (async)
+- `13:24:34` ✅ endpoint InService
+- `13:24:36` ✅ autoscaling 0..1 registered: backlog target + wake-from-zero alarm (scale-in cooldown 15 min)
+- `13:24:36` ✗ lambda role grant failed: An error occurred (NoSuchEntity) when calling the PutRolePolicy operation: The role with name justhodl-lambda-execution-role cannot be found.
+- `13:24:47` ✗ cleanup: deleted
+- `13:24:47` ✗ RED -- lambda-role

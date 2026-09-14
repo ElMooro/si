@@ -1,15 +1,16 @@
-executing-against: 0cfa4996fcad3bf68ec4810a7a7c5af1ef914cc5
-ops 5553 (re-arm of 5552) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
-[12:55:51] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
-[12:55:52] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
-[12:57:22] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
-[12:57:22] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
-[12:57:23] ✅ model jh-owned-coder-20260914-125722 created from the owned weights
-[12:57:25] ✅ endpoint jh-owned-coder-async creating (async)
-[13:09:00] ✅ endpoint InService
-[13:09:01] ✗ autoscaling setup failed (An error occurred (ValidationException) when calling the RegisterScalableTarget operation: User is missing the following permissions: sagemaker:UpdateEndpointWe): an endpoint that cannot scale to zero is not an accepted deployment
-[13:09:11] ✗ cleanup: deleted
-[13:09:11] ✗ RED -- autoscaling
+executing-against: 50bec91e0ac3f7df2ad34650eafb8e066f2091e2
+ops 5554 (re-arm of 5553) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+[13:11:23] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+[13:11:24] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+[13:12:54] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+[13:12:55] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+[13:12:56] ✅ model jh-owned-coder-20260914-131255 created from the owned weights
+[13:12:58] ✅ endpoint jh-owned-coder-async creating (async)
+[13:24:34] ✅ endpoint InService
+[13:24:36] ✅ autoscaling 0..1 registered: backlog target + wake-from-zero alarm (scale-in cooldown 15 min)
+[13:24:36] ✗ lambda role grant failed: An error occurred (NoSuchEntity) when calling the PutRolePolicy operation: The role with name justhodl-lambda-execution-role cannot be found.
+[13:24:47] ✗ cleanup: deleted
+[13:24:47] ✗ RED -- lambda-role
 
-→ Report written to aws/ops/reports/latest/ops_5553_owned_async_endpoint_rearm2.md
-❌ OPS-FAIL: aws/ops/pending/ops_5553_owned_async_endpoint_rearm2.py
+→ Report written to aws/ops/reports/latest/ops_5554_owned_async_endpoint_rearm3.md
+❌ OPS-FAIL: aws/ops/pending/ops_5554_owned_async_endpoint_rearm3.py
