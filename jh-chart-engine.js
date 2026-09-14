@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.21 — full stock history on first paint; no 8000-bar clip. */
+/* JustHodl Chart engine v12.22 — full history loaded; readable candles; polygon+yahoo merge. */
 (function () {
-  if (window.__jhChartEngineV1221) return;
+  if (window.__jhChartEngineV1222) return;
+  window.__jhChartEngineV1222 = true;
   window.__jhChartEngineV1221 = true;
   window.__jhChartEngineV1220 = true;
   window.__jhChartEngineV1219 = true;
@@ -1021,6 +1022,47 @@
   function toLineBreak(d,n){ n=n||3; if(d.length<n+1) return d; var o=[d[0]], i; for(i=1;i<d.length;i++){ var slice=o.slice(-n), hi=Math.max.apply(null,slice.map(function(b){return b.high;})), lo=Math.min.apply(null,slice.map(function(b){return b.low;})); if(d[i].close>hi) o.push({time:d[i].time,open:o[o.length-1].close,close:d[i].close,high:d[i].close,low:o[o.length-1].close,volume:d[i].volume}); else if(d[i].close<lo) o.push({time:d[i].time,open:o[o.length-1].close,close:d[i].close,high:o[o.length-1].close,low:d[i].close,volume:d[i].volume}); } return o; }
   function toKagi(d,rev){ rev=rev||0.04; if(d.length<2) return []; var o=[{time:d[0].time,value:d[0].close,color:UP}], last=d[0].close, dir=0, i; for(i=1;i<d.length;i++){ var c=d[i].close, ch=(c-last)/last; if(dir>=0 && ch<=-rev){ o.push({time:d[i].time,value:c,color:DN}); last=c; dir=-1; } else if(dir<=0 && ch>=rev){ o.push({time:d[i].time,value:c,color:UP}); last=c; dir=1; } else if((dir>=0 && c>last) || (dir<=0 && c<last)){ last=c; o[o.length-1]={time:d[i].time,value:c,color:dir>=0?UP:DN}; } } return o; }
 
+  function utcMidnight(t){
+    var n=+t; if(!isFinite(n)||n<=0) return 0;
+    if(n>1e12) n=Math.floor(n/1000);
+    var d=new Date(n*1000);
+    return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())/1000);
+  }
+  function asDaily(d){
+    if(!d||!d.length) return d||[];
+    var m={}, i, t, b, o;
+    for(i=0;i<d.length;i++){
+      t=utcMidnight(d[i].time); if(!t) continue;
+      b=d[i]; o=m[t];
+      if(!o) m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+      else {
+        if(b.high>o.high) o.high=b.high;
+        if(b.low<o.low) o.low=b.low;
+        o.close=b.close; o.volume+=(b.volume||0);
+      }
+    }
+    return Object.keys(m).map(Number).sort(function(a,b){return a-b;}).map(function(k){return m[k];});
+  }
+  function cleanWildTicks(d){
+    if(!d||d.length<8) return d;
+    var o=[], i, b, c;
+    for(i=0;i<d.length;i++){
+      b=d[i]; c=Math.abs(b.close)||0;
+      if(c && ((b.low>0 && b.low<c*0.02) || (b.high>c*20))) continue;
+      o.push(b);
+    }
+    return o.length>=8?o:d;
+  }
+  function mergeByDay(base, over){
+    var m={}, i, t, b;
+    function put(row, prefer){
+      t=utcMidnight(row.time); if(!t) return;
+      if(prefer || !m[t]) m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:row.volume||0};
+    }
+    for(i=0;i<(base||[]).length;i++) put(base[i], false);
+    for(i=0;i<(over||[]).length;i++) put(over[i], true);
+    return Object.keys(m).map(Number).sort(function(a,b){return a-b;}).map(function(k){return m[k];});
+  }
   function uniq(rows){
     var out=[], last=null;
     for(var i=0;i<rows.length;i++){
@@ -1185,6 +1227,18 @@
           var scored=volScore(d);
           var isSeries=urls[i].indexOf("/series")>=0 || rs.engine==="fred";
           if(!raw.warehouse_key && !isSeries && scored<d.length*0.2 && i<urls.length-1) continue;
+          if(ws.span==="day"||ws.span==="week"||ws.span==="month"){
+            d=asDaily(d);
+            d=cleanWildTicks(d);
+            if(!raw.warehouse_key && String(raw.source||lastSource).indexOf("polygon")>=0){
+              try{
+                var yraw=await fetchJson(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range=max&interval=1d");
+                var yd=asDaily(toBars(yraw));
+                if(yd.length>=8){ d=mergeByDay(d, yd); lastSource="polygon+yahoo"; }
+              }catch(eY){}
+            }
+          }
+          if(d.length<8) continue;
           barCache[key]={d:d, at:now, src:lastSource};
           return d;
         }
@@ -1265,7 +1319,7 @@
       grid:{ vertLines:{ color: gridOn?p.grid:"transparent" }, horzLines:{ color: gridOn?p.grid:"transparent" } },
       rightPriceScale:{ borderColor:p.border, scaleMargins:{ top:0.06, bottom:0.18 }, invertScaledValues:invert },
       leftPriceScale:{ visible:leftOn, borderColor:p.border },
-      timeScale:{ borderColor:p.border, timeVisible:true, rightOffset:6, minBarSpacing:0.001 },
+      timeScale:{ borderColor:p.border, timeVisible:true, rightOffset:6 },
       crosshair:{ mode: crossMode },
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } }
     });
@@ -1344,7 +1398,7 @@
       grid:{ vertLines:{color:gridOn?p.grid:"transparent"}, horzLines:{color:gridOn?p.grid:"transparent"} },
       rightPriceScale:{ invertScaledValues:invert, borderColor:p.border, scaleMargins:{ top:0.06, bottom:bot } },
       leftPriceScale:{ visible:leftOn, borderColor:p.border },
-      timeScale:{ borderColor:p.border, minBarSpacing:0.001 },
+      timeScale:{ borderColor:p.border },
       crosshair:{ mode: crossMode }
     });
     try{ chart.priceScale("right").applyOptions({ mode: mode==="price"?scaleMode:0, scaleMargins:{ top:0.06, bottom:bot } }); }catch(e){}
@@ -1587,7 +1641,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.21"; if(st) st.textContent="v12.21 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.22"; if(st) st.textContent="v12.22 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
