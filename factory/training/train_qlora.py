@@ -51,7 +51,17 @@ def as_float(v, default):
 
 
 def load_rows(train_dir: Path, max_rows: int = 200000):
+    """Accepts both dataset contracts: {prompt, completion} and the builder's {instruction, context, response}
+    (rendered through template.json when present, else a fixed instruction/response frame)."""
     rows = []
+    template = None
+    tpl = train_dir / "template.json"
+    if tpl.exists():
+        try:
+            template = json.loads(tpl.read_text())
+        except ValueError:
+            template = None
+    frame = (template or {}).get("prompt") or "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{instruction}\n\n### Response:\n"
     for path in sorted(train_dir.rglob("*.jsonl")):
         for line in path.read_text().splitlines():
             line = line.strip()
@@ -61,8 +71,16 @@ def load_rows(train_dir: Path, max_rows: int = 200000):
                 row = json.loads(line)
             except ValueError:
                 continue
-            if isinstance(row, dict) and isinstance(row.get("prompt"), str) and isinstance(row.get("completion"), str):
+            if not isinstance(row, dict):
+                continue
+            if isinstance(row.get("prompt"), str) and isinstance(row.get("completion"), str):
                 rows.append({"prompt": row["prompt"], "completion": row["completion"]})
+            elif isinstance(row.get("instruction"), str) and isinstance(row.get("response"), str):
+                try:
+                    prompt = frame.format(instruction=row["instruction"], context=row.get("context") or "")
+                except (KeyError, IndexError):
+                    prompt = frame.replace("{instruction}", row["instruction"]).replace("{context}", row.get("context") or "")
+                rows.append({"prompt": prompt, "completion": row["response"]})
             if len(rows) >= max_rows:
                 return rows
     return rows

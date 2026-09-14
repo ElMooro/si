@@ -146,5 +146,31 @@ class OwnSpecTests(unittest.TestCase):
             own.burst_spec(self.s3, PRI, self.control)
 
 
+
+class DatasetContractTests(unittest.TestCase):
+    def test_trainer_reads_the_builders_instruction_rows_through_the_template(self):
+        import tempfile
+        recipe = module('train_qlora_contract', 'factory/training/train_qlora.py')
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / 'template.json').write_text(json.dumps({'prompt': 'INSTR:\n{instruction}\nCTX:{context}\nRESP:\n', 'completion': '{response}'}))
+            (d / 'train.jsonl').write_text('\n'.join([json.dumps({'instruction': 'add one', 'context': '', 'response': 'def f(x):\n    return x + 1\n'}),
+                                                       json.dumps({'prompt': 'raw', 'completion': 'done'}),
+                                                       json.dumps({'junk': 1})]) + '\n')
+            rows = recipe.load_rows(d)
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0]['prompt'], 'INSTR:\nadd one\nCTX:\nRESP:\n')
+            self.assertEqual(rows[0]['completion'], 'def f(x):\n    return x + 1\n')
+
+    def test_load_control_keeps_the_owned_lane_fields(self):
+        gb = module('gear_b_control', 'aws/lambdas/justhodl-ai/source/gear_b.py')
+        s3 = MemoryS3()
+        put(s3, 'factory/control/gearb.json', {'schema_version': 'gearb-control.v1', 'enabled': True, 'model_source': 'own', 'model_id': 'qwen2-5-coder-7b-instruct',
+                                                'model_version': 'c03e6d35', 'owned': {'weights': 's3://x/'}, 'daily_budget_usd': 20, 'season_cap_usd': 600,
+                                                'instance_type': 'ml.g5.2xlarge', 'max_runtime_s': 3600, 'approved_by': 'k', 'approved_at': 't'})
+        control = gb.load_control(s3, PRI)
+        self.assertEqual((control.get('model_source'), control.get('model_id'), control.get('model_version')), ('own', 'qwen2-5-coder-7b-instruct', 'c03e6d35'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -84,18 +84,32 @@ def _list(store, bucket, prefix, cap):
     return keys
 
 
+LIST_CAP = 5000
+
+
 def collect_grades(store, now, *, read_cap=READ_CAP):
-    """Rows of warehouse-graded work: {alias, kind, at, outcome pass|fail|void, keys}. Bounded reads."""
+    """Rows of warehouse-graded work: {alias, kind, at, outcome pass|fail|void, keys}.
+
+    The whole prefix is listed (bounded by LIST_CAP) and filtered by LastModified first, then the NEWEST
+    read_cap objects are read -- old results can never crowd out recent evidence. If more than read_cap
+    recent objects exist the pass is marked truncated and no verdict is applied (see apply_verdicts)."""
     rows, reads = [], 0
     horizon = now - timedelta(days=2 * WINDOW_DAYS)
     sources = (("factory/salon/results/", "market"), ("factory/verdicts/", "verdict"))
+    recent = []
     for prefix, kind in sources:
-        for key, modified in _list(store, store.private, prefix, read_cap):
+        listed = _list(store, store.private, prefix, LIST_CAP)
+        if len(listed) >= LIST_CAP:
+            rows.append({"truncated": True, "reason": "listing_cap:" + prefix})
+        for key, modified in listed:
             if modified is not None and modified < horizon:
                 continue
-            if reads >= read_cap:
-                rows.append({"truncated": True})
-                return rows
+            recent.append((modified, key, kind))
+    recent.sort(key=lambda r: (r[0] is None, r[0]), reverse=True)
+    if len(recent) > read_cap:
+        rows.append({"truncated": True, "reason": "read_cap"})
+    for modified, key, kind in recent[:read_cap]:
+        if True:
             doc, _ = store.read(store.private, key)
             reads += 1
             if not isinstance(doc, dict):
@@ -179,11 +193,21 @@ def apply_verdicts(store, state, now, *, rows=None):
     rows = collect_grades(store, now) if rows is None else rows
     stats = window_stats(rows, now)
     changes = []
+    truncated = any(r.get("truncated") for r in rows)
     for alias, card in sorted(ranks["cards"].items()):
         if card.get("status") != "active":
             continue
         stat = stats.get(alias, {})
+        if truncated:
+            card.update(last_verdict="hold:evidence_incomplete", last_verdict_at=iso(now))
+            continue
         decision, reason = verdict(doctrine_card(alias, card, stat, now))
+        promoted_at = card.get("promoted_at")
+        if decision == "promote" and promoted_at:
+            fresh = [r for r in rows if not r.get("truncated") and r["alias"] == alias and timestamp(r["at"]) > timestamp(promoted_at)]
+            errors = sum(1 for r in fresh if r["outcome"] != "pass")
+            if len(fresh) < 8 or errors / len(fresh) > 0.15:
+                decision, reason = "hold", "no_new_qualifying_evidence_since_promotion:%d_new_grades" % len(fresh)
         if alias == SUPERVISOR and decision == "retire":
             decision, reason = "hold", "supervisor_retirement_is_owner_control:" + reason
         card.update(graded_window=stat.get("graded", 0), errors_window=stat.get("errors", 0),
@@ -199,6 +223,8 @@ def apply_verdicts(store, state, now, *, rows=None):
                 card["last_verdict"] = "hold:at_ceiling"
                 continue
             card["rank"] = after
+            card["promoted_at"] = iso(now)
+            card["pass_rate_at_promotion"] = stat.get("pass_rate")
         elif decision == "retire":
             card["status"] = "retired"
             card["retired_at"] = iso(now)

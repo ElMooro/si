@@ -19,14 +19,30 @@ import tempfile
 import time
 
 RUNNER = r'''
-import sys, json
+import os, sys
+# The supervisor hands a one-time nonce over a pipe (its fd number rides in argv; the nonce never does); it is read once, the pipe is closed,
+# and only the runner can print it after the tests actually complete. Candidate output alone certifies nothing.
+try:
+    _fd = int(sys.argv.pop(3))            # the pipe's fd number; the nonce itself never touches argv or env
+    nonce = os.read(_fd, 64).decode().strip()
+    os.close(_fd)
+except (OSError, ValueError, IndexError):
+    nonce = ""
 src = open(sys.argv[1], encoding="utf-8").read()
 tests = open(sys.argv[2], encoding="utf-8").read()
 ns = {"__name__": "__candidate__"}
 exec(compile(src, "candidate.py", "exec"), ns)
 exec(compile(tests, "tests.py", "exec"), ns)
-print("PASS")
+sys.stdout.flush()
+sys.stdout.write("\n" + nonce + ":PASS\n")
+sys.stdout.flush()
 '''
+
+# Candidate source that tries to talk to the process, the supervisor, the interpreter's internals or the network is
+# refused before it runs. Sampled completions never need these; a model that learns them would be reward-hacking.
+FORBIDDEN = ("os._exit", "sys.exit", "subprocess", "sys._getframe", "gc.get_objects", "ctypes", "importlib", "__builtins__",
+             "socket", "urllib", "requests", "http.client", "signal.", "os.kill", "os.fork", "os.execv", "open(\'/proc", "open(\"/proc",
+             "sys.settrace", "sys.setprofile", "inspect.", "PASS")
 
 
 def _drop_privileges():
@@ -62,10 +78,18 @@ def run_one(row: dict, workdir: str, default_timeout: float = 8.0) -> dict:
     env = {"PYTHONHASHSEED": "0", "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "HOME": sandbox_tmp, "TMPDIR": sandbox_tmp}
     extra = {"user": ids[0], "group": ids[1], "extra_groups": []} if ids else {}
     t0 = time.monotonic()
+    banned = [tok for tok in FORBIDDEN if tok in str(row["solution"])]
+    if banned:
+        shutil.rmtree(scratch, ignore_errors=True)
+        return {"passed": False, "elapsed_s": 0.0, "stderr": "refused_forbidden_token:" + ",".join(banned)[:120], "isolation": "static"}
+    import secrets
+    nonce = secrets.token_hex(16)
+    rfd, wfd = os.pipe()
     try:
-        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, tst], capture_output=True, text=True, timeout=timeout,
-                              cwd=sandbox_tmp, env=env, **extra)
-        ok = proc.returncode == 0 and proc.stdout.strip().endswith("PASS")
+        os.write(wfd, (nonce + "\n").encode()); os.close(wfd)
+        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, tst, str(rfd)], capture_output=True, text=True, timeout=timeout,
+                              cwd=sandbox_tmp, env=env, pass_fds=(rfd,), **extra)
+        ok = proc.returncode == 0 and proc.stdout.strip().endswith(nonce + ":PASS")
         return {"passed": ok, "elapsed_s": round(time.monotonic() - t0, 3), "stderr": proc.stderr[-300:] if not ok else "",
                 "isolation": "unprivileged" if ids else "same-user"}
     except subprocess.TimeoutExpired:
@@ -73,6 +97,10 @@ def run_one(row: dict, workdir: str, default_timeout: float = 8.0) -> dict:
     except Exception as exc:  # noqa: BLE001
         return {"passed": False, "elapsed_s": round(time.monotonic() - t0, 3), "stderr": str(exc)[:300], "isolation": "unprivileged" if ids else "same-user"}
     finally:
+        try:
+            os.close(rfd)
+        except OSError:
+            pass
         shutil.rmtree(scratch, ignore_errors=True)
 
 

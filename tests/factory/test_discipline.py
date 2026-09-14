@@ -38,6 +38,17 @@ class Base(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 9, 13, 15, tzinfo=timezone.utc)
         self.cloud = MemoryS3()
+        self.modified = {}
+        _list = self.cloud.list_objects_v2
+
+        def list_with_dates(**kw):            # real S3 lists LastModified; the fixture does not
+            resp = _list(**kw)
+            for item in resp.get('Contents', []):
+                stamp = self.modified.get((kw.get('Bucket'), item['Key']))
+                if stamp is not None:
+                    item['LastModified'] = stamp
+            return resp
+        self.cloud.list_objects_v2 = list_with_dates
         self.store = Store(self.cloud, 'private', 'public', lambda: self.now)
         self.season = make_season(self.now)
         self.season.update(calendar_review_required=False,
@@ -60,6 +71,7 @@ class Base(unittest.TestCase):
                'week': week, 'symbol': symbol, 'status': status, 'graded_at': iso(at), 'held_out': True,
                'metrics': {'score': score}}
         self.store.immutable('private', 'factory/salon/results/' + doc['id'] + '.json', doc)
+        self.modified[('private', 'factory/salon/results/' + doc['id'] + '.json')] = at
 
 
 class DisciplineTests(Base):
@@ -91,6 +103,47 @@ class DisciplineTests(Base):
         self.assertEqual({c['decision'] for c in changes}, {'promote', 'retire'})
         stat = disc.window_stats(disc.collect_grades(self.store, self.now), self.now)['alice']
         self.assertEqual((stat['graded'], stat['errors'], stat['pass_rate'], stat['prior_pass_rate']), (9, 0, 1.0, 0.0))
+
+    def test_same_evidence_cannot_promote_twice(self):
+        state = self.state()
+        for i in range(9):
+            self.market_result('dana', '2026-08-31', 'S%d' % i, 0.9, self.now - timedelta(days=1 + i))
+        for i in range(4):
+            self.market_result('dana', '2026-08-03', 'P%d' % i, 0.3, self.now - timedelta(days=25 + i))
+        ranks = disc.ensure_ranks(state, self.now)
+        ranks['cards']['dana'] = {**ranks['cards']['coder'], 'kind': 'guest'}
+        disc.apply_verdicts(self.store, state, self.now)
+        self.assertEqual(state['ranks']['cards']['dana']['rank'], 'specialist')
+        for _ in range(4):                         # the same eight-plus results, four more passes: no further climb
+            disc.apply_verdicts(self.store, state, self.now + timedelta(minutes=15))
+        card = state['ranks']['cards']['dana']
+        self.assertEqual(card['rank'], 'specialist')
+        self.assertTrue(card['last_verdict'].startswith('hold:no_new_qualifying_evidence_since_promotion'))
+        # eight NEW graded passes after the promotion, at a higher pass rate, earn the next rank
+        later = self.now + timedelta(days=3)
+        for i in range(8):
+            self.market_result('dana', '2026-09-07', 'N%d' % i, 0.95, later - timedelta(hours=i))
+        disc.apply_verdicts(self.store, state, later + timedelta(hours=1))
+        self.assertEqual(state['ranks']['cards']['dana']['rank'], 'nco')
+
+    def test_incomplete_evidence_suspends_verdicts_and_newest_results_are_read_first(self):
+        state = self.state()
+        ranks = disc.ensure_ranks(state, self.now)
+        ranks['cards']['erin'] = {**ranks['cards']['coder'], 'kind': 'guest', 'since': iso(self.now - timedelta(days=30))}
+        # 320 old results (outside the horizon) + 9 recent passes: the recent ones must be the ones read
+        for i in range(320):
+            self.market_result('erin', '2026-06-01', 'O%03d' % i, 0.1, self.now - timedelta(days=60 + (i % 5)))
+        for i in range(9):
+            self.market_result('erin', '2026-08-31', 'R%d' % i, 0.9, self.now - timedelta(days=1 + i))
+        rows = disc.collect_grades(self.store, self.now)
+        self.assertFalse(any(r.get('truncated') for r in rows))
+        self.assertEqual(sum(1 for r in rows if r.get('alias') == 'erin' and r['outcome'] == 'pass'), 9)
+        # when more recent objects exist than the read cap allows, no verdict is applied
+        rows = disc.collect_grades(self.store, self.now, read_cap=4)
+        self.assertTrue(any(r.get('truncated') for r in rows))
+        disc.apply_verdicts(self.store, state, self.now, rows=rows)
+        self.assertEqual(state['ranks']['cards']['erin']['last_verdict'], 'hold:evidence_incomplete')
+        self.assertEqual(state['ranks']['cards']['erin']['rank'], 'recruit')
 
     def test_void_counts_as_error_and_grades_outside_two_windows_are_ignored(self):
         state = self.state()

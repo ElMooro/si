@@ -64,11 +64,10 @@ jobs:
           python3 - <<'PY'
           import boto3, json, os
           s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-          try:
-              m = json.loads(s3.get_object(Bucket="justhodl-ai-857687956942", Key="factory/holdout/manifest.json")["Body"].read())
-              ids = (m.get("code") or {}).get("task_ids") or (m.get("code") or {}).get("ids") or []
-          except Exception:
-              ids = []
+          m = json.loads(s3.get_object(Bucket="justhodl-ai-857687956942", Key="factory/holdout/manifest.json")["Body"].read())   # fail CLOSED: no manifest, no verify
+          ids = (m.get("code") or {}).get("task_ids") or []
+          if not ids:
+              raise SystemExit("holdout manifest has no code task_ids; refusing to verify without holdout protection")
           json.dump({"ids": ids}, open("work/holdout-ids.json", "w"))
           print("holdout ids:", len(ids))
           PY

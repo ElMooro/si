@@ -42,3 +42,16 @@ capability without one only produces fluency.
 Proprietary model APIs (voice only, never grader or lesson source); the Brain constitution (private, engines
 read enums through `consume_brain`); anything that would train on Khalid's notes, the `si` source, CC-BY-SA text
 or ungraded reading; per-agent compute of any kind.
+
+## Review fixes (2026-09-14, from ChatGPT's source review)
+
+Substantiated and fixed in this lane: `model_source` survived `load_control` only by accident (now explicit);
+the builder's `instruction/context/response` rows are accepted by the owned trainer through `template.json`
+(both contracts, tested); the verifier's success is a one-time nonce delivered over a pipe and printed only after
+the tests complete — candidate output cannot certify itself — plus a forbidden-token refusal (process control,
+interpreter introspection, network); the trace-verify holdout check fails closed; ranks require ≥8 new graded
+tasks since the last promotion; evidence is read newest-first and no verdict is applied when it is incomplete.
+Substantiated, not fixed here (other lane's files, noted for them): APPS wrapper indentation, APPS `__run`
+interface, diversity ceiling math, job double-counting in the budget, APPS source hash by id, persistent
+curriculum cursor. Interface honesty items ("LEARNED THIS TURN" → read/practiced/passed/retained; the coding chat
+does not call the model; report "success" vs RED) are queued for the desk.

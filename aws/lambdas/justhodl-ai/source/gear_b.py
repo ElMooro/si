@@ -149,6 +149,10 @@ def load_control(s3, private_bucket: str) -> Dict[str, Any]:
     doc = get_json(s3, private_bucket, CONTROL_KEY) or {}
     control = dict(DEFAULT_CONTROL)
     control.update({k: v for k, v in doc.items() if k in DEFAULT_CONTROL or k.startswith("_")})
+    # owned-lane fields (2026-09-13): never dropped -- model_source decides own_spec vs hub card at launch
+    for k in ("model_source", "model_version", "owned"):
+        if k in doc:
+            control[k] = doc[k]
     lora = dict(DEFAULT_CONTROL["lora"])
     lora.update({str(k): str(v) for k, v in (doc.get("lora") or {}).items()})
     control["lora"] = lora
