@@ -81,11 +81,24 @@
     "#chartm .lab{padding:8px 14px 4px;font-size:10px;letter-spacing:.1em;color:#787b86}",
     "#chartm button{display:block;width:100%;text-align:left;padding:7px 16px;color:#d1d4dc}",
     "#chartm button:hover{background:#2a2e39}",
-    "#tfbar .wsico{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86;border-radius:4px}",
+    "#tfbar .wsico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86;border-radius:4px}",
     "#tfbar .wsico:hover,#tfbar .wsico.on{background:#2a2e39;color:#d1d4dc}",
-    "#tfbar .chg{height:26px;padding:0 7px;font-size:11px;letter-spacing:.02em;color:#787b86;border-radius:4px}",
+    "#tfbar .chg{height:32px;padding:0 9px;font-size:13px;letter-spacing:.02em;color:#787b86;border-radius:4px}",
     "#tfbar .chg.on{background:#7c5cea;color:#fff}",
     "#tfbar .chg:hover{color:#d1d4dc}",
+    "#tabbar,.tabs{height:48px!important;min-height:48px!important}",
+    "#tfbar{height:48px!important;min-height:48px!important}",
+    ".listbtn{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;text-align:left;background:#131722;border:1px solid #2a2e39;border-radius:4px;font-size:13px;color:#d1d4dc}",
+    ".listbtn .n{color:#787b86;flex:none}",
+    "#listdrop{display:none;position:fixed;z-index:85;max-height:60vh;background:#1e222d;border:1px solid #2a2e39;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,.5);flex-direction:column;overflow:hidden}",
+    "#listdrop.on{display:flex}",
+    "#symsearch .sbox{background:#1e222d;border-color:#2a2e39;color:#d1d4dc}",
+    "#symsearch .shd b{color:#d1d4dc}",
+    "#symsearch .ssearch{background:#131722;border-color:#2a2e39}",
+    "#symsearch .ss-hit .nm{color:#4c9bff}",
+    ".sschips button.on{background:#d1d4dc;color:#131722;border-color:#d1d4dc}",
+    ".letters{flex-wrap:nowrap!important;overflow-x:auto}",
+    ".filt.wq{border-bottom:1px solid #2a2e39}",
     "#cmpchips{position:absolute;left:10px;top:auto;bottom:36px;z-index:7;display:flex;flex-wrap:wrap;gap:4px;max-width:70%;pointer-events:none}",
     "#cmpchips .chip{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;background:#1e222d;border:1px solid #2a2e39;border-radius:4px;padding:2px 6px 2px 8px;font:11px IBM Plex Sans,system-ui;color:#d1d4dc}",
     "#cmpchips .chip i{width:8px;height:8px;border-radius:1px}",
@@ -410,7 +423,13 @@
     function enter() { clearTimeout(hideT); applyWatch(true); }
     function leave() {
       clearTimeout(hideT);
-      hideT = setTimeout(function () { if (!pinned) applyWatch(false); }, 380);
+      hideT = setTimeout(function () {
+        var ld = document.getElementById("listdrop");
+        var ss = document.getElementById("symsearch");
+        if (ld && ld.classList.contains("on")) return;
+        if (ss && ss.classList.contains("on")) return;
+        if (!pinned) applyWatch(false);
+      }, 380);
     }
     var rr = document.getElementById("rrail");
     if (rr) {
