@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.15 — Bloomberg-grade candles/volume, BB squeeze/width/avg, MACD, RSI, volume tape. */
+/* JustHodl Chart engine v12.16 — Bloomberg-grade candles/volume, BB squeeze/width/avg, MACD, RSI, volume tape. */
 (function () {
-  if (window.__jhChartEngineV1215) return;
+  if (window.__jhChartEngineV1216) return;
+  window.__jhChartEngineV1216 = true;
   window.__jhChartEngineV1215 = true;
   window.__jhChartEngineV1214 = true;
   window.__jhChartEngineV1213 = true;
@@ -960,7 +961,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.15"; if(st) st.textContent="v12.15 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.16"; if(st) st.textContent="v12.16 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
