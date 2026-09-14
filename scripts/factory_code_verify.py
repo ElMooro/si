@@ -113,10 +113,53 @@ class Unsupported(ValueError):
     pass
 
 
+DEEP_MARK = "#deep"      # exam suites: asserts live inside `def check(candidate)`; the suite is transformed at every depth
+
+
+def _rewrite_assert(node, cases):
+    """One assert -> the __report call statement; appends the case descriptor. Raises Unsupported for other comparisons."""
+    test = node.test
+    if isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq):
+        try:
+            expected = ast.literal_eval(test.comparators[0])
+            cases.append({"i": len(cases), "kind": "eq", "expected": expected, "src": ast.unparse(test.left)})
+            return ast.parse("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test.left))).body[0]
+        except (ValueError, SyntaxError):
+            raise Unsupported("assert with non-literal right-hand side: " + ast.unparse(test)[:80])
+    if isinstance(test, ast.Compare):
+        raise Unsupported("unsupported comparison operator: " + ast.unparse(test)[:80])
+    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+        cases.append({"i": len(cases), "kind": "falsy", "src": ast.unparse(test.operand)})
+        return ast.parse("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test.operand))).body[0]
+    cases.append({"i": len(cases), "kind": "truthy", "src": ast.unparse(test)})
+    return ast.parse("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test))).body[0]
+
+
+def transform_suite_deep(tests: str):
+    """Exam mode: every assert at any depth becomes a report, in source order; non-literal comparisons are reported as
+    truthy/falsy values (judge=partial for that case). The suite must end by calling its check function itself."""
+    tree = ast.parse(tests)
+    cases = []
+
+    class Rewriter(ast.NodeTransformer):
+        def visit_Assert(self, node):
+            try:
+                return _rewrite_assert(node, cases)
+            except Unsupported:
+                # exam suites use abs()/sorted()/set() comparisons: report the whole test expression's truthiness
+                cases.append({"i": len(cases), "kind": "truthy", "src": ast.unparse(node.test), "partial": True})
+                return ast.parse("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(node.test))).body[0]
+    new_tree = Rewriter().visit(tree)
+    ast.fix_missing_locations(new_tree)
+    return cases, ast.unparse(new_tree) + "\n"
+
+
 def transform_suite(tests: str):
     """(cases, program): every `assert` becomes `__report(i, <value>)` IN PLACE so stateful order is preserved.
     `assert expr == <literal>` compares typed values in the supervisor; `assert expr` / `assert not expr` compare
     truthiness of a typed value; anything else is unsupported and the whole suite is refused (A04)."""
+    if tests.lstrip().startswith(DEEP_MARK):
+        return transform_suite_deep(tests)
     tree = ast.parse(tests)
     cases = []
     body = []
@@ -235,7 +278,8 @@ def judge_function_task(row, scratch, env, extra, timeout):
             return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d not truthy" % c["i"], "elapsed_s": elapsed}
         elif c["kind"] == "falsy" and bool(got):
             return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d not falsy" % c["i"], "elapsed_s": elapsed}
-    return {"passed": True, "cases": len(cases), "judge": "supervisor", "stderr": "", "elapsed_s": elapsed}
+    judge = "partial" if any(c.get("partial") for c in cases) else "supervisor"
+    return {"passed": True, "cases": len(cases), "judge": judge, "stderr": "", "elapsed_s": elapsed}
 
 
 def parse_stdio(tests: str):
