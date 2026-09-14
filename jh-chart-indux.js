@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "vwap", "rsi", "macd", "vol", "voltape", "vsa", "livermore", "wyckoff", "accum", "distrib", "bbw", "bbsqz"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
@@ -188,8 +188,17 @@
         if (s.id === "wyckoff") keys += " wyckoff spring upthrust climax sos sow lps accumulation distribution phase";
         if (s.id === "accum") keys += " accumulation spring lps sc ar st sos";
         if (s.id === "distrib") keys += " distribution upthrust utad sow lpsy bc";
-        if (s.id === "bb" || s.id === "bbw" || s.id === "bbsqz") keys += " bollinger band squeeze width average";
+        if (s.id === "bb" || s.id === "bbw" || s.id === "bbsqz" || s.id === "bbp") keys += " bollinger band squeeze width average percent %b";
         if (s.id === "rsi") keys += " overbought oversold wilder";
+        if (s.id === "adx") keys += " dmi directional +di -di adx trend";
+        if (s.id === "avgdev") keys += " average deviation standard bloomberg sigma mean";
+        if (s.id === "gdx") keys += " golden death cross sma 50 200";
+        if (s.id === "hv") keys += " historical volatility realized vol";
+        if (s.id === "beta" || s.id === "rsline" || s.id === "corrspy") keys += " spy relative strength beta correlation vs";
+        if (s.id === "fibauto" || s.id === "fibpiv") keys += " fibonacci retracement pivot";
+        if (s.id === "gmma" || s.id === "ribbon") keys += " guppy ribbon multiple moving average ema";
+        if (s.id === "kama") keys += " kaufman adaptive ama";
+        if (s.id === "seb") keys += " standard error linear regression bands";
         if (q && keys.indexOf(q) < 0) return false;
         return true;
       });
@@ -212,6 +221,16 @@
               s.id === "bb" ? "Avg + upper/lower · " :
               s.id === "bbw" ? "Width % + squeeze · " :
               s.id === "bbsqz" ? "TTM squeeze momentum · " :
+              s.id === "bbp" ? "%B 0–100 · " :
+              s.id === "avgdev" ? "Mean ±1σ ±2σ · " :
+              s.id === "adx" ? "+DI −DI ADX · " :
+              s.id === "gdx" ? "SMA 50 / 200 · " :
+              s.id === "hv" ? "Close-to-close ann. · " :
+              s.id === "beta" ? "60-bar vs SPY · " :
+              s.id === "rsline" ? "Rebased vs SPY · " :
+              s.id === "gmma" ? "Short 3–15 / Long 30–60 · " :
+              s.id === "fibauto" ? "Swing 0–100% · " :
+              s.id === "volosc" ? "Vol SMA 5−20 · " :
               s.osc ? "New pane · " : "Overlay · "
             ) + s.cat + "</span></div>" +
             "<span class='star" + (isFav(s.id) ? " on" : "") + "' data-star='" + s.id + "'>" + (isFav(s.id) ? "★" : "☆") + "</span></button>";
@@ -269,7 +288,7 @@
       var body = document.getElementById("setbody");
       if (tab === "in") {
         var extra = "";
-        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi") {
+        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi" || item.id === "bbp" || item.id === "dem") {
           extra = "<div class=srow><span>Overbought</span><input id=sob type=number min=50 max=99 value='" + (item.ob != null ? item.ob : 70) + "'></div>" +
             "<div class=srow><span>Oversold</span><input id=sos type=number min=1 max=50 value='" + (item.os != null ? item.os : 30) + "'></div>";
         }
@@ -277,7 +296,7 @@
           extra = "<div class=srow><span>Fast EMA</span><input id=sp type=number min=2 max=50 value='" + (item.p || 12) + "'></div>" +
             "<div class=srow><span>Slow EMA</span><input id=sp2 type=number min=2 max=80 value='" + (item.p2 || 26) + "'></div>" +
             "<div class=srow><span>Signal</span><input id=sp3 type=number min=2 max=40 value='" + (item.p3 || 9) + "'></div>";
-        } else if (item.k === "bb" || item.id === "bbw" || item.id === "bbsqz") {
+        } else if (item.k === "bb" || item.k === "avgdev" || item.k === "seb" || item.k === "atrb" || item.id === "bbw" || item.id === "bbsqz" || item.id === "bbp") {
           extra += "<div class=srow><span>StdDev</span><input id=smult type=number min=0.5 max=5 step=0.1 value='" + (item.mult || 2) + "'></div>";
         }
         body.innerHTML =

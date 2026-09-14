@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.17 — Bloomberg tape (Livermore, Wyckoff, VSA) + candles/volume/BB/MACD/RSI. */
+/* JustHodl Chart engine v12.18 — Bloomberg GP studies (Avg&Dev, DMI, %B, HV, Beta, RS, Fib, GMMA). */
 (function () {
-  if (window.__jhChartEngineV1217) return;
+  if (window.__jhChartEngineV1218) return;
+  window.__jhChartEngineV1218 = true;
   window.__jhChartEngineV1217 = true;
   window.__jhChartEngineV1216 = true;
   window.__jhChartEngineV1215 = true;
@@ -73,6 +74,20 @@
     {id:"ce",n:"Chandelier 22",c:"#00897b",on:0,k:"ce",cat:"Trend"},
     {id:"vwapb",n:"VWAP bands",c:"#6a1b9a",on:0,k:"vwapb",cat:"Volume"},
     {id:"cam",n:"Camarilla pivots",c:"#5d4037",on:0,k:"cam",cat:"Levels"},
+    {id:"kama",n:"Kaufman AMA 10",c:"#00838f",on:0,k:"kama",p:10,cat:"MA"},
+    {id:"wilder",n:"Wilder MA 14",c:"#6a1b9a",on:0,k:"wilder",p:14,cat:"MA"},
+    {id:"avgdev",n:"Avg & Deviation",c:"#2962ff",on:0,k:"avgdev",p:20,mult:2,cat:"Stats"},
+    {id:"seb",n:"Std Error Bands",c:"#5c6bc0",on:0,k:"seb",p:20,mult:2,cat:"Channel"},
+    {id:"atrb",n:"ATR Bands",c:"#00897b",on:0,k:"atrb",p:20,mult:2,cat:"Channel"},
+    {id:"ribbon",n:"EMA Ribbon",c:"#26c6da",on:0,k:"ribbon",cat:"MA"},
+    {id:"gmma",n:"GMMA",c:"#ff6d00",on:0,k:"gmma",cat:"MA"},
+    {id:"twapov",n:"TWAP",c:"#ab47bc",on:0,k:"twap",cat:"Volume"},
+    {id:"fibpiv",n:"Fib Pivots",c:"#7e57c2",on:0,k:"fibpiv",cat:"Levels"},
+    {id:"woodie",n:"Woodie Pivots",c:"#8d6e63",on:0,k:"woodie",cat:"Levels"},
+    {id:"demark",n:"DeMark Pivots",c:"#546e7a",on:0,k:"demark",cat:"Levels"},
+    {id:"gdx",n:"Golden / Death Cross",c:"#f0b429",on:0,k:"gdx",cat:"Trend"},
+    {id:"hilo52",n:"52-week High/Low",c:"#787b86",on:0,k:"hilo52",cat:"Levels"},
+    {id:"fibauto",n:"Auto Fibonacci",c:"#e91e63",on:0,k:"fibauto",cat:"Levels"},
     {id:"livermore",n:"Livermore pivots",c:"#2962ff",on:0,k:"livermore",cat:"Tape"},
     {id:"wyckoff",n:"Wyckoff phases",c:"#ab47bc",on:0,k:"wyckoff",cat:"Tape"},
     {id:"accum",n:"Accumulation",c:"#089981",on:0,k:"accum",cat:"Tape"},
@@ -92,7 +107,7 @@
     {id:"ad",n:"A/D",on:0,cat:"Volume"},
     {id:"cmf",n:"CMF 20",on:0,cat:"Volume"},
     {id:"atr",n:"ATR 14",on:0,cat:"Volatility"},
-    {id:"adx",n:"ADX 14",on:0,cat:"Trend"},
+    {id:"adx",n:"DMI / ADX 14",on:0,cat:"Trend",p:14},
     {id:"ao",n:"Awesome Osc",on:0,cat:"Momentum"},
     {id:"mom",n:"Momentum 10",on:0,cat:"Momentum"},
     {id:"roc",n:"ROC 12",on:0,cat:"Momentum"},
@@ -115,7 +130,21 @@
     {id:"cvd",n:"CVD (est.)",on:0,cat:"Volume"},
     {id:"rvol",n:"RVOL 20",on:0,cat:"Volume"},
     {id:"bbw",n:"BB Width",on:0,cat:"Volatility",p:20,mult:2},
-    {id:"bbsqz",n:"BB Squeeze",on:0,cat:"Volatility",p:20,mult:2}
+    {id:"bbsqz",n:"BB Squeeze",on:0,cat:"Volatility",p:20,mult:2},
+    {id:"bbp",n:"Bollinger %B",on:0,cat:"Volatility",p:20,mult:2,ob:80,os:20},
+    {id:"hv",n:"Hist Vol 20",on:0,cat:"Volatility",p:20},
+    {id:"zscore",n:"Z-Score 20",on:0,cat:"Stats",p:20},
+    {id:"beta",n:"Beta vs SPY",on:0,cat:"Stats",p:60},
+    {id:"rsline",n:"RS vs SPY",on:0,cat:"Stats"},
+    {id:"corrspy",n:"Corr vs SPY",on:0,cat:"Stats",p:60},
+    {id:"volosc",n:"Volume Osc 5,20",on:0,cat:"Volume",p:5,p2:20},
+    {id:"eom",n:"Ease of Movement",on:0,cat:"Volume",p:14},
+    {id:"chv",n:"Chaikin Vol",on:0,cat:"Volatility",p:10},
+    {id:"ulcer",n:"Ulcer Index",on:0,cat:"Volatility",p:14},
+    {id:"natr",n:"ATR %",on:0,cat:"Volatility",p:14},
+    {id:"ac",n:"Accelerator",on:0,cat:"Momentum"},
+    {id:"bop",n:"Balance of Power",on:0,cat:"Momentum"},
+    {id:"dem",n:"DeMarker 14",on:0,cat:"Momentum",p:14,ob:70,os:30}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
@@ -412,6 +441,296 @@
   function pearson(a,b){ var n=Math.min(a.length,b.length); if(n<8) return null; var sa=0,sb=0,i; for(i=0;i<n;i++){ sa+=a[i]; sb+=b[i]; } var ma=sa/n, mb=sb/n, num=0, da=0, db=0; for(i=0;i<n;i++){ var xa=a[i]-ma, xb=b[i]-mb; num+=xa*xb; da+=xa*xa; db+=xb*xb; } var den=Math.sqrt(da*db); return den?num/den:0; }
   function rets(d){ var o=[],i; for(i=1;i<d.length;i++) if(d[i-1].close) o.push(d[i].close/d[i-1].close-1); return o; }
   function maxdd(d){ var peak=-1e99, dd=0, i; for(i=0;i<d.length;i++){ if(d[i].close>peak) peak=d[i].close; var x=peak? d[i].close/peak-1:0; if(x<dd) dd=x; } return dd; }
+  function stochFull(d,n,k,dper){
+    n=n||14; k=k||3; dper=dper||3;
+    var raw=[],i,j;
+    for(i=0;i<d.length;i++){
+      if(i+1<n) continue;
+      var hi=-1e99,lo=1e99;
+      for(j=i-n+1;j<=i;j++){ if(d[j].high>hi)hi=d[j].high; if(d[j].low<lo)lo=d[j].low; }
+      raw.push({time:d[i].time,close:hi===lo?50:((d[i].close-lo)/(hi-lo))*100});
+    }
+    var kline=sma(raw,k);
+    var dline=sma(kline.map(function(p){return {time:p.time,close:p.value};}),dper);
+    return {k:kline,d:dline};
+  }
+  function dmi(d,n){
+    n=n||14;
+    var tr=[],pdm=[],mdm=[],i;
+    for(i=1;i<d.length;i++){
+      var up=d[i].high-d[i-1].high, dn=d[i-1].low-d[i].low;
+      pdm.push(up>dn&&up>0?up:0); mdm.push(dn>up&&dn>0?dn:0);
+      tr.push(Math.max(d[i].high-d[i].low, Math.abs(d[i].high-d[i-1].close), Math.abs(d[i].low-d[i-1].close)));
+    }
+    function wild(a,n){ var o=[],s=0,i; for(i=0;i<a.length;i++){ if(i<n){ s+=a[i]; if(i===n-1) o.push(s/n); } else { s=s-(s/n)+a[i]; o.push(s); } } return o; }
+    var str=wild(tr,n), sp=wild(pdm,n), sm=wild(mdm,n), dx=[], pdi=[], mdi=[];
+    for(i=0;i<str.length;i++){
+      var p=str[i]?100*sp[i]/str[i]:0, m=str[i]?100*sm[i]/str[i]:0, sum=p+m;
+      pdi.push(p); mdi.push(m); dx.push(sum?100*Math.abs(p-m)/sum:0);
+    }
+    var ad=wild(dx,n), o=[];
+    for(i=0;i<ad.length;i++){
+      var tIdx=i+n*2-1, t=d[tIdx]&&d[tIdx].time; if(!t) continue;
+      var di=i+n-1;
+      o.push({time:t, adx:ad[i], pdi:pdi[di]!=null?pdi[di]:pdi[pdi.length-1], mdi:mdi[di]!=null?mdi[di]:mdi[mdi.length-1]});
+    }
+    return o;
+  }
+  function aroonFull(d,n){
+    n=n||25; var up=[],dn=[],i,j;
+    for(i=0;i<d.length;i++){
+      if(i+1<n) continue;
+      var hi=-1e99,lo=1e99,ih=i,il=i;
+      for(j=i-n+1;j<=i;j++){ if(d[j].high>=hi){hi=d[j].high;ih=j;} if(d[j].low<=lo){lo=d[j].low;il=j;} }
+      up.push({time:d[i].time,value:100*(n-(i-ih))/n});
+      dn.push({time:d[i].time,value:100*(n-(i-il))/n});
+    }
+    return {up:up,dn:dn};
+  }
+  function vortexFull(d,n){
+    n=n||14; var vp=[],vm=[],i,j;
+    for(i=n;i<d.length;i++){
+      var p=0,m=0,tr=0;
+      for(j=i-n+1;j<=i;j++){
+        p+=Math.abs(d[j].high-d[j-1].low); m+=Math.abs(d[j].low-d[j-1].high);
+        tr+=Math.max(d[j].high-d[j].low, Math.abs(d[j].high-d[j-1].close), Math.abs(d[j].low-d[j-1].close));
+      }
+      vp.push({time:d[i].time,value:tr?p/tr:0}); vm.push({time:d[i].time,value:tr?m/tr:0});
+    }
+    return {p:vp,m:vm};
+  }
+  function elderFull(d,n){
+    n=n||13; var e=ema(d,n), map={},i, bull=[], bear=[];
+    for(i=0;i<e.length;i++) map[e[i].time]=e[i].value;
+    for(i=0;i<d.length;i++) if(map[d[i].time]!=null){
+      bull.push({time:d[i].time,value:d[i].high-map[d[i].time]});
+      bear.push({time:d[i].time,value:d[i].low-map[d[i].time]});
+    }
+    return {bull:bull,bear:bear};
+  }
+  function bbPctB(d,n,k){
+    var bb=bbands(d,n||20,k||2), cmap={}, i, o=[];
+    d.forEach(function(b){ cmap[b.time]=b.close; });
+    for(i=0;i<bb.up.length;i++){
+      var w=bb.up[i].value-bb.dn[i].value, c=cmap[bb.up[i].time];
+      o.push({time:bb.up[i].time,value:w&&c!=null?100*(c-bb.dn[i].value)/w:50});
+    }
+    return o;
+  }
+  function histVol(d,n){
+    n=n||20; var o=[],i,j;
+    for(i=n;i<d.length;i++){
+      var s=0,s2=0,c=0;
+      for(j=i-n+1;j<=i;j++){
+        if(!d[j-1]||!d[j-1].close||!d[j].close) continue;
+        var r=Math.log(d[j].close/d[j-1].close); s+=r; s2+=r*r; c++;
+      }
+      if(c<2) continue;
+      var mean=s/c, v=(s2-c*mean*mean)/(c-1);
+      o.push({time:d[i].time,value:Math.sqrt(Math.max(0,v))*Math.sqrt(252)*100});
+    }
+    return o;
+  }
+  function zScore(d,n){
+    n=n||20; var m=sma(d,n), o=[],i,j;
+    for(i=n-1;i<d.length;i++){
+      var mv=m[i-(n-1)].value, ss=0;
+      for(j=0;j<n;j++){ var dv=d[i-j].close-mv; ss+=dv*dv; }
+      var sd=Math.sqrt(ss/n);
+      o.push({time:d[i].time,value:sd?(d[i].close-mv)/sd:0});
+    }
+    return o;
+  }
+  function avgDev(d,n,k){
+    n=n||20; k=k||2; var m=sma(d,n), up1=[],dn1=[],up2=[],dn2=[],i,j;
+    for(i=n-1;i<d.length;i++){
+      var mv=m[i-(n-1)].value, ss=0;
+      for(j=0;j<n;j++){ var dv=d[i-j].close-mv; ss+=dv*dv; }
+      var sd=Math.sqrt(ss/n), t=d[i].time;
+      up1.push({time:t,value:mv+sd}); dn1.push({time:t,value:mv-sd});
+      up2.push({time:t,value:mv+k*sd}); dn2.push({time:t,value:mv-k*sd});
+    }
+    return {m:m,up1:up1,dn1:dn1,up2:up2,dn2:dn2};
+  }
+  function seBands(d,n,k){
+    n=n||20; k=k||2; var lr=linreg(d,n), up=[],dn=[],i,j;
+    for(i=0;i<d.length;i++){
+      if(i+1<n) continue;
+      var sx=0,sy=0,sxy=0,sx2=0;
+      for(j=0;j<n;j++){ sx+=j; sy+=d[i-n+1+j].close; sxy+=j*d[i-n+1+j].close; sx2+=j*j; }
+      var den=n*sx2-sx*sx, sl=den?(n*sxy-sx*sy)/den:0, ic=(sy-sl*sx)/n, se=0;
+      for(j=0;j<n;j++){ var e=d[i-n+1+j].close-(ic+sl*j); se+=e*e; }
+      se=Math.sqrt(se/Math.max(1,n-2)); var y=ic+sl*(n-1);
+      up.push({time:d[i].time,value:y+k*se}); dn.push({time:d[i].time,value:y-k*se});
+    }
+    return {m:lr,up:up,dn:dn};
+  }
+  function atrBands(d,n,m){
+    n=n||20; m=m||2; var mid=sma(d,n), a=atr(d,n), map={},i,up=[],dn=[];
+    for(i=0;i<a.length;i++) map[a[i].time]=a[i].value;
+    for(i=0;i<mid.length;i++){ var at=map[mid[i].time]; if(at==null) continue; up.push({time:mid[i].time,value:mid[i].value+m*at}); dn.push({time:mid[i].time,value:mid[i].value-m*at}); }
+    return {m:mid,up:up,dn:dn};
+  }
+  function volOsc(d,f,s){
+    f=f||5; s=s||20;
+    var vol=d.map(function(b){return {time:b.time,close:b.volume||0};});
+    var a=sma(vol,f), b=sma(vol,s), map={},i,o=[];
+    for(i=0;i<b.length;i++) map[b[i].time]=b[i].value;
+    for(i=0;i<a.length;i++) if(map[a[i].time]) o.push({time:a[i].time,value:100*(a[i].value-map[a[i].time])/map[a[i].time]});
+    return o;
+  }
+  function eom(d,n){
+    n=n||14; var raw=[],i;
+    for(i=1;i<d.length;i++){
+      var dist=((d[i].high+d[i].low)/2)-((d[i-1].high+d[i-1].low)/2);
+      var box=(d[i].volume||0)/Math.max(1e-12,d[i].high-d[i].low);
+      raw.push({time:d[i].time,close:box?dist/box:0});
+    }
+    return sma(raw,n);
+  }
+  function chaikinVol(d,n){
+    n=n||10; var hl=d.map(function(b){return {time:b.time,close:b.high-b.low};});
+    var e=ema(hl,n), o=[],i;
+    for(i=n;i<e.length;i++) if(e[i-n].value) o.push({time:e[i].time,value:(e[i].value/e[i-n].value-1)*100});
+    return o;
+  }
+  function ulcer(d,n){
+    n=n||14; var o=[],i,j;
+    for(i=n-1;i<d.length;i++){
+      var peak=-1e99, ss=0;
+      for(j=i-n+1;j<=i;j++){ if(d[j].close>peak) peak=d[j].close; var dd=peak?100*(d[j].close-peak)/peak:0; ss+=dd*dd; }
+      o.push({time:d[i].time,value:Math.sqrt(ss/n)});
+    }
+    return o;
+  }
+  function natr(d,n){
+    var a=atr(d,n||14), o=[],i,map={};
+    for(i=0;i<d.length;i++) map[d[i].time]=d[i].close;
+    for(i=0;i<a.length;i++) if(map[a[i].time]) o.push({time:a[i].time,value:100*a[i].value/map[a[i].time]});
+    return o;
+  }
+  function accel(d){
+    var a=ao(d), raw=a.map(function(p){return {time:p.time,close:p.value};}), sm=sma(raw,5), map={},i,o=[];
+    sm.forEach(function(p){ map[p.time]=p.value; });
+    for(i=0;i<a.length;i++) if(map[a[i].time]!=null) o.push({time:a[i].time,value:a[i].value-map[a[i].time]});
+    return o;
+  }
+  function bop(d){
+    var raw=[],i;
+    for(i=0;i<d.length;i++){ var r=d[i].high-d[i].low; raw.push({time:d[i].time,close:r?(d[i].close-d[i].open)/r:0}); }
+    return sma(raw,14);
+  }
+  function demarker(d,n){
+    n=n||14; var demp=[],demn=[],i,s1=0,s2=0,o=[];
+    for(i=1;i<d.length;i++){
+      demp.push(d[i].high>d[i-1].high?d[i].high-d[i-1].high:0);
+      demn.push(d[i-1].low>d[i].low?d[i-1].low-d[i].low:0);
+    }
+    for(i=0;i<demp.length;i++){
+      s1+=demp[i]; s2+=demn[i];
+      if(i>=n){ s1-=demp[i-n]; s2-=demn[i-n]; }
+      if(i>=n-1) o.push({time:d[i+1].time,value:(s1+s2)?100*s1/(s1+s2):50});
+    }
+    return o;
+  }
+  function fibPivots(d){
+    if(d.length<2) return null;
+    var b=d[d.length-2], r=b.high-b.low, pp=(b.high+b.low+b.close)/3, t=d[d.length-1].time;
+    return {pp:{time:t,value:pp}, r1:{time:t,value:pp+0.382*r}, r2:{time:t,value:pp+0.618*r}, r3:{time:t,value:pp+r}, s1:{time:t,value:pp-0.382*r}, s2:{time:t,value:pp-0.618*r}, s3:{time:t,value:pp-r}};
+  }
+  function woodiePivots(d){
+    if(d.length<2) return null;
+    var b=d[d.length-2], last=d[d.length-1], pp=(b.high+b.low+2*last.open)/4, r=b.high-b.low, t=last.time;
+    return {pp:{time:t,value:pp}, r1:{time:t,value:2*pp-b.low}, s1:{time:t,value:2*pp-b.high}, r2:{time:t,value:pp+r}, s2:{time:t,value:pp-r}};
+  }
+  function demarkPivots(d){
+    if(d.length<2) return null;
+    var b=d[d.length-2], x, t=d[d.length-1].time;
+    if(b.close<b.open) x=b.high+2*b.low+b.close;
+    else if(b.close>b.open) x=2*b.high+b.low+b.close;
+    else x=b.high+b.low+2*b.close;
+    return {pp:{time:t,value:x/4}, r1:{time:t,value:x/2-b.low}, s1:{time:t,value:x/2-b.high}};
+  }
+  function fibAuto(d){
+    if(d.length<20) return [];
+    var n=Math.min(d.length,252), i0=d.length-n, hi=-1e99, lo=1e99, i;
+    for(i=i0;i<d.length;i++){ if(d[i].high>hi) hi=d[i].high; if(d[i].low<lo) lo=d[i].low; }
+    var r=hi-lo, t=d[d.length-1].time, lv=[0,0.236,0.382,0.5,0.618,0.786,1];
+    return lv.map(function(p){ return {p:p, time:t, value:hi-p*r}; });
+  }
+  function wilderMa(d,n){
+    n=n||14; if(d.length<n) return [];
+    var o=[],s=0,i,p;
+    for(i=0;i<n;i++) s+=d[i].close;
+    p=s/n; o.push({time:d[n-1].time,value:p});
+    for(i=n;i<d.length;i++){ p=(p*(n-1)+d[i].close)/n; o.push({time:d[i].time,value:p}); }
+    return o;
+  }
+  function kama(d,n,fast,slow){
+    n=n||10; fast=fast||2; slow=slow||30;
+    if(d.length<n+1) return [];
+    var o=[],i,j, prev=d[n].close, fastSC=2/(fast+1), slowSC=2/(slow+1);
+    o.push({time:d[n].time,value:prev});
+    for(i=n+1;i<d.length;i++){
+      var change=Math.abs(d[i].close-d[i-n].close), vol=0;
+      for(j=i-n+1;j<=i;j++) vol+=Math.abs(d[j].close-d[j-1].close);
+      var er=vol?change/vol:0, sc=Math.pow(er*(fastSC-slowSC)+slowSC,2);
+      prev=prev+sc*(d[i].close-prev);
+      o.push({time:d[i].time,value:prev});
+    }
+    return o;
+  }
+  function alignSpy(d, spy){
+    if(!spy||!spy.length||!d.length) return [];
+    var k=0, i, o=[];
+    for(i=0;i<d.length;i++){
+      while(k+1<spy.length && Math.abs(spy[k+1].time-d[i].time)<=Math.abs(spy[k].time-d[i].time)) k++;
+      if(Math.abs(spy[k].time-d[i].time)<7*86400) o.push({time:d[i].time, a:d[i].close, s:spy[k].close, ai:i, si:k});
+    }
+    return o;
+  }
+  function rsLine(d, spy){
+    var j=alignSpy(d,spy), o=[], i;
+    if(j.length<2) return [];
+    var a0=j[0].a, s0=j[0].s;
+    for(i=0;i<j.length;i++) if(s0&&j[i].s) o.push({time:j[i].time,value:100*(j[i].a/a0)/(j[i].s/s0)});
+    return o;
+  }
+  function betaVs(d, spy, n){
+    n=n||60; var j=alignSpy(d,spy), o=[], i, k;
+    if(j.length<n+2) return [];
+    var ra=[], rs=[];
+    for(i=1;i<j.length;i++){
+      ra.push(j[i-1].a?j[i].a/j[i-1].a-1:0);
+      rs.push(j[i-1].s?j[i].s/j[i-1].s-1:0);
+    }
+    for(i=n-1;i<ra.length;i++){
+      var sa=0,ss=0,sas=0,ss2=0;
+      for(k=0;k<n;k++){ sa+=ra[i-n+1+k]; ss+=rs[i-n+1+k]; }
+      var ma=sa/n, ms=ss/n;
+      for(k=0;k<n;k++){ var xa=ra[i-n+1+k]-ma, xs=rs[i-n+1+k]-ms; sas+=xa*xs; ss2+=xs*xs; }
+      o.push({time:j[i+1].time,value:ss2?sas/ss2:1});
+    }
+    return o;
+  }
+  function rollCorr(d, spy, n){
+    n=n||60; var j=alignSpy(d,spy), o=[], i, k;
+    if(j.length<n+2) return [];
+    var ra=[], rs=[];
+    for(i=1;i<j.length;i++){
+      ra.push(j[i-1].a?j[i].a/j[i-1].a-1:0);
+      rs.push(j[i-1].s?j[i].s/j[i-1].s-1:0);
+    }
+    for(i=n-1;i<ra.length;i++){
+      var sa=0,ss=0,num=0,da=0,db=0;
+      for(k=0;k<n;k++){ sa+=ra[i-n+1+k]; ss+=rs[i-n+1+k]; }
+      var ma=sa/n, ms=ss/n;
+      for(k=0;k<n;k++){ var xa=ra[i-n+1+k]-ma, xb=rs[i-n+1+k]-ms; num+=xa*xb; da+=xa*xa; db+=xb*xb; }
+      var den=Math.sqrt(da*db);
+      o.push({time:j[i+1].time,value:den?num/den:0});
+    }
+    return o;
+  }
   function pal(){ return dark?{bg:"#131722",text:"#787b86",grid:"#1e222d",border:"#2a2e39",fg:"#d1d4dc",hud:"rgba(19,23,34,.92)"}:{bg:"#ffffff",text:"#6a6d78",grid:"#f0f3fa",border:"#e0e3eb",fg:"#131722",hud:"rgba(255,255,255,.92)"}; }
   function applyTheme(repaint){
     document.documentElement.setAttribute("data-theme", dark?"dark":"light");
@@ -850,6 +1169,16 @@
               prevSq=p.value;
             });
           }
+          if(INDS.some(function(i){ return i.id==="gdx"&&i.on&&!i.hide; })){
+            var g50=sma(display,50), g200=sma(display,200), m50={}, gi, prevG=0;
+            g50.forEach(function(p){ m50[p.time]=p.value; });
+            for(gi=0;gi<g200.length;gi++){
+              var a=m50[g200[gi].time]; if(a==null) continue;
+              var dir=a>=g200[gi].value?1:-1;
+              if(prevG && dir!==prevG) mk.push({time:g200[gi].time, position:dir>0?"belowBar":"aboveBar", color:dir>0?UP:DN, shape:dir>0?"arrowUp":"arrowDown", text:dir>0?"GOLDEN":"DEATH"});
+              prevG=dir;
+            }
+          }
           if(window.jhRsReady){
             window.jhRsReady(display).then(function(rs){
               if(seq!==paintSeq) return;
@@ -926,6 +1255,20 @@
         if(ind.k==="ce") store(ind.id, chandelier(d));
         if(ind.k==="vwapb"){ var vb=vwapBands(d); store(ind.id, vb.m); line(vb.up); line(vb.dn); }
         if(ind.k==="cam"){ var cm=camarilla(d); if(cm && !ind.hide){ addPriceLine(cm.r4.value,DN,"R4"); addPriceLine(cm.r3.value,DN,"R3"); addPriceLine(cm.s3.value,UP,"S3"); addPriceLine(cm.s4.value,UP,"S4"); } }
+        if(ind.k==="kama") store(ind.id, kama(d, ind.p||10));
+        if(ind.k==="wilder") store(ind.id, wilderMa(d, ind.p||14));
+        if(ind.k==="twap") store(ind.id, twap(d));
+        if(ind.k==="avgdev"){ var adb=avgDev(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=adb.m; if(!ind.hide){ addLine(adb.m, ind.c||"#2962ff", 2, {last:true, title:"Avg"}); addLine(adb.up1, "#26c6da", 1, {title:"+1σ"}); addLine(adb.dn1, "#26c6da", 1, {title:"-1σ"}); addLine(adb.up2, "#787b86", 1, {title:"+2σ"}); addLine(adb.dn2, "#787b86", 1, {title:"-2σ"}); } }
+        if(ind.k==="seb"){ var sb=seBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=sb.m; if(!ind.hide){ addLine(sb.m, ind.c||"#5c6bc0", 2, {last:true, title:"LinReg"}); addLine(sb.up, "#26c6da", 1); addLine(sb.dn, "#26c6da", 1); } }
+        if(ind.k==="atrb"){ var ab=atrBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=ab.m; if(!ind.hide){ addLine(ab.m, ind.c||"#00897b", 2, {last:true, title:"ATR mid"}); addLine(ab.up, "#26c6da", 1); addLine(ab.dn, "#26c6da", 1); } }
+        if(ind.k==="ribbon"){ var rb=[8,13,21,34,55], rc=["#26c6da","#42a5f5","#5c6bc0","#7e57c2","#ab47bc"]; rb.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, rc[ix], ix?1:1.5, {last:!ix, title:"EMA "+n}); }); }
+        if(ind.k==="gmma"){ var gs=[3,5,8,10,12,15], gl=[30,35,40,45,50,60]; gs.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, "#26a69a", 1); }); gl.forEach(function(n){ if(!ind.hide) addLine(ema(d,n), "#ff6d00", 1); }); }
+        if(ind.k==="gdx"){ var g50=sma(d,50), g200=sma(d,200); overlayMap[ind.id]=g50; if(!ind.hide){ addLine(g50, "#f0b429", 2, {last:true, title:"SMA 50"}); addLine(g200, "#2962ff", 2, {last:true, title:"SMA 200"}); } }
+        if(ind.k==="hilo52" && d.length){ var h52= (function(){ var t52=d[d.length-1].time-365*86400, hi=-1e99, lo=1e99, i; for(i=0;i<d.length;i++){ if(d[i].time<t52) continue; if(d[i].high>hi)hi=d[i].high; if(d[i].low<lo)lo=d[i].low; } return {hi:hi,lo:lo}; })(); if(!ind.hide){ if(isFinite(h52.hi)) addPriceLine(h52.hi, UP, "52w H"); if(isFinite(h52.lo)&&h52.lo<1e90) addPriceLine(h52.lo, DN, "52w L"); } }
+        if(ind.k==="fibpiv"){ var fp=fibPivots(d); if(fp && !ind.hide){ addPriceLine(fp.pp.value,"#546e7a","P"); addPriceLine(fp.r1.value,DN,"R1"); addPriceLine(fp.r2.value,DN,"R2"); addPriceLine(fp.r3.value,DN,"R3"); addPriceLine(fp.s1.value,UP,"S1"); addPriceLine(fp.s2.value,UP,"S2"); addPriceLine(fp.s3.value,UP,"S3"); } }
+        if(ind.k==="woodie"){ var wp=woodiePivots(d); if(wp && !ind.hide){ addPriceLine(wp.pp.value,"#546e7a","WP"); addPriceLine(wp.r1.value,DN,"R1"); addPriceLine(wp.s1.value,UP,"S1"); addPriceLine(wp.r2.value,DN,"R2"); addPriceLine(wp.s2.value,UP,"S2"); } }
+        if(ind.k==="demark"){ var dp=demarkPivots(d); if(dp && !ind.hide){ addPriceLine(dp.pp.value,"#546e7a","P"); addPriceLine(dp.r1.value,DN,"R1"); addPriceLine(dp.s1.value,UP,"S1"); } }
+        if(ind.k==="fibauto"){ var fa=fibAuto(d); if(fa && fa.length && !ind.hide){ var fc=["#f23645","#ff6d00","#f0b429","#787b86","#26c6da","#2962ff","#089981"]; fa.forEach(function(lv,ix){ addPriceLine(lv.value, fc[ix]||"#787b86", (lv.p*100).toFixed(1)+"%"); }); } }
         if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"||ind.k==="vsa"||ind.k==="tape"){ /* markers applied on the candle series */ }
       });
       for(var ci=0;ci<compare.length;ci++){
@@ -959,6 +1302,9 @@
     } else {
       showRecentBars(200);
     }
+    if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"); })){
+      try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf); }catch(e){}
+    }
     paintOsc(d);
     drawSVG();
     quoteUI(d);
@@ -977,7 +1323,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.17"; if(st) st.textContent="v12.17 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.18"; if(st) st.textContent="v12.18 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -1010,7 +1356,7 @@
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
-    var on=OSC.filter(function(o){ return o.on; }).slice(0,4);
+    var on=OSC.filter(function(o){ return o.on; }).slice(0,6);
     oscCharts.forEach(function(c){ try{ c.remove(); }catch(e){} });
     oscCharts=[]; oscSeries=[];
     if(!on.length){ wrap.className=""; wrap.innerHTML=""; return; }
@@ -1065,20 +1411,42 @@
         oscSeries.push(h,z0,l1,l2);
         if(m.length){ var ve=head.querySelector(".osc-v"); var lastm=m[m.length-1]; if(ve) ve.textContent=fmt(lastm.macd)+" / "+fmt(lastm.signal); }
       }
-      else if(o.id==="stoch"){ addO(stoch(d,14,3,3), "#ab47bc"); bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80); }
+      else if(o.id==="stoch"){
+        var sf=stochFull(d, o.p||14, 3, 3);
+        addO(sf.k, "#ab47bc");
+        try{ var sD=c.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"%D"}); sD.setData(sf.d||[]); oscSeries.push(sD); }catch(e){}
+        bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80);
+        if(sf.k.length){ var veS=head.querySelector(".osc-v"); var lastK=sf.k[sf.k.length-1].value; if(veS&&lastK!=null) veS.textContent=lastK.toFixed(1); }
+      }
       else if(o.id==="stochrsi") addO(stochRsi(d), "#7e57c2");
       else if(o.id==="atr") addO(atr(d,14), "#6a6d78");
       else if(o.id==="cci"){ addO(cci(d,20), "#26c6da"); bands(-100,100); }
       else if(o.id==="willr"){ addO(willr(d,14), "#ef6c00"); bands(-80,-20); }
-      else if(o.id==="mfi"){ addO(mfi(d,14), "#00897b"); bands(20,80); }
+      else if(o.id==="mfi"){ addO(mfi(d,14), "#00897b"); bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80); }
       else if(o.id==="obv") addO(obv(d), "#5c6bc0");
       else if(o.id==="ad") addO(adline(d), "#6d4c41");
       else if(o.id==="cmf") addO(cmf(d,20), "#43a047");
-      else if(o.id==="adx") addO(adx(d,14), "#3949ab");
+      else if(o.id==="adx"){
+        var dm=dmi(d, o.p||14);
+        try{
+          var pdi=c.addLineSeries({color:"#089981",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"+DI"}); pdi.setData(dm.map(function(p){return {time:p.time,value:p.pdi};}));
+          var mdi=c.addLineSeries({color:"#f23645",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"-DI"}); mdi.setData(dm.map(function(p){return {time:p.time,value:p.mdi};}));
+          var adxL=c.addLineSeries({color:"#2962ff",lineWidth:2,lastValueVisible:true,priceLineVisible:false,title:"ADX"}); adxL.setData(dm.map(function(p){return {time:p.time,value:p.adx};}));
+          oscSeries.push(pdi,mdi,adxL);
+          var th=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false});
+          th.setData((d||[]).map(function(b){return {time:b.time,value:20};})); oscSeries.push(th);
+        }catch(e){ addO(adx(d,14), "#3949ab"); }
+        if(dm.length){ var veA=head.querySelector(".osc-v"); var lastA=dm[dm.length-1]; if(veA) veA.textContent="ADX "+lastA.adx.toFixed(1)+"  +DI "+lastA.pdi.toFixed(1)+"  −DI "+lastA.mdi.toFixed(1); }
+      }
       else if(o.id==="ao"){ var a=ao(d); var h2=c.addHistogramSeries({}); h2.setData(a.map(function(p){return {time:p.time,value:p.value,color:p.value>=0?UP:DN};})); oscSeries.push(h2); }
       else if(o.id==="mom") addO(mom(d,10), "#e91e63");
       else if(o.id==="roc") addO(roc(d,12), "#ff6d00");
-      else if(o.id==="aroon") addO(aroon(d,25), "#089981");
+      else if(o.id==="aroon"){
+        var ar=aroonFull(d, o.p||25);
+        addO(ar.up, "#089981");
+        try{ var arn=c.addLineSeries({color:"#f23645",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"Aroon Down"}); arn.setData(ar.dn||[]); oscSeries.push(arn); }catch(e){}
+        if(ar.up.length){ var veAr=head.querySelector(".osc-v"); var lastAr=ar.up[ar.up.length-1].value; if(veAr&&lastAr!=null) veAr.textContent=lastAr.toFixed(0); }
+      }
       else if(o.id==="uo") addO(uo(d), "#2962ff");
       else if(o.id==="trix") addO(trix(d,15), "#7e57c2");
       else if(o.id==="chaikin") addO(chaikin(d), "#8d6e63");
@@ -1086,8 +1454,21 @@
       else if(o.id==="ppo") addO(ppo(d), "#00695c");
       else if(o.id==="tsi") addO(tsi(d), "#4527a0");
       else if(o.id==="dpo") addO(dpo(d,20), "#37474f");
-      else if(o.id==="vortex") addO(vortex(d,14), "#00897b");
-      else if(o.id==="eld") addO(elder(d,13), "#ef6c00");
+      else if(o.id==="vortex"){
+        var vf=vortexFull(d, o.p||14);
+        addO(vf.p, "#089981");
+        try{ var vfm=c.addLineSeries({color:"#f23645",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"-VI"}); vfm.setData(vf.m||[]); oscSeries.push(vfm); }catch(e){}
+      }
+      else if(o.id==="eld"){
+        var ef=elderFull(d, o.p||13);
+        try{
+          var hbE=c.addHistogramSeries({lastValueVisible:false,priceLineVisible:false,title:"Bull"});
+          hbE.setData(ef.bull.map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));
+          var br=c.addLineSeries({color:"#f23645",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"Bear"}); br.setData(ef.bear||[]);
+          oscSeries.push(hbE,br);
+        }catch(e){ addO(elder(d,13), "#ef6c00"); }
+        if(ef.bull.length){ var veE=head.querySelector(".osc-v"); var lastE=ef.bull[ef.bull.length-1].value; if(veE&&lastE!=null) veE.textContent=fmt(lastE); }
+      }
       else if(o.id==="kst") addO(kst(d), "#5c6bc0");
       else if(o.id==="fisher") addO(fisher(d,10), "#6a1b9a");
       else if(o.id==="rvi") addO(rvi(d,10), "#00838f");
@@ -1140,6 +1521,20 @@
         }catch(e){}
         if(sq.length){ var ve2=head.querySelector(".osc-v"); var lasts=sq[sq.length-1]; if(ve2) ve2.textContent=fmt(lasts.value)+(lasts.squeeze?" SQZ ON":" SQZ OFF"); }
       }
+      else if(o.id==="bbp"){ addO(bbPctB(d, o.p||20, o.mult||2), "#2962ff"); bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80); try{ var midB=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:3,lastValueVisible:false,priceLineVisible:false}); midB.setData((d||[]).map(function(b){return {time:b.time,value:50};})); oscSeries.push(midB); }catch(e){} }
+      else if(o.id==="hv") addO(histVol(d, o.p||20), "#ff6d00");
+      else if(o.id==="zscore"){ addO(zScore(d, o.p||20), "#2962ff"); bands(-2,2); }
+      else if(o.id==="beta") addO(betaVs(d, spyBars, o.p||60), "#7e57c2");
+      else if(o.id==="rsline"){ addO(rsLine(d, spyBars), "#2962ff"); try{ var rs100=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false}); rs100.setData((d||[]).map(function(b){return {time:b.time,value:100};})); oscSeries.push(rs100); }catch(e){} }
+      else if(o.id==="corrspy"){ addO(rollCorr(d, spyBars, o.p||60), "#26c6da"); bands(-0.5, 0.8); }
+      else if(o.id==="volosc"){ var vo=volOsc(d, o.p||5, o.p2||20); var hvo=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false}); hvo.setData(vo.map(function(p){return {time:p.time,value:p.value,color:p.value>=0?UP:DN};})); oscSeries.push(hvo); if(vo.length){ var veV=head.querySelector(".osc-v"); var lastV=vo[vo.length-1].value; if(veV&&lastV!=null) veV.textContent=lastV.toFixed(1)+"%"; } }
+      else if(o.id==="eom") addO(eom(d, o.p||14), "#00897b");
+      else if(o.id==="chv") addO(chaikinVol(d, o.p||10), "#8d6e63");
+      else if(o.id==="ulcer") addO(ulcer(d, o.p||14), "#c62828");
+      else if(o.id==="natr") addO(natr(d, o.p||14), "#6a6d78");
+      else if(o.id==="ac"){ var acs=accel(d); var hac=c.addHistogramSeries({lastValueVisible:false,priceLineVisible:false}); hac.setData(acs.map(function(p,i){ var prev=i?acs[i-1].value:p.value; return {time:p.time,value:p.value,color:p.value>=0?(p.value>=prev?"#089981":"#26a69a"):(p.value>=prev?"#ef9a9a":"#f23645")}; })); oscSeries.push(hac); if(acs.length){ var veAc=head.querySelector(".osc-v"); var lastAc=acs[acs.length-1].value; if(veAc&&lastAc!=null) veAc.textContent=fmt(lastAc); } }
+      else if(o.id==="bop"){ addO(bop(d), "#3949ab"); try{ var zB=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lastValueVisible:false,priceLineVisible:false}); zB.setData((d||[]).map(function(b){return {time:b.time,value:0};})); oscSeries.push(zB); }catch(e){} }
+      else if(o.id==="dem"){ addO(demarker(d, o.p||14), "#e91e63"); bands(o.os!=null?o.os:30, o.ob!=null?o.ob:70); }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
