@@ -3382,7 +3382,7 @@
       "<span><span class=nm>"+tick+"</span><span class=ds>"+(r.name||kind)+"</span></span>"+
       "<span class=ss-ex>"+(ex||kind)+(flag?" "+flag:"")+"</span>"+
       (dest==="compare"
-        ? "<span class='ss-check"+(on?" on":"")+"'>✓</span>"
+        ? "<span class='ss-check"+(on?" on":"")+"'>"+(on?"✓":"")+"</span>"
         : "<span class=ss-more data-more='"+bare(r.s)+"' title='More'>▾</span>")+
       "</button>";
   }
@@ -3449,8 +3449,14 @@
       else other.push({r:r,i:i});
     }
     var html="";
+    if(dest==="compare"){
+      if(added.length) html+="<div class=ss-sec>ADDED SYMBOLS</div>"+added.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
+      if(rec.length) html+="<div class=ss-sec>RECENT SYMBOLS</div>"+rec.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
+      if(other.length) html+="<div class=ss-sec>"+(q?"RESULTS":"SYMBOLS")+"</div>"+other.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
+      return html || "<div class=cell style=padding:18px>Type a symbol, ISIN, or CUSIP</div>";
+    }
     if(added.length) html+="<div class=ss-sec>ADDED SYMBOLS</div>"+added.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
-    if((!q || dest==="compare") && rec.length) html+="<div class=ss-sec>RECENT SYMBOLS</div>"+rec.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
+    if(!q && rec.length) html+="<div class=ss-sec>RECENT SYMBOLS</div>"+rec.map(function(x){ return ssRowHtml(x.r,x.i); }).join("");
     else other=rec.concat(other);
     if(other.length){
       if(html) html+="<div class=ss-sec>"+(q?"RESULTS":"SYMBOLS")+"</div>";
