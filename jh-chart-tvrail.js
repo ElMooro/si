@@ -419,16 +419,27 @@
     }
     applyWatch(pinned);
     bindResizers();
+    if (boot.bound) return;
+    boot.bound = true;
 
-    var openedAt = 0;
+    var hoverLock = false;
+    var peekT = null;
+    function dismiss() {
+      hoverLock = true;
+      clearTimeout(peekT);
+      unpin();
+    }
     function enter() {
       clearTimeout(hideT);
-      var w = watch();
-      if (w && w.classList.contains("is-collapsed")) openedAt = Date.now();
-      applyWatch(true);
+      clearTimeout(peekT);
+      if (hoverLock) return;
+      if (pinned) { applyWatch(true); return; }
+      peekT = setTimeout(function () { applyWatch(true); }, 140);
     }
     function leave() {
+      clearTimeout(peekT);
       clearTimeout(hideT);
+      hoverLock = false;
       hideT = setTimeout(function () {
         var ld = document.getElementById("listdrop");
         var ss = document.getElementById("symsearch");
@@ -444,17 +455,16 @@
       rr.querySelectorAll("[data-rail]").forEach(function (b) {
         b.onclick = function (e) {
           e.stopPropagation();
+          clearTimeout(peekT);
           var kind = b.getAttribute("data-rail");
           var w = watch();
           var open = w && w.classList.contains("is-open");
-          if (open && Date.now() - openedAt < 450) {
-            pin(true);
-          } else if (open && (pinned || b.classList.contains("on"))) {
-            unpin();
+          if (kind === "watch" && open) {
+            dismiss();
             return;
-          } else {
-            pin(true);
           }
+          hoverLock = false;
+          pin(true);
           if (kind === "watch") {
             if (window.jhShowInfo) window.jhShowInfo("chart");
           } else if (window.jhShowInfo) window.jhShowInfo(kind === "details" ? "fin" : kind);
@@ -466,24 +476,37 @@
       w.onmouseleave = leave;
     }
     var pinb = document.getElementById("w-pin");
-    if (pinb) pinb.onclick = function (e) { e.stopPropagation(); if (pinned) unpin(); else pin(true); };
+    if (pinb) pinb.onclick = function (e) { e.stopPropagation(); if (pinned) dismiss(); else { hoverLock = false; pin(true); } };
     var xb = document.getElementById("w-close");
-    if (xb) xb.onclick = function (e) { e.stopPropagation(); unpin(); };
-    var title = document.querySelector("#watch .wtitle b");
-    if (title && !title.dataset.bound) {
-      title.style.cursor = "pointer";
-      title.title = "Close watchlist";
-      title.onclick = function (e) { e.stopPropagation(); unpin(); };
-      title.dataset.bound = "1";
+    if (xb) xb.onclick = function (e) { e.stopPropagation(); dismiss(); };
+    var titleBar = document.querySelector("#watch .wtitle");
+    if (titleBar && !titleBar.dataset.bound) {
+      titleBar.style.cursor = "pointer";
+      titleBar.title = "Click to close watchlist";
+      titleBar.onclick = function (e) {
+        if (e.target.closest(".wops")) return;
+        e.stopPropagation();
+        dismiss();
+      };
+      titleBar.dataset.bound = "1";
     }
     var cmb = document.getElementById("w-chartm");
     if (cmb) cmb.onclick = function (e) { e.stopPropagation(); chartMenu(cmb); };
     var sb = document.getElementById("w-searchbtn");
     if (sb) sb.onclick = function () {
+      hoverLock = false;
       pin(true);
       if (window.jhOpenSearch) window.jhOpenSearch();
       else { var q = document.getElementById("q"); if (q) q.focus(); }
     };
+    document.addEventListener("mousedown", function (e) {
+      var wnow = watch();
+      if (!wnow || !wnow.classList.contains("is-open") || pinned) return;
+      if (wnow.contains(e.target)) return;
+      if (rr && rr.contains(e.target)) return;
+      if (e.target.closest && e.target.closest("#symsearch,#inddlg,#indset,#listdrop,#menu,#chartm,#ws-overlay,#cmdk,#modal,#ctx,#fly")) return;
+      dismiss();
+    });
     document.addEventListener("click", function (e) {
       var m = document.getElementById("chartm");
       if (m && m.className === "on" && !m.contains(e.target) && e.target.id !== "w-chartm" && !(e.target.classList && e.target.classList.contains("leg-dia"))) m.className = "";
@@ -494,6 +517,7 @@
         if (ov) ov.className = "";
         var m = document.getElementById("chartm");
         if (m) m.className = "";
+        if (watch() && watch().classList.contains("is-open")) dismiss();
       }
     });
   }
