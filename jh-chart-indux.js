@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "vwap", "rsi", "macd", "vol"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "vwap", "rsi", "macd", "vol", "livermore", "wyckoff", "bbw"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}

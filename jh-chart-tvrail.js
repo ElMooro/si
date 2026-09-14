@@ -118,7 +118,9 @@
     ".pane-split:hover::after,.pane-split.drag::after{background:#2962ff}",
     ".leg-dia{width:18px;height:18px;margin-right:4px;color:#787b86;border-radius:3px;font-size:12px;pointer-events:auto}",
     ".leg-dia:hover{background:#2a2e39;color:#d1d4dc}",
-    "#legend .leg-sym{display:flex;align-items:center;gap:4px}",
+    "#tv-zoom{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);right:auto;z-index:8;display:flex;flex-direction:row;border:1px solid #2a2e39;border-radius:6px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.28)}",
+    "#tv-zoom button{width:36px;height:26px;border-bottom:0;border-right:1px solid #2a2e39}",
+    "#tv-zoom button:last-child{border-right:0}",
     "@media(max-width:720px){#rrail{display:none!important}}"
   ].join("");
   document.documentElement.appendChild(css);

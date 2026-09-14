@@ -33,12 +33,19 @@
     var last = d[d.length - 1];
     if (ls.length && last.close < ls[ls.length - 1].px && trend !== "DOWNTREND") { trend = "REV-DN"; note = "broke reaction low"; }
     if (hs.length && last.close > hs[hs.length - 1].px && trend !== "UPTREND") { trend = "REV-UP"; note = "broke rally high"; }
-    return { trend: trend, note: note, hs: hs, ls: ls };
+    var marks = [];
+    hs.slice(-6).forEach(function (p) { marks.push(tag(p.t, "aboveBar", "#2962ff", "arrowDown", "PH")); });
+    ls.slice(-6).forEach(function (p) { marks.push(tag(p.t, "belowBar", "#2962ff", "arrowUp", "PL")); });
+    if (trend === "REV-UP") marks.push(tag(last.time, "belowBar", "#089981", "arrowUp", "REV-UP"));
+    if (trend === "REV-DN") marks.push(tag(last.time, "aboveBar", "#f23645", "arrowDown", "REV-DN"));
+    if (trend === "UPTREND") marks.push(tag(last.time, "belowBar", "#089981", "circle", "HH+HL"));
+    if (trend === "DOWNTREND") marks.push(tag(last.time, "aboveBar", "#f23645", "circle", "LH+LL"));
+    return { trend: trend, note: note, hs: hs, ls: ls, markers: marks };
   }
   function wyckoffFull(d) {
     var out = [];
     if (d.length < 40) return out;
-    var win = d.slice(-60);
+    var win = d.slice(-80);
     var vAvg = avg(win.map(function (b) { return b.volume || 0; }));
     var maxH = -1e99, minL = 1e99, maxI = 0, minI = 0, i;
     for (i = 0; i < win.length; i++) {
@@ -91,20 +98,52 @@
           d[i].close >= d[i].open ? "E↑noR" : "E↓noR"));
       }
     }
-    return out.slice(-8);
+    return out.slice(-10);
+  }
+  function accumDistrib(d) {
+    var accum = [], distrib = [];
+    if (d.length < 30) return { accum: accum, distrib: distrib };
+    var i, look = 20;
+    for (i = look; i < d.length; i++) {
+      var vA = 0, j, dnVol = 0, upVol = 0, pxCh;
+      for (j = i - look; j < i; j++) {
+        vA += d[j].volume || 0;
+        if (d[j].close >= d[j].open) upVol += d[j].volume || 0;
+        else dnVol += d[j].volume || 0;
+      }
+      vA /= look;
+      pxCh = d[i].close - d[i - look].close;
+      var volNow = d[i].volume || 0;
+      var dry = vA && volNow < vA * 0.7;
+      var rng = d[i].high - d[i].low || 1e-9;
+      var closeLoc = (d[i].close - d[i].low) / rng;
+      if (pxCh <= 0 && dry && closeLoc > 0.55) accum.push(tag(d[i].time, "belowBar", "#089981", "circle", "ACC"));
+      if (pxCh >= 0 && volNow > vA * 1.4 && closeLoc < 0.45) distrib.push(tag(d[i].time, "aboveBar", "#f23645", "circle", "DIST"));
+    }
+    var wy = wyckoffFull(d);
+    wy.forEach(function (m) {
+      if (/SC|SPRING|LPS|AR/.test(m.text)) accum.push(m);
+      if (/BC|UT|SOW|LPSY/.test(m.text)) distrib.push(m);
+    });
+    return { accum: accum.slice(-14), distrib: distrib.slice(-14) };
   }
   window.jhTapeRead = function (d) {
-    if (!d || d.length < 40) return { markers: [], panel: "tape: short" };
+    if (!d || d.length < 40) return { markers: [], panel: "tape: short", livermore: { markers: [] }, wyckoff: { markers: [] }, accum: { markers: [] }, distrib: { markers: [] } };
     var sw = swings(d);
     var lv = livermore(d, sw);
-    var marks = [];
-    lv.hs.slice(-3).forEach(function (p) { marks.push(tag(p.t, "aboveBar", "#2962ff", "arrowDown", "PH")); });
-    lv.ls.slice(-3).forEach(function (p) { marks.push(tag(p.t, "belowBar", "#2962ff", "arrowUp", "PL")); });
-    marks = marks.concat(wyckoffFull(d)).concat(effort(d));
+    var wy = wyckoffFull(d);
+    var ef = effort(d);
+    var ad = accumDistrib(d);
+    var marks = lv.markers.concat(wy).concat(ef);
     if (window.jhVolEvents) marks = (window.jhVolEvents(d) || []).concat(marks);
-    if (lv.trend === "REV-UP") marks.push(tag(d[d.length - 1].time, "belowBar", "#2962ff", "arrowUp", "REV-UP"));
-    if (lv.trend === "REV-DN") marks.push(tag(d[d.length - 1].time, "aboveBar", "#2962ff", "arrowDown", "REV-DN"));
-    var panel = "LIVERMORE " + lv.trend + " " + lv.note + " | WYCKOFF PS SC AR SPRING UT SOS SOW LPS | E vs result";
-    return { markers: marks, panel: panel, livermore: lv };
+    var panel = "LIVERMORE " + lv.trend + " " + lv.note + " | WYCKOFF PS SC AR SPRING UT SOS SOW LPS";
+    return {
+      markers: marks,
+      panel: panel,
+      livermore: { trend: lv.trend, note: lv.note, markers: lv.markers },
+      wyckoff: { markers: wy.concat(ef) },
+      accum: { markers: ad.accum },
+      distrib: { markers: ad.distrib }
+    };
   };
 })();
