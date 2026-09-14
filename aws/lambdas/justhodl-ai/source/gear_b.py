@@ -50,7 +50,7 @@ REJECT_PREFIX = "factory/traces/_reject/"
 EXAM_PROMPTS_KEY = "factory/exams/code/holdout-prompts.jsonl"
 
 ALLOWED_LICENSES = frozenset({"own", "MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "CC-BY-4.0", "CC0-1.0", "Unlicense", "ISC"})
-ALLOWED_SOURCE_KINDS = frozenset({"gear_a_trace", "skillbook", "oss_commit", "public_benchmark_train"})
+ALLOWED_SOURCE_KINDS = frozenset({"gear_a_trace", "skillbook", "oss_commit", "public_benchmark_train", "self_trace"})  # self_trace = keep-only-passes from an owned burst, verified by the runner
 TAG_PURPOSE = "factory-gear-b"
 
 DEFAULT_CONTROL = {
