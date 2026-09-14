@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz", "keylv", "pvwap", "ddown", "alpha", "rngpos"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz", "keylv", "pvwap", "ddown", "alpha", "rngpos", "earn"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
@@ -56,6 +56,27 @@
     "#inddlg .irow span{display:block;font-size:11px;color:#787b86}",
     "#inddlg .star{margin-left:auto;width:28px;height:28px;flex:none;color:#787b86;font-size:16px}",
     "#inddlg .star.on{color:#f0b429}",
+    "#inddlg .qhelp{width:22px;height:22px;flex:none;border-radius:50%;border:1px solid #434651;color:#787b86;font-size:11px;font-weight:700;margin-left:4px}",
+    "#inddlg .qhelp:hover{border-color:#2962ff;color:#d1d4dc;background:#2a2e39}",
+    "#indhelp{display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding-top:8vh}",
+    "#indhelp.on{display:flex}",
+    "#indhelp .box{width:min(520px,94vw);max-height:min(78vh,640px);background:#1e222d;border:1px solid #2a2e39;border-radius:8px;color:#d1d4dc;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column}",
+    "#indhelp .sh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #2a2e39}",
+    "#indhelp .sh b{display:block;font-size:15px;font-weight:600}",
+    "#indhelp .sh .tag{display:block;margin-top:3px;font-size:11px;color:#787b86;letter-spacing:.04em}",
+    "#indhelp .sh .x{width:28px;height:28px;color:#787b86;flex:none}",
+    "#indhelp .hb{padding:14px 16px 18px;overflow:auto;flex:1}",
+    "#indhelp h5{margin:14px 0 4px;font-size:11px;letter-spacing:.08em;color:#2962ff;font-weight:600}",
+    "#indhelp h5:first-child{margin-top:0}",
+    "#indhelp p{margin:0;font-size:13px;line-height:1.45;color:#d1d4dc}",
+    "#indhelp .caveat{margin-top:16px;padding:10px 12px;background:#131722;border:1px solid #2a2e39;border-radius:6px;font-size:12px;color:#787b86;line-height:1.4}",
+    "#indhelp .evlist{margin:8px 0 0;display:flex;flex-direction:column;gap:4px}",
+    "#indhelp .evlist button,#indset .evlist button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 8px;border-radius:4px;color:#d1d4dc;font-size:13px}",
+    "#indhelp .evlist button:hover,#indset .evlist button:hover{background:#2a2e39}",
+    "#indhelp .evlist b,#indset .evlist b{font-family:IBM Plex Mono,monospace;font-size:12px;width:52px;flex:none}",
+    "#indhelp .evlist span,#indset .evlist span{flex:1;color:#787b86;font-size:12px}",
+    "#indhelp .evlist .qhelp,#indset .evlist .qhelp{margin-left:auto}",
+    "#indset .snote{font-size:12px;color:#787b86;line-height:1.4;margin-bottom:8px}",
     "#indset .box{width:min(480px,94vw);background:#1e222d;border:1px solid #2a2e39;border-radius:8px;color:#d1d4dc;box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden}",
     "#indset .sh{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #2a2e39;font-weight:600}",
     "#indset .stabs{display:flex;border-bottom:1px solid #2a2e39}",
@@ -125,6 +146,7 @@
         "<span class=leg-n style=color:" + (i.c || ctx.ACC) + ">" + i.n + "</span>" +
         "<span class=leg-v>" + val(i.id) + "</span>" +
         "<span class=leg-ops>" +
+          "<button type=button data-act=help title='What is this'>?</button>" +
           "<button type=button data-act=eye title=Visibility>" + (i.hide ? "○" : "◉") + "</button>" +
           "<button type=button data-act=set title=Settings>⚙</button>" +
           "<button type=button data-act=x title=Remove>×</button></span></div>";
@@ -152,6 +174,7 @@
         var i = INDS.find(function (x) { return x.id === row.getAttribute("data-id"); });
         if (!i) return;
         if (act === "eye") { i.hide = !i.hide; paintNow(); }
+        else if (act === "help") { if (window.jhInduxHelp) window.jhInduxHelp(i.id); }
         else if (act === "x") { i.on = false; i.hide = false; paintNow(); }
         else window.jhInduxSet(i, false, ctx);
       };
@@ -205,7 +228,10 @@
         if (s.id === "athln") keys += " all time high ath peak avwap anchored from high";
         if (s.id === "htfma") keys += " weekly sma 10 40 higher timeframe htf guppy bias";
         if (s.id === "struct") keys += " market structure hh hl lh ll swing fractal";
-        if (s.id === "rsidiv") keys += " rsi divergence regular hidden bullish bearish";
+        if (s.id === "rsidiv") keys += " rsi macd divergence regular hidden bullish bearish";
+        if (s.id === "svwaps") keys += " swing anchored vwap last high low fractal";
+        if (s.id === "earn") keys += " earnings beat miss fomc witching rebalance auction events calendar eps surprise";
+        if (s.id === "htrsi") keys += " weekly rsi higher timeframe htf";
         if (s.id === "ddown") keys += " drawdown from ath underwater maxdd risk";
         if (s.id === "alpha") keys += " jensen residual alpha vs spy beta adjusted excess";
         if (s.id === "rngpos") keys += " range position 52 week percentile high low";
@@ -247,12 +273,16 @@
               s.id === "athln" ? "ATH line + AVWAP from high · " :
               s.id === "htfma" ? "Weekly SMA 10 / 40 · " :
               s.id === "struct" ? "HH HL LH LL swings · " :
-              s.id === "rsidiv" ? "RSI regular + hidden · " :
+              s.id === "rsidiv" ? "RSI + MACD regular/hidden · " :
+              s.id === "svwaps" ? "AVWAP from last swing H/L · " :
+              s.id === "earn" ? "BEAT/MISS · FOMC · EPS · " :
               s.id === "ddown" ? "% from ATH · " :
               s.id === "alpha" ? "Residual vs SPY · " :
               s.id === "rngpos" ? "Close in 52w range · " :
+              s.id === "htrsi" ? "Weekly RSI 14 on daily · " :
               s.osc ? "New pane · " : "Overlay · "
             ) + s.cat + "</span></div>" +
+            "<span class='qhelp' data-help='" + s.id + "' title='What is this'>?</span>" +
             "<span class='star" + (isFav(s.id) ? " on" : "") + "' data-star='" + s.id + "'>" + (isFav(s.id) ? "★" : "☆") + "</span></button>";
         });
       });
@@ -260,6 +290,7 @@
       document.querySelectorAll("#indlist [data-add]").forEach(function (b) {
         b.onclick = function (e) {
           if (e.target.getAttribute("data-star") != null || e.target.closest("[data-star]")) return;
+          if (e.target.getAttribute("data-help") != null || e.target.closest("[data-help]")) return;
           var osc = b.getAttribute("data-osc") === "1";
           var id = b.getAttribute("data-add");
           if (id === "vol" || id === "voltape") {
@@ -272,6 +303,12 @@
           item.on = true; item.hide = false;
           paintNow();
           draw();
+        };
+      });
+      document.querySelectorAll("#indlist [data-help]").forEach(function (b) {
+        b.onclick = function (e) {
+          e.stopPropagation();
+          if (window.jhInduxHelp) window.jhInduxHelp(b.getAttribute("data-help"));
         };
       });
       document.querySelectorAll("#indlist [data-star]").forEach(function (b) {
@@ -308,7 +345,7 @@
       var body = document.getElementById("setbody");
       if (tab === "in") {
         var extra = "";
-        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi" || item.id === "bbp" || item.id === "dem" || item.id === "rngpos") {
+        if (item.id === "rsi" || item.id === "stoch" || item.id === "stochrsi" || item.id === "mfi" || item.id === "bbp" || item.id === "dem" || item.id === "rngpos" || item.id === "htrsi") {
           extra = "<div class=srow><span>Overbought</span><input id=sob type=number min=50 max=99 value='" + (item.ob != null ? item.ob : 70) + "'></div>" +
             "<div class=srow><span>Oversold</span><input id=sos type=number min=1 max=50 value='" + (item.os != null ? item.os : 30) + "'></div>";
         }
@@ -424,10 +461,91 @@
     });
   };
 
+  window.jhInduxHelp = function (id) {
+    id = String(id || "");
+    var TAPE = {
+      capit: ["CAPIT · Capitulation", "Volume", "Wide-range down bar, close in the lower ~20% of the range, volume ≥1.75× the 20-bar average. Supply is dumping into the close.", "Not a buy by itself. It is the first evidence that a selling climax *may* be forming. Wait for a reversal bar or a spring before treating it as demand.", "Wyckoff selling climax / VSA stopping volume cousin. Bloomberg tape: climactic print on the down tape."],
+      hugebuy: ["HUGE · Huge buying", "Volume", "Up bar, close in the upper ~72% of the range, volume ≥1.55× 20-bar average. Aggressive demand lifting offers.", "Strength, not a guarantee of continuation. If the next bar gives it back on equal volume, it was a bull trap.", "Effort with result. The opposite of effort-vs-result."],
+      sc: ["SC · Selling climax", "Volume", "Down close, elevated volume (≥1.45×), close still in the lower 38% — panic but not a full capitulation wipe.", "Classic Wyckoff SC. Often followed by an automatic rally (AR). The low of this bar is a candidate spring line.", "Mark the low. Next test of that low on lighter volume is the trade."],
+      bc: ["BC · Buying climax", "Volume", "Up close, elevated volume, close in the upper 62%+. Late demand chasing highs.", "Distribution risk. The high of this bar is a candidate upthrust line. Do not buy strength here without a higher-timeframe bias.", "Wyckoff BC. Opposite of SC."],
+      sv: ["SV · Stopping volume", "Volume", "Heavy volume down bar that *closes up in the range* (≥55%). Selling came in and was absorbed.", "Demand is present under the close. A follow-through up bar confirms; a next-day dump means absorption failed.", "VSA stopping volume. One of the highest-quality tape tells."],
+      abs: ["ABS · Absorption", "Volume", "High volume, small body (≤34% of range), tight spread. Large size transacted without price going anywhere.", "Someone is taking the other side of the crowd. Direction is given by the next range expansion, not this bar.", "Professional absorption. Combine with location (at PDH/VAH vs PDL/VAL)."],
+      hb: ["HB · Hidden buying", "Volume", "Down bar that still closes in the upper 62% on ≥1.28× volume. Offers were lifted into a red print.", "Demand is underneath. Often precedes a reversal if it prints at support (PDL, VWAP, weekly SMA).", "VSA upthrust-of-demand on a down close."],
+      hs: ["HS · Hidden selling", "Volume", "Up bar that closes in the lower 38% on ≥1.28× volume. Bids were hit into a green print.", "Supply is overhead. Dangerous late in a rally, especially at PDH / weekly high.", "VSA up-bar close-off-highs."],
+      breakout: ["BO · Confirmed breakout", "Volume", "Close above the prior 20-bar high on ≥1.22× volume, previous close was still inside.", "Confirmed range escape. Failure is a close back inside the 20-bar high on rising volume.", "Donchian break with volume confirmation."],
+      evr: ["EvR · Effort vs result", "Volume", "≥1.35× volume but a small body (≤40% of range). A lot of effort, little progress.", "Trend is tiring. At highs it is distribution; at lows it can be absorption. Let location decide.", "Wyckoff effort vs result. The tape's 'warning' print."]
+    };
+    var STUDY = {
+      voltape: ["Volume Tape", "Volume", "Labels climactic volume events on the volume pane: capitulation, huge buying, selling/buying climax, stopping volume, absorption, hidden buying/selling, confirmed breakout, effort vs result.", "One event per bar, highest-priority tag wins. Uses 20-bar local RVOL so recent climaxes still print on a ~200-bar window. Hover a tag or tap ? for the event card.", "Bloomberg-local volume tape, not SIP ticks. Daily warehouse bars, not time-and-sales."],
+      vol: ["Volume", "Volume", "Histogram of bar volume, colored by close vs prior close, opacity by 20-bar relative volume. Gold overlay is Vol MA 20.", "RVOL ≥1.6 is elevated; ≥2.5 is climactic. Combine with Volume Tape for named events.", "Standard Bloomberg volume pane."],
+      keylv: ["Key Levels", "Levels", "Previous session high/low/close (PDH/PDL/PDC), previous week (PWH/PWL), previous month (PMH/PML), plus developing current-week (CWH/CWL) and current-month (CMH/CML) once that period has bars. NY calendar.", "Desks fade and break these. A close through PDH on huge volume is a different trade than a wick through it. Developing CWH is *this week's* high so far — the active magnet after Monday.", "Bloomberg GIP session levels / floor-trader references."],
+      gaps: ["Unfilled Gaps", "Levels", "Gap-up (open above prior high) and gap-down (open below prior low) that have not traded back through the origin. Last 6 unfilled, ≥0.05% of price.", "Unfilled gap-up = leftover demand / support at the prior high. Unfilled gap-down = leftover supply. A later bar's low through a gap-up origin fills it.", "Classic gap-fill map. Earnings and weekend gaps dominate on daily."],
+      pvwap: ["Period VWAP", "Volume", "Three session-reset VWAPs: YTD (gold, thick), calendar month (purple), calendar week (cyan). Typical price × volume, NY calendar reset.", "Price above YTD VWAP = average buyer this year is in the money. A close back under YTD VWAP after a long stay above is a regime change, not noise.", "Bloomberg custom VWAP. Chart VWAP (cumulative from first loaded bar) is a different study."],
+      athln: ["All-Time High", "Levels", "Running peak of highs, a horizontal at the current ATH, and anchored VWAP from the bar that made that high.", "Drawdown vs ATH is the pain gauge (see Drawdown pane). AVWAP from the high is the volume-weighted path since the peak — reclaiming it is often the first sign of repair.", "Bloomberg GPDD companion."],
+      htfma: ["Weekly SMA 10/40", "MA", "Calendar-week bars, SMA 10 and SMA 40, stepped back onto this chart. Institutional swing bias (≈50/200 on daily but Friday-close based).", "Weekly 10 above weekly 40 = higher-timeframe uptrend. Daily noise under a rising weekly 10 is a dip, not a breakdown, until the week closes through it.", "Guppy long-term / fund SMA overlay."],
+      struct: ["Market Structure", "Trend", "Confirmed fractal swings labeled HH / HL / LH / LL.", "Uptrend = HH + HL. First LH after a run of HHs is the warning; first LL is the break. Do not mix with unconfirmed 1-bar spikes.", "Market-structure map used with ZigZag and Livermore pivots."],
+      rsidiv: ["Divergence", "Momentum", "Regular and hidden RSI divergence, plus MACD-histogram divergence, at fractal swing highs/lows. DIV↑/DIV↓ = regular, hDIV = hidden, mDIV = MACD.", "Regular bullish (price LL, RSI HL) at support is the highest-quality reversal tell this chart will print. Hidden divergence is continuation. Require location (key level, VWAP) — divergence in the middle of a range is noise.", "Standard RSI/MACD divergence. Not a standalone signal."],
+      svwaps: ["Swing VWAP", "Volume", "Anchored VWAP from the last confirmed swing high (red) and last swing low (green).", "AVWAP from the last low is the volume-weighted cost of the current rally. Holding it = dip-buyers in control. AVWAP from the last high is the cost of the current decline.", "Anchored VWAP from structure, not from an arbitrary click."],
+      earn: ["Earnings / Events", "Events", "Pins from the live JustHodl catalyst calendar and earnings tracker: BEAT / MISS on reported EPS, EPS for upcoming prints, plus market events FOMC, options witching, rebalance, auction.", "Coverage is the warehouse universe (watchlist + recent filers), not every ticker. SPY still gets FOMC/witching. Surprise % is Benzinga via the tracker — a BEAT that sells off is labeled BEAT, not a buy.", "Real calendar only. Empty on a name means the warehouse has no dated event, not a bug."],
+      ddown: ["Drawdown", "Risk", "Percent from the running all-time (or series) high. Underwater histogram, 0% at highs.", "SPY at −2% is a dip. A name at −35% with Range Position still falling is not. Pair with Alpha vs SPY so you know whether the pain is idiosyncratic.", "Bloomberg GPDD."],
+      alpha: ["Alpha vs SPY", "Stats", "Cumulative residual after rolling 60-bar beta vs SPY, indexed to 100. Above 100 = beating the hedge after beta.", "This is not annualized Jensen alpha; it is the path of leftover return. SPY vs SPY stays at 100. A stock with RS rising but alpha flat is just high-beta.", "Residual / beta-adjusted relative strength."],
+      rngpos: ["Range Position", "Stats", "Close as % of the trailing 252-bar (≈52-week) high–low. 100 = at the high, 0 = at the low. Default bands 80 / 20.", "90%+ is extended, not 'strong' by itself. Mean-reversion setups live at the extremes; trend-following setups live on the push through 80 with volume.", "Bloomberg 52-week range position."],
+      htrsi: ["Weekly RSI", "Momentum", "RSI 14 computed on calendar-week bars, then stepped onto this chart. Slow, fund-level momentum.", "Weekly RSI still <50 while daily RSI is 70 is a rally in a downtrend. Weekly RSI reclaiming 50 is often the real turn.", "Higher-timeframe RSI overlay as a pane."],
+      rsi: ["RSI 14", "Momentum", "Wilder RSI. Default 70/30 bands, 50 midline. Length and OB/OS are editable in Settings.", "Overbought is not sell. In a weekly uptrend, RSI can sit 60–80 for months. Use with Divergence and Key Levels.", "Wilder 1978. Smoothed, not cutler."],
+      macd: ["MACD", "Momentum", "12/26/9 EMA MACD, 4-color histogram (up/down × rising/falling), zero line, signal.", "Histogram shrinking toward zero while price makes a new high is the MACD half of Divergence. Crosses at the zero line carry more weight than crosses at +2%.", "Standard MACD. Fast/slow/signal editable."],
+      bb: ["Bollinger Bands", "Channel", "SMA middle (BB Average, thicker) ± StdDev × multiplier. Default 20, 2.", "The middle band is the mean. Width compression is BB Width / Squeeze. %B says where close sits inside the envelope.", "Bollinger 1980s. Pair with BB Width and BB Squeeze."],
+      bbw: ["BB Width", "Volatility", "100 × (upper−lower) / middle. Gold = tightening, green = squeeze zone (15th percentile).", "Low width is fuel, not a direction. Direction comes from the squeeze-release bar.", "Volatility regime."],
+      bbsqz: ["BB Squeeze", "Volatility", "TTM squeeze: Bollinger inside Keltner, with linear-regression momentum histogram. Dots = squeeze on.", "Squeeze on + momentum flipping through zero is the release. Do not anticipate the side.", "TTM Squeeze (John Carter)."],
+      bbp: ["Bollinger %B", "Volatility", "Close as 0–100 inside the Bollinger envelope. 100 = at upper band.", "Walks above 80 in strong trends. Failure to reach 80 on a new price high is divergence inside the band.", "Bollinger %B."],
+      vwap: ["VWAP", "Volume", "Cumulative typical-price VWAP from the first loaded bar of this series.", "On daily this is 'chart VWAP', not the NY session. Use Period VWAP for YTD/M/W and Session VWAP on intraday.", "Volume-weighted average price."],
+      avwap: ["Session VWAP", "Volume", "VWAP reset each NY calendar day. Meaningful on intraday; on daily it hugs typical price.", "Intraday: the session's cost basis. Daily: prefer Period VWAP.", "NY session VWAP."],
+      adx: ["DMI / ADX 14", "Trend", "Wilder +DI, −DI, ADX. ADX 20 line. ADX is 0–100.", "ADX rising above 20 = trend. +DI above −DI = upside. ADX high + DI flip = trend exhaustion risk, not a new trend.", "Wilder DMI. Smoothed as an average, not a sum."],
+      avgdev: ["Avg & Deviation", "Stats", "Mean with ±1σ and ±2σ bands.", "Same family as Bollinger; the ±1σ is the value area of close. Mean-reversion at ±2σ, trend when close holds outside ±1σ.", "Bloomberg average & deviation."],
+      gdx: ["Golden / Death Cross", "Trend", "SMA 50 / SMA 200 with GOLDEN / DEATH markers on cross.", "Lagging by design. The cross confirms a trend that started weeks earlier. Use Weekly SMA 10/40 for a faster HTF read.", "The classic 50/200."],
+      hv: ["Hist Vol 20", "Volatility", "Close-to-close log-return standard deviation, annualized √252, in percent.", "Realized vol. Compare to ATR % (range vol). A vol crush with BB Width low is the squeeze setup.", "Historical / realized volatility."],
+      beta: ["Beta vs SPY", "Stats", "Rolling 60-bar slope of this name's returns on SPY returns.", "Beta 1 on SPY is tautology. On a stock, rising beta into a rally means the move is market, not alpha (see Alpha vs SPY).", "OLS beta."],
+      rsline: ["RS vs SPY", "Stats", "Price relative to SPY, rebased to 100 at the first aligned bar.", "Rising RS = outperforming. Does not adjust for beta — a 2-beta name will look strong in a bull. Use Alpha for the residual.", "Relative strength line."]
+    };
+    var pack = TAPE[id] || STUDY[id];
+    var title, tag, what, how, cave;
+    if (pack) {
+      title = pack[0]; tag = pack[1]; what = pack[2]; how = pack[3]; cave = pack[4];
+    } else {
+      var item = (window.INDS || []).concat(window.OSC || []).find(function (x) { return x.id === id; });
+      title = item ? item.n : id;
+      tag = item ? (item.cat || "Study") : "Study";
+      what = "A chart study on this engine. Open Settings on the legend chip to change length, bands and color.";
+      how = "Add it from Indicators, then use eye / settings / remove on the legend like TradingView.";
+      cave = "Computed from the bars on this chart. No broker advice.";
+    }
+    var d = el("indhelp");
+    d.className = "on";
+    var evHtml = "";
+    if (id === "voltape") {
+      evHtml = "<h5>EVENTS ON THE PANE</h5><div class=evlist>" +
+        Object.keys(TAPE).map(function (k) {
+          return "<button type=button data-kind='" + k + "'><b>" + TAPE[k][0].split("·")[0].trim() + "</b><span>" + TAPE[k][0].split("·")[1].trim() + "</span><span class=qhelp>?</span></button>";
+        }).join("") + "</div>";
+    }
+    d.innerHTML = "<div class=box><div class=sh><div><b>" + title + "</b><span class=tag>" + tag.toUpperCase() + "</span></div><button type=button class=x id=helpx>×</button></div>" +
+      "<div class=hb>" +
+        "<h5>WHAT IT IS</h5><p>" + what + "</p>" +
+        "<h5>HOW TO READ IT</h5><p>" + how + "</p>" +
+        evHtml +
+        "<div class=caveat>" + cave + "</div>" +
+      "</div></div>";
+    document.getElementById("helpx").onclick = function () { d.className = ""; };
+    d.onclick = function (e) { if (e.target === d) d.className = ""; };
+    d.querySelectorAll("[data-kind]").forEach(function (b) {
+      b.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp(b.getAttribute("data-kind")); };
+    });
+  };
+
   window.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       var a = document.getElementById("inddlg"); if (a) a.className = "";
       var b = document.getElementById("indset"); if (b) b.className = "";
+      var c = document.getElementById("indhelp"); if (c) c.className = "";
     }
   });
 
