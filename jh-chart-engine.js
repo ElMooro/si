@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.14 — Bloomberg-grade candles/volume, BB squeeze/width/avg, MACD, RSI, volume tape. */
+/* JustHodl Chart engine v12.15 — Bloomberg-grade candles/volume, BB squeeze/width/avg, MACD, RSI, volume tape. */
 (function () {
-  if (window.__jhChartEngineV1214) return;
+  if (window.__jhChartEngineV1215) return;
+  window.__jhChartEngineV1215 = true;
   window.__jhChartEngineV1214 = true;
   window.__jhChartEngineV1213 = true;
   window.__jhChartEngineV1212 = true;
@@ -959,7 +960,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.14"; if(st) st.textContent="v12.14 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.15"; if(st) st.textContent="v12.15 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -1378,9 +1379,9 @@
       var x=chart.timeScale().timeToCoordinate(e.time);
       var y=volSeries.priceToCoordinate(e.vol);
       if(x==null||y==null) continue;
-      if(boxW && (x<10 || x>boxW-10)) continue;
-      if(boxH && (y<8 || y>boxH-8)) continue;
-      if(Math.abs(x-lastX)<40) continue;
+      if(boxW && (x<6 || x>boxW-6)) continue;
+      if(y < 4) continue;
+      if(Math.abs(x-lastX)<28) continue;
       lastX=x;
       html+="<i title=\""+(names[e.kind]||e.label)+(e.rvol?" · RVOL "+e.rvol.toFixed(1)+"x":"")+"\" style=\"left:"+Math.round(x)+"px;top:"+Math.round(y)+"px;color:"+e.color+"\">"+e.label+"</i>";
     }
