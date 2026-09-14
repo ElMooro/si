@@ -10,7 +10,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-5";
+  var G="jh-tvux-6";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -300,14 +300,19 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #dock .dtabs{height:32px}
 #dock .dtabs button{padding:0 14px;font-size:12px}
 #dock .dtabs button.on{color:#2962ff;border-top:0;border-bottom:2px solid #2962ff;background:transparent}
-#tape,#listfab,#chgbar,#quote,#desk-intel,#detail,#intel,#paste,.filt:has(#paste){display:none!important}
+#tape,#listfab,#chgbar,#quote,#desk-intel,#intel,#paste,.filt:has(#paste){display:none!important}
 #watch{overflow:hidden}
-#w-list{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#w-list{flex:1;min-height:120px;overflow:auto;display:flex;flex-direction:column}
+#detail,#detail.tvcard{display:block;flex:1;min-height:180px;overflow:auto;border-top:1px solid #2a2e39}
 #wlist{flex:1;overflow:auto;min-height:0}
 #tv-zoom{position:absolute;right:8px;bottom:30px;z-index:8;display:flex;flex-direction:column;border:1px solid #2a2e39;border-radius:4px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 #tv-zoom button{width:28px;height:28px;border-radius:0;background:#1e222d;border:0;border-bottom:1px solid #2a2e39;color:#d1d4dc;font-size:18px;line-height:26px;font-weight:500}
 #tv-zoom button:last-child{border-bottom:0}
-#tv-zoom button:hover{background:#2a2e39;color:#fff}
+#tfbar .wsico{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86}
+#tfbar .wsico:hover{background:#2a2e39;color:#d1d4dc}
+#tfbar .chg{height:26px;padding:0 7px;font-size:11px;color:#787b86}
+#tfbar .chg.on{background:#7c5cea;color:#fff}
+#watch.is-collapsed{width:0!important;min-width:0!important;max-width:0!important;border:0;overflow:hidden}
 @media(max-width:720px){ #listfab{display:none!important} }
 </style>
 </head>
@@ -353,7 +358,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
         <button id="rp-exit">Exit replay</button>
       </div>
     </div>
-    <aside class="watch" id="watch"><div id="desk-intel" style="font-size:10px;line-height:1.35;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--mut)"></div>
+    <aside class="watch is-collapsed" id="watch"><div id="desk-intel" style="font-size:10px;line-height:1.35;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--mut)"></div>
       <div class="whead">
         <select id="list"></select>
         <span id="nlists" style="font-size:10px;color:var(--mut)"></span>
@@ -366,7 +371,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
       <div class="wtabs" id="wtabs"></div>
       <div id="w-list">
         <div class="letters" id="letters"></div>
-        <div class="filt"><input id="q" placeholder="Filter this list  ·  /  for global search"></div>
+        <div class="filt"><input id="q" placeholder="Search"></div>
         <div class="filt"><input id="paste" placeholder="Paste NVDA,AAPL,FRED:DGS10 — new list"></div>
         <div id="hits"></div>
         <div class="cols" id="cols"><span></span><span data-s="sym">Symbol</span><span data-s="last">Last</span><span data-s="chg">Chg%</span><span data-s="chgv">Chg</span><span>Vol</span><span>Spark</span></div>
@@ -403,7 +408,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="modal"><div class="box" id="mbox"></div></div>
 <div id="cmdk"><div class="box"><input id="cmdin" placeholder="Search symbols, notes, financials, indicators…"><div class="res" id="cmdres"></div></div></div>
 <div id="typeq"></div>
-<div id="symsearch"><div class="sbox"><input id="ssin" placeholder="Search any ticker, company, note, or financials" autocomplete="off"><div class="sschips" id="sschips"></div><div id="ssres"></div></div></div>
+<div id="symsearch"><div class="sbox"><input id="ssin" placeholder="Search ticker, company, or overlay a compare symbol" autocomplete="off"><div class="sschips" id="sschips"></div><div id="ssres"></div></div></div>
 <div id="ctx"></div>
 <div id="toast"></div>
 <script src="/jh-chart-vol-events.js?v=2"></script>
@@ -415,6 +420,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=3"></script>
+<script src="/jh-chart-tvrail.js?v=1"></script>
 <script src="/jh-chart-engine.js?v=12"></script>
 <script src="/jh-chart-tvux.js?v=2"></script>
 <script src="/jh-chart-indux.js?v=1"></script>

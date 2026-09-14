@@ -34,7 +34,7 @@ from pathlib import Path
 WARM_RAMP = [(0.10, "0C0B09"), (0.16, "12110C"), (0.24, "17150E"),
              (0.34, "2B2820"), (0.46, "3A3628"), (0.60, "6a6455"),
              (0.75, "8a836f"), (0.86, "b5ad99"), (2.00, "e8e2d4")]
-SKIP_NAMES = {"index.html", "service-worker.js", "jh-theme.css", "chart.html", "jh-chart.html", "jh-chart-engine.js", "jh-chart-tvux.js", "jh-chart-studio.js", "jh-chart-indux.js"}
+SKIP_NAMES = {"index.html", "service-worker.js", "jh-theme.css", "chart.html", "jh-chart.html", "jh-chart-engine.js", "jh-chart-tvux.js", "jh-chart-studio.js", "jh-chart-indux.js", "jh-chart-tvrail.js"}
 
 
 def hsl(r, g, b):
