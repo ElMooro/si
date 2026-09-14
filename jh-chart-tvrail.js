@@ -439,6 +439,12 @@
         b.onclick = function (e) {
           e.stopPropagation();
           var kind = b.getAttribute("data-rail");
+          var w = watch();
+          var open = w && w.classList.contains("is-open");
+          if (open && b.classList.contains("on")) {
+            unpin();
+            return;
+          }
           pin(true);
           if (kind === "watch") {
             if (window.jhShowInfo) window.jhShowInfo("chart");
@@ -454,6 +460,13 @@
     if (pinb) pinb.onclick = function (e) { e.stopPropagation(); if (pinned) unpin(); else pin(true); };
     var xb = document.getElementById("w-close");
     if (xb) xb.onclick = function (e) { e.stopPropagation(); unpin(); };
+    var title = document.querySelector("#watch .wtitle b");
+    if (title && !title.dataset.bound) {
+      title.style.cursor = "pointer";
+      title.title = "Close watchlist";
+      title.onclick = function (e) { e.stopPropagation(); unpin(); };
+      title.dataset.bound = "1";
+    }
     var cmb = document.getElementById("w-chartm");
     if (cmb) cmb.onclick = function (e) { e.stopPropagation(); chartMenu(cmb); };
     var sb = document.getElementById("w-searchbtn");

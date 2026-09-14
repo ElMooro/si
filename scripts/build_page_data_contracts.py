@@ -273,9 +273,12 @@ def main():
     tmp=path.with_suffix('.json.tmp');tmp.write_text(json.dumps(doc,separators=(',',':')));os.replace(tmp,path)
     if a.site:
         site=Path(a.site);(site/'config').mkdir(exist_ok=True);shutil.copyfile(path,site/'config/page-data-contracts.json');shutil.copyfile(ROOT/'jh-data-inspector.js',site/'jh-data-inspector.js')
+        SKIP_INSPECTOR_PAGES={"chart.html","jh-chart.html"}
         for page in pages(site):
+            route=str(page.relative_to(site))
+            if page.name in SKIP_INSPECTOR_PAGES or route in SKIP_INSPECTOR_PAGES: continue
             source=page.read_text(errors='replace')
-            route=str(page.relative_to(site));apis=doc['pages'].get(route,{}).get('api_responses',[])
+            apis=doc['pages'].get(route,{}).get('api_responses',[])
             page.write_text(install_html(source,apis,doc['pages'].get(route)))
     print(json.dumps(doc['coverage']))
 if __name__=='__main__':main()

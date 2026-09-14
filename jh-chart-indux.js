@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "vwap", "rsi", "macd"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "vwap", "rsi", "macd", "vol"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
@@ -97,6 +97,7 @@
 
   function allStudies() {
     var a = [];
+    a.push({ item: { id: "vol", n: "Volume", on: !!window.volOn, cat: "Volume" }, osc: false, id: "vol", n: "Volume", cat: "Volume" });
     (window.INDS || []).forEach(function (i) { a.push({ item: i, osc: false, id: i.id, n: i.n, cat: i.cat || "Overlay" }); });
     (window.OSC || []).forEach(function (o) { a.push({ item: o, osc: true, id: o.id, n: o.n, cat: o.cat || "Oscillator" }); });
     return a;
@@ -176,7 +177,7 @@
       });
       var q = ((document.getElementById("indq2") && document.getElementById("indq2").value) || "").toLowerCase();
       var rows = allStudies().filter(function (s) {
-        if (dlgTab === "fav" && !isFav(s.id) && s.id !== "vol") return false;
+        if (dlgTab === "fav" && !isFav(s.id)) return false;
         if (dlgTab === "osc" && !s.osc) return false;
         if (dlgTab === "tech" && s.osc) return false;
         if (q && s.n.toLowerCase().indexOf(q) < 0 && s.cat.toLowerCase().indexOf(q) < 0 && s.id.indexOf(q) < 0) return false;
@@ -190,7 +191,7 @@
         html += "<div class=icat>" + c.toUpperCase() + "</div>";
         rows.filter(function (s) { return s.cat === c; }).forEach(function (s) {
           html += "<button type=button class='irow" + (s.item.on ? " on" : "") + "' data-add='" + s.id + "' data-osc='" + (s.osc ? "1" : "0") + "'>" +
-            "<div><b>" + s.n + "</b><span>" + (s.osc ? "New pane · " : "Overlay · ") + s.cat + "</span></div>" +
+            "<div><b>" + s.n + "</b><span>" + (s.id === "vol" ? "Histogram · " : s.osc ? "New pane · " : "Overlay · ") + s.cat + "</span></div>" +
             "<span class='star" + (isFav(s.id) ? " on" : "") + "' data-star='" + s.id + "'>" + (isFav(s.id) ? "★" : "☆") + "</span></button>";
         });
       });
@@ -200,6 +201,12 @@
           if (e.target.getAttribute("data-star") != null || e.target.closest("[data-star]")) return;
           var osc = b.getAttribute("data-osc") === "1";
           var id = b.getAttribute("data-add");
+          if (id === "vol") {
+            if (window.jhSetVol) window.jhSetVol(true);
+            else { window.volOn = true; paintNow(); }
+            draw();
+            return;
+          }
           var item = (osc ? window.OSC : window.INDS).find(function (x) { return x.id === id; });
           if (!item) return;
           item.on = true; item.hide = false;

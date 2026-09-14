@@ -155,6 +155,7 @@ async function decodeArtifactResponse(response){
 }
 async function install(){
  const route=decodeURI(location.pathname).replace(/^\//,'')||'index.html';const canonical=route.endsWith('/')?route+'index.html':route;
+ if(/^(?:chart|jh-chart)\.html$/i.test(canonical)) return;
  const engine=new URLSearchParams(location.search).get('engine'),embedded=document.getElementById('jh-page-data-contract');let contract,version='page-data-contract.v1';
  if(embedded&&!(canonical==='engine-data.html'&&engine))contract=JSON.parse(embedded.textContent);
  else{

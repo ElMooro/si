@@ -15,7 +15,7 @@
     "#tfbar button{height:34px;padding:0 10px;border-radius:4px;font-size:14px}",
     "#tfbar .chg{height:32px!important;padding:0 9px!important;font-size:13px!important}",
     "#tfbar .wsico{width:34px!important;height:34px!important}",
-    "#listfab,#tape,#chgbar{display:none!important}",
+    "#listfab,#tape,#chgbar,.jh-tv-trade,#btn-tv-sell,#btn-tv-buy,#jh-engine-data,.jdi-panel{display:none!important}",
     ".jh-tv-trade{margin-left:auto;display:inline-flex;gap:8px;align-items:center}",
     "#quote .sell,#tfbar .sell{background:#f23645!important;color:#fff!important;font-weight:700;padding:8px 16px;border-radius:4px;font-size:13px}",
     "#quote .buy,#tfbar .buy{background:#2962ff!important;color:#fff!important;font-weight:700;padding:8px 16px;border-radius:4px;font-size:13px}",
