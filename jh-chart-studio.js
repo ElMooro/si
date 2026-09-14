@@ -4,9 +4,11 @@
   var css = document.createElement("style");
   css.id = "jh-studio-css-runtime";
   css.textContent = [
-    ".watch,#watch{width:280px!important;min-width:180px!important;max-width:none!important;overflow:auto!important}",
-    ".watch.hide,#watch.hide{width:0!important;min-width:0!important;max-width:0!important;overflow:hidden!important;border:0!important}",
-    "@media(max-width:900px){.watch,#watch{width:100%!important;max-width:none!important;min-width:0!important}}"
+    ":root{--watch-w:320px;--list-h:240px}",
+    ".watch,#watch{width:var(--watch-w,320px);min-width:180px;max-width:none;overflow:hidden;display:flex;flex-direction:column}",
+    ".watch.hide,#watch.hide,#watch.is-collapsed{width:0!important;min-width:0!important;max-width:0!important;overflow:hidden!important;border:0!important}",
+    "#watch.is-open{width:var(--watch-w,320px)!important;min-width:220px!important;max-width:none!important;overflow:hidden!important}",
+    "@media(max-width:720px){.watch,#watch.is-open{width:100%!important;max-width:none!important;min-width:0!important}#rrail{display:none!important}}"
   ].join("");
   document.documentElement.appendChild(css);
 

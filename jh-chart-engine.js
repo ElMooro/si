@@ -1,7 +1,7 @@
-/* JustHodl Chart engine v12.6 — Supercharts rail + Chart Pro workspaces; Chart Pro untouched. */
+/* JustHodl Chart engine v12.7 — Supercharts watchlist + resizable panes; Chart Pro untouched. */
 (function () {
-  if (window.__jhChartEngineV126) return;
-  window.__jhChartEngineV126 = true;
+  if (window.__jhChartEngineV127) return;
+  window.__jhChartEngineV127 = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
   var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","3mo","10y"]];
@@ -696,6 +696,11 @@
     countdown(d[d.length-1]);
     renderLegend();
     renderTech(d);
+    if (!preserveView) {
+      renderOver(d);
+      renderSeason(d);
+      renderFin();
+    }
     paintMini(d);
     writeState();
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
@@ -1479,24 +1484,77 @@
     document.getElementById("ddel").onclick=function(){ drawings=drawings.filter(function(x){return x.id!==d.id;}); selDraw=null; saveDraw(); drawSVG(); renderProps(); };
   }
   function renderWtabs(){
-    var sub=document.getElementById("wsub");
-    if(sub){
-      sub.innerHTML=["watch","data","info"].map(function(t){ return "<button class='"+(wsub===t?"on":"")+"' data-sub='"+t+"'>"+(t==="watch"?"WATCHLIST":t==="data"?"DATA":"INFO")+"</button>"; }).join("");
-      sub.querySelectorAll("[data-sub]").forEach(function(b){ b.onclick=function(){ wsub=b.dataset.sub; if(wsub==="data") wtab="fin"; else if(wsub==="info") wtab="notes"; else if(wtab==="fin"||wtab==="notes") wtab="list"; renderWtabs(); if(wtab==="fin") renderFin(); if(wtab==="notes") renderNotes(); if(wtab==="list") renderList(); renderDetail(); }; });
+    if (wsub === "data") wsub = "details";
+    if (wsub === "info") wsub = "news";
+    var extra = {qr:1, heat:1, screen:1, trade:1, test:1, corr:1};
+    var extraOn = !!extra[wtab];
+    var L = lists.find(function(x){ return x.id === listId; }) || {};
+    var n = (L.symbols || []).length;
+    var sub = document.getElementById("wsub");
+    if (sub) {
+      sub.innerHTML =
+        "<button class='"+(wsub==="watch"&&!extraOn?"on":"")+"' data-sub='watch'>Watchlist"+(n?" "+n:"")+"</button>"+
+        "<button class='"+(wsub==="details"?"on":"")+"' data-sub='details'>Details</button>"+
+        "<button class='"+(wsub==="news"?"on":"")+"' data-sub='news'>News</button>";
+      sub.querySelectorAll("[data-sub]").forEach(function(b){
+        b.onclick = function(){
+          wsub = b.dataset.sub;
+          wtab = wsub === "news" ? "news" : "list";
+          renderWtabs();
+          if (wsub === "news") renderNews();
+          else { renderList(); fillStack(); }
+        };
+      });
     }
-    var tabs=wsub==="watch"?["list","qr","heat","screen","trade","test","over","season","corr"]: wsub==="data"?["fin","over","tech"]: ["notes","news","alerts","cal"];
-    document.getElementById("wtabs").innerHTML=tabs.map(function(t){ return "<button class='"+(wtab===t?"on":"")+"' data-w='"+t+"'>"+t+"</button>"; }).join("");
-    var ids={list:"w-list",heat:"heat",news:"news",alerts:"alerts",tech:"tech",cal:"cal",notes:"notes",fin:"fin",screen:"screen",trade:"trade",test:"test",over:"over",season:"season",corr:"corr",qr:"qr"};
+    var tabs = document.getElementById("wtabs");
+    if (tabs) {
+      if (extraOn) {
+        tabs.style.display = "";
+        tabs.innerHTML = ["qr","heat","screen","trade","test","corr"].map(function(t){
+          return "<button class='"+(wtab===t?"on":"")+"' data-w='"+t+"'>"+t+"</button>";
+        }).join("");
+        tabs.querySelectorAll("[data-w]").forEach(function(b){
+          b.onclick = function(){
+            wtab = b.dataset.w; renderWtabs();
+            if (wtab === "heat") renderHeat();
+            if (wtab === "corr") renderCorr();
+            if (wtab === "qr") { renderQR(); loadTape(true); }
+            if (wtab === "screen") renderScreen();
+            if (wtab === "trade") renderTrade();
+            if (wtab === "test") renderTest();
+          };
+        });
+      } else {
+        tabs.style.display = "none";
+        tabs.innerHTML = "";
+      }
+    }
+    var listEl = document.getElementById("w-list");
+    var split = document.getElementById("wd-split");
+    var stack = document.getElementById("w-stack");
+    if (listEl) listEl.style.display = (wsub === "watch" && !extraOn) ? "" : "none";
+    if (split) split.style.display = (wsub === "watch" && !extraOn) ? "" : "none";
+    if (stack) stack.style.display = "";
+    var ids = {heat:"heat",news:"news",alerts:"alerts",tech:"tech",cal:"cal",notes:"notes",fin:"fin",screen:"screen",trade:"trade",test:"test",over:"over",season:"season",corr:"corr",qr:"qr"};
     Object.keys(ids).forEach(function(k){
-      var el=document.getElementById(ids[k]); if(!el) return;
-      if(k==="list"){ el.style.display = wsub==="watch" ? "" : "none"; return; }
-      el.style.display = (wtab===k ? "" : "none");
+      var el = document.getElementById(ids[k]); if (!el) return;
+      if (extraOn) { el.style.display = wtab === k ? "" : "none"; return; }
+      if (wsub === "news") { el.style.display = k === "news" ? "" : "none"; return; }
+      if (extra[k]) { el.style.display = "none"; return; }
+      if (k === "news") { el.style.display = "none"; return; }
+      el.style.display = "";
     });
-    var intel=document.getElementById("intel"); if(intel) intel.style.display="none";
-    var det=document.getElementById("detail"); if(det) det.style.display = wsub==="watch" ? "" : "none";
-    var qrel=document.getElementById("qr"); if(qrel) qrel.className=wtab==="qr"?"on":"";
-    document.querySelectorAll("#wtabs [data-w]").forEach(function(b){ b.onclick=function(){ wtab=b.dataset.w; renderWtabs(); if(wtab==="news") renderNews(); if(wtab==="alerts") renderAlerts(); if(wtab==="tech"&&lastBars.length) renderTech(lastBars); if(wtab==="cal") renderCal(); if(wtab==="notes") renderNotes(); if(wtab==="fin") renderFin(); if(wtab==="heat") renderHeat(); if(wtab==="screen") renderScreen(); if(wtab==="trade") renderTrade(); if(wtab==="test") renderTest(); if(wtab==="over"&&lastBars.length) renderOver(lastBars); if(wtab==="season"&&lastBars.length) renderSeason(lastBars); if(wtab==="corr") renderCorr(); if(wtab==="qr"){ renderQR(); loadTape(true); } }; });
+    var intel = document.getElementById("intel"); if (intel) intel.style.display = "none";
+    var det = document.getElementById("detail");
+    if (det) det.style.display = extraOn || wsub === "news" ? "none" : "";
+    var qrel = document.getElementById("qr"); if (qrel) qrel.className = wtab === "qr" ? "on" : "";
     bindWatchOps();
+  }
+  function fillStack(){
+    renderDetail();
+    renderFin();
+    if (lastBars.length) { renderTech(lastBars); renderOver(lastBars); renderSeason(lastBars); }
+    renderNotes();
   }
   function bindWatchOps(){
     var n=document.getElementById("w-new");
@@ -1555,24 +1613,30 @@
     closeSymSearch();
   }
   function showInfo(dest){
-    setWatch(true);
-    var map={fin:["data","fin"], over:["data","over"], tech:["data","tech"], notes:["info","notes"], news:["info","news"], alerts:["info","alerts"], cal:["info","cal"], season:["watch","season"], corr:["watch","corr"], qr:["watch","qr"], heat:["watch","heat"], screen:["watch","screen"], chart:["watch","list"]};
-    var hit=map[dest]||["watch","list"];
-    wsub=hit[0]; wtab=hit[1];
+    if (window.jhWatchPin) window.jhWatchPin(true);
+    else setWatch(true);
+    var extra = {qr:1, heat:1, screen:1, trade:1, test:1, corr:1};
+    if (dest === "chart" || dest === "list") { wsub = "watch"; wtab = "list"; }
+    else if (dest === "news") { wsub = "news"; wtab = "news"; }
+    else if (dest === "alerts") { wsub = "details"; wtab = "list"; }
+    else if (extra[dest]) { wsub = "watch"; wtab = dest; }
+    else { wsub = "details"; wtab = "list"; }
     renderWtabs();
-    if(wtab==="fin") renderFin();
-    if(wtab==="notes") renderNotes();
-    if(wtab==="news") renderNews();
-    if(wtab==="alerts") renderAlerts();
-    if(wtab==="cal") renderCal();
-    if(wtab==="tech" && lastBars.length) renderTech(lastBars);
-    if(wtab==="over" && lastBars.length) renderOver(lastBars);
-    if(wtab==="season" && lastBars.length) renderSeason(lastBars);
-    if(wtab==="corr") renderCorr();
-    if(wtab==="heat") renderHeat();
-    if(wtab==="qr"){ renderQR(); loadTape(true); }
-    if(wtab==="list") renderList();
-    renderDetail();
+    if (wtab === "news" || dest === "news") renderNews();
+    if (wtab === "qr") { renderQR(); loadTape(true); }
+    if (wtab === "heat") renderHeat();
+    if (wtab === "corr") renderCorr();
+    if (wtab === "screen") renderScreen();
+    if (wtab === "trade") renderTrade();
+    if (wtab === "test") renderTest();
+    if (wsub === "details" || wsub === "watch") fillStack();
+    if (dest === "alerts") renderAlerts();
+    if (dest === "cal") renderCal();
+    var id = dest === "over" ? "over" : dest === "tech" ? "tech" : dest === "season" ? "season" : dest === "notes" ? "notes" : dest === "fin" ? "fin" : dest === "alerts" ? "alerts" : dest === "cal" ? "cal" : dest === "news" ? "news" : null;
+    var t = id && document.getElementById(id);
+    if (t && t.scrollIntoView) {
+      try { t.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) { t.scrollIntoView(true); }
+    }
   }
   function closeSymSearch(){ var el=document.getElementById("symsearch"); if(el) el.className=""; }
   function openSymSearch(pre, dest){
@@ -1669,11 +1733,7 @@
   function fmtBig(n){ if(n==null) return "—"; var a=Math.abs(n); if(a>=1e12) return (n/1e12).toFixed(2)+"T"; if(a>=1e9) return (n/1e9).toFixed(2)+"B"; if(a>=1e6) return (n/1e6).toFixed(2)+"M"; return fmt(n); }
   function renderFin(){
     var el=document.getElementById("fin"); if(!el) return;
-    el.innerHTML="<b>FINANCIALS · "+active+"</b><div class=cell>Loading fundamentals…</div>";
-    fillFinFromBars(el);
-    fetch("/api/yahoo-fund?ticker="+encodeURIComponent(bare(active).replace("USDT",""))).then(function(r){ return r.json(); }).then(function(j){
-      if(!j||!j.ok) return;
-      finCache[active]=j;
+    function paint(j){
       var p=j.price||{}, sd=j.summaryDetail||{}, ks=j.defaultKeyStatistics||{}, fd=j.financialData||{};
       var rows=[
         ["Name", p.shortName||p.longName||active],
@@ -1692,7 +1752,18 @@
       ];
       var inc=((j.incomeStatementHistory||{}).incomeStatementHistory)||[];
       var incHtml=inc.slice(0,4).map(function(y){ return "<div class=cell><span>"+String(y.endDate&&y.endDate.fmt||"").slice(0,10)+"</span><span>Rev "+fmtBig(numish(y.totalRevenue))+" · NI "+fmtBig(numish(y.netIncome))+"</span></div>"; }).join("");
-      el.innerHTML="<b>FINANCIALS · "+active+"</b><div class=fin-grid>"+rows.map(function(r){ return "<div class=cell><span>"+r[0]+"</span><span>"+r[1]+"</span></div>"; }).join("")+"</div>"+(incHtml?"<b style=display:block;margin-top:8px>INCOME</b>"+incHtml:"")+"<div class=cell style=color:var(--mut);font-size:10px>Yahoo fundamentals · delayed · not advice</div>";
+      el.innerHTML="<b>KEY STATS · "+active+"</b><div class=fin-grid>"+rows.map(function(r){ return "<div class=cell><span>"+r[0]+"</span><span>"+r[1]+"</span></div>"; }).join("")+"</div>"+(incHtml?"<b style=display:block;margin-top:8px>INCOME STATEMENT</b>"+incHtml:"")+"<div class=cell style=color:var(--mut);font-size:10px>Yahoo fundamentals · delayed · not advice</div>";
+    }
+    var cached=finCache[active]||finCache[bare(active)];
+    if(cached && cached.ok){ paint(cached); return; }
+    el.innerHTML="<b>KEY STATS · "+active+"</b><div class=cell>Loading fundamentals…</div>";
+    fillFinFromBars(el);
+    if(finCache["_f"+active]) return;
+    finCache["_f"+active]=1;
+    fetch("/api/yahoo-fund?ticker="+encodeURIComponent(bare(active).replace("USDT",""))).then(function(r){ return r.json(); }).then(function(j){
+      if(!j||!j.ok) return;
+      finCache[active]=j;
+      paint(j);
       renderDetail();
     }).catch(function(){});
   }
@@ -1701,7 +1772,7 @@
     var d=lastBars, last=d[d.length-1];
     var hi=-1e99, lo=1e99, i, vol=0, n=0;
     for(i=Math.max(0,d.length-252);i<d.length;i++){ if(d[i].high>hi) hi=d[i].high; if(d[i].low<lo) lo=d[i].low; vol+=d[i].volume||0; n++; }
-    el.innerHTML="<b>FINANCIALS · "+active+"</b>"+
+    el.innerHTML="<b>KEY STATS · "+active+"</b>"+
       "<div class=cell><span>Last</span><span>"+fmt(last.close)+"</span></div>"+
       "<div class=cell><span>52w range</span><span>"+fmt(lo)+" – "+fmt(hi)+"</span></div>"+
       "<div class=cell><span>Avg vol</span><span>"+fmtVol(n?vol/n:0)+"</span></div>"+
@@ -1796,7 +1867,8 @@
     box.innerHTML=syms.map(function(s){
       var q=quotes[s]||quotes[bare(s)]; var up=!q||q.chg>=0;
       var onCmp=compare.indexOf(bare(s))>=0;
-      return "<button class='wrow "+(bare(s)===active?"on":"")+"' data-s='"+s+"'>"+flagDot(s)+"<span>"+s+"</span><span>"+(q?fmt(q.last):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chg>=0?"+":"")+(q.chg*100).toFixed(2)+"%":"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chgv>=0?"+":"")+fmt(q.chgv):"—")+"</span><span>"+(q&&q.spark&&q.spark.length?fmtVol(q.spark[q.spark.length-1].volume):"—")+"</span>"+sparkSvg(q&&q.spark,up)+"<i class='w-cmp"+(onCmp?" on":"")+"' data-cmp='"+bare(s)+"' title='Compare on chart'>⚖</i></button>";
+      var acc=flags[s]||flags[bare(s)]||(up?UP:DN);
+      return "<button class='wrow "+(bare(s)===active?"on":"")+"' data-s='"+s+"'><i class=wacc style=background:"+acc+"></i><span class=wsym>"+bare(s)+"</span><span>"+(q?fmt(q.last):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chgv>=0?"+":"")+fmt(q.chgv):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chg>=0?"+":"")+(q.chg*100).toFixed(2)+"%":"—")+"</span><i class='w-cmp"+(onCmp?" on":"")+"' data-cmp='"+bare(s)+"' title='Compare on chart'>⚖</i></button>";
     }).join("")||"<div style='padding:12px;color:var(--mut)'>No symbols in this filter</div>";
     box.querySelectorAll("[data-s]").forEach(function(b){
       b.onclick=function(){ var s=b.dataset.s; if(TABS.indexOf(bare(s))<0) TABS.push(bare(s)); active=bare(s); loadDraw(); renderTabs(); load(); };
@@ -2562,7 +2634,7 @@
   window.jhDelCompare=function(s){ compare=compare.filter(function(x){return x!==s;}); if(lastBars.length) paint(lastBars); renderList(); };
   if(window.jhWatchSet) window.jhWatchSet(false);
   if(layout>1) setLayout(layout);
-  loadLists().then(function(){ renderList(); renderDetail(); });
+  loadLists().then(function(){ renderList(); fillStack(); });
   loadIntel(); loadNews();
   TABS.forEach(function(s){ lastPx(s).then(function(px){ if(px){ quotes[s]=px; renderTabs(); } }); });
   load();

@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off" data-theme="dark">
 <head><style id=jh-studio-css>
-#watch{width:280px;min-width:180px;max-width:none;overflow:hidden;display:flex;flex-direction:column;border-left:1px solid var(--bd,#2a2e39)}
-#watch.hide{width:0;min-width:0;max-width:0;overflow:hidden;border:0}
+:root{--watch-w:320px;--list-h:240px}
+#watch{width:var(--watch-w,320px);min-width:180px;max-width:none;overflow:hidden;display:flex;flex-direction:column;border-left:1px solid var(--bd,#2a2e39)}
+#watch.hide,#watch.is-collapsed{width:0;min-width:0;max-width:0;overflow:hidden;border:0}
+#watch.is-open{width:var(--watch-w,320px);min-width:220px}
+#w-stack>*{max-height:none!important}
 #quote .jh-dump{display:none}
 #tape{display:none!important}
 #listfab{display:none!important}
@@ -10,7 +13,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-6";
+  var G="jh-tvux-7";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -123,7 +126,7 @@ a{color:inherit;text-decoration:none}
 #wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:600;color:var(--wm);pointer-events:none;z-index:1;font-family:"IBM Plex Sans",sans-serif}
 #mini{height:0;border-top:0;background:var(--bg);flex:none;overflow:hidden}
 #mini.on{height:52px;border-top:1px solid var(--line)}
-.watch{width:380px;border-left:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg);min-width:300px;flex:none}
+.watch{width:var(--watch-w,320px);border-left:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg);min-width:220px;flex:none;position:relative;overflow:hidden}
 .watch.hide{display:none}
 .whead{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)}
 .whead select{flex:1;min-width:0;font-weight:500;font-size:12px}
@@ -164,10 +167,10 @@ a{color:inherit;text-decoration:none}
 .letters button.on{background:var(--acc);color:#fff}
 .filt{display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--line)}
 .filt input{flex:1;font-family:"IBM Plex Mono",monospace;font-size:12px;outline:none}
-.cols{display:grid;grid-template-columns:16px 1fr 58px 48px 48px 44px 40px;padding:4px 10px;font-size:10px;color:var(--mut);font-family:"IBM Plex Mono",monospace;border-bottom:1px solid var(--line)}
+.cols{display:grid;grid-template-columns:4px 1fr 64px 54px 58px;padding:4px 10px;font-size:10px;color:var(--mut);font-family:"IBM Plex Mono",monospace;border-bottom:1px solid var(--line)}
 .cols span{cursor:pointer}
-#wlist{flex:1;overflow:auto;min-height:80px}
-.wrow{display:grid;grid-template-columns:16px 1fr 58px 48px 48px 44px 40px;width:100%;padding:4px 10px;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:left;align-items:center}
+#wlist{flex:1;overflow:auto;min-height:0}
+.wrow{display:grid;grid-template-columns:4px 1fr 64px 54px 58px;width:100%;padding:5px 10px;font-family:"IBM Plex Mono",monospace;font-size:11px;text-align:left;align-items:center;position:relative}
 .wrow:hover,.wrow.on{background:var(--chip)}.wrow span:nth-child(n+3){text-align:right}
 .flag{width:8px;height:8px;border-radius:50%;background:var(--line);display:inline-block}
 .spark{width:40px;height:16px}
@@ -291,7 +294,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 #tfbar button{height:28px;padding:0 8px;font-size:13px;border-radius:4px}
 .tabs{height:38px;background:#1e222d}
 .rail{width:52px;background:#1e222d}
-.watch,#watch{width:280px;min-width:180px;max-width:none}
+.watch,#watch{width:var(--watch-w,320px);min-width:180px;max-width:none}
 .jh-tv-trade{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding-left:12px}
 #quote .sell,#tfbar .sell,.jh-tv-sell{background:#f23645;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
 #quote .buy,#tfbar .buy,.jh-tv-buy{background:#2962ff;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
@@ -301,10 +304,18 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #dock .dtabs button{padding:0 14px;font-size:12px}
 #dock .dtabs button.on{color:#2962ff;border-top:0;border-bottom:2px solid #2962ff;background:transparent}
 #tape,#listfab,#chgbar,#quote,#desk-intel,#intel,#paste,.filt:has(#paste){display:none!important}
-#watch{overflow:hidden}
-#w-list{flex:1;min-height:120px;overflow:auto;display:flex;flex-direction:column}
-#detail,#detail.tvcard{display:block;flex:1;min-height:180px;overflow:auto;border-top:1px solid #2a2e39}
+#watch{overflow:hidden;position:relative;display:flex;flex-direction:column}
+#w-list{flex:none;height:var(--list-h,240px);min-height:96px;overflow:hidden;display:flex;flex-direction:column}
+#detail,#detail.tvcard{display:block;flex:none;min-height:0;overflow:visible;border-top:0}
 #wlist{flex:1;overflow:auto;min-height:0}
+#w-stack{flex:1;min-height:140px;overflow:auto}
+#wd-split{height:8px;cursor:ns-resize;flex:none}
+.w-split{position:absolute;left:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:14}
+#rrail{flex:none;width:40px;background:#1e222d;border-left:1px solid #2a2e39;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:2px;z-index:24}
+#rrail button{width:32px;height:32px;border-radius:4px;color:#787b86}
+#watch .wtitle{display:flex;align-items:center;height:36px;padding:0 8px 0 12px;border-bottom:1px solid #2a2e39;flex:none}
+#watch .wtitle b{flex:1;font-size:13px;font-weight:600}
+#wtabs{display:none}
 #tv-zoom{position:absolute;right:8px;bottom:30px;z-index:8;display:flex;flex-direction:column;border:1px solid #2a2e39;border-radius:4px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 #tv-zoom button{width:28px;height:28px;border-radius:0;background:#1e222d;border:0;border-bottom:1px solid #2a2e39;color:#d1d4dc;font-size:18px;line-height:26px;font-weight:500}
 #tv-zoom button:last-child{border-bottom:0}
@@ -313,6 +324,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #tfbar .chg{height:26px;padding:0 7px;font-size:11px;color:#787b86}
 #tfbar .chg.on{background:#7c5cea;color:#fff}
 #watch.is-collapsed{width:0!important;min-width:0!important;max-width:0!important;border:0;overflow:hidden}
+#watch.is-open{width:var(--watch-w,320px)!important;min-width:220px!important}
 @media(max-width:720px){ #listfab{display:none!important} }
 </style>
 </head>
@@ -358,7 +370,16 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
         <button id="rp-exit">Exit replay</button>
       </div>
     </div>
-    <aside class="watch is-collapsed" id="watch"><div id="desk-intel" style="font-size:10px;line-height:1.35;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--mut)"></div>
+    <aside class="watch is-collapsed" id="watch">
+      <div class="w-split" id="w-split" title="Drag to resize watchlist"></div>
+      <div class="wtitle"><b>Watchlist</b>
+        <div class="wops">
+          <button type="button" id="w-searchbtn" title="Search symbol">⌕</button>
+          <button type="button" id="w-chartm" title="Chart / company info">◆</button>
+          <button type="button" id="w-pin" title="Pin watchlist">📌</button>
+          <button type="button" id="w-close" title="Close">×</button>
+        </div>
+      </div>
       <div class="whead">
         <select id="list"></select>
         <span id="nlists" style="font-size:10px;color:var(--mut)"></span>
@@ -374,26 +395,36 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
         <div class="filt"><input id="q" placeholder="Search"></div>
         <div class="filt"><input id="paste" placeholder="Paste NVDA,AAPL,FRED:DGS10 — new list"></div>
         <div id="hits"></div>
-        <div class="cols" id="cols"><span></span><span data-s="sym">Symbol</span><span data-s="last">Last</span><span data-s="chg">Chg%</span><span data-s="chgv">Chg</span><span>Vol</span><span>Spark</span></div>
+        <div class="cols" id="cols"><span></span><span data-s="sym">Symbol</span><span data-s="last">Last</span><span data-s="chgv">Chg</span><span data-s="chg">Chg%</span></div>
         <div id="wlist"></div>
-        <button type="button" class="addsym" id="addsym">+ Add symbol to this list</button>
+        <button type="button" class="addsym" id="addsym">+ Add symbol</button>
       </div>
-      <div class="detail" id="detail"></div>
+      <div id="wd-split" title="Drag to resize list / details"></div>
+      <div id="w-stack">
+        <div class="detail tvcard" id="detail"></div>
+        <div id="fin"></div>
+        <div id="over"></div>
+        <div id="tech"></div>
+        <div id="season"></div>
+        <div id="notes"></div>
+        <div id="alerts"></div>
+        <div id="cal"></div>
+        <div id="news"></div>
+        <div id="heat"></div>
+        <div id="screen"></div>
+        <div id="trade"></div>
+        <div id="test"></div>
+        <div id="corr"></div>
+        <div id="qr"></div>
+      </div>
       <div id="intel"></div>
-      <div id="heat" style="display:none"></div>
-      <div id="news" style="display:none"></div>
-      <div id="alerts" style="display:none"></div>
-      <div id="tech" style="display:none"></div>
-      <div id="cal" style="display:none"></div>
-      <div id="notes" style="display:none"></div>
-      <div id="fin" style="display:none"></div>
-      <div id="screen" style="display:none"></div>
-      <div id="trade" style="display:none"></div>
-      <div id="test" style="display:none"></div>
-      <div id="over" style="display:none"></div>
-      <div id="season" style="display:none"></div>
-      <div id="corr" style="display:none"></div>
-      <div id="qr"></div>
+      <div id="desk-intel" style="display:none"></div>
+    </aside>
+    <aside id="rrail" aria-label="Panels">
+      <button type="button" data-rail="watch" title="Watchlist">☰</button>
+      <button type="button" data-rail="details" title="Symbol details">◆</button>
+      <button type="button" data-rail="news" title="News">N</button>
+      <button type="button" data-rail="alerts" title="Alerts">🔔</button>
     </aside>
   </div>
   <div id="dock">
@@ -419,11 +450,11 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
-<script src="/jh-chart-studio.js?v=3"></script>
-<script src="/jh-chart-tvrail.js?v=1"></script>
-<script src="/jh-chart-engine.js?v=12"></script>
+<script src="/jh-chart-studio.js?v=4"></script>
+<script src="/jh-chart-tvrail.js?v=2"></script>
+<script src="/jh-chart-engine.js?v=13"></script>
 <script src="/jh-chart-tvux.js?v=2"></script>
-<script src="/jh-chart-indux.js?v=1"></script>
+<script src="/jh-chart-indux.js?v=2"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>

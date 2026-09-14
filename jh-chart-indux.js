@@ -24,7 +24,9 @@
   css.id = "jh-indux-css";
   css.textContent = [
     "#legend{pointer-events:none;max-width:min(560px,72%);z-index:8;left:10px;top:6px;font-family:IBM Plex Sans,system-ui,sans-serif}",
-    "#legend .leg-sym{pointer-events:auto;color:#d1d4dc;font-weight:600;font-size:13px;margin-bottom:2px}",
+    "#legend .leg-sym{pointer-events:auto;color:#d1d4dc;font-weight:600;font-size:13px;margin-bottom:2px;display:flex;align-items:center;gap:4px}",
+    "#legend .leg-dia{width:18px;height:18px;color:#787b86;border-radius:3px;font-size:12px;line-height:18px}",
+    "#legend .leg-dia:hover{background:#2a2e39;color:#d1d4dc}",
     "#legend .leg-row{pointer-events:auto;display:flex;align-items:center;gap:6px;padding:1px 4px 1px 2px;margin:0;border-radius:2px;font-size:11px;line-height:18px;cursor:default;width:fit-content}",
     "#legend .leg-row:hover{background:rgba(41,98,255,.12)}",
     "#legend .leg-row.dim{opacity:.4}",
@@ -71,10 +73,12 @@
     "#oscwrap .osc-n{font-weight:600}",
     "#oscwrap .osc-v{color:#787b86;font-family:IBM Plex Mono,monospace}",
     "#oscwrap .osc-host{flex:1;min-height:0;position:relative}",
-    ".pane-split{height:5px;cursor:ns-resize;background:transparent;flex:none;position:relative;z-index:9}",
-    ".pane-split:hover,.pane-split.drag{background:#2962ff}",
-    ".w-split{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:ew-resize;z-index:12}",
-    ".w-split:hover,.w-split.drag{background:#2962ff}",
+    ".pane-split{height:8px;cursor:ns-resize;background:transparent;flex:none;position:relative;z-index:9}",
+    ".pane-split::after{content:'';position:absolute;left:50%;top:2px;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:#2a2e39}",
+    ".pane-split:hover,.pane-split.drag{background:rgba(41,98,255,.18)}",
+    ".pane-split:hover::after,.pane-split.drag::after{background:#2962ff}",
+    ".w-split{position:absolute;left:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:12}",
+    ".w-split:hover,.w-split.drag{background:rgba(41,98,255,.18)}",
     ".watch,#watch{max-width:none}",
     "#quote .sell,#quote .buy,#quote,#desk-intel,#intel{display:none!important}",
   ].join("");
@@ -112,7 +116,7 @@
       return n == null ? "" : ctx.fmt(n);
     }
     var tfLab = ctx.spec(ctx.tf)[1] || ctx.tf;
-    var html = "<div class=leg-sym>" + ctx.active + " · " + tfLab + "</div>";
+    var html = "<div class=leg-sym><button type=button class=leg-dia title='Chart / company info'>◆</button> " + ctx.active + " · " + tfLab + "</div>";
     INDS.filter(function (i) { return i.on; }).forEach(function (i) {
       html += "<div class='leg-row" + (i.hide ? " dim" : "") + "' data-kind=ov data-id='" + i.id + "'>" +
         "<i class=leg-sw style=background:" + (i.c || ctx.ACC) + "></i>" +
@@ -133,6 +137,8 @@
           "<button type=button data-act=x title=Remove>×</button></span></div>";
     }
     host.innerHTML = html;
+    var dia = host.querySelector(".leg-dia");
+    if (dia) dia.onclick = function (e) { e.stopPropagation(); if (window.jhChartMenu) window.jhChartMenu(dia); };
     host.querySelectorAll(".leg-row").forEach(function (row) {
       row.onclick = function (e) {
         var btn = e.target.closest("[data-act]");
