@@ -1,0 +1,13 @@
+# ops 5558 — ETF Global desk harvest (flows + constituents + profiles)
+
+**Status:** success  
+**Duration:** 9.4s  
+**Finished:** 2026-09-14T22:34:43+00:00  
+
+## Log
+- `22:34:34` ✅ key from /justhodl/polygon/api-key
+- `22:34:34` ✅ lambda not ready (An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e) — running source in-process
+- `22:34:42` ✅ in-process harvest 8.7s → {'status': 'LIVE', 'n': 87, 'n_ok': {'flows': 87, 'profiles': 87, 'constituents': 0}, 'elapsed_s': 8.0}
+- `22:34:43` ✅ etf-desk status=LIVE n=87 n_ok={'flows': 87, 'profiles': 87, 'constituents': 0}
+- `22:34:43` ✅ SPY flow_1d=-3448075813.0 aum=806797246561.1 er=9.0 holdings=None hhi=None
+- `22:34:43` ✅ GREEN — ETF desk now serving Massive ETF Global, not $vol z

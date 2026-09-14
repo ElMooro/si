@@ -1,18 +1,10 @@
-executing-against: ef52b034ba9fdad63a19bbe6314c415ca126043c
-ops 5562 -- learning scorecard: supply (rows/receipts) vs learning (exam delta), from objects only
-[22:31:09] ✅ verified rows on disk: 2102 (listing truncated=False); by checker: {"factory-code-exam:a340d8ebd559": 464, "factory-trace-verify:network-less-container": 1529, "factory-code-exam:caf2b53d3151": 106, "factory-code-verify:v3-supervisor-judge": 3}
-[22:31:09] ✅ ELIGIBLE through the curator (receipt resolved, hashes bound, supervisor judge, cases>=1): 570 rows over 570 distinct tasks; families {"mbpp": 464, "apps-introductory": 106}
-[22:31:10] ✅ bursts launched: 6; failed-attempt records on disk: 1454
-[22:31:10] ✅ Gear B training jobs (deduplicated): 0; champion: none (base model)
-[22:31:11]   exam result base.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34900737918
-[22:31:11]   exam result gen-0-34900737918.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34900737918
-[22:31:11]   exam result gen-0-34902101944.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34902101944
-[22:31:11]   exam result gen-0-34903812485.json: gen=gen-0 passed=0/164 score=0.0 critical=157 missing=0 run=34903812485
-[22:31:11] ✅ BASE EXAM (frozen HumanEval, greedy, base model): 0/164 passed = 0.0%; critical failures 21; partial-judge passes 0; evaluation_id humaneval-frozen-848505e1dd021797
-[22:31:11] ✅ frozen holdout exam: prompts present; exam result objects: 4; base exam: {"pass_rate": 0.0, "tasks": null, "at": "2026-09-14T21:48:21Z"}; promoted candidate exam: none
-[22:31:11] ✅ owned serving endpoint: absent; chat control enabled=True
-[22:31:11] ✅ pipeline stages: weights staged=yes, bursts produced candidates=yes, independent judge admitted rows=yes, supply floor reached=no, base exam measured=yes, adapter trained=no, candidate examined and promoted=no -> 4/7
-[22:31:11] ✅ SUPPLY READINESS 38.0% (570/1500 eligible rows) | LEARNING 0.0% (exam delta; 0 until an adapter is trained and examined)
-[22:31:11] ✅ GREEN -- scorecard recorded
+executing-against: 2bab42dcdc283b5ddb40b2d69db737063d512e5e
+ops 5558 — ETF Global desk harvest (flows + constituents + profiles)
+[22:34:34] ✅ key from /justhodl/polygon/api-key
+[22:34:34] ✅ lambda not ready (An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e) — running source in-process
+[22:34:42] ✅ in-process harvest 8.7s → {'status': 'LIVE', 'n': 87, 'n_ok': {'flows': 87, 'profiles': 87, 'constituents': 0}, 'elapsed_s': 8.0}
+[22:34:43] ✅ etf-desk status=LIVE n=87 n_ok={'flows': 87, 'profiles': 87, 'constituents': 0}
+[22:34:43] ✅ SPY flow_1d=-3448075813.0 aum=806797246561.1 er=9.0 holdings=None hhi=None
+[22:34:43] ✅ GREEN — ETF desk now serving Massive ETF Global, not $vol z
 
-→ Report written to aws/ops/reports/latest/ops_5562_learning_scorecard4.md
+→ Report written to aws/ops/reports/latest/ops_5558_etf_global_desk.md
