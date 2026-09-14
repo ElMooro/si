@@ -87,3 +87,13 @@ an owner task trains only when the owner writes "trainable". Gear B accepts self
 checker; rows judged by the retired checker stay on disk as history and are excluded from curation (re-verify
 bursts 0 and 1 under v2 to regenerate them). Not yet: F11/F12/F17/F18/F19 (family ceiling math, dedup by quality,
 one token contract with the chat template, new-information gate for generations, numeric generation sort/pagination).
+
+## The owned model answers the chat (2026-09-14)
+
+`factory_inference.py` + `ops 5551`: a SageMaker **asynchronous** endpoint (`jh-owned-coder-async`) serves the staged
+Qwen2.5-Coder-7B-Instruct on the LMI/vLLM inference container, with application-autoscaling 0..1 — nothing runs while
+idle, a queued request wakes it (cold start of a few minutes), it scales back to zero after 15 idle minutes; priced
+per hour only while up (`ml.g5.xlarge`), under the same cost guard. In the chat, ordinary and coding questions are
+submitted to the owned model; the answer lands in the log on the next poll, labelled `owned:<model>@<revision>`;
+`status` stays behind an explicit request; when the control is absent or disabled the route says so and never
+substitutes a canned answer. Context sent to the model = the owner's own turns and the model's own prior answers.

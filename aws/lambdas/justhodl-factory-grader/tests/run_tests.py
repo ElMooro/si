@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 rc = 0
-for name in ('test_factory.py', 'test_discipline.py', 'test_gear_b_own.py', 'test_audit_fixes.py', 'test_wall_ledger.py', 'test_code_verify.py'):
+for name in ('test_factory.py', 'test_discipline.py', 'test_gear_b_own.py', 'test_audit_fixes.py', 'test_owned_inference.py', 'test_wall_ledger.py', 'test_code_verify.py'):
     try:
         runpy.run_path(str(ROOT / 'tests' / 'factory' / name), run_name='__main__')
     except SystemExit as exc:            # unittest.main() exits per file; aggregate instead of stopping at the first

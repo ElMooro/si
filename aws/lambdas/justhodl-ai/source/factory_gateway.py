@@ -28,6 +28,14 @@ except ImportError:  # loaded by path (tests); the module sits next to this file
     _spec = _ilu.spec_from_file_location("factory_status", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "factory_status.py"))
     factory_status = _ilu.module_from_spec(_spec)
     _spec.loader.exec_module(factory_status)
+try:
+    import factory_inference
+except ImportError:
+    import importlib.util as _ilu2
+    import os as _os2
+    _spec2 = _ilu2.spec_from_file_location("factory_inference", _os2.path.join(_os2.path.dirname(_os2.path.abspath(__file__)), "factory_inference.py"))
+    factory_inference = _ilu2.module_from_spec(_spec2)
+    _spec2.loader.exec_module(factory_inference)
 
 CFG = Config(connect_timeout=3, read_timeout=10, retries={'max_attempts': 2})
 
@@ -154,7 +162,44 @@ def attach_evidence(store, agent, prediction, envelope):
     return validate_evidence(doc, received_at=prediction["received_at"], holdout_hash=manifest_hash)
 
 
+def settle_pending(store, agent):
+    """Append answers of completed owned-model requests to the chat log (called on every snapshot)."""
+    key = "factory/salon/chat/" + agent + ".json"
+    log, etag = store.read(store.private, key)
+    if not isinstance(log, dict):
+        return log
+    changed = False
+    messages = list(log.get("messages") or [])
+    for msg in messages:
+        pending = msg.get("pending")
+        if not pending or pending.get("state") in ("done", "failed"):
+            continue
+        state, text = factory_inference.resolve(store, pending)
+        if state == "done":
+            pending["state"] = "done"
+            messages.append({"id": "a-" + digest(text + pending["id"])[:12], "at": iso(store.clock()), "from": msg.get("from"), "to": agent, "role": "agent",
+                             "text": text, "model": pending.get("origin"), "request": pending["id"]})
+            changed = True
+        elif state == "failed":
+            pending["state"] = "failed"
+            messages.append({"id": "a-" + digest(text + pending["id"])[:12], "at": iso(store.clock()), "from": msg.get("from"), "to": agent, "role": "agent",
+                             "text": "Owned model request %s failed: %s" % (pending["id"], text), "model": "owned:failed", "request": pending["id"]})
+            changed = True
+        else:
+            pending["state"] = state
+            changed = True
+    if changed:
+        log["messages"] = messages[-CHAT_KEEP:]
+        log["updated_at"] = iso(store.clock())
+        try:
+            store.put(store.private, key, log, etag=etag, absent=False)
+        except Conflict:
+            pass
+    return log
+
+
 def chat_snapshot(store, agent, owner):
+    settle_pending(store, agent)
     log, _ = store.read(store.private, "factory/salon/chat/" + agent + ".json")
     meta = drain_fleet(store)
     ranks = ranks_view(store)
@@ -828,18 +873,37 @@ def chat_post(store, agent, owner, body, policy):
     log, etag = store.read(store.private, key)
     history = list((log or {}).get("messages") or [])
     task_card = None
+    pending = None
     if factory_status.is_task_request(text) and owner:
         # "task: ..." -> immutable card, routed to what can actually be graded/executed; nothing runs from chat text
         task_text, tests = factory_status.split_tests(text)
         task_card = factory_status.intake_task(store, agent, owner, task_text, tests=tests)
         reply = "Task %s recorded (%s, %s). Route: %s" % (task_card["id"], task_card["scope"], "gradable" if task_card["gradable"] else "ungraded", task_card["route"])
         model = "factory-task-intake"
-    elif factory_status.is_status_request(text):
+    elif factory_inference.is_status_question(text):
         reply, model = factory_status.status_text(store) + "\n\n" + factory_status.capability_text(), "factory-status:objects"
+    elif owner and not _explicit_learn_command(text) and (control := factory_inference.load_control(store)) and control.get("enabled"):
+        # ordinary and coding questions go to the OWNED model (async endpoint, scale-to-zero); the answer lands on the next poll
+        try:
+            rt = boto3.client("sagemaker-runtime", region_name="us-east-1", config=Config(connect_timeout=3, read_timeout=15, retries={"max_attempts": 1}))
+            pending = factory_inference.submit(store, rt, control, agent, text, history)
+            reply = "Sent to the owned model (%s), request %s. Cold start can take a few minutes when the endpoint is scaled to zero; the answer appears here when it lands." % (pending["origin"], pending["id"])
+            model = "owned:queued"
+        except Exception as exc:  # noqa: BLE001
+            pending = None
+            reply = "Owned model unavailable right now (%s: %s). No canned answer substituted." % (type(exc).__name__, str(exc)[:160])
+            model = "owned:unavailable"
+    elif owner and not _explicit_learn_command(text):
+        pending = None
+        reply = ("The owned model is not connected on this route yet (factory/control/inference.json absent or disabled) -- no canned answer. "
+                 "Use `task: ... tests: ...` for a graded run, or `status` for objects.")
+        model = "owned:not-connected"
     else:
+        pending = None
         reply, model = _brain_chat(store, target, text, state, owner, history)
     now = iso(store.clock())
-    user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip()}
+    user_msg = {"id": "u-" + digest(text + now)[:12], "at": now, "from": agent, "to": target, "role": "owner" if owner else "guest", "text": text.strip(),
+                "pending": pending}
     bot_msg = {"id": "a-" + digest(reply + now)[:12], "at": now, "from": target, "to": agent, "role": "agent", "text": reply, "model": model,
                "spawn": (spawned or {}).get("created"), "task": (task_card or {}).get("id")}
     messages = (history + [user_msg, bot_msg])[-CHAT_KEEP:]
