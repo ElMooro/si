@@ -1,63 +1,15 @@
-executing-against: 63e9decc5f0f56c746d8cc19e6f999ae1757aff8
-ops 5552 (re-arm of 5551) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
-[05:20:27] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
-[05:20:28] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
-[05:21:58] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
-[05:21:58] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
-[05:21:59] ✅ model jh-owned-coder-20260914-052158 created from the owned weights
-[05:22:00] ✅ endpoint jh-owned-coder-async creating (async)
-[05:55:43] ✗ endpoint status Failed (The primary container for production variant owned did not pass the ping health check. Please check CloudWatch logs for this endpoint.) after 50 min
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:30 [backends.py:1094] Using cache directory: /root/.cache/vllm/torch_compile_cache/cc2ab8c0cc/rank_0_0/backbone for vLLM's torch.compile
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:30 [backends.py:1155] Dynamo bytecode transform time: 2.47 s
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:32 [backends.py:292] Directly load the compiled graph(s) for compile range (1, 2048) from the cache, took 1.015 s
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:32 [decorators.py:311] Directly load AOT compilation from path /root/.cache/vllm/torch_compile_cache/torch_aot_compile/064c7cbabdcf94fdbb7f95abd3a7cca6ebba2b311f175511e7a598f1ed382d6
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:32 [monitor.py:53] torch.compile took 3.73 s in total
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:32 [monitor.py:81] Initial profiling/warmup run took 0.13 s
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:33 [gpu_worker.py:560] Available KV cache memory: 5.16 GiB
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:33 [kv_cache_utils.py:2177] GPU KV cache size: 96,544 tokens
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:33 [kv_cache_utils.py:2178] Maximum concurrency for 8,192 tokens per request: 11.79x
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:33 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: (EngineCore pid=173)
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (PIECEWISE):   0%|          | 0/5 [00:00<?, ?it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (PIECEWISE):  40%|????      | 2/5 [00:00<00:00, 18.01it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (PIECEWISE): 100%|??????????| 5/5 [00:00<00:00, 19.27it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (PIECEWISE): 100%|??????????| 5/5 [00:00<00:00, 19.10it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: (EngineCore pid=173)
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:34 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.10 GiB
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (FULL):  75%|????????  | 3/4 [00:00<00:00, 20.89it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:34 [gpu_worker.py:857] Free memory on device (21.74/21.99 GiB) on startup. Desired GPU memory utilization is (0.9, 19.79 GiB). Actual usage is 14.29 GiB for weight, 0.27 GiB for peak
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-127-model-stderr: Capturing CUDA graphs (FULL): 100%|??????????| 4/4 [00:00<00:00, 21.12it/s]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:35 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:35 [core.py:340] init engine (profile, create kv cache, warmup model) took 7.44 s (compilation: 3.73 s)
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:36 [vllm.py:1109] Asynchronous scheduling is enabled.
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-127-model-stdout: (EngineCore pid=173) INFO 09-14 05:55:36 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - Model [model] initialized.
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] WorkerThread - Starting worker thread WT-0001 for model test (M-0001, READY) on device gpu(0)
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] LmiUtils - Detected mpi_mode: null, rolling_batch: vllm, tensor_parallel_degree: 1, for modelType: qwen2
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] ModelInfo - M-0002: Apply per model settings:
-    job_queue_size: 1000
-    max_dynamic_batch_size: 1
-    max_batch_delay: 100
-    max_idle_time: 60
-    load_on_devices: *
-    engine: Python
-    mpi_mode: null
-    option.entryPoint: null
-    option.dtyp
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] ModelManager - Loading model on Python:[0]
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] WorkerPool - loading model model (M-0002, PENDING) on gpu(0) ...
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] ModelInfo - M-0002: Available CPU memory: 11220 MB, required: 0 MB, reserved: 500 MB
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] ModelInfo - M-0002: Available GPU memory: 1810 MB, required: 0 MB, reserved: 500 MB
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] ModelInfo - Loading model model M-0002 on gpu(0)
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] WorkerPool - scaling up min workers by 1 (from 0 to 1) workers. Total range is min 1 to max 1
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - Creating new python process in rolling batch mode
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - Start process: 19001 - retry: 0
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] Connection - Set CUDA_VISIBLE_DEVICES=0
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [INFO ] PyProcess - W-282-model-stdout: INFO::282 - djl_python_engine started with args: ['--sock-type', 'unix', '--sock-name', '/tmp/djl_sock.19001', '--model-dir', '/opt/ml/model', '--entry-point', '', '--device-id', '0', '--cluster-size', '1', '--recommende
-[05:55:43]   [owned/i-0f91941d3a288e5fb] [WARN ] PyProcess - W-282-model-stderr: /usr/local/lib/python3.12/dist-packages/huggingface_hub/constants.py:298: FutureWarning: The `HF_HUB_ENABLE_HF_TRANSFER` environment variable is deprecated as 'hf_transfer' is not used anymore. Please use `HF_XET_HIGH_PE
-[05:55:53] ✗ cleanup: deleted
-[05:55:53] ✗ RED -- endpoint
+executing-against: 0cfa4996fcad3bf68ec4810a7a7c5af1ef914cc5
+ops 5553 (re-arm of 5552) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+[12:55:51] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+[12:55:52] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+[12:57:22] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+[12:57:22] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+[12:57:23] ✅ model jh-owned-coder-20260914-125722 created from the owned weights
+[12:57:25] ✅ endpoint jh-owned-coder-async creating (async)
+[13:09:00] ✅ endpoint InService
+[13:09:01] ✗ autoscaling setup failed (An error occurred (ValidationException) when calling the RegisterScalableTarget operation: User is missing the following permissions: sagemaker:UpdateEndpointWe): an endpoint that cannot scale to zero is not an accepted deployment
+[13:09:11] ✗ cleanup: deleted
+[13:09:11] ✗ RED -- autoscaling
 
-→ Report written to aws/ops/reports/latest/ops_5552_owned_async_endpoint_rearm.md
-❌ OPS-FAIL: aws/ops/pending/ops_5552_owned_async_endpoint_rearm.py
+→ Report written to aws/ops/reports/latest/ops_5553_owned_async_endpoint_rearm2.md
+❌ OPS-FAIL: aws/ops/pending/ops_5553_owned_async_endpoint_rearm2.py

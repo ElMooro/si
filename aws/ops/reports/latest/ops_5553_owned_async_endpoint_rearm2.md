@@ -1,0 +1,23 @@
+# ops 5553 (re-arm of 5552) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+
+**Status:** failure  
+**Duration:** 800.3s  
+**Finished:** 2026-09-14T13:09:11+00:00  
+
+## Data
+
+| endpoint | head | instance |
+|---|---|---|
+| jh-owned-coder-async | 0cfa4996fc | ml.g5.xlarge |
+
+## Log
+- `12:55:51` ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+- `12:55:52` ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+- `12:57:22` ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+- `12:57:22` ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+- `12:57:23` ✅ model jh-owned-coder-20260914-125722 created from the owned weights
+- `12:57:25` ✅ endpoint jh-owned-coder-async creating (async)
+- `13:09:00` ✅ endpoint InService
+- `13:09:01` ✗ autoscaling setup failed (An error occurred (ValidationException) when calling the RegisterScalableTarget operation: User is missing the following permissions: sagemaker:UpdateEndpointWe): an endpoint that cannot scale to zero is not an accepted deployment
+- `13:09:11` ✗ cleanup: deleted
+- `13:09:11` ✗ RED -- autoscaling
