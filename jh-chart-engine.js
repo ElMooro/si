@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.11 — theme recolor (no wipe), tape studies, Chart Pro search. */
+/* JustHodl Chart engine v12.12 — US10Y daily OHLC candles (TVC/^TNX), close-only fill. */
 (function () {
-  if (window.__jhChartEngineV1211) return;
+  if (window.__jhChartEngineV1212) return;
+  window.__jhChartEngineV1212 = true;
   window.__jhChartEngineV1211 = true;
   window.__jhChartEngineV1210 = true;
   window.__jhChartEngineV129 = true;
@@ -113,6 +114,7 @@
   var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
   var quotes={}, lists=[], listId="ishares", letter="", filter="", sortCol="sym", sortDir=1;
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null;
+  var lastVolShow=false;
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
   var stayTool=false, hideDraw=false, lockDraw=false, drawColor=ACC, drawW=1.2;
   var wtab="list", wsub="watch", watchOpen=false, layout=1, gridOn=true, watermark=true, invert=false, hiLo=true, crossMode=0;
@@ -177,7 +179,15 @@
     if(ticker==="BTCUSD") ticker="BTCUSDT";
     if(ticker==="ETHUSD") ticker="ETHUSDT";
     if(venue==="FRED"){
-      return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:ticker, engine:"fred"};
+      var FRED_MKT={
+        DGS10:{ yahoo:"^TNX", tv:"TVC:US10Y" },
+        DGS2:{ yahoo:"^IRX", tv:"TVC:US02Y" },
+        DGS5:{ yahoo:"^FVX", tv:"TVC:US05Y" },
+        DGS20:{ tv:"TVC:US20Y" },
+        DGS30:{ yahoo:"^TYX", tv:"TVC:US30Y" }
+      };
+      var mkt=FRED_MKT[ticker]||{};
+      return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
     }
     var ys=yahooSym(ticker);
     if(/^\^/.test(ticker) || ticker==="DX-Y.NYB") ys=ticker;
@@ -337,7 +347,7 @@
     document.documentElement.setAttribute("data-theme", dark?"dark":"light");
     var meta=document.querySelector('meta[name=theme-color]'); if(meta) meta.setAttribute("content", dark?"#131722":"#ffffff");
     var p=pal(); BG=p.bg;
-    var bot=volOn?0.22:0.04;
+    var bot=lastVolShow?0.22:0.04;
     var saved=null;
     try{ if(chart) saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
     var opts={ layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontFamily:"IBM Plex Sans,sans-serif",fontSize:11}, grid:{vertLines:{color:gridOn?p.grid:"transparent"},horzLines:{color:gridOn?p.grid:"transparent"}}, rightPriceScale:{borderColor:p.border,invertScaledValues:invert,visible:true,scaleMargins:{top:0.06,bottom:bot}}, leftPriceScale:{visible:leftOn,borderColor:p.border}, timeScale:{borderColor:p.border} };
@@ -405,7 +415,15 @@
   function toLineBreak(d,n){ n=n||3; if(d.length<n+1) return d; var o=[d[0]], i; for(i=1;i<d.length;i++){ var slice=o.slice(-n), hi=Math.max.apply(null,slice.map(function(b){return b.high;})), lo=Math.min.apply(null,slice.map(function(b){return b.low;})); if(d[i].close>hi) o.push({time:d[i].time,open:o[o.length-1].close,close:d[i].close,high:d[i].close,low:o[o.length-1].close,volume:d[i].volume}); else if(d[i].close<lo) o.push({time:d[i].time,open:o[o.length-1].close,close:d[i].close,high:o[o.length-1].close,low:d[i].close,volume:d[i].volume}); } return o; }
   function toKagi(d,rev){ rev=rev||0.04; if(d.length<2) return []; var o=[{time:d[0].time,value:d[0].close,color:UP}], last=d[0].close, dir=0, i; for(i=1;i<d.length;i++){ var c=d[i].close, ch=(c-last)/last; if(dir>=0 && ch<=-rev){ o.push({time:d[i].time,value:c,color:DN}); last=c; dir=-1; } else if(dir<=0 && ch>=rev){ o.push({time:d[i].time,value:c,color:UP}); last=c; dir=1; } else if((dir>=0 && c>last) || (dir<=0 && c<last)){ last=c; o[o.length-1]={time:d[i].time,value:c,color:dir>=0?UP:DN}; } } return o; }
 
-  function uniq(rows){ var out=[], last=-1; for(var i=0;i<rows.length;i++){ var t=rows[i].time; if(!t||t<=last||!isFinite(rows[i].close)) continue; out.push(rows[i]); last=t; } return out; }
+  function uniq(rows){
+    var out=[], last=null;
+    for(var i=0;i<rows.length;i++){
+      var t=rows[i].time;
+      if(t==null||!isFinite(t)||t<0||(last!=null&&t<=last)||!isFinite(rows[i].close)) continue;
+      out.push(rows[i]); last=t;
+    }
+    return out;
+  }
   function toBars(j){
     if(!j) return [];
     var rows=j.bars||j.ohlc||j.results||j.obs||j.points||j.data||(Array.isArray(j)?j:[]);
@@ -450,6 +468,33 @@
       if(lo<=0) lo=Math.min(b.close,b.open);
       return {time:b.time,open:b.open,high:Math.max(hi,b.close,b.open),low:Math.min(lo,b.close,b.open),close:b.close,volume:b.volume||0};
     });
+  }
+  function looksCloseOnly(d){
+    if(!d||d.length<8) return false;
+    var n=Math.min(d.length,120), flat=0, i0=d.length-n, i;
+    for(i=Math.max(0,i0);i<d.length;i++){
+      if(Math.abs((d[i].high||0)-(d[i].low||0))<1e-8 && Math.abs((d[i].close||0)-(d[i].open||0))<1e-8) flat++;
+    }
+    return flat/n>0.6;
+  }
+  function fillCandleBodies(d){
+    if(!d||d.length<2) return d;
+    var o=[], i, prev=d[0].close;
+    for(i=0;i<d.length;i++){
+      var b=d[i], open=b.open, high=b.high, low=b.low, close=b.close;
+      var flat=Math.abs(high-low)<1e-8 && Math.abs(close-open)<1e-8;
+      if(flat){
+        open=prev;
+        high=Math.max(open, close);
+        low=Math.min(open, close);
+      } else {
+        high=Math.max(high, open, close);
+        low=Math.min(low, open, close);
+      }
+      o.push({time:b.time,open:open,high:high,low:low,close:close,volume:b.volume||0});
+      prev=close;
+    }
+    return o;
   }
   function volScore(d){
     var n=0,i; for(i=0;i<d.length;i++) if(d[i].volume>0) n++;
@@ -523,6 +568,8 @@
     if(rs.engine==="fred" || /^FRED:/i.test(rs.raw) || /^DGS|^T10|^DFII|^WALCL|^M2SL|^CPIAUCSL/i.test(t.replace(/^FRED:/i,""))){
       var fid=/^FRED:/i.test(rs.raw)?rs.raw:("FRED:"+String(t).replace(/^FRED:/i,""));
       urls.unshift(PROXY+"/series?id="+encodeURIComponent(fid));
+      if(rs.yahoo && /^\^/.test(rs.yahoo)) urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(rs.yahoo)+"&range="+sp[3]+"&interval="+sp[2]);
+      if(rs.tv) urls.unshift(PROXY+"/series?id="+encodeURIComponent(rs.tv));
     }
     for(var i=0;i<urls.length;i++){
       try{
@@ -530,6 +577,7 @@
         if(d.length>8000) d=d.slice(-8000); if(d.length>=8){
           d=resampleToTf(d, tfId);
           if(d.length<2) continue;
+          if(looksCloseOnly(d)) d=fillCandleBodies(d);
           lastSource=(raw&& (raw.warehouse_key||raw.source||raw.provider)) || (urls[i].indexOf("/series")>=0?"fred": urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           var isSeries=urls[i].indexOf("/series")>=0 || rs.engine==="fred";
@@ -646,7 +694,9 @@
     try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
     wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;}catch(e){}
     var p=pal();
-    var bot=volOn?0.22:0.04;
+    var volShow=volOn && volScore(d)>Math.max(8, d.length*0.05);
+    lastVolShow=volShow;
+    var bot=volShow?0.22:0.04;
     chart.applyOptions({
       localization:{ priceFormatter:function(p){ return mode==="price"?fmt(p):p.toFixed(2)+"%"; } },
       layout:{ background:{type:"solid",color:p.bg}, textColor:p.text },
@@ -695,7 +745,7 @@
         }catch(e){}
       }
       mainSeries=c; series.push(c);
-      if(volOn){
+      if(volShow){
         var v=chart.addHistogramSeries({ priceFormat:{type:"volume"}, priceScaleId:"vol" });
         chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.74, bottom:0 } });
         v.setData(display.map(function(b,ix){
@@ -711,7 +761,7 @@
         for(vi=0;vi<display.length;vi++){ ss+=display[vi].volume; if(vi>=vn) ss-=display[vi-vn].volume; if(vi>=vn-1) vsma.push({time:display[vi].time,value:ss/vn}); }
         if(vsma.length){ var vl=chart.addLineSeries({ color:"#2962ff", lineWidth:1, priceScaleId:"vol", lastValueVisible:false, priceLineVisible:false }); vl.setData(vsma); series.push(vl); }
       }
-      try{ chart.priceScale("right").applyOptions({ scaleMargins:{ top:0.06, bottom: volOn?0.22:0.04 }, mode: mode==="price"?scaleMode:0 }); }catch(e){}
+      try{ chart.priceScale("right").applyOptions({ scaleMargins:{ top:0.06, bottom: volShow?0.22:0.04 }, mode: mode==="price"?scaleMode:0 }); }catch(e){}
       INDS.forEach(function(ind){
         if(!ind.on) return;
         function line(pts, color, w){ if(ind.hide) return; addLine(pts, color||ind.c, w||ind.w); }
@@ -760,7 +810,7 @@
           addLine(joined.map(function(p){ return {time:p.time, value: (p.b/c0)*t0 }; }), COLORS[(ci+3)%COLORS.length], 2);
         }catch(e){}
       }
-      if(vpOn) drawVP(d); else { var cv=document.getElementById("vp"); if(cv){ cv.width=cv.height=0; } }
+      if(vpOn && volShow) drawVP(d); else { var cv=document.getElementById("vp"); if(cv){ cv.width=cv.height=0; } }
       if(hiLo && d.length){ var visHi=-1e99, visLo=1e99, hiT=d[0].time, loT=d[0].time, i2; for(i2=0;i2<d.length;i2++){ if(d[i2].high>visHi){visHi=d[i2].high;hiT=d[i2].time;} if(d[i2].low<visLo){visLo=d[i2].low;loT=d[i2].time;} } addPriceLine(visHi, UP, "H "+fmt(visHi)); addPriceLine(visLo, DN, "L "+fmt(visLo)); }
       alerts.forEach(function(a){ if(!a.fired && a.sym===active) addPriceLine(a.price, "#ab47bc", "AL"); });
       var pos=paper.positions[active]; if(pos && pos.qty) addPriceLine(pos.avg, ACC, "AVG "+fmt(pos.avg));
@@ -795,7 +845,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.11"; if(st) st.textContent="v12.11 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.12"; if(st) st.textContent="v12.12 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
