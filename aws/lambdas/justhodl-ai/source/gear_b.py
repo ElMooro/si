@@ -187,12 +187,19 @@ def validate_control(control: Dict[str, Any], policy: Dict[str, Any]) -> Optiona
 
 # ───────────────────────────────────────────────────────────────── ledger / spend
 def _job_records(s3, private_bucket: str) -> List[Dict[str, Any]]:
-    rows = []
+    """One row per job identity (audit F08): a terminal record supersedes the live record of the same job_name;
+    an unreadable describe leaves the last known state marked unknown, never dropped (F09)."""
+    by_job: Dict[str, Dict[str, Any]] = {}
     for key in list_keys(s3, private_bucket, JOBS_PREFIX, limit=5000):
         doc = get_json(s3, private_bucket, key)
-        if isinstance(doc, dict):
-            rows.append(doc)
-    return rows
+        if not isinstance(doc, dict):
+            continue
+        name = str(doc.get("job_name") or key)
+        prev = by_job.get(name)
+        terminal = str(doc.get("status") or "") in ("Completed", "Failed", "Stopped", "error")
+        if prev is None or terminal or str(prev.get("status") or "") not in ("Completed", "Failed", "Stopped"):
+            by_job[name] = doc if prev is None or terminal else prev
+    return list(by_job.values())
 
 
 def spend(records: Iterable[Dict[str, Any]], since: datetime) -> Dict[str, Any]:
@@ -258,6 +265,8 @@ def _row_from_verified(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]
     kind = str(doc.get("kind") or "")
     if kind not in ALLOWED_SOURCE_KINDS:
         return None
+    if kind == "self_trace" and not str(doc.get("checker") or "").startswith("factory-code-verify:v2"):
+        return None            # rows judged by the retired in-process checker are history, not training material (audit F01)
     prompt, solution = doc.get("prompt"), doc.get("solution")
     if not isinstance(prompt, str) or not isinstance(solution, str) or not doc.get("source_url"):
         return None
@@ -476,7 +485,8 @@ def poll_jobs(sm, s3, private_bucket: str) -> List[Dict[str, Any]]:
         try:
             d = sm.describe_training_job(TrainingJobName=row["job_name"])
         except Exception as exc:  # noqa: BLE001
-            updates.append({"job_name": row["job_name"], "error": str(exc)[:200]})
+            # F09: an unreadable describe keeps the last known state and marks it unknown; it still blocks launches
+            updates.append({"job_name": row["job_name"], "status": "unknown", "last_known_status": row.get("status"), "error": str(exc)[:200]})
             continue
         status = d.get("TrainingJobStatus")
         if status in ("Completed", "Failed", "Stopped"):
@@ -550,8 +560,8 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
         out["refusal"] = why
         return out
     out["polled"] = poll_jobs(sm, s3, private_bucket)
-    if any(u.get("status") in ("launching", "InProgress", "Stopping") for u in out["polled"]):
-        out["refusal"] = "a job is still running"
+    if any(u.get("status") in ("launching", "InProgress", "Stopping", "unknown") for u in out["polled"]):
+        out["refusal"] = "a job is still running or its state is unknown (reconcile before reserving more compute)"
         return out
     manifest = latest_unlaunched_manifest(s3, private_bucket)
     if manifest is None:

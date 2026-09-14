@@ -198,7 +198,9 @@ def budget_ok():
     try:
         return _spent_today() < cfg["budget"]
     except Exception:
-        return True  # fail OPEN on metering error — never break engines on our account
+        # fail CLOSED (audit F03, 2026-09-14): an unreadable meter admits no paid call; every caller already
+        # has a deterministic fallback, so the cost of closing is an empty voice, never a broken engine.
+        return False
 
 
 # ---- per-engine daily call cap (rate-limit a shared/on-demand engine to N/day) --

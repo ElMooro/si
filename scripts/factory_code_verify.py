@@ -1,15 +1,26 @@
-"""Isolated code verifier (Claude Ship 2). Runs INSIDE `docker run --network none` with no AWS
-credentials, no repo on the path, no pip. Stdlib only.
+#!/usr/bin/env python3
+"""Independent code verifier (v2, 2026-09-14; audit F01/F02/F21).
 
-Input : candidates.jsonl -- one {task_id, prompt, solution, tests, entry_point?, timeout_s?} per line
-Output: verified.jsonl   -- the same rows with passed=true, plus a run report on the last line
+The judge never shares authority with the candidate:
 
-A row passes only if its solution executes the tests without error inside the timeout. Any
-exception, timeout, or non-zero exit is a fail and the row is dropped (never trained on).
-Nothing here reads the network; the container has none. The writer job stamps verified_by.
+  * function tasks (MBPP-style `assert f(x) == y` suites): the SUPERVISOR parses every assert into a
+    left-hand expression and a literal expected value. The candidate process receives only the
+    expressions, evaluates them and returns reprs over stdout as JSON; the supervisor compares against
+    expected values it alone holds. A candidate cannot forge a verdict because it never sees one.
+    Asserts that are not `expr == literal` are evaluated in the candidate process as a bare boolean and
+    the row is tagged `judge: partial` so downstream policy can weigh it.
+  * stdio tasks (APPS-style, tests beginning with `#stdio`): one real subprocess per case, bytes in,
+    bytes out, exit status preserved, output compared by the supervisor (whitespace-token rule).
+  * empty, absent or zero-case suites are REFUSED (F02).
+
+Per candidate: unprivileged user (`nobody` when root), isolated scratch, timeouts, output bounded.
+Every output row carries passed, cases, judge, checker; failures are kept as rows too (F10).
+
+Usage: factory_code_verify.py candidates.jsonl verified.jsonl
 """
 from __future__ import annotations
 
+import ast
 import json
 import os
 import shutil
@@ -18,38 +29,36 @@ import sys
 import tempfile
 import time
 
-RUNNER = r'''
-import os, sys
-# The supervisor hands a one-time nonce over a pipe (its fd number rides in argv; the nonce never does); it is read once, the pipe is closed,
-# and only the runner can print it after the tests actually complete. Candidate output alone certifies nothing.
-try:
-    _fd = int(sys.argv.pop(3))            # the pipe's fd number; the nonce itself never touches argv or env
-    nonce = os.read(_fd, 64).decode().strip()
-    os.close(_fd)
-except (OSError, ValueError, IndexError):
-    nonce = ""
+CHECKER = "factory-code-verify:v2-supervisor-judge"
+STDIO_MARK = "#stdio"
+MAX_OUTPUT = 200_000
+
+# The candidate process evaluates expressions it is handed and reports reprs; it never learns what is expected.
+EVAL_RUNNER = r'''
+import sys, json, io
 src = open(sys.argv[1], encoding="utf-8").read()
-tests = open(sys.argv[2], encoding="utf-8").read()
-ns = {"__name__": "__candidate__", "__src": src}
-if not tests.startswith("#stdio"):          # stdio tasks are executed per case by the test preamble
+exprs = json.load(open(sys.argv[2], encoding="utf-8"))
+ns = {"__name__": "__candidate__"}
+out = []
+_stdout = sys.stdout
+sys.stdout = io.StringIO()
+try:
     exec(compile(src, "candidate.py", "exec"), ns)
-exec(compile(tests, "tests.py", "exec"), ns)
-sys.stdout.flush()
-sys.stdout.write("\n" + nonce + ":PASS\n")
+    for e in exprs:
+        try:
+            v = eval(compile(e["expr"], "expr", "eval"), ns)
+            out.append({"i": e["i"], "repr": repr(v)[:4000]})
+        except BaseException as exc:
+            out.append({"i": e["i"], "error": type(exc).__name__})
+except BaseException as exc:
+    out.append({"i": -1, "error": "load:" + type(exc).__name__})
+sys.stdout = _stdout
+sys.stdout.write("\n" + json.dumps(out) + "\n")
 sys.stdout.flush()
 '''
 
-# Candidate source that tries to talk to the process, the supervisor, the interpreter's internals or the network is
-# refused before it runs. Sampled completions never need these; a model that learns them would be reward-hacking.
-# Exits are allowed (a stdio program may call exit(); without the nonce an early exit simply fails the case).
-FORBIDDEN = ("subprocess", "sys._getframe", "gc.get_objects", "gc.get_referrers", "ctypes", "importlib", "__builtins__",
-             "socket", "urllib", "requests", "http.client", "signal.", "os.kill", "os.fork", "os.execv", "os.popen", "open(\'/proc", "open(\"/proc",
-             "sys.settrace", "sys.setprofile", "inspect.", "__loader__", "__spec__")
-
 
 def _drop_privileges():
-    """uid/gid for the candidate process: `nobody` when we are root (the python:3.12-slim container), else None.
-    A candidate that runs as nobody cannot touch the verifier's files or the mounted /work results."""
     if os.name != "posix" or os.geteuid() != 0:
         return None
     try:
@@ -60,50 +69,153 @@ def _drop_privileges():
         return None
 
 
+def parse_asserts(tests: str):
+    """[{i, expr, expected|None, truthy}] from a test suite; non-assert statements become a preamble."""
+    try:
+        tree = ast.parse(tests)
+    except SyntaxError:
+        return None, ""
+    cases, preamble = [], []
+    for node in tree.body:
+        if isinstance(node, ast.Assert):
+            test = node.test
+            if isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq):
+                left, right = test.left, test.comparators[0]
+                try:
+                    expected = ast.literal_eval(right)
+                    cases.append({"i": len(cases), "expr": ast.unparse(left), "expected": repr(expected), "truthy": False})
+                    continue
+                except (ValueError, SyntaxError):
+                    pass
+            cases.append({"i": len(cases), "expr": ast.unparse(test), "expected": None, "truthy": True})
+        else:
+            preamble.append(ast.unparse(node))
+    return cases, "\n".join(preamble)
+
+
+# Static screen for FUNCTION tasks only (stdio programs may legitimately exit): a solution that reaches for
+# process control or the raw output descriptor has no honest reason to, and it is the only remaining route to
+# forge the runner's result line before the runner writes it (documented residual; hidden tests close it fully).
+FUNCTION_TASK_FORBIDDEN = ("os._exit", "os.write(", "__stdout__", "sys.exit(", "os.kill", "signal.", "os.dup", "os.close(", "subprocess", "ctypes", "gc.get_", "sys._getframe", "inspect.")
+
+
+def judge_function_task(row, scratch, env, extra, timeout):
+    banned = [tok for tok in FUNCTION_TASK_FORBIDDEN if tok in str(row["solution"])]
+    if banned:
+        return {"passed": False, "cases": 0, "judge": "static", "stderr": "refused_forbidden_token:" + ",".join(banned)[:100]}
+    cases, preamble = parse_asserts(str(row["tests"]))
+    if cases is None:
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "tests_unparseable"}
+    if not cases:
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_zero_case_suite"}
+    src = os.path.join(scratch, "candidate.py")
+    exprs = os.path.join(scratch, "exprs.json")
+    runner = os.path.join(scratch, "runner.py")
+    program = (preamble + "\n\n" if preamble else "") + str(row["solution"])
+    for path, text in ((src, program), (exprs, json.dumps([{"i": c["i"], "expr": c["expr"]} for c in cases])), (runner, EVAL_RUNNER)):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.chmod(path, 0o644)
+    t0 = time.monotonic()
+    try:
+        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, exprs], capture_output=True, text=True, timeout=timeout,
+                              cwd=os.path.join(scratch, "tmp"), env=env, **extra)
+    except subprocess.TimeoutExpired:
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "timeout", "elapsed_s": timeout}
+    elapsed = round(time.monotonic() - t0, 3)
+    last = (proc.stdout or "")[-MAX_OUTPUT:].strip().splitlines()
+    try:
+        reported = json.loads(last[-1]) if last else []
+    except ValueError:
+        reported = []
+    if not isinstance(reported, list):
+        reported = []
+    by_i = {r.get("i"): r for r in reported if isinstance(r, dict)}
+    if -1 in by_i:
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "candidate_failed_to_load", "elapsed_s": elapsed}
+    partial = False
+    for c in cases:
+        got = by_i.get(c["i"])
+        if not got or "error" in got:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d %s" % (c["i"], (got or {}).get("error", "missing")), "elapsed_s": elapsed}
+        if c["truthy"]:
+            partial = True
+            if got.get("repr") != "True":
+                return {"passed": False, "cases": len(cases), "judge": "partial", "stderr": "case %d not truthy" % c["i"], "elapsed_s": elapsed}
+        elif got.get("repr") != c["expected"]:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d mismatch" % c["i"], "elapsed_s": elapsed}
+    return {"passed": proc.returncode == 0, "cases": len(cases), "judge": "partial" if partial else "supervisor",
+            "stderr": "" if proc.returncode == 0 else "exit %s" % proc.returncode, "elapsed_s": elapsed}
+
+
+def parse_stdio(tests: str):
+    """Cases from the stdio suite: `assert __run(<input>).split() == <output>.split()` lines."""
+    cases = []
+    try:
+        tree = ast.parse(tests)
+    except SyntaxError:
+        return None
+    for node in tree.body:
+        if not isinstance(node, ast.Assert) or not isinstance(node.test, ast.Compare):
+            continue
+        left, right = node.test.left, node.test.comparators[0]
+        try:
+            inp = ast.literal_eval(left.func.value.args[0])
+            out = ast.literal_eval(right.func.value)
+        except Exception:  # noqa: BLE001
+            continue
+        if isinstance(inp, str) and isinstance(out, str):
+            cases.append({"i": len(cases), "input": inp, "expected": out.split()})
+    return cases
+
+
+def judge_stdio_task(row, scratch, env, extra, timeout):
+    cases = parse_stdio(str(row["tests"]))
+    if cases is None:
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "tests_unparseable"}
+    if not cases:
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_zero_case_suite"}
+    src = os.path.join(scratch, "candidate.py")
+    with open(src, "w", encoding="utf-8") as f:
+        f.write(str(row["solution"]))
+    os.chmod(src, 0o644)
+    t0 = time.monotonic()
+    for c in cases:
+        try:
+            proc = subprocess.run([sys.executable, "-I", "-S", src], input=c["input"].encode("utf-8"), capture_output=True,
+                                  timeout=timeout, cwd=os.path.join(scratch, "tmp"), env=env, **extra)
+        except subprocess.TimeoutExpired:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "timeout case %d" % c["i"], "elapsed_s": timeout}
+        if proc.returncode != 0:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d exit %s" % (c["i"], proc.returncode), "elapsed_s": round(time.monotonic() - t0, 3)}
+        got = proc.stdout[:MAX_OUTPUT].decode("utf-8", "replace").split()
+        if got != c["expected"]:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d mismatch" % c["i"], "elapsed_s": round(time.monotonic() - t0, 3)}
+    return {"passed": True, "cases": len(cases), "judge": "supervisor", "stderr": "", "elapsed_s": round(time.monotonic() - t0, 3)}
+
+
 def run_one(row: dict, workdir: str, default_timeout: float = 8.0) -> dict:
     ids = _drop_privileges()
-    # Each candidate gets its own scratch directory: readable by everyone, writable only by the verifier,
-    # plus a world-writable tmp for the candidate's own files. Nothing under /work is writable by `nobody`.
+    tests = str(row.get("tests") or "")
+    if not tests.strip():
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_empty_suite", "elapsed_s": 0.0, "isolation": "static", "checker": CHECKER}
     scratch = tempfile.mkdtemp(prefix="cand-", dir=workdir)
     os.chmod(scratch, 0o755)
     sandbox_tmp = os.path.join(scratch, "tmp")
     os.mkdir(sandbox_tmp)
     os.chmod(sandbox_tmp, 0o1777)
-    src = os.path.join(scratch, "candidate.py")
-    tst = os.path.join(scratch, "tests.py")
-    runner = os.path.join(scratch, "runner.py")
-    for path, text in ((src, str(row["solution"])), (tst, str(row["tests"])), (runner, RUNNER)):
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(text)
-        os.chmod(path, 0o644)
     timeout = float(row.get("timeout_s") or default_timeout)
     env = {"PYTHONHASHSEED": "0", "PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "HOME": sandbox_tmp, "TMPDIR": sandbox_tmp}
     extra = {"user": ids[0], "group": ids[1], "extra_groups": []} if ids else {}
-    t0 = time.monotonic()
-    banned = [tok for tok in FORBIDDEN if tok in str(row["solution"])]
-    if banned:
-        shutil.rmtree(scratch, ignore_errors=True)
-        return {"passed": False, "elapsed_s": 0.0, "stderr": "refused_forbidden_token:" + ",".join(banned)[:120], "isolation": "static"}
-    import secrets
-    nonce = secrets.token_hex(16)
-    rfd, wfd = os.pipe()
     try:
-        os.write(wfd, (nonce + "\n").encode()); os.close(wfd)
-        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, tst, str(rfd)], capture_output=True, text=True, timeout=timeout,
-                              cwd=sandbox_tmp, env=env, pass_fds=(rfd,), **extra)
-        ok = proc.returncode == 0 and proc.stdout.strip().endswith(nonce + ":PASS")
-        return {"passed": ok, "elapsed_s": round(time.monotonic() - t0, 3), "stderr": proc.stderr[-300:] if not ok else "",
-                "isolation": "unprivileged" if ids else "same-user"}
-    except subprocess.TimeoutExpired:
-        return {"passed": False, "elapsed_s": timeout, "stderr": "timeout", "isolation": "unprivileged" if ids else "same-user"}
+        res = judge_stdio_task(row, scratch, env, extra, timeout) if tests.lstrip().startswith(STDIO_MARK) else judge_function_task(row, scratch, env, extra, timeout)
     except Exception as exc:  # noqa: BLE001
-        return {"passed": False, "elapsed_s": round(time.monotonic() - t0, 3), "stderr": str(exc)[:300], "isolation": "unprivileged" if ids else "same-user"}
+        res = {"passed": False, "cases": 0, "judge": "supervisor", "stderr": type(exc).__name__ + ":" + str(exc)[:200], "elapsed_s": 0.0}
     finally:
-        try:
-            os.close(rfd)
-        except OSError:
-            pass
         shutil.rmtree(scratch, ignore_errors=True)
+    res["isolation"] = "unprivileged" if ids else "same-user"
+    res["checker"] = CHECKER
+    return res
 
 
 def main(argv=None):
@@ -112,9 +224,9 @@ def main(argv=None):
         print("usage: factory_code_verify.py candidates.jsonl verified.jsonl", file=sys.stderr)
         return 2
     src_path, out_path = argv
-    report = {"seen": 0, "passed": 0, "failed": 0, "timeouts": 0, "malformed": 0}
+    report = {"seen": 0, "passed": 0, "failed": 0, "timeouts": 0, "malformed": 0, "refused_suites": 0, "refused_static": 0, "partial_judge": 0, "checker": CHECKER}
     with open(src_path, encoding="utf-8") as fin, open(out_path, "w", encoding="utf-8") as fout, tempfile.TemporaryDirectory() as tmp:
-        os.chmod(tmp, 0o755)  # traversable by the unprivileged candidate; only its own scratch tmp is writable
+        os.chmod(tmp, 0o755)
         for line in fin:
             line = line.strip()
             if not line:
@@ -129,11 +241,21 @@ def main(argv=None):
             res = run_one(row, tmp)
             if res["passed"]:
                 report["passed"] += 1
-                fout.write(json.dumps(dict(row, passed=True, verify_elapsed_s=res["elapsed_s"], verify_isolation=res["isolation"]), sort_keys=True) + "\n")
+                if res.get("judge") == "partial":
+                    report["partial_judge"] += 1
+                fout.write(json.dumps(dict(row, passed=True, cases=res["cases"], judge=res["judge"], checker=CHECKER,
+                                           verify_elapsed_s=res.get("elapsed_s"), verify_isolation=res["isolation"]), sort_keys=True) + "\n")
             else:
                 report["failed"] += 1
-                if res["stderr"] == "timeout":
+                if str(res.get("stderr", "")).startswith("timeout"):
                     report["timeouts"] += 1
+                reason = str(res.get("stderr", ""))
+                if reason.startswith(("refused_empty_suite", "refused_zero_case_suite")):
+                    report["refused_suites"] += 1
+                elif reason.startswith("refused_forbidden_token"):
+                    report["refused_static"] += 1
+                fout.write(json.dumps({"task_id": row["task_id"], "sample": row.get("sample"), "passed": False, "reason": str(res.get("stderr", ""))[:200],
+                                       "cases": res["cases"], "judge": res["judge"], "checker": CHECKER, "_failure": True}, sort_keys=True) + "\n")
         fout.write(json.dumps({"_report": report}, sort_keys=True) + "\n")
     print(json.dumps(report))
     return 0

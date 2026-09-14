@@ -84,6 +84,17 @@ def main() -> int:
     if not tasks or not manifest["base_present"]:
         manifest.update(status="refused", reason="no tasks" if not tasks else "base weights channel has no config.json")
         (OUT_DIR / "burst_manifest.json").write_text(json.dumps(manifest, indent=2)); print(json.dumps(manifest)); return 3
+    requested = str(hp.get("adapter_generation") or "base")
+    if requested != "base" and not manifest["adapter_present"]:          # F07: never run the base while reporting a generation
+        manifest.update(status="refused", reason="adapter_generation %s requested but no adapter loaded" % requested)
+        (OUT_DIR / "burst_manifest.json").write_text(json.dumps(manifest, indent=2)); print(json.dumps(manifest)); return 5
+    if requested == "base" and manifest["adapter_present"]:
+        manifest.update(status="refused", reason="an adapter is present but the run claims the base")
+        (OUT_DIR / "burst_manifest.json").write_text(json.dumps(manifest, indent=2)); print(json.dumps(manifest)); return 5
+    if manifest["adapter_present"]:
+        cfg = json.loads((ADAPTER_DIR / "adapter_config.json").read_text())
+        manifest["adapter_config_sha256"] = hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()
+        manifest["adapter_base"] = cfg.get("base_model_name_or_path")
 
     from vllm import LLM, SamplingParams  # noqa: E402  -- inside the container only
     from vllm.lora.request import LoRARequest  # noqa: E402

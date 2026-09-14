@@ -120,6 +120,29 @@ def main() -> int:
         manifest.update(status="refused", reason="base weights channel has no config.json")
         (OUT_DIR / "train_manifest.json").write_text(json.dumps(manifest, indent=2))
         print(json.dumps(manifest)); return 4
+    # F20: the bytes we are about to train on are re-hashed against the staged manifest when it is present in the channel
+    base_manifest = next((p for p in (MODEL_DIR / "manifest.json", MODEL_DIR.parent / "manifest.json") if p.exists()), None)
+    if base_manifest is not None:
+        try:
+            listed = {f["path"]: f["sha256"] for f in json.loads(base_manifest.read_text()).get("files", []) if f.get("path") and f.get("sha256")}
+        except (ValueError, TypeError):
+            listed = {}
+        mismatched = []
+        for rel, expect in listed.items():
+            fp = MODEL_DIR / rel
+            if not fp.exists():
+                mismatched.append(rel + ":missing"); continue
+            h = hashlib.sha256()
+            with fp.open("rb") as fh:
+                for chunk in iter(lambda: fh.read(1 << 22), b""):
+                    h.update(chunk)
+            if h.hexdigest() != expect:
+                mismatched.append(rel)
+        manifest["base_files_verified"] = len(listed) - len(mismatched)
+        if mismatched:
+            manifest.update(status="refused", reason="base weight bytes do not match the staged manifest: %s" % mismatched[:5])
+            (OUT_DIR / "train_manifest.json").write_text(json.dumps(manifest, indent=2))
+            print(json.dumps(manifest)); return 6
 
     import torch  # noqa: E402  -- only inside the container
     from datasets import Dataset  # noqa: E402

@@ -51,7 +51,7 @@ def facts(store):
     control = _get(store, pri, "factory/control/gearb.json") or {}
     model_id = control.get("model_id")
     manifest = _get(store, pri, "factory/models/base/%s/manifest.json" % model_id) if model_id else None
-    champion = _get(store, pri, "factory/champions/current.json")
+    champion = _get(store, pri, "factory/gearb/champion.json") or _get(store, pri, "factory/champions/current.json")
     bursts = [_get(store, pri, k) for k in _list(store, pri, "factory/bursts/jobs/")]
     bursts = [b for b in bursts if b]
     summaries = []
@@ -114,7 +114,9 @@ def status_text(store):
     queued = [k for k in cards if "-result-" not in k]
     if cards:
         lines.append("Owner tasks: %d filed, %d with a verified solution (results sit next to the cards under factory/queue/tasks/)." % (len(queued), len(results)))
-    lines.append("What I have learned so far = the rows above that passed an independent checker; nothing else counts. Read receipts are not lessons.")
+    lines.append("States, kept separate (F16): read = receipts; attempted = burst candidates; verified example = a row that passed the "
+                 "independent judge; reusable skill = passes a DIFFERENT task later; adapter trained = a Gear B job; champion = promoted "
+                 "by the frozen exam. Only the last three change what I can do; nothing here claims them unless the objects above show them.")
     return "\n".join(lines)
 
 
@@ -138,8 +140,9 @@ def intake_task(store, agent, owner, text, *, tests=None):
     now = iso(store.clock())
     tid = "task-" + digest(body + now)[:12]
     gradable = bool(tests) or action in ("burst", "verify", "exam", "status", "spawn")
+    trainable = bool(re.search(r"\btrainable\b", body, flags=re.I))      # F22: training on an owner task needs the owner's word
     card = {"schema_version": "factory-task.v1", "id": tid, "from": identifier(agent), "at": now, "text": body[:2000], "scope": scope,
-            "action": action, "gradable": gradable, "tests": (tests or "")[:4000] or None, "status": "queued",
+            "action": action, "gradable": gradable, "tests": (tests or "")[:4000] or None, "status": "queued", "trainable": trainable,
             "route": ("lane action: " + INSIDE_ACTIONS[action]) if action in INSIDE_ACTIONS else
                      ("next burst as a prompt with the owner's acceptance tests; the verifier grades it" if tests else
                       "ungraded: answered from reading receipts + warehouse; supply `tests:` to make it a graded task")}

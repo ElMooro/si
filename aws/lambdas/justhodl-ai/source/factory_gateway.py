@@ -422,7 +422,10 @@ def _public_think(question, facts, history=None):
         return ""
     turns = ""
     for m in (history or [])[-6:]:
-        turns += "%s: %s\n" % ("OWNER" if m.get("role") == "owner" else "FACTORY", str(m.get("text") or "")[:400])
+        # F05: only the owner's own words leave the box; agent turns may carry Brain snippets and are never forwarded
+        if m.get("role") != "owner":
+            continue
+        turns += "OWNER: %s\n" % str(m.get("text") or "")[:400]
     prompt = "RECENT TURNS:\n%s\nQUESTION:\n%s\n\nPUBLIC LOOK + WAREHOUSE:\n%s" % (turns[-2400:], question[:1500], facts[:3500])
     try:
         txt = complete(prompt, tier="reason", max_tokens=500, contains_proprietary=False,
@@ -811,7 +814,10 @@ def chat_post(store, agent, owner, body, policy):
             raise Invalid("spawn_count_required")
     spawned = None
     want = spawn_n
-    if owner and not want and any(w in text.lower() for w in ("spawn", "create agents", "create workers", "hire")):
+    # F06: creation only on an explicit `spawn` field or an imperative that starts the message and carries no negation
+    low = " ".join(text.lower().split())
+    imperative = low.startswith(("spawn ", "spawn", "hire ", "create agents", "create workers")) and not any(n in low for n in ("not ", "don't", "do not", "never", "?"))
+    if owner and not want and imperative:
         want = 8
     if want:
         if not owner:

@@ -426,11 +426,11 @@ class StatusAndTasksTests(Base):
         self.assertIn('Qwen/Qwen2.5-Coder-7B-Instruct', out['reply'])
         self.assertIn('1765 candidates, 1165 passed (66.0%), 399 rows kept', out['reply'])
         self.assertIn('Verified curriculum rows on disk: 5', out['reply'])
-        self.assertIn('Read receipts are not lessons', out['reply'])
+        self.assertIn('read = receipts', out['reply'])
         # the question that used to advance a curriculum step is a capability question -> objects, not a lesson
         out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'are you learning to code?'}, store)
         self.assertEqual(out['model'], 'factory-status:objects')
-        self.assertIn('no live model inference behind this chat box', out['reply'])
+        self.assertIn('no OWNED-model inference runs behind this chat box', out['reply'])
         self.assertNotIn('LEARNED THIS TURN', out['reply'])
         # an explicit order advances the reading track and is labelled as reading, never learning
         out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'learn code'}, store)

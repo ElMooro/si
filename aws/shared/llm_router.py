@@ -96,7 +96,7 @@ def _claude(prompt, model, max_tokens, system=None):
     return txt, int(u.get("input_tokens") or 0), int(u.get("output_tokens") or 0)
 
 
-def _glm(prompt, model, max_tokens, system=None):
+def _glm(prompt, model, max_tokens, system=None, kind="glm"):
     if kind == "xai":
         try:
             import xai_voice
@@ -105,9 +105,9 @@ def _glm(prompt, model, max_tokens, system=None):
             print("[llm_router] xai", type(e).__name__)
             txt = ""
         if txt:
-            return txt
+            return txt, 0, 0          # same tuple contract as the GLM path
         print("[llm_router] xai empty -> deterministic caller fallback")
-        return ""
+        return "", 0, 0
     msgs = _msgs(prompt)
     if system:
         msgs = [{"role": "system", "content": system}] + msgs
@@ -177,14 +177,21 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
                 except Exception:
                     pass
                 return hit
+        except Exception:
+            key = None
+    # Spend admission runs on EVERY provider attempt, cached or not, no_cache or not (audit F03, 2026-09-14).
+    # An unreadable policy admits nothing: a paid call needs a positive answer from the cost service.
+    if llm_cost is not None:
+        try:
             if not llm_cost.budget_ok():
                 print("[llm_router] daily LLM budget cap hit (or mode=off) -> empty; engine uses deterministic fallback")
                 return ""
             if not llm_cost.within_daily_cap():
                 print("[llm_router] engine daily call cap reached -> empty; engine uses deterministic fallback")
                 return ""
-        except Exception:
-            key = None
+        except Exception as e:
+            print(f"[llm_router] cost policy unreadable ({type(e).__name__}) -> no paid call; deterministic fallback")
+            return ""
 
     # on-demand mode: scheduled/background calls stop here (cache above stays free);
     # only user-initiated calls (ask / ai-chat / page-AI button) pass on_demand=True.
@@ -202,7 +209,11 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
         if kind == "glm":
             if _tripped("glm"):
                 raise TimeoutError("glm circuit open")
-            txt, it, ot = _glm(prompt, GLM_REASON, max_tokens, system)
+            txt, it, ot = _glm(prompt, GLM_REASON, max_tokens, system, kind="glm")
+        elif kind == "xai":
+            if _tripped("xai"):
+                raise TimeoutError("xai circuit open")
+            txt, it, ot = _glm(prompt, model, max_tokens, system, kind="xai")
         else:
             if _tripped("claude"):
                 raise TimeoutError("claude circuit open")
