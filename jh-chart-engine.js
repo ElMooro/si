@@ -1,10 +1,10 @@
-/* JustHodl Chart engine v12.4 — Supercharts chrome; warehouse series first; Chart Pro untouched. */
+/* JustHodl Chart engine v12.5 — Supercharts chrome; warehouse D/W/M/3M; Chart Pro untouched. */
 (function () {
-  if (window.__jhChartEngineV124) return;
-  window.__jhChartEngineV124 = true;
+  if (window.__jhChartEngineV125) return;
+  window.__jhChartEngineV125 = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
-  var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","1d","10y"]];
+  var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","5y"],["2d","2D","1d","5y"],["3d","3D","1d","5y"],["5d","5D","1d","5y"],["1w","W","1wk","10y"],["2w","2W","1wk","10y"],["1M","M","1mo","10y"],["3M","3M","3mo","10y"]];
   var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPY"]];
   var BARS = { dod:1, wow:5, mom:21, qoq:63, yoy:252 };
   var TABS = ["SPY","QQQ","IWM","AAPL","MSFT","NVDA","AMZN","META","TSLA","XLE","TLT","GLD"];
@@ -117,6 +117,7 @@
   var overlayMap={}, ghostPt=null, dragState=null, patternsOn=true, newsMarks=true, magnetMode=2;
   var dark=true, liveOn=true, liveT=null, dwinOn=false, miniOn=false, leftOn=false, dockTab="";
   var oscCharts=[], lastTest=null, screenFilt="", paper={cash:100000,positions:{},trades:[],realized:0};
+  var preserveView=false;
   var lastVP={poc:null,vah:null,val:null};
   var tape={prints:[],src:"",vwap:null,buyVol:0,sellVol:0,delta:0,bid:null,ask:null,bidSz:null,askSz:null,filt:"all",sym:"",note:""};
   var tapeT=null;
@@ -172,6 +173,47 @@
   function toast(m){ var el=document.getElementById("toast"); el.textContent=m; el.className="on"; clearTimeout(toastT); toastT=setTimeout(function(){ el.className=""; }, 2800); }
   function uid(){ return "d"+Math.random().toString(36).slice(2,8); }
   function spec(tfId){ for(var i=0;i<TFS.length;i++) if(TFS[i][0]===tfId) return TFS[i]; return TFS.filter(function(t){return t[0]==="1d";})[0]||TFS[0]; }
+  function resampleToTf(d, tfId){
+    if(!d || d.length<2) return d||[];
+    var id=spec(tfId)[0];
+    if(!/^(2d|3d|5d|1w|2w|1M|3M)$/.test(id)) return d;
+    var step=0, i0;
+    if(d.length>=3){
+      var gaps=[], n0=Math.min(d.length-1, 80);
+      for(i0=d.length-n0;i0<d.length;i0++) if(i0>0) gaps.push(d[i0].time-d[i0-1].time);
+      gaps.sort(function(a,b){ return a-b; });
+      step=gaps[Math.floor(gaps.length/2)]||0;
+    }
+    var need=id==="1w"?5*86400: id==="2w"?10*86400: id==="1M"?20*86400: id==="3M"?70*86400: id==="2d"?1.5*86400: id==="3d"?2.5*86400: id==="5d"?4*86400: 0;
+    if(need && step>=need) return d;
+    function weekMon(t){
+      var dt=new Date(t*1000), day=dt.getUTCDay(), diff=(day+6)%7;
+      dt.setUTCDate(dt.getUTCDate()-diff); dt.setUTCHours(0,0,0,0);
+      return Math.floor(dt.getTime()/1000);
+    }
+    function bucket(t){
+      var dt=new Date(t*1000);
+      if(id==="1w") return weekMon(t);
+      if(id==="2w"){ var w=weekMon(t); return w - ((Math.floor(w/86400)%14)*86400); }
+      if(id==="1M") return Math.floor(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), 1)/1000);
+      if(id==="3M") return Math.floor(Date.UTC(dt.getUTCFullYear(), Math.floor(dt.getUTCMonth()/3)*3, 1)/1000);
+      var n=parseInt(id,10)||1;
+      return Math.floor(t/(n*86400))*(n*86400);
+    }
+    var map={}, order=[], i;
+    for(i=0;i<d.length;i++){
+      var b=d[i], k=bucket(b.time);
+      if(!map[k]){ map[k]={time:k,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0}; order.push(k); }
+      else {
+        var x=map[k];
+        if(b.high>x.high) x.high=b.high;
+        if(b.low<x.low) x.low=b.low;
+        x.close=b.close;
+        x.volume+=(b.volume||0);
+      }
+    }
+    return uniq(order.map(function(k){ return map[k]; }));
+  }
   function loadJSON(k, fb){ try{ var x=JSON.parse(localStorage.getItem(k)||""); return x||fb; }catch(e){ return fb; } }
   function saveJSON(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   function allTools(){ var a=[]; GROUPS.forEach(function(g){ a=a.concat(g.tools); }); return a; }
@@ -378,14 +420,36 @@
     }
     return uniq(out);
   }
+  function warehouseSpec(tfId){
+    var id=spec(tfId)[0];
+    if(id==="1s"||id==="1m") return {span:"minute",mult:1,days:7};
+    if(id==="3m") return {span:"minute",mult:3,days:30};
+    if(id==="5m") return {span:"minute",mult:5,days:30};
+    if(id==="15m") return {span:"minute",mult:15,days:90};
+    if(id==="30m") return {span:"minute",mult:30,days:180};
+    if(id==="45m") return {span:"minute",mult:45,days:180};
+    if(id==="1h") return {span:"hour",mult:1,days:730};
+    if(id==="2h") return {span:"hour",mult:2,days:730};
+    if(id==="4h") return {span:"hour",mult:4,days:1500};
+    if(id==="12h") return {span:"hour",mult:12,days:2000};
+    if(id==="2d") return {span:"day",mult:2,days:12000};
+    if(id==="3d") return {span:"day",mult:3,days:12000};
+    if(id==="5d") return {span:"day",mult:5,days:12000};
+    if(id==="1w") return {span:"week",mult:1,days:12000};
+    if(id==="2w") return {span:"week",mult:2,days:12000};
+    if(id==="1M") return {span:"month",mult:1,days:12000};
+    if(id==="3M") return {span:"month",mult:3,days:12000};
+    return {span:"day",mult:1,days:12000};
+  }
   async function klines(sym, tfId){
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var key=t+"|"+tfId, now=Date.now();
     if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=8){
       lastSource=barCache[key].src||lastSource; return barCache[key].d;
     }
+    var ws=warehouseSpec(tfId);
     var urls=[
-      PROXY+"/ohlc?ticker="+encodeURIComponent(t)+"&span="+((/^[0-9]+[sm]$/.test(tfId)||tfId==="1m"||tfId==="3m"||tfId==="5m"||tfId==="15m"||tfId==="30m"||tfId==="45m")?"minute": (/h$/.test(tfId)?"hour":"day")),
+      PROXY+"/ohlc?ticker="+encodeURIComponent(t)+"&span="+ws.span+"&mult="+ws.mult+"&days="+ws.days,
       PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys)+"&range="+sp[3]+"&interval="+sp[2],
       PROXY+"/yf-ohlc?symbol="+encodeURIComponent(t)+"&range="+sp[3]+"&interval="+sp[2],
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
@@ -399,6 +463,8 @@
       try{
         var raw=await fetchJson(urls[i]); var d=toBars(raw);
         if(d.length>8000) d=d.slice(-8000); if(d.length>=8){
+          d=resampleToTf(d, tfId);
+          if(d.length<2) continue;
           lastSource=(raw&& (raw.warehouse_key||raw.source)) || (urls[i].indexOf("/ohlc")>=0?"warehouse": urls[i].indexOf("/api/klines")===0?"binance": urls[i].indexOf(PROXY)===0?"proxy": "feed");
           var scored=volScore(d);
           if(!raw.warehouse_key && scored<d.length*0.2 && i<urls.length-1) continue;
@@ -508,7 +574,9 @@
     return d;
   }
   async function paint(d){
-    if(!d||!d.length){ document.getElementById("quote").textContent="No bars for "+active; return; }
+    if(!d||!d.length){ toast("No bars for "+active); var qe=document.getElementById("quote"); if(qe) qe.textContent="No bars for "+active; return; }
+    var saved=null;
+    if(preserveView){ try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){} }
     wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;}catch(e){}
     var p=pal();
     chart.applyOptions({
@@ -615,7 +683,11 @@
       h.setData((pct||[]).map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));
       series.push(h); mainSeries=h;
     }
-    chart.timeScale().fitContent();
+    if(saved && saved.from!=null && saved.to!=null){
+      try{ chart.timeScale().setVisibleLogicalRange(saved); }catch(e){ showRecentBars(200); }
+    } else {
+      showRecentBars(200);
+    }
     paintOsc(d);
     drawSVG();
     quoteUI(d);
@@ -878,11 +950,13 @@
     el.querySelectorAll("[data-f]").forEach(function(b){ b.onclick=function(){ tape.filt=b.dataset.f; renderQR(); }; });
   }
   async function load(){
+    preserveView=false;
     try{
       var d=await klines(active,tf);
       if(!d.length){ lastSource="unavailable"; }
       if(replay.on) d=d.slice(0, replay.i||d.length);
       await paint(d);
+      preserveView=true;
       if(layout>1) paintPanes();
       loadTape(true);
     }catch(e){
@@ -911,7 +985,17 @@
       if(!r) return;
       var mid=(r.from+r.to)/2, span=(r.to-r.from)*(dir>0?0.8:1.25);
       chart.timeScale().setVisibleLogicalRange({from:mid-span/2, to:mid+span/2});
+      preserveView=true;
     }catch(e){}
+  }
+  function showRecentBars(n){
+    n=n||200;
+    try{
+      var ts=chart.timeScale();
+      var len=(lastBars&&lastBars.length)||0;
+      if(len<8){ ts.fitContent(); return; }
+      ts.setVisibleLogicalRange({from:Math.max(-0.5, len-n), to:len+5});
+    }catch(e){ try{ chart.timeScale().fitContent(); }catch(e2){} }
   }
   async function paintPanes(){
     var extras=TABS.filter(function(s){ return s!==active; });
@@ -1194,7 +1278,7 @@
     var kindLab=(KINDS.filter(function(k){return k[0]===kind;})[0]||KINDS[0])[1];
     var scLab=(SCALES.filter(function(s){return +s[0]===scaleMode;})[0]||SCALES[0])[1];
     var mdLab=(CHG.filter(function(t){return t[0]===mode;})[0]||CHG[0])[1];
-    var TF_FAVS=["1m","5m","15m","1h","1d","1w","1M"];
+    var TF_FAVS=["1m","5m","15m","1h","1d","1w","1M","3M"];
     var favOn=TF_FAVS.indexOf(tf)>=0;
     var tfHtml=TFS.filter(function(t){ return TF_FAVS.indexOf(t[0])>=0; }).map(function(t){
       return "<button class='"+(t[0]===tf?"on":"")+"' data-tf='"+t[0]+"'>"+t[1]+"</button>";
@@ -2387,6 +2471,8 @@
   var fab=document.getElementById("listfab");
   if(fab) fab.onclick=function(){ watchOpen=!watchOpen; document.getElementById("watch").className="watch"+(watchOpen?"":" hide"); fab.textContent=watchOpen?"Chart":"List"; };
   var hk=document.getElementById("btn-keys"); if(hk) hk.onclick=openKeys;
+  var zp=document.getElementById("z-plus"); if(zp) zp.onclick=function(){ zoomChart(1); };
+  var zm=document.getElementById("z-minus"); if(zm) zm.onclick=function(){ zoomChart(-1); };
   if(layout>1) setLayout(layout);
   loadLists().then(function(){ renderList(); renderDetail(); });
   loadIntel(); loadNews();

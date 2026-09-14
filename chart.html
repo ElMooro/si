@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off" data-theme="dark">
 <head><style id=jh-studio-css>
-#watch{width:280px;min-width:180px;max-width:none;overflow:auto;border-left:1px solid var(--bd,#2a2e39)}
+#watch{width:280px;min-width:180px;max-width:none;overflow:hidden;display:flex;flex-direction:column;border-left:1px solid var(--bd,#2a2e39)}
 #watch.hide{width:0;min-width:0;max-width:0;overflow:hidden;border:0}
 #quote .jh-dump{display:none}
 #tape{display:none!important}
@@ -10,7 +10,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-3";
+  var G="jh-tvux-5";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -300,7 +300,14 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #dock .dtabs{height:32px}
 #dock .dtabs button{padding:0 14px;font-size:12px}
 #dock .dtabs button.on{color:#2962ff;border-top:0;border-bottom:2px solid #2962ff;background:transparent}
-#tape,#listfab,#chgbar{display:none!important}
+#tape,#listfab,#chgbar,#quote,#desk-intel,#detail,#intel,#paste,.filt:has(#paste){display:none!important}
+#watch{overflow:hidden}
+#w-list{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#wlist{flex:1;overflow:auto;min-height:0}
+#tv-zoom{position:absolute;right:8px;bottom:30px;z-index:8;display:flex;flex-direction:column;border:1px solid #2a2e39;border-radius:4px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#tv-zoom button{width:28px;height:28px;border-radius:0;background:#1e222d;border:0;border-bottom:1px solid #2a2e39;color:#d1d4dc;font-size:18px;line-height:26px;font-weight:500}
+#tv-zoom button:last-child{border-bottom:0}
+#tv-zoom button:hover{background:#2a2e39;color:#fff}
 @media(max-width:720px){ #listfab{display:none!important} }
 </style>
 </head>
@@ -327,6 +334,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
           <div id="ohlc"></div>
           <div id="obj"></div>
           <div id="props"></div>
+          <div id="tv-zoom"><button type="button" id="z-plus" title="Zoom in">+</button><button type="button" id="z-minus" title="Zoom out">−</button></div>
         </div>
         <div class="pane" id="chart2" style="display:none"><div class="host" id="host2"></div></div>
         <div class="pane" id="chart3" style="display:none"><div class="host" id="host3"></div></div>

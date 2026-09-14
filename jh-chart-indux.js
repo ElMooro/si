@@ -76,7 +76,7 @@
     ".w-split{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:ew-resize;z-index:12}",
     ".w-split:hover,.w-split.drag{background:#2962ff}",
     ".watch,#watch{max-width:none}",
-    "#quote .sell,#quote .buy{display:none}"
+    "#quote .sell,#quote .buy,#quote,#desk-intel,#detail,#intel{display:none!important}",
   ].join("");
   document.documentElement.appendChild(css);
 
