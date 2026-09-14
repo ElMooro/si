@@ -1,41 +1,37 @@
 /* jh-reskin-skip */
-/* JustHodl Chart Patterns v1 — D+ only, S&P-calibrated.
+/* JustHodl Chart Patterns v2 — D+ only, S&P-calibrated.
    Confirmation-only (no look-ahead). Track record: ^GSPC 1980–now + SPY 1993–now,
    next-open after confirm, 10-session horizon vs unconditional drift.
 
    KEPT as signals
      Double bottom (neckline close, quieter 2nd low): GSPC n=99 hit 65.7% mean +0.72%
        edge +0.30% t=3.1; SPY n=105 hit 64.8% mean +0.55%. Weekly GSPC n=26 hit 80.8%.
-     3-touch resistance break: SPY n=19 hit 78.9% mean +1.09% edge +0.71% t=3.1;
-       GSPC n=25 hit 64.0% mean +1.28% edge +0.87%.
+     3-touch resistance break: SPY n=39 hit 79.5% mean +1.07% edge +0.68% t=3.6;
+       GSPC n=75 hit 76.0% mean +1.31% edge +0.89% t=4.8.
 
-   KEPT as a map (not a 10d trade)
-     Clustered S/R (3+ swings within 0.7%): next-visit reaction 54–76% vs ~33–55% random.
-     Fresh supply/demand boxes (impulse → base → departure): first touch rarely smashes
-       the whole zone (SPY demand hold 98% / supply 95% of first tests). 10d bounce is
-       NOT an edge — boxes are location, not a buy.
+   KEPT as textbook measured-move targets (hit before invalidation, 80 bars)
+     DB 0.5× neck-height: SPY 76% / GSPC 75%  — first objective.
+     DB 1.0× neck-height (textbook): SPY 54% / GSPC 53%  — full measured move.
+     R-BRK 0.382× range: SPY 64%  — first objective. GSPC 43% (cash-index ranges are huge).
+     R-BRK 1.0× range (textbook): SPY 38% / GSPC 23%  — drawn as the book target, not a high-odds hit.
 
    KEPT as cycle events (existing gold list, 100% of S&P panics 1980–now)
      Livermore BOTTOM / TOP / REV-UP / REV-DN. Wyckoff SC/CAPIT · SOS/EOA · SOW/EOD · BC.
      Livermore danger: last pivot high/low as PH / PL rays.
 
+   MOVED to dedicated studies
+     Clustered S/R rails → Support & Resistance (volume-confirmed).
+     Wyckoff volume demand/supply boxes → Supply & Demand.
+
    DROPPED on D+ S&P (hit ≈ drift or the short lost money)
      Doji, hammer, engulfing, H&S, double top-as-short, flags, triangles, cup-handle,
      52-week breakdown. Those live in Candle patterns if you still want the wallpaper. */
 (function (root) {
-  if (root.__jhChartPatternsV1) return;
+  if (root.__jhChartPatternsV2) return;
+  root.__jhChartPatternsV2 = true;
   root.__jhChartPatternsV1 = true;
-  var UP = "#089981", DN = "#f23645";
+  var UP = "#089981", DN = "#f23645", GOLD = "#f0b429", CYAN = "#26c6da", MUTE = "#787b86";
 
-  function atrAt(d, i, n) {
-    n = n || 14;
-    var s = 0, c = 0, j, tr;
-    for (j = Math.max(1, i - n); j < i; j++) {
-      tr = Math.max(d[j].high - d[j].low, Math.abs(d[j].high - d[j - 1].close), Math.abs(d[j].low - d[j - 1].close));
-      s += tr; c++;
-    }
-    return c ? s / c : (d[i] && d[i].close ? d[i].close * 0.01 : 1);
-  }
   function dailyPlus(d) {
     if (!d || d.length < 3) return false;
     var dt = d[d.length - 1].time - d[d.length - 2].time;
@@ -114,29 +110,30 @@
           if (d[k].close > neck) { conf = k; break; }
         }
         if (conf == null || used[conf]) {
-          /* forming: 2nd low in, last bar still under neck but within 2.5% */
           if (conf == null && n - 1 - i2 <= 25 && d[n - 1].close <= neck && neck > 0 && (neck - d[n - 1].close) / neck <= 0.025) {
-            out.push({ kind: "db_form", dir: 1, i: n - 1, t: d[n - 1].time, i1: i1, i2: i2, p1: p1, p2: p2, neck: neck, t1: d[i1].time, t2: d[i2].time });
+            out.push({ kind: "db_form", dir: 1, i: n - 1, t: d[n - 1].time, i1: i1, i2: i2, p1: p1, p2: p2, neck: neck, t1: d[i1].time, t2: d[i2].time, height: neck - Math.min(p1, p2) });
           }
           continue;
         }
         used[conf] = 1;
-        out.push({ kind: "db", dir: 1, i: conf, t: d[conf].time, i1: i1, i2: i2, p1: p1, p2: p2, neck: neck, t1: d[i1].time, t2: d[i2].time, tN: d[conf].time });
+        out.push({ kind: "db", dir: 1, i: conf, t: d[conf].time, i1: i1, i2: i2, p1: p1, p2: p2, neck: neck, t1: d[i1].time, t2: d[i2].time, tN: d[conf].time, height: neck - Math.min(p1, p2) });
       }
     }
     return out;
   }
 
   function resBreaks(d, res) {
-    var out = [], used = {}, zi, z, k, n = d.length;
+    var out = [], used = {}, zi, z, k, n = d.length, loRng, j;
     for (zi = 0; zi < res.length; zi++) {
       z = res[zi];
       if (z.n < 3) continue;
+      loRng = 1e99;
+      for (j = z.first; j <= z.last; j++) if (d[j].low < loRng) loRng = d[j].low;
       for (k = z.last + 1; k < Math.min(z.last + 40, n); k++) {
         if (d[k].close > z.lvl * 1.002) {
           if (!used[k]) {
             used[k] = 1;
-            out.push({ kind: "rbrk", dir: 1, i: k, t: d[k].time, lvl: z.lvl, t0: z.t0, n: z.n });
+            out.push({ kind: "rbrk", dir: 1, i: k, t: d[k].time, lvl: z.lvl, t0: z.t0, n: z.n, depth: z.lvl - loRng, lo: loRng });
           }
           z.broke = k; z.brokeT = d[k].time;
           break;
@@ -144,64 +141,6 @@
       }
     }
     return out;
-  }
-
-  function sdZones(d) {
-    var n = d.length, demand = [], supply = [], i, j, k, A, drop, rally, blo, bhi, blen, born;
-    for (i = 20; i < n - 16; i++) {
-      A = atrAt(d, i, 14);
-      drop = d[i].close / d[i - 8].close - 1;
-      if (drop <= -0.045 || (d[i - 8].close - d[i].close) >= 2.0 * A) {
-        for (blen = 3; blen <= 7; blen++) {
-          j = i + blen; if (j >= n - 8) break;
-          blo = 1e99; bhi = -1e99;
-          for (k = i; k <= j; k++) { if (d[k].low < blo) blo = d[k].low; if (d[k].high > bhi) bhi = d[k].high; }
-          if ((bhi - blo) / d[i].close > 0.022) continue;
-          if (A && (bhi - blo) > 1.4 * A) continue;
-          born = null;
-          for (k = j + 2; k < Math.min(j + 16, n); k++) {
-            if (d[k].close > d[i - 8].close) { born = k; break; }
-          }
-          if (born != null) {
-            demand.push({ kind: "dem", z0: blo, z1: bhi, t0: d[i].time, i0: i, born: born, tBorn: d[born].time });
-            i = born; break;
-          }
-        }
-      }
-      rally = d[i].close / d[i - 8].close - 1;
-      if (rally >= 0.045 || (d[i].close - d[i - 8].close) >= 2.0 * A) {
-        for (blen = 3; blen <= 7; blen++) {
-          j = i + blen; if (j >= n - 8) break;
-          blo = 1e99; bhi = -1e99;
-          for (k = i; k <= j; k++) { if (d[k].low < blo) blo = d[k].low; if (d[k].high > bhi) bhi = d[k].high; }
-          if ((bhi - blo) / d[i].close > 0.022) continue;
-          if (A && (bhi - blo) > 1.4 * A) continue;
-          born = null;
-          for (k = j + 2; k < Math.min(j + 16, n); k++) {
-            if (d[k].close < d[i - 8].close) { born = k; break; }
-          }
-          if (born != null) {
-            supply.push({ kind: "sup", z0: blo, z1: bhi, t0: d[i].time, i0: i, born: born, tBorn: d[born].time });
-            i = born; break;
-          }
-        }
-      }
-    }
-    function mitigate(zones, bull) {
-      var z, k, last = n - 1;
-      for (z = 0; z < zones.length; z++) {
-        zones[z].fresh = 1; zones[z].t1 = d[last].time; zones[z].i1 = last;
-        for (k = zones[z].born + 1; k < n; k++) {
-          if (bull) {
-            if (d[k].close < zones[z].z0) { zones[z].fresh = 0; zones[z].t1 = d[k].time; zones[z].i1 = k; break; }
-          } else {
-            if (d[k].close > zones[z].z1) { zones[z].fresh = 0; zones[z].t1 = d[k].time; zones[z].i1 = k; break; }
-          }
-        }
-      }
-    }
-    mitigate(demand, 1); mitigate(supply, 0);
-    return { demand: demand, supply: supply };
   }
 
   function tapeMarks(d) {
@@ -218,6 +157,18 @@
     return lastN(lv, 8).concat(lastN(wy, 8));
   }
 
+  function tgtLine(t0, t1, px, lastHigh, lab, color) {
+    var hit = lastHigh >= px;
+    return {
+      t0: t0, t1: t1, px: px,
+      color: hit ? MUTE : color,
+      dash: "4 3",
+      lab: hit ? lab + " HIT" : lab,
+      kind: "tgt",
+      hit: hit ? 1 : 0
+    };
+  }
+
   function detect(d) {
     var empty = { markers: [], zones: [], lines: [], shapes: [], note: "need D+", legend: "" };
     if (!dailyPlus(d) || d.length < 80) {
@@ -227,48 +178,10 @@
     var sw = swings(d, 5);
     var last = d[d.length - 1];
     var res = cluster(sw.hi, 0.007, 3);
-    var sup = cluster(sw.lo, 0.007, 3);
     var db = doubleBottoms(d, sw.lo);
     var brk = resBreaks(d, res);
-    var sd = sdZones(d);
-    var mk = [], lines = [], zones = [], shapes = [], i, z, near;
+    var mk = [], lines = [], zones = [], shapes = [], z;
 
-    function nearPx(px, band) { return Math.abs(px - last.close) / last.close <= (band || 0.10); }
-
-    /* S/R rails — nearest 5 of each, skip broken unless recent */
-    res.sort(function (a, b) { return Math.abs(a.lvl - last.close) - Math.abs(b.lvl - last.close); });
-    sup.sort(function (a, b) { return Math.abs(a.lvl - last.close) - Math.abs(b.lvl - last.close); });
-    var nr = 0, ns = 0;
-    for (i = 0; i < res.length && nr < 5; i++) {
-      z = res[i];
-      if (!nearPx(z.lvl, 0.16) && !(z.broke != null && (d.length - 1 - z.broke) < 30)) continue;
-      if (z.broke && z.broke < d.length - 40) continue;
-      lines.push({ t0: z.t0, t1: z.brokeT || last.time, px: z.lvl, color: z.broke ? "#787b86" : DN, dash: z.broke ? "5 4" : "0", lab: "R×" + z.n, kind: "res" });
-      nr++;
-    }
-    for (i = 0; i < sup.length && ns < 5; i++) {
-      z = sup[i];
-      if (!nearPx(z.lvl, 0.18)) continue;
-      lines.push({ t0: z.t0, t1: last.time, px: z.lvl, color: UP, dash: "0", lab: "S×" + z.n, kind: "sup" });
-      ns++;
-    }
-
-    /* Fresh S/D only, nearest 4 each */
-    function takeFresh(arr, bull, col, lab) {
-      var a = arr.filter(function (x) { return x.fresh; });
-      a.sort(function (p, q) {
-        var mp = Math.abs((p.z0 + p.z1) / 2 - last.close), mq = Math.abs((q.z0 + q.z1) / 2 - last.close);
-        return mp - mq;
-      });
-      a = a.filter(function (x) { return nearPx((x.z0 + x.z1) / 2, 0.22); }).slice(0, 3);
-      a.forEach(function (x) {
-        zones.push({ t0: x.t0, t1: last.time, lo: x.z0, hi: x.z1, color: col, lab: lab, kind: bull ? "dem" : "supz" });
-      });
-    }
-    takeFresh(sd.demand, 1, "rgba(8,153,129,.16)", "DEMAND");
-    takeFresh(sd.supply, 0, "rgba(242,54,69,.14)", "SUPPLY");
-
-    /* Confirmed double bottoms in the last ~1.5y of bars + forming */
     var recent = Math.max(0, d.length - 280);
     var dbDrawn = 0;
     db.slice().reverse().forEach(function (p) {
@@ -276,11 +189,15 @@
         dbDrawn++;
         mk.push({ time: p.t, position: "belowBar", color: UP, shape: "arrowUp", text: "DB" });
         shapes.push({ kind: "db", t1: p.t1, p1: p.p1, t2: p.t2, p2: p.p2, neck: p.neck, tN: p.tN, color: UP });
-        lines.push({ t0: p.t1, t1: last.time, px: p.neck, color: "#26c6da", dash: "4 3", lab: "DB neck", kind: "neck" });
+        lines.push({ t0: p.t1, t1: last.time, px: p.neck, color: CYAN, dash: "4 3", lab: "DB neck", kind: "neck" });
+        if (p.height > 0) {
+          lines.push(tgtLine(p.tN, last.time, p.neck + 0.5 * p.height, last.high, "DB 0.5×", CYAN));
+          lines.push(tgtLine(p.tN, last.time, p.neck + p.height, last.high, "DB 1.0×", GOLD));
+        }
       } else if (p.kind === "db_form" && p.i2 >= recent && dbDrawn < 2) {
-        mk.push({ time: p.t2, position: "belowBar", color: "#26c6da", shape: "circle", text: "DB?" });
-        shapes.push({ kind: "db", t1: p.t1, p1: p.p1, t2: p.t2, p2: p.p2, neck: p.neck, tN: last.time, color: "#26c6da" });
-        lines.push({ t0: p.t1, t1: last.time, px: p.neck, color: "#26c6da", dash: "4 3", lab: "DB neck", kind: "neck" });
+        mk.push({ time: p.t2, position: "belowBar", color: CYAN, shape: "circle", text: "DB?" });
+        shapes.push({ kind: "db", t1: p.t1, p1: p.p1, t2: p.t2, p2: p.p2, neck: p.neck, tN: last.time, color: CYAN });
+        lines.push({ t0: p.t1, t1: last.time, px: p.neck, color: CYAN, dash: "4 3", lab: "DB neck", kind: "neck" });
       }
     });
     var brkDrawn = 0;
@@ -288,6 +205,11 @@
       if (p.i >= recent && brkDrawn < 2) {
         brkDrawn++;
         mk.push({ time: p.t, position: "belowBar", color: UP, shape: "arrowUp", text: "R-BRK" });
+        lines.push({ t0: p.t0, t1: p.t, px: p.lvl, color: UP, dash: "4 3", lab: "R-BRK", kind: "rbrk" });
+        if (p.depth > 0 && p.depth / p.lvl < 0.45) {
+          lines.push(tgtLine(p.t, last.time, p.lvl + 0.382 * p.depth, last.high, "0.38×", CYAN));
+          lines.push(tgtLine(p.t, last.time, p.lvl + p.depth, last.high, "1.0× book", GOLD));
+        }
       }
     });
 
@@ -306,13 +228,8 @@
     var bits = [];
     if (db.some(function (p) { return p.kind === "db" && p.i >= recent; })) bits.push("DB");
     if (brk.some(function (p) { return p.i >= recent; })) bits.push("R-BRK");
-    if (nr) bits.push(nr + "R");
-    if (ns) bits.push(ns + "S");
-    var nd = zones.filter(function (x) { return x.kind === "dem"; }).length;
-    var nsu = zones.filter(function (x) { return x.kind === "supz"; }).length;
-    if (nd) bits.push(nd + "D");
-    if (nsu) bits.push(nsu + "Sply");
-    near = res[0] ? res[0].lvl : (sup[0] ? sup[0].lvl : last.close);
+    if (lines.some(function (x) { return x.kind === "tgt" && !x.hit; })) bits.push("tgt");
+    var near = last.close;
 
     return {
       markers: mk,
