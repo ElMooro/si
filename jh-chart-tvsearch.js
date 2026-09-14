@@ -135,7 +135,8 @@
     return "<div class=blk><h4>" + esc(title) + "</h4>" + inner + "</div>";
   }
 
-  function renderOver(d, bars, q) {
+  function renderOver(d, bars, q, pack) {
+    pack = pack || {};
     var x = pick(d);
     var last = bars && bars.length ? bars[bars.length - 1] : null;
     var px = last ? last.close : num(q && q.last) || num(x.p.regularMarketPrice);
@@ -173,7 +174,10 @@
       ["Float", fmtBig(num(x.ks.floatShares))],
       ["Shares out", fmtBig(num(x.ks.sharesOutstanding))]
     ]);
-    return "<div class=kpi>" + kpis + "</div>" + blk("Total return", retHtml) + blk("Profile", profile);
+    var etfBit = "";
+    if (window.JHEtfFuse && window.JHEtfFuse.isFund(pack.etfRow, pack.polyEtf)) etfBit = renderPolyEtf(pack);
+    else if (pack.etfHolders && pack.etfHolders.length) etfBit = renderHold(d, pack);
+    return "<div class=kpi>" + kpis + "</div>" + blk("Total return", retHtml) + blk("Profile", profile) + etfBit;
   }
 
   function renderRelated(pack) {
@@ -345,7 +349,8 @@
     ]));
   }
 
-  function renderHold(d) {
+  function renderHold(d, pack) {
+    pack = pack || {};
     var j = d || {};
     var mh = j.majorHoldersBreakdown || {};
     var inst = ((j.institutionOwnership || {}).ownershipList) || [];
@@ -361,6 +366,19 @@
           return "<tr><td>" + esc(h.organization || h.holder || "") + "</td><td>" +
             (num(h.pctHeld) != null ? (num(h.pctHeld) * 100).toFixed(2) + "%" : "—") + "</td><td>" +
             fmtBig(num(h.position) || num(h.shares)) + "</td></tr>";
+        }).join("") + "</tbody></table>");
+    }
+    var etfH = pack.etfHolders || [];
+    if (etfH.length) {
+      var dem = window.JHEtfFuse ? window.JHEtfFuse.impliedDemand(etfH) : null;
+      html += blk("ETF Global look-through (funds that hold this name)", "<div class=kpi>" +
+        kpi("Implied 1D", fmtBig(dem)) + kpi("Funds", String(etfH.length)) + "</div>" +
+        "<table><thead><tr><th>ETF</th><th>Wgt</th><th>Flow 1D</th><th>Print</th></tr></thead><tbody>" +
+        etfH.slice(0, 16).map(function (h) {
+          return "<tr><td><a href='/chart.html?s=" + encodeURIComponent(h.etf) + "'>" + esc(h.etf) +
+            "</a></td><td>" + (num(h.w) != null ? ((h.w < 1 ? h.w * 100 : h.w).toFixed(2) + "%") : "—") +
+            "</td><td class='" + cls(h.flow_1d) + "'>" + fmtBig(h.flow_1d) + "</td><td>" +
+            esc(h.flow_label || "") + "</td></tr>";
         }).join("") + "</tbody></table>");
     }
     return html;
@@ -450,30 +468,84 @@
       }).join("") + "</tbody></table>");
   }
   function renderPolyEtf(pack) {
+    var F = window.JHEtfFuse;
     var j = pack.polyEtf || {};
-    var flows = polyRows(j.flows);
-    var prof = polyRows(j.profile)[0] || {};
-    var holds = polyRows(j.holdings);
-    if (!flows.length && !Object.keys(prof).length) {
-      return "<div class=empty>ETF Global add-ons have no print for this ticker — it may not be a fund.</div>";
+    var row = (pack.etfRow) || {};
+    var flows = (F ? F.polyRows(j.flows) : (j.flows && j.flows.results) || []) || [];
+    var prof = ((F ? F.polyRows(j.profile) : (j.profile && j.profile.results) || [])[0]) || {};
+    var holds = (F ? F.polyRows(j.holdings) : (j.holdings && j.holdings.results) || []) || [];
+    if (row.top && row.top.length && !holds.length) {
+      holds = row.top.map(function (h) { return { constituent_ticker: h.t, constituent_name: h.n, weight: h.w, market_value: h.mv }; });
+    }
+    if (!flows.length && !Object.keys(prof).length && !row.aum && !(pack.etfHolders && pack.etfHolders.length)) {
+      return "<div class=empty>ETF Global has no fund print for this ticker — if it is a stock, open Holders for the look-through of funds that own it.</div>";
     }
     var latest = flows[0] || {};
-    var html = blk("ETF Global profile", table([
-      ["Issuer", esc(prof.issuer || prof.advisor || "—")],
-      ["AUM", fmtBig(num(prof.aum))],
-      ["NAV", fmt(num(latest.nav), 3)],
-      ["Shares", fmtBig(num(latest.shares_outstanding))],
-      ["Asset class", esc(prof.asset_class || "—")],
-      ["Benchmark", esc(prof.primary_benchmark || "—")],
-      ["Flow 1D", fmtBig(num(latest.fund_flow))]
+    var aum = num(row.aum) || num(prof.aum);
+    var er = num(row.er) || num(prof.net_expense_ratio) || num(prof.expense_ratio);
+    var f1 = num(row.flow_1d) != null ? num(row.flow_1d) : num(latest.fund_flow);
+    var f5 = num(row.flow_5d);
+    var f21 = num(row.flow_21d);
+    if (f5 == null && flows.length) {
+      f5 = 0; flows.slice(0, 5).forEach(function (r) { f5 += num(r.fund_flow) || 0; });
+    }
+    if (f21 == null && flows.length) {
+      f21 = 0; flows.slice(0, 21).forEach(function (r) { f21 += num(r.fund_flow) || 0; });
+    }
+    var erTxt = F ? F.fmtEr(er) : (er == null ? "—" : er.toFixed(3) + "%");
+    var html = "<div class=kpi>" + [
+      kpi("AUM", fmtBig(aum)),
+      kpi("ER", erTxt),
+      kpi("Flow 1D", fmtBig(f1)),
+      kpi("Flow 5D", fmtBig(f5)),
+      kpi("Flow 21D", fmtBig(f21)),
+      kpi("NAV", fmt(num(row.nav) || num(latest.nav), 3))
+    ].join("") + "</div>";
+    html += blk("ETF Global profile (paid)", table([
+      ["Name", esc(row.name || prof.description || prof.fund_name || "—")],
+      ["Issuer", esc(row.issuer || prof.issuer || prof.advisor || "—")],
+      ["Asset class", esc(row.asset_class || prof.asset_class || "—")],
+      ["Category", esc(row.category || prof.category || prof.focus || "—")],
+      ["Benchmark", esc(row.benchmark || prof.primary_benchmark || "—")],
+      ["Inception", esc(row.inception || prof.inception_date || "—")],
+      ["Shares out", fmtBig(num(row.shares) || num(latest.shares_outstanding))],
+      ["Holdings", fmt(row.holdings_n)],
+      ["HHI", row.hhi != null ? fmt(row.hhi, 0) : "—"],
+      ["Leverage", esc(row.leverage || "—")],
+      ["As-of", esc(row.flow_asof || latest.processed_date || "—")]
     ]));
+    var sec = row.sector || [];
+    if (sec.length) {
+      html += blk("Sector exposure", "<table><thead><tr><th>Sector</th><th>Wgt</th></tr></thead><tbody>" +
+        sec.map(function (x) {
+          var w = num(x.w);
+          return "<tr><td>" + esc(x.k) + "</td><td>" + (w == null ? "—" : ((w < 1 ? w * 100 : w).toFixed(1) + "%")) + "</td></tr>";
+        }).join("") + "</tbody></table>");
+    }
+    var geo = row.geo || [];
+    if (geo.length) {
+      html += blk("Geographic exposure", "<table><thead><tr><th>Region</th><th>Wgt</th></tr></thead><tbody>" +
+        geo.map(function (x) {
+          var w = num(x.w);
+          return "<tr><td>" + esc(x.k) + "</td><td>" + (w == null ? "—" : ((w < 1 ? w * 100 : w).toFixed(1) + "%")) + "</td></tr>";
+        }).join("") + "</tbody></table>");
+    }
     if (holds.length) {
-      html += blk("Top holdings", "<table><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th></tr></thead><tbody>" +
-        holds.slice(0, 12).map(function (h) {
-          var w = num(h.weight);
-          return "<tr><td>" + (h.constituent_rank || "") + "</td><td>" + esc(h.constituent_ticker || "") +
-            "</td><td>" + esc(h.constituent_name || "") + "</td><td>" +
-            (w != null ? ((w < 1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td></tr>";
+      html += blk("Top holdings (constituents)", "<table><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th></tr></thead><tbody>" +
+        holds.slice(0, 16).map(function (h, i) {
+          var w = num(h.weight != null ? h.weight : h.w);
+          var tk = h.constituent_ticker || h.t || "";
+          return "<tr><td>" + (h.constituent_rank || h.rank || (i + 1)) + "</td><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" +
+            esc(tk) + "</a></td><td>" + esc(h.constituent_name || h.n || "") + "</td><td>" +
+            (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td></tr>";
+        }).join("") + "</tbody></table>");
+    }
+    if (flows.length) {
+      html += blk("Creation / redemption tape", "<table><thead><tr><th>Date</th><th>Flow</th><th>NAV</th><th>Shares</th></tr></thead><tbody>" +
+        flows.slice(0, 16).map(function (r) {
+          var f = num(r.fund_flow);
+          return "<tr><td>" + esc(r.processed_date || "") + "</td><td class='" + cls(f) + "'>" + fmtBig(f) +
+            "</td><td>" + fmt(num(r.nav), 3) + "</td><td>" + fmtBig(num(r.shares_outstanding)) + "</td></tr>";
         }).join("") + "</tbody></table>");
     }
     return html;
@@ -486,7 +558,7 @@
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
-    if (tab === "over") html = renderOver(d, bars, q) + renderRelated(pack);
+    if (tab === "over") html = renderOver(d, bars, q, pack) + renderRelated(pack);
     else if (tab === "stats") html = renderStats(d, bars);
     else if (tab === "val") html = renderVal(d);
     else if (tab === "fin") html = renderFin(d);
@@ -497,7 +569,7 @@
     else if (tab === "short") html = renderPolyShort(pack);
     else if (tab === "opt") html = renderPolyOpt(pack);
     else if (tab === "etf") html = renderPolyEtf(pack);
-    else html = renderHold(d);
+    else html = renderHold(d, pack);
     var src = (pack.src && pack.src.length) ? pack.src.join(" · ") : "computed from chart bars";
     body.innerHTML = html + "<div class=src>" + esc(src) + " · delayed · not advice</div>";
   }
@@ -596,6 +668,23 @@
         pack.src.push("Polygon news/div/splits/related");
       }
     } catch (e5) {}
+    try {
+      var r5 = await fetch(PROXY + "/poly/etf?ticker=" + encodeURIComponent(t));
+      var j5 = await r5.json();
+      if (j5) {
+        pack.polyEtf = j5;
+        pack.src.push("ETF Global live");
+      }
+    } catch (e6) {}
+    if (window.JHEtfFuse) {
+      try {
+        var row = await window.JHEtfFuse.of(t);
+        var holders = await window.JHEtfFuse.reverse(t);
+        if (row) pack.etfRow = window.JHEtfFuse.mergeLive(row, pack.polyEtf);
+        pack.etfHolders = holders || [];
+        if (row || (holders && holders.length)) pack.src.push("ETF desk warehouse");
+      } catch (e7) {}
+    }
     return pack;
   }
 

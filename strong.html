@@ -41,7 +41,8 @@
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-desk-core.js"></script>
-<script src="/jh-strong-engine.js"></script>
+<script src="/jh-etf-fuse.js?v=20260914i"></script>
+<script src="/jh-strong-engine.js?v=20260914i"></script>
 <script>
 (function(){
   var D=JHDesk, sleeve="ALL", sortK="score", sortDir=-1, DATA=null;
@@ -83,10 +84,11 @@
           "<td class=nm>"+D.esc(r.name)+"</td><td class=nm>"+r.sleeve+"</td><td>"+D.fmtPx(r.px)+"</td>"+
           cell(r.h.d)+cell(r.h.w)+cell(r.h.m)+cell(r.h.q)+
           cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
-          "<td class='"+D.cls(r.score)+"'>"+D.fmtPct(r.score)+"</td><td>"+tag(r.post)+"</td></tr>";
+          "<td class='"+D.cls(r.score)+"'>"+D.fmtPct(r.score)+"</td><td>"+tag(r.post)+"</td>"+
+          "<td class='"+D.cls(r.demand)+"'>"+(r.demand==null?"—":D.fmtUsd(r.demand))+"</td></tr>";
       }).join("");
     }
-    var heads=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","RS D"],["vw","RS W"],["vm","RS M"],["vq","RS 3M"],["score","Composite"],["post","Read"]];
+    var heads=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","RS D"],["vw","RS W"],["vm","RS M"],["vq","RS 3M"],["score","Composite"],["post","Read"],["demand","ETF $"]];
     var headHtml="<tr>"+heads.map(function(h){ return "<th data-k='"+h[0]+"'>"+h[1]+(sortK===h[0]?(sortDir<0?" ▾":" ▴"):"")+"</th>"; }).join("")+"</tr>";
     var focus=DATA.focus.slice().sort(sortFn).slice(0,14);
     document.getElementById("focus").innerHTML="<table class=jh-tbl><thead>"+headHtml+"</thead><tbody>"+(tbody(focus)||"<tr><td colspan=14 class=jh-load>No names holding up this session — SPX may not be dumping, or everything is in line.</td></tr>")+"</tbody></table>";

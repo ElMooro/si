@@ -149,7 +149,29 @@ function render(d){
     `Data: ETF Global creations/redemptions (via Massive) + Massive FX/options · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 22:30 UTC.<br>`+
     esc(d.caveats||"")+" Research only — not investment advice.";
 }
-load("data/capital-flow-radar.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
+load("data/capital-flow-radar.json").then(function(d){
+  render(d);
+  load("data/etf-desk.json").then(function(desk){
+    if(!desk||!desk.by_etf) return;
+    var inn=(desk.inflows||[]).slice(0,8);
+    var out=(desk.outflows||[]).slice(0,8);
+    if(!inn.length&&!out.length) return;
+    var host=document.getElementById("content");
+    if(!host) return;
+    var strip=document.createElement("div");
+    strip.id="paid-desk";
+    function row(r){
+      return `<div class="row"><span class="k"><a href="/chart.html?s=${encodeURIComponent(r.t||r.ticker)}">${esc(r.t||r.ticker)}</a> ${esc(r.name||"")}</span><span class="${cls(r.flow_1d)}">${fmt(r.flow_1d)}</span></div>`;
+    }
+    strip.innerHTML=`<h2 class="g">Massive ETF Global — paid creations / redemptions (live desk)</h2>
+      <div class="cols">
+        <div class="lev"><div class="h g">▲ Inflows 1D</div>${inn.map(row).join("")||'<div class="li">none</div>'}</div>
+        <div class="lev"><div class="h r">▼ Outflows 1D</div>${out.map(row).join("")||'<div class="li">none</div>'}</div>
+      </div>
+      <div class="sub" style="margin:8px 0 18px">Source: data/etf-desk.json · ${esc((desk.generated_at||"").slice(0,16))} · n=${desk.n||0} · flows ${((desk.n_ok||{}).flows)||0} · profiles ${((desk.n_ok||{}).profiles)||0} · holdings ${((desk.n_ok||{}).constituents)||0}</div>`;
+    host.insertBefore(strip, host.firstChild);
+  }).catch(function(){});
+}).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
 setInterval(()=>load("data/capital-flow-radar.json").then(render).catch(()=>{}),300000);
 </script>
   <script src="/jh-page-ai.js" defer></script>

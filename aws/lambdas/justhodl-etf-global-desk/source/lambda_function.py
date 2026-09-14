@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -371,6 +371,7 @@ def lambda_handler(event, context=None):
             "flow_z": r.get("flow_z"),
             "flow_label": _label(r.get("flow_1d"), r.get("flow_z")),
             "flow_asof": r.get("flow_asof"),
+            "flow_hist": r.get("flow_hist") or [],
             "sector": r.get("sector") or [],
             "geo": r.get("geo") or [],
             "top": r.get("top") or [],
@@ -397,6 +398,32 @@ def lambda_handler(event, context=None):
         )[:15],
     }
     _put("data/etf-desk.json", payload)
+    idx = {}
+    for t, r in desk.items():
+        for h in (r.get("top") or []):
+            st = (h.get("t") or "").upper()
+            if not st:
+                continue
+            idx.setdefault(st, []).append({
+                "etf": t,
+                "w": h.get("w"),
+                "n": h.get("n"),
+                "flow_1d": r.get("flow_1d"),
+                "flow_5d": r.get("flow_5d"),
+                "flow_label": r.get("flow_label"),
+                "aum": r.get("aum"),
+                "name": r.get("name"),
+            })
+    for st in idx:
+        idx[st].sort(key=lambda x: abs(x.get("w") or 0), reverse=True)
+    _put("data/etf-holdings-index.json", {
+        "generated_at": generated,
+        "engine": "justhodl-etf-global-desk",
+        "version": VERSION,
+        "n_stocks": len(idx),
+        "n_links": sum(len(v) for v in idx.values()),
+        "by_stock": idx,
+    })
     _put("data/etf-global.json", {
         "generated_at": generated,
         "schema_version": 2,

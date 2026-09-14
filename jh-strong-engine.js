@@ -89,9 +89,19 @@
         px: q.price || (bars.length ? bars[bars.length - 1].close : null),
         h: h, vs: vs, score: sc, post: post,
         flow1d: g && g.flow_1d, flowLabel: g && g.flow_label,
+        holders: [], demand: null,
         spark: D.closesOf(bars).slice(-40)
       };
     });
+
+    var deskDoc = pack[3] || {};
+    if (window.JHEtfFuse && deskDoc.by_etf) {
+      rows.forEach(function (r) {
+        if (r.sleeve !== "STOCK") return;
+        r.holders = window.JHEtfFuse.reverseFromDesk(deskDoc, r.ticker);
+        r.demand = window.JHEtfFuse.impliedDemand(r.holders);
+      });
+    }
 
     var focus = rows.filter(function (r) {
       return r.post.code === "BID" || r.post.code === "FLAT" || r.post.code === "HOLD";
@@ -105,7 +115,7 @@
       sources: {
         quotes: "Polygon snapshot",
         history: "Warehouse / Yahoo daily",
-        flows: "Massive ETF Global creations when the name is a fund",
+        flows: "Massive ETF Global creations when the name is a fund; look-through demand when it is a stock",
         definition: "Strength = asset return − S&P 500 return on D / W / M / 3M. Composite 35/30/20/15."
       }
     };

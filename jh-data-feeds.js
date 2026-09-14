@@ -35,7 +35,9 @@
     ["data/finviz-insider.json", "Finviz insider"],
     ["data/finviz-inst-flow.json", "Finviz institutional flow"],
     ["data/fed-nowcast-join.json", "Fed nowcast join"],
-    ["data/etf-global.json", "ETF Global"]
+    ["data/etf-global.json", "ETF Global harvest"],
+    ["data/etf-desk.json", "ETF Global desk (flows+profiles+holdings)"],
+    ["data/etf-holdings-index.json", "ETF holdings look-through"]
   ];
   function el(tag, css, html) {
     var n = document.createElement(tag);

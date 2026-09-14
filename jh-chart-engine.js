@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.34 — TradingView compare on % scale, symbol widget. */
+/* JustHodl Chart engine v12.35 — ETF Global flow overlay + TradingView compare. */
 (function () {
-  if (window.__jhChartEngineV1234) return;
+  if (window.__jhChartEngineV1235) return;
+  window.__jhChartEngineV1235 = true;
   window.__jhChartEngineV1234 = true;
   window.__jhChartEngineV1233 = true;
   window.__jhChartEngineV1232 = true;
@@ -176,7 +177,8 @@
     {id:"ddown",n:"Drawdown",on:0,cat:"Risk"},
     {id:"alpha",n:"Alpha vs SPY",on:0,cat:"Stats",p:60},
     {id:"rngpos",n:"Range Position",on:0,cat:"Stats",p:252,ob:80,os:20},
-    {id:"htrsi",n:"Weekly RSI",on:0,cat:"Momentum",p:14,ob:70,os:30,c:"#2962ff"}
+    {id:"htrsi",n:"Weekly RSI",on:0,cat:"Momentum",p:14,ob:70,os:30,c:"#2962ff"},
+    {id:"etfflow",n:"ETF Flow $",on:0,cat:"Flow",c:"#2962ff"}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
@@ -1778,6 +1780,12 @@
               if(rs&&rs.length&&c.setMarkers){ try{ c.setMarkers(mk.concat(rs)); }catch(e2){} }
             });
           }
+          if(window.jhEtfFlowReady){
+            window.jhEtfFlowReady(display).then(function(fl){
+              if(seq!==paintSeq) return;
+              if(fl&&fl.length&&c.setMarkers){ try{ c.setMarkers(mk.concat(fl)); }catch(e2){} }
+            });
+          }
           if(mk.length){ mk=dedupeTape(mk); c.setMarkers(mk); }
         }catch(e){}
       }
@@ -2233,6 +2241,24 @@
           midW.setData((d||[]).map(function(b){return {time:b.time,value:50};})); oscSeries.push(midW);
         }catch(e){}
         if(wr.length){ var veW=head.querySelector(".osc-v"); var lastW=wr[wr.length-1].value; if(veW&&lastW!=null) veW.textContent=lastW.toFixed(1)+(lastW>=(o.ob||70)?" OB":lastW<=(o.os||30)?" OS":""); }
+      }
+      else if(o.id==="etfflow"){
+        var fl = (window.jhEtfFlowSeries && window.jhEtfFlowSeries(d)) || [];
+        var hf=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,title:"ETF flow $bn"});
+        hf.setData(fl.map(function(p){
+          return {time:p.time,value:p.value,color:p.value>=0?"rgba(8,153,129,.85)":"rgba(242,54,69,.85)"};
+        }));
+        oscSeries.push(hf);
+        try{
+          var zF=c.addLineSeries({color:"rgba(120,123,134,.35)",lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+          zF.setData((fl.length?fl:d).map(function(p){ return {time:p.time,value:0}; })); oscSeries.push(zF);
+        }catch(eF){}
+        if(fl.length){
+          var veF=head.querySelector(".osc-v");
+          var lastF=fl[fl.length-1];
+          var raw=lastF&&lastF.raw;
+          if(veF) veF.textContent = raw==null ? "no print" : ((raw>=0?"+":"")+(Math.abs(raw)>=1e9?(raw/1e9).toFixed(2)+"B":(raw/1e6).toFixed(0)+"M"));
+        } else if(head.querySelector(".osc-v")) head.querySelector(".osc-v").textContent="ETF Global — no fund print";
       }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
