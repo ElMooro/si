@@ -104,11 +104,13 @@ jobs:
           set -euo pipefail
           docker run --rm --network none --memory 1g --cpus 1 --pids-limit 256 \
             --read-only --tmpfs /tmp:rw,size=256m -v "$PWD/work:/work:rw" \
-            -w /work python:3.12-slim python /work/verify.py /work/joined.jsonl /work/verified.jsonl
+            -w /work python:3.12-slim sh -c 'chmod 700 /work && python /work/verify.py /work/joined.jsonl /work/verified.jsonl'
       - uses: actions/upload-artifact@v4
         with:
           name: verified
-          path: work/verified.jsonl
+          path: |
+            work/verified.jsonl
+            work/verified.jsonl.failures.jsonl
   write:
     needs: verify
     runs-on: ubuntu-latest

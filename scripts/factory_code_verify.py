@@ -29,33 +29,58 @@ import sys
 import tempfile
 import time
 
-CHECKER = "factory-code-verify:v2-supervisor-judge"
+CHECKER = "factory-code-verify:v3-supervisor-judge"
 STDIO_MARK = "#stdio"
+# Static screen for FUNCTION tasks only (stdio programs may legitimately exit): a solution reaching for process control,
+# the raw descriptor, frames/tracebacks or the runner module has no honest reason to. In-process authority cannot be
+# made airtight; this narrows the residual and hidden tests close it (documented in OWNED.md).
+FUNCTION_TASK_FORBIDDEN = ("os._exit", "os.write(", "__stdout__", "sys.exit(", "os.kill", "signal.", "os.dup", "os.close(", "subprocess", "ctypes", "gc.get_",
+                           "sys._getframe", "inspect.", "sys.exc_info", "__traceback__", "tb_frame", "f_back", "sys.settrace", "sys.setprofile", "__main__",
+                           "__builtins__", "builtins.", "importlib", "os.fork", "os.exec")
 MAX_OUTPUT = 200_000
 
 # The candidate process evaluates expressions it is handed and reports reprs; it never learns what is expected.
-EVAL_RUNNER = r'''
-import sys, json, io
-src = open(sys.argv[1], encoding="utf-8").read()
-exprs = json.load(open(sys.argv[2], encoding="utf-8"))
-ns = {"__name__": "__candidate__"}
-out = []
-_stdout = sys.stdout
-sys.stdout = io.StringIO()
+EVAL_RUNNER = r"""
+import sys, os, json
+_write, _exit, _dumps = os.write, os._exit, json.dumps          # captured before any candidate code runs
+_src = open(sys.argv[1], encoding="utf-8").read()
+_suite = open(sys.argv[2], encoding="utf-8").read()             # the TRANSFORMED suite: asserts became __report(i, value)
+def _enc(v, depth=0):
+    t = type(v)
+    if depth > 12: raise TypeError("depth")
+    if t is bool: return {"t": "bool", "v": v}
+    if t is int: return {"t": "int", "v": str(v)}
+    if t is float: return {"t": "float", "v": repr(v)}
+    if t is str: return {"t": "str", "v": v[:20000]}
+    if v is None: return {"t": "none"}
+    if t is list: return {"t": "list", "v": [_enc(x, depth + 1) for x in v[:5000]]}
+    if t is tuple: return {"t": "tuple", "v": [_enc(x, depth + 1) for x in v[:5000]]}
+    if t is set or t is frozenset: return {"t": "set", "v": [_enc(x, depth + 1) for x in sorted(v, key=repr)[:5000]]}
+    if t is dict: return {"t": "dict", "v": [[_enc(k, depth + 1), _enc(x, depth + 1)] for k, x in list(v.items())[:5000]]}
+    raise TypeError(type(v).__name__)
+def _line(obj):
+    _write(1, ("\n" + _dumps(obj) + "\n").encode("utf-8"))
+def __report(i, value):
+    try:
+        _line({"i": i, "val": _enc(value)})
+    except BaseException as exc:
+        _line({"i": i, "error": "unsupported:" + type(exc).__name__})
+_cand = {"__name__": "__candidate__"}
+import io as _io
+sys.stdout = _io.StringIO()                                     # candidate prints never reach the descriptor
 try:
-    exec(compile(src, "candidate.py", "exec"), ns)
-    for e in exprs:
-        try:
-            v = eval(compile(e["expr"], "expr", "eval"), ns)
-            out.append({"i": e["i"], "repr": repr(v)[:4000]})
-        except BaseException as exc:
-            out.append({"i": e["i"], "error": type(exc).__name__})
+    exec(compile(_src, "candidate.py", "exec"), _cand)
 except BaseException as exc:
-    out.append({"i": -1, "error": "load:" + type(exc).__name__})
-sys.stdout = _stdout
-sys.stdout.write("\n" + json.dumps(out) + "\n")
-sys.stdout.flush()
-'''
+    _line({"i": -1, "error": "load:" + type(exc).__name__}); _exit(0)
+_ns = dict(_cand)
+_ns["__report"] = __report
+try:
+    exec(compile(_suite, "suite.py", "exec"), _ns)
+except BaseException as exc:
+    _line({"i": -2, "error": "suite:" + type(exc).__name__})
+_line({"i": -3, "done": True})
+_exit(0)
+"""
 
 
 def _drop_privileges():
@@ -69,83 +94,133 @@ def _drop_privileges():
         return None
 
 
-def parse_asserts(tests: str):
-    """[{i, expr, expected|None, truthy}] from a test suite; non-assert statements become a preamble."""
-    try:
-        tree = ast.parse(tests)
-    except SyntaxError:
-        return None, ""
-    cases, preamble = [], []
+class Unsupported(ValueError):
+    pass
+
+
+def transform_suite(tests: str):
+    """(cases, program): every `assert` becomes `__report(i, <value>)` IN PLACE so stateful order is preserved.
+    `assert expr == <literal>` compares typed values in the supervisor; `assert expr` / `assert not expr` compare
+    truthiness of a typed value; anything else is unsupported and the whole suite is refused (A04)."""
+    tree = ast.parse(tests)
+    cases = []
+    body = []
+    allowed_stmt = (ast.Import, ast.ImportFrom, ast.Assign, ast.AugAssign, ast.Expr, ast.FunctionDef, ast.ClassDef, ast.For, ast.If, ast.With, ast.Try, ast.AnnAssign)
     for node in tree.body:
         if isinstance(node, ast.Assert):
             test = node.test
             if isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq):
-                left, right = test.left, test.comparators[0]
                 try:
-                    expected = ast.literal_eval(right)
-                    cases.append({"i": len(cases), "expr": ast.unparse(left), "expected": repr(expected), "truthy": False})
+                    expected = ast.literal_eval(test.comparators[0])
+                    cases.append({"i": len(cases), "kind": "eq", "expected": expected, "src": ast.unparse(test.left)})
+                    body.append("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test.left)))
                     continue
                 except (ValueError, SyntaxError):
-                    pass
-            cases.append({"i": len(cases), "expr": ast.unparse(test), "expected": None, "truthy": True})
+                    raise Unsupported("assert with non-literal right-hand side: " + ast.unparse(test)[:80])
+            if isinstance(test, ast.Compare):
+                raise Unsupported("unsupported comparison operator: " + ast.unparse(test)[:80])
+            if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+                cases.append({"i": len(cases), "kind": "falsy", "src": ast.unparse(test.operand)})
+                body.append("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test.operand)))
+                continue
+            cases.append({"i": len(cases), "kind": "truthy", "src": ast.unparse(test)})
+            body.append("__report(%d, (%s))" % (cases[-1]["i"], ast.unparse(test)))
+        elif isinstance(node, allowed_stmt):
+            body.append(ast.unparse(node))
         else:
-            preamble.append(ast.unparse(node))
-    return cases, "\n".join(preamble)
+            raise Unsupported("unsupported statement in suite: " + type(node).__name__)
+    return cases, "\n".join(body) + "\n"
 
 
-# Static screen for FUNCTION tasks only (stdio programs may legitimately exit): a solution that reaches for
-# process control or the raw output descriptor has no honest reason to, and it is the only remaining route to
-# forge the runner's result line before the runner writes it (documented residual; hidden tests close it fully).
-FUNCTION_TASK_FORBIDDEN = ("os._exit", "os.write(", "__stdout__", "sys.exit(", "os.kill", "signal.", "os.dup", "os.close(", "subprocess", "ctypes", "gc.get_", "sys._getframe", "inspect.")
+def decode(enc):
+    """Typed value from the child; only exact builtin types are accepted (A03: no repr, no custom __eq__/__repr__)."""
+    t = enc.get("t")
+    v = enc.get("v")
+    if t == "bool": return bool(v)
+    if t == "int": return int(v)
+    if t == "float": return float(v)
+    if t == "str": return str(v)
+    if t == "none": return None
+    if t == "list": return [decode(x) for x in v]
+    if t == "tuple": return tuple(decode(x) for x in v)
+    if t == "set": return frozenset(decode(x) for x in v)
+    if t == "dict": return {decode(k) if isinstance(decode(k), (int, float, str, bool, tuple, type(None))) else str(decode(k)): decode(x) for k, x in v}
+    raise ValueError("unknown type tag")
+
+
+def _norm(v):
+    """Compare sets/frozensets and tuples/lists the way Python equality does after decoding."""
+    if isinstance(v, (set, frozenset)):
+        return frozenset(_norm(x) for x in v)
+    if isinstance(v, (list, tuple)):
+        return type(v)(_norm(x) for x in v)
+    if isinstance(v, dict):
+        return {k: _norm(x) for k, x in v.items()}
+    return v
 
 
 def judge_function_task(row, scratch, env, extra, timeout):
     banned = [tok for tok in FUNCTION_TASK_FORBIDDEN if tok in str(row["solution"])]
     if banned:
         return {"passed": False, "cases": 0, "judge": "static", "stderr": "refused_forbidden_token:" + ",".join(banned)[:100]}
-    cases, preamble = parse_asserts(str(row["tests"]))
-    if cases is None:
+    try:
+        cases, program = transform_suite(str(row["tests"]))
+    except SyntaxError:
         return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "tests_unparseable"}
+    except Unsupported as exc:
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_unsupported_suite:" + str(exc)[:120]}
     if not cases:
         return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_zero_case_suite"}
     src = os.path.join(scratch, "candidate.py")
-    exprs = os.path.join(scratch, "exprs.json")
+    suite = os.path.join(scratch, "suite.py")
     runner = os.path.join(scratch, "runner.py")
-    program = (preamble + "\n\n" if preamble else "") + str(row["solution"])
-    for path, text in ((src, program), (exprs, json.dumps([{"i": c["i"], "expr": c["expr"]} for c in cases])), (runner, EVAL_RUNNER)):
+    for path, text in ((src, str(row["solution"])), (suite, program), (runner, EVAL_RUNNER)):
         with open(path, "w", encoding="utf-8") as f:
             f.write(text)
         os.chmod(path, 0o644)
     t0 = time.monotonic()
     try:
-        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, exprs], capture_output=True, text=True, timeout=timeout,
+        proc = subprocess.run([sys.executable, "-I", "-S", runner, src, suite], capture_output=True, timeout=timeout,
                               cwd=os.path.join(scratch, "tmp"), env=env, **extra)
     except subprocess.TimeoutExpired:
         return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "timeout", "elapsed_s": timeout}
     elapsed = round(time.monotonic() - t0, 3)
-    last = (proc.stdout or "")[-MAX_OUTPUT:].strip().splitlines()
-    try:
-        reported = json.loads(last[-1]) if last else []
-    except ValueError:
-        reported = []
-    if not isinstance(reported, list):
-        reported = []
-    by_i = {r.get("i"): r for r in reported if isinstance(r, dict)}
-    if -1 in by_i:
+    lines = [ln for ln in proc.stdout[:MAX_OUTPUT].decode("utf-8", "replace").splitlines() if ln.strip()]
+    records = []
+    for ln in lines:
+        try:
+            rec = json.loads(ln)
+        except ValueError:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:non_json_line", "elapsed_s": elapsed}
+        if not isinstance(rec, dict) or "i" not in rec:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:shape", "elapsed_s": elapsed}
+        records.append(rec)
+    if proc.returncode != 0:
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "exit %s" % proc.returncode, "elapsed_s": elapsed}
+    if any(r.get("i") == -1 for r in records):
         return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "candidate_failed_to_load", "elapsed_s": elapsed}
-    partial = False
-    for c in cases:
-        got = by_i.get(c["i"])
-        if not got or "error" in got:
-            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d %s" % (c["i"], (got or {}).get("error", "missing")), "elapsed_s": elapsed}
-        if c["truthy"]:
-            partial = True
-            if got.get("repr") != "True":
-                return {"passed": False, "cases": len(cases), "judge": "partial", "stderr": "case %d not truthy" % c["i"], "elapsed_s": elapsed}
-        elif got.get("repr") != c["expected"]:
-            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d mismatch" % c["i"], "elapsed_s": elapsed}
-    return {"passed": proc.returncode == 0, "cases": len(cases), "judge": "partial" if partial else "supervisor",
-            "stderr": "" if proc.returncode == 0 else "exit %s" % proc.returncode, "elapsed_s": elapsed}
+    if any(r.get("i") == -2 for r in records):
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "suite_raised", "elapsed_s": elapsed}
+    if not records or records[-1].get("i") != -3 or records[-1].get("done") is not True:
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:no_terminal_marker", "elapsed_s": elapsed}
+    body = records[:-1]
+    if [r.get("i") for r in body] != [c["i"] for c in cases]:          # exactly one record per case, in suite order, nothing else
+        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:case_sequence", "elapsed_s": elapsed}
+    for c, rec in zip(cases, body):
+        if "error" in rec:
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d %s" % (c["i"], rec["error"])[:120], "elapsed_s": elapsed}
+        try:
+            got = decode(rec.get("val") or {})
+        except (ValueError, TypeError, AttributeError):
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d undecodable" % c["i"], "elapsed_s": elapsed}
+        if c["kind"] == "eq":
+            if _norm(got) != _norm(c["expected"]):
+                return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d mismatch" % c["i"], "elapsed_s": elapsed}
+        elif c["kind"] == "truthy" and not bool(got):
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d not truthy" % c["i"], "elapsed_s": elapsed}
+        elif c["kind"] == "falsy" and bool(got):
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d not falsy" % c["i"], "elapsed_s": elapsed}
+    return {"passed": True, "cases": len(cases), "judge": "supervisor", "stderr": "", "elapsed_s": elapsed}
 
 
 def parse_stdio(tests: str):
@@ -156,23 +231,27 @@ def parse_stdio(tests: str):
     except SyntaxError:
         return None
     for node in tree.body:
-        if not isinstance(node, ast.Assert) or not isinstance(node.test, ast.Compare):
-            continue
-        left, right = node.test.left, node.test.comparators[0]
-        try:
-            inp = ast.literal_eval(left.func.value.args[0])
-            out = ast.literal_eval(right.func.value)
-        except Exception:  # noqa: BLE001
-            continue
-        if isinstance(inp, str) and isinstance(out, str):
-            cases.append({"i": len(cases), "input": inp, "expected": out.split()})
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.FunctionDef)):
+            continue                     # the preamble (imports + the __run helper) is ours
+        ok = False
+        if isinstance(node, ast.Assert) and isinstance(node.test, ast.Compare) and len(node.test.ops) == 1 and isinstance(node.test.ops[0], ast.Eq):
+            left, right = node.test.left, node.test.comparators[0]
+            try:
+                inp = ast.literal_eval(left.func.value.args[0])
+                out = ast.literal_eval(right.func.value)
+                if isinstance(inp, str) and isinstance(out, str):
+                    cases.append({"i": len(cases), "input": inp, "expected": out.split()}); ok = True
+            except Exception:  # noqa: BLE001
+                ok = False
+        if not ok:
+            return None                  # unsupported statement -> the suite is refused, never silently thinned (A04)
     return cases
 
 
 def judge_stdio_task(row, scratch, env, extra, timeout):
     cases = parse_stdio(str(row["tests"]))
     if cases is None:
-        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "tests_unparseable"}
+        return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_unsupported_suite:stdio"}
     if not cases:
         return {"passed": False, "cases": 0, "judge": "supervisor", "stderr": "refused_zero_case_suite"}
     src = os.path.join(scratch, "candidate.py")
@@ -252,7 +331,7 @@ def main(argv=None):
                 if str(res.get("stderr", "")).startswith("timeout"):
                     report["timeouts"] += 1
                 reason = str(res.get("stderr", ""))
-                if reason.startswith(("refused_empty_suite", "refused_zero_case_suite")):
+                if reason.startswith(("refused_empty_suite", "refused_zero_case_suite", "refused_unsupported_suite")):
                     report["refused_suites"] += 1
                 elif reason.startswith("refused_forbidden_token"):
                     report["refused_static"] += 1

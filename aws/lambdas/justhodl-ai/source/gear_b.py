@@ -265,8 +265,12 @@ def _row_from_verified(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]
     kind = str(doc.get("kind") or "")
     if kind not in ALLOWED_SOURCE_KINDS:
         return None
-    if kind == "self_trace" and not str(doc.get("checker") or "").startswith("factory-code-verify:v2"):
-        return None            # rows judged by the retired in-process checker are history, not training material (audit F01)
+    if kind == "self_trace":
+        checker = str(doc.get("checker") or "")
+        m = re.match(r"^factory-code-verify:v(\d+)-supervisor-judge$", checker)
+        # only a supervisor-judged verifier (v3+) with a bound receipt mints training material; older labels are history (F01/A03/A05)
+        if not m or int(m.group(1)) < 3 or doc.get("judge") != "supervisor" or not doc.get("receipt") or not doc.get("solution_sha256"):
+            return None
     prompt, solution = doc.get("prompt"), doc.get("solution")
     if not isinstance(prompt, str) or not isinstance(solution, str) or not doc.get("source_url"):
         return None

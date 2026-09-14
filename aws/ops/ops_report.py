@@ -55,6 +55,7 @@ class Report:
         self.log(f"⚠ {msg}")
 
     def fail(self, msg: str):
+        self._failed = True
         self.log(f"✗ {msg}")
 
     def kv(self, **kwargs):
@@ -95,7 +96,7 @@ def report(name: str):
     r = Report(name)
     try:
         yield r
-        r.status = "success"
+        r.status = "failure" if getattr(r, "_failed", False) else "success"
     except SystemExit as e:
         # Preserve exit code semantics
         r.status = "failure" if e.code not in (0, None) else "success"

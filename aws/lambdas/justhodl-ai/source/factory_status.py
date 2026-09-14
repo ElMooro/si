@@ -140,7 +140,10 @@ def intake_task(store, agent, owner, text, *, tests=None):
     now = iso(store.clock())
     tid = "task-" + digest(body + now)[:12]
     gradable = bool(tests) or action in ("burst", "verify", "exam", "status", "spawn")
-    trainable = bool(re.search(r"\btrainable\b", body, flags=re.I))      # F22: training on an owner task needs the owner's word
+    # F22/A08: explicit consent only -- "trainable: yes" or "[trainable]"; any negation wins; default False
+    negated = re.search(r"\b(not|never|no|don't|do not)\s+(train|trainable)", body, flags=re.I) is not None
+    affirmed = re.search(r"(\[trainable\]|\btrainable\s*:\s*(yes|true)\b|\btrain on this\b)", body, flags=re.I) is not None
+    trainable = bool(affirmed and not negated)
     card = {"schema_version": "factory-task.v1", "id": tid, "from": identifier(agent), "at": now, "text": body[:2000], "scope": scope,
             "action": action, "gradable": gradable, "tests": (tests or "")[:4000] or None, "status": "queued", "trainable": trainable,
             "route": ("lane action: " + INSIDE_ACTIONS[action]) if action in INSIDE_ACTIONS else

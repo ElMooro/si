@@ -46,13 +46,28 @@ class OwnedInferenceTests(unittest.TestCase):
         self.assertEqual(pending['state'], 'queued')
         self.assertEqual(pending['origin'], 'owned:qwen2-5-coder-7b-instruct@c03e6d358207')
         req = json.loads(self.cloud.rows[('private', fi.REQ_PREFIX + pending['id'] + '.json')])
-        self.assertIn('<|im_start|>assistant\nprior model answer<|im_end|>', req['body']['inputs'])
-        self.assertNotIn('Brain note', req['body']['inputs'])                       # F05 discipline holds on this route too
+        self.assertEqual(sorted(req), ['inputs', 'parameters'])                     # A02: the object at InputLocation IS the serving payload
+        self.assertIn('<|im_start|>assistant\nprior model answer<|im_end|>', req['inputs'])
+        self.assertNotIn('Brain note', req['inputs'])                               # F05 discipline holds on this route too
+        meta = json.loads(self.cloud.rows[('private', fi.META_PREFIX + pending['id'] + '.json')])
+        self.assertEqual(meta['input_key'], fi.REQ_PREFIX + pending['id'] + '.json')
+        # A13: an identical resubmit rides the request in flight (no second invocation)
+        again = fi.submit(self.store, rt, self.control, 'khalid', 'can you code?', history)
+        self.assertTrue(again.get('replay')); self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0]['EndpointName'], 'jh-owned-coder-async')
         self.assertEqual(fi.resolve(self.store, pending)[0], 'queued')
         self.cloud.rows[('private', 'factory/inference/outputs/%s.out' % pending['id'])] = json.dumps({'generated_text': 'Yes. def add(a, b):\n    return a + b<|im_end|>trailing'}).encode()
         state, text = fi.resolve(self.store, pending)
         self.assertEqual((state, text), ('done', 'Yes. def add(a, b):\n    return a + b'))
+        # A11: error / empty / malformed / expired are terminal, never "running"
+        self.cloud.rows[('private', 'factory/inference/outputs/%s.out' % pending['id'])] = json.dumps({'generated_text': '', 'details': {'finish_reason': 'error'}}).encode()
+        self.assertEqual(fi.resolve(self.store, pending)[0], 'failed')
+        self.cloud.rows[('private', 'factory/inference/outputs/%s.out' % pending['id'])] = json.dumps(['just a string']).encode()
+        self.assertEqual(fi.resolve(self.store, pending)[0], 'malformed')
+        del self.cloud.rows[('private', 'factory/inference/outputs/%s.out' % pending['id'])]
+        self.now = self.now + timedelta(hours=1)
+        self.assertEqual(fi.resolve(self.store, pending)[0], 'expired')
+        self.now = self.now - timedelta(hours=1)
 
     def test_chat_routes_to_owned_model_and_settles_on_poll(self):
         gw = module('gateway_owned', 'aws/lambdas/justhodl-ai/source/factory_gateway.py')
@@ -66,6 +81,7 @@ class OwnedInferenceTests(unittest.TestCase):
         self.assertEqual(out['model'], 'owned:queued')
         self.assertEqual(len(calls), 1)
         rid = out['messages'][-2]['pending']['id']
+        self.assertTrue(any(k.startswith(fi.PENDING_PREFIX) for b, k in self.cloud.rows))   # A13: state lives in its own index
         # status stays behind an explicit request
         out2 = gw.chat_post(self.store, 'khalid', True, {'text': 'status'}, {})
         self.assertEqual(out2['model'], 'factory-status:objects')

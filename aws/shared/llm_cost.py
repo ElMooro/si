@@ -185,8 +185,9 @@ def _spent_today():
             ExpressionAttributeValues={":d": {"S": _today()}})
         _spent["usd"] = sum(float(i.get("cost_usd", {}).get("N", "0")) for i in r.get("Items", []))
         _spent["t"] = time.time()
-    except Exception:
-        pass
+    except Exception as exc:
+        # A09: an unreadable meter is an ERROR, never "zero spent" -- budget_ok() turns it into a refusal
+        raise RuntimeError("spend meter unreadable: " + type(exc).__name__) from exc
     return _spent["usd"]
 
 

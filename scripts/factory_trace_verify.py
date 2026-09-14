@@ -83,56 +83,90 @@ def cmd_join(args) -> int:
 
 
 def cmd_write(args) -> int:
+    """Every attempt becomes a durable record; only supervisor-judged passes with training permission become rows.
+
+    One result contract end to end (audit A05/A06/A07/A08): the verifier's checker id, judge level and case count travel
+    unchanged into the verdict and the curriculum row; failures (from the sidecar) are stored as attempt records;
+    owner-task results replay idempotently and conflict loudly; an owner task trains only with explicit consent.
+    """
     import boto3
     s3 = boto3.client("s3", region_name=REGION)
-    written, exists, verdicts, seen_tasks = 0, 0, 0, set()
-    import itertools
+    counts = {"rows_written": 0, "rows_existing": 0, "verdicts": 0, "failures_recorded": 0, "owner_results": 0, "owner_replays": 0,
+              "skipped_not_trainable": 0, "skipped_not_supervisor_judge": 0, "skipped_duplicate_task": 0}
+    report = None
+    seen_tasks = set()
+
+    def put_absent(key, doc):
+        """create-if-absent -> 'written' | 'exists'"""
+        try:
+            s3.put_object(Bucket=PRIVATE, Key=key, Body=json.dumps(doc, sort_keys=True).encode(), ContentType="application/json", IfNoneMatch="*")
+            return "written"
+        except Exception as exc:  # noqa: BLE001
+            if "PreconditionFailed" in str(exc) or "412" in str(exc):
+                return "exists"
+            raise
+
     sidecar = args.inp + ".failures.jsonl"
-    sources = [open(args.inp, encoding="utf-8")] + ([open(sidecar, encoding="utf-8")] if os.path.exists(sidecar) else [])
-    with open(args.inp, encoding="utf-8") as f:
-        for line in itertools.chain(*sources):
-            if not line.strip():
-                continue
-            row = json.loads(line)
-            if "_report" in row:
-                report = row["_report"]; continue
-            if row.get("passed") is not True:
-                continue
-            vid = sha(json.dumps({"task_id": row["task_id"], "completion_sha256": row.get("completion_sha256")}, sort_keys=True).encode())[:32]
-            verdict = {"schema_version": "factory-burst-verdict.v1", "burst": args.burst, "task_id": row["task_id"], "sample": row.get("sample"),
-                       "passed": True, "completion_sha256": row.get("completion_sha256"), "verify_elapsed_s": row.get("verify_elapsed_s"),
-                       "verify_isolation": row.get("verify_isolation"), "checker": "factory-trace-verify", "verified_by": "owner_runner",
-                       "run_id": args.run_id, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-            try:
-                s3.put_object(Bucket=PRIVATE, Key="factory/bursts/%s/verdicts/%s.json" % (args.burst, vid), Body=json.dumps(verdict, sort_keys=True).encode(),
-                              ContentType="application/json", IfNoneMatch="*"); verdicts += 1
-            except Exception as exc:  # noqa: BLE001
-                if "PreconditionFailed" not in str(exc) and "412" not in str(exc):
-                    raise
-            if str(row.get("family")) == "owner-task":
-                s3.put_object(Bucket=PRIVATE, Key="factory/queue/tasks/%s-result-%s.json" % (row["task_id"], vid[:8]),
-                              Body=json.dumps({"schema_version": "factory-task-result.v1", "task": row["task_id"], "burst": args.burst, "passed": True,
-                                               "solution": row["solution"], "verified_by": "owner_runner", "run_id": args.run_id, "at": verdict["at"]}, sort_keys=True).encode(),
-                              ContentType="application/json", IfNoneMatch="*")
-            if row["task_id"] in seen_tasks and not args.all_samples:
-                continue          # one kept row per task per burst unless asked: diversity comes from tasks, not duplicates
-            seen_tasks.add(row["task_id"])
-            doc = {"schema_version": "factory-curriculum-row.v1", "task_id": row["task_id"], "kind": "self_trace", "family": row.get("family") or "code",
-                   "license": "own", "source_url": "s3://%s/factory/bursts/%s/verdicts/%s.json" % (PRIVATE, args.burst, vid), "citation": row.get("citation"),
-                   "source_sha": row.get("source_sha"), "prompt": row["prompt"], "solution": row["solution"],
-                   "tests_sha256": sha(str(row["tests"]).encode()), "passed": True, "verified_by": "owner_runner",
-                   "checker": "factory-trace-verify:network-less-container", "run_id": args.run_id, "burst": args.burst,
-                   "adapter_generation": row.get("adapter_generation"), "verify_elapsed_s": row.get("verify_elapsed_s")}
-            key = VERIFIED_PREFIX + sha(json.dumps({"task_id": row["task_id"], "completion_sha256": row.get("completion_sha256")}, sort_keys=True).encode())[:32] + ".json"
-            try:
-                s3.put_object(Bucket=PRIVATE, Key=key, Body=json.dumps(doc, sort_keys=True).encode(), ContentType="application/json", IfNoneMatch="*"); written += 1
-            except Exception as exc:  # noqa: BLE001
-                if "PreconditionFailed" in str(exc) or "412" in str(exc):
-                    exists += 1
-                else:
-                    raise
-    summary = {"schema_version": "factory-burst-summary.v1", "burst": args.burst, "run_id": args.run_id, "rows_written": written, "rows_existing": exists,
-               "verdicts": verdicts, "report": locals().get("report"), "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    paths = [args.inp] + ([sidecar] if os.path.exists(sidecar) else [])
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                if "_report" in row:
+                    report = row["_report"]; continue
+                at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                checker = str(row.get("checker") or "")
+                if row.get("passed") is not True:
+                    fid = sha(json.dumps({"task_id": row.get("task_id"), "sample": row.get("sample"), "burst": args.burst}, sort_keys=True).encode())[:32]
+                    if put_absent("factory/bursts/%s/attempts/%s.json" % (args.burst, fid),
+                                  {"schema_version": "factory-burst-attempt.v1", "burst": args.burst, "task_id": row.get("task_id"), "sample": row.get("sample"), "passed": False,
+                                   "reason": row.get("reason"), "cases": row.get("cases"), "judge": row.get("judge"), "checker": checker, "run_id": args.run_id, "at": at}) == "written":
+                        counts["failures_recorded"] += 1
+                    continue
+                vid = sha(json.dumps({"task_id": row["task_id"], "completion_sha256": row.get("completion_sha256")}, sort_keys=True).encode())[:32]
+                verdict = {"schema_version": "factory-burst-verdict.v1", "burst": args.burst, "task_id": row["task_id"], "sample": row.get("sample"), "passed": True,
+                           "completion_sha256": row.get("completion_sha256"), "solution_sha256": sha(str(row.get("solution") or "").encode()),
+                           "tests_sha256": sha(str(row.get("tests") or "").encode()), "cases": row.get("cases"), "judge": row.get("judge"), "checker": checker,
+                           "verify_elapsed_s": row.get("verify_elapsed_s"), "verify_isolation": row.get("verify_isolation"), "writer": "factory-trace-verify",
+                           "verified_by": "owner_runner", "run_id": args.run_id, "at": at}
+                if put_absent("factory/bursts/%s/verdicts/%s.json" % (args.burst, vid), verdict) == "written":
+                    counts["verdicts"] += 1
+                if str(row.get("family")) == "owner-task":
+                    result_key = "factory/queue/tasks/%s-result-%s.json" % (row["task_id"], vid[:8])
+                    result = {"schema_version": "factory-task-result.v1", "task": row["task_id"], "burst": args.burst, "passed": True, "solution": row["solution"],
+                              "solution_sha256": verdict["solution_sha256"], "cases": row.get("cases"), "judge": row.get("judge"), "checker": checker,
+                              "verified_by": "owner_runner", "run_id": args.run_id, "at": at}
+                    state = put_absent(result_key, result)
+                    if state == "exists":
+                        prior = json.loads(s3.get_object(Bucket=PRIVATE, Key=result_key)["Body"].read())
+                        if prior.get("solution_sha256") != result["solution_sha256"]:
+                            raise RuntimeError("owner-task result conflict for %s: existing content differs" % result_key)
+                        counts["owner_replays"] += 1
+                    else:
+                        counts["owner_results"] += 1
+                    if row.get("trainable") is not True:
+                        counts["skipped_not_trainable"] += 1
+                        continue
+                if not checker.startswith("factory-code-verify:v") or row.get("judge") != "supervisor":
+                    counts["skipped_not_supervisor_judge"] += 1
+                    continue
+                if row["task_id"] in seen_tasks and not args.all_samples:
+                    counts["skipped_duplicate_task"] += 1
+                    continue
+                seen_tasks.add(row["task_id"])
+                doc = {"schema_version": "factory-curriculum-row.v1", "task_id": row["task_id"], "kind": "self_trace", "family": row.get("family") or "code",
+                       "license": "own" if str(row.get("family")) != "owner-task" else "owner-consented", "source_url": "s3://%s/factory/bursts/%s/verdicts/%s.json" % (PRIVATE, args.burst, vid),
+                       "citation": row.get("citation"), "source_sha": row.get("source_sha"), "prompt": row["prompt"], "solution": row["solution"],
+                       "solution_sha256": verdict["solution_sha256"], "tests_sha256": verdict["tests_sha256"], "passed": True, "verified_by": "owner_runner",
+                       "checker": checker, "judge": row.get("judge"), "cases": row.get("cases"), "writer": "factory-trace-verify", "run_id": args.run_id,
+                       "burst": args.burst, "adapter_generation": row.get("adapter_generation"), "verify_elapsed_s": row.get("verify_elapsed_s"),
+                       "trainable": True, "receipt": "factory/bursts/%s/verdicts/%s.json" % (args.burst, vid)}
+                key = VERIFIED_PREFIX + vid + ".json"
+                counts["rows_written" if put_absent(key, doc) == "written" else "rows_existing"] += 1
+    summary = {"schema_version": "factory-burst-summary.v1", "burst": args.burst, "run_id": args.run_id, **counts, "report": report,
+               "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     s3.put_object(Bucket=PRIVATE, Key="factory/bursts/%s/summary-%s.json" % (args.burst, args.run_id), Body=json.dumps(summary, sort_keys=True).encode(), ContentType="application/json")
     print(json.dumps(summary)); return 0
 

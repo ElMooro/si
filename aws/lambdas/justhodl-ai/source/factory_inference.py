@@ -51,24 +51,43 @@ def origin(control):
     return label
 
 
+PENDING_PREFIX = "factory/inference/pending/"
+META_PREFIX = "factory/inference/meta/"
+EXPIRE_S = 30 * 60           # queue TTL + invocation timeout; after this a request is `expired`, never "running" forever
+
+
+def _idempotency_key(agent, text, history):
+    last = (history or [])[-1].get("id") if history else ""
+    return digest({"agent": agent, "text": " ".join(text.split()), "after": last})[:24]
+
+
 def submit(store, sm_runtime, control, agent, text, history):
-    """Submit one async request; returns the chat-facing record (never the answer)."""
+    """Submit one async request. The object at InputLocation is the SERVING payload exactly ({inputs, parameters});
+    audit metadata lives in a separate object; request state lives in its own pending index (not the chat log)."""
     now = iso(store.clock())
-    rid = "req-" + digest(agent + text + now)[:16]
-    # prior context = the owner's own turns plus the owned model's own prior answers (never Brain/status text)
+    ikey = _idempotency_key(agent, text, history)
+    existing, _ = store.read(store.private, PENDING_PREFIX + ikey + ".json")
+    if isinstance(existing, dict) and existing.get("state") not in ("done", "failed", "expired", "malformed"):
+        return dict(existing, replay=True)          # a double submit rides the request already in flight
+    rid = "req-" + ikey
     turns = [(m.get("role"), str(m.get("text") or "")[:1200]) for m in (history or [])[-8:]
-             if m.get("role") == "owner" or str(m.get("model") or "").startswith("owned:")]
+             if (m.get("role") == "owner" and not m.get("pending")) or str(m.get("model") or "").startswith("owned:")]
     prompt = qwen_chat_prompt(SYSTEM, turns, text[:6000])
-    body = {"inputs": prompt, "parameters": {"max_new_tokens": int(control.get("max_new_tokens") or 700), "temperature": 0.2, "top_p": 0.9,
-                                             "stop": ["<|im_end|>", "<|endoftext|>"]}}
+    payload = {"inputs": prompt, "parameters": {"max_new_tokens": int(control.get("max_new_tokens") or 700), "temperature": 0.2, "top_p": 0.9,
+                                                "stop": ["<|im_end|>", "<|endoftext|>"]}}
     key = REQ_PREFIX + rid + ".json"
-    store.immutable(store.private, key, {"schema_version": "factory-inference-request.v1", "id": rid, "agent": agent, "at": now,
-                                          "endpoint": control.get("endpoint_name"), "origin": origin(control), "body": body})
+    store.immutable(store.private, key, payload)                                   # what the model receives, byte for byte
+    store.immutable(store.private, META_PREFIX + rid + ".json", {"schema_version": "factory-inference-request.v1", "id": rid, "agent": agent, "at": now,
+                                                                  "endpoint": control.get("endpoint_name"), "origin": origin(control), "idempotency_key": ikey,
+                                                                  "input_key": key, "input_sha256": digest(payload), "turn_after": (history or [])[-1].get("id") if history else None})
     resp = sm_runtime.invoke_endpoint_async(EndpointName=control["endpoint_name"], InputLocation="s3://%s/%s" % (store.private, key),
                                             ContentType="application/json", Accept="application/json", InferenceId=rid,
                                             InvocationTimeoutSeconds=900)
-    return {"id": rid, "state": "queued", "origin": origin(control), "output_location": resp.get("OutputLocation"),
-            "failure_location": resp.get("FailureLocation"), "submitted_at": now}
+    pending = {"schema_version": "factory-inference-pending.v1", "id": rid, "state": "queued", "origin": origin(control), "agent": agent,
+               "output_location": resp.get("OutputLocation"), "failure_location": resp.get("FailureLocation"), "submitted_at": now,
+               "expires_at": iso(store.clock() + __import__("datetime").timedelta(seconds=EXPIRE_S)), "input_key": key, "delivered": False}
+    store.put(store.private, PENDING_PREFIX + ikey + ".json", pending, etag=None, absent=True)
+    return pending
 
 
 def _key_from_location(store, location):
@@ -79,21 +98,53 @@ def _key_from_location(store, location):
 
 
 def resolve(store, pending):
-    """Look for the answer of a pending request. Returns (state, text_or_reason)."""
+    """(state, text_or_reason) for a pending request. Terminal states: done | failed | expired | malformed."""
     out_key = _key_from_location(store, pending.get("output_location"))
     fail_key = _key_from_location(store, pending.get("failure_location"))
     if out_key:
-        doc, _ = store.read(store.private, out_key)
+        try:
+            doc, _ = store.read(store.private, out_key)
+        except Exception as exc:  # noqa: BLE001  -- a non-JSON or oversize body is malformed, not "running"
+            return "malformed", "output object unreadable: " + type(exc).__name__
         if doc is not None:
-            text = doc.get("generated_text") if isinstance(doc, dict) else (doc[0].get("generated_text") if isinstance(doc, list) and doc else str(doc))
-            text = re.sub(r"<\|im_end\|>.*$", "", str(text or ""), flags=re.S).strip()
-            return "done", text or "(empty completion)"
+            if isinstance(doc, list) and doc and isinstance(doc[0], dict):
+                doc = doc[0]
+            if not isinstance(doc, dict):
+                return "malformed", "unexpected response shape: " + type(doc).__name__
+            if doc.get("error") or str(doc.get("finish_reason") or "").lower() == "error" or str((doc.get("details") or {}).get("finish_reason") or "").lower() == "error":
+                return "failed", str(doc.get("error") or doc.get("details") or "model error")[:400]
+            text = re.sub(r"<\|im_end\|>.*$", "", str(doc.get("generated_text") or ""), flags=re.S).strip()
+            if not text:
+                return "failed", "empty completion"
+            reason = str((doc.get("details") or {}).get("finish_reason") or doc.get("finish_reason") or "")
+            if reason == "length":
+                text += "\n\n[truncated at max_new_tokens]"
+            return "done", text
     if fail_key:
         doc, _ = store.read(store.private, fail_key)
         if doc is not None:
             return "failed", str(doc)[:500]
-    age = (store.clock() - datetime.fromisoformat(pending["submitted_at"])).total_seconds() if pending.get("submitted_at") else 0
+    submitted = pending.get("submitted_at")
+    age = (store.clock() - datetime.fromisoformat(submitted)).total_seconds() if submitted else 0
+    if age > EXPIRE_S:
+        return "expired", "no output within %d minutes (queue TTL/invocation timeout)" % (EXPIRE_S // 60)
     return ("running" if age > 20 else "queued"), "cold start can take a few minutes when the endpoint is scaled to zero"
+
+
+def list_pending(store, agent, cap=50):
+    """Unsettled requests for this agent from the pending index (independent of the chat log)."""
+    out = []
+    try:
+        resp = store.s3.list_objects_v2(Bucket=store.private, Prefix=PENDING_PREFIX, MaxKeys=500)
+    except Exception:  # noqa: BLE001
+        return out
+    for o in resp.get("Contents", []):
+        doc, etag = store.read(store.private, o["Key"])
+        if isinstance(doc, dict) and doc.get("agent") == agent and not doc.get("delivered"):
+            out.append((o["Key"], doc, etag))
+            if len(out) >= cap:
+                break
+    return out
 
 
 def is_status_question(text):

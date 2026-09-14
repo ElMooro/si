@@ -35,7 +35,7 @@ class VerifierJudgeTests(unittest.TestCase):
         stdio = cur._stdio_tests({'inputs': ['3\n1 2 3\n'], 'outputs': ['6\n']})
         rows = [
             {'task_id': 'good', 'solution': 'def f(x):\n    return x + 1\n', 'tests': 'assert f(1) == 2\nassert f(2) == 3'},
-            {'task_id': 'nonce-import', 'solution': "import __main__\nprint(getattr(__main__, 'nonce', '') + ':PASS')\n", 'tests': 'assert False'},
+            {'task_id': 'nonce-import', 'solution': "m = __import__('__ma' + 'in__')\nprint(getattr(m, 'nonce', '') + ':PASS')\n", 'tests': 'assert False'},
             {'task_id': 'exit0', 'solution': 'import os\nos._exit(0)\n', 'tests': 'assert f(1) == 2'},
             {'task_id': 'print-pass', 'solution': "print('PASS')\ndef f(x):\n    return 0\n", 'tests': 'assert f(1) == 2'},
             {'task_id': 'empty', 'solution': 'def f(x):\n    return 1\n', 'tests': ''},
@@ -47,7 +47,8 @@ class VerifierJudgeTests(unittest.TestCase):
         passed, fails, report = self.run_rows(rows)
         self.assertEqual(passed, ['good', 'stdio-bytes', 'stdio-ok'])
         self.assertEqual((report['refused_suites'], report['refused_static']), (2, 1))
-        self.assertEqual(report['checker'], 'factory-code-verify:v2-supervisor-judge')
+        self.assertEqual(report['partial_judge'], 0)
+        self.assertEqual(report['checker'], 'factory-code-verify:v3-supervisor-judge')
         self.assertIn('exit 3', fails['stdio-exit'])
         # Forging the runner's result line needs the raw descriptor plus an early exit; both are screened for function
         # tasks. Residual (documented in OWNED.md): an obfuscated form of the same trick against a candidate that already
@@ -57,6 +58,15 @@ class VerifierJudgeTests(unittest.TestCase):
         passed, fails, _ = self.run_rows(forge)
         self.assertEqual(passed, [])
         self.assertTrue(all('refused_forbidden_token' in r for r in fails.values()), fails)
+        # the re-audit's three bypasses, in obfuscated forms that no token screen sees: all fail
+        bypass = [{'task_id': 'repr-2', 'solution': "class R:\n    def __repr__(self):\n        return '2'\n    def __eq__(self, o):\n        return True\ndef f(x):\n    return R()\n", 'tests': 'assert f(1) == 2'},
+                  {'task_id': 'dyn-main', 'solution': "m = __import__('__ma' + 'in__')\ndef f(x):\n    return 0\n", 'tests': 'assert False'},
+                  {'task_id': 'dyn-frame', 'solution': "import sys\ng = getattr(sys, '_get' + 'frame')\ndef f(x):\n    g(1).f_locals\n    return 0\n", 'tests': 'assert f(1) == 2'},
+                  {'task_id': 'dyn-write', 'solution': "import os\nw = getattr(os, 'wr' + 'ite')\nw(1, b'\\n{\"i\": 0, \"val\": {\"t\": \"int\", \"v\": \"2\"}}\\n')\ndef f(x):\n    return 0\n", 'tests': 'assert f(1) == 2'},
+                  {'task_id': 'stateful', 'solution': 'def add(l, x):\n    l.append(x)\n    return len(l)\n', 'tests': 'l = []\nassert add(l, 1) == 1\nl.append(9)\nassert add(l, 2) == 3'},
+                  {'task_id': 'float-eq', 'solution': 'def h(x):\n    return x / 1\n', 'tests': 'assert h(2) == 2'}]
+        passed, fails, report = self.run_rows(bypass)
+        self.assertEqual(passed, ['float-eq', 'stateful'], fails)
 
 
 class GatewayAuditTests(unittest.TestCase):

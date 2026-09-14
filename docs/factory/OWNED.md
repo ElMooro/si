@@ -97,3 +97,23 @@ per hour only while up (`ml.g5.xlarge`), under the same cost guard. In the chat,
 submitted to the owned model; the answer lands in the log on the next poll, labelled `owned:<model>@<revision>`;
 `status` stays behind an explicit request; when the control is absent or disabled the route says so and never
 substitutes a canned answer. Context sent to the model = the owner's own turns and the model's own prior answers.
+
+## Re-audit fixes (2026-09-14, second external audit at ebdaec6c)
+
+Gate 2 (verification + data flow): verifier **v3** — the suite is transformed in order (`assert` → `__report(i, value)` in
+place, so stateful tests keep their order), the child streams a typed value per case over a captured descriptor and exits
+through a captured `_exit`; the supervisor decodes exact builtin types (no `repr`, no candidate `__eq__`), compares with
+Python equality (`2.0 == 2` passes), and requires exactly one record per case in order plus a terminal marker — extra or
+missing lines are protocol violations. The three re-audit bypasses fail in obfuscated forms (custom `__repr__`,
+`__main__` mutation, frame walking); unsupported suites are refused rather than thinned (function and stdio). Hidden
+tests are root-only inside the container (`chmod 700 /work`). **Residual (unchanged in nature):** a candidate that
+already knows the expected values and forges the entire protocol before any runner code runs still passes; only hidden
+tests close that. The writer now carries the verifier's checker/judge/cases unchanged, records every failed attempt,
+replays owner results idempotently (conflicts raise), and consent is an explicit affirmation that negation overrides;
+the curator accepts self-traces only from a v3+ supervisor judge with a bound receipt. `tests/factory/test_learning_seam.py`
+proves the seam on a mixed batch. Gate 1 (chat): the object at `InputLocation` is the serving payload byte-for-byte,
+metadata is a separate object, request state lives in `factory/inference/pending/` with an idempotency key and a
+delivery marker, terminal states include failed/expired/malformed/truncated, and the desk polls the chat after a
+visibility change. Reports: a `fail()` now makes the report status `failure`. Meter: an unreadable spend meter is a
+refusal, never a cached zero. Spawn honours an explicit count. Still open: A15 (skillbook receipts), A16/A18/A20, and the
+serving dollar cap (instance-hours) beyond the autoscaling bound.

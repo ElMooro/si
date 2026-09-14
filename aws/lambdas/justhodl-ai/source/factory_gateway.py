@@ -163,38 +163,42 @@ def attach_evidence(store, agent, prediction, envelope):
 
 
 def settle_pending(store, agent):
-    """Append answers of completed owned-model requests to the chat log (called on every snapshot)."""
+    """Deliver completed owned-model answers into the chat log from the pending INDEX (not from the trimmed log)."""
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
     if not isinstance(log, dict):
-        return log
-    changed = False
+        log = {"messages": []}
+        etag = None
     messages = list(log.get("messages") or [])
-    for msg in messages:
-        pending = msg.get("pending")
-        if not pending or pending.get("state") in ("done", "failed"):
-            continue
+    changed = False
+    for pkey, pending, petag in factory_inference.list_pending(store, agent):
         state, text = factory_inference.resolve(store, pending)
+        if state in ("queued", "running"):
+            if pending.get("state") != state:
+                try:
+                    store.put(store.private, pkey, dict(pending, state=state), etag=petag, absent=False)
+                except Conflict:
+                    pass
+            continue
         if state == "done":
-            pending["state"] = "done"
-            messages.append({"id": "a-" + digest(text + pending["id"])[:12], "at": iso(store.clock()), "from": msg.get("from"), "to": agent, "role": "agent",
-                             "text": text, "model": pending.get("origin"), "request": pending["id"]})
-            changed = True
-        elif state == "failed":
-            pending["state"] = "failed"
-            messages.append({"id": "a-" + digest(text + pending["id"])[:12], "at": iso(store.clock()), "from": msg.get("from"), "to": agent, "role": "agent",
-                             "text": "Owned model request %s failed: %s" % (pending["id"], text), "model": "owned:failed", "request": pending["id"]})
-            changed = True
+            body, model = text, pending.get("origin")
         else:
-            pending["state"] = state
+            body, model = "Owned model request %s %s: %s" % (pending["id"], state, text), "owned:" + state
+        if not any(m.get("request") == pending["id"] for m in messages):
+            messages.append({"id": "a-" + digest(body + pending["id"])[:12], "at": iso(store.clock()), "from": "student", "to": agent, "role": "agent",
+                             "text": body, "model": model, "request": pending["id"]})
             changed = True
+        try:
+            store.put(store.private, pkey, dict(pending, state=state, delivered=True, delivered_at=iso(store.clock())), etag=petag, absent=False)
+        except Conflict:
+            pass
     if changed:
         log["messages"] = messages[-CHAT_KEEP:]
         log["updated_at"] = iso(store.clock())
         try:
-            store.put(store.private, key, log, etag=etag, absent=False)
+            store.put(store.private, key, log, etag=etag, absent=etag is None)
         except Conflict:
-            pass
+            pass          # the pending index still holds delivered=True only after a successful log write above; a conflict re-delivers next poll
     return log
 
 
@@ -863,7 +867,8 @@ def chat_post(store, agent, owner, body, policy):
     low = " ".join(text.lower().split())
     imperative = low.startswith(("spawn ", "spawn", "hire ", "create agents", "create workers")) and not any(n in low for n in ("not ", "don't", "do not", "never", "?"))
     if owner and not want and imperative:
-        want = 8
+        m_count = re.search(r"\b(\d{1,3})\b", low)
+        want = max(1, min(int(m_count.group(1)), 100)) if m_count else 8    # A14: honour an explicit count
     if want:
         if not owner:
             raise Invalid("owner_invitation_required")
@@ -887,7 +892,8 @@ def chat_post(store, agent, owner, body, policy):
         try:
             rt = boto3.client("sagemaker-runtime", region_name="us-east-1", config=Config(connect_timeout=3, read_timeout=15, retries={"max_attempts": 1}))
             pending = factory_inference.submit(store, rt, control, agent, text, history)
-            reply = "Sent to the owned model (%s), request %s. Cold start can take a few minutes when the endpoint is scaled to zero; the answer appears here when it lands." % (pending["origin"], pending["id"])
+            reply = ("Same request already in flight (%s)." % pending["id"]) if pending.get("replay") else (
+                "Sent to the owned model (%s), request %s. Cold start can take a few minutes when the endpoint is scaled to zero; the answer appears here when it lands." % (pending["origin"], pending["id"]))
             model = "owned:queued"
         except Exception as exc:  # noqa: BLE001
             pending = None

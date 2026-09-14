@@ -320,7 +320,9 @@
   });
 
   window.addEventListener('hashchange', permalink);
-  document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { refresh(); loadChat(); timer = setInterval(refresh, 60000); } });
+  // A12: one polling function for initial load and visibility recovery; chat settlement always rides the poll
+  const poll = () => { refresh(); loadChat(); };
+  document.addEventListener('visibilitychange', () => { clearInterval(timer); if (!document.hidden) { poll(); timer = setInterval(poll, 60000); } });
   (async () => {
     if (window.JustHodlAuth && JustHodlAuth.init) { try { await JustHodlAuth.init(); } catch (e) {} }
     await refresh();
@@ -329,5 +331,5 @@
       JustHodlAuth.onChange(() => { refresh(); loadChat(); });
     }
   })();
-  timer = setInterval(() => { refresh(); loadChat(); }, 60000);
+  timer = setInterval(poll, 60000);
 })();
