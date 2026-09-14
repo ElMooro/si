@@ -143,8 +143,8 @@ def test_true_flow_producer_dividend_zero_and_five_observation_baseline():
 
 def test_complete_holdings_producer_and_actual_flow_attribution_include_row_101():
     holdings=[{'asset':f'S{i}','weightPercentage':1,'marketValue':100,'updatedAt':'2026-09-08'} for i in range(101)]
-    scope=producer_functions('etf-constituents',['fetch_constituents','compute_per_stock_etf_exposure'],
-       {'fmp_holdings':lambda *a,**k:holdings,'FMP_KEY':'offline','FETCH_TIMEOUT':1,'pctf':lambda x:float(x) if x is not None else None,'datetime':datetime,'timezone':timezone})
+    scope=producer_functions('etf-constituents',['fetch_constituents','fetch_constituents_polygon','compute_per_stock_etf_exposure'],
+       {'fmp_holdings':lambda *a,**k:holdings,'FMP_KEY':'offline','POLYGON_KEY':'','FETCH_TIMEOUT':1,'pctf':lambda x:float(x) if x is not None else None,'datetime':datetime,'timezone':timezone})
     result=scope['fetch_constituents']('XLK');assert len(result['top_constituents'])==101,result
     etfs=[{'ticker':'XLK','daily_flow_usd':100,'flow_5d_usd':500,'flow_21d_usd':2100}]
     true_flow_rows(etfs,flow_doc())

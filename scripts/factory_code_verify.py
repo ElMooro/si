@@ -262,9 +262,19 @@ def judge_function_task(row, scratch, env, extra, timeout):
     if not records or records[-1].get("i") != -3 or records[-1].get("done") is not True:
         return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:no_terminal_marker", "elapsed_s": elapsed}
     body = records[:-1]
-    if [r.get("i") for r in body] != [c["i"] for c in cases]:          # exactly one record per case, in suite order, nothing else
-        return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:case_sequence", "elapsed_s": elapsed}
-    for c, rec in zip(cases, body):
+    deep = str(row["tests"]).lstrip().startswith(DEEP_MARK)
+    if deep:
+        # exam suites report from inside loops: one assert -> many records. Every record must map to a known case, every
+        # case must have reported at least once, and every report must pass. Expected values stay in the supervisor.
+        valid = {c["i"]: c for c in cases}
+        if not body or any(r.get("i") not in valid for r in body) or set(r["i"] for r in body) != set(valid):
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:case_coverage", "elapsed_s": elapsed}
+        pairs = [(valid[r["i"]], r) for r in body]
+    else:
+        if [r.get("i") for r in body] != [c["i"] for c in cases]:      # exactly one record per case, in suite order, nothing else
+            return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "protocol_violation:case_sequence", "elapsed_s": elapsed}
+        pairs = list(zip(cases, body))
+    for c, rec in pairs:
         if "error" in rec:
             return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d %s" % (c["i"], rec["error"])[:120], "elapsed_s": elapsed}
         try:
@@ -279,7 +289,7 @@ def judge_function_task(row, scratch, env, extra, timeout):
         elif c["kind"] == "falsy" and bool(got):
             return {"passed": False, "cases": len(cases), "judge": "supervisor", "stderr": "case %d not falsy" % c["i"], "elapsed_s": elapsed}
     judge = "partial" if any(c.get("partial") for c in cases) else "supervisor"
-    return {"passed": True, "cases": len(cases), "judge": judge, "stderr": "", "elapsed_s": elapsed}
+    return {"passed": True, "cases": len(body) if deep else len(cases), "judge": judge, "stderr": "", "elapsed_s": elapsed}
 
 
 def parse_stdio(tests: str):
