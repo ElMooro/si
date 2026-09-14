@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off" data-theme="dark">
 <head><style id=jh-studio-css>
-#watch{width:280px;min-width:260px;max-width:320px;overflow:auto;border-left:1px solid var(--bd,#2a2e39)}
+#watch{width:280px;min-width:180px;max-width:none;overflow:auto;border-left:1px solid var(--bd,#2a2e39)}
 #watch.hide{width:0;min-width:0;max-width:0;overflow:hidden;border:0}
 #quote .jh-dump{display:none}
 #tape{display:none!important}
@@ -10,7 +10,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-2";
+  var G="jh-tvux-3";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -291,7 +291,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 #tfbar button{height:28px;padding:0 8px;font-size:13px;border-radius:4px}
 .tabs{height:38px;background:#1e222d}
 .rail{width:52px;background:#1e222d}
-.watch,#watch{width:280px;min-width:260px;max-width:320px}
+.watch,#watch{width:280px;min-width:180px;max-width:none}
 .jh-tv-trade{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding-left:12px}
 #quote .sell,#tfbar .sell,.jh-tv-sell{background:#f23645;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
 #quote .buy,#tfbar .buy,.jh-tv-buy{background:#2962ff;color:#fff;font-weight:700;padding:5px 12px;border-radius:4px;font-size:12px;letter-spacing:.02em}
@@ -409,6 +409,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-studio.js?v=3"></script>
 <script src="/jh-chart-engine.js?v=12"></script>
 <script src="/jh-chart-tvux.js?v=2"></script>
+<script src="/jh-chart-indux.js?v=1"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>

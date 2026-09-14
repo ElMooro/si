@@ -559,7 +559,8 @@
       }
       INDS.forEach(function(ind){
         if(!ind.on) return;
-        function store(id, pts){ overlayMap[id]=pts; addLine(pts, ind.c); }
+        function line(pts, color, w){ if(ind.hide) return; addLine(pts, color||ind.c, w||ind.w); }
+        function store(id, pts){ overlayMap[id]=pts; line(pts); }
         if(ind.k==="sma") store(ind.id, sma(d,ind.p));
         if(ind.k==="ema") store(ind.id, ema(d,ind.p));
         if(ind.k==="wma") store(ind.id, wma(d,ind.p));
@@ -572,22 +573,22 @@
         if(ind.k==="tema") store(ind.id, tema(d,ind.p));
         if(ind.k==="t3") store(ind.id, t3ma(d,ind.p));
         if(ind.k==="mcg") store(ind.id, mcginley(d,ind.p));
-        if(ind.k==="bb"){ var bb=bbands(d); store(ind.id, bb.m); addLine(bb.up,ind.c); addLine(bb.dn,ind.c); }
-        if(ind.k==="kc"){ var kc=keltner(d); store(ind.id, kc.m); addLine(kc.up,ind.c); addLine(kc.dn,ind.c); }
-        if(ind.k==="dc"){ var dc=donchian(d); store(ind.id, dc.m); addLine(dc.up,ind.c); addLine(dc.dn,ind.c); }
-        if(ind.k==="env"){ var en=envelope(d); store(ind.id, en.m); addLine(en.up,ind.c); addLine(en.dn,ind.c); }
+        if(ind.k==="bb"){ var bb=bbands(d); store(ind.id, bb.m); line(bb.up); line(bb.dn); }
+        if(ind.k==="kc"){ var kc=keltner(d); store(ind.id, kc.m); line(kc.up); line(kc.dn); }
+        if(ind.k==="dc"){ var dc=donchian(d); store(ind.id, dc.m); line(dc.up); line(dc.dn); }
+        if(ind.k==="env"){ var en=envelope(d); store(ind.id, en.m); line(en.up); line(en.dn); }
         if(ind.k==="st") store(ind.id, supertrend(d));
         if(ind.k==="sar") store(ind.id, sar(d));
-        if(ind.k==="ich"){ var ich=ichimoku(d); store(ind.id, ich.conv); addLine(ich.base,"#e91e63"); addLine(ich.spanA,"#26a69a"); addLine(ich.spanB,"#ab47bc"); }
-        if(ind.k==="piv"){ var pv=pivots(d); if(pv.pp){ addPriceLine(pv.pp.value,"#546e7a","P"); addPriceLine(pv.r1.value,DN,"R1"); addPriceLine(pv.s1.value,UP,"S1"); addPriceLine(pv.r2.value,DN,"R2"); addPriceLine(pv.s2.value,UP,"S2"); } }
-        if(ind.k==="allig"){ var ag=alligator(d); store(ind.id, ag.jaw); addLine(ag.teeth,"#f23645"); addLine(ag.lips,"#089981"); }
+        if(ind.k==="ich"){ var ich=ichimoku(d); store(ind.id, ich.conv); line(ich.base,"#e91e63"); line(ich.spanA,"#26a69a"); line(ich.spanB,"#ab47bc"); }
+        if(ind.k==="piv"){ var pv=pivots(d); if(pv.pp && !ind.hide){ addPriceLine(pv.pp.value,"#546e7a","P"); addPriceLine(pv.r1.value,DN,"R1"); addPriceLine(pv.s1.value,UP,"S1"); addPriceLine(pv.r2.value,DN,"R2"); addPriceLine(pv.s2.value,UP,"S2"); } }
+        if(ind.k==="allig"){ var ag=alligator(d); store(ind.id, ag.jaw); line(ag.teeth,"#f23645"); line(ag.lips,"#089981"); }
         if(ind.k==="zz") store(ind.id, zigzag(d));
-        if(ind.k==="pc" && d.length>1) addPriceLine(d[d.length-2].close, "#787b86", "PDC");
-        if(ind.k==="frac"){ var fr=fractals(d); addLine(fr.up, UP, 1); addLine(fr.dn, DN, 1); }
+        if(ind.k==="pc" && d.length>1 && !ind.hide) addPriceLine(d[d.length-2].close, "#787b86", "PDC");
+        if(ind.k==="frac"){ var fr=fractals(d); line(fr.up, UP, 1); line(fr.dn, DN, 1); }
         if(ind.k==="sqz"){ overlayMap.sqz=squeeze(d); }
         if(ind.k==="ce") store(ind.id, chandelier(d));
-        if(ind.k==="vwapb"){ var vb=vwapBands(d); store(ind.id, vb.m); addLine(vb.up,ind.c); addLine(vb.dn,ind.c); }
-        if(ind.k==="cam"){ var cm=camarilla(d); if(cm){ addPriceLine(cm.r4.value,DN,"R4"); addPriceLine(cm.r3.value,DN,"R3"); addPriceLine(cm.s3.value,UP,"S3"); addPriceLine(cm.s4.value,UP,"S4"); } }
+        if(ind.k==="vwapb"){ var vb=vwapBands(d); store(ind.id, vb.m); line(vb.up); line(vb.dn); }
+        if(ind.k==="cam"){ var cm=camarilla(d); if(cm && !ind.hide){ addPriceLine(cm.r4.value,DN,"R4"); addPriceLine(cm.r3.value,DN,"R3"); addPriceLine(cm.s3.value,UP,"S3"); addPriceLine(cm.s4.value,UP,"S4"); } }
       });
       for(var ci=0;ci<compare.length;ci++){
         try{
@@ -666,14 +667,27 @@
     wrap.className="on"; wrap.innerHTML="";
     var p=pal();
     on.forEach(function(o, idx){
-      var pane=document.createElement("div"); pane.className="osc"; pane.id="osc"+idx;
-      var lab=document.createElement("div"); lab.className="olab"; lab.textContent=o.n;
-      pane.appendChild(lab); wrap.appendChild(pane);
-      var c=LW.createChart(pane,{ autoSize:true, layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontSize:10}, grid:{vertLines:{color:p.grid},horzLines:{color:p.grid}}, timeScale:{ visible:idx===on.length-1 }, rightPriceScale:{ borderColor:p.border }, handleScroll:false, handleScale:false });
+      var sp=document.createElement("div"); sp.className="pane-split"; wrap.appendChild(sp);
+      var pane=document.createElement("div"); pane.className="osc"; pane.id="osc"+idx; pane.setAttribute("data-oid", o.id);
+      pane.style.height=(o.h||118)+"px";
+      var head=document.createElement("div"); head.className="osc-head";
+      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><span class=leg-ops>"+
+        "<button type=button data-act=eye title=Visibility>"+(o.hide?"○":"◉")+"</button>"+
+        "<button type=button data-act=set title=Settings>⚙</button>"+
+        "<button type=button data-act=x title=Remove>×</button></span>";
+      pane.appendChild(head);
+      var host=document.createElement("div"); host.className="osc-host"; pane.appendChild(host);
+      wrap.appendChild(pane);
+      head.querySelector("[data-act=eye]").onclick=function(){ o.hide=!o.hide; if(lastBars.length) paint(lastBars); };
+      head.querySelector("[data-act=set]").onclick=function(){ if(window.jhInduxSet) window.jhInduxSet(o, true); };
+      head.querySelector("[data-act=x]").onclick=function(){ o.on=false; if(lastBars.length) paint(lastBars); };
+      var c=LW.createChart(host,{ autoSize:true, layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontSize:10}, grid:{vertLines:{color:p.grid},horzLines:{color:p.grid}}, timeScale:{ visible:idx===on.length-1 }, rightPriceScale:{ borderColor:p.border }, handleScroll:false, handleScale:false });
       bindSync(c); oscCharts.push(c);
-      function addO(fn, color){ var s=c.addLineSeries({color:color||ACC,lineWidth:1}); s.setData(fn||[]); oscSeries.push(s); }
+      var col=o.c||ACC, per=o.p;
+      function addO(fn, color){ var s=c.addLineSeries({color:color||col,lineWidth:o.w||1}); s.setData(fn||[]); oscSeries.push(s); if(fn&&fn.length){ var lastv=fn[fn.length-1].value; var ve=head.querySelector(".osc-v"); if(ve&&lastv!=null) ve.textContent=fmt(lastv); } }
       function bands(lo,hi){ try{ var s=c.addLineSeries({color:"rgba(120,123,134,.45)",lineWidth:1,lastValueVisible:false,priceLineVisible:false}); s.setData((d||[]).map(function(b){return {time:b.time,value:hi};})); var s2=c.addLineSeries({color:"rgba(120,123,134,.45)",lineWidth:1,lastValueVisible:false,priceLineVisible:false}); s2.setData((d||[]).map(function(b){return {time:b.time,value:lo};})); oscSeries.push(s,s2); }catch(e){} }
-      if(o.id==="rsi"){ addO(rsi(d,14), ACC); bands(30,70); }
+      if(o.hide){ host.style.opacity="0.12"; }
+      if(o.id==="rsi"){ addO(rsi(d,per||14), col); bands(30,70); }
       else if(o.id==="macd"){ var m=macd(d); var h=c.addHistogramSeries({}); h.setData(m.map(function(p){return {time:p.time,value:p.hist,color:p.hist>=0?UP:DN};})); var l1=c.addLineSeries({color:ACC,lineWidth:1}); l1.setData(m.map(function(p){return {time:p.time,value:p.macd};})); var l2=c.addLineSeries({color:"#ff6d00",lineWidth:1}); l2.setData(m.map(function(p){return {time:p.time,value:p.signal};})); oscSeries.push(h,l1,l2); }
       else if(o.id==="stoch"){ addO(stoch(d,14,3,3), "#ab47bc"); bands(20,80); }
       else if(o.id==="stochrsi") addO(stochRsi(d), "#7e57c2");
@@ -708,6 +722,7 @@
       else if(o.id==="rvol"){ addO(rvolSeries(d,20), "#2962ff"); bands(1,2); }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
+    if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
   }
   function drawVP(d){
     var cv=document.getElementById("vp"), box=document.getElementById("chart");
@@ -1321,12 +1336,19 @@
     document.getElementById("csv").onclick=exportCSV;
   }
   function renderLegend(atTime){
+    if(window.jhInduxLegend){
+      window.jhInduxLegend({
+        atTime:atTime, INDS:INDS, OSC:OSC, overlayMap:overlayMap, valAt:valAt,
+        fmt:fmt, fmtVol:fmtVol, lastBars:lastBars, volOn:volOn, active:active, tf:tf,
+        spec:spec, paint:paint, ACC:ACC, UP:UP,
+        setVol:function(v){ volOn=!!v; if(lastBars.length) paint(lastBars); }
+      });
+      return;
+    }
     var t=atTime, last=lastBars.length?lastBars[lastBars.length-1]:null;
     if(t==null && last) t=last.time;
     function v(id){ var n=valAt(overlayMap[id], t); return n==null?"": " "+fmt(n); }
-    document.getElementById("legend").innerHTML="<div style='color:var(--fg);font-weight:500;margin-bottom:4px'>"+active+" · "+tf+(compare.length?" + "+compare.join(" "):"")+"</div>"+INDS.map(function(i){ return "<button style=color:"+i.c+";opacity:"+(i.on?1:.35)+" data-i='"+i.id+"'>"+(i.on?"◉ ":"○ ")+i.n+v(i.id)+"</button>"; }).join("")+OSC.filter(function(o){return o.on;}).map(function(o){ return "<button style=color:"+ACC+" data-o='"+o.id+"'>"+o.n+"</button>"; }).join("");
-    document.querySelectorAll("#legend [data-i]").forEach(function(b){ b.onclick=function(e){ var i=INDS.find(function(x){return x.id===b.dataset.i;}); if(e.shiftKey && i.p){ var n=+prompt("Period", i.p); if(n>1){ i.p=n; i.n=i.n.replace(/\d+/, String(n)); } } else i.on=!i.on; if(lastBars.length) paint(lastBars); }; });
-    document.querySelectorAll("#legend [data-o]").forEach(function(b){ b.onclick=function(){ var o=OSC.find(function(x){return x.id===b.dataset.o;}); o.on=!o.on; if(lastBars.length) paint(lastBars); }; });
+    document.getElementById("legend").innerHTML="<div class=leg-sym>"+active+" · "+tf+"</div>"+INDS.filter(function(i){return i.on;}).map(function(i){ return "<div class=leg-row style=color:"+i.c+">"+i.n+v(i.id)+"</div>"; }).join("");
   }
   function renderObj(){
     var el=document.getElementById("obj");
@@ -1762,32 +1784,10 @@
   }
 
   function openInd(){
+    if(window.jhInduxOpen){ window.jhInduxOpen(); return; }
     var m=document.getElementById("modal"), box=document.getElementById("mbox");
-    var cats=[]; INDS.forEach(function(i){ if(cats.indexOf(i.cat)<0) cats.push(i.cat); });
-    var ocats=[]; OSC.forEach(function(o){ if(ocats.indexOf(o.cat)<0) ocats.push(o.cat); });
-    box.innerHTML="<h3>Indicators</h3><input id=indq placeholder='Search RSI, Ichimoku, VWAP…' style='width:100%;border:1px solid var(--line);padding:8px;border-radius:4px;margin-bottom:8px'><div style=color:var(--mut);font-size:11px;margin-bottom:8px>Templates: <button id=t-tv>TV default</button> <button id=t-tr>Trend</button> <button id=t-os>Oscillators</button> <button id=t-vol>Volume</button> <button id=t-ich>Ichimoku</button> <button id=t-rib>MA ribbon</button> <button id=t-cl>Clean</button></div><div id=indbody></div><div style='margin-top:10px;text-align:right'><button id=indok>Apply</button></div>";
-    function body(q){
-      q=(q||"").toLowerCase();
-      var html="";
-      cats.forEach(function(c){ var rows=INDS.filter(function(i){ return i.cat===c && (!q || i.n.toLowerCase().indexOf(q)>=0); }); if(!rows.length) return; html+="<div class=icat>OVERLAY · "+c+"</div>"+rows.map(function(i){ return "<label class=indrow><span>"+i.n+"</span><input type=checkbox data-i='"+i.id+"' "+(i.on?"checked":"")+"></label>"; }).join(""); });
-      ocats.forEach(function(c){ var rows=OSC.filter(function(o){ return o.cat===c && (!q || o.n.toLowerCase().indexOf(q)>=0); }); if(!rows.length) return; html+="<div class=icat>PANE · "+c+"</div>"+rows.map(function(o){ return "<label class=indrow><span>"+o.n+"</span><input type=checkbox data-o='"+o.id+"' "+(o.on?"checked":"")+"></label>"; }).join(""); });
-      document.getElementById("indbody").innerHTML=html||"<div class=cell>No match</div>";
-    }
-    body(""); m.className="on";
-    document.getElementById("indq").oninput=function(){ body(this.value); };
-    function setTpl(fn){ fn(); openInd(); }
-    document.getElementById("t-tv").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=/sma20|sma50|sma200|sma250|ema250|pc/.test(i.id); }); OSC.forEach(function(o){ o.on=false; }); }); };
-    document.getElementById("t-tr").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=i.k==="st"||i.id==="ema250"||i.k==="sar"; }); OSC.forEach(function(o){ o.on=o.id==="adx"; }); }); };
-    document.getElementById("t-os").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=false; }); OSC.forEach(function(o){ o.on=/rsi|macd|stoch|atr/.test(o.id); }); }); };
-    document.getElementById("t-vol").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=i.k==="vwap"||i.k==="vwma"; }); OSC.forEach(function(o){ o.on=/obv|mfi|cmf/.test(o.id); }); vpOn=true; }); };
-    document.getElementById("t-ich").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=i.k==="ich"; }); OSC.forEach(function(o){ o.on=false; }); }); };
-    document.getElementById("t-rib").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=/ema9|ema21|ema50|ema200|sma20|sma50/.test(i.id); }); OSC.forEach(function(o){ o.on=false; }); }); };
-    document.getElementById("t-cl").onclick=function(){ setTpl(function(){ INDS.forEach(function(i){ i.on=false; }); OSC.forEach(function(o){ o.on=false; }); }); };
-    document.getElementById("indok").onclick=function(){
-      box.querySelectorAll("[data-i]").forEach(function(c){ INDS.find(function(i){return i.id===c.dataset.i;}).on=c.checked; });
-      box.querySelectorAll("[data-o]").forEach(function(c){ OSC.find(function(o){return o.id===c.dataset.o;}).on=c.checked; });
-      m.className=""; if(lastBars.length) paint(lastBars);
-    };
+    box.innerHTML="<h3>Indicators</h3><input id=indq placeholder='Search'><div id=indbody></div><div style='margin-top:10px;text-align:right'><button id=indok>Apply</button></div>";
+    m.className="on";
   }
   function openCmp(){
     var m=document.getElementById("modal"), box=document.getElementById("mbox");
