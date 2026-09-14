@@ -420,7 +420,13 @@
     applyWatch(pinned);
     bindResizers();
 
-    function enter() { clearTimeout(hideT); applyWatch(true); }
+    var openedAt = 0;
+    function enter() {
+      clearTimeout(hideT);
+      var w = watch();
+      if (w && w.classList.contains("is-collapsed")) openedAt = Date.now();
+      applyWatch(true);
+    }
     function leave() {
       clearTimeout(hideT);
       hideT = setTimeout(function () {
@@ -441,11 +447,14 @@
           var kind = b.getAttribute("data-rail");
           var w = watch();
           var open = w && w.classList.contains("is-open");
-          if (open && b.classList.contains("on")) {
+          if (open && Date.now() - openedAt < 450) {
+            pin(true);
+          } else if (open && (pinned || b.classList.contains("on"))) {
             unpin();
             return;
+          } else {
+            pin(true);
           }
-          pin(true);
           if (kind === "watch") {
             if (window.jhShowInfo) window.jhShowInfo("chart");
           } else if (window.jhShowInfo) window.jhShowInfo(kind === "details" ? "fin" : kind);
