@@ -51,7 +51,6 @@
   }
   var _tr = window.jhTapeRead;
   window.jhTapeRead = function (d) {
-    if (!tapeOn("tape")) return { markers: [], panel: "" };
     return _tr ? _tr(d) : { markers: [], panel: "" };
   };
   var _ve = window.jhVolEvents;

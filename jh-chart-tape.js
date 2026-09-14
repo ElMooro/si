@@ -146,4 +146,5 @@
       distrib: { markers: ad.distrib }
     };
   };
+  window.__jhTapeReadRaw = window.jhTapeRead;
 })();

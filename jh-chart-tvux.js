@@ -30,7 +30,10 @@
     "html[data-theme=light] .tab.on{background:#ffffff}",
     ".rail{width:52px}",
     "html[data-theme=dark] .rail{background:#1e222d}",
-    "html[data-theme=light] .rail{background:#f8f9fd}"
+    "html[data-theme=light] .rail{background:#f8f9fd}",
+    "#tv-zoom{position:absolute!important;left:50%!important;right:auto!important;top:auto!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:12!important;display:flex!important;flex-direction:row;width:auto!important;height:auto!important;pointer-events:auto}",
+    "html[data-theme=light] #tv-zoom{background:#ffffff;border-color:#e0e3eb}",
+    "html[data-theme=light] #tv-zoom button{color:#131722;border-color:#e0e3eb}"
   ].join("");
   (document.head || document.documentElement).appendChild(css);
 })();

@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.10 — theme-safe paint, tape studies, Chart Pro search. */
+/* JustHodl Chart engine v12.11 — theme recolor (no wipe), tape studies, Chart Pro search. */
 (function () {
-  if (window.__jhChartEngineV1210) return;
+  if (window.__jhChartEngineV1211) return;
+  window.__jhChartEngineV1211 = true;
   window.__jhChartEngineV1210 = true;
   window.__jhChartEngineV129 = true;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
@@ -154,6 +155,12 @@
     };
     if(ALIAS[s]) s=ALIAS[s];
     if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
+    else ticker=s;
+    if(ALIAS[ticker] && ALIAS[ticker]!==s){
+      s=ALIAS[ticker];
+      if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
+      else { venue=""; ticker=s; }
+    }
     if(venue==="INDEX"){
       if(ticker==="SPX"||ticker==="SP500"||ticker==="SPXUSD") ticker="^GSPC";
       else if(ticker==="NDX"||ticker==="NDXUSD") ticker="^NDX";
@@ -331,6 +338,8 @@
     var meta=document.querySelector('meta[name=theme-color]'); if(meta) meta.setAttribute("content", dark?"#131722":"#ffffff");
     var p=pal(); BG=p.bg;
     var bot=volOn?0.22:0.04;
+    var saved=null;
+    try{ if(chart) saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
     var opts={ layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontFamily:"IBM Plex Sans,sans-serif",fontSize:11}, grid:{vertLines:{color:gridOn?p.grid:"transparent"},horzLines:{color:gridOn?p.grid:"transparent"}}, rightPriceScale:{borderColor:p.border,invertScaledValues:invert,visible:true,scaleMargins:{top:0.06,bottom:bot}}, leftPriceScale:{visible:leftOn,borderColor:p.border}, timeScale:{borderColor:p.border} };
     [chart,chart2,chart3,chart4].concat(oscCharts).forEach(function(c){ if(c) try{ c.applyOptions(opts); }catch(e){} });
     if(mainSeries) try{
@@ -343,10 +352,11 @@
         wickDownColor:DN
       });
     }catch(e){}
-    if(repaint && lastBars.length){
-      preserveView=true;
-      paint(lastBars);
-    }
+    try{ if(chart) chart.priceScale("right").applyOptions({ scaleMargins:{ top:0.06, bottom:bot }, invertScaledValues:invert, borderColor:p.border }); }catch(e){}
+    try{ if(chart && volOn) chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.74, bottom:0 } }); }catch(e){}
+    if(saved && saved.from!=null && saved.to!=null) try{ chart.timeScale().setVisibleLogicalRange(saved); }catch(e){}
+    if(lastBars.length && vpOn) try{ drawVP(lastBars); }catch(e){}
+    try{ drawSVG(); }catch(e){}
     saveLay();
   }
   function candlePatterns(d){
@@ -646,7 +656,7 @@
       timeScale:{ borderColor:p.border },
       crosshair:{ mode: crossMode }
     });
-    try{ chart.priceScale("right").applyOptions({ mode: mode==="price"?scaleMode:0 }); }catch(e){}
+    try{ chart.priceScale("right").applyOptions({ mode: mode==="price"?scaleMode:0, scaleMargins:{ top:0.06, bottom:bot } }); }catch(e){}
     var wm=document.getElementById("wm"); if(wm) wm.textContent=watermark?active:"";
     overlayMap={};
     if(mode==="price"){
@@ -668,8 +678,8 @@
         try{
           var tapeOn=INDS.filter(function(i){ return i.on && !i.hide && (i.k==="livermore"||i.k==="wyckoff"||i.k==="accum"||i.k==="distrib"); });
           var mk=[];
-          if(tapeOn.length && window.jhTapeRead){
-            var tout=window.jhTapeRead(display);
+          if(tapeOn.length && (window.__jhTapeReadRaw || window.jhTapeRead)){
+            var tout=(window.__jhTapeReadRaw || window.jhTapeRead)(display);
             tapeOn.forEach(function(ind){
               var pack=tout[ind.k];
               if(pack && pack.markers && pack.markers.length) mk=mk.concat(pack.markers);
@@ -785,7 +795,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12 QR"; if(st) st.textContent="v12 QR · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.11"; if(st) st.textContent="v12.11 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -1726,9 +1736,33 @@
     var out=[], seen={};
     SEARCH_ALIASES.forEach(function(a){
       var hit=a.q.some(function(k){ return k===n || n.indexOf(k)>=0 || k.indexOf(n)>=0; });
-      if(hit && !seen[a.s]){ seen[a.s]=1; out.push({s:a.s, name:a.n, extra:"alias", type:a.type}); }
+      if(hit && !seen[a.s]){ seen[a.s]=1; out.push({s:a.s, name:a.n, extra:"best match", type:a.type, q:a.q}); }
     });
     return out;
+  }
+  function displayTicker(s){
+    s=String(s||"");
+    var i, a;
+    for(i=0;i<SEARCH_ALIASES.length;i++){
+      a=SEARCH_ALIASES[i];
+      if(a.s.toUpperCase()===s.toUpperCase()){
+        var compact=a.q.filter(function(k){ return /^[a-z0-9:^.=-]+$/i.test(k) && k.length<=8; })[0];
+        return String(compact||s).toUpperCase();
+      }
+    }
+    if(/^FRED:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
+    return bare(s);
+  }
+  function pinBest(q){
+    var pins=aliasHits(q);
+    if(!pins.length) return;
+    pins.slice().reverse().forEach(function(a){
+      var id=chartId(a.s)||a.s;
+      ssRows=ssRows.filter(function(r){
+        return String(r.s).toUpperCase()!==String(id).toUpperCase() && bare(r.s)!==bare(id);
+      });
+      ssRows.unshift({s:id, name:a.name, extra:"best match", type:a.type||"economy", label:displayTicker(id)});
+    });
   }
   function chartId(s){
     s=String(s||"").trim();
@@ -1826,11 +1860,12 @@
     return t||"stock";
   }
   function ssRowHtml(r,i){
-    var letter=bare(r.s).replace(/[^A-Z0-9]/gi,"").slice(0,2).toUpperCase()||"?";
+    var tick=r.label || displayTicker(r.s);
+    var letter=String(tick).replace(/[^A-Z0-9]/gi,"").slice(0,2).toUpperCase()||"?";
     var ex=(r.extra||r.type||"").replace(/\s+/g," ").trim();
     return "<button type=button class='ss-hit"+(i===ssSel?" on":"")+"' data-i='"+i+"'>"+
       "<i class=ss-logo style=background:"+logoColor(r.s)+">"+letter.slice(0,1)+"</i>"+
-      "<span class=nm>"+bare(r.s)+"</span>"+
+      "<span class=nm>"+tick+"</span>"+
       "<span class=ds>"+(r.name||ssKind(r))+"</span>"+
       "<span class=ss-ex>"+ssKind(r)+(ex && ex!==r.name?" · "+ex:"")+"</span>"+
       "<span class=ss-more data-more='"+bare(r.s)+"' title='More'>▾</span></button>";
@@ -1874,12 +1909,14 @@
       if(ssTab==="lists") extra=extra||"";
       rows.push({s:full, name:name||"", extra:extra||"", type:type||cls});
     }
-    aliasHits(q).forEach(function(a){ push(a.s, a.name, "alias · "+a.q[0], a.type, true); });
+    aliasHits(q).forEach(function(a){ push(a.s, a.name, "best match", a.type, true); });
     TABS.forEach(function(s){ push(s, s, "open tab", "tab"); });
     lists.forEach(function(L){ (L.symbols||[]).forEach(function(s){ push(s, L.name, L.name, classifySym(s)); }); });
     Object.keys(notes).forEach(function(s){ var n=noteObj(s); if(n.text) push(s, n.text.slice(0,60), "note", "note"); });
     if(q && /^[A-Z0-9:.\-]{1,20}$/i.test(q)) push(q.toUpperCase(), "Open "+q.toUpperCase(), "direct", classifySym(q));
     ssRows=rows.slice(0,60);
+    pinBest(q);
+    ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
     document.getElementById("ssres").innerHTML=ssRows.map(ssRowHtml).join("")||"<div class=cell style=padding:18px>No matches — Enter opens "+(q||"ticker")+"</div>";
     bindSsRows(dest);
     if(q.length>=2) dirSearch(q);
@@ -1889,12 +1926,14 @@
     if(ssYq===q) return; ssYq=q;
     function addRow(id, name, extra, type){
       if(!id) return;
+      id=String(id);
+      if(/!/.test(id) || /sentinel/i.test(id+" "+(name||""))) return;
       var s=chartId(id);
       if(!s) s=String(id);
       if(ssRows.some(function(r){ return String(r.s).toUpperCase()===String(s).toUpperCase() || bare(r.s)===bare(s); })) return;
       var kindType=type||classifySym(s);
       if(kindType==="dataset") return;
-      ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType});
+      ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType, label:displayTicker(s)});
     }
     try{
       var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=40");
@@ -1904,9 +1943,12 @@
         var id=row.id||row.symbol||row.ticker;
         var kind=row.kind||row.type||"";
         if(kind==="dataset") return;
-        addRow(id, row.name||row.title||"", (row.provider||row.ex||"")+" "+kind, kind==="series"||kind==="macro"?"economy":kind);
+        addRow(id, row.name||row.title||"", (row.pinned?"best match · ":"")+(row.provider||row.ex||"")+" "+kind, kind==="series"||kind==="macro"||row.pinned?"economy":kind);
       });
       (j.suggest||[]).forEach(function(s){ aliasHits(s).forEach(function(a){ addRow(a.s, a.name, "did you mean", a.type); }); });
+      (j.rows||[]).filter(function(r){ return r.pinned; }).forEach(function(row){
+        addRow(row.id||row.symbol, row.name||row.title||"", "best match", row.kind||"economy");
+      });
     }catch(e){}
     try{
       var r2=await fetch(PROXY+"/tv-search?text="+encodeURIComponent(q));
@@ -1925,7 +1967,9 @@
         addRow(x.symbol, x.shortname||x.longname||x.name||"", (x.exchDisp||x.exchange||"")+" "+(x.typeDisp||x.quoteType||x.type||""), (x.typeDisp||x.quoteType||x.type||"stock").toLowerCase());
       });
     }catch(e){}
+    pinBest(q);
     ssRows=ssRows.slice(0,80);
+    ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
     var box=document.getElementById("ssres"); if(!box) return;
     box.innerHTML=ssRows.map(ssRowHtml).join("");
     bindSsRows(document.getElementById("symsearch").dataset.dest||"chart");
@@ -2881,6 +2925,7 @@
   loadDraw();
   if(window.innerWidth<720){ watchOpen=false; }
   applyTheme(false);
+  try{ window.INDS=INDS; window.OSC=OSC; window.volOn=volOn; window.paint=paint; }catch(e){}
   renderTabs(); renderTf(); renderRail(); renderLetters(); renderWtabs(); renderLegend(); renderDock(); renderQR();
   var dwin=document.getElementById("dwin"); if(dwin) dwin.className=dwinOn?"on":"";
   var mn=document.getElementById("mini"); if(mn) mn.className=miniOn?"on":"";

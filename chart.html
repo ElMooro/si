@@ -13,7 +13,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-12";
+  var G="jh-tvux-13";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -341,7 +341,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #watch .wtitle{display:flex;align-items:center;height:36px;padding:0 8px 0 12px;border-bottom:1px solid #2a2e39;flex:none}
 #watch .wtitle b{flex:1;font-size:13px;font-weight:600}
 #list{display:none!important}
-#tv-zoom{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:8;display:flex;flex-direction:row;border:1px solid var(--line,#2a2e39);border-radius:6px;overflow:hidden;background:var(--raised,#1e222d);box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:auto}
+#tv-zoom{position:absolute;left:50%;bottom:8px;top:auto;right:auto;transform:translateX(-50%);z-index:12;display:flex;flex-direction:row;border:1px solid var(--line,#2a2e39);border-radius:6px;overflow:hidden;background:var(--raised,#1e222d);box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:auto;width:auto;height:auto}
 #tv-zoom button{width:36px;height:26px;border-radius:0;background:transparent;border:0;border-right:1px solid var(--line,#2a2e39);color:var(--fg,#d1d4dc);font-size:16px;line-height:24px;font-weight:500}
 #tv-zoom button:last-child{border-right:0}
 #tfbar .wsico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#787b86}
@@ -481,18 +481,18 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="ctx"></div>
 <div id="toast"></div>
 <script src="/jh-chart-vol-events.js?v=2"></script>
-<script src="/jh-chart-tape.js?v=4"></script>
+<script src="/jh-chart-tape.js?v=5"></script>
 <script src="/jh-chart-rs.js?v=1"></script>
 <script src="/jh-chart-macro-intel.js?v=1"></script>
 <script src="/jh-chart-ai-desk.js?v=1"></script>
 <script src="/jh-chart-vwap.js?v=1"></script>
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
-<script src="/jh-chart-studio.js?v=4"></script>
-<script src="/jh-chart-tvrail.js?v=7"></script>
-<script src="/jh-chart-engine.js?v=17"></script>
-<script src="/jh-chart-tvux.js?v=6"></script>
-<script src="/jh-chart-indux.js?v=4"></script>
+<script src="/jh-chart-studio.js?v=5"></script>
+<script src="/jh-chart-tvrail.js?v=8"></script>
+<script src="/jh-chart-engine.js?v=18"></script>
+<script src="/jh-chart-tvux.js?v=7"></script>
+<script src="/jh-chart-indux.js?v=5"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>
