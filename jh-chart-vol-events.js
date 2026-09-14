@@ -1,7 +1,5 @@
-/* Institutional volume tape. Capitulation scored like a desk, calibrated on S&P cash 1980–now.
-   Real panics: 87 crash, 89 mini-crash, 97, LTCM, 00, 9/11, 08 cascade, flash 10, 11, 15,
-   Brexit, volmageddon, COVID, 22, yen 24, tariff 25. Not "red bar + 1.75× volume".
-   Structure (BOTTOM/TOP/EOA/EOD/REV) ships only the rules that hit 100% of the gold cycle list. */
+/* Institutional volume tape. Capitulation scored like a desk; Selling Climax is Wyckoff
+   (markdown + climactic effort + close off the low or AR). Calibrated on S&P cash 1980–now. */
 (function () {
   function mean(a) {
     var s = 0, n = 0, i;
@@ -103,10 +101,6 @@
       kind = null; label = null; color = "#787b86";
       if (sellPanic && dumpClose && (ss >= 5.80 || hardCrash || ret <= -0.040)) {
         kind = "capit"; label = "CAPIT"; color = "#f23645";
-      } else if ((sellPanic && ss >= 4.00) ||
-                 (ret <= -0.022 && dumpClose && (near20 || near60) && ss >= 3.40) ||
-                 (ret <= -0.028 && loc <= 0.55 && (near20 || near60 || wide >= 1.8) && ss >= 3.70)) {
-        kind = "sc"; label = "SC"; color = "#ef5350";
       } else if (buyClimax && bs >= 5.40) {
         kind = "bc"; label = "BC"; color = "#26a69a";
       } else if (down && rvol >= 1.70 && loc >= 0.58 && ss >= 3.0) {
@@ -175,6 +169,14 @@
     for (j = a; j < i; j++) if (d[j].low < l) l = d[j].low;
     return l;
   }
+  function medSlice(d, i, from, to, pick) {
+    var a = [], j, v;
+    for (j = Math.max(0, i - to); j < i - from; j++) {
+      v = pick(d[j]);
+      if (isFinite(v) && v > 0) a.push(v);
+    }
+    return median(a);
+  }
   function clusterExt(arr, lower, w) {
     var keep = [], j;
     for (j = 0; j < arr.length; j++) {
@@ -184,6 +186,90 @@
       } else keep.push(e);
     }
     return keep;
+  }
+
+  /* Wyckoff Selling Climax — Stock Market Institute / Wyckoff Analytics:
+     After a markdown, widening spread + climactic volume as the public dumps
+     and professionals absorb. Often closes well off the low. Confirmed by the
+     Automatic Rally. Not "a red bar". Calibrated on S&P cash 1980–now. */
+  function sellingClimaxScan(d) {
+    if (!d || d.length < 90) return [];
+    var rawHits = [], i, k, b, p, rng, loc, ret, vol;
+    var rvol20, rvolPre, wide20, widePre, drop60, drop20, drop126;
+    var at20, at60, at126, bn8, undercut, yHi60, yHi20, yHi126, lo20, lo60, lo126;
+    var mV20, mVpre, mR20, mRpre, markdown, atLo, effort, terminal, sold, offLow, ar, live, demand;
+    for (i = 80; i < d.length; i++) {
+      b = d[i]; p = d[i - 1];
+      if (!b || !b.close || !p || !p.close) continue;
+      rng = b.high - b.low || 1e-12;
+      loc = (b.close - b.low) / rng;
+      ret = b.close / p.close - 1;
+      vol = b.volume || 0;
+      mV20 = medSlice(d, i, 0, 20, function (x) { return x.volume; });
+      mVpre = medSlice(d, i, 20, 80, function (x) { return x.volume; });
+      mR20 = medSlice(d, i, 0, 20, function (x) { return x.high - x.low; });
+      mRpre = medSlice(d, i, 20, 80, function (x) { return x.high - x.low; });
+      rvol20 = mV20 ? Math.min(12, vol / mV20) : 0;
+      rvolPre = mVpre ? Math.min(12, vol / mVpre) : 0;
+      wide20 = mR20 ? rng / mR20 : 1;
+      widePre = mRpre ? rng / mRpre : 1;
+      yHi60 = rngHi(d, i, 60); yHi20 = rngHi(d, i, 20); yHi126 = rngHi(d, i, 126);
+      drop60 = yHi60 ? b.low / yHi60 - 1 : 0;
+      drop20 = yHi20 ? b.low / yHi20 - 1 : 0;
+      drop126 = yHi126 ? b.low / yHi126 - 1 : 0;
+      lo20 = 1e99; lo60 = 1e99; lo126 = 1e99;
+      for (k = Math.max(0, i - 20); k <= i; k++) if (d[k].low < lo20) lo20 = d[k].low;
+      for (k = Math.max(0, i - 60); k <= i; k++) if (d[k].low < lo60) lo60 = d[k].low;
+      for (k = Math.max(0, i - 126); k <= i; k++) if (d[k].low < lo126) lo126 = d[k].low;
+      at20 = lo20 ? (b.low - lo20) / Math.abs(lo20) : 9;
+      at60 = lo60 ? (b.low - lo60) / Math.abs(lo60) : 9;
+      at126 = lo126 ? (b.low - lo126) / Math.abs(lo126) : 9;
+      bn8 = 0;
+      for (k = 1; k <= 8 && i + k < d.length; k++) bn8 = Math.max(bn8, d[i + k].close / b.low - 1);
+      undercut = b.low < Math.min(b.open, p.close) * 0.995;
+      markdown = drop60 <= -0.10 || drop20 <= -0.085 || drop126 <= -0.14;
+      atLo = at20 <= 0.006 || at60 <= 0.010 || at126 <= 0.008;
+      effort = (rvolPre >= 1.45 && (widePre >= 1.80 || wide20 >= 1.55)) ||
+               (widePre >= 2.40 && rvol20 >= 1.20) ||
+               (rvol20 >= 1.70 && wide20 >= 1.70);
+      /* Cascade terminal: panic already inflated the 20-day range, so compare
+         to pre-crash effort / the fact this is the low + AR. */
+      terminal = (drop60 <= -0.18 || drop126 <= -0.20) && atLo && bn8 >= 0.045 &&
+                 (rvolPre >= 1.20 || loc >= 0.38 || widePre >= 1.50);
+      sold = ret <= -0.012 || undercut;
+      offLow = loc >= 0.38;
+      ar = loc < 0.35 ? bn8 >= 0.035 : bn8 >= 0.025;
+      live = i >= d.length - 8;
+      demand = offLow || ar || (live && offLow);
+      if (loc >= 0.85 && bn8 < 0.03 && !live) demand = false;
+      if (markdown && atLo && sold && demand && (effort || terminal)) {
+        rawHits.push({
+          time: b.time, kind: "sc", label: "SC", color: "#ef5350",
+          vol: vol, rvol: rvolPre, i: i, score: rvolPre * Math.max(widePre, wide20),
+          ret: ret, loc: loc, wide: widePre, px: b.low
+        });
+      }
+    }
+    var groups = [], g = [];
+    for (i = 0; i < rawHits.length; i++) {
+      if (!g.length || rawHits[i].i - g[g.length - 1].i <= 8) g.push(rawHits[i]);
+      else { groups.push(g); g = [rawHits[i]]; }
+    }
+    if (g.length) groups.push(g);
+    var out = [];
+    for (i = 0; i < groups.length; i++) {
+      g = groups[i];
+      var lo = 1e99, cand = [], soldCand = [];
+      for (k = 0; k < g.length; k++) if (g[k].px < lo) lo = g[k].px;
+      for (k = 0; k < g.length; k++) if (g[k].px <= lo * 1.006) {
+        cand.push(g[k]);
+        if (g[k].loc <= 0.78 || g[k].ret <= -0.01) soldCand.push(g[k]);
+      }
+      var pool = soldCand.length ? soldCand : cand;
+      pool.sort(function (a, b) { return b.score - a.score; });
+      if (pool[0]) out.push(pool[0]);
+    }
+    return out;
   }
 
   /* Confirmed cycle turns. Gold bottoms 12/12 and gold tops 7/7 on S&P cash 1980–now.
@@ -290,8 +376,9 @@
     if (_tblD === d && _tblOut) return _tblOut;
     var tape = classify(d);
     var st = structureScan(d);
-    /* Structure first so overlay crowding prefers BOTTOM/TOP over CAPIT on the same session. */
-    _tblOut = st.concat(tape);
+    var sc = sellingClimaxScan(d);
+    /* Structure first, then Wyckoff SC, then tape so crowding prefers BOTTOM/SC over CAPIT. */
+    _tblOut = st.concat(sc).concat(tape);
     _tblD = d;
     return _tblOut;
   }

@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.30 — Wyckoff S/D, volume S/R, measured-move targets. */
+/* JustHodl Chart engine v12.31 — Wyckoff selling climax (S&P 1980–now) on the volume tape. */
 (function () {
-  if (window.__jhChartEngineV1230) return;
+  if (window.__jhChartEngineV1231) return;
+  window.__jhChartEngineV1231 = true;
   window.__jhChartEngineV1230 = true;
   window.__jhChartEngineV1229 = true;
   window.__jhChartEngineV1228 = true;
@@ -1595,7 +1596,7 @@
   }
   function dedupeTape(mk){
     if(!mk||!mk.length) return [];
-    var pri={BOTTOM:13,TOP:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,SC:10,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
+    var pri={BOTTOM:13,TOP:13,SC:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
     var best={};
     mk.forEach(function(m){
       if(!m||m.time==null) return;
@@ -1918,7 +1919,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.30"; if(st) st.textContent="v12.30 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.31"; if(st) st.textContent="v12.31 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2481,7 +2482,7 @@
     var names={capit:"Capitulation",sc:"Selling Climax",bc:"Buying Climax",hugebuy:"Huge Buy",breakout:"Confirmed Breakout",evr:"Effort vs Result",sv:"Stopping Volume",abs:"Absorption",hb:"Hidden Buying",hs:"Hidden Selling",bottom:"Bottom",top:"Top",eoa:"End of accumulation",eod:"End of distribution",revup:"Trend reverse up",revdn:"Trend reverse down"};
     var html="", i;
     var major={bottom:1,top:1,eoa:1,eod:1,revup:1,revdn:1,capit:1,sc:1,bc:1,sv:1,abs:1};
-    var prio={bottom:12,top:12,eoa:10,eod:10,revup:9,revdn:9,capit:8,sc:7,bc:7,sv:4,abs:4};
+    var prio={bottom:12,top:12,sc:11,eoa:10,eod:10,revup:9,revdn:9,capit:8,bc:7,sv:4,abs:4};
     var placed=[];
     for(i=0;i<volTapeEvents.length;i++){
       var e=volTapeEvents[i];
