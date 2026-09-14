@@ -53,6 +53,7 @@ def main(argv=None) -> int:
     ap.add_argument("--image", required=True)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--require-digest", action="store_true")
+    ap.add_argument("--allow-tag", action="store_true", help="allow replacing a digest-pinned image with a tag pin")
     args = ap.parse_args(argv)
     data = bundle_bytes()
     sha = hashlib.sha256(data).hexdigest()
@@ -70,6 +71,16 @@ def main(argv=None) -> int:
             state = "exists"
         else:
             raise
+    # never downgrade a digest-pinned image to a tag pin (the mirror workflow sets the digest; a restage must not undo it)
+    try:
+        current = json.loads(s3.get_object(Bucket=PRIVATE, Key=PIN_KEY)["Body"].read())
+    except Exception:  # noqa: BLE001
+        current = {}
+    cur_img = str(current.get("training_image") or "")
+    if "@sha256:" in cur_img and "@sha256:" not in args.image and not args.allow_tag:
+        pin["training_image"] = cur_img
+        pin["require_digest"] = bool(current.get("require_digest", True))
+        print(json.dumps({"note": "kept the existing digest-pinned image; pass --allow-tag to downgrade", "image": cur_img}))
     s3.put_object(Bucket=PRIVATE, Key=PIN_KEY, Body=json.dumps(pin, indent=2).encode(), ContentType="application/json")
     print(json.dumps({"bundle": state, "bundle_key": key, "bundle_sha256": sha, "pin_key": PIN_KEY, "image": args.image}, indent=2))
     return 0
