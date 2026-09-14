@@ -51,6 +51,8 @@ class OwnSpecTests(unittest.TestCase):
     def test_spec_shape_matches_launch_sft_contract(self):
         spec = own.own_spec(self.s3, PRI, self.control)
         self.assertTrue(spec['training_supported'] and spec['training_image'].startswith('123456789012.dkr.ecr'))
+        self.assertEqual(spec['training_image'], '123456789012.dkr.ecr.us-east-1.amazonaws.com/justhodl/factory-train@sha256:' + 'd' * 64)   # digest only, never tag+digest
+        self.assertEqual(spec['training_image_pinned'], good_pin()['training_image'])
         self.assertEqual(spec['training_artifact'], good_manifest()['s3_prefix'])
         self.assertEqual(spec['training_script'], good_pin()['bundle_uri'])
         self.assertEqual(spec['hyperparameters']['sagemaker_program']['default'], 'train_qlora.py')
@@ -91,7 +93,7 @@ class OwnSpecTests(unittest.TestCase):
         record = gb.launch_sft(FakeSM(), self.s3, spec=spec, role_arn='arn:aws:iam::123456789012:role/x', private_bucket=PRI, control=control,
                                policy={}, manifest=manifest, projected={}, pricing=None, region='us-east-1')
         job = calls['job']
-        self.assertEqual(job['AlgorithmSpecification']['TrainingImage'], good_pin()['training_image'])
+        self.assertEqual(job['AlgorithmSpecification']['TrainingImage'], '123456789012.dkr.ecr.us-east-1.amazonaws.com/justhodl/factory-train@sha256:' + 'd' * 64)
         self.assertEqual(job['HyperParameters']['sagemaker_program'], 'train_qlora.py')
         self.assertEqual(job['HyperParameters']['sagemaker_submit_directory'], good_pin()['bundle_uri'])
         self.assertEqual(job['HyperParameters']['lora_r'], '32')                     # control overrides the pin
@@ -137,7 +139,7 @@ class OwnSpecTests(unittest.TestCase):
         spec = own.burst_spec(self.s3, PRI, self.control, tasks_uri='s3://private-test/factory/curriculum/code/2026-09-13/', samples_per_task=6, temperature=0.9)
         self.assertEqual(spec['hyperparameters']['sagemaker_program']['default'], 'generate.py')
         self.assertEqual(spec['hyperparameters']['samples_per_task']['default'], '6')
-        self.assertEqual(spec['training_image'], good_pin()['training_image'])
+        self.assertTrue(spec['training_image'].endswith('@sha256:' + 'd' * 64) and ':hf-pt2.3@' not in spec['training_image'])
         exam = own.burst_spec(self.s3, PRI, self.control, mode='exam', tasks_uri='s3://private-test/factory/exams/code/', adapter_uri='s3://private-test/factory/champions/gen-3/adapter/')
         self.assertEqual((exam['hyperparameters']['temperature']['default'], exam['hyperparameters']['adapter_generation']['default']), ('0.0', 'adapter'))
         with self.assertRaises(own.OwnSpecRefused):

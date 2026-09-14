@@ -91,9 +91,11 @@ def own_spec(s3, private_bucket: str, control: Dict[str, Any]) -> Dict[str, Any]
              "learning_rate": {"default": str(pin.get("learning_rate", "2e-4"))},
              "max_seq_len": {"default": str(pin.get("max_seq_len", 2048))},
              "load_in_4bit": {"default": "true"}}
+    # SageMaker accepts repo:tag or repo@sha256:digest, never both; a digest-pinned image is referenced by digest alone.
+    image = re.sub(r":[^@/]+@sha256:", "@sha256:", str(pin["training_image"]))
     return {"model_id": model_id, "model_source": "own", "version": manifest["revision"],
             "display_name": manifest.get("repo") or model_id, "license": manifest["license"],
-            "training_supported": True, "training_image": pin["training_image"],
+            "training_supported": True, "training_image": image, "training_image_pinned": pin["training_image"],
             "training_artifact": manifest["s3_prefix"], "training_script": pin["bundle_uri"],
             "training_bundle_sha256": pin["bundle_sha256"], "hyperparameters": hyper,
             "default_training_instance": pin.get("default_instance", "ml.g5.2xlarge"),
