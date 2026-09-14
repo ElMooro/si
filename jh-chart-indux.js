@@ -9,7 +9,7 @@
       var x = JSON.parse(localStorage.getItem(FAV_KEY) || "null");
       if (Array.isArray(x) && x.length) return x;
     } catch (e) {}
-    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz", "keylv", "pvwap", "ddown", "alpha", "rngpos", "earn"];
+    return ["sma20", "sma50", "sma200", "ema9", "bb", "avgdev", "vwap", "rsi", "macd", "adx", "hv", "bbp", "vol", "voltape", "vsa", "livermore", "wyckoff", "gdx", "bbw", "bbsqz", "keylv", "pvwap", "ddown", "alpha", "rngpos", "earn", "pats"];
   })();
   function saveFav() {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
@@ -232,6 +232,7 @@
         if (s.id === "svwaps") keys += " swing anchored vwap last high low fractal";
         if (s.id === "earn") keys += " earnings beat miss fomc witching rebalance auction events calendar eps surprise";
         if (s.id === "htrsi") keys += " weekly rsi higher timeframe htf";
+        if (s.id === "pats") keys += " chart patterns double bottom resistance break supply demand support wyckoff livermore head shoulders cup handle flag triangle";
         if (s.id === "ddown") keys += " drawdown from ath underwater maxdd risk";
         if (s.id === "alpha") keys += " jensen residual alpha vs spy beta adjusted excess";
         if (s.id === "rngpos") keys += " range position 52 week percentile high low";
@@ -280,6 +281,7 @@
               s.id === "alpha" ? "Residual vs SPY · " :
               s.id === "rngpos" ? "Close in 52w range · " :
               s.id === "htrsi" ? "Weekly RSI 14 on daily · " :
+              s.id === "pats" ? "DB · R-BRK · S/R · S/D · Wyckoff/Livermore · " :
               s.osc ? "New pane · " : "Overlay · "
             ) + s.cat + "</span></div>" +
             "<span class='qhelp' data-help='" + s.id + "' title='What is this'>?</span>" +
@@ -491,6 +493,7 @@
       alpha: ["Alpha vs SPY", "Stats", "Cumulative residual after rolling 60-bar beta vs SPY, indexed to 100. Above 100 = beating the hedge after beta.", "This is not annualized Jensen alpha; it is the path of leftover return. SPY vs SPY stays at 100. A stock with RS rising but alpha flat is just high-beta.", "Residual / beta-adjusted relative strength."],
       rngpos: ["Range Position", "Stats", "Close as % of the trailing 252-bar (≈52-week) high–low. 100 = at the high, 0 = at the low. Default bands 80 / 20.", "90%+ is extended, not 'strong' by itself. Mean-reversion setups live at the extremes; trend-following setups live on the push through 80 with volume.", "Bloomberg 52-week range position."],
       htrsi: ["Weekly RSI", "Momentum", "RSI 14 computed on calendar-week bars, then stepped onto this chart. Slow, fund-level momentum.", "Weekly RSI still <50 while daily RSI is 70 is a rally in a downtrend. Weekly RSI reclaiming 50 is often the real turn.", "Higher-timeframe RSI overlay as a pane."],
+      pats: ["Chart Patterns", "Patterns", "Institutional map, not wallpaper. S&P cash 1980–now + SPY 1993–now, confirmation-only, next-open 10-session test vs drift. Signals kept: double bottom (GSPC n=99 hit 65.7% mean +0.72% edge +0.30% t=3.1; SPY 64.8% / +0.55%) and 3-touch resistance break (SPY n=19 hit 78.9% +1.09% edge +0.71%; GSPC 64% / +1.28%). Map kept: clustered S/R (next-visit reaction 54–76% vs ~33–55% random) and fresh supply/demand boxes (first touch rarely smashes the zone). Cycle events: Livermore BOTTOM/TOP/REV and Wyckoff SC/SOS/SOW/BC from the gold tape, plus PH/PL danger rays.", "DB = confirmed neckline close, quieter 2nd low. DB? = forming, not a buy. R-BRK = close through a 3-touch ceiling. Green boxes are unmitigated demand, red unmitigated supply — location, not a 10-day long (that bounce failed the S&P bar). PH/PL are Livermore's last pivot high/low; a close through them is the trend invalidation. D / W / M only.", "Dropped on S&P daily: doji, hammer, engulfing, H&S, double-top shorts, flags, triangles, cup-handle, 52-week breakdowns — they matched drift or lost money. Those remain in Candle patterns if you want them."],
       rsi: ["RSI 14", "Momentum", "Wilder RSI. Default 70/30 bands, 50 midline. Length and OB/OS are editable in Settings.", "Overbought is not sell. In a weekly uptrend, RSI can sit 60–80 for months. Use with Divergence and Key Levels.", "Wilder 1978. Smoothed, not cutler."],
       macd: ["MACD", "Momentum", "12/26/9 EMA MACD, 4-color histogram (up/down × rising/falling), zero line, signal.", "Histogram shrinking toward zero while price makes a new high is the MACD half of Divergence. Crosses at the zero line carry more weight than crosses at +2%.", "Standard MACD. Fast/slow/signal editable."],
       bb: ["Bollinger Bands", "Channel", "SMA middle (BB Average, thicker) ± StdDev × multiplier. Default 20, 2.", "The middle band is the mean. Width compression is BB Width / Squeeze. %B says where close sits inside the envelope.", "Bollinger 1980s. Pair with BB Width and BB Squeeze."],

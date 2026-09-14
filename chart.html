@@ -13,7 +13,7 @@
 <meta charset="utf-8">
 <script>
 (function(){
-  var G="jh-tvux-31";
+  var G="jh-tvux-32";
   try{
     if(localStorage.getItem("jh_chart_ux")===G) return;
     if(sessionStorage.getItem("jh_chart_ux_try")===G){
@@ -122,6 +122,8 @@ a{color:inherit;text-decoration:none}
 #dwin b{display:block;letter-spacing:1px;color:var(--acc);margin-bottom:4px}
 #dwin .cell{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--chip);gap:8px}
 #draw{position:absolute;inset:0;z-index:3;pointer-events:none}
+#patov{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+#patov text{font:10px/1 IBM Plex Mono,ui-monospace,monospace;paint-order:stroke;stroke:rgba(19,23,34,.85);stroke-width:3px;stroke-linejoin:round}
 #vp{position:absolute;left:0;top:0;bottom:26px;width:96px;z-index:2;pointer-events:none}
 #wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:600;color:var(--wm);pointer-events:none;z-index:1;font-family:"IBM Plex Sans",sans-serif}
 #mini{height:0;border-top:0;background:var(--bg);flex:none;overflow:hidden}
@@ -378,6 +380,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
           <div class="host" id="host"></div>
           <div id="wm"></div>
           <canvas id="vp"></canvas>
+          <svg id="patov"></svg>
           <svg id="draw"></svg>
           <div id="legend"></div>
           <div id="hud"></div>
@@ -485,6 +488,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="toast"></div>
 <script src="/jh-chart-vol-events.js?v=9"></script>
 <script src="/jh-chart-tape.js?v=9"></script>
+<script src="/jh-chart-patterns.js?v=1"></script>
 <script src="/jh-chart-rs.js?v=1"></script>
 <script src="/jh-chart-macro-intel.js?v=1"></script>
 <script src="/jh-chart-ai-desk.js?v=1"></script>
@@ -493,9 +497,9 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
 <script src="/jh-chart-tvrail.js?v=8"></script>
-<script src="/jh-chart-engine.js?v=34"></script>
+<script src="/jh-chart-engine.js?v=35"></script>
 <script src="/jh-chart-tvux.js?v=10"></script>
-<script src="/jh-chart-indux.js?v=11"></script>
+<script src="/jh-chart-indux.js?v=12"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
 </body>
