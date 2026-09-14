@@ -1,0 +1,38 @@
+# ops 5561 -- exam forensics: failure reasons + raw completions of the base exam job
+
+**Status:** success  
+**Duration:** 0.6s  
+**Finished:** 2026-09-14T22:17:26+00:00  
+
+## Log
+- `22:17:25` ✅ latest gen-0 result gen-0-34902101944.json: reasons [["candidate_failed_to_load", 126], ["protocol_violation:case_sequence", 21], ["refused_forbidden_token:__main__", 16], ["suite_raised", 1]]
+- `22:17:25` ✅ verifier stderr tail: 
+- `22:17:26` ✅ job output members: ['burst_manifest.json', 'exam.jsonl']
+- `22:17:26` ✅ exam.jsonl rows: 164
+- `22:17:26`   task=HumanEval/0 finish=stop tokens=73 completion[:400]='    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False\n\n\nif __name__ == "__main__":\n    import doctest\n\n    doctest.testmod()  # run the tests in the docstring\n```'
+- `22:17:26`   task=HumanEval/1 finish=length tokens=1024 completion[:400]="    result = []\n    current_group = []\n    depth = 0\n\n    for char in paren_string.replace(' ', ''):\n        if char == '(':\n            depth += 1\n        elif char == ')':\n            depth -= 1\n\n        current_group.append(char)\n\n        if depth == 0:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result\n\n\ndef test_separate_paren_groups():\n    ass"
+- `22:17:26`   task=HumanEval/2 finish=stop tokens=202 completion[:400]='    return number - int(number)\n\n# Check function to verify the correctness of the solution\ndef check_function():\n    assert truncate_number(3.5) == 0.5\n    assert truncate_number(10.01) == 0.01\n    assert truncate_number(123.456) == 0.456\n    assert truncate_number(0.999) == 0.999\n    assert truncate_number(5.0) == 0.0\n    print("All test cases pass.")\n\ncheck_function()\n```\n\nThis Python code snip'
+- `22:17:26`   manifest: {
+  "schema_version": "factory-burst-manifest.v1",
+  "started_at": "2026-09-14T21:41:27Z",
+  "plan": {
+    "mode": "exam",
+    "samples_per_task": 1,
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "max_new_tokens": 1024,
+    "task_cap": 1000
+  },
+  "tasks": 164,
+  "holdout_refused": 0,
+  "base_present": true,
+  "adapter_present": false,
+  "status": "generated",
+  "adapter_generation": "base",
+  "eligibility": "traces are candidates only; the verifier grades",
+  "finished_at": "2026-09-14T21:43:19Z",
+  "seconds": 48.1,
+  "candidates": 164,
+  "output": "exam.jsonl",
+  "output_sha256": "a4eef5441
+- `22:17:26` ✅ GREEN -- forensics recorded

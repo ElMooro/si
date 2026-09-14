@@ -1,17 +1,35 @@
-executing-against: 689350c35d90cead2f76372ddd4a0161c5b454a7
-ops 5560 -- learning scorecard: supply (rows/receipts) vs learning (exam delta), from objects only
-[22:10:26] ✅ verified rows on disk: 2102 (listing truncated=False); by checker: {"factory-code-exam:a340d8ebd559": 464, "factory-trace-verify:network-less-container": 1529, "factory-code-exam:caf2b53d3151": 106, "factory-code-verify:v3-supervisor-judge": 3}
-[22:10:26] ✅ ELIGIBLE through the curator (receipt resolved, hashes bound, supervisor judge, cases>=1): 570 rows over 570 distinct tasks; families {"mbpp": 464, "apps-introductory": 106}
-[22:10:27] ✅ bursts launched: 6; failed-attempt records on disk: 1454
-[22:10:27] ✅ Gear B training jobs (deduplicated): 0; champion: none (base model)
-[22:10:27]   exam result base.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34900737918
-[22:10:27]   exam result gen-0-34900737918.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34900737918
-[22:10:27]   exam result gen-0-34902101944.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34902101944
-[22:10:27] ✅ BASE EXAM (frozen HumanEval, greedy, base model): 0/164 passed = 0.0%; critical failures 21; partial-judge passes 0; evaluation_id humaneval-frozen-848505e1dd021797
-[22:10:27] ✅ frozen holdout exam: prompts present; exam result objects: 3; base exam: {"pass_rate": 0.0, "tasks": null, "at": "2026-09-14T21:48:21Z"}; promoted candidate exam: none
-[22:10:27] ✅ owned serving endpoint: absent; chat control enabled=True
-[22:10:27] ✅ pipeline stages: weights staged=yes, bursts produced candidates=yes, independent judge admitted rows=yes, supply floor reached=no, base exam measured=yes, adapter trained=no, candidate examined and promoted=no -> 4/7
-[22:10:27] ✅ SUPPLY READINESS 38.0% (570/1500 eligible rows) | LEARNING 0.0% (exam delta; 0 until an adapter is trained and examined)
-[22:10:27] ✅ GREEN -- scorecard recorded
+executing-against: 49ed8695bbd3912ce5918246d5867984d02abbe0
+ops 5561 -- exam forensics: failure reasons + raw completions of the base exam job
+[22:17:25] ✅ latest gen-0 result gen-0-34902101944.json: reasons [["candidate_failed_to_load", 126], ["protocol_violation:case_sequence", 21], ["refused_forbidden_token:__main__", 16], ["suite_raised", 1]]
+[22:17:25] ✅ verifier stderr tail: 
+[22:17:26] ✅ job output members: ['burst_manifest.json', 'exam.jsonl']
+[22:17:26] ✅ exam.jsonl rows: 164
+[22:17:26]   task=HumanEval/0 finish=stop tokens=73 completion[:400]='    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            if abs(numbers[i] - numbers[j]) < threshold:\n                return True\n    return False\n\n\nif __name__ == "__main__":\n    import doctest\n\n    doctest.testmod()  # run the tests in the docstring\n```'
+[22:17:26]   task=HumanEval/1 finish=length tokens=1024 completion[:400]="    result = []\n    current_group = []\n    depth = 0\n\n    for char in paren_string.replace(' ', ''):\n        if char == '(':\n            depth += 1\n        elif char == ')':\n            depth -= 1\n\n        current_group.append(char)\n\n        if depth == 0:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result\n\n\ndef test_separate_paren_groups():\n    ass"
+[22:17:26]   task=HumanEval/2 finish=stop tokens=202 completion[:400]='    return number - int(number)\n\n# Check function to verify the correctness of the solution\ndef check_function():\n    assert truncate_number(3.5) == 0.5\n    assert truncate_number(10.01) == 0.01\n    assert truncate_number(123.456) == 0.456\n    assert truncate_number(0.999) == 0.999\n    assert truncate_number(5.0) == 0.0\n    print("All test cases pass.")\n\ncheck_function()\n```\n\nThis Python code snip'
+[22:17:26]   manifest: {
+  "schema_version": "factory-burst-manifest.v1",
+  "started_at": "2026-09-14T21:41:27Z",
+  "plan": {
+    "mode": "exam",
+    "samples_per_task": 1,
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "max_new_tokens": 1024,
+    "task_cap": 1000
+  },
+  "tasks": 164,
+  "holdout_refused": 0,
+  "base_present": true,
+  "adapter_present": false,
+  "status": "generated",
+  "adapter_generation": "base",
+  "eligibility": "traces are candidates only; the verifier grades",
+  "finished_at": "2026-09-14T21:43:19Z",
+  "seconds": 48.1,
+  "candidates": 164,
+  "output": "exam.jsonl",
+  "output_sha256": "a4eef5441
+[22:17:26] ✅ GREEN -- forensics recorded
 
-→ Report written to aws/ops/reports/latest/ops_5560_learning_scorecard3.md
+→ Report written to aws/ops/reports/latest/ops_5561_exam_forensics.md
