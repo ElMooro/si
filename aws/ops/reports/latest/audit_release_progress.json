@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-14T05:19:22.809792+00:00",
+  "observed_at": "2026-09-14T05:19:27.967476+00:00",
   "runs": [
     {
       "id": 34809164411,
@@ -348,25 +348,25 @@
             {
               "number": 20,
               "name": "Build complete producer-to-page data contracts",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-14T05:19:09Z",
-              "completed_at": null
+              "completed_at": "2026-09-14T05:19:17Z"
             },
             {
               "number": 21,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-14T05:19:17Z",
+              "completed_at": "2026-09-14T05:19:17Z"
             },
             {
               "number": 22,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-09-14T05:19:17Z",
               "completed_at": null
             },
             {
