@@ -160,6 +160,20 @@ def inventory_endpoints() -> List[dict]:
                                         "serverless_memory_mb": (v.get("CurrentServerlessConfig") or {}).get("MemorySizeInMB"),
                                         "image": ((v.get("DeployedImages") or [{}])[0] or {}).get("SpecifiedImage", "")})
             row["endpoint_config"] = d.get("EndpointConfigName")
+            # async + autoscaling min 0 = pay only while a request is running (like serverless): the guard must not reap it
+            try:
+                cfg = sm.describe_endpoint_config(EndpointConfigName=d.get("EndpointConfigName"))
+                row["async"] = bool(cfg.get("AsyncInferenceConfig"))
+            except Exception:
+                row["async"] = False
+            if row["async"]:
+                try:
+                    aas = client("application-autoscaling")
+                    targets = aas.describe_scalable_targets(ServiceNamespace="sagemaker", ResourceIds=["endpoint/%s/variant/%s" % (row["name"], v.get("VariantName"))
+                                                                                                          for v in (d.get("ProductionVariants") or [])]).get("ScalableTargets") or []
+                    row["scale_to_zero"] = bool(targets) and all(int(t.get("MinCapacity", 1)) == 0 for t in targets)
+                except Exception:
+                    row["scale_to_zero"] = False
         except Exception as ex:
             row["describe_error"] = str(ex)[:120]
         row["invocations_24h"] = cg.endpoint_invocations(client("cloudwatch"), row["name"], 24)

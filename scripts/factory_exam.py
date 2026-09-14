@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
+import textwrap
 import json
 import os
 import subprocess
@@ -48,6 +50,34 @@ def cmd_tasks(args):
     return 0
 
 
+FENCE = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.S)
+
+
+def join_solution(prompt, completion, entry_point):
+    """HumanEval convention is prompt + body continuation; an instruct model may instead answer in prose with a fenced
+    block, or restate the whole function. Take, in order: (1) prompt + completion if it compiles; (2) prompt + fenced/plain
+    code indented as a body; (3) the fenced/plain code alone when it defines the entry point (plus the prompt's imports).
+    Nothing here changes what the model wrote; it only chooses which byte range is the program."""
+    text = completion.replace("\r\n", "\n")
+    code = (FENCE.search(text).group(1) if FENCE.search(text) else text).rstrip() + "\n"
+    imports = "\n".join(l for l in prompt.splitlines() if l.startswith(("import ", "from "))) + "\n"
+    defines = re.search(r"^\s*def\s+%s\s*\(" % re.escape(entry_point), code, flags=re.M) is not None
+    candidates = []
+    if not defines:
+        candidates.append(prompt + text)
+        candidates.append(prompt + textwrap.indent(code, "    ") if not code.startswith((" ", "\t")) else prompt + code)
+    else:
+        candidates.append(imports + code)
+    candidates.append(prompt + code)
+    for cand in candidates:
+        try:
+            compile(cand, "candidate.py", "exec")
+            return cand
+        except SyntaxError:
+            continue
+    return candidates[0]
+
+
 def cmd_grade(args):
     prompts = {r["task_id"]: r for r in read_jsonl(args.prompts)}
     tests_raw = Path(args.tests).read_bytes()
@@ -64,7 +94,7 @@ def cmd_grade(args):
         if not p or not comps:
             continue
         comp = comps[0]                                   # exam is greedy, one sample per task
-        solution = p["prompt"] + str(comp.get("completion") or "")
+        solution = join_solution(p["prompt"], str(comp.get("completion") or ""), p["entry_point"])
         suite = "#deep\n" + str(t["tests"]) + "\n\ncheck(%s)\n" % p["entry_point"]
         candidates.append({"task_id": tid, "solution": solution, "tests": suite, "timeout_s": 12})
     with tempfile.TemporaryDirectory() as tmp:
@@ -102,13 +132,17 @@ def upload(result):
     if True:
         s3.put_object(Bucket=PRIVATE, Key="%s%s-%s.json" % (RESULTS_PREFIX, args.generation, args.run_id), Body=body, ContentType="application/json")
         if args.generation in ("gen-0", "base"):
+            existing = None
             try:
-                s3.put_object(Bucket=PRIVATE, Key=RESULTS_PREFIX + "base.json", Body=body, ContentType="application/json", IfNoneMatch="*")
-                print("base exam pinned")
-            except Exception as exc:  # noqa: BLE001
-                if "PreconditionFailed" not in str(exc) and "412" not in str(exc):
-                    raise
-                print("base exam already pinned; this run recorded as gen-0-%s" % args.run_id)
+                existing = json.loads(s3.get_object(Bucket=PRIVATE, Key=RESULTS_PREFIX + "base.json")["Body"].read())
+            except Exception:  # noqa: BLE001
+                existing = None
+            trusted = int(result.get("critical_failures") or 0) == 0 and int(result.get("missing_completions") or 0) == 0
+            if existing is None or (trusted and int(existing.get("critical_failures") or 0) > 0):
+                s3.put_object(Bucket=PRIVATE, Key=RESULTS_PREFIX + "base.json", Body=body, ContentType="application/json")
+                print("base exam pinned (%s)" % ("replaced an untrusted base" if existing else "first"))
+            else:
+                print("base exam kept; this run recorded as gen-0-%s (trusted=%s)" % (args.run_id, trusted))
 
 
 def cmd_upload(args):

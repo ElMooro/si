@@ -258,6 +258,10 @@ def enforce_endpoint_ttl(sm, cw, endpoints: List[dict], policy: Dict[str, Any]) 
             row["reason"] = "serverless (pay per request): no TTL/idle reaping"
             ledger.append(row)
             continue
+        if ep.get("async") and ep.get("scale_to_zero") and ep.get("status") not in ("Failed", "OutOfService"):
+            row["reason"] = "async with autoscaling min 0 (bills only while a request runs): no TTL/idle reaping; scale-in is the guard"
+            ledger.append(row)
+            continue
         if ep.get("status") in ("Failed", "OutOfService"):
             kill = "endpoint %s (never bills; blocks the name)" % ep.get("status")
         elif ttl and age_h is not None and age_h > ttl:
