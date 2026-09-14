@@ -480,6 +480,56 @@ def _run_private(event, context):
     print(f"  portfolio_vol={port_vol_annual:.1f}% · VAR99={var_1d_99_pct:.2f}% · β={portfolio_beta:.2f} · "
           f"HHI={hhi:.0f} ({hhi_label})")
 
+    # ─── ETF look-through (paid profiles + holdings, no double-count of cash) ───
+    etf_lt = {"source": "etf-desk", "n_etf_positions": 0, "sector_lookthrough": [],
+              "geo_lookthrough": [], "levered": [], "as_of": None}
+    try:
+        _desk = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/etf-desk.json")["Body"].read()) or {}
+        _by = _desk.get("by_etf") or {}
+        etf_lt["as_of"] = _desk.get("generated_at")
+        sec_acc, geo_acc = {}, {}
+        for p in positions:
+            sym = (p.get("symbol") or "").upper()
+            mv = p.get("market_value") or 0
+            w_port = (mv / total_value) if total_value else 0
+            row = _by.get(sym)
+            if not row:
+                continue
+            etf_lt["n_etf_positions"] += 1
+            style = (row.get("leverage_style") or row.get("leverage") or "").lower()
+            if style and style not in ("unleveraged", "unlevered", "", "none"):
+                etf_lt["levered"].append({
+                    "symbol": sym, "style": row.get("leverage_style"),
+                    "amount": row.get("levered_amount"), "weight_pct": round(w_port * 100, 2),
+                })
+            full = row.get("sector_full") or {}
+            if not full and row.get("sector"):
+                full = {x.get("k"): x.get("w") for x in row["sector"] if x.get("k")}
+            for k, wv in full.items():
+                try:
+                    sec_acc[k] = sec_acc.get(k, 0.0) + w_port * float(wv)
+                except (TypeError, ValueError):
+                    pass
+            gfull = row.get("geo_full") or {}
+            if not gfull and row.get("geo"):
+                gfull = {x.get("k"): x.get("w") for x in row["geo"] if x.get("k")}
+            for k, wv in gfull.items():
+                try:
+                    geo_acc[k] = geo_acc.get(k, 0.0) + w_port * float(wv)
+                except (TypeError, ValueError):
+                    pass
+        etf_lt["sector_lookthrough"] = [
+            {"sector": k, "weight_pct": round(v * 100, 2)}
+            for k, v in sorted(sec_acc.items(), key=lambda x: -x[1])
+        ]
+        etf_lt["geo_lookthrough"] = [
+            {"geo": k, "weight_pct": round(v * 100, 2)}
+            for k, v in sorted(geo_acc.items(), key=lambda x: -x[1])
+        ]
+        etf_lt["note"] = "Look-through of ETF holdings via paid profiles. Direct stock + ETF overlap is not netted here."
+    except Exception as e:
+        etf_lt["error"] = str(e)[:160]
+
     # ─── Build payload ───
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -524,6 +574,7 @@ def _run_private(event, context):
                                               if sector_pcts else False),
             "correlation_cluster_count": len(correlation_clusters),
         },
+        "etf_lookthrough": etf_lt,
     }
 
     # ─── Fire Telegram alerts ───

@@ -537,22 +537,62 @@ def lambda_handler(event, context):
         _flow = {m.get("ticker"): m for m in _fr if m.get("ticker") and not m.get("error")}
     except Exception as e:
         _flow = {}; print("  etf-flows load failed: " + str(e)[:80])
+    try:
+        _desk = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/etf-desk.json")["Body"].read()) or {}
+        _desk_by = _desk.get("by_etf") or {}
+    except Exception as e:
+        _desk_by = {}; print("  etf-desk load failed: " + str(e)[:80])
     for _s in sectors_out:
         _m = _flow.get(_s.get("symbol"))
-        if not _m or _s.get("err"):
+        _d = _desk_by.get(_s.get("symbol")) or {}
+        if _s.get("err"):
+            continue
+        if _d.get("flow_5d") is not None or _d.get("flow_1d") is not None:
+            _s["etf_flow_1d_usd"] = _d.get("flow_1d")
+            _s["etf_flow_5d_usd"] = _d.get("flow_5d")
+            _s["etf_flow_21d_usd"] = _d.get("flow_21d")
+            _s["etf_flow_windows"] = _d.get("flow_windows")
+            _s["etf_flow_source"] = "etf-desk"
+            _s["etf_flow_asof"] = _d.get("flow_asof")
+            _s["leverage_style"] = _d.get("leverage_style")
+            _s["sector_exposure"] = _d.get("sector_full") or _d.get("sector")
+            aum = _d.get("aum") or 0
+            flow5 = _d.get("flow_5d") or 0
+            _z = _d.get("flow_z")
+            _s["etf_flow_z"] = _z
+            if aum:
+                _s["etf_flow_bps_aum_5d"] = round(10000.0 * flow5 / aum, 2)
+            _s["etf_flow_signal"] = _d.get("flow_label")
+            if _z is not None:
+                _base = _s.get("rotation_score") or 0
+                _s["rotation_score_preflow"] = _base
+                _s["rotation_score"] = round(max(0, min(100, _base + max(-10.0, min(10.0, _z * 4.0)))), 1)
+                if _s.get("rotating_in") and _z <= -0.5:
+                    _s["etf_flow_confirm"] = "DIVERGENT"
+                elif _s.get("rotating_in") and _z >= 0.5:
+                    _s["etf_flow_confirm"] = "CONFIRMED"
+                elif _z >= 1.0:
+                    _s["etf_flow_confirm"] = "STRONG_INFLOW"
+                elif _z <= -1.0:
+                    _s["etf_flow_confirm"] = "STRONG_OUTFLOW"
+                else:
+                    _s["etf_flow_confirm"] = "NEUTRAL"
+            continue
+        if not _m:
             continue
         _z = _m.get("flow_zscore_90d")
         _s["etf_flow_z"] = _z
         _s["etf_flow_signal"] = _m.get("signal_label")
         _s["etf_flow_5d_usd"] = _m.get("flow_5d_usd")
+        _s["etf_flow_source"] = "etf-flows/daily"
         if _z is not None:
             _base = _s.get("rotation_score") or 0
             _s["rotation_score_preflow"] = _base
             _s["rotation_score"] = round(max(0, min(100, _base + max(-10.0, min(10.0, _z * 4.0)))), 1)
             if _s.get("rotating_in") and _z <= -0.5:
-                _s["etf_flow_confirm"] = "DIVERGENT"        # price rotating in but real $ leaving
+                _s["etf_flow_confirm"] = "DIVERGENT"
             elif _s.get("rotating_in") and _z >= 0.5:
-                _s["etf_flow_confirm"] = "CONFIRMED"        # price + real money agree
+                _s["etf_flow_confirm"] = "CONFIRMED"
             elif _z >= 1.0:
                 _s["etf_flow_confirm"] = "STRONG_INFLOW"
             elif _z <= -1.0:

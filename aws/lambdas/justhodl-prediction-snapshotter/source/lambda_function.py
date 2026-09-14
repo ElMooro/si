@@ -407,7 +407,9 @@ def lambda_handler(event, context):
     macro_context = {
         "fx_signals": fx.get("regime_signals") or [],
         "fx_usd_synth_20d": (fx.get("regime_metrics") or {}).get("usd_synthetic_20d_pct"),
-        "futures_signals": futures.get("signals") or [],
+        "futures_signals": (futures.get("signals") or []) if futures.get("identity_ok") else [],
+        "futures_identity_ok": bool(futures.get("identity_ok")),
+        "futures_status": futures.get("status"),
     }
 
     elapsed = round(time.time() - t0, 1)

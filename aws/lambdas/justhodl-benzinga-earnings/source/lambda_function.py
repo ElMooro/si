@@ -182,12 +182,17 @@ def lambda_handler(event, context):
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     main = {
         "generated_at": now, "source": "benzinga/v1/earnings (Massive)",
+        "entitlement": "cancel_pending",
+        "entitlement_ends": "2026-10-10",
+        "status": "SUNSET",
+        "note": "Owner is cancelling Benzinga Earnings. Do not add new consumers. Existing file kept until 2026-10-10.",
         "reported_lookback_days": REPORTED_LOOKBACK_DAYS,
         "n_reported_rows": len(reported), "n_tickers": len(tickers),
         "pead_top_positive": top_positive, "pead_top_negative": top_negative,
         "tickers": tickers,
     }
     cal = {"generated_at": now, "ahead_days": UPCOMING_AHEAD_DAYS,
+           "entitlement": "cancel_pending", "entitlement_ends": "2026-10-10",
            "n_upcoming": len(upcoming), "upcoming": upcoming}
 
     S3.put_object(Bucket=BUCKET, Key="data/benzinga-earnings.json",

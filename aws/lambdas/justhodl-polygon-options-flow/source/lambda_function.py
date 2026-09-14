@@ -1,24 +1,17 @@
 """justhodl-polygon-options-flow
 
-UTILIZES: Polygon Options Starter ($29/mo) — currently silent.
+UTILIZES: Polygon Options Starter ($29/mo) — daily aggregates, Greeks, OI.
+Does NOT include options trades or quotes. Daily volume is not a sweep and
+not smart money. Relabeled F14.
 
-Scans cascade-tracked tickers for UNUSUAL OPTIONS ACTIVITY — the most
-reliable pre-pump signal (institutional positioning shows up in options
-hours/days BEFORE price moves).
-
-DETECTORS:
-  1. Call volume spike    — today's call vol > 2× 20d avg total OI
-  2. Put volume spike     — today's put vol > 2× 20d avg
-  3. Call/Put ratio       — extreme bullish (>3) or bearish (<0.3)
-  4. IV expansion         — atm_iv > 1.5x 30d historical iv
-  5. OTM call sweeps      — heavy volume on far-OTM calls (gamma trigger)
-  6. Smart money flow     — large blocks (vol > 500) on near-term contracts
-
-For each cascade ticker, fetch /v3/snapshot/options/{underlying} and aggregate.
+DETECTORS (all from snapshot aggregates, inference_type=aggregate_anomaly):
+  1. Call/put volume skew
+  2. Volume vs open interest
+  3. Far-OTM call volume (NOT a sweep)
+  4. High single-contract volume (NOT a block print / not initiator)
+  5. Elevated IV
 
 OUTPUT: data/polygon-options-flow.json
-  Per-ticker: call_vol, put_vol, cv_pv_ratio, max_iv, otm_call_sweep,
-              smart_money_score, signals[], alert_level
 """
 import json
 import os
@@ -27,14 +20,15 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, List, Dict
+from typing import Optional, List
 
 import boto3
-from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from managed_secret import managed_secret
 
 S3_BUCKET = "justhodl-dashboard-live"
 POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 N_WORKERS = 6
+VERSION = "2.0.0"
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -47,42 +41,41 @@ def _read_json(key: str) -> Optional[dict]:
 
 
 def fetch_options_snapshot(ticker: str, limit: int = 250) -> List[dict]:
-    """Polygon options snapshot for an underlying."""
+    """First page of the options snapshot. Completeness is flagged, not implied."""
     url = (f"https://api.polygon.io/v3/snapshot/options/{ticker}"
            f"?limit={limit}&apiKey={POLYGON_KEY}")
     try:
         with urllib.request.urlopen(url, timeout=12) as r:
             data = json.loads(r.read().decode())
-        return data.get("results") or []
+        rows = data.get("results") or []
+        return rows, bool(data.get("next_url"))
     except urllib.error.HTTPError as e:
         if e.code in (403, 404):
             print(f"[options] {ticker}: HTTP {e.code} (not entitled or no data)")
-            return []
+            return [], False
         raise
     except Exception as e:
         print(f"[options] {ticker}: {e}")
-        return []
+        return [], False
 
 
-def analyze_options(ticker: str, contracts: List[dict]) -> dict:
-    """Compute aggregated options signals from snapshot."""
+def analyze_options(ticker: str, contracts: List[dict], truncated: bool) -> dict:
     if not contracts:
-        return {"ticker": ticker, "error": "no_contracts"}
+        return {"ticker": ticker, "error": "no_contracts", "inference_type": "aggregate_anomaly"}
 
     call_vol = put_vol = 0
     call_oi = put_oi = 0
     ivs = []
     otm_call_vol = 0
-    smart_money_blocks = []  # contracts with vol > 500
+    high_vol_contracts = []
     underlying_price = None
 
     for c in contracts:
         details = c.get("details") or {}
         day = c.get("day") or {}
         ud = c.get("underlying_asset") or {}
-        greeks = c.get("greeks") or {}
 
-        ctype = (details.get("contract_type") or "").lower()  # 'call' or 'put'
+        ctype = (details.get("contract_type") or "").lower()
         strike = details.get("strike_price")
         vol = day.get("volume") or 0
         oi = c.get("open_interest") or 0
@@ -102,9 +95,8 @@ def analyze_options(ticker: str, contracts: List[dict]) -> dict:
             put_vol += vol
             put_oi += oi
 
-        # Smart money flag: high single-contract volume + reasonable OI
         if vol > 500 and oi > 100:
-            smart_money_blocks.append({
+            high_vol_contracts.append({
                 "type": ctype, "strike": strike, "vol": vol, "oi": oi,
                 "expiration": details.get("expiration_date"),
                 "iv": round(iv, 3) if iv else None,
@@ -124,24 +116,19 @@ def analyze_options(ticker: str, contracts: List[dict]) -> dict:
         signals.append(f"BULLISH_CALL_FLOW (C/P={cv_pv_ratio})")
     if cv_pv_ratio < 0.3 and put_vol > 500:
         signals.append(f"BEARISH_PUT_FLOW (C/P={cv_pv_ratio})")
-
     if vol_oi_ratio and vol_oi_ratio > 0.3:
         signals.append(f"HIGH_VOL_VS_OI ({vol_oi_ratio})")
-
     if otm_call_vol > 1000:
-        signals.append(f"OTM_CALL_SWEEP (vol={otm_call_vol})")
-
-    if len(smart_money_blocks) >= 3:
-        signals.append(f"SMART_MONEY_BLOCKS ({len(smart_money_blocks)} >500 vol)")
-
+        signals.append(f"OTM_CALL_VOLUME (vol={otm_call_vol})")
+    if len(high_vol_contracts) >= 3:
+        signals.append(f"HIGH_CONTRACT_VOLUME ({len(high_vol_contracts)} >500 vol)")
     if mean_iv and mean_iv > 0.7:
         signals.append(f"ELEVATED_IV (mean={mean_iv})")
 
-    # Alert level: 0-3
     alert_level = 0
     if "EXTREME_CALL_SKEW" in " ".join(signals):
         alert_level = 3
-    elif "BULLISH_CALL_FLOW" in " ".join(signals) or "OTM_CALL_SWEEP" in " ".join(signals):
+    elif "BULLISH_CALL_FLOW" in " ".join(signals) or "OTM_CALL_VOLUME" in " ".join(signals):
         alert_level = 2
     elif len(signals) >= 2:
         alert_level = 1
@@ -149,6 +136,10 @@ def analyze_options(ticker: str, contracts: List[dict]) -> dict:
     return {
         "ticker": ticker,
         "n_contracts": len(contracts),
+        "snapshot_truncated": truncated,
+        "completeness": "partial_first_page" if truncated else "first_page",
+        "inference_type": "aggregate_anomaly",
+        "evidence_note": "Options Starter has no trades/quotes. Volume is a daily aggregate, not a sweep or block.",
         "call_vol": call_vol,
         "put_vol": put_vol,
         "total_vol": total_vol,
@@ -158,67 +149,78 @@ def analyze_options(ticker: str, contracts: List[dict]) -> dict:
         "mean_iv": mean_iv,
         "max_iv": max_iv,
         "otm_call_vol": otm_call_vol,
-        "n_smart_money_blocks": len(smart_money_blocks),
-        "smart_money_blocks": smart_money_blocks[:5],
+        "n_high_volume_contracts": len(high_vol_contracts),
+        "high_volume_contracts": high_vol_contracts[:5],
         "underlying_price": underlying_price,
         "signals": signals,
         "alert_level": alert_level,
     }
 
 
-def lambda_handler(event, context):
-    t0 = time.time()
-    print(f"[options-flow] starting")
-
-    # Load tickers to scan — cascade tracked + radar ULTRA + momentum leaders
+def _pick_universe():
+    """Held / alert names first. Alphabetical slice was F15."""
     cascade = _read_json("data/theme-cascade.json") or {}
     radar = _read_json("data/convergence-radar.json") or {}
     momentum = _read_json("data/momentum-leaders.json") or {}
+    tickets = _read_json("data/trade-tickets.json") or {}
+    ordered, seen = [], set()
 
-    tickers = set()
-    for tier in ["alert_tier", "medium_tier", "watch_tier", "laggards_hot_themes"]:
-        for c in (cascade.get(tier) or []):
-            t = c.get("ticker")
-            if t: tickers.add(t)
-    for i in (radar.get("items") or radar.get("tickers") or radar.get("results") or []):
-        t = i.get("ticker")
-        if t and (i.get("tier") in ("ULTRA", "HIGH")):
-            tickers.add(t)
+    def add(t):
+        t = (t or "").upper().strip()
+        if t and t not in seen:
+            seen.add(t)
+            ordered.append(t)
+
+    for t in (tickets.get("open") or tickets.get("tickets") or tickets.get("positions") or []):
+        if isinstance(t, dict):
+            add(t.get("ticker") or t.get("symbol"))
+        elif isinstance(t, str):
+            add(t)
+    for c in (cascade.get("alert_tier") or []):
+        add(c.get("ticker") if isinstance(c, dict) else c)
+    for i in (radar.get("items") or radar.get("tickers") or []):
+        if isinstance(i, dict) and i.get("tier") in ("ULTRA", "HIGH"):
+            add(i.get("ticker"))
+    for c in (cascade.get("medium_tier") or []):
+        add(c.get("ticker") if isinstance(c, dict) else c)
     for m in (momentum.get("leaders") or [])[:30]:
-        t = m.get("ticker")
-        if t: tickers.add(t)
+        add(m.get("ticker") if isinstance(m, dict) else m)
+    for c in (cascade.get("watch_tier") or []) + (cascade.get("laggards_hot_themes") or []):
+        add(c.get("ticker") if isinstance(c, dict) else c)
+    return ordered[:40]
 
-    tickers = sorted(tickers)[:30]  # cap to control Polygon usage
-    print(f"[options-flow] scanning {len(tickers)} tickers")
 
-    # Parallel fetch
+def lambda_handler(event, context):
+    t0 = time.time()
+    tickers = _pick_universe()
+    print(f"[options-flow] scanning {len(tickers)} tickers (priority, not alpha)")
+
     def _scan(t):
-        contracts = fetch_options_snapshot(t)
-        return analyze_options(t, contracts)
+        contracts, truncated = fetch_options_snapshot(t)
+        return analyze_options(t, contracts, truncated)
 
     results = []
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:
         for r in ex.map(_scan, tickers):
             results.append(r)
 
-    # Sort by alert level desc, then call/put ratio
     results.sort(key=lambda x: (-(x.get("alert_level") or 0),
                                   -(x.get("cv_pv_ratio") or 0)))
-
-    # Categorize
     extreme = [r for r in results if r.get("alert_level") == 3]
     bullish = [r for r in results if r.get("alert_level") == 2]
     notable = [r for r in results if r.get("alert_level") == 1]
 
     elapsed = round(time.time() - t0, 1)
-    print(f"[options-flow] DONE — {len(results)} scanned, "
-          f"extreme={len(extreme)} bullish={len(bullish)} notable={len(notable)} "
-          f"in {elapsed}s")
-
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "engine": "justhodl-polygon-options-flow",
+        "version": VERSION,
+        "inference_type": "aggregate_anomaly",
+        "evidence_note": "No sweeps, blocks, or smart-money initiator. Options Starter has no trades/quotes.",
         "elapsed_s": elapsed,
         "n_scanned": len(results),
+        "n_requested": len(tickers),
+        "universe": tickers,
         "n_extreme": len(extreme),
         "n_bullish": len(bullish),
         "n_notable": len(notable),
@@ -227,13 +229,11 @@ def lambda_handler(event, context):
         "notable_flow": notable[:20],
         "all_results": results,
     }
-
     s3.put_object(
         Bucket=S3_BUCKET, Key="data/polygon-options-flow.json",
         Body=json.dumps(output, default=str).encode(),
         ContentType="application/json", CacheControl="public, max-age=600",
     )
-
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},

@@ -614,7 +614,7 @@ def check_fx_regime(state: dict) -> List[str]:
 def check_futures_curves(state: dict) -> List[str]:
     """Polygon futures curves — VIX backwardation, oil, metals breakouts."""
     doc = _read_json("data/polygon-futures-curves.json")
-    if not doc:
+    if not doc or not doc.get("identity_ok"):
         return []
     signals = doc.get("signals") or []
     new_alerts = []

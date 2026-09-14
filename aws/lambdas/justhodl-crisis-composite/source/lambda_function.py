@@ -274,12 +274,15 @@ def _massive_cross_asset():
             return {}
     fx = _r("data/polygon-fx-regime.json"); fut = _r("data/polygon-futures-curves.json")
     rm = fx.get("regime_metrics") or {}; pd = fx.get("pair_data") or {}
+    fut_ok = bool(fut.get("identity_ok"))
     return {
         "fx_signals": fx.get("regime_signals") or [],
         "usd_synthetic_20d_pct": rm.get("usd_synthetic_20d_pct"),
         "usdjpy": (pd.get("USD_JPY") or {}).get("latest_price"),
-        "futures_signals": fut.get("signals") or [],
-        "note": "Live Massive FX + futures context (surfaced for the desk; not weighted into the crisis score).",
+        "futures_signals": (fut.get("signals") or []) if fut_ok else [],
+        "futures_identity_ok": fut_ok,
+        "futures_status": fut.get("status"),
+        "note": "Live Massive FX + identity-checked futures. Equity CL/ES prints are quarantined (F01).",
         "source": "Massive polygon-fx-regime + polygon-futures-curves",
     }
 

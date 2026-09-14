@@ -93,9 +93,22 @@ def is_equity_row(r):
 
 def _snapshot(etf, gte, lte, k):
     url = (f"{CONSTIT_URL}?composite_ticker={etf}&processed_date.gte={gte}"
-           f"&processed_date.lte={lte}&order=desc&sort=processed_date&limit=700&apiKey={k}")
-    j = http_json(url)
-    rows = (j or {}).get("results") or []
+           f"&processed_date.lte={lte}&order=desc&sort=processed_date&limit=1000&apiKey={k}")
+    rows = []
+    nxt = url
+    pages = 0
+    while nxt and pages < 25:
+        j = http_json(nxt)
+        pages += 1
+        if not j:
+            break
+        chunk = j.get("results") or []
+        if not chunk:
+            break
+        rows.extend(chunk)
+        nxt = j.get("next_url")
+        if nxt and "apiKey=" not in nxt:
+            nxt = nxt + ("&" if "?" in nxt else "?") + "apiKey=" + k
     if not rows:
         return None, {}
     pd = max((r.get("processed_date") or "") for r in rows)
@@ -117,7 +130,7 @@ def _snapshot(etf, gte, lte, k):
 
 
 def fetch_constituents(etf):
-    """Latest + ~30d-prior equity snapshots for one ETF. S3-cached."""
+    """Latest + ~30d-prior equity snapshots. Desk complete store is preferred for latest."""
     cache_key = f"{CACHE_PREFIX}{etf}.json"
     try:
         head = S3.head_object(Bucket=BUCKET, Key=cache_key)
@@ -128,22 +141,42 @@ def fetch_constituents(etf):
     except Exception:
         pass
     k = massive_key()
-    if not k:
-        return None
+    desk_complete = getj("data/etf-holdings-complete.json") or {}
+    desk_row = (desk_complete.get("by_etf") or {}).get(etf)
     today = datetime.now(timezone.utc).date()
-    pd_new, new = _snapshot(etf, (today - timedelta(days=8)).isoformat(), today.isoformat(), k)
-    pd_old, old = _snapshot(etf, (today - timedelta(days=45)).isoformat(),
-                            (today - timedelta(days=22)).isoformat(), k)
+    pd_old, old = (None, {})
+    if k:
+        pd_old, old = _snapshot(etf, (today - timedelta(days=45)).isoformat(),
+                                (today - timedelta(days=22)).isoformat(), k)
+    if desk_row and desk_row.get("holdings"):
+        pd_new = desk_row.get("asof")
+        new = {}
+        for h in desk_row["holdings"]:
+            t = (h.get("t") or "").upper()
+            if not t:
+                continue
+            new[t] = {
+                "ticker": t,
+                "mv": h.get("mv") or 0,
+                "shares": h.get("sh"),
+                "weight": h.get("w"),
+                "rank": h.get("rank"),
+            }
+        source = "etf-holdings-complete"
+    else:
+        if not k:
+            return None
+        pd_new, new = _snapshot(etf, (today - timedelta(days=8)).isoformat(), today.isoformat(), k)
+        source = "etf-global-constituents"
     if not new:
         return None
-    total_mv = sum(h["mv"] for h in new.values())
+    total_mv = sum(h["mv"] or 0 for h in new.values())
     holdings = []
     for t, h in new.items():
         w = h["weight"] if h["weight"] is not None else (h["mv"] / total_mv if total_mv else 0.0)
         prev = old.get(t, {})
         sh_prev = prev.get("shares")
         sh_now = h["shares"]
-        # $ the ETF actually added/removed for this name (share delta * implied price)
         delta_usd = None
         if sh_now is not None and sh_prev is not None and sh_now:
             price = h["mv"] / sh_now if sh_now else None
@@ -154,10 +187,11 @@ def fetch_constituents(etf):
     adds = [t for t in new if t not in old] if old else []
     dels = [t for t in old if t not in new] if old else []
     out = {"etf": etf, "processed_date": pd_new, "prior_date": pd_old,
-           "total_mv_usd": round(total_mv), 
+           "total_mv_usd": round(total_mv),
            "n_holdings": len(holdings), "holdings": holdings,
            "additions": adds, "deletions": dels,
-           "has_delta": bool(old), "fetched_at": datetime.now(timezone.utc).isoformat()}
+           "has_delta": bool(old), "source": source,
+           "fetched_at": datetime.now(timezone.utc).isoformat()}
     try:
         S3.put_object(Bucket=BUCKET, Key=cache_key,
                       Body=json.dumps(out, default=str).encode(),
@@ -377,8 +411,8 @@ def lambda_handler(event, context):
         ben_c[:15] + industry_rollup(ben_c, graph),
         suf_c[:15] + industry_rollup(suf_c, graph),
         "Mechanical ETF-implied demand per name, expressed in basis points "
-        "of one day's dollar ADV per day (measured: creation baskets force "
-        "these shares). Industry rows are mcap-weighted member means.",
+        "of one day's dollar ADV per day (inferred: fund flow × holdings weight; "
+        "not observed constituent trades). Industry rows are mcap-weighted member means.",
         insufficient_rows=[{"name": r["ticker"], "kind": "company",
                             "reason": "no adv_usd in exposure graph yet"}
                            for r in rows[:200]
@@ -389,14 +423,15 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-flow-lookthrough",
-        "version": "2.2.0",
-        "evidence_tier": "tier_a_mechanical_fact",
-        "tier_note": ("ops-4559: ETF-implied constituent flow is a FACT, not an estimate — the creation basket mechanically requires these shares. Coverage raised 70 → 300 ETFs (BUG-9: best engine, starved)."),
+        "version": "2.3.0",
+        "evidence_tier": "tier_b_inferred_allocation",
+        "tier_note": ("F08: ETF-implied constituent flow is an ESTIMATE (fund flow × holdings weight). "
+                      "It is not observed buying/selling. Custom/cash baskets can differ from the holdings file. "
+                      "Share-count delta is also inferred from two dated snapshots, not prints."),
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "thesis": "ETF creations/redemptions force mechanical buying/selling of "
-                  "underlying holdings. Two views: flow attributed by weight, and "
-                  "the ACTUAL change in shares the ETFs hold (creation/redemption + "
-                  "rebalance). Names where both agree = high-conviction demand.",
+        "thesis": "ETF creations/redemptions *often* transmit into underlying holdings, but the "
+                  "transmission is inferred. Two views: flow attributed by weight, and the change in "
+                  "shares the ETFs report holding. Names where both agree = higher-conviction *inferred* demand.",
         "flows_asof": flows.get("generated_at"),
         "n_etfs_used": len(constit),
         "n_etfs_with_delta": sum(1 for c in constit.values() if c.get("has_delta")),
@@ -411,17 +446,19 @@ def lambda_handler(event, context):
         "passive_concentration": concentration,
         "impact_map": impact,
         "methodology": {
-            "flow_attribution": "name_flow = sum over ETFs of (ETF_net_flow_usd * weight)",
-            "share_delta": "shares_delta_usd = sum over ETFs of (shares_now - shares_prev) * implied_price",
+            "flow_attribution": "name_flow = sum over ETFs of (ETF_net_flow_usd * weight) — inferred allocation, not a print",
+            "share_delta": "shares_delta_usd = sum over ETFs of (shares_now - shares_prev) * implied_price — snapshot diff, not trades",
             "weight": "ETF Global provided weight field",
             "equity_filter": "asset_class==Equity AND security_type in common/adr/reit/...",
             "flow_type": "THEMATIC_ROTATION when >60% of net pressure is from non-broad ETFs",
-            "confirmed": "flow attribution and actual share-buying agree on direction",
+            "confirmed": "flow attribution and share-count delta agree on direction (still inferred)",
         },
         "caveats": [
+            "Inferred, not observed: custom baskets, cash, and derivatives break flow×weight.",
             "Flow data ~1d lagged; holdings refresh ~2x/week (rebalances lumpy).",
             "Share-delta compares latest vs ~30d-prior snapshot; missing where no prior snapshot.",
             "Broad-index flows dominate mega-caps; use flow_type / bps_mcap for rotation.",
+            "Desk ETFs reuse data/etf-holdings-complete.json for the latest snapshot (no second fetch).",
         ],
         "elapsed_s": round(time.time() - t0, 1),
     }

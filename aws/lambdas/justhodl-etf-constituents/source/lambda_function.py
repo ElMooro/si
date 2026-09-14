@@ -47,38 +47,52 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def fetch_constituents_polygon(etf_ticker: str) -> dict:
-    """Paid ETF Global constituents ($99 add-on). Returns the engine's FMP-shaped dict."""
+    """Paid ETF Global constituents. One dated snapshot, next_url to the end."""
     if not POLYGON_KEY:
         return {"etf": etf_ticker, "error": "no_polygon_key"}
-    params = urllib.parse.urlencode({
-        "composite_ticker": etf_ticker,
-        "sort": "processed_date.desc",
-        "limit": "1000",
-        "apiKey": POLYGON_KEY,
-    })
     last_err = "no_host"
     for host in POLYGON_HOSTS:
-        url = f"{host}/etf-global/v1/constituents?{params}"
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-ETFConstituents/2.0"})
-            with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
-                body = json.loads(r.read().decode("utf-8", "replace"))
-            rows = body.get("results") if isinstance(body, dict) else None
-            if not isinstance(rows, list) or not rows:
+            params = urllib.parse.urlencode({
+                "composite_ticker": etf_ticker,
+                "sort": "processed_date.desc",
+                "limit": "1000",
+                "apiKey": POLYGON_KEY,
+            })
+            url = f"{host}/etf-global/v1/constituents?{params}"
+            rows, pages = [], 0
+            nxt = url
+            while nxt and pages < 40:
+                req = urllib.request.Request(nxt, headers={"User-Agent": "JustHodl-ETFConstituents/2.1"})
+                with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
+                    body = json.loads(r.read().decode("utf-8", "replace"))
+                chunk = body.get("results") if isinstance(body, dict) else None
+                if not isinstance(chunk, list) or not chunk:
+                    break
+                rows.extend(chunk)
+                nxt = body.get("next_url")
+                if nxt and "apiKey=" not in nxt:
+                    nxt = nxt + ("&" if "?" in nxt else "?") + "apiKey=" + POLYGON_KEY
+                pages += 1
+            if not rows:
                 last_err = "empty"
                 continue
             asof = max(str(x.get("processed_date") or "") for x in rows)
-            rows = [x for x in rows if str(x.get("processed_date") or "") == asof]
+            dated = [x for x in rows if str(x.get("processed_date") or "") == asof]
             sorted_holdings = sorted(
-                rows,
+                dated,
                 key=lambda d: float(d.get("weight") or 0),
                 reverse=True,
             )
+            wsum = sum(float(d.get("weight") or 0) for d in sorted_holdings)
             return {
                 "etf": etf_ticker,
                 "processed_date": asof[:10],
                 "n_constituents": len(sorted_holdings),
                 "n_total_holdings": len(sorted_holdings),
+                "n_pages": pages,
+                "weight_sum": round(wsum, 4),
+                "complete": pages < 40,
                 "source": "polygon-etf-global",
                 "top_constituents": [
                     {
