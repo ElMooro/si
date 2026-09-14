@@ -1,7 +1,7 @@
-executing-against: 35796b76b78a7dbb9932e08cb294b231e01fd632
-ops 5543 -- remove the hub download cache next to the owned weights; weights and manifests untouched
-[00:03:06] ✅ cache objects under factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/.cache/: 31 (15.23 GB)
-[00:03:08] ✅ deleted 31 cache objects (15.23 GB freed); cache left=0; weight files missing=0
-[00:03:08] ✅ GREEN -- owned weights folder holds only the hashed files + manifests
+executing-against: c0e8390906e7e743c81406cba6140675a2b05a59
+ops 5544 -- first owned trace burst: prompts-only tasks, runner rights, live price, spot job on the digest-pinned image
+[00:25:14] ✗ only 0 prompts available under factory/curriculum/code/verified/ (scanned 0); run the code-exam curriculum first
+[00:25:14] ✗ RED -- tasks
 
-→ Report written to aws/ops/reports/latest/ops_5543_own_weights_cache_cleanup.md
+→ Report written to aws/ops/reports/latest/ops_5544_first_trace_burst.md
+❌ OPS-FAIL: aws/ops/pending/ops_5544_first_trace_burst.py
