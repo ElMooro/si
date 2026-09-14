@@ -12,9 +12,8 @@
   "description": "AI-generated rationale for trade tickets \u2014 1-2 sentence why-this-setup explanations",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(5 * * * ? *)",
+    "expression": "cron(5 0/6 * * ? *)",
     "name": "justhodl-ticket-ai-rationale-hourly",
-    "description": "4x/day (was hourly)",
-    "cron": "cron(5 0/6 * * ? *)"
+    "description": "4x/day (was hourly)"
   }
 }
