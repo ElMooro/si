@@ -61,7 +61,15 @@
     if (c.patternDt) return "DOUBLE TOP";
     return null;
   }
-  function flowLabel(sig, z) {
+  function flowLabel(sig, z, flowUsd) {
+    if (sig && /INFLOW|OUTFLOW|ELEVATED|QUIET|HEAVY/.test(sig)) return sig;
+    if (flowUsd != null) {
+      var bn = flowUsd / 1e9;
+      if (bn >= 1) return "HEAVY INFLOW";
+      if (bn <= -1) return "HEAVY OUTFLOW";
+      if (bn >= 0.15) return "INFLOW";
+      if (bn <= -0.15) return "OUTFLOW";
+    }
     if (sig === "HEAVY_INFLOW") return "INFLOW";
     if (sig === "HEAVY_OUTFLOW") return "OUTFLOW";
     if (sig === "ROTATION_IN") return "ROTATION IN";
@@ -85,8 +93,10 @@
     var spyH = D.horizons(D.closesOf(spyBars));
     var spyQ = qx.SPY || {};
     if (spyQ.changePct != null) spyH.d = D.round(spyQ.changePct, 2);
-    var byFlow = (desk && desk.by_etf) || (flows && flows.by_etf) || {};
+    var byPaid = (desk && desk.by_etf) || {};
+    var byFlow = (flows && flows.by_etf) || {};
     var cx = mergeCensus(census);
+    var paidLive = !!(desk && desk.status === "LIVE" && Object.keys(byPaid).length);
 
     var barsMap = {};
     await D.pool(tickers, 6, async function (t) {
@@ -96,6 +106,7 @@
     var rows = UNIVERSE.map(function (u) {
       var t = u.t;
       var q = qx[t] || {};
+      var g = byPaid[t] || {};
       var f = byFlow[t] || {};
       var bars = barsMap[t] || [];
       var h = D.horizons(D.closesOf(bars));
@@ -108,31 +119,46 @@
       if (f.ad_phase) ad.phase = f.ad_phase;
       var pat = f.pattern || censusPattern(cx[t]) || D.pattern(bars);
       var px = q.price || f.latest_close || (bars.length ? bars[bars.length - 1].close : null);
-      var z = f.dvol_z_score;
-      var sig = f.flow_signal || flowLabel(null, z);
+      var flowUsd = g.flow_1d;
+      var z = g.flow_z != null ? g.flow_z : f.dvol_z_score;
+      var sig = flowLabel(g.flow_label, z, flowUsd);
+      var aumUsd = g.aum != null ? g.aum : (f.aum_b != null ? f.aum_b * 1e9 : (cx[t] && cx[t].aum != null ? cx[t].aum * 1e6 : null));
       return {
-        ticker: t, name: (cx[t] && cx[t].name) || f.name || u.n, cat: u.c,
+        ticker: t, name: g.name || (cx[t] && cx[t].name) || f.name || u.n, cat: u.c,
         px: px, h: h, vs: vs, ad: ad.phase, cmf: ad.cmf, pattern: pat,
-        flow: flowLabel(f.flow_signal, z), flowRaw: f.flow_signal || sig,
-        z: z, aum: f.aum_b != null ? f.aum_b * 1000 : (cx[t] && cx[t].aum),
-        dvol: f.today_dollar_vol_b, spark: D.closesOf(bars).slice(-40)
+        flow: sig, flowRaw: g.flow_label || f.flow_signal || sig,
+        flow1d: flowUsd, flow5d: g.flow_5d, flow21d: g.flow_21d,
+        z: z, aum: aumUsd, er: g.er, issuer: g.issuer, nav: g.nav,
+        holdingsN: g.holdings_n, hhi: g.hhi, top: g.top || [], sector: g.sector || [], geo: g.geo || [],
+        benchmark: g.benchmark, assetClass: g.asset_class, category: g.category,
+        dvol: f.today_dollar_vol_b, spark: D.closesOf(bars).slice(-40),
+        paid: !!(g.ok && (g.ok.flows || g.ok.profiles))
       };
     });
 
-    var inflows = rows.filter(function (r) { return /INFLOW|ROTATION IN/.test(r.flow); }).sort(function (a, b) { return (b.z || 0) - (a.z || 0); });
-    var outflows = rows.filter(function (r) { return /OUTFLOW|ROTATION OUT/.test(r.flow); }).sort(function (a, b) { return (b.z || 0) - (a.z || 0); });
+    var inflows = rows.filter(function (r) { return (r.flow1d != null ? r.flow1d > 0 : /INFLOW|ROTATION IN/.test(r.flow)); })
+      .sort(function (a, b) { return (b.flow1d || 0) - (a.flow1d || 0); });
+    var outflows = rows.filter(function (r) { return (r.flow1d != null ? r.flow1d < 0 : /OUTFLOW|ROTATION OUT/.test(r.flow)); })
+      .sort(function (a, b) { return (a.flow1d || 0) - (b.flow1d || 0); });
     var adv = rows.filter(function (r) { return r.h.d != null && r.h.d > 0; }).length;
     var dec = rows.filter(function (r) { return r.h.d != null && r.h.d < 0; }).length;
+    var netFlow = rows.reduce(function (s, r) { return s + (r.flow1d || 0); }, 0);
 
     return {
-      generated_at: new Date().toISOString(),
+      generated_at: (desk && desk.generated_at) || new Date().toISOString(),
       spy: { h: spyH, px: spyQ.price },
       rows: rows, cats: CATS, inflows: inflows, outflows: outflows,
       breadth: { adv: adv, dec: dec, n: rows.length },
+      netFlow: netFlow,
+      paidLive: paidLive,
       sources: {
         quotes: "Polygon snapshot via data-proxy /quotes",
         history: "Warehouse / Yahoo daily bars",
-        flows: "justhodl-etf-flows · data/etf-flows.json",
+        flows: paidLive
+          ? "Massive ETF Global fund-flows · data/etf-desk.json"
+          : "justhodl-etf-flows $vol z (paid desk not live yet)",
+        profiles: "Massive ETF Global profiles & exposure",
+        holdings: "Massive ETF Global constituents",
         census: "justhodl-etf-census · data/etf-census-matrix.json"
       }
     };

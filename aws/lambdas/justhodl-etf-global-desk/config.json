@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-etf-global-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ETF Global desk producer — fund flows, constituents, profiles into data/etf-desk.json",
+  "environment_keys": ["POLYGON_KEY"],
+  "inherit_env": {
+    "from_function": "justhodl-etf-fund-flows",
+    "keys": ["POLYGON_KEY"]
+  },
+  "schedule": {
+    "expression": "cron(20 22 * * ? *)",
+    "name": "justhodl-etf-global-desk-daily",
+    "description": "18:20 ET daily — after ETF Global EOD window, before constituents pressure"
+  }
+}

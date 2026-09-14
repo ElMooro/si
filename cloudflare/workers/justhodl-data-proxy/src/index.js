@@ -1565,6 +1565,101 @@ export default {
       }
     }
 
+    // Stocks Starter + Options Starter + ETF Global — live per-ticker so the
+    // chart data-type desk actually spends the Massive plan, not Yahoo-only.
+    if (url.pathname.startsWith("/poly/")) {
+      const kind = url.pathname.slice(6).split("/")[0];
+      const ticker = (url.searchParams.get("ticker") || url.searchParams.get("symbol") || "").trim().toUpperCase();
+      const polygonKey = env.POLYGON_KEY || "";
+      if (!polygonKey) {
+        return new Response(JSON.stringify({ error: "no polygon key", kind, ticker }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      if (!ticker || !/^[A-Z0-9.\-:]{1,16}$/.test(ticker)) {
+        return new Response(JSON.stringify({ error: "invalid ticker", kind }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const hosts = ["https://api.massive.com", "https://api.polygon.io"];
+      const cache = caches.default;
+      const ck = new Request(`https://poly.cache/${kind}/${ticker}`, { method: "GET" });
+      const hit = await cache.match(ck);
+      if (hit) {
+        const b = await hit.text();
+        return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
+      }
+      const paths = {
+        news: `/v2/reference/news?ticker=${ticker}&limit=20&order=desc&sort=published_utc`,
+        dividends: `/v3/reference/dividends?ticker=${ticker}&limit=20&order=desc`,
+        splits: `/v3/reference/splits?ticker=${ticker}&limit=12&order=desc`,
+        ticker: `/v3/reference/tickers/${ticker}`,
+        rsi: `/v1/indicators/rsi/${ticker}?timespan=day&window=14&limit=30&order=desc`,
+        sma: `/v1/indicators/sma/${ticker}?timespan=day&window=50&limit=30&order=desc`,
+        ema: `/v1/indicators/ema/${ticker}?timespan=day&window=20&limit=30&order=desc`,
+        macd: `/v1/indicators/macd/${ticker}?timespan=day&limit=30&order=desc`,
+        short: `/stocks/v1/short-interest?ticker=${ticker}&limit=8&sort=settlement_date.desc`,
+        options: `/v3/snapshot/options/${ticker}?limit=40`,
+        contracts: `/v3/reference/options/contracts?underlying_ticker=${ticker}&expired=false&limit=20&sort=expiration_date`,
+        etfFlows: `/etf-global/v1/fund-flows?composite_ticker=${ticker}&sort=processed_date.desc&limit=40`,
+        etfProfile: `/etf-global/v1/profiles?composite_ticker=${ticker}&sort=processed_date.desc&limit=4`,
+        etfHold: `/etf-global/v1/constituents?composite_ticker=${ticker}&sort=constituent_rank.asc&limit=20`,
+      };
+      async function poly(path) {
+        let last = { error: "no host" };
+        for (const host of hosts) {
+          try {
+            const r = await fetch(host + path + (path.includes("?") ? "&" : "?") + "apiKey=" + polygonKey, {
+              cf: { cacheTtl: 120, cacheEverything: true }
+            });
+            const j = await r.json();
+            if (r.ok) return { ok: true, host, status: r.status, body: j };
+            last = { ok: false, host, status: r.status, body: j };
+          } catch (e) {
+            last = { ok: false, error: String(e).slice(0, 120) };
+          }
+        }
+        return last;
+      }
+      try {
+        let out = { ticker, kind, source: "massive" };
+        if (kind === "etf") {
+          const [fl, pr, ho] = await Promise.all([poly(paths.etfFlows), poly(paths.etfProfile), poly(paths.etfHold)]);
+          out.flows = fl.body;
+          out.profile = pr.body;
+          out.holdings = ho.body;
+          out.http = { flows: fl.status, profile: pr.status, holdings: ho.status };
+        } else if (kind === "tech" || kind === "indicators") {
+          const [rsi, sma, ema, macd] = await Promise.all([poly(paths.rsi), poly(paths.sma), poly(paths.ema), poly(paths.macd)]);
+          out.rsi = rsi.body;
+          out.sma = sma.body;
+          out.ema = ema.body;
+          out.macd = macd.body;
+        } else if (kind === "ref") {
+          const [tk, dv, sp, nw] = await Promise.all([poly(paths.ticker), poly(paths.dividends), poly(paths.splits), poly(paths.news)]);
+          out.tickerDetail = tk.body;
+          out.dividends = dv.body;
+          out.splits = sp.body;
+          out.news = nw.body;
+        } else {
+          const p = paths[kind];
+          if (!p) {
+            return new Response(JSON.stringify({ error: "unknown kind", kind }),
+              { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
+          const got = await poly(p);
+          out = Object.assign(out, got.body || {}, { http: got.status, host: got.host });
+        }
+        const body = JSON.stringify(out);
+        const fr = new Response(body, {
+          headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120", "X-Cache": "MISS", ...corsHeaders() }
+        });
+        ctx.waitUntil(cache.put(ck, new Response(body, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=120" } })));
+        return fr;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "poly fetch failed", detail: String(e).slice(0, 160), kind, ticker }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+    }
+
     if (url.pathname === "/yf-ohlc") {
       // GET /yf-ohlc?symbol=BTC-USD&range=1y → Yahoo Finance chart (crypto/forex/etc)
       const symbol = (url.searchParams.get("symbol") || "").trim();

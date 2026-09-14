@@ -61,8 +61,9 @@
       SLEEVES[sl].forEach(function (x) { names.push({ t: x.t, n: x.n, sleeve: sl }); });
     });
     var tickers = names.map(function (x) { return x.t; });
-    var pack = await Promise.all([D.quotes(tickers), D.ohlc("SPY", "6mo"), D.feed("data/etf-flows.json")]);
+    var pack = await Promise.all([D.quotes(tickers), D.ohlc("SPY", "6mo"), D.feed("data/etf-flows.json"), D.feed("data/etf-desk.json")]);
     var qx = pack[0] || {}, spyBars = pack[1] || [], flows = (pack[2] && pack[2].by_etf) || {};
+    var paid = (pack[3] && pack[3].by_etf) || {};
     var spyH = D.horizons(D.closesOf(spyBars));
     if (qx.SPY && qx.SPY.changePct != null) spyH.d = D.round(qx.SPY.changePct, 2);
 
@@ -77,6 +78,7 @@
       var h = D.horizons(D.closesOf(bars));
       if (q.changePct != null) h.d = D.round(q.changePct, 2);
       var f = flows[u.t];
+      var g = paid[u.t];
       if (h.w == null && f && f.return_5d_pct != null) h.w = f.return_5d_pct;
       if (h.m == null && f && f.return_20d_pct != null) h.m = f.return_20d_pct;
       var vs = D.vsSpy(h, spyH);
@@ -86,6 +88,7 @@
         ticker: u.t, name: u.n, sleeve: u.sleeve,
         px: q.price || (bars.length ? bars[bars.length - 1].close : null),
         h: h, vs: vs, score: sc, post: post,
+        flow1d: g && g.flow_1d, flowLabel: g && g.flow_label,
         spark: D.closesOf(bars).slice(-40)
       };
     });
@@ -102,6 +105,7 @@
       sources: {
         quotes: "Polygon snapshot",
         history: "Warehouse / Yahoo daily",
+        flows: "Massive ETF Global creations when the name is a fund",
         definition: "Strength = asset return − S&P 500 return on D / W / M / 3M. Composite 35/30/20/15."
       }
     };

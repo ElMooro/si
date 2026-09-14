@@ -29,8 +29,9 @@ import os
 import statistics
 import time
 import urllib.request
-from fmp_etf import holdings as fmp_holdings, pctf  # ops 3374 shared hardened client
+import urllib.parse
 import urllib.error
+from fmp_etf import holdings as fmp_holdings, pctf  # ops 3374 shared hardened client
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
@@ -39,8 +40,10 @@ import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
 FMP_KEY = os.environ.get("FMP_KEY", "")
+POLYGON_KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or ""
 FMP_BASE = "https://financialmodelingprep.com"
 HOLDINGS_ENDPOINT = f"{FMP_BASE}/stable/etf/holdings"
+POLYGON_HOSTS = ("https://api.massive.com", "https://api.polygon.io")
 FETCH_TIMEOUT = 15
 MAX_WORKERS = 6
 
@@ -53,19 +56,69 @@ TOP_N_CONSTITUENTS = 50
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
+def fetch_constituents_polygon(etf_ticker: str) -> dict:
+    """Paid ETF Global constituents ($99 add-on). Returns the engine's FMP-shaped dict."""
+    if not POLYGON_KEY:
+        return {"etf": etf_ticker, "error": "no_polygon_key"}
+    params = urllib.parse.urlencode({
+        "composite_ticker": etf_ticker,
+        "sort": "constituent_rank.asc",
+        "limit": "500",
+        "apiKey": POLYGON_KEY,
+    })
+    last_err = "no_host"
+    for host in POLYGON_HOSTS:
+        url = f"{host}/etf-global/v1/constituents?{params}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-ETFConstituents/2.0"})
+            with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
+                body = json.loads(r.read().decode("utf-8", "replace"))
+            rows = body.get("results") if isinstance(body, dict) else None
+            if not isinstance(rows, list) or not rows:
+                last_err = "empty"
+                continue
+            asof = max(str(x.get("processed_date") or "") for x in rows)
+            rows = [x for x in rows if str(x.get("processed_date") or "") == asof]
+            sorted_holdings = sorted(
+                rows,
+                key=lambda d: float(d.get("weight") or 0),
+                reverse=True,
+            )
+            return {
+                "etf": etf_ticker,
+                "processed_date": asof[:10],
+                "n_constituents": len(sorted_holdings),
+                "n_total_holdings": len(sorted_holdings),
+                "source": "polygon-etf-global",
+                "top_constituents": [
+                    {
+                        "stock": d.get("constituent_ticker"),
+                        "name": d.get("constituent_name"),
+                        "weight_pct": (float(d.get("weight") or 0) * 100.0),
+                        "market_value": d.get("market_value"),
+                        "shares_held": d.get("shares_held"),
+                        "isin": d.get("isin"),
+                    }
+                    for d in sorted_holdings
+                    if d.get("constituent_ticker")
+                ],
+            }
+        except Exception as e:
+            last_err = str(e)[:120]
+            continue
+    return {"etf": etf_ticker, "error": last_err}
+
+
 def fetch_constituents(etf_ticker: str) -> dict:
-    """Fetch every returned constituent for one ETF from FMP.
+    """Holdings for one ETF. Polygon ETF Global first (paid), FMP fallback.
 
-    FMP response is a JSON array. Each row has:
-      symbol (ETF ticker), asset (stock ticker), name (stock name),
-      isin, securityCusip, sharesNumber, weightPercentage, marketValue,
-      updatedAt.
-
-    FMP returns ALL holdings (no pagination needed). We sort by weight
-    desc and take top N.
+    Output schema unchanged from the FMP era so pressure math keeps working.
     """
+    poly = fetch_constituents_polygon(etf_ticker)
+    if poly.get("top_constituents"):
+        return poly
     if not FMP_KEY:
-        return {"etf": etf_ticker, "error": "FMP_KEY not set"}
+        return {"etf": etf_ticker, "error": poly.get("error") or "FMP_KEY not set"}
     try:
         # ops 3374: shared hardened client — endpoint ladder, %-tolerant
         # weights, asset|symbol fallback. Output schema unchanged.

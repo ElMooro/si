@@ -12,7 +12,7 @@
 <body data-engine="justhodl-etf-flows" data-output="data/etf-flows.json">
 <header class="jh-ws-header">
   <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
-  <span class="jh-ws-crumb">ETF ENGINE · prices · flow · accumulation · vs S&P 500</span>
+  <span class="jh-ws-crumb">ETF ENGINE · ETF Global creations · profiles · holdings · vs S&P 500</span>
   <nav class="jh-ws-links">
     <a href="/etf.html" class="on">ETF</a>
     <a href="/strong.html">Strong</a>
@@ -26,27 +26,35 @@
   <div class="jh-hero">
     <div>
       <h1>ETF DESK</h1>
-      <p>Liquid wrappers ranked by the session’s move. Daily change on top; weekly, monthly and 3-month underneath. Flow is Polygon dollar-volume z vs the trailing 60 sessions (creation/redemption proxy). Accumulation / distribution is 20-day Chaikin money flow against price. Every return is shown versus SPY on the same window.</p>
+      <p>Liquid wrappers ranked by the session’s move. Daily change on top; weekly, monthly and 3-month underneath. <b>Flow is Massive ETF Global creation/redemption dollars</b> (the $99 fund-flows add-on), not a volume z-score. AUM, expense ratio, sector/geo mix and holdings come from ETF Global profiles & constituents. Accumulation / distribution is 20-day Chaikin money flow against price. Every return is shown versus SPY on the same window. Click a row for the look-through.</p>
     </div>
     <div class="jh-stamp" id="stamp">loading engine…</div>
   </div>
   <div class="jh-kpis" id="kpis"></div>
   <div class="jh-chips" id="chips"></div>
-  <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="14">Loading Polygon snapshot + warehouse history…</td></tr></tbody></table></div>
+  <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="18">Loading Massive ETF Global + Polygon snapshot…</td></tr></tbody></table></div>
   <div class="jh-split">
-    <div class="jh-card"><h3>Inflows · unusual buying</h3><div id="inflow" class="jh-load">—</div></div>
-    <div class="jh-card"><h3>Outflows · unusual selling</h3><div id="outflow" class="jh-load">—</div></div>
+    <div class="jh-card"><h3>Inflows · creations</h3><div id="inflow" class="jh-load">—</div></div>
+    <div class="jh-card"><h3>Outflows · redemptions</h3><div id="outflow" class="jh-load">—</div></div>
+  </div>
+  <div class="jh-card" id="look" style="display:none;margin-top:12px">
+    <h3 id="lookh">Look-through</h3>
+    <div id="lookb"></div>
   </div>
   <p class="jh-note" id="note"></p>
 </main>
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-desk-core.js"></script>
-<script src="/jh-etf-engine.js"></script>
+<script src="/jh-desk-core.js?v=20260914g"></script>
+<script src="/jh-etf-engine.js?v=20260914g"></script>
 <script>
 (function(){
   var D=JHDesk, cat="ALL", sortK="d", sortDir=-1, DATA=null;
   function cell(v){ return '<td class="'+D.cls(v)+'">'+D.fmtPct(v)+"</td>"; }
+  function money(v){
+    if(v==null||!isFinite(v)) return "—";
+    return '<span class="'+D.cls(v)+'">'+D.fmtUsd(v)+"</span>";
+  }
   function tag(s){
     var k=(s||"").split(" ")[0];
     return '<span class="tag '+k+'">'+D.esc(s||"—")+"</span>";
@@ -55,13 +63,13 @@
     var spy=d.spy.h||{};
     var byD=D.sortRows(d.rows.map(function(r){return Object.assign({},r,{_d:r.h.d});}), "_d", -1);
     var g=byD[0], l=byD[byD.length-1];
-    var net=d.rows.reduce(function(s,r){return s+(r.dvol||0)*( /OUTFLOW/.test(r.flow)?-1: /INFLOW/.test(r.flow)?1:0);},0);
     document.getElementById("kpis").innerHTML=[
       ["S&P 500 D / W / M / 3M", D.fmtPct(spy.d),"<span class='"+D.cls(spy.w)+"'>"+D.fmtPct(spy.w)+"</span> · <span class='"+D.cls(spy.m)+"'>"+D.fmtPct(spy.m)+"</span> · <span class='"+D.cls(spy.q)+"'>"+D.fmtPct(spy.q)+"</span>"],
+      ["Net creations", D.fmtUsd(d.netFlow), d.paidLive?"ETF Global $ 1D":"$vol z fallback"],
       ["Breadth", d.breadth.adv+" adv / "+d.breadth.dec+" dec", d.breadth.n+" wrappers"],
       ["Biggest D", g?g.ticker+" "+D.fmtPct(g.h.d):"—", g?g.name:""],
       ["Worst D", l?l.ticker+" "+D.fmtPct(l.h.d):"—", l?l.name:""],
-      ["Flow notables", (d.inflows.length)+" in / "+(d.outflows.length)+" out", "z-score vs 60d $volume"]
+      ["Flow notables", (d.inflows.length)+" in / "+(d.outflows.length)+" out", "ranked by creation $"]
     ].map(function(x){
       return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>";
     }).join("");
@@ -77,17 +85,41 @@
   function tape(list){
     if(!list.length) return '<div class="nm">None printing as unusual this session.</div>';
     return '<table class="jh-tbl"><tbody>'+list.slice(0,8).map(function(r){
-      return "<tr><td><a class=tk href='/chart.html?s="+r.ticker+"'>"+r.ticker+"</a></td><td class='nm'>"+D.esc(r.name)+"</td>"+cell(r.h.d)+"<td>"+tag(r.flow)+"</td><td class='nm'>z "+(r.z==null?"—":r.z.toFixed(2))+"</td></tr>";
+      return "<tr><td><a class=tk href='/chart.html?s="+r.ticker+"'>"+r.ticker+"</a></td><td class='nm'>"+D.esc(r.name)+"</td>"+cell(r.h.d)+"<td>"+money(r.flow1d)+"</td><td>"+tag(r.flow)+"</td></tr>";
     }).join("")+"</tbody></table>";
+  }
+  function openLook(r){
+    var box=document.getElementById("look"), h=document.getElementById("lookh"), b=document.getElementById("lookb");
+    if(!box) return;
+    box.style.display="block";
+    h.textContent=r.ticker+" · "+(r.name||"")+" · look-through";
+    var sec=(r.sector||[]).map(function(x){ return D.esc(x.k)+" "+((x.w<1?x.w*100:x.w).toFixed(1))+"%"; }).join(" · ")||"—";
+    var geo=(r.geo||[]).map(function(x){ return D.esc(x.k)+" "+((x.w<1?x.w*100:x.w).toFixed(1))+"%"; }).join(" · ")||"—";
+    var holds=(r.top||[]).map(function(x){
+      var w=x.w==null?"—":((x.w<1?x.w*100:x.w).toFixed(2)+"%");
+      return "<tr><td>"+D.esc(x.t||"")+"</td><td class=nm>"+D.esc(x.n||"")+"</td><td>"+w+"</td><td>"+D.fmtUsd(x.mv)+"</td></tr>";
+    }).join("")||"<tr><td colspan=4 class=nm>Holdings not in this print.</td></tr>";
+    b.innerHTML="<div class='jh-kpis' style='margin:8px 0'>"+
+      [["Issuer", D.esc(r.issuer||"—"), r.assetClass||""],
+       ["AUM", D.fmtUsd(r.aum), "NAV "+(r.nav==null?"—":D.fmtPx(r.nav))],
+       ["Expense", r.er==null?"—":r.er.toFixed(3)+"%", r.benchmark||""],
+       ["HHI", r.hhi==null?"—":r.hhi.toFixed(0), (r.holdingsN||"—")+" names"],
+       ["Flow 1D / 5D / 21D", D.fmtUsd(r.flow1d), D.fmtUsd(r.flow5d)+" · "+D.fmtUsd(r.flow21d)]
+      ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("")+
+      "</div><div class=nm style='margin:6px 0 10px'>Sector "+sec+"<br>Geo "+geo+"</div>"+
+      "<table class=jh-tbl><thead><tr><th>Ticker</th><th>Holding</th><th>Wgt</th><th>Mkt val</th></tr></thead><tbody>"+holds+"</tbody></table>"+
+      "<p class=jh-note style='margin-top:8px'><a href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>Open chart →</a></p>";
+    box.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
   function draw(){
     if(!DATA) return;
     kpis(DATA); chips();
     var rows=DATA.rows.filter(function(r){ return cat==="ALL"||r.cat===cat; });
-    var keyMap={tk:"ticker",name:"name",px:"px",d:"h.d",w:"h.w",m:"h.m",q:"h.q",vd:"vs.d",vw:"vs.w",vm:"vs.m",vq:"vs.q",flow:"z",ad:"ad",pat:"pattern",aum:"aum"};
+    var keyMap={tk:"ticker",name:"name",px:"px",d:"h.d",w:"h.w",m:"h.m",q:"h.q",vd:"vs.d",vw:"vs.w",vm:"vs.m",vq:"vs.q",f1:"flow1d",f5:"flow5d",flow:"flow1d",ad:"ad",pat:"pattern",aum:"aum",er:"er"};
     function get(r,k){
       if(k==="d") return r.h.d; if(k==="w") return r.h.w; if(k==="m") return r.h.m; if(k==="q") return r.h.q;
       if(k==="vd") return r.vs.d; if(k==="vw") return r.vs.w; if(k==="vm") return r.vs.m; if(k==="vq") return r.vs.q;
+      if(k==="f1") return r.flow1d; if(k==="f5") return r.flow5d;
       return r[k];
     }
     rows=rows.slice().sort(function(a,b){
@@ -96,25 +128,35 @@
       if(typeof av==="string") return sortDir*(av<bv?1:av>bv?-1:0);
       return sortDir*((bv>av?1:bv<av?-1:0));
     });
-    var heads=[["tk","Ticker"],["name","Name"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","vs SPX D"],["vw","W"],["vm","M"],["vq","3M"],["flow","Flow"],["ad","A/D"],["pat","Pattern"],["aum","AUM $M"]];
+    var heads=[["tk","Ticker"],["name","Name"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","vs SPX D"],["vw","W"],["vm","M"],["vq","3M"],["f1","Flow $1D"],["f5","$5D"],["flow","Print"],["ad","A/D"],["pat","Pattern"],["aum","AUM"],["er","ER"]];
     var thead="<tr>"+heads.map(function(h){ return "<th data-k='"+h[0]+"'>"+h[1]+(sortK===h[0]?(sortDir<0?" ▾":" ▴"):"")+"</th>"; }).join("")+"</tr>";
     var body=rows.map(function(r){
-      return "<tr><td><a class=tk href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>"+r.ticker+"</a></td>"+
+      return "<tr data-tk='"+r.ticker+"'><td><a class=tk href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>"+r.ticker+"</a></td>"+
         "<td class=nm>"+D.esc(r.name)+"</td><td>"+D.fmtPx(r.px)+"</td>"+
         cell(r.h.d)+cell(r.h.w)+cell(r.h.m)+cell(r.h.q)+
         cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
+        "<td>"+money(r.flow1d)+"</td><td>"+money(r.flow5d)+"</td>"+
         "<td>"+tag(r.flow)+"</td><td>"+tag(r.ad)+"</td><td>"+tag(r.pattern)+"</td>"+
-        "<td>"+(r.aum==null?"—":D.fmtUsd(r.aum*1e6).replace(/M$/,""))+"</td></tr>";
+        "<td>"+D.fmtUsd(r.aum)+"</td><td>"+(r.er==null?"—":r.er.toFixed(2)+"%")+"</td></tr>";
     }).join("");
     document.querySelector("#tbl thead").innerHTML=thead;
-    document.querySelector("#tbl tbody").innerHTML=body||"<tr><td colspan=15 class=jh-load>No names in this sleeve.</td></tr>";
+    document.querySelector("#tbl tbody").innerHTML=body||"<tr><td colspan=18 class=jh-load>No names in this sleeve.</td></tr>";
     document.querySelectorAll("#tbl th[data-k]").forEach(function(th){
       th.onclick=function(){ var k=th.getAttribute("data-k"); if(sortK===k) sortDir*=-1; else { sortK=k; sortDir=-1; } draw(); };
     });
+    document.querySelectorAll("#tbl tbody tr[data-tk]").forEach(function(tr){
+      tr.style.cursor="pointer";
+      tr.onclick=function(e){
+        if(e.target && e.target.closest && e.target.closest("a")) return;
+        var tk=tr.getAttribute("data-tk");
+        var row=DATA.rows.filter(function(x){ return x.ticker===tk; })[0];
+        if(row) openLook(row);
+      };
+    });
     document.getElementById("inflow").innerHTML=tape(DATA.inflows);
     document.getElementById("outflow").innerHTML=tape(DATA.outflows);
-    document.getElementById("stamp").innerHTML=(DATA.generated_at||"").slice(0,16).replace("T"," ")+" UTC<br>SPY "+D.fmtPx(DATA.spy.px);
-    document.getElementById("note").innerHTML="<b>Sources.</b> "+DATA.sources.quotes+" · "+DATA.sources.history+" · "+DATA.sources.flows+" · "+DATA.sources.census+". Research, not advice.";
+    document.getElementById("stamp").innerHTML=(DATA.generated_at||"").slice(0,16).replace("T"," ")+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+(DATA.paidLive?" · ETF Global LIVE":" · waiting harvest");
+    document.getElementById("note").innerHTML="<b>Sources.</b> "+DATA.sources.quotes+" · "+DATA.sources.history+" · "+DATA.sources.flows+" · "+DATA.sources.profiles+" · "+DATA.sources.holdings+". Research, not advice.";
   }
   JHEtf.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
     document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=15 class=jh-load>Engine failed: "+D.esc(e&&e.message||e)+"</td></tr>";

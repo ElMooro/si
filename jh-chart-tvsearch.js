@@ -10,6 +10,11 @@
     ["fin", "Financials"],
     ["est", "Estimates"],
     ["div", "Dividends"],
+    ["news", "News"],
+    ["tech", "Technicals"],
+    ["short", "Short"],
+    ["opt", "Options"],
+    ["etf", "ETF"],
     ["hold", "Holders"]
   ];
   var tab = "over";
@@ -348,6 +353,119 @@
     return html;
   }
 
+  function lastVal(results) {
+    var rows = results || [];
+    if (!rows.length) return null;
+    var v = rows[0].value != null ? rows[0].value : (rows[0].values && (rows[0].values.value || rows[0].values));
+    return num(v);
+  }
+  function polyRows(j) {
+    if (!j) return [];
+    if (Array.isArray(j.results)) return j.results;
+    if (j.results && Array.isArray(j.results.values)) return j.results.values;
+    return [];
+  }
+  function renderPolyNews(pack) {
+    var rows = polyRows(pack.polyNews) || [];
+    if (!rows.length) return "<div class=empty>No Polygon news for this name yet (Stocks Starter /v2/reference/news).</div>";
+    return blk("Polygon news", "<table><thead><tr><th>When</th><th>Headline</th><th>Source</th></tr></thead><tbody>" +
+      rows.slice(0, 16).map(function (n) {
+        var dt = (n.published_utc || n.published || "").slice(0, 16).replace("T", " ");
+        var href = n.article_url || n.url || "#";
+        return "<tr><td>" + esc(dt) + "</td><td><a href='" + esc(href) + "' target=_blank rel=noopener>" +
+          esc(n.title || "") + "</a></td><td>" + esc((n.publisher && n.publisher.name) || n.author || "") + "</td></tr>";
+      }).join("") + "</tbody></table>");
+  }
+  function renderPolyDiv(pack) {
+    var rows = polyRows(pack.polyDiv);
+    if (!rows.length) return "";
+    return blk("Polygon dividends", "<table><thead><tr><th>Ex</th><th>Pay</th><th>Cash</th><th>Freq</th></tr></thead><tbody>" +
+      rows.slice(0, 12).map(function (r) {
+        return "<tr><td>" + esc(r.ex_dividend_date || "") + "</td><td>" + esc(r.pay_date || "") +
+          "</td><td>" + fmt(num(r.cash_amount), 4) + "</td><td>" + esc(r.frequency || "") + "</td></tr>";
+      }).join("") + "</tbody></table>");
+  }
+  function renderPolyTech(pack) {
+    var t = pack.polyTech || {};
+    var rsi = lastVal(polyRows(t.rsi && (t.rsi.results || t.rsi)));
+    if (rsi == null && t.rsi && t.rsi.results && t.rsi.results.values) rsi = lastVal(t.rsi.results.values);
+    function ind(j) {
+      var r = j && (j.results || j);
+      if (r && r.values) return lastVal(r.values);
+      return lastVal(r);
+    }
+    var sma = ind(t.sma), ema = ind(t.ema);
+    var macdObj = t.macd && (t.macd.results || t.macd);
+    var macdVal = null, signal = null;
+    if (macdObj && macdObj.values && macdObj.values[0]) {
+      macdVal = num(macdObj.values[0].value);
+      signal = num(macdObj.values[0].signal);
+    } else if (Array.isArray(macdObj) && macdObj[0]) {
+      macdVal = num(macdObj[0].value); signal = num(macdObj[0].signal);
+    }
+    return blk("Polygon indicators (Stocks Starter /v1/indicators)", table([
+      ["RSI 14d", rsi != null ? rsi.toFixed(1) : "—"],
+      ["SMA 50d", fmt(sma)],
+      ["EMA 20d", fmt(ema)],
+      ["MACD", macdVal != null ? macdVal.toFixed(3) : "—"],
+      ["MACD signal", signal != null ? signal.toFixed(3) : "—"]
+    ])) + "<div class=empty>Native Polygon indicators — not a local SMA on Yahoo bars.</div>";
+  }
+  function renderPolyShort(pack) {
+    var rows = polyRows(pack.polyShort);
+    if (!rows.length) return "<div class=empty>No Polygon short-interest print for this name.</div>";
+    return blk("Polygon short interest", "<table><thead><tr><th>Settle</th><th>Short</th><th>Days to cover</th><th>Avg vol</th></tr></thead><tbody>" +
+      rows.slice(0, 8).map(function (r) {
+        return "<tr><td>" + esc(r.settlement_date || r.date || "") + "</td><td>" +
+          fmtBig(num(r.short_interest) || num(r.short_interest_shares)) + "</td><td>" +
+          fmt(num(r.days_to_cover), 2) + "</td><td>" + fmtBig(num(r.avg_daily_volume)) + "</td></tr>";
+      }).join("") + "</tbody></table>");
+  }
+  function renderPolyOpt(pack) {
+    var j = pack.polyOpt || {};
+    var snaps = (j.results || []).slice(0, 18);
+    if (!snaps.length) return "<div class=empty>No Options Starter snapshot for this underlying.</div>";
+    return blk("Options snapshot (Massive Options Starter)", "<table><thead><tr><th>Contract</th><th>OI</th><th>Vol</th><th>IV</th><th>Delta</th><th>Last</th></tr></thead><tbody>" +
+      snaps.map(function (r) {
+        var d = r.details || r;
+        var g = r.greeks || {};
+        var day = r.day || {};
+        return "<tr><td>" + esc(d.ticker || "") + "</td><td>" + fmtBig(num(r.open_interest)) +
+          "</td><td>" + fmtBig(num(day.volume) || num(r.volume)) + "</td><td>" +
+          (num(r.implied_volatility) != null ? (num(r.implied_volatility) * 100).toFixed(1) + "%" : "—") +
+          "</td><td>" + fmt(num(g.delta), 3) + "</td><td>" + fmt(num(day.close) || num(r.break_even_price)) + "</td></tr>";
+      }).join("") + "</tbody></table>");
+  }
+  function renderPolyEtf(pack) {
+    var j = pack.polyEtf || {};
+    var flows = polyRows(j.flows);
+    var prof = polyRows(j.profile)[0] || {};
+    var holds = polyRows(j.holdings);
+    if (!flows.length && !Object.keys(prof).length) {
+      return "<div class=empty>ETF Global add-ons have no print for this ticker — it may not be a fund.</div>";
+    }
+    var latest = flows[0] || {};
+    var html = blk("ETF Global profile", table([
+      ["Issuer", esc(prof.issuer || prof.advisor || "—")],
+      ["AUM", fmtBig(num(prof.aum))],
+      ["NAV", fmt(num(latest.nav), 3)],
+      ["Shares", fmtBig(num(latest.shares_outstanding))],
+      ["Asset class", esc(prof.asset_class || "—")],
+      ["Benchmark", esc(prof.primary_benchmark || "—")],
+      ["Flow 1D", fmtBig(num(latest.fund_flow))]
+    ]));
+    if (holds.length) {
+      html += blk("Top holdings", "<table><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th></tr></thead><tbody>" +
+        holds.slice(0, 12).map(function (h) {
+          var w = num(h.weight);
+          return "<tr><td>" + (h.constituent_rank || "") + "</td><td>" + esc(h.constituent_ticker || "") +
+            "</td><td>" + esc(h.constituent_name || "") + "</td><td>" +
+            (w != null ? ((w < 1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td></tr>";
+        }).join("") + "</tbody></table>");
+    }
+    return html;
+  }
+
   function paintBody(pack) {
     var body = document.getElementById("dtbody");
     if (!body) return;
@@ -360,7 +478,12 @@
     else if (tab === "val") html = renderVal(d);
     else if (tab === "fin") html = renderFin(d);
     else if (tab === "est") html = renderEst(d);
-    else if (tab === "div") html = renderDiv(d);
+    else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
+    else if (tab === "news") html = renderPolyNews(pack);
+    else if (tab === "tech") html = renderPolyTech(pack);
+    else if (tab === "short") html = renderPolyShort(pack);
+    else if (tab === "opt") html = renderPolyOpt(pack);
+    else if (tab === "etf") html = renderPolyEtf(pack);
     else html = renderHold(d);
     var src = (pack.src && pack.src.length) ? pack.src.join(" · ") : "computed from chart bars";
     body.innerHTML = html + "<div class=src>" + esc(src) + " · delayed · not advice</div>";
@@ -395,7 +518,21 @@
         tab = b.getAttribute("data-t");
         paintTabs();
         var sym = window.jhActive;
-        if (cache[sym]) paintBody(cache[sym]);
+        var pack = cache[sym];
+        if (pack) paintBody(pack);
+        var need = { tech: "polyTech", short: "polyShort", opt: "polyOpt", etf: "polyEtf" };
+        var slot = need[tab];
+        if (slot && pack && !pack[slot]) {
+          loadKind(sym, tab).then(function (j) {
+            if (!j || !cache[sym]) return;
+            cache[sym][slot] = j;
+            if (tab === "tech") cache[sym].src.push("Polygon indicators");
+            if (tab === "short") cache[sym].src.push("Polygon short interest");
+            if (tab === "opt") cache[sym].src.push("Polygon options");
+            if (tab === "etf") cache[sym].src.push("ETF Global");
+            if (window.jhActive === sym) paintBody(cache[sym]);
+          }).catch(function () {});
+        }
       };
     });
   }
@@ -433,7 +570,28 @@
       try { pack.bars = await window.klines(sym, "1d", true); } catch (e4) {}
     }
     if (pack.src.indexOf("chart bars") < 0) pack.src.push("chart bars");
+    try {
+      var r4 = await fetch(PROXY + "/poly/ref?ticker=" + encodeURIComponent(t));
+      var j4 = await r4.json();
+      if (j4) {
+        pack.polyNews = j4.news;
+        pack.polyDiv = j4.dividends;
+        pack.tickerDetail = j4.tickerDetail;
+        pack.polySplits = j4.splits;
+        pack.src.push("Polygon news/div/splits");
+      }
+    } catch (e5) {}
     return pack;
+  }
+
+  async function loadKind(sym, kind) {
+    var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+    var t = (window.jhBare || function (s) { return s; })(sym);
+    var map = { tech: "tech", short: "short", opt: "options", etf: "etf" };
+    var path = map[kind];
+    if (!path) return null;
+    var r = await fetch(PROXY + "/poly/" + path + "?ticker=" + encodeURIComponent(t));
+    return r.json();
   }
 
   function openPanel(which) {
@@ -482,6 +640,11 @@
       "<button data-dt=fin>Financials</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
+      "<button data-dt=news>News</button>" +
+      "<button data-dt=tech>Technicals</button>" +
+      "<button data-dt=short>Short interest</button>" +
+      "<button data-dt=opt>Options</button>" +
+      "<button data-dt=etf>ETF Global</button>" +
       "<button data-dt=hold>Holders</button>";
     if (at && at.getBoundingClientRect) {
       var r = at.getBoundingClientRect();
