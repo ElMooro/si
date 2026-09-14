@@ -1,10 +1,37 @@
-executing-against: 2bab42dcdc283b5ddb40b2d69db737063d512e5e
-ops 5558 — ETF Global desk harvest (flows + constituents + profiles)
-[22:34:34] ✅ key from /justhodl/polygon/api-key
-[22:34:34] ✅ lambda not ready (An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e) — running source in-process
-[22:34:42] ✅ in-process harvest 8.7s → {'status': 'LIVE', 'n': 87, 'n_ok': {'flows': 87, 'profiles': 87, 'constituents': 0}, 'elapsed_s': 8.0}
-[22:34:43] ✅ etf-desk status=LIVE n=87 n_ok={'flows': 87, 'profiles': 87, 'constituents': 0}
-[22:34:43] ✅ SPY flow_1d=-3448075813.0 aum=806797246561.1 er=9.0 holdings=None hhi=None
-[22:34:43] ✅ GREEN — ETF desk now serving Massive ETF Global, not $vol z
+executing-against: 7a63f0d7840feadd65e8fc1a66aa1ac8a716ca40
+ops 5563 (re-create after the guard fix) -- owned model async endpoint (scale-to-zero) from the staged weights; proven by one round trip
+[22:46:45] ✅ weights: s3://justhodl-ai-857687956942/factory/models/base/qwen2-5-coder-7b-instruct/c03e6d358207e414f1eca0bb1891e29f1db0e242/ (apache-2.0, 15.2 GB)
+[22:46:46] ✅ hosting rights attached to group justhodl-runner-ecr for github-actions-justhodl; waiting 90 s
+[22:48:16] ✅ hosting price ml.g5.xlarge = $1.4080/h while scaled up; $0 at zero instances
+[22:48:17] ✅ serving image: djl-inference:0.36-lmi28.0.0-cu130-v1 (pushed 2026-08-06) pinned sha256:f0f537adb2d8
+[22:48:17] ✅ model jh-owned-coder-20260914-224817 created from the owned weights
+[22:48:19] ✅ endpoint jh-owned-coder-async creating (async)
+[23:14:01] ✅ endpoint InService
+[23:14:03] ✅ autoscaling 0..1 registered: backlog target + wake-from-zero alarm (scale-in cooldown 15 min)
+[23:14:03] ✅ justhodl-ai execution role: lambda-execution-role
+[23:14:04] ✅ lambda-execution-role may InvokeEndpointAsync on jh-owned-coder-async
+[23:14:05] ✅ probe submitted through factory_inference.submit: req-d3af75c003a3031e635c381f -> s3://justhodl-ai-857687956942/factory/inference/outputs/109833cb-eaf8-4776-9354-55a8ff3f8dfd.out
+[23:14:25] ✅ round trip OK (owned:qwen2-5-coder-7b-instruct@c03e6d358207): Certainly! Below is a Python function `is_palindrome(s)` that checks if a given string `s` is a palindrome, ignoring case and non-letter characters. I've also included two example calls to demonstrate its usage. ```python import re def is_palindrome(s): """ Checks if the given string s is a palindro
+[23:14:25] ✅ factory/control/inference.json written: enabled=True -> the chat routes ordinary and coding questions to the owned model
+[23:14:25] ✅ GREEN -- the owned model is reachable from the chat (async, scale-to-zero)
 
-→ Report written to aws/ops/reports/latest/ops_5558_etf_global_desk.md
+→ Report written to aws/ops/reports/latest/ops_5563_owned_async_endpoint_recreate.md
+ops 5564 -- learning scorecard: supply (rows/receipts) vs learning (exam delta), from objects only
+[23:20:03] ✅ verified rows on disk: 3629 (listing truncated=False); by checker: {"factory-code-verify:v4-supervisor-judge": 1527, "factory-code-exam:a340d8ebd559": 464, "factory-trace-verify:network-less-container": 1529, "factory-code-exam:caf2b53d3151": 106, "factory-code-verify:v3-supervisor-judge": 3}
+[23:20:03] ✅ ELIGIBLE through the curator (receipt resolved, hashes bound, supervisor judge, cases>=1): 2097 rows over 570 distinct tasks; families {"mbpp": 1777, "apps-introductory": 320}
+[23:20:04] ✅ bursts launched: 6; failed-attempt records on disk: 2795
+[23:20:04] ✅ Gear B training jobs (deduplicated): 0; champion: none (base model)
+[23:20:04]   exam result base.json: gen=gen-0 passed=135/164 score=0.8232 critical=0 missing=0 run=34905651137
+[23:20:05]   exam result gen-0-34900737918.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34900737918
+[23:20:05]   exam result gen-0-34902101944.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 run=34902101944
+[23:20:05]   exam result gen-0-34903812485.json: gen=gen-0 passed=0/164 score=0.0 critical=157 missing=0 run=34903812485
+[23:20:05]   exam result gen-0-34905498719.json: gen=gen-0 passed=0/164 score=0.0 critical=157 missing=0 run=34905498719
+[23:20:05]   exam result gen-0-34905651137.json: gen=gen-0 passed=135/164 score=0.8232 critical=0 missing=0 run=34905651137
+[23:20:05] ✅ BASE EXAM (frozen HumanEval, greedy, base model): 135/164 passed = 82.3%; critical failures 0; partial-judge passes 11; evaluation_id humaneval-frozen-848505e1dd021797
+[23:20:05] ✅ frozen holdout exam: prompts present; exam result objects: 6; base exam: {"pass_rate": 0.8232, "tasks": null, "at": "2026-09-14T22:45:56Z"}; promoted candidate exam: none
+[23:20:05] ✅ owned serving endpoint: InService; chat control enabled=True
+[23:20:05] ✅ pipeline stages: weights staged=yes, bursts produced candidates=yes, independent judge admitted rows=yes, supply floor reached=yes, base exam measured=yes, adapter trained=no, candidate examined and promoted=no -> 5/7
+[23:20:05] ✅ SUPPLY READINESS 100.0% (2097/1500 eligible rows) | LEARNING 0.0% (exam delta; 0 until an adapter is trained and examined)
+[23:20:05] ✅ GREEN -- scorecard recorded
+
+→ Report written to aws/ops/reports/latest/ops_5564_learning_scorecard5.md
