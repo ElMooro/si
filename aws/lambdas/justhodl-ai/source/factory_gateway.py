@@ -163,42 +163,44 @@ def attach_evidence(store, agent, prediction, envelope):
 
 
 def settle_pending(store, agent):
-    """Deliver completed owned-model answers into the chat log from the pending INDEX (not from the trimmed log)."""
+    """Deliver completed owned-model answers into the chat log from the pending index. Outbox order (B07): the log write
+    commits FIRST; only then is each record marked delivered and archived. A conflict leaves nothing acknowledged, so the
+    next poll delivers again; duplicate delivery is prevented by the request id already present in the log."""
     key = "factory/salon/chat/" + agent + ".json"
     log, etag = store.read(store.private, key)
     if not isinstance(log, dict):
-        log = {"messages": []}
-        etag = None
+        log, etag = {"messages": []}, None
     messages = list(log.get("messages") or [])
-    changed = False
+    settled = []
     for pkey, pending, petag in factory_inference.list_pending(store, agent):
         state, text = factory_inference.resolve(store, pending)
-        if state in ("queued", "running"):
+        if state in ("queued", "running", "unknown"):
             if pending.get("state") != state:
                 try:
                     store.put(store.private, pkey, dict(pending, state=state), etag=petag, absent=False)
                 except Conflict:
                     pass
             continue
-        if state == "done":
-            body, model = text, pending.get("origin")
-        else:
-            body, model = "Owned model request %s %s: %s" % (pending["id"], state, text), "owned:" + state
+        body, model = (text, pending.get("origin")) if state == "done" else ("Owned model request %s %s: %s" % (pending["id"], state, text), "owned:" + state)
         if not any(m.get("request") == pending["id"] for m in messages):
             messages.append({"id": "a-" + digest(body + pending["id"])[:12], "at": iso(store.clock()), "from": "student", "to": agent, "role": "agent",
                              "text": body, "model": model, "request": pending["id"]})
-            changed = True
+        settled.append((pkey, dict(pending, state=state), petag))
+    if not settled:
+        return log
+    log["messages"] = messages[-CHAT_KEEP:]
+    log["updated_at"] = iso(store.clock())
+    try:
+        store.put(store.private, key, log, etag=etag, absent=etag is None)
+    except Conflict:
+        return log                                                     # nothing acknowledged; the next poll re-delivers
+    for pkey, pending, petag in settled:                                # acknowledged only after the commit above
+        pending.update(delivered=True, delivered_at=iso(store.clock()))
         try:
-            store.put(store.private, pkey, dict(pending, state=state, delivered=True, delivered_at=iso(store.clock())), etag=petag, absent=False)
+            store.put(store.private, pkey, pending, etag=petag, absent=False)
+            factory_inference.archive_delivered(store, pkey, pending)
         except Conflict:
             pass
-    if changed:
-        log["messages"] = messages[-CHAT_KEEP:]
-        log["updated_at"] = iso(store.clock())
-        try:
-            store.put(store.private, key, log, etag=etag, absent=etag is None)
-        except Conflict:
-            pass          # the pending index still holds delivered=True only after a successful log write above; a conflict re-delivers next poll
     return log
 
 

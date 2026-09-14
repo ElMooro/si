@@ -29,7 +29,7 @@ import sys
 import tempfile
 import time
 
-CHECKER = "factory-code-verify:v3-supervisor-judge"
+CHECKER = "factory-code-verify:v4-supervisor-judge"
 STDIO_MARK = "#stdio"
 # Static screen for FUNCTION tasks only (stdio programs may legitimately exit): a solution reaching for process control,
 # the raw descriptor, frames/tracebacks or the runner module has no honest reason to. In-process authority cannot be
@@ -41,33 +41,48 @@ MAX_OUTPUT = 200_000
 
 # The candidate process evaluates expressions it is handed and reports reprs; it never learns what is expected.
 EVAL_RUNNER = r"""
-import sys, os, json
-_write, _exit, _dumps = os.write, os._exit, json.dumps          # captured before any candidate code runs
+import sys, os, json, io
+# Everything the reporter needs is bound HERE, before any candidate code runs, and referenced through closure cells /
+# default arguments -- never through module globals or builtins at call time (audit B03: a candidate rebinding
+# __main__._enc or builtins.repr must not change what is reported).
+def _make_reporter(_write=os.write, _dumps=json.dumps, _type=type, _str=str, _repr=repr, _sorted=sorted, _len=len, _int=int,
+                   _bool=bool, _float=float, _list=list, _tuple=tuple, _set=set, _frozenset=frozenset, _dict=dict, _isinstance=isinstance,
+                   _BaseException=BaseException, _TypeError=TypeError, _ValueError=ValueError):
+    STR_MAX, SEQ_MAX, DEPTH_MAX = 20000, 5000, 12
+    def enc(v, depth=0):
+        t = _type(v)
+        if depth > DEPTH_MAX: raise _TypeError("depth")
+        if t is _bool: return {"t": "bool", "v": v}
+        if t is _int: return {"t": "int", "v": _str(v)}
+        if t is _float: return {"t": "float", "v": _repr(v)}
+        if t is _str:
+            if _len(v) > STR_MAX: raise _ValueError("oversize_str")          # B04: never truncate; oversize is unsupported
+            return {"t": "str", "v": v}
+        if v is None: return {"t": "none"}
+        if t is _list or t is _tuple:
+            if _len(v) > SEQ_MAX: raise _ValueError("oversize_seq")
+            return {"t": "list" if t is _list else "tuple", "v": [enc(x, depth + 1) for x in v]}
+        if t is _set or t is _frozenset:
+            if _len(v) > SEQ_MAX: raise _ValueError("oversize_seq")
+            return {"t": "set", "v": [enc(x, depth + 1) for x in _sorted(v, key=_repr)]}
+        if t is _dict:
+            if _len(v) > SEQ_MAX: raise _ValueError("oversize_seq")
+            return {"t": "dict", "v": [[enc(k, depth + 1), enc(x, depth + 1)] for k, x in _list(v.items())]}
+        raise _TypeError(t.__name__)
+    def line(obj):
+        _write(1, ("\n" + _dumps(obj) + "\n").encode("utf-8"))
+    def report(i, value):
+        try:
+            line({"i": i, "val": enc(value)})
+        except _BaseException as exc:
+            line({"i": i, "error": "unsupported:" + _type(exc).__name__})
+    return report, line
+__report, _line = _make_reporter()
+_exit = os._exit
 _src = open(sys.argv[1], encoding="utf-8").read()
-_suite = open(sys.argv[2], encoding="utf-8").read()             # the TRANSFORMED suite: asserts became __report(i, value)
-def _enc(v, depth=0):
-    t = type(v)
-    if depth > 12: raise TypeError("depth")
-    if t is bool: return {"t": "bool", "v": v}
-    if t is int: return {"t": "int", "v": str(v)}
-    if t is float: return {"t": "float", "v": repr(v)}
-    if t is str: return {"t": "str", "v": v[:20000]}
-    if v is None: return {"t": "none"}
-    if t is list: return {"t": "list", "v": [_enc(x, depth + 1) for x in v[:5000]]}
-    if t is tuple: return {"t": "tuple", "v": [_enc(x, depth + 1) for x in v[:5000]]}
-    if t is set or t is frozenset: return {"t": "set", "v": [_enc(x, depth + 1) for x in sorted(v, key=repr)[:5000]]}
-    if t is dict: return {"t": "dict", "v": [[_enc(k, depth + 1), _enc(x, depth + 1)] for k, x in list(v.items())[:5000]]}
-    raise TypeError(type(v).__name__)
-def _line(obj):
-    _write(1, ("\n" + _dumps(obj) + "\n").encode("utf-8"))
-def __report(i, value):
-    try:
-        _line({"i": i, "val": _enc(value)})
-    except BaseException as exc:
-        _line({"i": i, "error": "unsupported:" + type(exc).__name__})
+_suite = open(sys.argv[2], encoding="utf-8").read()
 _cand = {"__name__": "__candidate__"}
-import io as _io
-sys.stdout = _io.StringIO()                                     # candidate prints never reach the descriptor
+sys.stdout = io.StringIO()                                     # candidate prints never reach the descriptor
 try:
     exec(compile(_src, "candidate.py", "exec"), _cand)
 except BaseException as exc:

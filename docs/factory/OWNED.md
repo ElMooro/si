@@ -117,3 +117,19 @@ delivery marker, terminal states include failed/expired/malformed/truncated, and
 visibility change. Reports: a `fail()` now makes the report status `failure`. Meter: an unreadable spend meter is a
 refusal, never a cached zero. Spawn honours an explicit count. Still open: A15 (skillbook receipts), A16/A18/A20, and the
 serving dollar cap (instance-hours) beyond the autoscaling bound.
+
+## Third-audit fixes (2026-09-14, at 79205fc)
+
+B01/B02: the 5552 endpoint failed its health ping because the serving env registered the model twice (`SERVING_LOAD_MODELS`
+plus `HF_MODEL_ID`) and loaded it twice on one GPU; ops 5553 registers once, sets explicit container-startup and
+model-download timeouts, and confirms deletion only on the provider's not-found error (otherwise `unresolved_cleanup`).
+B03/B04: verifier v4 -- the reporter is bound by closure cells and default arguments before any candidate code runs, so
+rebinding `__main__._enc` or `builtins.repr` cannot change what is reported; oversize values are unsupported, never
+truncated (prefix equality is impossible). B05: the curator resolves the receipt at ingestion and binds it to the exact
+solution and test hashes, a supervisor judge, a v3+ checker and ≥1 executed case; the skillbook path now needs the same
+receipt. B07: outbox order -- the chat log commits first, then records are acknowledged and archived; a conflict
+acknowledges nothing and the next poll delivers exactly once. B08: every owner turn is context; queue/status events never
+are. B09: a durable claim precedes the provider call; a provider error leaves `unknown`, recoverable, never a lost task.
+B10: per-agent pending prefix with delivered records archived out of it. B11: guarded failure/detail parsing. B12: one
+lifecycle number (queue TTL = application deadline = 30 min; invocation allowance 15 min). Still open: B06 (failure
+lineage binding raw completion + frozen tests), B13–B17.

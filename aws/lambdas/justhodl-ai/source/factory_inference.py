@@ -18,7 +18,7 @@ import re
 import time
 from datetime import datetime, timezone
 
-from factory_core import digest, iso
+from factory_core import digest, identifier, iso
 
 CONTROL_KEY = "factory/control/inference.json"
 REQ_PREFIX = "factory/inference/requests/"
@@ -53,7 +53,8 @@ def origin(control):
 
 PENDING_PREFIX = "factory/inference/pending/"
 META_PREFIX = "factory/inference/meta/"
-EXPIRE_S = 30 * 60           # queue TTL + invocation timeout; after this a request is `expired`, never "running" forever
+EXPIRE_S = 30 * 60           # ONE lifecycle number (B12): queue TTL == application deadline; invocation allowance below it
+INVOKE_TIMEOUT_S = 900
 
 
 def _idempotency_key(agent, text, history):
@@ -61,32 +62,62 @@ def _idempotency_key(agent, text, history):
     return digest({"agent": agent, "text": " ".join(text.split()), "after": last})[:24]
 
 
+STATUS_MODELS = ("owned:queued", "owned:unavailable", "owned:not-connected", "owned:failed", "owned:expired", "owned:malformed")
+
+
+def conversation_turns(history, limit=8):
+    """Semantic turns only (B08): every owner turn (pending metadata is operational, not semantic) and the owned model's
+    real answers; queue/status/error events and non-owned voices never enter the model's context."""
+    turns = []
+    for m in (history or [])[-limit * 2:]:
+        role, model = m.get("role"), str(m.get("model") or "")
+        if role == "owner":
+            turns.append(("owner", str(m.get("text") or "")[:1200]))
+        elif model.startswith("owned:") and model not in STATUS_MODELS and m.get("request"):
+            turns.append(("agent", str(m.get("text") or "")[:1200]))
+    return turns[-limit:]
+
+
+def pending_key(agent, ikey):
+    return PENDING_PREFIX + identifier(agent) + "/" + ikey + ".json"
+
+
 def submit(store, sm_runtime, control, agent, text, history):
-    """Submit one async request. The object at InputLocation is the SERVING payload exactly ({inputs, parameters});
-    audit metadata lives in a separate object; request state lives in its own pending index (not the chat log)."""
+    """Submit one async request. Order (B09): claim a durable pending record FIRST, then invoke; a provider error after the
+    claim leaves the record `unknown` (recoverable), never lost and never duplicated. The object at InputLocation is the
+    serving payload exactly ({inputs, parameters}); audit metadata is a separate object."""
     now = iso(store.clock())
     ikey = _idempotency_key(agent, text, history)
-    existing, _ = store.read(store.private, PENDING_PREFIX + ikey + ".json")
-    if isinstance(existing, dict) and existing.get("state") not in ("done", "failed", "expired", "malformed"):
-        return dict(existing, replay=True)          # a double submit rides the request already in flight
+    pkey = pending_key(agent, ikey)
+    existing, petag = store.read(store.private, pkey)
+    if isinstance(existing, dict) and existing.get("state") not in ("done", "failed", "expired", "malformed") and not existing.get("delivered"):
+        return dict(existing, replay=True)          # a double submit rides the request already claimed/in flight
     rid = "req-" + ikey
-    turns = [(m.get("role"), str(m.get("text") or "")[:1200]) for m in (history or [])[-8:]
-             if (m.get("role") == "owner" and not m.get("pending")) or str(m.get("model") or "").startswith("owned:")]
-    prompt = qwen_chat_prompt(SYSTEM, turns, text[:6000])
+    prompt = qwen_chat_prompt(SYSTEM, conversation_turns(history), text[:6000])
     payload = {"inputs": prompt, "parameters": {"max_new_tokens": int(control.get("max_new_tokens") or 700), "temperature": 0.2, "top_p": 0.9,
                                                 "stop": ["<|im_end|>", "<|endoftext|>"]}}
     key = REQ_PREFIX + rid + ".json"
     store.immutable(store.private, key, payload)                                   # what the model receives, byte for byte
     store.immutable(store.private, META_PREFIX + rid + ".json", {"schema_version": "factory-inference-request.v1", "id": rid, "agent": agent, "at": now,
                                                                   "endpoint": control.get("endpoint_name"), "origin": origin(control), "idempotency_key": ikey,
-                                                                  "input_key": key, "input_sha256": digest(payload), "turn_after": (history or [])[-1].get("id") if history else None})
-    resp = sm_runtime.invoke_endpoint_async(EndpointName=control["endpoint_name"], InputLocation="s3://%s/%s" % (store.private, key),
-                                            ContentType="application/json", Accept="application/json", InferenceId=rid,
-                                            InvocationTimeoutSeconds=900)
-    pending = {"schema_version": "factory-inference-pending.v1", "id": rid, "state": "queued", "origin": origin(control), "agent": agent,
-               "output_location": resp.get("OutputLocation"), "failure_location": resp.get("FailureLocation"), "submitted_at": now,
-               "expires_at": iso(store.clock() + __import__("datetime").timedelta(seconds=EXPIRE_S)), "input_key": key, "delivered": False}
-    store.put(store.private, PENDING_PREFIX + ikey + ".json", pending, etag=None, absent=True)
+                                                                  "input_key": key, "input_sha256": digest(payload), "text_sha256": digest(text),
+                                                                  "turn_after": (history or [])[-1].get("id") if history else None})
+    pending = {"schema_version": "factory-inference-pending.v1", "id": rid, "state": "claimed", "origin": origin(control), "agent": agent,
+               "output_location": None, "failure_location": None, "submitted_at": now, "input_key": key, "delivered": False,
+               "expires_at": iso(store.clock() + __import__("datetime").timedelta(seconds=EXPIRE_S))}
+    store.put(store.private, pkey, pending, etag=petag, absent=petag is None)     # the durable claim
+    try:
+        resp = sm_runtime.invoke_endpoint_async(EndpointName=control["endpoint_name"], InputLocation="s3://%s/%s" % (store.private, key),
+                                                ContentType="application/json", Accept="application/json", InferenceId=rid,
+                                                InvocationTimeoutSeconds=INVOKE_TIMEOUT_S, RequestTTLSeconds=EXPIRE_S)
+    except Exception as exc:  # noqa: BLE001 -- the provider may or may not have accepted it: recoverable unknown, not a retry
+        pending.update(state="unknown", error=type(exc).__name__ + ":" + str(exc)[:200])
+        _, petag2 = store.read(store.private, pkey)
+        store.put(store.private, pkey, pending, etag=petag2, absent=False)
+        raise
+    pending.update(state="queued", output_location=resp.get("OutputLocation"), failure_location=resp.get("FailureLocation"))
+    _, petag2 = store.read(store.private, pkey)
+    store.put(store.private, pkey, pending, etag=petag2, absent=False)
     return pending
 
 
@@ -111,19 +142,27 @@ def resolve(store, pending):
                 doc = doc[0]
             if not isinstance(doc, dict):
                 return "malformed", "unexpected response shape: " + type(doc).__name__
-            if doc.get("error") or str(doc.get("finish_reason") or "").lower() == "error" or str((doc.get("details") or {}).get("finish_reason") or "").lower() == "error":
+            details = doc.get("details") if isinstance(doc.get("details"), dict) else {}
+            if doc.get("error") or str(doc.get("finish_reason") or "").lower() == "error" or str(details.get("finish_reason") or "").lower() == "error":
                 return "failed", str(doc.get("error") or doc.get("details") or "model error")[:400]
             text = re.sub(r"<\|im_end\|>.*$", "", str(doc.get("generated_text") or ""), flags=re.S).strip()
             if not text:
                 return "failed", "empty completion"
-            reason = str((doc.get("details") or {}).get("finish_reason") or doc.get("finish_reason") or "")
+            reason = str(details.get("finish_reason") or doc.get("finish_reason") or "")
             if reason == "length":
                 text += "\n\n[truncated at max_new_tokens]"
             return "done", text
     if fail_key:
-        doc, _ = store.read(store.private, fail_key)
+        try:
+            doc, _ = store.read(store.private, fail_key)
+        except Exception as exc:  # noqa: BLE001 -- a non-JSON failure body is still a failure
+            return "failed", "failure object unreadable: " + type(exc).__name__
         if doc is not None:
             return "failed", str(doc)[:500]
+    if pending.get("state") == "unknown" and not out_key:
+        submitted = pending.get("submitted_at")
+        age = (store.clock() - datetime.fromisoformat(submitted)).total_seconds() if submitted else 0
+        return ("expired", "provider never acknowledged the request") if age > EXPIRE_S else ("unknown", "provider acknowledgement lost; waiting for an output or expiry")
     submitted = pending.get("submitted_at")
     age = (store.clock() - datetime.fromisoformat(submitted)).total_seconds() if submitted else 0
     if age > EXPIRE_S:
@@ -132,19 +171,38 @@ def resolve(store, pending):
 
 
 def list_pending(store, agent, cap=50):
-    """Unsettled requests for this agent from the pending index (independent of the chat log)."""
+    """Unsettled requests for this agent from its own pending prefix (B10: delivered records are moved out, so a live
+    request can never be starved by history). Listing errors are explicit."""
     out = []
+    prefix = PENDING_PREFIX + identifier(agent) + "/"
+    token = None
+    while True:
+        kw = {"Bucket": store.private, "Prefix": prefix, "MaxKeys": 200}
+        if token:
+            kw["ContinuationToken"] = token
+        resp = store.s3.list_objects_v2(**kw)
+        for o in resp.get("Contents", []):
+            doc, etag = store.read(store.private, o["Key"])
+            if isinstance(doc, dict) and not doc.get("delivered"):
+                out.append((o["Key"], doc, etag))
+                if len(out) >= cap:
+                    return out
+        token = resp.get("NextContinuationToken")
+        if not resp.get("IsTruncated") or not token:
+            return out
+
+
+def archive_delivered(store, pkey, pending):
+    """Move a delivered record to factory/inference/delivered/ (same relative key); the pending prefix stays small."""
+    dest = pkey.replace(PENDING_PREFIX, "factory/inference/delivered/", 1)
     try:
-        resp = store.s3.list_objects_v2(Bucket=store.private, Prefix=PENDING_PREFIX, MaxKeys=500)
+        store.immutable(store.private, dest, pending)                # first archive wins; a re-archive of the same id is a no-op
     except Exception:  # noqa: BLE001
-        return out
-    for o in resp.get("Contents", []):
-        doc, etag = store.read(store.private, o["Key"])
-        if isinstance(doc, dict) and doc.get("agent") == agent and not doc.get("delivered"):
-            out.append((o["Key"], doc, etag))
-            if len(out) >= cap:
-                break
-    return out
+        pass
+    try:
+        store.s3.delete_object(Bucket=store.private, Key=pkey)
+    except Exception:  # noqa: BLE001 -- a leftover pending record is delivered=True and simply skipped
+        pass
 
 
 def is_status_question(text):

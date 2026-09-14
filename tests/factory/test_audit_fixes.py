@@ -48,7 +48,7 @@ class VerifierJudgeTests(unittest.TestCase):
         self.assertEqual(passed, ['good', 'stdio-bytes', 'stdio-ok'])
         self.assertEqual((report['refused_suites'], report['refused_static']), (2, 1))
         self.assertEqual(report['partial_judge'], 0)
-        self.assertEqual(report['checker'], 'factory-code-verify:v3-supervisor-judge')
+        self.assertEqual(report['checker'], 'factory-code-verify:v4-supervisor-judge')
         self.assertIn('exit 3', fails['stdio-exit'])
         # Forging the runner's result line needs the raw descriptor plus an early exit; both are screened for function
         # tasks. Residual (documented in OWNED.md): an obfuscated form of the same trick against a candidate that already

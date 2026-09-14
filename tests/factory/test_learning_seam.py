@@ -57,16 +57,25 @@ class LearningSeamTests(unittest.TestCase):
             self.assertEqual(len(results), 1)                                   # the owner task got its verified result
             self.assertEqual(len(verdicts), 2)                                  # two passes -> two verdict receipts
             row = rows[0]
-            self.assertEqual((row['checker'], row['judge'], row['cases'], row['kind']), ('factory-code-verify:v3-supervisor-judge', 'supervisor', 2, 'self_trace'))
+            self.assertEqual((row['checker'], row['judge'], row['cases'], row['kind']), ('factory-code-verify:v4-supervisor-judge', 'supervisor', 2, 'self_trace'))
             self.assertEqual(row['solution_sha256'], json.loads(cloud.rows[('b', row['receipt'])])['solution_sha256'])
             summary = json.loads(cloud.rows[('b', 'factory/bursts/jh-burst-test/summary-r1.json')])
             self.assertEqual((summary['rows_written'], summary['rows_existing'], summary['owner_results'], summary['owner_replays'], summary['skipped_not_trainable']), (0, 1, 0, 1, 1))
             # curator accepts the row with its metadata intact
-            accepted = gb._row_from_verified('factory/curriculum/code/verified/x.json', row)
+            accepted = gb._row_from_verified('factory/curriculum/code/verified/x.json', row, cloud, 'b')
             self.assertIsNotNone(accepted)
             self.assertEqual(accepted.get('kind'), 'self_trace')
             legacy = dict(row, checker='factory-trace-verify:network-less-container')
-            self.assertIsNone(gb._row_from_verified('k', legacy))
+            self.assertIsNone(gb._row_from_verified('k', legacy, cloud, 'b'))
+            # B05: a missing receipt, a hash mismatch, a zero-case receipt and an unresolvable store are all refused
+            self.assertIsNone(gb._row_from_verified('k', dict(row, receipt='factory/bursts/none/verdicts/missing.json'), cloud, 'b'))
+            self.assertIsNone(gb._row_from_verified('k', dict(row, solution=row['solution'] + '# tampered\n'), cloud, 'b'))
+            self.assertIsNone(gb._row_from_verified('k', row, None, None))
+            rk = row['receipt']; rec = json.loads(cloud.rows[('b', rk)])
+            cloud.rows[('b', rk)] = json.dumps({**rec, 'cases': 0}).encode()
+            self.assertIsNone(gb._row_from_verified('k', row, cloud, 'b'))
+            cloud.rows[('b', rk)] = json.dumps(rec).encode()
+            self.assertIsNone(gb._row_from_skill('factory/skillbook/x.json', {'prompt': 'p', 'solution': 's'}, cloud, 'b'))   # skill without receipt
             # a conflicting owner result for the same task/sample raises loudly
             conflict_key = [k for k in results][0]
             cloud.rows[('b', conflict_key)] = json.dumps({**json.loads(cloud.rows[('b', conflict_key)]), 'solution_sha256': 'f' * 64}).encode()

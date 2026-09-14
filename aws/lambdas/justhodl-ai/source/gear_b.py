@@ -248,17 +248,37 @@ def _row_from_gear_a_trace(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, 
             "prompt": prompt, "solution": solution}
 
 
-def _row_from_skill(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def _receipt_ok(doc: Dict[str, Any], s3=None, bucket: Optional[str] = None) -> bool:
+    """A training row is admitted only when its verifier receipt EXISTS and BINDS the same solution and test bytes with a
+    supervisor judge, a v3+ checker and at least one executed case (audit A15/B05). Without a store to resolve against,
+    the row is refused -- a label is never evidence."""
+    receipt_key = doc.get("receipt")
+    if not isinstance(receipt_key, str) or s3 is None or not bucket:
+        return False
+    receipt = get_json(s3, bucket, receipt_key)
+    if not isinstance(receipt, dict) or receipt.get("passed") is not True:
+        return False
+    m = re.match(r"^factory-code-verify:v(\d+)-supervisor-judge$", str(receipt.get("checker") or ""))
+    if not m or int(m.group(1)) < 3 or receipt.get("judge") != "supervisor" or int(receipt.get("cases") or 0) < 1:
+        return False
+    if receipt.get("solution_sha256") != doc.get("solution_sha256") or receipt.get("tests_sha256") != doc.get("tests_sha256"):
+        return False
+    return hashlib.sha256(str(doc.get("solution") or "").encode("utf-8")).hexdigest() == doc.get("solution_sha256")
+
+
+def _row_from_skill(key: str, doc: Dict[str, Any], s3=None, bucket: Optional[str] = None) -> Optional[Dict[str, Any]]:
     prompt = doc.get("problem") or doc.get("prompt")
     solution = doc.get("skill") or doc.get("program") or doc.get("solution")
     if not isinstance(prompt, str) or not isinstance(solution, str):
         return None
+    if not _receipt_ok(dict(doc, solution=solution), s3, bucket):
+        return None            # a skill without a resolved verifier receipt is not training material (A15/B05)
     return {"kind": "skillbook", "family": str(doc.get("family") or key.rsplit("/", 1)[-1].split(".")[0]),
-            "license": "own", "source": key, "checker": str(doc.get("checker") or "justhodl-factory-grader"),
+            "license": "own", "source": key, "checker": str(doc.get("checker")),
             "prompt": prompt, "solution": solution}
 
 
-def _row_from_verified(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def _row_from_verified(key: str, doc: Dict[str, Any], s3=None, bucket: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Rows written by the isolated runner (factory-code-exam.yml) with verified_by=owner_runner."""
     if doc.get("verified_by") != "owner_runner" or doc.get("passed") is not True:
         return None
@@ -269,8 +289,10 @@ def _row_from_verified(key: str, doc: Dict[str, Any]) -> Optional[Dict[str, Any]
         checker = str(doc.get("checker") or "")
         m = re.match(r"^factory-code-verify:v(\d+)-supervisor-judge$", checker)
         # only a supervisor-judged verifier (v3+) with a bound receipt mints training material; older labels are history (F01/A03/A05)
-        if not m or int(m.group(1)) < 3 or doc.get("judge") != "supervisor" or not doc.get("receipt") or not doc.get("solution_sha256"):
+        if not m or int(m.group(1)) < 3 or doc.get("judge") != "supervisor" or int(doc.get("cases") or 0) < 1:
             return None
+        if not _receipt_ok(doc, s3, bucket):
+            return None        # receipt missing, unbound or hash-mismatched (B05)
     prompt, solution = doc.get("prompt"), doc.get("solution")
     if not isinstance(prompt, str) or not isinstance(solution, str) or not doc.get("source_url"):
         return None
@@ -301,14 +323,14 @@ def collect_rows(s3, private_bucket: str, public_bucket: str, limit_per_source: 
             continue
         counts["skills_seen"] += 1
         doc = get_json(s3, private_bucket, key)
-        row = _row_from_skill(key, doc) if isinstance(doc, dict) else None
+        row = _row_from_skill(key, doc, s3, private_bucket) if isinstance(doc, dict) else None
         rows.append(row) if row else counts.__setitem__("unmapped", counts["unmapped"] + 1)
     for key in list_keys(s3, private_bucket, CURRICULUM_VERIFIED_PREFIX, limit_per_source):
         if not key.endswith(".json"):
             continue
         counts["verified_seen"] += 1
         doc = get_json(s3, private_bucket, key)
-        row = _row_from_verified(key, doc) if isinstance(doc, dict) else None
+        row = _row_from_verified(key, doc, s3, private_bucket) if isinstance(doc, dict) else None
         rows.append(row) if row else counts.__setitem__("unmapped", counts["unmapped"] + 1)
     return rows, counts
 
