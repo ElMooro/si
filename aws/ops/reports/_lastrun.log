@@ -1,25 +1,8 @@
-executing-against: 242e8dd6625f3fcdd116e5abeb4e10859ad133b8
-ops 5557 -- base exam job (frozen HumanEval prompts, greedy) + burst 2 (MBPP+APPS, K=6) on the owned lane
-[21:34:15] ✅ exam tasks: 164 frozen HumanEval prompts -> s3://justhodl-ai-857687956942/factory/exams/code/prompts-only/20260914-213415/ (prompts only)
-[21:34:15] ✅ training price ml.g5.2xlarge = $1.5150/h; per-job cap $3.0300
-[21:34:16] ✅ BASE EXAM launched: jh-exam-gen0-20260914-213415 -- 164 prompts, greedy, adapter=base; grade with factory-exam.yml (burst=jh-exam-gen0-20260914-213415, generation=gen-0)
+executing-against: e99fc9f2802d68febd122e7fcb16806bea2c901e
+ops 5558 -- burst 2 (MBPP+APPS, K=6) after the base exam job frees the single spot g5.2xlarge
+[21:43:43] quota busy: jh-exam-gen0-20260914-213415; waiting
+[21:44:44] ✅ spot g5.2xlarge free
+[21:47:56] ✅ BURST 2 launched: jh-burst-gen0b2-20260914-214444 -- 570 prompts x K=6 (holdout excluded 164); verify with factory-trace-verify.yml all_samples=true
+[21:47:56] ✅ GREEN -- burst 2 running on the owned lane (quota serialized)
 
-→ Report written to aws/ops/reports/latest/ops_5557_base_exam_and_burst2.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5557_base_exam_and_burst2.py", line 151, in <module>
-    if main() != 0:
-       ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5557_base_exam_and_burst2.py", line 143, in main
-    launch(spec2, name2, "s3://%s/%s" % (PRI, prefix2), "burst", {"task_cap": "1200"}, {"burst_index": 2, "tasks": len(tasks2), "samples_per_task": 6, "temperature": 0.8})
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5557_base_exam_and_burst2.py", line 106, in launch
-    sm.create_training_job(**kw, Tags=cg.tags("factory-" + kind, 3) + [{"Key": "jh-factory", "Value": kind}])
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g5.2xlarge for spot training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota.
-❌ OPS-FAIL: aws/ops/pending/ops_5557_base_exam_and_burst2.py
+→ Report written to aws/ops/reports/latest/ops_5558_burst2_after_exam.md
