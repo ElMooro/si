@@ -65,7 +65,7 @@ test("yellow-key parser strips US EQUITY <GO> and does not steal a lone ticker",
 test("popular Terminal functions are on the keyboard and mapped to harvests", () => {
   const go = loadGo();
   const ids = go.catalog().map((f) => f.id);
-  ["DES", "FA", "GP", "GIP", "HP", "EE", "CN", "DVD", "HDS", "OMON", "SPLC", "CF", "MA", "CACS", "ERN", "PEAD", "OWN", "13F", "13D", "MAGS", "MOST", "WEI", "ECO", "YCRV", "WIRP", "FOMC", "COT", "VIX", "DARK", "PORT", "MEMB", "FL", "ETF", "TRA", "GSEAS", "ICHI", "GPEX", "SESS", "LOG", "PCT", "IDX", "HIVOL"].forEach((id) => {
+  ["DES", "FA", "GP", "GIP", "HP", "EE", "CN", "DVD", "HDS", "OMON", "SPLC", "CF", "MA", "CACS", "ERN", "PEAD", "OWN", "13F", "13D", "MAGS", "MOST", "WEI", "ECO", "YCRV", "WIRP", "FOMC", "COT", "VIX", "DARK", "PORT", "MEMB", "FL", "ETF", "TRA", "GSEAS", "ICHI", "GPEX", "SESS", "LOG", "PCT", "IDX", "HIVOL", "FVG", "OR", "ADR", "GPDESK"].forEach((id) => {
     assert.ok(ids.indexOf(id) >= 0, "missing " + id);
   });
   const splc = go.catalog().filter((f) => f.id === "SPLC")[0];

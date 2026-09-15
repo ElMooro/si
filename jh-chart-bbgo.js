@@ -94,10 +94,24 @@
     { id: "EMA", n: "EMA 21/50/200 pack", g: "Studies" },
     { id: "SMA", n: "SMA 20/50/200 pack", g: "Studies" },
     { id: "NEWS", n: "News markers", g: "Studies", ind: "news" },
+    { id: "INSC", n: "Insider clusters on chart", g: "Studies", ind: "ins" },
+    { id: "BUYB", n: "Buyback markers on chart", g: "Studies", ind: "buyb" },
     { id: "GSEAS", n: "Seasonality", g: "Studies", osc: "gseas" },
     { id: "AVG", n: "Historical average ±σ", g: "Studies", ind: "avgdev" },
     { id: "VOL", n: "Volume pane", g: "Studies" },
     { id: "SESS", n: "RTH session shading", g: "Studies", ind: "sess" },
+    { id: "FVG", n: "Fair value gaps", g: "Studies", ind: "fvg" },
+    { id: "EQH", n: "Equal highs / lows", g: "Studies", ind: "eqh" },
+    { id: "OR", n: "Opening range 15/30", g: "Studies", ind: "or15" },
+    { id: "IB", n: "Initial balance", g: "Studies", ind: "ib" },
+    { id: "ONH", n: "Overnight high / low", g: "Studies", ind: "onhl" },
+    { id: "ADR", n: "ADR 20 expected range", g: "Studies", ind: "adr" },
+    { id: "LRCH", n: "LinReg channel 2σ", g: "Studies", ind: "lrch" },
+    { id: "EAVWAP", n: "AVWAP from last earnings", g: "Studies", ind: "eavwap" },
+    { id: "GSESS", n: "Asia / London / NY sessions", g: "Studies", ind: "gsess" },
+    { id: "SEP", n: "Session separators", g: "Studies", ind: "sep" },
+    { id: "RATIO", n: "Price ratio vs SPY", g: "Studies", osc: "ratio" },
+    { id: "GPDESK", n: "Desk template (SMA/ADR/FVG/events)", g: "Chart" },
     { id: "LIN", n: "Linear scale", g: "Chart", scale: 0 },
     { id: "LOG", n: "Log scale", g: "Chart", scale: 1 },
     { id: "PCT", n: "Percent scale", g: "Chart", scale: 2 },
@@ -320,6 +334,12 @@
       return { ok: true, fn: fn };
     }
     if (fn === "VOL" && ctx.jhSetVol) { ctx.jhSetVol(true); return { ok: true, fn: fn }; }
+    if (fn === "GPDESK") {
+      gpDefault(ctx);
+      ["sma50", "sma200", "earn", "keylv", "adr", "fvg"].forEach(function (id) { toggleInd(id, true); });
+      if (ctx.jhSetVol) ctx.jhSetVol(true);
+      return { ok: true, fn: fn };
+    }
     if (fn === "MULT" && ctx.jhSetLayout) { ctx.jhSetLayout(2); return { ok: true, fn: fn }; }
     if (fn === "HELP" && ctx.jhOpenWorkspace) { ctx.jhOpenWorkspace("go"); return { ok: true, fn: fn }; }
     if (opts.page && spec.href) { location.href = spec.href; return { ok: true, fn: fn }; }
