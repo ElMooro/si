@@ -361,6 +361,8 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #tfbar .wsico:hover{background:#2a2e39;color:#d1d4dc}
 #tfbar .chg{height:32px;padding:0 9px;font-size:13px;color:#787b86}
 #tfbar .chg.on{background:#7c5cea;color:#fff}
+#goyell,#tfbar .goyell{width:150px;height:28px;margin:0 6px;background:#0b0c0e;border:1px solid #c9a227;color:#f6ae2d;font:12px "IBM Plex Mono",ui-monospace,monospace;padding:0 8px;border-radius:2px}
+#goyell::placeholder{color:#8a7320}
 #watch.is-collapsed{width:0!important;min-width:0!important;max-width:0!important;border:0;overflow:hidden}
 #watch.is-open{width:var(--watch-w,320px)!important;min-width:220px!important}
 @media(max-width:720px){ #listfab{display:none!important} }
@@ -467,7 +469,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
       </button>
       <label class="tab-search" id="tab-search">
         <span class="ts-ico">⌕</span>
-        <input id="symin" placeholder="AAPL DES <GO>" autocomplete="off" spellcheck="false">
+        <input id="symin" placeholder="Symbol, ISIN, or CUSIP" autocomplete="off" spellcheck="false" title="Ticker, ISIN, CUSIP. Or AAPL DES <GO>">
       </label>
       <button type="button" class="tv-iconbtn" id="btn-addcmp" title="Compare symbols">+</button>
       <button type="button" class="tv-iconbtn" id="btn-dtype" title="Financials, ratios & statistics">
@@ -620,9 +622,9 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-rail.js?v=1"></script>
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
-<script src="/jh-chart-tvrail.js?v=20260915z-bbgo"></script>
+<script src="/jh-chart-tvrail.js?v=20260915aa-bbgp"></script>
 <script src="/jh-chart-catalog.js?v=20260915t-ivol"></script>
-<script src="/jh-chart-engine.js?v=20260915z-bbgo"></script>
+<script src="/jh-chart-engine.js?v=20260915aa-bbgp"></script>
 <script src="/jh-chart-tvux.js?v=12"></script>
 <script src="/jh-chart-indux.js?v=14"></script>
 <script src="/jh-etf-fuse.js?v=20260915p-hold"></script>
@@ -633,6 +635,6 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-tvsearch.js?v=20260915v-ivol3"></script>
 <script src="/jh-chart-stock-desk.js?v=1"></script>
 <script src="/jh-chart-quality.js?v=1"></script>
-<script src="/jh-chart-bbgo.js?v=20260915z-bbgo"></script>
+<script src="/jh-chart-bbgo.js?v=20260915aa-bbgp"></script>
 </body>
 </html>

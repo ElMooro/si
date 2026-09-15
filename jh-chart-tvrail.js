@@ -221,6 +221,22 @@
       spring: ["Spring · forming / fired / failed", "/wyckoff-desk.html?tab=spring"],
       accum: ["Accumulation · tight band, long range", "/wyckoff-desk.html?tab=accum"],
       go: ["Bloomberg <GO> · function keyboard", "/bb-go.html"],
+      splc: ["Supply chain", "/supply-chain.html"],
+      cf: ["SEC filings", "/sec-filings.html"],
+      ma: ["M&A / merger arb", "/merger-arb.html"],
+      port: ["Portfolio", "/portfolio.html"],
+      memb: ["Index members · S&P 500", "/sp500.html"],
+      fl: ["Fund flows", "/flow.html"],
+      pead: ["Earnings PEAD", "/earnings-pead.html"],
+      spin: ["Spin-offs", "/spinoff-desk.html"],
+      act: ["Activist 13D", "/activist-13d.html"],
+      cot: ["COT extremes", "/cot-extremes.html"],
+      vix: ["VIX curve", "/vix-curve.html"],
+      dark: ["Dark pool / ATS", "/dark-pool.html"],
+      earn: ["Earnings", "/earnings.html"],
+      opt: ["Options", "/options.html"],
+      wei: ["World equity indices", "/global-cycle.html"],
+      eco: ["Economic calendar", "/econ-calendar.html"],
       alert: ["Alert Center", "/alerts.html"]
     };
     var pair = meta[kind] || meta.alert;

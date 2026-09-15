@@ -4,14 +4,15 @@
   window.__jhBbGo = true;
 
   var YELLOW = ["US", "EQUITY", "INDEX", "COMDTY", "CURNCY", "GOVT", "CORP", "CMDTY", "<GO>", "GO"];
+  var MAG7 = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"];
   var CATALOG = [
     { id: "DES", n: "Security description", g: "Equity", tab: "over" },
     { id: "FA", n: "Financial analysis", g: "Equity", tab: "fin" },
-    { id: "GP", n: "Price graph", g: "Chart" },
+    { id: "GP", n: "Price graph (default studies)", g: "Chart" },
     { id: "GPC", n: "Candle chart", g: "Chart", kind: "candles" },
     { id: "GPO", n: "Bar chart (OHLC)", g: "Chart", kind: "bars" },
     { id: "GPL", n: "Line chart", g: "Chart", kind: "line" },
-    { id: "GIP", n: "Intraday graph", g: "Chart", tf: "5m" },
+    { id: "GIP", n: "Intraday graph + RTH shade", g: "Chart", tf: "5m" },
     { id: "HP", n: "Historical prices", g: "Chart" },
     { id: "RV", n: "Relative value / vs SPY", g: "Equity" },
     { id: "EE", n: "Earnings & estimates", g: "Equity", tab: "est" },
@@ -19,42 +20,89 @@
     { id: "CN", n: "Company news", g: "Equity", tab: "news" },
     { id: "DVD", n: "Dividend history", g: "Equity", tab: "div" },
     { id: "HDS", n: "Holders / 13F", g: "Equity", tab: "inst" },
+    { id: "OWN", n: "Ownership (13F book)", g: "Equity", ws: "13f" },
     { id: "13F", n: "13F institutional book", g: "Equity", ws: "13f" },
+    { id: "13D", n: "Activist 13D", g: "Equity", ws: "act" },
+    { id: "SPLC", n: "Supply chain", g: "Equity", ws: "splc" },
+    { id: "CF", n: "Company filings", g: "Equity", ws: "cf" },
+    { id: "MA", n: "M&A / merger arb", g: "Equity", ws: "ma" },
+    { id: "CACS", n: "Corporate actions on chart", g: "Equity" },
+    { id: "ERN", n: "Earnings desk", g: "Equity", ws: "earn" },
+    { id: "PEAD", n: "Post-earnings drift", g: "Equity", ws: "pead" },
+    { id: "SPIN", n: "Spin-offs", g: "Equity", ws: "spin" },
     { id: "OMON", n: "Options monitor", g: "Equity", tab: "opt" },
+    { id: "OVME", n: "Options valuation", g: "Equity", ws: "opt" },
+    { id: "IVOL", n: "Implied vol / options", g: "Equity", ws: "opt" },
     { id: "QR", n: "Quote recap / tape", g: "Equity" },
+    { id: "BQ", n: "Quote panel (DES)", g: "Equity", tab: "over" },
+    { id: "ALLQ", n: "All quotes / tape", g: "Equity" },
+    { id: "TSM", n: "Trade summary / tape", g: "Equity" },
     { id: "EVT", n: "Events on chart", g: "Chart", ind: "earn" },
+    { id: "GPEX", n: "GP with events + news + DVD", g: "Chart" },
+    { id: "GPV", n: "GP with volume", g: "Chart" },
+    { id: "GPF", n: "Fundamentals overlay (FA)", g: "Chart", tab: "val" },
     { id: "TRA", n: "Total return (indexed 100)", g: "Chart", osc: "tra" },
     { id: "BETA", n: "Beta vs SPY", g: "Chart", osc: "beta" },
     { id: "CORR", n: "Correlation", g: "Market", ws: "corr" },
     { id: "CMP", n: "Compare (add overlay)", g: "Chart" },
+    { id: "MAGS", n: "Magnificent 7 vs this name", g: "Chart" },
     { id: "GF", n: "Fundamentals / valuation", g: "Equity", tab: "val" },
     { id: "GE", n: "Estimates graph", g: "Equity", tab: "est" },
     { id: "INS", n: "Insider clusters", g: "Equity", href: "/insider-clusters.html" },
     { id: "SHORT", n: "Short interest", g: "Equity", tab: "short" },
+    { id: "SIQ", n: "Short interest quote", g: "Equity", tab: "short" },
     { id: "HOLD", n: "Holders", g: "Equity", tab: "hold" },
+    { id: "MEMB", n: "Index members (S&P)", g: "Market", ws: "memb" },
+    { id: "FL", n: "Fund flows", g: "Market", ws: "fl" },
+    { id: "ETF", n: "ETF desk / holdings", g: "Market", ws: "etf" },
+    { id: "PORT", n: "Portfolio", g: "Market", ws: "port" },
     { id: "TOP", n: "Top news", g: "Market", href: "/news.html" },
     { id: "N", n: "News tape", g: "Market", href: "/news.html" },
+    { id: "NL", n: "News line", g: "Market", href: "/news.html" },
     { id: "HM", n: "Heat map", g: "Market", ws: "heat" },
     { id: "MOST", n: "Most active / movers", g: "Market", href: "/hot-stocks.html" },
-    { id: "WEI", n: "World equity indices", g: "Market", href: "/global-cycle.html" },
-    { id: "ECO", n: "Economic calendar", g: "Macro", href: "/econ-calendar.html" },
+    { id: "WEI", n: "World equity indices", g: "Market", ws: "wei" },
+    { id: "EQS", n: "Equity screener", g: "Market" },
+    { id: "WATC", n: "Watchlist", g: "Market" },
+    { id: "ALRT", n: "Alerts", g: "Market", ws: "alert" },
+    { id: "ECO", n: "Economic calendar", g: "Macro", ws: "eco" },
     { id: "YCRV", n: "Yield curve", g: "Macro", href: "/yield-curve.html" },
     { id: "WIRP", n: "Rate-move probabilities", g: "Macro", href: "/implied-prob.html" },
     { id: "FOMC", n: "FOMC monitor", g: "Macro", href: "/fomc.html" },
     { id: "BTMM", n: "Bonds / money markets", g: "Macro", ws: "bonds" },
     { id: "ECST", n: "Economic statistics", g: "Macro", ws: "macro" },
-    { id: "WATC", n: "Watchlist", g: "Market" },
-    { id: "EQS", n: "Equity screener", g: "Market" },
+    { id: "COT", n: "CFTC positioning", g: "Macro", ws: "cot" },
+    { id: "VIX", n: "VIX curve", g: "Macro", ws: "vix" },
+    { id: "CRPR", n: "Credit desk", g: "Macro", href: "/credit-desk.html" },
+    { id: "YAS", n: "Yields & spreads", g: "Macro", href: "/yield-curve.html" },
+    { id: "DARK", n: "Dark pool / ATS", g: "Market", ws: "dark" },
+    { id: "ATS", n: "ATS / institutional volume", g: "Equity", tab: "ivol" },
+    { id: "HIVOL", n: "Historical volatility", g: "Studies", osc: "hv" },
     { id: "RSI", n: "RSI 14 study", g: "Studies", osc: "rsi" },
     { id: "MACD", n: "MACD study", g: "Studies", osc: "macd" },
+    { id: "STOCH", n: "Stochastic", g: "Studies", osc: "stoch" },
+    { id: "ADX", n: "DMI / ADX", g: "Studies", osc: "adx" },
+    { id: "ATR", n: "ATR 14", g: "Studies", osc: "atr" },
     { id: "BOLL", n: "Bollinger bands", g: "Studies", ind: "bb" },
     { id: "ICHI", n: "Ichimoku cloud", g: "Studies", ind: "ich" },
     { id: "VWAP", n: "VWAP", g: "Studies", ind: "vwap" },
+    { id: "SAR", n: "Parabolic SAR", g: "Studies", ind: "sar" },
+    { id: "PIV", n: "Classic pivots", g: "Studies", ind: "piv" },
+    { id: "FIB", n: "Auto Fibonacci", g: "Studies", ind: "fibauto" },
+    { id: "GAP", n: "Unfilled gaps", g: "Studies", ind: "gaps" },
+    { id: "HILO", n: "52-week high / low", g: "Studies", ind: "hilo52" },
+    { id: "EMA", n: "EMA 21/50/200 pack", g: "Studies" },
     { id: "SMA", n: "SMA 20/50/200 pack", g: "Studies" },
     { id: "NEWS", n: "News markers", g: "Studies", ind: "news" },
     { id: "GSEAS", n: "Seasonality", g: "Studies", osc: "gseas" },
     { id: "AVG", n: "Historical average ±σ", g: "Studies", ind: "avgdev" },
     { id: "VOL", n: "Volume pane", g: "Studies" },
+    { id: "SESS", n: "RTH session shading", g: "Studies", ind: "sess" },
+    { id: "LIN", n: "Linear scale", g: "Chart", scale: 0 },
+    { id: "LOG", n: "Log scale", g: "Chart", scale: 1 },
+    { id: "PCT", n: "Percent scale", g: "Chart", scale: 2 },
+    { id: "IDX", n: "Index 100 scale", g: "Chart", scale: 3 },
+    { id: "MULT", n: "Multi-pane layout", g: "Chart" },
     { id: "HELP", n: "Function list", g: "System", ws: "go" }
   ];
   var BY = {};
@@ -73,17 +121,13 @@
       else if (/^[A-Z][A-Z0-9.\-]{0,15}$/.test(t) && t !== fn) syms.push(t);
     });
     if (!fn && tok.length === 1 && BY[tok[0]]) fn = tok[0];
-    if (!fn && tok.length === 1) return { fn: "GP", sym: tok[0] };
+    /* a lone ticker is NOT GP — leave it to symbol search */
+    if (!fn) return { fn: null, sym: tok[0] || null, extra: tok };
     return { fn: fn, sym: syms[0] || null, extra: tok };
   }
 
   function activeSym() {
     return String(window.jhActive || window.active || "SPY").split(":").pop();
-  }
-
-  function loadSym(sym) {
-    if (!sym) return;
-    if (window.jhGoSymbol) window.jhGoSymbol(sym, "chart");
   }
 
   function ctxWin() {
@@ -106,15 +150,8 @@
     if (ctx.jhSaveLay) ctx.jhSaveLay();
   }
   function setKind(k) {
-    try {
-      var btn = document.getElementById("btn-kind");
-      if (window.jhSetKind) window.jhSetKind(k);
-    } catch (e) {}
-    var kinds = { candles: 1, bars: 1, line: 1, hollow: 1, area: 1, heikin: 1 };
-    if (!kinds[k]) return;
-    var ev = document.createEvent("Event");
-    /* engine kind is closed over — click the menu path via a custom hook */
-    window.__jhKind = k;
+    var ctx = ctxWin();
+    if (ctx.jhSetKind) { ctx.jhSetKind(k); return; }
     var drop = document.getElementById("btn-kind");
     if (drop) {
       drop.click();
@@ -125,6 +162,8 @@
     }
   }
   function setTf(tf) {
+    var ctx = ctxWin();
+    if (ctx.jhSetTf) { ctx.jhSetTf(tf); return; }
     var b = document.querySelector("#tfbar [data-tf='" + tf + "']");
     if (b) b.click();
     else {
@@ -138,18 +177,12 @@
       }
     }
   }
+  function setScale(m) {
+    var ctx = ctxWin();
+    if (ctx.jhSetScale) ctx.jhSetScale(m);
+  }
 
   function openPage(href, title) {
-    if (window.top && window.top !== window && window.top.jhOpenWorkspace) {
-      /* still an iframe — navigate top */
-    }
-    if (window.jhOpenWorkspace && href.indexOf("/bb-go") < 0) {
-      /* dedicated pages via overlay */
-    }
-    var host = window.top || window;
-    if (host !== window && host.location) {
-      /* keep chart; overlay from parent if possible */
-    }
     if (window.jhOpenWorkspace) {
       var ov = document.getElementById("ws-overlay");
       if (ov) {
@@ -188,6 +221,15 @@
   }
   function n(x) { x = Number(x); return isFinite(x) ? x.toFixed(2) : "—"; }
 
+  function gpDefault(ctx) {
+    var list = ctx.INDS || [];
+    var any = false;
+    for (var i = 0; i < list.length; i++) if (list[i].on) { any = true; break; }
+    if (any) return;
+    ["sma50", "sma200", "earn"].forEach(function (id) { toggleInd(id, true); });
+    if (ctx.jhSetVol) ctx.jhSetVol(true);
+  }
+
   function runFn(fn, sym, opts) {
     opts = opts || {};
     var spec = BY[fn];
@@ -211,8 +253,13 @@
     if (spec.ind) { (ctx.toggleInd || toggleInd)(spec.ind, true); return { ok: true, fn: fn }; }
     if (spec.osc) { toggleOsc(spec.osc); return { ok: true, fn: fn }; }
     if (spec.kind) { setKind(spec.kind); return { ok: true, fn: fn }; }
-    if (spec.tf) { setTf(spec.tf); return { ok: true, fn: fn }; }
-    if (fn === "GP") return { ok: true, fn: fn, sym: sym || activeSym() };
+    if (spec.tf) {
+      setTf(spec.tf);
+      if (fn === "GIP") toggleInd("sess", true);
+      return { ok: true, fn: fn };
+    }
+    if (spec.scale != null) { setScale(spec.scale); return { ok: true, fn: fn }; }
+    if (fn === "GP") { gpDefault(ctx); return { ok: true, fn: fn, sym: sym || activeSym() }; }
     if (fn === "HP") { if (!renderHp() && opts.page) location.href = "/chart.html?s=" + encodeURIComponent(sym || activeSym()) + "&fn=HP"; return { ok: true, fn: fn }; }
     if (fn === "RV") {
       toggleOsc("rsline");
@@ -221,7 +268,29 @@
       return { ok: true, fn: fn };
     }
     if (fn === "CMP" && sym && ctx.jhAddCompare) { ctx.jhAddCompare(sym); return { ok: true, fn: fn, sym: sym }; }
-    if (fn === "QR") {
+    if (fn === "MAGS") {
+      setScale(2);
+      MAG7.forEach(function (s) {
+        if (s === activeSym()) return;
+        if (ctx.jhAddCompare) ctx.jhAddCompare(s);
+      });
+      return { ok: true, fn: fn };
+    }
+    if (fn === "GPEX") {
+      gpDefault(ctx);
+      ["earn", "news", "dvd", "split"].forEach(function (id) { toggleInd(id, true); });
+      return { ok: true, fn: fn };
+    }
+    if (fn === "GPV") {
+      gpDefault(ctx);
+      if (ctx.jhSetVol) ctx.jhSetVol(true);
+      return { ok: true, fn: fn };
+    }
+    if (fn === "CACS") {
+      ["dvd", "split", "earn"].forEach(function (id) { toggleInd(id, true); });
+      return { ok: true, fn: fn };
+    }
+    if (fn === "QR" || fn === "ALLQ" || fn === "TSM") {
       var q = document.getElementById("qqr");
       if (q) q.click();
       return { ok: true, fn: fn };
@@ -240,7 +309,12 @@
       ["sma20", "sma50", "sma200"].forEach(function (id) { toggleInd(id, true); });
       return { ok: true, fn: fn };
     }
-    if (fn === "VOL" && window.jhSetVol) { window.jhSetVol(true); return { ok: true, fn: fn }; }
+    if (fn === "EMA") {
+      ["ema21", "ema50", "ema200"].forEach(function (id) { toggleInd(id, true); });
+      return { ok: true, fn: fn };
+    }
+    if (fn === "VOL" && ctx.jhSetVol) { ctx.jhSetVol(true); return { ok: true, fn: fn }; }
+    if (fn === "MULT" && ctx.jhSetLayout) { ctx.jhSetLayout(2); return { ok: true, fn: fn }; }
     if (fn === "HELP" && ctx.jhOpenWorkspace) { ctx.jhOpenWorkspace("go"); return { ok: true, fn: fn }; }
     if (opts.page && spec.href) { location.href = spec.href; return { ok: true, fn: fn }; }
     if (opts.page) {
@@ -251,9 +325,12 @@
   }
 
   function tryRun(raw, opts) {
+    opts = opts || {};
     var p = parse(raw);
-    if (!p || !p.fn) return { ok: false, err: "Type a function (DES FA GP MOST ECO…) or TICKER FN" };
-    return runFn(p.fn, p.sym, opts || {});
+    if (!p) return { ok: false, err: "Type a function (DES FA GP MOST ECO…) or TICKER FN" };
+    if (!p.fn && p.sym && opts.page) p.fn = "GP";
+    if (!p.fn) return { ok: false, err: "Type a function (DES FA GP MOST ECO…) or TICKER FN" };
+    return runFn(p.fn, p.sym, opts);
   }
 
   window.jhBbGo = {
@@ -267,15 +344,13 @@
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Enter") return;
       var el = e.target;
-      if (!el || (el.id !== "ssin" && el.id !== "cmdin" && el.id !== "symin" && el.id !== "q")) return;
+      if (!el || (el.id !== "ssin" && el.id !== "cmdin" && el.id !== "symin" && el.id !== "q" && el.id !== "goyell")) return;
       var raw = String(el.value || "");
       var p = parse(raw);
       if (!p || !p.fn) return;
-      /* only steal the event when a Bloomberg function is present */
       e.preventDefault();
       e.stopPropagation();
       tryRun(raw);
-      if (el.id === "ssin" && window.jhGoSymbol) { /* already loaded inside runFn */ }
     }, true);
   }
 
