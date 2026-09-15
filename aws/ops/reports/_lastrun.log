@@ -1,14 +1,26 @@
-executing-against: 07c55786d93fcf44ae05fb150eaea97c7c0176bc
-invoke justhodl-etf-global-desk
-lambda {"status": "LIVE", "n": 87, "n_ok": {"flows": 87, "profiles": 87, "constituents": 87}, "elapsed_s": 6.0, "version": "1.4.0", "derived": {"verdicts": {"thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "leverage_flags": 1}, "n_by_ticker": 126, "n_crowding": 25, "n_leverage": 1}}
-derived version 1.4.0 status LIVE
-verdicts {'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'leverage_flags': 1}
-n_by_ticker 126
-n_crowding 25
-n_confirmed 12
-n_disagreed 3
-n_leverage 1
-bond_leaders 30
-SPY hhi 220.3 px_flow DISTRIBUTION levered False
-IBIT flow_5d 67176931.84 sleeve crypto:btc_spot
-elapsed 9.0
+executing-against: e00e860ffa0dea4aee14494d22ddb7d119c786b4
+wait for justhodl-etf-global-desk Active + 1.5.1
+lambda Successful Active timeout 300
+invoke justhodl-etf-global-desk try 0
+lambda body {"status": "LIVE", "n": 111, "n_ok": {"flows": 111, "profiles": 111, "constituents": 111}, "elapsed_s": 6.8, "version": "1.5.1", "derived": {"verdicts": {"risk": "RISK_OFF", "fear_greed": "FEAR", "rotation": "BONDS_OVER_STOCKS", "size": "SIZE_ON", "wrapper": "BALANCED", "levered": "SPEC_FEAR", "thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "leverage_flags": 25}, "n_by_ticker": 150, "n_crowding": 25, "n_leverage": 25}}
+derived version 1.5.1 status LIVE
+verdicts {'risk': 'RISK_OFF', 'fear_greed': 'FEAR', 'rotation': 'BONDS_OVER_STOCKS', 'size': 'SIZE_ON', 'wrapper': 'BALANCED', 'levered': 'SPEC_FEAR', 'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'leverage_flags': 25}
+risk RISK_OFF FEAR BONDS_OVER_STOCKS SIZE_ON
+equity_5d -8506216889.32 gov_5d 4222985845.38 credit_5d -3924155669.75
+mega -10275319378.12 large 172479336.05 small 1596623152.75
+duration 1898628687.8 t_bills 2292324595.48
+hy -1461733193.7 fallen -24094188.9
+spx plumbing True -8468368305.12
+wrapper BALANCED in 19091422345.21 out 14010513518.06
+heavy [('VOO', 13826662934.4), ('IVV', -6053409855.9), ('SPY', -3448075813.0), ('IWM', 1826812526.2), ('QQQ', -1239892150.0)]
+levered SPEC_FEAR bull -65206120.0 bear 478305149.5
+TQQQ flow_5d 168866215.0 levered True in_by True
+SQQQ flow_5d 29830845.0 levered True in_by True
+UPRO flow_5d 7407065.0 levered True in_by True
+SOXL flow_5d -290237400.0 levered True in_by True
+TNA flow_5d 35185250.0 levered True in_by True
+SH flow_5d 54121442.5 levered True in_by True
+UVXY flow_5d -861300.0 levered True in_by True
+desk version 1.5.1 n 111 n_ok {'flows': 111, 'profiles': 111, 'constituents': 111}
+elapsed 9.9
+OK 1.5.1 RISK_OFF FEAR BALANCED SPEC_FEAR
