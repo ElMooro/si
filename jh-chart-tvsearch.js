@@ -232,7 +232,7 @@
       if (!SYMBOLOGY) { var r = await fetch("/data/symbology/master.json", { cache: "no-store" }); SYMBOLOGY = r.ok ? await r.json() : {}; }
     } catch (e) { SYMBOLOGY = {}; }
     var recs = SYMBOLOGY.by_ticker || SYMBOLOGY.tickers || SYMBOLOGY;
-    return (recs && (recs[t] || recs[t.replace(".", "-")])) || null;
+    return lookupRow(recs, t);
   }
   function renderIdent(d) {
     var r = d && d.ident;
@@ -256,6 +256,7 @@
   var CQ_PROXIES = { BTC: 1, ETH: 1, IBIT: 1, FBTC: 1, BITB: 1, ETHA: 1, MSTR: 1, COIN: 1, MARA: 1, RIOT: 1, "BTC-USD": 1, "ETH-USD": 1, BTCUSD: 1, ETHUSD: 1 };
   var CQ_ONCHAIN = null, CQ_SERIES = null;
   async function cqPack(t) {
+    t = jhFundTicker(t);
     if (!CQ_PROXIES[t]) return { proxy: false };
     try {
       if (!CQ_ONCHAIN) { var r = await fetch("/data/cryptoquant-onchain.json", { cache: "no-store" }); CQ_ONCHAIN = r.ok ? await r.json() : {}; }
@@ -312,10 +313,14 @@
         ["Next earnings", esc(r.next_earnings || "—")]
       ]));
   }
+  function fmpMissNote(f) {
+    if (f && f.http !== 200) return "<div class=note>FMP harvest HTTP " + esc(String(f.http)) + " — not a missing ticker (the harvest file could not be read)</div>";
+    return "<div class=note>Yahoo fallback — no FMP row for this symbol yet (harvest read OK)</div>";
+  }
   function renderVal(d) {
     if (d && d.fmp && d.fmp.row) return renderValFmp(d.fmp);
     var x = pick(d);
-    return "<div class=note>Yahoo fallback — no FMP row for this symbol yet</div><div class=kpi>" + [
+    return fmpMissNote(d && d.fmp) + "<div class=kpi>" + [
       kpi("P/E", fmt(num(x.sd.trailingPE) || num(x.ks.trailingPE))),
       kpi("Fwd P/E", fmt(num(x.sd.forwardPE) || num(x.ks.forwardPE))),
       kpi("PEG", fmt(num(x.ks.pegRatio))),
@@ -381,10 +386,11 @@
   function renderFin(d) {
     if (d && d.fmp && d.fmp.row) return renderFinFmp(d.fmp);
     var j = d || {};
+    var miss = fmpMissNote(d && d.fmp);
     var inc = ((j.incomeStatementHistory || {}).incomeStatementHistory) || j.income || [];
     var bal = ((j.balanceSheetHistory || {}).balanceSheetStatements) || j.balance || [];
     var cf = ((j.cashflowStatementHistory || {}).cashflowStatements) || j.cash || [];
-    var html = "";
+    var html = miss;
     html += blk("Income statement", stmtRows(inc, [
       ["Revenue", "totalRevenue"],
       ["Gross profit", "grossProfit"],
@@ -768,13 +774,35 @@
     });
   }
 
-  var FMP_HARVEST = null;
+  // One normaliser for every fundamentals lookup: "NASDAQ:AAPL" / "US__AAPL" / "US_AAPL" -> "AAPL" (harvest + master + CQ keys)
+  function jhFundTicker(s) {
+    s = String(s || "").trim().toUpperCase();
+    s = s.split(":").pop();
+    s = s.replace(/^US__/, "").replace(/^US_/, "");
+    return s;
+  }
+  window.jhFundTicker = jhFundTicker;
+  function lookupRow(tickers, t) {
+    if (!tickers) return null;
+    var k = jhFundTicker(t);
+    var cands = [k, k.replace(".", "-"), k.replace("-", "."), String(t || "")];
+    for (var i = 0; i < cands.length; i++) { if (cands[i] && tickers[cands[i]]) return tickers[cands[i]]; }
+    return null;            // never invent a row
+  }
+  var FMP_HARVEST = null, FMP_HTTP = null;
   async function fmpRow(t) {
-    try {
-      if (!FMP_HARVEST) { var r = await fetch("/data/fmp-ratios.json", { cache: "no-store" }); FMP_HARVEST = r.ok ? await r.json() : { tickers: {} }; }
-    } catch (e) { FMP_HARVEST = { tickers: {} }; }
-    var row = (FMP_HARVEST.tickers || {})[t] || (FMP_HARVEST.tickers || {})[t.replace(".", "-")] || null;
-    return row && !row.error ? { row: row, as_of: FMP_HARVEST.generated_at, key_status: (FMP_HARVEST.key_status || {}).status } : null;
+    // a miss is never sticky: re-fetch whenever the cache is empty or the last fetch was not 200
+    if (!FMP_HARVEST || FMP_HTTP !== 200 || !FMP_HARVEST.tickers || !Object.keys(FMP_HARVEST.tickers).length) {
+      try {
+        var r = await fetch("/data/fmp-ratios.json", { cache: "no-store" });
+        FMP_HTTP = r.status;
+        FMP_HARVEST = r.ok ? await r.json() : null;
+      } catch (e) { FMP_HTTP = "network"; FMP_HARVEST = null; }
+    }
+    if (!FMP_HARVEST) return { http: FMP_HTTP, row: null };
+    var row = lookupRow(FMP_HARVEST.tickers, t);
+    return row && !row.error ? { http: 200, row: row, as_of: FMP_HARVEST.generated_at, key_status: (FMP_HARVEST.key_status || {}).status }
+                             : { http: 200, row: null, as_of: FMP_HARVEST.generated_at };
   }
   async function loadPack(sym) {
     var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
@@ -792,7 +820,7 @@
       pack.chain = await cqPack(t);
       if (pack.ident) pack.src.push("OpenFIGI symbology master");
       if (pack.chain && pack.chain.proxy) pack.src.push("CryptoQuant EOD on-chain");
-      if (pack.fmp) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
+      if (pack.fmp && pack.fmp.row) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
