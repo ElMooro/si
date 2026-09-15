@@ -1029,15 +1029,28 @@
     ].join("") + "</div>";
     if (conf.why) html += "<div class=note>" + esc(conf.why) + "</div>";
     var rvol = tape.rvol;
+    var vs = p.vs_spy || {};
     html += blk("1 · Tape · Polygon / Massive " + cadence("DELAYED · this timeframe"), table([
       ["This bar volume", tape.last != null ? fmtBig(tape.last) : "—"],
       ["RVOL vs 20-bar median", rvol != null ? rvol.toFixed(2) + "x" : "—"],
+      ["SPY daily RVOL", vs.spy_rvol != null ? vs.spy_rvol.toFixed(2) + "x" : "—"],
+      ["Name RVOL / SPY RVOL", vs.rel != null ? vs.rel.toFixed(2) + "x · " + esc(vs.read || "") : "—"],
       ["Dollar volume this bar", tape.dollar != null ? fmtBig(tape.dollar) : "—"],
+      ["Close vs VWAP", tape.vs_vwap_pct != null ? tape.vs_vwap_pct.toFixed(2) + "% · VWAP " + fmt(tape.vwap) : "—"],
+      ["VWAP source", esc(tape.vwap_src || (tape.vwap != null ? "bar vw if Polygon daily" : "no vw on these bars"))],
       ["Up-bar share (20)", tape.up_share != null ? (tape.up_share * 100).toFixed(0) + "% of volume on up bars" : "—"],
       ["Float turnover this bar", tape.float_turn_pct != null ? tape.float_turn_pct.toFixed(3) + "%" : "—"],
       ["Effort vs result", esc(tape.absorb || "—")],
       ["Polygon weekly consolidated (ATS week)", p.tape_week != null ? fmtBig(p.tape_week) : "—"],
-      ["Note", tape.label || "Open Daily for session ADV. Intraday bars are not ADV."]
+      ["Note", "Daily RVOL vs SPY uses SPY daily bars, not this timeframe. " + (tape.label || "")]
+    ]));
+    var sess = p.session || {};
+    html += blk("1b · Session split · NY clock " + cadence(sess.status === "OK" ? "THIS SESSION" : "NEEDS MINUTE BARS"), table([
+      ["Session day", esc(sess.day || "—")],
+      ["Pre-market volume", sess.pre != null ? fmtBig(sess.pre) + " (" + (num(sess.pre_pct) != null ? sess.pre_pct.toFixed(1) + "%" : "") + ")" : "—"],
+      ["RTH volume", sess.rth != null ? fmtBig(sess.rth) + " (" + (num(sess.rth_pct) != null ? sess.rth_pct.toFixed(1) + "%" : "") + ")" : "—"],
+      ["Post-close volume", sess.post != null ? fmtBig(sess.post) + " (" + (num(sess.post_pct) != null ? sess.post_pct.toFixed(1) + "%" : "") + ")" : "—"],
+      ["Read", esc(sess.note || "Polygon Stocks does not publish a named pre/post feed; this is the minute tape bucketed on the NY clock.")]
     ]));
     html += blk("2 · Dark pool · FINRA ATS " + cadence("WEEKLY · lagged " + (meta.ats_age_days != null ? meta.ats_age_days + "d" : "")), table([
       ["Week of", esc(meta.ats_week || "—")],
@@ -1125,6 +1138,49 @@
       ["Flow type", esc(look.flow_type || "—")],
       ["Confirmed", look.confirmed ? "yes" : (look.confirmed === false ? "no" : "—")],
       ["Read", "Fund creations × holdings weight. Not a print in AAPL. Same number as the Pressure tab."]
+    ]));
+    var si = p.si || {};
+    html += blk("11 · Short interest " + cadence("SETTLEMENT · " + (p.si_asof || "lagged")), table([
+      ["Short interest (shares)", fmtBig(si.short_interest)],
+      ["Short % of float", num(si.short_float_pct) != null ? num(si.short_float_pct).toFixed(2) + "%" : "—"],
+      ["Days to cover", fmt(num(si.days_to_cover), 2)],
+      ["SI change %", num(si.si_change_pct) != null ? num(si.si_change_pct).toFixed(1) + "%" : "—"],
+      ["Daily short volume % (TRF)", num(si.daily_short_volume_pct) != null ? num(si.daily_short_volume_pct).toFixed(1) + "%" : "—"],
+      ["Signal", esc(si.signal || "—")],
+      ["SI source", esc(si.short_interest_source || "—")],
+      ["Float source", esc(si.short_float_source || "—")],
+      ["Read", "SI is a position, not today's volume. Daily short-volume % is TRF (often retail). Do not mix them."]
+    ]));
+    var cry = p.crypto || {};
+    if (cry.show) {
+      var mine = cry.etf_mine || {};
+      html += blk("12 · Crypto on-chain + spot ETF " + cadence("EOD · " + (cry.netflow_asof || "")), table([
+        ["Asset", esc(cry.side)],
+        ["Exchange netflow (BTC/ETH)", cry.netflow != null ? fmt(num(cry.netflow), 1) + " · z " + fmt(num(cry.netflow_z), 2) : "—"],
+        ["Exchange inflow / outflow", (cry.inflow != null ? fmt(num(cry.inflow), 1) : "—") + " / " + (cry.outflow != null ? fmt(num(cry.outflow), 1) : "—")],
+        ["Whale ratio", fmt(num(cry.whale), 3)],
+        ["Spot ETF flow today $", fmtBig(cry.etf_today)],
+        ["Spot ETF 5d / 30d $", fmtBig(cry.etf_5d) + " / " + fmtBig(cry.etf_30d)],
+        ["ETF regime", esc(cry.etf_regime || "—")],
+        ["This ticker's ETF print", mine.etf ? (esc(mine.etf) + " " + fmtBig(mine.flow_usd)) : "aggregate only"],
+        ["ETF as-of", esc(cry.etf_date || "")],
+        ["Read", "Netflow onto exchanges = potential sell-side supply. ETF creations are fund flow, not on-chain. " + esc(cry.interp || "")]
+      ]));
+    } else {
+      html += blk("12 · Crypto on-chain + spot ETF " + cadence("N/A"), "<div class=note>Shown for BTC/ETH and the spot wrappers (IBIT, FBTC, BITB, ARKB, ETHA, …). AAPL has no CryptoQuant series.</div>");
+    }
+    var cot = p.cot || {};
+    var cr = cot.row || {};
+    html += blk("13 · CFTC COT " + cadence("WEEKLY · futures"), table([
+      ["Contract", esc(cot.key || "—")],
+      ["Mapped from", cot.mapped ? esc(p.ticker + " → " + cot.key) : esc(p.ticker || "")],
+      ["Smart-money side", esc(cr.smart_money_side || "—")],
+      ["Direction", esc(cr.direction || "—")],
+      ["Net speculator", fmtBig(cr.net_speculator)],
+      ["Net commercial", fmtBig(cr.net_commercial)],
+      ["Spec WoW", fmtBig(cr.net_spec_wow)],
+      ["As of", esc(cr.as_of || "")],
+      ["Read", esc(cot.note || "Positioning, not volume. ES overlay on a single-stock chart is market context only.")]
     ]));
     if (!ats.state && !inst.ticker && !daily.symbol) {
       html += "<div class=empty>No ATS / 13F / TRF row for this symbol. Mega-caps are in the 930-name ATS book and 13F compact; many micro names will not score.</div>";
@@ -1562,6 +1618,13 @@
         pack.instvol = r;
         var sh = r && r.shares && r.shares.shares_outstanding;
         pack.tapeVol = window.JHInstVol.tapeFromBars(pack.bars || window.lastBars || [], sh);
+        if (!window.JHInstVol.enrich) return r;
+        return window.JHInstVol.enrich(r, { bars: pack.bars || window.lastBars || [], snapshot: pack.snapshot }).then(function (en) {
+          pack.instvol = en;
+          pack.tapeVol = en.tape || pack.tapeVol;
+          return en;
+        });
+      }).then(function (r) {
         if (r && pack.src.indexOf("FINRA ATS + Polygon week") < 0) pack.src.push("FINRA ATS weekly + Polygon denominator + 13F confirmation");
       }).catch(function () {}));
     }
