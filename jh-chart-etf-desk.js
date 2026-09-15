@@ -52,6 +52,18 @@
       }).join(" · ");
       if (sec) html += "<span>" + sec + "</span>";
       if (r.top && r.top[0]) html += "<span>Top " + esc(r.top[0].t) + " " + F.wgt(r.top[0].w) + "</span>";
+      if (r.holdings_n) html += "<span>Holdings <b>" + r.holdings_n + "</b></span>";
+      var rk = pack.rank && pack.rank.windows;
+      if (rk) {
+        ["d", "w", "m", "q"].forEach(function (k) {
+          var w = rk[k] || {};
+          if (w.vs == null && w.rank == null) return;
+          var lab = k === "q" ? "3M" : (w.label || k.toUpperCase());
+          html += "<span>vs SPX " + lab + " <b class='" + (w.vs >= 0 ? "up" : "dn") + "'>" +
+            (w.vs == null ? "—" : ((w.vs >= 0 ? "+" : "") + Number(w.vs).toFixed(2) + "%")) + "</b>" +
+            (w.rank != null ? (" #" + w.rank + "/" + w.n) : "") + "</span>";
+        });
+      }
       var der = pack.derived || {};
       var risk = pack.risk || {};
       if (risk.risk) html += "<span class='pill " + (String(risk.risk).indexOf("ON") >= 0 ? "in" : String(risk.risk).indexOf("OFF") >= 0 ? "out" : "") + "'>" + esc(risk.risk.replace(/_/g, " ")) + "</span>";
@@ -141,7 +153,7 @@
     var F = fuse();
     if (!F || !sym) return Promise.resolve(null);
     var t = F.bare(sym);
-    return Promise.all([F.of(t), F.live(t), F.reverse(t), F.ofDerived ? F.ofDerived(t) : Promise.resolve(null), F.derived ? F.derived() : Promise.resolve(null)]).then(function (pack) {
+    return Promise.all([F.of(t), F.live(t), F.reverse(t), F.ofDerived ? F.ofDerived(t) : Promise.resolve(null), F.derived ? F.derived() : Promise.resolve(null), F.census ? F.census() : Promise.resolve(null)]).then(function (pack) {
       var row = F.mergeLive(pack[0], pack[1]);
       var holders = pack[2] || [];
       var kind = F.isFund(row, pack[1]) ? "etf" : (holders.length ? "stock" : "none");
@@ -154,6 +166,7 @@
         demand: F.impliedDemand(holders),
         derived: pack[3] || null,
         risk: (pack[4] && pack[4].verdicts) || {},
+        rank: (kind === "etf" && F.rankVs && pack[5]) ? F.rankVs(t, pack[5]) : null,
         live: pack[1],
         at: Date.now()
       };

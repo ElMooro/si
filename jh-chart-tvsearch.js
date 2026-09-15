@@ -186,7 +186,7 @@
       ["Shares out", fmtBig(num(x.ks.sharesOutstanding))]
     ]);
     var etfBit = "";
-    if (window.JHEtfFuse && window.JHEtfFuse.isFund(pack.etfRow, pack.polyEtf)) etfBit = renderPolyEtf(pack);
+    if (window.JHEtfFuse && window.JHEtfFuse.isFund(pack.etfRow, pack.polyEtf)) etfBit = renderPolyEtf(pack, { compact: true });
     else if (pack.etfHolders && pack.etfHolders.length) etfBit = renderHold(d, pack);
     return "<div class=kpi>" + kpis + "</div>" + blk("Total return", retHtml) + blk("Profile", profile) + etfBit;
   }
@@ -588,17 +588,29 @@
           "</td><td>" + fmt(num(g.delta), 3) + "</td><td>" + fmt(num(day.close) || num(r.break_even_price)) + "</td></tr>";
       }).join("") + "</tbody></table>");
   }
-  function renderPolyEtf(pack) {
+  function renderPolyEtf(pack, opts) {
+    opts = opts || {};
+    var compact = !!opts.compact;
     var F = window.JHEtfFuse;
     var j = pack.polyEtf || {};
-    var row = (pack.etfRow) || {};
+    var row = pack.etfRow || {};
     var flows = (F ? F.polyRows(j.flows) : (j.flows && j.flows.results) || []) || [];
     var prof = ((F ? F.polyRows(j.profile) : (j.profile && j.profile.results) || [])[0]) || {};
-    var holds = (F ? F.polyRows(j.holdings) : (j.holdings && j.holdings.results) || []) || [];
-    if (row.top && row.top.length && !holds.length) {
-      holds = row.top.map(function (h) { return { constituent_ticker: h.t, constituent_name: h.n, weight: h.w, market_value: h.mv }; });
+    var holds = [];
+    var book = pack.etfConstituents || {};
+    if (book.rows && book.rows.length) {
+      holds = book.rows;
+    } else {
+      holds = (F ? F.polyRows(j.holdings) : (j.holdings && j.holdings.results) || []) || [];
+      if (row.top && row.top.length && !holds.length) {
+        holds = row.top.map(function (h) { return { t: h.t, n: h.n, w: h.w, mv: h.mv, rank: h.rank, sh: h.sh }; });
+      } else {
+        holds = holds.map(function (h) {
+          return { t: h.constituent_ticker || h.t, n: h.constituent_name || h.n, w: h.weight != null ? h.weight : h.w, mv: h.market_value || h.mv, rank: h.constituent_rank || h.rank, sh: h.shares || h.sh };
+        });
+      }
     }
-    if (!flows.length && !Object.keys(prof).length && !row.aum && !(pack.etfHolders && pack.etfHolders.length)) {
+    if (!flows.length && !Object.keys(prof).length && !row.aum && !(pack.etfHolders && pack.etfHolders.length) && !holds.length) {
       return "<div class=empty>ETF Global has no fund print for this ticker — if it is a stock, open Holders for the look-through of funds that own it.</div>";
     }
     var latest = flows[0] || {};
@@ -607,22 +619,39 @@
     var f1 = num(row.flow_1d) != null ? num(row.flow_1d) : num(latest.fund_flow);
     var f5 = num(row.flow_5d);
     var f21 = num(row.flow_21d);
-    if (f5 == null && flows.length) {
-      f5 = 0; flows.slice(0, 5).forEach(function (r) { f5 += num(r.fund_flow) || 0; });
-    }
-    if (f21 == null && flows.length) {
-      f21 = 0; flows.slice(0, 21).forEach(function (r) { f21 += num(r.fund_flow) || 0; });
-    }
+    var f63 = num(row.flow_63d);
+    if (f5 == null && flows.length) { f5 = 0; flows.slice(0, 5).forEach(function (r) { f5 += num(r.fund_flow) || 0; }); }
+    if (f21 == null && flows.length) { f21 = 0; flows.slice(0, 21).forEach(function (r) { f21 += num(r.fund_flow) || 0; }); }
     var erTxt = F ? F.fmtEr(er) : (er == null ? "—" : er.toFixed(3) + "%");
+    var nHold = book.n || holds.length || row.holdings_n;
+    var holdNote = row.holdings_complete === false
+      ? "PARTIAL " + (nHold || "—") + " names (HHI withheld)"
+      : ((nHold || "—") + " names");
+    var rk = pack.etfRank || {};
+    var wins = rk.windows || {};
+    function winKpi(key, fallbackLabel) {
+      var w = wins[key] || {};
+      var vs = num(w.vs);
+      var lab = w.label || fallbackLabel;
+      var extra = w.rank != null ? ("#" + w.rank + "/" + w.n) : "";
+      return kpi("vs SPX " + lab, vs == null ? "—" : ((vs >= 0 ? "+" : "") + vs.toFixed(2) + "%"), extra);
+    }
     var html = "<div class=kpi>" + [
       kpi("AUM", fmtBig(aum)),
       kpi("ER", erTxt),
-      kpi("Flow 1D", fmtBig(f1)),
-      kpi("Flow 5D", fmtBig(f5)),
-      kpi("Flow 21D", fmtBig(f21)),
-      kpi("NAV", fmt(num(row.nav) || num(latest.nav), 3))
+      kpi("Flow 1D", "<span class='" + cls(f1) + "'>" + fmtBig(f1) + "</span>", esc(row.flow_label || "")),
+      kpi("Flow 5D", "<span class='" + cls(f5) + "'>" + fmtBig(f5) + "</span>"),
+      kpi("Flow 21D", "<span class='" + cls(f21) + "'>" + fmtBig(f21) + "</span>"),
+      kpi("Flow 63D", "<span class='" + cls(f63) + "'>" + fmtBig(f63) + "</span>"),
+      kpi("Holdings", fmt(nHold), holdNote),
+      kpi("HHI", row.hhi != null ? fmt(row.hhi, 0) : "—"),
+      winKpi("d", "1D"),
+      winKpi("w", "1W"),
+      winKpi("m", "1M"),
+      winKpi("q", "3M")
     ].join("") + "</div>";
-    html += blk("ETF Global profile (paid)", table([
+
+    html += blk("ETF Global profile (paid · creations, not volume)", table([
       ["Name", esc(row.name || prof.description || prof.fund_name || "—")],
       ["Issuer", esc(row.issuer || prof.issuer || prof.advisor || "—")],
       ["Asset class", esc(row.asset_class || prof.asset_class || "—")],
@@ -630,11 +659,31 @@
       ["Benchmark", esc(row.benchmark || prof.primary_benchmark || "—")],
       ["Inception", esc(row.inception || prof.inception_date || "—")],
       ["Shares out", fmtBig(num(row.shares) || num(latest.shares_outstanding))],
-      ["Holdings", fmt(row.holdings_n)],
-      ["HHI", row.hhi != null ? fmt(row.hhi, 0) : "—"],
-      ["Leverage", esc(row.leverage || "—")],
-      ["As-of", esc(row.flow_asof || latest.processed_date || "—")]
+      ["NAV", fmt(num(row.nav) || num(latest.nav), 3)],
+      ["Leverage", esc(row.leverage_style || row.leverage || "—") + (row.levered_amount ? (" · ×" + row.levered_amount) : "")],
+      ["Flow as-of", esc(row.flow_asof || row.flow_effective || latest.processed_date || "—")],
+      ["Beta vs SPY", rk.beta != null ? Number(rk.beta).toFixed(2) : "—"]
     ]));
+
+    html += renderEtfVsSpy(pack);
+    html += renderEtfFlows(pack, flows, f1, f5, f21, f63);
+    if (!compact) {
+      html += renderEtfHoldingsAll(pack, holds, nHold);
+      html += renderEtfEmerging13f(pack, holds);
+    } else if (holds.length) {
+      html += blk("Holdings (top " + Math.min(12, holds.length) + " of " + (nHold || holds.length) + ")",
+        "<table class=wide><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th><th>Mkt val</th></tr></thead><tbody>" +
+        holds.slice(0, 12).map(function (h, i) {
+          var w = num(h.w);
+          var tk = h.t || "";
+          return "<tr><td>" + (h.rank || (i + 1)) + "</td><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" +
+            esc(tk) + "</a></td><td>" + esc(h.n || "") + "</td><td>" +
+            (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td><td>" +
+            fmtBig(h.mv) + "</td></tr>";
+        }).join("") + "</tbody></table>" +
+        "<div class=note>Full book, vs-SPX ranks, inflows/outflows and 13F emerging names are on the ETF tab.</div>");
+    }
+
     var sec = row.sector || [];
     if (sec.length) {
       html += blk("Sector exposure", "<table><thead><tr><th>Sector</th><th>Wgt</th></tr></thead><tbody>" +
@@ -644,30 +693,170 @@
         }).join("") + "</tbody></table>");
     }
     var geo = row.geo || [];
-    if (geo.length) {
+    if (geo.length && !compact) {
       html += blk("Geographic exposure", "<table><thead><tr><th>Region</th><th>Wgt</th></tr></thead><tbody>" +
         geo.map(function (x) {
           var w = num(x.w);
           return "<tr><td>" + esc(x.k) + "</td><td>" + (w == null ? "—" : ((w < 1 ? w * 100 : w).toFixed(1) + "%")) + "</td></tr>";
         }).join("") + "</tbody></table>");
     }
-    if (holds.length) {
-      html += blk("Top holdings (constituents)", "<table><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th></tr></thead><tbody>" +
-        holds.slice(0, 16).map(function (h, i) {
-          var w = num(h.weight != null ? h.weight : h.w);
-          var tk = h.constituent_ticker || h.t || "";
-          return "<tr><td>" + (h.constituent_rank || h.rank || (i + 1)) + "</td><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" +
-            esc(tk) + "</a></td><td>" + esc(h.constituent_name || h.n || "") + "</td><td>" +
-            (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td></tr>";
+    return html;
+  }
+
+  function renderEtfVsSpy(pack) {
+    var rk = pack.etfRank || {};
+    var wins = rk.windows || {};
+    var bars = pack.bars || [];
+    var order = ["d", "w", "m", "q"];
+    var tapeN = { d: 1, w: 5, m: 21, q: 63 };
+    var tapeLab = { d: "1D", w: "1W", m: "1M", q: "3M" };
+    function cell(v, kind) {
+      if (v == null || v === "") return "<td>—</td>";
+      var n = num(v);
+      if (n == null) return "<td>—</td>";
+      if (kind === "rank") return "<td>#" + n + "</td>";
+      var txt = (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+      return "<td class='" + cls(n) + "'>" + txt + "</td>";
+    }
+    var head = "<table class=wide><thead><tr><th>Window</th><th>ETF (census)</th><th>SPY</th><th>vs SPY</th><th>Rank vs ETFs</th><th>This tape</th></tr></thead><tbody>";
+    var body = order.map(function (k) {
+      var w = wins[k] || {};
+      var tape = retN(bars, tapeN[k]);
+      var rankTxt = (w.rank != null) ? ("#" + w.rank + " / " + w.n) : "—";
+      return "<tr><td>" + esc(w.label || tapeLab[k]) + (w.already_vs_spy ? " RS" : "") + "</td>" +
+        cell(w.etf) + cell(w.spy) + cell(w.vs) +
+        "<td>" + rankTxt + "</td>" + cell(tape) + "</tr>";
+    }).join("");
+    var stamp = rk.as_of ? String(rk.as_of).slice(0, 10) : "—";
+    var note = rk.in_universe
+      ? "Census EOD (" + stamp + ") · " + (rk.n_universe || 80) + " liquid wrappers. 1D/1W/1M are total return; 3M is rs_13w already vs SPY (SPY = 0). Rank is among names with a print that window. Tape = this chart's daily bars (not mixed into rank)."
+      : "This ticker is not in the 80-name census universe — vs SPY / rank need a census row. Tape return is still from this chart.";
+    return blk("Strength vs S&P 500 · rank vs other ETFs", head + body + "</tbody></table><div class=note>" + note + "</div>");
+  }
+
+  function renderEtfFlows(pack, flows, f1, f5, f21, f63) {
+    var row = pack.etfRow || {};
+    var w = row.flow_windows || {};
+    function wlab(k, usd) {
+      var x = w[k];
+      if (!x) return fmtBig(usd);
+      var s = fmtBig(x.usd != null ? x.usd : usd);
+      if (x.complete === false) s += " · " + (x.n_observed || 0) + "/" + (x.n_requested || "?") + " sess (partial)";
+      return s;
+    }
+    var html = blk("Inflows / outflows — Massive ETF Global creations", table([
+      ["Print", esc(row.flow_label || "—") + (row.flow_z != null ? (" · z " + Number(row.flow_z).toFixed(2)) : "")],
+      ["1D", "<span class='" + cls(f1) + "'>" + wlab("1d", f1) + "</span>"],
+      ["5D", "<span class='" + cls(f5) + "'>" + wlab("5d", f5) + "</span>"],
+      ["21D", "<span class='" + cls(f21) + "'>" + wlab("21d", f21) + "</span>"],
+      ["63D", "<span class='" + cls(f63) + "'>" + wlab("63d", f63) + "</span>"],
+      ["Effective", esc(row.flow_effective || row.flow_asof || "—")]
+    ]));
+    var hist = (row.flow_hist && row.flow_hist.length) ? row.flow_hist : (flows || []).map(function (r) {
+      return { d: r.processed_date || r.effective_date, f: num(r.fund_flow), n: num(r.nav) };
+    });
+    if (hist.length) {
+      html += blk("Creation / redemption tape", "<table class=wide><thead><tr><th>Date</th><th>Flow</th><th>NAV</th></tr></thead><tbody>" +
+        hist.slice(0, 18).map(function (r) {
+          var f = num(r.f != null ? r.f : r.fund_flow);
+          return "<tr><td>" + esc(r.d || r.processed_date || "") + "</td><td class='" + cls(f) + "'>" + fmtBig(f) +
+            "</td><td>" + fmt(num(r.n != null ? r.n : r.nav), 3) + "</td></tr>";
         }).join("") + "</tbody></table>");
     }
-    if (flows.length) {
-      html += blk("Creation / redemption tape", "<table><thead><tr><th>Date</th><th>Flow</th><th>NAV</th><th>Shares</th></tr></thead><tbody>" +
-        flows.slice(0, 16).map(function (r) {
-          var f = num(r.fund_flow);
-          return "<tr><td>" + esc(r.processed_date || "") + "</td><td class='" + cls(f) + "'>" + fmtBig(f) +
-            "</td><td>" + fmt(num(r.nav), 3) + "</td><td>" + fmtBig(num(r.shares_outstanding)) + "</td></tr>";
-        }).join("") + "</tbody></table>");
+    return html;
+  }
+
+  function instIdx() {
+    return (INST13F && INST13F.idx) || {};
+  }
+
+  function renderEtfHoldingsAll(pack, holds, nHold) {
+    if (!holds || !holds.length) {
+      return blk("Holdings", "<div class=empty>No constituents in the harvest yet (desk top + holdings-index + live fill all empty). Nothing invented.</div>");
+    }
+    var idx = instIdx();
+    var rows = holds.map(function (h, i) {
+      var tk = h.t || "";
+      var inst = idx[jhFundTicker(tk)] || {};
+      var neu = num(inst.n_funds_new_position) || 0;
+      var add = num(inst.n_funds_adding) || 0;
+      var badge = neu > 0 ? "<span class=pill-fresh>NEW 13F ×" + neu + "</span>" : (add > 0 ? "<span class=pill-new>ADD ×" + add + "</span>" : "");
+      var w = num(h.w);
+      var q = (tk + " " + (h.n || "")).toUpperCase();
+      return "<tr data-q=\"" + esc(q) + "\"><td>" + (h.rank || (i + 1)) + "</td><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" +
+        esc(tk) + "</a> " + badge + "</td><td>" + esc(h.n || "") + "</td><td>" +
+        (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td><td>" +
+        fmtBig(h.mv) + "</td><td>" + (neu || add ? (("+" + add + " new " + neu)) : "—") + "</td><td class='" +
+        cls(inst.net_flow_usd) + "'>" + fmtBig(inst.net_flow_usd) + "</td></tr>";
+    }).join("");
+    var complete = (pack.etfConstituents && pack.etfConstituents.complete === false)
+      ? "PARTIAL book"
+      : ("showing " + holds.length + (nHold && nHold > holds.length ? " of " + nHold : ""));
+    return blk("Holdings — all constituents",
+      "<div class=hold-tools><input id=etf-hold-q class=hold-q placeholder=\"Filter holdings… NVDA, semiconductor, 13F\" autocomplete=off><span id=etf-hold-n>" +
+      complete + "</span></div>" +
+      "<div class=hold-scroll><table class=wide id=etf-hold-tbl><thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Wgt</th><th>Mkt val</th><th>13F add/new</th><th>13F net $</th></tr></thead><tbody>" +
+      rows + "</tbody></table></div>" +
+      "<div class=note>Weights from ETF Global constituents (look-through). 13F columns are quarterly lagged filings, not live prints. Filter is local.</div>");
+  }
+
+  function renderEtfEmerging13f(pack, holds) {
+    var desk = pack.desk13f || {};
+    var ns = desk.new_since || {};
+    var idx = instIdx();
+    var holdMap = {};
+    (holds || []).forEach(function (h) {
+      var tk = jhFundTicker(h.t);
+      if (tk) holdMap[tk] = h;
+    });
+    function take(list, extra) {
+      var out = [];
+      (list || []).forEach(function (r) {
+        var tk = jhFundTicker(r.ticker);
+        if (!tk || !holdMap[tk]) return;
+        out.push(Object.assign({ w: holdMap[tk].w, hold_n: holdMap[tk].n }, r, extra || {}));
+      });
+      return out;
+    }
+    var emerging = [];
+    Object.keys(holdMap).forEach(function (tk) {
+      var r = idx[tk];
+      if (!r) return;
+      var neu = num(r.n_funds_new_position) || 0;
+      if (neu <= 0) return;
+      emerging.push(Object.assign({ ticker: tk, w: holdMap[tk].w, hold_n: holdMap[tk].n }, r));
+    });
+    emerging.sort(function (a, b) {
+      return (num(b.n_funds_new_position) || 0) - (num(a.n_funds_new_position) || 0) ||
+        (num(b.bought_usd) || 0) - (num(a.bought_usd) || 0);
+    });
+    var smid = take(ns.new_small_mid_micro, { radar: "small/mid/micro first appearance" });
+    var freshNames = take(ns.new_names, { radar: "first seen on 13F ledger" });
+    function tbl(list, colsHint) {
+      if (!list.length) return "<div class=empty>None of this ETF's holdings match this 13F cut.</div>";
+      return "<table class=wide><thead><tr><th>Ticker</th><th>Name</th><th>Wgt</th><th>New funds</th><th>Adding</th><th>Bought $</th><th>Net $</th><th>Cap</th></tr></thead><tbody>" +
+        list.slice(0, 40).map(function (r) {
+          var tk = r.ticker || "";
+          var w = num(r.w);
+          var fresh = r.fresh ? " <span class=pill-fresh>FRESH</span>" : "";
+          return "<tr><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" + esc(tk) + "</a>" + fresh +
+            "</td><td>" + esc(r.name || r.hold_n || "") + "</td><td>" +
+            (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td><td>" +
+            fmt(r.n_funds_new_position) + "</td><td>" + fmt(r.n_funds_adding) + "</td><td class='" +
+            cls(r.bought_usd) + "'>" + fmtBig(r.bought_usd) + "</td><td class='" + cls(r.net_flow_usd) + "'>" +
+            fmtBig(r.net_flow_usd) + "</td><td>" + esc(r.cap_tier || "—") + "</td></tr>";
+        }).join("") + "</tbody></table>";
+    }
+    var qtr = desk.as_of_quarter || ns.generated_at || "—";
+    var html = blk("13F radar — new buys inside this ETF",
+      "<div class=note>Quarter " + esc(String(qtr).slice(0, 10)) + " · lagged ~45d. A name is 'new' when n_funds_new_position > 0 (first appearance in that filer's book this quarter), not a live print. " +
+      emerging.length + " holdings newly bought by at least one 13F filer.</div>" + tbl(emerging));
+    html += blk("Emerging — small/mid/micro first appearance that this ETF already holds",
+      "<div class=note>From 13F desk new_since (72h ledger). Fresh = first seen in the last 72h. Intersection with this ETF's constituents only — empty means the emerging names are not in this book.</div>" +
+      tbl(smid));
+    if (freshNames.length) {
+      html += blk("13F ledger — names first seen recently that sit in this book",
+        tbl(freshNames) + "<div class=note>Ledger first_seen is when THIS system first observed the name, not the SEC file date.</div>");
     }
     return html;
   }
@@ -783,10 +972,15 @@
     return { row: row, doc: SQ_DOC.v || {}, as_of: (SQ_DOC.v || {}).as_of || (SQ_DOC.v || {}).generated_at };
   }
   var INST13F = null;
+  var DESK13F = null;
   async function inst13fRow(t) {
     await loadJsonOnce(INST13F || (INST13F = {}), "/data/13f-by-ticker.json");
     var row = pickIdx(INST13F, t);
     return { row: row, doc: INST13F.v || {}, as_of: (INST13F.v || {}).generated_at, quarter: (INST13F.v || {}).as_of_quarter };
+  }
+  async function desk13fDoc() {
+    await loadJsonOnce(DESK13F || (DESK13F = {}), "/data/13f-desk.json");
+    return DESK13F.v || {};
   }
   function renderInst13f(d) {
     var p = d && d.inst13f || {};
@@ -1017,6 +1211,25 @@
     else html = renderHold(d, pack);
     var src = (pack.src && pack.src.length) ? pack.src.join(" · ") : "computed from chart bars";
     body.innerHTML = html + "<div class=src>" + esc(src) + " · delayed · not advice</div>";
+    bindHoldFilter();
+  }
+
+  function bindHoldFilter() {
+    var q = document.getElementById("etf-hold-q");
+    var tbl = document.getElementById("etf-hold-tbl");
+    if (!q || !tbl) return;
+    var lab = document.getElementById("etf-hold-n");
+    var rows = tbl.querySelectorAll("tbody tr");
+    q.oninput = function () {
+      var s = String(q.value || "").trim().toUpperCase();
+      var shown = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var hit = !s || (rows[i].getAttribute("data-q") || "").indexOf(s) >= 0;
+        rows[i].style.display = hit ? "" : "none";
+        if (hit) shown++;
+      }
+      if (lab) lab.textContent = shown + " / " + rows.length;
+    };
   }
 
   function paintHead(pack) {
@@ -1119,6 +1332,7 @@
       pack.boom = await boomRow(t);
       pack.sqz = await squeezeRow(t);
       pack.inst13f = await inst13fRow(t);
+      pack.desk13f = await desk13fDoc();
       pack.confluence = await confluenceRow(t);
       if (pack.confluence && pack.confluence.row && (!pack.pressure || !pack.pressure.row)) {
         pack.pressure = pack.pressure || {};
@@ -1191,6 +1405,18 @@
         pack.derivedDesk = deskDer || null;
         pack.risk = (deskDer && deskDer.verdicts) || {};
         if (row || (holders && holders.length) || der) pack.src.push("ETF desk warehouse");
+        var isFund = window.JHEtfFuse.isFund(pack.etfRow, pack.polyEtf);
+        if (isFund) {
+          if (window.JHEtfFuse.constituents) {
+            pack.etfConstituents = await window.JHEtfFuse.constituents(t);
+            if (pack.etfConstituents && pack.etfConstituents.n) pack.src.push("ETF holdings-index (" + pack.etfConstituents.n + " names)");
+          }
+          if (window.JHEtfFuse.census) {
+            pack.etfCensus = await window.JHEtfFuse.census();
+            pack.etfRank = window.JHEtfFuse.rankVs(t, pack.etfCensus);
+            if (pack.etfRank && pack.etfRank.in_universe) pack.src.push("ETF census vs SPY (" + String(pack.etfRank.as_of || "").slice(0, 10) + ")");
+          }
+        }
       } catch (e7) {}
     }
     return pack;

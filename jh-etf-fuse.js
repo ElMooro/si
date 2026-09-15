@@ -7,6 +7,7 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
   var deskCache = null, deskP = null, idxCache = null, liveCache = {}, derCache = null, derP = null;
+  var invCache = null, cenCache = null, cenP = null;
 
   function firstOk(urls) {
     var i = 0;
@@ -236,11 +237,150 @@
     return out;
   }
 
+  function invertHoldings(idx) {
+    if (invCache) return invCache;
+    var by = {};
+    var src = (idx && (idx.by_stock || idx.tickers)) || {};
+    Object.keys(src).forEach(function (stock) {
+      var arr = src[stock];
+      if (!Array.isArray(arr)) return;
+      var tk = bare(stock);
+      arr.forEach(function (h) {
+        var etf = bare(h.etf);
+        if (!etf) return;
+        if (!by[etf]) by[etf] = [];
+        by[etf].push({ t: tk, n: h.n || h.name || "", w: num(h.w), mv: num(h.mv), sh: num(h.sh) });
+      });
+    });
+    Object.keys(by).forEach(function (etf) {
+      by[etf].sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
+    });
+    invCache = by;
+    return by;
+  }
+
+  function constituents(ticker) {
+    var t = bare(ticker);
+    if (!t) return Promise.resolve({ ticker: t, n: 0, rows: [], holdings_n: null, complete: null });
+    return Promise.all([desk(), holdingsIndex(), live(t)]).then(function (pack) {
+      var row = ((pack[0] && pack[0].by_etf) || {})[t] || {};
+      var byEtf = invertHoldings(pack[1] || {});
+      var liveJ = pack[2];
+      var map = {};
+      function add(h) {
+        var tk = bare(h.t || h.constituent_ticker || h.ticker);
+        if (!tk) return;
+        var w = num(h.w != null ? h.w : h.weight);
+        var mv = num(h.mv != null ? h.mv : h.market_value);
+        var sh = num(h.sh != null ? h.sh : h.shares);
+        var n = h.n || h.constituent_name || h.name || "";
+        var rk = h.rank || h.constituent_rank;
+        if (!map[tk]) map[tk] = { t: tk, n: n, w: w, mv: mv, sh: sh, rank: rk };
+        else {
+          if (!map[tk].n && n) map[tk].n = n;
+          if (map[tk].w == null && w != null) map[tk].w = w;
+          if (map[tk].mv == null && mv != null) map[tk].mv = mv;
+          if (map[tk].sh == null && sh != null) map[tk].sh = sh;
+          if (map[tk].rank == null && rk != null) map[tk].rank = rk;
+        }
+      }
+      (byEtf[t] || []).forEach(add);
+      (row.top || []).forEach(add);
+      polyRows(liveJ && liveJ.holdings).forEach(add);
+      var out = Object.keys(map).map(function (k) { return map[k]; });
+      out.sort(function (a, b) { return (b.w || 0) - (a.w || 0); });
+      out.forEach(function (h, i) { if (h.rank == null) h.rank = i + 1; });
+      return {
+        ticker: t,
+        n: out.length,
+        holdings_n: row.holdings_n != null ? row.holdings_n : out.length,
+        complete: row.holdings_complete,
+        rows: out,
+        source: out.length ? "ETF Global constituents · holdings-index + desk top + live fill" : "empty"
+      };
+    });
+  }
+
+  function census() {
+    if (cenCache) return Promise.resolve(cenCache);
+    if (cenP) return cenP;
+    cenP = firstOk([
+      "/data/etf-census-matrix.json?t=" + Date.now(),
+      LIVE + "/data/etf-census-matrix.json?t=" + Date.now(),
+      PROXY + "/data/etf-census-matrix.json?t=" + Date.now()
+    ]).then(function (j) {
+      cenCache = j && typeof j === "object" ? j : { tickers: [], cols: {}, n: 0 };
+      return cenCache;
+    }).catch(function () {
+      cenCache = { tickers: [], cols: {}, n: 0 };
+      return cenCache;
+    });
+    return cenP;
+  }
+
+  function rankVs(ticker, mx) {
+    mx = mx || {};
+    var t = bare(ticker);
+    var tickers = mx.tickers || [];
+    var cols = mx.cols || {};
+    function colAt(name, idx) {
+      var arr = cols[name] || [];
+      if (idx < 0 || idx >= arr.length) return null;
+      var v = arr[idx];
+      if (v == null || v === "") return null;
+      v = Number(v);
+      return isFinite(v) ? v : null;
+    }
+    function rankOf(name) {
+      var arr = cols[name] || [];
+      var scored = [];
+      for (var j = 0; j < tickers.length; j++) {
+        var v = colAt(name, j);
+        if (v == null) continue;
+        scored.push({ t: tickers[j], v: v });
+      }
+      scored.sort(function (a, b) { return b.v - a.v; });
+      for (var k = 0; k < scored.length; k++) {
+        if (scored[k].t === t) return { rank: k + 1, n: scored.length, v: scored[k].v };
+      }
+      return { rank: null, n: scored.length, v: null };
+    }
+    var spyI = tickers.indexOf("SPY");
+    var meI = tickers.indexOf(t);
+    var windows = [
+      { k: "d", label: "1D", col: "f_return_1d_pct", rel: false },
+      { k: "w", label: "1W", col: "f_return_5d_pct", rel: false },
+      { k: "m", label: "1M", col: "f_return_20d_pct", rel: false },
+      { k: "q", label: "3M", col: "rs_13w_pct", rel: true }
+    ];
+    var out = { ticker: t, n_universe: tickers.length, as_of: mx.generated_at || mx.as_of, version: mx.version, in_universe: meI >= 0, windows: {} };
+    windows.forEach(function (w) {
+      var rk = rankOf(w.col);
+      var spyV = colAt(w.col, spyI);
+      var vs = null;
+      if (rk.v != null) vs = w.rel ? rk.v : (spyV != null ? rk.v - spyV : null);
+      out.windows[w.k] = {
+        label: w.label,
+        etf: rk.v,
+        spy: w.rel ? 0 : spyV,
+        vs: vs,
+        rank: rk.rank,
+        n: rk.n,
+        already_vs_spy: w.rel
+      };
+    });
+    out.beta = colAt("beta_spy", meI);
+    out.corr = colAt("corr_spy_52w", meI);
+    out.rs13 = colAt("rs_13w_pct", meI);
+    return out;
+  }
+
   w.JHEtfFuse = {
     desk: desk, live: live, of: of, reverse: reverse, reverseFromDesk: reverseFromDesk,
     impliedDemand: impliedDemand, isFund: isFund, histFrom: histFrom, alignHist: alignHist,
     markers: markers, mergeLive: mergeLive, holdingsIndex: holdingsIndex,
     derived: derived, ofDerived: ofDerived,
+    constituents: constituents, census: census, rankVs: rankVs, invertHoldings: invertHoldings,
     fmtUsd: fmtUsd, fmtEr: fmtEr, wgt: wgt, num: num, bare: bare, polyRows: polyRows, PROXY: PROXY
   };
 })(window);
