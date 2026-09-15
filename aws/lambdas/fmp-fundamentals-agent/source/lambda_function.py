@@ -29,10 +29,21 @@ def fetch_rows(endpoint, params, api_key):
     diagnostic = {'endpoint':endpoint,'status':'UNAVAILABLE','row_count':0}
     if not api_key:return [],{**diagnostic,'reason':'MANAGED_CREDENTIAL_UNAVAILABLE'}
     query=urllib.parse.urlencode({**params,'apikey':api_key})
-    request=urllib.request.Request(BASE+endpoint+'?'+query,headers={'User-Agent':'JustHodl-FMP/20260909'})
+    request=urllib.request.Request(BASE+endpoint+'?'+query,headers={'User-Agent':'JustHodl-FMP/20260915'})
     try:
-        with urllib.request.build_opener(NoRedirect).open(request,timeout=15) as response:
-            raw=response.read(8_000_001)
+        raw=None
+        for attempt in range(3):          # 429/5xx: bounded backoff (2 s, 5 s) honouring Retry-After; then the last-good snapshot serves
+            try:
+                with urllib.request.build_opener(NoRedirect).open(request,timeout=15) as response:
+                    raw=response.read(8_000_001)
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code in (429,500,502,503,504) and attempt<2:
+                    wait=exc.headers.get('Retry-After') if exc.headers else None
+                    try: wait=min(float(wait),8.0) if wait else (2.0 if attempt==0 else 5.0)
+                    except ValueError: wait=2.0 if attempt==0 else 5.0
+                    exc.close();time.sleep(wait);continue
+                raise
         if len(raw)>8_000_000:return [],{**diagnostic,'reason':'RESPONSE_SIZE_LIMIT'}
         def reject(value):raise ValueError('non_finite')
         doc=json.loads(raw,parse_constant=reject)
@@ -45,6 +56,31 @@ def fetch_rows(endpoint, params, api_key):
         return [],{**diagnostic,'reason':'PROVIDER_HTTP_ERROR','http_status':code}
     except Exception:
         return [],{**diagnostic,'reason':'PROVIDER_REQUEST_OR_JSON_FAILED'}
+
+
+LAST_GOOD_KEY='data/fmp-market-snapshot-last-good.json'
+_BUCKET='justhodl-dashboard-live'
+
+
+def _with_last_good(document):
+    """READY/PARTIAL snapshots are stored as the last-good copy; an UNAVAILABLE one (e.g. provider 429 at the top of the
+    hour) returns the last-good copy with an explicit degraded label -- never a page of zeros pretending the market is empty."""
+    try:
+        import boto3
+        s3=boto3.client('s3')
+        if document.get('status') in ('READY','PARTIAL') and document.get('quotes_ok',0)>0:
+            s3.put_object(Bucket=_BUCKET,Key=LAST_GOOD_KEY,Body=json.dumps(document,allow_nan=False).encode(),ContentType='application/json',CacheControl='max-age=60')
+            return document
+        if document.get('status')=='UNAVAILABLE':
+            prior=json.loads(s3.get_object(Bucket=_BUCKET,Key=LAST_GOOD_KEY)['Body'].read())
+            codes=sorted({str(v.get('http_status')) for v in (document.get('source_health') or {}).values() if v.get('http_status')})
+            prior['degraded']={'live_status':'UNAVAILABLE','live_attempt_at':document.get('generated_at'),'provider_http':codes,
+                               'note':'provider rejected the live pull (HTTP %s); showing the last good snapshot from %s' % (','.join(codes) or '?',prior.get('generated_at'))}
+            prior['status']='PARTIAL';prior['live_source_health']=document.get('source_health')
+            return prior
+    except Exception:
+        pass
+    return document
 
 
 def snapshot():
@@ -95,7 +131,9 @@ def lambda_handler(event,context):
         return {'statusCode':404,'headers':HEADERS,'body':json.dumps({'error':'unknown_route'})}
     try:
         if CACHE is None or time.monotonic()>=CACHE_UNTIL:
-            document=snapshot();CACHE=document;CACHE_UNTIL=time.monotonic()+60
+            document=snapshot()
+            document=_with_last_good(document)
+            CACHE=document;CACHE_UNTIL=time.monotonic()+60
         return {'statusCode':200,'headers':HEADERS,'body':json.dumps(CACHE,allow_nan=False)}
     except Exception:
         # Never emit exception text, URLs, credential values or a stack trace.

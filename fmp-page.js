@@ -28,6 +28,7 @@
     const sources = Object.entries(data.source_health || {}).map(([name,value])=>({name,...value}));
     html += table('Source coverage',sources,[['Feed',r=>r.name],['Status',r=>r.status],['Rows',r=>r.row_count],['Reason',r=>r.reason || ''],['HTTP',r=>r.http_status ?? '']]);
     const status = ['READY','PARTIAL','UNAVAILABLE'].includes(data.status) ? data.status : 'UNVERIFIED';
+    if (data.degraded) html = "<div style='color:#e0b552;margin:8px 0'>LAST GOOD SNAPSHOT — " + String(data.degraded.note || '').replace(/</g,'&lt;') + "</div>" + html;
     return {status,html,summary:(data.quotes_ok ?? 'Unverified') + ' valid / ' + (data.watchlist || []).length + ' expected quotes · ' + quotes.length + ' rows · Collected ' + (data.generated_at || data.ts || 'Unknown')};
   }
   async function load() {
