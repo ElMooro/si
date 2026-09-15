@@ -53,12 +53,31 @@ def fetch_constituents_polygon(etf_ticker: str) -> dict:
     last_err = "no_host"
     for host in POLYGON_HOSTS:
         try:
-            params = urllib.parse.urlencode({
-                "composite_ticker": etf_ticker,
-                "sort": "processed_date.desc",
-                "limit": "1000",
-                "apiKey": POLYGON_KEY,
-            })
+            asof = None
+            try:
+                q0 = urllib.parse.urlencode({
+                    "composite_ticker": etf_ticker,
+                    "sort": "processed_date.desc",
+                    "limit": "1",
+                    "apiKey": POLYGON_KEY,
+                })
+                req0 = urllib.request.Request(
+                    f"{host}/etf-global/v1/constituents?{q0}",
+                    headers={"User-Agent": "JustHodl-ETFConstituents/2.2"},
+                )
+                with urllib.request.urlopen(req0, timeout=FETCH_TIMEOUT) as r0:
+                    b0 = json.loads(r0.read().decode("utf-8", "replace"))
+                peek = (b0.get("results") or [None])[0] if isinstance(b0, dict) else None
+                if isinstance(peek, dict):
+                    asof = peek.get("processed_date") or peek.get("effective_date")
+            except Exception:
+                asof = None
+            extra = {"composite_ticker": etf_ticker, "limit": "1000", "apiKey": POLYGON_KEY}
+            if asof:
+                extra["processed_date"] = asof
+            else:
+                extra["sort"] = "processed_date.desc"
+            params = urllib.parse.urlencode(extra)
             url = f"{host}/etf-global/v1/constituents?{params}"
             rows, pages = [], 0
             nxt = url

@@ -132,6 +132,7 @@
         holdingsN: g.holdings_n, hhi: g.hhi, top: g.top || [], sector: g.sector || [], geo: g.geo || [],
         leverageStyle: g.leverage_style || g.leverage, leveredAmount: g.levered_amount,
         holdingsComplete: g.holdings_complete, flowWindows: g.flow_windows,
+        flowEffective: g.flow_effective,
         benchmark: g.benchmark, assetClass: g.asset_class, category: g.category,
         dvol: f.today_dollar_vol_b, spark: D.closesOf(bars).slice(-40),
         paid: !!(g.ok && (g.ok.flows || g.ok.profiles))

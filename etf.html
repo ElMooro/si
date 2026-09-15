@@ -47,7 +47,7 @@
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-desk-core.js?v=20260914h"></script>
 <script src="/jh-etf-fuse.js?v=20260914i"></script>
-<script src="/jh-etf-engine.js?v=20260914j"></script>
+<script src="/jh-etf-engine.js?v=20260914k"></script>
 <script>
 (function(){
   var D=JHDesk, cat="ALL", sortK="d", sortDir=-1, DATA=null;
@@ -105,12 +105,24 @@
       return "<tr><td>"+D.esc(x.t||"")+"</td><td class=nm>"+D.esc(x.n||"")+"</td><td>"+w+"</td><td>"+D.fmtUsd(x.mv)+"</td></tr>";
     }).join("");
     function paintHolds(html){
+      var w=r.flowWindows||{};
+      function wlab(k, usd){
+        var x=w[k];
+        if(!x) return D.fmtUsd(usd);
+        if(x.complete===false) return D.fmtUsd(x.usd)+" · "+(x.n_observed||0)+"/"+(x.n_requested||"?")+" sess (partial)";
+        return D.fmtUsd(x.usd);
+      }
+      var holdNote = r.holdingsComplete===false
+        ? "PARTIAL "+(r.holdingsN||"—")+" names (HHI withheld)"
+        : ((r.holdingsN||"—")+" names");
       b.innerHTML="<div class='jh-kpis' style='margin:8px 0'>"+
         [["Issuer", D.esc(r.issuer||"—"), r.assetClass||""],
          ["AUM", D.fmtUsd(r.aum), "NAV "+(r.nav==null?"—":D.fmtPx(r.nav))],
          ["Expense", fmtEr(r.er), r.benchmark||""],
-         ["HHI", r.hhi==null?"—":r.hhi.toFixed(0), (r.holdingsN||"—")+" names"],
-         ["Flow 1D / 5D / 21D", D.fmtUsd(r.flow1d), D.fmtUsd(r.flow5d)+" · "+D.fmtUsd(r.flow21d)]
+         ["Leverage", D.esc(r.leverageStyle||"unlevered"), r.leveredAmount!=null?("×"+r.leveredAmount):""],
+         ["HHI", r.hhi==null?"—":r.hhi.toFixed(0), holdNote],
+         ["Flow 1D", wlab("1d", r.flow1d), "effective "+(r.flowEffective||"—")],
+         ["Flow 5D / 21D", wlab("5d", r.flow5d), wlab("21d", r.flow21d)]
         ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("")+
         "</div><div class=nm style='margin:6px 0 10px'>Sector "+sec+"<br>Geo "+geo+"</div>"+
         "<table class=jh-tbl><thead><tr><th>Ticker</th><th>Holding</th><th>Wgt</th><th>Mkt val</th></tr></thead><tbody>"+(html||"<tr><td colspan=4 class=nm>Pulling ETF Global holdings…</td></tr>")+"</tbody></table>"+

@@ -153,9 +153,44 @@ def build_per_ticker(reported):
         }
     return tickers
 
+CANCEL_ON = datetime.date(2026, 10, 10)
+
+
+def _stamp_expired(existing, kind):
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    existing = existing if isinstance(existing, dict) else {}
+    existing["generated_at"] = now
+    existing["entitlement"] = "cancelled"
+    existing["entitlement_ends"] = CANCEL_ON.isoformat()
+    existing["status"] = "EXPIRED"
+    existing["note"] = (
+        "Benzinga Earnings cancelled by owner on 2026-10-10. Last-good snapshot retained. "
+        "Do not treat missing fields as zeros."
+    )
+    return existing
+
+
 def lambda_handler(event, context):
     if not KEY:
         return {"statusCode": 500, "body": "no massive key"}
+    if _today() >= CANCEL_ON:
+        try:
+            main = json.loads(S3.get_object(Bucket=BUCKET, Key="data/benzinga-earnings.json")["Body"].read())
+        except Exception:
+            main = {}
+        try:
+            cal = json.loads(S3.get_object(Bucket=BUCKET, Key="data/benzinga-earnings-calendar.json")["Body"].read())
+        except Exception:
+            cal = {}
+        main = _stamp_expired(main, "reported")
+        cal = _stamp_expired(cal, "calendar")
+        S3.put_object(Bucket=BUCKET, Key="data/benzinga-earnings.json",
+                      Body=json.dumps(main).encode(), ContentType="application/json",
+                      CacheControl="max-age=300")
+        S3.put_object(Bucket=BUCKET, Key="data/benzinga-earnings-calendar.json",
+                      Body=json.dumps(cal).encode(), ContentType="application/json",
+                      CacheControl="max-age=300")
+        return {"statusCode": 200, "body": json.dumps({"ok": True, "status": "EXPIRED", "refetch": False})}
     reported = fetch_reported()
     tickers = build_per_ticker(reported)
     upcoming = fetch_upcoming()

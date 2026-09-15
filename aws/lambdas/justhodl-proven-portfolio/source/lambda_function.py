@@ -296,6 +296,12 @@ def lambda_handler(event, context):
             clusters[str(m)] = ci
 
     ecal = rj("data/benzinga-earnings-calendar.json")
+    _ends = str((ecal or {}).get("entitlement_ends") or "2099-01-01")[:10]
+    if str((ecal or {}).get("status") or "").upper() in ("EXPIRED", "CANCELLED") or (
+        (ecal or {}).get("entitlement") in ("cancelled", "cancel_pending")
+        and _ends < datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    ):
+        ecal = {}
     edates = {}
 
     def _ewalk(o):

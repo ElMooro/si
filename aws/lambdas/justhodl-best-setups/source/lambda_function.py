@@ -293,6 +293,12 @@ def lambda_handler(event, context):
     catalysts = read_json("data/catalyst-calendar.json") or {}
     # ops 3145 fusion (additive): earnings dates + squeeze fuel
     _ecal = read_json("data/benzinga-earnings-calendar.json") or {}
+    _ends = str(_ecal.get("entitlement_ends") or "2099-01-01")[:10]
+    if str(_ecal.get("status") or "").upper() in ("EXPIRED", "CANCELLED") or (
+        _ecal.get("entitlement") in ("cancelled", "cancel_pending")
+        and _ends < datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    ):
+        _ecal = {}
     _edates = {}
     for _r in (_ecal.get("upcoming") or _ecal.get("calendar") or
                (_ecal if isinstance(_ecal, list) else [])):

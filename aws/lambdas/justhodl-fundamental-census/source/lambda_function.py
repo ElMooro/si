@@ -547,6 +547,12 @@ def joins(S3c, tickers):
         ecal = _j.loads(S3c.get_object(
             Bucket=BUCKET,
             Key="data/benzinga-earnings-calendar.json")["Body"].read())
+        if str(ecal.get("status") or "").upper() in ("EXPIRED", "CANCELLED") or (
+            ecal.get("entitlement") in ("cancelled", "cancel_pending")
+            and str(ecal.get("entitlement_ends") or "2099-01-01")[:10]
+            < _dt.now(_tz.utc).strftime("%Y-%m-%d")
+        ):
+            ecal = {}
         ed = {}
         def _ew(o):
             if isinstance(o, dict):
