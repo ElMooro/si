@@ -121,7 +121,7 @@
       else if (/^[A-Z][A-Z0-9.\-]{0,15}$/.test(t) && t !== fn) syms.push(t);
     });
     if (!fn && tok.length === 1 && BY[tok[0]]) fn = tok[0];
-    /* a lone ticker is NOT GP — leave it to symbol search */
+    /* a lone ticker is not stolen from symbol search; yellow-key / page GO still treat it as GP */
     if (!fn) return { fn: null, sym: tok[0] || null, extra: tok };
     return { fn: fn, sym: syms[0] || null, extra: tok };
   }
@@ -259,7 +259,13 @@
       return { ok: true, fn: fn };
     }
     if (spec.scale != null) { setScale(spec.scale); return { ok: true, fn: fn }; }
-    if (fn === "GP") { gpDefault(ctx); return { ok: true, fn: fn, sym: sym || activeSym() }; }
+    if (fn === "GP") {
+      gpDefault(ctx);
+      if (opts.page && !ctx.jhGoSymbol) {
+        location.href = "/chart.html?s=" + encodeURIComponent(sym || activeSym() || "SPY");
+      }
+      return { ok: true, fn: fn, sym: sym || activeSym() };
+    }
     if (fn === "HP") { if (!renderHp() && opts.page) location.href = "/chart.html?s=" + encodeURIComponent(sym || activeSym()) + "&fn=HP"; return { ok: true, fn: fn }; }
     if (fn === "RV") {
       toggleOsc("rsline");
@@ -327,9 +333,9 @@
   function tryRun(raw, opts) {
     opts = opts || {};
     var p = parse(raw);
-    if (!p) return { ok: false, err: "Type a function (DES FA GP MOST ECO…) or TICKER FN" };
-    if (!p.fn && p.sym && opts.page) p.fn = "GP";
-    if (!p.fn) return { ok: false, err: "Type a function (DES FA GP MOST ECO…) or TICKER FN" };
+    if (!p) return { ok: false, err: "Type a ticker or a function (AAPL  ·  AAPL DES  ·  MOST)" };
+    if (!p.fn && p.sym && (opts.page || opts.yellow)) p.fn = "GP";
+    if (!p.fn) return { ok: false, err: "Type a ticker or a function (AAPL  ·  AAPL DES  ·  MOST)" };
     return runFn(p.fn, p.sym, opts);
   }
 
@@ -344,7 +350,7 @@
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Enter") return;
       var el = e.target;
-      if (!el || (el.id !== "ssin" && el.id !== "cmdin" && el.id !== "symin" && el.id !== "q" && el.id !== "goyell")) return;
+      if (!el || (el.id !== "ssin" && el.id !== "cmdin" && el.id !== "symin")) return;
       var raw = String(el.value || "");
       var p = parse(raw);
       if (!p || !p.fn) return;

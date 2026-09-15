@@ -3084,7 +3084,16 @@
     si.onclick=go;
     si.onfocus=function(){ if(!document.getElementById("symsearch")||!document.getElementById("symsearch").classList.contains("on")) go(); };
     si.oninput=function(){ openSymSearch(si.value||""); };
-    si.onkeydown=function(e){ if(e.key==="Escape"){ si.blur(); closeSymSearch(); } };
+    si.onkeydown=function(e){
+      if(e.key==="Escape"){ si.blur(); closeSymSearch(); return; }
+      if(e.key!=="Enter") return;
+      e.preventDefault();
+      var v=String(si.value||"").trim();
+      if(!v){ openSymSearch(""); return; }
+      var box=document.getElementById("symsearch");
+      if(box && box.className.indexOf("on")>=0 && ssRows[ssSel]) goSymbol(ssRows[ssSel].s, "chart");
+      else goSymbol(v.toUpperCase(), "chart");
+    };
   }
   function openMenu(btn, html){
     var m=document.getElementById("menu"), r=btn.getBoundingClientRect();
@@ -3117,6 +3126,7 @@
     var chgHtml=CHG.filter(function(t){ return CHG_FAVS.indexOf(t[0])>=0; }).map(function(t){
       return "<button class='chg "+(t[0]===mode?"on":"")+"' data-chg='"+t[0]+"' title='"+t[1]+"'>"+t[1]+"</button>";
     }).join("");
+    var gyKeep=(document.getElementById("goyell")||{}).value||"";
     document.getElementById("tfbar").innerHTML=
       "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
       "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
@@ -3132,8 +3142,9 @@
       "<button class='wsico wsdesk' id=btn-spr title='Spring · forming / fired / failed'><span class=g>Spr</span><span class=l>Spring</span></button>"+
       "<button class='wsico wsdesk' id=btn-acc title='Accumulation · tight band, long range'><span class=g>Acc</span><span class=l>Accum</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
-      "<button class='wsico wsdesk' id=btn-go title='Bloomberg GO · DES FA GP MOST ECO'><span class=g>GO</span><span class=l><GO></span></button>"+
-      "<input id=goyell class=goyell placeholder='AAPL DES <GO>' autocomplete=off spellcheck=false title='Bloomberg yellow key. Type TICKER FN then Enter.'>"+
+      "<span class=sep></span>"+
+      "<input id=goyell class=goyell placeholder='AAPL' autocomplete=off spellcheck=false title='Type a ticker or AAPL DES, then GO'>"+
+      "<button type=button class=gokey id=btn-go title='GO — load the ticker or run the function. Empty opens the keyboard.'>GO</button>"+
       "<span class=sep></span>"+
       tfHtml+
       "<button class=drop id=btn-tfmore title='All intervals'>▾</button>"+
@@ -3180,7 +3191,27 @@
     var bspr=document.getElementById("btn-spr"); if(bspr) bspr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spring"); };
     var bacc=document.getElementById("btn-acc"); if(bacc) bacc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("accum"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
-    var bgo=document.getElementById("btn-go"); if(bgo) bgo.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("go"); };
+    var bgo=document.getElementById("btn-go");
+    if(bgo) bgo.onclick=function(){
+      var gy=document.getElementById("goyell");
+      var raw=gy?String(gy.value||"").trim():"";
+      if(raw && window.jhBbGo){
+        var r=window.jhBbGo.tryRun(raw, { yellow: true });
+        if(r && r.ok){ if(gy) gy.value=""; return; }
+        toast((r && r.err) || "Unknown function");
+        return;
+      }
+      if(window.jhOpenWorkspace) window.jhOpenWorkspace("go");
+    };
+    var gy=document.getElementById("goyell");
+    if(gy){
+      gy.value=gyKeep;
+      gy.onkeydown=function(e){
+        if(e.key!=="Enter") return;
+        e.preventDefault();
+        if(bgo) bgo.click();
+      };
+    }
     var more=document.getElementById("btn-tfmore");
     if(more) more.onclick=function(){
       var self=this;

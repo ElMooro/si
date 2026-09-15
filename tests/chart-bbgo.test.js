@@ -54,6 +54,12 @@ test("yellow-key parser strips US EQUITY <GO> and does not steal a lone ticker",
   const e = go.parse("AAPL MAGS");
   assert.equal(e.fn, "MAGS");
   assert.equal(e.sym, "AAPL");
+  const run = go.tryRun("aapl", { yellow: true });
+  assert.equal(run.ok, true);
+  assert.equal(run.fn, "GP");
+  assert.equal(run.sym, "AAPL");
+  const search = go.parse("AAPL");
+  assert.equal(search.fn, null, "symbol search must still receive a lone ticker");
 });
 
 test("popular Terminal functions are on the keyboard and mapped to harvests", () => {
@@ -75,6 +81,10 @@ test("engine ships Ichimoku displacement, cloud, RTH session, splits, and yellow
   assert.match(engine, /function paintSessionShade/);
   assert.match(engine, /function splitMarks/);
   assert.match(engine, /id=goyell/);
+  assert.match(engine, /class=gokey id=btn-go/);
+  assert.match(engine, /tryRun\(raw, \{ yellow: true \}/);
+  assert.match(engine, /gyKeep/);
+  assert.match(engine, /goSymbol\(v\.toUpperCase\(\), "chart"\)/);
   assert.match(engine, /id:"sess"/);
   assert.match(engine, /id:"split"/);
   assert.match(engine, /jhSetKind/);
