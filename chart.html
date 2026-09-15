@@ -150,6 +150,10 @@ a{color:inherit;text-decoration:none}
 .sschips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--line)}
 .sschips button{flex:none;padding:6px 12px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
 .sschips button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.ssfacets{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-bottom:1px solid var(--line)}
+.ssfacets button{flex:none;padding:4px 10px;border-radius:99px;border:1px solid var(--line);font-size:11px;color:var(--mut)}
+.ssfacets button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.ssfacets b{font-weight:600;margin-left:4px}
 #symsearch{display:none;position:fixed;inset:0;z-index:47;background:rgba(19,23,34,.55);align-items:flex-start;justify-content:center;padding-top:8vh}
 #symsearch.on{display:flex}
 #symsearch .sbox{width:min(720px,94vw);background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 24px 64px rgba(19,23,34,.45);max-height:78vh;display:flex;flex-direction:column}
@@ -578,7 +582,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="typeq"></div>
 <div id="symsearch"><div class="sbox">
   <div class="shd"><b id="sshd">Symbol search</b><button type="button" id="ssx" title="Close">×</button></div>
-  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Ticker, CUSIP, ISIN, FIGI, SOFR, MVRV…" autocomplete="off"></div>
+  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Any ticker, CUSIP, FIGI, FRED, Eurostat, BoJ, NY Fed…" autocomplete="off"></div>
   <div class="sschips" id="sschips"></div>
   <div id="ssres"></div>
 </div></div>
@@ -607,8 +611,8 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
 <script src="/jh-chart-tvrail.js?v=10"></script>
-<script src="/jh-chart-catalog.js?v=20260915r-suggest"></script>
-<script src="/jh-chart-engine.js?v=20260915r-suggest"></script>
+<script src="/jh-chart-catalog.js?v=20260915s-univ"></script>
+<script src="/jh-chart-engine.js?v=20260915s-univ"></script>
 <script src="/jh-chart-tvux.js?v=12"></script>
 <script src="/jh-chart-indux.js?v=14"></script>
 <script src="/jh-etf-fuse.js?v=20260915p-hold"></script>

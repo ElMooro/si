@@ -190,7 +190,7 @@
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
   var stayTool=false, hideDraw=false, lockDraw=false, drawColor=ACC, drawW=1.2;
   var wtab="list", wsub="watch", watchOpen=false, layout=1, gridOn=true, watermark=true, invert=false, hiLo=true, crossMode=0;
-  var tzOff=0, tzName="UTC", notes={}, flags={}, finCache={}, ssTab="all", ssSel=0, ssRows=[];
+  var tzOff=0, tzName="UTC", notes={}, flags={}, finCache={}, ssTab="all", ssSel=0, ssRows=[], ssProv="", ssFacets=[];
   var replay={on:false,i:0,speed:1,timer:null,full:[]};
   var alerts=[], news=[], toastT=null, selDraw=null, paneCharts=[], paneSyms=[];
   var chart, chart2, chart3, chart4, oscSeries=[];
@@ -261,7 +261,12 @@
     return s;
   }
   function resolveSym(raw){
-    var s=String(raw||"").trim().toUpperCase(), venue="", ticker=s;
+    var orig=String(raw||"").trim();
+    if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(orig) && !/^(CQ|CISS|DESK|DATA):/i.test(orig)){
+      var p0=orig.split(":")[0];
+      return {raw:orig, venue:p0, ticker:orig, yahoo:orig.split(":").pop(), engine:"series"};
+    }
+    var s=orig.toUpperCase(), venue="", ticker=s;
     var ALIAS={
       "US10Y":"FRED:DGS10","TVC:US10Y":"FRED:DGS10","DGS10":"FRED:DGS10","US10":"FRED:DGS10",
       "US02Y":"FRED:DGS2","TVC:US02Y":"FRED:DGS2","DGS2":"FRED:DGS2","US2Y":"FRED:DGS2",
@@ -308,7 +313,7 @@
       var mkt=FRED_MKT[ticker]||{};
       return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
     }
-    if(venue==="CQ" || venue==="CISS" || venue==="DESK"){
+    if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA"){
       return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
     }
     var ys=yahooSym(ticker);
@@ -1469,8 +1474,8 @@
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json"
     ];
-    if(rs.engine==="fred" || /^FRED:/i.test(rs.raw) || /^DGS|^T10|^DFII|^WALCL|^M2SL|^CPIAUCSL/i.test(t.replace(/^FRED:/i,""))){
-      var fid=/^FRED:/i.test(rs.raw)?rs.raw:("FRED:"+String(t).replace(/^FRED:/i,""));
+    if(rs.engine==="fred" || rs.engine==="series" || /^FRED:/i.test(rs.raw) || (window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(rs.raw))){
+      var fid=rs.raw;
       urls.unshift(PROXY+"/series?id="+encodeURIComponent(fid));
       if(rs.yahoo && /^\^/.test(rs.yahoo)) urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(rs.yahoo)+"&range="+sp[3]+"&interval="+sp[2]);
       if(rs.tv) urls.unshift(PROXY+"/series?id="+encodeURIComponent(rs.tv));
@@ -3277,8 +3282,8 @@
         return String(compact||s).toUpperCase();
       }
     }
-    if(/^FRED:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
-    if(/^CQ:|^CISS:|^DESK:/i.test(s)) return s;
+    if(/^FRED:|^CQ:|^CISS:|^DESK:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
+    if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(s);
   }
   function pinBest(q){
@@ -3299,12 +3304,19 @@
       if(mapped) s=mapped;
     }
     var rs=resolveSym(s);
-    if(rs.engine==="fred") return rs.raw;
+    if(rs.engine==="fred" || rs.engine==="series") return rs.raw;
     if(/^FRED:/i.test(s) || /^\^/.test(s) || s.indexOf("=")>=0) return rs.ticker||s.toUpperCase();
-    if(/^CQ:|^CISS:|^DESK:/i.test(s)) return s;
+    if(/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
+    if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(rs.ticker||s);
   }
   function goSymbol(s, dest){
+    var hit=ssRows.filter(function(r){ return String(r.s)===String(s); })[0];
+    if(hit && hit.type==="dataset" && window.JHChartCatalog && window.JHChartCatalog.go){
+      window.JHChartCatalog.go(s, "dataset");
+      closeSymSearch();
+      return;
+    }
     if(window.JHChartCatalog && window.JHChartCatalog.go && window.JHChartCatalog.go(s, dest)){
       closeSymSearch();
       return;
@@ -3373,7 +3385,7 @@
     if(inp){ inp.value=q; inp.placeholder="Ticker, CUSIP, ISIN, FIGI, SOFR, MVRV…"; inp.focus(); }
     if(top) top.value=q;
     if(bar){ if(dest==="chart") bar.classList.add("searching"); else bar.classList.remove("searching"); }
-    ssTab="all"; ssSel=0;
+    ssTab="all"; ssProv=""; ssSel=0;
     renderSsChips();
     renderSymSearch(inp?inp.value:q);
     if(window.JHChartCatalog && window.JHChartCatalog.ensureIndex){
@@ -3473,7 +3485,9 @@
     var rows=[], seen={};
     function push(s, name, extra, type, force){
       s=String(s);
-      var full=/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)||/^\^/.test(s)||s.indexOf("=")>=0 ? s : bare(s);
+      var full=(window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s;
+      if(!(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\^/.test(full) && full.indexOf("=")<0 && !/^provider:/i.test(full))
+        full=bare(s);
       var k=full.toUpperCase();
       if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;
       var cls=classifySym(s);
@@ -3508,12 +3522,32 @@
     ssRows=rows.slice(0,80);
     pinBest(q);
     ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
-    document.getElementById("ssres").innerHTML=paintSsList(ssRows, dest, q);
+    document.getElementById("ssres").innerHTML=paintFacets()+paintSsList(ssRows, dest, q);
     bindSsRows(dest);
+    bindFacets();
     if(q.length>=2){
       clearTimeout(window.__jhSsDeb);
       window.__jhSsDeb=setTimeout(function(){ dirSearch(q); }, 140);
     }
+  }
+  function paintFacets(){
+    if(!ssFacets.length) return "";
+    var html="<div class=ssfacets><button class='"+(ssProv?"":"on")+"' data-p=''>all</button>";
+    ssFacets.slice(0,14).forEach(function(f){
+      html+="<button class='"+(ssProv===f.provider?"on":"")+"' data-p='"+String(f.provider||"").replace(/'/g,"")+"'>"+(f.provider_name||f.provider)+" <b>"+Number(f.n||0).toLocaleString()+"</b></button>";
+    });
+    return html+"</div>";
+  }
+  function bindFacets(){
+    document.querySelectorAll("#ssres [data-p]").forEach(function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        ssProv=b.getAttribute("data-p")||"";
+        var q=(document.getElementById("ssin")||{}).value||"";
+        ssYq="";
+        dirSearch(q);
+      };
+    });
   }
   function paintSsList(rows, dest, q){
     if(!rows.length) return "<div class=cell style=padding:18px>No matches — Enter opens "+(q||"ticker")+"</div>";
@@ -3542,14 +3576,15 @@
   }
   var ssYq="";
   async function dirSearch(q){
-    if(ssYq===q) return; ssYq=q;
+    var token=q+"|"+(ssProv||"");
+    if(ssYq===token) return; ssYq=token;
     function addRow(id, name, extra, type){
       if(!id) return;
       id=String(id);
       if(/!/.test(id) || /sentinel/i.test(id+" "+(name||""))) return;
       var s=chartId(id);
       if(!s) s=String(id);
-      if(ssRows.some(function(r){ return String(r.s).toUpperCase()===String(s).toUpperCase() || bare(r.s)===bare(s); })) return;
+      if(ssRows.some(function(r){ return String(r.s)===String(s) || String(r.s).toUpperCase()===String(s).toUpperCase(); })) return;
       var kindType=type||classifySym(s);
       ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType, label:displayTicker(s)});
     }
@@ -3559,28 +3594,35 @@
       });
     }
     try{
-      var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=80");
+      var url=PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=80"+(ssProv?("&provider="+encodeURIComponent(ssProv)):"");
+      var r=await fetch(url);
       var j=await r.json();
-      if(ssYq!==q) return;
-      (j.rows||[]).forEach(function(row){
+      if(ssYq!==token) return;
+      ssFacets=j.facets||[];
+      var rows=(j.rows||[]).slice();
+      var sh=(j.series_hits && j.series_hits.rows)||[];
+      sh.forEach(function(x){ rows.push(x); });
+      rows.forEach(function(row){
         var mapped=window.JHChartCatalog && window.JHChartCatalog.mapRow ? window.JHChartCatalog.mapRow(row) : null;
         if(mapped){ addRow(mapped.s, mapped.name, mapped.extra, mapped.type); return; }
-        var id=row.id||row.symbol||row.ticker;
-        var kind=row.kind||row.type||"";
-        addRow(id, row.name||row.title||"", (row.pinned?"best match · ":"")+(row.provider||row.ex||"")+" "+kind, kind==="series"||kind==="macro"||row.pinned?"economy":kind);
+        addRow(row.id||row.symbol||row.ticker, row.name||row.title||"", (row.provider||"")+" "+(row.kind||""), row.kind||row.type||"");
       });
       if(j.warehouse_more){
-        addRow("DATA:search", (j.warehouse_more)+" more warehouse hits", "type more characters · 73 providers indexed", "dataset");
+        addRow("DATA:search", Number(j.total||0).toLocaleString()+" warehouse hits", "filter a provider chip · 73 sources indexed", "dataset");
       }
       (j.suggest||[]).forEach(function(s){ aliasHits(s).forEach(function(a){ addRow(a.s, a.name, "did you mean", a.type); }); });
-      (j.rows||[]).filter(function(r){ return r.pinned; }).forEach(function(row){
-        addRow(row.id||row.symbol, row.name||row.title||"", "best match", row.kind||"economy");
-      });
+      if(j.failed){
+        var f=await fetch(PROXY+"/fred-search?text="+encodeURIComponent(q));
+        var fj=await f.json();
+        (fj.series||[]).forEach(function(s){
+          addRow("fred:"+(s.id||s.fred_id), s.title||s.id, "FRED fallback", "economy");
+        });
+      }
     }catch(e){}
     try{
       var r2=await fetch(PROXY+"/tv-search?text="+encodeURIComponent(q));
       var j2=await r2.json();
-      if(ssYq!==q) return;
+      if(ssYq!==token) return;
       (j2.symbols||[]).forEach(function(x){
         addRow(x.full||x.symbol, x.description||x.name||"", (x.exchange||"")+" "+(x.type||""), (x.type||"stock").toLowerCase());
       });
@@ -3588,7 +3630,7 @@
     try{
       var r3=await fetch("/api/yahoo-search?q="+encodeURIComponent(q));
       var j3=await r3.json();
-      if(ssYq!==q) return;
+      if(ssYq!==token) return;
       (j3.quotes||[]).forEach(function(x){
         if(!x.symbol) return;
         addRow(x.symbol, x.shortname||x.longname||x.name||"", (x.exchDisp||x.exchange||"")+" "+(x.typeDisp||x.quoteType||x.type||""), (x.typeDisp||x.quoteType||x.type||"stock").toLowerCase());
@@ -3599,8 +3641,9 @@
     ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
     var box=document.getElementById("ssres"); if(!box) return;
     var dest=document.getElementById("symsearch").dataset.dest||"chart";
-    box.innerHTML=paintSsList(ssRows, dest, q);
+    box.innerHTML=paintFacets()+paintSsList(ssRows, dest, q);
     bindSsRows(dest);
+    bindFacets();
   }
   function numish(x){ if(x==null) return null; if(typeof x==="number") return x; if(typeof x==="object" && x.raw!=null) return x.raw; var n=Number(x); return isFinite(n)?n:null; }
   function fmtBig(n){ if(n==null) return "—"; var a=Math.abs(n); if(a>=1e12) return (n/1e12).toFixed(2)+"T"; if(a>=1e9) return (n/1e9).toFixed(2)+"B"; if(a>=1e6) return (n/1e6).toFixed(2)+"M"; return fmt(n); }

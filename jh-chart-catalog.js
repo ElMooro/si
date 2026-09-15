@@ -4,12 +4,16 @@
  */
 (function (global) {
   "use strict";
-  var CQ = null, CISS = null, SYM = null, IND = null, IDX_P = null;
+  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  var CQ = null, CISS = null, SYM = null, IND = null, INST = null, PROV = null, IDX_P = null;
+  var EXCH = { NASDAQ:1, NYSE:1, AMEX:1, ARCA:1, CBOE:1, TVC:1, BINANCE:1, INDEX:1, FX:1, CRYPTO:1, CME:1, COMEX:1, NYMEX:1, OTC:1, BATS:1, IEX:1, OPRA:1 };
+  var SERIES_PROV = { fred:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, "ofr-fsi":1, "ofr-hfm":1, "ofr-bsrm":1, "ofr-site":1, bls:1, census:1, "census-us":1, bea:1, treasury:1, boe:1, eia:1, te:1, "te-mirror":1, "te-feed":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, "official-yields":1, tic:1, "kr-ecos":1, "taiwan-moea":1, "peru-copper":1, "cl-datos":1, "hk-data":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, "fed-board":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, "indicator-bus":1, "nyfed-research":1, "sec-edgar":1, "sec-midas":1, "sec-dera":1, "sec-bulk":1 };
   var CHIPS = [
     ["all", "All"],
     ["stocks", "Stocks"],
     ["etfs", "Funds"],
     ["macro", "Macro"],
+    ["data", "Datasets"],
     ["flows", "ETF flows"],
     ["inst", "13F"],
     ["chain", "On-chain"],
@@ -37,6 +41,7 @@
     trade: { trade: 1, ports: 1, exports: 1, macro: 1 },
     lists: {},
     notes: {},
+    data: { dataset: 1 },
     all: {}
   };
 
@@ -109,6 +114,15 @@
 
   function chips() { return CHIPS; }
 
+  function isWarehouse(s) {
+    s = String(s || "");
+    if (/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return true;
+    var p = s.split(":")[0];
+    if (!p || s.indexOf(":") < 0) return false;
+    if (EXCH[p.toUpperCase()]) return false;
+    return !!SERIES_PROV[p.toLowerCase()];
+  }
+
   function tabMatch(tab, cls, type, s) {
     if (!tab || tab === "all") return true;
     if (tab === "lists" || tab === "notes") return true;
@@ -119,6 +133,8 @@
     var hit = CURATED.filter(function (x) { return x.s === s; })[0];
     if (hit && (hit.cat === tab || want[hit.cat] || want[hit.type])) return true;
     if (tab === "macro" && /^FRED:/i.test(s)) return true;
+    if (tab === "macro" && (isWarehouse(s) || type === "economy" || c === "macro")) return true;
+    if (tab === "data") return type === "dataset" || /^provider:/i.test(s) || c === "dataset";
     if (tab === "chain" && /^CQ:/i.test(s)) return true;
     if (tab === "stress" && /^CISS:/i.test(s)) return true;
     if (tab === "inst" && /^DESK:inst/i.test(s)) return true;
@@ -145,8 +161,9 @@
 
   function keepId(s) {
     s = String(s || "");
-    if (/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return s;
+    if (isWarehouse(s) || /^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return s;
     if (/^\^/.test(s) || s.indexOf("=") >= 0) return s.toUpperCase();
+    if (/^(NASDAQ|NYSE|AMEX|ARCA|CBOE|TVC|BINANCE):/i.test(s)) return s;
     return s;
   }
 
@@ -197,6 +214,32 @@
         push({ s: row.chart, name: row.n || row.s, extra: row.extra, type: row.type, cat: row.cat }, 70);
       }
     }
+    if (INST && n.length >= 1) {
+      var hits = [];
+      for (i = 0; i < INST.length; i++) {
+        row = INST[i];
+        sc = 0;
+        if (row.u === n.toUpperCase()) sc = 100;
+        else if (row.u.indexOf(n.toUpperCase()) === 0) sc = 90;
+        else if (n.length >= 3 && row.nu.indexOf(n.toUpperCase()) === 0) sc = 70;
+        else if (n.length >= 4 && row.nu.indexOf(n.toUpperCase()) >= 0) sc = 50;
+        if (!sc) continue;
+        sc += (row.pop || 0) * 8;
+        hits.push({ sc: sc, row: row });
+      }
+      hits.sort(function (a, b) { return b.sc - a.sc; });
+      for (i = 0; i < hits.length && i < 8; i++) {
+        row = hits[i].row;
+        push({ s: row.s, name: row.n, extra: (row.ex || row.m || "") + " " + (row.t || "symbol"), type: (row.t || "stock").toLowerCase(), cat: "stocks" }, hits[i].sc);
+      }
+    }
+    if (PROV && n.length >= 2) {
+      for (i = 0; i < PROV.length; i++) {
+        row = PROV[i];
+        if (row.blob.indexOf(n) < 0) continue;
+        push({ s: "provider:" + row.slug, name: row.name, extra: (row.n ? Number(row.n).toLocaleString() + " datasets · " : "") + "warehouse provider", type: "dataset", cat: "data" }, row.slug === n ? 95 : 60);
+      }
+    }
     out.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
     return out.slice(0, limit);
   }
@@ -219,9 +262,11 @@
     if (IDX_P) return IDX_P;
     IDX_P = Promise.all([
       loadJson("/data/symbology/master.json").catch(function () { return null; }),
-      loadJson("/data/indicator-bus.json").catch(function () { return null; })
+      loadJson("/data/indicator-bus.json").catch(function () { return null; }),
+      loadJson("/data/provider-catalog.json").catch(function () { return null; }),
+      loadJson(PROXY + "/data/symdir/instruments.json.gz").catch(function () { return loadJson("/data/symdir/instruments.json.gz").catch(function () { return null; }); })
     ]).then(function (pack) {
-      var master = pack[0], bus = pack[1];
+      var master = pack[0], bus = pack[1], catalog = pack[2], instr = pack[3];
       if (master && master.by_ticker) {
         SYM = [];
         Object.keys(master.by_ticker).forEach(function (t) {
@@ -265,7 +310,31 @@
           IND.push({ s: k, n: k, chart: chart, extra: extra, type: type, cat: cat });
         });
       }
-      return { n_sym: SYM ? SYM.length : 0, n_ind: IND ? IND.length : 0 };
+      if (catalog && Array.isArray(catalog.providers)) {
+        PROV = catalog.providers.map(function (p) {
+          return {
+            slug: p.slug,
+            name: p.name || p.slug,
+            n: p.datasets || p.n_keys || 0,
+            blob: String(p.slug + " " + (p.name || "")).toLowerCase()
+          };
+        });
+      }
+      if (instr && Array.isArray(instr.rows)) {
+        INST = instr.rows.map(function (r) {
+          return {
+            s: r[0],
+            n: r[1] || "",
+            ex: r[2] || "",
+            t: r[3] || "",
+            m: r[4] || "",
+            pop: r[5] || 0,
+            u: String(r[0] || "").toUpperCase(),
+            nu: String(r[1] || "").toUpperCase()
+          };
+        });
+      }
+      return { n_sym: SYM ? SYM.length : 0, n_ind: IND ? IND.length : 0, n_inst: INST ? INST.length : 0, n_prov: PROV ? PROV.length : 0 };
     });
     return IDX_P;
   }
@@ -273,11 +342,10 @@
   function classify(s) {
     s = String(s || "");
     if (/^DESK:/i.test(s)) return "desk";
-    if (/^DATA:/i.test(s)) return "dataset";
+    if (/^DATA:/i.test(s) || /^provider:/i.test(s)) return "dataset";
     if (/^CQ:/i.test(s)) return "onchain";
     if (/^CISS:/i.test(s)) return "stress";
-    if (/^FRED:/i.test(s)) return "macro";
-    if (/^NYFED:/i.test(s)) return "macro";
+    if (isWarehouse(s)) return "macro";
     return "";
   }
 
@@ -287,18 +355,14 @@
     var low = s.toLowerCase();
     if (/^desk:/i.test(s)) return "DESK:" + s.split(":")[1];
     if (/^data:/i.test(s)) return "DATA:" + s.split(":")[1];
+    if (/^provider:/i.test(s)) return "provider:" + s.split(":")[1];
     if (/^cq:/i.test(s)) return "CQ:" + s.split(":").slice(1).join(":");
     if (/^ciss:/i.test(s)) return "CISS:" + s.split(":").slice(1).join(":");
-    if (/^fred:/i.test(s)) return "FRED:" + s.split(":")[1].toUpperCase();
-    if (/^nyfed:/i.test(s)) {
-      var t = s.split(":")[1] || "";
-      var F = { sofr: "SOFR", effr: "EFFR", obfr: "OBFR", tgcr: "TGCR", bgcr: "BGCR", rrp: "RRPONTSYD" };
-      return "FRED:" + (F[t.toLowerCase()] || t.toUpperCase());
-    }
+    if (isWarehouse(s)) return s;
     if (/^indicator-bus:/i.test(s)) {
       var id = s.split(":").slice(1).join(":");
       if (/mvrv|sopr|nupl|netflow|ssr/i.test(id)) return "CQ:" + id.replace(/^BTC_?/i, "btc_").toLowerCase();
-      return "FRED:" + id.split(":").pop().toUpperCase();
+      return "fred:" + id.split(":").pop();
     }
     var via = lookupSym(s);
     if (via) return via;
@@ -307,56 +371,54 @@
     return "";
   }
 
+  function rowExtra(row) {
+    var extra = [];
+    if (row.first && row.last) extra.push(String(row.first).slice(0, 10) + " → " + String(row.last).slice(0, 10));
+    else if (row.first) extra.push("from " + row.first);
+    if (row.n) extra.push(Number(row.n).toLocaleString() + (row.kind === "dataset" ? " series" : " obs"));
+    if (row.freq) extra.push(row.freq);
+    extra.push(row.provider_name || row.provider || row.kind);
+    if (row.chartable === false) extra.push("browse");
+    return extra.filter(Boolean).join(" · ");
+  }
+
   function mapRow(row) {
     if (!row) return null;
     var id = row.id || row.symbol || row.ticker || "";
     var kind = String(row.kind || row.type || "");
     var name = row.name || row.title || "";
     var provider = String(row.provider || "");
-    var mapped = chartId(id);
-    if (row.src && /^cryptoquant:/i.test(row.src) && /mvrv/i.test(id + name)) mapped = mapped || "CQ:btc_mvrv";
-    if (row.src && /^yahoo:/i.test(row.src)) mapped = mapped || String(row.src).split(":").slice(1).join(":");
-    if (provider === "fred" && (kind === "series" || row.chartable)) {
-      mapped = "FRED:" + String(row.symbol || id.split(":").pop()).toUpperCase();
-    }
-    if (provider === "nyfed" && (kind === "series" || row.chartable)) {
-      mapped = chartId(id) || ("FRED:" + String(row.symbol || id.split(":").pop()).toUpperCase());
-    }
-    if (/13f/i.test(id + " " + name)) {
+    if (/13f/i.test(id + " " + name) && kind !== "instrument") {
       return { s: "DESK:inst", name: name || "13F book", extra: "SEC 13F · quarterly lagged", type: "desk" };
     }
-    if (/holding|constituent/i.test(name) && /etf/i.test(name + " " + id)) {
-      return { s: "DESK:etf", name: name, extra: "ETF holdings book", type: "desk" };
+    if (kind === "series" || (row.chartable && isWarehouse(id))) {
+      return { s: id, name: name || id, extra: rowExtra(row), type: "economy" };
     }
-    if (mapped) {
-      var extra = [];
-      if (row.first && row.last) extra.push("history " + row.first + " → " + row.last);
-      else if (row.first) extra.push("from " + row.first);
-      if (row.n) extra.push(row.n + " obs");
-      if (row.freq) extra.push(row.freq);
-      extra.push(row.provider_name || provider || kind);
-      if (row.chartable === false && !/^DESK:/i.test(mapped)) extra.push("snapshot");
-      return { s: mapped, name: name || mapped, extra: extra.filter(Boolean).join(" · "), type: classify(mapped) || kind || "economy" };
-    }
-    var viaSym = lookupSym(id) || lookupSym(name) || lookupSym(row.symbol);
-    if (viaSym) return { s: viaSym, name: name || viaSym, extra: "OpenFIGI / SEC spine", type: "stock" };
-    if (kind === "series" || row.chartable) {
-      var sym = String(row.symbol || id.split(":").pop() || "");
-      if (sym && provider && /fred|nyfed|ecb|bls|bea|treasury|ofr/i.test(provider)) {
-        return { s: "FRED:" + sym.toUpperCase(), name: name || sym, extra: (row.provider_name || provider) + (row.first && row.last ? " · " + row.first + " → " + row.last : ""), type: "economy" };
-      }
+    if (kind === "instrument") {
+      return { s: row.symbol || id, name: name, extra: [(row.ex || row.exchange || ""), (row.type || "symbol"), (row.provider_name || provider)].filter(Boolean).join(" · "), type: String(row.type || "stock").toLowerCase() };
     }
     if (kind === "dataset" || kind === "indicator_ref") {
-      return { s: "DATA:" + (provider || "other"), name: name || id, extra: "warehouse dataset · " + (row.provider_name || provider || kind) + (row.hot ? " · hot" : ""), type: "dataset" };
+      return { s: id, name: name || id, extra: rowExtra(row), type: "dataset" };
     }
+    var viaSym = lookupSym(id) || lookupSym(row.symbol);
+    if (viaSym) return { s: viaSym, name: name || viaSym, extra: "OpenFIGI / SEC spine", type: "stock" };
+    var mapped = chartId(id);
+    if (mapped) return { s: mapped, name: name || mapped, extra: rowExtra(row), type: classify(mapped) || kind || "economy" };
+    if (id) return { s: id, name: name || id, extra: rowExtra(row), type: kind || "stock" };
     return null;
   }
 
   function go(s, dest) {
     s = String(s || "");
+    var slug = "";
+    if (/^DATA:/i.test(s) || /^provider:/i.test(s)) slug = s.split(":")[1] || "";
+    else if (dest === "dataset" && s.indexOf(":") >= 0) slug = /^provider:/i.test(s) ? s.split(":")[1] : s.split(":")[0];
+    if (slug && slug !== "search") {
+      global.location.href = SERIES_PROV[String(slug).toLowerCase()] ? ("/provider.html?p=" + encodeURIComponent(slug)) : "/data.html";
+      return true;
+    }
     if (/^DATA:/i.test(s)) {
-      var p = s.split(":")[1] || "";
-      if (p) global.location.href = "/data.html?p=" + encodeURIComponent(p);
+      global.location.href = "/data.html";
       return true;
     }
     if (!/^DESK:/i.test(s)) return false;
@@ -415,6 +477,16 @@
 
   async function klines(sym) {
     var s = String(sym || "");
+    if (isWarehouse(s) && !/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) {
+      try {
+        var ser = await loadJson(PROXY + "/series?id=" + encodeURIComponent(s));
+        var d0 = ptsBars(ser && ser.obs);
+        if (d0.length >= 8) {
+          var src0 = (ser.provider_name || ser.provider || "warehouse") + " · " + d0.length + " pts " + (ser.first || "") + " → " + (ser.last || "") + " · " + (ser.freq || "series");
+          return { d: d0, src: src0 };
+        }
+      } catch (eWh) {}
+    }
     if (/^CQ:/i.test(s)) {
       var doc = await loadCQ();
       var k = cqKey(s);
@@ -463,6 +535,7 @@
     ensureIndex: ensureIndex,
     lookupSym: lookupSym,
     keepId: keepId,
+    isWarehouse: isWarehouse,
     classify: classify,
     chartId: chartId,
     mapRow: mapRow,
