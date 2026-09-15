@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wyckoff desk · SC · BC · spread · spring · accumulation · JustHodl</title>
-<meta name="description" content="Daily Wyckoff scanners: selling climax, buying climax, tight candle spread / Bollinger, forming springs, and long accumulation. Harvests only — bottom, phase-detector, katlin, accumulation-radar.">
+<title>Wyckoff desk · SC · capitulation · BC · spread · spring · accumulation · JustHodl</title>
+<meta name="description" content="Daily Wyckoff scanners: selling climax, capitulation, buying climax, tight candle spread / Bollinger, forming springs, and long accumulation. Harvests only.">
 <style>
 :root{--bg:#07090f;--card:#101418;--sunken:#04050a;--line:rgba(120,145,180,.14);--fg:#e6ecf5;--mut:#6b7a92;--dim:#a8b3c7;--up:#22c55e;--dn:#ef4444;--amb:#f59e0b;--cy:#00d4ff;--vi:#a78bfa;--mono:"IBM Plex Mono",ui-monospace,monospace;--sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -40,18 +40,19 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
 <body>
 <div class="wrap">
   <h1>WYCKOFF DESK</h1>
-  <p class="sub">Five scanners on daily warehouse bars. Cadences are labeled. A climax is not a buy. A spring on a distribution range is a failed test, not accumulation. Click a ticker to open the chart.</p>
+  <p class="sub">Six scanners on daily warehouse bars. Cadences are labeled. Capitulation is not a buy — it is panic supply at the lows. A spring on a distribution range is a failed test. Click a ticker to open the chart.</p>
   <div class="tabs" id="tabs"></div>
   <div class="kpi" id="kpi"></div>
   <div class="note" id="why"></div>
   <div class="panel"><table id="board"></table></div>
   <div class="meta" id="meta"></div>
-  <footer>Feeds: data/bottom.json (SC sequence) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
+  <footer>Feeds: data/bottom.json (SC + capitulation) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
 </div>
 <script>
 (function () {
   var TABS = [
     { id: "sc", lab: "Selling climax", why: "Wyckoff SC: climactic volume at a new low of a real decline, wide range, close in the lower half. Source of truth is the Bottom desk (daily). Phase-detector SC events are a second clock — 400-name book, not the full warehouse." },
+    { id: "capit", lab: "Capitulation", why: "Panic print, not the whole SC sequence. Tape rule: wide down bar, close in the lower fifth, volume ≥1.75×. This board is stricter on the Bottom harvest: daily CLIMAX / fresh TESTING / NO_RALLY, vol ≥3.5× the 50d average, range ≥1.5× ATR, decline ≥15%, still within 15% of the climax low, SC bar ≤21 calendar days. Not a buy. Wait for the automatic rally and a light-volume test." },
     { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context." },
     { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze." },
     { id: "spring", lab: "Spring", why: "Textbook spring: a range under accumulation, then an undercut of support that closes back in, preferably on lighter volume than the climax. Forming = accumulation ≥10 days, price within 3% of range low (no spring print yet). Fired = SPRING event while still in ACCUMULATION. Failed = SPRING print on a DISTRIBUTION range — that is an upthrust cousin, not a buy. Phase-detector does not attach volume to the event; Bottom ST rows carry st_vol_ratio vs the climax." },
@@ -115,6 +116,32 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     b.sort(function (a, c) { return (c.sc_vol_x || 0) - (a.sc_vol_x || 0); });
     return b.map(function (r) {
       return { ticker: r.ticker, name: r.company, px: r.last, a: r.state, b: "vol " + num(r.sc_vol_x) + "×", c: r.sc_date, d: num(r.sc_decline_pct) + "%", e: r.grade || "—", f: r.sector || r.desk || "" };
+    });
+  }
+  function rowsCapit() {
+    var b = ((DATA.bottom && DATA.bottom.board) || []).filter(function (r) {
+      if (r.frame !== "D") return false;
+      if (r.state !== "CLIMAX" && r.state !== "TESTING" && r.state !== "NO_RALLY") return false;
+      if ((Number(r.sc_vol_x) || 0) < 3.5) return false;
+      if ((Number(r.sc_range_x) || 0) < 1.5) return false;
+      if ((Number(r.sc_decline_pct) || 0) > -15) return false;
+      if (days(r.sc_date) > 21) return false;
+      if (r.dist_sc_low_pct != null && r.dist_sc_low_pct > 15 && r.state !== "CLIMAX") return false;
+      return true;
+    });
+    b.sort(function (a, c) { return (c.sc_vol_x || 0) - (a.sc_vol_x || 0); });
+    return b.map(function (r) {
+      return {
+        ticker: r.ticker,
+        name: r.company,
+        px: r.last,
+        a: "CAPIT",
+        b: num(r.sc_vol_x) + "× vol",
+        c: "rng " + num(r.sc_range_x) + "×",
+        d: num(r.sc_decline_pct) + "%",
+        e: ago(r.sc_date),
+        f: r.state + (r.dist_sc_low_pct != null ? " · " + num(r.dist_sc_low_pct) + "% off low" : "")
+      };
     });
   }
   function rowsBc() {
@@ -197,6 +224,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
 
   var COLS = {
     sc: ["Ticker", "Name", "Last", "State", "Climax vol", "SC date", "Decline", "Grade", "Sector"],
+    capit: ["Ticker", "Name", "Last", "Read", "Volume", "Range", "Decline", "Age", "Still at low"],
     bc: ["Ticker", "Phase", "Last", "Phase", "BC date", "Age", "Pressure", "13F $", "Range"],
     spread: ["Ticker", "Name", "Last", "Coil", "BB width", "Range contr.", "Vol 20/120", "Accum", "Tier"],
     spring: ["Ticker", "Kind", "Last", "Status", "Event", "Age / dist", "Detail", "Pressure", "Note"],
@@ -207,7 +235,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     document.querySelectorAll("#tabs button").forEach(function (b) { b.className = b.dataset.t === tab ? "on" : ""; });
     var spec = TABS.filter(function (t) { return t.id === tab; })[0];
     document.getElementById("why").textContent = spec.why;
-    var rows = tab === "sc" ? rowsSc() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : rowsAccum();
+    var rows = tab === "sc" ? rowsSc() : tab === "capit" ? rowsCapit() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : rowsAccum();
     var heads = COLS[tab];
     var fired = rows.filter(function (r) { return r.a === "FIRED"; }).length;
     var forming = rows.filter(function (r) { return r.a === "FORMING"; }).length;
@@ -218,6 +246,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     ];
     if (tab === "spring") { kpis.push(["Fired", fired]); kpis.push(["Forming", forming]); kpis.push(["Failed (DIST)", failed]); }
     if (tab === "sc") kpis.push(["Daily climax", rows.filter(function (r) { return r.a === "CLIMAX"; }).length]);
+    if (tab === "capit") kpis.push(["Vol ≥3.5×", rows.length]);
     document.getElementById("kpi").innerHTML = kpis.map(function (k) { return "<div><span>" + esc(k[0]) + "</span><b>" + esc(k[1]) + "</b></div>"; }).join("");
     if (!rows.length) {
       document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>No names match this scan on the current harvests.</td></tr>";
@@ -225,7 +254,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     }
     var html = "<thead><tr>" + heads.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>";
     rows.forEach(function (r) {
-      var pill = r.a === "FAILED" || r.a === "DISTRIBUTION" ? "dn" : (r.a === "FIRED" || r.a === "CLIMAX" || r.a === "ACCUMULATION" || r.a === "SQUEEZE" ? "up" : (r.a === "FORMING" || r.a === "TESTING" ? "amb" : ""));
+      var pill = r.a === "FAILED" || r.a === "DISTRIBUTION" || r.a === "CAPIT" ? "dn" : (r.a === "FIRED" || r.a === "CLIMAX" || r.a === "ACCUMULATION" || r.a === "SQUEEZE" ? "up" : (r.a === "FORMING" || r.a === "TESTING" ? "amb" : ""));
       html += "<tr data-t='" + esc(r.ticker) + "'><td>" + esc(r.ticker) + "</td><td>" + esc(r.name || "") + "</td><td>" + num(r.px, 2) + "</td><td><span class='pill " + pill + "'>" + esc(r.a) + "</span></td><td>" + esc(r.b) + "</td><td>" + esc(r.c) + "</td><td>" + esc(r.d) + "</td><td>" + esc(r.e) + "</td><td>" + esc(r.f) + "</td></tr>";
     });
     document.getElementById("board").innerHTML = html + "</tbody>";
