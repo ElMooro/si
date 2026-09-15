@@ -12,6 +12,7 @@ STABLE = "https://financialmodelingprep.com/stable"
 
 
 KEY_STATUS = {"status": "unknown"}
+_MEMO = {}
 
 
 def fmp_url(path, qs, key):
@@ -27,6 +28,19 @@ def fmp_url(path, qs, key):
 
 
 def fmp_get(path, qs="", key="", budget=None, timeout=14, ua="justhodl-fleet"):
+    # Harvest first for ratios/statements already on data/fmp-ratios.json.
+    try:
+        from fmp_book import try_harvest
+        hit = try_harvest(path, qs)
+        if hit:
+            KEY_STATUS["status"] = "ok"
+            KEY_STATUS["source"] = "harvest"
+            return hit
+    except Exception:
+        pass
+    cache_key = "%s?%s" % (path, qs)
+    if cache_key in _MEMO:
+        return _MEMO[cache_key]
     if not key:
         return None
     if isinstance(budget, dict):
@@ -39,7 +53,10 @@ def fmp_get(path, qs="", key="", budget=None, timeout=14, ua="justhodl-fleet"):
         time.sleep(0.12)
         with urllib.request.urlopen(req, timeout=timeout) as h:
             KEY_STATUS["status"] = "ok"
-            return json.loads(h.read())
+            KEY_STATUS["source"] = "live"
+            data = json.loads(h.read())
+            _MEMO[cache_key] = data
+            return data
     except urllib.error.HTTPError as e:
         # fail-soft stays, but a rejected key is never silently "no data" (key ship 2026-09-15)
         if e.code in (401, 403):

@@ -348,6 +348,29 @@ def fetch_historical(ticker, days=365):
 
 
 def fetch_financials(ticker, limit=4):
+    """Prefer FMP Ultimate harvest. Massive /vX/reference/financials is not entitled."""
+    try:
+        from fmp_book import row as fmp_row, as_income
+        r = fmp_row(ticker)
+        inc = as_income(r) if r else None
+        if inc:
+            income_statements = []
+            for y in inc[:limit]:
+                income_statements.append({
+                    "period": str(y.get("calendarYear") or ""),
+                    "revenue": y.get("revenue") or 0,
+                    "gross_profit": y.get("grossProfit") or 0,
+                    "operating_income": y.get("operatingIncome") or 0,
+                    "net_income": y.get("netIncome") or 0,
+                    "eps_basic": y.get("eps") or 0,
+                    "eps_diluted": y.get("epsdiluted") or 0,
+                    "source": "FMP FILING harvest",
+                })
+            return {"ticker": ticker, "income_statements": income_statements,
+                    "balance_sheets": [], "quarters": len(income_statements),
+                    "source": "FMP FILING harvest"}
+    except Exception:
+        pass
     url = f"https://api.polygon.io/vX/reference/financials?ticker={ticker}&limit={limit}&apiKey={POLY_KEY}"
     d = http_get(url, timeout=20)
     if not d or "results" not in d:

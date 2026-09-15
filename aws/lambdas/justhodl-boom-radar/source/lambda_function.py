@@ -26,8 +26,24 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/boom-radar.json"
 
+try:
+    from engine_trust import trust as _trust, status as _trust_status
+except Exception:
+    def _trust(signal_type, default=1.0):
+        return default
+    def _trust_status(signal_type):
+        return "UNKNOWN"
+
 DIM_WEIGHT = {"BEAT": 1.0, "ANALYST": 1.1, "ESTIMATE": 1.0, "FLOW": 1.0,
               "SQUEEZE": 1.2, "BREAKOUT": 0.8}
+DIM_TRUST_KEY = {
+    "BEAT": "eng:earnings-tracker",
+    "ANALYST": "eng:analyst-actions",
+    "ESTIMATE": "eng:estimate-revisions",
+    "FLOW": "eng:flow-lookthrough",
+    "SQUEEZE": "eng:squeeze-pretrigger",
+    "BREAKOUT": "eng:52wk-quality-breakout",
+}
 
 
 def getj(key):
@@ -160,9 +176,18 @@ def lambda_handler(event=None, context=None):
             dims["BREAKOUT"][tk] = (0.7, "52wk quality breakout")
 
     dims_present = {d: len(v) for d, v in dims.items() if v}
+    trust_w = {}
+    gated = []
+    for d, base in DIM_WEIGHT.items():
+        st = _trust_status(DIM_TRUST_KEY.get(d, d))
+        tw = float(_trust(DIM_TRUST_KEY.get(d, d), 1.0) or 0)
+        trust_w[d] = {"status": st, "trust": tw, "weight": round(base * tw, 3)}
+        if st == "DEPRECATED" or tw <= 0:
+            gated.append(d)
+            dims.pop(d, None)
     agg = defaultdict(lambda: {"ticker": None, "dims": [], "raw": 0.0, "reasons": []})
     for d, m in dims.items():
-        w = DIM_WEIGHT.get(d, 1.0)
+        w = (trust_w.get(d) or {}).get("weight", DIM_WEIGHT.get(d, 1.0))
         for tk, (sub, reason) in m.items():
             a = agg[tk]
             a["ticker"] = tk
@@ -217,7 +242,7 @@ def lambda_handler(event=None, context=None):
                  for c in pick_pool][:15]
 
     out = {
-        "engine": "justhodl-boom-radar", "version": "1.1.0",
+        "engine": "justhodl-boom-radar", "version": "1.2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "Booms come from CONVERGENCE — independent bullish signals stacking on "
                   "one name. Fuses earnings beats, analyst guidance/PT, estimate strength, "
@@ -235,12 +260,14 @@ def lambda_handler(event=None, context=None):
             "convergence": "count of independent dimensions flagging a name bullish",
             "boom_score": "sum(weighted dimension sub-scores) x (1 + 0.4*(convergence-1))",
             "dimensions": list(DIM_WEIGHT.keys()),
+            "trust_gate": trust_w,
+            "gated_off": gated,
         },
         "caveats": [
             "Discovery/convergence engine — measure-before-trust; NOT wired into decision engines.",
             "Several inputs (analyst-actions, estimate-revisions, flow-lookthrough) are themselves "
             "still being graded vs SPY; convergence raises the bar but does not bypass measurement.",
-            "Squeeze + breakout dimensions can favour high-volatility small-caps.",
+            "DEPRECATED input dims are dropped (trust 0). FLOW at ALPHA_NEGATIVE is haircut, not deleted.",
         ],
         "overlays": {"regime_haircut": hair, "regime_state": state or None,
                      "forensic_flagged": len(bad)},

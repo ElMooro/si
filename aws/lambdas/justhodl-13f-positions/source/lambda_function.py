@@ -2560,6 +2560,36 @@ def lambda_handler(event, context):
     }
 
     put_s3_json(S3_KEY, output)
+    compact = {}
+    for tk, a in (by_ticker or {}).items():
+        if not isinstance(a, dict):
+            continue
+        holding = a.get("n_funds_holding") or 0
+        adding = a.get("n_funds_adding") or 0
+        newp = a.get("n_funds_new_position") or 0
+        if holding < 2 and adding < 1 and newp < 1:
+            continue
+        compact[str(tk).upper()] = {
+            "ticker": str(tk).upper(),
+            "name": a.get("name"),
+            "n_funds_holding": holding,
+            "n_funds_adding": adding,
+            "n_funds_new_position": newp,
+            "n_funds_trimming": a.get("n_funds_trimming"),
+            "n_funds_exiting": a.get("n_funds_exiting"),
+            "bought_usd": a.get("bought_usd"),
+            "sold_usd": a.get("sold_usd"),
+            "total_value": a.get("total_value"),
+        }
+    put_s3_json("data/13f-by-ticker.json", {
+        "engine": "justhodl-13f-positions",
+        "generated_at": output.get("generated_at"),
+        "as_of_quarter": output.get("as_of_quarter"),
+        "cadence": "quarterly_lagged",
+        "note": "Compact ticker index for the overlay. Not live institutional activity. Full tape remains data/13f-positions.json (do not fetch in the browser).",
+        "n": len(compact),
+        "tickers": compact,
+    })
     print(f"13F positions: {len(successful)} funds parsed | "
           f"{len(by_ticker)} unique tickers | "
           f"top buy: {most_bought[0]['ticker'] if most_bought else '?'}")

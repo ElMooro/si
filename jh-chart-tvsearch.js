@@ -18,6 +18,7 @@
     ["priced", "Priced-in"],
     ["boom", "Stack"],
     ["sqz", "Squeeze"],
+    ["inst", "13F"],
     ["div", "Dividends"],
     ["news", "News"],
     ["tech", "Technicals"],
@@ -781,6 +782,31 @@
     var row = pickIdx(SQ_DOC, t);
     return { row: row, doc: SQ_DOC.v || {}, as_of: (SQ_DOC.v || {}).as_of || (SQ_DOC.v || {}).generated_at };
   }
+  var INST13F = null;
+  async function inst13fRow(t) {
+    await loadJsonOnce(INST13F || (INST13F = {}), "/data/13f-by-ticker.json");
+    var row = pickIdx(INST13F, t);
+    return { row: row, doc: INST13F.v || {}, as_of: (INST13F.v || {}).generated_at, quarter: (INST13F.v || {}).as_of_quarter };
+  }
+  function renderInst13f(d) {
+    var p = d && d.inst13f || {};
+    var r = p.row;
+    var note = "<div class=note>SEC 13F is quarterly and lagged. Additions/trims are reported holdings, not live institutional prints. Compact index — full tape is 20MB off this overlay.</div>";
+    if (!r) return note + "<div class=empty>No 13F compact row for this symbol yet (needs justhodl-13f-positions to publish data/13f-by-ticker.json). Board: <a href='/13f.html'>13f</a>.</div>";
+    return note + "<div class=kpi>" + [
+      kpi("Quarter", esc(p.quarter || "—")),
+      kpi("Funds holding", fmt(num(r.n_funds_holding))),
+      kpi("Adding", fmt(num(r.n_funds_adding))),
+      kpi("New", fmt(num(r.n_funds_new_position))),
+      kpi("Trimming", fmt(num(r.n_funds_trimming))),
+      kpi("Exiting", fmt(num(r.n_funds_exiting)))
+    ].join("") + "</div>" +
+      blk("13F — " + esc(r.name || r.ticker || ""), table([
+        ["Bought $", fmtBig(r.bought_usd)],
+        ["Sold $", fmtBig(r.sold_usd)],
+        ["Reported value", fmtBig(r.total_value)]
+      ]));
+  }
   async function revisionRow(t) {
     await loadJsonOnce(REV_DOC || (REV_DOC = {}), "/data/estimate-revisions.json");
     var tk = jhFundTicker(t);
@@ -962,6 +988,7 @@
     d.boom = pack.boom || d.boom;
     d.sqz = pack.sqz || d.sqz;
     d.confluence = pack.confluence || d.confluence;
+    d.inst13f = pack.inst13f || d.inst13f;
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
@@ -978,6 +1005,7 @@
     else if (tab === "priced") html = renderPriced(d);
     else if (tab === "boom") html = renderBoom(d);
     else if (tab === "sqz") html = renderSqueeze(d);
+    else if (tab === "inst") html = renderInst13f(d);
     else if (tab === "est") html = renderEst(d);
     else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
     else if (tab === "news") html = renderPolyNews(pack);
@@ -1090,6 +1118,7 @@
       pack.priced = await pricedRow(t);
       pack.boom = await boomRow(t);
       pack.sqz = await squeezeRow(t);
+      pack.inst13f = await inst13fRow(t);
       pack.confluence = await confluenceRow(t);
       if (pack.confluence && pack.confluence.row && (!pack.pressure || !pack.pressure.row)) {
         pack.pressure = pack.pressure || {};
@@ -1106,6 +1135,7 @@
       if (pack.priced && pack.priced.row) pack.src.push("gf-value");
       if (pack.boom && pack.boom.row) pack.src.push("boom-radar");
       if (pack.confluence && pack.confluence.row) pack.src.push("flow-confluence");
+      if (pack.inst13f && pack.inst13f.row) pack.src.push("13F quarterly (lagged)");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
@@ -1229,6 +1259,7 @@
       "<button data-dt=priced>Growth already priced</button>" +
       "<button data-dt=boom>Stack (boom-radar)</button>" +
       "<button data-dt=sqz>Squeeze / crowded</button>" +
+      "<button data-dt=inst>13F (quarterly, lagged)</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
       "<button data-dt=news>News</button>" +

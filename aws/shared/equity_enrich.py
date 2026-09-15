@@ -31,6 +31,16 @@ KEY_STATUS = {"status": "unknown"}
 
 
 def fmp(path, params):
+    try:
+        from fmp_book import try_harvest
+        qs = urllib.parse.urlencode({k: v for k, v in (params or {}).items() if k != "apikey"})
+        hit = try_harvest(path, qs)
+        if hit:
+            KEY_STATUS["status"] = "ok"
+            KEY_STATUS["source"] = "harvest"
+            return hit
+    except Exception:
+        pass
     p = dict(params); p["apikey"] = FMP_KEY
     url = f"{BASE}/{path}?" + urllib.parse.urlencode(p)
     try:
