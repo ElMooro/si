@@ -17,7 +17,14 @@
     const columns = [['Symbol',r=>r.symbol],['Name',r=>r.name],['Price',r=>price(r.price)],['Change',r=>percent(r.changePercentage ?? r.changesPercentage)],['Volume',r=>number(r.volume) === null ? 'Unavailable' : Number(r.volume).toLocaleString()],['Observation UTC',observed]];
     let html = table('Watchlist quotes', quotes, columns) + table('Index quotes', data.index_quotes || [], columns);
     html += table('Sector performance', sectors, [['Sector',r=>r.sector],['Exchange',r=>r.exchange],['Date',r=>r.date],['Change',r=>percent(r.averageChange ?? r.changesPercentage)]]);
-    for (const [name,title] of [['gainers','Gainers'],['losers','Losers'],['actives','Most active']]) html += table(title,data.movers[name] || [],columns);
+    // Movers endpoints (stable/biggest-gainers, biggest-losers, most-actives) carry no volume or timestamp: drop those
+    // columns instead of printing 'Unavailable' on every row (2026-09-15).
+    const present = (rows, key) => rows.some(r => number(r[key]) !== null);
+    for (const [name,title] of [['gainers','Gainers'],['losers','Losers'],['actives','Most active']]) {
+      const rows = data.movers[name] || [];
+      const cols = columns.filter(([label]) => (label !== 'Volume' || present(rows, 'volume')) && (label !== 'Observation UTC' || present(rows, 'timestamp')));
+      html += table(title + (cols.length < columns.length ? ' · price/change only (this FMP feed has no volume or timestamp)' : ''), rows, cols);
+    }
     const sources = Object.entries(data.source_health || {}).map(([name,value])=>({name,...value}));
     html += table('Source coverage',sources,[['Feed',r=>r.name],['Status',r=>r.status],['Rows',r=>r.row_count],['Reason',r=>r.reason || ''],['HTTP',r=>r.http_status ?? '']]);
     const status = ['READY','PARTIAL','UNAVAILABLE'].includes(data.status) ? data.status : 'UNVERIFIED';
