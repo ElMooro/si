@@ -18,9 +18,9 @@
     ".jh-der .kpi .s{font-size:11px;color:#7c8aa0;margin-top:2px}",
     ".jh-der .up{color:#16c784}.jh-der .dn{color:#ea3943}.jh-der .flat{color:#f0a020}",
     ".jh-der .tag{display:inline-block;font:10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em;padding:3px 7px;border-radius:4px;border:1px solid #1e2836}",
-    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.RISK_ON_SOFT,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION,.jh-der .tag.GREED,.jh-der .tag.NEUTRAL_GREED,.jh-der .tag.CASHING_IN,.jh-der .tag.SPEC_GREED,.jh-der .tag.BULL_LEVERED_BID,.jh-der .tag.SIZE_ON,.jh-der .tag.STOCKS_OVER_BONDS,.jh-der .tag.CREDIT_OVER_DURATION{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
-    ".jh-der .tag.BETA,.jh-der .tag.MIXED,.jh-der .tag.QUIET,.jh-der .tag.NEUTRAL,.jh-der .tag.BALANCED,.jh-der .tag.NO_CLEAN_ROTATION{color:#7c8aa0}",
-    ".jh-der .tag.RISK_OFF,.jh-der .tag.RISK_OFF_SOFT,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS,.jh-der .tag.FEAR,.jh-der .tag.NEUTRAL_FEAR,.jh-der .tag.CASHING_OUT,.jh-der .tag.SPEC_FEAR,.jh-der .tag.BEAR_LEVERED_BID,.jh-der .tag.FLIGHT_TO_MEGA,.jh-der .tag.CREDIT_STRESS,.jh-der .tag.BONDS_OVER_STOCKS,.jh-der .tag.DURATION_OVER_CREDIT,.jh-der .tag.SIZE_OFF{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
+    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.RISK_ON_SOFT,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION,.jh-der .tag.GREED,.jh-der .tag.NEUTRAL_GREED,.jh-der .tag.CASHING_IN,.jh-der .tag.SPEC_GREED,.jh-der .tag.BULL_LEVERED_BID,.jh-der .tag.SIZE_ON,.jh-der .tag.STOCKS_OVER_BONDS,.jh-der .tag.CREDIT_OVER_DURATION,.jh-der .tag.USA_OVER_ABROAD,.jh-der .tag.DM_OVER_EM,.jh-der .tag.ACCELERATING,.jh-der .tag.CONFIRMED,.jh-der .tag.TRADE_OFFER_CAPITAL_BID{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
+    ".jh-der .tag.BETA,.jh-der .tag.MIXED,.jh-der .tag.QUIET,.jh-der .tag.NEUTRAL,.jh-der .tag.BALANCED,.jh-der .tag.NO_CLEAN_ROTATION,.jh-der .tag.NO_CLEAN_GEO,.jh-der .tag.STABLE{color:#7c8aa0}",
+    ".jh-der .tag.RISK_OFF,.jh-der .tag.RISK_OFF_SOFT,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS,.jh-der .tag.FEAR,.jh-der .tag.NEUTRAL_FEAR,.jh-der .tag.CASHING_OUT,.jh-der .tag.SPEC_FEAR,.jh-der .tag.BEAR_LEVERED_BID,.jh-der .tag.FLIGHT_TO_MEGA,.jh-der .tag.CREDIT_STRESS,.jh-der .tag.BONDS_OVER_STOCKS,.jh-der .tag.DURATION_OVER_CREDIT,.jh-der .tag.SIZE_OFF,.jh-der .tag.ABROAD_OVER_USA,.jh-der .tag.EM_OVER_DM,.jh-der .tag.SLOWING,.jh-der .tag.DISAGREED,.jh-der .tag.TRADE_BID_CAPITAL_OFFER{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
     ".jh-der .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}",
     ".jh-der .card{background:#111722;border:1px solid #1e2836;border-radius:8px;padding:11px 12px}",
     ".jh-der .card h3{margin:0 0 8px;font:11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#a8b3c7}",
@@ -156,6 +156,53 @@
         kpi("Bull − bear 5D", money(L.net_bull_minus_bear_5d), "speculative book") +
       "</div>";
   }
+  function sectionGeo(d) {
+    var g = d.geo_rotation || {};
+    var v = d.verdicts || {};
+    var sl = g.sleeves || {};
+    function s(k) { return sl[k] || {}; }
+    var re = g.real_economy || {};
+    function yoy(x) {
+      if (!x || x.yoy_pct == null) return "—";
+      var n = Number(x.yoy_pct);
+      return (n > 0 ? "+" : "") + n.toFixed(1) + "% YoY";
+    }
+    var rows = (g.countries || []).map(function (c) {
+      var w = c.wrapper || {};
+      var p = c.ports || {};
+      var extra = [];
+      if (c.orders && c.orders.yoy_pct != null) extra.push("orders " + yoy(c.orders));
+      if (c.exports && c.exports.yoy_pct != null) extra.push("exp " + yoy(c.exports));
+      if (c.hot_money && c.hot_money.sum_5d_bn != null) extra.push("board 5d " + c.hot_money.sum_5d_bn + " " + (c.hot_money.unit || ""));
+      if (c.copper && c.copper.yoy_pct != null) extra.push("Cu " + yoy(c.copper));
+      if (c.trade_vs_capital) extra.push(c.trade_vs_capital.replace(/_/g, " "));
+      if (c.bop && c.bop.status === "DEFERRED") extra.push("BOP deferred");
+      return "<tr><td class=l>" + esc(c.label) + " " + (c.tickers || []).map(tk).join(" ") +
+        "</td><td class='" + cls(w.flow_5d) + "'>" + usd(w.flow_5d) +
+        "</td><td>" + (w.pct_aum_5d == null ? "—" : w.pct_aum_5d.toFixed(2) + "%") +
+        "</td><td>" + tag(p.verdict) + (p.vs_base_pct == null ? "" : " " + (p.vs_base_pct > 0 ? "+" : "") + p.vs_base_pct + "%") +
+        "</td><td>" + tag(c.wrapper_vs_ports || c.trade_vs_capital || "") +
+        "</td><td class=l>" + esc(extra.join(" · ")) + "</td></tr>";
+    });
+    return '<h2>USA / DM / EM / country <b>' + tag(v.geo || g.verdict) + "</b> " + tag(g.specialist || "") + "</h2>" +
+      '<p class="note">' + esc(g.note || "") + " " + esc((g.reasons || []).join(" · ")) +
+      " Wrapper $ is daily. Ports are AIS. Exports are monthly. BOP is quarterly. Not one number.</p>" +
+      '<div class="kpis">' +
+        kpi("USA 5D", money(g.usa_5d), "SPY VOO IVV QQQ VTI · 1D " + usd(s("usa").flow_1d)) +
+        kpi("Developed 5D", money(g.dm_5d), "EFA IEFA VEA — contains Japan") +
+        kpi("Emerging 5D", money(g.em_5d), "EEM VWO") +
+        kpi("Japan 5D", money(s("japan").flow_5d), "EWJ") +
+        kpi("Korea 5D", money(s("korea").flow_5d), "EWY · exp " + yoy(re.korea_exports)) +
+        kpi("Taiwan 5D", money(s("taiwan").flow_5d), "EWT · orders " + yoy(re.taiwan_orders)) +
+        kpi("Chile 5D", money(s("chile").flow_5d), "ECH · copper ports") +
+        kpi("Peru 5D", money(s("peru").flow_5d), "EPU · Cu " + yoy(re.peru_copper)) +
+        kpi("Finland 5D", money(s("finland").flow_5d), "EFNL") +
+      "</div>" +
+      '<div class="card"><h3>Country tape · wrapper vs ports vs trade</h3>' +
+        tbl(["Country", "Wrapper 5D", "% AUM", "Ports", "Agree", "Trade / board"], rows) + "</div>" +
+      '<p class="note">' + esc((g.caveats || []).slice(0, 3).join(" ")) +
+      ' · <a href="/global-flows.html">BOP</a> · <a href="/portwatch.html">ports</a> · <a href="/hot-money.html">hot money</a> · <a href="/apac.html">APAC board</a> · <a href="/macro-leads.html">Asia leads</a></p>';
+  }
   function sectionCrypto(d) {
     var c = d.crypto_wrapper || {};
     var v = (d.verdicts || {}).crypto;
@@ -231,19 +278,19 @@
   }
 
   var VIEWS = {
-    all: ["risk", "thematic", "factor", "credit", "crypto", "leverage", "hhi", "px", "crowd", "confirm", "bonds"],
-    etf: ["risk", "thematic", "factor", "hhi", "leverage", "px"],
+    all: ["risk", "geo", "thematic", "factor", "credit", "crypto", "leverage", "hhi", "px", "crowd", "confirm", "bonds"],
+    etf: ["risk", "geo", "thematic", "factor", "hhi", "leverage", "px"],
     bonds: ["risk", "credit", "bonds", "leverage"],
     crypto: ["crypto", "px"],
     factor: ["factor", "thematic"],
     credit: ["risk", "credit", "bonds"],
-    strong: ["risk", "crowd", "px", "thematic", "crypto"],
+    strong: ["risk", "geo", "crowd", "px", "thematic", "crypto"],
     lookthrough: ["crowd", "confirm", "px", "hhi"],
-    radar: ["risk", "thematic", "credit", "crypto", "factor"],
-    thematic: ["risk", "thematic", "hhi", "px"]
+    radar: ["risk", "geo", "thematic", "credit", "crypto", "factor"],
+    thematic: ["risk", "geo", "thematic", "hhi", "px"]
   };
   var RENDER = {
-    risk: sectionRisk, thematic: sectionThematic, factor: sectionFactor, credit: sectionCredit,
+    risk: sectionRisk, geo: sectionGeo, thematic: sectionThematic, factor: sectionFactor, credit: sectionCredit,
     crypto: sectionCrypto, leverage: sectionLeverage, hhi: sectionHhi,
     px: sectionPx, crowd: sectionCrowd, confirm: sectionConfirm, bonds: sectionBonds
   };
@@ -258,6 +305,7 @@
       kpi("Size", tag(v.size), "mega vs IWM") +
       kpi("Credit", tag(v.credit), "HY vs TLT vs FALN") +
       kpi("BTC wrapper", tag(v.crypto), "IBIT+FBTC+ETHA") +
+      kpi("Geo", tag(v.geo), esc(v.geo_specialist || "USA / DM / EM")) +
       "</div>";
     var body = keys.map(function (k) { return RENDER[k] ? RENDER[k](d) : ""; }).join("");
     var cave = '<p class="caveat">Evidence: fund creations = fact. Name/CUSIP dollars = fund flow × weight (inferred). Not institutional volume, not 13F, not a sweep. ' +

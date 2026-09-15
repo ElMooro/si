@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.5.1"
+VERSION = "1.6.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -41,6 +41,7 @@ DESK = [
     "GLD", "IAU", "SLV", "GDX", "GDXJ", "PPLT", "CPER",
     "USO", "UNG", "DBC", "DBA",
     "EEM", "VWO", "EFA", "IEFA", "VEA", "FXI", "EWJ", "EWZ", "INDA", "MCHI",
+    "EWT", "EWY", "ECH", "EPU", "EFNL",
     "IBIT", "FBTC", "ETHA", "BITO",
     "MTUM", "QUAL", "USMV", "MOAT", "VLUE", "IWF", "IWD", "VUG", "VTV",
     "UUP", "UDN", "FXE", "FXY", "KWEB", "XHB", "ITA", "PAVE", "BOTZ", "HACK",
@@ -494,6 +495,301 @@ def _family_gross(desk, tickers, window="flow_5d"):
     }
 
 
+GEO_MAP = {
+    "usa": {"label": "USA", "tickers": ["SPY", "VOO", "IVV", "QQQ", "VTI"], "port": ["united states"]},
+    "dm": {"label": "Developed", "tickers": ["EFA", "IEFA", "VEA"], "port": ["germany", "japan", "united kingdom"]},
+    "em": {"label": "Emerging", "tickers": ["EEM", "VWO"], "port": ["china"]},
+    "japan": {"label": "Japan", "tickers": ["EWJ"], "port": ["japan"]},
+    "korea": {"label": "South Korea", "tickers": ["EWY"], "port": ["korea"]},
+    "taiwan": {"label": "Taiwan", "tickers": ["EWT"], "port": ["taiwan"]},
+    "chile": {"label": "Chile", "tickers": ["ECH"], "port": ["chile"]},
+    "peru": {"label": "Peru", "tickers": ["EPU"], "port": ["peru"]},
+    "finland": {"label": "Finland", "tickers": ["EFNL"], "port": ["finland"]},
+    "china": {"label": "China", "tickers": ["FXI", "MCHI"], "port": ["china"]},
+}
+
+
+def _port_row(exporters, aliases):
+    aliases = [a.lower() for a in (aliases or [])]
+    for e in exporters or []:
+        c = (e.get("country") or "").lower()
+        if any(a == c or a in c for a in aliases):
+            return {
+                "country": e.get("country"),
+                "verdict": e.get("verdict"),
+                "vs_base_pct": e.get("avg_vs_baseline_pct"),
+                "z": e.get("avg_z"),
+                "n_ports": e.get("n_ports"),
+                "ports": (e.get("ports") or [])[:4],
+                "source": "portwatch",
+                "cadence": "daily AIS vs 1y baseline — trade activity, not capital flow",
+            }
+    return None
+
+
+def _sign_usd(v, thresh=2e7):
+    if v is None:
+        return 0
+    if v > thresh:
+        return 1
+    if v < -thresh:
+        return -1
+    return 0
+
+
+def _sign_port(verdict):
+    v = (verdict or "").upper()
+    if v == "ACCELERATING":
+        return 1
+    if v == "SLOWING":
+        return -1
+    return 0
+
+
+def _agree(a, b):
+    if not a or not b:
+        return None
+    if a == b:
+        return "CONFIRMED"
+    if a == -b:
+        return "DISAGREED"
+    return None
+
+
+def _yoy_slim(obj, source, cadence):
+    if not isinstance(obj, dict):
+        return None
+    yoy = obj.get("yoy_pct")
+    if yoy is None:
+        yoy = obj.get("yoy_3mma_pct")
+    period = obj.get("latest_period") or obj.get("last_period") or obj.get("period")
+    if yoy is None and period is None:
+        return None
+    return {
+        "yoy_pct": yoy,
+        "period": period,
+        "read": obj.get("read") or obj.get("label"),
+        "source": source,
+        "cadence": cadence,
+    }
+
+
+def _build_geo(desk):
+    """Country rotation: ETF wrappers (daily $) vs ports/exports/BOP/hot-money.
+
+    Cadences stay separate. Never add a YoY export print to a creation dollar.
+    EFA/IEFA/VEA already contain Japan — country specialists are not additive to DM.
+    """
+    sleeves = {k: _sleeve_sum(desk, v["tickers"]) for k, v in GEO_MAP.items()}
+    pw = _load_s3("data/portwatch.json") or {}
+    al = _load_s3("data/asia-leads.json") or {}
+    ap = _load_s3("data/apac-flows.json") or {}
+    gf = _load_s3("data/global-flows.json") or {}
+    hm = _load_s3("data/hot-money.json") or {}
+    tm = _load_s3("data/taiwan-moea.json") or {}
+    nd = _load_s3("data/singapore-nodx.json") or {}
+    pc = _load_s3("data/peru-copper.json") or {}
+    exporters = pw.get("exporters") or []
+
+    # Real-economy compact (not dollars)
+    korea_exp = _yoy_slim(al.get("korea_exports") or {}, "asia-leads", "monthly merchandise exports")
+    tw_exp = _yoy_slim(al.get("taiwan_exports") or {}, "asia-leads", "monthly goods exports")
+    tw_ord = _yoy_slim(tm.get("export_orders") or {}, "taiwan-moea", "monthly export orders — lead shipments")
+    tw_semi = _yoy_slim(((tm.get("semiconductor") or {}).get("production") or {}), "taiwan-moea", "monthly semi production")
+    nodx = _yoy_slim(nd.get("nodx_total") or {}, "singapore-nodx", "monthly NODX")
+    nodx_el = _yoy_slim(nd.get("electronics") or {}, "singapore-nodx", "monthly electronics NODX")
+    peru_cu = _yoy_slim(pc.get("copper_production") or {}, "peru-copper", "monthly mine output — supply, not flow")
+
+    tw_hm = (hm.get("countries") or {}).get("taiwan") or {}
+    tw_board = {
+        "latest_bn": tw_hm.get("latest_bn"),
+        "sum_5d_bn": tw_hm.get("sum_5d_bn"),
+        "z_60d": tw_hm.get("z_60d"),
+        "as_of": tw_hm.get("latest_day"),
+        "unit": "TWD bn",
+        "source": "hot-money",
+        "cadence": "daily TWSE foreign board — capital, not trade",
+    } if tw_hm.get("status") == "LIVE" else None
+
+    ap_tw = ap.get("taiwan") or {}
+    ap_kr = ap.get("korea") or {}
+    ap_jp = ap.get("japan") or {}
+    gf_c = gf.get("countries") or {}
+    gf_def = gf.get("deferred") or {}
+
+    def bop_slim(cn):
+        c = gf_c.get(cn) or {}
+        if c.get("status") != "LIVE":
+            d = gf_def.get(cn) or {}
+            if d:
+                return {"status": "DEFERRED", "why": d.get("why"), "specialty": d.get("specialty"), "source": "global-flows"}
+            return None
+        ser = c.get("series") or (c.get("macro") or {}).get("series") or {}
+        out = {
+            "status": "LIVE",
+            "specialty": c.get("specialty"),
+            "period": c.get("latest_period") or (c.get("macro") or {}).get("latest_period"),
+            "source": "global-flows",
+            "cadence": "quarterly BOP portfolio liabilities — not daily",
+            "series": {},
+        }
+        for k, s in (ser.items() if isinstance(ser, dict) else []):
+            if isinstance(s, dict) and s.get("latest") is not None:
+                out["series"][k] = {"latest": s.get("latest"), "sum_4q": s.get("sum_4q"), "z": s.get("z_all")}
+        return out
+
+    countries = []
+    reasons = []
+    for cid, meta in GEO_MAP.items():
+        sl = sleeves[cid]
+        port = _port_row(exporters, meta["port"]) if cid not in ("dm", "em") else None
+        rec = {
+            "id": cid,
+            "label": meta["label"],
+            "tickers": meta["tickers"],
+            "wrapper": sl,
+            "ports": port,
+            "evidence_tier": "mixed",
+        }
+        f5 = sl.get("flow_5d")
+        wsign = _sign_usd(f5, 1.5e7 if cid not in ("usa", "dm", "em") else 8e7)
+        psign = _sign_port((port or {}).get("verdict"))
+        rec["wrapper_vs_ports"] = _agree(wsign, psign)
+
+        if cid == "taiwan":
+            rec["exports"] = tw_exp
+            rec["orders"] = tw_ord
+            rec["semis"] = tw_semi
+            rec["hot_money"] = tw_board
+            rec["foreign_board"] = {
+                "foreign_net_twd_bn": ap_tw.get("foreign_net_twd_bn"),
+                "as_of": ap_tw.get("as_of"),
+                "source": "apac-flows",
+                "cadence": "daily TWSE foreign net — same board as hot-money",
+            } if ap_tw.get("foreign_net_twd_bn") is not None else None
+            rec["bop"] = bop_slim("taiwan")
+            hm5 = (tw_board or {}).get("sum_5d_bn")
+            rec["trade_vs_capital"] = (
+                "TRADE_BID_CAPITAL_OFFER" if (psign > 0 and hm5 is not None and hm5 < 0)
+                else "TRADE_OFFER_CAPITAL_BID" if (psign < 0 and hm5 is not None and hm5 > 0)
+                else None
+            )
+            if rec["trade_vs_capital"] == "TRADE_BID_CAPITAL_OFFER":
+                reasons.append("Taiwan: ports/orders bid, foreign board selling")
+        elif cid == "korea":
+            rec["exports"] = korea_exp
+            rec["foreign_board"] = {
+                "foreign_net_shares_sample": ap_kr.get("foreign_net_total_shares"),
+                "n_names": ap_kr.get("n_names"),
+                "as_of": ap_kr.get("as_of"),
+                "source": "apac-flows",
+                "cadence": "daily — sample of tracked names, not market-wide $",
+            } if ap_kr.get("status") == "LIVE" else None
+            rec["bop"] = bop_slim("korea")
+            if korea_exp and (korea_exp.get("yoy_pct") or 0) > 15:
+                reasons.append("Korea merchandise exports still expanding YoY")
+        elif cid == "japan":
+            rec["foreign_board"] = {
+                "foreign_net": ap_jp.get("foreign_net"),
+                "unit": ap_jp.get("unit") or "JPY thousands",
+                "week": ap_jp.get("week"),
+                "source": "apac-flows",
+                "cadence": "weekly JPX — native JPY, not USD",
+            } if ap_jp.get("status") == "LIVE" else None
+            rec["bop"] = bop_slim("japan")
+        elif cid == "chile":
+            rec["bop"] = bop_slim("chile")
+            rec["specialty"] = "copper ports"
+            if psign > 0:
+                reasons.append("Chile ports accelerating (copper loading)")
+        elif cid == "peru":
+            rec["copper"] = peru_cu
+            rec["bop"] = bop_slim("peru")
+            rec["specialty"] = "copper/gold"
+            if psign < 0:
+                reasons.append("Peru Callao slowing vs Chile accelerating — copper bloc split")
+        elif cid == "finland":
+            rec["specialty"] = "forestry / Nordic trade"
+            if psign > 0:
+                reasons.append("Finland ports accelerating")
+        elif cid == "usa":
+            rec["note"] = "SPY/VOO/IVV are clones — net, not gross. See cross_asset.spx_family plumbing."
+        elif cid == "dm":
+            rec["note"] = "EFA/IEFA/VEA already contain Japan/UK/EU. Do not add EWJ on top."
+        elif cid == "em":
+            rec["note"] = "EEM/VWO beta. China/Korea/Taiwan/Chile/Peru specialists are not additive."
+
+        countries.append(rec)
+
+    usa5 = (sleeves["usa"].get("flow_5d") or 0)
+    dm5 = (sleeves["dm"].get("flow_5d") or 0)
+    em5 = (sleeves["em"].get("flow_5d") or 0)
+    abroad5 = dm5 + em5
+    if usa5 > 2e8 and abroad5 < -8e7:
+        geo_verdict = "USA_OVER_ABROAD"
+        geo_note = "US wrappers creating while DM/EM redeem — home bias in dollars."
+    elif usa5 < -2e8 and abroad5 > 8e7:
+        geo_verdict = "ABROAD_OVER_USA"
+        geo_note = "DM/EM wrappers creating while US beta redeems — abroad over USA."
+    elif em5 > 8e7 and dm5 < 0:
+        geo_verdict = "EM_OVER_DM"
+        geo_note = "EM beta creating, EAFE redeeming — emerging over developed, in wrapper dollars."
+    elif dm5 > 8e7 and em5 <= 0:
+        geo_verdict = "DM_OVER_EM"
+        geo_note = "EAFE creating, EM quiet or out — developed over emerging."
+    else:
+        geo_verdict = "NO_CLEAN_GEO"
+        geo_note = "USA vs DM vs EM wrappers are not printing a one-way book."
+
+    specialist = None
+    tw = next((c for c in countries if c["id"] == "taiwan"), {})
+    if tw.get("trade_vs_capital") == "TRADE_BID_CAPITAL_OFFER":
+        specialist = "TRADE_BID_CAPITAL_OFFER"
+        geo_note = (geo_note + " Taiwan is the tell: export orders/ports bid, foreign board selling.").strip()
+
+    return {
+        "verdict": geo_verdict,
+        "specialist": specialist,
+        "fear_tell": specialist,
+        "score_note": "Verdict is ETF wrapper dollars only. Ports/exports/BOP/hot-money sit beside it — never summed.",
+        "note": geo_note,
+        "reasons": reasons,
+        "usa_5d": round(usa5, 2),
+        "dm_5d": round(dm5, 2),
+        "em_5d": round(em5, 2),
+        "abroad_5d": round(abroad5, 2),
+        "sleeves": {k: sleeves[k] for k in ("usa", "dm", "em", "japan", "korea", "taiwan", "chile", "peru", "finland", "china")},
+        "countries": countries,
+        "real_economy": {
+            "korea_exports": korea_exp,
+            "taiwan_exports": tw_exp,
+            "taiwan_orders": tw_ord,
+            "taiwan_semis": tw_semi,
+            "singapore_nodx": nodx,
+            "singapore_electronics": nodx_el,
+            "peru_copper": peru_cu,
+            "note": "Trade and mine output are not capital inflows. A +70% Korea export print is not EWY creations.",
+        },
+        "sources": {
+            "wrapper": "Massive ETF Global fund-flows — daily, a fact",
+            "ports": "justhodl-portwatch IMF PortWatch AIS",
+            "exports": "justhodl-asia-leads + taiwan-moea + singapore-nodx",
+            "hot_money": "justhodl-hot-money TWSE foreign board",
+            "apac": "justhodl-apac-flows TW/KR/JP foreign net",
+            "bop": "justhodl-global-flows quarterly portfolio liabilities",
+        },
+        "caveats": [
+            "Do not add EFA + EWJ. EAFE already has Japan.",
+            "Do not add EEM + EWT + EWY + ECH. Country specialists sit inside EM beta.",
+            "PortWatch is vessel activity vs a 1y baseline, not customs dollars.",
+            "Korea APAC board is a 16-name share sample — not market-wide $.",
+            "Japan JPX foreign_net is JPY thousands, weekly.",
+            "BOP is quarterly. Hot-money is daily. Wrapper is daily. Partial blends are lies.",
+        ],
+        "evidence_tier": "mixed",
+    }
+
+
 def _compact_name(r):
     if not r:
         return None
@@ -896,6 +1192,8 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "evidence_tier": "measured_fact",
     }
 
+    geo_rotation = _build_geo(desk)
+
     conc_high = []
     hit = []
     for t, r in desk.items():
@@ -1027,6 +1325,9 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         sleeve_of[t] = "lev:bear"
     for t in lev_vol:
         sleeve_of[t] = "lev:vol"
+    for k, meta in GEO_MAP.items():
+        for t in meta["tickers"]:
+            sleeve_of.setdefault(t, "geo:" + k)
     for t, r in desk.items():
         px = px_by.get(t)
         top = (r.get("top") or [None])[0] or {}
@@ -1077,6 +1378,8 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "crypto": ("WRAPPER_BID" if (btc.get("flow_5d") or 0) > 1e8
                    else "WRAPPER_OFFER" if (btc.get("flow_5d") or 0) < -1e8
                    else "QUIET"),
+        "geo": geo_rotation.get("verdict"),
+        "geo_specialist": geo_rotation.get("specialist"),
         "leverage_flags": len(leverage),
     }
     return {
@@ -1085,9 +1388,10 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "version": VERSION,
         "evidence_tier": "mixed",
         "status": "LIVE",
-        "thesis": "Cross-asset ETF Global tape: size, stocks vs Treasuries vs junk vs fallen angels, wrapper bid/offer, levered sentiment. Fund creations are facts. Name-level dollars are inferred.",
+        "thesis": "Cross-asset + geo tape: size, stocks vs Treasuries vs junk vs fallen, USA vs DM vs EM vs country specialists, wrapper bid/offer, levered sentiment. Fund creations are facts. Ports/exports/BOP sit beside wrappers — never summed.",
         "verdicts": verdicts,
         "cross_asset": cross_asset,
+        "geo_rotation": geo_rotation,
         "wrapper_intensity": wrapper_intensity,
         "levered_sentiment": levered_sentiment,
         "sleeves": {
@@ -1120,6 +1424,7 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
             "cross_asset": "unlevered wrapper $ across mega/large/small equity vs duration vs T-bills vs IG vs HY vs fallen angels. SPY/VOO/IVV gross vs net flags share-class plumbing.",
             "wrapper": "gross creations vs redemptions on unlevered desk funds — cashing in/out of the ETF complex",
             "levered": "2x/3x/inverse creations as speculative positioning, never added into beta or duration",
+            "geo": "USA/DM/EM/country ETF wrappers vs PortWatch, Asia exports, TWSE/KRX/JPX foreign boards, quarterly BOP. Cadences stay separate.",
         },
         "caveats": [
             "Do not label any of this institutional buying/selling of a stock.",
@@ -1127,6 +1432,8 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
             "Custom/cash baskets break flow×weight. Disagreement is a tell.",
             "Levered/inverse creations are not 1:1 underlying demand.",
             "21d windows on the desk may be partial — see flow_windows.complete.",
+            "Do not add EFA + EWJ or EEM + EWT. Specialists sit inside the beta wrappers.",
+            "Export YoY and port AIS are trade, not capital flow.",
         ],
     }
 
