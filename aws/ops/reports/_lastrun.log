@@ -1,9 +1,10 @@
-executing-against: 9faf19a2c7ee18b6d62577b26f85f10b0296afbe
-ops 5580 -- harvest serving path: Cloudflare data-proxy -> S3 (no CloudFront); origin freshness
-[04:35:33] ✅ s3://justhodl-dashboard-live/data/fmp-ratios.json: 181618 bytes, application/json, cache-control=max-age=300, last-modified=2026-09-15 04:25:42+00:00
-[04:35:33] ✅ s3://justhodl-dashboard-live/data/cryptoquant-onchain.json: 59938 bytes, application/json, cache-control=max-age=300, last-modified=2026-09-15 04:19:18+00:00
-[04:35:33] ✅ s3://justhodl-dashboard-live/data/symbology/master.json: 3816209 bytes, application/json, cache-control=no-cache, last-modified=2026-09-14 05:16:06+00:00
-[04:35:33] ✅ serving: justhodl.ai/data/* -> Cloudflare worker justhodl-data-proxy -> S3 object (max-age 300 s); no invalidation exists or is needed
-[04:35:33] ✅ GREEN -- harvest reachable from the chart's origin; the chart bug was the lookup key (US__AAPL), fixed in 5a3eb89cc
+executing-against: 78d1678fc5f232dc76ae1a0f3a35924c894a04ad
+ops 5581 -- provider catalog refresh (data.html): invoke after deploy, verify the new providers are listed
+[13:34:34] ✅ invoke status=200 error=None payload={"statusCode": 200, "body": "{\"ok\": true, \"providers\": 73, \"datasets\": 821822, \"keys\": 1932288, \"bytes\": 533796249696, \"gb\": 533.8}"}
+[13:34:34] ✅ data/provider-catalog.json: 73 providers, generated None; totals={"providers": 73, "datasets": 821822, "keys": 1932288, "bytes": 533796249696, "gb": 533.8}
+[13:34:34]   openfigi: keys=None hot=null
+[13:34:34]   cryptoquant: keys=None hot=null
+[13:34:34]   fmp: keys=None hot=null
+[13:34:34] ✅ GREEN -- data.html now lists FMP and every other provider
 
-→ Report written to aws/ops/reports/latest/ops_5580_fmp_harvest_cdn.md
+→ Report written to aws/ops/reports/latest/ops_5581_provider_catalog_refresh.md
