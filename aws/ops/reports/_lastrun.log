@@ -1,14 +1,14 @@
-executing-against: 1dc899fc2795151996b2c8ef50f49ed4a21621e9
-[00:17:02] ✅ invoke FunctionError=None body={"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"status\": \"QUARANTINED\", \"identity_ok\": false, \"n_products_with_data\": 0, \"n_signals\": 0, \"elapsed_s\": 1.8, \"version\": \"2.0.1\"}"}
-[00:17:02] ✅ status=QUARANTINED identity_ok=False n=0 version=2.0.1
-[00:17:02] ✅ identity S&P status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity NDX status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity CRUDE status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity GOLD status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity SILVER status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity COPPER status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity NATGAS status=QUARANTINED http=200 err= n_contracts=0
-[00:17:02] ✅ identity VIX status=NOT_ENTITLED http=None err= n_contracts=0
-[00:17:02] ✅ GREEN
-
-→ Report written to aws/ops/reports/latest/ops_5566_futures_retry.md
+executing-against: 07c55786d93fcf44ae05fb150eaea97c7c0176bc
+invoke justhodl-etf-global-desk
+lambda {"status": "LIVE", "n": 87, "n_ok": {"flows": 87, "profiles": 87, "constituents": 87}, "elapsed_s": 6.0, "version": "1.4.0", "derived": {"verdicts": {"thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "leverage_flags": 1}, "n_by_ticker": 126, "n_crowding": 25, "n_leverage": 1}}
+derived version 1.4.0 status LIVE
+verdicts {'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'leverage_flags': 1}
+n_by_ticker 126
+n_crowding 25
+n_confirmed 12
+n_disagreed 3
+n_leverage 1
+bond_leaders 30
+SPY hhi 220.3 px_flow DISTRIBUTION levered False
+IBIT flow_5d 67176931.84 sleeve crypto:btc_spot
+elapsed 9.0
