@@ -1,71 +1,23 @@
-executing-against: 273afb0521f41c678f1cc8497c2655e7ca10f4f6
-ops 5573 -- generation-1 training forensics (read-only)
-[03:04:46] ✅ log stream jh-gearb-gen1-20260915-024201/algo-1-1789440784: 120 events (tail)
-[03:04:46]   SM_HPS={"base_manifest_sha256":"8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41","base_revision":"c03e6d358207e414f1eca0bb1891e29f1db0e242","chat_dataset":"False","epoch":1,"epochs":1,"instruction_tuned":"True","learning_rate":0.0001,"load_in_4bit":true,"lora_alpha":32,"lora_dropout
-[03:04:46]   SM_USER_ENTRY_POINT=train_qlora.py
-[03:04:46]   SM_FRAMEWORK_PARAMS={}
-[03:04:46]   SM_RESOURCE_CONFIG={"current_group_name":"homogeneousCluster","current_host":"algo-1","current_instance_type":"ml.g5.2xlarge","hosts":["algo-1"],"instance_groups":[{"hosts":["algo-1"],"instance_group_name":"homogeneousCluster","instance_type":"ml.g5.2xlarge"}],"network_interface_name":"eth0","topolo
-[03:04:46]   SM_INPUT_DATA_CONFIG={"model":{"RecordWrapperType":"None","S3DistributionType":"FullyReplicated","TrainingInputMode":"File"},"training":{"RecordWrapperType":"None","S3DistributionType":"FullyReplicated","TrainingInputMode":"File"}}
-[03:04:46]   SM_OUTPUT_DATA_DIR=/opt/ml/output/data
-[03:04:46]   SM_CHANNELS=["model","training"]
-[03:04:46]   SM_CURRENT_HOST=algo-1
-[03:04:46]   SM_CURRENT_INSTANCE_TYPE=ml.g5.2xlarge
-[03:04:46]   SM_CURRENT_INSTANCE_GROUP=homogeneousCluster
-[03:04:46]   SM_CURRENT_INSTANCE_GROUP_HOSTS=["algo-1"]
-[03:04:46]   SM_INSTANCE_GROUPS=["homogeneousCluster"]
-[03:04:46]   SM_INSTANCE_GROUPS_DICT={"homogeneousCluster":{"hosts":["algo-1"],"instance_group_name":"homogeneousCluster","instance_type":"ml.g5.2xlarge"}}
-[03:04:46]   SM_DISTRIBUTION_INSTANCE_GROUPS=[]
-[03:04:46]   SM_IS_HETERO=false
-[03:04:46]   SM_MODULE_NAME=train_qlora
-[03:04:46]   SM_LOG_LEVEL=20
-[03:04:46]   SM_FRAMEWORK_MODULE=sagemaker_pytorch_container.training:main
-[03:04:46]   SM_INPUT_DIR=/opt/ml/input
-[03:04:46]   SM_INPUT_CONFIG_DIR=/opt/ml/input/config
-[03:04:46]   SM_OUTPUT_DIR=/opt/ml/output
-[03:04:46]   SM_NUM_CPUS=8
-[03:04:46]   SM_NUM_GPUS=1
-[03:04:46]   SM_NUM_NEURONS=0
-[03:04:46]   SM_MODEL_DIR=/opt/ml/model
-[03:04:46]   SM_MODULE_DIR=s3://justhodl-ai-857687956942/factory/training/bundles/train-00432192e1b2b157.tar.gz
-[03:04:46]   SM_TRAINING_ENV={"additional_framework_parameters":{},"channel_input_dirs":{"model":"/opt/ml/input/data/model","training":"/opt/ml/input/data/training"},"current_host":"algo-1","current_instance_group":"homogeneousCluster","current_instance_group_hosts":["algo-1"],"current_instance_type":"ml.g5.2xla
-[03:04:46]   SM_USER_ARGS=["--base_manifest_sha256","8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41","--base_revision","c03e6d358207e414f1eca0bb1891e29f1db0e242","--chat_dataset","False","--epoch","1","--epochs","1","--instruction_tuned","True","--learning_rate","0.0001","--load_in_4bit","True"
-[03:04:46]   SM_OUTPUT_INTERMEDIATE_DIR=/opt/ml/output/intermediate
-[03:04:46]   SM_CHANNEL_MODEL=/opt/ml/input/data/model
-[03:04:46]   SM_CHANNEL_TRAINING=/opt/ml/input/data/training
-[03:04:46]   SM_HP_BASE_MANIFEST_SHA256=8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41
-[03:04:46]   SM_HP_BASE_REVISION=c03e6d358207e414f1eca0bb1891e29f1db0e242
-[03:04:46]   SM_HP_CHAT_DATASET=False
-[03:04:46]   SM_HP_EPOCH=1
-[03:04:46]   SM_HP_EPOCHS=1
-[03:04:46]   SM_HP_INSTRUCTION_TUNED=True
-[03:04:46]   SM_HP_LEARNING_RATE=0.0001
-[03:04:46]   SM_HP_LOAD_IN_4BIT=true
-[03:04:46]   SM_HP_LORA_ALPHA=32
-[03:04:46]   SM_HP_LORA_DROPOUT=0.05
-[03:04:46]   SM_HP_LORA_R=16
-[03:04:46]   SM_HP_MAX_INPUT_LENGTH=2048
-[03:04:46]   SM_HP_MAX_SEQ_LEN=2048
-[03:04:46]   SM_HP_MAX_STEPS=400
-[03:04:46]   SM_HP_PEFT_TYPE=lora
-[03:04:46]   PYTHONPATH=/opt/ml/code:/opt/conda/bin:/opt/conda/lib/python311.zip:/opt/conda/lib/python3.11:/opt/conda/lib/python3.11/lib-dynload:/opt/conda/lib/python3.11/site-packages
-[03:04:46]   Invoking script with the following command:
-[03:04:46]   /opt/conda/bin/python3.11 train_qlora.py --base_manifest_sha256 8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41 --base_revision c03e6d358207e414f1eca0bb1891e29f1db0e242 --chat_dataset False --epoch 1 --epochs 1 --instruction_tuned True --learning_rate 0.0001 --load_in_4bit True --lo
-[03:04:46]   2026-09-15 02:57:49,551 sagemaker-training-toolkit INFO     Exceptions not imported for SageMaker Debugger as it is not installed.
-[03:04:46]   2026-09-15 02:57:49,551 sagemaker-training-toolkit INFO     Exceptions not imported for SageMaker TF as Tensorflow is not installed.
-[03:04:46]   {"schema_version": "factory-train-manifest.v1", "started_at": "2026-09-15T02:57:49Z", "base_revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242", "base_manifest_sha256": "8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41", "eligibility_digest": "1657cdeecb63c74c7438fd36dcd4efc834de6e
-[03:04:46]   2026-09-15 02:57:49,605 sagemaker-training-toolkit INFO     Waiting for the process to finish and give a return code.
-[03:04:46]   2026-09-15 02:57:49,605 sagemaker-training-toolkit INFO     Done waiting for a return code. Received 3 from exiting process.
-[03:04:46]   2026-09-15 02:57:49,606 sagemaker-training-toolkit ERROR    Reporting training FAILURE
-[03:04:46]   2026-09-15 02:57:49,606 sagemaker-training-toolkit ERROR    ExecuteUserScriptError:
-[03:04:46]   ExitCode 3
-[03:04:46]   ErrorMessage ""
-[03:04:46]   Command "/opt/conda/bin/python3.11 train_qlora.py --base_manifest_sha256 8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf1e41 --base_revision c03e6d358207e414f1eca0bb1891e29f1db0e242 --chat_dataset False --epoch 1 --epochs 1 --instruction_tuned True --learning_rate 0.0001 --load_in_4bit 
-[03:04:46]   2026-09-15 02:57:49,606 sagemaker-training-toolkit ERROR    Encountered exit_code 1
-[03:04:47] ✅ dataset keys: ["factory/gearb/datasets/gen-1/manifest.json", "factory/gearb/datasets/gen-1/template.json", "factory/gearb/datasets/gen-1/train.jsonl"]
-[03:04:47]   manifest.json :: {"at":"2026-09-15T02:42:01.521612Z","dropped":{"diversity":0,"duplicate":1527,"holdout":0,"license":0,"provenance":0,"reject_prefix":0},"eligibility_digest":"1657cdeecb63c74c7438fd36dcd4efc834de6ee56ead6e91f72642b36ca4dafc","excluded":["factory/traces/_reject/"],"families":2,"floor":500,"generation":1,"holdout_digest":"b926ab5e305c6ce5764adfcbc93ea5f89bc596424f31e26a4cdea54066781fd2","kept":570,"kinds":{"public_benchmark_train":570},"licenses":{"CC-BY-4.0":464,"MIT":106},"ok":true,"prefix":"factory/gearb/datasets/gen-1/","rows_sha256":["59255386235fcf4c22041ab3e704ba24a708045ae29ba7747567d48697be8a7b","f5317505e95da54778ebdf5957f4efc1aa14d2f9ccbb602982db468a42aa5631","933af37e483d0fd966db271
-[03:04:47]   template.json :: {"completion":"{response}","prompt":"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{instruction}\n\n### Response:\n"}
-[03:04:47]   train.jsonl :: {"context":"","instruction":"=====Problem Statement=====\nGiven the names and grades for each student in a class of N students, store them in a nested list and print the name(s) of any student(s) having the second lowest grade.\nNOTE: If there are multiple students with the second lowest grade, order their names alphabetically and print each name on a new line.\n\n=====Example=====\nrecords = [[\"chi\",20.0],[\"beta\",50.0],[\"alpha\",50.0]]\nThe ordered list of scores is [20.0,50.0], so the second lowest score is 50.0. There are two students with that score: [\"beta\",\"alpha\"]. Ordered alphabetically, the names are printed as:\nalpha\nbeta\n\n=====Input Format=====\nThe first line contain
-[03:04:47] ✅ pin: bundle=train-00432192e1b2b157.tar.gz image=f4e69aab6e74558f38b45c9ff5f67bd143366e86
-[03:04:47] ✅ GREEN -- forensics recorded
+executing-against: 1a02961bd418f4fd6b69bd7f376cf50012129a9e
+ops 5574 -- generation 1 (bundle re-pinned with the dataset contract): feasible family share for two families, then the Gear B tick (launch=true) via the owner route
+{
+  "bundle": "written",
+  "bundle_key": "factory/training/bundles/train-0dbdf02a4a83d435.tar.gz",
+  "bundle_sha256": "0dbdf02a4a83d435eb8402a4ddc3cd1dcfc2fd167f3322b815dba37eaeba8a1f",
+  "pin_key": "factory/training/current.json",
+  "image": "857687956942.dkr.ecr.us-east-1.amazonaws.com/justhodl/factory-train:hf-pt2.3-tf4.46-cu121@sha256:39b1be47f293d0cb62b0e4b3f4e69aab6e74558f38b45c9ff5f67bd143366e86"
+}
+[03:09:31] ✅ bundle re-pinned: train-00432192e1b2b157.tar.gz -> train-0dbdf02a4a83d435.tar.gz; trainer accepts instruction/context/response=True; image kept=True
+[03:09:31] ✅ gearb control: {"max_family_share": 0.85, "min_sft_rows": 500, "max_jobs_per_day": 3, "daily_budget_usd": 20.0, "season_cap_usd": 600.0} -> max_family_share 0.85, min_sft_rows 500, max_jobs_per_day 3 (dated copy kept)
+[03:12:43] ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
+[03:12:43] ✅ tick result: refusal=None built={"ok": true, "generation": 3, "kept": 570, "floor": 500, "missing_rows": null, "reason": null}
+[03:12:43] ✅ GEN-1 TRAINING LAUNCHED: {"schema_version": "gearb-job.v1", "job_name": "jh-gearb-gen3-20260915-031242", "kind": "sft", "generation": 3, "model_id": "qwen2-5-coder-7b-instruct", "instance_type": "ml.g5.2xlarge", "spot": true, "max_runtime_s": 10800, "usd_per_hour": 1.515, "cap_usd": 4.545, "price_source": "aws-price-list", "training_uri": "s3://justhodl-ai-857687956942/factory/gearb/datasets/gen-3/", "out_uri": "s3://justhodl-ai-857687956942/factory/champions/gen-3/", "eligibility_digest": "6efdf8fbc6ab152c71077876b1e96c1ed93b0800f84a5f5eefdaa8172eaa8b8d", "train_sha256": "38f7eecedf107995b3266dca60337a5433f4420ca6685
+[03:12:43] ✅ GREEN -- generation 1 is training inside the refusal chain; next: adapter -> exam -> promotion by contract
 
-→ Report written to aws/ops/reports/latest/ops_5573_gen1_training_forensics.md
+→ Report written to aws/ops/reports/latest/ops_5574_gen1_launch3.md
+ops 5572 -- generation 1: wait for training, extract the adapter, launch the frozen exam with it
+[04:22:53] ✅ training job jh-gearb-gen3-20260915-031242 status=InProgress secondary=Starting train_s=None billable_s=None reason=
+[04:22:53] ✗ generation 1 is not complete (InProgress); re-arm when it is -- nothing launched
+
+→ Report written to aws/ops/reports/latest/ops_5575_gen1_adapter_exam2.md
+❌ OPS-FAIL: aws/ops/pending/ops_5575_gen1_adapter_exam2.py
