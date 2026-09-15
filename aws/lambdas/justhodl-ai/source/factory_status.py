@@ -19,7 +19,9 @@ INSIDE_ACTIONS = {"burst": "dispatch a trace burst on the curriculum (ops)", "ve
                   "exam": "run the frozen HumanEval exam on the current adapter", "status": "self-report", "spawn": "materialize recruits"}
 STATUS_WORDS = ("status", "where do you stand", "where are you", "what did you learn", "what have you learned", "progress", "report", "how far",
                 "are you learning", "learning to code", "can you code", "do you code", "can you program", "what can you do", "how do you learn",
-                "how are you learning", "are you getting smarter", "what have you done", "how smart", "what do you know")
+                "how are you learning", "are you getting smarter", "what have you done", "how smart", "what do you know",
+                "did you learn", "have you learned", "learned anything", "learned coding", "learn coding", "learning progress", "how much have you learned",
+                "are you trained", "were you trained", "did you train", "have you trained", "any learning", "getting better", "improving")
 
 
 def capability_text():
@@ -102,6 +104,20 @@ def status_text(store):
         lines.append("Training jobs: %d; last %s status %s (gen %s, cap $%s)." % (len(f["jobs"]), j.get("job_name"), j.get("status"), j.get("generation"), j.get("cap_usd")))
     else:
         lines.append("Training jobs: none launched yet.")
+    base = _get(store, store.private, "factory/exams/code/results/base.json")
+    results = [_get(store, store.private, k) for k in _list(store, store.private, "factory/exams/code/results/", cap=100)]
+    cands = [r for r in results if isinstance(r, dict) and str(r.get("generation") or "").startswith("gen-") and r.get("generation") != "gen-0"]
+    latest_cand = sorted(cands, key=lambda r: str(r.get("at") or ""))[-1] if cands else None
+    if base and int(base.get("critical_failures") or 0) == 0:
+        lines.append("Frozen exam (164 held-out HumanEval tasks, never trained on): BASE model %d/%d = %.1f%%." % (int(base.get("passed") or 0), int(base.get("n") or 0), 100.0 * float(base.get("score") or 0)))
+        if latest_cand and int(latest_cand.get("critical_failures") or 0) == 0:
+            delta = 100.0 * (float(latest_cand.get("score") or 0) - float(base.get("score") or 0))
+            lines.append("Candidate %s: %d/%d = %.1f%% -> LEARNING = %+.1f points%s." % (latest_cand.get("generation"), int(latest_cand.get("passed") or 0), int(latest_cand.get("n") or 0),
+                         100.0 * float(latest_cand.get("score") or 0), delta, " (promoted)" if latest_cand.get("promoted") else " (not promoted yet)"))
+        else:
+            lines.append("Candidate: not examined yet -> LEARNING = 0.0 points so far (a trained adapter counts only after this exam).")
+    else:
+        lines.append("Frozen exam: no trusted base score yet -> LEARNING cannot be computed (no number is claimed).")
     st = f["state"]
     wall = (st.get("wall") or {})
     ranks = (st.get("ranks") or {})

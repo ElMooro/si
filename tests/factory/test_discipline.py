@@ -430,6 +430,9 @@ class StatusAndTasksTests(Base):
         # the question that used to advance a curriculum step is a capability question -> objects, not a lesson
         out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'are you learning to code?'}, store)
         self.assertEqual(out['model'], 'factory-status:objects')
+        out = gateway.handle(event, 'POST', '/factory/chat', {'text': 'did you learn coding?'}, store)
+        self.assertEqual(out['model'], 'factory-status:objects')
+        self.assertIn('LEARNING', out['reply'])
         self.assertIn('no OWNED-model inference runs behind this chat box', out['reply'])
         self.assertNotIn('LEARNED THIS TURN', out['reply'])
         # an explicit order advances the reading track and is labelled as reading, never learning
