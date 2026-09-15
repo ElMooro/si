@@ -12,6 +12,7 @@ Each engine supplies its own page-specific framing (thesis prompt, scorecard).
 import json
 import os
 import math
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -26,15 +27,29 @@ FMP_KEY = managed_secret(("FMP_KEY", "FMP_API_KEY"), ("/justhodl/fmp/api-key",))
 BASE = "https://financialmodelingprep.com/stable"
 
 
+KEY_STATUS = {"status": "unknown"}
+
+
 def fmp(path, params):
     p = dict(params); p["apikey"] = FMP_KEY
     url = f"{BASE}/{path}?" + urllib.parse.urlencode(p)
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
         with urllib.request.urlopen(req, timeout=15) as r:
+            KEY_STATUS["status"] = "ok"
             return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            KEY_STATUS.update(status="unauthorized", http=e.code, path=path)   # visible, never "no data"
+        else:
+            KEY_STATUS.update(status="http_%d" % e.code, path=path)
+        return None
     except Exception:
         return None
+
+
+def key_status():
+    return dict(KEY_STATUS)
 
 
 def num(v):
