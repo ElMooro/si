@@ -201,6 +201,32 @@ def fetch_constituents(etf):
     return out
 
 
+
+def _by_ticker_slice(rows, *lists):
+    """Always publish mega/large (FMP harvest) + any name already on a leader list.
+    Full 15k rows stay off the public file; chart/joiners need the mega names."""
+    keep = set()
+    try:
+        fmp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/fmp-ratios.json")["Body"].read())
+        keep |= {str(t).upper() for t in (fmp.get("tickers") or {})}
+    except Exception:
+        pass
+    for lst in lists:
+        for r in lst or []:
+            if isinstance(r, dict) and r.get("ticker"):
+                keep.add(str(r["ticker"]).upper())
+    fields = ("ticker", "net_flow_5d_usd", "net_flow_daily_usd", "flow_type",
+              "confirmed", "disagreed", "etf_ownership_pct", "n_etfs",
+              "flow_bps_mcap", "shares_delta_usd", "industry", "drivers",
+              "broad_flow_5d_usd", "thematic_flow_5d_usd")
+    out = {}
+    for r in rows or []:
+        tk = str(r.get("ticker") or "").upper()
+        if tk in keep:
+            out[tk] = {k: r.get(k) for k in fields}
+    return out
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     flows = getj(FLOWS_KEY)
@@ -427,30 +453,6 @@ def lambda_handler(event, context):
         basis_note="graph coverage: %s tickers with adv" % sum(
             1 for v in gtk.values() if v.get("adv_usd")))
 
-
-def _by_ticker_slice(rows, *lists):
-    """Always publish mega/large (FMP harvest) + any name already on a leader list.
-    Full 15k rows stay off the public file; chart/joiners need the mega names."""
-    keep = set()
-    try:
-        fmp = json.loads(S3.get_object(Bucket=BUCKET, Key="data/fmp-ratios.json")["Body"].read())
-        keep |= {str(t).upper() for t in (fmp.get("tickers") or {})}
-    except Exception:
-        pass
-    for lst in lists:
-        for r in lst or []:
-            if isinstance(r, dict) and r.get("ticker"):
-                keep.add(str(r["ticker"]).upper())
-    fields = ("ticker", "net_flow_5d_usd", "net_flow_daily_usd", "flow_type",
-              "confirmed", "disagreed", "etf_ownership_pct", "n_etfs",
-              "flow_bps_mcap", "shares_delta_usd", "industry", "drivers",
-              "broad_flow_5d_usd", "thematic_flow_5d_usd")
-    out = {}
-    for r in rows or []:
-        tk = str(r.get("ticker") or "").upper()
-        if tk in keep:
-            out[tk] = {k: r.get(k) for k in fields}
-    return out
 
     out = {
         "engine": "justhodl-flow-lookthrough",
