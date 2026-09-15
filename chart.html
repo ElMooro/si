@@ -147,7 +147,7 @@ a{color:inherit;text-decoration:none}
 .ss-hit .ds{font-size:13px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ss-hit .ss-ex{font-size:12px;color:var(--mut);white-space:nowrap}
 .ss-hit .ss-more{width:28px;height:28px;border-radius:4px;color:var(--mut)}
-.sschips{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.sschips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--line)}
 .sschips button{flex:none;padding:6px 12px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
 .sschips button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 #symsearch{display:none;position:fixed;inset:0;z-index:47;background:rgba(19,23,34,.55);align-items:flex-start;justify-content:center;padding-top:8vh}
@@ -578,7 +578,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="typeq"></div>
 <div id="symsearch"><div class="sbox">
   <div class="shd"><b id="sshd">Symbol search</b><button type="button" id="ssx" title="Close">×</button></div>
-  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Symbol, ISIN, or CUSIP" autocomplete="off"></div>
+  <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Ticker, SOFR, MVRV, 13F, exports…" autocomplete="off"></div>
   <div class="sschips" id="sschips"></div>
   <div id="ssres"></div>
 </div></div>
@@ -607,7 +607,8 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-dock.js?v=1"></script>
 <script src="/jh-chart-studio.js?v=8"></script>
 <script src="/jh-chart-tvrail.js?v=10"></script>
-<script src="/jh-chart-engine.js?v=43"></script>
+<script src="/jh-chart-catalog.js?v=20260915q-cat"></script>
+<script src="/jh-chart-engine.js?v=20260915q-cat"></script>
 <script src="/jh-chart-tvux.js?v=12"></script>
 <script src="/jh-chart-indux.js?v=14"></script>
 <script src="/jh-etf-fuse.js?v=20260915p-hold"></script>

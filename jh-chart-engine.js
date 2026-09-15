@@ -308,6 +308,9 @@
       var mkt=FRED_MKT[ticker]||{};
       return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
     }
+    if(venue==="CQ" || venue==="CISS" || venue==="DESK"){
+      return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
+    }
     var ys=yahooSym(ticker);
     if(/^\^/.test(ticker) || ticker==="DX-Y.NYB") ys=ticker;
     return {raw:s, venue:venue, ticker:ticker, yahoo:ys, engine:"equity"};
@@ -1442,6 +1445,16 @@
     var key=t+"|"+tfId, now=Date.now();
     if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=8){
       if(!quiet) lastSource=barCache[key].src||lastSource; return barCache[key].d;
+    }
+    if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){
+      try{
+        var catBars=await window.JHChartCatalog.klines(sym, tfId, quiet);
+        if(catBars && catBars.d && catBars.d.length>=8){
+          if(!quiet) lastSource=catBars.src||"catalog";
+          barCache[key]={d:catBars.d, at:now, src:catBars.src||"catalog"};
+          return catBars.d;
+        }
+      }catch(eCat){}
     }
     var ws=warehouseSpec(tfId);
     var yInt=(ws.span==="day")?"1d":sp[2], yRange=(ws.span==="day")?"max":sp[3];
@@ -3216,6 +3229,8 @@
   }
   function classifySym(s){
     s=String(s||"");
+    var cat=window.JHChartCatalog && window.JHChartCatalog.classify ? window.JHChartCatalog.classify(s) : "";
+    if(cat) return cat==="desk"?"desk":cat;
     if(/^FRED:|^T10|^DGS|^SOFR|^EFFR|^CPI|^GDP/i.test(s)) return "macro";
     if(/USDT|BTC|ETH|PEPE|SOL|DOGE/i.test(s)) return "crypto";
     if(/USD$|EUR|JPY|GBP|FX:/i.test(s)) return "fx";
@@ -3245,6 +3260,11 @@
       var hit=a.q.some(function(k){ return k===n || n.indexOf(k)>=0 || k.indexOf(n)>=0; });
       if(hit && !seen[a.s]){ seen[a.s]=1; out.push({s:a.s, name:a.n, extra:"best match", type:a.type, q:a.q}); }
     });
+    if(window.JHChartCatalog && window.JHChartCatalog.aliasHits){
+      window.JHChartCatalog.aliasHits(q).forEach(function(a){
+        if(!seen[a.s]){ seen[a.s]=1; out.push({s:a.s, name:a.name, extra:a.extra||"catalog", type:a.type||"economy"}); }
+      });
+    }
     return out;
   }
   function displayTicker(s){
@@ -3258,6 +3278,7 @@
       }
     }
     if(/^FRED:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
+    if(/^CQ:|^CISS:|^DESK:/i.test(s)) return s;
     return bare(s);
   }
   function pinBest(q){
@@ -3273,12 +3294,21 @@
   }
   function chartId(s){
     s=String(s||"").trim();
+    if(window.JHChartCatalog && window.JHChartCatalog.chartId){
+      var mapped=window.JHChartCatalog.chartId(s);
+      if(mapped) s=mapped;
+    }
     var rs=resolveSym(s);
     if(rs.engine==="fred") return rs.raw;
     if(/^FRED:/i.test(s) || /^\^/.test(s) || s.indexOf("=")>=0) return rs.ticker||s.toUpperCase();
+    if(/^CQ:|^CISS:|^DESK:/i.test(s)) return s;
     return bare(rs.ticker||s);
   }
   function goSymbol(s, dest){
+    if(window.JHChartCatalog && window.JHChartCatalog.go && window.JHChartCatalog.go(s, dest)){
+      closeSymSearch();
+      return;
+    }
     s=chartId(s);
     if(!s) return;
     rememberRecent(s);
@@ -3335,12 +3365,12 @@
     wrap.className="on"+(dest==="compare"?" compare":"");
     wrap.dataset.dest=dest;
     var hd=document.getElementById("sshd") || wrap.querySelector(".shd b");
-    if(hd) hd.textContent=dest==="compare"?"Compare symbols":"Symbol search";
+    if(hd) hd.textContent=dest==="compare"?"Compare symbols":"Symbol & data search";
     var inp=document.getElementById("ssin");
     var top=document.getElementById("symin");
     var bar=document.getElementById("tv-symwrap");
     var q=pre!=null?pre:(inp?inp.value:"");
-    if(inp){ inp.value=q; inp.placeholder="Symbol, ISIN, or CUSIP"; inp.focus(); }
+    if(inp){ inp.value=q; inp.placeholder="Ticker, SOFR, MVRV, 13F, exports…"; inp.focus(); }
     if(top) top.value=q;
     if(bar){ if(dest==="chart") bar.classList.add("searching"); else bar.classList.remove("searching"); }
     ssTab="all"; ssSel=0;
@@ -3361,7 +3391,7 @@
     if(q && q.length>1) dirSearch(q);
   }
   function renderSsChips(){
-    var chips=[["all","All"],["stocks","Stocks"],["etfs","Funds"],["crypto","Crypto"],["fx","Forex"],["macro","Economy"],["lists","Lists"],["notes","Notes"]];
+    var chips=(window.JHChartCatalog && window.JHChartCatalog.chips)?window.JHChartCatalog.chips():[["all","All"],["stocks","Stocks"],["etfs","Funds"],["crypto","Crypto"],["fx","Forex"],["macro","Economy"],["lists","Lists"],["notes","Notes"]];
     document.getElementById("sschips").innerHTML=chips.map(function(c){ return "<button class='"+(ssTab===c[0]?"on":"")+"' data-c='"+c[0]+"'>"+c[1]+"</button>"; }).join("");
     document.querySelectorAll("#sschips [data-c]").forEach(function(b){ b.onclick=function(){ ssTab=b.dataset.c; renderSsChips(); renderSymSearch(document.getElementById("ssin").value); }; });
   }
@@ -3442,11 +3472,15 @@
       if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;
       var cls=classifySym(s);
       if(!force){
-        if(ssTab==="stocks"&&cls!=="stock") return;
-        if(ssTab==="etfs"&&cls!=="etf") return;
-        if(ssTab==="crypto"&&cls!=="crypto") return;
-        if(ssTab==="fx"&&cls!=="fx") return;
-        if(ssTab==="macro"&&cls!=="macro"&&cls!=="economy") return;
+        if(window.JHChartCatalog && window.JHChartCatalog.tabMatch){
+          if(!window.JHChartCatalog.tabMatch(ssTab, cls, type||cls, full)) return;
+        } else {
+          if(ssTab==="stocks"&&cls!=="stock") return;
+          if(ssTab==="etfs"&&cls!=="etf") return;
+          if(ssTab==="crypto"&&cls!=="crypto") return;
+          if(ssTab==="fx"&&cls!=="fx") return;
+          if(ssTab==="macro"&&cls!=="macro"&&cls!=="economy") return;
+        }
         if(ssTab==="notes" && !noteObj(s).text) return;
         if(ql && String(s).toLowerCase().indexOf(ql)<0 && String(name||"").toLowerCase().indexOf(ql)<0 && String(extra||"").toLowerCase().indexOf(ql)<0) return;
       }
@@ -3506,11 +3540,18 @@
       if(kindType==="dataset") return;
       ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType, label:displayTicker(s)});
     }
+    if(window.JHChartCatalog && window.JHChartCatalog.search){
+      window.JHChartCatalog.search(q).forEach(function(hit){
+        addRow(hit.s, hit.name, hit.extra, hit.type);
+      });
+    }
     try{
       var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=40");
       var j=await r.json();
       if(ssYq!==q) return;
       (j.rows||[]).forEach(function(row){
+        var mapped=window.JHChartCatalog && window.JHChartCatalog.mapRow ? window.JHChartCatalog.mapRow(row) : null;
+        if(mapped){ addRow(mapped.s, mapped.name, mapped.extra, mapped.type); return; }
         var id=row.id||row.symbol||row.ticker;
         var kind=row.kind||row.type||"";
         if(kind==="dataset") return;
