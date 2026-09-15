@@ -1,26 +1,16 @@
-executing-against: e00e860ffa0dea4aee14494d22ddb7d119c786b4
-wait for justhodl-etf-global-desk Active + 1.5.1
-lambda Successful Active timeout 300
-invoke justhodl-etf-global-desk try 0
-lambda body {"status": "LIVE", "n": 111, "n_ok": {"flows": 111, "profiles": 111, "constituents": 111}, "elapsed_s": 6.8, "version": "1.5.1", "derived": {"verdicts": {"risk": "RISK_OFF", "fear_greed": "FEAR", "rotation": "BONDS_OVER_STOCKS", "size": "SIZE_ON", "wrapper": "BALANCED", "levered": "SPEC_FEAR", "thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "leverage_flags": 25}, "n_by_ticker": 150, "n_crowding": 25, "n_leverage": 25}}
-derived version 1.5.1 status LIVE
-verdicts {'risk': 'RISK_OFF', 'fear_greed': 'FEAR', 'rotation': 'BONDS_OVER_STOCKS', 'size': 'SIZE_ON', 'wrapper': 'BALANCED', 'levered': 'SPEC_FEAR', 'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'leverage_flags': 25}
-risk RISK_OFF FEAR BONDS_OVER_STOCKS SIZE_ON
-equity_5d -8506216889.32 gov_5d 4222985845.38 credit_5d -3924155669.75
-mega -10275319378.12 large 172479336.05 small 1596623152.75
-duration 1898628687.8 t_bills 2292324595.48
-hy -1461733193.7 fallen -24094188.9
-spx plumbing True -8468368305.12
-wrapper BALANCED in 19091422345.21 out 14010513518.06
-heavy [('VOO', 13826662934.4), ('IVV', -6053409855.9), ('SPY', -3448075813.0), ('IWM', 1826812526.2), ('QQQ', -1239892150.0)]
-levered SPEC_FEAR bull -65206120.0 bear 478305149.5
-TQQQ flow_5d 168866215.0 levered True in_by True
-SQQQ flow_5d 29830845.0 levered True in_by True
-UPRO flow_5d 7407065.0 levered True in_by True
-SOXL flow_5d -290237400.0 levered True in_by True
-TNA flow_5d 35185250.0 levered True in_by True
-SH flow_5d 54121442.5 levered True in_by True
-UVXY flow_5d -861300.0 levered True in_by True
-desk version 1.5.1 n 111 n_ok {'flows': 111, 'profiles': 111, 'constituents': 111}
-elapsed 9.9
-OK 1.5.1 RISK_OFF FEAR BALANCED SPEC_FEAR
+executing-against: 9e213aabfccc57c042d24aa7a809dcdd0c8e6f5c
+try 0 state Active update Successful
+invoke justhodl-etf-global-desk
+lambda {"status": "LIVE", "n": 116, "n_ok": {"flows": 116, "profiles": 116, "constituents": 116}, "elapsed_s": 6.8, "version": "1.6.0", "derived": {"verdicts": {"risk": "RISK_OFF", "fear_greed": "FEAR", "rotation": "BONDS_OVER_STOCKS", "size": "SIZE_ON", "wrapper": "BALANCED", "levered": "SPEC_FEAR", "thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "geo": "ABROAD_OVER_USA", "geo_specialist": "TRADE_BID_CAPITAL_OFFER", "leverage_flags": 25}, "n_by_ticker": 155, "n_crowding": 25, "n_leverage": 25}}
+derived version 1.6.0 status LIVE
+verdicts {'risk': 'RISK_OFF', 'fear_greed': 'FEAR', 'rotation': 'BONDS_OVER_STOCKS', 'size': 'SIZE_ON', 'wrapper': 'BALANCED', 'levered': 'SPEC_FEAR', 'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'geo': 'ABROAD_OVER_USA', 'geo_specialist': 'TRADE_BID_CAPITAL_OFFER', 'leverage_flags': 25}
+geo ABROAD_OVER_USA TRADE_BID_CAPITAL_OFFER usa -8431746870.21 dm 1241209273.12 em 7037417.98
+EWT flow_5d 22326286.4 sleeve geo:taiwan ok None
+EWY flow_5d -454520385.6 sleeve geo:korea ok None
+ECH flow_5d -8159339.899999999 sleeve geo:chile ok None
+EPU flow_5d 0.0 sleeve geo:peru ok None
+EFNL flow_5d 27703312.900000002 sleeve geo:finland ok None
+EWJ flow_5d 44574200.4 sleeve geo:japan ok None
+EFA flow_5d 0.0 sleeve geo:dm ok None
+EEM flow_5d 0.0 sleeve geo:em ok None
+elapsed 10.7
