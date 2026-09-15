@@ -337,6 +337,76 @@
     return row;
   }
 
+  function headline(conf) {
+    var v = String((conf && conf.verdict) || "");
+    if (/NOT INSTITUTIONAL/.test(v)) return "NOT SIZE";
+    if (/^CONFIRMED/.test(v)) return "CONFIRMED";
+    if (v === "DIVERGENT") return "DIVERGENT";
+    if (/^ATS ONLY/.test(v)) return "ATS ONLY";
+    if (/^13F ONLY/.test(v)) return "13F ONLY";
+    return "NO READ";
+  }
+
+  function fmtUsd(v) {
+    v = num(v);
+    if (v == null) return "—";
+    var a = Math.abs(v), s = v < 0 ? "−" : v > 0 ? "+" : "";
+    if (a >= 1e12) return s + "$" + (a / 1e12).toFixed(2) + "T";
+    if (a >= 1e9) return s + "$" + (a / 1e9).toFixed(1) + "B";
+    if (a >= 1e6) return s + "$" + (a / 1e6).toFixed(1) + "M";
+    if (a >= 1e3) return s + "$" + (a / 1e3).toFixed(0) + "k";
+    return s + "$" + a.toFixed(0);
+  }
+
+  function atsRow(dp, t) {
+    var board = indexBoard(dp || {});
+    var row = board[t] || null;
+    var xray = ((dp || {}).xray_map || {})[t] || null;
+    var share = ((dp || {}).dark_share_map || {})[t];
+    var atsSh = ((dp || {}).dark_map || {})[t];
+    if (!row && xray) {
+      row = { ticker: t, state: xray.st || "NEUTRAL", dark_pool_pct: xray.dp, dark_accel: xray.acc, ats_shares_wk: atsSh, dark_share: share };
+    }
+    if (row && share != null && row.dark_pool_pct == null) row.dark_pool_pct = share * 100;
+    return row;
+  }
+
+  var NAME_DAILY = {};
+  function nameDaily(t) {
+    NAME_DAILY[t] = NAME_DAILY[t] || {};
+    var slot = NAME_DAILY[t];
+    if (slot.p) return slot.p;
+    slot.p = fetch(PROXY + "/ohlc?ticker=" + encodeURIComponent(t) + "&span=day&mult=1&days=40", { cache: "default" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { slot.tape = tapeFromBars((j && j.bars) || [], null); return slot.tape; })
+      .catch(function () { slot.tape = null; return null; });
+    return slot.p;
+  }
+
+  async function stack(ticker) {
+    var t = bare(ticker);
+    if (!t || !/^[A-Z][A-Z0-9.\-]{0,11}$/.test(t)) {
+      return { ticker: t, headline: "NO READ", conf: {}, ping: false, vs_spy: null, ats: null, inst: null };
+    }
+    var pack = await Promise.all([darkPool(), f13(), spyDaily(), nameDaily(t)]);
+    var dp = pack[0] || {}, instDoc = pack[1] || {}, spy = pack[2], tape = pack[3];
+    var row = atsRow(dp, t);
+    var inst = ((instDoc.tickers || instDoc.by_ticker || {})[t]) || null;
+    var ping = !!(row && (row.venue_fingerprint === "RETAIL_PING" || (num(row.ats_avg_trade_size) >= 1 && num(row.ats_avg_trade_size) < 200)));
+    var conf = confluence(row, inst, ping);
+    return {
+      ticker: t,
+      ats: row,
+      inst: inst,
+      ping: ping,
+      conf: conf,
+      headline: headline(conf),
+      tape: tape,
+      spy: spy,
+      vs_spy: rvolVsSpy(tape, spy)
+    };
+  }
+
   async function of(ticker) {
     var t = bare(ticker);
     var pack = await Promise.all([
@@ -412,10 +482,13 @@
 
   global.JHInstVol = {
     of: of,
+    stack: stack,
     enrich: enrich,
     tapeFromBars: tapeFromBars,
     sessionSplit: sessionSplit,
     rvolVsSpy: rvolVsSpy,
-    confluence: confluence
+    confluence: confluence,
+    headline: headline,
+    fmtUsd: fmtUsd
   };
 })(typeof window !== "undefined" ? window : globalThis);
