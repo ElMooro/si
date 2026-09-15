@@ -1,8 +1,10 @@
-executing-against: 735cffe6cef109d374b8cbaf977d0ec0900a2958
-ops 5571 -- generation 1 (floor -> 500 unique tasks): feasible family share for two families, then the Gear B tick (launch=true) via the owner route
-[02:38:44] ✅ gearb control: {"max_family_share": 0.85, "min_sft_rows": 1500, "max_jobs_per_day": 1, "daily_budget_usd": 20.0, "season_cap_usd": 600.0} -> max_family_share 0.85, min_sft_rows 500 (dated copy kept)
-[02:42:02] ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
-[02:42:02] ✗ no training job launched -- refusal chain: {"ok": true, "action": "/gearb/tick", "result": {"at": "2026-09-15T02:38:46.608445Z", "polled": [], "built": {"ok": true, "generation": 1, "kept": 570, "floor": 500, "missing_rows": null, "reason": null}, "launched": {"schema_version": "gearb-job.v1", "job_name": "jh-gearb-gen1-20260915-024201", "kind": "sft", "generation": 1, "model_id": "qwen2-5-coder-7b-instruct", "instance_type": "ml.g5.2xlarge", "spot": true, "max_runtime_s": 10800, "usd_per_hour": 1.515, "cap_usd": 4.545, "price_source": "aws-price-list", "training_uri": "s3://justhodl-ai-857687956942/factory/gearb/datasets/gen-1/", "out_uri": "s3://justhodl-ai-857687956942/factory/champions/gen-1/", "eligibility_digest": "1657cdeecb63c74c7438fd36dcd4efc834de6ee56ead6e91f72642b36ca4dafc", "train_sha256": "38f7eecedf107995b3266dca60337a5433f4420ca66854d59e314b73f2230b17", "holdout_digest": "b926ab5e305c6ce5764adfcbc93ea5f89bc596424f31e26a4cdea54066781fd2", "launched_at": "2026-09-15T02:42:01.911598Z", "status": "launching", "version": "gear-b.1"}, "refusal": null}, "at": "2026-09-15T02:42:02.327945+00:00"}
+executing-against: 168fe375febc333483acdac98ff8b62dae868165
+ops 5572 -- generation 1: wait for training, extract the adapter, launch the frozen exam with it
+[02:58:38] ✅ training job jh-gearb-gen1-20260915-024201 status=Failed secondary=Failed train_s=305 billable_s=215 reason=AlgorithmError: ExecuteUserScriptError:
+ExitCode 3
+ErrorMessage ""
+Command "/opt/conda/bin/python3.11 train_qlora.py --base_manifest_sha256 8cacbc1d7868e9114ce500d37a6613740c1e2e393fdc68701342820b2eaf
+[02:58:38] ✗ generation 1 is not complete (Failed); re-arm when it is -- nothing launched
 
-→ Report written to aws/ops/reports/latest/ops_5571_gen1_launch2.md
-❌ OPS-FAIL: aws/ops/pending/ops_5571_gen1_launch2.py
+→ Report written to aws/ops/reports/latest/ops_5572_gen1_adapter_exam.md
+❌ OPS-FAIL: aws/ops/pending/ops_5572_gen1_adapter_exam.py
