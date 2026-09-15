@@ -14,6 +14,10 @@
     ["press", "Pressure"],
     ["revx", "Revisions"],
     ["qual", "Quality"],
+    ["pead", "Surprise"],
+    ["priced", "Priced-in"],
+    ["boom", "Stack"],
+    ["sqz", "Squeeze"],
     ["div", "Dividends"],
     ["news", "News"],
     ["tech", "Technicals"],
@@ -720,6 +724,13 @@
     Object.keys(doc).forEach(function (k) {
       var v = doc[k];
       if (Array.isArray(v)) v.forEach(function (row) { add(row, k); });
+      else if (v && typeof v === "object" && (k === "by_ticker" || k === "tickers" || k === "ticker_map" || k === "all_tickers")) {
+        if (Array.isArray(v)) v.forEach(function (row) { add(row, k); });
+        else Object.keys(v).forEach(function (tk) {
+          var row = v[tk];
+          if (row && typeof row === "object" && !Array.isArray(row)) add(Object.assign({ ticker: tk }, row), k);
+        });
+      }
     });
     return m;
   }
@@ -733,21 +744,112 @@
     holder.idx = indexByTicker(holder.v);
     return holder.v;
   }
+  var FLOW_CF = null, PEAD_DOC = null, GF_DOC = null, BENEISH_DOC = null, BOOM_DOC = null, SQ_DOC = null;
+  function pickIdx(holder, t) {
+    t = jhFundTicker(t);
+    var idx = holder.idx || {};
+    var doc = holder.v || {};
+    return idx[t] || (doc.by_ticker && (doc.by_ticker[t] || doc.by_ticker[t.replace(".","-")])) ||
+      (doc.tickers && (doc.tickers[t] || doc.tickers[t.replace(".","-")])) ||
+      (doc.ticker_map && (doc.ticker_map[t] || doc.ticker_map[t.replace(".","-")])) || null;
+  }
   async function pressureRow(t) {
     await loadJsonOnce(FLOW_LT || (FLOW_LT = {}), "/data/flow-lookthrough.json");
-    var row = (FLOW_LT.idx || {})[jhFundTicker(t)] || null;
+    var row = pickIdx(FLOW_LT, t);
     return { row: row, doc: FLOW_LT.v || {}, as_of: (FLOW_LT.v || {}).generated_at };
+  }
+  async function confluenceRow(t) {
+    await loadJsonOnce(FLOW_CF || (FLOW_CF = {}), "/data/flow-confluence.json");
+    var row = pickIdx(FLOW_CF, t);
+    if (row && typeof row === "object") row = Object.assign({ ticker: jhFundTicker(t) }, row);
+    return { row: row, doc: FLOW_CF.v || {}, as_of: (FLOW_CF.v || {}).generated_at };
+  }
+  async function peadRow(t) {
+    await loadJsonOnce(PEAD_DOC || (PEAD_DOC = {}), "/data/earnings-pead.json");
+    return { row: pickIdx(PEAD_DOC, t), doc: PEAD_DOC.v || {}, as_of: (PEAD_DOC.v || {}).generated_at };
+  }
+  async function pricedRow(t) {
+    await loadJsonOnce(GF_DOC || (GF_DOC = {}), "/data/gf-value.json");
+    return { row: pickIdx(GF_DOC, t), doc: GF_DOC.v || {}, as_of: (GF_DOC.v || {}).generated_at };
+  }
+  async function boomRow(t) {
+    await loadJsonOnce(BOOM_DOC || (BOOM_DOC = {}), "/data/boom-radar.json");
+    return { row: pickIdx(BOOM_DOC, t), doc: BOOM_DOC.v || {}, as_of: (BOOM_DOC.v || {}).generated_at };
+  }
+  async function squeezeRow(t) {
+    await loadJsonOnce(SQ_DOC || (SQ_DOC = {}), "/data/squeeze-pretrigger.json");
+    var row = pickIdx(SQ_DOC, t);
+    return { row: row, doc: SQ_DOC.v || {}, as_of: (SQ_DOC.v || {}).as_of || (SQ_DOC.v || {}).generated_at };
   }
   async function revisionRow(t) {
     await loadJsonOnce(REV_DOC || (REV_DOC = {}), "/data/estimate-revisions.json");
-    var row = (REV_DOC.idx || {})[jhFundTicker(t)] || null;
+    var tk = jhFundTicker(t);
+    var row = pickIdx(REV_DOC, t);
+    var dir = ((REV_DOC.v || {}).direction_map || {})[tk];
+    if (!row && dir) row = { ticker: tk, direction: dir, buckets: ["direction_map"] };
     return { row: row, doc: REV_DOC.v || {}, as_of: (REV_DOC.v || {}).generated_at };
   }
   async function qualityRow(t) {
     await loadJsonOnce(QUAL_DOC || (QUAL_DOC = {}), "/data/earnings-quality.json");
-    var row = (QUAL_DOC.idx || {})[jhFundTicker(t)] || null;
-    return { row: row, doc: QUAL_DOC.v || {}, as_of: (QUAL_DOC.v || {}).as_of || (QUAL_DOC.v || {}).generated_at };
+    await loadJsonOnce(BENEISH_DOC || (BENEISH_DOC = {}), "/data/beneish.json");
+    var row = pickIdx(QUAL_DOC, t);
+    var ben = pickIdx(BENEISH_DOC, t);
+    if (row && ben) row = Object.assign({}, row, { m_score: ben.m_score, beneish_verdict: ben.verdict });
+    else if (!row && ben) row = { ticker: jhFundTicker(t), m_score: ben.m_score, beneish_verdict: ben.verdict, buckets: ["beneish"] };
+    return { row: row, doc: QUAL_DOC.v || {}, as_of: (QUAL_DOC.v || {}).as_of || (QUAL_DOC.v || {}).generated_at, beneish: ben };
   }
+
+  function renderPead(d) {
+    var p = d && d.pead || {};
+    var r = p.row;
+    var note = "<div class=note>Post-earnings drift vs the print. Graded vs the move after the report, not a live surprise. Board: <a href='/earnings-pead.html'>earnings-pead</a>.</div>";
+    if (!r) return note + "<div class=empty>No PEAD row for this symbol in today's qualifying list.</div>";
+    return note + "<div class=kpi>" + [
+      kpi("PEAD score", fmt(num(r.score))),
+      kpi("Tier", esc(r.tier || "—")),
+      kpi("Beat streak", fmt(num(r.beat_streak))),
+      kpi("Flags", esc((r.flags && (Array.isArray(r.flags) ? r.flags.join(", ") : String(r.flags))) || "—"))
+    ].join("") + "</div>";
+  }
+  function renderPriced(d) {
+    var p = d && d.priced || {};
+    var r = p.row;
+    var note = "<div class=note>How much future growth the multiple already requires (GuruFocus multi-lens). Not a DCF guarantee. Implied growth, not a forecast.</div>";
+    if (!r) return note + "<div class=empty>No gf-value row for this symbol (universe is the scored tape, not every listing).</div>";
+    return note + "<div class=kpi>" + [
+      kpi("GF value", fmt(num(r.gf_value))),
+      kpi("MOS %", fmt(num(r.margin_of_safety_pct))),
+      kpi("Rating", esc(r.rating || "—")),
+      kpi("Lenses", fmt(num(r.n_lenses))),
+      kpi("DCF", fmt(num(r.dcf_fair_value))),
+      kpi("Graham", fmt(num(r.graham_number)))
+    ].join("") + "</div>";
+  }
+  function renderBoom(d) {
+    var p = d && d.boom || {};
+    var r = p.row;
+    var note = "<div class=note>Independent engines agreeing on the same name. Display only — not a trading signal. Dimensions are BEAT / ANALYST / ESTIMATE (same-fiscal) / FLOW / SQUEEZE / BREAKOUT.</div>";
+    if (!r) return note + "<div class=empty>Not on today's boom-radar (needs 2+ independent dims).</div>";
+    return note + "<div class=kpi>" + [
+      kpi("Boom score", fmt(num(r.boom_score != null ? r.boom_score : r.score))),
+      kpi("Convergence", fmt(num(r.convergence))),
+      kpi("Dims", esc((r.dimensions && (Array.isArray(r.dimensions) ? r.dimensions.join(" · ") : String(r.dimensions))) || "—"))
+    ].join("") + "</div>" +
+      blk("Reasons", table((r.reasons || []).slice(0, 8).map(function (x) { return ["", esc(String(x))]; })));
+  }
+  function renderSqueeze(d) {
+    var p = d && d.sqz || {};
+    var r = p.row;
+    var doc = p.doc || {};
+    var note = "<div class=note>Crowding / borrow / short pressure. Estimate of exit difficulty, not a squeeze clock. State: " + esc(doc.state || "—") + "</div>";
+    if (!r) return note + "<div class=empty>No squeeze-pretrigger row for this symbol today.</div>";
+    return note + "<div class=kpi>" + [
+      kpi("Score", fmt(num(r.score))),
+      kpi("Ticker", esc(r.ticker || "—")),
+      kpi("Posture", esc(r.posture || r.tag || "—"))
+    ].join("") + "</div>";
+  }
+
   function renderPressure(d) {
     var p = d && d.pressure || {};
     var r = p.row;
@@ -758,6 +860,13 @@
       return note + "<div class=empty>No look-through row for this symbol in today's published lists (engine scored " +
         esc(String(doc.n_names || "—")) + " names across " + esc(String(doc.n_etfs_used || "—")) +
         " ETFs). Leaders live on <a href='/flow-lookthrough.html'>flow-lookthrough</a>.</div>";
+    }
+    if (r.net_flow_5d_usd == null && (r.posture || r.engines)) {
+      return note + "<div class=kpi>" + [
+        kpi("Confluence", esc(r.posture || "—")),
+        kpi("Engines", esc((r.engines && (Array.isArray(r.engines) ? r.engines.join(" · ") : String(r.engines))) || "—")),
+        kpi("Score", fmt(num(r.score)))
+      ].join("") + "</div><div class=note>From flow-confluence ticker_map (3,821 names). Look-through dollars publish on the next producer run (by_ticker slice).</div>";
     }
     var drv = (r.drivers || []).slice(0, 8).map(function (x) {
       return [esc(x.etf || x.ticker || ""), fmtBig(x.contrib_5d_usd != null ? x.contrib_5d_usd : x.flow),
@@ -848,6 +957,11 @@
     d.pressure = pack.pressure || d.pressure;
     d.revx = pack.revx || d.revx;
     d.qual = pack.qual || d.qual;
+    d.pead = pack.pead || d.pead;
+    d.priced = pack.priced || d.priced;
+    d.boom = pack.boom || d.boom;
+    d.sqz = pack.sqz || d.sqz;
+    d.confluence = pack.confluence || d.confluence;
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
@@ -860,6 +974,10 @@
     else if (tab === "press") html = renderPressure(d);
     else if (tab === "revx") html = renderRevisions(d);
     else if (tab === "qual") html = renderQuality(d);
+    else if (tab === "pead") html = renderPead(d);
+    else if (tab === "priced") html = renderPriced(d);
+    else if (tab === "boom") html = renderBoom(d);
+    else if (tab === "sqz") html = renderSqueeze(d);
     else if (tab === "est") html = renderEst(d);
     else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
     else if (tab === "news") html = renderPolyNews(pack);
@@ -968,12 +1086,26 @@
       pack.pressure = await pressureRow(t);
       pack.revx = await revisionRow(t);
       pack.qual = await qualityRow(t);
+      pack.pead = await peadRow(t);
+      pack.priced = await pricedRow(t);
+      pack.boom = await boomRow(t);
+      pack.sqz = await squeezeRow(t);
+      pack.confluence = await confluenceRow(t);
+      if (pack.confluence && pack.confluence.row && (!pack.pressure || !pack.pressure.row)) {
+        pack.pressure = pack.pressure || {};
+        pack.pressure.row = pack.pressure.row || pack.confluence.row;
+        pack.pressure.doc = pack.pressure.doc || {};
+      }
       if (pack.ident) pack.src.push("OpenFIGI symbology master");
       if (pack.chain && pack.chain.proxy) pack.src.push("CryptoQuant EOD on-chain");
       if (pack.fmp && pack.fmp.row) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
       if (pack.pressure && pack.pressure.row) pack.src.push("ETF look-through (inferred)");
       if (pack.revx && pack.revx.row) pack.src.push("estimate-revisions");
       if (pack.qual && pack.qual.row) pack.src.push("earnings-quality");
+      if (pack.pead && pack.pead.row) pack.src.push("earnings-pead");
+      if (pack.priced && pack.priced.row) pack.src.push("gf-value");
+      if (pack.boom && pack.boom.row) pack.src.push("boom-radar");
+      if (pack.confluence && pack.confluence.row) pack.src.push("flow-confluence");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
@@ -1093,6 +1225,10 @@
       "<button data-dt=press>Pressure (ETF look-through)</button>" +
       "<button data-dt=revx>Revisions (same fiscal)</button>" +
       "<button data-dt=qual>Cash-flow quality</button>" +
+      "<button data-dt=pead>Surprise vs reaction</button>" +
+      "<button data-dt=priced>Growth already priced</button>" +
+      "<button data-dt=boom>Stack (boom-radar)</button>" +
+      "<button data-dt=sqz>Squeeze / crowded</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
       "<button data-dt=news>News</button>" +

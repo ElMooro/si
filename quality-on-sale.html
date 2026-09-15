@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash-flow quality · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6eaf2;--mut:#8b93a7;--line:#1c2433;--acc:#00d4ff}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,Menlo,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:18px}p{color:var(--mut);font-size:12px;max-width:720px;line-height:1.5}
+main{padding:16px 20px 48px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+td.l,th.l{text-align:left}a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cash-flow quality</h1>
+  <p>Harvest <code>data/earnings-quality.json</code> (FMP filings). Cash conversion vs accruals. Chart desk: Quality. Not a price forecast.</p>
+</header>
+<main id="out">loading…</main>
+<script>
+(async function(){
+  var r = await fetch("/data/earnings-quality.json", {cache:"no-store"});
+  var d = r.ok ? await r.json() : {};
+  var rows = d.all_ranked || d.top_20_high_quality || [];
+  var html = "<p>as of "+(d.as_of||d.generated_at||"—")+" · high "+(d.n_high_quality||"—")+" · low "+(d.n_low_quality||"—")+"</p>";
+  html += "<table><thead><tr><th class=l>Ticker</th><th>Cash conv</th><th>Sloan % assets</th><th>TTM FCF</th></tr></thead><tbody>";
+  rows.slice(0,80).forEach(function(x){
+    html += "<tr><td class=l><a href='/chart.html?s="+encodeURIComponent(x.ticker||"")+"'>"+(x.ticker||"")+"</a></td><td>"+(x.cash_conversion_ratio==null?"—":x.cash_conversion_ratio)+"</td><td>"+(x.sloan_accruals_pct_assets==null?"—":x.sloan_accruals_pct_assets)+"</td><td>"+(x.ttm_fcf_usd==null?"—":x.ttm_fcf_usd)+"</td></tr>";
+  });
+  document.getElementById("out").innerHTML = html+"</tbody></table>";
+})();
+</script>
+</body></html>

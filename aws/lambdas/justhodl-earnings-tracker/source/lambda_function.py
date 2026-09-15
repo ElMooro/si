@@ -147,7 +147,27 @@ def collect_upcoming_earnings(days_ahead=14):
 
 # ────────────────────────── Polygon financials (actual results) ──────────────────────────
 def fetch_polygon_financials(ticker, limit=4):
-    """Return last N quarterly filings with EPS + revenue."""
+    """Return last N filings. Prefer the FMP harvest (Ultimate, entitled). Polygon
+    stocks-financials is not on the Massive Starter plan and 401s."""
+    try:
+        book = json.loads(S3.get_object(Bucket=BUCKET, Key="data/fmp-ratios.json")["Body"].read())
+        row = (book.get("tickers") or {}).get(str(ticker).upper().replace(".", "-")) or (book.get("tickers") or {}).get(str(ticker).upper())
+        fins = (row or {}).get("financials") or []
+        if fins:
+            out = []
+            for y in fins[:limit]:
+                out.append({
+                    "period_start": None,
+                    "period_end": str(y.get("year") or ""),
+                    "filing_date": str(y.get("year") or ""),
+                    "eps_actual": y.get("eps"),
+                    "revenue_actual": y.get("revenue"),
+                    "source": "FMP FILING harvest",
+                })
+            if out:
+                return out
+    except Exception:
+        pass
     url = f"https://api.polygon.io/vX/reference/financials?ticker={urllib.parse.quote(ticker)}&timeframe=quarterly&limit={limit}&apiKey={POLYGON_KEY}"
     try:
         d = http_get(url, timeout=15)

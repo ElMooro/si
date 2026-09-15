@@ -255,6 +255,8 @@ def build_ticker_index():
         # were previously read despite being fresh, live, and directly ticker-relevant
         "institutional_13f":   fetch_json("data/13f-positions.json", max_age_h=48),
         "estimate_revisions":  fetch_json("data/estimate-revisions.json", max_age_h=48),
+        "flow_lookthrough":    fetch_json("data/flow-lookthrough.json", max_age_h=48),
+        "fmp_ratios":          fetch_json("data/fmp-ratios.json", max_age_h=72),
         "forward_orders":      fetch_json("data/forward-orders.json", max_age_h=96),
         "squeeze_setup":       fetch_json("data/finra-short.json", max_age_h=48),
         "earnings_quality_hi": fetch_json("data/earnings-quality.json", max_age_h=200),
@@ -429,18 +431,66 @@ def build_ticker_index():
     # 6e. estimate revisions — analyst EPS estimates moving before the print. A fundamental
     #     "smart money is repricing this" signal distinct from price-based momentum.
     if feeds.get("estimate_revisions"):
-        for r in (feeds["estimate_revisions"].get("estimate_strength_leaders") or []):
+        er = feeds["estimate_revisions"]
+        seen = set()
+        buckets = []
+        if isinstance(er.get("by_ticker"), dict):
+            buckets.extend(er["by_ticker"].values())
+        for k in ("upward_revisions", "downward_revisions", "estimate_strength_leaders", "top_picks"):
+            buckets.extend(er.get(k) or [])
+        for r in buckets:
+            if not isinstance(r, dict):
+                continue
             sym = r.get("ticker")
-            if not sym:
+            if not sym or sym in seen:
                 continue
             rev = r.get("eps_rev_pct")
             if rev is None:
-                continue
-            score = min(100, max(0, rev * 3))
+                continue  # FY2 vs FY1 slope is not a revision — do not score it here
+            seen.add(sym)
+            score = min(100, max(0, abs(float(rev)) * 3))
             idx.setdefault(sym, {})["estimate_revisions"] = {
                 "score": round(score, 1), "eps_rev_pct": rev,
+                "revision_kind": "same_fiscal_snapshot",
+                "fwd_eps_growth_pct": r.get("fwd_eps_growth_pct"),
                 "days_to_earnings": r.get("days_to_earnings"), "fiscal_period": r.get("fiscal_period"),
             }
+
+    if feeds.get("flow_lookthrough"):
+        fl = feeds["flow_lookthrough"]
+        ft = fl.get("by_ticker") if isinstance(fl.get("by_ticker"), dict) else {}
+        extra = []
+        for k in ("actual_accumulation", "inflow_leaders", "thematic_rotation_leaders", "top_picks"):
+            extra.extend(fl.get(k) or [])
+        for r in list(ft.values()) + extra:
+            if not isinstance(r, dict):
+                continue
+            sym = r.get("ticker")
+            if not sym or "flow_lookthrough" in idx.get(sym, {}):
+                continue
+            bps = r.get("flow_bps_mcap")
+            if bps is None:
+                continue
+            idx.setdefault(sym, {})["flow_lookthrough"] = {
+                "score": min(100, abs(float(bps))),
+                "flow_bps_mcap": bps,
+                "flow_type": r.get("flow_type"),
+                "confirmed": r.get("confirmed"),
+                "evidence": "inferred ETF flow × weight, not a print",
+            }
+
+    if feeds.get("fmp_ratios"):
+        tickers = (feeds["fmp_ratios"].get("tickers") or {})
+        if isinstance(tickers, dict):
+            for sym, row in tickers.items():
+                if not isinstance(row, dict):
+                    continue
+                idx.setdefault(sym, {})["fmp_ratios"] = {
+                    "pe": row.get("pe"), "peg": row.get("peg"),
+                    "ev_ebitda": row.get("ev_ebitda"),
+                    "cash_conv": row.get("cash_conv"),
+                    "source": "FMP EOD/TTM harvest",
+                }
 
     # 6f. forward orders / RPO composite — remaining-performance-obligation yield, growth and
     #     acceleration. A genuine forward-fundamental signal (contracted future revenue), not

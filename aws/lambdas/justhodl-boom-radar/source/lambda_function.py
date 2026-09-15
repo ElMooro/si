@@ -78,15 +78,28 @@ def lambda_handler(event=None, context=None):
             dims["ANALYST"][tk] = (_clamp(ns / 15, 0.3, 1.0), f"net analyst +{ns}")
 
     er = getj("data/estimate-revisions.json") or {}
-    for s in er.get("estimate_strength_leaders", []) or []:
-        tk = _tk(s); st = s.get("estimate_strength")
-        if tk and isinstance(st, (int, float)) and st >= 60:
-            g = s.get("fwd_eps_growth_pct")
-            dims["ESTIMATE"][tk] = (_clamp((st - 50) / 40), f"est strength {st}" + (f", +{g}% fwd EPS" if g is not None else ""))
-    for s in er.get("upward_revisions", []) or []:
-        tk = _tk(s); rv = s.get("eps_rev_pct")
-        if tk and tk not in dims["ESTIMATE"] and isinstance(rv, (int, float)):
-            dims["ESTIMATE"][tk] = (_clamp(0.5 + rv / 20, 0.3, 1.0), f"EPS est revised +{rv}%")
+    # Same-fiscal snapshot revisions FIRST. FY2 vs FY1 slope is not a revision.
+    rev_map = er.get("by_ticker") or {}
+    for s in (er.get("upward_revisions") or []) + (er.get("downward_revisions") or []):
+        tk = _tk(s)
+        rv = s.get("eps_rev_pct")
+        if tk and isinstance(rv, (int, float)):
+            dims["ESTIMATE"][tk] = (_clamp(0.5 + rv / 20, 0.3, 1.0), f"same-fiscal EPS snapshot {rv:+.1f}%")
+    for tk, s in rev_map.items():
+        if tk in dims["ESTIMATE"]:
+            continue
+        rv = (s or {}).get("eps_rev_pct") if isinstance(s, dict) else None
+        if isinstance(rv, (int, float)) and abs(rv) >= 1:
+            dims["ESTIMATE"][tk] = (_clamp(0.5 + rv / 20, 0.3, 1.0), f"same-fiscal EPS snapshot {rv:+.1f}%")
+    # FY slope is labelled separately and never fills ESTIMATE when no snapshot exists.
+    for s in er.get("estimate_strength_leaders") or []:
+        tk = _tk(s)
+        st = s.get("estimate_strength")
+        g = s.get("fwd_eps_growth_pct")
+        if tk and tk not in dims["ESTIMATE"] and isinstance(st, (int, float)) and st >= 70 and s.get("eps_rev_pct") is not None:
+            dims["ESTIMATE"][tk] = (_clamp((st - 50) / 40), f"est strength {st} (revision-backed)")
+        elif tk and isinstance(g, (int, float)):
+            pass  # growth slope is not a revision — leave ESTIMATE empty
 
     fl = getj("data/flow-lookthrough.json") or {}
     for s in fl.get("actual_accumulation", []) or []:

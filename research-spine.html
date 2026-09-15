@@ -31,18 +31,18 @@ td a{color:var(--acc)}
 <table>
 <thead><tr><th>#</th><th>Ask</th><th>Engine / harvest</th><th>Chart desk</th><th>Honesty</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>Buying / selling pressure per stock</td><td><a href="/flow-lookthrough.html">flow-lookthrough</a> · <span class="tag">data/flow-lookthrough.json</span></td><td>Pressure</td><td class="note">ETF flow × weight = estimate (F08). Creations = fact.</td></tr>
-<tr><td>2</td><td>Real changes in earnings expectations</td><td><a href="/estimate-revisions.html">estimate-revisions</a> · eps-revision-velocity</td><td>Revisions</td><td class="note">eps_rev_pct = same fiscal vs snapshot. FY2 vs FY1 is growth, not a revision.</td></tr>
+<tr><td>1</td><td>Buying / selling pressure per stock</td><td><a href="/flow-lookthrough.html">flow-lookthrough</a> · flow-confluence ticker_map</td><td>Pressure</td><td class="note">ETF flow × weight = estimate (F08). Creations = fact. by_ticker slice for mega names on next Lambda run.</td></tr>
+<tr><td>2</td><td>Real changes in earnings expectations</td><td><a href="/estimate-revisions.html">estimate-revisions</a></td><td>Revisions</td><td class="note">eps_rev_pct = same fiscal vs snapshot. FY2 vs FY1 is growth, not a revision. Joiners now skip the slope.</td></tr>
 <tr><td>3</td><td>Hidden portfolio concentration</td><td>etf-census · Holders on chart · my-portfolio</td><td>Holders</td><td class="note">Look-through of ETF weights, not your broker lot.</td></tr>
 <tr><td>4</td><td>Sensitivity to liquidity / rates</td><td>liquidity-credit · liquidity-pulse · bond-desk</td><td>—</td><td class="note">Macro engines exist; per-name beta still estimated.</td></tr>
 <tr><td>5</td><td>Which engines actually help</td><td><a href="/accuracy.html">accuracy</a> · calibration-fleet</td><td>—</td><td class="note">Graded closed loop. Do not blend ungraded engines.</td></tr>
-<tr><td>6</td><td>Cash-flow quality / dilution</td><td>earnings-quality · FMP filings</td><td>Quality + Financials</td><td class="note">FMP EOD/TTM statements. Not LIVE.</td></tr>
+<tr><td>6</td><td>Cash-flow quality / dilution</td><td><a href="/quality-on-sale.html">earnings-quality</a> · beneish</td><td>Quality + Financials</td><td class="note">FMP EOD/TTM statements. Beneish M-score joined on the Quality desk.</td></tr>
 <tr><td>7</td><td>Debt / refinancing danger</td><td>leverage.html · FMP net_debt_ebitda</td><td>Valuation</td><td class="note">Maturity schedules are incomplete for many names.</td></tr>
 <tr><td>8</td><td>13F ownership changes</td><td><a href="/13f.html">13f</a> · justhodl-13f-positions</td><td>—</td><td class="note">Quarterly, lagged. Not live institutional activity.</td></tr>
-<tr><td>9</td><td>Earnings surprise vs reaction</td><td>earnings-pead · earnings-tracker</td><td>—</td><td class="note">PEAD is post-print drift, graded vs SPY.</td></tr>
+<tr><td>9</td><td>Earnings surprise vs reaction</td><td><a href="/earnings-pead.html">earnings-pead</a> · earnings-tracker</td><td>Surprise</td><td class="note">PEAD is post-print drift, graded vs SPY.</td></tr>
 <tr><td>10</td><td>Early sector rotation</td><td><a href="/sector-flow.html">sector-flow</a> · sector-rotation.json</td><td>—</td><td class="note">Sector ETF creations + breadth. Not a single-stock print.</td></tr>
-<tr><td>11</td><td>Crowded / exit difficulty</td><td>short-pressure · liquidity-capacity</td><td>Short</td><td class="note">Ownership + ADV estimates. Stress is modeled.</td></tr>
-<tr><td>12</td><td>Growth already priced in</td><td><a href="/gf-value.html">gf-value</a> · FMP P/E band</td><td>Valuation</td><td class="note">Implied growth from multiples, not a DCF guarantee.</td></tr>
+<tr><td>11</td><td>Crowded / exit difficulty</td><td>short-pressure · squeeze-pretrigger</td><td>Squeeze + Short</td><td class="note">Ownership + ADV estimates. Stress is modeled.</td></tr>
+<tr><td>12</td><td>Growth already priced in</td><td><a href="/gf-value.html">gf-value</a> · FMP P/E band</td><td>Priced-in + Valuation</td><td class="note">Implied growth from multiples, not a DCF guarantee.</td></tr>
 <tr><td>13</td><td>Real bond risks</td><td><a href="/bond-desk.html">bond-desk</a> · bonds.html</td><td>—</td><td class="note">Duration / credit / issuer split on the bond desk.</td></tr>
 <tr><td>14</td><td>Crypto demand vs on-chain</td><td>crypto-etf-flows · cryptoquant-onchain.json</td><td>On-chain</td><td class="note">CQ EOD. ETF creations = fact. Do not blend into equity RISK_OFF.</td></tr>
 <tr><td>15</td><td>Options-implied vs realized</td><td>earnings-iv-crush · options desks</td><td>Options</td><td class="note">Massive options delayed. Not a live IV print.</td></tr>

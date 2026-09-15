@@ -243,7 +243,7 @@ def lambda_handler(event=None, context=None):
         direction_map[_t] = "UP" if _v > 0.5 else "DOWN" if _v < -0.5 else "FLAT"
 
     out = {
-        "engine": "justhodl-estimate-revisions", "version": "3.0.0",
+        "engine": "justhodl-estimate-revisions", "version": "3.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(), "status": status,
         "thesis": "FMP depth (forward-EPS growth, analyst coverage, dispersion — day 1) "
                   "fused with Benzinga freshness (timely current estimate) and self-built "
@@ -255,10 +255,15 @@ def lambda_handler(event=None, context=None):
         "estimate_strength_leaders": strength_leaders,
         "upward_revisions": up[:40], "downward_revisions": down[:30],
         "top_picks": top_picks,
+        "by_ticker": {tk: dict(row, revision_kind=("same_fiscal_snapshot" if row.get("eps_rev_pct") is not None else None),
+                               growth_kind=("fy2_vs_fy1" if row.get("fwd_eps_growth_pct") is not None else None))
+                      for tk, row in best_by_tk.items()},
         "data_source": "FMP analyst-estimates (depth) + Benzinga consensus (freshness, via Massive)",
         "caveats": [
             "estimate_strength available day 1 from FMP forward consensus; revision deltas accrue from daily snapshots.",
-            "fwd_eps_growth_pct = next-FY vs current-FY consensus EPS slope.",
+            "fwd_eps_growth_pct = next-FY vs current-FY consensus EPS slope — NOT a revision.",
+            "eps_rev_pct = same-fiscal estimate vs our prior snapshot. Joiners must not mix the two.",
+            "by_ticker carries every FMP-enriched name (not only the 40-leader lists).",
             "Tiny-estimate names can show large swings; importance + analyst-coverage filter.",
             "Picks logged to the harvester and graded vs SPY before any engine trusts them.",
         ],

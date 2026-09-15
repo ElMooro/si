@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earnings PEAD · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6eaf2;--mut:#8b93a7;--line:#1c2433;--acc:#00d4ff;--ok:#26ffaf}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-monospace,Menlo,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:18px}p{color:var(--mut);font-size:12px;max-width:720px;line-height:1.5}
+main{padding:16px 20px 48px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+th{text-align:right;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+td.l,th.l{text-align:left}a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Earnings surprise vs reaction</h1>
+  <p>Live harvest <code>data/earnings-pead.json</code>. Beat streak and post-print drift. Not live institutional activity. Chart desk: Surprise.</p>
+</header>
+<main id="out">loading…</main>
+<script>
+(async function(){
+  var r = await fetch("/data/earnings-pead.json", {cache:"no-store"});
+  var d = r.ok ? await r.json() : {};
+  var rows = d.all_qualifying || (d.summary && d.summary.top_25_overall) || [];
+  var html = "<p class=mut>as of "+(d.generated_at||"—")+" · n="+rows.length+"</p>";
+  html += "<table><thead><tr><th class=l>Symbol</th><th>Score</th><th>Tier</th><th>Beat streak</th></tr></thead><tbody>";
+  rows.slice(0,80).forEach(function(x){
+    html += "<tr><td class=l><a href='/chart.html?s="+encodeURIComponent(x.symbol||x.ticker||"")+"'>"+(x.symbol||x.ticker||"")+"</a></td><td>"+(x.score==null?"—":x.score)+"</td><td>"+(x.tier||"—")+"</td><td>"+(x.beat_streak==null?"—":x.beat_streak)+"</td></tr>";
+  });
+  document.getElementById("out").innerHTML = html+"</tbody></table>";
+})();
+</script>
+</body></html>
