@@ -1028,10 +1028,14 @@
       kpi("Fingerprint", esc(ats.venue_fingerprint || (p.ping ? "RETAIL_PING" : "—")))
     ].join("") + "</div>";
     if (conf.why) html += "<div class=note>" + esc(conf.why) + "</div>";
+    var rvol = tape.rvol;
     html += blk("1 · Tape · Polygon / Massive " + cadence("DELAYED · this timeframe"), table([
       ["This bar volume", tape.last != null ? fmtBig(tape.last) : "—"],
-      ["Prior-bar average", tape.avg20 != null ? fmtBig(tape.avg20) : "—"],
-      ["This bar vs avg", tape.vs_pct != null ? tape.vs_pct.toFixed(1) + "%" : "—"],
+      ["RVOL vs 20-bar median", rvol != null ? rvol.toFixed(2) + "x" : "—"],
+      ["Dollar volume this bar", tape.dollar != null ? fmtBig(tape.dollar) : "—"],
+      ["Up-bar share (20)", tape.up_share != null ? (tape.up_share * 100).toFixed(0) + "% of volume on up bars" : "—"],
+      ["Float turnover this bar", tape.float_turn_pct != null ? tape.float_turn_pct.toFixed(3) + "%" : "—"],
+      ["Effort vs result", esc(tape.absorb || "—")],
       ["Polygon weekly consolidated (ATS week)", p.tape_week != null ? fmtBig(p.tape_week) : "—"],
       ["Note", tape.label || "Open Daily for session ADV. Intraday bars are not ADV."]
     ]));
@@ -1069,6 +1073,58 @@
       ["Net $", inst.bought_usd != null ? fmtBig((num(inst.bought_usd) || 0) - (num(inst.sold_usd) || 0)) : "—"],
       ["Reported value", fmtBig(inst.total_value)],
       ["Read", "Holdings change, not prints. A fund can buy on the tape for weeks before this quarter files."]
+    ]));
+    var dix = p.dix || {};
+    html += blk("5 · Market dark index · not this name " + cadence("EOD · SPX"), table([
+      ["SqueezeMetrics DIX", num(dix.pct) != null ? num(dix.pct).toFixed(1) + "%" : "—"],
+      ["DIX regime", esc(dix.regime || "—")],
+      ["GEX ($B)", fmt(num(dix.gex_b), 2)],
+      ["GEX regime", esc(dix.gex_regime || "—")],
+      ["Combined", esc(dix.combined || "—")],
+      ["Own TRF DIX-style (501 names)", num(dix.own_pct) != null ? num(dix.own_pct).toFixed(1) + "% · " + esc(dix.own_read || "") : "—"],
+      ["Read", "Market-level dark *buying* share (SqueezeMetrics). Do not paste this onto AAPL. Own proxy = $vol-weighted (1−short%) on FINRA TRF, not the same series."]
+    ]));
+    var ven = p.venue || {};
+    html += blk("6 · Who internalized it · FINRA monthly firms " + cadence("MONTHLY · " + (p.venue_month || "lagged")), table([
+      ["Top reporting firm", esc(ven.top_firm || "—")],
+      ["That firm's share of off-ex", num(ven.top_pct) != null ? num(ven.top_pct).toFixed(1) + "%" : "—"],
+      ["# firms reporting", fmt(num(ven.n_firms))],
+      ["Off-ex shares (month)", fmtBig(ven.sh)],
+      ["Read", "Wholesaler concentration, not a named institution. Citadel/Goldman here usually means internalization, not Berkshire buying."]
+    ]));
+    var liq = p.liq || {};
+    html += blk("7 · Liquidity capacity " + cadence("EOD · volume only"), table([
+      ["ADV $", liq.adv_usd_str || fmtBig(liq.adv_usd)],
+      ["Liquidity score", fmt(num(liq.liquidity_score), 1)],
+      ["Consistency", num(liq.consistency) != null ? (num(liq.consistency) * 100).toFixed(0) + "%" : "—"],
+      ["ATR %", fmt(num(liq.atr_percent), 2)],
+      ["Scope", esc(liq.liquidity_score_scope || "80% ADV / 20% consistency — no spread or book depth")]
+    ]));
+    var sh = p.shares || {};
+    html += blk("8 · Corporate supply · not tape volume " + cadence("FILING / TTM"), table([
+      ["Shares out", fmtBig(sh.shares_outstanding)],
+      ["Share count YoY", num(sh.sh_yoy_pct) != null ? num(sh.sh_yoy_pct).toFixed(2) + "%" : "—"],
+      ["Buybacks TTM $", fmtBig(sh.buyback_ttm_usd)],
+      ["Issuance TTM $", fmtBig(sh.issuance_ttm_usd)],
+      ["Buyback yield", num(sh.buyback_yield_pct) != null ? num(sh.buyback_yield_pct).toFixed(2) + "%" : "—"],
+      ["Read", "Issuer shrinking or growing the float. This is supply, not institutional buying on the tape."]
+    ]));
+    var opt = p.opt || {};
+    html += blk("9 · Options overlay " + cadence("EOD · not stock volume"), table([
+      ["Posture", esc(opt.posture || "—")],
+      ["Score", fmt(num(opt.score), 2)],
+      ["Engines", fmt(num(opt.n_engines))],
+      ["Tags", esc((opt.tags && opt.tags.join(", ")) || "—")],
+      ["Read", "Options prints can lead stock. Unusual options ≠ stock block. Open the Options tab for OI/IV."]
+    ]));
+    var look = p.look || {};
+    html += blk("10 · ETF look-through $ " + cadence("DERIVED · creations × weight"), table([
+      ["Net 5d $", fmtBig(look.net_flow_5d_usd)],
+      ["ETF ownership %", num(look.etf_ownership_pct) != null ? num(look.etf_ownership_pct).toFixed(2) + "%" : "—"],
+      ["# ETFs in map", fmt(num(look.n_etfs))],
+      ["Flow type", esc(look.flow_type || "—")],
+      ["Confirmed", look.confirmed ? "yes" : (look.confirmed === false ? "no" : "—")],
+      ["Read", "Fund creations × holdings weight. Not a print in AAPL. Same number as the Pressure tab."]
     ]));
     if (!ats.state && !inst.ticker && !daily.symbol) {
       html += "<div class=empty>No ATS / 13F / TRF row for this symbol. Mega-caps are in the 930-name ATS book and 13F compact; many micro names will not score.</div>";
@@ -1504,7 +1560,8 @@
     if (window.JHInstVol && window.JHInstVol.of) {
       jobs.push(window.JHInstVol.of(t).then(function (r) {
         pack.instvol = r;
-        pack.tapeVol = window.JHInstVol.tapeFromBars(pack.bars || window.lastBars || []);
+        var sh = r && r.shares && r.shares.shares_outstanding;
+        pack.tapeVol = window.JHInstVol.tapeFromBars(pack.bars || window.lastBars || [], sh);
         if (r && pack.src.indexOf("FINRA ATS + Polygon week") < 0) pack.src.push("FINRA ATS weekly + Polygon denominator + 13F confirmation");
       }).catch(function () {}));
     }
