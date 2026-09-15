@@ -11,6 +11,9 @@
     ["est", "Estimates"],
     ["ident", "Identity"],
     ["chain", "On-chain"],
+    ["press", "Pressure"],
+    ["revx", "Revisions"],
+    ["qual", "Quality"],
     ["div", "Dividends"],
     ["news", "News"],
     ["tech", "Technicals"],
@@ -702,6 +705,139 @@
     return html;
   }
 
+
+  function indexByTicker(doc) {
+    var m = {};
+    if (!doc || typeof doc !== "object") return m;
+    function add(row, bucket) {
+      if (!row || typeof row !== "object") return;
+      var tk = jhFundTicker(row.ticker || row.symbol || row.sym || "");
+      if (!tk) return;
+      if (!m[tk]) m[tk] = { ticker: tk, buckets: [] };
+      if (m[tk].buckets.indexOf(bucket) < 0) m[tk].buckets.push(bucket);
+      Object.keys(row).forEach(function (k) { if (m[tk][k] == null) m[tk][k] = row[k]; });
+    }
+    Object.keys(doc).forEach(function (k) {
+      var v = doc[k];
+      if (Array.isArray(v)) v.forEach(function (row) { add(row, k); });
+    });
+    return m;
+  }
+  var FLOW_LT = null, REV_DOC = null, QUAL_DOC = null;
+  async function loadJsonOnce(holder, url) {
+    if (holder.v) return holder.v;
+    try {
+      var r = await fetch(url, { cache: "no-store" });
+      holder.v = r.ok ? await r.json() : {};
+    } catch (e) { holder.v = {}; }
+    holder.idx = indexByTicker(holder.v);
+    return holder.v;
+  }
+  async function pressureRow(t) {
+    await loadJsonOnce(FLOW_LT || (FLOW_LT = {}), "/data/flow-lookthrough.json");
+    var row = (FLOW_LT.idx || {})[jhFundTicker(t)] || null;
+    return { row: row, doc: FLOW_LT.v || {}, as_of: (FLOW_LT.v || {}).generated_at };
+  }
+  async function revisionRow(t) {
+    await loadJsonOnce(REV_DOC || (REV_DOC = {}), "/data/estimate-revisions.json");
+    var row = (REV_DOC.idx || {})[jhFundTicker(t)] || null;
+    return { row: row, doc: REV_DOC.v || {}, as_of: (REV_DOC.v || {}).generated_at };
+  }
+  async function qualityRow(t) {
+    await loadJsonOnce(QUAL_DOC || (QUAL_DOC = {}), "/data/earnings-quality.json");
+    var row = (QUAL_DOC.idx || {})[jhFundTicker(t)] || null;
+    return { row: row, doc: QUAL_DOC.v || {}, as_of: (QUAL_DOC.v || {}).as_of || (QUAL_DOC.v || {}).generated_at };
+  }
+  function renderPressure(d) {
+    var p = d && d.pressure || {};
+    var r = p.row;
+    var doc = p.doc || {};
+    var note = "<div class=note>Estimate, not a print. Fund creations = fact. Name-level $ = ETF flow × holdings weight (F08). Not institutional volume. " +
+      esc(doc.tier_note || doc.evidence_tier || "") + "</div>";
+    if (!r) {
+      return note + "<div class=empty>No look-through row for this symbol in today's published lists (engine scored " +
+        esc(String(doc.n_names || "—")) + " names across " + esc(String(doc.n_etfs_used || "—")) +
+        " ETFs). Leaders live on <a href='/flow-lookthrough.html'>flow-lookthrough</a>.</div>";
+    }
+    var drv = (r.drivers || []).slice(0, 8).map(function (x) {
+      return [esc(x.etf || x.ticker || ""), fmtBig(x.contrib_5d_usd != null ? x.contrib_5d_usd : x.flow),
+              x.weight != null ? (Number(x.weight) * 100).toFixed(2) + "%" : "—"];
+    });
+    return note + "<div class=kpi>" + [
+      kpi("5D attrib. $", fmtBig(r.net_flow_5d_usd)),
+      kpi("Daily attrib. $", fmtBig(r.net_flow_daily_usd)),
+      kpi("Type", esc((r.flow_type || (r.buckets && r.buckets[0]) || "—").replace(/_/g, " "))),
+      kpi("Confirmed", r.confirmed ? "flow × wt AND share Δ" : "—"),
+      kpi("ETF own %", r.etf_ownership_pct == null ? "—" : Number(r.etf_ownership_pct).toFixed(2) + "%"),
+      kpi("Lists", esc((r.buckets || []).join(", ") || "—"))
+    ].join("") + "</div>" +
+      blk("Pressure — ETF look-through · " + String(p.as_of || "").slice(0, 10), table([
+        ["Ticker", esc(r.ticker)],
+        ["Industry", esc(r.industry || "—")],
+        ["# ETFs in print", fmt(num(r.n_etfs))],
+        ["Broad 5D $", fmtBig(r.broad_flow_5d_usd)],
+        ["Thematic 5D $", fmtBig(r.thematic_flow_5d_usd)],
+        ["Share Δ $", fmtBig(r.shares_delta_usd)],
+        ["Flow bps mcap", fmt(num(r.flow_bps_mcap))]
+      ])) +
+      (drv.length ? blk("Driver ETFs (inferred)", "<table><thead><tr><th>ETF</th><th>5D $</th><th>Wgt</th></tr></thead><tbody>" +
+        drv.map(function (a) { return "<tr><td>" + a[0] + "</td><td>" + a[1] + "</td><td>" + a[2] + "</td></tr>"; }).join("") +
+        "</tbody></table>") : "");
+  }
+  function renderRevisions(d) {
+    var p = d && d.revx || {};
+    var r = p.row;
+    var doc = p.doc || {};
+    var split = "<div class=note>Two different numbers. <b>eps_rev_pct</b> = same-fiscal estimate vs our prior snapshot (a revision). " +
+      "<b>fwd_eps_growth_pct</b> = FY2 vs FY1 consensus slope (projected growth, NOT a revision). " +
+      esc((doc.caveats && doc.caveats[1]) || "") + "</div>";
+    if (!r) {
+      return split + "<div class=empty>No revision row in today's published leaders. The harvest is a leader list, not the full tape. " +
+        "See <a href='/estimate-revisions.html'>estimate-revisions</a>. n_with_history=" + esc(String(doc.n_with_history || "—")) + ".</div>";
+    }
+    return split + "<div class=kpi>" + [
+      kpi("Same-FY rev %", r.eps_rev_pct == null ? "—" : fmt(num(r.eps_rev_pct)) + "%"),
+      kpi("FY2 vs FY1 %", r.fwd_eps_growth_pct == null ? "—" : fmt(num(r.fwd_eps_growth_pct)) + "%"),
+      kpi("Direction", esc(r.direction || "—")),
+      kpi("n snapshots", fmt(num(r.n_obs))),
+      kpi("Analysts", fmt(num(r.n_analysts))),
+      kpi("Strength", fmt(num(r.estimate_strength)))
+    ].join("") + "</div>" +
+      blk("Revisions — " + String(p.as_of || "").slice(0, 10), table([
+        ["Fiscal", esc(String(r.fiscal_period || "") + " " + String(r.fiscal_year || ""))],
+        ["Current EPS est", fmt(num(r.current_eps_est))],
+        ["Baseline EPS est", fmt(num(r.baseline_eps_est))],
+        ["Baseline date", esc(r.baseline_date || "—")],
+        ["Source", esc(r.consensus_source || "—")],
+        ["Earnings", esc(r.earnings_date || "—")],
+        ["Revenue confirms", r.revenue_confirms ? "yes" : "no"]
+      ]));
+  }
+  function renderQuality(d) {
+    var p = d && d.qual || {};
+    var r = p.row;
+    var doc = p.doc || {};
+    var note = "<div class=note>Cash conversion and accruals from statements (FMP). Dilution in share_chg when present. Not a price forecast.</div>";
+    if (!r) {
+      return note + "<div class=empty>No earnings-quality row for this symbol (universe " +
+        esc(String(doc.universe_size || (doc.all_ranked && doc.all_ranked.length) || "—")) +
+        "). Board: <a href='/quality-on-sale.html'>quality</a>.</div>";
+    }
+    return note + "<div class=kpi>" + [
+      kpi("Cash conv.", fmt(num(r.cash_conversion_ratio))),
+      kpi("Sloan % assets", fmt(num(r.sloan_accruals_pct_assets))),
+      kpi("TTM FCF", fmtBig(r.ttm_fcf_usd)),
+      kpi("TTM OCF", fmtBig(r.ttm_ocf_usd)),
+      kpi("TTM NI", fmtBig(r.ttm_ni_usd)),
+      kpi("Beneish DSRI", fmt(num(r.dsri_beneish)))
+    ].join("") + "</div>" +
+      blk("Cash-flow quality — " + String(p.as_of || "").slice(0, 10), table([
+        ["Name", esc(r.name || r.ticker)],
+        ["GMI Beneish", fmt(num(r.gmi_beneish))],
+        ["P/E", fmt(num(r.pe))]
+      ]));
+  }
+
   function paintBody(pack) {
     var body = document.getElementById("dtbody");
     if (!body) return;
@@ -709,6 +845,9 @@
     d.fmp = pack.fmp || d.fmp;
     d.ident = pack.ident || d.ident;
     d.chain = pack.chain || d.chain;
+    d.pressure = pack.pressure || d.pressure;
+    d.revx = pack.revx || d.revx;
+    d.qual = pack.qual || d.qual;
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
@@ -718,6 +857,9 @@
     else if (tab === "fin") html = renderFin(d);
     else if (tab === "ident") html = renderIdent(d);
     else if (tab === "chain") html = renderChain(d);
+    else if (tab === "press") html = renderPressure(d);
+    else if (tab === "revx") html = renderRevisions(d);
+    else if (tab === "qual") html = renderQuality(d);
     else if (tab === "est") html = renderEst(d);
     else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
     else if (tab === "news") html = renderPolyNews(pack);
@@ -823,9 +965,15 @@
       pack.fmp = await fmpRow(t);
       pack.ident = await symbologyRow(t);
       pack.chain = await cqPack(t);
+      pack.pressure = await pressureRow(t);
+      pack.revx = await revisionRow(t);
+      pack.qual = await qualityRow(t);
       if (pack.ident) pack.src.push("OpenFIGI symbology master");
       if (pack.chain && pack.chain.proxy) pack.src.push("CryptoQuant EOD on-chain");
       if (pack.fmp && pack.fmp.row) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
+      if (pack.pressure && pack.pressure.row) pack.src.push("ETF look-through (inferred)");
+      if (pack.revx && pack.revx.row) pack.src.push("estimate-revisions");
+      if (pack.qual && pack.qual.row) pack.src.push("earnings-quality");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
@@ -942,6 +1090,9 @@
       "<button data-dt=fin>Financials</button>" +
       "<button data-dt=ident>Identity (OpenFIGI)</button>" +
       "<button data-dt=chain>On-chain (CryptoQuant)</button>" +
+      "<button data-dt=press>Pressure (ETF look-through)</button>" +
+      "<button data-dt=revx>Revisions (same fiscal)</button>" +
+      "<button data-dt=qual>Cash-flow quality</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
       "<button data-dt=news>News</button>" +
