@@ -4,8 +4,7 @@
  */
 (function (global) {
   "use strict";
-  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-  var CQ = null, CISS = null;
+  var CQ = null, CISS = null, SYM = null, IND = null, IDX_P = null;
   var CHIPS = [
     ["all", "All"],
     ["stocks", "Stocks"],
@@ -134,19 +133,147 @@
       var hit = a.q.some(function (k) { return k === n || n.indexOf(k) >= 0 || k.indexOf(n) >= 0; });
       if (hit && !seen[a.s]) {
         seen[a.s] = 1;
-        out.push({ s: a.s, name: a.name, extra: a.extra, type: a.type, cat: a.cat });
+        out.push({ s: a.s, name: a.name, extra: a.extra, type: a.type, cat: a.cat, suggest: true });
       }
     });
     return out;
   }
 
   function search(q) {
-    return aliasHits(q);
+    return suggest(q, 24);
+  }
+
+  function keepId(s) {
+    s = String(s || "");
+    if (/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return s;
+    if (/^\^/.test(s) || s.indexOf("=") >= 0) return s.toUpperCase();
+    return s;
+  }
+
+  function scoreBlob(q, ticker, name, blob) {
+    var n = q.toLowerCase();
+    var t = String(ticker || "").toLowerCase();
+    var nm = String(name || "").toLowerCase();
+    var b = String(blob || "").toLowerCase();
+    if (t === n) return 100;
+    if (t.indexOf(n) === 0) return 92;
+    if (nm === n) return 88;
+    if (nm.indexOf(n) === 0) return 80;
+    if (b.indexOf(n) === 0) return 78;
+    if (nm.indexOf(n) >= 0) return 64;
+    if (b.indexOf(n) >= 0) return 55;
+    return 0;
+  }
+
+  function suggest(q, limit) {
+    limit = limit || 16;
+    var n = norm(q);
+    var out = aliasHits(q);
+    var seen = {};
+    var i, row, sc;
+    out.forEach(function (h) { seen[String(h.s).toUpperCase()] = 1; });
+    function push(hit, score) {
+      var k = String(hit.s).toUpperCase();
+      if (!hit.s || seen[k]) return;
+      seen[k] = 1;
+      hit.suggest = true;
+      hit.score = score;
+      out.push(hit);
+    }
+    if (!n) return out.slice(0, limit);
+    if (SYM) {
+      var i, row, sc;
+      for (i = 0; i < SYM.length; i++) {
+        row = SYM[i];
+        sc = scoreBlob(n, row.s, row.n, row.blob);
+        if (n.length === 1 && sc < 90) continue;
+        if (sc) push({ s: row.s, name: row.n, extra: row.ids, type: "stock", cat: "stocks" }, sc);
+      }
+    }
+    if (IND && n.length >= 2) {
+      for (i = 0; i < IND.length; i++) {
+        row = IND[i];
+        if (row.s.toLowerCase().indexOf(n) !== 0 && (row.n || "").toLowerCase().indexOf(n) !== 0) continue;
+        push({ s: row.chart, name: row.n || row.s, extra: row.extra, type: row.type, cat: row.cat }, 70);
+      }
+    }
+    out.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+    return out.slice(0, limit);
+  }
+
+  function lookupSym(q) {
+    if (!SYM || !q) return "";
+    var n = String(q).trim().toUpperCase().replace(/[\s-]/g, "");
+    var i, r;
+    for (i = 0; i < SYM.length; i++) {
+      r = SYM[i];
+      if (r.s === n) return r.s;
+      if (r.cusip && r.cusip.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
+      if (r.isin && r.isin.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
+      if (r.figi && r.figi.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
+    }
+    return "";
+  }
+
+  function ensureIndex() {
+    if (IDX_P) return IDX_P;
+    IDX_P = Promise.all([
+      loadJson("/data/symbology/master.json").catch(function () { return null; }),
+      loadJson("/data/indicator-bus.json").catch(function () { return null; })
+    ]).then(function (pack) {
+      var master = pack[0], bus = pack[1];
+      if (master && master.by_ticker) {
+        SYM = [];
+        Object.keys(master.by_ticker).forEach(function (t) {
+          var r = master.by_ticker[t] || {};
+          var name = r.name || r.figi_name || t;
+          var figi = r.figi || "";
+          var cusip = r.cusip || "";
+          var isin = r.isin || "";
+          var ids = [];
+          if (figi) ids.push("FIGI " + figi);
+          if (cusip) ids.push("CUSIP " + cusip);
+          if (isin) ids.push("ISIN " + isin);
+          ids.push("OpenFIGI / SEC spine");
+          SYM.push({
+            s: t,
+            n: name,
+            figi: figi,
+            cusip: cusip,
+            isin: isin,
+            ids: ids.join(" · "),
+            blob: (t + " " + name + " " + figi + " " + cusip + " " + isin).toLowerCase()
+          });
+        });
+      }
+      if (bus && bus.indicators) {
+        IND = [];
+        Object.keys(bus.indicators).forEach(function (k) {
+          var row = bus.indicators[k] || {};
+          var src = String(row.src || "");
+          var chart = k, type = "economy", cat = "macro", extra = "indicator-bus";
+          if (/^cryptoquant:/i.test(src) || /mvrv|sopr|nupl|netflow/i.test(k)) {
+            chart = "CQ:" + k.replace(/^BTC_?/i, "btc_").toLowerCase();
+            type = "onchain"; cat = "chain"; extra = "CryptoQuant EOD";
+          } else if (/^yahoo:/i.test(src)) {
+            chart = src.split(":").slice(1).join(":");
+            type = "index"; cat = "macro"; extra = "Yahoo · " + (row.asof || "");
+          } else if (/^[A-Z0-9][A-Z0-9._]{1,15}$/.test(k) && !/!/.test(k)) {
+            chart = "FRED:" + k;
+            extra = "FRED warehouse · full history when present";
+          }
+          IND.push({ s: k, n: k, chart: chart, extra: extra, type: type, cat: cat });
+        });
+      }
+      return { n_sym: SYM ? SYM.length : 0, n_ind: IND ? IND.length : 0 };
+    });
+    return IDX_P;
   }
 
   function classify(s) {
     s = String(s || "");
     if (/^DESK:/i.test(s)) return "desk";
+    if (/^DATA:/i.test(s)) return "dataset";
     if (/^CQ:/i.test(s)) return "onchain";
     if (/^CISS:/i.test(s)) return "stress";
     if (/^FRED:/i.test(s)) return "macro";
@@ -159,6 +286,7 @@
     if (!s) return "";
     var low = s.toLowerCase();
     if (/^desk:/i.test(s)) return "DESK:" + s.split(":")[1];
+    if (/^data:/i.test(s)) return "DATA:" + s.split(":")[1];
     if (/^cq:/i.test(s)) return "CQ:" + s.split(":").slice(1).join(":");
     if (/^ciss:/i.test(s)) return "CISS:" + s.split(":").slice(1).join(":");
     if (/^fred:/i.test(s)) return "FRED:" + s.split(":")[1].toUpperCase();
@@ -172,6 +300,8 @@
       if (/mvrv|sopr|nupl|netflow|ssr/i.test(id)) return "CQ:" + id.replace(/^BTC_?/i, "btc_").toLowerCase();
       return "FRED:" + id.split(":").pop().toUpperCase();
     }
+    var via = lookupSym(s);
+    if (via) return via;
     var hit = CURATED.filter(function (x) { return x.s.toLowerCase() === low || x.q.indexOf(low) >= 0; })[0];
     if (hit && hit.s.indexOf(":") >= 0) return hit.s;
     return "";
@@ -208,12 +338,27 @@
       if (row.chartable === false && !/^DESK:/i.test(mapped)) extra.push("snapshot");
       return { s: mapped, name: name || mapped, extra: extra.filter(Boolean).join(" · "), type: classify(mapped) || kind || "economy" };
     }
-    if (kind === "dataset" && row.chartable === false) return null;
+    var viaSym = lookupSym(id) || lookupSym(name) || lookupSym(row.symbol);
+    if (viaSym) return { s: viaSym, name: name || viaSym, extra: "OpenFIGI / SEC spine", type: "stock" };
+    if (kind === "series" || row.chartable) {
+      var sym = String(row.symbol || id.split(":").pop() || "");
+      if (sym && provider && /fred|nyfed|ecb|bls|bea|treasury|ofr/i.test(provider)) {
+        return { s: "FRED:" + sym.toUpperCase(), name: name || sym, extra: (row.provider_name || provider) + (row.first && row.last ? " · " + row.first + " → " + row.last : ""), type: "economy" };
+      }
+    }
+    if (kind === "dataset" || kind === "indicator_ref") {
+      return { s: "DATA:" + (provider || "other"), name: name || id, extra: "warehouse dataset · " + (row.provider_name || provider || kind) + (row.hot ? " · hot" : ""), type: "dataset" };
+    }
     return null;
   }
 
   function go(s, dest) {
     s = String(s || "");
+    if (/^DATA:/i.test(s)) {
+      var p = s.split(":")[1] || "";
+      if (p) global.location.href = "/data.html?p=" + encodeURIComponent(p);
+      return true;
+    }
     if (!/^DESK:/i.test(s)) return false;
     var tab = s.split(":")[1] || "over";
     if (global.jhOpenDataTypePanel) global.jhOpenDataTypePanel(tab);
@@ -314,6 +459,10 @@
     tabMatch: tabMatch,
     aliasHits: aliasHits,
     search: search,
+    suggest: suggest,
+    ensureIndex: ensureIndex,
+    lookupSym: lookupSym,
+    keepId: keepId,
     classify: classify,
     chartId: chartId,
     mapRow: mapRow,

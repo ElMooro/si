@@ -3370,12 +3370,18 @@
     var top=document.getElementById("symin");
     var bar=document.getElementById("tv-symwrap");
     var q=pre!=null?pre:(inp?inp.value:"");
-    if(inp){ inp.value=q; inp.placeholder="Ticker, SOFR, MVRV, 13F, exports…"; inp.focus(); }
+    if(inp){ inp.value=q; inp.placeholder="Ticker, CUSIP, ISIN, FIGI, SOFR, MVRV…"; inp.focus(); }
     if(top) top.value=q;
     if(bar){ if(dest==="chart") bar.classList.add("searching"); else bar.classList.remove("searching"); }
     ssTab="all"; ssSel=0;
     renderSsChips();
     renderSymSearch(inp?inp.value:q);
+    if(window.JHChartCatalog && window.JHChartCatalog.ensureIndex){
+      window.JHChartCatalog.ensureIndex().then(function(){
+        var box=document.getElementById("symsearch");
+        if(box && box.className.indexOf("on")>=0) renderSymSearch((document.getElementById("ssin")||{}).value||"");
+      }).catch(function(){});
+    }
     if(inp && !inp.dataset.bound){
       inp.oninput=function(){ ssSel=0; renderSymSearch(inp.value); if(top) top.value=inp.value; };
       inp.onkeydown=function(e){
@@ -3467,7 +3473,7 @@
     var rows=[], seen={};
     function push(s, name, extra, type, force){
       s=String(s);
-      var full=/^FRED:/i.test(s)||/^\^/.test(s)||s.indexOf("=")>=0 ? s.toUpperCase() : bare(s);
+      var full=/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)||/^\^/.test(s)||s.indexOf("=")>=0 ? s : bare(s);
       var k=full.toUpperCase();
       if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;
       var cls=classifySym(s);
@@ -3487,19 +3493,27 @@
       if(ssTab==="lists") extra=extra||"";
       rows.push({s:full, name:name||"", extra:extra||"", type:type||cls});
     }
-    aliasHits(q).forEach(function(a){ push(a.s, a.name, "best match", a.type, true); });
+    aliasHits(q).forEach(function(a){ push(a.s, a.name, a.extra||"best match", a.type, true); });
+    if(window.JHChartCatalog && window.JHChartCatalog.suggest){
+      window.JHChartCatalog.suggest(q, 16).forEach(function(a){
+        push(a.s, a.name, a.extra||"suggest", a.type, true);
+      });
+    }
     if(!ql) compare.forEach(function(s){ push(s, s, "added", classifySym(s), true); });
     recents.forEach(function(r){ push(r.s, r.name||r.s, r.extra||"recent", r.type||"", !ql); });
     TABS.forEach(function(s){ push(s, s, "open tab", "tab"); });
     lists.forEach(function(L){ (L.symbols||[]).forEach(function(s){ push(s, L.name, L.name, classifySym(s)); }); });
     Object.keys(notes).forEach(function(s){ var n=noteObj(s); if(n.text) push(s, n.text.slice(0,60), "note", "note"); });
     if(q && /^[A-Z0-9:.\-]{1,20}$/i.test(q)) push(q.toUpperCase(), "Open "+q.toUpperCase(), "direct", classifySym(q));
-    ssRows=rows.slice(0,60);
+    ssRows=rows.slice(0,80);
     pinBest(q);
     ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
     document.getElementById("ssres").innerHTML=paintSsList(ssRows, dest, q);
     bindSsRows(dest);
-    if(q.length>=2) dirSearch(q);
+    if(q.length>=2){
+      clearTimeout(window.__jhSsDeb);
+      window.__jhSsDeb=setTimeout(function(){ dirSearch(q); }, 140);
+    }
   }
   function paintSsList(rows, dest, q){
     if(!rows.length) return "<div class=cell style=padding:18px>No matches — Enter opens "+(q||"ticker")+"</div>";
@@ -3537,7 +3551,6 @@
       if(!s) s=String(id);
       if(ssRows.some(function(r){ return String(r.s).toUpperCase()===String(s).toUpperCase() || bare(r.s)===bare(s); })) return;
       var kindType=type||classifySym(s);
-      if(kindType==="dataset") return;
       ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType, label:displayTicker(s)});
     }
     if(window.JHChartCatalog && window.JHChartCatalog.search){
@@ -3546,7 +3559,7 @@
       });
     }
     try{
-      var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=40");
+      var r=await fetch(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=80");
       var j=await r.json();
       if(ssYq!==q) return;
       (j.rows||[]).forEach(function(row){
@@ -3554,9 +3567,11 @@
         if(mapped){ addRow(mapped.s, mapped.name, mapped.extra, mapped.type); return; }
         var id=row.id||row.symbol||row.ticker;
         var kind=row.kind||row.type||"";
-        if(kind==="dataset") return;
         addRow(id, row.name||row.title||"", (row.pinned?"best match · ":"")+(row.provider||row.ex||"")+" "+kind, kind==="series"||kind==="macro"||row.pinned?"economy":kind);
       });
+      if(j.warehouse_more){
+        addRow("DATA:search", (j.warehouse_more)+" more warehouse hits", "type more characters · 73 providers indexed", "dataset");
+      }
       (j.suggest||[]).forEach(function(s){ aliasHits(s).forEach(function(a){ addRow(a.s, a.name, "did you mean", a.type); }); });
       (j.rows||[]).filter(function(r){ return r.pinned; }).forEach(function(row){
         addRow(row.id||row.symbol, row.name||row.title||"", "best match", row.kind||"economy");
