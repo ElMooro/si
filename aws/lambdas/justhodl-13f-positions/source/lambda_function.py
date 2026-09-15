@@ -2122,6 +2122,11 @@ def lambda_handler(event, context):
          if a["net_flow_usd"] > 0
          and (a["n_funds_adding"] + a["n_funds_new_position"]) >= 2),
         key=lambda x: -x["net_flow_usd"])[:15]]
+    distributing = [_slim(a) for a in sorted(
+        (a for a in by_ticker.values()
+         if a["net_flow_usd"] < 0
+         and (a["n_funds_trimming"] + a["n_funds_exiting"]) >= 2),
+        key=lambda x: x["net_flow_usd"])[:15]]
 
     # conviction: % of book, skill-weighted via clone-alpha
     skill = {}
@@ -2539,8 +2544,10 @@ def lambda_handler(event, context):
                                              most_bought],
                          "most_sold_usd": [_slim(a) for a in
                                            most_sold],
-                         "accumulating": accumulating},
+                         "accumulating": accumulating,
+                         "distributing": distributing},
         "top_owned": top_owned,
+        "distributing": distributing,
         "conviction_top": conviction_top,
         "asset_classes": asset_classes,
         "safety_rotation": safety_rotation,
@@ -2589,6 +2596,59 @@ def lambda_handler(event, context):
         "note": "Compact ticker index for the overlay. Not live institutional activity. Full tape remains data/13f-positions.json (do not fetch in the browser).",
         "n": len(compact),
         "tickers": compact,
+    })
+    def _fund_slim(f):
+        cs = f.get("changes_summary") or {}
+        def _tk(arr):
+            out = []
+            for p in (arr or [])[:8]:
+                if isinstance(p, dict):
+                    out.append({"ticker": p.get("ticker"), "cusip": p.get("cusip"),
+                                "name": p.get("name") or p.get("resolved_name")})
+            return out
+        return {
+            "fund_key": f.get("fund_key"),
+            "fund_name": f.get("fund_name"),
+            "period_of_report": f.get("period_of_report"),
+            "n_positions": f.get("n_positions"),
+            "total_value_usd": f.get("total_value_usd"),
+            "flow": f.get("flow"),
+            "risk": f.get("risk"),
+            "changes_summary": {
+                "n_adds": cs.get("n_adds"), "n_new": cs.get("n_new"),
+                "n_trims": cs.get("n_trims"), "n_exits": cs.get("n_exits"),
+                "new": _tk(cs.get("new")), "exits": _tk(cs.get("exits")),
+            },
+        }
+    put_s3_json("data/13f-desk.json", {
+        "engine": "justhodl-13f-positions",
+        "generated_at": output.get("generated_at"),
+        "as_of_quarter": output.get("as_of_quarter"),
+        "cadence": "quarterly_lagged",
+        "note": "Bloomberg-style 13F board. Quarterly, lagged (~45d). Not live institutional prints. Full tape is data/13f-positions.json.",
+        "funds_parsed": output.get("funds_parsed"),
+        "funds_total": output.get("funds_total"),
+        "n_tickers": len(by_ticker),
+        "total_aum": sum((f.get("total_value_usd") or 0) for f in successful),
+        "flow_summary": flow_summary,
+        "flow_summary_directional": flow_summary_directional,
+        "risk_appetite": risk_appetite,
+        "risk_appetite_directional": risk_appetite_directional,
+        "dollar_flows": output.get("dollar_flows"),
+        "most_bought": (most_bought or [])[:25],
+        "most_sold": (most_sold or [])[:25],
+        "top_owned": top_owned,
+        "accumulating": accumulating,
+        "distributing": distributing,
+        "conviction_top": conviction_top,
+        "consensus_holds": output.get("consensus_holds"),
+        "rare_picks": output.get("rare_picks"),
+        "asset_classes": asset_classes,
+        "safety_rotation": safety_rotation,
+        "industry_flows": output.get("industry_flows"),
+        "new_since": output.get("new_since"),
+        "performance": output.get("performance"),
+        "by_fund": {k: _fund_slim(f) for k, f in (output.get("by_fund") or {}).items()},
     })
     print(f"13F positions: {len(successful)} funds parsed | "
           f"{len(by_ticker)} unique tickers | "

@@ -213,6 +213,7 @@
       etf: ["ETF Desk", "/etf.html"],
       strong: ["Strength vs S&P 500", "/strong.html"],
       bonds: ["Bonds & Yields", "/bonds.html"],
+      "13f": ["13F · Institutional book", "/13f.html"],
       alert: ["Alert Center", "/alerts.html"]
     };
     var pair = meta[kind] || meta.alert;

@@ -2934,6 +2934,7 @@
       "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
+      "<button class='wsico wsdesk' id=btn-13f title='13F · Institutional holdings'><span class=g>🏦</span><span class=l>13F</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       tfHtml+
@@ -2973,6 +2974,7 @@
     var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
     var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
+    var b13f=document.getElementById("btn-13f"); if(b13f) b13f.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("13f"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var more=document.getElementById("btn-tfmore");
     if(more) more.onclick=function(){

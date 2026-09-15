@@ -471,10 +471,47 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
   <!-- KPI strip -->
   <div class="kpi-strip" id="kpi-strip">
     <div class="kpi"><span class="kpi-label">Funds tracked</span><span class="kpi-val skel">—</span><span class="kpi-sub">across watchlist</span></div>
-    <div class="kpi"><span class="kpi-label">Total AUM</span><span class="kpi-val skel">—</span><span class="kpi-sub">aggregated holdings</span></div>
+    <div class="kpi"><span class="kpi-label">Reported book</span><span class="kpi-val skel">—</span><span class="kpi-sub">aggregated holdings</span></div>
     <div class="kpi"><span class="kpi-label">Quarter</span><span class="kpi-val skel">—</span><span class="kpi-sub">most recent reported</span></div>
-    <div class="kpi"><span class="kpi-label">Unique tickers</span><span class="kpi-val skel">—</span><span class="kpi-sub">across all funds</span></div>
+    <div class="kpi"><span class="kpi-label">Unique names</span><span class="kpi-val skel">—</span><span class="kpi-sub">across all funds</span></div>
+    <div class="kpi"><span class="kpi-label">Net flow</span><span class="kpi-val skel">—</span><span class="kpi-sub">buys minus sells</span></div>
+    <div class="kpi"><span class="kpi-label">Risk appetite</span><span class="kpi-val skel">—</span><span class="kpi-sub">all funds</span></div>
+    <div class="kpi"><span class="kpi-label">Directional</span><span class="kpi-val skel">—</span><span class="kpi-sub">ex hedge books</span></div>
+    <div class="kpi"><span class="kpi-label">Safety sleeve</span><span class="kpi-val skel">—</span><span class="kpi-sub">T-bills · bonds · gold</span></div>
   </div>
+
+  <section class="section">
+    <div class="section-eyebrow">Book composition · US-listed longs only</div>
+    <h2 class="section-title">Holdings by asset class</h2>
+    <p class="section-blurb">13F is the long US-listed book. Cash is T-bill ETFs; real estate is REITs. True cash and private assets are not reportable. Stocks vs ETFs vs safety sleeve are inferred from ticker/name, not a custodian tape.</p>
+    <div class="bs-grid">
+      <div class="bs-col"><div class="bs-head"><span class="bs-title">Class mix</span></div><div class="bs-list" id="asset-classes"><div class="bs-empty">Loading…</div></div></div>
+      <div class="bs-col"><div class="bs-head"><span class="bs-title">Safety rotation</span></div><div class="bs-list" id="safety-rot"><div class="bs-empty">Loading…</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-eyebrow">Accumulation · distribution</div>
+    <h2 class="section-title">Accumulating · Distributing</h2>
+    <p class="section-blurb">Names where at least two tracked funds are adding (left) or trimming/exiting (right), ranked by net reported dollar flow. Not live prints — value-delta vs the prior 13F snapshot.</p>
+    <div class="bs-grid">
+      <div class="bs-col">
+        <div class="bs-head buys"><span class="bs-icon buys">↑</span><span class="bs-title">Accumulating</span></div>
+        <div class="bs-list" id="accumulating"><div class="bs-empty">Loading…</div></div>
+      </div>
+      <div class="bs-col">
+        <div class="bs-head sells"><span class="bs-icon sells">↓</span><span class="bs-title">Distributing</span></div>
+        <div class="bs-list" id="distributing"><div class="bs-empty">Loading…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-eyebrow">Largest reported holdings</div>
+    <h2 class="section-title">Most held</h2>
+    <p class="section-blurb">Largest names by reported market value across the 18-fund book. Mega-cap concentration is normal; size is not a buy signal.</p>
+    <div class="consensus-grid" id="top-owned"><div class="bs-empty">Loading…</div></div>
+  </section>
 
   <!-- ACTION SPOTLIGHT — top conviction signals -->
   <section class="section">
@@ -614,10 +651,14 @@ let RAW = null;
 
 async function fetchJSON(path){
   try{
+    const r = await fetch(path, {cache:'no-cache'});
+    if(r.ok) return await r.json();
+  }catch(e){ /* same-origin miss */ }
+  try{
     const r = await fetch(BUCKET + path, {cache:'no-cache'});
-    if(!r.ok) throw new Error(r.status);
-    return await r.json();
-  }catch(e){ console.error(path, e); return null; }
+    if(r.ok) return await r.json();
+  }catch(e){ console.error(path, e); }
+  return null;
 }
 
 function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -640,14 +681,69 @@ function fmtNum(v){
 // KPI strip
 // ──────────────────────────────────────────────────────────────
 function renderKpiStrip(data){
-  const totalAum = Object.values(data.by_fund || {}).reduce((s,f) => s + (f.total_value_usd || 0), 0);
-  const tickers = Object.keys(data.aggregate_by_ticker || {}).length;
+  const totalAum = data.total_aum || Object.values(data.by_fund || {}).reduce((s,f) => s + (f.total_value_usd || 0), 0);
+  const tickers = data.n_tickers || Object.keys(data.aggregate_by_ticker || {}).length;
+  const f = data.flow_summary || {};
+  const ra = data.risk_appetite || {};
+  const rd = data.risk_appetite_directional || {};
+  const sf = data.safety_rotation || {};
+  const net = f.net_usd;
+  const vcol = ra.verdict==='RISK-ON'?'var(--green)':ra.verdict==='RISK-OFF'?'var(--red)':'var(--yellow)';
+  const dcol = rd.verdict==='RISK-ON'?'var(--green)':rd.verdict==='RISK-OFF'?'var(--red)':'var(--yellow)';
   document.getElementById('kpi-strip').innerHTML = `
-    <div class="kpi"><span class="kpi-label">Funds tracked</span><span class="kpi-val">${data.funds_parsed || 0}<small>/ ${data.funds_total || 18}</small></span><span class="kpi-sub">${data.funds_failed ? data.funds_failed + ' parsing errors' : 'all parsed cleanly'}</span></div>
-    <div class="kpi"><span class="kpi-label">Total AUM</span><span class="kpi-val">${fmtMoney(totalAum)}</span><span class="kpi-sub">aggregated reported holdings</span></div>
-    <div class="kpi"><span class="kpi-label">Quarter</span><span class="kpi-val">${escape(data.as_of_quarter || '—')}</span><span class="kpi-sub">latest reported period</span></div>
-    <div class="kpi"><span class="kpi-label">Unique tickers</span><span class="kpi-val">${tickers}</span><span class="kpi-sub">across all funds</span></div>
+    <div class="kpi"><span class="kpi-label">Funds tracked</span><span class="kpi-val">${data.funds_parsed || 0}<small>/ ${data.funds_total || 18}</small></span><span class="kpi-sub">${data.funds_failed ? data.funds_failed + ' parsing errors' : 'SEC 13F-HR, lagged'}</span></div>
+    <div class="kpi"><span class="kpi-label">Reported book</span><span class="kpi-val">${fmtMoney(totalAum)}</span><span class="kpi-sub">US-listed longs only</span></div>
+    <div class="kpi"><span class="kpi-label">Quarter</span><span class="kpi-val">${escape(data.as_of_quarter || '—')}</span><span class="kpi-sub">~45 days after quarter-end</span></div>
+    <div class="kpi"><span class="kpi-label">Unique names</span><span class="kpi-val">${tickers}</span><span class="kpi-sub">across tracked funds</span></div>
+    <div class="kpi"><span class="kpi-label">Net flow</span><span class="kpi-val" style="color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</span><span class="kpi-sub">buys ${fmtMoney(f.total_buy_usd)} · sells ${fmtMoney(f.total_sell_usd)}</span></div>
+    <div class="kpi"><span class="kpi-label">Risk appetite</span><span class="kpi-val" style="color:${vcol}">${escape(ra.verdict || '—')}</span><span class="kpi-sub">score ${ra.score==null?'—':ra.score} · all funds</span></div>
+    <div class="kpi"><span class="kpi-label">Directional</span><span class="kpi-val" style="color:${dcol}">${escape(rd.verdict || '—')}</span><span class="kpi-sub">ex hedge books · score ${rd.score==null?'—':rd.score}</span></div>
+    <div class="kpi"><span class="kpi-label">Safety sleeve</span><span class="kpi-val">${sf.safe_pct_of_book==null?'—':sf.safe_pct_of_book+'%'}</span><span class="kpi-sub">T-bills · bonds · gold ETFs</span></div>
   `;
+}
+
+function renderAssetBook(data){
+  const el = document.getElementById('asset-classes');
+  const se = document.getElementById('safety-rot');
+  const ac = data.asset_classes || {};
+  const rows = Object.keys(ac).filter(k => k[0] !== '_').map(k => Object.assign({cls:k}, ac[k]||{}));
+  rows.sort((a,b) => (b.total_usd||0)-(a.total_usd||0));
+  const tot = rows.reduce((s,r)=>s+(r.total_usd||0),0) || 1;
+  const labels = {US_EQUITY:'US stocks', OTHER_ETF:'ETFs', CASH_TBILLS:'T-bill ETFs', BONDS:'Bond ETFs', GOLD_PM:'Gold / PM', REAL_ESTATE_REITS:'REITs', UNRESOLVED:'Unresolved'};
+  if(el){
+    el.innerHTML = rows.length ? rows.map(r => {
+      const pct = 100*(r.total_usd||0)/tot;
+      const nf = r.net_flow_usd||0;
+      return `<div class="bs-row"><div class="bs-stock"><span class="bs-ticker">${escape(labels[r.cls]||r.cls)}</span><span class="bs-name">${r.n_names||0} names · ${(r.top||[]).slice(0,3).map(t=>t.ticker).join(' · ')}</span></div><div class="bs-meta"><span class="bs-funds">${fmtMoney(r.total_usd)}</span><span class="bs-funds-label">${pct.toFixed(1)}% of book</span></div><div class="bs-action"><span class="${nf>=0?'bs-funds buys':'bs-funds sells'}">${fmtMoney(nf)}</span></div></div>`;
+    }).join('') : '<div class="bs-empty">No class mix yet</div>';
+  }
+  const sf = data.safety_rotation || {};
+  if(se){
+    se.innerHTML = `<div class="bs-row"><div class="bs-stock"><span class="bs-ticker">Safety sleeve</span><span class="bs-name">${escape((sf.classes||[]).join(' · '))}</span></div><div class="bs-meta"><span class="bs-funds">${fmtMoney(sf.safe_usd)}</span><span class="bs-funds-label">${sf.safe_pct_of_book==null?'—':sf.safe_pct_of_book+'%'} of book</span></div></div>
+      <div class="bs-row"><div class="bs-stock"><span class="bs-ticker">Net into safety</span><span class="bs-name">T-bills + bonds + gold this quarter</span></div><div class="bs-meta"><span class="bs-funds ${(sf.safe_net_flow_usd||0)>=0?'buys':'sells'}">${fmtMoney(sf.safe_net_flow_usd)}</span></div></div>
+      <div class="bs-empty" style="text-align:left">${escape((ac._note||'13F does not report true cash.'))}</div>`;
+  }
+}
+
+function renderFlowList(el, list, dir){
+  if(!el) return;
+  if(!list || !list.length){ el.innerHTML = '<div class="bs-empty">None this quarter</div>'; return; }
+  el.innerHTML = list.slice(0,12).map((s,i) => {
+    const tk = s.ticker || s.cusip || '?';
+    const nf = s.net_flow_usd;
+    return `<div class="bs-row" onclick="openTicker('${escape(tk)}')"><span class="bs-rank">${i+1}</span><div class="bs-stock"><span class="bs-ticker">${escape(tk)}</span><span class="bs-name">${escape(s.name||'')}</span></div><div class="bs-meta"><span class="bs-funds ${dir}">${fmtMoney(nf)}</span><span class="bs-funds-label">${s.n_funds_holding||0} holding</span></div></div>`;
+  }).join('');
+}
+
+function renderTopOwned(list){
+  const el = document.getElementById('top-owned');
+  if(!el) return;
+  if(!list || !list.length){ el.innerHTML = '<div class="bs-empty">—</div>'; return; }
+  const mx = Math.max.apply(null, list.map(x => x.total_value||0)) || 1;
+  el.innerHTML = list.slice(0,20).map(s => {
+    const w = 100*((s.total_value||0)/mx);
+    return `<div class="consensus-row"><span class="consensus-ticker">${escape(s.ticker||'?')}</span><span class="consensus-name">${escape(s.name||'')}</span><div class="consensus-bar-wrap"><div class="consensus-bar" style="width:${w}%"></div></div><span class="consensus-count">${fmtMoney(s.total_value)}</span><span class="consensus-count">${s.n_funds_holding||0} fds</span></div>`;
+  }).join('');
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -1101,7 +1197,8 @@ function renderIndustryFlows(d){
 // Master refresh
 // ──────────────────────────────────────────────────────────────
 async function load(){
-  const data = await fetchJSON('/data/13f-positions.json');
+  let data = await fetchJSON('/data/13f-desk.json');
+  if(!data) data = await fetchJSON('/data/13f-positions.json');
   if(!data){
     document.getElementById('most-bought').innerHTML = '<div class="bs-empty">Data not yet available — first parse may still be running.</div>';
     document.getElementById('most-sold').innerHTML = '<div class="bs-empty">—</div>';
@@ -1114,18 +1211,23 @@ async function load(){
   }
   RAW = data;
   renderKpiStrip(data);
+  renderAssetBook(data);
+  renderFlowList(document.getElementById('accumulating'), data.accumulating || (data.dollar_flows||{}).accumulating, 'buys');
+  renderFlowList(document.getElementById('distributing'), data.distributing || (data.dollar_flows||{}).distributing, 'sells');
+  renderTopOwned(data.top_owned);
   renderSpotlight(data);
   renderFamousFunds(data.by_fund);
   renderMostBought(data.most_bought);
   renderMostSold(data.most_sold);
-  renderNewFlash(data);          // ops 4968
-  renderIndustryFlows(data);     // ops 4968
+  renderNewFlash(data);
+  renderIndustryFlows(data);
   renderConsensus(data.consensus_holds, data.aggregate_by_ticker);
   renderCapTiers(data);
   renderRarePicks(data.rare_picks);
   renderFunds(data.by_fund);
   renderPerfBar(data.performance);
-  document.getElementById('updated-at').textContent = new Date(data.generated_at).toLocaleString();
+  const u = document.getElementById('updated-at');
+  if(u) u.textContent = data.generated_at ? new Date(data.generated_at).toLocaleString() : '—';
 }
 
 load();

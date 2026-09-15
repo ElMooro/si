@@ -11,7 +11,7 @@ function load(name) {
   return ctx;
 }
 
-test('chart toolbar places ETF / Strong / Bonds between correlation and alert', () => {
+test('chart toolbar places ETF / Strong / Bonds / 13F between correlation and alert', () => {
   const src = fs.readFileSync(path.join(__dirname, '../jh-chart-engine.js'), 'utf8');
   const iMacro = src.indexOf('id=btn-macro');
   const iHeat = src.indexOf('id=btn-heat');
@@ -19,13 +19,15 @@ test('chart toolbar places ETF / Strong / Bonds between correlation and alert', 
   const iEtf = src.indexOf('id=btn-etf');
   const iStr = src.indexOf('id=btn-str');
   const iBnd = src.indexOf('id=btn-bnd');
+  const i13f = src.indexOf('id=btn-13f');
   const iAlrt = src.indexOf('id=btn-alrt');
   assert.ok(iMacro > 0 && iHeat > iMacro && iCorr > iHeat);
-  assert.ok(iEtf > iCorr && iStr > iEtf && iBnd > iStr && iAlrt > iBnd);
+  assert.ok(iEtf > iCorr && iStr > iEtf && iBnd > iStr && i13f > iBnd && iAlrt > i13f);
   const rail = fs.readFileSync(path.join(__dirname, '../jh-chart-tvrail.js'), 'utf8');
   assert.match(rail, /etf: \["ETF Desk"/);
   assert.match(rail, /strong: \["Strength vs S&P 500"/);
   assert.match(rail, /bonds: \["Bonds & Yields"/);
+  assert.match(rail, /"13f": \["13F/);
 });
 
 test('etf.html and strong.html are real desks, not stubs', () => {
