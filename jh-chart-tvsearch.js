@@ -222,9 +222,34 @@
     ]));
   }
 
-  function renderVal(d) {
-    var x = pick(d);
+  function renderValFmp(f) {
+    var r = f.row;
+    var label = "FMP EOD/TTM" + (f.key_status === "unauthorized" ? " — KEY REJECTED (stale)" : "") + " · as of " + String(f.as_of || "").slice(0, 10);
     return "<div class=kpi>" + [
+      kpi("P/E (TTM)", fmt(num(r.pe))),
+      kpi("PEG", fmt(num(r.peg))),
+      kpi("P/S (TTM)", fmt(num(r.ps))),
+      kpi("P/B (TTM)", fmt(num(r.pb))),
+      kpi("EV/EBITDA", fmt(num(r.ev_ebitda))),
+      kpi("Div yield %", fmt(num(r.div_yield)))
+    ].join("") + "</div>" +
+      blk("Valuation — " + label, table([
+        ["P/E (TTM)", fmt(num(r.pe))],
+        ["P/E 10y low / high", fmt(num(r.pe_low)) + " / " + fmt(num(r.pe_high))],
+        ["P/E percentile", fmt(num(r.pe_pctile))],
+        ["PEG", fmt(num(r.peg))],
+        ["Price / sales (TTM)", fmt(num(r.ps))],
+        ["Price / book (TTM)", fmt(num(r.pb))],
+        ["EV / EBITDA", fmt(num(r.ev_ebitda))],
+        ["Net debt / EBITDA", fmt(num(r.net_debt_ebitda))],
+        ["Market cap", fmtBig(num(r.mkt_cap))],
+        ["Next earnings", esc(r.next_earnings || "—")]
+      ]));
+  }
+  function renderVal(d) {
+    if (d && d.fmp && d.fmp.row) return renderValFmp(d.fmp);
+    var x = pick(d);
+    return "<div class=note>Yahoo fallback — no FMP row for this symbol yet</div><div class=kpi>" + [
       kpi("P/E", fmt(num(x.sd.trailingPE) || num(x.ks.trailingPE))),
       kpi("Fwd P/E", fmt(num(x.sd.forwardPE) || num(x.ks.forwardPE))),
       kpi("PEG", fmt(num(x.ks.pegRatio))),
@@ -275,7 +300,20 @@
     return "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>";
   }
 
+  function renderFinFmp(f) {
+    var rows = (f.row.financials || []).slice(0, 10);
+    var hdr = "<tr><th>Year</th><th>Revenue</th><th>Net income</th><th>EPS</th><th>GM %</th><th>OM %</th><th>NM %</th><th>FCF</th><th>FCF %</th></tr>";
+    var body = rows.map(function (y) {
+      return "<tr><td>" + esc(y.year) + "</td><td>" + fmtBig(num(y.revenue)) + "</td><td>" + fmtBig(num(y.netIncome)) + "</td><td>" + fmt(num(y.eps)) +
+        "</td><td>" + fmt(num(y.gm)) + "</td><td>" + fmt(num(y.om)) + "</td><td>" + fmt(num(y.nm)) + "</td><td>" + fmtBig(num(y.fcf)) + "</td><td>" + fmt(num(y.fcfm)) + "</td></tr>";
+    }).join("");
+    var label = "FMP FILING (annual)" + (f.key_status === "unauthorized" ? " — KEY REJECTED (stale)" : "") + " · as of " + String(f.as_of || "").slice(0, 10);
+    return blk("Financials — " + label, "<table><thead>" + hdr + "</thead><tbody>" + (body || "<tr><td colspan=9>no annual rows</td></tr>") + "</tbody></table>") +
+      blk("Quality", table([["Gross-margin trend", esc(f.row.gm_trend || "—")], ["Cash conversion", fmt(num(f.row.cash_conv))], ["Accruals", fmt(num(f.row.accruals))],
+                            ["Current ratio", fmt(num(f.row.cur_ratio))], ["Interest cover", fmt(num(f.row.int_cov))], ["Share change %", fmt(num(f.row.share_chg_pct))]]));
+  }
   function renderFin(d) {
+    if (d && d.fmp && d.fmp.row) return renderFinFmp(d.fmp);
     var j = d || {};
     var inc = ((j.incomeStatementHistory || {}).incomeStatementHistory) || j.income || [];
     var bal = ((j.balanceSheetHistory || {}).balanceSheetStatements) || j.balance || [];
@@ -662,6 +700,14 @@
     });
   }
 
+  var FMP_HARVEST = null;
+  async function fmpRow(t) {
+    try {
+      if (!FMP_HARVEST) { var r = await fetch("/data/fmp-ratios.json", { cache: "no-store" }); FMP_HARVEST = r.ok ? await r.json() : { tickers: {} }; }
+    } catch (e) { FMP_HARVEST = { tickers: {} }; }
+    var row = (FMP_HARVEST.tickers || {})[t] || (FMP_HARVEST.tickers || {})[t.replace(".", "-")] || null;
+    return row && !row.error ? { row: row, as_of: FMP_HARVEST.generated_at, key_status: (FMP_HARVEST.key_status || {}).status } : null;
+  }
   async function loadPack(sym) {
     var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
     var t = (window.jhBare || function (s) { return s; })(sym);
@@ -673,6 +719,8 @@
       if (j.price || j.summaryDetail || j.defaultKeyStatistics || j.financialData) pack.src.push(label);
     }
     try {
+      pack.fmp = await fmpRow(t);
+      if (pack.fmp) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
