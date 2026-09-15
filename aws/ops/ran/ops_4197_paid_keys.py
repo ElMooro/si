@@ -13,10 +13,11 @@ sys.path.insert(0, str(ROOT / "ops"))
 from ops_report import report  # noqa: E402
 
 ssm = boto3.client("ssm", region_name="us-east-1")
-KEYS = {"/justhodl/te_api": "BF59C0362D564C5:4DF6F2AA99FB40F",
-        "/justhodl/eodhd_api": "6a543beea9ebe2.87551566",
+# Literals REDACTED 2026-09-15 (ops 5579): keys live in SSM only; this file is a historical record.
+KEYS = {"/justhodl/te_api": "REDACTED-ops-5579",
+        "/justhodl/eodhd_api": "REDACTED-ops-5579",
         "/justhodl/cryptoquant_api":
-        "iibYiFubTVOVm9JgXcXE1haQ3YHR8wSv9V9oX7Qv"}
+        "REDACTED-ops-5579"}
 UA = {"User-Agent": "Mozilla/5.0"}
 
 

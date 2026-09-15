@@ -497,7 +497,7 @@ def lambda_handler(event=None, context=None):
     cats = {}
     for v in metrics.values(): cats[v["category"]] = cats.get(v["category"], 0) + 1
     _put(OUT, {"engine": "justhodl-cryptoquant", "version": "2.0.0",
-               "generated_at": now.isoformat(timespec="seconds"), "status": "LIVE",
+               "generated_at": now.isoformat(timespec="seconds"), "status": "EOD", "cadence": "EOD", "label": "CryptoQuant EOD on-chain",
                "grading": "PROVISIONAL — scorecard excess-vs-BTC gates admission",
                "plan_note": spec.get("plan_note"),
                "n_metrics": len(metrics), "categories": cats,
@@ -509,6 +509,6 @@ def lambda_handler(event=None, context=None):
                "max_staleness_days": stale, "errors": errors or None,
                "source": "CryptoQuant Professional (full probed catalog) + Coin Metrics twins for 2010+ context"})
     _put(SPEC_KEY, spec, compact=False)
-    return {"ok": True, "status": "LIVE", "n_metrics": len(metrics),
+    return {"ok": True, "status": "EOD", "cadence": "EOD", "label": "CryptoQuant EOD on-chain", "n_metrics": len(metrics),
             "categories": cats, "composite": comp, "extremes_ai": len([k for k in extremes if metrics[k].get("ai_context")]),
             "errors": len(errors)}
