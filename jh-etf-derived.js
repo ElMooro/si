@@ -18,9 +18,9 @@
     ".jh-der .kpi .s{font-size:11px;color:#7c8aa0;margin-top:2px}",
     ".jh-der .up{color:#16c784}.jh-der .dn{color:#ea3943}.jh-der .flat{color:#f0a020}",
     ".jh-der .tag{display:inline-block;font:10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em;padding:3px 7px;border-radius:4px;border:1px solid #1e2836}",
-    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
-    ".jh-der .tag.BETA,.jh-der .tag.MIXED,.jh-der .tag.QUIET{color:#7c8aa0}",
-    ".jh-der .tag.RISK_OFF,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
+    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.RISK_ON_SOFT,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION,.jh-der .tag.GREED,.jh-der .tag.CASHING_IN,.jh-der .tag.SPEC_GREED,.jh-der .tag.BULL_LEVERED_BID,.jh-der .tag.SIZE_ON,.jh-der .tag.STOCKS_OVER_BONDS,.jh-der .tag.CREDIT_OVER_DURATION{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
+    ".jh-der .tag.BETA,.jh-der .tag.MIXED,.jh-der .tag.QUIET,.jh-der .tag.NEUTRAL,.jh-der .tag.BALANCED,.jh-der .tag.NO_CLEAN_ROTATION{color:#7c8aa0}",
+    ".jh-der .tag.RISK_OFF,.jh-der .tag.RISK_OFF_SOFT,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS,.jh-der .tag.FEAR,.jh-der .tag.CASHING_OUT,.jh-der .tag.SPEC_FEAR,.jh-der .tag.BEAR_LEVERED_BID,.jh-der .tag.FLIGHT_TO_MEGA,.jh-der .tag.CREDIT_STRESS,.jh-der .tag.BONDS_OVER_STOCKS,.jh-der .tag.DURATION_OVER_CREDIT,.jh-der .tag.SIZE_OFF{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
     ".jh-der .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}",
     ".jh-der .card{background:#111722;border:1px solid #1e2836;border-radius:8px;padding:11px 12px}",
     ".jh-der .card h3{margin:0 0 8px;font:11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#a8b3c7}",
@@ -100,12 +100,52 @@
     var c = d.credit_stack || {};
     function sl(x) { return x || {}; }
     return '<h2>Credit / rates / EM <b>' + tag(c.verdict) + "</b></h2>" +
-      '<p class="note">' + esc(c.note || "") + " Creations, not OAS.</p>" +
+      '<p class="note">' + esc(c.note || "") + " Creations, not OAS. Fallen angels split from HY.</p>" +
       '<div class="kpis">' +
         kpi("HY 5D", money(sl(c.hy).flow_5d), (sl(c.hy).tickers || []).join(" ")) +
+        kpi("Fallen 5D", money(sl(c.fallen).flow_5d), "FALN") +
         kpi("IG 5D", money(sl(c.ig).flow_5d), (sl(c.ig).tickers || []).join(" ")) +
         kpi("TLT 5D", money(sl(c.rates_long).flow_5d), "duration") +
         kpi("EM sov 5D", money(sl(c.em_sov).flow_5d), "EMB") +
+      "</div>";
+  }
+  function sectionRisk(d) {
+    var x = d.cross_asset || {};
+    var w = d.wrapper_intensity || {};
+    var L = d.levered_sentiment || {};
+    var v = d.verdicts || {};
+    function sl(s) { return s || {}; }
+    var why = (x.reasons || []).join(" · ");
+    return '<h2>Risk on / off <b>' + tag(v.risk || x.verdict) + "</b> " + tag(v.fear_greed || x.fear_greed) + " " + tag(v.rotation || x.rotation) + "</h2>" +
+      '<p class="note">' + esc(x.note || "") + (why ? " · " + esc(why) : "") + "</p>" +
+      '<div class="kpis">' +
+        kpi("Mega 5D", money(sl(x.mega).flow_5d), "SPY VOO IVV QQQ") +
+        kpi("Large 5D", money(sl(x.large).flow_5d), "VTI DIA RSP") +
+        kpi("Small 5D", money(sl(x.small).flow_5d), "IWM · " + esc(x.size || "")) +
+        kpi("Treasuries 5D", money(sl(x.ust).flow_5d), "TLT IEF SHY GOVT") +
+        kpi("Junk 5D", money(sl(x.hy).flow_5d), "HYG JNK USHY") +
+        kpi("Fallen 5D", money(sl(x.fallen).flow_5d), "FALN") +
+      "</div>" +
+      '<p class="note">' + esc(x.rotation_note || "") + "</p>" +
+      '<h2>Wrapper bid / offer <b>' + tag(w.verdict) + "</b></h2>" +
+      '<p class="note">' + esc(w.note || "") + " Unlevered funds only. Large creations = cashing in. Large redemptions = cashing out.</p>" +
+      '<div class="kpis">' +
+        kpi("Gross in 1D", money(w.gross_in_1d), "creations") +
+        kpi("Gross out 1D", money(w.gross_out_1d), "redemptions") +
+        kpi("Net 1D", money(w.net_1d), "unlevered") +
+        kpi("Net 5D", money(w.net_5d), usd(w.gross_in_5d) + " in / " + usd(w.gross_out_5d) + " out") +
+      "</div>" +
+      '<div class="card"><h3>Heavy 1D prints (≥ $1B)</h3>' +
+        tbl(["Ticker", "1D", "Label"], (w.heavy_1d || []).map(function (r) {
+          return "<tr><td class=l>" + tk(r.t) + "</td><td class='" + cls(r.flow_1d) + "'>" + usd(r.flow_1d) + "</td><td>" + esc(r.flow_label || "") + "</td></tr>";
+        })) + "</div>" +
+      '<h2>Levered / inverse <b>' + tag(L.verdict) + "</b></h2>" +
+      '<p class="note">' + esc(L.note || "") + " " + esc(L.caveat || "") + "</p>" +
+      '<div class="kpis">' +
+        kpi("Bull 2x/3x 5D", money(sl(L.bull).flow_5d), (sl(L.bull).tickers || []).slice(0, 6).join(" ")) +
+        kpi("Bear / inverse 5D", money(sl(L.bear).flow_5d), (sl(L.bear).tickers || []).slice(0, 6).join(" ")) +
+        kpi("Vol 5D", money(sl(L.vol).flow_5d), "UVXY SVXY") +
+        kpi("Bull − bear 5D", money(L.net_bull_minus_bear_5d), "speculative book") +
       "</div>";
   }
   function sectionCrypto(d) {
@@ -183,19 +223,19 @@
   }
 
   var VIEWS = {
-    all: ["thematic", "factor", "credit", "crypto", "leverage", "hhi", "px", "crowd", "confirm", "bonds"],
-    etf: ["thematic", "factor", "hhi", "leverage", "px"],
-    bonds: ["credit", "bonds", "leverage"],
+    all: ["risk", "thematic", "factor", "credit", "crypto", "leverage", "hhi", "px", "crowd", "confirm", "bonds"],
+    etf: ["risk", "thematic", "factor", "hhi", "leverage", "px"],
+    bonds: ["risk", "credit", "bonds", "leverage"],
     crypto: ["crypto", "px"],
     factor: ["factor", "thematic"],
-    credit: ["credit", "bonds"],
-    strong: ["crowd", "px", "thematic", "crypto"],
+    credit: ["risk", "credit", "bonds"],
+    strong: ["risk", "crowd", "px", "thematic", "crypto"],
     lookthrough: ["crowd", "confirm", "px", "hhi"],
-    radar: ["thematic", "credit", "crypto", "factor"],
-    thematic: ["thematic", "hhi", "px"]
+    radar: ["risk", "thematic", "credit", "crypto", "factor"],
+    thematic: ["risk", "thematic", "hhi", "px"]
   };
   var RENDER = {
-    thematic: sectionThematic, factor: sectionFactor, credit: sectionCredit,
+    risk: sectionRisk, thematic: sectionThematic, factor: sectionFactor, credit: sectionCredit,
     crypto: sectionCrypto, leverage: sectionLeverage, hhi: sectionHhi,
     px: sectionPx, crowd: sectionCrowd, confirm: sectionConfirm, bonds: sectionBonds
   };
@@ -204,9 +244,11 @@
     var keys = VIEWS[view] || VIEWS.all;
     var v = d.verdicts || {};
     var head = '<div class="kpis">' +
-      kpi("Thematic vs index", tag(v.thematic_vs_index), "beta vs SMH/SOXX/XBI") +
-      kpi("Factor", tag(v.factor), "MTUM / VLUE / QUAL") +
-      kpi("Credit stack", tag(v.credit), "HY vs TLT vs EMB") +
+      kpi("Risk", tag(v.risk), esc(v.fear_greed || "") + " · " + esc(v.rotation || "")) +
+      kpi("Wrapper", tag(v.wrapper), "cashing in / out") +
+      kpi("Levered", tag(v.levered), "2x/3x / inverse") +
+      kpi("Size", tag(v.size), "mega vs IWM") +
+      kpi("Credit", tag(v.credit), "HY vs TLT vs FALN") +
       kpi("BTC wrapper", tag(v.crypto), "IBIT+FBTC+ETHA") +
       "</div>";
     var body = keys.map(function (k) { return RENDER[k] ? RENDER[k](d) : ""; }).join("");

@@ -52,8 +52,11 @@ def main():
     print("SPY hhi", spy.get("hhi"), "px_flow", spy.get("px_flow"), "levered", spy.get("levered"))
     print("IBIT flow_5d", ibit.get("flow_5d"), "sleeve", ibit.get("sleeve"))
     print("elapsed", round(time.time() - t0, 1))
-    if der.get("_err") or der.get("version") != "1.4.0":
+    if der.get("_err") or str(der.get("version") or "") < "1.5.0":
         raise SystemExit("derived harvest missing or old version")
+    print("risk", (der.get("verdicts") or {}).get("risk"), (der.get("verdicts") or {}).get("fear_greed"))
+    print("wrapper", (der.get("wrapper_intensity") or {}).get("verdict"))
+    print("levered", (der.get("levered_sentiment") or {}).get("verdict"))
 
 
 if __name__ == "__main__":

@@ -38,9 +38,16 @@
     { t: "IWD", c: "FACTOR", n: "Russell 1000 Value" }, { t: "VUG", c: "FACTOR", n: "Vanguard Growth" },
     { t: "VTV", c: "FACTOR", n: "Vanguard Value" },
     { t: "TBT", c: "RATES", n: "UltraShort 20Y (−2x)" }, { t: "SGOV", c: "RATES", n: "0-3M T-Bills" },
-    { t: "VCIT", c: "CREDIT", n: "Int. Corp" }, { t: "BKLN", c: "CREDIT", n: "Senior Loans" }
+    { t: "VCIT", c: "CREDIT", n: "Int. Corp" }, { t: "BKLN", c: "CREDIT", n: "Senior Loans" },
+    { t: "TQQQ", c: "LEV", n: "Nasdaq 3x" }, { t: "UPRO", c: "LEV", n: "S&P 3x" },
+    { t: "SOXL", c: "LEV", n: "Semis 3x" }, { t: "TNA", c: "LEV", n: "Russell 3x" },
+    { t: "SSO", c: "LEV", n: "S&P 2x" }, { t: "QLD", c: "LEV", n: "Nasdaq 2x" },
+    { t: "SQQQ", c: "LEV", n: "Nasdaq −3x" }, { t: "SPXU", c: "LEV", n: "S&P −3x" },
+    { t: "SOXS", c: "LEV", n: "Semis −3x" }, { t: "TZA", c: "LEV", n: "Russell −3x" },
+    { t: "SH", c: "LEV", n: "S&P short" }, { t: "PSQ", c: "LEV", n: "Nasdaq short" },
+    { t: "UVXY", c: "LEV", n: "VIX 1.5x" }
   ];
-  var CATS = ["ALL", "US", "SECTOR", "RATES", "CREDIT", "METAL", "CMDTY", "INTL", "CRYPTO", "FACTOR"];
+  var CATS = ["ALL", "US", "SECTOR", "RATES", "CREDIT", "METAL", "CMDTY", "INTL", "CRYPTO", "FACTOR", "LEV"];
 
   function mergeCensus(mx) {
     var map = {};

@@ -53,6 +53,9 @@
       if (sec) html += "<span>" + sec + "</span>";
       if (r.top && r.top[0]) html += "<span>Top " + esc(r.top[0].t) + " " + F.wgt(r.top[0].w) + "</span>";
       var der = pack.derived || {};
+      var risk = pack.risk || {};
+      if (risk.risk) html += "<span class='pill " + (String(risk.risk).indexOf("ON") >= 0 ? "in" : String(risk.risk).indexOf("OFF") >= 0 ? "out" : "") + "'>" + esc(risk.risk.replace(/_/g, " ")) + "</span>";
+      if (risk.wrapper) html += "<span class='pill " + (risk.wrapper === "CASHING_IN" ? "in" : risk.wrapper === "CASHING_OUT" ? "out" : "") + "'>" + esc(String(risk.wrapper).replace(/_/g, " ")) + "</span>";
       if (der.hhi != null) html += "<span>HHI <b>" + Number(der.hhi).toFixed(0) + "</b></span>";
       if (der.levered) html += "<span class='pill out'>LEV " + esc(der.leverage_style || (der.levered_amount != null ? ("×" + der.levered_amount) : "2x+")) + "</span>";
       if (der.px_flow) html += "<span class='pill " + (der.px_flow.indexOf("BID") >= 0 || der.px_flow === "ABSORPTION" ? "in" : der.px_flow.indexOf("OFFER") >= 0 || der.px_flow === "DISTRIBUTION" ? "out" : "") + "'>" + esc(der.px_flow.replace(/_/g, " ")) + "</span>";
@@ -135,7 +138,7 @@
     var F = fuse();
     if (!F || !sym) return Promise.resolve(null);
     var t = F.bare(sym);
-    return Promise.all([F.of(t), F.live(t), F.reverse(t), F.ofDerived ? F.ofDerived(t) : Promise.resolve(null)]).then(function (pack) {
+    return Promise.all([F.of(t), F.live(t), F.reverse(t), F.ofDerived ? F.ofDerived(t) : Promise.resolve(null), F.derived ? F.derived() : Promise.resolve(null)]).then(function (pack) {
       var row = F.mergeLive(pack[0], pack[1]);
       var holders = pack[2] || [];
       var kind = F.isFund(row, pack[1]) ? "etf" : (holders.length ? "stock" : "none");
@@ -147,6 +150,7 @@
         holders: holders,
         demand: F.impliedDemand(holders),
         derived: pack[3] || null,
+        risk: (pack[4] && pack[4].verdicts) || {},
         live: pack[1],
         at: Date.now()
       };

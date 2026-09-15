@@ -571,6 +571,9 @@
     ].join("") + "</div>";
     html += blk("Honest read", table([
       ["Kind", esc(der.kind || "—")],
+      ["Desk risk", esc(((pack.derivedDesk && pack.derivedDesk.verdicts) || pack.risk || {}).risk || "—")],
+      ["Fear / greed", esc(((pack.derivedDesk && pack.derivedDesk.verdicts) || pack.risk || {}).fear_greed || "—")],
+      ["Wrapper", esc(((pack.derivedDesk && pack.derivedDesk.verdicts) || pack.risk || {}).wrapper || "—")],
       ["Levered", der.levered ? ("YES · " + (der.leverage_style || der.levered_amount || "2x+")) : "no"],
       ["NAV 5D", der.nav_5d_pct == null ? "—" : der.nav_5d_pct.toFixed(2) + "%"],
       ["Top holding", esc(der.top || "—") + (der.top_w ? (" · " + (der.top_w * 100).toFixed(1) + "%") : "")],
@@ -718,9 +721,12 @@
         var row = await window.JHEtfFuse.of(t);
         var holders = await window.JHEtfFuse.reverse(t);
         var der = window.JHEtfFuse.ofDerived ? await window.JHEtfFuse.ofDerived(t) : null;
+        var deskDer = window.JHEtfFuse.derived ? await window.JHEtfFuse.derived() : null;
         if (row) pack.etfRow = window.JHEtfFuse.mergeLive(row, pack.polyEtf);
         pack.etfHolders = holders || [];
         pack.derived = der || null;
+        pack.derivedDesk = deskDer || null;
+        pack.risk = (deskDer && deskDer.verdicts) || {};
         if (row || (holders && holders.length) || der) pack.src.push("ETF desk warehouse");
       } catch (e7) {}
     }

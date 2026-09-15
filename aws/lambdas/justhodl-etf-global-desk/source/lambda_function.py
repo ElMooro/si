@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -44,6 +44,10 @@ DESK = [
     "IBIT", "FBTC", "ETHA", "BITO",
     "MTUM", "QUAL", "USMV", "MOAT", "VLUE", "IWF", "IWD", "VUG", "VTV",
     "UUP", "UDN", "FXE", "FXY", "KWEB", "XHB", "ITA", "PAVE", "BOTZ", "HACK",
+    # Levered / inverse — speculative positioning, not 1:1 underlying.
+    "TQQQ", "UPRO", "SOXL", "TNA", "UDOW", "SPXL", "QLD", "SSO", "TECL", "FAS",
+    "SQQQ", "SPXU", "SOXS", "TZA", "SDOW", "SPXS", "QID", "SDS", "TECS", "FAZ",
+    "SH", "PSQ", "UVXY", "SVXY",
 ]
 
 
@@ -502,11 +506,27 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "growth": ["IWF", "VUG"],
     }
     credit_map = {
-        "hy": ["HYG", "JNK", "USHY", "FALN", "BKLN"],
+        "hy": ["HYG", "JNK", "USHY", "BKLN"],
+        "fallen": ["FALN"],
         "ig": ["LQD", "VCIT"],
         "agg": ["AGG", "BND"],
         "em_sov": ["EMB"],
     }
+    size_map = {
+        "mega": ["SPY", "VOO", "IVV", "QQQ"],
+        "large": ["VTI", "DIA", "RSP"],
+        "small": ["IWM"],
+    }
+    bond_q_map = {
+        "ust": ["TLT", "IEF", "SHY", "GOVT", "BIL", "SGOV", "TIP"],
+        "ig": ["LQD", "VCIT"],
+        "hy": ["HYG", "JNK", "USHY"],
+        "fallen": ["FALN"],
+        "em": ["EMB"],
+    }
+    lev_bull = ["TQQQ", "UPRO", "SOXL", "TNA", "UDOW", "SPXL", "QLD", "SSO", "TECL", "FAS"]
+    lev_bear = ["SQQQ", "SPXU", "SOXS", "TZA", "SDOW", "SPXS", "QID", "SDS", "TECS", "FAZ", "TBT", "SH", "PSQ"]
+    lev_vol = ["UVXY", "SVXY"]
     rates_map = {
         "long": ["TLT"],
         "intermediate": ["IEF", "GOVT"],
@@ -529,6 +549,11 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "credit": {k: _sleeve_sum(desk, v) for k, v in credit_map.items()},
         "rates": {k: _sleeve_sum(desk, v) for k, v in rates_map.items()},
         "crypto": {k: _sleeve_sum(desk, v) for k, v in crypto_map.items()},
+        "size": {k: _sleeve_sum(desk, v) for k, v in size_map.items()},
+        "bond_quality": {k: _sleeve_sum(desk, v) for k, v in bond_q_map.items()},
+        "lev_bull": _sleeve_sum(desk, lev_bull),
+        "lev_bear": _sleeve_sum(desk, lev_bear),
+        "lev_vol": _sleeve_sum(desk, lev_vol),
     }
 
     idx5 = sleeves["index_beta"].get("flow_5d") or 0.0
@@ -580,8 +605,10 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     hy = sleeves["credit"]["hy"]
     ig = sleeves["credit"]["ig"]
     em = sleeves["credit"]["em_sov"]
+    fallen = sleeves["credit"]["fallen"]
     lng = sleeves["rates"]["long"]
     hy5, ig5, tlt5, em5 = hy.get("flow_5d") or 0, ig.get("flow_5d") or 0, lng.get("flow_5d") or 0, em.get("flow_5d") or 0
+    fal5 = fallen.get("flow_5d") or 0
     if hy5 > 1e8 and tlt5 < -5e7:
         credit_verdict = "RISK_ON"
         credit_note = "HY creations with long-Treasury redemptions — duration sold, credit bid, in wrapper dollars."
@@ -591,11 +618,14 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     elif em5 < -8e7 and hy5 < 0:
         credit_verdict = "EM_STRESS"
         credit_note = "EM sovereign wrappers redeeming with HY — not a rates-only move."
+    elif fal5 < -3e7 and hy5 < 0:
+        credit_verdict = "CREDIT_STRESS"
+        credit_note = "Fallen angels and HY both redeeming — quality-off inside credit, not just duration."
     else:
         credit_verdict = "MIXED"
         credit_note = "Credit/rates/EM wrappers are not printing a clean risk stack."
     credit_stack = {
-        "hy": hy, "ig": ig, "agg": sleeves["credit"]["agg"], "em_sov": em,
+        "hy": hy, "fallen": fallen, "ig": ig, "agg": sleeves["credit"]["agg"], "em_sov": em,
         "rates_long": lng, "rates_short": sleeves["rates"]["short"],
         "verdict": credit_verdict, "note": credit_note,
         "evidence_tier": "measured_fact",
@@ -627,6 +657,189 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
             "note": "Creations are not 1:1 underlying demand. Do not add this flow into beta or duration.",
         })
     leverage.sort(key=lambda x: abs(x.get("flow_5d") or 0), reverse=True)
+
+    # --- Wrapper bid/offer intensity (large cashing in / cashing out) ---
+    gross_in_1d = gross_out_1d = gross_in_5d = gross_out_5d = 0.0
+    heavy = []
+    for t, r in desk.items():
+        if _is_levered(r):
+            continue  # levered is a separate sentiment tape
+        f1, f5 = r.get("flow_1d"), r.get("flow_5d")
+        if f1 is not None:
+            if f1 > 0:
+                gross_in_1d += f1
+            else:
+                gross_out_1d += abs(f1)
+        if f5 is not None:
+            if f5 > 0:
+                gross_in_5d += f5
+            else:
+                gross_out_5d += abs(f5)
+        if f1 is not None and abs(f1) >= 1e9:
+            heavy.append({"t": t, "name": r.get("name"), "flow_1d": f1, "flow_label": r.get("flow_label")})
+    heavy.sort(key=lambda x: abs(x["flow_1d"]), reverse=True)
+    net_1d = gross_in_1d - gross_out_1d
+    net_5d = gross_in_5d - gross_out_5d
+    if gross_out_1d > gross_in_1d * 1.4 and gross_out_1d >= 2e9:
+        wrap_verdict = "CASHING_OUT"
+        wrap_note = "Unlevered wrappers are being redeemed at scale — cash leaving the ETF complex."
+    elif gross_in_1d > gross_out_1d * 1.4 and gross_in_1d >= 2e9:
+        wrap_verdict = "CASHING_IN"
+        wrap_note = "Unlevered wrappers are taking large creations — cash entering the ETF complex."
+    else:
+        wrap_verdict = "BALANCED"
+        wrap_note = "Creations and redemptions are not one-sided enough to call a wrapper bid or offer."
+    wrapper_intensity = {
+        "gross_in_1d": round(gross_in_1d, 2),
+        "gross_out_1d": round(gross_out_1d, 2),
+        "net_1d": round(net_1d, 2),
+        "gross_in_5d": round(gross_in_5d, 2),
+        "gross_out_5d": round(gross_out_5d, 2),
+        "net_5d": round(net_5d, 2),
+        "heavy_1d": heavy[:12],
+        "verdict": wrap_verdict,
+        "note": wrap_note,
+        "evidence_tier": "measured_fact",
+    }
+
+    # --- Levered / inverse positioning (not 1:1 underlying) ---
+    bull = sleeves["lev_bull"]
+    bear = sleeves["lev_bear"]
+    vol = sleeves["lev_vol"]
+    bull5, bear5 = bull.get("flow_5d") or 0, bear.get("flow_5d") or 0
+    bull1, bear1 = bull.get("flow_1d") or 0, bear.get("flow_1d") or 0
+    if bull5 > 8e7 and bear5 < -3e7:
+        lev_verdict = "SPEC_GREED"
+        lev_note = "Bull levered creating, inverse redeeming — speculative long via 2x/3x wrappers."
+    elif bear5 > 8e7 and bull5 < -3e7:
+        lev_verdict = "SPEC_FEAR"
+        lev_note = "Inverse/short wrappers creating, bull levered redeeming — speculative short."
+    elif bull5 > 8e7:
+        lev_verdict = "BULL_LEVERED_BID"
+        lev_note = "Bull 2x/3x wrappers taking creations. Not 1:1 SPY/QQQ demand."
+    elif bear5 > 8e7:
+        lev_verdict = "BEAR_LEVERED_BID"
+        lev_note = "Inverse wrappers taking creations (TBT/SQQQ/SH). Fear via leverage, not a cash Treasury bid."
+    else:
+        lev_verdict = "QUIET"
+        lev_note = "Levered/inverse complex is not printing a one-sided book."
+    levered_sentiment = {
+        "bull": bull, "bear": bear, "vol": vol,
+        "net_bull_minus_bear_5d": round(bull5 - bear5, 2),
+        "verdict": lev_verdict,
+        "note": lev_note,
+        "evidence_tier": "measured_fact",
+        "caveat": "Creations of TQQQ/SQQQ/TBT are not 1:1 QQQ/SPY/TLT demand. Do not add them into beta or duration.",
+    }
+
+    # --- Cross-asset rotation: size + stocks vs Treasuries vs junk vs fallen ---
+    mega = sleeves["size"]["mega"]
+    large = sleeves["size"]["large"]
+    small = sleeves["size"]["small"]
+    ust = sleeves["bond_quality"]["ust"]
+    bq_hy = sleeves["bond_quality"]["hy"]
+    bq_ig = sleeves["bond_quality"]["ig"]
+    bq_fal = sleeves["bond_quality"]["fallen"]
+    mega5 = mega.get("flow_5d") or 0
+    large5 = large.get("flow_5d") or 0
+    small5 = small.get("flow_5d") or 0
+    ust5 = ust.get("flow_5d") or 0
+    eq5 = mega5 + large5 + small5
+    mega_pct = mega.get("pct_aum_5d")
+    small_pct = small.get("pct_aum_5d")
+
+    score = 0
+    reasons = []
+    if eq5 > 2e8:
+        score += 1
+        reasons.append("equity wrappers net in")
+    elif eq5 < -2e8:
+        score -= 1
+        reasons.append("equity wrappers net out")
+    if small5 > 5e7 and (mega5 <= 0 or (small_pct is not None and mega_pct is not None and small_pct > mega_pct)):
+        score += 1
+        reasons.append("small-cap bid vs mega")
+        size_verdict = "SIZE_ON"
+    elif small5 < -5e7 and mega5 > 5e7:
+        score -= 1
+        reasons.append("small-cap out, mega in — flight to mega")
+        size_verdict = "FLIGHT_TO_MEGA"
+    elif small5 < -5e7 and mega5 < 0:
+        size_verdict = "SIZE_OFF"
+        score -= 1
+        reasons.append("small and mega both redeeming")
+    else:
+        size_verdict = "MIXED"
+    if hy5 > 1e8:
+        score += 1
+        reasons.append("junk bid")
+    elif hy5 < -1e8:
+        score -= 1
+        reasons.append("junk offered")
+    if fal5 < -2e7:
+        score -= 1
+        reasons.append("fallen angels redeeming")
+    if ust5 < -1e8:
+        score += 1
+        reasons.append("Treasuries sold")
+    elif ust5 > 1e8:
+        score -= 1
+        reasons.append("Treasuries bid")
+    if lev_verdict in ("SPEC_GREED", "BULL_LEVERED_BID"):
+        score += 1
+        reasons.append("bull leverage")
+    elif lev_verdict in ("SPEC_FEAR", "BEAR_LEVERED_BID"):
+        score -= 1
+        reasons.append("bear leverage")
+    if wrap_verdict == "CASHING_IN":
+        score += 1
+        reasons.append("wrapper cashing in")
+    elif wrap_verdict == "CASHING_OUT":
+        score -= 1
+        reasons.append("wrapper cashing out")
+
+    if score >= 3:
+        risk_verdict, fear_greed = "RISK_ON", "GREED"
+    elif score <= -3:
+        risk_verdict, fear_greed = "RISK_OFF", "FEAR"
+    elif score >= 1:
+        risk_verdict, fear_greed = "RISK_ON_SOFT", "NEUTRAL_GREED"
+    elif score <= -1:
+        risk_verdict, fear_greed = "RISK_OFF_SOFT", "NEUTRAL_FEAR"
+    else:
+        risk_verdict, fear_greed = "MIXED", "NEUTRAL"
+
+    if eq5 > 2e8 and ust5 < -1e8:
+        rotation = "STOCKS_OVER_BONDS"
+        rot_note = "Equity wrappers creating while Treasuries redeem — stocks over govvies, in dollars."
+    elif eq5 < -2e8 and ust5 > 1e8:
+        rotation = "BONDS_OVER_STOCKS"
+        rot_note = "Treasuries creating while equity wrappers redeem — duration over stocks."
+    elif hy5 > 1e8 and ust5 < -5e7:
+        rotation = "CREDIT_OVER_DURATION"
+        rot_note = "Junk bid, Treasuries sold — credit over duration."
+    elif hy5 < -1e8 and ust5 > 5e7:
+        rotation = "DURATION_OVER_CREDIT"
+        rot_note = "Junk offered, Treasuries bid — quality-up / duration over credit."
+    else:
+        rotation = "NO_CLEAN_ROTATION"
+        rot_note = "Stocks vs Treasuries vs junk are not printing a one-way book."
+
+    cross_asset = {
+        "verdict": risk_verdict,
+        "fear_greed": fear_greed,
+        "score": score,
+        "reasons": reasons,
+        "rotation": rotation,
+        "rotation_note": rot_note,
+        "size": size_verdict,
+        "equity_5d": round(eq5, 2),
+        "mega": mega, "large": large, "small": small,
+        "ust": ust, "ig": bq_ig, "hy": bq_hy, "fallen": bq_fal,
+        "em": sleeves["bond_quality"]["em"],
+        "note": "Unlevered wrapper dollars only. Score is mechanical (equity, size, junk, Treasuries, leverage, wrapper intensity). Not a fear/greed index from prices.",
+        "evidence_tier": "measured_fact",
+    }
 
     conc_high = []
     hit = []
@@ -749,10 +962,16 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     for name, sl in (("index_beta", index_beta), ("thematic", thematic), ("sector", sector)):
         for t in sl:
             sleeve_of[t] = name
-    for group, mp in (("factor", factor_map), ("credit", credit_map), ("rates", rates_map), ("crypto", crypto_map)):
+    for group, mp in (("factor", factor_map), ("credit", credit_map), ("rates", rates_map), ("crypto", crypto_map), ("size", size_map), ("bond", bond_q_map)):
         for k, ts in mp.items():
             for t in ts:
-                sleeve_of[t] = group + ":" + k
+                sleeve_of.setdefault(t, group + ":" + k)
+    for t in lev_bull:
+        sleeve_of[t] = "lev:bull"
+    for t in lev_bear:
+        sleeve_of[t] = "lev:bear"
+    for t in lev_vol:
+        sleeve_of[t] = "lev:vol"
     for t, r in desk.items():
         px = px_by.get(t)
         top = (r.get("top") or [None])[0] or {}
@@ -791,6 +1010,12 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         by_ticker[t] = cur
 
     verdicts = {
+        "risk": risk_verdict,
+        "fear_greed": fear_greed,
+        "rotation": rotation,
+        "size": size_verdict,
+        "wrapper": wrap_verdict,
+        "levered": lev_verdict,
         "thematic_vs_index": tv_verdict,
         "factor": factor_rot,
         "credit": credit_verdict,
@@ -805,12 +1030,16 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "version": VERSION,
         "evidence_tier": "mixed",
         "status": "LIVE",
-        "thesis": "Ten honest products from the $297 ETF Global bundle. Fund-level creations are facts. Name-level dollars, bond CUSIP pressure, and NAV-vs-flow are inferred.",
+        "thesis": "Cross-asset ETF Global tape: size, stocks vs Treasuries vs junk vs fallen angels, wrapper bid/offer, levered sentiment. Fund creations are facts. Name-level dollars are inferred.",
         "verdicts": verdicts,
+        "cross_asset": cross_asset,
+        "wrapper_intensity": wrapper_intensity,
+        "levered_sentiment": levered_sentiment,
         "sleeves": {
             "index_beta": sleeves["index_beta"],
             "thematic": sleeves["thematic"],
             "sector": sleeves["sector"],
+            "size": sleeves["size"],
         },
         "thematic_vs_index": thematic_vs_index,
         "factor": {"ranked": factor_ranked, "rotation": factor_rot, "evidence_tier": "measured_fact"},
@@ -833,6 +1062,9 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
             "leverage": "profile leverage_style / levered_amount — do not treat as 1:1",
             "crypto": "IBIT/FBTC/ETHA wrapper bid, not exchange volume",
             "bonds": "same look-through on HYG/LQD/EMB/TLT holdings",
+            "cross_asset": "unlevered wrapper $ across mega/large/small equity vs Treasuries vs IG vs HY vs fallen angels",
+            "wrapper": "gross creations vs redemptions on unlevered desk funds — cashing in/out of the ETF complex",
+            "levered": "2x/3x/inverse creations as speculative positioning, never added into beta or duration",
         },
         "caveats": [
             "Do not label any of this institutional buying/selling of a stock.",
