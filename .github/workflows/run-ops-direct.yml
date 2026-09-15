@@ -37,12 +37,12 @@ jobs:
           python3 -m pip install -q boto3 requests
           python3 aws/ops/_preflight.py "aws/ops/${{ github.event.inputs.script }}"
           python3 "aws/ops/${{ github.event.inputs.script }}" || echo "::warning::script exited non-zero (see report)"
-      - name: Publish the report to ops-evidence
+      - name: Commit the report to main ([skip-deploy] [skip-ops])
         if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAGES_PAT || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          ls aws/ops/reports/latest/ | tail -3 || true
-          f=$(ls -t aws/ops/reports/latest/*.md 2>/dev/null | head -1)
-          if [ -n "$f" ]; then python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" --message "direct ops report" "$f" aws/ops/reports/5576_provider_keys.json 2>/dev/null || python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" --message "direct ops report" "$f"; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add aws/ops/reports/latest/*.md aws/ops/reports/5576_provider_keys.json 2>/dev/null || git add aws/ops/reports/latest/*.md
+          git commit -q -m "ops(direct): report from run ${{ github.run_id }} [skip-deploy] [skip-ops]" || { echo "nothing to commit"; exit 0; }
+          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && break || sleep $((i * 7)); done
