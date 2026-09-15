@@ -1,16 +1,8 @@
-executing-against: 9e213aabfccc57c042d24aa7a809dcdd0c8e6f5c
-try 0 state Active update Successful
-invoke justhodl-etf-global-desk
-lambda {"status": "LIVE", "n": 116, "n_ok": {"flows": 116, "profiles": 116, "constituents": 116}, "elapsed_s": 6.8, "version": "1.6.0", "derived": {"verdicts": {"risk": "RISK_OFF", "fear_greed": "FEAR", "rotation": "BONDS_OVER_STOCKS", "size": "SIZE_ON", "wrapper": "BALANCED", "levered": "SPEC_FEAR", "thematic_vs_index": "ROTATION", "factor": "QUIET", "credit": "RISK_OFF", "crypto": "WRAPPER_BID", "geo": "ABROAD_OVER_USA", "geo_specialist": "TRADE_BID_CAPITAL_OFFER", "leverage_flags": 25}, "n_by_ticker": 155, "n_crowding": 25, "n_leverage": 25}}
-derived version 1.6.0 status LIVE
-verdicts {'risk': 'RISK_OFF', 'fear_greed': 'FEAR', 'rotation': 'BONDS_OVER_STOCKS', 'size': 'SIZE_ON', 'wrapper': 'BALANCED', 'levered': 'SPEC_FEAR', 'thematic_vs_index': 'ROTATION', 'factor': 'QUIET', 'credit': 'RISK_OFF', 'crypto': 'WRAPPER_BID', 'geo': 'ABROAD_OVER_USA', 'geo_specialist': 'TRADE_BID_CAPITAL_OFFER', 'leverage_flags': 25}
-geo ABROAD_OVER_USA TRADE_BID_CAPITAL_OFFER usa -8431746870.21 dm 1241209273.12 em 7037417.98
-EWT flow_5d 22326286.4 sleeve geo:taiwan ok None
-EWY flow_5d -454520385.6 sleeve geo:korea ok None
-ECH flow_5d -8159339.899999999 sleeve geo:chile ok None
-EPU flow_5d 0.0 sleeve geo:peru ok None
-EFNL flow_5d 27703312.900000002 sleeve geo:finland ok None
-EWJ flow_5d 44574200.4 sleeve geo:japan ok None
-EFA flow_5d 0.0 sleeve geo:dm ok None
-EEM flow_5d 0.0 sleeve geo:em ok None
-elapsed 10.7
+executing-against: 40d3a41bde77d9c98949f0789a17d577098ed860
+ops 5570 -- generation 1: feasible family share for two families, then the Gear B tick (launch=true) via the owner route
+[02:29:31] ✅ gearb control: {"max_family_share": 0.25, "min_sft_rows": 1500, "max_jobs_per_day": 1, "daily_budget_usd": 20.0, "season_cap_usd": 600.0} -> max_family_share 0.85 (dated copy kept)
+[02:33:30] ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
+[02:33:30] ✗ no training job launched -- refusal chain: {"ok": true, "action": "/gearb/tick", "result": {"at": "2026-09-15T02:29:34.529336Z", "polled": [], "built": {"ok": false, "generation": null, "kept": 570, "floor": 1500, "missing_rows": 930, "reason": "waiting_for_traces: 570 verified rows of 1500"}, "launched": null, "refusal": "waiting_for_traces: 570 verified rows of 1500"}, "at": "2026-09-15T02:33:30.563876+00:00"}
+
+→ Report written to aws/ops/reports/latest/ops_5570_gen1_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_5570_gen1_launch.py
