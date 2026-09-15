@@ -1,0 +1,48 @@
+# Direct ops dispatch (2026-09-15): run ONE named ops script now, outside the serial run-ops queue (no ledger, no
+# auto-commit to main). For urgent, idempotent ops that must not wait behind an hour-long job. The report is
+# published to the ops-evidence branch; the same script will also run in the serial lane when its turn comes (idempotent).
+name: Run ops script (direct)
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'path under aws/ops/, e.g. pending/ops_5576_provider_keys_reconcile.py'
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: run-ops-direct
+  cancel-in-progress: false
+jobs:
+  direct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Preflight + run
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q boto3 requests
+          python3 aws/ops/_preflight.py "aws/ops/${{ github.event.inputs.script }}"
+          python3 "aws/ops/${{ github.event.inputs.script }}" || echo "::warning::script exited non-zero (see report)"
+      - name: Publish the report to ops-evidence
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAGES_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ls aws/ops/reports/latest/ | tail -3 || true
+          f=$(ls -t aws/ops/reports/latest/*.md 2>/dev/null | head -1)
+          if [ -n "$f" ]; then python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" --message "direct ops report" "$f" aws/ops/reports/5576_provider_keys.json 2>/dev/null || python3 scripts/push_evidence.py --run-id "${{ github.run_id }}" --message "direct ops report" "$f"; fi
