@@ -2953,6 +2953,11 @@
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
       "<button class='wsico wsdesk' id=btn-13f title='13F · Institutional holdings'><span class=g>🏦</span><span class=l>13F</span></button>"+
+      "<button class='wsico wsdesk' id=btn-sc title='Selling climax · Wyckoff daily'><span class=g>SC</span><span class=l>Climax</span></button>"+
+      "<button class='wsico wsdesk' id=btn-bc title='Buying climax · Wyckoff daily'><span class=g>BC</span><span class=l>Climax</span></button>"+
+      "<button class='wsico wsdesk' id=btn-nr title='Candle spread · tight range + Bollinger'><span class=g>NR</span><span class=l>Spread</span></button>"+
+      "<button class='wsico wsdesk' id=btn-spr title='Spring · forming / fired / failed'><span class=g>Spr</span><span class=l>Spring</span></button>"+
+      "<button class='wsico wsdesk' id=btn-acc title='Accumulation · tight band, long range'><span class=g>Acc</span><span class=l>Accum</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       tfHtml+
@@ -2993,6 +2998,11 @@
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
     var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
     var b13f=document.getElementById("btn-13f"); if(b13f) b13f.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("13f"); };
+    var bsc=document.getElementById("btn-sc"); if(bsc) bsc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sc"); };
+    var bbc=document.getElementById("btn-bc"); if(bbc) bbc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bc"); };
+    var bnr=document.getElementById("btn-nr"); if(bnr) bnr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spread"); };
+    var bspr=document.getElementById("btn-spr"); if(bspr) bspr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spring"); };
+    var bacc=document.getElementById("btn-acc"); if(bacc) bacc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("accum"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var more=document.getElementById("btn-tfmore");
     if(more) more.onclick=function(){

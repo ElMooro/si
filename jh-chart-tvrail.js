@@ -214,6 +214,11 @@
       strong: ["Strength vs S&P 500", "/strong.html"],
       bonds: ["Bonds & Yields", "/bonds.html"],
       "13f": ["13F · Institutional book", "/13f.html"],
+      sc: ["Selling climax · Wyckoff daily", "/wyckoff-desk.html?tab=sc"],
+      bc: ["Buying climax · Wyckoff daily", "/wyckoff-desk.html?tab=bc"],
+      spread: ["Candle spread · tight range + BB", "/wyckoff-desk.html?tab=spread"],
+      spring: ["Spring · forming / fired / failed", "/wyckoff-desk.html?tab=spring"],
+      accum: ["Accumulation · tight band, long range", "/wyckoff-desk.html?tab=accum"],
       alert: ["Alert Center", "/alerts.html"]
     };
     var pair = meta[kind] || meta.alert;

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wyckoff desk · SC · BC · spread · spring · accumulation · JustHodl</title>
+<meta name="description" content="Daily Wyckoff scanners: selling climax, buying climax, tight candle spread / Bollinger, forming springs, and long accumulation. Harvests only — bottom, phase-detector, katlin, accumulation-radar.">
+<style>
+:root{--bg:#07090f;--card:#101418;--sunken:#04050a;--line:rgba(120,145,180,.14);--fg:#e6ecf5;--mut:#6b7a92;--dim:#a8b3c7;--up:#22c55e;--dn:#ef4444;--amb:#f59e0b;--cy:#00d4ff;--vi:#a78bfa;--mono:"IBM Plex Mono",ui-monospace,monospace;--sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13px;line-height:1.45}
+a{color:var(--cy);text-decoration:none}a:hover{color:#fff}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 18px 40px}
+h1{font-family:var(--mono);font-size:18px;letter-spacing:.04em;margin:0 0 6px}
+.sub{color:var(--mut);max-width:920px;margin:0 0 14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{background:var(--card);border:1px solid var(--line);color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:6px;cursor:pointer}
+.tabs button.on{color:var(--cy);border-color:var(--cy)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:8px 0 14px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.kpi b{font-family:var(--mono);font-size:20px}
+.note{font-size:12px;color:var(--mut);margin:0 0 12px;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:10px;letter-spacing:.08em;color:var(--mut);padding:7px 8px;border-bottom:1px solid var(--line);cursor:pointer}
+td{padding:7px 8px;border-bottom:1px solid rgba(120,140,170,.08);font-family:var(--mono)}
+td:first-child,th:first-child{font-family:var(--sans);font-weight:600}
+tr:hover td{background:rgba(0,212,255,.05);cursor:pointer}
+.pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:1px 7px;border-radius:99px;background:rgba(120,140,170,.16);color:var(--dim)}
+.pill.up{color:var(--up);background:rgba(34,197,94,.14)}
+.pill.dn{color:var(--dn);background:rgba(239,68,68,.14)}
+.pill.amb{color:var(--amb);background:rgba(245,158,11,.16)}
+.up{color:var(--up)}.dn{color:var(--dn)}.amb{color:var(--amb)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto}
+.empty{padding:28px;color:var(--mut);text-align:center}
+.meta{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px}
+footer{margin-top:22px;font-size:11px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WYCKOFF DESK</h1>
+  <p class="sub">Five scanners on daily warehouse bars. Cadences are labeled. A climax is not a buy. A spring on a distribution range is a failed test, not accumulation. Click a ticker to open the chart.</p>
+  <div class="tabs" id="tabs"></div>
+  <div class="kpi" id="kpi"></div>
+  <div class="note" id="why"></div>
+  <div class="panel"><table id="board"></table></div>
+  <div class="meta" id="meta"></div>
+  <footer>Feeds: data/bottom.json (SC sequence) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
+</div>
+<script>
+(function () {
+  var TABS = [
+    { id: "sc", lab: "Selling climax", why: "Wyckoff SC: climactic volume at a new low of a real decline, wide range, close in the lower half. Source of truth is the Bottom desk (daily). Phase-detector SC events are a second clock — 400-name book, not the full warehouse." },
+    { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context." },
+    { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze." },
+    { id: "spring", lab: "Spring", why: "Textbook spring: a range under accumulation, then an undercut of support that closes back in, preferably on lighter volume than the climax. Forming = accumulation ≥10 days, price within 3% of range low (no spring print yet). Fired = SPRING event while still in ACCUMULATION. Failed = SPRING print on a DISTRIBUTION range — that is an upthrust cousin, not a buy. Phase-detector does not attach volume to the event; Bottom ST rows carry st_vol_ratio vs the climax." },
+    { id: "accum", lab: "Accumulation", why: "Long range, tight candles, tight band. Phase-detector ACCUMULATION ∪ radar accumulating ∪ Katlin with accum pillar ≥ 65 and bbw ≤ 25. Pressure / CMF / 13F whales are confirmation, not the structure." }
+  ];
+  var FEEDS = {
+    bottom: ["/data/bottom.json", "https://justhodl.ai/data/bottom.json"],
+    phase: ["/data/phase-detector.json", "https://justhodl.ai/data/phase-detector.json"],
+    katlin: ["/data/katlin.json", "https://justhodl.ai/data/katlin.json"],
+    radar: ["/data/accumulation-radar.json", "https://justhodl.ai/data/accumulation-radar.json"]
+  };
+  var tab = (new URLSearchParams(location.search).get("tab") || "sc").toLowerCase();
+  if (!TABS.filter(function (t) { return t.id === tab; }).length) tab = "sc";
+  var DATA = {};
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>]/g, function (c) { return ({ "&": "&", "<": "<", ">": ">" })[c]; }); }
+  function num(x, d) { x = Number(x); return isFinite(x) ? x.toFixed(d == null ? 1 : d) : "—"; }
+  function ago(iso) {
+    if (!iso) return "—";
+    var n = Date.parse(iso.slice(0, 10) + "T00:00:00Z");
+    if (!isFinite(n)) return iso;
+    var d = Math.round((Date.now() - n) / 86400000);
+    return d <= 0 ? "today" : d + "d";
+  }
+  function days(iso) {
+    if (!iso) return 999;
+    var n = Date.parse(iso.slice(0, 10) + "T00:00:00Z");
+    return isFinite(n) ? Math.round((Date.now() - n) / 86400000) : 999;
+  }
+  function fetchOne(urls) {
+    return (function next(i) {
+      if (i >= urls.length) return Promise.resolve(null);
+      return fetch(urls[i], { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : Promise.reject(); }).catch(function () { return next(i + 1); });
+    })(0);
+  }
+  function openChart(t) {
+    var href = "/chart.html?s=" + encodeURIComponent(t);
+    if (window.top && window.top !== window) window.top.location.href = href;
+    else location.href = href;
+  }
+  function katlinMap() {
+    var m = {}, i, p = (DATA.katlin && DATA.katlin.picks) || [];
+    for (i = 0; i < p.length; i++) if (p[i] && p[i].ticker) m[p[i].ticker] = p[i];
+    return m;
+  }
+  function liveEvents(type) {
+    var tk = (DATA.phase && DATA.phase.tickers) || {}, out = [], t, v, e, i;
+    for (t in tk) {
+      v = tk[t] || {};
+      for (i = 0; i < (v.events || []).length; i++) {
+        e = v.events[i];
+        if (e && e.type === type) out.push({ ticker: t, date: e.date, phase: v.phase, price: v.price, days: v.days_in_phase, pressure: v.pressure, lo: v.range_low, hi: v.range_high, conf: v.confirmations || {} });
+      }
+    }
+    out.sort(function (a, b) { return days(a.date) - days(b.date); });
+    return out;
+  }
+
+  function rowsSc() {
+    var b = ((DATA.bottom && DATA.bottom.board) || []).filter(function (r) { return r.frame === "D" && (r.state === "CLIMAX" || r.state === "TESTING"); });
+    b.sort(function (a, c) { return (c.sc_vol_x || 0) - (a.sc_vol_x || 0); });
+    return b.map(function (r) {
+      return { ticker: r.ticker, name: r.company, px: r.last, a: r.state, b: "vol " + num(r.sc_vol_x) + "×", c: r.sc_date, d: num(r.sc_decline_pct) + "%", e: r.grade || "—", f: r.sector || r.desk || "" };
+    });
+  }
+  function rowsBc() {
+    return liveEvents("BC").map(function (r) {
+      return { ticker: r.ticker, name: r.phase, px: r.price, a: r.phase, b: r.date, c: ago(r.date), d: r.pressure != null ? num(r.pressure, 2) : "—", e: r.conf.whales_flow_usd != null ? (r.conf.whales_flow_usd >= 0 ? "+" : "") + num(r.conf.whales_flow_usd / 1e6, 0) + "M" : "—", f: r.days != null ? r.days + "d in phase" : "" };
+    });
+  }
+  function rowsSpread() {
+    var p = ((DATA.katlin && DATA.katlin.picks) || []).filter(function (x) {
+      return x && (x.bbw_pctile != null) && x.bbw_pctile <= 20 && (x.squeeze || (x.accum_legs && x.accum_legs.bb_tight >= 70));
+    });
+    p.sort(function (a, b) { return (a.bbw_pctile || 99) - (b.bbw_pctile || 99); });
+    return p.map(function (r) {
+      var legs = r.accum_legs || {};
+      return { ticker: r.ticker, name: r.name || r.sector, px: r.last, a: (r.squeeze ? "SQUEEZE" : "TIGHT"), b: "BBW p" + num(r.bbw_pctile, 0), c: "contr " + num(legs.range_contraction, 0), d: "dry " + num(r.vol_ratio_20_120, 2), e: "accum " + num((r.pillars || {}).accumulation, 0), f: r.tier || "" };
+    });
+  }
+  function rowsSpring() {
+    var tk = (DATA.phase && DATA.phase.tickers) || {}, out = [], t, v, dist, fired, i;
+    var st = ((DATA.bottom && DATA.bottom.board) || []).filter(function (r) { return r.frame === "D" && (r.state === "TESTING" || r.state === "ST_CONFIRMED"); });
+    var stMap = {};
+    st.forEach(function (r) { stMap[r.ticker] = r; });
+    for (t in tk) {
+      v = tk[t] || {};
+      fired = null;
+      for (i = 0; i < (v.events || []).length; i++) if (v.events[i].type === "SPRING") fired = v.events[i];
+      if (v.phase === "ACCUMULATION" && v.range_low && v.price) {
+        dist = (v.price - v.range_low) / v.range_low * 100;
+        if (fired) {
+          out.push({ ticker: t, name: "FIRED", px: v.price, a: "FIRED", b: fired.date, c: ago(fired.date), d: "vs low " + num(dist) + "%", e: v.pressure != null ? num(v.pressure, 2) : "—", f: (v.days_in_phase || 0) + "d range" });
+        } else if ((v.days_in_phase || 0) >= 10 && dist <= 3) {
+          out.push({ ticker: t, name: "FORMING", px: v.price, a: "FORMING", b: "undercut watch", c: num(dist) + "% above low", d: (v.days_in_phase || 0) + "d", e: v.pressure != null ? num(v.pressure, 2) : "—", f: stMap[t] ? ("ST vol " + num(stMap[t].st_vol_ratio_sc, 2) + "× SC") : "no Bottom ST yet" });
+        }
+      } else if (fired && v.phase === "DISTRIBUTION") {
+        out.push({ ticker: t, name: "FAILED", px: v.price, a: "FAILED", b: fired.date, c: ago(fired.date), d: "spring on DIST", e: v.pressure != null ? num(v.pressure, 2) : "—", f: "do not buy — UT cousin" });
+      }
+    }
+    var rank = { FIRED: 0, FORMING: 1, FAILED: 2 };
+    out.sort(function (a, b) { return (rank[a.a] - rank[b.a]) || String(a.ticker).localeCompare(b.ticker); });
+    return out;
+  }
+  function rowsAccum() {
+    var seen = {}, out = [], t, v, r, i;
+    var tk = (DATA.phase && DATA.phase.tickers) || {};
+    var kmap = katlinMap();
+    function add(ticker, src, extra) {
+      if (!ticker || seen[ticker]) return;
+      seen[ticker] = 1;
+      var k = kmap[ticker] || {};
+      var ph = tk[ticker] || {};
+      var legs = k.accum_legs || {};
+      out.push({
+        ticker: ticker,
+        name: extra.name || k.name || ph.phase || src,
+        px: extra.px != null ? extra.px : (ph.price != null ? ph.price : k.last),
+        a: extra.a || ph.phase || "ACCUM",
+        b: "BBW p" + (k.bbw_pctile != null ? num(k.bbw_pctile, 0) : "—"),
+        c: k.squeeze ? "SQUEEZE" : (legs.bb_tight != null ? "bb " + num(legs.bb_tight, 0) : "—"),
+        d: extra.d || (ph.days_in_phase != null ? ph.days_in_phase + "d" : (k.base_weeks != null ? k.base_weeks + "w" : "—")),
+        e: extra.e || (k.pillars && k.pillars.accumulation != null ? num(k.pillars.accumulation, 0) : (ph.pressure != null ? num(ph.pressure, 2) : "—")),
+        f: extra.f || src
+      });
+    }
+    for (t in tk) {
+      v = tk[t] || {};
+      if (v.phase === "ACCUMULATION") add(t, "phase-detector", { a: "ACCUMULATION", d: (v.days_in_phase || 0) + "d", px: v.price });
+    }
+    var radar = ((DATA.radar && DATA.radar.accumulating) || {});
+    ["stocks", "etfs", "countries"].forEach(function (k) {
+      (radar[k] || []).forEach(function (x) { add(x.ticker, "radar", { name: x.label || x.flag, px: x.price, a: x.phase, d: "RSI " + num(x.rsi, 0), e: "bot " + num(x.bottom_score, 0), f: (x.confirms || []).join(",") || "radar" }); });
+    });
+    ((DATA.katlin && DATA.katlin.picks) || []).forEach(function (x) {
+      if (!x) return;
+      var acc = (x.pillars || {}).accumulation;
+      if (acc >= 65 && x.bbw_pctile != null && x.bbw_pctile <= 25) add(x.ticker, "katlin", { a: x.tier || "ACCUM", d: "dry " + num(x.vol_ratio_20_120, 2), e: num(acc, 0), f: x.squeeze ? "tight BB" : "katlin" });
+    });
+    out.sort(function (a, b) { return String(a.ticker).localeCompare(b.ticker); });
+    return out;
+  }
+
+  var COLS = {
+    sc: ["Ticker", "Name", "Last", "State", "Climax vol", "SC date", "Decline", "Grade", "Sector"],
+    bc: ["Ticker", "Phase", "Last", "Phase", "BC date", "Age", "Pressure", "13F $", "Range"],
+    spread: ["Ticker", "Name", "Last", "Coil", "BB width", "Range contr.", "Vol 20/120", "Accum", "Tier"],
+    spring: ["Ticker", "Kind", "Last", "Status", "Event", "Age / dist", "Detail", "Pressure", "Note"],
+    accum: ["Ticker", "Name", "Last", "Phase", "BB width", "Squeeze", "Time in range", "Score", "Source"]
+  };
+
+  function paint() {
+    document.querySelectorAll("#tabs button").forEach(function (b) { b.className = b.dataset.t === tab ? "on" : ""; });
+    var spec = TABS.filter(function (t) { return t.id === tab; })[0];
+    document.getElementById("why").textContent = spec.why;
+    var rows = tab === "sc" ? rowsSc() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : rowsAccum();
+    var heads = COLS[tab];
+    var fired = rows.filter(function (r) { return r.a === "FIRED"; }).length;
+    var forming = rows.filter(function (r) { return r.a === "FORMING"; }).length;
+    var failed = rows.filter(function (r) { return r.a === "FAILED"; }).length;
+    var kpis = [
+      ["Names", rows.length],
+      ["Tab", spec.lab]
+    ];
+    if (tab === "spring") { kpis.push(["Fired", fired]); kpis.push(["Forming", forming]); kpis.push(["Failed (DIST)", failed]); }
+    if (tab === "sc") kpis.push(["Daily climax", rows.filter(function (r) { return r.a === "CLIMAX"; }).length]);
+    document.getElementById("kpi").innerHTML = kpis.map(function (k) { return "<div><span>" + esc(k[0]) + "</span><b>" + esc(k[1]) + "</b></div>"; }).join("");
+    if (!rows.length) {
+      document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>No names match this scan on the current harvests.</td></tr>";
+      return;
+    }
+    var html = "<thead><tr>" + heads.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    rows.forEach(function (r) {
+      var pill = r.a === "FAILED" || r.a === "DISTRIBUTION" ? "dn" : (r.a === "FIRED" || r.a === "CLIMAX" || r.a === "ACCUMULATION" || r.a === "SQUEEZE" ? "up" : (r.a === "FORMING" || r.a === "TESTING" ? "amb" : ""));
+      html += "<tr data-t='" + esc(r.ticker) + "'><td>" + esc(r.ticker) + "</td><td>" + esc(r.name || "") + "</td><td>" + num(r.px, 2) + "</td><td><span class='pill " + pill + "'>" + esc(r.a) + "</span></td><td>" + esc(r.b) + "</td><td>" + esc(r.c) + "</td><td>" + esc(r.d) + "</td><td>" + esc(r.e) + "</td><td>" + esc(r.f) + "</td></tr>";
+    });
+    document.getElementById("board").innerHTML = html + "</tbody>";
+    document.querySelectorAll("#board tr[data-t]").forEach(function (tr) {
+      tr.onclick = function () { openChart(tr.getAttribute("data-t")); };
+    });
+  }
+
+  TABS.forEach(function (t) {
+    var b = document.createElement("button");
+    b.textContent = t.lab;
+    b.dataset.t = t.id;
+    if (t.id === tab) b.className = "on";
+    b.onclick = function () {
+      tab = t.id;
+      history.replaceState(null, "", "?tab=" + t.id);
+      paint();
+    };
+    document.getElementById("tabs").appendChild(b);
+  });
+
+  Promise.all([fetchOne(FEEDS.bottom), fetchOne(FEEDS.phase), fetchOne(FEEDS.katlin), fetchOne(FEEDS.radar)]).then(function (pack) {
+    DATA.bottom = pack[0] || {};
+    DATA.phase = pack[1] || {};
+    DATA.katlin = pack[2] || {};
+    DATA.radar = pack[3] || {};
+    var bits = [];
+    if (DATA.bottom.generated_at) bits.push("bottom " + DATA.bottom.generated_at.slice(0, 16));
+    if (DATA.phase.generated_at) bits.push("phase " + DATA.phase.generated_at.slice(0, 16));
+    if (DATA.katlin.generated_at) bits.push("katlin " + DATA.katlin.generated_at.slice(0, 16));
+    document.getElementById("meta").textContent = bits.join(" · ") || "feeds missing";
+    paint();
+  });
+})();
+</script>
+</body>
+</html>
