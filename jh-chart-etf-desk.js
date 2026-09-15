@@ -52,12 +52,23 @@
       }).join(" · ");
       if (sec) html += "<span>" + sec + "</span>";
       if (r.top && r.top[0]) html += "<span>Top " + esc(r.top[0].t) + " " + F.wgt(r.top[0].w) + "</span>";
+      var der = pack.derived || {};
+      if (der.hhi != null) html += "<span>HHI <b>" + Number(der.hhi).toFixed(0) + "</b></span>";
+      if (der.levered) html += "<span class='pill out'>LEV " + esc(der.leverage_style || (der.levered_amount != null ? ("×" + der.levered_amount) : "2x+")) + "</span>";
+      if (der.px_flow) html += "<span class='pill " + (der.px_flow.indexOf("BID") >= 0 || der.px_flow === "ABSORPTION" ? "in" : der.px_flow.indexOf("OFFER") >= 0 || der.px_flow === "DISTRIBUTION" ? "out" : "") + "'>" + esc(der.px_flow.replace(/_/g, " ")) + "</span>";
+      if (der.implied_top_1d != null && der.top) html += "<span>Hit " + esc(der.top) + " <b class='" + (der.implied_top_1d >= 0 ? "up" : "dn") + "'>" + F.fmtUsd(der.implied_top_1d) + "</b></span>";
       html += "<button type=button id=etfhud-open>Holdings</button>";
     } else if (pack.kind === "stock") {
       var h = pack.holders || [];
       var dem = pack.demand;
+      var derS = pack.derived || {};
       html += "<span class='pill " + clsFlow(dem) + "'>ETF LOOK-THROUGH</span>";
       html += "<span>Implied 1D <b class='" + (dem >= 0 ? "up" : "dn") + "'>" + F.fmtUsd(dem) + "</b></span>";
+      if (derS.implied_5d != null) html += "<span>Implied 5D <b class='" + (derS.implied_5d >= 0 ? "up" : "dn") + "'>" + F.fmtUsd(derS.implied_5d) + "</b></span>";
+      if (derS.crowding_pct != null) html += "<span>Crowding <b>" + Number(derS.crowding_pct).toFixed(1) + "%</b></span>";
+      if (derS.confirmed) html += "<span class='pill in'>CONFIRMED</span>";
+      if (derS.disagreed) html += "<span class='pill out'>DISAGREED</span>";
+      if (derS.flow_type) html += "<span>" + esc(derS.flow_type.replace(/_/g, " ")) + "</span>";
       html += "<span>Held by " + h.length + " desk fund" + (h.length === 1 ? "" : "s") + "</span>";
       h.slice(0, 6).forEach(function (x) {
         html += "<span><a href='/chart.html?s=" + encodeURIComponent(x.etf) + "'>" + esc(x.etf) + "</a> " +
@@ -124,7 +135,7 @@
     var F = fuse();
     if (!F || !sym) return Promise.resolve(null);
     var t = F.bare(sym);
-    return Promise.all([F.of(t), F.live(t), F.reverse(t)]).then(function (pack) {
+    return Promise.all([F.of(t), F.live(t), F.reverse(t), F.ofDerived ? F.ofDerived(t) : Promise.resolve(null)]).then(function (pack) {
       var row = F.mergeLive(pack[0], pack[1]);
       var holders = pack[2] || [];
       var kind = F.isFund(row, pack[1]) ? "etf" : (holders.length ? "stock" : "none");
@@ -135,6 +146,7 @@
         row: row,
         holders: holders,
         demand: F.impliedDemand(holders),
+        derived: pack[3] || null,
         live: pack[1],
         at: Date.now()
       };

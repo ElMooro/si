@@ -251,6 +251,7 @@ footer a{margin:0 10px}
     <div class="fi-stamp" id="fi-stamp">loading bonds engine…</div>
   </div>
   <div class="fi-kpis" id="fi-kpis"></div>
+  <div data-etf-derived="bonds"></div>
   <div class="fi-grid" id="fi-grid"><div class="jh-load" style="padding:28px;color:var(--fg-3)">Pulling FRED ICE BofA + Treasury + JGB/Europe + ETF total return…</div></div>
   <p class="fi-note" id="fi-note"></p>
 </section>
@@ -278,6 +279,8 @@ footer a{margin:0 10px}
 @media(max-width:700px){.fi-grid{grid-template-columns:1fr}}
 </style>
 <script src="/jh-desk-core.js"></script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
 <script src="/jh-bonds-engine.js"></script>
 <script>
 (function(){

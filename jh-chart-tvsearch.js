@@ -15,6 +15,7 @@
     ["short", "Short"],
     ["opt", "Options"],
     ["etf", "ETF"],
+    ["flow", "Flow"],
     ["hold", "Holders"]
   ];
   var tab = "over";
@@ -551,6 +552,41 @@
     return html;
   }
 
+  function renderDerivedFlow(pack) {
+    var F = window.JHEtfFuse;
+    var der = pack.derived || {};
+    var desk = pack.etfRow || {};
+    var html = "";
+    if (!der || (!der.px_flow && der.hhi == null && der.crowding_pct == null && !der.flow_1d && der.implied_5d == null && !der.levered)) {
+      html += "<div class=empty>No derived ETF Global print for this ticker yet. Fund creations live on the ETF tab; name-level $ is inferred (flow × weight), not a print.</div>";
+      return html;
+    }
+    html += "<div class=kpi>" + [
+      kpi("Sleeve", esc(der.sleeve || (desk.asset_class || "—"))),
+      kpi("Flow 1D", fmtBig(der.flow_1d != null ? der.flow_1d : desk.flow_1d)),
+      kpi("Flow 5D", fmtBig(der.flow_5d != null ? der.flow_5d : desk.flow_5d)),
+      kpi("HHI", der.hhi == null ? "—" : Number(der.hhi).toFixed(0)),
+      kpi("Px vs flow", esc((der.px_flow || "—").replace(/_/g, " "))),
+      kpi("Crowding", der.crowding_pct == null ? "—" : Number(der.crowding_pct).toFixed(1) + "%")
+    ].join("") + "</div>";
+    html += blk("Honest read", table([
+      ["Kind", esc(der.kind || "—")],
+      ["Levered", der.levered ? ("YES · " + (der.leverage_style || der.levered_amount || "2x+")) : "no"],
+      ["NAV 5D", der.nav_5d_pct == null ? "—" : der.nav_5d_pct.toFixed(2) + "%"],
+      ["Top holding", esc(der.top || "—") + (der.top_w ? (" · " + (der.top_w * 100).toFixed(1) + "%") : "")],
+      ["Implied hit on top", fmtBig(der.implied_top_1d)],
+      ["Confirmed", der.confirmed ? "flow × weight and share delta agree (still inferred)" : "—"],
+      ["Disagreed", der.disagreed ? "flow × weight vs share delta opposite — cash/custom basket or stale file" : "—"],
+      ["Flow type", esc((der.flow_type || "—").replace(/_/g, " "))],
+      ["Implied 5D (name)", fmtBig(der.implied_5d)]
+    ]));
+    html += "<div class=src>Fund creations = fact. Name-level dollars = fund flow × holdings weight (inferred). Not institutional volume.</div>";
+    if (window.JHEtfDerived && pack.derivedDesk) {
+      html += "<div id=dt-derived-mini></div>";
+    }
+    return html;
+  }
+
   function paintBody(pack) {
     var body = document.getElementById("dtbody");
     if (!body) return;
@@ -569,6 +605,7 @@
     else if (tab === "short") html = renderPolyShort(pack);
     else if (tab === "opt") html = renderPolyOpt(pack);
     else if (tab === "etf") html = renderPolyEtf(pack);
+    else if (tab === "flow") html = renderDerivedFlow(pack);
     else html = renderHold(d, pack);
     var src = (pack.src && pack.src.length) ? pack.src.join(" · ") : "computed from chart bars";
     body.innerHTML = html + "<div class=src>" + esc(src) + " · delayed · not advice</div>";
@@ -680,9 +717,11 @@
       try {
         var row = await window.JHEtfFuse.of(t);
         var holders = await window.JHEtfFuse.reverse(t);
+        var der = window.JHEtfFuse.ofDerived ? await window.JHEtfFuse.ofDerived(t) : null;
         if (row) pack.etfRow = window.JHEtfFuse.mergeLive(row, pack.polyEtf);
         pack.etfHolders = holders || [];
-        if (row || (holders && holders.length)) pack.src.push("ETF desk warehouse");
+        pack.derived = der || null;
+        if (row || (holders && holders.length) || der) pack.src.push("ETF desk warehouse");
       } catch (e7) {}
     }
     return pack;

@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -373,6 +373,477 @@ def _put(key, obj):
     )
 
 
+def _load_s3(key):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return None
+
+
+def _wfrac(w):
+    n = _num(w)
+    if n is None:
+        return 0.0
+    return float(n) if abs(n) <= 1.5 else float(n) / 100.0
+
+
+def _nav_ret(hist, n=5):
+    if not hist or len(hist) < 2:
+        return None
+    a = _num((hist[0] or {}).get("n"))
+    b = _num((hist[min(n - 1, len(hist) - 1)] or {}).get("n"))
+    if not a or not b:
+        return None
+    return round((a / b - 1.0) * 100.0, 3)
+
+
+def _is_levered(row):
+    style = str(row.get("leverage_style") or row.get("leverage") or "").strip().lower()
+    amt = _num(row.get("levered_amount"))
+    if amt is not None and (abs(amt) >= 1.5 or amt < 0):
+        return True
+    if not style or style in ("unlevered", "unleveraged", "n/a", "na", "none", "long", "1x", "1.0"):
+        return False
+    if style in ("leveraged", "inverse", "short", "2x", "3x", "-1x", "-2x", "-3x"):
+        return True
+    return any(k in style for k in ("inverse", "2x", "3x", "-1", "-2"))
+
+
+def _member(t, r):
+    return {
+        "t": t,
+        "name": r.get("name"),
+        "flow_1d": r.get("flow_1d"),
+        "flow_5d": r.get("flow_5d"),
+        "aum": r.get("aum"),
+        "hhi": r.get("hhi"),
+        "holdings_n": r.get("holdings_n"),
+        "leverage_style": r.get("leverage_style") or r.get("leverage"),
+        "levered_amount": r.get("levered_amount"),
+        "flow_label": r.get("flow_label"),
+        "top": (r.get("top") or [None])[0],
+    }
+
+
+def _sleeve_sum(desk, tickers):
+    members = []
+    f1 = f5 = aum = 0.0
+    n1 = n5 = na = 0
+    for t in tickers:
+        r = desk.get(t)
+        if not r:
+            continue
+        members.append(_member(t, r))
+        if r.get("flow_1d") is not None:
+            f1 += r["flow_1d"]
+            n1 += 1
+        if r.get("flow_5d") is not None:
+            f5 += r["flow_5d"]
+            n5 += 1
+        if r.get("aum") is not None:
+            aum += r["aum"]
+            na += 1
+    return {
+        "tickers": [m["t"] for m in members],
+        "n": len(members),
+        "flow_1d": round(f1, 2) if n1 else None,
+        "flow_5d": round(f5, 2) if n5 else None,
+        "aum": round(aum, 2) if na else None,
+        "pct_aum_5d": round(f5 / aum * 100.0, 3) if (n5 and na and aum) else None,
+        "members": members,
+    }
+
+
+def _compact_name(r):
+    if not r:
+        return None
+    return {
+        "t": r.get("ticker") or r.get("t"),
+        "net_flow_5d_usd": r.get("net_flow_5d_usd"),
+        "shares_delta_usd": r.get("shares_delta_usd"),
+        "etf_ownership_pct": r.get("etf_ownership_pct"),
+        "flow_type": r.get("flow_type"),
+        "confirmed": r.get("confirmed"),
+        "flow_bps_mcap": r.get("flow_bps_mcap"),
+        "flow_bps_adv_day": r.get("flow_bps_adv_day"),
+        "industry": r.get("industry"),
+        "n_etfs": r.get("n_etfs"),
+        "drivers": [
+            {"etf": d.get("etf"), "usd": d.get("contrib_5d_usd"), "broad": d.get("broad")}
+            for d in (r.get("drivers") or [])[:3]
+        ],
+    }
+
+
+def _px_label(flow, ret):
+    if flow is None or ret is None:
+        return None
+    if flow < 0 and ret > 0:
+        return "ABSORPTION"
+    if flow > 0 and ret < 0:
+        return "DISTRIBUTION"
+    if flow > 0 and ret > 0:
+        return "CONFIRMED_BID"
+    if flow < 0 and ret < 0:
+        return "CONFIRMED_OFFER"
+    return "QUIET"
+
+
+def _build_derived(desk, complete_hold, generated, lookthrough=None):
+    """Ten honest products from ETF Global. Inferred where noted. Never 'smart money'."""
+    index_beta = ["SPY", "VOO", "IVV", "VTI", "QQQ", "QQQM", "IWM", "DIA", "RSP"]
+    thematic = ["SMH", "SOXX", "XBI", "ARKK", "KRE", "KWEB", "XHB", "ITA", "PAVE", "BOTZ", "HACK"]
+    sector = ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLRE", "XLC", "GDX", "GDXJ"]
+    factor_map = {
+        "momentum": ["MTUM"],
+        "value": ["VLUE", "IWD", "VTV"],
+        "quality": ["QUAL", "MOAT"],
+        "minvol": ["USMV"],
+        "growth": ["IWF", "VUG"],
+    }
+    credit_map = {
+        "hy": ["HYG", "JNK", "USHY", "FALN", "BKLN"],
+        "ig": ["LQD", "VCIT"],
+        "agg": ["AGG", "BND"],
+        "em_sov": ["EMB"],
+    }
+    rates_map = {
+        "long": ["TLT"],
+        "intermediate": ["IEF", "GOVT"],
+        "short": ["SHY", "BIL", "SGOV"],
+        "tips": ["TIP"],
+        "inverse": ["TBT"],
+    }
+    crypto_map = {
+        "btc_spot": ["IBIT", "FBTC"],
+        "eth_spot": ["ETHA"],
+        "btc_futures": ["BITO"],
+    }
+    bond_funds = ["HYG", "JNK", "USHY", "FALN", "LQD", "VCIT", "EMB", "AGG", "BND", "TLT", "IEF"]
+
+    sleeves = {
+        "index_beta": _sleeve_sum(desk, index_beta),
+        "thematic": _sleeve_sum(desk, thematic),
+        "sector": _sleeve_sum(desk, sector),
+        "factor": {k: _sleeve_sum(desk, v) for k, v in factor_map.items()},
+        "credit": {k: _sleeve_sum(desk, v) for k, v in credit_map.items()},
+        "rates": {k: _sleeve_sum(desk, v) for k, v in rates_map.items()},
+        "crypto": {k: _sleeve_sum(desk, v) for k, v in crypto_map.items()},
+    }
+
+    idx5 = sleeves["index_beta"].get("flow_5d") or 0.0
+    th5 = sleeves["thematic"].get("flow_5d") or 0.0
+    if abs(th5) >= 1.5e8 and (abs(th5) > abs(idx5) * 0.6 or (th5 * idx5) < 0):
+        tv_verdict = "ROTATION"
+        tv_note = "Thematic wrappers are printing while beta is quieter or opposite — not just SPY plumbing."
+    elif abs(idx5) >= 1.5e8 and abs(th5) < abs(idx5) * 0.35:
+        tv_verdict = "BETA"
+        tv_note = "Broad index creations/redemptions dominate. Sector/thematic is not the story."
+    else:
+        tv_verdict = "MIXED"
+        tv_note = "Neither sleeve is large enough, or both are moving together."
+    thematic_vs_index = {
+        "index_5d": sleeves["index_beta"].get("flow_5d"),
+        "thematic_5d": sleeves["thematic"].get("flow_5d"),
+        "sector_5d": sleeves["sector"].get("flow_5d"),
+        "verdict": tv_verdict,
+        "note": tv_note,
+        "evidence_tier": "measured_fact",
+    }
+
+    factor_ranked = []
+    for k, sl in sleeves["factor"].items():
+        factor_ranked.append({
+            "id": k,
+            "label": k.replace("minvol", "min vol").title(),
+            "flow_1d": sl.get("flow_1d"),
+            "flow_5d": sl.get("flow_5d"),
+            "aum": sl.get("aum"),
+            "pct_aum_5d": sl.get("pct_aum_5d"),
+            "tickers": sl.get("tickers"),
+        })
+    factor_ranked.sort(key=lambda x: abs(x.get("flow_5d") or 0), reverse=True)
+    mom = next((x for x in factor_ranked if x["id"] == "momentum"), {})
+    val = next((x for x in factor_ranked if x["id"] == "value"), {})
+    mom5, val5 = mom.get("flow_5d") or 0, val.get("flow_5d") or 0
+    if abs(mom5) + abs(val5) < 5e7:
+        factor_rot = "QUIET"
+    elif mom5 > 0 and val5 < 0:
+        factor_rot = "MOMENTUM_OVER_VALUE"
+    elif val5 > 0 and mom5 < 0:
+        factor_rot = "VALUE_OVER_MOMENTUM"
+    elif abs(mom5) >= abs(val5):
+        factor_rot = "MOMENTUM_LED"
+    else:
+        factor_rot = "VALUE_LED"
+
+    hy = sleeves["credit"]["hy"]
+    ig = sleeves["credit"]["ig"]
+    em = sleeves["credit"]["em_sov"]
+    lng = sleeves["rates"]["long"]
+    hy5, ig5, tlt5, em5 = hy.get("flow_5d") or 0, ig.get("flow_5d") or 0, lng.get("flow_5d") or 0, em.get("flow_5d") or 0
+    if hy5 > 1e8 and tlt5 < -5e7:
+        credit_verdict = "RISK_ON"
+        credit_note = "HY creations with long-Treasury redemptions — duration sold, credit bid, in wrapper dollars."
+    elif hy5 < -1e8 and tlt5 > 5e7:
+        credit_verdict = "RISK_OFF"
+        credit_note = "HY redemptions with TLT creations — credit offered, duration bid."
+    elif em5 < -8e7 and hy5 < 0:
+        credit_verdict = "EM_STRESS"
+        credit_note = "EM sovereign wrappers redeeming with HY — not a rates-only move."
+    else:
+        credit_verdict = "MIXED"
+        credit_note = "Credit/rates/EM wrappers are not printing a clean risk stack."
+    credit_stack = {
+        "hy": hy, "ig": ig, "agg": sleeves["credit"]["agg"], "em_sov": em,
+        "rates_long": lng, "rates_short": sleeves["rates"]["short"],
+        "verdict": credit_verdict, "note": credit_note,
+        "evidence_tier": "measured_fact",
+    }
+
+    btc = sleeves["crypto"]["btc_spot"]
+    eth = sleeves["crypto"]["eth_spot"]
+    fut = sleeves["crypto"]["btc_futures"]
+    crypto_wrapper = {
+        "btc_spot": btc, "eth_spot": eth, "btc_futures": fut,
+        "btc_eth_1d": (btc.get("flow_1d") or 0) + (eth.get("flow_1d") or 0),
+        "btc_eth_5d": (btc.get("flow_5d") or 0) + (eth.get("flow_5d") or 0),
+        "note": "IBIT/FBTC/ETHA creations are the wrapper bid. Not Coinbase, Binance, or CME open interest.",
+        "evidence_tier": "measured_fact",
+    }
+
+    leverage = []
+    for t, r in desk.items():
+        if not _is_levered(r):
+            continue
+        leverage.append({
+            "t": t,
+            "name": r.get("name"),
+            "leverage_style": r.get("leverage_style") or r.get("leverage"),
+            "levered_amount": r.get("levered_amount"),
+            "flow_1d": r.get("flow_1d"),
+            "flow_5d": r.get("flow_5d"),
+            "aum": r.get("aum"),
+            "note": "Creations are not 1:1 underlying demand. Do not add this flow into beta or duration.",
+        })
+    leverage.sort(key=lambda x: abs(x.get("flow_5d") or 0), reverse=True)
+
+    conc_high = []
+    hit = []
+    for t, r in desk.items():
+        hhi = r.get("hhi")
+        top = (r.get("top") or [None])[0] or {}
+        tw = _wfrac(top.get("w"))
+        f1 = r.get("flow_1d")
+        rec = {
+            "t": t, "name": r.get("name"), "hhi": hhi,
+            "holdings_n": r.get("holdings_n"),
+            "holdings_complete": r.get("holdings_complete"),
+            "top": top.get("t"), "top_w": tw if tw else None,
+            "implied_top_1d": round(f1 * tw, 2) if (f1 is not None and tw) else None,
+            "flow_1d": f1,
+        }
+        if hhi is not None:
+            conc_high.append(rec)
+        if rec["implied_top_1d"] is not None and abs(rec["implied_top_1d"]) >= 2e6:
+            hit.append(rec)
+    conc_high.sort(key=lambda x: -(x.get("hhi") or 0))
+    hit.sort(key=lambda x: abs(x.get("implied_top_1d") or 0), reverse=True)
+    concentration = {
+        "high_hhi": conc_high[:18],
+        "top_holding_hit": hit[:18],
+        "note": "HHI ≈ Σ (weight%²). A 30-name ARKK and a 505-name SPY are not the same $1B. Implied top-holding hit = fund flow × top weight — inferred.",
+        "evidence_tier": "measured_fact",
+    }
+
+    buckets = {"ABSORPTION": [], "DISTRIBUTION": [], "CONFIRMED_BID": [], "CONFIRMED_OFFER": []}
+    px_by = {}
+    for t, r in desk.items():
+        hist = r.get("flow_hist") or []
+        ret = _nav_ret(hist, 5)
+        flow = r.get("flow_5d")
+        if flow is None or abs(flow) < 5e7 or ret is None or abs(ret) < 0.25:
+            continue
+        lab = _px_label(flow, ret)
+        if not lab or lab == "QUIET":
+            continue
+        rec = {"t": t, "name": r.get("name"), "flow_5d": flow, "nav_5d_pct": ret, "label": lab}
+        buckets[lab].append(rec)
+        px_by[t] = rec
+    for k in buckets:
+        buckets[k].sort(key=lambda x: abs(x.get("flow_5d") or 0), reverse=True)
+        buckets[k] = buckets[k][:12]
+    price_vs_flow = {
+        **buckets,
+        "note": "NAV 5d vs creation $ 5d. Up on outflow = someone else is buying (buybacks, short cover, active). Down on inflow = absorption. Wrapper NAV, not the stock tape.",
+        "evidence_tier": "tier_b_inferred_allocation",
+    }
+
+    bond_leaders = []
+    bond_by_fund = {}
+    for t in bond_funds:
+        rec = complete_hold.get(t) or {}
+        holds = rec.get("holdings") or []
+        drow = desk.get(t) or {}
+        f5 = drow.get("flow_5d")
+        rows = []
+        for h in holds:
+            w = _wfrac(h.get("w"))
+            if not w or f5 is None:
+                continue
+            usd = f5 * w
+            if abs(usd) < 5e5:
+                continue
+            rows.append({
+                "cusip_or_ticker": h.get("t"),
+                "name": h.get("n"),
+                "etf": t,
+                "w": round(w, 6),
+                "implied_5d_usd": round(usd, 2),
+            })
+        rows.sort(key=lambda x: abs(x["implied_5d_usd"]), reverse=True)
+        bond_by_fund[t] = {
+            "flow_5d": f5, "n": rec.get("n"), "complete": rec.get("complete"),
+            "top": rows[:12],
+        }
+        bond_leaders.extend(rows[:8])
+    bond_leaders.sort(key=lambda x: abs(x.get("implied_5d_usd") or 0), reverse=True)
+    bond_lookthrough = {
+        "by_fund": bond_by_fund,
+        "leaders": bond_leaders[:30],
+        "note": "HYG/LQD/EMB/TLT flow × holding weight. Same math as stocks. Inferred allocation, not TRACE prints.",
+        "evidence_tier": "tier_b_inferred_allocation",
+    }
+
+    crowding = []
+    confirmed = []
+    disagreed = []
+    if lookthrough:
+        crowding = [
+            _compact_name(r) for r in (lookthrough.get("passive_concentration") or [])[:25]
+        ]
+        for r in (lookthrough.get("actual_accumulation") or [])[:20]:
+            if r.get("confirmed"):
+                confirmed.append(_compact_name(r))
+        for r in (lookthrough.get("inflow_leaders") or [])[:40]:
+            c = _compact_name(r)
+            if r.get("confirmed") and c and c["t"] not in {x["t"] for x in confirmed if x}:
+                confirmed.append(c)
+        for src in (
+            lookthrough.get("inflow_leaders") or [],
+            lookthrough.get("outflow_leaders") or [],
+            lookthrough.get("thematic_rotation_leaders") or [],
+        ):
+            for r in src:
+                if r.get("shares_delta_usd") is None or r.get("confirmed") or abs(r.get("net_flow_5d_usd") or 0) < 5e7:
+                    continue
+                c = _compact_name(r)
+                if c and c["t"] not in {x["t"] for x in disagreed if x}:
+                    c["why"] = "flow×weight and share-count delta disagree — cash/custom basket or stale holdings"
+                    disagreed.append(c)
+        confirmed = [x for x in confirmed if x][:20]
+        disagreed = [x for x in disagreed if x][:20]
+
+    by_ticker = {}
+    sleeve_of = {}
+    for name, sl in (("index_beta", index_beta), ("thematic", thematic), ("sector", sector)):
+        for t in sl:
+            sleeve_of[t] = name
+    for group, mp in (("factor", factor_map), ("credit", credit_map), ("rates", rates_map), ("crypto", crypto_map)):
+        for k, ts in mp.items():
+            for t in ts:
+                sleeve_of[t] = group + ":" + k
+    for t, r in desk.items():
+        px = px_by.get(t)
+        top = (r.get("top") or [None])[0] or {}
+        tw = _wfrac(top.get("w"))
+        by_ticker[t] = {
+            "kind": "etf",
+            "sleeve": sleeve_of.get(t),
+            "flow_1d": r.get("flow_1d"),
+            "flow_5d": r.get("flow_5d"),
+            "aum": r.get("aum"),
+            "hhi": r.get("hhi"),
+            "holdings_n": r.get("holdings_n"),
+            "leverage_style": r.get("leverage_style") or r.get("leverage"),
+            "levered_amount": r.get("levered_amount"),
+            "levered": _is_levered(r),
+            "px_flow": (px or {}).get("label"),
+            "nav_5d_pct": (px or {}).get("nav_5d_pct"),
+            "top": top.get("t"),
+            "top_w": tw or None,
+            "implied_top_1d": round((r.get("flow_1d") or 0) * tw, 2) if tw else None,
+            "flow_label": r.get("flow_label"),
+        }
+    for rec in crowding + confirmed + disagreed:
+        if not rec or not rec.get("t"):
+            continue
+        t = rec["t"]
+        cur = by_ticker.get(t) or {"kind": "name"}
+        cur["kind"] = cur.get("kind") or "name"
+        cur["crowding_pct"] = rec.get("etf_ownership_pct")
+        cur["confirmed"] = rec.get("confirmed")
+        cur["flow_type"] = rec.get("flow_type")
+        cur["implied_5d"] = rec.get("net_flow_5d_usd")
+        cur["shares_delta_usd"] = rec.get("shares_delta_usd")
+        if rec in disagreed or rec.get("why"):
+            cur["disagreed"] = True
+        by_ticker[t] = cur
+
+    verdicts = {
+        "thematic_vs_index": tv_verdict,
+        "factor": factor_rot,
+        "credit": credit_verdict,
+        "crypto": ("WRAPPER_BID" if (btc.get("flow_5d") or 0) > 1e8
+                   else "WRAPPER_OFFER" if (btc.get("flow_5d") or 0) < -1e8
+                   else "QUIET"),
+        "leverage_flags": len(leverage),
+    }
+    return {
+        "generated_at": generated,
+        "engine": "justhodl-etf-global-desk",
+        "version": VERSION,
+        "evidence_tier": "mixed",
+        "status": "LIVE",
+        "thesis": "Ten honest products from the $297 ETF Global bundle. Fund-level creations are facts. Name-level dollars, bond CUSIP pressure, and NAV-vs-flow are inferred.",
+        "verdicts": verdicts,
+        "sleeves": {
+            "index_beta": sleeves["index_beta"],
+            "thematic": sleeves["thematic"],
+            "sector": sleeves["sector"],
+        },
+        "thematic_vs_index": thematic_vs_index,
+        "factor": {"ranked": factor_ranked, "rotation": factor_rot, "evidence_tier": "measured_fact"},
+        "credit_stack": credit_stack,
+        "crypto_wrapper": crypto_wrapper,
+        "leverage": leverage,
+        "concentration": concentration,
+        "price_vs_flow": price_vs_flow,
+        "crowding": crowding,
+        "confirmed": confirmed,
+        "disagreed": disagreed,
+        "bond_lookthrough": bond_lookthrough,
+        "by_ticker": by_ticker,
+        "methodology": {
+            "fund_flow": "Massive ETF Global fund-flows — creation/redemption dollars, a fact",
+            "name_flow": "fund_flow × holdings weight — inferred, not a print",
+            "share_delta": "change in reported shares_held across two snapshots — inferred",
+            "price_vs_flow": "wrapper NAV 5d vs fund_flow 5d",
+            "hhi": "Σ (weight%²) on a complete holdings snapshot only",
+            "leverage": "profile leverage_style / levered_amount — do not treat as 1:1",
+            "crypto": "IBIT/FBTC/ETHA wrapper bid, not exchange volume",
+            "bonds": "same look-through on HYG/LQD/EMB/TLT holdings",
+        },
+        "caveats": [
+            "Do not label any of this institutional buying/selling of a stock.",
+            "APs hedge a basket. SPY redemption hits every S&P name mechanically.",
+            "Custom/cash baskets break flow×weight. Disagreement is a tell.",
+            "Levered/inverse creations are not 1:1 underlying demand.",
+            "21d windows on the desk may be partial — see flow_windows.complete.",
+        ],
+    }
+
+
 def lambda_handler(event, context=None):
     t0 = time.time()
     if not KEY:
@@ -543,12 +1014,21 @@ def lambda_handler(event, context=None):
         "elapsed_s": payload["elapsed_s"],
         "version": VERSION,
     })
+    lookthrough = _load_s3("data/flow-lookthrough.json")
+    derived = _build_derived(desk, complete_hold, generated, lookthrough)
+    _put("data/etf-derived.json", derived)
     return {
         "status": payload["status"],
         "n": len(desk),
         "n_ok": n_ok,
         "elapsed_s": payload["elapsed_s"],
         "version": VERSION,
+        "derived": {
+            "verdicts": derived.get("verdicts"),
+            "n_by_ticker": len(derived.get("by_ticker") or {}),
+            "n_crowding": len(derived.get("crowding") or []),
+            "n_leverage": len(derived.get("leverage") or []),
+        },
     }
 
 

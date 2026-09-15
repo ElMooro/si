@@ -37,7 +37,8 @@
     ["data/fed-nowcast-join.json", "Fed nowcast join"],
     ["data/etf-global.json", "ETF Global harvest"],
     ["data/etf-desk.json", "ETF Global desk (flows+profiles+holdings)"],
-    ["data/etf-holdings-index.json", "ETF holdings look-through"]
+    ["data/etf-holdings-index.json", "ETF holdings look-through"],
+    ["data/etf-derived.json", "ETF derived (crowding, px/flow, factor, credit, crypto wrapper)"]
   ];
   function el(tag, css, html) {
     var n = document.createElement(tag);

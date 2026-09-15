@@ -53,6 +53,7 @@ footer{margin-top:34px;color:var(--fg-4);font-size:11px}
     <span class="fresh" id="fresh">loading…</span>
   </header>
   <div class="sub">The fleet's thinnest family, consolidated: junk-bond and IG expected returns with spread-percentile cushion (asset-compass credit sleeve), bank lending standards (SLOOS), muni cheapness, the liquidity-credit engine, and the CDS proxy — one front door.</div>
+  <div data-etf-derived="credit"></div>
 
   <section>
     <h2>Credit Dashboard <span class="n">compass sleeve · OAS 10y percentiles · gap-metrics</span></h2>
@@ -142,6 +143,8 @@ Promise.allSettled([
 })();
 </script>
 <script src="/jh-wire.js" defer data-feeds="data/sloos.json|justhodl-gap-metrics|SLOOS LENDING STANDARDS;data/muni-ratio.json|justhodl-gap-metrics|MUNI / TREASURY RATIO;data/liquidity-credit-engine.json|justhodl-liquidity-credit-engine|LIQUIDITY &amp; CREDIT ENGINE;data/cds-proxy.json|justhodl-cds-proxy|CDS PROXY;data/sifma-issuance.json|justhodl-gap-metrics|CORPORATE ISSUANCE (SIFMA M7);data/risk-ratios.json|justhodl-risk-ratios|RISK RATIOS (credit-leg detail)"></script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

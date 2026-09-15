@@ -51,6 +51,7 @@ tr:hover td{background:var(--panel2)}
   </div>
 </div>
 <div class="statbar" id="statbar"></div>
+<div data-etf-derived="lookthrough"></div>
 <div id="content"><div class="loading">⟳ computing single-name flow pressure…</div></div>
 <div class="foot" id="foot"></div>
 <script>
@@ -114,6 +115,22 @@ function render(d){
   h+=`<h2 class="g">🟢 Inflow Leaders <small>— gross mechanical buying ($, mega-caps dominate via broad index flows)</small></h2>${tbl(inN.slice(0,25))}`;
   h+=`<h2 class="r">🔴 Outflow Leaders <small>— gross mechanical selling</small></h2>${tbl(outN.slice(0,20))}`;
 
+  const crowd=d.passive_concentration||[];
+  if(crowd.length){
+    h+=`<h2 class="c">Crowding · passive beta <small>— % of mcap in the funds we cover. High = most sensitive to SPY/VOO/IVV creations</small></h2>`;
+    h+=`<div style="overflow-x:auto"><table><thead><tr><th class="l">Name</th><th>ETF own %</th><th>Industry</th><th>Mcap</th></tr></thead><tbody>`+
+      crowd.slice(0,20).map(r=>`<tr><td class="l"><b>${esc(r.ticker)}</b></td><td>${r.etf_ownership_pct==null?"—":r.etf_ownership_pct.toFixed(1)+"%"}</td><td class="l">${esc(r.industry||"—")}</td><td>${fmt(r.market_cap_usd)}</td></tr>`).join("")+`</tbody></table></div>`;
+  }
+  const acc=d.actual_accumulation||[], dist=d.actual_distribution||[];
+  if(acc.length||dist.length){
+    h+=`<div class="cols"><div><h2 class="g">Share-count accumulation <small>— snapshot delta, not prints</small></h2>${tbl(acc.slice(0,12))}</div>`;
+    h+=`<div><h2 class="r">Share-count distribution</h2>${tbl(dist.slice(0,12))}</div></div>`;
+  }
+  const dis=d.disagreed||[];
+  if(dis.length){
+    h+=`<h2 class="r">Disagreed <small>— flow×weight vs share-count delta opposite (cash/custom basket or stale holdings)</small></h2>${tbl(dis.slice(0,15))}`;
+  }
+
   document.getElementById("content").innerHTML=h;
   const m=d.methodology||{};
   document.getElementById("foot").innerHTML=
@@ -125,6 +142,8 @@ function render(d){
 load("data/flow-lookthrough.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load flow-lookthrough.json — '+esc(e.message)+'</div>';});
 setInterval(()=>load("data/flow-lookthrough.json").then(render).catch(()=>{}),300000);
 </script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 

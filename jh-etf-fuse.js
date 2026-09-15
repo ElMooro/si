@@ -6,7 +6,7 @@
   var LIVE = "https://justhodl.ai";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
-  var deskCache = null, deskP = null, idxCache = null, liveCache = {};
+  var deskCache = null, deskP = null, idxCache = null, liveCache = {}, derCache = null, derP = null;
 
   function firstOk(urls) {
     var i = 0;
@@ -88,6 +88,27 @@
       idxCache = { by_stock: {} };
       return idxCache;
     });
+  }
+  function derived() {
+    if (derCache) return Promise.resolve(derCache);
+    if (derP) return derP;
+    derP = firstOk([
+      "/data/etf-derived.json?t=" + Date.now(),
+      LIVE + "/data/etf-derived.json?t=" + Date.now(),
+      PROXY + "/data/etf-derived.json?t=" + Date.now(),
+      S3 + "/data/etf-derived.json"
+    ]).then(function (j) {
+      derCache = j && typeof j === "object" ? j : { by_ticker: {}, status: "EMPTY" };
+      return derCache;
+    }).catch(function () {
+      derCache = { by_ticker: {}, status: "EMPTY" };
+      return derCache;
+    });
+    return derP;
+  }
+  function ofDerived(ticker) {
+    var t = bare(ticker);
+    return derived().then(function (d) { return ((d && d.by_ticker) || {})[t] || null; });
   }
   function live(ticker) {
     var t = bare(ticker);
@@ -219,6 +240,7 @@
     desk: desk, live: live, of: of, reverse: reverse, reverseFromDesk: reverseFromDesk,
     impliedDemand: impliedDemand, isFund: isFund, histFrom: histFrom, alignHist: alignHist,
     markers: markers, mergeLive: mergeLive, holdingsIndex: holdingsIndex,
+    derived: derived, ofDerived: ofDerived,
     fmtUsd: fmtUsd, fmtEr: fmtEr, wgt: wgt, num: num, bare: bare, polyRows: polyRows, PROXY: PROXY
   };
 })(window);

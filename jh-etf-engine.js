@@ -33,7 +33,12 @@
     { t: "IBIT", c: "CRYPTO", n: "Bitcoin" }, { t: "FBTC", c: "CRYPTO", n: "Bitcoin (Fidel.)" },
     { t: "ETHA", c: "CRYPTO", n: "Ether" }, { t: "BITO", c: "CRYPTO", n: "BTC Futures" },
     { t: "MTUM", c: "FACTOR", n: "Momentum" }, { t: "QUAL", c: "FACTOR", n: "Quality" },
-    { t: "USMV", c: "FACTOR", n: "Min Vol" }, { t: "MOAT", c: "FACTOR", n: "Wide Moat" }
+    { t: "USMV", c: "FACTOR", n: "Min Vol" }, { t: "MOAT", c: "FACTOR", n: "Wide Moat" },
+    { t: "VLUE", c: "FACTOR", n: "Value" }, { t: "IWF", c: "FACTOR", n: "Russell 1000 Growth" },
+    { t: "IWD", c: "FACTOR", n: "Russell 1000 Value" }, { t: "VUG", c: "FACTOR", n: "Vanguard Growth" },
+    { t: "VTV", c: "FACTOR", n: "Vanguard Value" },
+    { t: "TBT", c: "RATES", n: "UltraShort 20Y (−2x)" }, { t: "SGOV", c: "RATES", n: "0-3M T-Bills" },
+    { t: "VCIT", c: "CREDIT", n: "Int. Corp" }, { t: "BKLN", c: "CREDIT", n: "Senior Loans" }
   ];
   var CATS = ["ALL", "US", "SECTOR", "RATES", "CREDIT", "METAL", "CMDTY", "INTL", "CRYPTO", "FACTOR"];
 

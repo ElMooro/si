@@ -319,6 +319,9 @@ def lambda_handler(event, context):
         a["confirmed"] = (a["shares_delta_usd"] is not None
                           and a["net_flow_5d_usd"] != 0
                           and (a["shares_delta_usd"] > 0) == (a["net_flow_5d_usd"] > 0))
+        a["disagreed"] = (a["shares_delta_usd"] is not None
+                          and a["net_flow_5d_usd"] != 0
+                          and not a["confirmed"])
         rows.append(a)
 
     rows.sort(key=lambda r: r["net_flow_5d_usd"], reverse=True)
@@ -347,6 +350,9 @@ def lambda_handler(event, context):
     top_picks = [{"ticker": r["ticker"], "score": r["flow_bps_mcap"],
                   "net_flow_5d_usd": r["net_flow_5d_usd"], "flow_type": r["flow_type"],
                   "confirmed": r.get("confirmed")} for r in top_picks]
+    disagreed_rows = sorted(
+        [r for r in rows if r.get("disagreed") and abs(r.get("net_flow_5d_usd") or 0) > 5e7],
+        key=lambda r: abs(r.get("net_flow_5d_usd") or 0), reverse=True)[:25]
 
     # dedup index events; ADDED events aggregate their dated forced dollars
     ev_seen = {}
@@ -423,7 +429,7 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-flow-lookthrough",
-        "version": "2.3.0",
+        "version": "2.4.0",
         "evidence_tier": "tier_b_inferred_allocation",
         "tier_note": ("F08: ETF-implied constituent flow is an ESTIMATE (fund flow × holdings weight). "
                       "It is not observed buying/selling. Custom/cash baskets can differ from the holdings file. "
@@ -444,6 +450,7 @@ def lambda_handler(event, context):
         "actual_distribution": distribution,
         "index_events": index_events_agg,
         "passive_concentration": concentration,
+        "disagreed": disagreed_rows,
         "impact_map": impact,
         "methodology": {
             "flow_attribution": "name_flow = sum over ETFs of (ETF_net_flow_usd * weight) — inferred allocation, not a print",
@@ -452,6 +459,7 @@ def lambda_handler(event, context):
             "equity_filter": "asset_class==Equity AND security_type in common/adr/reit/...",
             "flow_type": "THEMATIC_ROTATION when >60% of net pressure is from non-broad ETFs",
             "confirmed": "flow attribution and share-count delta agree on direction (still inferred)",
+            "disagreed": "both signals present and opposite — cash/custom basket or stale holdings file",
         },
         "caveats": [
             "Inferred, not observed: custom baskets, cash, and derivatives break flow×weight.",

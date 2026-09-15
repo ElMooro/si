@@ -52,6 +52,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 <div class="tab" data-tab="yields">Yields</div>
 <div class="tab" data-tab="health">Sources</div>
 </div>
+<div class="container" style="padding-bottom:0"><div data-etf-derived="crypto"></div></div>
 <div class="container" id="main"><div class="loading"><div class="spinner"></div>Loading Crypto Intelligence v4.2...</div></div>
 <script>
 var DU="https://justhodl-dashboard-live.s3.amazonaws.com/crypto-intel.json";
@@ -746,6 +747,8 @@ function cDex(){
   document.body.style.overflow='';
 }
 </script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
 <!-- P0-7 audit follow-up · dark engines wired (perplexity, 2026-08-05) -->
 <script src="/jh-wire.js" defer
   data-feeds="data/crypto-miners.json|justhodl-crypto-miners|CRYPTO MINERS;data/crypto-exchange-flows.json|justhodl-crypto-exchange-flows|CRYPTO EXCHANGE FLOWS"></script>

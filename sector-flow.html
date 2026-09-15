@@ -83,6 +83,7 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
     creation/redemption dollars via shares-outstanding deltas — are the hard-money confirmation when they fire.</p>
   </div>
   <div class="banner" id="banner"></div>
+  <div data-etf-derived="thematic"></div>
   <div class="statbar" id="statbar"></div>
   <div id="content"><div class="loading">⟳ loading flows &amp; rotation…</div></div>
   <div class="note" id="note"></div>
@@ -597,6 +598,8 @@ load("data/etf-desk.json").then(function(desk){
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
 /* ops 3396 — Sector Technical Health (self-contained; reads the fusion feed's

@@ -61,7 +61,7 @@
       SLEEVES[sl].forEach(function (x) { names.push({ t: x.t, n: x.n, sleeve: sl }); });
     });
     var tickers = names.map(function (x) { return x.t; });
-    var pack = await Promise.all([D.quotes(tickers), D.ohlc("SPY", "6mo"), D.feed("data/etf-flows.json"), D.feed("data/etf-desk.json")]);
+    var pack = await Promise.all([D.quotes(tickers), D.ohlc("SPY", "6mo"), D.feed("data/etf-flows.json"), D.feed("data/etf-desk.json"), D.feed("data/etf-derived.json")]);
     var qx = pack[0] || {}, spyBars = pack[1] || [], flows = (pack[2] && pack[2].by_etf) || {};
     var paid = (pack[3] && pack[3].by_etf) || {};
     var spyH = D.horizons(D.closesOf(spyBars));
@@ -95,11 +95,19 @@
     });
 
     var deskDoc = pack[3] || {};
+    var derived = pack[4] || {};
+    var byDer = (derived && derived.by_ticker) || {};
     if (window.JHEtfFuse && deskDoc.by_etf) {
       rows.forEach(function (r) {
+        var der = byDer[r.ticker] || {};
+        r.crowding = der.crowding_pct;
+        r.confirmed = der.confirmed;
+        r.disagreed = der.disagreed;
+        r.pxFlow = der.px_flow;
         if (r.sleeve !== "STOCK") return;
         r.holders = window.JHEtfFuse.reverseFromDesk(deskDoc, r.ticker);
         r.demand = window.JHEtfFuse.impliedDemand(r.holders);
+        if (der.implied_5d != null) r.demand5 = der.implied_5d;
       });
     }
 

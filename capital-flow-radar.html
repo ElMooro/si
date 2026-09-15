@@ -171,10 +171,17 @@ load("data/capital-flow-radar.json").then(function(d){
       <div class="sub" style="margin:8px 0 18px">Source: data/etf-desk.json · ${esc((desk.generated_at||"").slice(0,16))} · n=${desk.n||0} · flows ${((desk.n_ok||{}).flows)||0} · profiles ${((desk.n_ok||{}).profiles)||0} · holdings ${((desk.n_ok||{}).constituents)||0}</div>`;
     host.insertBefore(strip, host.firstChild);
   }).catch(function(){});
+  var der=document.createElement("div");
+  der.setAttribute("data-etf-derived","radar");
+  host=document.getElementById("content");
+  if(host) host.insertBefore(der, host.firstChild);
+  if(window.JHEtfDerived) JHEtfDerived.mount(der, "radar");
 }).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
 setInterval(()=>load("data/capital-flow-radar.json").then(render).catch(()=>{}),300000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-etf-fuse.js?v=20260915a"></script>
+<script src="/jh-etf-derived.js?v=20260915a"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
