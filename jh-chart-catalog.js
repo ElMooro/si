@@ -98,6 +98,7 @@
     H(["ciss", "euro stress", "sovereign stress"], "CISS:ea", "EA CISS composite", "stress", "ECB CISS · harvest history from 2000", "stress"),
 
     H(["13f", "13-f", "institutional ownership", "smart money 13f"], "DESK:inst", "13F institutional book", "inst", "SEC 13F · quarterly lagged snapshot", "desk"),
+    H(["institutional volume", "inst vol", "dark pool", "ats volume", "finra ats"], "DESK:ivol", "Institutional volume (ATS + tape + 13F)", "inst", "FINRA weekly ATS + Polygon week + 13F confirmation — never blended", "desk"),
     H(["etf holdings", "holdings book", "constituents"], "DESK:etf", "ETF holdings + vs-SPX ranks", "flows", "Massive ETF Global + holdings-index", "desk"),
     H(["etf flow", "creations", "redemptions", "inflow", "outflow"], "DESK:flow", "ETF creations / redemptions", "flows", "Massive ETF Global · delayed tape", "desk"),
     H(["valuation", "pe ratio", "ttm ratios"], "DESK:val", "Valuation (FMP EOD/TTM)", "stocks", "FMP Ultimate · TTM snapshot, not a live print", "desk"),

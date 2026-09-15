@@ -18,6 +18,7 @@
     ["priced", "Priced-in"],
     ["boom", "Stack"],
     ["sqz", "Squeeze"],
+    ["ivol", "Inst vol"],
     ["inst", "13F"],
     ["div", "Dividends"],
     ["news", "News"],
@@ -1002,6 +1003,78 @@
         ["Reported value", fmtBig(r.total_value)]
       ]));
   }
+  function cadence(s) {
+    return "<span class=cadence>" + esc(s) + "</span>";
+  }
+  function renderInstVol(d, pack) {
+    var p = d && d.instvol || pack && pack.instvol || {};
+    var ats = p.ats || {};
+    var inst = p.inst || {};
+    var daily = p.daily || {};
+    var meta = p.meta || {};
+    var conf = p.conf || {};
+    var tape = (pack && pack.tapeVol) || {};
+    var note = "<div class=note>Three clocks. Polygon tape is delayed prints. FINRA ATS is weekly, ~" +
+      esc(String(meta.ats_lag || 21)) + "d behind (week of " + esc(meta.ats_week || "—") +
+      "). 13F is quarterly lagged (" + esc(meta.f13_quarter || "—") +
+      "). Never average them into one “institutional volume.” Off-exchange ≠ dark pool — most of it is retail wholesalers.</div>";
+    var html = note;
+    html += "<div class=kpi>" + [
+      kpi("Confluence", esc(conf.verdict || "—")),
+      kpi("ATS state", esc(ats.state || "—")),
+      kpi("ATS % of tape", num(ats.dark_pool_pct) != null ? num(ats.dark_pool_pct).toFixed(1) + "%" : "—"),
+      kpi("Off-ex %", num(ats.offex_pct) != null ? num(ats.offex_pct).toFixed(1) + "%" : "—"),
+      kpi("13F net $", inst.bought_usd != null ? fmtBig((num(inst.bought_usd) || 0) - (num(inst.sold_usd) || 0)) : "—"),
+      kpi("Fingerprint", esc(ats.venue_fingerprint || (p.ping ? "RETAIL_PING" : "—")))
+    ].join("") + "</div>";
+    if (conf.why) html += "<div class=note>" + esc(conf.why) + "</div>";
+    html += blk("1 · Tape · Polygon / Massive " + cadence("DELAYED · this timeframe"), table([
+      ["This bar volume", tape.last != null ? fmtBig(tape.last) : "—"],
+      ["Prior-bar average", tape.avg20 != null ? fmtBig(tape.avg20) : "—"],
+      ["This bar vs avg", tape.vs_pct != null ? tape.vs_pct.toFixed(1) + "%" : "—"],
+      ["Polygon weekly consolidated (ATS week)", p.tape_week != null ? fmtBig(p.tape_week) : "—"],
+      ["Note", tape.label || "Open Daily for session ADV. Intraday bars are not ADV."]
+    ]));
+    html += blk("2 · Dark pool · FINRA ATS " + cadence("WEEKLY · lagged " + (meta.ats_age_days != null ? meta.ats_age_days + "d" : "")), table([
+      ["Week of", esc(meta.ats_week || "—")],
+      ["ATS shares / week", fmtBig(ats.ats_shares_wk)],
+      ["Off-exchange shares / week", fmtBig(ats.offex_shares_wk)],
+      ["Polygon total volume / week", fmtBig(ats.total_vol_wk || p.tape_week)],
+      ["ATS % of Polygon week", num(ats.dark_pool_pct) != null ? num(ats.dark_pool_pct).toFixed(2) + "%" : (num(p.dark_share) != null ? (num(p.dark_share) * 100).toFixed(2) + "%" : "—")],
+      ["Off-ex % of Polygon week", num(ats.offex_pct) != null ? num(ats.offex_pct).toFixed(2) + "%" : "—"],
+      ["ATS accel vs prior 4w", num(ats.dark_accel) != null ? (num(ats.dark_accel) * 100).toFixed(1) + "%" : "—"],
+      ["Avg ATS trade (shares)", fmt(num(ats.ats_avg_trade_size))],
+      ["Week return (Polygon)", num(ats.week_return_pct) != null ? num(ats.week_return_pct).toFixed(2) + "%" : "—"],
+      ["State", esc(ats.state || "not in 930-name scored book")],
+      ["Source", esc(meta.ats_src || "FINRA weeklySummary + Polygon grouped daily")]
+    ]));
+    html += blk("3 · Daily off-exchange (TRF) · FINRA short file " + cadence("EOD · " + (meta.daily_date || "")), table([
+      ["TRF total volume", fmtBig(daily.total_volume)],
+      ["Short volume (TRF)", fmtBig(daily.short_volume)],
+      ["Short volume %", num(daily.svr_pct) != null ? num(daily.svr_pct).toFixed(1) + "%" : "—"],
+      ["20d avg TRF volume", fmtBig(daily.avg_total_volume_20d)],
+      ["Short z", fmt(num(daily.z_score), 2)],
+      ["Days to cover", fmt(num(daily.days_to_cover), 2)],
+      ["Read", "TRF = off-exchange (ATS + wholesalers). Not ATS-only. High SVR is normal for internalized retail."]
+    ]));
+    html += blk("4 · Confirmation · 13F " + cadence("QUARTERLY · " + (meta.f13_quarter || "lagged")), table([
+      ["Name", esc(inst.name || "—")],
+      ["Funds holding", fmt(num(inst.n_funds_holding))],
+      ["Adding", fmt(num(inst.n_funds_adding))],
+      ["New positions", fmt(num(inst.n_funds_new_position))],
+      ["Trimming", fmt(num(inst.n_funds_trimming))],
+      ["Exiting", fmt(num(inst.n_funds_exiting))],
+      ["Bought $", fmtBig(inst.bought_usd)],
+      ["Sold $", fmtBig(inst.sold_usd)],
+      ["Net $", inst.bought_usd != null ? fmtBig((num(inst.bought_usd) || 0) - (num(inst.sold_usd) || 0)) : "—"],
+      ["Reported value", fmtBig(inst.total_value)],
+      ["Read", "Holdings change, not prints. A fund can buy on the tape for weeks before this quarter files."]
+    ]));
+    if (!ats.state && !inst.ticker && !daily.symbol) {
+      html += "<div class=empty>No ATS / 13F / TRF row for this symbol. Mega-caps are in the 930-name ATS book and 13F compact; many micro names will not score.</div>";
+    }
+    return html;
+  }
   async function revisionRow(t) {
     await loadJsonOnce(REV_DOC || (REV_DOC = {}), "/data/estimate-revisions.json");
     var tk = jhFundTicker(t);
@@ -1184,6 +1257,7 @@
     d.sqz = pack.sqz || d.sqz;
     d.confluence = pack.confluence || d.confluence;
     d.inst13f = pack.inst13f || d.inst13f;
+    d.instvol = pack.instvol || d.instvol;
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
@@ -1200,6 +1274,7 @@
     else if (tab === "priced") html = renderPriced(d);
     else if (tab === "boom") html = renderBoom(d);
     else if (tab === "sqz") html = renderSqueeze(d);
+    else if (tab === "ivol") html = renderInstVol(d, pack);
     else if (tab === "inst") html = renderInst13f(d);
     else if (tab === "est") html = renderEst(d);
     else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
@@ -1426,6 +1501,13 @@
       pack.inst13f = r;
       if (r && r.row && pack.src.indexOf("13F quarterly (lagged)") < 0) pack.src.push("13F quarterly (lagged)");
     }).catch(function () {}));
+    if (window.JHInstVol && window.JHInstVol.of) {
+      jobs.push(window.JHInstVol.of(t).then(function (r) {
+        pack.instvol = r;
+        pack.tapeVol = window.JHInstVol.tapeFromBars(pack.bars || window.lastBars || []);
+        if (r && pack.src.indexOf("FINRA ATS + Polygon week") < 0) pack.src.push("FINRA ATS weekly + Polygon denominator + 13F confirmation");
+      }).catch(function () {}));
+    }
     jobs.push(desk13fDoc().then(function (r) { pack.desk13f = r; }).catch(function () {}));
     if (F && F.isFund(pack.etfRow, pack.polyEtf) && F.constituents) {
       jobs.push(F.constituents(t).then(function (c) {
@@ -1510,6 +1592,7 @@
       "<button data-dt=priced>Growth already priced</button>" +
       "<button data-dt=boom>Stack (boom-radar)</button>" +
       "<button data-dt=sqz>Squeeze / crowded</button>" +
+      "<button data-dt=ivol>Inst vol (ATS + tape + 13F)</button>" +
       "<button data-dt=inst>13F (quarterly, lagged)</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
