@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from managed_secret import managed_secret
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 S3_BUCKET = "justhodl-dashboard-live"
 POLYGON_KEY = managed_secret(
     ("POLYGON_KEY", "POLYGON_API_KEY", "POLY_KEY", "MASSIVE_API_KEY"),
@@ -42,7 +42,9 @@ PRODUCTS = {
 }
 # Bare 1–3 letter tickers that collided with equities in v1.
 BANNED_EQUITY = {"CL", "ES", "SI", "HG", "NG", "GC", "VX", "NQ", "YM", "RTY"}
-CONTRACT_RE = re.compile(r"^[A-Z0-9]{1,4}[FGHJKMNQUVXZ]\d{1,2}$")
+CONTRACT_RE = re.compile(
+    r"^[A-Z]{1,4}[FGHJKMNQUVXZ](?:\d{1,2}|\d{4})$"
+)
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -98,33 +100,43 @@ def _price_ok(product: str, px) -> bool:
 
 def list_active_contracts(product_code: str, n: int = 3):
     """Nearest dated contracts for a product. Empty on entitlement/identity failure."""
-    st, body, host = _get("/futures/v1/contracts", {
-        "product_code": product_code,
-        "active": "true",
-        "limit": "40",
-        "sort": "last_trade_date.asc",
-    })
-    rows = (body or {}).get("results") if st == 200 else []
+    params_list = [
+        {"product_code": product_code, "active": "true", "limit": "50", "sort": "ticker.asc"},
+        {"product_code": product_code, "limit": "50", "sort": "date.asc"},
+        {"product_code": product_code, "limit": "50"},
+    ]
+    last_st, last_body, last_host, last_err = 0, {}, HOSTS[0], None
+    rows = []
+    for params in params_list:
+        st, body, host = _get("/futures/v1/contracts", params)
+        last_st, last_body, last_host = st, body, host
+        if st in (401, 403):
+            return st, [], (body or {}).get("error") or "not_entitled"
+        if st == 200:
+            rows = (body or {}).get("results") or []
+            if rows:
+                break
+        last_err = (body or {}).get("error") or "contracts_http_%s" % st
     out = []
     for r in rows or []:
         ticker = str(r.get("ticker") or "").upper()
         if not _is_dated_contract(ticker):
             continue
-        if str(r.get("product_code") or "").upper() not in ("", product_code):
+        pc = str(r.get("product_code") or "").upper()
+        if pc and pc != product_code:
             continue
         out.append({
             "ticker": ticker,
             "product_code": r.get("product_code") or product_code,
             "name": r.get("name"),
             "trading_venue": r.get("trading_venue"),
-            "last_trade_date": r.get("last_trade_date") or r.get("settlement_date"),
+            "last_trade_date": r.get("last_trade_date") or r.get("settlement_date") or r.get("date"),
             "days_to_maturity": r.get("days_to_maturity"),
             "type": r.get("type"),
-            "host": host,
+            "host": last_host,
         })
-        if len(out) >= n:
-            break
-    return st, out, (body or {}).get("error") or (None if st == 200 else "contracts_http_%s" % st)
+    out.sort(key=lambda c: str(c.get("last_trade_date") or c.get("ticker") or ""))
+    return last_st, out[:n], last_err if not out else None
 
 
 def fetch_session_aggs(ticker: str, days: int = 40):
