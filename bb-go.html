@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bloomberg <GO> · function keyboard · JustHodl</title>
+<meta name="description" content="Type AAPL DES GO. Maps the popular Bloomberg terminal functions onto JustHodl harvests and the chart GP engine.">
+<style>
+:root{--bg:#0b0c0e;--amber:#f6ae2d;--fg:#e8e6e1;--mut:#8a8680;--line:#2a2a28;--card:#141513;--up:#3ddc97;--dn:#ff5c5c}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg);font-family:"Bloomberg","IBM Plex Sans",system-ui,sans-serif;font-size:13px}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 18px 40px}
+h1{font-size:18px;letter-spacing:.08em;color:var(--amber);margin-bottom:6px}
+.sub{color:var(--mut);max-width:820px;margin-bottom:14px;line-height:1.5}
+.bar{display:flex;gap:8px;margin:12px 0 18px}
+.bar input{flex:1;background:#000;border:1px solid var(--amber);color:var(--amber);font-family:"IBM Plex Mono",monospace;font-size:16px;padding:10px 12px}
+.bar button{background:var(--amber);color:#111;border:0;font-weight:800;letter-spacing:.08em;padding:0 16px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.fn{background:var(--card);border:1px solid var(--line);padding:10px 12px;cursor:pointer;min-height:72px}
+.fn:hover{border-color:var(--amber)}
+.fn b{display:block;color:var(--amber);font-family:"IBM Plex Mono",monospace;letter-spacing:.08em;font-size:13px}
+.fn span{display:block;color:var(--mut);font-size:11px;margin-top:4px;line-height:1.35}
+h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}
+.note{font-size:11px;color:var(--mut);margin-top:16px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>JUSTHODL <GO></h1>
+  <p class="sub">Bloomberg yellow-key language on JustHodl data. Type <b>AAPL DES</b> or <b>DES AAPL</b> then GO. A function with no ticker uses the loaded symbol. Nothing here is a live Bloomberg feed — it is the same warehouse the rest of the desk already reads.</p>
+  <div class="bar">
+    <input id="q" placeholder="AAPL DES <GO>" autocomplete="off" spellcheck="false">
+    <button type="button" id="go">GO</button>
+  </div>
+  <div id="hint" class="note"></div>
+  <div id="board"></div>
+  <p class="note">Equity: DES FA GP GPC GPO GPL GIP HP RV EE ANR CN DVD HDS 13F OMON QR EVT TRA BETA CORR CMP. Market: TOP HM MOST WEI ECO. Macro: YCRV WIRP FOMC ECO BTMM. Chart studies: RSI MACD BOLL ICHI VWAP EVTS NEWS SMA. Cadence stays honest: 13F is quarterly, ATS weekly, tape delayed.</p>
+</div>
+<script src="/jh-chart-bbgo.js?v=20260915z-bbgo"></script>
+<script>
+(function () {
+  var FNS = window.jhBbGo && window.jhBbGo.catalog ? window.jhBbGo.catalog() : [];
+  var groups = {};
+  FNS.forEach(function (f) { (groups[f.g] = groups[f.g] || []).push(f); });
+  var h = "";
+  Object.keys(groups).forEach(function (g) {
+    h += "<h2>" + g + "</h2><div class=grid>";
+    groups[g].forEach(function (f) {
+      h += "<button class=fn type=button data-fn='" + f.id + "'><b>" + f.id + "</b><span>" + f.n + "</span></button>";
+    });
+    h += "</div>";
+  });
+  document.getElementById("board").innerHTML = h;
+  function run(raw) {
+    var r = window.jhBbGo && window.jhBbGo.tryRun(raw, { page: true });
+    document.getElementById("hint").textContent = r && r.ok ? ("ran " + r.fn + (r.sym ? " on " + r.sym : "")) : (r && r.err ? r.err : "unknown function");
+  }
+  document.getElementById("go").onclick = function () { run(document.getElementById("q").value); };
+  document.getElementById("q").onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); run(this.value); } };
+  document.querySelectorAll("[data-fn]").forEach(function (b) {
+    b.onclick = function () { run(b.getAttribute("data-fn")); };
+  });
+})();
+</script>
+</body>
+</html>

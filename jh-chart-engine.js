@@ -120,6 +120,8 @@
     {id:"rsidiv",n:"Divergence",c:"#f0b429",on:0,k:"rsidiv",cat:"Momentum"},
     {id:"svwaps",n:"Swing VWAP",c:"#26c6da",on:0,k:"svwaps",cat:"Volume"},
     {id:"earn",n:"Earnings / Events",c:"#ab47bc",on:0,k:"earn",cat:"Events"},
+    {id:"news",n:"News (CN)",c:"#2962ff",on:0,k:"news",cat:"Events"},
+    {id:"dvd",n:"Dividends (DVD)",c:"#089981",on:0,k:"dvd",cat:"Events"},
     {id:"pats",n:"Chart Patterns",c:"#26c6da",on:0,k:"pats",cat:"Patterns"},
     {id:"sdmd",n:"Supply & Demand",c:"#089981",on:0,k:"sdmd",cat:"Patterns"},
     {id:"sr",n:"Support & Resistance",c:"#f23645",on:0,k:"sr",cat:"Levels"}
@@ -178,7 +180,9 @@
     {id:"alpha",n:"Alpha vs SPY",on:0,cat:"Stats",p:60},
     {id:"rngpos",n:"Range Position",on:0,cat:"Stats",p:252,ob:80,os:20},
     {id:"htrsi",n:"Weekly RSI",on:0,cat:"Momentum",p:14,ob:70,os:30,c:"#2962ff"},
-    {id:"etfflow",n:"ETF Flow $",on:0,cat:"Flow",c:"#2962ff"}
+    {id:"etfflow",n:"ETF Flow $",on:0,cat:"Flow",c:"#2962ff"},
+    {id:"tra",n:"Total return (100)",on:0,cat:"Stats",c:"#f0b429"},
+    {id:"gseas",n:"Seasonality vs avg",on:0,cat:"Stats",c:"#26c6da"}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
@@ -931,6 +935,32 @@
     }
     return o;
   }
+  function totalReturn100(d){
+    if(!d||!d.length||!d[0].close) return [];
+    var b0=d[0].close, o=[], i;
+    for(i=0;i<d.length;i++) o.push({time:d[i].time,value:100*d[i].close/b0});
+    return o;
+  }
+  function gseasOsc(d){
+    if(!d||d.length<80) return [];
+    var buckets={}, i, m, ret;
+    for(i=1;i<d.length;i++){
+      m=new Date(d[i].time*1000).getUTCMonth();
+      ret=d[i-1].close?(d[i].close/d[i-1].close-1):0;
+      (buckets[m]=buckets[m]||[]).push(ret);
+    }
+    var avg=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(k){
+      var a=buckets[k]||[];
+      return a.length?a.reduce(function(s,x){return s+x;},0)/a.length:0;
+    });
+    var o=[];
+    for(i=1;i<d.length;i++){
+      m=new Date(d[i].time*1000).getUTCMonth();
+      ret=d[i-1].close?(d[i].close/d[i-1].close-1):0;
+      o.push({time:d[i].time,value:(ret-avg[m])*100});
+    }
+    return o;
+  }
   function drawdownPct(d){
     var o=[], peak=-1e99, i;
     for(i=0;i<d.length;i++){
@@ -1144,6 +1174,39 @@
     }catch(e2){}
     calCache=pack; calAt=Date.now();
     return pack;
+  }
+  var divCache={}, divAt=0;
+  async function loadDiv(tkr){
+    tkr=bare(tkr||active);
+    if(divCache[tkr] && Date.now()-divAt<1800000) return divCache[tkr];
+    try{
+      var r=await fetch(PROXY+"/poly/ref?ticker="+encodeURIComponent(tkr),{cache:"no-store"});
+      if(r.ok){ var j=await r.json(); divCache[tkr]={div:j.dividends||j.results||[], news:j.news||[]}; divAt=Date.now(); }
+    }catch(e){ divCache[tkr]=divCache[tkr]||{div:[],news:[]}; }
+    return divCache[tkr]||{div:[],news:[]};
+  }
+  function dvdMarks(d, pack){
+    var mk=[], rows=(pack&&pack.div)||[];
+    rows.forEach(function(r){
+      var ymd=r.ex_dividend_date||r.exDate||r.pay_date;
+      var t=snapDate(d, ymd); if(!t) return;
+      mk.push({time:t, position:"belowBar", color:"#089981", shape:"circle", text:"DVD"});
+    });
+    return mk.slice(-18);
+  }
+  function newsMarks(d, pack){
+    var mk=[], tkr=bare(active), seen={};
+    function add(n){
+      var ymd=n.date||n.published_utc||n.published||n.datetime;
+      var t=snapDate(d, ymd); if(!t||seen[t]) return;
+      var tk=String(n.ticker||n.tickers||"").toUpperCase();
+      if(tk && tk.indexOf(tkr)<0 && String(n.title||"").toUpperCase().indexOf(tkr)<0) return;
+      seen[t]=1;
+      mk.push({time:t, position:"aboveBar", color:"#2962ff", shape:"circle", text:"N"});
+    }
+    (news||[]).forEach(add);
+    ((pack&&pack.news)||[]).forEach(add);
+    return mk.slice(-16);
   }
   function alphaVs(d, spy, n){
     n=n||60;
@@ -1770,6 +1833,13 @@
             try{ await loadCalendar(); }catch(e3){}
             mk=mk.concat(eventMarks(display, active, calCache));
           }
+          if(INDS.some(function(i){ return (i.id==="news"||i.id==="dvd")&&i.on&&!i.hide; })){
+            try{
+              var dv=await loadDiv(active);
+              if(INDS.some(function(i){ return i.id==="dvd"&&i.on&&!i.hide; })) mk=mk.concat(dvdMarks(display, dv));
+              if(INDS.some(function(i){ return i.id==="news"&&i.on&&!i.hide; })) mk=mk.concat(newsMarks(display, dv));
+            }catch(eN){}
+          }
           lastPatPack=null; lastSdPack=null; lastSrPack=null;
           if(INDS.some(function(i){ return i.id==="pats"&&i.on&&!i.hide; }) && window.jhChartPatterns){
             try{
@@ -1889,7 +1959,7 @@
         if(ind.k==="demark"){ var dp=demarkPivots(d); if(dp && !ind.hide){ addPriceLine(dp.pp.value,"#546e7a","P"); addPriceLine(dp.r1.value,DN,"R1"); addPriceLine(dp.s1.value,UP,"S1"); } }
         if(ind.k==="fibauto"){ var fa=fibAuto(d); if(fa && fa.length && !ind.hide){ var fc=["#f23645","#ff6d00","#f0b429","#787b86","#26c6da","#2962ff","#089981"]; fa.forEach(function(lv,ix){ addPriceLine(lv.value, fc[ix]||"#787b86", (lv.p*100).toFixed(1)+"%"); }); } }
         if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"||ind.k==="vsa"||ind.k==="tape"){ /* markers applied on the candle series */ }
-        if(ind.k==="struct"||ind.k==="rsidiv"||ind.k==="earn"||ind.k==="pats"||ind.k==="sdmd"||ind.k==="sr"){ /* markers / overlay drawn separately */ }
+        if(ind.k==="struct"||ind.k==="rsidiv"||ind.k==="earn"||ind.k==="news"||ind.k==="dvd"||ind.k==="pats"||ind.k==="sdmd"||ind.k==="sr"){ /* markers / overlay drawn separately */ }
         if(ind.k==="keylv"){
           var kl=keyLevels(d);
           if(kl && kl.day) overlayMap[ind.id]=[{time:d[d.length-1].time,value:kl.day.c}];
@@ -2002,7 +2072,7 @@
     paintMini(d);
     writeState();
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
-    try{ window.compare=compare; window.jhActive=active; }catch(e){}
+    try{ window.compare=compare; window.jhActive=active; window.tf=tf; }catch(e){}
     var st=document.getElementById("stat");
     var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.34"; if(st) st.textContent="v12.34 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
@@ -2277,6 +2347,24 @@
           var raw=lastF&&lastF.raw;
           if(veF) veF.textContent = raw==null ? "no print" : ((raw>=0?"+":"")+(Math.abs(raw)>=1e9?(raw/1e9).toFixed(2)+"B":(raw/1e6).toFixed(0)+"M"));
         } else if(head.querySelector(".osc-v")) head.querySelector(".osc-v").textContent="ETF Global — no fund print";
+      }
+      else if(o.id==="tra"){
+        var tr=totalReturn100(d);
+        addO(tr, o.c||"#f0b429");
+        try{
+          var zT=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false});
+          zT.setData((tr.length?tr:d).map(function(p){ return {time:p.time,value:100}; })); oscSeries.push(zT);
+        }catch(eT){}
+      }
+      else if(o.id==="gseas"){
+        var gs=gseasOsc(d);
+        var hg=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,title:"vs seasonal"});
+        hg.setData(gs.map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));
+        oscSeries.push(hg);
+        try{
+          var zG=c.addLineSeries({color:"rgba(120,123,134,.35)",lineWidth:1,lastValueVisible:false,priceLineVisible:false});
+          zG.setData((gs.length?gs:d).map(function(p){ return {time:p.time,value:0}; })); oscSeries.push(zG);
+        }catch(eG){}
       }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
@@ -2960,13 +3048,14 @@
       "<button class='wsico wsdesk' id=btn-spr title='Spring · forming / fired / failed'><span class=g>Spr</span><span class=l>Spring</span></button>"+
       "<button class='wsico wsdesk' id=btn-acc title='Accumulation · tight band, long range'><span class=g>Acc</span><span class=l>Accum</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
+      "<button class='wsico wsdesk' id=btn-go title='Bloomberg GO · DES FA GP MOST ECO'><span class=g>GO</span><span class=l><GO></span></button>"+
       "<span class=sep></span>"+
       tfHtml+
       "<button class=drop id=btn-tfmore title='All intervals'>▾</button>"+
       "<span class=sep></span>"+
       "<button class=drop id=btn-kind>"+kindLab+" ▾</button>"+
       "<button class=drop id=btn-md title='Price change / relative'>"+mdLab+" ▾</button>"+
-      "<button class=drop id=btn-sc style=display:none>"+scLab+" ▾</button>"+
+      "<button class=drop id=btn-sc title='Scale: linear / log / percent / index'>"+scLab+" ▾</button>"+
       "<span class=sep></span>"+
       "<button id=btn-ind title='Indicators Ctrl+I'>Indicators</button>"+
       "<button id=btn-cmp title=Compare>Compare</button>"+
@@ -3006,6 +3095,7 @@
     var bspr=document.getElementById("btn-spr"); if(bspr) bspr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spring"); };
     var bacc=document.getElementById("btn-acc"); if(bacc) bacc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("accum"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
+    var bgo=document.getElementById("btn-go"); if(bgo) bgo.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("go"); };
     var more=document.getElementById("btn-tfmore");
     if(more) more.onclick=function(){
       var self=this;

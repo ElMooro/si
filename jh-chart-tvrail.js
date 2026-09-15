@@ -220,6 +220,7 @@
       spread: ["Candle spread · tight range + BB", "/wyckoff-desk.html?tab=spread"],
       spring: ["Spring · forming / fired / failed", "/wyckoff-desk.html?tab=spring"],
       accum: ["Accumulation · tight band, long range", "/wyckoff-desk.html?tab=accum"],
+      go: ["Bloomberg <GO> · function keyboard", "/bb-go.html"],
       alert: ["Alert Center", "/alerts.html"]
     };
     var pair = meta[kind] || meta.alert;
