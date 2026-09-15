@@ -1,0 +1,25 @@
+# ops 5565 — harvest the audit producers
+
+**Status:** success  
+**Duration:** 281.8s  
+**Finished:** 2026-09-15T00:11:23+00:00  
+
+## Log
+- `00:06:42` ✅ probes overwritten NOT_ENTITLED / PROBE_SAMPLE
+- `00:06:44` ✅ justhodl-polygon-futures-curves ok 1.8s status=200 {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"status\": \"QUARANTINED\", \"identity_ok\": false, \"n_products_with_data\": 0, \"n_s
+- `00:06:46` ✅ justhodl-polygon-options-flow ok 2.2s status=200 {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"elapsed_s\": 1.3, \"n_scanned\": 40, \"n_extreme\": 7, \"n_bullish\": 10, \"top_5_ale
+- `00:06:54` ✅ justhodl-etf-global-desk ok 8.5s status=200 {"status": "LIVE", "n": 87, "n_ok": {"flows": 87, "profiles": 87, "constituents": 87}, "elapsed_s": 5.8, "version": "1.3.0"}
+- `00:10:55` ✅ justhodl-etf-constituents ok 240.7s status=200 {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\": true, \"elapsed_s\": 236.0, \"n_etfs_total\": 289, \"n_et
+- `00:11:05` ✅ justhodl-flow-lookthrough ok 9.5s status=200 {"statusCode": 200, "body": "{\"n_names\": 15526, \"n_etfs_used\": 77, \"n_with_delta\": 65, \"top_accum\": \"CRWD\", \"n_index_events\": 30, \"n_confirmed_picks\": 15, \"elapsed_s
+- `00:11:07` ✅ justhodl-sector-rotation ok 2.0s status=200 {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_sectors\": 11, \"n_ratios\": 14, \"n_rotating_in\": 0, \"n_rotating_out\": 4, \"risk_appetite_score\": 
+- `00:11:08` ✅ justhodl-portfolio-risk ok 1.3s status=200 {"statusCode": 200, "body": "{\"success\": true, \"status\": \"no_positions\", \"elapsed_seconds\": 0.52}", "headers": {"Cache-Control": "private, no-store", "Vary": "Authorization
+- `00:11:21` ✅ justhodl-crisis-composite ok 12.6s status=200 {"statusCode": 200, "body": "{\"ok\": true, \"master_crisis_score\": 29.5, \"defcon_level\": 4, \"defcon_name\": \"NORMAL\", \"trend\": \"stable\"}"}
+- `00:11:22` ✅ justhodl-massive-signals ok 1.5s status=200 {"statusCode": 200, "body": "{\"ok\": true, \"tickers\": 41, \"top_prepump\": 38, \"fut_ok\": false}"}
+- `00:11:22` ✅ futures status=QUARANTINED identity_ok=False n_ok=0 version=2.0.0
+- `00:11:23` ✅ etf-desk status=LIVE n_ok={'flows': 87, 'profiles': 87, 'constituents': 87} SPY er=0.09 holdings_n=505 received=505 complete=True lev=unleveraged sectors=12
+- `00:11:23` ✅ VWO holdings_n=6356 received=6355 complete=True pages-in-complete-store=see holdings-complete
+- `00:11:23` ✅ options-flow inference=aggregate_anomaly n_scanned=40
+- `00:11:23` ✅ lookthrough tier=tier_b_inferred_allocation n_names=15526
+- `00:11:23` ✅ probes ratios=NOT_ENTITLED options=PROBE_SAMPLE
+- `00:11:23` ✅ massive-signals futures_identity_ok=False gamma_prov=CBOE
+- `00:11:23` ✅ GREEN — audit harvest complete
