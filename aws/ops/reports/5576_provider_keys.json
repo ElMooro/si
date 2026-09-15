@@ -1,6 +1,6 @@
 {
-  "at": "2026-09-15T04:09:19.150997+00:00",
-  "commit": "889fb7744d66",
+  "at": "2026-09-15T04:25:41.518748+00:00",
+  "commit": "58b97144b283",
   "ssm": {
     "fmp": {
       "path": "/justhodl/fmp/api-key",
@@ -84,6 +84,12 @@
       "path": "/justhodl/cryptoquant_api",
       "type": "SecureString",
       "sha": "a1ac6eb761",
+      "len": 40
+    },
+    "eia": {
+      "path": "/justhodl/eia/api-key",
+      "type": "SecureString",
+      "sha": "056c1b3259",
       "len": 40
     },
     "census": {
@@ -4732,8 +4738,8 @@
       "function": "justhodl-grid-queue",
       "var": "EIA_API_KEY",
       "env_sha": "056c1b3259",
-      "verdict": "no-ssm",
-      "action": "keep (reported)"
+      "verdict": "match",
+      "action": "keep"
     },
     {
       "function": "justhodl-top-signals",
@@ -5390,8 +5396,8 @@
       "function": "justhodl-real-economy-collector",
       "var": "EIA_API_KEY",
       "env_sha": "056c1b3259",
-      "verdict": "no-ssm",
-      "action": "keep (reported)"
+      "verdict": "match",
+      "action": "keep"
     },
     {
       "function": "justhodl-correlation-breaks",
