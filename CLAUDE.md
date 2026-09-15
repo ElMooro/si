@@ -12,5 +12,10 @@ This repo is driven autonomously by Claude. Session protocol, in order:
    classes that cost a full push/poll round trip.
 4. Commit IS the deploy (pages.yml / deploy-lambdas.yml / deploy-workers.yml
    / run-ops.yml). Verify from the committed reports, never by asking Khalid.
+5. **CHECK YOUR WORK (Khalid, 2026-09-15).** A green CI run and a cache-bust
+   string on the edge are not enough for a UI change. Before telling Khalid
+   it is fixed: click the control yourself (Playwright or a real browser),
+   confirm the ticker/chart/panel actually changed, and quote that proof.
+   "I deployed it" is not verification.
 
 Khalid runs nothing locally. Real data only. Audit before building.

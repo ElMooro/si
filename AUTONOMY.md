@@ -67,6 +67,13 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
    auto-commit.** Then VERIFY FROM THE EDGE with a marker string unique to
    the NEW version — repo state is not proof of live.
 
+   ⚠️⚠️ **CHECK YOUR WORK (Khalid, 2026-09-15).** Marker-string on the edge
+   proves the *file* is live, not that the *control works*. For any UI claim
+   ("type AAPL and click GO", a search result, a desk icon): drive it in a
+   real browser/Playwright against https://justhodl.ai, wait for the chart
+   or panel to change, and only then say it is fixed. Do this before the
+   reply, not after Khalid asks "did you fix it?"
+
    ⚠️ Nav manifest is served at **`/nav-manifest.json` (ROOT)**, not
    `/data/nav-manifest.json` (that path 403s). The repo copy is CI-regenerated
    without commit-back and is therefore ALWAYS stale — only the SERVED copy
