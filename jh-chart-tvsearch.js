@@ -24,7 +24,7 @@
     ["tech", "Technicals"],
     ["short", "Short"],
     ["opt", "Options"],
-    ["etf", "ETF"],
+    ["etf", "Holdings"],
     ["flow", "Flow"],
     ["hold", "Holders"]
   ];
@@ -681,7 +681,7 @@
             (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td><td>" +
             fmtBig(h.mv) + "</td></tr>";
         }).join("") + "</tbody></table>" +
-        "<div class=note>Full book, vs-SPX ranks, inflows/outflows and 13F emerging names are on the ETF tab.</div>");
+        "<div class=note>Full book, vs-SPX ranks, inflows/outflows and 13F emerging names are on the Holdings tab.</div>");
     }
 
     var sec = row.sector || [];
@@ -782,7 +782,7 @@
       var add = num(inst.n_funds_adding) || 0;
       var badge = neu > 0 ? "<span class=pill-fresh>NEW 13F ×" + neu + "</span>" : (add > 0 ? "<span class=pill-new>ADD ×" + add + "</span>" : "");
       var w = num(h.w);
-      var q = (tk + " " + (h.n || "")).toUpperCase();
+      var q = (tk + " " + (h.n || "")).toUpperCase().replace(/"/g, "");
       return "<tr data-q=\"" + esc(q) + "\"><td>" + (h.rank || (i + 1)) + "</td><td><a href='/chart.html?s=" + encodeURIComponent(tk) + "'>" +
         esc(tk) + "</a> " + badge + "</td><td>" + esc(h.n || "") + "</td><td>" +
         (w != null ? ((w < 1 && w > -1 ? w * 100 : w).toFixed(2) + "%") : "—") + "</td><td>" +
@@ -792,6 +792,7 @@
     var complete = (pack.etfConstituents && pack.etfConstituents.complete === false)
       ? "PARTIAL book"
       : ("showing " + holds.length + (nHold && nHold > holds.length ? " of " + nHold : ""));
+    if (!pack._hydrated && nHold && holds.length < nHold) complete += " · loading full book…";
     return blk("Holdings — all constituents",
       "<div class=hold-tools><input id=etf-hold-q class=hold-q placeholder=\"Filter holdings… NVDA, semiconductor, 13F\" autocomplete=off><span id=etf-hold-n>" +
       complete + "</span></div>" +
@@ -1331,8 +1332,6 @@
       pack.priced = await pricedRow(t);
       pack.boom = await boomRow(t);
       pack.sqz = await squeezeRow(t);
-      pack.inst13f = await inst13fRow(t);
-      pack.desk13f = await desk13fDoc();
       pack.confluence = await confluenceRow(t);
       if (pack.confluence && pack.confluence.row && (!pack.pressure || !pack.pressure.row)) {
         pack.pressure = pack.pressure || {};
@@ -1349,7 +1348,6 @@
       if (pack.priced && pack.priced.row) pack.src.push("gf-value");
       if (pack.boom && pack.boom.row) pack.src.push("boom-radar");
       if (pack.confluence && pack.confluence.row) pack.src.push("flow-confluence");
-      if (pack.inst13f && pack.inst13f.row) pack.src.push("13F quarterly (lagged)");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
       if (j && (j.ok || j.price || j.summaryDetail)) take(j, "Yahoo fundamentals");
@@ -1395,31 +1393,54 @@
     } catch (e6) {}
     if (window.JHEtfFuse) {
       try {
-        var row = await window.JHEtfFuse.of(t);
-        var holders = await window.JHEtfFuse.reverse(t);
-        var der = window.JHEtfFuse.ofDerived ? await window.JHEtfFuse.ofDerived(t) : null;
-        var deskDer = window.JHEtfFuse.derived ? await window.JHEtfFuse.derived() : null;
-        if (row) pack.etfRow = window.JHEtfFuse.mergeLive(row, pack.polyEtf);
-        pack.etfHolders = holders || [];
-        pack.derived = der || null;
-        pack.derivedDesk = deskDer || null;
-        pack.risk = (deskDer && deskDer.verdicts) || {};
-        if (row || (holders && holders.length) || der) pack.src.push("ETF desk warehouse");
-        var isFund = window.JHEtfFuse.isFund(pack.etfRow, pack.polyEtf);
+        var F = window.JHEtfFuse;
+        var row = await F.of(t);
+        if (row) pack.etfRow = F.mergeLive(row, pack.polyEtf);
+        var isFund = F.isFund(pack.etfRow, pack.polyEtf);
+        if (F.ofDerived) pack.derived = await F.ofDerived(t);
+        if (F.derived) {
+          pack.derivedDesk = await F.derived();
+          pack.risk = (pack.derivedDesk && pack.derivedDesk.verdicts) || {};
+        }
         if (isFund) {
-          if (window.JHEtfFuse.constituents) {
-            pack.etfConstituents = await window.JHEtfFuse.constituents(t);
-            if (pack.etfConstituents && pack.etfConstituents.n) pack.src.push("ETF holdings-index (" + pack.etfConstituents.n + " names)");
-          }
-          if (window.JHEtfFuse.census) {
-            pack.etfCensus = await window.JHEtfFuse.census();
-            pack.etfRank = window.JHEtfFuse.rankVs(t, pack.etfCensus);
+          if (F.census) {
+            pack.etfCensus = await F.census();
+            pack.etfRank = F.rankVs(t, pack.etfCensus);
             if (pack.etfRank && pack.etfRank.in_universe) pack.src.push("ETF census vs SPY (" + String(pack.etfRank.as_of || "").slice(0, 10) + ")");
           }
+          pack.src.push("ETF desk warehouse");
         }
       } catch (e7) {}
     }
+    hydrateHeavy(sym, pack);
     return pack;
+  }
+
+  function hydrateHeavy(sym, pack) {
+    if (!pack || pack._hydrating || pack._hydrated) return;
+    pack._hydrating = true;
+    var t = jhFundTicker(sym);
+    var F = window.JHEtfFuse;
+    var jobs = [];
+    jobs.push(inst13fRow(t).then(function (r) {
+      pack.inst13f = r;
+      if (r && r.row && pack.src.indexOf("13F quarterly (lagged)") < 0) pack.src.push("13F quarterly (lagged)");
+    }).catch(function () {}));
+    jobs.push(desk13fDoc().then(function (r) { pack.desk13f = r; }).catch(function () {}));
+    if (F && F.isFund(pack.etfRow, pack.polyEtf) && F.constituents) {
+      jobs.push(F.constituents(t).then(function (c) {
+        pack.etfConstituents = c;
+        if (c && c.n) pack.src.push("ETF holdings-index (" + c.n + " names)");
+      }).catch(function () {}));
+    } else if (F && F.reverse) {
+      jobs.push(F.reverse(t).then(function (h) { pack.etfHolders = h || []; }).catch(function () {}));
+    }
+    Promise.all(jobs).then(function () {
+      pack._hydrating = false;
+      pack._hydrated = true;
+      cache[sym] = pack;
+      if (window.jhActive === sym) paintBody(pack);
+    }).catch(function () { pack._hydrating = false; });
   }
 
   async function loadKind(sym, kind) {
@@ -1464,6 +1485,10 @@
     if (ov) ov.className = "";
   }
 
+  window.jhOpenDataTypePanel = function (which) {
+    openPanel(which || "etf");
+  };
+
   window.jhOpenDataType = function (at, info) {
     var m = document.getElementById("menu");
     if (!m) { openPanel("over"); return; }
@@ -1492,7 +1517,7 @@
       "<button data-dt=tech>Technicals</button>" +
       "<button data-dt=short>Short interest</button>" +
       "<button data-dt=opt>Options</button>" +
-      "<button data-dt=etf>ETF Global</button>" +
+      "<button data-dt=etf>Holdings (ETF book)</button>" +
       "<button data-dt=hold>Holders</button>";
     if (at && at.getBoundingClientRect) {
       var r = at.getBoundingClientRect();

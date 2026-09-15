@@ -98,12 +98,9 @@
     el.innerHTML = html;
     var btn = document.getElementById("etfhud-open");
     if (btn) btn.onclick = function () {
-      if (window.jhOpenDataType) window.jhOpenDataType(btn);
-      setTimeout(function () {
-        var tab = pack.kind === "etf" ? "etf" : "hold";
-        var b = document.querySelector("#dttabs [data-t='" + tab + "']");
-        if (b) b.click();
-      }, 80);
+      var tab = pack.kind === "etf" ? "etf" : "hold";
+      if (window.jhOpenDataTypePanel) window.jhOpenDataTypePanel(tab);
+      else if (window.jhOpenDataType) window.jhOpenDataType(btn);
     };
   }
 

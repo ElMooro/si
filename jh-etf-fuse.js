@@ -81,7 +81,8 @@
     return firstOk([
       "/data/etf-holdings-index.json?t=" + Date.now(),
       LIVE + "/data/etf-holdings-index.json?t=" + Date.now(),
-      PROXY + "/data/etf-holdings-index.json?t=" + Date.now()
+      PROXY + "/data/etf-holdings-index.json?t=" + Date.now(),
+      S3 + "/data/etf-holdings-index.json"
     ]).then(function (j) {
       idxCache = j && typeof j === "object" ? j : { by_stock: {} };
       return idxCache;
