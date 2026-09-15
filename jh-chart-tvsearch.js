@@ -372,7 +372,13 @@
   }
 
   function renderFinFmp(f) {
+<<<<<<< Updated upstream
     var rows = (f.row.financials || []).slice(0, 10);
+=======
+    var rows = (f.row.financials || []).slice().sort(function (a, b) {
+      return Number(b.year) - Number(a.year);
+    }).slice(0, 10);
+>>>>>>> Stashed changes
     var hdr = "<tr><th>Year</th><th>Revenue</th><th>Net income</th><th>EPS</th><th>GM %</th><th>OM %</th><th>NM %</th><th>FCF</th><th>FCF %</th></tr>";
     var body = rows.map(function (y) {
       return "<tr><td>" + esc(y.year) + "</td><td>" + fmtBig(num(y.revenue)) + "</td><td>" + fmtBig(num(y.netIncome)) + "</td><td>" + fmt(num(y.eps)) +
@@ -704,6 +710,9 @@
     var body = document.getElementById("dtbody");
     if (!body) return;
     var d = pack.data || {};
+    d.fmp = pack.fmp || d.fmp;
+    d.ident = pack.ident || d.ident;
+    d.chain = pack.chain || d.chain;
     var bars = pack.bars || [];
     var q = pack.quote || {};
     var html = "";
@@ -806,7 +815,7 @@
   }
   async function loadPack(sym) {
     var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-    var t = (window.jhBare || function (s) { return s; })(sym);
+    var t = jhFundTicker(sym);
     var pack = { sym: sym, src: [], data: {}, bars: window.lastBars || [], quote: {} };
     if (window.lastBars && window.jhActive === sym) pack.bars = window.lastBars;
     function take(j, label) {
@@ -883,7 +892,7 @@
 
   async function loadKind(sym, kind) {
     var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-    var t = (window.jhBare || function (s) { return s; })(sym);
+    var t = jhFundTicker(sym);
     var map = { tech: "tech", short: "short", opt: "options", etf: "etf" };
     var path = map[kind];
     if (!path) return null;
