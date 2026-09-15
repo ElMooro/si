@@ -1,0 +1,16 @@
+# ops 5571 -- generation 1 (floor -> 500 unique tasks): feasible family share for two families, then the Gear B tick (launch=true) via the owner route
+
+**Status:** failure  
+**Duration:** 198.2s  
+**Finished:** 2026-09-15T02:42:02+00:00  
+
+## Data
+
+| head |
+|---|
+| 735cffe6ce |
+
+## Log
+- `02:38:44` ✅ gearb control: {"max_family_share": 0.85, "min_sft_rows": 1500, "max_jobs_per_day": 1, "daily_budget_usd": 20.0, "season_cap_usd": 600.0} -> max_family_share 0.85, min_sft_rows 500 (dated copy kept)
+- `02:42:02` ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
+- `02:42:02` ✗ no training job launched -- refusal chain: {"ok": true, "action": "/gearb/tick", "result": {"at": "2026-09-15T02:38:46.608445Z", "polled": [], "built": {"ok": true, "generation": 1, "kept": 570, "floor": 500, "missing_rows": null, "reason": null}, "launched": {"schema_version": "gearb-job.v1", "job_name": "jh-gearb-gen1-20260915-024201", "kind": "sft", "generation": 1, "model_id": "qwen2-5-coder-7b-instruct", "instance_type": "ml.g5.2xlarge", "spot": true, "max_runtime_s": 10800, "usd_per_hour": 1.515, "cap_usd": 4.545, "price_source": "aws-price-list", "training_uri": "s3://justhodl-ai-857687956942/factory/gearb/datasets/gen-1/", "out_uri": "s3://justhodl-ai-857687956942/factory/champions/gen-1/", "eligibility_digest": "1657cdeecb63c74c7438fd36dcd4efc834de6ee56ead6e91f72642b36ca4dafc", "train_sha256": "38f7eecedf107995b3266dca60337a5433f4420ca66854d59e314b73f2230b17", "holdout_digest": "b926ab5e305c6ce5764adfcbc93ea5f89bc596424f31e26a4cdea54066781fd2", "launched_at": "2026-09-15T02:42:01.911598Z", "status": "launching", "version": "gear-b.1"}, "refusal": null}, "at": "2026-09-15T02:42:02.327945+00:00"}
