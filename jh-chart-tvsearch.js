@@ -9,6 +9,8 @@
     ["val", "Valuation"],
     ["fin", "Financials"],
     ["est", "Estimates"],
+    ["ident", "Identity"],
+    ["chain", "On-chain"],
     ["div", "Dividends"],
     ["news", "News"],
     ["tech", "Technicals"],
@@ -222,6 +224,70 @@
     ]));
   }
 
+  // ---- Identity desk: OpenFIGI via the symbology master (data/symbology/master.json). FIGI/shareClassFIGI/type/exch only.
+  // CUSIP/ISIN never come from OpenFIGI (licence); when present they are the SEC/13F spine and are labelled so.
+  var SYMBOLOGY = null;
+  async function symbologyRow(t) {
+    try {
+      if (!SYMBOLOGY) { var r = await fetch("/data/symbology/master.json", { cache: "no-store" }); SYMBOLOGY = r.ok ? await r.json() : {}; }
+    } catch (e) { SYMBOLOGY = {}; }
+    var recs = SYMBOLOGY.by_ticker || SYMBOLOGY.tickers || SYMBOLOGY;
+    return (recs && (recs[t] || recs[t.replace(".", "-")])) || null;
+  }
+  function renderIdent(d) {
+    var r = d && d.ident;
+    if (!r) return "<div class=note>Identity: no symbology-master row for this symbol (figi_status unknown, nothing invented)</div>";
+    var mapped = !!r.figi;
+    var rows = [
+      ["FIGI", mapped ? esc(r.figi) : "figi_status=" + esc(r.figi_status || "no_match")],
+      ["Share-class FIGI", esc(r.shareClassFIGI || r.share_class_figi || "—")],
+      ["Security type", esc(r.securityType || r.security_type || "—")],
+      ["Exchange code", esc(r.exchCode || r.exch_code || "—")],
+      ["Name", esc(r.name || "—")]
+    ];
+    var spine = [];
+    if (r.cusip) spine.push(["CUSIP (SEC/13F spine, not OpenFIGI)", esc(r.cusip)]);
+    if (r.isin) spine.push(["ISIN (derived from the SEC CUSIP, not OpenFIGI)", esc(r.isin)]);
+    if (r.lei) spine.push(["LEI (GLEIF)", esc(r.lei)]);
+    return blk("Identity — OpenFIGI (symbology master" + (SYMBOLOGY && SYMBOLOGY.generated_at ? ", " + String(SYMBOLOGY.generated_at).slice(0, 10) : "") + ")", table(rows)) +
+      (spine.length ? blk("Filing identifiers — SEC / 13F spine", table(spine)) : "");
+  }
+  // ---- On-chain desk: CryptoQuant EOD on-chain (BTC/ETH proxies only). Never LIVE, never mixed with equity/ETF flow.
+  var CQ_PROXIES = { BTC: 1, ETH: 1, IBIT: 1, FBTC: 1, BITB: 1, ETHA: 1, MSTR: 1, COIN: 1, MARA: 1, RIOT: 1, "BTC-USD": 1, "ETH-USD": 1, BTCUSD: 1, ETHUSD: 1 };
+  var CQ_ONCHAIN = null, CQ_SERIES = null;
+  async function cqPack(t) {
+    if (!CQ_PROXIES[t]) return { proxy: false };
+    try {
+      if (!CQ_ONCHAIN) { var r = await fetch("/data/cryptoquant-onchain.json", { cache: "no-store" }); CQ_ONCHAIN = r.ok ? await r.json() : {}; }
+      if (!CQ_SERIES) { var r2 = await fetch("/data/cryptoquant-series.json", { cache: "no-store" }); CQ_SERIES = r2.ok ? await r2.json() : {}; }
+    } catch (e) { CQ_ONCHAIN = CQ_ONCHAIN || {}; CQ_SERIES = CQ_SERIES || {}; }
+    return { proxy: true, onchain: CQ_ONCHAIN, series: CQ_SERIES };
+  }
+  function cqMetric(m, keys) {
+    for (var i = 0; i < keys.length; i++) { var v = m[keys[i]]; if (v && typeof v === "object") return v; }
+    return null;
+  }
+  function renderChain(d) {
+    var c = d && d.chain;
+    if (!c || !c.proxy) return "<div class=note>On-chain: no CQ series — this symbol is not a BTC/ETH proxy (IBIT, FBTC, BITB, ETHA, MSTR, COIN, MARA, RIOT, BTC, ETH)</div>";
+    var m = (c.onchain && c.onchain.metrics) || {};
+    var head = [
+      ["MVRV", ["btc_mvrv", "mvrv"]], ["SOPR", ["btc_sopr", "sopr"]], ["MPI", ["btc_mpi", "mpi"]], ["Whale ratio", ["btc_whale_ratio", "whale_ratio", "exchange_whale_ratio"]],
+      ["Exchange netflow", ["btc_exch_netflow", "btc_exchange_netflow", "exch_netflow", "netflow"]], ["NUPL", ["btc_nupl", "nupl"]], ["SSR", ["btc_ssr", "ssr", "stablecoin_supply_ratio"]], ["Realized price", ["btc_realized_price", "realized_price"]]
+    ];
+    var kp = head.map(function (h) {
+      var v = cqMetric(m, h[1]);
+      var val = v ? (v.value != null ? v.value : (v.latest != null ? v.latest : v.last)) : null;
+      return kpi(h[0], fmt(num(val)) + (v && v.as_of ? " <small>" + esc(String(v.as_of).slice(0, 10)) + "</small>" : ""));
+    }).join("");
+    var label = (c.onchain && c.onchain.label) || "CryptoQuant EOD on-chain";
+    var stamp = c.onchain && (c.onchain.generated_at || c.onchain.as_of);
+    var ser = (c.series && (c.series.series || c.series)) || {};
+    var counts = Object.keys(ser).filter(function (k) { return Array.isArray(ser[k]); }).slice(0, 8).map(function (k) { return [esc(k), ser[k].length + " pts"]; });
+    return "<div class=kpi>" + kp + "</div>" +
+      blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; not blended with ETF or FMP data)",
+          counts.length ? table(counts) : "<div class=note>series file present but empty</div>");
+  }
   function renderValFmp(f) {
     var r = f.row;
     var label = "FMP EOD/TTM" + (f.key_status === "unauthorized" ? " — KEY REJECTED (stale)" : "") + " · as of " + String(f.as_of || "").slice(0, 10);
@@ -639,6 +705,8 @@
     else if (tab === "stats") html = renderStats(d, bars);
     else if (tab === "val") html = renderVal(d);
     else if (tab === "fin") html = renderFin(d);
+    else if (tab === "ident") html = renderIdent(d);
+    else if (tab === "chain") html = renderChain(d);
     else if (tab === "est") html = renderEst(d);
     else if (tab === "div") html = renderDiv(d) + renderPolyDiv(pack);
     else if (tab === "news") html = renderPolyNews(pack);
@@ -720,6 +788,10 @@
     }
     try {
       pack.fmp = await fmpRow(t);
+      pack.ident = await symbologyRow(t);
+      pack.chain = await cqPack(t);
+      if (pack.ident) pack.src.push("OpenFIGI symbology master");
+      if (pack.chain && pack.chain.proxy) pack.src.push("CryptoQuant EOD on-chain");
       if (pack.fmp) pack.src.push("FMP EOD/TTM (" + String(pack.fmp.as_of || "").slice(0, 10) + ")");
       var r = await fetch("/api/yahoo-fund?ticker=" + encodeURIComponent(t));
       var j = await r.json();
@@ -835,6 +907,8 @@
       "<button data-dt=stats>Statistics</button>" +
       "<button data-dt=val>Valuation / ratios</button>" +
       "<button data-dt=fin>Financials</button>" +
+      "<button data-dt=ident>Identity (OpenFIGI)</button>" +
+      "<button data-dt=chain>On-chain (CryptoQuant)</button>" +
       "<button data-dt=est>Estimates</button>" +
       "<button data-dt=div>Dividends</button>" +
       "<button data-dt=news>News</button>" +

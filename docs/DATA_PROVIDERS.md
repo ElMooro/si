@@ -19,9 +19,9 @@ One rule for every keyed provider: the key lives in SSM (`/justhodl/...` SecureS
 | Alpha Vantage | quotes fallback | yes | `/justhodl/alphavantage/api-key` | 8 refs | free tier |
 | NewsAPI (newsapi.org) | headlines | yes | `/justhodl/newsapi/api-key` | 8 refs | — |
 | Nasdaq Data Link | datasets | yes | `/justhodl/nasdaq-datalink/api-key` | 1 ref | — |
-| OpenFIGI | identifiers | yes | `/justhodl/openfigi/api-key` | 8 refs | free |
-| Trading Economics (api.tradingeconomics.com) | macro calendar | yes | `/justhodl/te_api` | 10 refs | — |
-| CryptoQuant | on-chain | yes | `/justhodl/cryptoquant_api` | 7 refs | — |
+| OpenFIGI (api.openfigi.com /v3/mapping) | FIGI / shareClassFIGI / securityType / exchCode by ticker or CUSIP — `data/symbology/master.json` (justhodl-symbology-master, 2,500/run); consumers: 13F CUSIP→ticker (SEC/FMP first, FIGI second), chart Identity desk | `X-OPENFIGI-APIKEY` | `/justhodl/openfigi/api-key` | 8 refs | free; never supplies CUSIP/ISIN |
+| Trading Economics (api.tradingeconomics.com) | macro calendar | yes | `/justhodl/te_api` (ops 5579: literal in ops_4197 matched the LIVE key → redacted; **rotate, then SSM only**) | 10 refs | — |
+| CryptoQuant (api.cryptoquant.com) | BTC/ETH on-chain (MVRV, SOPR, MPI, whale ratio, exchange netflow, NUPL, SSR, realized price) — `data/cryptoquant-onchain.json`, `-series.json`; consumers: crypto-intel, chart On-chain desk (BTC/ETH proxies only), crisis-composite slow leg | Bearer token | `/justhodl/cryptoquant_api` (ops 5579: the literal in the historical ops_4197 file matched the LIVE token → redacted; **rotate in the CQ console, then SSM only**) | 7 refs | label EOD on-chain, never LIVE |
 | Quiver Quant (api.quiverquant.com) | congress/insider alt-data | check | not in managed_secret; reads env — reconcile lists it | 8 refs | — |
 | EIA (api.eia.gov) | energy | check | reconcile lists any env | 7 refs | free |
 | Census (api.census.gov) | trade/economic census | check | reconcile lists any env | 7 refs | free |

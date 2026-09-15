@@ -563,6 +563,54 @@ US_EXCHANGES = {"NYSE", "NASDAQ", "AMEX", "NYSEARCA", "BATS", "OTC",
                 "PNK", "NMS", "NGS", "NCM", "ASE", "ARCA"}   # ops 4936
 
 
+_FIGI_MASTER = {"loaded": False, "by_cusip": {}}
+
+
+def _figi_master_by_cusip():
+    """data/symbology/master.json (OpenFIGI-mapped, SEC CUSIP spine) indexed by cusip -- consumers read the master
+    first so OpenFIGI is not hammered per engine (ops 5579)."""
+    if _FIGI_MASTER["loaded"]:
+        return _FIGI_MASTER["by_cusip"]
+    _FIGI_MASTER["loaded"] = True
+    try:
+        doc = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/symbology/master.json")["Body"].read())
+        recs = doc.get("by_ticker") or doc.get("tickers") or {}
+        for tk, r in recs.items():
+            if isinstance(r, dict) and r.get("cusip") and r.get("figi"):
+                _FIGI_MASTER["by_cusip"][str(r["cusip"]).upper()] = {"ticker": tk, "name": r.get("name") or "", "figi": r["figi"]}
+    except Exception:
+        pass
+    return _FIGI_MASTER["by_cusip"]
+
+
+def cusip_to_ticker_via_figi(cusip: str, name: str):
+    """SECOND resolver (after SEC/FMP): the symbology master, then one paced OpenFIGI ID_CUSIP mapping. Output is
+    ticker/name/figi only -- OpenFIGI never supplies CUSIP/ISIN. Unresolved stays unresolved; nothing is invented."""
+    hit = _figi_master_by_cusip().get(str(cusip).upper())
+    if hit:
+        return hit["ticker"], hit["name"] or name, "symbology-master"
+    try:
+        from managed_secret import managed_secret
+        key = managed_secret(("OPENFIGI_API_KEY", "OPENFIGI_KEY"), ("/justhodl/openfigi/api-key",))
+    except Exception:
+        key = ""
+    if not key:
+        return None, name, None
+    try:
+        body = json.dumps([{"idType": "ID_CUSIP", "idValue": cusip}]).encode()
+        req = urllib.request.Request("https://api.openfigi.com/v3/mapping", data=body, method="POST",
+                                     headers={"X-OPENFIGI-APIKEY": key, "Content-Type": "application/json", "User-Agent": "JustHodl/13f"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            out = json.loads(r.read().decode())
+        data = (out[0].get("data") or []) if isinstance(out, list) and out and isinstance(out[0], dict) else []
+        us = [d for d in data if str(d.get("exchCode") or "") == "US"] or data
+        if us and us[0].get("ticker"):
+            return str(us[0]["ticker"]).upper(), us[0].get("name") or name, "openfigi"
+    except Exception:
+        pass
+    return None, name, None
+
+
 def cusip_to_ticker_via_fmp(cusip: str, name: str):
     """Optional FMP lookup for individual cusips.
     Used during async resolve, NOT during parse. Returns (ticker, name) or (None, name).
@@ -1301,12 +1349,17 @@ def resolve_missing_tickers(fund_results, budget=600):
                 continue
             fresh += 1
             t2, n2 = cusip_to_ticker_via_fmp(cu, nm)
+            src2 = "fmp"
             _t.sleep(0.15)
+            if not t2:
+                # SEC/FMP first, OpenFIGI second (ops 5579): master then one paced ID_CUSIP mapping
+                t2, n2, src2 = cusip_to_ticker_via_figi(cu, nm)
+                _t.sleep(0.3)
             ok2 = bool(t2) and len(
                 set(_norm_name(n2).split())
                 & set(nn.split())) >= min(2, max(1, len(nn.split())))
             if ok2 and t2.isalpha() and len(t2) <= 5:
-                m[cu] = {"ticker": t2, "name": n2, "src": "fmp",
+                m[cu] = {"ticker": t2, "name": n2, "src": src2 or "fmp",
                          "tried_at": now}
                 pos["ticker"] = t2
             else:
