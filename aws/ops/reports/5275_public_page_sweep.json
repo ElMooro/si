@@ -1,11 +1,42 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-  "observed_at": "2026-09-15T09:46:56.813146+00:00",
-  "ok": true,
+  "observed_at": "2026-09-15T09:57:09.368319+00:00",
+  "ok": false,
   "routes_checked": 519,
-  "verified_routes": 519,
-  "failed_routes": [],
+  "verified_routes": 489,
+  "failed_routes": [
+    "allocator.html",
+    "alpha-council.html",
+    "archive/pro.html",
+    "baggers.html",
+    "boj-detail.html",
+    "boom-radar.html",
+    "brain-compiler.html",
+    "btc-cycle.html",
+    "crypto-confluence.html",
+    "crypto-narratives.html",
+    "data.html",
+    "dividend-growth.html",
+    "eps-velocity.html",
+    "fortress.html",
+    "fusion.html",
+    "glossary.html",
+    "ici-flows.html",
+    "khalid.html",
+    "ma-reversion.html",
+    "master-rank.html",
+    "news-velocity/index.html",
+    "nowcast-desk.html",
+    "options-confluence.html",
+    "pairs-scanner.html",
+    "port-cargo.html",
+    "signal-genealogy.html",
+    "track-record.html",
+    "trading-signals.html",
+    "vix-curve.html",
+    "watchlist.html"
+  ],
   "source_equivalent_builds": {
     "1c5d943370a2d768aa6d294ad9f615dff22354e1": true
   },
@@ -29,7 +60,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 113965,
+      "bytes_read": 113963,
       "product_source_matches_release": true
     },
     {
@@ -56,7 +87,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 27032,
+      "bytes_read": 27046,
       "product_source_matches_release": true
     },
     {
@@ -83,7 +114,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19781,
+      "bytes_read": 19780,
       "product_source_matches_release": true
     },
     {
@@ -101,7 +132,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22767,
+      "bytes_read": 22768,
       "product_source_matches_release": true
     },
     {
@@ -110,7 +141,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 115992,
+      "bytes_read": 115991,
       "product_source_matches_release": true
     },
     {
@@ -119,7 +150,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 29407,
+      "bytes_read": 29406,
       "product_source_matches_release": true
     },
     {
@@ -128,17 +159,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11805,
+      "bytes_read": 11806,
       "product_source_matches_release": true
     },
     {
       "route": "allocator.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 24049,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "alpha-atlas.html",
@@ -146,7 +177,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 10350,
+      "bytes_read": 10351,
       "product_source_matches_release": true
     },
     {
@@ -155,17 +186,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 30087,
+      "bytes_read": 30088,
       "product_source_matches_release": true
     },
     {
       "route": "alpha-council.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 17611,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "alpha-families.html",
@@ -173,7 +204,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20583,
+      "bytes_read": 20584,
       "product_source_matches_release": true
     },
     {
@@ -182,7 +213,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 49056,
+      "bytes_read": 49057,
       "product_source_matches_release": true
     },
     {
@@ -200,7 +231,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 16124,
+      "bytes_read": 16126,
       "product_source_matches_release": true
     },
     {
@@ -218,7 +249,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13537,
+      "bytes_read": 13538,
       "product_source_matches_release": true
     },
     {
@@ -245,7 +276,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19753,
+      "bytes_read": 19752,
       "product_source_matches_release": true
     },
     {
@@ -254,7 +285,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13343,
+      "bytes_read": 13342,
       "product_source_matches_release": true
     },
     {
@@ -295,12 +326,12 @@
     },
     {
       "route": "archive/pro.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 61418,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ark.html",
@@ -317,7 +348,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 10566,
+      "bytes_read": 10565,
       "product_source_matches_release": true
     },
     {
@@ -344,7 +375,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 23012,
+      "bytes_read": 23011,
       "product_source_matches_release": true
     },
     {
@@ -353,7 +384,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 23922,
+      "bytes_read": 23921,
       "product_source_matches_release": true
     },
     {
@@ -371,7 +402,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 102707,
+      "bytes_read": 102708,
       "product_source_matches_release": true
     },
     {
@@ -380,7 +411,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 35141,
+      "bytes_read": 35142,
       "product_source_matches_release": true
     },
     {
@@ -389,7 +420,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12924,
+      "bytes_read": 12923,
       "product_source_matches_release": true
     },
     {
@@ -407,17 +438,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14665,
+      "bytes_read": 14664,
       "product_source_matches_release": true
     },
     {
       "route": "baggers.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 31192,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "beneish.html",
@@ -425,7 +456,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19482,
+      "bytes_read": 19481,
       "product_source_matches_release": true
     },
     {
@@ -461,7 +492,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 9021,
+      "bytes_read": 9020,
       "product_source_matches_release": true
     },
     {
@@ -484,12 +515,12 @@
     },
     {
       "route": "boj-detail.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 17248,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "bond-desk.html",
@@ -497,7 +528,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17636,
+      "bytes_read": 17638,
       "product_source_matches_release": true
     },
     {
@@ -515,7 +546,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 120927,
+      "bytes_read": 120939,
       "product_source_matches_release": true
     },
     {
@@ -529,12 +560,12 @@
     },
     {
       "route": "boom-radar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 11050,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "boom-stage.html",
@@ -560,7 +591,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 74445,
+      "bytes_read": 74446,
       "product_source_matches_release": true
     },
     {
@@ -578,7 +609,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13747,
+      "bytes_read": 13748,
       "product_source_matches_release": true
     },
     {
@@ -587,17 +618,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 61336,
+      "bytes_read": 61337,
       "product_source_matches_release": true
     },
     {
       "route": "brain-compiler.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 9961,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "brain.html",
@@ -628,12 +659,12 @@
     },
     {
       "route": "btc-cycle.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 14107,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "buyback-scanner.html",
@@ -641,7 +672,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22247,
+      "bytes_read": 22246,
       "product_source_matches_release": true
     },
     {
@@ -695,7 +726,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 35697,
+      "bytes_read": 35699,
       "product_source_matches_release": true
     },
     {
@@ -704,7 +735,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20229,
+      "bytes_read": 20242,
       "product_source_matches_release": true
     },
     {
@@ -713,7 +744,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 47556,
+      "bytes_read": 47557,
       "product_source_matches_release": true
     },
     {
@@ -767,7 +798,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 18375,
+      "bytes_read": 18376,
       "product_source_matches_release": true
     },
     {
@@ -776,7 +807,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11725,
+      "bytes_read": 11724,
       "product_source_matches_release": true
     },
     {
@@ -884,7 +915,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 697777,
+      "bytes_read": 697780,
       "product_source_matches_release": true
     },
     {
@@ -902,7 +933,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 38023,
+      "bytes_read": 38022,
       "product_source_matches_release": true
     },
     {
@@ -911,7 +942,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 179695,
+      "bytes_read": 179696,
       "product_source_matches_release": true
     },
     {
@@ -920,7 +951,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20738,
+      "bytes_read": 20739,
       "product_source_matches_release": true
     },
     {
@@ -956,7 +987,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 46583,
+      "bytes_read": 46584,
       "product_source_matches_release": true
     },
     {
@@ -992,7 +1023,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14542,
+      "bytes_read": 14540,
       "product_source_matches_release": true
     },
     {
@@ -1037,7 +1068,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17011,
+      "bytes_read": 17012,
       "product_source_matches_release": true
     },
     {
@@ -1064,7 +1095,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 44374,
+      "bytes_read": 44373,
       "product_source_matches_release": true
     },
     {
@@ -1100,7 +1131,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20895,
+      "bytes_read": 20894,
       "product_source_matches_release": true
     },
     {
@@ -1118,7 +1149,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 76613,
+      "bytes_read": 76625,
       "product_source_matches_release": true
     },
     {
@@ -1136,17 +1167,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 18880,
+      "bytes_read": 18881,
       "product_source_matches_release": true
     },
     {
       "route": "crypto-confluence.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 11914,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "crypto-emergence.html",
@@ -1154,7 +1185,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12394,
+      "bytes_read": 12395,
       "product_source_matches_release": true
     },
     {
@@ -1168,12 +1199,12 @@
     },
     {
       "route": "crypto-narratives.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 12069,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "crypto-opportunities.html",
@@ -1217,7 +1248,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 73690,
+      "bytes_read": 73691,
       "product_source_matches_release": true
     },
     {
@@ -1226,7 +1257,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13574,
+      "bytes_read": 13573,
       "product_source_matches_release": true
     },
     {
@@ -1235,7 +1266,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21320,
+      "bytes_read": 21322,
       "product_source_matches_release": true
     },
     {
@@ -1244,7 +1275,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 7390,
+      "bytes_read": 7391,
       "product_source_matches_release": true
     },
     {
@@ -1253,17 +1284,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 7174,
+      "bytes_read": 7173,
       "product_source_matches_release": true
     },
     {
       "route": "data.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 21338,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "deal-scanner.html",
@@ -1298,7 +1329,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14086,
+      "bytes_read": 14087,
       "product_source_matches_release": true
     },
     {
@@ -1316,7 +1347,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 40640,
+      "bytes_read": 40638,
       "product_source_matches_release": true
     },
     {
@@ -1415,7 +1446,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 18372,
+      "bytes_read": 18371,
       "product_source_matches_release": true
     },
     {
@@ -1438,12 +1469,12 @@
     },
     {
       "route": "dividend-growth.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 15540,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "dix/index.html",
@@ -1460,7 +1491,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 31699,
+      "bytes_read": 31698,
       "product_source_matches_release": true
     },
     {
@@ -1469,7 +1500,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17075,
+      "bytes_read": 17072,
       "product_source_matches_release": true
     },
     {
@@ -1532,7 +1563,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21863,
+      "bytes_read": 21864,
       "product_source_matches_release": true
     },
     {
@@ -1577,7 +1608,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 67764,
+      "bytes_read": 67763,
       "product_source_matches_release": true
     },
     {
@@ -1613,7 +1644,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15239,
+      "bytes_read": 15240,
       "product_source_matches_release": true
     },
     {
@@ -1649,7 +1680,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 841177,
+      "bytes_read": 841308,
       "product_source_matches_release": true
     },
     {
@@ -1658,17 +1689,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12548,
+      "bytes_read": 12549,
       "product_source_matches_release": true
     },
     {
       "route": "eps-velocity.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 21672,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "equity-chokepoint.html",
@@ -1712,7 +1743,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11696,
+      "bytes_read": 11697,
       "product_source_matches_release": true
     },
     {
@@ -1757,7 +1788,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 28947,
+      "bytes_read": 28946,
       "product_source_matches_release": true
     },
     {
@@ -1784,7 +1815,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13448,
+      "bytes_read": 13447,
       "product_source_matches_release": true
     },
     {
@@ -1829,7 +1860,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 27659,
+      "bytes_read": 27660,
       "product_source_matches_release": true
     },
     {
@@ -1838,7 +1869,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17837,
+      "bytes_read": 17838,
       "product_source_matches_release": true
     },
     {
@@ -1847,7 +1878,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20625,
+      "bytes_read": 20627,
       "product_source_matches_release": true
     },
     {
@@ -1901,7 +1932,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 8465,
+      "bytes_read": 8464,
       "product_source_matches_release": true
     },
     {
@@ -1973,7 +2004,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21811,
+      "bytes_read": 21810,
       "product_source_matches_release": true
     },
     {
@@ -1982,17 +2013,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 38341,
+      "bytes_read": 38355,
       "product_source_matches_release": true
     },
     {
       "route": "fortress.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 68818,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "forward-orders.html",
@@ -2036,7 +2067,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 63042,
+      "bytes_read": 63044,
       "product_source_matches_release": true
     },
     {
@@ -2045,7 +2076,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 69190,
+      "bytes_read": 69191,
       "product_source_matches_release": true
     },
     {
@@ -2077,12 +2108,12 @@
     },
     {
       "route": "fusion.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 59896,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "future-intel.html",
@@ -2108,7 +2139,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11932,
+      "bytes_read": 11931,
       "product_source_matches_release": true
     },
     {
@@ -2135,7 +2166,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 52571,
+      "bytes_read": 52573,
       "product_source_matches_release": true
     },
     {
@@ -2153,7 +2184,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14375,
+      "bytes_read": 14374,
       "product_source_matches_release": true
     },
     {
@@ -2162,7 +2193,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11811,
+      "bytes_read": 11810,
       "product_source_matches_release": true
     },
     {
@@ -2171,7 +2202,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 27302,
+      "bytes_read": 27301,
       "product_source_matches_release": true
     },
     {
@@ -2189,7 +2220,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 35757,
+      "bytes_read": 35771,
       "product_source_matches_release": true
     },
     {
@@ -2207,7 +2238,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15050,
+      "bytes_read": 15049,
       "product_source_matches_release": true
     },
     {
@@ -2221,12 +2252,12 @@
     },
     {
       "route": "glossary.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 15716,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "gov-sources.html",
@@ -2243,7 +2274,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 16859,
+      "bytes_read": 16858,
       "product_source_matches_release": true
     },
     {
@@ -2252,7 +2283,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12816,
+      "bytes_read": 12815,
       "product_source_matches_release": true
     },
     {
@@ -2261,7 +2292,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20531,
+      "bytes_read": 20530,
       "product_source_matches_release": true
     },
     {
@@ -2297,7 +2328,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21024,
+      "bytes_read": 21023,
       "product_source_matches_release": true
     },
     {
@@ -2342,7 +2373,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15209,
+      "bytes_read": 15215,
       "product_source_matches_release": true
     },
     {
@@ -2356,12 +2387,12 @@
     },
     {
       "route": "ici-flows.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 10552,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ignition.html",
@@ -2378,7 +2409,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21797,
+      "bytes_read": 21796,
       "product_source_matches_release": true
     },
     {
@@ -2387,7 +2418,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15469,
+      "bytes_read": 15468,
       "product_source_matches_release": true
     },
     {
@@ -2423,7 +2454,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 60390,
+      "bytes_read": 60396,
       "product_source_matches_release": true
     },
     {
@@ -2432,7 +2463,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 62677,
+      "bytes_read": 62676,
       "product_source_matches_release": true
     },
     {
@@ -2441,7 +2472,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19917,
+      "bytes_read": 19918,
       "product_source_matches_release": true
     },
     {
@@ -2459,7 +2490,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 9514,
+      "bytes_read": 9515,
       "product_source_matches_release": true
     },
     {
@@ -2486,7 +2517,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20535,
+      "bytes_read": 20551,
       "product_source_matches_release": true
     },
     {
@@ -2504,7 +2535,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 42951,
+      "bytes_read": 42949,
       "product_source_matches_release": true
     },
     {
@@ -2513,7 +2544,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 21322,
+      "bytes_read": 21320,
       "product_source_matches_release": true
     },
     {
@@ -2567,7 +2598,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13506,
+      "bytes_read": 13505,
       "product_source_matches_release": true
     },
     {
@@ -2612,7 +2643,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 41382,
+      "bytes_read": 41381,
       "product_source_matches_release": true
     },
     {
@@ -2630,17 +2661,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 68368,
+      "bytes_read": 68369,
       "product_source_matches_release": true
     },
     {
       "route": "khalid.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 18960,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "khalid/index.html",
@@ -2675,7 +2706,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 51260,
+      "bytes_read": 51259,
       "product_source_matches_release": true
     },
     {
@@ -2684,7 +2715,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12220,
+      "bytes_read": 12221,
       "product_source_matches_release": true
     },
     {
@@ -2711,7 +2742,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13302,
+      "bytes_read": 13303,
       "product_source_matches_release": true
     },
     {
@@ -2720,7 +2751,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 62930,
+      "bytes_read": 62929,
       "product_source_matches_release": true
     },
     {
@@ -2738,7 +2769,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 24219,
+      "bytes_read": 24218,
       "product_source_matches_release": true
     },
     {
@@ -2747,7 +2778,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 16982,
+      "bytes_read": 16984,
       "product_source_matches_release": true
     },
     {
@@ -2770,12 +2801,12 @@
     },
     {
       "route": "ma-reversion.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 26156,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ma/index.html",
@@ -2828,7 +2859,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 24399,
+      "bytes_read": 24397,
       "product_source_matches_release": true
     },
     {
@@ -2873,7 +2904,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11378,
+      "bytes_read": 11377,
       "product_source_matches_release": true
     },
     {
@@ -2891,7 +2922,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17027,
+      "bytes_read": 17028,
       "product_source_matches_release": true
     },
     {
@@ -2909,17 +2940,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 18642,
+      "bytes_read": 18643,
       "product_source_matches_release": true
     },
     {
       "route": "master-rank.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 42659,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "merger-arb-risk.html",
@@ -2981,7 +3012,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 27726,
+      "bytes_read": 27727,
       "product_source_matches_release": true
     },
     {
@@ -2990,7 +3021,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 24283,
+      "bytes_read": 24285,
       "product_source_matches_release": true
     },
     {
@@ -3013,12 +3044,12 @@
     },
     {
       "route": "news-velocity/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 16889,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "news.html",
@@ -3026,7 +3057,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 26590,
+      "bytes_read": 26587,
       "product_source_matches_release": true
     },
     {
@@ -3035,7 +3066,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 39478,
+      "bytes_read": 39477,
       "product_source_matches_release": true
     },
     {
@@ -3049,12 +3080,12 @@
     },
     {
       "route": "nowcast-desk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 12871,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ny-fed.html",
@@ -3080,7 +3111,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 84550,
+      "bytes_read": 84551,
       "product_source_matches_release": true
     },
     {
@@ -3098,7 +3129,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22492,
+      "bytes_read": 22493,
       "product_source_matches_release": true
     },
     {
@@ -3107,7 +3138,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 58093,
+      "bytes_read": 58095,
       "product_source_matches_release": true
     },
     {
@@ -3121,12 +3152,12 @@
     },
     {
       "route": "options-confluence.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 11138,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "options-flow.html",
@@ -3152,7 +3183,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 44355,
+      "bytes_read": 44356,
       "product_source_matches_release": true
     },
     {
@@ -3166,12 +3197,12 @@
     },
     {
       "route": "pairs-scanner.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 3380,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "pairs.html",
@@ -3179,7 +3210,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 23739,
+      "bytes_read": 23738,
       "product_source_matches_release": true
     },
     {
@@ -3188,7 +3219,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 24269,
+      "bytes_read": 24267,
       "product_source_matches_release": true
     },
     {
@@ -3224,7 +3255,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19343,
+      "bytes_read": 19344,
       "product_source_matches_release": true
     },
     {
@@ -3242,7 +3273,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12707,
+      "bytes_read": 12706,
       "product_source_matches_release": true
     },
     {
@@ -3260,7 +3291,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22856,
+      "bytes_read": 22858,
       "product_source_matches_release": true
     },
     {
@@ -3296,7 +3327,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22328,
+      "bytes_read": 22329,
       "product_source_matches_release": true
     },
     {
@@ -3310,12 +3341,12 @@
     },
     {
       "route": "port-cargo.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 10453,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "portfolio-manager.html",
@@ -3332,7 +3363,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 39031,
+      "bytes_read": 39030,
       "product_source_matches_release": true
     },
     {
@@ -3386,7 +3417,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13200,
+      "bytes_read": 13199,
       "product_source_matches_release": true
     },
     {
@@ -3395,7 +3426,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 230641,
+      "bytes_read": 230640,
       "product_source_matches_release": true
     },
     {
@@ -3404,7 +3435,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 23139,
+      "bytes_read": 23140,
       "product_source_matches_release": true
     },
     {
@@ -3422,7 +3453,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 28583,
+      "bytes_read": 28584,
       "product_source_matches_release": true
     },
     {
@@ -3440,7 +3471,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17817,
+      "bytes_read": 17820,
       "product_source_matches_release": true
     },
     {
@@ -3458,7 +3489,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 17062,
+      "bytes_read": 17060,
       "product_source_matches_release": true
     },
     {
@@ -3476,7 +3507,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 28920,
+      "bytes_read": 28921,
       "product_source_matches_release": true
     },
     {
@@ -3485,7 +3516,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 48534,
+      "bytes_read": 48533,
       "product_source_matches_release": true
     },
     {
@@ -3521,7 +3552,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 16951,
+      "bytes_read": 16950,
       "product_source_matches_release": true
     },
     {
@@ -3530,7 +3561,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 32903,
+      "bytes_read": 32904,
       "product_source_matches_release": true
     },
     {
@@ -3557,7 +3588,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 27491,
+      "bytes_read": 27494,
       "product_source_matches_release": true
     },
     {
@@ -3566,7 +3597,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 66676,
+      "bytes_read": 66691,
       "product_source_matches_release": true
     },
     {
@@ -3620,7 +3651,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 69542,
+      "bytes_read": 69540,
       "product_source_matches_release": true
     },
     {
@@ -3656,7 +3687,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14097,
+      "bytes_read": 14098,
       "product_source_matches_release": true
     },
     {
@@ -3674,7 +3705,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22259,
+      "bytes_read": 22258,
       "product_source_matches_release": true
     },
     {
@@ -3728,7 +3759,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 9512,
+      "bytes_read": 9513,
       "product_source_matches_release": true
     },
     {
@@ -3737,7 +3768,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 74598,
+      "bytes_read": 74611,
       "product_source_matches_release": true
     },
     {
@@ -3746,7 +3777,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20691,
+      "bytes_read": 20690,
       "product_source_matches_release": true
     },
     {
@@ -3782,7 +3813,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19933,
+      "bytes_read": 19934,
       "product_source_matches_release": true
     },
     {
@@ -3791,7 +3822,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 9919,
+      "bytes_read": 9918,
       "product_source_matches_release": true
     },
     {
@@ -3818,17 +3849,17 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 47463,
+      "bytes_read": 47465,
       "product_source_matches_release": true
     },
     {
       "route": "signal-genealogy.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 16776,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "signal-halflife.html",
@@ -3836,7 +3867,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15661,
+      "bytes_read": 15660,
       "product_source_matches_release": true
     },
     {
@@ -3845,7 +3876,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 10925,
+      "bytes_read": 10927,
       "product_source_matches_release": true
     },
     {
@@ -3863,7 +3894,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 22204,
+      "bytes_read": 22203,
       "product_source_matches_release": true
     },
     {
@@ -3890,7 +3921,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 14288,
+      "bytes_read": 14287,
       "product_source_matches_release": true
     },
     {
@@ -3962,7 +3993,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 50258,
+      "bytes_read": 50257,
       "product_source_matches_release": true
     },
     {
@@ -4034,7 +4065,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 19517,
+      "bytes_read": 19518,
       "product_source_matches_release": true
     },
     {
@@ -4088,7 +4119,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13806,
+      "bytes_read": 13805,
       "product_source_matches_release": true
     },
     {
@@ -4214,7 +4245,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 10071,
+      "bytes_read": 10069,
       "product_source_matches_release": true
     },
     {
@@ -4250,7 +4281,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11524,
+      "bytes_read": 11523,
       "product_source_matches_release": true
     },
     {
@@ -4259,7 +4290,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 31554,
+      "bytes_read": 31552,
       "product_source_matches_release": true
     },
     {
@@ -4268,7 +4299,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 34135,
+      "bytes_read": 34130,
       "product_source_matches_release": true
     },
     {
@@ -4286,7 +4317,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13729,
+      "bytes_read": 13730,
       "product_source_matches_release": true
     },
     {
@@ -4300,12 +4331,12 @@
     },
     {
       "route": "track-record.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 27668,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "trade-journal.html",
@@ -4327,12 +4358,12 @@
     },
     {
       "route": "trading-signals.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 16228,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "tradingview.html",
@@ -4340,7 +4371,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 20860,
+      "bytes_read": 20875,
       "product_source_matches_release": true
     },
     {
@@ -4349,7 +4380,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 93340,
+      "bytes_read": 93341,
       "product_source_matches_release": true
     },
     {
@@ -4367,7 +4398,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13392,
+      "bytes_read": 13391,
       "product_source_matches_release": true
     },
     {
@@ -4412,7 +4443,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 15208,
+      "bytes_read": 15207,
       "product_source_matches_release": true
     },
     {
@@ -4439,7 +4470,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 40347,
+      "bytes_read": 40346,
       "product_source_matches_release": true
     },
     {
@@ -4457,7 +4488,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 12233,
+      "bytes_read": 12234,
       "product_source_matches_release": true
     },
     {
@@ -4466,7 +4497,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 16990,
+      "bytes_read": 16989,
       "product_source_matches_release": true
     },
     {
@@ -4484,7 +4515,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 36334,
+      "bytes_read": 36348,
       "product_source_matches_release": true
     },
     {
@@ -4498,12 +4529,12 @@
     },
     {
       "route": "vix-curve.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 15667,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "vix/index.html",
@@ -4547,7 +4578,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 31395,
+      "bytes_read": 31394,
       "product_source_matches_release": true
     },
     {
@@ -4570,12 +4601,12 @@
     },
     {
       "route": "watchlist.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
-      "inspector_present": true,
-      "bytes_read": 22003,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "watchlists.html",
@@ -4583,7 +4614,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 11768,
+      "bytes_read": 11769,
       "product_source_matches_release": true
     },
     {
@@ -4628,7 +4659,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 13247,
+      "bytes_read": 13248,
       "product_source_matches_release": true
     },
     {
@@ -4637,7 +4668,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 40199,
+      "bytes_read": 40198,
       "product_source_matches_release": true
     },
     {
@@ -4646,7 +4677,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 18022,
+      "bytes_read": 18023,
       "product_source_matches_release": true
     },
     {
@@ -4655,7 +4686,7 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 446765,
+      "bytes_read": 446768,
       "product_source_matches_release": true
     },
     {
@@ -4682,12 +4713,12 @@
       "http_status": 200,
       "build_sha": "1c5d943370a2d768aa6d294ad9f615dff22354e1",
       "inspector_present": true,
-      "bytes_read": 38986,
+      "bytes_read": 38988,
       "product_source_matches_release": true
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 34954085143,
+  "deployment_run_id": 34954994596,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-15T09:46:56.815301+00:00"
+  "check_finished_at": "2026-09-15T09:57:09.369764+00:00"
 }
