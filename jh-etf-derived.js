@@ -18,9 +18,9 @@
     ".jh-der .kpi .s{font-size:11px;color:#7c8aa0;margin-top:2px}",
     ".jh-der .up{color:#16c784}.jh-der .dn{color:#ea3943}.jh-der .flat{color:#f0a020}",
     ".jh-der .tag{display:inline-block;font:10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em;padding:3px 7px;border-radius:4px;border:1px solid #1e2836}",
-    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.RISK_ON_SOFT,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION,.jh-der .tag.GREED,.jh-der .tag.CASHING_IN,.jh-der .tag.SPEC_GREED,.jh-der .tag.BULL_LEVERED_BID,.jh-der .tag.SIZE_ON,.jh-der .tag.STOCKS_OVER_BONDS,.jh-der .tag.CREDIT_OVER_DURATION{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
+    ".jh-der .tag.ROTATION,.jh-der .tag.RISK_ON,.jh-der .tag.RISK_ON_SOFT,.jh-der .tag.WRAPPER_BID,.jh-der .tag.CONFIRMED_BID,.jh-der .tag.ABSORPTION,.jh-der .tag.GREED,.jh-der .tag.NEUTRAL_GREED,.jh-der .tag.CASHING_IN,.jh-der .tag.SPEC_GREED,.jh-der .tag.BULL_LEVERED_BID,.jh-der .tag.SIZE_ON,.jh-der .tag.STOCKS_OVER_BONDS,.jh-der .tag.CREDIT_OVER_DURATION{color:#16c784;border-color:rgba(22,199,132,.35);background:rgba(22,199,132,.08)}",
     ".jh-der .tag.BETA,.jh-der .tag.MIXED,.jh-der .tag.QUIET,.jh-der .tag.NEUTRAL,.jh-der .tag.BALANCED,.jh-der .tag.NO_CLEAN_ROTATION{color:#7c8aa0}",
-    ".jh-der .tag.RISK_OFF,.jh-der .tag.RISK_OFF_SOFT,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS,.jh-der .tag.FEAR,.jh-der .tag.CASHING_OUT,.jh-der .tag.SPEC_FEAR,.jh-der .tag.BEAR_LEVERED_BID,.jh-der .tag.FLIGHT_TO_MEGA,.jh-der .tag.CREDIT_STRESS,.jh-der .tag.BONDS_OVER_STOCKS,.jh-der .tag.DURATION_OVER_CREDIT,.jh-der .tag.SIZE_OFF{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
+    ".jh-der .tag.RISK_OFF,.jh-der .tag.RISK_OFF_SOFT,.jh-der .tag.WRAPPER_OFFER,.jh-der .tag.CONFIRMED_OFFER,.jh-der .tag.DISTRIBUTION,.jh-der .tag.EM_STRESS,.jh-der .tag.FEAR,.jh-der .tag.NEUTRAL_FEAR,.jh-der .tag.CASHING_OUT,.jh-der .tag.SPEC_FEAR,.jh-der .tag.BEAR_LEVERED_BID,.jh-der .tag.FLIGHT_TO_MEGA,.jh-der .tag.CREDIT_STRESS,.jh-der .tag.BONDS_OVER_STOCKS,.jh-der .tag.DURATION_OVER_CREDIT,.jh-der .tag.SIZE_OFF{color:#ea3943;border-color:rgba(234,57,67,.35);background:rgba(234,57,67,.08)}",
     ".jh-der .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}",
     ".jh-der .card{background:#111722;border:1px solid #1e2836;border-radius:8px;padding:11px 12px}",
     ".jh-der .card h3{margin:0 0 8px;font:11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:#a8b3c7}",
@@ -116,13 +116,21 @@
     var v = d.verdicts || {};
     function sl(s) { return s || {}; }
     var why = (x.reasons || []).join(" · ");
-    return '<h2>Risk on / off <b>' + tag(v.risk || x.verdict) + "</b> " + tag(v.fear_greed || x.fear_greed) + " " + tag(v.rotation || x.rotation) + "</h2>" +
-      '<p class="note">' + esc(x.note || "") + (why ? " · " + esc(why) : "") + "</p>" +
+    var spx = x.spx_family || {};
+    var plumbing = spx.plumbing
+      ? '<p class="note">' + esc(spx.note || "") + " Gross in " + usd(spx.gross_in) + " / out " + usd(spx.gross_out) + " · net " + usd(spx.net) + ".</p>"
+      : "";
+    return '<h2>Risk on / off <b>' + tag(v.risk || x.verdict) + "</b> " + tag(v.fear_greed || x.fear_greed) + " " + tag(v.rotation || x.rotation) + " " + tag(v.size || x.size) + "</h2>" +
+      '<p class="note">' + esc(x.note || "") + (why ? " · " + esc(why) : "") + "</p>" + plumbing +
       '<div class="kpis">' +
-        kpi("Mega 5D", money(sl(x.mega).flow_5d), "SPY VOO IVV QQQ") +
-        kpi("Large 5D", money(sl(x.large).flow_5d), "VTI DIA RSP") +
-        kpi("Small 5D", money(sl(x.small).flow_5d), "IWM · " + esc(x.size || "")) +
-        kpi("Treasuries 5D", money(sl(x.ust).flow_5d), "TLT IEF SHY GOVT") +
+        kpi("Stocks 5D", money(x.equity_5d), "mega + large + small") +
+        kpi("Gov 5D", money(x.gov_5d), "Treasuries + T-bills") +
+        kpi("Credit 5D", money(x.credit_5d), "IG + junk + fallen") +
+        kpi("Mega 5D", money(sl(x.mega).flow_5d), "1D " + usd(sl(x.mega).flow_1d) + " · SPY VOO IVV QQQ") +
+        kpi("Large 5D", money(sl(x.large).flow_5d), "1D " + usd(sl(x.large).flow_1d) + " · DIA RSP (not VTI)") +
+        kpi("Small 5D", money(sl(x.small).flow_5d), "1D " + usd(sl(x.small).flow_1d) + " · IWM") +
+        kpi("Duration 5D", money(sl(x.duration).flow_5d), "TLT IEF GOVT") +
+        kpi("T-bills 5D", money(sl(x.t_bills).flow_5d), "BIL SGOV SHY") +
         kpi("Junk 5D", money(sl(x.hy).flow_5d), "HYG JNK USHY") +
         kpi("Fallen 5D", money(sl(x.fallen).flow_5d), "FALN") +
       "</div>" +

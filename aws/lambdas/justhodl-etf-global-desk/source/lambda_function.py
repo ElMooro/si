@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -458,6 +458,42 @@ def _sleeve_sum(desk, tickers):
     }
 
 
+def _family_gross(desk, tickers, window="flow_5d"):
+    """Net vs gross on substitute wrappers (SPY/VOO/IVV). Gross >> net = AP plumbing."""
+    gin = gout = 0.0
+    signed = []
+    n_in = n_out = 0
+    for t in tickers:
+        r = desk.get(t) or {}
+        f = r.get(window)
+        if f is None:
+            continue
+        signed.append({"t": t, "flow": f})
+        if f > 0:
+            gin += f
+            n_in += 1
+        elif f < 0:
+            gout += abs(f)
+            n_out += 1
+    net = gin - gout
+    gross = gin + gout
+    plumbing = n_in >= 1 and n_out >= 1 and gross >= 5e9 and abs(net) < 0.45 * gross
+    return {
+        "tickers": [x["t"] for x in signed],
+        "members": signed,
+        "gross_in": round(gin, 2),
+        "gross_out": round(gout, 2),
+        "net": round(net, 2),
+        "plumbing": plumbing,
+        "window": window,
+        "note": (
+            "S&P 500 share-class rotation (SPY/VOO/IVV swapping). Net is the risk signal; gross is AP plumbing."
+            if plumbing else
+            "SPY/VOO/IVV net is the S&P 500 wrapper print."
+        ),
+    }
+
+
 def _compact_name(r):
     if not r:
         return None
@@ -513,12 +549,14 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "em_sov": ["EMB"],
     }
     size_map = {
-        "mega": ["SPY", "VOO", "IVV", "QQQ"],
-        "large": ["VTI", "DIA", "RSP"],
+        "mega": ["SPY", "VOO", "IVV", "QQQ"],          # cap-weight mega-heavy
+        "large": ["DIA", "RSP"],                       # Dow + equal-weight S&P (not VTI)
         "small": ["IWM"],
     }
     bond_q_map = {
         "ust": ["TLT", "IEF", "SHY", "GOVT", "BIL", "SGOV", "TIP"],
+        "duration": ["TLT", "IEF", "GOVT"],
+        "t_bills": ["BIL", "SGOV", "SHY"],
         "ig": ["LQD", "VCIT"],
         "hy": ["HYG", "JNK", "USHY"],
         "fallen": ["FALN"],
@@ -737,19 +775,28 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     large = sleeves["size"]["large"]
     small = sleeves["size"]["small"]
     ust = sleeves["bond_quality"]["ust"]
+    duration = sleeves["bond_quality"]["duration"]
+    t_bills = sleeves["bond_quality"]["t_bills"]
     bq_hy = sleeves["bond_quality"]["hy"]
     bq_ig = sleeves["bond_quality"]["ig"]
     bq_fal = sleeves["bond_quality"]["fallen"]
+    spx_family = _family_gross(desk, ["SPY", "VOO", "IVV"], "flow_5d")
+    spx_family_1d = _family_gross(desk, ["SPY", "VOO", "IVV"], "flow_1d")
     mega5 = mega.get("flow_5d") or 0
     large5 = large.get("flow_5d") or 0
     small5 = small.get("flow_5d") or 0
     ust5 = ust.get("flow_5d") or 0
+    dur5 = duration.get("flow_5d") or 0
+    bills5 = t_bills.get("flow_5d") or 0
     eq5 = mega5 + large5 + small5
+    credit5 = (bq_hy.get("flow_5d") or 0) + (bq_ig.get("flow_5d") or 0) + (bq_fal.get("flow_5d") or 0)
     mega_pct = mega.get("pct_aum_5d")
     small_pct = small.get("pct_aum_5d")
 
     score = 0
     reasons = []
+    if spx_family.get("plumbing"):
+        reasons.append("S&P 500 share-class rotation (SPY/VOO/IVV swapping) — net counts, gross is plumbing")
     if eq5 > 2e8:
         score += 1
         reasons.append("equity wrappers net in")
@@ -779,12 +826,15 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     if fal5 < -2e7:
         score -= 1
         reasons.append("fallen angels redeeming")
-    if ust5 < -1e8:
+    if dur5 < -1e8:
         score += 1
-        reasons.append("Treasuries sold")
-    elif ust5 > 1e8:
+        reasons.append("duration sold")
+    elif dur5 > 1e8:
         score -= 1
-        reasons.append("Treasuries bid")
+        reasons.append("duration bid (TLT/IEF)")
+    if bills5 > 1.5e8 and eq5 < 0:
+        score -= 1
+        reasons.append("T-bills bid while stocks redeem — cash parking")
     if lev_verdict in ("SPEC_GREED", "BULL_LEVERED_BID"):
         score += 1
         reasons.append("bull leverage")
@@ -815,12 +865,12 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
     elif eq5 < -2e8 and ust5 > 1e8:
         rotation = "BONDS_OVER_STOCKS"
         rot_note = "Treasuries creating while equity wrappers redeem — duration over stocks."
-    elif hy5 > 1e8 and ust5 < -5e7:
+    elif hy5 > 1e8 and dur5 < -5e7:
         rotation = "CREDIT_OVER_DURATION"
-        rot_note = "Junk bid, Treasuries sold — credit over duration."
-    elif hy5 < -1e8 and ust5 > 5e7:
+        rot_note = "Junk bid, duration sold — credit over Treasuries."
+    elif hy5 < -1e8 and dur5 > 5e7:
         rotation = "DURATION_OVER_CREDIT"
-        rot_note = "Junk offered, Treasuries bid — quality-up / duration over credit."
+        rot_note = "Junk offered, duration bid — quality-up / Treasuries over credit."
     else:
         rotation = "NO_CLEAN_ROTATION"
         rot_note = "Stocks vs Treasuries vs junk are not printing a one-way book."
@@ -834,10 +884,15 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
         "rotation_note": rot_note,
         "size": size_verdict,
         "equity_5d": round(eq5, 2),
+        "gov_5d": round(ust5, 2),
+        "credit_5d": round(credit5, 2),
         "mega": mega, "large": large, "small": small,
-        "ust": ust, "ig": bq_ig, "hy": bq_hy, "fallen": bq_fal,
+        "ust": ust, "duration": duration, "t_bills": t_bills,
+        "ig": bq_ig, "hy": bq_hy, "fallen": bq_fal,
         "em": sleeves["bond_quality"]["em"],
-        "note": "Unlevered wrapper dollars only. Score is mechanical (equity, size, junk, Treasuries, leverage, wrapper intensity). Not a fear/greed index from prices.",
+        "spx_family": spx_family,
+        "spx_family_1d": spx_family_1d,
+        "note": "Unlevered wrapper dollars only. Score is mechanical (equity, size, junk, duration, T-bills, leverage, wrapper intensity). Not a fear/greed index from prices. SPY/VOO/IVV gross vs net is AP plumbing when they swap.",
         "evidence_tier": "measured_fact",
     }
 
@@ -1062,7 +1117,7 @@ def _build_derived(desk, complete_hold, generated, lookthrough=None):
             "leverage": "profile leverage_style / levered_amount — do not treat as 1:1",
             "crypto": "IBIT/FBTC/ETHA wrapper bid, not exchange volume",
             "bonds": "same look-through on HYG/LQD/EMB/TLT holdings",
-            "cross_asset": "unlevered wrapper $ across mega/large/small equity vs Treasuries vs IG vs HY vs fallen angels",
+            "cross_asset": "unlevered wrapper $ across mega/large/small equity vs duration vs T-bills vs IG vs HY vs fallen angels. SPY/VOO/IVV gross vs net flags share-class plumbing.",
             "wrapper": "gross creations vs redemptions on unlevered desk funds — cashing in/out of the ETF complex",
             "levered": "2x/3x/inverse creations as speculative positioning, never added into beta or duration",
         },

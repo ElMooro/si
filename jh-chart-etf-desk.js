@@ -55,7 +55,9 @@
       var der = pack.derived || {};
       var risk = pack.risk || {};
       if (risk.risk) html += "<span class='pill " + (String(risk.risk).indexOf("ON") >= 0 ? "in" : String(risk.risk).indexOf("OFF") >= 0 ? "out" : "") + "'>" + esc(risk.risk.replace(/_/g, " ")) + "</span>";
+      if (risk.fear_greed) html += "<span class='pill " + (/GREED/.test(risk.fear_greed) ? "in" : /FEAR/.test(risk.fear_greed) ? "out" : "") + "'>" + esc(risk.fear_greed.replace(/_/g, " ")) + "</span>";
       if (risk.wrapper) html += "<span class='pill " + (risk.wrapper === "CASHING_IN" ? "in" : risk.wrapper === "CASHING_OUT" ? "out" : "") + "'>" + esc(String(risk.wrapper).replace(/_/g, " ")) + "</span>";
+      if (risk.levered && risk.levered !== "QUIET") html += "<span class='pill " + (/GREED|BULL/.test(risk.levered) ? "in" : /FEAR|BEAR/.test(risk.levered) ? "out" : "") + "'>" + esc(String(risk.levered).replace(/_/g, " ")) + "</span>";
       if (der.hhi != null) html += "<span>HHI <b>" + Number(der.hhi).toFixed(0) + "</b></span>";
       if (der.levered) html += "<span class='pill out'>LEV " + esc(der.leverage_style || (der.levered_amount != null ? ("×" + der.levered_amount) : "2x+")) + "</span>";
       if (der.px_flow) html += "<span class='pill " + (der.px_flow.indexOf("BID") >= 0 || der.px_flow === "ABSORPTION" ? "in" : der.px_flow.indexOf("OFFER") >= 0 || der.px_flow === "DISTRIBUTION" ? "out" : "") + "'>" + esc(der.px_flow.replace(/_/g, " ")) + "</span>";
