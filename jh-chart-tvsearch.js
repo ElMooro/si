@@ -372,13 +372,9 @@
   }
 
   function renderFinFmp(f) {
-<<<<<<< Updated upstream
-    var rows = (f.row.financials || []).slice(0, 10);
-=======
     var rows = (f.row.financials || []).slice().sort(function (a, b) {
       return Number(b.year) - Number(a.year);
     }).slice(0, 10);
->>>>>>> Stashed changes
     var hdr = "<tr><th>Year</th><th>Revenue</th><th>Net income</th><th>EPS</th><th>GM %</th><th>OM %</th><th>NM %</th><th>FCF</th><th>FCF %</th></tr>";
     var body = rows.map(function (y) {
       return "<tr><td>" + esc(y.year) + "</td><td>" + fmtBig(num(y.revenue)) + "</td><td>" + fmtBig(num(y.netIncome)) + "</td><td>" + fmt(num(y.eps)) +
