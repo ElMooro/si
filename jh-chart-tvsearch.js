@@ -97,6 +97,15 @@
     if (!a || !b || !b.close) return null;
     return (a.close / b.close - 1) * 100;
   }
+  function retCal(bars, days) {
+    if (!bars || bars.length < 2 || !days) return null;
+    var last = bars[bars.length - 1];
+    if (!last || !last.close) return null;
+    var t0 = last.time - days * 86400, b = null, i;
+    for (i = 0; i < bars.length; i++) if (bars[i].time >= t0) { b = bars[i]; break; }
+    if (!b || !b.close) return null;
+    return (last.close / b.close - 1) * 100;
+  }
   function ytd(bars) {
     if (!bars || !bars.length) return null;
     var last = bars[bars.length - 1];
@@ -153,10 +162,11 @@
     var last = bars && bars.length ? bars[bars.length - 1] : null;
     var px = last ? last.close : num(q && q.last) || num(x.p.regularMarketPrice);
     var r = range52(bars);
+    var fmp = d && d.fmp && d.fmp.row;
     var kpis = [
       kpi("Last", px != null ? fmt(px, 2) : "—"),
-      kpi("Mkt cap", fmtBig(num(x.p.marketCap) || num(x.sd.marketCap))),
-      kpi("P/E", fmt(num(x.sd.trailingPE) || num(x.ks.trailingPE))),
+      kpi("Mkt cap", fmtBig(num(x.p.marketCap) || num(x.sd.marketCap) || (fmp && fmp.mkt_cap))),
+      kpi("P/E", fmt(num(x.sd.trailingPE) || num(x.ks.trailingPE) || (fmp && fmp.pe))),
       kpi("Fwd P/E", fmt(num(x.sd.forwardPE) || num(x.ks.forwardPE))),
       kpi("EPS", fmt(num(x.ks.trailingEps) || num(x.fd.trailingEps))),
       kpi("Div yld", num(x.sd.dividendYield) != null ? (num(x.sd.dividendYield) * 100).toFixed(2) + "%" : "—")
@@ -164,10 +174,10 @@
     var rets = [
       ["1D", retN(bars, 1)],
       ["1W", retN(bars, 5)],
-      ["1M", retN(bars, 21)],
-      ["3M", retN(bars, 63)],
+      ["1M", retCal(bars, 30)],
+      ["3M", retCal(bars, 91)],
       ["YTD", ytd(bars)],
-      ["1Y", retN(bars, 252)]
+      ["1Y", retCal(bars, 365)]
     ];
     var retHtml = "<table><thead><tr>" + rets.map(function (r) { return "<th>" + r[0] + "</th>"; }).join("") + "</tr></thead><tbody><tr>" +
       rets.map(function (r) {
@@ -209,6 +219,7 @@
     var x = pick(d);
     var last = bars && bars.length ? bars[bars.length - 1] : null;
     var r = range52(bars);
+    var fmp = d && d.fmp && d.fmp.row;
     return blk("Price & volume", table([
       ["Last", last ? fmt(last.close) : "—"],
       ["Open", last ? fmt(last.open) : "—"],
@@ -221,7 +232,8 @@
       ["50d MA", fmt(num(x.sd.fiftyDayAverage))],
       ["200d MA", fmt(num(x.sd.twoHundredDayAverage))]
     ])) + blk("Share statistics", table([
-      ["Market cap", fmtBig(num(x.p.marketCap) || num(x.sd.marketCap))],
+      ["Market cap", fmtBig(num(x.p.marketCap) || num(x.sd.marketCap) || (fmp && fmp.mkt_cap))],
+      ["P/E (TTM)", fmt(num(x.sd.trailingPE) || num(x.ks.trailingPE) || (fmp && fmp.pe))],
       ["Enterprise value", fmtBig(num(x.ks.enterpriseValue))],
       ["Shares outstanding", fmtBig(num(x.ks.sharesOutstanding))],
       ["Float", fmtBig(num(x.ks.floatShares))],

@@ -188,12 +188,8 @@
     return bars.map(function (b) {
       var dt = new Date((b.time || 0) * 1000).toISOString().slice(0, 10);
       var v = map[dt];
-      return { time: b.time, value: v == null ? 0 : v / 1e9, raw: v };
-    }).filter(function (p, i, a) {
-      if (p.raw != null) return true;
-      for (var j = 0; j < a.length; j++) if (a[j].raw != null) return true;
-      return false;
-    });
+      return { time: b.time, value: v == null ? null : v / 1e9, raw: v };
+    }).filter(function (p) { return p.raw != null; });
   }
   function markers(hist, bars) {
     var pts = alignHist(hist, bars);

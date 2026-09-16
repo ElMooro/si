@@ -17,21 +17,21 @@ function loadQx() {
   vm.createContext(ctx);
   vm.runInContext(
     'var UP="#089981", DN="#f23645";\n' + slice +
-    "; this.jhQx={tickSize:tickSize,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,tickPrec:tickPrec,tickFromBars:tickFromBars,fmt:fmt};",
+    "; this.jhQx={tickSize:tickSize,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,tickPrec:tickPrec,tickFromBars:tickFromBars,fmt:fmt,crossedAlert:crossedAlert,retCal:retCal,escHtml:escHtml,safeHref:safeHref};",
     ctx
   );
   return ctx.jhQx;
 }
 
 test("chart.html cache-busts the quality engine", () => {
-  assert.match(html, /jh-chart-engine\.js\?v=20260915af-spx/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260916aa-fix/);
   assert.match(html, /jh-chart-quality\.js\?v=20260915ae-qx/);
   assert.match(html, /font-variant-numeric:tabular-nums/);
   assert.doesNotMatch(html, /\[object Object\]/);
 });
 
 test("engine ships Bloomberg-grade candle, scale, and magnet defaults", () => {
-  assert.match(engine, /__jhChartEngineV1238/);
+  assert.match(engine, /__jhChartEngineV1239/);
   assert.match(engine, /v12\.34/);
   assert.match(engine, /crossMode=1/);
   assert.match(engine, /thinBars:true/);
@@ -53,7 +53,11 @@ test("tick-round kills LW float junk at equity cents", () => {
   assert.equal(qx.roundTick(333.0799865722656), 333.08);
   assert.equal(qx.fmt(333.0799865722656), "333.08");
   assert.equal(qx.roundTick(0.452345), 0.4523);
-  assert.equal(qx.roundTick(0.00000342), 0.000003);
+  const pepe = qx.roundBar({ time: 1, open: 0.00000342, high: 0.00000351, low: 0.00000330, close: 0.00000348, volume: 1 });
+  assert.ok(pepe.open !== pepe.high && pepe.open !== pepe.close && pepe.low !== pepe.close);
+  assert.ok(pepe.high > pepe.close && pepe.low < pepe.open);
+  assert.ok(qx.roundTick(5e-10) > 0);
+  assert.ok(qx.roundTick(0.00000342) > 0.000003);
   const pf = qx.pxFormat([{ close: 210.96 }]);
   assert.equal(pf.type, "price");
   assert.equal(pf.precision, 2);

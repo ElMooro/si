@@ -20,7 +20,8 @@
   }
   function isIntra(d) {
     if (!d || d.length < 2) return false;
-    return d[d.length - 1].time - d[d.length - 2].time < 2 * 3600;
+    var g = d[d.length - 1].time - d[d.length - 2].time;
+    return g > 0 && g < 18 * 3600;
   }
   function nyClock(ts) {
     var s = new Date(ts * 1000).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
@@ -332,7 +333,7 @@
       return o;
     }
     var byT = {}, byDay = {};
-    var gap = Math.max(30, Math.min(barGap(d), barGap(bench)) / 2);
+    var gap = Math.max(30, Math.min(barGap(d), barGap(bench)));
     for (i = 0; i < bench.length; i++) {
       if (!bench[i].close) continue;
       byT[bench[i].time] = { s: bench[i].close, si: i, t: bench[i].time };

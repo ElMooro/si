@@ -24,8 +24,8 @@ function bar(t, o, h, l, c, v) {
 }
 
 test("chart.html loads inst studies and a visible go-to-date", () => {
-  assert.match(html, /jh-chart-inst\.js\?v=20260915af-spx/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260915af-spx/);
+  assert.match(html, /jh-chart-inst\.js\?v=20260916aa-fix/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260916aa-fix/);
   assert.match(html, /jh-chart-bbgo\.js\?v=20260915af-spx/);
   assert.match(html, /#tfbar #goto/);
   assert.doesNotMatch(html, /\[object Object\]/);
@@ -328,4 +328,26 @@ test("full-history join keeps pre-1993 overlap (cash SPX, not SPY)", () => {
   assert.equal(inst.nyClock(pack.from).y, 1980);
   assert.ok(pack.n > 2000, "must keep the 1980–1993 overlap, not SPY-era only");
   assert.ok(pack.last.rs > 0);
+});
+
+test("2h bars count as intra and a 1h offset still joins on the same NY day", () => {
+  const inst = loadInst();
+  const t0 = Date.parse("2026-01-05T14:30:00.000Z") / 1000;
+  const d = [
+    bar(t0, 100, 100, 100, 100),
+    bar(t0 + 7200, 101, 101, 101, 101),
+    bar(t0 + 14400, 102, 102, 102, 102)
+  ];
+  const b = [
+    bar(t0 + 3600, 1000, 1000, 1000, 1000),
+    bar(t0 + 10800, 1010, 1010, 1010, 1010),
+    bar(t0 + 18000, 1020, 1020, 1020, 1020)
+  ];
+  assert.equal(inst.isIntra(d), true);
+  assert.equal(inst.isIntra([bar(t0, 1, 1, 1, 1), bar(t0 + 86400, 1, 1, 1, 1)]), false);
+  const j = inst.alignExact(d, b);
+  assert.ok(j.length >= 2, "n=" + j.length);
+  j.forEach((row) => {
+    assert.equal(inst.nyClock(row.time).key, inst.nyClock(t0).key);
+  });
 });

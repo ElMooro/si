@@ -101,7 +101,7 @@
     ".w-split{position:absolute;left:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:12}",
     ".w-split:hover,.w-split.drag{background:rgba(41,98,255,.18)}",
     ".watch,#watch{max-width:none}",
-    "#quote .sell,#quote .buy,#quote,#desk-intel,#intel{display:none!important}",
+    "#quote .sell,#quote .buy,#desk-intel,#intel{display:none!important}",
   ].join("");
   document.documentElement.appendChild(css);
 
