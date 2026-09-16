@@ -24,9 +24,9 @@ function bar(t, o, h, l, c, v) {
 }
 
 test("chart.html loads inst studies and a visible go-to-date", () => {
-  assert.match(html, /jh-chart-inst\.js\?v=20260915ac-inst/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260915ac-inst/);
-  assert.match(html, /jh-chart-bbgo\.js\?v=20260915ac-inst/);
+  assert.match(html, /jh-chart-inst\.js\?v=20260915ad-desk/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260915ad-desk/);
+  assert.match(html, /jh-chart-bbgo\.js\?v=20260915ad-desk/);
   assert.match(html, /#tfbar #goto/);
   assert.doesNotMatch(html, /\[object Object\]/);
   assert.doesNotMatch(html, /undefined%/);
@@ -183,6 +183,8 @@ test("GO catalog maps FVG OR ADR EAVWAP GPDESK without stealing INS page", () =>
 });
 
 test("indux documents the new studies honestly", () => {
+  assert.match(instSrc, /n - \(opt\.lookback \|\| 280\)/);
+  assert.match(instSrc, /d\.length > 260\) d = d\.slice\(-260\)/);
   assert.match(indux, /Fair Value Gaps/);
   assert.match(indux, /Needs 5m bars/);
   assert.match(indux, /No tick, no DOM/);

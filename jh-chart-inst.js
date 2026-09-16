@@ -47,7 +47,8 @@
     var out = [], i, j, n = (d && d.length) || 0;
     if (n < 4) return out;
     var minPct = opt.minPct != null ? opt.minPct : 0.0004;
-    for (i = 2; i < n; i++) {
+    var start = Math.max(2, n - (opt.lookback || 280));
+    for (i = start; i < n; i++) {
       var atr = atrAt(d, i, 14), floor = Math.max((d[i].close || 1) * minPct, atr * 0.12);
       if (d[i - 2].high < d[i].low) {
         var lo = d[i - 2].high, hi = d[i].low;
@@ -115,6 +116,7 @@
   }
   function equalHL(d) {
     if (!d || d.length < 16) return empty("need more bars");
+    if (d.length > 260) d = d.slice(-260);
     var sw = swings(d), last = d[d.length - 1];
     var tol = Math.max(atrAt(d, d.length - 1, 14) * 0.18, last.close * 0.0012);
     var eqh = clusterSwings(sw.hi, tol), eql = clusterSwings(sw.lo, tol);
