@@ -1663,6 +1663,10 @@ export default {
         if (kind === "etf-flow-hist") {
           const got = await allFundFlows(ticker);
           const rows = got.rows || [];
+          if (!rows.length) {
+            return new Response(JSON.stringify({ error: "no fund_flow tape", ticker, kind, pages: got.pages }),
+              { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          }
           out.n = rows.length;
           out.pages = got.pages;
           out.host = got.host;
@@ -1672,7 +1676,6 @@ export default {
           out.d = rows.map(r => r.processed_date || r.effective_date);
           out.f = rows.map(r => r.fund_flow);
           out.n_nav = rows.map(r => r.nav);
-          out.results = rows;
           const body = JSON.stringify(out);
           const fr = new Response(body, {
             headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600", "X-Cache": "MISS", ...corsHeaders() }

@@ -263,11 +263,18 @@
       out.sort(function (a, b) { return a.time - b.time; });
       return out;
     }
+    var daily = step > 0 && step < 36 * 3600;
     for (i = 0; i < bars.length; i++) {
       var t0 = bars[i].time;
-      var t1 = i + 1 < bars.length ? bars[i + 1].time : t0 + Math.max(step, 86400);
-      var d0 = ymd(t0), d1 = ymd(t1);
+      var d0 = ymd(t0);
       if (!d0) continue;
+      if (daily) {
+        if (byDay[d0] == null) continue;
+        out.push({ time: t0, value: byDay[d0] / 1e9, raw: byDay[d0], d: d0, n: 1 });
+        continue;
+      }
+      var t1 = i + 1 < bars.length ? bars[i + 1].time : t0 + Math.max(step, 86400);
+      var d1 = ymd(t1);
       if (!d1 || d1 <= d0) d1 = ymd(t0 + Math.max(step, 86400));
       var sum = 0, n = 0, d;
       for (d in byDay) {
@@ -293,6 +300,7 @@
     ]).then(function (j) {
       if (!j) { delete histCache[t].p; return []; }
       var rows = compactToRows(j);
+      if (!rows.length) { delete histCache[t].p; return []; }
       histCache[t].rows = rows;
       histCache[t].meta = { n: rows.length, from: rows[0] && rows[0].d, to: rows.length ? rows[rows.length - 1].d : null, source: (j && (j.source || j.engine)) || "etf-global" };
       return rows;

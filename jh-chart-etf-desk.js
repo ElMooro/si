@@ -122,6 +122,9 @@
       cur.row.flow_hist_from = merged[0] && merged[0].d;
       cur.row.flow_hist_to = merged.length ? merged[merged.length - 1].d : null;
       cur.fullHistAt = Date.now();
+      cache[sym] = cur;
+      var active = window.jhActive;
+      if (active && active !== sym && F.bare(active) !== t) return;
       store(sym, cur);
       paintHud(cur);
       var osc = (window.OSC || []).filter(function (o) { return o.id === "etfflow" && o.on; })[0];
