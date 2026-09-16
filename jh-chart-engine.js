@@ -1,4 +1,4 @@
-/* JustHodl Chart engine v12.39 — identity, interval, tick, returns, alerts. */
+/* JustHodl Chart engine v12.40 — identity, interval, tick, returns, alerts. */
 (function () {
   if (window.__jhChartEngineV1239) return;
   window.__jhChartEngineV1239 = true;
@@ -2474,7 +2474,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; window.tf=tf; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.34"; if(st) st.textContent="v12.34 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.40"; if(st) st.textContent="v12.40 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function quoteUI(d){
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2769,8 +2769,11 @@
           var veF=head.querySelector(".osc-v");
           var lastF=fl[fl.length-1];
           var raw=lastF&&lastF.raw;
-          if(veF) veF.textContent = raw==null ? "no print" : ((raw>=0?"+":"")+(Math.abs(raw)>=1e9?(raw/1e9).toFixed(2)+"B":(raw/1e6).toFixed(0)+"M"));
-        } else if(head.querySelector(".osc-v")) head.querySelector(".osc-v").textContent="ETF Global — no fund print";
+          var nH=fl.length;
+          var fromH=fl[0]&&fl[0].d;
+          var lab = raw==null ? "no print" : ((raw>=0?"+":"")+(Math.abs(raw)>=1e9?(raw/1e9).toFixed(2)+"B":(raw/1e6).toFixed(0)+"M"));
+          if(veF) veF.textContent = lab+" · "+nH.toLocaleString()+" sess"+(fromH?" · "+fromH:"");
+        } else if(head.querySelector(".osc-v")) head.querySelector(".osc-v").textContent="ETF Global — loading tape…";
       }
       else if(o.id==="tra"){
         var tr=totalReturn100(d);

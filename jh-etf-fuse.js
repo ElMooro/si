@@ -7,7 +7,7 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
   var deskCache = null, deskP = null, idxCache = null, liveCache = {}, derCache = null, derP = null;
-  var invCache = null, cenCache = null, cenP = null;
+  var invCache = null, cenCache = null, cenP = null, histCache = {};
 
   function firstOk(urls) {
     var i = 0;
@@ -171,25 +171,136 @@
     var flows = polyRows(liveJ && liveJ.flows);
     return !!(prof && (prof.aum || prof.issuer || prof.asset_class)) || flows.length > 0;
   }
-  function histFrom(row, liveJ) {
-    if (row && row.flow_hist && row.flow_hist.length) return row.flow_hist;
-    var flows = polyRows(liveJ && liveJ.flows);
+  function ymd(t) {
+    var d = new Date((Number(t) || 0) * 1000);
+    if (!isFinite(d.getTime())) return "";
+    return d.toISOString().slice(0, 10);
+  }
+  function barStep(bars) {
+    if (!bars || bars.length < 2) return 86400;
+    var gaps = [], i, n = Math.min(bars.length - 1, 80);
+    for (i = bars.length - n; i < bars.length; i++) if (i > 0) gaps.push(bars[i].time - bars[i - 1].time);
+    if (!gaps.length) return 86400;
+    gaps.sort(function (a, b) { return a - b; });
+    return gaps[Math.floor(gaps.length / 2)] || 86400;
+  }
+  function isIntraBars(bars) {
+    var step = barStep(bars);
+    if (step < 20 * 3600) return true;
+    var n = Math.min(bars.length - 1, 40), small = 0, i;
+    for (i = bars.length - n; i < bars.length; i++) {
+      if (i > 0 && bars[i].time - bars[i - 1].time < 20 * 3600) small++;
+    }
+    return n > 0 && small >= n * 0.35;
+  }
+  function compactToRows(j) {
+    if (!j) return [];
+    if (Array.isArray(j.d) && Array.isArray(j.f)) {
+      var out = [], i;
+      for (i = 0; i < j.d.length; i++) out.push({ d: j.d[i], f: num(j.f[i]), n: Array.isArray(j.n) ? num(j.n[i]) : null });
+      return out;
+    }
+    if (Array.isArray(j.rows)) return j.rows.map(function (r) {
+      return { d: r.d || r.processed_date || r.effective_date, f: num(r.f != null ? r.f : r.fund_flow), n: num(r.n != null ? r.n : r.nav) };
+    });
+    var flows = polyRows(j.flows || j);
     return flows.map(function (r) {
-      return { d: r.processed_date || r.effective_date, f: num(r.fund_flow), n: num(r.nav), s: num(r.shares_outstanding) };
+      return { d: r.processed_date || r.effective_date || r.d, f: num(r.fund_flow != null ? r.fund_flow : r.f), n: num(r.nav != null ? r.nav : r.n), s: num(r.shares_outstanding) };
     });
   }
+  function mergeHist(a, b) {
+    var map = {}, order = [];
+    function add(h) {
+      if (!h || !h.d) return;
+      var d = String(h.d).slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      var f = num(h.f);
+      var cur = map[d];
+      if (!cur) { map[d] = { d: d, f: f, n: num(h.n), s: num(h.s) }; order.push(d); }
+      else {
+        if (f != null) cur.f = f;
+        if (h.n != null && cur.n == null) cur.n = num(h.n);
+        if (h.s != null && cur.s == null) cur.s = num(h.s);
+      }
+    }
+    (a || []).forEach(add);
+    (b || []).forEach(add);
+    order.sort();
+    return order.map(function (d) { return map[d]; });
+  }
+  function histFromLive(liveJ) {
+    return compactToRows(liveJ && liveJ.flows ? { flows: liveJ.flows } : liveJ);
+  }
+  function histFrom(row, liveJ) {
+    return mergeHist(row && row.flow_hist, histFromLive(liveJ));
+  }
   function alignHist(hist, bars) {
+    /* Map official daily fund_flow onto whatever tick the chart pulled.
+       Daily: 1:1 on UTC session date. Weekly/monthly/multi-day: SUM the
+       prints whose dates fall in [bar.time, nextBar.time). Intraday: the
+       day's total sits on the last bar of that session so the histogram
+       is one accurate print per day, not a fake per-minute flow. */
     if (!hist || !hist.length || !bars || !bars.length) return [];
-    var map = {};
+    var byDay = {}, i;
     hist.forEach(function (h) {
       if (!h || !h.d) return;
-      map[String(h.d).slice(0, 10)] = num(h.f);
+      var d = String(h.d).slice(0, 10);
+      var f = num(h.f);
+      if (!d || f == null) return;
+      byDay[d] = (byDay[d] == null ? 0 : byDay[d]) + f;
     });
-    return bars.map(function (b) {
-      var dt = new Date((b.time || 0) * 1000).toISOString().slice(0, 10);
-      var v = map[dt];
-      return { time: b.time, value: v == null ? null : v / 1e9, raw: v };
-    }).filter(function (p) { return p.raw != null; });
+    var step = barStep(bars);
+    var intra = isIntraBars(bars);
+    var out = [];
+    if (intra) {
+      var lastOf = {};
+      for (i = 0; i < bars.length; i++) lastOf[ymd(bars[i].time)] = i;
+      Object.keys(lastOf).forEach(function (d) {
+        if (byDay[d] == null) return;
+        var b = bars[lastOf[d]];
+        out.push({ time: b.time, value: byDay[d] / 1e9, raw: byDay[d], d: d, n: 1 });
+      });
+      out.sort(function (a, b) { return a.time - b.time; });
+      return out;
+    }
+    for (i = 0; i < bars.length; i++) {
+      var t0 = bars[i].time;
+      var t1 = i + 1 < bars.length ? bars[i + 1].time : t0 + Math.max(step, 86400);
+      var d0 = ymd(t0), d1 = ymd(t1);
+      if (!d0) continue;
+      if (!d1 || d1 <= d0) d1 = ymd(t0 + Math.max(step, 86400));
+      var sum = 0, n = 0, d;
+      for (d in byDay) {
+        if (d >= d0 && d < d1) { sum += byDay[d]; n++; }
+      }
+      if (!n) continue;
+      out.push({ time: t0, value: sum / 1e9, raw: sum, d: d0, n: n });
+    }
+    return out;
+  }
+  function fullHist(ticker) {
+    var t = bare(ticker);
+    if (!t) return Promise.resolve([]);
+    if (histCache[t] && histCache[t].rows && histCache[t].rows.length) return Promise.resolve(histCache[t].rows);
+    if (histCache[t] && histCache[t].p) return histCache[t].p;
+    histCache[t] = histCache[t] || {};
+    histCache[t].p = firstOk([
+      PROXY + "/poly/etf-flow-hist?ticker=" + encodeURIComponent(t),
+      "/data/etf-flow-hist/" + t + ".json?t=" + Date.now(),
+      LIVE + "/data/etf-flow-hist/" + t + ".json?t=" + Date.now(),
+      PROXY + "/data/etf-flow-hist/" + t + ".json?t=" + Date.now(),
+      S3 + "/data/etf-flow-hist/" + t + ".json"
+    ]).then(function (j) {
+      if (!j) { delete histCache[t].p; return []; }
+      var rows = compactToRows(j);
+      histCache[t].rows = rows;
+      histCache[t].meta = { n: rows.length, from: rows[0] && rows[0].d, to: rows.length ? rows[rows.length - 1].d : null, source: (j && (j.source || j.engine)) || "etf-global" };
+      return rows;
+    }).catch(function () {
+      delete histCache[t].p;
+      return [];
+    });
+    return histCache[t].p;
   }
   function markers(hist, bars) {
     var pts = alignHist(hist, bars);
@@ -230,7 +341,12 @@
         return { t: h.constituent_ticker, n: h.constituent_name, w: num(h.weight), mv: num(h.market_value) };
       });
     }
-    if (!out.flow_hist || !out.flow_hist.length) out.flow_hist = histFrom(out, liveJ);
+    out.flow_hist = mergeHist(out.flow_hist, histFromLive(liveJ));
+    if (out.flow_hist && out.flow_hist.length) {
+      out.flow_hist_n = out.flow_hist.length;
+      out.flow_hist_from = out.flow_hist[0] && out.flow_hist[0].d;
+      out.flow_hist_to = out.flow_hist[out.flow_hist.length - 1] && out.flow_hist[out.flow_hist.length - 1].d;
+    }
     return out;
   }
 
@@ -375,6 +491,7 @@
   w.JHEtfFuse = {
     desk: desk, live: live, of: of, reverse: reverse, reverseFromDesk: reverseFromDesk,
     impliedDemand: impliedDemand, isFund: isFund, histFrom: histFrom, alignHist: alignHist,
+    fullHist: fullHist, mergeHist: mergeHist, compactToRows: compactToRows,
     markers: markers, mergeLive: mergeLive, holdingsIndex: holdingsIndex,
     derived: derived, ofDerived: ofDerived,
     constituents: constituents, census: census, rankVs: rankVs, invertHoldings: invertHoldings,

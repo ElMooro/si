@@ -769,8 +769,8 @@
       return { d: r.processed_date || r.effective_date, f: num(r.fund_flow), n: num(r.nav) };
     });
     if (hist.length) {
-      html += blk("Creation / redemption tape", "<table class=wide><thead><tr><th>Date</th><th>Flow</th><th>NAV</th></tr></thead><tbody>" +
-        hist.slice(0, 18).map(function (r) {
+      html += blk("Creation / redemption tape — " + hist.length.toLocaleString() + " sessions", "<table class=wide><thead><tr><th>Date</th><th>Flow</th><th>NAV</th></tr></thead><tbody>" +
+        hist.slice().reverse().slice(0, 40).map(function (r) {
           var f = num(r.f != null ? r.f : r.fund_flow);
           return "<tr><td>" + esc(r.d || r.processed_date || "") + "</td><td class='" + cls(f) + "'>" + fmtBig(f) +
             "</td><td>" + fmt(num(r.n != null ? r.n : r.nav), 3) + "</td></tr>";

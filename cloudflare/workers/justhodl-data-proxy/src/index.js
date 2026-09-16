@@ -1603,19 +1603,23 @@ export default {
         short: `/stocks/v1/short-interest?ticker=${ticker}&limit=8&sort=settlement_date.desc`,
         options: `/v3/snapshot/options/${ticker}?limit=40`,
         contracts: `/v3/reference/options/contracts?underlying_ticker=${ticker}&expired=false&limit=20&sort=expiration_date`,
-        etfFlows: `/etf-global/v1/fund-flows?composite_ticker=${ticker}&sort=processed_date.desc&limit=40`,
+        etfFlows: `/etf-global/v1/fund-flows?composite_ticker=${ticker}&sort=processed_date.desc&limit=1000`,
         etfProfile: `/etf-global/v1/profiles?composite_ticker=${ticker}&sort=processed_date.desc&limit=4`,
         etfHold: `/etf-global/v1/constituents?composite_ticker=${ticker}&sort=processed_date.desc&limit=80`,
       };
       async function poly(path) {
         let last = { error: "no host" };
-        for (const host of hosts) {
+        const abs = /^https?:\/\//.test(path);
+        const hostsToTry = abs ? [""] : hosts;
+        for (const host of hostsToTry) {
           try {
-            const r = await fetch(host + path + (path.includes("?") ? "&" : "?") + "apiKey=" + polygonKey, {
-              cf: { cacheTtl: 120, cacheEverything: true }
+            let u = abs ? path : (host + path);
+            if (!u.includes("apiKey=")) u += (u.includes("?") ? "&" : "?") + "apiKey=" + polygonKey;
+            const r = await fetch(u, {
+              cf: { cacheTtl: abs ? 3600 : 120, cacheEverything: true }
             });
             const j = await r.json();
-            if (r.ok) return { ok: true, host, status: r.status, body: j };
+            if (r.ok) return { ok: true, host: host || (new URL(u)).origin, status: r.status, body: j };
             last = { ok: false, host, status: r.status, body: j };
           } catch (e) {
             last = { ok: false, error: String(e).slice(0, 120) };
@@ -1623,9 +1627,59 @@ export default {
         }
         return last;
       }
+      async function allFundFlows(sym) {
+        const rows = [];
+        let path = `/etf-global/v1/fund-flows?composite_ticker=${encodeURIComponent(sym)}&sort=processed_date.asc&limit=50000`;
+        let pages = 0;
+        let hostUsed = "";
+        while (path && pages < 40) {
+          const got = await poly(path);
+          const chunk = ((got.body && got.body.results) || []);
+          if (got.host) hostUsed = got.host;
+          if (!got.ok) {
+            if (pages === 0 && String(path).indexOf("limit=50000") >= 0) {
+              path = `/etf-global/v1/fund-flows?composite_ticker=${encodeURIComponent(sym)}&sort=processed_date.asc&limit=1000`;
+              continue;
+            }
+            break;
+          }
+          for (let i = 0; i < chunk.length; i++) rows.push(chunk[i]);
+          pages++;
+          const nxt = got.body && got.body.next_url;
+          if (!nxt || !chunk.length) break;
+          path = nxt;
+        }
+        const seen = new Map();
+        for (const r of rows) {
+          const d = String((r && (r.processed_date || r.effective_date)) || "").slice(0, 10);
+          if (!d) continue;
+          seen.set(d, r);
+        }
+        const dates = [...seen.keys()].sort();
+        return { rows: dates.map(d => seen.get(d)), pages, host: hostUsed };
+      }
       try {
         let out = { ticker, kind, source: "massive" };
-        if (kind === "etf") {
+        if (kind === "etf-flow-hist") {
+          const got = await allFundFlows(ticker);
+          const rows = got.rows || [];
+          out.n = rows.length;
+          out.pages = got.pages;
+          out.host = got.host;
+          out.source = "Massive ETF Global fund-flows";
+          out.from = rows[0] && (rows[0].processed_date || rows[0].effective_date);
+          out.to = rows.length ? (rows[rows.length - 1].processed_date || rows[rows.length - 1].effective_date) : null;
+          out.d = rows.map(r => r.processed_date || r.effective_date);
+          out.f = rows.map(r => r.fund_flow);
+          out.n_nav = rows.map(r => r.nav);
+          out.results = rows;
+          const body = JSON.stringify(out);
+          const fr = new Response(body, {
+            headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600", "X-Cache": "MISS", ...corsHeaders() }
+          });
+          ctx.waitUntil(cache.put(ck, new Response(body, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600" } })));
+          return fr;
+        } else if (kind === "etf") {
           const [fl, pr, ho] = await Promise.all([poly(paths.etfFlows), poly(paths.etfProfile), poly(paths.etfHold)]);
           const holds = ((ho.body && ho.body.results) || []).slice().sort((a, b) => (b.weight || 0) - (a.weight || 0));
           out.flows = fl.body;

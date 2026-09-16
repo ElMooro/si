@@ -7,6 +7,8 @@ sector/geo mix and holdings — not a dollar-volume z-score proxy.
 
 Writes:
   data/etf-desk.json              compact per-ticker desk payload (GitHub Pages)
+  data/etf-flow-hist/{TICKER}.json full daily fund_flow tape (chart oscillator)
+  data/etf-flow-hist/_index.json  n / from / asof per ticker
   data/etf-global.json            harvest status
   data/etf-global-desk-meta.json  counts / HTTP map
 """
@@ -19,11 +21,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY") or os.environ.get("MASSIVE_API_KEY") or ""
 HOSTS = ("https://api.massive.com", "https://api.polygon.io")
@@ -212,17 +214,22 @@ def _constituents(ticker):
 
 def harvest_one(ticker):
     out = {"ticker": ticker, "ok": {}, "http": {}, "err": {}}
-    end = datetime.now(timezone.utc).date()
-    start = end - timedelta(days=130)
-    st, body, host = _get("/etf-global/v1/fund-flows", {
-        "composite_ticker": ticker,
-        "sort": "processed_date.desc",
-        "processed_date.gte": start.isoformat(),
-        "limit": "120",
-    })
+    st, rows, host, err, pages = _pages(
+        "/etf-global/v1/fund-flows",
+        {"composite_ticker": ticker, "sort": "processed_date.desc", "limit": "1000"},
+        max_pages=50,
+        timeout=25,
+    )
     out["http"]["flows"] = st
-    rows = (body or {}).get("results") if st == 200 else []
-    rows = sorted(rows or [], key=lambda r: str(r.get("processed_date") or ""), reverse=True)
+    out["flow_pages"] = pages
+    if err:
+        out["err"]["flows"] = str(err)[:160]
+    seen = {}
+    for r in rows or []:
+        d = str(r.get("processed_date") or r.get("effective_date") or "")[:10]
+        if len(d) == 10:
+            seen[d] = r
+    rows = [seen[d] for d in sorted(seen.keys(), reverse=True)]
     if rows:
         latest = rows[0]
         nav = _num(latest.get("nav"))
@@ -251,10 +258,19 @@ def harvest_one(ticker):
             out["flow_z"] = ((hist[0] - mu) / sd) if sd else None
         else:
             out["flow_z"] = None
+        hud = rows[:90]
         out["flow_hist"] = [
             {"d": r.get("processed_date"), "f": _num(r.get("fund_flow")), "n": _num(r.get("nav"))}
-            for r in rows[:40]
+            for r in hud
         ]
+        asc_dates = sorted(seen.keys())
+        out["flow_hist_n"] = len(asc_dates)
+        out["flow_hist_from"] = asc_dates[0] if asc_dates else None
+        out["flow_hist_to"] = asc_dates[-1] if asc_dates else None
+        out["flow_hist_full"] = {
+            "d": asc_dates,
+            "f": [_num((seen[d] or {}).get("fund_flow")) for d in asc_dates],
+        }
     else:
         out["ok"]["flows"] = False
 
@@ -1509,6 +1525,9 @@ def lambda_handler(event, context=None):
             "flow_asof": r.get("flow_asof"),
             "flow_effective": r.get("flow_effective"),
             "flow_hist": r.get("flow_hist") or [],
+            "flow_hist_n": r.get("flow_hist_n") or len(r.get("flow_hist") or []),
+            "flow_hist_from": r.get("flow_hist_from"),
+            "flow_hist_to": r.get("flow_hist_to"),
             "sector": r.get("sector") or [],
             "geo": r.get("geo") or [],
             "ccy": r.get("ccy") or [],
@@ -1554,6 +1573,33 @@ def lambda_handler(event, context=None):
         )[:15],
     }
     _put("data/etf-desk.json", payload)
+    hist_index = {}
+    for t, r in by.items():
+        full = r.get("flow_hist_full") or {}
+        ds = full.get("d") or []
+        if not ds:
+            continue
+        hist_obj = {
+            "ticker": t,
+            "generated_at": generated,
+            "engine": "justhodl-etf-global-desk",
+            "version": VERSION,
+            "source": "Massive ETF Global fund-flows",
+            "n": len(ds),
+            "from": ds[0],
+            "asof": ds[-1],
+            "d": ds,
+            "f": full.get("f") or [],
+        }
+        _put("data/etf-flow-hist/%s.json" % t, hist_obj)
+        hist_index[t] = {"n": len(ds), "from": ds[0], "asof": ds[-1]}
+    _put("data/etf-flow-hist/_index.json", {
+        "generated_at": generated,
+        "engine": "justhodl-etf-global-desk",
+        "version": VERSION,
+        "n": len(hist_index),
+        "by_etf": hist_index,
+    })
     _put("data/etf-holdings-complete.json", {
         "generated_at": generated,
         "engine": "justhodl-etf-global-desk",

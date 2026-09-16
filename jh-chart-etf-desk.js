@@ -53,6 +53,8 @@
       if (sec) html += "<span>" + sec + "</span>";
       if (r.top && r.top[0]) html += "<span>Top " + esc(r.top[0].t) + " " + F.wgt(r.top[0].w) + "</span>";
       if (r.holdings_n) html += "<span>Holdings <b>" + r.holdings_n + "</b></span>";
+      var nHist = r.flow_hist_n || ((r.flow_hist && r.flow_hist.length) || 0);
+      if (nHist) html += "<span>Tape <b>" + nHist.toLocaleString() + "</b>" + (r.flow_hist_from ? (" since " + esc(String(r.flow_hist_from).slice(0, 10))) : "") + "</span>";
       var rk = pack.rank && pack.rank.windows;
       if (rk) {
         ["d", "w", "m", "q"].forEach(function (k) {
@@ -102,6 +104,31 @@
       if (window.jhOpenDataTypePanel) window.jhOpenDataTypePanel(tab);
       else if (window.jhOpenDataType) window.jhOpenDataType(btn);
     };
+  }
+
+  function hydrateFullHist(sym, pack) {
+    var F = fuse();
+    if (!F || !F.fullHist || !pack || pack.kind !== "etf") return;
+    var t = pack.sym || F.bare(sym);
+    var before = (pack.row && pack.row.flow_hist && pack.row.flow_hist.length) || 0;
+    F.fullHist(t).then(function (rows) {
+      if (!rows || !rows.length) return;
+      var cur = cache[sym] || pack;
+      if (!cur.row) return;
+      var merged = F.mergeHist(cur.row.flow_hist, rows);
+      if (merged.length <= before && cur.fullHistAt) return;
+      cur.row.flow_hist = merged;
+      cur.row.flow_hist_n = merged.length;
+      cur.row.flow_hist_from = merged[0] && merged[0].d;
+      cur.row.flow_hist_to = merged.length ? merged[merged.length - 1].d : null;
+      cur.fullHistAt = Date.now();
+      store(sym, cur);
+      paintHud(cur);
+      var osc = (window.OSC || []).filter(function (o) { return o.id === "etfflow" && o.on; })[0];
+      if (osc && window.paint && window.lastBars && window.lastBars.length && merged.length > before) {
+        try { window.paint(window.lastBars); } catch (e) {}
+      }
+    });
   }
 
   function store(sym, pack) {
@@ -170,6 +197,7 @@
       store(sym, out);
       paintHud(out);
       suggestOsc(kind === "etf");
+      if (kind === "etf") hydrateFullHist(sym, out);
       return out;
     }).catch(function () {
       paintHud(null);
