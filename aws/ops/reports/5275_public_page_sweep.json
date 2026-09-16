@@ -1,11 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
-  "observed_at": "2026-09-16T17:28:17.700246+00:00",
-  "ok": true,
+  "observed_at": "2026-09-16T17:40:40.035905+00:00",
+  "ok": false,
   "routes_checked": 519,
-  "verified_routes": 519,
-  "failed_routes": [],
+  "verified_routes": 518,
+  "failed_routes": [
+    "flow.html"
+  ],
   "source_equivalent_builds": {
     "27d24d222d67e9130660ef4f51ec8d32c6f864a4": true
   },
@@ -29,7 +31,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 123068,
+      "bytes_read": 123067,
       "product_source_matches_release": true
     },
     {
@@ -56,7 +58,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27048,
+      "bytes_read": 27046,
       "product_source_matches_release": true
     },
     {
@@ -83,7 +85,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19780,
+      "bytes_read": 19781,
       "product_source_matches_release": true
     },
     {
@@ -101,7 +103,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22767,
+      "bytes_read": 22768,
       "product_source_matches_release": true
     },
     {
@@ -146,7 +148,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 10350,
+      "bytes_read": 10351,
       "product_source_matches_release": true
     },
     {
@@ -155,7 +157,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 30087,
+      "bytes_read": 30086,
       "product_source_matches_release": true
     },
     {
@@ -164,7 +166,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18035,
+      "bytes_read": 18034,
       "product_source_matches_release": true
     },
     {
@@ -173,7 +175,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20585,
+      "bytes_read": 20583,
       "product_source_matches_release": true
     },
     {
@@ -200,7 +202,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 16125,
+      "bytes_read": 16126,
       "product_source_matches_release": true
     },
     {
@@ -218,7 +220,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13539,
+      "bytes_read": 13538,
       "product_source_matches_release": true
     },
     {
@@ -245,7 +247,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19750,
+      "bytes_read": 19749,
       "product_source_matches_release": true
     },
     {
@@ -254,7 +256,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13391,
+      "bytes_read": 13390,
       "product_source_matches_release": true
     },
     {
@@ -317,7 +319,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 10565,
+      "bytes_read": 10566,
       "product_source_matches_release": true
     },
     {
@@ -326,7 +328,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 33080,
+      "bytes_read": 33081,
       "product_source_matches_release": true
     },
     {
@@ -371,7 +373,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 102813,
+      "bytes_read": 102815,
       "product_source_matches_release": true
     },
     {
@@ -407,7 +409,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14663,
+      "bytes_read": 14665,
       "product_source_matches_release": true
     },
     {
@@ -425,7 +427,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19482,
+      "bytes_read": 19480,
       "product_source_matches_release": true
     },
     {
@@ -470,7 +472,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11609,
+      "bytes_read": 11610,
       "product_source_matches_release": true
     },
     {
@@ -497,7 +499,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17638,
+      "bytes_read": 17637,
       "product_source_matches_release": true
     },
     {
@@ -506,7 +508,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27501,
+      "bytes_read": 27502,
       "product_source_matches_release": true
     },
     {
@@ -515,7 +517,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 121545,
+      "bytes_read": 121547,
       "product_source_matches_release": true
     },
     {
@@ -542,7 +544,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20833,
+      "bytes_read": 20832,
       "product_source_matches_release": true
     },
     {
@@ -560,7 +562,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 74502,
+      "bytes_read": 74503,
       "product_source_matches_release": true
     },
     {
@@ -578,7 +580,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13765,
+      "bytes_read": 13763,
       "product_source_matches_release": true
     },
     {
@@ -587,7 +589,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 61335,
+      "bytes_read": 61337,
       "product_source_matches_release": true
     },
     {
@@ -596,7 +598,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9962,
+      "bytes_read": 9961,
       "product_source_matches_release": true
     },
     {
@@ -632,7 +634,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14298,
+      "bytes_read": 14297,
       "product_source_matches_release": true
     },
     {
@@ -668,7 +670,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17460,
+      "bytes_read": 17461,
       "product_source_matches_release": true
     },
     {
@@ -695,7 +697,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 35696,
+      "bytes_read": 35695,
       "product_source_matches_release": true
     },
     {
@@ -704,7 +706,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21048,
+      "bytes_read": 21049,
       "product_source_matches_release": true
     },
     {
@@ -713,7 +715,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 48017,
+      "bytes_read": 48016,
       "product_source_matches_release": true
     },
     {
@@ -767,7 +769,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18376,
+      "bytes_read": 18375,
       "product_source_matches_release": true
     },
     {
@@ -884,7 +886,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 697781,
+      "bytes_read": 697777,
       "product_source_matches_release": true
     },
     {
@@ -902,7 +904,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 38169,
+      "bytes_read": 38168,
       "product_source_matches_release": true
     },
     {
@@ -929,7 +931,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9533,
+      "bytes_read": 9532,
       "product_source_matches_release": true
     },
     {
@@ -956,7 +958,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 46583,
+      "bytes_read": 46584,
       "product_source_matches_release": true
     },
     {
@@ -974,7 +976,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 28538,
+      "bytes_read": 28537,
       "product_source_matches_release": true
     },
     {
@@ -983,7 +985,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17172,
+      "bytes_read": 17171,
       "product_source_matches_release": true
     },
     {
@@ -1037,7 +1039,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17011,
+      "bytes_read": 17010,
       "product_source_matches_release": true
     },
     {
@@ -1091,7 +1093,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12360,
+      "bytes_read": 12362,
       "product_source_matches_release": true
     },
     {
@@ -1100,7 +1102,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21400,
+      "bytes_read": 21399,
       "product_source_matches_release": true
     },
     {
@@ -1118,7 +1120,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 76628,
+      "bytes_read": 76625,
       "product_source_matches_release": true
     },
     {
@@ -1145,7 +1147,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11998,
+      "bytes_read": 11999,
       "product_source_matches_release": true
     },
     {
@@ -1190,7 +1192,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19319,
+      "bytes_read": 19320,
       "product_source_matches_release": true
     },
     {
@@ -1226,7 +1228,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13572,
+      "bytes_read": 13574,
       "product_source_matches_release": true
     },
     {
@@ -1271,7 +1273,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 35708,
+      "bytes_read": 35709,
       "product_source_matches_release": true
     },
     {
@@ -1298,7 +1300,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14088,
+      "bytes_read": 14087,
       "product_source_matches_release": true
     },
     {
@@ -1316,7 +1318,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 40638,
+      "bytes_read": 40637,
       "product_source_matches_release": true
     },
     {
@@ -1325,7 +1327,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21423,
+      "bytes_read": 21424,
       "product_source_matches_release": true
     },
     {
@@ -1415,7 +1417,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18396,
+      "bytes_read": 18395,
       "product_source_matches_release": true
     },
     {
@@ -1460,7 +1462,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 31698,
+      "bytes_read": 31699,
       "product_source_matches_release": true
     },
     {
@@ -1469,7 +1471,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17530,
+      "bytes_read": 17531,
       "product_source_matches_release": true
     },
     {
@@ -1568,7 +1570,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 31539,
+      "bytes_read": 31540,
       "product_source_matches_release": true
     },
     {
@@ -1577,7 +1579,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 67764,
+      "bytes_read": 67765,
       "product_source_matches_release": true
     },
     {
@@ -1595,7 +1597,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9981,
+      "bytes_read": 9982,
       "product_source_matches_release": true
     },
     {
@@ -1631,7 +1633,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 8772,
+      "bytes_read": 8773,
       "product_source_matches_release": true
     },
     {
@@ -1649,7 +1651,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 843525,
+      "bytes_read": 843532,
       "product_source_matches_release": true
     },
     {
@@ -1658,7 +1660,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12547,
+      "bytes_read": 12549,
       "product_source_matches_release": true
     },
     {
@@ -1667,7 +1669,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21746,
+      "bytes_read": 21745,
       "product_source_matches_release": true
     },
     {
@@ -1694,7 +1696,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13139,
+      "bytes_read": 13138,
       "product_source_matches_release": true
     },
     {
@@ -1721,7 +1723,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20571,
+      "bytes_read": 20572,
       "product_source_matches_release": true
     },
     {
@@ -1730,7 +1732,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27804,
+      "bytes_read": 27803,
       "product_source_matches_release": true
     },
     {
@@ -1757,7 +1759,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 28947,
+      "bytes_read": 28946,
       "product_source_matches_release": true
     },
     {
@@ -1775,7 +1777,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22619,
+      "bytes_read": 22618,
       "product_source_matches_release": true
     },
     {
@@ -1793,7 +1795,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9139,
+      "bytes_read": 9140,
       "product_source_matches_release": true
     },
     {
@@ -1802,7 +1804,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18874,
+      "bytes_read": 18875,
       "product_source_matches_release": true
     },
     {
@@ -1829,7 +1831,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27658,
+      "bytes_read": 27655,
       "product_source_matches_release": true
     },
     {
@@ -1847,7 +1849,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20626,
+      "bytes_read": 20627,
       "product_source_matches_release": true
     },
     {
@@ -1856,7 +1858,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20343,
+      "bytes_read": 20342,
       "product_source_matches_release": true
     },
     {
@@ -1883,7 +1885,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18602,
+      "bytes_read": 18603,
       "product_source_matches_release": true
     },
     {
@@ -1901,7 +1903,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 8466,
+      "bytes_read": 8467,
       "product_source_matches_release": true
     },
     {
@@ -1919,7 +1921,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11035,
+      "bytes_read": 11036,
       "product_source_matches_release": true
     },
     {
@@ -1928,17 +1930,17 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18507,
+      "bytes_read": 18506,
       "product_source_matches_release": true
     },
     {
       "route": "flow.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
-      "inspector_present": true,
-      "bytes_read": 37153,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "flows.html",
@@ -1964,7 +1966,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13929,
+      "bytes_read": 13930,
       "product_source_matches_release": true
     },
     {
@@ -1982,7 +1984,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 38358,
+      "bytes_read": 38355,
       "product_source_matches_release": true
     },
     {
@@ -2018,7 +2020,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19410,
+      "bytes_read": 19408,
       "product_source_matches_release": true
     },
     {
@@ -2036,7 +2038,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 63044,
+      "bytes_read": 63045,
       "product_source_matches_release": true
     },
     {
@@ -2045,7 +2047,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 69189,
+      "bytes_read": 69188,
       "product_source_matches_release": true
     },
     {
@@ -2153,7 +2155,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14375,
+      "bytes_read": 14374,
       "product_source_matches_release": true
     },
     {
@@ -2189,7 +2191,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 35770,
+      "bytes_read": 35771,
       "product_source_matches_release": true
     },
     {
@@ -2252,7 +2254,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12815,
+      "bytes_read": 12816,
       "product_source_matches_release": true
     },
     {
@@ -2288,7 +2290,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13984,
+      "bytes_read": 13985,
       "product_source_matches_release": true
     },
     {
@@ -2324,7 +2326,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19818,
+      "bytes_read": 19816,
       "product_source_matches_release": true
     },
     {
@@ -2342,7 +2344,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 15253,
+      "bytes_read": 15256,
       "product_source_matches_release": true
     },
     {
@@ -2351,7 +2353,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14264,
+      "bytes_read": 14265,
       "product_source_matches_release": true
     },
     {
@@ -2369,7 +2371,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14246,
+      "bytes_read": 14245,
       "product_source_matches_release": true
     },
     {
@@ -2414,7 +2416,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17345,
+      "bytes_read": 17343,
       "product_source_matches_release": true
     },
     {
@@ -2423,7 +2425,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 60405,
+      "bytes_read": 60408,
       "product_source_matches_release": true
     },
     {
@@ -2441,7 +2443,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 19917,
+      "bytes_read": 19918,
       "product_source_matches_release": true
     },
     {
@@ -2459,7 +2461,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9515,
+      "bytes_read": 9514,
       "product_source_matches_release": true
     },
     {
@@ -2486,7 +2488,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20553,
+      "bytes_read": 20549,
       "product_source_matches_release": true
     },
     {
@@ -2504,7 +2506,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 42949,
+      "bytes_read": 42946,
       "product_source_matches_release": true
     },
     {
@@ -2513,7 +2515,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21321,
+      "bytes_read": 21320,
       "product_source_matches_release": true
     },
     {
@@ -2612,7 +2614,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 41378,
+      "bytes_read": 41385,
       "product_source_matches_release": true
     },
     {
@@ -2666,7 +2668,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11390,
+      "bytes_read": 11389,
       "product_source_matches_release": true
     },
     {
@@ -2675,7 +2677,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 51259,
+      "bytes_read": 51258,
       "product_source_matches_release": true
     },
     {
@@ -2684,7 +2686,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12220,
+      "bytes_read": 12219,
       "product_source_matches_release": true
     },
     {
@@ -2711,7 +2713,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13351,
+      "bytes_read": 13350,
       "product_source_matches_release": true
     },
     {
@@ -2747,7 +2749,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 16984,
+      "bytes_read": 16983,
       "product_source_matches_release": true
     },
     {
@@ -2792,7 +2794,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 16199,
+      "bytes_read": 16198,
       "product_source_matches_release": true
     },
     {
@@ -2828,7 +2830,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 24567,
+      "bytes_read": 24566,
       "product_source_matches_release": true
     },
     {
@@ -2900,7 +2902,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 25882,
+      "bytes_read": 25881,
       "product_source_matches_release": true
     },
     {
@@ -2909,7 +2911,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 18642,
+      "bytes_read": 18643,
       "product_source_matches_release": true
     },
     {
@@ -2918,7 +2920,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 42916,
+      "bytes_read": 42913,
       "product_source_matches_release": true
     },
     {
@@ -2954,7 +2956,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13509,
+      "bytes_read": 13510,
       "product_source_matches_release": true
     },
     {
@@ -2990,7 +2992,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 24285,
+      "bytes_read": 24283,
       "product_source_matches_release": true
     },
     {
@@ -3026,7 +3028,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 26585,
+      "bytes_read": 26583,
       "product_source_matches_release": true
     },
     {
@@ -3053,7 +3055,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12871,
+      "bytes_read": 12870,
       "product_source_matches_release": true
     },
     {
@@ -3080,7 +3082,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 84555,
+      "bytes_read": 84554,
       "product_source_matches_release": true
     },
     {
@@ -3089,7 +3091,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22036,
+      "bytes_read": 22037,
       "product_source_matches_release": true
     },
     {
@@ -3098,7 +3100,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22492,
+      "bytes_read": 22493,
       "product_source_matches_release": true
     },
     {
@@ -3107,7 +3109,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 58093,
+      "bytes_read": 58092,
       "product_source_matches_release": true
     },
     {
@@ -3125,7 +3127,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11427,
+      "bytes_read": 11425,
       "product_source_matches_release": true
     },
     {
@@ -3143,7 +3145,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21722,
+      "bytes_read": 21721,
       "product_source_matches_release": true
     },
     {
@@ -3152,7 +3154,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 44450,
+      "bytes_read": 44448,
       "product_source_matches_release": true
     },
     {
@@ -3179,7 +3181,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 23738,
+      "bytes_read": 23739,
       "product_source_matches_release": true
     },
     {
@@ -3188,7 +3190,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 24267,
+      "bytes_read": 24269,
       "product_source_matches_release": true
     },
     {
@@ -3278,7 +3280,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 45323,
+      "bytes_read": 45328,
       "product_source_matches_release": true
     },
     {
@@ -3305,7 +3307,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 24551,
+      "bytes_read": 24552,
       "product_source_matches_release": true
     },
     {
@@ -3395,7 +3397,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 230798,
+      "bytes_read": 230799,
       "product_source_matches_release": true
     },
     {
@@ -3422,7 +3424,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 28588,
+      "bytes_read": 28587,
       "product_source_matches_release": true
     },
     {
@@ -3440,7 +3442,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17817,
+      "bytes_read": 17818,
       "product_source_matches_release": true
     },
     {
@@ -3476,7 +3478,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 28923,
+      "bytes_read": 28922,
       "product_source_matches_release": true
     },
     {
@@ -3503,7 +3505,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12383,
+      "bytes_read": 12384,
       "product_source_matches_release": true
     },
     {
@@ -3512,7 +3514,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13575,
+      "bytes_read": 13574,
       "product_source_matches_release": true
     },
     {
@@ -3530,7 +3532,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 32903,
+      "bytes_read": 32904,
       "product_source_matches_release": true
     },
     {
@@ -3548,7 +3550,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 15854,
+      "bytes_read": 15856,
       "product_source_matches_release": true
     },
     {
@@ -3557,7 +3559,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27490,
+      "bytes_read": 27491,
       "product_source_matches_release": true
     },
     {
@@ -3566,7 +3568,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 66693,
+      "bytes_read": 66692,
       "product_source_matches_release": true
     },
     {
@@ -3593,7 +3595,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 67669,
+      "bytes_read": 67667,
       "product_source_matches_release": true
     },
     {
@@ -3602,7 +3604,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17976,
+      "bytes_read": 17977,
       "product_source_matches_release": true
     },
     {
@@ -3620,7 +3622,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 69586,
+      "bytes_read": 69589,
       "product_source_matches_release": true
     },
     {
@@ -3656,7 +3658,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 14098,
+      "bytes_read": 14097,
       "product_source_matches_release": true
     },
     {
@@ -3728,7 +3730,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 9513,
+      "bytes_read": 9512,
       "product_source_matches_release": true
     },
     {
@@ -3737,7 +3739,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 76010,
+      "bytes_read": 76012,
       "product_source_matches_release": true
     },
     {
@@ -3746,7 +3748,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 20689,
+      "bytes_read": 20690,
       "product_source_matches_release": true
     },
     {
@@ -3755,7 +3757,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 60049,
+      "bytes_read": 60051,
       "product_source_matches_release": true
     },
     {
@@ -3818,7 +3820,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 47488,
+      "bytes_read": 47486,
       "product_source_matches_release": true
     },
     {
@@ -3836,7 +3838,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 15660,
+      "bytes_read": 15661,
       "product_source_matches_release": true
     },
     {
@@ -3845,7 +3847,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 10925,
+      "bytes_read": 10926,
       "product_source_matches_release": true
     },
     {
@@ -3863,7 +3865,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22666,
+      "bytes_read": 22662,
       "product_source_matches_release": true
     },
     {
@@ -3881,7 +3883,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 72852,
+      "bytes_read": 72855,
       "product_source_matches_release": true
     },
     {
@@ -3926,7 +3928,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 15501,
+      "bytes_read": 15502,
       "product_source_matches_release": true
     },
     {
@@ -3962,7 +3964,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 50256,
+      "bytes_read": 50255,
       "product_source_matches_release": true
     },
     {
@@ -3971,7 +3973,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 32175,
+      "bytes_read": 32174,
       "product_source_matches_release": true
     },
     {
@@ -3980,7 +3982,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 29845,
+      "bytes_read": 29843,
       "product_source_matches_release": true
     },
     {
@@ -3998,7 +4000,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 27738,
+      "bytes_read": 27737,
       "product_source_matches_release": true
     },
     {
@@ -4079,7 +4081,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12161,
+      "bytes_read": 12162,
       "product_source_matches_release": true
     },
     {
@@ -4106,7 +4108,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 13876,
+      "bytes_read": 13875,
       "product_source_matches_release": true
     },
     {
@@ -4124,7 +4126,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 17313,
+      "bytes_read": 17314,
       "product_source_matches_release": true
     },
     {
@@ -4142,7 +4144,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 30040,
+      "bytes_read": 30039,
       "product_source_matches_release": true
     },
     {
@@ -4187,7 +4189,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 15739,
+      "bytes_read": 15742,
       "product_source_matches_release": true
     },
     {
@@ -4214,7 +4216,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 10071,
+      "bytes_read": 10070,
       "product_source_matches_release": true
     },
     {
@@ -4241,7 +4243,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 12280,
+      "bytes_read": 12281,
       "product_source_matches_release": true
     },
     {
@@ -4259,7 +4261,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 32010,
+      "bytes_read": 32011,
       "product_source_matches_release": true
     },
     {
@@ -4268,7 +4270,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 34130,
+      "bytes_read": 34128,
       "product_source_matches_release": true
     },
     {
@@ -4376,7 +4378,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 21926,
+      "bytes_read": 21925,
       "product_source_matches_release": true
     },
     {
@@ -4394,7 +4396,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 30169,
+      "bytes_read": 30168,
       "product_source_matches_release": true
     },
     {
@@ -4421,7 +4423,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 11462,
+      "bytes_read": 11461,
       "product_source_matches_release": true
     },
     {
@@ -4466,7 +4468,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 16988,
+      "bytes_read": 16989,
       "product_source_matches_release": true
     },
     {
@@ -4484,7 +4486,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 36373,
+      "bytes_read": 36372,
       "product_source_matches_release": true
     },
     {
@@ -4538,7 +4540,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 23222,
+      "bytes_read": 23221,
       "product_source_matches_release": true
     },
     {
@@ -4547,7 +4549,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 31395,
+      "bytes_read": 31394,
       "product_source_matches_release": true
     },
     {
@@ -4556,7 +4558,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 22120,
+      "bytes_read": 22118,
       "product_source_matches_release": true
     },
     {
@@ -4637,7 +4639,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 40198,
+      "bytes_read": 40197,
       "product_source_matches_release": true
     },
     {
@@ -4655,7 +4657,7 @@
       "http_status": 200,
       "build_sha": "27d24d222d67e9130660ef4f51ec8d32c6f864a4",
       "inspector_present": true,
-      "bytes_read": 447231,
+      "bytes_read": 447230,
       "product_source_matches_release": true
     },
     {
@@ -4687,7 +4689,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35128125733,
+  "deployment_run_id": 35129412509,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-16T17:28:17.702532+00:00"
+  "check_finished_at": "2026-09-16T17:40:40.038210+00:00"
 }
