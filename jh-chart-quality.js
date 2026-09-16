@@ -1,4 +1,4 @@
-/* Candle + volume quality layer. Does not invent prints. Chart Pro untouched. */
+/* Candle + volume quality layer. Tick-round lives in the engine (window.jhQx). */
 (function () {
   function sanitize(d) {
     if (!d || !d.length) return [];
@@ -47,6 +47,9 @@
     var raw = window.lastBars;
     if (!raw || !raw.length) return;
     var s = sanitize(raw);
+    if (window.jhQx && typeof window.jhQx.roundBars === "function") {
+      s.bars = window.jhQx.roundBars(s.bars);
+    }
     window.jhQuality = s;
     qualityReport(s);
     window.jhSessionVwap = sessionVwap(s.bars);

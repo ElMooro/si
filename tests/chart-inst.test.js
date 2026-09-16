@@ -25,7 +25,7 @@ function bar(t, o, h, l, c, v) {
 
 test("chart.html loads inst studies and a visible go-to-date", () => {
   assert.match(html, /jh-chart-inst\.js\?v=20260915ad-desk/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260915ad-desk/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260915ae-qx/);
   assert.match(html, /jh-chart-bbgo\.js\?v=20260915ad-desk/);
   assert.match(html, /#tfbar #goto/);
   assert.doesNotMatch(html, /\[object Object\]/);
