@@ -230,7 +230,8 @@
         if (s.id === "avgdev") keys += " average deviation standard bloomberg sigma mean";
         if (s.id === "gdx") keys += " golden death cross sma 50 200";
         if (s.id === "hv") keys += " historical volatility realized vol";
-        if (s.id === "beta" || s.id === "rsline" || s.id === "corrspy") keys += " spy relative strength beta correlation vs";
+        if (s.id === "beta" || s.id === "rsline" || s.id === "corrspy" || s.id === "vsspx") keys += " spy spx s&p 500 relative strength beta correlation vs";
+        if (s.id === "vsspx") keys += " gspc cash index outperformance entire history rs line";
         if (s.id === "fibauto" || s.id === "fibpiv") keys += " fibonacci retracement pivot";
         if (s.id === "gmma" || s.id === "ribbon") keys += " guppy ribbon multiple moving average ema";
         if (s.id === "kama") keys += " kaufman adaptive ama";
@@ -326,6 +327,7 @@
               s.id === "ins" ? "Form 4 cluster pins · " :
               s.id === "buyb" ? "Auth / 8-K pins · " :
               s.id === "ratio" ? "Price / SPY · " :
+              s.id === "vsspx" ? "RS vs S&P 500 cash · " :
               s.id === "adrpct" ? "Today vs ADR 20 · " :
               s.osc ? "New pane · " : "Overlay · "
             ) + s.cat + "</span></div>" +
@@ -553,7 +555,8 @@
       sep: ["Session separators", "Session", "Dashed verticals at NY midnight on intraday charts.", "Marks the calendar day, not RTH. Use with Opening Range to see where yesterday died.", "Intraday only."],
       ins: ["Insider clusters", "Events", "Pins from data/insider-clusters.json (Form 4 cluster engine). Last-buy date of a cluster on this ticker.", "A cluster is 2+ insiders in a window, not a lone 10b5-1 sale. Coverage is the warehouse scan, not every filer. Empty = no cluster in the harvest, not 'no insiders'.", "Form 4 clusters only. 403/empty harvest draws nothing."],
       buyb: ["Buybacks", "Events", "Pins from data/buyback-scanner.json (authorization / 8-K scan) on this ticker.", "An authorization is not execution. Pair with Financials / share-flows for net shrink. Empty = this name is not in the current opportunity list.", "EDGAR + FMP scan. Not a live 10b-18 tape."],
-      ratio: ["Ratio vs SPY", "Stats", "Raw price / SPY close, aligned. Not rebased — 2.5 means the name is 2.5× SPY in dollars, not +2.5%.", "Use RS vs SPY (rebased 100) for relative performance. This ratio is for pairs / beta-1 overlays. Empty until SPY bars load.", "Warehouse SPY on the same interval."],
+      ratio: ["Ratio vs SPY", "Stats", "Raw price / SPY close, aligned. Not rebased — 2.5 means the name is 2.5× SPY in dollars, not +2.5%.", "Use vs S&P 500 (rebased 100, cash index, full history) for relative performance. This ratio is for pairs / beta-1 overlays.", "Warehouse SPY on the same interval."],
+      vsspx: ["vs S&P 500", "Stats", "Price relative vs the S&P 500 cash index (GSPC / I__SPX), NY session-day join, no interpolation. RS = 100 × (P/P0) / (SPX/SPX0) from the first overlapping print — AAPL's tape starts 1980, the cash index 1927, so the line is the entire listed history, not SPY's 1993 start. RS 50 / RS 200 on the pane. Quote chip: 1d / YTD / 1y / all geometric excess. 1y OLS beta vs SPX. Intraday pane uses SPY as a same-interval proxy because cash SPX has no 5-minute warehouse — the quote chip stays on daily cash SPX.", "Rising RS = outperforming the index, not 'going up'. A 2-beta name still looks strong in a bull; pair with β on the header. All = since first overlap, not since 1993. Arithmetic P−SPX is not this number; this is the ratio excess Bloomberg RV uses.", "Cash index, split-adjusted prices. Not total-return. Not SPY. Empty = no overlapping session."],
       adrpct: ["ADR used %", "Volatility", "Today's high–low as a percent of the 20-day average daily range. 100 = a full ADR day.", "A 40% reading at 15:30 is a dead day. A 120% reading by 11:00 with IB extension is a trend day. Bands default 50 / 100.", "Daily ranges. Intraday is rolled to NY days."],
       rsi: ["RSI 14", "Momentum", "Wilder RSI. Default 70/30 bands, 50 midline. Length and OB/OS are editable in Settings.", "Overbought is not sell. In a weekly uptrend, RSI can sit 60–80 for months. Use with Divergence and Key Levels.", "Wilder 1978. Smoothed, not cutler."],
       macd: ["MACD", "Momentum", "12/26/9 EMA MACD, 4-color histogram (up/down × rising/falling), zero line, signal.", "Histogram shrinking toward zero while price makes a new high is the MACD half of Divergence. Crosses at the zero line carry more weight than crosses at +2%.", "Standard MACD. Fast/slow/signal editable."],
@@ -567,8 +570,8 @@
       avgdev: ["Avg & Deviation", "Stats", "Mean with ±1σ and ±2σ bands.", "Same family as Bollinger; the ±1σ is the value area of close. Mean-reversion at ±2σ, trend when close holds outside ±1σ.", "Bloomberg average & deviation."],
       gdx: ["Golden / Death Cross", "Trend", "SMA 50 / SMA 200 with GOLDEN / DEATH markers on cross.", "Lagging by design. The cross confirms a trend that started weeks earlier. Use Weekly SMA 10/40 for a faster HTF read.", "The classic 50/200."],
       hv: ["Hist Vol 20", "Volatility", "Close-to-close log-return standard deviation, annualized √252, in percent.", "Realized vol. Compare to ATR % (range vol). A vol crush with BB Width low is the squeeze setup.", "Historical / realized volatility."],
-      beta: ["Beta vs SPY", "Stats", "Rolling 60-bar slope of this name's returns on SPY returns.", "Beta 1 on SPY is tautology. On a stock, rising beta into a rally means the move is market, not alpha (see Alpha vs SPY).", "OLS beta."],
-      rsline: ["RS vs SPY", "Stats", "Price relative to SPY, rebased to 100 at the first aligned bar.", "Rising RS = outperforming. Does not adjust for beta — a 2-beta name will look strong in a bull. Use Alpha for the residual.", "Relative strength line."]
+      beta: ["Beta vs SPY", "Stats", "Rolling 60-bar slope of this name's returns on the S&P 500 cash index (same NY-day join as vs S&P 500).", "Beta 1 on SPX is tautology. On a stock, rising beta into a rally means the move is market, not alpha.", "OLS beta vs GSPC."],
+      rsline: ["RS vs SPY", "Stats", "Price relative, rebased to 100 at the first aligned bar. Now joined to S&P 500 cash on NY session days (same engine as vs S&P 500). Prefer the vs S&P 500 pane for RS 50/200 and full-history excess.", "Rising RS = outperforming. Does not adjust for beta.", "Relative strength line."]
     };
     var pack = TAPE[id] || STUDY[id];
     var title, tag, what, how, cave;

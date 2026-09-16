@@ -1,5 +1,6 @@
 /* JustHodl institutional studies — FVG, OR/IB, overnight, ADR, LinReg channel,
-   earnings AVWAP, equal H/L, session map. Pure OHLC; no tick, no GEX. */
+   earnings AVWAP, equal H/L, session map, vs S&P 500 (cash, exact NY-day join).
+   Pure OHLC; no tick, no GEX. */
 (function (root) {
   if (root.__jhInstV1) return;
   root.__jhInstV1 = true;
@@ -304,16 +305,135 @@
   }
 
   function ratioVs(d, spy) {
-    if (!d || !spy || !spy.length) return [];
-    var j = 0, o = [], i;
+    var j = alignExact(d, spy), o = [], i;
+    for (i = 0; i < j.length; i++) if (j[i].s) o.push({ time: j[i].time, value: j[i].a / j[i].s });
+    return o;
+  }
+  function barGap(d) {
+    if (!d || d.length < 3) return 86400;
+    var g = d[d.length - 1].time - d[d.length - 2].time;
+    return g > 0 ? g : 86400;
+  }
+  function alignExact(d, bench) {
+    if (!d || !bench || !d.length || !bench.length) return [];
+    var intra = isIntra(d) && isIntra(bench);
+    var o = [], i, k, j;
+    if (!intra) {
+      var map = {};
+      for (i = 0; i < bench.length; i++) {
+        k = nyClock(bench[i].time).key;
+        if (bench[i].close) map[k] = { s: bench[i].close, si: i };
+      }
+      for (i = 0; i < d.length; i++) {
+        k = nyClock(d[i].time).key;
+        if (!map[k] || !d[i].close) continue;
+        o.push({ time: d[i].time, a: d[i].close, s: map[k].s, ai: i, si: map[k].si, day: k });
+      }
+      return o;
+    }
+    var byT = {}, byDay = {};
+    var gap = Math.max(30, Math.min(barGap(d), barGap(bench)) / 2);
+    for (i = 0; i < bench.length; i++) {
+      if (!bench[i].close) continue;
+      byT[bench[i].time] = { s: bench[i].close, si: i, t: bench[i].time };
+      k = nyClock(bench[i].time).key;
+      if (!byDay[k]) byDay[k] = [];
+      byDay[k].push(bench[i]);
+    }
     for (i = 0; i < d.length; i++) {
-      var ts = d[i].time;
-      while (j + 1 < spy.length && Math.abs(spy[j + 1].time - ts) <= Math.abs(spy[j].time - ts)) j++;
-      if (Math.abs(spy[j].time - ts) > 7 * 86400) continue;
-      if (spy[j].close) o.push({ time: ts, value: d[i].close / spy[j].close });
+      if (!d[i].close) continue;
+      var hit = byT[d[i].time];
+      if (!hit) {
+        k = nyClock(d[i].time).key;
+        var rows = byDay[k] || [], best = null, bd = 1e99;
+        for (j = 0; j < rows.length; j++) {
+          var dd = Math.abs(rows[j].time - d[i].time);
+          if (dd < bd) { bd = dd; best = rows[j]; }
+        }
+        if (best && bd <= gap) hit = { s: best.close, si: 0, t: best.time };
+      }
+      if (!hit) continue;
+      o.push({ time: d[i].time, a: d[i].close, s: hit.s, ai: i, si: hit.si });
     }
     return o;
   }
+  function smaVals(pts, n) {
+    var o = [], s = 0, i;
+    for (i = 0; i < pts.length; i++) {
+      s += pts[i].value;
+      if (i >= n) s -= pts[i - n].value;
+      if (i >= n - 1) o.push({ time: pts[i].time, value: s / n });
+    }
+    return o;
+  }
+  function xsBars(j, n) {
+    if (!j || j.length <= n) return null;
+    var a = j[j.length - 1], b = j[j.length - 1 - n];
+    if (!b.a || !b.s || !a.s) return null;
+    return (a.a / b.a) / (a.s / b.s) - 1;
+  }
+  function xsYtd(j) {
+    if (!j || j.length < 2) return null;
+    var yNow = nyClock(j[j.length - 1].time).y, i, lastPrev = null, firstThis = null;
+    for (i = 0; i < j.length; i++) {
+      var y = nyClock(j[i].time).y;
+      if (y < yNow) lastPrev = j[i];
+      else if (y === yNow && !firstThis) firstThis = j[i];
+    }
+    var b = lastPrev || firstThis, a = j[j.length - 1];
+    if (!b || b === a || !b.a || !b.s || !a.s) return null;
+    return (a.a / b.a) / (a.s / b.s) - 1;
+  }
+  function betaLast(j, n) {
+    n = n || 252;
+    if (j.length < n + 2) n = j.length - 2;
+    if (n < 20) return null;
+    var i0 = j.length - 1 - n, i, ra, rs, sa = 0, ss = 0, sas = 0, ss2 = 0;
+    var ras = [], rss = [];
+    for (i = i0 + 1; i < j.length; i++) {
+      if (!j[i - 1].a || !j[i - 1].s) continue;
+      ra = j[i].a / j[i - 1].a - 1;
+      rs = j[i].s / j[i - 1].s - 1;
+      ras.push(ra); rss.push(rs);
+      sa += ra; ss += rs;
+    }
+    if (ras.length < 20) return null;
+    var ma = sa / ras.length, ms = ss / ras.length;
+    for (i = 0; i < ras.length; i++) {
+      sas += (ras[i] - ma) * (rss[i] - ms);
+      ss2 += (rss[i] - ms) * (rss[i] - ms);
+    }
+    return ss2 ? sas / ss2 : null;
+  }
+  function vsSpxPack(d, bench) {
+    var j = alignExact(d, bench);
+    if (j.length < 2) return { n: 0, rs: [], sma50: [], sma200: [], last: {}, note: "no overlapping S&P 500 session", from: null, to: null };
+    var a0 = j[0].a, s0 = j[0].s, rs = [], i;
+    for (i = 0; i < j.length; i++) rs.push({ time: j[i].time, value: 100 * (j[i].a / a0) / (j[i].s / s0) });
+    var lastRs = rs[rs.length - 1].value;
+    return {
+      n: j.length,
+      from: j[0].time,
+      to: j[j.length - 1].time,
+      rs: rs,
+      sma50: smaVals(rs, 50),
+      sma200: smaVals(rs, 200),
+      last: {
+        rs: lastRs,
+        d1: xsBars(j, 1),
+        w: xsBars(j, 5),
+        m: xsBars(j, 21),
+        q: xsBars(j, 63),
+        hy: xsBars(j, 126),
+        y: xsBars(j, 252),
+        ytd: xsYtd(j),
+        all: lastRs / 100 - 1,
+        beta: betaLast(j, 252)
+      },
+      note: ""
+    };
+  }
+
 
   function snapYmd(d, ymd) {
     var ts = Date.parse(String(ymd || "").slice(0, 10) + "T20:00:00.000Z") / 1000;
@@ -385,6 +505,8 @@
     globalSessions: globalSessions,
     separators: separators,
     ratioVs: ratioVs,
+    alignExact: alignExact,
+    vsSpxPack: vsSpxPack,
     insiderMarks: insiderMarks,
     buybackMarks: buybackMarks,
     orZones: orZones,

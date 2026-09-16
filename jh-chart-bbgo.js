@@ -14,7 +14,7 @@
     { id: "GPL", n: "Line chart", g: "Chart", kind: "line" },
     { id: "GIP", n: "Intraday graph + RTH shade", g: "Chart", tf: "5m" },
     { id: "HP", n: "Historical prices", g: "Chart" },
-    { id: "RV", n: "Relative value / vs SPY", g: "Equity" },
+    { id: "RV", n: "Relative value / vs S&P 500", g: "Equity" },
     { id: "EE", n: "Earnings & estimates", g: "Equity", tab: "est" },
     { id: "ANR", n: "Analyst ratings", g: "Equity", href: "/analyst-actions.html" },
     { id: "CN", n: "Company news", g: "Equity", tab: "news" },
@@ -42,7 +42,7 @@
     { id: "GPV", n: "GP with volume", g: "Chart" },
     { id: "GPF", n: "Fundamentals overlay (FA)", g: "Chart", tab: "val" },
     { id: "TRA", n: "Total return (indexed 100)", g: "Chart", osc: "tra" },
-    { id: "BETA", n: "Beta vs SPY", g: "Chart", osc: "beta" },
+    { id: "BETA", n: "Beta vs S&P 500", g: "Chart", osc: "beta" },
     { id: "CORR", n: "Correlation", g: "Market", ws: "corr" },
     { id: "CMP", n: "Compare (add overlay)", g: "Chart" },
     { id: "MAGS", n: "Magnificent 7 vs this name", g: "Chart" },
@@ -111,6 +111,9 @@
     { id: "GSESS", n: "Asia / London / NY sessions", g: "Studies", ind: "gsess" },
     { id: "SEP", n: "Session separators", g: "Studies", ind: "sep" },
     { id: "RATIO", n: "Price ratio vs SPY", g: "Studies", osc: "ratio" },
+    { id: "VSSPX", n: "vs S&P 500 (full-history RS)", g: "Studies", osc: "vsspx" },
+    { id: "RSPX", n: "Relative strength vs SPX", g: "Studies", osc: "vsspx" },
+    { id: "REL", n: "Relative vs S&P 500", g: "Studies", osc: "vsspx" },
     { id: "GPDESK", n: "Desk template (SMA/ADR/FVG/events)", g: "Chart" },
     { id: "LIN", n: "Linear scale", g: "Chart", scale: 0 },
     { id: "LOG", n: "Log scale", g: "Chart", scale: 1 },
@@ -282,7 +285,7 @@
     }
     if (fn === "HP") { if (!renderHp() && opts.page) location.href = "/chart.html?s=" + encodeURIComponent(sym || activeSym()) + "&fn=HP"; return { ok: true, fn: fn }; }
     if (fn === "RV") {
-      toggleOsc("rsline");
+      toggleOsc("vsspx");
       toggleOsc("beta");
       if (ctx.jhOpenDataTypePanel) ctx.jhOpenDataTypePanel("val");
       return { ok: true, fn: fn };

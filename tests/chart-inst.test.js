@@ -24,9 +24,9 @@ function bar(t, o, h, l, c, v) {
 }
 
 test("chart.html loads inst studies and a visible go-to-date", () => {
-  assert.match(html, /jh-chart-inst\.js\?v=20260915ad-desk/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260915ae-qx/);
-  assert.match(html, /jh-chart-bbgo\.js\?v=20260915ad-desk/);
+  assert.match(html, /jh-chart-inst\.js\?v=20260915af-spx/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260915af-spx/);
+  assert.match(html, /jh-chart-bbgo\.js\?v=20260915af-spx/);
   assert.match(html, /#tfbar #goto/);
   assert.doesNotMatch(html, /\[object Object\]/);
   assert.doesNotMatch(html, /undefined%/);
@@ -172,7 +172,7 @@ test("GO catalog maps FVG OR ADR EAVWAP GPDESK without stealing INS page", () =>
   vm.createContext(ctx);
   vm.runInContext(goSrc, ctx);
   const ids = ctx.window.jhBbGo.catalog().map((f) => f.id);
-  ["FVG", "EQH", "OR", "IB", "ONH", "ADR", "LRCH", "EAVWAP", "GSESS", "SEP", "BUYB", "INSC", "RATIO", "GPDESK"].forEach((id) => {
+  ["FVG", "EQH", "OR", "IB", "ONH", "ADR", "LRCH", "EAVWAP", "GSESS", "SEP", "BUYB", "INSC", "RATIO", "VSSPX", "RSPX", "REL", "GPDESK"].forEach((id) => {
     assert.ok(ids.indexOf(id) >= 0, "missing " + id);
   });
   const ins = ctx.window.jhBbGo.catalog().filter((f) => f.id === "INS")[0];
@@ -180,6 +180,10 @@ test("GO catalog maps FVG OR ADR EAVWAP GPDESK without stealing INS page", () =>
   const r = ctx.window.jhBbGo.parse("AAPL FVG");
   assert.equal(r.fn, "FVG");
   assert.equal(r.sym, "AAPL");
+  const v = ctx.window.jhBbGo.parse("AAPL VSSPX");
+  assert.equal(v.fn, "VSSPX");
+  assert.equal(v.sym, "AAPL");
+  assert.equal(ctx.window.jhBbGo.catalog().filter((f) => f.id === "VSSPX")[0].osc, "vsspx");
 });
 
 test("indux documents the new studies honestly", () => {
@@ -189,4 +193,139 @@ test("indux documents the new studies honestly", () => {
   assert.match(indux, /Needs 5m bars/);
   assert.match(indux, /No tick, no DOM/);
   assert.match(indux, /AVWAP from earnings/);
+  assert.match(indux, /cash index 1927/);
+  assert.match(indux, /not SPY's 1993/);
+  assert.match(indux, /vsspx: \["vs S&P 500"/);
+  assert.match(indux, /Not total-return\. Not SPY/);
+});
+
+test("engine wires vs S&P 500 cash, loadBench, and prefers yf GSPC", () => {
+  assert.match(engine, /id:"vsspx"/);
+  assert.match(engine, /n:"vs S&P 500"/);
+  assert.match(engine, /function loadBench/);
+  assert.match(engine, /function loadSpxDaily/);
+  assert.match(engine, /klines\("\^GSPC"/);
+  assert.match(engine, /lastBenchName="SPY"/);
+  assert.match(engine, /vs SPY \(intraday\)/);
+  assert.match(engine, /window\.lastVsSpx/);
+  assert.match(engine, /function fmtXs/);
+  assert.match(engine, /vs SPX 1d /);
+  assert.doesNotMatch(engine, /7\s*\*\s*86400/);
+  assert.doesNotMatch(instSrc, /7\s*\*\s*86400/);
+  assert.match(instSrc, /function alignExact/);
+  assert.match(instSrc, /function vsSpxPack/);
+});
+
+function dayTs(ymd) {
+  return Date.parse(ymd + "T18:00:00.000Z") / 1000;
+}
+
+test("identical path vs SPX stays RS 100 and zero excess", () => {
+  const inst = loadInst();
+  const d = [], b = [];
+  const px = [100, 102, 105, 110, 108];
+  const days = ["2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09"];
+  for (let i = 0; i < days.length; i++) {
+    d.push(bar(dayTs(days[i]), px[i], px[i], px[i], px[i]));
+    b.push(bar(dayTs(days[i]), px[i] * 10, px[i] * 10, px[i] * 10, px[i] * 10));
+  }
+  const pack = inst.vsSpxPack(d, b);
+  assert.equal(pack.n, 5);
+  pack.rs.forEach((p) => assert.ok(Math.abs(p.value - 100) < 1e-9, String(p.value)));
+  assert.ok(Math.abs(pack.last.all) < 1e-12);
+  assert.ok(Math.abs(pack.last.d1) < 1e-12);
+  assert.equal(pack.last.rs, 100);
+});
+
+test("name +20% vs SPX +10% is RS 109.09 and all +9.09%", () => {
+  const inst = loadInst();
+  const d = [
+    bar(dayTs("2026-01-05"), 100, 100, 100, 100),
+    bar(dayTs("2026-01-06"), 110, 110, 110, 110),
+    bar(dayTs("2026-01-07"), 120, 120, 120, 120)
+  ];
+  const b = [
+    bar(dayTs("2026-01-05"), 1000, 1000, 1000, 1000),
+    bar(dayTs("2026-01-06"), 1050, 1050, 1050, 1050),
+    bar(dayTs("2026-01-07"), 1100, 1100, 1100, 1100)
+  ];
+  const pack = inst.vsSpxPack(d, b);
+  assert.equal(pack.n, 3);
+  assert.ok(Math.abs(pack.last.rs - 100 * 1.2 / 1.1) < 1e-9);
+  assert.ok(Math.abs(pack.last.all - (1.2 / 1.1 - 1)) < 1e-9);
+  const d1 = (120 / 110) / (1100 / 1050) - 1;
+  assert.ok(Math.abs(pack.last.d1 - d1) < 1e-9);
+});
+
+test("exact NY-day join skips a missing bench session and never 7-day nearest", () => {
+  const inst = loadInst();
+  const d = [
+    bar(dayTs("2026-01-05"), 100, 100, 100, 100),
+    bar(dayTs("2026-01-06"), 110, 110, 110, 110),
+    bar(dayTs("2026-01-07"), 120, 120, 120, 120)
+  ];
+  const b = [
+    bar(dayTs("2026-01-05"), 1000, 1000, 1000, 1000),
+    bar(dayTs("2026-01-07"), 1100, 1100, 1100, 1100)
+  ];
+  const j = inst.alignExact(d, b);
+  assert.equal(j.length, 2);
+  assert.equal(inst.nyClock(j[0].time).key, inst.nyClock(dayTs("2026-01-05")).key);
+  assert.equal(inst.nyClock(j[1].time).key, inst.nyClock(dayTs("2026-01-07")).key);
+  const fiveOff = inst.alignExact(
+    [bar(dayTs("2026-01-12"), 100, 100, 100, 100)],
+    [bar(dayTs("2026-01-07"), 1000, 1000, 1000, 1000)]
+  );
+  assert.equal(fiveOff.length, 0, "5-day gap must not join (old 7-day window would)");
+  const twentyOff = inst.alignExact(
+    [bar(dayTs("2026-01-05"), 100, 100, 100, 100), bar(dayTs("2026-01-25"), 120, 120, 120, 120)],
+    [bar(dayTs("2026-01-05"), 1000, 1000, 1000, 1000)]
+  );
+  assert.equal(twentyOff.length, 1);
+  const sameDayDiffUnix = inst.alignExact(
+    [bar(Date.parse("2026-01-05T14:30:00.000Z") / 1000, 100, 100, 100, 100)],
+    [bar(Date.parse("2026-01-05T05:00:00.000Z") / 1000, 1000, 1000, 1000, 1000)]
+  );
+  assert.equal(sameDayDiffUnix.length, 1, "same NY day, different unix, still joins");
+});
+
+test("YTD excess is vs prior-year last close, not first print of the year", () => {
+  const inst = loadInst();
+  const d = [
+    bar(dayTs("2025-12-31"), 100, 100, 100, 100),
+    bar(dayTs("2026-01-02"), 110, 110, 110, 110),
+    bar(dayTs("2026-01-05"), 120, 120, 120, 120)
+  ];
+  const b = [
+    bar(dayTs("2025-12-31"), 1000, 1000, 1000, 1000),
+    bar(dayTs("2026-01-02"), 1050, 1050, 1050, 1050),
+    bar(dayTs("2026-01-05"), 1100, 1100, 1100, 1100)
+  ];
+  const pack = inst.vsSpxPack(d, b);
+  const ytd = (120 / 100) / (1100 / 1000) - 1;
+  assert.ok(Math.abs(pack.last.ytd - ytd) < 1e-9, String(pack.last.ytd));
+  const fromFirst = (120 / 110) / (1100 / 1050) - 1;
+  assert.ok(Math.abs(pack.last.ytd - fromFirst) > 1e-6);
+});
+
+test("full-history join keeps pre-1993 overlap (cash SPX, not SPY)", () => {
+  const inst = loadInst();
+  const t1928 = dayTs("1928-01-03");
+  const t1980 = dayTs("1980-12-12");
+  const t1993 = dayTs("1993-01-29");
+  const bench = [], name = [];
+  for (let i = 0; i < 24000; i++) {
+    const t = t1928 + i * 86400;
+    bench.push(bar(t, 20, 20, 20, 20 + i * 0.01));
+  }
+  for (let i = 0; i < 5000; i++) {
+    const t = t1980 + i * 86400;
+    name.push(bar(t, 1, 1, 1, 1 + i * 0.02));
+  }
+  const pack = inst.vsSpxPack(name, bench);
+  assert.ok(pack.n >= 4000, "n=" + pack.n);
+  assert.ok(pack.from < t1993, "from=" + pack.from);
+  assert.equal(inst.nyClock(pack.from).y, 1980);
+  assert.ok(pack.n > 2000, "must keep the 1980–1993 overlap, not SPY-era only");
+  assert.ok(pack.last.rs > 0);
 });

@@ -39,6 +39,7 @@
     return { lo: lo, hi: hi, now: now, pctFromLo: pctFromLo, pctFromHi: pctFromHi };
   }
   function paintPanel(txt) {
+    if (window.lastVsSpx && window.lastVsSpx.n >= 2) return;
     var q = document.getElementById("quote");
     if (!q) return;
     var id = "jh-rs-line";
@@ -74,10 +75,17 @@
   };
   async function loadSpy() {
     if (spyCache && Date.now() - spyCache.at < 300000) return spyCache.d;
+    if (window.klines) {
+      try {
+        var d = await window.klines("^GSPC", "1d", true);
+        if (d && d.length >= 50) { spyCache = { d: d, at: Date.now() }; return d; }
+      } catch (eK) {}
+    }
     try {
-      var r = await fetch("https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=SPY", { cache: "no-store" });
+      var r = await fetch("https://justhodl-data-proxy.raafouis.workers.dev/yf-ohlc?symbol=%5EGSPC&range=max&interval=1d", { cache: "no-store" });
       var j = await r.json();
-      var bars = (j.bars || []).map(function (b) {
+      var rows = j.bars || j.ohlc || [];
+      var bars = rows.map(function (b) {
         var t = b.time; if (t > 1e12) t = Math.floor(t / 1000);
         return { time: t, close: +b.close, open: +b.open, high: +b.high, low: +b.low, volume: +(b.volume || b.value || 0) };
       });

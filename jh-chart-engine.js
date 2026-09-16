@@ -1,6 +1,7 @@
-/* JustHodl Chart engine v12.37 — surgical candle/scale/study quality (Bloomberg+). */
+/* JustHodl Chart engine v12.38 — vs S&P 500 cash (full history) + surgical candle quality. */
 (function () {
-  if (window.__jhChartEngineV1237) return;
+  if (window.__jhChartEngineV1238) return;
+  window.__jhChartEngineV1238 = true;
   window.__jhChartEngineV1237 = true;
   window.__jhChartEngineV1236 = true;
   window.__jhChartEngineV1235 = true;
@@ -33,7 +34,7 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
   var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","max"],["2d","2D","1d","max"],["3d","3D","1d","max"],["5d","5D","1d","max"],["1w","W","1wk","max"],["2w","2W","1wk","max"],["1M","M","1mo","max"],["3M","3M","3mo","max"]];
-  var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPY"]];
+  var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPX"]];
   var BARS = { dod:1, wow:5, mom:21, qoq:63, yoy:252 };
   var TABS = ["SPY","QQQ","IWM","AAPL","MSFT","NVDA","AMZN","META","TSLA","XLE","TLT","GLD"];
   var ISHARES = ["GSG","COMT","EWZS","CMDY","EWZ","LOCK","IAT","IVV","IWM","EEM","LQD","HYG","TLT","IEI"];
@@ -200,7 +201,8 @@
     {id:"tra",n:"Total return (100)",on:0,cat:"Stats",c:"#f0b429"},
     {id:"gseas",n:"Seasonality vs avg",on:0,cat:"Stats",c:"#26c6da"},
     {id:"ratio",n:"Ratio vs SPY",on:0,cat:"Stats",c:"#2962ff"},
-    {id:"adrpct",n:"ADR used %",on:0,cat:"Volatility",p:20,ob:100,os:50,c:"#089981"}
+    {id:"adrpct",n:"ADR used %",on:0,cat:"Volatility",p:20,ob:100,os:50,c:"#089981"},
+    {id:"vsspx",n:"vs S&P 500",on:0,cat:"Stats",c:"#2962ff",h:136}
   ];
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
@@ -210,6 +212,7 @@
   var calCache=null, calAt=0;
   var lastVolShow=false, volTapeEvents=[], lastPatPack=null, lastSdPack=null, lastSrPack=null, lastIch=null;
   var lastFvgPack=null, lastEqhPack=null, lastGSess=null, lastSeps=null, lastOrLv=null, lastOrPack=null, lastAdr=null, lastAtrPts=null, lastHudVwap=null;
+  var lastVsSpx=null, lastSpxDaily=null, lastBenchName="SPX";
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
   var stayTool=false, hideDraw=false, lockDraw=false, drawColor=ACC, drawW=1;
   var wtab="list", wsub="watch", watchOpen=false, layout=1, gridOn=true, watermark=true, invert=false, hiLo=true, crossMode=1;
@@ -429,6 +432,12 @@
     if(a>=1) return p.toFixed(2);
     if(a>=0.01) return p.toFixed(4);
     return p.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
+  }
+  function fmtXs(x){
+    if(x==null||!isFinite(x)) return "—";
+    var p=x*100;
+    var s=(p>=0?"+":"")+p.toFixed(Math.abs(p)>=100?1:2)+"%";
+    return s;
   }
   function fmtVol(v){ if(v>=1e12) return (v/1e12).toFixed(2)+"T"; if(v>=1e9) return (v/1e9).toFixed(2)+"B"; if(v>=1e6) return (v/1e6).toFixed(2)+"M"; if(v>=1e3) return (v/1e3).toFixed(1)+"K"; return String(Math.round(v||0)); }
   function toast(m){ var el=document.getElementById("toast"); el.textContent=m; el.className="on"; clearTimeout(toastT); toastT=setTimeout(function(){ el.className=""; }, 2800); }
@@ -894,11 +903,22 @@
     return o;
   }
   function alignSpy(d, spy){
+    if(window.jhInst && window.jhInst.alignExact) return window.jhInst.alignExact(d, spy);
     if(!spy||!spy.length||!d.length) return [];
-    var k=0, i, o=[];
+    var map={}, i, k, o=[];
+    function day(ts){
+      try{
+        var s=new Date(ts*1000).toLocaleString("en-US",{timeZone:"America/New_York",hour12:false});
+        var p=s.match(/(\d+)\/(\d+)\/(\d+)/);
+        if(p) return p[3]+"-"+p[1]+"-"+p[2];
+      }catch(e){}
+      return String(Math.floor(ts/86400));
+    }
+    for(i=0;i<spy.length;i++){ k=day(spy[i].time); if(spy[i].close) map[k]={s:spy[i].close,si:i}; }
     for(i=0;i<d.length;i++){
-      while(k+1<spy.length && Math.abs(spy[k+1].time-d[i].time)<=Math.abs(spy[k].time-d[i].time)) k++;
-      if(Math.abs(spy[k].time-d[i].time)<7*86400) o.push({time:d[i].time, a:d[i].close, s:spy[k].close, ai:i, si:k});
+      k=day(d[i].time);
+      if(!map[k]||!d[i].close) continue;
+      o.push({time:d[i].time, a:d[i].close, s:map[k].s, ai:i, si:map[k].si});
     }
     return o;
   }
@@ -1698,6 +1718,9 @@
       LIVE+"/data/series/"+encodeURIComponent(ys)+".json",
       LIVE+"/data/series/"+encodeURIComponent(t)+".json"
     ];
+    if(/^\^/.test(String(ys||"")) || /^\^/.test(String(t||""))){
+      urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range="+yRange+"&interval="+yInt);
+    }
     if(rs.engine==="fred" || rs.engine==="series" || /^FRED:/i.test(rs.raw) || (window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(rs.raw))){
       var fid=rs.raw;
       urls.unshift(PROXY+"/series?id="+encodeURIComponent(fid));
@@ -1745,21 +1768,34 @@
     if(m==="fromhigh"||m==="fromlow"){ var out2=[]; for(var i=0;i<closes.length;i++){ var ext=m==="fromhigh"?-1e99:1e99, t0=closes[i].time-365*86400; for(var j=0;j<=i;j++){ if(closes[j].time<t0) continue; var v=closes[j].value; if(m==="fromhigh"){ if(v>ext)ext=v; } else if(v<ext) ext=v; } if(ext&&isFinite(ext)) out2.push({time:closes[i].time,value:(closes[i].value/ext-1)*100}); } return out2; }
     var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;
   }
-  async function vsSpy(d){
-    spyBars=await klines("SPY", tf, true);
-    var spy=spyBars||[];
-    if(spy.length<2) spy=await klines("SPY","1d", true);
-    if(spy.length<2) return [];
-    var j=0, joined=[];
-    for(var i=0;i<d.length;i++){
-      var ts=d[i].time;
-      while(j+1<spy.length && Math.abs(spy[j+1].time-ts)<=Math.abs(spy[j].time-ts)) j++;
-      if(Math.abs(spy[j].time-ts)>7*86400) continue;
-      joined.push({time:ts,value:d[i].close,spy:spy[j].close});
+  async function loadSpxDaily(){
+    var d=await klines("^GSPC","1d", true);
+    if(!d||d.length<50) d=await klines("SPX","1d", true);
+    lastSpxDaily=d||[];
+    return lastSpxDaily;
+  }
+  async function loadBench(tfId){
+    var daily=await loadSpxDaily();
+    var id=spec(tfId)[0];
+    if(/^(1s|1m|3m|5m|15m|30m|45m|1h|2h|4h|12h)$/.test(id)){
+      var spy=await klines("SPY", tfId, true);
+      if(spy && spy.length>=20){ lastBenchName="SPY"; return spy; }
+      lastBenchName="SPX";
+      return [];
     }
-    if(joined.length<2) return [];
-    var t0=joined[0].value,s0=joined[0].spy;
-    return joined.map(function(p){ return {time:p.time,value:((p.value/t0)/(p.spy/s0)-1)*100}; });
+    lastBenchName="SPX";
+    if(id==="1d") return daily;
+    return resampleToTf(daily||[], tfId);
+  }
+  async function vsSpy(d){
+    spyBars=await loadBench(tf);
+    var spy=spyBars||[];
+    if(spy.length<2) spy=await loadSpxDaily();
+    if(spy.length<2) return [];
+    var j=alignSpy(d, spy);
+    if(j.length<2) return [];
+    var t0=j[0].a,s0=j[0].s;
+    return j.map(function(p){ return {time:p.time,value:((p.a/t0)/(p.s/s0)-1)*100}; });
   }
 
   (function bootLay(){
@@ -1937,6 +1973,7 @@
     overlayMap={};
     lastPatPack=null; lastSdPack=null; lastSrPack=null;
     lastFvgPack=null; lastEqhPack=null; lastGSess=null; lastSeps=null; lastOrLv=null; lastOrPack=null; lastAdr=null;
+    lastVsSpx=null;
     if(mode==="price"){
       var display=displayBars(d), c, pxF=pxFormat(display);
       function closePts(){ return display.map(function(b){ return {time:b.time,value:b.close}; }); }
@@ -2310,9 +2347,16 @@
       try{ chart.timeScale().fitContent(); }catch(e){}
     }
     try{ requestAnimationFrame(function(){ refreshHiLoVP(); }); }catch(eR){}
-    if(OSC.some(function(o){ return o.on && (o.id==="beta"||o.id==="rsline"||o.id==="corrspy"||o.id==="alpha"||o.id==="ratio"); })){
-      try{ if(!spyBars||spyBars.length<10) spyBars=await klines("SPY", tf, true); }catch(e){}
-    }
+    try{
+      spyBars=await loadBench(tf);
+      if(window.jhInst && lastSpxDaily && lastSpxDaily.length>=50){
+        var dailyName=window.jhInst.dailyFrom?window.jhInst.dailyFrom(d):d;
+        lastVsSpx=window.jhInst.vsSpxPack(dailyName, lastSpxDaily);
+      } else if(window.jhInst && spyBars && spyBars.length>=20){
+        lastVsSpx=window.jhInst.vsSpxPack(d, spyBars);
+      }
+      try{ window.lastVsSpx=lastVsSpx; window.lastBenchName=lastBenchName; }catch(eW){}
+    }catch(e){}
     paintOsc(d);
     drawSVG();
     paintPat();
@@ -2359,7 +2403,13 @@
     if(lastOrLv && lastOrLv.or15){
       adrBit+=" <span title='Opening range 15'>OR15 "+(last.close>=lastOrLv.or15.hi?"above": last.close<=lastOrLv.or15.lo?"below":"inside")+"</span>";
     }
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='vs 20-bar average'>RVOL "+(rvol?rvol.toFixed(2)+"x":"—")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    var vsBit="";
+    if(lastVsSpx && lastVsSpx.n>=2 && lastVsSpx.last){
+      var L=lastVsSpx.last;
+      var yr=lastVsSpx.from?(window.jhInst&&window.jhInst.nyClock?window.jhInst.nyClock(lastVsSpx.from).y:new Date(lastVsSpx.from*1000).getUTCFullYear()):"";
+      vsBit=" <span title='Price relative vs S&P 500 cash (GSPC). NY session join, no interpolation. RS rebased 100 at first overlap. Not SPY (1993).'>vs SPX 1d "+fmtXs(L.d1)+" · YTD "+fmtXs(L.ytd)+" · 1y "+fmtXs(L.y)+" · all "+fmtXs(L.all)+(yr?" · "+yr:"")+"</span>";
+    }
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='vs 20-bar average'>RVOL "+(rvol?rvol.toFixed(2)+"x":"—")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -2373,7 +2423,16 @@
     var atr14=atr(d,14), atrv=atr14.length?atr14[atr14.length-1].value:0;
     lastAtrPts=atr14; lastHudVwap=vwapPts;
     var vwapBias=vw&&twv? (vw>twv?"size at highs": vw<twv?"size at lows":"even"):"—";
-    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol?rvol.toFixed(2)+"x "+heat:"—")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div><div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
+    var vsCells="";
+    if(lastVsSpx && lastVsSpx.last && lastVsSpx.n>=2){
+      var LV=lastVsSpx.last;
+      vsCells="<div class=cell><span>vs SPX 1d</span><span class='"+(LV.d1>=0?"up":"dn")+"'>"+fmtXs(LV.d1)+"</span></div>"+
+        "<div class=cell><span>vs SPX YTD</span><span class='"+(LV.ytd>=0?"up":"dn")+"'>"+fmtXs(LV.ytd)+"</span></div>"+
+        "<div class=cell><span>vs SPX 1y</span><span class='"+(LV.y>=0?"up":"dn")+"'>"+fmtXs(LV.y)+"</span></div>"+
+        "<div class=cell><span>vs SPX all</span><span class='"+(LV.all>=0?"up":"dn")+"'>"+fmtXs(LV.all)+" · RS "+(LV.rs!=null?LV.rs.toFixed(1):"—")+"</span></div>"+
+        "<div class=cell><span>β vs SPX 1y</span><span>"+(LV.beta!=null?LV.beta.toFixed(2):"—")+"</span></div>";
+    }
+    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol?rvol.toFixed(2)+"x "+heat:"—")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
@@ -2643,6 +2702,26 @@
         addO(ap, o.c||"#089981");
         bands(o.os!=null?o.os:50, o.ob!=null?o.ob:100);
         if(ap.length){ var veAp=head.querySelector(".osc-v"); var lastAp=ap[ap.length-1].value; if(veAp&&lastAp!=null) veAp.textContent=lastAp.toFixed(0)+"% of ADR"; }
+      }
+      else if(o.id==="vsspx"){
+        var pack=null;
+        if(window.jhInst && spyBars && spyBars.length>=20) pack=window.jhInst.vsSpxPack(d, spyBars);
+        if((!pack||pack.n<2) && lastVsSpx) pack=lastVsSpx;
+        if(pack && pack.rs && pack.rs.length){
+          addO(pack.rs, "#2962ff");
+          try{
+            if(pack.sma50 && pack.sma50.length){ var rs50=c.addLineSeries({color:"#26c6da",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"RS 50"}); rs50.setData(pack.sma50); oscSeries.push(rs50); }
+            if(pack.sma200 && pack.sma200.length){ var rs200=c.addLineSeries({color:"#ff6d00",lineWidth:1.5,lastValueVisible:true,priceLineVisible:false,title:"RS 200"}); rs200.setData(pack.sma200); oscSeries.push(rs200); }
+            var z100=c.addLineSeries({color:"rgba(120,123,134,.45)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false,title:"100"});
+            z100.setData(pack.rs.map(function(p){ return {time:p.time,value:100}; })); oscSeries.push(z100);
+          }catch(eVs){}
+          var veVs=head.querySelector(".osc-v");
+          var nmVs=head.querySelector(".osc-n");
+          if(nmVs) nmVs.textContent=lastBenchName==="SPY"?"vs SPY (intraday)":"vs S&P 500";
+          if(veVs && pack.last) veVs.textContent="RS "+pack.last.rs.toFixed(2)+"  1d "+fmtXs(pack.last.d1)+"  YTD "+fmtXs(pack.last.ytd)+"  1y "+fmtXs(pack.last.y)+"  all "+fmtXs(pack.last.all)+(pack.last.beta!=null?"  β"+pack.last.beta.toFixed(2):"")+"  n="+pack.n;
+        } else {
+          var veMiss=head.querySelector(".osc-v"); if(veMiss) veMiss.textContent="no overlap";
+        }
       }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
@@ -5176,6 +5255,7 @@
   window.jhOpenDataTypeMenu=openDataType;
   window.jhGoSymbol=goSymbol;
   window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt};
+  window.jhFmtXs=fmtXs;
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetScale=function(m){ scaleMode=+m||0; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetTf=function(t){ if(!t) return; tf=t; renderTf(); load(); };

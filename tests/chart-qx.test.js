@@ -24,14 +24,14 @@ function loadQx() {
 }
 
 test("chart.html cache-busts the quality engine", () => {
-  assert.match(html, /jh-chart-engine\.js\?v=20260915ae-qx/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260915af-spx/);
   assert.match(html, /jh-chart-quality\.js\?v=20260915ae-qx/);
   assert.match(html, /font-variant-numeric:tabular-nums/);
   assert.doesNotMatch(html, /\[object Object\]/);
 });
 
 test("engine ships Bloomberg-grade candle, scale, and magnet defaults", () => {
-  assert.match(engine, /__jhChartEngineV1237/);
+  assert.match(engine, /__jhChartEngineV1238/);
   assert.match(engine, /v12\.34/);
   assert.match(engine, /crossMode=1/);
   assert.match(engine, /thinBars:true/);
