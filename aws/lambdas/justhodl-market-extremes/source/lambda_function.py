@@ -317,6 +317,30 @@ def lambda_handler(event, context):
             "market-timing oracle and not investment advice."),
     }
 
+    # ops 5693 quality + FR2004 fails (add-only)
+    out["call"] = None
+    out["quality"] = {
+        "publication_date": now.isoformat(),
+        "frequency": "daily",
+        "freshness_basis": "publication",
+        "status": "fresh",
+        "note": "Composite cycle radar. Not Calls-eligible until scored.",
+    }
+    try:
+        _sf = read_json("data/settlement-fails.json") or {}
+        _tr = _sf.get("treasury") or {}
+        _hd = _sf.get("headline") or {}
+        out["pd_settlement_fails"] = {
+            "as_of": _tr.get("as_of") or _hd.get("as_of"),
+            "ftd_bn": _tr.get("ftd_bn") if _tr.get("ftd_bn") is not None else _hd.get("ftd_bn"),
+            "ftr_bn": _tr.get("ftr_bn") if _tr.get("ftr_bn") is not None else _hd.get("ftr_bn"),
+            "combined_bn": _tr.get("gross_bn") if _tr.get("gross_bn") is not None else _hd.get("combined_bn"),
+            "unit": "usd_bn",
+            "source": "data/settlement-fails.json",
+        }
+    except Exception:
+        pass
+
     try:
         s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                       Body=json.dumps(out, default=str).encode("utf-8"),
