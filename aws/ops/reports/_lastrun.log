@@ -1,12 +1,7 @@
-executing-against: 48c6160a2720bfe2ccf646c54a701001c84f82ae
+executing-against: ca2ebf29a8b75ce970bb1766a43040127e764261
+[19:18:54] ✅ manufacturing-global-agent: pinned source, live AWS hash and corrected publication verified
+[19:19:04] ✅ justhodl-macro-nowcast: pinned source, live AWS hash and corrected publication verified
+[19:19:07] ✅ justhodl-yield-curve: pinned source, live AWS hash and corrected publication verified
+[19:19:11] ✅ justhodl-us10y-sentinel: pinned source, live AWS hash and corrected publication verified
 
-→ Report written to aws/ops/reports/latest/ops_5635_yield_release_readback.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5635_yield_release_readback.py", line 76, in <module>
-    if __name__=='__main__':sys.exit(main())
-                                     ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5635_yield_release_readback.py", line 54, in main
-    assert not differences,'Deployed source differs from pinned commit; no receipt written or invoke performed'
-           ^^^^^^^^^^^^^^^
-AssertionError: Deployed source differs from pinned commit; no receipt written or invoke performed
-❌ OPS-FAIL: aws/ops/pending/ops_5635_yield_release_readback.py
+→ Report written to aws/ops/reports/latest/ops_5636_macro_yield_measurement_verify.md
