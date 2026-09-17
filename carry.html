@@ -366,8 +366,8 @@
 <!-- FOOTER -->
 <footer class="max-w-[1500px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
   <div class="border-t border-[var(--border)] pt-6">
-    <div class="mb-2"><strong>Methodology:</strong> Equity carry = forward div yield + buyback yield − financing cost (SOFR proxy); ETF yields from declared TTM distributions. FX carry = long currency rate − short currency rate (3M interbank). Fixed Income = YTM − financing. Commodity = −roll yield (structural estimate blended with observed ETF-spot basis, winsorized), annualized; positive = backwardation. Cross-class normalized via z-score within class. Dislocation z = carry vs the asset's own trailing history. Unwind fragility = carry richness + realized vol + extension, scaled by a live risk-regime multiplier.</div>
-    <div class="mt-3 mono">Data: <a href="data/carry-surface.json" class="text-[var(--blue)] hover:underline">carry-surface.json</a> · Refresh: daily 13:00 UTC via <code>justhodl-carry-surface</code> Lambda · Academic basis: Koijen-Moskowitz-Pedersen-Vrugt (2018)</div>
+    <div class="mb-2"><strong>Methodology:</strong> Equity cash-income carry = trailing dividend yield − effective Fed funds funding proxy. Buybacks are shown separately as shareholder yield, not cash income; ETF yields use declared TTM distributions. FX carry = long currency rate − short currency rate (3M interbank). Fixed Income = YTM − financing. Commodity roll yield is unavailable until a dated futures curve is supplied; structural assumptions and ETF-versus-spot returns are excluded. Cross-class normalized via z-score within class. Dislocation z = carry vs the asset's own trailing history. Unwind fragility = carry richness + realized vol + extension, scaled by a live risk-regime multiplier.</div>
+    <div class="mt-3 mono">Data: <a href="data/carry-surface.json" class="text-[var(--blue)] hover:underline">carry-surface.json</a> · Refresh: every four hours via <code>justhodl-carry-surface</code> Lambda · Academic basis: Koijen-Moskowitz-Pedersen-Vrugt (2018)</div>
   </div>
 </footer>
 
@@ -485,6 +485,13 @@ function rowHtmlExtended(r) {
 }
 
 function renderTables(d) {
+  const expired = !d.generated_at || Date.now() - Date.parse(d.generated_at) > 12*3600000;
+  const unusable = expired || ['stale','invalid','unavailable'].includes(d.quality?.status || 'unavailable');
+  if (unusable) {
+    d = {...d, cross_asset_top: [], cross_asset_bottom: [], risk_adjusted_leaders: [], dislocation_leaders: [],
+      unwind_overlay: {...(d.unwind_overlay || {}), verdict: 'UNKNOWN — snapshot unavailable or stale', cohort_fragility: null, fragile_assets: []},
+      quality: {...(d.quality || {}), status: expired ? 'stale' : (d.quality?.status || 'unavailable')}};
+  }
   // KPIs
   const top = (d.cross_asset_top || [])[0];
   const bot = (d.cross_asset_bottom || [])[0];
@@ -504,7 +511,7 @@ function renderTables(d) {
   document.getElementById('kpi-financing').textContent = fmtPct(d.financing_rate_pct);
   document.getElementById('hero-financing').textContent = fmtPct(d.financing_rate_pct) + ' financing';
   document.getElementById('hero-n-assets').textContent = d.n_assets;
-  document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
+  document.getElementById('updated').textContent = 'Published ' + new Date(d.generated_at).toLocaleString() + ' · ' + (d.quality?.status || 'unavailable').toUpperCase() + (d.quality?.missing?.length ? ' · ' + d.quality.missing.length + ' missing inputs; commodity curves unavailable' : '');
 
   // Regime
   renderRegime(d.regime_summary || {});
@@ -586,7 +593,7 @@ function renderUnwind(d) {
   const rows = (u.fragile_assets || []);
   if (!rows.length) {
     document.getElementById('unwind-table').innerHTML =
-      `<tr><td colspan="7" class="text-[var(--text-muted)] text-xs py-3">No assets currently flagged fragile — carry cohort is not stretched in this regime.</td></tr>`;
+      `<tr><td colspan="7" class="text-[var(--text-muted)] text-xs py-3">No eligible fragility estimates are available. Missing or stale inputs do not imply low risk.</td></tr>`;
   } else {
     document.getElementById('unwind-table').innerHTML = rows.map((a, i) => `
       <tr>

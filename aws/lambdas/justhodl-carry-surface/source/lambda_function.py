@@ -13,14 +13,14 @@ right now, across every asset class?"
 
 ASSET CLASSES & CARRY DEFINITIONS:
 -----------------------------------
-EQUITY:    forward_div_yield + buyback_yield - financing_cost
+EQUITY:    cash dividends minus financing; buybacks separately as shareholder yield
            (financing = SOFR / Fed funds upper bound)
 FX:        long_currency_rate - short_currency_rate
            (3M interbank rates from FRED IR3TIB01 series)
 FIXED INC: yield_to_maturity - financing_cost
            (Treasuries: DGS{N} - SOFR; Credit: index yield - default-adj)
-COMMODITY: -roll_yield  (front - next / front), annualized
-           (positive carry = backwardation; negative = contango)
+COMMODITY: unavailable until a dated futures curve is supplied.
+           ETF-minus-spot returns and structural assumptions are not observed roll yield.
 
 For each asset within a class:
   1. Pull raw carry inputs
@@ -60,7 +60,9 @@ try:
 except Exception:
     pass
 
-VERSION = "1.4.0"
+from carry_contract import encode_public, number, quality, stale_snapshot
+
+VERSION = "1.5.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -210,10 +212,25 @@ def fred_series(series_id, limit=400):
     return out
 
 
+def rate_observation(series_id, max_age_days=10):
+    """A dated FRED rate; empty, nonfinite, future and expired observations stay unusable."""
+    now = datetime.now(timezone.utc)
+    try:
+        rows = fred_series(series_id, limit=20)
+        if not rows:
+            return {"value": None, "as_of": None, "status": "unavailable"}
+        day, raw = rows[0]
+        value = number(raw)
+        age = (now.date() - datetime.fromisoformat(day).date()).days
+        status = "invalid" if age < 0 or value is None else "stale" if age > max_age_days else "fresh"
+        return {"value": value if status == "fresh" else None, "as_of": day, "status": status}
+    except Exception:
+        return {"value": None, "as_of": None, "status": "unavailable"}
+
+
 def fred_latest(series_id):
-    """Latest non-missing value for a FRED series."""
-    series = fred_series(series_id, limit=20)
-    return series[0][1] if series else None
+    age = 120 if series_id.startswith("IR") else 10
+    return rate_observation(series_id, age)["value"]
 
 
 def fred_change(series_id, days_back, today_value=None):
@@ -252,6 +269,7 @@ def fmp_quote_with_history(symbol, days=90):
             return {
                 'symbol': symbol,
                 'current': closes[0] if closes else None,
+                'as_of': history[0].get('date'),
                 'closes': closes,
             }
     except Exception as e:
@@ -312,7 +330,7 @@ def _dy_from_dividends(symbol, price):
             for row in data:
                 d = row.get('date') or row.get('recordDate') or ''
                 amt = row.get('dividend') if row.get('dividend') is not None else row.get('adjDividend')
-                if d and d >= cutoff and amt is not None:
+                if d and cutoff <= d <= datetime.now(timezone.utc).date().isoformat() and amt is not None:
                     ttm += float(amt)
                     found = True
             if not found:
@@ -336,8 +354,7 @@ def fmp_dividend_yield_ttm(symbol, price=None):
     dy = _dy_from_ratios_ttm(symbol)
     if dy is not None:
         return dy
-    if symbol in KNOWN_NONPAYERS:
-        return 0.0  # verified non-payer: 0 is real data
+    # A static non-payer list is not evidence when a live provider request fails.
     return None  # unknown — signal failure upstream, don't fake a zero
 
 
@@ -349,12 +366,14 @@ def fmp_buyback_yield(symbol):
         if isinstance(data, list) and data:
             row = data[0]
             # Some FMP responses have buybackYieldTTM directly
-            by = row.get('buybackYieldTTM') or row.get('netBuybackYieldTTM')
+            by = row.get('buybackYieldTTM')
+            if by is None:
+                by = row.get('netBuybackYieldTTM')
             if by is not None:
                 return float(by)
     except Exception:
         pass
-    return 0.0
+    return None
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -394,7 +413,10 @@ def zscore_within_class(items, key):
 
 
 def compute_equity_carry(financing_rate_pct):
-    """For each equity, carry = div_yield + buyback_yield - financing_cost (all in %)."""
+    """Cash-income carry is dividend yield minus financing; buybacks are separate shareholder yield."""
+    if financing_rate_pct is None:
+        return [{'symbol': symbol, 'asset_class': 'equity', 'carry_pct': None,
+                 'dormant': True, 'dormant_reason': 'financing_rate_unavailable'} for symbol in EQUITY_UNIVERSE]
     print(f"[equity] processing {len(EQUITY_UNIVERSE)} tickers...")
     results = []
     
@@ -421,17 +443,22 @@ def compute_equity_carry(financing_rate_pct):
                     'price': price,
                 }
 
-            # Buyback: fmp_buyback_yield already returns PERCENT (or 0.0 fallback).
-            by_pct = float(by) if by is not None else 0.0
+            # Buyback is a shareholder-yield component, not cash received by a continuing holder.
+            by_pct = number(by)
 
             vol = realized_vol_annualized(closes) if len(closes) > 20 else None
-            carry_pct = round(dy_pct + by_pct - financing_rate_pct, 3)
+            carry_pct = round(dy_pct - financing_rate_pct, 3)
 
             return {
                 'symbol': symbol,
                 'asset_class': 'equity',
                 'div_yield_pct': round(dy_pct, 3),
-                'buyback_yield_pct': round(by_pct, 3),
+                'buyback_yield_pct': round(by_pct, 3) if by_pct is not None else None,
+                'shareholder_yield_pct': round(dy_pct + by_pct, 3) if by_pct is not None else None,
+                'cash_income_yield_pct': round(dy_pct, 3),
+                'measurement': 'cash_dividend_yield_minus_financing',
+                'observation_date': hist.get('as_of') if hist else None,
+                'buyback_note': 'Shareholder yield; not cash income. Missing buyback data stays null.',
                 'financing_pct': round(financing_rate_pct, 3),
                 'carry_pct': carry_pct,
                 'realized_vol_pct': round(vol, 2) if vol else None,
@@ -500,6 +527,9 @@ def compute_fx_carry():
 
 def compute_fi_carry(financing_rate_pct):
     """Fixed income carry: yield - financing."""
+    if financing_rate_pct is None:
+        return [{'symbol': symbol, 'asset_class': 'fixed_income', 'carry_pct': None,
+                 'dormant': True, 'dormant_reason': 'financing_rate_unavailable'} for symbol in FIXED_INCOME]
     print(f"[fi] processing {len(FIXED_INCOME)} fixed income instruments...")
     results = []
     for label, (series, _) in FIXED_INCOME.items():
@@ -525,68 +555,16 @@ def compute_fi_carry(financing_rate_pct):
 
 
 def compute_commodity_carry():
-    """Commodity carry = -roll_yield (positive = backwardation).
-    We use structural estimates from historical commodity research as base,
-    then adjust based on recent ETF performance vs spot."""
-    print(f"[commodity] processing {len(COMMODITY_UNIVERSE)} commodities...")
-    results = []
-    
-    for etf_sym, (fmp_sym, spot_fred, structural_pct) in COMMODITY_UNIVERSE.items():
-        try:
-            # Get ETF historical data for vol
-            hist = fmp_quote_with_history(fmp_sym, 60)
-            closes = hist.get('closes', []) if hist else []
-            vol = realized_vol_annualized(closes) if len(closes) > 20 else None
-            
-            # Roll-yield estimate. The ETF-vs-spot basis over a trailing window is a proxy,
-            # but annualizing a single month by ×12 amplifies noise into ±80% garbage.
-            # Instead: structural estimate is the anchor; the OBSERVED basis is a gentle,
-            # bounded adjustment computed over a longer window, and the final carry is
-            # winsorized so one volatile month can't dominate the whole surface.
-            carry_pct = structural_pct
-            spot_etf_basis_pct = None
-            if spot_fred and len(closes) >= 30:
-                try:
-                    spot_series = fred_series(spot_fred, limit=90)
-                    # Use up to 60 trading days for a steadier basis (was 30).
-                    win = min(60, len(closes) - 1, len(spot_series) - 1)
-                    if win >= 20:
-                        etf_ret = (closes[0] / closes[win] - 1) * 100 if closes[win] > 0 else 0
-                        spot_now = spot_series[0][1]
-                        spot_ago = spot_series[win][1] if len(spot_series) > win else None
-                        if spot_ago and spot_ago > 0:
-                            spot_ret = (spot_now / spot_ago - 1) * 100
-                            # Annualize by the ACTUAL window length (trading days → year),
-                            # not a flat ×12. ~252 trading days/yr.
-                            ann = 252.0 / win
-                            raw_basis = (etf_ret - spot_ret) * ann
-                            # Winsorize the observed basis to a sane band before blending.
-                            spot_etf_basis_pct = round(max(-40.0, min(40.0, raw_basis)), 2)
-                            # Anchor on structural (75%), nudge with observed (25%).
-                            carry_pct = round(structural_pct * 0.75 + spot_etf_basis_pct * 0.25, 2)
-                except Exception:
-                    pass
-            # Final safety winsor: no commodity carry beyond ±70% on the surface
-            # (VXX's structural -65 is the legitimate floor; nothing should exceed it via noise).
-            carry_pct = round(max(-70.0, min(70.0, carry_pct)), 2)
-            
-            results.append({
-                'symbol': etf_sym,
-                'asset_class': 'commodity',
-                'structural_carry_pct': structural_pct,
-                'spot_etf_basis_pct': spot_etf_basis_pct,
-                'carry_pct': carry_pct,
-                'realized_vol_pct': round(vol, 2) if vol else None,
-                'carry_per_vol': round(carry_pct / vol, 3) if vol and vol > 0 else None,
-                'price': closes[0] if closes else None,
-            })
-        except Exception as e:
-            results.append({'symbol': etf_sym, 'asset_class': 'commodity', 'error': str(e)[:120]})
-    
-    valid = [r for r in results if 'carry_pct' in r]
-    zscore_within_class(valid, 'carry_pct')
-    zscore_within_class(valid, 'carry_per_vol')
-    return valid
+    """No observed contract curve is available: never invent a roll yield from ETF returns."""
+    return [{
+        'symbol': symbol, 'asset_class': 'commodity', 'structural_carry_pct': None,
+        'spot_etf_basis_pct': None, 'carry_pct': None, 'realized_vol_pct': None,
+        'carry_per_vol': None, 'price': None, 'dormant': True,
+        'dormant_reason': 'futures_curve_unavailable',
+        'measurement': 'observed_futures_roll_yield',
+        'quality': quality(None, datetime.now(timezone.utc).isoformat(),
+                           status='unavailable', missing=['futures_curve']),
+    } for symbol in COMMODITY_UNIVERSE]
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -796,7 +774,9 @@ def load_prior_snapshot(days_ago):
         key = f"{HIST_PREFIX}{try_date.isoformat()}.json"
         try:
             obj = s3.get_object(Bucket=BUCKET, Key=key)
-            return json.loads(obj['Body'].read().decode())
+            snapshot = json.loads(obj['Body'].read().decode())
+            if snapshot.get('methodology_version') == 'carry-income.v2' and not snapshot.get('used_last_good'):
+                return snapshot
         except Exception:
             continue
     return None
@@ -841,6 +821,8 @@ def attach_dislocation_zscore(current_assets):
             obj = s3.get_object(Bucket=BUCKET, Key=key)
             snap = json.loads(obj['Body'].read().decode())
         except Exception:
+            continue
+        if snap.get('methodology_version') != 'carry-income.v2' or snap.get('used_last_good'):
             continue
         for a in snap.get('all_assets', []):
             sym = a.get('symbol')
@@ -1004,27 +986,21 @@ def _carry_massive_fx():
 
 
 def lambda_handler(event=None, context=None):
-    # ops 5616 last-good
     try:
         return _lambda_handler_inner(event, context)
     except Exception as exc:
-        s3c = boto3.client("s3")
-        prev = None
-        try:
-            prev = json.loads(s3c.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
-        except Exception:
-            prev = None
-        if isinstance(prev, dict) and prev:
-            prev = dict(prev)
-            q = dict(prev.get("quality") or {})
-            q.update({"status": "stale", "publish_error": type(exc).__name__, "note": "last-good snapshot"})
-            prev["quality"] = q
-            prev["ok"] = False
-            s3c.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                           Body=json.dumps(prev).encode(),
-                           ContentType="application/json", CacheControl="no-cache")
+        # This write only annotates the last successful observation; its dates remain unchanged.
+        previous = _read_json_s3(OUT_KEY)
+        fallback = stale_snapshot(previous, datetime.now(timezone.utc).isoformat())
+        if fallback is not None:
+            try:
+                s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=encode_public(fallback),
+                              ContentType="application/json", CacheControl="no-cache")
+            except Exception:
+                pass  # Failed S3 puts cannot replace an existing complete object.
             return {"statusCode": 200, "body": json.dumps({"ok": False, "used_last_good": True})}
-        raise
+        raise RuntimeError("Carry refresh unavailable; no last successful snapshot") from None
+
 
 def _lambda_handler_inner(event=None, context=None):
 
@@ -1032,13 +1008,11 @@ def _lambda_handler_inner(event=None, context=None):
     run_ts = datetime.now(timezone.utc)
     print(f"[carry-surface] v{VERSION} starting @ {run_ts.isoformat()}")
     
-    # Pull SOFR / financing rate (universal across equity & FI)
-    try:
-        financing_rate = fred_latest('DFF') or 5.0  # Fed funds effective
-    except Exception:
-        financing_rate = 5.0
-    print(f"[carry-surface] financing rate: {financing_rate}%")
-    
+    # Effective Fed funds is a stated funding proxy; zero is valid, missing is never 5%.
+    financing = rate_observation('DFF')
+    financing_rate = financing['value']
+    print(f"[carry-surface] funding observation status: {financing['status']}")
+
     # Compute each asset class
     by_class = {}
     
@@ -1060,6 +1034,8 @@ def _lambda_handler_inner(event=None, context=None):
         all_assets.extend(assets)
     
     ranked = cross_asset_rank(all_assets)
+    if not ranked and _read_json_s3(OUT_KEY):
+        raise RuntimeError("No eligible current carry observations; retain the last successful snapshot")
     
     # Carry momentum (compare to 7D / 30D snapshots)
     attach_carry_momentum(ranked)
@@ -1092,6 +1068,7 @@ def _lambda_handler_inner(event=None, context=None):
     
     payload = {
         'version': VERSION,
+        'methodology_version': 'carry-income.v2',
         'generated_at': run_ts.isoformat(),
         'elapsed_s': round(elapsed, 2),
         'n_assets': len([a for a in ranked if a.get('carry_pct') is not None]),
@@ -1103,14 +1080,14 @@ def _lambda_handler_inner(event=None, context=None):
         'risk_adjusted_leaders': risk_adjusted[:10],
         'dislocation_leaders': dislocations[:10],
         'unwind_overlay': unwind,
-        'n_dormant': len([a for a in ranked if a.get('dormant')]),
+        'n_dormant': len([a for a in all_assets if a.get('dormant')]),
         'regime_summary': regime,
         'massive_fx': _carry_massive_fx(),
         'methodology': {
-            'equity': 'div_yield + buyback_yield - financing_cost (FRED DFF). ETF yields from declared TTM distributions; single names from ratios-ttm. Unknown yields left dormant, never masked as -financing.',
+            'equity': 'Cash-income carry = dividend yield minus effective Fed funds funding proxy (pct/year). Buybacks contribute only to the separately labelled shareholder_yield_pct, not cash income. Missing data remains null.',
             'fx': 'long_currency_3M_rate - USD_3M_rate (FRED IR3TIB01 series)',
             'fixed_income': 'yield_to_maturity - financing_cost',
-            'commodity': '-roll_yield, blend of structural estimate + observed ETF-spot basis',
+            'commodity': 'Unavailable without a dated observed futures curve. No structural or ETF-minus-spot estimate is ranked as roll yield.',
             'z_score': 'within-class normalization',
             'dislocation_z': f'current carry vs assets OWN trailing carry history (gated >={DISLOCATION_MIN_SNAPSHOTS} daily obs); z, percentile, mean',
             'unwind_overlay': 'KMPV crash-risk: per-asset fragility = 0.45*carry_richness + 0.35*realized_vol + 0.20*own_extension, scaled by a live regime multiplier from data/risk-regime.json (RORO score + VIX + repo stress). Cohort gauge = mean fragility of top-carry decile. Answers: how badly does the carry basket unwind if risk-off hits NOW.',
@@ -1119,31 +1096,32 @@ def _lambda_handler_inner(event=None, context=None):
         },
     }
     
-    def _read_last_good():
-        try:
-            return json.loads(s3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
-        except Exception:
-            return None
-
-    # Save main output
-    s3.put_object(
-        Bucket=BUCKET, Key=OUT_KEY,
-        Body=json.dumps(payload, default=str, indent=2).encode(),
-        ContentType='application/json',
-        CacheControl='max-age=300, public',
-    )
-    
-    # Save daily snapshot (overwrites within same day)
+    missing = ['commodity.futures_curve']
+    if financing_rate is None:
+        missing.append('financing_rate_pct')
+    for row in all_assets:
+        if row.get('error') or row.get('dormant'):
+            missing.append(f"{row['asset_class']}.{row['symbol']}.carry_pct")
+    payload['quality'] = quality(financing.get('as_of'), run_ts.isoformat(),
+        status='unavailable' if not ranked else 'incomplete' if missing else 'fresh', missing=missing)
+    payload['financing_source'] = {'series': 'DFF', 'unit': 'pct', **financing}
+    payload['field_units'] = {'carry_pct': 'pct_per_year', 'financing_rate_pct': 'pct',
+                              'shareholder_yield_pct': 'pct', 'cash_income_yield_pct': 'pct'}
+    payload['ok'] = bool(ranked)
+    payload['call'] = None
+    # Serialize and review the complete candidate before either atomic S3 object replacement.
+    body = encode_public(payload)
     today_key = f"{HIST_PREFIX}{run_ts.date().isoformat()}.json"
-    s3.put_object(
-        Bucket=BUCKET, Key=today_key,
-        Body=json.dumps(payload, default=str).encode(),
-        ContentType='application/json',
-    )
-    
+    try:
+        s3.put_object(Bucket=BUCKET, Key=today_key, Body=body, ContentType='application/json')
+    except Exception:
+        print('[carry-surface] optional history write failed')
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=body, ContentType='application/json',
+                  CacheControl='max-age=300, public')
+
     # Telegram digest (once per day max)
     try:
-        sent = maybe_send_telegram(payload)
+        sent = False if (event or {}).get('suppress_alerts') or payload['quality']['status'] != 'fresh' else maybe_send_telegram(payload)
     except Exception as e:
         sent = False
         print(f"[telegram] error: {e}")
@@ -1153,7 +1131,8 @@ def _lambda_handler_inner(event=None, context=None):
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
         'body': json.dumps({
-            'ok': True,
+            'ok': payload['ok'],
+            'quality': payload['quality'],
             'n_assets': payload['n_assets'],
             'top1': top10[0]['symbol'] if top10 else None,
             'top1_carry_pct': top10[0]['carry_pct'] if top10 else None,
