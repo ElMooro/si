@@ -172,8 +172,10 @@ jobs:
         run: |
           set -euo pipefail
           before=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          if [ -n "$SHARED" ] && [ -z "$TARGETS" ]; then
-            # Shared-module-only change: let the workflow's importer closure decide via a recovery range.
+          if [ -n "$SHARED" ]; then
+            # Any shared-module change: the recovery range covers the changed engines AND every importer of the
+            # module (the workflow's transitive closure). 2026-09-17: previously, a batch with a shared module plus
+            # an engine dispatched only the engine and left the module's other importers on the old code.
             gh workflow run deploy-lambdas.yml --ref main -f base_sha="$BASE_SHA" -f expected_sha="$SHA"
           else
             gh workflow run deploy-lambdas.yml --ref main -f function="$TARGETS" -f expected_sha="$SHA"

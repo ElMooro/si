@@ -110,8 +110,17 @@ aws/ops/patchers/batch/<batch-id>/manifest.json      written LAST:
   `aws/ops/pending/` — an ops gate script in the batch is dispatched on run-ops right after the
   deploy dispatch (so "ship the engine, then run its gate" is one batch)
 - receipt: `aws/ops/patchers/batch/_receipts/<batch-id>.json` — per file (bytes, sha256, check,
-  whole/parts), `functions` to be deployed, `config`/`pages`/`workers`/`ops_scripts` touched;
-  the deploy receipt (`data/ops/releases/<fn>.json`) then carries the resulting commit
+  whole/parts), `functions` to be deployed, `config`/`pages`/`workers`/`ops_scripts` touched, the
+  apply-lane run id, and `verify` (where the proof of the deploy will appear). `assembled` means
+  written and committed — it is never proof of a deploy; the release receipt is
+- a **rejected** batch is repaired in place: fix the file(s) STATUS.json names, push them under the
+  **same** id, done. Only an assembled id is retired
+- optional per-file `base_sha`: the `sha` you got when you GET the file you edited (the git blob id).
+  If main moved since, the batch is rejected as stale instead of overwriting another lane's work
+- a `config/<name>.json` and its bundled `aws/lambdas/*/source/<name>.json` twins must be identical
+  after the batch (same rule as the deploy gate) — put every copy in the batch
+- two batches in one run that write the same file: the second is rejected as an overlap
+- a batch that touches `aws/shared/` redeploys every importer of that module, not just the engines in the batch
 - while a batch is in flight, never write any of its targets directly — that is the race the batch exists to end
 - lanes with a shell don't need this: put the whole change set in **one commit** and push
 

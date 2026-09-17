@@ -171,3 +171,74 @@ def test_check_mode_is_read_only():
         whole(f, f"{FN}/config.json", CONFIG); manifest(f)
         r = MODULE["assemble_all"](root, write=False)[0]
         assert r["status"] == "ready" and f.exists() and not (root / FN).exists()
+
+
+def test_rejected_batch_is_repaired_in_place_under_the_same_id():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); f = batch(root)
+        parts(f, f"{FN}/source/lambda_function.py", ENGINE, drop_end_on=2)
+        whole(f, f"{FN}/config.json", CONFIG); manifest(f)
+        assert result(root, f.name)["status"] == "rejected"
+        parts(f, f"{FN}/source/lambda_function.py", ENGINE)              # the lane re-uploads the cut-off part whole
+        r = result(root, f.name)
+        assert r["status"] == "assembled", r
+        assert (root / FN / "source/lambda_function.py").read_text() == ENGINE
+        rec = json.loads((root / "aws/ops/patchers/batch/_receipts" / f"{f.name}.json").read_text())
+        assert rec["status"] == "assembled" and rec["apply_run_id"] is None and "NOT proof of a deploy" in rec["means"]
+        g = batch(root, f.name)                                            # only an ASSEMBLED id is retired
+        whole(g, f"{FN}/config.json", CONFIG); manifest(g)
+        assert "already used" in result(root, g.name)["reason"]
+
+
+def test_base_sha_refuses_a_stale_overwrite():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); (root / FN / "source").mkdir(parents=True)
+        old = "import json\n\n\ndef quote(x):\n    return json.dumps({'q': x})\n"
+        (root / FN / "source/fmp_client.py").write_text(old)
+        blob = MODULE["_blob_sha"](old.encode())
+        import hashlib
+        assert blob == hashlib.sha1(b"blob %d\0" % len(old.encode()) + old.encode()).hexdigest()
+        (root / FN / "source/fmp_client.py").write_text(old + "# changed by another lane\n")
+        f = batch(root)
+        whole(f, f"{FN}/source/fmp_client.py", old + "# my edit\n")
+        manifest(f, files=[{"target": f"{FN}/source/fmp_client.py", "base_sha": blob}])
+        r = result(root, f.name)
+        assert r["status"] == "rejected" and "stale" in r["reason"]
+        assert (root / FN / "source/fmp_client.py").read_text().endswith("# changed by another lane\n")
+        g = batch(root, "test-20260917t150004z-fresh")
+        whole(g, f"{FN}/source/fmp_client.py", old + "# my edit\n")
+        manifest(g, files=[{"target": f"{FN}/source/fmp_client.py", "base_sha": MODULE["_blob_sha"]((old + "# changed by another lane\n").encode())}])
+        assert result(root, g.name)["status"] == "assembled"
+
+
+def test_config_twins_must_match_inside_the_batch_and_against_main():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        reg_a = json.dumps({"sources": [{"id": i, "level": "L3"} for i in range(30)]}, indent=1) + "\n"
+        reg_b = reg_a.replace('"L3"', '"L2"', 1)
+        f = batch(root)
+        whole(f, "config/fusion-registry.v1.json", reg_a)
+        whole(f, f"{FN}/source/fusion-registry.v1.json", reg_b); manifest(f)
+        r = result(root, f.name)
+        assert r["status"] == "rejected" and "byte-identical" in r["reason"]
+        assert not (root / "config").exists()
+        (root / "config").mkdir(); (root / "config/fusion-registry.v1.json").write_text(reg_a)
+        g = batch(root, "test-20260917t150005z-halftwin")
+        whole(g, f"{FN}/source/fusion-registry.v1.json", reg_b); manifest(g)      # bundled copy only, differs from main's config/
+        r = result(root, g.name)
+        assert r["status"] == "rejected" and "twin on main differs" in r["reason"]
+        h = batch(root, "test-20260917t150006z-bothtwins")
+        whole(h, "config/fusion-registry.v1.json", reg_b)
+        whole(h, f"{FN}/source/fusion-registry.v1.json", reg_b); manifest(h)
+        assert result(root, h.name)["status"] == "assembled"
+
+
+def test_two_batches_writing_the_same_file_in_one_run_are_not_both_applied():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        a = batch(root, "grok-20260917t150007z-a"); whole(a, f"{FN}/config.json", CONFIG); manifest(a)
+        b = batch(root, "grok-20260917t150008z-b"); whole(b, f"{FN}/config.json", CONFIG.replace("256", "512")); manifest(b)
+        out = {r["batch"]: r for r in MODULE["assemble_all"](root)}
+        assert out[a.name]["status"] == "assembled"
+        assert out[b.name]["status"] == "rejected" and "overlap" in out[b.name]["reason"]
+        assert json.loads((root / FN / "config.json").read_text())["memory"] == 256

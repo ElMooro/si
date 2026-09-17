@@ -178,7 +178,46 @@ def _classify(targets: list[str]) -> dict:
             "docs": sorted(t for t in targets if t.startswith("docs/"))}
 
 
-def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str]) -> dict:
+def _blob_sha(data: bytes) -> str:
+    """git's blob id for these bytes -- what the Contents API returns as `sha` on GET."""
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def _twin_paths(target: str, root: Path, assembled: dict[str, bytes]) -> list[str]:
+    """Every other path that must carry identical bytes -- the same rule as the deploy gate
+    (tests/deployment/test_bundled_config_identity.py): config/<name> <-> every aws/lambdas/*/source/<name>."""
+    name = target.rsplit("/", 1)[-1]
+    is_config = target.startswith("config/") and target.count("/") == 1
+    is_bundled = target.startswith("aws/lambdas/") and "/source/" in target
+    if not (is_config or is_bundled):
+        return []
+    config_twin = f"config/{name}"
+    has_config = config_twin in assembled or (root / "config" / name).is_file()
+    if not has_config:
+        return []
+    twins = {config_twin}
+    twins.update(str(p.relative_to(root)) for p in (root / "aws" / "lambdas").glob(f"*/source/{name}"))
+    twins.update(t for t in assembled if t.startswith("aws/lambdas/") and t.endswith("/source/" + name))
+    twins.discard(target)
+    return sorted(twins)
+
+
+def _twin_problems(assembled: dict[str, bytes], root: Path) -> list[str]:
+    problems = []
+    for target, data in assembled.items():
+        if not target.endswith(".json"):
+            continue
+        for twin in _twin_paths(target, root, assembled):
+            other = assembled.get(twin)
+            if other is None and (root / twin).is_file():
+                other = (root / twin).read_bytes()
+            if other is not None and other != data:
+                problems.append(f"{target} must be byte-identical to its twin {twin} -- put both copies in the batch with the same content"
+                                + ("" if twin in assembled else " (the twin on main differs; the deploy gate would refuse this)"))
+    return sorted(set(problems))
+
+
+def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str], claimed: dict[str, str] | None = None) -> dict:
     manifest_path = folder / "manifest.json"
     if not manifest_path.is_file():
         return {"batch": folder.name, "status": "incomplete", "reason": "no manifest.json yet"}
@@ -222,15 +261,38 @@ def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str]) -
             _safe_target(target)
             kind, path = present[target]
             data = _whole_bytes(path, target) if kind == "whole" else _parts_bytes(path, target, entry)
-            results.append({**_check_target(target, data, entry, manifest, root), "how": kind})
+            info = _check_target(target, data, entry, manifest, root)
+            base = (entry.get("base_sha") or "").lower()          # the `sha` the lane got when it GET the file it edited
+            if base:
+                existing = root / target
+                live = _blob_sha(existing.read_bytes()) if existing.is_file() else ""
+                if live != base:
+                    raise PartsError(f"{target}: stale -- edited from blob {base[:10]} but main now has {live[:10] or 'no file'}; "
+                                     f"GET it again, re-apply your change, re-upload")
+                info["base_sha"] = base
+            results.append({**info, "how": kind})
             assembled[target] = data
         except PartsError as exc:
             problems.append(str(exc))
+    problems += _twin_problems(assembled, root)
+    if claimed is not None:
+        for target in assembled:
+            if target in claimed:
+                problems.append(f"{target} is also written by batch {claimed[target]} in this same run -- two batches must not "
+                                f"overlap; merge them or push the second after the first lands")
     if problems:
         raise PartsError(" | ".join(problems))
+    if claimed is not None:
+        claimed.update({t: folder.name for t in assembled})
     summary = _classify(list(assembled))
     result = {"batch": folder.name, "status": "assembled" if write else "ready", "lane": manifest.get("lane"),
-              "note": manifest.get("note"), "files": results, **summary}
+              "note": manifest.get("note"), "files": results, **summary,
+              "apply_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "means": "files written and committed by the apply lane; NOT proof of a deploy",
+              "verify": [f"https://justhodl.ai/data/ops/releases/{fn}.json  (commit must equal the apply-lane commit)" for fn in summary["functions"]]
+                        + (["pages.yml run for the apply-lane commit"] if summary["pages"] else [])
+                        + ([f"deploy-workers.yml run for {w}" for w in summary["workers"]])
+                        + ([f"aws/ops/reports/latest/<N>_<slug>.md for {o}" for o in summary["ops_scripts"]])}
     if write:
         for target, data in assembled.items():           # all-or-nothing: every check passed before the first write
             dest = root / target
@@ -253,11 +315,19 @@ def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
     base = root / BATCH_DIR
     if not base.is_dir():
         return []
-    receipted = {p.stem for p in (base / RECEIPTS).glob("*.json")} if (base / RECEIPTS).is_dir() else set()
+    receipted = set()
+    if (base / RECEIPTS).is_dir():
+        for p in (base / RECEIPTS).glob("*.json"):
+            try:
+                if json.loads(p.read_text()).get("status") == "assembled":   # a rejected batch is repaired in place, same id
+                    receipted.add(p.stem)
+            except Exception:  # noqa: BLE001
+                receipted.add(p.stem)
+    claimed: dict[str, str] = {}                                              # target -> batch id, within this run
     results = []
     for folder in sorted(p for p in base.iterdir() if p.is_dir() and p.name != RECEIPTS):
         try:
-            result = assemble_batch(folder, root, write, receipted)
+            result = assemble_batch(folder, root, write, receipted, claimed)
         except PartsError as exc:
             result = {"batch": folder.name, "status": "rejected", "reason": str(exc)}
         except Exception as exc:  # noqa: BLE001 -- never a silent skip
