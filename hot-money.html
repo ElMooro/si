@@ -67,24 +67,25 @@ function comboChart(rows,title){
   const pos20=v.slice(-20).filter(x=>x>0).length;
   const chips='<div class="s" style="margin-top:4px">best '+fD(days[bi])+' <b class="pos">'+fN(v[bi],2)+'</b> \u00b7 worst '+fD(days[wi])+' <b class="neg">'+fN(v[wi],2)+'</b> \u00b7 positive days 20d: '+pos20+'/'+Math.min(20,v.length)+' \u00b7 cumulative '+fN(cum[cum.length-1],1)+' <span style="color:#c9a94a">(gold line)</span></div>';
   return '<div class="card" style="padding:12px"><div class="k">'+title+' \u00b7 '+fD(days[0])+' \u2192 '+fD(days[days.length-1])+' \u00b7 NT$bn</div>'+sv+chips+'</div>';}
+const freshDate=(d,days)=>{const age=Date.now()-Date.parse(d);return Number.isFinite(age)&&age>=0&&age<=(days+1)*864e5;};
 (async function(){
   const d=await jget("/data/hot-money.json");
-  if(!d||d.status!=="LIVE"){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable");return;}
-  S_("sub",()=>{document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 daily 09:50 UTC \u00b7 own engine, own ledgers \u2014 never blended into quarterly macro.";});
+  if(!d||d.methodology_version!=="exchange-observations.v2"||!freshDate(d.generated_at,4)){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable");return;}
+  S_("sub",()=>{document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 daily 09:50 UTC \u00b7 own engine, own ledgers \u2014 reported-observation windows; exchange-calendar completeness is unverified.";});
   S_("countries",()=>{
     let h="";
     for(const[cn,c]of Object.entries(d.countries||{})){
-      if(c.status!=="LIVE"){h+='<div class="card"><div class="k">'+cn+'</div><div class="s">'+(c.why||c.status)+'</div></div>';continue;}
+      if(c.status!=="LIVE"||!freshDate(c.quality?.observation_date,5)){h+='<div class="card"><div class="k">'+cn+'</div><div class="s">'+(c.why||c.status)+'</div></div>';continue;}
       h+='<div class="sec"><h2>\ud83c\uddf9\ud83c\uddfc '+cn.charAt(0).toUpperCase()+cn.slice(1)+'<span style="font-size:11px;color:var(--fg-2);margin-left:8px">'+(c.specialty||"")+' \u00b7 '+(c.unit||"")+' \u00b7 ledger '+(c.ledger_days||0)+' days</span></h2><div class="cards">';
-      h+='<div class="card"><div class="k">Latest \u00b7 '+(c.latest_day||"")+'</div><div class="v'+cls(c.latest_bn)+'">'+fN(c.latest_bn,2)+'</div><div class="s">daily foreign net</div></div>';
-      for(const w of[5,20,60]){const v=c["sum_"+w+"d_bn"];
-        h+='<div class="card"><div class="k">'+w+'-day flow</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(w===60?("z "+(c.z_60d==null?"\u2013":(c.z_60d>0?"+":"")+c.z_60d)):"cumulative")+'</div></div>';}
+      h+='<div class="card"><div class="k">Latest \u00b7 '+(c.latest_day||"")+'</div><div class="v'+cls(c.latest_bn)+'">'+fN(c.latest_bn,2)+'</div><div class="s">daily foreign net · exchange trades</div></div>';
+      for(const w of[5,20,60]){const v=c["sum_"+w+"obs_bn"];
+        h+='<div class="card"><div class="k">'+w+' observations</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(w===60?("z "+(c.z_60_observations==null?"\u2013":(c.z_60_observations>0?"+":"")+c.z_60_observations)):"cumulative")+'</div></div>';}
       const o=c.otc||{};
-      if(o.status==="LIVE"){
+      if(o.status==="LIVE"&&freshDate(o.quality?.observation_date,5)){
         h+='</div><div class="note" style="margin:10px 0 6px">OTC board (TPEx) \u00b7 ledger '+(o.ledger_days||0)+' days'+(o.why_partial?' \u00b7 '+o.why_partial:'')+'</div><div class="cards">';
         h+='<div class="card"><div class="k">OTC latest \u00b7 '+(o.latest_day||"")+'</div><div class="v'+cls(o.latest_bn)+'">'+fN(o.latest_bn,2)+'</div><div class="s">daily foreign net, OTC</div></div>';
-        for(const w of[5,20,60]){const v=o["sum_"+w+"d_bn"];
-          h+='<div class="card"><div class="k">OTC '+w+'-day</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?"accruing":(w===60?"z "+((o.z_60d==null?"\u2013":(o.z_60d>0?"+":"")+o.z_60d)):"cumulative"))+'</div></div>';}
+        for(const w of[5,20,60]){const v=o["sum_"+w+"obs_bn"];
+          h+='<div class="card"><div class="k">OTC '+w+' observations</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?"accruing":(w===60?"z "+((o.z_60_observations==null?"\u2013":(o.z_60_observations>0?"+":"")+o.z_60_observations)):"cumulative"))+'</div></div>';}
         const cb=c.combined||{};
         h+='<div class="card"><div class="k">Listed + OTC \u00b7 '+(cb.latest_day||"")+'</div><div class="v'+cls(cb.latest_bn)+'">'+(cb.status==="LIVE"?fN(cb.latest_bn,2):"\u2013")+'</div><div class="s">'+(cb.status==="LIVE"?"same-day identity":(cb.why||cb.status||""))+'</div></div>';}
       h+='</div><div id="tape-'+cn+'" style="margin-top:12px"></div><div id="tapeotc-'+cn+'" style="margin-top:10px"></div><div id="tbl-'+cn+'" style="margin-top:10px"></div></div>';}

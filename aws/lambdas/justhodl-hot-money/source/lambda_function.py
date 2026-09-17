@@ -17,11 +17,11 @@ v1.0 countries:
           invoke, {"twse_backfill_days": N} event); ledger
           data/providers/twse/bfi82u-foreign.json (TAKEN OVER from
           global-flows v1.1 -- union-append, never overwrite).
-  korea   DEFERRED: KRX daily investor data needs API keys
-          (pending Khalid).
+  korea   DEFERRED: KRX daily investor data needs a validated provider feed; no zero-filled observations.
 Metrics per country: latest, 5/20/60d sums, z_60d -- honest nulls
 while ledgers accrue.  Daily 09:50 UTC (after TW close).
 """
+import math
 import gzip
 import json
 import os
@@ -31,7 +31,7 @@ from datetime import datetime, timezone, timedelta
 import boto3
 import urllib.request
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/hot-money.json"
 TWSE_LEDGER = "data/providers/twse/bfi82u-foreign.json"
@@ -42,11 +42,11 @@ TWSE_URL = ("https://www.twse.com.tw/rwd/en/fund/BFI82U"
             "?response=json")
 BACKFILL_SLEEP = 2.2
 BACKFILL_CAP = 45
-MIN_Q = 24
+MIN_Q = 61
 
 DEFERRED = {"korea": {"status": "DEFERRED",
                       "why": "KRX daily investor data requires "
-                             "API keys -- pending Khalid",
+                             "a validated provider feed; not included in measured coverage",
                       "specialty": "memory/electronics"}}
 
 s3 = boto3.client("s3")
@@ -58,13 +58,14 @@ def _g(key):
         if raw[:2] == b"\x1f\x8b":
             raw = gzip.decompress(raw)
         return json.loads(raw)
-    except Exception:  # noqa: BLE001
-        return None
+    except Exception as exc:
+        if getattr(exc, "response", {}).get("Error", {}).get("Code") in ("NoSuchKey", "404"):return None
+        raise
 
 
 def _put(key, obj):
     s3.put_object(Bucket=BUCKET, Key=key,
-                  Body=json.dumps(obj, separators=(",", ":")).encode(),
+                  Body=json.dumps(obj, separators=(",", ":"), allow_nan=False).encode(),
                   ContentType="application/json")
 
 
@@ -86,18 +87,11 @@ def twse_fetch(day=None):
     try:
         req = urllib.request.Request(
             url, headers={"User-Agent": "justhodl-hot-money"})
-        with urllib.request.urlopen(req, timeout=45) as r:
+        with urllib.request.urlopen(req, timeout=25) as r:
             j = json.loads(r.read())
         if j.get("stat") != "OK" or not j.get("data"):
             return None, "stat=%s" % j.get("stat")
-        net = 0.0
-        found = False
-        for row in j["data"]:
-            if "foreign" in str(row[0]).lower():
-                found = True
-                net += float(str(row[3]).replace(",", ""))
-        if not found:
-            return None, "no foreign rows"
+        net = foreign_net(j["data"])
         return str(j.get("date")), net
     except Exception as e:  # noqa: BLE001
         return None, "fetch_error:%s" % str(e)[:60]
@@ -111,7 +105,7 @@ def tpex_fetch():
         req = urllib.request.Request(
             TPEX_URL, headers={"User-Agent": "justhodl-hot-money",
                                "Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=45) as r:
+        with urllib.request.urlopen(req, timeout=25) as r:
             j = json.loads(r.read())
         row = None
         for x in j if isinstance(j, list) else []:
@@ -132,112 +126,87 @@ def tpex_fetch():
         return None, "fetch_error:%s" % str(e)[:60]
 
 
-def windows(nets):
-    out = {}
-    for w in (5, 20, 60):
-        out["sum_%dd_bn" % w] = (round(sum(nets[-w:]) / 1e9, 2)
-                                 if len(nets) >= w else None)
+def valid_rows(rows):
+    valid={};invalid=0
+    today=datetime.now(timezone.utc).date()
+    for day,value in rows.items():
+        try:
+            if len(day)!=8 or datetime.strptime(day,'%Y%m%d').date()>today:raise ValueError('date')
+            if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value):raise ValueError('value')
+            valid[day]=value
+        except (ValueError,TypeError):invalid+=1
+    return valid,invalid
+
+
+def board_metrics(rows):
+    clean,invalid=valid_rows(rows);days=sorted(clean);nets=[clean[d] for d in days]
+    age=(datetime.now(timezone.utc).date()-datetime.strptime(days[-1],'%Y%m%d').date()).days if days else None
+    status='unavailable' if not days else 'invalid' if invalid else 'stale' if age>5 else 'fresh'
+    live=status=='fresh'
+    out={'status':'LIVE' if live else status.upper(),'latest_day':days[-1] if days else None,
+         'latest_bn':round(nets[-1]/1e9,2) if live else None,'ledger_days':len(days),
+         'last_observed_bn':round(nets[-1]/1e9,2) if days else None,
+         'quality':{'status':status,'age_days':age,'max_age_days':5,'invalid_rows':invalid,
+                    'observation_date':datetime.strptime(days[-1],'%Y%m%d').date().isoformat() if days else None},
+         'window_basis':'last N reported observations; exchange-calendar completeness unverified',
+         'windows':{},'z_60d':None,'z_60_observations':None,
+         'why_partial':'Windows count reported observations, not guaranteed consecutive exchange sessions.'}
+    for n in (5,20,60):
+        subset=days[-n:];span=(datetime.strptime(subset[-1],'%Y%m%d')-datetime.strptime(subset[0],'%Y%m%d')).days if subset else None
+        sufficient=live and len(subset)==n and span<=2*n+14
+        out['sum_%dd_bn'%n]=None  # legacy day-count field cannot certify missing sessions
+        out['sum_%dobs_bn'%n]=round(sum(nets[-n:])/1e9,2) if sufficient else None
+        out['windows'][str(n)]={'observations':len(subset),'start':subset[0] if subset else None,
+                               'end':subset[-1] if subset else None,'calendar_span_days':span,
+                               'status':'observed_window' if sufficient else 'insufficient_or_stale'}
+    if live and len(nets)>=61 and out['windows']['60']['status']=='observed_window':
+        out['z_60_observations']=zlast([v/1e9 for v in nets[-61:]])
     return out
 
 
-def taiwan(event):
-    led = _g(TWSE_LEDGER) or {"source": "TWSE BFI82U foreign net "
-                              "(TWD)", "rows": {}}
-    n_before = len(led["rows"])
-    attempts = 0
-    n_backfill = 0
-    try:
-        bf = int((event or {}).get("twse_backfill_days") or 0)
-    except (TypeError, ValueError):
-        bf = 0
-    if bf > 0:
-        d0 = datetime.now(timezone.utc)
-        for k in range(min(bf, 120)):
-            if attempts >= BACKFILL_CAP:
-                break
-            day = (d0 - timedelta(days=k)).strftime("%Y%m%d")
-            if day in led["rows"]:
-                continue
-            attempts += 1
-            dd, net = twse_fetch(day)
-            if dd is not None and dd == day:
-                led["rows"][day] = net
-                n_backfill += 1
-            time.sleep(BACKFILL_SLEEP)
-    dd, net = twse_fetch()
-    fetch_why = None if dd is not None else net
-    if dd is not None:
-        led["rows"][dd] = net
-    if len(led["rows"]) != n_before or n_backfill:
-        _put(TWSE_LEDGER, led)
-    days = sorted(led["rows"])
-    nets = [led["rows"][d] for d in days]
-    tw = {"status": "LIVE" if days else "MISSING",
-          "unit": "TWD bn", "specialty": "semiconductors",
-          "source": "TWSE BFI82U (keyless, daily)",
-          "ledger_days": len(days)}
-    if fetch_why:
-        tw["today_fetch"] = fetch_why
-    if days:
-        tw["latest_day"] = days[-1]
-        tw["latest_bn"] = round(nets[-1] / 1e9, 2)
-        for w in (5, 20, 60):
-            tw["sum_%dd_bn" % w] = (round(sum(nets[-w:]) / 1e9, 2)
-                                    if len(nets) >= w else None)
-        tw["why_partial"] = (None if len(nets) >= 60 else
-                             "ledger accruing n=%d" % len(nets))
-        zs = [n / 1e9 for n in nets[-61:]]
-        tw["z_60d"] = zlast(zs) if len(zs) >= MIN_Q else None
-    if bf > 0:
-        tw["backfilled"] = n_backfill
-        tw["backfill_attempts"] = attempts
+def foreign_net(rows):
+    found={}
+    for row in rows:
+        label=str(row[0]).strip().lower()
+        kind='investors' if label.startswith('foreign investors') and 'excluded' in label else 'dealers' if label=='foreign dealers' else None
+        if kind is None:continue
+        if kind in found:raise ValueError('duplicate foreign category')
+        buy,sell,net=[float(str(v).replace(',','')) for v in row[1:4]]
+        if not all(math.isfinite(v) for v in (buy,sell,net)) or abs(buy-sell-net)>1:raise ValueError('buy/sell/net mismatch')
+        found[kind]=net
+    if set(found)!={'investors','dealers'}:raise ValueError('missing disjoint foreign categories')
+    return sum(found.values())
 
-    led2 = _g(TPEX_LEDGER) or {"source": "TPEx 3insti summary "
-                               "foreign+mainland net (NT$)",
-                               "rows": {}}
-    n2_before = len(led2["rows"])
-    d2, net2 = tpex_fetch()
-    otc = {"status": "MISSING", "unit": "TWD bn",
-           "source": "TPEx openapi 3insti_summary (keyless, "
-                     "daily, OTC board)"}
-    if d2 is not None:
-        led2["rows"][d2] = net2
-    else:
-        otc["today_fetch"] = net2
-    if len(led2["rows"]) != n2_before:
-        _put(TPEX_LEDGER, led2)
-    days2 = sorted(led2["rows"])
-    if days2:
-        nets2 = [led2["rows"][x] for x in days2]
-        otc.update({"status": "LIVE",
-                    "ledger_days": len(days2),
-                    "latest_day": days2[-1],
-                    "latest_bn": round(nets2[-1] / 1e9, 2)})
-        otc.update(windows(nets2))
-        otc["why_partial"] = (None if len(nets2) >= 60 else
-                              "ledger accruing n=%d (no "
-                              "historical endpoint -- honest "
-                              "accrual)" % len(nets2))
-        zs2 = [n / 1e9 for n in nets2[-61:]]
-        otc["z_60d"] = zlast(zs2) if len(zs2) >= MIN_Q else None
-    tw["otc"] = otc
-    comb = {"status": "MISSING"}
-    if tw.get("latest_day") and otc.get("latest_day"):
-        if tw["latest_day"] == otc["latest_day"]:
-            comb = {"status": "LIVE",
-                    "latest_day": tw["latest_day"],
-                    "latest_bn": round(tw["latest_bn"]
-                                       + otc["latest_bn"], 2),
-                    "note": "listed (TWSE) + OTC (TPEx), "
-                            "same-day identity; window sums "
-                            "stay per-board until ledgers "
-                            "align in depth"}
-        else:
-            comb = {"status": "MISALIGNED",
-                    "why": "listed %s vs otc %s"
-                           % (tw["latest_day"],
-                              otc["latest_day"])}
-    tw["combined"] = comb
+
+def taiwan(event,context=None):
+    led=_g(TWSE_LEDGER) or {'source':'TWSE BFI82U foreign investors plus foreign dealers, TWD','rows':{}}
+    before=dict(led['rows']);attempts=0;backfilled=0
+    try:bf=max(0,int(event.get('twse_backfill_days') or 0))
+    except (ValueError,TypeError):bf=0
+    for k in range(min(bf,120)):
+        if attempts>=BACKFILL_CAP or (context and context.get_remaining_time_in_millis()<70000):break
+        day=(datetime.now(timezone.utc)-timedelta(days=k)).strftime('%Y%m%d')
+        if day in led['rows']:continue
+        attempts+=1;dd,net=twse_fetch(day)
+        if dd==day and valid_rows({dd:net})[0]:led['rows'][dd]=net;backfilled+=1
+        time.sleep(BACKFILL_SLEEP)
+    dd,net=twse_fetch();fetch_error=net if dd is None else None
+    if dd is not None and valid_rows({dd:net})[0]:led['rows'][dd]=net
+    if led['rows']!=before:_put(TWSE_LEDGER,led)
+    tw=board_metrics(led['rows']);tw.update(unit='TWD bn',specialty='semiconductors',source='TWSE BFI82U, foreign investors + foreign dealers')
+    tw['today_fetch']=fetch_error
+    if bf:tw.update(backfilled=backfilled,backfill_attempts=attempts)
+    led2=_g(TPEX_LEDGER) or {'source':'TPEx foreign+mainland net, TWD','rows':{}}
+    before2=dict(led2['rows']);dd2,net2=tpex_fetch()
+    if dd2 is not None and valid_rows({dd2:net2})[0]:led2['rows'][dd2]=net2
+    if led2['rows']!=before2:_put(TPEX_LEDGER,led2)
+    otc=board_metrics(led2['rows']);otc.update(unit='TWD bn',source='TPEx 3insti_summary, OTC board',today_fetch=net2 if dd2 is None else None)
+    combined={'status':'UNAVAILABLE','latest_bn':None,'unit':'TWD bn'}
+    if tw['status']==otc['status']=='LIVE' and tw['latest_day']==otc['latest_day']:
+        day=tw['latest_day'];combined.update(status='LIVE',latest_day=day,latest_bn=round((led['rows'][day]+led2['rows'][day])/1e9,2),note='Same-day listed + OTC exchange net trading; not cross-border cash settlement.')
+    elif tw['latest_day'] and otc['latest_day'] and tw['latest_day']!=otc['latest_day']:
+        combined.update(status='MISALIGNED',why='Exchange observation dates differ')
+    tw.update(otc=otc,combined=combined)
     return tw
 
 
@@ -252,7 +221,7 @@ def lambda_handler(event, context):
                        "(partial blends are lies)",
            "countries": {}, "deferred": dict(DEFERRED),
            "diag": {}}
-    doc["countries"]["taiwan"] = taiwan(event or {})
+    doc["countries"]["taiwan"] = taiwan(event or {},context)
     live = any(c.get("status") == "LIVE"
                for c in doc["countries"].values())
     doc["status"] = "LIVE" if live else "INSUFFICIENT_DATA"
@@ -260,12 +229,16 @@ def lambda_handler(event, context):
     tw = doc["countries"].get("taiwan") or {}
     # ops 5624 quality
     doc["units"] = "TWD_bn"
+    doc["methodology_version"]="exchange-observations.v2"
+    doc["call"]=None
+    doc["execution_eligible"]=False
     doc["quality"] = {
-        "observation_date": tw.get("latest_day"),
+        "observation_date": tw.get("quality",{}).get("observation_date"),
+        "max_age_days":5,
         "publication_date": now.date().isoformat(),
         "frequency": "daily",
         "freshness_basis": "observation",
-        "status": "fresh" if live else "unavailable",
+        "status": tw.get("quality",{}).get("status","unavailable"),
         "missing": [] if live else ["taiwan_twse"],
         "note": "Exchange foreign net only. Not TIC/BOP.",
     }
