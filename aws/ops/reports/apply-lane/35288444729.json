@@ -1,0 +1,29 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35288444729",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35288444729",
+ "base_sha": "20e37f2201427056338e3dfc6decbf18c2596cd9",
+ "result_sha": "211b3dc4c4669a8375ec3c21d8638c01dacb0dc4",
+ "patchers": [],
+ "targets": [
+  "justhodl-auction-crisis-detector"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "auction-crisis.html",
+  "brief.html"
+ ],
+ "ops_scripts": [
+  "aws/ops/pending/ops_5706_auction_pd_verify.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "35288468682",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:48:45Z"
+}
