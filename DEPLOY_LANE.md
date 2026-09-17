@@ -27,11 +27,12 @@ The staged-patcher path exists only for lanes without a shell. It is not the gen
 
 ## Lane authorization (Khalid directive, 2026-09-17)
 
-The **Grok lane is authorized for full write on every deploy path** — engines
-(`aws/lambdas/**`), shared modules, ops scripts (`aws/ops/pending/`), workers, pages —
-through its GitHub connector, which commits as `ElMooro` (Khalid's account) to `main`
-(unprotected). That is the same authority Claude and Codex hold; every push deploys through
-the runner exactly as for any lane. "AWS access" for any lane means the runner: an ops script
+The **Grok lane and the ChatGPT/Codex lane are authorized for full write on every deploy
+path** — engines (`aws/lambdas/**`), shared modules, ops scripts (`aws/ops/pending/`),
+workers, pages — Grok through the "Grok (by xAI)" GitHub App (code / actions / workflows
+read-write; commits as `ElMooro`), Codex through the standing deploy PAT (`repo` + `workflow`;
+commits as `Codex`), both straight to `main` (unprotected). That is the same authority Claude
+holds; every push deploys through the runner exactly as for any lane. "AWS access" for any lane means the runner: an ops script
 in `aws/ops/pending/` runs with the runner's IAM. No lane ever holds AWS keys, and none are
 issued (audit 2026-09-08, Release A) — a key in a chat window is a regression, not a grant.
 
@@ -46,6 +47,20 @@ Standing rules the grant does not waive:
   refuses the write — hand the change to a shell lane rather than retrying
 - a deploy is proven by the receipt (`data/ops/releases/<fn>.json`, commit == yours), not by a
   green run; ops reports land in `aws/ops/reports/latest/`
+
+## Verify a push from any lane (GitHub side, then AWS side)
+
+```
+python3 scripts/verify_push.py <sha> --wait 20            # every run the commit caused, job/step verdicts
+python3 scripts/verify_release.py <fn> --commit <sha> --data data/<engine>.json   # AWS runs those bytes; data fresh
+git pull --rebase origin main && cat aws/ops/reports/latest/<N>_<slug>.md          # an ops script's own report
+```
+
+`verify_push.py` reads a token from `GITHUB_TOKEN` / `GH_TOKEN` / `JH_PAT` or `~/.jh_pat` and never
+prints it; job logs are not needed (they sit on a host most sandboxes cannot reach). Anything that
+needs boto3 eyes on AWS is a **read-only** ops script: `aws/ops/STAGED/ops_<N>_<slug>.py` dispatched
+through `run-ops-direct.yml` (`script=STAGED/ops_<N>_<slug>.py`) — it runs at once, commits its
+report to `main`, and never re-runs on the serial lane (ops 5587/5588 are the pattern).
 
 ## Proof, not green checks
 
