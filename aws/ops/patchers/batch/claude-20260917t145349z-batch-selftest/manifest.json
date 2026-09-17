@@ -1,0 +1,23 @@
+{
+ "complete": true,
+ "lane": "claude",
+ "note": "batch v4 self-test: two engines (source in parts + config whole), byte-identical to main -- expect assembled, nothing changed, no deploy",
+ "files": [
+  {
+   "target": "aws/lambdas/justhodl-ticker-deep-research/source/lambda_function.py",
+   "first_line": "\"\"\"",
+   "last_line": "return {\"statusCode\": 500, \"body\": json.dumps({\"status\": \"error\", \"error\": message})}"
+  },
+  {
+   "target": "aws/lambdas/justhodl-ticker-deep-research/config.json"
+  },
+  {
+   "target": "aws/lambdas/justhodl-settlement-fails/source/lambda_function.py",
+   "first_line": "\"\"\"",
+   "last_line": "\"classes\": len(classes), \"total_combined_bn\": (total_comb[-1][1] if total_comb else None)})}"
+  },
+  {
+   "target": "aws/lambdas/justhodl-settlement-fails/config.json"
+  }
+ ]
+}
