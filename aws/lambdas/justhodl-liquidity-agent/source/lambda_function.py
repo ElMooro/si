@@ -28,6 +28,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Tuple
+from liquidity_contract import FORMULA_NOTE, core_quality, observation_status, unavailable_payload
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -137,10 +138,11 @@ FRED_SERIES = [
 ALREADY_BILLIONS = {
     "RRPONTSYD",   # FRED: Billions of USD
     "TOTRESNS",    # FRED: Billions of USD
+    "M1SL", "M2SL",  # H.6 money stock is already billions (FRED series metadata)
 }
 # Series in millions -> divide by 1000 to get billions
 IN_MILLIONS = {
-    "M2SL", "M1SL", "WALCL", "WTREGEN", "WSHOSHO", "WSHOTSL", "WSHOMCB",
+    "WALCL", "WTREGEN", "WSHOSHO", "WSHOTSL", "WSHOMCB",
     "WRESBAL", "EXCSRESNW", "BOGMBASE", "WORAL", "CURRCIR", "WCURCIR",
     "TREAST", "WSHONBIILB", "WSHOBL", "WSHOFADSL", "WSHOMBLS", "WSHOFCDN",
     "H41RESPPALDKNWA", "WCBSL", "WLRRAL", "RESPPALGUONNWW",
@@ -194,7 +196,9 @@ def _fred_live(series_id, limit, observation_start, max_retries=3):
                 val_str = obs.get("value", ".")
                 if val_str not in (".", "", None):
                     try:
-                        results.append({"date": obs["date"], "value": float(val_str)})
+                        value = float(val_str)
+                        if math.isfinite(value):
+                            results.append({"date": obs["date"], "value": value})
                     except (ValueError, TypeError):
                         pass
             return results if results else None
@@ -225,7 +229,11 @@ def fetch_fred(series_id: str, limit: int = 30, observation_start: str = "2020-0
         clean = [{"date": o["date"], "value": o["value"]}
                   for o in sliced if "date" in o and "value" in o]
         if clean:
-            return clean
+            clean.sort(key=lambda row: row['date'], reverse=True)
+            freq = next((row[4] for row in FRED_SERIES if row[0] == series_id), 'm')
+            max_age = {'d': 7, 'w': 16, 'm': 95, 'q': 180}.get(freq, 95)
+            if observation_status(clean[0]['date'], max_age) == 'fresh':
+                return clean
     # Cache miss — go live with backoff
     return _fred_live(series_id, limit, observation_start)
 
@@ -235,8 +243,11 @@ def get_latest(series_id: str, limit: int = 10) -> Tuple[Optional[float], Option
     obs = fetch_fred(series_id, limit=limit)
     if not obs:
         return None, None
+    obs = sorted(obs, key=lambda row: row['date'], reverse=True)
     latest = obs[0]
     val = latest["value"]
+    if not isinstance(val, (int, float)) or not math.isfinite(val):
+        return None, latest['date']
     # Unit conversion
     if series_id in IN_MILLIONS:
         val = val / 1000.0
@@ -249,8 +260,10 @@ def get_series_history(series_id: str, limit: int = 52) -> List[Dict]:
     if not obs:
         return []
     result = []
-    for o in reversed(obs):  # chronological order
+    for o in sorted(obs, key=lambda row: row["date"]):  # chronological order
         val = o["value"]
+        if not isinstance(val, (int, float)) or not math.isfinite(val):
+            continue
         if series_id in IN_MILLIONS:
             val = val / 1000.0
         result.append({"date": o["date"], "value": round(val, 4)})
@@ -660,6 +673,8 @@ def _deep_num(obj, patterns, _d=0):
 
 
 def lambda_handler(event: Dict, context: Any) -> Dict:
+    global _FRED_CACHE
+    _FRED_CACHE = None  # reload official cache each invocation, not once per warm container
     print("[LiqAgent] Starting TGA + Fed Liquidity analysis...")
     ts_start = datetime.now(timezone.utc)
 
@@ -670,12 +685,15 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     tga_val, tga_date         = get_latest("WTREGEN", 5)
     rrp_val, rrp_date         = get_latest("RRPONTSYD", 5)
 
-    if any(v is None for v in [walcl_val, tga_val, rrp_val]):
-        print(f"[LiqAgent] WARNING: Core series missing — WALCL={walcl_val}, TGA={tga_val}, RRP={rrp_val}")
-        # Partial data — continue with whatever we have
-        walcl_val = walcl_val or 0
-        tga_val   = tga_val or 0
-        rrp_val   = rrp_val or 0
+    q = core_quality({'WALCL': walcl_val, 'WTREGEN': tga_val, 'RRPONTSYD': rrp_val},
+                     {'WALCL': walcl_date, 'WTREGEN': tga_date, 'RRPONTSYD': rrp_date}, ts_start.isoformat())
+    if q['status'] != 'fresh':
+        previous = _sfeed(S3_KEY)
+        out = unavailable_payload({'WALCL': walcl_val, 'WTREGEN': tga_val, 'RRPONTSYD': rrp_val},
+                                  q['input_dates'], q, previous)
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=json.dumps(out, allow_nan=False).encode(),
+                      ContentType='application/json', CacheControl='no-cache')
+        return {'statusCode': 200, 'body': json.dumps({'ok': False, 'quality': q})}
 
     # Net Liquidity
     net_liquidity = compute_net_liquidity(walcl_val, tga_val, rrp_val)
@@ -691,9 +709,9 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     # Build net liquidity history
     net_liq_history = []
     for i, w in enumerate(walcl_hist):
-        matching_tga = next((t["value"] for t in tga_hist if t["date"] <= w["date"]), None)
-        matching_rrp = next((r["value"] for r in rrp_hist if r["date"] <= w["date"]), None)
-        if matching_tga and matching_rrp:
+        matching_tga = next((t["value"] for t in reversed(tga_hist) if t["date"] <= w["date"]), None)
+        matching_rrp = next((r["value"] for r in reversed(rrp_hist) if r["date"] <= w["date"]), None)
+        if matching_tga is not None and matching_rrp is not None:
             nl = compute_net_liquidity(w["value"], matching_tga, matching_rrp)
             net_liq_history.append({"date": w["date"], "value": nl})
 
@@ -846,7 +864,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
         "meta": {
             "generated_at":  ts_end.isoformat(),
             "elapsed_sec":   elapsed,
-            "agent_version": "2.0.0",
+            "agent_version": "2.1.0",
             "data_sources":  ["FRED"],
         },
 
@@ -963,12 +981,28 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
         }
     }
 
+    output['generated_at'] = ts_end.isoformat()
+    q['publication_date'] = output['generated_at']
+    output['quality'] = q
+    output['formula'] = 'WALCL - WTREGEN - RRPONTSYD'
+    output['formula_note'] = FORMULA_NOTE
+    output['call'] = None
+    output['field_units'] = {'core.net_liquidity.value_bn': 'usd_bn', 'core.net_liquidity.score': 'score_0_100',
+                             'yields.y10': 'pct', 'money_supply.m2_bn': 'usd_bn'}
+    # No walk-forward evidence exists for a 3-5-day SPY lead or calibrated confidence.
+    spy_signal.update(direction=None, strength=None, lead_days=None, confidence=None, validated=False,
+                      basis='Balance-sheet proxy only; no validated SPY lead or position recommendation.')
+    regime['spy_signal'] = None
+    output['signal_logger'].update(direction=None, lead_days=None, status='unvalidated', label='PROXY_ONLY')
+    output['core']['net_liquidity'].update(label=regime['trend'], score_kind='heuristic_balance_sheet_proxy')
+    composite_label = regime['trend']
+
     # ── Write to S3 ───────────────────────────────────────────────────────
     try:
         s3.put_object(
             Bucket=S3_BUCKET,
             Key=S3_KEY,
-            Body=json.dumps(output, default=str).encode("utf-8"),
+            Body=json.dumps(output, default=str, allow_nan=False).encode("utf-8"),
             ContentType="application/json",
             CacheControl="no-cache, max-age=0",
         )

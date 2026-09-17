@@ -577,8 +577,8 @@
       <div class="spy-lead-header">
         <div class="spy-lead-icon">📈</div>
         <div>
-          <div class="spy-lead-title">SPY Leading Indicator</div>
-          <div class="spy-lead-sub">3-5 DAY LEAD · LIQUIDITY-DRIVEN</div>
+          <div class="spy-lead-title">Liquidity Proxy — Validation Status</div>
+          <div class="spy-lead-sub">NO VALIDATED SPY FORECAST</div>
         </div>
       </div>
       <div class="section-title" style="margin-top:4px">Signal Components</div>
@@ -712,7 +712,7 @@
 </div>
 
 <script>
-const S3_URL = '/liquidity-data.json';
+const S3_URL = 'https://justhodl-data-proxy.raafouis.workers.dev/liquidity-data.json';
 
 const COLOR_GREEN  = '#00ff88';
 const COLOR_RED    = '#ff3d5a';
@@ -877,8 +877,16 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
 }
 
 function render(data) {
-  try { renderPart4(data.part4 || {}); } catch(e){ console.error("part4",e); }
   try { renderCatalog(data.catalog || {}); } catch(e){ console.error('catalog render', e); }
+  const published = Date.parse(data.quality?.publication_date || data.meta?.generated_at);
+  const usable = data.quality?.status === 'fresh' && Number.isFinite(published) && Date.now()-published <= 48*3600000;
+  if (!usable) {
+    data = {...data, core: {...(data.core || {}), net_liquidity: {value_bn: null, score: null, label: 'UNAVAILABLE'}},
+      regime: {trend: 'UNKNOWN', structure: 'UNKNOWN', delta_4w_bn: null, delta_13w_bn: null},
+      spy_signal: {direction: null, confidence: null, basis: 'Required data unavailable or stale.'},
+      components: {tga_analysis: {signal:'UNKNOWN'}, rrp_analysis: {signal:'UNKNOWN'}}};
+  }
+  try { renderPart4(usable ? (data.part4 || {}) : {}); } catch(e){ console.error("part4",e); }
   const core    = data.core    || {};
   const regime  = data.regime  || {};
   const sig     = data.spy_signal || {};
@@ -900,8 +908,8 @@ function render(data) {
   setEl('footer-ts', `Generated ${genAt.toISOString().replace('T',' ').substring(0,19)} UTC`);
 
   // Hero
-  const nlVal = parseFloat(nl.value_bn) || 0;
-  setEl('hero-net-liq', Math.abs(nlVal) >= 1000 ? (nlVal/1000).toFixed(2)+'T' : fmt(nlVal, 1));
+  const nlVal = nl.value_bn == null ? null : Number(nl.value_bn);
+  setEl('hero-net-liq', nlVal == null ? '—' : Math.abs(nlVal) >= 1000 ? (nlVal/1000).toFixed(2)+'T' : fmt(nlVal, 1));
   setEl('formula-walcl', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
   setEl('formula-tga',   fmtB(core.tga && core.tga.value_bn));
   setEl('formula-rrp',   fmtB(core.rrp && core.rrp.value_bn));
@@ -912,11 +920,11 @@ function render(data) {
   const sigBadge = document.getElementById('hero-signal-badge');
   if (sigBadge) {
     sigBadge.className = `signal-badge sig-${sigLabel}`;
-    setEl('hero-signal-text', `${sigLabel.replace(/_/g,' ')} · SCORE ${nl.score}/100`);
+    setEl('hero-signal-text', `${sigLabel.replace(/_/g,' ')} · ${nl.score == null ? 'SCORE UNAVAILABLE' : 'PROXY SCORE ' + nl.score + '/100'}`);
   }
 
   // Score ring
-  const score = parseInt(nl.score) || 50;
+  const score = nl.score == null ? null : Number(nl.score);
   const arc = document.getElementById('score-arc');
   if (arc) {
     const scoreColor = score >= 60 ? COLOR_GREEN : score >= 45 ? COLOR_YELLOW : COLOR_RED;
@@ -925,14 +933,14 @@ function render(data) {
     const offset = circumference - (score / 100) * circumference;
     setTimeout(() => { arc.style.strokeDashoffset = offset; }, 200);
   }
-  setEl('score-num', score);
+  setEl('score-num', score == null ? '—' : score);
 
   // Stats
   setEl('stat-regime', (regime.trend || '—').replace(/_/g,' '));
   const d4w = parseFloat(regime.delta_4w_bn);
   const d13w = parseFloat(regime.delta_13w_bn);
-  setEl('stat-4w', `<span style="color:${d4w>=0?COLOR_GREEN:COLOR_RED}">${d4w>=0?'+':''}${fmt(d4w,1)}B</span>`);
-  setEl('stat-13w', `<span style="color:${d13w>=0?COLOR_GREEN:COLOR_RED}">${d13w>=0?'+':''}${fmt(d13w,1)}B</span>`);
+  setEl('stat-4w', !Number.isFinite(d4w) ? '—' : `<span style="color:${d4w>=0?COLOR_GREEN:COLOR_RED}">${d4w>=0?'+':''}${fmt(d4w,1)}B</span>`);
+  setEl('stat-13w', !Number.isFinite(d13w) ? '—' : `<span style="color:${d13w>=0?COLOR_GREEN:COLOR_RED}">${d13w>=0?'+':''}${fmt(d13w,1)}B</span>`);
   setEl('stat-structure', (regime.structure || '—').replace(/_/g,' '));
   setEl('stat-curve', `<span style="color:${yields.curve_status==='INVERTED'?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`);
   setEl('stat-sofr', funding.sofr ? fmt(funding.sofr,2)+'%' : '—');
@@ -950,9 +958,11 @@ function render(data) {
       `Net liquidity has ${isExpanding ? 'expanded' : 'contracted'} <strong>$${Math.abs(d4w).toFixed(1)}B</strong> over 4 weeks and <strong>$${Math.abs(d13w).toFixed(1)}B</strong> over 13 weeks. ` +
       `TGA signal: <strong>${(tgaA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
       `RRP signal: <strong>${(rrpA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
-      `SPY 3-5 day leading signal: <strong style="color:${isBullish?COLOR_GREEN:COLOR_RED}">${sig.direction||'NEUTRAL'} (${sig.strength||''})</strong>.`
+      `Balance-sheet proxy only; no validated SPY lead or position recommendation.`
     );
   }
+
+  if (!Number.isFinite(d4w) || !Number.isFinite(d13w)) setEl('regime-sub', 'Required observations or aligned history unavailable; no current liquidity classification.');
 
   // Core triad
   setEl('walcl-val', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
@@ -974,14 +984,14 @@ function render(data) {
   const spyBadge = document.getElementById('spy-direction-badge');
   if (spyBadge) {
     spyBadge.className = `signal-badge sig-${sig.direction||'NEUTRAL'}`;
-    setEl('spy-dir-text', `${(sig.direction||'NEUTRAL').replace(/_/g,' ')} · ${sig.strength||''} · ${sig.lead_days||'3-5'}D`);
+    setEl('spy-dir-text', 'UNVALIDATED · NO DIRECTIONAL CALL');
   }
   setEl('spy-basis', sig.basis || '—');
-  const conf = parseInt(sig.confidence) || 50;
-  setEl('spy-conf-val', conf + '%');
+  const conf = sig.validated && sig.confidence != null ? Number(sig.confidence) : null;
+  setEl('spy-conf-val', conf == null ? '—' : conf + '%');
   const confBar = document.getElementById('spy-conf-bar');
   if (confBar) {
-    confBar.style.width = conf + '%';
+    confBar.style.width = (conf || 0) + '%';
     confBar.style.background = sig.direction === 'BULLISH' ? COLOR_GREEN : sig.direction === 'BEARISH' ? COLOR_RED : COLOR_YELLOW;
   }
 
