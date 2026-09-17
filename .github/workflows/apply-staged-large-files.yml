@@ -53,6 +53,8 @@ jobs:
           echo "BASE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
       - name: Assemble multipart uploads
+        # v3 (2026-09-17): a rejected upload never fails this step -- its STATUS.json + receipt are committed
+        # below so a no-shell lane can read WHY; the run is failed at the end (PARTS_REJECTED).
         run: python3 scripts/assemble_parts.py
 
       - name: Run patchers
@@ -215,5 +217,12 @@ jobs:
             echo "- result: \`${{ steps.push.outputs.sha }}\`"
             echo "- patchers: \`${APPLIED:-none}\`"
             echo "- deploy targets: \`${{ steps.targets.outputs.targets }}\`"
+            echo "- rejected uploads: \`${PARTS_REJECTED:-none}\` (reasons in aws/ops/patchers/parts/<id>/STATUS.json and parts/_receipts/)"
             echo "- verify: \`python3 scripts/verify_release.py <function> --commit ${{ steps.push.outputs.sha }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail the run if an upload was rejected (after its STATUS was pushed)
+        if: always() && env.PARTS_REJECTED != ''
+        run: |
+          echo "::error::multipart upload(s) rejected: $PARTS_REJECTED -- read aws/ops/patchers/parts/<id>/STATUS.json on main, fix that part, push it again"
+          exit 1

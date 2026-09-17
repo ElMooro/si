@@ -21,7 +21,7 @@ happens on the GitHub Actions runner, which holds the credentials.
 | Lane | Has a shell + git? | Write path |
 |---|---|---|
 | Khalid (Git Bash), Claude (sandbox) | yes | normal git push — any file size, nothing special |
-| Grok / connector `push_files` (Contents API) | no — one file per write, ~40 KB bodies truncate | **multipart upload** or a tiny patcher (below) |
+| Grok / ChatGPT connector (Contents API) | no — one file per write, ~40 KB bodies truncate | **multipart upload v3** (parts ≤ 12 KB, no hashes) or a tiny patcher (below) |
 
 The staged-patcher path exists only for lanes without a shell. It is not the general push path.
 
@@ -76,30 +76,49 @@ python3 scripts/verify_release.py <function> --commit <sha> --data data/<engine>
 The receipt carries the commit, run id, `CodeSha256`, zip bytes and every source
 file's sha256. Compare `commit` to what you pushed; that is the proof.
 
-## Large / complicated change without a shell — multipart upload (any size)
+## Large / complicated change without a shell — multipart upload v3 (any size, no hashes)
 
-Upload the file the way S3 does a multipart upload:
+The connector truncates a single write around 40 KB, so a large file goes up as **parts**, one
+Contents-API write each, and the runner reassembles it. v3 (2026-09-17) needs nothing a model
+cannot produce: no sha256, no byte count.
 
 ```
-aws/ops/patchers/parts/<upload-id>/manifest.json
-   {"target": "aws/lambdas/justhodl-stock-buying/source/lambda_function.py",
-    "parts": ["part-001", "part-002", "part-003"],
-    "sha256": "<hex sha256 of the whole file>",      # best; or at least
-    "bytes": 40564,                                    # exact byte count
-    "note": "stock-buying v1.5.2 full source"}
-aws/ops/patchers/parts/<upload-id>/part-001 …        # raw bytes, each ≤ 16 KB
+aws/ops/patchers/parts/<upload-id>/part-001      <= 12 KB, whole lines, marker lines first and last:
+    @@PART 1/4@@
+    import json
+    ...
+    @@END 1@@
+aws/ops/patchers/parts/<upload-id>/part-002 … part-004      same shape (2/4 … 4/4)
+aws/ops/patchers/parts/<upload-id>/manifest.json            written LAST — this is the go signal:
+    {"target": "aws/lambdas/justhodl-x/source/lambda_function.py",
+     "complete": true,
+     "note": "stock-buying v1.6.0 full source",
+     "first_line": "import json",                # optional but recommended: first non-empty line of the file
+     "last_line": "    return out"}               # optional but recommended: last non-empty line of the file
 ```
 
-Push the folder (any order, several commits are fine — an incomplete upload is
-skipped, never failed). When every listed part exists the runner concatenates,
-verifies sha256/bytes, compiles it if it is Python, writes the target, guards it,
-commits, pushes, and dispatches `deploy-lambdas.yml` pinned to that commit.
-Nothing is written to the target unless the check passes.
+Rules the runner enforces before it writes a single byte: part numbers contiguous from 001; every
+`@@PART n/N@@` matches its file and the total; every part ends with its `@@END n@@` (a missing END
+= the write was cut off); parts ≤ 40 KB; `first_line`/`last_line` match; `.py` compiles, `.json`
+parses, `.js` passes `node --check`, `.html` is a whole document (`"fragment": true` for a partial);
+a result under 50% of the existing file needs `"shrink_ok": true`. CRLF becomes LF; each part joins
+on a line boundary; the file ends with a newline.
 
-Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root
-`*.html|*.js|*.css`, `assets/`, `js/`, `css/`. Pages/workers get their own dispatch.
+What comes back, on `main`:
+- **assembled** → target written, parts folder removed, receipt at
+  `aws/ops/patchers/parts/_receipts/<upload-id>.json` (bytes, sha256, check), then the deploy is
+  dispatched pinned to that commit and the release receipt follows as usual
+- **rejected** → nothing written; `aws/ops/patchers/parts/<upload-id>/STATUS.json` (and the same
+  receipt) says exactly which part and why; fix that one part (or the manifest) and push it — the
+  lane re-runs by itself, and the run goes red so nobody mistakes it for a landing
+- parts still arriving → nothing happens until `manifest.json` says `"complete": true`
 
-With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` writes the folder.
+Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root `*.html|*.js|*.css`,
+`assets/`, `js/`, `css/`. Pages/workers get their own dispatch. A v2 manifest (`"parts": [...]`,
+`sha256`, `bytes`, `"join": "bytes"`) still works for exact/binary uploads.
+
+With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` writes the whole folder
+(markers, manifest, sha256) — or just `git push`, the parts lane is for lanes without one.
 
 ## Small surgical change without a shell — patcher
 
