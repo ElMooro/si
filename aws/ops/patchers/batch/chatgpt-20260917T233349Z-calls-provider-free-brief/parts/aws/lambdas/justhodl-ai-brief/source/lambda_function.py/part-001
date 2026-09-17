@@ -1,0 +1,654 @@
+@@PART 1/2@@
+"""
+justhodl-ai-brief — Daily executive brief that synthesizes the entire JustHodl stack.
+
+Reads 14 data sources (every major system's S3 output):
+  1. intelligence-report.json     (Khalid Index, regime, headline, scores)
+  2. data/calibration-snapshot.json   (signal accuracy weights)
+  3. data/sector-rotation.json    (11 sector RS + breadth)
+  4. data/momentum-scanner.json   (top 50 universe momentum)
+  5. data/allocator.json          (cross-asset allocation)
+  6. data/asymmetric-scorer.json  (QARP setups)
+  7. data/risk-sizer.json         (Kelly + circuit breakers)
+  8. data/auction-crisis.json     (Treasury auction stress)
+  9. data/eurodollar-stress.json  (8-signal dollar stress)
+ 10. data/macro-surprise.json     (composite z + regime)
+ 11. data/insider-trades.json     (cluster buys)
+ 12. data/earnings-tracker.json   (PEAD signals)
+ 13. data/correlation-surface.json (regime breaks)
+ 14. data/alert-history.json      (recent alerts)
+
+Compiles a source-backed warehouse brief without model API calls.
+Writes:
+  - data/ai-brief.json     (structured: regime, top_3_signals, top_3_risks, ranked_actions[5])
+  - data/ai-brief.md       (human-readable markdown for direct display)
+
+Schedule: every 4 hours (via EventBridge cron(0 0,4,8,12,16,20 * * ? *))
+
+The brief is decisive and follows Khalid's preferred structure:
+  (1) Data tape, (2) Regime, (3) Best assets, (4) Worst assets,
+  (5) Transitions, (6) Watch triggers, (7) DECISIVE CALL
+"""
+# No provider shim: paid model routing is intentionally absent from this producer.
+import json
+import os
+import time
+import urllib.request
+from datetime import datetime, timezone
+import boto3
+from calls_contract import khalid_value, candidate_verb, make_snapshot, append_snapshot
+
+S3 = boto3.client("s3", region_name="us-east-1")
+SSM = boto3.client("ssm", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
+ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+
+# Telegram defaults — overrideable via env var or SSM
+TG_BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
+SKIP_TELEGRAM = os.environ.get("SKIP_TELEGRAM") == "1"
+
+
+def get_anthropic_key():
+    if ANTHROPIC_KEY:
+        return ANTHROPIC_KEY
+    try:
+        return SSM.get_parameter(Name="/justhodl/anthropic/api-key", WithDecryption=True)["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ssm-anthropic] {e}")
+        return None
+
+
+def get_telegram_chat_id():
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ssm-tg-chat] {e}")
+        return None
+
+
+def get_telegram_token():
+    if TG_BOT_TOKEN:
+        return TG_BOT_TOKEN
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/bot_token", WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return None
+
+
+def send_telegram(text, chat_id):
+    """Reuses the same pattern as alert-router + position-monitor."""
+    import urllib.request as _ur
+    token = get_telegram_token()
+    if not token or not chat_id:
+        print("[tg] missing token/chat_id")
+        return False, "missing creds"
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        body = json.dumps({
+            "chat_id": chat_id,
+            "text": text[:4096],
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }).encode()
+        req = _ur.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with _ur.urlopen(req, timeout=10) as resp:
+            return True, resp.read().decode()[:200]
+    except Exception as e:
+        # Fall back without parse_mode in case Markdown is malformed
+        try:
+            payload = {"chat_id": chat_id, "text": text[:4096], "disable_web_page_preview": True}
+            req = _ur.Request(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            with _ur.urlopen(req, timeout=10) as resp:
+                return True, resp.read().decode()[:200]
+        except Exception as e2:
+            return False, f"{e} / fallback: {e2}"
+
+
+_VERB_EMOJI = {
+    "EXIT_ALL_RISK": "🚨", "EXIT": "🔴", "TRIM": "🟠", "HEDGE": "🟡",
+    "WAIT": "🟣", "HOLD": "⚪", "LONG": "🟢", "LOAD": "🟢", "LEVER": "🚀",
+    "UNKNOWN": "⚫",
+}
+
+
+def _verb_label(verb):
+    return verb.replace("_", " ") if verb else "UNKNOWN"
+
+
+def build_telegram_digest(snapshot, brief_md, call_verb, prev_verb=None):
+    """Compact Markdown digest (~1000 chars) of the brief for mobile push.
+
+    Format:
+      📊 *Brief* — May 4 22:32 UTC
+      *Call:* 🚨 EXIT ALL RISK  (was UNKNOWN)
+      *Phase:* PRE-CRISIS · *Regime:* NEUTRAL · *Khalid:* 48
+      *Top trusted:* carry_risk (w=1.45, 100% acc)
+      *Weighted accuracy:* 55.3%
+
+      📊 *Key signals*
+      • RRP $0.6B (-3σ) → liquidity cliff
+      • carry_risk LOW (23, w=1.45)
+      • crisis_hy_oas CALM (11.2, w=1.42, lagging)
+      • System alpha -0.28% in 9d
+      • Sector breadth NARROW (1 leader)
+
+      📈 *Open positions:* 11 · *Near stop:* 0 · *Near target:* 0
+
+      🔗 [Full brief](https://justhodl.ai/brief.html) · [Call history](https://justhodl.ai/calls.html)
+    """
+    intel = snapshot.get("intelligence") or {}
+    cal_v2 = snapshot.get("calibration_v2") or {}
+    pp = snapshot.get("paper_portfolio") or {}
+    sp = pp.get("signal_portfolio") or {}
+    ml = pp.get("macro_loop2") or {}
+    ed = snapshot.get("eurodollar_stress") or {}
+
+    emoji = _VERB_EMOJI.get(call_verb, "📊")
+    verb_label = _verb_label(call_verb)
+
+    # Header line
+    when = datetime.now(timezone.utc).strftime("%b %d %H:%M UTC")
+    parts = [f"📊 *JustHodl Brief* — {when}", ""]
+
+    # Call line
+    if prev_verb and prev_verb != call_verb and prev_verb != "UNKNOWN":
+        parts.append(f"*Call:* {emoji} `{verb_label}` (was `{_verb_label(prev_verb)}`)")
+    else:
+        parts.append(f"*Call:* {emoji} `{verb_label}`")
+
+    # Regime + phase + Khalid Index
+    phase = ml.get("phase") or intel.get("phase") or "—"
+    regime_obj = intel.get("regime") or intel.get("scores", {}).get("regime")
+    if isinstance(regime_obj, dict):
+        regime = regime_obj.get("khalid") or regime_obj.get("ka") or "—"
+    else:
+        regime = regime_obj or "—"
+    ki = intel.get("khalid_score") or (intel.get("scores", {}) or {}).get("khalid_score") or "—"
+    parts.append(f"*Phase:* {phase} · *Regime:* {regime} · *Khalid:* {ki}")
+
+    # Top trusted signal
+    hw = cal_v2.get("highest_weight") or {}
+    top_sigs = cal_v2.get("top_weighted_signals") or []
+    if top_sigs:
+        top = top_sigs[0]
+        acc = top.get("accuracy")
+        acc_str = f"{int(acc*100)}% acc" if acc is not None else "no acc yet"
+        parts.append(f"*Top trusted:* `{top.get('sig')}` (w={top.get('weight'):.2f}, {acc_str})")
+
+    # Weighted mean accuracy
+    wma = cal_v2.get("weighted_mean_accuracy")
+    if wma is not None:
+        parts.append(f"*Weighted accuracy:* {wma*100:.1f}%")
+
+    parts.append("")
+
+    # Key signals — pull a handful of the most decisive
+    parts.append("📊 *Key signals*")
+    key_lines = []
+    # Eurodollar
+    if ed:
+        comp = ed.get("score") or ed.get("composite_score")
+        sev = ed.get("severity") or ed.get("regime") or ""
+        hot = (ed.get("hot_signals") or [])
+        if comp is not None:
+            hot_str = f" · {len(hot)} hot" if hot else ""
+            key_lines.append(f"• Eurodollar stress: {comp:.0f}/100 {sev}{hot_str}")
+    # Paper portfolio alpha
+    if ml.get("system_alpha_pct") is not None:
+        days = ml.get("days_live") or "?"
+        key_lines.append(f"• System alpha: {ml.get('system_alpha_pct'):+.2f}% in {days}d")
+    # Top weighted signals (skip the first since we cited it above)
+    for s in top_sigs[1:4]:
+        acc = s.get("accuracy")
+        if acc is not None:
+            key_lines.append(f"• `{s.get('sig')}` (w={s.get('weight'):.2f}, {acc*100:.0f}% acc)")
+    # Limit to first 5
+    parts.extend(key_lines[:5])
+    parts.append("")
+
+    # Open positions
+    n_open = sp.get("n_open") or 0
+    near_stop = len(sp.get("near_stop") or [])
+    near_target = len(sp.get("near_target") or [])
+    if n_open:
+        flags = []
+        if near_stop:
+            flags.append(f"🔴 {near_stop} near stop")
+        if near_target:
+            flags.append(f"🟢 {near_target} near target")
+        flag_str = (" · " + " · ".join(flags)) if flags else ""
+        parts.append(f"📈 *Positions:* {n_open} open{flag_str}")
+        parts.append("")
+
+    # Links
+    parts.append("🔗 [Full brief](https://justhodl.ai/brief.html) · [Calls](https://justhodl.ai/calls.html) · [Performance](https://justhodl.ai/performance.html)")
+
+    return "\n".join(parts)
+
+
+def load_json(key, default=None):
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key=key)
+        return json.loads(obj["Body"].read())
+    except Exception as e:
+        print(f"[load] {key}: {e}")
+        return default if default is not None else {}
+
+
+_CALL_VERBS = ["EXIT ALL RISK", "EXIT", "TRIM", "HEDGE", "LEVER", "LONG", "LOAD", "WAIT", "HOLD"]
+
+def _extract_call_verb(md):
+    """Advisory parsing only; decision status and eligibility are separate fields."""
+    return candidate_verb(md) or "UNKNOWN"
+
+
+def compress_intel(intel):
+    """Pull just the decisive bits from intelligence-report.json."""
+    if not intel:
+        return None
+    return {
+        "khalid_score": khalid_value(intel),
+        "headline": intel.get("headline"),
+        "headline_detail": intel.get("headline_detail"),
+        "phase": intel.get("phase"),
+        "action_required": intel.get("action_required"),
+        "forecast": intel.get("forecast"),
+        "scores": intel.get("scores", {}),
+        "regime": intel.get("regime", {}),
+        "risks_top_2": (intel.get("risks") or [])[:2],
+    }
+
+
+def compress_calibration(cal):
+    """Original snapshot from data/calibration-snapshot.json — kept as fallback."""
+    if not cal:
+        return None
+    s = cal.get("summary", {})
+    top = (cal.get("top_accuracy") or [])[:3]
+    worst = (cal.get("worst_accuracy") or [])[:3]
+    return {
+        "weighted_accuracy_60d": s.get("weighted_avg_accuracy_60d"),
+        "n_signal_types": s.get("n_signal_types_tracked"),
+        "n_outcomes_60d": s.get("n_outcomes_60d"),
+        "best_3": [{"sig": x.get("signal_type"), "acc": x.get("rolling", {}).get("accuracy_60d"), "weight": x.get("weight")} for x in top],
+        "worst_3": [{"sig": x.get("signal_type"), "acc": x.get("rolling", {}).get("accuracy_60d"), "weight": x.get("weight")} for x in worst],
+    }
+
+
+def compress_calibration_v2(latest):
+    """Rich calibration summary from the snapshotter's calibration/model-latest.json.
+    Surfaces ranked signal trust + per-signal accuracy + n_60d so Claude can cite
+    specific signals when synthesizing the brief.
+
+    HORIZON-AWARE additions: window_weights[stype][window], recommended_horizon[stype],
+    and a precomputed horizon_lifts list so the prompt can cite which signals
+    perform best at which timeframe."""
+    if not latest:
+        return None
+    weights = latest.get("weights") or {}
+    accuracy = latest.get("accuracy") or {}
+    meta = latest.get("accuracy_meta") or {}
+    counts = latest.get("outcome_counts_60d") or {}
+    summ = latest.get("summary") or {}
+    window_weights = latest.get("window_weights") or {}
+    window_accuracy = latest.get("window_accuracy") or {}
+    recommended_horizon = latest.get("recommended_horizon") or {}
+
+    # Rank by weight, expose top 8 + bottom 5 with accuracy + return context
+    ranked = sorted(
+        [(sig, float(w)) for sig, w in weights.items()],
+        key=lambda x: -x[1],
+    )
+
+    def to_row(sig, w):
+        a = accuracy.get(sig)
+        avg = (meta.get(sig) or {}).get("avg_return")
+        n = counts.get(sig, 0)
+        # NEW: best-horizon attribution if this signal has horizon-aware data
+        rec = recommended_horizon.get(sig)
+        row = {
+            "sig": sig,
+            "weight": round(w, 3),
+            "accuracy": round(a, 3) if a is not None else None,
+            "avg_return_pct": round(avg, 2) if avg is not None else None,
+            "n_outcomes_60d": n,
+        }
+        if rec:
+            row["best_horizon"] = rec.get("window")
+            row["best_horizon_weight"] = round(rec.get("weight") or 0, 3)
+            row["best_horizon_accuracy"] = round(rec.get("accuracy") or 0, 3) if rec.get("accuracy") is not None else None
+            row["best_horizon_n"] = rec.get("n")
+        return row
+
+    top = [to_row(s, w) for s, w in ranked[:8]]
+    bottom = [to_row(s, w) for s, w in ranked[-5:]]
+
+    # Compute horizon-lifts: signals where best-horizon weight beats flat by ≥0.15
+    horizon_lifts = []
+    for sig, rec in recommended_horizon.items():
+        flat_w = float(weights.get(sig, 0) or 0)
+        h_w = float(rec.get("weight") or 0)
+        if h_w - flat_w >= 0.15:
+            horizon_lifts.append({
+                "sig": sig,
+                "best_horizon": rec.get("window"),
+                "horizon_weight": round(h_w, 3),
+                "flat_weight": round(flat_w, 3),
+                "uplift": round(h_w - flat_w, 3),
+                "horizon_accuracy": round(rec.get("accuracy") or 0, 3) if rec.get("accuracy") is not None else None,
+                "horizon_n": rec.get("n"),
+            })
+    horizon_lifts.sort(key=lambda x: -x["uplift"])
+
+    return {
+        "iso_week": latest.get("iso_week"),
+        "n_weights": summ.get("n_weights_total"),
+        "n_calibrated_n30": summ.get("n_signals_calibrated_n30"),
+        "weighted_mean_accuracy": summ.get("weighted_mean_accuracy"),
+        "highest_weight": summ.get("highest_weight"),
+        "median_weight": summ.get("median_weight"),
+        "top_weighted_signals": top,
+        "lowest_weighted_signals": bottom,
+        # NEW horizon-aware fields:
+        "n_signals_with_horizon_data": len([s for s in window_weights.values() if s]),
+        "horizon_lifts": horizon_lifts[:8],  # top 8 mispriced signals
+        "horizons_tracked": sorted({h for sm in window_weights.values() for h in sm.keys()}),
+    }
+
+
+def compress_paper_portfolio(state, daily):
+    """Signal-driven paper portfolio open positions + Loop 2 macro NAV vs B&H.
+    Surfaces positions near stops/targets so Claude can flag them in the brief."""
+    if not state and not daily:
+        return None
+    out = {}
+
+    if daily:
+        bh = daily.get("buy_and_hold") or {}
+        kh = daily.get("khalid_strategy") or {}
+        out["macro_loop2"] = {
+            "inception": daily.get("inception"),
+            "days_live": daily.get("days_since_inception"),
+            "phase": daily.get("current_phase"),
+            "regime": daily.get("current_regime"),
+            "khalid_return_pct": kh.get("return_pct"),
+            "buy_and_hold_return_pct": bh.get("return_pct"),
+            "system_alpha_pct": daily.get("system_alpha"),
+            "current_action_required": daily.get("current_action_required"),
+        }
+
+    if state:
+        opens = state.get("open_positions") or []
+        stats = state.get("stats") or {}
+        # Identify positions near stops/targets
+        near_target = []
+        near_stop = []
+        for p in opens:
+            try:
+                cur = float(p.get("current_price") or 0)
+                stop = float(p.get("stop_price") or 0)
+                tgt = float(p.get("target_price") or 0)
+                if cur > 0 and stop > 0 and tgt > 0:
+                    # Near target: within 3% of target (long) or above target
+                    if p.get("direction") == "LONG":
+                        if cur >= tgt * 0.97:
+                            near_target.append({"ticker": p.get("ticker"), "current": cur, "target": tgt, "pnl_pct": p.get("current_pnl_pct")})
+                        elif cur <= stop * 1.02:
+                            near_stop.append({"ticker": p.get("ticker"), "current": cur, "stop": stop, "pnl_pct": p.get("current_pnl_pct")})
+            except Exception:
+                continue
+        # Top by P&L
+        sorted_pnl = sorted(opens, key=lambda x: float(x.get("current_pnl_pct") or 0), reverse=True)
+        # Source breakdown
+        from collections import Counter as _Counter
+        sources = dict(_Counter(p.get("source") or "?" for p in opens))
+        out["signal_portfolio"] = {
+            "first_seen": state.get("first_seen"),
+            "current_nav": state.get("current_nav"),
+            "current_nav_pct_chg": state.get("current_nav_pct_chg"),
+            "unrealized_pnl_dollars": state.get("unrealized_pnl_dollars"),
+            "n_open": len(opens),
+            "n_closed": len(state.get("all_closed_positions") or []),
+            "win_rate": stats.get("win_rate"),
+            "sharpe_proxy": stats.get("sharpe_proxy"),
+            "max_drawdown_pct": stats.get("max_drawdown_pct"),
+            "source_breakdown": sources,
+            "near_target": near_target[:5],
+            "near_stop": near_stop[:5],
+            "best_3": [
+                {"ticker": p.get("ticker"), "source": p.get("source"),
+                 "pnl_pct": p.get("current_pnl_pct"), "days_held": p.get("days_held")}
+                for p in sorted_pnl[:3]
+            ],
+            "worst_3": [
+                {"ticker": p.get("ticker"), "source": p.get("source"),
+                 "pnl_pct": p.get("current_pnl_pct"), "days_held": p.get("days_held")}
+                for p in sorted_pnl[-3:]
+            ] if len(sorted_pnl) >= 3 else [],
+        }
+    return out
+
+
+def compress_sectors(s):
+    if not s:
+        return None
+    return {
+        "breadth": s.get("market_breadth"),
+        "breadth_desc": s.get("market_breadth_description"),
+        "spy_252d_return": (s.get("spy_returns") or {}).get("252") or (s.get("spy_returns") or {}).get(252),
+        "leaders": [{"t": x["ticker"], "rs_63d": (x.get("rs_vs_spy") or {}).get("63") or (x.get("rs_vs_spy") or {}).get(63)} for x in s.get("leaders", [])[:3]],
+        "laggards": [{"t": x["ticker"], "rs_63d": (x.get("rs_vs_spy") or {}).get("63") or (x.get("rs_vs_spy") or {}).get(63)} for x in s.get("laggards", [])[:3]],
+        "fatiguing": [{"t": x["ticker"]} for x in s.get("fatiguing", [])[:3]],
+    }
+
+
+def compress_momentum(m):
+    if not m:
+        return None
+    s = m.get("summary", {})
+    rk = m.get("rankings", {})
+    return {
+        "top_composite": s.get("top_composite"),
+        "top_score": s.get("top_composite_score"),
+        "best_sector": s.get("best_sector"),
+        "worst_sector": s.get("worst_sector"),
+        "n_universe": s.get("n_universe"),
+        "top_5_composite": [{"t": x["ticker"], "score": x.get("composite_score"), "ret_3m": x.get("ret_3m"), "sector": x.get("sector")} for x in rk.get("composite_top_50", [])[:5]],
+        "top_3_accelerating": [{"t": x["ticker"], "accel": x.get("acceleration")} for x in rk.get("accelerating_top_20", [])[:3]],
+    }
+
+
+def compress_allocator(a):
+    if not a:
+        return None
+    return {
+        "regime": a.get("regime_headline"),
+        "n_rules": f"{a.get('n_rules_applied')}/{a.get('n_rules_total')}",
+        "cash_buffer_pct": a.get("cash_buffer_pct"),
+        "overweights": (a.get("overweights") or [])[:5],
+        "underweights": (a.get("underweights") or [])[:5],
+        "weights": a.get("recommended_weights_pct"),
+    }
+
+
+def compress_asymmetric(a):
+    """Compress asymmetric-scorer (QARP screener) output for Claude.
+
+    Source: opportunities/asymmetric-equity.json
+    Schema: summary{}, cutoffs{}, sector_breakdown{}, top_setups[], value_traps[], cross_pollination{}.
+    """
+    if not a:
+        return None
+    summary = a.get("summary") or {}
+    cutoffs = a.get("cutoffs") or {}
+    sector_breakdown = a.get("sector_breakdown") or {}
+    top_setups = a.get("top_setups") or []
+    value_traps = a.get("value_traps") or []
+    cross = a.get("cross_pollination") or {}
+
+    # Distill top 5 setups with the dimension scores Claude can reason about
+    top_5 = []
+    for s in top_setups[:5]:
+        top_5.append({
+            "symbol": s.get("symbol"),
+            "sector": s.get("sector"),
+            "composite_score": s.get("composite_score"),
+            "dims_passed": s.get("dims_passed"),
+            "quality": s.get("quality_score"),
+            "safety": s.get("safety_score"),
+            "value": s.get("value_score"),
+            "momentum": s.get("momentum_score"),
+        })
+
+    # Top sectors by setup count
+    top_sectors = sorted(sector_breakdown.items(), key=lambda x: -x[1])[:3]
+
+    return {
+        "n_setups": summary.get("n_setups"),
+        "n_value_traps": summary.get("n_value_traps"),
+        "n_quality_passed": summary.get("n_quality_passed"),
+        "n_screened": summary.get("n_screener_total"),
+        "new_this_week": summary.get("new_this_week"),
+        "dropped_this_week": summary.get("dropped_this_week"),
+        "n_with_stacking_signals": summary.get("n_with_stacking_signals"),
+        "cutoffs_used": cutoffs,
+        "top_5_setups": top_5,
+        "top_3_sectors": [{"sector": k, "n_setups": v} for k, v in top_sectors],
+        "first_3_value_traps": [{"symbol": t.get("symbol"), "sector": t.get("sector"), "reason": t.get("trap_reason")} for t in value_traps[:3]],
+        "aaii_signal": cross.get("aaii_signal"),
+        "btc_mvrv": cross.get("btc_mvrv"),
+    }
+
+
+def compress_risk_sizer(r):
+    """Compress risk-sizer (Kelly + circuit breakers + clusters) output for Claude.
+
+    Source: risk/recommendations.json
+    Schema: regime, regime_strength, max_gross_exposure_pct, drawdown_status{},
+            summary{}, constraints_applied{}, clusters[], sized_recommendations[], warnings[].
+    """
+    if not r:
+        return None
+    dd = r.get("drawdown_status") or {}
+    summary = r.get("summary") or {}
+    constraints = r.get("constraints_applied") or {}
+    clusters = r.get("clusters") or []
+    sized = r.get("sized_recommendations") or []
+    warnings = r.get("warnings") or []
+
+    # Top 5 sized positions w/ context
+    top_5 = []
+    for s in sized[:5]:
+        top_5.append({
+            "symbol": s.get("symbol"),
+            "sector": s.get("sector"),
+            "size_pct": s.get("recommended_size_pct"),
+            "kelly_raw": s.get("kelly_raw"),
+            "conviction": s.get("phase2b_composite") or s.get("raw_conviction"),
+            "cluster": s.get("cluster"),
+        })
+
+    # Cluster sizes
+    cluster_summary = sorted(
+        [{"id": c.get("id"), "method": c.get("method"), "size": c.get("size"), "sector": c.get("sector")} for c in clusters],
+        key=lambda x: -(x.get("size") or 0),
+    )[:5]
+
+    return {
+        "regime": r.get("regime"),
+        "regime_strength": r.get("regime_strength"),
+        "max_gross_exposure_pct": r.get("max_gross_exposure_pct"),
+        "current_dd_pct": dd.get("current_dd_pct"),
+        "dd_size_multiplier": dd.get("size_multiplier"),
+        "dd_active_trigger": dd.get("active_trigger"),
+        "n_candidate_ideas": summary.get("n_candidate_ideas"),
+        "n_clusters": summary.get("n_clusters"),
+        "total_recommended_size_pct": summary.get("total_recommended_size_pct"),
+        "kelly_fraction": constraints.get("kelly_fraction"),
+        "max_single_pct": constraints.get("max_single_position_pct"),
+        "max_cluster_pct": constraints.get("max_cluster_pct"),
+        "top_5_sized": top_5,
+        "top_5_clusters": cluster_summary,
+        "warnings": [{"level": w.get("level"), "message": w.get("message")} for w in warnings[:3]],
+    }
+
+
+def compress_auction(a):
+    if not a:
+        return None
+    return {
+        "score": a.get("composite_score"),
+        "regime": a.get("regime"),
+        "regime_desc": a.get("interpretation"),
+    }
+
+
+def compress_ed_stress(e):
+    if not e:
+        return None
+    return {
+        "score": e.get("composite_stress_score") or e.get("composite_score"),
+        "severity": e.get("severity"),
+        "regime": e.get("regime"),
+        "regime_desc": e.get("regime_description"),
+        "n_signals_used": e.get("n_signals_used"),
+        "hot_signals": [
+            {"id": s.get("id"), "label": s.get("label"), "score": s.get("score")}
+            for s in (e.get("hot_signals") or [])
+        ],
+        "cold_signals": [
+            {"id": s.get("id"), "label": s.get("label"), "score": s.get("score")}
+            for s in (e.get("cold_signals") or [])
+        ],
+        "top_2_signals": (e.get("signals") or e.get("active_signals") or [])[:2],
+    }
+
+
+def compress_macro(m):
+    if not m:
+        return None
+    return {
+        "composite_z": m.get("composite") or m.get("composite_z"),
+        "regime": m.get("regime"),
+        "regime_desc": m.get("regime_description"),
+    }
+
+
+def compress_insiders(i):
+    if not i:
+        return None
+    big_buys = i.get("big_buys", [])
+    clusters = i.get("clusters", [])
+    return {
+        "n_big_buys": len(big_buys),
+        "n_clusters": len(clusters),
+        "top_3_clusters": [{"t": c.get("ticker"), "value": c.get("total_value"), "n_insiders": c.get("insider_count")} for c in clusters[:3]],
+        "top_3_buys": [{"t": b.get("ticker"), "insider": b.get("insider"), "value": b.get("value")} for b in big_buys[:3]],
+    }
+
+
+def compress_earnings(e):
+    if not e:
+        return None
+    pead = e.get("pead_signals", [])
+    return {
+        "n_pead_signals": len(pead),
+        "top_5_pead": [{"t": s.get("ticker"), "label": s.get("signal"), "eps_surp": s.get("eps_surprise_pct"), "ret_1d": s.get("price_return_1d_pct")} for s in pead[:5]],
+    }
+
+
+def compress_alerts(a):
+    if not a:
+        return None
+    alerts = a.get("alerts", [])
+    by_severity = {}
+    for x in alerts[-20:]:
+        sev = x.get("severity", "?")
+        by_severity[sev] = by_severity.get(sev, 0) + 1
+@@END 1@@
