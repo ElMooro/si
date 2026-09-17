@@ -164,13 +164,49 @@ def freeze(wh, *, season: dict, dry_run: bool, git_sha: str, code_holdout: dict 
     return report
 
 
+MARKET_MANIFEST_KEY = "factory/holdout/market-manifest.json"
+
+
+def freeze_market_drills(wh, *, season: dict, dry_run: bool, git_sha: str):
+    """2026-09-17: the main manifest was frozen by the code exam BEFORE any market drill existed (freeze() returns
+    'exists' and never builds them). This writes the drill objects create-if-absent and its own market manifest,
+    leaving factory/holdout/manifest.json untouched. Idempotent: a second run writes nothing new."""
+    report = {"status": "dry_run" if dry_run else "written", "written": 0, "exists": 0, "errors": []}
+    provenance = {"holdout": {}, "train": {}}
+    counts = {"holdout": 0, "train": 0}
+    for split, blocks in (("holdout", HOLDOUT_BLOCKS), ("train", TRAIN_BLOCKS)):
+        for block in blocks:
+            drills, errors = build_block(wh, block, split, season)
+            report["errors"].extend(errors)
+            report.setdefault("per_block", {})[block["id"]] = len(drills)
+            for drill_id, drill, prov in drills:
+                counts[split] += 1
+                provenance[split][drill_id] = prov
+                if dry_run:
+                    continue
+                res = wh.put_if_absent(wh.private, "%s%s/%s.json" % (DRILL_PREFIX, split, drill_id), canonical(drill))
+                report[res] = report.get(res, 0) + 1
+    manifest = {"schema_version": "factory-holdout-market.v1", "frozen_at": None, "season_policy_hash": season.get("policy_hash"), "git_sha": git_sha,
+                "holdout_blocks": HOLDOUT_BLOCKS, "train_blocks": TRAIN_BLOCKS, "window_sessions": WINDOW_SESSIONS, "label_sessions": LABEL_SESSIONS,
+                "symbols": list(ETFS), "counts": counts, "errors": report["errors"], "drill_provenance_sha256": sha(canonical(provenance)),
+                "note": "market drills frozen separately: the main manifest predates them; a window needs %d sessions, so short blocks yield none" % (WINDOW_SESSIONS + LABEL_SESSIONS)}
+    if not dry_run:
+        from datetime import datetime, timezone
+        manifest["frozen_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        report["manifest_write"] = wh.put_if_absent(wh.private, MARKET_MANIFEST_KEY, canonical(manifest))
+        wh.put_if_absent(wh.private, "factory/holdout/market-provenance.json", canonical(provenance))
+    report["manifest"] = manifest
+    return report
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--code-ids-file", default=None, help="JSON from factory_oss_curriculum.py exam --ids-out (HumanEval ids)")
+    ap.add_argument("--market-only", action="store_true", help="freeze the market drills beside an already-frozen main manifest")
     args = ap.parse_args(argv)
     code_holdout = json.loads(Path(args.code_ids_file).read_text()) if args.code_ids_file else None
-    if not args.dry_run and not code_holdout:
+    if not args.dry_run and not code_holdout and not args.market_only:
         raise SystemExit("refusing to freeze without --code-ids-file: the code holdout must be frozen in the same manifest")
     import subprocess
 
@@ -180,6 +216,11 @@ def main(argv=None):
     wh = Warehouse(boto3.client("s3", region_name="us-east-1"), private=PRIVATE, public=PUBLIC)
     season = load_season(wh)
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, text=True, capture_output=True).stdout.strip()[:12]
+    if args.market_only:
+        out = freeze_market_drills(wh, season=season, dry_run=args.dry_run, git_sha=git)
+        print(json.dumps({k: v for k, v in out.items() if k != "manifest"}, indent=2, default=str))
+        print(json.dumps({"counts": out["manifest"].get("counts"), "frozen_at": out["manifest"].get("frozen_at")}))
+        return 0 if out["manifest"]["counts"]["holdout"] + out["manifest"]["counts"]["train"] > 0 else 2
     out = freeze(wh, season=season, dry_run=args.dry_run, git_sha=git, code_holdout=code_holdout)
     print(json.dumps({k: v for k, v in out.items() if k != "manifest"}, indent=2))
     print(json.dumps({"counts": out["manifest"].get("counts"), "frozen_at": out["manifest"].get("frozen_at")}))
