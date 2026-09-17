@@ -33,6 +33,11 @@ async function load() {
     const dRes = await fetch(DATA_URL);
     if (!dRes.ok) throw new Error('data fetch HTTP ' + dRes.status);
     DATA = await dRes.json();
+    const published=Date.parse(DATA.generated_at);
+    if (DATA.quality?.status !== 'fresh' || !Number.isFinite(published) || published>Date.now()+300000 || Date.now()-published>48*3600000) {
+      showError('Current auction measurements unavailable or stale. Scores and calls are withheld.');
+      return;
+    }
   } catch (e) {
     showError('Failed to load auction crisis data: ' + e.message);
     return;

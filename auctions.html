@@ -1310,6 +1310,12 @@ async function loadData() {
   try {
     const r = await fetch(S3_URL + "?t=" + Date.now());
     const d = await r.json();
+    const stamp=Date.parse(d.generated_at);
+    if(d.quality?.status !== 'fresh' || !Number.isFinite(stamp) || stamp>Date.now()+300000 || Date.now()-stamp>48*3600000) {
+      document.getElementById('interpretText').textContent='Current auction data unavailable; no live scores or calls.';
+      document.getElementById('scoreNum').textContent='—';
+      return;
+    }
     liveData = d;
     renderHero(d);
     renderCall(d);
@@ -1318,17 +1324,9 @@ async function loadData() {
     renderAnchors(d);
     renderMarketImpact(d);
 
-    // AI brief mount — if it succeeds, the static call banner stays hidden.
-    // If it fails, reveal the static one as a graceful fallback.
-    if (window.JHAIBrief) {
-      window.JHAIBrief.mount("ai-decisive-call", "auction-decisive-call", {
-        onError: function () {
-          document.getElementById("callBanner").style.display = "";
-        },
-      });
-    } else {
-      document.getElementById("callBanner").style.display = "";
-    }
+    // Keep the measurement summary visible until an independently validated
+    // allocation model exists; narrative confidence is not a position rule.
+    document.getElementById("callBanner").style.display = "";
   } catch (e) {
     console.error("Failed to load auction data", e);
     document.getElementById("interpretText").innerHTML =

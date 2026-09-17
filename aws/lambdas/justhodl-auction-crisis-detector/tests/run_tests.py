@@ -5,6 +5,9 @@ import types
 from pathlib import Path
 from unittest.mock import patch
 SOURCE=Path(__file__).resolve().parents[1]/"source"
+sys.path.insert(0,str(SOURCE))
+from auction_quality import stamp_quality
+from datetime import datetime, timezone
 with patch.dict(sys.modules, {"managed_secret": types.SimpleNamespace(managed_secret=lambda *a, **k: "TEST_ONLY")}):
     spec=importlib.util.spec_from_file_location("auction_v2_test",SOURCE/"auction_crisis_v2.py")
     engine=importlib.util.module_from_spec(spec)
@@ -26,6 +29,19 @@ def test_heuristics_are_not_probabilities_and_legacy_alias_survives():
 def test_missing_inputs_do_not_become_low_event_risk():
     out=engine.compute_tail_risk([],{}, {}, {}, {})
     assert all(row["heuristic_score"] is None and row["status"] == "unavailable" for row in out.values())
+
+
+def test_dated_measurements_expire_old_scores_without_redefining_current_zero():
+    now=datetime(2026,9,17,tzinfo=timezone.utc)
+    def report(day, rows):
+        return {'freshness':{'latest_auction_date':day},'generated_at':now.isoformat(),'recent_auctions':rows,
+                'composite_score':0,'regime':'CALM','tail_risk':{'x':{'heuristic_score':18}},'triggers':[{'action':'LONG'}]}
+    current=stamp_quality(report('2026-09-17',[{}]),now)
+    assert current['quality']['status']=='fresh' and current['composite_score']==0
+    for day,rows,state in [('2026-08-01',[{}],'stale'),('2026-09-18',[{}],'invalid'),(None,[],'unavailable')]:
+        out=stamp_quality(report(day,rows),now)
+        assert out['quality']['status']==state and out['composite_score'] is None
+        assert out['call'] is None and out['tail_risk']['x']['heuristic_score'] is None and not out['triggers']
 
 
 if __name__ == "__main__":

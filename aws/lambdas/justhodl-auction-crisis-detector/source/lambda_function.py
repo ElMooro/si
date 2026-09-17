@@ -50,6 +50,7 @@ Front-end: treasury-auctions.html (existing) and a new auction-crisis section
 on bonds.html.
 """
 import json
+from auction_quality import stamp_quality
 import math
 import os
 import time
@@ -504,13 +505,21 @@ def lambda_handler(event, context):
     print(f"[auction-crisis] fetched {len(raw)} auction records")
 
     if not raw:
-        body = {
+        try:
+            body = json.loads(s3.get_object(Bucket=S3_BUCKET,Key=S3_KEY)['Body'].read())
+        except Exception:
+            body = {}
+        body.update({
             "engine": "justhodl-auction-crisis-detector",
-            "schema_version": "1.0",
+            "schema_version": "2.1",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "status": "no_data",
             "message": "No auction records returned from fiscaldata API",
-        }
+            "recent_auctions": [],
+        })
+        for key,default in {'freshness':{},'tail_risk':{},'tenor_decomposition':{},'composite_history':{},'forward_calendar':[]}.items():
+            body.setdefault(key,default)
+        stamp_quality(body)
         s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=json.dumps(body, indent=2),
                       ContentType="application/json", CacheControl="max-age=600")
         return {"statusCode": 200, "body": json.dumps({"status": "no_data"})}
@@ -789,6 +798,7 @@ def lambda_handler(event, context):
     report["methodology_version"] = "auction-labels.v2"
     report["field_units"] = {"composite_score": "score_0_100", "tail_risk.*.heuristic_score": "score_0_100",
                               "recent_auctions.*.metrics.allocated_at_high_pct": "pct"}
+    stamp_quality(report)
     body = json.dumps(report, default=str, indent=2)
     s3.put_object(
         Bucket=S3_BUCKET, Key=S3_KEY, Body=body,

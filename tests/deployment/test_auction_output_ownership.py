@@ -121,6 +121,19 @@ def test_detector_actual_handler_owns_live_and_detector_archive_schema():
     assert store.docs[store.writes[1]] == doc
 
 
+def test_empty_auction_refresh_preserves_consumer_keys_and_expires_current_scores():
+    store,scope=detector_fixture()
+    previous_keys=set(store.docs[BASE])
+    handler=scope['lambda_handler']
+    handler.__globals__['fetch_fiscal_auctions']=lambda *a,**k:[]
+    with redirect_stdout(io.StringIO()):
+        assert handler({},None)['statusCode']==200
+    out=store.docs[BASE]
+    assert previous_keys <= set(out)
+    assert out['quality']['status']=='unavailable' and out['composite_score'] is None
+    assert out['regime']=='UNAVAILABLE' and out['call'] is None and out['recent_auctions']==[]
+
+
 def test_desk_actual_handler_uses_pure_scoring_and_never_overwrites_detector():
     detector, _ = detector_fixture()
     base = deepcopy(detector.docs[BASE])
