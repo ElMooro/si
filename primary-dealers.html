@@ -60,9 +60,9 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
     <div class="note" id="read" style="margin-top:10px"></div>
   </div>
 
-  <h2>The Record Check · Fed data vs the July-2026 headline</h2>
+  <h2>Corporate bonds · complete same-week observations</h2>
   <div class="grid g3" id="check"></div>
-  <div class="note" style="margin-top:8px">Bloomberg / Crisil Coalition Greenwich (Jul 11 2026) reported dealers ~$4B net short YTD-average, −$13.7B in 5yr+ maturities vs +$9.66B shorter-dated, vs a $16B avg inventory peak in 2017 — cash bonds only, hedges excluded. Tiles show what the Fed's own weekly file says right now.</div>
+  <div class="note" style="margin-top:8px">FR2004 net cash-bond positions. Investment-grade and high-yield levels are summed on common reporting dates; commercial paper and weekly change series are excluded.</div>
 
   <h2>Corporate bond inventory · full available history</h2>
   <div class="card"><div id="chart">Loading history…</div>
@@ -74,7 +74,7 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
   <h2>Dealer balance-sheet ledger · all asset classes</h2>
   <div class="grid g3" id="ledger"></div>
 
-  <h2>Treasury curve book · dealer tenor positioning</h2>
+  <h2>Treasury specific issues · settled positions by original tenor</h2>
   <div class="card" id="curve">Loading…</div>
 
   <h2>Settlement fails · to deliver / to receive</h2>
@@ -83,7 +83,7 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
   <h2>Dealer financing · the repo book</h2>
   <div class="card" id="financing">Loading…</div>
 
-  <h2>Transaction volumes · weekly turnover by class</h2>
+  <h2>Transaction volumes · daily averages by reporting week</h2>
   <div class="card" id="txn">Loading…</div>
 
   <h2>Funding market context · OFR short-term funding monitor</h2>
@@ -92,9 +92,10 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
 
   <h2>How to read this desk</h2>
   <div class="card note">
-    <b style="color:var(--fg)">Why it matters:</b> dealer inventory is the market's shock absorber — the balance sheet that buys when clients need to sell. A net-short book means that buffer is gone, and it explains why credit tends to crack before equities: there is nobody warehousing the first wave of selling.<br><br>
-    <b style="color:var(--fg)">Three competing explanations</b> (all can be true at once): <b>1)</b> risk aversion — spreads near multi-decade tights pay dealers almost nothing to hold duration-heavy credit; <b>2)</b> demand too hot — the AI-capex issuance wave is absorbed instantly, inventory never builds; <b>3)</b> structure — post-GFC capital rules plus electronic &amp; portfolio trading (≈49% of IG volume) replaced the warehouse model. The level alone is not a crash signal.<br><br>
-    <b style="color:var(--fg)">What we actually grade:</b> the <b>maturity twist</b> (long-end short vs short-end long = deliberate rate caution, not coincidence), the <b>rate of de-inventorying</b> (13-week impulse, 52-week z), and the <b>squeeze setup</b> — net short into tight spreads means covering into a market where pensions/insurers rarely sell, which can amplify any rally violently. Cash bonds only; CDS/ETF hedges are invisible here.
+    <b style="color:var(--fg)">What is measured:</b> FR2004 net outright positions, financing balances and daily average transactions. Net positions do not reveal gross inventory, hedges or remaining market-making capacity.<br><br>
+    <b style="color:var(--fg)">Treasury scope:</b> the tenor ladder covers specific issues, not the full Treasury book. Settlement fails use the same Treasury-including-TIPS object as the fails desk. Fails-to-deliver plus fails-to-receive is a two-sided gross report, not unique failed par or defaults.<br><br>
+    <b style="color:var(--fg)">Interpretation:</b> inventory changes describe dealer positioning. They do not establish a short squeeze, a rate forecast or an instruction to trade. Missing or stale observations are marked unavailable.
+
   </div>
 
   <footer>
@@ -122,14 +123,18 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
  var OF=rs[4].status==="fulfilled"?rs[4].value:null;
  if(!d){el("hero").innerHTML='<div class="err">Feed unavailable — data/nyfed-primary-dealer.json</div>';return;}
  el("fresh").textContent=ago(d.generated_at);
- var c=d.corporate||{};
+ function usable(q){return q&&q.status==="fresh"&&q.observation_date&&Date.now()-Date.parse(q.observation_date)>=0&&Date.now()-Date.parse(q.observation_date)<22*864e5;}
+ var feedAge=Date.now()-Date.parse(d.generated_at);
+ var feedOK=Number.isFinite(feedAge)&&feedAge>=0&&feedAge<=8*864e5;
+ var c=(feedOK&&d.corporate&&usable(d.corporate.quality))?d.corporate:{};
+ if(!c.as_of)el("fresh").textContent="Current corporate observations unavailable; historical charts are context only.";
 
  /* hero */
  var neg=(c.net_bonds_b!=null&&c.net_bonds_b<0);
  var reg=c.regime||"UNKNOWN";
  var rp=el("regime");
  rp.textContent=reg.replace(/_/g," ");
- rp.className="pill "+(neg?"red":(reg==="RE_INVENTORYING"?"grn":(reg==="DE_INVENTORYING"?"amb":"grn")));
+ rp.className="pill "+(reg==="UNKNOWN"?"amb":(neg?"red":(reg==="RE_INVENTORYING"?"grn":(reg==="DE_INVENTORYING"?"amb":"grn"))));
  if(reg==="UNPRECEDENTED_NET_SHORT"||neg)rp.classList.add("flash");
  el("headline").innerHTML=(c.net_bonds_b==null?"—":('<span class="'+(neg?"dn":"up")+'">'+f1(c.net_bonds_b,1)+'B</span> net corporate bonds'));
  el("headsub").textContent="as of "+(c.as_of||"—")+" · WoW "+f1(c.wow_b,1)+"B · 13w "+f1(c.d13w_b,1)+"B · z(52w) "+(c.z_52w==null?"—":c.z_52w)+" · "+(c.pctile_history==null?"—":c.pctile_history+"th pctile since "+String(c.history_start||"").slice(0,4));
@@ -138,10 +143,10 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
  /* record check tiles */
  var ck="";
  function tile(l,v,s,cls){ck+='<div class="tile"><div class="l">'+l+'</div><div class="v '+(cls||"")+'">'+v+'</div><div class="s">'+s+'</div></div>';}
- tile("NET · LATEST WEEK",f1(c.net_bonds_b,1)+"B",neg?"dealers are net SHORT":"dealers net long",neg?"dn":"up");
- tile("YTD AVERAGE",f1(c.ytd_avg_b,1)+"B","headline compares to ≈ −4B",(c.ytd_avg_b||0)<0?"dn":"up");
- tile("5YR+ BOOK",f1(c.net_5yplus_b,1)+"B","headline ≈ −13.7B · long end",(c.net_5yplus_b||0)<0?"dn":"up");
- tile("UNDER-5YR BOOK",f1(c.net_under5y_b,1)+"B","headline ≈ +9.66B · short end",(c.net_under5y_b||0)>0?"up":"dn");
+ tile("NET · LATEST WEEK",f1(c.net_bonds_b,1)+"B",c.net_bonds_b==null?"unavailable":neg?"dealers net short":"dealers net long",c.net_bonds_b==null?"am":neg?"dn":"up");
+ tile("YTD AVERAGE",f1(c.ytd_avg_b,1)+"B","available reporting weeks this year",(c.ytd_avg_b||0)<0?"dn":"up");
+ tile("5YR+ BOOK",f1(c.net_5yplus_b,1)+"B","IG + HY, remaining maturity >5 years",(c.net_5yplus_b||0)<0?"dn":"up");
+ tile("UNDER-5YR BOOK",f1(c.net_under5y_b,1)+"B","IG + HY, remaining maturity ≤5 years",(c.net_under5y_b||0)>0?"up":"dn");
  tile("ALL-TIME LOW",f1(c.all_time_min_b,1)+"B",String(c.all_time_min_date||""),"dn");
  tile("PRIOR NET-SHORT WEEK",c.prior_negative_date?String(c.prior_negative_date):"NONE in history",c.prior_negative_date?"has happened before":"first in available Fed history","am");
  el("check").innerHTML=ck;
@@ -167,7 +172,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
    '<polyline points="'+pts+'" fill="none" stroke="'+(lastUp?'#3ddc84':'#ff5c5c')+'" stroke-width="2"/>'+
    '<circle cx="'+X(ds.length-1).toFixed(1)+'" cy="'+Y(vs[vs.length-1]).toFixed(1)+'" r="4" fill="'+(lastUp?'#3ddc84':'#ff5c5c')+'"/>'+
    '<text x="'+L+'" y="'+(Tp-3)+'" font-size="10.5" fill="#5c6b82">NET CORPORATE BOND POSITIONS ($B) · weekly · stitched FR2004</text></svg>';
-  el("chartnote").textContent="History "+ds[0]+" → "+ds[ds.length-1]+" ("+ds.length+" weeks). 2017 context: dealers averaged ≈ +$16B. Data before 2013 uses the aggregate corporate series where bucket splits don't exist.";
+  el("chartnote").textContent="History "+ds[0]+" → "+ds[ds.length-1]+" ("+ds.length+" weeks). Complete IG + HY level observations only. This is current-vintage history; revisions may change past values.";
  }else{el("chart").innerHTML='<span class="err">Corporate history not published yet — first engine run pending.</span>';}
 
  /* buckets */
@@ -180,12 +185,12 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
    hh+='<div class="row"><div class="n">'+bl[k]+'</div><div class="bar">'+
     (v<0?('<i style="width:'+pc+'%;background:#ff5c5c;margin-left:auto"></i>'):('<i style="width:'+pc+'%;background:#3ddc84"></i>'))+
     '</div><div class="v '+(v<0?"dn":"up")+'">'+f1(v,1)+'B</div></div>';});
-  hh+='<div class="note" style="margin-top:10px">Long-end short + short-end long = a deliberate duration twist: dealers avoiding the paper most sensitive to yields, exactly where a forced cover hurts most.</div>';
+  hh+='<div class="note" style="margin-top:10px">Maturity buckets show net cash positions. Hedging, gross holdings and dealer motives are not observable here.</div>';
   el("buckets").innerHTML=hh;
  }else{el("buckets").innerHTML='<span class="err">Bucket decomposition pending first engine run.</span>';}
 
  /* ledger */
- var lg=d.positions_ledger||{};var lh="";
+ var lg=feedOK?Object.fromEntries(Object.entries(d.positions_ledger||{}).filter(function(kv){return usable(kv[1].quality);})):{};var lh="";
  var order=["TREASURY_EXTIPS","AGENCY_MBS","CORPORATE","AGENCY_DEBT","ABS","MUNIS"];
  order.forEach(function(k){
   var r=(k==="CORPORATE")?{latest_b:c.net_bonds_b,wow_b:c.wow_b,z_52w:c.z_52w,as_of:c.as_of}:lg[k];
@@ -196,7 +201,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
  el("ledger").innerHTML=lh||'<div class="err">Ledger pending first engine run.</div>';
 
  /* treasury curve ladder (existing feed) */
- var cv=(d.by_tenor_usd_b||{}).TREASURY_COUPONS||{};
+ var cv=(feedOK&&usable((d.class_quality||{}).TREASURY_COUPONS))?((d.by_tenor_usd_b||{}).TREASURY_COUPONS||{}):{};
  var tk=Object.keys(cv).map(Number).sort(function(a,b){return a-b;});
  if(tk.length){
   var mx2=Math.max.apply(null,tk.map(function(t){return Math.abs(cv[t]);}))||1,ch="";
@@ -204,30 +209,24 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
    ch+='<div class="row"><div class="n">'+t+'Y COUPONS</div><div class="bar">'+
     (v<0?('<i style="width:'+pc+'%;background:#ff5c5c;margin-left:auto"></i>'):('<i style="width:'+pc+'%;background:#00d4ff"></i>'))+
     '</div><div class="v '+(v<0?"dn":"")+'">'+f1(v,1)+'B</div></div>';});
-  var sr=cs&&cs.composite_regime?('<div class="note" style="margin-top:10px">Credit-spreads regime: <b>'+esc(cs.composite_regime)+'</b>'+(neg?' — net short into '+esc(String(cs.composite_regime).toLowerCase())+' spreads is the squeeze setup: little carry earned, forced covering risk if credit rallies.':'')+'</div>'):"";
+  var sr=cs&&cs.composite_regime?('<div class="note" style="margin-top:10px">Credit-spreads regime: <b>'+esc(cs.composite_regime)+'</b>'+(neg?' — separate context; this is not a short-squeeze forecast.':'')+'</div>'):"";
   el("curve").innerHTML=ch+sr;
  }else{el("curve").innerHTML='<span class="err">Curve ladder unavailable.</span>';}
  /* ── ops 3302: FAILS (join data/settlement-fails.json) ── */
  (function(){
-  if(!SF||!SF.classes){el("fails").innerHTML='<span class="err">Fails feed unavailable — data/settlement-fails.json</span>';return;}
-  var sg=SF.signal||SF;var reg=sg.regime||SF.regime||"—";var tone=reg==="CRISIS"?"red":(reg==="STRESS"?"red":(reg==="ELEVATED"?"amb":"grn"));
-  var hh='<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:10px"><span class="pill '+tone+(reg==="CRISIS"||reg==="STRESS"?" flash":"")+'">'+esc(reg)+'</span><span class="note">Fails = trades that don\'t settle because the security can\'t be sourced. Spikes = collateral scarcity — plumbing jamming before prices show it.</span></div>';
-  var cls=SF.classes||[];
-  cls.forEach(function(cx){
-   var st=cx.stats||{};var lv=st.latest;if(lv==null)return;
-   var mxv=Math.max.apply(null,cls.map(function(y){return (y.stats||{}).latest||0;}))||1;
-   var pc=Math.min(100,lv/mxv*100);
-   hh+='<div class="row"><div class="n">'+esc(cx.label||cx.key)+'</div><div class="bar"><i style="width:'+pc+'%;background:'+(st.spike?'#ff5c5c':(st.pctile>=70?'#ffb13d':'#00d4ff'))+'"></i></div><div class="v">'+f1(lv,0)+'B</div></div>';
-   hh+='<div class="note" style="margin:-2px 0 6px">FtD '+f1(cx.ftd_latest,0)+'B · FtR '+f1(cx.ftr_latest,0)+'B · '+(st.pctile==null?"—":st.pctile.toFixed(0)+'th pctile')+' · z '+(st.z==null?"—":st.z)+(st.spike?' · <b class="dn">SPIKE</b>':'')+'</div>';
-  });
-  var drv=sg.drivers||SF.drivers||[];if(drv.length)hh+='<div class="note" style="margin-top:8px">'+esc(drv[0])+'</div>';
+  var join=d.settlement_fails||{}, tr=join.treasury;
+  var producerAge=Date.now()-Date.parse(join.producer_generated_at);
+  if(!join.usable||!tr||!usable(tr.quality)||!Number.isFinite(producerAge)||producerAge<0||producerAge>72*36e5){el("fails").innerHTML='<span class="err">Canonical Treasury fails unavailable or stale. No current classification.</span>';return;}
+  var hh='<div class="note">'+esc(tr.label)+' · '+esc(tr.as_of)+' · same FR2004 object as the fails desk</div>';
+  [["FAILS TO DELIVER",tr.ftd_bn],["FAILS TO RECEIVE",tr.ftr_bn],["TWO-SIDED GROSS",tr.gross_bn]].forEach(function(row){hh+='<div class="row"><div class="n">'+row[0]+'</div><div></div><div class="v">'+f1(row[1],0)+'B</div></div>';});
+  hh+='<div class="note">'+esc(tr.measurement_note)+'</div><div class="note">Observation quality: '+esc(join.status)+'. <a href="/fails.html">Canonical fails desk</a></div>';
   el("fails").innerHTML=hh;
  })();
 
  /* ── ops 3302: FINANCING (securities in/out from nyfed-pd v3) ── */
  (function(){
   var fn=d&&d.financing;
-  if(!fn){el("financing").innerHTML='<span class="err">Financing block pending next engine run.</span>';return;}
+  if(!feedOK||!fn||!usable(fn.quality)){el("financing").innerHTML='<span class="err">Current financing observations unavailable.</span>';return;}
   var tot=Math.abs(fn.securities_in_b||0)+Math.abs(fn.securities_out_b||0)||1;
   var pi=Math.abs(fn.securities_in_b||0)/tot*100;
   el("financing").innerHTML=
@@ -235,20 +234,19 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
    '<div class="row"><div class="n">REPO · OUT<br><span style="color:var(--fg3)">cash borrowed, collateral out</span></div><div></div><div class="v dn">'+tT(fn.securities_out_b)+'</div></div>'+
    '<div class="row"><div class="n">NET LEND</div><div></div><div class="v '+((fn.net_lend_b||0)>=0?"up":"dn")+'">'+tT(fn.net_lend_b)+'</div></div>'+
    ((fn.sec_lent_b!=null||fn.sec_borrowed_b!=null)?('<div class="row"><div class="n">SEC LENDING</div><div></div><div class="v">lent '+tT(fn.sec_lent_b)+' / borrowed '+tT(fn.sec_borrowed_b)+'</div></div>'):'')+
-   ((fn.corp_repo_out_b!=null)?('<div class="note" style="margin-top:6px"><b>Corporate-debt financing:</b> dealers repo OUT '+f1(fn.corp_repo_out_b,0)+'B of corporate collateral vs '+f1(fn.corp_rev_repo_in_b,0)+'B reverse IN — how the (net-short) credit book is actually funded.</div>'):'')+
+   ((fn.corp_repo_out_b!=null)?('<div class="note" style="margin-top:6px"><b>Corporate-debt financing:</b> dealers repo OUT '+f1(fn.corp_repo_out_b,0)+'B of corporate collateral vs '+f1(fn.corp_rev_repo_in_b,0)+'B reverse IN — reported collateral balances; no inference about the funding of a net cash position.</div>'):'')+
    '<div class="note" style="margin-top:8px">'+esc(fn.read||"")+' WoW: in '+f1(fn.in_wow_b,0)+'B / out '+f1(fn.out_wow_b,0)+'B · as of '+esc(fn.as_of||"")+'</div>';
  })();
 
  /* ── ops 3302: TRANSACTION VOLUMES ── */
  (function(){
-  var tx=(d&&d.transactions)||{};var ks=Object.keys(tx);
+  var tx=feedOK?Object.fromEntries(Object.entries(d.transactions||{}).filter(function(kv){return usable(kv[1].quality);})):{};var ks=Object.keys(tx);
   if(!ks.length){el("txn").innerHTML='<span class="err">Transactions block pending next engine run.</span>';return;}
-  ks.sort(function(a,b){return (tx[b].avg_4w_b||0)-(tx[a].avg_4w_b||0);});
-  var mxv=tx[ks[0]].avg_4w_b||1,hh="";
-  ks.forEach(function(k){var r=tx[k];var pc=Math.min(100,(r.avg_4w_b||0)/mxv*100);
-   hh+='<div class="row"><div class="n">'+esc(k.replace(/_/g," "))+'</div><div class="bar"><i style="width:'+pc+'%;background:#00d4ff"></i></div><div class="v">'+f1(r.avg_4w_b,0)+'B/wk</div></div>';});
-  var c2=(d&&d.corporate)||{};
-  if(c2.turnover_velocity!=null)hh+='<div class="note" style="margin-top:8px">Corporate turnover velocity: dealers trade <b>'+c2.turnover_velocity+'×</b> their net inventory <i>per week</i> ('+f1(c2.weekly_volume_b,0)+'B volume vs '+f1(Math.abs(c2.net_bonds_b),1)+'B net book) — the e-trading/no-warehouse model in one number.</div>';
+  ks.sort(function(a,b){return (tx[b].daily_average_4w_b||0)-(tx[a].daily_average_4w_b||0);});
+  var mxv=tx[ks[0]].daily_average_4w_b||1,hh="";
+  ks.forEach(function(k){var r=tx[k];var pc=Math.min(100,(r.daily_average_4w_b||0)/mxv*100);
+   hh+='<div class="row"><div class="n">'+esc(k.replace(/_/g," "))+'</div><div class="bar"><i style="width:'+pc+'%;background:#00d4ff"></i></div><div class="v">'+f1(r.daily_average_4w_b,0)+'B/day</div></div>';});
+  hh+='<div class="note">Daily average transaction volume for each reporting week; bars show the average of the last four weekly observations. Net inventory is not a valid turnover denominator.</div>';
   el("txn").innerHTML=hh;
  })();
 
@@ -263,7 +261,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
   if(pk.total_net_assets)hh+='<div class="tile"><div class="l">MMF NET ASSETS</div><div class="v">'+jhUsd(pk.total_net_assets.latest)+'</div><div class="s">z '+(pk.total_net_assets.z_1y==null?"—":pk.total_net_assets.z_1y)+' · '+esc(pk.total_net_assets.as_of||"")+'</div></div>';
   if(pk.repo_holdings)hh+='<div class="tile"><div class="l">MMF → REPO</div><div class="v">'+jhUsd(pk.repo_holdings.latest)+'</div><div class="s">cash pool funding dealers</div></div>';
   var fx=OF.nypd_fails_cross||{};
-  if(fx.ftd_tot)hh+='<div class="tile"><div class="l">OFR CROSS-CHECK · FtD TOT</div><div class="v">'+f1(fx.ftd_tot.latest/1e9,0)+'B</div><div class="s">all classes, $ · vs our direct NY Fed pull ✓</div></div>';
+  if(fx.ftd_tot)hh+='<div class="tile"><div class="l">OFR CROSS-CHECK · FtD TOT</div><div class="v">'+f1(fx.ftd_tot.latest/1e9,0)+'B</div><div class="s">all classes, $ · different scope from Treasury fails</div></div>';
   el("ofr").innerHTML=hh||'<div class="err">OFR blocks empty.</div>';
   el("ofrnote").textContent="OFR Short-Term Funding Monitor · repo daily / MMF monthly · "+(((OF.catalog||{}).repo||[]).length)+" repo + "+(((OF.catalog||{}).mmf||[]).length)+" MMF series cataloged for the fleet · updated "+String(OF.generated_at||"").slice(0,16).replace("T"," ")+"Z";
  })();
@@ -271,7 +269,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
 })();
 </script>
 <script src="/jh-nav-drawer.js" defer></script>
-<span id="jhBuildStamp" style="position:fixed;bottom:6px;right:10px;z-index:9999;font:10px monospace;opacity:.45;pointer-events:none">build 3310</span>
+<span id="jhBuildStamp" style="position:fixed;bottom:6px;right:10px;z-index:9999;font:10px monospace;opacity:.45;pointer-events:none">build fr2004-v2</span>
 <script src="/jh-enhance.js" data-feed="data/nyfed-primary-dealer.json" data-bars="by_tenor_usd_b.TREASURY_COUPONS" data-title="Dealer coupon book by tenor ($B)" data-max="20"></script>
 <script src="/sidebar.js" defer></script>
 </body>

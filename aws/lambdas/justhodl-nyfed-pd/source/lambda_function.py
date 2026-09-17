@@ -20,7 +20,8 @@ and an independent cross-check on CFTC spec positioning.
   CONSUMERS  institutional-footprint asset ledger (TREASURIES pd column +
              primary_dealer_net), bond-desk cross-checks (future).
 """
-import json, os, re, time, urllib.request, statistics
+import json, os, re, time, urllib.request, statistics, math
+from pd_integrity import complete_sum, observation_quality, finalize, METHOD
 from datetime import datetime, timezone
 import boto3
 
@@ -86,7 +87,7 @@ CORP_BUCKET = [
 
 def _pos_layer(spec_doc):
     pos = (spec_doc or {}).get("pos")
-    if (not pos or not pos.get("corp") or "fin" not in pos
+    if (not pos or pos.get("methodology_version") != METHOD or not pos.get("corp") or "fin" not in pos
             or not ((pos.get("fin") or {}).get("in"))):
         cat = _get(BASE + "/list/timeseries.json", 35).get("pd", {}).get("timeseries", [])
         ledger, corp, fin, txn = {}, [], {"in": [], "out": []}, {}
@@ -94,6 +95,9 @@ def _pos_layer(spec_doc):
         for r in cat:
             kid = str(r.get("keyid") or "")
             desc = str(r.get("description") or "").upper()
+            # Never aggregate weekly changes with position levels.
+            if "CHANGE FROM PREVIOUS" in desc or kid.endswith("C"):
+                continue
             m = POS_RX.match(kid)
             if m:
                 cls = m.group(1)
@@ -108,6 +112,9 @@ def _pos_layer(spec_doc):
                     corp.append({"keyid": kid, "bucket": b,
                                  "tot": kid.endswith("-TOT"),
                                  "desc": desc[:90]})
+                continue
+            if kid == "PDPOSCSCP":
+                corp.append({"keyid": kid, "bucket": "cp", "tot": False, "desc": desc})
                 continue
             # ops 3302c: dealer FINANCING — true grammar from catalog recon:
             #   PDSIRRA-*TOT  reverse repo (securities IN, cash LENT)
@@ -125,7 +132,7 @@ def _pos_layer(spec_doc):
             mt = TXN_RX.match(kid)
             if mt and ("TRANSACTION" in desc or kid.startswith("PDTR")):
                 txn.setdefault(mt.group(1) or "GS", []).append(kid)
-        pos = {"ledger": ledger, "corp": corp, "fin": fin, "txn": txn}
+        pos = {"ledger": ledger, "corp": corp, "fin": fin, "txn": txn, "methodology_version": METHOD}
         spec_doc["pos"] = pos
         s3.put_object(Bucket=BUCKET, Key=SPEC_KEY,
                       Body=json.dumps(spec_doc).encode(),
@@ -148,13 +155,17 @@ def _fetch_series(kid):
         if v in (None, "", "*") or not d:
             continue
         try:
-            out[d] = float(v)
+            value = float(v)
+            if math.isfinite(value):
+                out[d] = value
         except Exception:
             pass
     return out
 
 
 def _read(tsy, wow_b, tenor_latest):
+    if tsy is None:
+        return "Specific-issue positions incomplete; no current aggregate."
     cp = (tenor_latest or {}).get("TREASURY_COUPONS") or {}
     curve = ""
     if len(cp) >= 4:
@@ -162,7 +173,7 @@ def _read(tsy, wow_b, tenor_latest):
         hi = min(cp.items(), key=lambda kv: kv[1])
         curve = "; curve: long %sy %+.1fB / short %sy %+.1fB" % (lo[0], lo[1], hi[0], hi[1])
     wow = wow_b.get("TREASURY_COUPONS")
-    return "Dealer SETTLED book net %s $%.1fB UST%s%s" % (
+    return "Specific Treasury issue ladder net %s $%.1fB (not the full Treasury book)%s%s" % (
         "LONG" if tsy > 0 else "SHORT", abs(tsy),
         "" if wow is None else ", coupons WoW %+.1fB" % wow, curve)
 
@@ -224,82 +235,56 @@ def lambda_handler(event=None, context=None):
     if not spec.get("classes") or (event or {}).get("rediscover"):
         spec = _discover()
     classes = spec["classes"]
-    per_class = {}
-    series_used = {}
-    tenor_latest = {}   # cls -> {tenor: $B}
+    per_class, series_used, tenor_latest, class_quality = {}, {}, {}, {}
     for cls, items in classes.items():
-        agg = {}   # asofdate -> summed value ($M)
-        used = []
-        for it in items[:14]:
-            kid = it["keyid"]; tenor = it.get("tenor_y")
-            try:
-                obs = _get("%s/get/%s.json" % (BASE, kid)).get("pd", {}).get("timeseries", [])
-            except Exception as e:
-                print("[pd] %s fetch err %s" % (kid, str(e)[:60])); continue
-            n = 0
-            for o in obs:
-                v, d = o.get("value"), o.get("asofdate")
-                if v in (None, "", "*") or not d: continue
-                try: agg[d] = agg.get(d, 0.0) + float(v); n += 1
-                except Exception: continue
-            if n:
-                used.append(kid)
-                last_d = max(d for d in agg)  # after this series merged
-                # per-tenor latest: recompute from this series' own last obs
-                own = [(o.get("asofdate"), o.get("value")) for o in obs
-                       if o.get("value") not in (None, "", "*")]
-                if own and tenor is not None:
-                    own.sort()
-                    try:
-                        tenor_latest.setdefault(cls, {})[tenor] = round(float(own[-1][1]) / 1e3, 1)
-                    except Exception:
-                        pass
-            time.sleep(0.2)
+        items = list({it['keyid']: it for it in items}.values())
+        series = {it['keyid']: _fetch_series(it['keyid']) for it in items}
+        agg = complete_sum(list(series.values()))
+        d = max(agg) if agg else None
+        # If one member has newer data, the common-date sum is historical only.
+        aligned = bool(agg) and all(max(v) == d for v in series.values() if v)
+        class_quality[cls] = observation_quality(d, aligned)
+        series_used[cls] = sorted(series)
         if agg:
-            per_class[cls] = dict(sorted(agg.items()))
-            series_used[cls] = used
-    assert per_class, "no PD series parsed — catalog drift?"
-
-    hist = _j(HIST_KEY, {}) or {}
+            per_class[cls] = agg
+            tenor_latest[cls] = {it['tenor_y']: round(series[it['keyid']][d]/1e3, 1)
+                                 for it in items if it.get('tenor_y') is not None}
+    hist = {}  # Rebuild current-method history; never mix old partial sums.
     net_b, wow_b, z52 = {}, {}, {}
-    as_of = None
-    for cls, ser in per_class.items():
+    common = complete_sum([per_class.get(c, {}) for c in classes])
+    as_of = max(common) if common else None
+    for cls in classes:
+        ser = per_class.get(cls, {})
         dates = sorted(ser)
-        vals_b = [ser[d] / 1e3 for d in dates]           # $M -> $B
-        net_b[cls] = round(vals_b[-1], 1)
-        wow_b[cls] = round(vals_b[-1] - vals_b[-2], 1) if len(vals_b) >= 2 else None
+        vals_b = [ser[d]/1e3 for d in dates]
+        usable = class_quality[cls]['status'] == 'fresh'
+        net_b[cls] = round(vals_b[-1], 1) if vals_b and usable else None
+        wow_b[cls] = round(vals_b[-1]-vals_b[-2], 1) if len(vals_b)>1 and usable else None
         w = vals_b[-52:]
-        z52[cls] = round((vals_b[-1] - statistics.mean(w)) / statistics.stdev(w), 2) \
-                   if len(w) >= 20 and statistics.stdev(w) > 0 else None
-        as_of = max(as_of or dates[-1], dates[-1])
-        hist[cls] = {d: round(ser[d] / 1e3, 1) for d in dates[-400:]}
-    tsy = round(sum(net_b.get(c, 0) for c in
-                    ("TREASURY_BILLS", "TREASURY_COUPONS", "TIPS", "TREASURY_FRN")), 1)
+        z52[cls] = round((w[-1]-statistics.mean(w))/statistics.stdev(w), 2) if usable and len(w)>=20 and statistics.stdev(w)>0 else None
+        hist[cls] = {d: round(ser[d]/1e3, 1) for d in dates[-400:]}
+        if not usable:
+            tenor_latest[cls] = {}
+    tsy = round(common[as_of]/1e3, 1) if common and all(q['status']=='fresh' and q['observation_date']==as_of for q in class_quality.values()) else None
 
     # ── ops 3301: corporate dealer positioning + full-ledger POS layer ──
     corporate, ledger_out, financing, transactions = None, {}, None, {}
     try:
         pos = _pos_layer(spec if isinstance(spec, dict) else {})
-        bser = {}
+        bucket_series = {}
         for it in sorted(pos.get("corp", []), key=lambda x: x["keyid"]):
-            if it.get("tot") or not it.get("bucket"):
+            if it.get("tot") or not it.get("bucket") or it['keyid'].endswith('C'):
                 continue
-            s = _fetch_series(it["keyid"]); time.sleep(0.15)
-            tgt = bser.setdefault(it["bucket"], {})
-            for d, v in s.items():
-                tgt[d] = tgt.get(d, 0.0) + v
-        tot_kid = next((it["keyid"] for it in pos.get("corp", [])
-                        if it.get("tot")), None)
-        tot_ser = _fetch_series(tot_kid) if tot_kid else {}
-        bond_b = [b for b in ("u13m", "m13m_5y", "y5_10", "y10p") if b in bser]
-        dates = sorted(set().union(*[set(bser[b]) for b in bond_b])) if bond_b else []
-        totals, u5y, y5p = {}, {}, {}
-        for d in dates:
-            a = sum(bser[b].get(d, 0.0) for b in ("u13m", "m13m_5y") if b in bser)
-            c = sum(bser[b].get(d, 0.0) for b in ("y5_10", "y10p") if b in bser)
-            u5y[d], y5p[d], totals[d] = a, c, a + c
-        if not totals and tot_ser:
-            totals = dict(tot_ser)
+            bucket_series.setdefault(it['bucket'], {})[it['keyid']] = _fetch_series(it['keyid'])
+        bser = {b: complete_sum(list(v.values())) for b, v in bucket_series.items()}
+        # Every bond bucket must contain both IG and HY. CP stays separate.
+        for b in ('u13m','m13m_5y','y5_10','y10p'):
+            if len(bucket_series.get(b, {})) != 2:
+                bser[b] = {}
+        tot_ser = _fetch_series('PDPOSCS-TOT')
+        u5y = complete_sum([bser.get(b,{}) for b in ('u13m','m13m_5y')])
+        y5p = complete_sum([bser.get(b,{}) for b in ('y5_10','y10p')])
+        totals = complete_sum([u5y,y5p])
         ds = sorted(totals)
         if ds:
             vb = lambda x: round(x / 1e3, 2)
@@ -336,6 +321,9 @@ def lambda_handler(event=None, context=None):
                       % (vb(latest), pct_hist, ds[0][:4], vb(fy), vb(fu)))
             corporate = {
                 "as_of": latest_d, "history_start": ds[0], "n_weeks": len(ds),
+                "components_aligned": all(s and max(s) == latest_d
+                                          for b, members in bucket_series.items() if b != 'cp'
+                                          for s in members.values()),
                 "net_bonds_b": vb(latest),
                 "net_5yplus_b": vb(fy) if y5p else None,
                 "net_under5y_b": vb(fu) if u5y else None,
@@ -372,29 +360,6 @@ def lambda_handler(event=None, context=None):
                                           separators=(",", ":")).encode(),
                           ContentType="application/json",
                           CacheControl="public, max-age=3600")
-            try:
-                prev = (_j(OUT) or {}).get("corporate") or {}
-                tok = os.environ.get("TELEGRAM_BOT_TOKEN")
-                chat = os.environ.get("TELEGRAM_CHAT_ID")
-                flipped = (prev.get("net_bonds_b") is not None
-                           and (prev["net_bonds_b"] < 0) != (vb(latest) < 0))
-                first = (regime == "UNPRECEDENTED_NET_SHORT"
-                         and prev.get("regime") != regime)
-                if tok and chat and (flipped or first):
-                    msg = ("🏦 PRIMARY DEALERS: corporate-bond book %s — net "
-                           "%+.1fB (5y+ %+.1fB / <5y %+.1fB). "
-                           "justhodl.ai/primary-dealers.html"
-                           % (regime.replace("_", " "), vb(latest), vb(fy),
-                              vb(fu)))
-                    urllib.request.urlopen(urllib.request.Request(
-                        "https://api.telegram.org/bot%s/sendMessage" % tok,
-                        data=json.dumps({"chat_id": chat,
-                                         "text": msg}).encode(),
-                        headers={"Content-Type": "application/json"}),
-                        timeout=10).read()
-                    print("[pd] telegram tripwire sent")
-            except Exception as e:
-                print("[pd] telegram skip %s" % str(e)[:60])
         LEDGER_NAME = {"MBS": "AGENCY_MBS", "ABS": "ABS",
                        "FGS": "AGENCY_DEBT", "SMGO": "MUNIS",
                        "GST": "TREASURY_EXTIPS"}
@@ -418,14 +383,13 @@ def lambda_handler(event=None, context=None):
         financing = None
         try:
             def _sum_family(kids, cap=12, grab=None):
-                agg, grabbed = {}, {}
-                for kid in sorted(kids)[:cap]:
-                    s = _fetch_series(kid); time.sleep(0.12)
-                    for d, v in s.items():
-                        agg[d] = agg.get(d, 0.0) + v
-                    if grab and grab in kid and s:
-                        grabbed = s
-                return agg, grabbed
+                members, grabbed = {}, {}
+                for kid in sorted(set(kids)):
+                    data = _fetch_series(kid)
+                    members[kid] = data
+                    if grab and grab in kid:
+                        grabbed = data
+                return complete_sum(list(members.values())), grabbed
             fi, fi_cd = _sum_family((pos.get("fin") or {}).get("in") or [],
                                     grab="CDTOT")
             fo, fo_cd = _sum_family((pos.get("fin") or {}).get("out") or [],
@@ -440,21 +404,22 @@ def lambda_handler(event=None, context=None):
                     ld = dd2[-1]
                     financing = {
                         "as_of": ld,
+                        "components_aligned": max(fi) == max(fo) == ld,
                         "reverse_repo_in_b": round(fi[ld] / 1e3, 1),
                         "repo_out_b": round(fo[ld] / 1e3, 1),
                         "securities_in_b": round(fi[ld] / 1e3, 1),
                         "securities_out_b": round(fo[ld] / 1e3, 1),
                         "net_lend_b": round((fi[ld] - fo[ld]) / 1e3, 1),
-                        "sec_lent_b": (round(sl[max(sl)] / 1e3, 1)
-                                       if sl else None),
-                        "sec_borrowed_b": (round(sb[max(sb)] / 1e3, 1)
-                                           if sb else None),
-                        "corp_rev_repo_in_b": (round(fi_cd[max(fi_cd)]
+                        "sec_lent_b": (round(sl[ld] / 1e3, 1)
+                                       if ld in sl else None),
+                        "sec_borrowed_b": (round(sb[ld] / 1e3, 1)
+                                           if ld in sb else None),
+                        "corp_rev_repo_in_b": (round(fi_cd[ld]
                                                      / 1e3, 1)
-                                               if fi_cd else None),
-                        "corp_repo_out_b": (round(fo_cd[max(fo_cd)]
+                                               if ld in fi_cd else None),
+                        "corp_repo_out_b": (round(fo_cd[ld]
                                                   / 1e3, 1)
-                                            if fo_cd else None),
+                                            if ld in fo_cd else None),
                         "in_wow_b": (round((fi[ld] - fi[dd2[-2]]) / 1e3, 1)
                                      if len(dd2) >= 2 and
                                      abs(fi[ld] - fi[dd2[-2]])
@@ -469,6 +434,19 @@ def lambda_handler(event=None, context=None):
                                 "the leverage engine behind every "
                                 "position on this page."
                                 % (fi[ld] / 1e6, fo[ld] / 1e6)}
+                    t_in = complete_sum([_fetch_series(k) for k in ('PDSIRRA-UTSETTOT','PDSIRRA-UTSTTOT')])
+                    t_out = complete_sum([_fetch_series(k) for k in ('PDSORA-UTSETTOT','PDSORA-UTSTTOT')])
+                    matched = sorted(set(t_in) & set(t_out))
+                    td = matched[-1] if matched else None
+                    financing['treasury'] = {
+                        'as_of': td, 'unit': 'USD_bn', 'scope': 'Treasury including TIPS',
+                        'quality': observation_quality(td),
+                        'reverse_repo_in_b': round(t_in[td]/1e3, 3) if td else None,
+                        'repo_out_b': round(t_out[td]/1e3, 3) if td else None,
+                        'gross_two_sided_b': round((t_in[td]+t_out[td])/1e3, 3) if td else None,
+                        'note': 'Two-sided financing balances, not unique collateral or measured reuse.'}
+                    hist['FIN_TREASURY_IN'] = {d: round(t_in[d]/1e3, 3) for d in matched}
+                    hist['FIN_TREASURY_OUT'] = {d: round(t_out[d]/1e3, 3) for d in matched}
                     hist["FIN_SEC_IN"] = {d: round(fi[d] / 1e3, 1)
                                           for d in sorted(fi)[-400:]}
                     hist["FIN_SEC_OUT"] = {d: round(fo[d] / 1e3, 1)
@@ -479,9 +457,11 @@ def lambda_handler(event=None, context=None):
         try:
             TXN_NAME = {"CS": "CORPORATE", "MBS": "AGENCY_MBS", "AB": "ABS",
                         "ABS": "ABS", "FGSXM": "AGENCY_DEBT", "GS": "TREASURY",
-                        "SMGO": "MUNIS"}
+                        "SMGO": "MUNIS", "GST": "TIPS"}
             for cls, kids in sorted((pos.get("txn") or {}).items()):
-                s = _fetch_series(sorted(kids)[-1]); time.sleep(0.12)
+                # GS-EXTB is ex-TIPS and includes FRNs; do not add FRN again.
+                kid = 'PDTRGS-EXTB' if cls == 'GS' else sorted(set(kids))[0]
+                s = _fetch_series(kid); time.sleep(0.12)
                 if not s:
                     continue
                 dd3 = sorted(s)
@@ -490,32 +470,9 @@ def lambda_handler(event=None, context=None):
                 transactions[name] = {
                     "weekly_b": round(s[dd3[-1]] / 1e3, 1),
                     "avg_4w_b": round(avg4, 1), "as_of": dd3[-1]}
-            if corporate and transactions.get("CORPORATE"):
-                tv = transactions["CORPORATE"]["avg_4w_b"]
-                inv = abs(corporate.get("net_bonds_b") or 0)
-                if tv and inv is not None:
-                    corporate["turnover_velocity"] = round(tv / max(inv, 0.5), 1)
-                    corporate["weekly_volume_b"] = transactions["CORPORATE"]["weekly_b"]
         except Exception as e:
             print("[pd] transactions skip %s" % str(e)[:80])
 
-        # ops 3307: dealer duration-twist -> graded signal
-        try:
-            if corporate and corporate.get("net_5yplus_b") is not None:
-                y5 = corporate["net_5yplus_b"]
-                aso = corporate.get("as_of", "")
-                if y5 <= -10:
-                    _emit_signal("dealer-duration-short#TLT#%s" % aso,
-                                 "dealer_duration_twist", "DOWN", "TLT",
-                                 "BIL", y5, ["day_21", "day_63",
-                                             "day_126"], 63)
-                elif y5 >= 10:
-                    _emit_signal("dealer-duration-long#TLT#%s" % aso,
-                                 "dealer_duration_twist", "UP", "TLT",
-                                 "BIL", y5, ["day_21", "day_63",
-                                             "day_126"], 63)
-        except Exception as e:
-            print("[pd] signal skip %s" % str(e)[:80])
 
     except Exception as e:
         print("[pd] pos layer error: %s" % str(e)[:200])
@@ -541,10 +498,11 @@ def lambda_handler(event=None, context=None):
            "metric": "NET SETTLED POSITIONS (settled inventory book; +-$B scale — "
                      "distinct from headline net outright positions)",
            "read": _read(tsy, wow_b, tenor_latest)}
-    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":")).encode(),
+    doc = finalize(doc, _j("data/settlement-fails.json", {}) or {}, class_quality)
+    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, allow_nan=False, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"ok": True, "as_of": as_of, "classes": len(net_b),
-            "net_treasury_total_b": tsy, "net_b": net_b,
+            "net_treasury_total_b": doc["net_treasury_total_b"], "net_b": net_b,
             "corp_net_bonds_b": (corporate or {}).get("net_bonds_b"),
             "corp_regime": (corporate or {}).get("regime"),
             "ledger_classes": len(ledger_out),
