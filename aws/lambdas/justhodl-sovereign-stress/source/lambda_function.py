@@ -44,6 +44,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from pd_fails_context import load as load_pd_fails
 
 import boto3
 from ciss_vintage import select_series, window_percentile
@@ -1287,6 +1288,8 @@ def lambda_handler(event, context):
         out["signals_fired"] = []
     out["field_units"] = {"europe_stress.score_0_100":"score_0_100", "systemic_stress_ciss.*.level":"index_0_1",
                           "sovereign_stress_sovciss.*.level":"index_0_1"}
+    # chatgpt-pd-context-v1: context only; sovereign eligibility is unchanged.
+    out["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET, now)
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, indent=2).encode("utf-8"),
                   ContentType="application/json", CacheControl="max-age=300")

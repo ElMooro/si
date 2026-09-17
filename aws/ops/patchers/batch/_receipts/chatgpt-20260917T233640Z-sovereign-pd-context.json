@@ -1,0 +1,64 @@
+{
+ "apply_run_id": "35287671308",
+ "at": "2026-09-17T23:38:19Z",
+ "batch": "chatgpt-20260917T233640Z-sovereign-pd-context",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 57216,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "5fd79fc905153c6aeb1718273e82bd3054c4281f1822f759b3349e2945b04c91",
+   "target": "aws/lambdas/justhodl-sovereign-stress/source/lambda_function.py"
+  },
+  {
+   "bytes": 1642,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "c26d92518758384c922c4bf31040a52930ff6b240639b98b4ccfcfc90cc85f36",
+   "target": "aws/lambdas/justhodl-sovereign-stress/tests/run_tests.py"
+  },
+  {
+   "bytes": 3468,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "b9f59cd27fa26d57e0d03fd7ab6f2a059c196f9f0c67bd1ac2f5576c7e32cc19",
+   "target": "aws/ops/pending/ops_5705_sovereign_pd_verify.py"
+  },
+  {
+   "bytes": 44790,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "314719027d990ad1a111d98722b09970e461cb4ab3b5c71389272c48b4062d42",
+   "target": "sovereign-stress.html"
+  }
+ ],
+ "functions": [
+  "justhodl-sovereign-stress"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35287671308.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "sovereign-pd-context",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5705_sovereign_pd_verify.py"
+ ],
+ "pages": [
+  "sovereign-stress.html"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-sovereign-stress.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5705_sovereign_pd_verify.py"
+ ],
+ "workers": []
+}
