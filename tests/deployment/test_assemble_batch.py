@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import runpy
 import tempfile
 from pathlib import Path
@@ -19,7 +20,7 @@ FN = "aws/lambdas/justhodl-x"
 def whole(folder: Path, target: str, text: str):
     p = folder / "files" / target
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
+    p.write_bytes(text.encode("utf-8"))
 
 
 def parts(folder: Path, target: str, text: str, n: int = 3, drop_end_on: int | None = None):
@@ -123,6 +124,10 @@ def test_batch_ids_are_validated_and_never_reused():
         r = result(root, g2.name)
         assert r["status"] == "rejected" and "already used" in r["reason"]
         assert (root / FN / "source/fmp_client.py").read_text() == HELPER
+        # Repeated rejected reuse must not erase the original receipt and free its ID.
+        rec = root / "aws/ops/patchers/batch/_receipts" / f"{g.name}.json"
+        assert json.loads(rec.read_text())["status"] == "assembled"
+        assert result(root, g2.name)["status"] == "rejected"
 
 
 def test_allowed_trees_include_config_and_ops_scripts_but_never_workflows():
@@ -184,7 +189,7 @@ def test_rejected_batch_is_repaired_in_place_under_the_same_id():
         assert r["status"] == "assembled", r
         assert (root / FN / "source/lambda_function.py").read_text() == ENGINE
         rec = json.loads((root / "aws/ops/patchers/batch/_receipts" / f"{f.name}.json").read_text())
-        assert rec["status"] == "assembled" and rec["apply_run_id"] is None and "NOT proof of a deploy" in rec["means"]
+        assert rec["status"] == "assembled" and rec["apply_run_id"] == os.environ.get("GITHUB_RUN_ID") and "NOT proof of a deploy" in rec["means"]
         g = batch(root, f.name)                                            # only an ASSEMBLED id is retired
         whole(g, f"{FN}/config.json", CONFIG); manifest(g)
         assert "already used" in result(root, g.name)["reason"]
@@ -194,11 +199,11 @@ def test_base_sha_refuses_a_stale_overwrite():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp); (root / FN / "source").mkdir(parents=True)
         old = "import json\n\n\ndef quote(x):\n    return json.dumps({'q': x})\n"
-        (root / FN / "source/fmp_client.py").write_text(old)
+        (root / FN / "source/fmp_client.py").write_bytes(old.encode())
         blob = MODULE["_blob_sha"](old.encode())
         import hashlib
         assert blob == hashlib.sha1(b"blob %d\0" % len(old.encode()) + old.encode()).hexdigest()
-        (root / FN / "source/fmp_client.py").write_text(old + "# changed by another lane\n")
+        (root / FN / "source/fmp_client.py").write_bytes((old + "# changed by another lane\n").encode())
         f = batch(root)
         whole(f, f"{FN}/source/fmp_client.py", old + "# my edit\n")
         manifest(f, files=[{"target": f"{FN}/source/fmp_client.py", "base_sha": blob}])
@@ -239,9 +244,51 @@ def test_two_batches_writing_the_same_file_in_one_run_are_not_both_applied():
         a = batch(root, "grok-20260917t150007z-a"); whole(a, f"{FN}/config.json", CONFIG); manifest(a)
         b = batch(root, "grok-20260917t150008z-b"); whole(b, f"{FN}/config.json", CONFIG.replace("256", "512")); manifest(b)
         out = {r["batch"]: r for r in MODULE["assemble_all"](root)}
-        assert out[a.name]["status"] == "assembled"
+        assert out[a.name]["status"] == "rejected" and "overlap" in out[a.name]["reason"]
         assert out[b.name]["status"] == "rejected" and "overlap" in out[b.name]["reason"]
-        assert json.loads((root / FN / "config.json").read_text())["memory"] == 256
+        assert not (root / FN / "config.json").exists(), "neither conflicting batch may win by directory order"
+
+
+def test_raw_batch_parts_need_integrity_and_retry_in_place_after_rejection():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); f = batch(root)
+        target = f"{FN}/source/lambda_function.py"
+        part = f / "parts" / target / "part-001"
+        part.parent.mkdir(parents=True)
+        data = ENGINE.encode()
+        part.write_bytes(data)
+        manifest(f, files=[{"target": target, "join": "bytes"}])
+        r = result(root, f.name)
+        assert r["status"] == "rejected" and "sha256 or bytes" in r["reason"], r
+        manifest(f, files=[{"target": target, "join": "bytes", "bytes": len(data) + 1}])
+        r = result(root, f.name)
+        assert r["status"] == "rejected" and "byte count mismatch" in r["reason"], r
+        manifest(f, files=[{"target": target, "join": "bytes", "bytes": len(data)}])
+        assert result(root, f.name)["status"] == "assembled"
+        assert (root / target).read_bytes() == data
+
+
+def test_stale_destination_blocks_the_entire_batch():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); f = batch(root)
+        target = f"{FN}/source/fmp_client.py"
+        existing = root / target
+        existing.parent.mkdir(parents=True)
+        existing.write_bytes(HELPER.encode())
+        whole(f, target, HELPER + "# updated\n")
+        whole(f, f"{FN}/config.json", CONFIG)
+        manifest(f, files=[{"target": target, "base_blob_sha": "0" * 40}, {"target": f"{FN}/config.json"}])
+        r = result(root, f.name)
+        assert r["status"] == "rejected" and "changed since" in r["reason"], r
+        assert existing.read_bytes() == HELPER.encode() and not (root / FN / "config.json").exists()
+
+
+def test_standard_timestamp_batch_id_matches_the_documented_upload_recipe():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); f = batch(root, "codex-20260917T173000Z-engine")
+        whole(f, f"{FN}/source/fmp_client.py", HELPER)
+        manifest(f)
+        assert result(root, f.name)["status"] == "assembled"
 
 
 def test_one_write_cancels_an_abandoned_batch_and_frees_its_id():
