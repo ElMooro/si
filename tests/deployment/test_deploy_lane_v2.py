@@ -25,9 +25,14 @@ def test_apply_lane_dispatches_a_pinned_deploy_after_its_token_push():
 
 def test_apply_lane_never_executes_the_staged_ops_scripts():
     # aws/ops/staged/ holds ops scripts that must NOT run (e.g. the key-rotation fan-out); only grok_* patchers.
+    # 2026-09-17: a batch may LAND a script in aws/ops/pending/ (committed here, executed only by run-ops via a
+    # dispatch) -- so the invariant is "never executed by this lane", not "never mentioned".
     text = (WF / "apply-staged-large-files.yml").read_text()
     assert "aws/ops/staged/*.py" not in text
-    assert "aws/ops/pending" not in text
+    for line in text.splitlines():
+        if "aws/ops/pending" in line:
+            assert "python3" not in line and "python " not in line, line
+    assert "gh workflow run run-ops.yml" in text          # landed ops scripts run on the ops runner, never here
 
 
 def test_deploy_transaction_proves_code_sha_and_publishes_receipts():

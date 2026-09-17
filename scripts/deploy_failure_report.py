@@ -53,7 +53,7 @@ def still_leaks(text: str) -> bool:
 def build(log: str, step: str, targets: str, commit: str, run_url: str, lines: int) -> str:
     tail = log.splitlines()[-lines:]
     body = redact("\n".join(tail))
-    failing = [ln for ln in tail if ("::error" in ln or "Error" in ln or "FAIL" in ln or "AssertionError" in ln or "Traceback" in ln)][-12:]
+    failing = [ln for ln in tail if re.search(r"::error|error|fail|traceback|exception|refus|mismatch", ln, re.I)][-12:]
     head = [
         f"# deploy failure -- {commit[:10]} ({step})",
         "",
