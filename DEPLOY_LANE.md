@@ -57,7 +57,10 @@ git pull --rebase origin main && cat aws/ops/reports/latest/<N>_<slug>.md       
 ```
 
 `verify_push.py` reads a token from `GITHUB_TOKEN` / `GH_TOKEN` / `JH_PAT` or `~/.jh_pat` and never
-prints it; job logs are not needed (they sit on a host most sandboxes cannot reach). Anything that
+prints it; job logs are not needed (they sit on a host most sandboxes cannot reach). A **red
+deploy writes its own report to main**: `aws/ops/reports/deploy-failures/<sha7>-<run_id>.md` —
+the failing step (preflight or deploy), the error-shaped lines first, then the last 150 lines,
+redacted. Read it, fix the cause, push again. Anything that
 needs boto3 eyes on AWS is a **read-only** ops script: `aws/ops/STAGED/ops_<N>_<slug>.py` dispatched
 through `run-ops-direct.yml` (`script=STAGED/ops_<N>_<slug>.py`) — it runs at once, commits its
 report to `main`, and never re-runs on the serial lane (ops 5587/5588 are the pattern).
@@ -119,6 +122,24 @@ Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root `*.h
 
 With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` writes the whole folder
 (markers, manifest, sha256) — or just `git push`, the parts lane is for lanes without one.
+
+## No-shell lane loop (Grok, ChatGPT) — read, write, verify, all through the Contents API
+
+1. **Read first**: `STATE.md` (`next_free_ops_number`), `DEPLOY_LANE.md`, the file you will change
+   (`GET /repos/ElMooro/si/contents/<path>?ref=main` → content + `sha`; an update PUT needs that sha).
+2. **Write**: one file per PUT to `main`. Under ~10 KB: write the target directly. Larger: the
+   multipart upload above (parts ≤ 12 KB, `manifest.json` last). Surgical edits: a patcher.
+   An ops script: `aws/ops/pending/ops_<next_free>_<slug>.py` (the runner refuses a taken number —
+   STAGED and report-only numbers count as taken).
+3. **Verify** by reading files back, never by trusting a green run:
+   - your commit's runs: `GET /repos/ElMooro/si/actions/runs?head_sha=<sha>` (push/dispatch events)
+   - a Lambda: `https://justhodl.ai/data/ops/releases/<fn>.json` → `commit` must equal yours
+   - an ops script: `aws/ops/reports/latest/<N>_<slug>.md` (run-ops commits it to main)
+   - a multipart upload: `aws/ops/patchers/parts/_receipts/<upload-id>.json` or `parts/<upload-id>/STATUS.json`
+   - a red deploy: `aws/ops/reports/deploy-failures/<sha7>-<run_id>.md`
+   - the `ops-evidence` branch (`?ref=ops-evidence`) holds apply-lane and audit receipts
+4. A `409`/`422` on PUT means another lane changed the file: GET it again, re-apply your change to
+   the new content, PUT with the new sha. Never overwrite from a stale copy.
 
 ## Small surgical change without a shell — patcher
 

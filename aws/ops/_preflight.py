@@ -62,9 +62,14 @@ def check_py(path):
         m = re.match(r"ops_(\d+)_", path.name)
         if m:
             num = m.group(1)
-            dups = [p.name for d in ("pending", "ran")
+            # 2026-09-17: STAGED (direct-lane) scripts and report-only numbers are taken too --
+            # every lane picks from the same space (STATE.md next_free_ops_number).
+            dups = [p.name for d in ("pending", "ran", "STAGED")
                     for p in (OPS / d).glob("ops_%s_*.py" % num)
                     if p.resolve() != path.resolve()]
+            dups += [p.name for p in (OPS / "reports" / "latest").glob("*%s_*.md" % num)
+                     if re.match(r"(?:ops_)?%s_" % num, p.name)
+                     and p.stem.replace("ops_", "", 1) != path.stem.replace("ops_", "", 1)]
             if dups:
                 HARD.append("%s: ops number %s already used by %s"
                             % (rel, num, dups))

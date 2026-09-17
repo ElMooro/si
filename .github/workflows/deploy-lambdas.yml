@@ -208,6 +208,7 @@ jobs:
           fi
 
       - name: Run deployment preflight tests
+        id: preflight
         if: steps.detect.outputs.targets != ''
         env:
           # tests/deployment/test_bundled_config_identity.py scopes its check to the functions
@@ -215,6 +216,9 @@ jobs:
           DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
         run: |
           set -euo pipefail
+          # Mirror this step's output to a file: on failure it becomes a committed, redacted report
+          # (aws/ops/reports/deploy-failures/) for lanes that cannot read job logs.
+          exec > >(tee -a "$RUNNER_TEMP/preflight.log") 2>&1
           python3 scripts/validate_lambda_configs.py ${{ steps.detect.outputs.targets }}
 
           # These static deployment tests and every selected Lambda's local
@@ -270,6 +274,7 @@ jobs:
           aws configure set tcp_keepalive true
 
       - name: Deploy each changed Lambda
+        id: deploy
         if: steps.detect.outputs.targets != ''
         env:
           DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
@@ -278,7 +283,37 @@ jobs:
           DEPLOY_RUN_ID: ${{ github.run_id }}
           DEPLOY_WORKFLOW: deploy-lambdas.yml
           DEPLOY_ACTOR: ${{ github.actor }}
-        run: bash scripts/deploy_lambdas.sh
+        run: bash scripts/deploy_lambdas.sh 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+
+      - name: Commit a redacted failure report to main (lanes cannot read job logs)
+        if: failure() && (steps.preflight.outcome == 'failure' || steps.deploy.outcome == 'failure')
+        env:
+          FAILED_STEP: ${{ steps.deploy.outcome == 'failure' && 'deploy' || 'preflight' }}
+          TARGETS: ${{ steps.detect.outputs.targets }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+          sha=$(git rev-parse HEAD)
+          log="$RUNNER_TEMP/$FAILED_STEP.log"
+          wt="$RUNNER_TEMP/failure-report-wt"
+          git fetch -q origin main
+          git worktree add -q "$wt" origin/main
+          cd "$wt"
+          rel=$(python3 scripts/deploy_failure_report.py --log "$log" --step "$FAILED_STEP" --targets "$TARGETS" \
+                  --commit "$sha" --run-url "$RUN_URL" --run-id "${{ github.run_id }}") || { echo "::warning::no failure report written"; exit 0; }
+          git config user.email "github-actions@justhodl.ai"
+          git config user.name "github-actions"
+          git add "$rel"
+          git commit -q -m "deploy: failure report for ${sha:0:7} ($FAILED_STEP) [skip-deploy] [skip-ops]" \
+                        -m "Read $rel for the failing step's last lines. Written by deploy-lambdas.yml run ${{ github.run_id }}."
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin main
+            if git rebase -q origin/main && git push -q origin HEAD:main; then echo "failure report committed: $rel"; exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((attempt * 5))
+          done
+          echo "::warning::could not push the failure report after 5 attempts (report is in the job log above)"
+          exit 0
 
       - name: Preserve numbered candidate release evidence
         if: always()
