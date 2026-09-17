@@ -38,6 +38,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from pd_fails_context import load as load_pd_fails
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
@@ -1827,6 +1828,9 @@ def lambda_handler(event, context):
                     "own history + 1y range extremes; no direction "
                     "semantics fabricated — read the named rows",
     }
+    # chatgpt-pd-context-v1: computation stamp is not a source observation date.
+    payload["generated_at"] = payload["as_of"]
+    payload["pd_settlement_fails"] = load_pd_fails(s3, BUCKET, now)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(payload).encode(),
                   ContentType="application/json",

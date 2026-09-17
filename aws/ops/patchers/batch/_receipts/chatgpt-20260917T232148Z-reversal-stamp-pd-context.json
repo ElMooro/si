@@ -1,0 +1,64 @@
+{
+ "apply_run_id": "35286512431",
+ "at": "2026-09-17T23:22:14Z",
+ "batch": "chatgpt-20260917T232148Z-reversal-stamp-pd-context",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 71018,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "e03382ac962bdab044f332b3f73d7da96f5553c81b8cbf7d675c2ce3abb78895",
+   "target": "aws/lambdas/justhodl-liquidity-reversal/source/lambda_function.py"
+  },
+  {
+   "bytes": 1518,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "9ac946f822b8e3df8b01aef4fa6794761f8b747b71957dc69cf0d853f59a3533",
+   "target": "aws/lambdas/justhodl-liquidity-reversal/tests/run_tests.py"
+  },
+  {
+   "bytes": 3453,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "e212c03c13d2d033dd77a9dddb12b1c112342726db5b211eb8bc928b2afcd25c",
+   "target": "aws/ops/pending/ops_5701_reversal_pd_verify.py"
+  },
+  {
+   "bytes": 5071,
+   "changed": true,
+   "check": "html document",
+   "how": "whole",
+   "sha256": "1e36b885bfdbe8eaeac9adb191a71ec521cdb1c22128a954e12ef889a02b4b81",
+   "target": "liquidity-reversal.html"
+  }
+ ],
+ "functions": [
+  "justhodl-liquidity-reversal"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35286512431.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "reversal-stamp-pd-context",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5701_reversal_pd_verify.py"
+ ],
+ "pages": [
+  "liquidity-reversal.html"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-liquidity-reversal.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5701_reversal_pd_verify.py"
+ ],
+ "workers": []
+}
