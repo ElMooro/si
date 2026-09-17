@@ -122,8 +122,16 @@ def ciss_series(key, last_n=2900):
     return out
 
 
-def fred(series_id, limit=400):
+def fred(series_id, limit=400, cached=None):
     """FRED observations -> newest-first [(date, float)]."""
+    from donor_contract import numeric
+    rows = sorted([(o['date'],numeric(o.get('value'))) for o in (cached or [])
+                   if isinstance(o,dict) and o.get('date') and numeric(o.get('value')) is not None], reverse=True)
+    # Shared FRED cache stores original percent values. Observation dates,
+    # not cache publication time, decide whether a monthly yield is usable.
+    now = datetime.now(timezone.utc)
+    if rows and observation_quality(rows[0][0], 'M', now.isoformat(), now)['status'] == 'fresh':
+        return rows[:limit]
     url = ("https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
            f"&sort_order=desc&limit={limit}")
@@ -215,11 +223,12 @@ def lambda_handler(event, context):
     # ── 1. SovCISS (daily) + 10Y yields (monthly) per country ──
     sov, y10, sov_quality = {}, {}, {}
     warehouse = read_existing("data/ciss-stress.json") or {}
+    yield_cache = read_existing('data/fred-cache.json') or {}
     for cc in COUNTRIES:
         sov[cc], sov_quality[cc], _ = select_series(warehouse, cc, True, now)
         if not sov[cc]: errors.append("SovCISS/"+cc+": current warehouse observation unavailable")
         try:
-            y10[cc] = fred(FRED_10Y[cc])
+            y10[cc] = fred(FRED_10Y[cc], cached=yield_cache.get(FRED_10Y[cc]))
             if not y10[cc]:
                 errors.append(f"10Y/{cc}: empty")
         except Exception as e:
