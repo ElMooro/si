@@ -209,6 +209,10 @@ jobs:
 
       - name: Run deployment preflight tests
         if: steps.detect.outputs.targets != ''
+        env:
+          # tests/deployment/test_bundled_config_identity.py scopes its check to the functions
+          # being deployed (unset = check every mirrored engine, the local default).
+          DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
         run: |
           set -euo pipefail
           python3 scripts/validate_lambda_configs.py ${{ steps.detect.outputs.targets }}

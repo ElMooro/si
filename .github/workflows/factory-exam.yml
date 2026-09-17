@@ -10,11 +10,12 @@ on:
   workflow_dispatch:
     inputs:
       burst:
-        description: 'SageMaker job name of the exam run (jh-exam-...)'
-        required: true
+        description: 'SageMaker job name of the exam run (jh-exam-...); empty = grade the oldest completed ungraded exam job'
+        required: false
+        default: ''
       generation:
-        description: 'gen-0 for the base model, gen-N for a candidate adapter'
-        required: true
+        description: 'gen-0 for the base model, gen-N for a candidate adapter (used only with burst)'
+        required: false
         default: 'gen-0'
 permissions:
   contents: read
@@ -46,31 +47,46 @@ jobs:
         run: |
           set -euo pipefail
           pip install --quiet boto3
+          # Only key=value lines may reach $GITHUB_OUTPUT (a free-text line fails the step with "Invalid format").
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import boto3, json, os
+          import boto3, json, os, sys
+          def note(*a): print(*a, file=sys.stderr)
           burst, gen = os.environ.get("IN_BURST") or "", os.environ.get("IN_GEN") or ""
           if not burst:
+              gen = ""
               b = "justhodl-ai-857687956942"
-              s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-              sm = boto3.client("sagemaker", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-              graded = set()
-              for o in s3.list_objects_v2(Bucket=b, Prefix="factory/exams/code/results/", MaxKeys=1000).get("Contents", []):
-                  d = json.loads(s3.get_object(Bucket=b, Key=o["Key"])["Body"].read())
-                  if d.get("burst"):
-                      graded.add(d["burst"])
-              recs = []
-              for o in s3.list_objects_v2(Bucket=b, Prefix="factory/bursts/jobs/", MaxKeys=1000).get("Contents", []):
-                  if o["Key"].endswith(".terminal.json"):
-                      continue
-                  d = json.loads(s3.get_object(Bucket=b, Key=o["Key"])["Body"].read())
-                  if d.get("kind") == "exam" and d.get("job_name") and d["job_name"] not in graded:
-                      recs.append(d)
+              region = os.environ.get("AWS_REGION", "us-east-1")
+              s3 = boto3.client("s3", region_name=region)
+              sm = boto3.client("sagemaker", region_name=region)
+              def docs(prefix):
+                  token = None
+                  while True:
+                      kw = {"Bucket": b, "Prefix": prefix, "MaxKeys": 1000}
+                      if token: kw["ContinuationToken"] = token
+                      page = s3.list_objects_v2(**kw)
+                      for o in page.get("Contents", []):
+                          if not o["Key"].endswith(".json") or o["Key"].endswith(".terminal.json"):
+                              continue
+                          try:
+                              yield o["Key"], json.loads(s3.get_object(Bucket=b, Key=o["Key"])["Body"].read())
+                          except Exception as e:
+                              note("skip %s: %s" % (o["Key"], e))
+                      token = page.get("NextContinuationToken")
+                      if not token: break
+              graded = {d["burst"] for _, d in docs("factory/exams/code/results/") if isinstance(d, dict) and d.get("burst")}
+              recs = [d for _, d in docs("factory/bursts/jobs/")
+                      if isinstance(d, dict) and d.get("kind") == "exam" and d.get("job_name") and d["job_name"] not in graded]
+              note("ungraded exam records: %d (graded: %d)" % (len(recs), len(graded)))
               for d in sorted(recs, key=lambda r: str(r.get("launched_at") or "")):
-                  st = sm.describe_training_job(TrainingJobName=d["job_name"]).get("TrainingJobStatus")
+                  try:
+                      st = sm.describe_training_job(TrainingJobName=d["job_name"]).get("TrainingJobStatus")
+                  except Exception as e:
+                      note("describe %s failed: %s" % (d["job_name"], e)); continue
+                  note("  %s -> %s" % (d["job_name"], st))
                   if st == "Completed":
                       burst, gen = d["job_name"], str(d.get("exam_generation") or "gen-0"); break
-          print("burst=%s" % burst); print("generation=%s" % gen); print("skip=%s" % ("false" if burst else "true"))
-          print("resolved:", burst or "(nothing to grade)", gen)
+          print("burst=%s" % burst); print("generation=%s" % (gen or "gen-0")); print("skip=%s" % ("false" if burst else "true"))
+          note("resolved:", burst or "(nothing to grade -- clean no-op)", gen or "gen-0")
           PY
       - name: Pull completions + private exam
         if: steps.resolve.outputs.skip != 'true'
