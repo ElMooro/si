@@ -85,10 +85,10 @@ def main():
                             hits.append(f"{path}.{k} ({type(v).__name__}, {len(v) if hasattr(v, '__len__') else 1})")
                         walk(v, f"{path}.{k}")
                 elif isinstance(node, list):
-                    for i, v in enumerate(node[:50]):
+                    for i, v in enumerate(node):
                         walk(v, f"{path}[{i}]")
             walk(doc, "$")
-            r.kv(diagnostic_fields=len(hits))
+            r.kv(diagnostic_fields=len(hits), top_level_keys=list(doc.keys())[:20] if isinstance(doc, dict) else type(doc).__name__)
             for h in hits[:25]:
                 r.log("    " + h)
         except Exception as e:  # noqa: BLE001
