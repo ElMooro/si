@@ -1,4 +1,4 @@
-"""ops 5584 -- AI engine learning progress (Claude, 2026-09-16): is ai.html learning, how much, and what is blocking it.
+"""ops 5584 -- AI engine learning progress (Claude, 2026-09-16; re-armed 2026-09-17 with an in-flight exam guard + read-path forensics): is ai.html learning, how much, and what is blocking it.
 
 Reads every object the page and the chat report from (data/ai.json scoreboard / market read / pipeline / Gear B, the
 student tick, the Monday-Friday wall, the coding lane: base weights, bursts, verified rows, training jobs, candidates,
@@ -269,6 +269,8 @@ def main() -> int:
         R.section("F. market read -- the AI's own calls and their grading")
         read = _get_json(s3, PRI, "ai/market-read/latest.json") or {}
         lessons = _get_json(s3, PRI, "ai/market-read/lessons.json") or {}
+        rr_ = read.get("read") if isinstance(read.get("read"), dict) else {}
+        R.ok("read path: llm_path=%s fallback=%s empty=%s decision_status=%s" % (str(rr_.get("llm_path"))[:200], rr_.get("fallback"), rr_.get("empty"), rr_.get("decision_status")))
         R.ok("latest read: at=%s (%s h ago) voice=%s parse_error=%s overall=%s calls=%s lessons_carried=%s; lessons on file=%s" % (
             read.get("at") or read.get("generated_at"), _age(read.get("at") or read.get("generated_at")), read.get("voice"), read.get("parse_error"), _j((read.get("read") or read).get("overall") if isinstance(read.get("read") or read, dict) else None, 200),
             len(read.get("calls") or (read.get("read") or {}).get("calls") or []), read.get("lessons_carried"), len(lessons.get("lessons") or [])))
@@ -286,6 +288,10 @@ def main() -> int:
             man_key = "factory/champions/gen-%d/manifest.json" % gen
             have_manifest = _get_json(s3, PRI, man_key)
             exam_recs = [b for b in bursts if b.get("kind") == "exam" and str(b.get("exam_generation")) == "gen-%d" % gen]
+            # the serial lane re-runs this script after every push: never launch a second exam while one is in flight
+            inflight = [j["TrainingJobName"] for j in sm.list_training_jobs(StatusEquals="InProgress", NameContains="jh-exam-gen", MaxResults=20).get("TrainingJobSummaries", [])]
+            if inflight and not exam_recs:
+                R.ok("an exam job is already in flight (%s) -- nothing to arm" % inflight); exam_recs = [{"job_name": inflight[0]}]
             if exam_recs:
                 R.ok("exam job already launched for gen-%d: %s -- nothing to arm (grade with factory-exam.yml burst=%s generation=gen-%d)" % (gen, exam_recs[-1].get("job_name"), exam_recs[-1].get("job_name"), gen))
                 armed = exam_recs[-1].get("job_name")

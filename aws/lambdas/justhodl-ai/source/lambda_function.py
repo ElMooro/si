@@ -1089,20 +1089,27 @@ def learning_scoreboard() -> Dict[str, Any]:
     rd = get_json(PRIVATE_BUCKET, READ_KEY) or {}
     llm_path = str(((rd.get("read") or {}).get("llm_path")) or "")
     rr = rd.get("read") or {}
-    if rr and not rr.get("parse_error") and rr.get("voice") != "fallback":
+    # a deterministic (table-driven) read carries fallback/empty: both LLM voices were silent -- that is OFFLINE, not online
+    # (2026-09-16: the page said "online" for a week of gate-mapped reads with zero calls)
+    deterministic = bool(rr.get("fallback") or rr.get("empty"))
+    if rr and not rr.get("parse_error") and rr.get("voice") != "fallback" and not deterministic:
         voice = "online"
     else:
         why = _anthropic_health()
         reason = "Anthropic credits exhausted" if "credit" in why else ("Anthropic: %s" % why[:80] if why and why != "ok" else "primary voice silent")
         if rr and not rr.get("parse_error") and rr.get("voice") == "fallback":
             voice = "online (fallback voice GLM-5.1, without your notes -- %s)" % reason
+        elif deterministic:
+            voice = "offline (deterministic desk read, no calls): %s; second voice: %s" % (reason, (llm_path.split("| glm:", 1)[1].strip() if "| glm:" in llm_path else "silent"))
         else:
             voice = ("offline: %s" % reason) if rd else "no read yet"
     return {"notes_studied": ds.get("n_rows"), "categories_learned": labels, "categories_excluded": ds.get("excluded_labels"),
             "understanding_score": round(understanding, 3) if understanding is not None else None, "latest_validation_loss": losses[-1] if losses else None,
             "coin_flip_loss": round(math.log(k), 3) if k > 1 else None, "retrains": len(runs), "trend": trend, "loss_history": losses[-8:],
             "calls_made": len(calls), "calls_graded": graded_n, "hit_rate_by_window": perf, "lessons_carried": len(lessons.get("lessons") or []),
-            "lessons_updated_at": lessons.get("updated_at"), "last_read_at": rd.get("generated_at"), "voice": voice, "as_of": now_iso()}
+            "lessons_updated_at": lessons.get("updated_at"), "last_read_at": rd.get("generated_at"), "voice": voice,
+            "read_path": "deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None)),
+            "calls_this_read": len(rr.get("calls") or []), "as_of": now_iso()}
 
 
 def public_market_read() -> Optional[dict]:
