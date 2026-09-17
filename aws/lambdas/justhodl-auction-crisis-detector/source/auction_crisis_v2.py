@@ -21,7 +21,7 @@ Adds 7 NEW analytical layers on top of the existing 6-indicator engine:
        Pulls 4 corroborating signals from FRED to triangulate auction
        stress with broader rates/liquidity context:
          - SOFR - IORB (repo collateral squeeze)
-         - DXY (USD strength = foreign demand proxy)
+         - DXY (USD strength = indirect participation proxy)
          - 10Y - 2Y curve slope
          - 5Y5Y forward inflation breakeven
 
@@ -29,8 +29,8 @@ Adds 7 NEW analytical layers on top of the existing 6-indicator engine:
        30-day rolling time series of the composite score so the page
        can chart trajectory and identify regime-change points
 
-  6. TAIL RISK PROBABILITIES
-       Heuristic model produces 3 forward-looking probabilities:
+  6. TAIL RISK CONCERN SCORES
+       Uncalibrated model produces 3 concern scores (legacy names retained):
          - P(failed auction in next 30d) — from PD share trend + indirect
          - P(regime change to ELEVATED+ in 14d) — momentum + threshold proximity
          - P(volatility spike from Treasury supply) — calendar size + stress
@@ -409,7 +409,7 @@ def build_indicator_vector(scored_auctions: List[dict], window_days: int = 14) -
       [1] btc_extreme    — demand anomaly
       [2] tail_stress    — AAH dispersion
       [3] pd_absorption  — dealer takedown
-      [4] indirect_collapse — foreign demand
+      [4] indirect_collapse — indirect participation
       [5] issuance_anomaly — supply
 
     Returns vector of 6 floats.
@@ -483,7 +483,7 @@ def anchor_vector(anchor: dict) -> List[float]:
     else:
         pdas = 0.0
 
-    # 5. indirect_collapse (low foreign bid)
+    # 5. indirect_collapse (low indirect bid)
     if indirect is not None:
         if indirect < 30:   ic = 100.0
         elif indirect < 50: ic = 65.0
@@ -602,7 +602,7 @@ def compute_cross_signals() -> dict:
                         IORB = interest on reserve balances (Fed admin rate)
                         SOFR > IORB by >5bp = repo stress
       - DXY (DTWEXBGS): USD trade-weighted strength
-                        Rising USD = foreign demand may weaken
+                        Rising USD = indirect participation may weaken
       - 10y - 2y curve: slope (T10Y2Y series)
                         Inversion is recession signal
       - 5y5y BE infl:  forward inflation expectations
@@ -649,7 +649,7 @@ def compute_cross_signals() -> dict:
             "regime":        "STRENGTHENING" if change_30d > 1.5 else "WEAKENING" if change_30d < -1.5 else "STABLE",
             "interpretation": (
                 f"Trade-weighted USD at {dxy_now:.1f}, {change_30d:+.1f}% in 30d. "
-                f"{'Strong USD pressures foreign bid' if change_30d > 1.5 else 'Soft USD supportive of foreign demand'}."
+                f"{'Strong USD pressures foreign bid' if change_30d > 1.5 else 'Soft USD supportive of indirect participation'}."
             ),
         }
     else:
@@ -748,7 +748,7 @@ def build_composite_history(scored_auctions: List[dict], days: int = 30) -> List
 
 
 # ═════════════════════════════════════════════════════════════════════
-# 6. TAIL RISK PROBABILITIES
+# 6. TAIL RISK CONCERN SCORES
 # ═════════════════════════════════════════════════════════════════════
 
 def compute_tail_risk(scored_auctions: List[dict],
@@ -756,17 +756,10 @@ def compute_tail_risk(scored_auctions: List[dict],
                        tenor_decomp: Dict[str, dict],
                        analog_match: dict,
                        cross_signals: dict) -> dict:
-    """Estimate forward-looking probabilities.
+    """Uncalibrated 0-100 concern scores, never estimated event probabilities.
 
-    Uses a heuristic model — NOT a Bayesian / statistical estimator.
-    Each probability is a calibrated mapping from current state to a
-    forward-event probability based on historical frequency.
-
-    P_soft_demand_30d:  probability of a bid-to-cover < 2.0 on coupons
-                            OR allotted-at-high > 95% in next 30 days
-    P_regime_escalation_14d: probability composite climbs ≥ 25 points in 14d
-    P_supply_volatility_30d: probability of a 1+ sigma yield move on a
-                              Treasury announcement day
+    Historical horizons remain in legacy field names for compatibility; no
+    out-of-sample probability calibration supports those time-window claims.
     """
     # Current state inputs
     current_composite = composite_history.get("current", {}).get("composite") or 0
@@ -830,50 +823,27 @@ def compute_tail_risk(scored_auctions: List[dict],
 
     p_supply_vol = min(75, 10 + repo_amp + dollar_amp + max(0, momentum) * 0.4)
 
+    measured = bool(scored_auctions) and composite_history.get("current", {}).get("composite") is not None
+    def concern(score, drivers, note, available=measured):
+        return {"probability": None, "heuristic_score": round(score, 1) if available else None,
+                "unit": "score_0_100", "calibrated": False, "forecast_horizon_days": None,
+                "status": "available" if available else "unavailable", "drivers": drivers,
+                "interpretation": note + " Uncalibrated concern score; no event probability or validated horizon."}
+    soft = concern(p_failed, {"coupons_long_stress": round(coupons_long_stress, 1),
+                             "pd_concern": pd_concern, "indirect_concern": indirect_concern,
+                             "momentum": round(momentum, 1)},
+                   "Auction participation and tenor stress. AAH is marginal-bid proration, not dealer absorption.")
     return {
-        # ops 5617 soft-demand: BTC<2 or AAH>95 is weak demand, not a failed auction
-        "p_soft_demand_30d": {
-            "probability": round(p_failed, 1),
-            "drivers": {
-                "coupons_long_stress":  round(coupons_long_stress, 1),
-                "pd_concern":           pd_concern,
-                "indirect_concern":     indirect_concern,
-                "momentum":             round(momentum, 1),
-            },
-            "interpretation": (
-                f"~{p_failed:.0f}% probability of a coupon BTC < 2.0 or AAH > 95% "
-                f"in next 30 days. "
-                f"{'Driven primarily by tenor stress + dealer absorption' if p_failed > 30 else 'Low probability — auction demand healthy'}."
-            ),
-        },
-        "p_regime_escalation_14d": {
-            "probability": round(p_escalation, 1),
-            "drivers": {
-                "current_composite":           round(current_composite, 1),
-                "momentum_7d":                 round(momentum, 1),
-                "distance_to_next_threshold":  round(distance_to_next_threshold, 1),
-                "top_analog_regime":           top_analog_regime,
-            },
-            "interpretation": (
-                f"~{p_escalation:.0f}% probability of crossing into a higher-stress "
-                f"regime in next 14 days. "
-                f"Current is {composite_history.get('current', {}).get('regime', '?')}, "
-                f"composite trajectory {'+' if momentum > 0 else ''}{momentum:.1f}/wk."
-            ),
-        },
-        "p_supply_volatility_30d": {
-            "probability": round(p_supply_vol, 1),
-            "drivers": {
-                "repo_stress":          repo_regime,
-                "dollar_change_30d":    round(dollar.get("change_30d_pct", 0) or 0, 2),
-                "momentum":             round(momentum, 1),
-            },
-            "interpretation": (
-                f"~{p_supply_vol:.0f}% probability of a 1+ sigma yield move "
-                f"on an upcoming auction settlement day. "
-                f"Repo stress: {repo_regime}, USD: {abs(dollar.get('change_30d_pct', 0) or 0):+.1f}% / 30d."
-            ),
-        },
+        "p_soft_demand_30d": soft,
+        "p_failed_auction_30d": dict(soft, deprecated=True, alias_of="p_soft_demand_30d"),
+        "p_regime_escalation_14d": concern(p_escalation,
+            {"current_composite": round(current_composite, 1), "momentum_7d": round(momentum, 1),
+             "distance_to_next_threshold": round(distance_to_next_threshold, 1), "top_analog_regime": top_analog_regime},
+            "Proximity to heuristic regime thresholds and composite momentum."),
+        "p_supply_volatility_30d": concern(p_supply_vol,
+            {"repo_stress": repo_stress.get("regime"), "dollar_change_30d": dollar.get("change_30d_pct"),
+             "momentum": round(momentum, 1)}, "Funding and dollar context for supply-related volatility.",
+            available=measured and bool(repo_stress) and dollar.get("change_30d_pct") is not None),
     }
 
 
@@ -930,7 +900,7 @@ def build_triggers(scored_auctions: List[dict],
     # 4. Specific indicator triggers
     for sig_name, threshold, action in [
         ("pd_absorption",     70, "Dealers absorbing >35% on coupons. Watch for failed auction follow-on."),
-        ("indirect_collapse", 70, "Foreign demand cratered. USD strength forecast → buy DXY/sell EM."),
+        ("indirect_collapse", 70, "Indirect bidder participation declined; this category includes domestic and foreign investors."),
         ("btc_extreme",       70, "Demand anomaly — confirms stress regime. Tighten exposure."),
         ("zero_rate_floor",   70, "Bills at zero — money parking pattern. Liquidity crisis warning."),
     ]:

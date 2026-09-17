@@ -552,8 +552,8 @@ footer a:hover{color:var(--cyan)}
 
   <!-- Tail risk -->
   <div class="section-hdr">
-    <h3>Forward-Looking Tail Risk</h3>
-    <div class="sub">Heuristic probability estimates · drivers exposed</div>
+    <h3>Auction Concern Scores</h3>
+    <div class="sub">Uncalibrated scores · not probabilities · no validated forecast horizon</div>
   </div>
   <div class="tail-grid" id="tail-grid"></div>
   <div class="tail-ai-card" id="tail-ai">
@@ -609,15 +609,15 @@ footer a:hover{color:var(--cyan)}
   <div class="methodology-card">
     <p><strong>Data sources.</strong> Live: <code>api.fiscaldata.treasury.gov</code> (auction results), <code>treasurydirect.gov</code> (upcoming calendar), FRED (SOFR, IORB, DTWEXBGS, T10Y2Y, T5YIFR, DFF). Refresh: hourly via EventBridge.</p>
     <p><strong>1. Zero-rate bill floor.</strong> Diagnostic only when policy rate &gt; 0. Bills auctioned at ≤ 0.001% with Fed funds &gt; 1% = panic money parking. Saw this Sep 17-23, 2008 and Mar 19-26, 2020.</p>
-    <p><strong>2. Bid-to-cover extremes.</strong> Z-scored vs 2024 baselines. High BTC on bills (≥+3σ) = flight-to-safety; low BTC on coupons (≤-2.5σ) = failed-auction warning.</p>
-    <p><strong>3. Allotted-at-high tail stress.</strong> AAH &gt; 95% on coupons = dealers absorbed the tail (Oct 9, 2024 had 99.31%); AAH &lt; 15% on bills during stress = panic clustering.</p>
+    <p><strong>2. Bid-to-cover extremes.</strong> Z-scored vs 2024 baselines. High BTC on bills (≥+3σ) = flight-to-safety; low BTC on coupons (≤-2.5σ) = weak bid-to-cover observation.</p>
+    <p><strong>3. Allotted-at-high proration.</strong> AAH is the percentage awarded to bids at the high rate/yield. It measures marginal-bid proration, not dealer absorption or a when-issued yield tail. The legacy score remains a heuristic.</p>
     <p><strong>4. Primary dealer absorption.</strong> PD share &gt; 35% on coupons = dealers stuck (Sep 18, 2008 hit 69% — extreme); &gt; 50% = GFC-tier.</p>
-    <p><strong>5. Indirect (foreign) collapse.</strong> Foreign CB bid via NY Fed. &lt; 50% on coupons = exodus pattern (Sep 18, 2008 hit 29%); 2024 baseline 60-78%.</p>
+    <p><strong>5. Indirect bidder participation.</strong> These bids arrive through intermediaries and include both domestic and foreign investors. Low participation does not identify a foreign-capital exodus.</p>
     <p><strong>6. Bill issuance explosion.</strong> 4-week vs 1-year average. &gt; +30% = fiscal panic or liquidity injection. Overlay adds up to 15 pts to composite.</p>
     <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
     <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Per-auction forecast = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
     <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides forward implication.</p>
-    <p><strong>Tail risk probabilities.</strong> Heuristic models for P(failed auction in 30d), P(regime escalation in 14d), P(supply volatility in 30d). Driven by tenor stress + cross-signals + momentum.</p>
+    <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
     <p><strong>AI commentary layer.</strong> Separate Lambda (justhodl-auction-crisis-ai) reads the full v2 data snapshot and calls <code>claude-haiku-4-5-20251001</code> with a structured prompt. Produces narrative + per-upcoming-auction predictions + decisive call. 10-min cron offset from main data Lambda.</p>
     <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Issuance-explosion adds up to 15 points overlay.</p>
   </div>

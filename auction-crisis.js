@@ -67,7 +67,7 @@ function showAIDegraded(msg) {
   $('decisive-text').textContent = 'AI decisive call unavailable — see triggers section for static action prescriptions.';
   $('what-changed').textContent = 'AI narrative unavailable. See indicator cards + tenor decomposition for current state.';
   $('analog-ai').innerHTML = '<div class="lbl">AI Analog Discussion</div><div>Unavailable — see top match metrics above.</div>';
-  $('tail-ai-text').textContent = 'AI tail risk assessment unavailable — see the 3 probability cards above for drivers.';
+  $('tail-ai-text').textContent = 'AI tail risk assessment unavailable — see the 3 concern-score cards above for drivers.';
   $('triggers-ai-text').textContent = 'AI narrative unavailable — see individual trigger cards above.';
   $('ai-forward-grid').innerHTML = '<div style="color:var(--fg-3);font-size:12px;padding:14px">AI forward predictions unavailable — see the calendar table above for numerical forecasts.</div>';
 }
@@ -429,22 +429,23 @@ function renderPostIssuePerformance() {
 function renderTailRiskDataOnly() {
   const tr = DATA.tail_risk || {};
   const cards = [
-    {key: 'p_soft_demand_30d',        label: 'Soft Demand · 30d', fallback: 'p_failed_auction_30d'},   // ops 5617 rename; old key until the detector republishes
-    {key: 'p_regime_escalation_14d',  label: 'Regime Escalation · 14d'},
-    {key: 'p_supply_volatility_30d',  label: 'Supply Vol Spike · 30d'},
+    {key: 'p_soft_demand_30d',        label: 'Auction Participation', fallback: 'p_failed_auction_30d'},   // ops 5617 rename; old key until the detector republishes
+    {key: 'p_regime_escalation_14d',  label: 'Regime Thresholds'},
+    {key: 'p_supply_volatility_30d',  label: 'Supply Context'},
   ];
   let html = '';
   for (const c of cards) {
     const v = tr[c.key] || (c.fallback ? tr[c.fallback] : undefined);
     if (!v) continue;
+    const score = typeof v.heuristic_score === 'number' && Number.isFinite(v.heuristic_score) ? v.heuristic_score : null;
     const drivers = Object.entries(v.drivers || {})
       .map(([k, vv]) => `<span>${esc(k)}=<b>${typeof vv === 'number' ? vv.toFixed(1) : esc(String(vv))}</b></span>`)
       .join('');
     html += `<div class="tail-card">
       <div class="nm">${esc(c.label)}</div>
-      <div class="bar-wrap"><div class="bar" style="width:${v.probability || 0}%"></div></div>
-      <div class="pct">${(v.probability ?? 0).toFixed(0)}<span class="unit">%</span></div>
-      <div class="interp">${esc(v.interpretation || '')}</div>
+      <div class="bar-wrap"><div class="bar" style="width:${score ?? 0}%"></div></div>
+      <div class="pct">${score === null ? "—" : score.toFixed(0)}<span class="unit">/100</span></div>
+      <div class="interp">${esc(score === null ? 'Concern score unavailable. Event probabilities are not calibrated.' : v.interpretation || '')}</div>
       <div class="drivers">${drivers}</div>
     </div>`;
   }
@@ -475,7 +476,7 @@ function renderTriggers() {
 const INDICATOR_DEFS = {
   zero_rate_floor:   {name: 'Zero-Rate Bill Floor',     short: 'Money parking at any cost (≤0.001%) when Fed > 0', historical: '2008 Sep 17/18/23 + 2020 Mar 19/26'},
   btc_extreme:       {name: 'Bid-to-Cover Extremes',    short: 'Extreme high BTC (stampede) or extreme low (failure)', historical: 'High: 2020-Mar-26 BTC 4.74 · Low: 2008-Sep BTC 2.16'},
-  tail_stress:       {name: 'Allotted-At-High Tail',    short: 'AAH > 95% (dealers absorbed) or < 15% (panic clustering)', historical: '2024-10-09 AAH 99.31% on 10y'},
+  tail_stress:       {name: 'Allotted-At-High Proration', short: 'Marginal-bid allocation percentage; not dealer share or a yield tail', historical: '2024-10-09 AAH 99.31% on 10y'},
   pd_absorption:     {name: 'Primary Dealer Share',     short: 'PD > 35% coupons = dealers stuck with paper', historical: '2008-09-18 PD 69% (extreme)'},
   indirect_collapse: {name: 'Indirect (Foreign) Bid',   short: 'Foreign share < 50% on coupons = exodus', historical: '2008-09-18 ind 29% (vs 60-78% normal)'},
   issuance_anomaly:  {name: 'Bill Issuance Explosion',  short: '4w vs 1y avg > +30% = liquidity injection / panic', historical: '2020-Mar bills surge'},
@@ -612,7 +613,7 @@ function renderAISections() {
   renderAIForwardPredictions(ai.forward_predictions || []);
 
   // Tail risk narrative
-  $('tail-ai-text').innerHTML = boldNumbers(esc(ai.tail_risk_assessment || ''));
+  $('tail-ai-text').textContent = 'Concern scores are uncalibrated; no event probability or forecast horizon is established. See the measured drivers above.';
 
   // Triggers narrative
   $('triggers-ai-text').innerHTML = boldMd(esc(ai.actionable_triggers || ''));

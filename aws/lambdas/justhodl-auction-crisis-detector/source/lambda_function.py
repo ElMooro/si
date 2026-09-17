@@ -18,10 +18,10 @@ The 6 quantified crisis patterns:
 
   2. BID-TO-COVER EXTREMES
        BTC > 3.5 on bills = stampede flight to safety
-       BTC < 2.0 on coupons = failed-auction warning
+       BTC < 2.0 on coupons = weak bid-to-cover observation
 
   3. ALLOTTED-AT-HIGH (TAIL) STRESS
-       AAH > 90% on coupons = WEAK TAIL, dealer absorption
+       AAH = proration percentage for competitive bids at the high rate/yield
        AAH < 20% on bills during otherwise-stressed period =
          panic clustering at the low end
 
@@ -29,8 +29,8 @@ The 6 quantified crisis patterns:
        PD share > 35% of accepted competitive = dealers stuck with paper
        PD share < 15% = strong indirect bid (healthy)
 
-  5. INDIRECT (FOREIGN) SHARE COLLAPSE
-       Indirect share < 50% on coupons = foreign demand exodus
+  5. INDIRECT BIDDER PARTICIPATION
+       Indirect share < 50% on coupons = reduced indirect participation
        Especially diagnostic during USD-stress events
 
   6. BILL ISSUANCE SIZE EXPLOSION
@@ -343,7 +343,7 @@ def score_indicators(metrics, fed_funds_rate):
             else:
                 scores["btc_extreme"] = 0
         elif bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
-            # On coupons, LOW BTC = failed auction warning
+            # On coupons, LOW BTC = weak bid-to-cover observation
             base = NORMAL_2024_BASELINE.get("coupons_gt_3y" if bucket == "coupons_gt_3y" else "tips" if bucket == "tips" else "coupons_gt_3y")
             z = (metrics["btc"] - base["btc_mean"]) / base["btc_std"]
             if z <= -2.5:
@@ -369,7 +369,7 @@ def score_indicators(metrics, fed_funds_rate):
                 scores["tail_stress"] = 0
         elif bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
             if aah > 95:
-                scores["tail_stress"] = 75  # near tail-out, dealers absorbed
+                scores["tail_stress"] = 75  # high marginal-bid proration; not a dealer-share measure
             elif aah > 90:
                 scores["tail_stress"] = 50
             elif aah < 30:
@@ -400,11 +400,11 @@ def score_indicators(metrics, fed_funds_rate):
             else:
                 scores["pd_absorption"] = 0
 
-    # ── 5. INDIRECT (FOREIGN) SHARE COLLAPSE ──
+    # ── 5. INDIRECT BIDDER PARTICIPATION ──
     if metrics["indirect_pct"] is not None:
         ind_pct = metrics["indirect_pct"]
         if bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
-            # Foreign demand on coupons. <50% = exodus pattern (2008-09-18 had 29.3%)
+            # Indirect bidder participation on coupons; domestic and foreign investors. <50% = exodus pattern (2008-09-18 had 29.3%)
             if ind_pct < 30:
                 scores["indirect_collapse"] = 100
             elif ind_pct < 50:
@@ -703,7 +703,7 @@ def lambda_handler(event, context):
     # Build report
     report = {
         "engine": "justhodl-auction-crisis-detector",
-        "schema_version": "2.1",  # v2.1: + pre-auction concession + post-issue performance (ops/1100)
+        "schema_version": "2.2",  # v2.1: + pre-auction concession + post-issue performance (ops/1100)
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
         "elapsed_v2_sec": v2_elapsed,
@@ -773,13 +773,22 @@ def lambda_handler(event, context):
             "calendar with per-auction stress forecasts, cosine-similarity matching "
             "vs 9 historical crisis anchors, 4 corroborating FRED signals (repo, USD, "
             "curve, inflation), 30-day composite history, 3 forward-looking tail risk "
-            "probabilities, and named actionable triggers. v2.1 adds pre-auction "
+            "concern scores (uncalibrated, not event probabilities), and named thresholds. v2.1 adds pre-auction "
             "concession tracking (5d/1d yield change in each tenor leading up to "
             "upcoming auctions) and post-issue performance (1d/5d/30d yield change "
             "after each recently settled auction, classified STRONG/FIRM/FLAT/SOFT/WEAK)."
         ),
     }
 
+    report["metric_definitions"] = {
+        "allocated_at_high_pct": "Percentage of bids at the high rate/yield that were awarded; marginal-bid proration, not dealer absorption or a when-issued tail.",
+        "indirect_pct": "Accepted bids submitted through intermediaries; includes domestic and foreign investors. Not foreign demand.",
+        "primary_dealer_pct": "Primary dealer accepted share, separate from allotted-at-high.",
+        "tail_risk": "Uncalibrated 0-100 heuristic concern scores. Probability fields are null; no validated forecast horizon.",
+    }
+    report["methodology_version"] = "auction-labels.v2"
+    report["field_units"] = {"composite_score": "score_0_100", "tail_risk.*.heuristic_score": "score_0_100",
+                              "recent_auctions.*.metrics.allocated_at_high_pct": "pct"}
     body = json.dumps(report, default=str, indent=2)
     s3.put_object(
         Bucket=S3_BUCKET, Key=S3_KEY, Body=body,
