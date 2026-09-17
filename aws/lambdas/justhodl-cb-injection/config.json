@@ -4,12 +4,12 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
-  "timeout": 90,
+  "timeout": 240,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Central Bank Capital-Injection & Carry Engine \u2014 per-CB injection stance (balance-sheet trajectory + policy-rate direction) for ECB/BOJ/Fed/SNB, net global liquidity impulse, and carry-trade funding + unwind-risk synthesis. Output data/cb-injection.json.",
+  "description": "Dated central-bank stocks, policy rates and component reconciliation; transactions and valuation attribution remain explicit.",
   "environment": {},
   "schedule": {
     "rule_name": "cb-injection-daily",

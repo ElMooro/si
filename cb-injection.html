@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CB Capital-Injection &amp; Carry · JustHodl.AI</title>
+<title>Central-Bank Stocks &amp; Rates · JustHodl.AI</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🏦</text></svg>">
 <style>
 :root{
@@ -46,13 +46,14 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
 .note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
 .xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-family:var(--mono);font-size:12px}th,td{padding:10px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--mute);font-weight:500}small{color:var(--dim)}a{color:var(--cyan)}
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>🏦 CB Capital-Injection &amp; Carry</h1>
-    <p class="subtitle">Global liquidity tracks the <i>level</i>; this tracks the <i>flow</i> — who is injecting capital and who is draining it. Each central bank gets an <b>injection stance</b> (balance-sheet trajectory + policy-rate direction). The carry block watches the JPY and CHF funding legs and scores <b>carry-unwind risk</b> — the August-2024 yen-carry-unwind class of event.</p>
+    <h1>🏦 Central-Bank Stocks &amp; Rates</h1>
+    <p class="subtitle">Dated balance sheets, rates and component changes for the Fed, ECB, BOJ and SNB. Securities, lending and swaps are shown separately where comparable data exist. Values remain in native currencies; unmeasured policy flows stay unavailable.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/liquidity.html">global liquidity</a>
@@ -61,12 +62,12 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
     </nav>
   </header>
 
-  <div id="hero"><div class="loading">LOADING CB CAPITAL-INJECTION…</div></div>
+  <div id="hero"><div class="loading">LOADING CENTRAL-BANK MEASUREMENTS…</div></div>
 
-  <h2>Central Bank Injection Stance</h2>
+  <h2>Balance sheets and rates</h2>
   <div class="cbs" id="cbs"></div>
 
-  <h2>Carry Trade</h2>
+  <h2>Component reconciliation</h2>
   <div id="carry"></div>
 
   <div id="edollar"></div>
@@ -75,72 +76,46 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
-const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
-const stanceColor=(s)=>s>=2?"var(--green)":s===1?"var(--green)":s===0?"var(--yellow)":s===-1?"var(--orange)":"var(--red)";
-const impColor=(l)=>/INJECTION/.test(l||"")?"var(--green)":/DRAIN/.test(l||"")?"var(--red)":"var(--yellow)";
-const riskColor=(l)=>({LOW:"var(--green)",MODERATE:"var(--yellow)",RAISED:"var(--orange)",ELEVATED:"var(--red)"}[l]||"var(--mute)");
-const condColor=(c)=>({SUPPORTIVE:"var(--green)",NEUTRAL:"var(--yellow)",STRESSED:"var(--red)"}[c]||"var(--mute)");
-
-function hero(d){
-  const imp=d.global_injection_impulse||{};
-  const c=impColor(imp.label);
-  return `<div class="hero" style="border-left-color:${c}">
-    <div class="lab">Net Global Injection Impulse</div>
-    <div class="big" style="color:${c}">${esc(imp.label||"—")}</div>
-    <div class="meta">${esc(d.headline||"")}</div>
-    <div class="meta">impulse score ${imp.score!=null?imp.score:"—"}</div>
-  </div>`;
+const esc=s=>(s==null?'':String(s)).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const num=(n,d=2)=>typeof n==='number'&&Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:d}):'Unavailable';
+const label=s=>esc(String(s||'unavailable').replaceAll('_',' '));
+function current(m){
+  const q=m?.quality||{},age=(Date.now()-Date.parse(q.observation_date))/864e5;
+  return q.status==='fresh'&&Number.isFinite(age)&&age>=0&&age<(q.max_age_days+1);
 }
-
 function cbCard(b){
-  const c=stanceColor(b.injection_stance);
-  let bs="";
-  if(b.bs_change_6m_pct!=null) bs=`balance sheet ${b.bs_change_6m_pct>0?"+":""}${b.bs_change_6m_pct}% / 6m`;
-  let rt="";
-  if(b.policy_rate_pct!=null) rt=`policy rate ${b.policy_rate_pct}%`;
-  return `<div class="cb" style="border-top-color:${c}">
-    <div class="name">${esc(b.cb)}</div>
-    <div class="ccy">${esc(b.currency||"")}</div>
-    <div class="stance" style="color:${c}">${esc(b.stance_label||"")}</div>
-    <div class="det">${bs}${bs&&rt?" · ":""}${rt}</div>
-    <div class="rd">${esc(b.read||"")}</div>
+  const m=b.balance_sheet||{},r=b.rate||{};
+  return `<div class="cb" style="border-top-color:var(--cyan)">
+    <div class="name">${esc(b.cb)}</div><div class="ccy">${label(b.quality?.status)} coverage</div>
+    <div class="stance">${num(current(m)?m.latest:null)} ${esc(m.unit||'')}</div>
+    <div class="det">Total assets · ${esc(m.quality?.observation_date||'no observation')} · ${esc(m.source_id)}</div>
+    <div class="det">${current(m)?label(m.quality.status):'Unavailable or expired'}</div>
+    <div class="rd">${esc(b.rate_definition)}: <b>${num(current(r)?r.latest:null,3)}${current(r)?'%':''}</b><br>
+      ${esc(r.quality?.observation_date||'no observation')} · ${esc(r.source_id)} · ${current(r)?'fresh':'unavailable or expired'}</div>
   </div>`;
 }
-
-function carry(ct){
-  if(!ct) return "";
-  const rc=riskColor(ct.unwind_risk_label), cc=condColor(ct.carry_conditions);
-  const legs=(ct.funding_currencies||[]).map(f=>
-    `<div class="leg">${esc(f.ccy)} <b>${f.fx_per_usd!=null?f.fx_per_usd:"—"}</b>/USD`+
-    `${f.change_3m_pct!=null?" · 3m "+(f.change_3m_pct>0?"+":"")+f.change_3m_pct+"%":""}`+
-    ` · funding CB ${esc(f.funding_cb)}</div>`).join("");
-  const r=Math.max(0,Math.min(100,ct.unwind_risk_score||0));
-  return `<div class="panel" style="border-left-color:${rc}">
-    <div class="t">Carry-Unwind Risk — <span style="color:${rc}">${esc(ct.unwind_risk_label)} (${ct.unwind_risk_score}/100)</span></div>
-    <div class="gauge"><div class="mk" style="left:calc(${r}% - 1.5px)"></div></div>
-    <div class="gscale"><span>low</span><span>moderate</span><span>raised</span><span>elevated</span></div>
-    <div class="r">Funding conditions: <b style="color:${cc}">${esc(ct.carry_conditions)}</b>. ${esc(ct.read||"")}</div>
-    <div class="fx">${legs}</div>
-  </div>`;
+function components(b){
+  const d=b.decomposition||{},rows=d.components||{},age=(Date.now()-Date.parse(d.observation_date))/864e5;
+  const aligned=d.status==='partial_attribution'&&age>=0&&age<22;
+  const body=Object.entries(rows).map(([name,m])=>`<tr><td>${label(name)}<br><small>${esc(m.source_id)}</small></td><td>${num(aligned?m.aligned_value:null)}</td><td>${num(aligned?m.aligned_change_1m:null)}</td></tr>`).join('');
+  return `<div class="panel" style="border-left-color:var(--cyan)"><div class="t">${esc(b.cb)} · component stocks</div>
+    <div class="r">${label(d.status)}${aligned?` · ${esc(d.start_date)} → ${esc(d.observation_date)} · ${esc(d.unit)}`:''}</div>
+    ${body?`<div style="overflow-x:auto"><table><thead><tr><th>Component</th><th>Aligned level</th><th>Calendar-month change</th></tr></thead><tbody>${body}<tr><td>Other assets and adjustments</td><td>${num(aligned?d.other_assets_and_adjustments_level:null)}</td><td>${num(aligned?d.other_assets_and_adjustments_change_1m:null)}</td></tr></tbody></table></div>`:''}
+    <div class="r">${aligned?`Total stock change ${num(d.stock_change_1m)} ${esc(d.unit)}. Accounting residual ${num(d.reconciliation_residual,6)}.`:'A complete set of current components on matching dates is unavailable.'}
+      Net policy injection: <b>not identified</b>. ${esc((d.missing||[]).join('; '))}</div></div>`;
 }
-
 async function main(){
-  const d=await J("cb-injection.json");
-  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">CB-INJECTION DATA UNAVAILABLE</div>';return;}
-  document.getElementById("hero").innerHTML=hero(d);
-  document.getElementById("cbs").innerHTML=(d.central_banks||[]).map(cbCard).join("");
-  document.getElementById("carry").innerHTML=carry(d.carry_trade);
-  const xr=d.cross_reference||{};
-  document.getElementById("edollar").innerHTML=`<div class="panel" style="border-left-color:var(--cyan)">
-    <div class="t">Eurodollar Read</div>
-    <div class="r">${esc(d.eurodollar_read||"")}</div>
-    <div class="xref">cross-reference — global liquidity: ${esc(xr.global_liquidity_regime||"n/a")} · china liquidity: ${esc(xr.china_liquidity_regime||"n/a")}</div>
-  </div>`;
-  document.getElementById("note").textContent=d.note||"";
-  document.getElementById("ts").textContent=
-    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+  let d;try{const r=await fetch('data/cb-injection.json?_='+Date.now());if(r.ok)d=await r.json();}catch{}
+  const age=Date.now()-Date.parse(d?.generated_at);
+  if(!d||d.methodology_version!=='cb-component-measurements.v2'||!Number.isFinite(age)||age<0||age>4*864e5){
+    document.getElementById('hero').innerHTML='<div class="loading">Current validated central-bank measurements unavailable</div>';return;
+  }
+  document.getElementById('hero').innerHTML=`<div class="hero" style="border-left-color:var(--cyan)"><div class="lab">Central-bank measurement coverage · ${label(d.quality?.status)}</div><div class="big">Stocks &amp; rates</div><div class="meta">${esc(d.headline)}</div></div>`;
+  document.getElementById('cbs').innerHTML=(d.central_banks||[]).map(cbCard).join('');
+  document.getElementById('carry').innerHTML=(d.central_banks||[]).map(components).join('');
+  document.getElementById('edollar').innerHTML=`<div class="panel"><div class="t">Dated FX context</div><div class="fx">${Object.entries(d.fx_context||{}).map(([name,m])=>`<div class="leg">${esc(name)} <b>${num(current(m)?m.latest:null,4)}</b> ${esc(m.unit)}<br>${esc(m.quality?.observation_date||'no observation')} · ${current(m)?'fresh':'unavailable or expired'}</div>`).join('')}</div><div class="r">These exchange rates provide context. Carry returns require matched funding instruments, hedging costs and forward points. <a href="/yen-carry.html">View yen funding measurements</a>.</div></div>`;
+  document.getElementById('note').textContent=d.note||'';
+  document.getElementById('ts').textContent=`Published ${d.generated_at} · ${d.methodology_version}`;
 }
 main();
 </script>
