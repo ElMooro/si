@@ -75,7 +75,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <div id="call"></div>
 
-  <h2>BOJ Funding · Carry Width · FX Detonator · JGB · Positioning</h2>
+  <h2>Funding rates · FX · JGB yields · CFTC futures</h2>
   <div class="cbs" id="cards"></div>
 
   <div id="trig"></div>
@@ -85,126 +85,36 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const S3="data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const sgn=(v,d=0)=>v==null?"—":(v>0?"+":"")+num(v,d);
-const scoreColor=(s)=>s>=1?"var(--green)":s===0?"var(--yellow)":s===-1?"var(--orange)":"var(--red)";
-const regimeColor=(r)=>/CARRY-ON/.test(r||"")?"var(--green)":/AT-RISK/.test(r||"")?"var(--orange)":/UNWIND/.test(r||"")?"var(--red)":"var(--yellow)";
-const riskColor=(s)=>s==null?"var(--mute)":s>=75?"var(--red)":s>=50?"var(--orange)":s>=25?"var(--yellow)":"var(--green)";
-const volColor=(v)=>/CALM/.test(v||"")?"var(--green)":/ELEVATED/.test(v||"")?"var(--yellow)":/STRESSED/.test(v||"")?"var(--orange)":/SPIKING/.test(v||"")?"var(--red)":"var(--mute)";
-const dirColor=(d)=>/HIKING/.test(d||"")?"var(--red)":/CUTTING/.test(d||"")?"var(--green)":"var(--yellow)";
-
-function hero(d){
-  const c=scoreColor(d.boj_injection_score);
-  const rc=regimeColor(d.carry_regime);
-  return `<div class="hero" style="border-left-color:${rc}">
-    <div class="lab">Yen Carry Regime</div>
-    <div class="big" style="color:${rc}">${esc(d.carry_regime||"—")}</div>
-    <div class="meta">${esc(d.headline||"")}</div>
-    <div class="meta">BOJ stance <b style="color:${c}">${esc(d.boj_stance_label||"—")}</b> · injection score ${d.boj_injection_score!=null?d.boj_injection_score:"—"} (-2 strong drain → +2 strong injection) · carry attractiveness ${esc(d.carry_attractiveness||"—")}</div>
-  </div>`;
-}
-
-const COMP={fx_vol:["USD/JPY vol",30],yen_momentum:["Yen momentum",25],crowded_positioning:["Crowded positioning",20],boj_hawkish:["BOJ hawkish",15],jgb_stress:["JGB stress",10]};
-function risk(d){
-  const s=d.unwind_risk_score, c=riskColor(s);
-  const pos=Math.max(2,Math.min(98,(s||0)));
-  const comps=d.unwind_risk_components||{};
-  let cells="";
-  for(const k in COMP){
-    if(comps[k]==null) continue;
-    cells+=`<div class="stat"><div class="k">${COMP[k][0]}</div><div class="v">${num(comps[k],1)}</div><div class="s">of ${COMP[k][1]}</div></div>`;
-  }
-  return `<div class="elq" style="border-left-color:${c}">
-    <div class="lab">Carry Unwind-Risk Score</div>
-    <div class="num" style="color:${c}">${s!=null?num(s,0):"—"}<span style="font-size:16px;color:var(--dim)"> / 100</span></div>
-    <div class="reg" style="color:${c}">${esc(d.unwind_risk_label||"—")}</div>
-    <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
-    <div class="gscale"><span>low</span><span>moderate</span><span>elevated</span><span>high</span></div>
-    <div class="stats">${cells||'<div class="stat"><div class="k">components</div><div class="v">—</div></div>'}</div>
-    <div class="rd">Weighted across the carry's failure modes — a vol spike and a fast yen rally carry the most weight because they are what force a leveraged unwind.</div>
-  </div>`;
-}
-
-function callBox(d){
-  const rc=regimeColor(d.carry_regime);
-  return `<div class="panel" style="border-left-color:${rc}">
-    <div class="t">Decisive Call</div>
-    <div class="r">${esc(d.decisive_call||"")}</div>
-  </div>`;
-}
-
-function card(name,color,big,tag,tagColor,det,rd){
-  return `<div class="cb" style="border-top-color:${color}">
-    <div class="name">${esc(name)}</div>
-    <div class="big2" style="color:${color}">${big}</div>
-    <div class="tag" style="color:${tagColor}">${esc(tag)}</div>
-    <div class="det">${det}</div>
-    <div class="rd">${esc(rd)}</div>
-  </div>`;
-}
-
 async function main(){
-  const d=await J("yen-carry.json");
-  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">YEN-CARRY DATA UNAVAILABLE</div>';return;}
-  document.getElementById("hero").innerHTML=hero(d);
-  document.getElementById("risk").innerHTML=risk(d);
-  document.getElementById("call").innerHTML=callBox(d);
-
-  const F=d.boj_funding_leg||{},W=d.carry_width||{},X=d.fx_detonator||{},G=d.jgb_long_end||{},P=d.positioning||{};
-  const fdC=dirColor(F.policy_direction);
-  const vC=volColor(X.vol_regime);
-  const carryC=(W.front_end_carry_pp||0)>2.5?"var(--green)":(W.front_end_carry_pp||0)>1.5?"var(--yellow)":"var(--orange)";
-  const jgbC=/SHARPLY/.test(G.stress||"")?"var(--red)":/RISING/.test(G.stress||"")?"var(--orange)":"var(--cyan)";
-  const posShort=P.crowded_short, posC=P.net_speculator==null?"var(--mute)":(posShort?"var(--orange)":"var(--green)");
-  const cards=[
-    card("BOJ Funding Leg",fdC,
-      (F.jp_short_rate_pct!=null?F.jp_short_rate_pct+"%":"—"),
-      F.policy_direction||"—",fdC,
-      `balance sheet 6m ${sgn(F.boj_balance_sheet_chg_6m_pct,1)}% · rate 6m ${sgn(F.jp_short_rate_chg_6m_pp,2)}pp · ${esc(F.boj_qt_pace||"—")}`,
-      F.read||""),
-    card("US–Japan Carry Width",carryC,
-      sgn(W.front_end_carry_pp,2)+" pp",
-      (W.trend||"—")+" · FRONT-END",carryC,
-      `10y duration carry ${sgn(W.duration_carry_pp,2)}pp · US funds ${num(W.us_fed_funds_pct,2)}% · 6m chg ${sgn(W.front_end_carry_chg_6m_pp,2)}pp`,
-      W.read||""),
-    card("USD/JPY Detonator",vC,
-      num(X.usdjpy,2),
-      (X.vol_regime||"—")+" VOL",vC,
-      `20d vol ${num(X.realized_vol_20d_pct,1)}% · 1m ${sgn(X.usdjpy_chg_1m_pct,1)}% · 3m ${sgn(X.usdjpy_chg_3m_pct,1)}% · ${esc(X.yen_direction||"")}`,
-      X.read||""),
-    card("JGB Long End",jgbC,
-      (G.jgb_10y_pct!=null?G.jgb_10y_pct+"%":"—"),
-      G.stress||"—",jgbC,
-      `10y JGB 6m ${sgn(G.jgb_10y_chg_6m_pp,2)}pp · 12m ${sgn(G.jgb_10y_chg_12m_pp,2)}pp`,
-      G.read||""),
-    card("Speculator Positioning",posC,
-      (P.net_speculator!=null?sgn(P.net_speculator):"—"),
-      (P.net_speculator==null?"UNAVAILABLE":(posShort?"NET SHORT YEN":"NET LONG YEN")),posC,
-      (P.net_speculator!=null
-        ? `z-score ${P.net_zscore_vs_history!=null?sgn(P.net_zscore_vs_history,1)+"sd":"n/a"} vs ${num(P.history_weeks)}w · open interest ${num(P.open_interest)} · ${P.extreme?"EXTREME":"normal"}${P.reversal_risk?" · REVERSAL RISK":""}`
-        : "CFTC JPY positioning not in cache — unwind score scaled across the other factors."),
-      P.read||"")
-  ];
-  document.getElementById("cards").innerHTML=cards.join("");
-
-  const trg=d.triggers||[];
-  document.getElementById("trig").innerHTML=trg.length?`<div class="panel" style="border-left-color:var(--orange)">
-    <div class="t">Triggers — what flips the regime</div>
-    <ul class="trg">${trg.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
-  </div>`:"";
-
-  const xr=d.cross_reference||{};
-  document.getElementById("edollar").innerHTML=`<div class="panel" style="border-left-color:var(--cyan)">
-    <div class="t">Eurodollar Read</div>
-    <div class="r">${esc(d.eurodollar_read||"")}</div>
-    <div class="xref">cross-reference — global CB impulse: ${esc(xr.cb_injection_global_impulse||"n/a")} · cb-injection carry conditions: ${esc(xr.cb_injection_carry_conditions||"n/a")}</div>
-  </div>`;
-  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". Real data only — FRED (official BOJ / JGB / FX mirror) + the in-system CFTC positioning cache. Not investment advice.";
-  document.getElementById("ts").textContent=
-    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+  const d=await J('yen-carry.json');const age=Date.now()-Date.parse(d?.generated_at);
+  if(!d||d.methodology_version!=='yen-dated-measurements.v2'||!Number.isFinite(age)||age<0||age>4*864e5){document.getElementById('hero').innerHTML='<div class="loading">Current validated yen measurements unavailable</div>';return;}
+  const F=d.boj_funding_leg||{},W=d.carry_width||{},X=d.fx_detonator||{},G=d.jgb_long_end||{},P=d.positioning||{},O=d.observations||{};
+  document.getElementById('hero').innerHTML=`<div class="hero"><div class="lab">Yen funding and FX observations</div><div class="big">${esc(d.quality?.status)}</div><div class="meta">${esc(d.headline)}</div></div>`;
+  document.getElementById('risk').innerHTML='';document.getElementById('call').innerHTML='';
+  const source=name=>{const o=O[name]||{},q=o.quality||{};return `${esc(q.observation_date||'unavailable')} · ${esc(q.frequency||'')} · ${esc(q.status||'unavailable')} · ${esc(o.series_id||'')}`;};
+  const cell=(title,value,detail,note)=>`<div class="cb"><div class="name">${esc(title)}</div><div class="big2">${value}</div><div class="det">${detail}</div><div class="rd">${esc(note)}</div></div>`;
+  const front=W.front_end_proxy||{},gap=W.ten_year_yield_gap||{},pc=P.current||{};
+  document.getElementById('cards').innerHTML=[
+    cell('Japan 3M interbank rate',num(F.jp_short_rate_pct,3)+'%',source('jp_rate_3m'),F.rate_definition),
+    cell('BOJ total assets',num(F.boj_assets_jpy_trillion,2)+' trillion JPY',source('boj_assets'),`6m change ${sgn(F.boj_balance_sheet_chg_6m_pct,2)}%. ${F.note}`),
+    cell('Matched-month rate comparison',sgn(front.spread_pp,3)+' pp',esc(front.observation_month||'unavailable'),front.basis||'Matched monthly observations unavailable'),
+    cell('US–Japan 10Y yield difference',sgn(gap.spread_pp,3)+' pp',esc(gap.observation_month||'unavailable'),'Monthly yield comparison; not an executable carry return.'),
+    cell('USD/JPY',num(X.usdjpy,2),source('usdjpy'),`30-day change ${sgn(X.usdjpy_chg_1m_pct,2)}%; ${X.yen_direction}.`),
+    cell('Realized FX volatility',num(X.realized_vol_20d_pct,2)+'%',`60-return volatility ${num(X.realized_vol_60d_pct,2)}%`,X.basis),
+    cell('Japan 10Y yield',num(G.jgb_10y_pct,3)+'%',source('jgb_10y'),`6m change ${sgn(G.jgb_10y_chg_6m_pp,3)} pp. Does not establish repatriation flows.`),
+    cell('CFTC leveraged-fund net JPY futures',sgn(pc.net_contracts),`${esc(P.quality?.observation_date||'unavailable')} · ${esc(P.quality?.status||'unavailable')}`,P.scope),
+    cell('Net positioning / open interest',sgn(pc.net_pct_open_interest,2)+'%',`${P.history_weeks||0} reports · ${P.baseline_weeks||0} prior baseline weeks`,`z ${sgn(P.net_pct_oi_zscore,2)}; percentile ${num(P.net_pct_oi_percentile,1)}. At least 156 prior reports required; maximum 260.`)
+  ].join('');
+  const scenario=d.funding_scenario||{};
+  document.getElementById('trig').innerHTML=`<div class="panel"><div class="t">Illustrative funding arithmetic</div><div class="r">One-month break-even USD/JPY decline: ${num(scenario.break_even_usdjpy_decline_1m_pct,3)}%.</div><div class="rd">${esc(scenario.assumptions)}</div></div>`;
+  document.getElementById('edollar').innerHTML=`<div class="panel"><div class="t">Required before estimating executable carry</div><div class="r">${esc((W.missing||[]).join(' · '))}</div></div>`;
+  document.getElementById('note').textContent=d.history_basis+' No whole-trade size, unwind probability or action recommendation is inferred.';
+  document.getElementById('ts').textContent='Published '+d.generated_at;
 }
 main();
 </script>

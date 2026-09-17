@@ -1,34 +1,9 @@
-"""
-justhodl-yen-carry — Yen Carry Trade & Bank of Japan Liquidity Engine.
-
-cb-injection scores the BOJ at the balance-sheet-total level — one summary
-line. But the yen carry trade is THE carry trade, and a global-macro desk
-does not watch "is the BOJ balance sheet bigger." The carry is picking up
-pennies in front of a steamroller; what matters is five things, and this
-engine fuses all of them:
-
-  1. FUNDING LEG   — BOJ balance-sheet trajectory + the short rate. The cost
-                     of borrowing yen. A hiking BOJ raises the funding cost.
-  2. CARRY WIDTH   — the US-Japan rate differential (front-end and 10y). Wide
-                     differential = the carry pays = leverage builds.
-  3. THE DETONATOR — USD/JPY level, appreciation momentum and realised vol.
-                     A sharp yen rally is what forces a leveraged unwind
-                     (the August 2024 unwind is the reference event).
-  4. CROWDEDNESS   — CFTC non-commercial JPY positioning. A large net short
-                     yen = the carry is crowded = more fuel for a squeeze.
-  5. JGB STRESS    — the 10y JGB yield. A sharp rise pressures the BOJ and
-                     drives Japanese repatriation — yen-positive, carry-bad.
-
-OUTPUT: a yen-carry REGIME (carry-on -> carry-unwind), a 0-100 UNWIND-RISK
-score with explicit triggers, a carry-attractiveness read, a -2..+2 BOJ
-injection score and a eurodollar read.
-
-OUTPUT KEY: data/yen-carry.json   SCHEDULE: daily 12:00 UTC
-Real data only — FRED (the official mirror of BOJ statistics) + the
-in-system CFTC positioning cache. Not investment advice.
-"""
+"""Dated yen funding, FX and CFTC futures measurements; no calibrated unwind call."""
 import json
 import math
+import statistics
+import urllib.parse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import time
 import urllib.request
@@ -74,11 +49,11 @@ def _get(url, timeout=25):
     raise last or RuntimeError(f"fetch failed: {url}")
 
 
-def fred(series_id, limit=900):
+def fred(series_id, limit=100000):
     """FRED observations -> newest-first [(date, float)]."""
     url = ("https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
-           f"&sort_order=desc&limit={limit}")
+           f"&sort_order=desc&limit={limit}&observation_start=2000-01-01")
     d = json.loads(_get(url))
     out = []
     for o in d.get("observations", []):
@@ -106,491 +81,160 @@ def _d(s):
     return datetime.strptime(s, "%Y-%m-%d")
 
 
-def latest(obs):
-    return obs[0][1] if obs else None
+MONTHLY={'boj_assets','jp_rate_3m','jgb_10y'}
+METHOD='yen-dated-measurements.v2'
 
 
-def val_days_ago(obs, days):
-    if not obs:
-        return None
-    target = _d(obs[0][0]) - timedelta(days=days)
-    for dt, v in obs:
-        if _d(dt) <= target:
-            return v
-    return obs[-1][1]
+def clean_rows(rows):
+    result={}
+    for d,v in rows:
+        datetime.strptime(d,'%Y-%m-%d')
+        if not isinstance(v,(int,float)) or not math.isfinite(v):raise ValueError('nonfinite observation')
+        if d in result and result[d]!=v:raise ValueError('conflicting date')
+        result[d]=v
+    return sorted(result.items(),reverse=True)
 
 
-def pct_change(obs, days):
-    now_v, then_v = latest(obs), val_days_ago(obs, days)
-    if now_v is None or then_v in (None, 0):
-        return None
-    return (now_v / then_v - 1.0) * 100.0
+def observation_quality(name,rows,today=None):
+    today=today or datetime.now(timezone.utc).date()
+    d=rows[0][0] if rows else None
+    age=(today-datetime.strptime(d,'%Y-%m-%d').date()).days if d else None
+    sla=100 if name in MONTHLY else 7
+    return {'status':'unavailable' if age is None else 'invalid' if age<0 else 'stale' if age>sla else 'fresh',
+            'observation_date':d,'age_days':age,'max_age_days':sla,'frequency':'monthly' if name in MONTHLY else 'daily'}
 
 
-def level_change(obs, days):
-    now_v, then_v = latest(obs), val_days_ago(obs, days)
-    if now_v is None or then_v is None:
-        return None
-    return now_v - then_v
+def monthly_change(rows,months,percent=False):
+    if not rows:return None
+    y,m=map(int,rows[0][0][:7].split('-'));target=y*12+m-1-months
+    previous=next((v for d,v in rows if d[:7]==f'{target//12:04d}-{target%12+1:02d}'),None)
+    if previous is None or percent and previous==0:return None
+    return (rows[0][1]/previous-1)*100 if percent else rows[0][1]-previous
 
 
-def realized_vol(obs, window=20):
-    """Annualised realised vol (%) from a daily price series, newest-first."""
-    vals = [v for _, v in obs[:window + 1]]
-    if len(vals) < max(6, window // 2 + 2):
-        return None
-    vals = vals[::-1]
-    rets = []
-    for i in range(1, len(vals)):
-        if vals[i - 1] > 0 and vals[i] > 0:
-            rets.append(math.log(vals[i] / vals[i - 1]))
-    if len(rets) < 5:
-        return None
-    mean = sum(rets) / len(rets)
-    var = sum((r - mean) ** 2 for r in rets) / (len(rets) - 1)
-    return math.sqrt(var) * math.sqrt(252.0) * 100.0
+def daily_change(rows,days):
+    if not rows:return None
+    target=datetime.strptime(rows[0][0],'%Y-%m-%d')-timedelta(days=days)
+    previous=next((v for d,v in rows if 0<=(target-datetime.strptime(d,'%Y-%m-%d')).days<=4),None)
+    return (rows[0][1]/previous-1)*100 if previous and rows[0][1]>0 else None
 
 
-def clamp(x, lo, hi):
-    return max(lo, min(hi, x))
+def daily_vol(rows,n):
+    if len(rows)<n+1:return None
+    sample=rows[:n+1]
+    if any(v<=0 for _,v in sample) or any(not 1<=(_d(sample[i][0])-_d(sample[i+1][0])).days<=4 for i in range(n)):return None
+    returns=[math.log(sample[i][1]/sample[i+1][1]) for i in range(n)]
+    return statistics.stdev(returns)*math.sqrt(252)*100
 
 
-def r1(x):
-    return round(x, 1) if isinstance(x, (int, float)) else x
+def matched_monthly_gap(us_daily,jp_monthly,today=None):
+    today=today or datetime.now(timezone.utc).date()
+    us={}
+    for d,v in us_daily:
+        if d[:7]<today.strftime('%Y-%m'):us.setdefault(d[:7],[]).append(v)
+    jp={d[:7]:v for d,v in jp_monthly if d[:7]<today.strftime('%Y-%m')}
+    common=sorted(m for m in jp if len(us.get(m,[]))>=15)
+    if not common:return {'status':'unavailable','spread_pp':None}
+    month=common[-1];date=month+'-01';age=(today-datetime.strptime(date,'%Y-%m-%d').date()).days
+    if age>100:return {'status':'stale','spread_pp':None,'observation_month':month}
+    usd=statistics.mean(us[month]);jpy=jp[month]
+    return {'status':'fresh','spread_pp':round(usd-jpy,4),'us_rate_pct':round(usd,5),'jp_rate_pct':jpy,
+            'observation_month':month,'us_observations':len(us[month]),'basis':'monthly averages, differing instrument definitions; indicative comparison only'}
 
 
-def r2(x):
-    return round(x, 2) if isinstance(x, (int, float)) else x
-
-
-# ───────────────── CFTC JPY positioning (cross-reference) ─────────────────
-def _stdev(xs):
-    n = len(xs)
-    if n < 2:
-        return 0.0
-    m = sum(xs) / n
-    return math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
-
-
-def jpy_positioning():
-    """JPY non-commercial positioning from the in-system CFTC cache.
-
-    Reads data/cftc-all-cache.json (the agent's cached /cot/all response),
-    locates the Japanese Yen entry (6J / CFTC code 097741) and z-scores the
-    current net speculator position against its own recent history — a large,
-    historically-extreme net short yen = a crowded carry. Returns a block
-    or None.
-    """
-    cache = read_existing("data/cftc-all-cache.json")
-    if not isinstance(cache, (dict, list)):
-        return None
-
-    entry = None
-
-    def walk(node):
-        nonlocal entry
-        if entry is not None:
-            return
-        if isinstance(node, dict):
-            cc = str(node.get("cftc_code", "")).strip()
-            ct = str(node.get("contract", "")).strip().upper()
-            nm = str(node.get("name", "")).lower()
-            if (cc == "097741" or ct == "6J" or "japanese yen" in nm) and (
-                    "weekly_reports" in node or "current" in node
-                    or "net_speculator" in node):
-                entry = node
-                return
-            for v in node.values():
-                walk(v)
-        elif isinstance(node, list):
-            for it in node:
-                walk(it)
-
-    try:
-        walk(cache)
-    except Exception:
-        return None
-    if not isinstance(entry, dict):
-        return None
-
-    cur = (entry.get("current") if isinstance(entry.get("current"), dict)
-           else entry)
-    net = cur.get("net_speculator")
-    if not isinstance(net, (int, float)):
-        net = cur.get("net_managed_money")
-    if not isinstance(net, (int, float)):
-        return None
-
-    hist = [w["net_speculator"] for w in (entry.get("weekly_reports") or [])
-            if isinstance(w, dict)
-            and isinstance(w.get("net_speculator"), (int, float))]
-    z = None
-    if len(hist) >= 8:
-        shortness = [-x for x in hist]
-        m = sum(shortness) / len(shortness)
-        sd = _stdev(shortness)
-        if sd > 0:
-            z = ((-net) - m) / sd
-
-    sig = entry.get("signals") if isinstance(
-        entry.get("signals"), dict) else {}
-    side = "short" if net < 0 else "long"
-    return {
-        "net_speculator": net,
-        "net_managed_money": cur.get("net_managed_money"),
-        "report_date": cur.get("report_date"),
-        "open_interest": cur.get("open_interest"),
-        "net_zscore_vs_history": round(z, 2) if z is not None else None,
-        "crowded_short": net < 0,
-        "extreme": bool(sig.get("extreme")),
-        "reversal_risk": bool(sig.get("reversal_risk")),
-        "history_weeks": len(hist),
-        "source": "cftc-all-cache (6J / Japanese Yen)",
-        "read": (
-            f"Speculators are net {side} {abs(int(net)):,} JPY contracts "
-            f"(as of {cur.get('report_date')})"
-            + (f", {z:+.1f}sd vs the last {len(hist)}w"
-               if z is not None else "")
-            + (" — a net short yen IS the carry trade; the more extreme the "
-               "short, the more fuel for a squeeze."
-               if net < 0 else
-               " — speculators net long yen means the carry is not crowded.")),
-    }
-
-
-# ───────────────────────── synthesis ─────────────────────────
-def boj_injection_score(bs_chg_6m, rate_chg_6m):
-    """-2..+2 — is the BOJ adding (QE/cuts) or draining (QT/hikes) yen."""
-    score = 0.0
-    if bs_chg_6m is not None:
-        if bs_chg_6m > 2:
-            score += 1
-        elif bs_chg_6m > 0.3:
-            score += 0.5
-        elif bs_chg_6m < -2:
-            score -= 1
-        elif bs_chg_6m < -0.3:
-            score -= 0.5
-    if rate_chg_6m is not None:
-        if rate_chg_6m > 0.15:
-            score -= 1
-        elif rate_chg_6m > 0.03:
-            score -= 0.5
-        elif rate_chg_6m < -0.15:
-            score += 1
-        elif rate_chg_6m < -0.03:
-            score += 0.5
-    return int(clamp(round(score), -2, 2))
-
-
-STANCE = {2: "INJECTING", 1: "MILDLY INJECTING", 0: "NEUTRAL",
-          -1: "MILDLY DRAINING", -2: "DRAINING"}
-
-
-def lambda_handler(event, context):
-    t0 = time.time()
-    errors, sources = [], []
-    series = {}
-
-    for name, sid in FRED_SERIES.items():
+def cftc_measurement(records,today=None):
+    today=today or datetime.now(timezone.utc).date();rows={};invalid=0
+    for r in records:
+        if str(r.get('cftc_contract_market_code'))!='097741':continue
         try:
-            obs = fred(sid)
-            if obs:
-                series[name] = obs
-            else:
-                errors.append(f"{name}({sid}): empty")
-        except Exception as e:
-            errors.append(f"{name}({sid}): {type(e).__name__}")
-    if any(k in series for k in ("boj_assets", "jp_rate_3m", "usdjpy")):
-        sources.append("FRED — BOJ / JGB / FX / US rates")
+            d=str(r['report_date_as_yyyy_mm_dd'])[:10];datetime.strptime(d,'%Y-%m-%d')
+            def number(key):
+                v=r.get(key+'_all',r.get(key));v=float(v)
+                if not math.isfinite(v) or v<0:raise ValueError('invalid contract count')
+                return v
+            long=number('lev_money_positions_long');short=number('lev_money_positions_short');oi=number('open_interest')
+            if oi<=0 or max(long,short)>oi:raise ValueError('invalid open interest reconciliation')
+            row={'report_date':d,'leveraged_funds_long':long,'leveraged_funds_short':short,'net_contracts':long-short,'open_interest':oi,'net_pct_open_interest':(long-short)/oi*100}
+            if d in rows and rows[d]!=row:raise ValueError('duplicate report')
+            rows[d]=row
+        except (ValueError,TypeError,KeyError):invalid+=1
+    history=[rows[d] for d in sorted(rows,reverse=True)];cur=history[0] if history else None
+    age=(today-datetime.strptime(cur['report_date'],'%Y-%m-%d').date()).days if cur else None
+    status='invalid' if invalid or age is not None and age<0 else 'unavailable' if cur is None else 'stale' if age>14 else 'fresh'
+    baseline=history[1:261];z=percentile=None
+    if status=='fresh' and len(baseline)>=156:
+        values=[x['net_pct_open_interest'] for x in baseline];sd=statistics.stdev(values)
+        if sd:z=(cur['net_pct_open_interest']-statistics.mean(values))/sd
+        percentile=100*sum(v<=cur['net_pct_open_interest'] for v in values)/len(values)
+    return {'quality':{'status':status,'observation_date':cur['report_date'] if cur else None,'age_days':age,'max_age_days':14,'invalid_rows':invalid},
+            'current':cur if status=='fresh' else None,'history':history,'history_weeks':len(history),'baseline_weeks':len(baseline),
+            'net_pct_oi_zscore':round(z,3) if z is not None else None,'net_pct_oi_percentile':round(percentile,2) if percentile is not None else None,
+            'minimum_baseline_weeks':156,'source':'CFTC TFF futures-only, 097741, gpe5-46if',
+            'source_url':'https://publicreporting.cftc.gov/resource/gpe5-46if.json',
+            'scope':'Leveraged funds in reported JPY futures only; excludes OTC swaps, bank loans and most global carry positions.',
+            'net_speculator':None,'crowded_short':None,'extreme':None,'reversal_risk':None,
+            'whole_carry_trade_size':None,'score_contribution':0}
 
-    # ── 1. BOJ funding leg ──────────────────────────────────────────
-    boj = series.get("boj_assets", [])
-    jp3m = series.get("jp_rate_3m", [])
-    bs_6m = pct_change(boj, 182)
-    bs_12m = pct_change(boj, 365)
-    rate_now = latest(jp3m)
-    rate_6m = level_change(jp3m, 182)
-    rate_12m = level_change(jp3m, 365)
-    qt_pace = ("EXPANDING" if (bs_6m or 0) > 1.5
-               else "CONTRACTING" if (bs_6m or 0) < -1.5
-               else "FLAT")
-    boj_score = boj_injection_score(bs_6m, rate_6m)
-    funding = {
-        "boj_balance_sheet_chg_6m_pct": r2(bs_6m),
-        "boj_balance_sheet_chg_12m_pct": r2(bs_12m),
-        "boj_qt_pace": qt_pace,
-        "jp_short_rate_pct": r2(rate_now),
-        "jp_short_rate_chg_6m_pp": r2(rate_6m),
-        "jp_short_rate_chg_12m_pp": r2(rate_12m),
-        "policy_direction": ("HIKING" if (rate_6m or 0) > 0.05
-                             else "CUTTING" if (rate_6m or 0) < -0.05
-                             else "ON HOLD"),
-        "read": (
-            f"BOJ balance sheet {bs_6m:+.1f}% / 6m ({qt_pace.lower()}); "
-            f"short rate {rate_now:.2f}% ({rate_6m:+.2f}pp / 6m). "
-            "Every basis point of BOJ tightening raises the cost of the yen "
-            "funding leg and compresses the carry."
-            if bs_6m is not None and rate_now is not None and rate_6m is not None
-            else "BOJ funding data partial."),
-    }
 
-    # ── 2. carry width — the US-Japan rate differential ─────────────
-    ff = latest(series.get("fed_funds", []))
-    us2 = latest(series.get("us_2y", []))
-    us10 = latest(series.get("us_10y", []))
-    jgb10 = latest(series.get("jgb_10y", []))
-    front_carry = (ff - rate_now) if (ff is not None
-                                      and rate_now is not None) else None
-    dur_carry = (us10 - jgb10) if (us10 is not None
-                                   and jgb10 is not None) else None
-    front_6m_ago = None
-    if series.get("fed_funds") and jp3m:
-        ff_then = val_days_ago(series["fed_funds"], 182)
-        jp_then = val_days_ago(jp3m, 182)
-        if ff_then is not None and jp_then is not None:
-            front_6m_ago = ff_then - jp_then
-    front_chg = (front_carry - front_6m_ago) if (
-        front_carry is not None and front_6m_ago is not None) else None
-    width = {
-        "front_end_carry_pp": r2(front_carry),
-        "front_end_carry_chg_6m_pp": r2(front_chg),
-        "duration_carry_pp": r2(dur_carry),
-        "us_fed_funds_pct": r2(ff),
-        "us_2y_pct": r2(us2),
-        "us_10y_pct": r2(us10),
-        "trend": ("WIDENING" if (front_chg or 0) > 0.15
-                  else "COMPRESSING" if (front_chg or 0) < -0.15
-                  else "STABLE"),
-        "read": (
-            f"US-Japan front-end carry {front_carry:+.2f}pp "
-            f"({'widening' if (front_chg or 0) > 0.15 else 'compressing' if (front_chg or 0) < -0.15 else 'stable'}), "
-            f"10y duration carry {dur_carry:+.2f}pp — the gross spread a "
-            "leveraged yen-funded position earns before currency moves."
-            if front_carry is not None and dur_carry is not None
-            else "Carry-width data partial."),
-    }
+def fetch_cftc():
+    query=urllib.parse.urlencode({'cftc_contract_market_code':'097741','$order':'report_date_as_yyyy_mm_dd DESC','$limit':600})
+    return json.loads(_get('https://publicreporting.cftc.gov/resource/gpe5-46if.json?'+query))
 
-    # ── 3. the detonator — USD/JPY level, momentum, realised vol ────
-    fx = series.get("usdjpy", [])
-    usdjpy = latest(fx)
-    chg_1m = pct_change(fx, 30)
-    chg_3m = pct_change(fx, 91)
-    chg_6m = pct_change(fx, 182)
-    rv20 = realized_vol(fx, 20)
-    rv60 = realized_vol(fx, 60)
-    vol_regime = ("CALM" if (rv20 or 0) < 10.5
-                  else "ELEVATED" if (rv20 or 0) < 14
-                  else "STRESSED" if (rv20 or 0) < 20 else "SPIKING")
-    # yen direction: USD/JPY falling = yen strengthening = carry pain
-    yen_dir = ("YEN STRENGTHENING" if (chg_1m or 0) < -1.5
-               else "YEN WEAKENING" if (chg_1m or 0) > 1.5
-               else "RANGE-BOUND")
-    fx_block = {
-        "usdjpy": r2(usdjpy),
-        "usdjpy_chg_1m_pct": r2(chg_1m),
-        "usdjpy_chg_3m_pct": r2(chg_3m),
-        "usdjpy_chg_6m_pct": r2(chg_6m),
-        "realized_vol_20d_pct": r1(rv20),
-        "realized_vol_60d_pct": r1(rv60),
-        "vol_regime": vol_regime,
-        "yen_direction": yen_dir,
-        "read": (
-            f"USD/JPY {usdjpy:.1f} ({chg_1m:+.1f}% / 1m, {yen_dir.lower()}); "
-            f"20d realised vol {rv20:.0f}% ({vol_regime.lower()}). A fast yen "
-            "rally with a vol spike is the steamroller — it forces leveraged "
-            "carry to delever all at once."
-            if usdjpy is not None and chg_1m is not None and rv20 is not None
-            else "FX detonator data partial."),
-    }
 
-    # ── 4. JGB long-end stress ──────────────────────────────────────
-    jgb = series.get("jgb_10y", [])
-    jgb_6m = level_change(jgb, 182)
-    jgb_12m = level_change(jgb, 365)
-    jgb_block = {
-        "jgb_10y_pct": r2(jgb10),
-        "jgb_10y_chg_6m_pp": r2(jgb_6m),
-        "jgb_10y_chg_12m_pp": r2(jgb_12m),
-        "stress": ("RISING SHARPLY" if (jgb_6m or 0) > 0.3
-                   else "RISING" if (jgb_6m or 0) > 0.1
-                   else "STABLE" if abs(jgb_6m or 0) <= 0.1 else "FALLING"),
-        "read": (
-            f"10y JGB {jgb10:.2f}% ({jgb_6m:+.2f}pp / 6m). A rising long end "
-            "pressures the BOJ and pulls Japanese capital home — yen-positive, "
-            "and a slow squeeze on the carry."
-            if jgb10 is not None and jgb_6m is not None
-            else "JGB data partial."),
-    }
+def build_measurements(series,positioning,today=None):
+    today=today or datetime.now(timezone.utc).date();observations={};clean={}
+    for name,sid in FRED_SERIES.items():
+        try:rows=clean_rows(series.get(name,[]));q=observation_quality(name,rows,today)
+        except (ValueError,TypeError):rows=[];q={'status':'invalid','observation_date':None}
+        clean[name]=rows if q['status']=='fresh' else []
+        observations[name]={'series_id':sid,'source_url':'https://fred.stlouisfed.org/series/'+sid,'quality':q,
+                            'latest':rows[0][1] if q['status']=='fresh' else None,'history_start':rows[-1][0] if rows else None,
+                            'history_observations':len(rows),'unit':'100_million_JPY' if name=='boj_assets' else 'JPY_per_USD' if name=='usdjpy' else 'percent_per_annum'}
+    front=matched_monthly_gap(clean['fed_funds'],clean['jp_rate_3m'],today)
+    duration=matched_monthly_gap(clean['us_10y'],clean['jgb_10y'],today)
+    fx=clean['usdjpy'];spot=fx[0][1] if fx else None
+    rv20,rv60=daily_vol(fx,20),daily_vol(fx,60)
+    chg=daily_change(fx,30)
+    assets=clean['boj_assets'];jp=clean['jp_rate_3m'];jgb=clean['jgb_10y']
+    breakeven=None
+    if front.get('status')=='fresh':breakeven=100*(1-(1+front['jp_rate_pct']/1200)/(1+front['us_rate_pct']/1200))
+    fresh=sum(v['quality']['status']=='fresh' for v in observations.values())
+    return {'schema_version':'2.0','methodology_version':METHOD,'generated_at':datetime.now(timezone.utc).isoformat(),
+            'ok':fresh>0,'quality':{'status':'fresh' if fresh==len(FRED_SERIES) and positioning['quality']['status']=='fresh' else 'partial' if fresh else 'unavailable','fresh_series':fresh,'required_series':len(FRED_SERIES)},
+            'observations':observations,'headline':'Dated yen funding and FX measurements; no calibrated unwind forecast.',
+            'carry_regime':'NOT_CALIBRATED','unwind_risk_score':None,'unwind_risk_label':'NOT_CALIBRATED','unwind_risk_components':{},
+            'boj_injection_score':None,'boj_stance_label':'NOT_ATTRIBUTED','carry_attractiveness':'NOT_CALIBRATED',
+            'call':None,'decisive_call':None,'execution_eligible':False,
+            'boj_funding_leg':{'boj_assets_jpy_trillion':assets[0][1]/10000 if assets else None,
+                'boj_balance_sheet_chg_6m_pct':monthly_change(assets,6,True),'boj_balance_sheet_chg_12m_pct':monthly_change(assets,12,True),
+                'jp_short_rate_pct':jp[0][1] if jp else None,'jp_short_rate_chg_6m_pp':monthly_change(jp,6),
+                'rate_definition':'OECD monthly Japan three-month interbank rate, not the BOJ policy rate or a borrowing quote',
+                'policy_direction':'NOT_MEASURED','note':'Total-asset changes require component attribution before describing QE or QT.'},
+            'carry_width':{'front_end_carry_pp':None,'duration_carry_pp':None,'front_end_proxy':front,'ten_year_yield_gap':duration,
+                'hedged_carry_return':None,'executable_carry':None,'missing':['actual borrowing spread','matched investment instrument','FX forward points','cross-currency basis','transaction costs','margin and leverage']},
+            'funding_scenario':{'status':'illustrative' if breakeven is not None else 'unavailable',
+                'break_even_usdjpy_decline_1m_pct':breakeven,'assumptions':'Unhedged USD asset; one month of simple interest at the matched-month overnight USD / 3M JPY proxy rates; zero fees, borrowing spread and mark-to-market losses. Not an executable quote.'},
+            'fx_detonator':{'usdjpy':spot,'usdjpy_chg_1m_pct':chg,'usdjpy_chg_3m_pct':daily_change(fx,91),'usdjpy_chg_6m_pct':daily_change(fx,182),
+                'realized_vol_20d_pct':rv20,'realized_vol_60d_pct':rv60,'vol_regime':'NOT_CALIBRATED' if rv20 is not None else 'UNAVAILABLE',
+                'yen_direction':'UNAVAILABLE' if chg is None else 'STRENGTHENING' if chg<0 else 'WEAKENING' if chg>0 else 'UNCHANGED',
+                'basis':'Exact calendar lookbacks within four days; annualized log-return sample volatility from 20/60 complete daily returns.'},
+            'jgb_long_end':{'jgb_10y_pct':jgb[0][1] if jgb else None,'jgb_10y_chg_6m_pp':monthly_change(jgb,6),'jgb_10y_chg_12m_pp':monthly_change(jgb,12),'stress':'NOT_CALIBRATED'},
+            'positioning':positioning,'history_basis':'FRED current-vintage histories since 2000; CFTC up to 600 weekly reports. Future daily archives retain publication vintages.',
+            'triggers':[],'eurodollar_read':None,'cross_reference':{}}
 
-    # ── 5. positioning (CFTC cross-reference) ───────────────────────
-    pos = jpy_positioning()
-    if pos:
-        sources.append("CFTC — JPY non-commercial positioning")
 
-    # ── unwind-risk score (0-100) ───────────────────────────────────
-    comps, weights_avail = {}, 0.0
-
-    # FX realised vol elevation — weight 30
-    if rv20 is not None:
-        comps["fx_vol"] = clamp((rv20 - 8.0) / (22.0 - 8.0) * 30.0, 0, 30)
-        weights_avail += 30
-    # yen appreciation momentum — weight 25 (only a strengthening yen scores)
-    if chg_1m is not None:
-        mom = 0.0
-        if chg_1m < 0:
-            mom = max(mom, clamp(-chg_1m / 8.0 * 25.0, 0, 25))
-        if chg_3m is not None and chg_3m < 0:
-            mom = max(mom, clamp(-chg_3m / 14.0 * 25.0, 0, 25))
-        comps["yen_momentum"] = mom
-        weights_avail += 25
-    # crowded positioning — weight 20
-    if pos is not None:
-        net = pos.get("net_speculator") or 0
-        z = pos.get("net_zscore_vs_history")
-        if net < 0:                       # net short yen — the carry is on
-            crowd = (clamp(10.0 + z * 5.0, 2, 20) if z is not None else 11.0)
-        else:                             # net long yen — carry not crowded
-            crowd = 4.0
-        if pos.get("extreme"):
-            crowd = max(crowd, 16.0)
-        if pos.get("reversal_risk"):
-            crowd = max(crowd, 14.0)
-        comps["crowded_positioning"] = crowd
-        weights_avail += 20
-    # BOJ hawkish shift — weight 15
-    if rate_6m is not None:
-        comps["boj_hawkish"] = clamp(rate_6m / 0.40 * 15.0, 0, 15)
-        weights_avail += 15
-    # JGB long-end stress — weight 10
-    if jgb_6m is not None:
-        comps["jgb_stress"] = clamp(jgb_6m / 0.60 * 10.0, 0, 10)
-        weights_avail += 10
-
-    raw = sum(comps.values())
-    unwind_risk = round(raw / weights_avail * 100.0, 1) if weights_avail else None
-    risk_label = (None if unwind_risk is None
-                  else "HIGH" if unwind_risk >= 75
-                  else "ELEVATED" if unwind_risk >= 50
-                  else "MODERATE" if unwind_risk >= 25 else "LOW")
-
-    # ── carry regime ────────────────────────────────────────────────
-    active_unwind = ((chg_1m or 0) < -5 and (rv20 or 0) > 16)
-    wide_carry = (front_carry or 0) > 2.5
-    if active_unwind:
-        regime = "CARRY-UNWIND"
-    elif unwind_risk is not None and unwind_risk >= 55:
-        regime = "CARRY-AT-RISK"
-    elif (unwind_risk is not None and unwind_risk <= 32 and wide_carry
-          and vol_regime == "CALM"):
-        regime = "CARRY-ON"
-    else:
-        regime = "NEUTRAL"
-
-    # carry attractiveness — width vs the vol cost of holding it
-    if front_carry is not None and rv20 is not None:
-        if front_carry > 2.5 and rv20 < 11:
-            attractiveness = "ATTRACTIVE"
-        elif front_carry > 1.5 and rv20 < 16:
-            attractiveness = "MODERATE"
-        else:
-            attractiveness = "UNATTRACTIVE"
-    else:
-        attractiveness = "UNKNOWN"
-
-    # ── triggers ────────────────────────────────────────────────────
-    triggers = []
-    if usdjpy is not None:
-        triggers.append(
-            f"USD/JPY breaking below ~{usdjpy * 0.95:.0f} (a ~5% yen rally) "
-            "would flip the regime toward CARRY-UNWIND.")
-    if rv20 is not None:
-        triggers.append(
-            "20d realised vol sustained above ~16-18% signals the steamroller "
-            "is moving — leveraged carry starts to delever.")
-    triggers.append(
-        "A BOJ rate hike (or a hawkish surprise) lifts the funding cost and "
-        "is the classic carry-unwind catalyst.")
-    if jgb10 is not None:
-        triggers.append(
-            "A disorderly rise in the 10y JGB forces Japanese repatriation — "
-            "yen-positive and carry-negative.")
-
-    # ── eurodollar read + decisive call ─────────────────────────────
-    cb = read_existing("data/cb-injection.json") or {}
-    cb_carry = (cb.get("carry_trade") or {})
-    edx = (
-        f"The BOJ is the carry funding central bank. With the balance sheet "
-        f"{qt_pace.lower()} and the policy rate {funding['policy_direction'].lower()}, "
-        "the yen funding leg of the global carry / eurodollar system is "
-        + ("getting more expensive — a structural, persistent headwind for "
-           "leveraged risk."
-           if boj_score < 0 else
-           "broadly stable.")
-        + (" Unwind risk is currently "
-           + (risk_label.lower() if risk_label else "indeterminate")
-           + f" ({unwind_risk}/100)." if unwind_risk is not None else ""))
-
-    if regime == "CARRY-UNWIND":
-        call = ("DECISIVE: a yen-carry unwind is in motion. Expect correlated "
-                "global de-risking — equities, EM and high-carry FX down, yen "
-                "and quality bonds bid. Cut leverage; do not fade the yen.")
-    elif regime == "CARRY-AT-RISK":
-        call = ("DECISIVE: the carry is crowded and the detonators are warming "
-                "up. Reduce yen-funded leverage and hedge tail risk now — by "
-                "the time vol spikes, the exit is already crowded.")
-    elif regime == "CARRY-ON":
-        call = ("DECISIVE: carry conditions are constructive — wide differential, "
-                "calm vol, stable yen. The carry pays, but it always pays right "
-                "up until it doesn't; watch USD/JPY vol and the BOJ.")
-    else:
-        call = ("DECISIVE: no clean carry signal. The differential still pays, "
-                "but watch the BOJ path and USD/JPY realised vol for the turn.")
-
-    headline = (
-        f"YEN CARRY: {regime}. Unwind risk "
-        + (f"{unwind_risk:.0f}/100 ({risk_label})" if unwind_risk is not None
-           else "n/a")
-        + (f"; USD/JPY {usdjpy:.0f}, vol {rv20:.0f}% ({vol_regime.lower()})"
-           if usdjpy is not None and rv20 is not None else "")
-        + (f"; BOJ {STANCE[boj_score].lower()}." if True else "."))
-
-    out = {
-        "schema_version": "1.0",
-        "method": "yen_carry_and_boj_liquidity",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "elapsed_s": round(time.time() - t0, 2),
-        "ok": len(series) >= 3,
-        "headline": headline,
-        "carry_regime": regime,
-        "boj_injection_score": boj_score,
-        "boj_stance_label": STANCE[boj_score],
-        "unwind_risk_score": unwind_risk,
-        "unwind_risk_label": risk_label,
-        "unwind_risk_components": {k: round(v, 1)
-                                   for k, v in comps.items()},
-        "carry_attractiveness": attractiveness,
-        "boj_funding_leg": funding,
-        "carry_width": width,
-        "fx_detonator": fx_block,
-        "jgb_long_end": jgb_block,
-        "positioning": pos or {"note": "CFTC JPY positioning unavailable — "
-                               "unwind score scaled across available factors"},
-        "triggers": triggers,
-        "eurodollar_read": edx,
-        "decisive_call": call,
-        "cross_reference": {
-            "cb_injection_global_impulse": (cb.get("global_injection_impulse")
-                                            or {}).get("label"),
-            "cb_injection_carry_conditions": cb_carry.get("carry_conditions"),
-        },
-        "sources": sources,
-        "errors": errors,
-    }
-
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out, indent=2).encode("utf-8"),
-                  ContentType="application/json",
-                  CacheControl="max-age=300")
-    return {"ok": out["ok"], "carry_regime": regime,
-            "unwind_risk": unwind_risk, "errors": len(errors)}
+def lambda_handler(event,context):
+    started=time.monotonic();series={};errors=[]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures={pool.submit(fred,sid):name for name,sid in FRED_SERIES.items()};pos_future=pool.submit(fetch_cftc)
+        for future in as_completed(futures):
+            name=futures[future]
+            try:series[name]=future.result()
+            except Exception as exc:errors.append({'series':name,'error':type(exc).__name__})
+        try:positioning=cftc_measurement(pos_future.result())
+        except Exception as exc:positioning=cftc_measurement([]);errors.append({'series':'CFTC','error':type(exc).__name__})
+    out=build_measurements(series,positioning);out['errors']=errors;out['elapsed_s']=round(time.monotonic()-started,2)
+    body=json.dumps(out,allow_nan=False).encode()
+    for key in (f"data/yen-carry/measurements/{out['generated_at'][:10]}.json",OUT_KEY):
+        s3.put_object(Bucket=S3_BUCKET,Key=key,Body=body,ContentType='application/json',CacheControl='public, max-age=3600')
+    return {'statusCode':200,'ok':out['ok'],'quality':out['quality']}
