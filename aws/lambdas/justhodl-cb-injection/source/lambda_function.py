@@ -222,6 +222,11 @@ def lambda_handler(event,context):
             (data if kind=='fred' else ecb)[name]=rows
     out=build_measurements(data,ecb);out.update(errors=errors,elapsed_s=round(time.monotonic()-started,2))
     body=json.dumps(out,allow_nan=False).encode()
+    # Preserve the registered public archive family, with retired forecasts null.
+    snapshot={**out,'date':out['generated_at'][:10],'impulse':None,
+              'impulse_label':'NOT_ATTRIBUTED','unwind_risk':None,'carry_conditions':'NOT_CALIBRATED'}
+    s3.put_object(Bucket=S3_BUCKET,Key=f"data/cb-injection/snapshots/{out['generated_at'][:10]}.json",
+                  Body=json.dumps(snapshot,allow_nan=False).encode(),ContentType='application/json',CacheControl='public, max-age=3600')
     for key in (f"data/cb-injection/measurements/{out['generated_at'][:10]}.json",OUT_KEY):
         s3.put_object(Bucket=S3_BUCKET,Key=key,Body=body,ContentType='application/json',CacheControl='public, max-age=3600')
     return {'statusCode':200,'body':json.dumps({'quality':out['quality'],'ok':out['ok']})}

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 import types
 import unittest
@@ -24,6 +25,18 @@ def stocks():
 
 
 class CentralBankMeasurements(unittest.TestCase):
+    def test_registered_archive_family_keeps_measurements_and_null_legacy_forecasts(self):
+        writes={}
+        client=types.SimpleNamespace(put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))
+        with patch.object(e,'s3',client),patch.object(e,'fred',return_value=[]),patch.object(e,'ecb_portfolio',return_value=[]),patch.object(e,'ecb_archive',return_value=[]):
+            e.lambda_handler({},None)
+        snapshots=[v for k,v in writes.items() if k.startswith('data/cb-injection/snapshots/')]
+        self.assertEqual(len(snapshots),1)
+        self.assertEqual(snapshots[0]['methodology_version'],e.METHOD)
+        self.assertIsNone(snapshots[0]['impulse'])
+        self.assertIsNone(snapshots[0]['unwind_risk'])
+        self.assertIn(e.OUT_KEY,writes)
+
     def test_stock_components_reconcile_but_do_not_identify_transactions(self):
         out = e.decompose(stocks(), 'USD_bn', SOURCES, NOW)
         self.assertEqual(out['stock_change_1m'], 20)
