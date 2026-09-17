@@ -49,6 +49,26 @@ def test_official_units_are_series_specific():
         assert engine.get_latest("WALCL")[0] == 23.218
         assert engine.get_series_history("WTREGEN")[0]["value"] == 23.218
         assert engine.get_latest("RRPONTSYD")[0] == 23218
+        assert engine.get_latest("BOGMBASE")[0] == 23218
+    assert next(row[-1] for row in engine.FRED_SERIES if row[0] == 'BOGMBASE') == 'm'
+    assert all(row[3] == '%' for row in engine.FRED_SERIES if row[0].startswith('BAML'))
+
+
+def test_current_but_short_daily_cache_gets_required_history():
+    short = [{'date':TODAY, 'value':0}]
+    long = [{'date':TODAY, 'value':0}, {'date':(NOW-timedelta(days=370)).date().isoformat(),'value':500}]
+    with patch.object(engine,'fetch_fred',return_value=short), patch.object(engine,'_fred_live',return_value=long) as live:
+        hist=engine.get_series_history('RRPONTSYD',limit=400,min_history_days=365)
+        assert hist[-1]['value']==0 and hist[0]['value']==500 and live.call_count==1
+
+
+def test_calendar_rrp_change_does_not_treat_five_daily_points_as_four_weeks():
+    daily=[{'date':(NOW.date()-timedelta(days=35-i)).isoformat(),'value':100-i} for i in range(36)]
+    out=engine.compute_rrp_signal(engine.weekly_values(daily))
+    assert out['4w_change_bn']==-28
+    short=engine.compute_rrp_signal(engine.weekly_values(daily[-5:]))
+    assert short['4w_change_bn'] is None and short['signal']=='UNKNOWN'
+    assert engine.asof_value(daily[:1],TODAY,3) is None
 
 
 def test_stale_cache_is_retried_against_official_fred():
@@ -75,6 +95,21 @@ def test_full_handler_including_optional_catalogue_publishes_without_network():
          patch.object(engine, "_sfeed", return_value={}), patch.object(engine, "_fred_live", return_value=[]):
         assert engine.lambda_handler({}, None)["statusCode"] == 200
     assert len(json.loads(writes[0]["Body"])["catalog"]) > 5
+    out=json.loads(writes[0]['Body'])
+    assert out['regime']['history_status']=='insufficient'
+    assert out['regime']['delta_13w_bn'] is None and out['core']['net_liquidity']['score'] is None
+    assert out['catalog']['money_supply']['M2SL']['pctile_5y'] is None
+    assert out['catalog']['money_supply']['M2SL']['statistics_window']['observations']==70
+
+
+def test_broad_usd_card_cannot_inherit_an_unrelated_dollar_radar_score():
+    cat={'dollar':{'DTWEXBGS':{'value':118,'z':-1.2,'date':TODAY}}}
+    with patch.object(engine,'_sfeed',return_value={'score':55.8,'regime':'LEAN PUMP'}), patch.object(engine,'get_series_history',return_value=[]):
+        out=engine.build_part4(cat)
+    assert out['dxy']['level']==118 and out['dxy']['z']==-1.2
+    assert 'regime' not in out['dxy']
+    assert out['credit_first_sequence']['stages'][0]['fired'] is None
+    assert 'INCOMPLETE' in out['credit_first_sequence']['verdict']
 
 
 def test_missing_core_publishes_expired_contract_before_optional_work():

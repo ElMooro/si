@@ -487,7 +487,7 @@
 
 <div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
 <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","liquidity-decisive-call");</script>
-  <p>HEDGE FUND NET LIQUIDITY MODEL · FED BALANCE SHEET – TGA – RRP · SPY 3-5 DAY LEADING INDICATOR</p>
+  <p>BALANCE-SHEET PROXY · FED ASSETS − TGA − RRP · OBSERVATIONS AND DATES</p>
   <div class="header-meta">
     <span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
     <span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
@@ -754,6 +754,10 @@ function signalColor(sig) {
   return COLOR_YELLOW;
 }
 
+function esc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function setEl(id, html) {
   const el = document.getElementById(id);
   if (el) el.innerHTML = html;
@@ -820,7 +824,11 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
   const el = document.getElementById(elId);
   if (!el || !net_liq || !net_liq.length) return;
   const chart = echarts.init(el, null, { renderer: 'canvas' });
-  const dates = net_liq.map(d => d.date ? d.date.substring(0,7) : d.date);
+  const dates = net_liq.map(d => d.date);
+  const aligned = (rows, maxDays) => dates.map(day => {
+    const row = [...(rows || [])].reverse().find(r => r.date <= day);
+    return row && Date.parse(day)-Date.parse(row.date) <= maxDays*86400000 ? row.value : null;
+  });
   const opt = {
     ...echartsDefaults(),
     legend: {
@@ -852,21 +860,21 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
       {
         name: 'Fed BS',
         type: 'line',
-        data: (fed_bs || []).map(d => d.value),
+        data: aligned(fed_bs, 7),
         lineStyle: { color: COLOR_BLUE, width: 1.5, type: 'dashed' },
         symbol: 'none', smooth: true,
       },
       {
         name: 'TGA',
         type: 'line',
-        data: (tga || []).map(d => d.value),
+        data: aligned(tga, 7),
         lineStyle: { color: COLOR_RED, width: 1.5, type: 'dashed' },
         symbol: 'none', smooth: true,
       },
       {
         name: 'RRP',
         type: 'line',
-        data: (rrp || []).map(d => d.value),
+        data: aligned(rrp, 3),
         lineStyle: { color: COLOR_ORANGE, width: 1.5, type: 'dashed' },
         symbol: 'none', smooth: true,
       }
@@ -877,15 +885,15 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
 }
 
 function render(data) {
-  try { renderCatalog(data.catalog || {}); } catch(e){ console.error('catalog render', e); }
   const published = Date.parse(data.quality?.publication_date || data.meta?.generated_at);
-  const usable = data.quality?.status === 'fresh' && Number.isFinite(published) && Date.now()-published <= 48*3600000;
+  const usable = data.quality?.status === 'fresh' && Number.isFinite(published) && published <= Date.now()+300000 && Date.now()-published <= 48*3600000;
   if (!usable) {
     data = {...data, core: {...(data.core || {}), net_liquidity: {value_bn: null, score: null, label: 'UNAVAILABLE'}},
       regime: {trend: 'UNKNOWN', structure: 'UNKNOWN', delta_4w_bn: null, delta_13w_bn: null},
       spy_signal: {direction: null, confidence: null, basis: 'Required data unavailable or stale.'},
       components: {tga_analysis: {signal:'UNKNOWN'}, rrp_analysis: {signal:'UNKNOWN'}}};
   }
+  try { renderCatalog(usable ? (data.catalog || {}) : {}); } catch(e){ console.error('catalog render', e); }
   try { renderPart4(usable ? (data.part4 || {}) : {}); } catch(e){ console.error("part4",e); }
   const core    = data.core    || {};
   const regime  = data.regime  || {};
@@ -909,7 +917,7 @@ function render(data) {
 
   // Hero
   const nlVal = nl.value_bn == null ? null : Number(nl.value_bn);
-  setEl('hero-net-liq', nlVal == null ? '—' : Math.abs(nlVal) >= 1000 ? (nlVal/1000).toFixed(2)+'T' : fmt(nlVal, 1));
+  setEl('hero-net-liq', nlVal == null ? '—' : fmt(nlVal, 1));
   setEl('formula-walcl', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
   setEl('formula-tga',   fmtB(core.tga && core.tga.value_bn));
   setEl('formula-rrp',   fmtB(core.rrp && core.rrp.value_bn));
@@ -1101,7 +1109,7 @@ function renderCatalog(catalog){
   if(!catalog||!Object.keys(catalog).length){ host.innerHTML=''; return; }
   const order=['credit','yields','stress','dollar','soma','fed_balance_sheet','money_supply','reserves','funding'];
   let html='<h2 style="font-size:18px;margin:8px 0 4px">Institutional Series Catalog</h2>'+
-           '<div style="color:var(--text3);font-size:12px;margin-bottom:12px">Every series with latest value, 5-year z-score, and historical percentile. Absolute levels are meaningless without regime context.</div>';
+           '<div style="color:var(--text3);font-size:12px;margin-bottom:12px">Observed values with sample z-scores and percentiles. Each series shows its actual history window; these are not forecasts.</div>';
   for(const cat of order){
     const rows=catalog[cat]; if(!rows||!Object.keys(rows).length) continue;
     const m=CAT_META[cat]||{title:cat,unit:'',desc:''};
@@ -1117,9 +1125,9 @@ function renderCatalog(catalog){
           <span style="font-size:12px;color:${zc}">z ${r.z==null?'—':(r.z>0?'+':'')+r.z}</span>
         </div>
         <div style="height:4px;background:var(--border,#222);border-radius:2px;margin-top:6px;overflow:hidden">
-          <div style="height:100%;width:${Math.max(0,Math.min(100,r.pctile_5y||0))}%;background:${zc}"></div>
+          <div style="height:100%;width:${Math.max(0,Math.min(100,r.percentile||0))}%;background:${zc}"></div>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:3px">${r.pctile_5y==null?'':r.pctile_5y+'%ile (5y)'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${r.percentile==null?'Statistics unavailable':r.percentile+'%ile'} · ${esc(r.statistics_window?.start||'')} to ${esc(r.statistics_window?.end||r.date||'')} (${r.statistics_window?.observations||0} obs.)</div>
       </div>`;
     }
     html+='</div>';
@@ -1142,7 +1150,7 @@ function renderPart4(p4){
       +'<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:4px">'
       +'<span style="font-size:30px;font-weight:700">'+n(d.level,2)+'</span>'
       +'<span style="font-size:13px;color:'+zc+'">z '+(d.z==null?'\u2014':(d.z>0?'+':'')+d.z)+'</span>'
-      +(d.pctile_5y!=null?'<span style="font-size:12px;color:var(--text3,#888)">'+d.pctile_5y+'th pctile (5y)</span>':'')
+      +(d.percentile!=null?'<span style="font-size:12px;color:var(--text3,#888)">'+d.percentile+'th percentile in available history</span>':'')
       +(d.regime?'<span style="font-size:12px;padding:2px 8px;border:1px solid var(--border,#222);border-radius:12px">'+e(d.regime)+'</span>':'')
       +'</div><div style="font-size:10px;color:var(--text3,#888);margin-top:6px;font-style:italic">'+e(d.note||'')+'</div></div>';
   }
@@ -1160,7 +1168,7 @@ function renderPart4(p4){
         +'<div style="font-size:12px;margin-top:2px">'+e(s.name)+'</div>'
         +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">'
         +'<span style="font-size:16px;font-weight:600">'+n(s.value,2)+'</span>'
-        +'<span style="font-size:11px;color:'+(s.fired?'#e05252':'#4caf7d')+'">'+(s.fired?'FIRING':'clear')+(s.z!=null?' \u00b7 z '+s.z:'')+'</span>'
+        +'<span style="font-size:11px;color:'+(s.fired?'#e05252':'#4caf7d')+'">'+(s.fired==null?'unavailable':s.fired?'threshold exceeded':'below threshold')+(s.z!=null?' \u00b7 z '+s.z:'')+'</span>'
         +'</div></div>';
     });
     h+='</div><div style="font-size:10px;color:var(--text3,#888);margin-top:8px;font-style:italic">'+e(cs.brain_rule||'')+'</div></div>';
@@ -1206,54 +1214,7 @@ while((n=w.nextNode())){if(/\b(NaN|Infinity|undefined)\b/.test(n.nodeValue)){n.n
 if(document.readyState!=='loading')sweep();else document.addEventListener('DOMContentLoaded',sweep);
 setTimeout(sweep,3000);setTimeout(sweep,8000);})();
 </script>
-<script>
-/* ops 4501: P1 wiring — fresh institutional feeds auto-panel (GLOBAL LIQUIDITY FEEDS) */
-(function(){
-var FEEDS=["global-liquidity.json", "global-m2.json", "global-tide.json", "china-liquidity.json", "dollar-radar.json", "dxy-equity-divergence.json", "liquidity-capacity.json", "liquidity-flow.json", "liquidity-decisive-call.json", "liquidity-inflection-decisive-call.json", "crypto-liquidity.json", "concentration-liquidity.json", "bis-crossborder.json", "canary-macro.json"];
-function pick(o,keys,d){d=d||0;if(d>4||o==null)return null;
- if(typeof o==='number'&&isFinite(o))return o;
- if(typeof o!=='object')return null;
- for(var i=0;i<keys.length;i++){var v=o[keys[i]];
-  if(typeof v==='number'&&isFinite(v))return v;
-  if(v&&typeof v==='object'){var r=pick(v,keys,d+1);if(r!=null)return r;}}
- for(var k in o){var r2=pick(o[k],keys,d+1);if(r2!=null)return r2;}return null;}
-function pickS(o,keys,d){d=d||0;if(d>4||o==null||typeof o!=='object')return null;
- for(var i=0;i<keys.length;i++){var v=o[keys[i]];
-  if(typeof v==='string'&&v.length<28)return v;}
- for(var k in o){var r=pickS(o[k],keys,d+1);if(r)return r;}return null;}
-var NK=['composite','composite_score','score','index','value','level','z_score','z','latest','current'];
-var SK=['decisive_call','call','decision','signal','regime','defcon','state','status','verdict'];
-var wrap=document.createElement('section');
-wrap.style.cssText='margin:26px auto;max-width:1200px;padding:0 14px;font-family:monospace';
-wrap.innerHTML='<div style="color:#8fa3b8;font:700 12px monospace;letter-spacing:2px;border-bottom:1px solid #1c2733;padding-bottom:6px;margin-bottom:12px">'+"GLOBAL LIQUIDITY FEEDS"+' \u2014 LIVE WIRING ('+FEEDS.length+' feeds)</div><div id="jhAutoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px"></div>';
-document.body.appendChild(wrap);
-var g=document.getElementById('jhAutoGrid');
-FEEDS.forEach(function(f){
- var c=document.createElement('div');
- c.style.cssText='background:#0d141c;border:1px solid #1c2733;border-radius:8px;padding:10px 12px;min-height:74px';
- c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
- g.appendChild(c);
- fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
-  var n=pick(d,NK),s=pickS(d,SK);
-  var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
-  var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;
-  c.querySelector('.v').textContent=(n!=null?(Math.abs(n)>=1000?n.toLocaleString(undefined,{maximumFractionDigits:0}):n.toFixed(2)):(s||'\u2014'));
-  c.querySelector('.s').innerHTML=(s&&n!=null?('<span style="color:#9fb4c7">'+s+'</span> \u00b7 '):'')+(age!=null&&isFinite(age)?('<span style="color:'+(age>26?'#e05252':'#4f6a7d')+'">'+age.toFixed(1)+'h</span>'):'');
- }).catch(function(){c.querySelector('.v').textContent='\u2014';c.querySelector('.s').textContent='unavailable';});
-});
 
-/* P2: DXY first-class hero + credit-first sequencing chain */
-var hz=document.createElement('div');
-hz.style.cssText='margin:14px auto 0;max-width:1200px;padding:12px 16px;background:#0b1420;border:1px solid #223246;border-radius:10px;font-family:monospace;display:flex;flex-wrap:wrap;gap:22px;align-items:center';
-hz.innerHTML='<div><div style="color:#5d7285;font-size:10px">DXY \u2014 DOLLAR RADAR (first-class per brain)</div><div id="jhDXY" style="color:#e8f1f8;font-size:28px;font-weight:800">\u2026</div><div id="jhDXR" style="color:#8fa3b8;font-size:11px"></div></div><div style="margin-left:auto"><div style="color:#5d7285;font-size:10px">CREDIT-FIRST SEQUENCE (HY \u2192 DXY \u2192 SPX)</div><div id="jhSEQ" style="color:#c7d6e2;font-size:14px;font-weight:700;margin-top:4px">\u2026</div></div>';
-document.body.insertBefore(hz,document.body.firstChild);
-var hyz=null,dxz=null;
-function seq(){var e=document.getElementById('jhSEQ');var f=function(x){return x==null?'\u2014':(x>=0?'+':'')+x.toFixed(2)+'z'};e.textContent='HY '+f(hyz)+' \u2192 DXY '+f(dxz)+' \u2192 SPX (see market desk)';}
-fetch('/data/dollar-radar.json?t='+Date.now()).then(r=>r.json()).then(function(d){var v=pick(d,['dxy','value','level','index','last']);var s=pickS(d,SK);dxz=pick(d,['z_score','z','zscore']);document.getElementById('jhDXY').textContent=(v!=null?v.toFixed(2):'\u2014');document.getElementById('jhDXR').textContent=(s||'')+(dxz!=null?(' \u00b7 z '+dxz.toFixed(2)):'');seq();}).catch(function(){document.getElementById('jhDXY').textContent='\u2014';seq();});
-fetch('/data/credit-stress.json?t='+Date.now()).then(r=>r.json()).then(function(d){hyz=pick(d,['z_score','z','hy_z','zscore']);seq();}).catch(function(){seq();});
-
-})();
-</script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

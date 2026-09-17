@@ -61,10 +61,10 @@ FRED_SERIES = [
     # ── Money Supply ──────────────────────────────────────────────────────
     ("M2SL",        "M2 Money Supply",                     "money_supply",      "B USD", "m"),
     ("M1SL",        "M1 Money Supply",                     "money_supply",      "B USD", "m"),
-    ("BOGMBASE",    "Monetary Base",                       "money_supply",      "B USD", "w"),
+    ("BOGMBASE",    "Monetary Base",                       "money_supply",      "B USD", "m"),
 
     # ── Dollar & FX ───────────────────────────────────────────────────────
-    ("DTWEXBGS",    "Dollar Index Broad (DXY proxy)",      "dollar",            "Index", "d"),
+    ("DTWEXBGS",    "Nominal Broad US Dollar Index",      "dollar",            "Index", "d"),
     ("DTWEXAFEGS",  "Dollar vs Advanced Economies",        "dollar",            "Index", "d"),
     ("DTWEXEMEGS",  "Dollar vs Emerging Markets",          "dollar",            "Index", "d"),
 
@@ -107,21 +107,21 @@ FRED_SERIES = [
     ("T5YIFR", "5y5y Forward Breakeven", "yields", "%", "d"),
     ("THREEFYTP10", "ACM 10Y Term Premium", "yields", "%", "m"),
     ("DGS3MO", "3-Month Treasury Yield", "yields", "%", "d"),
-    ("BAMLC0A0CM", "IG Corporate Master OAS", "credit", "bp", "d"),
-    ("BAMLC0A1CAAA", "IG AAA OAS", "credit", "bp", "d"),
-    ("BAMLC0A2CAA", "IG AA OAS", "credit", "bp", "d"),
-    ("BAMLC0A3CA", "IG A OAS", "credit", "bp", "d"),
-    ("BAMLC0A4CBBB", "IG BBB OAS", "credit", "bp", "d"),
-    ("BAMLC0A0CMFOAS", "IG Financial OAS", "credit", "bp", "d"),
-    ("BAMLC0A0CMIOAS", "IG Industrial OAS", "credit", "bp", "d"),
-    ("BAMLC0A0CMUOAS", "IG Utility OAS", "credit", "bp", "d"),
-    ("BAMLH0A0HYM2", "HY Master II OAS", "credit", "bp", "d"),
-    ("BAMLH0A1HYBB", "HY BB OAS", "credit", "bp", "d"),
-    ("BAMLH0A2HYB", "HY Single-B OAS", "credit", "bp", "d"),
-    ("BAMLH0A3HYC", "HY CCC & Lower OAS", "credit", "bp", "d"),
-    ("BAMLEMCBPIOAS", "EM Corporate Plus OAS", "credit", "bp", "d"),
-    ("BAMLEMHBHYCRPIOAS", "EM HY Corporate OAS", "credit", "bp", "d"),
-    ("BAMLHE00EHYIOAS", "Euro HY OAS", "credit", "bp", "d"),
+    ("BAMLC0A0CM", "IG Corporate Master OAS", "credit", "%", "d"),
+    ("BAMLC0A1CAAA", "IG AAA OAS", "credit", "%", "d"),
+    ("BAMLC0A2CAA", "IG AA OAS", "credit", "%", "d"),
+    ("BAMLC0A3CA", "IG A OAS", "credit", "%", "d"),
+    ("BAMLC0A4CBBB", "IG BBB OAS", "credit", "%", "d"),
+    ("BAMLC0A0CMFOAS", "IG Financial OAS", "credit", "%", "d"),
+    ("BAMLC0A0CMIOAS", "IG Industrial OAS", "credit", "%", "d"),
+    ("BAMLC0A0CMUOAS", "IG Utility OAS", "credit", "%", "d"),
+    ("BAMLH0A0HYM2", "HY Master II OAS", "credit", "%", "d"),
+    ("BAMLH0A1HYBB", "HY BB OAS", "credit", "%", "d"),
+    ("BAMLH0A2HYB", "HY Single-B OAS", "credit", "%", "d"),
+    ("BAMLH0A3HYC", "HY CCC & Lower OAS", "credit", "%", "d"),
+    ("BAMLEMCBPIOAS", "EM Corporate Plus OAS", "credit", "%", "d"),
+    ("BAMLEMHBHYCRPIOAS", "EM HY Corporate OAS", "credit", "%", "d"),
+    ("BAMLHE00EHYIOAS", "Euro HY OAS", "credit", "%", "d"),
     ("DRTSCILM", "SLOOS: C&I Standards Tightening", "stress", "%", "q"),
     ("DRTSCLCC", "SLOOS: Credit Card Tightening", "stress", "%", "q"),
     ("DRTSCLM", "SLOOS: Mortgage Tightening", "stress", "%", "q"),
@@ -138,12 +138,12 @@ FRED_SERIES = [
 ALREADY_BILLIONS = {
     "RRPONTSYD",   # FRED: Billions of USD
     "TOTRESNS",    # FRED: Billions of USD
-    "M1SL", "M2SL",  # H.6 money stock is already billions (FRED series metadata)
+    "M1SL", "M2SL", "BOGMBASE",  # FRED money stock/base series are billions
 }
 # Series in millions -> divide by 1000 to get billions
 IN_MILLIONS = {
     "WALCL", "WTREGEN", "WSHOSHO", "WSHOTSL", "WSHOMCB",
-    "WRESBAL", "EXCSRESNW", "BOGMBASE", "WORAL", "CURRCIR", "WCURCIR",
+    "WRESBAL", "EXCSRESNW", "WORAL", "CURRCIR", "WCURCIR",
     "TREAST", "WSHONBIILB", "WSHOBL", "WSHOFADSL", "WSHOMBLS", "WSHOFCDN",
     "H41RESPPALDKNWA", "WCBSL", "WLRRAL", "RESPPALGUONNWW",
     "RESPPNTEPNWW",
@@ -254,9 +254,18 @@ def get_latest(series_id: str, limit: int = 10) -> Tuple[Optional[float], Option
     return round(val, 4), latest["date"]
 
 
-def get_series_history(series_id: str, limit: int = 52) -> List[Dict]:
+def get_series_history(series_id: str, limit: int = 52, min_history_days: int = 0) -> List[Dict]:
     """Get historical series for trend/momentum analysis."""
     obs = fetch_fred(series_id, limit=limit)
+    if obs and min_history_days:
+        dates = sorted(o['date'] for o in obs)
+        span = (datetime.fromisoformat(dates[-1]) - datetime.fromisoformat(dates[0])).days
+        if span < min_history_days:
+            # A current cache head does not imply enough history for a 13-week change.
+            start = (datetime.now(timezone.utc)-timedelta(days=min_history_days+90)).date().isoformat()
+            longer = _fred_live(series_id, limit, start)
+            if longer and len(longer) > len(obs):
+                obs = longer
     if not obs:
         return []
     result = []
@@ -270,15 +279,33 @@ def get_series_history(series_id: str, limit: int = 52) -> List[Dict]:
     return result
 
 
+def asof_value(history, target, max_gap_days=7):
+    """Latest observation at or before target, with a bounded calendar gap."""
+    day = datetime.fromisoformat(target).date()
+    for row in reversed(history):
+        observed = datetime.fromisoformat(row['date']).date()
+        if observed <= day:
+            return row['value'] if (day-observed).days <= max_gap_days else None
+    return None
+
+
+def weekly_values(history, weeks=4):
+    if not history:
+        return []
+    end = datetime.fromisoformat(history[-1]['date']).date()
+    values = [asof_value(history, (end-timedelta(weeks=i)).isoformat(), 3)
+              for i in reversed(range(weeks+1))]
+    return values if all(v is not None for v in values) else []
+
+
 # ─── NET LIQUIDITY COMPUTATION ─────────────────────────────────────────────
 def compute_net_liquidity(walcl: float, tga: float, rrp: float) -> float:
     """
     Hedge fund net liquidity formula:
     Net Liquidity = Fed Balance Sheet - TGA - RRP
 
-    Interpretation:
-    - When rising → money flowing INTO markets → bullish SPY (3-5 day lead)
-    - When falling → money draining FROM markets → bearish SPY (3-5 day lead)
+    A descriptive proxy mixing explicitly dated balance-sheet observations.
+    No causal market flow or validated equity lead is implied.
     """
     return round(walcl - tga - rrp, 2)
 
@@ -353,8 +380,8 @@ def compute_tga_drain_score(tga_history: List[float]) -> Dict[str, Any]:
     TGA drain analysis — when Treasury draws down TGA, it injects
     liquidity into the system (bullish). When it rebuilds TGA, it drains.
     """
-    if len(tga_history) < 4:
-        return {"score": 0, "signal": "NEUTRAL", "note": "insufficient data"}
+    if len(tga_history) < 5:
+        return {"score": None, "signal": "UNKNOWN", "4w_change_bn": None, "note": "Four calendar weeks of observations unavailable"}
 
     recent = tga_history[-1]
     wk4    = tga_history[-5] if len(tga_history) >= 5 else tga_history[0]
@@ -391,8 +418,8 @@ def compute_rrp_signal(rrp_history: List[float]) -> Dict[str, Any]:
     RRP dynamics: when institutions park cash at Fed, it drains market liquidity.
     Falling RRP → cash flooding markets → bullish.
     """
-    if len(rrp_history) < 4:
-        return {"signal": "NEUTRAL", "note": "insufficient data"}
+    if len(rrp_history) < 5:
+        return {"signal": "UNKNOWN", "4w_change_bn": None, "note": "Four calendar weeks of observations unavailable"}
 
     recent = rrp_history[-1]
     wk4    = rrp_history[-5] if len(rrp_history) >= 5 else rrp_history[0]
@@ -435,7 +462,9 @@ def compute_composite_liquidity_score(
     Composite 0–100 liquidity score for signal logger.
     >60 = bullish, 40-60 = neutral, <40 = bearish.
     """
-    score = 50  # baseline
+    if regime.get('trend') == 'UNKNOWN' or tga.get('score') is None or rrp.get('signal') == 'UNKNOWN':
+        return None
+    score = 50  # descriptive, uncalibrated heuristic
 
     # Net liquidity regime (heaviest weight: 40%)
     regime_scores = {
@@ -577,33 +606,14 @@ def build_part4(catalog):
     out["global_stack_note"] = ("Fed+ECB+BOJ+PBOC balance sheets in USD; "
                                "page was US-only before (Perplexity Part-4 A)")
 
-    # (B) DXY first-class
-    dr = _sfeed("data/dollar-radar.json")
-    dxy = {}
-    if isinstance(dr, dict):
-        for k in ("dxy", "broad_dollar", "index", "level"):
-            v = dr.get(k)
-            if isinstance(v, (int, float)):
-                dxy["level"] = v
-                break
-            if isinstance(v, dict) and isinstance(v.get("level"),
-                                                  (int, float)):
-                dxy["level"] = v["level"]
-                break
-        for k in ("regime", "verdict", "breadth_verdict", "state"):
-            if isinstance(dr.get(k), str):
-                dxy["regime"] = dr[k]
-                break
-        if isinstance(dr.get("as_of"), str):
-            dxy["as_of"] = dr["as_of"]
+    # Broad USD and its statistics must come from the same identified series.
     cd = (catalog.get("dollar") or {}).get("DTWEXBGS") or {}
-    if cd:
-        dxy.setdefault("level", cd.get("value"))
-        dxy["z"] = cd.get("z")
-        dxy["pctile_5y"] = cd.get("pctile_5y")
-    if not dxy:
-        notes.append("dollar-radar.json unavailable and DTWEXBGS missing")
-    dxy["note"] = "brain: DXY is the most important chart — promoted to hero"
+    dxy = {"level":cd.get("value"), "z":cd.get("z"), "as_of":cd.get("date"),
+           "series_id":"DTWEXBGS", "pctile_5y":cd.get("pctile_5y"),
+           "percentile":cd.get("percentile"), "statistics_window":cd.get("statistics_window"),
+           "note":"Federal Reserve nominal broad USD index; distinct from ICE DXY."}
+    if dxy['level'] is None:
+        notes.append("DTWEXBGS unavailable")
     out["dxy"] = dxy
 
     # (C) credit-first sequencing — the brain's ordering rule
@@ -622,11 +632,11 @@ def build_part4(catalog):
     seq_stages = []
     seq_stages.append({"stage": 1, "name": "Credit stress (HY OAS)",
                        "value": hy_val, "z": hy_z, "unit": "%",
-                       "fired": bool(hy_z is not None and hy_z > 1.0)})
+                       "fired": hy_z > 1.0 if hy_z is not None else None})
     d_z = dxy.get("z")
-    seq_stages.append({"stage": 2, "name": "Dollar spike (DXY)",
+    seq_stages.append({"stage": 2, "name": "Broad USD elevation",
                        "value": dxy.get("level"), "z": d_z,
-                       "fired": bool(d_z is not None and d_z > 1.0)})
+                       "fired": d_z > 1.0 if d_z is not None else None})
     # ops 4423: compute SPX 60d from FRED SP500 directly — the fleet-feed
     # probe missed, so stage 3 read null.
     spx_60d = None
@@ -639,15 +649,14 @@ def build_part4(catalog):
         print("[part4] SP500 60d:", type(_e).__name__)
     seq_stages.append({"stage": 3, "name": "Equity drawdown (SPX 60d)",
                        "value": spx_60d,
-                       "fired": bool(spx_60d is not None and spx_60d < -5)})
+                       "fired": spx_60d < -5 if spx_60d is not None else None})
     fired = [s["stage"] for s in seq_stages if s["fired"]]
     out["credit_first_sequence"] = {
         "stages": seq_stages, "stages_fired": fired,
         "current_stage": (max(fired) if fired else 0),
-        "verdict": ("CLEAR — no stage firing" if not fired else
+        "verdict": ("INCOMPLETE — a required input is unavailable" if any(s["fired"] is None for s in seq_stages) else "No threshold exceeded" if not fired else
                     f"STAGE {max(fired)} firing"),
-        "brain_rule": "credit stress first, dollar spike second, "
-                      "stock crash third"}
+        "brain_rule": "Unvalidated monitoring heuristic; ordering is not an established causal or forecasting sequence."}
     if notes:
         out["join_notes"] = notes
     return out
@@ -701,32 +710,36 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
 
     # ── Historical series for regime analysis ─────────────────────────────
     print("[LiqAgent] Fetching historical data for regime analysis...")
-    walcl_hist = get_series_history("WALCL", limit=60)
-    tga_hist   = get_series_history("WTREGEN", limit=60)
-    rrp_hist   = get_series_history("RRPONTSYD", limit=60)
+    walcl_hist = get_series_history("WALCL", limit=60, min_history_days=365)
+    tga_hist   = get_series_history("WTREGEN", limit=60, min_history_days=365)
+    rrp_hist   = get_series_history("RRPONTSYD", limit=400, min_history_days=365)
     m2_hist    = get_series_history("M2SL", limit=24)
 
     # Build net liquidity history
     net_liq_history = []
     for i, w in enumerate(walcl_hist):
-        matching_tga = next((t["value"] for t in reversed(tga_hist) if t["date"] <= w["date"]), None)
-        matching_rrp = next((r["value"] for r in reversed(rrp_hist) if r["date"] <= w["date"]), None)
+        matching_tga = asof_value(tga_hist, w['date'], 7)
+        matching_rrp = asof_value(rrp_hist, w['date'], 3)
         if matching_tga is not None and matching_rrp is not None:
             nl = compute_net_liquidity(w["value"], matching_tga, matching_rrp)
             net_liq_history.append({"date": w["date"], "value": nl})
 
     # Regime classification
-    regime = {"trend": "NEUTRAL", "structure": "UNKNOWN", "spy_signal": "NEUTRAL",
-              "signal_strength": "WEAK", "delta_4w_bn": 0, "delta_13w_bn": 0}
-    if len(net_liq_history) >= 14:
-        nl_vals = [x["value"] for x in net_liq_history]
-        nl_4w   = nl_vals[-5] if len(nl_vals) >= 5 else nl_vals[0]
-        nl_13w  = nl_vals[-14] if len(nl_vals) >= 14 else nl_vals[0]
-        regime  = classify_liquidity_regime(net_liquidity, nl_4w, nl_13w)
+    regime = {"trend": "UNKNOWN", "structure": "UNKNOWN", "spy_signal": None,
+              "signal_strength": None, "delta_4w_bn": None, "delta_13w_bn": None}
+    if net_liq_history:
+        anchor = datetime.fromisoformat(net_liq_history[-1]['date']).date()
+        nl_4w = asof_value(net_liq_history, (anchor-timedelta(weeks=4)).isoformat(), 3)
+        nl_13w = asof_value(net_liq_history, (anchor-timedelta(weeks=13)).isoformat(), 3)
+        if nl_4w is not None and nl_13w is not None:
+            regime = classify_liquidity_regime(net_liq_history[-1]['value'], nl_4w, nl_13w)
+        regime['as_of'] = anchor.isoformat()
+    regime['history_observations'] = len(net_liq_history)
+    regime['history_status'] = 'insufficient' if regime['trend'] == 'UNKNOWN' else 'available'
 
     # Component analysis
-    tga_analysis = compute_tga_drain_score([x["value"] for x in tga_hist])
-    rrp_analysis = compute_rrp_signal([x["value"] for x in rrp_hist])
+    tga_analysis = compute_tga_drain_score(weekly_values(tga_hist))
+    rrp_analysis = compute_rrp_signal(weekly_values(rrp_hist))
 
     # M2 momentum
     m2_mom = None
@@ -757,11 +770,11 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     dff_val,     dff_date     = get_latest("DFF", 5)
 
     # Dollar trend (4-week momentum)
-    dxy_history  = get_series_history("DTWEXBGS", limit=20)
+    dxy_history  = get_series_history("DTWEXBGS", limit=40)
     dollar_trend = None
-    if len(dxy_history) >= 20:
-        dxy_vals     = [x["value"] for x in dxy_history]
-        dollar_trend = compute_liquidity_momentum(dxy_vals, 20)
+    dxy_weeks = weekly_values(dxy_history)
+    if dxy_weeks:
+        dollar_trend = compute_liquidity_momentum(dxy_weeks, 4)
 
     # ── Composite Score ───────────────────────────────────────────────────
     composite_score = compute_composite_liquidity_score(
@@ -769,7 +782,10 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     )
 
     # Score interpretation
-    if composite_score >= 70:
+    if composite_score is None:
+        composite_label = 'UNKNOWN'
+        composite_color = '#888888'
+    elif composite_score >= 70:
         composite_label  = "VERY_BULLISH"
         composite_color  = "#00ff88"
     elif composite_score >= 60:
@@ -787,11 +803,11 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
 
     # ── SPY Leading Indicator ─────────────────────────────────────────────
     spy_signal = {
-        "direction":  regime["spy_signal"],
-        "strength":   regime["signal_strength"],
-        "lead_days":  "3-5",
-        "basis":      f"Net liquidity {regime['trend'].lower().replace('_', ' ')} by ${abs(regime['delta_4w_bn'])}B over 4 weeks",
-        "confidence": min(95, max(30, composite_score if regime["spy_signal"] == "BULLISH" else 100 - composite_score)),
+        "direction":  None,
+        "strength":   None,
+        "lead_days":  None,
+        "basis":      'Descriptive balance-sheet proxy; no validated directional forecast.',
+        "confidence": None,
         "components": {
             "fed_bs_trend":    "EXPANDING" if (walcl_hist[-1]["value"] > walcl_hist[-5]["value"] if len(walcl_hist) >= 5 else False) else "CONTRACTING",
             "tga_drain":       tga_analysis["signal"],
@@ -806,7 +822,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
         "net_liquidity": net_liq_history[-52:],
         "fed_bs":   [{"date": x["date"], "value": x["value"]} for x in walcl_hist[-52:]],
         "tga":      [{"date": x["date"], "value": x["value"]} for x in tga_hist[-52:]],
-        "rrp":      [{"date": x["date"], "value": x["value"]} for x in rrp_hist[-52:]],
+        "rrp": [{"date":x["date"], "value":asof_value(rrp_hist,x["date"],3)} for x in walcl_hist[-52:]],
         "m2":       [{"date": x["date"], "value": x["value"]} for x in m2_hist[-24:]],
     }
 
@@ -842,15 +858,20 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
             vals = [h["value"] for h in hist if h.get("value") is not None]
             if not vals:
                 continue
+            hist = [h for h in hist if h["date"] >= (ts_start-timedelta(days=1826)).date().isoformat()]
+            vals = [h["value"] for h in hist]
+            if not vals:
+                continue
             latest = vals[-1]
             mean = sum(vals) / len(vals)
             var = sum((v - mean) ** 2 for v in vals) / max(1, len(vals) - 1)
             sd = var ** 0.5
-            z = round((latest - mean) / sd, 2) if sd > 1e-9 else 0.0
+            z = round((latest - mean) / sd, 2) if sd > 1e-9 and len(vals) >= 20 else None
             pct = round(100 * sum(1 for v in vals if v <= latest) / len(vals), 1)
             catalog.setdefault(cat, {})[sid] = {
                 "label": label, "value": round(latest, 4), "unit": unit,
-                "z": z, "pctile_5y": pct, "freq": freq,
+                "z": z, "pctile_5y": pct if (datetime.fromisoformat(hist[-1]["date"])-datetime.fromisoformat(hist[0]["date"])).days >= 1800 else None,
+                "percentile": pct if len(vals) >= 20 else None, "statistics_window": {"start":hist[0]["date"], "end":hist[-1]["date"], "observations":len(vals)}, "freq": freq,
                 "date": hist[-1].get("date"),
                 "spark": [{"date": h["date"], "value": h["value"]}
                           for h in hist[-52:]],
@@ -864,7 +885,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
         "meta": {
             "generated_at":  ts_end.isoformat(),
             "elapsed_sec":   elapsed,
-            "agent_version": "2.1.1",
+            "agent_version": "2.1.2",
             "data_sources":  ["FRED"],
         },
 
@@ -951,7 +972,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
             "spread_10_3m":  spread_10_3m,
             "tips_real":     tips_val,
             "date":          y10_date,
-            "curve_status":  "INVERTED" if (spread_10_2 or 0) < 0 else "NORMAL",
+            "curve_status": "UNKNOWN" if spread_10_2 is None else "INVERTED" if spread_10_2 < 0 else "NORMAL",
         },
 
         # ── Funding Markets ───────────────────────────────────────────────
