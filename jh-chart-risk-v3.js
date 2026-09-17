@@ -1,0 +1,58 @@
+/* jh-reskin-skip */
+/* chart.html Supercharts: warn from share-flows using ACTIVE TAB, not GO box. */
+(function () {
+  if (!/chart\.html?$|\/chart\/?$/i.test(location.pathname || "")) return;
+  if (window.__jhChartRiskV3) return;
+  window.__jhChartRiskV3 = true;
+  var sf = null, fo = null;
+  function banner() {
+    var n = document.getElementById("jh-risk-banner");
+    if (n) return n;
+    n = document.createElement("div");
+    n.id = "jh-risk-banner";
+    n.style.cssText = "display:none;position:fixed;left:56px;top:108px;z-index:120;max-width:min(520px,72vw);padding:8px 12px;border-radius:6px;background:#3a1014;border:1px solid #f23645;color:#ff6b6b;font:12px/1.35 IBM Plex Mono,ui-monospace,monospace;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45)";
+    document.body.appendChild(n);
+    return n;
+  }
+  function norm(s) {
+    s = String(s || "").toUpperCase().trim();
+    var i = s.lastIndexOf(":");
+    if (i >= 0) s = s.slice(i + 1);
+    return s.replace(/[^A-Z0-9.\-]/g, "");
+  }
+  function currentSym() {
+    var on = document.querySelector("#tabs button.tab.on[data-id], #tabs .tab.on[data-id]");
+    if (on && on.getAttribute("data-id")) return norm(on.getAttribute("data-id"));
+    var tabs = document.querySelectorAll("#tabs button.tab[data-id]");
+    for (var i = 0; i < tabs.length; i++) {
+      if ((tabs[i].className || "").indexOf("on") >= 0) return norm(tabs[i].getAttribute("data-id"));
+    }
+    var wm = document.getElementById("wm");
+    if (wm && wm.textContent && /[A-Z]/.test(wm.textContent)) return norm(wm.textContent);
+    var q = document.querySelector("#quote .last, #quote b, .quote b");
+    return "";
+  }
+  function paint(sym) {
+    var n = banner();
+    if (!sym || !sf) { n.style.display = "none"; return; }
+    var row = sf[sym] || {}, fr = fo[sym] || {}, read = String(row.read || ""), yoy = row.sh_yoy_pct, flags = row.flags || [], bits = [], hot = false;
+    if (read === "EXTREME_DILUTION" || row.extreme) { hot = true; bits.push("EXTREME DILUTION" + (yoy != null ? " +" + yoy + "% YoY" : "")); }
+    else if (read === "HEAVY_DILUTION") { hot = true; bits.push("HEAVY DILUTION" + (yoy != null ? " +" + yoy + "% YoY" : "")); }
+    else if (read === "DILUTING" && yoy != null && +yoy >= 5) { hot = true; bits.push("DILUTING +" + yoy + "% YoY"); }
+    if (flags.indexOf("ATM_SHELF_ACTIVE") >= 0) { hot = true; bits.push("ATM shelf" + (row.atm_shelf_date ? " " + row.atm_shelf_date : "")); }
+    if (fr.m_flag || fr.beneish_flag) { hot = true; bits.push("Beneish flag"); }
+    if (!hot) { n.style.display = "none"; n.textContent = ""; return; }
+    n.style.display = "block";
+    n.textContent = "\u26a0 " + sym + " \u2014 " + bits.join(" \u00b7 ");
+  }
+  Promise.all([
+    fetch("/data/share-flows.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    fetch("/data/forensic-screen.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (a) {
+    sf = (a[0] && (a[0].tickers || a[0].by_ticker)) || {};
+    var raw = a[1]; fo = {};
+    if (raw && raw.tickers) fo = raw.tickers;
+    else if (raw && raw.rows) raw.rows.forEach(function (row) { if (row && row.symbol) fo[row.symbol] = row; });
+    setInterval(function () { paint(currentSym()); }, 800);
+  });
+})();
