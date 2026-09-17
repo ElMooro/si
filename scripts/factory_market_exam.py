@@ -34,7 +34,7 @@ sys.path.insert(0, str(ROOT / "aws" / "shared"))
 from factory_core import DIRECTIONS, REGIMES, score_prediction  # noqa: E402
 
 PRIVATE = os.environ.get("AI_PRIVATE_BUCKET", "justhodl-ai-857687956942")
-DRILL_PREFIX = "factory/holdout/drills/"
+DRILL_PREFIX = "factory/curriculum/charts/"      # where scripts/factory_holdout.py writes them: <prefix><split>/<id>.json
 SEASON_KEYS = ("factory/control/season.json", "factory/salon/season.json")   # private authority, public mirror (factory_official_prints.load_season)
 CONTROL_KEY = "factory/control/inference.json"
 OUT_PREFIX = "factory/exams/market/"
@@ -239,7 +239,7 @@ def main(argv=None) -> int:
             drills.append((k.rsplit("/", 1)[-1][:-5], d))
     print(json.dumps({"split": args.split, "drills": len(drills), "endpoint": control.get("endpoint_name")}))
     if not drills:
-        print(json.dumps({"ok": False, "error": "no drills under %s%s/ -- run scripts/factory_holdout.py freeze first" % (DRILL_PREFIX, args.split)}))
+        print(json.dumps({"ok": False, "error": "no drills under %s%s/ -- run scripts/factory_holdout.py --market-only first" % (DRILL_PREFIX, args.split)}))
         return 2
     if args.dry_run:
         print(drill_prompt(drills[0][1])[:600])

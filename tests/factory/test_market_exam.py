@@ -49,6 +49,10 @@ class FakeEndpoint:
 
 
 class MarketExamTests(unittest.TestCase):
+    def test_drill_prefix_matches_the_freezer(self):
+        H = runpy.run_path(str(ROOT / 'scripts/factory_holdout.py'))
+        self.assertEqual(M["DRILL_PREFIX"], H["DRILL_PREFIX"])          # the exam lists where the freezer writes (2026-09-17: they differed)
+
     def test_prompt_is_anonymous_and_carries_the_thresholds(self):
         p = M["drill_prompt"](drill())
         self.assertIn("bar,open,high,low,close,vol_rel", p); self.assertIn("Flat threshold: 0.003", p); self.assertIn("Crisis drawdown threshold: 0.05", p)
