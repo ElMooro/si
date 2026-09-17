@@ -1,0 +1,28 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35269932719",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35269932719",
+ "base_sha": "af25d773672a6881f377efd8546faa450ccc7064",
+ "result_sha": "4f9637425e2b0fff1e70ab3201a2a533448c83d9",
+ "patchers": [
+  "ed5632_attach_fails.py",
+  "rr5632_attach_fails.py"
+ ],
+ "targets": [
+  "justhodl-eurodollar-plumbing",
+  "justhodl-risk-regime"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "skipped",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": "35269963625",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T20:18:06Z"
+}
