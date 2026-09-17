@@ -1,0 +1,32 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35270088080",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35270088080",
+ "base_sha": "6ae4bcbcff389759e264dba13ea8524c2e60c2cf",
+ "result_sha": "a44a8dcedd97e9f2a580c24411acf3a927c5b0c0",
+ "patchers": [
+  "pages5633_fails_strip.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "defcon.html",
+  "eurodollar.html",
+  "fails.html",
+  "liquidity.html",
+  "macro-data.html",
+  "macro-rooms.html",
+  "risk-regime.html"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T20:19:46Z"
+}
