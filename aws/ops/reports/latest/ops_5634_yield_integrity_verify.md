@@ -1,10 +1,14 @@
-executing-against: 7e03a3fa5b9a9a9676ce2dc5dd3a2cb7ab3f4fc4
 
-→ Report written to aws/ops/reports/latest/ops_5634_yield_integrity_verify.md
+**Status:** failure  
+**Duration:** 0.2s  
+**Finished:** 2026-09-17T18:49:53+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5634_yield_integrity_verify.py", line 57, in <module>
-    if __name__=='__main__':sys.exit(main())
-                                     ^^^^^^
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_5634_yield_integrity_verify.py", line 24, in main
     receipt=read(f'data/ops/releases/{fn}.json')
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -20,4 +24,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_5634_yield_integrity_verify.py
+
+```
+
+## Log
+
