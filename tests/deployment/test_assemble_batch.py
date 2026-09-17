@@ -184,7 +184,7 @@ def test_rejected_batch_is_repaired_in_place_under_the_same_id():
         assert r["status"] == "assembled", r
         assert (root / FN / "source/lambda_function.py").read_text() == ENGINE
         rec = json.loads((root / "aws/ops/patchers/batch/_receipts" / f"{f.name}.json").read_text())
-        assert rec["status"] == "assembled" and rec["apply_run_id"] is None and "NOT proof of a deploy" in rec["means"]
+        assert rec["status"] == "assembled" and "apply_run_id" in rec and "NOT proof of a deploy" in rec["means"]   # run id is set on the runner, None locally
         g = batch(root, f.name)                                            # only an ASSEMBLED id is retired
         whole(g, f"{FN}/config.json", CONFIG); manifest(g)
         assert "already used" in result(root, g.name)["reason"]
