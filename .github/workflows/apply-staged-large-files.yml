@@ -75,15 +75,34 @@ jobs:
           else
             patchers=(aws/ops/patchers/*.py aws/ops/staged/grok_*.py)
           fi
-          applied=""
+          # 2026-09-17: one lane's broken patcher must not block every other lane's uploads/batches.
+          # A failing patcher is quarantined to aws/ops/patchers/failed/ with its error beside it, its
+          # partial edits are reverted, the rest of the run proceeds, and the run goes red at the end.
+          applied=""; failed=""
           for f in "${patchers[@]}"; do
             echo "── $f"
-            python3 "$f"
-            applied="$applied $(basename "$f")"
-            git mv -f "$f" "aws/ops/patchers/applied/$(basename "$f")"
+            before=$(git status --porcelain | awk '{print $2}' | sort)
+            if python3 "$f" 2>&1 | tee "$RUNNER_TEMP/patcher.log"; then
+              applied="$applied $(basename "$f")"
+              git mv -f "$f" "aws/ops/patchers/applied/$(basename "$f")"
+            else
+              after=$(git status --porcelain | awk '{print $2}' | sort)
+              for path in $(comm -13 <(echo "$before") <(echo "$after")); do
+                case "$path" in aws/ops/patchers/*) continue;; esac
+                if git ls-files --error-unmatch "$path" >/dev/null 2>&1; then git checkout -q -- "$path"; else rm -rf "$path"; fi
+                echo "   reverted partial edit: $path"
+              done
+              mkdir -p aws/ops/patchers/failed
+              name=$(basename "$f" .py)
+              { echo "# patcher failed: $(basename "$f")"; echo; echo "Quarantined by apply-lane run ${{ github.run_id }} at $(date -u +%Y-%m-%dT%H:%M:%SZ). Push a corrected patcher under a NEW name; this one will not run again."; echo; echo '```'; tail -40 "$RUNNER_TEMP/patcher.log"; echo '```'; } > "aws/ops/patchers/failed/$name.md"
+              git mv -f "$f" "aws/ops/patchers/failed/$(basename "$f")"
+              failed="$failed $(basename "$f")"
+              echo "::warning::patcher $(basename "$f") failed -- quarantined to aws/ops/patchers/failed/ (see $name.md)"
+            fi
           done
-          [ -n "$applied" ] && echo "applied:$applied" || echo "no patchers (uploads only)"
+          [ -n "$applied" ] && echo "applied:$applied" || echo "no patchers applied (uploads/batches only)"
           echo "APPLIED=$applied" >> "$GITHUB_ENV"
+          echo "PATCHERS_FAILED=$failed" >> "$GITHUB_ENV"
 
       - name: Compile changed sources
         run: |
@@ -236,11 +255,13 @@ jobs:
             echo "- deploy targets: \`${{ steps.targets.outputs.targets }}\`"
             echo "- rejected uploads/batches: \`${PARTS_REJECTED:-none}\` (reasons in <upload or batch folder>/STATUS.json and the _receipts/ folders)"
             echo "- batch ops scripts dispatched: \`${BATCH_OPS:-none}\`"
+            echo "- failed patchers (quarantined): \`${PATCHERS_FAILED:-none}\`"
             echo "- verify: \`python3 scripts/verify_release.py <function> --commit ${{ steps.push.outputs.sha }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail the run if an upload was rejected (after its STATUS was pushed)
-        if: always() && env.PARTS_REJECTED != ''
+      - name: Fail the run if an upload was rejected or a patcher failed (after their STATUS was pushed)
+        if: always() && (env.PARTS_REJECTED != '' || env.PATCHERS_FAILED != '')
         run: |
-          echo "::error::upload(s)/batch(es) rejected: $PARTS_REJECTED -- read aws/ops/patchers/{parts,batch}/<id>/STATUS.json on main, fix what it names, push again"
+          [ -z "${PARTS_REJECTED:-}" ] || echo "::error::upload(s)/batch(es) rejected: $PARTS_REJECTED -- read aws/ops/patchers/{parts,batch}/<id>/STATUS.json on main, fix what it names, push again"
+          [ -z "${PATCHERS_FAILED:-}" ] || echo "::error::patcher(s) failed: $PATCHERS_FAILED -- quarantined under aws/ops/patchers/failed/ with the error beside each; push a corrected patcher under a new name"
           exit 1

@@ -24,11 +24,14 @@ def main() -> None:
         t = t.replace(needle, insert + needle, 1)
 
     # Wrap handler failures: if the function already has a top-level except, skip.
-    marker = "def lambda_handler(event, context):"
-    if marker not in t:
+    import re
+    m = re.search(r"^def lambda_handler\((.*)\):$", t, re.M)          # the engine defines lambda_handler(event=None, context=None)
+    if not m:
         raise SystemExit("no lambda_handler")
+    marker = m.group(0)
+    signature = m.group(1)
     if "ops 5614 last-good" not in t:
-        wrap = '''def lambda_handler(event, context):
+        wrap = '''def lambda_handler(event=None, context=None):
     # ops 5614 last-good
     try:
         return _lambda_handler_inner(event, context)
@@ -51,8 +54,8 @@ def main() -> None:
             return {"statusCode": 200, "body": json.dumps({"ok": False, "used_last_good": True})}
         raise
 
-def _lambda_handler_inner(event, context):
-'''
+def _lambda_handler_inner(%s):
+''' % signature
         t = t.replace(marker, wrap, 1)
     compile(t, str(TARGET), "exec")
     TARGET.write_text(t)
