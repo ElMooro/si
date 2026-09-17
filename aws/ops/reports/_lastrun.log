@@ -1,3 +1,12 @@
-executing-against: 6e9fcc851707d3786ee05fb27acbdf90c891dabe
-payload b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"posture\\": \\"EUPHORIA\\", \\"top_risk\\": 70, \\"capitulation\\": 31.4, \\"cycle_position\\": 69, \\"feeds\\": \\"8/8\\"}"}'
-{"generated_at": "2026-09-17T21:12:49.511497+00:00", "quality": {"publication_date": "2026-09-17T21:12:49.511497+00:00", "frequency": "daily", "freshness_basis": "publication", "status": "fresh", "note": "Composite cycle radar. Not Calls-eligible until scored."}, "pd": {"as_of": "2026-09-02", "ftd_bn": 92.61, "ftr_bn": 97.63, "combined_bn": 190.24, "unit": "usd_bn", "source": "data/settlement-fails.json"}, "posture": "EUPHORIA"}
+executing-against: 4edb45e5db75054879c9a2ab9a1d95314c5326c5
+Calls integrity release verification
+[21:26:11] ✅ justhodl-ai-brief: exact receipt, source bytes, AWS code hash and bundled helper verified
+[21:26:11] ✅ justhodl-calls-backtest: exact receipt, source bytes, AWS code hash and bundled helper verified
+[21:26:11] ✅ justhodl-position-sizer-v2: exact receipt, source bytes, AWS code hash and bundled helper verified
+[21:26:12] ✅ Enabled four-hour brief schedule verified at minute 05 UTC
+[21:26:15] ✅ Fresh immutable public event and ledger agree; notification suppression requested
+[21:26:16] ✅ Replay excludes unqualified history and publishes null performance at both keys
+[21:26:17] ✅ Sizer abstains without buy/sell recommendations; independent constraints remain separate
+[21:26:17] ✅ Public verification status published without account or portfolio details
+
+→ Report written to aws/ops/reports/latest/ops_5697_calls_integrity_verify.md
