@@ -11,14 +11,16 @@ Pulls full nominal + real Treasury curve from FRED, computes:
   - 1d / 5d / 20d / 60d level + slope changes
 
 Curve regime taxonomy (Bull/Bear x Steepener/Flattener):
-  - BULL_STEEPENER   : long rates falling faster than short  → recession risk / Fed cuts incoming
+  - BULL_STEEPENER   : short rates falling faster than long → slope increases
   - BEAR_STEEPENER   : long rates rising faster than short  → growth surprise / inflation
-  - BULL_FLATTENER   : short rates falling faster than long → recovery / risk-on
+  - BULL_FLATTENER   : long rates falling faster than short → slope decreases
   - BEAR_FLATTENER   : short rates rising faster than long → Fed hiking
-  - INVERTED         : 2s10s < 0 → recession warning
+  - INVERTED         : 2s10s < 0 → curve inversion; not a timed recession forecast
 
 Output: data/yield-curve.json
 """
+import math
+from donor_contract import inspect_donor, numeric
 import json
 import os
 import time
@@ -73,7 +75,7 @@ BREAKEVENS = [
 
 # Other context series
 EXTRAS = [
-    ("FEDFUNDS", "FED_FUNDS_RATE_EFFECTIVE"),
+    ("DFF", "FED_FUNDS_RATE_EFFECTIVE"),
     ("DFEDTARU", "FED_TARGET_UPPER"),
     ("DFEDTARL", "FED_TARGET_LOWER"),
     ("SOFR30DAYAVG", "SOFR_30D_AVG"),
@@ -102,19 +104,22 @@ def fred_obs(series_id, n=80):
             if v == "." or v == "":
                 continue
             try:
-                out.append({"date": o["date"], "value": float(v)})
+                value=float(v)
+                if math.isfinite(value):
+                    out.append({"date": o["date"], "value": value})
             except ValueError:
                 continue
         # FRED returned desc, so reverse to ascending chronological
         out.reverse()
         return out
     except Exception as e:
-        print(f"[fred_obs] {series_id} failed: {e}")
+        print(f"[fred_obs] {series_id} failed: {type(e).__name__}")
         return []
 
 
 def latest_and_changes(obs):
     """Given ascending-time observations, return latest + 1d/5d/20d/60d changes (bps)."""
+    obs=sorted({o['date']:o for o in obs if numeric(o.get('value')) is not None}.values(),key=lambda o:o['date'])
     if not obs:
         return None
     latest = obs[-1]
@@ -125,6 +130,8 @@ def latest_and_changes(obs):
         "chg_5d_bps": None,
         "chg_20d_bps": None,
         "chg_60d_bps": None,
+        "change_basis": "valid daily observations; endpoints disclosed",
+        "change_dates": {str(n):obs[-n-1]["date"] if len(obs)>n else None for n in (1,5,20,60)},
     }
     n = len(obs)
     if n >= 2:
@@ -140,11 +147,15 @@ def latest_and_changes(obs):
 
 def classify_curve_regime(short_chg_5d, long_chg_5d, twos_tens_now):
     """Classify into bull/bear x steepener/flattener using 5d changes."""
+    if short_chg_5d == 0 and long_chg_5d == 0:
+        return ('INVERTED_UNCHANGED' if twos_tens_now is not None and twos_tens_now < 0 else 'UNCHANGED', 'No change at the 2Y and 10Y endpoints')
+    if short_chg_5d is not None and long_chg_5d is not None and short_chg_5d == long_chg_5d:
+        return ('PARALLEL_BEAR' if short_chg_5d > 0 else 'PARALLEL_BULL', 'Equal endpoint changes; slope unchanged')
     if twos_tens_now is not None and twos_tens_now < 0:
         # Inverted curve overrides regime
         # But still classify whether moving toward/away from inversion
         if short_chg_5d is None or long_chg_5d is None:
-            return ("INVERTED", "2s10s inverted — recession warning")
+            return ("INVERTED", "2s10s inverted — curve inversion; not a timed recession forecast")
         steepening = (long_chg_5d - short_chg_5d) > 0
         bull = (short_chg_5d + long_chg_5d) / 2 < 0  # avg falling
         if steepening and bull:
@@ -163,12 +174,12 @@ def classify_curve_regime(short_chg_5d, long_chg_5d, twos_tens_now):
 
     # Regime: 4-quadrant
     if spread_chg > 0 and avg_chg > 0:
-        return ("BEAR_STEEPENER", "long rates rising faster than short — growth/inflation surprise")
+        return ("BEAR_STEEPENER", "long rates rising faster than short — slope increases")
     if spread_chg > 0 and avg_chg <= 0:
-        return ("BULL_STEEPENER", "long rates falling slower than short — Fed cuts incoming / recession risk")
+        return ("BULL_STEEPENER", "short rates falling faster than long — slope increases")
     if spread_chg <= 0 and avg_chg > 0:
-        return ("BEAR_FLATTENER", "short rates rising faster than long — Fed hiking")
-    return ("BULL_FLATTENER", "short rates falling faster than long — recovery / risk-on")
+        return ("BEAR_FLATTENER", "short rates rising faster than long — slope decreases")
+    return ("BULL_FLATTENER", "long rates falling faster than short — slope decreases")
 
 
 def lambda_handler(event=None, context=None):
@@ -176,6 +187,8 @@ def lambda_handler(event=None, context=None):
     print(f"[yield-curve] start")
 
     # Fetch all series in parallel
+    observations = {}
+    series_quality = {}
     nominal = {}
     real = {}
     breakevens = {}
@@ -210,6 +223,7 @@ def lambda_handler(event=None, context=None):
 
         for fut in as_completed(tasks):
             kind, sid, label, years, obs = fut.result()
+            observations[(kind,sid,label,years)] = obs
             point = latest_and_changes(obs)
             if point is None:
                 continue
@@ -228,6 +242,34 @@ def lambda_handler(event=None, context=None):
 
     print(f"[yield-curve] fetched: nominal={len(nominal)} real={len(real)} be={len(breakevens)} extras={len(extras)}")
 
+    # Align observations to one nominal-curve date. Missing members remain
+    # missing; never average a changing set of tenors as the full curve level.
+    nominal_hist=[{o['date'] for o in rows if numeric(o.get('value')) is not None}
+                  for (kind,*_),rows in observations.items() if kind=='nominal' and rows]
+    common=set.intersection(*nominal_hist) if nominal_hist else set()
+    curve_date=max(common) if common else None
+    nominal,real,breakevens,extras={},{},{},{}
+    today=datetime.now(timezone.utc).date()
+    for (kind,sid,label,years),rows in observations.items():
+        latest=latest_and_changes(rows)
+        point=latest_and_changes([o for o in rows if curve_date and o['date']<=curve_date])
+        try:age=(today-datetime.strptime(latest['date'],'%Y-%m-%d').date()).days
+        except (TypeError,ValueError):age=None
+        aligned=bool(point and point['date']==curve_date and latest and latest['date']>=curve_date)
+        point_age=(today-datetime.strptime(point['date'],'%Y-%m-%d').date()).days if point else None
+        if point_age is not None and point_age>7:
+            age=point_age
+        status='missing' if age is None else 'invalid' if age<0 else 'stale' if age>7 else 'fresh' if aligned else 'unaligned'
+        series_quality[label]={'status':status,'latest_source_date':latest['date'] if latest else None,
+                               'observation_date':point['date'] if point else None,'max_age_days':7}
+        if status!='fresh':continue
+        point.update(series_id=sid,label=label,quality=series_quality[label])
+        if years is not None:point['years_to_maturity']=years
+        {'nominal':nominal,'real':real,'breakeven':breakevens,'extra':extras}[kind][label]=point
+    missing_nominal=[label for _,label,_ in NOMINAL_TENORS if label not in nominal]
+    quality={'status':'fresh' if not missing_nominal else 'incomplete','missing':missing_nominal,
+             'observation_date':curve_date,'max_age_days':7,'frequency':'daily'}
+
     # Build curve points (ascending maturity)
     curve_points = []
     for sid, label, years in NOMINAL_TENORS:
@@ -236,6 +278,7 @@ def lambda_handler(event=None, context=None):
                 "tenor": label,
                 "years": years,
                 "yield_pct": nominal[label]["value"],
+                "date": nominal[label]["date"],
                 "chg_1d_bps": nominal[label]["chg_1d_bps"],
                 "chg_5d_bps": nominal[label]["chg_5d_bps"],
                 "chg_20d_bps": nominal[label]["chg_20d_bps"],
@@ -269,27 +312,27 @@ def lambda_handler(event=None, context=None):
     # Curve regime
     short_chg_5d = nominal.get("2Y", {}).get("chg_5d_bps")
     long_chg_5d = nominal.get("10Y", {}).get("chg_5d_bps")
-    regime, regime_desc = classify_curve_regime(short_chg_5d, long_chg_5d, spreads.get("2s10s"))
+    endpoint_match=(nominal.get('2Y',{}).get('change_dates',{}).get('5') is not None and
+                    nominal.get('2Y',{}).get('change_dates',{}).get('5')==nominal.get('10Y',{}).get('change_dates',{}).get('5'))
+    regime, regime_desc = classify_curve_regime(short_chg_5d if endpoint_match else None, long_chg_5d if endpoint_match else None, spreads.get("2s10s"))
+    if quality['status']!='fresh':
+        regime,regime_desc='UNKNOWN','Complete current nominal curve unavailable.' 
 
-    # Inversion flags
-    inversion_flags = {
-        "2s10s_inverted": spreads.get("2s10s") is not None and spreads["2s10s"] < 0,
-        "3M10Y_inverted": spreads.get("3M10Y") is not None and spreads["3M10Y"] < 0,
-        "any_inversion": False,
-    }
-    inversion_flags["any_inversion"] = (
-        inversion_flags["2s10s_inverted"] or inversion_flags["3M10Y_inverted"]
-    )
+    inversion_flags={
+        '2s10s_inverted':spreads['2s10s']<0 if spreads['2s10s'] is not None else None,
+        '3M10Y_inverted':spreads['3M10Y']<0 if spreads['3M10Y'] is not None else None}
+    flags=list(inversion_flags.values())
+    inversion_flags['any_inversion']=True if True in flags else False if all(v is False for v in flags) else None
 
     # Real yields snapshot
     real_yields = {
-        label: {"value_pct": real[label]["value"], "chg_5d_bps": real[label].get("chg_5d_bps")}
+        label: {"date": real[label]["date"], "value_pct": real[label]["value"], "chg_5d_bps": real[label].get("chg_5d_bps")}
         for label in real
     }
 
     # Inflation expectations
     inflation_expectations = {
-        label: {"value_pct": breakevens[label]["value"], "chg_5d_bps": breakevens[label].get("chg_5d_bps")}
+        label: {"date": breakevens[label]["date"], "value_pct": breakevens[label]["value"], "chg_5d_bps": breakevens[label].get("chg_5d_bps")}
         for label in breakevens
     }
 
@@ -307,7 +350,7 @@ def lambda_handler(event=None, context=None):
     # Curvature = 2 * 5Y - 2Y - 10Y
     level = slope = curvature = None
     yields_for_decomp = [(p["years"], p["yield_pct"]) for p in curve_points if p["years"] is not None]
-    if yields_for_decomp:
+    if yields_for_decomp and not missing_nominal:
         level = round(mean([y for _, y in yields_for_decomp]), 4)
     if all(k in nominal for k in ("2Y", "10Y")):
         slope = round((nominal["10Y"]["value"] - nominal["2Y"]["value"]) * 100, 1)
@@ -322,7 +365,7 @@ def lambda_handler(event=None, context=None):
         signals.append({
             "name": "2s10s_inverted",
             "severity": "HIGH",
-            "message": f"2s10s = {spreads['2s10s']:+.0f}bps — recession warning"
+            "message": f"2s10s = {spreads['2s10s']:+.0f}bps — curve inversion; not a timed recession forecast"
         })
     if inversion_flags["3M10Y_inverted"]:
         signals.append({
@@ -334,19 +377,19 @@ def lambda_handler(event=None, context=None):
         signals.append({
             "name": "bull_steepener",
             "severity": "MEDIUM",
-            "message": "Bull steepener — markets pricing Fed cuts / recession concerns"
+            "message": "Bull steepener: lower average endpoint yields and a wider 2s10s spread"
         })
     if regime == "BEAR_STEEPENER":
         signals.append({
             "name": "bear_steepener",
             "severity": "MEDIUM",
-            "message": "Bear steepener — long-end selling on growth/inflation surprise"
+            "message": "Bear steepener: higher average endpoint yields and a wider 2s10s spread"
         })
     if butterfly is not None and butterfly < -30:
         signals.append({
             "name": "butterfly_negative",
             "severity": "MEDIUM",
-            "message": f"5Y rich vs 2Y+10Y barbell ({butterfly:+.0f}bps) — pricing risk-off"
+            "message": f"5Y rich vs 2Y+10Y barbell ({butterfly:+.0f}bps) — curve curvature observation"
         })
     if "10Y_BREAKEVEN" in breakevens:
         be_5d = breakevens["10Y_BREAKEVEN"].get("chg_5d_bps")
@@ -362,19 +405,19 @@ def lambda_handler(event=None, context=None):
                 "severity": "MEDIUM",
                 "message": f"10Y breakeven down {be_5d:+.0f}bps in 5d — inflation expectations falling"
             })
-    if term_premium_proxy is not None and abs(term_premium_proxy) > 20:
+    if False:  # residual is not term premium and cannot generate that alert
         signals.append({
             "name": "term_premium_anomaly",
             "severity": "LOW",
             "message": f"Term premium proxy = {term_premium_proxy:+.0f}bps — TIPS/nominal/breakeven dislocation"
         })
 
-    _tp_bps, _tp_src, _tp_acm = term_premium_proxy, "proxy", None
+    _tp_bps, _tp_src, _tp_acm = None, "unavailable", None
     try:
         _aj = json.loads(S3.get_object(Bucket=BUCKET, Key="data/term-premium.json")["Body"].read())
         _al = _aj.get("latest") or {}
-        _fresh = (datetime.now(timezone.utc).date() - datetime.strptime(_al.get("date", "1970-01-01"), "%Y-%m-%d").date()).days <= 10
-        if _fresh and isinstance(_al.get("tp10"), (int, float)):
+        _contract=inspect_donor(_aj,'data/term-premium.json',72,observed_paths=('latest.date',),required_paths=('latest.tp10',),max_observation_age_hours=10*24)
+        if _contract['usable'] and numeric(_al.get('tp10')) is not None:
             _tp_bps = round(_al["tp10"] * 100, 1)
             _tp_src = "ACM"
             _tp_acm = {"date": _al["date"], "tp10_pct": _al["tp10"], "tp5_pct": _al.get("tp5"),
@@ -385,7 +428,11 @@ def lambda_handler(event=None, context=None):
     except Exception as _e:
         print(f"[yc] acm read: {str(_e)[:60]}")
     out = {
-        "version": "1.0",
+        "version": "1.1",
+        "methodology_version": "dated-curve.v2", "quality": quality, "series_quality": series_quality,
+        "execution_eligible": False, "call": None,
+        "nominal_real_breakeven_residual_bps": term_premium_proxy,
+        "residual_definition": "Matched-date nominal minus real minus breakeven consistency residual; not term premium.",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "as_of_date": nominal.get("10Y", {}).get("date"),
@@ -414,15 +461,17 @@ def lambda_handler(event=None, context=None):
         "n_signals": len(signals),
         "data_sources": {"all": "FRED API (free)"},
         "regime_definitions": {
-            "BULL_STEEPENER": "Long rates falling slower than short — Fed cuts incoming / recession",
-            "BEAR_STEEPENER": "Long rates rising faster than short — growth/inflation surprise",
-            "BULL_FLATTENER": "Short rates falling faster than long — recovery / risk-on",
-            "BEAR_FLATTENER": "Short rates rising faster than long — Fed hiking",
-            "INVERTED": "2s10s < 0 — recession warning",
+            "BULL_STEEPENER": "Short rates falling faster than long — slope increases",
+            "BEAR_STEEPENER": "Long rates rising faster than short — slope increases",
+            "BULL_FLATTENER": "Long rates falling faster than short — slope decreases",
+            "BEAR_FLATTENER": "Short rates rising faster than long — slope decreases",
+            "INVERTED": "2s10s < 0 — curve inversion; not a timed recession forecast",
         },
     }
 
-    body = json.dumps(out, default=str).encode("utf-8")
+    if quality['status']!='fresh':
+        out['signals']=[];out['n_signals']=0
+    body = json.dumps(out, allow_nan=False, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=KEY, Body=body,
         ContentType="application/json", CacheControl="public, max-age=3600",

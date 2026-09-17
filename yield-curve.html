@@ -154,7 +154,7 @@ function dirStyle(d){
 
 function interpret(d,ref){
   const regime=(d.regime||"").toUpperCase();
-  const inv=d.any_inversion||(d.inversion_flags&&Object.values(d.inversion_flags).some(Boolean));
+  const inv=d.inversion_flags?.any_inversion??null;
   const slope=(d.decomposition&&d.decomposition.slope_2s10s_bps!=null)?d.decomposition.slope_2s10s_bps:(d.spreads_bps&&d.spreads_bps["2s10s"]);
   const M={
     BULL_STEEPENER:{lead:"Front-end yields falling faster than the long end — the market is pricing Fed cuts, usually because growth is slowing. Late-cycle / early-easing.",
@@ -372,8 +372,9 @@ function synthesize(d,ref){
 
 (async()=>{
   let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
-  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;["chart","metrics","impact","signals"].forEach(i=>document.getElementById(i).innerHTML="");return;}
-  const inv=d.any_inversion||(d.inversion_flags&&Object.values(d.inversion_flags).some(Boolean));
+  const age=d?Date.now()-Date.parse(d.generated_at):NaN, obsAge=d?Date.now()-Date.parse(d.as_of_date):NaN;
+  if(!d||d.methodology_version!=="dated-curve.v2"||d.quality?.status!=="fresh"||!Number.isFinite(age)||age<0||age>48*36e5||!Number.isFinite(obsAge)||obsAge<0||obsAge>8*864e5){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;["chart","metrics","impact","signals"].forEach(i=>document.getElementById(i).innerHTML="");return;}
+  const inv=d.inversion_flags?.any_inversion??null;
   document.getElementById("hero").innerHTML=`
     <div class="hero" style="border-left-color:${inv?'var(--red)':'var(--cyan)'}">
       <div class="lab">Curve Regime</div>
@@ -393,15 +394,16 @@ function synthesize(d,ref){
   let ref=null;
   try{const er=await fetch(EP_URL+"?t="+Date.now());if(er.ok){ref=await er.json();renderHistCtx(ref,["T10Y2Y","T10Y3M","DGS10","DFII10","T10YIE"]);}else{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}}catch{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}
   // data-driven market & risk-asset matrix (now consistent with cross-checks)
-  document.getElementById("impact").innerHTML=interpret(d,ref);
+  document.getElementById("impact").innerHTML=`<div class="loading">The curve describes yield levels and changes. A validated mapping from this regime to equity, credit or crypto returns is not available; no asset allocation call is generated.</div>`;
   // bottom line synthesis (needs both curve regime + historical ref)
-  const bl=synthesize(d,ref);
+  const bl="";
   if(bl)document.getElementById("bottomline").innerHTML=`<div class="bottomline"><div class="bl-lab">⚡ Bottom Line</div><div class="bl-txt">${bl}</div></div>`;
   const sigs=d.signals||[];
   document.getElementById("signals").innerHTML=sigs.length
     ? sigs.map(s=>`<div class="sig">${esc(typeof s==="object"?(s.text||s.message||s.signal||JSON.stringify(s)):s)}</div>`).join("")
     : `<div class="loading">no active signals</div>`;
-  document.getElementById("eduNote").innerHTML=`<b>How to read this:</b> The yield curve plots Treasury yields from 1-month to 30-year. Its <b>shape</b> encodes the market's collective bet on growth, inflation and Fed policy. A normal upward slope = healthy expansion. <b>Inversion</b> (short rates above long) has preceded every US recession since 1955, typically by 12–18 months. The four regimes (bull/bear × steepener/flattener) tell you not just <i>where</i> rates are but <i>why</i> they're moving — which is what determines the read for equities, credit, crypto, gold and the dollar above. <b>Source:</b> FRED (US Treasury constant-maturity + TIPS). Not investment advice.`;
+  document.getElementById("eduNote").innerHTML=`<b>How to read this:</b> Treasury constant-maturity yields share one observation date. Bull/bear describes falling/rising average endpoint yields; steepening/flattening describes a wider/narrower 2s10s spread. These shapes do not establish why yields changed or predict a trade. ACM term premium is a separately dated model estimate; nominal minus real minus breakeven is only a consistency residual. Sources: FRED and the NY Fed ACM model.`;
+
   document.getElementById("ts").textContent="engine: justhodl-yield-curve · generated "+(d.generated_at||"?");
 })();
 </script>
