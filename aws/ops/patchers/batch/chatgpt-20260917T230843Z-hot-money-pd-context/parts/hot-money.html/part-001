@@ -1,0 +1,119 @@
+@@PART 1/1@@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Hot Money · daily foreign flows · JustHodl AI</title>
+<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
+.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
+.chip b{font-size:12px;font-family:var(--mono)}
+.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
+</style></head><body>
+<div class="header"><div class="brand"><div class="brand-dot"></div>JustHodl<span style="color:var(--cyan)">.AI</span></div>
+<div class="nav"><a href="/capital-flow.html">capital-flow</a><a href="/foreign-flows.html">us tic/cslt</a><a href="/global-flows.html">world macro</a><a href="/hot-money.html" class="active">hot money</a></div></div>
+<div class="wrap">
+
+<div class="hero"><h1>⚡ Hot Money <span class="grad">daily foreign net</span></h1>
+<p>The fast layer: exchange-reported foreign buy/sell, daily. Kept in its own engine, apart from <a href="/global-flows.html">macro capital flows</a> — a hedge fund buying bonds and FDI into a copper mine are different animals. Engine: justhodl-hot-money.</p></div>
+<div id="countries"></div>
+<div class="sec"><h2>Coming online</h2><div class="cards" id="def" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"></div></div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
+async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
+const fD=k=>k.slice(0,4)+"-"+k.slice(4,6)+"-"+k.slice(6);
+function comboChart(rows,title){
+  const days=Object.keys(rows).sort().slice(-60);
+  if(days.length<2)return '<div class="note">'+title+' \u2014 ledger accruing ('+days.length+' session'+(days.length===1?'':'s')+')</div>';
+  const v=days.map(k=>rows[k]/1e9);
+  const cum=[];let s=0;for(const x of v){s+=x;cum.push(s);}
+  const W=720,H=170,PB=118;
+  const mB=Math.max(...v.map(Math.abs))||1;
+  const cmin=Math.min(0,...cum),cmax=Math.max(0,...cum),cr=(cmax-cmin)||1;
+  const bw=W/days.length;
+  let sv='<svg width="100%" viewBox="0 0 '+W+' '+H+'"><line x1="0" y1="'+(PB/2)+'" x2="'+W+'" y2="'+(PB/2)+'" stroke="#1c2433"/>';
+  v.forEach((x,i)=>{const bh=Math.abs(x)/mB*(PB/2-4);const y=x>=0?PB/2-bh:PB/2;
+    sv+='<rect x="'+(i*bw).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+Math.max(1,bw-1.1).toFixed(1)+'" height="'+Math.max(0.8,bh).toFixed(1)+'" fill="'+(x>=0?"#26ffaf":"#ff5577")+'" opacity="0.85"/>';});
+  const cy=c=>H-6-((c-cmin)/cr)*(H-PB-14);
+  sv+='<polyline fill="none" stroke="#c9a94a" stroke-width="1.8" points="'+cum.map((c,i)=>((i+0.5)*bw).toFixed(1)+','+cy(c).toFixed(1)).join(' ')+'"/>';
+  sv+='<line x1="0" y1="'+cy(0).toFixed(1)+'" x2="'+W+'" y2="'+cy(0).toFixed(1)+'" stroke="#c9a94a" stroke-dasharray="3,4" opacity="0.4"/></svg>';
+  let bi=0,wi=0;v.forEach((x,i)=>{if(x>v[bi])bi=i;if(x<v[wi])wi=i;});
+  const pos20=v.slice(-20).filter(x=>x>0).length;
+  const chips='<div class="s" style="margin-top:4px">best '+fD(days[bi])+' <b class="pos">'+fN(v[bi],2)+'</b> \u00b7 worst '+fD(days[wi])+' <b class="neg">'+fN(v[wi],2)+'</b> \u00b7 positive days 20d: '+pos20+'/'+Math.min(20,v.length)+' \u00b7 cumulative '+fN(cum[cum.length-1],1)+' <span style="color:#c9a94a">(gold line)</span></div>';
+  return '<div class="card" style="padding:12px"><div class="k">'+title+' \u00b7 '+fD(days[0])+' \u2192 '+fD(days[days.length-1])+' \u00b7 NT$bn</div>'+sv+chips+'</div>';}
+const freshDate=(d,days)=>{const age=Date.now()-Date.parse(d);return Number.isFinite(age)&&age>=0&&age<=(days+1)*864e5;};
+(async function(){
+  const d=await jget("/data/hot-money.json");
+  if(!d||d.methodology_version!=="exchange-observations.v2"||!freshDate(d.generated_at,4)){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable");return;}
+  S_("sub",()=>{document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 daily 09:50 UTC \u00b7 own engine, own ledgers \u2014 reported-observation windows; exchange-calendar completeness is unverified.";});
+  S_("countries",()=>{
+    let h="";
+    for(const[cn,c]of Object.entries(d.countries||{})){
+      if(c.status!=="LIVE"||!freshDate(c.quality?.observation_date,5)){h+='<div class="card"><div class="k">'+cn+'</div><div class="s">'+(c.why||c.status)+'</div></div>';continue;}
+      h+='<div class="sec"><h2>\ud83c\uddf9\ud83c\uddfc '+cn.charAt(0).toUpperCase()+cn.slice(1)+'<span style="font-size:11px;color:var(--fg-2);margin-left:8px">'+(c.specialty||"")+' \u00b7 '+(c.unit||"")+' \u00b7 ledger '+(c.ledger_days||0)+' days</span></h2><div class="cards">';
+      h+='<div class="card"><div class="k">Latest \u00b7 '+(c.latest_day||"")+'</div><div class="v'+cls(c.latest_bn)+'">'+fN(c.latest_bn,2)+'</div><div class="s">daily foreign net · exchange trades</div></div>';
+      for(const w of[5,20,60]){const v=c["sum_"+w+"obs_bn"];
+        h+='<div class="card"><div class="k">'+w+' observations</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(w===60?("z "+(c.z_60_observations==null?"\u2013":(c.z_60_observations>0?"+":"")+c.z_60_observations)):"cumulative")+'</div></div>';}
+      const o=c.otc||{};
+      if(o.status==="LIVE"&&freshDate(o.quality?.observation_date,5)){
+        h+='</div><div class="note" style="margin:10px 0 6px">OTC board (TPEx) \u00b7 ledger '+(o.ledger_days||0)+' days'+(o.why_partial?' \u00b7 '+o.why_partial:'')+'</div><div class="cards">';
+        h+='<div class="card"><div class="k">OTC latest \u00b7 '+(o.latest_day||"")+'</div><div class="v'+cls(o.latest_bn)+'">'+fN(o.latest_bn,2)+'</div><div class="s">daily foreign net, OTC</div></div>';
+        for(const w of[5,20,60]){const v=o["sum_"+w+"obs_bn"];
+          h+='<div class="card"><div class="k">OTC '+w+' observations</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?"accruing":(w===60?"z "+((o.z_60_observations==null?"\u2013":(o.z_60_observations>0?"+":"")+o.z_60_observations)):"cumulative"))+'</div></div>';}
+        const cb=c.combined||{};
+        h+='<div class="card"><div class="k">Listed + OTC \u00b7 '+(cb.latest_day||"")+'</div><div class="v'+cls(cb.latest_bn)+'">'+(cb.status==="LIVE"?fN(cb.latest_bn,2):"\u2013")+'</div><div class="s">'+(cb.status==="LIVE"?"same-day identity":(cb.why||cb.status||""))+'</div></div>';}
+      h+='</div><div id="tape-'+cn+'" style="margin-top:12px"></div><div id="tapeotc-'+cn+'" style="margin-top:10px"></div><div id="tbl-'+cn+'" style="margin-top:10px"></div></div>';}
+    document.getElementById("countries").innerHTML=h;});
+  S_("deferred",()=>{
+    let dh="";
+    for(const[n,r]of Object.entries(d.deferred||{}))dh+='<div class="chip"><b>'+n.replace(/_/g," ")+'</b> <span style="color:var(--fg-3);font-size:11px">'+(r.specialty||"")+'</span><div class="w">'+(r.why||"")+'</div></div>';
+    document.getElementById("def").innerHTML=dh;});
+  try{
+    const led=await jget("/data/providers/twse/bfi82u-foreign.json");
+    const led2=await jget("/data/providers/tpex/insti-foreign.json");
+    const el=document.getElementById("tape-taiwan");
+    if(el&&led&&led.rows)el.innerHTML=comboChart(led.rows,"Listed board tape (TWSE)");
+    const eo=document.getElementById("tapeotc-taiwan");
+    if(eo&&led2&&led2.rows)eo.innerHTML=comboChart(led2.rows,"OTC board tape (TPEx)");
+    const et=document.getElementById("tbl-taiwan");
+    if(et&&led&&led.rows){
+      const dl=Object.keys(led.rows).sort();const dl2=(led2&&led2.rows)?led2.rows:{};
+      let tb='<table><tr><th>session</th><th>listed NT$bn</th><th>OTC NT$bn</th><th>combined</th></tr>';
+      for(const k of dl.slice(-15).reverse()){
+        const a=led.rows[k]/1e9;const b=(k in dl2)?dl2[k]/1e9:null;
+        tb+='<tr><td>'+fD(k)+'</td><td class="'+cls(a)+'">'+fN(a,2)+'</td><td class="'+cls(b)+'">'+(b==null?"\u2013":fN(b,2))+'</td><td class="'+cls(b==null?null:a+b)+'">'+(b==null?"\u2013":fN(a+b,2))+'</td></tr>';}
+      et.innerHTML='<div class="note" style="margin-bottom:4px">Last 15 sessions \u00b7 combined only where both boards share the day \u2014 never blended across dates.</div>'+tb+'</table>';}
+  }catch(e){console.warn("sec tapes",e)}
+})();
+</script>
+</div><script src="/freshness.js"></script><script src="/sidebar.js" defer></script>
+<script src="/jh-pd-context.js?v=1" data-packet="/data/hot-money.json" defer></script>
+</body></html>
+@@END 1@@
