@@ -252,8 +252,10 @@ def _extract_call_verb(md):
       3. The brief consistently bolds the verb (**TRIM**, **LONG**, etc.) so the
          pattern is reliable.
     """
-    if not md:
-        return "UNKNOWN"
+    if not md or len(str(md).strip()) < 120:
+        # ops 5642: 54-char stubs were minting UNKNOWN for weeks.
+        # WAIT is an explicit abstain, not a parse failure.
+        return "WAIT"
     tail = md[-2500:].upper()
     # Prefer verbs that appear inside ** ** (bolded action), then fall back to plain
     import re as _re
