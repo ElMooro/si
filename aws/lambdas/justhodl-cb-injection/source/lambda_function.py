@@ -221,6 +221,22 @@ def lambda_handler(event,context):
             except Exception as exc:rows=[];errors.append({'series':name,'error':type(exc).__name__})
             (data if kind=='fred' else ecb)[name]=rows
     out=build_measurements(data,ecb);out.update(errors=errors,elapsed_s=round(time.monotonic()-started,2))
+    # ops 5697 PD settlement fails (add-only; no WALCL/impulse change)
+    try:
+        _sf = read_existing("data/settlement-fails.json") or {}
+        _tr = _sf.get("treasury") or {}
+        _hd = _sf.get("headline") or {}
+        out["pd_settlement_fails"] = {
+            "as_of": _tr.get("as_of") or _hd.get("as_of"),
+            "ftd_bn": _tr.get("ftd_bn") if _tr.get("ftd_bn") is not None else _hd.get("ftd_bn"),
+            "ftr_bn": _tr.get("ftr_bn") if _tr.get("ftr_bn") is not None else _hd.get("ftr_bn"),
+            "combined_bn": _tr.get("gross_bn") if _tr.get("gross_bn") is not None else _hd.get("combined_bn"),
+            "unit": "usd_bn",
+            "source": "data/settlement-fails.json",
+            "note": "FR2004 two-sided gross. Not a CB injection term.",
+        }
+    except Exception:
+        pass
     body=json.dumps(out,allow_nan=False).encode()
     # Preserve the registered public archive family, with retired forecasts null.
     snapshot={**out,'date':out['generated_at'][:10],'impulse':None,
