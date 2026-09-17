@@ -1,0 +1,175 @@
+@@PART 2/2@@
+                    esc = True
+                elif ch == '"':
+                    in_str = False
+            else:
+                if ch == '"':
+                    in_str = True
+                elif ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        valid = True
+                        i += 1
+                        break
+            i += 1
+        if not valid:
+            # truncated mid-object — stop, return what we have
+            break
+        candidate = text[start:i]
+        try:
+            dossiers.append(json.loads(candidate))
+        except json.JSONDecodeError:
+            break
+    if not dossiers:
+        return None
+    return {"research": dossiers}
+
+
+# ═════════════════════════════════════════════════════════════════════
+# Lambda handler
+# ═════════════════════════════════════════════════════════════════════
+
+def lambda_handler(event, context):
+    t0 = time.time()
+    print(f"[deep-research] start {datetime.now(timezone.utc).isoformat()}")
+
+    # 1. Read convergence-radar.json
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=INPUT_KEY)
+        radar = json.loads(obj["Body"].read())
+        radar_age_min = (datetime.now(timezone.utc) -
+                          obj["LastModified"]).total_seconds() / 60
+        print(f"[dr] convergence-radar loaded ({radar_age_min:.0f}min old)")
+    except Exception as e:
+        return _write_error(f"Failed to load radar: {e}")
+
+    # 2. Take top N pump candidates with the highest likelihood
+    pump_candidates = radar.get("pump_candidates") or []
+    if not pump_candidates:
+        # Fall back to top by convergence_score if no pump candidates
+        all_tickers = radar.get("tickers") or []
+        # Take top with directional_score > 0
+        pump_candidates = [t for t in all_tickers if t.get("directional_score", 0) > 10][:TOP_N_TICKERS]
+        if not pump_candidates:
+            return _write_error("No pump candidates or directional tickers found")
+
+    selected = pump_candidates[:TOP_N_TICKERS]
+    print(f"[dr] researching {len(selected)} tickers: {[t['ticker'] for t in selected]}")
+
+    # 3. Build prompt + call Claude
+    user_prompt = build_user_prompt(selected)
+    print(f"[dr] prompt {len(user_prompt)} chars")
+
+    try:
+        t_claude = time.time()
+        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
+        claude_elapsed = round(time.time() - t_claude, 2)
+        print(f"[dr] Claude response in {claude_elapsed}s, {len(response_text)} chars")
+    except Exception as e:
+        return _write_error(f"Claude error: {e}")
+
+    # 4. Parse JSON — with partial-recovery fallback for truncated responses
+    parsed = None
+    try:
+        parsed = extract_json(response_text)
+    except Exception as e:
+        print(f"[dr] full JSON parse failed: {e}; trying partial recovery…")
+        # Try to recover: find the last complete dossier object before the truncation
+        parsed = _try_partial_recovery(response_text)
+        if not parsed:
+            return _write_error(f"JSON parse error: {e}",
+                                  raw_preview=response_text[:600])
+        else:
+            print(f"[dr] recovered partial JSON with {len(parsed.get('research', []))} complete dossiers")
+
+    research_array = parsed.get("research") or []
+    if not isinstance(research_array, list):
+        return _write_error("research field is not an array",
+                              raw_preview=response_text[:600])
+
+    # 5. Convert to dict keyed by ticker + attach convergence_summary
+    research_by_ticker = {}
+    cand_by_ticker = {c["ticker"]: c for c in selected}
+    for r in research_array:
+        t = r.get("ticker")
+        if not t or t not in cand_by_ticker:
+            continue
+        cand = cand_by_ticker[t]
+        research_by_ticker[t] = {
+            "ticker":              t,
+            "convergence_summary": {
+                "n_engines":         cand.get("n_engines"),
+                "pump_likelihood":   cand.get("pump_likelihood"),
+                "pump_category":     cand.get("pump_category"),
+                "directional_score": cand.get("directional_score"),
+                "convergence_score": cand.get("convergence_score"),
+                "tier":              cand.get("tier"),
+                "domain_coverage":   cand.get("domain_coverage"),
+                "n_bullish_eng":     cand.get("n_bullish_eng"),
+                "n_bearish_eng":     cand.get("n_bearish_eng"),
+            },
+            "bull_thesis":      r.get("bull_thesis", {}),
+            "risk_assessment":  r.get("risk_assessment", {}),
+            "trade_framework":  r.get("trade_framework", {}),
+            "ai_one_liner":     r.get("ai_one_liner", ""),
+        }
+
+    # 6. Build bundle + write
+    bundle = {
+        "schema_version":  "1.0",
+        "generated_at":    datetime.now(timezone.utc).isoformat(),
+        "model":           MODEL,
+        "elapsed_sec":     round(time.time() - t0, 2),
+        "claude_elapsed":  claude_elapsed,
+        "radar_age_min":   round(radar_age_min, 1),
+        "n_tickers":       len(research_by_ticker),
+        "tickers":         list(research_by_ticker.keys()),
+        "research":        research_by_ticker,
+        "disclaimer":      ("Analytical synthesis of engine signals. Not financial advice. "
+                              "Engine readings change continuously; verify before acting."),
+    }
+
+    body = json.dumps(bundle, indent=2, default=str)
+    s3.put_object(
+        Bucket=S3_BUCKET, Key=OUTPUT_KEY, Body=body,
+        ContentType="application/json", CacheControl="max-age=600",
+    )
+    archive_key = (f"data/archive/ticker-research/"
+                    f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.json")
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=archive_key, Body=body,
+                        ContentType="application/json")
+    except Exception:
+        pass
+
+    summary = {
+        "status":            "ok",
+        "elapsed_sec":       bundle["elapsed_sec"],
+        "claude_elapsed":    claude_elapsed,
+        "n_tickers":         bundle["n_tickers"],
+        "tickers":           bundle["tickers"],
+    }
+    print(f"[deep-research] done: {summary}")
+    return {"statusCode": 200, "body": json.dumps(summary)}
+
+
+def _write_error(message: str, **extras) -> dict:
+    """Write degraded payload."""
+    payload = {
+        "schema_version": "1.0",
+        "generated_at":   datetime.now(timezone.utc).isoformat(),
+        "status":         "error",
+        "error":          message,
+        **extras,
+    }
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
+                        Body=json.dumps(payload, default=str, indent=2),
+                        ContentType="application/json", CacheControl="max-age=300")
+    except Exception as e:
+        print(f"[dr] error-payload write fail: {e}")
+    print(f"[deep-research] ERROR: {message}")
+    return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+@@END 2@@
