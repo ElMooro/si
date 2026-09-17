@@ -70,7 +70,7 @@ async function loadTiles(){
     return `<div class="tile" onclick="openModal('${esc(s.id)}')">
       <div class="lbl">${esc(s.label)}</div>
       <div class="val">${fmtIdx(live?s.latest:null)}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
-      <div class="meta">${live&&s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)} · ${esc(s.unit||'unit unavailable')} · ${esc(live?'fresh':s.quality?.status||'unavailable')}</div>
+      <div class="meta">${live&&s.percentile!=null?s.percentile+'%ile · ':''}${esc(s.first_date||'No dated history')} → ${esc(s.latest_date||'unavailable')} · ${Number.isFinite(s.n_points)?s.n_points+' points':'History unavailable'} · ${esc(s.freq||'frequency unavailable')} · ${esc(s.unit||'unit unavailable')} · ${esc(live?'fresh':s.quality?.status||'unavailable')}</div>
     </div>`;
   }).join('')+'</div>';
 }
