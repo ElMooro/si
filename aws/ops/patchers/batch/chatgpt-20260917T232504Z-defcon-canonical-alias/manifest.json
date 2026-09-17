@@ -1,0 +1,23 @@
+{
+  "complete": true,
+  "lane": "chatgpt",
+  "note": "defcon-canonical-alias",
+  "files": [
+    {
+      "target": "aws/lambdas/justhodl-crisis-composite/source/lambda_function.py",
+      "base_sha": "d5d012940736df9b515c42a7cfbd003022e26f67",
+      "first_line": "\"\"\"justhodl-crisis-composite \u2014 the Master Crisis Composite (DEFCON 5 -> 1).",
+      "last_line": "        \"defcon_level\": level, \"defcon_name\": name, \"trend\": trend})}"
+    },
+    {
+      "target": "aws/lambdas/justhodl-crisis-composite/tests/run_tests.py",
+      "first_line": "\"\"\"Verify canonical/alias parity and quiet maintenance invocations.\"\"\"",
+      "last_line": "print('DEFCON alias parity, unchanged score, history and alert suppression passed')"
+    },
+    {
+      "target": "aws/ops/pending/ops_5702_defcon_alias_verify.py",
+      "first_line": "\"\"\"Invoke and verify the exact assembled release; never infer deploy from green CI.\"\"\"",
+      "last_line": "    except Exception: sys.exit(1)"
+    }
+  ]
+}
