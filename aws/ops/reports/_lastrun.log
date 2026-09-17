@@ -1,12 +1,4 @@
-executing-against: 4edb45e5db75054879c9a2ab9a1d95314c5326c5
-Calls integrity release verification
-[21:26:11] ✅ justhodl-ai-brief: exact receipt, source bytes, AWS code hash and bundled helper verified
-[21:26:11] ✅ justhodl-calls-backtest: exact receipt, source bytes, AWS code hash and bundled helper verified
-[21:26:11] ✅ justhodl-position-sizer-v2: exact receipt, source bytes, AWS code hash and bundled helper verified
-[21:26:12] ✅ Enabled four-hour brief schedule verified at minute 05 UTC
-[21:26:15] ✅ Fresh immutable public event and ledger agree; notification suppression requested
-[21:26:16] ✅ Replay excludes unqualified history and publishes null performance at both keys
-[21:26:17] ✅ Sizer abstains without buy/sell recommendations; independent constraints remain separate
-[21:26:17] ✅ Public verification status published without account or portfolio details
+executing-against: 5c9bf4ed6a05e4caaa42a54d0b5567fb52cb7410
+[23:03:36] ✅ Grok source and live AWS hash verified; fresh CB packet includes Treasury gross FTD/FTR without changing injection attribution
 
-→ Report written to aws/ops/reports/latest/ops_5697_calls_integrity_verify.md
+→ Report written to aws/ops/reports/latest/ops_5698_cb_fails_refresh.md
