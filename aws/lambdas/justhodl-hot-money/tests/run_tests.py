@@ -13,6 +13,18 @@ TODAY=datetime.now(timezone.utc);DAY=TODAY.strftime('%Y%m%d')
 
 
 class Integrity(unittest.TestCase):
+    def test_publication_timestamp_has_timezone_and_preserves_observation_date(self):
+        writes={}
+        observation=(TODAY-timedelta(days=2)).date().isoformat()
+        tw={'status':'LIVE','quality':{'status':'fresh','observation_date':observation}}
+        with patch.object(e,'taiwan',return_value=tw),patch.object(e,'_put',side_effect=lambda key,value:writes.update({key:value})):
+            e.lambda_handler({},None)
+        doc=writes[e.OUT_KEY]
+        stamp=datetime.fromisoformat(doc['quality']['publication_date'])
+        self.assertIsNotNone(stamp.tzinfo)
+        self.assertEqual(doc['quality']['publication_date'],doc['generated_at'])
+        self.assertEqual(doc['quality']['observation_date'],observation)
+
     def test_fresh_zero_is_a_real_observation(self):
         row=e.board_metrics({DAY:0})
         self.assertEqual(row['status'],'LIVE');self.assertEqual(row['latest_bn'],0)

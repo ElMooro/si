@@ -235,7 +235,7 @@ def lambda_handler(event, context):
     doc["quality"] = {
         "observation_date": tw.get("quality",{}).get("observation_date"),
         "max_age_days":5,
-        "publication_date": now.date().isoformat(),
+        "publication_date": now.isoformat(),
         "frequency": "daily",
         "freshness_basis": "observation",
         "status": tw.get("quality",{}).get("status","unavailable"),
