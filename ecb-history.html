@@ -41,7 +41,7 @@ a{color:var(--cyan);text-decoration:none}
 </header>
 <div class="wrap">
   <div class="hero"><h1>ECB <span class="grad">History</span> · 1997→now</h1>
-  <p>Full daily/weekly history for the high-signal ECB liquidity & systemic-stress series — CISS (1997+), the dollar-shortage indicators, balance sheet. Click any tile for the chart with crisis markers (2008 · 2011 · 2020 · 2023).</p></div>
+  <p>Dated ECB liquidity and stress histories with explicit units. Balance-sheet stocks alone do not identify dollar shortages or policy injections. Click any tile for the chart with crisis markers (2008 · 2011 · 2020 · 2023).</p></div>
   <div id="tiles"><div class="loading">Loading ECB series…</div></div>
 </div>
 <div class="modal" id="modal"><div class="modal-card">
@@ -59,17 +59,18 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
 // Smart number format: small-range indices (CISS 0-1) keep decimals; big numbers use locale.
 function fmtIdx(v){if(v==null)return '—';v=Number(v);const a=Math.abs(v);if(a===0)return '0';if(a<1)return v.toFixed(4);if(a<100)return v.toFixed(2);return v.toLocaleString();}
 const CRISES=[["2008-09-15","Lehman"],["2011-08-05","EU sovereign"],["2020-03-16","COVID"],["2023-03-13","SVB/CS"]];
+function isCurrent(s){const q=s.quality||{};const age=(Date.now()-Date.parse(q.period_end||q.observation_date))/864e5;return s.methodology_version==='ecb-dated-units.v2'&&q.status==='fresh'&&Number.isFinite(age)&&age>=0&&age<=q.max_age_days+1;}
 let CHART=null,SERIES=null,FULL=null,RANGE='MAX';
 
 async function loadTiles(){
   const m=await gj('data/ecb-hist/_manifest.json');
-  if(!m||!m.series){document.getElementById('tiles').innerHTML='<div class="loading">History not built yet — runs weekly.</div>';return;}
+  if(!m||!m.series||m.methodology_version!=='ecb-dated-units.v2'){document.getElementById('tiles').innerHTML='<div class="loading">History not built yet — runs weekly.</div>';return;}
   document.getElementById('tiles').innerHTML='<div class="grid">'+m.series.map(s=>{
-    const z=s.z_score;const zc=z==null?'':(Math.abs(z)>=2?'z-hi':Math.abs(z)>=1?'z-mid':'z-lo');
+    const live=isCurrent(s);const z=live?s.z_score:null;const zc='';
     return `<div class="tile" onclick="openModal('${esc(s.id)}')">
       <div class="lbl">${esc(s.label)}</div>
-      <div class="val">${fmtIdx(s.latest)}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
-      <div class="meta">${s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)}${s.discontinued?' · <span style="color:#ff5577">⚠ stale '+s.stale_days+'d</span>':''}</div>
+      <div class="val">${fmtIdx(live?s.latest:null)}${z!=null?`<span class="zpill ${zc}">z ${z}</span>`:''}</div>
+      <div class="meta">${live&&s.percentile!=null?s.percentile+'%ile':''} · ${esc(s.first_date)}→${esc(s.latest_date)} · ${s.n_points} pts · ${esc(s.freq)} · ${esc(s.unit||'unit unavailable')} · ${esc(live?'fresh':s.quality?.status||'unavailable')}</div>
     </div>`;
   }).join('')+'</div>';
 }
@@ -78,17 +79,17 @@ async function openModal(id){
   document.getElementById('m-title').textContent=id;
   document.getElementById('m-chart').innerHTML='<div class="loading">Loading history…</div>';
   const d=await gj('data/ecb-hist/'+id+'.json');
-  if(!d||!d.points){document.getElementById('m-chart').innerHTML='<div class="loading">No history.</div>';return;}
-  FULL=d;RANGE='MAX';
+  if(!d||!d.points||d.methodology_version!=='ecb-dated-units.v2'||!d.source_metadata){document.getElementById('m-chart').innerHTML='<div class="loading">Unit-validated history is unavailable for this archive.</div>';return;}
+  if(CHART){CHART.remove();CHART=null;}FULL=d;RANGE='MAX';
   document.getElementById('m-title').textContent=d.label||id;
-  document.getElementById('m-sub').textContent=`${d.first_date} → ${d.latest_date} · ${d.n_points} points · ${d.freq} · ECB SDMX`;
-  document.getElementById('m-stats').innerHTML=`<span>Latest <b style="color:var(--fg-0)">${fmtIdx(d.latest)}</b></span><span>Min ${fmtIdx(d.min)}</span><span>Max ${fmtIdx(d.max)}</span><span>%ile ${d.percentile}</span><span>z ${d.z_score}</span>`;
+  document.getElementById('m-sub').textContent=`${d.first_date} → ${d.latest_date} · ${d.n_points} points · ${d.freq} · ${d.unit} · ${d.quality?.status||'unavailable'} · current-vintage history`;
+  document.getElementById('m-stats').innerHTML=`<span>Latest <b style="color:var(--fg-0)">${fmtIdx(isCurrent(d)?d.latest:null)}</b></span><span>Min ${fmtIdx(d.min)}</span><span>Max ${fmtIdx(d.max)}</span><span>%ile ${d.percentile}</span><span>z ${d.z_score}</span>`;
   document.getElementById('m-ranges').innerHTML=['1Y','5Y','10Y','MAX'].map(r=>`<span class="range-btn ${r==='MAX'?'on':''}" onclick="setRange('${r}')">${r}</span>`).join('');
   drawChart();
 }
 function setRange(r){RANGE=r;document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('on',b.textContent===r));drawChart();}
 function drawChart(){
-  const host=document.getElementById('m-chart');host.innerHTML='';
+  const host=document.getElementById('m-chart');if(CHART){CHART.remove();CHART=null;}host.innerHTML='';
   if(!window.LightweightCharts){
     // CDN not ready yet — retry up to ~5s instead of giving up
     host.innerHTML='<div class="loading">loading chart…</div>';
