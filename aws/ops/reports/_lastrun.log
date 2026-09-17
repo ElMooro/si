@@ -1,23 +1,12 @@
-executing-against: 7e03a3fa5b9a9a9676ce2dc5dd3a2cb7ab3f4fc4
+executing-against: 48c6160a2720bfe2ccf646c54a701001c84f82ae
 
-→ Report written to aws/ops/reports/latest/ops_5634_yield_integrity_verify.md
+→ Report written to aws/ops/reports/latest/ops_5635_yield_release_readback.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5634_yield_integrity_verify.py", line 57, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5635_yield_release_readback.py", line 76, in <module>
     if __name__=='__main__':sys.exit(main())
                                      ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5634_yield_integrity_verify.py", line 24, in main
-    receipt=read(f'data/ops/releases/{fn}.json')
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5634_yield_integrity_verify.py", line 19, in read
-    def read(key):return json.loads(s3.get_object(Bucket=BUCKET,Key=key)['Body'].read())
-                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_5634_yield_integrity_verify.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_5635_yield_release_readback.py", line 54, in main
+    assert not differences,'Deployed source differs from pinned commit; no receipt written or invoke performed'
+           ^^^^^^^^^^^^^^^
+AssertionError: Deployed source differs from pinned commit; no receipt written or invoke performed
+❌ OPS-FAIL: aws/ops/pending/ops_5635_yield_release_readback.py
