@@ -50,8 +50,17 @@ def test_official_units_are_series_specific():
         assert engine.get_series_history("WTREGEN")[0]["value"] == 23.218
         assert engine.get_latest("RRPONTSYD")[0] == 23218
         assert engine.get_latest("BOGMBASE")[0] == 23218
+        assert engine.get_latest("TRESEGUSM052N")[0] == 23.218
+        assert engine.get_latest("WCURCIR")[0] == 23.218
     assert next(row[-1] for row in engine.FRED_SERIES if row[0] == 'BOGMBASE') == 'm'
     assert all(row[3] == '%' for row in engine.FRED_SERIES if row[0].startswith('BAML'))
+    assert not any(row[0]=='CURRCIR' for row in engine.FRED_SERIES)
+    assert next(row[2] for row in engine.FRED_SERIES if row[0]=='TRESEGUSM052N')=='reserves'
+
+
+def test_discontinued_observation_does_not_become_current_when_fetched_today():
+    with patch.object(engine,'fetch_fred',return_value=[{'date':'2020-09-09','value':2854690}]):
+        assert engine.get_latest('EXCSRESNW') == (None,'2020-09-09')
 
 
 def test_current_but_short_daily_cache_gets_required_history():

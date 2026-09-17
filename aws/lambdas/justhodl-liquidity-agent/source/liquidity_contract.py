@@ -45,7 +45,7 @@ def unavailable_payload(values, dates, quality, previous=None):
         out.setdefault(key, {})
     out.update(generated_at=quality["publication_date"], quality=quality, call=None, ok=False,
                formula="WALCL - WTREGEN - RRPONTSYD", formula_note=FORMULA_NOTE)
-    out["meta"].update(generated_at=quality["publication_date"], agent_version="2.1.2", data_sources=["FRED"])
+    out["meta"].update(generated_at=quality["publication_date"], agent_version="2.1.3", data_sources=["FRED"])
     out["core"] = {"net_liquidity": {"value_bn": None, "label": quality["status"].upper(), "score": None, "color": "#888888"}}
     for sid, (name, _) in CORE.items():
         value = values.get(sid)

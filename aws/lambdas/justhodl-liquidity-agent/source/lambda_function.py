@@ -56,7 +56,7 @@ FRED_SERIES = [
     # ── Reserve Balances ──────────────────────────────────────────────────
     ("WRESBAL",     "Reserve Balances at Fed",             "reserves",          "B USD", "w"),
     ("TOTRESNS",    "Total Reserves Depository Inst",      "reserves",          "B USD", "m"),
-    ("EXCSRESNW",   "Excess Reserves",                     "reserves",          "B USD", "w"),
+    ("EXCSRESNW",   "Excess Reserves (discontinued 2020)", "reserves",          "B USD", "w"),
 
     # ── Money Supply ──────────────────────────────────────────────────────
     ("M2SL",        "M2 Money Supply",                     "money_supply",      "B USD", "m"),
@@ -89,12 +89,12 @@ FRED_SERIES = [
     ("WSHOMBLS", "SOMA MBS Holdings (total)", "soma", "B USD", "w"),
     ("H41RESPPALDKNWA", "Fed Repo Agreements (H.4.1)", "fed_balance_sheet", "B USD", "w"),
     ("WCBSL", "Central Bank Swap Lines", "fed_balance_sheet", "B USD", "w"),
-    ("TRESEGUSM052N", "Foreign Official Treasury Holdings", "fed_balance_sheet", "B USD", "m"),
+    ("TRESEGUSM052N", "US International Reserves Excluding Gold", "reserves", "B USD", "m"),
     ("IORB", "Interest on Reserve Balances", "funding", "%", "d"),
     ("EFFR", "Effective Fed Funds Rate", "funding", "%", "d"),
     ("OBFR", "Overnight Bank Funding Rate", "funding", "%", "d"),
     ("M2V", "Velocity of M2", "money_supply", "ratio", "q"),
-    ("CURRCIR", "Currency in Circulation", "money_supply", "B USD", "w"),
+    ("WCURCIR", "Currency in Circulation (weekly average)", "money_supply", "B USD", "w"),
     ("DEXUSEU", "USD/EUR", "dollar", "rate", "d"),
     ("DEXJPUS", "JPY/USD", "dollar", "rate", "d"),
     ("DEXCHUS", "CNY/USD", "dollar", "rate", "d"),
@@ -132,9 +132,8 @@ FRED_SERIES = [
 ]
 
 # Series where value is already in billions (no conversion needed)
-# ops 4411: FRED publishes H.4.1 / SOMA / money-stock series in MILLIONS.
-# The prior set wrongly listed them as billions, so the page rendered
-# "$6738190.0B" instead of "$6738.19B" (Khalid caught it on the live page).
+# Units are series-specific: H.4.1 balance sheets are usually millions;
+# H.6 money stock and monetary base are billions. Never infer from a label.
 ALREADY_BILLIONS = {
     "RRPONTSYD",   # FRED: Billions of USD
     "TOTRESNS",    # FRED: Billions of USD
@@ -143,7 +142,7 @@ ALREADY_BILLIONS = {
 # Series in millions -> divide by 1000 to get billions
 IN_MILLIONS = {
     "WALCL", "WTREGEN", "WSHOSHO", "WSHOTSL", "WSHOMCB",
-    "WRESBAL", "EXCSRESNW", "WORAL", "CURRCIR", "WCURCIR",
+    "WRESBAL", "EXCSRESNW", "WORAL", "WCURCIR", "TRESEGUSM052N",
     "TREAST", "WSHONBIILB", "WSHOBL", "WSHOFADSL", "WSHOMBLS", "WSHOFCDN",
     "H41RESPPALDKNWA", "WCBSL", "WLRRAL", "RESPPALGUONNWW",
     "RESPPNTEPNWW",
@@ -245,6 +244,9 @@ def get_latest(series_id: str, limit: int = 10) -> Tuple[Optional[float], Option
         return None, None
     obs = sorted(obs, key=lambda row: row['date'], reverse=True)
     latest = obs[0]
+    freq = next((row[-1] for row in FRED_SERIES if row[0] == series_id), 'm')
+    if observation_status(latest['date'], {'d':7,'w':16,'m':95,'q':180}.get(freq,95)) != 'fresh':
+        return None, latest['date']
     val = latest["value"]
     if not isinstance(val, (int, float)) or not math.isfinite(val):
         return None, latest['date']
@@ -868,11 +870,13 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
             sd = var ** 0.5
             z = round((latest - mean) / sd, 2) if sd > 1e-9 and len(vals) >= 20 else None
             pct = round(100 * sum(1 for v in vals if v <= latest) / len(vals), 1)
+            state = observation_status(hist[-1]['date'], {'d':7,'w':16,'m':95,'q':180}.get(freq,95))
             catalog.setdefault(cat, {})[sid] = {
-                "label": label, "value": round(latest, 4), "unit": unit,
-                "z": z, "pctile_5y": pct if (datetime.fromisoformat(hist[-1]["date"])-datetime.fromisoformat(hist[0]["date"])).days >= 1800 else None,
-                "percentile": pct if len(vals) >= 20 else None, "statistics_window": {"start":hist[0]["date"], "end":hist[-1]["date"], "observations":len(vals)}, "freq": freq,
+                "label": label, "value": round(latest, 4) if state == 'fresh' else None, "unit": unit,
+                "z": z if state == 'fresh' else None, "pctile_5y": pct if state == 'fresh' and (datetime.fromisoformat(hist[-1]["date"])-datetime.fromisoformat(hist[0]["date"])).days >= 1800 else None,
+                "percentile": pct if state == 'fresh' and len(vals) >= 20 else None, "statistics_window": {"start":hist[0]["date"], "end":hist[-1]["date"], "observations":len(vals)}, "freq": freq,
                 "date": hist[-1].get("date"),
+                "quality_status": state,
                 "spark": [{"date": h["date"], "value": h["value"]}
                           for h in hist[-52:]],
             }
@@ -885,7 +889,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
         "meta": {
             "generated_at":  ts_end.isoformat(),
             "elapsed_sec":   elapsed,
-            "agent_version": "2.1.2",
+            "agent_version": "2.1.3",
             "data_sources":  ["FRED"],
         },
 
