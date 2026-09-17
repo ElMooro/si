@@ -227,6 +227,10 @@ def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str], c
             raise PartsError("manifest.json is not an object")
     except json.JSONDecodeError as exc:
         raise PartsError(f"manifest.json does not parse ({exc})") from None
+    if manifest.get("cancel") is True:                 # one write abandons a batch: nothing lands, folder goes, id stays free
+        if write:
+            shutil.rmtree(folder)
+        return {"batch": folder.name, "status": "cancelled", "note": manifest.get("note"), "lane": manifest.get("lane")}
     if manifest.get("complete") is not True:
         return {"batch": folder.name, "status": "incomplete", "reason": "manifest.complete is not true yet"}
     if not ID_RE.match(folder.name):
@@ -332,7 +336,7 @@ def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
             result = {"batch": folder.name, "status": "rejected", "reason": str(exc)}
         except Exception as exc:  # noqa: BLE001 -- never a silent skip
             result = {"batch": folder.name, "status": "rejected", "reason": f"{type(exc).__name__}: {exc}"}
-        if write and result["status"] in ("assembled", "rejected"):
+        if write and result["status"] in ("assembled", "rejected", "cancelled"):
             _record(root, folder, result)
         results.append(result)
     return results

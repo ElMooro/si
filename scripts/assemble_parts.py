@@ -209,6 +209,10 @@ def assemble_one(folder: Path, root: Path, write: bool = True) -> dict:
             raise PartsError("manifest.json is not an object")
     except json.JSONDecodeError as exc:
         raise PartsError(f"manifest.json does not parse ({exc})") from None
+    if manifest.get("cancel") is True:                 # one write abandons an upload: nothing lands, folder goes
+        if write:
+            shutil.rmtree(folder)
+        return {"upload": folder.name, "status": "cancelled", "note": manifest.get("note")}
     target_rel = manifest.get("target")
     target = _safe_target(target_rel, root)
     found = _discover(folder, manifest)
@@ -282,7 +286,7 @@ def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
             result = {"upload": folder.name, "status": "rejected", "reason": str(exc)}
         except Exception as exc:  # noqa: BLE001 -- an unexpected error is still a rejection with a reason, never a silent skip
             result = {"upload": folder.name, "status": "rejected", "reason": f"{type(exc).__name__}: {exc}"}
-        if write and result["status"] in ("assembled", "rejected"):
+        if write and result["status"] in ("assembled", "rejected", "cancelled"):
             _record(root, folder, result)
         results.append(result)
     return results

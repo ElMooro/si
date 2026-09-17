@@ -121,6 +121,11 @@ aws/ops/patchers/batch/<batch-id>/manifest.json      written LAST:
   after the batch (same rule as the deploy gate) — put every copy in the batch
 - two batches in one run that write the same file: the second is rejected as an overlap
 - a batch that touches `aws/shared/` redeploys every importer of that module, not just the engines in the batch
+- to abandon a batch (or a v3 upload): write `manifest.json` as `{"cancel": true, "note": "..."}` — one write;
+  the folder is removed, nothing lands, the id stays free. Never leave a half-uploaded folder behind
+- **part size is yours to probe**: 12 KB is the safe default, the runner accepts parts up to 40 KB, and
+  a part the connector truncated is always caught (its `@@END n@@` is missing) — so try 24–30 KB
+  parts once; whatever lands intact is your real per-write cap, and a 57 KB engine is then 2–3 parts
 - while a batch is in flight, never write any of its targets directly — that is the race the batch exists to end
 - lanes with a shell don't need this: put the whole change set in **one commit** and push
 

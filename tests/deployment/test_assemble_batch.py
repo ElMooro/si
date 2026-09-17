@@ -242,3 +242,17 @@ def test_two_batches_writing_the_same_file_in_one_run_are_not_both_applied():
         assert out[a.name]["status"] == "assembled"
         assert out[b.name]["status"] == "rejected" and "overlap" in out[b.name]["reason"]
         assert json.loads((root / FN / "config.json").read_text())["memory"] == 256
+
+
+def test_one_write_cancels_an_abandoned_batch_and_frees_its_id():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp); f = batch(root)
+        parts(f, f"{FN}/source/lambda_function.py", ENGINE, n=6)
+        (f / "manifest.json").write_text(json.dumps({"cancel": True, "note": "2.4.7 already live"}))
+        r = result(root, f.name)
+        assert r["status"] == "cancelled" and not f.exists() and not (root / FN).exists()
+        rec = json.loads((root / "aws/ops/patchers/batch/_receipts" / f"{f.name}.json").read_text())
+        assert rec["status"] == "cancelled"
+        g = batch(root, f.name)                                            # a cancelled id may be used again
+        whole(g, f"{FN}/config.json", CONFIG); manifest(g)
+        assert result(root, g.name)["status"] == "assembled"

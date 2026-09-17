@@ -231,3 +231,13 @@ def test_parts_over_the_connector_limit_are_refused_before_trust():
         (folder / "manifest.json").write_text(json.dumps({"target": TARGET, "complete": True}))
         out = MODULE["assemble_all"](root)
         assert out[0]["status"] == "rejected" and "connector limit" in out[0]["reason"]
+
+
+def test_one_write_cancels_an_abandoned_upload():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        folder = llm_upload(root, "u17", ENGINE, parts=3, manifest=None)
+        (folder / "manifest.json").write_text(json.dumps({"cancel": True}))
+        out = MODULE["assemble_all"](root)
+        assert out[0]["status"] == "cancelled" and not folder.exists() and not (root / TARGET).exists()
+        assert receipt(root, "u17")["status"] == "cancelled"
