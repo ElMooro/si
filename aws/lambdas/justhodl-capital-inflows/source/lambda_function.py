@@ -32,7 +32,7 @@ import boto3
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/capital-inflows.json"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 
 # foreign net purchases of US long-term securities, by asset class ($M, monthly)
@@ -157,6 +157,17 @@ def lambda_handler(event=None, context=None):
                     "total_series": TOTAL_INTO_US, "asset_series": INTO_US,
                     "short_treasury": SHORT_TREAS, "us_abroad": US_ABROAD},
         "disclaimer": "Macro context from official TIC data — research, not advice.",
+        # ops 5623 quality
+        "units": "usd_bn",
+        "vintage_note": "TIC FRED release 3 is monthly and lags several weeks; data_asof is the observation month, not print day.",
+        "quality": {
+            "observation_date": asof,
+            "publication_date": datetime.now(timezone.utc).date().isoformat(),
+            "frequency": "monthly",
+            "freshness_basis": "observation",
+            "status": "fresh",
+            "missing": [k for k, obs in legs.items() if not obs],
+        },
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
