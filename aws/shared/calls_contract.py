@@ -85,7 +85,10 @@ def make_snapshot(snapshot, output):
         "decision_status": status, "decision_reason": reason,
         "generation_status": generation, "decision_eligible": False,
         "sizing_eligible": False, "validation_status": "monitor_only",
-        "call_verb": "UNKNOWN" if status == "ERROR" else "WAIT",
+        # New producers explicitly abstain on errors while preserving the ERROR
+        # diagnostic. Legacy callers retain their original serialization.
+        "call_verb": "UNKNOWN" if status == "ERROR" and output.get("abstain_on_error") is not True else "WAIT",
+        "generation_method": output.get("generation_method"),
         "candidate_verb": proposed, "evidence_ids": [], "target_exposure": None,
         "asset": None, "forecast_horizon_days": None,
         "regime": intel.get("regime"), "phase": intel.get("phase"),

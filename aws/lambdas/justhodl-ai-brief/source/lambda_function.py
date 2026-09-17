@@ -17,7 +17,7 @@ Reads 14 data sources (every major system's S3 output):
  13. data/correlation-surface.json (regime breaks)
  14. data/alert-history.json      (recent alerts)
 
-Sends compressed prompt to Claude (claude-haiku-4-5-20251001) for synthesis.
+Compiles a source-backed warehouse brief without model API calls.
 Writes:
   - data/ai-brief.json     (structured: regime, top_3_signals, top_3_risks, ranked_actions[5])
   - data/ai-brief.md       (human-readable markdown for direct display)
@@ -28,7 +28,7 @@ The brief is decisive and follows Khalid's preferred structure:
   (1) Data tape, (2) Regime, (3) Best assets, (4) Worst assets,
   (5) Transitions, (6) Watch triggers, (7) DECISIVE CALL
 """
-import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
+# No provider shim: paid model routing is intentionally absent from this producer.
 import json
 import os
 import time
@@ -735,70 +735,12 @@ def lambda_handler(event=None, context=None):
         return {"statusCode": 200, "headers": {"Cache-Control": "private, no-store"},
                 "body": json.dumps({"validated": True, "snapshot_keys": list(snapshot)})}
 
-    # 3. Narrative summarizes observations; no allocation model is validated yet.
-    prompt = f"""Summarize this JustHodl observation snapshot in concise Markdown.
-Use sections DATA TAPE, OBSERVATIONS, DISAGREEMENTS, DATA LIMITATIONS,
-WATCH CONDITIONS, and DECISION STATUS.
-Only use the supplied values. Cite each field, unit and observation date when
-present. If a date, unit, calibration window or sample is missing, say it is
-unavailable. Do not treat the snapshot's computation time as an observation date.
-Separate measured facts, estimates and hypothetical scenarios. Show conflicting
-evidence rather than choosing a winner from unvalidated weights.
-Calibration figures describe their own signal/horizon samples; they are not the
-accuracy of this brief. No signal has permanent preferred status.
-Do not invent expected returns, transition probabilities, forecast horizons,
-position sizes, or a trading instruction. This brief's decision model has not
-passed the eligibility and out-of-sample gates. Its DECISION STATUS is ABSTAIN:
-observation-only, no qualified allocation instruction. Existing risk controls
-remain independent of narrative generation.
-
-Snapshot:
-```json
-{snapshot_str}
-```
-"""
-
-    # 4. Call Claude
-    api_key = get_anthropic_key()
-    if not api_key:
-        print("[ai-brief] no Anthropic key — saving snapshot only, no AI brief")
-        out_md = "# AI Brief Unavailable\n\nMissing Anthropic API key. Snapshot saved at data/ai-brief.json.\n"
-        out = {
-            "version": "1.0",
-            "generated_at": snapshot["as_of"],
-            "duration_s": round(time.time() - started, 2),
-            "snapshot": snapshot,
-            "brief_md": out_md,
-            "error": "missing_anthropic_key",
-        }
-    else:
-        print(f"[ai-brief] calling Claude {ANTHROPIC_MODEL}")
-        try:
-            resp = call_anthropic(prompt, api_key, max_tokens=2500)
-            content = resp.get("content", [])
-            text_blocks = [b.get("text", "") for b in content if b.get("type") == "text"]
-            brief_md = "\n".join(text_blocks).strip()
-            usage = resp.get("usage", {})
-            print(f"[ai-brief] got {len(brief_md)} chars  in_tok={usage.get('input_tokens')}  out_tok={usage.get('output_tokens')}")
-            out = {
-                "version": "1.0",
-                "generated_at": snapshot["as_of"],
-                "duration_s": round(time.time() - started, 2),
-                "model": ANTHROPIC_MODEL,
-                "snapshot": snapshot,
-                "brief_md": brief_md,
-                "usage": usage,
-            }
-        except Exception as e:
-            print(f"[ai-brief] Claude call failed: {e}")
-            out = {
-                "version": "1.0",
-                "generated_at": snapshot["as_of"],
-                "duration_s": round(time.time() - started, 2),
-                "snapshot": snapshot,
-                "brief_md": f"# Brief generation failed\n\n{e}",
-                "error": str(e),
-            }
+    # chatgpt-free-brief-v1: warehouse-only path; no paid provider or fallback.
+    # The public compiler never receives the account-specific snapshot above.
+    from calls_free_brief import build as build_free_brief, PUBLIC_KEY
+    public = build_free_brief(load_json, snapshot["as_of"])
+    out = {**public, "snapshot": snapshot,
+           "duration_s": round(time.time() - started, 2), "visibility": "private"}
 
     decision_row = make_snapshot(snapshot, out)
     out["version"] = "2.0"
@@ -820,6 +762,12 @@ Snapshot:
     # history. A failed recent-view write is fatal; its immutable event survives.
     ledger = append_snapshot(S3, BUCKET, decision_row)
     print(f"[ai-brief] Calls status={decision_row['decision_status']} reason={decision_row['decision_reason']} n={ledger['n_snapshots']}")
+    public.update(decision_status=decision_row["decision_status"],
+                  decision_reason=decision_row["decision_reason"],
+                  snapshot_id=decision_row["snapshot_id"])
+    S3.put_object(Bucket=BUCKET, Key=PUBLIC_KEY,
+                  Body=json.dumps(public, allow_nan=False).encode("utf-8"),
+                  ContentType="application/json", CacheControl="public, max-age=60")
 
     # 7. Push a compact digest to Telegram (every brief generation, throttled by
     #    a "last_telegram_send" field on the ledger to prevent double-sends if

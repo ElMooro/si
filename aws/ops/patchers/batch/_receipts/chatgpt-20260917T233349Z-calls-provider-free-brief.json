@@ -1,0 +1,118 @@
+{
+ "apply_run_id": "35287419570",
+ "at": "2026-09-17T23:34:23Z",
+ "batch": "chatgpt-20260917T233349Z-calls-provider-free-brief",
+ "changed": true,
+ "config": [],
+ "docs": [
+  "docs/CALLS_CONTRACT.md"
+ ],
+ "files": [
+  {
+   "bytes": 34489,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "ee371ce8fbdb9d4483f192c4d3744ddb4b355e3ca3afb6f02071dbf9037b741e",
+   "target": "aws/lambdas/justhodl-ai-brief/source/lambda_function.py"
+  },
+  {
+   "bytes": 2680,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "da45f086e9471fe7eee4b23ffe479c39fde33023c9b26667940156eedad0b61f",
+   "target": "aws/lambdas/justhodl-ai-brief/tests/free_brief_tests.py"
+  },
+  {
+   "bytes": 429,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "1298f23f28c74dddaf08c15c63b53220808f65611138d35db4506750f7c863bf",
+   "target": "aws/lambdas/justhodl-ai-brief/tests/run_tests.py"
+  },
+  {
+   "bytes": 3802,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "feca83a5cb0647650b1ce721ad420dee6bf7c4011e9a6263e3c8ad0f3b795217",
+   "target": "aws/ops/pending/ops_5704_calls_free_verify.py"
+  },
+  {
+   "bytes": 8778,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "3c66e37f2ef274210d650e39aa7717f4182c9122b0f9c91862cff04cd266a56f",
+   "target": "aws/shared/calls_contract.py"
+  },
+  {
+   "bytes": 7748,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "ca8c95d08e4115dc6c284fdf65818cca564cbe02127aa760d0f7f76893729cac",
+   "target": "aws/shared/calls_free_brief.py"
+  },
+  {
+   "bytes": 8714,
+   "changed": true,
+   "check": "node --check",
+   "how": "whole",
+   "sha256": "8a23af6669066e514a7943bfee61a7dabf4f91f6491d25a9e6e377cca25852d2",
+   "target": "calls-page.js"
+  },
+  {
+   "bytes": 12966,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "d0bcfa82a09107825103a445decce54d830b99e2d4279e5f6a89f0e2b1405e31",
+   "target": "calls.html"
+  },
+  {
+   "bytes": 3422,
+   "changed": true,
+   "how": "whole",
+   "sha256": "f72c61bee8a7e143b0c14acdfe57357c987893be77d51f7d8e9dbed552ea28fb",
+   "target": "docs/CALLS_CONTRACT.md"
+  },
+  {
+   "bytes": 2047,
+   "changed": true,
+   "check": "node --check",
+   "how": "whole",
+   "sha256": "d38a2138b1845930eb58fcaa68619d9204f1547b38af60b049067075ff40370f",
+   "target": "jh-public-brief.js"
+  }
+ ],
+ "functions": [
+  "justhodl-ai-brief"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35287419570.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "calls-provider-free-brief",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5704_calls_free_verify.py"
+ ],
+ "pages": [
+  "calls-page.js",
+  "calls.html",
+  "jh-public-brief.js"
+ ],
+ "shared": [
+  "aws/shared/calls_contract.py",
+  "aws/shared/calls_free_brief.py"
+ ],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-ai-brief.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5704_calls_free_verify.py"
+ ],
+ "workers": []
+}

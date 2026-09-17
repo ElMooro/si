@@ -39,3 +39,16 @@ work; setting eligibility flags manually is not a substitute for that work.
 Verification invokes must pass `suppress_alerts: true`; observation/error briefs
 also suppress trade notifications. Deployment proof remains an exact commit
 match in each Lambda release receipt plus runner-side output and schedule checks.
+
+The warehouse deterministic producer replaces paid model generation. It reads
+an explicit whitelist of public numeric observations into `data/ai-brief-public.json`;
+the account snapshot remains in the authenticated private artifact. Public text
+never copies upstream narratives, notes or portfolio fields. Each displayed
+measurement carries a field ID, unit, observation date and quality status.
+Publication time cannot substitute for an unknown observation date.
+
+This producer sets `abstain_on_error: true`: both a generation/input failure and
+a healthy monitor-only brief publish WAIT. ERROR remains an independent health
+diagnostic, never a qualified decision. Legacy serialization stays readable.
+Six settlement fields share FR2004 and overlapping scopes; field coverage does
+not count them as six independent votes. All current evidence is monitor-only.

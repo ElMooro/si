@@ -44,7 +44,7 @@
     doc.getElementById('now-banner').style.display=last ? '' : 'none';
     doc.getElementById('notice-area').innerHTML=`<div class="notice">${escape(current.reason)} Historical weighted signal accuracy is not Calls accuracy. A new computation does not make its underlying observations current.</div>`;
     if (last) {
-      doc.getElementById('now-verb').textContent=current.label.replaceAll('_',' ');
+      doc.getElementById('now-verb').textContent=(last.generation_method === 'warehouse_deterministic_v1' && !current.eligible ? 'WAIT' : current.label.replaceAll('_',' '));
       doc.getElementById('now-verb').style.color=colors[current.label] || colors.LEGACY;
       doc.getElementById('now-when').textContent=`Computed ${date(last.timestamp)} · expires ${date(last.expires_at)}`;
       const context=[['Decision use',current.eligible?'Qualified':'No allocation instruction'],['Phase',last.phase],
