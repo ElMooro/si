@@ -1,88 +1,29 @@
-executing-against: a40877eed60fc753bae60e13752c512616044f77
-ops 5584 -- AI engine learning progress: what ai.html shows, what is measured, what is blocked (objects only)
-── A. data/ai.json -- the read model behind ai.html ──
-[01:21:44] ✅ data/ai.json last written 2026-09-17 01:20:17+00:00 (0.0 h ago); top-level keys: ['access', 'brain_dataset', 'catalog', 'cost', 'definitions', 'elapsed_s', 'engine', 'fleet_inputs', 'gear_b', 'generated_at', 'inventory_summary', 'market_read', 'pipeline', 'pipeline_verdict', 'policy', 'region', 'scoreboard', 'tiers', 'version']
-[01:21:44] ✅ scoreboard: {"as_of": "2026-09-17T01:20:15.492023+00:00", "calls_graded": 0, "calls_made": 0, "categories_excluded": ["lesson", "macro"], "categories_learned": ["philosophy", "thesis"], "coin_flip_loss": 0.693, "hit_rate_by_window": {"21": {"hit_rate": null, "hits": 0, "n": 0}, "5": {"hit_rate": null, "hits": 0, "n": 0}, "63": {"hit_rate": null, "hits": 0, "n": 0}}, "last_read_at": "2026-09-16T05:46:38.540377+00:00", "latest_validation_loss": 0.05178999900817871, "lessons_carried": 0, "lessons_updated_at": null, "loss_history": [0.13564999401569366, 0.05178999900817871, 0.05178999900817871], "notes_studied": 13051, "retrains": 3, "trend": "stable", "understanding_score": 0.925, "voice": "online"}
-[01:21:44] ✅ market_read (public): {"generated_at": "2026-09-16T05:46:38.540377+00:00", "n_calls_this_read": 0, "n_opportunities": 0, "parse_error": false, "performance": {"by_window": {"21": {"hit_rate": null, "hits": 0, "n": 0}, "5": {"hit_rate": null, "hits": 0, "n": 0}, "63": {"hit_rate": null, "hits": 0, "n": 0}}, "n_calls": 0}, "playbook_available": true, "read_id": "20260916T054638Z", "stances": {"bonds": "NEUTRAL", "crypto": "HOLD", "metals": "HOLD", "stocks": "SELECTIVE"}}
-[01:21:44] ✅ board sources: 15 fresh ['bonds', 'bottom', 'brain', 'btc_cycle', 'crisis', 'crypto', 'fortress', 'fusion', 'gbc', 'katlin', 'khalid_risk', 'metals', 'regime_composite', 'risk_gate', 'scorecard']; 0 stale/missing []
-[01:21:44] ✅ Brain pipeline: status=done stage=done finished_at=2026-09-10T19:45:45.595972+00:00 classifier={"train:mlogloss": 0.010700000450015068, "validation:mlogloss": 0.05178999900817871} error=None
-[01:21:44] ✅ Brain learning block: curves=0 classifier_runs=0
-[01:21:44] ✅ gear_b (public): {"budget": {"committed_season_usd": 36.36, "committed_today_usd": 9.09, "daily_usd": 20.0, "season_cap_usd": 600.0}, "champion": {"generation": 0, "note": "base model; no weights promoted"}, "dataset": {"at": "2026-09-17T01:13:57.010163Z", "families": 2, "floor": 500, "generation": 9, "kept": 570, "kinds": {"public_benchmark_train": 570}, "licenses": {"CC-BY-4.0": 464, "MIT": 106}, "missing_rows": null, "ok": true, "reason": null}, "enabled": true, "holdout": {"digest": "b926ab5e305c6ce5764adfcbc93ea5f89bc596424f31e26a4cdea54066781fd2", "frozen": true, "frozen_at": "2026-09-14T00:41:49.456835Z"}, "instance_type": "ml.g5.2xlarge", "jobs": {"by_status": {"Failed": 2, "Stopped": 5, "launching": 1}, "total": 8}, "model_card": "qwen2-5-coder-7b-instruct", "refusal": null, "status": "armed", "version": "gear-b.1"}
-[01:21:44] ✅ health/voice: {}
-── B. student tick, chain of command, Monday-Friday wall ──
-[01:21:44] ✅ student-state (public): generated_at=2026-09-17T01:21:33+00:00 (0.0 h ago) gen=1 outer_status={"funding": {"dvp_rate": {"checked_at": "2026-09-17T01:19:33+00:00", "data_unavailable": false, "observation_age_seconds": 263973.075227, "observed_at": "2026-09-14T00:00:00+00:00", "raw_sha256": "80e...(4334 chars) health={"discipline": "factory-doctrine.v1", "elapsed_seconds": 1.191, "errors": [], "general_coding": "blocked_no_verified_generative_model", "last_tick_at": "2026-09-17T01:21:33+00:00", "lease_fence": 5247, "protected_exam": "independent_grader_role", "state_authority": "private_conditional_s3", "status": "running"} ranks={"cards": {"coder": {"co": null, "errors_window": 0, "graded_window": 0, "kind": "builtin", "last_graded_at": null, "last_verdict": "hold:min_graded_tasks", "last_verdict_at": "2026-09-17T01:15:33+00:00", "pass_rate": null, "prior_pass_rate": null, "rank": "recruit", "since": "2026-09-13T17:59:28+00:00", "status": "active", "verdicts": 0}, "deployer": {"co": null, "errors_window": 0, "graded_window": 0, "kind": "builtin", "last_graded_at": null, "last_verdict": "hold:min_graded_tasks", "last_ver...(2040 chars)
-[01:21:44] ✅ data/ai-factory.json: {"agents": [{"id": "student", "name": "Student", "purpose": "Select bounded experiments and preserve verified skills", "status": "active"}, {"id": "coder", "name": "Coder", "purpose": "Generate restricted candidate programs and repair proposals", "status": "bounded_program_search"}, {"id": "researcher", "name": "Researcher", "purpose": "Validate approved external sources and provenance", "status": "active"}, {"id": "investor", "name": "Investor", "purpose": "Submit research forecasts; no orders", "status": "research_baseline"}, {"id": "deployer", "name": "Deployer", "purpose": "Queue exact art...(6413 chars)
-[01:21:44] ✅ data/factory-public.json: {"agents": [{"id": "student", "name": "Student", "purpose": "Select bounded experiments and preserve verified skills", "status": "active"}, {"id": "coder", "name": "Coder", "purpose": "Generate restricted candidate programs and repair proposals", "status": "bounded_program_search"}, {"id": "researcher", "name": "Researcher", "purpose": "Validate approved external sources and provenance", "status": "active"}, {"id": "investor", "name": "Investor", "purpose": "Submit research forecasts; no orders", "status": "research_baseline"}, {"id": "deployer", "name": "Deployer", "purpose": "Queue exact art...(6413 chars)
-[01:21:44] ✅ wall ledger: season=season-2026-09-14 keys=['entries', 'final_weeks', 'polls', 'schema_version', 'season', 'updated_at'] entries=0 by_status={}
-[01:21:44] ✅ official prints on disk (weeks): []
-[01:21:44] ✅ salon objects: ['chat/owner.json']
-── C. coding lane -- supply (verified rows) and bursts ──
-[01:21:44] ✅ gearb control: {"approved_at": "2026-09-13T19:39:40.169947Z", "daily_budget_usd": 20.0, "enabled": true, "max_family_share": 0.85, "max_jobs_per_day": 4, "min_sft_rows": 500, "model_id": "qwen2-5-coder-7b-instruct", "model_source": "own", "model_version": "c03e6d358207e414f1eca0bb1891e29f1db0e242", "season_cap_usd": 600.0}
-[01:21:44] ✅ base weights: {"file_count": null, "license": "apache-2.0", "repo": "Qwen/Qwen2.5-Coder-7B-Instruct", "revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242", "total_bytes": 15242805878}
-[01:26:59] ✅ verified rows on disk: 3629; by checker: {"factory-code-verify:v4-supervisor-judge": 1527, "factory-code-exam:a340d8ebd559": 464, "factory-trace-verify:network-less-container": 1529, "factory-code-exam:caf2b53d3151": 106, "factory-code-verify:v3-supervisor-judge": 3}
-[01:26:59] ✅ ADMITTED by the current checker rule (supervisor judge v3+, runner-verified, passed): 2100 rows over 570 distinct tasks; families {"mbpp": 1780, "apps-introductory": 320}; newest row at None (None h ago)
-[01:26:59] ✅ burst/exam job records: 6 {'burst': 5, 'exam': 1}; newest: {"job_name": "jh-burst-gen0b2-20260914-214444", "kind": "burst", "launched_at": "2026-09-14T21:47:56.194525+00:00", "status": "launching"}
-── D. coding lane -- training jobs, candidate, frozen exam, champion ──
-[01:27:01]   gearb job jh-gearb-gen1-20260915-024201 gen=1 status=Failed launched=2026-09-15T02:42:01 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen3-20260915-031242 gen=3 status=Failed launched=2026-09-15T03:12:42 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen4-20260915-071207 gen=4 status=Stopped launched=2026-09-15T07:12:07 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen5-20260916-000739 gen=5 status=Stopped launched=2026-09-16T00:07:39 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen6-20260916-041229 gen=6 status=Stopped launched=2026-09-16T04:12:29 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen7-20260916-091227 gen=7 status=Stopped launched=2026-09-16T09:12:27 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen8-20260917-000739 gen=8 status=Stopped launched=2026-09-17T00:07:39 cap=$4.545 reason=
-[01:27:01]   gearb job jh-gearb-gen9-20260917-011357 gen=9 status=launching launched=2026-09-17T01:13:57 cap=$4.545 reason=
-[01:27:01] ✅ NEWEST TRAINING JOB jh-gearb-gen9-20260917-011357: status=InProgress secondary=Starting started=None ended=None train_s=None billable_s=None reason=
-[01:27:01]     2026-09-17 01:13:57 -> Starting: Insufficient capacity error from EC2 while launching instances, retrying!
-[01:27:01] ✅ candidates: {}
-[01:27:01] ✅ weights champion: none (base model serves)
-[01:27:01] ✅ extracted adapters: {}
-[01:27:02]   exam result base.json: gen=gen-0 passed=135/164 score=0.8232 critical=0 missing=0 at=2026-09-14T22:45:56Z
-[01:27:02]   exam result gen-0-34900737918.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 at=2026-09-14T21:48:21Z
-[01:27:02]   exam result gen-0-34902101944.json: gen=gen-0 passed=0/164 score=0.0 critical=21 missing=0 at=2026-09-14T22:03:44Z
-[01:27:02]   exam result gen-0-34903812485.json: gen=gen-0 passed=0/164 score=0.0 critical=157 missing=0 at=2026-09-14T22:23:30Z
-[01:27:02]   exam result gen-0-34905498719.json: gen=gen-0 passed=0/164 score=0.0 critical=157 missing=0 at=2026-09-14T22:43:58Z
-[01:27:02]   exam result gen-0-34905651137.json: gen=gen-0 passed=135/164 score=0.8232 critical=0 missing=0 at=2026-09-14T22:45:56Z
-[01:27:02] ✅ BASE EXAM: 135/164 = 82.3% (critical 0, evaluation humaneval-frozen-848505e1dd021797)
-[01:27:02] ✅ LEARNING (coding, frozen holdout): no trained adapter has been examined yet -> null
-── E. owned serving endpoint and the ai.html chat ──
-[01:27:02] ✅ owned endpoint jh-owned-coder-async: InService (created 2026-09-14 22:48:19); chat control enabled=True model=qwen2-5-coder-7b-instruct; chat requests on disk: 3 (newest 2026-09-14 23:14:05+00:00, 50.1 h ago)
-── F. market read -- the AI's own calls and their grading ──
-[01:27:02] ✅ read path: llm_path=governed-router | glm: glm failed: HTTP Error 429: Too Many Requests fallback=True empty=True decision_status=ADVISORY_ONLY
-[01:27:02] ✅ latest read: at=2026-09-16T05:46:38.540377+00:00 (19.6 h ago) voice=None parse_error=None overall="gate:ok authority:ok sizing:ok table:ok plumbing:ok credit:ok dollar:ok vol:ok constitution:ok" calls=0 lessons_carried=None; lessons on file=0
-[01:27:02] ✅ graded performance (public scoreboard): {"by_window": {"21": {"hit_rate": null, "hits": 0, "n": 0}, "5": {"hit_rate": null, "hits": 0, "n": 0}, "63": {"hit_rate": null, "hits": 0, "n": 0}}, "n_calls": 0}
-── G. the one blocked step -- gen-1 adapter exam ──
-── H. scorecard ──
-[01:27:02] ✅ stages: weights staged=yes, bursts produced candidates=yes, independent judge admitted rows=yes, supply floor reached (unique tasks)=yes, base exam trusted=yes, adapter trained=no, candidate examined=no, candidate promoted=no -> 5/8
-[01:27:02] ⚠ BLOCKER: no official prints written yet -- wall entries can never grade (factory-official-prints.yml runs Sat/Sun)
-[01:27:02] ⚠ BLOCKER: training job jh-gearb-gen9-20260917-011357 still InProgress/Starting -- exam waits
-[01:27:02] ✅ LEARNING (coding) not measured yet | SUPPLY 100.0% (570 unique tasks / 500 floor) | BASE 82.3%
-[01:27:02] ✅ GREEN -- scorecard recorded
-
-→ Report written to aws/ops/reports/latest/ops_5584_ai_learning_progress.md
-ops 5585 -- generation 1 relaunch: bundle re-pinned with the planned-steps + time-budget trainer, launcher proven, Gear B tick launch=true
+executing-against: 84ce76400a1f5028b0e8273e8bf108d110f7d130
 {
-  "bundle": "written",
-  "bundle_key": "factory/training/bundles/train-b64e3b4bc006dde1.tar.gz",
-  "bundle_sha256": "b64e3b4bc006dde11eb94f7fc0c723be02274fa7b98dd8040fcb1e6aaa1454a8",
-  "pin_key": "factory/training/current.json",
-  "image": "857687956942.dkr.ecr.us-east-1.amazonaws.com/justhodl/factory-train:hf-pt2.3-tf4.46-cu121@sha256:39b1be47f293d0cb62b0e4b3f4e69aab6e74558f38b45c9ff5f67bd143366e86"
+  "ops": 5612,
+  "invoke_status": 200,
+  "fn_error": null,
+  "body": {
+    "statusCode": 200,
+    "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 34.3, \"errors\": 5}"
+  },
+  "elapsed_s": 119.9,
+  "version": "2.4.7",
+  "generated_at": "2026-09-17T14:11:26.004334+00:00",
+  "quality": {
+    "observation_date": "2026-09-15",
+    "publication_date": "2026-09-17",
+    "frequency": "mixed",
+    "freshness_basis": "observation",
+    "status": "fresh",
+    "ciss_ea_as_of": "2026-09-15",
+    "sovciss_ranking_eligible": false
+  },
+  "most_stressed_sovereign": null,
+  "worst_country": "portugal",
+  "uk_ciss_as_of": "2026-09-15",
+  "uk_yoy_pct": null,
+  "ea_ciss_as_of": "2026-09-15",
+  "taiwan_cds_bp": null,
+  "taiwan_default_prob": null
 }
-[01:27:04] ✅ bundle re-pinned: train-e4720a074cb4965c.tar.gz -> train-b64e3b4bc006dde1.tar.gz; recipe plans steps + stops on the budget=True; bundle recipe == checkout=True; pin epochs=3 max_steps(ceiling)=400; image kept=True
-[01:27:04] ✅ justhodl-ai receipt commit=a40877e (source identical to HEAD a40877e), code_sha256 matches live, run=35170186960
-[01:27:05] ✅ gearb control: {"max_family_share": 0.85, "min_sft_rows": 500, "max_jobs_per_day": 4, "daily_budget_usd": 20.0, "season_cap_usd": 600.0} -> max_jobs_per_day 4 for today (dated copy kept; daily $20.0 and season $600.0 caps untouched)
-[01:27:08] ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
-[01:27:08] ✅ tick result: refusal=a job is still running built=null
-[01:27:08] ✗ no training job launched -- refusal chain: {"ok": true, "action": "/gearb/tick", "result": {"at": "2026-09-17T01:27:07.593051Z", "polled": [{"job_name": "jh-gearb-gen9-20260917-011357", "status": "InProgress"}], "built": null, "launched": null, "refusal": "a job is still running"}, "at": "2026-09-17T01:27:08.160090+00:00"}
-
-→ Report written to aws/ops/reports/latest/ops_5585_gen1_planned_relaunch.md
-❌ OPS-FAIL: aws/ops/pending/ops_5585_gen1_planned_relaunch.py
-ops 5586 -- stop the doomed gen8 job (old bundle) and relaunch generation 1 on the planned-steps + time-budget bundle
-[01:27:08] ✅ pinned bundle: train-b64e3b4bc006dde1.tar.gz (epochs=3); InProgress gearb jobs: ['jh-gearb-gen9-20260917-011357']
-[01:27:09] ✅ jh-gearb-gen9-20260917-011357: secondary=Starting started=None bundle=ng/bundles/train-23b4c7807e7682f8.tar.gz time_budget_s=9600 -> new recipe, leaving it alone
-[01:27:09] ✅ gearb control: max_jobs_per_day=4 daily=$20.0 season=$600.0 (unchanged by this op)
-[01:27:11] ✅ tick status=200: {"refusal": null, "built": null, "launched": null, "polled": null, "error": null, "reason": null}
-[01:27:11] ✅ tick result: refusal=a job is still running built=null
-[01:27:11] ✗ no training job launched -- refusal chain: {"ok": true, "action": "/gearb/tick", "result": {"at": "2026-09-17T01:27:10.536779Z", "polled": [{"job_name": "jh-gearb-gen9-20260917-011357", "status": "InProgress"}], "built": null, "launched": null, "refusal": "a job is still running"}, "at": "2026-09-17T01:27:11.030509+00:00"}
-
-→ Report written to aws/ops/reports/latest/ops_5586_stop_gen8_relaunch.md
-❌ OPS-FAIL: aws/ops/pending/ops_5586_stop_gen8_relaunch.py
