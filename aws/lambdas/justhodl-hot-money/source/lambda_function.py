@@ -257,6 +257,18 @@ def lambda_handler(event, context):
                for c in doc["countries"].values())
     doc["status"] = "LIVE" if live else "INSUFFICIENT_DATA"
     doc["diag"]["runtime_ms"] = int((time.time() - t0) * 1000)
+    tw = doc["countries"].get("taiwan") or {}
+    # ops 5624 quality
+    doc["units"] = "TWD_bn"
+    doc["quality"] = {
+        "observation_date": tw.get("latest_day"),
+        "publication_date": now.date().isoformat(),
+        "frequency": "daily",
+        "freshness_basis": "observation",
+        "status": "fresh" if live else "unavailable",
+        "missing": [] if live else ["taiwan_twse"],
+        "note": "Exchange foreign net only. Not TIC/BOP.",
+    }
     _put(OUT_KEY, doc)
     tw = doc["countries"]["taiwan"]
     return {"ok": live, "status": doc["status"],
