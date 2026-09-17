@@ -1,8 +1,10 @@
+import math
+from concurrent.futures import ThreadPoolExecutor
 import json
 import boto3
 import urllib.request
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 import _fred_shim  # noqa: F401  — cache-first FRED + 429 backoff (ops/1074)
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
@@ -39,7 +41,7 @@ def lambda_handler(event, context):
         # Global Manufacturing PMIs
         # ops 5111: CHEFMNM156N answers 400; the OECD MEI production mirrors (EA19/JPN/GBR/DEU PRMNTO01IXOBM)
         # stopped in 2023-10 / 2024-03 and are not PMIs -- removed rather than shown as current
-        'FRANCE_MANUFACTURING_PMI': 'FRAPRMNTO01IXOBM',
+        'FRANCE_MANUFACTURING_PRODUCTION_INDEX': 'FRAPRMNTO01IXOBM',
         
         # Manufacturing Employment
         'MANUFACTURING_EMPLOYMENT': 'MANEMP',
@@ -55,69 +57,40 @@ def lambda_handler(event, context):
         'MANUFACTURING_INVENTORIES': 'MNFCTRIMSA'
     }
     
-    results = {}
-    
-    # Fetch all manufacturing data
-    for name, series_id in manufacturing_indicators.items():
+    def fetch(item):
+        name,series_id=item
         try:
-            url = f"https://api.stlouisfed.org/fred/series/observations"
-            params = {
-                'series_id': series_id,
-                'api_key': fred_key,
-                'file_type': 'json',
-                'limit': '90',
-                'sort_order': 'desc'
-            }
-            
-            full_url = f"{url}?{urllib.parse.urlencode(params)}"
-            
-            with urllib.request.urlopen(full_url) as response:
-                data = json.loads(response.read())
-            
-            if 'observations' in data and data['observations']:
-                obs = data['observations']
-                current = float(obs[0]['value']) if obs[0]['value'] != '.' else None
-                
-                if current is not None:
-                    # Calculate trends
-                    changes = {}
-                    if len(obs) > 1 and obs[1]['value'] != '.':
-                        changes['1D'] = current - float(obs[1]['value'])
-                    if len(obs) > 30 and obs[30]['value'] != '.':
-                        changes['1M'] = current - float(obs[30]['value'])
-                    if len(obs) > 90 and obs[90]['value'] != '.':
-                        changes['3M'] = current - float(obs[90]['value'])
-                    
-                    results[name] = {
-                        'current': current,
-                        'date': obs[0]['date'],
-                        'changes': changes,
-                        'signal': interpret_manufacturing_signal(name, current)
-                    }
-                    
-        except Exception as e:
-            print(f"Error fetching {name}: {str(e)}")
-    
-    # Generate comprehensive analysis
-    analysis = analyze_global_manufacturing(results)
-    
-    # ECB manufacturing data (would add actual ECB API calls here)
-    ecb_data = {
-        'note': 'ECB manufacturing data integration pending',
-        'eurozone_sentiment': 'MODERATE'
-    }
-    
-    response_body = {
-        'timestamp': datetime.now().isoformat(),
-        'us_manufacturing': {k: v for k, v in results.items() if 'ISM' in k or 'FED' in k},
-        'global_manufacturing': {k: v for k, v in results.items() if 'PMI' in k or 'CHINA' in k or 'EURO' in k},
-        'industrial_production': {k: v for k, v in results.items() if 'PRODUCTION' in k or 'CAPACITY' in k},
-        'orders_inventories': {k: v for k, v in results.items() if 'ORDER' in k or 'INVENTOR' in k},
-        'ecb_data': ecb_data,
-        'analysis': analysis,
-        'recommendations': generate_manufacturing_recommendations(analysis)
-    }
-    
+            params={'series_id':series_id,'api_key':fred_key,'file_type':'json','limit':90,'sort_order':'desc'}
+            url='https://api.stlouisfed.org/fred/series/observations?'+urllib.parse.urlencode(params)
+            with urllib.request.urlopen(url,timeout=20) as response:
+                data=json.loads(response.read())
+            return name,measure_monthly(name,series_id,data.get('observations',[]))
+        except Exception as exc:
+            return name,{'current':None,'date':None,'changes':{},'signal':'UNAVAILABLE','source_id':series_id,
+                         'quality':{'status':'unavailable','reason':type(exc).__name__}}
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        results=dict(pool.map(fetch,manufacturing_indicators.items()))
+    analysis=analyze_global_manufacturing(results)
+    now=datetime.now(timezone.utc).isoformat()
+    response_body={
+        'timestamp':now,'generated_at':now,'engine':'manufacturing-global-agent','version':'2.0',
+        'methodology_version':'manufacturing-measurement.v2','call':None,'execution_eligible':False,
+        'us_manufacturing':{k:v for k,v in results.items() if k in ('EMPIRE_STATE','PHILLY_FED','DALLAS_FED')},
+        'global_manufacturing':{k:v for k,v in results.items() if k.startswith('FRANCE_')},
+        'industrial_production':{k:v for k,v in results.items() if 'PRODUCTION' in k or 'CAPACITY' in k},
+        'orders_inventories':{k:v for k,v in results.items() if 'ORDER' in k or 'INVENTOR' in k},
+        'employment':{k:v for k,v in results.items() if k in ('MANUFACTURING_EMPLOYMENT','MANUFACTURING_HOURS','MANUFACTURING_EARNINGS','MANUFACTURING_OVERTIME')},
+        'ecb_data':{'note':'No ECB manufacturing feed in this engine','eurozone_sentiment':None},
+        'analysis':analysis,'recommendations':[],
+        'quality':{'status':'fresh' if any(v.get('quality',{}).get('status')=='fresh' for v in results.values()) else 'unavailable',
+                   'fresh_series':sum(v.get('quality',{}).get('status')=='fresh' for v in results.values()),
+                   'total_series':len(results),'global_pmi_status':'unavailable'},
+        'metric_note':'Production indices are not PMI. Regional Fed survey balances use zero, not 50, as the reference. '
+                      'Monthly changes use calendar months. No probability or investment recommendation is calibrated.'}
+    boto3.client('s3',region_name='us-east-1').put_object(
+        Bucket='justhodl-dashboard-live',Key='data/manufacturing.json',
+        Body=json.dumps(response_body,allow_nan=False).encode(),ContentType='application/json',CacheControl='public, max-age=3600')
+
     return {
         'statusCode': 200,
         'headers': {
@@ -127,106 +100,61 @@ def lambda_handler(event, context):
         'body': json.dumps(response_body, cls=DecimalEncoder)
     }
 
-def interpret_manufacturing_signal(name, value):
-    """Interpret manufacturing indicators"""
-    
-    if 'ISM' in name or 'PMI' in name:
-        if value >= 60:
-            return 'EXPANSION_STRONG'
-        elif value >= 55:
-            return 'EXPANSION_MODERATE'
-        elif value >= 50:
-            return 'EXPANSION_WEAK'
-        elif value >= 45:
-            return 'CONTRACTION_MILD'
-        elif value >= 40:
-            return 'CONTRACTION_MODERATE'
-        else:
-            return 'CONTRACTION_SEVERE'
-    
-    elif 'CAPACITY' in name:
-        if value >= 80:
-            return 'OVERHEATING'
-        elif value >= 75:
-            return 'NORMAL_HIGH'
-        elif value >= 70:
-            return 'NORMAL'
-        else:
-            return 'UNDERUTILIZED'
-    
-    elif 'INVENTORIES' in name:
-        if value > 1.4:
-            return 'EXCESSIVE_INVENTORY'
-        elif value > 1.3:
-            return 'HIGH_INVENTORY'
-        elif value > 1.2:
-            return 'NORMAL'
-        else:
-            return 'LOW_INVENTORY'
-    
-    return 'CHECK_DATA'
+def measure_monthly(name,series_id,observations):
+    values={}
+    for row in observations:
+        try:
+            v=float(row['value']);d=row['date'];datetime.strptime(d,'%Y-%m-%d')
+            if math.isfinite(v):values[d[:7]]=(d,v)
+        except (ValueError,TypeError,KeyError):pass
+    if not values:
+        return {'current':None,'date':None,'changes':{},'signal':'UNAVAILABLE','source_id':series_id,'quality':{'status':'unavailable'}}
+    ym=max(values);d,value=values[ym];year,month=map(int,ym.split('-'))
+    age=(datetime.now(timezone.utc).date()-datetime.strptime(d,'%Y-%m-%d').date()).days
+    status='invalid' if age<0 else 'stale' if age>100 else 'fresh'
+    unit=('survey_balance_pct' if name in ('EMPIRE_STATE','PHILLY_FED','DALLAS_FED') else
+          'percent' if name=='CAPACITY_UTILIZATION' else 'ratio' if name=='INVENTORIES_TO_SALES' else
+          'index_source_base' if any(k in name for k in ('PRODUCTION','DURABLE_GOODS','BUSINESS_EQUIPMENT','CONSUMER_GOODS','MATERIALS')) and 'ORDERS' not in name else
+          'USD_per_hour' if name=='MANUFACTURING_EARNINGS' else
+          'hours' if name in ('MANUFACTURING_HOURS','MANUFACTURING_OVERTIME') else
+          'thousands_of_employees' if name=='MANUFACTURING_EMPLOYMENT' else 'USD_millions')
+    changes={}
+    index=year*12+month-1
+    for n in (1,3):
+        ix=index-n;previous=values.get(f'{ix//12:04d}-{ix%12+1:02d}')
+        changes[f'{n}M']=round(value-previous[1],4) if previous and status=='fresh' else None
+    signal=interpret_manufacturing_signal(name,value) if status=='fresh' else 'UNAVAILABLE'
+    return {'current':value if status=='fresh' else None,'last_observed_value':value,'date':d,
+            'source_id':series_id,'unit':unit,'frequency':'monthly','changes':changes,
+            'change_unit':unit,'signal':signal,'quality':{'status':status,'age_days':age,'max_age_days':100},
+            'score_eligible':signal not in ('CHECK_DATA','OBSERVATION_ONLY','UNAVAILABLE')}
+
+
+def interpret_manufacturing_signal(name,value):
+    if not isinstance(value,(int,float)) or not math.isfinite(value):return 'CHECK_DATA'
+    if 'PMI' in name or 'ISM' in name:
+        if not 0<=value<=100:return 'CHECK_DATA'
+        return 'EXPANSION' if value>50 else 'CONTRACTION' if value<50 else 'UNCHANGED'
+    if name in ('EMPIRE_STATE','PHILLY_FED','DALLAS_FED'):
+        if not -100<=value<=100:return 'CHECK_DATA'
+        return 'POSITIVE_BALANCE' if value>0 else 'NEGATIVE_BALANCE' if value<0 else 'ZERO_BALANCE'
+    return 'OBSERVATION_ONLY'
+
 
 def analyze_global_manufacturing(data):
-    """Analyze global manufacturing conditions"""
-    
-    # Check ISM level
-    ism = data.get('ISM_COMPOSITE', {}).get('current', 50)
-    
-    # Determine manufacturing cycle
-    if ism >= 60:
-        cycle = 'BOOM'
-    elif ism >= 55:
-        cycle = 'EXPANSION'
-    elif ism >= 50:
-        cycle = 'SLOW_GROWTH'
-    elif ism >= 45:
-        cycle = 'CONTRACTION'
-    else:
-        cycle = 'RECESSION'
-    
-    # Check global synchronization
-    global_pmis = []
-    for key in ['CHINA_MANUFACTURING_PMI', 'EUROZONE_MANUFACTURING_PMI', 'JAPAN_MANUFACTURING_PMI']:
-        if key in data:
-            global_pmis.append(data[key].get('current', 50))
-    
-    if global_pmis:
-        avg_global = sum(global_pmis) / len(global_pmis)
-        if avg_global > 52:
-            global_status = 'SYNCHRONIZED_GROWTH'
-        elif avg_global > 50:
-            global_status = 'MIXED_GROWTH'
-        else:
-            global_status = 'SYNCHRONIZED_CONTRACTION'
-    else:
-        global_status = 'UNKNOWN'
-    
-    return {
-        'us_cycle': cycle,
-        'global_status': global_status,
-        'ism_level': ism,
-        'expansion_probability': max(0, min(100, (ism - 42) * 2)),
-        'recession_risk': 'HIGH' if ism < 45 else 'MODERATE' if ism < 50 else 'LOW'
-    }
+    usable={k:v for k,v in data.items() if v.get('quality',{}).get('status')=='fresh'
+            and v.get('signal') not in ('CHECK_DATA','UNAVAILABLE','OBSERVATION_ONLY')}
+    ism=usable.get('ISM_COMPOSITE',{}).get('current')
+    return {'us_cycle':interpret_manufacturing_signal('ISM_COMPOSITE',ism) if ism is not None else 'UNKNOWN',
+            'global_status':'UNAVAILABLE','ism_level':ism,'expansion_probability':None,'recession_risk':'UNKNOWN',
+            'regional_surveys':{k:v['signal'] for k,v in usable.items() if k in ('EMPIRE_STATE','PHILLY_FED','DALLAS_FED')},
+            'excluded_from_composites':[k for k in data if k not in usable],
+            'note':'Regional surveys are separate observations. Production indices are not PMI and uncalibrated series do not vote.'}
+
 
 def generate_manufacturing_recommendations(analysis):
-    """Generate actionable recommendations"""
-    
-    recommendations = []
-    
-    if analysis['us_cycle'] == 'RECESSION':
-        recommendations.append('Manufacturing in recession - defensive positioning')
-    
-    if analysis['recession_risk'] == 'HIGH':
-        recommendations.append('High recession risk - reduce cyclical exposure')
-    
-    if analysis['global_status'] == 'SYNCHRONIZED_CONTRACTION':
-        recommendations.append('Global manufacturing weakness - favor defensive sectors')
-    
-    if analysis['ism_level'] < 43:
-        recommendations.append('ISM below 43 - historical recession indicator')
-    
-    return recommendations
+    return []
+
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):

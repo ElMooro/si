@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Macro Data · JustHodl.AI</title>
-<meta name="description" content="Global manufacturing PMI · Securities & banking · BEA GDP & national accounts">
+<meta name="description" content="Manufacturing surveys and production · Securities & banking · BEA GDP & national accounts">
 <style>
 :root{
   --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
@@ -137,7 +137,7 @@ table.tbl tr:last-child td{border-bottom:none}
     <h1>MACRO DATA</h1>
 <div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
 <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","macro-data-decisive-call");</script>
-    <div class="sub">Composite nowcast · global manufacturing PMI · banking sector loans · BEA GDP &amp; economic accounts</div>
+    <div class="sub">Composite nowcast · manufacturing surveys and production · banking sector loans · BEA GDP &amp; economic accounts</div>
   </div>
 
   <!-- ────────── MACRO NOWCAST (composite z-score) ────────── -->
@@ -183,7 +183,7 @@ table.tbl tr:last-child td{border-bottom:none}
   <div class="grid-2">
     <section class="card">
       <div class="card-head">
-        <div><div class="card-title">GLOBAL MANUFACTURING PMI</div><div class="card-subtitle">Eurozone · Japan · UK · expansion vs contraction</div></div>
+        <div><div class="card-title">MANUFACTURING SURVEYS &amp; PRODUCTION</div><div class="card-subtitle">Regional Fed balances · production indices · dated observations</div></div>
       </div>
       <div id="manufBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </section>
@@ -218,7 +218,7 @@ table.tbl tr:last-child td{border-bottom:none}
 </footer>
 
 <script>
-const URLS = {"manufacturing": "https://api.justhodl.ai/agent/manufacturing", "banking": "https://api.justhodl.ai/agent/banking", "bea": "https://api.justhodl.ai/agent/bea"};
+const URLS = {"manufacturing": "data/manufacturing.json", "banking": "https://api.justhodl.ai/agent/banking", "bea": "https://api.justhodl.ai/agent/bea"};
 
 function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -265,7 +265,7 @@ function renderMetricsTable(targetId, dataDict, opts){
     if(cur != null){
       curDisp = Math.abs(cur) >= 1000 ? fmtNum(cur, 0) : fmtNum(cur, 2);
     }
-    html += `<tr><td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td><td class="r">${curDisp}</td>`;
+    html += `<tr><td class="metric-name">${escHtml(k.replace(/_/g,' '))}<div style="font-size:9px;color:var(--fg-3)">${escHtml(v.date||'')} · ${escHtml(v.unit||'source units')}</div></td><td class="r">${curDisp}</td>`;
     for(const c of cols){
       const x = ch[c];
       html += `<td class="r ${chgClass(x)}">${fmtSigned(x)}</td>`;
@@ -591,13 +591,15 @@ async function load(){
 
   let allOk = true;
 
-  if(manuf.status === 'fulfilled'){
+  if(manuf.status === 'fulfilled' && manuf.value.methodology_version==='manufacturing-measurement.v2' &&
+      Number.isFinite(Date.parse(manuf.value.generated_at)) && Date.now()>=Date.parse(manuf.value.generated_at) &&
+      Date.now()-Date.parse(manuf.value.generated_at)<=4*864e5){
     const d = manuf.value;
     // Combine us + global
-    const merged = {...(d.us_manufacturing||{}), ...(d.global_manufacturing||{})};
-    renderMetricsTable('manufBody', merged, {cols:['1D','1M']});
+    const merged = {...(d.us_manufacturing||{}), ...(d.global_manufacturing||{}), ...(d.industrial_production||{})};
+    renderMetricsTable('manufBody', merged, {cols:['1M','3M']});
   }else{
-    document.getElementById('manufBody').innerHTML = `<div class="err">⚠ Manufacturing: ${escHtml(manuf.reason.message)}</div>`;
+    document.getElementById('manufBody').innerHTML = `<div class="err">Manufacturing unavailable or stale: ${escHtml(manuf.reason?.message||'current validated publication required')}</div>`;
     allOk = false;
   }
 
