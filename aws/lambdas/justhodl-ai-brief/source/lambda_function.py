@@ -35,6 +35,7 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 import boto3
+from calls_contract import khalid_value, candidate_verb, make_snapshot, append_snapshot
 
 S3 = boto3.client("s3", region_name="us-east-1")
 SSM = boto3.client("ssm", region_name="us-east-1")
@@ -242,30 +243,8 @@ def load_json(key, default=None):
 _CALL_VERBS = ["EXIT ALL RISK", "EXIT", "TRIM", "HEDGE", "LEVER", "LONG", "LOAD", "WAIT", "HOLD"]
 
 def _extract_call_verb(md):
-    """Heuristic: find the DECISIVE CALL verb in Claude's brief output.
-    The verb appears in section 7 of every brief and is one of:
-    EXIT_ALL_RISK / EXIT / TRIM / HEDGE / LEVER / LONG / WAIT / HOLD / UNKNOWN.
-
-    Strategy:
-      1. Look at the last 2500 chars of the brief (section 7 is always near the end).
-      2. Scan for the call verbs in priority order — most decisive first.
-      3. The brief consistently bolds the verb (**TRIM**, **LONG**, etc.) so the
-         pattern is reliable.
-    """
-    if not md or len(str(md).strip()) < 120:
-        # ops 5642: 54-char stubs were minting UNKNOWN for weeks.
-        # WAIT is an explicit abstain, not a parse failure.
-        return "WAIT"
-    tail = md[-2500:].upper()
-    # Prefer verbs that appear inside ** ** (bolded action), then fall back to plain
-    import re as _re
-    for verb in _CALL_VERBS:
-        if _re.search(rf'\*\*\s*{_re.escape(verb)}\b', tail):
-            return verb.replace(" ", "_")
-    for verb in _CALL_VERBS:
-        if _re.search(rf'\b{_re.escape(verb)}\b', tail):
-            return verb.replace(" ", "_")
-    return "UNKNOWN"
+    """Advisory parsing only; decision status and eligibility are separate fields."""
+    return candidate_verb(md) or "UNKNOWN"
 
 
 def compress_intel(intel):
@@ -273,6 +252,7 @@ def compress_intel(intel):
     if not intel:
         return None
     return {
+        "khalid_score": khalid_value(intel),
         "headline": intel.get("headline"),
         "headline_detail": intel.get("headline_detail"),
         "phase": intel.get("phase"),
@@ -755,43 +735,24 @@ def lambda_handler(event=None, context=None):
         return {"statusCode": 200, "headers": {"Cache-Control": "private, no-store"},
                 "body": json.dumps({"validated": True, "snapshot_keys": list(snapshot)})}
 
-    # 3. Build prompt
-    prompt = f"""You are the Chief Investment Strategist for JustHodl.AI — a Bloomberg-terminal-grade financial intelligence platform owned by Khalid. Below is a JSON snapshot of every major signal in the system as of right now.
+    # 3. Narrative summarizes observations; no allocation model is validated yet.
+    prompt = f"""Summarize this JustHodl observation snapshot in concise Markdown.
+Use sections DATA TAPE, OBSERVATIONS, DISAGREEMENTS, DATA LIMITATIONS,
+WATCH CONDITIONS, and DECISION STATUS.
+Only use the supplied values. Cite each field, unit and observation date when
+present. If a date, unit, calibration window or sample is missing, say it is
+unavailable. Do not treat the snapshot's computation time as an observation date.
+Separate measured facts, estimates and hypothetical scenarios. Show conflicting
+evidence rather than choosing a winner from unvalidated weights.
+Calibration figures describe their own signal/horizon samples; they are not the
+accuracy of this brief. No signal has permanent preferred status.
+Do not invent expected returns, transition probabilities, forecast horizons,
+position sizes, or a trading instruction. This brief's decision model has not
+passed the eligibility and out-of-sample gates. Its DECISION STATUS is ABSTAIN:
+observation-only, no qualified allocation instruction. Existing risk controls
+remain independent of narrative generation.
 
-Synthesize this into a DECISIVE executive brief in Khalid's preferred 7-section format:
-
-(1) **DATA TAPE** — markdown table of the 8-10 most important readings (with values and z-scores/percentiles where present)
-(2) **REGIME** — one-line classification + signature (e.g., "LATE_CYCLE_NARROW_LEADERSHIP — tech-only rally with credit stress building")
-(3) **BEST ASSETS** — top 3-5 names/sectors with median 3m return %, sourced from momentum/allocator/asymmetric data
-(4) **WORST ASSETS** — bottom 3-5 with median % decline, mean-reversion candidates
-(5) **TRANSITION PROBABILITIES & TIMELINE** — what shifts are likely in next 1-4 weeks, with probability estimates
-(6) **WATCH TRIGGERS** — 4-6 specific data thresholds that would flip the regime (e.g., "VIX > 25, Khalid Index > 70, RRP > $50B")
-(7) **DECISIVE CALL** — one of: LONG / TRIM / EXIT / LEVER / HEDGE — with concrete % allocations and explicit thresholds for changing the call. Be willing to issue "EXIT ALL RISK" if data warrants. Khalid prefers DECISIVE over hedged.
-
-CALIBRATION-AWARE SYNTHESIS:
-- The `calibration_v2` block contains the system's empirically-measured trust in each signal. Higher `weight` = more reliable.
-- When two signals disagree, **explicitly cite the weight** and resolve in favor of the higher-weighted one. Example: "carry_risk (w=1.45, 100% accuracy n=30) says risk-on but khalid_index (w=0.31, 0% accuracy on 30d window during recent rally) says defensive — defer to carry_risk."
-- The `khalid_index` signal has been floored at 0.31 because its 30-day predictions during the recent rally were 100% wrong (it was bearish, SPY rallied). Treat its current reading as low-confidence input, not headline guidance.
-- Top-trusted signals you should privilege: carry_risk, ml_risk, screener_top_pick, momentum_spy, plumbing_stress, crisis_hy_oas_vs_hyg.
-
-HORIZON-AWARE WEIGHTING (NEW — 2026-05-05):
-- Each signal in `top_weighted_signals` and `lowest_weighted_signals` may now include `best_horizon`, `best_horizon_weight`, `best_horizon_accuracy`, `best_horizon_n` — meaning the signal's MEASURED RELIABILITY at its sweet-spot timeframe. The flat `weight` collapses all horizons into one number; the per-horizon weight tells you the truth at that timeframe.
-- The `horizon_lifts` list shows signals where horizon-aware weighting recovers ≥0.15 of weight vs the flat aggregate. These signals are mis-priced by the flat lens.
-- **Match weight to call horizon:** If the DECISIVE CALL is tactical (TRIM/HEDGE/EXIT, days-to-2-weeks), prioritize signals with strong day_1, day_3, day_7, day_14 horizon weights. If the call is strategic (LONG/LEVER/EXIT_ALL_RISK, weeks-to-months), prioritize signals with strong day_30+ weights.
-- When citing a signal, prefer the format: "carry_risk (w=1.45 at day_30, 100% acc n=30)" — i.e., specify which horizon's weight you're using. If `best_horizon_weight` differs materially from flat `weight`, that's a tell that the signal is timeframe-specific.
-- Signals like `crypto_fear_greed` (flat=0.86, but day_14=1.44 acc=97%) are MUCH more trustworthy at their best horizon than the flat aggregate suggests. Don't dismiss them based on flat weight alone.
-
-PAPER-PORTFOLIO AWARENESS:
-- `paper_portfolio.signal_portfolio` shows the system's actual paper positions. Flag any in `near_target` or `near_stop` — these need attention NOW.
-- `paper_portfolio.macro_loop2` shows how the regime allocation is performing vs buy-and-hold. If `system_alpha_pct` is negative for >7 days, mention it as a regime mismatch.
-- Don't recommend new positions in tickers already open unless the thesis has materially strengthened.
-
-Rules:
-- Use ONLY data from the snapshot. Never make up numbers.
-- Cite specific signal names with their weight when you reference them (e.g., "carry_risk (w=1.45)" not just "carry_risk")
-- Be concise. Khalid reads this 4-6x/day so density matters.
-- Output GitHub-flavored Markdown only. No preamble, no greeting.
-
+Snapshot:
 ```json
 {snapshot_str}
 ```
@@ -839,6 +800,12 @@ Rules:
                 "error": str(e),
             }
 
+    decision_row = make_snapshot(snapshot, out)
+    out["version"] = "2.0"
+    out["decision"] = decision_row
+    out["decision_status"] = decision_row["decision_status"]
+    out["sizing_eligible"] = False
+
     # Account-specific sizing and drawdown enter this synthesis. Keep the full
     # brief private; public market/model engines remain available separately.
     publish_private("ai-brief", out)
@@ -849,60 +816,15 @@ Rules:
     S3.put_object(Bucket=BUCKET, Key="data/ai-brief.md", Body=md_body, ContentType="text/markdown", CacheControl="private, no-store")
     print(f"[ai-brief] wrote ai-brief.json ({len(body):,}b) and ai-brief.md ({len(md_body):,}b) in {out['duration_s']}s")
 
-    # 6. Snapshot decisive call to history ledger (append-only) so we can chart how
-    #    the call evolves over time. Extract the call verb (LONG/TRIM/EXIT/LEVER/HEDGE)
-    #    from the DECISIVE CALL section of the markdown using a simple heuristic.
-    try:
-        brief_md = out.get("brief_md") or ""
-        call_verb = _extract_call_verb(brief_md)
-        regime = (snapshot.get("intelligence") or {}).get("regime") if snapshot.get("intelligence") else None
-        khalid_score = (snapshot.get("intelligence") or {}).get("khalid_score") if snapshot.get("intelligence") else None
-        phase = ((snapshot.get("paper_portfolio") or {}).get("macro_loop2") or {}).get("phase")
-        cal_v2 = snapshot.get("calibration_v2") or {}
-
-        snap = {
-            "timestamp": snapshot["as_of"],
-            "iso_week": cal_v2.get("iso_week"),
-            "call_verb": call_verb,
-            "regime": regime,
-            "phase": phase,
-            "khalid_score": khalid_score,
-            "weighted_mean_accuracy": cal_v2.get("weighted_mean_accuracy"),
-            "highest_weight_signal": (cal_v2.get("highest_weight") or {}).get("signal"),
-            "n_open_positions": ((snapshot.get("paper_portfolio") or {}).get("signal_portfolio") or {}).get("n_open"),
-            "duration_s": out["duration_s"],
-            "brief_chars": len(brief_md),
-        }
-
-        # Append to history (last-1000 rolling window to keep file manageable)
-        try:
-            existing = json.loads(S3.get_object(Bucket=BUCKET, Key="data/decisive-call-history.json")["Body"].read())
-            history = existing.get("snapshots", [])
-        except Exception:
-            history = []
-        history.append(snap)
-        history = history[-1000:]
-        ledger = {
-            "v": "1.0",
-            "last_updated": snapshot["as_of"],
-            "n_snapshots": len(history),
-            "snapshots": history,
-        }
-        S3.put_object(
-            Bucket=BUCKET, Key="data/decisive-call-history.json",
-            Body=json.dumps(ledger, default=str).encode("utf-8"),
-            ContentType="application/json",
-            CacheControl="public, max-age=300",
-        )
-        print(f"[ai-brief] decisive-call-history snapshot appended (call={call_verb}, n_total={len(history)})")
-    except Exception as e:
-        # Non-fatal — brief itself is more important than the audit trail
-        print(f"[ai-brief] decisive-call snapshot failed (non-fatal): {e}")
+    # 6. Persist failures/abstentions explicitly, without truncating or resetting
+    # history. A failed recent-view write is fatal; its immutable event survives.
+    ledger = append_snapshot(S3, BUCKET, decision_row)
+    print(f"[ai-brief] Calls status={decision_row['decision_status']} reason={decision_row['decision_reason']} n={ledger['n_snapshots']}")
 
     # 7. Push a compact digest to Telegram (every brief generation, throttled by
     #    a "last_telegram_send" field on the ledger to prevent double-sends if
     #    the Lambda is invoked twice within 5 minutes).
-    if SKIP_TELEGRAM:
+    if SKIP_TELEGRAM or (event or {}).get("suppress_alerts") or decision_row["decision_status"] != "VALID":
         print("[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest")
     else:
         try:
@@ -939,6 +861,9 @@ Rules:
         "body": json.dumps({
             "duration_s": out["duration_s"],
             "brief_chars": len(out.get("brief_md") or ""),
+            "decision_status": decision_row["decision_status"],
+            "decision_reason": decision_row["decision_reason"],
+            "sizing_eligible": False,
             "snapshot_keys": list(snapshot.keys()),
             "error": out.get("error"),
         }),

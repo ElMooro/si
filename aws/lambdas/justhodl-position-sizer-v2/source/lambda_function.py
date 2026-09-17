@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+from calls_contract import decision_eligibility, latest_snapshot, finite, timestamp
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -54,18 +55,18 @@ def to_float(v, default=0.0):
 # riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
 # macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
 def _risk_gate_doc():
-    if not hasattr(_risk_gate_doc, "_c"):
-        try:
-            import boto3 as _b3, json as _js
-            from datetime import datetime as _dt, timezone as _tz
-            _d = _js.loads(_b3.client("s3").get_object(
-                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
-            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
-                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
-            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
-        except Exception:
-            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
-    return _risk_gate_doc._c
+    """Read every invocation; missing, future or stale constraints are not neutral."""
+    try:
+        doc = json.loads(S3.get_object(Bucket=BUCKET, Key="data/risk-gate.json")["Body"].read())
+        at = timestamp(doc.get("generated_at"))
+        age = (datetime.now(timezone.utc) - at).total_seconds() if at else None
+        cap = finite(doc.get("sizing_multiplier"))
+        if age is None or age < -300 or age > 48 * 3600 or cap is None or not 0 <= cap <= 1:
+            return {"posture": "UNAVAILABLE", "sizing_multiplier": None}
+        return doc
+    except Exception:
+        return {"posture": "UNAVAILABLE", "sizing_multiplier": None}
+
 
 _RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
 
@@ -206,6 +207,30 @@ def lambda_handler(event=None, context=None):
     started = time.time()
     now = datetime.now(timezone.utc)
 
+    history = (load_json("data/decisive-call-history.json") or {}).get("snapshots") or []
+    latest_call = latest_snapshot(history)
+    eligible, reason = decision_eligibility(latest_call, now)
+    gate = _risk_gate_doc()
+    gate_cap = finite(gate.get("sizing_multiplier"))
+    if not eligible or gate_cap is None:
+        out = {
+            "v": "2.0", "generated_at": now.isoformat(),
+            "method": "horizon_aware_kelly_calls_gate.v2", "status": "ABSTAIN",
+            "reason": reason if not eligible else "risk_gate_unavailable",
+            "sizing_eligible": False, "decisive_call": latest_call.get("call_verb"),
+            "calls_snapshot_id": latest_call.get("snapshot_id"),
+            "risk_multiplier": None,
+            "risk_constraints": {"posture": gate.get("posture"), "sizing_multiplier": gate_cap},
+            "summary": {"n_open_positions": None, "n_setups_evaluated": 0,
+                        "total_current_exposure_pct": None, "total_recommended_exposure_pct": None,
+                        "exposure_change_pp": None, "actions": {}, "n_horizon_aware": 0,
+                        "n_flat_fallback": 0},
+            "positions": [], "setups": [],
+            "note": "No allocation instruction. Independent risk constraints remain in force; abstention does not close or add positions.",
+        }
+        write_json("portfolio/sizer-v2.json", out)
+        return {"statusCode": 200, "body": json.dumps({"status": "ABSTAIN", "reason": out["reason"], "sizing_eligible": False})}
+
     # 1. Load weights — both flat and per-horizon
     flat = get_flat_weights()
     horizon = get_horizon_weights()
@@ -221,28 +246,11 @@ def lambda_handler(event=None, context=None):
     asym = load_json("opportunities/asymmetric-equity.json", default={})
     setups = (asym.get("top_setups") or [])[:15]
 
-    # 4. Load decisive call (modulates risk-on appetite)
-    history = (load_json("data/decisive-call-history.json") or {}).get("snapshots") or []
-    latest_call = history[-1] if history else {}
-    call_verb = (latest_call.get("call_verb") or "UNKNOWN").upper()
-    # Risk-multiplier based on call:
-    risk_mult = {
-        "EXIT_ALL_RISK": 0.0,
-        "EXIT": 0.25,
-        "TRIM": 0.5,
-        "HEDGE": 0.6,
-        "WAIT": 0.7,
-        "HOLD": 1.0,
-        "LONG": 1.2,
-        "LOAD": 1.4,
-        "LEVER": 1.6,
-        "UNKNOWN": 1.0,
-    }.get(call_verb, 1.0)
-    print(f"[sizer-v2] decisive call: {call_verb} → risk_mult={risk_mult}")
-    _rg = _risk_gate_doc()
-    _rg_mult = float(_rg.get("sizing_multiplier") or 1.0)
-    risk_mult = risk_mult * _rg_mult
-    print(f"[sizer-v2] risk-gate {_rg.get('posture')} x{_rg_mult} -> combined risk_mult={risk_mult}")
+    # 4. Only a valid, unexpired decision may modulate sizing. Zero risk caps
+    # remain zero; neither an unknown call nor a missing cap becomes neutral.
+    call_verb = latest_call["call_verb"]
+    risk_mult = {"EXIT_ALL_RISK": 0.0, "EXIT": 0.25, "TRIM": 0.5,
+                 "HEDGE": 0.6, "LONG": 1.2, "LOAD": 1.4, "LEVER": 1.6}[call_verb] * gate_cap
 
     # 5. For each open position, compute horizon-aware Kelly
     initial_nav = to_float(portfolio.get("initial_nav"), BASE_NAV)

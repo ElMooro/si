@@ -255,8 +255,8 @@ table td.num{text-align:right}
 
   <!-- ─── CALLS BACKTEST — what if Khalid traded the brief's calls verbatim? ─── -->
   <div class="section" style="margin-top:48px;padding-top:36px;border-top:1px solid var(--brd2)">
-    <h2>Brief calls backtest — would following the brief have made money?</h2>
-    <p class="sub">Each decisive call (EXIT_ALL_RISK..LEVER) maps to a SPY exposure level. The strategy holds that exposure until the next call. This compares what your NAV would have done if you had traded the brief's calls verbatim, vs 100% SPY buy-and-hold over the same window. Note: the ledger started 2026-05-04, so this metric is sparse until more calls accumulate.</p>
+    <h2>Qualified Calls — execution diagnostics</h2>
+    <p class="sub">Only qualified, explicit SPY allocations enter this replay. Orders execute at a subsequent regular-session open while the decision is valid. Legacy prose, errors and abstentions create no orders. Price returns exclude dividends, cash yield, financing and trading costs; they do not establish a strategy's net performance.</p>
     <div id="calls-notice"></div>
     <div class="kpis" id="calls-kpi-row"></div>
     <div class="card" style="padding:24px 26px;margin-top:18px">
@@ -267,12 +267,12 @@ table td.num{text-align:right}
         <table id="calls-table">
           <thead><tr>
             <th>Call</th>
-            <th>Period</th>
-            <th class="num">Days</th>
-            <th class="num">Exposure</th>
-            <th class="num">SPY Δ</th>
-            <th class="num">Strategy Δ</th>
-            <th class="num">Contribution</th>
+            <th>Decision time</th>
+            <th>Execution time</th>
+            <th class="num">Target exposure</th>
+            <th class="num">Open price</th>
+            <th>Return basis</th>
+            <th>Net performance</th>
           </tr></thead>
           <tbody id="calls-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
         </table>
@@ -601,37 +601,37 @@ const VERB_COLOR = {
 
 async function loadCallsBacktest(){
   try {
-    const r = await fetch(`${BUCKET}/backtest/calls-results.json?t=${Date.now()}`);
-    if (!r.ok) {
-      document.getElementById('calls-notice').innerHTML =
-        `<div class="warn">⚠ Calls backtest not yet generated. Lambda runs daily at 14:15 UTC.</div>`;
-      return;
-    }
+    const r = await fetch(`/data/calls-replay.json?t=${Date.now()}`, {cache:'no-store'});
+    if (!r.ok) throw new Error('Replay unavailable');
     const d = await r.json();
     const summ = d.summary || {};
+    if (d.method !== 'explicit_spy_allocation_replay.v2' || d.status !== 'diagnostic_only') {
+      const message = d.status === 'error' ? 'Replay input could not be verified.' :
+        'No qualified allocation history is available. UNKNOWN, WAIT and legacy narrative entries do not create SPY positions.';
+      document.getElementById('calls-notice').innerHTML = '<div class="notice">'+message+'</div>';
+      document.getElementById('calls-kpi-row').innerHTML = '';
+      document.getElementById('calls-body').innerHTML = '<tr><td colspan="7">No eligible replay results.</td></tr>';
+      renderCallsNavChart([]);
+      return;
+    }
 
-    // KPIs
+    // KPIs — price-only diagnostics, never qualified strategy performance.
     const ret = summ.total_return_pct;
     const spy = summ.spy_return_pct;
     const alpha = summ.alpha_vs_spy_pct;
     const dd = summ.max_drawdown_pct;
     const tiles = [
-      {h:'Strategy Return', v:fmtPct(ret,2), klass:pctClass(ret/100), sub:`${summ.n_trading_days || 0} trading days`},
+      {h:'Gross price return', v:fmtPct(ret,2), klass:pctClass(ret/100), sub:`${summ.n_trading_days || 0} trading days`},
       {h:'SPY Return',     v:fmtPct(spy,2), klass:pctClass(spy/100), sub:`benchmark over same window`},
-      {h:'Alpha vs SPY',   v:fmtPct(alpha,2), klass:pctClass(alpha/100), sub:`${summ.n_calls || 0} calls, ${summ.n_changes || 0} changes`},
-      {h:'Max Drawdown',   v:`-${(dd || 0).toFixed(2)}%`, klass:'down', sub:`Sharpe: ${(summ.sharpe_proxy || 0).toFixed(2)}`},
+      {h:'Gross difference vs SPY',   v:fmtPct(alpha,2), klass:pctClass(alpha/100), sub:`${summ.n_calls || 0} calls, ${summ.n_changes || 0} changes`},
+      {h:'Max Drawdown',   v:`-${(dd || 0).toFixed(2)}%`, klass:'down', sub:'Net return and Sharpe unavailable'},
     ];
     document.getElementById('calls-kpi-row').innerHTML = tiles.map(t =>
       `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.klass}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
     ).join('');
 
-    // Notice for sparse data
-    if ((summ.n_calls || 0) < 4) {
-      document.getElementById('calls-notice').innerHTML =
-        `<div class="notice">📊 Only ${summ.n_calls} calls in the ledger so far (started ${summ.first_call_date}). The strategy backtest will become more meaningful as more calls accumulate.</div>`;
-    } else {
-      document.getElementById('calls-notice').innerHTML = '';
-    }
+    document.getElementById('calls-notice').innerHTML =
+      '<div class="notice">Diagnostic only: explicit SPY targets execute at a subsequent session open. Dividends, cash yield, financing and trading costs are not modeled; these results cannot qualify a strategy for sizing.</div>';
 
     // NAV chart
     renderCallsNavChart(d.nav_curve || []);
@@ -642,18 +642,21 @@ async function loadCallsBacktest(){
       const verbColor = VERB_COLOR[c.verb] || '#475064';
       return `<tr>
         <td><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${verbColor};text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border:1px solid ${verbColor};border-radius:4px;background:${verbColor}1a">${c.verb.replace('_',' ')}</span></td>
-        <td>${c.start_date} → ${c.end_date}</td>
-        <td class="num">${c.n_days}</td>
+        <td>${c.decision_at}</td>
+        <td>${c.executed_at}</td>
         <td class="num">${(c.exposure*100).toFixed(0)}%</td>
-        <td class="num ${pctClass(c.spy_change_pct/100)}">${fmtPct(c.spy_change_pct, 3)}</td>
-        <td class="num ${pctClass(c.strat_change_pct/100)}">${fmtPct(c.strat_change_pct, 3)}</td>
-        <td class="num ${pctClass(c.contribution_pct/100)}">${fmtPct(c.contribution_pct, 3)}</td>
+        <td class="num">${Number(c.execution_price).toFixed(2)}</td>
+        <td>Price only</td>
+        <td>Unavailable</td>
       </tr>`;
     }).join('') || '<tr><td colspan="7" class="loading">No calls in window yet.</td></tr>';
   } catch (err) {
     console.error("calls backtest:", err);
     document.getElementById('calls-notice').innerHTML =
-      `<div class="warn">⚠ Failed to load calls backtest: ${err.message}</div>`;
+      '<div class="warn">Calls replay is unavailable. Previous results are not shown as current.</div>';
+    document.getElementById('calls-kpi-row').innerHTML = '';
+    document.getElementById('calls-body').innerHTML = '<tr><td colspan="7">Replay unavailable.</td></tr>';
+    renderCallsNavChart([]);
   }
 }
 

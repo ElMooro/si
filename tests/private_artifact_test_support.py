@@ -1,5 +1,6 @@
 """Network-free, full-handler tests for private artifact publishing/retrieval."""
 import importlib.util
+import hashlib
 import io
 import json
 import sys
@@ -20,13 +21,25 @@ class Response:
     def __exit__(self, *args): pass
 
 
+class S3Error(Exception):
+    def __init__(self, code):
+        super().__init__(code)
+        self.response = {"Error": {"Code": code}}
+
+
 class S3:
     def __init__(self, docs): self.docs = docs; self.writes = []; self.reads = []
+    def etag(self, key):
+        return '"' + hashlib.sha256(json.dumps(self.docs[key], sort_keys=True).encode()).hexdigest() + '"'
     def get_object(self, **kw):
         self.reads.append(kw["Key"])
-        if kw["Key"] not in self.docs: raise KeyError(kw["Key"])
-        return {"Body": io.BytesIO(json.dumps(self.docs[kw["Key"]]).encode())}
+        if kw["Key"] not in self.docs: raise S3Error("NoSuchKey")
+        return {"Body": io.BytesIO(json.dumps(self.docs[kw["Key"]]).encode()), "ETag": self.etag(kw["Key"])}
     def put_object(self, **kw):
+        if kw.get("IfNoneMatch") == "*" and kw["Key"] in self.docs:
+            raise S3Error("PreconditionFailed")
+        if "IfMatch" in kw and (kw["Key"] not in self.docs or kw["IfMatch"] != self.etag(kw["Key"])):
+            raise S3Error("PreconditionFailed")
         self.writes.append(kw)
         self.docs[kw["Key"]] = json.loads(kw["Body"]) if kw.get("ContentType", "application/json") == "application/json" else kw["Body"].decode()
     def get_parameter(self, **kw): return {"Parameter": {"Value": "fixture-service-token"}}
