@@ -99,10 +99,6 @@ table.tbl tr:last-child td{border-bottom:none}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <script src="/wss-client.js" defer></script>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/liquidity-pulse.js" defer></script>
-<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 
@@ -128,15 +124,13 @@ table.tbl tr:last-child td{border-bottom:none}
   </nav>
   <div class="topbar-meta">
     <span id="clock">—</span>
-    <span class="status-pill green" id="statusPill">LIVE</span>
+    <span class="status-pill" id="statusPill">LOADING</span>
   </div>
 </header>
 
 <main class="page">
   <div class="page-head">
     <h1>MACRO DATA</h1>
-<div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
-<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","macro-data-decisive-call");</script>
     <div class="sub">Composite nowcast · manufacturing surveys and production · banking sector loans · BEA GDP &amp; economic accounts</div>
   </div>
 
@@ -223,6 +217,13 @@ const URLS = {"manufacturing": "data/manufacturing.json", "banking": "https://ap
 function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
 function fmtSigned(n,d=2){if(n==null||isNaN(n))return'—';const s=Number(n)>=0?'+':'';return s+Number(n).toFixed(d)+'%'}
+function fmtMeasuredChange(n,unit){
+  if(n==null||!Number.isFinite(n))return '—';
+  if(!unit)return 'Unvalidated';
+  const suffix=({survey_balance_pct:' pp',percent:' pp',index_source_base:' index pts',ratio:' ratio pts',USD_millions:' USD mn',USD_per_hour:' USD/hour',hours:' hours',thousands_of_employees:' thousand employees'})[unit];
+  if(!suffix)return 'Unit unavailable';
+  return (n>=0?'+':'')+fmtNum(n,2)+suffix;
+}
 function chgClass(n){if(n==null||isNaN(n))return'';return Number(n)>=0?'chg-pos':'chg-neg'}
 function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
 function signalCls(s){
@@ -236,13 +237,13 @@ function signalCls(s){
   return '';
 }
 async function fetchAgent(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP '+r.status+' '+url);
-  const wrapped = await r.json();
-  if(wrapped.statusCode && typeof wrapped.body === 'string'){
-    return JSON.parse(wrapped.body);
-  }
-  return wrapped;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  try{
+    const r = await fetch(url,{signal:controller.signal});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const wrapped = await r.json();
+    return wrapped.statusCode&&typeof wrapped.body==='string'?JSON.parse(wrapped.body):wrapped;
+  }finally{clearTimeout(timer);}
 }
 
 function renderMetricsTable(targetId, dataDict, opts){
@@ -268,7 +269,7 @@ function renderMetricsTable(targetId, dataDict, opts){
     html += `<tr><td class="metric-name">${escHtml(k.replace(/_/g,' '))}<div style="font-size:9px;color:var(--fg-3)">${escHtml(v.date||'')} · ${escHtml(v.unit||'source units')}</div></td><td class="r">${curDisp}</td>`;
     for(const c of cols){
       const x = ch[c];
-      html += `<td class="r ${chgClass(x)}">${fmtSigned(x)}</td>`;
+      html += `<td class="r">${escHtml(fmtMeasuredChange(x,v.change_unit))}</td>`;
     }
     html += `<td><span class="signal-badge ${signalCls(v.signal)}">${escHtml(v.signal||'—')}</span></td></tr>`;
   }
@@ -580,68 +581,31 @@ async function loadNowcast(){
 }
 
 async function load(){
-  // Composite nowcast first (separate file from agent endpoints)
   loadNowcast();
-
-  // Load 3 agents in parallel
-  const [manuf, banking, bea] = await Promise.allSettled([
-    fetchAgent(URLS.manufacturing),
-    fetchAgent(URLS.banking),
-    fetchAgent(URLS.bea),
+  const states={manufacturing:false,banking:false,bea:false};
+  const update=()=>{
+    const complete=Object.values(states).every(Boolean),pill=document.getElementById('statusPill');
+    pill.textContent=complete?'CURRENT':'PARTIAL';pill.className='status-pill '+(complete?'green':'red');
+  };
+  const failure=(id,name,error)=>{document.getElementById(id).innerHTML=`<div class="err">${name} unavailable: ${escHtml(error.message||'request failed')}</div>`;};
+  await Promise.allSettled([
+    fetchAgent(URLS.manufacturing).then(d=>{
+      const age=Date.now()-Date.parse(d.generated_at);
+      if(d.methodology_version!=='manufacturing-measurement.v2'||!Number.isFinite(age)||age<0||age>4*864e5)throw new Error('current validated publication required');
+      const merged={...(d.us_manufacturing||{}),...(d.global_manufacturing||{}),...(d.industrial_production||{})};
+      renderMetricsTable('manufBody',merged,{cols:['1M','3M']});
+      states.manufacturing=d.quality?.status==='fresh';
+    }).catch(e=>failure('manufBody','Manufacturing',e)).finally(update),
+    fetchAgent(URLS.banking).then(d=>{
+      renderMetricsTable('bankingBody',d.banking_metrics||{},{cols:['1W']});
+      document.getElementById('bankingBody').insertAdjacentHTML('beforeend','<div class="empty-state">Legacy banking feed: change units and observation windows are not yet validated.</div>');
+    }).catch(e=>failure('bankingBody','Banking',e)).finally(update),
+    fetchAgent(URLS.bea).then(d=>{
+      const data=d.bea_data||{},key=['gdp','personal_income','consumer_spending','trade',...Object.keys(data)].find(k=>Array.isArray(data[k])&&data[k].length);
+      if(key){renderBeaTable('beaBody',data[key],key);states.bea=true;}
+      else document.getElementById('beaBody').innerHTML='<div class="empty-state">No BEA tables in response</div>';
+    }).catch(e=>failure('beaBody','BEA',e)).finally(update)
   ]);
-
-  let allOk = true;
-
-  if(manuf.status === 'fulfilled' && manuf.value.methodology_version==='manufacturing-measurement.v2' &&
-      Number.isFinite(Date.parse(manuf.value.generated_at)) && Date.now()>=Date.parse(manuf.value.generated_at) &&
-      Date.now()-Date.parse(manuf.value.generated_at)<=4*864e5){
-    const d = manuf.value;
-    // Combine us + global
-    const merged = {...(d.us_manufacturing||{}), ...(d.global_manufacturing||{}), ...(d.industrial_production||{})};
-    renderMetricsTable('manufBody', merged, {cols:['1M','3M']});
-  }else{
-    document.getElementById('manufBody').innerHTML = `<div class="err">Manufacturing unavailable or stale: ${escHtml(manuf.reason?.message||'current validated publication required')}</div>`;
-    allOk = false;
-  }
-
-  if(banking.status === 'fulfilled'){
-    renderMetricsTable('bankingBody', banking.value.banking_metrics || {}, {cols:['1W']});
-  }else{
-    document.getElementById('bankingBody').innerHTML = `<div class="err">⚠ Banking: ${escHtml(banking.reason.message)}</div>`;
-    allOk = false;
-  }
-
-  if(bea.status === 'fulfilled'){
-    const d = bea.value;
-    const beaData = d.bea_data || {};
-    // Pick GDP if available, else first key
-    const candidates = ['gdp', 'personal_income', 'consumer_spending', 'trade'];
-    let chosenKey = null;
-    let chosenList = null;
-    for(const k of candidates){
-      if(beaData[k] && beaData[k].length){ chosenKey = k; chosenList = beaData[k]; break; }
-    }
-    if(!chosenList){
-      const keys = Object.keys(beaData);
-      if(keys.length){ chosenKey = keys[0]; chosenList = beaData[keys[0]]; }
-    }
-    if(chosenList){
-      renderBeaTable('beaBody', chosenList, chosenKey || 'BEA');
-    }else{
-      document.getElementById('beaBody').innerHTML = '<div class="empty-state">No BEA tables in response</div>';
-    }
-  }else{
-    document.getElementById('beaBody').innerHTML = `<div class="err">⚠ BEA: ${escHtml(bea.reason.message)}</div>`;
-    allOk = false;
-  }
-
-  if(allOk){
-    document.getElementById('statusPill').textContent = 'LIVE';
-    document.getElementById('statusPill').className = 'status-pill green';
-  }else{
-    document.getElementById('statusPill').textContent = 'PARTIAL';
-    document.getElementById('statusPill').className = 'status-pill red';
-  }
 }
 
 
