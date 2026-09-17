@@ -1,0 +1,28 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35287671308",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35287671308",
+ "base_sha": "9eb84384f33d3d88d37d04b034e93765cc05c832",
+ "result_sha": "7059ebad6c1e1ec520e5186d1698b41af1fc3a36",
+ "patchers": [],
+ "targets": [
+  "justhodl-sovereign-stress"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "sovereign-stress.html"
+ ],
+ "ops_scripts": [
+  "aws/ops/pending/ops_5705_sovereign_pd_verify.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "35287734959",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:38:33Z"
+}
