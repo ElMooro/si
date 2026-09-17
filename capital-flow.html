@@ -142,34 +142,29 @@ a{color:var(--cyan);text-decoration:none}
 <section style="max-width:1200px;margin:26px auto 8px;padding:0 18px" id="tic-ff-card">
 <div class="sect" style="margin-bottom:8px"><span>🌍</span><b>🇺🇸 Foreign Capital INTO the US — by destination (TIC/CSLT)</b><a href="/foreign-flows.html" style="font-size:12px;margin-left:10px">full desk →</a><span id="ff-month" style="opacity:.7;font-size:12px;margin-left:10px"></span><span id="ff-new" style="display:none;background:#f59e0b;color:#000;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:8px">NEW RELEASE</span></div>
 <div id="ff-body" style="font-size:13px">loading…</div>
-<div style="opacity:.55;font-size:11px;margin-top:8px">Flows are TIC <b>transactions</b> — never holdings deltas (valuation-change trap). Country attribution carries custodial bias (BE/UK/LU/IE/KY). Source: justhodl-foreign-flows via FRED CSLT, ~1.5-month lag. Direct real-estate purchases (NAR annual survey) and TIC banking-channel flows (B-tables) are queued probes — not monthly CSLT, so not faked here.</div>
+<div style="opacity:.55;font-size:11px;margin-top:8px">Flows are TIC <b>transactions</b> — never holdings deltas (valuation-change trap). Country attribution carries custodial bias (BE/UK/LU/IE/KY). Source: canonical capital-inflows feed via FRED CSLT, ~1.5-month lag. Direct real-estate purchases (NAR annual survey) and TIC banking-channel flows (B-tables) are queued probes — not monthly CSLT, so not faked here.</div>
 </section>
 <script>
 (async function(){
   const P=(typeof PROXY!=="undefined")?PROXY:"";
   const el=document.getElementById("ff-body");
   let d=null;
-  try{const r=await fetch(P+"/data/foreign-flows.json?t="+Date.now());if(r.ok)d=await r.json();}catch(e){}
-  if(!d||d.status!=="LIVE"){el.innerHTML="<span style=\"opacity:.6\">foreign-flows "+(d&&d.status||"unavailable")+(d&&d.why?" — "+d.why:"")+"</span>";return;}
-  document.getElementById("ff-month").textContent="data month "+(d.latest_month||"")+" · as of "+(d.as_of||"");
-  if(d.new_release)document.getElementById("ff-new").style.display="inline-block";
-  const F=d.flows_bn||{},S=d.signals||{};
-  const fb=(v,dp)=>v==null?"–":(v>0?"+":"")+v.toFixed(dp==null?1:dp)+"B";
-  const zc=z=>z==null?"":" <span style=\"opacity:.6\">z "+(z>0?"+":"")+z+"</span>";
-  let h="<div class=\"cat-grid\">";
-  for(const[k,lab]of[["total","Total LT securities"],["treas","US Treasuries (LT+ST)"],["equity","US Equities"],["corp","Corporate bonds"],["agency","Agency / MBS (mortgage channel)"],["tbills","T-bills (ST)"]]){
-    const v=F[k]||{};h+="<div class=\"card\" style=\"padding:8px 10px\"><div style=\"opacity:.65;font-size:11px\">"+lab+"</div><div style=\"font-size:16px;font-weight:700\">"+fb(v.latest)+zc(v.z_10y)+"</div><div style=\"opacity:.6;font-size:11px\">12m "+fb(v.sum_12m)+"</div></div>";}
-  h+="</div>";
-  const sig=(k,lab)=>{const s=S[k]||{};return s.latest_bn==null?"<div><b>"+lab+"</b>: <span style=\"opacity:.6\">"+(s.why||"n/a")+"</span></div>":"<div><b>"+lab+"</b>: "+fb(s.latest_bn)+zc(s.z_10y)+" <span style=\"opacity:.55\">(12m "+fb(s.sum_12m_bn)+")</span></div>";};
-  h+="<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 20px;margin-top:10px\">"+sig("risk_appetite","Risk appetite")+sig("safe_haven","Safe-haven rotation")+sig("total_demand","Total foreign demand")+sig("official_private","Private − Official")+"</div>";
-  const hs=((d.holder_splits||{}).lt_total)||{};
-  if(hs.status==="OK"){h+="<div style=\"margin-top:8px;opacity:.85\">LT total split: private "+fb((hs.private||{}).latest)+" vs official "+fb((hs.official||{}).latest)+" <span style=\"opacity:.55\">(recon gap "+fb(hs.recon_gap_bn,2)+")</span></div>";}
-  else if(hs.status){h+="<div style=\"margin-top:8px;opacity:.6\">LT split "+hs.status+": "+(hs.why||"")+"</div>";}
-  const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
-  if(rows.length){h+="<div style=\"margin-top:10px\"><b style=\"font-size:12px\">LT-Treasury holdings by country</b><table style=\"width:100%;font-size:12px;border-collapse:collapse;margin-top:4px\"><tr style=\"opacity:.6;text-align:right\"><th style=\"text-align:left\">country</th><th>holdings</th><th>Δ12m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>";
-    for(const[n,r]of rows){h+="<tr style=\"text-align:right\"><td style=\"text-align:left\">"+n+"</td><td>"+fb(r.holdings_bn)+"</td><td>"+fb(r.d12m_holdings_bn)+"</td><td>"+fb(r.tx_12m_bn)+"</td><td>"+fb(r.valchg_12m_bn)+"</td><td>"+fb(r.identity_gap_bn)+"</td></tr>";}
-    h+="</table><div style=\"opacity:.5;font-size:11px\">Δholdings = transactions + valuation change + other adjustments — the gap is the honest \"other\" term.</div></div>";}
+  try{const r=await fetch(P+"/data/capital-inflows.json?t="+Date.now());if(r.ok)d=await r.json();}catch(e){}
+  const q=d?.quality||{},age=Date.now()-Date.parse(d?.generated_at);
+  if(!d?.headline||!['fresh','incomplete'].includes(q.status)||!Number.isFinite(age)||age< -300000||age>8*86400000){el.textContent="Current TIC transactions unavailable or expired.";return;}
+  document.getElementById("ff-month").textContent="data month "+d.data_asof+" · vintage "+q.vintage_date+" · "+q.status;
+  const fb=v=>typeof v==='number'&&Number.isFinite(v)?(v>0?"+":"")+v.toFixed(1)+"B":"—";
+  const ba=d.by_asset_class||{};
+  const rows=[["Total long-term securities",d.headline.latest_month_b,d.headline.foreign_net_into_us_lt_12mo_b],
+      ...[["treasuries","Treasuries (long-term)"],["equities","US equities"],["corporate_bonds","Corporate bonds"],["agency_bonds","Agency bonds"]]
+         .map(([k,label])=>[label,ba[k]?.latest_month_b,ba[k]?.rolling_12mo_b])];
+  let h='<div class="cat-grid">';
+  for(const[label,value,annual] of rows)h+='<div class="card" style="padding:8px 10px"><div>'+label+'</div><b>'+fb(value)+'</b><div>12m '+fb(annual)+'</div></div>';
+  const split=d.holder_splits?.lt_total||{};
+  h+='</div><div style="margin-top:10px">Net cross-border long-term · 12m '+fb(d.headline.net_cross_border_lt_12mo_b)+' · official '+fb(split.official?.latest)+' · private '+fb(split.private?.latest)+'</div>';
+  h+='<div style="opacity:.65;margin-top:6px">Canonical TIC monthly transactions. Country holdings and valuation decompositions remain on the <a href="/foreign-flows.html">foreign-flows desk</a>.</div>';
   el.innerHTML=h;
+
 })();
 </script>
 <section style="max-width:1200px;margin:10px auto 8px;padding:0 18px" id="global-ff-card">

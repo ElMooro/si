@@ -28,12 +28,15 @@ import os, json, time, urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from concurrent.futures import ThreadPoolExecutor
+from managed_secret import managed_secret
+from tic_contract import align, roll, monthly_quality
 
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/capital-inflows.json"
-VERSION = "1.0.1"
-FRED_KEY = os.environ.get("FRED_API_KEY", "")
+VERSION = "1.1.0"
+FRED_KEY = managed_secret(("FRED_API_KEY", "FRED_KEY"), ("/justhodl/fred/api-key",))
 
 # foreign net purchases of US long-term securities, by asset class ($M, monthly)
 INTO_US = {
@@ -47,68 +50,66 @@ SHORT_TREAS   = "FORSTTREASNET99996"   # short-term T-bills
 US_ABROAD     = "USLTTOTALNET99996"    # US net purchases of foreign LT securities (outflow)
 
 
-def fred(series_id, limit=40):
+def fred(series_id, limit=40, vintage=None):
     """Monthly observations newest-first as [(date, value_$M)]; [] on failure."""
     if not FRED_KEY:
         return []
     try:
         url = (f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}"
-               f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit={limit}")
+               f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit={limit}"
+               f"&realtime_start={vintage or datetime.now(timezone.utc).date()}&realtime_end={vintage or datetime.now(timezone.utc).date()}")
         j = json.loads(urllib.request.urlopen(url, timeout=25).read())
         return [(o["date"], float(o["value"])) for o in j.get("observations", []) if o["value"] != "."]
     except Exception as e:
-        print(f"[fred] {series_id}: {str(e)[:60]}")
+        print(f"[fred] {series_id}: {type(e).__name__}")
         return []
-
-
-def roll(obs, n):
-    """Sum of the most recent n monthly values ($M -> $B)."""
-    return round(sum(v for _, v in obs[:n]) / 1000.0, 1) if len(obs) >= n else None
 
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    total = fred(TOTAL_INTO_US)
-    if not total:
-        out = {"engine": "capital-inflows", "version": VERSION, "ok": False,
-               "error": "FRED TIC total series unavailable",
-               "generated_at": datetime.now(timezone.utc).isoformat()}
-        S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
-                      ContentType="application/json")
-        print("[capital-inflows] FRED unavailable")
-        return {"statusCode": 502, "body": "no data"}
-
-    asof = total[0][0]
-    legs = {k: fred(sid) for k, sid in INTO_US.items()}
-    st = fred(SHORT_TREAS)
-    abroad = fred(US_ABROAD)
+    now = datetime.now(timezone.utc)
+    published = now.isoformat()
+    vintage = now.date().isoformat()
+    ids = {"total": TOTAL_INTO_US, **INTO_US, "short_treasury": SHORT_TREAS, "us_abroad": US_ABROAD,
+           "official": "FORLTTOTALNET99990", "private": "FORLTTOTALNET99991"}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        raw = dict(zip(ids, pool.map(lambda sid: fred(sid, vintage=vintage), ids.values())))
+    asof = max((d for d,_ in raw["total"]), default=None)
+    quality = monthly_quality(raw, asof, published, now)
+    rows = {k:align(obs, asof) for k,obs in raw.items()}
+    total = rows["total"]
+    legs = {k:rows[k] for k in INTO_US}
+    st, abroad = rows["short_treasury"], rows["us_abroad"]
 
     # headline foreign net purchases of ALL US long-term securities
     into_12 = roll(total, 12)
-    into_3ann = round(sum(v for _, v in total[:3]) / 1000.0 * 4, 1) if len(total) >= 3 else None
-    into_12_prior = roll(total[12:], 12) if len(total) >= 24 else None      # the 12mo ending a year ago
-    last_month = round(total[0][1] / 1000.0, 1)
+    into_3ann = round(sum(v for _,v in total[:3]) / 1000 * 4, 1) if roll(total, 3) is not None else None
+    into_12_prior = roll(total[12:], 12) if roll(total, 24) is not None else None      # the 12mo ending a year ago
+    last_month = round(total[0][1] / 1000.0, 1) if total else None
     prev_month = round(total[1][1] / 1000.0, 1) if len(total) > 1 else None
 
     # net cross-border long-term flow (foreign into US  −  US abroad)
     net_12 = None
-    if abroad and into_12 is not None:
-        net_12 = round(into_12 - (roll(abroad, 12) or 0), 1)
+    if into_12 is not None and roll(abroad, 12) is not None:
+        net_12 = round(into_12 - roll(abroad, 12), 1)
 
     by_asset = {}
     for k, obs in legs.items():
         by_asset[k] = {"latest_month_b": round(obs[0][1] / 1000.0, 1) if obs else None,
-                       "rolling_12mo_b": roll(obs, 12)}
+                       "rolling_12mo_b": roll(obs, 12), "data_asof": asof if obs else None, "unit": "usd_bn"}
     st_12 = roll(st, 12)
 
     # ── regime: level + sudden-stop / acceleration detector ──
     flags = []
     inflow_positive = (into_12 or 0) > 0
     accel_ratio = (into_3ann / into_12) if (into_12 and into_12 > 0 and into_3ann is not None) else None
-    fresh_outflow = last_month < 0 and (prev_month is not None and prev_month < 0)
+    fresh_outflow = last_month is not None and last_month < 0 and (prev_month is not None and prev_month < 0)
     yoy = (round(into_12 - into_12_prior, 1) if (into_12 is not None and into_12_prior is not None) else None)
 
-    if not inflow_positive:
+    if quality["status"] != "fresh" or into_12 is None or into_3ann is None:
+        regime = "UNAVAILABLE"
+        flags.append("Current monthly observations are incomplete, invalid or outside the publication SLA; regime expired.")
+    elif not inflow_positive:
         regime = "PERSISTENT_OUTFLOW"
         flags.append("12-month flows are net NEGATIVE — the world is pulling capital OUT of US long-term assets.")
     elif fresh_outflow or (accel_ratio is not None and accel_ratio < 0):
@@ -119,26 +120,28 @@ def lambda_handler(event=None, context=None):
         flags.append("3-month run-rate is well below the 12-month trend — foreign funding is fading.")
     elif accel_ratio is not None and accel_ratio > 1.3:
         regime = "ACCELERATING_INFLOW"
-        flags.append("3-month run-rate is running hot vs the 12-month trend — foreign money is piling in (bull-run funding).")
+        flags.append("3-month run-rate is running hot vs the 12-month trend — foreign money is piling in relative to the trailing twelve months.")
     else:
         regime = "STEADY_INFLOW"
-        flags.append("Foreign funding is steady and supportive.")
+        flags.append("Net foreign purchases are positive and the recent run-rate is near the trailing total.")
 
     interp = {
-        "ACCELERATING_INFLOW": "Strong, accelerating foreign funding — supportive of US assets and the dollar; the durable-rally condition.",
-        "STEADY_INFLOW":       "Healthy foreign funding of US assets — a tailwind, not a flag.",
-        "DECELERATING":        "Foreign funding is fading — not yet a stop, but the bull-run tailwind is weakening; watch the next prints.",
-        "SUDDEN_STOP":         "Foreign capital is reversing out of US assets — the funding-crisis setup. Dollar-squeeze and yield-spike risk rises.",
-        "PERSISTENT_OUTFLOW":  "Sustained net outflows — US assets are being de-funded by the rest of the world.",
+        "UNAVAILABLE": "Aligned current observations are required before classifying the transaction trend.",
+        "ACCELERATING_INFLOW": "The annualized three-month transaction total exceeds 1.3 times the trailing twelve-month total.",
+        "STEADY_INFLOW":       "Net foreign purchases remain positive, with a three-month run-rate near the twelve-month total.",
+        "DECELERATING":        "The annualized three-month total is below 0.6 times the positive twelve-month total.",
+        "SUDDEN_STOP":         "Recent net transactions turned negative while the twelve-month total remains positive; this does not establish a funding crisis.",
+        "PERSISTENT_OUTFLOW":  "The twelve-month net foreign transaction total is nonpositive.",
     }[regime]
 
     out = {
-        "engine": "capital-inflows", "version": VERSION, "ok": True,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "engine": "capital-inflows", "version": VERSION, "ok": quality["status"] in ("fresh", "incomplete"),
+        "generated_at": published,
+        "quality": quality, "call": None,
         "duration_s": round(time.time() - t0, 1),
         "data_asof": asof,
         "thesis": ("How hard the rest of the world is funding US assets. Level = regime; rate-of-change = the tell. "
-                   "Accelerating inflows are bull-run fuel; a sudden stop is a funding-crisis trigger."),
+                   "These are securities transactions, not all capital flows, holdings changes or a directional asset-price forecast."),
         "headline": {
             "foreign_net_into_us_lt_12mo_b": into_12,
             "net_cross_border_lt_12mo_b": net_12,
@@ -150,8 +153,8 @@ def lambda_handler(event=None, context=None):
         "by_asset_class": by_asset,
         "regime": regime, "regime_interpretation": interp, "flags": flags,
         "history_12mo_rolling_b": [
-            {"asof": total[i][0], "rolling_12mo_b": round(sum(v for _, v in total[i:i + 12]) / 1000.0, 1)}
-            for i in range(0, min(18, max(0, len(total) - 12)))
+            {"asof": total[i][0], "rolling_12mo_b": roll(total[i:], 12)}
+            for i in range(0, min(18, max(0, len(total) - 11)))
         ],
         "sources": {"release": "FRED release 3 — Treasury International Capital (TIC), net transactions, grand total",
                     "total_series": TOTAL_INTO_US, "asset_series": INTO_US,
@@ -160,16 +163,30 @@ def lambda_handler(event=None, context=None):
         # ops 5623 quality
         "units": "usd_bn",
         "vintage_note": "TIC FRED release 3 is monthly and lags several weeks; data_asof is the observation month, not print day.",
-        "quality": {
-            "observation_date": asof,
-            "publication_date": datetime.now(timezone.utc).date().isoformat(),
-            "frequency": "monthly",
-            "freshness_basis": "observation",
-            "status": "fresh",
-            "missing": [k for k, obs in legs.items() if not obs],
-        },
+
     }
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+    # Holder identity must reconcile in the same month; no guessed suffix split.
+    official, private = rows["official"], rows["private"]
+    split_ok = bool(total and official and private)
+    gap = (total[0][1]-official[0][1]-private[0][1])/1000 if split_ok else None
+    split_ok = split_ok and abs(gap) <= 0.2
+    out["holder_splits"] = {"lt_total": {"status": "OK" if split_ok else "UNAVAILABLE",
+        "month": asof, "recon_gap_bn": round(gap,3) if gap is not None else None,
+        "official": {"latest": round(official[0][1]/1000,1) if split_ok else None,
+                     "sum_12m": roll(official,12) if split_ok else None},
+        "private": {"latest": round(private[0][1]/1000,1) if split_ok else None,
+                    "sum_12m": roll(private,12) if split_ok else None}}}
+    if not split_ok:
+        quality["missing"] = sorted(set(quality["missing"] + ["reconciled_official_private_split"]))
+        if quality["status"] == "fresh": quality["status"] = "incomplete"
+        out["regime"] = "UNAVAILABLE"
+        out["flags"] = ["Official/private holder split unavailable at this vintage; regime expired."]
+        out["regime_interpretation"] = "Official/private holder totals could not be reconciled at this vintage."
+    out["sources"].update(canonical_feed=OUT_KEY, vintage_date=vintage, retrieval_date=published,
+                           official_series=ids["official"], private_series=ids["private"],
+                           definition="TIC net securities transactions at market value; excludes valuation and other position changes.")
+    out["field_units"] = {"headline.*_b":"usd_bn", "by_asset_class.*.*_b":"usd_bn", "holder_splits.*.*.latest":"usd_bn"}
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str, allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[capital-inflows] asof={asof} into_us_12mo=${into_12}B net=${net_12}B "
           f"3mo_ann=${into_3ann}B regime={regime} {out['duration_s']}s")
