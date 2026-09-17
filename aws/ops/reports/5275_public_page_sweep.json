@@ -1,11 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "002bbd1e1a38fee90ab9f6fe923bb10cba14b57f",
-  "observed_at": "2026-09-17T09:43:57.824993+00:00",
-  "ok": true,
+  "observed_at": "2026-09-17T09:53:49.767981+00:00",
+  "ok": false,
   "routes_checked": 519,
-  "verified_routes": 519,
-  "failed_routes": [],
+  "verified_routes": 518,
+  "failed_routes": [
+    "kill-theses.html"
+  ],
   "source_equivalent_builds": {
     "002bbd1e1a38fee90ab9f6fe923bb10cba14b57f": true
   },
@@ -2662,12 +2664,12 @@
     },
     {
       "route": "kill-theses.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "002bbd1e1a38fee90ab9f6fe923bb10cba14b57f",
-      "inspector_present": true,
-      "bytes_read": 11390,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "lce.html",
@@ -4687,7 +4689,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35206472790,
+  "deployment_run_id": 35207378698,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-17T09:43:57.827120+00:00"
+  "check_finished_at": "2026-09-17T09:53:49.769791+00:00"
 }
