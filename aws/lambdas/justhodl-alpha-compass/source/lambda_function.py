@@ -46,6 +46,7 @@ import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
 from decimal import Decimal
+from pd_fails_context import load as load_pd_fails, input_quality
 
 import boto3
 from botocore.exceptions import ClientError
@@ -875,7 +876,7 @@ def handler(event, context):
         prev_top1 = ((prev.get("top_calls") or [{}])[0]).get("subject")
         new_top1 = (top_calls[0].get("subject") if top_calls else None)
         big = [m for m in changes.get("moves") or [] if abs(m["delta"]) >= 15]
-        if prev.get("generated_at") and (
+        if not (event or {}).get("suppress_alerts") and prev.get("generated_at") and (
                 changes.get("entered") or changes.get("dropped")
                 or big or (prev_top1 and new_top1 != prev_top1)):
             t1 = top_calls[0] if top_calls else {}
@@ -949,6 +950,16 @@ def handler(event, context):
                 emap, {"families": len((emap or {}).get("by_family") or {})}),
         },
     }
+
+    # chatgpt-pd-context-v1: scope-separated context and upstream quality audit.
+    out["pd_settlement_fails"] = load_pd_fails(s3, BUCKET, now)
+    out["quality"] = input_quality({
+        "conviction": conviction, "magnitude_distributions": magdist,
+        "scorecard": scorecard, "sizer": sizer, "regime_composite": rcomp,
+        "risk_regime": roro, "factor_regime": factor, "dollar_radar": dollar,
+        "kill_theses": kill, "best_setups": best, "miss_summary": miss,
+        "engine_signal_map": emap,
+    }, now)
 
     s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
                   Body=json.dumps(hist, default=_dec,

@@ -1,0 +1,64 @@
+{
+ "apply_run_id": "35286121259",
+ "at": "2026-09-17T23:17:12Z",
+ "batch": "chatgpt-20260917T231647Z-alpha-quality-pd-context",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 25444,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "9ea428071c0acb45632bed32c81f021993304ff0f1c9bc4e7827e040f9113c19",
+   "target": "alpha-compass.html"
+  },
+  {
+   "bytes": 40073,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "ac13bab403b9b4405ae61a3b6121c9317533eda7a1157d04601a383d8a3aebc6",
+   "target": "aws/lambdas/justhodl-alpha-compass/source/lambda_function.py"
+  },
+  {
+   "bytes": 2386,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "1fbf85773deb18fb45dbfd66a6d3d2b66bdaf4eeca4c884937fef3fb3b60b121",
+   "target": "aws/lambdas/justhodl-alpha-compass/tests/run_tests.py"
+  },
+  {
+   "bytes": 3439,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "fe8dec5f621e63f649341119b5ee82ba35eb3ef201036c9e5c6d2c1ea5f626bb",
+   "target": "aws/ops/pending/ops_5700_alpha_pd_verify.py"
+  }
+ ],
+ "functions": [
+  "justhodl-alpha-compass"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35286121259.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "alpha-quality-pd-context",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5700_alpha_pd_verify.py"
+ ],
+ "pages": [
+  "alpha-compass.html"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-alpha-compass.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5700_alpha_pd_verify.py"
+ ],
+ "workers": []
+}
