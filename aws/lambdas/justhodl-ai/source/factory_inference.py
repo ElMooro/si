@@ -121,6 +121,45 @@ def submit(store, sm_runtime, control, agent, text, history):
     return pending
 
 
+def submit_task(store, sm_runtime, control, agent, system, text, max_new_tokens=1400, temperature=0.2, meta=None):
+    """One async generation for an engine task (2026-09-17: the market read's owned voice). Same durable order as
+    submit(): claim the pending record first, then invoke. The caller owns the system prompt and the full text (bounded
+    at 60k chars ~ 20k tokens, inside Qwen2.5's context); `meta` rides on the pending record so the settle step knows
+    what the answer is for. Returns the pending record (state queued|unknown)."""
+    now = iso(store.clock())
+    ikey = _idempotency_key(agent, (system or "") + "\n" + text, None)
+    pkey = pending_key(agent, ikey)
+    existing, petag = store.read(store.private, pkey)
+    if isinstance(existing, dict) and existing.get("state") not in ("done", "failed", "expired", "malformed") and not existing.get("delivered"):
+        return dict(existing, replay=True)
+    rid = "req-" + ikey
+    prompt = qwen_chat_prompt(system or SYSTEM, [], text[:60000])
+    payload = {"inputs": prompt, "parameters": {"max_new_tokens": int(max_new_tokens), "temperature": float(temperature), "top_p": 0.9,
+                                                "stop": ["<|im_end|>", "<|endoftext|>"]}}
+    key = REQ_PREFIX + rid + ".json"
+    store.immutable(store.private, key, payload)
+    store.immutable(store.private, META_PREFIX + rid + ".json", {"schema_version": "factory-inference-request.v1", "id": rid, "agent": agent, "at": now,
+                                                                  "endpoint": control.get("endpoint_name"), "origin": origin(control), "idempotency_key": ikey,
+                                                                  "input_key": key, "input_sha256": digest(payload), "text_sha256": digest(text), "kind": "task"})
+    pending = {"schema_version": "factory-inference-pending.v1", "id": rid, "state": "claimed", "origin": origin(control), "agent": agent, "kind": "task",
+               "output_location": None, "failure_location": None, "submitted_at": now, "input_key": key, "delivered": False, "meta": meta or {},
+               "expires_at": iso(store.clock() + __import__("datetime").timedelta(seconds=EXPIRE_S))}
+    store.put(store.private, pkey, pending, etag=petag, absent=petag is None)
+    try:
+        resp = sm_runtime.invoke_endpoint_async(EndpointName=control["endpoint_name"], InputLocation="s3://%s/%s" % (store.private, key),
+                                                ContentType="application/json", Accept="application/json", InferenceId=rid,
+                                                InvocationTimeoutSeconds=INVOKE_TIMEOUT_S, RequestTTLSeconds=EXPIRE_S)
+    except Exception as exc:  # noqa: BLE001
+        pending.update(state="unknown", error=type(exc).__name__ + ":" + str(exc)[:200])
+        _, petag2 = store.read(store.private, pkey)
+        store.put(store.private, pkey, pending, etag=petag2, absent=False)
+        return pending
+    pending.update(state="queued", output_location=resp.get("OutputLocation"), failure_location=resp.get("FailureLocation"))
+    _, petag2 = store.read(store.private, pkey)
+    store.put(store.private, pkey, pending, etag=petag2, absent=False)
+    return pending
+
+
 def _key_from_location(store, location):
     if not location:
         return None

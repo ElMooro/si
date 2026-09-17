@@ -1,0 +1,147 @@
+"""The market read's OWNED voice (2026-09-17): when the hosted voices are silent, the read is handed to the owned Qwen
+endpoint (async) and settled on the next tick -- validated, blockers kept, calls ledgered, republished."""
+import importlib.util
+import json
+import sys
+import types
+import unittest
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'aws/shared'))
+sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-ai/source'))
+sys.path.insert(0, str(ROOT / 'tests/factory'))
+from test_factory import MemoryS3  # noqa: E402
+from factory_store import Store  # noqa: E402
+import factory_inference as fi  # noqa: E402
+import market_read as mr  # noqa: E402
+
+
+def engine_module():
+    """The engine's lambda_function: reuse the one the engine harness already imported (its boto3 is a fake there),
+    otherwise load it under a private name so another engine's lambda_function in sys.modules is never mistaken for it."""
+    cached = sys.modules.get('lambda_function')
+    if cached is not None and hasattr(cached, 'settle_owned_read'):
+        return cached
+    spec = importlib.util.spec_from_file_location('justhodl_ai_engine', str(ROOT / 'aws/lambdas/justhodl-ai/source/lambda_function.py'))
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    return mod
+
+BOARD = {"generated_at": "2026-09-17T05:45:00Z", "sources": {"fusion": {"status": "FRESH"}, "risk_gate": {"status": "FRESH"}, "khalid_risk": {"status": "FRESH"}},
+         "risk_gate": {"posture": "RISK_ON", "sizing": "FULL"}, "candidates": ["AAPL", "TLT", "GLD", "BTC-USD"], "fleet_digest": [{"feed": "x", "line": "y"}] * 40}
+PLAY = {"available": True, "notes": {"stocks": [{"similarity": 0.8, "label": "thesis", "pinned": False, "note_id": "n1", "text": "buy strength after a selling climax"}]}}
+ANSWER = {"overall": "Risk appetite is intact; the gate is on.", "macro": "Growth steady, inflation cooling.",
+          "stocks": {"stance": "RISK_ON", "read": "Breadth improving."}, "bonds": {"stance": "NEUTRAL", "read": "Range."},
+          "metals": {"stance": "ACCUMULATE", "read": "Gold bid."}, "crypto": {"stance": "HOLD", "read": "BTC consolidating."},
+          "best_opportunities": [{"ticker": "AAPL", "side": "LONG", "why": "leadership and breadth", "horizon_days": 21}],
+          "what_would_change_my_mind": ["gate flips"], "data_gaps": [],
+          "calls": [{"ticker": "AAPL", "direction": "UP", "horizon_days": 21, "confidence": 0.6, "thesis": "leadership and breadth"}]}
+
+
+class OwnedReadPromptTests(unittest.TestCase):
+    def test_budget_bounds_the_prompt_and_keeps_the_wording(self):
+        full = mr.build_prompt(BOARD, PLAY, {"lessons": ["do not chase"]}, True, mr.DEFAULT_BUDGET)
+        small = mr.build_prompt(BOARD, PLAY, {"lessons": ["do not chase"]}, True, mr.OWNED_BUDGET)
+        for p in (full, small):
+            self.assertTrue(p.startswith("LESSONS FROM YOUR OWN GRADED CALLS"))
+            self.assertIn("CANDIDATES (only tickers allowed in opportunities/calls):\nAAPL, TLT, GLD, BTC-USD", p)
+            self.assertTrue(p.endswith("Produce the JSON."))
+            self.assertIn("selling climax", p)                                   # note text travels to the owned model
+        big = dict(BOARD, fleet_digest=[{"feed": "f%d" % i, "line": "x" * 200} for i in range(200)])   # a real digest is ~30k chars
+        self.assertLess(len(mr.build_prompt(big, PLAY, None, True, mr.OWNED_BUDGET)), len(mr.build_prompt(big, PLAY, None, True, mr.DEFAULT_BUDGET)))
+        self.assertLessEqual(len(mr.build_prompt(big, PLAY, None, True, mr.OWNED_BUDGET)), sum(mr.OWNED_BUDGET) + 4000)
+        self.assertNotIn("selling climax", mr.build_prompt(BOARD, PLAY, None, False))   # and not to a third party
+
+    def test_compose_read_uses_the_shared_parser_and_falls_back_deterministically(self):
+        got = mr.compose_read(BOARD, PLAY, lambda prompt, **kw: json.dumps(ANSWER))
+        self.assertFalse(got.get("parse_error")); self.assertEqual(got["stocks"]["stance"], "RISK_ON")
+        empty = mr.compose_read(BOARD, PLAY, lambda prompt, **kw: "")
+        self.assertTrue(empty.get("fallback") and empty.get("empty"))
+        fenced = mr.parse_read_text("Sure! ```json\n" + json.dumps({**ANSWER, "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 21, "confidence": 0.5, "thesis": "not a candidate"}]}) + "\n```", {"AAPL"})
+        self.assertFalse(fenced.get("parse_error")); self.assertEqual(fenced["calls"], [])       # a call outside the candidates is dropped, not trusted
+        bad = mr.parse_read_text(json.dumps({**ANSWER, "stocks": {"stance": "MOON", "read": "x"}}), {"AAPL"})
+        self.assertTrue(bad.get("parse_error") and "stance is invalid" in json.dumps(bad))
+
+
+class OwnedReadSettleTests(unittest.TestCase):
+    def setUp(self):
+        self.now = datetime(2026, 9, 17, 5, 45, tzinfo=timezone.utc)
+        self.cloud = MemoryS3()
+        if not hasattr(self.cloud, 'delete_object'):
+            self.cloud.delete_object = lambda Bucket, Key: self.cloud.rows.pop((Bucket, Key), None)
+        self.store = Store(self.cloud, 'private', 'public', lambda: self.now)
+        self.control = {'enabled': True, 'endpoint_name': 'jh-owned-coder-async', 'model_id': 'qwen2-5-coder-7b-instruct', 'revision': 'c03e6d358207e414', 'max_new_tokens': 700}
+        self.cloud.rows[('private', fi.CONTROL_KEY)] = json.dumps(self.control).encode()
+
+    def test_submit_task_claims_then_invokes_with_the_callers_system_prompt(self):
+        calls = []
+        rt = types.SimpleNamespace(invoke_endpoint_async=lambda **kw: calls.append(kw) or {'OutputLocation': 's3://private/factory/inference/out/x.json', 'FailureLocation': 's3://private/factory/inference/fail/x.json'})
+        prompt = mr.build_prompt(BOARD, PLAY, None, True, mr.OWNED_BUDGET)
+        pending = fi.submit_task(self.store, rt, self.control, 'market-read', mr.SYSTEM, prompt, max_new_tokens=1400, meta={'candidates': BOARD['candidates']})
+        self.assertEqual(pending['state'], 'queued'); self.assertEqual(pending['kind'], 'task'); self.assertEqual(pending['meta']['candidates'], BOARD['candidates'])
+        req = json.loads(self.cloud.rows[('private', fi.REQ_PREFIX + pending['id'] + '.json')])
+        self.assertTrue(req['inputs'].startswith('<|im_start|>system\n' + mr.SYSTEM[:40]))
+        self.assertEqual(req['parameters']['max_new_tokens'], 1400)
+        self.assertEqual(len(calls), 1)
+        again = fi.submit_task(self.store, rt, self.control, 'market-read', mr.SYSTEM, prompt, max_new_tokens=1400)
+        self.assertTrue(again.get('replay')); self.assertEqual(len(calls), 1)                      # same question in flight: no second invoke
+        pkey = fi.pending_key('market-read', pending['id'][len('req-'):])
+        self.assertIn(('private', pkey), self.cloud.rows)
+
+    def test_settle_replaces_the_deterministic_read_with_the_validated_owned_answer(self):
+        lf = engine_module()
+        lf.PRIVATE_BUCKET, lf.PUBLIC_BUCKET = 'private', 'public'
+        rt = types.SimpleNamespace(invoke_endpoint_async=lambda **kw: {'OutputLocation': 's3://private/factory/inference/out/x.json', 'FailureLocation': 's3://private/factory/inference/fail/x.json'})
+        clients = {'s3': self.cloud, 'sagemaker-runtime': rt}
+        lf.client = lambda name: clients[name]
+        lf.get_json = lambda bucket, key: (lambda raw: json.loads(raw) if raw else None)(self.cloud.rows.get((bucket, key)))
+        lf.put_private = lambda key, doc: self.cloud.rows.__setitem__(('private', key), json.dumps(doc, default=str).encode())
+        lf.run_inventory = lambda *a, **k: None
+        lf._signals_table = lambda: None
+        logged = []
+        lf.mr.log_calls = lambda table, rid, calls, log_signal, yprice: logged.extend([{'signal_id': 's-' + c['ticker'], 'logged': True} for c in calls]) or logged
+        sys.modules['signals_emit'] = types.SimpleNamespace(log_signal=lambda *a, **k: None, yprice=lambda *a, **k: 1.0)
+        # 1) the read action's tail: hosted voices silent -> deterministic read + owned submission
+        det = mr.deterministic_read(BOARD); det.update(fallback=True, empty=True, llm_path='governed-router | glm: 429')
+        ov = lf._submit_owned_read(BOARD, PLAY, {'lessons': []}, {'playbook_text_to_llm': True})
+        self.assertEqual(ov['state'], 'queued'); self.assertTrue(ov['pending_id'].startswith('req-'))
+        det['owned_voice'] = ov; det['decision_status'] = 'EVIDENCE_READY'; det['release_blockers'] = []
+        doc = {'read_id': '20260917T054500Z', 'generated_at': '2026-09-17T05:45:00Z', 'board': BOARD, 'playbook': PLAY, 'read': det}
+        lf.put_private(lf.READ_KEY, doc)
+        # 2) before the answer lands: the read is untouched and waits
+        self.assertEqual(lf.settle_owned_read()['state'], 'queued')
+        self.assertTrue(json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']['fallback'])
+        # 3) the endpoint answers (the object at OutputLocation): the owned read becomes THE read, calls ledgered
+        self.cloud.rows[('private', 'factory/inference/out/x.json')] = json.dumps({'generated_text': 'Here you go:\n' + json.dumps(ANSWER), 'details': {'finish_reason': 'eos_token'}}).encode()
+        res = lf.settle_owned_read()
+        self.assertEqual(res['state'], 'done'); self.assertEqual(res['stances']['stocks'], 'RISK_ON'); self.assertEqual(res['calls_logged'], 1)
+        final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
+        self.assertEqual(final['voice'], 'owned'); self.assertFalse(final.get('fallback')); self.assertEqual(final['owned_voice']['state'], 'done')
+        self.assertEqual(final['decision_status'], 'EVIDENCE_READY'); self.assertEqual(final['calls'][0]['ticker'], 'AAPL')
+        self.assertIn('owned model owned:qwen2-5-coder-7b-instruct', final['llm_path'])
+        # 4) settled = delivered: a second settle is a no-op, and history carries the owned read
+        self.assertFalse(lf.settle_owned_read()['waiting'])
+        self.assertEqual(json.loads(self.cloud.rows[('private', 'ai/market-read/history/20260917T054500Z.json')])['read']['voice'], 'owned')
+
+    def test_settle_keeps_the_deterministic_read_when_the_answer_is_not_a_valid_read(self):
+        lf = engine_module()
+        lf.PRIVATE_BUCKET, lf.PUBLIC_BUCKET = 'private', 'public'
+        rt = types.SimpleNamespace(invoke_endpoint_async=lambda **kw: {'OutputLocation': 's3://private/factory/inference/out/y.json', 'FailureLocation': 's3://private/factory/inference/fail/y.json'})
+        clients = {'s3': self.cloud, 'sagemaker-runtime': rt}
+        lf.client = lambda name: clients[name]
+        lf.get_json = lambda bucket, key: (lambda raw: json.loads(raw) if raw else None)(self.cloud.rows.get((bucket, key)))
+        lf.put_private = lambda key, doc: self.cloud.rows.__setitem__(('private', key), json.dumps(doc, default=str).encode())
+        lf.run_inventory = lambda *a, **k: None
+        det = mr.deterministic_read(BOARD); det.update(fallback=True, empty=True)
+        det['owned_voice'] = lf._submit_owned_read(BOARD, PLAY, {}, {})
+        lf.put_private(lf.READ_KEY, {'read_id': 'r2', 'board': BOARD, 'read': det})
+        self.cloud.rows[('private', 'factory/inference/out/y.json')] = json.dumps({'generated_text': 'I think stocks look fine.'}).encode()
+        res = lf.settle_owned_read()
+        self.assertEqual(res['state'], 'malformed')
+        final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
+        self.assertTrue(final['fallback']); self.assertEqual(final['owned_voice']['state'], 'malformed'); self.assertIn('no JSON', final['owned_voice']['error'])
+
+
+if __name__ == '__main__':
+    unittest.main()

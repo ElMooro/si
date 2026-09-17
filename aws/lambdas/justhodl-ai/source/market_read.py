@@ -356,7 +356,14 @@ def deterministic_read(board):
         "fallback": True,
     }
 
-def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True) -> Dict[str, Any]:
+DEFAULT_BUDGET = (24000, 24000, 9000)       # board, fleet digest, playbook -- chars sent to the voice
+OWNED_BUDGET = (12000, 8000, 6000)          # the owned 7B model on one A10G: keep the prefill ~9k tokens
+
+
+def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
+                 budget: tuple = DEFAULT_BUDGET) -> str:
+    """The read prompt, identical for every voice (Anthropic, GLM, the owned model) apart from the size budget."""
+    b_board, b_digest, b_play = budget
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
     fleet_digest = slim.pop("fleet_digest", [])
@@ -364,10 +371,29 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lesso
     play_refs = {name: [{k: note.get(k) for k in ("similarity", "label", "pinned", "note_id")} | ({"text": str(note.get("text") or "")[:280]} if playbook_text else {"text_private": True})
                         for note in notes] for name, notes in (play.get("notes") or {}).items()}
     lesson_block = json.dumps((lessons or {}).get("lessons") or [], default=str)[:3000]
-    prompt = "LESSONS FROM YOUR OWN GRADED CALLS (carry them; do not repeat a graded mistake):\n%s\n\n" % lesson_block + "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
-        json.dumps(slim, default=str)[:24000], json.dumps(fleet_digest, default=str)[:24000],
-        json.dumps(play_refs or {"unavailable": play.get("reason")}, default=str)[:9000],
+    return "LESSONS FROM YOUR OWN GRADED CALLS (carry them; do not repeat a graded mistake):\n%s\n\n" % lesson_block + "BOARD (governed core artifacts, with freshness):\n%s\n\nFLEET DIGEST (every fresh, non-private registered feed; stale/missing coverage is in BOARD.fleet_coverage):\n%s\n\nPLAYBOOK (private note references and labels only; no note prose leaves the private boundary):\n%s\n\nCANDIDATES (only tickers allowed in opportunities/calls):\n%s\n\nProduce the JSON." % (
+        json.dumps(slim, default=str)[:b_board], json.dumps(fleet_digest, default=str)[:b_digest],
+        json.dumps(play_refs or {"unavailable": play.get("reason")}, default=str)[:b_play],
         ", ".join(board.get("candidates") or []))
+
+
+def parse_read_text(txt: str, candidates: set) -> Dict[str, Any]:
+    """A voice's raw answer -> validated read, or a parse_error record (never raises)."""
+    txt = str(txt or "").strip()
+    m = re.search(r"\{.*\}", txt, re.S)
+    try:
+        j = json.loads(m.group(0) if m else txt)
+    except Exception:
+        return {"parse_error": True, "raw": txt[:2000]}
+    try:
+        return validate_read(j, set(candidates or []))
+    except ValueError as exc:
+        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000]}
+
+
+def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
+                 budget: tuple = DEFAULT_BUDGET) -> Dict[str, Any]:
+    prompt = build_prompt(board, play, lessons, playbook_text, budget)
     raw = complete_fn(prompt, tier="critical", max_tokens=2400, contains_proprietary=True, system=SYSTEM, on_demand=True, no_cache=True)
     txt = str(raw or "").strip()
     if not txt:
@@ -376,15 +402,7 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lesso
         fb["empty"] = True
         fb["fallback"] = True
         return fb
-    m = re.search(r"\{.*\}", txt, re.S)
-    try:
-        j = json.loads(m.group(0) if m else txt)
-    except Exception:
-        return {"parse_error": True, "raw": txt[:2000]}
-    try:
-        return validate_read(j, set(board.get("candidates") or []))
-    except ValueError as exc:
-        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000]}
+    return parse_read_text(txt, set(board.get("candidates") or []))
 
 
 def _text(value: Any, name: str, minimum: int = 1, maximum: int = 4000) -> str:

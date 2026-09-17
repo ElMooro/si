@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.2.2"
+VERSION = "2.4.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -958,6 +958,14 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
         else:
             read["llm_path"] = "%s | glm: %s" % (claude_path, getattr(_glm_complete, "last_path", ""))
     read["lessons_carried"] = len(lessons.get("lessons") or [])
+    if read.get("parse_error") or read.get("empty") or read.get("fallback"):
+        # 2026-09-17: both hosted voices silent (credits / 429) -> the read is written deterministically NOW and the
+        # OWNED model (Qwen on the async endpoint in this account) is asked the same question; settle_owned_read()
+        # replaces this read with its answer on the next tick. No paid API, no note text leaves the account.
+        try:
+            read["owned_voice"] = _submit_owned_read(board, play, lessons, policy)
+        except Exception as e:
+            read["owned_voice"] = {"state": "not_submitted", "error": str(e)[:200]}
     critical = [name for name in ("fusion", "risk_gate", "khalid_risk") if (board.get("sources") or {}).get(name, {}).get("status") != "FRESH"]
     fleet_summary = fleet.get("summary") or {}
     unique_feeds = int(fleet_summary.get("unique_feeds") or 0)
@@ -995,6 +1003,117 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
     except Exception:
         pass
     return {k: doc[k] for k in ("read_id", "generated_at", "elapsed_s", "read", "calls_logged")} | {"playbook_available": play.get("available"), "sources": board["sources"]}
+
+
+OWNED_READ_AGENT = "market-read"
+
+
+def _owned_store():
+    from factory_store import Store
+    return Store(client("s3"), PRIVATE_BUCKET, PUBLIC_BUCKET, lambda: datetime.now(timezone.utc))
+
+
+def _submit_owned_read(board: dict, play: dict, lessons: dict, policy: dict) -> Dict[str, Any]:
+    """Ask the owned model for the read (async). Returns the state the read carries while it waits."""
+    import factory_inference as fin
+    store = _owned_store()
+    control = fin.load_control(store)
+    if not control or not control.get("enabled") or not control.get("endpoint_name"):
+        return {"state": "not_submitted", "error": "owned inference control disabled or absent (factory/control/inference.json)"}
+    # the owned model runs inside this account: the operator's note text may travel to it (same boundary as the Brain desk)
+    prompt = mr.build_prompt(board, play, lessons, playbook_text=bool(policy.get("playbook_text_to_llm", True)), budget=mr.OWNED_BUDGET)
+    pending = fin.submit_task(store, client("sagemaker-runtime"), control, OWNED_READ_AGENT, mr.SYSTEM, prompt, max_new_tokens=1400, temperature=0.2,
+                              meta={"candidates": sorted(board.get("candidates") or []), "for": "market-read"})
+    return {"state": pending.get("state"), "pending_id": pending.get("id"), "origin": pending.get("origin"), "endpoint": control.get("endpoint_name"),
+            "submitted_at": pending.get("submitted_at"), "error": pending.get("error"), "replay": bool(pending.get("replay"))}
+
+
+def settle_owned_read(context=None) -> Dict[str, Any]:
+    """Every tick: if the latest read is waiting on the owned model and its answer has landed, make it THE read
+    (validated, blockers re-applied, calls ledgered) and republish. Terminal failures are recorded on the read."""
+    import factory_inference as fin
+    doc = get_json(PRIVATE_BUCKET, READ_KEY) or {}
+    read = doc.get("read") or {}
+    ov = read.get("owned_voice") or {}
+    if not ov.get("pending_id") or ov.get("state") in ("done", "failed", "expired", "malformed", "not_submitted"):
+        return {"waiting": False, "state": ov.get("state")}
+    store = _owned_store()
+    pkey = fin.pending_key(OWNED_READ_AGENT, ov["pending_id"][len("req-"):])
+    pending, petag = store.read(store.private, pkey)
+    if not isinstance(pending, dict):
+        return {"waiting": False, "state": "pending_record_missing"}
+    state, text = fin.resolve(store, pending)
+    if state in ("queued", "running", "unknown"):
+        ov["state"] = state
+        ov["note"] = text
+        doc["read"]["owned_voice"] = ov
+        put_private(READ_KEY, doc)
+        return {"waiting": True, "state": state}
+    if state != "done":
+        ov.update(state=state, error=str(text)[:300], settled_at=now_iso())
+        doc["read"]["owned_voice"] = ov
+        put_private(READ_KEY, doc)
+        _owned_deliver(store, pkey, pending, petag, state)
+        return {"waiting": False, "state": state, "error": str(text)[:200]}
+    candidates = set(((pending.get("meta") or {}).get("candidates")) or ((doc.get("board") or {}).get("candidates")) or [])
+    owned = mr.parse_read_text(text, candidates)
+    if owned.get("parse_error"):
+        ov.update(state="malformed", error=("validation: " + str(owned.get("validation_error")))[:300] if owned.get("validation_error") else "no JSON object in the answer",
+                  raw_head=str(owned.get("raw") or "")[:400], settled_at=now_iso())
+        doc["read"]["owned_voice"] = ov
+        put_private(READ_KEY, doc)
+        _owned_deliver(store, pkey, pending, petag, "malformed")
+        return {"waiting": False, "state": "malformed", "error": ov["error"]}
+    # the owned answer becomes the read; governance from the deterministic pass carries over
+    prior = doc["read"]
+    owned["voice"] = "owned"
+    owned["llm_path"] = "owned model %s (async endpoint %s) -- hosted voices were silent: %s" % (ov.get("origin"), ov.get("endpoint"), str(prior.get("llm_path"))[:160])
+    owned["lessons_carried"] = prior.get("lessons_carried", 0)
+    owned["decision_status"] = prior.get("decision_status")
+    owned["release_blockers"] = prior.get("release_blockers") or []
+    if owned["release_blockers"]:
+        owned["calls"] = []
+    owned["owned_voice"] = dict(ov, state="done", settled_at=now_iso(), latency_s=_secs_between(ov.get("submitted_at"), now_iso()))
+    logged = []
+    if owned.get("calls"):
+        try:
+            from signals_emit import log_signal, yprice
+            logged = mr.log_calls(_signals_table(), doc.get("read_id") or now_iso(), owned["calls"], log_signal, yprice)
+        except Exception as e:
+            logged = [{"error": "ledger unavailable: %s" % str(e)[:120]}]
+        calls_doc = get_json(PRIVATE_BUCKET, CALLS_KEY) or {"calls": []}
+        calls_doc["calls"] = (calls_doc.get("calls") or []) + [r for r in logged if r.get("signal_id") and r.get("logged") is True]
+        calls_doc["calls"] = list({r["signal_id"]: r for r in calls_doc["calls"] if r.get("signal_id")}.values())[-400:]
+        put_private(CALLS_KEY, calls_doc)
+    doc["read"] = owned
+    doc["calls_logged"] = logged
+    doc["settled_at"] = now_iso()
+    put_private(READ_KEY, doc)
+    if doc.get("read_id"):
+        put_private("ai/market-read/history/%s.json" % doc["read_id"], doc)
+    _owned_deliver(store, pkey, pending, petag, "done")
+    try:
+        run_inventory(context, continue_embeddings=False)
+    except Exception:
+        pass
+    return {"waiting": False, "state": "done", "calls_logged": len([r for r in logged if r.get("logged") is True]), "stances": {k: (owned.get(k) or {}).get("stance") for k in ("stocks", "bonds", "metals", "crypto")}}
+
+
+def _owned_deliver(store, pkey, pending, petag, state):
+    try:
+        pending.update(state=state, delivered=True, delivered_at=now_iso())
+        store.put(store.private, pkey, pending, etag=petag, absent=False)
+        import factory_inference as fin
+        fin.archive_delivered(store, pkey, pending)
+    except Exception as e:
+        print("[ai] owned read: deliver/archive failed: %s" % str(e)[:120])
+
+
+def _secs_between(a, b):
+    try:
+        return round((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds())
+    except Exception:
+        return None
 
 
 def _anthropic_health() -> str:
@@ -1092,8 +1211,14 @@ def learning_scoreboard() -> Dict[str, Any]:
     # a deterministic (table-driven) read carries fallback/empty: both LLM voices were silent -- that is OFFLINE, not online
     # (2026-09-16: the page said "online" for a week of gate-mapped reads with zero calls)
     deterministic = bool(rr.get("fallback") or rr.get("empty"))
-    if rr and not rr.get("parse_error") and rr.get("voice") != "fallback" and not deterministic:
+    ov = rr.get("owned_voice") or {}
+    if rr and not rr.get("parse_error") and rr.get("voice") == "owned":
+        voice = "online (owned model %s, in this account, with your notes)" % str(ov.get("origin") or "owned")
+    elif rr and not rr.get("parse_error") and rr.get("voice") != "fallback" and not deterministic:
         voice = "online"
+    elif deterministic and ov.get("state") in ("queued", "running", "claimed", "unknown"):
+        voice = "offline for now: owned model answering (request %s, %s) -- the deterministic desk read stands until it lands" % (
+            str(ov.get("state")), "cold start" if ov.get("state") == "queued" else "running")
     else:
         why = _anthropic_health()
         reason = "Anthropic credits exhausted" if "credit" in why else ("Anthropic: %s" % why[:80] if why and why != "ok" else "primary voice silent")
@@ -1108,7 +1233,8 @@ def learning_scoreboard() -> Dict[str, Any]:
             "coin_flip_loss": round(math.log(k), 3) if k > 1 else None, "retrains": len(runs), "trend": trend, "loss_history": losses[-8:],
             "calls_made": len(calls), "calls_graded": graded_n, "hit_rate_by_window": perf, "lessons_carried": len(lessons.get("lessons") or []),
             "lessons_updated_at": lessons.get("updated_at"), "last_read_at": rd.get("generated_at"), "voice": voice,
-            "read_path": "deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None)),
+            "read_path": "owned" if rr.get("voice") == "owned" else ("deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None))),
+            "owned_voice": {k: ov.get(k) for k in ("state", "origin", "submitted_at", "settled_at", "latency_s", "error") if k in ov} or None,
             "calls_this_read": len(rr.get("calls") or []), "as_of": now_iso()}
 
 
@@ -1125,7 +1251,8 @@ def public_market_read() -> Optional[dict]:
         perf = {"n_calls": g.get("n_calls"), "by_window": g.get("by_window")}
     except Exception as e:
         perf = {"error": str(e)[:100], "n_calls": len(calls)}
-    return {"read_id": doc.get("read_id"), "generated_at": doc.get("generated_at"), "stances": st, "n_opportunities": len(rd.get("best_opportunities") or []),
+    return {"read_id": doc.get("read_id"), "generated_at": doc.get("generated_at"), "settled_at": doc.get("settled_at"), "voice": rd.get("voice"),
+            "owned_voice_state": (rd.get("owned_voice") or {}).get("state"), "stances": st, "n_opportunities": len(rd.get("best_opportunities") or []),
             "n_calls_this_read": len(rd.get("calls") or []), "playbook_available": (doc.get("playbook") or {}).get("available"),
             "sources": {k: v.get("status") for k, v in ((doc.get("board") or {}).get("sources") or {}).items()}, "performance": perf,
             "parse_error": bool(rd.get("parse_error"))}
@@ -2145,6 +2272,7 @@ def lambda_handler(event=None, context=None):
     # EventBridge Scheduler / direct invoke: inventory (+ continuation of embedding passes)
     mode = (event.get("mode") if isinstance(event, dict) else None) or "inventory"
     if mode == "pipeline":
+        _safe(lambda: settle_owned_read(context))
         st = _pipeline(_policy(), context).tick(budget_s=_budget(context))
         if st.get("status") in ("running", "done", "failed"):
             try:
@@ -2153,6 +2281,7 @@ def lambda_handler(event=None, context=None):
                 pass
         return {"ok": True, "status": st.get("status"), "stage": st.get("stage")}
     if mode == "inventory":
+        _safe(lambda: settle_owned_read(context))
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))
         gb = _safe(lambda: _gear_b_tick(launch=True))
         return {"ok": True, "generated_at": out["generated_at"], "endpoints": len(out["inventory"].get("endpoints") or []), "elapsed_s": out["elapsed_s"],
