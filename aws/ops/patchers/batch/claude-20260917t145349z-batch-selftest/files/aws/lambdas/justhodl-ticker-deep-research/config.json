@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Reads convergence-radar.json, calls Claude haiku-4-5 to produce research dossiers (bull thesis + risks + trade framework) for top 15 pump candidates. Hourly at :05.",
+  "inherit_env": {
+    "from_function": "justhodl-ai-chat",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-ticker-deep-research-hourly",
+    "cron": "cron(5 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Per-ticker AI research dossiers hourly at :05"
+  }
+}
