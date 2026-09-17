@@ -394,7 +394,7 @@ ANALOG_OUTCOMES = {
         "duration":  "Multi-quarter normal regime.",
     },
     "2024-10-09": {
-        "context":   "Late-cycle normal. AAH=99.31 (near-100 = very thin tail, healthy).",
+        "context":   "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
         "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
         "duration":  "Normal regime persisted.",
     },

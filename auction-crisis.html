@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Treasury Auction Crisis Detector · AI Edition · JustHodl.AI</title>
-<meta name="description" content="AI-augmented US Treasury auction crisis detector · 6 historical-pattern signals + tenor decomposition + forward calendar + historical analog matching + tail risk probabilities + Claude-powered narrative">
+<meta name="description" content="AI-augmented US Treasury auction crisis detector · 6 historical-pattern signals + tenor decomposition + forward calendar + historical analog matching + uncalibrated concern scores + Claude-powered narrative">
 <style>
 :root{
   --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
@@ -240,7 +240,7 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .concession-tile .interp{font-size:11.5px;color:var(--fg-2);line-height:1.45;border-top:1px dashed var(--border);padding-top:8px;margin-top:6px}
 .concession-empty{padding:14px;color:var(--fg-3);font-size:11.5px;text-align:center;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px}
 
-/* ─── AI Forward Predictions cards ─── */
+/* ─── AI Scenario Commentary cards ─── */
 .forward-pred-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin-bottom:24px}
 .forward-pred-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px 18px;border-left:3px solid var(--violet-dim)}
 .forward-pred-card.CALM{border-left-color:var(--green-dim)}
@@ -386,7 +386,7 @@ footer a:hover{color:var(--cyan)}
 <main class="container">
   <div class="page-hdr">
     <h1>TREASURY AUCTION CRISIS DETECTOR <span class="ai-tag">AI EDITION</span></h1>
-    <p>Institutional-grade Treasury auction stress detection. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with stress forecasts · cosine-similarity historical analog matching · 4 corroborating FRED signals · 30-day composite trajectory · 3 forward-looking tail risk probabilities · named regime triggers · Claude-powered narrative analysis + per-auction predictions.</p>
+    <p>Institutional-grade Treasury auction stress detection. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with heuristic stress scores · cosine-similarity historical analog matching · 4 corroborating FRED signals · 30-day composite trajectory · 3 descriptive concern scores · named regime triggers · Claude-powered narrative analysis + per-auction scenario commentary.</p>
     <div class="meta-row">
       <span>📊 data refresh: hourly</span>
       <span>🤖 ai layer: <code>claude-haiku-4-5</code></span>
@@ -542,10 +542,10 @@ footer a:hover{color:var(--cyan)}
   </div>
   <div id="postissue-section"></div>
 
-  <!-- AI Forward Predictions -->
+  <!-- AI Scenario Commentary -->
   <div class="section-hdr">
-    <h3>AI Forward Predictions</h3>
-    <div class="sub">Top upcoming auctions · expected outcome + what to watch</div>
+    <h3>AI Scenario Commentary</h3>
+    <div class="sub">Upcoming auctions · unvalidated scenarios + what to watch</div>
     <div class="badge ai">AI Generated</div>
   </div>
   <div id="ai-forward-grid" class="forward-pred-grid"></div>
@@ -597,7 +597,7 @@ footer a:hover{color:var(--cyan)}
   <!-- Historical reference -->
   <div class="section-hdr">
     <h3>Historical Reference</h3>
-    <div class="sub">9 anchor auctions calibrating the detector</div>
+    <div class="sub">9 historical comparison auctions; not a calibration sample</div>
   </div>
   <div id="hist-grid" class="hist-grid"></div>
 
@@ -615,8 +615,8 @@ footer a:hover{color:var(--cyan)}
     <p><strong>5. Indirect bidder participation.</strong> These bids arrive through intermediaries and include both domestic and foreign investors. Low participation does not identify a foreign-capital exodus.</p>
     <p><strong>6. Bill issuance explosion.</strong> 4-week vs 1-year average. &gt; +30% = fiscal panic or liquidity injection. Overlay adds up to 15 pts to composite.</p>
     <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
-    <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Per-auction forecast = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
-    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides forward implication.</p>
+    <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Uncalibrated per-auction score = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
+    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides historical context, not a validated forward forecast.</p>
     <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
     <p><strong>AI commentary layer.</strong> Separate Lambda (justhodl-auction-crisis-ai) reads the full v2 data snapshot and calls <code>claude-haiku-4-5-20251001</code> with a structured prompt. Produces narrative + per-upcoming-auction predictions + decisive call. 10-min cron offset from main data Lambda.</p>
     <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Issuance-explosion adds up to 15 points overlay.</p>
@@ -640,7 +640,7 @@ footer a:hover{color:var(--cyan)}
 
 </main>
 
-<script src="/auction-crisis.js?t=20260601c" defer></script>
+<script src="/auction-crisis.js?t=20260917-integrity3" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

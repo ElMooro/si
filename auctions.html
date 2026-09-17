@@ -723,9 +723,9 @@
   <div class="english">
     <strong>Why this matters.</strong> Auction stress isn't a single number — it's a *pattern* of which metrics
     move which way. The tells are subtle: <em>BTC alone is misleading</em> (high BTC can mean panic-flight OR
-    healthy demand). <em>Indirect bidder share</em> is the most discriminating signal — when foreign buyers
-    capitulate (GFC: Indirect 11–13%, COVID: 28%), you're in a real crisis. When they're stepping in
-    aggressively (today: 47–70%), that's the *opposite* signal.
+    healthy demand). <em>Indirect bidder share</em> includes both domestic and foreign customers
+    bidding through intermediaries. It is not a direct measure of foreign buying.
+    Compare like tenors, primary-dealer awards and true when-issued yield tails separately.
   </div>
   <div class="body" style="overflow-x:auto">
     <table>
@@ -747,16 +747,9 @@
     <span class="right">structural cross-asset map</span>
   </div>
   <div class="english">
-    <strong>The asymmetric truth.</strong> Auction stress and Bitcoin direction don't have a clean linear
-    relationship — but the relationship that *does* exist is asymmetric and tradeable:
-    <ul style="margin:6px 0 0 24px; line-height:1.7">
-      <li><strong>Acute auction stress almost always coincides with BTC bottoms forming</strong> (COVID
-          March 2020 = $3.8K BTC bottom). The flight-to-bills panic is the same panic that capitulates risk-on.</li>
-      <li><strong>Calm auction tapes have hosted BOTH BTC tops AND bottoms.</strong> Absence of auction stress
-          doesn't tell you BTC direction directly.</li>
-      <li><strong>Forward-leaning auction stress signals (AAH ≥ 99%, mid-curve tails) precede BTC tops by 1–3 months.</strong>
-          Oct 2024 AAH=99.31% printed before Nov 2024 vol — and BTC's interim top.</li>
-    </ul>
+    <strong>Historical examples, not a trading rule.</strong> The episodes below do not establish
+    a reliable Bitcoin lead, an event probability or a position-sizing rule. AAH is marginal-bid
+    proration; a high AAH value alone cannot identify a Bitcoin top or Treasury yield tail.
   </div>
 
   <div class="body">
@@ -881,7 +874,7 @@
 const HISTORICAL_ANCHORS = [
   { class:"gfc", when:"2008-09-17", tenor:"Bill 4-week", btc:4.21, indirect:11.4, tail:"—",
     score:77.5, regime:"ACUTE_STRESS",
-    context:"GFC: Lehman+1, panic flight to bills, foreign buyers capitulated" },
+    context:"GFC: Lehman+1, panic flight to bills, indirect bidder participation was low" },
   { class:"gfc", when:"2008-09-23", tenor:"Bill 7d CMB", btc:null, indirect:12.8, tail:"—",
     score:82.0, regime:"ACUTE_STRESS",
     context:"GFC peak: GS/MS-becomes-bank week, primary dealers absorbed unwanted supply" },
@@ -1001,7 +994,7 @@ const TRIGGERS = [
     watch:"Long-end tail discipline. If long end follows mid-curve into tail-stress, score crosses 30→50 transition."
   },
   { when:"~5/27", what:"2-Year monthly note",
-    watch:"Does BTC=3.52 with Indirect=65.7% repeat? If yes, structural foreign duration appetite is real (very bullish for risk-on)."
+    watch:"Does BTC=3.52 with Indirect=65.7% repeat? If yes, indirect bidder participation is elevated; this does not identify foreign demand or asset-price direction."
   },
 ];
 
@@ -1070,49 +1063,12 @@ function renderHero(d) {
 
 // Decisive call
 function renderCall(d) {
-  const s = Number(d.composite_score || 0);
-  const regime = d.regime || "CALM";
-  const banner = document.getElementById("callBanner");
-  banner.className = "call-banner " + regime;
-
-  let verdict, reasoning, stops;
-  if (s < 30) {
-    verdict = "🟢 STAY RISK-ON — auction tape gives zero confirmation of stress";
-    reasoning = `Foreign demand healthy. Issuance below baseline. Bid-to-cover ratios in normal late-cycle range.
-                  No structural warning signal. <strong>Position size:</strong> No reduction warranted on auction
-                  evidence alone. <strong>Aggressive risk-on if</strong> upcoming 10y reopen prints BTC ≥ 2.55,
-                  Indirect ≥ 67%, AAH ≤ 60% — that confirms 2024-04 healthy-market regime intact.`;
-    stops = `<strong>Stop conditions</strong> (any one triggers re-eval):
-              <br>• Composite score ≥ 30 for 2 consecutive readings
-              <br>• Indirect % drops below 40% on any tenor
-              <br>• AAH ≥ 90% combined with tail ≥ +3bp on 5y/10y/30y auction`;
-  } else if (s < 50) {
-    verdict = "🟡 REDUCE RISK MARGINALLY — auction tape showing yellow flags";
-    reasoning = `Mid-curve tail stress firing. Could be early-warning before broader regime shift.
-                  Trim 10–20% of risk-on exposure, prefer quality / shorter duration.`;
-    stops = `<strong>Stop conditions:</strong>
-              <br>• Score crosses 50 → ELEVATED → cut risk hard
-              <br>• Score stays 30–50 for 4+ weeks → confirm regime, hold reduced position
-              <br>• Score drops back below 25 → re-add risk`;
-  } else if (s < 75) {
-    verdict = "🟠 EXIT MOST RISK-ON — auction tape signaling regime stress";
-    reasoning = `Multiple patterns firing simultaneously. Treasury market dysfunction is upstream of equity vol.
-                  Move to defensive: TLT, GLD, cash. Equity exposure under 30%.`;
-    stops = `<strong>Stop conditions:</strong>
-              <br>• Score crosses 75 → full crisis posture, cash + GLD only
-              <br>• Score drops back below 40 → tactical re-entry`;
-  } else {
-    verdict = "🔴 FULL CRISIS POSTURE — exit everything risky";
-    reasoning = `GFC/COVID-magnitude auction tape. Treasury market dysfunction = liquidity event.
-                  Cash + short bills + GLD only. Wait for Fed bazooka.`;
-    stops = `<strong>Re-entry conditions:</strong>
-              <br>• Indirect % recovers above 50% on bills
-              <br>• Fed announces emergency liquidity facility
-              <br>• Score drops below 50 (regime healing)`;
-  }
-  document.getElementById("callVerdict").innerHTML = verdict;
-  document.getElementById("callReasoning").innerHTML = reasoning;
-  document.getElementById("callStops").innerHTML = stops;
+  const stamp=Date.parse(d.generated_at);
+  const current=Number.isFinite(stamp) && stamp<=Date.now()+300000 && Date.now()-stamp<48*3600000;
+  const score=current && typeof d.composite_score==='number' ? d.composite_score : null;
+  document.getElementById("callVerdict").textContent=score==null ? "Auction assessment unavailable" : "Descriptive auction concern score: "+score.toFixed(1)+"/100";
+  document.getElementById("callReasoning").textContent="This heuristic summarizes auction measurements. It has no calibrated event probability or validated portfolio allocation rule.";
+  document.getElementById("callStops").textContent="Read bid-to-cover, primary-dealer awards, indirect participation and AAH separately. Indirect participation is not foreign demand; AAH is not dealer absorption or a when-issued yield tail.";
 }
 
 // 6 indicator cards
@@ -1127,14 +1083,14 @@ function renderIndicators(d) {
     { key:"btc_extreme", name:"BTC extreme",
       desc:"Fires when bid-to-cover spikes above 4.0 (panic-flight to bills). GFC peak: 4.21. COVID peak: 4.09.",
       threshold:"BTC ≥ 4.0 on bills" },
-    { key:"tail_stress", name:"Tail stress",
-      desc:"Fires when high yield clears materially above prior auction's high. Indicates auction had to go higher to clear.",
-      threshold:"Tail bp ≥ +3 OR yield > prior high" },
+    { key:"tail_stress", name:"Allotted-at-high proration",
+      desc:"Legacy heuristic based on marginal-bid allotment. This is not a yield tail or dealer absorption.",
+      threshold:"Tenor-specific AAH heuristic; uncalibrated" },
     { key:"pd_absorption", name:"PD absorption",
       desc:"Fires when primary dealers take >70% of issuance — meaning real-money bidders stepped back.",
       threshold:"Primary dealer % ≥ 70%" },
     { key:"indirect_collapse", name:"Indirect collapse",
-      desc:"Fires when foreign + central-bank buyers fall below 30% — capitulation by non-dealer demand.",
+      desc:"Tracks low indirect participation, including domestic and foreign customers. It does not measure foreign demand alone.",
       threshold:"Indirect % ≤ 30%" },
     { key:"issuance_explosion", name:"Issuance explosion",
       desc:"Fires when 4-week rolling issuance spikes >20% above 12-month baseline (TGA build / fiscal stress).",

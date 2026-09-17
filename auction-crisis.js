@@ -64,12 +64,12 @@ function showAIDegraded(msg) {
   console.warn('[ai]', msg);
   $('ai-exec-title').textContent = 'AI commentary unavailable';
   $('ai-exec-body').textContent = msg + '. Numerical layers still rendered below.';
-  $('decisive-text').textContent = 'AI decisive call unavailable — see triggers section for static action prescriptions.';
+  $('decisive-text').textContent = 'AI decisive call unavailable — see triggers section for measured auction drivers.';
   $('what-changed').textContent = 'AI narrative unavailable. See indicator cards + tenor decomposition for current state.';
   $('analog-ai').innerHTML = '<div class="lbl">AI Analog Discussion</div><div>Unavailable — see top match metrics above.</div>';
   $('tail-ai-text').textContent = 'AI tail risk assessment unavailable — see the 3 concern-score cards above for drivers.';
   $('triggers-ai-text').textContent = 'AI narrative unavailable — see individual trigger cards above.';
-  $('ai-forward-grid').innerHTML = '<div style="color:var(--fg-3);font-size:12px;padding:14px">AI forward predictions unavailable — see the calendar table above for numerical forecasts.</div>';
+  $('ai-forward-grid').innerHTML = '<div style="color:var(--fg-3);font-size:12px;padding:14px">AI scenarios unavailable — the calendar contains uncalibrated concern scores.</div>';
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -583,6 +583,11 @@ function renderAISections() {
     showAIDegraded(AI?.error || 'AI commentary returned error');
     return;
   }
+  const published = Date.parse(AI.generated_at);
+  if (!Number.isFinite(published) || published > Date.now()+300000 || Date.now()-published > 36*3600000) {
+    showAIDegraded('AI commentary is expired or undated');
+    return;
+  }
   const ai = AI.ai_commentary || {};
 
   // Meta
@@ -642,7 +647,7 @@ function renderAISections() {
 
 function renderAIForwardPredictions(preds) {
   if (!preds.length) {
-    $('ai-forward-grid').innerHTML = '<div style="color:var(--fg-3);padding:14px">No forward predictions available</div>';
+    $('ai-forward-grid').innerHTML = '<div style="color:var(--fg-3);padding:14px">No scenario commentary available</div>';
     return;
   }
   let html = '';
@@ -655,7 +660,7 @@ function renderAIForwardPredictions(preds) {
         <div class="when">${esc(p.auction_date || '?')} <span class="term">${esc(p.tenor || '')} ${esc(p.term || '')}</span></div>
         <div class="score-tag ${label}">${p.predicted_score ?? '—'} <span style="font-size:9.5px;color:var(--fg-3);font-weight:400;letter-spacing:1px">${label}</span></div>
       </div>
-      <div class="outcome"><strong style="color:var(--cyan)">Expected:</strong> ${boldNumbers(esc(p.expected_outcome || ''))}</div>
+      <div class="outcome"><strong style="color:var(--cyan)">Unvalidated scenario:</strong> ${boldNumbers(esc(p.expected_outcome || ''))}</div>
       <div class="watch"><strong>Watch:</strong> ${boldNumbers(esc(p.what_to_watch || ''))}</div>
     </div>`;
   }
