@@ -324,7 +324,9 @@ Add `aws/ops/patchers/<slug>.py` (legacy `aws/ops/staged/grok_<slug>.py` still w
 is gone). Applied patchers move to `aws/ops/patchers/applied/`. A patcher that raises is
 **quarantined** to `aws/ops/patchers/failed/<name>.py` with `<name>.md` holding its error, its
 partial edits are reverted, and the rest of the run (uploads, batches, other patchers) still lands;
-push a corrected patcher under a new name. Match the engine's real text — e.g. carry-surface defines
+push a corrected patcher under a new name. A patcher that exits 0 but changes **nothing** is recorded as
+`aws/ops/patchers/applied/<name>.NOOP.md` — read it before believing a green run; "needle not found"
+and "already applied" look the same from the outside (ops 5617 did the rename, ops 5620 was a no-op). Match the engine's real text — e.g. carry-surface defines
 `def lambda_handler(event=None, context=None):`, so a marker without the defaults never matches. Never put a
 patcher in `aws/ops/pending/` (that queue is serial AWS work) and never put an
 ops script in `aws/ops/patchers/`.

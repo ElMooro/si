@@ -429,13 +429,13 @@ function renderPostIssuePerformance() {
 function renderTailRiskDataOnly() {
   const tr = DATA.tail_risk || {};
   const cards = [
-    {key: 'p_failed_auction_30d',     label: 'Failed Auction · 30d'},
+    {key: 'p_soft_demand_30d',        label: 'Soft Demand · 30d', fallback: 'p_failed_auction_30d'},   // ops 5617 rename; old key until the detector republishes
     {key: 'p_regime_escalation_14d',  label: 'Regime Escalation · 14d'},
     {key: 'p_supply_volatility_30d',  label: 'Supply Vol Spike · 30d'},
   ];
   let html = '';
   for (const c of cards) {
-    const v = tr[c.key];
+    const v = tr[c.key] || (c.fallback ? tr[c.fallback] : undefined);
     if (!v) continue;
     const drivers = Object.entries(v.drivers || {})
       .map(([k, vv]) => `<span>${esc(k)}=<b>${typeof vv === 'number' ? vv.toFixed(1) : esc(String(vv))}</b></span>`)

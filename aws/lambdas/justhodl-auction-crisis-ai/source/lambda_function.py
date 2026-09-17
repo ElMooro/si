@@ -240,11 +240,11 @@ def build_user_prompt(data: dict) -> str:
 
     # Tail risk
     parts.append("\n## TAIL RISK PROBABILITIES (forward-looking)\n")
-    for k, label in [("p_failed_auction_30d",  "Failed auction in next 30d"),
+    for k, label in [("p_soft_demand_30d",      "Soft demand (BTC<2 or AAH>95) in next 30d"),   # ops 5617 rename; falls back to the old key below
                        ("p_regime_escalation_14d", "Regime escalation in next 14d"),
                        ("p_supply_volatility_30d", "Supply-driven vol spike in next 30d")]:
-        if tail.get(k):
-            tr = tail[k]
+        if tail.get(k) or (k == "p_soft_demand_30d" and tail.get("p_failed_auction_30d")):
+            tr = tail.get(k) or tail["p_failed_auction_30d"]
             parts.append(f"  - {label}: ~{tr.get('probability','?')}% — {tr.get('interpretation','')}")
 
     # Triggers
@@ -510,8 +510,10 @@ def compute_alert_state(data: dict) -> dict:
     }
     for sig, agg in (data.get("indicator_aggregate_14d") or {}).items():
         state["indicator_max"][sig] = agg.get("max_score", 0)
-    for k in ("p_failed_auction_30d", "p_regime_escalation_14d", "p_supply_volatility_30d"):
-        state["tail_p"][k] = ((data.get("tail_risk") or {}).get(k) or {}).get("probability", 0)
+    tail_risk = data.get("tail_risk") or {}
+    for k in ("p_soft_demand_30d", "p_regime_escalation_14d", "p_supply_volatility_30d"):
+        entry = tail_risk.get(k) or (tail_risk.get("p_failed_auction_30d") if k == "p_soft_demand_30d" else None) or {}
+        state["tail_p"][k] = entry.get("probability", 0)
     return state
 
 
@@ -571,7 +573,11 @@ def detect_transitions(prior_state: dict, current_state: dict) -> list:
     # 3. Tail risk probability crossing 50%
     TAIL_THRESH = 50
     cur_tail = current_state.get("tail_p", {})
-    prior_tail = prior_state.get("tail_p", {})
+    prior_tail = dict(prior_state.get("tail_p", {}))
+    # ops 5617: the detector renamed p_failed_auction_30d -> p_soft_demand_30d; a prior state saved under the old
+    # name must not read as a 0 -> N "transition" on the first run after the rename.
+    if "p_failed_auction_30d" in prior_tail and "p_soft_demand_30d" not in prior_tail:
+        prior_tail["p_soft_demand_30d"] = prior_tail["p_failed_auction_30d"]
     for key, cur_p in cur_tail.items():
         prior_p = prior_tail.get(key, 0)
         if cur_p >= TAIL_THRESH and prior_p < TAIL_THRESH:

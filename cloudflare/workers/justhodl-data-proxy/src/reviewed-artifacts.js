@@ -101,9 +101,17 @@ export async function serveReviewedArtifact(request, review, bucket, cors) {
       bytes = await boundedRead(new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))));
     }
     const document = JSON.parse(new TextDecoder().decode(bytes));
-    if (!document || typeof document !== 'object' || Array.isArray(document) || document[review.marker] !== review.version) return unavailable(503);
+    if (!document || typeof document !== 'object' || Array.isArray(document)) return unavailable(503);
+    const marked = document[review.marker] === review.version;
+    // 2026-09-17: digests/alerts are public PROJECTIONS and must carry their schema marker. History heads and
+    // history files are written fresh by live engines that never stamp public_history_review, so demanding the
+    // marker served carry-surface, jh-fusion, usd-funding, floor-audit and cascade-validation-log as 503 for a
+    // week. For those the contract is the content check: no raw diagnostics, or nothing is served.
+    if (review.marker !== 'public_history_review' && !marked) return unavailable(503);
     if (hasRawDiagnostics(document)) return unavailable(503);
     if (review.marker === 'public_digest_schema' && Object.hasOwn(document, 'telegram_info')) return unavailable(503);
+    headers['X-JH-Review'] = marked ? 'reviewed' : 'clean-unmarked';
+    headers['Access-Control-Expose-Headers'] = 'X-JH-Artifact-Key, X-JH-Review';
     return new Response(request.method === 'HEAD' ? null : JSON.stringify(document), {status: 200, headers});
   } catch (_) { return unavailable(503); }
 }

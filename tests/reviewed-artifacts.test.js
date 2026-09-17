@@ -84,3 +84,23 @@ test('legitimate redacted history and alerts retain analytics including zero and
     }
   } finally {globalThis.fetch=original;}
 });
+
+test('a fresh, clean history head without the marker is served; raw diagnostics still block it', async () => {
+  const {reviewedArtifact, serveReviewedArtifact, REVIEWED_HISTORY_KEYS} = await import(modulePath);
+  const original = globalThis.fetch;
+  try {
+    for (const key of REVIEWED_HISTORY_KEYS) {
+      const review = reviewedArtifact(key);
+      globalThis.fetch = async () => Response.json({generated_at: '2026-09-17T14:49:26Z', ok: true, rows: [{metric: 1}]});
+      const r = await serveReviewedArtifact(new Request('https://example.test/' + key), review, 'https://origin.test', {});
+      assert.equal(r.status, 200, key); assert.equal(r.headers.get('X-JH-Review'), 'clean-unmarked');
+      globalThis.fetch = async () => Response.json({generated_at: '2026-09-17T14:49:26Z', rows: [{headers: {token: 'SYNTHETIC_SECRET'}}]});
+      const blocked = await serveReviewedArtifact(new Request('https://example.test/' + key), review, 'https://origin.test', {});
+      assert.equal(blocked.status, 503, key); assert.ok(!(await blocked.text()).includes('SYNTHETIC_SECRET'));
+    }
+    // digests stay projection-only: no marker, no service
+    const digest = reviewedArtifact('data/_alerts/digest-2026-01-01-close.json');
+    globalThis.fetch = async () => Response.json({equity_score: 0});
+    assert.equal((await serveReviewedArtifact(new Request('https://example.test/d.json'), digest, 'https://origin.test', {})).status, 503);
+  } finally { globalThis.fetch = original; }
+});

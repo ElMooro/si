@@ -100,11 +100,20 @@ jobs:
           # 2026-09-17: one lane's broken patcher must not block every other lane's uploads/batches.
           # A failing patcher is quarantined to aws/ops/patchers/failed/ with its error beside it, its
           # partial edits are reverted, the rest of the run proceeds, and the run goes red at the end.
-          applied=""; failed=""
+          applied=""; failed=""; noop=""
           for f in "${patchers[@]}"; do
             echo "── $f"
             before=$(git status --porcelain | awk '{print $2}' | sort)
             if python3 "$f" 2>&1 | tee "$RUNNER_TEMP/patcher.log"; then
+              after=$(git status --porcelain | awk '{print $2}' | sort)
+              name=$(basename "$f" .py)
+              if [ "$before" = "$after" ]; then
+                # 2026-09-17: a patcher that exits 0 but changes nothing is recorded as a NO-OP, not silently "applied" --
+                # "needle not found" and "already applied" look identical from a green run (ops 5617 vs 5620).
+                noop="$noop $(basename "$f")"
+                { echo "# patcher NO-OP: $(basename "$f")"; echo; echo "Exited 0 but changed no tracked file (apply-lane run ${{ github.run_id }}, $(date -u +%Y-%m-%dT%H:%M:%SZ)). Either the change was already on main, or the needle never matched -- verify the target file, do not trust the green run."; echo; echo '```'; tail -20 "$RUNNER_TEMP/patcher.log"; echo '```'; } > "aws/ops/patchers/applied/$name.NOOP.md"
+                echo "::warning::patcher $(basename "$f") changed nothing (recorded as applied/$name.NOOP.md)"
+              fi
               applied="$applied $(basename "$f")"
               git mv -f "$f" "aws/ops/patchers/applied/$(basename "$f")"
             else
@@ -125,6 +134,7 @@ jobs:
           [ -n "$applied" ] && echo "applied:$applied" || echo "no patchers applied (uploads/batches only)"
           echo "APPLIED=$applied" >> "$GITHUB_ENV"
           echo "PATCHERS_FAILED=$failed" >> "$GITHUB_ENV"
+          echo "PATCHERS_NOOP=$noop" >> "$GITHUB_ENV"
 
       - name: Stage new files before validation and target detection
         # git diff HEAD omits untracked helpers/configs unless they are staged first.
@@ -291,6 +301,7 @@ jobs:
             echo "- rejected uploads/batches: \`${PARTS_REJECTED:-none}\` (reasons in <upload or batch folder>/STATUS.json and the _receipts/ folders)"
             echo "- batch ops scripts dispatched: \`${BATCH_OPS:-none}\`"
             echo "- failed patchers (quarantined): \`${PATCHERS_FAILED:-none}\`"
+            echo "- no-op patchers (exit 0, nothing changed): \`${PATCHERS_NOOP:-none}\`"
             echo "- verify: \`python3 scripts/verify_release.py <function> --commit ${{ steps.push.outputs.sha }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
