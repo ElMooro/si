@@ -1,40 +1,6 @@
-"""justhodl-us10y-sentinel v1.0 — the 10-Year red-flag watchdog (ops 3286).
-
-Khalid: "US 10Y spiking anywhere near 5% should be a MAJOR red flag for
-risk and stocks." The fleet had curve SHAPE (justhodl-yield-curve),
-regime CHANGE consensus (justhodl-bond-regime-detector) and 10Y as a
-dollar canary — but no engine watching the ABSOLUTE LEVEL against the
-5% danger line with velocity, equity-impact evidence and tripwires.
-This engine is that watchdog. Real data only.
-
-INPUTS
-  - FRED DGS10 full daily history (1962→) + DFII10 (10y real, 2003→)
-  - Yahoo v8 ^TNX latest quote (intraday 10Y, /10) — live leg on top
-    of FRED's T+1 print
-  - Yahoo v8 ^GSPC range=max daily closes — for the episode study and
-    the 60d stock/yield correlation regime
-
-COMPUTES
-  - level (live), distance_to_5pct_bps, percentile since 1990
-  - velocity d20/d60 in bps (rate SHOCKS kill stocks, grinds don't)
-  - danger ladder BENIGN<4.00 ≤WATCH<4.25 ≤ELEVATED<4.50 ≤HIGH<4.75
-    ≤RED<5.00 ≤CRITICAL, +1 tier bump when d60 ≥ +50bps (capped)
-  - real 10y level (DFII10) — >2.25% historically compresses equity
-    multiples; noted in reason string
-  - EPISODE STUDY (data-driven, no hardcoded folklore): every first
-    upward cross of 4.50 / 4.75 / 5.00 (first close ≥ thr after ≥250
-    trading days below) since 1962 → SPX forward 1w/1m/3m returns,
-    median + hit-rate per threshold
-  - corr60: 60d correlation of SPX daily returns vs ΔDGS10 —
-    corr ≤ -0.30 ⇒ "YIELDS_DRIVING_STOCKS" regime flag
-  - 260d history array for the page sparkline
-
-OUTPUT  data/us10y-sentinel.json      (schema 1.0)
-SIGNAL  Telegram on tier CROSSES into/out of RED|CRITICAL only
-        (state kept in own JSON — no daily spam)
-CONSUMED BY  yield-curve.html sentinel strip (ops 3286),
-        justhodl-master-allocator best_asset risk override (ops 3287).
-Schedule: EventBridge Scheduler 5x/day (created by ops 3286).
+"""Dated 10-year yield threshold monitor with validated daily SP500 price studies.
+FRED DGS10/DFII10/SP500. Heuristic thresholds are review context, not trade calls.
+SP500 coverage limits historical equity outcomes; dividends are excluded.
 """
 import json
 import math
@@ -50,7 +16,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/us10y-sentinel.json"
-SCHEMA = "1.0"
+SCHEMA = "2.0"
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
 
@@ -71,7 +37,7 @@ def _get(url, timeout=25, tries=3):
                 return json.loads(r.read().decode("utf-8", "ignore"))
         except Exception as e:
             if i == tries - 1:
-                print("GET fail %s: %s" % (url[:80], e))
+                print("Provider request failed: %s" % type(e).__name__)
             time.sleep(1.2 * (i + 1))
     return None
 
@@ -119,49 +85,75 @@ def tier_of(level):
     return "BENIGN"
 
 
+def clean_daily(rows, positive=False):
+    clean={}
+    for d,v in rows:
+        try:
+            datetime.strptime(d,'%Y-%m-%d')
+            if math.isfinite(v) and (not positive or v>0):clean[d]=v
+        except (ValueError,TypeError):pass
+    return sorted(clean.items())
+
+
 def episode_study(dgs10, spx):
-    """First upward crosses of each threshold after >=250 tds below,
-    with SPX fwd 5/21/63-td returns. Pure data — no folklore."""
-    px = {d: v for d, v in spx}
-    dates = [d for d, _ in spx]
-    idx = {d: i for i, d in enumerate(dates)}
+    """Dated daily price-only studies; absent coverage cannot jump decades ahead."""
+    from bisect import bisect_left
+    from statistics import median
+    yields=clean_daily(dgs10)
+    prices=clean_daily(spx,positive=True)
+    dates=[datetime.strptime(d,'%Y-%m-%d').date() for d,_ in prices]
 
-    def fwd(d0, n):
-        i = idx.get(d0)
-        if i is None:
-            # nearest next trading day
-            later = [x for x in dates if x >= d0]
-            if not later:
-                return None
-            i = idx[later[0]]
-        if i + n >= len(dates):
-            return None
-        a, b = px[dates[i]], px[dates[i + n]]
-        return round((b / a - 1) * 100, 2) if a else None
+    def fwd(d0,n):
+        trigger=datetime.strptime(d0,'%Y-%m-%d').date()
+        i=bisect_left(dates,trigger)
+        if i>=len(dates) or (dates[i]-trigger).days>4:
+            return None,'OUTSIDE_PRICE_COVERAGE'
+        if i+n>=len(dates):return None,'HORIZON_NOT_COMPLETE'
+        window=dates[i:i+n+1]
+        if any((b-a).days>7 for a,b in zip(window,window[1:])):
+            return None,'NON_DAILY_OR_GAPPED_PRICE_HISTORY'
+        if (window[-1]-window[0]).days>n*2+7:
+            return None,'HORIZON_DATE_MISMATCH'
+        value=(prices[i+n][1]/prices[i][1]-1)*100
+        if not math.isfinite(value) or abs(value)>100:
+            return None,'QUARANTINED_IMPLAUSIBLE_SPX_RETURN'
+        return round(value,2),'VALID'
 
-    out = {}
-    ys = [v for _, v in dgs10]
-    ds = [d for d, _ in dgs10]
-    for thr in (4.50, 4.75, 5.00):
-        eps = []
-        for i in range(250, len(ys)):
-            if ys[i] >= thr and max(ys[i - 250:i]) < thr:
-                d0 = ds[i]
-                eps.append({"date": d0, "y": round(ys[i], 2),
-                            "spx_1w": fwd(d0, 5),
-                            "spx_1m": fwd(d0, 21),
-                            "spx_3m": fwd(d0, 63)})
-        r3 = [e["spx_3m"] for e in eps if e["spx_3m"] is not None]
-        r1 = [e["spx_1m"] for e in eps if e["spx_1m"] is not None]
-        out["cross_%s" % ("%.2f" % thr)] = {
-            "n": len(eps), "episodes": eps[-12:],
-            "median_spx_1m": (round(sorted(r1)[len(r1) // 2], 2)
-                              if r1 else None),
-            "median_spx_3m": (round(sorted(r3)[len(r3) // 2], 2)
-                              if r3 else None),
-            "neg_3m_hit_rate_pct": (round(100 * sum(
-                1 for x in r3 if x < 0) / len(r3), 1) if r3 else None)}
+    out={}
+    ys=[v for _,v in yields]
+    for thr in (4.50,4.75,5.00):
+        eps=[]
+        for i in range(250,len(yields)):
+            if ys[i]<thr or max(ys[i-250:i])>=thr:continue
+            window=[datetime.strptime(d,'%Y-%m-%d').date() for d,_ in yields[i-250:i+1]]
+            if any((b-a).days>7 for a,b in zip(window,window[1:])):continue
+            d0=yields[i][0]
+            row={'date':d0,'y':round(ys[i],2),'return_basis':'SP500 price-only; dividends excluded','quality':{}}
+            for label,n in (('1w',5),('1m',21),('3m',63)):
+                value,status=fwd(d0,n)
+                row['spx_'+label]=value;row['quality'][label]=status
+            eps.append(row)
+        r3=[e['spx_3m'] for e in eps if e['spx_3m'] is not None]
+        r1=[e['spx_1m'] for e in eps if e['spx_1m'] is not None]
+        out['cross_%.2f'%thr]={
+            'n':len(eps),'episodes':eps[-12:],'n_valid_1m':len(r1),'n_valid_3m':len(r3),'minimum_summary_n':3,
+            'median_spx_1m':round(median(r1),2) if len(r1)>=3 else None,
+            'median_spx_3m':round(median(r3),2) if len(r3)>=3 else None,
+            'neg_3m_hit_rate_pct':round(100*sum(x<0 for x in r3)/len(r3),1) if len(r3)>=3 else None,
+            'status':'DESCRIPTIVE_SMALL_SAMPLE' if len(r3)>=3 else 'INSUFFICIENT_VALID_EPISODES',
+            'source':'FRED SP500 daily close','return_basis':'price-only; excludes dividends',
+            'price_start':prices[0][0] if prices else None,'price_end':prices[-1][0] if prices else None,
+            'methodology_version':'daily-price-episodes.v2',
+            'note':'250 prior daily yield observations below threshold; 5/21/63 subsequent daily equity closes. '
+                   'Date gaps checked; no returns outside price coverage. Current-vintage descriptive study, not a forecast.'}
     return out
+
+
+def observation_quality(d):
+    try:age=(datetime.now(timezone.utc).date()-datetime.strptime(d,'%Y-%m-%d').date()).days
+    except (ValueError,TypeError):age=None
+    return {'status':'unavailable' if age is None else 'invalid' if age<0 else 'stale' if age>7 else 'fresh',
+            'observation_date':d,'max_age_days':7,'age_days':age}
 
 
 def corr(a, b):
@@ -203,27 +195,26 @@ def lambda_handler(event=None, context=None):
     except Exception:
         pass
 
-    dgs10 = fred_series("DGS10")
-    if len(dgs10) < 1000:
-        raise RuntimeError("DGS10 fetch too thin: %d" % len(dgs10))
+    dgs10 = clean_daily(fred_series("DGS10"))
+    if not dgs10:
+        stamp=datetime.now(timezone.utc).isoformat()
+        out={'schema':SCHEMA,'engine':'justhodl-us10y-sentinel','as_of':stamp,'generated_at':stamp,
+             'methodology_version':'daily-price-episodes.v2','quality':observation_quality(None),
+             'level':None,'tier':'UNKNOWN','tier_reason':'FRED DGS10 unavailable.',
+             'fred_close':None,'fred_date':None,'distance_to_5pct_bps':None,'pct_rank_since_1990':None,
+             'velocity':{'d20_bps':None,'d60_bps':None,'velocity_bump':False},'real_10y':None,
+             'corr60_spx_vs_dy':None,'yields_driving_stocks':None,'episode_study':{},'history_260d':[],
+             'execution_eligible':False,'call':None}
+        S3.put_object(Bucket=BUCKET,Key=OUT_KEY,Body=json.dumps(out).encode(),ContentType='application/json')
+        return {'statusCode':200,'body':json.dumps({'ok':True,'quality':out['quality']})}
     dfii = fred_series("DFII10", start="2003-01-01")
-    spx = yahoo_daily("^GSPC", "max")
+    spx = clean_daily(fred_series("SP500", start="1962-01-01"), positive=True)
 
-    # live intraday leg: ^TNX quote / 10 (CBOE 10y yield index)
-    tnx = yahoo_daily("^TNX", "5d")
-    fred_lvl = round(dgs10[-1][1], 3)
-    live_lvl, live_src = None, "fred"
-    if tnx:
-        raw = tnx[-1][1]
-        # Yahoo v8 close for ^TNX is usually already in percent (4.61);
-        # some feeds ship the CBOE x10 convention (46.1). Pick the
-        # candidate nearest FRED's last print — self-correcting.
-        cand = min((raw, raw / 10.0), key=lambda c: abs(c - fred_lvl))
-        if 1.0 < cand < 20 and abs(cand - fred_lvl) < 1.5:
-            live_lvl = round(cand, 3)
-            live_src = "yahoo_tnx_live"
-    level = live_lvl if live_lvl else fred_lvl
-
+    # FRED constant-maturity yield is a daily observation, not an intraday quote.
+    fred_lvl = round(dgs10[-1][1],3)
+    live_src = "FRED_DGS10_daily"
+    level = fred_lvl
+    source_quality = observation_quality(dgs10[-1][0])
     ys = [v for _, v in dgs10]
     since90 = [v for d, v in dgs10 if d >= "1990-01-01"]
     pct_rank = round(100 * sum(1 for v in since90 if v <= level)
@@ -239,7 +230,8 @@ def lambda_handler(event=None, context=None):
             tier = TIER_ORDER[min(i + 1, len(TIER_ORDER) - 1)]
             bumped = True
 
-    real10 = round(dfii[-1][1], 2) if dfii else None
+    dfii=clean_daily(dfii)
+    real10 = round(dfii[-1][1],2) if dfii and observation_quality(dfii[-1][0])["status"]=="fresh" else None
     dist_bps = round((5.00 - level) * 100, 1)
 
     # 60d corr of SPX returns vs Δ10y (FRED daily aligned by date)
@@ -249,11 +241,14 @@ def lambda_handler(event=None, context=None):
     for i in range(1, len(spx_recent)):
         d1, p1 = spx_recent[i]
         d0, p0 = spx_recent[i - 1]
-        if d1 in ymap and d0 in ymap and p0:
+        if d1 in ymap and d0 in ymap and p0 and (datetime.strptime(d1,"%Y-%m-%d")-datetime.strptime(d0,"%Y-%m-%d")).days<=7:
             rets.append(p1 / p0 - 1)
             dys.append(ymap[d1] - ymap[d0])
     c60 = corr(rets[-60:], dys[-60:])
-    yields_driving = bool(c60 is not None and c60 <= -0.30)
+    equity_quality=observation_quality(spx[-1][0] if spx else None)
+    if equity_quality['status']!='fresh' or source_quality['status']!='fresh':
+        c60=None
+    negative_association = bool(c60 is not None and c60 <= -0.30)
 
     reason = ("10Y %.2f%% — %.0fbps from the 5%% line · pct-rank "
               "since 1990: %.0f · Δ60d %+0.0fbps%s · real 10y %s%%"
@@ -261,15 +256,18 @@ def lambda_handler(event=None, context=None):
                  " (VELOCITY BUMP)" if bumped else "",
                  real10 if real10 is not None else "—"))
     if real10 is not None and real10 >= 2.25:
-        reason += " (real yield in multiple-compression zone)"
-    if yields_driving:
-        reason += " · corr says YIELDS ARE DRIVING STOCKS right now"
+        reason += " (elevated real-yield review threshold, uncalibrated)"
+    if negative_association:
+        reason += " · negative equity-return/yield-change association; correlation does not establish causation"
 
     eps = episode_study(dgs10, spx) if spx else {}
 
     out = {
         "schema": SCHEMA, "engine": "justhodl-us10y-sentinel",
         "as_of": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "quality": source_quality, "methodology_version": "daily-price-episodes.v2",
+        "calibration_status": "HEURISTIC_REVIEW_ONLY", "execution_eligible": False, "call": None,
         "level": level, "level_source": live_src,
         "fred_close": fred_lvl, "fred_date": dgs10[-1][0],
         "distance_to_5pct_bps": dist_bps,
@@ -280,7 +278,11 @@ def lambda_handler(event=None, context=None):
         "tier": tier, "tier_reason": reason,
         "prev_tier": prev.get("tier"),
         "corr60_spx_vs_dy": c60,
-        "yields_driving_stocks": yields_driving,
+        "yields_driving_stocks": None,
+        "negative_equity_yield_association": negative_association,
+        "correlation_observations": min(60,len(rets)),
+        "equity_quality": equity_quality,
+        "real_10y_date": dfii[-1][0] if dfii else None,
         "episode_study": eps,
         "ladder": [{"thr": t, "name": n} for t, n in TIERS if t > 0],
         "history_260d": [{"d": d, "v": round(v, 3)}
@@ -288,9 +290,14 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - t0, 1),
     }
 
+    if source_quality['status'] != 'fresh':
+        out.update(level=None, tier='UNKNOWN', distance_to_5pct_bps=None,
+                   pct_rank_since_1990=None, tier_reason='Daily Treasury yield unavailable or stale.',
+                   corr60_spx_vs_dy=None, negative_equity_yield_association=None,
+                   velocity={'d20_bps':None,'d60_bps':None,'velocity_bump':False})
     hot = {"RED", "CRITICAL"}
     pt = prev.get("tier")
-    if pt and pt != tier and (tier in hot or pt in hot):
+    if not (event or {}).get("suppress_alerts") and source_quality["status"]=="fresh" and pt in TIER_ORDER and pt != tier and (tier in hot or pt in hot):
         arrow = "🔴⬆️" if TIER_ORDER.index(tier) > \
             TIER_ORDER.index(pt) else "🟢⬇️"
         med = ((eps.get("cross_4.75") or {}).get("median_spx_3m"))
@@ -301,7 +308,7 @@ def lambda_handler(event=None, context=None):
         out["alert_sent"] = True
 
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out).encode(),
+                  Body=json.dumps(out,allow_nan=False).encode(),
                   ContentType="application/json",
                   CacheControl="public, max-age=300")
     print("sentinel: %.2f%% tier=%s dist=%.0fbps eps=%s"
