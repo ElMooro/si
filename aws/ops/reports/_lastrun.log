@@ -1,3 +1,3 @@
-executing-against: b5d21d7a9d832cc7c7e75b3ca65e6d8ee44a813d
-last 2026-09-17T20:45:19.260540+00:00 WAIT 54
-already WAIT
+executing-against: 077737c58844248f02dbdd763e2baf37826d0123
+invoke b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"risk_regime_score\\": 7.7, \\"risk_regime\\": \\"NEUTRAL\\", \\"blocks\\": [\\"fx\\", \\"options\\", \\"vix\\", \\"credit\\", \\"liquidity_regime\\", \\"funding\\", \\"eurodollar_hub\\"], \\"tells\\": [\\"RISK-OFF: SPY put skew steep (0.051)\\", \\"Bank reserves below comfort floor (LCLoR risk)\\", \\"Liquidity trajectory: TIGHTENING AHEAD\\", \\"Systemic stress: CALM (ALIGNED)\\", \\"Liquidity: NEUTRAL (ALIGNED)\\", \\"Capital inflows: STEADY_INFLOW (ALIGNED)\\"]}"}'
+{"generated_at": "2026-09-17T20:48:03.281186+00:00", "version": "1.0.1", "has_pd": true, "pd": {"as_of": "2026-09-02", "ftd_bn": 92.61, "ftr_bn": 97.63, "combined_bn": 190.24, "unit": "usd_bn", "source": "data/settlement-fails.json", "note": "FR2004 two-sided gross FTD+FTR. Weekly. Not a default rate."}, "regime": "NEUTRAL"}
