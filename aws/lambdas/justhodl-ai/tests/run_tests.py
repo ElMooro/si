@@ -843,7 +843,8 @@ def test_pipeline_state_machine_end_to_end_and_ladder_failover():
     assert st["infer_proof"]["nearest"] and st["retrieval_endpoint"] == st["embedding_endpoint"], st.get("infer_proof")
     assert st["status"] == "done" and st["stage"] == "done" and st["market_read"]["stances"]["stocks"] == "SELECTIVE", st.get("market_read")
     # The pipeline still completes its governed read, but incomplete registry
-    # coverage must suppress calls rather than bypass the evidence gate.
+    # coverage must suppress calls rather than bypass the evidence gate (in production/test;
+    # AI_ENVIRONMENT=review ledgers them as the graded exam -- tests/factory/test_owned_read.py).
     assert st["market_read"]["n_calls"] == 0
     # read model carries the pipeline view, no note text
     out = lf.run_inventory(None)

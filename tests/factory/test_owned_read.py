@@ -107,7 +107,9 @@ class OwnedReadSettleTests(unittest.TestCase):
         det = mr.deterministic_read(BOARD); det.update(fallback=True, empty=True, llm_path='governed-router | glm: 429')
         ov = lf._submit_owned_read(BOARD, PLAY, {'lessons': []}, {'playbook_text_to_llm': True})
         self.assertEqual(ov['state'], 'queued'); self.assertTrue(ov['pending_id'].startswith('req-'))
-        det['owned_voice'] = ov; det['decision_status'] = 'EVIDENCE_READY'; det['release_blockers'] = []
+        det['owned_voice'] = ov; det['decision_status'] = 'ADVISORY_ONLY'; det['release_blockers'] = ['registry has 80 unique feeds; minimum is 150']
+        import os; os.environ['AI_ENVIRONMENT'] = 'review'
+        lf._policy = lambda: {}
         doc = {'read_id': '20260917T054500Z', 'generated_at': '2026-09-17T05:45:00Z', 'board': BOARD, 'playbook': PLAY, 'read': det}
         lf.put_private(lf.READ_KEY, doc)
         # 2) before the answer lands: the read is untouched and waits
@@ -119,7 +121,14 @@ class OwnedReadSettleTests(unittest.TestCase):
         self.assertEqual(res['state'], 'done'); self.assertEqual(res['stances']['stocks'], 'RISK_ON'); self.assertEqual(res['calls_logged'], 1)
         final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
         self.assertEqual(final['voice'], 'owned'); self.assertFalse(final.get('fallback')); self.assertEqual(final['owned_voice']['state'], 'done')
-        self.assertEqual(final['decision_status'], 'EVIDENCE_READY'); self.assertEqual(final['calls'][0]['ticker'], 'AAPL')
+        self.assertEqual(final['decision_status'], 'ADVISORY_ONLY'); self.assertEqual(final['calls'][0]['ticker'], 'AAPL')   # advisory, yet the call is ledgered for grading
+        self.assertTrue(final['calls_ledgered_while_advisory'])
+        os.environ['AI_ENVIRONMENT'] = 'production'
+        self.assertFalse(lf._ledger_while_advisory({}))                                                                       # production (and test) keep the mute
+        os.environ['AI_ENVIRONMENT'] = 'test'
+        self.assertFalse(lf._ledger_while_advisory({}))
+        self.assertTrue(lf._ledger_while_advisory({'ledger_calls_when_advisory': True}))
+        os.environ['AI_ENVIRONMENT'] = 'review'
         self.assertIn('owned model owned:qwen2-5-coder-7b-instruct', final['llm_path'])
         # 4) settled = delivered: a second settle is a no-op, and history carries the owned read
         self.assertFalse(lf.settle_owned_read()['waiting'])

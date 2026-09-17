@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.4.1"
+VERSION = "2.4.2"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -979,7 +979,11 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
             blockers.append(blocker)
     read["decision_status"] = "ADVISORY_ONLY" if blockers else "EVIDENCE_READY"
     read["release_blockers"] = blockers
-    if blockers:
+    # 2026-09-17: dated calls are the AI's graded exam, not an action. Muting them behind the fleet-registry production bar
+    # (150 feeds / 80% coverage / version 2 -- the registry has 80 feeds) meant NOTHING was ever ledgered or graded all week.
+    # In review mode the calls are ledgered and graded while the release decision stays ADVISORY_ONLY.
+    read["calls_ledgered_while_advisory"] = bool(blockers) and _ledger_while_advisory(policy)
+    if blockers and not read["calls_ledgered_while_advisory"]:
         read["calls"] = []
     read_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     logged = []
@@ -1006,6 +1010,14 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
 
 
 OWNED_READ_AGENT = "market-read"
+
+
+def _ledger_while_advisory(policy: dict) -> bool:
+    """Review mode grades the AI's calls even when the fleet registry is below the production bar; production keeps the mute
+    unless the policy says otherwise."""
+    if "ledger_calls_when_advisory" in (policy or {}):
+        return bool(policy["ledger_calls_when_advisory"])
+    return os.environ.get("AI_ENVIRONMENT", "production").strip().lower() == "review"
 
 
 def _owned_store():
@@ -1083,7 +1095,8 @@ def settle_owned_read(context=None) -> Dict[str, Any]:
     owned["lessons_carried"] = prior.get("lessons_carried", 0)
     owned["decision_status"] = prior.get("decision_status")
     owned["release_blockers"] = prior.get("release_blockers") or []
-    if owned["release_blockers"]:
+    owned["calls_ledgered_while_advisory"] = bool(owned["release_blockers"]) and _ledger_while_advisory(_policy())
+    if owned["release_blockers"] and not owned["calls_ledgered_while_advisory"]:
         owned["calls"] = []
     owned["owned_voice"] = dict(ov, state="done", settled_at=now_iso(), latency_s=_secs_between(ov.get("submitted_at"), now_iso()),
                                 coercions=owned.pop("coercions", None), repaired=bool(ov.get("repair")))
@@ -1266,6 +1279,7 @@ def public_market_read() -> Optional[dict]:
         perf = {"error": str(e)[:100], "n_calls": len(calls)}
     return {"read_id": doc.get("read_id"), "generated_at": doc.get("generated_at"), "settled_at": doc.get("settled_at"), "voice": rd.get("voice"),
             "owned_voice_state": (rd.get("owned_voice") or {}).get("state"), "stances": st, "n_opportunities": len(rd.get("best_opportunities") or []),
+            "decision_status": rd.get("decision_status"), "n_blockers": len(rd.get("release_blockers") or []), "calls_ledgered_while_advisory": bool(rd.get("calls_ledgered_while_advisory")),
             "n_calls_this_read": len(rd.get("calls") or []), "playbook_available": (doc.get("playbook") or {}).get("available"),
             "sources": {k: v.get("status") for k, v in ((doc.get("board") or {}).get("sources") or {}).items()}, "performance": perf,
             "parse_error": bool(rd.get("parse_error"))}

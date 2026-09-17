@@ -395,7 +395,7 @@ def _build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional
 
 
 SCHEMA_SKELETON = (
-    '{"overall": "<4-7 sentences>", "macro": "<string>", '
+    '{"overall": "<4-7 sentences>", "macro": "<2-4 sentences: growth, inflation, policy, the dollar -- from the board>", '
     '"stocks": {"stance": "RISK_ON|SELECTIVE|DEFENSIVE|AVOID", "read": "<why, from the board>"}, '
     '"bonds": {"stance": "LONG_DURATION|NEUTRAL|SHORT_DURATION|AVOID", "read": "<why>"}, '
     '"metals": {"stance": "ACCUMULATE|HOLD|TRIM|AVOID", "read": "<why>"}, '
