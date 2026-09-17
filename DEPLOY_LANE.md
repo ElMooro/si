@@ -183,7 +183,11 @@ With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` write
 
 Add `aws/ops/patchers/<slug>.py` (legacy `aws/ops/staged/grok_<slug>.py` still works):
 `read_text` / `replace` / `write_text`, idempotent (`already clean` if the needle
-is gone). Applied patchers move to `aws/ops/patchers/applied/`. Never put a
+is gone). Applied patchers move to `aws/ops/patchers/applied/`. A patcher that raises is
+**quarantined** to `aws/ops/patchers/failed/<name>.py` with `<name>.md` holding its error, its
+partial edits are reverted, and the rest of the run (uploads, batches, other patchers) still lands;
+push a corrected patcher under a new name. Match the engine's real text — e.g. carry-surface defines
+`def lambda_handler(event=None, context=None):`, so a marker without the defaults never matches. Never put a
 patcher in `aws/ops/pending/` (that queue is serial AWS work) and never put an
 ops script in `aws/ops/patchers/`.
 
