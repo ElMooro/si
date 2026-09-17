@@ -13,6 +13,7 @@ Output: data/macro-nowcast.json with composite score + regime label.
 Schedule: rate(6 hours).
 """
 from __future__ import annotations
+import math
 import json
 import os
 import statistics
@@ -63,6 +64,7 @@ def fred_fetch(series_id: str):
                "api_key": FRED_KEY,
                "file_type": "json",
                "observation_start": FRED_START,
+               "aggregation_method": "eop" if series_id=="SP500" else "avg",
                "frequency": "m",  # monthly aggregation (FRED auto-resamples)
                "limit": 100000,
            }))
@@ -76,57 +78,52 @@ def fred_fetch(series_id: str):
             if v in (".", "", None):
                 continue
             try:
-                out.append((o["date"], float(v)))
+                value=float(v)
+                if math.isfinite(value):out.append((o["date"], value))
             except (ValueError, KeyError):
                 continue
         out.sort(key=lambda x: x[0])
         return out, None
     except Exception as e:
-        return [], str(e)[:200]
+        return [], type(e).__name__
+
+
+def month_id(d):
+    y,m=map(int,d[:7].split('-'))
+    if not 1<=m<=12:raise ValueError('invalid month')
+    return y*12+m-1
+
+
+def clean_monthly(history):
+    rows={}
+    for d,v in history:
+        try:
+            m=month_id(d)
+            if not math.isfinite(v):continue
+            if m in rows:raise ValueError('duplicate observation month')
+            rows[m]=(d,v)
+        except (TypeError,ValueError) as exc:
+            if str(exc)=='duplicate observation month':raise
+    return rows
 
 
 def transform_zscore(history, transform: str):
-    """Convert series to (z, raw_value, error)."""
-    if not history:
-        return None, None, "empty_series"
-    current = history[-1][1]
-
-    if transform == "yoy_pct":
-        # Compute YoY % change for every observation, z-score the latest
-        yoys = []
-        for i in range(12, len(history)):
-            v_t = history[i][1]
-            v_p = history[i - 12][1]
-            if v_p is None or v_p == 0:
-                continue
-            yoys.append({"d": history[i][0], "yoy": ((v_t - v_p) / v_p) * 100})
-        if len(yoys) < 12:
-            return None, current, "insufficient_yoy_history"
-        latest_yoy = yoys[-1]["yoy"]
-        # Trailing 60-obs window for baseline
-        baseline = [y["yoy"] for y in yoys[-60:-1]] if len(yoys) > 60 else [y["yoy"] for y in yoys[:-1]]
-        if len(baseline) < 12:
-            return None, latest_yoy, "insufficient_yoy_baseline"
-        m = statistics.mean(baseline)
-        sd = statistics.stdev(baseline) if len(baseline) >= 2 else 0
-        if sd == 0:
-            return None, latest_yoy, "zero_yoy_stdev"
-        z = (latest_yoy - m) / sd
-        return z, latest_yoy, None
-
-    if transform == "level_z":
-        # Z-score current level vs trailing 60 obs
-        baseline = [v for _, v in history[-60:-1]] if len(history) > 60 else [v for _, v in history[:-1]]
-        if len(baseline) < 12:
-            return None, current, "insufficient_level_baseline"
-        m = statistics.mean(baseline)
-        sd = statistics.stdev(baseline) if len(baseline) >= 2 else 0
-        if sd == 0:
-            return None, current, "zero_level_stdev"
-        z = (current - m) / sd
-        return z, current, None
-
-    return None, current, f"unknown_transform:{transform}"
+    try:rows=clean_monthly(history)
+    except ValueError:return None,None,'duplicate_month'
+    if not rows:return None,None,'empty_series'
+    current_month=max(rows);current=rows[current_month][1]
+    if transform=='yoy_pct':
+        values={m:(v/rows[m-12][1]-1)*100 for m,(_,v) in rows.items()
+                if m-12 in rows and rows[m-12][1]!=0}
+        if current_month not in values:return None,None,'missing_exact_year_ago'
+    elif transform=='level_z':values={m:v for m,(_,v) in rows.items()}
+    else:return None,current,'unknown_transform'
+    latest=values[current_month]
+    baseline=[v for m,v in values.items() if current_month-60<=m<current_month]
+    if len(baseline)<24:return None,latest,'insufficient_60_calendar_month_baseline'
+    sd=statistics.stdev(baseline)
+    if sd==0:return None,latest,'zero_baseline_stdev'
+    return (latest-statistics.mean(baseline))/sd,latest,None
 
 
 def regime_for_score(score: float):
@@ -152,14 +149,15 @@ def fetch_spy_monthly():
 
 def compute_spy_returns_by_regime(historical_scores, spy_data):
     """For each historical month T classified as regime R, compute
-    SPY forward returns at 1, 3, 6, 12 months. Aggregate by regime.
+    SP500 price-only forward returns at 1, 3, 6, 12 months. Aggregate by regime.
 
     Returns: {regime: {n_obs, mean_pct: {1m, 3m, 6m, 12m}, hit_rate: {...}}}
     """
+    spy_data=[(d,p) for d,p in spy_data if isinstance(p,(int,float)) and math.isfinite(p) and p>0]
     if not historical_scores or not spy_data:
         return {}
 
-    # Build a date → spy_price lookup. SPY data is monthly already
+    # Build a date → spy_price lookup. SP500 price data is monthly already
     # (FRED returns monthly observations when frequency=m). Match by year-month.
     spy_by_ym = {}
     for d, p in spy_data:
@@ -187,10 +185,8 @@ def compute_spy_returns_by_regime(historical_scores, spy_data):
         by_regime[regime]["n_obs"] += 1
 
         for fwd_months in horizons:
-            target_idx = idx + fwd_months
-            if target_idx >= len(sorted_yms):
-                continue
-            target_ym = sorted_yms[target_idx]
+            target=month_id(ym)+fwd_months
+            target_ym=f'{target//12:04d}-{target%12+1:02d}'
             spy_fwd = spy_by_ym.get(target_ym)
             if spy_fwd is None:
                 continue
@@ -200,9 +196,9 @@ def compute_spy_returns_by_regime(historical_scores, spy_data):
     # Compute summary stats per regime
     out = {}
     for regime, info in by_regime.items():
-        summary = {"n_obs": info["n_obs"], "horizons": {}}
+        summary = {"n_obs": info["n_obs"], "horizons": {}, "return_basis":"SP500 monthly end-of-period price-only; dividends excluded", "minimum_summary_n":12, "validation_status":"CURRENT_VINTAGE_DESCRIPTIVE_ONLY"}
         for h, vals in info["returns"].items():
-            if not vals:
+            if len(vals)<12:
                 summary["horizons"][f"{h}m"] = None
                 continue
             n_pos = sum(1 for v in vals if v > 0)
@@ -222,11 +218,10 @@ def compute_spy_returns_by_regime(historical_scores, spy_data):
 
 
 def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
-    """Replay the nowcast month-by-month using only data available at each point.
+    """Reconstruct monthly scores using current-vintage histories, not publication vintages.
 
-    This produces a 10-year historical track of what the composite would
-    have read in real time. Each month uses the same z-scoring methodology
-    (trailing 60-obs baseline, no look-ahead).
+    This produces a 10-year historical track of a reconstruction using currently revised observations. Each month uses the same z-scoring methodology
+    (prior 60 calendar months; revised data is not point-in-time evidence).
     """
     # Build a unified date axis: union of all month-ends across all series
     all_dates = set()
@@ -253,7 +248,7 @@ def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
             full = fred_data.get(fred_id, [])
             # Slice to obs at or before target_date
             slice_ = [(d, v) for d, v in full if d <= target_date]
-            if len(slice_) < 24:
+            if len(slice_) < 24 or not slice_ or slice_[-1][0][:7]!=target_date[:7]:
                 continue
             z, raw_value, err = transform_zscore(slice_, spec["transform"])
             if z is None:
@@ -264,13 +259,13 @@ def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
             weighted_sum += contrib
             weight_used_abs += abs(spec["weight"])
 
-        if weight_used_abs == 0:
+        if len(comp_contribs)!=len(WEIGHTS):
             continue
         total_abs_weight = sum(abs(s["weight"]) for s in WEIGHTS.values())
         normalized = weighted_sum * (total_abs_weight / weight_used_abs)
         regime, color = regime_for_score(normalized)
         historical.append({
-            "date": target_date,
+            "date": target_date, "vintage_basis":"current_vintage_reconstruction", "point_in_time_validated":False,
             "score": round(normalized, 3),
             "raw_score": round(weighted_sum, 3),
             "regime": regime,
@@ -280,6 +275,13 @@ def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
         })
 
     return historical
+
+
+def optional_block(module, *args):
+    try:
+        return __import__(module).block(*args)
+    except Exception as exc:
+        return {'status':'UNAVAILABLE','reason':type(exc).__name__}
 
 
 def lambda_handler(event=None, context=None):
@@ -303,9 +305,21 @@ def lambda_handler(event=None, context=None):
         spy_history, spy_err = spy_fut.result()
         spy_data = spy_history
         if spy_err:
-            print(f"[nowcast-v2] SPY: ERR {spy_err}")
+            print(f"[nowcast-v2] SP500: ERR {spy_err}")
         else:
-            print(f"[nowcast-v2] SPY: {len(spy_data)} obs")
+            print(f"[nowcast-v2] SP500: {len(spy_data)} obs")
+
+    # Daily series aggregated to the current partial month must not be mixed
+    # with closed monthly releases. Publication and observation remain distinct.
+    current_month=datetime.now(timezone.utc).strftime('%Y-%m')
+    fred_data={sid:[(d,v) for d,v in rows if d[:7]<current_month] for sid,rows in fred_data.items()}
+    spy_data=[(d,v) for d,v in spy_data if d[:7]<current_month and math.isfinite(v) and v>0]
+    observation_quality={}
+    for sid,rows in fred_data.items():
+        age=(datetime.now(timezone.utc).date()-datetime.strptime(rows[-1][0],'%Y-%m-%d').date()).days if rows else None
+        status='unavailable' if age is None else 'invalid' if age<0 else 'stale' if age>100 else 'fresh'
+        observation_quality[sid]={'status':status,'observation_date':rows[-1][0] if rows else None,'max_age_days':100,'frequency':'monthly'}
+        if status!='fresh':fred_errors[sid]='observation_'+status
 
     components = []
     weighted_sum = 0.0
@@ -313,7 +327,7 @@ def lambda_handler(event=None, context=None):
 
     for fred_id, spec in WEIGHTS.items():
         history = fred_data.get(fred_id, [])
-        if not history:
+        if not history or fred_id in fred_errors:
             components.append({
                 "fred_id": fred_id, "label": spec["label"],
                 "transform": spec["transform"], "weight": spec["weight"],
@@ -347,42 +361,30 @@ def lambda_handler(event=None, context=None):
         weighted_sum += contribution
         weight_used_abs += abs(spec["weight"])
 
-    if weight_used_abs > 0:
-        total_abs_weight = sum(abs(s["weight"]) for s in WEIGHTS.values())
-        coverage = weight_used_abs / total_abs_weight
-        normalized_score = weighted_sum * (total_abs_weight / weight_used_abs)
-    else:
-        coverage = 0
-        normalized_score = 0
-
-    score = normalized_score
-    if score > 1.0:
-        regime, regime_color = "STRONG EXPANSION", "green"
-    elif score > 0.3:
-        regime, regime_color = "EXPANSION", "green"
-    elif score > -0.3:
-        regime, regime_color = "MUDDLE", "yellow"
-    elif score > -1.0:
-        regime, regime_color = "SLOWING", "amber"
-    else:
-        regime, regime_color = "CONTRACTION RISK", "red"
+    total_abs_weight=sum(abs(v['weight']) for v in WEIGHTS.values())
+    coverage=weight_used_abs/total_abs_weight
+    ready=sum(c.get('contribution') is not None for c in components)==len(WEIGHTS)
+    normalized_score=weighted_sum if ready else None
+    regime,regime_color=regime_for_score(normalized_score) if ready else ('UNAVAILABLE','gray')
+    for c in components:
+        c['quality']=observation_quality.get(c['fred_id'],{'status':'unavailable'})
+        if c.get('error'):c['quality']={**c['quality'],'status':'unavailable','reason':c['error']}
 
     components.sort(key=lambda c: -abs(c.get("contribution") or 0))
 
     # Historical replay — what would the nowcast have read each month
-    # over the past 10 years? No look-ahead. ~120 monthly evaluations.
+    # over the past 10 years? Current-vintage reconstruction only.
     print("[nowcast-v2] computing historical replay…")
     hist_started = time.time()
     historical_scores = compute_historical_scores(fred_data, lookback_months=120)
     print(f"[nowcast-v2] historical: {len(historical_scores)} months "
           f"computed in {round(time.time()-hist_started, 2)}s")
 
-    # SPY forward returns conditional on each historical regime — turns
-    # the backward-looking composite into a forward-looking signal.
-    print("[nowcast-v2] computing SPY returns by regime…")
+    # Describe SP500 price-only outcomes by reconstructed regime; no forecast claim.
+    print("[nowcast-v2] computing SP500 price returns by regime…")
     regime_spy_started = time.time()
     regime_spy_performance = compute_spy_returns_by_regime(historical_scores, spy_data)
-    print(f"[nowcast-v2] regime-SPY: {len(regime_spy_performance)} regimes "
+    print(f"[nowcast-v2] regime-SP500: {len(regime_spy_performance)} regimes "
           f"in {round(time.time()-regime_spy_started, 2)}s")
 
     # Summary stats for the historical track (useful for page rendering)
@@ -401,13 +403,17 @@ def lambda_handler(event=None, context=None):
             "mean_score": round(sum(scores) / len(scores), 3),
             "regime_distribution": regime_counts,
             "current_score_percentile": round(
-                sum(1 for s in scores if s <= normalized_score) / len(scores) * 100, 1),
+                sum(1 for s in scores if s <= normalized_score) / len(scores) * 100, 1) if normalized_score is not None else None,
         }
 
     output = {
-        "v": "2.2",
+        "v": "2.3", "methodology_version":"monthly-measurement.v2",
+        "quality":{"status":"fresh" if ready else "incomplete", "required_series":list(WEIGHTS),
+                   "observation_dates":{k:v.get('observation_date') for k,v in observation_quality.items()},
+                   "basis":"ragged-edge latest closed monthly observations; all seven required"},
+        "call":None,"execution_eligible":False,"calibration_status":"HEURISTIC_REVIEW_ONLY",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "global_confidence": __import__("wl_series").block({
+        "global_confidence": optional_block("wl_series", {
         "cci_jp": ("ECONOMICS:JPCCI", "Japan consumer conf"),
         "cci_de": ("ECONOMICS:DECCI", "Germany consumer conf"),
         "cci_fr": ("ECONOMICS:FRCCI", "France consumer conf"),
@@ -424,10 +430,10 @@ def lambda_handler(event=None, context=None):
         "gdp_fr": ("ECONOMICS:FRGDPYY", "France GDP YoY"),
         "gdp_ea": ("ECONOMICS:EUGDPYY", "EA19 GDP YoY"),
     }, True),  # ops 3244: series-level fusion
-        "wl_research": __import__("wl_fusion").block(('GROWTH', 'INFLATION')),
+        "wl_research": optional_block("wl_fusion", ('GROWTH', 'INFLATION')),
         "duration_s": round(time.time() - started, 2),
-        "raw_score": round(weighted_sum, 4),
-        "normalized_score": round(normalized_score, 4),
+        "raw_score": round(weighted_sum, 4) if ready else None,
+        "normalized_score": round(normalized_score, 4) if normalized_score is not None else None,
         "regime": regime,
         "regime_color": regime_color,
         "coverage_pct": round(coverage * 100, 1),
@@ -443,27 +449,27 @@ def lambda_handler(event=None, context=None):
             "muddle": -0.3, "slowing": -1.0,
         },
         "data_sources": {"all": "FRED (st. louis fed)"},
-        "methodology": (
-            "Weighted z-score nowcast. Each FRED series fetched directly "
-            "as monthly observations since 2000. Flow series (INDPRO, "
-            "PAYEMS, RSAFS, HOUST) get YoY %-change z-scored against "
-            "trailing 60 monthly YoYs. Level series (UMCSENT, T10Y2Y, "
-            "UNRATE) get current level z-scored against trailing 60 "
-            "monthly levels. Composite = weighted sum, renormalized "
-            "against weights actually used so missing components don't "
-            "deflate the headline score. Historical track replays the "
-            "same logic month-by-month using ONLY data available at "
-            "each historical point — no look-ahead bias. SPY returns "
-            "conditional on each regime are computed from FRED's SP500 "
-            "series (2015-present) at 1/3/6/12-month forward horizons "
-            "to turn the backward-looking composite into a forward-looking "
-            "signal."
-        ),
+        "return_study":{"instrument":"S&P 500 index", "source":"FRED SP500", "dividends_included":False,
+                        "price_convention":"monthly end-of-period", "historical_availability":"not point-in-time validated",
+                        "note":"Revised macro histories and overlapping horizons make this descriptive, not investable performance."},
+        "methodology":"Seven FRED monthly indicators; exact-calendar YoY, prior 60 calendar-month baseline (at least 24 valid values). "
+                      "Current partial months excluded. All seven fresh components required; missing data does not become MUDDLE. "
+                      "Historical scores reconstruct current-vintage data, not release-time information. "
+                      "SP500 returns are price-only, monthly end-of-period, exact calendar horizons; no SPY total-return claim."
+
     }
 
+    # The watchlist cache has unvalidated units/frequencies and observed dates
+    # years behind its publication stamp. Preserve it as quarantined context.
+    confidence=output.get('global_confidence') or {}
+    confidence.update(composite_z=None,composite_n=0,status='BLOCKED_UNVALIDATED_SOURCE_AND_FREQUENCY',
+                      score_eligible=False,note='Watchlist cache is historical context only; not admitted to a macro composite.')
+    for row in (confidence.get('series') or {}).values():
+        row['score_eligible']=False;row['quality_status']='CHECK_DATA'
+    output['global_confidence']=confidence
     s3.put_object(
         Bucket=S3_BUCKET, Key=OUTPUT_KEY,
-        Body=json.dumps(output, default=str).encode(),
+        Body=json.dumps(output, allow_nan=False, default=str).encode(),
         ContentType="application/json",
         CacheControl="public, max-age=600",
     )
@@ -473,13 +479,13 @@ def lambda_handler(event=None, context=None):
     # every 6h but the underlying FRED data updates monthly, so this
     # fires Telegram only when the regime label changes — typically
     # once per quarter at most.
-    change_summary = check_regime_change(regime, normalized_score)
+    change_summary = check_regime_change(regime, normalized_score) if ready and not (event or {}).get("suppress_alerts") else {"changed":False,"suppressed":True}
 
-    print(f"[nowcast-v2] regime={regime}  score={round(normalized_score, 3)}  "
+    print(f"[nowcast-v2] regime={regime}  score={normalized_score}  "
           f"coverage={round(coverage*100, 0)}%  duration={round(time.time()-started, 2)}s")
     return {"statusCode": 200, "body": json.dumps({
         "regime": regime,
-        "score": round(normalized_score, 4),
+        "score": round(normalized_score, 4) if normalized_score is not None else None,
         "coverage_pct": round(coverage * 100, 1),
         "regime_change": change_summary,
     })}
@@ -580,4 +586,3 @@ def send_regime_change_alert(prev, new):
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as r:
         print(f"[regime-change] telegram sent: {r.status}")
-
