@@ -44,7 +44,7 @@ def build_pin(image: str, bundle_uri: str, bundle_sha: str, require_digest: bool
             "bundle_uri": bundle_uri, "bundle_sha256": bundle_sha, "program": "train_qlora.py", "burst_program": "generate.py",
             "requirements_sha256": hashlib.sha256((SRC / "requirements.txt").read_bytes()).hexdigest(),
             "default_instance": "ml.g5.2xlarge", "instances": ["ml.g5.2xlarge", "ml.g5.4xlarge", "ml.g5.12xlarge"],
-            "max_steps": 400, "lora_r": 16, "learning_rate": "2e-4", "max_seq_len": 2048, "epochs": 1,
+            "max_steps": 400, "lora_r": 16, "learning_rate": "2e-4", "max_seq_len": 2048, "epochs": 3,  # max_steps = ceiling; steps are planned from the data
             "pinned_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
 
 

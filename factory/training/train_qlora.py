@@ -10,6 +10,12 @@ Output:
                                      job (never this script) decides whether the adapter is promoted.
 Hyperparameters arrive as strings from launch_sft (sagemaker_program, base_revision, max_steps, lora_r, ...).
 No network is needed at train time; everything the job reads is in its channels.
+
+Step plan (2026-09-16): the number of optimizer steps is DERIVED FROM THE DATA -- packed sequences x epochs / batch --
+and `max_steps` is only a ceiling. A fixed 400 steps over 570 rows meant ~70 epochs and ~5 h on ml.g5.2xlarge inside a
+3 h runtime cap: four jobs in a row died at ~50% with nothing saved (jh-gearb-gen4..gen7). `time_budget_s` (default
+9600, the launcher passes max_runtime_s - 1200) is a hard stop: training ends early, the adapter is still saved, and the
+manifest says stopped_by=time_budget so the exam judges what actually trained. Nothing here decides promotion.
 """
 from __future__ import annotations
 
@@ -86,6 +92,26 @@ def load_rows(train_dir: Path, max_rows: int = 200000):
     return rows
 
 
+def step_plan(total_tokens: int, max_seq_len: int, epochs: int, per_device: int, grad_accum: int, cap: int) -> dict:
+    """Optimizer steps from the data: packed sequences (packing=True) x epochs / (per_device x grad_accum), capped."""
+    packed = max(1, -(-int(total_tokens) // max(1, int(max_seq_len))))
+    per_step = max(1, int(per_device) * int(grad_accum))
+    steps_per_epoch = max(1, -(-packed // per_step))
+    planned = max(1, steps_per_epoch * max(1, int(epochs)))
+    return {"total_tokens": int(total_tokens), "packed_sequences": packed, "sequences_per_step": per_step,
+            "steps_per_epoch": steps_per_epoch, "epochs": int(epochs), "planned_steps": planned, "cap": int(cap),
+            "max_steps": min(planned, int(cap)) if int(cap) > 0 else planned}
+
+
+def budget_exhausted(started: float, now_s: float, steps_done: int, budget_s: float) -> bool:
+    """True when the next step would cross the budget (average step time so far, one step of margin)."""
+    if budget_s <= 0:
+        return False
+    elapsed = max(0.0, now_s - started)
+    avg = elapsed / steps_done if steps_done > 0 else 0.0
+    return elapsed + avg >= budget_s
+
+
 def dir_sha256(root: Path) -> str:
     h = hashlib.sha256()
     for p in sorted(root.rglob("*")):
@@ -102,6 +128,7 @@ def main() -> int:
     lr = as_float(hp.get("learning_rate"), 2e-4)
     max_seq_len = as_int(hp.get("max_seq_len"), 2048)
     epochs = as_int(hp.get("epochs"), 1)
+    time_budget_s = as_int(hp.get("time_budget_s"), 9600)  # launcher passes max_runtime_s - 1200; default fits the 3 h cap
     load_in_4bit = str(hp.get("load_in_4bit", "true")).lower() == "true"
     rows = load_rows(TRAIN_DIR)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -110,7 +137,7 @@ def main() -> int:
                 "eligibility_digest": os.environ.get("JH_GEARB_ELIGIBILITY_DIGEST"), "train_sha256": os.environ.get("JH_GEARB_TRAIN_SHA256"),
                 "holdout_digest": os.environ.get("JH_GEARB_HOLDOUT_DIGEST"), "rows": len(rows),
                 "hyperparameters": {"max_steps": max_steps, "lora_r": lora_r, "learning_rate": lr, "max_seq_len": max_seq_len,
-                                    "epochs": epochs, "load_in_4bit": load_in_4bit}, "status": "starting"}
+                                    "epochs": epochs, "load_in_4bit": load_in_4bit, "time_budget_s": time_budget_s}, "status": "starting"}
     (OUT_DIR / "train_manifest.json").write_text(json.dumps(manifest, indent=2))
     if not rows:
         manifest.update(status="refused", reason="no training rows in channel")
@@ -163,13 +190,33 @@ def main() -> int:
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
     model = get_peft_model(model, lora)
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    ds = Dataset.from_list([{"text": r["prompt"] + r["completion"] + tok.eos_token} for r in rows])
-    cfg = SFTConfig(output_dir=str(OUT_DIR / "trainer"), max_steps=max_steps, num_train_epochs=epochs, learning_rate=lr,
+    texts = [r["prompt"] + r["completion"] + tok.eos_token for r in rows]
+    ds = Dataset.from_list([{"text": t} for t in texts])
+    total_tokens = sum(min(max_seq_len, len(ids)) for ids in tok(texts, add_special_tokens=False)["input_ids"])
+    plan = step_plan(total_tokens, max_seq_len, epochs, 2, 8, max_steps)
+    manifest["plan"] = plan
+    (OUT_DIR / "train_manifest.json").write_text(json.dumps(manifest, indent=2))
+    print(json.dumps({"plan": plan, "time_budget_s": time_budget_s}))
+    cfg = SFTConfig(output_dir=str(OUT_DIR / "trainer"), max_steps=plan["max_steps"], num_train_epochs=epochs, learning_rate=lr,
                     per_device_train_batch_size=2, gradient_accumulation_steps=8, gradient_checkpointing=True,
                     logging_steps=10, save_strategy="no", bf16=True, max_seq_length=max_seq_len, dataset_text_field="text",
                     packing=True, report_to=[], warmup_ratio=0.03, lr_scheduler_type="cosine", seed=7)
     trainer = SFTTrainer(model=model, args=cfg, train_dataset=ds, processing_class=tok)
+    from transformers import TrainerCallback  # noqa: E402
+    stop_note = {}
+
+    class TimeBudget(TrainerCallback):
+        def __init__(self, started, budget):
+            self.started, self.budget = started, float(budget)
+
+        def on_step_end(self, args, state, control, **kwargs):
+            if budget_exhausted(self.started, time.time(), int(state.global_step), self.budget) and state.global_step < state.max_steps:
+                stop_note.update(stopped_by="time_budget", at_step=int(state.global_step), budget_s=self.budget)
+                control.should_training_stop = True
+            return control
+
     t0 = time.time()
+    trainer.add_callback(TimeBudget(t0, time_budget_s))
     result = trainer.train()
     adapter_dir = OUT_DIR / "adapter"
     model.save_pretrained(str(adapter_dir), safe_serialization=True)
@@ -178,6 +225,7 @@ def main() -> int:
     manifest.update(status="trained", finished_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), seconds=round(time.time() - t0, 1),
                     steps=int(trainer.state.global_step), trainable_parameters=int(trainable), train_loss=float(result.training_loss),
                     loss_curve=losses[-50:], adapter_sha256=dir_sha256(adapter_dir), adapter_dir="adapter/",
+                    steps_planned=int(plan["max_steps"]), **stop_note,
                     promotion="decided by the exam job on the frozen holdout, never here")
     (OUT_DIR / "train_manifest.json").write_text(json.dumps(manifest, indent=2))
     print(json.dumps({k: manifest[k] for k in ("status", "rows", "steps", "train_loss", "seconds", "adapter_sha256")}))

@@ -85,7 +85,7 @@ def own_spec(s3, private_bucket: str, control: Dict[str, Any]) -> Dict[str, Any]
     hyper = {"sagemaker_program": {"default": pin["program"]},
              "base_revision": {"default": manifest["revision"]},
              "base_manifest_sha256": {"default": manifest.get("manifest_sha256") or ""},
-             "epochs": {"default": str(pin.get("epochs", 1))},
+             "epochs": {"default": str(pin.get("epochs", 3))},   # steps are planned from the data; max_steps is the ceiling
              "max_steps": {"default": str(pin.get("max_steps", 400))},
              "lora_r": {"default": str(pin.get("lora_r", 16))},
              "learning_rate": {"default": str(pin.get("learning_rate", "2e-4"))},

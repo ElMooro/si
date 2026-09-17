@@ -146,6 +146,7 @@ class DatasetAndLaunchTests(Base):
         self.assertTrue(kw['EnableManagedSpotTraining']); self.assertEqual(kw['StoppingCondition']['MaxRuntimeInSeconds'], 3 * 3600)
         self.assertEqual(kw['Environment']['JH_GEARB_ELIGIBILITY_DIGEST'], m['eligibility_digest'])
         self.assertEqual(kw['HyperParameters']['peft_type'], 'lora'); self.assertEqual(kw['HyperParameters']['epoch'], '1')
+        self.assertEqual(kw['HyperParameters']['time_budget_s'], str(3 * 3600 - 1200))   # hard stop inside the runtime cap (gen4..gen7 lesson)
         self.assertIn({'Key': 'jh-factory', 'Value': 'gearb-gen-1'}, kw['Tags'])
         self.assertAlmostEqual(rec['cap_usd'], 1.515 * 3, places=3)
         self.assertEqual(self.get(PRI, gear_b.JOBS_PREFIX + rec['job_name'] + '.json')['status'], 'launching')

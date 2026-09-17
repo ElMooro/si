@@ -477,6 +477,9 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
         hp.setdefault("sagemaker_container_log_level", "20")
         hp.setdefault("sagemaker_region", region)
     hp["sagemaker_job_name"] = name
+    # hard stop inside the runtime cap: the trainer plans its steps from the data and saves the adapter before this budget
+    # (four fixed-400-step jobs died at MaxRuntime with nothing saved, 2026-09-15/16)
+    hp.setdefault("time_budget_s", str(max(900, int(control["max_runtime_s"]) - 1200)))
     training_uri = "s3://%s/%s" % (private_bucket, manifest["prefix"])
     out_uri = "s3://%s/factory/champions/gen-%d/" % (private_bucket, manifest["generation"])
     channels = [{"ChannelName": "training", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": training_uri, "S3DataDistributionType": "FullyReplicated"}}}]
