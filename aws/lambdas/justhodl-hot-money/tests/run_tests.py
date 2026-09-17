@@ -6,6 +6,10 @@ import unittest
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 from unittest.mock import patch
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'shared'))
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'shared/tests'))
+from pd_fails_context_tests import run as pd_context_checks
+pd_context_checks()
 with patch.dict(sys.modules,{'boto3':types.SimpleNamespace(client=lambda *a,**k:None)}):
     spec=importlib.util.spec_from_file_location('hot_test',Path(__file__).resolve().parents[1]/'source/lambda_function.py')
     e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e)
@@ -24,6 +28,9 @@ class Integrity(unittest.TestCase):
         self.assertIsNotNone(stamp.tzinfo)
         self.assertEqual(doc['quality']['publication_date'],doc['generated_at'])
         self.assertEqual(doc['quality']['observation_date'],observation)
+        self.assertEqual(doc['pd_settlement_fails']['scope_id'],'treasury_incl_tips')
+        self.assertIsNone(doc['pd_settlement_fails']['combined_bn'])
+        self.assertEqual(doc['units'],'TWD_bn')
 
     def test_fresh_zero_is_a_real_observation(self):
         row=e.board_metrics({DAY:0})

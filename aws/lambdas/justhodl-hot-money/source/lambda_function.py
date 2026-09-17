@@ -29,6 +29,7 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from pd_fails_context import load as load_pd_fails
 import urllib.request
 
 VERSION = "1.2.0"
@@ -242,6 +243,8 @@ def lambda_handler(event, context):
         "missing": [] if live else ["taiwan_twse"],
         "note": "Exchange foreign net only. Not TIC/BOP.",
     }
+    # chatgpt-pd-context-v1: separate USD settlement context; never Taiwan flows.
+    doc["pd_settlement_fails"] = load_pd_fails(s3, BUCKET, now)
     _put(OUT_KEY, doc)
     tw = doc["countries"]["taiwan"]
     return {"ok": live, "status": doc["status"],

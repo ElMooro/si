@@ -1,0 +1,81 @@
+{
+ "apply_run_id": "35285489981",
+ "at": "2026-09-17T23:09:13Z",
+ "batch": "chatgpt-20260917T230843Z-hot-money-pd-context",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 11777,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "c1d07194180c5256cfb3fe48d13227f38dced9096ba039d8ea3ffc3bceb88d12",
+   "target": "aws/lambdas/justhodl-hot-money/source/lambda_function.py"
+  },
+  {
+   "bytes": 4723,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "ddc0d21b81bf1eba7f8faf99ae1d2a0007f51e26b9c2156c809106907089237e",
+   "target": "aws/lambdas/justhodl-hot-money/tests/run_tests.py"
+  },
+  {
+   "bytes": 5519,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "fae6d16962c2759b1ba9b51c21761dfdc16d7307db153edbc7136fa2561f9e5a",
+   "target": "aws/shared/pd_fails_context.py"
+  },
+  {
+   "bytes": 2290,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "2a8d15e4bd290e21a067860ec49256ad3bb94447d460a22e7398fe830e7a5d50",
+   "target": "aws/shared/tests/pd_fails_context_tests.py"
+  },
+  {
+   "bytes": 11760,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "1ead84b2912436a46cd7ad68f64e3579de9ab64e6f6502b995f0d753823d3a95",
+   "target": "hot-money.html"
+  },
+  {
+   "bytes": 1967,
+   "changed": true,
+   "check": "node --check",
+   "how": "whole",
+   "sha256": "85db80fc228cb241e36b5585db4669f7e95c6b17b5be6c93fefd75d81bc4e24d",
+   "target": "jh-pd-context.js"
+  }
+ ],
+ "functions": [
+  "justhodl-hot-money"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35285489981.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "hot-money-pd-context",
+ "ops_scripts": [],
+ "pages": [
+  "hot-money.html",
+  "jh-pd-context.js"
+ ],
+ "shared": [
+  "aws/shared/pd_fails_context.py",
+  "aws/shared/tests/pd_fails_context_tests.py"
+ ],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-hot-money.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit"
+ ],
+ "workers": []
+}
