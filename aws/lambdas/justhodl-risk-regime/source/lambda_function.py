@@ -589,9 +589,27 @@ def lambda_handler(event, context):
         if n:
             all_tells.append(f"Secondary risk: {n} firing ({sconf})")
 
+
+    _sf_fails = {}
+    try:
+        _sf_fails = json.loads(boto3.client("s3").get_object(Bucket="justhodl-dashboard-live", Key="data/settlement-fails.json")["Body"].read())
+    except Exception:
+        _sf_fails = {}
+    _tr_f = _sf_fails.get("treasury") or {}
+    _hd_f = _sf_fails.get("headline") or {}
     out = {
         "engine": "risk-regime", "version": "1.0.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        # ops 5632 PD settlement fails (add-only)
+        "pd_settlement_fails": {
+            "as_of": _tr_f.get("as_of") or _hd_f.get("as_of") or _sf_fails.get("as_of"),
+            "ftd_bn": _tr_f.get("ftd_bn") or _hd_f.get("ftd_bn"),
+            "ftr_bn": _tr_f.get("ftr_bn") or _hd_f.get("ftr_bn"),
+            "combined_bn": _tr_f.get("gross_bn") or _hd_f.get("combined_bn"),
+            "unit": "usd_bn",
+            "source": "data/settlement-fails.json",
+            "note": "FR2004 two-sided gross FTD+FTR. Weekly. Not a default rate.",
+        },
         # ops 5631 quality
         "call": None,
         "quality": {
