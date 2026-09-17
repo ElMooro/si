@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Treasury Rehypothecation Stress · JustHodl.AI</title>
+<title>Treasury Collateral &amp; Funding · JustHodl.AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--neu:#8fa3c0;--mono:"IBM Plex Mono",monospace}
@@ -39,24 +39,24 @@ details.kd summary{cursor:pointer;color:var(--tx)}
 .crx{stroke:var(--avd);stroke-dasharray:3 3;opacity:.8}
 .crx-pre{stroke:var(--tx2);stroke-dasharray:2 4;opacity:.6}
 </style></head><body><div class="wrap">
-<h1>Treasury Rehypothecation Stress</h1>
+<h1>Treasury Collateral &amp; Funding</h1>
 <div class="meta" id="meta">loading…</div>
-<div class="sub">Collateral re-use through the Treasury repo chains can't be observed directly — this desk builds the honest institutional proxy stack: FR2004 delivery fails and a Singh-style velocity (gross UST financing ÷ net positions, keyids <b>discovered from the NY Fed's own catalog</b>), OFR GCF−Triparty specialness, SOFR−IORB funding pressure, and the ON-RRP collateral drain. The composite covers <b>present legs only</b>; anything missing is listed, never filled.</div>
+<div class="sub">Treasury settlement fails and SOFR−IORB funding pressure form a descriptive review index. Both must be current. Repo venue spreads, transaction volume and ON-RRP changes provide separate context. Collateral reuse velocity and issue-specific specialness are unavailable with these data; they are shown as missing.</div>
 <div class="hero" id="hero"></div>
 <h2>Barometer</h2>
 <div class="card" style="max-width:560px"><svg id="gauge" viewBox="0 0 300 175" style="width:100%"></svg></div>
-<h2>Legs</h2><div class="note">Each leg with its latest value, z-score, lookback n, and primary source. Signs: fails, velocity, specialness, and funding pressure add stress; RRP drain subtracts.</div>
+<h2>Legs</h2><div class="note">Each leg with its latest value, z-score, lookback n, and primary source. Only gross fails and SOFR−IORB enter the review index, equally weighted. RRP changes have no automatic stress direction.</div>
 <div class="legs" id="legs"></div>
 <div id="missing" class="note" style="margin-top:12px"></div>
-<h2>History — 1996 → today</h2>
-<div class="note" id="longnote">Weekly composite from the era-stitched FR2004 record plus modern legs as each was born. The axis starts at the 1996 target; any span before the first real datapoint is shaded "no API data" — disclosed, never interpolated. Coverage strip beneath shows how many legs exist each week.</div>
+<h2>History · corrected method only</h2>
+<div class="note" id="longnote">Current-vintage observations on exact shared dates. This is descriptive history, not a point-in-time backtest or crisis probability. The former index mixed incompatible series and is excluded.</div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 8px"><span class="vs" id="chartsub"></span><button class="xbtn" id="expand">⤢ Expand — legs & crises</button></div>
 <div class="card"><svg id="chart" viewBox="0 0 1000 300" style="width:100%"></svg></div>
 <h2>Leg availability & era coverage</h2>
 <div class="note">Exactly which legs exist over which spans, and how many FR2004 series each seriesbreak segment contributed — the honesty ledger behind the chart.</div>
 <div class="legs" id="avail"></div>
 <div class="card" style="margin-top:12px;overflow-x:auto"><table class="era" id="eratab"></table></div>
-<details class="kd" id="kids"><summary>FR2004 keyids in use (discovered, per concept)</summary><div id="kidbody"></div></details>
+<details class="kd" id="kids"><summary>Input provenance</summary><div id="kidbody"></div></details>
 <h2>Recent runs</h2><div class="tl" id="tl"></div>
 <h2>Engine notes — self-diagnosis</h2>
 <div class="note">The engine writes its own fetch diagnostics (catalog counts, per-keyid errors, discovery samples) so failures are inspectable, not mysterious.</div>
@@ -65,7 +65,7 @@ details.kd summary{cursor:pointer;color:var(--tx)}
 </div>
 <div id="modal"><div class="inner">
  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-  <b style="font-family:Fraunces,serif;font-size:20px">Rehypothecation Stress — 1996 → today, expanded</b>
+  <b style="font-family:Fraunces,serif;font-size:20px">Collateral and funding — corrected history</b>
   <button class="xbtn" id="mclose">✕ close</button></div>
  <div id="mtgls" style="margin-bottom:8px"></div>
  <div class="card"><svg id="mchart" viewBox="0 0 1600 640" style="width:100%"></svg></div>
@@ -75,10 +75,18 @@ details.kd summary{cursor:pointer;color:var(--tx)}
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 Promise.all([
- fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/treasury-rehypo.json",{cache:"no-store"}).then(r=>r.json()),
- fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/treasury-rehypo-history.json",{cache:"no-store"}).then(r=>r.ok?r.json():{rows:[]}).catch(()=>({rows:[]})),
- fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/treasury-rehypo-long.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
+ fetch("data/treasury-rehypo.json",{cache:"no-store"}).then(r=>r.json()),
+ fetch("data/treasury-rehypo-history.json",{cache:"no-store"}).then(r=>r.ok?r.json():{rows:[]}).catch(()=>({rows:[]})),
+ fetch("data/treasury-rehypo-long.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
 ]).then(([d,h,L])=>{
+ const method="collateral-measurement.v2";
+ const published=Date.parse(d.generated_at), age=Date.now()-published;
+ const current=d.methodology_version===method&&Number.isFinite(age)&&age>=0&&age<=72*36e5&&d.quality?.status==="fresh";
+ if(!current){d.composite=null;d.band="UNAVAILABLE";}
+ if(L?.methodology_version!==method)L=null;
+ if(h?.methodology_version!==method)h={rows:[]};
+ if(!current)document.getElementById("missing").textContent="Current review unavailable: publication or required observations are stale, missing or invalid.";
+
  // ── barometer gauge ──
  (function(){const g=document.getElementById("gauge");const cx=150,cy=150,R=120,r2=92;
   const bands=[[0,45,"var(--buy)","CALM"],[45,62,"var(--acc)","WATCH"],[62,78,"#ff9f43","STRAINED"],[78,100,"var(--avd)","SEIZING"]];
@@ -92,17 +100,17 @@ Promise.all([
   sv+=`<text x="${cx}" y="${cy-10}" text-anchor="middle" fill="var(--tx2)" font-size="13" font-family="var(--mono)">${esc(d.band||"insufficient legs")}</text>`;
   g.innerHTML=sv;})();
  // ── long chart 1996 -> now (parameterized, crises, legs) ──
- const CRISES=[["1997-10-27","Asia crisis"],["1998-09-23","LTCM"],["2001-09-11","9/11 settlement fails"],["2007-08-09","BNP freeze"],["2008-09-15","Lehman — UST fails spike"],["2011-08-05","US downgrade"],["2013-06-19","Taper tantrum"],["2014-10-15","UST flash rally"],["2016-02-11","Funding squeeze"],["2019-09-17","Repo spike — SOFR prints 10%"],["2020-03-12","COVID dash-for-cash"],["2022-09-28","Gilt/LDI spillover"],["2023-03-10","SVB"],["2024-08-05","Yen-carry unwind"]];
- const LEGCOL={fails:"#ff6b6b",velocity:"#e8b34a",specialness:"#8fd3ff",dvp_volume:"#b58cff",sofr_iorb:"#3fd08c",rrp_drain_4w:"#ff9f43"};
+ const CRISES=[["1997-10-27","Asia crisis"],["1998-09-23","LTCM"],["2001-09-11","9/11 settlement fails"],["2007-08-09","BNP freeze"],["2008-09-15","Lehman — UST fails spike"],["2011-08-05","US downgrade"],["2013-06-19","Taper tantrum"],["2014-10-15","UST flash rally"],["2016-02-11","Funding squeeze"],["2019-09-17","Repo funding spike"],["2020-03-12","COVID dash-for-cash"],["2022-09-28","Gilt/LDI spillover"],["2023-03-10","SVB"],["2024-08-05","Yen-carry unwind"]];
+ const LEGCOL={fails:"#ff6b6b",sofr_iorb:"#3fd08c"};
  function renderChart(el,W,H,opts){
   const padL=40,padR=12,padT=14,padB=56,rows=(L&&L.weekly)||[];
-  const t0=Date.parse("1996-01-01"),t1=Date.now();
+  const t0=rows.length?Date.parse(rows[0].d):Date.now()-365*864e5,t1=Date.now();
   const X=t=>padL+(W-padL-padR)*(t-t0)/(t1-t0),Y=v=>padT+(H-padT-padB)*(1-v/100);
   const Yz=z=>padT+(H-padT-padB)*(1-((z+3)/6));
   let sv="";
   for(const[a,b,col]of[[0,45,"var(--buy)"],[45,62,"var(--acc)"],[62,78,"#ff9f43"],[78,100,"var(--avd)"]])
    sv+=`<rect x="${padL}" y="${Y(b)}" width="${W-padL-padR}" height="${Y(a)-Y(b)}" fill="${col}" opacity=".07"/>`;
-  for(let yr=1996;yr<=2026;yr+=2){const x=X(Date.parse(yr+"-01-01"));sv+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="var(--brd)" opacity=".5"/><text x="${x}" y="${H-padB+14}" fill="var(--tx2)" font-size="10" text-anchor="middle">${yr}</text>`;}
+  for(let yr=new Date(t0).getUTCFullYear();yr<=new Date(t1).getUTCFullYear();yr+=2){const x=X(Date.parse(yr+"-01-01"));sv+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="var(--brd)" opacity=".5"/><text x="${x}" y="${H-padB+14}" fill="var(--tx2)" font-size="10" text-anchor="middle">${yr}</text>`;}
   for(const v of[0,25,50,75,100])sv+=`<text x="6" y="${Y(v)+3}" fill="var(--tx2)" font-size="10">${v}</text>`;
   const s0=rows.length?Date.parse(rows[0].d):null;
   if(s0&&s0>t0)sv+=`<rect x="${padL}" y="${padT}" width="${X(s0)-padL}" height="${H-padT-padB}" fill="var(--bg2)" opacity=".55"/><text x="${(padL+X(s0))/2}" y="${padT+16}" fill="var(--tx2)" font-size="11" text-anchor="middle">no API data before ${rows[0].d.slice(0,4)} — disclosed, not interpolated</text>`;
@@ -122,7 +130,7 @@ Promise.all([
    rows.forEach((r,i)=>{if(i%2)return;const x=X(Date.parse(r.d));
     sv+=`<rect x="${(x-1).toFixed(1)}" y="${H-padB+22}" width="2" height="10" fill="var(--neu)" opacity="${(r.n||0)/6}"><title>${r.d}: ${r.n} legs live</title></rect>`;});
    if(opts.legs)sv+=`<text x="${W-padR}" y="${Yz(3)-4}" fill="var(--tx2)" font-size="9" text-anchor="end">leg z scale −3…+3 (right)</text>`;
-  } else sv+=`<text x="${W/2}" y="${H/2}" fill="var(--tx2)" font-size="12" text-anchor="middle">long history builds on next engine run</text>`;
+  } else sv+=`<text x="${W/2}" y="${H/2}" fill="var(--tx2)" font-size="12" text-anchor="middle">No complete matched-date history available</text>`;
   el.innerHTML=sv;}
  renderChart(document.getElementById("chart"),1000,300,{labels:false,big:false});
  document.getElementById("chartsub").textContent=L?`actual start ${L.actual_start} · ${L.n_weekly} weekly points · hover any point; crises marked (dashed) — expand for labels & per-leg z lines`:"";
@@ -145,18 +153,22 @@ Promise.all([
  document.getElementById("kidbody").innerHTML=Object.entries(pk).map(([c,arr])=>`<div style="margin-top:6px"><b>${esc(c)}</b>: ${(arr||[]).map(x=>Array.isArray(x)?`${esc(x[0])}<span style="opacity:.55">@${esc(x[1])}</span>`:esc(x)).join(" · ")}</div>`).join("");
  document.getElementById("meta").textContent=`v${d.version} · ${d.generated_at} · ${d.elapsed_s}s`;
  const legs=d.legs||{};
+ for(const v of Object.values(legs)){
+  const observed=Date.parse(v.as_of), oa=(Date.now()-observed)/864e5;
+  if(!Number.isFinite(age)||age<0||age>72*36e5||v.quality?.status!=="fresh"||!Number.isFinite(oa)||oa<0||oa>(v.quality?.max_age_days??7)+1){v.latest=null;v.latest_bps=null;v.z=null;}
+ }
  document.getElementById("hero").innerHTML=`
-  <div class="card"><div class="k">Composite stress</div><div class="v">${d.composite??"—"}</div>
+  <div class="card"><div class="k">Heuristic review index</div><div class="v">${d.composite??"—"}</div>
    <div class="vs">${d.band?`<span class="pill ${esc(d.band)}">${esc(d.band)}</span>`:"insufficient legs — no score invented"}</div></div>
-  <div class="card"><div class="k">Legs live</div><div class="v">${Object.keys(legs).length}<span style="font-size:15px;color:var(--tx2)"> / 6</span></div>
+  <div class="card"><div class="k">Required inputs ready</div><div class="v">${["fails","sofr_iorb"].filter(k=>legs[k]?.quality?.status==="fresh"&&legs[k]?.z!=null).length}<span style="font-size:15px;color:var(--tx2)"> / 2</span></div>
    <div class="vs">${Object.keys(legs).join(" · ")||"—"}</div></div>
-  <div class="card"><div class="k">Catalog picks</div><div class="v" style="font-size:16px;font-family:var(--mono)">${esc(JSON.stringify(Object.fromEntries(Object.entries(d.picked_keyids||{}).map(([k,v])=>[k,(v||[]).length]))))}</div>
-   <div class="vs">FR2004 keyids discovered, not guessed</div></div>`;
+  <div class="card"><div class="k">Interpretation</div><div class="v" style="font-size:16px;font-family:var(--mono)">Review only</div>
+   <div class="vs">No calibrated trade call or crisis probability</div></div>`;
  document.getElementById("legs").innerHTML=Object.entries(legs).map(([k,v])=>`
-  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?Number(v.latest_bps).toFixed(2)+" bps":(k==="fails"?"$"+(v.latest/1000).toFixed(1)+"bn":k==="dvp_volume"?"$"+(v.latest/1e12).toFixed(2)+"tn":k==="velocity"?Number(v.latest).toFixed(2)+"×":esc(String(v.latest??"—")))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
+  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?Number(v.latest_bps).toFixed(2)+" bps":(v.latest==null?"Unavailable":k==="fails"||k==="rrp_drain_4w"?"$"+Number(v.latest).toFixed(1)+"bn":k==="dvp_volume"?"$"+(v.latest/1e12).toFixed(2)+"tn":esc(String(v.latest)))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
    <div class="vs">n=${v.n??"—"} · as of ${esc(v.as_of||"—")}</div>
-   <div class="vs">${esc(v.source||"")}</div>${v.keyids?`<div class="vs">${(v.keyids||[]).length} keyids</div>`:""}</div>`).join("")||"<div class='note'>no legs readable this run</div>";
- if(d.legs_missing)document.getElementById("missing").innerHTML="Missing legs (disclosed): <span class='err'>"+d.legs_missing.map(esc).join(" · ")+"</span>";
+   <div class="vs">${esc(v.source||"")}</div><div class="vs">${esc(v.reason||v.interpretation||v.measurement_note||"")}</div>${v.keyids?`<div class="vs">${(v.keyids||[]).length} keyids</div>`:""}</div>`).join("")||"<div class='note'>no legs readable this run</div>";
+ if(d.legs_missing?.length)document.getElementById("missing").innerHTML="Missing legs (disclosed): <span class='err'>"+d.legs_missing.map(esc).join(" · ")+"</span>";
  const rows=(h.rows||[]).slice(-120);
  document.getElementById("tl").innerHTML=rows.map(r=>{const c=r.band==="CALM"?"var(--buy)":r.band==="WATCH"?"var(--acc)":r.composite==null?"var(--brd)":"var(--avd)";
   return `<i style="background:${c};height:${Math.max(8,r.composite||8)}%" title="${esc((r.t||"").slice(0,16))} · ${r.composite??"—"} ${esc(r.band||"")} · ${esc(JSON.stringify(r.legs_z||{}))}"></i>`}).join("")||"<span class='note'>history builds daily</span>";

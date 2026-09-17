@@ -1,24 +1,4 @@
-"""justhodl-treasury-rehypo v1.0 — Treasury collateral re-use (rehypothecation)
-stress desk. ops 4302.
-
-Rehypothecation itself is unobservable directly; this engine builds the
-honest institutional PROXY stack (Singh-style velocity + chain-stress
-tells), every leg from an official primary source, coverage-renormalized,
-nothing invented:
-
-  VELOCITY  dealer gross UST repo financing ÷ net UST positions
-            (NY Fed FR2004 via markets.newyorkfed.org — keyids are
-            DISCOVERED from the API's own /list/timeseries catalog by
-            description match, never guessed)
-  FAILS     dealer Treasury delivery fails z (same catalog discovery)
-  SPECIAL   GCF−Triparty rate spread z (OFR STFM) — collateral scarcity
-  FUNDING   SOFR−IORB z (FRED) — cash-collateral pressure
-  DRAIN     ON-RRP 4w delta z (FRED) — collateral parked at the Fed
-
-Composite REHYPO_STRESS 0-100 over PRESENT legs; each leg carries its
-source, latest value, z, and lookback n. Missing legs are listed, not
-filled. Artifact: data/treasury-rehypo.json (+ rolling history).
-"""
+"""Treasury collateral and funding review; unobservable reuse metrics remain null."""
 import gzip
 import io
 import json
@@ -29,16 +9,20 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from macro_donor_inputs import fails_context
+from donor_contract import inspect_donor
+from managed_secret import managed_secret
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/treasury-rehypo.json"
 LONG_KEY = "data/treasury-rehypo-long.json"
 ERA_ORDER = ["SBP2001", "SBP2013", "SBN2013", "SBN2015", "SBN2022",
              "SBN2024"]
-FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY", "")
+FRED_KEY = managed_secret(("FRED_API_KEY", "FRED_KEY"), ("/justhodl/fred/api-key",))
 UA = {"User-Agent": "JustHodl-research/1.0 (github.com/ElMooro)"}
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.3"
+VERSION = "2.0"
+METHOD = "collateral-measurement.v2"
 
 
 def http_json(url, timeout=40, gz=False):  # gz kept for signature
@@ -50,8 +34,8 @@ def http_json(url, timeout=40, gz=False):  # gz kept for signature
 
 
 def zscore(series, lookback=104):
-    xs = [v for _, v in series[-lookback:] if v is not None]
-    if len(xs) < 10:
+    xs = [v for _, v in series[-lookback:] if v is not None and math.isfinite(v)]
+    if len(xs) < 26:
         return None, len(xs)
     mu = sum(xs) / len(xs)
     sd = math.sqrt(sum((x - mu) ** 2 for x in xs) / len(xs)) or 1e-9
@@ -204,316 +188,174 @@ def fred_series(sid, n=200):
     return out[-n:]
 
 
-def lambda_handler(event=None, context=None):
-    t0 = time.time()
-    legs, missing, notes = {}, [], []
-
-    # FR2004 discovery
-    picked = {}
+def read_object(key):
     try:
-        cat = nyfed_catalog()
-        notes.append(f"nyfed catalog: {len(cat)} keyids")
-        fails_c = pick(cat, ("FAIL", "TREASUR"), ("MBS", "AGENCY",
-                                                  "CORPORATE"))
-        # FR2004 vocabulary: financing legs are (REVERSE) REPURCHASE
-        # lines; positions are "NET OUTRIGHT" Treasury lines.
-        repo_in = pick(cat, ("REVERSE REPURCHASE",),
-                       ("MBS", "AGENCY", "CORPORATE"))
-        repo_out = pick(cat, ("REPURCHASE",),
-                        ("REVERSE", "MBS", "AGENCY", "CORPORATE"))
-        netpos = pick(cat, ("TREASUR", "NET"),
-                      ("MBS", "AGENCY", "FORWARD", "FAIL",
-                       "REPURCHASE"))
-        if not netpos:
-            netpos = pick(cat, ("TREASUR", "OUTRIGHT"),
-                          ("MBS", "AGENCY"))
-        for lbl, lst in (("repo_in", repo_in), ("repo_out", repo_out),
-                         ("netpos", netpos), ("fails", fails_c)):
-            if not lst:
-                samp = [c["desc"][:60] for c in cat
-                        if "TREASUR" in c["desc"]][:3]
-                notes.append(f"{lbl}=0; sample TREASUR descs: {samp}")
-        picked = {"fails": [(c["keyid"], c["sb"])
-                            for c in fails_c][:6],
-                  "sec_in": [(c["keyid"], c["sb"])
-                             for c in repo_in][:8],
-                  "sec_out": [(c["keyid"], c["sb"])
-                              for c in repo_out][:8],
-                  "net_pos": [(c["keyid"], c["sb"])
-                              for c in netpos][:8]}
-        notes.append("picked: " + json.dumps(
-            {k: len(v) for k, v in picked.items()}))
-
-        def agg(pairs, lbl=""):
-            ss = []
-            for kid, sb in pairs:
-                try:
-                    s_ = nyfed_series(kid, sb or "SBN2024")
-                    if s_:
-                        ss.append(s_)
-                    else:
-                        notes.append(f"{lbl}/{kid}@{sb}: 0 rows")
-                except Exception as e_:
-                    notes.append(f"{lbl}/{kid}@{sb}: {str(e_)[:46]}")
-            return sum_series(ss) if ss else []
-
-        fails_s = agg(picked["fails"], "fails")
-        if fails_s:
-            z, n = zscore(fails_s)
-            legs["fails"] = {
-                "source": "NYFed FR2004 (catalog-discovered)",
-                "keyids": [k for k, _ in picked["fails"]],
-                "latest": fails_s[-1][1],
-                "as_of": fails_s[-1][0], "z": z, "n": n}
-        fin_in = agg(picked["sec_in"], "in")
-        fin_out = agg(picked["sec_out"], "out")
-        pos = agg(picked["net_pos"], "pos")
-        gross = sum_series([s for s in (fin_in, fin_out) if s])
-        if gross and pos:
-            pd_, pv = dict(pos), dict(gross)
-            common = sorted(set(pd_) & set(pv))
-            vel = [(d, pv[d] / abs(pd_[d]))
-                   for d in common if abs(pd_[d]) > 1e-6]
-            if vel:
-                z, n = zscore(vel)
-                legs["velocity"] = {
-                    "source": "FR2004 gross UST financing / |net "
-                              "positions| (Singh-style proxy)",
-                    "latest": round(vel[-1][1], 2),
-                    "as_of": vel[-1][0], "z": z, "n": n}
-    except Exception as e:
-        missing.append(f"nyfed: {str(e)[:90]}")
-
-    # OFR specialness (GCF - Triparty)
-    try:
-        def first_ok(cands):
-            for m in cands:
-                try:
-                    s = ofr_series(m)
-                    if s:
-                        return m, s
-                except Exception:
-                    continue
-            return None, []
-        mg, gcf = first_ok(OFR_CANDIDATES["gcf_rate"])
-        mt, tri = first_ok(OFR_CANDIDATES["tri_rate"])
-        if gcf and tri:
-            gd, td = dict(gcf), dict(tri)
-            common = sorted(set(gd) & set(td))
-            spread = [(d, gd[d] - td[d]) for d in common]
-            z, n = zscore(spread)
-            legs["specialness"] = {
-                "source": f"OFR STFM {mg} - {mt}",
-                "latest_bps": round(spread[-1][1] * 100, 2),
-                "as_of": spread[-1][0], "z": z, "n": n}
-        else:
-            repo_all = ofr_discover(notes)
-            def by_pat(sub):
-                return [m for m in repo_all if sub in m and
-                        "_AR_" in m][:3]
-            mg2, gcf = first_ok(by_pat("GCF") or
-                                OFR_CANDIDATES["gcf_rate"])
-            mt2, tri = first_ok(by_pat("TRI") or
-                                OFR_CANDIDATES["tri_rate"])
-            if gcf and tri:
-                gd, td = dict(gcf), dict(tri)
-                common = sorted(set(gd) & set(td))
-                spread = [(d, gd[d] - td[d]) for d in common]
-                z, n = zscore(spread)
-                legs["specialness"] = {
-                    "source": f"OFR STFM {mg2} - {mt2} (discovered)",
-                    "latest_bps": round(spread[-1][1] * 100, 2),
-                    "as_of": spread[-1][0], "z": z, "n": n}
-            else:
-                missing.append("ofr: gcf/tri unresolved even after "
-                               "catalog discovery")
-        md, dvp = first_ok(OFR_CANDIDATES["dvp_vol"])
-        if dvp:
-            z, n = zscore(dvp)
-            legs["dvp_volume"] = {"source": f"OFR STFM {md}",
-                                  "latest": dvp[-1][1],
-                                  "as_of": dvp[-1][0], "z": z,
-                                  "n": n}
-    except Exception as e:
-        missing.append(f"ofr: {str(e)[:90]}")
-
-    # FRED legs
-    try:
-        sofr, iorb = fred_series("SOFR"), fred_series("IORB")
-        sd, idd = dict(sofr), dict(iorb)
-        common = sorted(set(sd) & set(idd))
-        sp = [(d, (sd[d] - idd[d]) * 100) for d in common]
-        if sp:
-            z, n = zscore(sp)
-            legs["sofr_iorb"] = {"source": "FRED SOFR-IORB (bps)",
-                                 "latest_bps": round(sp[-1][1], 2),
-                                 "as_of": sp[-1][0], "z": z, "n": n}
-        rrp = fred_series("RRPONTSYD")
-        if len(rrp) > 25:
-            delta = [(rrp[i][0], rrp[i][1] - rrp[i - 20][1])
-                     for i in range(20, len(rrp))]
-            z, n = zscore(delta)
-            legs["rrp_drain_4w"] = {"source": "FRED RRPONTSYD Δ4w "
-                                              "($bn)",
-                                    "latest": round(delta[-1][1], 2),
-                                    "as_of": delta[-1][0], "z": z,
-                                    "n": n}
-    except Exception as e:
-        missing.append(f"fred: {str(e)[:90]}")
-
-    # Composite over present legs — stress-signed
-    SIGN = {"fails": +1, "velocity": +1, "specialness": +1,
-            "sofr_iorb": +1, "rrp_drain_4w": -1, "dvp_volume": 0}
-    zs = [(SIGN.get(k, 0) * v["z"]) for k, v in legs.items()
-          if v.get("z") is not None and SIGN.get(k, 0)]
-    comp = None
-    if zs:
-        comp = round(min(100, max(0, 50 + 12.5 * (sum(zs) /
-                                                  len(zs)))), 1)
-    band = (None if comp is None else
-            "CALM" if comp < 45 else
-            "WATCH" if comp < 62 else
-            "STRAINED" if comp < 78 else "SEIZING")
-
-    out = {"engine": "justhodl-treasury-rehypo", "version": VERSION,
-           "generated_at": datetime.now(timezone.utc).isoformat(
-               timespec="seconds"),
-           "composite": comp, "band": band,
-           "legs": legs, "legs_missing": missing or None,
-           "picked_keyids": picked or None,
-           "methodology": ("Rehypothecation is unobservable; this is "
-                           "the honest proxy stack: FR2004 "
-                           "catalog-discovered fails + Singh-style "
-                           "velocity, OFR GCF-Tri specialness, "
-                           "SOFR-IORB, RRP drain. Composite over "
-                           "PRESENT legs only."),
-           "notes": notes,
-           "elapsed_s": round(time.time() - t0, 1)}
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json",
-                  CacheControl="public, max-age=1800")
-    try:
-        h = json.loads(s3.get_object(
-            Bucket=BUCKET,
-            Key="data/treasury-rehypo-history.json")["Body"].read())
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)['Body'].read())
     except Exception:
-        h = {"rows": []}
-    h["rows"] = (h.get("rows") or [])[-364:] + [{
-        "t": out["generated_at"], "composite": comp, "band": band,
-        "legs_z": {k: v.get("z") for k, v in legs.items()}}]
-    s3.put_object(Bucket=BUCKET, Key="data/treasury-rehypo-history.json",
-                  Body=json.dumps(h).encode(),
-                  ContentType="application/json")
-    # ── ops 4306: long history (target 1996; actual start disclosed)
-    try:
-        # 4307 truth: catalog carries ONLY modern (SBN2024) keyids;
-        # older eras publish no entries of their own -- but modern
-        # keyids fetch across old break segments. So: the proven
-        # short-pass keyid sets x all six segments; latest break
-        # wins on overlap.
-        def agg_long(pairs, cap=5):
-            per_break = {}
-            kids = [k for k, _ in pairs][:cap]
-            for sb in ERA_ORDER:
-                ss = []
-                for kid in kids:
-                    try:
-                        s_ = nyfed_series(kid, sb, n=3000)
-                        if s_:
-                            ss.append(s_)
-                    except Exception:
-                        continue
-                if ss:
-                    per_break[sb] = sum_series(ss)
-            return stitch(per_break), {sb: len(v) for sb, v in
-                                       per_break.items()}
-        f_long, f_cov = agg_long(picked["fails"])
-        in_long, i_cov = agg_long(picked["sec_in"])
-        out_long, o_cov = agg_long(picked["sec_out"])
-        pos_long, p_cov = agg_long(picked["net_pos"])
-        gross_l = sum_series([x for x in (in_long, out_long) if x])
-        vel_l = []
-        if gross_l and pos_long:
-            gd, pd_ = dict(gross_l), dict(pos_long)
-            vel_l = [(d, gd[d] / abs(pd_[d]))
-                     for d in sorted(set(gd) & set(pd_))
-                     if abs(pd_[d]) > 1e-6]
-        legs_long = {}
-        if f_long:
-            legs_long["fails"] = rolling_z(weekly_last(f_long))
-        if vel_l:
-            legs_long["velocity"] = rolling_z(weekly_last(vel_l))
-        # modern legs, full length where the data exists
-        try:
-            sofr_f, iorb_f = fred_series("SOFR", 99999), \
-                fred_series("IORB", 99999)
-            sd2, id2 = dict(sofr_f), dict(iorb_f)
-            sp2 = [(d, (sd2[d] - id2[d]) * 100)
-                   for d in sorted(set(sd2) & set(id2))]
-            if sp2:
-                legs_long["sofr_iorb"] = rolling_z(weekly_last(sp2))
-        except Exception:
-            pass
-        try:
-            rrp_f = fred_series("RRPONTSYD", 99999)
-            if len(rrp_f) > 25:
-                dl = [(rrp_f[i][0], rrp_f[i][1] - rrp_f[i - 20][1])
-                      for i in range(20, len(rrp_f))]
-                legs_long["rrp_drain_4w"] = rolling_z(weekly_last(dl))
-        except Exception:
-            pass
-        # weekly composite over PRESENT legs per date
-        allz = {}
-        for name, ts in legs_long.items():
-            sgn = SIGN.get(name, 0)
-            if not sgn:
-                continue
-            for d, z in ts:
-                if z is None:
-                    continue
-                allz.setdefault(d, {})[name] = sgn * z
-        weekly = []
-        for d in sorted(allz):
-            zz = list(allz[d].values())
-            cmp_ = round(min(100, max(0, 50 + 12.5 *
-                                      (sum(zz) / len(zz)))), 1)
-            weekly.append({"d": d, "c": cmp_, "n": len(zz),
-                           "z": {k: round(v, 2) for k, v in
-                                 allz[d].items()}})
-        weekly = weekly[-1600:]
-        long_doc = {
-            "engine": "justhodl-treasury-rehypo",
-            "version": VERSION,
-            "generated_at": out["generated_at"],
-            "target_start": "1996-01-01",
-            "actual_start": weekly[0]["d"] if weekly else None,
-            "n_weekly": len(weekly),
-            "era_coverage": {"fails": f_cov, "financing_in": i_cov,
-                             "financing_out": o_cov,
-                             "positions": p_cov},
-            "legs_available": {k: {"from": v[0][0],
-                                   "to": v[-1][0]}
-                               for k, v in legs_long.items() if v},
-            "weekly": weekly,
-            "note": ("Composite per week over legs PRESENT that "
-                     "week (era-renormalized rolling-156w z). "
-                     "FR2004 stitched across seriesbreaks, latest "
-                     "break wins on overlap; pre-API history does "
-                     "not exist through this endpoint and is shown "
-                     "as absent, never interpolated.")}
-        s3.put_object(Bucket=BUCKET, Key=LONG_KEY,
-                      Body=json.dumps(long_doc).encode(),
-                      ContentType="application/json",
-                      CacheControl="public, max-age=3600")
-        out["long_history"] = {"actual_start": long_doc[
-            "actual_start"], "n_weekly": len(weekly)}
-        notes.append(f"long: {long_doc['actual_start']} -> "
-                     f"{len(weekly)}w")
-    except Exception as e:
-        notes.append(f"long-history: {str(e)[:90]}")
+        return {}
 
-    print(f"[rehypo] composite={comp} {band} legs={list(legs)} "
-          f"missing={len(missing)} {out['elapsed_s']}s")
-    return {"ok": True, "composite": comp, "band": band,
-            "legs": list(legs), "missing": missing}
+
+def quality(as_of, max_days=7):
+    try:
+        age = (datetime.now(timezone.utc).date() - datetime.strptime(as_of, '%Y-%m-%d').date()).days
+    except (TypeError, ValueError):
+        age = None
+    return {'status': 'unavailable' if age is None else 'invalid' if age < 0 else 'stale' if age > max_days else 'fresh',
+            'observation_date': as_of, 'age_days': age, 'max_age_days': max_days}
+
+
+def clean_series(rows):
+    out = {}
+    for d, v in rows:
+        try:
+            datetime.strptime(d, '%Y-%m-%d')
+            v = float(v)
+            if math.isfinite(v): out[d] = v
+        except (ValueError, TypeError):
+            pass
+    return sorted(out.items())
+
+
+def difference(a, b, scale=1):
+    a, b = dict(clean_series(a)), dict(clean_series(b))
+    return [(d, (a[d]-b[d])*scale) for d in sorted(set(a)&set(b))]
+
+
+def calendar_delta(rows, days=28):
+    from bisect import bisect_right
+    from datetime import timedelta
+    rows = clean_series(rows)
+    dates = [datetime.strptime(d, '%Y-%m-%d').date() for d, _ in rows]
+    out = []
+    for i, (d, v) in enumerate(rows):
+        target = dates[i]-timedelta(days=days)
+        j = bisect_right(dates, target)-1
+        if j >= 0:
+            bd,bv = rows[j]
+            # Last business observation on/before the calendar target; no long gap fill.
+            if (target-dates[j]).days <= 4:
+                out.append((d,v-bv))
+    return out
+
+
+def measured_leg(rows, source, unit, max_days=7, field='latest', contributes=False):
+    rows=clean_series(rows)
+    q=quality(rows[-1][0] if rows else None,max_days)
+    z,n=zscore(rows)
+    good=q['status']=='fresh'
+    return {'source':source, 'unit':unit, 'as_of':q['observation_date'],
+            field:round(rows[-1][1],3) if good and rows else None,
+            'z':z if good else None, 'n':n, 'quality':q,
+            'score_contribution':.5 if contributes and good and z is not None else 0}
+
+
+def review_score(legs):
+    required=('fails','sofr_iorb')
+    ready=all(legs.get(k,{}).get('quality',{}).get('status')=='fresh'
+              and legs.get(k,{}).get('z') is not None for k in required)
+    if not ready: return None,'UNAVAILABLE'
+    value=round(max(0,min(100,50+12.5*sum(legs[k]['z'] for k in required)/2)),1)
+    return value, 'ELEVATED' if value>=62 else 'NO_ELEVATED_FLAGS'
+
+
+def lambda_handler(event=None, context=None):
+    t0=time.time()
+    legs,notes={},[]
+    # The exact same normalized FR2004 object used by the fails and dealer desks.
+    fails_doc=read_object('data/settlement-fails.json')
+    joined=fails_context(fails_doc)
+    treasury=joined.get('treasury') or {}
+    fails_valid=(joined['contract']['usable'] and treasury.get('quality',{}).get('status')=='fresh'
+                 and treasury.get('unit')=='USD_bn_par')
+    fails_rows=clean_series(treasury.get('gross') or []) if fails_valid else []
+    legs['fails']=measured_leg(fails_rows,'data/settlement-fails.json → treasury.gross','USD_bn_par',21,contributes=True)
+    if not fails_valid:
+        legs['fails']['quality']['status']='unavailable'
+    if fails_valid:
+        legs['fails'].update(ftd_bn=treasury['ftd_bn'],ftr_bn=treasury['ftr_bn'],gross_bn=treasury['gross_bn'],
+                             measurement_note=treasury.get('measurement_note'))
+    legs['velocity']={'latest':None,'z':None,'n':0,'as_of':None,'quality':{'status':'unavailable'},
+                      'source':'Gross reusable collateral inventory and chain length are not observed.',
+                      'unit':'ratio','score_contribution':0,
+                      'reason':'Gross financing / absolute net positions is not collateral velocity.'}
+    legs['specialness']={'latest_bps':None,'z':None,'n':0,'as_of':None,'quality':{'status':'unavailable'},
+                         'unit':'basis_points','score_contribution':0,
+                         'source':'Issue-matched GC and specific-security repo rates are not available.',
+                         'reason':'GCF minus tri-party is a venue spread, not issue specialness.'}
+    dealer=read_object('data/nyfed-primary-dealer.json')
+    dc=inspect_donor(dealer,'data/nyfed-primary-dealer.json',8*24,
+                     observed_paths=('financing.treasury.as_of',),required_paths=('financing.treasury',),
+                     max_observation_age_hours=21*24)
+    financing=(dealer.get('financing') or {}).get('treasury') or {}
+    fin_valid=(dc['usable'] and dealer.get('methodology_version')=='fr2004-measurement.v2'
+               and financing.get('quality',{}).get('status')=='fresh')
+    financing_context={'contract':dc,'data':financing if fin_valid else None,'score_contribution':0,
+                       'interpretation':'Treasury ex-TIPS plus TIPS, same week. Gross two-sided balances are not unique collateral.'}
+    # OFR uses different clearing/counterparty universes. Match collateral and
+    # tenor mnemonics explicitly; never fall back to a different collateral class.
+    for suffix in ('OO-P','AG-P','TOT-P'):
+        mg,mt='REPO-GCF_AR_'+suffix,'REPO-TRI_AR_'+suffix
+        try:
+            gc=difference(ofr_series(mg),ofr_series(mt),100)
+            if not gc: continue
+            legs['gc_venue_spread']=measured_leg(gc,f'OFR {mg} minus {mt}','basis_points',field='latest_bps')
+            legs['gc_venue_spread']['interpretation']='Same mnemonic collateral/tenor category, different market venues; not issue-specific scarcity.'
+            break
+        except Exception as exc:
+            notes.append('OFR matched pair unavailable: '+suffix+' '+type(exc).__name__)
+    try:
+        dvp=ofr_series('REPO-DVP_TV_OO-P')
+        legs['dvp_volume']=measured_leg(dvp,'OFR REPO-DVP_TV_OO-P','USD')
+    except Exception as exc:
+        notes.append('OFR DVP unavailable: '+type(exc).__name__)
+    sp=[]
+    try:
+        sp=difference(fred_series('SOFR',99999),fred_series('IORB',99999),100)
+        legs['sofr_iorb']=measured_leg(sp,'FRED SOFR minus IORB, matched dates','basis_points',field='latest_bps',contributes=True)
+    except Exception as exc:
+        notes.append('SOFR/IORB unavailable: '+type(exc).__name__)
+    try:
+        delta=calendar_delta(fred_series('RRPONTSYD',99999))
+        legs['rrp_drain_4w']=measured_leg(delta,'FRED RRPONTSYD calendar 28-day change','USD_bn')
+        legs['rrp_drain_4w']['interpretation']='Context only. A decline is not automatically less stress; cash destinations and reserves matter.'
+    except Exception as exc:
+        notes.append('RRP unavailable: '+type(exc).__name__)
+    comp,band=review_score(legs)
+    required=('fails','sofr_iorb')
+    missing=[k for k in required if legs.get(k,{}).get('quality',{}).get('status')!='fresh' or legs.get(k,{}).get('z') is None]
+    generated=datetime.now(timezone.utc).isoformat(timespec='seconds')
+    out={'engine':'justhodl-treasury-rehypo','version':VERSION,'methodology_version':METHOD,
+         'generated_at':generated,'quality':{'status':'fresh' if not missing else 'incomplete','missing':missing},
+         'composite':comp,'band':band,'legs':legs,'legs_missing':missing,'picked_keyids':{},
+         'treasury_fails':treasury if fails_valid else None,'financing_context':financing_context,
+         'execution_eligible':False,'call':None,'calibration_status':'HEURISTIC_REVIEW_ONLY',
+         'methodology':'Equal-weight review index of Treasury gross fails and SOFR-IORB z-scores, 104 observations, minimum 26. '
+                       'Both current legs required; weekly fails and daily funding dates remain explicit. '
+                       'Velocity and specialness unavailable. Venue spread, volume and RRP are diagnostic only. '
+                       'This is not a measurement of rehypothecation or a calibrated crisis probability.',
+         'notes':notes,'elapsed_s':round(time.time()-t0,1)}
+    # Rebuild current-vintage descriptive history, never carry forward the old
+    # overlapping-keyid/velocity index. Only exact shared observation dates enter.
+    fails_z=dict(rolling_z(fails_rows,104))
+    funding_z=dict(rolling_z(sp,104))
+    weekly=[]
+    for d in sorted(set(fails_z)&set(funding_z)):
+        if fails_z[d] is None or funding_z[d] is None: continue
+        c=round(max(0,min(100,50+12.5*(fails_z[d]+funding_z[d])/2)),1)
+        weekly.append({'d':d,'c':c,'n':2,'z':{'fails':fails_z[d],'sofr_iorb':funding_z[d]}})
+    long_doc={'engine':out['engine'],'version':VERSION,'methodology_version':METHOD,'generated_at':generated,
+              'actual_start':weekly[0]['d'] if weekly else None,'n_weekly':len(weekly),'weekly':weekly,
+              'legs_available':{k:{'from':r[0][0],'to':r[-1][0]} for k,r in (('fails',fails_rows),('sofr_iorb',sp)) if r},
+              'era_coverage':{},'note':'Current-vintage history, not point-in-time outcomes. '
+              'Complete matched-date fails/funding only. Legacy composite is quarantined; no pre-data backfill.'}
+    history=read_object('data/treasury-rehypo-history.json')
+    rows=[r for r in history.get('rows',[]) if r.get('methodology_version')==METHOD]
+    rows=rows[-364:]+[{'t':generated,'methodology_version':METHOD,'composite':comp,'band':band,
+                     'legs_z':{k:legs[k].get('z') for k in required if k in legs}}]
+    out['long_history']={'actual_start':long_doc['actual_start'],'n_weekly':len(weekly)}
+    # Publish main last. Every consumer checks methodology, so partial auxiliary
+    # writes cannot silently join an old index to the new measurement contract.
+    for key,doc in ((LONG_KEY,long_doc),('data/treasury-rehypo-history.json',{'methodology_version':METHOD,'rows':rows}),(OUT_KEY,out)):
+        s3.put_object(Bucket=BUCKET,Key=key,Body=json.dumps(doc,allow_nan=False,separators=(',',':')).encode(),
+                      ContentType='application/json',CacheControl='public, max-age=1800')
+    return {'ok':True,'composite':comp,'band':band,'quality':out['quality'],'legs':list(legs)}
