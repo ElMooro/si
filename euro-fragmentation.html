@@ -146,6 +146,8 @@ function cell(cc,b){
 async function main(){
   const d=await J("euro-fragmentation.json");
   if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">EURO-FRAGMENTATION DATA UNAVAILABLE</div>';return;}
+  const age=Date.now()-Date.parse(d.generated_at);
+  if(!['fresh','incomplete'].includes(d.quality?.status)||!Number.isFinite(age)||age< -300000||age>72*3600000){d.fragmentation={...(d.fragmentation||{}),score_0_100:null,regime:'UNAVAILABLE'};d.headline='Current assessment expired; dated observations below.';}
   document.getElementById("hero").innerHTML=hero(d);
   document.getElementById("score").innerHTML=scorePanel(d.fragmentation||{});
 

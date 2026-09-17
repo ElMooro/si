@@ -46,13 +46,14 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from ciss_vintage import select_series, window_percentile
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.7"
+VERSION = "2.5.0"
 FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -745,78 +746,35 @@ def lambda_handler(event, context):
     errors, sources = [], []
 
     # ══ MODULE 1 — CISS systemic stress ══
-    ciss = {}
-    for name, key in CISS_HEADLINE.items():
-        obs = None
-        cands = []
-        for k in (key, CISS_HEADLINE_FALLBACK.get(name)):
-            if not k:
-                continue
-            try:
-                o = ecb_ciss(k)
-            except Exception as e:
-                errors.append(f"CISS/{name}/{k[-12:]}: {str(e)[:40]}")
-                o = None
-            if o:
-                cands.append(o)
-        if cands:
-            obs = max(cands, key=lambda o: o[0][0])
-        if not obs:
-            errors.append(f"CISS/{name}: empty")
-            continue
-        p = pct_rank(obs)
-        ciss[name] = {
-            "level": round(obs[0][1], 4),
-            "as_of": obs[0][0],
-            "change_1m": level_change(obs, 30),
-            "change_3m": level_change(obs, 91),
-            "percentile_3y": p,
-            "status": status_from_pct(p),
-            "yoy_pct": pct_change(obs, 366),
-            "level_12m": val_days_ago(obs, 366),
-        }
-    if ciss:
-        sources.append("ECB Data Portal — CISS systemic stress")
-
-    # ══ MODULE 2 — SovCISS sovereign stress ══
-    sov = {}
-    for name, key in SOVCISS.items():
-        try:
-            obs = ecb_ciss(key, last_n=120)
-            if not obs:
-                errors.append(f"SovCISS/{name}: empty")
-                continue
-            p = pct_rank(obs)
-            sov[name] = {
-                "level": round(obs[0][1], 4),
-                "as_of": obs[0][0],
-                "change_3m": level_change(obs, 95),
-                "yoy_pct": pct_change(obs, 366),
-                "level_12m": val_days_ago(obs, 366),
-                "change_12m": level_change(obs, 370),
-                "percentile_5y": p,
-                "status": status_from_pct(p),
+    warehouse = read_existing("data/ciss-stress.json") or {}
+    ciss, sov = {}, {}
+    for sovereign, catalog, target in ((False, CISS_HEADLINE, ciss), (True, SOVCISS, sov)):
+        for name, key in catalog.items():
+            area = key.split(".")[1]
+            obs, quality, row = select_series(warehouse, area, sovereign, now)
+            years = 5 if sovereign else 3
+            percentile_key = "percentile_5y" if sovereign else "percentile_3y"
+            percentile = row.get(percentile_key) if obs else None
+            if percentile is None and obs: percentile = window_percentile(obs, years, now)
+            target[name] = {
+                "level": round(obs[0][1], 4) if obs else None,
+                "as_of": quality["observation_date"], "quality": quality,
+                "historical_level": row.get("latest") if not obs else None,
+                "change_1m": level_change(obs, 30) if obs else None,
+                "change_3m": level_change(obs, 91) if obs else None,
+                "change_12m": level_change(obs, 366) if obs else None,
+                "level_12m": val_days_ago(obs, 366) if obs else None,
+                "yoy_pct": None, "yoy_change_points": level_change(obs, 366) if obs else None,
+                percentile_key: percentile,
+                "status": status_from_pct(percentile) if obs else quality["status"].upper(),
+                "ranking_eligible": bool(obs), "source_key": row.get("key"),
             }
-        except Exception as e:
-            errors.append(f"SovCISS/{name}: {str(e)[:60]}")
-    if sov:
-        sources.append("ECB Data Portal — SovCISS sovereign stress")
-    # most-stressed sovereign
-    def _obs_fresh(as_of, max_days=120):
-        if not as_of:
-            return False
-        try:
-            s = str(as_of)
-            d = datetime.fromisoformat(s[:10] if len(s) >= 10 else s + "-01")
-        except Exception:
-            return False
-        return (now.replace(tzinfo=None) - d).days <= max_days
-
-    sov_ranked = sorted(
-        ((k, v) for k, v in sov.items()
-         if k != "euro_area" and v.get("percentile_5y") is not None
-         and _obs_fresh(v.get("as_of"), 150)),
-        key=lambda kv: kv[1]["percentile_5y"], reverse=True)
+    sources.append("ECB CISS/SovCISS canonical warehouse: data/ciss-stress.json")
+    def _obs_fresh(as_of, max_days=14):
+        from ciss_vintage import observation_quality
+        return observation_quality(as_of, "D" if max_days <= 21 else "M", now.isoformat(), now)["status"] == "fresh"
+    sov_ranked = sorted(((k,v) for k,v in sov.items() if k != "euro_area" and v["ranking_eligible"]
+                         and v.get("percentile_5y") is not None), key=lambda kv:kv[1]["percentile_5y"], reverse=True)
     most_stressed_sov = sov_ranked[0][0] if sov_ranked else None
 
     # ══ MODULE 2b — ASIAN SOVEREIGNS (real data via World Government Bonds REST endpoint) ══
@@ -981,10 +939,7 @@ def lambda_handler(event, context):
         sc = country_score(name)
         if sc is not None:
             country_scores[name] = sc
-    worst_country = (max(country_scores, key=country_scores.get)
-                     if country_scores else None)
-    if most_stressed_sov:
-        worst_country = most_stressed_sov
+    worst_country = most_stressed_sov
 
     # Europe systemic-stress regime
     reg_parts, reg_w = 0.0, 0.0
@@ -1297,16 +1252,15 @@ def lambda_handler(event, context):
         "most_stressed_sovereign": most_stressed_sov,
         "quality": {
             "observation_date": (ciss.get("euro_area") or {}).get("as_of"),
-            "publication_date": now.date().isoformat(),
-            "frequency": "mixed",
-            "freshness_basis": "observation",
-            "status": (
-                "fresh" if _obs_fresh((ciss.get("euro_area") or {}).get("as_of"), 21)
-                else "stale" if ciss else "unavailable"
-            ),
+            "publication_date": now.isoformat(), "frequency": "daily",
+            "freshness_basis": "canonical_warehouse_and_observation",
+            "status": "fresh" if all(row["ranking_eligible"] for row in list(ciss.values())+list(sov.values())) else "incomplete",
+            "missing": [family+"."+name for family,rows in (("ciss",ciss),("sovciss",sov))
+                        for name,row in rows.items() if not row["ranking_eligible"]],
             "ciss_ea_as_of": (ciss.get("euro_area") or {}).get("as_of"),
             "sovciss_ranking_eligible": bool(sov_ranked),
         },
+        "ciss_warehouse": {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at")},
         "equity_market_stress": equity,
         "sovereign_spreads": sov_spreads,
         "bond_market_read": bond_read,
@@ -1325,6 +1279,14 @@ def lambda_handler(event, context):
         "errors": errors,
     }
 
+    if not ciss["euro_area"]["ranking_eligible"] or not sov["euro_area"]["ranking_eligible"]:
+        out["quality"]["status"] = "unavailable"
+        out["ok"] = False
+        out["europe_stress"].update(score_0_100=None, regime="UNKNOWN", read="Required current ECB observations unavailable.")
+        out["headline"] = "Current European stress assessment unavailable."
+        out["signals_fired"] = []
+    out["field_units"] = {"europe_stress.score_0_100":"score_0_100", "systemic_stress_ciss.*.level":"index_0_1",
+                          "sovereign_stress_sovciss.*.level":"index_0_1"}
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, indent=2).encode("utf-8"),
                   ContentType="application/json", CacheControl="max-age=300")

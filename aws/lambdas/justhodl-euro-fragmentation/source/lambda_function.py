@@ -37,6 +37,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from ciss_vintage import select_series, observation_quality
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
@@ -212,15 +213,11 @@ def lambda_handler(event, context):
     errors = []
 
     # ── 1. SovCISS (daily) + 10Y yields (monthly) per country ──
-    sov, y10 = {}, {}
+    sov, y10, sov_quality = {}, {}, {}
+    warehouse = read_existing("data/ciss-stress.json") or {}
     for cc in COUNTRIES:
-        try:
-            sov[cc] = ciss_series(f"D.{cc}.Z0Z.4F.EC.SOV_CIN.IDX")
-            if not sov[cc]:
-                errors.append(f"SovCISS/{cc}: empty")
-        except Exception as e:
-            errors.append(f"SovCISS/{cc}: {str(e)[:55]}")
-            sov[cc] = []
+        sov[cc], sov_quality[cc], _ = select_series(warehouse, cc, True, now)
+        if not sov[cc]: errors.append("SovCISS/"+cc+": current warehouse observation unavailable")
         try:
             y10[cc] = fred(FRED_10Y[cc])
             if not y10[cc]:
@@ -229,6 +226,12 @@ def lambda_handler(event, context):
             errors.append(f"10Y/{cc}: {str(e)[:55]}")
             y10[cc] = []
 
+    yield_quality = {cc:observation_quality(rows[0][0] if rows else None, "M", now.isoformat(), now)
+                     for cc,rows in y10.items()}
+    for cc,q in yield_quality.items():
+        if q["status"] != "fresh":
+            y10[cc] = []
+            errors.append("10Y/"+cc+": current monthly observation unavailable")
     bund = latest(y10.get(BENCH))
 
     # ── 2. per-country fragmentation block ──
@@ -245,7 +248,7 @@ def lambda_handler(event, context):
             return round(change,1) if change is not None else None
 
         countries[cc] = {
-            "name": NAME[cc],
+            "name": NAME[cc], "sovciss_quality": sov_quality[cc],
             "group": "benchmark" if cc == BENCH else (
                 "core" if cc in CORE else "periphery"),
             "sovciss": round(sc, 5) if sc is not None else None,
@@ -440,6 +443,17 @@ def lambda_handler(event, context):
         "errors": errors,
     }
 
+    missing = ["sovciss."+cc for cc,q in sov_quality.items() if q["status"] != "fresh"]
+    missing += ["yield_10y."+cc for cc,q in yield_quality.items() if q["status"] != "fresh"]
+    out["quality"] = {"observation_date": min((q["observation_date"] for q in sov_quality.values() if q["observation_date"]),default=None),
+        "publication_date":now.isoformat(), "frequency":"daily", "freshness_basis":"canonical_ECB_daily_and_FRED_monthly_observations",
+        "status":"incomplete" if missing else "fresh", "missing":missing, "yield_input_quality":yield_quality}
+    out["ciss_warehouse"] = {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at")}
+    out["field_units"] = {"fragmentation.score_0_100":"score_0_100", "countries.*.spread_vs_bund_bp":"bp", "countries.*.yield_10y_pct":"pct"}
+    out["yield_frequency_note"] = "Monthly OECD average 10-year yields; matched month spreads, not executable live quotes."
+    if missing:
+        out["fragmentation"].update(score_0_100=None, regime="UNAVAILABLE", read="Required current sovereign/yield inputs are incomplete.")
+        out["headline"] = "Fragmentation assessment unavailable; dated observations remain below."
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, indent=2).encode("utf-8"),
                   ContentType="application/json", CacheControl="max-age=300")

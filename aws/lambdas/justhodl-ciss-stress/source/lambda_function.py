@@ -20,10 +20,14 @@ OUTPUT: data/ciss-stress.json
 SCHEDULE: daily 07:10 UTC (ECB publishes CISS daily with a ~2-3 business-day lag;
           monthly country/sovereign series refresh within the same daily sweep).
 """
+import csv
+import io
+import math
 import json
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from ciss_vintage import observation_quality, window_percentile
 
 import boto3
 
@@ -58,19 +62,13 @@ def _get(url, t=50):
 
 
 def _csv_rows(body):
-    lines = body.splitlines()
-    if not lines:
-        return []
-    hdr = lines[0].split(",")
-    try:
-        ki, ti, vi = hdr.index("KEY"), hdr.index("TIME_PERIOD"), hdr.index("OBS_VALUE")
-    except ValueError:
-        return []
     out = []
-    for ln in lines[1:]:
-        c = ln.split(",")
-        if len(c) > max(ki, ti, vi) and c[vi] not in ("", "NaN"):
-            out.append((c[ki], c[ti], c[vi]))
+    for row in csv.DictReader(io.StringIO(body)):
+        try:
+            value = float(row["OBS_VALUE"])
+            if math.isfinite(value): out.append((row["KEY"], row["TIME_PERIOD"], row["OBS_VALUE"]))
+        except (ValueError, TypeError, KeyError):
+            continue
     return out
 
 
@@ -158,13 +156,20 @@ def stats(pts):
     var = sum((v - mean) ** 2 for v in vals) / n
     sd = var ** 0.5
     z = round((latest - mean) / sd, 2) if sd else 0.0
-    # 1y change (approx: compare to ~252 daily / 12 monthly back)
-    look = 252 if n > 600 else 12
-    prior = vals[-look] if n > look else vals[0]
+    # Calendar-aligned point change, not a percentage off a near-zero index.
+    try:
+        anchor = datetime.fromisoformat(pts[-1][0][:10] if len(pts[-1][0]) >= 10 else pts[-1][0]+"-01")
+        cutoff = (anchor-timedelta(days=365)).date().isoformat()
+        previous = next(((d,v) for d,v in reversed(pts) if d <= cutoff), None)
+        previous_date = datetime.fromisoformat(previous[0][:10] if len(previous[0])>=10 else previous[0]+"-01") if previous else None
+        prior = previous[1] if previous_date and 0 <= (anchor-timedelta(days=365)-previous_date).days <= 45 else None
+    except (ValueError, TypeError):
+        prior = None
     return {
         "latest": latest, "min": round(smin, 4), "max": round(smax, 4),
         "pctile": pctile, "zscore": z, "mean": round(mean, 4),
-        "chg_1y": round(latest - prior, 4),
+        "chg_1y": round(latest - prior, 4) if prior is not None else None,
+        "change_unit": "index_points", "yoy_pct": None,
         "pct_of_peak": round(latest / smax * 100, 1) if smax else None,
     }
 
@@ -209,6 +214,7 @@ def lambda_handler(event, context):
             disc = (datetime.now(timezone.utc).date() - _ld).days > 120
         except Exception:
             disc = False
+        quality = observation_quality(ld, freq, now)
         series.append({
             "id": key.replace(".", "_"), "key": key,
             "flow": flow, "category": cat, "area": area,
@@ -217,6 +223,9 @@ def lambda_handler(event, context):
             "indicator": ind_label, "discontinued": disc,
             "latest_date": pts[-1][0], "start_date": pts[0][0],
             "n_obs": len(pts), "points": downsample_weekly(pts), **st,
+            "quality": quality, "ranking_eligible": quality["status"] == "fresh" and not disc,
+            "percentile_3y": window_percentile(list(reversed(pts)), 3) if quality["status"] == "fresh" else None,
+            "percentile_5y": window_percentile(list(reversed(pts)), 5) if quality["status"] == "fresh" else None,
         })
 
     cats = {}
@@ -226,24 +235,27 @@ def lambda_handler(event, context):
     # headline regime band off the EA composite
     head = next((s for s in series if s["category"] == "ea_headline"), None)
     band = None
-    if head:
+    if head and head["ranking_eligible"]:
         v = head["latest"]
         band = ("CRISIS" if v >= 0.45 else "STRESS" if v >= 0.2 else
                 "ELEVATED" if v >= 0.1 else "NORMAL" if v >= 0.04 else "CALM")
 
     out = {
-        "engine": "ciss-stress", "version": "1.1.0", "generated_at": now,
+        "engine": "ciss-stress", "version": "1.2.0", "generated_at": now,
         "elapsed_s": round(time.time() - t0, 1),
         "n_series": len(series), "categories": cats,
-        "ea_composite": head["latest"] if head else None,
+        "ea_composite": head["latest"] if head and head["ranking_eligible"] else None,
         "ea_composite_date": head["latest_date"] if head else None,
         "ea_regime": band,
         "frequency_note": "CISS composite & sub-indices: daily (ECB ~2-3 business-day lag). SovCISS: daily. Country CISS / CLIFS: monthly.",
         "provenance": "ECB Data Portal (data-api.ecb.europa.eu) — every distinct CISS + CLIFS series (incl. US, China, UK & non-euro countries); superseded duplicate variants dropped; discontinued series flagged.",
         "series": series,
+        "quality": head["quality"] if head else observation_quality(None, "D", now),
+        "canonical_warehouse": OUT_KEY,
+        "field_units": {"ea_composite":"index_0_1", "series.*.chg_1y":"index_points", "series.*.pctile":"pct"},
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                  Body=json.dumps(out, separators=(",", ":")).encode(),
+                  Body=json.dumps(out, separators=(",", ":"), allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"statusCode": 200, "body": json.dumps({
         "n_series": len(series), "categories": cats, "ea_regime": band,

@@ -105,12 +105,13 @@ function detailChart(s){
 }
 
 function card(s,feat){
-  const col=pcol(s.pctile);
+  const active=s.quality?.status==='fresh' && !s.discontinued;
+  const col=active?pcol(s.pctile):'var(--fg3)';
   return `<div class="card ${feat?'feat':''}" data-id="${s.id}">
     <div class="top"><div><div class="nm">${esc(s.country)}</div><div class="ind">${esc(s.indicator)} · ${s.freq==='D'?'daily':'monthly'}${s.discontinued?' · <span style="color:var(--fg3)">⏸ discontinued '+(s.latest_date||'').slice(0,7)+'</span>':''}</div></div>
       <div class="val" style="color:${col}">${fmtVal(s.latest)}</div></div>
     <div class="row">
-      <span class="pill" style="background:${col}22;color:${col}">${pband(s.pctile)} ${s.pctile!=null?s.pctile.toFixed(0)+'%ile':''}</span>
+      <span class="pill" style="background:${col}22;color:${col}">${active?pband(s.pctile):"HISTORICAL / UNAVAILABLE"} ${active&&s.pctile!=null?s.pctile.toFixed(0)+'%ile':''}</span>
       <span>z ${s.zscore>=0?'+':''}${s.zscore}</span>
       <span>1y ${s.chg_1y>=0?'+':''}${s.chg_1y}</span>
       <span>${(s.start_date||'').slice(0,4)}→ · ${s.pct_of_peak!=null?s.pct_of_peak.toFixed(0)+'% of peak':''}</span>
@@ -154,6 +155,8 @@ function renderAI(a){
   const [D,AI]=await Promise.all([gj('data/ciss-stress.json'),gj('data/ciss-ai.json')]);
   renderAI(AI);
   if(!D||!D.series){document.getElementById('body').innerHTML='<span class="loading">CISS data first run pending.</span>';return;}
+  const pubAge=Date.now()-Date.parse(D.generated_at);
+  if(!Number.isFinite(pubAge)||pubAge< -300000||pubAge>72*3600000||D.quality?.status!=='fresh'){D.ea_regime='UNAVAILABLE';D.ea_composite=null;D.series.forEach(s=>{s.quality={status:'stale'};s.ranking_eligible=false;});}
   const reg=D.ea_regime||'—';const rc={CALM:'var(--green)',ELEVATED:'var(--amber)',STRESS:'var(--amberw)',CRISIS:'var(--red)'}[reg]||'var(--fg2)';
   document.getElementById('hero').innerHTML=
     `<div class="hg"><b style="color:${rc}">${D.ea_composite!=null?D.ea_composite.toFixed(4):'—'}</b><div class="m">EA Composite CISS<br>${esc(D.ea_composite_date)}</div></div>
@@ -177,7 +180,7 @@ function renderAI(a){
   const fx=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('FX market')>=0);
   const mm=D.series.find(s=>s.area==='U2'&&s.indicator&&s.indicator.indexOf('Money market')>=0);
   const dollarCards=[fx,mm,adaptHist(eurusd,'Euro Area','EUR/USD reference rate','daily'),
-                     adaptHist(nonea,'Eurosystem','Claims on non-EA residents in FX (€mn) — DXY lead','weekly'),
+                     adaptHist(nonea,'Eurosystem','Claims on non-EA residents in FX (€mn)','weekly'),
                      adaptHist(usdclaims,'Eurosystem','Claims on EA residents in FX (€mn)','weekly')].filter(Boolean);
   const dollarHtml = dollarCards.length ?
     `<div class="sec">💵 Dollar / FX Funding Stress <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ECB FX & money-market stress + EUR/USD + USD claims (proxies; ECB doesn't publish the x-ccy basis directly)</span></div><div class="grid">${dollarCards.map(s=>card(s,false)).join('')}</div>` : '';
@@ -185,7 +188,7 @@ function renderAI(a){
   const cats=Object.keys(byCat).sort((a,b)=>(CAT[a]?.o||9)-(CAT[b]?.o||9));
   let html=dollarHtml;
   cats.forEach(c=>{
-    const list=byCat[c].sort((a,b)=>(b.pctile||0)-(a.pctile||0));
+    const list=byCat[c].sort((a,b)=>(b.ranking_eligible?b.pctile:-1)-(a.ranking_eligible?a.pctile:-1));
     html+=`<div class="sec">${esc(CAT[c]?.t||c)} <span style="color:var(--fg3);text-transform:none;letter-spacing:0">· ${list.length} series</span></div>`;
     html+=`<div class="grid">${list.map(s=>card(s,c==='ea_headline')).join('')}</div>`;
   });

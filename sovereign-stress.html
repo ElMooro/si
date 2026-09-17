@@ -222,10 +222,12 @@ function render(d) {
   if (d.headline) document.getElementById('headline').textContent = d.headline;
 
   const es = d.europe_stress || {};
+  const publicationAge=Date.now()-Date.parse(d.generated_at);
+  if(!['fresh','incomplete'].includes(d.quality?.status)||!Number.isFinite(publicationAge)||publicationAge< -300000||publicationAge>72*3600000){es.score_0_100=null;es.regime='UNAVAILABLE';es.worst_country=null;d.most_stressed_sovereign=null;}
   const scoreEl = document.getElementById('kpi-score');
   scoreEl.textContent = fmt(es.score_0_100,0); scoreEl.style.color = statusColor(es.regime);
   document.getElementById('kpi-regime').innerHTML = `<span class="badge" style="border:1px solid ${statusColor(es.regime)};color:${statusColor(es.regime)}">${es.regime||'—'}</span>`;
-  document.getElementById('kpi-worst').textContent = cap(d.most_stressed_sovereign || es.worst_country || '—');
+  document.getElementById('kpi-worst').textContent = cap(es.worst_country || '—');
 
   const eaCiss = (d.systemic_stress_ciss||{}).euro_area || {};
   document.getElementById('kpi-ciss').textContent = fmt(eaCiss.level,3);
@@ -235,13 +237,13 @@ function render(d) {
   const sov = d.sovereign_stress_sovciss || {};
   const sovRows = Object.entries(sov)
     .filter(([k])=>k!=='euro_area')
-    .sort((a,b)=>(b[1].percentile_5y||0)-(a[1].percentile_5y||0));
+    .sort((a,b)=>(b[1].percentile_5y??-1)-(a[1].percentile_5y??-1));
   document.getElementById('sovciss-list').innerHTML = sovRows.map(([name,c])=>{
-    const p = c.percentile_5y||0;
+    const p = c.quality?.status==='fresh' && publicationAge<=72*3600000 ? c.percentile_5y : null;
     return `<div class="row">
       <div><div class="text-sm font-medium">${cap(name)}</div>
         <div class="text-[10px] text-[var(--text-muted)] mono">SovCISS ${fmt(c.level,3)} · ${c.as_of||''}</div></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${stressColor(p)}"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p??0}%;background:${stressColor(p)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(p)};min-width:42px;text-align:right">${fmt(p,0)}p</div>
       <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
     </div>`;
@@ -286,7 +288,7 @@ function render(d) {
     return `<div class="row">
       <div><div class="text-sm font-medium">${cap(name)}</div>
         <div class="text-[10px] text-[var(--text-muted)] mono">CISS ${fmt(c.level,3)} · Δ1m ${c.change_1m>=0?'+':''}${fmt(c.change_1m,3)}</div></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${stressColor(p)}"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p??0}%;background:${stressColor(p)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(p)};min-width:42px;text-align:right">${fmt(p,0)}p</div>
       <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
     </div>`;
