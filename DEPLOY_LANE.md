@@ -21,7 +21,7 @@ happens on the GitHub Actions runner, which holds the credentials.
 | Lane | Has a shell + git? | Write path |
 |---|---|---|
 | Khalid (Git Bash), Claude (sandbox) | yes | normal git push — any file size, nothing special |
-| Grok / ChatGPT connector (Contents API) | no — one file per write, ~40 KB bodies truncate | **multipart upload v3** (parts ≤ 12 KB, no hashes) or a tiny patcher (below) |
+| Grok / ChatGPT connector (Contents API) | no — one file per write, ~40 KB bodies truncate | **batch upload v4** for anything multi-file, **multipart v3** for one large file, a tiny patcher for a surgical edit |
 
 The staged-patcher path exists only for lanes without a shell. It is not the general push path.
 
@@ -79,6 +79,42 @@ python3 scripts/verify_release.py <function> --commit <sha> --data data/<engine>
 The receipt carries the commit, run id, `CodeSha256`, zip bytes and every source
 file's sha256. Compare `commit` to what you pushed; that is the proof.
 
+## Several related files at once — batch upload v4 (the default for any multi-file change)
+
+One file per write means an engine can go live before its helper or its `config.json` — every
+direct write under `aws/lambdas/**` deploys immediately. A **batch** stages everything and deploys
+nothing until its manifest says complete; then all targets land in **one commit** and **one pinned
+deploy** covers every function touched (shared-module importers included, via the release order).
+
+```
+aws/ops/patchers/batch/<batch-id>/files/aws/lambdas/justhodl-x/config.json              small files whole (≤ 10 KB)
+aws/ops/patchers/batch/<batch-id>/files/aws/lambdas/justhodl-x/source/fmp_client.py
+aws/ops/patchers/batch/<batch-id>/parts/aws/lambdas/justhodl-x/source/lambda_function.py/part-001   large files in v3 parts
+aws/ops/patchers/batch/<batch-id>/parts/aws/lambdas/justhodl-x/source/lambda_function.py/part-002   (@@PART n/N@@ … @@END n@@, ≤ 12 KB)
+aws/ops/patchers/batch/<batch-id>/manifest.json      written LAST:
+    {"complete": true, "lane": "grok", "note": "stock-buying v1.6: engine + FMP client + config",
+     "files": [{"target": "aws/lambdas/justhodl-x/source/lambda_function.py", "first_line": "import json", "last_line": "    return out"},
+               {"target": "aws/lambdas/justhodl-x/source/fmp_client.py"},
+               {"target": "aws/lambdas/justhodl-x/config.json"}]}
+```
+
+- `<batch-id>`: lowercase `[a-z0-9._-]`, 8–80 chars — use `<lane>-<YYYYMMDDTHHMMSSZ>-<slug>`; an id that
+  already has a receipt is refused, so two lanes can never write into each other's batch
+- `files` in the manifest is the contract: a listed target that was not uploaded, or an upload that
+  is not listed, rejects the whole batch (typo protection)
+- **all-or-nothing**: every file is checked (markers, compile/parse/document, first/last line,
+  shrink guard) before the first byte is written; one bad file = nothing lands, and `STATUS.json`
+  lists **every** problem so the next push fixes them all
+- targets allowed: `aws/lambdas/`, `aws/shared/`, `config/`, `schemas/`, `docs/`,
+  `cloudflare/workers/`, `assets/`, `js/`, `css/`, root `*.html|*.js|*.css`, and
+  `aws/ops/pending/` — an ops gate script in the batch is dispatched on run-ops right after the
+  deploy dispatch (so "ship the engine, then run its gate" is one batch)
+- receipt: `aws/ops/patchers/batch/_receipts/<batch-id>.json` — per file (bytes, sha256, check,
+  whole/parts), `functions` to be deployed, `config`/`pages`/`workers`/`ops_scripts` touched;
+  the deploy receipt (`data/ops/releases/<fn>.json`) then carries the resulting commit
+- while a batch is in flight, never write any of its targets directly — that is the race the batch exists to end
+- lanes with a shell don't need this: put the whole change set in **one commit** and push
+
 ## Large / complicated change without a shell — multipart upload v3 (any size, no hashes)
 
 The connector truncates a single write around 40 KB, so a large file goes up as **parts**, one
@@ -127,8 +163,9 @@ With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` write
 
 1. **Read first**: `STATE.md` (`next_free_ops_number`), `DEPLOY_LANE.md`, the file you will change
    (`GET /repos/ElMooro/si/contents/<path>?ref=main` → content + `sha`; an update PUT needs that sha).
-2. **Write**: one file per PUT to `main`. Under ~10 KB: write the target directly. Larger: the
-   multipart upload above (parts ≤ 12 KB, `manifest.json` last). Surgical edits: a patcher.
+2. **Write**: one file per PUT to `main`. A single small file (≤ 10 KB): write the target directly.
+   A single large file: multipart v3 (parts ≤ 12 KB, `manifest.json` last). **Two or more related
+   files, any size: a batch** — never write them one by one to their real paths. Surgical edits: a patcher.
    An ops script: `aws/ops/pending/ops_<next_free>_<slug>.py` (the runner refuses a taken number —
    STAGED and report-only numbers count as taken).
 3. **Verify** by reading files back, never by trusting a green run:
@@ -136,6 +173,7 @@ With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` write
    - a Lambda: `https://justhodl.ai/data/ops/releases/<fn>.json` → `commit` must equal yours
    - an ops script: `aws/ops/reports/latest/<N>_<slug>.md` (run-ops commits it to main)
    - a multipart upload: `aws/ops/patchers/parts/_receipts/<upload-id>.json` or `parts/<upload-id>/STATUS.json`
+   - a batch: `aws/ops/patchers/batch/_receipts/<batch-id>.json` or `batch/<batch-id>/STATUS.json`
    - a red deploy: `aws/ops/reports/deploy-failures/<sha7>-<run_id>.md`
    - the `ops-evidence` branch (`?ref=ops-evidence`) holds apply-lane and audit receipts
 4. A `409`/`422` on PUT means another lane changed the file: GET it again, re-apply your change to

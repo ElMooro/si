@@ -57,6 +57,11 @@ jobs:
         # below so a no-shell lane can read WHY; the run is failed at the end (PARTS_REJECTED).
         run: python3 scripts/assemble_parts.py
 
+      - name: Assemble batch uploads (several related files -> one commit, one pinned deploy)
+        # v4 (2026-09-17): a batch writes every target into the working tree only when ALL its files pass,
+        # so an engine, its helpers and its config.json always land in the same commit below.
+        run: python3 scripts/assemble_batch.py
+
       - name: Run patchers
         env:
           PATCHER: ${{ github.event.inputs.patcher }}
@@ -114,7 +119,7 @@ jobs:
           git config user.name "github-actions"
           # Grok 38f7e24: commit ANY tracked file a patcher touched (config/, docs, pages) -- plus the lane's new trees.
           git add -u
-          for tree in aws/lambdas aws/shared cloudflare/workers assets js css aws/ops/patchers aws/ops/staged; do
+          for tree in aws/lambdas aws/shared cloudflare/workers assets js css aws/ops/patchers aws/ops/staged config schemas docs aws/ops/pending; do
             if [ -e "$tree" ]; then git add -A "$tree"; fi     # a missing tree is not an error (js/, css/ do not exist)
           done
           git add -A -- '*.html' '*.js' '*.css' 2>/dev/null || true
@@ -169,6 +174,18 @@ jobs:
           echo "::error::deploy-lambdas.yml dispatch produced no run within 60s — the patch is on main but NOT deployed; dispatch manually: gh workflow run deploy-lambdas.yml -f function=\"$TARGETS\" -f expected_sha=$SHA"
           exit 1
 
+      - name: Run the ops scripts a batch landed (one run-ops dispatch, after the deploy dispatch)
+        if: steps.push.outputs.sha != '' && env.BATCH_OPS != ''
+        env:
+          GH_TOKEN: ${{ secrets.PAGES_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # GITHUB_TOKEN pushes never fire run-ops.yml's push trigger; dispatch it for exactly these scripts.
+          # If the serial queue replaces this queued run, the ledger's never-recorded-pending recovery runs them anyway.
+          gh workflow run run-ops.yml --ref main -f script="$BATCH_OPS"
+          echo "dispatched run-ops.yml for: $BATCH_OPS"
+
       - name: Dispatch worker / pages deploys when those trees changed
         if: steps.push.outputs.sha != '' && (steps.targets.outputs.workers != '' || steps.targets.outputs.pages != '')
         env:
@@ -217,12 +234,13 @@ jobs:
             echo "- result: \`${{ steps.push.outputs.sha }}\`"
             echo "- patchers: \`${APPLIED:-none}\`"
             echo "- deploy targets: \`${{ steps.targets.outputs.targets }}\`"
-            echo "- rejected uploads: \`${PARTS_REJECTED:-none}\` (reasons in aws/ops/patchers/parts/<id>/STATUS.json and parts/_receipts/)"
+            echo "- rejected uploads/batches: \`${PARTS_REJECTED:-none}\` (reasons in <upload or batch folder>/STATUS.json and the _receipts/ folders)"
+            echo "- batch ops scripts dispatched: \`${BATCH_OPS:-none}\`"
             echo "- verify: \`python3 scripts/verify_release.py <function> --commit ${{ steps.push.outputs.sha }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail the run if an upload was rejected (after its STATUS was pushed)
         if: always() && env.PARTS_REJECTED != ''
         run: |
-          echo "::error::multipart upload(s) rejected: $PARTS_REJECTED -- read aws/ops/patchers/parts/<id>/STATUS.json on main, fix that part, push it again"
+          echo "::error::upload(s)/batch(es) rejected: $PARTS_REJECTED -- read aws/ops/patchers/{parts,batch}/<id>/STATUS.json on main, fix what it names, push again"
           exit 1
