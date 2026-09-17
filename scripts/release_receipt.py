@@ -12,9 +12,8 @@ Usage (from scripts/deploy_lambdas.sh):
   python3 scripts/release_receipt.py <function> <zip> <source_dir> <code_sha256>
 
 Env: DEPLOY_COMMIT, DEPLOY_RUN_ID, DEPLOY_WORKFLOW, DEPLOY_ACTOR, RELEASE_BUCKET
-(default justhodl-dashboard-live). Prints the receipt JSON; exits non-zero only
-when the receipt cannot be built -- the S3 write reports its own failure so the
-caller can decide (the deploy itself has already succeeded at this point).
+(default justhodl-dashboard-live). Exits non-zero if evidence cannot be built or
+published: updated code without a readable receipt is an unverified release.
 """
 from __future__ import annotations
 
@@ -85,9 +84,9 @@ def main(argv: list[str]) -> int:
     try:
         keys = publish(receipt)
         print("release_receipt: published " + ", ".join(f"s3://{BUCKET}/{k}" for k in keys))
-    except Exception as exc:  # noqa: BLE001 - surface, never mask a finished deploy
-        print(f"::warning::release_receipt: S3 publish failed for {function}: {type(exc).__name__}: {exc}")
-        return 0
+    except Exception as exc:
+        print(f"::error::release_receipt: S3 publish failed for {function}: {type(exc).__name__}")
+        return 1
     return 0
 
 

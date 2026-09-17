@@ -288,7 +288,9 @@ jobs:
           DEPLOY_RUN_ID: ${{ github.run_id }}
           DEPLOY_WORKFLOW: deploy-lambdas.yml
           DEPLOY_ACTOR: ${{ github.actor }}
-        run: bash scripts/deploy_lambdas.sh 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+        run: |
+          set -euo pipefail
+          bash scripts/deploy_lambdas.sh 2>&1 | tee "$RUNNER_TEMP/deploy.log"
 
       - name: Commit a redacted failure report to main (lanes cannot read job logs)
         if: failure() && (steps.preflight.outcome == 'failure' || steps.deploy.outcome == 'failure')
