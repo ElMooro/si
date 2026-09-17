@@ -70,6 +70,29 @@ def main():
             (r.ok if status == 200 else r.warn)(line)
             if status != 200:
                 r.log(f"    edge body: {body[:200]!r}")
+        r.section("1b. Which raw-diagnostic fields does carry-surface.json still carry? (paths + types only, never values)")
+        DIAG = {'body','raw_sample','raw_status','request_id','request_url','response','response_body','raw_response','headers',
+                'exception','traceback','stack_trace','error_message','telegram_info','wss_broadcast_info'}
+        ERR = {'error','err','report_error','error_code','fetch_err'}
+        try:
+            doc = json.loads(s3.get_object(Bucket=PUB, Key="data/carry-surface.json")["Body"].read())
+            hits = []
+            def walk(node, path):
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        empty = v is None or v == "" or v is False or v == 0 or (isinstance(v, (list, dict)) and not v)
+                        if (k in DIAG or k in ERR) and not empty:
+                            hits.append(f"{path}.{k} ({type(v).__name__}, {len(v) if hasattr(v, '__len__') else 1})")
+                        walk(v, f"{path}.{k}")
+                elif isinstance(node, list):
+                    for i, v in enumerate(node[:50]):
+                        walk(v, f"{path}[{i}]")
+            walk(doc, "$")
+            r.kv(diagnostic_fields=len(hits))
+            for h in hits[:25]:
+                r.log("    " + h)
+        except Exception as e:  # noqa: BLE001
+            r.warn(f"scan failed: {str(e)[:120]}")
         r.section("2. Invocations / errors in the last 24h + newest log stream")
         for fn in FUNCTIONS:
             try:
