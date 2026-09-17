@@ -1,0 +1,368 @@
+@@PART 2/2@@
+.trigger-card.strategic{border-left:3px solid var(--red)}
+.trigger-card .name{font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--fg-1);margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trigger-card .urgency-pill{font-size:8.5px;letter-spacing:1.5px;padding:2px 6px;border-radius:3px;font-weight:600;text-transform:uppercase}
+.trigger-card .urgency-pill.monitoring{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.trigger-card .urgency-pill.tactical{background:rgba(255,177,61,.1);color:var(--amber);border:1px solid var(--amber-dim)}
+.trigger-card .urgency-pill.strategic{background:rgba(255,92,122,.1);color:var(--red);border:1px solid var(--red-dim)}
+.trigger-card .condition{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-bottom:8px}
+.trigger-card .vals{display:flex;gap:12px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);margin-bottom:8px;flex-wrap:wrap}
+.trigger-card .vals span b{color:var(--fg-1)}
+.trigger-card .vals .dist{color:var(--cyan);font-weight:600}
+.trigger-card .action{font-size:11.5px;color:var(--fg-2);line-height:1.5}
+.trigger-card .action strong{color:var(--fg-1)}
+
+.triggers-ai-card{background:var(--bg-raised);border:1px solid var(--violet-dim);border-left:3px solid var(--violet);border-radius:6px;padding:16px 20px;margin-bottom:24px;font-size:13px;line-height:1.7;color:var(--fg-1)}
+.triggers-ai-card .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--violet);font-weight:600;margin-bottom:10px;text-transform:uppercase}
+.triggers-ai-card strong{color:var(--cyan)}
+
+/* ─── 6 indicators (existing) ─── */
+.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.indicator-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative}
+.indicator-card.fired{border-color:var(--amber);background:linear-gradient(135deg,rgba(255,177,61,.04),var(--bg-raised))}
+.indicator-card.fired-acute{border-color:var(--red);background:linear-gradient(135deg,rgba(255,92,122,.06),var(--bg-raised))}
+.indicator-card .name{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--fg-1);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.indicator-card .pill{font-size:9.5px;padding:2px 7px;border-radius:3px;font-weight:600;letter-spacing:1px}
+.indicator-card .pill.fired{background:rgba(255,177,61,.15);color:var(--amber);border:1px solid var(--amber-dim)}
+.indicator-card .pill.calm{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.indicator-card .pill.acute{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.indicator-card .stats{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-bottom:6px}
+.indicator-card .stats .label{color:var(--fg-3)}
+.indicator-card .stats > div:last-child{color:var(--fg-1);font-weight:600}
+.indicator-card .desc{font-size:11.5px;color:var(--fg-2);line-height:1.45;margin-top:8px}
+.indicator-card .desc em{color:var(--fg-4);font-style:italic}
+.indicator-card .ai-take{font-size:11px;color:var(--fg-2);line-height:1.5;margin-top:10px;padding:8px 10px;background:rgba(167,139,250,.04);border-left:2px solid var(--violet);border-radius:0 3px 3px 0}
+.indicator-card .ai-take .lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--violet);font-weight:600;text-transform:uppercase;margin-bottom:4px}
+.indicator-card .ai-take strong{color:var(--cyan)}
+
+/* ─── Recent auctions table ─── */
+.auctions-table{overflow-x:auto;margin-bottom:20px}
+.auctions-table table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg-raised);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.auctions-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:10px 8px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border)}
+.auctions-table th.num{text-align:right}
+.auctions-table td{padding:9px 8px;border-bottom:1px solid var(--border);font-family:var(--font-mono);color:var(--fg-1)}
+.auctions-table td.num{text-align:right}
+.auctions-table tr:last-child td{border-bottom:none}
+.auctions-table tr:hover{background:var(--bg-elevated)}
+.auctions-table .stress-0{color:var(--green)}
+.auctions-table .stress-1{color:var(--amber)}
+.auctions-table .stress-2{color:var(--red);font-weight:600}
+
+/* ─── Historical reference (existing 9 anchors) ─── */
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.hist-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-size:11px}
+.hist-card .date{font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--fg-1);margin-bottom:4px}
+.hist-card .regime{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:2px 7px;border-radius:3px;margin-bottom:8px;font-weight:600}
+.hist-card .regime.GFC_PEAK{background:rgba(255,92,122,.15);color:var(--red);border:1px solid var(--red-dim)}
+.hist-card .regime.COVID_CRASH{background:rgba(255,92,122,.12);color:var(--red);border:1px solid var(--red-dim)}
+.hist-card .regime.COVID_BAZOOKA{background:rgba(255,177,61,.12);color:var(--amber);border:1px solid var(--amber-dim)}
+.hist-card .regime.COMPLACENCY{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.hist-card .regime.NORMAL{background:rgba(56,255,168,.1);color:var(--green);border:1px solid var(--green-dim)}
+.hist-card .metrics{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-2);line-height:1.5}
+.hist-card .metrics b{color:var(--fg-1);font-weight:500}
+
+/* ─── Methodology ─── */
+.methodology-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;color:var(--fg-2);font-size:12.5px;line-height:1.7}
+.methodology-card p{margin-bottom:12px}
+.methodology-card p:last-child{margin-bottom:0}
+.methodology-card strong{color:var(--fg-1)}
+.methodology-card .footer-note{margin-top:16px;color:var(--fg-3);font-size:11px;font-family:var(--font-mono)}
+
+/* ─── Loading skeleton ─── */
+.skeleton{background:linear-gradient(90deg,var(--bg-raised) 0%,var(--bg-elevated) 50%,var(--bg-raised) 100%);background-size:200% 100%;animation:skeleton-shimmer 1.4s linear infinite;border-radius:4px}
+@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+footer{border-top:1px solid var(--border);margin-top:50px;padding:20px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:11px;letter-spacing:.5px}
+footer a{color:var(--fg-2);margin:0 6px}
+footer a:hover{color:var(--cyan)}
+</style>
+<script src="/tenor-signals.js" defer></script>
+<script src="/liquidity-credit.js" defer></script>
+<script src="/liquidity-pulse.js" defer></script>
+<script src="/jh-ai-insights.js?t=20260601a" defer></script>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
+  <nav class="nav-links">
+    <a href="/">Desk</a>
+    <a href="/intelligence.html">Intel</a>
+    <a href="/desk-v2.html">Desk v2</a>
+    <a href="/crisis.html">Crisis</a>
+    <a href="/regime.html">Regime</a>
+    <a href="/correlation.html">Correlations</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/auction-crisis.html" class="active">Auctions</a>
+    <a href="/macro-data.html">Macro</a>
+    <a href="/repo.html">Repo</a>
+    <a href="/sentiment.html">Sentiment</a>
+    <a href="/volatility.html">Vol</a>
+    <a href="/reports.html">Reports</a>
+  </nav>
+</div>
+
+<main class="container">
+  <div class="page-hdr">
+    <h1>TREASURY AUCTION CRISIS DETECTOR <span class="ai-tag">AI EDITION</span></h1>
+    <p>Institutional-grade Treasury auction stress detection. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with heuristic stress scores · cosine-similarity historical analog matching · 4 corroborating FRED signals · 30-day composite trajectory · 3 descriptive concern scores · named regime triggers · Claude-powered narrative analysis + per-auction scenario commentary.</p>
+    <div class="meta-row">
+      <span>📊 data refresh: hourly</span>
+      <span>🤖 ai layer: <code>claude-haiku-4-5</code></span>
+      <span>📅 last update: <span id="updated">—</span></span>
+      <span>🧠 ai update: <span id="ai-updated">—</span></span>
+      <span>📜 source: <a href="https://fiscaldata.treasury.gov/datasets/auctions-query/auctions-query" target="_blank">Treasury fiscal data</a> + <a href="https://www.treasurydirect.gov" target="_blank">TreasuryDirect</a> + FRED</span>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner"></div>
+
+  <!-- Hero: Regime banner + AI Executive Summary -->
+  <div class="hero-grid">
+    <div id="regime-banner" class="regime-banner CALM">
+      <div id="score-circle" class="score-circle CALM">
+        <div class="big" id="composite-score">—</div>
+        <div class="sub">SCORE / 100</div>
+      </div>
+      <div id="regime-meta" class="regime-meta CALM">
+        <h2>AUCTION CRISIS REGIME · 14-DAY ROLLING</h2>
+        <div class="signal-text" id="regime-text">LOADING…</div>
+        <div class="desc" id="regime-desc">Composite of 6 historical-pattern indicators weighted by recent auction size.</div>
+      </div>
+      <div class="regime-stats">
+        <div class="stat"><div class="v" id="n-recent">—</div><div class="l">Auctions 14d</div></div>
+        <div class="stat"><div class="v" id="fed-rate">—</div><div class="l">Fed Funds %</div></div>
+      </div>
+    </div>
+
+    <div class="ai-card" id="ai-exec-card">
+      <div class="ai-label">
+        <div class="dot"></div>
+        <div class="lbl">AI Executive Summary</div>
+        <div class="stale" id="ai-stale">—</div>
+      </div>
+      <div class="ai-title" id="ai-exec-title">Loading institutional analysis…</div>
+      <div class="ai-body" id="ai-exec-body">
+        <div class="skeleton" style="height:14px;width:90%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:14px;width:80%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:14px;width:85%"></div>
+      </div>
+      <div class="ai-meta" id="ai-meta">
+        <span>model: claude-haiku-4-5</span>
+        <span>regime: <span id="ai-regime">—</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Decisive Call -->
+  <div id="decisive-call" class="decisive-call CALM">
+    <div class="label">Decisive Call</div>
+    <div class="text" id="decisive-text">
+      <div class="skeleton" style="height:14px;width:70%"></div>
+    </div>
+  </div>
+
+  <!-- What Changed -->
+  <div class="section-hdr">
+    <h3>What Changed</h3>
+    <div class="sub">14-day delta narrative</div>
+    <div class="badge ai">AI Generated</div>
+  </div>
+  <div class="what-changed-card" id="what-changed">
+    <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+    <div class="skeleton" style="height:14px;width:80%"></div>
+  </div>
+
+  <!-- Tenor decomposition -->
+  <div class="section-hdr">
+    <h3>Stress by Tenor</h3>
+    <div class="sub">Where in the curve is stress concentrating? · 14-day rolling</div>
+  </div>
+  <div id="tenor-grid" class="tenor-grid"></div>
+
+  <!-- Cross-signals strip -->
+  <div class="section-hdr">
+    <h3>Cross-Signals</h3>
+    <div class="sub">Corroborating context · FRED-sourced real-time</div>
+  </div>
+  <div id="cross-strip" class="cross-strip"></div>
+
+  <!-- 30-day composite trajectory chart -->
+  <div class="section-hdr">
+    <h3>30-Day Composite Trajectory</h3>
+    <div class="sub">Daily rolling 14-day composite · with regime changeover markers</div>
+  </div>
+  <div class="chart-card">
+    <svg id="composite-chart" viewBox="0 0 1000 260" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend">
+      <div class="item"><div class="sw" style="background:var(--cyan)"></div>Composite score</div>
+      <div class="item"><div class="sw" style="background:var(--green-dim)"></div>CALM (&lt;25)</div>
+      <div class="item"><div class="sw" style="background:var(--amber-dim)"></div>WATCH (25-50)</div>
+      <div class="item"><div class="sw" style="background:rgba(255,177,61,.6)"></div>ELEVATED (50-75)</div>
+      <div class="item"><div class="sw" style="background:var(--red)"></div>ACUTE (≥75)</div>
+      <div class="item"><div class="sw" style="background:var(--violet)"></div>Regime change</div>
+    </div>
+  </div>
+
+  <!-- Historical analog -->
+  <div class="section-hdr">
+    <h3>Historical Analog Match</h3>
+    <div class="sub">Cosine similarity of current 6D crisis vector vs 9 anchor crises</div>
+    <div class="badge ai">AI Discussion</div>
+  </div>
+  <div class="analog-card" id="analog-card">
+    <div class="analog-top-match" id="analog-top">
+      <div class="similarity-circle"><div class="big">—</div><div class="sub">SIMILARITY</div></div>
+      <div class="info">
+        <div class="skeleton" style="height:16px;width:50%;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:12px;width:90%;margin-bottom:6px"></div>
+        <div class="skeleton" style="height:12px;width:75%"></div>
+      </div>
+    </div>
+    <div class="analog-other-matches" id="analog-others"></div>
+    <div class="analog-ai-discussion" id="analog-ai">
+      <div class="lbl">AI Analog Discussion</div>
+      <div class="skeleton" style="height:14px;width:95%;margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- Pre-auction concession call-out (high-conviction signals) -->
+  <div class="section-hdr">
+    <h3>Pre-Auction Concession Signals</h3>
+    <div class="sub">Yield moves vs 5d ago in each auction's tenor · the buy-side's primary positioning tool</div>
+  </div>
+  <div id="concession-callout" class="concession-callout"></div>
+
+  <!-- Forward calendar -->
+  <div class="section-hdr">
+    <h3>Forward Auction Calendar · Next 30 Days</h3>
+    <div class="sub">Per-auction stress forecasts + pre-auction concession from FRED CMT yields</div>
+  </div>
+  <table class="forward-table" id="forward-table">
+    <thead><tr>
+      <th>Date</th>
+      <th>Days</th>
+      <th>Tenor</th>
+      <th>Term</th>
+      <th class="size-cell">Offering ($B)</th>
+      <th>Forecast</th>
+      <th>Confidence</th>
+      <th>5d Concession</th>
+      <th>Regime</th>
+      <th>Driver</th>
+    </tr></thead>
+    <tbody id="forward-tbody"></tbody>
+  </table>
+
+  <!-- Post-issue performance -->
+  <div class="section-hdr">
+    <h3>Post-Issue Performance</h3>
+    <div class="sub">1d / 5d / 30d yield change vs auction high · STRONG=bid held · WEAK=sold off</div>
+  </div>
+  <div id="postissue-section"></div>
+
+  <!-- AI Scenario Commentary -->
+  <div class="section-hdr">
+    <h3>AI Scenario Commentary</h3>
+    <div class="sub">Upcoming auctions · unvalidated scenarios + what to watch</div>
+    <div class="badge ai">AI Generated</div>
+  </div>
+  <div id="ai-forward-grid" class="forward-pred-grid"></div>
+
+  <!-- Tail risk -->
+  <div class="section-hdr">
+    <h3>Auction Concern Scores</h3>
+    <div class="sub">Uncalibrated scores · not probabilities · no validated forecast horizon</div>
+  </div>
+  <div class="tail-grid" id="tail-grid"></div>
+  <div class="tail-ai-card" id="tail-ai">
+    <div class="lbl"><div class="dot"></div>AI Tail Risk Assessment</div>
+    <div id="tail-ai-text">
+      <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+      <div class="skeleton" style="height:14px;width:80%"></div>
+    </div>
+  </div>
+
+  <!-- Triggers to watch -->
+  <div class="section-hdr">
+    <h3>Triggers to Watch</h3>
+    <div class="sub">Named thresholds with current distance + recommended action</div>
+  </div>
+  <div id="trigger-grid" class="trigger-grid"></div>
+  <div class="triggers-ai-card" id="triggers-ai">
+    <div class="lbl">AI Actionable Triggers Narrative</div>
+    <div id="triggers-ai-text">
+      <div class="skeleton" style="height:14px;width:95%;margin-bottom:6px"></div>
+      <div class="skeleton" style="height:14px;width:80%"></div>
+    </div>
+  </div>
+
+  <!-- Six indicators (existing + AI interpretation) -->
+  <div class="section-hdr">
+    <h3>Six Crisis Indicators</h3>
+    <div class="sub">14-day fire counts · AI interpretation linked where firing</div>
+  </div>
+  <div id="indicator-grid" class="indicator-grid"></div>
+
+  <!-- Recent auctions table -->
+  <div class="section-hdr">
+    <h3>Recent Auctions · Last 10</h3>
+    <div class="sub">Most recent settled auctions with per-auction composite</div>
+  </div>
+  <div class="auctions-table">
+    <table id="auctions-tbl"></table>
+  </div>
+
+  <!-- Historical reference -->
+  <div class="section-hdr">
+    <h3>Historical Reference</h3>
+    <div class="sub">9 historical comparison auctions; not a calibration sample</div>
+  </div>
+  <div id="hist-grid" class="hist-grid"></div>
+
+  <!-- Methodology -->
+  <div class="section-hdr">
+    <h3>Methodology</h3>
+    <div class="sub">How the v2 pipeline produces composite + 7 analytical layers + AI narrative</div>
+  </div>
+  <div class="methodology-card">
+    <p><strong>Data sources.</strong> Live: <code>api.fiscaldata.treasury.gov</code> (auction results), <code>treasurydirect.gov</code> (upcoming calendar), FRED (SOFR, IORB, DTWEXBGS, T10Y2Y, T5YIFR, DFF). Refresh: hourly via EventBridge.</p>
+    <p><strong>1. Zero-rate bill floor.</strong> Diagnostic only when policy rate &gt; 0. Bills auctioned at ≤ 0.001% with Fed funds &gt; 1% = panic money parking. Saw this Sep 17-23, 2008 and Mar 19-26, 2020.</p>
+    <p><strong>2. Bid-to-cover extremes.</strong> Z-scored vs 2024 baselines. High BTC on bills (≥+3σ) = flight-to-safety; low BTC on coupons (≤-2.5σ) = weak bid-to-cover observation.</p>
+    <p><strong>3. Allotted-at-high proration.</strong> AAH is the percentage awarded to bids at the high rate/yield. It measures marginal-bid proration, not dealer absorption or a when-issued yield tail. The legacy score remains a heuristic.</p>
+    <p><strong>4. Primary dealer absorption.</strong> PD share &gt; 35% on coupons = dealers stuck (Sep 18, 2008 hit 69% — extreme); &gt; 50% = GFC-tier.</p>
+    <p><strong>5. Indirect bidder participation.</strong> These bids arrive through intermediaries and include both domestic and foreign investors. Low participation does not identify a foreign-capital exodus.</p>
+    <p><strong>6. Bill issuance explosion.</strong> 4-week vs 1-year average. &gt; +30% = fiscal panic or liquidity injection. Overlay adds up to 15 pts to composite.</p>
+    <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
+    <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Uncalibrated per-auction score = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
+    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides historical context, not a validated forward forecast.</p>
+    <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
+    <p><strong>AI commentary layer.</strong> Separate Lambda (justhodl-auction-crisis-ai) reads the full v2 data snapshot and calls <code>claude-haiku-4-5-20251001</code> with a structured prompt. Produces narrative + per-upcoming-auction predictions + decisive call. 10-min cron offset from main data Lambda.</p>
+    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Issuance-explosion adds up to 15 points overlay.</p>
+  </div>
+
+  <footer>
+    <a href="/bonds.html">Bonds</a> ·
+    <a href="/crisis.html">Crisis</a> ·
+    <a href="/correlation.html">Correlations</a> ·
+    <a href="/repo.html">Repo</a> ·
+    <a href="https://fiscaldata.treasury.gov/datasets/auctions-query/auctions-query">Treasury data</a> ·
+    <a href="/">JustHodl.AI</a>
+    <div style="margin-top:6px">data refresh hourly · last fetch: <span id="footer-ts">—</span></div>
+  </footer>
+
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="tenor-signals-panel"></div>
+  <div id="liquidity-credit-panel" style="margin-top:18px"></div>
+  <div id="liquidity-pulse-panel" style="margin-top:18px"></div>
+</div>
+
+</main>
+
+<script src="/auction-crisis.js?t=20260917-integrity4" defer></script>
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+<script src="/jh-pd-context.js?v=1" data-packet="/data/auction-crisis.json" defer></script>
+</body>
+</html>
+@@END 2@@
