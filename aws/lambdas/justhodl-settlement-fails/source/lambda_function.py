@@ -17,12 +17,14 @@ OUTPUT: data/settlement-fails.json     SCHEDULE: daily 21:30 UTC (PD posts weekl
 Real official data only — not investment advice.
 """
 import json
+import math
 import urllib.request
 from datetime import datetime, timezone
 
 import boto3
 
-from treasury import normalized_treasury, strict_json_dumps
+from treasury import (GROSS_NOTE, _regime, annotate_treasury, normalized_treasury,
+                      scope_quality, strict_json_dumps)
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -50,18 +52,30 @@ def _get(url, t=45):
         return None
 
 
-def fetch(key):
+def fetch(key, diagnostic=None):
     """Return [[asofdate, $bn]] ascending, dropping masked (*) values."""
     j = _get(NY + "/get/%s.json" % key)
     out = []
+    if diagnostic is not None:
+        diagnostic.update(status="unavailable" if j is None else "incomplete", observation_date=None)
     if j:
         for t in j.get("pd", {}).get("timeseries", []):
+            day = t.get("asofdate")
+            if not isinstance(day, str):
+                continue
             v = t.get("value")
+            status = "incomplete"
             if v not in ("*", "", None):
                 try:
-                    out.append([t["asofdate"], round(float(v) / 1000.0, 2)])  # $m -> $bn
-                except Exception:
-                    pass
+                    value = float(v) / 1000.0  # $m -> $bn
+                    if not math.isfinite(value) or value < 0:
+                        raise ValueError("invalid fails amount")
+                    out.append([day, round(value, 2)])
+                    status = "fresh"
+                except (TypeError, ValueError, OverflowError):
+                    status = "invalid"
+            if diagnostic is not None and day >= (diagnostic["observation_date"] or ""):
+                diagnostic.update(observation_date=day, status=status)
     out.sort(key=lambda x: x[0])
     return out
 
@@ -73,11 +87,12 @@ def combine(a, b):
 
 
 def sum_series(list_of_series):
-    agg = {}
-    for s in list_of_series:
-        for d, v in s:
-            agg[d] = round(agg.get(d, 0) + v, 2)
-    return sorted(([d, v] for d, v in agg.items()), key=lambda x: x[0])
+    """All-asset totals require every class on the same date, never partial sums."""
+    if not list_of_series:
+        return []
+    series = [dict(points) for points in list_of_series]
+    common = set.intersection(*(set(points) for points in series))
+    return [[day, round(sum(points[day] for points in series), 2)] for day in sorted(common)]
 
 
 def stats(pts):
@@ -151,21 +166,21 @@ def _emit_signal(sid, stype, direction, ticker, benchmark, value,
 
 def lambda_handler(event=None, context=None):
     validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
-    now = datetime.now(timezone.utc).isoformat()
-
     classes = []
     ftd_all, ftr_all = [], []
+    feed_status = {}
     for key, dk, rk, label in CLASSES:
-        ftd = fetch(dk); ftr = fetch(rk)
+        ftd_status, ftr_status = {}, {}
+        ftd = fetch(dk, ftd_status); ftr = fetch(rk, ftr_status)
+        feed_status["classes.%s.ftd" % key] = ftd_status
+        feed_status["classes.%s.ftr" % key] = ftr_status
+        ftd_all.append(ftd)
+        ftr_all.append(ftr)
         if not ftd and not ftr:
             continue
         comb = combine(ftd, ftr)
-        if ftd:
-            ftd_all.append(ftd)
-        if ftr:
-            ftr_all.append(ftr)
         deep, seen = [], set()
-        for d, v in comb or ftd:
+        for d, v in comb:
             mk = d[:7]
             if mk not in seen:
                 deep.append([d, v])
@@ -176,13 +191,21 @@ def lambda_handler(event=None, context=None):
             "ftd": ftd[-720:], "ftr": ftr[-720:], "combined": comb[-720:],
             "ftd_latest": (ftd[-1][1] if ftd else None),
             "ftr_latest": (ftr[-1][1] if ftr else None),
-            "stats": stats(comb if comb else ftd),
+            "stats": stats(comb),
         })
+
+    now = datetime.now(timezone.utc).isoformat()
+    for c in classes:
+        c["quality"] = scope_quality(classes, (c["key"],), now, feed_status=feed_status)
+        c["scope"] = c["key"]
+        c["measurement_note"] = GROSS_NOTE
+    # Additive normalized contract: ex-TIPS + TIPS on common dates only.
+    treasury = annotate_treasury(normalized_treasury(classes), classes, now, feed_status=feed_status)
 
     # ops 3307: class spike -> graded signals (corporate & UST theses only)
     try:
         for c in classes:
-            if validation_only:
+            if validation_only or c["quality"]["status"] != "fresh" or treasury["quality"]["status"] != "fresh":
                 continue
             st = c.get("stats") or {}
             if not st.get("spike"):
@@ -204,51 +227,51 @@ def lambda_handler(event=None, context=None):
     total_ftd = sum_series(ftd_all)
     total_ftr = sum_series(ftr_all)
     total_comb = combine(total_ftd, total_ftr)
-    # Additive normalized contract for risk consumers. This is strictly
-    # ex-TIPS + TIPS on common dates; all-asset totals above never enter it.
-    treasury = normalized_treasury(classes)
-
     head = next((c for c in classes if c["key"] == "ust_ex_tips"), None)
     hs = head["stats"] if head else {}
+    headline_quality = scope_quality(classes, ("ust_ex_tips",), now, feed_status=feed_status)
+    totals_quality = scope_quality(classes, tuple(row[0] for row in CLASSES), now, feed_status=feed_status)
+    headline_as_of = hs.get("as_of")
+    headline_ftd = dict(head["ftd"]).get(headline_as_of) if head else None
+    headline_ftr = dict(head["ftr"]).get(headline_as_of) if head else None
 
     # regime from the Treasury-fails percentile / z (the canonical plumbing tell)
-    pct = hs.get("pctile", 0); z = hs.get("z", 0)
-    if pct >= 97 or z >= 2.5:
-        regime, score = "CRISIS", min(100, 80 + (pct - 97) * 6)
-    elif pct >= 90 or z >= 1.5:
-        regime, score = "STRESS", 60 + (pct - 90) * 2
-    elif pct >= 70 or z >= 0.7:
-        regime, score = "ELEVATED", 40 + (pct - 70)
-    else:
-        regime, score = "CALM", round(pct * 0.5)
+    pct = hs.get("pctile"); z = hs.get("z")
+    usable = headline_quality["status"] == "fresh" and treasury["quality"]["status"] == "fresh"
+    regime, score = _regime(hs) if usable else ("UNKNOWN", None)
 
     drivers = []
-    if head:
+    if usable:
         drivers.append("Treasury (ex-TIPS) settlement fails $%.0fbn combined (deliver $%.0fbn + receive $%.0fbn), %.0f%%ile / z %+.1f \u2014 %s"
-                       % (head["stats"].get("latest", 0), head["ftd_latest"] or 0, head["ftr_latest"] or 0,
+                       % (hs["latest"], headline_ftd, headline_ftr,
                           pct, z, regime.lower()))
-    for c in classes:
-        st = c["stats"]
-        if c["key"] != "ust_ex_tips" and st.get("spike"):
-            drivers.append("SPIKE: %s fails $%.0fbn (%.0f%%ile, z %+.1f)" % (c["label"], st.get("latest", 0), st.get("pctile", 0), st.get("z", 0)))
-    if total_comb:
-        drivers.append("All-asset fails $%.0fbn combined across 6 classes" % total_comb[-1][1])
-    if regime == "CALM":
-        drivers.append("Plumbing settling normally \u2014 no collateral-sourcing stress in the fails data")
+    else:
+        drivers.append("Required Treasury data %s; no current ex-TIPS stress classification." % treasury["quality"]["status"])
+    drivers.append(GROSS_NOTE)
 
     out = {
-        "engine": "settlement-fails", "version": "1.0.0", "generated_at": now,
-        "as_of": (head["stats"]["as_of"] if head else (total_comb[-1][0] if total_comb else None)),
-        "signal": {"regime": regime, "score": round(score), "drivers": drivers},
+        "engine": "settlement-fails", "version": "1.1.0", "generated_at": now,
+        "as_of": headline_as_of,
+        "quality": treasury["quality"],
+        "measurement_note": GROSS_NOTE,
+        "signal": {"regime": regime, "score": score, "score_0_100": score, "drivers": drivers,
+                   "scope": "ust_ex_tips", "quality": treasury["quality"]},
         "headline": {"label": "U.S. Treasury (ex-TIPS)",
-                     "ftd_bn": (head["ftd_latest"] if head else None),
-                     "ftr_bn": (head["ftr_latest"] if head else None),
+                     "scope": "ust_ex_tips", "as_of": headline_as_of, "quality": headline_quality,
+                     "measurement_note": GROSS_NOTE,
+                     "field_units": {"ftd_bn": "usd_bn", "ftr_bn": "usd_bn", "combined_bn": "usd_bn",
+                                     "max_bn": "usd_bn", "pctile": "pct", "z": "z_score"},
+                     "ftd_bn": headline_ftd,
+                     "ftr_bn": headline_ftr,
                      "combined_bn": (hs.get("latest") if head else None),
                      "z": z, "pctile": pct, "max_bn": hs.get("max"),
                      "combined": (head["combined"] if head else [])},
         "treasury": treasury,
         "classes": classes,
-        "totals": {"ftd": total_ftd[-720:], "ftr": total_ftr[-720:], "combined": total_comb[-720:]},
+        "totals": {"ftd": total_ftd[-720:], "ftr": total_ftr[-720:], "combined": total_comb[-720:],
+                   "scope": "all_asset", "label": "All-asset two-sided gross fails", "unit": "usd_bn",
+                   "as_of": total_comb[-1][0] if total_comb else None, "quality": totals_quality,
+                   "measurement_note": GROSS_NOTE},
         "source": "NY Fed Primary Dealer Statistics (FR 2004) \u2014 dealer financing settlement fails, weekly, $bn par",
     }
     if not validation_only:
@@ -257,6 +280,6 @@ def lambda_handler(event=None, context=None):
                       ContentType="application/json", CacheControl="public, max-age=3600")
     return {"statusCode": 200, "body": strict_json_dumps({
         "validation_only": validation_only,
-        "regime": regime, "score": round(score), "as_of": out["as_of"],
+        "regime": regime, "score": score, "as_of": out["as_of"], "quality": out["quality"],
         "ust_combined_bn": hs.get("latest"), "ust_pctile": pct,
         "classes": len(classes), "total_combined_bn": (total_comb[-1][1] if total_comb else None)})}

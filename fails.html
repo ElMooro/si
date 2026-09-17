@@ -56,17 +56,19 @@ tr:hover td{background:#1b1814}
     <div class="stats">
       <div class="stat"><div class="l">Fails to deliver</div><div class="v" id="ftd">—</div></div>
       <div class="stat"><div class="l">Fails to receive</div><div class="v" id="ftr">—</div></div>
-      <div class="stat"><div class="l">Treasury combined</div><div class="v" id="comb">—</div></div>
+      <div class="stat"><div class="l">Treasury incl. TIPS · gross</div><div class="v" id="comb">—</div></div>
       <div class="stat"><div class="l">Percentile / z</div><div class="v" id="pz">—</div></div>
     </div>
+    <p class="sub" id="scope-context"></p>
+    <p class="hint">FTD + FTR is two-sided gross reported fails, not unique par or defaults. The same failed settlement can appear on both sides and on successive days.</p>
     <p class="hint">Double-click a chart or a class row for the full weekly history (NY Fed FR 2004, $bn par).</p>
     <div class="grid">
       <div class="panel">
-        <h3>Treasury FTD vs FTR · full sample</h3>
+        <h3>Treasury incl. TIPS · FTD vs FTR</h3>
         <svg class="chart" id="svg-main" viewBox="0 0 640 160" role="img"></svg>
       </div>
       <div class="panel">
-        <h3>All-asset combined totals</h3>
+        <h3>All-asset two-sided gross fails</h3>
         <svg class="chart" id="svg-tot" viewBox="0 0 640 160" role="img"></svg>
       </div>
     </div>
@@ -121,28 +123,37 @@ tr:hover td{background:#1b1814}
     $("modal").classList.add("on");
   }
   $("x").onclick=$("modal").onclick=function(e){ if(e.target.id==="modal"||e.target.id==="x") $("modal").classList.remove("on"); };
-  fetch("/data/settlement-fails.json",{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){
-    var t=d.treasury||{}, h=d.headline||{}, s=d.signal||{};
-    $("score").textContent=s.score==null?"—":s.score;
-    $("regime").textContent=s.regime||"—";
-    $("headline").textContent="Treasury fails to deliver "+bn(t.ftd_bn)+" · fails to receive "+bn(t.ftr_bn)+" · combined "+bn(t.gross_bn)+".";
-    $("drivers").textContent=(s.drivers||[]).join(" · ");
+  fetch("/data/settlement-fails.json",{cache:"no-store"}).then(function(r){if(!r.ok) throw new Error("HTTP "+r.status); return r.json()}).then(function(d){
+    var t=d.treasury||{}, h=(t.stats&&t.stats.gross)||{}, ex=d.headline||{}, totals=d.totals||{};
+    var q=t.quality||d.quality||{}, status=q.status||"unavailable";
+    var published=Date.parse(q.publication_date), nextPrint=Date.parse(q.next_expected_publication_date);
+    if(status==="fresh"){
+      if(!isFinite(published)||!isFinite(nextPrint)) status="unavailable";
+      else if(Date.now()-published>(q.max_age_hours||336)*3600000||Date.now()>=nextPrint+8*86400000) status="stale";
+    }
+    var usable=status==="fresh";
+    $("score").textContent=!usable||t.score==null?"—":t.score;
+    $("regime").textContent=usable?(t.regime||"UNKNOWN"):status.toUpperCase();
+    $("headline").textContent="U.S. Treasury (including TIPS): fails to deliver "+bn(t.ftd_bn)+" · fails to receive "+bn(t.ftr_bn)+" · two-sided gross "+bn(t.gross_bn)+".";
+    $("drivers").textContent=usable?(t.narrative||"U.S. Treasury including-TIPS statistics on common observation dates."):("Treasury including-TIPS data "+status+"; dated observations are shown without a current stress classification.");
     $("ftd").textContent=bn(t.ftd_bn); $("ftr").textContent=bn(t.ftr_bn);
     $("comb").textContent=bn(t.gross_bn);
     $("pz").textContent=(h.pctile==null?"—":Math.round(h.pctile)+"p")+" / z "+(h.z==null?"—":h.z.toFixed(1));
-    $("fresh").textContent=(d.as_of||d.generated_at||"")+" · NY Fed FR 2004";
-    var ftd=t.ftd||[], ftr=t.ftr||[], tot=(d.totals&&d.totals.ftd)||[];
+    $("fresh").textContent="Observed "+(t.as_of||"unavailable")+" · published "+(q.publication_date||d.generated_at||"unavailable")+" · "+status+" · NY Fed FR 2004 weekly";
+    var allLast=last(totals.combined||[]);
+    $("scope-context").textContent="Separate scopes: Treasury excluding TIPS "+bn(ex.combined_bn)+" ("+(ex.as_of||d.as_of||"date unavailable")+"); all-asset gross "+(allLast?bn(allLast[1]):"—")+" ("+(totals.as_of||(allLast&&allLast[0])||"date unavailable")+").";
+    var ftd=t.ftd||[], ftr=t.ftr||[], tot=totals.combined||[];
     draw($("svg-main"),[{pairs:ftd},{pairs:ftr}],["#e07a5f","#7d9b76"]);
     draw($("svg-tot"),[{pairs:tot}],["#c4a574"]);
-    $("svg-main").ondblclick=function(){ openHist("Treasury FTD + FTR", ftd.concat([]), "Red = deliver, green = receive — opening deliver history"); openHist("Treasury fails to deliver", ftd, "FTD $bn par"); };
-    $("svg-tot").ondblclick=function(){ openHist("All-asset fails (deliver)", tot, "Totals across classes"); };
+    $("svg-main").ondblclick=function(){ openHist("Treasury including TIPS — fails to deliver", ftd, "FTD $bn par; main chart red = deliver, green = receive"); };
+    $("svg-tot").ondblclick=function(){ openHist("All-asset two-sided gross fails", tot, "FTD + FTR across all reported classes on common dates"); };
     var tb=$("tbody"); tb.innerHTML="";
     (d.classes||[]).forEach(function(c){
-      var series=c.deep||c.ftd||c.history||[];
+      var series=c.combined||[];
       var L=last(series);
       var tr=document.createElement("tr");
       tr.innerHTML="<td>"+(c.label||c.key)+"</td><td>"+(L?bn(L[1]):"—")+"</td><td>"+series.length+"</td>";
-      tr.ondblclick=function(){ openHist(c.label||c.key, series, "Class history"); };
+      tr.ondblclick=function(){ openHist(c.label||c.key, series, "Two-sided gross FTD + FTR, weekly $bn par"); };
       tb.appendChild(tr);
     });
   }).catch(function(e){ $("headline").textContent="Fails feed unavailable: "+e; });

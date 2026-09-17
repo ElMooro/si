@@ -7,7 +7,120 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
+
+
+GROSS_NOTE = (
+    "FTD + FTR is two-sided gross reported fails, not unique par or defaults; "
+    "the same failed settlement can be reported on both sides and on successive days."
+)
+PUBLICATION_MAX_AGE_HOURS = 336
+
+
+def weekly_quality(observation_date, publication_date, *, now=None, missing=(),
+                   unavailable=False, invalid=False):
+    """FR2004 observations lag their Thursday release by eight days.
+
+    The next weekly print is normally due 15 days after a Wednesday as-of.
+    Allow that Thursday plus a full week of grace (through the UTC date),
+    rather than expiring an observation solely because it is 14 days old.
+    Publication age retains the ops 5610 336-hour SLA independently.
+    """
+    now = now or datetime.now(timezone.utc)
+    now = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
+    result = {
+        "observation_date": observation_date,
+        "publication_date": publication_date,
+        "frequency": "weekly",
+        "freshness_basis": "weekly_observation",
+        "status": "fresh",
+        "missing": sorted(set(missing)),
+        "max_age_hours": PUBLICATION_MAX_AGE_HOURS,
+        "next_expected_publication_date": None,
+    }
+    try:
+        observed = date.fromisoformat(observation_date) if observation_date else None
+        published = datetime.fromisoformat(publication_date.replace("Z", "+00:00")) if publication_date else None
+        if published and published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        invalid = invalid or bool(observed and observed > now.date()) or bool(published and published > now)
+    except (TypeError, ValueError, AttributeError):
+        observed, published, invalid = None, None, True
+    overdue = False
+    if observed:
+        next_print = observed + timedelta(days=(3 - observed.weekday()) % 7 + 14)
+        result["next_expected_publication_date"] = next_print.isoformat()
+        overdue = now.date() > next_print + timedelta(days=7)
+    if unavailable:
+        result["status"] = "unavailable"
+    elif invalid:
+        result["status"] = "invalid"
+    elif result["missing"] or observed is None or published is None:
+        result["status"] = "incomplete"
+    elif overdue or (now - published).total_seconds() > PUBLICATION_MAX_AGE_HOURS * 3600:
+        result["status"] = "stale"
+    return result
+
+
+def scope_quality(classes, keys, publication_date, *, now=None, feed_status=None):
+    """Require each scoped side at the same latest official observation.
+
+    Fetch diagnostics retain masked latest prints and failed endpoints so an
+    older common-date value cannot silently become a fresh complete snapshot.
+    """
+    rows = {row.get("key"): row for row in classes if isinstance(row, dict)}
+    feed_status = feed_status or {}
+    legs, reported_dates = {}, []
+    unavailable, invalid = False, False
+    for key in keys:
+        for side in ("ftd", "ftr"):
+            field = "classes.%s.%s" % (key, side)
+            legs[field] = _clean((rows.get(key) or {}).get(side))
+            diagnostic = feed_status.get(field) or {}
+            unavailable = unavailable or diagnostic.get("status") == "unavailable"
+            invalid = invalid or diagnostic.get("status") == "invalid"
+            if diagnostic.get("observation_date"):
+                reported_dates.append(diagnostic["observation_date"])
+    latest_dates = [max(values) for values in legs.values() if values]
+    target_date = max(latest_dates + reported_dates, default=None)
+    missing = [field for field, values in legs.items() if target_date is None or target_date not in values]
+    common = set.intersection(*(set(values) for values in legs.values())) if legs else set()
+    quality = weekly_quality(
+        max(common, default=None), publication_date, now=now, missing=missing,
+        unavailable=unavailable or (not latest_dates and not invalid), invalid=invalid,
+    )
+    return quality
+
+
+def annotate_treasury(treasury, classes, publication_date, *, now=None, feed_status=None):
+    """Add quality and scope metadata without changing legacy Treasury fields."""
+    treasury["quality"] = scope_quality(
+        classes, ("ust_ex_tips", "tips"), publication_date, now=now, feed_status=feed_status,
+    )
+    if treasury["quality"]["status"] == "fresh" and not treasury.get("complete"):
+        treasury["quality"]["status"] = "invalid"
+        treasury["quality"]["missing"] = ["treasury.gross_bn"]
+    treasury["scope_id"] = "treasury_incl_tips"
+    treasury["label"] = "U.S. Treasury (including TIPS)"
+    treasury["measurement_note"] = GROSS_NOTE
+    treasury["field_units"] = {
+        "ftd_bn": "usd_bn", "ftr_bn": "usd_bn", "gross_bn": "usd_bn",
+        "stats.gross.pctile": "pct", "stats.gross.z": "z_score", "score": "score_0_100",
+    }
+    if treasury["quality"]["status"] != "fresh":
+        treasury["regime"], treasury["score"] = "UNKNOWN", None
+        treasury["narrative"] = "U.S. Treasury (including TIPS) data %s; no current stress classification." % treasury["quality"]["status"]
+    else:
+        stats = treasury["stats"]["gross"]
+        treasury["narrative"] = (
+            "U.S. Treasury (including TIPS) gross fails $%.1fbn "
+            "(deliver $%.1fbn + receive $%.1fbn), %.1f%%ile / z %+.2f — %s."
+            % (treasury["gross_bn"], treasury["ftd_bn"], treasury["ftr_bn"],
+               stats["pctile"], stats["z"], treasury["regime"].lower())
+        )
+    treasury["score_0_100"] = treasury["score"]
+    return treasury
 
 
 def _number(value: Any) -> float | None:
