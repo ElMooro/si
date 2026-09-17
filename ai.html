@@ -143,6 +143,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       <h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">IS IT LEARNING? <span class="help" data-h="Understanding = how well it separates your note categories (1 − validation loss ÷ coin-flip loss). Track record = its dated market calls graded against real prices at 5/21/63 days. Lessons = what it wrote down about its own graded mistakes and carries into the next read.">?</span></h3>
       <div class="mini" id="pl-learning"></div>
       <div id="pl-trend" style="margin-top:10px;font-size:12.5px"></div>
+      <div id="pl-exam" style="margin-top:12px"></div>
     </div>
   </div>
   <div class="grid2" style="margin-top:14px">
@@ -787,6 +788,15 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (sb.latest_validation_loss != null) tr += "Latest understanding test: loss " + fmt(sb.latest_validation_loss, 3) + " vs " + fmt(sb.coin_flip_loss, 3) + " for guessing — " + (u >= 0.6 ? "it has clearly learned the distinction." : u >= 0.3 ? "it is learning; more labelled notes will sharpen it." : "barely better than guessing yet.") + " ";
     if (sb.categories_excluded && sb.categories_excluded.length) tr += "It could not learn " + sb.categories_excluded.join(", ") + " yet — fewer than 20 notes each; label more and rerun.";
     $("pl-trend").textContent = tr;
+    var ex = (d.market_exam || {}).holdout, ext = (d.market_exam || {}).train;
+    function examLine(label, e) {
+      if (!e || !e.model_scores || !e.model_scores.n) return "<div><b>—</b><span>" + esc(label) + ": not sat yet</span></div>";
+      var m = e.model_scores, bp = (e.baselines || {}).prior || {}, bm = (e.baselines || {}).momentum || {};
+      var best = Math.max(bp.score || 0, bm.score || 0);
+      var cls = m.score > best + 0.02 ? "ok" : m.score < best - 0.02 ? "bad" : "warn";
+      return "<div><b class=\"" + cls + "\">" + fmt(100 * m.score, 0) + "</b><span>" + esc(label) + " score / 100 on " + fmt(m.n, 0) + " drills (naive prior " + fmt(100 * (bp.score || 0), 0) + ", momentum " + fmt(100 * (bm.score || 0), 0) + ") · direction " + fmt(100 * m.direction_acc, 0) + "% · regime " + fmt(100 * m.regime_acc, 0) + "% · crisis " + fmt(100 * m.crisis_acc, 0) + "%" + (m.missed_crises ? " · missed " + m.missed_crises + " crisis" + (m.missed_crises > 1 ? "es" : "") : "") + (e.n_unanswered ? " · " + e.n_unanswered + " unanswered" : "") + " · " + (e.at ? ago(e.at) : "") + "</span></div>";
+    }
+    $("pl-exam").innerHTML = '<div style="font-size:12.5px;margin-bottom:6px">Market exam — anonymized crisis weeks it has never seen (20 bars, no dates, no tickers), graded exactly like the Friday wall: 0.5 direction + 0.3 regime + 0.2 crisis. Beating both naive baselines is the bar.</div><div class="mini">' + examLine("Held-out crisis weeks", ex) + examLine("Practice weeks (2022 hikes, gilt/LDI, tariff)", ext) + "</div>";
     var total = fs.unique_feeds != null ? fs.unique_feeds : (fs.total != null ? fs.total : null);
     $("pl-inputs").innerHTML = (total != null ? '<div class="mini"><div><b>' + fmt(total, 0) + '</b><span>engine feeds</span></div><div><b class="ok">' + fmt(fs.fresh || 0, 0) + '</b><span>fresh now</span></div><div><b class="warn">' + fmt(fs.stale || 0, 0) + '</b><span>stale</span></div><div><b class="bad">' + fmt((fs.missing || 0) + (fs.error || 0), 0) + "</b><span>missing</span></div></div>" : '<div class="dim">The feed census fills once the engine v2 read model is live.</div>') + '<div class="note">It reads every registered engine output — regime, risk gate, capital authority, Katlin, Bottom, Fortress, bonds, crisis, cycle, metals, crypto and the rest — plus your Brain notes. Stale or missing feeds are shown, never guessed.</div>';
     var doing = [];

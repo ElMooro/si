@@ -1,0 +1,56 @@
+name: Factory market exam
+
+# The owned model sits the anonymized crisis-week drills (scripts/factory_market_exam.py); graded like the Friday wall
+# against naive baselines. Results stay private on S3; the engine projects the aggregate onto data/ai.json.market_exam.
+
+on:
+  workflow_dispatch:
+    inputs:
+      split:
+        description: 'holdout (crisis weeks never trained on) or train (2022 hikes, gilt/LDI, tariff)'
+        required: false
+        default: 'holdout'
+      max:
+        description: 'cap on drills (a fixed, unbiased subset when capped)'
+        required: false
+        default: '120'
+  schedule:
+    - cron: '20 13 * * 0'     # Sundays 13:20 UTC: holdout
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-market-exam
+  cancel-in-progress: false
+
+jobs:
+  exam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Sit the exam
+        env:
+          SPLIT: ${{ github.event.inputs.split || 'holdout' }}
+          MAX: ${{ github.event.inputs.max || '120' }}
+        run: |
+          set -euo pipefail
+          pip install --quiet boto3
+          python3 scripts/factory_market_exam.py --split "$SPLIT" --max "$MAX" --wait-min 25 | tee "$RUNNER_TEMP/exam.log"
+      - name: Refresh the page projection (engine inventory tick)
+        if: always()
+        run: |
+          aws lambda invoke --function-name justhodl-ai --invocation-type Event --payload '{"mode":"inventory"}' --cli-binary-format raw-in-base64-out /dev/null && echo "inventory tick queued (data/ai.json.market_exam updates within a minute)"
+      - name: Summary
+        if: always()
+        run: |
+          { echo "### Market exam"; echo '```'; tail -5 "$RUNNER_TEMP/exam.log" 2>/dev/null || echo "(no log)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

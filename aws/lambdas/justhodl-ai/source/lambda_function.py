@@ -306,6 +306,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "learning": collect_learning(client("sagemaker")),
         "scoreboard": _safe(learning_scoreboard),
         "market_read": _safe(public_market_read),
+        "market_exam": _safe(public_market_exam),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
         "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
@@ -1262,6 +1263,17 @@ def learning_scoreboard() -> Dict[str, Any]:
             "read_path": "owned" if rr.get("voice") == "owned" else ("deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None))),
             "owned_voice": {k: ov.get(k) for k in ("state", "origin", "submitted_at", "settled_at", "latency_s", "error") if k in ov} or None,
             "calls_this_read": len(rr.get("calls") or []), "as_of": now_iso()}
+
+
+def public_market_exam() -> Optional[dict]:
+    """Aggregate of the latest market exam per split (scripts/factory_market_exam.py): scores vs baselines only, no drill content."""
+    out = {}
+    for split in ("holdout", "train"):
+        doc = get_json(PRIVATE_BUCKET, "factory/exams/market/latest-%s.json" % split)
+        if not isinstance(doc, dict):
+            continue
+        out[split] = {k: doc.get(k) for k in ("run_id", "at", "model", "revision", "adapter_generation", "n_drills", "n_answered", "n_unanswered", "model_scores", "baselines", "crisis_base_rate", "weights")}
+    return out or None
 
 
 def public_market_read() -> Optional[dict]:
