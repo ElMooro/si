@@ -1,0 +1,433 @@
+@@PART 3/3@@
+                    for i in range(1, len(vals)) if vals[i - 1]]
+            tail = rets[-90:]
+            mu = sum(tail) / max(len(tail), 1)
+            sd = math.sqrt(sum((x - mu) ** 2 for x in tail)
+                           / max(len(tail) - 1, 1))
+            z = (abs((dod - mu) / sd)
+                 if (sd and dod is not None) else None)
+            chg_str = ("%+.2f%% (%s)" % (dod, lab)
+                       if dod is not None else None)
+        pos = ((last - lo) / (hi - lo) * 100) if hi > lo else 50.0
+        move_state = ("RED" if z is not None and z >= 3 else
+                      "AMBER" if z is not None and z >= 2 else "CALM")
+        range_state = ("EXTREME" if pos <= 5 or pos >= 95 else
+                       "STRETCHED" if pos <= 12 or pos >= 88 else
+                       "NORMAL")
+        try:
+            age = (datetime.now(timezone.utc)
+                   - datetime.fromisoformat(
+                       se[-1]["date"]).replace(
+                       tzinfo=timezone.utc)).days
+        except Exception:
+            age = None
+        tb = trend_block(vals, lab) or {}
+        pol = POLARITY.get(sym, 0)
+        liq_dir = None
+        if pol and tb.get("reversal") in ("REVERSAL_UP",
+                                          "REVERSAL_DOWN"):
+            up = tb["reversal"] == "REVERSAL_UP"
+            liq_dir = ("EASING" if (up and pol > 0)
+                       or (not up and pol < 0) else "TIGHTENING")
+        row = {"symbol": sym, "name": name, "resolved": True,
+                "last": round(last, 4),
+                "dod_pct": round(dod, 2) if dod is not None else None,
+                "chg_str": chg_str,
+                "source_lists": SRC_OF.get(sym),
+                "polarity": pol or None,
+                "liquidity_reversal_dir": liq_dir,
+                **tb,
+                "basis": "diff-z" if diff_basis else "pct-z",
+                "move_z": round(z, 2) if z is not None else None,
+                "move_state": move_state,
+                "range_pos_pct": round(pos, 1),
+                "range_state": range_state,
+                "n_obs": len(se), "data_age_days": age}
+        cad_days = {"DoD": 4, "WoW": 10, "MoM": 45,
+                    "QoQ": 120}.get(lab, 45)
+        if age is not None and age > max(45, 3 * cad_days):
+            row["stale"] = True
+            row["move_state"] = "STALE"
+            row["reversal_state"] = None
+            row["trend_state"] = None
+        row.setdefault("reversal_state", row.get("reversal"))
+        return row
+    if se:  # 1..14 obs: honest level row (self-building routes)
+        o = se[-1]
+        age3 = None
+        try:
+            age3 = (datetime.now(timezone.utc).date()
+                    - datetime.fromisoformat(
+                        o["date"]).date()).days
+        except Exception:
+            pass
+        return {"symbol": sym, "name": name, "resolved": True,
+                "last": round(float(o["value"]), 6),
+                "dod_pct": None, "chg_str": None,
+                "move_z": None, "move_state": "SEEDING",
+                "range_pos_pct": None,
+                "range_state": "SEEDING",
+                "n_obs": len(se), "data_age_days": age3,
+                "via": (node.get("via")
+                        if isinstance(node, dict) else None),
+                "detail": "self-building series: trend basis "
+                          "at 15 obs (~%d days out)"
+                          % max(0, 15 - len(se))}
+    lv, ld = extract_latest(node)
+    if lv is not None:
+        prev = None
+        if isinstance(node, dict):
+            for k in ("prev", "previous", "prior"):
+                if isinstance(node.get(k), (int, float)):
+                    prev = float(node[k])
+                    break
+        dod = None
+        if isinstance(node, dict) and isinstance(
+                node.get("chg_pct"), (int, float)):
+            dod = float(node["chg_pct"])
+        elif prev:
+            dod = (lv / prev - 1) * 100
+        age2 = None
+        if isinstance(node, dict) and node.get("date"):
+            try:
+                age2 = (datetime.now(timezone.utc).date()
+                        - datetime.fromisoformat(
+                            str(node["date"])[:10]).date()).days
+            except Exception:
+                pass
+        ms = "NO_HISTORY"
+        if dod is not None:
+            # pct-basis (no sigma) can never mint RED — page-audit
+            # lesson: EPU-class daily indexes swing 40%+ normally.
+            ms = "AMBER" if abs(dod) >= 7 else "CALM"
+        return {"symbol": sym, "name": name, "resolved": True,
+                "last": round(lv, 4),
+                "dod_pct": round(dod, 2) if dod is not None
+                else None,
+                "move_z": None, "move_state": ms,
+                "basis": "pct-move (no per-symbol sigma yet)"
+                if dod is not None else "level-only",
+                "range_pos_pct": None, "range_state": "NO_HISTORY",
+                "n_obs": 2 if prev else 1,
+                "via": (node.get("via")
+                        if isinstance(node, dict) else None),
+                "data_age_days": age2}
+    out = {"symbol": sym, "name": name, "resolved": False,
+           "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
+    if isinstance(node, dict) and node.get("comp_why"):
+        out["detail"] = node["comp_why"]
+    return out
+
+
+SRC_OF = {}
+
+
+def lambda_handler(event, context):
+    now = datetime.now(timezone.utc)
+    wl = s3_json("data/tv-watchlists.json")
+    vault = s3_json("data/tradingview.json")
+    wb = s3_json("data/tv-workbench.json")
+    dic = s3_json("data/symbol-dictionary.json")
+
+    # v1.1.0: Khalid runs a liquidity LIST FAMILY, not one list —
+    # union every list whose name mentions liquidity.
+    fam = []
+    seen = set()
+    syms = []
+    SRC_OF.clear()
+    src_of = SRC_OF
+    for it in (wl or {}).get("lists") or []:
+        if not isinstance(it, dict):
+            continue
+        nm0 = str(it.get("name") or "")
+        if "liquid" not in nm0.lower():
+            continue
+        members = [str(x) for x in (it.get("symbols") or [])
+                   if isinstance(x, str)]
+        if not members:
+            continue
+        fam.append({"name": nm0, "n": len(members)})
+        for sy in members:
+            src_of.setdefault(sy, []).append(nm0[:40])
+            if sy not in seen:
+                seen.add(sy)
+                syms.append(sy)
+    list_name = ("LIQUIDITY FAMILY (%d lists)" % len(fam)
+                 if fam else None)
+    n_lists = len(fam)
+    rows = []
+    budget = {"n": FRED_BUDGET}
+    if list_name:
+        for sym in syms[:1100]:
+            node = vault_lookup(vault, wb, list_name, sym)
+            if (node is None or not extract_series(node)) \
+                    and sym.startswith("FRED:"):
+                fb = fred_fallback(sym, budget)
+                if fb:
+                    node = fb
+            if (node is None or not extract_series(node)) \
+                    and any(op in sym for op in "-/+") \
+                    and ":" in sym and sym not in CC_MAP:
+                fb = eval_composite(sym, budget)
+                if fb and fb.get("series"):
+                    node = fb
+                elif fb and fb.get("comp_why"):
+                    node = (node if isinstance(node, dict)
+                            else {}) | {"comp_why": fb["comp_why"]}
+            if node is None or not extract_series(node):
+                if sym in FLEET_MAP:
+                    fb = fleet_column_series(*FLEET_MAP[sym])
+                    if fb:
+                        node = fb
+                elif sym in ECON_FRED:
+                    fb = fred_fallback("FRED:" + ECON_FRED[sym],
+                                       budget)
+                    if fb:
+                        node = fb
+                elif sym.startswith("ECONOMICS:"):
+                    te = fleet_doc("data/te-feed.json") or {}
+                    hit = (te.get("prices") or {}).get(
+                        sym.split(":", 1)[1])
+                    if hit and hit.get("value") is not None:
+                        node = {"value": hit["value"],
+                                "date": hit.get("asof"),
+                                "via": "TE latest"}
+                else:
+                    fb = ma200_series(sym)
+                    if fb:
+                        node = fb
+            if node is None or not extract_series(node):
+                fsid, yh = dict_aliases(dic, sym)
+                if fsid:
+                    fb = fred_fallback("FRED:" + fsid, budget)
+                    if fb:
+                        node = fb
+                if (node is None or not extract_series(node)) \
+                        and yh:
+                    fb = yahoo_fallback(yh, YH_BUDGET)
+                    if fb:
+                        node = fb
+            if node is None or not extract_series(node):
+                if sym in CURATED_YH:
+                    ya, note = CURATED_YH[sym]
+                    fb = yahoo_fallback(ya, CUR_BUDGET, note)
+                    if fb:
+                        node = fb
+                elif sym in CURATED_FRED:
+                    fsid2, note2 = CURATED_FRED[sym]
+                    fb = fred_fallback("FRED:" + fsid2, budget)
+                    if fb:
+                        fb = dict(fb)
+                        fb["via"] = "FRED %s · %s" % (fsid2, note2)
+                        node = fb
+                elif sym.split(":", 1)[0] in (
+                        "FX_IDC", "FX", "SAXO", "OANDA",
+                        "FOREXCOM", "CAPITALCOM",
+                        "PEPPERSTONE", "FXCM", "IDC") and len(
+                        sym.split(":", 1)[1]) == 6:
+                    pair = sym.split(":", 1)[1]
+                    fb = yahoo_fallback(pair + "=X", YH_BUDGET)
+                    if not fb:
+                        fb = yahoo_fallback(
+                            pair[3:] + pair[:3] + "=X",
+                            YH_BUDGET, "inverted cross",
+                            invert=True)
+                    if fb:
+                        node = fb
+                elif sym in CC_MAP:
+                    fb = cryptocap_fallback(sym, CC_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("MULTPL:"):
+                    fb = multpl_fallback(sym.split(":", 1)[1],
+                                         MP_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("CBOE:"):
+                    fb = cboe_fallback(sym.split(":", 1)[1],
+                                       CB_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("NASDAQ:") and \
+                        re.fullmatch(r"NASDAQ:(NQ|B3)[A-Z0-9]+",
+                                     sym):
+                    fb = nasdaq_fallback(sym.split(":", 1)[1],
+                                         NQ_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("EUREX:FVS"):
+                    fb = stoxx_fallback(ST_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym == "HOSE:VNINDEX":
+                    fb = tcbs_fallback(VN_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym in TE_DIRECT:
+                    fb = te_hist_fallback(sym, TE_BUDGET)
+                    if fb:
+                        node = fb
+                elif re.fullmatch(r"(NASDAQ|NYSE|AMEX|CBOE|BATS|"
+                                  r"ICEUS|SPCFD|CME|CBOT|NYMEX|"
+                                  r"COMEX):[A-Z0-9]{2,12}", sym):
+                    fb = yahoo_fallback(sym.split(":", 1)[1],
+                                        YH_BUDGET, "heuristic")
+                    if fb:
+                        node = fb
+            try:
+                rows.append(analyze(sym, node,
+                                    dict_name(dic, sym)))
+            except Exception as _ae:
+                rows.append({"symbol": sym,
+                             "name": dict_name(dic, sym),
+                             "resolved": False,
+                             "move_state": "UNRESOLVED",
+                             "range_state": "UNRESOLVED",
+                             "detail": "analyze err: "
+                             + str(_ae)[:90]})
+    resolved = [r for r in rows if r.get("resolved")]
+    resolved = [r for r in resolved
+                if not r.get("stale")]
+    with_hist = [r for r in resolved
+                 if r.get("move_state") in ("CALM", "AMBER", "RED")]
+    n_red = sum(1 for r in with_hist if r["move_state"] == "RED")
+    n_amber = sum(1 for r in with_hist if r["move_state"] == "AMBER")
+    n_extreme = sum(1 for r in with_hist
+                    if r.get("range_state") == "EXTREME")
+    if n_red >= 2 or (n_red >= 1 and n_amber >= 3):
+        alarm = "RED"
+    elif n_red >= 1 or n_amber >= 3 or n_extreme >= 5:
+        alarm = "AMBER"
+    else:
+        alarm = "CALM"
+    top = sorted(with_hist,
+                 key=lambda r: -(r.get("move_z") or 0))[:5]
+    z_rows = [r for r in resolved if r.get("move_z") is not None]
+    rng = [r for r in resolved
+           if r.get("range_pos_pct") is not None]
+    shock_b = (100.0 * sum(1 for r in z_rows
+                           if r["move_z"] >= 2) / len(z_rows)
+               if z_rows else 0.0)
+    ext_b = (100.0 * sum(1 for r in rng
+                         if r.get("range_state") == "EXTREME")
+             / len(rng) if rng else 0.0)
+    str_b = (100.0 * sum(1 for r in rng
+                         if r.get("range_state") == "STRETCHED")
+             / len(rng) if rng else 0.0)
+    baro = round(min(100.0, 0.45 * shock_b + 0.40 * ext_b
+                     + 0.15 * str_b), 1)
+    blabel = ("CRITICAL" if baro >= 80 else
+              "HIGH" if baro >= 60 else
+              "ELEVATED" if baro >= 40 else
+              "WATCHFUL" if baro >= 20 else "QUIET")
+    top_ext = sorted(rng, key=lambda r: -abs(
+        r["range_pos_pct"] - 50))[:6]
+    barometer = {
+        "value": baro, "label": blabel,
+        "components": {
+            "shock_breadth_pct": round(shock_b, 1),
+            "range_extreme_pct": round(ext_b, 1),
+            "range_stretched_pct": round(str_b, 1),
+            "weights": {"shock": 0.45, "extreme": 0.40,
+                        "stretched": 0.15},
+            "n_z_rows": len(z_rows), "n_range_rows": len(rng)},
+        "top_extremes": [
+            {"symbol": t["symbol"],
+             "range_pos_pct": t["range_pos_pct"]}
+            for t in top_ext],
+        "doctrine": "breadth of >=2-sigma shocks (45%) + breadth "
+                    "of 1y range extremes (40%) + stretched (15%) "
+                    "across the whole Black Swan strip"}
+    # ── LIQUIDITY DIALS ──────────────────────────────────────────
+    pol_rows = [r for r in resolved if r.get("polarity")
+                and r.get("trend_state")]
+    def liq_sign(r):
+        return (1 if r["trend_state"] == "UP" else -1) \
+            * r["polarity"]
+    n_pol = len(pol_rows)
+    trend_score = (round(100.0 * sum(liq_sign(r)
+                                     for r in pol_rows) / n_pol, 1)
+                   if n_pol else None)
+    rev_rows = [r for r in pol_rows
+                if r.get("liquidity_reversal_dir")]
+    n_ease = sum(1 for r in rev_rows
+                 if r["liquidity_reversal_dir"] == "EASING")
+    n_tight = len(rev_rows) - n_ease
+    reversal_score = (round(100.0 * (n_ease - n_tight)
+                            / n_pol, 1) if n_pol else None)
+    conf_rows = [r for r in rev_rows
+                 if r.get("reversal_conf") == "CONFIRMED"]
+    if trend_score is None:
+        trend_label = "UNKNOWN"
+    elif trend_score >= 25:
+        trend_label = "EASING"
+    elif trend_score <= -25:
+        trend_label = "TIGHTENING"
+    else:
+        trend_label = "MIXED"
+    if reversal_score is None or not rev_rows:
+        rev_label = "NONE"
+    else:
+        side = "EASE" if reversal_score > 0 else "TIGHTEN"
+        rev_label = ("CONFIRMED TURN TO " + side
+                     if len(conf_rows) >= 3
+                     and abs(reversal_score) >= 15 else
+                     "FORMING TURN TO " + side
+                     if abs(reversal_score) >= 8 else "NOISE")
+    liquidity = {
+        "trend_score": trend_score, "trend_label": trend_label,
+        "reversal_score": reversal_score,
+        "reversal_label": rev_label,
+        "n_polarity_rows": n_pol,
+        "n_reversing_ease": n_ease,
+        "n_reversing_tighten": n_tight,
+        "n_confirmed": len(conf_rows),
+        "top_reversals": [
+            {"symbol": r["symbol"],
+             "dir": r["liquidity_reversal_dir"],
+             "conf": r.get("reversal_conf"),
+             "slope_now_pct": r.get("slope_now_pct")}
+            for r in sorted(rev_rows,
+                            key=lambda x: -abs(
+                                x.get("slope_now_pct") or 0))[:8]],
+        "doctrine": "polarity-mapped breadth: trend = share of "
+                    "liquidity rows trending easier minus tighter; "
+                    "reversal = fresh slope flips (MA-cross "
+                    "confirmed) toward ease minus tighten",
+    }
+    payload = {
+        "schema_version": "1.0",
+        "engine": "justhodl-liquidity-reversal",
+        "liquidity": liquidity,
+        "as_of": now.isoformat(timespec="seconds"),
+        "list_name": list_name,
+        "family_lists": fam,
+        "n_lists_seen": n_lists,
+        "n_members": len(syms),
+        "n_resolved": len(resolved),
+        "n_with_history": len(with_hist),
+        "barometer": barometer,
+        "strip": {"alarm": alarm, "n_red": n_red,
+                  "n_amber": n_amber, "n_range_extreme": n_extreme,
+                  "top_movers": [
+                      {"symbol": t["symbol"], "z": t.get("move_z"),
+                       "dod_pct": t.get("dod_pct")} for t in top]},
+        "rows": sorted(rows, key=lambda r: -(r.get("move_z") or -1)),
+        "doctrine": "tail-risk alarm strip: |z| of the daily move vs "
+                    "own history + 1y range extremes; no direction "
+                    "semantics fabricated — read the named rows",
+    }
+    # chatgpt-pd-context-v1: computation stamp is not a source observation date.
+    payload["generated_at"] = payload["as_of"]
+    payload["pd_settlement_fails"] = load_pd_fails(s3, BUCKET, now)
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(payload).encode(),
+                  ContentType="application/json",
+                  CacheControl="max-age=300")
+    return {"statusCode": 200,
+            "body": json.dumps({"ok": bool(list_name)
+                                and len(resolved) >= 10,
+                                "list": list_name,
+                                "resolved": len(resolved),
+                                "alarm": alarm})}
+@@END 3@@

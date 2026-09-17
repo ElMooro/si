@@ -1,0 +1,750 @@
+@@PART 2/3@@
+        if fb:
+            return fb
+        return yahoo_fallback(leg.split(":", 1)[1], YH_BUDGET,
+                              "leg heuristic")
+    return None
+
+
+def dict_aliases(dic, sym):
+    """Parse '(FRED: SID)' and '(MARKET: Y)' out of the
+    symbol-dictionary name — the estate's own rosetta stone."""
+    nm = dict_name(dic, sym) or ""
+    fm = re.search(r"\(FRED:\s*([A-Z0-9]+)\)", nm)
+    mm = re.search(r"\(MARKET:\s*([^)]+)\)", nm)
+    return (fm.group(1) if fm else None,
+            mm.group(1).strip() if mm else None)
+
+
+def fred_fallback(sym, budget):
+    """v1.1.0: FRED: members absent from the vault get real series
+    (z + range basis) via a bounded, cached direct fetch."""
+    if not sym.startswith("FRED:") or budget["n"] <= 0:
+        return None
+    sid = sym.split(":", 1)[1]
+    wkey = WARM + sid + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        qs = urllib.parse.urlencode({
+            "series_id": sid, "api_key": FRED_KEY,
+            "file_type": "json", "sort_order": "desc",
+            "limit": 300})
+        req = urllib.request.Request(
+            "https://api.stlouisfed.org/fred/series/observations?"
+            + qs, headers={"User-Agent": "justhodl-blackswan"})
+        with urllib.request.urlopen(req, timeout=12) as h:
+            d = json.loads(h.read())
+        se = [{"date": o["date"], "value": float(o["value"])}
+              for o in d.get("observations", [])
+              if o.get("value") not in (None, ".", "")]
+        se.reverse()
+        if not se:
+            return None
+        env = {"series": se,
+               "fetched_at": datetime.now(
+                   timezone.utc).isoformat(timespec="seconds")}
+        s3.put_object(Bucket=BUCKET, Key=wkey,
+                      Body=json.dumps(env).encode(),
+                      ContentType="application/json")
+        return env
+    except Exception:
+        return None
+
+
+def s3_json(key):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET,
+                                        Key=key)["Body"].read())
+    except Exception:
+        return None
+
+
+def find_swan_list(wl):
+    """Walk any plausible watchlist container shape; prefer names
+    containing 'swan' (the 4062 lesson), else 'black'."""
+    cands = []
+
+    def add(name, symbols):
+        if name and symbols:
+            cands.append((str(name), [str(x) for x in symbols
+                                      if isinstance(x, str)]))
+
+    def syms_of(v):
+        if isinstance(v, list):
+            out = []
+            for x in v:
+                if isinstance(x, str):
+                    out.append(x)
+                elif isinstance(x, dict):
+                    for k in ("symbol", "ticker", "s", "name"):
+                        if isinstance(x.get(k), str):
+                            out.append(x[k])
+                            break
+            return out
+        if isinstance(v, dict):
+            for k in ("symbols", "members", "tickers", "items"):
+                if isinstance(v.get(k), list):
+                    return syms_of(v[k])
+        return []
+
+    if isinstance(wl, dict):
+        for k in ("watchlists", "lists", "data"):
+            if isinstance(wl.get(k), dict):
+                for name, v in wl[k].items():
+                    add(name, syms_of(v))
+            if isinstance(wl.get(k), list):
+                for it in wl[k]:
+                    if isinstance(it, dict):
+                        add(it.get("name") or it.get("title")
+                            or it.get("list"), syms_of(it))
+        for name, v in wl.items():
+            if isinstance(v, (list, dict)) and name not in (
+                    "watchlists", "lists", "data"):
+                add(name, syms_of(v))
+    for pref in ("liquid", "global liq", "gli"):
+        for name, syms in cands:
+            if pref in name.lower():
+                return name, syms, len(cands)
+    return None, [], len(cands)
+
+
+def extract_series(node, depth=0):
+    """Find a [{date-ish, value-ish}] series anywhere under node."""
+    if depth > 4 or node is None:
+        return None
+    if isinstance(node, list) and node and isinstance(
+            node[0], (list, tuple)) and len(node[0]) == 2:
+        out = []
+        for pr in node[-400:]:
+            try:
+                d0 = pr[0]
+                if isinstance(d0, (int, float)):
+                    d0 = datetime.fromtimestamp(
+                        d0 / (1000 if d0 > 1e11 else 1),
+                        tz=timezone.utc).date().isoformat()
+                out.append({"date": str(d0)[:10],
+                            "value": float(pr[1])})
+            except Exception:
+                continue
+        return out or None
+    if isinstance(node, list) and node and isinstance(node[0], dict):
+        dk = next((k for k in node[0]
+                   if k in ("date", "d", "t", "time", "period")), None)
+        vk = next((k for k in node[0]
+                   if k in ("value", "v", "close", "c", "y")), None)
+        if dk and vk:
+            out = []
+            for o in node[-400:]:
+                try:
+                    out.append({"date": str(o[dk])[:10],
+                                "value": float(o[vk])})
+                except Exception:
+                    continue
+            return out or None
+    if isinstance(node, dict):
+        for k in ("series", "history", "points", "values", "obs",
+                  "data"):
+            r = extract_series(node.get(k), depth + 1)
+            if r:
+                return r
+        for v in node.values():
+            r = extract_series(v, depth + 1)
+            if r:
+                return r
+    return None
+
+
+def extract_latest(node, depth=0):
+    if depth > 4 or node is None:
+        return None, None
+    if isinstance(node, dict):
+        lv = None
+        for k in ("last", "value", "latest", "close", "price", "v"):
+            if isinstance(node.get(k), (int, float)):
+                lv = float(node[k])
+                break
+        ld = None
+        for k in ("date", "last_date", "as_of", "updated", "t"):
+            if node.get(k):
+                ld = str(node[k])[:10]
+                break
+        if lv is not None:
+            return lv, ld
+        for v in node.values():
+            r = extract_latest(v, depth + 1)
+            if r[0] is not None:
+                return r
+    return None, None
+
+
+# ── fleet-join resolution (Khalid: "find the missing data from
+# other engines") — column-aware history extraction over the
+# fleet's own published stores, loaded once per run. ─────────────
+FLEET_MAP = {
+    "TVC:MOVE": ("data/move-index.json", None),
+    "TVC:VIX": ("data/vix-curve-history.json", "vix"),
+    "CBOE:VIX3M": ("data/vix-curve-history.json", "vix3m"),
+    "CBOE:VXN": ("data/vix-curve-history.json", "vxn"),
+}  # DXY dropped: dollar-radar-history holds derived scores only
+ECON_FRED = {
+    "ECONOMICS:USWEI": "WEI", "ECONOMICS:USJC": "ICSA",
+    "ECONOMICS:USIJC": "ICSA", "ECONOMICS:USJC4W": "IC4WSA",
+    "ECONOMICS:USCJC": "CCSA", "ECONOMICS:USCU": "TCU",
+    "ECONOMICS:USBP": "PERMIT",
+    "ECONOMICS:USGDPQQ": "A191RL1Q225SBEA",
+    "ECONOMICS:USINBR": "DFF",
+    "ECONOMICS:USM2": "M2SL", "ECONOMICS:USM1": "M1SL",
+    "ECONOMICS:USJO": "JTSJOL", "ECONOMICS:USNO": "AMTMNO",
+    "ECONOMICS:USTVS": "TOTALSA", "ECONOMICS:USMEMP": "MANEMP",
+}
+CURATED_LEG_YH = {"ICEUS:DX1!": "DX=F",
+                  "TVC:DXY": "DX-Y.NYB",
+                  "CAPITALCOM:COPPER": "HG=F",
+                  "CAPITALCOM:NATURALGAS": "NG=F",
+                  "TVC:GOLD": "GC=F", "TVC:SILVER": "SI=F",
+                  "TVC:USOIL": "CL=F", "TVC:UKOIL": "BZ=F"}
+CURATED_YH = {
+    "ICEUS:DX1!": ("DX=F", None),
+    "TVC:DXY": ("DX-Y.NYB", None),
+    "NSE:CNXSMALLCAP": ("^CNXSC", None),
+    "KRX:KOSPI200": ("^KS200", None),
+    "EURONEXT:N100": ("^N100", None),
+    "EURONEXT:PX1": ("^FCHI", None),
+    "TVC:CAC40": ("^FCHI", None),
+    "OMXSTO:OMXS30": ("^OMX", None),
+    "INDEX:FTSEMIB": ("FTSEMIB.MI", None),
+    "PSE:PSEI": ("PSEI.PS", None),
+    "SPCFD:S5INDU": ("^SP500-20", None),
+    "TSE:TOPIX": ("1475.T", "TOPIX ETF proxy"),
+    "EUREX:FESX2!": ("^STOXX50E", "index proxy for futures"),
+    "EUREX:FMEA2!": ("EEMA", "EM-Asia ETF proxy"),
+    "EUREX:FMAA1!": ("AAXJ", "AC-Asia ETF proxy"),
+    "SGX:SGP2!": ("^STI", "STI index proxy"),
+    "OANDA:SG30SGD": ("^STI", "STI index proxy"),
+    "EUREX:FMXU2!": ("ACWX", "world-ex-US ETF proxy"),
+    "ASX24:AP1!": ("^AXJO", "index proxy for SPI futures"),
+    "CBOT:ZB2!": ("ZB=F", "front-month proxy"),
+    "CBOT:UB2!": ("UB=F", "front-month proxy"),
+    "CME:SR32!": ("SR3=F", "front-month proxy"),
+}
+_FLEET_CACHE = {}
+
+
+def fleet_doc(key):
+    if key not in _FLEET_CACHE:
+        _FLEET_CACHE[key] = s3_json(key)
+    return _FLEET_CACHE[key]
+
+
+def find_row_table(node, depth=0):
+    """First list of dicts carrying a date-ish key, anywhere."""
+    if depth > 3 or node is None:
+        return None
+    if isinstance(node, list) and node and isinstance(node[0], dict):
+        if any(k in node[0] for k in ("date", "d", "t", "time",
+                                      "period")):
+            return node
+    if isinstance(node, dict):
+        for v in node.values():
+            r = find_row_table(v, depth + 1)
+            if r:
+                return r
+    return None
+
+
+def columnar_zip(doc, dates_key, field):
+    """4627 shape lesson: fleet stores are columnar — parallel
+    'dates' + per-name value arrays."""
+    dates = doc.get(dates_key)
+    vals = doc.get(field)
+    if not (isinstance(dates, list) and isinstance(vals, list)):
+        return None
+    n = min(len(dates), len(vals))
+    se = []
+    for i in range(max(0, n - 400), n):
+        try:
+            se.append({"date": str(dates[i])[:10],
+                       "value": float(vals[i])})
+        except Exception:
+            continue
+    return se if len(se) >= 15 else None
+
+
+def fleet_column_series(key, field):
+    doc = fleet_doc(key)
+    if doc is None:
+        return None
+    if field is None:
+        se = extract_series(doc)
+        return {"series": se} if se else None
+    se = columnar_zip(doc, "dates", field)
+    if se:
+        return {"series": se}
+    for ck in ("series", "indices", "columns", "data"):
+        sub = doc.get(ck)
+        if isinstance(sub, dict) and field in sub:
+            merged = {"dates": doc.get("dates"), field: sub[field]}
+            se = columnar_zip(merged, "dates", field)
+            if se:
+                return {"series": se}
+    rows = find_row_table(doc)
+    if not rows:
+        return None
+    dk = next((k for k in rows[0]
+               if k in ("date", "d", "t", "time", "period")), None)
+    if not dk:
+        return None
+    se = []
+    for o in rows[-400:]:
+        v = o.get(field)
+        if v is None:
+            continue
+        try:
+            d0 = o[dk]
+            if isinstance(d0, (int, float)):
+                d0 = datetime.fromtimestamp(
+                    d0 / (1000 if d0 > 1e11 else 1),
+                    tz=timezone.utc).date().isoformat()
+            se.append({"date": str(d0)[:10], "value": float(v)})
+        except Exception:
+            continue
+    return {"series": se} if len(se) >= 15 else None
+
+
+def ma200_series(sym):
+    """Plain exchange-prefixed tickers from the ma200 closes buffer
+    (daily closes for ~700 names)."""
+    if ":" not in sym or any(c in sym for c in "!/-+"):
+        return None
+    tk = sym.split(":", 1)[1]
+    doc = fleet_doc("data/_ma200/closes.json")
+    if doc is None:
+        return None
+    ser = doc.get("series") if isinstance(doc, dict) else None
+    if isinstance(ser, dict) and tk in ser:
+        se = columnar_zip(doc, "dates", None) if False else None
+        vals = ser[tk]
+        dates = doc.get("dates")
+        if isinstance(dates, list) and isinstance(vals, list):
+            n = min(len(dates), len(vals))
+            se = []
+            for i in range(max(0, n - 400), n):
+                try:
+                    se.append({"date": str(dates[i])[:10],
+                               "value": float(vals[i])})
+                except Exception:
+                    continue
+            if len(se) >= 15:
+                return {"series": se}
+    return None
+
+
+TVC_MAP = {"US01MY": "DGS1MO", "US03MY": "DGS3MO",
+           "US06MY": "DGS6MO", "US01Y": "DGS1", "US02Y": "DGS2",
+           "US03Y": "DGS3", "US05Y": "DGS5", "US07Y": "DGS7",
+           "US10Y": "DGS10", "US20Y": "DGS20", "US30Y": "DGS30"}
+
+
+def leg_to_fred(leg):
+    if leg.startswith("FRED:"):
+        return leg.split(":", 1)[1]
+    if leg.startswith("TVC:") and leg.split(":", 1)[1] in TVC_MAP:
+        return TVC_MAP[leg.split(":", 1)[1]]
+    return None
+
+
+COMP_BUDGET = {"n": 70}  # reserved: composite legs (FEDFUNDS-class
+# is never a standalone member, so the shared budget starved them)
+
+
+if "COMP_BUDGET" not in globals():
+    COMP_BUDGET = {"n": 40}
+TENOR_FRED = {"TVC:GB10Y": "IRLTLT01GBM156N",
+              "TVC:CA10Y": "IRLTLT01CAM156N",
+              "TVC:AU10Y": "IRLTLT01AUM156N",
+              "TVC:CH10Y": "IRLTLT01CHM156N",
+              "TVC:SE10Y": "IRLTLT01SEM156N",
+              "TVC:NO10Y": "IRLTLT01NOM156N",
+              "TVC:NZ10Y": "IRLTLT01NZM156N",
+              "TVC:DE10Y": "IRLTLT01DEM156N",
+              "TVC:IT10Y": "IRLTLT01ITM156N",
+              "TVC:FR10Y": "IRLTLT01FRM156N",
+              "TVC:ES10Y": "IRLTLT01ESM156N",
+              "TVC:JP10Y": "IRLTLT01JPM156N"}
+
+
+def _tok(sym):
+    out, cur = [], ""
+    for ch in sym:
+        if ch in "()+-/":
+            if ch == "-" and (not out or out[-1] in "()+-/") \
+                    and not cur:
+                cur += ch
+                continue
+            if cur:
+                out.append(cur)
+                cur = ""
+            out.append(ch)
+        else:
+            cur += ch
+    if cur:
+        out.append(cur)
+    return out
+
+
+def _combine(a, b, op):
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        if op == "+":
+            return a + b
+        if op == "-":
+            return a - b
+        return a / b if b else None
+    if isinstance(a, (int, float)):
+        a = {d: a for d in b}
+    if isinstance(b, (int, float)):
+        b = {d: b for d in a}
+    cal = sorted(set(a) | set(b))[-300:]
+    ka, kb = sorted(a), sorted(b)
+    fa, fb = {}, {}
+    la = lb = None
+    ia = ib = 0
+    for d in cal:
+        while ia < len(ka) and ka[ia] <= d:
+            la = a[ka[ia]]
+            ia += 1
+        while ib < len(kb) and kb[ib] <= d:
+            lb = b[kb[ib]]
+            ib += 1
+        if la is not None:
+            fa[d] = la
+        if lb is not None:
+            fb[d] = lb
+    out = {}
+    for d in cal:
+        if d in fa and d in fb:
+            x, y = fa[d], fb[d]
+            if op == "+":
+                out[d] = x + y
+            elif op == "-":
+                out[d] = x - y
+            elif y:
+                out[d] = x / y
+    return out or None
+
+
+def _parse(tokens, pos, budget, depth=0):
+    if depth > 4:
+        return None, "depth"
+
+    def prim(p):
+        if p < len(tokens) and tokens[p] == "(":
+            v, p2 = _parse(tokens, p + 1, budget, depth + 1)
+            if v is None:
+                return None, p2
+            if not isinstance(p2, int) or p2 >= len(tokens) \
+                    or tokens[p2] != ")":
+                return None, "unclosed paren"
+            return v, p2 + 1
+        if p >= len(tokens):
+            return None, "eof"
+        leg = tokens[p]
+        if re.fullmatch(r"-?\d+(\.\d+)?", leg):
+            return float(leg), p + 1
+        if leg in TENOR_FRED:
+            env = fred_fallback("FRED:" + TENOR_FRED[leg],
+                                COMP_BUDGET)
+        else:
+            env = leg_series(leg, budget)
+        if env is None or not env.get("series"):
+            return None, "leg %s unresolvable" % leg[:22]
+        return {o["date"]: o["value"]
+                for o in env["series"]}, p + 1
+    v, p = prim(pos)
+    if v is None:
+        return None, p
+    while isinstance(p, int) and p < len(tokens) \
+            and tokens[p] in "+-/":
+        op = tokens[p]
+        rhs, p2 = prim(p + 1)
+        if rhs is None:
+            return None, p2
+        v = _combine(v, rhs, op)
+        if v is None:
+            return None, "combine fail"
+        p = p2
+    return v, p
+
+
+def eval_composite(sym, budget):
+    budget = COMP_BUDGET
+    why = []
+    if "(" in sym or re.match(r"^\d", sym) \
+            or any(k in sym for k in TENOR_FRED):
+        toks = _tok(sym)
+        v, p = _parse(toks, 0, budget)
+        if isinstance(v, dict) and len(v) >= 15:
+            se = [{"date": d, "value": round(v[d], 6)}
+                  for d in sorted(v)[-300:]]
+            return {"series": se}
+        return {"comp_why": "grammar: %s"
+                % (p if isinstance(p, str) else "short")}
+    """v1.2.0: evaluate A-B / A/B / A+B formulas whose every leg is
+    FRED-mappable — unlocks the plumbing spreads (SOFR-FF, 30s10s,
+    IG-vs-10Y...) with full z+range basis via the warm cache."""
+    for op in ("-", "/", "+"):
+        parts = sym.split(op)
+        if len(parts) < 2 or any(not p for p in parts):
+            continue
+        legs = []
+        bad = None
+        for p2 in parts:
+            env = leg_series(p2, budget)
+            if not env or not env.get("series"):
+                bad = "%s:leg %s unresolvable (budget %d)" % (
+                    op, p2[:22], budget["n"])
+                break
+            legs.append({o["date"]: o["value"]
+                         for o in env["series"]})
+        if bad:
+            why.append(bad)
+            return {"comp_why": " | ".join(why)[:160]}
+        # union calendar (4630 r4 confession: len-tie picked the
+        # sparse monthly leg — 13 dates). Union guarantees daily
+        # granularity whenever any leg is daily.
+        cal = set()
+        for m in legs:
+            cal |= set(m.keys())
+        common = sorted(cal)[-300:]
+        filled = []
+        for m in legs:
+            keys = sorted(m.keys())
+            f, j, lastv = {}, 0, None
+            for d0 in common:
+                while j < len(keys) and keys[j] <= d0:
+                    lastv = m[keys[j]]
+                    j += 1
+                if lastv is not None:
+                    f[d0] = lastv
+            filled.append(f)
+        legs = filled
+        common = [d0 for d0 in common
+                  if all(d0 in m for m in legs)]
+        if len(common) < 15:
+            return {"comp_why": "%s:only %d ffilled common dates"
+                    % (op, len(common))}
+        se = []
+        for d0 in common:
+            v = legs[0][d0]
+            for m in legs[1:]:
+                if op == "-":
+                    v = v - m[d0]
+                elif op == "+":
+                    v = v + m[d0]
+                else:
+                    if not m[d0]:
+                        v = None
+                        break
+                    v = v / m[d0]
+            if v is not None:
+                se.append({"date": d0, "value": round(v, 6)})
+        if len(se) >= 15:
+            return {"series": se}
+        return {"comp_why": "%s:series shrank to %d" % (op, len(se))}
+    return {"comp_why": (" | ".join(why) or "no op matched")[:160]}
+
+
+_VIDX = {}
+
+
+def vault_index(vault):
+    """4623 lesson: vault 'symbols' is a LIST of row dicts, not a
+    map. Index once: exact symbol + base name (prefix stripped)."""
+    if _VIDX.get("done"):
+        return _VIDX
+    rows = (vault or {}).get("symbols")
+    if isinstance(rows, list):
+        for rr in rows:
+            if not isinstance(rr, dict):
+                continue
+            sy = rr.get("symbol")
+            if not isinstance(sy, str):
+                continue
+            _VIDX[sy] = rr
+            if ":" in sy and "/" not in sy and "-" not in sy:
+                _VIDX.setdefault(sy.split(":", 1)[1], rr)
+    _VIDX["done"] = True
+    return _VIDX
+
+
+def vault_lookup(vault, wb, list_name, sym):
+    idx = vault_index(vault)
+    hit = idx.get(sym)
+    if hit is None and ":" in sym and "/" not in sym \
+            and "-" not in sym:
+        hit = idx.get(sym.split(":", 1)[1])
+    if hit is not None:
+        return hit
+    if isinstance(wb, dict):
+        wls = wb.get("watchlists") or wb.get("lists") or {}
+        it = None
+        if isinstance(wls, dict):
+            it = wls.get(list_name)
+        elif isinstance(wls, list):
+            it = next((x for x in wls if isinstance(x, dict)
+                       and (x.get("name") == list_name)), None)
+        if isinstance(it, dict):
+            for k in ("symbols", "members", "rows", "items"):
+                rows = it.get(k)
+                if isinstance(rows, list):
+                    for rr in rows:
+                        if isinstance(rr, dict) and rr.get(
+                                "symbol") == sym:
+                            return rr
+                if isinstance(rows, dict) and sym in rows:
+                    return rows[sym]
+    return None
+
+
+def dict_name(dic, sym):
+    if isinstance(dic, dict):
+        for k in ("symbols", "dictionary", "data"):
+            m = dic.get(k)
+            if isinstance(m, dict) and sym in m:
+                e = m[sym]
+                if isinstance(e, dict):
+                    return (e.get("name") or e.get("title")
+                            or e.get("full_name") or "")[:70]
+                if isinstance(e, str):
+                    return e[:70]
+        if sym in dic and isinstance(dic[sym], (str, dict)):
+            e = dic[sym]
+            return (e if isinstance(e, str)
+                    else (e.get("name") or e.get("title") or ""))[:70]
+    return ""
+
+
+def cadence_label(se):
+    ds = []
+    for i in range(max(1, len(se) - 12), len(se)):
+        try:
+            ds.append((datetime.fromisoformat(se[i]["date"])
+                       - datetime.fromisoformat(
+                           se[i - 1]["date"])).days)
+        except Exception:
+            continue
+    if not ds:
+        return "chg"
+    ds.sort()
+    med = ds[len(ds) // 2]
+    if med <= 3:
+        return "DoD"
+    if med <= 10:
+        return "WoW"
+    if med <= 45:
+        return "MoM"
+    return "QoQ"
+
+
+POLARITY = {
+    # +1: series UP = liquidity EASIER · -1: series UP = TIGHTER
+    "FRED:RRPONTSYD": -1, "FRED:WLCFLPCL": -1,
+    "FRED:WALCL": 1, "FRED:M2SL": 1, "FRED:TOTRESNS": 1,
+    "FRED:BOGMBASE": 1, "FRED:RMFSL": 1, "FRED:MMMFFAQ027S": 1,
+    "TVC:DXY": -1, "ICEUS:DX1!": -1, "FRED:DTWEXBGS": -1,
+    "TVC:MOVE": -1, "TVC:VIX": -1, "CBOE:VIX3M": -1,
+    "FRED:NFCI": -1, "FRED:NFCILEVERAGE": -1,
+    "FRED:BAMLC0A0CM": -1, "FRED:BAMLH0A0HYM2": -1,
+    "FRED:SOFR-FRED:FEDFUNDS": -1, "FRED:CPFF": -1,
+    "FRED:STLFSI4": -1, "FRED:KCFSI": -1,
+    # H.8 / TGA additions from the 4637 first-light truth table
+    "FRED:CASACBW027SBOG": 1, "FRED:DPSACBW027SBOG": 1,
+    "FRED:TOTBKCR": 1, "FRED:WLCFLL": -1,
+    "FRED:TREASURY": -1, "FRED:WTREGEN": -1,
+}
+TREND_WIN = {"DoD": (20, 60), "WoW": (8, 26), "MoM": (3, 12),
+             "QoQ": (2, 6), "chg": (8, 26)}
+
+
+def ols_slope(vals):
+    n = len(vals)
+    if n < 3:
+        return None
+    mx = (n - 1) / 2.0
+    my = sum(vals) / max(n, 1)
+    num = sum((i - mx) * (v - my) for i, v in enumerate(vals))
+    den = sum((i - mx) ** 2 for i in range(n))
+    if not den or not my:
+        return None
+    return (num / den) / abs(my) * 100.0  # %-of-level per obs
+
+
+def trend_block(vals, lab):
+    kS, kL = TREND_WIN.get(lab, (8, 26))
+    if len(vals) < kL + kS + 2:
+        return None
+    maS = sum(vals[-kS:]) / kS
+    maL = sum(vals[-kL:]) / kL
+    sl_now = ols_slope(vals[-kS:])
+    sl_prev = ols_slope(vals[-2 * kS:-kS])
+    if sl_now is None or sl_prev is None:
+        return None
+    cross_age = None
+    for back in range(0, min(10, len(vals) - kL - 1)):
+        w = vals[:len(vals) - back]
+        s2 = sum(w[-kS:]) / kS
+        l2 = sum(w[-kL:]) / kL
+        if (s2 - l2) * (maS - maL) < 0:
+            cross_age = back
+            break
+    if sl_prev < 0 < sl_now:
+        rev = "REVERSAL_UP"
+    elif sl_prev > 0 > sl_now:
+        rev = "REVERSAL_DOWN"
+    else:
+        rev = "NONE"
+    conf = ("CONFIRMED" if rev != "NONE" and cross_age is not None
+            and cross_age <= 6 else
+            "FORMING" if rev != "NONE" else "NONE")
+    return {"trend_state": "UP" if maS > maL else "DOWN",
+            "slope_now_pct": round(sl_now, 3),
+            "slope_prev_pct": round(sl_prev, 3),
+            "ma_cross_age": cross_age,
+            "reversal": rev, "reversal_conf": conf}
+
+
+def analyze(sym, node, name):
+    se = extract_series(node)
+    if se and len(se) >= 15:
+        vals = [o["value"] for o in se]
+        last, prev = vals[-1], vals[-2]
+        lab = cadence_label(se)
+        w = vals[-260:]
+        lo, hi = min(w), max(w)
+        # v1.2.0 basis rule: sign-crossing or near-zero series get
+        # DIFFERENCE basis — pct-change there is division-by-noise
+        # (the RRP/NFCI/CFNAI class from Khalid's page audit).
+        diffs = [vals[i] - vals[i - 1] for i in range(1, len(vals))]
+        dmu = sum(diffs[-90:]) / max(len(diffs[-90:]), 1)
+        dsd = math.sqrt(sum((x - dmu) ** 2 for x in diffs[-90:])
+                        / max(len(diffs[-90:]) - 1, 1))
+        mean_lvl = sum(w) / len(w)
+        diff_basis = (lo < 0 < hi) or (
+            dsd > 0 and abs(mean_lvl) < 2 * dsd)
+        if diff_basis:
+            chg = last - prev
+            z = abs((chg - dmu) / dsd) if dsd else None
+            chg_str = "%+.3g Δ (%s)" % (chg, lab)
+            dod = None
+        else:
+            dod = ((last / prev - 1) * 100) if prev else None
+            rets = [(vals[i] / vals[i - 1] - 1) * 100
+@@END 2@@
