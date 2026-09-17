@@ -762,7 +762,7 @@ def compute_tail_risk(scored_auctions: List[dict],
     Each probability is a calibrated mapping from current state to a
     forward-event probability based on historical frequency.
 
-    P_failed_auction_30d:  probability of a bid-to-cover < 2.0 on coupons
+    P_soft_demand_30d:  probability of a bid-to-cover < 2.0 on coupons
                             OR allotted-at-high > 95% in next 30 days
     P_regime_escalation_14d: probability composite climbs ≥ 25 points in 14d
     P_supply_volatility_30d: probability of a 1+ sigma yield move on a
@@ -831,7 +831,8 @@ def compute_tail_risk(scored_auctions: List[dict],
     p_supply_vol = min(75, 10 + repo_amp + dollar_amp + max(0, momentum) * 0.4)
 
     return {
-        "p_failed_auction_30d": {
+        # ops 5617 soft-demand: BTC<2 or AAH>95 is weak demand, not a failed auction
+        "p_soft_demand_30d": {
             "probability": round(p_failed, 1),
             "drivers": {
                 "coupons_long_stress":  round(coupons_long_stress, 1),

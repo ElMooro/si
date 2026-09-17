@@ -25,7 +25,7 @@ Analysis (deterministic, every number shown comes from the sources above):
     score -> grade A..F and a verdict sentence.
   * per buyback: fill vs maximum, offered/accepted coverage, size percentile
     within the program, program pace; large max-fill operations are flagged
-    as a liquidity injection ("easy-policy signal"), risk-asset supportive.
+    as a TGA cash-out (ops 5618 buyback wording), not an easing or duration-bid call.
   * per day: headline + tags + liquidity / rates / risk-asset implications
     built from the day's operations; an optional Claude note (Haiku) written
     ONLY from those computed facts, cached per date.
@@ -426,8 +426,8 @@ def analyze_buyback(op, program):
     b["liquidity_signal"] = liq
     if liq == "strong":
         tags.append("LIQUIDITY INJECTION")
-        tags.append("EASY-POLICY SIGNAL")
-        tags.append("RISK-ASSET BULLISH")
+        tags.append("TGA-CASH-OUT SIGNAL")
+        tags.append("TGA CASH-OUT; NOT AN EASING CALL")
     b["tags"] = tags
     what = "Treasury bought back %s of %s (%s bucket%s)" % (
         fmt_bn(acc), (op.get("security_type") or "coupons").lower(),
@@ -478,7 +478,7 @@ def day_verdict(date, auctions, buybacks):
     buy_total = sum(b.get("accepted") or 0 for b in buybacks)
     risk = "neutral"
     if liq_ops:
-        tags += ["LIQUIDITY EASY", "EASY-POLICY SIGNAL", "RISK-ASSET BULLISH"]
+        tags += ["LIQUIDITY EASY", "TGA-CASH-OUT SIGNAL", "TGA CASH-OUT; NOT AN EASING CALL"]
         risk = "bullish"
         for b in liq_ops:
             bullets.append("Buyback: %s accepted (%s%% of max, %.1fx offered) in the %s bucket -> supply removed, cash to dealers. Easing impulse; risk-asset supportive."
@@ -1030,7 +1030,7 @@ def lambda_handler(event, ctx):
         "methodology": {
             "tail_proxy": "high yield (bills: investment rate) minus the prior-close Treasury par yield of the matching tenor, in bp; a true when-issued tail needs dealer WI quotes",
             "z_scores": "vs the trailing 12 auctions of the same type and term", "grade": "demand score = z(bid-to-cover) + 0.8 z(indirect) - 0.8 z(dealer) - z(tail); A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F",
-            "buyback_signal": "strong = accepted >= 90% of maximum and maximum >= $5B (tags LIQUIDITY INJECTION / EASY-POLICY SIGNAL / RISK-ASSET BULLISH)",
+            "buyback_signal": "strong = accepted >= 90% of maximum and maximum >= $5B (tags LIQUIDITY INJECTION / TGA-CASH-OUT SIGNAL / TGA CASH-OUT; NOT AN EASING CALL)",
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }
     _put_json(OUT_KEY, out)
