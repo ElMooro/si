@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.4.2"
+VERSION = "2.4.4"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -369,6 +369,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "catalog": {k: catalog.get(k) for k in ("generated_at", "n", "article_models_present", "article_models_missing")},
         "brain_dataset": ({k: dataset.get(k) for k in ("n_rows", "source_n_notes", "n_labels", "outcome_labels")} if dataset else None),
         "market_read": out.get("market_read"),
+        "market_exam": out.get("market_exam"),                     # aggregate scores vs baselines per split -- no drill content
         "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
         "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
         "fleet_inputs": {k: fleet.get(k) for k in ("registry_version", "status", "summary")},

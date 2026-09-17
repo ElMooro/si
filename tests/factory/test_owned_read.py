@@ -241,5 +241,13 @@ class OwnedReadContractTests(unittest.TestCase):
         self.assertEqual(lf.settle_owned_read()['state'], 'malformed'); self.assertEqual(n['i'], 3)
 
 
+
+class PublicReadModelTests(unittest.TestCase):
+    def test_public_read_model_carries_the_market_exam(self):
+        src = (ROOT / 'aws/lambdas/justhodl-ai/source/lambda_function.py').read_text()
+        # the public data/ai.json is composed field by field from `out`; a block added to `out` alone never reaches the page (2026-09-17)
+        self.assertIn('"market_exam": _safe(public_market_exam)', src)
+        self.assertIn('"market_exam": out.get("market_exam")', src)
+
 if __name__ == '__main__':
     unittest.main()
