@@ -389,6 +389,10 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                    Body=json.dumps(out, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=900")
+    # chatgpt-defcon-alias-v1: same packet, maintained by its canonical producer.
+    s3.put_object(Bucket=S3_BUCKET, Key="data/defcon.json",
+                   Body=json.dumps(out, default=str).encode("utf-8"),
+                   ContentType="application/json", CacheControl="public, max-age=900")
 
     hist["snapshots"].append({"ts": out["generated_at"], "score": round(master, 1),
                                "defcon": level})
@@ -398,7 +402,7 @@ def lambda_handler(event, context):
                    Body=json.dumps(hist, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=900")
 
-    if prior_level is not None and prior_level != level:
+    if not (event or {}).get("suppress_alerts") and prior_level is not None and prior_level != level:
         arrow = "DETERIORATING ⚠️" if level < prior_level else "improving"
         maybe_telegram(
             f"[crisis] <b>DEFCON CHANGE — {arrow}</b>\n"

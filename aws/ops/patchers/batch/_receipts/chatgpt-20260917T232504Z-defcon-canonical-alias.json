@@ -1,0 +1,53 @@
+{
+ "apply_run_id": "35287028555",
+ "at": "2026-09-17T23:29:09Z",
+ "batch": "chatgpt-20260917T232504Z-defcon-canonical-alias",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 17815,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "7c2e411dd2957bfb986432ea72f2f0d5d4f4c62414578bf4d6d46b139e44c6f3",
+   "target": "aws/lambdas/justhodl-crisis-composite/source/lambda_function.py"
+  },
+  {
+   "bytes": 1542,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "47a3b506eb245b5e681515cadd18d7c0965ba4d7474ee5545c292143eae0720d",
+   "target": "aws/lambdas/justhodl-crisis-composite/tests/run_tests.py"
+  },
+  {
+   "bytes": 2575,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "e9010e3396a5f2b7244509dbddf3c6f7794da83710a59426a92ae18621b1bcfe",
+   "target": "aws/ops/pending/ops_5702_defcon_alias_verify.py"
+  }
+ ],
+ "functions": [
+  "justhodl-crisis-composite"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35287028555.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "defcon-canonical-alias",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5702_defcon_alias_verify.py"
+ ],
+ "pages": [],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-crisis-composite.json  (commit must equal the apply-lane commit)",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5702_defcon_alias_verify.py"
+ ],
+ "workers": []
+}
