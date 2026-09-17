@@ -174,12 +174,11 @@ def run_exam(cloud, drills: list, season: dict, control: dict, *, wait_s: float,
             row.update(score=None)
         base_m = score_prediction(momentum_baseline(drill, crisis_rate), drill["labels"], season)
         base_p = score_prediction(prior_baseline(labels, crisis_rate), drill["labels"], season)
-        row["baselines"] = {"momentum": {"score": base_m["score"], "components": base_m["components"], "crisis_brier": base_m["crisis_brier"]},
-                            "prior": {"score": base_p["score"], "components": base_p["components"], "crisis_brier": base_p["crisis_brier"]}}
+        row["baselines"] = {"momentum": {"score": base_m["score"], "components": base_m["components"], "crisis_brier": base_m["crisis_brier"], "missed_crisis": base_m["missed_crisis"]},
+                            "prior": {"score": base_p["score"], "components": base_p["components"], "crisis_brier": base_p["crisis_brier"], "missed_crisis": base_p["missed_crisis"]}}
         rows.append(row)
     answered = [r for r in rows if r.get("score") is not None]
-    bl = {name: aggregate([{"score": r["baselines"][name]["score"], "components": r["baselines"][name]["components"], "crisis_brier": r["baselines"][name]["crisis_brier"]}
-                           for r in rows]) for name in ("momentum", "prior")}
+    bl = {name: aggregate([dict(r["baselines"][name]) for r in rows]) for name in ("momentum", "prior")}   # same fields as the model, missed crises included
     return {"schema_version": "factory-market-exam.v1", "run_id": run_id, "at": now_iso(), "model": control.get("model_id"), "revision": control.get("revision"),
             "adapter_generation": control.get("adapter_generation"), "endpoint": control.get("endpoint_name"),
             "n_drills": len(drills), "n_answered": len(answered), "n_unanswered": len(rows) - len(answered),

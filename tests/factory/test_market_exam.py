@@ -90,6 +90,7 @@ class MarketExamTests(unittest.TestCase):
         self.assertEqual(r1["baselines"]["momentum"]["components"]["direction"], 1)     # a rising window -> momentum says UP
         self.assertEqual(r2["baselines"]["momentum"]["components"]["direction"], 1)
         self.assertIn(res["crisis_base_rate"], (round(1 / 3, 4),))
+        self.assertEqual(res["baselines"]["prior"]["missed_crises"], 1)            # a base-rate crisis probability under 0.5 misses every crisis too
         self.assertEqual(len(cloud.rt.calls), 3); self.assertEqual(cloud.rt.calls[0]["InvocationTimeoutSeconds"], 900)
         self.assertIn("holdout-test/requests/d1.json", cloud.rt.calls[0]["InputLocation"])
 
