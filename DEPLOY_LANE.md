@@ -20,10 +20,21 @@ happens on the GitHub Actions runner, which holds the credentials.
 
 | Lane | Has a shell + git? | Write path |
 |---|---|---|
-| Khalid (Git Bash), Claude (sandbox) | yes | normal git push — any file size, nothing special |
-| Grok / ChatGPT connector (Contents API) | no — one file per write, ~40 KB bodies truncate | **batch upload v4** for anything multi-file, **multipart v3** for one large file, a tiny patcher for a surgical edit |
+| Khalid (Git Bash), Claude (sandbox), Codex desktop with a shell | yes | one atomic git commit + push; engine files above 40 KB need no splitting |
+| Grok with a write-capable Contents API connection | no — one file per write, large request bodies can truncate | **batch upload v4** for anything multi-file, **multipart v3** for one large file, a tiny patcher for a surgical edit |
+| OpenAI's read-only GitHub app | read-only | inspect files only; use shell git for writes |
 
 The staged-patcher path exists only for lanes without a shell. It is not the general push path.
+For the current ChatGPT batch improvements, push to the review branch, not `main`:
+
+```sh
+git push origin HEAD:refs/heads/chatgpt/batch-improvements
+```
+
+Git Credential Manager supplies the login when configured. Otherwise the owner sets
+`GITHUB_TOKEN` securely in the runtime. Never paste credentials in chat. A branch push makes
+the changes available for review; production deploys after merge to `main`. Do not retry
+writes through OpenAI's read-only GitHub app: splitting requests cannot make it writable.
 
 ## Lane authorization (Khalid directive, 2026-09-17)
 
@@ -31,8 +42,11 @@ The **Grok lane and the ChatGPT/Codex lane are authorized for full write on ever
 path** — engines (`aws/lambdas/**`), shared modules, ops scripts (`aws/ops/pending/`),
 workers, pages — Grok through the "Grok (by xAI)" GitHub App (code / actions / workflows
 read-write; commits as `ElMooro`), Codex through the standing deploy PAT (`repo` + `workflow`;
-commits as `Codex`), both straight to `main` (unprotected). That is the same authority Claude
-holds; every push deploys through the runner exactly as for any lane. "AWS access" for any lane means the runner: an ops script
+commits as `Codex`) or authenticated git. This standing grant does not establish which credential
+is available in a particular runtime, nor make OpenAI's read-only GitHub app writable. The latest
+user instruction controls the destination branch; the current batch improvements use
+`chatgpt/batch-improvements` for review. A merge or authorized push to `main` deploys through
+the runner. "AWS access" for any lane means the runner: an ops script
 in `aws/ops/pending/` runs with the runner's IAM. No lane ever holds AWS keys, and none are
 issued (audit 2026-09-08, Release A) — a key in a chat window is a regression, not a grant.
 
@@ -98,8 +112,8 @@ aws/ops/patchers/batch/<batch-id>/manifest.json      written LAST:
                {"target": "aws/lambdas/justhodl-x/config.json"}]}
 ```
 
-- `<batch-id>`: lowercase `[a-z0-9._-]`, 8–80 chars — use `<lane>-<YYYYMMDDTHHMMSSZ>-<slug>`; an id that
-  already has a receipt is refused, so two lanes can never write into each other's batch
+- `<batch-id>`: `[A-Za-z0-9._-]`, 8–80 chars — use `<lane>-<YYYYMMDDTHHMMSSZ>-<slug>`; an id that
+  has a successful assembly receipt is permanently reserved; rejected batches can be repaired in place
 - `files` in the manifest is the contract: a listed target that was not uploaded, or an upload that
   is not listed, rejects the whole batch (typo protection)
 - **all-or-nothing**: every file is checked (markers, compile/parse/document, first/last line,
@@ -119,7 +133,7 @@ aws/ops/patchers/batch/<batch-id>/manifest.json      written LAST:
   If main moved since, the batch is rejected as stale instead of overwriting another lane's work
 - a `config/<name>.json` and its bundled `aws/lambdas/*/source/<name>.json` twins must be identical
   after the batch (same rule as the deploy gate) — put every copy in the batch
-- two batches in one run that write the same file: the second is rejected as an overlap
+- two complete batches in one run that write the same file: both are rejected as an overlap
 - a batch that touches `aws/shared/` redeploys every importer of that module, not just the engines in the batch
 - to abandon a batch (or a v3 upload): write `manifest.json` as `{"cancel": true, "note": "..."}` — one write;
   the folder is removed, nothing lands, the id stays free. Never leave a half-uploaded folder behind
@@ -157,6 +171,12 @@ parses, `.js` passes `node --check`, `.html` is a whole document (`"fragment": t
 a result under 50% of the existing file needs `"shrink_ok": true`. CRLF becomes LF; each part joins
 on a line boundary; the file ends with a newline.
 
+Both markers are required for every text part, even when its content happens to compile. A manifest
+with `"complete": false` stays inactive even if it also lists part names. Raw `"join": "bytes"`
+uploads retain the v2 requirement for a sha256 or exact byte count; no-hash/no-count uploads use
+the marked text format above. The shell splitter writes LF on every platform so its parts stay
+within the requested byte limit.
+
 What comes back, on `main`:
 - **assembled** → target written, parts folder removed, receipt at
   `aws/ops/patchers/parts/_receipts/<upload-id>.json` (bytes, sha256, check), then the deploy is
@@ -166,6 +186,10 @@ What comes back, on `main`:
   lane re-runs by itself, and the run goes red so nobody mistakes it for a landing
 - parts still arriving → nothing happens until `manifest.json` says `"complete": true`
 
+An `assembled` receipt proves assembly, not completed deployment. If the target bytes are unchanged,
+no deploy is needed or dispatched. For changed engines, verify the apply run's resulting commit
+against `data/ops/releases/<function>.json`; the part-upload or manifest commit is not that result commit.
+
 Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root `*.html|*.js|*.css`,
 `assets/`, `js/`, `css/`. Pages/workers get their own dispatch. A v2 manifest (`"parts": [...]`,
 `sha256`, `bytes`, `"join": "bytes"`) still works for exact/binary uploads.
@@ -173,7 +197,107 @@ Targets allowed: `aws/lambdas/`, `aws/shared/`, `cloudflare/workers/`, root `*.h
 With a shell: `python3 scripts/split_parts.py <file> --target <repo path>` writes the whole folder
 (markers, manifest, sha256) — or just `git push`, the parts lane is for lanes without one.
 
-## No-shell lane loop (Grok, ChatGPT) — read, write, verify, all through the Contents API
+## Batch validation, retries and shell preparation
+
+Use the v4 batch layout above for all related files. The apply runner tests the upload code
+before assembly. It verifies bundled JSON against every existing `config/` twin before writing;
+upload every affected copy byte-identically in the same batch. Storage failures abort the
+workflow before a source commit can be pushed. Publication is one Git commit; individual AWS
+function updates still run through the existing deployment transaction.
+
+A rejected batch can be repaired under the **same ID**: read `STATUS.json`, fix the named files
+or parts, and push again. Successfully assembled batch IDs remain permanently reserved, and
+their original receipts are preserved. Concurrent complete batches targeting the same file
+are rejected rather than overwriting one another. Do not mix single-file uploads and batches
+for the same target while a release is in flight.
+
+Optionally copy the destination's `sha` from a GitHub Contents GET into its file entry's
+`base_sha` (`base_blob_sha` is accepted as an alias). You do not calculate it. The runner rejects a replacement when that file has
+since changed; read main again and merge before retrying. Explicit `null` means create only;
+leaving it out preserves the original contract. Retrying identical bytes is harmless. The
+apply workflow also refuses to rebase changes to files it already validated.
+
+With a shell, prepare a JSON list such as
+`[{"source":"work/new-engine.py","target":"aws/lambdas/justhodl-x/source/lambda_function.py"}, ...]`
+and run `python3 scripts/split_parts.py --batch release-files.json`. Sources are relative to the
+repository (absolute paths also work); entries may include `base_sha`, `shrink_ok` or
+`fragment`. This generates the **same v4 batch format**, with marker parts at or below 12 KB,
+optional exactness values computed for you, and the root manifest written last. Generated
+IDs include a random suffix and part numbers beyond 999 are supported.
+
+## One-command sender: prepare, upload every part, resume, verify
+
+`split_parts.py` only prepares files. **`publish_batch.py` also sends them** using small,
+sequential GitHub Contents API requests. An authenticated shell lane can publish a large
+engine and its related files with one command; the network still carries multiple small writes.
+Normal atomic `git push` is also suitable for shell lanes and has no connector's 40 KB limit.
+
+Prepare a JSON list with the complete source/target pairs:
+
+```json
+[
+  {"source": "work/new-engine.py", "target": "aws/lambdas/justhodl-x/source/lambda_function.py"},
+  {"source": "work/helper.py", "target": "aws/lambdas/justhodl-x/source/helper.py"},
+  {"source": "work/config.json", "target": "aws/lambdas/justhodl-x/config.json"}
+]
+```
+
+Then run:
+
+```sh
+python3 scripts/publish_batch.py --spec release-files.json --lane codex --wait 20 \
+  --verify justhodl-x=data/x.json
+```
+
+- Files up to 10 KB are staged whole. Larger files use parts at or below 12 KB. The sender
+  computes optional exactness values; a no-shell model still need not compute any hash/count.
+- Every payload is read back and compared byte-for-byte, and the full inventory is checked
+  again before `manifest.json` is written last. Missing, changed or unexpected files block it.
+- A transport timeout is followed by a read before retrying, so a successful write with a
+  lost response is not duplicated. Writes are sequential and paced to avoid bursts.
+- The sender prints a stable `--resume <folder>` command before contacting GitHub. Re-running
+  it skips matching files already present and uploads the rest. It never reports an incomplete
+  six-part upload as a completed release.
+- Existing differing payloads or a changed submitted manifest are not overwritten by this
+  automated client. Inspect `STATUS.json` and reconcile explicitly, or prepare a new unique
+  batch ID. Manual repair of a rejected batch remains supported by the receiver.
+- `--prepare-only` validates/prepares without network access. `--wait` follows the assembly
+  receipt and handoff. Repeated `--verify FUNCTION=data/file.json` options run `verify_push.py`
+  and `verify_release.py` against the exact `result_sha` for each requested engine. Only
+  `requested_checks_verified` confirms those checks passed. Without `--verify`, success means
+  transport/assembly/dispatch only; it never claims a completed AWS deployment.
+- GitHub authorization uses the protected token lookup already documented above. HTTP 401/403
+  stops the sender immediately; splitting files cannot repair an integration's permission grant.
+
+A lane **without a shell and with a write-capable connector** uses the same loop: GET the
+existing payload, write any missing part, GET it back, continue until all payloads match, then
+write the final manifest and follow the receipts. These are multiple tool requests, not one
+oversized `push_files` call. Do not end the task after landing just one of six required parts.
+
+## Follow assembly to its actual source commit
+
+1. Read `parts/_receipts/<upload-id>.json` or `batch/_receipts/<batch-id>.json` on main. It includes `changed`, every batch member's
+   SHA-256, and `apply_run_id`, `handoff_ref`, `handoff_path` when assembled on Actions.
+2. Read `handoff_path` on `handoff_ref` (`ops-evidence`). Its `result_sha` is the commit that
+   contains the assembled source. Its status is `not_required`, `dispatched_unverified` or
+   `dispatch_failed`. A missing handoff means the apply run has not published that evidence yet;
+   inspect the apply run instead of assuming success.
+3. For each changed Lambda, run `verify_push.py <result_sha> --wait 20`, then
+   `verify_release.py <fn> --commit <result_sha> --data data/<engine>.json`.
+
+The handoff never claims completed deployment. A Lambda dispatch must have a successful step
+and a workflow run matching both the source SHA and the caller's unique request ID. A batch
+touching shared modules redeploys their importers as well as explicitly changed engines. New
+files are staged before validation/target selection so newly added helpers and engines count.
+Site/worker dispatches report their step outcome and still need their own workflow verification.
+
+Repository code cannot grant a connector additional GitHub permissions. OpenAI's GitHub app
+is read-only in this environment; an HTTP 403 through it is not fixed by retries or smaller files.
+The shell lane uses its configured GitHub credential; a write-capable API lane needs Contents
+write (plus Workflows write for workflow edits). Keep credentials in the integration or its
+protected runtime, never in parts, manifests, committed code, or chat. AWS access stays on Actions.
+
+## No-shell lane loop (write-capable API only) — read, write, verify
 
 1. **Read first**: `STATE.md` (`next_free_ops_number`), `DEPLOY_LANE.md`, the file you will change
    (`GET /repos/ElMooro/si/contents/<path>?ref=main` → content + `sha`; an update PUT needs that sha).

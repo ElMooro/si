@@ -24,6 +24,8 @@ Layout -- one folder per upload under aws/ops/patchers/parts/<upload-id>/:
   Optional exactness: "sha256", "bytes", "parts": <count>, "join": "bytes" (raw concatenation, no markers,
   no newline normalisation). A v2 manifest ("parts": [names], sha256/bytes) still works unchanged.
 
+Related files use the v4 batch contract in scripts/assemble_batch.py.
+
 Text targets are joined on line boundaries: each part ends with exactly one newline, CRLF becomes LF,
 the file ends with a newline. Checks before anything is written: contiguous part numbers, marker
 numbers/total, part size, first/last line, sha256/bytes when declared, the target compiles
@@ -53,6 +55,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +66,7 @@ RECEIPTS = "_receipts"
 ALLOWED_TARGET_PREFIXES = ("aws/lambdas/", "aws/shared/", "cloudflare/workers/", "assets/", "js/", "css/")
 ALLOWED_ROOT_SUFFIXES = (".html", ".js", ".css")
 
-PART_NAME = re.compile(r"^part-(\d{3})$")
+PART_NAME = re.compile(r"^part-(\d{3,})$")
 MARK_START = re.compile(r"^\s*@@PART\s+(\d+)\s*/\s*(\d+)\s*@@\s*$")
 MARK_END = re.compile(r"^\s*@@END\s+(\d+)\s*@@\s*$")
 MAX_PART_BYTES = 40_000        # the connector is known to truncate around here; refuse rather than trust
@@ -78,20 +81,29 @@ class PartsError(RuntimeError):
 
 
 def _safe_target(target: str, root: Path) -> Path:
-    if not isinstance(target, str) or not target or target.startswith("/") or ".." in Path(target).parts:
+    if (not isinstance(target, str) or not target or "\\" in target or ":" in target
+            or any(p in ("", ".", "..") for p in target.split("/"))):
         raise PartsError(f"unsafe target path: {target!r}")
     root_page = "/" not in target and target.endswith(ALLOWED_ROOT_SUFFIXES)
     if not (target.startswith(ALLOWED_TARGET_PREFIXES) or root_page):
         raise PartsError(f"target outside the allowed tree: {target}")
+    if not (root / target).resolve().is_relative_to(root.resolve()):
+        raise PartsError(f"target resolves outside the repository: {target}")
     return root / target
 
 
 def _discover(folder: Path, manifest: dict):
     """Return (ordered part paths, total) or a dict status when the upload is still arriving."""
+    if "complete" in manifest and manifest["complete"] is not True:
+        return {"status": "incomplete", "reason": "manifest.complete is not true yet"}
     listed = manifest.get("parts")
     if isinstance(listed, list):                         # v2 contract: explicit order
         if not listed:
             raise PartsError("manifest lists no parts")
+        if any(not isinstance(p, str) or not PART_NAME.fullmatch(p) for p in listed) or len(set(listed)) != len(listed):
+            raise PartsError("parts must list unique part-NNN filenames inside this upload")
+        if any(not (folder / p).resolve().is_relative_to(folder.resolve()) for p in listed):
+            raise PartsError("a part resolves outside this upload")
         missing = [p for p in listed if not (folder / p).is_file()]
         if missing:
             return {"status": "incomplete", "missing": missing}
@@ -102,6 +114,10 @@ def _discover(folder: Path, manifest: dict):
     for p in folder.iterdir():
         m = PART_NAME.match(p.name)
         if m and p.is_file():
+            if int(m.group(1)) == 0 or int(m.group(1)) in found:
+                raise PartsError(f"invalid or duplicate part number: {p.name}")
+            if not p.resolve().is_relative_to(folder.resolve()):
+                raise PartsError(f"{p.name} resolves outside this upload")
             found[int(m.group(1))] = p
     if not found:
         raise PartsError("no part-NNN files in the folder")
@@ -131,13 +147,15 @@ def _part_text(path: Path, index: int, total: int) -> str:
     if not lines:
         raise PartsError(f"{path.name} is empty")
     start = MARK_START.match(lines[0])
-    if start:
-        n, t = int(start.group(1)), int(start.group(2))
-        if n != index:
-            raise PartsError(f"{path.name} says @@PART {n}/{t}@@ but it is part {index}")
-        if t != total:
-            raise PartsError(f"{path.name} says @@PART {n}/{t}@@ but {total} parts are present -- fix the total or the folder")
-        lines = lines[1:]
+    if not start:
+        raise PartsError(f"{path.name} has no opening @@PART {index}/{total}@@ line -- "
+                         f"re-upload the whole part with both @@PART and @@END markers")
+    n, t = int(start.group(1)), int(start.group(2))
+    if n != index:
+        raise PartsError(f"{path.name} says @@PART {n}/{t}@@ but it is part {index}")
+    if t != total:
+        raise PartsError(f"{path.name} says @@PART {n}/{t}@@ but {total} parts are present -- fix the total or the folder")
+    lines = lines[1:]
     # the END marker may be followed by blank lines only
     tail = len(lines)
     while tail > 0 and lines[tail - 1].strip() == "":
@@ -147,7 +165,7 @@ def _part_text(path: Path, index: int, total: int) -> str:
         if int(end.group(1)) != index:
             raise PartsError(f"{path.name} ends with @@END {end.group(1)}@@ but it is part {index}")
         lines = lines[:tail - 1]
-    elif start:
+    else:
         raise PartsError(f"{path.name} has @@PART {index}/{total}@@ but no @@END {index}@@ line -- the write was cut off "
                          f"({len(raw):,} bytes arrived); re-upload {path.name} whole")
     body = "\n".join(lines)
@@ -183,7 +201,7 @@ def _language_check(target: str, data: bytes, manifest: dict) -> dict:
                 raise PartsError(f"assembled JavaScript fails node --check: {(proc.stderr or proc.stdout).strip()[:300]}")
             info["check"] = "node --check"
         else:
-            info["check"] = "skipped (no node)"
+            raise PartsError("node is required to validate JavaScript; install Node on the runner and retry")
     elif target.endswith(".html") and not manifest.get("fragment"):
         low = data.decode("utf-8", "replace").lower()
         if "<html" not in low or "</html>" not in low:
@@ -201,18 +219,23 @@ def _edge_line(text: str, first: bool) -> str:
     return (lines[0] if first else lines[-1]).strip()
 
 
-def assemble_one(folder: Path, root: Path, write: bool = True) -> dict:
-    manifest_path = folder / "manifest.json"
-    try:
-        manifest = json.loads(manifest_path.read_text())
-        if not isinstance(manifest, dict):
-            raise PartsError("manifest.json is not an object")
-    except json.JSONDecodeError as exc:
-        raise PartsError(f"manifest.json does not parse ({exc})") from None
-    if manifest.get("cancel") is True:                 # one write abandons an upload: nothing lands, folder goes
-        if write:
-            shutil.rmtree(folder)
-        return {"upload": folder.name, "status": "cancelled", "note": manifest.get("note")}
+def _check_base_sha(target_rel: str, data: bytes, manifest: dict, root: Path) -> None:
+    target = root / target_rel
+    old = target.read_bytes() if target.is_file() else None
+    # Contents API GET returns this SHA already; a no-shell sender only copies it.
+    # null explicitly means 'create only'. Absence retains the v3 contract.
+    guard = "base_blob_sha" if "base_blob_sha" in manifest else "base_sha"
+    if "base_blob_sha" in manifest and "base_sha" in manifest and manifest["base_blob_sha"] != manifest["base_sha"]:
+        raise PartsError(f"{target_rel}: conflicting base_sha and base_blob_sha")
+    if guard in manifest and old != data:
+        actual = hashlib.sha1(b"blob " + str(len(old)).encode() + b"\0" + old).hexdigest() if old is not None else None
+        expected = manifest[guard].lower() if isinstance(manifest[guard], str) else manifest[guard]
+        if expected != actual:
+            raise PartsError(f"{target_rel}: stale -- changed since it was read ({guard} mismatch); read main again and merge before retrying")
+
+
+def _prepare_one(folder: Path, root: Path, manifest: dict):
+    """Validate and return bytes without modifying any target."""
     target_rel = manifest.get("target")
     target = _safe_target(target_rel, root)
     found = _discover(folder, manifest)
@@ -221,6 +244,9 @@ def assemble_one(folder: Path, root: Path, write: bool = True) -> dict:
     paths, total = found
     mode = manifest.get("join") or "lines"
     if mode == "bytes":
+        if not manifest.get("sha256") and manifest.get("bytes") is None:
+            raise PartsError('raw "join": "bytes" requires sha256 or bytes for integrity; '
+                             'use marked text parts with "join": "lines" when neither is available')
         for p in paths:
             if p.stat().st_size > MAX_PART_BYTES:
                 raise PartsError(f"{p.name} is {p.stat().st_size:,} bytes -- over the {MAX_PART_BYTES // 1000} KB connector limit")
@@ -249,16 +275,84 @@ def assemble_one(folder: Path, root: Path, write: bool = True) -> dict:
                     raise PartsError(f"{key} mismatch -- assembled file {'starts' if first else 'ends'} with {got[:80]!r}, "
                                      f"manifest says {str(want).strip()[:80]!r}; a part is missing or out of order")
     info = _language_check(target_rel, data, manifest)
+    old = target.read_bytes() if target.is_file() else None
+    _check_base_sha(target_rel, data, manifest, root)
     if target.is_file():
         prev = target.stat().st_size
         if prev >= SHRINK_MIN_PREV and len(data) < prev * SHRINK_FRACTION and not manifest.get("shrink_ok"):
             raise PartsError(f"assembled file is {len(data):,} bytes, the existing target is {prev:,} -- lost more than half; "
                              f"a deliberate rewrite must say \"shrink_ok\": true in manifest.json")
-    result = {"upload": folder.name, "status": "assembled" if write else "ready", "target": target_rel,
-              "bytes": len(data), "sha256": digest, "parts": total, "join": mode, **info}
-    if write:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+    result = {"upload": folder.name, "status": "ready", "target": target_rel,
+              "bytes": len(data), "sha256": digest, "parts": total, "join": mode, "changed": old != data, **info}
+    return result, target, data
+
+
+def _validate_twins(root: Path, prepared: list) -> None:
+    """Check the proposed tree, including every existing bundle of a changed config."""
+    proposed = {r["target"]: data for r, _, data in prepared}
+    sources = {p.relative_to(root).as_posix() for p in (root / "aws/lambdas").glob("*/source/*.json")}
+    sources.update(p for p in proposed if re.fullmatch(r"aws/lambdas/[^/]+/source/[^/]+\.json", p))
+    for src in sorted(sources):
+        twin = "config/" + Path(src).name
+        if src not in proposed and twin not in proposed:
+            continue
+        if twin not in proposed and not (root / twin).is_file():
+            continue
+        left = proposed[src] if src in proposed else (root / src).read_bytes()
+        right = proposed[twin] if twin in proposed else (root / twin).read_bytes()
+        if left != right:
+            raise PartsError(f"bundled config mismatch: {src} != {twin}; upload both byte-identically in one batch")
+
+
+def _prepare_upload(folder: Path, root: Path):
+    try:
+        manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise PartsError(f"manifest.json does not parse ({exc})") from None
+    if not isinstance(manifest, dict):
+        raise PartsError("manifest.json is not an object")
+    if manifest.get("cancel") is True:
+        return {"upload": folder.name, "status": "cancelled", "note": manifest.get("note")}, []
+    prepared = _prepare_one(folder, root, manifest)
+    if isinstance(prepared, dict):
+        return prepared, []
+    _validate_twins(root, [prepared])
+    return prepared[0], [prepared]
+
+
+def _write_targets(prepared: list) -> None:
+    """Rollback a failed write; no commit can contain only part of a batch."""
+    staged, backups = [], []
+    try:
+        for _, target, data in prepared:
+            old = target.read_bytes() if target.is_file() else None
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_name(f".{target.name}.{uuid.uuid4().hex}.upload")
+            staged.append((temporary, target, old))
+            temporary.write_bytes(data)
+        for temporary, target, old in staged:
+            os.replace(temporary, target)
+            backups.append((target, old))
+    except Exception:
+        for target, old in reversed(backups):
+            if old is None:
+                target.unlink(missing_ok=True)
+            else:
+                target.write_bytes(old)
+        raise
+    finally:
+        for temporary, _, _ in staged:
+            temporary.unlink(missing_ok=True)
+
+
+def assemble_one(folder: Path, root: Path, write: bool = True) -> dict:
+    result, prepared = _prepare_upload(folder, root)
+    if write and result["status"] == "ready":
+        _write_targets(prepared)
+        result["status"] = "assembled"
+        for member in result.get("files", []):
+            member["status"] = "assembled"
+    if write and result["status"] == "cancelled":
         shutil.rmtree(folder)
     return result
 
@@ -267,10 +361,13 @@ def _record(root: Path, folder: Path, result: dict) -> None:
     receipts = root / PARTS_DIR / RECEIPTS
     receipts.mkdir(parents=True, exist_ok=True)
     result = {**result, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-    (receipts / f"{folder.name}.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n")
+    if os.environ.get("GITHUB_RUN_ID"):
+        result.update(apply_run_id=os.environ["GITHUB_RUN_ID"], handoff_ref="ops-evidence",
+                      handoff_path=f"aws/ops/reports/apply-lane/{os.environ['GITHUB_RUN_ID']}.json")
+    (receipts / f"{folder.name}.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     if result["status"] == "rejected" and folder.is_dir():
-        (folder / "STATUS.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n")
-    elif result["status"] == "assembled" and folder.is_dir():
+        (folder / "STATUS.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    elif result["status"] in ("assembled", "cancelled") and folder.is_dir():
         shutil.rmtree(folder)
 
 
@@ -278,14 +375,32 @@ def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
     base = root / PARTS_DIR
     if not base.is_dir():
         return []
-    results = []
+    plans, owners = [], {}
     for folder in sorted(p for p in base.iterdir() if p.is_dir() and p.name != RECEIPTS and (p / "manifest.json").is_file()):
         try:
-            result = assemble_one(folder, root, write)
+            result, prepared = _prepare_upload(folder, root)
         except PartsError as exc:
             result = {"upload": folder.name, "status": "rejected", "reason": str(exc)}
         except Exception as exc:  # noqa: BLE001 -- an unexpected error is still a rejection with a reason, never a silent skip
             result = {"upload": folder.name, "status": "rejected", "reason": f"{type(exc).__name__}: {exc}"}
+        if result["status"] != "ready":
+            prepared = []
+        plans.append((folder, result, prepared))
+        for _, target, _ in prepared:
+            owners.setdefault(target.resolve(), []).append(result)
+    for target, uploads in owners.items():
+        if len(uploads) > 1:
+            for result in uploads:
+                result.update(status="rejected", reason=f"overlapping uploads target {target.relative_to(root.resolve())}; combine related files into one batch or remove the superseded upload")
+    results = []
+    for folder, result, prepared in plans:
+        if write and result["status"] == "ready":
+            # I/O/rollback failures must stop the workflow before it can commit any tree.
+            # Only validation failures are recoverable per-upload rejections.
+            _write_targets(prepared)
+            result["status"] = "assembled"
+            for member in result.get("files", []):
+                member["status"] = "assembled"
         if write and result["status"] in ("assembled", "rejected", "cancelled"):
             _record(root, folder, result)
         results.append(result)

@@ -8,8 +8,8 @@ that deploys nothing until its manifest says "complete"; the runner then checks 
 writes ALL targets into the working tree, and the apply lane commits them as ONE commit and
 dispatches ONE pinned deploy for every function touched.
 
-Layout -- one folder per batch under aws/ops/patchers/batch/<batch-id>/  (id: lowercase, 8+ chars,
-[a-z0-9._-]; recommended  <lane>-<YYYYMMDDTHHMMSSZ>-<slug>  so two lanes can never pick the same one):
+Layout -- one folder per batch under aws/ops/patchers/batch/<batch-id>/  (id: 8+ chars,
+[A-Za-z0-9._-]; recommended <lane>-<YYYYMMDDTHHMMSSZ>-<slug> with a unique suffix):
 
   files/<target path>                      a file written whole (<= 10 KB is safe), e.g.
       files/aws/lambdas/justhodl-x/config.json
@@ -39,7 +39,7 @@ Outcomes, every run (receipt at aws/ops/patchers/batch/_receipts/<batch-id>.json
                  check), the functions that will be deployed, pages/workers/ops touched
   rejected    -> NOTHING written (all-or-nothing); <folder>/STATUS.json + the receipt list EVERY
                  problem across all files, so one more push fixes them all; the run then goes red
-A batch id that already has a receipt is refused (upload-name collision protection).
+A successfully assembled batch id is never reused; a rejected batch can be repaired in place.
 
 Usage (apply-staged-large-files.yml):  python3 scripts/assemble_batch.py [--check]
 """
@@ -64,13 +64,14 @@ PartsError = PARTS["PartsError"]
 ALLOWED_PREFIXES = PARTS["ALLOWED_TARGET_PREFIXES"] + ("config/", "schemas/", "docs/", "aws/ops/pending/")
 ALLOWED_ROOT_SUFFIXES = PARTS["ALLOWED_ROOT_SUFFIXES"]
 TEXT_SUFFIXES = (".py", ".js", ".mjs", ".json", ".html", ".css", ".md", ".txt", ".yml", ".yaml", ".toml", ".csv")
-ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{7,79}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{7,79}$", re.IGNORECASE)
 PART_NAME = PARTS["PART_NAME"]
 MIN_SOURCE_BYTES = PARTS["MIN_TARGET_BYTES"]
 
 
 def _safe_target(target: str) -> str:
-    if not isinstance(target, str) or not target or target.startswith("/") or ".." in Path(target).parts:
+    if (not isinstance(target, str) or not target or "\\" in target or ":" in target
+            or any(p in ("", ".", "..") for p in target.split("/"))):
         raise PartsError(f"unsafe target path: {target!r}")
     root_page = "/" not in target and target.endswith(ALLOWED_ROOT_SUFFIXES)
     if not (target.startswith(ALLOWED_PREFIXES) or root_page):
@@ -115,18 +116,19 @@ def _whole_bytes(path: Path, target: str) -> bytes:
 
 
 def _parts_bytes(folder: Path, target: str, entry: dict) -> bytes:
-    names = {}
-    for p in folder.iterdir():
-        m = PART_NAME.match(p.name)
-        if m and p.is_file():
-            names[int(m.group(1))] = p
-    total = max(names)
-    gaps = [f"part-{n:03d}" for n in range(1, total + 1) if n not in names]
-    if gaps:
-        raise PartsError(f"{target}: parts not contiguous -- missing {', '.join(gaps)}")
-    ordered = [names[n] for n in range(1, total + 1)]
-    if (entry.get("join") or "lines") == "bytes":
+    discovered = PARTS["_discover"](folder, {**entry, "complete": True})
+    if isinstance(discovered, dict):
+        raise PartsError(f"{target}: incomplete parts: {discovered}")
+    ordered, total = discovered
+    mode = entry.get("join") or "lines"
+    if mode == "bytes":
+        if not entry.get("sha256") and entry.get("bytes") is None:
+            raise PartsError(f"{target}: raw bytes need sha256 or bytes; otherwise use marked text parts")
+        if any(p.stat().st_size > PARTS["MAX_PART_BYTES"] for p in ordered):
+            raise PartsError(f"{target}: raw part exceeds connector limit")
         return b"".join(p.read_bytes() for p in ordered)
+    if mode != "lines":
+        raise PartsError(f"{target}: unknown join mode {mode!r}")
     try:
         text = "".join(PARTS["_part_text"](p, i, total) for i, p in enumerate(ordered, 1))
     except PartsError as exc:
@@ -145,6 +147,9 @@ def _check_target(target: str, data: bytes, entry: dict, batch: dict, root: Path
     want = (entry.get("sha256") or "").lower()
     if want and want != digest:
         raise PartsError(f"{target}: sha256 mismatch (assembled {digest[:12]} != declared {want[:12]})")
+    if entry.get("bytes") is not None and int(entry["bytes"]) != len(data):
+        raise PartsError(f"{target}: byte count mismatch")
+    PARTS["_check_base_sha"](target, data, entry, root)
     if target.endswith(TEXT_SUFFIXES):
         text = data.decode("utf-8", "replace")
         for key, first in (("first_line", True), ("last_line", False)):
@@ -164,7 +169,8 @@ def _check_target(target: str, data: bytes, entry: dict, batch: dict, root: Path
         shrink_ok = entry.get("shrink_ok", batch.get("shrink_ok", False))
         if prev >= PARTS["SHRINK_MIN_PREV"] and len(data) < prev * PARTS["SHRINK_FRACTION"] and not shrink_ok:
             raise PartsError(f"{target}: {len(data):,} bytes vs {prev:,} existing -- lost more than half; set \"shrink_ok\": true for a deliberate rewrite")
-    return {"target": target, "bytes": len(data), "sha256": digest, **info}
+    changed = not existing.is_file() or existing.read_bytes() != data
+    return {"target": target, "bytes": len(data), "sha256": digest, "changed": changed, **info}
 
 
 def _classify(targets: list[str]) -> dict:
@@ -196,7 +202,7 @@ def _twin_paths(target: str, root: Path, assembled: dict[str, bytes]) -> list[st
     if not has_config:
         return []
     twins = {config_twin}
-    twins.update(str(p.relative_to(root)) for p in (root / "aws" / "lambdas").glob(f"*/source/{name}"))
+    twins.update(p.relative_to(root).as_posix() for p in (root / "aws" / "lambdas").glob(f"*/source/{name}"))
     twins.update(t for t in assembled if t.startswith("aws/lambdas/") and t.endswith("/source/" + name))
     twins.discard(target)
     return sorted(twins)
@@ -212,29 +218,27 @@ def _twin_problems(assembled: dict[str, bytes], root: Path) -> list[str]:
             if other is None and (root / twin).is_file():
                 other = (root / twin).read_bytes()
             if other is not None and other != data:
-                problems.append(f"{target} must be byte-identical to its twin {twin} -- put both copies in the batch with the same content"
+                problems.append(f"bundled config mismatch: {target} must be byte-identical to its twin {twin} -- put both copies in the batch with the same content"
                                 + ("" if twin in assembled else " (the twin on main differs; the deploy gate would refuse this)"))
     return sorted(set(problems))
 
 
-def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str], claimed: dict[str, str] | None = None) -> dict:
+def _prepare_batch(folder: Path, root: Path, receipted: set[str]):
     manifest_path = folder / "manifest.json"
     if not manifest_path.is_file():
-        return {"batch": folder.name, "status": "incomplete", "reason": "no manifest.json yet"}
+        return {"batch": folder.name, "status": "incomplete", "reason": "no manifest.json yet"}, []
     try:
-        manifest = json.loads(manifest_path.read_text())
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if not isinstance(manifest, dict):
             raise PartsError("manifest.json is not an object")
     except json.JSONDecodeError as exc:
         raise PartsError(f"manifest.json does not parse ({exc})") from None
     if manifest.get("cancel") is True:                 # one write abandons a batch: nothing lands, folder goes, id stays free
-        if write:
-            shutil.rmtree(folder)
-        return {"batch": folder.name, "status": "cancelled", "note": manifest.get("note"), "lane": manifest.get("lane")}
+        return {"batch": folder.name, "status": "cancelled", "note": manifest.get("note"), "lane": manifest.get("lane")}, []
     if manifest.get("complete") is not True:
-        return {"batch": folder.name, "status": "incomplete", "reason": "manifest.complete is not true yet"}
+        return {"batch": folder.name, "status": "incomplete", "reason": "manifest.complete is not true yet"}, []
     if not ID_RE.match(folder.name):
-        raise PartsError(f"batch id {folder.name!r} is invalid -- lowercase [a-z0-9._-], 8-80 chars, e.g. grok-20260917T150000Z-stock-buying")
+        raise PartsError(f"batch id {folder.name!r} is invalid -- [A-Za-z0-9._-], 8-80 chars, e.g. grok-20260917T150000Z-stock-buying")
     if folder.name in receipted:
         raise PartsError(f"batch id {folder.name!r} was already used (receipt exists) -- pick a new id; names are never reused")
     present = _present(folder)
@@ -244,6 +248,8 @@ def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str], c
         if not isinstance(listed, list) or not all(isinstance(e, dict) and e.get("target") for e in listed):
             raise PartsError("manifest.files must be a list of {\"target\": ...} objects")
         entries = {e["target"]: e for e in listed}
+        if len(entries) != len(listed):
+            raise PartsError("duplicate batch target in manifest.files")
         missing = sorted(set(entries) - set(present))
         extra = sorted(set(present) - set(entries))
         problems = []
@@ -263,45 +269,39 @@ def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str], c
         entry = entries[target]
         try:
             _safe_target(target)
+            if not (root / target).resolve().is_relative_to(root.resolve()):
+                raise PartsError(f"{target}: resolves outside the repository")
             kind, path = present[target]
+            if not path.resolve().is_relative_to(folder.resolve()):
+                raise PartsError(f"{target}: upload resolves outside its batch")
             data = _whole_bytes(path, target) if kind == "whole" else _parts_bytes(path, target, entry)
-            info = _check_target(target, data, entry, manifest, root)
-            base = (entry.get("base_sha") or "").lower()          # the `sha` the lane got when it GET the file it edited
-            if base:
-                existing = root / target
-                live = _blob_sha(existing.read_bytes()) if existing.is_file() else ""
-                if live != base:
-                    raise PartsError(f"{target}: stale -- edited from blob {base[:10]} but main now has {live[:10] or 'no file'}; "
-                                     f"GET it again, re-apply your change, re-upload")
-                info["base_sha"] = base
-            results.append({**info, "how": kind})
+            results.append({**_check_target(target, data, entry, manifest, root), "how": kind})
             assembled[target] = data
         except PartsError as exc:
             problems.append(str(exc))
     problems += _twin_problems(assembled, root)
-    if claimed is not None:
-        for target in assembled:
-            if target in claimed:
-                problems.append(f"{target} is also written by batch {claimed[target]} in this same run -- two batches must not "
-                                f"overlap; merge them or push the second after the first lands")
     if problems:
         raise PartsError(" | ".join(problems))
-    if claimed is not None:
-        claimed.update({t: folder.name for t in assembled})
+    prepared = [(item, root / item["target"], assembled[item["target"]]) for item in results]
     summary = _classify(list(assembled))
-    result = {"batch": folder.name, "status": "assembled" if write else "ready", "lane": manifest.get("lane"),
-              "note": manifest.get("note"), "files": results, **summary,
+    result = {"batch": folder.name, "status": "ready", "lane": manifest.get("lane"),
+              "note": manifest.get("note"), "files": results,
+              "changed": any(item["changed"] for item in results), **summary,
               "apply_run_id": os.environ.get("GITHUB_RUN_ID"),
-              "means": "files written and committed by the apply lane; NOT proof of a deploy",
+              "means": "assembly evidence only; NOT proof of a deploy",
               "verify": [f"https://justhodl.ai/data/ops/releases/{fn}.json  (commit must equal the apply-lane commit)" for fn in summary["functions"]]
                         + (["pages.yml run for the apply-lane commit"] if summary["pages"] else [])
-                        + ([f"deploy-workers.yml run for {w}" for w in summary["workers"]])
-                        + ([f"aws/ops/reports/latest/<N>_<slug>.md for {o}" for o in summary["ops_scripts"]])}
-    if write:
-        for target, data in assembled.items():           # all-or-nothing: every check passed before the first write
-            dest = root / target
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(data)
+                        + [f"deploy-workers.yml run for {w}" for w in summary["workers"]]
+                        + [f"aws/ops/reports/latest/<N>_<slug>.md for {o}" for o in summary["ops_scripts"]]}
+    return result, prepared
+
+
+def assemble_batch(folder: Path, root: Path, write: bool, receipted: set[str]) -> dict:
+    result, prepared = _prepare_batch(folder, root, receipted)
+    if write and result["status"] == "ready":
+        PARTS["_write_targets"](prepared)
+        result["status"] = "assembled"
+    if write and result["status"] == "cancelled":
         shutil.rmtree(folder)
     return result
 
@@ -310,9 +310,21 @@ def _record(root: Path, folder: Path, result: dict) -> None:
     receipts = root / BATCH_DIR / RECEIPTS
     receipts.mkdir(parents=True, exist_ok=True)
     result = {**result, "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-    (receipts / f"{folder.name}.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n")
+    if os.environ.get("GITHUB_RUN_ID"):
+        result.update(apply_run_id=os.environ["GITHUB_RUN_ID"], handoff_ref="ops-evidence",
+                      handoff_path=f"aws/ops/reports/apply-lane/{os.environ['GITHUB_RUN_ID']}.json")
+    receipt = receipts / f"{folder.name}.json"
+    # A duplicate attempt must never erase successful assembly evidence and free its ID.
+    try:
+        previous = json.loads(receipt.read_text(encoding="utf-8")) if receipt.is_file() else {}
+    except (ValueError, OSError):
+        previous = {"status": "unreadable"}
+    if previous.get("status") not in ("assembled", "unreadable"):
+        receipt.write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     if result["status"] == "rejected" and folder.is_dir():
-        (folder / "STATUS.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n")
+        (folder / "STATUS.json").write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+    elif result["status"] in ("assembled", "cancelled") and folder.is_dir():
+        shutil.rmtree(folder)
 
 
 def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
@@ -320,22 +332,35 @@ def assemble_all(root: Path = ROOT, write: bool = True) -> list[dict]:
     if not base.is_dir():
         return []
     receipted = set()
-    if (base / RECEIPTS).is_dir():
-        for p in (base / RECEIPTS).glob("*.json"):
-            try:
-                if json.loads(p.read_text()).get("status") == "assembled":   # a rejected batch is repaired in place, same id
-                    receipted.add(p.stem)
-            except Exception:  # noqa: BLE001
-                receipted.add(p.stem)
-    claimed: dict[str, str] = {}                                              # target -> batch id, within this run
-    results = []
+    for path in (base / RECEIPTS).glob("*.json"):
+        try:
+            if json.loads(path.read_text(encoding="utf-8")).get("status") == "assembled":
+                receipted.add(path.stem)
+        except (ValueError, OSError):
+            receipted.add(path.stem)  # Preserve ambiguous historic evidence instead of reusing its ID.
+    plans, owners = [], {}
     for folder in sorted(p for p in base.iterdir() if p.is_dir() and p.name != RECEIPTS):
         try:
-            result = assemble_batch(folder, root, write, receipted, claimed)
+            result, prepared = _prepare_batch(folder, root, receipted)
         except PartsError as exc:
             result = {"batch": folder.name, "status": "rejected", "reason": str(exc)}
         except Exception as exc:  # noqa: BLE001 -- never a silent skip
             result = {"batch": folder.name, "status": "rejected", "reason": f"{type(exc).__name__}: {exc}"}
+        if result["status"] != "ready":
+            prepared = []
+        plans.append((folder, result, prepared))
+        for _, target, _ in prepared:
+            owners.setdefault(target.resolve(), []).append(result)
+    for target, batches in owners.items():
+        if len(batches) > 1:
+            for result in batches:
+                result.update(status="rejected", reason=f"overlapping batches target {target.relative_to(root.resolve())}; combine the release or remove the superseded batch")
+    results = []
+    for folder, result, prepared in plans:
+        if write and result["status"] == "ready":
+            # Disk/rollback errors propagate: the workflow must not commit a partial tree.
+            PARTS["_write_targets"](prepared)
+            result["status"] = "assembled"
         if write and result["status"] in ("assembled", "rejected", "cancelled"):
             _record(root, folder, result)
         results.append(result)
@@ -358,7 +383,8 @@ def main(argv: list[str] | None = None) -> int:
         if r["status"] == "rejected":
             rejected.append(r["batch"])
             print(f"::warning::batch {r['batch']} rejected: {r.get('reason')}")
-        ops.extend(r.get("ops_scripts", []))
+        if r["status"] == "assembled":
+            ops.extend(r.get("ops_scripts", []))
     env = os.environ.get("GITHUB_ENV")
     if env:
         # the parts step may already have set PARTS_REJECTED in this job: append, never overwrite

@@ -1,4 +1,5 @@
 name: Deploy Lambdas
+run-name: Deploy Lambdas ${{ inputs.expected_sha || github.sha }} ${{ inputs.request_id || '' }}
 
 # Triggers whenever Claude (or anyone) pushes changes under aws/lambdas/*/source/**
 # Detects which lambda changed, zips its source/ dir, and updates the live function.
@@ -40,6 +41,10 @@ on:
         default: ''
       expected_sha:
         description: 'Optional full40hex source commit; exact checkout requires matching workflow definition'
+        required: false
+        default: ''
+      request_id:
+        description: 'Optional caller correlation ID for proving this dispatch created a run'
         required: false
         default: ''
 
