@@ -137,10 +137,26 @@ def lambda_handler(event, context):
             data[key] = []
         time.sleep(0.1)
 
-    if not data["walcl"] or not data["tga"] or not data["rrp"]:
-        return {"statusCode": 502,
-                "body": json.dumps({"error": "Missing FRED data",
-                                    "errors": fetch_errors})}
+    missing = [k for k in ("walcl", "tga", "rrp") if not data.get(k)]
+    if missing:
+        dead = {
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "ok": False,
+            "regime": "unavailable",
+            "call": None,
+            "quality": {
+                "status": "unavailable",
+                "missing": missing,
+                "fetch_errors": fetch_errors,
+                "frequency": "mixed",
+                "freshness_basis": "observation",
+            },
+            "interpretation": "Required FRED legs missing (" + ",".join(missing) + "). No directional liquidity call.",
+        }
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                      Body=json.dumps(dead).encode(),
+                      ContentType="application/json", CacheControl="no-cache")
+        return {"statusCode": 502, "body": json.dumps(dead)}
 
     # ─── Unit normalization ──────────────────────────────────────────
     # FRED publishes:
@@ -266,6 +282,17 @@ def lambda_handler(event, context):
         "history_180d": history,
         "fetch_errors": fetch_errors,
         "fetch_duration_s": round(time.time() - started, 1),
+        "formula": "WALCL - WTREGEN - RRPONTSYD",
+        "formula_note": "Fed-balance-sheet proxy in USD billions, not cash available to buy equities.",
+        "units": "usd_bn",
+        "quality": {
+            "observation_date": walcl_latest["date"],
+            "publication_date": datetime.now(timezone.utc).date().isoformat(),
+            "frequency": "mixed",
+            "freshness_basis": "observation",
+            "status": "fresh",
+            "missing": [],
+        },
     }
 
     print("[liq] writing %s" % S3_KEY)
