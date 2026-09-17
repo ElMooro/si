@@ -1004,6 +1004,29 @@ def _carry_massive_fx():
 
 
 def lambda_handler(event=None, context=None):
+    # ops 5616 last-good
+    try:
+        return _lambda_handler_inner(event, context)
+    except Exception as exc:
+        s3c = boto3.client("s3")
+        prev = None
+        try:
+            prev = json.loads(s3c.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        except Exception:
+            prev = None
+        if isinstance(prev, dict) and prev:
+            prev = dict(prev)
+            q = dict(prev.get("quality") or {})
+            q.update({"status": "stale", "publish_error": type(exc).__name__, "note": "last-good snapshot"})
+            prev["quality"] = q
+            prev["ok"] = False
+            s3c.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                           Body=json.dumps(prev).encode(),
+                           ContentType="application/json", CacheControl="no-cache")
+            return {"statusCode": 200, "body": json.dumps({"ok": False, "used_last_good": True})}
+        raise
+
+def _lambda_handler_inner(event=None, context=None):
     # ops 5614 last-good
     try:
         return _lambda_handler_inner(event, context)
