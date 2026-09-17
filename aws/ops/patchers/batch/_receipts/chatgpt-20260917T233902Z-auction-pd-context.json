@@ -1,0 +1,64 @@
+{
+ "apply_run_id": "35288444729",
+ "at": "2026-09-17T23:48:29Z",
+ "batch": "chatgpt-20260917T233902Z-auction-pd-context",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 47370,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "1e3d2c5f600a0ffee80f880d6ca6d5ebad13a8b44bab4153208e0beccc00f613",
+   "target": "auction-crisis.html"
+  },
+  {
+   "bytes": 36039,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "d85ac1e761bb36155f5fd6fd7ea9989849c228edc4c01e04518ebd86ccc8de6a",
+   "target": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py"
+  },
+  {
+   "bytes": 4553,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "c014de3b8250497c82dcbe67e02db9fcc73f658e263ebbd4879dedbdc9e7c6a7",
+   "target": "aws/lambdas/justhodl-auction-crisis-detector/tests/run_tests.py"
+  },
+  {
+   "bytes": 3685,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "bdb30dc066d93d5c5dd3719c6df06406835b4484646a0456dfe4bc3cfe4fa696",
+   "target": "aws/ops/pending/ops_5706_auction_pd_verify.py"
+  }
+ ],
+ "functions": [
+  "justhodl-auction-crisis-detector"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/35288444729.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "auction-pd-context",
+ "ops_scripts": [
+  "aws/ops/pending/ops_5706_auction_pd_verify.py"
+ ],
+ "pages": [
+  "auction-crisis.html"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-auction-crisis-detector.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/ops_5706_auction_pd_verify.py"
+ ],
+ "workers": []
+}

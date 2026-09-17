@@ -1,0 +1,34 @@
+{
+ "apply_run_id": "35288444729",
+ "at": "2026-09-17T23:48:29Z",
+ "batch": "chatgpt-20260917T234641Z-brief-public-page",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 22910,
+   "changed": true,
+   "check": "html document",
+   "how": "parts",
+   "sha256": "e7995113de8a2801ee1b55104db5023bca29b9bb675dd648674bbe5417f51226",
+   "target": "brief.html"
+  }
+ ],
+ "functions": [],
+ "handoff_path": "aws/ops/reports/apply-lane/35288444729.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "chatgpt",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "brief-public-page",
+ "ops_scripts": [],
+ "pages": [
+  "brief.html"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "pages.yml run for the apply-lane commit"
+ ],
+ "workers": []
+}

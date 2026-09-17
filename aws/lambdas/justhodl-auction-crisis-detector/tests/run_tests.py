@@ -6,6 +6,10 @@ from pathlib import Path
 from unittest.mock import patch
 SOURCE=Path(__file__).resolve().parents[1]/"source"
 sys.path.insert(0,str(SOURCE))
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'shared'))
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'shared/tests'))
+from pd_fails_context_tests import run as pd_checks
+pd_checks()
 from auction_quality import stamp_quality
 from datetime import datetime, timezone
 with patch.dict(sys.modules, {"managed_secret": types.SimpleNamespace(managed_secret=lambda *a, **k: "TEST_ONLY")}):
@@ -42,6 +46,31 @@ def test_dated_measurements_expire_old_scores_without_redefining_current_zero():
         out=stamp_quality(report(day,rows),now)
         assert out['quality']['status']==state and out['composite_score'] is None
         assert out['call'] is None and out['tail_risk']['x']['heuristic_score'] is None and not out['triggers']
+
+
+def test_no_auction_data_keeps_settlement_context_and_cannot_reactivate_scores():
+    import io,json
+    with patch.dict(sys.modules,{'boto3':types.SimpleNamespace(client=lambda *a,**k:None),
+        'managed_secret':types.SimpleNamespace(managed_secret=lambda *a,**k:''),
+        '_fred_shim':types.ModuleType('_fred_shim')}):
+        spec=importlib.util.spec_from_file_location('auction_publication_test',SOURCE/'lambda_function.py')
+        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    today=datetime.now(timezone.utc).date().isoformat()
+    pd={'treasury':{'as_of':today,'ftd_bn':0,'ftr_bn':2,'gross_bn':2,'quality':{'status':'fresh'}},
+        'headline':{'as_of':today,'ftd_bn':0,'ftr_bn':1,'combined_bn':1,'quality':{'status':'fresh'}}}
+    old={'tail_risk':{'p_failed_auction_30d':{'alias_of':'p_soft_demand_30d','heuristic_score':30},
+                      'p_soft_demand_30d':{'heuristic_score':30}}}
+    writes={}
+    client=types.SimpleNamespace(get_object=lambda **kw:{'Body':io.BytesIO(json.dumps(pd if kw['Key']=='data/settlement-fails.json' else old).encode())},
+        put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))
+    with patch.object(m,'s3',client),patch.object(m,'fetch_fiscal_auctions',return_value=[]):
+        m.lambda_handler({'suppress_alerts':True},None)
+    doc=writes[m.S3_KEY]
+    assert doc['pd_settlement_fails']['combined_bn']==2
+    assert doc['pd_settlement_fails']['ust_ex_tips']['combined_bn']==1
+    assert doc['quality']['status']=='unavailable' and doc['call'] is None
+    assert doc['tail_risk']['p_failed_auction_30d']['alias_of']=='p_soft_demand_30d'
+    assert doc['tail_risk']['p_soft_demand_30d']['heuristic_score'] is None
 
 
 if __name__ == "__main__":

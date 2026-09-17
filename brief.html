@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a0d12">
 <title>Brief · JustHodl</title>
-<meta name="description" content="Executive AI brief — Claude synthesizes 14 systems into a decisive 7-section call every 4 hours.">
+<meta name="description" content="Source-backed market brief with dated evidence, units, quality limits and an explicit WAIT decision. No paid model calls.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&display=swap" rel="stylesheet">
@@ -180,7 +180,7 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
 <main>
   <header class="hero">
     <h1>Executive Brief</h1>
-    <p class="lede">Claude synthesizes 17 live systems — calibration trust ranking, paper portfolio P&L, sectors, momentum, allocator, risk, COT, eurodollar, macro surprise, insider flow, earnings PEAD, correlations, alerts — into one decisive 7-section call. Refreshed every 4 hours. Each call gets snapshotted to <code>data/decisive-call-history.json</code> for evolution tracking. Tap any snapshot tile to see the raw data Claude saw.</p>
+    <p class="lede">A deterministic brief of public warehouse observations, with field IDs, units, observation dates and quality limits. No paid model calls. Updated every four hours at minute :05 UTC. WAIT means no new allocation guidance; fresh data alone does not qualify a trading decision. The account snapshot stays private.</p>
     <div class="meta" id="meta">
       <span class="pill"><span class="dot"></span> <span id="status">loading…</span></span>
       <span><b id="model">—</b></span>
@@ -199,8 +199,8 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
   </div>
 
   <div class="snapshot" id="snapshot-section" style="display:none">
-    <h2>What Claude saw</h2>
-    <p class="sub">The 17 raw data files that fed this brief. Tap any tile to inspect the JSON Claude was given.</p>
+    <h2>Source context</h2>
+    <p class="sub">Public measurements are cited directly in the brief. Account-specific inputs are excluded from this page.</p>
     <div class="snap-grid" id="snap-grid"></div>
   </div>
 </main>
@@ -214,7 +214,7 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
 </dialog>
 
 <script>
-const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+const BUCKET = "";
 
 function fmt(n, opts){
   if (n === null || n === undefined || isNaN(n)) return "—";
@@ -330,24 +330,28 @@ async function load(){
   btn.disabled = true;
   document.getElementById('status').textContent = 'loading…';
   try {
-    const r = await fetch(`${BUCKET}/data/ai-brief.json?t=${Date.now()}`);
+    const r = await fetch(`${BUCKET}/data/ai-brief-public.json?t=${Date.now()}`, {cache:'no-store'});
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
+    if (d.visibility !== 'public_projection' || d.generation_method !== 'warehouse_deterministic_v1') throw new Error('Invalid public brief contract');
+    const age = Date.now() - Date.parse(d.generated_at);
+    const overdue = !Number.isFinite(age) || age < -300000 || age > 4.5*3600000;
     // Status
     if (d.error) {
       document.getElementById('status').textContent = 'error';
       document.querySelector('.meta .pill .dot').style.background = 'var(--red)';
-      document.getElementById('warn-area').innerHTML = `<div class="err">⚠ Last brief generation failed: ${d.error}. Showing cached snapshot.</div>`;
+      document.getElementById('warn-area').textContent = 'Source observations are unavailable. WAIT remains abstention; no allocation guidance is available.';
     } else {
-      document.getElementById('status').textContent = 'fresh';
-      document.querySelector('.meta .pill .dot').style.background = 'var(--green)';
+      document.getElementById('status').textContent = overdue ? 'overdue · WAIT' : 'updated · WAIT';
+      document.querySelector('.meta .pill .dot').style.background = overdue ? 'var(--amber, #ffc400)' : 'var(--green)';
+      document.getElementById('warn-area').textContent = overdue ? 'The brief is overdue. Do not treat its observations as current.' : 'Observation only. No validated allocation model or position-sizing instruction.';
     }
     // Meta
-    document.getElementById('model').textContent = d.model || '—';
+    document.getElementById('model').textContent = 'Deterministic warehouse synthesis';
     document.getElementById('generated').textContent = `${timeAgo(d.generated_at)} (${new Date(d.generated_at).toLocaleString()})`;
     document.getElementById('duration').textContent = d.duration_s ? `${d.duration_s}s` : '—';
     const cost = estimateCost(d.usage);
-    document.getElementById('cost').textContent = cost != null ? `~$${cost.toFixed(4)}/run` : '—';
+    document.getElementById('cost').textContent = d.paid_api_calls === 0 ? '$0 model API cost' : 'unavailable';
 
     // Body
     const md = d.brief_md || '_No brief content yet._';
@@ -365,12 +369,9 @@ async function load(){
     }
 
     // Snapshot tiles
-    if (d.snapshot){
-      document.getElementById('snapshot-section').style.display = '';
-      renderSnapshot(d.snapshot);
-    }
+    document.getElementById('snapshot-section').style.display = 'none';
   } catch(e){
-    document.getElementById('brief-content').innerHTML = `<div class="err">Failed to load brief: ${e.message}<br>Source: <a href="${BUCKET}/data/ai-brief.json" style="color:var(--cyan)">data/ai-brief.json</a></div>`;
+    document.getElementById('brief-content').textContent = 'Public brief unavailable. WAIT — no new allocation guidance. Source: data/ai-brief-public.json';
     document.getElementById('status').textContent = 'error';
   } finally {
     btn.disabled = false;

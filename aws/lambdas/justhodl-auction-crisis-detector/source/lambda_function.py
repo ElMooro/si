@@ -51,6 +51,7 @@ on bonds.html.
 """
 import json
 from auction_quality import stamp_quality
+from pd_fails_context import load as load_pd_fails
 import math
 import os
 import time
@@ -520,6 +521,7 @@ def lambda_handler(event, context):
         for key,default in {'freshness':{},'tail_risk':{},'tenor_decomposition':{},'composite_history':{},'forward_calendar':[]}.items():
             body.setdefault(key,default)
         stamp_quality(body)
+        body["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)
         s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=json.dumps(body, indent=2),
                       ContentType="application/json", CacheControl="max-age=600")
         return {"statusCode": 200, "body": json.dumps({"status": "no_data"})}
@@ -799,6 +801,8 @@ def lambda_handler(event, context):
     report["field_units"] = {"composite_score": "score_0_100", "tail_risk.*.heuristic_score": "score_0_100",
                               "recent_auctions.*.metrics.allocated_at_high_pct": "pct"}
     stamp_quality(report)
+    # chatgpt-pd-context-v1: settlement context never changes auction scores.
+    report["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)
     body = json.dumps(report, default=str, indent=2)
     s3.put_object(
         Bucket=S3_BUCKET, Key=S3_KEY, Body=body,
