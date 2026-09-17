@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-17T17:29:08.714660+00:00",
+  "observed_at": "2026-09-17T17:29:50.172711+00:00",
   "runs": [
     {
       "id": 35252836835,
@@ -319,18 +319,18 @@
       "id": 35252791963,
       "path": ".github/workflows/pages.yml",
       "head_sha": "45d7a7b0952575ced83cfb4ebf6f02460b24a908",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-09-17T17:26:54Z",
-      "updated_at": "2026-09-17T17:27:23Z",
+      "updated_at": "2026-09-17T17:29:24Z",
       "jobs": [
         {
           "id": 105309096718,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-17T17:27:23Z",
-          "completed_at": null,
+          "completed_at": "2026-09-17T17:29:07Z",
           "steps": [
             {
               "number": 1,
@@ -487,44 +487,119 @@
             {
               "number": 20,
               "name": "Build complete producer-to-page data contracts",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-17T17:28:57Z",
-              "completed_at": null
+              "completed_at": "2026-09-17T17:29:02Z"
             },
             {
               "number": 21,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:02Z",
+              "completed_at": "2026-09-17T17:29:03Z"
             },
             {
               "number": 22,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:03Z",
+              "completed_at": "2026-09-17T17:29:05Z"
             },
             {
               "number": 43,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:05Z",
+              "completed_at": "2026-09-17T17:29:05Z"
             },
             {
               "number": 44,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:05Z",
+              "completed_at": "2026-09-17T17:29:05Z"
+            },
+            {
+              "number": 45,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:05Z",
+              "completed_at": "2026-09-17T17:29:05Z"
             }
           ]
+        },
+        {
+          "id": 105309705470,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-09-17T17:29:11Z",
+          "completed_at": "2026-09-17T17:29:23Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:12Z",
+              "completed_at": "2026-09-17T17:29:14Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:14Z",
+              "completed_at": "2026-09-17T17:29:20Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:20Z",
+              "completed_at": "2026-09-17T17:29:20Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:20Z",
+              "completed_at": "2026-09-17T17:29:20Z"
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-09-17T17:29:20Z",
+              "completed_at": "2026-09-17T17:29:20Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-17T17:29:20Z",
+              "completed_at": "2026-09-17T17:29:20Z"
+            }
+          ]
+        },
+        {
+          "id": 105309800076,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-09-17T17:29:24Z",
+          "completed_at": "2026-09-17T17:29:24Z",
+          "steps": []
         }
       ]
     },
