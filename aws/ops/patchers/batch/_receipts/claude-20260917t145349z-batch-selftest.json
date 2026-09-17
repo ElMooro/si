@@ -1,0 +1,47 @@
+{
+ "at": "2026-09-17T14:56:41Z",
+ "batch": "claude-20260917t145349z-batch-selftest",
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 655,
+   "check": "json",
+   "how": "whole",
+   "sha256": "9170265fff69afd342b64302cf4eb6f7ded2c3fc3a1d52cfcbea149f0b4d3939",
+   "target": "aws/lambdas/justhodl-settlement-fails/config.json"
+  },
+  {
+   "bytes": 11034,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "d8d835498ab90efcfd6e468cf180c66ecf0802c43aebb5aff69b90509cfd7e4a",
+   "target": "aws/lambdas/justhodl-settlement-fails/source/lambda_function.py"
+  },
+  {
+   "bytes": 758,
+   "check": "json",
+   "how": "whole",
+   "sha256": "cf2478dc48379c8b62bfe7072ca9835799ab78a9f60138ee64573f3c3afaa377",
+   "target": "aws/lambdas/justhodl-ticker-deep-research/config.json"
+  },
+  {
+   "bytes": 19317,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "de543fc981a3838cbee9b3167929d8ae5aefda916c84ab597f1d49d6a56c6cfa",
+   "target": "aws/lambdas/justhodl-ticker-deep-research/source/lambda_function.py"
+  }
+ ],
+ "functions": [
+  "justhodl-settlement-fails",
+  "justhodl-ticker-deep-research"
+ ],
+ "lane": "claude",
+ "note": "batch v4 self-test: two engines (source in parts + config whole), byte-identical to main -- expect assembled, nothing changed, no deploy",
+ "ops_scripts": [],
+ "pages": [],
+ "shared": [],
+ "status": "assembled",
+ "workers": []
+}
