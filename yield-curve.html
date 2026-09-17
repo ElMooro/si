@@ -59,23 +59,21 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .tschart .tt{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .tschart .tl{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
 </style>
-<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>📈 Yield Curve</h1>
-    <p class="subtitle">The US Treasury curve as a macro instrument — nominal and real yields across tenors, key spreads, inversion flags, a term-premium proxy and inflation expectations, fused into a curve regime. The curve leads the cycle; this reads where it sits <b>and what it means for your risk assets</b>.</p>
+    <p class="subtitle">Dated US Treasury nominal yields, TIPS yields, spreads and inversion flags. Curve shapes describe changes in yields; separately dated term-premium estimates and historical price episodes provide context. These measurements do not establish an asset-allocation forecast.</p>
     <nav class="crumbs"><a href="/index.html">desk</a><a href="/signal-board.html">signal board</a><a href="/liquidity.html">liquidity</a><a href="/eurodollar.html">eurodollar</a></nav>
   </header>
 
   <div id="hero"><div class="loading">LOADING CURVE…</div></div>
 
-  <h2>US 10-Year — 5% Red-Flag Sentinel</h2>
+  <h2>US 10-Year — Level and Threshold Episodes</h2>
   <div id="us10y-sentinel"><div class="loading">ARMING SENTINEL…</div></div>
 
   <div id="ai-decisive-call" style="margin:18px 0"></div>
-  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","yield-curve-decisive-call");</script>
 
   <div id="bottomline"></div>
 
@@ -434,7 +432,7 @@ function synthesize(d,ref){
   +'<span style="font-family:monospace;font-size:30px;font-weight:700;color:'+col+'">'+d.level.toFixed(2)+'%</span>'
   +'<span style="font-family:monospace;font-size:12px;letter-spacing:1.5px;padding:3px 10px;border-radius:20px;background:'+col+'22;color:'+col+';border:1px solid '+col+'66">'+d.tier+'</span>'
   +'<span style="font-family:monospace;font-size:12px;color:#9fb0c9">'+Math.round(d.distance_to_5pct_bps)+'bps from the 5% line · Δ60d '+(v.d60_bps>0?'+':'')+(v.d60_bps==null?'—':Math.round(v.d60_bps))+'bps · real 10y '+(d.real_10y==null?'—':d.real_10y+'%')+' · pct-rank since 1990: '+Math.round(d.pct_rank_since_1990)+'</span></div>'
-  +'<div style="font-size:12.5px;color:#c7d3e8;margin-top:8px">'+(d.tier_reason||'')+(d.yields_driving_stocks?' <b style="color:#ff9f43">— Negative 60-observation association; this does not establish causation.</b>':'')+'</div>'
+  +'<div style="font-size:12.5px;color:#c7d3e8;margin-top:8px">Observed '+esc(d.fred_date)+'. Yield-level bands are descriptive thresholds, not calibrated market-loss probabilities. '+(d.tier_reason||'')+(d.yields_driving_stocks?' <b style="color:#ff9f43">— Negative 60-observation association; this does not establish causation.</b>':'')+'</div>'
   +'<div style="font-family:monospace;font-size:11.5px;color:#8fa2bd;margin-top:8px">Validated SP500 price-only history (dividends excluded): <b>4.75%</b> — '+(e475.n_valid_3m??0)+' completed 3-month episodes, median '+(e475.median_spx_3m==null?'unavailable; minimum 3 valid episodes':e475.median_spx_3m+'%')+' · <b>5.00%</b> — '+(e500.n_valid_3m??0)+' completed episodes, median '+(e500.median_spx_3m==null?'unavailable; minimum 3 valid episodes':e500.median_spx_3m+'%')+'. Earlier outcomes outside daily price coverage are excluded.</div>'
   +spark+'</div>';
 })();
