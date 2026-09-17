@@ -60,7 +60,7 @@ tr:hover td{background:var(--panel2)}
   <div class="topbar">
     <div>
       <h1>⚡ Capital Flow Radar</h1>
-      <div class="sub">Real dollars into/out of each sector's ETF complex · accelerating inflow = pump setup · outflow/reversal = party over</div>
+      <div class="sub">ETF creations and redemptions · effective dates, complete coverage and separate leveraged legs</div>
     </div>
     <div class="tide" id="tide"></div>
   </div>
@@ -76,112 +76,40 @@ async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=v=>{if(v==null)return"—";const a=Math.abs(v);const s=v<0?"-":"+";if(a>=1e9)return s+"$"+(a/1e9).toFixed(2)+"B";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"M";if(a>=1e3)return s+"$"+(a/1e3).toFixed(0)+"K";return s+"$"+a.toFixed(0);};
 const cls=v=>v==null?"":v>=0?"flowpos":"flowneg";
-function tagFor(rg){rg=rg||"";if(rg.includes("PUMP SETUP"))return'<span class="tag pump">PUMP SETUP</span>';if(rg.includes("PARTY OVER")||rg.includes("TOP WARNING"))return'<span class="tag over">PARTY OVER</span>';if(rg.includes("LATE"))return'<span class="tag late">LATE</span>';if(rg.includes("OUTFLOW"))return'<span class="tag out">OUTFLOW</span>';return'<span class="tag steady">STEADY</span>';}
-
-function card(c,kind){
-  const div=c.flow_price_divergence?` <span class="div">⚠ DIVERGENCE</span>`:"";
-  const st=(c.ref_stocks||[]).slice(0,8).join(" ");
-  const conv=(c.top_conviction_stocks||[]);
-  return `<div class="card ${kind}">
-    <div class="pp">${Math.round(c.pump_probability)}</div>
-    <div class="nm">${esc(c.complex)}</div>
-    <div class="rg">${esc((c.regime||"").split("—")[1]||c.regime)}${div}</div>
-    <div class="row"><span class="k">Net flow 5d</span><span class="${cls(c.net_flow_5d_usd)}">${fmt(c.net_flow_5d_usd)}</span></div>
-    <div class="row"><span class="k">Acceleration/day</span><span class="${cls(c.acceleration_usd_per_day)}">${fmt(c.acceleration_usd_per_day)}</span></div>
-    <div class="row"><span class="k">Breadth · persist</span><span>${(c.breadth*100||0).toFixed(0)}% · ${c.persistence_days||0}d</span></div>
-    <div class="row"><span class="k">Flow z · price5d</span><span>${c.flow_zscore_90d??"—"} · ${c.price_5d_pct==null?"—":c.price_5d_pct+"%"}</span></div>
-    <div class="row"><span class="k">Lev positioning</span><span>${esc(c.leveraged_positioning||"—")}</span></div>
-    ${conv.length?`<div class="stocks">★ ${conv.join(" ")} <span style="color:var(--dim)">(options agree)</span></div>`:(st?`<div class="stocks">${st}</div>`:"")}
-    <div class="verdict">${esc(c.verdict||"")}</div>
-  </div>`;
-}
-
 function render(d){
-  // dollar tide + risk appetite
-  const dt=d.dollar_tide||{}, ls=d.leveraged_sentiment||{};
-  const ra=ls.risk_appetite||"—";
-  const raC=ra==="RISK_ON"?"on":ra==="RISK_OFF"?"off":"neu";
-  const usd=dt.regime||"—"; const usdC=usd.includes("WEAKENING")?"on":usd.includes("STRENGTHENING")?"off":"neu";
-  document.getElementById("tide").innerHTML=
-    `<div class="chip ${usdC}">💵 Dollar: <b>${esc(usd)}</b> (${dt.usd_synthetic_20d_pct??"?"}% 20d)</div>`+
-    `<div class="chip ${raC}">📊 Leveraged risk: <b>${esc(ra)}</b></div>`;
-  // statbar
-  const pumps=d.pump_setups||[], over=d.party_over_alerts||[];
-  document.getElementById("statbar").innerHTML=
-    `<div class="stat"><div class="v" style="color:var(--grn)">${pumps.length}</div><div class="l">PUMP SETUPS (money in)</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--red)">${over.length}</div><div class="l">PARTY OVER (money out)</div></div>`+
-    `<div class="stat"><div class="v">${d.n_complexes||0}</div><div class="l">SECTOR COMPLEXES</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--cyan)">${fmt(ls.aggregate_bull_lev_inflow_5d)}</div><div class="l">BULL-LEV INFLOW 5D</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--amb)">${fmt(ls.aggregate_bear_lev_inflow_5d)}</div><div class="l">BEAR-LEV INFLOW 5D</div></div>`;
-
-  let h="";
-  if(pumps.length){h+=`<h2 class="g">🟢 Pump Setups — capital accelerating in</h2><div class="cards">${pumps.map(c=>card(c,"pump")).join("")}</div>`;}
-  if(over.length){h+=`<h2 class="r">🔴 Party Over — capital leaving / distribution</h2><div class="cards">${over.map(c=>card(c,"over")).join("")}</div>`;}
-
-  // leveraged positioning board
-  const mb=ls.most_bullish_positioning||[], mr=ls.most_bearish_positioning||[];
-  const li=r=>`<div class="li"><span class="th">${esc(r.theme.replace(/_/g," "))}</span><span class="${cls(r.net_leveraged_flow_5d)}">${fmt(r.net_leveraged_flow_5d)}</span></div>`;
-  h+=`<h2 class="a">⚖️ Leveraged Positioning — what investors are betting on (2x/3x bull vs bear flows)</h2>
-    <div class="cols">
-      <div class="lev"><div class="h g">▲ Most bullish leveraged</div>${mb.map(li).join("")}</div>
-      <div class="lev"><div class="h r">▼ Most bearish leveraged</div>${mr.map(li).join("")}</div>
-    </div>`;
-
-  // cascade
-  const cas=d.top_pick_cascade||[];
-  if(cas.length){h+=`<h2 class="g">🎯 Top Cascade — pump-setup sector + Massive options agree</h2><div class="cards cascade">`+
-    cas.map(x=>`<div class="card"><div class="nm">${esc(x.symbol)}</div><div class="rg" style="color:var(--cyan)">${esc(x.complex)} · pump ${Math.round(x.pump_probability)}</div><div class="verdict">${esc(x.why)}</div></div>`).join("")+`</div>`;}
-
-  // full table
-  const all=(d.complexes||[]).slice();
-  h+=`<h2>📋 All Sector Complexes</h2><div style="overflow-x:auto"><table id="tbl"><thead><tr>
-    <th>Complex</th><th>Pump</th><th>Regime</th><th>Net 5d</th><th>Net 21d</th><th>%AUM</th><th>Accel/d</th><th>Breadth</th><th>Persist</th><th>Flow z</th><th>Px 5d</th>
-    </tr></thead><tbody>`+
-    all.map(c=>`<tr>
-      <td>${esc(c.complex)}</td><td><b>${Math.round(c.pump_probability)}</b></td><td style="text-align:left">${tagFor(c.regime)}${c.flow_price_divergence?' <span class="div">⚠</span>':''}</td>
-      <td class="${cls(c.net_flow_5d_usd)}">${fmt(c.net_flow_5d_usd)}</td><td class="${cls(c.net_flow_21d_usd)}">${fmt(c.net_flow_21d_usd)}</td>
-      <td>${c.pct_aum_5d==null?"—":c.pct_aum_5d+"%"}</td><td class="${cls(c.acceleration_usd_per_day)}">${fmt(c.acceleration_usd_per_day)}</td>
-      <td>${(c.breadth*100||0).toFixed(0)}%</td><td>${c.persistence_days||0}d</td><td>${c.flow_zscore_90d??"—"}</td><td>${c.price_5d_pct==null?"—":c.price_5d_pct+"%"}</td>
-    </tr>`).join("")+`</tbody></table></div>`;
-
-  document.getElementById("content").innerHTML=h;
-  document.getElementById("foot").innerHTML=
-    `Data: ETF Global creations/redemptions (via Massive) + Massive FX/options · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 22:30 UTC.<br>`+
-    esc(d.caveats||"")+" Research only — not investment advice.";
+  const age=Date.now()-Date.parse(d.generated_at);
+  if(d.methodology_version!=='dated-etf-radar.v2'||!Number.isFinite(age)||age<0||age>4*864e5)throw new Error('Current validated flow measurements are unavailable');
+  const all=d.complexes||[],q=d.quality||{};
+  document.getElementById('tide').innerHTML='<div class="chip">Measurements only · no calibrated trade calls</div>';
+  document.getElementById('statbar').innerHTML=
+    `<div class="stat"><div class="v">${q.complete_complexes??'—'} / ${q.total_complexes??'—'}</div><div class="l">Complete core complexes</div></div>`+
+    `<div class="stat"><div class="v">${esc(q.status||'unavailable')}</div><div class="l">Coverage status</div></div>`;
+  const number=v=>v==null?'—':Number(v).toFixed(2);
+  const current=g=>{const dates=g.observation_dates||[];return dates.length===1&&dates.every(date=>{const a=Date.now()-Date.parse(date);return Number.isFinite(a)&&a>=0&&a<=6*864e5;});};
+  let h=`<h2>Core ETF creations and redemptions</h2><div class="sub">Five and 21 reported observations, matched across every core member. Blank values mean incomplete, stale or mismatched evidence. Sector groups overlap.</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Complex / coverage</th><th>Effective date</th><th>Daily net</th><th>5 observations</th><th>21 observations</th><th>5 obs / AUM</th><th>Recent − prior pace</th></tr></thead><tbody>`;
+  h+=all.map(c=>{const g=c.core||{},live=current(g),f5=live?c.flow_5obs_usd:null;
+    return `<tr><td><b>${esc(c.complex)}</b><div class="sub">${g.coverage_count??0}/${g.required_count??0} current · ${esc(live?g.status:'stale or unavailable')}
+      <details><summary>Members</summary>${esc((g.required||[]).join(', '))}${g.missing?.length?'<br>Unavailable: '+esc(g.missing.join(', ')):''}</details></div></td>
+      <td>${esc((g.observation_dates||[]).join(' / '))||'—'}</td><td>${fmt(live?c.net_flow_daily_usd:null)}</td>
+      <td class="${cls(f5)}">${fmt(f5)}</td><td>${fmt(live?c.flow_21obs_usd:null)}</td>
+      <td>${live&&c.pct_aum_5obs!=null?number(c.pct_aum_5obs)+'%':'—'}</td><td>${fmt(live?c.recent_minus_prior_pace_usd_per_observation:null)}</td></tr>`;
+  }).join('')+'</tbody></table></div>';
+  const boards=[d.unique_leveraged_aggregate,...(d.leveraged_comparisons||[])].filter(Boolean);
+  h+=`<h2>Leveraged ETF fund flows — separate legs</h2><div class="sub">Bull minus inverse is an unscaled comparison. Total fund creation adds both legs. Neither measures net underlying exposure or identifies who invested.</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Group</th><th>Bull funds · 5 obs</th><th>Inverse funds · 5 obs</th><th>Bull − inverse</th><th>Total creations</th><th>Coverage</th></tr></thead><tbody>`;
+  h+=boards.map(r=>{const b=r.bull||{},s=r.bear||{},live=current(b)&&current(s);return `<tr><td>${esc(r.name)}</td>
+    <td>${fmt(current(b)?b.flow_5obs_usd:null)}</td><td>${fmt(current(s)?s.flow_5obs_usd:null)}</td>
+    <td>${fmt(live?r.bull_minus_bear_flow_5obs_usd:null)}</td><td>${fmt(live?r.total_fund_flow_5obs_usd:null)}</td>
+    <td>${b.coverage_count??0}/${b.required_count??0} bull · ${s.coverage_count??0}/${s.required_count??0} inverse</td></tr>`;}).join('')+'</tbody></table></div>';
+  document.getElementById('content').innerHTML=h;
+  document.getElementById('foot').textContent=`${d.methodology} ${d.caveats} Published ${d.generated_at}; donor published ${d.donor_generated_at||'unavailable'}.`;
 }
-load("data/capital-flow-radar.json").then(function(d){
-  render(d);
-  load("data/etf-desk.json").then(function(desk){
-    if(!desk||!desk.by_etf) return;
-    var inn=(desk.inflows||[]).slice(0,8);
-    var out=(desk.outflows||[]).slice(0,8);
-    if(!inn.length&&!out.length) return;
-    var host=document.getElementById("content");
-    if(!host) return;
-    var strip=document.createElement("div");
-    strip.id="paid-desk";
-    function row(r){
-      return `<div class="row"><span class="k"><a href="/chart.html?s=${encodeURIComponent(r.t||r.ticker)}">${esc(r.t||r.ticker)}</a> ${esc(r.name||"")}</span><span class="${cls(r.flow_1d)}">${fmt(r.flow_1d)}</span></div>`;
-    }
-    strip.innerHTML=`<h2 class="g">Massive ETF Global — paid creations / redemptions (live desk)</h2>
-      <div class="cols">
-        <div class="lev"><div class="h g">▲ Inflows 1D</div>${inn.map(row).join("")||'<div class="li">none</div>'}</div>
-        <div class="lev"><div class="h r">▼ Outflows 1D</div>${out.map(row).join("")||'<div class="li">none</div>'}</div>
-      </div>
-      <div class="sub" style="margin:8px 0 18px">Source: data/etf-desk.json · ${esc((desk.generated_at||"").slice(0,16))} · n=${desk.n||0} · flows ${((desk.n_ok||{}).flows)||0} · profiles ${((desk.n_ok||{}).profiles)||0} · holdings ${((desk.n_ok||{}).constituents)||0}</div>`;
-    host.insertBefore(strip, host.firstChild);
-  }).catch(function(){});
-  var der=document.createElement("div");
-  der.setAttribute("data-etf-derived","radar");
-  host=document.getElementById("content");
-  if(host) host.insertBefore(der, host.firstChild);
-  if(window.JHEtfDerived) JHEtfDerived.mount(der, "radar");
-}).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load capital-flow-radar.json — '+esc(e.message)+'</div>';});
-setInterval(()=>load("data/capital-flow-radar.json").then(render).catch(()=>{}),300000);
+function failure(e){document.getElementById('statbar').innerHTML='';document.getElementById('tide').innerHTML='';document.getElementById('content').innerHTML='<div class="loading">'+esc(e.message)+'</div>';}
+load('data/capital-flow-radar.json').then(render).catch(failure);
+setInterval(()=>load('data/capital-flow-radar.json').then(render).catch(failure),300000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-etf-fuse.js?v=20260915b"></script>
-<script src="/jh-etf-derived.js?v=20260915d"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

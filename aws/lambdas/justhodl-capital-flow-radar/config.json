@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Institutional Capital Flow Radar \u2014 sector-complex $ flow regime, pump/dump prediction, dollar tide overlay, constituent cascade.",
+  "description": "Dated ETF creations/redemptions by core and leveraged groups; no uncalibrated pump predictions.",
   "schedule": {
     "name": "justhodl-capital-flow-radar-sched",
     "expression": "cron(20 22 ? * MON-FRI *)",
