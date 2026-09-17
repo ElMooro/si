@@ -1,0 +1,26 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35287028555",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35287028555",
+ "base_sha": "2bd7c72321217e2d52432754de6aebef8e795fc9",
+ "result_sha": "93fd8a9841d9a3c25e197ea340616e9e1fb89262",
+ "patchers": [],
+ "targets": [
+  "justhodl-crisis-composite"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [],
+ "ops_scripts": [
+  "aws/ops/pending/ops_5702_defcon_alias_verify.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "skipped",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "35287050911",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:29:22Z"
+}
