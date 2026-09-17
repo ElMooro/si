@@ -14,34 +14,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "risk_gate",
       "confidence": 0.9,
       "depends_on": [],
       "contract": {
-        "required": [
-          "posture",
-          "composite",
-          "sizing_multiplier"
-        ],
-        "types": {
-          "posture": "string",
-          "composite": "number",
-          "sizing_multiplier": "number"
-        },
-        "ranges": {
-          "composite": [
-            -10,
-            10
-          ],
-          "sizing_multiplier": [
-            0,
-            1
-          ]
-        }
+        "required": ["posture", "composite", "sizing_multiplier"],
+        "types": {"posture": "string", "composite": "number", "sizing_multiplier": "number"},
+        "ranges": {"composite": [-10, 10], "sizing_multiplier": [0, 1]}
       }
     },
     {
@@ -54,32 +34,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 8,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "crisis",
       "confidence": 0.85,
       "depends_on": [],
       "contract": {
-        "required": [
-          "defcon_level",
-          "master_crisis_score"
-        ],
-        "types": {
-          "defcon_level": "number",
-          "master_crisis_score": "number"
-        },
-        "ranges": {
-          "defcon_level": [
-            1,
-            5
-          ],
-          "master_crisis_score": [
-            0,
-            100
-          ]
-        }
+        "required": ["defcon_level", "master_crisis_score"],
+        "types": {"defcon_level": "number", "master_crisis_score": "number"},
+        "ranges": {"defcon_level": [1, 5], "master_crisis_score": [0, 100]}
       }
     },
     {
@@ -91,24 +53,14 @@
       "evidence_level": "L1",
       "role": "root_evidence",
       "independence_eligible": true,
-      "max_age_hours": 240,
-      "timestamp_paths": [
-        "treasury.as_of"
-      ],
+      "max_age_hours": 336,
+      "freshness_basis": "weekly_observation",
+      "timestamp_paths": ["generated_at", "as_of", "treasury.as_of"],
       "adapter": "settlement_fails",
       "confidence": 0.82,
       "depends_on": [],
       "contract": {
-        "required": [
-          "treasury.scope",
-          "treasury.as_of",
-          "treasury.ftd_bn",
-          "treasury.ftr_bn",
-          "treasury.gross_bn",
-          "treasury.score",
-          "treasury.regime",
-          "treasury.complete"
-        ],
+        "required": ["treasury.scope", "treasury.as_of", "treasury.ftd_bn", "treasury.ftr_bn", "treasury.gross_bn", "treasury.score", "treasury.regime", "treasury.complete"],
         "types": {
           "treasury.scope": "string",
           "treasury.as_of": "string",
@@ -120,22 +72,10 @@
           "treasury.complete": "boolean"
         },
         "ranges": {
-          "treasury.ftd_bn": [
-            0,
-            1000000
-          ],
-          "treasury.ftr_bn": [
-            0,
-            1000000
-          ],
-          "treasury.gross_bn": [
-            0,
-            1000000
-          ],
-          "treasury.score": [
-            0,
-            100
-          ]
+          "treasury.ftd_bn": [0, 1000000],
+          "treasury.ftr_bn": [0, 1000000],
+          "treasury.gross_bn": [0, 1000000],
+          "treasury.score": [0, 100]
         }
       }
     },
@@ -149,32 +89,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "credit",
       "confidence": 0.84,
       "depends_on": [],
       "contract": {
-        "required_any": [
-          "composite",
-          "composite_score"
-        ],
-        "types": {
-          "composite": "number",
-          "composite_score": "number"
-        },
-        "ranges": {
-          "composite": [
-            0,
-            100
-          ],
-          "composite_score": [
-            0,
-            100
-          ]
-        }
+        "required_any": ["composite", "composite_score"],
+        "types": {"composite": "number", "composite_score": "number"},
+        "ranges": {"composite": [0, 100], "composite_score": [0, 100]}
       }
     },
     {
@@ -187,26 +109,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "eurodollar",
       "confidence": 0.84,
       "depends_on": [],
       "contract": {
-        "required": [
-          "composite_score"
-        ],
-        "types": {
-          "composite_score": "number"
-        },
-        "ranges": {
-          "composite_score": [
-            0,
-            100
-          ]
-        }
+        "required": ["composite_score"],
+        "types": {"composite_score": "number"},
+        "ranges": {"composite_score": [0, 100]}
       }
     },
     {
@@ -219,26 +129,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "dollar",
       "confidence": 0.78,
       "depends_on": [],
       "contract": {
-        "required": [
-          "dollar_pressure"
-        ],
-        "types": {
-          "dollar_pressure": "number"
-        },
-        "ranges": {
-          "dollar_pressure": [
-            0,
-            100
-          ]
-        }
+        "required": ["dollar_pressure"],
+        "types": {"dollar_pressure": "number"},
+        "ranges": {"dollar_pressure": [0, 100]}
       }
     },
     {
@@ -251,24 +149,13 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "liquidity",
       "confidence": 0.76,
       "depends_on": [],
       "contract": {
-        "required": [
-          "regime",
-          "global_liquidity_index",
-          "fed_net_liquidity"
-        ],
-        "types": {
-          "regime": "string",
-          "global_liquidity_index": "dict",
-          "fed_net_liquidity": "dict"
-        }
+        "required": ["regime", "global_liquidity_index", "fed_net_liquidity"],
+        "types": {"regime": "string", "global_liquidity_index": "dict", "fed_net_liquidity": "dict"}
       }
     },
     {
@@ -281,30 +168,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "cycle",
       "confidence": 0.72,
       "depends_on": [],
       "contract": {
-        "required": [
-          "synthesis.posture",
-          "synthesis.score",
-          "cycle"
-        ],
-        "types": {
-          "synthesis.posture": "string",
-          "synthesis.score": "number",
-          "cycle": "dict"
-        },
-        "ranges": {
-          "synthesis.score": [
-            -100,
-            100
-          ]
-        }
+        "required": ["synthesis.posture", "synthesis.score", "cycle"],
+        "types": {"synthesis.posture": "string", "synthesis.score": "number", "cycle": "dict"},
+        "ranges": {"synthesis.score": [-100, 100]}
       }
     },
     {
@@ -317,22 +188,13 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "fifx_vol",
       "confidence": 0.78,
       "depends_on": [],
       "contract": {
-        "required": [
-          "migration.state",
-          "legs"
-        ],
-        "types": {
-          "migration.state": "string",
-          "legs": "dict"
-        }
+        "required": ["migration.state", "legs"],
+        "types": {"migration.state": "string", "legs": "dict"}
       }
     },
     {
@@ -345,38 +207,14 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 84,
-      "timestamp_paths": [
-        "as_of",
-        "generated_at"
-      ],
+      "timestamp_paths": ["as_of", "generated_at"],
       "adapter": "bond_warroom",
       "confidence": 0.82,
       "depends_on": [],
       "contract": {
-        "required": [
-          "heartbeat.score",
-          "equity_risk.score",
-          "eurodollar_shortage.score"
-        ],
-        "types": {
-          "heartbeat.score": "number",
-          "equity_risk.score": "number",
-          "eurodollar_shortage.score": "number"
-        },
-        "ranges": {
-          "heartbeat.score": [
-            0,
-            100
-          ],
-          "equity_risk.score": [
-            0,
-            100
-          ],
-          "eurodollar_shortage.score": [
-            0,
-            100
-          ]
-        }
+        "required": ["heartbeat.score", "equity_risk.score", "eurodollar_shortage.score"],
+        "types": {"heartbeat.score": "number", "equity_risk.score": "number", "eurodollar_shortage.score": "number"},
+        "ranges": {"heartbeat.score": [0, 100], "equity_risk.score": [0, 100], "eurodollar_shortage.score": [0, 100]}
       }
     },
     {
@@ -385,18 +223,14 @@
       "producer": "justhodl-best-setups",
       "domain": "equity_opportunity",
       "source_family": "best_setups",
-      "evidence_level": "L3",
+      "evidence_level": "L2",
       "role": "consumer_view",
       "independence_eligible": false,
       "max_age_hours": 2,
-      "timestamp_paths": [
-        "generated_at"
-      ],
+      "timestamp_paths": ["generated_at"],
       "adapter": "excluded_view",
       "confidence": null,
-      "depends_on": [
-        "feature_bus"
-      ],
+      "depends_on": ["feature_bus"],
       "exclude_from_scoring": true,
       "contract": {}
     },
@@ -410,9 +244,7 @@
       "role": "consumer_view",
       "independence_eligible": false,
       "max_age_hours": 2,
-      "timestamp_paths": [
-        "generated_at"
-      ],
+      "timestamp_paths": ["generated_at"],
       "adapter": "excluded_view",
       "confidence": null,
       "depends_on": [],
@@ -421,12 +253,8 @@
     }
   ],
   "known_graph_nodes": {
-    "feature_bus": [
-      "signal_fabric_view"
-    ],
-    "best_setups_view": [
-      "feature_bus"
-    ],
+    "feature_bus": ["signal_fabric_view"],
+    "best_setups_view": ["feature_bus"],
     "signal_fabric_view": []
   }
 }
