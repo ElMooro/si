@@ -6,7 +6,13 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "US10Y 5% red-flag sentinel: level/velocity danger ladder, SPX episode study, tier-cross Telegram -> data/us10y-sentinel.json (ops 3286).",
   "inherit_env": [
-    "justhodl-confluence-meta"
+    {
+      "from_function": "justhodl-confluence-meta",
+      "keys": [
+        "FRED_KEY",
+        "FRED_API_KEY"
+      ]
+    }
   ],
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-us10y-sentinel-5x",
