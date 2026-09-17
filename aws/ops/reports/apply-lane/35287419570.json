@@ -1,0 +1,33 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35287419570",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35287419570",
+ "base_sha": "c96dc7628a2dea726a019589b03cf073236cf10a",
+ "result_sha": "d995e27f670cbdc262fd1dacd7bad461cbd8e84f",
+ "patchers": [],
+ "targets": [
+  "justhodl-ai-brief"
+ ],
+ "shared": [
+  "aws/shared/calls_contract.py",
+  "aws/shared/calls_free_brief.py"
+ ],
+ "workers": [],
+ "pages": [
+  "calls-page.js",
+  "calls.html",
+  "jh-public-brief.js"
+ ],
+ "ops_scripts": [
+  "aws/ops/pending/ops_5704_calls_free_verify.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "35287443278",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:34:37Z"
+}
