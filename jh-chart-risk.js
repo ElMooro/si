@@ -1,10 +1,11 @@
 /* jh-reskin-skip */
-/* Red on-chart issuer warnings from share-flows + forensic-screen. chart.html only. */
+/* Red issuer warnings from share-flows + forensic-screen.
+   chart.html and chart-pro.html. */
 (function () {
   var path = location.pathname || "";
-  if (!/chart\.html?$|\/chart\/?$/i.test(path)) return;
-  if (window.__jhChartRisk) return;
-  window.__jhChartRisk = true;
+  if (!/chart(\.html)?$|chart-pro\.html$/i.test(path)) return;
+  if (window.__jhChartRiskV2) return;
+  window.__jhChartRiskV2 = true;
 
   var sf = null;
   var fo = null;
@@ -17,14 +18,13 @@
     n.id = "jh-risk-banner";
     n.setAttribute("role", "status");
     n.style.cssText = [
-      "display:none", "position:absolute", "left:12px", "top:36px", "z-index:12",
-      "max-width:min(420px,70%)", "padding:8px 10px", "border-radius:6px",
-      "background:rgba(242,54,69,.16)", "border:1px solid #f23645", "color:#f23645",
-      "font:12px/1.35 'IBM Plex Mono',ui-monospace,monospace", "pointer-events:none"
+      "display:none", "position:fixed", "left:72px", "top:92px", "z-index:80",
+      "max-width:min(520px,72vw)", "padding:8px 12px", "border-radius:6px",
+      "background:#3a1014", "border:1px solid #f23645", "color:#ff6b6b",
+      "font:12px/1.35 'IBM Plex Mono',ui-monospace,monospace", "pointer-events:none",
+      "box-shadow:0 8px 24px rgba(0,0,0,.45)"
     ].join(";");
-    var stage = document.getElementById("stage") || document.getElementById("app") || document.body;
-    stage.style.position = stage.style.position || "relative";
-    stage.appendChild(n);
+    document.body.appendChild(n);
     return n;
   }
 
@@ -36,10 +36,15 @@
   }
 
   function currentSym() {
+    try {
+      if (window.State && State.activeTicker) return norm(State.activeTicker);
+    } catch (e) {}
     var p = new URLSearchParams(location.search);
     var h = (location.hash || "").replace(/^#/, "");
-    var inp = document.getElementById("symin");
-    return norm(p.get("s") || p.get("symbol") || h || (inp && inp.value) || window.jhSymbol || "");
+    var inp = document.getElementById("symin") || document.querySelector(".tv-search input, input[placeholder*='Symbol']");
+    var tab = document.querySelector(".chart-tab.active, .chart-tabs .on, [data-ticker].on");
+    var fromTab = tab && (tab.getAttribute("data-ticker") || tab.textContent);
+    return norm(p.get("s") || p.get("symbol") || h || (inp && inp.value) || fromTab || window.jhSymbol || "");
   }
 
   function load() {
@@ -58,6 +63,7 @@
 
   function paint(sym) {
     var n = el();
+    if (!sym || !sf) { n.style.display = "none"; return; }
     var row = sf[sym] || {};
     var fr = fo[sym] || {};
     var read = String(row.read || "");
@@ -77,16 +83,16 @@
     }
     if (flags.indexOf("ATM_SHELF_ACTIVE") >= 0) {
       hot = true;
-      bits.push("ATM shelf active" + (row.atm_shelf_date ? " " + row.atm_shelf_date : ""));
+      bits.push("ATM shelf" + (row.atm_shelf_date ? " " + row.atm_shelf_date : ""));
     }
     if (fr.m_flag || fr.beneish_flag || (fr.flags && String(fr.flags).indexOf("BENEISH") >= 0)) {
       hot = true;
-      bits.push("Beneish manipulation-pattern flag");
+      bits.push("Beneish flag");
     }
     var concern = fr.flags || fr.careful || fr.risk_flags || [];
     if (Array.isArray(concern)) {
-      if (concern.indexOf("DILUTION_SEVERE") >= 0) { hot = true; bits.push("census: DILUTION_SEVERE"); }
-      if (concern.indexOf("HIGH_CONCERN") >= 0) { hot = true; bits.push("census: HIGH_CONCERN"); }
+      if (concern.indexOf("DILUTION_SEVERE") >= 0) { hot = true; bits.push("DILUTION_SEVERE"); }
+      if (concern.indexOf("HIGH_CONCERN") >= 0) { hot = true; bits.push("HIGH_CONCERN"); }
     }
     if (!hot || !bits.length) {
       n.style.display = "none";
@@ -94,25 +100,15 @@
       return;
     }
     n.style.display = "block";
-    n.textContent = sym + " — " + bits.join(" · ");
+    n.textContent = "⚠ " + sym + " — " + bits.join(" · ");
   }
 
   function tick() {
-    var sym = currentSym();
-    if (!sym || !sf) return;
-    if (sym === lastSym && document.getElementById("jh-risk-banner")) {
-      paint(sym);
-      return;
-    }
-    lastSym = sym;
-    paint(sym);
+    paint(currentSym());
   }
 
   load().then(function () {
     tick();
-    setInterval(tick, 1500);
-    var inp = document.getElementById("symin");
-    if (inp) inp.addEventListener("change", tick);
-    window.addEventListener("hashchange", tick);
+    setInterval(tick, 1200);
   });
 })();
