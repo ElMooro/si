@@ -1,0 +1,28 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35286121259",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35286121259",
+ "base_sha": "73eb265bb680212f9911a8502ecd6b8cacc62a9c",
+ "result_sha": "5650a751a05ce93df237859cc772cb6f6e95aef9",
+ "patchers": [],
+ "targets": [
+  "justhodl-alpha-compass"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "alpha-compass.html"
+ ],
+ "ops_scripts": [
+  "aws/ops/pending/ops_5700_alpha_pd_verify.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "35286145462",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:17:27Z"
+}
