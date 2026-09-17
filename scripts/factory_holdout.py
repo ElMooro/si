@@ -73,13 +73,17 @@ def overlaps(a_start: str, a_end: str, blocks) -> bool:
     return any(not (a_end < b["start"] or a_start > b["end"]) for b in blocks)
 
 
-def bars(wh, symbol: str, days):
-    """List of (day, row) in order; a missing session file stops the run (never interpolated)."""
+def bars(wh, symbol: str, days, *, must_have_from: str | None = None):
+    """List of (day, row) in order; a missing session file stops the run (never interpolated). A miss BEFORE
+    `must_have_from` (lead-in days) only trims the lead: the bars actually shown then start at the first day present."""
     out = []
     for day in days:
         try:
             row, _, _ = grouped_row(wh, day, symbol)
         except Missing as exc:
+            if must_have_from and day < must_have_from:
+                out = []                                    # restart after the gap; the block itself must be complete
+                continue
             raise Missing("%s:%s" % (symbol, exc))
         out.append((day, row))
     return out
@@ -103,19 +107,27 @@ def anonymize(window, future, symbol: str, season: dict) -> dict:
             "flat_threshold": season["flat_thresholds"][symbol], "crisis_drawdown_threshold": season["crisis_drawdown_thresholds"][symbol]}
 
 
+LEAD_CALENDAR_DAYS = 45       # 2026-09-17: the 20 shown bars may precede a short block; the 5 LABEL sessions must sit inside it
+
+
 def build_block(wh, block: dict, split: str, season: dict, *, step: int = 5):
-    """Every window of WINDOW_SESSIONS bars inside the block, stepped by `step`, labeled by the next LABEL_SESSIONS."""
+    """Every window whose LABEL_SESSIONS fall inside the block (the WINDOW_SESSIONS shown may start before it), stepped
+    by `step`. Before 2026-09-17 the whole 25 sessions had to fit inside the block, so svb-2023 and yen-carry-2024
+    (15 sessions each) produced no drill at all and the holdout set was empty."""
     drills, errors = [], []
-    days = list(sessions_between(block["start"], block["end"]))
+    lead_start = (date.fromisoformat(block["start"]) - timedelta(days=LEAD_CALENDAR_DAYS)).isoformat()
+    days = list(sessions_between(lead_start, block["end"]))
     for symbol in ETFS:
         try:
-            rows = bars(wh, symbol, days)
+            rows = bars(wh, symbol, days, must_have_from=block["start"])
         except Missing as exc:
             errors.append(str(exc))
             continue
         for i in range(0, len(rows) - WINDOW_SESSIONS - LABEL_SESSIONS + 1, step):
             window = rows[i:i + WINDOW_SESSIONS]
             future = rows[i + WINDOW_SESSIONS:i + WINDOW_SESSIONS + LABEL_SESSIONS]
+            if future[0][0] < block["start"]:
+                continue                                    # the graded sessions must be the block's own
             w_start, w_end = window[0][0], future[-1][0]
             if split == "train" and overlaps(w_start, w_end, HOLDOUT_BLOCKS):
                 raise RuntimeError("leak: train window %s..%s overlaps a holdout block" % (w_start, w_end))
@@ -192,9 +204,17 @@ def freeze_market_drills(wh, *, season: dict, dry_run: bool, git_sha: str):
                 "note": "market drills frozen separately: the main manifest predates them; a window needs %d sessions, so short blocks yield none" % (WINDOW_SESSIONS + LABEL_SESSIONS)}
     if not dry_run:
         from datetime import datetime, timezone
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         manifest["frozen_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        # drills are immutable (create-if-absent); the manifest is a dated listing plus a pointer, so a re-freeze that adds
+        # drills (a widened block, a backfilled year) is recorded rather than refused
+        wh.put_if_absent(wh.private, "factory/holdout/market-manifest-%s.json" % stamp, canonical(manifest))
+        wh.put_if_absent(wh.private, "factory/holdout/market-provenance-%s.json" % stamp, canonical(provenance))
         report["manifest_write"] = wh.put_if_absent(wh.private, MARKET_MANIFEST_KEY, canonical(manifest))
-        wh.put_if_absent(wh.private, "factory/holdout/market-provenance.json", canonical(provenance))
+        try:
+            wh.s3.put_object(Bucket=wh.private, Key="factory/holdout/market-manifest-latest.json", Body=canonical(manifest), ContentType="application/json")
+        except Exception as exc:  # noqa: BLE001
+            report["pointer_error"] = str(exc)[:200]
     report["manifest"] = manifest
     return report
 

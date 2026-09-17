@@ -27,14 +27,20 @@ def main():
             r.fail("freeze exited %s: %s" % (p.returncode, (p.stderr or "")[-800:]))
             sys.exit(1)
         r.ok("market drills frozen (or already present)")
-        r.section("2. Holdout exam")
-        p = subprocess.run([sys.executable, "scripts/factory_market_exam.py", "--split", "holdout", "--max", "120", "--wait-min", "20"], cwd=REPO, capture_output=True, text=True, timeout=1800)
-        for line in (p.stdout or "").strip().splitlines()[-12:]:
-            r.log(line[:600])
-        if p.returncode != 0:
-            r.fail("exam exited %s: %s" % (p.returncode, (p.stderr or "")[-800:]))
-            sys.exit(1)
-        r.ok("holdout exam written to factory/exams/market/ (aggregate reaches data/ai.json on the next inventory tick)")
+        for split, cap in (("holdout", "120"), ("train", "60")):
+            r.section("2. %s exam" % split)
+            p = subprocess.run([sys.executable, "scripts/factory_market_exam.py", "--split", split, "--max", cap, "--wait-min", "12"], cwd=REPO, capture_output=True, text=True, timeout=1500)
+            for line in (p.stdout or "").strip().splitlines()[-12:]:
+                r.log(line[:700])
+            if p.returncode != 0:
+                r.fail("%s exam exited %s: %s" % (split, p.returncode, (p.stderr or "")[-800:]))
+                continue
+            r.ok("%s exam written to factory/exams/market/" % split)
+        r.section("3. Page projection")
+        import boto3
+        lam = boto3.client("lambda", region_name="us-east-1")
+        lam.invoke(FunctionName="justhodl-ai", InvocationType="Event", Payload=json.dumps({"mode": "inventory"}).encode())
+        r.ok("inventory tick queued: data/ai.json.market_exam refreshes within a minute")
 
 
 if __name__ == "__main__":

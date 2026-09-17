@@ -35,7 +35,7 @@ from factory_core import DIRECTIONS, REGIMES, score_prediction  # noqa: E402
 
 PRIVATE = os.environ.get("AI_PRIVATE_BUCKET", "justhodl-ai-857687956942")
 DRILL_PREFIX = "factory/holdout/drills/"
-SEASON_KEY = "factory/salon/season.json"
+SEASON_KEYS = ("factory/control/season.json", "factory/salon/season.json")   # private authority, public mirror (factory_official_prints.load_season)
 CONTROL_KEY = "factory/control/inference.json"
 OUT_PREFIX = "factory/exams/market/"
 SYSTEM = ("You are a market analyst sitting an exam. You see 20 daily bars of one instrument, rebased to 100 at the first open, "
@@ -225,7 +225,7 @@ def main(argv=None) -> int:
     from botocore.config import Config
     cfg = Config(read_timeout=60, retries={"max_attempts": 3})
     cloud = Cloud(boto3.client("s3", region_name="us-east-1", config=cfg), boto3.client("sagemaker-runtime", region_name="us-east-1", config=cfg))
-    season = cloud.read(SEASON_KEY) or {}
+    season = next((doc for doc in (cloud.read(k) for k in SEASON_KEYS) if isinstance(doc, dict) and doc.get("weights")), {})
     control = cloud.read(CONTROL_KEY) or {}
     if not (season.get("weights") and control.get("enabled") and control.get("endpoint_name")):
         print(json.dumps({"ok": False, "error": "season weights or owned inference control missing", "season": bool(season), "control": control}))
