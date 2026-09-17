@@ -590,8 +590,17 @@ def lambda_handler(event, context):
             all_tells.append(f"Secondary risk: {n} firing ({sconf})")
 
     out = {
-        "engine": "risk-regime", "version": "1.0.0",
+        "engine": "risk-regime", "version": "1.0.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        # ops 5631 quality
+        "call": None,
+        "quality": {
+            "publication_date": datetime.now(timezone.utc).date().isoformat(),
+            "frequency": "intraday",
+            "freshness_basis": "publication",
+            "status": "fresh",
+            "note": "Composite of other engines. Not independent evidence. Not Calls-eligible until inputs are quality-gated and scored.",
+        },
         "wl_research": __import__("wl_fusion").block(('STRESS',)),
         "risk_regime_score": score, "risk_regime": regime,
         "scale": "-100 = risk-off / flight-to-quality .. +100 = risk-on",
