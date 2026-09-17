@@ -1,5 +1,21 @@
-executing-against: ece08f6c9cf12b8d14ed5d7fdd0aa9fd350605c6
-Liquidity agent source and publication proof
-[16:41:45] ✅ Exact source release and current core publication verified; unsupported forecasts expired
-
-→ Report written to aws/ops/reports/latest/ops_5625_liquidity_agent_refresh.md
+executing-against: b8415280006a5f5504bc1a59d7ea12f4717832fc
+{
+  "ops": 5622,
+  "invoke_status": 200,
+  "fn_error": null,
+  "generated_at": "2026-09-17T16:43:27.346240+00:00",
+  "keys_found": [
+    "p_soft_demand_30d"
+  ],
+  "soft": {
+    "probability": 21.4,
+    "drivers": {
+      "coupons_long_stress": 26.1,
+      "pd_concern": false,
+      "indirect_concern": false,
+      "momentum": 6.6
+    },
+    "interpretation": "~21% probability of a coupon BTC < 2.0 or AAH > 95% in next 30 days. Low probability \u2014 auction demand healthy."
+  },
+  "old": null
+}
