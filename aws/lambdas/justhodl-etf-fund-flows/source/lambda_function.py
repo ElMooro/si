@@ -519,6 +519,7 @@ def fetch_etf_flow_window(ticker: str, days: int = 100) -> dict:
                 "fund_flow_21d_usd": flow_21d,
                 "history": [
                     {"processed_date": r.get("processed_date"),
+                     "effective_date": r.get("effective_date"),
                      "flow": _num(r.get("fund_flow")),
                      "nav": _num(r.get("nav")),
                      "shares_outstanding": _num(r.get("shares_outstanding"))}
@@ -1228,6 +1229,67 @@ def build_leveraged_appetite(metrics):
             "pairs": sorted(pairs.values(), key=lambda p: -(abs(p["bull_5d"]) + abs(p["bear_5d"])))[:20]}
 
 
+def dated_flow_measurement(snapshot, today=None):
+    """Separate measurement contract for consumers; never use volume as flow."""
+    today=today or datetime.now(timezone.utc).date()
+    rows={};invalid=0
+    history=snapshot.get('history') or []
+    effective=bool(history) and all(row.get('effective_date') for row in history)
+    for row in history:
+        try:
+            d=row.get('effective_date') if effective else row.get('processed_date')
+            observed=datetime.strptime(d,'%Y-%m-%d').date()
+            if observed>today:raise ValueError('future')
+            processed=row.get('processed_date') or d
+            value=row.get('flow')
+            value=float(value) if value is not None and not isinstance(value,bool) else None
+            if value is not None and not math.isfinite(value):value=None
+            if d in rows:
+                old=rows[d]
+                if old['processed_date']==processed and old['flow']!=value:raise ValueError('conflicting duplicate')
+                if old['processed_date']>=processed:continue
+            rows[d]={'date':d,'processed_date':processed,'flow':value}
+        except (ValueError,TypeError):invalid+=1
+    ordered=sorted(rows.values(),key=lambda row:row['date'],reverse=True)
+    latest=ordered[0] if ordered else None
+    age=(today-datetime.strptime(latest['date'],'%Y-%m-%d').date()).days if latest else None
+    status='invalid' if invalid else 'unavailable' if not latest or latest['flow'] is None or snapshot.get('error') else 'unvalidated' if not effective else 'stale' if age>5 else 'fresh'
+    ready=status=='fresh'
+    out={'ticker':snapshot.get('ticker'),'methodology_version':'etf-dated-flows.v2',
+         'unit':'USD','measure':'provider_fund_flow','source':'ETF Global fund_flow via Massive/Polygon',
+         'date_basis':'effective_date' if effective else 'provider_processed_date',
+         'observation_date':latest['date'] if latest else None,
+         'quality':{'status':status,'age_days':age,'max_age_days':5,'invalid_rows':invalid},
+         'daily_flow_usd':latest['flow'] if ready else None,'windows':{},'aum_usd':None,
+         'persistence_observations':None,'price_return_5obs_pct':None,
+         'flow_zscore_60observations':None,'execution_eligible':False,
+         'note':'Provider-reported fund flows, not exchange trading volume or identified institutional purchases. Windows count observed reporting dates.'}
+    # NAV * shares is same-snapshot AUM, only valid on the selected latest row.
+    snap_date=snapshot.get('effective_date') if effective else snapshot.get('processed_date')
+    aum=snapshot.get('aum_usd')
+    if ready and snap_date==latest['date'] and isinstance(aum,(int,float)) and math.isfinite(aum) and aum>0:out['aum_usd']=aum
+    for n in (5,21):
+        window=ordered[:n];dates=[r['date'] for r in window]
+        span=(datetime.strptime(dates[0],'%Y-%m-%d')-datetime.strptime(dates[-1],'%Y-%m-%d')).days if dates else None
+        complete=ready and len(window)==n and all(r['flow'] is not None for r in window) and span<=2*n+7
+        out['windows'][str(n)]={'status':'complete_observed_window' if complete else 'incomplete',
+                              'dates':dates,'n':len(window),'calendar_span_days':span,
+                              'sum_usd':sum(r['flow'] for r in window) if complete else None}
+    if ready:
+        current=latest['flow'];streak=0
+        for i,row in enumerate(ordered):
+            value=row['flow']
+            if value is None or value==0 or current==0 or (value>0)!=(current>0):break
+            if i and (datetime.strptime(ordered[i-1]['date'],'%Y-%m-%d')-datetime.strptime(row['date'],'%Y-%m-%d')).days>4:break
+            streak+=1
+        out['persistence_observations']=streak
+        prior=[r['flow'] for r in ordered[1:61]]
+        if len(prior)==60 and all(v is not None for v in prior):
+            sd=statistics.stdev(prior)
+            if sd:out['flow_zscore_60observations']=round((current-statistics.mean(prior))/sd,3)
+    return out
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[etf-flows] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -1269,7 +1331,7 @@ def lambda_handler(event, context):
     print("[etf-flows] phase 4b: divergence board + signal emission...")
     divergence = build_divergence_board(metrics)
     _emit_now = datetime.now(timezone.utc)
-    signals_logged = emit_divergence_signals(metrics, _emit_now)
+    signals_logged = 0 if (event or {}).get("suppress_alerts") else emit_divergence_signals(metrics, _emit_now)
     print(f"[etf-flows] divergence: {len(divergence['stealth_accumulation'])}"
           f" stealth / {len(divergence['distribution_rally'])} distro / "
           f"{signals_logged} signals logged")
@@ -1287,6 +1349,15 @@ def lambda_handler(event, context):
         "elapsed_s": elapsed,
         "schema_version": "1.0",
     }
+
+    measured=[dated_flow_measurement(snapshots[t]) for t in ETF_UNIVERSE]
+    measured_fresh=sum(row['quality']['status']=='fresh' for row in measured)
+    _write_json(f"{OUTPUT_PREFIX}measurements.json", {
+        **meta, 'methodology_version':'etf-dated-flows.v2', 'metrics':measured,
+        'quality':{'status':'fresh' if measured_fresh==len(measured) else 'partial',
+                   'fresh_series':measured_fresh,'total_series':len(measured)},
+        'call':None,'execution_eligible':False,
+        'scope':'Dated provider fund-flow measurements. Legacy composite research is a separate contract.'})
 
     # 7a. Daily full snapshot
     _write_json(f"{OUTPUT_PREFIX}daily.json", {**meta, "metrics": metrics})
