@@ -25,6 +25,28 @@ happens on the GitHub Actions runner, which holds the credentials.
 
 The staged-patcher path exists only for lanes without a shell. It is not the general push path.
 
+## Lane authorization (Khalid directive, 2026-09-17)
+
+The **Grok lane is authorized for full write on every deploy path** — engines
+(`aws/lambdas/**`), shared modules, ops scripts (`aws/ops/pending/`), workers, pages —
+through its GitHub connector, which commits as `ElMooro` (Khalid's account) to `main`
+(unprotected). That is the same authority Claude and Codex hold; every push deploys through
+the runner exactly as for any lane. "AWS access" for any lane means the runner: an ops script
+in `aws/ops/pending/` runs with the runner's IAM. No lane ever holds AWS keys, and none are
+issued (audit 2026-09-08, Release A) — a key in a chat window is a regression, not a grant.
+
+Standing rules the grant does not waive:
+- read `aws/ops/ran/`, `aws/ops/pending/` and `STATE.md` before choosing an ops number — the
+  bands interleave now (Grok 5582/5583/5610, Claude 5584–5588); `_preflight.py` refuses duplicates
+- a bundled policy JSON (`aws/lambdas/<fn>/source/*.json` with a `config/` twin) must be
+  byte-identical to its twin **in the same commit** (`tests/deployment/test_bundled_config_identity.py`)
+- never a placeholder or partial source on `main` — a body over ~40 KB goes through the
+  multipart upload below
+- `.github/workflows/*` edits need the `workflow` OAuth scope; without it the Contents API
+  refuses the write — hand the change to a shell lane rather than retrying
+- a deploy is proven by the receipt (`data/ops/releases/<fn>.json`, commit == yours), not by a
+  green run; ops reports land in `aws/ops/reports/latest/`
+
 ## Proof, not green checks
 
 A green workflow proves the runner finished, not that AWS runs your bytes. The
