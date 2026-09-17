@@ -195,8 +195,12 @@
     return els;
   }
   function badge(el, n, key, sub) {
-    var old = el.querySelector(":scope > .jh-secbadge, :scope > * > .jh-secbadge") || document.querySelector('.jh-secbadge[data-for="' + CSS.escape(el.id || "") + '"]');
-    if (old && old.dataset.n === n) return;
+    // A heading can sit outside its block, and a block can contain badges
+    // belonging to children. Match the owner, never the first descendant.
+    var owned = el.id ? Array.from(document.querySelectorAll('.jh-secbadge[data-for="' + CSS.escape(el.id) + '"]')) : [];
+    var old = owned.shift();
+    owned.forEach(function (duplicate) { duplicate.remove(); });
+    if (old && old.dataset.n === String(n)) return;
     if (old) old.remove();
     var b = document.createElement("a");
     b.className = "jh-secbadge" + (sub ? " sub" : "");
