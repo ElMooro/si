@@ -1,0 +1,30 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35285489981",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35285489981",
+ "base_sha": "e96d1d7ded04ee70d4efac61f97f4e5ab7c34ee9",
+ "result_sha": "a910027c429c71573d2805d59f02d8c4808890cc",
+ "patchers": [],
+ "targets": [
+  "justhodl-hot-money"
+ ],
+ "shared": [
+  "aws/shared/pd_fails_context.py",
+  "aws/shared/tests/pd_fails_context_tests.py"
+ ],
+ "workers": [],
+ "pages": [
+  "hot-money.html",
+  "jh-pd-context.js"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": "35285511078",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-17T23:09:27Z"
+}
