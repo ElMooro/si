@@ -58,6 +58,25 @@ def test_stale_cache_is_retried_against_official_fred():
         assert engine.fetch_fred("RRPONTSYD") == fresh and live.call_count == 1
 
 
+def test_full_catalogue_uses_valid_frequency_and_survives_cached_optional_series():
+    assert all(len(row) == 5 for row in engine.FRED_SERIES), "adjacent strings must not swallow category separators"
+    cached = {row[0]: [{"date": TODAY, "value": 1}] for row in engine.FRED_SERIES}
+    with patch.object(engine, "_load_fred_cache", return_value=cached):
+        for sid in cached:
+            assert engine.fetch_fred(sid) == cached[sid]
+
+
+def test_full_handler_including_optional_catalogue_publishes_without_network():
+    writes = []
+    cached = {row[0]: [{"date": (NOW.date()-timedelta(days=i)).isoformat(), "value": 100+i}
+                      for i in range(70)] for row in engine.FRED_SERIES}
+    client = types.SimpleNamespace(put_object=lambda **kw: writes.append(kw))
+    with patch.object(engine, "s3", client), patch.object(engine, "_load_fred_cache", return_value=cached), \
+         patch.object(engine, "_sfeed", return_value={}), patch.object(engine, "_fred_live", return_value=[]):
+        assert engine.lambda_handler({}, None)["statusCode"] == 200
+    assert len(json.loads(writes[0]["Body"])["catalog"]) > 5
+
+
 def test_missing_core_publishes_expired_contract_before_optional_work():
     writes = []
     client = types.SimpleNamespace(put_object=lambda **kw: writes.append(kw))
