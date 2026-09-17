@@ -14,6 +14,7 @@ Receipts: https://justhodl.ai/data/ops/releases/<function>.json
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import email.utils
 import json
 import sys
@@ -23,6 +24,55 @@ import urllib.request
 
 HOSTS = ("https://justhodl.ai", "https://justhodl-data-proxy.raafouis.workers.dev")
 UA = "justhodl-verify-release/1.0"
+
+
+def data_freshness(headers, body, max_age_h, now=None):
+    """Prefer publication time: rewriting a stale last-good object is not freshness.
+
+    Reviewed-artifact gateways deliberately omit Last-Modified. GET verifies the
+    actual public JSON and supports those gateways without weakening the check.
+    """
+    payload = json.loads(body)
+    if not isinstance(payload, dict):
+        raise ValueError("engine data must be a JSON object")
+    quality = payload.get("quality") or {}
+    if not isinstance(quality, dict):
+        raise ValueError("invalid quality object")
+    status = quality.get("status")
+    if status in ("stale", "unavailable", "invalid") or payload.get("ok") is False:
+        raise ValueError(f"engine reports unusable data: {status or 'ok=false'}")
+    stamps = [("generated_at", payload.get("generated_at")),
+              ("meta.generated_at", (payload.get("meta") or {}).get("generated_at")),
+              ("quality.publication_date", quality.get("publication_date"))]
+    present = [(name, stamp) for name, stamp in stamps if stamp is not None]
+    parsed = []
+    for name, stamp in present:
+        try:
+            dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+            if dt.tzinfo is None or "T" not in stamp:
+                raise ValueError("publication time needs a timezone and time")
+            parsed.append((dt.timestamp(), name, stamp))
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise ValueError(f"invalid {name}") from exc
+    if not parsed:
+        lm = headers.get("Last-Modified")
+        if not lm:
+            raise ValueError("no publication timestamp or Last-Modified header")
+        try:
+            parsed = [(email.utils.parsedate_to_datetime(lm).timestamp(), "Last-Modified", lm)]
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise ValueError("invalid Last-Modified header") from exc
+    current = time.time() if now is None else now
+    if any(stamp > current + 300 for stamp, _, _ in parsed):
+        raise ValueError("publication timestamp is in the future")
+    # A fresh top-level wrapper cannot hide an old nested publication timestamp.
+    stamp, basis, raw = min(parsed)
+    age_h = max(0, (current - stamp) / 3600)
+    state = "fresh" if age_h <= max_age_h else "STALE"
+    detail = f"{basis} {raw} ({age_h:.1f}h old) -> {state}"
+    if status:
+        detail += f"; quality={status}"
+    return state == "fresh", detail
 
 
 def fetch(path: str, head: bool = False):
@@ -62,15 +112,11 @@ def main(argv=None) -> int:
         ok = False
     if args.data:
         try:
-            headers, _ = fetch(args.data, head=True)
-            lm = headers.get("Last-Modified")
-            age_h = (time.time() - email.utils.parsedate_to_datetime(lm).timestamp()) / 3600 if lm else None
-            state = "fresh" if age_h is not None and age_h <= args.max_age_h else "STALE"
-            print(f"   {args.data}: Last-Modified {lm} ({age_h:.1f}h old) -> {state}" if age_h is not None
-                  else f"   {args.data}: no Last-Modified header")
-            if state == "STALE":
-                ok = False
-        except RuntimeError as exc:
+            headers, data_body = fetch(args.data)
+            fresh, detail = data_freshness(headers, data_body, args.max_age_h)
+            print(f"   {args.data}: {detail}")
+            ok = ok and fresh
+        except (RuntimeError, ValueError, TypeError, AttributeError) as exc:
             print(f"   {args.data}: {exc}")
             ok = False
     print("VERIFIED" if ok else "NOT VERIFIED")
