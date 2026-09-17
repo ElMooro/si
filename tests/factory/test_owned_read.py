@@ -139,9 +139,97 @@ class OwnedReadSettleTests(unittest.TestCase):
         lf.put_private(lf.READ_KEY, {'read_id': 'r2', 'board': BOARD, 'read': det})
         self.cloud.rows[('private', 'factory/inference/out/y.json')] = json.dumps({'generated_text': 'I think stocks look fine.'}).encode()
         res = lf.settle_owned_read()
-        self.assertEqual(res['state'], 'malformed')
+        self.assertEqual(res['state'], 'repairing')                                   # prose -> one repair round first
+        mid = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
+        self.assertTrue(mid['fallback']); self.assertIn('no JSON', mid['owned_voice']['repair']['first_error'])
+        self.cloud.rows[('private', 'factory/inference/out/y.json')] = json.dumps({'generated_text': 'still prose, sorry'}).encode()
+        res = lf.settle_owned_read()
+        self.assertEqual(res['state'], 'malformed')                                   # the repair also failed: terminal, deterministic stands
         final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
         self.assertTrue(final['fallback']); self.assertEqual(final['owned_voice']['state'], 'malformed'); self.assertIn('no JSON', final['owned_voice']['error'])
+
+
+
+class OwnedReadContractTests(unittest.TestCase):
+    """What a 7B voice actually writes (ops 5622: 'stocks.read must be a non-empty string') is coerced, never invented."""
+
+    def test_near_miss_shapes_are_normalised_and_every_coercion_is_recorded(self):
+        near = {"summary": "Mixed regime with a risk-off posture; caution is warranted across assets, and the cycle is mildly hawkish.",
+                "macro": "Growth slowing, inflation sticky.",
+                "stocks": {"stance": "risk-off", "reading": "Breadth weak and the gate is defensive."},
+                "bonds": {"posture": "long", "read": "Curve bull-steepening favours duration."},
+                "metals": "Hold gold; no new buys until the dollar turns.",
+                "crypto": {"stance": "neutral", "commentary": "BTC range-bound."},
+                "best_opportunities": [{"ticker": "AAPL", "direction": "buy", "reason": "relative strength", "horizon": 21}],
+                "what_would_change_my_mind": ["gate flips"], "data_gaps": [],
+                "calls": [{"ticker": "TLT", "side": "long", "horizon": 63, "confidence": 65, "why": "duration bid"}]}
+        got = mr.parse_read_text("```json\n" + json.dumps(near) + "\n```", {"AAPL", "TLT"})
+        self.assertFalse(got.get("parse_error"), got)
+        self.assertEqual(got["stocks"]["stance"], "DEFENSIVE"); self.assertEqual(got["bonds"]["stance"], "LONG_DURATION")
+        self.assertEqual(got["metals"]["stance"], "HOLD"); self.assertEqual(got["crypto"]["stance"], "HOLD")
+        self.assertEqual(got["best_opportunities"][0]["side"], "LONG"); self.assertEqual(got["calls"][0]["direction"], "UP")
+        self.assertEqual(got["calls"][0]["confidence"], 0.65); self.assertEqual(got["calls"][0]["horizon_days"], 63)
+        self.assertTrue(any("stocks.stance" in f for f in got["coercions"]) and any("overall <- summary" in f for f in got["coercions"]))
+
+    def test_a_missing_read_is_still_a_rejection_not_an_invention(self):
+        missing = {"overall": "x" * 30, "macro": "y" * 12, "stocks": {"stance": "DEFENSIVE"}, "bonds": {"stance": "NEUTRAL", "read": "r"},
+                   "metals": {"stance": "HOLD", "read": "r"}, "crypto": {"stance": "HOLD", "read": "r"}}
+        got = mr.parse_read_text(json.dumps(missing), set())
+        self.assertTrue(got.get("parse_error")); self.assertIn("stocks.read", got["validation_error"])
+
+    def test_owned_prompt_carries_the_skeleton_and_repair_prompt_carries_the_error(self):
+        p = mr.build_prompt(BOARD, PLAY, None, True, mr.OWNED_BUDGET, schema_hint=True)
+        self.assertIn('"stocks": {"stance": "RISK_ON|SELECTIVE|DEFENSIVE|AVOID"', p); self.assertIn("Copy exactly this shape", p)
+        self.assertNotIn("Copy exactly this shape", mr.build_prompt(BOARD, PLAY, None, True))
+        rp = mr.repair_prompt('{"stocks": {"stance": "DEFENSIVE"}}', "validation: stocks.read must be a non-empty string")
+        self.assertIn("stocks.read must be a non-empty string", rp); self.assertIn(mr.SCHEMA_SKELETON, rp); self.assertIn('"stance": "DEFENSIVE"', rp)
+
+    def test_settle_repairs_once_then_accepts_the_corrected_answer(self):
+        lf = engine_module()
+        lf.PRIVATE_BUCKET, lf.PUBLIC_BUCKET = 'private', 'public'
+        cloud = MemoryS3()
+        if not hasattr(cloud, 'delete_object'):
+            cloud.delete_object = lambda Bucket, Key: cloud.rows.pop((Bucket, Key), None)
+        control = {'enabled': True, 'endpoint_name': 'jh-owned-coder-async', 'model_id': 'qwen2-5-coder-7b-instruct', 'revision': 'c03e6d358207e414'}
+        cloud.rows[('private', fi.CONTROL_KEY)] = json.dumps(control).encode()
+        n = {'i': 0}
+        def invoke(**kw):
+            n['i'] += 1
+            return {'OutputLocation': 's3://private/factory/inference/out/r%d.json' % n['i'], 'FailureLocation': 's3://private/factory/inference/fail/r%d.json' % n['i']}
+        rt = types.SimpleNamespace(invoke_endpoint_async=invoke)
+        clients = {'s3': cloud, 'sagemaker-runtime': rt}
+        lf.client = lambda name: clients[name]
+        lf.get_json = lambda bucket, key: (lambda raw: json.loads(raw) if raw else None)(cloud.rows.get((bucket, key)))
+        lf.put_private = lambda key, doc: cloud.rows.__setitem__(('private', key), json.dumps(doc, default=str).encode())
+        lf.run_inventory = lambda *a, **k: None
+        lf._signals_table = lambda: None
+        lf.mr.log_calls = lambda table, rid, calls, log_signal, yprice: [{'signal_id': 's-' + c['ticker'], 'logged': True} for c in calls]
+        sys.modules['signals_emit'] = types.SimpleNamespace(log_signal=lambda *a, **k: None, yprice=lambda *a, **k: 1.0)
+        det = mr.deterministic_read(BOARD); det.update(fallback=True, empty=True, decision_status='EVIDENCE_READY', release_blockers=[])
+        det['owned_voice'] = lf._submit_owned_read(BOARD, PLAY, {}, {})
+        lf.put_private(lf.READ_KEY, {'read_id': 'r3', 'board': BOARD, 'read': det})
+        self.assertEqual(n['i'], 1)
+        # first answer: a near-miss the normaliser cannot save (no read text at all) -> a repair is submitted, the deterministic read stands
+        bad = {**ANSWER, 'stocks': {'stance': 'DEFENSIVE'}}
+        cloud.rows[('private', 'factory/inference/out/r1.json')] = json.dumps({'generated_text': json.dumps(bad)}).encode()
+        res = lf.settle_owned_read()
+        self.assertEqual(res['state'], 'repairing'); self.assertEqual(n['i'], 2)
+        mid = json.loads(cloud.rows[('private', lf.READ_KEY)])['read']
+        self.assertTrue(mid['fallback']); self.assertEqual(mid['owned_voice']['repair']['attempt'], 1); self.assertIn('stocks.read', mid['owned_voice']['repair']['first_error'])
+        req = json.loads(cloud.rows[('private', fi.REQ_PREFIX + mid['owned_voice']['pending_id'] + '.json')])
+        self.assertIn('was rejected by the validator', req['inputs']); self.assertIn('"stance": "DEFENSIVE"', req['inputs'])
+        # the repaired answer lands -> it becomes the read, marked repaired
+        cloud.rows[('private', 'factory/inference/out/r2.json')] = json.dumps({'generated_text': json.dumps(ANSWER)}).encode()
+        res = lf.settle_owned_read()
+        self.assertEqual(res['state'], 'done')
+        final = json.loads(cloud.rows[('private', lf.READ_KEY)])['read']
+        self.assertEqual(final['voice'], 'owned'); self.assertTrue(final['owned_voice']['repaired']); self.assertEqual(final['stocks']['read'], 'Breadth improving.')
+        # a second failure after the repair is terminal (no infinite repair loop)
+        det2 = mr.deterministic_read(BOARD); det2.update(fallback=True, empty=True)
+        det2['owned_voice'] = dict(lf._submit_owned_read(dict(BOARD, generated_at='2026-09-17T06:00:00Z'), PLAY, {}, {}), repair={'attempt': 1})
+        lf.put_private(lf.READ_KEY, {'read_id': 'r4', 'board': BOARD, 'read': det2})
+        cloud.rows[('private', 'factory/inference/out/r3.json')] = json.dumps({'generated_text': 'still prose'}).encode()
+        self.assertEqual(lf.settle_owned_read()['state'], 'malformed'); self.assertEqual(n['i'], 3)
 
 
 if __name__ == '__main__':

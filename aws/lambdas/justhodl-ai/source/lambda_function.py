@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -1021,7 +1021,7 @@ def _submit_owned_read(board: dict, play: dict, lessons: dict, policy: dict) -> 
     if not control or not control.get("enabled") or not control.get("endpoint_name"):
         return {"state": "not_submitted", "error": "owned inference control disabled or absent (factory/control/inference.json)"}
     # the owned model runs inside this account: the operator's note text may travel to it (same boundary as the Brain desk)
-    prompt = mr.build_prompt(board, play, lessons, playbook_text=bool(policy.get("playbook_text_to_llm", True)), budget=mr.OWNED_BUDGET)
+    prompt = mr.build_prompt(board, play, lessons, playbook_text=bool(policy.get("playbook_text_to_llm", True)), budget=mr.OWNED_BUDGET, schema_hint=True)
     pending = fin.submit_task(store, client("sagemaker-runtime"), control, OWNED_READ_AGENT, mr.SYSTEM, prompt, max_new_tokens=1400, temperature=0.2,
                               meta={"candidates": sorted(board.get("candidates") or []), "for": "market-read"})
     return {"state": pending.get("state"), "pending_id": pending.get("id"), "origin": pending.get("origin"), "endpoint": control.get("endpoint_name"),
@@ -1058,11 +1058,23 @@ def settle_owned_read(context=None) -> Dict[str, Any]:
     candidates = set(((pending.get("meta") or {}).get("candidates")) or ((doc.get("board") or {}).get("candidates")) or [])
     owned = mr.parse_read_text(text, candidates)
     if owned.get("parse_error"):
-        ov.update(state="malformed", error=("validation: " + str(owned.get("validation_error")))[:300] if owned.get("validation_error") else "no JSON object in the answer",
-                  raw_head=str(owned.get("raw") or "")[:400], settled_at=now_iso())
+        error = ("validation: " + str(owned.get("validation_error")))[:300] if owned.get("validation_error") else "no JSON object in the answer"
+        _owned_deliver(store, pkey, pending, petag, "malformed")
+        if not ov.get("repair"):
+            # one repair round: the same analysis, corrected to the contract (the endpoint is warm now, so this is quick)
+            try:
+                control = fin.load_control(store)
+                rep = fin.submit_task(store, client("sagemaker-runtime"), control, OWNED_READ_AGENT, mr.SYSTEM, mr.repair_prompt(text, error),
+                                      max_new_tokens=1400, temperature=0.1, meta={"candidates": sorted(candidates), "for": "market-read-repair"})
+                ov.update(state=rep.get("state"), pending_id=rep.get("id"), repair={"attempt": 1, "first_error": error, "raw_head": str(text)[:400], "submitted_at": rep.get("submitted_at")})
+                doc["read"]["owned_voice"] = ov
+                put_private(READ_KEY, doc)
+                return {"waiting": True, "state": "repairing", "error": error}
+            except Exception as e:
+                error += " | repair not submitted: %s" % str(e)[:120]
+        ov.update(state="malformed", error=error, raw_head=str(owned.get("raw") or "")[:400], coercions=owned.get("coercions"), settled_at=now_iso())
         doc["read"]["owned_voice"] = ov
         put_private(READ_KEY, doc)
-        _owned_deliver(store, pkey, pending, petag, "malformed")
         return {"waiting": False, "state": "malformed", "error": ov["error"]}
     # the owned answer becomes the read; governance from the deterministic pass carries over
     prior = doc["read"]
@@ -1073,7 +1085,8 @@ def settle_owned_read(context=None) -> Dict[str, Any]:
     owned["release_blockers"] = prior.get("release_blockers") or []
     if owned["release_blockers"]:
         owned["calls"] = []
-    owned["owned_voice"] = dict(ov, state="done", settled_at=now_iso(), latency_s=_secs_between(ov.get("submitted_at"), now_iso()))
+    owned["owned_voice"] = dict(ov, state="done", settled_at=now_iso(), latency_s=_secs_between(ov.get("submitted_at"), now_iso()),
+                                coercions=owned.pop("coercions", None), repaired=bool(ov.get("repair")))
     logged = []
     if owned.get("calls"):
         try:

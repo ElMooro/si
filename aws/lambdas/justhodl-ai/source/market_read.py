@@ -32,7 +32,7 @@ import math
 import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Tuple, Any, Dict, List, Optional
 
 SIGNAL_TYPE = "ai_market_read"
 WINDOWS = [5, 21, 63]
@@ -361,8 +361,25 @@ OWNED_BUDGET = (6000, 3500, 3000)           # the owned endpoint serves OPTION_M
 
 
 def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
-                 budget: tuple = DEFAULT_BUDGET) -> str:
-    """The read prompt, identical for every voice (Anthropic, GLM, the owned model) apart from the size budget."""
+                 budget: tuple = DEFAULT_BUDGET, schema_hint: bool = False) -> str:
+    """The read prompt, identical for every voice (Anthropic, GLM, the owned model) apart from the size budget and,
+    for a smaller voice, an exact JSON skeleton to copy (schema_hint)."""
+    text = _build_prompt(board, play, lessons, playbook_text, budget)
+    if schema_hint:
+        text = text[:-len("Produce the JSON.")] if text.endswith("Produce the JSON.") else text + "\n"
+        text += "Produce the JSON. Copy exactly this shape (same keys, stances only from the lists, ticker only from CANDIDATES, no other keys, no prose before or after):\n" + SCHEMA_SKELETON
+    return text
+
+
+def repair_prompt(raw: str, error: str) -> str:
+    """Second chance for a near-miss answer: same content, corrected to the contract."""
+    return ("Your previous answer was rejected by the validator: %s\n\nReturn the SAME analysis as one JSON object that matches exactly this shape "
+            "(same keys, stances only from the lists, every ticker from the original CANDIDATES, every asset object with a non-empty \"read\"), "
+            "and nothing else:\n%s\n\nYour previous answer:\n%s" % (str(error)[:300], SCHEMA_SKELETON, str(raw)[:5000]))
+
+
+def _build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
+                  budget: tuple = DEFAULT_BUDGET) -> str:
     b_board, b_digest, b_play = budget
     slim = json.loads(json.dumps(board, default=str))
     slim.pop("candidates", None)
@@ -377,6 +394,119 @@ def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[
         ", ".join(board.get("candidates") or []))
 
 
+SCHEMA_SKELETON = (
+    '{"overall": "<4-7 sentences>", "macro": "<string>", '
+    '"stocks": {"stance": "RISK_ON|SELECTIVE|DEFENSIVE|AVOID", "read": "<why, from the board>"}, '
+    '"bonds": {"stance": "LONG_DURATION|NEUTRAL|SHORT_DURATION|AVOID", "read": "<why>"}, '
+    '"metals": {"stance": "ACCUMULATE|HOLD|TRIM|AVOID", "read": "<why>"}, '
+    '"crypto": {"stance": "ACCUMULATE|HOLD|REDUCE|AVOID", "read": "<why>"}, '
+    '"best_opportunities": [{"ticker": "<from CANDIDATES>", "side": "LONG|SHORT", "why": "<string>", "horizon_days": 21, "from_engines": ["<engine>"]}], '
+    '"what_would_change_my_mind": ["<string>"], "data_gaps": ["<string>"], '
+    '"calls": [{"ticker": "<from CANDIDATES>", "direction": "UP|DOWN", "horizon_days": 21, "confidence": 0.6, "thesis": "<string>"}]}'
+)
+
+# What a smaller voice tends to write instead of the contract -- coerced conservatively, every coercion recorded.
+_READ_ALIASES = ("read", "reading", "view", "rationale", "comment", "commentary", "summary", "analysis", "note", "text", "why")
+_STANCE_ALIASES = ("stance", "posture", "position", "view", "bias", "call", "rating")
+_STANCE_SYNONYMS = {
+    "stocks": {"RISK_OFF": "DEFENSIVE", "RISKOFF": "DEFENSIVE", "BEARISH": "DEFENSIVE", "CAUTIOUS": "SELECTIVE", "NEUTRAL": "SELECTIVE",
+               "BULLISH": "RISK_ON", "RISKON": "RISK_ON", "OVERWEIGHT": "RISK_ON", "UNDERWEIGHT": "DEFENSIVE"},
+    "bonds": {"LONG": "LONG_DURATION", "SHORT": "SHORT_DURATION", "DURATION_LONG": "LONG_DURATION", "DURATION_SHORT": "SHORT_DURATION",
+              "OVERWEIGHT": "LONG_DURATION", "UNDERWEIGHT": "SHORT_DURATION", "BULLISH": "LONG_DURATION", "BEARISH": "SHORT_DURATION"},
+    "metals": {"BUY": "ACCUMULATE", "ADD": "ACCUMULATE", "OVERWEIGHT": "ACCUMULATE", "NEUTRAL": "HOLD", "SELL": "TRIM", "REDUCE": "TRIM", "UNDERWEIGHT": "TRIM"},
+    "crypto": {"BUY": "ACCUMULATE", "ADD": "ACCUMULATE", "OVERWEIGHT": "ACCUMULATE", "NEUTRAL": "HOLD", "SELL": "REDUCE", "TRIM": "REDUCE", "UNDERWEIGHT": "REDUCE"},
+}
+
+
+def _canon(value) -> str:
+    return re.sub(r"[^A-Z_]", "", str(value or "").strip().upper().replace("-", "_").replace(" ", "_"))
+
+
+def normalize_read_doc(doc: Any) -> Tuple[Any, List[str]]:
+    """Coerce a voice's near-miss JSON toward the contract without inventing content. Returns (doc, coercions)."""
+    if not isinstance(doc, dict):
+        return doc, []
+    out = dict(doc)
+    fixes: List[str] = []
+    for key, alts in (("overall", ("summary", "situation", "overview")), ("macro", ("macro_view", "macro_read", "economy"))):
+        if not isinstance(out.get(key), str) or not out.get(key, "").strip():
+            for alt in alts:
+                if isinstance(out.get(alt), str) and out[alt].strip():
+                    out[key] = out[alt]; fixes.append("%s <- %s" % (key, alt)); break
+    for asset, allowed in STANCE_ENUMS.items():
+        row = out.get(asset)
+        if isinstance(row, str):
+            row = {"stance": row, "read": row}
+            fixes.append("%s: string -> object" % asset)
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        if not (isinstance(row.get("read"), str) and row["read"].strip()):
+            for alt in _READ_ALIASES[1:]:
+                if isinstance(row.get(alt), str) and row[alt].strip():
+                    row["read"] = row[alt]; fixes.append("%s.read <- %s" % (asset, alt)); break
+        stance = row.get("stance")
+        if stance is None:
+            for alt in _STANCE_ALIASES[1:]:
+                if row.get(alt) is not None:
+                    stance = row[alt]; fixes.append("%s.stance <- %s" % (asset, alt)); break
+        c = _canon(stance)
+        if c not in allowed and c in _STANCE_SYNONYMS.get(asset, {}):
+            fixes.append("%s.stance %s -> %s" % (asset, c, _STANCE_SYNONYMS[asset][c])); c = _STANCE_SYNONYMS[asset][c]
+        if c not in allowed and isinstance(stance, str) and len(stance) > 12:
+            # a sentence where an enum belongs ("Hold gold until the dollar turns"): take the first word that IS a stance or synonym
+            for word in re.findall(r"[A-Za-z_\-]+", stance):
+                w = _canon(word); w = _STANCE_SYNONYMS.get(asset, {}).get(w, w)
+                if w in allowed:
+                    fixes.append("%s.stance taken from text: %s" % (asset, w)); c = w; break
+        if c in allowed:
+            if stance != c:
+                fixes.append("%s.stance canonicalised" % asset) if "%s.stance" % asset not in " ".join(fixes) else None
+            row["stance"] = c
+        out[asset] = row
+    opps = []
+    for row in (out.get("best_opportunities") or []) if isinstance(out.get("best_opportunities"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        side = _canon(row.get("side") or row.get("direction"))
+        side = {"BUY": "LONG", "UP": "LONG", "SELL": "SHORT", "DOWN": "SHORT"}.get(side, side)
+        if side != row.get("side"):
+            fixes.append("opportunity.side -> %s" % side)
+        row["side"] = side
+        if row.get("horizon_days") is None and row.get("horizon") is not None:
+            row["horizon_days"] = row["horizon"]; fixes.append("opportunity.horizon_days <- horizon")
+        if not row.get("why") and isinstance(row.get("reason"), str):
+            row["why"] = row["reason"]; fixes.append("opportunity.why <- reason")
+        opps.append(row)
+    if opps:
+        out["best_opportunities"] = opps
+    calls = []
+    for row in (out.get("calls") or []) if isinstance(out.get("calls"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        d = _canon(row.get("direction") or row.get("side"))
+        d = {"LONG": "UP", "BUY": "UP", "BULLISH": "UP", "SHORT": "DOWN", "SELL": "DOWN", "BEARISH": "DOWN"}.get(d, d)
+        if d != row.get("direction"):
+            fixes.append("call.direction -> %s" % d)
+        row["direction"] = d
+        if row.get("horizon_days") is None and row.get("horizon") is not None:
+            row["horizon_days"] = row["horizon"]; fixes.append("call.horizon_days <- horizon")
+        try:
+            conf = float(row.get("confidence"))
+            if 1.0 < conf <= 100.0:
+                row["confidence"] = conf / 100.0; fixes.append("call.confidence percent -> fraction")
+        except Exception:
+            pass
+        if not row.get("thesis") and isinstance(row.get("why"), str):
+            row["thesis"] = row["why"]; fixes.append("call.thesis <- why")
+        calls.append(row)
+    if calls:
+        out["calls"] = calls
+    return out, fixes
+
+
 def parse_read_text(txt: str, candidates: set) -> Dict[str, Any]:
     """A voice's raw answer -> validated read, or a parse_error record (never raises)."""
     txt = str(txt or "").strip()
@@ -385,10 +515,14 @@ def parse_read_text(txt: str, candidates: set) -> Dict[str, Any]:
         j = json.loads(m.group(0) if m else txt)
     except Exception:
         return {"parse_error": True, "raw": txt[:2000]}
+    j, fixes = normalize_read_doc(j)
     try:
-        return validate_read(j, set(candidates or []))
+        out = validate_read(j, set(candidates or []))
     except ValueError as exc:
-        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000]}
+        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000], "coercions": fixes}
+    if fixes:
+        out["coercions"] = fixes[:20]
+    return out
 
 
 def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
