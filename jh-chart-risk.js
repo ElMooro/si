@@ -1,15 +1,13 @@
 /* jh-reskin-skip */
-/* Red issuer warnings from share-flows + forensic-screen.
-   chart.html and chart-pro.html. */
+/* Red issuer warnings on chart.html Supercharts. Active tab wins over GO box. */
 (function () {
   var path = location.pathname || "";
-  if (!/chart(\.html)?$|chart-pro\.html$/i.test(path)) return;
-  if (window.__jhChartRiskV2) return;
-  window.__jhChartRiskV2 = true;
+  if (!/chart\.html?$|\/chart\/?$/i.test(path)) return;
+  if (window.__jhChartRiskV3) return;
+  window.__jhChartRiskV3 = true;
 
   var sf = null;
   var fo = null;
-  var lastSym = "";
 
   function el() {
     var n = document.getElementById("jh-risk-banner");
@@ -18,7 +16,7 @@
     n.id = "jh-risk-banner";
     n.setAttribute("role", "status");
     n.style.cssText = [
-      "display:none", "position:fixed", "left:72px", "top:92px", "z-index:80",
+      "display:none", "position:fixed", "left:56px", "top:108px", "z-index:80",
       "max-width:min(520px,72vw)", "padding:8px 12px", "border-radius:6px",
       "background:#3a1014", "border:1px solid #f23645", "color:#ff6b6b",
       "font:12px/1.35 'IBM Plex Mono',ui-monospace,monospace", "pointer-events:none",
@@ -36,15 +34,12 @@
   }
 
   function currentSym() {
-    try {
-      if (window.State && State.activeTicker) return norm(State.activeTicker);
-    } catch (e) {}
+    var on = document.querySelector("#tabs .tab.on[data-id], #tabs button.tab.on");
+    if (on) return norm(on.getAttribute("data-id") || on.textContent);
+    var wm = document.getElementById("wm");
+    if (wm && wm.textContent) return norm(wm.textContent);
     var p = new URLSearchParams(location.search);
-    var h = (location.hash || "").replace(/^#/, "");
-    var inp = document.getElementById("symin") || document.querySelector(".tv-search input, input[placeholder*='Symbol']");
-    var tab = document.querySelector(".chart-tab.active, .chart-tabs .on, [data-ticker].on");
-    var fromTab = tab && (tab.getAttribute("data-ticker") || tab.textContent);
-    return norm(p.get("s") || p.get("symbol") || h || (inp && inp.value) || fromTab || window.jhSymbol || "");
+    return norm(p.get("s") || p.get("symbol") || window.jhSymbol || "");
   }
 
   function load() {
@@ -100,15 +95,10 @@
       return;
     }
     n.style.display = "block";
-    n.textContent = "⚠ " + sym + " — " + bits.join(" · ");
-  }
-
-  function tick() {
-    paint(currentSym());
+    n.textContent = "\u26a0 " + sym + " \u2014 " + bits.join(" \u00b7 ");
   }
 
   load().then(function () {
-    tick();
-    setInterval(tick, 1200);
+    setInterval(function () { paint(currentSym()); }, 800);
   });
 })();
