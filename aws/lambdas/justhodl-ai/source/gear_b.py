@@ -505,6 +505,156 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
     return record
 
 
+EXAM_JOBS_PREFIX = "factory/bursts/jobs/"
+EXAM_RESULTS_PREFIX = "factory/exams/code/results/"
+EXAM_PROMPTS_ONLY_PREFIX = "factory/exams/code/prompts-only/"
+CHAMPIONS_PREFIX = "factory/champions/"
+
+
+def _exam_records(s3, private_bucket: str) -> List[Dict[str, Any]]:
+    out = []
+    for key in list_keys(s3, private_bucket, EXAM_JOBS_PREFIX, 2000):
+        if not key.endswith(".json") or key.endswith(".terminal.json"):
+            continue
+        doc = get_json(s3, private_bucket, key)
+        if isinstance(doc, dict) and doc.get("kind") == "exam":
+            out.append(doc)
+    return out
+
+
+def _extract_adapter(s3, private_bucket: str, candidate: Dict[str, Any]) -> Dict[str, Any]:
+    """Copy the trained adapter out of the job's model.tar.gz into factory/champions/gen-N/adapter/ (create-if-absent manifest)."""
+    import hashlib
+    import io
+    import tarfile
+    gen = int(candidate["generation"])
+    prefix = "%sgen-%d/adapter/" % (CHAMPIONS_PREFIX, gen)
+    man_key = "%sgen-%d/manifest.json" % (CHAMPIONS_PREFIX, gen)
+    have = get_json(s3, private_bucket, man_key)
+    if have:
+        return {"adapter_prefix": prefix, "manifest": have, "extracted": False}
+    key = str(candidate["artifact"]).split(private_bucket + "/", 1)[1]
+    tf = tarfile.open(fileobj=io.BytesIO(s3.get_object(Bucket=private_bucket, Key=key)["Body"].read()))
+    names = tf.getnames()
+    mf = [n for n in names if n.endswith("train_manifest.json")]
+    train_manifest = json.loads(tf.extractfile(mf[0]).read()) if mf else {}
+    if train_manifest.get("status") != "trained":
+        raise GearBRefused("training manifest status %s -- refusing to examine" % train_manifest.get("status"))
+    files, total = [], 0
+    for m in tf.getmembers():
+        if m.isfile() and ("/adapter/" in ("/" + m.name) or m.name.startswith("adapter/")):
+            rel = m.name.split("adapter/", 1)[1]
+            data = tf.extractfile(m).read()
+            s3.put_object(Bucket=private_bucket, Key=prefix + rel, Body=data)
+            files.append({"path": rel, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}); total += len(data)
+    if not any(f["path"] == "adapter_config.json" for f in files):
+        raise GearBRefused("no adapter_config.json in the job output (%s)" % names[:8])
+    manifest = {"schema_version": "factory-adapter.v1", "generation": gen, "job": candidate.get("job_name"), "artifact": candidate["artifact"],
+                "files": files, "total_bytes": total, "train_manifest": train_manifest, "extracted_at": now_iso()}
+    put_json_absent(s3, private_bucket, man_key, manifest)
+    return {"adapter_prefix": prefix, "manifest": manifest, "extracted": True}
+
+
+def examine_pending(sm, s3, *, private_bucket: str, control: Dict[str, Any], role_arn: str, pricing, region: str = "us-east-1") -> Optional[Dict[str, Any]]:
+    """The exam launches itself: newest candidate with exam.status pending_exam -> adapter extracted -> one frozen-holdout
+    exam job (greedy, prompts only, spot, capped by exam_max_runtime_s). One exam in flight at a time; the grade is
+    written by factory-exam.yml (network-less container) and the decision by decide_pending(). Never trains."""
+    import cost_guard as cg
+    import gear_b_own as own
+    cands = [get_json(s3, private_bucket, k) for k in list_keys(s3, private_bucket, CANDIDATE_PREFIX, 500)]
+    pending = sorted([c for c in cands if isinstance(c, dict) and (c.get("exam") or {}).get("status") == "pending_exam"], key=lambda c: int(c.get("generation") or 0))
+    if not pending:
+        return None
+    cand = pending[-1]
+    gen = int(cand["generation"])
+    for rec in _exam_records(s3, private_bucket):
+        if str(rec.get("exam_generation")) == "gen-%d" % gen:
+            return {"generation": gen, "skipped": "exam job already launched", "job_name": rec.get("job_name")}
+    inflight = [j["TrainingJobName"] for j in sm.list_training_jobs(StatusEquals="InProgress", NameContains="jh-exam-gen", MaxResults=20).get("TrainingJobSummaries", [])]
+    if inflight:
+        return {"generation": gen, "skipped": "an exam is in flight", "job_name": inflight[0]}
+    ad = _extract_adapter(s3, private_bucket, cand)
+    adapter_uri = "s3://%s/%s" % (private_bucket, ad["adapter_prefix"])
+    it = str(control.get("instance_type") or "ml.g5.2xlarge")
+    max_s = int(control.get("exam_max_runtime_s") or 3600)
+    price = cg.hourly_price(pricing, s3, private_bucket, it, family="training")
+    hourly = price.get("usd_per_hour")
+    if not hourly:
+        raise GearBRefused("no live price for %s (exam) -- refusing unpriced spend" % it)
+    cap = round(float(hourly) * max_s / 3600.0, 4)
+    prefixes = sorted({EXAM_PROMPTS_ONLY_PREFIX + k[len(EXAM_PROMPTS_ONLY_PREFIX):].split("/", 1)[0] + "/"
+                       for k in list_keys(s3, private_bucket, EXAM_PROMPTS_ONLY_PREFIX, 2000) if "/" in k[len(EXAM_PROMPTS_ONLY_PREFIX):]})
+    if not prefixes:
+        raise GearBRefused("no frozen prompts-only exam under %s" % EXAM_PROMPTS_ONLY_PREFIX)
+    tasks_uri = "s3://%s/%s" % (private_bucket, prefixes[-1])
+    spec = own.burst_spec(s3, private_bucket, control, mode="exam", tasks_uri=tasks_uri, adapter_uri=adapter_uri)
+    name = re.sub(r"[^a-zA-Z0-9-]", "-", "jh-exam-gen%d-%s" % (gen, now().strftime("%Y%m%d-%H%M%S")))[:63].rstrip("-")
+    hp = {k: str(v["default"]) for k, v in spec["hyperparameters"].items()}
+    hp.update({"sagemaker_submit_directory": spec["training_script"], "sagemaker_container_log_level": "20", "sagemaker_region": region,
+               "sagemaker_job_name": name, "max_model_len": "8192", "task_cap": "1000", "adapter_generation": "gen-%d" % gen})
+    channels = [{"ChannelName": "model", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": spec["training_artifact"], "S3DataDistributionType": "FullyReplicated"}}},
+                {"ChannelName": "tasks", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": tasks_uri, "S3DataDistributionType": "FullyReplicated"}}},
+                {"ChannelName": "adapter", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": adapter_uri, "S3DataDistributionType": "FullyReplicated"}}}]
+    out_uri = "s3://%s/factory/bursts/" % private_bucket
+    record = {"schema_version": "factory-burst-job.v1", "job_name": name, "kind": "exam", "generation": gen, "exam_generation": "gen-%d" % gen, "model_id": spec["model_id"],
+              "adapter_uri": adapter_uri, "training_image": spec["training_image"], "bundle_uri": spec["training_script"], "tasks_uri": tasks_uri,
+              "instance_type": it, "spot": True, "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": cap, "out_uri": out_uri,
+              "launched_at": now_iso(), "launched_by": "gear_b.examine_pending", "status": "launching"}
+    if not put_json_absent(s3, private_bucket, EXAM_JOBS_PREFIX + name + ".json", record):
+        raise GearBRefused("exam job record %s already exists" % name)
+    kw = dict(TrainingJobName=name, RoleArn=role_arn, AlgorithmSpecification={"TrainingImage": spec["training_image"], "TrainingInputMode": "File"},
+              HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": out_uri},
+              ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 120},
+              StoppingCondition=_stop(max_s), EnableManagedSpotTraining=True, Environment={"JH_BURST": name})
+    try:
+        sm.create_training_job(**kw, Tags=cg.tags("factory-exam-gen%d" % gen, 3) + [{"Key": "jh-factory", "Value": "exam-gen-%d" % gen}])
+    except Exception as exc:  # noqa: BLE001
+        if "AddTags" not in str(exc):
+            raise
+        sm.create_training_job(**kw)
+    cand["exam"] = {"status": "exam_running", "job_name": name, "launched_at": record["launched_at"], "adapter_prefix": ad["adapter_prefix"]}
+    put_json(s3, private_bucket, "%sgen-%d.json" % (CANDIDATE_PREFIX, gen), cand)
+    return {"generation": gen, "job_name": name, "cap_usd": cap, "adapter_extracted": ad["extracted"], "launched": True}
+
+
+def decide_pending(s3, private_bucket: str) -> Optional[Dict[str, Any]]:
+    """When a candidate's exam result exists (written by the runner), apply the shared promotion contract against the
+    pinned base exam; a promoted adapter becomes factory/gearb/champion.json, a rejected one keeps its result on record."""
+    cands = [get_json(s3, private_bucket, k) for k in list_keys(s3, private_bucket, CANDIDATE_PREFIX, 500)]
+    running = [c for c in cands if isinstance(c, dict) and (c.get("exam") or {}).get("status") == "exam_running"]
+    if not running:
+        return None
+    base = get_json(s3, private_bucket, EXAM_RESULTS_PREFIX + "base.json")
+    decisions = []
+    for cand in running:
+        gen = int(cand["generation"])
+        result = None
+        for key in list_keys(s3, private_bucket, EXAM_RESULTS_PREFIX + "gen-%d-" % gen, 50):
+            doc = get_json(s3, private_bucket, key)
+            if isinstance(doc, dict) and doc.get("burst") == cand["exam"].get("job_name"):
+                result = dict(doc, result_key=key)
+        if not result:
+            continue
+        if not base:
+            decisions.append({"generation": gen, "held": "no pinned base exam"}); continue
+        decision = promotion(result, base)
+        record = {"schema_version": "gearb-decision.v1", "generation": gen, "job_name": cand["exam"].get("job_name"), "result_key": result["result_key"],
+                  "candidate_score": result.get("score"), "base_score": base.get("score"), "delta": round(float(result.get("score") or 0) - float(base.get("score") or 0), 4),
+                  "critical_failures": result.get("critical_failures"), "decision": decision, "decided_at": now_iso(), "version": VERSION}
+        put_json_absent(s3, private_bucket, "factory/gearb/decisions/gen-%d.json" % gen, record)
+        if decision.get("eligible"):
+            champion = {"schema_version": "gearb-champion.v1", "generation": gen, "adapter": cand["exam"].get("adapter_prefix"), "score": result.get("score"),
+                        "base_score": base.get("score"), "evaluation_id": result.get("evaluation_id"), "job_name": cand.get("job_name"), "promoted_at": now_iso(),
+                        "release_status": decision.get("release_status"), "version": VERSION}
+            put_json(s3, private_bucket, CHAMPION_KEY, champion)
+            cand["exam"] = dict(cand["exam"], status="promoted", decided_at=record["decided_at"], result_key=result["result_key"])
+        else:
+            cand["exam"] = dict(cand["exam"], status="rejected", reason=decision.get("reason"), decided_at=record["decided_at"], result_key=result["result_key"])
+        put_json(s3, private_bucket, "%sgen-%d.json" % (CANDIDATE_PREFIX, gen), cand)
+        decisions.append(record)
+    return {"decisions": decisions} if decisions else None
+
+
 def poll_jobs(sm, s3, private_bucket: str) -> List[Dict[str, Any]]:
     """Describe every launching/running job; write an immutable terminal record when one finishes."""
     updates = []
@@ -591,6 +741,17 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
     out["polled"] = poll_jobs(sm, s3, private_bucket)
     if any(u.get("status") in ("launching", "InProgress", "Stopping", "unknown") for u in out["polled"]):
         out["refusal"] = "a job is still running" if not any(u.get("status") == "unknown" for u in out["polled"]) else "a job's state is unknown (reconcile before reserving more compute)"
+        return out
+    # the exam launches and decides itself (2026-09-17): trained candidate -> adapter -> frozen exam -> shared contract
+    try:
+        out["decided"] = decide_pending(s3, private_bucket)
+        out["examined"] = examine_pending(sm, s3, private_bucket=private_bucket, control=control, role_arn=role_arn, pricing=pricing, region=region)
+    except GearBRefused as exc:
+        out["examined"] = {"refusal": str(exc)}
+    except Exception as exc:  # noqa: BLE001
+        out["examined"] = {"error": str(exc)[:300]}
+    if isinstance(out.get("examined"), dict) and (out["examined"].get("launched") or out["examined"].get("skipped") == "an exam is in flight"):
+        out["refusal"] = "an exam is in flight (single training instance) -- training waits"
         return out
     manifest = latest_unlaunched_manifest(s3, private_bucket)
     if manifest is None:

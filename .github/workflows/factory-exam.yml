@@ -1,8 +1,12 @@
 # Grade a frozen-exam run (2026-09-14): pull the exam job's completions, join with the PRIVATE tests on the runner (root),
 # execute in the network-less container with /work root-only, write the promotion-shaped evaluation. The exam job itself
 # only ever saw prompts.
+# 2026-09-17: also runs on a schedule -- it grades every exam job the Gear B tick launched (kind=exam, SageMaker Completed,
+# no evaluation yet), so a candidate goes trained -> examined -> decided without a human dispatch. One exam per run.
 name: Factory exam grade
 on:
+  schedule:
+    - cron: '9,39 * * * *'
   workflow_dispatch:
     inputs:
       burst:
@@ -33,9 +37,46 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Pull completions + private exam
+      - name: Resolve the exam to grade (dispatch inputs, or the oldest completed ungraded exam job)
+        id: resolve
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          IN_BURST: ${{ github.event.inputs.burst }}
+          IN_GEN: ${{ github.event.inputs.generation }}
+        run: |
+          set -euo pipefail
+          pip install --quiet boto3
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import boto3, json, os
+          burst, gen = os.environ.get("IN_BURST") or "", os.environ.get("IN_GEN") or ""
+          if not burst:
+              b = "justhodl-ai-857687956942"
+              s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+              sm = boto3.client("sagemaker", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+              graded = set()
+              for o in s3.list_objects_v2(Bucket=b, Prefix="factory/exams/code/results/", MaxKeys=1000).get("Contents", []):
+                  d = json.loads(s3.get_object(Bucket=b, Key=o["Key"])["Body"].read())
+                  if d.get("burst"):
+                      graded.add(d["burst"])
+              recs = []
+              for o in s3.list_objects_v2(Bucket=b, Prefix="factory/bursts/jobs/", MaxKeys=1000).get("Contents", []):
+                  if o["Key"].endswith(".terminal.json"):
+                      continue
+                  d = json.loads(s3.get_object(Bucket=b, Key=o["Key"])["Body"].read())
+                  if d.get("kind") == "exam" and d.get("job_name") and d["job_name"] not in graded:
+                      recs.append(d)
+              for d in sorted(recs, key=lambda r: str(r.get("launched_at") or "")):
+                  st = sm.describe_training_job(TrainingJobName=d["job_name"]).get("TrainingJobStatus")
+                  if st == "Completed":
+                      burst, gen = d["job_name"], str(d.get("exam_generation") or "gen-0"); break
+          print("burst=%s" % burst); print("generation=%s" % gen); print("skip=%s" % ("false" if burst else "true"))
+          print("resolved:", burst or "(nothing to grade)", gen)
+          PY
+      - name: Pull completions + private exam
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BURST: ${{ steps.resolve.outputs.burst }}
         run: |
           set -euo pipefail
           pip install --quiet boto3
@@ -44,8 +85,9 @@ jobs:
           import boto3, json, os, tarfile
           s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"))
           b = "justhodl-ai-857687956942"
-          rec = json.loads(s3.get_object(Bucket=b, Key="factory/bursts/jobs/${{ github.event.inputs.burst }}.json")["Body"].read())
-          key = rec["out_uri"].split(b + "/", 1)[1] + "${{ github.event.inputs.burst }}/output/model.tar.gz"
+          burst = os.environ["BURST"]
+          rec = json.loads(s3.get_object(Bucket=b, Key="factory/bursts/jobs/%s.json" % burst)["Body"].read())
+          key = rec["out_uri"].split(b + "/", 1)[1] + burst + "/output/model.tar.gz"
           s3.download_file(b, key, "work/model.tar.gz")
           with tarfile.open("work/model.tar.gz") as t:
               t.extractall("work/burst", filter="data")
@@ -56,12 +98,14 @@ jobs:
           test -f work/burst/exam.jsonl
           cp scripts/factory_code_verify.py scripts/factory_exam.py work/
       - name: Grade in the network-less container (tests root-only)
+        if: steps.resolve.outputs.skip != 'true'
         run: |
           set -euo pipefail
           docker run --rm --network none --memory 2g --cpus 2 --pids-limit 512 \
             --read-only --tmpfs /tmp:rw,size=512m -v "$PWD/work:/work:rw" -w /work python:3.12-slim \
-            sh -c 'chmod 700 /work && python /work/factory_exam.py grade --completions /work/burst/exam.jsonl --tests /work/tests.jsonl --prompts /work/prompts.jsonl --generation "${{ github.event.inputs.generation }}" --run-id "${{ github.run_id }}" --burst "${{ github.event.inputs.burst }}" --out /work/result.json' | tee work/grade.log
+            sh -c 'chmod 700 /work && python /work/factory_exam.py grade --completions /work/burst/exam.jsonl --tests /work/tests.jsonl --prompts /work/prompts.jsonl --generation "${{ steps.resolve.outputs.generation }}" --run-id "${{ github.run_id }}" --burst "${{ steps.resolve.outputs.burst }}" --out /work/result.json' | tee work/grade.log
       - name: Write the evaluation
+        if: steps.resolve.outputs.skip != 'true'
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |

@@ -102,3 +102,22 @@ running tasks with the promoted weights (needs promotion); BTC drills; the ai.ht
 - ops 5522 proves: receipt sha-match, policy budget, coder card with a recipe, control written
   once, pre-freeze refusal on the holdout, workflow dispatched, post-freeze refusal on the floor,
   `data/ai.json.gear_b` free of ARNs and job names. It launches nothing.
+
+## Addendum 2026-09-17 -- the exam launches, grades and decides itself
+
+- Root cause of six dead training jobs (gen1..gen7, 2026-09-15/16): the recipe ran a fixed 400 optimizer steps whatever the
+  data. With 570 rows (~84 packed sequences) that is ~70 epochs at ~47 s/step on ml.g5.2xlarge, ~5 h inside a 3 h cap: every
+  job was stopped at ~50% (`MaxWaitTimeExceeded`) with nothing saved, and the hourly tick relaunched it up to 3x/day.
+- `factory/training/train_qlora.py` now plans `max_steps` from the data (packed sequences x epochs / (2x8); the pin's
+  `max_steps` is only a ceiling) and stops on `time_budget_s` (launcher passes `max_runtime_s - 1200`; recipe default 9600)
+  with the adapter saved and `stopped_by=time_budget` in the manifest. Pin `epochs` = 3. The plan is written to the
+  manifest (`plan`). TRAP still holds: re-pin the bundle after any change under `factory/training/*`.
+- `gear_b.tick` after `poll_jobs`: `decide_pending()` applies `factory_core.promotion_decision` to any `exam_running`
+  candidate whose evaluation exists (`factory/gearb/decisions/gen-N.json`, champion at `factory/gearb/champion.json`,
+  `release_status awaiting_owner_release`), then `examine_pending()` takes the newest `pending_exam` candidate, extracts
+  the adapter to `factory/champions/gen-N/adapter/` (create-if-absent manifest), and launches ONE frozen-holdout exam job
+  (`jh-exam-genN-*`, prompts only, greedy, `exam_max_runtime_s`, cost-guard priced) recorded under `factory/bursts/jobs/`
+  with `launched_by gear_b.examine_pending`. While an exam is in flight the tick refuses to launch training (one spot
+  instance). `factory-exam.yml` runs on a schedule (:09/:39) and grades the oldest Completed exam job with no evaluation.
+- The scoreboard's `voice` is `offline (deterministic desk read, no calls)` whenever the read carries `fallback/empty`;
+  `read_path` and `calls_this_read` are published so ai.html can say the stances are gate-mapped, not an AI view.

@@ -1432,7 +1432,7 @@ def test_gear_b_owned_model_source_suite():
     import runpy
     root = HERE.parents[3]
     rc = 0
-    for name in ("test_gear_b.py", "test_gear_b_own.py", "test_audit_fixes.py", "test_trace_verify.py", "test_owned_inference.py", "test_learning_seam.py", "test_train_plan.py"):
+    for name in ("test_gear_b.py", "test_gear_b_own.py", "test_audit_fixes.py", "test_trace_verify.py", "test_owned_inference.py", "test_learning_seam.py", "test_train_plan.py", "test_gear_b_exam.py"):
         path = root / "tests" / "factory" / name
         if not path.exists():
             continue
