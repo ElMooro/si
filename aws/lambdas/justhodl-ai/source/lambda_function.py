@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.5.1"
+VERSION = "2.5.2"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -307,6 +307,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "scoreboard": _safe(learning_scoreboard),
         "market_read": _safe(public_market_read),
         "market_exam": _safe(public_market_exam),
+        "coding_exam": _safe(public_coding_exam),
         "student_wall": _safe(lambda: get_json(PUBLIC_BUCKET, "data/ai/wall/student-latest.json")),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
@@ -371,6 +372,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "brain_dataset": ({k: dataset.get(k) for k in ("n_rows", "source_n_notes", "n_labels", "outcome_labels")} if dataset else None),
         "market_read": out.get("market_read"),
         "market_exam": out.get("market_exam"),                     # aggregate scores vs baselines per split -- no drill content
+        "coding_exam": out.get("coding_exam"),                     # base vs candidates on the frozen coding exam + the plain-English verdict
         "student_wall": out.get("student_wall"),                   # the student's latest Monday wall receipt (entries + skips)
         "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
         "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
@@ -1304,6 +1306,54 @@ def learning_scoreboard() -> Dict[str, Any]:
             "read_path": "owned" if rr.get("voice") == "owned" else ("deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None))),
             "owned_voice": {k: ov.get(k) for k in ("state", "origin", "submitted_at", "settled_at", "latency_s", "error") if k in ov} or None,
             "calls_this_read": len(rr.get("calls") or []), "as_of": now_iso()}
+
+
+def coding_exam_verdict(base: Optional[dict], candidates: List[dict], unique_tasks: Optional[int]) -> dict:
+    """The coding learning number in plain words, computed once here so the page never invents it."""
+    base_score = (base or {}).get("score")
+    graded = [c for c in candidates if isinstance(c.get("score"), (int, float)) and not c.get("critical_failures")]
+    best = max(graded, key=lambda c: c["score"]) if graded else None
+    out = {"base_score": base_score, "base_passed": "%s/%s" % ((base or {}).get("passed"), (base or {}).get("n")) if base else None,
+           "n_candidates": len(graded), "candidates": [{"generation": c.get("generation"), "score": c.get("score"), "passed": c.get("passed"), "n": c.get("n"), "at": c.get("at")} for c in graded][-6:],
+           "best_candidate": ({"generation": best.get("generation"), "score": best.get("score")} if best else None),
+           "learning_pts": (round(100.0 * (best["score"] - base_score), 1) if best and isinstance(base_score, (int, float)) else None),
+           "unique_tasks": unique_tasks}
+    if base_score is None:
+        out["verdict"] = "No trusted base exam yet, so no learning number."
+    elif not graded:
+        out["verdict"] = "The base scores %.1f%% on the frozen exam; no candidate has been examined cleanly yet." % (100 * base_score)
+    else:
+        scores = ", ".join("%.1f%%" % (100 * c["score"]) for c in graded[-4:])
+        pts = out["learning_pts"]
+        if pts is not None and pts > 1.0:
+            out["verdict"] = "Learning: the best candidate beats the base by %.1f points (%s vs %.1f%%)." % (pts, scores, 100 * base_score)
+        else:
+            out["verdict"] = ("No learning yet: %d candidate%s scored %s against the base %.1f%% -- each trained on the same %s tasks, and the same data "
+                              "cannot move a 7B coder. The levers are new task families and preference training on the pass/fail pairs already collected; "
+                              "more epochs on this supply will not change the number." % (len(graded), "s" if len(graded) != 1 else "", scores, 100 * base_score,
+                                                                                            unique_tasks if unique_tasks else "few hundred"))
+    return out
+
+
+def public_coding_exam() -> Optional[dict]:
+    """Base vs every cleanly graded candidate on the frozen coding exam, plus the plain-English verdict."""
+    prefix = "factory/exams/code/results/"
+    base = get_json(PRIVATE_BUCKET, prefix + "base.json")
+    candidates = []
+    for key in gear_b.list_keys(client("s3"), PRIVATE_BUCKET, prefix, 500):
+        if key.endswith("/base.json") or not key.endswith(".json"):
+            continue
+        doc = get_json(PRIVATE_BUCKET, key)
+        if isinstance(doc, dict) and str(doc.get("generation") or "").startswith("gen-") and doc.get("generation") != "gen-0":
+            candidates.append(doc)
+    candidates.sort(key=lambda c: str(c.get("at") or ""))
+    unique_tasks = None
+    try:
+        gb = gear_b.public_status(client("s3"), PRIVATE_BUCKET, _policy())
+        unique_tasks = ((gb.get("dataset") or {}).get("kept"))
+    except Exception:
+        pass
+    return coding_exam_verdict(base if isinstance(base, dict) else None, candidates, unique_tasks)
 
 
 def public_market_exam() -> Optional[dict]:

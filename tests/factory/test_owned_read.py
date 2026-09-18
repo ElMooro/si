@@ -249,5 +249,21 @@ class PublicReadModelTests(unittest.TestCase):
         self.assertIn('"market_exam": _safe(public_market_exam)', src)
         self.assertIn('"market_exam": out.get("market_exam")', src)
 
+
+class CodingExamVerdictTests(unittest.TestCase):
+    def test_plateau_is_stated_in_plain_words_and_learning_is_recognised(self):
+        lf = engine_module()
+        base = {"score": 0.823, "passed": 135, "n": 164}
+        cands = [{"generation": "gen-10", "score": 0.817, "passed": 134, "n": 164, "at": "2026-09-17T13:52:33Z", "critical_failures": 0},
+                 {"generation": "gen-11", "score": 0.799, "passed": 131, "n": 164, "at": "2026-09-17T13:57:54Z", "critical_failures": 0},
+                 {"generation": "gen-12", "score": 0.95, "passed": 156, "n": 164, "at": "2026-09-18T00:00:00Z", "critical_failures": 2}]   # untrusted: excluded
+        v = lf.coding_exam_verdict(base, cands, 570)
+        self.assertEqual(v["n_candidates"], 2); self.assertEqual(v["learning_pts"], -0.6); self.assertEqual(v["best_candidate"]["generation"], "gen-10")
+        self.assertIn("No learning yet", v["verdict"]); self.assertIn("570 tasks", v["verdict"]); self.assertIn("preference training", v["verdict"])
+        good = lf.coding_exam_verdict(base, cands[:2] + [{"generation": "gen-13", "score": 0.86, "passed": 141, "n": 164, "at": "2026-09-19T00:00:00Z", "critical_failures": 0}], 900)
+        self.assertEqual(good["learning_pts"], 3.7); self.assertIn("beats the base by 3.7 points", good["verdict"])
+        self.assertIn("No trusted base", lf.coding_exam_verdict(None, cands, None)["verdict"])
+        self.assertIn("no candidate", lf.coding_exam_verdict(base, [], 570)["verdict"])
+
 if __name__ == '__main__':
     unittest.main()

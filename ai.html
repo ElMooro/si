@@ -789,6 +789,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (sb.latest_validation_loss != null) tr += "Latest understanding test: loss " + fmt(sb.latest_validation_loss, 3) + " vs " + fmt(sb.coin_flip_loss, 3) + " for guessing — " + (u >= 0.6 ? "it has clearly learned the distinction." : u >= 0.3 ? "it is learning; more labelled notes will sharpen it." : "barely better than guessing yet.") + " ";
     if (sb.categories_excluded && sb.categories_excluded.length) tr += "It could not learn " + sb.categories_excluded.join(", ") + " yet — fewer than 20 notes each; label more and rerun.";
     $("pl-trend").textContent = tr;
+    var ce = d.coding_exam || null;
+    if (ce && ce.verdict) {
+      var lp = ce.learning_pts;
+      $("pl-trend").innerHTML = esc(tr) + '<div style="margin-top:6px"><b class="' + (lp == null ? "" : lp > 1 ? "ok" : lp < -1 ? "bad" : "warn") + '">' + (lp == null ? "—" : (lp > 0 ? "+" : "") + fmt(lp, 1) + " pts") + '</b> coding, best candidate vs base' + (ce.base_passed ? ' (base ' + esc(ce.base_passed) + ')' : '') + ' — ' + esc(ce.verdict) + '</div>';
+    }
     var ex = (d.market_exam || {}).holdout, ext = (d.market_exam || {}).train;
     function examLine(label, e) {
       if (!e || !e.model_scores || !e.model_scores.n) return "<div><b>—</b><span>" + esc(label) + ": not sat yet</span></div>";
