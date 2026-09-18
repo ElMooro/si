@@ -17,6 +17,8 @@ from decimal import Decimal
 from boto3.dynamodb.conditions import Attr
 from _sentry_lite import track_errors
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from instrument_identity import resolve_instrument
+from outcome_integrity import CONTRACT as OUTCOME_CONTRACT
 
 
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
@@ -110,12 +112,18 @@ _mark_cache = {}
 MAX_PENDING_ATTEMPTS = 12   # pending windows retried across runs; after this many misses the window is UNSCOREABLE (explicit, never a zero grade)
 
 
-def get_mark_at(ticker, date_iso):
+def get_mark_at(ticker, date_iso, instrument=None):
     """audit 2026-09-08 INST-12: a MARK with provenance -- {price, as_of, provider} or None.
     Source order: the house bar warehouse (adjusted daily grouped bars, the same basis Katlin/fortress
     use) for the session ON or BEFORE date_iso (up to 7 calendar days back), then the Yahoo daily chart.
     The same function prices asset and benchmark so both marks share a session and adjustment basis."""
-    key = (ticker, date_iso)
+    identity = resolve_instrument(instrument.get('symbol'), instrument.get('asset_class')) if isinstance(instrument, dict) else resolve_instrument(ticker)
+    if instrument and (not identity or identity['instrument_id'] != instrument.get('instrument_id')):
+        return None
+    if not identity:
+        return None  # ambiguous BTC/ETH/SOL aliases cannot choose a price market
+    ticker = identity['symbol']
+    key = (identity['instrument_id'], date_iso)
     if key in _mark_cache:
         return _mark_cache[key]
     mark = None
@@ -145,6 +153,8 @@ def get_mark_at(ticker, date_iso):
         print(f"[MARK-AT] warehouse {ticker}@{date_iso}: {str(e)[:60]}")
     if mark is None:
         mark = get_mark_at_yahoo(ticker, date_iso)
+    if mark:
+        mark.update(instrument_id=identity['instrument_id'], currency=identity['currency'], symbol=identity['symbol'])
     _mark_cache[key] = mark
     return mark
 
@@ -425,7 +435,7 @@ def check_pending_signals():
                     pass
             _pk = (ticker, _as_of)
             if _pk not in price_cache:
-                price_cache[_pk] = get_mark_at(ticker, _as_of)
+                price_cache[_pk] = get_mark_at(ticker, _as_of, instrument=signal['instrument']) if signal.get('instrument') else get_mark_at(ticker, _as_of)
                 time.sleep(0.2)
             asset_mark = price_cache[_pk]
             bm_mark = None
@@ -505,6 +515,12 @@ def check_pending_signals():
                     "checked_at":        now_iso,
                 }
 
+            # Carry source entry evidence into the outcome instead of discarding
+            # it at the signal/outcome table boundary. Missing evidence stays null.
+            outcome['lineage_contract'] = OUTCOME_CONTRACT
+            outcome['entry_marks'] = {'asset': signal.get('baseline_mark'), 'benchmark': signal.get('baseline_benchmark_mark')}
+            outcome['sizing_eligible'] = False
+
             # REGIME_BRIDGE_V1 (ops 3442): regime AT LOG TIME rides on every
             # outcome so scorecard.by_regime / engine-trust conditioning is fed.
             try:
@@ -532,6 +548,8 @@ def check_pending_signals():
                 "window_key":    window_key,
                 "correct":       correct,
                 "predicted_dir": pred_dir,
+                "prediction_origin": signal.get('prediction_origin') or 'unverified_legacy',
+                "instrument": signal.get('instrument'),
                 "outcome":       outcome,
                 "logged_at":     signal.get("logged_at"),
                 "regime_at_log": outcome.get("regime_at_log") or signal.get("regime_at_log") or "UNKNOWN",  # REGIME_BRIDGE_V1b
@@ -571,6 +589,9 @@ def check_pending_signals():
 
 @track_errors
 def lambda_handler(event, context):
+    if (event or {}).get('validation_only'):
+        return {'ok': resolve_instrument('BTC') is None,
+                'validation_only': True, 'lineage_contract': OUTCOME_CONTRACT, 'ledger_writes': 0}
     processed = check_pending_signals()
     
     # Emit outcome.resolved event so calibrator can run immediately

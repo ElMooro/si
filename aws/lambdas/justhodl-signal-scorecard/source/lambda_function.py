@@ -1,56 +1,14 @@
-"""justhodl-signal-scorecard — signal quality grading + decay enforcement.
+"""Signal scorecard: verified price lineage with explicit research permissions.
 
-The platform tracks 200+ signals and a calibrator already learns weights.
-What was missing is the institutional discipline layer: a visible scoreboard
-of every signal's REALISED edge, and ACTIVE deprecation of dead signals.
-Funds kill the bottom half of their signals — this engine does it on evidence.
+Legacy outcomes are retained in the ledger and counted as unverified, not misses.
+Scored returns require matching instrument/currency, source evidence, dated entry
+and exit marks, compatible adjustment vintages and an explicit recorded direction.
+The full table is scanned; the former 100k truncation is removed.
 
-WHAT COUNTS AS A SCORABLE OUTCOME
-═════════════════════════════════
-A signal is graded ONLY on outcomes that can actually confirm or deny it.
-Three classes of outcome are excluded from grading, because scoring them
-would punish a signal for a data problem rather than for being wrong:
-
-  1. NEUTRAL prediction — the signal made no directional call. predicted_dir
-     not in {UP,DOWN,OUTPERFORM,UNDERPERFORM,...}. Counted as n_neutral.
-  2. LEGACY records — flagged is_legacy=1 (legacy_reason pre_baseline_fix_*).
-     correct=None, actual_direction=UNKNOWN, price_at_signal=0. Never validly
-     scored. Counted as n_legacy.
-  3. UNRESOLVED outcomes — the outcome-checker could not establish a real
-     realised move (actual_direction UNKNOWN/NEUTRAL, or a no-op price where
-     price_at_signal == price_at_check). Counted as n_unresolved — this also
-     SURFACES upstream data-pipeline gaps (e.g. an unpriceable instrument).
-
-Only SCORED outcomes (directional prediction + resolved + non-legacy) drive
-the hit-rate, Wilson LB, grade and status.
-
-CORRECTNESS IS DERIVED, NOT TRUSTED
-═══════════════════════════════════
-For every scored outcome the engine recomputes correctness from ground
-truth — predicted direction vs the sign of the realised (relative or
-absolute) return — rather than trusting the stored `correct` flag. The
-agreement rate with the stored flag is reported as an integrity metric.
-
-METHOD
-══════
-For each signal_type, over its SCORED outcomes only:
-  • n_scored, raw hit-rate
-  • Wilson 95% lower bound on the hit-rate — a 90%-hit signal with n=4 is
-    NOT graded above a 56%-hit signal with n=300. Small samples earn it.
-  • average realised return
-  • a letter GRADE (A-F) and a STATUS:
-       PROMOTED     — proven edge          (Wilson LB >= 0.57)
-       ACTIVE       — performing           (LB 0.45-0.57, adequate sample)
-       INSUFFICIENT — too few scored outcomes to grade (n_scored < MIN)
-       DEPRECATED   — proven no edge        (LB < 0.45 with n_scored >= DEPRECATE_N)
-  • performance_multiplier: PROMOTED 1.25, ACTIVE 1.0, INSUFFICIENT 1.0
-    (no evidence -> no penalty), DEPRECATED 0.0 — enforced, not cosmetic.
-
-OUTPUTS
-═══════
-  s3://.../data/signal-scorecard.json   — the visible board
-  SSM /justhodl/calibration/scorecard   — {signal_type: multiplier}
-Schedule: daily.
+Raw overlapping observations do not establish independent out-of-sample edge.
+Diagnostics remain visible; promotion, alpha authority and sizing stay disabled
+until a prospective validation protocol and effective sample have been established.
+Wilson-based demotion diagnostics use the upper, not the lower, confidence bound.
 """
 import json, os, time, math
 from datetime import datetime, timezone
@@ -58,6 +16,7 @@ from urllib import request
 import boto3
 from boto3.dynamodb.conditions import Attr
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from outcome_integrity import assess_outcome, finite
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/signal-scorecard.json"
@@ -70,7 +29,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 MIN_SAMPLE = 15        # below this many SCORED outcomes -> INSUFFICIENT
 DEPRECATE_N = 25       # need this many scored outcomes before we kill a signal
 PROMOTE_LB = 0.57      # Wilson LB to earn PROMOTED
-DEPRECATE_LB = 0.45    # Wilson LB below this (with enough n) -> DEPRECATED
+DEPRECATE_LB = 0.45    # legacy config name; applied to the UPPER interval bound
 
 # ── Alpha attribution (benchmark-relative edge) ──
 # Directional hit-rate rewards beta in a melt-up. The honest edge of an engine
@@ -216,13 +175,7 @@ def _spy_on(hist, iso):
 
 def num(v):
     """Return float(v) or None if v is not a real number."""
-    if v is None:
-        return None
-    try:
-        f = float(v)
-        return f if f == f else None   # reject NaN
-    except (TypeError, ValueError):
-        return None
+    return finite(v)
 
 
 def predicted_dir(o):
@@ -231,7 +184,7 @@ def predicted_dir(o):
     return pd if pd in DIRECTIONAL else ""
 
 
-def classify(o, pd):
+def classify(o, pd, assessment=None):
     """Decide how an outcome should be treated. Returns (state, correct).
 
     state ∈ {legacy, unresolved, scored}; correct is bool only when scored.
@@ -241,11 +194,15 @@ def classify(o, pd):
     if o.get("is_legacy") or o.get("legacy_reason"):
         return "legacy", None
 
+    assessment = assessment or assess_outcome(o)
+    if not assessment['verified']:
+        return "quarantined", None
+
     oc = o.get("outcome") or {}
     up_pred = pd in UP_DIRS
 
     # 2 — relative outcome (benchmark-relative signals e.g. screener_top_pick)
-    er = num(oc.get("excess_return"))
+    er = assessment['excess_return'] if assessment['relative'] else None
     if er is not None:
         if er == 0.0:
             return "unresolved", None        # no measurable relative move
@@ -253,18 +210,8 @@ def classify(o, pd):
         return "scored", correct
 
     # 3 — absolute outcome: needs a real realised direction
-    ad = str(oc.get("actual_direction") or "").strip().upper()
-    rp = num(oc.get("return_pct"))
-    p_sig = num(oc.get("price_at_signal"))
-    p_chk = num(oc.get("price_at_check"))
-    # no-op price artifact: checker could not price the instrument
-    if (p_sig is not None and p_chk is not None
-            and p_sig == p_chk) or p_sig == 0:
-        return "unresolved", None
-    if ad in ("UP", "DOWN") and rp is not None:
-        correct = (ad == "UP") if up_pred else (ad == "DOWN")
-        return "scored", correct
-    # fall back to return sign when actual_direction missing but return is real
+    rp = assessment['return_pct']
+    # Direction comes from the verified marks, never the stored direction flag.
     if rp is not None and rp != 0.0:
         correct = (rp > 0) if up_pred else (rp < 0)
         return "scored", correct
@@ -286,31 +233,30 @@ def grade_for(lb, n_scored):
     return "F"
 
 
-def status_for(lb, n_scored):
+def status_for(lb, n_scored, ub=None):
     """Status is decided on the SCORED sample only."""
     if n_scored < MIN_SAMPLE:
         return "INSUFFICIENT"          # cannot grade -> no penalty, no boost
     if lb >= PROMOTE_LB:
         return "PROMOTED"
-    if lb < DEPRECATE_LB and n_scored >= DEPRECATE_N:
-        return "DEPRECATED"            # proven it cannot beat a coin flip
+    if ub is not None and ub < DEPRECATE_LB and n_scored >= DEPRECATE_N:
+        return "DEPRECATED"            # entire interval is below the threshold
     return "ACTIVE"
 
 
 def scan_outcomes():
-    """Full scan of the outcomes table with pagination."""
+    """Stream the entire table without materializing it or truncating at 100k."""
     table = ddb.Table(OUTCOMES_TABLE)
-    items, kwargs = [], {}
+    kwargs = {}
     while True:
         resp = table.scan(**kwargs)
-        items.extend(resp.get("Items", []))
+        yield from resp.get("Items", [])
         lek = resp.get("LastEvaluatedKey")
         if not lek:
             break
         kwargs["ExclusiveStartKey"] = lek
-        if len(items) > 100000:
-            break
-    return items
+        # Never silently truncate the ledger (already more than 200k rows).
+        # A runtime failure must not publish a partial score.
 
 
 # ---------------------------------------------------------------------
@@ -358,21 +304,24 @@ def _ssm_put_large(ssm_client, s3_client, bucket, name, payload,
 
 def lambda_handler(event, context):
     t0 = time.time()
+    event = event or {}
     print(f"[signal-scorecard] starting {datetime.now(timezone.utc).isoformat()}")
 
     outcomes = scan_outcomes()
-    print(f"[signal-scorecard] scanned {len(outcomes)} outcome records")
+    scanned = 0
 
-    spy_hist = _spy_history()   # for benchmark-relative (alpha) attribution
+    # Benchmark returns come from paired recorded marks, never a history lookup
+    # joined to logged_at / processing-time checked_at.
 
     # group by signal_type, classifying every outcome
     by_sig = {}
     for o in outcomes:
+        scanned += 1
         st = o.get("signal_type")
         if not st:
             continue
         g = by_sig.setdefault(st, {"n": 0, "n_neutral": 0, "n_legacy": 0,
-                                   "n_unresolved": 0, "n_scored": 0, "hits": 0,
+                                   "n_unresolved": 0, "n_quarantined": 0, "quarantine_reasons": {}, "n_scored": 0, "hits": 0,
                                    "stored_agree": 0, "rets": [], "excess": [], "windows": {},
                                    "by_regime": {}})
         g["n"] += 1
@@ -381,12 +330,18 @@ def lambda_handler(event, context):
             g["n_neutral"] += 1
             continue
 
-        state, correct = classify(o, pd)
+        assessment = assess_outcome(o)
+        state, correct = classify(o, pd, assessment)
         if state == "legacy":
             g["n_legacy"] += 1
             continue
         if state == "unresolved":
             g["n_unresolved"] += 1
+            continue
+        if state == "quarantined":
+            g["n_quarantined"] += 1
+            for reason in assessment['reasons']:
+                g['quarantine_reasons'][reason] = g['quarantine_reasons'].get(reason, 0) + 1
             continue
 
         # state == "scored"
@@ -399,9 +354,9 @@ def lambda_handler(event, context):
             if bool(stored) == bool(correct):
                 g["stored_agree"] += 1
         oc = o.get("outcome") or {}
-        r = num(oc.get("return_pct"))
+        r = assessment['return_pct']
         if r is None:
-            r = num(oc.get("excess_return"))
+            r = assessment['excess_return']
         if r is not None:
             g["rets"].append(r)
 
@@ -410,17 +365,11 @@ def lambda_handler(event, context):
         # the prices already stored on the outcome row. Signed by the call so a
         # correct short scores positive alpha too.
         sx = None
-        p_sig = num(oc.get("price_at_signal"))
-        p_chk = num(oc.get("price_at_check"))
-        if p_sig and p_chk and p_sig > 0:
-            spy0 = _spy_on(spy_hist, o.get("logged_at"))
-            spy1 = _spy_on(spy_hist, oc.get("checked_at") or o.get("checked_at"))
-            if spy0 and spy1 and spy0 > 0:
-                asset_ret = (p_chk / p_sig - 1.0) * 100.0
-                spy_ret = (spy1 / spy0 - 1.0) * 100.0
-                ex = asset_ret - spy_ret
-                sx = ex if pd in UP_DIRS else -ex
-                g["excess"].append(sx)
+        ex = assessment['excess_return']
+        benchmark_id = ((oc.get('entry_marks') or {}).get('benchmark') or {}).get('instrument_id')
+        if ex is not None and benchmark_id == 'equity:US:SPY':
+            sx = ex if pd in UP_DIRS else -ex
+            g["excess"].append(sx)
         wk = o.get("window_key") or "all"
         w = g["windows"].setdefault(wk, {"n": 0, "hits": 0})
         w["n"] += 1
@@ -443,9 +392,13 @@ def lambda_handler(event, context):
         hits = g["hits"]
         hit_rate = hits / n_scored if n_scored else 0.0
         lb = wilson_lower(hits, n_scored)
+        ub = 1 - wilson_lower(n_scored - hits, n_scored) if n_scored else 1.0
         avg_ret = round(sum(g["rets"]) / len(g["rets"]), 2) if g["rets"] else None
         grade = grade_for(lb, n_scored)
-        status = status_for(lb, n_scored)
+        candidate_status = status_for(lb, n_scored, ub)
+        # Overlapping windows are not independent out-of-sample trials.
+        # Keep descriptive diagnostics, but do not grant weight changes.
+        status = 'ACTIVE' if n_scored >= MIN_SAMPLE else 'INSUFFICIENT'
         agree = round(g["stored_agree"] / n_scored, 3) if n_scored else None
         astats = alpha_stats(g["excess"])
         # net-of-cost: subtract a round-trip transaction cost from every pick's
@@ -462,14 +415,22 @@ def lambda_handler(event, context):
             "n_neutral": g["n_neutral"],
             "n_legacy": g["n_legacy"],
             "n_unresolved": g["n_unresolved"],
+            "n_quarantined": g['n_quarantined'],
+            "quarantine_reasons": g['quarantine_reasons'],
             "hits": hits,
-            "hit_rate": round(hit_rate, 3),
+            "hit_rate": round(hit_rate, 3) if n_scored else None,
             "wilson_lb": round(lb, 3),
-            "edge_vs_coinflip_pct": round((lb - 0.5) * 100, 1),
+            "wilson_ub": round(ub, 3),
+            "edge_vs_coinflip_pct": round((lb - 0.5) * 100, 1) if n_scored else None,
             "avg_return_pct": avg_ret,
             "stored_flag_agreement": agree,
             "grade": grade,
             "status": status,
+            "descriptive_status": candidate_status,
+            "validation_scope": "DESCRIPTIVE_VERIFIED_MARKS",
+            "alpha_validation_scope": "NOT_OUT_OF_SAMPLE",
+            "sizing_eligible": False,
+            "promotion_eligible": False,
             "performance_multiplier": MULTIPLIER[status],
             # alpha (benchmark-relative) — populated when MIN_ALPHA_N met
             "alpha_status": "INSUFFICIENT",
@@ -512,6 +473,9 @@ def lambda_handler(event, context):
             r["alpha_status"] = "ALPHA_NEGATIVE"      # FDR-sig net value destruction
         else:
             r["alpha_status"] = "NO_ALPHA"            # tested, indistinguishable from beta
+        r['alpha_descriptive_status'] = r['alpha_status']
+        r['alpha_status'] = 'INSUFFICIENT'
+        r['alpha_eligibility_reason'] = 'Independent effective sample and prospective validation protocol not established'
 
     alpha_proven = [r["signal_type"] for r in scorecard if r["alpha_status"] == "ALPHA_PROVEN"]
     alpha_negative = [r["signal_type"] for r in scorecard if r["alpha_status"] == "ALPHA_NEGATIVE"]
@@ -535,25 +499,31 @@ def lambda_handler(event, context):
     # data-quality flags: signals losing most of their outcomes to legacy/unresolved
     dq_flags = []
     for r in scorecard:
-        lost = r["n_legacy"] + r["n_unresolved"]
+        lost = r["n_legacy"] + r["n_unresolved"] + r['n_quarantined']
         if r["n_total"] >= 20 and lost / r["n_total"] >= 0.5:
             dq_flags.append({"signal_type": r["signal_type"], "n_total": r["n_total"],
                              "n_legacy": r["n_legacy"], "n_unresolved": r["n_unresolved"],
+                             "n_quarantined": r['n_quarantined'], "quarantine_reasons": r['quarantine_reasons'],
                              "n_scored": r["n_scored"],
                              "note": ("mostly legacy — pre-baseline backfill"
                                       if r["n_legacy"] >= r["n_unresolved"]
                                       else "outcome-checker cannot resolve a realised move")})
 
     out = {
-        "schema_version": "2.1",
-        "method": "signal_scorecard_wilson_lb_scored_only",
+        "schema_version": "2.2",
+        "method": "verified_mark_lineage_descriptive_scorecard",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
-        "n_outcomes_scanned": len(outcomes),
+        "n_outcomes_scanned": scanned,
         "n_outcomes_scored": sum(r["n_scored"] for r in scorecard),
         "n_outcomes_neutral": sum(r["n_neutral"] for r in scorecard),
         "n_outcomes_legacy": sum(r["n_legacy"] for r in scorecard),
         "n_outcomes_unresolved": sum(r["n_unresolved"] for r in scorecard),
+        "n_outcomes_quarantined": sum(r['n_quarantined'] for r in scorecard),
+        "integrity": {"contract": "outcome-lineage.v1", "scan_complete": True,
+                      "legacy_ledger_preserved": True, "price_returns_capped": False,
+                      "sizing_eligible": False, "promotion_eligible": False,
+                      "reason": "Only identified, dated, comparable entry/exit marks are scored; independent out-of-sample validation is not yet established"},
         "n_signals_tracked": len(scorecard),
         "n_signals_graded": len(graded),
         "n_promoted": len(promoted),
@@ -584,20 +554,15 @@ def lambda_handler(event, context):
         "data_quality_flags": dq_flags,
         "scorecard": scorecard,
         "thresholds": {"min_sample": MIN_SAMPLE, "deprecate_n": DEPRECATE_N,
-                       "promote_lb": PROMOTE_LB, "deprecate_lb": DEPRECATE_LB},
+                       "promote_lb": PROMOTE_LB, "deprecate_lb": DEPRECATE_LB, "deprecate_bound_used": "upper"},
         "interpretation": (
-            "Signals are graded ONLY on SCORED outcomes — a directional "
-            "prediction with a resolved realised move. NEUTRAL predictions, "
-            "legacy pre-baseline records, and unresolved outcomes (the "
-            "outcome-checker could not price the instrument) are counted and "
-            "reported but never scored as misses. Correctness is recomputed "
-            "from ground truth, not trusted from the stored flag; "
-            "stored_flag_agreement reports how often the two agree. DEPRECATED "
-            "signals proved (n_scored>=25) they cannot beat a coin flip — "
-            "their multiplier is 0. PROMOTED signals get 1.25x. INSUFFICIENT "
-            "signals lack the scored sample to grade and keep a neutral 1.0x. "
-            "data_quality_flags lists signals losing most outcomes to legacy "
-            "or unresolved records — an upstream pipeline gap to fix."
+            "Only identified, dated and comparable entry/exit marks with explicit recorded directions "
+            "are scored. Quarantined records remain in the original ledger and are counted separately, "
+            "not as misses or zero returns. No return is capped to conceal a data defect. "
+            "The sign is recomputed from marks. Wilson intervals and alpha tests describe observed "
+            "outcomes; overlapping horizons are not independent trials. All performance multipliers "
+            "remain neutral and sizing/promotion remain disabled pending prospective out-of-sample "
+            "validation with effective sample sizes, benchmark and cost definitions."
         ),
     }
 
@@ -673,7 +638,7 @@ def lambda_handler(event, context):
         pass
     newly_dep = [s for s in deprecated if prior.get(s) and prior.get(s) != "DEPRECATED"]
     newly_pro = [s for s in promoted if prior.get(s) and prior.get(s) != "PROMOTED"]
-    if newly_dep or newly_pro:
+    if (newly_dep or newly_pro) and not event.get('suppress_alerts'):
         lines = []
         if newly_dep:
             lines.append("DEPRECATED (no proven edge): " + ", ".join(newly_dep))

@@ -82,6 +82,15 @@ def test_pending_policy_contract_no_zero_grades_and_shared_mark_function():
     assert '"graded_at_session"' in src and '"marks"' in src
 
 
+def test_ambiguous_bitcoin_alias_never_falls_back_to_an_equity_price():
+    mod=_load({'data/warm/polygon-full/grouped/2026/2026-09-04.json.gz': _gz([{'T':'BTC','c':28}])})
+    assert mod.get_mark_at('BTC','2026-09-04') is None
+    assert mod.get_mark_at('BTC-USD','2026-09-04') is None
+    identity={'symbol':'BTC','asset_class':'etf','instrument_id':'equity:US:BTC'}
+    mark=mod.get_mark_at('BTC','2026-09-04',instrument=identity)
+    assert mark['price']==28 and mark['instrument_id']=='equity:US:BTC'
+
+
 def _run_checker(mod, signal, marks):
     outputs=[]; updates=[]
     table=types.SimpleNamespace(scan=lambda **kw:{"Items":[signal]},update_item=lambda **kw:updates.append(kw))

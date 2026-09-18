@@ -1,34 +1,9 @@
-"""
-justhodl-signal-harvester — UNIVERSAL TRUTH-LAYER COVERAGE
-==========================================================
-The accountability stack (outcome-checker -> signal-scorecard -> confluence-meta
-fade-index -> conviction-engine) is sound, but only ~47 of 577 engines hand-log
-into justhodl-signals. The other ~530 publish ranked picks that NEVER enter the
-ledger, so every edge/fade/confluence number is computed on ~8% of the fleet.
-
-This engine closes that gap WITHOUT touching 530 codebases: it reads what every
-engine already publishes (data/*.json), extracts each engine's top ranked picks,
-and writes POINT-IN-TIME records into the SAME justhodl-signals table the existing
-pipeline grades. Result: outcome-checker scores them, signal-scorecard computes
-per-engine hit-rate / Wilson-LB / regime edge across the WHOLE fleet, and
-confluence/fade/conviction finally see all 577 engines.
-
-Discipline baked in (so it tells the truth, not flatters):
-  • POINT-IN-TIME: baseline_price snapshotted at harvest; outcome-checker grades
-    forward return from there. Price unavailable -> SKIP (never persist None).
-  • DE-DUPLICATION: a given (engine, symbol) is logged at most once per 6 days,
-    so the same standing pick doesn't autocorrelate into fake statistical power.
-  • signal_type = "eng:<engine>" so the scorecard buckets edge PER ENGINE.
-  • Broad harvest, let the truth layer sort it out: engines whose picks don't beat
-    coinflip will surface as low hit-rate and get faded — which is the whole point.
-
-OUTPUT  writes to DDB justhodl-signals (+ data/_harvest/last-run.json summary)
-SCHEDULE daily 23:15 UTC (after the daily engines have refreshed). Real data only.
-"""
+"""Harvest explicit forecasts and ranked observations with separate instrument identities. A ranking is not a directional call. Current quote context is not a verified execution mark; the outcome lineage and prospective evaluation pipeline determine scoring eligibility."""
 import json
 import re
 import time
 import uuid
+import math
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -40,6 +15,7 @@ import boto3
 import sys
 import os
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from instrument_identity import resolve_instrument
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from engine_trust import trust as _trust   # auto-demotion gate (consumer side)
@@ -47,7 +23,7 @@ except Exception:
     def _trust(_st, default=1.0):
         return default
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 S3_BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 SEEN_KEY = "data/_harvest/seen.json"
@@ -117,7 +93,7 @@ def list_outputs():
 
 
 def extract_picks(doc):
-    """Find the engine's primary ranked pick list -> [(symbol, score_or_None), ...]."""
+    """Keep explicit direction/identity; ranked membership alone is no UP call."""
     pools = []
     if isinstance(doc, dict):
         summ = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
@@ -152,32 +128,46 @@ def extract_picks(doc):
                 continue
             sc = None
             for ck in SCORE_KEYS:
-                if isinstance(it.get(ck), (int, float)):
+                if isinstance(it.get(ck), (int, float)) and not isinstance(it.get(ck), bool) and math.isfinite(it[ck]):
                     sc = float(it[ck])
                     break
             seen.add(sym)
-            picks.append((sym, sc))
+            identity = resolve_instrument(sym, it.get('asset_class') or it.get('asset_type'))
+            direction = next((str(it[k]).upper() for k in ('predicted_direction', 'direction', 'side', 'call')
+                              if str(it.get(k) or '').upper() in ('UP', 'DOWN', 'LONG', 'SHORT', 'BULLISH', 'BEARISH')), None)
+            picks.append({'symbol': sym, 'score': sc, 'identity': identity,
+                          'direction': 'UP' if direction in ('UP', 'LONG', 'BULLISH') else 'DOWN' if direction else 'NEUTRAL',
+                          'prediction_origin': 'explicit_direction' if direction else 'rank_observation'})
             if len(picks) >= TOP_PER_ENGINE:
                 return picks
     return picks
 
 
-def get_price(sym):
+def get_price(sym, identity=None):
+    identity = identity or resolve_instrument(sym)
+    if not identity:
+        return None  # BTC/ETH can be ETF tickers or tokens; never guess.
+    fmp_symbol = identity['provider_symbols']['fmp']
+    polygon_symbol = identity['provider_symbols']['polygon']
     try:
-        u = f"https://financialmodelingprep.com/stable/quote?symbol={urllib.parse.quote(sym)}&apikey={FMP}"
+        u = f"https://financialmodelingprep.com/stable/quote?symbol={urllib.parse.quote(fmp_symbol)}&apikey={FMP}"
         d = json.loads(urllib.request.urlopen(
             urllib.request.Request(u, headers={"User-Agent": "jh-harv"}), timeout=10).read())
-        if isinstance(d, list) and d and d[0].get("price"):
-            return float(d[0]["price"])
+        if isinstance(d, list) and d and d[0].get('symbol') == fmp_symbol and d[0].get("price"):
+            price = float(d[0]['price'])
+            if math.isfinite(price) and price > 0:
+                return price
     except Exception:
         pass
     try:
-        u = f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(sym)}/prev?adjusted=true&apiKey={POLYGON}"
+        u = f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(polygon_symbol)}/prev?adjusted=true&apiKey={POLYGON}"
         d = json.loads(urllib.request.urlopen(
             urllib.request.Request(u, headers={"User-Agent": "jh-harv"}), timeout=10).read())
         r = (d or {}).get("results") or []
-        if r and r[0].get("c"):
-            return float(r[0]["c"])
+        if r and (d or {}).get('ticker') == polygon_symbol and r[0].get("c"):
+            price = float(r[0]['c'])
+            if math.isfinite(price) and price > 0:
+                return price
     except Exception:
         pass
     return None
@@ -202,6 +192,17 @@ def conf_from_score(sc):
 
 
 def lambda_handler(event, context):
+    if (event or {}).get('validation_only'):
+        token_identity = resolve_instrument('BTC', 'crypto')
+        fund_identity = resolve_instrument('BTC', 'etf')
+        quotes = {name: get_price(identity['symbol'], identity) for name, identity in
+                  (('bitcoin_spot', token_identity), ('btc_fund', fund_identity))} if event.get('probe_prices') else {}
+        ok = resolve_instrument('BTC') is None and token_identity['instrument_id'] != fund_identity['instrument_id']
+        if event.get('probe_prices'):
+            ok = ok and all(v is not None and v > 0 for v in quotes.values())
+        return {'ok': ok, 'validation_only': True, 'version': VERSION,
+                'token_identity': token_identity, 'fund_identity': fund_identity,
+                'quote_context': quotes, 'ledger_writes': 0, 'sizing_eligible': False}
     t0 = time.time()
     keys = list_outputs()
     regime = current_regime()
@@ -215,7 +216,8 @@ def lambda_handler(event, context):
     seen = {k: v for k, v in seen.items() if v >= prune_cut}  # prune old
 
     # harvest picks per engine
-    harvested = []   # (engine, sym, score)
+    harvested = []   # (engine, identified pick record)
+    ambiguous = 0
     engines_hit = 0
     for k in keys:
         doc = _read(k)
@@ -226,11 +228,15 @@ def lambda_handler(event, context):
             continue
         engine = k[len("data/"):-len(".json")]
         got = 0
-        for sym, sc in picks:
-            dk = f"eng:{engine}|{sym}"
+        for pick in picks:
+            sym = pick['symbol']
+            if not pick['identity']:
+                ambiguous += 1
+                continue
+            dk = f"eng:{engine}|{pick['identity']['instrument_id']}"
             if seen.get(dk, "0000") >= cutoff:   # logged within DEDUP_DAYS
                 continue
-            harvested.append((engine, sym, sc))
+            harvested.append((engine, pick))
             got += 1
         if got:
             engines_hit += 1
@@ -238,10 +244,10 @@ def lambda_handler(event, context):
             break
 
     # price snapshot for unique symbols (point-in-time entry)
-    usyms = sorted({h[1] for h in harvested})
+    identities = {pick['identity']['instrument_id']: pick['identity'] for _, pick in harvested}
     prices = {}
     with ThreadPoolExecutor(max_workers=24) as ex:
-        fut = {ex.submit(get_price, s): s for s in usyms}
+        fut = {ex.submit(get_price, identity['symbol'], identity): key for key, identity in identities.items()}
         for f in as_completed(fut):
             p = f.result()
             if p:
@@ -251,8 +257,9 @@ def lambda_handler(event, context):
     written = 0
     ts = {f"day_{d}": (now + timedelta(days=d)).isoformat() for d in WINDOWS}
     with table.batch_writer() as bw:
-        for engine, sym, sc in harvested:
-            price = prices.get(sym)
+        for engine, pick in harvested:
+            sym, sc, identity = pick['symbol'], pick['score'], pick['identity']
+            price = prices.get(identity['instrument_id'])
             if not price:
                 continue  # skip rather than poison the ledger with baseline_price=None
             tw = _trust(f"eng:{engine}")           # regime-conditioned trust gate
@@ -260,8 +267,11 @@ def lambda_handler(event, context):
             sid = str(uuid.uuid4())
             item = {
                 "signal_id": sid, "signal_type": f"eng:{engine}", "signal_value": str(round(sc, 3)) if sc is not None else "PICK",
-                "predicted_direction": "UP", "confidence": f2d(conf),
-                "measure_against": sym, "baseline_price": f2d(price),
+                "predicted_direction": pick['direction'], "confidence": f2d(conf),
+                "confidence_basis": "ranking_heuristic_not_calibrated_probability",
+                "prediction_origin": pick['prediction_origin'], "instrument": identity,
+                "sizing_eligible": False, "baseline_status": "QUOTE_CONTEXT_ONLY_UNVERIFIED_EXECUTION",
+                "measure_against": identity['symbol'], "baseline_price": f2d(price),
                 "baseline_benchmark_price": None, "benchmark": None,
                 "check_windows": [str(d) for d in WINDOWS], "check_timestamps": ts,
                 "outcomes": {}, "accuracy_scores": {}, "logged_at": now.isoformat(),
@@ -274,7 +284,7 @@ def lambda_handler(event, context):
                 "rationale": f"harvested top pick from {engine}", "supporting_signals": None,
             }
             bw.put_item(Item=item)
-            seen[f"eng:{engine}|{sym}"] = today
+            seen[f"eng:{engine}|{identity['instrument_id']}"] = today
             written += 1
 
     s3.put_object(Bucket=S3_BUCKET, Key=SEEN_KEY, Body=json.dumps(seen).encode(),
@@ -284,6 +294,8 @@ def lambda_handler(event, context):
         "regime_at_log": regime, "n_engine_outputs_scanned": len(keys),
         "n_engines_with_picks": engines_hit, "n_harvested": len(harvested),
         "n_written": written, "n_skipped_no_price": len(harvested) - written,
+        "n_skipped_ambiguous_identity": ambiguous,
+        "sizing_eligible": False,
         "dedup_days": DEDUP_DAYS, "top_per_engine": TOP_PER_ENGINE,
         "note": "Point-in-time picks written to justhodl-signals; outcome-checker grades them, "
                 "signal-scorecard computes per-engine edge across the full fleet.",

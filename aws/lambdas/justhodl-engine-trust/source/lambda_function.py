@@ -1,33 +1,12 @@
-"""
-justhodl-engine-trust — THE AUTO-DEMOTION GATE (regime-conditioned)
-===================================================================
-signal-scorecard already grades each engine (PROMOTED/ACTIVE/INSUFFICIENT/DEPRECATED
-+ a performance_multiplier) on Wilson-lower-bound of scored outcomes. What it does NOT
-do is (a) condition that trust on the CURRENT regime, or (b) expose one clean number
-consumers can multiply into a signal's weight. This engine does both, producing the
-registry data/engine-trust.json that aws/shared/engine_trust.py serves fleet-wide.
-
-effective_trust = base (scorecard multiplier)  ×  regime factor
-  • base: the scorecard's own performance_multiplier (PROMOTED>1, DEPRECATED<1, ...)
-  • regime factor: if the engine's edge in the CURRENT regime (by_regime Wilson-LB, n>=5)
-    is materially worse than its overall edge, damp it; if better, modestly lift it.
-    Edges are not stationary — an engine that prints in expansion can be a trap in a
-    slowdown, and the gate should reflect the regime we are actually in right now.
-
-HONEST BY DESIGN: engines with too few scored outcomes are WARMING -> effective_trust
-1.0 (neutral). The gate is a no-op until the harvested ledger matures (~7-30d), then
-auto-demotes the engines that prove they cannot beat a coinflip. Consumers (harvester
-confidence, conviction-engine, boards) read engine-trust.json and weight accordingly.
-
-OUTPUT data/engine-trust.json     SCHEDULE daily 12:30 UTC (after scorecard). Real data.
-"""
+"""Research trust registry with freshness and validation permissions. Descriptive or unverified scorecards retain neutral weights and no sizing authority; stale regime overlays cannot create model authority."""
 import json
 import time
 from datetime import datetime, timezone
 
 import boto3
+from outcome_integrity import finite, stamp
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 SCORECARD_KEY = "data/signal-scorecard.json"
 OUT_KEY = "data/engine-trust.json"
@@ -63,6 +42,10 @@ def lambda_handler(event, context):
     t0 = time.time()
     sc = _read(SCORECARD_KEY) or {}
     rows = sc.get("scorecard", []) or []
+    source_time = stamp(sc.get('generated_at'))
+    source_fresh = bool(source_time and 0 <= (datetime.now(timezone.utc) - source_time).total_seconds() <= 30 * 3600)
+    source_verified = bool(source_fresh and (sc.get('integrity') or {}).get('contract') == 'outcome-lineage.v1'
+                           and (sc.get('integrity') or {}).get('scan_complete') is True)
     regime = current_regime()
     cond = _read("data/regime-conditional-trust.json") or {}
     cond_engines = cond.get("engines", {}) if isinstance(cond, dict) else {}
@@ -76,7 +59,8 @@ def lambda_handler(event, context):
         n = r.get("n_scored") or 0
         base_status = r.get("status") or "INSUFFICIENT"
         base_mult = r.get("performance_multiplier")
-        base_mult = float(base_mult) if base_mult is not None else 1.0
+        base_mult = finite(base_mult) if base_mult is not None else 1.0
+        base_mult = base_mult if base_mult is not None else 1.0
         overall_lb = r.get("wilson_lb")
 
         # regime conditioning
@@ -107,7 +91,7 @@ def lambda_handler(event, context):
         if isinstance(ce, dict) and ce.get("current_regime_status") not in (None, "NO_REGIME_DATA"):
             cf = ce.get("current_regime_factor")
             if cf is not None:
-                regime_factor = float(cf)
+                regime_factor = finite(cf) if finite(cf) is not None else 1.0
                 regime_source = "risk-map-dispersion"
                 cr = (ce.get("by_regime") or {}).get(regime) or {}
                 if cr.get("wilson_lb") is not None:
@@ -129,6 +113,16 @@ def lambda_handler(event, context):
         else:
             disp_status = base_status
             effective = round(base_mult * regime_factor * alpha_factor, 3)
+        authority = bool(source_verified and r.get('promotion_eligible') is True
+                         and r.get('alpha_validation_scope') == 'OUT_OF_SAMPLE'
+                         and r.get('validation_manifest_sha256'))
+        if not authority:
+            # Missing proof cannot retain a boost/demotion from stale legacy
+            # scorecards or an unrelated regime-conditional artifact.
+            effective = base_mult = regime_factor = alpha_factor = 1.0
+            disp_status = 'WARMING'
+            alpha_status = 'INSUFFICIENT'
+            regime_source = 'validation_pending'
         counts[disp_status] = counts.get(disp_status, 0) + 1
 
         engines.append({
@@ -149,6 +143,11 @@ def lambda_handler(event, context):
             "net_alpha_t_stat": r.get("net_alpha_t_stat"),
             "net_alpha_excess_pct": r.get("net_alpha_mean_excess_pct"),
             "effective_trust": effective,
+            "promotion_eligible": authority,
+            "sizing_eligible": False,
+            "alpha_validation_scope": r.get('alpha_validation_scope') or 'UNVERIFIED',
+            "n_quarantined": r.get('n_quarantined'),
+            "eligibility_reason": 'Validated model authority' if authority else 'Source freshness, price lineage or out-of-sample validation incomplete',
         })
 
     # rank: most-trusted first, warming/insufficient sink, demoted last
@@ -166,23 +165,24 @@ def lambda_handler(event, context):
     out = {
         "engine": "engine-trust", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_generated_at": sc.get('generated_at'),
+        "integrity": {'scorecard_contract_verified': source_verified, 'source_fresh': source_fresh,
+                      'sizing_eligible': False, 'contract': 'engine-trust-permissions.v1'},
         "current_regime": regime,
         "n_engines": len(engines),
         "n_harvested_engines": sum(1 for e in engines if e["harvested"]),
         "counts": counts,
         "alpha_gate": {"proven_boosted": alpha_boosted, "negative_demoted": alpha_demoted,
-                       "note": "effective_trust now folds net-of-cost FDR-controlled alpha: "
-                               "ALPHA_PROVEN x1.20, ALPHA_NEGATIVE x0.40."},
-        "thesis": "Regime-conditioned + alpha-conditioned auto-demotion gate. effective_trust multiplies a "
-                  "signal's weight; <1 = down-weight, >1 = lift, WARMING=1.0 until the ledger matures.",
+                       "note": "No alpha boost or penalty without current, verified lineage and out-of-sample validation authority."},
+        "thesis": "Research trust permissions. WARMING=1.0 means no statistical weight adjustment; "
+                  "it does not mean a recommendation or position size is authorized.",
         "trusted": trusted,
         "demoted": demoted,
         "engines": engines,
         "consumption": "import aws/shared/engine_trust -> trust(signal_type) -> multiplier. "
                        "Applied to harvested-signal confidence; consumable by conviction-engine and boards.",
-        "caveats": "Trust is only as good as the ledger underneath it; most engines read WARMING until "
-                   "~7-30d of harvested outcomes mature. Regime buckets need n>=%d to condition. "
-                   "Down-weighting affects signal WEIGHT, never the hit-rate measurement itself." % MIN_REGIME_N,
+        "caveats": "Elapsed time and raw outcome count do not establish edge. Missing price identity, "
+                   "overlapping samples or an absent prospective validation protocol prevent model authority.",
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
