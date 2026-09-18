@@ -157,7 +157,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
   <div class="tab-pane" id="pane-khalid">
     <div class="kpi-grid" id="khalid-kpis"><div class="loading spin">loading khalid-adaptive</div></div>
     <div class="panel">
-      <h3>Top contributors <span class="tag">calibrator-weighted</span></h3>
+      <h3>Model validation <span class="tag">prospective evidence required</span></h3>
       <div id="khalid-table"></div>
     </div>
     <div class="interp" id="khalid-interp"></div>
@@ -454,7 +454,12 @@ function renderDefcon(cc, cap, ch, bs) {
 }
 
 function renderKhalid(d) {
-  if (!d) return;
+  if (!d || d.contract === 'adaptive-research-status.v1' || d.standard?.score == null || d.adaptive?.score == null) {
+    document.getElementById('khalid-kpis').innerHTML = '<div class="kpi info"><div class="label">Adaptive macro model</div><div class="val info">Unavailable</div><div class="sub">No validated score, regime, or divergence</div></div>';
+    document.getElementById('khalid-table').textContent = 'Legacy accuracy weights do not establish prospective investment performance. Numeric history has been retained unchanged.';
+    document.getElementById('khalid-interp').innerHTML = '<b>WAIT — abstain.</b> No allocation or trade follows from an unavailable score. <a href="/signal-scorecard.html">Inspect validation coverage</a> · <a href="/read.html">Inspect dated macro observations</a>';
+    return;
+  }
   const std = d.standard||{}, ad = d.adaptive||{}, div = d.divergence||{};
   const stdScore = std.score, adScore = ad.score, delta = div.score_delta;
   const stdCls = stdScore>=60?'pos':stdScore>=45?'info':stdScore>=30?'warning':'neg';

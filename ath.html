@@ -109,6 +109,14 @@ function scoreColor(s) { return s >= 70 ? 'var(--green)' : s >= 50 ? 'var(--ambe
 function render() {
   if (!D) return;
   const ath = D.ath_breakouts || {};
+  if (ath.status === 'unavailable') {
+    for (const id of ['countBreakouts','countNear','countTracked']) document.getElementById(id).textContent = 'Unavailable';
+    const strength = document.getElementById('marketStrength');
+    strength.textContent = 'Unverified'; strength.style.color = 'var(--dim)';
+    document.getElementById('updatedAt').textContent = 'All-time price coverage has not been established.';
+    document.getElementById('main').innerHTML = '<div class="card"><h2>All-time-high measurements unavailable</h2><p>A bounded price window cannot establish an all-time high. Missing coverage does not mean zero breakouts or a weak market.</p><p>Historical inputs are retained while original price coverage is rebuilt. No technical grade or investment action is inferred.</p><p><a href="/read.html">Inspect dated macro research</a> · <a href="/signal-scorecard.html">Inspect validation coverage</a></p></div>';
+    return;
+  }
   const bk = ath.breakouts || [];
   const near = ath.near_ath || [];
   const total = bk.length + near.length;
@@ -246,7 +254,7 @@ function filterTable() {
 
 async function load() {
   try {
-    const resp = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json?t=' + Date.now());
+    const resp = await fetch('/data/report.json', {cache:'no-store'});
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     D = await resp.json();
     render();
@@ -262,7 +270,7 @@ setInterval(load, 300000); // Auto-refresh every 5 min
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-  <script src="/jh-enhance.js" data-feed="data/report.json" data-line="khalid_index.signals" data-title="Khalid Index — recent history" data-sub="proprietary 0–100 composite risk score" data-crisis="1"></script>
+
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

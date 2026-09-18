@@ -15,3 +15,7 @@ if __name__ == "__main__":
     sys.path.insert(0, str(ROOT/"tests"))
     from research_brief_consumer_test_support import run as run_research
     run_research("ai-chat")
+
+if __name__ == "__main__":
+    from daily_macro_consumer_test_support import run as run_daily
+    run_daily("ai-chat")

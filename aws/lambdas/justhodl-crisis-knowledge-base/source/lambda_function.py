@@ -550,7 +550,7 @@ def get_current_state():
     if report:
         ki = report.get("khalid_index", report.get("khalidIndex", {}))
         if isinstance(ki, dict):
-            state["indicators"]["khalid_index"] = {"value": ki.get("score"), "regime": ki.get("regime")}
+            state["indicators"]["khalid_index"] = {"value": ki.get("score"), "regime": ki.get("regime"), "calls_eligible": False, "reason": "Unvalidated index is not a growth-scare forecast"}
 
     # 2. VIX curve
     vix = gs3("data/vix-curve.json")
@@ -616,8 +616,9 @@ def get_current_state():
                 score += 1; matched.append(f"VIX > 25 ({vix_spot})")
 
         elif p["id"] == "growth_scare":
-            ki = (state["indicators"].get("khalid_index") or {}).get("value", 50) or 50
-            if ki > 60:
+            ki_input = state["indicators"].get("khalid_index") or {}
+            ki = ki_input.get("value")
+            if ki_input.get("calls_eligible") is True and isinstance(ki, (int, float)) and not isinstance(ki, bool) and ki > 60:
                 score += 1; matched.append(f"Khalid Index > 60 ({ki})")
 
         elif p["id"] == "btc_cycle_top":

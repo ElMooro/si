@@ -1,5 +1,6 @@
 import json, urllib.request, ssl, boto3, traceback, os
 from datetime import datetime, timezone
+from daily_macro_model import CONTRACT as DAILY_CONTRACT, market_context
 
 s3 = boto3.client('s3', region_name='us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -9,8 +10,6 @@ OUTPUT_OWNERSHIP = {"key": REPORT_KEY, "role": "augmentation", "base_producer": 
 CMC_KEY = os.environ.get('CMC_API_KEY', '')
 
 ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
 
 def fetch(url, headers=None, timeout=10):
     try:
@@ -153,6 +152,8 @@ def get_leverage_sentiment():
 
 def compute_market_intelligence(report):
     """Compute missing market intelligence fields from existing data"""
+    if report.get("contract") == DAILY_CONTRACT:
+        return market_context(report)
     intel = {}
     
     # ML Regime - derive from khalid_index

@@ -20,6 +20,7 @@ Telegram alert when:
     two different markets")
 """
 import io
+import hashlib
 import json
 import os
 import time
@@ -200,7 +201,7 @@ def maybe_telegram(msg):
         print(f"[tg] err: {e}")
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler_unvalidated(event, context):
     t0 = time.time()
     print("[khalid-adaptive] starting")
 
@@ -327,3 +328,60 @@ def lambda_handler(event, context):
             "adaptive_regime": adaptive_regime,
         }),
     }
+
+
+def research_output(report, generated_at):
+    """An in-sample calibrator weight is not an independently validated model."""
+    reason = 'Adaptive weights lack qualified prospective validation; no numeric score or divergence is available.'
+    return {'schema_version': '2.0', 'contract': 'adaptive-research-status.v1',
+            'generated_at': generated_at, 'status': 'unvalidated',
+            'standard': {'score': None, 'regime': None, 'method': 'withheld'},
+            'adaptive': {'score': None, 'regime': None, 'raw_composite': None,
+                         'method': 'withheld_pending_prospective_validation', 'n_signals_used': 0},
+            'divergence': {'score_delta': None, 'regime_match': None, 'interpretation': reason},
+            'top_contributors': [], 'drag_contributors': [],
+            'source_generated_at': report.get('generated_at'), 'source_replay': report.get('replay'),
+            'reason': reason, 'call': None, 'calls_eligible': False, 'sizing_eligible': False,
+            'decision': {'verb': 'WAIT', 'meaning': 'abstain'},
+            'validation_url': '/signal-scorecard.html',
+            'history_policy': 'Legacy numeric history retained unchanged; abstentions are not numeric samples.'}
+
+
+def lambda_handler(event, context):
+    # No notification or numeric-history path is reachable from this handler.
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_REPORT)
+        raw = obj['Body'].read(32*1024*1024+1)
+        if len(raw)>32*1024*1024: raise ValueError('report exceeds bound')
+        source = json.loads(raw)
+        stamp = datetime.now(timezone.utc).isoformat()
+        output = research_output(source, stamp)
+        body = json.dumps(output, sort_keys=True, allow_nan=False).encode()
+        for _ in range(4):
+            try:
+                prior = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY_OUT)
+                old = prior['Body'].read(8*1024*1024+1)
+                if len(old)>8*1024*1024: raise ValueError('prior output exceeds bound')
+                previous = json.loads(old); etag = prior['ETag']
+                if previous.get('generated_at','')>stamp:
+                    return {'statusCode':409,'body':json.dumps({'published':False,'reason':'newer status is current'})}
+                if previous.get('contract') != output['contract']:
+                    archive='data/khalid-adaptive/legacy-unvalidated/'+hashlib.sha256(old).hexdigest()+'.json'
+                    try:
+                        s3.put_object(Bucket=S3_BUCKET,Key=archive,Body=old,ContentType='application/json',IfNoneMatch='*')
+                    except Exception as exc:
+                        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('412','PreconditionFailed','409','ConditionalRequestConflict'): raise
+                    if s3.get_object(Bucket=S3_BUCKET,Key=archive)['Body'].read(len(old)+1)!=old:
+                        raise ValueError('legacy archive readback differs')
+            except Exception as exc:
+                if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('NoSuchKey','404'): raise
+                etag=None
+            try:
+                s3.put_object(Bucket=S3_BUCKET,Key=S3_KEY_OUT,Body=body,ContentType='application/json',CacheControl='no-cache',
+                              **({'IfMatch':etag} if etag else {'IfNoneMatch':'*'}))
+                return {'statusCode':200,'body':json.dumps({'published':True,'generated_at':stamp,'status':'unvalidated'})}
+            except Exception as exc:
+                if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('412','PreconditionFailed','409','ConditionalRequestConflict'): raise
+        raise RuntimeError('status publication race retry bound exceeded')
+    except Exception as exc:
+        return {'statusCode':503,'body':json.dumps({'published':False,'error':type(exc).__name__})}

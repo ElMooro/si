@@ -7,6 +7,7 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 """
 from tenor_research_model import public_summary as tenor_research_summary
 from report_source_store import run as run_source_research
+from daily_macro_store import run as publish_daily_macro
 import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1901,7 +1902,7 @@ def khalid_cftc_blend(ki_original, cftc):
     return blended
 
 @track_errors
-def lambda_handler(event, context):
+def _legacy_lambda_handler_unvalidated(event, context):
     t0 = time.time()
     # ── ATH INIT MODE ──
     payload = event if isinstance(event, dict) else {}
@@ -2140,3 +2141,90 @@ def lambda_handler(event, context):
         print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"[V10] Error: {e}")
         return {'statusCode':500,'body':json.dumps({'error':str(e)})}
+
+
+def collect_auxiliary_observations():
+    """Compatibility market observations; no source-verification claim."""
+    errors = {}
+    # ── AUXILIARY STOCKS (batched with rate limiting) ──
+    print(f"[V10] Fetching {len(STOCK_TICKERS)} stocks...")
+    sd = {}
+    batch_size = 5  # smaller batches for rate limit safety
+    for i in range(0, len(STOCK_TICKERS), batch_size):
+        batch = STOCK_TICKERS[i:i+batch_size]
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            fm = {ex.submit(fetch_polygon, t): t for t in batch}
+            for f in as_completed(fm):
+                t = fm[f]
+                try:
+                    bars = f.result()
+                    if bars:
+                        m = compute_stock(bars)
+                        if m:
+                            m['name'] = TICKER_NAMES.get(t, t)
+                            m['history'] = [{'d':b['date'],'c':b['c']} for b in bars[:120]]
+                            sd[t] = m
+                except Exception as e:
+                    errors[t] = type(e).__name__
+        time.sleep(1.0)  # 1s between batches for Polygon rate limit
+        if (i // batch_size) % 10 == 0:
+            print(f"  Stocks batch {i//batch_size+1}: {len(sd)}/{i+len(batch)}")
+    print(f"[V10] Stocks: {len(sd)}/{len(STOCK_TICKERS)}")
+
+    # ── PHASE 3: CRYPTO ──
+    print("[V10] Crypto...")
+    crypto = fetch_crypto()
+    crypto_g = fetch_crypto_global()
+    print(f"[V10] Crypto: {len(crypto)} coins")
+
+    # ── PHASE 3.5: ECB CISS ──
+    print("[V10] ECB CISS...")
+    ecb_ciss = fetch_ecb_ciss()
+    print(f"[V10] ECB CISS: {len(ecb_ciss)} series")
+
+    # ── PHASE 3.6: FINANCIAL NEWS (NewsAPI + RSS fallback) ──
+    print("[V10] Financial News (NewsAPI + RSS)...")
+    news = []
+    try:
+        news = fetch_newsapi_headlines()
+        print(f"[V10] NewsAPI: {len(news)} headlines")
+    except Exception as e:
+        errors["news"] = type(e).__name__
+    if len(news) < 10:
+        rss_news = fetch_financial_news()
+        seen = {n['title'] for n in news}
+        for n in rss_news:
+            if n['title'] not in seen:
+                news.append(n)
+                seen.add(n['title'])
+        news.sort(key=lambda x: ({'critical':0,'high':1,'normal':2}.get(x.get('importance','normal'),2), x.get('pub','')))
+    print(f"[V10] News total: {len(news)} headlines")
+
+    return {'collected_at': datetime.now(timezone.utc).isoformat(), 'errors': errors,
+            'observations': {'stocks': sd, 'crypto': crypto, 'crypto_global': crypto_g,
+                             'ecb_ciss': ecb_ciss, 'news': news, 'ticker_names': TICKER_NAMES,
+                             'liquidity_credit_engine': load_lce(), 'global_business_cycle': load_global_cycle(),
+                             'cftc_positioning': get_cftc_crisis_data() or {},
+                             'tenor_research': tenor_research_summary(load_tenor_signals())}}
+
+
+@track_errors
+def lambda_handler(event, context):
+    payload = event if isinstance(event, dict) else {}
+    if payload.get('action') == 'research_measurements':
+        catalog = {sid: {'category': cat, 'display_name': name}
+                   for sid, (cat, name) in FRED_SERIES.items()}
+        remaining = context.get_remaining_time_in_millis()/1000 if context else 900
+        try:
+            result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,
+                                         budget_seconds=max(30, min(650, remaining-180)))
+            return {'statusCode': 200 if result.get('published') else 409, 'body': json.dumps(result)}
+        except Exception as exc:
+            return {'statusCode': 503, 'body': json.dumps({'ok': False, 'error': type(exc).__name__})}
+    # There is no event route to legacy scores/allocations or the unproven ATH
+    # writer. Preserve that code as audit material until its source migration.
+    try:
+        result = publish_daily_macro(s3, S3_BUCKET, collect_auxiliary_observations)
+        return {'statusCode': 200 if result.get('published') else 409, 'body': json.dumps(result)}
+    except Exception as exc:
+        return {'statusCode': 503, 'body': json.dumps({'ok': False, 'error': type(exc).__name__})}

@@ -151,14 +151,18 @@ def build_context(message):
     # ─── ALWAYS include core market context ───────────────────────
     report = get_s3('data/report.json')
     if report:
-        ki = report.get('khalid_index', report.get('khalidIndex', {}))
-        if isinstance(ki, dict):
-            score  = ki.get('score',  ki.get('value', 'N/A'))
-            regime = ki.get('regime', ki.get('label', 'N/A'))
+        if report.get('contract') == 'daily-research-report.v1':
+            context = research_brief_context(report.get('research_brief') or {}, datetime.now(timezone.utc).isoformat())
+            lines.append('[DAILY REPORT MACRO — NO CALL OR SIZING AUTHORITY] ' + json.dumps(context))
         else:
-            score, regime = ki, 'N/A'
-        ts = report.get('generated_at', report.get('timestamp', 'unknown'))
-        lines.append(f"[KHALID INDEX] Score:{score}/100  Regime:{regime}  (data as of {ts})")
+            ki = report.get('khalid_index', report.get('khalidIndex', {}))
+            if isinstance(ki, dict):
+                score  = ki.get('score',  ki.get('value', 'N/A'))
+                regime = ki.get('regime', ki.get('label', 'N/A'))
+            else:
+                score, regime = ki, 'N/A'
+            ts = report.get('generated_at', report.get('timestamp', 'unknown'))
+            lines.append(f"[KHALID INDEX] Score:{score}/100  Regime:{regime}  (data as of {ts})")
 
     # Macro intelligence summary (always included)
     intel = get_s3('intelligence-report.json')

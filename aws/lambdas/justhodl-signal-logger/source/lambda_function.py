@@ -105,8 +105,11 @@ _REGIME_SNAPSHOT={"regime":None,"khalid_score":None}
 def _capture_regime_snapshot():
     """Read data/report.json once, capture regime + khalid_score for this run.
     Called from lambda_handler at start of invocation."""
+    _REGIME_SNAPSHOT.update(regime=None, khalid_score=None)
     try:
         d=fs3("data/report.json")
+        if d.get('calls_eligible') is not True:
+            return
         ki=d.get("khalid_index")
         if isinstance(ki,dict):
             _REGIME_SNAPSHOT["khalid_score"]=int(float(ki.get("score",0))) if ki.get("score") is not None else None
@@ -210,21 +213,10 @@ def lambda_handler(event,context):
     logged=[]
     # data.json
     d=fs3("data/report.json")
-    ki=d.get("khalid_index")
-    if ki is not None:
-        if isinstance(ki, dict): ki=float(ki.get("score", 0))
-        else: ki=float(ki)
-        val="HIGH_RISK" if ki>=70 else "ELEVATED" if ki>=55 else "MODERATE" if ki>=40 else "LOW_RISK"
-        ki_rat=f"Khalid Index {ki:.0f} = {val} ({d.get('regime') or 'unknown'} regime)"
-        logged.append(log_sig("khalid_index",val,dir_score(ki,35,65),conf_ext(ki),"SPY",[7,14,30],meta={"score":ki,"regime":d.get("regime")},rationale=ki_rat))
-    regime=d.get("regime","") or (d.get("khalid_index",{}).get("regime","") if isinstance(d.get("khalid_index"), dict) else "")
-    if regime:
-        rm={"BULL":"UP","RECOVERY":"UP","RISK_ON":"UP","BEAR":"DOWN","CRISIS":"DOWN","CORRECTION":"DOWN","NEUTRAL":"NEUTRAL","UNKNOWN":"NEUTRAL"}
-        logged.append(log_sig("edge_regime",regime,rm.get(regime.upper(),"NEUTRAL"),0.70,"SPY",[14,30],meta={"regime":regime}))
-    for t in (d.get("buys") or [])[:3]:
-        if isinstance(t,str): logged.append(log_sig("screener_buy",t,"UP",0.72,t,[14,30],bench="SPY",meta={"signal":"buy"}))
-    for t in (d.get("sells") or [])[:3]:
-        if isinstance(t,str): logged.append(log_sig("screener_sell",t,"DOWN",0.72,t,[14,30],bench="SPY",meta={"signal":"sell"}))
+    # The report contains dated observations, not a registered forecast. Legacy
+    # KI thresholds, UNKNOWN->NEUTRAL and invented 70/72% confidence may not
+    # enter the outcome ledger. Prospective registration owns any future calls.
+    # Keep the existing historical ledger untouched.
     # crypto-intel.json
     c=fs3("crypto-intel.json")
     fg=c.get("fear_greed",{})
