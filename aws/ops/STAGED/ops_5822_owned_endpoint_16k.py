@@ -79,7 +79,8 @@ def main():
                 sys.exit(1)
             r.ok("InService on %s" % cfg_name)
         r.section("4. Proof: a 12k-token prompt round trip")
-        filler = ("line %d: the board carries regime, gate, breadth, funding and flows for every asset class, each line dated and sourced.\n" % i for i in range(1, 900))
+        # ~420 lines x ~110 chars = ~46k chars ~ 11.5k tokens: over the old 8k limit, under the new 16k (the first proof used 900 lines ~ 25k tokens and 424'd on its own size)
+        filler = ("line %d: the board carries regime, gate, breadth, funding and flows for every asset class, each line dated and sourced.\n" % i for i in range(1, 420))
         prompt = "<|im_start|>system\nAnswer with the single word OK after reading everything.<|im_end|>\n<|im_start|>user\n" + "".join(filler) + "\nReply: OK<|im_end|>\n<|im_start|>assistant\n"
         approx_tokens = len(prompt) // 4
         key = "factory/inference/requests/req-ops5822-proof.json"
