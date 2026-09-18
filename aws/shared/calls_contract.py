@@ -89,7 +89,12 @@ def make_snapshot(snapshot, output):
         # diagnostic. Legacy callers retain their original serialization.
         "call_verb": "UNKNOWN" if status == "ERROR" and output.get("abstain_on_error") is not True else "WAIT",
         "generation_method": output.get("generation_method"),
-        "candidate_verb": proposed, "evidence_ids": [], "target_exposure": None,
+        "candidate_verb": proposed,
+        "evidence_ids": [row["evidence_id"] for row in output.get("evidence", [])
+                         if isinstance(row, dict) and isinstance(row.get("evidence_id"), str)],
+        "brief_sha256": hashlib.sha256(md.encode("utf-8")).hexdigest() if isinstance(md, str) else None,
+        "research_replay": output.get("research_replay"),
+        "target_exposure": None,
         "asset": None, "forecast_horizon_days": None,
         "regime": intel.get("regime"), "phase": intel.get("phase"),
         "khalid_score": khalid_value(intel), "iso_week": cal.get("iso_week"),

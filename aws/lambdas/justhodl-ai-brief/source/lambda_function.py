@@ -738,7 +738,13 @@ def lambda_handler(event=None, context=None):
     # chatgpt-free-brief-v1: warehouse-only path; no paid provider or fallback.
     # The public compiler never receives the account-specific snapshot above.
     from calls_free_brief import build as build_free_brief, PUBLIC_KEY
-    public = build_free_brief(load_json, snapshot["as_of"])
+    from calls_research_replay import prepare as prepare_replay, persist as persist_replay, publish_current
+    research_run = prepare_replay(load_json)
+    snapshot["collection_started_at"] = snapshot["as_of"]
+    snapshot["as_of"] = research_run["payload"]["generated_at"]
+    replay_reference = persist_replay(S3, BUCKET, research_run)
+    public = dict(research_run["payload"]["output"])
+    public["research_replay"] = replay_reference
     out = {**public, "snapshot": snapshot,
            "duration_s": round(time.time() - started, 2), "visibility": "private"}
 
@@ -765,9 +771,7 @@ def lambda_handler(event=None, context=None):
     public.update(decision_status=decision_row["decision_status"],
                   decision_reason=decision_row["decision_reason"],
                   snapshot_id=decision_row["snapshot_id"])
-    S3.put_object(Bucket=BUCKET, Key=PUBLIC_KEY,
-                  Body=json.dumps(public, allow_nan=False).encode("utf-8"),
-                  ContentType="application/json", CacheControl="public, max-age=60")
+    public_publication = publish_current(S3, BUCKET, PUBLIC_KEY, public)
 
     # 7. Push a compact digest to Telegram (every brief generation, throttled by
     #    a "last_telegram_send" field on the ledger to prevent double-sends if
@@ -814,6 +818,8 @@ def lambda_handler(event=None, context=None):
             "sizing_eligible": False,
             "snapshot_keys": list(snapshot.keys()),
             "error": out.get("error"),
+            "research_run_id": replay_reference["run_id"],
+            "public_publication": public_publication,
         }),
     }
 

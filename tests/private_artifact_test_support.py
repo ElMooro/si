@@ -161,7 +161,13 @@ def run(engine):
             try: mod.lambda_handler({})
             except OSError: pass
             else: raise AssertionError("mirror failure must fail handler")
-            assert len(s3.writes) == writes
+            # Immutable, typed public research inputs may be retained before a
+            # private-mirror failure. No current view, decision event or account
+            # artifact may publish, and the archive must not contain account data.
+            for write in s3.writes[writes:]:
+                assert write["Key"].startswith("data/calls-research-runs/")
+                assert write.get("IfNoneMatch") == "*"
+                assert "PRIVATE-FIXTURE" not in str(write["Body"])
             print(engine + ": 6 checks passed (HTTP auth, dry run, full private mirror, IAM original/cache, public ledger projection, publication failure)")
         else:
             raise ValueError(engine)

@@ -72,6 +72,16 @@ Live SOMA/BLS/BEA packets contained `wrap() missing ... field` errors. Canary IC
 
 - Stage 4 proof: `512b6ff78bd45d21bcec07f4833717716b0111cb`, deploy `35371960934`, ops `35371961381`. All five exact receipts and runtime hashes matched. Ops 5714 replayed 63 FRED series and the complete canary diagnostics, and SOMA/BLS/BEA warehouse projections. Canary generated 17:05:11Z; SOMA 17:04:36Z, observed September 16. Public JSON and source receipts are HTTP 200 with a normal browser user agent. Deployment 400+12, warm bridge 28, canary 9, TradingView 13, tape 5 and coverage report fixtures passed.
 
-### Stage 4 follow-up: upstream BLS vintage (in progress)
+### Stage 4 follow-up: upstream BLS vintage (deployed and verified)
 
 The replay exposed a separate live fault: the newest CPI warehouse observation was 2019-M12 (256.974). The collector requested 2000..2026, beyond BLS's 20-year registered request limit. It now requests a supported window ending this year, preserves older periods, archives the exact original response and the previous warehouse vintage, and refuses to replace history after a failed read or empty response. The bridge adds explicit per-measurement observation-period freshness so a current processing clock cannot make a 2019 observation current. Ops 5715 verifies a current CPI observation against original BLS bytes and preservation of the old history.
+
+- BLS follow-up proof: `0a29d338bf58ffe30da305e0418e585e10cd47d3`, deploy `35373094020`, ops `35373093898`. Ops 5715 verified exact receipts/hashes, the 2007..2026 request, all 15 series updated, CPI 334.98 for 2026-M08 and all 240 old periods retained (320 total). Original BLS bytes and the prior warehouse vintage replayed; public JSON generated 17:15:14Z with correct observation age. Deployment 400+12, collector 7 and bridge 29 tests passed; both public release verification commands passed.
+
+## Stage 5: reproducible Calls research and independent audit (in progress)
+
+- Typed public input projections are frozen in conditionally written content-addressed research runs. Each binds seven input projections, the compiler's source hashes, generated time, twelve displayed evidence fields and the exact deterministic output. Unknown scope labels remain invalid; arbitrary narratives and account fields cannot enter the public archive.
+- Calls history binds the brief hash, measurement evidence IDs and replay reference. Shared FR2004 scopes remain one source group rather than six votes; unmapped composite ancestry is explicit. No model or sizing permission is invented.
+- Current brief publication uses conditional writes and refuses to replace a newer run with an older one. Retained runs survive publication failures for inspection; private mirror failure still prevents current/account/decision publication.
+- The independent audit Lambda reads public artifacts only, reproduces the compiler output, verifies current-public/history binding, writes audit events/proofs and fails on content or authority mismatch. Ops 5716 installs a 15-minute schedule and verifies the full chain. The source replay CLI requires no AWS credentials and never executes archived code.
+- Calls page exposes dates, units, source links, overlap, replay records and a matching independent proof. Original-provider verification, private portfolio-state replay and validated forecast authority remain separate acceptance workstreams.
