@@ -231,7 +231,8 @@ def test_exact_package_with_weighted_or_different_live_alias_fails_release_gate(
     import release_package_evidence as packages
     with tempfile.TemporaryDirectory() as temp:
         root=Path(temp);source=root/'aws/lambdas/justhodl-test/source';source.mkdir(parents=True)
-        (source/'lambda_function.py').write_text('VALUE=1\n')
+        # Fixture must match the ZIP byte-for-byte on Windows as on Linux.
+        (source/'lambda_function.py').write_bytes(b'VALUE=1\n')
         (source.parent/'config.json').write_text('{"release_validation":{"schema_version":"1"}}')
         archive=io.BytesIO()
         with zipfile.ZipFile(archive,'w') as zipfile_out:zipfile_out.writestr('lambda_function.py','VALUE=1\n')

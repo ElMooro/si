@@ -119,7 +119,7 @@ def _scan_pages():
     declared={}
     for page in pages(Path(".")):
         parser=HTML();parser.feed(page.read_text(errors="replace"))
-        if parser.wires:declared[str(page)]=parser.wires
+        if parser.wires:declared[page.as_posix()]=parser.wires
     return declared
 
 

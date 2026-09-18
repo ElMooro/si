@@ -394,7 +394,7 @@
 <section class="box">
   <div class="head"><h3>📋 Graded tape — every auction, same-day from TreasuryDirect</h3><span class="right" id="tape-meta"></span></div>
   <div class="body" style="padding-bottom:0"><div class="desk-filters" id="tape-filters"></div></div>
-  <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Security</th><th class="r">Size</th><th class="r">High</th><th class="r">Tail bp</th><th class="r">BTC</th><th class="r">z</th><th class="r">Indirect</th><th class="r">Dealer</th><th class="r">Direct</th><th class="r">AAH</th><th class="r">Grade</th></tr></thead><tbody id="desk-tape"></tbody></table></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Security</th><th class="r">Size</th><th class="r">High</th><th class="r" title="Prior-close nominal par comparison; not a when-issued tail">Prior-close gap bp</th><th class="r">BTC</th><th class="r">z</th><th class="r">Indirect</th><th class="r">Dealer</th><th class="r">Direct</th><th class="r">AAH</th><th class="r">Grade</th></tr></thead><tbody id="desk-tape"></tbody></table></div>
 </section>
 
 <section class="box">
@@ -431,23 +431,23 @@
     $("desk-tags").innerHTML = (v.tags || []).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("");
     const liq = v.liquidity, rates = v.rates, risk = v.risk_assets;
     $("desk-implications").innerHTML = [
-      ["Liquidity", liq === "easy" ? "EASY — Treasury returned cash and removed supply" : liq === "tightening bias" ? "Tightening bias — buyers demanded concession" : "Neutral", liq === "easy" ? "bull" : liq === "tightening bias" ? "bear" : ""],
+      ["Treasury cash context", liq === "cash_management_context" ? "Buyback accepted par observed; settlement and financing offsets require separate measurement" : "Net liquidity effect not established", ""],
       ["Rates", rates, /well bid/.test(rates) ? "bull" : /concession/.test(rates) ? "bear" : ""],
-      ["Risk assets", risk === "bullish" ? "BULLISH — the day's operations add liquidity / contain term premium" : risk === "bearish" ? "BEARISH — supply is getting harder to place" : risk === "mixed" ? "Mixed" : "Neutral", toneOf(risk)],
+      ["Decision eligibility", "Measurement only — participation and buyback fill do not authorize a trade or position size", ""],
     ].map(([l, val, cls]) => `<div class="desk-imp ${cls}"><div class="l">${l}</div><div class="v">${esc(val)}</div></div>`).join("");
     $("desk-bullets").innerHTML = (v.bullets || []).map(x => `<li>${esc(x)}</li>`).join("");
     const ai = D.today.ai_note;
     if (ai && ai.what_happened) {
       $("desk-ai").hidden = false;
       $("desk-ai").innerHTML = [["What happened", ai.what_happened], ["What it means", ai.what_it_means], ["Watch next", ai.watch_next]]
-        .map(([h, p]) => `<div><h4>${h}</h4><p>${esc(p)}</p></div>`).join("") + `<div style="grid-column:1/-1;font-size:10px;color:var(--fg-4)">Desk note written by ${esc(ai.model || "Claude")} from the computed facts above only · ${ago(ai.generated_at)}</div>`;
+        .map(([h, p]) => `<div><h4>${h}</h4><p>${esc(p)}</p></div>`).join("") + `<div style="grid-column:1/-1;font-size:10px;color:var(--fg-4)">Desk explanation: ${esc(ai.generation_method === "deterministic_treasury_v1" ? "deterministic facts; no paid AI" : ai.model || "legacy explanation")} · ${ago(ai.generated_at)}</div>`;
     }
   }
 
   function takeBar(a) {
     const i = a.indirect_pct || 0, d = a.direct_pct || 0, p = a.pd_pct || 0;
     return `<div class="op-take"><span class="ind" style="width:${i}%"></span><span class="dir" style="width:${d}%"></span><span class="pd" style="width:${p}%"></span></div>
-      <div class="op-take-l"><span>indirect <b>${pct(i)}</b></span><span>direct <b>${pct(d)}</b></span><span>dealers <b>${pct(p)}</b></span>${a.soma ? `<span>SOMA <b>${bn(a.soma)}</b></span>` : ""}</div>`;
+      <div class="op-take-l"><span>indirect <b>${pct(a.indirect_pct)}</b></span><span>direct <b>${pct(a.direct_pct)}</b></span><span>dealers <b>${pct(a.pd_pct)}</b></span>${a.soma ? `<span>SOMA <b>${bn(a.soma)}</b></span>` : ""}</div>`;
   }
 
   function auctionCard(a, imp) {
@@ -455,10 +455,10 @@
     const zc = v => v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "";
     const tone = imp ? toneOf(imp.tone) : "";
     return `<div class="op-card ${tone}">
-      <div class="op-head"><span class="t">${esc(a.term)} ${esc(a.type)}${a.reopening ? " (reopen)" : ""}</span><span class="s">${bn(a.total_accepted)} accepted · CUSIP ${esc(a.cusip)}</span><button class="op-grade ${a.grade}" type="button" data-gx="${esc(a.cusip)}|${esc(a.auction_date)}" title="Why this grade? Click to see how it was scored">${esc(a.grade)}</button></div>
+      <div class="op-head"><span class="t">${esc(a.term)} ${esc(a.instrument_kind === "TIPS" ? "TIPS" : a.instrument_kind === "FRN" ? "FRN" : a.type)}${a.reopening ? " (reopen)" : ""}</span><span class="s">${bn(a.total_accepted)} accepted · CUSIP ${esc(a.cusip)}</span><button class="op-grade ${a.grade}" type="button" data-gx="${esc(a.cusip)}|${esc(a.auction_date)}" title="Why this grade? Click to see how it was scored">${esc(a.grade)}</button></div>
       <div class="op-metrics">
-        <div class="op-m"><div class="l" title="${a.type === "Bill" ? METRIC_HELP["High inv. rate"] : METRIC_HELP["High yield"]}">High ${a.type === "Bill" ? "inv. rate" : "yield"}</div><div class="v">${num(a.high_yield, 3)}%</div><div class="z">${a.high_discount_rate != null ? "disc " + num(a.high_discount_rate, 3) + "%" : ""}</div></div>
-        <div class="op-m"><div class="l" title="${METRIC_HELP["Tail vs par"]}">Tail vs par</div><div class="v">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1) + "bp"}</div><div class="z ${zc(-(z.tail || 0))}">${z.tail == null ? "" : "z " + zs(z.tail)} ${t.tail_bp != null ? "· avg " + t.tail_bp.toFixed(1) : ""}</div></div>
+        <div class="op-m"><div class="l" title="${a.type === "Bill" ? METRIC_HELP["High inv. rate"] : METRIC_HELP["High yield"]}">High ${a.type === "Bill" ? "inv. rate" : a.instrument_kind === "TIPS" ? "real yield" : a.instrument_kind === "FRN" ? "discount margin" : "yield"}</div><div class="v">${num(a.instrument_kind === "FRN" ? a.high_discount_margin : a.high_yield, 3)}%</div><div class="z">${esc(a.quote_basis || "Quote basis unverified")}${a.high_discount_rate != null ? " · disc " + num(a.high_discount_rate, 3) + "%" : ""}</div></div>
+        <div class="op-m"><div class="l" title="${METRIC_HELP["Prior-close gap"]}">Prior-close gap</div><div class="v">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1) + "bp"}</div><div class="z">${esc(a.tail_missing_reason || "Context only; excluded from score")}</div></div>
         <div class="op-m"><div class="l" title="${METRIC_HELP["Bid-to-cover"]}">Bid-to-cover</div><div class="v">${num(a.btc)}</div><div class="z ${zc(z.btc)}">${z.btc == null ? "" : "z " + zs(z.btc)} ${t.btc != null ? "· avg " + t.btc.toFixed(2) : ""}</div></div>
         <div class="op-m"><div class="l" title="${METRIC_HELP["Allotted at high"]}">Allotted at high</div><div class="v">${pct(a.allocation_pct, 1)}</div><div class="z ${zc(-(z.allocation || 0))}">${z.allocation == null ? "" : "z " + zs(z.allocation)}</div></div>
       </div>
@@ -472,9 +472,9 @@
   const METRIC_HELP = {
     "High inv. rate": "Annualised yield the last accepted bidder received (bills quote a discount rate; the investment rate is the comparable yield).",
     "High yield": "The single yield every accepted bidder is filled at.",
-    "Tail vs par": "How far the auction cleared from where this tenor traded the day before. Negative = buyers accepted less yield than the market (strong). Positive = Treasury had to pay up (weak).",
+    "Prior-close gap": "Auction yield minus the prior-close nominal par curve. Includes market movement and security differences; not a when-issued tail. TIPS, FRNs and unverified instruments have no nominal comparison. Excluded from the participation score.",
     "Bid-to-cover": "Dollars bid for every dollar sold. Higher = more demand.",
-    "Allotted at high": "Share of bids at the highest accepted yield that got filled. High = the auction only just cleared; low = deep demand.",
+    "Allotted at high": "Proration of bids at the stop: the share of bids at the highest accepted yield that was allotted. This is not the fraction of the whole auction sold and does not establish an auction failure.",
   };
 
   function buybackCard(b) {
@@ -530,9 +530,13 @@
     $("bb-table").innerHTML = ops.slice(0, 14).map(o => `<tr><td class="tk">${esc(o.operation_date)}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(o.max_par)}</td><td class="r">${bn(o.offered)}</td><td class="r"><b>${bn(o.accepted)}</b></td><td class="r">${pct(o.fill_pct, 0)}</td><td class="r">${o.coverage != null ? o.coverage.toFixed(2) + "x" : "—"}</td><td>${(o.tags || []).filter(t => /EASY|INJECTION|MAX/.test(t)).map(t => `<span class="pill" style="background:var(--green-soft);color:var(--green);margin-right:4px">${esc(t)}</span>`).join("") || "<span class=\"flat\">routine</span>"}</td></tr>`).join("") || `<tr><td colspan="9" class="flat">No buyback operations in the feed.</td></tr>`;
   }
 
+  function securityLabel(a) {
+    return a.instrument_kind === "TIPS" ? "TIPS" : a.instrument_kind === "FRN" ? "FRN" : a.type || "Unverified";
+  }
+
   function renderCalendar(D) {
     const C = D.calendar || {};
-    const rows = (C.auctions || []).map(a => `<tr class="cal-row"><td class="tk">${fmtDate(a.auction_date)}</td><td>${esc(a.term)} ${esc(a.type)}${a.reopening ? '<span class="rx">REOPEN</span>' : ""}</td><td class="r">${bn(a.offering)}</td><td>${esc(a.issue_date || "")}</td></tr>`);
+    const rows = (C.auctions || []).map(a => `<tr class="cal-row"><td class="tk">${fmtDate(a.auction_date)}</td><td>${esc(a.term)} ${esc(securityLabel(a))}${a.reopening ? '<span class="rx">REOPEN</span>' : ""}</td><td class="r">${bn(a.offering)}</td><td>${esc(a.issue_date || "")}</td></tr>`);
     (C.buybacks || []).forEach(b => rows.push(`<tr class="cal-row"><td class="tk">${fmtDate(b.operation_date)}</td><td>Buyback · ${esc(b.maturity_bucket || "")}</td><td class="r">${bn(b.max_par)}</td><td>${esc(b.settlement_date || "")}</td></tr>`));
     $("cal-table").innerHTML = rows.join("") || `<tr><td colspan="4" class="flat">Nothing announced yet.</td></tr>`;
   }
@@ -544,12 +548,12 @@
   let tapeFilter = "All";
   function renderTape(D) {
     const all = D.auctions || [];
-    const types = ["All", ...new Set(all.map(a => a.type))];
+    const types = ["All", ...new Set(all.map(a => securityLabel(a)))];
     $("tape-filters").innerHTML = types.map(t => `<button class="${t === tapeFilter ? "active" : ""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
     $("tape-filters").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { tapeFilter = b.dataset.t; renderTape(D); wireExplainer(D); }));
-    const rows = all.filter(a => tapeFilter === "All" || a.type === tapeFilter).slice(0, 80);
+    const rows = all.filter(a => tapeFilter === "All" || securityLabel(a) === tapeFilter).slice(0, 80);
     $("tape-meta").textContent = `${all.length} auctions in the bank window · ${D.freshness.bank_records || 0} records banked`;
-    $("desk-tape").innerHTML = rows.map(a => `<tr><td class="tk">${esc(a.auction_date)}</td><td>${esc(a.term)} ${esc(a.type)}${a.reopening ? '<span class="rx" style="color:var(--purple);font-size:9px;margin-left:5px">R</span>' : ""}</td><td class="r">${bn(a.total_accepted)}</td><td class="r">${num(a.high_yield, 3)}</td><td class="r"><span class="${a.tail_bp == null ? "flat" : a.tail_bp > 0.3 ? "neg" : a.tail_bp < -0.3 ? "pos" : "flat"}">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1)}</span></td><td class="r">${num(a.btc)}</td><td class="r"><span class="${(a.z && a.z.btc) > 0.5 ? "pos" : (a.z && a.z.btc) < -0.5 ? "neg" : "flat"}">${a.z && a.z.btc != null ? zs(a.z.btc) : "—"}</span></td><td class="r">${pct(a.indirect_pct)}</td><td class="r">${pct(a.pd_pct)}</td><td class="r">${pct(a.direct_pct)}</td><td class="r">${pct(a.allocation_pct, 1)}</td><td class="r"><button class="grade-pill ${a.grade}" type="button" data-gx="${esc(a.cusip)}|${esc(a.auction_date)}" title="Why this grade? Click for the breakdown">${esc(a.grade)}</button></td></tr>`).join("");
+    $("desk-tape").innerHTML = rows.map(a => `<tr><td class="tk">${esc(a.auction_date)}</td><td>${esc(a.term)} ${esc(securityLabel(a))}${a.reopening ? '<span class="rx" style="color:var(--purple);font-size:9px;margin-left:5px">R</span>' : ""}</td><td class="r">${bn(a.total_accepted)}</td><td class="r">${num(a.instrument_kind === "FRN" ? a.high_discount_margin : a.high_yield, 3)}</td><td class="r"><span class="flat">${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1)}</span></td><td class="r">${num(a.btc)}</td><td class="r"><span class="${(a.z && a.z.btc) > 0.5 ? "pos" : (a.z && a.z.btc) < -0.5 ? "neg" : "flat"}">${a.z && a.z.btc != null ? zs(a.z.btc) : "—"}</span></td><td class="r">${pct(a.indirect_pct)}</td><td class="r">${pct(a.pd_pct)}</td><td class="r">${pct(a.direct_pct)}</td><td class="r">${pct(a.allocation_pct, 1)}</td><td class="r"><button class="grade-pill ${a.grade}" type="button" data-gx="${esc(a.cusip)}|${esc(a.auction_date)}" title="Why this grade? Click for the breakdown">${esc(a.grade)}</button></td></tr>`).join("");
   }
 
   function renderTenors(D) {
@@ -594,8 +598,8 @@
     const zsig = v => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "σ";
     const parts = a.score_parts || [];
     const grades = ["F", "D", "C", "B", "A"];
-    $("gx-title").innerHTML = `<span class="op-grade ${a.grade}" style="cursor:default">${esc(a.grade)}</span> ${esc(a.term)} ${esc(a.type)} · ${esc(a.auction_date)}`;
-    $("gx-sub").textContent = `${bn(a.total_accepted)} accepted · demand score ${a.demand_score == null ? "n/a" : (a.demand_score > 0 ? "+" : "") + a.demand_score.toFixed(2)} · compared with the last ${(a.trailing12 || {}).n || 0} ${a.term} ${a.type.toLowerCase()} auctions`;
+    $("gx-title").innerHTML = `<span class="op-grade ${a.grade}" style="cursor:default">${esc(a.grade)}</span> ${esc(a.term)} ${esc(securityLabel(a))} · ${esc(a.auction_date)}`;
+    $("gx-sub").textContent = `${bn(a.total_accepted)} accepted · demand score ${a.demand_score == null ? "n/a" : (a.demand_score > 0 ? "+" : "") + a.demand_score.toFixed(2)} · compared with the last ${(a.trailing12 || {}).n || 0} ${a.term} ${securityLabel(a).toLowerCase()} auctions`;
     const table = parts.length ? `<table><thead><tr><th>What we measured</th><th class="r">vs usual (σ)</th><th class="r">weight</th><th class="r">points</th><th>why it counts</th></tr></thead><tbody>${parts.map(p => `<tr><td>${esc(p.metric)}</td><td class="r">${zsig(p.z)}</td><td class="r">${p.weight > 0 ? "+" : ""}${p.weight}</td><td class="r ${p.contribution > 0 ? "pos" : p.contribution < 0 ? "neg" : ""}">${p.contribution == null ? "—" : (p.contribution > 0 ? "+" : "") + p.contribution.toFixed(2)}</td><td style="white-space:normal">${esc(p.why)}</td></tr>`).join("")}</tbody></table>` : "<p>No trailing history for this tenor yet, so no grade.</p>";
     const scale = `<div class="scale">${grades.map(g => `<span class="${g === a.grade ? "on" : ""}">${g}${g === "A" ? " ≥ +1.0" : g === "B" ? " ≥ +0.4" : g === "C" ? " ≥ −0.4" : g === "D" ? " ≥ −1.0" : " < −1.0"}</span>`).join("")}</div>`;
     const plain = `<ul>${(a.explain || []).map(l => `<li><b>${esc(l.metric)}</b> — ${esc(l.text)}</li>`).join("")}</ul>`;

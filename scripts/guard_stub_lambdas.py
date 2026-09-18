@@ -39,11 +39,11 @@ def tracked_lambda_sources(root: Path = ROOT) -> list[Path]:
 
 
 def previous_size(rel: str, base: str, root: Path = ROOT) -> int | None:
-    result = subprocess.run(["git", "cat-file", "-s", f"{base}:{rel}"], cwd=root,
-                            text=True, capture_output=True)
+    result = subprocess.run(["git", "show", f"{base}:{rel}"], cwd=root,
+                            capture_output=True)
     if result.returncode:
         return None
-    return int(result.stdout.strip() or 0)
+    return len(result.stdout.replace(b"\r\n", b"\n"))
 
 
 def shrink_override(root: Path = ROOT, base: str | None = None) -> bool:
@@ -62,8 +62,12 @@ def check(root: Path = ROOT, base: str | None = None) -> list[str]:
     for p in tracked_lambda_sources(root):
         if not p.is_file():
             continue
-        rel = str(p.relative_to(root))
-        n = p.stat().st_size
+        # Git tree paths always use '/', including from a Windows checkout.
+        # Backslashes make cat-file miss the baseline and silently skip the guard.
+        rel = p.relative_to(root).as_posix()
+        # Compare the same newline basis: checkout CRLF expansion must not
+        # conceal a >50% loss relative to an LF repository blob.
+        n = len(p.read_bytes().replace(b"\r\n", b"\n"))
         if n < MIN_BYTES:
             problems.append(f"{rel}: {n} bytes (min {MIN_BYTES}) -- stub body")
             continue

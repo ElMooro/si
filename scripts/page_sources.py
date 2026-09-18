@@ -65,22 +65,22 @@ def asset_info(path):
 
 def page_graph(root,page):
     root=Path(root).resolve();page=Path(page).resolve();html=HTML();html.feed(page.read_text(errors='replace'))
-    keys=set(r['feed'].lstrip('/') for r in html.wires);sources={};missing=[];direct_keys=set(keys);key_sources={str(page.relative_to(root)):set(keys)};parse_errors=[]
+    keys=set(r['feed'].lstrip('/') for r in html.wires);sources={};missing=[];direct_keys=set(keys);key_sources={page.relative_to(root).as_posix():set(keys)};parse_errors=[]
     pending=[(page,url) for url in html.scripts]
     for code in html.inline:
-        analysis=source_analysis(code);inline_keys=set(analysis['keys']);keys.update(inline_keys);direct_keys.update(inline_keys);key_sources[str(page.relative_to(root))].update(inline_keys);pending.extend((page,url) for url in analysis['imports'])
-        if analysis.get('error'):parse_errors.append({'source':str(page.relative_to(root)),'error':analysis['error']})
+        analysis=source_analysis(code);inline_keys=set(analysis['keys']);keys.update(inline_keys);direct_keys.update(inline_keys);key_sources[page.relative_to(root).as_posix()].update(inline_keys);pending.extend((page,url) for url in analysis['imports'])
+        if analysis.get('error'):parse_errors.append({'source':page.relative_to(root).as_posix(),'error':analysis['error']})
     seen=set()
     while pending:
         parent,url=pending.pop();p=local_asset(root,parent,url)
         if not p:
-            if not urlsplit(url).netloc:missing.append({'from':str(parent.relative_to(root)),'script':url})
+            if not urlsplit(url).netloc:missing.append({'from':parent.relative_to(root).as_posix(),'script':url})
             continue
         if p in seen:continue
-        seen.add(p);analysis=asset_info(str(p));asset_keys=set(analysis['keys']);imports=analysis['imports'];sources[str(p.relative_to(root))]=True
-        if analysis.get('error'):parse_errors.append({'source':str(p.relative_to(root)),'error':analysis['error']})
-        if str(p.relative_to(root)) not in NON_CONSUMER_ASSETS:
-            keys.update(asset_keys);key_sources[str(p.relative_to(root))]=set(asset_keys)
+        seen.add(p);analysis=asset_info(str(p));asset_keys=set(analysis['keys']);imports=analysis['imports'];sources[p.relative_to(root).as_posix()]=True
+        if analysis.get('error'):parse_errors.append({'source':p.relative_to(root).as_posix(),'error':analysis['error']})
+        if p.relative_to(root).as_posix() not in NON_CONSUMER_ASSETS:
+            keys.update(asset_keys);key_sources[p.relative_to(root).as_posix()]=set(asset_keys)
         pending.extend((p,url) for url in imports)
     return {'keys':sorted(keys),'direct_keys':sorted(direct_keys),'key_sources':{source:sorted(values) for source,values in key_sources.items()},'primary_engines':html.primary_engines,'scripts':sorted(sources),'missing_scripts':missing,'script_parse_errors':parse_errors,'redirect':html.redirect,'wires':html.wires,'evidence':'static exact-path source reference; runtime consumption unverified'}
 
@@ -91,4 +91,4 @@ def scan_pages(root):
     for path in root.rglob('*.js'):
         if not any(x in DENY or x.startswith('.') for x in path.relative_to(root).parts[:-1]):codes.append(path.read_text(errors='replace'))
     prime_source_analysis(codes)
-    return {str(p.relative_to(root)):page_graph(root,p) for p in routes}
+    return {p.relative_to(root).as_posix():page_graph(root,p) for p in routes}

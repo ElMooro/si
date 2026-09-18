@@ -81,7 +81,7 @@ def pending_scripts(root: Path = ROOT) -> list[Path]:
 def range_scripts(base: str, head: str, root: Path = ROOT) -> list[str]:
     """Scripts added/modified between the exact push boundaries (legacy behaviour)."""
     files = git("diff", "--name-only", base, head, cwd=root).splitlines()
-    return [f for f in files if f.startswith(str(PENDING) + "/") and f.endswith(".py")]
+    return [f for f in files if f.startswith(PENDING.as_posix() + "/") and f.endswith(".py")]
 
 
 def last_touch(path: str, root: Path = ROOT) -> tuple[int, str]:
@@ -124,7 +124,7 @@ def select(base: str | None, head: str | None, explicit: list[str], root: Path =
     # Queue recovery: only when the ledger has a baseline (else we would run 467 legacy files).
     if ledger.get("baseline_at"):
         for p in pending_scripts(root):
-            rel = str(p.relative_to(root))
+            rel = p.relative_to(root).as_posix()
             if rel in chosen:
                 continue
             ok, why = recoverable(rel, ledger, now, root)
@@ -157,7 +157,7 @@ def baseline(root: Path = ROOT) -> int:
     ledger = load_ledger(root)
     n = 0
     for p in pending_scripts(root):
-        rel = str(p.relative_to(root))
+        rel = p.relative_to(root).as_posix()
         if rel not in ledger["entries"]:
             ledger["entries"][rel] = {
                 "sha256": sha256_of(p), "status": "legacy-frozen",

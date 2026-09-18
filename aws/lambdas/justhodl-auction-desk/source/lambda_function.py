@@ -1,9 +1,8 @@
 """justhodl-auction-desk -- the Treasury auctions desk engine (ops 5180, 2026-09-03).
 
-Khalid: "auctions.html needs a major overhaul -- make sure it gets data from the
-Treasury API daily, and give me a daily analysis of each auction; today's
-$12.5B buyback should be flagged as easy monetary policy and a pump in risk
-assets."
+Institutional measurement contract: preserve instrument and quote identity,
+separate prior-close context from true WI tails, and do not infer monetary
+easing or a trade from Treasury buyback fill.
 
 Sources (all public, no keys):
   * TreasuryDirect TA_WS securities/auctioned  -- SAME-DAY results (minutes after
@@ -18,17 +17,14 @@ Sources (all public, no keys):
     prior-close par yield of the matching tenor, for the tail proxy.
 
 Analysis (deterministic, every number shown comes from the sources above):
-  * per auction: z-scores vs the trailing 12 auctions of the same type+term
-    for bid-to-cover, indirect share, dealer share, allotted-at-high and the
-    tail proxy (high yield minus prior-close par yield of that tenor, bp --
-    a true WI tail needs dealer WI quotes, which are not public); a demand
-    score -> grade A..F and a verdict sentence.
+  * per auction: participation z-scores against verified instrument, term and
+    reopening cohorts. Prior-close nominal par gaps are context only, excluded
+    from the score; TIPS, FRNs and unknown instruments have no nominal gap.
   * per buyback: fill vs maximum, offered/accepted coverage, size percentile
     within the program, program pace; large max-fill operations are flagged
     as a TGA cash-out (ops 5618 buyback wording), not an easing or duration-bid call.
-  * per day: headline + tags + liquidity / rates / risk-asset implications
-    built from the day's operations; an optional Claude note (Haiku) written
-    ONLY from those computed facts, cached per date.
+  * per day: descriptive headline and deterministic explanation from computed
+    facts, with no paid AI and no inferred portfolio allocation.
 
 Outputs:
   data/auction-desk.json                          latest (page feed)
@@ -38,6 +34,7 @@ Outputs:
 """
 import gzip
 import json
+import math
 import os
 import statistics
 import time
@@ -49,13 +46,14 @@ from datetime import datetime, timedelta, timezone
 import bisect
 
 import boto3
+from treasury_instruments import instrument_fields, comparable_cohort, nominal_par_eligible
 
 try:
     import crisis_scoring  # vendored justhodl-auction-crisis-detector scoring (same math for the 1996-> composite)
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.2.3"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -70,7 +68,8 @@ PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 FULL_FIELDS = ("cusip", "security_type", "security_term", "auction_date", "issue_date", "maturity_date", "high_rate", "high_yield",
                "high_discnt_rate", "high_investment_rate", "low_rate", "low_yield", "low_discnt_rate", "median_rate", "median_yield",
                "median_discnt_rate", "bid_to_cover_ratio", "primary_dealer_accepted", "direct_bidder_accepted", "indirect_bidder_accepted",
-               "allocation_pctage", "total_accepted", "comp_accepted", "noncomp_accepted", "soma_accepted", "offering_amt", "reopening", "int_rate")
+               "allocation_pctage", "total_accepted", "comp_accepted", "noncomp_accepted", "soma_accepted", "offering_amt", "reopening", "int_rate",
+               "inflation_index_security", "floating_rate", "original_security_term", "high_discnt_margin")
 ASSETS = [("SPY", "S&P 500", "stocks"), ("QQQ", "Nasdaq 100", "stocks"), ("IWM", "Small caps", "stocks"),
           ("TLT", "Long Treasuries", "bonds"), ("IEF", "7-10Y Treasuries", "bonds"), ("HYG", "High-yield credit", "credit"),
           ("BTC-USD", "Bitcoin", "crypto"), ("ETH-USD", "Ether", "crypto"), ("GLD", "Gold", "gold"), ("SLV", "Silver", "silver"),
@@ -126,7 +125,8 @@ def _f(v):
     try:
         if v is None or v == "" or v == "null":
             return None
-        return float(str(v).replace(",", ""))
+        value = float(str(v).replace(",", ""))
+        return value if math.isfinite(value) else None
     except Exception:
         return None
 
@@ -144,12 +144,13 @@ def norm_td(r):
     hir = _f(r.get("highInvestmentRate"))
     hdr = _f(r.get("highDiscountRate"))
     return {
+        **instrument_fields(r, "treasurydirect"),
         "cusip": r.get("cusip"), "type": ttype, "term": term, "tenor": TERM_TENOR.get(term),
         "reopening": str(r.get("reopening") or "").lower() == "yes",
         "auction_date": _d(r.get("auctionDate")), "issue_date": _d(r.get("issueDate")), "maturity_date": _d(r.get("maturityDate")),
         "announcement_date": _d(r.get("announcementDate")),
         "high_yield": hy if hy is not None else hir,          # bond-equivalent for bills (investment rate)
-        "high_discount_rate": hdr, "interest_rate": _f(r.get("interestRate")),
+        "high_discount_rate": hdr, "high_discount_margin": _f(r.get("highDiscountMargin")), "interest_rate": _f(r.get("interestRate")),
         "btc": _f(r.get("bidToCoverRatio")),
         "pd": _f(r.get("primaryDealerAccepted")), "direct": _f(r.get("directBidderAccepted")), "indirect": _f(r.get("indirectBidderAccepted")),
         "total_accepted": _f(r.get("totalAccepted")), "total_tendered": _f(r.get("totalTendered")),
@@ -165,11 +166,12 @@ def norm_fd(r):
     hy = _f(r.get("high_yield"))
     hir = _f(r.get("high_investment_rate"))
     return {
+        **instrument_fields(r, "fiscaldata"),
         "cusip": r.get("cusip"), "type": str(r.get("security_type") or ""), "term": term, "tenor": TERM_TENOR.get(term),
         "reopening": str(r.get("reopening") or "").lower() == "yes",
         "auction_date": _d(r.get("auction_date")), "issue_date": _d(r.get("issue_date")), "maturity_date": _d(r.get("maturity_date")),
         "announcement_date": _d(r.get("announcemt_date") or r.get("announcement_date")),
-        "high_yield": hy if hy is not None else hir, "high_discount_rate": _f(r.get("high_discnt_rate")),
+        "high_yield": hy if hy is not None else hir, "high_discount_rate": _f(r.get("high_discnt_rate")), "high_discount_margin": _f(r.get("high_discnt_margin")),
         "interest_rate": _f(r.get("int_rate")), "btc": _f(r.get("bid_to_cover_ratio")),
         "pd": _f(r.get("primary_dealer_accepted")), "direct": _f(r.get("direct_bidder_accepted")), "indirect": _f(r.get("indirect_bidder_accepted")),
         "total_accepted": _f(r.get("total_accepted")), "total_tendered": _f(r.get("total_tendered")),
@@ -215,13 +217,18 @@ def par_prev_close(par_rows, auction_date, tenor):
     if not par_rows or not tenor or not auction_date:
         return None, None
     key = id(par_rows)
-    if key not in _PAR_DATES:
-        _PAR_DATES[key] = sorted(par_rows)
-    dates = _PAR_DATES[key]
+    if key not in _PAR_DATES or _PAR_DATES[key][0] is not par_rows:
+        _PAR_DATES[key] = (par_rows, sorted(par_rows))
+    dates = _PAR_DATES[key][1]
     i = bisect.bisect_left(dates, auction_date) - 1
     if i < 0:
         return None, None
     d = dates[i]
+    try:
+        if (datetime.fromisoformat(auction_date) - datetime.fromisoformat(d)).days > 7:
+            return None, d
+    except (TypeError, ValueError):
+        return None, d
     v = (par_rows.get(d) or {}).get(tenor)
     return (_f(v), d) if v is not None else (None, d)
 
@@ -254,26 +261,38 @@ def analyze_bank(bank_sorted, par_rows, today):
     for r in bank_sorted:
         if r.get("btc") is None or r["auction_date"] > today:
             continue
-        g = groups.setdefault((r["type"], r["term"]), [])
+        cohort = comparable_cohort(r)
+        g = groups.setdefault(cohort, []) if cohort is not None else []
         out.append(analyze_auction(r, None, par_rows, prior=g[-12:]))
-        g.append(r)
+        if cohort is not None:
+            g.append(r)
     return out
 
 
 def analyze_auction(r, bank_sorted, par_rows, prior=None):
-    """Grade one auction against the trailing 12 same type+term auctions before it."""
+    """Participation grade against comparable instruments; prior-close gap is context."""
     a = dict(r)
     a.update(shares(r))
     if prior is None:
-        prior = [b for b in bank_sorted if b["type"] == r["type"] and b["term"] == r["term"] and b["auction_date"] < r["auction_date"]][-12:]
+        cohort = comparable_cohort(r)
+        prior = [b for b in (bank_sorted or []) if cohort is not None and comparable_cohort(b) == cohort and b["auction_date"] < r["auction_date"]][-12:]
+    else:
+        prior = [b for b in prior if comparable_cohort(r) is not None and comparable_cohort(b) == comparable_cohort(r) and b["auction_date"] < r["auction_date"]][-12:]
     for b in prior:
         b.update(shares(b))
-    par, par_date = par_prev_close(par_rows, r["auction_date"], r.get("tenor"))
+    par, par_date = par_prev_close(par_rows, r["auction_date"], r.get("tenor")) if nominal_par_eligible(r) else (None, None)
     a["par_prev_close"], a["par_prev_date"] = par, par_date
     a["tail_bp"] = round((r["high_yield"] - par) * 100, 1) if (r.get("high_yield") is not None and par is not None) else None
+    a["prior_close_concession_bp"] = a["tail_bp"]
+    a["wi_tail_bp"] = None
+    a["tail_basis"] = "prior_close_nominal_par_context_only" if nominal_par_eligible(r) else "incomparable_or_unverified_instrument"
+    a["tail_legacy_alias"] = "tail_bp aliases prior_close_concession_bp; it is not a when-issued tail and does not vote in the demand score"
+    a["tail_missing_reason"] = None if a["tail_bp"] is not None else (
+        "Auction yield or a dated nominal par curve within seven days is unavailable" if nominal_par_eligible(r)
+        else "TIPS real yields, FRN margins and unknown instruments cannot use nominal par yields")
     tails = []
     for b in prior:
-        bp, _ = par_prev_close(par_rows, b["auction_date"], b.get("tenor"))
+        bp, _ = par_prev_close(par_rows, b["auction_date"], b.get("tenor")) if nominal_par_eligible(b) else (None, None)
         tails.append(round((b["high_yield"] - bp) * 100, 1) if (b.get("high_yield") is not None and bp is not None) else None)
     a["z"] = {
         "btc": z(r.get("btc"), [b.get("btc") for b in prior]),
@@ -299,8 +318,8 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
         parts.append(0.8 * zz["indirect"])
     if zz["pd"] is not None:
         parts.append(-0.8 * zz["pd"])
-    if zz["tail"] is not None:
-        parts.append(-1.0 * zz["tail"])
+    # A prior-close par comparison includes market movement and is not an
+    # observed when-issued auction tail. Preserve it as context, never a vote.
     score = round(sum(parts) / max(len(parts), 1), 2) if parts else None
     a["demand_score"] = score
     a["grade"] = ("A" if score >= 1.0 else "B" if score >= 0.4 else "C" if score >= -0.4 else "D" if score >= -1.0 else "F") if score is not None else "n/a"
@@ -308,12 +327,16 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
         {"metric": "Bid-to-cover", "z": zz["btc"], "weight": 1.0, "contribution": round(1.0 * zz["btc"], 2) if zz["btc"] is not None else None,
          "why": "more bids per dollar sold = more demand"},
         {"metric": "Indirect bidders", "z": zz["indirect"], "weight": 0.8, "contribution": round(0.8 * zz["indirect"], 2) if zz["indirect"] is not None else None,
-         "why": "foreign central banks and big funds taking more = real-money demand"},
+         "why": "participation through an intermediary; bidder geography and ultimate ownership are not identified"},
         {"metric": "Dealers", "z": zz["pd"], "weight": -0.8, "contribution": round(-0.8 * zz["pd"], 2) if zz["pd"] is not None else None,
-         "why": "dealers forced to absorb more = weaker demand, so this counts against"},
-        {"metric": "Tail", "z": zz["tail"], "weight": -1.0, "contribution": round(-1.0 * zz["tail"], 2) if zz["tail"] is not None else None,
-         "why": "paying up vs the market (positive tail) = weaker; stopping through (negative) = stronger"},
+         "why": "higher dealer participation relative to the comparable cohort; this does not establish forced inventory"},
+        {"metric": "Prior-close par gap", "z": zz["tail"], "weight": 0.0, "contribution": None,
+         "why": "context only; not a when-issued tail and excluded from the participation score"},
     ]
+    a["quality"] = {"status": "valid" if comparable_cohort(r) is not None and len(prior) >= 4 and score is not None else "partial",
+                    "observation_date": r.get("auction_date"), "scope": "historical_measurement_validity_not_current_freshness",
+                    "cohort_size": len(prior), "cohort_basis": "instrument_kind + remaining term + reopening",
+                    "wi_quote_available": False, "call": None, "sizing_eligible": False}
     a["explain"] = explain_auction(a)
     a["verdict"] = auction_verdict(a)
     return a
@@ -331,27 +354,29 @@ def explain_auction(a):
                           a["btc"], unit, (" (usual for this tenor lately: %.2f)" % t["btc"]) if t.get("btc") else "")})
     if a.get("indirect_pct") is not None:
         lines.append({"metric": "Indirect bidders %.0f%%" % a["indirect_pct"],
-                      "text": "Share bought by foreign central banks and large funds bidding through dealers -- the 'real money' crowd%s. More is stronger." % (
+                      "text": "Share awarded to indirect bidders submitting through intermediaries. This category does not identify foreign ownership%s." % (
                           (" (usual: %.0f%%)" % t["indirect_pct"]) if t.get("indirect_pct") else "")})
     if a.get("pd_pct") is not None:
         lines.append({"metric": "Dealers %.0f%%" % a["pd_pct"],
-                      "text": "Share the primary dealers had to take onto their own books because nobody else bid for it%s. Less is better -- it means investors, not dealers, absorbed the supply." % (
+                      "text": "Share awarded to primary dealers%s. Higher participation can indicate more dealer intermediation; it does not prove that these awards were forced." % (
                           (" (usual: %.0f%%)" % t["pd_pct"]) if t.get("pd_pct") else "")})
     if a.get("direct_pct") is not None:
         lines.append({"metric": "Direct bidders %.0f%%" % a["direct_pct"], "text": "Institutions (banks, funds, insurers) bidding for their own account, not via a dealer."})
     if a.get("tail_bp") is not None:
         tb = a["tail_bp"]
         if tb < -0.3:
-            txt = "The auction cleared %.1f basis points BELOW where this tenor traded the day before -- buyers accepted a lower yield than the market offered. That is a strong auction ('stopped through')." % -tb
+            txt = "The auction yield was %.1f basis points below the prior-close nominal par curve. Market movement and security differences are included; this is not a when-issued stop-through." % -tb
         elif tb > 0.3:
-            txt = "The auction cleared %.1f basis points ABOVE where this tenor traded the day before -- Treasury had to pay a higher yield to find buyers. That is a weak auction ('tailed')." % tb
+            txt = "The auction yield was %.1f basis points above the prior-close nominal par curve. Market movement and security differences are included; this is not a when-issued tail." % tb
         else:
-            txt = "The auction cleared right where the market traded the day before -- no concession needed either way."
-        lines.append({"metric": "Tail %+.1fbp" % tb, "text": txt + (" (recent average for this tenor: %+.1fbp)" % t["tail_bp"] if t.get("tail_bp") is not None else "")})
+            txt = "The auction yield was close to the prior-close nominal par curve. A when-issued quote is unavailable."
+        lines.append({"metric": "Prior-close gap %+.1fbp" % tb, "text": txt + (" (recent comparable average: %+.1fbp)" % t["tail_bp"] if t.get("tail_bp") is not None else "")})
+    elif a.get("tail_missing_reason"):
+        lines.append({"metric": "Yield comparison unavailable", "text": a["tail_missing_reason"]})
     if a.get("allocation_pct") is not None:
         ap = a["allocation_pct"]
         lines.append({"metric": "Allotted at high %.0f%%" % ap,
-                      "text": ("Of the bids placed at the highest accepted yield, %.0f%% were filled. A high number means the auction only just cleared at that level; a low number means demand was deep and most high-yield bids were unnecessary." % ap)})
+                      "text": ("Of the bids placed at the stop yield or rate, %.0f%% were filled. This is marginal-bid proration, not a yield tail, dealer share or standalone auction-failure measure." % ap)})
     if a.get("high_yield") is not None:
         lines.append({"metric": ("High investment rate %.3f%%" % a["high_yield"]) if is_bill else ("High yield %.3f%%" % a["high_yield"]),
                       "text": ("The annualised yield the last accepted bidder got%s." % ((" (discount rate %.3f%%)" % a["high_discount_rate"]) if a.get("high_discount_rate") is not None else "")) if is_bill else
@@ -361,7 +386,7 @@ def explain_auction(a):
     z_txt = ", ".join("%s %s" % (p["metric"].lower(), ("%+.1f" % p["z"]) + "σ") for p in a.get("score_parts", []) if p.get("z") is not None)
     if a.get("demand_score") is not None:
         lines.append({"metric": "Grade %s (score %+.2f)" % (a["grade"], a["demand_score"]),
-                      "text": "Each metric is compared with the last 12 auctions of the same tenor (σ = how unusual it is). Demand score averages them: bid-to-cover and indirects count for, dealers and tail count against (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F." % z_txt})
+                      "text": "Compare the last 12 auctions of the same verified instrument kind, remaining term and reopening status. The score averages available weighted participation contributions: bid-to-cover and indirects positive, dealers negative. Prior-close gaps are excluded (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F. This descriptive grade is not a calibrated forecast." % z_txt})
     return lines
 
 
@@ -390,21 +415,17 @@ def auction_verdict(a):
     if a.get("pd_pct") is not None:
         bits.append("dealers %.0f%%" % a["pd_pct"])
     if a.get("tail_bp") is not None:
-        bits.append(("stopped through %.1fbp" % -a["tail_bp"]) if a["tail_bp"] < -0.3 else ("tailed %.1fbp" % a["tail_bp"]) if a["tail_bp"] > 0.3 else "on the screws")
+        bits.append("prior-close nominal par gap %+.1fbp (not a WI tail)" % a["tail_bp"])
     label = {"A": "STRONG demand", "B": "solid demand", "C": "average demand", "D": "soft demand", "F": "WEAK demand"}.get(a["grade"], "demand")
     return "%s %s %s -- %s: %s." % (a["term"], a["type"].lower(), fmt_bn(a.get("total_accepted")), label, ", ".join(bits) or "no takedown detail yet")
 
 
 def implication_for_auction(a):
-    coupon = a["type"] in ("Note", "Bond", "TIPS", "FRN")
     g = a["grade"]
-    if coupon:
-        if g in ("A", "B"):
-            return {"rates": "duration well bid -> supports lower/stable yields", "risk": "supportive (term premium contained)", "tone": "bullish"}
-        if g in ("D", "F"):
-            return {"rates": "buyers demanded concession -> yields under upward pressure", "risk": "headwind if tails persist (higher discount rate for equities)", "tone": "bearish"}
-        return {"rates": "no signal", "risk": "neutral", "tone": "neutral"}
-    return {"rates": "front-end absorbed", "risk": "neutral", "tone": "neutral"} if g in ("A", "B", "C") else {"rates": "bill demand thinner than usual", "risk": "watch funding/collateral", "tone": "cautious"}
+    description = "stronger participation" if g in ("A", "B") else "weaker participation" if g in ("D", "F") else "average or insufficient participation evidence"
+    return {"rates": description + "; subsequent rates require separate observation",
+            "risk": "not inferred from the participation grade", "tone": "neutral",
+            "call": None, "sizing_eligible": False}
 
 
 def analyze_buyback(op, program):
@@ -425,24 +446,24 @@ def analyze_buyback(op, program):
     liq = "strong" if (b["fill_pct"] or 0) >= 90 and (mx or 0) >= 5e9 else "moderate" if (acc or 0) >= 2e9 else "light"
     b["liquidity_signal"] = liq
     if liq == "strong":
-        tags.append("LIQUIDITY INJECTION")
         tags.append("TGA-CASH-OUT SIGNAL")
         tags.append("TGA CASH-OUT; NOT AN EASING CALL")
     b["tags"] = tags
     what = "Treasury bought back %s of %s (%s bucket%s)" % (
         fmt_bn(acc), (op.get("security_type") or "coupons").lower(),
         op.get("maturity_bucket") or "off-the-run", (", " + op["operation_type"].lower()) if op.get("operation_type") else "")
-    why = ("dealers offered %s, %.1fx what Treasury took, and Treasury accepted the full maximum -- it removed that supply from the market and paid dealers cash for it. "
-           "That is an easing impulse in effect: less duration for the street to warehouse, more liquidity in the system, the same direction as easy monetary policy."
-           % (fmt_bn(off), b["coverage"] or 0)) if liq == "strong" else (
-           "accepted %s of a %s maximum (%s%% fill); a routine liquidity-support operation with a modest liquidity effect." % (fmt_bn(acc), fmt_bn(mx), b["fill_pct"]))
+    why = ("Accepted par is %s of a %s maximum (%s%% fill). Settlement uses Treasury cash; accepted par is not the cash settlement amount. "
+           "Net reserve, duration and risk-asset effects depend on prices, settlement timing and offsetting issuance/funding and are not measured by fill alone."
+           % (fmt_bn(acc), fmt_bn(mx), b["fill_pct"]))
     b["verdict"] = what + ". " + why
     b["implication"] = {
-        "liquidity": "+%s of cash returned to the street" % fmt_bn(acc),
-        "rates": "off-the-run supply removed in the %s bucket -> supportive for that part of the curve" % (op.get("maturity_bucket") or "target"),
-        "risk": "supportive for risk assets" if liq == "strong" else "neutral",
-        "tone": "bullish" if liq == "strong" else "neutral",
+        "liquidity": "%s accepted par; cash settlement and financing offsets are not measured here" % fmt_bn(acc),
+        "rates": "securities removed in the %s bucket; net duration effect requires offsetting issuance" % (op.get("maturity_bucket") or "target"),
+        "risk": "not inferred from buyback fill", "tone": "neutral",
     }
+    b["cash_settlement_usd"] = None
+    b["monetary_easing_inferred"] = False
+    b["call"] = None
     return b
 
 
@@ -469,27 +490,25 @@ def norm_buyback(r):
 
 def day_verdict(date, auctions, buybacks):
     tags, bullets = [], []
-    strong = [a for a in auctions if a["grade"] in ("A", "B")]
-    weak = [a for a in auctions if a["grade"] in ("D", "F")]
     coupons = [a for a in auctions if a["type"] in ("Note", "Bond", "TIPS", "FRN")]
+    strong = [a for a in coupons if a["grade"] in ("A", "B")]
+    weak = [a for a in coupons if a["grade"] in ("D", "F")]
     liq_ops = [b for b in buybacks if b["liquidity_signal"] == "strong"]
     tot_bills = sum(a.get("total_accepted") or 0 for a in auctions if a["type"] == "Bill")
     tot_coupons = sum(a.get("total_accepted") or 0 for a in coupons)
     buy_total = sum(b.get("accepted") or 0 for b in buybacks)
     risk = "neutral"
     if liq_ops:
-        tags += ["LIQUIDITY EASY", "TGA-CASH-OUT SIGNAL", "TGA CASH-OUT; NOT AN EASING CALL"]
-        risk = "bullish"
+        tags += ["TGA-CASH-OUT SIGNAL", "TGA CASH-OUT; NOT AN EASING CALL"]
         for b in liq_ops:
-            bullets.append("Buyback: %s accepted (%s%% of max, %.1fx offered) in the %s bucket -> supply removed, cash to dealers. Easing impulse; risk-asset supportive."
+            bullets.append("Buyback: %s accepted par (%s%% of max, %.1fx offered) in the %s bucket. Cash settlement, financing offsets and net market effects require separate measurements."
                            % (fmt_bn(b["accepted"]), b["fill_pct"], b["coverage"] or 0, b.get("maturity_bucket") or "target"))
     elif buybacks:
         tags.append("BUYBACK")
-        bullets.append("Buyback: %s accepted; modest liquidity effect." % fmt_bn(buy_total))
+        bullets.append("Buyback: %s accepted par; net liquidity and risk effects are not inferred." % fmt_bn(buy_total))
     if coupons:
         if weak and not strong:
-            tags += ["DEMAND WEAK", "TAIL RISK"]
-            risk = "bearish" if risk != "bullish" else "mixed"
+            tags += ["DEMAND WEAK"]
         elif strong and not weak:
             tags.append("DEMAND STRONG")
         else:
@@ -499,7 +518,7 @@ def day_verdict(date, auctions, buybacks):
     if tot_bills:
         n = sum(1 for a in auctions if a["type"] == "Bill")
         bills = [a for a in auctions if a["type"] == "Bill"]
-        g = "absorbed cleanly" if all(a["grade"] in ("A", "B", "C") for a in bills) else "met thinner demand"
+        g = "have insufficient comparable history" if any(a["grade"] == "n/a" for a in bills) else "show average or stronger participation" if all(a["grade"] in ("A", "B", "C") for a in bills) else "show weaker participation"
         bullets.append("Bills: %s across %d auction%s %s (bid-to-cover %s)." % (
             fmt_bn(tot_bills), n, "s" if n != 1 else "", g, ", ".join("%.2f" % a["btc"] for a in bills if a.get("btc") is not None)))
     headline_parts = []
@@ -508,49 +527,30 @@ def day_verdict(date, auctions, buybacks):
     elif buybacks:
         headline_parts.append("%s buyback" % fmt_bn(buy_total))
     if coupons:
-        headline_parts.append("%s coupons %s" % (fmt_bn(tot_coupons), "well bid" if strong and not weak else "tailed" if weak and not strong else "mixed"))
+        headline_parts.append("%s coupons %s" % (fmt_bn(tot_coupons), "stronger participation" if strong and not weak else "weaker participation" if weak and not strong else "mixed"))
     if tot_bills:
         headline_parts.append("%s bills" % fmt_bn(tot_bills))
     headline = (" · ".join(headline_parts) or "no operations") + (" -> %s" % {"bullish": "risk-on supportive", "bearish": "risk-off pressure", "mixed": "mixed", "neutral": "neutral"}[risk])
     return {"date": date, "headline": headline, "tags": tags or ["QUIET"], "risk_assets": risk,
-            "liquidity": "easy" if liq_ops else ("neutral" if not weak else "tightening bias"),
-            "rates": ("duration well bid" if strong and not weak else "concession demanded" if weak and not strong else "no strong signal") if coupons else "front-end only",
+            "liquidity": "cash_management_context" if buybacks else "not_inferred",
+            "rates": ("stronger auction participation" if strong and not weak else "weaker auction participation" if weak and not strong else "mixed or insufficient participation evidence") if coupons else "front-end only",
+            "call": None, "sizing_eligible": False, "risk_inference": "not_established_by_auction_or_buyback_metrics",
             "bullets": bullets, "n_auctions": len(auctions), "n_buybacks": len(buybacks),
             "buyback_accepted": buy_total, "bills_accepted": tot_bills, "coupons_accepted": tot_coupons}
 
 
-# ─────────────────────────── AI note (grounded, cached per day) ──────
+# ─────────────────────────── deterministic note (no paid AI) ────────
 def ai_note(facts):
-    key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        return None
-    prompt = ("You are the JustHodl Treasury desk. Using ONLY the facts below (do not invent numbers), write a JSON object with keys "
-              "\"what_happened\" (2 sentences), \"what_it_means\" (3 sentences on liquidity, rates and risk assets), \"watch_next\" (1-2 sentences). "
-              "Plain institutional English, no hedging boilerplate.\n\nFACTS:\n" + json.dumps(facts, default=str)[:6000])
-    body = {"model": "claude-haiku-4-5-20251001", "max_tokens": 600, "temperature": 0.2,
-            "messages": [{"role": "user", "content": prompt + "\n\nRespond ONLY with valid JSON."}]}
-    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
-                                 headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
-    try:
-        try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                data = json.loads(r.read())
-        except urllib.error.HTTPError as he:
-            detail = ""
-            try:
-                detail = he.read().decode("utf-8", "ignore")[:300]
-            except Exception:
-                pass
-            raise RuntimeError("HTTP %s %s" % (he.code, detail))
-        text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text").strip()
-        text = text[text.find("{"):text.rfind("}") + 1]
-        note = json.loads(text)
-        note["model"] = body["model"]
-        note["generated_at"] = _iso()
-        return note
-    except Exception as e:
-        print("[auction-desk] ai note failed:", str(e)[:200])
-        return {"error": str(e)[:200]}
+    """Compatibility name; the desk explanation requires no paid model/provider."""
+    verdict = facts.get("verdict") or {}
+    return {
+        "what_happened": str(verdict.get("headline") or "No verified operation summary available."),
+        "what_it_means": "Participation grades compare matched auction cohorts. Prior-close par gaps are context, not when-issued tails. Buyback accepted par does not establish cash settlement, net duration removal or monetary easing.",
+        "watch_next": "Verify subsequent market prices, settlement dates and offsetting issuance. Historical conditional returns do not authorize portfolio sizing.",
+        "model": None, "generation_method": "deterministic_treasury_v1",
+        "paid_api_calls": 0, "generated_at": _iso(),
+        "evidence_date": facts.get("date"), "call": None, "sizing_eligible": False,
+    }
 
 
 # ─────────────────────────── full history (1996->) ───────────────────
@@ -734,8 +734,8 @@ def day_class(auctions, buybacks):
     return cls or ["none"]
 
 
-CLASS_LABEL = {"buyback_strong": "large max-fill buyback day", "coupon_strong": "coupon auctions well bid (A/B)",
-               "coupon_weak": "a coupon auction tailed / graded D-F", "coupon_mixed": "coupon auctions mixed (C)", "bills_only": "bills only", "none": "no operations"}
+CLASS_LABEL = {"buyback_strong": "large high-fill buyback day", "coupon_strong": "coupon participation grade A/B",
+               "coupon_weak": "coupon participation grade D/F", "coupon_mixed": "coupon participation grade C", "bills_only": "bills only", "none": "no operations"}
 
 
 def build_reactions(day_ops, assets, today_key):
@@ -830,6 +830,7 @@ def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6):
 def lambda_handler(event, ctx):
     t0 = time.time()
     event = event or {}
+    _PAR_DATES.clear()
     notes = []
     today = _now().date().isoformat()
 
@@ -843,7 +844,12 @@ def lambda_handler(event, ctx):
                 rec = norm_fd(r)
                 # announced-but-not-yet-auctioned rows carry no results: they belong to the calendar, not the bank
                 if rec["cusip"] and rec["auction_date"] and rec.get("btc") is not None:
-                    records.setdefault(rec_key(rec), rec)
+                    old = records.get(rec_key(rec))
+                    if not old:
+                        records[rec_key(rec)] = rec
+                    elif comparable_cohort(old) is None:
+                        # Repair identity only; retain the bank's original measurements.
+                        old.update(instrument_fields(r, "fiscaldata"))
             notes.append("backfill %d records since %s" % (len(records), start))
         except Exception as e:
             notes.append("backfill failed: %s" % str(e)[:120])
@@ -888,7 +894,7 @@ def lambda_handler(event, ctx):
                 rec = norm_td(r)
                 if rec["cusip"] and rec["auction_date"] and rec["auction_date"] >= today and rec_key(rec) not in seen:
                     seen.add(rec_key(rec))
-                    calendar_auctions.append({k: rec[k] for k in ("cusip", "type", "term", "tenor", "auction_date", "issue_date", "maturity_date", "offering", "reopening", "announcement_date")})
+                    calendar_auctions.append({k: rec[k] for k in ("cusip", "type", "term", "tenor", "auction_date", "issue_date", "maturity_date", "offering", "reopening", "announcement_date", "instrument_kind", "instrument_contract", "quote_basis", "tips", "floating_rate")})
         calendar_auctions.sort(key=lambda x: (x["auction_date"], x["term"]))
     except Exception as e:
         calendar_note = "calendar failed: %s" % str(e)[:120]
@@ -995,7 +1001,7 @@ def lambda_handler(event, ctx):
         prev = _s3_json(arch_key) or {}
         fingerprint = json.dumps([(a["cusip"], a.get("btc"), a["grade"]) for a in days[latest_day]["auctions"]] +
                                  [(b["operation_date"], b.get("accepted")) for b in days[latest_day]["buybacks"]], sort_keys=True)
-        if prev.get("fingerprint") == fingerprint and prev.get("ai_note") and not prev["ai_note"].get("error"):
+        if prev.get("version") == VERSION and prev.get("fingerprint") == fingerprint and (prev.get("ai_note") or {}).get("generation_method") == "deterministic_treasury_v1":
             ai = prev["ai_note"]
         elif not event.get("no_ai"):
             ai = ai_note({"date": latest_day, "verdict": verdicts[latest_day],
@@ -1005,7 +1011,7 @@ def lambda_handler(event, ctx):
         if ai and ai.get("error"):
             notes.append("ai note: " + ai["error"])
             ai = None
-        _put_json(arch_key, {"date": latest_day, "fingerprint": fingerprint, "verdict": verdicts[latest_day],
+        _put_json(arch_key, {"version": VERSION, "date": latest_day, "fingerprint": fingerprint, "verdict": verdicts[latest_day],
                              "auctions": days[latest_day]["auctions"], "buybacks": days[latest_day]["buybacks"], "ai_note": ai, "written_at": _iso()})
 
     out = {
@@ -1027,10 +1033,12 @@ def lambda_handler(event, ctx):
         "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
                       "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
                       "note": assets_note, "horizons": "same_day = auction-day close vs prior close (results land at 1pm ET); d1/d5/d20 = trading days after the auction day; crypto trades 7 days"},
+        "decision": {"role": "measurement", "call": None, "sizing_eligible": False,
+                     "reason": "Participation grades and historical conditional returns are descriptive, not a validated action model"},
         "methodology": {
-            "tail_proxy": "high yield (bills: investment rate) minus the prior-close Treasury par yield of the matching tenor, in bp; a true when-issued tail needs dealer WI quotes",
-            "z_scores": "vs the trailing 12 auctions of the same type and term", "grade": "demand score = z(bid-to-cover) + 0.8 z(indirect) - 0.8 z(dealer) - z(tail); A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F",
-            "buyback_signal": "strong = accepted >= 90% of maximum and maximum >= $5B (tags LIQUIDITY INJECTION / TGA-CASH-OUT SIGNAL / TGA CASH-OUT; NOT AN EASING CALL)",
+            "tail_proxy": "legacy tail_bp aliases prior_close_concession_bp for verified nominal coupons/bills only. TIPS/FRN/unknown comparisons are null. This context is excluded from demand scoring; wi_tail_bp is unavailable",
+            "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status", "grade": "mean of available weighted contributions: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer). Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
+            "buyback_signal": "strong is an operation-size/fill category (accepted >= 90% of maximum and maximum >= $5B), not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }
     _put_json(OUT_KEY, out)
