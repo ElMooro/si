@@ -28,14 +28,14 @@
       const diff=change.change_decimal==null?'—':change.change_decimal;
       const dateText=change.baseline_date?'Baseline '+change.baseline_date:'No compatible calendar baseline';
       return '<article class="research-card"><div class="card-heading"><h3>'+esc(row.name||sid)+'</h3><span class="state '+(state==='fresh'?'fresh':'unavailable')+'">'+esc(state)+'</span></div>'+
-        '<p class="muted">'+esc(sid)+' · '+esc(entry.category||'')+'</p><p class="measurement">'+esc(row.current_decimal==null?'—':row.current_decimal)+' <span>'+esc(row.unit)+'</span></p>'+
+        '<p class="muted">'+esc(sid)+' · '+esc(entry.category==='dxy'?'foreign exchange and broad dollar':entry.category||'')+'</p><p class="measurement">'+esc(row.current_decimal==null?'—':row.current_decimal)+' <span>'+esc(row.unit)+'</span></p>'+
         '<p>Observed <strong>'+esc(row.date)+'</strong> · '+esc(row.definition?.frequency||row.frequency)+' · '+esc(row.seasonal_adjustment)+'</p>'+
         '<p>'+esc(horizon)+' change: <strong>'+esc(diff)+'</strong> '+esc(change.change_unit||row.unit)+'<br><span class="muted">'+esc(dateText)+'</span></p>'+
         '<details><summary>Inspect definition, calculation and originals</summary><p>Current value comes from original observation row '+esc(row.current_row_index)+' (zero based). '+link(evidence.observations?.key,'Original observations')+' · '+link(evidence.definition?.key,'Original definition')+'</p>'+
         '<p>Retrieved '+esc(row.acquired_at)+'. Provider metadata updated '+esc(row.provider_updated_at||'unknown')+'. The original publication time is not established.</p>'+
         '<p>Calendar comparison: '+esc(change.current_date)+' versus '+esc(change.baseline_date||'unavailable')+'. Target '+esc(change.target_date||'unavailable')+'. Current '+esc(change.current_decimal??'—')+', baseline '+esc(change.baseline_decimal??'—')+'.</p>'+
         '<p>Relative change '+esc(change.pct_change==null?'unavailable':change.pct_change+'%')+'; this differs from a percentage-point change. '+esc(change.relative_change_reason||'')+'</p>'+
-        '<p>History: '+esc(row.coverage?.returned)+' returned / '+esc(row.coverage?.matching_query_count)+' matching provider rows. Current retrieved vintage; historical as-known-at values are not established.</p>'+
+        '<p>History: '+esc(row.coverage?.returned)+' returned / '+esc(row.coverage?.matching_query_count)+' matching provider rows. '+esc(row.coverage?.future_observations_excluded||0)+' future-dated rows retained in evidence and excluded from observed values. Current retrieved vintage; historical as-known-at values are not established.</p>'+
         '<a target="_blank" rel="noopener" href="https://fred.stlouisfed.org/series/'+encodeURIComponent(sid)+'">Official FRED series</a></details></article>';
     }).join('');
     const liq=packet.net_liquidity||{}, legs=Object.entries(liq.components||{});
@@ -61,7 +61,7 @@
     if(host&&search&&horizon){
       let packet=null;
       const selection=()=>({filter:search.value,horizon:horizon.value});
-      const load=async()=>{packet=await refresh(host,root.fetch.bind(root),selection());};
+      const load=async()=>{packet=await refresh(host,root.fetch.bind(root),selection());if(packet)redraw();};
       const redraw=()=>{if(packet)host.innerHTML=render(packet,search.value,horizon.value);};
       search.addEventListener('input',redraw);horizon.addEventListener('change',redraw);
       load();root.setInterval(load,300000);

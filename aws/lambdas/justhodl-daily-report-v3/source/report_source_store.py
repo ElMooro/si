@@ -28,6 +28,12 @@ def code(exc):
     return str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
 
 
+def error_label(exc):
+    # HTTP status is operationally useful; exception text can contain the
+    # authenticated request URL and must never reach public data or logs.
+    return 'HTTP_'+str(exc.code) if isinstance(exc, urllib.error.HTTPError) else type(exc).__name__
+
+
 def get(client, bucket, key, limit=32*1024*1024):
     try:
         obj = client.get_object(Bucket=bucket, Key=key)
@@ -115,7 +121,7 @@ def acquire(client, bucket, sid, key, deadline):
     except Exception as exc:
         # Retain the actual old acquisition clock. A retry does not renew it.
         if cached and cached.get('contract') == 'report-source-cache.v1':
-            return load_input(client, bucket, cached), type(exc).__name__
+            return load_input(client, bucket, cached), error_label(exc)
         raise
 
 
@@ -149,6 +155,13 @@ def publish(client, bucket, catalog, inputs, errors):
         previous, etag = get(client, bucket, CURRENT)
         if previous and previous.get('generated_at', '') > stamp:
             return {'published': False, 'reason': 'newer concurrent run already current', 'replay': output['replay']}
+        if previous and previous.get('contract') == output['contract']:
+            for sid, row in output['measurements'].items():
+                old = previous.get('measurements', {}).get(sid)
+                if old and datetime.fromisoformat(old['acquired_at'].replace('Z', '+00:00')) > datetime.fromisoformat(row['acquired_at'].replace('Z', '+00:00')):
+                    # A slow run can finish later with earlier observations. Its
+                    # new generated_at must not overwrite a newer acquisition.
+                    return {'published': False, 'reason': 'current source acquisition is newer: '+sid, 'replay': output['replay']}
         try:
             client.put_object(Bucket=bucket, Key=CURRENT, Body=encoded(output), ContentType='application/json', CacheControl='no-cache',
                               **({'IfMatch': etag} if etag else {'IfNoneMatch': '*'}))
@@ -172,5 +185,5 @@ def run(client, bucket, catalog, key, budget_seconds=650):
                 item, error = future.result(); inputs[sid] = item
                 if error: errors[sid] = error
             except Exception as exc:
-                errors[sid] = type(exc).__name__
+                errors[sid] = error_label(exc)
     return publish(client, bucket, catalog, inputs, errors)

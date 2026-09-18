@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[4]
@@ -46,6 +47,10 @@ def captured(client):
 
 
 class ReportStoreTests(unittest.TestCase):
+    def test_failure_label_keeps_http_status_without_authenticated_url(self):
+        exc=store.urllib.error.HTTPError('https://provider.invalid/?api_key=DO_NOT_PUBLISH',429,'private request',{},None)
+        self.assertEqual(store.error_label(exc),'HTTP_429')
+
     def test_stored_originals_replay_before_current_publication(self):
         s=Storage();item=captured(s)
         result=store.publish(s,'b',{'TEST':{}},{'TEST':item},{})
@@ -63,6 +68,17 @@ class ReportStoreTests(unittest.TestCase):
         s=Storage();item=captured(s);s.race=True
         result=store.publish(s,'b',{'TEST':{}},{'TEST':item},{})
         self.assertFalse(result['published']);self.assertEqual(s.current_writes,1)
+
+    def test_slow_old_acquisition_cannot_regress_a_newer_source(self):
+        s=Storage();item=captured(s)
+        stamp=datetime.now(timezone.utc)
+        item['acquired_at']=(stamp-timedelta(hours=1)).isoformat()
+        old={'contract':'report-observations.v1','generated_at':(stamp-timedelta(seconds=1)).isoformat(),
+             'measurements':{'TEST':{'acquired_at':stamp.isoformat()}}}
+        s.objects[store.CURRENT]=(json.dumps(old).encode(),{})
+        result=store.publish(s,'b',{'TEST':{}},{'TEST':item},{})
+        self.assertFalse(result['published']);self.assertEqual(s.current_writes,0)
+        self.assertIn('source acquisition is newer',result['reason'])
 
     def test_storage_denial_is_not_empty_cache(self):
         class Denied:

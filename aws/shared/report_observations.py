@@ -49,7 +49,8 @@ def comparison(current, baseline, target=None, reason=None, unit=None):
             'baseline_decimal': str(b) if b is not None else None,
             'change_decimal': str(difference) if difference is not None else None,
             'change': float(difference) if difference is not None else None,
-            'change_unit': 'percentage_points' if unit == 'Percent' else unit,
+            'change_unit': 'percentage_points' if isinstance(unit, str) and unit.startswith('Percent') else unit,
+            'source_unit': unit,
             'pct_change': round(float(relative), 6) if relative is not None else None,
             'relative_change_reason': reason or ('nonpositive_or_missing_baseline' if relative is None else None),
             'formula': 'current - baseline; relative_percent = 100 * (current / baseline - 1) when baseline > 0',
@@ -107,8 +108,8 @@ def measurement(series_id, definition, document, evidence, generated_at, acquire
     rows = []; dates = set()
     for index, row in enumerate(document.get('observations') or []):
         day = date.fromisoformat(row['date'])
-        if day > now.date() or day in dates:
-            raise ValueError('future or duplicate observation')
+        if day in dates:
+            raise ValueError('duplicate observation')
         dates.add(day)
         value = decimal(row.get('value'))
         rows.append({'date': day.isoformat(), 'value': str(value) if value is not None else None,
@@ -120,6 +121,14 @@ def measurement(series_id, definition, document, evidence, generated_at, acquire
     reported_count = document.get('count')
     if type(reported_count) is not int or reported_count < len(rows):
         raise ValueError('invalid provider row count')
+    limit = document.get('limit')
+    if type(limit) is not int or not 1 <= limit <= 400 or document.get('offset') != 0 or len(rows) != min(reported_count, limit):
+        raise ValueError('incomplete or unexpected provider query page')
+    returned_count = len(rows)
+    future_rows = [r for r in rows if r['date'] > now.date().isoformat()]
+    rows = [r for r in rows if r['date'] <= now.date().isoformat()]
+    if not rows:
+        raise ValueError('no observation at or before evaluation date')
     latest = rows[0]; current = decimal(latest['value'])
     age = (now.date() - date.fromisoformat(latest['date'])).days
     status = 'unavailable' if current is None else 'stale' if age > AGE_LIMITS[frequency] else 'fresh'
@@ -153,8 +162,11 @@ def measurement(series_id, definition, document, evidence, generated_at, acquire
            'provider_updated_at': meta.get('last_updated'), 'published_at': None,
            'vintage': {'basis': 'current_provider_response_not_original_publication_history',
                        'realtime_start': document.get('realtime_start'), 'realtime_end': document.get('realtime_end')},
-           'coverage': {'returned': len(rows), 'matching_query_count': reported_count,
-                        'complete_history': reported_count == len(rows)},
+           'coverage': {'returned': returned_count, 'matching_query_count': reported_count,
+                        'complete_history': reported_count == returned_count,
+                        'eligible_observations': len(rows), 'future_observations_excluded': len(future_rows)},
+           'future_dated_rows': future_rows,
+           'future_date_policy': 'Retained as provider records; excluded from observed values, changes and statistics',
            'quality': {'status': status, 'observation_age_days': age, 'max_age_days': AGE_LIMITS[frequency],
                        'basis': 'observation_age_and_acquisition_ceiling; release_calendar_not_verified'},
            'sizing_eligible': False, 'calls_eligible': False}

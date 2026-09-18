@@ -12,7 +12,7 @@ def inputs(sid='TEST', frequency='M', rows=None, unit='Index'):
                        'sha256':'a'*64, 'source_url':'https://api.stlouisfed.org/fred/series'+('/observations' if part=='observations' else '')+'?series_id='+sid+('&units=lin' if part=='observations' else '')}
                 for part in ('definition','observations')}
     return {'definition': {'seriess':[{'id':sid,'title':sid,'frequency_short':frequency,'units':unit,'seasonal_adjustment':'Not Seasonally Adjusted'}]},
-            'observations': {'units':'lin','count':len(data),'observations':[{'date':d,'value':v} for d,v in data]},
+            'observations': {'units':'lin','count':len(data),'limit':400,'offset':0,'observations':[{'date':d,'value':v} for d,v in data]},
             'evidence': evidence, 'acquired_at':NOW}
 
 
@@ -65,6 +65,13 @@ class ReportObservationsTests(unittest.TestCase):
             out=compile(inputs(rows=[('2026-08-01','2'),('2026-07-01',base)]))
             self.assertIsNone(out['month_pct']); self.assertIsNotNone(out['change'])
 
+    def test_change_in_a_reported_growth_rate_is_percentage_points(self):
+        out=compile(inputs(frequency='Q',rows=[('2026-04-01','1.5'),('2026-01-01','0.5')],unit='Percent Change from Preceding Period'))
+        change=out['changes']['quarter']
+        self.assertEqual(change['change_decimal'],'1.0')
+        self.assertEqual(change['change_unit'],'percentage_points')
+        self.assertEqual(change['source_unit'],'Percent Change from Preceding Period')
+
     def test_duplicates_future_dates_and_wrong_series_fail_closed(self):
         for rows in [[('2026-08-01','1'),('2026-08-01','2')],[('2027-01-01','1')]]:
             with self.assertRaises(ValueError):compile(inputs(rows=rows))
@@ -78,6 +85,19 @@ class ReportObservationsTests(unittest.TestCase):
         self.assertEqual(out['quality']['status'],'stale')
         x=inputs();x['acquired_at']='2026-09-16T20:00:00+00:00'
         self.assertEqual(compile(x)['quality']['status'],'stale_source')
+
+    def test_provider_page_count_and_offset_must_match_the_request(self):
+        for patch in ({'count':5}, {'offset':1}, {'limit':3}):
+            x=inputs();x['observations'].update(patch)
+            with self.assertRaises(ValueError):compile(x)
+
+    def test_preadvertised_policy_dates_are_retained_but_not_observations(self):
+        out=compile(inputs('IORB','D',[('2026-09-21','3.9'),('2026-09-19','3.9'),('2026-09-18','3.9'),('2026-09-17','3.9')],'Percent'),'IORB')
+        self.assertEqual(out['date'],'2026-09-18');self.assertEqual(out['current_row_index'],2)
+        self.assertEqual(out['coverage']['returned'],4)
+        self.assertEqual(out['coverage']['future_observations_excluded'],2)
+        self.assertTrue(all(r['date']<='2026-09-18' for r in out['history']))
+        self.assertEqual([r['date'] for r in out['future_dated_rows']],['2026-09-21','2026-09-19'])
 
     def test_exact_units_zero_rrp_and_mixed_dates(self):
         items={}
