@@ -3,8 +3,8 @@
   "read_only": true,
   "aws_sdk_calls": 0,
   "scope": "PUBLIC_HTTP_RESPONSE_AND_BROWSER_CORS_ONLY",
-  "source_sha": "78f4e0c9a377edaf006b152bd82bbd23e9b3e065",
-  "observed_at": "2026-09-18T20:04:37.982007+00:00",
+  "source_sha": "4e3de7199379675efb39d54e2faae05f71c94217",
+  "observed_at": "2026-09-18T20:17:21.210844+00:00",
   "requests": [
     {
       "path": "/health",
@@ -21,7 +21,7 @@
       "quote_count": null,
       "sector_count": null,
       "provider_status": "HANDLER_READY",
-      "elapsed_s": 0.24
+      "elapsed_s": 0.44
     },
     {
       "path": "/",
@@ -31,14 +31,14 @@
         "https://justhodl.ai"
       ],
       "cors_valid": true,
-      "bytes": 34761,
+      "bytes": 34767,
       "agent_matches": true,
       "handler_error_present": false,
       "trace_field_present": false,
       "quote_count": 24,
       "sector_count": 11,
       "provider_status": "READY",
-      "elapsed_s": 0.86
+      "elapsed_s": 1.72
     }
   ],
   "raw_response_bodies_reported": 0,
