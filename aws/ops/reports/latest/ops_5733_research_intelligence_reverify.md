@@ -1,0 +1,14 @@
+- `22:51:51` ✅ Four exact runtimes; actual Intelligence output reconstructed from original source inputs; no paid AI, account reads or notifications
+**Status:** success  
+**Duration:** 19.6s  
+**Finished:** 2026-09-18T22:51:51+00:00  
+
+## Data
+
+| account_reads | commit | contract | existing_schedules | generated_at | live_engines_invoked | narrative_consumer_context_tests | notifications_sent | paid_ai_calls | portfolio_writes | quality | replay | runtimes | schedule_execution_observed | scope | upstream_originals_replayed | verifier_commit |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  | {'justhodl-intelligence': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'AUaJ7EXwXKGdfGTF89zomkjpgblg/+HdDmUG5jLuJlI='}, 'justhodl-ai-brief': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'pypJnT2pw74pqUoMGlPZnXj9zHtP4zGG/uclNwGvJAs='}, 'justhodl-ai-chat': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'keifAcEJI80mnMvVNHv+pC+NjXIWlbYfuBi94RuEJB4='}, 'justhodl-morning-intelligence': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'gv0Jhlq8x92atY7uXufa9dPkibL6gz+NboG9FGbi4vg='}} |  |  |  |  |
+| 0 | 80833c66ef9cef6a0ccccb607833cba13ff65d8a | research-intelligence-verification.v1 | [{'name': 'justhodl-intel-daily', 'expression': 'rate(1 day)'}, {'name': 'justhodl-intel-hourly', 'expression': 'rate(1 hour)'}] | 2026-09-18T22:51:51.932554+00:00 | ['justhodl-intelligence'] | actual functions tested offline; exact deployed runtime hashes verified | 0 | 0 | 0 | {'basis': 'observation and source acquisition age, not wrapper age', 'expected_series': 233, 'fresh_series': 175, 'source_packet_age_seconds': 1781.641629, 'status': 'degraded'} | {'compiler_sha256': '6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c', 'manifest_key': 'data/research-intelligence/runs/ccfa9feef0f2a04af2e49257d8df9f8a16422691deecd013e1e1c6529d0ceffd.json', 'output_sha256': 'c28d2db75064ee22f3a5c85fca32d6b7ee7df3ad9dacf1f87acb04c4e9816d94'} | {'justhodl-intelligence': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'AUaJ7EXwXKGdfGTF89zomkjpgblg/+HdDmUG5jLuJlI='}, 'justhodl-ai-brief': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'pypJnT2pw74pqUoMGlPZnXj9zHtP4zGG/uclNwGvJAs='}, 'justhodl-ai-chat': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'keifAcEJI80mnMvVNHv+pC+NjXIWlbYfuBi94RuEJB4='}, 'justhodl-morning-intelligence': {'commit': '80833c66ef9cef6a0ccccb607833cba13ff65d8a', 'code_sha256': 'gv0Jhlq8x92atY7uXufa9dPkibL6gz+NboG9FGbi4vg='}} | False | Intelligence, Today and bounded narrative consumers; legacy data/report.json remains a subsequent migration | True | 02fe1d933dc92a31f1fe0c42b79c4eebbdd413fa |
+
+## Log
+
