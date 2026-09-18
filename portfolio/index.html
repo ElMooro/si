@@ -3,6 +3,7 @@
 <head>
 <meta name="jh-primary-engine" content="justhodl-portfolio-snapshot,justhodl-portfolio-risk">
 <script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-portfolio-risk-contract.js?v=2.0.0"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>📊 Portfolio + Risk · JustHodl.AI</title>
@@ -85,6 +86,7 @@ tr:hover td{background:rgba(28,35,48,.3);}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);}
 .empty-state h3{color:var(--text);margin:0 0 8px;}
 .empty-state code{background:rgba(28,35,48,.6);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;color:var(--gold);display:inline-block;margin-top:8px;text-align:left;}
+#risk-replay-status{overflow-wrap:anywhere;font-size:11px;color:var(--text-dim);}
 
 .sector-bar-track{height:10px;background:rgba(28,35,48,.4);border-radius:2px;overflow:hidden;position:relative;}
 .sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--info));border-radius:2px;transition:width .3s;}
@@ -107,7 +109,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
 
   <!-- ─── TOP-LEVEL METRICS ─── -->
   <div class="metric-row" id="metric-row">
-    <div class="metric-box"><div class="metric-label">PORTFOLIO VALUE</div>
+    <div class="metric-box"><div class="metric-label">NET MARKED HOLDINGS</div>
       <div class="metric-value" id="mv-value">—</div>
       <div class="metric-sub" id="mv-pnl">—</div></div>
     <div class="metric-box"><div class="metric-label">1-DAY 99% VAR</div>
@@ -115,10 +117,10 @@ footer a{color:var(--text-dim);text-decoration:none;}
       <div class="metric-sub" id="mv-var-pct">—</div></div>
     <div class="metric-box"><div class="metric-label">β SPY</div>
       <div class="metric-value" id="mv-beta">—</div>
-      <div class="metric-sub">portfolio beta to S&P 500</div></div>
+      <div class="metric-sub">requires reconciled account NAV</div></div>
     <div class="metric-box"><div class="metric-label">ANN. VOL</div>
       <div class="metric-value" id="mv-vol">—</div>
-      <div class="metric-sub">annualized portfolio volatility</div></div>
+      <div class="metric-sub">requires reconciled account NAV</div></div>
     <div class="metric-box"><div class="metric-label">CONCENTRATION</div>
       <div class="metric-value" id="mv-hhi">—</div>
       <div class="metric-sub" id="mv-hhi-label">—</div></div>
@@ -128,7 +130,11 @@ footer a{color:var(--text-dim);text-decoration:none;}
   </div>
 
   <!-- ─── ALERT BANNERS ─── -->
-  <div id="alert-zone"></div>
+  <section class="section" aria-labelledby="risk-contract-title"><div class="section-body">
+    <h2 id="risk-contract-title">Risk unavailable</h2><p id="risk-contract-detail">Sign in to view private risk inputs.</p>
+    <p id="holdings-risk-summary"></p><p id="risk-model-note">Normal 1-day VaR is a model estimate, not a maximum loss. No sizing authority.</p>
+    <p id="risk-replay-status"></p>
+  </div></section><div id="alert-zone"></div>
 
   <!-- ─── POSITIONS TABLE ─── -->
   <div class="section">
@@ -142,7 +148,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
           <th>SYM</th><th>SECTOR</th><th class="num">QTY</th>
           <th class="num">COST</th><th class="num">CURRENT</th>
           <th class="num">P&amp;L $</th><th class="num">P&amp;L %</th>
-          <th class="num">WT</th><th class="num">α</th>
+          <th class="num">GROSS WT</th><th class="num">α</th>
           <th>TIER</th><th>FLAGS</th>
           <th class="num">VOL</th><th class="num">β</th>
         </tr></thead>
@@ -161,8 +167,8 @@ footer a{color:var(--text-dim);text-decoration:none;}
   <!-- ─── HISTORICAL SCENARIOS ─── -->
   <div class="section">
     <div class="section-header">
-      <h2 class="section-title">Stress Test — Historical Crisis Scenarios</h2>
-      <span class="section-meta">what your book would do in each event</span>
+      <h2 class="section-title">Hypothetical Sector Stress Scenarios</h2>
+      <span class="section-meta">static assumptions · no verified historical replay</span>
     </div>
     <div class="section-body">
       <div class="scenarios-grid" id="scenarios-grid"></div>
@@ -172,7 +178,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
   <!-- ─── CORRELATION MATRIX ─── -->
   <div class="section" id="corr-section">
     <div class="section-header"><h2 class="section-title">Correlation Matrix</h2>
-      <span class="section-meta">30-day daily return correlations</span></div>
+      <span class="section-meta">matching sessions · at least 60 observations</span></div>
     <div class="section-body" style="overflow-x:auto;">
       <div id="corr-matrix"></div>
     </div>
@@ -200,7 +206,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
 </main>
 
 <footer>
-  Powered by 184 Lambdas · DDB-backed portfolio · institutional risk engine ·
+  Powered by 184 Lambdas · DDB-backed portfolio · dated holdings risk model ·
   <a href="https://justhodl.ai/alpha/">α Alpha</a> ·
   <a href="https://justhodl.ai/screener/">Screener</a>
 </footer>
@@ -215,7 +221,7 @@ function escapeHtml(s){
   if(s == null) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function fmtMoney(v){ if(v == null) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
+function fmtMoney(v){ if(typeof v !== 'number' || !Number.isFinite(v)) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
 function fmtPct(v, digits=2){ return v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
 function pnlClass(v){ return v == null ? 'dim' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'dim'; }
 
@@ -241,10 +247,10 @@ function renderTopMetrics(){
 
   if(risk){
     document.getElementById('mv-var').textContent = fmtMoney(risk.var_1d_99_dollars);
-    document.getElementById('mv-var-pct').textContent = `${(risk.var_1d_99_pct || 0).toFixed(2)}% of book`;
-    document.getElementById('mv-beta').textContent = (risk.portfolio_beta_spy || 0).toFixed(2);
-    document.getElementById('mv-vol').textContent = `${(risk.portfolio_vol_annual_pct || 0).toFixed(1)}%`;
-    document.getElementById('mv-hhi').textContent = Math.round(risk.concentration_hhi || 0);
+    document.getElementById('mv-var-pct').textContent = risk.var_1d_99_pct == null ? 'Reconciled NAV unavailable' : `${risk.var_1d_99_pct.toFixed(2)}% of reconciled NAV`;
+    document.getElementById('mv-beta').textContent = JHPortfolioRisk.number(risk.portfolio_beta_spy);
+    document.getElementById('mv-vol').textContent = risk.portfolio_vol_annual_pct == null ? '—' : `${risk.portfolio_vol_annual_pct.toFixed(1)}%`;
+    document.getElementById('mv-hhi').textContent = JHPortfolioRisk.number(risk.concentration_hhi, 0);
     document.getElementById('mv-hhi-label').textContent = risk.concentration_label || '—';
   }
 
@@ -270,7 +276,7 @@ function renderAlerts(){
   if(a.var_breach){
     zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">⚠️</span>
       <div class="alert-body"><div class="alert-title">VAR BREACH — ${risk.var_1d_99_pct.toFixed(2)}% 1-day risk exceeds 5%</div>
-      <div class="alert-detail">Annualized vol ${risk.portfolio_vol_annual_pct.toFixed(1)}% · β ${risk.portfolio_beta_spy.toFixed(2)}</div></div></div>`;
+      <div class="alert-detail">Annualized vol ${risk.portfolio_vol_annual_pct.toFixed(1)}% · β ${JHPortfolioRisk.number(risk.portfolio_beta_spy)}</div></div></div>`;
   }
   if(a.sector_concentration_breach){
     const top = (risk.sector_concentration || [])[0];
@@ -283,7 +289,7 @@ function renderAlerts(){
   (risk.correlation_clusters || []).forEach(c => {
     zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">🔗</span>
       <div class="alert-body"><div class="alert-title">CORRELATION CLUSTER — ${c.symbols.join(', ')}</div>
-      <div class="alert-detail">Avg correlation ${c.avg_pairwise_correlation} · Combined ${c.total_weight_pct}% of book</div></div></div>`;
+      <div class="alert-detail">Avg correlation ${c.avg_pairwise_correlation} · Combined ${c.total_weight_pct}% of gross exposure</div></div></div>`;
   });
 }
 
@@ -296,8 +302,7 @@ function renderPositions(){
   if(positions.length === 0){
     tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state">
       <h3>No positions yet</h3>
-      <div>Add positions via the admin Lambda:</div>
-      <code>aws lambda invoke --function-name justhodl-portfolio-admin --payload '{"action":"add_position","symbol":"LLY","qty":50,"cost_basis_per_share":925}' /tmp/out.json</code>
+<div><a href="/portfolio-manager.html">Manage your holdings</a></div>
     </div></td></tr>`;
     document.getElementById('pos-pnl-summary').textContent = '';
     return;
@@ -318,16 +323,16 @@ function renderPositions(){
     return `<tr style="cursor:pointer" onclick="window.open('https://justhodl.ai/stock/?symbol=${encodeURIComponent(p.symbol)}','_blank')">
       <td style="font-weight:700">${escapeHtml(p.symbol)}</td>
       <td class="dim">${escapeHtml((p.sector || '').substring(0,16))}</td>
-      <td class="num">${p.qty}</td>
-      <td class="num dim">$${(p.cost_basis_per_share || 0).toFixed(2)}</td>
-      <td class="num">$${(p.current_price || 0).toFixed(2)}</td>
+      <td class="num">${escapeHtml(p.qty)}</td>
+      <td class="num dim">${fmtMoney(p.cost_basis_per_share)}</td>
+      <td class="num">${fmtMoney(p.current_price)}</td>
       <td class="num ${pnlClass(p.pnl_dollars)}">${fmtMoney(p.pnl_dollars)}</td>
       <td class="num ${pnlClass(p.pnl_pct)}">${fmtPct(p.pnl_pct)}</td>
-      <td class="num">${p.current_weight_pct ? p.current_weight_pct.toFixed(1) + '%' : '—'}</td>
+      <td class="num">${risk && risk.gross_market_value > 0 && p.market_value != null ? (Math.abs(p.market_value)/risk.gross_market_value*100).toFixed(1) + '%' : '—'}</td>
       <td class="num">${p.alpha_score != null ? p.alpha_score : '—'}</td>
       <td>${tierBadge(p.tier)}</td>
       <td>${flags || '<span class="dim">—</span>'}</td>
-      <td class="num dim">${m.annual_vol_pct ? m.annual_vol_pct.toFixed(0) + '%' : '—'}</td>
+      <td class="num dim">${m.annual_vol_pct != null ? m.annual_vol_pct.toFixed(0) + '%' : '—'}</td>
       <td class="num dim">${m.beta_spy != null ? m.beta_spy.toFixed(2) : '—'}</td>
     </tr>`;
   }).join('');
@@ -347,7 +352,7 @@ function renderSectors(){
       <div class="sector-bar-track"><div class="sector-bar-fill" style="width:${Math.min(s.weight_pct, 100)}%"></div></div>
     </div>`).join('');
   document.getElementById('sector-summary').textContent =
-    `HHI ${Math.round(risk.concentration_hhi)} · ${risk.concentration_label}`;
+    `Gross exposure HHI ${JHPortfolioRisk.number(risk.concentration_hhi,0)} · ETF holdings not decomposed`;
 }
 
 function renderScenarios(){
@@ -357,9 +362,9 @@ function renderScenarios(){
   grid.innerHTML = Object.values(scenarios).map(s => `
     <div class="scenario-card">
       <div class="scenario-name">${escapeHtml(s.name)}</div>
-      <div class="scenario-meta">SPY: ${s.spy_return_pct}% · ${s.duration_days} days</div>
+      <div class="scenario-meta">Assumed SPY shock: ${s.spy_return_pct}% · ${s.duration_days} days</div><p>${escapeHtml(s.basis||"Unverified scenario")}</p>
       <div class="scenario-pnl ${pnlClass(s.projected_pnl_dollars)}">${fmtMoney(s.projected_pnl_dollars)}</div>
-      <div class="scenario-meta ${pnlClass(s.projected_pnl_pct)}">${fmtPct(s.projected_pnl_pct)} on book</div>
+      <div class="scenario-meta">${fmtPct(s.pct_of_gross_exposure)} of gross holdings</div><div class="scenario-meta ${pnlClass(s.projected_pnl_pct)}">${fmtPct(s.projected_pnl_pct)} on reconciled NAV</div>
     </div>`).join('');
 }
 
@@ -427,8 +432,16 @@ async function loadAll(){
       fetch(SNAPSHOT_URL + '?t=' + Date.now()),
       fetch(RISK_URL + '?t=' + Date.now()),
     ]);
-    if(snapResp.ok) snapshot = await snapResp.json();
-    if(riskResp.ok) risk = await riskResp.json();
+    snapshot = snapResp.ok ? await snapResp.json() : null;
+    const candidate = riskResp.ok ? await riskResp.json() : null;
+    const contract = JHPortfolioRisk.view(candidate);
+    risk = contract.current ? candidate : null;
+    document.getElementById('risk-contract-title').textContent = contract.title;
+    document.getElementById('risk-contract-detail').textContent = contract.detail;
+    const h=contract.holdings || {};
+    document.getElementById('holdings-risk-summary').textContent = contract.current ? `Holdings-only normal 99% VaR: ${fmtMoney(h.var_1d_99_dollars)} · volatility: ${JHPortfolioRisk.number(h.annual_vol_pct_of_gross)}% of gross · beta per gross: ${JHPortfolioRisk.number(h.beta_spy_per_gross)}` : '';
+    document.getElementById('risk-replay-status').textContent = risk && risk.replay ? 'Private frozen inputs retained · output hash ' + risk.replay.output_sha256 + '. Retention is not independent verification.' : '';
+    if(!snapshot) document.getElementById('positions-body').innerHTML = '<tr><td colspan="13">Sign in to view your private holdings. Account data is not public.</td></tr>';
     setUpdated();
     renderTopMetrics();
     renderAlerts();

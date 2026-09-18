@@ -5,8 +5,8 @@
 <script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>📐 Position Sizing — Kelly Recommender · JustHodl.AI</title>
-<meta name="description" content="Regime-adjusted quarter-Kelly position sizing for your actual portfolio. Per-position ADD/TRIM/HOLD with sized shares, plus entry candidates for TIER S/A confluence signals.">
+<title>Position Sizing Validation · JustHodl.AI</title>
+<meta name="description" content="Private holdings and sizing readiness. Trade allocations require validated forecasts and a reconciled capital book.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -137,7 +137,7 @@ footer a{color:var(--text-dim);}
 <body>
 
 <header>
-  <h1>📐 Kelly Sizing <span class="badge">#11</span></h1>
+  <h1>📐 Sizing Validation <span class="badge">Research only</span></h1>
   <div class="header-meta">
     <span><span class="dot"></span><span id="status">Loading…</span></span>
     <span id="updated"></span>
@@ -154,8 +154,8 @@ footer a{color:var(--text-dim);}
 
   <div class="hero" id="hero">
     <div>
-      <p class="hero-title">Regime-Adjusted Quarter-Kelly Position Sizer</p>
-      <p class="hero-sub">Reads your DDB portfolio + alpha + confluence + Macro Stress Score · Outputs ADD/TRIM/HOLD per position + entry candidates for unowned TIER S/A confluence signals.</p>
+      <p class="hero-title">Allocation authority withheld pending validation</p>
+      <p class="hero-sub">Observed holdings remain visible. Targets, share changes and new entries remain unavailable until the forecasting and portfolio requirements below are met.</p>
     </div>
     <div class="hero-regime" id="hero-regime"></div>
   </div>
@@ -163,7 +163,7 @@ footer a{color:var(--text-dim);}
   <div class="summary-grid" id="summary-grid"></div>
 
   <h2 class="section">
-    <span>🎯 Position Actions <span class="meta" id="positions-meta">your current book sized vs Kelly-optimal</span></span>
+    <span>Holdings Review <span class="meta" id="positions-meta">no approved sizing protocol</span></span>
     <span class="meta">sorted by |gap|</span>
   </h2>
   <div class="table-wrap">
@@ -194,32 +194,19 @@ footer a{color:var(--text-dim);}
   </div>
 
   <h2 class="section">
-    <span>📊 Sizing Methodology <span class="meta">formula + multipliers reference</span></span>
+    <span>Sizing Requirements <span class="meta">forecast, capital and risk validation</span></span>
   </h2>
   <div class="formula-box" id="formula-box">
-    <div class="h">KELLY FORMULA (per position)</div>
-    edge = <code>expected_alpha_return × confidence_factor</code><br>
-    kelly_full = <code>edge / variance</code><br>
-    kelly_quarter = <code>kelly_full × 0.25</code><br>
-    kelly_regime = <code>kelly_quarter × regime_multiplier × drawdown_multiplier</code><br>
-    final = <code>min(kelly_regime, MAX_SINGLE_POSITION_PCT=8.0%)</code>
-    <br><br>
-    <div class="h">EXPECTED ALPHA RETURN (60-day forward)</div>
-    α ≥ 90 → 12% · α 80-90 → 8% · α 70-80 → 5% · α 60-70 → 3% · α 50-60 → 1.5% · α &lt; 50 → -1%
-    <br><br>
-    <div class="h">CONFIDENCE FACTOR</div>
-    TIER S confluence → 1.20 · TIER A → 1.00 · TIER B → 0.70 · no confluence → 0.50
-    <br><br>
-    <div class="h">REGIME MULTIPLIER (Macro Stress Score)</div>
-    MSS 0-20 Goldilocks → 1.00 · 20-40 Normal → 0.85 · 40-60 Elevated → 0.65 · 60-80 High → 0.40 · 80+ Crisis → 0.20
-    <br><br>
-    <div class="h">DRAWDOWN CIRCUIT BREAKER (portfolio P&amp;L)</div>
-    P&amp;L ≥ -3% → 1.00 · -3 to -7% → 0.75 · -7 to -12% → 0.50 · -12% &amp; worse → 0.25
+    <div class="h">Sizing withheld pending validation</div>
+    Alpha scores and confluence tiers have not been calibrated into expected returns.
+    Position size requires a validated forecast, a reconciled capital book, current risk inputs,
+    open-order exposure and explicit portfolio constraints. Missing inputs do not produce a default allocation.
+    <p id="sizing-reasons">No approved sizing protocol.</p>
   </div>
 
 </main>
 
-<footer><p>Position Sizing · #11 · Powered by quarter-Kelly + regime adjustment · <a href="/">JustHodl.AI</a></p></footer>
+<footer><p>Position Sizing · #11 · Research only · sizing validation required · <a href="/">JustHodl.AI</a></p></footer>
 
 <script>
 const URL_SIZING = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/sizing.json';
@@ -238,9 +225,11 @@ async function load(){
   document.getElementById('status').textContent = 'Loading…';
   try {
     data = await fetch(URL_SIZING + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
-    if(!data){throw new Error('sizing.json not yet generated');}
-    document.getElementById('status').textContent = 'Live';
-    document.querySelector('.dot').style.background = '#00e676';
+    if(!data){throw new Error('Sign in to view private sizing data.');}
+    const age=(Date.now()-Date.parse(data.generated_at))/3600000;
+    if(data.version!=='2.0.0' || !data.permissions || data.permissions.sizing_eligible!==false || !Number.isFinite(age) || age < -5/60 || age > 4) throw new Error('Current sizing validation contract unavailable; allocations withheld.');
+    document.getElementById('status').textContent = data.status || 'Unavailable';
+    document.querySelector('.dot').style.background = '#fbbf24';
     const t = new Date(data.generated_at);
     const mins = Math.floor((Date.now() - t) / 60000);
     document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins + 'm ago';
@@ -255,6 +244,7 @@ async function load(){
 
 function renderAll(){
   const s = data.summary || {};
+  document.getElementById('sizing-reasons').textContent = (data.reason_codes||[]).join(' · ');
 
   // Hero regime chip
   const regime = s.regime || 'UNKNOWN';
@@ -267,9 +257,9 @@ function renderAll(){
 
   // Summary cards
   document.getElementById('summary-grid').innerHTML = [
-    {label:'NAV', value:fmtMoney(s.nav), sub:'portfolio notional', cls:'info'},
-    {label:'Invested (current)', value:fmtPct(s.current_invested_pct, 1).slice(1), sub:`${data.positions ? data.positions.length : 0} positions`, cls:'info'},
-    {label:'Invested (Kelly)', value:fmtPct(s.kelly_invested_pct, 1).slice(1), sub:`cash: ${fmtPct(s.kelly_cash_pct, 1).slice(1)}`, cls:'gold'},
+    {label:'NAV', value:fmtMoney(s.nav), sub:'reconciled account equity required', cls:'info'},
+    {label:'Invested (current)', value:fmtPct(s.current_invested_pct, 1), sub:`${data.positions ? data.positions.length : 0} positions`, cls:'info'},
+    {label:'Invested (Kelly)', value:fmtPct(s.kelly_invested_pct, 1), sub:`cash: ${fmtPct(s.kelly_cash_pct, 1)}`, cls:'gold'},
     {label:'Actionable Now', value:fmtNum(s.actionable_count, 0), sub:'ADD or TRIM signals', cls: s.actionable_count > 0 ? 'warn' : 'info'},
     {label:'Entry Candidates', value:fmtNum(s.entry_candidates_count, 0), sub:'unowned TIER S/A', cls:'gold'},
   ].map(c => `<div class="metric-card ${c.cls}">
@@ -284,10 +274,10 @@ function renderAll(){
   if(positions.length === 0){
     ptbody.innerHTML = `<tr><td colspan="11" class="empty-state">
       <div class="icon">📊</div>
-      <p>No positions in DDB. Add positions via <code>justhodl-portfolio-admin</code> Lambda.</p>
+      <p>No positions in DDB. <a href="/portfolio-manager.html">Manage your holdings</a>.</p>
     </td></tr>`;
   } else {
-    document.getElementById('positions-meta').textContent = positions.length + ' positions sized';
+    document.getElementById('positions-meta').textContent = positions.length + ' holdings observed; sizing withheld';
     ptbody.innerHTML = positions.map(p => `<tr>
       <td>${actionChip(p.action)}</td>
       <td><span class="sym">${esc(p.symbol)}</span></td>
@@ -307,7 +297,7 @@ function renderAll(){
   const entries = data.entry_candidates || [];
   const etbody = document.getElementById('entries-body');
   if(entries.length === 0){
-    etbody.innerHTML = `<tr><td colspan="10" style="padding:18px;text-align:center;color:var(--text-mute);">No TIER S/A confluence candidates outside your book right now.</td></tr>`;
+    etbody.innerHTML = `<tr><td colspan="10" style="padding:18px;text-align:center;color:var(--text-mute);">New allocations withheld until the sizing protocol is validated.</td></tr>`;
   } else {
     document.getElementById('entries-meta').textContent = entries.length + ' new candidates';
     etbody.innerHTML = entries.map(c => `<tr>

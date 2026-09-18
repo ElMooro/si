@@ -71,7 +71,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <div class="container">
   <header>
     <h1>🧭 PM Decision Layer</h1>
-    <p class="subtitle">The desk's single cockpit. It fuses the macro regime and master crisis posture, the master-ranker conviction list, the allocator's asset-class matrix and live portfolio-risk into one structured decision — a posture, a trim list, an add list, hedges and the explicit triggers that would flip the call. One view instead of twelve tabs. Deterministic decision support, refreshed every weekday after the upstream engines.</p>
+    <p class="subtitle">The desk's single cockpit. It reviews the macro regime and master crisis posture, the master-ranker conviction list, the allocator's asset-class matrix and live portfolio-risk into a research view. Trade instructions remain withheld until the decision protocol and portfolio constraints are validated. One view instead of twelve tabs. Deterministic decision support, refreshed every weekday after the upstream engines.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/intelligence/">intelligence</a>
@@ -118,7 +118,7 @@ function renderHero(d){
   const chip=(k,v,c)=>v==null?"":`<span class="chip"><span class="k">${k}</span><b style="color:${c||"var(--txt)"}">${esc(v)}</b></span>`;
   document.getElementById("hero").innerHTML=`
     <div class="hero" style="border-left-color:${col}">
-      <div class="lab">Desk Posture</div>
+      <div class="lab">Research Posture</div>
       <div class="posture" style="color:${col}">${esc(d.posture||w)}</div>
       <div class="headline">${esc(d.headline||"")}</div>
       <div class="chips">
@@ -137,17 +137,17 @@ function renderKpis(d){
   const cards=[
     ["Positions",num(p.n_positions),p.data_available?"book loaded":"awaiting portfolio feed"],
     ["Portfolio Beta",num(p.beta_spy),"vs SPY"],
-    ["1-Day VAR 99%",p.var_1d_99_pct!=null?p.var_1d_99_pct+"%":"—",p.var_1d_99_dollars!=null?("$"+Number(p.var_1d_99_dollars).toLocaleString()):"loss at 99% conf."],
-    ["Worst Scenario",ws.portfolio_return_pct!=null?ws.portfolio_return_pct+"%":"—",ws.name?esc(ws.name):"historical replay"],
+    ["1-Day VAR 99%",p.var_1d_99_pct!=null?p.var_1d_99_pct+"%":"—",p.var_1d_99_dollars!=null?("$"+Number(p.var_1d_99_dollars).toLocaleString()):"requires reconciled NAV"],
+    ["Worst Scenario",ws.portfolio_return_pct!=null?ws.portfolio_return_pct+"%":"—",ws.name?esc(ws.name):"no verified historical replay"],
   ];
   document.getElementById("kpis").innerHTML=cards.map(c=>`
     <div class="card"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("");
 }
 
 function renderActions(d){
-  const a=d.actions||{};
+  const a=d.permissions && d.permissions.may_recommend_trades===true ? (d.actions||{}) : {};
   const block=(cls,title,items,render)=>{
-    const body=(items&&items.length)?items.map(render).join(""):`<div class="empty">no ${title.toLowerCase()} actions flagged</div>`;
+    const body=(items&&items.length)?items.map(render).join(""):`<div class="empty">${d.permissions && d.permissions.may_recommend_trades === false ? "Research only; trade instructions withheld" : "No authorized actions available"}</div>`;
     return `<div class="actcard ${cls}"><div class="hd">${title}<span class="n">${(items||[]).length}</span></div>${body}</div>`;
   };
   const trim=block("trim","Trim",a.trim,it=>`

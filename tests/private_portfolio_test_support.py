@@ -65,6 +65,7 @@ class Store:
 
 
 def load(engine, store, fail_publish=False):
+    sys.path.insert(0, str(ROOT / 'aws/lambdas' / ('justhodl-' + engine) / 'source'))
     mirrors = []
     def publish(kind, doc):
         if fail_publish:
@@ -116,12 +117,36 @@ def run(engine):
         assert all(w.get("CacheControl") == "private, no-store" for w in store.writes)
         if engine in {"portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "pm-decision"}:
             assert SYMBOL in json.dumps(store.docs[key]), engine
+        if engine in {'portfolio-risk', 'portfolio-sizer', 'pm-decision'}:
+            assert store.docs[key]['permissions']['sizing_eligible'] is False
+        if engine == 'portfolio-risk':
+            assert store.docs[key]['var_1d_99_pct'] is None
+            assert store.docs[key]['portfolio_beta_spy'] is None
+            assert store.docs[key]['replay']['bundle_key'].startswith('history/archive/feed/portfolio/risk.json/')
+            assert store.docs[key]['alerts_sent'] == 0
+        if engine == 'portfolio-sizer':
+            assert store.docs[key]['entry_candidates'] == []
+            assert store.docs[key]['summary']['nav'] is None
+            assert all(row['action'] == 'WAIT' and row['shares_delta'] is None and row['dollar_delta'] is None for row in store.docs[key]['positions'])
         if engine == "pm-decision":
             assert ("pm-decision-history", store.docs["data/pm-decision-history.json"]) in mirrors
+            assert store.docs[key]['call_verb'] == 'WAIT'
+            assert all(store.docs[key]['actions'][name] == [] for name in ('trim','add','hedge'))
         if engine == "behavior-mirror":
             assert any(w["Key"] == "data/history/behavior-mirror-history.json" for w in store.writes)
             assert ("behavior-mirror-history", store.docs["data/history/behavior-mirror-history.json"]) in mirrors
         checks += 1
+
+        if engine == 'pm-decision':
+            # Producer emits a keyed scenario object, not a list. Hypothetical
+            # shocks cannot become an empirical worst historical outcome.
+            scenario_store = Store()
+            scenario_store.docs['portfolio/risk.json']['historical_scenarios'] = {'synthetic': {'name':'Synthetic shock','projected_pnl_pct':-40,'historical_replay_verified':False}}
+            handler, _, env = load(engine, scenario_store)
+            with redirect_stdout(io.StringIO()): result = handler({'suppress_alerts':True},None)
+            assert result['statusCode'] == 200
+            assert scenario_store.docs[key]['portfolio']['worst_scenario'] is None
+            checks += 1
 
         # Failure to refresh the authenticated mirror is observable, never success.
         store = Store()

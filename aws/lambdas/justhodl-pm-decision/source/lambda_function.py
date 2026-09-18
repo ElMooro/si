@@ -117,6 +117,8 @@ def _run_private(event, context):
     clusters = risk.get("correlation_clusters") or []
     stops = risk.get("stops_hit") or []
     scenarios = risk.get("historical_scenarios") or []
+    if isinstance(scenarios, dict): scenarios = list(scenarios.values())
+    scenarios = [row for row in scenarios if isinstance(row, dict) and row.get('historical_replay_verified') is True]
     worst = None
     if scenarios:
         worst = min(scenarios, key=lambda s: s.get("portfolio_return_pct",
@@ -132,7 +134,9 @@ def _run_private(event, context):
         "worst_scenario": ({"name": worst.get("name"),
                             "portfolio_return_pct": worst.get("portfolio_return_pct")}
                            if worst else None),
-        "data_available": bool(pos_metrics),
+        "data_available": risk.get("status") == "AVAILABLE_HOLDINGS_MODEL",
+        "risk_contract": risk.get("risk_contract"), "capital_basis": risk.get("capital_basis"),
+        "holdings_risk": risk.get("holdings_risk"), "risk_replay": risk.get("replay"),
         "dark_pool_distribution_flags": dark_pool_flags,
     }
 
@@ -140,8 +144,8 @@ def _run_private(event, context):
     trim = []
     defensive = posture_word in ("DEFENSIVE", "CAUTIOUS")
     for c in clusters:
-        members = c.get("members") or c.get("tickers") or []
-        avg = c.get("avg_correlation") or c.get("avg_corr")
+        members = c.get("symbols") or c.get("members") or c.get("tickers") or []
+        avg = c.get("avg_pairwise_correlation", c.get("avg_correlation", c.get("avg_corr")))
         if members:
             trim.append({
                 "target": ", ".join(members),
@@ -227,6 +231,11 @@ def _run_private(event, context):
         triggers.append(f"DE-RISK review: held name(s) under off-exchange distribution — {names} "
                         f"(quiet dark-pool selling; consider trimming or tightening stops)")
 
+    # Research hypotheses are retained separately; these legacy votes have no
+    # approved forecasting, independent-input or portfolio-sizing protocol.
+    research_candidates = {"trim": trim, "add": add, "hedge": hedge}
+    trim, add, hedge = [], [], []
+
     # ── headline ──
     npos = portfolio["n_positions"]
     var_txt = (f"VAR {portfolio['var_1d_99_pct']}%" if portfolio.get("var_1d_99_pct")
@@ -236,13 +245,13 @@ def _run_private(event, context):
                 f"beta {portfolio.get('beta_spy','?')}, {var_txt}.")
 
     out = {
-        "schema_version": "1.0",
-        "method": "pm_decision_v1",
+        "schema_version": "2.0",
+        "method": "pm_research_monitor_v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "posture": posture,
         "posture_word": posture_word,
-        "headline": headline,
+        "headline": "WAIT — research hypotheses only; no authorized trade or hedge size.",
         "macro_frame": {
             "regime": rc.get("regime"),
             "defcon_level": defcon,
@@ -254,6 +263,10 @@ def _run_private(event, context):
         },
         "portfolio": portfolio,
         "actions": {"trim": trim, "add": add, "hedge": hedge},
+        "call_verb": "WAIT", "permissions": {"sizing_eligible": False, "may_recommend_trades": False},
+        "reason_codes": ["UNVALIDATED_DECISION_PROTOCOL"],
+        "research_candidates": research_candidates,
+        "risk_generated_at": risk.get("generated_at"),
         "triggers": triggers,
         "inputs_used": {
             "master_ranker": bool(ranker),
@@ -262,10 +275,9 @@ def _run_private(event, context):
             "crisis_composite": bool(crisis),
             "capitulation": bool(capit),
         },
-        "note": ("Deterministic decision synthesis. Trim/add/hedge are derived "
-                 "from portfolio-risk, master-ranker conviction and the "
-                 "allocator matrix, framed by the master crisis posture. Not "
-                 "individualised financial advice — a decision-support view."),
+        "note": ("Monitor-only hypotheses from legacy scores. No calibrated forecast, "
+                 "independent evidence protocol or approved portfolio allocation. "
+                 "Research candidates and triggers are unvalidated hypotheses; actions are withheld."),
     }
 
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
@@ -287,10 +299,7 @@ def _run_private(event, context):
                    ContentType="application/json", CacheControl="private, no-store")
     publish_private("pm-decision-history", hist)
 
-    if prior_posture and prior_posture != posture_word:
-        maybe_telegram(
-            f"[pm-decision] <b>POSTURE CHANGE: {prior_posture} → {posture_word}</b>\n"
-            f"{posture}\n{headline}")
+    # This monitor-only compiler has no notification or allocation authority.
 
     print(f"[pm-decision] done {out['elapsed_s']}s posture={posture_word} "
           f"trim={len(trim)} add={len(add)} hedge={len(hedge)}")
