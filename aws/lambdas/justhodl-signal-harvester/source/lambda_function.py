@@ -4,6 +4,8 @@ import re
 import time
 import uuid
 import math
+import hashlib
+from pathlib import Path
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
@@ -16,6 +18,9 @@ import sys
 import os
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 from instrument_identity import resolve_instrument
+from private_artifact import public_source_allowed
+from prospective_journal import projection, ensure_protocol, register, persist_once, digest, PREFIX as JOURNAL_PREFIX
+from calls_research_replay import publish_current
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from engine_trust import trust as _trust   # auto-demotion gate (consumer side)
@@ -23,7 +28,7 @@ except Exception:
     def _trust(_st, default=1.0):
         return default
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 S3_BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 SEEN_KEY = "data/_harvest/seen.json"
@@ -83,13 +88,44 @@ def list_outputs():
     for pg in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix="data/", Delimiter="/"):
         for o in pg.get("Contents", []):
             k = o["Key"]
-            if not k.endswith(".json") or "/" in k[len("data/"):]:
+            if not k.endswith(".json") or "/" in k[len("data/"):] or not public_source_allowed(k):
                 continue
             low = k.lower()
             if any(sub in low for sub in SKIP_SUBSTR):
                 continue
             keys.append(k)
     return keys
+
+
+def read_research_source(key):
+    if not public_source_allowed(key): raise ValueError('private research source rejected')
+    raw = s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read(2_000_001)
+    if len(raw)>2_000_000: raise ValueError('research source exceeds capture bound')
+    received = datetime.now(timezone.utc).isoformat()
+    doc = json.loads(raw)
+    if not isinstance(doc, dict): raise ValueError('research source is not an object')
+    return doc, hashlib.sha256(raw).hexdigest(), received
+
+
+def publish_journal(projections, refs, protocol_ref, errors, scanned, total, started):
+    generated = datetime.now(timezone.utc).isoformat()
+    manifest = {'contract':'prospective-research-capture.v1','generated_at':generated,
+                'started_at':started.isoformat(),'protocol_ref':protocol_ref,'sources':projections,'records':refs,
+                'coverage':{'candidate_sources':total,'sources_scanned':scanned,'source_read_failures':errors,
+                            'candidate_scan_complete':scanned==total and not errors},
+                'sizing_eligible':False,'promotion_eligible':False}
+    key=JOURNAL_PREFIX+'captures/'+digest(manifest)+'.json'
+    capture_ref=persist_once(s3,S3_BUCKET,key,manifest)
+    summary={'schema_version':'prospective-research-summary.v1','generated_at':generated,
+             'status':'COLLECTING','capture':capture_ref,'protocol':protocol_ref,'coverage':manifest['coverage'],
+             'records_in_capture':len(refs),'new_records':sum(r['created'] for r in refs),
+             'rank_observations':sum(r['origin']=='rank_observation' for p in projections for r in p['observations']),
+             'ineligible_sources':sum(bool(p['eligibility_reasons']) for p in projections),
+             'unsupported_identity_count':sum(p['unsupported_identity_count'] for p in projections),
+             'record_previews':refs[:50],'outcomes_in_this_capture':0,'sizing_eligible':False,'promotion_eligible':False,
+             'meaning':'Captures explicit directions before future standardized measurement windows. No outcomes, independent-model validation, executable fills or net returns are established by registration.'}
+    publish_current(s3,S3_BUCKET,'data/prospective-research.json',summary)
+    return summary
 
 
 def extract_picks(doc):
@@ -208,6 +244,10 @@ def lambda_handler(event, context):
     regime = current_regime()
     now = datetime.now(timezone.utc)
     today = now.strftime("%Y-%m-%d")
+    protocol_ref = ensure_protocol(s3, S3_BUCKET)
+    collector_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    projections, research_refs, source_errors = [], [], []
+    scanned = 0
 
     # de-dup store
     seen = _read(SEEN_KEY) or {}
@@ -220,12 +260,18 @@ def lambda_handler(event, context):
     ambiguous = 0
     engines_hit = 0
     for k in keys:
-        doc = _read(k)
-        if doc is None:
+        scanned += 1
+        try:
+            doc, source_sha, received_at = read_research_source(k)
+        except Exception:
+            source_errors.append(k)
             continue
         picks = extract_picks(doc)
         if not picks:
             continue
+        selected = projection(k, doc, picks, source_sha, received_at)
+        projections.append(selected)
+        research_refs.extend(register(s3, S3_BUCKET, selected, protocol_ref, collector_sha))
         engine = k[len("data/"):-len(".json")]
         got = 0
         for pick in picks:
@@ -243,7 +289,13 @@ def lambda_handler(event, context):
         if len(harvested) >= MAX_SIGNALS:
             break
 
-    # price snapshot for unique symbols (point-in-time entry)
+    journal = publish_journal(projections, research_refs, protocol_ref, source_errors, scanned, len(keys), now)
+    if (event or {}).get('capture_only') is True:
+        return {'statusCode':200,'capture_only':True,'legacy_ledger_writes':0,
+                'records_in_capture':journal['records_in_capture'],'new_records':journal['new_records'],
+                'capture':journal['capture'],'sizing_eligible':False}
+
+    # Legacy quote context only; prospective research uses the immutable journal.
     identities = {pick['identity']['instrument_id']: pick['identity'] for _, pick in harvested}
     prices = {}
     with ThreadPoolExecutor(max_workers=24) as ex:
@@ -296,9 +348,9 @@ def lambda_handler(event, context):
         "n_written": written, "n_skipped_no_price": len(harvested) - written,
         "n_skipped_ambiguous_identity": ambiguous,
         "sizing_eligible": False,
+        "prospective_research": {k:journal[k] for k in ('capture','records_in_capture','new_records','coverage')},
         "dedup_days": DEDUP_DAYS, "top_per_engine": TOP_PER_ENGINE,
-        "note": "Point-in-time picks written to justhodl-signals; outcome-checker grades them, "
-                "signal-scorecard computes per-engine edge across the full fleet.",
+        "note": "Legacy picks remain quote context. The immutable prospective journal separately registers explicit directions; neither ranking heuristics nor legacy outcomes establish forecast authority.",
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=SUMMARY_KEY, Body=json.dumps(summary).encode(),

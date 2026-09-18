@@ -100,9 +100,19 @@ The replay exposed a separate live fault: the newest CPI warehouse observation w
 
 - Stage 6 follow-up proof: `9f78ef21a30c1d4dd0d556f4be0c3bd6ee10a72a`, deploy `35378545764`, pages `35378545815`, ops `35378545701`. Exact risk receipt and runtime hash verified. Ops 5718 exercised 123 real SPY daily return intervals through September 17 and reproduced the synthetic holding calculation; zero account reads/writes. Source response SHA `ffb461ea9251ec14d610edcbe005a99324bb7f5f25de0328a44c5f766b2a6fb2`. Browser recheck shows "Sign in required", not an engine-error claim. Deployment 400+12, risk private-handler 10, mathematical/replay 10 and frontend 363 passed.
 
-## Stage 7: original price evidence in performance grading (in progress)
+## Stage 7: original price evidence in performance grading (deployed and verified)
 
 - Structural mark lineage is now distinct from price verification. A hash-shaped string and plausible timestamps cannot become a verified outcome without reading the retained provider response.
 - The bounded source adapter checks content/request identity, S3 capture metadata and storage clock, instrument/currency, a unique completed US daily aggregate, exact price and adjustment vintage. Daily period end is explicitly not a trade timestamp. This supports price measurement, not trade execution or forecasting authority.
 - Scorecard 2.3 requires the byte-backed verification for every potentially scorable mark and reports archive-check coverage. Missing archives, unsupported parsers, tampering and incomplete daily periods remain quarantined. Promotion/sizing stay disabled; no legacy ledger rows are repaired or rewritten.
 - The prospective forecast journal, forward entry/exit capture, registered protocols and effective out-of-sample samples are still outstanding; these stricter acceptance checks do not create missing evidence.
+
+- Stage 7 proof: `0ed4f1afe585cd8e51b9c211530fd0f32774bbc2`, deploy `35383209316`, pages `35383209035`, ops `35383209179`. Three exact receipts/runtime hashes verified. Full 202,552-row scan, 185,231 quarantined, zero scorable outcomes; no legacy record reached the source adapter, so archive-check coverage remains zero rather than an invented recovery claim. Public scorecard 2.3 generated 19:00:16Z and trust 19:00:18Z; live page contains the archive requirement. Deployment 400+12, scorecard 10, original-byte verifier 7, trust 4, outcome-checker 6 and frontend 364 passed. Original-price verification alone is not prospective forecast validation.
+
+## Stage 8: prospective research journal (in progress)
+
+- Register typed public explicit directions under a protocol retained before future windows. Preserve first registration on retries, compare actual S3 storage clocks, retain every candidate capture and source eligibility gaps. Rank membership, unsupported identities and stale/undated source packets cannot silently become directional forecasts.
+- Fixed measurement rules use the first SPY-observed session strictly after registration's Eastern date, then 5/20-session endpoints. Missing matching asset marks cannot move the window. These are price observations, not executable fills, total returns or net performance; original forecast horizon is unverified. Repeated/overlapping observations are not independent samples.
+- Only a strict projection is publicly retained: source identity/hash/clocks, typed instrument and direction. This proves the collector observation, not original source bytes or upstream model replay. Private artifacts are excluded before reads; arbitrary narrative/account fields never enter the journal.
+- The harvester adds a capture-only mode and an hourly capture schedule, leaving its existing legacy schedule and ledger separate. The scorecard page exposes counts, incomplete coverage and downloadable capture/protocol records. No model promotion or portfolio sizing is granted.
+- The forward outcome evaluator, retained actual endpoint responses and effective sample/OOS analysis remain the next workstream. Future elapsed observations cannot be manufactured during this deployment.

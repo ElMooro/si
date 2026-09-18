@@ -64,6 +64,7 @@ tr:hover td{background:var(--panel2)}
   <div class="grid4" id="kpis"><div class="loading">LOADING SCORECARD…</div></div>
 
   <div id="permissions" class="card" role="status"></div>
+  <div id="prospective-research" class="card" role="status" style="margin-top:12px">Loading prospective capture status…</div>
   <div id="dqwrap"></div>
 
   <h2>All signals — verified observations and evidence gaps</h2>
@@ -71,6 +72,7 @@ tr:hover td{background:var(--panel2)}
   <p class="read" id="legend"></p>
   <p class="timestamp" id="ts"></p>
 </div>
+<script src="/jh-prospective-research.js?v=20260918-1" defer></script>
 <script>
 const S3="/data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
