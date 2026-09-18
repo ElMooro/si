@@ -1,18 +1,5 @@
-executing-against: fb560641b175e602e168c4c451b60660072ab78f
-[21:29:36] justhodl-treasury-fiscal-full exact release/runtime matched
-[21:29:36] justhodl-backfill-orchestrator exact release/runtime matched
-[21:30:07] justhodl-warm-bridge exact release/runtime matched
-[21:30:07] justhodl-plumbing-aggregator exact release/runtime matched
-[21:30:07] justhodl-symdir exact release/runtime matched
-[21:30:43] debt_to_penny original-row replay passed: 2500 rows
-[21:30:44] rates_of_exchange original-row replay passed: 2500 rows
-[21:30:44] avg_interest_rates original-row replay passed: 2500 rows
-[21:30:44] interest_expense original-row replay passed: 2500 rows
-[21:30:44] debt_outstanding original-row replay passed: 237 rows
-[21:30:45] tga_operating_cash original-row replay passed: 4996 rows
-[21:32:10] ✅ Original provider rows reproduce all six datasets; deep history survives daily refresh; exact chart, bridge and plumbing consumers verified
+executing-against: 4e7d31f2f1b9aaedc6b216432b913308564c3255
+[22:03:50] Exact commit/runtime verified: 6eddd83d5daf6f29463fae72822fb651a8c7f282
 
-→ Report written to aws/ops/reports/latest/ops_5729_treasury_dimensions_reverify.md
-
-→ Report written to aws/ops/reports/latest/ops_5728_treasury_dimensions_replay_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_5728_treasury_dimensions_replay_verify.py
+→ Report written to aws/ops/reports/latest/ops_5730_report_research_replay_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_5730_report_research_replay_verify.py
