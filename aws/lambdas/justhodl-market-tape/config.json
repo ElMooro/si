@@ -3,10 +3,10 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 192,
-  "timeout": 30,
+  "memory": 256,
+  "timeout": 120,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Homepage ticker-strip feed: SPX/NDX/BTC/GOLD via FMP stable, US10Y/VIX/USD via FRED. Real data only; unresolvable symbols omitted. 5-min EB Scheduler (created by ops - classic rule cap saturated). Writes data/market-tape.json.",
+  "description": "Market tape v2: identified SPX/COMP/BTC/gold quotes, dated FRED observations, explicit USD broad index, archived evidence and verified macro YoY. Writes data/market-tape.json.",
   "env": {},
   "inherit_env": true
 }

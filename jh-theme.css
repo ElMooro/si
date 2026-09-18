@@ -186,3 +186,6 @@ button{font-family:var(--jh-mono)}
   color-scheme: light;
 }
 :root[data-theme="light"] body { background: var(--jh-bg); color: var(--jh-ink); }
+/* Observation dates remain readable alongside market-tape levels. */
+.jhc-asof{font-size:10px;opacity:.8;white-space:nowrap}
+.jhc-chip:focus{outline:1px solid currentColor;outline-offset:3px}

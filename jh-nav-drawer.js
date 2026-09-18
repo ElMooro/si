@@ -71,18 +71,19 @@
         var jt = function () { var dd = new Date();
           ck.textContent = dd.toLocaleTimeString("en-US", {hour12:false, timeZone:"America/New_York"}) + " ET"; };
         jt(); setInterval(jt, 1000);
-        fetch("/data/market-tape.json?t=" + Date.now(), {cache:"no-store"})
-          .then(function (r) { return r.json(); })
-          .then(function (dd) { var tp = document.getElementById("jhc-tape"); if (!tp) return;
-            (dd.items || []).forEach(function (it) {
-              var sp = document.createElement("span"); sp.className = "jhc-chip";
-              var cls = (typeof it.chg_pct === "number") ? (it.chg_pct >= 0 ? "jhc-up" : "jhc-dn") : "";
-              var v = (it.display || "") + (typeof it.chg_pct === "number"
-                ? ((it.chg_pct >= 0 ? " +" : " ") + it.chg_pct.toFixed(1) + "%") : "");
-              sp.setAttribute("data-sym", it.label || "");
-              sp.innerHTML = "<b>" + it.label + "</b> <span class=\"" + cls + "\">" + v + "</span>";
-              tp.appendChild(sp); }); })
-          .catch(function () {}); };
+        var tapeReady = window.JHMarketTape ? Promise.resolve() : new Promise(function (resolve, reject) {
+          var script = document.createElement("script"); script.src = "/jh-market-tape.js";
+          script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
+        });
+        var refreshTape = function () {
+          Promise.all([tapeReady, fetch("/data/market-tape.json?t=" + Date.now(), {cache:"no-store"})
+            .then(function (r) { if (!r.ok) throw new Error("Market data unavailable"); return r.json(); })])
+            .then(function (values) { var tp = document.getElementById("jhc-tape");
+              if (tp) window.JHMarketTape.render(document, tp, values[1]); })
+            .catch(function () { var tp = document.getElementById("jhc-tape");
+              if (tp) tp.textContent = "Market observations unavailable"; });
+        };
+        refreshTape(); setInterval(refreshTape, 300000); };
       if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
     }
   } catch (e) {}

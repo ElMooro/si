@@ -34,7 +34,7 @@ First step: ops 5710 performs a bounded read-only outcome/baseline investigation
 - Ops 5711 verified the live Lambda code hash and refreshed `data/auction-desk.json` to 1.3.0 at `2026-09-18T15:47:22+00:00`. Public same-origin JSON and browser rendering verified: TIPS row, unavailable nominal comparison, deterministic explanation and measurement-only eligibility. Proxy caching briefly served 1.2.3 while same-origin had 1.3.0; browser was rechecked after expiry.
 - Remaining on this page: legacy tenor/funding panels, static historical-return tables and narratives need separate repair; the new desk contract does not validate them.
 
-## Stage 2: performance lineage and research permissions (prepared, not yet deployed)
+## Stage 2: performance lineage and research permissions (deployed and verified)
 
 Ops 5710 scanned all 202,552 outcome rows and found 569 rows across the three investigated engines. All 569 lacked entry-mark evidence. A concrete stored outcome compared a 28.47 baseline for bare `BTC` with a 79,899 endpoint and reported +280,542.781876%. The harvester used equity quote symbols while the old checker treated bare BTC as Bitcoin. This is an instrument-identity collision, not investment performance.
 
@@ -47,3 +47,12 @@ Ops 5710 scanned all 202,552 outcome rows and found 569 rows across the three in
 Important remaining work: capture immutable entry/exit price evidence and source snapshots for new prospective evaluations, register model/protocol versions and benchmarks, establish independent effective samples and out-of-sample studies. Current harvested quote baselines are explicitly context only; this stage prevents false authority rather than inventing missing historical evidence.
 
 Still open: point-in-time raw evidence and snapshot replay, corrected outcome lineage and statistical permissions, macro transformations, validated portfolio consequences, cross-engine independence, and the remaining fleet/page migrations. Existing historical reaction studies have not earned sizing authority.
+
+- Stage 2 proof: `26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754`, deploy run `35366674148`, direct verification `35367362323`. All four exact receipts and runtime code hashes match. Ops 5712 refreshed the full 202,552-row ledger view: 185,231 quarantined, zero verified/promotion authority, zero ledger mutations. Live scorecard and trust JSON generated 16:16:12Z / 16:16:15Z, and the browser shows explicit research-only permissions. Actual quote routes returned distinct Bitcoin spot / BTC ETF prices. The initial serial verification raced creation of the first receipt; rerunning after deployment passed. New verification waits handle an absent initial receipt.
+
+## Stage 3: macro identity, calendar growth and replay (in progress)
+
+- Curated FRED YoY transformations use provider-declared frequency and exact matching prior-year calendar periods. Missing latest or base observations cannot shift the comparison. Source unit, seasonal adjustment, definition, observation/comparison dates and response vintage survive transport. CPI computed from CPIAUCSL is labeled SA YoY; China CHNGDPNQDSMEI remains nominal and stale when its source ends in 2023.
+- Raw responses and definitions are conditionally archived under full request/content hashes. Replays verify bytes; capture failures cannot claim evidence. Credentials are excluded from source references. This is application-level conditional storage, not Object Lock certification or reconstructed first-publication history.
+- The indicator bus blocks all generic substitutions for curated definitions. Market tape uses COMP for Nasdaq Composite and USD BROAD for the Fed broad index. Quotes require exact symbols and observation timestamps. Ticker dates, missing inputs and evidence are visible; stale packets cannot refresh themselves through a new page load.
+- Ops 5713 verifies exact receipts, invokes the chain, reloads archived source bodies, recalculates every available curated YoY and verifies the published bus/tape contracts. Release-calendar-specific freshness and migration of other legacy series remain separate work.

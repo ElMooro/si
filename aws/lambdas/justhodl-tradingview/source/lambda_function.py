@@ -31,13 +31,15 @@ from datetime import datetime, timezone
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from evidence_store import capture
+from macro_observations import CURATED_YOY, YOY_CONTRACT, calendar_yoy, valid_yoy_row
 
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.30.3 audit JPLG YoY source/cache contract"
+MARKER = "tradingview-vault v3.31.0 calendar YoY and archived source evidence"
 JPLG_CONTRACT = "boj-loan-growth-yoy.v1"
 
 s3 = boto3.client("s3")
@@ -258,24 +260,61 @@ def fred_latest(series_id):
 def fred_yoy(series_id):
     _FRED_CALLS["n"] += 1
     url = (f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}"
-           f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=14")
+           f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=32")
+    definition_url = (f"https://api.stlouisfed.org/fred/series?series_id={series_id}"
+                      f"&api_key={FRED_KEY}&file_type=json")
     for attempt in range(2):
         try:
-            time.sleep(0.55)
-            req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/3.0"})
-            with urllib.request.urlopen(req, timeout=15) as r:
-                obs = [o for o in json.loads(r.read()).get("observations", [])
-                       if o.get("value") not in (None, "", ".")]
-            if len(obs) < 5:
-                return None
-            back = 12 if len(obs) >= 13 else 4
-            cur, yr = float(obs[0]["value"]), float(obs[back]["value"])
-            return {"value": round((cur / yr - 1) * 100, 2), "prev": None,
-                    "chg_pct": None, "asof": obs[0]["date"] + " YoY"}
+            payloads, evidence = {}, {}
+            for kind, source in (("observations", url), ("definition", definition_url)):
+                time.sleep(0.55)
+                req = urllib.request.Request(source, headers={"User-Agent": "JH-TV-Vault/3.31"})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    raw = r.read()
+                payloads[kind] = json.loads(raw)
+                evidence[kind] = capture(s3, S3_BUCKET, "fred", source, raw)
+            definitions = payloads["definition"].get("seriess") or []
+            if len(definitions) != 1 or definitions[0].get("id") != series_id:
+                raise ValueError("FRED definition identity mismatch")
+            result = calendar_yoy(payloads["observations"].get("observations") or [], definitions[0])
+            result["evidence"] = evidence
+            result["received_at"] = max(e["first_received_at"] for e in evidence.values())
+            return result
         except Exception:
             if attempt == 0:
                 time.sleep(2.0)
     return None
+
+
+def resolve_curated_yoy_row(row, cached, now, force=False, allow_fetch=True):
+    """A curated percentage cannot be thawed by an unrelated annual/level feed."""
+    symbol = row["symbol"]
+    sid = CURATED_YOY[symbol]
+    alias = "yoy:" + sid
+    age_hours = None
+    try:
+        age_hours = (now - datetime.fromisoformat(cached["fetched_at"].replace("Z", "+00:00"))).total_seconds() / 3600
+    except (KeyError, TypeError, ValueError):
+        pass
+    # Daily refresh catches revised prints; a monthly cache is too coarse for
+    # release-day updates. Runtime limits still apply to source requests.
+    if (not force and age_hours is not None and 0 <= age_hours < 20
+            and cached.get("resolved_via") == alias and valid_yoy_row(cached, symbol, now)):
+        row.update({k: v for k, v in cached.items() if k not in ("note_snippet", "note_text", "exchanges", "note_ids", "n_notes")})
+        row["cached"] = True
+        return
+    row.update(value=None, prev=None, chg_pct=None, asof=None, observation_date=None,
+               comparison_date=None, status="PENDING_RESOLUTION", source="fred_yoy:" + sid,
+               resolved_via=alias, unit="% YoY", series_id=sid, contract_version=YOY_CONTRACT,
+               cached=False, sizing_eligible=False, quality={"status": "unavailable"},
+               resolution_note="Calendar YoY plus archived official definition required; no family substitution")
+    value = fred_yoy(sid) if allow_fetch else None
+    if value:
+        row.update(value)
+        row["fetched_at"] = now.isoformat()
+        row["resolution_note"] = "Same calendar period one year earlier; source units, adjustment and vintage retained"
+    elif not allow_fetch:
+        row["resolution_note"] = "Official YoY fetch deferred by runtime budget; no substitute series"
 
 
 def yahoo_quote(sym):
@@ -1170,6 +1209,8 @@ def _dict_try(row):
 def _family_try(row):
     if row.get("symbol") == "JPLG":
         return None  # JPLG is BOJ YoY; family:LG is an IMF loan LEVEL.
+    if row.get("symbol") in CURATED_YOY:
+        return None  # Curated economic definitions cannot use unitless family caches.
     m = FAM_RX.match(str(row.get("symbol") or ""))
     if not m:
         return None
@@ -1673,7 +1714,9 @@ def lambda_handler(event, context):
     _ri = 0
     PH("cache age_h=%.1f fresh=%s slot=%d" % (_age_h, CACHE_FRESH, REV_SLOT))
     PH("main-loop-start")
-    for row in rows:
+    # Curated definitions run before the broad resolver ladder consumes its budget.
+    for row in sorted(rows, key=lambda r: 0 if r["symbol"] in ("USIRYY", "USGDPYY", "JPGDPYY", "CNGDPYY")
+                      else 1 if r["symbol"] in CURATED_YOY or r["symbol"] == "JPLG" else 2):
         sym = row["symbol"]
         _ri += 1
         if _ri % 500 == 0:
@@ -1681,6 +1724,20 @@ def lambda_handler(event, context):
                % (_ri, len(rows), n_live, _ladder_n,
                   _ladder_spent, _rev_spent))
         c = cache.get(sym) or {}
+        if sym in CURATED_YOY:
+            allow_yoy_fetch = not out_of_time and _ladder_spent < LADDER_WALL_S
+            if context is not None:
+                try:
+                    allow_yoy_fetch = allow_yoy_fetch and context.get_remaining_time_in_millis() >= 180000
+                except Exception:
+                    allow_yoy_fetch = False
+            started_yoy = time.time()
+            resolve_curated_yoy_row(row, c, now, force=force, allow_fetch=allow_yoy_fetch)
+            _ladder_spent += time.time() - started_yoy
+            n_live += row.get("status") == "LIVE"
+            n_cached += row.get("cached") is True
+            n_pending += row.get("status") in ("PENDING_RESOLUTION", "STALE")
+            continue
         if sym == "JPLG":
             allow_jplg_fetch = not out_of_time and _ladder_spent < LADDER_WALL_S
             if context is not None:
@@ -1884,12 +1941,14 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-tradingview",
-        "version": "3.2",
+        "version": "3.31.0",
         "marker": MARKER,
-        "generated_at": now.isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": now.isoformat(),
         "brain_constitution": "registry parsed live from data/brain.json [TV:*] tags — "
                               "self-updating; every symbol carries its note ids",
         "cadence_model": {"daily_refetch": "every run", "weekly": ">6d",
+                          "curated_yoy": "20h cache maximum; source observation age rechecked independently",
                           "monthly": ">27d", "quarterly": ">85d",
                           "no_free_source_retry": ">27d",
                           "rationale": "fetch only when the data can have updated — "
