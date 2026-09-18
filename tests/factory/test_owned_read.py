@@ -51,7 +51,7 @@ class OwnedReadPromptTests(unittest.TestCase):
         big = dict(BOARD, fleet_digest=[{"feed": "f%d" % i, "line": "x" * 200} for i in range(200)])   # a real digest is ~30k chars
         self.assertLess(len(mr.build_prompt(big, PLAY, None, True, mr.OWNED_BUDGET)), len(mr.build_prompt(big, PLAY, None, True, mr.DEFAULT_BUDGET)))
         self.assertLessEqual(len(mr.build_prompt(big, PLAY, None, True, mr.OWNED_BUDGET)), sum(mr.OWNED_BUDGET) + 4000)
-        self.assertLessEqual(sum(mr.OWNED_BUDGET) + 4000 + len(mr.SYSTEM), 8192 * 3 - 1400 * 3)   # fits the 8k endpoint with the answer
+        self.assertLessEqual(sum(mr.OWNED_BUDGET) + 4000 + len(mr.SYSTEM), 16384 * 3 - 1400 * 3)  # fits the 16k endpoint (ops 5822) with the answer
         self.assertNotIn("selling climax", mr.build_prompt(BOARD, PLAY, None, False))   # and not to a third party
 
     def test_compose_read_uses_the_shared_parser_and_falls_back_deterministically(self):

@@ -357,7 +357,7 @@ def deterministic_read(board):
     }
 
 DEFAULT_BUDGET = (24000, 24000, 9000)       # board, fleet digest, playbook -- chars sent to the voice
-OWNED_BUDGET = (6000, 3500, 3000)           # the owned endpoint serves OPTION_MAX_MODEL_LEN=8192: ~5.5k prompt tokens + 1,400 answer tokens; a bigger prompt = HTTP 424 (ops 5622)
+OWNED_BUDGET = (16000, 10000, 7000)         # ops 5822 (2026-09-18): the endpoint serves 16,384 tokens; ~33k chars + system + lessons ~ 11.5k prompt tokens + 1,400 answer tokens
 
 
 def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[Dict[str, Any]] = None, playbook_text: bool = True,
