@@ -6,6 +6,7 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 =====================================================
 """
 from tenor_research_model import public_summary as tenor_research_summary
+from report_source_store import run as run_source_research
 import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1904,6 +1905,18 @@ def lambda_handler(event, context):
     t0 = time.time()
     # ── ATH INIT MODE ──
     payload = event if isinstance(event, dict) else {}
+    if payload.get('action') == 'research_measurements':
+        # Isolated migration path: actual provider definitions + responses. It
+        # cannot invoke the legacy scorer, stock allocation, news or AI paths.
+        catalog = {sid: {'category': cat, 'display_name': name}
+                   for sid, (cat, name) in FRED_SERIES.items()}
+        remaining = context.get_remaining_time_in_millis()/1000 if context else 900
+        try:
+            result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,
+                                         budget_seconds=max(30, min(650, remaining-180)))
+            return {'statusCode': 200 if result.get('published') else 409, 'body': json.dumps(result)}
+        except Exception as exc:
+            return {'statusCode': 503, 'body': json.dumps({'ok': False, 'error': type(exc).__name__})}
     if payload.get('action') == 'init_ath':
         print("[V10] ATH INITIALIZATION MODE")
         ath = init_all_ath(STOCK_TICKERS)
