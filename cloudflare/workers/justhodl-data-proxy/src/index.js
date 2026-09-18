@@ -100,9 +100,19 @@ async function verifyStripeSig(payload, sigHeader, secret) {
 
 async function fetchUpstream(upstreamUrl, ttl) {
   return fetch(upstreamUrl, {
-    cf: { cacheTtl: ttl, cacheEverything: ttl > 0 },
-    ...(ttl === 0 ? { headers: { 'Cache-Control': 'no-cache' } } : {}),
+    // A missing object often returns S3 403. Caching it with the future
+    // object's hourly TTL can hide a successful first publication for an hour.
+    cf: { cacheEverything: ttl > 0, cacheTtlByStatus: { '200-299': ttl, '300-599': -1 },
+          ...(ttl === 0 ? { cacheTtl: 0 } : {}) },
+    ...(ttl === 0 ? { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } } : {}),
   });
+}
+
+function mutablePublication(path) {
+  const key = path.replace(/^data\//, '');
+  return ['report.json', 'report-measurements.json', 'khalid-adaptive.json'].includes(key) ||
+    /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||
+    /^[a-z0-9-]+-verification\.json$/.test(key);
 }
 
 
@@ -2152,6 +2162,7 @@ export default {
     const artifactKey = !exactArtifact && safePath === "data/intelligence-report.json"
       ? "intelligence-report.json" : safePath;
     const researchBrief = artifactKey === "intelligence-report.json";
+    const freshArtifact = exactArtifact || researchBrief || mutablePublication(safePath);
 
     // ops 4526: native cache-clear — no CLOUDFLARE_API_TOKEN needed, this
     // runs inside the Worker with direct caches.default access. Clears a
@@ -2189,7 +2200,8 @@ export default {
         rr = await fetch(artifactUpstreamUrl(artifactKey), {
           headers: { "Range": rangeHdr,
                      "User-Agent": "justhodl-data-proxy" },
-          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) || researchBrief ? { cacheTtl: 0 } : {}) }
+          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) || freshArtifact ? { cacheTtl: 0 } : {}) },
+          ...(sanitizedArtifact(safePath) || freshArtifact ? { cache: 'no-store' } : {})
         });
       } catch (e) {
         return new Response(
@@ -2207,7 +2219,7 @@ export default {
       rh.set("Accept-Ranges", "bytes");
       rh.set("Access-Control-Expose-Headers",
              "Content-Range, Content-Length, Accept-Ranges");
-      rh.set("Cache-Control", sanitizedArtifact(safePath) || researchBrief ? "no-store" : "public, max-age=86400");
+      rh.set("Cache-Control", sanitizedArtifact(safePath) || freshArtifact ? "no-store" : "public, max-age=86400");
       if (researchBrief) rh.set("X-JH-Artifact-Key", artifactKey);
       rh.set("X-JH-Range", "passthrough");
       return new Response(rr.body, { status: rr.status, headers: rh });
@@ -2216,7 +2228,7 @@ export default {
     // These feeds previously copied private note text. Do not let an edge
     // generation populated before the S3 scrub survive that scrub, even if
     // the account cannot perform a zone purge. Read the protected origin fresh.
-    const ttl = sanitizedArtifact(safePath) || researchBrief ? 0 : ttlFor(safePath);
+    const ttl = sanitizedArtifact(safePath) || freshArtifact ? 0 : ttlFor(safePath);
     // ops 4528: version-keyed cache — bumping CACHE_VER orphans every
     // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
     // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
@@ -2288,7 +2300,7 @@ export default {
       if (!upstream.ok) {
         return new Response(
           JSON.stringify({ error: "upstream not ok", status: upstream.status, path: safePath }),
-          { status: upstream.status, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+          { status: upstream.status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } }
         );
       }
 

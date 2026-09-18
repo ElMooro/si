@@ -96,6 +96,25 @@ function baseEnv(kv) {
 
 async function worker() { return (await import(pathToFileURL(WORKER).href)).default; }
 
+test('publication proofs and exact reads bypass cached versions; missing public objects are never negative-cached',async()=>{
+  const {env}=fresh(); const w=await worker(); let calls=[];
+  globalThis.caches={default:{async match(){throw Error('stale publication cache read')},async put(){throw Error('publication cache write')}}};
+  globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({commit:'newly-published'})};
+  for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
+      'data/report.json','data/report-measurements.json','data/khalid-adaptive.json','data/some-current.json?exact=1']){
+    const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
+    assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
+    assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf.cacheEverything,false);
+    assert.equal(calls.at(-1).opts.cf.cacheTtl,0);
+  }
+  globalThis.caches.default.match=async()=>null;
+  globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return new Response('',{status:403})};
+  const r=await w.fetch(req('/data/daily-future-packet.json'),env,{waitUntil(){}});
+  assert.equal(r.status,403);assert.equal(r.headers.get('Cache-Control'),'no-store');
+  assert.equal(calls.at(-1).opts.cf.cacheTtlByStatus['300-599'],-1);
+  assert.equal(calls.at(-1).opts.cf.cacheTtlByStatus['200-299'],3600,'successful immutable/daily resources retain their cache policy');
+});
+
 test('research brief root and data alias read the same object without stale cache or exact-read substitution', async()=>{
   const {env}=fresh(); const w=await worker(); const calls=[];
   globalThis.caches={default:{async match(){throw Error('brief must bypass prior cache')},async put(){throw Error('brief must not be cached')}}};

@@ -7,14 +7,15 @@ function setup(){
  globalThis.fetch=async(input)=>{const url=String(input);calls.push(url);return url.endsWith('/cot/extremes/current.json')?Response.json({schema_version:'cot-extremes.v2'}):new Response('{}',{status:404});};
  return {calls,keys,stored,waits,context:{waitUntil(promise){waits.push(promise);}}};
 }
-test('exact reads use a separate cache, attest the same key and expose that identity to the browser',async()=>{
+test('exact reads bypass caches, attest the same key and expose that identity to the browser',async()=>{
  const state=setup(),worker=(await import(source)).default;
  const req=new Request('https://justhodl-data-proxy.raafouis.workers.dev/cot/extremes/current.json?exact=1');
  const response=await worker.fetch(req,{},state.context);await Promise.all(state.waits);
  assert.equal(response.status,200);assert.equal(response.headers.get('X-JH-Artifact-Key'),'cot/extremes/current.json');
  assert(response.headers.get('Access-Control-Expose-Headers').includes('X-JH-Artifact-Key'));
- assert(state.keys[0].includes('-exact-v1__'));assert.equal(state.calls.length,1);
- const again=await worker.fetch(req,{},state.context);assert.equal(again.headers.get('X-JH-Artifact-Key'),'cot/extremes/current.json');assert.equal(state.calls.length,1);
+ assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);assert.equal(state.calls.length,1);
+ assert.equal(response.headers.get('Cache-Control'),'no-store');
+ const again=await worker.fetch(req,{},state.context);assert.equal(again.headers.get('X-JH-Artifact-Key'),'cot/extremes/current.json');assert.equal(state.calls.length,2);
 });
 test('exact missing keys never fall back to data aliases or trigger research generation',async()=>{
  const worker=(await import(source)).default;
