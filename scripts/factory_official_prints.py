@@ -45,6 +45,7 @@ PRIVATE = os.environ.get("FACTORY_PRIVATE_BUCKET", "justhodl-ai-857687956942")
 PUBLIC = os.environ.get("FACTORY_PUBLIC_BUCKET", "justhodl-dashboard-live")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 GROUPED = "data/warm/polygon-full/grouped/"
+ETF_HISTORY = "data/warm/etf-history/grouped/"      # scripts/backfill_etf_history.py: FMP daily bars for the drill symbols, pre-entitlement years
 COINBASE = "https://api.exchange.coinbase.com/products/BTC-USD/candles"
 POLYGON = "https://api.polygon.io/v3/reference/"
 SCHEMA = "factory-official-print.v1"
@@ -98,7 +99,10 @@ class Warehouse:
 
 def grouped_row(wh, day, symbol):
     """(row, raw_sha, key) for one session's grouped-daily file, or raise Missing."""
-    for key in (GROUPED + "%s/%s.json.gz" % (day[:4], day), GROUPED + "%s/%s.json.gz" % (day[:4], day.replace("-", ""))):
+    # 2026-09-18: Polygon grouped-daily is entitled on a rolling ~5-year window, so the COVID-2020 drill block cannot be
+    # banked from it; sessions before the boundary come from the source-tagged ETF history prefix (six drill symbols only).
+    for key in (GROUPED + "%s/%s.json.gz" % (day[:4], day), GROUPED + "%s/%s.json.gz" % (day[:4], day.replace("-", "")),
+                ETF_HISTORY + "%s/%s.json.gz" % (day[:4], day)):
         raw, raw_sha = wh.get(wh.public, key)
         if raw is None:
             continue
