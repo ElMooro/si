@@ -1,116 +1,142 @@
-"""aws/shared/provenance.py — F1: universal provenance envelope (ops 4429).
+"""Versioned measurement envelopes. Unknown clocks stay unknown.
 
-Khalid's founding rule is REAL DATA ONLY. The measured threat: 898 silent-
-fabrication sites across 235 engines where a missing source renders as a
-confident 0 — indistinguishable, on a page, from a measured zero.
-
-This module makes every published number carry its origin:
-
-    from provenance import wrap, derive, missing, batch_wrap
-
-    wrap(3.42, "hy_oas", unit="%", source="fred", series_id="BAMLH0A0HYM2",
-         url="https://api.stlouisfed.org/...", as_of="2026-08-05")
-    -> {"value": 3.42, "field": "hy_oas", "unit": "%", "as_of": ...,
-        "source": {...}, "confidence": 1.0, "trace_id": "..."}
-
-    missing("hy_oas", reason="FRED returned no observations")
-    -> {"value": None, "data_unavailable": True, "reason": ...}
-
-`missing()` is the point: an engine that cannot get a value says so, loudly,
-instead of substituting a literal. The frontend renders "data unavailable"
-rather than a fake zero.
+A structural envelope is not proof that a provider response was archived. The
+quality fields distinguish an attributed value from an evidence reference and
+from a verified replay. Model/portfolio permission is always separate.
 """
 import hashlib
 import json
+import math
 from datetime import datetime, timezone
+from evidence_store import public_source_url
 
-SOURCE_KINDS = {
-    "fred", "polygon", "sec", "nyfed", "ecb", "cftc", "treasury", "bls",
-    "openfigi", "yahoo", "coinmetrics", "imf", "boj", "snb", "bis",
-    "llm-anthropic", "llm-openai", "llm-perplexity", "llm-glm",
-    "cache", "cache-stale", "computed", "fleet-feed", "manual", "unknown",
-}
+CONTRACT = "measurement-provenance.v2"
+SOURCE_KINDS = {"fred", "polygon", "sec", "nyfed", "ecb", "cftc", "treasury", "bls", "bea", "ofr", "fmp",
+                "openfigi", "yahoo", "coinmetrics", "imf", "boj", "snb", "bis", "worldbank", "warehouse",
+                "llm-anthropic", "llm-openai", "llm-perplexity", "llm-glm", "cache", "cache-stale",
+                "computed", "fleet-feed", "manual", "unknown"}
 
 
 def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _trace(field, source, as_of):
-    return hashlib.sha256(
-        f"{field}|{source}|{as_of}".encode()).hexdigest()[:12]
+def _confidence(value):
+    if value is None or isinstance(value, bool): return None
+    try: number = float(value)
+    except (TypeError, ValueError): return None
+    return round(number, 3) if math.isfinite(number) and 0 <= number <= 1 else None
 
 
-def wrap(value, field, unit=None, source="unknown", series_id=None,
-         url=None, as_of=None, confidence=1.0, fetched_by=None,
-         raw_key=None):
-    """Wrap a single measured value with its provenance."""
-    if source not in SOURCE_KINDS:
-        source = "unknown"
-    as_of = as_of or _now()
-    return {
-        "field": field, "value": value, "unit": unit, "as_of": as_of,
-        "confidence": round(float(confidence), 3),
-        "source": {"kind": source, "series_id": series_id, "url": url,
-                   "fetched_at": _now(), "fetched_by": fetched_by,
-                   "raw_snapshot_key": raw_key},
-        "trace_id": _trace(field, source, as_of),
-    }
+def _numeric(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def _url(value):
+    if not value: return None
+    try: return public_source_url(value)
+    except (ValueError, TypeError): return None
+
+
+def _trace(payload):
+    # Processing clocks do not define an economic observation. Content, units,
+    # identity, vintage, raw evidence and parent traces do.
+    identity = {k: payload.get(k) for k in ("contract_version", "field", "value", "unit", "as_of", "vintage", "derivation", "reason")}
+    source = payload.get("source") or {}
+    identity["source"] = {k: source.get(k) for k in ("kind", "series_id", "url", "raw_snapshot_key")}
+    identity["evidence"] = payload.get("evidence")
+    return hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
+def wrap(value, field, unit=None, source="unknown", series_id=None, url=None, as_of=None,
+         confidence=None, fetched_by=None, raw_key=None, *, published_at=None, received_at=None,
+         vintage=None, evidence=None):
+    """Attribute a measurement without inventing dates, confidence or permissions."""
+    if not isinstance(field, str) or not field.strip():
+        raise ValueError("stable measurement field required")
+    if not _numeric(value):
+        return missing(field, "value is missing or is not a finite number", unit=unit, source=source)
+    kind = source if source in SOURCE_KINDS else "unknown"
+    source_url = _url(url)
+    evidence = evidence if isinstance(evidence, dict) else None
+    if evidence is not None:
+        # Receipts are references supplied by the producer. Only the replay path
+        # can promote them to verified bytes; this pure function cannot do IO.
+        evidence = {k: evidence[k] for k in ("contract", "key", "sha256", "bytes", "provider", "source_url", "first_received_at", "captured", "basis") if k in evidence}
+        if "source_url" in evidence: evidence["source_url"] = _url(evidence["source_url"])
+    gaps = []
+    if unit is None: gaps.append("unit_unknown")
+    if not as_of: gaps.append("observation_period_unknown")
+    if not series_id: gaps.append("series_identity_unknown")
+    if kind == "unknown": gaps.append("source_kind_unknown")
+    if not source_url: gaps.append("source_url_unknown")
+    if not evidence: gaps.append("source_evidence_not_verified")
+    result = {"contract_version": CONTRACT, "field": field, "value": value, "unit": unit,
+              "as_of": as_of, "observation_period": as_of, "published_at": published_at,
+              "received_at": received_at, "wrapped_at": _now(), "vintage": vintage,
+              "confidence": _confidence(confidence), "confidence_kind": "producer_heuristic_not_predictive_probability",
+              "data_unavailable": False,
+              "source": {"kind": kind, "series_id": series_id, "url": source_url,
+                         "fetched_at": received_at, "fetched_by": fetched_by, "raw_snapshot_key": raw_key},
+              "quality": {"status": "attributed" if not gaps else "incomplete", "gaps": gaps,
+                          "evidence_status": "referenced" if evidence else "unverified", "replay_verified": False},
+              "evidence": evidence, "sizing_eligible": False}
+    result["trace_id"] = _trace(result)
+    return result
 
 
 def derive(value, field, formula, inputs, unit=None, confidence=None):
-    """Wrap a DERIVED value, carrying the provenance of each input so the
-    chain stays auditable (e.g. hy_ig_skew = HY OAS - IG OAS)."""
-    ins = []
-    conf = []
-    for i in (inputs or []):
-        if isinstance(i, dict) and "source" in i:
-            ins.append({"field": i.get("field"), "value": i.get("value"),
-                        "source": i.get("source"), "as_of": i.get("as_of")})
-            conf.append(float(i.get("confidence") or 1.0))
-        else:
-            ins.append({"raw": str(i)[:80]})
-    c = confidence if confidence is not None else (min(conf) if conf else 1.0)
-    return {
-        "field": field, "value": value, "unit": unit, "as_of": _now(),
-        "confidence": round(float(c), 3),
-        "source": {"kind": "computed", "series_id": None, "url": None,
-                   "fetched_at": _now(), "fetched_by": "derive"},
-        "derivation": {"formula": formula, "inputs": ins},
-        "trace_id": _trace(field, "computed", _now()),
-    }
+    """Retain parent identities and zero confidence. This does not execute a formula."""
+    parents, confidences, periods, missing_inputs = [], [], [], []
+    for index, parent in enumerate(inputs or []):
+        if not is_envelope(parent):
+            missing_inputs.append(str(index)); continue
+        parents.append({k: parent.get(k) for k in ("field", "value", "unit", "source", "as_of", "trace_id", "evidence", "quality")})
+        if parent.get("data_unavailable") or not _numeric(parent.get("value")):
+            missing_inputs.append(str(parent.get("field") or index))
+        confidences.append(_confidence(parent.get("confidence")))
+        if parent.get("as_of"): periods.append(str(parent["as_of"]))
+    if not parents: missing_inputs.append("no_attributed_inputs")
+    declared = _confidence(confidence)
+    known_inputs = [c for c in confidences if c is not None]
+    inherited = min(known_inputs) if known_inputs else None
+    # An explicit output confidence cannot boost known weaker input confidence.
+    known = [c for c in (declared, inherited) if c is not None]
+    result = {"contract_version": CONTRACT, "field": field,
+              "value": value if _numeric(value) and not missing_inputs else None,
+              "unit": unit, "as_of": periods[0] if periods and len(periods) == len(parents) and len(set(periods)) == 1 else None,
+              "observation_periods": sorted(set(periods)), "calculated_at": _now(),
+              "confidence": min(known) if known else None,
+              "confidence_kind": "producer_heuristic_not_predictive_probability",
+              "data_unavailable": bool(missing_inputs) or not _numeric(value),
+              "source": {"kind": "computed", "series_id": None, "url": None, "fetched_at": None, "fetched_by": "derive"},
+              "derivation": {"formula": formula, "inputs": parents, "missing_inputs": missing_inputs,
+                             "formula_execution_verified": False, "alignment_verified": False},
+              "quality": {"status": "unavailable" if missing_inputs else "unverified_calculation",
+                          "replay_verified": False, "evidence_status": "referenced_parents",
+                          "unknown_input_confidences": sum(c is None for c in confidences)},
+              "sizing_eligible": False}
+    result["trace_id"] = _trace(result)
+    return result
 
 
 def missing(field, reason="source unavailable", unit=None, source=None):
-    """Explicitly mark a value as UNAVAILABLE. Use this instead of `or 0`.
-
-    A page reading this renders 'data unavailable'; a zero would have been
-    read as a measurement. This is the whole point of the module.
-    """
-    return {
-        "field": field, "value": None, "unit": unit,
-        "data_unavailable": True, "reason": str(reason)[:200],
-        "as_of": _now(), "confidence": 0.0,
-        "source": {"kind": source or "unknown", "series_id": None,
-                   "url": None, "fetched_at": _now()},
-        "trace_id": _trace(field, "missing", _now()),
-    }
+    result = {"contract_version": CONTRACT, "field": field, "value": None, "unit": unit,
+              "data_unavailable": True, "reason": str(reason)[:200], "as_of": None,
+              "wrapped_at": _now(), "confidence": 0.0, "sizing_eligible": False,
+              "source": {"kind": source or "unknown", "series_id": None, "url": None, "fetched_at": None},
+              "quality": {"status": "unavailable", "evidence_status": "unverified", "replay_verified": False}}
+    result["trace_id"] = _trace(result)
+    return result
 
 
 def batch_wrap(mapping, source="unknown", unit=None, **kw):
-    """Wrap a {field: value} dict; None values become explicit missing()."""
-    out = {}
-    for k, v in (mapping or {}).items():
-        out[k] = (missing(k, "value was None", unit=unit, source=source)
-                  if v is None else
-                  wrap(v, k, unit=unit, source=source, **kw))
-    return out
+    return {key: missing(key, "value was None", unit=unit, source=source) if value is None else
+            wrap(value, key, unit=unit, source=source, **kw) for key, value in (mapping or {}).items()}
 
 
 def unwrap(obj, default=None):
-    """Read a value back out of an envelope (or pass a raw value through)."""
-    if isinstance(obj, dict) and "value" in obj and "source" in obj:
-        return obj.get("value") if not obj.get("data_unavailable") else default
+    if is_envelope(obj): return obj.get("value") if not obj.get("data_unavailable") else default
     return obj if not isinstance(obj, dict) else default
 
 
@@ -119,31 +145,24 @@ def is_envelope(obj):
 
 
 def coverage(payload):
-    """What fraction of numeric leaves in a payload carry provenance?
-    Used by the weekly report (F9) and the rollup (E12)."""
-    total = wrapped = 0
-
-    def walk(o, depth=0):
-        nonlocal total, wrapped
-        if depth > 8:
-            return
-        if is_envelope(o):
-            total += 1
-            wrapped += 1
-            return
-        if isinstance(o, dict):
-            for v in o.values():
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    total += 1
-                else:
-                    walk(v, depth + 1)
-        elif isinstance(o, list):
-            for v in o[:200]:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    total += 1
-                else:
-                    walk(v, depth + 1)
-
-    walk(payload)
-    return {"numeric_leaves": total, "with_provenance": wrapped,
-            "coverage_pct": round(100 * wrapped / total, 1) if total else 0.0}
+    """Count the full JSON tree; structural coverage is distinct from verified replay."""
+    total = wrapped = replayed = unavailable = 0
+    # JSON payloads are acyclic; no depth/list truncation can inflate coverage.
+    stack = [payload]
+    while stack:
+        node = stack.pop()
+        if is_envelope(node):
+            if _numeric(node.get("value")):
+                total += 1; wrapped += 1
+                if (node.get("contract_version") == CONTRACT and isinstance(node.get("quality"), dict)
+                        and node["quality"].get("replay_verified") is True and node.get("evidence")):
+                    replayed += 1
+            elif node.get("data_unavailable"): unavailable += 1
+        elif isinstance(node, dict): stack.extend(node.values())
+        elif isinstance(node, list): stack.extend(node)
+        elif _numeric(node): total += 1
+    return {"contract_version": "provenance-coverage.v2", "numeric_leaves": total, "with_provenance": wrapped,
+            "coverage_pct": round(100 * wrapped / total, 1) if total else 0.0,
+            "coverage_meaning": "structural_envelope_only_not_source_verification",
+            "replay_verified": replayed, "replay_verified_pct": round(100 * replayed / total, 1) if total else 0.0,
+            "unavailable_envelopes": unavailable, "scan_complete": True}

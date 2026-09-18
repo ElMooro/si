@@ -13,7 +13,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 CONTRACT = "source-evidence.v1"
 SAFE_QUERY_KEYS = {"series_id", "file_type", "sort_order", "limit", "units", "frequency",
                    "observation_start", "observation_end", "realtime_start", "realtime_end",
-                   "symbol", "symbols", "range", "interval"}
+                   "symbol", "symbols", "range", "interval", "id", "datasetname", "tablename",
+                   "filter", "fields", "sort", "page[number]", "page[size]"}
 
 
 def public_source_url(url):

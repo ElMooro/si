@@ -48,6 +48,18 @@ def test_daily_latest_report_keeps_its_observation_date_across_a_missing_day():
     assert result["quality"]["latest_returned_period"] == "2026-09-17" and result["chg_pct"] == 20
 
 
+def test_broad_dollar_weekly_release_does_not_expire_like_daily_rates():
+    env = load()
+    env["source_json"] = lambda *a: ({"observations": [{"date": "2026-09-11", "value": "120"}]}, {"first_received_at": NOW.isoformat()})
+    sunday = datetime(2026, 9, 20, tzinfo=timezone.utc)
+    row = env["fred_latest"]("DTWEXBGS", sunday)
+    assert row["observation_date"] == "2026-09-11" and row["quality"]["max_observation_age_days"] == 11
+    for sid, when in (("DGS10", sunday), ("DTWEXBGS", datetime(2026, 9, 23, tzinfo=timezone.utc))):
+        try: env["fred_latest"](sid, when)
+        except ValueError: pass
+        else: raise AssertionError("stale observation accepted")
+
+
 def run_tape(bus=None, bus_time=None):
     env = load()
     def source(url, provider):

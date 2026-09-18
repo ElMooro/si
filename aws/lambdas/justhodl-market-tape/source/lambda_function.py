@@ -72,7 +72,8 @@ def fred_latest(sid, now):
     row, value = valid[0]
     observed = date.fromisoformat(row["date"])
     age = (now.date() - observed).days
-    if not 0 <= age <= 7:
+    max_age = 11 if sid == "DTWEXBGS" else 7
+    if not 0 <= age <= max_age:
         raise ValueError("daily observation is stale or future dated")
     previous = valid[1] if len(valid) > 1 else None
     change = ((value / previous[1] - 1) * 100) if previous and previous[1] != 0 else None
@@ -82,8 +83,8 @@ def fred_latest(sid, now):
             "source": "FRED", "src": "FRED:" + sid, "series_id": sid,
             "source_url": "https://fred.stlouisfed.org/series/" + sid,
             "received_at": evidence["first_received_at"], "evidence": {"observations": evidence},
-            "quality": {"status": "fresh", "observation_age_days": age, "max_observation_age_days": 7,
-                        "basis": "daily published observation, not an intraday quote",
+            "quality": {"status": "fresh", "observation_age_days": age, "max_observation_age_days": max_age,
+                        "basis": ("daily observations published weekly in H.10; not an intraday quote" if sid == "DTWEXBGS" else "daily published observation, not an intraday quote"),
                         "latest_returned_period": rows[0]["date"]}, "sizing_eligible": False}
 
 

@@ -18,60 +18,53 @@ from datetime import datetime, timezone
 import boto3
 
 from ofr_funding import build_funding
+from evidence_store import capture
+from provenance import wrap as _lib_wrap, missing as _lib_missing
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
-try:
-    from provenance import wrap as _lib_wrap, missing as _lib_missing
-except Exception:
-    _lib_wrap = _lib_missing = None
 
 
 def wrap(v, **kw):
-    """ops 4485: adapter — the real library is stricter than my fallback;
-    call it with whatever it accepts, merge the rest into the envelope."""
-    if _lib_wrap:
-        try:
-            env = _lib_wrap(v, **kw)
-        except TypeError:
-            try:
-                env = _lib_wrap(v, source_url=kw.get("source_url"),
-                                raw_snapshot_key=kw.get(
-                                    "raw_snapshot_key"))
-            except TypeError:
-                env = _lib_wrap(v)
-        if isinstance(env, dict):
-            for k2, v2 in kw.items():
-                env.setdefault(k2, v2)
-            return env
-    return {"value": v, **kw}
+    """Explicit adapter: provider metadata cannot occupy the field-name slot."""
+    field = kw.get("field") or kw.get("series") or "unidentified_measurement"
+    env = _lib_wrap(v, field, unit=kw.get("unit"), source=kw.get("provider", "unknown"),
+                    series_id=kw.get("series") or field, url=kw.get("source_url"),
+                    as_of=kw.get("observed"), received_at=kw.get("fetched_at"),
+                    raw_key=kw.get("raw_snapshot_key"), evidence=kw.get("evidence"),
+                    confidence=kw.get("confidence"))
+    for key, value in kw.items():
+        env.setdefault(key, value)
+    return env
 
 
 def missing(reason, **kw):
-    if _lib_missing:
-        try:
-            env = _lib_missing(reason, **kw)
-        except TypeError:
-            env = _lib_missing(reason)
-        if isinstance(env, dict):
-            for k2, v2 in kw.items():
-                env.setdefault(k2, v2)
-            return env
-    return {"data_unavailable": True, "reason": reason, **kw}
+    field = kw.get("field") or kw.get("series") or "unidentified_measurement"
+    env = _lib_missing(field, reason, unit=kw.get("unit"), source=kw.get("provider"))
+    for key, value in kw.items():
+        env.setdefault(key, value)
+    return env
 
 
-def _get(k, *, storage_metadata=False):
+def _get(k, *, storage_metadata=False, archive=False):
     obj = s3.get_object(Bucket=BUCKET, Key=k)
     b = obj["Body"].read()
     if k.endswith(".gz"):
         b = gzip.decompress(b)
     doc = json.loads(b)
+    if archive and isinstance(doc, dict):
+        proof = capture(s3, BUCKET, "warehouse", "https://" + BUCKET + ".s3.amazonaws.com/" + k, b)
+        proof["basis"] = "exact_warehouse_input; original-provider provenance evaluated separately"
+        doc["_input_evidence"] = proof
     if storage_metadata and isinstance(doc, dict) and obj.get("LastModified"):
         doc["_warehouse_last_modified"] = obj["LastModified"].isoformat()
     return doc
 
 
 def _pub(key, doc):
+    doc.setdefault("generated_at", datetime.now(timezone.utc).isoformat())
+    doc.setdefault("schema_version", "2.0")
+    doc.setdefault("sizing_eligible", False)
     s3.put_object(Bucket=BUCKET, Key=key,
                   Body=json.dumps(doc, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache")
@@ -85,27 +78,40 @@ def _ofr(now):
 
 def _soma(now):
     try:
-        d = _get("data/warm/nyfed-markets/soma_summary.json.gz")
+        d = _get("data/warm/nyfed-markets/soma_summary.json.gz", archive=True)
         rows = (d.get("payload", {}).get("soma", {}).get("summary")
                 or [])
-        last = rows[-1] if rows else {}
+        last = max(rows, key=lambda row: row.get("asOfDate", "")) if rows else {}
         out = {"as_of": now, "source": "NY Fed SOMA",
                "as_of_date": last.get("asOfDate")}
         n = 0
         for k, label in [("total", "total"), ("bills", "bills"),
                          ("notesbonds", "notes_bonds"),
-                         ("mbs", "mbs"), ("tips", "tips")]:
+                         ("mbs", "mbs"), ("tips", "tips"), ("frn", "frn"),
+                         ("cmbs", "cmbs"), ("agencies", "agencies"),
+                         ("tipsInflationCompensation", "tips_inflation_compensation")]:
             v = last.get(k)
             if v is not None:
                 out[label] = wrap(
-                    float(v), provider="nyfed",
-                    source_url="markets.newyorkfed.org/api"
+                    float(v), field=label, series="SOMA:" + k, provider="nyfed", unit="USD",
+                    observed=last.get("asOfDate"), evidence=d.get("_input_evidence"),
+                    source_url="https://markets.newyorkfed.org/api"
                                "/soma/summary.json",
                     raw_snapshot_key=d.get("raw_snapshot_key"),
                     fetched_at=d.get("as_of"))
                 n += 1
             else:
-                out[label] = missing("field absent", provider="nyfed")
+                out[label] = missing("field absent", field=label, series="SOMA:" + k, provider="nyfed")
+        out["measurement_basis"] = "SOMA domestic holdings; par/current face basis, not market value or total Federal Reserve assets"
+        components = [out.get(k, {}).get("value") for k in ("bills", "notes_bonds", "mbs", "tips", "frn", "cmbs", "agencies")]
+        total = out.get("total", {}).get("value")
+        out["reconciliation"] = {"component_sum_usd": sum(components) if all(v is not None for v in components) else None,
+                                 "tips_inflation_compensation_included_in_total": False,
+                                 "basis": "NY Fed SOMA total excludes separately reported TIPS inflation compensation"}
+        subtotal = out["reconciliation"]["component_sum_usd"]
+        out["reconciliation"]["difference_usd"] = total - subtotal if total is not None and subtotal is not None else None
+        out["reconciliation"]["status"] = ("unavailable" if total is None or subtotal is None else
+                                             "reconciled" if abs(total - subtotal) < 1 else "mismatch")
         _pub("data/soma-holdings.json", out)
         return n
     except Exception as e:
@@ -123,21 +129,30 @@ def _treasury(now):
                "avg_interest_rates", "interest_expense",
                "debt_outstanding", "rates_of_exchange"):
         try:
-            d = _get(f"data/warm/treasury/{ds}.json.gz")
+            d = _get(f"data/warm/treasury/{ds}.json.gz", archive=True)
             obs = d.get("observations") or []
             if obs:
+                latest_date = max(row.get("date", "") for row in obs)
+                latest = [row for row in obs if row.get("date") == latest_date]
+                if len(latest) != 1 or ds in ("rates_of_exchange", "avg_interest_rates", "interest_expense", "debt_outstanding"):
+                    out[ds] = missing("dataset dimensions are not preserved by the legacy collector; scalar selection withheld",
+                                      field=ds, provider="treasury", unit=d.get("unit"))
+                    out[ds]["last_observation_date"] = latest_date
+                    out[ds]["latest_period_rows"] = len(latest)
+                    out[ds]["evidence"] = d.get("_input_evidence")
+                    continue
                 out[ds] = wrap(
-                    obs[-1]["value"], observed=obs[-1]["date"],
-                    unit=d.get("unit"), provider="treasury",
+                    latest[0]["value"], observed=latest_date, field=ds, series="TREASURY:" + ds,
+                    unit=d.get("unit"), provider="treasury", evidence=d.get("_input_evidence"),
                     source_url=d.get("source_url"),
                     raw_snapshot_key=d.get("raw_snapshot_key"))
                 n += 1
             else:
                 out[ds] = missing("no observations",
-                                  provider="treasury")
+                                  field=ds, provider="treasury")
         except Exception as e:
             out[ds] = missing(f"{type(e).__name__}: {str(e)[:40]}",
-                              provider="treasury")
+                              field=ds, provider="treasury")
     _pub("data/treasury-fiscal.json", out)
     return n
 
@@ -145,37 +160,40 @@ def _treasury(now):
 def _bls(now):
     out = {"as_of": now, "source": "BLS v2 API"}
     n = 0
-    for sid, label in [("CUUR0000SA0", "cpi_headline"),
-                       ("CUUR0000SA0L1E", "cpi_core"),
-                       ("WPUFD4", "ppi_final_demand"),
-                       ("LNS14000000", "unemployment_rate"),
-                       ("JTS000000000000000JOL", "jolts_openings")]:
+    for sid, label, unit, adjustment in [("CUUR0000SA0", "cpi_headline", "Index 1982-1984=100", "NSA"),
+                       ("CUUR0000SA0L1E", "cpi_core", "Index 1982-1984=100", "NSA"),
+                       ("WPUFD4", "ppi_final_demand", "Index November 2009=100", "NSA"),
+                       ("LNS14000000", "unemployment_rate", "Percent", "SA"),
+                       ("JTS000000000000000JOL", "jolts_openings", "Thousands of job openings", "SA")]:
         try:
-            d = _get(f"data/warm/usgov/bls/{sid}.json.gz")
+            d = _get(f"data/warm/usgov/bls/{sid}.json.gz", archive=True)
             data = d.get("data") or []
-            last = data[0] if data else None
+            # BLS M13 is an annual average, never a newer monthly observation.
+            monthly = [row for row in data if str(row.get("period", "")) in {"M%02d" % m for m in range(1, 13)}]
+            last = max(monthly, key=lambda row: (str(row.get("year", "")), row["period"])) if monthly else None
             if last:
                 out[label] = wrap(
-                    float(last.get("value")),
+                    float(last.get("value")), field=label,
                     observed=f"{last.get('year')}-"
                              f"{last.get('period')}",
-                    provider="bls", series=sid,
-                    source_url="api.bls.gov/publicAPI/v2",
+                    provider="bls", series=sid, unit=unit, seasonal_adjustment=adjustment,
+                    evidence=d.get("_input_evidence"),
+                    source_url="https://api.bls.gov/publicAPI/v2/timeseries/data/" + sid,
                     raw_snapshot_key=d.get("raw_snapshot_key"))
                 n += 1
             else:
                 out[label] = missing("empty series", provider="bls",
-                                     series=sid)
+                                     field=label, series=sid)
         except Exception as e:
             out[label] = missing(f"{type(e).__name__}: {str(e)[:40]}",
-                                 provider="bls", series=sid)
+                                 field=label, provider="bls", series=sid)
     _pub("data/bls-macro.json", out)
     return n
 
 
 def _bea(now):
     try:
-        d = _get("data/warm/usgov/bea/nipa-t10101.json.gz")
+        d = _get("data/warm/usgov/bea/nipa-t10101.json.gz", archive=True)
         rows = [r for r in (d.get("rows") or [])
                 if r.get("LineNumber") == "1"]
         rows.sort(key=lambda r: r.get("TimePeriod", ""))
@@ -185,8 +203,9 @@ def _bea(now):
             out["real_gdp_qq_pct"] = wrap(
                 float(str(last.get("DataValue", "")
                           ).replace(",", "")),
-                observed=last.get("TimePeriod"), provider="bea",
-                source_url="apps.bea.gov/api (NIPA T10101 L1)")
+                    observed=last.get("TimePeriod"), field="real_gdp_qq_pct", provider="bea",
+                series="NIPA:T10101:L1", unit=last.get("CL_UNIT") or "Percent change from preceding period at annual rate",
+                evidence=d.get("_input_evidence"), source_url="https://apps.bea.gov/api/data/?datasetname=NIPA&TableName=T10101")
             _pub("data/bea-gdp.json", out)
             return 1
         out["real_gdp_qq_pct"] = missing("line 1 absent",
