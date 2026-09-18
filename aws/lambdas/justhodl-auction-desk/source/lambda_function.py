@@ -53,7 +53,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -272,6 +272,12 @@ def analyze_bank(bank_sorted, par_rows, today):
 def analyze_auction(r, bank_sorted, par_rows, prior=None):
     """Participation grade against comparable instruments; prior-close gap is context."""
     a = dict(r)
+    if not r.get("instrument_contract"):
+        # Legacy warehouse rows predate retained instrument flags. Keep their
+        # observations, but never infer nominal/TIPS/FRN identity from size.
+        a.update(instrument_kind="UNKNOWN", instrument_classification_status="unverified",
+                 quote_basis=None, instrument_contract=None,
+                 instrument_missing_reason="Legacy row lacks original security classification fields")
     a.update(shares(r))
     if prior is None:
         cohort = comparable_cohort(r)

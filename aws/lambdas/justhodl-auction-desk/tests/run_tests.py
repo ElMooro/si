@@ -150,6 +150,17 @@ def test_conditional_history_cannot_grant_confidence_or_impute_missing_baseline(
     assert not result['decision_eligible'] and not result['sizing_eligible']
 
 
+def test_legacy_bank_rows_publish_explicit_unknown_identity_and_no_grade():
+    old = row()
+    for key in ('instrument_contract','instrument_kind','instrument_classification_status','tips','floating_rate','quote_basis'):
+        old.pop(key,None)
+    result=env['analyze_auction'](old,[old],{'2026-09-16':{'10Y':4.0}})
+    assert result['instrument_kind']=='UNKNOWN' and result['quote_basis'] is None
+    assert result['tail_bp'] is None and result['grade']=='n/a'
+    assert result['btc']==old['btc'] and result['high_yield']==old['high_yield']
+    assert env['chart_cohorts']([result])=={}
+
+
 if __name__ == '__main__':
     tests = [fn for name, fn in sorted(globals().items()) if name.startswith('test_') and callable(fn)]
     for test in tests:
