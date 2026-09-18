@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 import boto3
 
+from treasury_fiscal_model import CONTRACT as FISCAL_CONTRACT, DATASETS as FISCAL_DATASETS, latest as fiscal_latest
 from ofr_funding import build_funding
 from evidence_store import capture
 from provenance import wrap as _lib_wrap, missing as _lib_missing
@@ -92,7 +93,9 @@ def _pub(key, doc):
     if key in ceilings:
         now = datetime.now(timezone.utc)
         rows = {name: row for name, row in doc.items() if isinstance(row, dict) and "value" in row and "source" in row}
-        for row in rows.values(): row["freshness"] = measurement_freshness(row, now, ceilings[key])
+        for row in rows.values():
+            if row.get("dimension_contract") != FISCAL_CONTRACT:
+                row["freshness"] = measurement_freshness(row, now, ceilings[key])
         bad = [name for name, row in rows.items() if row["freshness"]["status"] != "fresh"]
         doc["quality"] = {"status": "unavailable" if not rows else "partial" if bad else "fresh",
                           "missing_or_stale": bad, "basis": "per_measurement_observation_period; source replay status is separate"}
@@ -161,6 +164,26 @@ def _treasury(now):
                "debt_outstanding", "rates_of_exchange"):
         try:
             d = _get(f"data/warm/treasury/{ds}.json.gz", archive=True)
+            if d.get("contract") == FISCAL_CONTRACT:
+                packet = fiscal_latest(d, now)
+                head = packet["headline"]
+                if head and head["value"] is not None:
+                    entry = wrap(head["value"], field=ds, series=head["series_id"], provider="treasury",
+                                 unit=head["unit"], observed=head["as_of"], source_url=d["source_url"],
+                                 raw_snapshot_key=head["source_key"], evidence=d.get("_input_evidence"))
+                    entry["value_decimal"] = head["value_decimal"]
+                    entry["source_row_index"] = head["row_index"]
+                    n += 1
+                else:
+                    entry = missing("select a dimension and field; this dataset has no single scalar", field=ds, provider="treasury")
+                entry.update(measurements=packet["measurements"], freshness=packet["freshness"],
+                             reconciliation=packet["reconciliation"], usage=packet["usage"],
+                             replay=d.get("replay"), sources=d.get("sources"),
+                             acquisition=d.get("acquisition"), dimension_contract=FISCAL_CONTRACT,
+                             max_age_days=FISCAL_DATASETS[ds]["max_age_days"],
+                             publication_time_verified=False, sizing_eligible=False)
+                out[ds] = entry
+                continue
             obs = d.get("observations") or []
             if obs:
                 latest_date = max(row.get("date", "") for row in obs)
@@ -258,6 +281,9 @@ def lambda_handler(event, context):
         count = _ofr(now)
         return {"statusCode": 200, "body": json.dumps({
             "ok": count == 5, "wrapped": {"ofr": count}})}
+    if isinstance(event, dict) and event.get("feed") == "treasury":
+        count = _treasury(now)
+        return {"statusCode": 200, "body": json.dumps({"ok": count == 3, "wrapped": {"treasury": count}})}
     res = {"ok": True,
            "wrapped": {"ofr": _ofr(now), "soma": _soma(now),
                        "treasury": _treasury(now), "bls": _bls(now),

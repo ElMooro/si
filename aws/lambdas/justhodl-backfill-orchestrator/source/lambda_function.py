@@ -1,125 +1,67 @@
-"""justhodl-backfill-orchestrator — E10 v1 (ops 4455).
+"""One bounded dimensional Treasury history acquisition per invocation.
 
-One bounded backfill unit per run, progress-tracked, rate-limit-polite —
-the machine that deepens every warm archive over nights instead of one
-giant pull. v1 worklist: TGA operating cash (fiscaldata page[number]
-pagination; E7 loaded 2022->now, this walks pages backward to the
-dataset's start). Each run: fetch next older page, MERGE into
-data/warm/treasury/tga_operating_cash.json.gz (dedupe by date), advance
-cursor in data/audit/backfill-progress.json. When a source is exhausted it
-says COMPLETE and stops — no infinite polling. Framework: add worklist
-entries per archive (nyfed, cftc, fred) in later passes."""
-import gzip
+The old page-number/date-only cursor is retained at its old key for inspection,
+but cannot grant completion to this v2 backfill. Re-fetch the oldest boundary
+date so a page split cannot strand rows from the same observation period.
+"""
 import json
 import os
-import urllib.request
-from datetime import datetime, timezone
-
+from datetime import date, timedelta
 import boto3
+from raw_snapshot import snapshot  # Declares the transitive capture deploy dependency.
+from treasury_fiscal_model import CONTRACT, DATASETS, encoded
+from treasury_fiscal_store import acquire, merge, summary, get, now, error_code
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
-try:
-    from raw_snapshot import snapshot
-except Exception:
-    snapshot = None
-
-PROG_KEY = "data/audit/backfill-progress.json"
-BASE = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
-        "/v1/accounting/dts/operating_cash_balance")
-# ops 4456: filter+page[number] combined -> 400. Paginate UNFILTERED,
-# filter client-side (discover-don't-assume #8).
-FILTER = "?sort=-record_date&page[size]=2500"
-
-
-def _get(k, default=None):
-    try:
-        return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
-    except Exception:
-        return default
-
-
-def _get_gz(k):
-    try:
-        import io
-        b = s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()
-        return json.loads(gzip.decompress(b))
-    except Exception:
-        return None
+PROG_KEY = "data/audit/treasury-fiscal-backfill-v2.json"
 
 
 def lambda_handler(event, context):
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    prog = _get(PROG_KEY, {"tasks": {}})
-    task = prog["tasks"].get("tga_deep") or {
-        "dataset": "tga_operating_cash", "next_page": 2,
-        "status": "running", "pages_done": 1,
-        "note": "page 1 = E7's live pull; walking older pages"}
-    if task.get("status") == "COMPLETE":
-        res = {"ok": True, "tga_deep": "COMPLETE", "skipped": True}
-        print(json.dumps(res))
-        return {"statusCode": 200, "body": json.dumps(res)}
-    page = task["next_page"]
-    url = (BASE + FILTER.replace(" ", "%20")
-           + f"&page[number]={page}")
-    added = 0
+    progress, etag, _ = get(s3, BUCKET, PROG_KEY)
+    progress = progress or {"contract": CONTRACT, "tasks": {}, "cursor": 0}
+    tasks = progress["tasks"]
+    requested = (event or {}).get("dataset")
+    if requested is not None and requested not in DATASETS:
+        return {"statusCode": 400, "body": json.dumps({"ok": False, "error": "unknown dataset"})}
+    choices = list(DATASETS)
+    choices = choices[progress["cursor"]:] + choices[:progress["cursor"]]
+    if requested:
+        choices = [requested]
+    dataset = next((ds for ds in choices if tasks.get(ds, {}).get("status") != "complete"), None)
+    if not dataset:
+        return {"statusCode": 200, "body": json.dumps({"ok": True, "status": "complete"})}
     try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "JustHodl research admin@justhodl.ai"})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            raw = r.read()
-        if snapshot:
-            snapshot("treasury", url, raw)
-        data = (json.loads(raw).get("data") or [])
-        if not data:
-            task["status"] = "COMPLETE"
-            task["completed_at"] = now
-        else:
-            warm = _get_gz("data/warm/treasury/"
-                           "tga_operating_cash.json.gz") or \
-                {"dataset": "tga_operating_cash",
-                 "unit": "USD millions", "observations": []}
-            have = {o["date"] for o in warm.get("observations", [])}
-            for o in data:
-                if "Treasury General Account" not in \
-                        str(o.get("account_type", "")):
-                    continue
-                d = o.get("record_date")
-                try:
-                    v = float(o.get("open_today_bal"))
-                except (TypeError, ValueError):
-                    continue
-                if d and d not in have:
-                    warm["observations"].append({"date": d, "value": v})
-                    added += 1
-            warm["observations"].sort(key=lambda x: x["date"])
-            warm["n_obs"] = len(warm["observations"])
-            warm["span"] = (f"{warm['observations'][0]['date']}.."
-                            f"{warm['observations'][-1]['date']}"
-                            if warm["observations"] else None)
-            warm["backfill_note"] = (f"E10 orchestrator: {task['pages_done']}"
-                                     f"+1 pages merged as of {now}")
-            s3.put_object(Bucket=BUCKET,
-                          Key="data/warm/treasury/"
-                              "tga_operating_cash.json.gz",
-                          Body=gzip.compress(
-                              json.dumps(warm).encode()),
-                          ContentType="application/gzip")
-            task["next_page"] = page + 1
-            task["pages_done"] = task.get("pages_done", 1) + 1
-            task["last_span"] = warm["span"]
-            task["n_obs_total"] = warm["n_obs"]
-    except Exception as e:
-        task["last_error"] = f"{type(e).__name__}: {str(e)[:80]}"
-    task["updated_at"] = now
-    prog["tasks"]["tga_deep"] = task
-    prog["as_of"] = now
-    s3.put_object(Bucket=BUCKET, Key=PROG_KEY,
-                  Body=json.dumps(prog, default=str).encode(),
-                  ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "page_fetched": page, "rows_added": added,
-           "status": task.get("status"),
-           "n_obs_total": task.get("n_obs_total"),
-           "span": task.get("last_span")}
-    print(json.dumps(res))
-    return {"statusCode": 200, "body": json.dumps(res)}
+        current, _, _ = get(s3, BUCKET, "data/warm/treasury/" + dataset + ".json.gz")
+        if not current or current.get("contract") != CONTRACT or not current.get("records"):
+            raise ValueError("current dimensional acquisition must run first")
+        boundary = min(item["row"]["record_date"] for item in current["records"])
+        # lt next day means include the boundary date, completing split periods.
+        before = (date.fromisoformat(boundary) + timedelta(days=1)).isoformat()
+        page = acquire(dataset, BUCKET, before=before)
+        rows = page["document"]["data"]
+        total = int(page["document"].get("meta", {}).get("total-count", -1))
+        complete = total == len(rows)
+        if rows and not complete and min(r["record_date"] for r in rows) >= boundary:
+            raise ValueError("page cannot progress past boundary; increase reviewed acquisition bound")
+        merged = merge(s3, BUCKET, dataset, [page])
+        summary(s3, BUCKET)
+        tasks[dataset] = {"status": "complete" if complete else "running", "updated_at": now(),
+                          "oldest_observation": min(r["row"]["record_date"] for r in merged["records"]),
+                          "records_retained": merged["n_records"], "query_rows": len(rows),
+                          "query_total": total, "replay": merged["replay"],
+                          "completion_scope": "current provider vintage; no historical release-time claim"}
+        progress["cursor"] = (list(DATASETS).index(dataset) + 1) % len(DATASETS)
+        progress["generated_at"] = now()
+        try:
+            s3.put_object(Bucket=BUCKET, Key=PROG_KEY, Body=encoded(progress), ContentType="application/json",
+                          **({"IfMatch": etag} if etag else {"IfNoneMatch": "*"}))
+        except Exception as exc:
+            if error_code(exc) not in ("412", "PreconditionFailed", "409", "ConditionalRequestConflict"):
+                raise
+            # History already committed safely. A concurrent cursor wins; replay
+            # the harmless acquisition next time rather than lose its progress.
+            return {"statusCode": 200, "body": json.dumps({"ok": True, "progress_conflict": True})}
+        return {"statusCode": 200, "body": json.dumps({"ok": True, "dataset": dataset, **tasks[dataset]})}
+    except Exception as exc:
+        return {"statusCode": 503, "body": json.dumps({"ok": False, "dataset": dataset, "error": type(exc).__name__})}

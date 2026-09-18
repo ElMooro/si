@@ -93,6 +93,12 @@ table.tbl tr:last-child td{border-bottom:none}
 
 .footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
 
+#treasury-fiscal-research>details{border-top:1px solid var(--border);padding:12px 0}
+#treasury-fiscal-research summary{cursor:pointer;color:var(--fg-1);font-weight:600}
+#treasury-fiscal-research p{margin:8px 0;color:var(--fg-2)}
+#treasury-fiscal-research .tf-table{overflow-x:auto;max-width:100%}
+#treasury-fiscal-research code{overflow-wrap:anywhere;white-space:normal}
+#treasury-fiscal-research td{min-width:110px;max-width:420px}
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#facc15">
@@ -204,6 +210,10 @@ table.tbl tr:last-child td{border-bottom:none}
 <div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
 
 </div>
+  <section class="card" style="margin-bottom:24px" aria-labelledby="treasury-fiscal-heading">
+    <div class="card-head"><h2 id="treasury-fiscal-heading" class="card-title">Treasury fiscal research · inspect the evidence</h2></div>
+    <div id="treasury-fiscal-research" aria-live="polite"><p>Loading dimensional Treasury measurements…</p></div>
+  </section>
 </main>
 
 <footer class="footer">
@@ -619,5 +629,6 @@ setInterval(load, 300000);
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 <script src="/jh-pd-fails-strip.js?v=5633"></script>
+<script src="/jh-treasury-fiscal.js?v=5728" defer></script>
 </body>
 </html>

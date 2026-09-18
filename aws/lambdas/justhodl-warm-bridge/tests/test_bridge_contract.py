@@ -58,6 +58,23 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(row["latest_period_rows"], 2)
         self.assertIn("dimensions", row["reason"])
 
+    def test_fiscal_canonical_annual_cadence_and_exact_decimal_survive_bridge(self):
+        from treasury_fiscal_model import build, BASE, DATASETS
+        ds = "debt_outstanding"
+        page = {"document": {"data": [{"record_date": "2025-09-30", "debt_outstanding_amt": "37637553494935.61"}],
+                              "meta": {"count": 1, "total-count": 1}},
+                "receipt": {"contract": "raw-snapshot.v2", "captured_bytes_verified": True, "provider": "treasury",
+                            "source_url": BASE + DATASETS[ds]["path"] + "?page=1", "key": "source", "captured_at": "2026-09-18T00:00:00+00:00"},
+                "acquired_at": "2026-09-18T00:00:00+00:00"}
+        self.docs["data/warm/treasury/" + ds + ".json.gz"] = build(ds, None, [page], "2026-09-18T01:00:00+00:00")
+        self.mod._treasury("2026-09-18T02:00:00+00:00")
+        row = self.output["data/treasury-fiscal.json"][ds]
+        self.assertEqual(row["value_decimal"], "37637553494935.61")
+        self.assertEqual(row["as_of"], "2025-09-30")
+        self.assertEqual(row["freshness"]["status"], "fresh")
+        self.assertEqual(row["freshness"]["cadence"], "fiscal_annual")
+        self.assertFalse(row["sizing_eligible"])
+
     def test_bea_uses_table_line_period_and_preserves_definition(self):
         self.docs["data/warm/usgov/bea/nipa-t10101.json.gz"] = {"rows": [
             {"LineNumber": "1", "TimePeriod": "2026Q2", "DataValue": "2.1"},

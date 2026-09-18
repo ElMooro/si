@@ -850,6 +850,21 @@ def build(event, context):
                 continue
             d = _get_json(k) or {}
             dsn = d.get("dataset") or k.rsplit("/", 1)[-1][:-8]
+            from treasury_fiscal_model import CONTRACT as FISCAL_CONTRACT, measurements
+            if d.get("contract") == FISCAL_CONTRACT:
+                # One searchable series per field and dimension, never one line
+                # blending currencies, security categories or cash-account types.
+                for measure in measurements(d):
+                    if measure["value"] is None:
+                        continue
+                    selector = measure["series_id"]
+                    title = " / ".join(str(v) for v in measure["dimensions"].values())
+                    sid = "treasury:" + dsn + ":" + selector.rsplit(":", 1)[-1]
+                    docs.append(doc(sid, "treasury", "FiscalData " + dsn + " / " + measure["field"] + " / " + title,
+                                    "series", 0.5, unit=measure["unit"], last=measure["as_of"], key=k,
+                                    extra={"ds": dsn, "fiscal_series_id": selector, "dimensional": True}))
+                    n += 1
+                continue
             obs = d.get("observations")
             if isinstance(obs, list) and obs and isinstance(obs[0], dict) and "date" in obs[0]:
                 # the fiscaldata engine already reduced this dataset to one headline series
@@ -2087,7 +2102,10 @@ def _cache_get(sid, max_age_s):
         age = (_now() - o["LastModified"]).total_seconds()
         if age > max_age_s:
             return None, age
-        return json.loads(o["Body"].read()), age
+        cached = json.loads(o["Body"].read())
+        if sid.lower().startswith("treasury:") and cached.get("dimension_contract") != "treasury-fiscal-warehouse.v2":
+            return None, age
+        return cached, age
     except Exception:  # noqa: BLE001
         return None, None
 
@@ -2490,17 +2508,24 @@ def r_worldbank(sid, rest, d):
 
 def r_treasury(sid, rest, d):
     dsn, _, field = rest.partition(":")
+    from treasury_fiscal_model import DATASETS
+    if dsn not in DATASETS:
+        raise ValueError("unknown Treasury dataset")
     key = (d[D_KEY] if d else None) or ("data/warm/treasury/%s.json.gz" % dsn.lower())
     j = _get_json(key) or {}
-    obs = j.get("observations")
-    if isinstance(obs, list) and obs and isinstance(obs[0], dict) and "date" in obs[0]:
-        vk = ((d[D_EXTRA] or {}).get("field") if d else None) or field or next((x for x in obs[0].keys() if x not in ("date", "record_date") and _f(obs[0].get(x)) is not None), "value")
-        return _result(sid, "treasury", [(o.get("date"), o.get(vk)) for o in obs], name=(d[D_TITLE] if d else "FiscalData " + dsn), unit=j.get("unit"), source="warehouse:treasury")
-    rows = j.get("payload") or j.get("data") or j.get("rows") or []
-    if isinstance(rows, dict):
-        rows = rows.get("data") or []
-    fld = (d[D_EXTRA] or {}).get("field") or field
-    return _result(sid, "treasury", [(r.get("record_date"), r.get(fld)) for r in rows], name=d[D_TITLE], unit=j.get("unit"), source="warehouse:treasury")
+    from treasury_fiscal_model import series_rows
+    extra = (d[D_EXTRA] or {}) if d else {}
+    selector = extra.get("fiscal_series_id")
+    if not selector and field:
+        selector = "TREASURY:" + dsn + ":" + field
+    rows = series_rows(j, selector)
+    out = _result(sid, "treasury", [(r["as_of"], r["value"]) for r in rows],
+                  name=(d[D_TITLE] if d else "FiscalData " + dsn), unit=rows[0]["unit"], source="warehouse:treasury")
+    out.update(series_id=rows[0]["series_id"], dimensions=rows[0]["dimensions"],
+               replay=j.get("replay"), publication_time_verified=False, sizing_eligible=False,
+               measurement_basis=j.get("usage"), dimension_contract=j["contract"],
+               measurement_evidence=[{k: r[k] for k in ("as_of", "value_decimal", "source_key", "row_index")} for r in rows])
+    return out
 
 
 def r_boe(sid, rest, d):
@@ -2960,7 +2985,7 @@ def fetch_series(sid, nocache=False, _depth=0):
     try:
         return _fetch_series(sid, nocache=nocache)
     except Exception as e:  # noqa: BLE001
-        if _depth > 0 or not sid or ":" not in sid:
+        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith("treasury:"):
             raise
         cands = closest_ids(sid)
         # a typed id that is the prefix of a clearly better-known real id resolves to it (TVC:US10 -> TVC:US10Y)

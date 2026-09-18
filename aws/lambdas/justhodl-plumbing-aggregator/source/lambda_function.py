@@ -1067,14 +1067,24 @@ def l0_s3_joins():
                 "Collateral reuse — the note single-bond-backing-"
                 "many-loans chapter, proxied from dealer data")
     tf = _s3_json("data/warm/treasury/latest-summary.json")
-    if tf:
-        hits = _discover_numeric(
-            tf, ["tga", "operating_cash", "cash_balance", "opening_balance"])
-        for k, v in sorted(hits.items())[:1]:
-            add("TGA_DAILY", "TGA Daily (DTS, discovered: %s)" % k,
-                round(v, 1), tf.get("as_of") or tf.get("date"),
-                "Daily Treasury cash — fresher than the weekly "
-                "WTREGEN print")
+    # A substring numeric walk could select n_obs or an opening balance.
+    # Consume only the explicitly defined, dated closing-balance measurement.
+    if tf and tf.get("contract") == "treasury-fiscal-warehouse.v2":
+        row = (tf.get("datasets") or {}).get("tga_operating_cash") or {}
+        head = row.get("headline") or {}
+        try:
+            observation_age = (datetime.now(timezone.utc).date() - datetime.strptime(head.get("as_of", ""), "%Y-%m-%d").date()).days
+        except (TypeError, ValueError):
+            observation_age = None
+        if (observation_age is not None and 0 <= observation_age <= 7 and head.get("field") == "open_today_bal" and head.get("unit") == "USD_millions"
+                and (head.get("dimensions") or {}).get("account_type") == "Treasury General Account (TGA) Closing Balance"
+                and (row.get("freshness") or {}).get("status") == "fresh"
+                and isinstance(head.get("value"), (int, float)) and not isinstance(head.get("value"), bool)):
+            add("TGA_DAILY", "TGA closing balance (DTS, USD millions)", head["value"], head["as_of"],
+                "Reported daily Treasury closing cash balance; research context, zero model weight")
+            out[-1].update(unit="USD_millions", value_decimal=head.get("value_decimal"),
+                           series_id=head.get("series_id"), source_key=head.get("source_key"),
+                           source_row_index=head.get("row_index"), sizing_eligible=False)
     print("[plumbing] L0 s3 joins: %d contributors" % len(out))
     return out
 
@@ -1438,6 +1448,9 @@ def lambda_handler(event, context):
         "polarity": ind.get("polarity"),
         "source": ind.get("source"),
         "interp": ind.get("interp"),
+        "unit": ind.get("unit"), "value_decimal": ind.get("value_decimal"),
+        "series_id": ind.get("series_id"), "source_key": ind.get("source_key"),
+        "source_row_index": ind.get("source_row_index"),
         "err": ind.get("err"),
     } for ind in enriched}
 
