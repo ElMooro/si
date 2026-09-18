@@ -22,7 +22,7 @@
       if(state==='AVAILABLE'){
         if(key==='bill_participation'){
           rows=(metrics.tenor_breakdown||[]).map(t=>[t.tenor,
-            t.state==='AVAILABLE'?`${t.latest_auction?.auction_date||'Undated'} · indirect change ${num(t.indirect_drop_pts,'pp below prior mean')} · BTC change ${num(t.btc_spike,'ratio points')}`:t.state||'UNAVAILABLE']);
+            t.state==='AVAILABLE'?`${t.latest_auction?.auction_date||'Undated'} · indirect share ${num(typeof t.indirect_drop_pts==='number'?-t.indirect_drop_pts:null,'pp vs prior mean')} · bid-to-cover change ${num(t.btc_spike,'ratio points')}`:t.state||'UNAVAILABLE']);
         }else rows=[['Auction / prior',`${latest.auction_date||'Undated'} / ${m.prior_auction?.auction_date||'Undated'}`],
                     ['Quote basis',latest.quote_basis||'Unavailable'],['Yield change',num(metrics.yield_change_bp,'bp')],
                     ['Reopening',latest.reopening===true?'Yes':latest.reopening===false?'No':'Unavailable'],

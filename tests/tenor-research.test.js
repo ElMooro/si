@@ -15,6 +15,11 @@ test('provider strings and retained-manifest links cannot inject HTML or script 
  const d=packet();d.measurements.nominal_2y.latest_auction.quote_basis='<img onerror=x>';d.reproducibility={key:'javascript:alert(1)'};
  const html=panelHTML(d,now);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img|href="javascript/);
 });
+test('an indirect-share rise is displayed as a positive change, not a negative drop',()=>{
+ const d=packet();d.measurements.bill_participation={state:'AVAILABLE',metrics:{tenor_breakdown:[{tenor:'4-Week',state:'AVAILABLE',latest_auction:{auction_date:'2026-09-17'},indirect_drop_pts:-2.2,btc_spike:0}]}};
+ const html=panelHTML(d,now);assert.match(html,/indirect share 2\.20 pp vs prior mean/);assert.match(html,/bid-to-cover change 0\.00 ratio points/);
+ assert.doesNotMatch(html,/pp below prior mean/);
+});
 test('a failed refresh clears previously displayed measurements',async()=>{
  const panel={innerHTML:''},pill={};let cycle,fail=false;
  const doc={readyState:'complete',querySelector:()=>pill,getElementById:id=>id==='jhTenorStyles'?{}:panel};
