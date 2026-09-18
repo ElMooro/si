@@ -1,10 +1,4 @@
-executing-against: 040f922cfede5fe074845fbb6446e7973dd0529a
-invoke justhodl-eurodollar-plumbing 200 b'{"errorMessage": "name \'out\' is not defined", "errorType": "NameError", "requestId": "5f2c4e4d-af7d-49aa-b27e-ec0330a28a5d", "stackTrace": ["  File \\"/var/task/lambda_function.py\\", line 589, in lambda_handler\\n    if isinstance(out, dict):'
-invoke justhodl-capital-flow 200 b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"accumulating\\": 40, \\"distributing\\": 25, \\"etf_flows\\": 45}"}'
-ciss-headline 0.033893 CALM 2026-09-15
-brief data/ai-brief.md bytes 3068
-brief-tail e FR2004; they do not become six independent votes. |  | ## DATA LIMITATIONS | - 2 fields are stale, incomplete or unverified. Missing observation dates are shown explicitly; publication time is never substituted. | - No allocation model or out-of-sample edge is validated here. All fields are monitor-only, even when fresh. No target exposure, probability or position size is inferred. |  | ## WATCH CONDITIONS | - Reassess when the named source observations change, their dates advance, or upstream
-brief data/ai-brief.json bytes 21117
-brief-json-keys ['version', 'generated_at', 'generation_method', 'model', 'paid_api_calls', 'brief_md', 'evidence', 'coverage', 'quality', 'call_verb', 'decision_eligible', 'sizing_eligible', 'abstain_on_error', 'visibility', 'snapshot', 'duration_s', 'decision', 'decision_status']
-calls-last 2026-09-18T16:05:37.089203+00:00 WAIT 3068
-eurodollar-gen 2026-09-17T12:03:31Z score 13.7
+executing-against: 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754
+
+→ Report written to aws/ops/reports/latest/ops_5712_performance_integrity_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_5712_performance_integrity_verify.py
