@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.5.0"
+VERSION = "2.5.1"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -1041,13 +1041,14 @@ def _wall(mode: str, event: dict, context=None) -> dict:
         if not rehearse:
             return {"ok": False, "phase": "post", "error": "nothing staged for %s -- prepare did not run" % week}
         staged = wp.prepare(store, client("s3"), client("sagemaker-runtime"), control, season, read_doc, now, PUBLIC_BUCKET)
+    real_store = store
     if rehearse:
         # the door checks the window on the store clock: rehearse against Monday 09:31 ET of the staged week
         from zoneinfo import ZoneInfo
         monday = datetime.combine(date.fromisoformat(staged["week"]), dtime(9, 31), ZoneInfo("America/New_York")).astimezone(timezone.utc)
         from factory_store import Store
         store = Store(client("s3"), PRIVATE_BUCKET, PUBLIC_BUCKET, lambda: monday)
-    receipt = wp.post(store, staged, season, control, holdout_manifest_hash(store), accept_prediction, rehearse=rehearse)
+    receipt = wp.post(store, staged, season, control, holdout_manifest_hash(store), accept_prediction, rehearse=rehearse, settle_store=real_store)
     if not rehearse:
         _safe(lambda: run_inventory(context, continue_embeddings=False))
     return {"ok": True, "phase": "post", **receipt}

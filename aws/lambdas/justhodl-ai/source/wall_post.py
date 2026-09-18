@@ -87,7 +87,7 @@ def grouped_rows(s3, public_bucket: str, days: list, symbol: str):
         if row is None:
             raise LookupError("symbol_absent_in_session:%s:%s" % (symbol, day))
         rows.append({"o": float(row["o"]), "h": float(row.get("h") or row["c"]), "l": float(row.get("l") or row["c"]), "c": float(row["c"]), "v": float(row.get("v") or 0)})
-        keys.append({"bucket": public_bucket, "key": key, "sha256": hashlib.sha256(raw).hexdigest()})
+        keys.append({"bucket": "public", "key": key, "sha256": hashlib.sha256(raw).hexdigest()})   # the evidence contract names the role, not the bucket
     return rows, keys
 
 
@@ -133,7 +133,7 @@ def prepare(store, s3, sm_runtime, control, season, read_doc: dict, now: datetim
             if control and control.get("enabled") and control.get("endpoint_name"):
                 prompt = ff.bars_prompt(bars, ASSET_CLASS[symbol], season["flat_thresholds"].get(symbol), season["crisis_drawdown_thresholds"].get(symbol))
                 pending = fin.submit_task(store, sm_runtime, control, "wall-post", ff.SYSTEM, prompt, max_new_tokens=220, temperature=0.0,
-                                          meta={"symbol": symbol, "week": week, "for": "wall-post"}, salt="%s:%s" % (week, symbol))
+                                          meta={"symbol": symbol, "week": week, "for": "wall-post"}, salt="%s:%s:%s" % (week, symbol, now.strftime("%Y%m%dT%H")))
                 entry["owned"] = {"pending_id": pending.get("id"), "state": pending.get("state"), "origin": pending.get("origin")}
             else:
                 entry["owned"] = {"state": "not_submitted", "error": "owned inference control disabled"}
@@ -202,9 +202,10 @@ def entries_for(staged: dict, season: dict, control: dict, holdout_hash) -> list
     return out
 
 
-def post(store, staged: dict, season: dict, control: dict, holdout_hash, accept, *, rehearse: bool = False) -> dict:
-    """Phase 2: settle, then accept every entry that has a real forecast. Returns a receipt (public-safe)."""
-    staged = settle_owned(store, staged)
+def post(store, staged: dict, season: dict, control: dict, holdout_hash, accept, *, rehearse: bool = False, settle_store=None) -> dict:
+    """Phase 2: settle, then accept every entry that has a real forecast. Returns a receipt (public-safe).
+    settle_store: the real-clock store when `store` carries a rehearsal clock (an owned answer's age is measured now, not on Monday)."""
+    staged = settle_owned(settle_store or store, staged)
     receipt = {"schema_version": "student-wall-receipt.v1", "week": staged["week"], "rehearsal": rehearse, "entries": [], "skipped": []}
     for agent, body in entries_for(staged, season, control, holdout_hash):
         event_id = "%s-%s-%s" % (body["week"], agent, body["symbol"])

@@ -135,5 +135,23 @@ class WallPostTests(unittest.TestCase):
         self.assertIn("session_file_missing", staged["symbols"]["SPY"].get("error") or "")
 
 
+    def test_evidence_keys_name_the_bucket_role_and_rehearsal_settles_on_the_real_clock(self):
+        staged = wp.prepare(self.store, self.cloud, self.rt, self.control, SEASON, READ_DOC, self.now, 'public')
+        self.assertTrue(all(k["bucket"] == "public" for k in staged["symbols"]["SPY"]["data_keys"]))
+        # the rehearsal store says Monday; the owned answers were submitted "now" (Friday): settling on the Monday clock would call them expired
+        monday_store = Store(self.cloud, 'private', 'public', lambda: datetime(2026, 9, 21, 9, 31, tzinfo=NY))
+        receipt = wp.post(monday_store, staged, SEASON, self.control, holdout_manifest_hash(monday_store), accept_prediction, rehearse=True, settle_store=self.store)
+        owned = [e for e in receipt["entries"] if e["agent"] == "student-owned"]
+        self.assertEqual(len(owned), 3); self.assertTrue(all(e["status"] == "rehearsed" for e in receipt["entries"]))
+        self.assertFalse(any("expired" in s["reason"] for s in receipt["skipped"]))
+
+    def test_a_new_prepare_hour_submits_fresh_owned_tasks(self):
+        wp.prepare(self.store, self.cloud, self.rt, self.control, SEASON, READ_DOC, self.now, 'public')
+        first = {k for k in self.cloud.rows if k[1].startswith(fi.REQ_PREFIX)}
+        wp.prepare(self.store, self.cloud, self.rt, self.control, SEASON, READ_DOC, self.now + timedelta(hours=2), 'public')
+        second = {k for k in self.cloud.rows if k[1].startswith(fi.REQ_PREFIX)}
+        self.assertEqual(len(second - first), 6)
+
+
 if __name__ == '__main__':
     unittest.main()
