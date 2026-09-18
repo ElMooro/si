@@ -38,12 +38,8 @@ DRILL_PREFIX = "factory/curriculum/charts/"      # where scripts/factory_holdout
 SEASON_KEYS = ("factory/control/season.json", "factory/salon/season.json")   # private authority, public mirror (factory_official_prints.load_season)
 CONTROL_KEY = "factory/control/inference.json"
 OUT_PREFIX = "factory/exams/market/"
-SYSTEM = ("You are a market analyst sitting an exam. You see 20 daily bars of one instrument, rebased to 100 at the first open, "
-          "with relative volume. You do not know the instrument or the dates. Answer STRICT JSON only: "
-          '{"direction": "UP|DOWN|FLAT", "regime": "RANGE|TRANSITION|TREND", "crisis_probability": 0.0-1.0, "why": "<one or two sentences>"}. '
-          "direction = where the close will be after the next 5 sessions versus the next open, beyond the flat threshold; "
-          "regime = how the next 5 sessions will move (RANGE = choppy, TREND = efficient move, TRANSITION = between); "
-          "crisis_probability = the chance the next 5 sessions print a close-to-close drawdown beyond the crisis threshold.")
+from factory_forecast import SYSTEM, as_prediction, parse_answer, qwen_prompt  # noqa: E402
+from factory_forecast import bars_prompt as _bars_prompt  # noqa: E402
 
 
 def now_iso():
@@ -51,49 +47,7 @@ def now_iso():
 
 
 def drill_prompt(drill: dict) -> str:
-    bars = drill.get("bars") or []
-    rows = ["bar,open,high,low,close,vol_rel"] + ["%d,%s,%s,%s,%s,%s" % (i + 1, b.get("o"), b.get("h"), b.get("l"), b.get("c"), b.get("v_rel")) for i, b in enumerate(bars)]
-    return ("Asset class: %s. Flat threshold: %s (fraction). Crisis drawdown threshold: %s (fraction). Horizon: next %s sessions.\n\n%s\n\nRespond with the JSON object only."
-            % (drill.get("asset_class"), drill.get("flat_threshold"), drill.get("crisis_drawdown_threshold"), drill.get("label_horizon_sessions") or 5, "\n".join(rows)))
-
-
-def qwen_prompt(system: str, user: str) -> str:
-    return "<|im_start|>system\n%s<|im_end|>\n<|im_start|>user\n%s<|im_end|>\n<|im_start|>assistant\n" % (system, user)
-
-
-def parse_answer(text: str) -> dict | None:
-    m = re.search(r"\{.*\}", str(text or ""), re.S)
-    if not m:
-        return None
-    try:
-        j = json.loads(m.group(0))
-    except Exception:
-        return None
-    if not isinstance(j, dict):
-        return None
-    direction = re.sub(r"[^A-Z]", "", str(j.get("direction") or "").upper())
-    regime = re.sub(r"[^A-Z]", "", str(j.get("regime") or "").upper())
-    direction = {"BULLISH": "UP", "BEARISH": "DOWN", "SIDEWAYS": "FLAT", "NEUTRAL": "FLAT"}.get(direction, direction)
-    regime = {"CHOPPY": "RANGE", "TRENDING": "TREND", "RANGING": "RANGE"}.get(regime, regime)
-    if direction not in DIRECTIONS or regime not in REGIMES:
-        return None
-    try:
-        crisis = float(j.get("crisis_probability", j.get("crisis", 0.0)))
-        if isinstance(j.get("crisis"), bool) and "crisis_probability" not in j:
-            crisis = 0.8 if j["crisis"] else 0.1
-    except Exception:
-        return None
-    if not (0.0 <= crisis <= 1.0):
-        crisis = crisis / 100.0 if 1.0 < crisis <= 100.0 else 0.5
-    return {"direction": direction, "regime": regime, "crisis_probability": round(crisis, 4), "why": str(j.get("why") or "")[:400]}
-
-
-def as_prediction(answer: dict, confidence: float = 0.7) -> dict:
-    """The wall's full contract: labels plus probability vectors (derived when the voice gives labels only)."""
-    rest = (1.0 - confidence) / 2.0
-    return {"direction": answer["direction"], "regime": answer["regime"], "crisis_probability": answer["crisis_probability"],
-            "direction_probabilities": {d: (confidence if d == answer["direction"] else rest) for d in DIRECTIONS},
-            "regime_probabilities": {r: (confidence if r == answer["regime"] else rest) for r in REGIMES}}
+    return _bars_prompt(drill.get("bars") or [], drill.get("asset_class"), drill.get("flat_threshold"), drill.get("crisis_drawdown_threshold"), drill.get("label_horizon_sessions") or 5)
 
 
 def momentum_baseline(drill: dict, crisis_rate: float) -> dict:

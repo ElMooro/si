@@ -924,6 +924,34 @@ def chat_post(store, agent, owner, body, policy):
 
 
 
+def accept_prediction(store, agent, body, *, dry_run=False):
+    """The one door onto the wall, for guests (via handle) and for the student's own Monday entries (wall_post.py).
+    Identity is the caller's responsibility; window, season, price source, immutability and evidence are enforced here.
+    dry_run validates everything and writes nothing (the student's rehearsal)."""
+    season, _ = store.read(store.private, 'factory/control/season.json')
+    if season.get('calendar_review_required') is not False:
+        raise Invalid('season_calendar_not_frozen')
+    body = dict(body) if isinstance(body, dict) else body
+    envelope = body.pop('evidence', None) if isinstance(body, dict) else None
+    prediction = validate_prediction(body, season, store.clock(), agent)
+    if prediction['price_source'] != season['price_sources'][prediction['symbol']]:
+        raise Invalid('season_price_source_required')
+    # Exactly one immutable entry per agent/week/symbol, irrespective of a supplied ID.
+    event_id = prediction['week'] + '-' + agent + '-' + prediction['symbol']
+    prediction['submitted_id'] = prediction['id']
+    prediction['id'] = event_id
+    evidence = attach_evidence(store, agent, prediction, envelope) if envelope is not None else None
+    prediction['evidence_id'] = evidence['id'] if evidence else None
+    prediction['evidence_hash'] = evidence['evidence_hash'] if evidence else None
+    if dry_run:
+        return {'ok': True, 'id': event_id, 'status': 'rehearsed', 'evidence_id': prediction['evidence_id'], 'learnable': bool(evidence)}
+    store.immutable(store.private, 'factory/salon/accepted/' + event_id + '.json', prediction)
+    if evidence:
+        store.immutable(store.private, 'factory/evidence/market/' + evidence['id'] + '.json', evidence)
+    return {'ok': True, 'id': event_id, 'status': 'locked', 'permalink': '/ai.html#factory-event=' + event_id,
+            'evidence_id': prediction['evidence_id'], 'learnable': bool(evidence)}
+
+
 def handle(event, method, path, body, store):
     invites, invite_etag = store.read(store.private, 'factory/control/invites.json')
     if not invites:
@@ -1007,25 +1035,7 @@ def handle(event, method, path, body, store):
     if policy.get('enabled') is not True:
         raise Invalid('factory_paused')
     if action == 'predictions':
-        season, _ = store.read(store.private, 'factory/control/season.json')
-        if season.get('calendar_review_required') is not False:
-            raise Invalid('season_calendar_not_frozen')
-        envelope = body.pop('evidence', None) if isinstance(body, dict) else None
-        prediction = validate_prediction(body, season, store.clock(), agent)
-        if prediction['price_source'] != season['price_sources'][prediction['symbol']]:
-            raise Invalid('season_price_source_required')
-        # Exactly one immutable entry per agent/week/symbol, irrespective of a supplied ID.
-        event_id = prediction['week'] + '-' + agent + '-' + prediction['symbol']
-        prediction['submitted_id'] = prediction['id']
-        prediction['id'] = event_id
-        evidence = attach_evidence(store, agent, prediction, envelope) if envelope is not None else None
-        prediction['evidence_id'] = evidence['id'] if evidence else None
-        prediction['evidence_hash'] = evidence['evidence_hash'] if evidence else None
-        store.immutable(store.private, 'factory/salon/accepted/' + event_id + '.json', prediction)
-        if evidence:
-            store.immutable(store.private, 'factory/evidence/market/' + evidence['id'] + '.json', evidence)
-        return {'ok': True, 'id': event_id, 'status': 'locked', 'permalink': '/ai.html#factory-event=' + event_id,
-                'evidence_id': prediction['evidence_id'], 'learnable': bool(evidence)}
+        return accept_prediction(store, agent, body)
     if action == 'traces':
         if set(body) != {'domain', 'task', 'provenance', 'solution_notes'}:
             raise Invalid('trace_schema_required')

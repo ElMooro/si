@@ -121,13 +121,14 @@ def submit(store, sm_runtime, control, agent, text, history):
     return pending
 
 
-def submit_task(store, sm_runtime, control, agent, system, text, max_new_tokens=1400, temperature=0.2, meta=None):
+def submit_task(store, sm_runtime, control, agent, system, text, max_new_tokens=1400, temperature=0.2, meta=None, salt=None):
     """One async generation for an engine task (2026-09-17: the market read's owned voice). Same durable order as
     submit(): claim the pending record first, then invoke. The caller owns the system prompt and the full text (bounded
     at 60k chars ~ 20k tokens, inside Qwen2.5's context); `meta` rides on the pending record so the settle step knows
     what the answer is for. Returns the pending record (state queued|unknown)."""
     now = iso(store.clock())
-    ikey = _idempotency_key(agent, (system or "") + "\n" + text, None)
+    # `salt` keeps two identical anonymized prompts (two symbols, one week) as two requests instead of one replay
+    ikey = _idempotency_key(agent, (system or "") + "\n" + text + ("\n#" + str(salt) if salt else ""), None)
     pkey = pending_key(agent, ikey)
     existing, petag = store.read(store.private, pkey)
     if isinstance(existing, dict) and existing.get("state") not in ("done", "failed", "expired", "malformed") and not existing.get("delivered"):

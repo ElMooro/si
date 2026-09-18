@@ -32,7 +32,7 @@ import os
 import re
 import time
 import traceback
-from datetime import datetime, timedelta, timezone
+from datetime import date, time as dtime, datetime, timedelta, timezone
 from typing import Tuple, Any, Dict, List, Mapping, Optional, Sequence
 
 import boto3
@@ -63,7 +63,7 @@ try:
 except Exception:  # pragma: no cover - tests import without the shared bundle
     private_http_denied = None
 
-VERSION = "2.4.4"
+VERSION = "2.5.0"
 ENGINE = "justhodl-ai"
 REGION = "us-east-1"
 PUBLIC_BUCKET = os.environ.get("AI_PUBLIC_BUCKET", "justhodl-dashboard-live")
@@ -307,6 +307,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "scoreboard": _safe(learning_scoreboard),
         "market_read": _safe(public_market_read),
         "market_exam": _safe(public_market_exam),
+        "student_wall": _safe(lambda: get_json(PUBLIC_BUCKET, "data/ai/wall/student-latest.json")),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
         "pipeline_verdict": get_json(PUBLIC_BUCKET, VERDICT_KEY),
@@ -370,6 +371,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "brain_dataset": ({k: dataset.get(k) for k in ("n_rows", "source_n_notes", "n_labels", "outcome_labels")} if dataset else None),
         "market_read": out.get("market_read"),
         "market_exam": out.get("market_exam"),                     # aggregate scores vs baselines per split -- no drill content
+        "student_wall": out.get("student_wall"),                   # the student's latest Monday wall receipt (entries + skips)
         "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
         "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
         "fleet_inputs": {k: fleet.get(k) for k in ("registry_version", "status", "summary")},
@@ -1012,6 +1014,43 @@ def action_market_read(body: dict, policy: dict, context=None) -> Dict[str, Any]
 
 
 OWNED_READ_AGENT = "market-read"
+
+
+def _wall(mode: str, event: dict, context=None) -> dict:
+    """The student's Monday wall post, two phases (see wall_post.py). body.rehearse=true runs the post phase against next
+    Monday's 09:31 ET clock and writes nothing -- the Friday-before rehearsal."""
+    import wall_post as wp
+    from factory_gateway import accept_prediction, holdout_manifest_hash
+    import factory_inference as fin
+    body = event.get("body") if isinstance(event.get("body"), dict) else {}
+    rehearse = bool(body.get("rehearse"))
+    now = datetime.now(timezone.utc)
+    store = _owned_store()
+    season, _ = store.read(store.private, "factory/control/season.json")
+    if not isinstance(season, dict):
+        return {"ok": False, "error": "season missing"}
+    control = fin.load_control(store) or {}
+    read_doc = get_json(PRIVATE_BUCKET, READ_KEY) or {}
+    if mode == "wall-prepare":
+        staged = wp.prepare(store, client("s3"), client("sagemaker-runtime"), control, season, read_doc, now, PUBLIC_BUCKET)
+        return {"ok": True, "phase": "prepare", "week": staged["week"], "sessions": staged["sessions"][-1:],
+                "symbols": {k: {"bars": len(v.get("bars") or []), "owned": (v.get("owned") or {}).get("state"), "error": v.get("error")} for k, v in staged["symbols"].items()}}
+    week = wp.week_for(now, season)
+    staged, _ = store.read(store.private, wp.STAGING + week + ".json")
+    if not isinstance(staged, dict):
+        if not rehearse:
+            return {"ok": False, "phase": "post", "error": "nothing staged for %s -- prepare did not run" % week}
+        staged = wp.prepare(store, client("s3"), client("sagemaker-runtime"), control, season, read_doc, now, PUBLIC_BUCKET)
+    if rehearse:
+        # the door checks the window on the store clock: rehearse against Monday 09:31 ET of the staged week
+        from zoneinfo import ZoneInfo
+        monday = datetime.combine(date.fromisoformat(staged["week"]), dtime(9, 31), ZoneInfo("America/New_York")).astimezone(timezone.utc)
+        from factory_store import Store
+        store = Store(client("s3"), PRIVATE_BUCKET, PUBLIC_BUCKET, lambda: monday)
+    receipt = wp.post(store, staged, season, control, holdout_manifest_hash(store), accept_prediction, rehearse=rehearse)
+    if not rehearse:
+        _safe(lambda: run_inventory(context, continue_embeddings=False))
+    return {"ok": True, "phase": "post", **receipt}
 
 
 def _ledger_while_advisory(policy: dict) -> bool:
@@ -2320,6 +2359,8 @@ def lambda_handler(event=None, context=None):
             except Exception:
                 pass
         return {"ok": True, "status": st.get("status"), "stage": st.get("stage")}
+    if mode in ("wall-prepare", "wall-post"):
+        return _wall(mode, event, context)
     if mode == "inventory":
         _safe(lambda: settle_owned_read(context))
         out = run_inventory(context, refresh_catalog=bool(event.get("refresh_catalog") or (event.get("body") or {}).get("refresh_catalog")))

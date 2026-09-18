@@ -144,6 +144,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       <div class="mini" id="pl-learning"></div>
       <div id="pl-trend" style="margin-top:10px;font-size:12.5px"></div>
       <div id="pl-exam" style="margin-top:12px"></div>
+      <div id="pl-wall" style="margin-top:12px"></div>
     </div>
   </div>
   <div class="grid2" style="margin-top:14px">
@@ -795,6 +796,15 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       var best = Math.max(bp.score || 0, bm.score || 0);
       var cls = m.score > best + 0.02 ? "ok" : m.score < best - 0.02 ? "bad" : "warn";
       return "<div><b class=\"" + cls + "\">" + fmt(100 * m.score, 0) + "</b><span>" + esc(label) + " score / 100 on " + fmt(m.n, 0) + " drills (naive prior " + fmt(100 * (bp.score || 0), 0) + ", momentum " + fmt(100 * (bm.score || 0), 0) + ") · direction " + fmt(100 * m.direction_acc, 0) + "% · regime " + fmt(100 * m.regime_acc, 0) + "% · crisis " + fmt(100 * m.crisis_acc, 0) + "%" + (m.missed_crises ? " · missed " + m.missed_crises + " crisis" + (m.missed_crises > 1 ? "es" : "") : "") + (e.n_unanswered ? " · " + e.n_unanswered + " unanswered" : "") + " · " + (e.at ? ago(e.at) : "") + "</span></div>";
+    }
+    var sw = d.student_wall || null;
+    if (sw && sw.week) {
+      var byAgent = {};
+      (sw.entries || []).forEach(function (e) { byAgent[e.agent] = (byAgent[e.agent] || 0) + 1; });
+      var rows = (sw.entries || []).map(function (e) { return esc(e.symbol) + " " + esc(e.direction) + "/" + esc(e.regime) + " (" + (e.agent === "student" ? "desk" : "own model") + ")"; }).join(" · ");
+      $("pl-wall").innerHTML = '<div style="font-size:12.5px;margin-bottom:6px">Monday wall — the student\'s own forecasts for the week of ' + esc(sw.week) + (sw.rehearsal ? ' (rehearsal — nothing posted)' : '') + ': ' + (byAgent.student || 0) + ' desk entries and ' + (byAgent["student-owned"] || 0) + ' from your own model, posted through the same door as guests and graded Friday after the close.' + (sw.skipped && sw.skipped.length ? ' Skipped: ' + sw.skipped.length + '.' : '') + '</div>' + (rows ? '<div class="mini" style="font-size:12px">' + rows + '</div>' : '');
+    } else {
+      $("pl-wall").innerHTML = '<div style="font-size:12.5px">Monday wall — the student posts its own weekly forecasts on Monday at 09:30 ET (first week: 2026-09-21); graded Friday after the close.</div>';
     }
     $("pl-exam").innerHTML = '<div style="font-size:12.5px;margin-bottom:6px">Market exam — anonymized crisis weeks it has never seen (20 bars, no dates, no tickers), graded exactly like the Friday wall: 0.5 direction + 0.3 regime + 0.2 crisis. Beating both naive baselines is the bar.</div><div class="mini">' + examLine("Held-out crisis weeks", ex) + examLine("Practice weeks (2022 hikes, gilt/LDI, tariff)", ext) + "</div>";
     var total = fs.unique_feeds != null ? fs.unique_feeds : (fs.total != null ? fs.total : null);
