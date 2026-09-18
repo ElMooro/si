@@ -1,31 +1,17 @@
+- `16:15:32` justhodl-signal-scorecard exact receipt and live code hash verified: 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754
+- `16:15:32` justhodl-engine-trust exact receipt and live code hash verified: 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754
+**Status:** success  
+**Duration:** 43.7s  
+**Finished:** 2026-09-18T16:16:15+00:00  
 
-**Status:** failure  
-**Duration:** 0.1s  
-**Finished:** 2026-09-18T16:09:43+00:00  
+## Data
 
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5712_performance_integrity_verify.py", line 36, in main
-    receipt = read('data/ops/releases/' + fn + '.json')
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5712_performance_integrity_verify.py", line 24, in read
-    return json.loads(s3.get_object(Bucket=BUCKET, Key=key)['Body'].read())
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-
-```
+| commit | generated_at | ledger_records_modified | outcomes_quarantined | outcomes_scanned | outcomes_verified | promoted | sizing_eligible |
+|---|---|---|---|---|---|---|---|
+| 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754 | 2026-09-18T16:16:12.751820+00:00 | 0 | 185231 | 202552 | 0 | 0 | False |
 
 ## Log
-
+- `16:15:32` justhodl-signal-harvester exact receipt and live code hash verified: 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754
+- `16:15:33` justhodl-outcome-checker exact receipt and live code hash verified: 26ba59fdcaf63886b00a4dcbd0d72a4bf8aee754
+- `16:16:15` Distinct identified quote contexts: {"bitcoin_spot": 80905.33, "btc_fund": 35.79}
+- `16:16:15` ✅ Exact releases, real pricing routes, complete scan, quarantine counts, SSM publication and downstream permissions verified
