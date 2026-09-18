@@ -1,11 +1,7 @@
-executing-against: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:33] justhodl-warm-bridge exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:33] justhodl-canary-macro exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:33] justhodl-fabrication-weekly exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:34] justhodl-market-tape exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:34] justhodl-tradingview exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
-[17:04:39] SOMA total, BLS CPI and BEA real GDP replayed from exact warehouse inputs; original-provider provenance remains separate
-[17:05:18] Original FRED responses and canary diagnostics replayed for 63 series
-[17:05:23] ✅ Exact releases, complete source bodies, measurement identities and diagnostics verified
+executing-against: 0a29d338bf58ffe30da305e0418e585e10cd47d3
+[17:15:05] justhodl-usgov-direct exact receipt and runtime hash: 0a29d338bf58ffe30da305e0418e585e10cd47d3
+[17:15:06] justhodl-warm-bridge exact receipt and runtime hash: 0a29d338bf58ffe30da305e0418e585e10cd47d3
+[17:15:15] Collector statuses: {"CES0500000003": {"latest_monthly_period": "2026-M08", "n_obs": 246, "status": "updated"}, "CUSR0000SA0": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "CUUR0000SA0": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "CUUR0000SA0L1E": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "JTS000000000000000HIL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "JTS000000000000000JOL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "JTS000000000000000QUL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "LNS11300000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "LNS12300000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "LNS14000000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "PRS85006092": {"latest_monthly_period": null, "n_obs": 106, "status": "updated"}, "PRS85006112": {"latest_monthly_period": null, "n_obs": 106, "status": "updated"}, "WPSFD4": {"latest_monthly_period": "2026-M08", "n_obs": 202, "status": "updated"}, "WPUFD4": {"latest_monthly_period": "2026-M08", "n_obs": 202, "status": "updated"}, "WPUFD49104": {"latest_monthly_period": "2026-M08", "n_obs": 197, "status": "updated"}}
+[17:15:15] ✅ Current CPI replayed from original BLS bytes; old history and prior vintage retained
 
-→ Report written to aws/ops/reports/latest/ops_5714_provenance_replay_verify.md
+→ Report written to aws/ops/reports/latest/ops_5715_bls_current_vintage_verify.md
