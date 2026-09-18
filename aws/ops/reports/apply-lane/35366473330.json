@@ -1,0 +1,27 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "35366473330",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/35366473330",
+ "base_sha": "040f922cfede5fe074845fbb6446e7973dd0529a",
+ "result_sha": "1b9e792d9b8f10f7f6623273788954658f3b98f2",
+ "patchers": [
+  "liq5821_fails_panel.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "ciss.html",
+  "liquidity.html"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-09-18T16:06:48Z"
+}
