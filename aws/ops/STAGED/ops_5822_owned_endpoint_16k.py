@@ -78,6 +78,19 @@ def main():
                 r.fail("endpoint %s on config %s (%s) -- rollback: update_endpoint to %s" % (st["EndpointStatus"], st["EndpointConfigName"], st.get("FailureReason"), ep["EndpointConfigName"]))
                 sys.exit(1)
             r.ok("InService on %s" % cfg_name)
+            # ops 5825 (2026-09-18): update_endpoint detached the scale-to-zero registration -- 55 queued requests sat 15 min at zero
+            # instances with HasBacklogWithoutCapacity=1 and nothing woke. Re-apply the ops 5563 registration after every update.
+            aas = boto3.client("application-autoscaling", region_name=REGION); cw = boto3.client("cloudwatch", region_name=REGION)
+            rid = "endpoint/%s/variant/owned" % NAME
+            aas.register_scalable_target(ServiceNamespace="sagemaker", ResourceId=rid, ScalableDimension="sagemaker:variant:DesiredInstanceCount", MinCapacity=0, MaxCapacity=1)
+            aas.put_scaling_policy(PolicyName="jh-owned-coder-backlog", ServiceNamespace="sagemaker", ResourceId=rid, ScalableDimension="sagemaker:variant:DesiredInstanceCount", PolicyType="TargetTrackingScaling",
+                                   TargetTrackingScalingPolicyConfiguration={"TargetValue": 2.0, "ScaleInCooldown": 900, "ScaleOutCooldown": 60,
+                                                                             "CustomizedMetricSpecification": {"MetricName": "ApproximateBacklogSizePerInstance", "Namespace": "AWS/SageMaker", "Dimensions": [{"Name": "EndpointName", "Value": NAME}], "Statistic": "Average"}})
+            step = aas.put_scaling_policy(PolicyName="jh-owned-coder-wake", ServiceNamespace="sagemaker", ResourceId=rid, ScalableDimension="sagemaker:variant:DesiredInstanceCount", PolicyType="StepScaling",
+                                          StepScalingPolicyConfiguration={"AdjustmentType": "ChangeInCapacity", "MetricAggregationType": "Average", "Cooldown": 60, "StepAdjustments": [{"MetricIntervalLowerBound": 0, "ScalingAdjustment": 1}]})
+            cw.put_metric_alarm(AlarmName="jh-owned-coder-has-backlog", MetricName="HasBacklogWithoutCapacity", Namespace="AWS/SageMaker", Statistic="Average", Period=60, EvaluationPeriods=1, Threshold=1,
+                                ComparisonOperator="GreaterThanOrEqualToThreshold", TreatMissingData="missing", Dimensions=[{"Name": "EndpointName", "Value": NAME}], AlarmActions=[step["PolicyARN"]])
+            r.ok("scale-to-zero registration re-applied after the update")
         r.section("4. Proof: a 12k-token prompt round trip")
         # ~420 lines x ~110 chars = ~46k chars ~ 11.5k tokens: over the old 8k limit, under the new 16k (the first proof used 900 lines ~ 25k tokens and 424'd on its own size)
         filler = ("line %d: the board carries regime, gate, breadth, funding and flows for every asset class, each line dated and sourced.\n" % i for i in range(1, 420))
