@@ -1,4 +1,5 @@
 
+from research_brief_model import narrative_context as research_brief_context
 from tenor_research_model import public_summary as tenor_research_summary
 import json
 import boto3
@@ -162,9 +163,8 @@ def build_context(message):
     # Macro intelligence summary (always included)
     intel = get_s3('intelligence-report.json')
     if intel:
-        phase = intel.get('market_phase', intel.get('phase', 'N/A'))
-        comp_score = intel.get('composite_score', intel.get('score', 'N/A'))
-        lines.append(f"[INTELLIGENCE] Phase:{phase}  Score:{comp_score}/100")
+        context = research_brief_context(intel, datetime.now(timezone.utc).isoformat())
+        lines.append('[DATED MACRO RESEARCH — NO CALL OR SIZING AUTHORITY] ' + json.dumps(context))
 
     # ─── BLOOMBERG-GAP 15-MODULE META-REGIME (always-on, top of frame) ──
     # This block frames the entire response — aggregates the 15 module

@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="jh-primary-engine" content="justhodl-intelligence">
+<link rel="stylesheet" href="/jh-research-brief.css">
 <meta name="theme-color" content="#0a0d12">
 <title>JustHodl · Today</title>
-<meta name="description" content="The 3 things you need to know right now. Bloomberg Terminal in your pocket.">
+<meta name="description" content="Dated macro observations, original source evidence and reproducible research.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&display=swap" rel="stylesheet">
@@ -169,50 +171,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
 
 <main class="shell">
 
-  <section class="hero fade-in">
-    <div class="hero-eyebrow"><span class="live-dot"></span><span id="today-date">—</span> · live</div>
-    <h1 class="hero-title" id="today-headline">Markets are <em>—</em></h1>
-    <div class="hero-pills">
-      <span id="regime-pill" class="regime-pill regime-NEUTRAL">…</span>
-      <span class="ki-pill">Khalid Index <strong id="ki-val">—</strong> / 100</span>
-    </div>
-  </section>
-
-  <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
-  <div id="ai-synthesis"></div>
-  <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
-
-  <!-- AI Front-Run Sniffer (institutional flow anomaly detector) -->
-  <div id="ai-frontrun"></div>
-  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
-
-  <!-- Front-Run 7-day History Chart -->
-  <div id="ai-frontrun-history"></div>
-  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
-
-  <div class="section-eyebrow">The 3 things to watch</div>
-  <h2 class="section-title">Top signals right now</h2>
-
-  <div class="signals-stack" id="signals-stack">
-    <article class="signal fade-in">
-      <span class="signal-rank">#1</span>
-      <div class="signal-source skel">—</div>
-      <div class="signal-headline skel" style="height:1.2em">—</div>
-      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
-    </article>
-    <article class="signal fade-in">
-      <span class="signal-rank">#2</span>
-      <div class="signal-source skel">—</div>
-      <div class="signal-headline skel" style="height:1.2em">—</div>
-      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
-    </article>
-    <article class="signal fade-in">
-      <span class="signal-rank">#3</span>
-      <div class="signal-source skel">—</div>
-      <div class="signal-headline skel" style="height:1.2em">—</div>
-      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
-    </article>
-  </div>
+  <section id="research-brief" aria-label="Dated macro research" aria-live="polite"><p>Loading source-backed research…</p></section>
 
   <div class="section-eyebrow">Go deeper</div>
   <h2 class="section-title">Pages</h2>
@@ -220,7 +179,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
     <a class="qlink" href="/read.html">
       <div class="qlink-icon">R</div>
       <span class="qlink-label">The Read</span>
-      <span class="qlink-meta">Daily · plain English</span>
+      <span class="qlink-meta">Definitions · source evidence</span>
     </a>
     <a class="qlink" href="/signals.html">
       <div class="qlink-icon">11</div>
@@ -240,213 +199,13 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
   </div>
 
   <footer class="foot">
-    <strong>JustHodl.AI</strong> · 11 data sources · ~$8/mo compute<br>
-    <span id="updated-at">—</span> · <a href="javascript:location.reload()">Refresh</a>
+    <strong>JustHodl.AI</strong> · Dated research observations<br>
+    Refresh checks for a new packet; it does not renew source observations. <a href="javascript:location.reload()">Refresh</a>
   </footer>
 
 </main>
 
-<script>
-const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
-
-async function fetchJSON(path){
-  try{ const r = await fetch(BUCKET+path,{cache:'no-cache'}); if(!r.ok) throw 0; return await r.json(); }
-  catch(e){ return null; }
-}
-
-// ─── Build the top 3 signals with priority logic ────────────────────
-//
-// Priority for what makes top 3:
-//   1. RED FLAGS (8-K Item 4.02 / 1.03 / 5.04) — anything bearish + recent
-//   2. INSIDER CLUSTERS — strongest single-source bullish signal
-//   3. AAII EXTREMES — broad-market contrarian
-//   4. KI/regime change — only if at boundary
-//   5. AAYI big buy — fallback bullish
-//   6. GEX regime change — fallback dealer positioning
-//
-// We rank candidates and surface the top 3.
-
-function reltime(iso){
-  if(!iso) return '—';
-  try{
-    const d = new Date(iso);
-    const ms = Date.now() - d.getTime();
-    const h = Math.floor(ms/3600000);
-    if(h < 1) return Math.round(ms/60000) + 'm ago';
-    if(h < 24) return h + 'h ago';
-    return Math.floor(h/24) + 'd ago';
-  }catch{ return '—'; }
-}
-
-async function buildTopSignals(){
-  const [report, insider, sec8k, aaii, gex, redflag] = await Promise.all([
-    fetchJSON('/data/report.json'),
-    fetchJSON('/data/insider-trades.json'),
-    fetchJSON('/data/8k-filings.json'),
-    fetchJSON('/data/aaii-sentiment.json'),
-    fetchJSON('/data/options-gamma.json'),
-    fetchJSON('/data/redflag-alerts.json'),
-  ]);
-
-  // Hero: regime + KI
-  const ki = (report?.khalid_index?.score) ?? 50;
-  const regime = (report?.khalid_index?.regime) || 'NEUTRAL';
-  const headlineMap = {
-    CRISIS: ['under <em>stress</em>', 'bearish'],
-    BEAR: ['<em>cautious</em>', 'bearish'],
-    NEUTRAL: ['<em>balanced</em>', 'neutral'],
-    BULL: ['<em>constructive</em>', 'bullish'],
-    STRONG_BULL: ['<em>euphoric</em>', 'bullish'],
-  };
-  const [hl, tone] = headlineMap[regime] || headlineMap.NEUTRAL;
-  document.getElementById('today-headline').innerHTML = `Markets are ${hl}`;
-  document.getElementById('today-headline').className = 'hero-title ' + tone;
-  const pill = document.getElementById('regime-pill');
-  pill.textContent = regime.replace('_', ' ');
-  pill.className = 'regime-pill regime-' + regime;
-  document.getElementById('ki-val').textContent = ki.toFixed(1);
-  const today = new Date();
-  document.getElementById('today-date').textContent = today.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
-
-  // Build candidate list with priority scores
-  const candidates = [];
-
-  // 1. RED FLAGS — most recent ones
-  if(redflag && redflag.log){
-    const recent = (redflag.log || []).filter(e => {
-      try { return (Date.now() - new Date(e.alerted_at).getTime()) < 24*3600*1000; }
-      catch { return false; }
-    }).sort((a,b) => new Date(b.alerted_at) - new Date(a.alerted_at));
-    if(recent.length > 0){
-      const r = recent[0];
-      candidates.push({
-        priority: 100,
-        tone: 'bearish',
-        source: 'SEC 8-K · red flag',
-        headline: `<em>${escape(r.company || '?')}</em> filed Item ${r.items?.[0] || '?'}`,
-        blurb: `${recent.length} red-flag 8-K filing${recent.length>1?'s':''} in last 24h. Item 4.02 = non-reliance on prior financials, historically precedes 30%+ drawdowns.`,
-        action: `<strong>Audit any positions in ${escape(r.company || '?')}.</strong> Check for restatement, governance issues, or accounting concerns before adding.`,
-        meta: reltime(r.alerted_at),
-      });
-    }
-  }
-
-  // 2. INSIDER CLUSTERS — top one by total value
-  if(insider && insider.clusters && insider.clusters.length > 0){
-    const c = insider.clusters[0];
-    candidates.push({
-      priority: 80,
-      tone: 'bullish',
-      source: 'SEC Form 4 · insider cluster',
-      headline: `<em>${escape(c.ticker)}</em> · ${c.insider_count} insiders bought $${(c.total_value/1e6).toFixed(1)}M`,
-      blurb: `${c.insider_count} different insiders at ${escape(c.company)} bought ${c.total_shares?.toLocaleString() || '?'} shares in the last 14 days. Cluster buys outperform broad insider signals by ~3% annualized.`,
-      action: `<strong>Add ${escape(c.ticker)} to your watchlist.</strong> Check why insiders see opportunity — often pre-catalyst or post-selloff accumulation.`,
-      meta: reltime(c.last_filing),
-    });
-  }
-
-  // 3. AAII EXTREMES (high signal value at extremes)
-  if(aaii && aaii.extremes){
-    if(aaii.extremes.is_bearish_extreme){
-      candidates.push({
-        priority: 70,
-        tone: 'bullish',
-        source: 'AAII Survey · contrarian',
-        headline: `Retail is <em>extremely bearish</em>`,
-        blurb: `Bull-Bear spread at ${(aaii.latest.bull_bear_spread*100).toFixed(0)}%. AAII extremes have historically been strong contrarian signals — herd is rarely right at extremes.`,
-        action: `<strong>Lean bullish on broad market.</strong> Historically the 30-day forward return for SPY when AAII is extremely bearish averages +3-5%.`,
-        meta: 'Week ending ' + (aaii.latest.week_ending || '?'),
-      });
-    } else if(aaii.extremes.is_bullish_extreme){
-      candidates.push({
-        priority: 70,
-        tone: 'bearish',
-        source: 'AAII Survey · contrarian',
-        headline: `Retail is <em>extremely bullish</em>`,
-        blurb: `Bull-Bear spread at +${(aaii.latest.bull_bear_spread*100).toFixed(0)}%. Contrarian sell signal — euphoria is when distribution typically happens.`,
-        action: `<strong>Trim winners, raise cash.</strong> Strong-bull regimes with AAII extremes often peak within weeks, not months.`,
-        meta: 'Week ending ' + (aaii.latest.week_ending || '?'),
-      });
-    }
-  }
-
-  // 4. KI BOUNDARY — if KI is within 3 of a regime threshold, flag transition risk
-  if(ki !== null){
-    const boundaries = [30, 45, 60, 75];
-    const minDist = Math.min(...boundaries.map(b => Math.abs(ki - b)));
-    if(minDist < 3){
-      candidates.push({
-        priority: 65,
-        tone: 'warning',
-        source: 'Khalid Index · regime watch',
-        headline: `KI <em>${ki.toFixed(1)}</em> — near regime boundary`,
-        blurb: `The Khalid Index is within ${minDist.toFixed(1)} points of a regime threshold. Small data shifts could flip the read between ${regime.replace('_',' ')} and an adjacent regime.`,
-        action: `<strong>Watch for regime change.</strong> A flip of regime on the morning brief = recalibrate position sizing.`,
-        meta: 'Right now',
-      });
-    }
-  }
-
-  // 5. BIG INSIDER BUY — fallback if no clusters
-  if(insider && insider.big_buys && insider.big_buys.length > 0 && candidates.length < 5){
-    const b = insider.big_buys[0];
-    candidates.push({
-      priority: 50,
-      tone: 'bullish',
-      source: 'SEC Form 4 · big buy',
-      headline: `<em>${escape(b.ticker)}</em> · $${(b.value/1e6).toFixed(1)}M insider purchase`,
-      blurb: `${escape(b.insider || '?').slice(0,40)} bought ${b.shares?.toLocaleString() || '?'} shares at $${b.price?.toFixed(2) || '?'}.`,
-      action: `<strong>Worth investigating.</strong> Single big buys are louder than clusters in $ terms but quieter in conviction breadth.`,
-      meta: reltime(b.filed_at),
-    });
-  }
-
-  // 6. GEX regime — dealer positioning
-  if(gex && gex.regime && gex.regime !== 'neutral' && candidates.length < 5){
-    const isLong = gex.regime === 'long_gamma';
-    candidates.push({
-      priority: 45,
-      tone: isLong ? 'bullish' : 'warning',
-      source: 'Polygon · dealer GEX',
-      headline: `Dealers are <em>${isLong ? 'long' : 'short'} gamma</em>`,
-      blurb: gex.interpretation || (isLong ? 'Dealers dampen vol — range-bound action likely.' : 'Dealers amplify moves — gap risk in both directions.'),
-      action: isLong
-        ? `<strong>Sell premium selectively.</strong> Vol is being suppressed by dealer hedging.`
-        : `<strong>Don't fade extreme moves.</strong> Dealer hedging accelerates trend; wait for short-gamma conditions to clear before mean-reversion trades.`,
-      meta: `Total GEX: ${(gex.total_gex/1e9).toFixed(2)}B`,
-    });
-  }
-
-  // Sort by priority and take top 3
-  candidates.sort((a, b) => b.priority - a.priority);
-  const top3 = candidates.slice(0, 3);
-
-  // Render
-  const stack = document.getElementById('signals-stack');
-  if(top3.length === 0){
-    stack.innerHTML = '<div class="signal"><div class="signal-source">No actionable signals</div><div class="signal-headline">Quiet day</div><div class="signal-blurb">No red flags, no insider clusters, no extremes detected. Stay disciplined.</div></div>';
-  } else {
-    stack.innerHTML = top3.map((s, i) => `
-      <article class="signal tone-${s.tone} fade-in">
-        <span class="signal-rank">#${i+1}</span>
-        <div class="signal-source">${escape(s.source)}</div>
-        <div class="signal-headline ${s.tone}">${s.headline}</div>
-        <div class="signal-blurb">${s.blurb}</div>
-        <div class="signal-action">${s.action}</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--t4);margin-top:8px;text-transform:uppercase;letter-spacing:1px">${escape(s.meta)}</div>
-      </article>
-    `).join('');
-  }
-
-  document.getElementById('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString();
-}
-
-function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
-
-buildTopSignals();
-setInterval(buildTopSignals, 5 * 60 * 1000);
-</script>
-  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-research-brief.js?v=5732" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

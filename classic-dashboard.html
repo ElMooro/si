@@ -2269,7 +2269,7 @@ function renderStrip(){
   if(intel.scores){
     const ki = intel.scores.ka_index ?? intel.scores.khalid_index;
     const phase = intel.phase || '';
-    const cls = ki >= 70 ? 'green' : (ki >= 40 ? 'amber' : 'red');
+    const cls = ki == null ? 'cyan' : ki >= 70 ? 'green' : (ki >= 40 ? 'amber' : 'red');
     setStripCell('ka', ki!=null ? ki+'' : '—', phase, cls);
   }
 
@@ -2385,6 +2385,11 @@ function renderKa(){
   const body = document.getElementById('kaBody');
   if(!d || !d.scores){body.innerHTML = '<div class="muted">No intelligence report</div>'; return}
 
+  if(d.contract === 'research-intelligence.v1'){
+    document.getElementById('kaSub').textContent = 'RESEARCH ONLY · ' + fmtAge(d.generated_at);
+    body.innerHTML = '<p class="muted">KA Index and model risk scores are unavailable. Macro observations do not establish a validated investment call or allocation.</p><p><a href="/intelligence.html">Inspect dated observations and replay evidence</a></p>';
+    return;
+  }
   const s = d.scores;
   document.getElementById('kaSub').textContent = `${d.phase || 'STABLE'} · ${fmtAge(d.generated_at)}`;
   const ki = s.ka_index ?? s.khalid_index;

@@ -865,14 +865,14 @@
     },
     "intelligence.html": {
       "role": "ENGINE_PAGE",
-      "reason": "Restored complete dedicated market intelligence report from the source-bound writer",
+      "reason": "Dedicated observation-only intelligence with exact units, original-source replay and explicit withheld portfolio authority",
       "primary_engines": [
         "justhodl-intelligence"
       ],
       "evidence": [
         {
           "file": "aws/lambdas/justhodl-intelligence/source/lambda_function.py",
-          "supports": "Writes intelligence-report.json; model report allocation only, privacy reviewed"
+          "supports": "Publishes intelligence-report.json via research_brief_store; source-backed macro research, no allocation or account data"
         }
       ]
     },

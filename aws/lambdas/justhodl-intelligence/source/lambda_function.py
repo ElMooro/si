@@ -1,3 +1,4 @@
+from research_brief_store import run as publish_research_brief
 import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
@@ -40,7 +41,7 @@ except Exception as _e:
 
 s3=boto3.client('s3')
 BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
-ctx=ssl.create_default_context();ctx.check_hostname=False;ctx.verify_mode=ssl.CERT_NONE
+ctx=ssl.create_default_context()
 BASE='https://justhodl-dashboard-live.s3.amazonaws.com'
 
 def http_get(url,timeout=15):
@@ -933,7 +934,7 @@ def generate_full_intelligence(main, repo, pred):
     return report
 
 @track_errors
-def lambda_handler(event, context):
+def _legacy_lambda_handler_unvalidated(event, context):
     try:
         print("=== MARKET INTELLIGENCE ENGINE v3.0 ===")
         main, repo, pred = load_system_data()
@@ -973,3 +974,14 @@ def lambda_handler(event, context):
         print(f"FATAL: {e}")
         traceback.print_exc()
         return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+
+
+@track_errors
+def lambda_handler(event, context):
+    """Observation-only brief; legacy heuristics have no production route."""
+    try:
+        result = publish_research_brief(s3, BUCKET)
+        return {'statusCode': 200 if result.get('published') else 409, 'body': json.dumps(result)}
+    except Exception as exc:
+        # Never expose authenticated request URLs or payloads in the response.
+        return {'statusCode': 503, 'body': json.dumps({'published': False, 'error': type(exc).__name__})}

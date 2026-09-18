@@ -902,7 +902,7 @@ function renderStrip(risk, regime, intel){
   const stripK = document.getElementById('stripKa');
   stripK.textContent = kiScore !== undefined ? fmt(kiScore, 0) : '—';
   stripK.className = 'strip-value ' + regimeClass(kiRegime);
-  document.getElementById('stripKhaldidSub').textContent = kiRegime || '—';
+  document.getElementById('stripKhaldidSub').textContent = intelObj.contract === 'research-intelligence.v1' ? 'Research only · unavailable' : (kiRegime || '—');
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1123,6 +1123,10 @@ function renderTraps(opps){
 function renderKa(intel){
   const el = document.getElementById('cardKa');
   if (!intel) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
+  if(intel.contract === 'research-intelligence.v1'){
+    el.innerHTML = '<div class="empty">KA INDEX UNAVAILABLE · RESEARCH ONLY</div><p><a href="/intelligence.html">Dated observations and replay evidence</a></p>';
+    return;
+  }
   const ki = intel.ka_index ?? intel.khalid_index ?? {};
   const kiObj = typeof ki === 'object' ? ki : { score: ki };
   const score = kiObj.score;

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="jh-primary-engine" content="justhodl-intelligence">
+<link rel="stylesheet" href="/jh-research-brief.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>JustHodl.AI | Market Intelligence Report</title>
@@ -111,25 +113,11 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 /* RESPONSIVE */
 @media(max-width:600px){.score-row{grid-template-columns:repeat(2,1fr)}.headline-box{padding:20px 16px}.headline-box h1{font-size:20px}.container{padding:12px 14px}}
 </style>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/liquidity-pulse.js" defer></script>
-<script src="/jh-ai-insights.js?t=20260601a" defer></script>
 </head>
 <body>
-<header class="header"><div><div class="logo">MARKET INTELLIGENCE</div><div class="logo-sub">JustHodl.AI · Cross-system modeled research</div></div><nav class="hdr-right"><a href="/brief.html" class="nav-link">Brief</a><a href="/calls.html" class="nav-link">Calls</a></nav></header>
-<main class="container"><h1 id="report-headline">Market intelligence report</h1><p id="report-status" role="status">Loading the dedicated engine report…</p><p>Research scenarios and model allocation guidance. The report is not a reconciled account or an execution instruction.</p><section id="full-intelligence-report" aria-label="Complete market intelligence report"></section></main>
-<script>
-document.addEventListener('DOMContentLoaded',async function(){
- const status=document.getElementById('report-status'),body=document.getElementById('full-intelligence-report');
- try{
-  const response=await fetch('/intelligence-report.json',{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);
-  const data=await response.json();document.getElementById('report-headline').textContent=typeof data.headline==='string'?data.headline:'Market intelligence report';
-  status.textContent='Engine: justhodl-intelligence · published '+String(data.generated_at||data.timestamp||'timestamp unavailable')+' · fetched '+new Date().toISOString();
-  if(window.JHDataInspector)JHDataInspector.inspect(body,data,'Every returned field from intelligence-report.json');
-  else {const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.textContent=JSON.stringify(data,null,2);body.append(pre);}
- }catch(error){status.textContent='Engine report unavailable: '+error.message;}
-});
-</script>
-<script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
+<header class="header"><div><div class="logo">MARKET INTELLIGENCE</div><div class="logo-sub">JustHodl.AI · Reproducible macro observations</div></div><nav class="hdr-right"><a href="/brief.html" class="nav-link">Brief</a><a href="/calls.html" class="nav-link">Calls</a></nav></header>
+<main class="container"><section id="research-brief" aria-label="Dated macro research" aria-live="polite"><p>Loading source-backed research…</p></section><details style="margin-top:24px"><summary>Inspect the complete packet and source gaps</summary><section id="full-intelligence-report" aria-label="Complete research packet"></section></details></main>
+<script src="/jh-data-inspector.js" defer></script>
+<script src="/jh-research-brief.js?v=5732" defer></script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
 </body></html>

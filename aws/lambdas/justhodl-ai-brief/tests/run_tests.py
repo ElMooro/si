@@ -6,3 +6,9 @@ runpy.run_path(str(ROOT / "tests/private_artifact_test_support.py"))["run"]("jus
 runpy.run_path(str(ROOT / 'tests/deployment/test_calls_integrity.py'), run_name='__main__')
 runpy.run_path(str(Path(__file__).with_name('free_brief_tests.py')), run_name='__main__')
 runpy.run_path(str(Path(__file__).with_name('replay_tests.py')), run_name='__main__')
+
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, str(ROOT/"tests"))
+    from research_brief_consumer_test_support import run as run_research
+    run_research("ai-brief")

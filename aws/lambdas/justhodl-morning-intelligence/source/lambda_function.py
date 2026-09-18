@@ -1,3 +1,4 @@
+from research_brief_model import narrative_context as research_brief_context
 from tenor_research_model import public_summary as tenor_research_summary
 import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import os
@@ -294,7 +295,8 @@ def extract_metrics(data,weights):
     fund_rates=crypto.get("funding",{}).get("rates",[])
     btc_fund=next((r for r in fund_rates if r.get("symbol")=="BTC"),{})
     eth_fund=next((r for r in fund_rates if r.get("symbol")=="ETH"),{})
-    ki=d.get("khalid_index") or scores.get("khalid_index",0)
+    ki=d.get("khalid_index")
+    if ki is None: ki=scores.get("khalid_index")
     # Loop 1: use shared calibration helper instead of raw weights dict.
     # Helper applies the is_meaningful gate (≥30 scored outcomes per
     # signal); falls back to 1.0 when calibrator data is sparse, so
@@ -334,7 +336,7 @@ def extract_metrics(data,weights):
         "commodity_cure_setups": bneck.get("cure_for_low_prices") or [],
         "khalid_raw":ki,
         "khalid_weight":kw,
-        "khalid_adj":round(float(ki["score"] if isinstance(ki, dict) else ki)*kw,1) if ki else 0,
+        "khalid_adj":round(float(ki["score"] if isinstance(ki, dict) else ki)*kw,1) if (ki.get("score") if isinstance(ki, dict) else ki) is not None else None,
         "khalid_regime":(ki.get("regime") if isinstance(ki, dict) else None) or d.get("regime") or regime_d.get("khalid","UNKNOWN"),
         "edge_score":edge.get("composite_score","N/A"),
         "edge_regime":edge.get("regime","N/A"),
@@ -342,7 +344,8 @@ def extract_metrics(data,weights):
         "carry_risk":scores.get("carry_risk_score","N/A"),
         "crisis_dist":scores.get("crisis_distance","N/A"),
         "phase":intel.get("phase","UNKNOWN"),
-        "forecast":intel.get("forecast","")[:120],
+        "forecast":(intel.get("forecast") or "")[:120],
+        "research_brief":research_brief_context(intel, datetime.now(timezone.utc).isoformat()),
         "spy":corr.get("SPY"),
         "tlt":corr.get("TLT"),
         "gld":corr.get("GLD"),

@@ -29,6 +29,7 @@ The brief is decisive and follows Khalid's preferred structure:
   (5) Transitions, (6) Watch triggers, (7) DECISIVE CALL
 """
 # No provider shim: paid model routing is intentionally absent from this producer.
+from research_brief_model import narrative_context as research_brief_context
 import json
 import os
 import time
@@ -251,6 +252,8 @@ def compress_intel(intel):
     """Pull just the decisive bits from intelligence-report.json."""
     if not intel:
         return None
+    if intel.get('contract') == 'research-intelligence.v1':
+        return research_brief_context(intel, datetime.now(timezone.utc).isoformat())
     return {
         "khalid_score": khalid_value(intel),
         "headline": intel.get("headline"),

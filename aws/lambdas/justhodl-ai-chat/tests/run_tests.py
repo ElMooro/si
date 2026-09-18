@@ -9,3 +9,9 @@ if __name__ == "__main__":
 
     from tenor_consumer_test_support import run as run_tenor
     run_tenor("ai-chat")
+
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, str(ROOT/"tests"))
+    from research_brief_consumer_test_support import run as run_research
+    run_research("ai-chat")
