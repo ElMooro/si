@@ -13,6 +13,8 @@ Hourly. Absent archives -> missing() envelopes, never zeros."""
 import gzip
 import json
 import os
+import calendar
+import re
 from datetime import datetime, timezone
 
 import boto3
@@ -61,10 +63,39 @@ def _get(k, *, storage_metadata=False, archive=False):
     return doc
 
 
+def measurement_freshness(row, now, ceiling):
+    period = str(row.get("as_of") or "")
+    try:
+        month = re.fullmatch(r"(\d{4})-M(\d{2})", period)
+        quarter = re.fullmatch(r"(\d{4})Q([1-4])", period)
+        if month or quarter:
+            year = int((month or quarter)[1])
+            mm = int(month[2]) if month else int(quarter[2]) * 3
+            observed = datetime(year, mm, calendar.monthrange(year, mm)[1], tzinfo=timezone.utc).date()
+        else:
+            observed = datetime.strptime(period, "%Y-%m-%d").date()
+        age = (now.date() - observed).days
+    except (TypeError, ValueError): age = None
+    status = ("unavailable" if row.get("value") is None or age is None or age < 0 else
+              "stale" if age > ceiling else "fresh")
+    return {"status": status, "observation_period": row.get("as_of"), "age_days": age,
+            "max_age_days": ceiling, "basis": "observation_period_end_age_ceiling_not_release_calendar"}
+
+
 def _pub(key, doc):
     doc.setdefault("generated_at", datetime.now(timezone.utc).isoformat())
     doc.setdefault("schema_version", "2.0")
     doc.setdefault("sizing_eligible", False)
+    doc.setdefault("timestamp_semantics", "generated_at/as_of are processing clocks; measurement as_of is the observation period")
+    ceilings = {"data/soma-holdings.json": 14, "data/bls-macro.json": 75,
+                "data/bea-gdp.json": 200, "data/treasury-fiscal.json": 7}
+    if key in ceilings:
+        now = datetime.now(timezone.utc)
+        rows = {name: row for name, row in doc.items() if isinstance(row, dict) and "value" in row and "source" in row}
+        for row in rows.values(): row["freshness"] = measurement_freshness(row, now, ceilings[key])
+        bad = [name for name, row in rows.items() if row["freshness"]["status"] != "fresh"]
+        doc["quality"] = {"status": "unavailable" if not rows else "partial" if bad else "fresh",
+                          "missing_or_stale": bad, "basis": "per_measurement_observation_period; source replay status is separate"}
     s3.put_object(Bucket=BUCKET, Key=key,
                   Body=json.dumps(doc, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache")
@@ -177,7 +208,7 @@ def _bls(now):
                     observed=f"{last.get('year')}-"
                              f"{last.get('period')}",
                     provider="bls", series=sid, unit=unit, seasonal_adjustment=adjustment,
-                    evidence=d.get("_input_evidence"),
+                    evidence=d.get("_input_evidence"), provider_evidence=d.get("evidence"),
                     source_url="https://api.bls.gov/publicAPI/v2/timeseries/data/" + sid,
                     raw_snapshot_key=d.get("raw_snapshot_key"))
                 n += 1

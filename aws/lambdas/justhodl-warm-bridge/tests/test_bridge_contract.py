@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import types
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1] / "source"
@@ -67,3 +68,14 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(row["as_of"], "2026Q2")
         self.assertEqual(row["source"]["series_id"], "NIPA:T10101:L1")
         self.assertEqual(row["source"]["kind"], "bea")
+
+    def test_new_processing_time_cannot_make_2019_cpi_fresh(self):
+        now = datetime(2026, 9, 18, tzinfo=timezone.utc)
+        old = self.mod.measurement_freshness({"as_of": "2019-M12", "value": 256.974}, now, 75)
+        self.assertEqual(old["status"], "stale")
+        current = self.mod.measurement_freshness({"as_of": "2026-M08", "value": 330}, now, 75)
+        self.assertEqual(current["status"], "fresh")
+        self.assertEqual(current["age_days"], 18)
+        self.assertEqual(self.mod.measurement_freshness({"as_of": "2026-M09", "value": 330}, now, 75)["status"], "unavailable")
+        quarter = self.mod.measurement_freshness({"as_of": "2026Q2", "value": 1.5}, now, 200)
+        self.assertEqual(quarter["status"], "fresh")

@@ -59,7 +59,7 @@ Still open: point-in-time raw evidence and snapshot replay, corrected outcome li
 
 - Stage 3 proof: `97cde1a1be648d8e29fcac074e179ae7a6d2ae5f`, Lambda run `35369180860`, pages `35369180802`, ops `35369180850`. Exact receipts/runtime hashes passed. Ops 5713 replayed 15 curated macro series and verified 9 ticker evidence objects. Vault/bus/tape generated at 16:42:17Z/16:42:21Z on September 18. Browser verified the corrected COMP/USD BROAD labels, dates, source links and explicit gaps. Deployment 400+12, TradingView 13, bus 2, tape 4 and frontend 356 checks passed.
 
-## Stage 4: measurement envelopes and canary diagnostics (in progress)
+## Stage 4: measurement envelopes and canary diagnostics (deployed and verified)
 
 Live SOMA/BLS/BEA packets contained `wrap() missing ... field` errors. Canary ICSA and IC4WSA shared a trace ID and used processing time as observation time. The shared adapter contract and callers are being repaired together.
 
@@ -69,3 +69,9 @@ Live SOMA/BLS/BEA packets contained `wrap() missing ... field` errors. Canary IC
 - The quality report counts the full JSON tree and separates structural envelope coverage from replay verification. Legacy trend entries and the configured guard list are not reinterpreted as runtime proof.
 - USD BROAD observes the weekly H.10 publication schedule for its daily observations (11-day observation-age ceiling); daily rate ceilings remain 7 days.
 - Remaining: full release calendars, original-source lineage for legacy warehouse records, dimensional Treasury collector repair, complete definition catalog, and migration beyond these producers. A provenance envelope alone does not certify a source or forecast.
+
+- Stage 4 proof: `512b6ff78bd45d21bcec07f4833717716b0111cb`, deploy `35371960934`, ops `35371961381`. All five exact receipts and runtime hashes matched. Ops 5714 replayed 63 FRED series and the complete canary diagnostics, and SOMA/BLS/BEA warehouse projections. Canary generated 17:05:11Z; SOMA 17:04:36Z, observed September 16. Public JSON and source receipts are HTTP 200 with a normal browser user agent. Deployment 400+12, warm bridge 28, canary 9, TradingView 13, tape 5 and coverage report fixtures passed.
+
+### Stage 4 follow-up: upstream BLS vintage (in progress)
+
+The replay exposed a separate live fault: the newest CPI warehouse observation was 2019-M12 (256.974). The collector requested 2000..2026, beyond BLS's 20-year registered request limit. It now requests a supported window ending this year, preserves older periods, archives the exact original response and the previous warehouse vintage, and refuses to replace history after a failed read or empty response. The bridge adds explicit per-measurement observation-period freshness so a current processing clock cannot make a 2019 observation current. Ops 5715 verifies a current CPI observation against original BLS bytes and preservation of the old history.

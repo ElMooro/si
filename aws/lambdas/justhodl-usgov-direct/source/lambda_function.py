@@ -1,12 +1,12 @@
-"""justhodl-usgov-direct — Perplexity's flag actioned (ops 4466).
+"""justhodl-usgov-direct â€” Perplexity's flag actioned (ops 4466).
 
 ADDITIVE originating-agency ingestion (existing engines untouched; FRED
 untouched per Khalid's APR-0003 rejection):
-  BEA  — key sat unused in SSM since ops 2821: GetDataSetList catalog
+  BEA  â€” key sat unused in SSM since ops 2821: GetDataSetList catalog
          (100%-pattern) + NIPA T10101 GDP proof-pull.
-  BLS  — beyond the CES-only agent: CPI, PPI, JOLTS, productivity,
+  BLS  â€” beyond the CES-only agent: CPI, PPI, JOLTS, productivity,
          unemployment (~20 series) via v2 POST with the SSM key.
-  Fed DDP — H.15 full-package zip via candidate-chain; explicit fail if
+  Fed DDP â€” H.15 full-package zip via candidate-chain; explicit fail if
          the shape differs.
 All to data/warm/usgov/; F4 snapshots; keys never in code."""
 import gzip
@@ -16,6 +16,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from evidence_store import capture
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -86,7 +87,7 @@ def _bea(summary):
                       Body=json.dumps({"datasets": names,
                                        "raw_snapshot_key": rk}).encode(),
                       ContentType="application/json")
-        # ops 4467: 100%-worklist materialization — per-dataset
+        # ops 4467: 100%-worklist materialization â€” per-dataset
         # parameter map (the walkable universe, stored once)
         pmap = {}
         for dn in names:
@@ -119,7 +120,7 @@ def _bea(summary):
 
 
 def _bea_walk(summary, k):
-    """ops 4476: the promised table-walk — NIPA's full table list via
+    """ops 4476: the promised table-walk â€” NIPA's full table list via
     GetParameterValues, then cursor-pull 5 tables/run (Q, Year=ALL) to
     data/warm/usgov/bea/tables/NIPA/. 100%-of-dataset convergence."""
     base = "https://apps.bea.gov/api/data/"
@@ -178,47 +179,75 @@ def _bea_walk(summary, k):
 
 
 def _bls(summary):
-    k = _key("/justhodl/bls-api-key")
-    body = {"seriesid": BLS_SERIES, "startyear": "2000",
-            "endyear": str(datetime.now().year)}
-    if k:
-        body["registrationkey"] = k
+    key = _key("/justhodl/bls-api-key")
+    year = datetime.now(timezone.utc).year
+    # BLS caps a keyed request at 20 years (10 unkeyed). A 2000..2026
+    # request was silently serving only 2000..2019, leaving CPI seven years old.
+    start_year = year - (19 if key else 9)
+    body = {"seriesid": BLS_SERIES, "startyear": str(start_year), "endyear": str(year)}
+    if key: body["registrationkey"] = key
+    url = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+    results = {}
     try:
-        req = urllib.request.Request(
-            "https://api.bls.gov/publicAPI/v2/timeseries/data/",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json"})
         raw = urllib.request.urlopen(req, timeout=60).read()
-        rk = (snapshot("bls", "api.bls.gov/v2 batch", raw)
-              if snapshot else None)
-        d = json.loads(raw)
-        series = d.get("Results", {}).get("series") or []
-        n_obs = 0
-        for sr in series:
-            sid = sr.get("seriesID")
-            data = sr.get("data") or []
-            n_obs += len(data)
-            s3.put_object(
-                Bucket=BUCKET,
-                Key=f"data/warm/usgov/bls/{sid}.json.gz",
-                Body=gzip.compress(json.dumps(
-                    {"series": sid, "raw_snapshot_key": rk,
-                     "n_obs": len(data), "data": data}).encode()),
-                ContentType="application/gzip")
-        summary["bls"] = {"ok": d.get("status") == "REQUEST_SUCCEEDED",
-                          "status": d.get("status"),
-                          "series": len(series), "obs": n_obs,
-                          "keyed": bool(k)}
-    except Exception as e:
-        summary["bls"] = {"data_unavailable": True,
-                          "reason": f"{type(e).__name__}: {str(e)[:70]}"}
+        parsed = json.loads(raw)
+        if parsed.get("status") != "REQUEST_SUCCEEDED":
+            raise ValueError("BLS request not successful")
+        proof = capture(s3, BUCKET, "bls", url, raw)
+        series = {row.get("seriesID"): row for row in parsed.get("Results", {}).get("series", [])}
+        for sid in BLS_SERIES:
+            warm_key = f"data/warm/usgov/bls/{sid}.json.gz"
+            try:
+                fresh_rows = series.get(sid, {}).get("data") or []
+                if not fresh_rows: raise ValueError("series absent or empty; previous archive retained")
+                if any(not str(row.get("year", "")).isdigit() or not start_year <= int(row["year"]) <= year for row in fresh_rows):
+                    raise ValueError("observation outside requested years")
+                previous = None
+                prior_proof = None
+                condition = {"IfNoneMatch": "*"}
+                try:
+                    prior_object = s3.get_object(Bucket=BUCKET, Key=warm_key)
+                    condition = {"IfMatch": prior_object["ETag"]}
+                    old = prior_object["Body"].read()
+                    old_bytes = gzip.decompress(old)
+                    previous = json.loads(old_bytes)
+                    if previous.get("series") != sid or not isinstance(previous.get("data"), list):
+                        raise ValueError("existing series identity or history invalid")
+                    prior_proof = capture(s3, BUCKET, "warehouse", "https://"+BUCKET+".s3.amazonaws.com/"+warm_key, old_bytes)
+                except Exception as exc:
+                    code = str(getattr(exc, "response", {}).get("Error", {}).get("Code", ""))
+                    if code not in ("NoSuchKey", "404"): raise
+                merged = {(row["year"], row["period"]): row for row in (previous or {}).get("data", [])}
+                for row in fresh_rows: merged[(row["year"], row["period"])] = row
+                data = [merged[k] for k in sorted(merged, reverse=True)]
+                doc = {"series": sid, "generated_at": _now_iso(), "schema_version": "2.0",
+                       "raw_snapshot_key": proof["key"], "evidence": proof,
+                       "prior_warehouse_evidence": prior_proof, "source_url": url,
+                       "retrieval_window": {"start_year": start_year, "end_year": year},
+                       "n_obs": len(data), "data": data,
+                       "history_basis": "current response replaces matching periods; older observations retained from prior archive"}
+                s3.put_object(Bucket=BUCKET, Key=warm_key, Body=gzip.compress(json.dumps(doc, allow_nan=False).encode()),
+                              ContentType="application/gzip", **condition)
+                monthly = [row for row in data if row.get("period") in {"M%02d" % m for m in range(1,13)}]
+                latest = max(monthly, key=lambda row: (row["year"], row["period"])) if monthly else None
+                results[sid] = {"status": "updated", "n_obs": len(data),
+                                "latest_monthly_period": latest["year"]+"-"+latest["period"] if latest else None}
+            except Exception as exc:
+                results[sid] = {"status": "failed_previous_retained", "reason": type(exc).__name__+": "+str(exc)[:120]}
+        summary["bls"] = {"ok": all(row["status"] == "updated" for row in results.values()),
+                          "status": parsed["status"], "series": len(series), "keyed": bool(key),
+                          "retrieval_window": {"start_year": start_year, "end_year": year}, "results": results}
+    except Exception as exc:
+        summary["bls"] = {"ok": False, "data_unavailable": True, "reason": type(exc).__name__+": "+str(exc)[:100]}
 
 
 DDP_RELEASES = ["H15", "H41", "H8", "G19", "H10", "CP"]
 
 
 def _fed_ddp(summary):
-    """ops 4467: full core-release sweep — H.15 rates, H.4.1 balance
+    """ops 4467: full core-release sweep â€” H.15 rates, H.4.1 balance
     sheet, H.8 bank credit, G.19 consumer credit, H.10 FX, CP paper."""
     out = {}
     for rel in DDP_RELEASES:
@@ -245,9 +274,11 @@ def _fed_ddp(summary):
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     summary = {"as_of": now}
-    _bea(summary)
+    if not isinstance(event, dict) or event.get("feed") != "bls":
+        _bea(summary)
     _bls(summary)
-    _fed_ddp(summary)
+    if not isinstance(event, dict) or event.get("feed") != "bls":
+        _fed_ddp(summary)
     s3.put_object(Bucket=BUCKET,
                   Key="data/warm/usgov/latest-summary.json",
                   Body=json.dumps(summary, default=str).encode(),
