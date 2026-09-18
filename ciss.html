@@ -200,5 +200,6 @@ function renderAI(a){
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
+<script>(function(){fetch("/data/ciss-headline.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(d){if(!d)return;var n=document.getElementById("jh-ciss-headline");if(!n){n=document.createElement("div");n.id="jh-ciss-headline";n.style.cssText="margin:12px 0;padding:10px 12px;background:#12121a;border:1px solid #2a2a36;border-radius:8px;color:#e6ecf5;font:13px IBM Plex Mono,monospace";document.body.insertBefore(n,document.body.firstChild);}n.textContent="CISS EA "+(d.ea_composite!=null?d.ea_composite:"—")+"  "+(d.ea_regime||"")+"  as of "+(d.observation_date||"")+"  (headline, not full series)";});})();</script>
 </body>
 </html>
