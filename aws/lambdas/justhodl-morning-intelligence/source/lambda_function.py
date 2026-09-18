@@ -1,3 +1,4 @@
+from tenor_research_model import public_summary as tenor_research_summary
 import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import os
 import json,boto3,urllib.request,time,math
@@ -666,15 +667,11 @@ def extract_metrics(data,weights):
             "gbc_chn_cli": ((g.get("by_country") or {}).get("CHN") or {}).get("cli_level"),
             "gbc_deu_cli": ((g.get("by_country") or {}).get("DEU") or {}).get("cli_level"),
         })(),
-        # Tenor signals (2y Fed path / 1m+3m eurodollar / 30y QE imminence)
-        **(lambda t=data.get("tenor_signals", {}): {
-            "tenor_composite": t.get("composite_score"),
-            "tenor_any_firing": t.get("any_firing"),
-            "tenor_fed_path": (t.get("signals") or {}).get("fed_path", {}).get("state"),
-            "tenor_fed_path_dir": (t.get("signals") or {}).get("fed_path", {}).get("direction"),
-            "tenor_eurodollar": (t.get("signals") or {}).get("eurodollar", {}).get("state"),
-            "tenor_qe": (t.get("signals") or {}).get("qe_imminence", {}).get("state"),
-        })(),
+        # Preserve legacy fields as unavailable; expose measured research separately.
+        "tenor_composite": None, "tenor_any_firing": None,
+        "tenor_fed_path": None, "tenor_fed_path_dir": None,
+        "tenor_eurodollar": None, "tenor_qe": None,
+        "tenor_research": tenor_research_summary(data.get("tenor_signals")),
         # Correlation breaks (cross-asset relationship dislocations)
         **(lambda c=data.get("correlation_breaks", {}): {
             "n_corr_breaks": c.get("breaks_count") or len(c.get("breaks") or []),
@@ -1296,7 +1293,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "SLOOS_TIGHTENING: C&I_large:"+str(m.get("sloos_ci_large_tightening") or "?")+"% sig:"+str(m.get("sloos_ci_large_signal") or "?")+" | C&I_small:"+str(m.get("sloos_ci_small_tightening") or "?")+"% | CRE:"+str(m.get("sloos_cre_tightening") or "?")+"% | CreditCards:"+str(m.get("sloos_cc_tightening") or "?")+"% (>25% = recession-prone tightening)",
         "SLOOS_DEMAND: C&I_large:"+str(m.get("sloos_ci_demand_large") or "?")+"% C&I_small:"+str(m.get("sloos_ci_demand_small") or "?")+"% Mortgages:"+str(m.get("sloos_mortgage_demand") or "?")+"% (negative = weakening loan demand)",
         # ═══ TENOR SIGNALS — Treasury auction-tape macro signals ═══════
-        "TENOR_SIGNALS: composite:"+str(m.get("tenor_composite") or "?")+" firing:"+str(m.get("tenor_any_firing") or False)+" | fed_path(2y):"+str(m.get("tenor_fed_path") or "?")+" dir:"+str(m.get("tenor_fed_path_dir") or "?")+" | eurodollar(1m/3m):"+str(m.get("tenor_eurodollar") or "?")+" | qe_imminence(30y):"+str(m.get("tenor_qe") or "?"),
+        "TREASURY_RESEARCH_NO_ALLOCATION_AUTHORITY: "+json.dumps(m.get("tenor_research") or {},sort_keys=True),
         # ═══ GLOBAL BUSINESS CYCLE — OECD CLI across 35 economies ══════
         "GLOBAL_CYCLE: phase="+str(m.get("gbc_global_phase") or "?")+" avg_cli="+str(m.get("gbc_avg_cli") or "?")+" expansion_breadth="+str(m.get("gbc_expansion_pct") or "?")+"% contraction_breadth="+str(m.get("gbc_contraction_pct") or "?")+"%",
         "GLOBAL_KEY_COUNTRIES: USA="+str(m.get("gbc_usa_phase") or "?")+"(CLI "+str(m.get("gbc_usa_cli") or "?")+") · CHN="+str(m.get("gbc_chn_phase") or "?")+"(CLI "+str(m.get("gbc_chn_cli") or "?")+") · DEU="+str(m.get("gbc_deu_phase") or "?")+"(CLI "+str(m.get("gbc_deu_cli") or "?")+") · JPN="+str(m.get("gbc_jpn_phase") or "?")+" · IND="+str(m.get("gbc_ind_phase") or "?"),

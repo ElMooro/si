@@ -449,51 +449,12 @@ def rule_liquidity_credit_engine(scores, evidence):
 
 
 def rule_tenor_signals(scores, evidence):
-    """Position sizing based on Treasury tenor-signal interpreter.
+    """Read-only research input. No validated tenor allocation protocol exists."""
+    fs3("data/auction-tenor-signals.json")
+    # Auction yields/participation cannot grant policy, QE or funding tilts.
+    # Do not trust a self-declared sizing flag from this or a legacy packet.
+    return None
 
-    Reads data/auction-tenor-signals.json. fed_path firing CUTS_PRICED →
-    risk-on tilt; HIKES_PRICED → risk-off tilt. eurodollar firing → dollar
-    long. qe_imminence firing → long duration + gold + BTC.
-    """
-    d = fs3("data/auction-tenor-signals.json")
-    if not d:
-        return
-    sigs = d.get("signals") or {}
-    fp = sigs.get("fed_path") or {}
-    ed = sigs.get("eurodollar") or {}
-    qe = sigs.get("qe_imminence") or {}
-
-    fp_state = fp.get("state")
-    fp_dir = fp.get("direction")
-    if fp_state in ("FIRING", "EXTREME"):
-        desc = f"Fed-path firing: 2y → {fp_dir}"
-        if fp_dir == "CUTS_PRICED":
-            add(scores, evidence, "TLT", STRONG, desc)
-            add(scores, evidence, "GLD", MEDIUM, desc)
-            add(scores, evidence, "BTC", MEDIUM, desc)
-            add(scores, evidence, "UUP", -MEDIUM, desc)
-        elif fp_dir == "HIKES_PRICED":
-            add(scores, evidence, "UUP", STRONG, desc)
-            add(scores, evidence, "TLT", -STRONG, desc)
-            add(scores, evidence, "GLD", -MEDIUM, desc)
-            add(scores, evidence, "BTC", -STRONG, desc)
-            add(scores, evidence, "QQQ", -MEDIUM, desc)
-
-    if ed.get("state") in ("FIRING", "EXTREME"):
-        desc = f"Eurodollar shortage firing: {ed.get('state')}"
-        add(scores, evidence, "UUP", HARD, desc)
-        add(scores, evidence, "TLT", STRONG, desc)
-        add(scores, evidence, "GLD", STRONG, desc)
-        add(scores, evidence, "EEM", -HARD, desc)
-        add(scores, evidence, "EFA", -STRONG, desc)
-        add(scores, evidence, "BTC", -STRONG, desc)
-
-    if qe.get("state") in ("FIRING", "EXTREME"):
-        desc = f"QE imminence firing: {qe.get('state')}"
-        add(scores, evidence, "TLT", HARD, desc)
-        add(scores, evidence, "GLD", HARD, desc)
-        add(scores, evidence, "BTC", HARD, desc)
-        add(scores, evidence, "UUP", -STRONG, desc)
 
 
 def rule_global_business_cycle(scores, evidence):

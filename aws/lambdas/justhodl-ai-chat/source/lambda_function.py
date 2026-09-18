@@ -1,4 +1,5 @@
 
+from tenor_research_model import public_summary as tenor_research_summary
 import json
 import boto3
 import os
@@ -274,16 +275,9 @@ def build_context(message):
                      f"C&I_small(DRSDCIS) {_v('DRSDCIS')}%  Mortgage(SUBLPDHMNQ) {_v('SUBLPDHMNQ')}% "
                      f"(negative = weakening loan demand, recession leading indicator)")
 
-    # ─── TENOR SIGNALS (2y / 1m+3m / 30y auction-tape macro signals) ──
-    ten = get_s3('data/auction-tenor-signals.json')
-    if ten:
-        sigs = ten.get('signals') or {}
-        fp = sigs.get('fed_path') or {}
-        ed = sigs.get('eurodollar') or {}
-        qe = sigs.get('qe_imminence') or {}
-        lines.append(f"[TENOR SIGNALS] composite={ten.get('composite_score')}/100  "
-                     f"fed_path(2y)={fp.get('state')} dir={fp.get('direction')}  "
-                     f"eurodollar(1m/3m)={ed.get('state')}  qe_imminence(30y)={qe.get('state')}")
+    # Only bounded, dated research measurements enter narrative context.
+    ten = tenor_research_summary(get_s3('data/auction-tenor-signals.json'))
+    lines.append('[TREASURY RESEARCH - NO ALLOCATION AUTHORITY] '+json.dumps(ten,sort_keys=True))
 
     # ─── GLOBAL BUSINESS CYCLE (OECD CLI across 35 economies) ──
     gbc = get_s3('data/global-business-cycle.json')

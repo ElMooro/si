@@ -5,6 +5,7 @@ JUSTHODL BLOOMBERG TERMINAL V10 - MEGA INTELLIGENCE
 Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 =====================================================
 """
+from tenor_research_model import public_summary as tenor_research_summary
 import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1377,12 +1378,9 @@ def compute_ki(fd, sd):
         score += delta_lce
         signals.append(sig_lce)
 
-    # ── TENOR-SIGNALS OVERLAY: penalty if any tenor channel firing ──
+    # Descriptive Treasury input has no validated score/position contribution.
     tenor = load_tenor_signals()
-    if tenor.get('any_firing'):
-        score -= 8; signals.append(('Tenor Signal Firing', -8, str(tenor.get('composite_score', '?'))))
-    elif tenor.get('any_watch'):
-        score -= 3; signals.append(('Tenor Signal Watch', -3, str(tenor.get('composite_score', '?'))))
+    tenor_research = tenor_research_summary(tenor)
 
     # ── GLOBAL BUSINESS CYCLE OVERLAY (OECD CLI across 25+ countries) ──
     # Expansion lifts KI, contraction penalizes. USA-specific override applied.
@@ -1406,7 +1404,7 @@ def compute_ki(fd, sd):
     return {'score':score,'regime':regime,'signals':signals,'ts':datetime.utcnow().isoformat(),
             'lce_state': (lce.get('regime') if lce else None),
             'lce_composite': ((lce.get('composite') or {}).get('score') if lce else None),
-            'tenor_state': ('FIRING' if tenor.get('any_firing') else 'WATCH' if tenor.get('any_watch') else 'CALM') if tenor else None,
+            'tenor_state': tenor_research['status'], 'tenor_research': tenor_research,
             'gbc_global_phase': ((gbc.get('aggregate') or {}).get('global_phase') if gbc else None),
             'gbc_avg_cli': ((gbc.get('aggregate') or {}).get('global_avg_cli') if gbc else None),
             'leading_markets_signal': (lm.get('turning_point_signal') if lm else None)}
@@ -2082,6 +2080,7 @@ def lambda_handler(event, context):
             'interpretation': lce_payload.get('interpretation', {}),
             'generated_at': lce_payload.get('generated_at'),
         } if lce_payload else {},
+        'tenor_research': tenor_research_summary(tenor_payload),
         'tenor_signals': {
             'composite_score': tenor_payload.get('composite_score'),
             'any_firing': tenor_payload.get('any_firing'),

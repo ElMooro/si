@@ -6,3 +6,6 @@ sys.path.insert(0, str(ROOT / "tests"))
 from downstream_privacy_test_support import run
 if __name__ == "__main__":
     run("ai-chat")
+
+    from tenor_consumer_test_support import run as run_tenor
+    run_tenor("ai-chat")

@@ -28,8 +28,8 @@ class Store:
         self.reads.append(key)
         if key not in self.docs:
             raise KeyError(key)
-        body = json.dumps(self.docs[key]).encode()
-        if key.endswith(".gz"):
+        body = self.docs[key] if isinstance(self.docs[key],bytes) else json.dumps(self.docs[key]).encode()
+        if key.endswith(".gz") and not isinstance(self.docs[key],bytes):
             body = gzip.compress(body)
         return {"Body": io.BytesIO(body), "LastModified": datetime.now(timezone.utc), "ETag": '"fixture"'}
 
@@ -38,7 +38,7 @@ class Store:
         body = kwargs["Body"]
         if kwargs.get("ContentEncoding") == "gzip":
             body = gzip.decompress(body)
-        self.docs[kwargs["Key"]] = json.loads(body)
+        self.docs[kwargs["Key"]] = body if kwargs.get("ContentType") in ('text/plain','application/gzip') else json.loads(body)
         return {"ETag": '"fixture-new"'}
 
 
@@ -179,15 +179,19 @@ def test_ai_actual_handler_reads_detector_and_writes_only_narrative_keys():
 
 
 def test_tenor_actual_handler_owns_separate_signal_key():
-    store = Store()
+    store = Store({'data/auction-tenor-signals.json':{},BASE:{'unchanged':True}})
     handler = load("tenor-signal-interpreter", store)["lambda_handler"]
     env = handler.__globals__
-    env.update({"fetch_fred_fed_funds": lambda: 4.25, "fetch_auctions_window": lambda *a: []})
+    env.update({"fiscal_pages": lambda *a: ([],[]), "fred": lambda *a: (None,None)})
     with redirect_stdout(io.StringIO()), patch("urllib.request.urlopen", side_effect=AssertionError("no network")):
         result = handler({}, None)
     assert result["statusCode"] == 200
-    assert store.writes == ["data/auction-tenor-signals.json"]
-    assert set(store.docs[store.writes[0]]["signals"]) == {"fed_path", "eurodollar", "qe_imminence"}
+    assert store.writes[-1] == "data/auction-tenor-signals.json"
+    assert all(key=='data/auction-tenor-signals.json' or key.startswith('data/tenor-research/') for key in store.writes)
+    assert store.docs[BASE]=={'unchanged':True} and BASE not in store.writes
+    packet=store.docs['data/auction-tenor-signals.json']
+    assert set(packet["signals"]) == {"fed_path", "eurodollar", "qe_imminence"}
+    assert packet['sizing_eligible'] is False and packet['composite_score'] is None
 
 
 def test_grader_actual_handler_consumes_detector_rows_without_changing_base():
