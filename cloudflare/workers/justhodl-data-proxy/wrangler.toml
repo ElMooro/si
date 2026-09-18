@@ -10,6 +10,8 @@ workers_dev = true
 # a class defect: the domain never had a /data/* route; legacy pages used
 # absolute proxy URLs, this month's pages use the clean relative form).
 routes = [
+  { pattern = "justhodl.ai/intelligence-report.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/intelligence-report.json", zone_name = "justhodl.ai" },
   { pattern = "justhodl.ai/factory/*", zone_name = "justhodl.ai" },
   { pattern = "www.justhodl.ai/factory/*", zone_name = "justhodl.ai" },
   { pattern = "justhodl.ai/student-state.json", zone_name = "justhodl.ai" },

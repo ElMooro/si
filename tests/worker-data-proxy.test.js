@@ -96,6 +96,30 @@ function baseEnv(kv) {
 
 async function worker() { return (await import(pathToFileURL(WORKER).href)).default; }
 
+test('research brief root and data alias read the same object without stale cache or exact-read substitution', async()=>{
+  const {env}=fresh(); const w=await worker(); const calls=[];
+  globalThis.caches={default:{async match(){throw Error('brief must bypass prior cache')},async put(){throw Error('brief must not be cached')}}};
+  globalThis.fetch=async(url,options)=>{calls.push({url:String(url),options});return Response.json({contract:'research-intelligence.v1',call:null},{headers:{ETag:'test-version'}})};
+  for(const host of ['justhodl.ai','www.justhodl.ai']) for(const path of ['/intelligence-report.json','/data/intelligence-report.json']){
+    const r=await w.fetch(new Request('https://'+host+path),env,{waitUntil(){}});
+    assert.equal(r.status,200); assert.equal((await r.json()).contract,'research-intelligence.v1');
+    assert.equal(r.headers.get('X-JH-Artifact-Key'),'intelligence-report.json');
+    assert.equal(r.headers.get('Cache-Control'),'no-store');
+    assert.ok(calls.at(-1).url.endsWith('/intelligence-report.json'));
+    assert.ok(!calls.at(-1).url.endsWith('/data/intelligence-report.json'));
+    assert.equal(calls.at(-1).options.cf.cacheTtl,0);
+  }
+  globalThis.caches.default.match=async()=>null;
+  globalThis.fetch=async(url,options)=>{calls.push({url:String(url),options});return new Response('',{status:403})};
+  let r=await w.fetch(new Request('https://justhodl.ai/data/intelligence-report.json?exact=1'),env,{waitUntil(){}});
+  assert.equal(r.status,403); assert.ok(calls.at(-1).url.endsWith('/data/intelligence-report.json'));
+  const n=calls.length;
+  r=await w.fetch(new Request('https://justhodl.ai/intelligence-report.json'),env,{waitUntil(){}});
+  assert.equal(r.status,403); assert.equal(calls.length,n+1,'must not substitute a different data/ object on failure');
+  assert.equal((await w.fetch(new Request('https://justhodl.ai/intelligence-report.json',{method:'POST',body:'{}'}),env,{})).status,405);
+  assert.equal(calls.length,n+1);
+});
+
 function req(pathq, opts) {
   opts = opts || {};
   return new Request("https://justhodl-data-proxy.raafouis.workers.dev" + pathq, {

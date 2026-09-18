@@ -2147,6 +2147,11 @@ export default {
     // cannot use legacy key aliases, old alias-populated cache entries or
     // trigger a cold research-generation request.
     const exactArtifact = url.searchParams.get("exact") === "1";
+    // GitHub Pages does not interpret _redirects. The public research brief
+    // has one root S3 object; this explicit alias never applies to exact reads.
+    const artifactKey = !exactArtifact && safePath === "data/intelligence-report.json"
+      ? "intelligence-report.json" : safePath;
+    const researchBrief = artifactKey === "intelligence-report.json";
 
     // ops 4526: native cache-clear — no CLOUDFLARE_API_TOKEN needed, this
     // runs inside the Worker with direct caches.default access. Clears a
@@ -2181,10 +2186,10 @@ export default {
     if (rangeHdr) {
       let rr;
       try {
-        rr = await fetch(artifactUpstreamUrl(safePath), {
+        rr = await fetch(artifactUpstreamUrl(artifactKey), {
           headers: { "Range": rangeHdr,
                      "User-Agent": "justhodl-data-proxy" },
-          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) ? { cacheTtl: 0 } : {}) }
+          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) || researchBrief ? { cacheTtl: 0 } : {}) }
         });
       } catch (e) {
         return new Response(
@@ -2202,7 +2207,8 @@ export default {
       rh.set("Accept-Ranges", "bytes");
       rh.set("Access-Control-Expose-Headers",
              "Content-Range, Content-Length, Accept-Ranges");
-      rh.set("Cache-Control", sanitizedArtifact(safePath) ? "no-store" : "public, max-age=86400");
+      rh.set("Cache-Control", sanitizedArtifact(safePath) || researchBrief ? "no-store" : "public, max-age=86400");
+      if (researchBrief) rh.set("X-JH-Artifact-Key", artifactKey);
       rh.set("X-JH-Range", "passthrough");
       return new Response(rr.body, { status: rr.status, headers: rh });
     }
@@ -2210,7 +2216,7 @@ export default {
     // These feeds previously copied private note text. Do not let an edge
     // generation populated before the S3 scrub survive that scrub, even if
     // the account cannot perform a zone purge. Read the protected origin fresh.
-    const ttl = sanitizedArtifact(safePath) ? 0 : ttlFor(safePath);
+    const ttl = sanitizedArtifact(safePath) || researchBrief ? 0 : ttlFor(safePath);
     // ops 4528: version-keyed cache — bumping CACHE_VER orphans every
     // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
     // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
@@ -2223,7 +2229,7 @@ export default {
 
     if (!response) {
       cacheStatus = "MISS";
-      let upstreamUrl = artifactUpstreamUrl(safePath);
+      let upstreamUrl = artifactUpstreamUrl(artifactKey);
       let upstream;
       try {
         upstream = await fetchUpstream(upstreamUrl, ttl);
@@ -2237,7 +2243,7 @@ export default {
       // Backward-compat fallback for callers using legacy paths.
       // S3 returns 403 (AccessDenied) — not 404 — for a missing key when
       // ListBucket is denied, so retry under /data/ on BOTH.
-      if (!exactArtifact && !upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
+      if (!exactArtifact && !researchBrief && !upstream.ok && (upstream.status === 404 || upstream.status === 403) && !safePath.includes("/")) {
         const fallbackUrl = artifactUpstreamUrl(`data/${safePath}`);
         try {
           const fallback = await fetchUpstream(fallbackUrl, ttl);
@@ -2296,7 +2302,7 @@ export default {
         "Cache-Control":  ttl > 0 ? `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}` : "no-store",
         "X-Edge-TTL":     String(ttl),
         "X-Upstream":     upstreamUrl,
-        ...(exactArtifact ? { "X-JH-Artifact-Key": safePath } : {}),
+        ...(exactArtifact || researchBrief ? { "X-JH-Artifact-Key": artifactKey } : {}),
         ...corsHeaders(),
       };
       if (lastMod) respHeaders["Last-Modified"] = lastMod;
