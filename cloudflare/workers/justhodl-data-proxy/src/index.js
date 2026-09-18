@@ -99,12 +99,13 @@ async function verifyStripeSig(payload, sigHeader, secret) {
 }
 
 async function fetchUpstream(upstreamUrl, ttl) {
+  // Workers rejects cache:no-store combined with cf.cacheTtl (including zero).
+  // Fresh reads use the standard bypass alone, without any cf TTL overrides.
+  if (ttl === 0) return fetch(upstreamUrl, { cache: 'no-store' });
   return fetch(upstreamUrl, {
     // A missing object often returns S3 403. Caching it with the future
     // object's hourly TTL can hide a successful first publication for an hour.
-    cf: { cacheEverything: ttl > 0, cacheTtlByStatus: { '200-299': ttl, '300-599': -1 },
-          ...(ttl === 0 ? { cacheTtl: 0 } : {}) },
-    ...(ttl === 0 ? { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } } : {}),
+    cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '300-599': -1 } },
   });
 }
 
@@ -2200,8 +2201,7 @@ export default {
         rr = await fetch(artifactUpstreamUrl(artifactKey), {
           headers: { "Range": rangeHdr,
                      "User-Agent": "justhodl-data-proxy" },
-          cf: { cacheEverything: false, ...(sanitizedArtifact(safePath) || freshArtifact ? { cacheTtl: 0 } : {}) },
-          ...(sanitizedArtifact(safePath) || freshArtifact ? { cache: 'no-store' } : {})
+          ...(sanitizedArtifact(safePath) || freshArtifact ? { cache: 'no-store' } : { cf: { cacheEverything: false } })
         });
       } catch (e) {
         return new Response(

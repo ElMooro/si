@@ -99,14 +99,20 @@ async function worker() { return (await import(pathToFileURL(WORKER).href)).defa
 test('publication proofs and exact reads bypass cached versions; missing public objects are never negative-cached',async()=>{
   const {env}=fresh(); const w=await worker(); let calls=[];
   globalThis.caches={default:{async match(){throw Error('stale publication cache read')},async put(){throw Error('publication cache write')}}};
-  globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({commit:'newly-published'})};
+  globalThis.fetch=async(url,opts)=>{
+    if(opts.cache==='no-store' && (opts.cf?.cacheTtl!==undefined || opts.cf?.cacheTtlByStatus!==undefined))
+      throw new TypeError('CacheTtl: 0, is not compatible with cache: no-store header.');
+    calls.push({url:String(url),opts});return Response.json({commit:'newly-published'});
+  };
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json','data/some-current.json?exact=1']){
     const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
     assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
-    assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf.cacheEverything,false);
-    assert.equal(calls.at(-1).opts.cf.cacheTtl,0);
+    assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);
   }
+  const ranged=await w.fetch(new Request('https://justhodl.ai/data/report.json?exact=1',{headers:{Range:'bytes=0-127'}}),env,{waitUntil(){}});
+  assert.equal(ranged.status,200);assert.equal(calls.at(-1).opts.headers.Range,'bytes=0-127');
+  assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);
   globalThis.caches.default.match=async()=>null;
   globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return new Response('',{status:403})};
   const r=await w.fetch(req('/data/daily-future-packet.json'),env,{waitUntil(){}});
@@ -126,7 +132,7 @@ test('research brief root and data alias read the same object without stale cach
     assert.equal(r.headers.get('Cache-Control'),'no-store');
     assert.ok(calls.at(-1).url.endsWith('/intelligence-report.json'));
     assert.ok(!calls.at(-1).url.endsWith('/data/intelligence-report.json'));
-    assert.equal(calls.at(-1).options.cf.cacheTtl,0);
+    assert.equal(calls.at(-1).options.cache,'no-store');assert.equal(calls.at(-1).options.cf,undefined);
   }
   globalThis.caches.default.match=async()=>null;
   globalThis.fetch=async(url,options)=>{calls.push({url:String(url),options});return new Response('',{status:403})};
@@ -535,7 +541,7 @@ test('sanitized public derivatives bypass old Worker and upstream cache generati
   const {env}=fresh();const w=await worker();let cacheReads=0,upstreamUrl,upstreamOptions;
   globalThis.caches={default:{async match(){cacheReads++;return Response.json({private:'stale'})},async put(){throw new Error('private-derived payload recached')}}};globalThis.fetch=async(url,opts)=>{upstreamUrl=String(url);upstreamOptions=opts;return Response.json({safe:true,public_history_review:"20260910.v1"})};
   for(const key of ['search/providers/tradingview-vault-live.json.gz','search/providers/tradingview_vault_live.json.gz','brain-compiler.json','wealth-plan-snapshot.json','tax-plan-snapshot.json','source-map.json','etf-flows/daily.json','macro/regime.json','etf-flows/history/2026-09-09.json','macro/history/2026-09-09.json']){
-    const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909') || upstreamUrl.endsWith('?public_review=20260910.v1'));assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);assert.equal(r.headers.get('Cache-Control'),'no-store');
+    const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);assert.equal(cacheReads,0);assert.ok(upstreamUrl.endsWith('?audit_privacy=20260909') || upstreamUrl.endsWith('?public_review=20260910.v1'));if(upstreamOptions.cache==='no-store')assert.equal(upstreamOptions.cf,undefined);else {assert.equal(upstreamOptions.cf.cacheTtl,0);assert.equal(upstreamOptions.cf.cacheEverything,false);}assert.equal(r.headers.get('Cache-Control'),'no-store');
   }
 });
 test('AI proxy forwards authoritative entitlement and private-artifact auth without caching or synthesizing tiers',async()=>{
