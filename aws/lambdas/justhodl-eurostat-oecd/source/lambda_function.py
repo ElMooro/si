@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         for u in cands:
             try:
                 raw = _fetch(u)
-                rk = snapshot(ag, u, raw[:400000]) if snapshot else None
+                rk = snapshot(ag, u, raw) if snapshot else None
                 flows = _parse_flows(raw)
                 if len(flows) < 5:
                     raise ValueError(f"only {len(flows)} flows")

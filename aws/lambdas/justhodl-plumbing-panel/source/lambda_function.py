@@ -10,17 +10,20 @@ F4 snapshots; explicit failures."""
 import gzip
 import json
 import os
+import hashlib
+import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import boto3
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 try:
-    from raw_snapshot import snapshot
+    from raw_snapshot import snapshot, snapshot_receipt
 except Exception:
     snapshot = None
+    snapshot_receipt = None
 
 
 def _fetch(u, timeout=120, browser=False):
@@ -38,7 +41,27 @@ def _fetch(u, timeout=120, browser=False):
     return b
 
 
+def _capture_probe():
+    """Bounded real Treasury response; verify archive without derived-data writes."""
+    now=datetime.now(timezone.utc).date()
+    params={'filter':f'auction_date:gte:{(now-timedelta(days=180)).isoformat()},auction_date:lte:{now.isoformat()}',
+            'sort':'-auction_date,cusip','format':'json','page[size]':1000,'page[number]':1}
+    url='https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?'+urllib.parse.urlencode(params,safe=':,[]')
+    req=urllib.request.Request(url,headers={'User-Agent':'JustHodl-Archive-Verification/2.0'})
+    with urllib.request.urlopen(req,timeout=30) as response:raw=response.read(8*1024*1024+1)
+    if not raw or len(raw)>8*1024*1024:raise ValueError('probe response exceeds byte bound')
+    parsed=json.loads(raw)
+    if not isinstance(parsed.get('data'),list) or not parsed['data']:raise ValueError('probe response has no Treasury records')
+    key=snapshot('treasury',url,raw) if snapshot else None
+    if key is None or snapshot_receipt is None:raise ValueError('probe capture unavailable')
+    receipt=snapshot_receipt(key)
+    if receipt['bytes']!=len(raw) or receipt['sha256']!=hashlib.sha256(raw).hexdigest():raise ValueError('probe archive differs')
+    return {'statusCode':200,'kind':'real_provider_capture_probe','source_rows':len(parsed['data']),
+            'receipt':receipt,'derived_data_writes':0,'paid_api_calls':0}
+
+
 def lambda_handler(event, context):
+    if isinstance(event,dict) and event.get('snapshot_validation_only') is True:return _capture_probe()
     now = datetime.now(timezone.utc)
     S = {"as_of": now.isoformat(timespec="seconds")}
     # 1) PD one-call
@@ -56,7 +79,7 @@ def lambda_handler(event, context):
         brk = (cur.get("seriesbreak") or cur.get("id") or "SBN2024")
         u = f"https://markets.newyorkfed.org/api/pd/latest/{brk}.csv"
         raw = _fetch(u, timeout=180)
-        rk = snapshot("nyfed", u, raw[:400000]) if snapshot else None
+        rk = snapshot("nyfed", u, raw) if snapshot else None
         lines = raw.decode("utf-8", "replace").splitlines()
         ftd = sum(1 for ln in lines if "PDFTD" in ln)
         ftr = sum(1 for ln in lines if "PDFTR" in ln)
@@ -85,7 +108,7 @@ def lambda_handler(event, context):
             u = ("https://data.financialresearch.gov/v1/series/"
                  f"dataset?dataset={ds}")
             raw = _fetch(u, timeout=180)
-            rk = snapshot("ofr", u, raw[:400000]) if snapshot else None
+            rk = snapshot("ofr", u, raw) if snapshot else None
             d = json.loads(raw)
             n = (len(d.get("timeseries", d)) if isinstance(d, dict)
                  else len(d))
@@ -121,7 +144,7 @@ def lambda_handler(event, context):
             raise ValueError(last)
         if len(raw) < 50_000:
             raise ValueError(f"small {len(raw)}b")
-        rk = snapshot("chicagofed", u, raw[:200000]) if snapshot else None
+        rk = snapshot("chicagofed", u, raw) if snapshot else None
         s3.put_object(Bucket=BUCKET,
                       Key="data/warm/chicagofed/nfci-105.xlsx",
                       Body=raw)

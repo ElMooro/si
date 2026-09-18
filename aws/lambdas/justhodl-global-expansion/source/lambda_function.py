@@ -86,7 +86,7 @@ def _json_store(name, cands, out_key, headers=None, wrap_note=None):
         try:
             raw = _fetch(u, headers=headers)
             d = json.loads(raw)
-            rk = snapshot(name, u, raw[:400000]) if snapshot else None
+            rk = snapshot(name, u, raw) if snapshot else None
             s3.put_object(Bucket=BUCKET, Key=out_key,
                           Body=gzip.compress(json.dumps(
                               {"source_url": u,
@@ -112,7 +112,7 @@ def _csv_store(name, cands, out_key, headers=None, min_bytes=2000):
             raw = _fetch(u, headers=headers, timeout=120)
             if len(raw) < min_bytes:
                 raise ValueError(f"small {len(raw)}b")
-            rk = snapshot(name, u, raw[:400000]) if snapshot else None
+            rk = snapshot(name, u, raw) if snapshot else None
             s3.put_object(Bucket=BUCKET, Key=out_key,
                           Body=gzip.compress(raw),
                           ContentType="application/gzip")

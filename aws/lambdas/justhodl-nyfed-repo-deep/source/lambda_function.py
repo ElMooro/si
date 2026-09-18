@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         for cu in cands:
             try:
                 raw = _fetch(cu)
-                rk = (snapshot("nyfed", cu, raw[:400000])
+                rk = (snapshot("nyfed", cu, raw)
                       if snapshot else None)
                 d = json.loads(raw)
                 ops_all = (d.get("repo", {}).get("operations")
@@ -105,7 +105,7 @@ def lambda_handler(event, context):
         u = ("https://data.financialresearch.gov/v1/series/dataset"
              "?dataset=repo")
         raw = _fetch(u, timeout=180)
-        rk = snapshot("ofr", u, raw[:400000]) if snapshot else None
+        rk = snapshot("ofr", u, raw) if snapshot else None
         d = json.loads(raw)
         n = (len(d) if isinstance(d, list) else
              len(d.get("timeseries", d)) if isinstance(d, dict) else 0)

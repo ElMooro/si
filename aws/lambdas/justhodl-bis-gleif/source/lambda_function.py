@@ -93,7 +93,7 @@ def _gleif(summary):
                     raise ValueError("no downloadLink in JSON")
                 raw = _fetch(real, timeout=240)
                 u = real
-            rk = snapshot("gleif", u, raw[:200000]) if snapshot else None
+            rk = snapshot("gleif", u, raw) if snapshot else None
             s3.put_object(Bucket=BUCKET,
                           Key="data/warm/gleif/isin-lei-latest.zip",
                           Body=raw)
