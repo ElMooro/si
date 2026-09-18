@@ -119,5 +119,21 @@ class WallPostTests(unittest.TestCase):
         self.assertEqual(receipt["entries"], []); self.assertTrue(all("outside_submission_window" in s["reason"] for s in receipt["skipped"] if s["agent"] != "student-owned" or "outside" in s["reason"]))
 
 
+    def test_a_missing_newest_session_steps_the_window_back_never_inside(self):
+        newest = wp.sessions_before(MONDAY, 20, SEASON)[-1]                       # Friday 2026-09-18, still trading during the rehearsal
+        self.cloud.rows.pop(('public', wp.GROUPED + "%s/%s.json.gz" % (newest[:4], newest)))
+        earlier = wp.sessions_before(newest, 20, SEASON)
+        for i, day in enumerate(earlier):
+            self.cloud.rows.setdefault(('public', wp.GROUPED + "%s/%s.json.gz" % (day[:4], day)), grouped_day(day, 90 + i * 0.5))
+        staged = wp.prepare(self.store, self.cloud, self.rt, self.control, SEASON, READ_DOC, self.now, 'public')
+        spy = staged["symbols"]["SPY"]
+        self.assertEqual(len(spy["bars"]), 20); self.assertEqual(spy["sessions_used"][1], earlier[-1]); self.assertIn("not on the warehouse yet", spy["note"])
+        self.assertTrue(spy["data_cutoff"].startswith(earlier[-1]))
+        gap = wp.sessions_before(MONDAY, 20, SEASON)[10]                            # a hole inside the window is never bridged
+        self.cloud.rows.pop(('public', wp.GROUPED + "%s/%s.json.gz" % (gap[:4], gap)))
+        staged = wp.prepare(self.store, self.cloud, self.rt, self.control, SEASON, READ_DOC, self.now, 'public')
+        self.assertIn("session_file_missing", staged["symbols"]["SPY"].get("error") or "")
+
+
 if __name__ == '__main__':
     unittest.main()

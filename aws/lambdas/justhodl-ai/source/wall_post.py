@@ -110,9 +110,25 @@ def prepare(store, s3, sm_runtime, control, season, read_doc: dict, now: datetim
     for symbol in SYMBOLS:
         entry = {"symbol": symbol}
         try:
-            rows, keys = grouped_rows(s3, public_bucket, days, symbol)
+            rows, keys, used = None, None, list(days)
+            for _ in range(4):
+                try:
+                    rows, keys = grouped_rows(s3, public_bucket, used, symbol)
+                    break
+                except LookupError as exc:
+                    # the newest session file may not have landed yet (a rehearsal during the session, a late grouped
+                    # file): step the window back one session; a gap INSIDE the window still refuses
+                    if str(exc).endswith(":" + used[-1]) or str(exc).endswith(":%s:%s" % (symbol, used[-1])):
+                        used = sessions_before(used[-1], WINDOW_SESSIONS, season)
+                        continue
+                    raise
+            if rows is None:
+                raise LookupError("session_file_missing:%s" % used[-1])
+            entry["sessions_used"] = [used[0], used[-1]]
+            if used[-1] != days[-1]:
+                entry["note"] = "newest session %s not on the warehouse yet; window ends %s" % (days[-1], used[-1])
             bars = ff.rebase(rows)
-            entry.update(bars=bars, data_keys=keys, data_cutoff=datetime.combine(date.fromisoformat(days[-1]), dtime(16, 0), NY).astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
+            entry.update(bars=bars, data_keys=keys, data_cutoff=datetime.combine(date.fromisoformat(used[-1]), dtime(16, 0), NY).astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
             entry["desk"] = desk_prediction(read_doc.get("read") or {}, symbol, read_doc.get("board") or {})
             if control and control.get("enabled") and control.get("endpoint_name"):
                 prompt = ff.bars_prompt(bars, ASSET_CLASS[symbol], season["flat_thresholds"].get(symbol), season["crisis_drawdown_thresholds"].get(symbol))
