@@ -1,9 +1,11 @@
-executing-against: 97cde1a1be648d8e29fcac074e179ae7a6d2ae5f
-[16:35:14] justhodl-tradingview exact receipt and live code hash verified: 97cde1a1be648d8e29fcac074e179ae7a6d2ae5f
-[16:35:14] justhodl-indicator-bus exact receipt and live code hash verified: 97cde1a1be648d8e29fcac074e179ae7a6d2ae5f
-[16:35:14] justhodl-market-tape exact receipt and live code hash verified: 97cde1a1be648d8e29fcac074e179ae7a6d2ae5f
-[16:42:19] Exact source bytes replayed for: USIRYY, USGDPYY, CNIRYY, DEIRYY, EUIRYY, USMPRYY, USHPIYY, CNGDPYY, JPGDPYY, FIGDPYY, JPPPIYY, ESIPYY, ITIPYY, KRIPYY, BRIPYY
-[16:42:24] Unavailable ticker inputs: [{"label": "CN GDP nominal YoY", "last_observation_date": "2023-07-01", "reason": "current verified definition unavailable", "symbol": "CNGDPYY"}, {"label": "DE10Y", "reason": "dated percent-yield evidence unavailable"}]
-[16:42:24] ✅ Exact releases, source replay, calendar comparisons, bus preservation and ticker identities verified
+executing-against: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:33] justhodl-warm-bridge exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:33] justhodl-canary-macro exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:33] justhodl-fabrication-weekly exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:34] justhodl-market-tape exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:34] justhodl-tradingview exact receipt and runtime hash: 512b6ff78bd45d21bcec07f4833717716b0111cb
+[17:04:39] SOMA total, BLS CPI and BEA real GDP replayed from exact warehouse inputs; original-provider provenance remains separate
+[17:05:18] Original FRED responses and canary diagnostics replayed for 63 series
+[17:05:23] ✅ Exact releases, complete source bodies, measurement identities and diagnostics verified
 
-→ Report written to aws/ops/reports/latest/ops_5713_macro_evidence_verify.md
+→ Report written to aws/ops/reports/latest/ops_5714_provenance_replay_verify.md
