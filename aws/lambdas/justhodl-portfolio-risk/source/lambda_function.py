@@ -10,7 +10,7 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay
+from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars
 
 S3_BUCKET = "justhodl-dashboard-live"
 SNAPSHOT_KEY = "portfolio/snapshot.json"
@@ -171,6 +171,25 @@ def retain_bundle(bundle):
 
 
 def _run_private(event, context):
+    if (event or {}).get('validation_only') is True:
+        # Exercise the deployed provider adapter and pure math without reading
+        # an account or publishing anything. The one-share holding is synthetic.
+        now = datetime.now(timezone.utc)
+        packet = fetch_polygon_bars('SPY', 180)
+        closes, errors = read_bars(packet, 'SPY', now)
+        if errors:
+            return {'statusCode': 503, 'body': json.dumps({'validation_only': True, 'ok': False, 'reason_codes': errors, 'writes': 0})}
+        row = max((r for r in packet['results'] if datetime.fromtimestamp(r['t']/1000, timezone.utc).date() < now.date()), key=lambda r:r['t'])
+        synthetic = {'generated_at': now.isoformat(), 'positions': [{'symbol':'SPY', 'asset_class':'etf', 'currency':'USD',
+            'qty':1, 'current_price':row['c'], 'market_value':row['c'], 'price_asof_unix_ms':row['t'], 'valuation_status':'PRICED'}]}
+        bundle, output = freeze(synthetic, {'SPY':packet}, now.isoformat(), {})
+        replay(bundle)
+        ok = output['status'] == 'AVAILABLE_HOLDINGS_MODEL' and output['holdings_risk']['beta_spy_per_gross'] == 1
+        return {'statusCode': 200 if ok else 503, 'body': json.dumps({'validation_only':True, 'ok':ok,
+            'schema_version':VERSION, 'writes':0, 'private_account_reads':0, 'source':'Polygon SPY daily bars',
+            'original_response_sha256':packet['_source_evidence']['body_sha256'],
+            'sample_count':output['risk_contract']['sample_count'], 'as_of':output['risk_contract']['sample_end'],
+            'replay':'reproduced', 'sizing_eligible':False})}
     snapshot = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY)['Body'].read())
     if not isinstance(snapshot, dict):
         raise ValueError('invalid private snapshot')

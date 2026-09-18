@@ -235,10 +235,15 @@ async function load(){
     document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins + 'm ago';
     renderAll();
   } catch(e){
-    document.getElementById('status').textContent = 'Error';
-    document.querySelector('.dot').style.background = '#ff3d5a';
+    data = null;
+    const signIn = e.message.startsWith('Sign in');
+    document.getElementById('status').textContent = signIn ? 'Sign in required' : 'Unavailable';
+    document.querySelector('.dot').style.background = '#fbbf24';
+    document.getElementById('summary-grid').innerHTML = '';
+    document.getElementById('entries-body').innerHTML = '';
+    document.getElementById('hero-regime').innerHTML = '';
     document.getElementById('positions-body').innerHTML =
-      `<tr><td colspan="11" class="empty-state"><div class="icon">📐</div><h3>Sizing data not yet generated</h3><p>Lambda runs hourly at :45. ${esc(e.message)}</p></td></tr>`;
+      `<tr><td colspan="11" class="empty-state"><h3>${signIn ? 'Private sizing' : 'Sizing unavailable'}</h3><p>${esc(e.message)}</p></td></tr>`;
   }
 }
 

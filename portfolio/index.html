@@ -237,6 +237,7 @@ function setUpdated(){
 }
 
 function renderTopMetrics(){
+  for(const id of ['mv-value','mv-pnl','mv-var','mv-var-pct','mv-beta','mv-vol','mv-hhi','mv-hhi-label','mv-positions','mv-watchlist']) document.getElementById(id).textContent='—';
   if(!snapshot && !risk) return;
   const ps = (snapshot && snapshot.portfolio_summary) || {};
   document.getElementById('mv-value').textContent = fmtMoney(ps.total_market_value);
@@ -261,9 +262,9 @@ function renderTopMetrics(){
 }
 
 function renderAlerts(){
-  if(!risk) return;
   const zone = document.getElementById('alert-zone');
   zone.innerHTML = '';
+  if(!risk) return;
   const a = risk.alerts_summary || {};
 
   if(a.stops_hit_count > 0){
@@ -436,6 +437,8 @@ async function loadAll(){
     const candidate = riskResp.ok ? await riskResp.json() : null;
     const contract = JHPortfolioRisk.view(candidate);
     risk = contract.current ? candidate : null;
+    if(!risk) for(const id of ['sector-body','scenarios-grid','corr-matrix','risk-replay-status']) document.getElementById(id).innerHTML='';
+    if(!snapshot) for(const id of ['watch-body','pos-pnl-summary']) document.getElementById(id).innerHTML='';
     document.getElementById('risk-contract-title').textContent = contract.title;
     document.getElementById('risk-contract-detail').textContent = contract.detail;
     const h=contract.holdings || {};
@@ -451,12 +454,17 @@ async function loadAll(){
     renderCorrelations();
     renderWatchlist();
   } catch(err){
+    snapshot = null; risk = null; renderTopMetrics(); renderAlerts();
+    for(const id of ['sector-body','scenarios-grid','corr-matrix','watch-body','risk-replay-status','holdings-risk-summary','pos-pnl-summary']) document.getElementById(id).innerHTML='';
+    document.getElementById('risk-contract-title').textContent = 'Risk unavailable';
+    document.getElementById('risk-contract-detail').textContent = 'Current private inputs could not be loaded.';
     document.getElementById('positions-body').innerHTML =
       `<tr><td colspan="13"><div class="empty-state">Failed to load: ${escapeHtml(err.message)}</div></td></tr>`;
   }
 }
 
 loadAll();
+setInterval(loadAll, 300000);
 </script>
 </body>
 </html>

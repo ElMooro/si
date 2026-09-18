@@ -27,6 +27,9 @@ test('actual portfolio page renders absent NAV as unavailable, not 0% risk',()=>
   assert.equal(elements.get('mv-vol').textContent,'—');
   assert.equal(elements.get('mv-var').textContent,'—');
   assert.match(elements.get('mv-var-pct').textContent,/NAV unavailable/);
+  vm.runInContext('snapshot=null;risk=null;renderTopMetrics();renderAlerts();',scope);
+  assert.equal(elements.get('mv-beta').textContent,'—');
+  assert.equal(elements.get('alert-zone').innerHTML,'');
 });
 test('sizing page renders WAIT and no allocation rather than empty or invented percent',()=>{
   const {scope,elements}=context('sizing/index.html');

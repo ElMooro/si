@@ -164,6 +164,26 @@ def run(engine):
         checks += 1
 
         if engine == "portfolio-risk":
+            # Provider probe has no private source reads, writes or mirror calls.
+            probe_store = Store()
+            probe, probe_mirrors, probe_env = load(engine, probe_store)
+            probe_env['fetch_polygon_bars'] = lambda *a: {'error':'SYNTHETIC_SOURCE_UNAVAILABLE'}
+            result = probe({'validation_only':True}, None)
+            assert result['statusCode'] == 503
+            assert not probe_store.reads and not probe_store.writes and not probe_mirrors
+            checks += 1
+            fixture = runpy.run_path(str(ROOT/'aws/lambdas/justhodl-portfolio-risk/tests/test_risk_model.py'))
+            _, packets = fixture['fixture']()
+            class FixedTime(fixture['datetime']):
+                @classmethod
+                def now(cls, tz=None): return fixture['NOW']
+            probe_env['datetime'] = FixedTime
+            probe_env['fetch_polygon_bars'] = lambda *a: packets['SPY']
+            result = probe({'validation_only':True},None)
+            assert result['statusCode'] == 200, result
+            assert json.loads(result['body'])['replay'] == 'reproduced'
+            assert not probe_store.reads and not probe_store.writes and not probe_mirrors
+            checks += 1
             store = Store(empty=True)
             handler, mirrors, _ = load(engine, store)
             with redirect_stdout(io.StringIO()):
