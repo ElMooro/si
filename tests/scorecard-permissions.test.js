@@ -13,7 +13,7 @@ async function render(packet){
   return get;
 }
 
-function packet(){return {integrity:{contract:'outcome-lineage.v1',scan_complete:true},n_outcomes_quarantined:299,
+function packet(){return {integrity:{contract:'outcome-lineage.v1',scan_complete:true,price_evidence_contract:'provider-price-replay.v1',price_archive_verification_required:true},n_outcomes_quarantined:299,
   n_signals_tracked:1,n_signals_graded:0,n_insufficient:1,n_outcomes_scored:0,avg_graded_wilson_lb:null,
   scorecard:[{signal_type:'eng:crypto-emergence',grade:'—',status:'INSUFFICIENT',n_scored:0,n_neutral:0,n_legacy:0,n_unresolved:0,
     n_quarantined:299,hit_rate:null,wilson_lb:0,wilson_ub:1,edge_vs_coinflip_pct:null,avg_return_pct:null,performance_multiplier:1}],
@@ -34,4 +34,9 @@ test('Legacy packet cannot imply current validation authority',async()=>{
  const get=await render(p);
  assert.match(get('permissions').textContent,/Legacy scorecard/);
  assert.match(get('kpis').innerHTML,/UNVERIFIED/);
+});
+test('Structural hashes alone cannot display a verified-price claim',async()=>{
+ const p=packet();delete p.integrity.price_archive_verification_required;
+ const get=await render(p);
+ assert.match(get('permissions').textContent,/Legacy scorecard/);
 });

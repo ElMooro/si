@@ -27,7 +27,7 @@ def outcome():
                         'entry_marks': {'asset': mark(100,2)}, 'marks': {'asset': mark(120,3)}}}
 
 
-def load(rows=None):
+def load(rows=None, allow_fixture_evidence=False):
     class S3:
         def __init__(self): self.objects = {}
         def get_object(self, Bucket, Key): return {'Body': io.BytesIO(self.objects[Key])}
@@ -45,6 +45,13 @@ def load(rows=None):
     spec = importlib.util.spec_from_file_location('scorecard_test', HERE.parent/'source/lambda_function.py')
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
     module.maybe_telegram = lambda *_: (_ for _ in ()).throw(AssertionError('unexpected message'))
+    if allow_fixture_evidence:
+        # Statistical/lineage unit fixtures isolate the independent byte parser.
+        # The real parser is tested separately against retained original bytes.
+        class FixtureVerifier:
+            def __init__(self,*a): self.stats={}
+            def __call__(self,mark): return [] if mark.get('provider')=='fixture' else ['not_fixture']
+        module.PriceEvidenceVerifier=FixtureVerifier
     return module, s3
 
 
@@ -67,7 +74,7 @@ def test_audited_280543_percent_legacy_gain_is_quarantined_without_mutation():
 
 def test_known_marks_recompute_direction_and_reject_a_conflicting_return():
     mod,_=load();row=outcome();row['outcome']['actual_direction']='DOWN'
-    assert mod.classify(row,'UP')==('scored',True)
+    assert mod.classify(row,'UP',assess_outcome(row,lambda _:[]))==('scored',True)
     row['outcome']['return_pct']=-20
     assert mod.classify(row,'UP')==('quarantined',None)
 
@@ -84,7 +91,7 @@ def test_benchmark_requires_the_same_window_and_never_processing_date():
     row=outcome();row['predicted_dir']='OUTPERFORM';oc=row['outcome'];oc['excess_return']=10
     oc['entry_marks']['benchmark']=mark(100,2,'equity:US:SPY');oc['marks']['benchmark']=mark(110,3,'equity:US:SPY')
     oc['checked_at']='2030-01-01T00:00:00Z'
-    assert assess_outcome(row)['verified']
+    assert assess_outcome(row,lambda _:[])['verified']
     oc['marks']['benchmark']['observed_at']='2026-09-04T20:00:00Z'
     assert 'asset_benchmark_window_mismatch' in assess_outcome(row)['reasons']
 
@@ -120,7 +127,7 @@ def test_full_scan_does_not_stop_at_100000_rows():
 def test_handler_preserves_quarantine_counts_and_cannot_promote_overlapping_samples():
     rows=[outcome() for _ in range(30)]
     rows += [{'signal_type':'bad','predicted_dir':'UP','outcome':{'return_pct':280542.78}}]
-    mod,s3=load(rows);result=mod.lambda_handler({'suppress_alerts':True},None)
+    mod,s3=load(rows,allow_fixture_evidence=True);result=mod.lambda_handler({'suppress_alerts':True},None)
     assert result['statusCode']==200
     doc=json.loads(s3.objects['data/signal-scorecard.json'])
     assert doc['n_outcomes_scanned']==31 and doc['n_outcomes_quarantined']==1 and doc['n_outcomes_scored']==30
@@ -130,7 +137,18 @@ def test_handler_preserves_quarantine_counts_and_cannot_promote_overlapping_samp
     assert doc['integrity']['scan_complete'] and doc['ssm_ok']
 
 
+def test_handler_rejects_hash_only_marks_without_a_real_archive():
+    mod,s3=load([outcome()]);result=mod.lambda_handler({'suppress_alerts':True},None)
+    assert result['statusCode']==200
+    doc=json.loads(s3.objects['data/signal-scorecard.json'])
+    assert doc['n_outcomes_scored']==0 and doc['n_outcomes_quarantined']==1
+    assert doc['integrity']['price_archive_verification_required'] is True
+    assert doc['integrity']['price_evidence_checks']['marks_verified']==0
+
+
 if __name__=='__main__':
     tests=[(n,f) for n,f in sorted(globals().items()) if n.startswith('test_') and callable(f)]
     for name,fn in tests: fn();print('ok',name)
     print('Scorecard integrity tests passed:',len(tests))
+    import subprocess
+    subprocess.run([sys.executable,str(HERE.parents[2]/'shared/tests/test_outcome_price_evidence.py')],check=True)

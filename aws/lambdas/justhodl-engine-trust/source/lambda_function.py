@@ -45,7 +45,9 @@ def lambda_handler(event, context):
     source_time = stamp(sc.get('generated_at'))
     source_fresh = bool(source_time and 0 <= (datetime.now(timezone.utc) - source_time).total_seconds() <= 30 * 3600)
     source_verified = bool(source_fresh and (sc.get('integrity') or {}).get('contract') == 'outcome-lineage.v1'
-                           and (sc.get('integrity') or {}).get('scan_complete') is True)
+                           and (sc.get('integrity') or {}).get('scan_complete') is True
+                           and (sc.get('integrity') or {}).get('price_evidence_contract') == 'provider-price-replay.v1'
+                           and (sc.get('integrity') or {}).get('price_archive_verification_required') is True)
     regime = current_regime()
     cond = _read("data/regime-conditional-trust.json") or {}
     cond_engines = cond.get("engines", {}) if isinstance(cond, dict) else {}

@@ -48,9 +48,19 @@ def test_stale_scorecard_cannot_grant_permissions_even_with_claimed_validation()
 def test_current_descriptive_scorecard_is_visible_without_sizing_authority():
     r=row();r.update(status='ACTIVE',promotion_eligible=False,n_quarantined=50,alpha_validation_scope='NOT_OUT_OF_SAMPLE')
     sc={'generated_at':datetime.now(timezone.utc).isoformat(),'scorecard':[r],
-        'integrity':{'contract':'outcome-lineage.v1','scan_complete':True}}
+        'integrity':{'contract':'outcome-lineage.v1','scan_complete':True,
+                     'price_evidence_contract':'provider-price-replay.v1','price_archive_verification_required':True}}
     doc=run(sc);assert doc['integrity']['scorecard_contract_verified']
     assert doc['engines'][0]['n_quarantined']==50 and doc['engines'][0]['effective_trust']==1
+
+
+def test_structural_lineage_alone_cannot_grant_trust():
+    r=row();r.update(promotion_eligible=True,alpha_validation_scope='OUT_OF_SAMPLE',validation_manifest_sha256='a'*64)
+    sc={'generated_at':datetime.now(timezone.utc).isoformat(),'scorecard':[r],
+        'integrity':{'contract':'outcome-lineage.v1','scan_complete':True}}
+    doc=run(sc)
+    assert not doc['integrity']['scorecard_contract_verified']
+    assert not doc['engines'][0]['promotion_eligible'] and doc['engines'][0]['effective_trust']==1
 
 
 if __name__=='__main__':

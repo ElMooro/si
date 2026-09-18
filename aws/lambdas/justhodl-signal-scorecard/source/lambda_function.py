@@ -17,6 +17,7 @@ import boto3
 from boto3.dynamodb.conditions import Attr
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 from outcome_integrity import assess_outcome, finite
+from outcome_price_evidence import PriceEvidenceVerifier, CONTRACT as PRICE_EVIDENCE_CONTRACT
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/signal-scorecard.json"
@@ -309,6 +310,7 @@ def lambda_handler(event, context):
 
     outcomes = scan_outcomes()
     scanned = 0
+    price_evidence = PriceEvidenceVerifier(s3, S3_BUCKET)
 
     # Benchmark returns come from paired recorded marks, never a history lookup
     # joined to logged_at / processing-time checked_at.
@@ -330,7 +332,7 @@ def lambda_handler(event, context):
             g["n_neutral"] += 1
             continue
 
-        assessment = assess_outcome(o)
+        assessment = assess_outcome(o, evidence_verifier=price_evidence)
         state, correct = classify(o, pd, assessment)
         if state == "legacy":
             g["n_legacy"] += 1
@@ -510,7 +512,7 @@ def lambda_handler(event, context):
                                       else "outcome-checker cannot resolve a realised move")})
 
     out = {
-        "schema_version": "2.2",
+        "schema_version": "2.3",
         "method": "verified_mark_lineage_descriptive_scorecard",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
@@ -521,6 +523,8 @@ def lambda_handler(event, context):
         "n_outcomes_unresolved": sum(r["n_unresolved"] for r in scorecard),
         "n_outcomes_quarantined": sum(r['n_quarantined'] for r in scorecard),
         "integrity": {"contract": "outcome-lineage.v1", "scan_complete": True,
+                      "price_evidence_contract": PRICE_EVIDENCE_CONTRACT,
+                      "price_archive_verification_required": True, "price_evidence_checks": price_evidence.stats,
                       "legacy_ledger_preserved": True, "price_returns_capped": False,
                       "sizing_eligible": False, "promotion_eligible": False,
                       "reason": "Only identified, dated, comparable entry/exit marks are scored; independent out-of-sample validation is not yet established"},

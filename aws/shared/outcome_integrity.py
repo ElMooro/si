@@ -59,7 +59,7 @@ def pair_return(entry, exit_mark):
     return (prices[1] / prices[0] - 1.0) * 100.0, []
 
 
-def assess_outcome(row):
+def assess_outcome(row, evidence_verifier=None):
     row = row if isinstance(row, dict) else {}
     outcome = row.get('outcome') if isinstance(row.get('outcome'), dict) else {}
     reasons = []
@@ -99,7 +99,15 @@ def assess_outcome(row):
     calculated = excess if relative else result
     if stored is not None and (finite(stored) is None or calculated is None or not math.isclose(finite(stored), calculated, rel_tol=1e-7, abs_tol=1e-4)):
         reasons.append('stored_return_disagrees_with_marks')
-    return {'contract': CONTRACT, 'verified': not reasons, 'reasons': sorted(set(reasons)),
+    lineage_valid = not reasons
+    if lineage_valid:
+        if evidence_verifier is None:
+            reasons.append('price_archive_not_verified')
+        else:
+            for name, mark in (('entry_asset',entry),('exit_asset',end),('entry_benchmark',bm_entry),('exit_benchmark',bm_end)):
+                if mark is not None:
+                    reasons.extend(name+'_'+problem for problem in evidence_verifier(mark))
+    return {'contract': CONTRACT, 'lineage_valid': lineage_valid, 'verified': not reasons, 'reasons': sorted(set(reasons)),
             'return_pct': result if not reasons else None, 'excess_return': excess if not reasons else None,
             'relative': relative, 'sizing_eligible': False,
             'validation_scope': 'MEASUREMENT_ONLY' if not reasons else 'QUARANTINED'}

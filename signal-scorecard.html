@@ -85,9 +85,9 @@ function kpi(label,val,sub,color){
   const d=await J("signal-scorecard.json");
   if(!d){document.getElementById("kpis").innerHTML='<div class="card"><div class="loading">SCORECARD NOT YET AVAILABLE — first run pending</div></div>';return;}
 
-  const lineage = d.integrity && d.integrity.contract === "outcome-lineage.v1" && d.integrity.scan_complete === true;
+  const lineage = d.integrity && d.integrity.contract === "outcome-lineage.v1" && d.integrity.scan_complete === true && d.integrity.price_evidence_contract === "provider-price-replay.v1" && d.integrity.price_archive_verification_required === true;
   document.getElementById("permissions").textContent = lineage
-    ? "Research only. Price lineage is checked; model promotion and portfolio sizing remain disabled pending independent out-of-sample validation. Unverified outcomes are preserved, not scored as failures."
+    ? "Research only. Scored prices must match retained original provider responses. Hashes alone do not verify a price. Model promotion and sizing remain disabled pending independent out-of-sample validation. Unverified outcomes are preserved, not scored as failures."
     : "Legacy scorecard: price lineage and validation permissions are unverified. These historical numbers must not drive position sizing.";
   const lb=d.avg_graded_wilson_lb;
   const lbc=lb==null?'var(--dim)':lb>=0.55?'var(--green)':lb>=0.5?'var(--cyan)':'var(--orange)';
