@@ -73,6 +73,14 @@ class Journal(unittest.TestCase):
         self.assertNotIn(b'must not be copied',encoded)
         self.assertNotIn(b'not allowed in archive',encoded)
 
+    def test_versioned_public_source_names_are_valid_but_traversal_is_not(self):
+        store=Store();protocol=ensure_protocol(store,'fixture')
+        doc=projection('data/example.v2.json',{'generated_at':NOW.isoformat()},picks(),'d'*64,NOW.isoformat())
+        refs=register(store,'fixture',doc,protocol,'c'*64,NOW)
+        self.assertEqual(read_record(store,'fixture',refs[0])['source']['source_key'],'data/example.v2.json')
+        for key in ('data/../owner.json','data/ai-brief.json','data/example..json'):
+            with self.assertRaises(ValueError):projection(key,{},picks(),'a'*64,NOW.isoformat())
+
     def test_missing_stale_future_or_error_source_cannot_register(self):
         for doc in ({'generated_at':None},{'generated_at':(NOW-timedelta(days=2)).isoformat()},
                     {'generated_at':(NOW+timedelta(seconds=1)).isoformat()},{'quality':{'status':'error'}}):

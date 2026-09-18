@@ -110,6 +110,20 @@ def test_capture_scan_is_not_truncated_by_legacy_signal_limit():
     assert len(scanned)==2
 
 
+def test_unsupported_projection_reports_gap_without_losing_other_sources():
+    env=load();problems=[];registered=[]
+    env['s3']=object();env['list_outputs']=lambda:['data/unsupported@name.json','data/example.json'];env['_read']=lambda key:{}
+    env['ensure_protocol']=lambda *a:{}
+    env['read_research_source']=lambda key:({'generated_at':datetime.now(timezone.utc).isoformat(),'top_picks':[{'ticker':'AAA','side':'SHORT'}]},'a'*64,datetime.now(timezone.utc).isoformat())
+    env['register']=lambda *a:registered.append(a[2]['source_key']) or []
+    def published(*args):
+        problems.extend(args[3]);return {'capture':{},'records_in_capture':1,'new_records':1}
+    env['publish_journal']=published
+    env['lambda_handler']({'capture_only':True},None)
+    assert registered==['data/example.json']
+    assert problems==[{'source_key':'data/unsupported@name.json','reason':'UNSUPPORTED_SOURCE_PROJECTION'}]
+
+
 if __name__=='__main__':
     tests=[(n,f) for n,f in sorted(globals().items()) if n.startswith('test_') and callable(f)]
     for n,f in tests:f();print('ok',n)

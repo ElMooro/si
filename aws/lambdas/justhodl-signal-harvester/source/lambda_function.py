@@ -270,7 +270,11 @@ def lambda_handler(event, context):
         picks = extract_picks(doc)
         if not picks:
             continue
-        selected = projection(k, doc, picks, source_sha, received_at)
+        try:
+            selected = projection(k, doc, picks, source_sha, received_at)
+        except ValueError:
+            source_errors.append({'source_key':k,'reason':'UNSUPPORTED_SOURCE_PROJECTION'})
+            continue
         projections.append(selected)
         research_refs.extend(register(s3, S3_BUCKET, selected, protocol_ref, collector_sha))
         engine = k[len("data/"):-len(".json")]

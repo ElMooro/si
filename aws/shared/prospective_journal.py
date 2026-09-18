@@ -60,7 +60,7 @@ def protocol_document():
 
 def projection(source_key, doc, picks, raw_sha256, received_at):
     """No narrative, account, score heuristic or arbitrary object may escape."""
-    if not public_source_allowed(source_key) or not re.fullmatch(r'data/[a-zA-Z0-9_-]+\.json', source_key):
+    if not public_source_allowed(source_key) or not re.fullmatch(r'data/[a-zA-Z0-9_.-]+\.json', source_key):
         raise ValueError('public research source required')
     if not isinstance(doc, dict) or not re.fullmatch('[0-9a-f]{64}', str(raw_sha256)):
         raise ValueError('source object and byte hash required')
@@ -137,7 +137,7 @@ def validate_record(record):
         raise ValueError('prospective clocks inconsistent')
     if source['quality_status'] in ('stale', 'missing', 'error'):
         raise ValueError('source quality cannot register forecast')
-    if not public_source_allowed(source['source_key']) or not re.fullmatch(r'data/[a-zA-Z0-9_-]+\.json', source['source_key']):
+    if not public_source_allowed(source['source_key']) or not re.fullmatch(r'data/[a-zA-Z0-9_.-]+\.json', source['source_key']):
         raise ValueError('private or invalid source')
     if not re.fullmatch('[0-9a-f]{64}', source['source_bytes_sha256']): raise ValueError('source byte identity invalid')
     if record['registration_date_et'] != registered.astimezone(EASTERN).date().isoformat():
