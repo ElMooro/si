@@ -53,7 +53,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -753,18 +753,18 @@ def build_reactions(day_ops, assets, today_key):
         # unconditional baseline: every auction day
         rets = [fwd_returns(ser, d) for d in day_ops if d < today_key]
         rets = [r for r in rets if r]
-        base[sym] = {h: _dist([r[h] for r in rets if r.get(h) is not None]) for h, _ in HORIZONS}
+        base[sym] = {h: _dist([r[h] for r in rets if r.get(h) is not None and h not in r.get('partial',[])]) for h, _ in HORIZONS}
         for cls in set(c for _, c in events):
             days = [d for d, c in events if c == cls]
             rr = [fwd_returns(ser, d) for d in days]
             rr = [r for r in rr if r]
-            stats.setdefault(cls, {})[sym] = {h: _dist([r[h] for r in rr if r.get(h) is not None]) for h, _ in HORIZONS}
+            stats.setdefault(cls, {})[sym] = {h: _dist([r[h] for r in rr if r.get(h) is not None and h not in r.get('partial',[])]) for h, _ in HORIZONS}
     return {"stats": stats, "baseline": base, "n_events": {c: sum(1 for _, x in events if x == c) for c in set(c for _, c in events)},
             "classes": CLASS_LABEL, "horizons": [h for h, _ in HORIZONS]}
 
 
 def _dist(xs):
-    xs = [x for x in xs if x is not None]
+    xs = [x for x in xs if isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x)]
     if len(xs) < 3:
         return {"n": len(xs), "median": None, "mean": None, "hit": None}
     xs_sorted = sorted(xs)
@@ -799,9 +799,25 @@ def predict_today(classes, reactions, assets):
                 call = "↓"
         conf = "high" if (hit1 is not None and abs(hit1 - 50) >= 15 and h1.get("n", 0) >= 30) else "medium" if (hit1 is not None and abs(hit1 - 50) >= 10 and h1.get("n", 0) >= 15) else "low"
         rows.append({"symbol": sym, "name": name, "asset_class": cls_name, "basis": chosen, "basis_label": CLASS_LABEL.get(chosen, chosen), "n": h1.get("n"),
-                     "same_day": st.get("same_day"), "d1": h1, "d5": h5, "d20": h20, "baseline_d1": b.get("d1"), "call": call, "confidence": conf,
-                     "edge_d1": round((med1 or 0) - ((b.get("d1") or {}).get("median") or 0), 2) if med1 is not None else None})
+                     "same_day": st.get("same_day"), "d1": h1, "d5": h5, "d20": h20, "baseline_d1": b.get("d1"),
+                     "call": None, "confidence": "unvalidated", "legacy_direction_hint":call, "legacy_confidence_hint":conf,
+                     "decision_eligible":False,"sizing_eligible":False,"validation_scope":"DESCRIPTIVE_HISTORY_UNVERIFIED_PRICE_LINEAGE",
+                     "edge_d1": round(med1-b['d1']['median'],2) if med1 is not None and (b.get('d1') or {}).get('median') is not None else None})
     return rows
+
+
+def chart_cohorts(auctions):
+    """Chart only the same declared security kind, remaining term and reopening."""
+    groups={}
+    for a in auctions:
+        cohort=comparable_cohort(a)
+        if cohort is None:continue
+        kind,term,reopening=cohort
+        label='%s · %s · %s'%(kind,term,'reopening' if reopening else 'new issue')
+        groups.setdefault(label,[]).append({'d':a['auction_date'],'btc':a.get('btc'),'grade':a.get('grade'),
+                                           'instrument_kind':kind,'quote_basis':a.get('quote_basis'),
+                                           'reopening':reopening,'prior_close_concession_bp':a.get('tail_bp')})
+    return groups
 
 
 def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6):
@@ -1029,10 +1045,15 @@ def lambda_handler(event, ctx):
         "buybacks": {"operations": bb_analyzed, "program": program_stats},
         "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if b["operation_date"] > today][:10]},
         "by_term": by_term,
+        "chart_cohort_contract":"treasury-comparable-chart.v1","chart_cohorts":chart_cohorts(analyzed),
         "composite_history": composite,
         "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
                       "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
-                      "note": assets_note, "horizons": "same_day = auction-day close vs prior close (results land at 1pm ET); d1/d5/d20 = trading days after the auction day; crypto trades 7 days"},
+                      "note": assets_note, "horizons": "same_day = prior close to auction-day close, not an auction-release response; d1/d5/d20 = observed bars after the auction day in each asset series; crypto trades 7 days",
+                      "contract":"treasury-reaction-research.v1","partial_windows_excluded_from_distributions":True,
+                      "price_lineage_verified":False,"original_response_replay_available":False,
+                      "same_day_clock":"PRIOR_CLOSE_TO_AUCTION_DAY_CLOSE",
+                      "validation_scope":"DESCRIPTIVE_HISTORY_UNVERIFIED_PRICE_LINEAGE","decision_eligible":False,"sizing_eligible":False},
         "decision": {"role": "measurement", "call": None, "sizing_eligible": False,
                      "reason": "Participation grades and historical conditional returns are descriptive, not a validated action model"},
         "methodology": {

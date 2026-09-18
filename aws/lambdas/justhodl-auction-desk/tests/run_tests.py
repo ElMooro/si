@@ -22,6 +22,8 @@ env = dict(bisect=bisect, json=json, math=math, statistics=statistics, datetime=
 functions = {'_f', '_d', '_now', '_iso', 'norm_td', 'norm_fd', 'par_prev_close', 'shares', 'z',
              'analyze_bank', 'analyze_auction', 'explain_auction', 'fmt_bn', 'auction_verdict',
              'implication_for_auction', 'analyze_buyback', 'day_verdict', 'ai_note'}
+functions.update({'day_class','build_reactions','_dist','predict_today','chart_cohorts','fwd_returns'})
+env.update(HORIZONS=(('same_day',0),('d1',1),('d5',5),('d20',20)),ASSETS=[('SPY','S&P 500','stocks')],CLASS_LABEL={'bills_only':'bills only'})
 exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in functions], type_ignores=[]), str(SRC), 'exec'), env)
 
 
@@ -119,6 +121,33 @@ def test_bill_grade_cannot_flip_coupon_participation_and_missing_is_not_weak():
     bill['grade'] = 'n/a'
     result = env['day_verdict']('2026-09-17', [bill], [])
     assert 'insufficient' in result['bullets'][0] and 'thinner' not in result['bullets'][0]
+
+
+def test_chart_cohorts_keep_tips_nominals_and_reopening_status_separate():
+    rows=[row(),row(tips='Yes'),row()]
+    rows[2]['reopening']=False
+    groups=env['chart_cohorts'](rows)
+    assert len(groups)==3 and all(len(items)==1 for items in groups.values())
+    assert any('TIPS' in label for label in groups) and any('new issue' in label for label in groups)
+
+
+def test_partial_endpoints_and_nonfinite_values_cannot_enter_conditional_stats():
+    original=env['fwd_returns']
+    env['fwd_returns']=lambda ser,d:{'same_day':.01,'d1':.02,'partial':['d1'] if d=='2026-09-15' else []}
+    try:
+        ops={d:{'auctions':[{'type':'Bill'}],'buybacks':[]} for d in ('2026-09-15','2026-09-16','2026-09-17')}
+        result=env['build_reactions'](ops,{'SPY':{}},'2026-09-18')
+        assert result['baseline']['SPY']['d1']['n']==2 and result['stats']['bills_only']['SPY']['d1']['n']==2
+        assert env['_dist']([.01,.02,float('nan'),float('inf'),True])['n']==2
+    finally:env['fwd_returns']=original
+
+
+def test_conditional_history_cannot_grant_confidence_or_impute_missing_baseline():
+    reactions={'stats':{'bills_only':{'SPY':{'d1':{'n':50,'median':2,'hit':90}}}},'baseline':{}}
+    result=env['predict_today'](['bills_only'],reactions,{'SPY':{}})[0]
+    assert result['call'] is None and result['confidence']=='unvalidated'
+    assert result['legacy_direction_hint']=='↑' and result['edge_d1'] is None
+    assert not result['decision_eligible'] and not result['sizing_eligible']
 
 
 if __name__ == '__main__':

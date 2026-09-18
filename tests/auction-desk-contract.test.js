@@ -14,7 +14,7 @@ test('Treasury banner shows measurement eligibility and deterministic note', () 
   assert.ok(start > 0 && end > start);
   const scope = {$, esc, fmtDate: x=>x, ago: ()=> 'now', toneOf: ()=>'', tagClass: ()=>''};
   vm.runInNewContext(html.slice(start, end), scope);
-  scope.renderBanner({generated_at:'2026-09-18T12:00:00Z', freshness:{newest_auction:'2026-09-17'},
+  scope.renderBanner({generated_at:new Date().toISOString(), freshness:{newest_auction:'2026-09-17'},
     today:{verdict:{date:'2026-09-17', headline:'Observed operations', risk_assets:'neutral',
       liquidity:'cash_management_context', rates:'stronger participation', tags:[], bullets:[]},
       ai_note:{generation_method:'deterministic_treasury_v1', what_happened:'<unsafe>', what_it_means:'Context', watch_next:'Settlement'}}});
@@ -23,6 +23,23 @@ test('Treasury banner shows measurement eligibility and deterministic note', () 
   assert.doesNotMatch($('desk-implications').innerHTML, /BULLISH|EASY/);
   assert.match($('desk-ai').innerHTML, /no paid AI/);
   assert.doesNotMatch($('desk-ai').innerHTML, /<unsafe>/);
+  scope.renderBanner({generated_at:'2000-01-01T00:00:00Z',today:{verdict:{headline:'Old call'}}});
+  assert.match($('desk-headline').textContent,/unavailable/);
+  assert.equal($('desk-implications').innerHTML,'');
+  assert.equal($('desk-ai').hidden,true);
+});
+
+test('price verification alone cannot turn conditional history into forecast confidence', () => {
+  const elements = new Map();
+  const $ = id => { if (!elements.has(id)) elements.set(id, {}); return elements.get(id); };
+  const scope = {$, esc, fmtDate:String, bn:String};
+  vm.runInNewContext(html.slice(html.indexOf('  function renderReactions(D) {'),html.indexOf('  function findAuction(D, key) {')),scope);
+  scope.renderReactions({reactions:{note:'14 assets',prediction:[{call:'↑',confidence:'high'}]}});
+  assert.match($('rx-pred').innerHTML,/awaits verified price lineage/);
+  assert.match($('rx-board').innerHTML,/withheld pending/);
+  scope.renderReactions({reactions:{price_lineage_verified:true,prediction:[{call:'↑',confidence:'high'}]}});
+  assert.match($('rx-pred').innerHTML,/Descriptive only/);
+  assert.doesNotMatch($('rx-pred').innerHTML,/↑|high/);
 });
 
 test('Missing bidder participation remains unavailable rather than a measured zero', () => {

@@ -4,14 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Treasury Auctions · JustHodl.AI</title>
-<meta name="description" content="Treasury auction desk: same-day TreasuryDirect results, buyback operations, graded demand vs trailing history and daily liquidity / rates / risk-asset verdicts. Live US Treasury auction interpretation — crisis comparison, Bitcoin regime overlay, risk-on asset cross-reference, forward returns, decisive call.">
+<meta name="description" content="Treasury auction measurements with security and quote identity, comparable participation cohorts, buyback accepted par and source dates. Historical return and portfolio allocation claims require separate validation.">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#facc15">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <script src="/wss-client.js" defer></script>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/liquidity-pulse.js" defer></script>
 <style>
   :root {
     --bg:#08090f; --bg-card:#0e1120; --bg-elev:#141828; --bg-sunken:#04050a; --bg-hover:#1a1e30;
@@ -356,12 +353,12 @@
 
 <div class="rx-grid">
   <section class="box" style="margin:0">
-    <div class="head"><h3>🔮 Cross-asset read — what days like today usually did to markets</h3><span class="right" id="rx-meta"></span></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Based on</th><th class="r">Same day</th><th class="r">+1 day</th><th class="r">+5 days</th><th class="r">+20 days</th><th class="r">Call</th></tr></thead><tbody id="rx-pred"><tr><td colspan="7"><div class="skel" style="height:40px"></div></td></tr></tbody></table></div>
+    <div class="head"><h3>Cross-asset history — validation status</h3><span class="right" id="rx-meta"></span></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Based on</th><th class="r">Same day</th><th class="r">+1 day</th><th class="r">+5 days</th><th class="r">+20 days</th><th class="r">Validation</th></tr></thead><tbody id="rx-pred"><tr><td colspan="7"><div class="skel" style="height:40px"></div></td></tr></tbody></table></div>
     <div class="body" style="padding-top:8px"><div class="rx-note" id="rx-note"></div></div>
   </section>
   <section class="box" style="margin:0">
-    <div class="head"><h3>📒 What actually happened — recent auction days</h3><span class="right">same-day = results at 1pm → close · next = following close</span></div>
+    <div class="head"><h3>📒 What actually happened — recent auction days</h3><span class="right">same-day = prior close → auction-day close; not the release response</span></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Day</th><th>What the tape said</th><th class="r">S&amp;P</th><th class="r">Nasdaq</th><th class="r">TLT</th><th class="r">HYG</th><th class="r">BTC</th><th class="r">Gold</th><th class="r">Silver</th><th class="r">REITs</th></tr></thead><tbody id="rx-board"></tbody></table></div>
   </section>
 </div>
@@ -373,7 +370,7 @@
 
 <div class="desk-grid2">
   <section class="box" style="margin:0">
-    <div class="head"><h3>♻️ Treasury buyback program — supply removed, cash returned</h3><span class="right">FiscalData buybacks_operations · settlement T+1</span></div>
+    <div class="head"><h3>Treasury buybacks — accepted par and operation fill</h3><span class="right">Settlement dates as reported · accepted par is not cash paid</span></div>
     <div class="body">
       <div class="desk-stats" id="bb-stats"></div>
       <svg class="desk-chart" id="bb-chart" viewBox="0 0 720 190" preserveAspectRatio="none" role="img" aria-label="Buyback accepted par per operation with cumulative program total"></svg>
@@ -398,7 +395,7 @@
 </section>
 
 <section class="box">
-  <div class="head"><h3>📈 Demand by tenor — bid-to-cover, last 24 auctions each</h3><span class="right">line = auction, dashed = trailing-12 mean</span></div>
+  <div class="head"><h3>📈 Comparable auction cohorts — bid-to-cover, up to 24 observations</h3><span class="right">same instrument, remaining term and reopening status · dashed = up to 12-point mean</span></div>
   <div class="body"><div class="tenor-grid" id="tenor-grid"></div>
     <p class="desk-method" style="margin-top:12px" id="desk-method"></p>
   </div>
@@ -424,7 +421,15 @@
   function renderBanner(D) {
     const v = D.today && D.today.verdict;
     const b = $("desk-banner");
-    if (!v) { $("desk-headline").textContent = "No operations found in the feed."; return; }
+    const stamp = Date.parse(D.generated_at);
+    if (!v || !Number.isFinite(stamp) || stamp > Date.now()+300000 || Date.now()-stamp > 48*3600000) {
+      b.className = "desk-banner";
+      $("desk-headline").textContent = "Current desk assessment unavailable. Dated observations below are an archived snapshot.";
+      $("desk-fresh").textContent = D.generated_at ? "Snapshot generated " + D.generated_at : "Publication time unavailable";
+      for (const id of ["desk-tags","desk-implications","desk-bullets","desk-ai"]) $(id).innerHTML = "";
+      $("desk-ai").hidden = true;
+      return;
+    }
     b.className = "desk-banner " + (v.risk_assets === "bullish" ? "bullish" : v.risk_assets === "bearish" ? "bearish" : v.risk_assets === "mixed" ? "mixed" : "");
     $("desk-fresh").textContent = `${fmtDate(v.date)} · engine ran ${ago(D.generated_at)} · newest auction ${D.freshness.newest_auction || "—"} · newest buyback ${D.freshness.newest_buyback || "—"}`;
     $("desk-headline").textContent = v.headline;
@@ -437,6 +442,7 @@
     ].map(([l, val, cls]) => `<div class="desk-imp ${cls}"><div class="l">${l}</div><div class="v">${esc(val)}</div></div>`).join("");
     $("desk-bullets").innerHTML = (v.bullets || []).map(x => `<li>${esc(x)}</li>`).join("");
     const ai = D.today.ai_note;
+    $("desk-ai").hidden = true;
     if (ai && ai.what_happened) {
       $("desk-ai").hidden = false;
       $("desk-ai").innerHTML = [["What happened", ai.what_happened], ["What it means", ai.what_it_means], ["Watch next", ai.watch_next]]
@@ -539,6 +545,7 @@
     const rows = (C.auctions || []).map(a => `<tr class="cal-row"><td class="tk">${fmtDate(a.auction_date)}</td><td>${esc(a.term)} ${esc(securityLabel(a))}${a.reopening ? '<span class="rx">REOPEN</span>' : ""}</td><td class="r">${bn(a.offering)}</td><td>${esc(a.issue_date || "")}</td></tr>`);
     (C.buybacks || []).forEach(b => rows.push(`<tr class="cal-row"><td class="tk">${fmtDate(b.operation_date)}</td><td>Buyback · ${esc(b.maturity_bucket || "")}</td><td class="r">${bn(b.max_par)}</td><td>${esc(b.settlement_date || "")}</td></tr>`));
     $("cal-table").innerHTML = rows.join("") || `<tr><td colspan="4" class="flat">Nothing announced yet.</td></tr>`;
+    if(typeof window.renderTriggers==='function') window.renderTriggers(D);
   }
 
   function renderDays(D) {
@@ -557,37 +564,37 @@
   }
 
   function renderTenors(D) {
-    const T = D.by_term || {};
+    const T = D.chart_cohort_contract === "treasury-comparable-chart.v1" ? D.chart_cohorts || {} : {};
     const order = Object.keys(T).sort((a, b) => T[b].length - T[a].length).slice(0, 8);
     $("tenor-grid").innerHTML = order.map(k => {
-      const pts = T[k].slice(0, 24).reverse().filter(p => p.btc != null);
+      const pts = T[k].slice(0, 24).reverse().filter(p => typeof p.btc === 'number' && Number.isFinite(p.btc));
       if (!pts.length) return "";
       const W = 260, H = 64, min = Math.min(...pts.map(p => p.btc)) * .97, max = Math.max(...pts.map(p => p.btc)) * 1.03;
       const x = i => 4 + i * (W - 8) / Math.max(pts.length - 1, 1), y = v => H - 4 - (H - 10) * (v - min) / Math.max(max - min, 1e-6);
       const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.btc).toFixed(1)}`).join(" ");
       const avg = pts.slice(-12).reduce((s, p) => s + p.btc, 0) / Math.min(12, pts.length);
       const last = pts[pts.length - 1];
-      return `<div class="tenor-card"><div class="t">${esc(k)}<span>last ${last.btc.toFixed(2)} · 12-avg ${avg.toFixed(2)} · <b class="grade-pill ${last.grade}">${esc(last.grade)}</b></span></div>
-        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="4" y1="${y(avg).toFixed(1)}" x2="${W - 4}" y2="${y(avg).toFixed(1)}" stroke="#6b7a92" stroke-dasharray="3 3"/><path d="${path}" fill="none" stroke="#06b6d4" stroke-width="1.6"/>${pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.btc).toFixed(1)}" r="1.8" fill="${p.grade === "A" || p.grade === "B" ? "#22c55e" : p.grade === "D" || p.grade === "F" ? "#ef4444" : "#6b7a92"}"><title>${p.d} · BTC ${p.btc.toFixed(2)} · grade ${p.grade}${p.tail != null ? " · tail " + p.tail.toFixed(1) + "bp" : ""}</title></circle>`).join("")}</svg></div>`;
+      return `<div class="tenor-card"><div class="t">${esc(k)}<span>last ${last.btc.toFixed(2)} · ${Math.min(12,pts.length)}-point mean ${avg.toFixed(2)} · <b class="grade-pill ${esc(last.grade)}">${esc(last.grade)}</b></span></div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="4" y1="${y(avg).toFixed(1)}" x2="${W - 4}" y2="${y(avg).toFixed(1)}" stroke="#6b7a92" stroke-dasharray="3 3"/><path d="${path}" fill="none" stroke="#06b6d4" stroke-width="1.6"/>${pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.btc).toFixed(1)}" r="1.8" fill="${p.grade === "A" || p.grade === "B" ? "#22c55e" : p.grade === "D" || p.grade === "F" ? "#ef4444" : "#6b7a92"}"><title>${p.d} · BTC ${p.btc.toFixed(2)} · grade ${p.grade}${p.prior_close_concession_bp != null ? " · prior-close context " + p.prior_close_concession_bp.toFixed(1) + "bp" : ""}</title></circle>`).join("")}</svg></div>`;
     }).join("");
     const m = D.methodology || {};
-    $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Tail: ${esc(m.tail_proxy || "")}. Buyback signal: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
+    $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Prior-close context: ${esc(m.tail_proxy || "")}. Buyback signal: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
   }
 
   function renderReactions(D) {
     const R = D.reactions || {};
-    const pred = R.prediction || [];
+    const pred = R.price_lineage_verified === true ? R.prediction || [] : [];
     const f = v => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
     const cell = h => h && h.median != null ? `<span class="mv ${h.median > 0.05 ? "pos" : h.median < -0.05 ? "neg" : "flat"}">${f(h.median)}</span><div class="rx-hit">${h.hit}% up · n ${h.n}</div>` : "<span class=\"flat\">—</span>";
     const cls = (R.today_classes || []).map(c => (R.class_labels || {})[c] || c).join(" + ");
     $("rx-meta").textContent = cls ? `today = ${cls}` : "";
-    $("rx-pred").innerHTML = pred.length ? pred.map(p => `<tr><td class="tk" title="${esc(p.asset_class)}">${esc(p.name)} <span class="rx-cls">${esc(p.symbol)}</span></td><td class="rx-basis" style="white-space:normal;max-width:180px">${esc(p.basis_label)}<br>${p.n} days since bank start</td><td class="r">${cell(p.same_day)}</td><td class="r">${cell(p.d1)}</td><td class="r">${cell(p.d5)}</td><td class="r">${cell(p.d20)}</td><td class="r"><span class="rx-call ${p.call === "↑" ? "up" : p.call === "↓" ? "down" : "flat"}">${p.call}</span><div><span class="rx-conf ${p.confidence}">${p.confidence}</span></div></td></tr>`).join("")
-      : `<tr><td colspan="7" class="flat">${esc(R.note || "No reaction history yet.")}</td></tr>`;
-    $("rx-note").innerHTML = `<b>How to read it.</b> Every auction day since the bank starts is filed by what the tape said (weak coupon day, strong coupon day, bills only, large max-fill buyback day). For each asset the table shows the <b>median</b> move that followed days of today's kind, and how often the move was up. ↑ = median up and up ≥57% of the time; ↓ = median down and up ≤43%. Confidence rises with the sample and how one-sided it is. This is conditional history, not a promise — ${esc(R.note || "")}. ${esc(R.horizons || "")}`;
-    const board = R.scoreboard || [];
+    $("rx-pred").innerHTML = pred.length ? pred.map(p => `<tr><td class="tk" title="${esc(p.asset_class)}">${esc(p.name)} <span class="rx-cls">${esc(p.symbol)}</span></td><td class="rx-basis" style="white-space:normal;max-width:180px">${esc(p.basis_label)}<br>${p.n} days since bank start</td><td class="r">${cell(p.same_day)}</td><td class="r">${cell(p.d1)}</td><td class="r">${cell(p.d5)}</td><td class="r">${cell(p.d20)}</td><td class="r"><span class="flat">Descriptive only</span></td></tr>`).join("")
+      : `<tr><td colspan="7" class="flat">${esc(R.price_lineage_verified !== true ? "Historical reaction display awaits verified price lineage and source replay." : R.note || "No eligible historical sample.")}</td></tr>`;
+    $("rx-note").textContent = "Historical price rows remain in the downloadable packet for investigation. Display requires original-response lineage. Same-day is prior-close to auction-day close, not the price response after an auction announcement. Conditional samples overlap and do not grant forecast confidence or trade authority.";
+    const board = R.price_lineage_verified === true ? R.scoreboard || [] : [];
     const mv = (m, k) => m && m[k] != null ? `<span class="mv ${m[k] > 0.05 ? "pos" : m[k] < -0.05 ? "neg" : "flat"}">${f(m[k])}${(m.partial || []).includes(k) ? " <i>so far</i>" : ""}</span>` : `<span class="flat">${m && m.pending ? "pending" : "—"}</span>`;
     const pair = (moves, sym) => { const m = moves[sym]; return `<td class="r">${mv(m, "same_day")}<div class="rx-hit">next ${mv(m, "d1")}</div></td>`; };
-    $("rx-board").innerHTML = board.map(b => `<tr><td class="tk">${fmtDate(b.date)}</td><td style="white-space:normal;min-width:200px">${esc((b.labels || []).join(" + "))}${b.grades && b.grades.length ? ` <span class="rx-cls">grades ${b.grades.join("")}</span>` : ""}${b.buyback_accepted ? ` <span class="rx-cls">buyback ${bn(b.buyback_accepted)}</span>` : ""}<div class="rx-cls">${esc(b.headline || "")}</div></td>${["SPY","QQQ","TLT","HYG","BTC-USD","GLD","SLV","VNQ"].map(s => pair(b.moves || {}, s)).join("")}</tr>`).join("") || `<tr><td colspan="10" class="flat">No history yet.</td></tr>`;
+    $("rx-board").innerHTML = board.map(b => `<tr><td class="tk">${fmtDate(b.date)}</td><td style="white-space:normal;min-width:200px">${esc((b.labels || []).join(" + "))}${b.grades && b.grades.length ? ` <span class="rx-cls">grades ${b.grades.join("")}</span>` : ""}${b.buyback_accepted ? ` <span class="rx-cls">buyback ${bn(b.buyback_accepted)}</span>` : ""}<div class="rx-cls">${esc(b.headline || "")}</div></td>${["SPY","QQQ","TLT","HYG","BTC-USD","GLD","SLV","VNQ"].map(s => pair(b.moves || {}, s)).join("")}</tr>`).join("") || `<tr><td colspan="10" class="flat">${R.price_lineage_verified !== true ? "Historical price rows withheld pending original-response verification." : "No eligible historical sample."}</td></tr>`;
   }
 
   function findAuction(D, key) {
@@ -643,7 +650,7 @@
     </div>
   </div>
   <div class="hero-detail">
-    <h2>What today's auction tape is telling you</h2>
+    <h2>Descriptive auction concern — research only</h2>
     <div class="interpret" id="interpretText">Loading live state from <code>data/auction-crisis.json</code>…</div>
     <div class="hero-meta">
       <div class="stat">
@@ -671,29 +678,25 @@
 
 <!-- Static fallback (only visible if AI brief fails to load) -->
 <div class="call-banner" id="callBanner" style="display:none">
-  <div class="h">⚡ DECISIVE CALL</div>
+  <div class="h">RESEARCH STATUS</div>
   <div class="verdict" id="callVerdict">Loading…</div>
   <div class="reasoning" id="callReasoning"></div>
   <div class="stops" id="callStops"></div>
 </div>
 
 <!-- ─────────── TENOR SIGNALS (live) ─────────── -->
-<div id="tenor-signals-panel" style="margin-bottom:18px"></div>
-<div id="liquidity-credit-panel" style="margin-top:18px"></div>
-<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
+<p class="desk-method">Related research: <a href="/yield-curve.html">yield curve</a> · <a href="/liquidity.html">liquidity measurements</a> · <a href="/signal-scorecard.html">forecast evidence and validation status</a>. Auction heuristics do not establish a Fed decision or offshore funding crisis.</p>
 
 
 <!-- ─────────── 6 CRISIS PATTERN INDICATORS ─────────── -->
 <section class="box">
   <div class="head">
     <h3>📊 The 6 crisis patterns — current state</h3>
-    <span class="right">codified from 9 historical PDF anchors (GFC 2008 + COVID 2020)</span>
+    <span class="right">descriptive heuristics · predictive calibration unverified</span>
   </div>
   <div class="body">
     <p style="color:var(--fg-2); font-size:12px; margin-bottom:14px; line-height:1.6">
-      The detector scans every settled US Treasury auction against six quantified historical-crisis signatures.
-      Each signature is calibrated to fire at the same numerical thresholds that fired during real crises. Your
-      composite is a weighted aggregate.
+      The detector reports six auction heuristics and a composite. These thresholds do not establish a crisis probability, a reliable lead time or an independently validated trading rule. Missing inputs must remain unavailable.
     </p>
     <div class="indicators" id="indicators"></div>
   </div>
@@ -747,8 +750,8 @@
 <!-- ─────────── BITCOIN REGIME OVERLAY ─────────── -->
 <section class="box">
   <div class="head">
-    <h3>₿ Bitcoin regime overlay — what auction tapes look like at BTC tops, bottoms, and during bull/bear runs</h3>
-    <span class="right">structural cross-asset map</span>
+    <h3>Bitcoin relationship — validation pending</h3>
+    <span class="right">no validated timing or expected-return claim</span>
   </div>
   <div class="english">
     <strong>Historical examples, not a trading rule.</strong> The episodes below do not establish
@@ -758,7 +761,7 @@
 
   <div class="body">
     <h4 style="font-size:12px; color:var(--amber); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">
-      ⛰️ Auction tape at BTC cycle TOPS</h4>
+      Cross-asset evidence status</h4>
     <div class="btc-eras" id="btcTops"></div>
   </div>
 
@@ -785,14 +788,10 @@
 <section class="box">
   <div class="head">
     <h3>📈 Risk-on forward returns by auction regime</h3>
-    <span class="right">conditional 1m / 3m / 6m forward returns</span>
+    <span class="right">conditional estimates unavailable</span>
   </div>
   <div class="english">
-    <strong>How to read this.</strong> Each row is an auction regime. Each cell is the median 1m / 3m / 6m
-    forward return for that asset *conditional on starting in that regime*. ACUTE_STRESS rows look bad for
-    risk assets short-term but are usually buying opportunities at 6m. CALM rows show the typical late-cycle
-    grind. The critical insight: <em>regime transitions matter more than levels</em> — going CALM → WATCH is
-    bearish (risk fading), going ACUTE → WATCH is bullish (panic clearing).
+    Conditional returns require a declared universe, dated regime labels, compatible price evidence, a reproducible sample and uncertainty estimates. No validated conditional-return dataset is attached here.
   </div>
   <div class="body" style="overflow-x:auto">
     <table class="matrix" id="forwardMatrix">
@@ -813,7 +812,7 @@
 <!-- ─────────── PLAIN-ENGLISH MARKET IMPACT ─────────── -->
 <section class="box">
   <div class="head">
-    <h3>💡 What today's tape tells you about market direction</h3>
+    <h3>What these measurements can support</h3>
     <span class="right">plain-English synthesis</span>
   </div>
   <div class="body" id="marketImpact"></div>
@@ -822,8 +821,8 @@
 <!-- ─────────── TRIGGERS ─────────── -->
 <section class="box">
   <div class="head">
-    <h3>📅 Triggers — auctions to watch in the next 2 weeks</h3>
-    <span class="right">specific levels that move regime</span>
+    <h3>Upcoming announced auctions — measurements to inspect</h3>
+    <span class="right">source calendar · no fixed-date fallback</span>
   </div>
   <div class="body">
     <div class="triggers" id="triggers"></div>
@@ -837,33 +836,16 @@
     <span class="right">how the score is computed</span>
   </div>
   <div class="body" style="font-size:12px; color:var(--fg-2); line-height:1.7">
-    <p><strong style="color:var(--fg-1)">Source.</strong> All auction data is pulled from the official
-       <code>api.fiscaldata.treasury.gov</code> Treasury Securities Auction dataset (1979–present). Lambda
-       <code>justhodl-auction-crisis-detector</code> fires every 15 minutes during the Treasury publishing
-       window (14:00–22:00 UTC weekdays) plus a 4-hour off-hours backstop, so dashboard latency is at most
-       15 minutes from official auction publication.</p>
-    <p style="margin-top:10px"><strong style="color:var(--fg-1)">The 6 patterns.</strong>
-       Each is calibrated to fire at the *exact numerical threshold* that fired during real historical
-       crises. Calibration anchors:</p>
-    <ul style="margin:6px 0 0 20px">
-      <li><strong>GFC peak</strong> — 2008-09-17, 2008-09-23, 2008-10-08 (Lehman week + TIPS basis trade unwind)</li>
-      <li><strong>COVID crash</strong> — 2020-03-11, 2020-03-19, 2020-03-26 (pre / peak / post Fed bazooka)</li>
-      <li><strong>Calm benchmarks</strong> — 2021-04-13 (crypto-top complacency), 2024-04-10 (healthy normal market)</li>
-      <li><strong>Forward early-warning</strong> — 2024-10-09 (Note 10y reopen, AAH=99.31% — fired BEFORE Nov 2024 vol)</li>
-    </ul>
-    <p style="margin-top:10px"><strong style="color:var(--fg-1)">Composite.</strong> Per-auction score
-       is 70% × worst-indicator + 30% × indicator average, weighted by accepted dollar size, rolled over a
-       14-day window. Issuance-explosion overlay can add up to 15 points. Regime thresholds: 0–30 CALM,
-       30–50 WATCH, 50–75 ELEVATED, 75–100 ACUTE_STRESS.</p>
-    <p style="margin-top:10px"><strong style="color:var(--fg-1)">No backtest survivorship.</strong> The
-       2024-10-09 anchor was added LIVE before November 2024 volatility — it's not curve-fit. The detector
-       genuinely caught that signal in real time.</p>
+    <p>Measurements above come from the reported Treasury auction and buyback sources. Compare observation dates separately from engine publication time; a polling schedule is not a guaranteed publication latency.</p>
+    <p>The six detector patterns are legacy descriptive heuristics. Selected crisis examples do not establish calibration, prospective accuracy, causal market impact or portfolio sizing. AAH denotes marginal-bid proration; it is not dealer absorption or a when-issued tail.</p>
+    <p>The composite summarizes those heuristics. Historical conditional estimates require retained source data and a reproducible evaluation before display. No claim of a live historical warning or absence of backtest bias is made here.</p>
+    <p>Security kind, quote basis and reopening status must agree for comparisons. Buyback accepted par and settlement cash are separate quantities. <a href="/data/auction-desk.json">Inspect the current measurement packet</a>.</p>
   </div>
 </section>
 
 
 <div class="footer">
-  Treasury auction tape · refreshed every 15 minutes during 14–22 UTC weekdays ·
+  Treasury auction tape · inspect source observation and publication dates above ·
   source: <a href="https://api.fiscaldata.treasury.gov" target="_blank">api.fiscaldata.treasury.gov</a> ·
   <a href="/auction-crisis.html">crisis detector page →</a>
 </div>
@@ -875,137 +857,9 @@
 // STATIC KNOWLEDGE BASE — historical anchors & BTC regime map
 // ────────────────────────────────────────────────────────────────────
 
-const HISTORICAL_ANCHORS = [
-  { class:"gfc", when:"2008-09-17", tenor:"Bill 4-week", btc:4.21, indirect:11.4, tail:"—",
-    score:77.5, regime:"ACUTE_STRESS",
-    context:"GFC: Lehman+1, panic flight to bills, indirect bidder participation was low" },
-  { class:"gfc", when:"2008-09-23", tenor:"Bill 7d CMB", btc:null, indirect:12.8, tail:"—",
-    score:82.0, regime:"ACUTE_STRESS",
-    context:"GFC peak: GS/MS-becomes-bank week, primary dealers absorbed unwanted supply" },
-  { class:"gfc", when:"2008-10-08", tenor:"TIPS 5y reopen", btc:1.74, indirect:32.4, tail:"+4.2bp",
-    score:82.4, regime:"ACUTE_STRESS",
-    context:"GFC: TIPS basis trade unwind, weak BTC compounded by indirect collapse" },
-  { class:"covid", when:"2020-03-11", tenor:"Bill 4-week", btc:2.92, indirect:56.0, tail:"—",
-    score:60, regime:"WATCH",
-    context:"COVID: pre-crash flight to bills begins" },
-  { class:"covid", when:"2020-03-19", tenor:"Bill 4-week", btc:3.53, indirect:28.4, tail:"—",
-    score:78, regime:"ACUTE_STRESS",
-    context:"COVID peak panic: cash hoarding, indirect collapsed despite high BTC" },
-  { class:"covid", when:"2020-03-26", tenor:"Bill 4-week", btc:4.09, indirect:73.2, tail:"—",
-    score:35, regime:"WATCH",
-    context:"COVID post-Fed-bazooka: indirect surged back, regime healing" },
-  { class:"calm", when:"2021-04-13", tenor:"Bill 4-week", btc:3.84, indirect:56.5, tail:"—",
-    score:0, regime:"CALM",
-    context:"Crypto-top complacency benchmark — auctions calm even at BTC mania peak" },
-  { class:"calm", when:"2024-04-10", tenor:"Note 10-year", btc:2.34, indirect:64.8, tail:"−0.3bp",
-    score:0, regime:"CALM",
-    context:"Healthy normal market benchmark — late-cycle late-2024" },
-  { class:"warn", when:"2024-10-09", tenor:"Note 10y reopen", btc:2.32, indirect:63.1, tail:"+1.8bp",
-    score:58, regime:"WATCH",
-    context:"AAH=99.31% — your detector's early-warning BEFORE November 2024 vol arrived" },
-];
-
-// BTC tops — auction tape state at each top
-const BTC_TOPS = [
-  { date:"2017-12-17", price:19891, label:"Cycle 1 top — $19.9K",
-    auctionRegime:"CALM", auctionScore:5, indirect:65, btc:3.4, aah:35,
-    spyAfter30d:-3, spyAfter90d:-7, btcAfter30d:-30, btcAfter90d:-58, btcAfter12m:-84,
-    takeaway:"Tape was calm at the top. No crisis warning. The 2018 BTC bear market unfolded with auctions undisturbed."
-  },
-  { date:"2021-04-14", price:64895, label:"Interim top — $64.9K",
-    auctionRegime:"CALM", auctionScore:0, indirect:56.5, btc:3.84, aah:30,
-    spyAfter30d:1, spyAfter90d:6, btcAfter30d:-19, btcAfter90d:-40, btcAfter12m:-31,
-    takeaway:"Calm complacency. BTC fell 50% to $30K by July before a second leg up. Auctions never showed stress."
-  },
-  { date:"2021-11-10", price:69000, label:"Cycle 2 top — $69K",
-    auctionRegime:"CALM", auctionScore:7, indirect:60, btc:3.5, aah:40,
-    spyAfter30d:0, spyAfter90d:-5, btcAfter30d:-32, btcAfter90d:-46, btcAfter12m:-77,
-    takeaway:"Zero auction stress at the top. Bear market began silently. Auction-tape detection had no warning."
-  },
-  { date:"2024-03-14", price:73750, label:"Post-halving top — $73.7K",
-    auctionRegime:"CALM", auctionScore:0, indirect:64.8, btc:2.34, aah:55,
-    spyAfter30d:-4, spyAfter90d:3, btcAfter30d:-15, btcAfter90d:-22, btcAfter12m:46,
-    takeaway:"Calm tape, brief BTC pullback, then resumed bull run. This was a *consolidation* peak, not a cycle top."
-  },
-  { date:"2024-12-17", price:108000, label:"Late-2024 top — $108K",
-    auctionRegime:"WATCH", auctionScore:58, indirect:63.1, btc:2.32, aah:99.31,
-    spyAfter30d:-2, spyAfter90d:-8, btcAfter30d:-12, btcAfter90d:-25,
-    takeaway:"This is the one your detector caught. AAH=99.31% on the Oct 10y reopen, score 58. Tape predicted vol 6 weeks before it arrived."
-  },
-];
-
-// BTC bottoms — auction tape at each bottom
-const BTC_BOTTOMS = [
-  { date:"2018-12-15", price:3194, label:"2018 bear bottom — $3.2K",
-    auctionRegime:"CALM", auctionScore:8, indirect:55, btc:2.8, aah:45,
-    spyAfter30d:5, spyAfter90d:13, btcAfter30d:13, btcAfter90d:25, btcAfter12m:140,
-    takeaway:"Bottom formed in calm auction tape. Fed pause was the catalyst, not auction stress. BTC up 140% in next 12m."
-  },
-  { date:"2020-03-13", price:3867, label:"COVID bottom — $3.9K",
-    auctionRegime:"ACUTE_STRESS", auctionScore:78, indirect:28.4, btc:3.53, aah:60,
-    spyAfter30d:25, spyAfter90d:35, btcAfter30d:62, btcAfter90d:130, btcAfter12m:1450,
-    takeaway:"Auction acute-stress and BTC bottom were SAME EVENT. Fed bazooka cleared both. BTC up 1450% in 12m."
-  },
-  { date:"2022-11-09", price:15615, label:"FTX bottom — $15.6K",
-    auctionRegime:"WATCH", auctionScore:35, indirect:48, btc:2.5, aah:65,
-    spyAfter30d:1, spyAfter90d:8, btcAfter30d:7, btcAfter90d:50, btcAfter12m:140,
-    takeaway:"Mild auction stress (mostly issuance-driven). FTX-specific, not systemic. BTC up 140% in 12m."
-  },
-];
-
-const BTC_BULLS = [
-  { period:"2017 Q4", priceMove:"$5K → $19K (+280%)",
-    auctionRegime:"CALM throughout", indirectAvg:60, scoreAvg:6,
-    takeaway:"Bull ran with auctions undisturbed. Late-cycle calm tape coexisted with risk-on mania."
-  },
-  { period:"2020-04 to 2021-11", priceMove:"$7K → $69K (+886%)",
-    auctionRegime:"WATCH → CALM", indirectAvg:62, scoreAvg:18,
-    takeaway:"Started during March 2020 acute stress, transitioned to CALM as Fed bazooka took hold. The CALM regime persisted even at the $69K top."
-  },
-  { period:"2023-01 to 2024-12", priceMove:"$16K → $108K (+575%)",
-    auctionRegime:"CALM with isolated WATCHes", indirectAvg:62, scoreAvg:14,
-    takeaway:"Mostly calm. Mid-2023 SVB stress (brief WATCH) didn't kill the bull. Oct 2024 AAH=99.31% warning was the *only* real signal."
-  },
-];
-
-const BTC_BEARS = [
-  { period:"2018", priceMove:"$19K → $3.2K (−84%)",
-    auctionRegime:"CALM throughout", indirectAvg:55, scoreAvg:7,
-    takeaway:"Crypto-specific bear (ICO collapse, regulatory). Auction tape said nothing. Fed *was* hiking, but auctions didn't reflect stress."
-  },
-  { period:"2021-11 to 2022-11", priceMove:"$69K → $15.6K (−77%)",
-    auctionRegime:"CALM → WATCH", indirectAvg:54, scoreAvg:18,
-    takeaway:"Slow grind down. Auction stress only appeared late (FTX, mid-2022 risk asset spillover). Not a flight-to-bills moment."
-  },
-];
-
-// Forward returns by regime — synthesized from 2008-2025 data
-const FORWARD_RETURNS = {
-  "CALM":         { spy:[1.5, 4.5, 8.0],   btc:[8, 25, 45],    hyg:[0.8, 2.5, 4.5],  gld:[0.5, 1.5, 3.0] },
-  "WATCH":        { spy:[0.5, 2.0, 5.0],   btc:[3, 12, 25],    hyg:[0.2, 1.0, 2.5],  gld:[1.0, 3.0, 5.5] },
-  "ELEVATED":     { spy:[-2.5, 0.5, 4.0],  btc:[-5, 8, 30],    hyg:[-1.5, 0.0, 1.5], gld:[2.0, 5.0, 8.0] },
-  "ACUTE_STRESS": { spy:[-8, -2, 12],      btc:[-15, 15, 80],  hyg:[-4, -1, 4],      gld:[3.5, 8.0, 12.0] },
-};
-
-const TRIGGERS = [
-  { when:"~5/13", what:"3-Year note auction",
-    watch:"BTC vs 4/8 print (was 2.47 — weak). Indirect ≥ 60% confirms healthy duration appetite. Below 55% is a yellow flag."
-  },
-  { when:"~5/14", what:"10-Year reopen (key signal)",
-    watch:"AAH%. Anything ≥80% is WATCH. 2024-10-09 was 99.31% — preceded Nov vol. Tail >+3bp + AAH≥80% = ELEVATED on deck."
-  },
-  { when:"~5/15", what:"30-Year reopen",
-    watch:"Long-end tail discipline. If long end follows mid-curve into tail-stress, score crosses 30→50 transition."
-  },
-  { when:"~5/27", what:"2-Year monthly note",
-    watch:"Does BTC=3.52 with Indirect=65.7% repeat? If yes, indirect bidder participation is elevated; this does not identify foreign demand or asset-price direction."
-  },
-];
-
-// ────────────────────────────────────────────────────────────────────
-// LIVE DATA + RENDERING
-// ────────────────────────────────────────────────────────────────────
-const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json";
+// Unsupported static datasets retained only in docs/audit; never displayed as research evidence.
+const S3_URL = "/data/auction-crisis.json";
+const escapeAuction=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));
 let liveData = null;
 
 function fmtNum(v, dp=2) {
@@ -1030,7 +884,13 @@ function regimeClass(r) {
 
 // Hero / score ring
 function renderHero(d) {
-  const s = Number(d.composite_score || 0);
+  for (const id of ["m_auctions14d","m_issuance","m_fedfunds","m_latest"]) document.getElementById(id).textContent = "—";
+  document.getElementById("m_issuance").classList.remove("up", "dn");
+  document.getElementById("scoreRing").style.background = "var(--bg-elev)";
+  document.getElementById("scoreNum").style.color = "var(--fg-3)";
+  document.getElementById("scoreRegime").style.color = "var(--fg-3)";
+  const s = typeof d.composite_score === "number" && Number.isFinite(d.composite_score) && d.composite_score>=0 && d.composite_score<=100 ? d.composite_score : null;
+  if(s==null){document.getElementById("scoreNum").textContent="—";document.getElementById("scoreRegime").textContent="UNAVAILABLE";document.getElementById("interpretText").textContent="No valid auction concern score is available.";return;}
   document.getElementById("scoreNum").textContent = s.toFixed(1);
   // Color based on score
   let color, regimeText;
@@ -1046,17 +906,17 @@ function renderHero(d) {
   document.getElementById("scoreRing").style.background =
     `conic-gradient(${color} 0%, ${color} ${pct}%, var(--bg-elev) ${pct}%, var(--bg-elev) 100%)`;
   // Interpretation
-  document.getElementById("interpretText").textContent = d.interpretation || "—";
+  document.getElementById("interpretText").textContent = "Legacy descriptive concern score. It is not a calibrated event probability or allocation instruction.";
   // Meta
   document.getElementById("m_auctions14d").textContent = d.n_recent_auctions_14d ?? "—";
   const iss = d.issuance_anomaly?.pct_above_baseline;
-  if (iss != null) {
+  if (typeof iss === 'number' && Number.isFinite(iss)) {
     const el = document.getElementById("m_issuance");
     el.textContent = (iss >= 0 ? "+" : "") + iss.toFixed(1) + "%";
     const cls = iss < 0 ? "up" : (iss > 10 ? "dn" : "");
     if (cls) el.classList.add(cls);
   }
-  document.getElementById("m_fedfunds").textContent = d.fed_funds_rate ? d.fed_funds_rate.toFixed(2) + "%" : "—";
+  document.getElementById("m_fedfunds").textContent = typeof d.fed_funds_rate === "number" && Number.isFinite(d.fed_funds_rate) ? d.fed_funds_rate.toFixed(2) + "%" : "—";
   const fr = d.freshness || {};
   if (fr.latest_auction_date) {
     document.getElementById("m_latest").textContent =
@@ -1069,7 +929,7 @@ function renderHero(d) {
 function renderCall(d) {
   const stamp=Date.parse(d.generated_at);
   const current=Number.isFinite(stamp) && stamp<=Date.now()+300000 && Date.now()-stamp<48*3600000;
-  const score=current && typeof d.composite_score==='number' ? d.composite_score : null;
+  const score=current && typeof d.composite_score==='number' && Number.isFinite(d.composite_score) ? d.composite_score : null;
   document.getElementById("callVerdict").textContent=score==null ? "Auction assessment unavailable" : "Descriptive auction concern score: "+score.toFixed(1)+"/100";
   document.getElementById("callReasoning").textContent="This heuristic summarizes auction measurements. It has no calibrated event probability or validated portfolio allocation rule.";
   document.getElementById("callStops").textContent="Read bid-to-cover, primary-dealer awards, indirect participation and AAH separately. Indirect participation is not foreign demand; AAH is not dealer absorption or a when-issued yield tail.";
@@ -1082,46 +942,43 @@ function renderIndicators(d) {
   // For each pattern, find max score across recent
   const patterns = [
     { key:"zero_rate_floor", name:"Zero-rate floor",
-      desc:"Fires when Fed funds approaches ZLB and bills price at near-zero yield. Last fired: Mar 2020 (COVID), Sep 2008 (GFC).",
+      desc:"Descriptive near-zero-rate heuristic; requires both the policy rate and applicable bill rate observations.",
       threshold:"FF ≤ 0.5% AND high_rate ≤ 0.10%" },
     { key:"btc_extreme", name:"BTC extreme",
-      desc:"Fires when bid-to-cover spikes above 4.0 (panic-flight to bills). GFC peak: 4.21. COVID peak: 4.09.",
+      desc:"High bill bid-to-cover is a participation observation. This threshold alone cannot establish a panic or a funding crisis.",
       threshold:"BTC ≥ 4.0 on bills" },
     { key:"tail_stress", name:"Allotted-at-high proration",
       desc:"Legacy heuristic based on marginal-bid allotment. This is not a yield tail or dealer absorption.",
       threshold:"Tenor-specific AAH heuristic; uncalibrated" },
     { key:"pd_absorption", name:"PD absorption",
-      desc:"Fires when primary dealers take >70% of issuance — meaning real-money bidders stepped back.",
+      desc:"Elevated primary-dealer awards. Compare the same instrument and offering context before interpreting changes in customer participation.",
       threshold:"Primary dealer % ≥ 70%" },
     { key:"indirect_collapse", name:"Indirect collapse",
       desc:"Tracks low indirect participation, including domestic and foreign customers. It does not measure foreign demand alone.",
       threshold:"Indirect % ≤ 30%" },
     { key:"issuance_explosion", name:"Issuance explosion",
-      desc:"Fires when 4-week rolling issuance spikes >20% above 12-month baseline (TGA build / fiscal stress).",
+      desc:"Compares the reported issuance window with its baseline. A change in issuance alone does not establish fiscal stress or a net liquidity impulse.",
       threshold:"4w / 12m baseline ≥ 1.20" },
   ];
   const root = document.getElementById("indicators");
   root.innerHTML = patterns.map(p => {
-    let maxScore = 0, status = "off", count = 0;
+    let maxScore = null, status = "unknown", count = 0, observed = 0;
     for (const a of recent) {
       const s = a.indicator_scores?.[p.key];
-      if (s != null) {
-        if (s > maxScore) maxScore = s;
+      if (typeof s === 'number' && Number.isFinite(s)) {
+        observed++;
+        if (maxScore == null || s > maxScore) maxScore = s;
         if (s >= 50) count++;
       }
     }
-    if (p.key === "zero_rate_floor") {
-      const ff = d.fed_funds_rate;
-      status = ff != null && ff <= 0.5 ? "firing" : "off";
-    } else if (p.key === "issuance_explosion") {
+    if (p.key === "issuance_explosion") {
       const iss = d.issuance_anomaly?.pct_above_baseline;
-      status = iss != null && iss >= 20 ? "firing" : (iss != null && iss >= 10 ? "watch" : "off");
-    } else {
+      if(typeof iss === 'number' && Number.isFinite(iss)) status = iss >= 20 ? "firing" : iss >= 10 ? "watch" : "off";
+    } else if(maxScore != null) {
       status = maxScore >= 60 ? "firing" : (maxScore >= 30 ? "watch" : "off");
     }
-    const statusText = status === "firing" ? "🔴 FIRING" : status === "watch" ? "⚠ WATCH" : "✓ OFF";
-    const detail = count > 0 ? `${count} of ${recent.length} recent auctions firing`
-                              : `0 of ${recent.length} recent auctions firing`;
+    const statusText = status === 'unknown' ? 'UNAVAILABLE' : status === "firing" ? "🔴 FIRING" : status === "watch" ? "⚠ WATCH" : "✓ OFF";
+    const detail = status === 'unknown' ? 'No eligible observation supplied' : p.key === 'issuance_explosion' ? `${d.issuance_anomaly.pct_above_baseline.toFixed(1)}% relative to the reported baseline` : `${count} of ${observed} reported auction indicator observations above the count threshold`;
     return `<div class="ind ${status}">
       <div class="status">${statusText}</div>
       <div class="name">${p.name}</div>
@@ -1139,14 +996,14 @@ function renderTape(d) {
     return;
   }
   document.getElementById("tapeBody").innerHTML = recent.map(a => {
-    const score = Number(a.composite_score || 0);
+    const score = typeof a.composite_score === 'number' && Number.isFinite(a.composite_score) ? a.composite_score : null;
     const cls = score >= 60 ? "neg" : score >= 30 ? "" : "";
     const scoreColor = score >= 60 ? "color:var(--red)" : score >= 30 ? "color:var(--amber)" : "color:var(--fg-3)";
     return `<tr>
-      <td>${a.auction_date?.slice(0,10) || "—"}</td>
-      <td>${a.security_term || "—"}</td>
-      <td>${a.security_type || "—"}</td>
-      <td class="r">${a.high_rate ? Number(a.high_rate).toFixed(3) + "%" : "—"}</td>
+      <td>${escapeAuction(a.auction_date?.slice(0,10) || "—")}</td>
+      <td>${escapeAuction(a.security_term || "—")}</td>
+      <td>${escapeAuction(a.security_type || "—")}</td>
+      <td class="r">${typeof a.high_rate === 'number' && Number.isFinite(a.high_rate) ? a.high_rate.toFixed(3) + "%" : "—"}</td>
       <td class="r"><strong>${fmtNum(a.btc, 2)}</strong></td>
       <td class="r">${fmtPct(a.indirect_pct, 1)}</td>
       <td class="r">${fmtPct(a.primary_dealer_pct, 1)}</td>
@@ -1159,165 +1016,45 @@ function renderTape(d) {
 
 // Crisis comparison
 function renderAnchors(d) {
-  const today = {
-    class:"today", when:"TODAY (live)",
-    tenor:"composite", btc:null, indirect:"50–70 avg", tail:"intermittent",
-    score:Number(d.composite_score || 0).toFixed(1), regime:d.regime,
-    context:"Current 14-day rolling read. Indirect 50-70% across tenors. Mid-curve tail stress isolated."
-  };
-  const all = [today, ...HISTORICAL_ANCHORS];
-  document.getElementById("anchorBody").innerHTML = all.map(a => `
-    <tr class="anchor-row ${a.class}">
-      <td><strong>${a.when}</strong></td>
-      <td>${a.tenor}</td>
-      <td class="r">${a.btc != null ? a.btc : "—"}</td>
-      <td class="r">${typeof a.indirect === "number" ? a.indirect.toFixed(1) + "%" : a.indirect}</td>
-      <td class="r">${a.tail || "—"}</td>
-      <td class="r"><span class="pill ${regimeClass(a.regime)}">${a.score}</span></td>
-      <td class="context">${a.context}</td>
-    </tr>
-  `).join("");
+  document.getElementById("anchorBody").innerHTML = '<tr><td colspan="7">Historical auction comparisons are unavailable until original auction records, instrument identities, quote bases and model versions are bound to each observation. No historical crisis score is inferred from the selected examples.</td></tr>';
 }
 
 // Bitcoin tops/bottoms
-function renderBtcEra(arr, type) {
-  return arr.map(e => `
-    <div class="era ${type}">
-      <h4>${e.label || e.period}</h4>
-      <div class="meta">${e.date || e.priceMove}${e.price ? " · " + fmtMaybeMoney(e.price) : ""}</div>
-      ${e.auctionRegime ? `<div class="stat-row"><span class="k">Auction regime</span><span class="v">${e.auctionRegime}</span></div>` : ""}
-      ${e.auctionScore != null ? `<div class="stat-row"><span class="k">Composite score</span><span class="v">${e.auctionScore}</span></div>` : ""}
-      ${e.scoreAvg != null ? `<div class="stat-row"><span class="k">Avg score</span><span class="v">${e.scoreAvg}</span></div>` : ""}
-      ${e.indirect != null ? `<div class="stat-row"><span class="k">Indirect %</span><span class="v">${e.indirect.toFixed(1)}%</span></div>` : ""}
-      ${e.indirectAvg != null ? `<div class="stat-row"><span class="k">Indirect avg</span><span class="v">${e.indirectAvg}%</span></div>` : ""}
-      ${e.btc != null ? `<div class="stat-row"><span class="k">BTC ratio</span><span class="v">${e.btc.toFixed(2)}</span></div>` : ""}
-      ${e.aah != null ? `<div class="stat-row"><span class="k">AAH%</span><span class="v">${e.aah.toFixed(1)}%</span></div>` : ""}
-      ${e.spyAfter30d != null ? `<div class="stat-row"><span class="k">SPY +30d</span><span class="v ${e.spyAfter30d>=0?"pos":"neg"}" style="color:${e.spyAfter30d>=0?'var(--green)':'var(--red)'}">${e.spyAfter30d>=0?"+":""}${e.spyAfter30d}%</span></div>` : ""}
-      ${e.btcAfter30d != null ? `<div class="stat-row"><span class="k">BTC +30d</span><span class="v" style="color:${e.btcAfter30d>=0?'var(--green)':'var(--red)'}">${e.btcAfter30d>=0?"+":""}${e.btcAfter30d}%</span></div>` : ""}
-      ${e.btcAfter90d != null ? `<div class="stat-row"><span class="k">BTC +90d</span><span class="v" style="color:${e.btcAfter90d>=0?'var(--green)':'var(--red)'}">${e.btcAfter90d>=0?"+":""}${e.btcAfter90d}%</span></div>` : ""}
-      ${e.btcAfter12m != null ? `<div class="stat-row"><span class="k">BTC +12m</span><span class="v" style="color:${e.btcAfter12m>=0?'var(--green)':'var(--red)'};font-weight:700">${e.btcAfter12m>=0?"+":""}${e.btcAfter12m}%</span></div>` : ""}
-      <div class="takeaway">${e.takeaway}</div>
-    </div>
-  `).join("");
-}
-
 function renderBtc() {
-  document.getElementById("btcTops").innerHTML = renderBtcEra(BTC_TOPS, "top");
-  document.getElementById("btcBottoms").innerHTML = renderBtcEra(BTC_BOTTOMS, "bottom");
-  document.getElementById("btcBulls").innerHTML = renderBtcEra(BTC_BULLS, "bull");
-  document.getElementById("btcBears").innerHTML = renderBtcEra(BTC_BEARS, "bear");
+  document.getElementById("btcTops").textContent = "Cross-asset historical estimates are withheld: the previous static episode figures did not have a reproducible sample or price trail. Auction participation alone does not identify Bitcoin tops, bottoms or expected returns.";
+  for (const id of ["btcBottoms","btcBulls","btcBears"]) document.getElementById(id).parentElement.hidden = true;
 }
 
 // Forward-returns matrix
 function renderForward() {
-  const cell = (v) => {
-    let cls = "";
-    if (v >= 5) cls = "up-strong";
-    else if (v >= 1) cls = "up";
-    else if (v <= -3) cls = "dn-strong";
-    else if (v < 0) cls = "dn";
-    return `<td class="${cls}">${v >= 0 ? "+" : ""}${v.toFixed(1)}%</td>`;
-  };
-  const rows = ["CALM", "WATCH", "ELEVATED", "ACUTE_STRESS"].map(r => {
-    const fr = FORWARD_RETURNS[r];
-    return `<tr>
-      <td class="regime-cell"><span class="pill ${regimeClass(r)}">${r}</span></td>
-      ${cell(fr.spy[0])}${cell(fr.spy[1])}${cell(fr.spy[2])}
-      ${cell(fr.btc[0])}${cell(fr.btc[1])}${cell(fr.btc[2])}
-      ${cell(fr.hyg[0])}${cell(fr.hyg[1])}${cell(fr.hyg[2])}
-      ${cell(fr.gld[0])}${cell(fr.gld[1])}${cell(fr.gld[2])}
-    </tr>`;
-  }).join("");
-  document.getElementById("forwardMatrixBody").innerHTML = rows;
+  document.getElementById("forwardMatrixBody").innerHTML = '<tr><td colspan="13">Unavailable — no source-backed conditional-return dataset or independent validation is attached. The previous static percentages are not estimates of future returns.</td></tr>';
 }
 
 // Triggers
-function renderTriggers() {
-  document.getElementById("triggers").innerHTML = TRIGGERS.map(t => `
-    <div class="trigger-row">
-      <div class="when">${t.when}</div>
-      <div class="what">${t.what}</div>
-      <div class="watch">${t.watch}</div>
-    </div>
-  `).join("");
+function renderTriggers(D) {
+  const rows = (D?.calendar?.auctions || []).filter(a=>/^\d{4}-\d{2}-\d{2}$/.test(a.auction_date || ""));
+  const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+  const selected=rows.filter(a=>a.auction_date>=today).sort((a,b)=>a.auction_date.localeCompare(b.auction_date)).slice(0,10);
+  document.getElementById("triggers").innerHTML = selected.length ? selected.map(a=>`<div class="trigger-row"><div class="when">${escapeAuction(a.auction_date)}</div><div class="what">${escapeAuction(a.term)} · ${escapeAuction(a.instrument_kind || a.type || 'unverified instrument')}</div><div class="watch">Compare the published stop, bid-to-cover and bidder awards within the same security/reopening cohort. True when-issued tail requires a contemporaneous when-issued quote; no allocation follows automatically.</div></div>`).join('') : 'No current announced calendar is loaded. Consult the source-backed calendar above; there is no static-date fallback.';
 }
 
 // Plain-English market impact
 function renderMarketImpact(d) {
-  const s = Number(d.composite_score || 0);
-  const regime = d.regime || "CALM";
-  let html = "";
-
-  if (s < 30) {
-    html = `
-      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
-        <p><strong style="color:var(--green)">Bottom line:</strong>
-           Auction tape says <em>nothing is broken.</em> Foreign buyers are stepping in (Indirect 50–70%),
-           bid-to-cover ratios are healthy (2.5–3.5 range), and Treasury supply is below baseline.
-           This is the same regime that hosted the 2024-04 healthy-market benchmark (BTC=2.34, Indirect=64.8%).</p>
-
-        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For Bitcoin:</strong>
-           CALM regimes have hosted both BTC tops and bottoms. The most recent CALM-regime BTC top
-           (March 2024 at $73K) preceded a *consolidation* not a crash — BTC was up 46% twelve months later.
-           However, the 2024-12 cycle top at $108K printed during a WATCH regime (Oct AAH=99.31%) — meaning
-           your detector caught the warning early. Right now the absence of similar AAH signals is supportive
-           for BTC continuation.</p>
-
-        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For equities (SPY):</strong>
-           Median SPY forward returns from CALM regime: +1.5% in 1m, +4.5% in 3m, +8.0% in 6m. This is
-           the late-cycle grind regime — modest gains, low volatility, no flight-to-safety in fixed income.</p>
-
-        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For high-yield credit (HYG):</strong>
-           Tight spreads typical. CALM regimes coincide with low credit-spread regimes — this confirms
-           there's no funding-stress contagion from Treasury into corporate credit.</p>
-
-        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For gold (GLD):</strong>
-           Limited tactical edge. GLD outperforms in WATCH/ELEVATED/ACUTE regimes when fixed-income
-           dysfunction shows up. CALM = rangebound for gold relative to other risk-on assets.</p>
-
-        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For dollar (DXY/UUP):</strong>
-           CALM tape with Indirect 50–70% means foreign demand for Treasuries is healthy — supports DXY
-           at the margin. Not a major signal either way.</p>
-
-        <p style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border)">
-          <strong style="color:var(--yellow)">The asymmetric truth:</strong> The signal that matters
-          most is <em>regime transition</em>, not regime level. CALM → WATCH crossings (especially with
-          AAH ≥ 80%) precede BTC tops by 1–3 months historically. Right now, no such transition is
-          underway. Watch the May 14 10y reopen for the next test.
-        </p>
-      </div>`;
-  } else if (s < 50) {
-    html = `
-      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
-        <p><strong style="color:var(--amber)">Bottom line:</strong>
-           Auction tape is showing <em>yellow flags</em>. Mid-curve or bill tail stress is firing.
-           This is the early-warning regime — historically precedes broader regime shift by 4-12 weeks.</p>
-        <p style="margin-top:12px"><strong>Action:</strong> Trim 10-20% of risk-on exposure.
-           Watch upcoming 10y/30y auctions for confirmation. If score crosses 50 (ELEVATED), exit
-           most risk and move to defensive (TLT, GLD, cash).</p>
-      </div>`;
-  } else {
-    html = `
-      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
-        <p><strong style="color:var(--red)">Bottom line:</strong>
-           Auction tape is in <em>regime stress</em>. Multiple patterns firing simultaneously.
-           Treasury market dysfunction historically leads equity vol by 1-4 weeks.</p>
-        <p style="margin-top:12px"><strong>Action:</strong> Move to defensive immediately.
-           Equity exposure under 30%. Build cash + GLD position. Wait for Fed liquidity response or
-           regime healing (score back below 40) before re-entering.</p>
-      </div>`;
-  }
-  document.getElementById("marketImpact").innerHTML = html;
+  document.getElementById("marketImpact").textContent = "Auction participation is a market observation, not a calibrated forecast for Bitcoin, equities, credit, gold or the dollar. Indirect awards include domestic and foreign customers; AAH is marginal-bid proration, not a when-issued tail. Buyback accepted par is not settlement cash or monetary easing. No portfolio percentage, trim or defensive allocation is supported by this heuristic. Use the dated observations above alongside independently measured funding, credit and portfolio risk.";
 }
 
 async function loadData() {
   try {
     const r = await fetch(S3_URL + "?t=" + Date.now());
+    if(!r.ok) throw new Error("Auction source unavailable");
     const d = await r.json();
     const stamp=Date.parse(d.generated_at);
     if(d.quality?.status !== 'fresh' || !Number.isFinite(stamp) || stamp>Date.now()+300000 || Date.now()-stamp>48*3600000) {
+      renderHero({});
       document.getElementById('interpretText').textContent='Current auction data unavailable; no live scores or calls.';
       document.getElementById('scoreNum').textContent='—';
+      document.getElementById('scoreRegime').textContent='UNAVAILABLE';
+      renderCall({});renderIndicators({});renderTape({});renderMarketImpact({});
       return;
     }
     liveData = d;
@@ -1333,8 +1070,8 @@ async function loadData() {
     document.getElementById("callBanner").style.display = "";
   } catch (e) {
     console.error("Failed to load auction data", e);
-    document.getElementById("interpretText").innerHTML =
-      `<span style="color:var(--red)">Failed to load: ${e.message}</span>`;
+    document.getElementById("interpretText").textContent = "Auction source unavailable; previous live values are withheld.";
+    renderHero({});renderCall({});renderIndicators({});renderTape({});renderMarketImpact({});
   }
 }
 
@@ -1347,12 +1084,12 @@ loadData();
 setInterval(loadData, 5 * 60 * 1000);
 </script>
 
-  <script src="/jh-enhance.js" data-feed="data/auction-desk.json" data-line="composite_history.series" data-title="Treasury-auction stress — composite history, 1996 → today" data-sub="detector composite rebuilt weekly over every auction since 1996 (daily for the last 60 days) · crisis bands shaded" data-crisis="1"></script>
+  <section class="box"><div class="head"><h3>Research evidence and limits</h3></div><div class="body">Reconstructed legacy stress history is withheld pending original-source replay and model-version validation. Dated source observations and the retained investigative history are available in the <a href="/data/auction-desk.json">Treasury measurement packet</a>. Retention is not validation. See the <a href="/signal-scorecard.html">prospective research scorecard</a> for separately registered observations.</div></section>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <!-- P0-7 audit follow-up · dark engine wired (perplexity, 2026-08-05) -->
 <script src="/jh-wire.js" defer
-  data-feeds="data/auction-decisive-call.json|justhodl-auction-interpreter|TREASURY AUCTION DECISIVE CALL"></script>
+  data-feeds="data/auction-desk.json|justhodl-auction-desk|TREASURY MEASUREMENT PACKET"></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>
