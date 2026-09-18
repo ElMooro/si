@@ -1,7 +1,8 @@
-executing-against: 0a29d338bf58ffe30da305e0418e585e10cd47d3
-[17:15:05] justhodl-usgov-direct exact receipt and runtime hash: 0a29d338bf58ffe30da305e0418e585e10cd47d3
-[17:15:06] justhodl-warm-bridge exact receipt and runtime hash: 0a29d338bf58ffe30da305e0418e585e10cd47d3
-[17:15:15] Collector statuses: {"CES0500000003": {"latest_monthly_period": "2026-M08", "n_obs": 246, "status": "updated"}, "CUSR0000SA0": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "CUUR0000SA0": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "CUUR0000SA0L1E": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "JTS000000000000000HIL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "JTS000000000000000JOL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "JTS000000000000000QUL": {"latest_monthly_period": "2026-M07", "n_obs": 308, "status": "updated"}, "LNS11300000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "LNS12300000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "LNS14000000": {"latest_monthly_period": "2026-M08", "n_obs": 320, "status": "updated"}, "PRS85006092": {"latest_monthly_period": null, "n_obs": 106, "status": "updated"}, "PRS85006112": {"latest_monthly_period": null, "n_obs": 106, "status": "updated"}, "WPSFD4": {"latest_monthly_period": "2026-M08", "n_obs": 202, "status": "updated"}, "WPUFD4": {"latest_monthly_period": "2026-M08", "n_obs": 202, "status": "updated"}, "WPUFD49104": {"latest_monthly_period": "2026-M08", "n_obs": 197, "status": "updated"}}
-[17:15:15] ✅ Current CPI replayed from original BLS bytes; old history and prior vintage retained
+executing-against: b2fac9f21677a2cf6373fbf26de47fddc4dd9620
+[17:33:33] justhodl-ai-brief exact receipt and runtime hash: b2fac9f21677a2cf6373fbf26de47fddc4dd9620
+[17:34:19] justhodl-calls-research-audit exact receipt and runtime hash: b2fac9f21677a2cf6373fbf26de47fddc4dd9620
+[17:34:19] justhodl-calls-backtest exact receipt and runtime hash: b2fac9f21677a2cf6373fbf26de47fddc4dd9620
+[17:34:34] justhodl-position-sizer-v2 exact receipt and runtime hash: b2fac9f21677a2cf6373fbf26de47fddc4dd9620
+[17:34:41] ✅ Exact releases, frozen-input replay, current output, history binding and recurring independent checker verified
 
-→ Report written to aws/ops/reports/latest/ops_5715_bls_current_vintage_verify.md
+→ Report written to aws/ops/reports/latest/ops_5716_calls_research_replay_verify.md
