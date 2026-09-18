@@ -99,11 +99,11 @@ def list_outputs():
 
 def read_research_source(key):
     if not public_source_allowed(key): raise ValueError('private research source rejected')
-    raw = s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read(2_000_001)
-    if len(raw)>2_000_000: raise ValueError('research source exceeds capture bound')
+    raw = s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read(8_000_001)
+    if len(raw)>8_000_000: raise ValueError('SOURCE_EXCEEDS_CAPTURE_BOUND')
     received = datetime.now(timezone.utc).isoformat()
     doc = json.loads(raw)
-    if not isinstance(doc, dict): raise ValueError('research source is not an object')
+    if not isinstance(doc, dict): raise ValueError('UNSUPPORTED_SOURCE_SHAPE')
     return doc, hashlib.sha256(raw).hexdigest(), received
 
 
@@ -263,8 +263,9 @@ def lambda_handler(event, context):
         scanned += 1
         try:
             doc, source_sha, received_at = read_research_source(k)
-        except Exception:
-            source_errors.append(k)
+        except Exception as exc:
+            reason=str(exc) if str(exc) in ('SOURCE_EXCEEDS_CAPTURE_BOUND','UNSUPPORTED_SOURCE_SHAPE') else 'SOURCE_READ_UNAVAILABLE'
+            source_errors.append({'source_key':k,'reason':reason})
             continue
         picks = extract_picks(doc)
         if not picks:
@@ -286,7 +287,7 @@ def lambda_handler(event, context):
             got += 1
         if got:
             engines_hit += 1
-        if len(harvested) >= MAX_SIGNALS:
+        if len(harvested) >= MAX_SIGNALS and (event or {}).get('capture_only') is not True:
             break
 
     journal = publish_journal(projections, research_refs, protocol_ref, source_errors, scanned, len(keys), now)

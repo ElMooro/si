@@ -97,6 +97,19 @@ def test_capture_only_path_registers_before_quotes_without_legacy_writes():
     assert result['legacy_ledger_writes']==0 and events==['protocol','registered','manifest']
 
 
+def test_capture_scan_is_not_truncated_by_legacy_signal_limit():
+    env=load();scanned=[];env['MAX_SIGNALS']=1
+    env['s3']=object();env['list_outputs']=lambda:['data/example.json','data/second.json'];env['_read']=lambda key:{}
+    env['ensure_protocol']=lambda *a:{}
+    def source(key):
+        scanned.append(key)
+        return {'generated_at':datetime.now(timezone.utc).isoformat(),'top_picks':[{'ticker':'AAA','side':'SHORT'}]},'a'*64,datetime.now(timezone.utc).isoformat()
+    env['read_research_source']=source;env['register']=lambda *a:[]
+    env['publish_journal']=lambda *a:{'capture':{},'records_in_capture':2,'new_records':2}
+    env['lambda_handler']({'capture_only':True},None)
+    assert len(scanned)==2
+
+
 if __name__=='__main__':
     tests=[(n,f) for n,f in sorted(globals().items()) if n.startswith('test_') and callable(f)]
     for n,f in tests:f();print('ok',n)
