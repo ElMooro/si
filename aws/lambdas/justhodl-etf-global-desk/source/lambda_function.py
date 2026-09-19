@@ -590,6 +590,30 @@ def _yoy_slim(obj, source, cadence):
     }
 
 
+def _hot_money_board(packet, now):
+    """Display-only original exchange context; no cross-border capital or trade vote."""
+    if packet.get("contract") != "hot-money-research.v1" or packet.get("calls_eligible") is not False:
+        return None
+    row = (packet.get("countries") or {}).get("taiwan") or {}
+    quality = row.get("quality") or {}
+    try:
+        stamps = [datetime.fromisoformat(v.replace("Z", "+00:00")) for v in (packet["generated_at"], quality["acquired_at"])]
+        age = (now.date() - datetime.fromisoformat(quality["observation_date"]).date()).days
+        if any(v.tzinfo is None or not 0 <= (now-v).total_seconds() <= 26*3600 for v in stamps) or not 0 <= age <= 5:
+            return None
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return None
+    value = row.get("latest_bn")
+    if row.get("status") != "LIVE" or quality.get("status") != "fresh" or type(value) not in (int, float) or not (-1e7 <= value <= 1e7):
+        return None
+    return {"latest_bn": value, "sum_5d_bn": None, "z_60d": None,
+            "sum_5obs_bn": row.get("sum_5obs_bn"), "z_60_observations": row.get("z_60_observations"),
+            "as_of": row.get("latest_day"), "unit": "TWD bn", "source": "hot-money",
+            "cadence": "exchange foreign net purchases; not cross-border cash settlement",
+            "quality": quality, "original": (row.get("latest") or {}).get("original"), "replay": packet.get("replay"),
+            "calls_eligible": False, "sizing_eligible": False}
+
+
 def _build_geo(desk):
     """Country rotation: ETF wrappers (daily $) vs ports/exports/BOP/hot-money.
 
@@ -616,16 +640,7 @@ def _build_geo(desk):
     nodx_el = _yoy_slim(nd.get("electronics") or {}, "singapore-nodx", "monthly electronics NODX")
     peru_cu = _yoy_slim(pc.get("copper_production") or {}, "peru-copper", "monthly mine output — supply, not flow")
 
-    tw_hm = (hm.get("countries") or {}).get("taiwan") or {}
-    tw_board = {
-        "latest_bn": tw_hm.get("latest_bn"),
-        "sum_5d_bn": tw_hm.get("sum_5d_bn"),
-        "z_60d": tw_hm.get("z_60d"),
-        "as_of": tw_hm.get("latest_day"),
-        "unit": "TWD bn",
-        "source": "hot-money",
-        "cadence": "daily TWSE foreign board — capital, not trade",
-    } if tw_hm.get("status") == "LIVE" else None
+    tw_board = _hot_money_board(hm, datetime.now(timezone.utc))
 
     ap_tw = ap.get("taiwan") or {}
     ap_kr = ap.get("korea") or {}

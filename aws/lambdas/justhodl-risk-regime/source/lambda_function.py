@@ -389,7 +389,7 @@ def lambda_handler(event, context):
     # ── cross-border flow overlay (hot-money; capital-flight confirmation, not core score) ──
     hm = _read("data/hot-money.json") or {}
     cross_border = None
-    if hm.get("inflow_leaders") is not None:
+    if hm.get("calls_eligible") is True and hm.get("inflow_leaders") is not None:
         EMR = {"LatAm", "Asia", "MEA"}
         infl = [c for c in hm.get("inflow_leaders", []) if c.get("region") in EMR
                 and c.get("conviction") in ("TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION")]

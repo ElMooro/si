@@ -229,7 +229,7 @@ def lambda_handler(event=None, context=None):
 
     # hot-money cross-corroboration: country -> conviction (so accumulation + foreign flow can agree)
     hm = _read("data/hot-money.json") or {}
-    hm_conv = {c.get("country"): c.get("conviction") for c in (hm.get("all_countries") or [])}
+    hm_conv = {c.get("country"): c.get("conviction") for c in (hm.get("all_countries") or [])} if hm.get("calls_eligible") is True else {}
     INFLOW_CONV = {"TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION"}
     OUTFLOW_CONV = {"CONFIRMED_OUTFLOW", "OUTFLOW"}
     # short-interest map — a bottom with crowded shorts has squeeze fuel (bigger bounce)

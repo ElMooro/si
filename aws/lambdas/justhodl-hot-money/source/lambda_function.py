@@ -211,7 +211,7 @@ def taiwan(event,context=None):
     return tw
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     doc = {"v": VERSION, "engine": "justhodl-hot-money",
@@ -250,3 +250,15 @@ def lambda_handler(event, context):
     return {"ok": live, "status": doc["status"],
             "tw_ledger_days": tw.get("ledger_days"),
             "tw_latest": tw.get("latest_bn")}
+
+
+def lambda_handler(event, context):
+    # Original exchange capture and deterministic research; legacy handler has no event route.
+    from hot_store import run
+    try:
+        result = run(s3, BUCKET, event, context)
+        return {"statusCode": 200 if result["published"] else 409, "body": json.dumps(result)}
+    except Exception as exc:
+        detail = str(exc)[:180] if isinstance(exc, ValueError) else type(exc).__name__
+        print("Exchange research failed: " + detail)
+        return {"statusCode": 503, "body": json.dumps({"error": type(exc).__name__, "detail": detail})}

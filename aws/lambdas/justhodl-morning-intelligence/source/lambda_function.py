@@ -306,6 +306,7 @@ def extract_metrics(data,weights):
     kw = _cal.weight("khalid_index") if _cal is not None else 1.0
     # cross-border + cycle + leadership facts (hot-money + accumulation-radar)
     hotm = data.get("hot_money", {}) or {}
+    hotm = hotm if hotm.get("calls_eligible") is True else {}  # Exchange measurements cannot become cross-border conviction.
     accr = data.get("accum_radar", {}) or {}
     bneck = data.get("bottleneck", {}) or {}
     _bn_early = [c.get("ticker") for c in (bneck.get("early_bottleneck_calls") or [])[:5]]

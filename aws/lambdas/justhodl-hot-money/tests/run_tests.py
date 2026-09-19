@@ -22,7 +22,7 @@ class Integrity(unittest.TestCase):
         observation=(TODAY-timedelta(days=2)).date().isoformat()
         tw={'status':'LIVE','quality':{'status':'fresh','observation_date':observation}}
         with patch.object(e,'taiwan',return_value=tw),patch.object(e,'_put',side_effect=lambda key,value:writes.update({key:value})):
-            e.lambda_handler({},None)
+            e._legacy_unvalidated_handler({},None)
         doc=writes[e.OUT_KEY]
         stamp=datetime.fromisoformat(doc['quality']['publication_date'])
         self.assertIsNotNone(stamp.tzinfo)
@@ -82,4 +82,7 @@ class Integrity(unittest.TestCase):
             with self.assertRaises(RuntimeError):e._g(e.TWSE_LEDGER)
 
 
-if __name__=='__main__':unittest.main()
+if __name__=='__main__':
+    suite=unittest.defaultTestLoader.loadTestsFromTestCase(Integrity)
+    suite.addTests(unittest.defaultTestLoader.discover(str(Path(__file__).parent),pattern='test_research.py'))
+    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)

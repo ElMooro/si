@@ -10,3 +10,9 @@ if __name__ == "__main__":
     sys.path.insert(0, str(ROOT/"tests"))
     from research_brief_consumer_test_support import run as run_research
     run_research("morning-intelligence")
+
+if __name__ == "__main__":
+    import unittest
+    sys.path.insert(0,str(ROOT/'aws/shared/tests'))
+    suite=unittest.defaultTestLoader.discover(str(ROOT/'aws/shared/tests'),pattern='test_hot_money_authority.py')
+    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)
