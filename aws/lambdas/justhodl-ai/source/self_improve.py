@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 from self_improve_ext import CONSTITUTION_V1, enforce_lessons, process_score_read, think_rank  # noqa: F401
 
-VERSION = "self-improve.2"
+VERSION = "self-improve.3"
 UTC = timezone.utc
 
 BASE_CODING_PASSED = 135
@@ -48,9 +48,8 @@ def tighten_promotion(
     crisis_max_regression: float = 0.05,
 ) -> Dict[str, Any]:
     out = dict(raw or {})
-    reasons: List[str] = []
-    if not out.get("eligible"):
-        reasons.append(str(out.get("reason") or "factory_contract_refused"))
+    factory_reason = str(out.get("reason") or "") if not out.get("eligible") else ""
+    extra: List[str] = []
     cand_score = _f(candidate_eval.get("score"), _f(out.get("candidate_score")))
     base_score = _f(base_eval.get("score"), BASE_CODING_SCORE)
     cand_passed = _i(candidate_eval.get("passed"), _i(candidate_eval.get("n_passed")))
@@ -59,9 +58,9 @@ def tighten_promotion(
     score_lift = cand_score - base_score
     problem_lift = cand_passed - base_passed
     if cand_n and base_eval.get("n") and _i(base_eval.get("n")) != cand_n:
-        reasons.append("holdout_n_changed")
+        extra.append("holdout_n_changed")
     if problem_lift < coding_min_delta_problems and score_lift < coding_min_delta_score:
-        reasons.append(
+        extra.append(
             "coding_tie_or_worse: passed %s/%s vs base %s/%s (need +%d problems or +%.3f score)"
             % (cand_passed, cand_n or BASE_CODING_N, base_passed, BASE_CODING_N, coding_min_delta_problems, coding_min_delta_score)
         )
@@ -73,12 +72,17 @@ def tighten_promotion(
         b_score = _f((m_base.get("model_scores") or m_base).get("score"), BASE_MARKET_SCORE)
         b_crisis = _f((m_base.get("model_scores") or m_base).get("crisis_acc"), BASE_MARKET_CRISIS)
         if m_score < b_score + market_min_delta_score:
-            reasons.append("market_holdout_flat: score %.4f vs base %.4f (need +%.3f)" % (m_score, b_score, market_min_delta_score))
+            extra.append("market_holdout_flat: score %.4f vs base %.4f (need +%.3f)" % (m_score, b_score, market_min_delta_score))
         if m_crisis + 1e-9 < b_crisis - crisis_max_regression:
-            reasons.append("crisis_regression: %.3f vs base %.3f (max drop %.2f)" % (m_crisis, b_crisis, crisis_max_regression))
-    if reasons:
+            extra.append("crisis_regression: %.3f vs base %.3f (max drop %.2f)" % (m_crisis, b_crisis, crisis_max_regression))
+    if factory_reason:
         out["eligible"] = False
-        out["reason"] = "; ".join(reasons)
+        out["reason"] = factory_reason
+        out["release_status"] = "refused"
+        out["doctrine_extra"] = extra
+    elif extra:
+        out["eligible"] = False
+        out["reason"] = "; ".join(extra)
         out["release_status"] = "refused"
     else:
         out["eligible"] = True
@@ -91,14 +95,20 @@ def tighten_promotion(
 
 
 def refuse_repeat_sft(job_records: Iterable[Mapping[str, Any]], manifest: Mapping[str, Any], control: Mapping[str, Any]) -> Optional[str]:
+    if not isinstance(manifest, Mapping) or not manifest:
+        return None
     digest = str(manifest.get("eligibility_digest") or manifest.get("train_sha256") or "")
+    kinds = manifest.get("kinds") or {}
+    kept = _i(manifest.get("kept"))
+    if not digest and not kinds and kept <= 0:
+        return None
     if not digest:
         return "manifest has no eligibility_digest — refuse launch"
     need_families = int(control.get("require_new_family_after_flat_gens") or 3)
-    kinds = manifest.get("kinds") or {}
     only_old = set(kinds) <= {"public_benchmark_train"} or (
-        _i((kinds or {}).get("public_benchmark_train")) >= _i(manifest.get("kept")) * 0.9
+        _i((kinds or {}).get("public_benchmark_train")) >= kept * 0.9
         and _i(manifest.get("families") or 0) <= 2
+        and kept > 0
     )
     same: List[str] = []
     for row in sorted(job_records, key=lambda r: str(r.get("launched_at") or ""), reverse=True):
