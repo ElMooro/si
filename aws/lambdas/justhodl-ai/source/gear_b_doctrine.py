@@ -1,4 +1,4 @@
-"""Runtime wrap of Gear B. Installed at lambda import.
+"""Runtime wrap of Gear B and market_read. Installed at lambda import.
 
 Doctrine: do not train the model to sound like a better analyst.
 Train the loop that can prove the next answer is less wrong than the last one.
@@ -14,14 +14,27 @@ def install() -> bool:
     global _INSTALLED
     if _INSTALLED:
         return True
+    ok = False
     try:
-        import gear_b
-        import self_improve
+        ok = _wrap_gear_b() or ok
     except Exception:
-        return False
+        pass
+    try:
+        ok = _wrap_market_read() or ok
+    except Exception:
+        pass
+    _INSTALLED = True
+    return ok
+
+
+def _wrap_gear_b() -> bool:
+    import gear_b
+    import self_improve
 
     orig_tick = gear_b.tick
     orig_promo = gear_b.promotion
+    if getattr(orig_tick, "_doctrine", False):
+        return True
 
     def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, Any], role_arn: str,
              projected: Dict[str, Any], pricing: Dict[str, Any], describe_card, region: str = "us-east-1",
@@ -35,9 +48,7 @@ def install() -> bool:
             return preview
         try:
             control = gear_b.load_control(s3, private_bucket)
-            manifest = gear_b.latest_unlaunched_manifest(s3, private_bucket) or {}
-            if not manifest:
-                manifest = dict(preview.get("built") or {})
+            manifest = gear_b.latest_unlaunched_manifest(s3, private_bucket) or dict(preview.get("built") or {})
             why = self_improve.refuse_repeat_sft(gear_b._job_records(s3, private_bucket), manifest, control)
         except Exception as exc:
             why = None
@@ -65,5 +76,57 @@ def install() -> bool:
     promotion._doctrine = True  # type: ignore[attr-defined]
     gear_b.tick = tick
     gear_b.promotion = promotion
-    _INSTALLED = True
+    return True
+
+
+def _wrap_market_read() -> bool:
+    import market_read as mr
+    import self_improve
+
+    orig_compose = mr.compose_read
+    orig_lessons = mr.write_lessons
+    if getattr(orig_compose, "_doctrine", False):
+        return True
+
+    def compose_read(board, play, complete_fn, lessons=None, playbook_text=True, budget=None):
+        kw = {"lessons": lessons, "playbook_text": playbook_text}
+        if budget is not None:
+            kw["budget"] = budget
+        parsed = orig_compose(board, play, complete_fn, **kw)
+        try:
+            parsed = self_improve.enforce_lessons(parsed, (lessons or {}).get("lessons") or [])
+            parsed = self_improve.process_score_read(parsed, board)
+        except Exception as exc:
+            parsed = dict(parsed or {})
+            parsed["self_improve_error"] = str(exc)[:200]
+        return parsed
+
+    def write_lessons(graded_rows, prior, complete_fn, fallback_fn=None):
+        out = orig_lessons(graded_rows, prior, complete_fn, fallback_fn=fallback_fn)
+        if out.get("lessons"):
+            return out
+        rows = [r for r in (graded_rows or []) if r.get("windows")]
+        if not rows:
+            return out
+        built = []
+        for r in rows:
+            windows = r.get("windows") or {}
+            if not isinstance(windows, dict):
+                continue
+            for w, oc in windows.items():
+                if isinstance(oc, dict):
+                    try:
+                        built.append(self_improve.lesson_from_grade(r, int(w), oc))
+                    except Exception:
+                        continue
+        if built:
+            out = dict(out or {})
+            out["lessons"] = built[:6]
+            out["summary"] = out.get("summary") or "deterministic lessons from graded windows"
+        return out
+
+    compose_read._doctrine = True  # type: ignore[attr-defined]
+    write_lessons._doctrine = True  # type: ignore[attr-defined]
+    mr.compose_read = compose_read
+    mr.write_lessons = write_lessons
     return True
