@@ -61,6 +61,7 @@ def load_gsm8k(n: int, text: str | None = None) -> list:
 
 
 def last_number(text: str):
+    text = strip_stops(text)
     m = re.search(r"Final answer:\s*\$?\s*(-?[\d,]*\.?\d+)", text or "", re.I)
     cand = m.group(1) if m else None
     if cand is None:
@@ -109,8 +110,19 @@ def code_items(n: int, seed: int = 20260919) -> list:
     return items
 
 
+STOP_TOKENS = ("<|im_end|>", "<|endoftext|>")
+
+
+def strip_stops(text: str) -> str:
+    """The endpoint returns the stop token as literal text ('21<|im_end|>'): it is not part of the answer."""
+    text = text or ""
+    for tok in STOP_TOKENS:
+        text = text.replace(tok, "")
+    return text
+
+
 def norm_lines(text: str) -> str:
-    text = re.sub(r"^```[a-z]*\n|\n```$", "", (text or "").strip(), flags=re.M)
+    text = re.sub(r"^```[a-z]*\n|\n```$", "", strip_stops(text).strip(), flags=re.M)
     return "\n".join(line.rstrip() for line in text.strip().splitlines())
 
 

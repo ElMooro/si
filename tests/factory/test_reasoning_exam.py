@@ -45,6 +45,7 @@ class ReasoningExamTests(unittest.TestCase):
         again = M["code_items"](8); self.assertEqual([i["gold"] for i in items], [i["gold"] for i in again])     # seeded: the same exam every time
         self.assertTrue(M["grade_output"]("```\n42\n```", "42")); self.assertTrue(M["grade_output"]("  [1, 2]  \n", "[1, 2]"))
         self.assertFalse(M["grade_output"]("[1,2]", "[1, 2]")); self.assertFalse(M["grade_output"]("42\n43", "42"))
+        self.assertTrue(M["grade_output"]("21<|im_end|>", "21")); self.assertTrue(M["grade_number"]("Final answer: 7<|im_end|>", "7"))   # the endpoint echoes the stop token (0/20 on 2026-09-19 was this)
 
     def test_exam_round_trip_grades_each_family_exactly(self):
         s3 = FakeS3()
