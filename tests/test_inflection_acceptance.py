@@ -29,6 +29,24 @@ class Tests(unittest.TestCase):
         client=Client([Error('TooManyRequestsException')]);
         with self.assertRaises(TimeoutError):invoke_when_available(client,{},0,lambda:0,lambda n:None)
 
+    def test_transport_response_shapes_preserve_original_error_without_retry(self):
+        sys.path.insert(0,str(ROOT/'aws/ops'))
+        from acceptance_invoke import invoke_when_available
+        for response in (None, [], 'disconnected', {}, {'Error':None}, {'Error':[]}, {'Error':'unavailable'}):
+            with self.subTest(response=response):
+                error=ConnectionError('invocation outcome uncertain')
+                error.response=response
+                class Client:
+                    calls=0
+                    def invoke(self,**kwargs):
+                        self.calls+=1
+                        raise error
+                client=Client()
+                with self.assertRaises(ConnectionError) as caught:
+                    invoke_when_available(client,{})
+                self.assertIs(caught.exception,error)
+                self.assertEqual(client.calls,1)
+
     def test_missing_receipt_waits_but_permission_failure_does_not_hide(self):
         path=ROOT/'aws/ops/pending/ops_5834_inflection_research_acceptance.py'
         if not path.exists():path=ROOT/'aws/ops/ran'/path.name
