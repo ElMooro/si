@@ -172,18 +172,9 @@ def _join_reversal(rows):
             "radar_universe": rv.get("universe_n")}
 
 def _risk_gate_doc():
-    if not hasattr(_risk_gate_doc, "_c"):
-        try:
-            import boto3 as _b3, json as _js
-            from datetime import datetime as _dt, timezone as _tz
-            _d = _js.loads(_b3.client("s3").get_object(
-                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
-            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
-                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
-            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
-        except Exception:
-            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
-    return _risk_gate_doc._c
+    from risk_gate_authority import read
+    import boto3
+    return read(boto3.client("s3"), "justhodl-dashboard-live")
 
 _RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
 
@@ -282,6 +273,7 @@ def effective_bets(signal_keys):
 
 
 def lambda_handler(event, context):
+    risk_gate_snapshot = _risk_gate_doc()
     t0 = time.time()
     cascade = read_json("data/theme-cascade.json") or {}
     options = read_json("data/polygon-options-flow.json") or {}
@@ -1002,9 +994,9 @@ def lambda_handler(event, context):
             composite = round(min(100.0, composite * _ind_mult), 1)
 
         # ── Master Risk Gate (brain-constitutional, sector-agnostic) ──
-        _rg_doc = _risk_gate_doc()
+        _rg_doc = risk_gate_snapshot
         _rg_posture = _rg_doc.get("posture")
-        _rg_raw = float(_rg_doc.get("sizing_multiplier") or 1.0)
+        _rg_raw = _rg_doc.get("sizing_multiplier")
         _rg_mult = _RG_RANK_CLAMP.get(_rg_posture, 1.0)
         if _rg_mult != 1.0:
             composite = round(min(100.0, composite * _rg_mult), 1)

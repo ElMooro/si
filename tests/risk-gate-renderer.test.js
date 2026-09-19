@@ -5,7 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const { execFileSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
-const html = fs.readFileSync(path.join(root, "risk-gate.html"), "utf8");
+const html = fs.readFileSync(path.join(root, "docs/archive/risk-gate-v2.html"), "utf8");
 const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match => match[1]).find(code => code.includes("const FEEDS"));
 const payload = JSON.parse(execFileSync("python3", ["-c", [
   "import json, runpy, contextlib, io",
@@ -23,7 +23,7 @@ function harness() {
   return { context, nodes };
 }
 
-test("actual Risk Gate output exposes live ACM and scoped Treasury evidence on the page", () => {
+test("retained legacy Risk Gate output exposes live ACM and scoped Treasury evidence on the page", () => {
   const { context, nodes } = harness();
   context.renderLegs(payload); context.renderIndicators(payload); context.renderFleet(payload); context.renderCompleteEvidence(payload);
   const indicator = nodes.get("indicators").innerHTML;

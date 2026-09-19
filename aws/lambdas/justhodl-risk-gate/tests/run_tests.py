@@ -45,7 +45,7 @@ def _months(start_year, start_month, values):
 def test_replay_is_pure_of_live_feeds(mod):
     src = inspect.getsource(mod.compute_posture)
     assert "get_object" not in src and "_feed(" not in src and "read_feed(" not in src, "compute_posture must not read live artifacts"
-    assert "replay_purity" in inspect.getsource(mod.lambda_handler)
+    assert "replay_purity" in inspect.getsource(mod.legacy_unvalidated_handler)
 
 
 def test_sahm_rule_on_native_months_matches_the_official_formula(mod):
@@ -206,7 +206,7 @@ def _handler_fixture(mod, event=None, extra_docs=None):
         def __getattr__(self, name): raise AssertionError("Unexpected AWS operation " + name)
     mod.s3 = MemoryS3()
     with contextlib.redirect_stdout(io.StringIO()):
-        response = mod.lambda_handler(event or {}, None)
+        response = mod.legacy_unvalidated_handler(event or {}, None)
     return response, writes, reads
 
 
@@ -271,3 +271,12 @@ if __name__ == "__main__":
         fn(mod)
         print("ok", name)
     print("risk-gate tests passed: %d" % len(tests))
+
+    import unittest
+    sys.path.insert(0,str(HERE.parents[2]/'shared/tests'))
+    suite=unittest.TestSuite()
+    for pattern in ('test_risk_gate_research_model.py','test_risk_gate_authority.py'):
+        suite.addTests(unittest.TestLoader().discover(str(HERE.parents[2]/'shared/tests'),pattern=pattern))
+    suite.addTests(unittest.TestLoader().discover(str(HERE),pattern='test_risk_gate_research_store.py'))
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)

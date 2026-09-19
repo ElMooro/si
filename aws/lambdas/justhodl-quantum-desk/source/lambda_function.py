@@ -431,17 +431,8 @@ def regime_consensus(docs):
 
 # ── L2 risk-gate ────────────────────────────────────────────────────────
 def risk_layer(doc):
-    if not doc:
-        return {"posture": None, "sizing_multiplier": 1.0,
-                "composite": None,
-                "note": "risk-gate unreadable -- sizing 1.0x, verdicts uncapped"}
-    return {
-        "posture": dig(doc, "posture", "live_posture", "gate.posture"),
-        "composite": num(dig(doc, "composite", "live_composite",
-                             "gate.composite")),
-        "sizing_multiplier": num(dig(doc, "sizing_multiplier",
-                                     "sizing.multiplier")) or 1.0,
-    }
+    from risk_gate_authority import context
+    return context(doc, max_age_h=30)
 
 
 # ── L3 ladder legs ──────────────────────────────────────────────────────
@@ -613,6 +604,8 @@ def score_legs(legs):
 
 
 def verdict_for(score, legs, risk, canary_veto=False):
+    if risk.get("allows_new_entries") is not True or risk.get("sizing_multiplier") is None:
+        return "ABSTAIN"
     if canary_veto and score is not None and score >= 0:
         score = min(score, 0.72)  # RED barometer: never BUY_ZONE
     if score is None:
@@ -781,7 +774,7 @@ def build_risk_panel(docs, risk, canary):
              "veto_stack": [
         {"name": "risk-gate", "state": risk.get("posture"),
          "sizing_x": risk.get("sizing_multiplier"),
-         "active": (risk.get("sizing_multiplier") or 1) < 1,
+         "active": (risk.get("sizing_multiplier") is None or risk["sizing_multiplier"] < 1),
          "flips_when": "composite recovers above the gate's own "
                        "threshold (engine-defined)"},
         {"name": "canary-barometer",
@@ -807,10 +800,8 @@ def build_decision(ladder, risk, canary, hist_rows, money_map):
                            "regime", "plumbing", "cycle")
                  if k in L]
     blockers = []
-    if (risk.get("sizing_multiplier") or 1) < 1:
-        blockers.append("risk-gate %s: size x%s"
-                        % (risk.get("posture"),
-                           risk.get("sizing_multiplier")))
+    if (risk.get("sizing_multiplier") is None or risk["sizing_multiplier"] < 1):
+        blockers.append(risk.get("note") or "Risk Gate sizing authority unavailable; abstain from a new recommendation")
     if (canary or {}).get("veto_active"):
         blockers.append("canary barometer RED veto: BUY_ZONE capped")
     prev = hist_rows[-2] if hist_rows and len(hist_rows) >= 2 else {}
@@ -824,7 +815,7 @@ def build_decision(ladder, risk, canary, hist_rows, money_map):
     prev_names = set(prev.get("top_names") or [])
     now_names = [m["ticker"] for m in money_map[:8]]
     return {
-        "class": top["class"], "verdict": top["verdict"],
+        "class": top["class"], "verdict": top["verdict"] if risk.get("allows_new_entries") is True else "ABSTAIN",
         "score": top["score"],
         "checklist": checklist,
         "n_ok": sum(1 for c in checklist if c["ok"]),
@@ -1291,7 +1282,7 @@ def build_money_map(docs, ladder, risk, top_n=12):
         return [], "best-setups unreadable -- money map ABSTAINS " \
                    "(names never invented)"
     class_score = {r["class"]: (r["score"] or 0.5) for r in ladder}
-    size_mult = risk.get("sizing_multiplier") or 1.0
+    size_mult = risk.get("sizing_multiplier")
     out = []
     for srow in setups[:60]:
         tk = dig(srow, "ticker", "symbol")
@@ -1324,7 +1315,8 @@ def build_money_map(docs, ladder, risk, top_n=12):
         out.append({
             "ticker": tk, "name": srow.get("name"),
             "class": cls, "khalid_fit": fit,
-            "size_hint_x": round(size_mult, 2),
+            "size_hint_x": round(size_mult, 2) if size_mult is not None else None,
+            "sizing_eligible": False, "sizing_reason": risk.get("note"),
             "conviction": conv, "flow_quadrant": quad,
             "squeeze_fuel": bool(sq),
             "earnings_in_days": srow.get("earnings_in_days"),

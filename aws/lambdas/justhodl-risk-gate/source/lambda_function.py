@@ -1,3 +1,10 @@
+"""Active Risk Gate v3: original-source research, replay and explicit abstention.
+
+The entrypoint at the end delegates to risk_gate_research_store. The prior
+threshold implementation below is retained for historical/offline review only;
+it is not a qualified regime forecast or capital-allocation model.
+"""
+# Historical v1/v2 documentation and implementation (inactive).
 """
 justhodl-risk-gate v1.0 — THE MASTER RISK GATE (BRAIN-CONSTITUTIONAL).
 
@@ -963,7 +970,7 @@ def read_feed(key):
         return None
 
 
-def lambda_handler(event, context):
+def legacy_unvalidated_handler(event, context):
     t0 = time.time()
     validation_only = isinstance(event, dict) and (event.get("validate_only") is True or event.get("mode") == "validate_only")
     print(f"[risk-gate] {MARKER}")
@@ -1098,3 +1105,11 @@ def lambda_handler(event, context):
     return {"ok": True, "posture": live_posture, "composite": live_comp,
             "sizing_multiplier": out["sizing_multiplier"],
             "n_flips": es["n_flips_to_risk_off_or_worse"]}
+
+
+def lambda_handler(event, context):
+    """Publish retained-source research; no AI, private accounts or notifications."""
+    from risk_gate_research_store import run
+    validation_only = isinstance(event, dict) and (event.get("validate_only") is True or event.get("mode") == "validate_only")
+    result = run(s3, S3_BUCKET, validation_only=validation_only)
+    return {"statusCode": 200, "ok": True, **result}

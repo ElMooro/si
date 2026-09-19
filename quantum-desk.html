@@ -119,6 +119,11 @@ const LEGDESC={discount:"below 200dma / drawdown depth",asymmetry:"modeled upsid
 function spark(vals,w=110,h=26){if(!vals||vals.length<5)return"";const mn=Math.min(...vals),mx=Math.max(...vals),sp=mx-mn||1;
  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-3-(v-mn)/sp*(h-6)).toFixed(1)}`).join(" ");
  return `<svg class="spark" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="var(--acc2)" stroke-width="1.6"/></svg>`}
+function sizingHistory(rows){return rows.map(r=>{
+ const x=r.sizing_x,stamp=esc((r.t||"").slice(0,10));
+ if(typeof x!=="number"||!Number.isFinite(x)||x<0||x>1)return `<i style="background:transparent;border:1px dashed var(--dim);height:8%" title="${stamp} · sizing unavailable"></i>`;
+ return `<i style="background:var(--neu);opacity:.7;height:${Math.max(8,x*100)}%" title="${stamp} · historical sizing ×${x} (not a current recommendation)"></i>`;
+}).join("")}
 Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("feed "+r.status);return r.json()}),
              fetch(HIST,{cache:"no-store"}).then(r=>r.ok?r.json():{rows:[]}).catch(()=>({rows:[]}))])
 .then(([d,hd])=>{
@@ -147,9 +152,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
     document.getElementById("histnote").textContent=`Last ${H.length} daily snapshots — regime band (hover for the day's read) and risk-gate sizing.`;
     document.getElementById("tl").innerHTML=H.map(r=>{const c=RC[r.regime]||"#8fa3c0";
       return `<i style="background:${c};height:${r.barometer!=null?Math.max(18,r.barometer):34}%" title="${esc((r.t||"").slice(0,10))} · ${esc(r.regime||"?")} · top ${esc(r.top_class||"—")} · ${(r.top_names||[]).join("/")}"></i>`}).join("");
-    const sz=H.map(r=>r.sizing_x).filter(x=>x!=null);
-    document.getElementById("tlsz").innerHTML=H.map(r=>{const x=r.sizing_x??0;
-      return `<i style="background:var(--neu);opacity:.7;height:${Math.max(8,x*100)}%" title="${esc((r.t||"").slice(0,10))} · sizing ×${x}"></i>`}).join("");
+    document.getElementById("tlsz").innerHTML=sizingHistory(H);
   }
 
   const dec=d.decision;

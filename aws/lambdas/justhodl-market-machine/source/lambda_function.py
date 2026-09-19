@@ -330,7 +330,9 @@ def pillar_forced():
     rg, rgk = s3_json_multi(["data/risk-gate.json",
                              "data/riskgate.json",
                              "data/risk_gate.json"])
-    if rg is not None:
+    from risk_gate_authority import context as risk_gate_context
+    rg = risk_gate_context(rg)
+    if rg.get("calls_eligible") is True:
         st = walk_find_str(rg, ["state", "gate", "regime", "label",
                                 "verdict", "posture", "risk_state",
                                 "mode", "signal"])
