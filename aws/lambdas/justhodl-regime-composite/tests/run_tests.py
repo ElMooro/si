@@ -73,4 +73,7 @@ def test_populated_heuristics_are_still_described_without_portfolio_commands():
 if __name__=='__main__':
     tests=[f for n,f in list(globals().items()) if n.startswith('test_')]
     for test in tests:test()
+    import unittest
+    suite=unittest.TestLoader().discover(str(Path(__file__).resolve().parents[3]/'shared/tests'),pattern='test_holdings_authority.py')
+    if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():raise SystemExit(1)
     print(f'Meta-regime source and permission contracts passed: {len(tests)}')

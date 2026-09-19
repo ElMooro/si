@@ -10,6 +10,7 @@ import hashlib, json, math, re, time
 from datetime import datetime, timezone
 
 import boto3
+from holdings_authority import context as holdings_context
 
 s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
@@ -124,7 +125,7 @@ def st_squeeze(r0):
             min(1.0, scf / 15.0))
 
 
-def st_13f(sym, tf):
+def legacy_st_13f(sym, tf):
     x = (tf or {}).get(sym)
     if not isinstance(x, dict):
         return None
@@ -134,6 +135,11 @@ def st_13f(sym, tf):
     return ("13f-flow", "$net %.1fB" % (n0 / 1e9),
             "UP" if n0 > 0 else "DOWN",
             min(1.0, abs(n0) / 5e9))
+
+
+def st_13f(sym, tf):
+    # Values remain in the source packet, but are not a signed flow signal.
+    return None
 
 
 ADAPTERS = [
@@ -328,7 +334,9 @@ def lambda_handler(event=None, context=None):
             add(str(sym).upper(), "short-interest", *st)
             nsi += 1
     src_stats["short-interest"] = nsi
-    tf = (rd("data/13f-flows-by-ticker.json") or {}).get("t") or {}
+    holdings_packet = rd("data/13f-flows-by-ticker.json") or {}
+    holdings_qualification = holdings_context(holdings_packet, "data/13f-flows-by-ticker.json")
+    tf = holdings_packet.get("t") or {}
     n13 = 0
     for sym in list(FAB.keys()):
         st = st_13f(sym, tf)
@@ -408,6 +416,7 @@ def lambda_handler(event=None, context=None):
                             "leaderboard weights fuse them; "
                             "conflict is a first-class output"),
            "source_stats": src_stats,
+           "holdings_context": holdings_qualification,
            "n_tickers": len(tickers),
            "n_conflicts": len(conflicts),
            "tickers": tickers[:400],
@@ -470,6 +479,7 @@ def lambda_handler(event=None, context=None):
                       "generated_at": datetime.now(
                           timezone.utc).isoformat(),
                       "n_tickers": len(bus),
+                      "holdings_context": holdings_qualification,
                       "integration": {
                           "note": "engine-side SDK, six lines:",
                           "code": ("BUS=json.loads(s3.get_object("

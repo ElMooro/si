@@ -60,6 +60,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from ciss_readthrough import context as ciss_context, SERIES as CISS_SERIES
+from holdings_authority import context as holdings_context
 
 VERSION = "1.1.0"
 REGION = "us-east-1"
@@ -350,7 +351,7 @@ def derive_insider(payload):
         return None, None, 0
 
 
-def derive_thirteenf(payload):
+def legacy_derive_thirteenf(payload):
     """13F positions → aggregate net buying vs selling across funds."""
     try:
         funds = payload.get("by_fund") or {}
@@ -370,6 +371,11 @@ def derive_thirteenf(payload):
         return "13F_BALANCED", f"{net_new} new vs {net_exits} exits — balanced positioning", 0
     except Exception:
         return None, None, 0
+
+
+def derive_thirteenf(payload):
+    q = holdings_context(payload)
+    return None, q['reason'], None
 
 
 def _ciss_context_only(payload, key):
@@ -428,6 +434,11 @@ def fetch_module(cfg, ciss_packet=None, now=None):
         out["error"] = str(e)[:120]
         return out
 
+    if cfg.get('derive') == 'thirteenf':
+        q = holdings_context(payload, cfg['key'])
+        out.update(regime=None, signal=q['reason'], polarity=None, vote_eligible=False,
+                   descriptive_eligible=False, source_context=q, evidence_family='sec_13f_disclosures')
+        return out
     if cfg.get("derive"):
         derived = DERIVERS.get(cfg["derive"], lambda p: (None, None, 0))(payload)
         out["regime"], out["signal"], out["polarity"] = derived

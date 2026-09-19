@@ -62,6 +62,7 @@ import time
 from datetime import datetime, timezone
 
 import boto3
+from holdings_authority import context as holdings_context
 
 try:
     import engine_trust
@@ -403,7 +404,9 @@ def build_ticker_index():
     # 6d. institutional 13F accumulation — funds actively ADDING or opening NEW positions
     #     this quarter (not just "held by a fund"). Complements smart_money (which reads a
     #     different, pre-clustered feed) with the raw fund-flow signal, named buyers included.
-    if feeds.get("institutional_13f"):
+    feeds["institutional_13f_context"] = holdings_context(feeds.get("institutional_13f"))
+    # Preserve the legacy adapter below for audit; it has no signal permission.
+    if feeds["institutional_13f_context"]["vote_eligible"]:
         for r in (feeds["institutional_13f"].get("most_bought") or []):
             sym = r.get("ticker")
             if not sym:
@@ -1506,6 +1509,7 @@ def lambda_handler(event, context):
         "method": "master_signal_ranker_v1",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime_context": regime_ctx,
+        "holdings_context": feeds["institutional_13f_context"],
         "risk_regime": {
             "score": _rr_score, "regime": _rr_regime,
             "posture": _rr.get("posture"),
@@ -1602,8 +1606,11 @@ def lambda_handler(event, context):
                 }))
         
         # Publish in 10-entry batches per EventBridge limit
-        for i in range(0, len(tier_events), 10):
-            publish_many(tier_events[i:i+10])
+        emitted_tier_events = 0
+        if not (isinstance(event, dict) and event.get("suppress_events") is True):
+            for i in range(0, len(tier_events), 10):
+                publish_many(tier_events[i:i+10])
+                emitted_tier_events += len(tier_events[i:i+10])
         
         # Persist current state for next run's comparison
         S3.put_object(
@@ -1617,8 +1624,8 @@ def lambda_handler(event, context):
             }, default=str).encode("utf-8"),
             ContentType="application/json",
         )
-        if tier_events:
-            print(f"[master-ranker] emitted {len(tier_events)} tier-up events")
+        if emitted_tier_events:
+            print(f"[master-ranker] emitted {emitted_tier_events} tier-up events")
     except Exception as e:
         print(f"[master-ranker] event publish failed: {e}")
 
