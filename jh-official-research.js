@@ -1,0 +1,48 @@
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./jh-tic-research.js'):root.TicResearch);if(typeof module==='object'&&module.exports)module.exports=api;else root.OfficialResearch=api;})(typeof window!=='undefined'?window:this,function(base){
+ 'use strict';const {esc,num,fmt,signed}=base,CONTRACT='official-original-research.v1',PREFIX='data/official-research/';
+ function table(headers,rows){return `<div class="table-scroll"><table><thead><tr>${headers.map(v=>`<th>${esc(v)}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+ function boundary(p){if(p?.contract!==CONTRACT||p.call!==null||p.calls_eligible!==false||p.sizing_eligible!==false||p.execution_eligible!==false||!p.measurements||p.dollar_leg?.available!==0)throw Error('Official-balance research contract differs');return p;}
+ function status(p,at=Date.now(),pinned=false){
+  if(pinned)return 'historical snapshot';const acquired=Date.parse(p.source_clocks?.native_archive),compiled=Date.parse(p.generated_at),expiry=Date.parse(p.calendar?.calendar_expires_at);
+  if(!Number.isFinite(acquired)||!Number.isFinite(compiled)||at<compiled-300000||at<acquired-300000||at-acquired>48*3600000)return 'source check expired';
+  if(!Number.isFinite(expiry)||at>=expiry)return 'release calendar expired';
+  return p.quality?.status==='fresh'?'within displayed source rules':'incomplete or conflicting evidence';
+ }
+ function summary(p,at,pinned){boundary(p);const state=status(p,at,pinned),show=pinned||state==='within displayed source rules';
+  const cards=[['Foreign official reverse repos · cash liability',p.foreign_rrp.latest_bn,p.foreign_rrp.latest_date],['Treasury custody · current face value',p.custody.latest_bn,p.custody.latest_date],['Foreign reverse repos · 13-week balance change',p.foreign_rrp.chg_13w_bn,p.foreign_rrp.latest_date],['Treasury custody · 13-week balance change',p.custody.chg_13w_bn,p.custody.latest_date]];
+  return {state,cards:cards.map(([name,v,d],i)=>`<article class="metric"><div>${esc(name)}</div><strong>${show?(i<2?fmt(v):signed(v)):'—'}</strong><span>USD billions · ${esc(d)}${show?'':' · dated values below'}</span></article>`).join('')};
+ }
+ function detail(p,id){const m=p.measurements[id];if(!m)throw Error('Selected measurement unavailable');const st=m.statistics,comparison=p.distribution_checks[id];
+  return `<h2>${esc(m.name)}</h2><p>${esc(m.statistic==='week_average'?'Average of daily figures for the week ended':'Level as of Wednesday')} ${esc(m.latest_date)}. ${esc(m.valuation_basis)}; USD millions, not seasonally adjusted.</p><p class="dim">Source condition at compilation: ${esc(m.quality.status)}.</p>`+
+   table(['Measurement','Amount / definition'],[['Latest level · USD millions',fmt(m.latest_usd_million_decimal,0)],['Latest level · USD billions',fmt(m.latest_bn)],...['4','13','26','52'].map(w=>[w+' calendar-week change · USD billions',signed(num(m.changes[w].change_usd_million_decimal)===null?null:Number(m.changes[w].change_usd_million_decimal)/1000)+' · '+esc(m.changes[w].status)]),['Observation age at compilation',fmt(m.quality.observation_age_days,0)+' days'],['Source acquired',esc(m.source.acquired_at)],['Source rows',fmt(m.n_obs,0)+' · '+esc(m.first)+' → '+esc(m.latest_date)],['Native / FRED identifier',esc(m.native_id)+' / '+esc(m.fred_id||'native only')]])+
+   `<p class="warning">A balance change does not identify a purchase, the investor’s motive, or an expected asset return.</p><details><summary>Prior-only statistics and source comparisons</summary><p>${esc(st.statistic)}. ${esc(st.available_prior_changes)} of ${esc(st.required_prior_changes)} required prior changes. Current change excluded; windows overlap.</p><p>Descriptive z: ${fmt(st.z_decimal,8)} · midrank percentile: ${fmt(st.percentile_midrank_decimal,8)}. ${esc(st.status)}. These statistics do not vote in Calls or set a position.</p><p>${comparison?`${fmt(comparison.matches,0)} same-date matching observations; ${fmt(comparison.different_values,0)} value differences; ${fmt(comparison.missing_dates,0)} dates present in only one distribution.`:'No FRED comparison is used for this companion series.'} Fed and FRED are distributions of the same H.4.1 evidence.</p></details>`;
+ }
+ function history(doc,page=0){if(!Array.isArray(doc.rows))throw Error('Source history unavailable');const rows=[...doc.rows].reverse(),slice=rows.slice(Math.max(0,page)*24,Math.max(0,page)*24+24);let html;
+  if(doc.contract==='official-native-history.v1')html=table(['Wednesday / week end','Reported USD millions','Source status','Analytical scope','13-week change · USD m','Source row'],slice.map(r=>[esc(r.date),fmt(r.value_decimal,0),esc(r.observation_status),esc(r.scope_status),fmt(r.changes?.['13']?.change_usd_million_decimal,0),esc(r.row_index)]));
+  else if(doc.contract==='official-distribution-history.v1')html=table(['Observation date','Fed native · USD m','FRED · USD m','Comparison'],slice.map(r=>[esc(r.date),fmt(r.native_usd_million_decimal,0),fmt(r.fred_usd_million_decimal,0),esc(r.status)]));
+  else if(doc.contract==='official-reconciliation-history.v1'){const keys=[doc.total,...doc.components],names={custody_total:'Total custody',custody:'Treasury custody',custody_agency:'Agency / MBS custody',custody_other:'Other custody',rrp_total:'Total reverse repos',foreign_rrp:'Foreign official reverse repos',rrp_other:'Other reverse repos'};html=table(['Observation date',...keys.map(k=>(names[k]||k)+' · USD m'),'Residual · USD m','Rounding bound · USD m','Status'],slice.map(r=>[esc(r.date),...keys.map(k=>fmt(r.components_usd_million_decimal[k],0)),fmt(r.residual_usd_million_decimal,0),fmt(r.rounding_bound_usd_million_decimal),esc(r.status)]));}
+  else throw Error('Unexpected history contract');return {html,count:rows.length,pages:Math.ceil(rows.length/24)};
+ }
+ function chart(doc,range=260,width=1040){
+  if(doc.contract!=='official-native-history.v1')return '<p>Use the exact table below to inspect source differences and reconciliation residuals.</p>';
+  let rows=doc.rows;if(range)rows=rows.slice(-range);const value=r=>r.analysis_eligible&&num(r.value_decimal)!==null?Number(r.value_decimal)/1000:null,valid=rows.filter(r=>value(r)!==null);
+  if(!valid.length)return '<p>No observations within documented analytical coverage in this range.</p>';
+  const lo=Math.min(0,...valid.map(value)),hi=Math.max(0,...valid.map(value)),span=hi-lo||1,W=Math.max(320,Math.min(1040,Number(width)||1040)),H=240,L=72,R=14,T=20,B=35;
+  const first=Date.parse(rows[0].date),last=Date.parse(rows.at(-1).date),x=d=>L+(Date.parse(d)-first)/(last-first||1)*(W-L-R),y=v=>T+(hi-v)/span*(H-T-B);let paths=[],path='',previous=null;
+  for(const r of rows){const v=value(r),d=Date.parse(r.date);if(v===null||previous!==null&&d-previous!==7*86400000){if(path)paths.push(path);path='';}if(v!==null)path+=(path?' L':'M')+x(r.date).toFixed(2)+' '+y(v).toFixed(2);previous=d;}if(path)paths.push(path);
+  return `<svg role="img" aria-label="Weekly reported balance in USD billions" viewBox="0 0 ${W} ${H}"><line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--bd)"/>${[lo,hi].map(v=>`<text x="${L-8}" y="${y(v)+4}" text-anchor="end">${esc(fmt(v,1))}</text>`).join('')}${paths.map(d=>`<path d="${d}" stroke="var(--cyan)" stroke-width="2" fill="none"/>`).join('')}<text x="${L}" y="${H-5}">${esc(rows[0].date)}</text><text x="${W-R}" y="${H-5}" text-anchor="end">${esc(rows.at(-1).date)}</text></svg><p class="dim">USD billions · calendar axis. Missing weeks, non-normal observations and records outside documented current-face history break the line. Literal source records remain in the table and download.</p>`;
+ }
+ function scenario(x){
+  for(const k of ['exposure','duration','shockBp','income','costs','days'])if(typeof x[k]!=='number'||!Number.isFinite(x[k]))throw Error('Enter every assumption, including explicit zero income and costs.');
+  if(x.exposure<=0||x.exposure>1e12||x.duration<0||x.duration>100||Math.abs(x.shockBp)>1000||x.income<0||x.income>1e12||x.costs<0||x.costs>1e12||!Number.isInteger(x.days)||x.days<1||x.days>3650)throw Error('Scenario input outside displayed bounds.');
+  const price=-x.exposure*x.duration*x.shockBp/10000;return {inputs:{...x},currency:'USD',approximate_price_pnl:price,cash_income:x.income,costs:x.costs,approximate_net_pnl:price+x.income-x.costs,
+   formula:'-market_value_USD * modified_duration_years * yield_shock_bp / 10000 + horizon_cash_income_USD - horizon_costs_USD',
+   forecast:false,automatic_position_size:null,balance_to_yield_coefficient:null,limitation:'First-order parallel yield-shift approximation for a long USD bond exposure. No convexity, spread, FX or reinvestment model. Duration is entered, not inferred from custody face value.'};
+ }
+ async function verified(fetcher,ref){
+  if(!ref||!new RegExp('^'+PREFIX+'(?:runs|outputs|histories)/[a-f0-9]{64}\\.json$').test(ref.key)||!Number.isInteger(ref.bytes)||ref.bytes<=0||ref.bytes>16*1024*1024||!/^[a-f0-9]{64}$/.test(ref.sha256))throw Error('Official research artifact identity differs');
+  const response=await fetcher('/'+ref.key,{cache:'no-store'});if(!response.ok)throw Error('Retained official research unavailable');const raw=await response.arrayBuffer(),sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)),v=>v.toString(16).padStart(2,'0')).join('');
+  if(raw.byteLength!==ref.bytes||sha!==ref.sha256)throw Error('Retained official research hash differs');return JSON.parse(new TextDecoder().decode(raw));
+ }
+ return {CONTRACT,PREFIX,esc,num,fmt,signed,table,boundary,status,summary,detail,history,chart,scenario,verified};
+});

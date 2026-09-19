@@ -1,13 +1,22 @@
 {
   "function_name": "justhodl-official-pulse",
   "runtime": "python3.12",
-  "timeout": 180,
-  "memory": 256,
-  "description": "Weekly H.4.1 foreign-official pulse: foreign RRP pool (WLRRAFOIAL) + FRBNY custody (runtime-resolved, never stale-bound) with 4/13/26w changes and z; dollar_leg STRESS-ONLY composite joining monthly TIC. Fri 09:00 UTC. Feeds risk-gate.",
+  "timeout": 600,
+  "memory": 1024,
+  "description": "Original H.4.1 Wednesday custody and foreign reverse-repo balances. Exact archive, canonical distribution checks, calendar-week changes and immutable replay. Monitor only; no trade authority.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-official-pulse-weekly",
+    "cron": "cron(0 9 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily source and release-calendar check of weekly original H41 balances; monitor only"
+  },
   "inherit_env": [
     {
       "from_function": "dollar-strength-agent",
-      "keys": ["FRED_KEY"]
+      "keys": [
+        "FRED_KEY"
+      ]
     }
   ]
 }

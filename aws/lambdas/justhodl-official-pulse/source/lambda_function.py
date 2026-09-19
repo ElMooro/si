@@ -191,9 +191,9 @@ def dollar_leg(doc, ff):
           if (doc.get("custody") or {}).get("status") == "LIVE"
           else None)
     legs["custody_weekly"] = {
-        "z": cz, "fires": (cz is not None and cz <= -1.5),
-        "rule": "FRBNY custody 13w-change z <= -1.5",
-        "available": cz is not None}
+        "z": None, "source_z": cz, "fires": False,
+        "rule": "Custody balance changes have no qualified stress-vote authority",
+        "qualification": "MONITOR_ONLY", "available": False}
     avail = [k for k, v in legs.items()
              if v.get("z") is not None]
     firing = [k for k in avail if legs[k]["fires"]]
@@ -209,7 +209,7 @@ def dollar_leg(doc, ff):
             "status": status}
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     doc = {"v": VERSION, "engine": "justhodl-official-pulse",
@@ -250,3 +250,22 @@ def lambda_handler(event, context):
             "rrp_bn": doc["foreign_rrp"]["latest_bn"],
             "custody": doc["custody"]["status"],
             "dollar_leg": doc["dollar_leg"]["status"]}
+
+
+def lambda_handler(event=None, context=None):
+    """Original H.4.1 research; public HTTP reads never collect or generate signals."""
+    from official_research import CONTRACT, CURRENT, encoded
+    from official_store import raw_reader, run
+    try:
+        event=event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            packet=json.loads(raw_reader(s3,BUCKET)(CURRENT))
+            if packet.get('contract')!=CONTRACT:raise ValueError('reviewed official publication unavailable')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':encoded(packet).decode()}
+        from managed_secret import managed_secret
+        key=managed_secret(('FRED_KEY','FRED_API_KEY'),('/justhodl/fred/api-key',))
+        result=run(s3,BUCKET,key,context)
+        return {'statusCode':200,'body':encoded(result).decode()}
+    except Exception as exc:
+        print('[official-research] '+type(exc).__name__)
+        return {'statusCode':503,'body':json.dumps({'ok':False,'reason':'Original official-balance research unavailable; last verified publication retained.'})}

@@ -68,7 +68,8 @@ class Tests(unittest.TestCase):
         out=scope['dollar_leg']({},ff);self.assertEqual(out['status'],'UNKNOWN');self.assertEqual(out['legs_firing'],0)
         self.assertEqual(out['legs']['official_flows_monthly']['source_z'],-5)
         out=scope['dollar_leg']({'custody':{'status':'LIVE','z_13wchg_10y':-2}},ff)
-        self.assertEqual(out['legs_firing'],1);self.assertEqual(out['firing'],['custody_weekly'])
+        self.assertEqual(out['legs_firing'],0);self.assertEqual(out['firing'],[])
+        self.assertEqual(out['legs']['custody_weekly']['source_z'],-2)
 
     def test_actual_world_map_keeps_holdings_context_out_of_scores(self):
         source=(ROOT/'aws/lambdas/justhodl-global-flow-desk/source/lambda_function.py').read_text(encoding='utf-8')
