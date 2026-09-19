@@ -5,12 +5,14 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 600,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Complete ECB systemic-stress data layer: auto-discovers + pulls every fresh CISS + CLIFS series (EA composite/sub-indices/correlation, SovCISS, country CISS, CLIFS) with full history to 1980. Output data/ciss-stress.json.",
+  "description": "Retain and replay original ECB CISS and CLIFS measurements. Original-source replay; no unvalidated forecast or position sizing.",
   "schedule": {
     "rule_name": "ciss-stress-daily",
     "cron": "cron(10 7 * * ? *)",
-    "description": "CISS/CLIFS full stress layer — daily 07:10 UTC (after ECB daily publish)"
+    "description": "CISS/CLIFS full stress layer \u2014 daily 07:10 UTC (after ECB daily publish)"
   }
 }

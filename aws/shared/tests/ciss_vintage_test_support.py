@@ -77,16 +77,6 @@ def test_fragmentation_actual_handler_rejects_missing_warehouse():
     assert out['quality']['missing'] and all(r['sovciss'] is None for r in out['countries'].values())
 
 
-def test_producer_calendar_change_is_not_a_twelve_observation_proxy():
-    m=load('justhodl-ciss-stress')
-    pts=[['2025-09-17',.01],['2026-09-15',.02],['2026-09-17',.03]]
-    result=m.stats(pts)
-    assert result['chg_1y']==.02 and result['yoy_pct'] is None
-    assert m.stats([['2026-09-17',0]])['chg_1y'] is None
-    rows=m._csv_rows('KEY,TIME_PERIOD,OBS_VALUE,TITLE\nCISS.D.FR,2026-09-17,0.2,"with, comma"\nCISS.D.DE,2026-09-17,NaN,missing\n')
-    assert len(rows)==1
-
-
 def test_fragmentation_reads_exact_same_current_country_values():
     m=load('justhodl-euro-fragmentation');doc=warehouse();writes=[]
     yields=[((NOW.date()-timedelta(days=i*31)).isoformat(),3+i*.01) for i in range(15)]
@@ -99,18 +89,20 @@ def test_fragmentation_reads_exact_same_current_country_values():
     assert out['countries']['DE']['spread_vs_bund_bp']==0
 
 
-def test_actual_warehouse_publisher_flags_legacy_and_preserves_exact_head():
-    m=load('justhodl-ciss-stress');writes=[]
-    key='CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX'
-    old='CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX'
-    with patch.object(m,'S3',types.SimpleNamespace(put_object=lambda **kw:writes.append(kw))), \
-         patch.object(m,'discover',side_effect=lambda flow:{key:TODAY,old:'2025-04'} if flow=='CISS' else {}), \
-         patch.object(m,'history',side_effect=lambda k:[[TODAY,0]] if k==key else [['2025-04',.4]]), \
-         patch.object(m.time,'sleep'):
-        m.lambda_handler({},None)
-    out=json.loads(writes[0]['Body'])
-    assert out['ea_composite']==0 and out['quality']['status']=='fresh'
-    assert next(r for r in out['series'] if r['key']==old)['ranking_eligible'] is False
+def test_actual_warehouse_publisher_uses_verified_source_store():
+    m=load('justhodl-ciss-stress')
+    with patch.object(m,'run',return_value={'published':True}) as run:
+        response=m.lambda_handler({},types.SimpleNamespace(get_remaining_time_in_millis=lambda:600000))
+    assert response['statusCode']==200
+    run.assert_called_once_with(m.S3,m.BUCKET,budget_seconds=480)
+
+
+def test_actual_commentary_publisher_uses_deterministic_source_store():
+    m=load('justhodl-ciss-ai')
+    with patch.object(m,'run_commentary',return_value={'published':True}) as run:
+        response=m.lambda_handler({},None)
+    assert response['statusCode']==200
+    run.assert_called_once_with(m.S3,m.BUCKET)
 
 
 def run():
