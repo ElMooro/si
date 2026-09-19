@@ -6,6 +6,7 @@ import io
 import json
 from pathlib import Path
 import re
+import time
 import inflection_research_model as model
 import inflection_research_catalog as catalog
 import inflection_sources
@@ -107,18 +108,30 @@ def publish(client, bucket, key, output):
 
 
 def run(client, bucket):
+    started = time.monotonic()
+    timings = {}
+    def progress(stage):
+        timings[stage] = round(time.monotonic()-started, 3)
+        # Stage names and timings only: no originals, credentials or account data.
+        print(json.dumps({'operation': 'liquidity_research', 'stage': stage,
+                          'elapsed_s': timings[stage]}), flush=True)
+    progress('started')
     read = raw_reader(client, bucket)
     source = json.loads(read('data/report-measurements.json'))
     originals = inflection_sources.macro_originals(source, read)
+    progress('native_originals_verified')
     collection = json.loads(read('data/vintage/_index.json'))
     archives = inflection_sources.archive_originals(collection, read)
+    progress('archive_originals_replayed')
     auxiliary, auxiliary_errors = auxiliary_inputs(client, bucket, read)
     legacy = preserve_legacy(client, bucket, read, CURRENT)
     legacy_brief = preserve_legacy(client, bucket, read, BRIEF)
+    progress('context_retained')
     stamp = datetime.now(timezone.utc).isoformat()
     inputs = {'macro': source, 'archives': archives, 'archive_collection': collection, 'auxiliary': auxiliary, 'auxiliary_errors': auxiliary_errors}
     output = model.build(inputs, originals, stamp)
     output.update(legacy_context=legacy, archive_collection_generated_at=collection['generated_at'])
+    progress('measurements_compiled')
     raw = model.encoded(inputs); key = PREFIX+'inputs/'+model.digest(inputs)+'.json'
     immutable(client, bucket, key, raw)
     compilers = {}
@@ -131,9 +144,11 @@ def run(client, bucket):
         'output_sha256': model.digest(output)}
     run_key = PREFIX+'runs/'+model.digest(manifest)+'.json'
     immutable(client, bucket, run_key, model.encoded(manifest))
+    progress('replay_artifacts_retained')
     retained = json.loads(read(key)); reproduced = model.build(retained, originals, stamp)
     reproduced.update(legacy_context=legacy, archive_collection_generated_at=collection['generated_at'])
     if model.digest(reproduced) != manifest['output_sha256']: raise ValueError('retained-input replay differs')
+    progress('retained_input_replay_verified')
     output['replay'] = {'manifest_key': run_key, 'output_sha256': manifest['output_sha256'], 'compilers': compilers}
     published = publish(client, bucket, CURRENT, output)
     brief_published = False
@@ -144,6 +159,8 @@ def run(client, bucket):
             'call': None, 'calls_eligible': False, 'sizing_eligible': False, 'paid_ai_calls': 0,
             'source_replay': output['replay'], 'legacy_context': legacy_brief}
         brief_published = publish(client, bucket, BRIEF, brief)
+    progress('publication_finished')
     return {'published': published, 'brief_published': brief_published, 'generated_at': stamp,
+            'stage_elapsed_seconds': timings,
             'quality': output['quality'], 'replay': output['replay'], 'paid_ai_calls': 0,
             'notifications_sent': 0, 'private_account_reads': 0, 'portfolio_writes': 0}
