@@ -48,8 +48,9 @@
  if(!root.document)return;
  root.document.addEventListener('DOMContentLoaded',()=>{
   const host=root.document.getElementById('market-list'),summary=root.document.getElementById('market-summary');if(!host)return;
-  const query=root.document.getElementById('market-search'),kind=root.document.getElementById('market-kind');let data=[],generation=0;
-  function paint(){const q=query.value.toLowerCase();host.innerHTML=data.filter(row=>(kind.value==='all'||row.asset_class===kind.value)&&[row.symbol,row.name,row.instrument_id].join(' ').toLowerCase().includes(q)).map(row=>render(row,Date.now())).join('')||'<p>No matching measurements available.</p>';}
+  const query=root.document.getElementById('market-search'),kind=root.document.getElementById('market-kind');let data=[],generation=0,ageSignature='';
+  function ages(){const now=Date.now();return data.map(row=>status(row,now)).join('|');}
+  function paint(){const q=query.value.toLowerCase();ageSignature=ages();host.innerHTML=data.filter(row=>(kind.value==='all'||row.asset_class===kind.value)&&[row.symbol,row.name,row.instrument_id].join(' ').toLowerCase().includes(q)).map(row=>render(row,Date.now())).join('')||'<p>No matching measurements available.</p>';}
   async function refresh(){const n=++generation;
    try{const response=await root.fetch('/data/report.json',{cache:'no-store'});if(!response.ok)throw Error('Report unavailable');const packet=await response.json();const rows=records(packet);if(n!==generation)return;
     data=rows;const quality=packet.market_measurement_quality;summary.innerHTML=`Report ${esc(packet.generated_at)} · ${esc(quality.equities_compiled)} equities / ${esc(quality.equity_universe.length)} requested · ${esc(quality.crypto_compiled)} crypto observations · ${Object.keys(quality.errors||{}).length} source gaps.<br><span class="note">Public source evidence is available below. Missing inputs and the retained snapshot can be inspected in the <a href="/data/report.json">full packet</a>${safeKey(packet.replay?.manifest_key)?` and <a href="/${packet.replay.manifest_key}?exact=1">replay manifest</a>`:''}.</span>`;paint();
@@ -58,6 +59,8 @@
   host.addEventListener('click',async event=>{const button=event.target.closest('button[data-original]');if(!button)return;const row=data.find(r=>r.instrument_id===button.dataset.original),box=button.nextElementSibling;button.disabled=true;box.hidden=false;box.textContent='Verifying original response…';
    try{box.textContent=JSON.stringify(await original(row),null,2);}catch(error){box.textContent='Original verification failed: '+error.message;}finally{button.disabled=false;}
   });
-  query.addEventListener('input',paint);kind.addEventListener('change',paint);root.document.getElementById('market-refresh').addEventListener('click',refresh);refresh();root.setInterval(paint,60000);
+  query.addEventListener('input',paint);kind.addEventListener('change',paint);root.document.getElementById('market-refresh').addEventListener('click',refresh);refresh();
+  // Recheck expiration without collapsing an open source inspector each minute.
+  root.setInterval(()=>{if(ages()!==ageSignature)paint();},60000);
  });
 })(typeof window==='object'?window:globalThis);
