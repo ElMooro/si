@@ -108,7 +108,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',
       'data/risk-radar.json','data/global-stress.json','data/regime-composite.json','data/liquidity-credit-engine.json','data/risk-gate.json',
-      'data/quantum-desk.json','data/quantum-desk-history.json','data/vintage/_index.json','data/vintage/WTREGEN.json','data/vintage/RRPONTSYD.json','data/some-current.json?exact=1']){
+      'data/quantum-desk.json','data/quantum-desk-history.json','data/liquidity-inflection.json','data/liquidity-inflection-decisive-call.json','data/vintage/_index.json','data/vintage/WTREGEN.json','data/vintage/RRPONTSYD.json','data/some-current.json?exact=1']){
     const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
     assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
     assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);

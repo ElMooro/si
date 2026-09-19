@@ -877,6 +877,8 @@ def collect_macro_signals():
 
     # Liquidity inflection — composite 2nd-derivative regime (macro tide)
     liq = fetch_json("data/liquidity-inflection.json", max_age_h=48)
+    if not isinstance(liq, dict) or liq.get('calls_eligible') is not True:
+        liq = {}  # Unqualified descriptive research cannot generate an allocation idea.
     lcomp = (liq or {}).get("composite") or {}
     if isinstance(lcomp.get("liquidity_score"), (int, float)):
         _lreg = lcomp.get("regime") or "NEUTRAL"
@@ -978,6 +980,8 @@ def get_regime_context():
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
     _liqc = (fetch_json("data/liquidity-inflection.json", max_age_h=48) or {})
+    if _liqc.get('calls_eligible') is not True:
+        _liqc = {}
     _liqcomp = _liqc.get("composite") or {}
 
     # ── Risk Pack overlay — master crisis read + canary turning point ──
@@ -1058,6 +1062,8 @@ def lambda_handler(event, context):
     _rr_regime = _rr.get("risk_regime") or "NEUTRAL"
     # ── Composite liquidity-inflection regime (slower macro tide) ──
     _liq = fetch_json("data/liquidity-inflection.json", max_age_h=48) or {}
+    if _liq.get('calls_eligible') is not True:
+        _liq = {}
     _liq_comp = _liq.get("composite") or {}
     _liq_regime = _liq_comp.get("regime") or "NEUTRAL"
     _liq_score = _liq_comp.get("liquidity_score")

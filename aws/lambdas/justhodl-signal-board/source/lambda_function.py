@@ -712,6 +712,8 @@ def n_crisis_canaries(d):
 
 
 def n_liquidity_inflection(d):
+    if d.get('calls_eligible') is not True:
+        return None, 'Liquidity research: ABSTAIN; no qualified investment vote'
     u = d.get("usd") or {}
     z = u.get("impulse_z")
     if z is None:
@@ -782,6 +784,8 @@ def n_market_internals(d):
 
 
 def n_us_money(d):
+    if d.get('calls_eligible') is not True:
+        return None, 'M2 research: ABSTAIN; no qualified investment vote'
     um = d.get("us_money") or {}
     z = um.get("z")
     if z is None:
@@ -1304,7 +1308,7 @@ def lambda_handler(event, context):
             continue
         try:
             sig, read = fn(data)
-            sig = clamp(sig)
+            sig = clamp(sig) if sig is not None else None
         except Exception as e:
             sig, read = None, f"parse error: {str(e)[:80]}"
         as_of = data.get("generated_at") or (

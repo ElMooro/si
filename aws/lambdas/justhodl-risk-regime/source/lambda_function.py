@@ -212,6 +212,9 @@ def liquidity_block():
     + = liquidity expanding (risk-on tailwind); − = contracting (headwind).
     Reads the blended second-derivative score from the liquidity-inflection engine."""
     j = _read("data/liquidity-inflection.json") or {}
+    if j.get('calls_eligible') is not True:
+        return None, {'status': 'ABSTAIN', 'reason': 'Liquidity measurements are not a qualified risk vote',
+                      'calls_eligible': False}
     comp = j.get("composite") or {}
     ls = comp.get("liquidity_score")
     if not isinstance(ls, (int, float)):

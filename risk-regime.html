@@ -170,7 +170,7 @@ function liqFunding(gl,fp,lp,rl,bs,li){if(!gl&&!fp&&!lp&&!rl&&!bs&&!li)return"";
   if(lp){const c=lp.composites||{};h+=C("Liquidity pulse",f0(c.liquidity_score),esc(c.liquidity_regime||""),row("Credit stress",f0(c.credit_stress_score))+row("Credit regime",esc(c.credit_regime||"")),tone(c.liquidity_regime||lp.summary),lp.summary);}
   if(rl){const md=rl.margin_debt||{};h+=C("Repo · leverage",f0(rl.composite_leverage_stress),esc(rl.regime||""),row("Margin debt",num(md.level_billions)?usd(md.level_billions*1e9):"")+row("Repo score",num((rl.repo||{}).score)?.toFixed(0)??"")+row("Sec lending",num((rl.securities_lending||{}).score)?.toFixed(0)??""),tone(rl.regime));}
   if(bs){h+=C("Bank stress",f0(bs.bank_stress_score),esc(bs.regime||""),(bs.components||[]).slice(0,4).map(c=>row(c.label,esc(String(c.value||"")),sgn(-(c.stress||0)))).join(""),tone(bs.regime),bs.regime_read);}
-  if(li){const u=li.usd||{},ch=li.china||{};h+=C("Liquidity inflection",badge(u.state,tone(u.state)),"USD &amp; China credit impulse (z)",row("USD impulse z",f2(u.impulse_z),sgn(u.impulse_z))+row("Net liq",num(u.net_liq_usd_bn)?usd(u.net_liq_usd_bn*1e9):"")+row("China credit yoy",pc(ch.credit_yoy_pct),sgn(ch.credit_yoy_pct))+row("China impulse z",f2(ch.impulse_z),sgn(ch.impulse_z)),tone(u.state));}
+  if(li){h+=C("Liquidity research","ABSTAIN","Descriptive measurements; no qualified risk vote",row("Status",esc(li.validation_status||"Unqualified legacy packet"))+row("Evidence",'<a href="/inflection.html">Dated source measurements &amp; calendar research</a>'),"flat");}
   h+=`</div>`;return h;}
 
 /* ── Systemic stress & dollar-shortage plumbing ── */

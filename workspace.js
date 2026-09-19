@@ -193,7 +193,7 @@
       ["conviction", "signal-board|pm-decision", "Decision Posture", "kpi", "small", ["composite_posture","composite_signal","n_live","n_stale"]],
       ["conviction", "asset-compass", "Asset Compass", "kpi", "small", ["verdict_trio.highest_expected_10y","verdict_trio.best_risk_reward_10y","verdict_trio.most_attractive_vs_history"]],
       ["conviction", "risk-regime", "Risk Regime", "kpi", "small", ["risk_regime","risk_regime_score","posture.beta_tilt","systemic_stress.level"]],
-      ["conviction", "liquidity-inflection", "Liquidity Pulse", "kpi", "small", ["composite.regime","composite.liquidity_score","trajectory.heading","usd.impulse_z"]],
+      ["conviction", "liquidity-inflection", "Liquidity Research", "kpi", "small", ["decision.verb","quality.status","validation_status"]],
       ["conviction", "master-allocation", "Allocation Signal", "kpi", "small", ["posture","confidence","active_risk_bps","best_asset.winner"]],
       ["synthesis", "pm-decision", "Strategic View", "list", "medium", ["posture","headline","macro_frame.regime","macro_frame.leading_markets_signal"]],
       ["synthesis", "signal-board", "Tactical Overlay", "list", "medium", ["composite_posture","composite_signal","n_live","n_stale"]],

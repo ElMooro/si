@@ -132,11 +132,12 @@ class ReportStoreTests(unittest.TestCase):
     def test_real_research_handler_does_not_enter_legacy_path(self):
         from lce_research_catalog import extend_catalog,SERIES
         from risk_gate_research_catalog import extend_catalog as risk_catalog,SERIES as RISK_SERIES
+        from inflection_research_catalog import extend_catalog as inflection_catalog,SERIES as INFLECTION_SERIES
         path=ROOT/'aws/lambdas/justhodl-daily-report-v3/source/lambda_function.py'
         node=next(n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         calls=[]
         env={'time':store.time,'json':json,'track_errors':lambda fn:fn,'s3':object(),'S3_BUCKET':'b','FRED_KEY':'private',
-             'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,
+             'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,'include_inflection_series':inflection_catalog,
              'FRED_SERIES':{'ICSA':('macro','Initial Claims')},'run_source_research':lambda *a,**kw:calls.append((a[2],kw)) or {'published':True}}
         exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),env)
         out=env['lambda_handler']({'action':'research_measurements'},None)
@@ -144,6 +145,7 @@ class ReportStoreTests(unittest.TestCase):
         self.assertEqual(calls[0][0]['ICSA'],{'category':'macro','display_name':'Initial Claims'})
         self.assertTrue(set(SERIES)<=set(calls[0][0]))
         self.assertTrue(set(RISK_SERIES)<=set(calls[0][0]))
+        self.assertTrue(set(INFLECTION_SERIES)<=set(calls[0][0]))
 
 
 if __name__=='__main__':unittest.main()

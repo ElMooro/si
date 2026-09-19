@@ -1,18 +1,9 @@
-"""
-justhodl-liquidity-inflection v1.0 — Liquidity 2nd-Derivative + Lead/Lag Table
-==============================================================================
-Item 6/7/8 of the edge map. Levels are consensus; INFLECTIONS are the trade.
+"""Original-source liquidity research, calendar trend and reproducible evidence.
 
-  USD net liquidity  = WALCL − TGA − RRP (FRED, daily-aligned, WALCL ffilled)
-  EUR excess liq     = platform ecb-hist series (probe)
-  CN credit impulse  = BIS credit-to-private-nonfin China YoY accel (probe)
-  Stablecoin accel   = platform stablecoin-flow brief 2nd derivative (probe)
-
-  Impulse  = 13-week regression slope of net liquidity, z-scored 3y
-  Flip     = impulse sign change with |Δz| ≥ 0.25 debounce
-  Edge     = event-study of historical flips → forward 5/21/63d distribution
-             for SPX (deep base), BTC, HYG — the published lead/lag table.
-New flips (≤5 sessions old) are logged to the closed loop vs SPY.
+The active handler only runs inflection_research_store. The former collector,
+heuristic scorer and strategy studies below are retained audit material without
+an event route. Current measurements and archival descriptive features confer
+no trade, forecast, closed-loop logging or position-sizing authority.
 """
 import json, os, time, urllib.request, urllib.parse, bisect
 from datetime import datetime, timezone, timedelta
@@ -22,11 +13,11 @@ import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3 = boto3.client("s3", region_name="us-east-1")
-DDB = boto3.resource("dynamodb", region_name="us-east-1")
+DDB = None  # Legacy strategy path has no event route or account access.
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
-FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
-POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FRED_KEY = None  # Canonical warehouse owns acquisition; legacy collector is unreachable.
+POLY_KEY = None
 VERSION = "2.5.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
@@ -973,7 +964,7 @@ def _onshore_funding():
     return None
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
 
@@ -1652,3 +1643,15 @@ def lambda_handler(event=None, context=None):
         print(f"[briefing] {str(e)[:80]}")
     print(f"[liq-inflect] z={out['usd']['impulse_z']} state={out['usd']['state']} flips10y={len(flips10)} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps({"state": out["usd"]["state"], "logged": n_logged})}
+
+
+def lambda_handler(event=None, context=None):
+    """Only public-source descriptive research; never route to the legacy strategy."""
+    from inflection_research_store import run
+    try:
+        result = run(S3, BUCKET)
+        return {'statusCode': 200 if result['published'] and result['brief_published'] else 409,
+                'body': json.dumps(result)}
+    except Exception as exc:
+        # Exception strings can contain authenticated provider URLs.
+        return {'statusCode': 503, 'body': json.dumps({'ok': False, 'error': type(exc).__name__})}
