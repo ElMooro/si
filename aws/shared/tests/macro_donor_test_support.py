@@ -137,19 +137,19 @@ class ContractAblations(unittest.TestCase):
   out=vintage_net_liquidity({'WALCL':{'updated':STAMP,'vintages':[{'date':'2026-09-01','known_on':'2026-09-02','value':1000}]}},NOW)
   self.assertEqual(out['status'],'BLOCKED');self.assertEqual(out['series'],{})
   self.assertIn('WTREGEN',out['missing_series'])
- def test_vintage_release_delay_zero_units_and_revision_not_backdated(self):
-  docs={s:{'updated':STAMP,'vintages':[{'date':'2026-09-01','known_on':'2026-09-01','value':v}]} for s,v in [('WALCL',10000),('WTREGEN',1000),('RRPONTSYD',2)]}
-  docs['WALCL']['vintages'].append({'date':'2026-09-01','available_at':'2026-09-04T15:00:00Z','value':11000})
-  out=vintage_net_liquidity(docs,NOW)
-  self.assertNotIn('2026-09-01',out['series'])
+ def test_vintage_archive_uses_dated_units_without_granting_event_study_permission(self):
+  from vintage_archive_test_support import liquidity_docs
+  out=vintage_net_liquidity(liquidity_docs(),NOW)
   self.assertEqual(out['series']['2026-09-02'],7000)
-  self.assertEqual(out['series']['2026-09-04'],7000)
-  self.assertEqual(out['series']['2026-09-07'],8000)
-  self.assertEqual(out['status'],'BLOCKED') # warmup unavailable, don't overclaim
- def test_conflicting_vintage_identity_blocks(self):
-  docs={s:{'updated':STAMP,'vintages':[{'date':'2026-09-01','known_on':'2026-09-01','value':0}]} for s in ('WALCL','WTREGEN','RRPONTSYD')}
-  docs['WALCL']['vintages'].append({'date':'2026-09-01','known_on':'2026-09-01','value':2})
-  self.assertIn('conflicting',vintage_net_liquidity(docs,NOW)['reason'])
+  self.assertNotIn('2026-09-01',out['series'])
+  self.assertEqual(out['status'],'ARCHIVE_RESEARCH');self.assertFalse(out['point_in_time'])
+  self.assertFalse(out['publication_eligible'])
+ def test_unbound_or_conflicting_vintage_payload_is_not_admitted(self):
+  from vintage_archive_test_support import liquidity_docs
+  docs=liquidity_docs();docs['WALCL']['vintages'][0]['value_decimal']='2'
+  out=vintage_net_liquidity(docs,NOW)
+  self.assertEqual(out['status'],'BLOCKED');self.assertEqual(out['series'],{})
+  self.assertIn('content binding differs',out['contracts']['WALCL']['reason'])
  def test_capacity_missing_gross_fails_closed(self):
   f=firm();del f['equity_book'][0]['gross_pct']
   self.assertFalse(capacity_donors(f,repo(),NOW)['firm_book']['contract']['usable'])

@@ -1,3 +1,8 @@
+"""Active producer retains/replays original ALFRED intervals and dated definitions.
+
+The previous implementation below is retained for review only. Its first-release,
+append-only and look-ahead-free claims do not describe the active producer.
+"""
 """justhodl-vintage-fred — point-in-time (as-reported) macro data via FRED ALFRED
 
 THE PROBLEM IT SOLVES (the look-ahead killer):
@@ -112,7 +117,7 @@ def merge_vintages(existing, fresh):
     return merged[-5000:]
 
 
-def lambda_handler(event=None, context=None):
+def legacy_unvalidated_handler(event=None, context=None):
     t0 = time.time()
     print(f"[vintage-fred] capturing {len(SERIES)} series")
     results = {}
@@ -152,3 +157,8 @@ def lambda_handler(event=None, context=None):
     print(f"[vintage-fred] DONE {round(time.time()-t0,1)}s — {captured}/{len(SERIES)} series captured")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "series_captured": captured,
                                                      "total": len(SERIES)})}
+
+
+def lambda_handler(event=None, context=None):
+    from vintage_source_store import run
+    return run(s3,BUCKET,FRED_KEY)

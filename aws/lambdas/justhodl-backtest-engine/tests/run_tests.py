@@ -93,12 +93,18 @@ def test_publication_gate_blocks_every_attribution_version(mod):
     assert all(s["status"]=="BLOCKED" for s in doc["historical_inputs"]["sources"].values())
 
 
-def test_vintage_join_uses_known_on_and_conservative_date_availability(mod):
-    doc={"vintages":[{"date":"2026-08-01","known_on":"2026-09-04","value":4.2},
-                     {"date":"2026-08-01","known_on":"2026-09-08","value":4.5}]}
-    assert mod.vintage_at_decision(doc,"2026-09-04T23:00:00Z") is None
-    assert mod.vintage_at_decision(doc,"2026-09-05T01:00:00Z")["value"]==4.2
-    assert mod.vintage_at_decision(doc,"2026-09-08T23:00:00Z")["value"]==4.2
+def test_vintage_join_requires_originals_and_conservative_archive_availability(mod):
+    sys.path.insert(0,str(HERE.parents[2]/'shared/tests'))
+    from vintage_archive_test_support import packet
+    d=packet()
+    assert mod.vintage_at_decision({'vintages':[{'date':'2026-09-01','known_on':'2026-09-01','value':4.2}]},'2026-09-04T23:00:00Z') is None
+    assert mod.vintage_at_decision(d,'2026-09-02T11:59:59Z') is None
+    selected=mod.vintage_at_decision(d,'2026-09-02T12:00:00Z')
+    assert selected['value']==10000 and selected['units']=='Millions of U.S. Dollars'
+    assert selected['historical_feature_replay_ready'] is False
+    assert selected['archive_day']=='2026-09-01'
+    d['vintages'][0]['value']=0
+    assert mod.vintage_at_decision(d,'2026-09-05T12:00:00Z') is None
 
 
 def test_page_never_promotes_attribution_metrics(mod):

@@ -12,6 +12,7 @@ import lce_research_catalog
 import ciss_source_model
 import ciss_readthrough
 import macro_donor_inputs
+import fred_vintage_model
 import donor_contract
 from evidence_store import read_verified
 import risk_gate_research_model
@@ -21,7 +22,7 @@ from risk_gate_research_model import build,digest,encoded,clock
 CURRENT='data/risk-gate.json'
 PREFIX='data/risk-gate-research/'
 COMPILERS=(risk_gate_research_model,risk_gate_research_catalog,lce_research_model,lce_research_catalog,report_observations,research_brief_model,
-           ciss_source_model,ciss_readthrough,macro_donor_inputs,donor_contract)
+           ciss_source_model,ciss_readthrough,macro_donor_inputs,donor_contract,fred_vintage_model)
 MAX_BYTES=32*1024*1024
 
 

@@ -266,7 +266,7 @@ def resolve_weight_walkforward(stype, trade_ts_iso, history):
     return weight,"walkforward:%s@%s" % (chosen.get("snapshot_id"),chosen.get("available_at"))
 
 
-def vintage_at_decision(doc, decision_iso):
+def _legacy_unbound_vintage_at_decision(doc, decision_iso):
     """D13: select an unrevised value only after its known availability instant.
 
     ALFRED known_on dates provide no release hour. Conservatively wait until the
@@ -287,6 +287,18 @@ def vintage_at_decision(doc, decision_iso):
             candidates.append((observed,available,{"date":row["date"],"value":value,"known_on":row.get("known_on"),
                            "available_at":available.isoformat(),"availability_rule":"date-only known_on usable next UTC day" if len(str(raw))==10 else "provider availability timestamp"}))
     return max(candidates,key=lambda r:(r[0],r[1]))[2] if candidates else None
+
+def vintage_at_decision(doc, decision_iso):
+    """Availability evidence from a complete original-bound provider archive."""
+    from fred_vintage_model import select_asof
+    try:
+        result=select_asof(doc,decision_iso)
+        if result['status']!='archived_value':return None
+        return {**result['selected'],'archive_day':result['archive_day'],
+                'availability_rule':'Conservative archive-date delay to next day 12:00 UTC; not a measured release instant',
+                'historical_feature_replay_ready':False}
+    except (ValueError,KeyError,TypeError,AttributeError):return None
+
 
 
 def historical_input_readiness(decision_iso):

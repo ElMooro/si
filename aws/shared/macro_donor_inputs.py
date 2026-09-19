@@ -244,6 +244,12 @@ def capacity_donors(firm, repo, now=None):
 
 
 def vintage_net_liquidity(docs, now=None):
+    """Original-bound dated units; no unqualified historical study permission."""
+    from fred_vintage_model import net_liquidity
+    return net_liquidity(docs, now)
+
+
+def _legacy_unvalidated_vintage_net_liquidity(docs, now=None):
     """Release-time series in USD millions; date-only availability is next UTC day.
 
     A vintage can revise an old observation after release. We choose the latest
