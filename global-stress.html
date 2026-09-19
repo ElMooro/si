@@ -66,6 +66,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .note{color:var(--dim);font-size:11px;margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
 </style>
+<script src="/jh-ciss-readthrough.js"></script>
 </head>
 <body>
 <div class="container">
@@ -80,6 +81,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
       <a href="/directory.html">directory</a>
     </nav>
   </header>
+  <section id="ciss-readthrough" data-ciss-readthrough aria-label="Source evidence and research permissions"></section>
   <div id="root"><div class="loading">SCANNING GLOBAL MARKETS&hellip;</div></div>
 </div>
 <script>
@@ -363,11 +365,12 @@ function build(d){
     spark("sp_gold",d.safe_haven.series,"#ffd266");
 }
 
-fetch(S3+"global-stress.json?t="+Date.now())
+fetch("/data/global-stress.json?exact=1&t="+Date.now(),{cache:"no-store"})
   .then(r=>r.ok?r.json():null)
   .then(d=>{
     if(!d){document.getElementById("root").innerHTML=
       '<div class="loading">Global Stress Matrix unavailable right now.</div>';return;}
+    window.JHCissReadthrough?.render(document.getElementById("ciss-readthrough"),d);
     build(d);
   })
   .catch(()=>{document.getElementById("root").innerHTML=
@@ -379,7 +382,7 @@ window.addEventListener("resize",()=>{charts.forEach(c=>{try{c.resize();}catch(e
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['STLFSI4','NFCI','VIXCLS']);});</script>
-  <script src="/jh-page-ai.js" defer></script>
+
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

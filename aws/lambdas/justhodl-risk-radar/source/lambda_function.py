@@ -33,10 +33,12 @@ Real data only. A risk screen flags danger; it does not time entries.
 Research, not investment advice.
 """
 import json
+import math
 import time
 from datetime import datetime, timezone
 
 import boto3
+from ciss_readthrough import context as ciss_readthrough
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
@@ -52,9 +54,10 @@ STACK_CAP = 90
 
 # ------------------------------------------------------------- helpers --
 def num(v):
+    if isinstance(v,bool):return None
     try:
         f = float(v)
-        return f if f == f else None
+        return f if math.isfinite(f) else None
     except (TypeError, ValueError):
         return None
 
@@ -366,8 +369,6 @@ def assess(r, short_pressure, value_traps):
     # weighted deterioration score over the axes that have data
     wsum = sum(BASE_W[k] for k in have)
     score = round(sum(BASE_W[k] * have[k] for k in have) / wsum, 1)
-    if score < CARRY_FLOOR:
-        return None
 
     axes_triggered = sum(1 for v in have.values() if v >= 50)
     dom = max(have, key=have.get)
@@ -445,10 +446,13 @@ def lambda_handler(event, context):
     value_traps = load_value_traps()
 
     carried = []
+    assessed_count = 0
     for r in universe:
         a = assess(r, short_pressure, value_traps)
         if a:
-            carried.append(a)
+            assessed_count += 1
+            if a["deterioration_score"] >= CARRY_FLOOR:
+                carried.append(a)
     carried.sort(key=lambda x: x["deterioration_score"], reverse=True)
     carried = carried[:STACK_CAP]
 
@@ -461,7 +465,7 @@ def lambda_handler(event, context):
     if shorts:
         lead = shorts[0]
         headline = (f"{len(carried)} S&P 500 names are deteriorating - "
-                    f"{len(shorts)} qualify as genuine short candidates, "
+                    f"{len(shorts)} meet this screen’s short-candidate rules, "
                     f"{len(avoid)} more are simply best avoided. Worst "
                     f"breakdown: {lead['name']} ({lead['symbol']}), "
                     f"{lead['failure_mode'].lower()}.")
@@ -470,25 +474,18 @@ def lambda_handler(event, context):
                     f"deterioration, but none is a clean multi-axis short - "
                     f"the screen is an avoid list today, not a short book.")
     else:
-        headline = ("No S&P 500 name clears the deterioration floor - "
-                    "broad fundamental health across the index.")
+        headline = (f"No assessed name clears the deterioration floor; "
+                    f"{assessed_count} of {len(universe)} names have enough populated axes. "
+                    "This does not establish broad fundamental health or a trading signal.")
 
-    # ── macro systemic-stress context (ECB CISS) — risk backdrop for the short book ──
-    macro_stress = None
+    # Dated ECB evidence cannot establish a short-book tailwind or headwind.
     try:
-        _c = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/ciss-stress.json")["Body"].read())
-        _reg = _c.get("ea_regime"); _v = _c.get("ea_composite")
-        _pct = next((s.get("pctile") for s in _c.get("series", [])
-                     if s.get("category") == "ea_headline"), None)
-        macro_stress = {
-            "ciss_regime": _reg, "ciss_composite": _v, "ciss_percentile": _pct,
-            "read": ("Systemic stress %s — %s for short exposure."
-                     % (_reg, "supportive risk-off backdrop"
-                        if _reg in ("STRESS", "CRISIS", "ELEVATED")
-                        else "calm/easy-liquidity tape (shorts face a headwind)")),
-        }
+        ciss_packet=json.loads(s3.get_object(Bucket=S3_BUCKET,Key="data/ciss-stress.json")["Body"].read())
     except Exception:
-        pass
+        ciss_packet=None
+    macro_stress=ciss_readthrough(ciss_packet,now)
+    macro_stress.update(ciss_regime=None,ciss_composite=macro_stress['value'],
+                        ciss_percentile=macro_stress['percentile'])
 
     payload = {
         "schema_version": "1.0",
@@ -497,7 +494,12 @@ def lambda_handler(event, context):
         "build_seconds": round(time.time() - t0, 2),
         "headline": headline,
         "macro_stress": macro_stress,
+        "call": None, "calls_eligible": False, "sizing_eligible": False,
+        "validation_status": "UNVALIDATED_RESEARCH_SCREEN",
         "universe_screened": len(universe),
+        "assessment_coverage": {"universe": len(universe), "assessed": assessed_count,
+            "insufficient_axes": len(universe)-assessed_count, "minimum_axes": 2,
+            "source_qualification": "Input population only; original fundamental-source lineage and predictive validation pending"},
         "n_carried": len(carried),
         "n_short_candidates": len(shorts),
         "n_avoid": len(avoid),
@@ -506,7 +508,7 @@ def lambda_handler(event, context):
         "avoid_list": avoid,
         "stack": carried,
         "methodology": (
-            "Every S&P 500 name is scored on five orthogonal deterioration "
+            "Every S&P 500 name is scored on five separate deterioration "
             "axes: solvency stress (Altman-Z, interest coverage, current "
             "ratio, free cash flow, leverage), earnings-quality erosion "
             "(Piotroski, margins, ROIC, shrinking top and bottom line, "

@@ -38,6 +38,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+from ciss_readthrough import context as ciss_readthrough
 try:
     import _fred_shim  # noqa: F401
 except Exception:
@@ -1232,25 +1233,16 @@ def lambda_handler(event, context):
                (" Stress %s." % momentum["direction"])
                if momentum and momentum["direction"] != "n/a" else ""))
 
-    # ── ECB CISS systemic-stress overlay — non-destructive (original index left
-    #    intact so the calibrator is unaffected; floored variant added alongside) ──
-    ciss_block = None
-    ciss_adj = global_stress
+    # CISS remains dated context. A percentile/regime-to-GSI floor has no
+    # registered validation; no adjusted number is manufactured from it.
     try:
-        _c = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/ciss-stress.json")["Body"].read())
-        _reg = _c.get("ea_regime"); _v = _c.get("ea_composite")
-        _pct = next((s.get("pctile") for s in _c.get("series", [])
-                     if s.get("category") == "ea_headline"), None)
-        _floor = {"CRISIS": 80, "STRESS": 60, "ELEVATED": 35, "NORMAL": 15, "CALM": 0}.get(_reg, 0)
-        if global_stress is not None:
-            ciss_adj = max(global_stress, _floor)
-        ciss_block = {
-            "regime": _reg, "composite": _v, "percentile": _pct, "floor": _floor,
-            "note": "ECB euro-area systemic-stress (CISS). Floor prevents calm tape from "
-                    "masking systemic stress; the base global_stress_index is left intact for calibration.",
-        }
+        ciss_packet=json.loads(s3.get_object(Bucket=S3_BUCKET,Key="data/ciss-stress.json")["Body"].read())
     except Exception:
-        pass
+        ciss_packet=None
+    ciss_block=ciss_readthrough(ciss_packet,now)
+    ciss_block.update(composite=ciss_block['value'],floor=None,
+                      applied=False,note=ciss_block['use'])
+    ciss_adj=None
 
     out = {
         "schema_version": SCHEMA,
@@ -1260,6 +1252,8 @@ def lambda_handler(event, context):
         "global_stress_index": global_stress,
         "global_stress_index_ciss_adj": ciss_adj,
         "ciss_systemic": ciss_block,
+        "call": None, "calls_eligible": False, "sizing_eligible": False,
+        "validation_status": "DESCRIPTIVE_STRESS_MONITOR",
         "global_stress_level": (stress_level(global_stress)
                                 if global_stress is not None else None),
         "weights": {
@@ -1345,7 +1339,7 @@ def lambda_handler(event, context):
     try:
         prev_flash = set(prev.get("flashing_red") or [])
         new_flash = [m for m in flashing if m not in prev_flash]
-        if new_flash or newly_red_dims:
+        if (new_flash or newly_red_dims) and not (isinstance(event,dict) and event.get("suppress_alerts")):
             lines = ["\U0001F6A8 <b>GLOBAL STRESS -- escalation</b>", ""]
             for d in newly_red_dims:
                 lines.append("Just went ACUTE: <b>%s</b> %d/100 -- %s."

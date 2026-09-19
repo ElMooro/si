@@ -140,7 +140,7 @@
       if(source.contract!=='ciss-research.v1'||!Array.isArray(source.series)||!path(source.replay?.manifest_key))throw Error('Source contract or replay receipt unavailable');
       packet=source;narrative=comment;
       $('ciss-status').textContent='Collected '+source.generated_at+' · current retrieved vintage; historical as-known-at releases are not reconstructed.';
-      $('ciss-proofs').innerHTML=link('data/ciss-stress.json','Full warehouse')+link(packet.replay.manifest_key,'Source replay manifest')+link('data/ciss-sources-verification.json','Deployment verification');
+      $('ciss-proofs').innerHTML=link('data/ciss-stress.json','Full warehouse')+link(packet.replay.manifest_key,'Source replay manifest')+link('data/ops/releases/justhodl-ciss-stress.json','Current warehouse runtime');
       $('ciss-errors').textContent=JSON.stringify(source.errors,null,2);render();if($('ciss-detail').open)openSeries(selected);await supplementary();
     }catch(error){packet=null;auxiliaryData=[];$('ciss-status').textContent='Measurements unavailable: '+error.message;$('ciss-table-body').innerHTML='';$('ciss-count').textContent='';$('ciss-aux').innerHTML='';$('ciss-errors').textContent='Unavailable';$('ciss-read').textContent='A current qualified ECB source is unavailable.';$('ciss-proofs').innerHTML='';$('ciss-reconcile').textContent='Unavailable';$('ciss-narrative').textContent='';$('ciss-commentary-proof').textContent='';$('ciss-detail').close();}
   }

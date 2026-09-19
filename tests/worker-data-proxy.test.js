@@ -106,7 +106,8 @@ test('publication proofs and exact reads bypass cached versions; missing public 
   };
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
-      'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json','data/some-current.json?exact=1']){
+      'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',
+      'data/risk-radar.json','data/global-stress.json','data/some-current.json?exact=1']){
     const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
     assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
     assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);
