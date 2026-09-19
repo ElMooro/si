@@ -1593,6 +1593,10 @@ def aggregate_by_ticker(fund_results):
 
 
 def lambda_handler(event, context):
+    # Institutional source acceptance is isolated from legacy prices and alerts.
+    if isinstance(event, dict) and event.get('action') in ('holdings_research_refresh', 'holdings_research_read'):
+        from holdings_store import handle
+        return handle(event, s3, S3_BUCKET)
     started = time.time()
     _ev = event if isinstance(event, dict) else {}
     if _ev.get("trigger"):
