@@ -8,6 +8,8 @@ import re
 import report_observations
 import research_brief_model
 import daily_macro_model
+import daily_market_model
+from daily_market_store import verify_sources
 from daily_macro_model import build, digest, encoded, clock, market_context
 
 CURRENT = 'data/report.json'
@@ -67,6 +69,11 @@ def run(client, bucket, collect):
     packet, _, _ = read(client, bucket, SOURCE)
     validate_source(client, bucket, packet)
     auxiliary = collect()
+    if 'market_sources' in auxiliary:
+        import gzip
+        def original(key):
+            return gzip.decompress(client.get_object(Bucket=bucket, Key=key)['Body'].read(MAX_BYTES))
+        verify_sources(auxiliary['market_sources'], original)
     stamp = datetime.now(timezone.utc).isoformat()
     output = build(packet, auxiliary, stamp)
     inputs = {'macro': packet, 'auxiliary': auxiliary}
@@ -74,7 +81,7 @@ def run(client, bucket, collect):
     input_key = PREFIX + 'inputs/' + digest(inputs) + '.json'
     immutable(client, bucket, input_key, input_body)
     compilers = {}
-    for module in (daily_macro_model, research_brief_model):
+    for module in (daily_macro_model, research_brief_model, daily_market_model):
         body = Path(module.__file__).read_bytes()
         sha = hashlib.sha256(body).hexdigest()
         key = PREFIX + 'compilers/' + sha + '.py'

@@ -1,7 +1,8 @@
-"""Replay the daily report's base fields; macro originals verified separately.
+"""Replay macro and market originals into the daily report's base fields.
 
-The market-collector input snapshot is reproducible, not original-source price
-proof. Augmentation-owned fields are intentionally outside this base receipt.
+Other auxiliary inputs remain explicit unverified snapshots. Augmentation-owned
+fields are intentionally outside this base receipt. Use the reviewed release
+checkout for old manifests; never execute downloaded compiler source.
 """
 import hashlib
 import json
@@ -10,15 +11,18 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'aws/shared'))
+sys.path.insert(0,str(ROOT/'aws/lambdas/justhodl-daily-report-v3/source'))
 import daily_macro_model
+import daily_market_model
 import research_brief_model
+from daily_market_store import verify_sources
 from daily_macro_model import build,digest
 from replay_report_research import read_public,replay as replay_macro
 
 
 def replay(manifest,read=read_public):
     if manifest.get('contract')!='daily-research-replay.v1': raise ValueError('unsupported report replay')
-    for module in (daily_macro_model,research_brief_model):
+    for module in (daily_macro_model,research_brief_model,daily_market_model):
         body=Path(module.__file__).read_bytes()
         ref=manifest['compilers'][module.__name__]
         if hashlib.sha256(body).hexdigest()!=ref['sha256'] or read(ref['key'])!=body:
@@ -27,6 +31,8 @@ def replay(manifest,read=read_public):
     if len(raw)!=manifest['input']['bytes'] or hashlib.sha256(raw).hexdigest()!=manifest['input']['sha256']:
         raise ValueError('retained report input differs')
     inputs=json.loads(raw);source=inputs['macro']
+    if 'market_sources' in inputs['auxiliary']:
+        verify_sources(inputs['auxiliary']['market_sources'], read)
     if source['replay']!=manifest['upstream_replay']: raise ValueError('source replay differs')
     upstream=json.loads(read(source['replay']['manifest_key']))
     if source['replay']['manifest_key']!='data/report-research/runs/'+digest(upstream)+'.json':
@@ -46,4 +52,4 @@ if __name__=='__main__':
     if key!='data/daily-research/runs/'+digest(manifest)+'.json': raise ValueError('run identity differs')
     output=replay(manifest)
     if any(packet.get(key)!=value for key,value in output.items()): raise ValueError('current base differs')
-    print('REPRODUCED base report',digest(output),'macro originals verified; market auxiliaries remain unverified')
+    print('REPRODUCED base report',digest(output),'macro and captured market originals verified; other auxiliary inputs remain unverified')

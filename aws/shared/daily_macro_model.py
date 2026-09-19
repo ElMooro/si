@@ -7,6 +7,7 @@ evidence. No score, investment action, or portfolio weight is inferred here.
 from copy import deepcopy
 
 from research_brief_model import build as brief, clock, encoded, digest
+from daily_market_model import build as market_measurements
 
 CONTRACT = 'daily-research-report.v1'
 REASON = 'Model validation and account-specific portfolio constraints are not established.'
@@ -42,6 +43,10 @@ def build(source, auxiliary, generated_at):
         raise ValueError('future auxiliary collection')
     observations = auxiliary['observations']
     out = {key: deepcopy(observations.get(key, [] if key == 'news' else {})) for key in AUXILIARY}
+    markets = market_measurements(auxiliary['market_sources'], generated_at) if 'market_sources' in auxiliary else None
+    if markets:
+        out.update({key: markets[key] for key in ('stocks', 'crypto', 'crypto_by_id', 'crypto_symbol_collisions')})
+        out['market_measurement_quality'] = markets['quality']
     out.update(version='V10', contract=CONTRACT, generated_at=generated_at,
                source_generated_at=source['generated_at'],
                call=None, calls_eligible=False, sizing_eligible=False, regime=None)
@@ -84,8 +89,9 @@ def build(source, auxiliary, generated_at):
         for field in STOCK_AUTHORITY:
             row[field] = None
         row.update(call=None, sizing_eligible=False, calls_eligible=False,
-                   quality={'status': 'legacy_unverified', 'original_source_verified': False},
                    source_collected_at=auxiliary['collected_at'])
+        if markets is None:
+            row['quality'] = {'status': 'legacy_unverified', 'original_source_verified': False}
     out['signals'] = {'buys': [], 'sells': [], 'warnings': [], 'status': 'withheld', 'reason': REASON}
     # Preserve legacy envelope fields and retain their collected inputs in the
     # run snapshot. A secondary composite cannot bypass the same authority gate.
@@ -126,5 +132,12 @@ def build(source, auxiliary, generated_at):
     out['stats'] = {'fred': len(source.get('measurements', {})), 'stocks': len(out['stocks']),
                     'crypto': len(out['crypto']), 'ecb_ciss': len(out['ecb_ciss'])}
     out['scope'] = 'Canonical FRED observations and abstention are source-replayable; auxiliary market observations are explicitly unverified. No portfolio authority.'
+    if markets:
+        out['auxiliary_quality'].update(status='partially_verified',
+            verified_fields=['stocks', 'crypto_by_id', 'crypto'],
+            fields=[key for key in AUXILIARY if key not in ('stocks', 'crypto')],
+            reason='Equity aggregates and coin-market rows retain original-response evidence. Other auxiliary collectors remain unverified.')
+        out['quality']['auxiliary_status'] = 'partially_verified'
+        out['scope'] = 'Canonical FRED, completed equity aggregates and provider coin-market rows are original-source replayable. Other auxiliary inputs remain unverified. No portfolio authority.'
     out['market_intelligence'] = market_context(out)
     return out

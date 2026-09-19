@@ -12,5 +12,7 @@ if __name__=="__main__":
     suite.addTests(unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern='test_report_source_store.py'))
     suite.addTests(unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern='test_daily_macro_model.py'))
     suite.addTests(unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern='test_daily_macro_store.py'))
+    suite.addTests(unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern='test_daily_market_model.py'))
+    suite.addTests(unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern='test_daily_market_store.py'))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)

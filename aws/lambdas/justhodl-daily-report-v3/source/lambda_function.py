@@ -8,6 +8,7 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 from tenor_research_model import public_summary as tenor_research_summary
 from report_source_store import run as run_source_research
 from daily_macro_store import run as publish_daily_macro
+from daily_market_store import collect as collect_market_sources
 import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -2144,38 +2145,10 @@ def _legacy_lambda_handler_unvalidated(event, context):
 
 
 def collect_auxiliary_observations():
-    """Compatibility market observations; no source-verification claim."""
+    """Retain market originals; other compatibility collectors stay unverified."""
     errors = {}
-    # ── AUXILIARY STOCKS (batched with rate limiting) ──
-    print(f"[V10] Fetching {len(STOCK_TICKERS)} stocks...")
-    sd = {}
-    batch_size = 5  # smaller batches for rate limit safety
-    for i in range(0, len(STOCK_TICKERS), batch_size):
-        batch = STOCK_TICKERS[i:i+batch_size]
-        with ThreadPoolExecutor(max_workers=3) as ex:
-            fm = {ex.submit(fetch_polygon, t): t for t in batch}
-            for f in as_completed(fm):
-                t = fm[f]
-                try:
-                    bars = f.result()
-                    if bars:
-                        m = compute_stock(bars)
-                        if m:
-                            m['name'] = TICKER_NAMES.get(t, t)
-                            m['history'] = [{'d':b['date'],'c':b['c']} for b in bars[:120]]
-                            sd[t] = m
-                except Exception as e:
-                    errors[t] = type(e).__name__
-        time.sleep(1.0)  # 1s between batches for Polygon rate limit
-        if (i // batch_size) % 10 == 0:
-            print(f"  Stocks batch {i//batch_size+1}: {len(sd)}/{i+len(batch)}")
-    print(f"[V10] Stocks: {len(sd)}/{len(STOCK_TICKERS)}")
-
-    # ── PHASE 3: CRYPTO ──
-    print("[V10] Crypto...")
-    crypto = fetch_crypto()
+    markets = collect_market_sources(s3, S3_BUCKET, STOCK_TICKERS, TICKER_NAMES, POLY_KEY)
     crypto_g = fetch_crypto_global()
-    print(f"[V10] Crypto: {len(crypto)} coins")
 
     # ── PHASE 3.5: ECB CISS ──
     print("[V10] ECB CISS...")
@@ -2200,8 +2173,8 @@ def collect_auxiliary_observations():
         news.sort(key=lambda x: ({'critical':0,'high':1,'normal':2}.get(x.get('importance','normal'),2), x.get('pub','')))
     print(f"[V10] News total: {len(news)} headlines")
 
-    return {'collected_at': datetime.now(timezone.utc).isoformat(), 'errors': errors,
-            'observations': {'stocks': sd, 'crypto': crypto, 'crypto_global': crypto_g,
+    return {'collected_at': datetime.now(timezone.utc).isoformat(), 'errors': errors, 'market_sources': markets,
+            'observations': {'stocks': {}, 'crypto': {}, 'crypto_global': crypto_g,
                              'ecb_ciss': ecb_ciss, 'news': news, 'ticker_names': TICKER_NAMES,
                              'liquidity_credit_engine': load_lce(), 'global_business_cycle': load_global_cycle(),
                              'cftc_positioning': get_cftc_crisis_data() or {},

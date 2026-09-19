@@ -35,7 +35,7 @@
     return `<header class="brief-head"><p class="brief-label">RESEARCH BRIEF · ${fresh} / ${packet.metrics_table.length} SERIES FRESH</p>
       <h1>Dated evidence. A clear decision boundary.</h1><p><strong>WAIT — abstain.</strong> These observations do not establish a validated investment call or a portfolio weight.</p>
       <p class="brief-clock">Brief ${esc(packet.generated_at)}<br>Source packet ${esc(packet.source_generated_at)}</p>
-      <p>${link(packet.replay?.manifest_key,'Replay this brief')} · <a href="/read.html">Explore all measurements</a></p></header>
+      <p>${link(packet.replay?.manifest_key,'Replay this brief')} · <a href="/read.html">Explore macro measurements</a> · <a href="/market-measurements.html">Inspect equity and crypto prices</a></p></header>
       <section class="brief-grid" aria-label="Core macro observations">${cards}</section>
       <section class="brief-boundary"><h2>Connect research to your portfolio</h2><p>Allocation remains unavailable until the forecast has prospective validation and current holdings, cash, constraints, costs and a risk budget are available. A WAIT here means abstention; it does not prescribe holding, buying or selling an asset.</p>
       <p><a href="/signal-scorecard.html">Inspect validation coverage</a> · <a href="/portfolio/">Review your private portfolio</a></p>
