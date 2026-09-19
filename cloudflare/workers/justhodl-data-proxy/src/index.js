@@ -113,7 +113,7 @@ function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json',
     'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json', 'risk-radar.json', 'global-stress.json', 'regime-composite.json', 'liquidity-credit-engine.json', 'risk-gate.json',
-    'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json', 'eurodollar-plumbing.json', 'yen-carry.json', 'carry-surface.json', 'capital-inflows.json', 'foreign-flows.json', 'tic-flows.json', 'official-pulse.json',
+    'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json', 'eurodollar-plumbing.json', 'yen-carry.json', 'carry-surface.json', 'capital-inflows.json', 'foreign-flows.json', 'tic-flows.json', 'official-pulse.json', 'etf-true-flows.json',
     'liquidity-inflection-decisive-call.json', 'global-liquidity.json', 'global-liquidity-history.json', 'cb-injection.json', 'liquidity-reversal.json', 'credit-composite.json', 'settlement-fails.json', 'nyfed-primary-dealer.json', 'primary-dealers.json', 'alpha-compass.json', 'alpha-brief.json', 'alpha-brief.md', 'hot-money.json', 'hot-money-research/ledger.json', 'providers/twse/bfi82u-foreign.json', 'providers/tpex/insti-foreign.json'].includes(key) ||
     /^vintage\/(?:_index|[A-Z0-9_]+)\.json$/.test(key) ||
     /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||

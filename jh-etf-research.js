@@ -1,0 +1,46 @@
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./jh-tic-research.js'):root.TicResearch);if(typeof module==='object'&&module.exports)module.exports=api;else root.EtfResearch=api;})(typeof window!=='undefined'?window:this,function(base){
+ 'use strict';const {esc,num,fmt,signed}=base,CONTRACT='etf-original-research.v1',PREFIX='data/etf-research/';
+ function table(headers,rows){return `<div class="table-scroll"><table><thead><tr>${headers.map(v=>`<th>${esc(v)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+ function boundary(p){if(p?.contract!==CONTRACT||p.call!==null||p.calls_eligible!==false||p.sizing_eligible!==false||p.execution_eligible!==false||!p.by_etf||p.additional_independent_calls_votes!==0)throw Error('ETF research permission contract differs');return p;}
+ function status(p,at=Date.now(),pinned=false){
+  if(pinned)return 'historical snapshot';const compiled=Date.parse(p.generated_at),sources=Object.values(p.by_etf||{}).filter(v=>v.history).map(v=>Date.parse(v.source?.acquired_at));
+  if(!Number.isFinite(compiled)||at<compiled-300000||at-compiled>48*3600000||!sources.length||sources.some(v=>!Number.isFinite(v)||at<v-300000||at-v>48*3600000))return 'source check expired';
+  return p.quality?.all_funds_covered?'dated issuer evidence':'partial coverage';
+ }
+ function summary(p,at,pinned){boundary(p);const state=status(p,at,pinned);return {state,cards:[['Configured funds',p.n_etfs,'Includes funds without a reviewed history'],['Native histories',p.quality.native_histories,'Whole source vintages retained'],['Comparable 5-observation estimates',p.quality.aligned_five_observation_estimates,'Common end '+p.aggregation_period.end_date],['Native observations',p.quality.native_observations,'All records remain inspectable']].map(([name,value,note])=>`<article class="metric"><div>${esc(name)}</div><strong>${fmt(value,0)}</strong><span>${esc(note)}</span></article>`).join('')};}
+ function period(w){return w?.start_date&&w.end_date?esc(w.start_date)+' → '+esc(w.end_date):'unavailable';}
+ function detail(p,ticker){const v=p.by_etf[ticker];if(!v)throw Error('Fund outside retained universe');
+  const title=`<h2>${esc(ticker)} · ${esc(v.identity?.fund_name||(v.history?v.identity?.issuer+' issuer history':'Fund source coverage'))}</h2><p>${esc(v.identity?.issuer||'Issuer history not yet reviewed')} · ${esc(v.source_status)}. Research only.</p>`;
+  const vendor=Object.entries(v.vendor_context||{}).filter(([k])=>['info','shares','quote'].includes(k)).map(([name,record])=>[esc(name),Object.entries(record.reported_fields||{}).map(([k,x])=>esc(k)+': '+esc(x??'unavailable')).join('<br>'),esc(record.source?.acquired_at||record.status)]);
+  const context='<details><summary>Vendor context and date limitations</summary><p>These fields are preserved for comparison. A vendor update timestamp is not a verified fund valuation date; they do not fill a missing issuance estimate.</p>'+table(['Record','Reported fields','Acquired / status'],vendor)+'</details>';
+  if(!v.history)return title+'<p class="warning">No reviewed native share-count history for this fund. Missing estimates remain unavailable.</p>'+context;
+  return title+table(['Measurement','Value / date'],[['Issuer NAV · USD',fmt(v.nav,6)+' · '+esc(v.observation_date)],['Reported shares',fmt(v.shares_outstanding,0)+' · '+esc(v.observation_date)],['Net assets · USD bn',fmt(v.aum_est_b,3)+' · '+esc(v.net_assets_basis)],['Source acquired',esc(v.source.acquired_at)],['History',fmt(v.history_observations,0)+' observations · '+esc(v.history_first_date)+' → '+esc(v.observation_date)],['Source condition at compilation',esc(v.quality.status)]])+
+   '<h3>Aligned comparisons</h3>'+table(['Issuer observations','NAV-valued share change · USD m','Exact period','Condition'],['1d','5d','20d'].map(k=>{const w=v.flow_windows[k];return [k.replace('d',''),signed(num(v['net_flow_'+k+'_usd'])===null?null:v['net_flow_'+k+'_usd']/1e6),period(w),esc(w.status)];}))+
+   '<p class="dim">Latest native five-observation window: '+period(v.latest_native_windows['5d'])+' · '+signed(num(v.latest_native_windows['5d']?.value_decimal)===null?null:Number(v.latest_native_windows['5d'].value_decimal)/1e6)+' USD m. It may end later than the common comparison period.</p>'+
+   '<p class="warning">These are estimates from fund shares and NAV. They do not identify retail or institutional investors, country capital inflows, underlying-stock purchases, or expected returns.</p>'+context;
+ }
+ function history(doc,page=0){if(doc?.contract!=='etf-native-history.v1'||!Array.isArray(doc.rows))throw Error('ETF source history contract differs');const rows=[...doc.rows].reverse(),slice=rows.slice(page*24,page*24+24);return {count:rows.length,pages:Math.ceil(rows.length/24),html:table(['Issuer date','NAV · USD','Reported shares','Share change valued at NAV · USD m','Precision sensitivity · USD','Condition','Source row'],slice.map(r=>[esc(r.date),fmt(r.nav_decimal,6),fmt(r.shares_decimal,2),signed(num(r.nav_valued_share_change_decimal)===null?null:Number(r.nav_valued_share_change_decimal)/1e6),fmt(r.flow_precision_sensitivity_decimal,2),esc(r.flow_status),esc(r.source_row)]))};}
+ function chart(doc,field='flow',range=260,width=1040){
+  let rows=doc.rows;if(range)rows=rows.slice(-range);const name=field==='nav'?'nav_decimal':field==='shares'?'shares_decimal':'nav_valued_share_change_decimal',scale=field==='nav'?1:1e6;
+  const value=r=>num(r[name])===null||(field==='flow'?r.flow_status!=='descriptive_estimate':Number(r[name])<=0)?null:Number(r[name])/scale,valid=rows.filter(r=>value(r)!==null);
+  if(!valid.length)return '<p>No reviewed observations for this chart selection.</p>';
+  const lo=Math.min(0,...valid.map(value)),hi=Math.max(0,...valid.map(value)),span=hi-lo||1,W=Math.max(320,Math.min(1040,Number(width)||1040)),H=240,L=78,R=14,T=20,B=35;
+  const first=Date.parse(rows[0].date),last=Date.parse(rows.at(-1).date),x=d=>L+(Date.parse(d)-first)/(last-first||1)*(W-L-R),y=v=>T+(hi-v)/span*(H-T-B);let paths=[],path='';
+  for(const r of rows){const v=value(r);if(v===null){if(path)paths.push(path);path='';}else path+=(path?' L':'M')+x(r.date).toFixed(2)+' '+y(v).toFixed(2);}if(path)paths.push(path);
+  return `<svg role="img" aria-label="${esc(field==='nav'?'Issuer NAV in USD':field==='shares'?'Reported shares in millions':'NAV-valued share changes in USD millions')}" viewBox="0 0 ${W} ${H}"><line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--bd)"/>${[lo,hi].map(v=>`<text x="${L-8}" y="${y(v)+4}" text-anchor="end">${esc(fmt(v,1))}</text>`).join('')}${paths.map(d=>`<path d="${d}" stroke="var(--cyan)" stroke-width="2" fill="none"/>`).join('')}<text x="${L}" y="${H-5}">${esc(rows[0].date)}</text><text x="${W-R}" y="${H-5}" text-anchor="end">${esc(rows.at(-1).date)}</text></svg><p class="dim">${esc(field==='nav'?'USD per share':field==='shares'?'Millions of reported shares':'USD millions, descriptive NAV-valued share changes')} · calendar axis. Excluded observations break the line. Current issuer historical vintage; not a point-in-time backtest.</p>`;
+ }
+ function scenario(x){
+  for(const k of ['exposure','navPct','entryBp','exitBp','income','costs','days'])if(typeof x[k]!=='number'||!Number.isFinite(x[k]))throw Error('Enter every assumption, including explicit zero income and costs.');
+  if(x.exposure<=0||x.exposure>1e12||x.navPct<=-100||x.navPct>1000||Math.abs(x.entryBp)>5000||Math.abs(x.exitBp)>5000||x.income<0||x.income>1e12||x.costs<0||x.costs>1e12||!Number.isInteger(x.days)||x.days<1||x.days>3650)throw Error('Scenario input outside displayed bounds.');
+  const marketReturn=(1+x.navPct/100)*(1+x.exitBp/10000)/(1+x.entryBp/10000)-1,price=x.exposure*marketReturn;
+  return {inputs:{...x},currency:'USD',market_price_return:marketReturn,price_pnl:price,cash_income:x.income,costs:x.costs,net_pnl:price+x.income-x.costs,
+   formula:'market_value * ((1 + NAV_price_change_pct/100) * (1 + exit_premium_bp/10000) / (1 + entry_premium_bp/10000) - 1) + cash_income - costs',
+   forecast:false,automatic_position_size:null,issuance_to_return_coefficient:null,limitation:'Entered long-position scenario. NAV price change excludes separately entered cash distributions. No forecast, tax, FX, execution model or automatic leveraged-fund compounding.'};
+ }
+ async function verified(fetcher,ref){
+  if(!ref||!new RegExp('^'+PREFIX+'(?:runs|outputs|histories)/[a-f0-9]{64}\\.json$').test(ref.key)||!Number.isInteger(ref.bytes)||ref.bytes<=0||ref.bytes>16*1024*1024||!/^[a-f0-9]{64}$/.test(ref.sha256))throw Error('ETF artifact identity differs');
+  const response=await fetcher('/'+ref.key,{cache:'no-store'});if(!response.ok)throw Error('Retained ETF research unavailable');const raw=await response.arrayBuffer(),sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)),v=>v.toString(16).padStart(2,'0')).join('');
+  if(raw.byteLength!==ref.bytes||sha!==ref.sha256)throw Error('Retained ETF research hash differs');return JSON.parse(new TextDecoder().decode(raw));
+ }
+ return {CONTRACT,PREFIX,esc,num,fmt,signed,table,boundary,status,summary,detail,history,chart,scenario,verified};
+});

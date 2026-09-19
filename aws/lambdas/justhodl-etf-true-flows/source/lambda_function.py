@@ -340,7 +340,7 @@ def calculate_nav_flows(today,days,prev_shares,prev_nav,prev_tna,div_map,compari
     return results,anomalies
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     t0 = time.time()
     gaps, probes, anomalies = [], [], []
     tickers = sorted({s for syms in ETFS.values() for s in syms})
@@ -637,3 +637,20 @@ def lambda_handler(event=None, context=None):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "n_etfs": len(results), "maturity": out["maturity"],
         "degraded": degraded, "anomalies": len(anomalies), "history_days": len(days)})}
+
+
+def lambda_handler(event=None, context=None):
+    """Original issuer research; HTTP reads do not collect or generate signals."""
+    from etf_research import CONTRACT, CURRENT, encoded
+    from etf_store import raw_reader, run
+    try:
+        event=event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            packet=json.loads(raw_reader(s3,BUCKET)(CURRENT))
+            if packet.get('contract')!=CONTRACT:raise ValueError('reviewed ETF publication unavailable')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':encoded(packet).decode()}
+        result=run(s3,BUCKET,FMP_KEY,context)
+        return {'statusCode':200,'body':encoded(result).decode()}
+    except Exception as exc:
+        print('[etf-research] '+type(exc).__name__)
+        return {'statusCode':503,'body':json.dumps({'ok':False,'reason':'Original issuer research unavailable; last verified publication retained.'})}
