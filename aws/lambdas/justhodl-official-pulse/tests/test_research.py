@@ -67,6 +67,16 @@ def fixture(count=560,start=None,mutate=None):
     return store,{'contract':'official-original-inputs.v1','originals':refs,'canonical':source,'tic':None,'legacy':{'fixture':True},'acquisition_errors':{}}
 
 class Tests(unittest.TestCase):
+    def test_native_acquisition_does_not_restrict_provider_media_types(self):
+        store=Storage();seen=[]
+        def open_request(request,timeout):
+            seen.append(request);return io.BytesIO(b'exact provider bytes')
+        opener=types.SimpleNamespace(open=open_request)
+        with patch.object(s.urllib.request,'build_opener',return_value=opener),patch.object(s,'now',return_value=AT):
+            for url in (n.XML_URL,n.HTML_URL):
+                ref=s.acquire(store,'b',url);self.assertEqual(s.raw_reader(store,'b')(ref['evidence']['key']),b'exact provider bytes')
+        self.assertTrue(all(r.get_header('Accept') is None for r in seen))
+
     def test_original_full_history_and_scopes_reproduce(self):
         store,inputs=fixture();out,hist=m.build(inputs,s.raw_reader(store,'b'),AT)
         self.assertEqual(out['quality']['status'],'fresh');self.assertEqual(len(hist),12)

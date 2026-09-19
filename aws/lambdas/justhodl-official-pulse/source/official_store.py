@@ -62,7 +62,9 @@ def acquire(client,bucket,url,key=None,deadline=None):
     global _last
     if deadline is not None and time.monotonic()>=deadline:raise TimeoutError('official-balance acquisition budget')
     actual=url+('&'+urlencode({'api_key':key}) if key else '')
-    request=urllib.request.Request(actual,headers={'User-Agent':'JustHodl original official-balance research','Accept':'application/json,application/zip'})
+    # H.4.1 publishes HTML and an archive with its own media type. A JSON/ZIP
+    # allowlist caused the Fed to reject both with 406; preserve native delivery.
+    request=urllib.request.Request(actual,headers={'User-Agent':'JustHodl original official-balance research'})
     limit=native.MAX_ARCHIVE if url==native.XML_URL else 4*1024*1024
     for attempt in range(3):
         if deadline is not None and time.monotonic()>=deadline:raise TimeoutError('official-balance acquisition budget')
