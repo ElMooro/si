@@ -46,12 +46,25 @@ def replay(manifest,read=read_public):
     return output
 
 
+def load_collection(collection=None,read=read_public):
+    if collection is not None and not re.fullmatch(r'[a-f0-9]{64}',collection):
+        raise ValueError('collection must be a lowercase SHA-256')
+    key=model.PREFIX+'collections/'+collection+'.json' if collection else 'data/vintage/_index.json'
+    raw=read(key)
+    if collection and hashlib.sha256(raw).hexdigest()!=collection:raise ValueError('immutable collection differs')
+    index=json.loads(raw)
+    if index.get('contract')!='fred-vintage-index.v1':raise ValueError('original archive index required')
+    return index
+
+
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('series',choices=model.SERIES);args=parser.parse_args()
-    index=json.loads(read_public('data/vintage/_index.json'));entry=index['detail'][args.series]
+    parser=argparse.ArgumentParser();parser.add_argument('series',choices=model.SERIES)
+    parser.add_argument('--collection',help='Immutable collection SHA-256; omit for the current index')
+    args=parser.parse_args();index=load_collection(args.collection);entry=index['detail'][args.series]
     if entry['status']!='source_replayed':raise ValueError('series is unavailable in this collection')
     raw=read_public(entry['key']);packet=json.loads(raw)
     if model.digest(packet)!=entry['sha256']:raise ValueError('immutable series output differs')
+    if packet['series']!=args.series or packet['collection_id']!=index['collection_id']:raise ValueError('series or collection differs')
     key=packet['replay']['manifest_key'];manifest=json.loads(read_public(key))
     if key!=model.PREFIX+'runs/'+model.digest(manifest)+'.json':raise ValueError('run identity differs')
     output=replay(manifest)
