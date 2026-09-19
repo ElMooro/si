@@ -1,20 +1,13 @@
 
-**Status:** failure  
-**Duration:** 4.7s  
-**Finished:** 2026-09-19T04:11:03+00:00  
+**Status:** success  
+**Duration:** 5.7s  
+**Finished:** 2026-09-19T04:15:22+00:00  
 
-## Error
+## Data
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5829_quantum_permission_verify.py", line 31, in main
-    result=json.loads(response['Payload'].read());assert not response.get('FunctionError') and result.get('statusCode')==200,result
-                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'ok': True, 'regime': 'RECESSION_BUST', 'sources_ok': 29, 'ladder': 13, 'money_map': 4, 'best_class': 'BONDS_LONG'}
-
-```
+| abstaining_classes | contract | generated_at | money_map_rows | notifications_sent | paid_ai_calls | portfolio_writes | private_account_reads | runtime | sizing_eligible | source_generated_at |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 13 | quantum-permission-verification.v1 | 2026-09-19T04:15:22.402101+00:00 | 4 | 0 | 0 | 0 | 0 | {'commit': '12c1a9629d6017b8195a9f7f88356424d2c861c9', 'code_sha256': '3v+xUtF2p+rWAX6Mi0AfAGBpU+VYTSRalrgxcUiEPNg='} | False | 2026-09-19T04:15:21.899391+00:00 |
 
 ## Log
 
