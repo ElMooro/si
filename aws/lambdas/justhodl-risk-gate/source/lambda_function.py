@@ -43,7 +43,8 @@ GRADING AMENDMENT (the reason this engine exists): macro/risk signals are
 graded by EVENT STUDY — did the gate flip to RISK_OFF before real drawdowns
 (including replaying Sep-Nov 2025, his RRP call) — NEVER by daily IC, which
 structurally cannot see rare-event regime value. The replay is possible
-because posture is a PURE FUNCTION of trailing series values (no lookahead).
+as a pure function of retrieved trailing values. This is a current-vintage
+reconstruction, not a historical point-in-time or out-of-sample validation.
 
 Output: data/risk-gate.json
 """
@@ -57,11 +58,12 @@ from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 from donor_contracts import term_premium_indicator, treasury_fails_input, jplg_input
+from ciss_readthrough import context as ciss_context
 
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.5 BRAIN-CONSTITUTIONAL FLEET-FUSED (audit 2026-09-09: scoped live donors, JPLG units, complete evidence)"
+MARKER = "risk-gate v2.5.1 original-bound CISS context; remaining model qualification pending"
 
 s3 = boto3.client("s3")
 
@@ -656,13 +658,17 @@ def event_study(F, calendar, postures):
     avg_fwd21_while_bad = round(sum(bad_fwd21) / len(bad_fwd21), 2) if bad_fwd21 else None
 
     return {
-        "methodology": "event-study + regime P&L per brain doctrine — NEVER daily IC "
-                       "(rare-event regime signals are invisible to daily grading)",
+        "methodology": "Descriptive current-vintage reconstruction of FRED-only heuristic states; not realized strategy P&L.",
+        "validation": {"status": "unvalidated", "point_in_time": False, "out_of_sample": False,
+            "return_window_basis": "21 or 63 rows of the union source-observation calendar, not verified trading days",
+            "limitations": ["Retrieved vintages can include later revisions", "Monthly values are carried forward from observation labels, not verified release availability",
+                "Historical and live source sets differ", "Windows overlap; no transaction costs or executable position history",
+                "Baseline includes pre-replay dates", "No calibrated link from these statistics to position size"]},
         "n_flips_to_risk_off_or_worse": len(flips),
         "flips": flip_rows[-12:],
         "spx_baseline_fwd_21d_pct": baseline_21d,
         "avg_spx_fwd_21d_while_risk_off_pct": avg_fwd21_while_bad,
-        "gate_adds_value_if": "avg fwd return while RISK_OFF < baseline (drawdown avoided)",
+        "gate_adds_value_if": None,
         "october_2025_replay": {
             "window": "2025-09-15 .. 2025-11-15",
             "posture_day_counts": oct_postures,
@@ -815,12 +821,18 @@ def fleet_adjust(legs):
     adj = (-0.3 if (v is not None and v < 0) else (0.2 if (v is not None and v > 8) else 0.0))
     out["dollar"].append(_fi("bis_crossborder_yoy_median", "bis-crossborder", v, adj,
         "eurodollar loan growth = global liquidity creation [nmq5vzr2aozu3]", a))
-    ci, a = _feed("data/ciss-stress.json")
-    v = (ci or {}).get("ea_regime")
-    adj = (-0.3 if (isinstance(v, str) and any(t in v.upper() for t in ("HIGH", "STRESS", "SEVERE", "ELEV"))) else 0.0)
-    out["dollar"].append(_fi("ecb_ciss_regime", "ciss-stress", v, adj,
-        "euro-area systemic stress regime; sovereign board (data/sovereign-stress.json, "
-        "no composite field) stays deferred", a))
+    ci, _ = _feed("data/ciss-stress.json")
+    # Original-source context, not an undocumented regime-to-score conversion.
+    # Keep the deprecated input key so existing evidence consumers do not break.
+    ciss = ciss_context(ci)
+    out["dollar"].append({"input": "ecb_ciss_regime", "feed": "data/ciss-stress.json",
+        "value": None, "score_adj": 0.0, "status": "UNQUALIFIED", "age_h": None,
+        "note": "Deprecated regime mapping; no calibrated CISS regime or sizing effect."})
+    out["dollar"].append({"input": "ecb_ciss_observation", "feed": "data/ciss-stress.json",
+        "value": ciss["value"], "score_adj": 0.0, "status": ciss["status"].upper(),
+        "age_h": None, "note": ciss["use"], "source_context": ciss,
+        "freshness_basis": "observation, acquisition and warehouse clocks",
+        "calls_eligible": False, "sizing_eligible": False, "independent_votes": 0})
 
     # LEG 4 CARRY/EURODOLLAR — yen-carry scored, plumbing board, China credit
     yc, a = _feed("data/yen-carry.json")
@@ -1039,8 +1051,12 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-risk-gate",
-        "version": "2.5",
+        "version": "2.5.1",
         "schema_version": "risk-gate.v2.5",
+        "ciss_systemic": next(x["source_context"] for x in fleet_in["dollar"] if x["input"] == "ecb_ciss_observation"),
+        "source_qualification": {"scope": "ECB CISS only in this migration",
+            "other_inputs": "Original-source and model qualification still pending",
+            "legacy_sizing": "Existing heuristic multiplier; not a validated allocation recommendation"},
         "marker": MARKER,
         "replay_purity": "FRED-only: compute_posture reads no live artifact; the collateral and foreign-official overlays are applied to the LIVE composite only (audit 2026-09-08 FR-06)",
         "overlays": overlays,

@@ -176,7 +176,7 @@ def test_jplg_provenance_blocks_loan_levels_and_stale_yoy(mod):
     assert jplg_input({"symbols": [row]}, now)["status"] == "STALE"
 
 
-def _handler_fixture(mod, event=None):
+def _handler_fixture(mod, event=None, extra_docs=None):
     import contextlib, io, copy, json
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc)
@@ -190,6 +190,7 @@ def _handler_fixture(mod, event=None):
                           "as_of": date, "ftd_bn": 10, "ftr_bn": 20, "gross_bn": 30,
                           "stats": {"gross": {"z": 2.5, "as_of": date}}}}
     docs = {"data/term-premium.json": donor, "data/settlement-fails.json": fails}
+    docs.update(extra_docs or {})
     months = _months(2025, 1, [4.0] * 17 + [5.0] * 3)
     trucks = _months(2025, 1, [100.0] * 12 + [90.0] * 8)
     other = _months(2025, 1, [100.0] * 20)
@@ -230,6 +231,38 @@ def test_validation_only_computes_real_artifact_without_writes(mod):
         assert response["schema_version"] == "risk-gate.v2.5"
         assert response["artifact_size_bytes"] > 1000 and not writes
         assert "data/term-premium.json" in reads
+
+
+def test_actual_handler_ciss_original_binding_and_no_obsolete_regime_vote(mod):
+    from unittest.mock import patch
+    from copy import deepcopy
+    sys.path.insert(0,str(HERE.parents[2]/'shared/tests'))
+    from ciss_readthrough_test_support import packet, CLOCK, Frozen
+    from ciss_readthrough import context
+    from ciss_source_model import digest
+    for variant in ('fresh','legacy','tampered','expired'):
+        p=packet()
+        if variant=='legacy':p={'ea_regime':'CRISIS','ea_composite':.9}
+        elif variant=='tampered':p['ea_regime']='CRISIS'
+        elif variant=='expired':
+            p['generated_at']='2020-01-01T00:00:00Z'
+            p['replay']['output_sha256']=digest({k:v for k,v in p.items() if k!='replay'})
+        m=_load()
+        with patch.object(m,'datetime',Frozen),patch.object(m,'ciss_context',side_effect=lambda doc:context(doc,CLOCK)):
+            response,writes,reads=_handler_fixture(m,extra_docs={'data/ciss-stress.json':p})
+        out=writes['data/risk-gate.json'];q=out['ciss_systemic']
+        assert reads.count('data/ciss-stress.json')==1
+        inputs=out['fleet_context']['inputs']
+        old=inputs['dollar.ecb_ciss_regime'];new=inputs['dollar.ecb_ciss_observation']
+        assert old['value'] is None and old['score_adj']==0
+        assert new['score_adj']==0 and new['independent_votes']==0
+        assert new['source_context']==q==context(p,CLOCK)
+        assert q['calls_eligible'] is False and q['sizing_eligible'] is False
+        assert (q['value'] is not None)==(variant=='fresh')
+        assert out['composite_identity']['check_ok']
+        assert out['event_study']['gate_adds_value_if'] is None
+        assert out['event_study']['validation']['point_in_time'] is False
+        assert out['event_study']['validation']['out_of_sample'] is False
 
 if __name__ == "__main__":
     mod = _load()

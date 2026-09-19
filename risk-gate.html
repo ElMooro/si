@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Master Risk Gate · JustHodl AI · v4</title>
-<meta name="description" content="Institutional macro risk-gate with 1996+ crisis history, DEFCON composite, and brain-inheriting barometers.">
+<meta name="description" content="Macro research monitor with disclosed heuristic scores, source evidence and historical reconstruction limits.">
 <style>
 :root{
   --bg:#0d1117;--card:#161b22;--card2:#0f1319;--card3:#0b0e13;
@@ -154,9 +154,11 @@ tr:last-child td{border-bottom:none}
 </head>
 <body>
 <h1>Master Risk Gate</h1>
-<div class="sub">Institutional-grade macro risk barometer · brain-inheriting · v4 · <a href="/">← Home</a></div>
+<div class="sub">Macro research monitor · source and model qualification in progress · <a href="/">← Home</a></div>
 
 <div id="ageBanner" class="age-banner">Loading engine feed…</div>
+<section id="ciss-readthrough" data-ciss-readthrough></section>
+<script src="/jh-ciss-readthrough.js?v=54db8e75"></script>
 
 <!-- ================================================================ -->
 <h2>Composite Read <span class="anchor">DEFCON · brain-inheriting posture · fleet-fused</span></h2>
@@ -364,7 +366,7 @@ function renderPosture(rg){
   const el = document.getElementById('postureBlock');
   if(!rg || !rg.posture){ el.innerHTML='<div class="dim">no posture</div>'; return; }
   const p = rg.posture;
-  const cls = 'p-' + (p==='RISK-ON'?'RISK_ON': p==='RISK-OFF'?'RISK_OFF': p==='SEVERE'?'SEVERE':'NEUTRAL');
+  const cls = 'p-' + (['RISK-ON','RISK_ON'].includes(p)?'RISK_ON': ['RISK-OFF','RISK_OFF'].includes(p)?'RISK_OFF': p==='SEVERE'?'SEVERE':'NEUTRAL');
   const sm = rg.sizing_multiplier;
   const co = rg.composite;
   el.innerHTML = `
@@ -373,7 +375,7 @@ function renderPosture(rg){
       <span class="big" style="color:${co<0?'var(--red)':co>0?'var(--green)':'var(--amber)'}">${fmt(co,2)}</span>
       <span class="dim mono">/ ±2</span>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:var(--dim)">Sizing multiplier: <b style="color:var(--tx)">${fmt(sm,2)}×</b> · composite = ${fmt(co,2)} · FRED-only replay: ${fmt(rg.replay_composite_fred_only,2)} (${esc(rg.replay_posture_fred_only||'?')})</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--dim)">Legacy heuristic multiplier: <b style="color:var(--tx)">${fmt(sm,2)}×</b> (unvalidated; no allocation recommendation) · composite = ${fmt(co,2)} · FRED-only replay: ${fmt(rg.replay_composite_fred_only,2)} (${esc(rg.replay_posture_fred_only||'?')})</div>
   `;
 }
 
@@ -664,21 +666,26 @@ function renderES(rg){
   const flips = es.flips || [];
   const avg1m = es.avg_spx_fwd_21d_while_risk_off_pct;
   const baseline = es.spx_baseline_fwd_21d_pct;
-  note.innerHTML = `${flips.length} posture flips backtested · avg SPX fwd 21d when RISK_OFF: <b style="color:${avg1m<baseline?'var(--red)':'var(--green)'}">${fmt(avg1m,2)}%</b> · SPX baseline: <b>${fmt(baseline,2)}%</b> · <span class="dim">gate adds value if gap &gt; 0</span>`;
+  note.innerHTML = `${flips.length} displayed heuristic transitions · current-vintage SPX return over 21 union-calendar rows in RISK_OFF: <b>${fmt(avg1m,2)}%</b> · legacy baseline: <b>${fmt(baseline,2)}%</b>. This reconstruction is not point-in-time, out-of-sample or realized strategy performance. Source revisions, release lags, overlapping windows and trading costs are not controlled; the legacy baseline also includes pre-replay dates.`;
   if(!flips.length){ el.innerHTML='<div class="dim">no flips yet</div>'; return; }
   const W=1400, H=140, PT=20, PB=24;
   const bw = (W-40)/flips.length - 6;
-  const values = flips.map(f=>f.spx_fwd_21d_pct || 0);
+  const values = flips.map(f=>f.spx_fwd_21d_pct).filter(Number.isFinite);
   const mx = Math.max(...values.map(Math.abs),1);
   const mid = PT + (H-PT-PB)/2;
   let bars = '';
   flips.forEach((f,i)=>{
-    const v = f.spx_fwd_21d_pct || 0;
+    const v = f.spx_fwd_21d_pct;
+    if(!Number.isFinite(v)){
+      const x=20+i*(bw+6);
+      bars+=`<text x="${x+bw/2}" y="${mid}" text-anchor="middle" font-size="10" fill="#9aa4b2"><title>${esc(f.date||'?')}: forward window unavailable</title>—</text>`;
+      return;
+    }
     const h = (Math.abs(v)/mx)*((H-PT-PB)/2);
     const x = 20 + i*(bw+6);
     const y = v>=0 ? mid-h : mid;
     const c = v>=0?'#6fce8a':'#E07A6A';
-    bars += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}" opacity=".9"><title>${esc(f.date||'?')} · flip to ${esc(f.posture||'')} · SPX 21d: ${fmt(v,2)}%</title></rect>`;
+    bars += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}" opacity=".9"><title>${esc(f.date||'?')} · flip to ${esc(f.posture||'')} · SPX 21 union-calendar rows: ${fmt(v,2)}%</title></rect>`;
     bars += `<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="9" fill="var(--dim)" font-family="ui-monospace,monospace">${(f.date||'').slice(2,7)}</text>`;
     bars += `<text x="${x+bw/2}" y="${v>=0?y-3:y+h+11}" text-anchor="middle" font-size="9.5" fill="${c}" font-family="ui-monospace,monospace">${fmt(v,1)}%</text>`;
   });
@@ -699,7 +706,7 @@ function renderTL(rg){
   el.innerHTML = tl.map((t,i)=>{
     const c = t.composite;
     const posture = t.posture;
-    const color = posture==='RISK-ON'?'#6fce8a': posture==='RISK-OFF'?'#E07A6A': posture==='SEVERE'?'#ff5a5a':'#F0B429';
+    const color = c==null?'#6b7480':['RISK-ON','RISK_ON'].includes(posture)?'#6fce8a':['RISK-OFF','RISK_OFF'].includes(posture)?'#E07A6A':posture==='SEVERE'?'#ff5a5a':'#F0B429';
     const h = Math.min(48,Math.max(4,Math.abs(c)*22+6));
     const pct = (i/(n-1||1))*100;
     return `<div class="tlbar" style="left:calc(${pct}% - 3px);height:${h}px;background:${color}" title="${esc(t.date||'?')}: ${fmt(c,2)} · ${esc(posture||'')}"></div>`;
@@ -778,11 +785,11 @@ function renderDiag(rg, dom, cc, reg, kb, ofr){
   bits.push(`OFR FSI : ${ofr?`${fmt(ofr.fsi,2)} on ${esc(ofr.date||'?')} · ${esc(ofr.source||'')}`:'—'}`);
   bits.push('');
   bits.push('Methodology:');
-  bits.push('  · 7-leg score aggregation uses -2..+2 range per Khalid brain-constitution v2.3');
-  bits.push('  · fleet-fusion: engine + calibrated fleet inputs weighted by historical hit rate');
+  bits.push('  · Six heuristic legs with fixed weights: funding 25%, credit 25%, dollar 20%, carry 10%, growth 10%, structure 10%; live overlays are separate.');
+  bits.push('  · Fleet adjustments are fixed rules clamped to ±0.75 per leg; historical hit-rate calibration is not established.');
   bits.push('  · DEFCON scale: 5 all-clear (0-20) · 4 normal (20-40) · 3 elevated (40-60) · 2 high stress (60-80) · 1 crisis (80-100)');
-  bits.push('  · regime quadrant: growth × inflation × liquidity classified from >12,000 brain notes');
-  bits.push('  · domain barometers: multinomial Naive Bayes trained on Khalid\'s notes with anchor-note supervision');
+  bits.push('  · Historical reconstruction uses current retrieved vintages and is not evidence of what was knowable at the time.');
+  bits.push('  · Sidecar scores and existing sizing heuristics require their own source, model and portfolio validation.');
   el.textContent = bits.join('\n');
 }
 
@@ -803,6 +810,7 @@ function renderDiag(rg, dom, cc, reg, kb, ofr){
     return;
   }
   updateBanner(rg);
+  window.JHCissReadthrough?.render(document.getElementById('ciss-readthrough'),rg);
   renderDefcon(cc);
   renderPosture(rg);
   renderOFR(ofr);

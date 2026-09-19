@@ -48,3 +48,23 @@ test("fleet rendering preserves nulls, nested numbers, long notes and rows after
   assert.ok(!rendered.includes("[object Object]"));
   assert.ok(!rendered.includes("<script>"));
 });
+
+
+test("Risk Gate shows heuristic limits and never converts a missing event return to zero", () => {
+  const { context, nodes } = harness();
+  context.renderPosture({posture:'RISK_OFF',composite:-.5,sizing_multiplier:.45});
+  const posture=nodes.get('postureBlock').innerHTML;
+  assert.ok(posture.includes('p-RISK_OFF'));
+  assert.ok(posture.includes('Legacy heuristic multiplier'));
+  assert.ok(posture.includes('unvalidated; no allocation recommendation'));
+  context.renderES({event_study:{flips:[{date:'2026-01-01',posture:'RISK_OFF',spx_fwd_21d_pct:null},
+    {date:'2026-02-01',posture:'RISK_OFF',spx_fwd_21d_pct:0}],avg_spx_fwd_21d_while_risk_off_pct:null,spx_baseline_fwd_21d_pct:null}});
+  assert.ok(nodes.get('esChart').innerHTML.includes('2026-01-01: forward window unavailable'));
+  assert.ok(!nodes.get('esChart').innerHTML.includes('2026-01-01 · flip to'));
+  assert.ok(nodes.get('esChart').innerHTML.includes('SPX 21 union-calendar rows: 0.00%'));
+  const note=nodes.get('esNote').innerHTML;
+  assert.ok(note.includes('not point-in-time, out-of-sample'));
+  assert.ok(!note.includes('gate adds value'));
+  assert.ok(html.includes('jh-ciss-readthrough.js?v='));
+  assert.ok(!html.includes('calibrated fleet inputs weighted by historical hit rate'));
+});
