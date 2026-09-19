@@ -73,7 +73,7 @@
   if(!$('ciss-table'))return;
   const names={ea_headline:'Euro-area composite',ea_subindex:'Euro-area contributions',sovereign_ea:'Euro-area SovCISS',country_ciss:'Country CISS',sovereign_country:'Country SovCISS',clifs:'CLIFS',other:'Other / legacy methodology'};
   let packet=null,narrative=null,signature='',selected=null;
-  async function get(key){const response=await fetch(path(key),{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);return response.json();}
+  async function get(key){const url=path(key),current=['data/ciss-stress.json','data/ciss-ai.json'].includes(key);const response=await fetch(url+(current?'?exact=1':''),{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);return response.json();}
   const link=(key,label)=>path(key)?`<a href="${esc(path(key))}" target="_blank" rel="noopener">${esc(label)}</a>`:'';
   function renderNarrative(){
     const head=packet.series.find(r=>r.key===HEAD),current=head&&state(head,packet)==='fresh'&&packet.quality?.status==='fresh';

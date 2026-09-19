@@ -20,7 +20,8 @@ BASE='https://data-api.ecb.europa.eu/service/data/'
 
 def read_public(key):
     if not re.fullmatch(r'data/[A-Za-z0-9_./-]+',key) or '..' in key:raise ValueError('unsafe source path')
-    req=urllib.request.Request('https://justhodl.ai/'+key,headers={'User-Agent':'justhodl-verify-release/1.0'})
+    suffix='?exact=1' if key in ('data/ciss-stress.json','data/ciss-ai.json') else ''
+    req=urllib.request.Request('https://justhodl.ai/'+key+suffix,headers={'User-Agent':'justhodl-verify-release/1.0'})
     with urllib.request.urlopen(req,timeout=45) as response:raw=response.read(MAX+1)
     if len(raw)>MAX:raise ValueError('public object exceeds bound')
     if key.endswith('.gz'):

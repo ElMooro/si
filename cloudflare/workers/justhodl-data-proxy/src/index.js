@@ -111,7 +111,8 @@ async function fetchUpstream(upstreamUrl, ttl) {
 
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
-  return ['report.json', 'report-measurements.json', 'khalid-adaptive.json'].includes(key) ||
+  return ['report.json', 'report-measurements.json', 'khalid-adaptive.json',
+    'ciss-stress.json', 'ciss-ai.json'].includes(key) ||
     /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||
     /^[a-z0-9-]+-verification\.json$/.test(key);
 }
