@@ -28,7 +28,8 @@ def main():
         assert conf['CodeSha256']==receipt['code_sha256'],'runtime differs'
         started=datetime.now(timezone.utc).isoformat()
         response=lam.invoke(FunctionName=fn,InvocationType='RequestResponse',Payload=b'{"suppress_alerts":true}')
-        result=json.loads(response['Payload'].read());assert not response.get('FunctionError') and result.get('statusCode')==200,result
+        result=json.loads(response['Payload'].read());assert not response.get('FunctionError') and result.get('ok') is True,result
+        assert lam.get_function_configuration(FunctionName=fn)['CodeSha256']==receipt['code_sha256'],'runtime changed during acceptance'
         d=read('data/quantum-desk.json')
         assert d['generated_at']>started and d['version']=='2.3.4'
         assert d['risk_gate']['sizing_multiplier'] is None and not d['risk_gate']['allows_new_entries']

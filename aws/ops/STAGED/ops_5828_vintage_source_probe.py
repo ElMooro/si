@@ -28,7 +28,7 @@ def main():
         for sid in ('WALCL','WTREGEN','RRPONTSYD','GDPC1','PAYEMS'):
             proof[sid]={}
             for endpoint in ('series','series/observations'):
-                params={'series_id':sid,'file_type':'json','realtime_start':'1776-07-04','realtime_end':today}
+                params={'series_id':sid,'file_type':'json','realtime_start':'1776-07-04','realtime_end':'9999-12-31'}
                 if endpoint.endswith('observations'):
                     params.update(observation_start='2000-01-01',observation_end=today,output_type=1,units='lin',sort_order='asc',limit=1000,offset=0)
                 public='https://api.stlouisfed.org/fred/'+endpoint+'?'+urllib.parse.urlencode(params)
