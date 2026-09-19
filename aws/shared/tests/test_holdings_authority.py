@@ -81,6 +81,17 @@ class Tests(unittest.TestCase):
             self.assertEqual(row, baseline)
             self.assertIsNone(m.st_13f('KO', packet()['t']))
 
+    def test_public_ranker_refuses_private_notes_before_any_storage_read(self):
+        m = load('justhodl-master-ranker'); reads = []
+        client = types.SimpleNamespace(get_object=lambda **kw: reads.append(kw) or {'Body': io.BytesIO(b'{"fixture":true}')})
+        with patch.object(m, 'S3', client):
+            for key in ('data/notes-index.json', 'data/brain.json', 'portfolio/snapshot.json', 'data/portfolio/risk.json', 'data/history/archive/feed/notes-index.json/fixture.json'):
+                self.assertIsNone(m.fetch_json(key))
+            self.assertEqual(reads, [])
+            self.assertEqual(m.fetch_json('data/13f-positions.json'), {'fixture': True})
+        self.assertEqual(len(reads), 1)
+        self.assertTrue(all(not f['used'] for f in m._FEED_HEALTH[:-1]))
+
     def test_explicit_ranker_event_suppression_executes_actual_publish_boundary(self):
         source = (ROOT/'aws/lambdas/justhodl-master-ranker/source/lambda_function.py').read_text(encoding='utf-8')
         tree = ast.parse(source)

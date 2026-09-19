@@ -63,6 +63,7 @@ from datetime import datetime, timezone
 
 import boto3
 from holdings_authority import context as holdings_context
+from private_artifact import public_source_allowed
 
 try:
     import engine_trust
@@ -172,6 +173,10 @@ def fetch_json(key, default=None, max_age_h=None):
     (return default) so stale data never silently contaminates a decision. Every
     load is recorded in _FEED_HEALTH for transparency. Feeds with no max_age_h are
     age-tracked but never auto-excluded (cadence may legitimately be slow)."""
+    if not public_source_allowed(key):
+        _FEED_HEALTH.append({'key': key, 'age_h': None, 'stale': None, 'used': False,
+                             'missing': True, 'exclusion': 'private_source_not_read_by_public_ranker'})
+        return default
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
         doc = json.loads(obj["Body"].read())
