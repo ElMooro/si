@@ -65,16 +65,17 @@ def reconciliation(series,total,parts):
     return {'total':total,'components':parts,'unit':'usd_million','rows':rows,'rule':'Total minus separately rounded components; no cross-scope cash-plus-custody sum.'}
 
 def tic_context(packet,read,at):
-    if not packet:return {'status':'unavailable','additional_independent_votes':0,**QUALIFICATION}
+    if not packet:return {'source_status':'unavailable','additional_independent_votes':0,**QUALIFICATION}
     key=(packet.get('replay') or {}).get('manifest_key','')
-    if not re.fullmatch(r'data/foreign-research/runs/[a-f0-9]{64}\.json',key):return {'status':'unverified_context','generated_at':packet.get('generated_at'),'additional_independent_votes':0,**QUALIFICATION}
+    if packet.get('contract')!='foreign-original-research.v1' or packet.get('call') is not None or any(packet.get(k) is not False for k in ('calls_eligible','sizing_eligible','execution_eligible')) or not re.fullmatch(r'data/foreign-research/runs/[a-f0-9]{64}\.json',key):
+        return {'source_status':'unverified_context','generated_at':packet.get('generated_at'),'additional_independent_votes':0,**QUALIFICATION}
     manifest=json.loads(read(key));ref=manifest['output']
     if ref['key']!='data/foreign-research/outputs/'+ref['sha256']+'.json' or ref['sha256']!=manifest['output_sha256'] or packet['replay'].get('output_sha256')!=ref['sha256']:raise ValueError('TIC context output binding differs')
     body=read(ref['key'])
     import hashlib
     if key!='data/foreign-research/runs/'+digest(manifest)+'.json' or len(body)!=ref['bytes'] or hashlib.sha256(body).hexdigest()!=manifest['output_sha256'] or digest({k:v for k,v in packet.items() if k!='replay'})!=manifest['output_sha256']:raise ValueError('TIC context snapshot differs')
     if clock(packet['generated_at'])>clock(at):raise ValueError('future TIC context')
-    return {'status':'immutable_descriptive_context','generated_at':packet['generated_at'],'observation_date':packet.get('latest_month'),
+    return {'source_status':'immutable_descriptive_context','generated_at':packet['generated_at'],'observation_date':packet.get('latest_month'),
       'quality':packet.get('quality'),'holder_splits':packet.get('holder_splits'),'replay':packet['replay'],
       'independent_evidence_root':'US_TREASURY:TIC:CSLT','additional_independent_votes':0,
       'interpretation':'Monthly securities transactions and weekly custody levels have different scope and dates; neither validates a stock-change-as-buying inference.',**QUALIFICATION}

@@ -67,6 +67,18 @@ def fixture(count=560,start=None,mutate=None):
     return store,{'contract':'official-original-inputs.v1','originals':refs,'canonical':source,'tic':None,'legacy':{'fixture':True},'acquisition_errors':{}}
 
 class Tests(unittest.TestCase):
+    def test_tic_context_availability_and_permission_have_distinct_fields(self):
+        for packet,expected in ((None,'unavailable'),({'contract':'legacy'},'unverified_context')):
+            out=m.tic_context(packet,lambda key:None,AT)
+            self.assertEqual(out['source_status'],expected);self.assertEqual(out['status'],'MONITOR_ONLY');self.assertFalse(out['calls_eligible'])
+        packet={'contract':'foreign-original-research.v1','call':None,'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'generated_at':AT,'latest_month':'2026-07-01'}
+        raw=m.encoded(packet);sha=m.digest(packet);ref={'key':'data/foreign-research/outputs/'+sha+'.json','sha256':sha,'bytes':len(raw)}
+        manifest={'output':ref,'output_sha256':sha};key='data/foreign-research/runs/'+m.digest(manifest)+'.json';files={key:m.encoded(manifest),ref['key']:raw}
+        packet['replay']={'manifest_key':key,'output_sha256':sha};out=m.tic_context(packet,files.__getitem__,AT)
+        self.assertEqual(out['source_status'],'immutable_descriptive_context');self.assertEqual(out['status'],'MONITOR_ONLY');self.assertFalse(out['sizing_eligible'])
+        packet['latest_month']='2026-08-01'
+        with self.assertRaises(ValueError):m.tic_context(packet,files.__getitem__,AT)
+
     def test_native_acquisition_does_not_restrict_provider_media_types(self):
         store=Storage();seen=[]
         def open_request(request,timeout):
