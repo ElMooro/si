@@ -147,7 +147,10 @@ def test_sovereign_spike_cannot_emit_unvalidated_down_forecast():
          patch.object(m.boto3,'resource',return_value=types.SimpleNamespace(Table=lambda _:object()),create=True):
         m.lambda_handler({},None)
     out=json.loads(next(w['Body'] for w in writes if w['Key']==m.OUT_KEY))
-    assert any(d.get('d5',0)>10 for d in out['deltas'].values())
+    # Some descriptive countries have no ledger baseline. Test the named
+    # qualifying country, independently of Python's set/hash iteration order.
+    assert out['deltas']['france']['d5']>10
+    assert any(d['d5'] is None for d in out['deltas'].values())
     signal.assert_not_called();price.assert_not_called()
     assert out['signals_fired']==[] and out['signal_emission']['enabled'] is False
     assert out['call'] is None and out['decision']['meaning']=='abstain'

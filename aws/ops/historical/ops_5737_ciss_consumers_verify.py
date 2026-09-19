@@ -1,3 +1,4 @@
+# Superseded by ops 5738: Stage 19 preflight failed before AWS changed; waiting run 35412150181 cancelled.
 """Verify exact CISS source and consumer runtimes with actual observation lineage."""
 from datetime import datetime, timezone
 import gzip
