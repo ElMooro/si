@@ -85,19 +85,65 @@ class ReportStoreTests(unittest.TestCase):
             def get_object(self,**kwargs):raise StorageError('AccessDenied')
         with self.assertRaises(StorageError):store.acquire(Denied(),'b','TEST','hidden',10)
 
+    def test_original_request_retains_extended_query_and_exact_bytes_without_secret(self):
+        from urllib.parse import parse_qs,urlsplit
+        s=Storage();payload=inputs()['observations'];payload['limit']=4000
+        blob=json.dumps(payload).encode();requests=[]
+        class Response(io.BytesIO):
+            pass
+        class Opener:
+            def open(self,request,timeout):requests.append(request);return Response(blob)
+        with patch.object(store.urllib.request,'build_opener',return_value=Opener()),patch.object(store.time,'sleep'):
+            result,receipt,acquired=store.original(s,'b','TEST','observations','SECRET_TOKEN',store.time.monotonic()+120)
+        query=parse_qs(urlsplit(requests[0].full_url).query)
+        self.assertEqual(query['limit'],['4000']);self.assertEqual(query['units'],['lin'])
+        self.assertNotIn('observation_start',query);self.assertNotIn('observation_end',query)
+        self.assertNotIn('SECRET_TOKEN',json.dumps(receipt))
+        self.assertEqual(store.read_verified(s,'b',receipt),blob)
+        self.assertEqual(result,payload)
+
+    def test_short_recent_cache_is_expanded_but_definition_is_reused(self):
+        s=Storage();item=captured(s)
+        descriptor={'contract':'report-source-cache.v1','series_id':'TEST','acquired_at':item['acquired_at'],
+                    'definition_acquired_at':item['acquired_at'],'evidence':item['evidence']}
+        s.objects['data/report-research/cache/TEST.json']=(json.dumps(descriptor).encode(),{})
+        def original(client,bucket,sid,part,key,deadline):
+            self.assertEqual(part,'observations')
+            return item[part],item['evidence'][part],item['acquired_at']
+        with patch.object(store,'original',side_effect=original) as fetch:
+            out,error=store.acquire(s,'b','TEST','hidden',999999999)
+            self.assertIsNone(error);self.assertEqual(fetch.call_count,1)
+        with patch.object(store,'original',side_effect=AssertionError('should use expanded cache')):
+            replay,error=store.acquire(s,'b','TEST','hidden',999999999)
+        self.assertEqual(out,replay)
+        self.assertEqual(json.loads(s.objects['data/report-research/cache/TEST.json'][0])['history_policy'],store.HISTORY_POLICY)
+
+    def test_expansion_failure_retains_old_evidence_clock_and_error(self):
+        s=Storage();item=captured(s)
+        descriptor={'contract':'report-source-cache.v1','series_id':'TEST','acquired_at':item['acquired_at'],
+                    'definition_acquired_at':item['acquired_at'],'evidence':item['evidence']}
+        s.objects['data/report-research/cache/TEST.json']=(json.dumps(descriptor).encode(),{})
+        with patch.object(store,'original',side_effect=TimeoutError('secret request url')):
+            out,error=store.acquire(s,'b','TEST','hidden',999999999)
+        self.assertEqual(error,'TimeoutError');self.assertEqual(out['acquired_at'],item['acquired_at'])
+        self.assertEqual(out['evidence'],item['evidence'])
+        self.assertNotIn('history_policy',json.loads(s.objects['data/report-research/cache/TEST.json'][0]))
+
     def test_real_research_handler_does_not_enter_legacy_path(self):
         from lce_research_catalog import extend_catalog,SERIES
+        from risk_gate_research_catalog import extend_catalog as risk_catalog,SERIES as RISK_SERIES
         path=ROOT/'aws/lambdas/justhodl-daily-report-v3/source/lambda_function.py'
         node=next(n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         calls=[]
         env={'time':store.time,'json':json,'track_errors':lambda fn:fn,'s3':object(),'S3_BUCKET':'b','FRED_KEY':'private',
-             'include_lce_series':extend_catalog,
+             'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,
              'FRED_SERIES':{'ICSA':('macro','Initial Claims')},'run_source_research':lambda *a,**kw:calls.append((a[2],kw)) or {'published':True}}
         exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),env)
         out=env['lambda_handler']({'action':'research_measurements'},None)
         self.assertEqual(out['statusCode'],200)
         self.assertEqual(calls[0][0]['ICSA'],{'category':'macro','display_name':'Initial Claims'})
         self.assertTrue(set(SERIES)<=set(calls[0][0]))
+        self.assertTrue(set(RISK_SERIES)<=set(calls[0][0]))
 
 
 if __name__=='__main__':unittest.main()

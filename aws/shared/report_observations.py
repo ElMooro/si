@@ -122,8 +122,19 @@ def measurement(series_id, definition, document, evidence, generated_at, acquire
     if type(reported_count) is not int or reported_count < len(rows):
         raise ValueError('invalid provider row count')
     limit = document.get('limit')
-    if type(limit) is not int or not 1 <= limit <= 400 or document.get('offset') != 0 or len(rows) != min(reported_count, limit):
+    if type(limit) is not int or not 1 <= limit <= 4000 or document.get('offset') != 0 or len(rows) != min(reported_count, limit):
         raise ValueError('incomplete or unexpected provider query page')
+    query = parse_qs(urlsplit(evidence['observations']['source_url']).query)
+    if query.get('limit') != [str(limit)] or query.get('sort_order') != ['desc']:
+        raise ValueError('provider page differs from retained query')
+    requested_start = query.get('observation_start',[None])[0]
+    requested_end = query.get('observation_end',[None])[0]
+    if requested_start is not None:date.fromisoformat(requested_start)
+    if requested_end is not None:date.fromisoformat(requested_end)
+    if requested_start and requested_end and requested_start>requested_end:
+        raise ValueError('reversed source query bounds')
+    if any((requested_start and r['date']<requested_start) or (requested_end and r['date']>requested_end) for r in rows):
+        raise ValueError('provider row outside retained query bounds')
     returned_count = len(rows)
     future_rows = [r for r in rows if r['date'] > now.date().isoformat()]
     rows = [r for r in rows if r['date'] <= now.date().isoformat()]
@@ -163,7 +174,11 @@ def measurement(series_id, definition, document, evidence, generated_at, acquire
            'vintage': {'basis': 'current_provider_response_not_original_publication_history',
                        'realtime_start': document.get('realtime_start'), 'realtime_end': document.get('realtime_end')},
            'coverage': {'returned': returned_count, 'matching_query_count': reported_count,
-                        'complete_history': reported_count == returned_count,
+                        'complete_history': reported_count == returned_count and requested_start is None and requested_end is None,
+                        'complete_query': reported_count == returned_count,
+                        'requested_start': requested_start, 'requested_end': requested_end,
+                        'query_limit': limit, 'first_returned_date': rows[-1]['date'],
+                        'history_scope': 'Bounded current-vintage query; not an all-time or publication-time history',
                         'eligible_observations': len(rows), 'future_observations_excluded': len(future_rows)},
            'future_dated_rows': future_rows,
            'future_date_policy': 'Retained as provider records; excluded from observed values, changes and statistics',

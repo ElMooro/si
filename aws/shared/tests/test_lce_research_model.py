@@ -77,6 +77,22 @@ class Tests(unittest.TestCase):
         row=model.build(source,None,None,{'RRPONTSYD':item},NOW)['series']['RRPONTSYD']
         self.assertFalse(row['available']);self.assertIsNone(row['latest_value']);self.assertIsNone(row['z_1y'])
 
+    def test_long_original_history_supports_five_year_descriptive_statistic(self):
+        latest=datetime.fromisoformat(NOW).date()
+        rows=[((latest-timedelta(days=i)).isoformat(),str(i+1)) for i in range(2000)]
+        item=inputs('RRPONTSYD','D',rows,'Billions of US Dollars')
+        item['observations']['limit']=4000
+        item['evidence']['observations']['source_url']=item['evidence']['observations']['source_url'].replace('limit=400&','limit=4000&')+'&observation_start=2016-09-18&observation_end=2026-09-18'
+        source=macro_build({'RRPONTSYD':SERIES['RRPONTSYD']},{'RRPONTSYD':item},NOW)
+        source['replay']={'manifest_key':'data/report-research/runs/'+('a'*64)+'.json','output_sha256':digest(source)}
+        out=model.build(source,None,None,{'RRPONTSYD':item},NOW)
+        stat=out['series']['RRPONTSYD']['statistics']['5y']
+        self.assertEqual(stat['status'],'descriptive')
+        self.assertEqual(stat['numeric_observations'],1827)
+        self.assertEqual(stat['population_mean'],914)
+        self.assertAlmostEqual(stat['population_sd'],((1827**2-1)/12)**.5)
+        self.assertFalse(out['sizing_eligible'])
+
     def test_extending_collector_catalog_keeps_existing_labels_and_all_requested_ids(self):
         original={'WALCL':{'category':'custom','display_name':'existing'},'OTHER':{'category':'other'}}
         out=extend_catalog(original)

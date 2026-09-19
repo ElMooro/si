@@ -9,7 +9,7 @@ NOW = '2026-09-18T20:00:00+00:00'
 def inputs(sid='TEST', frequency='M', rows=None, unit='Index'):
     data = rows or [('2026-08-01', '110'), ('2026-07-01', '100'), ('2026-05-01', '90'), ('2025-08-01', '80')]
     evidence = {part: {'contract':'source-evidence.v1', 'captured':True, 'key':'data/evidence/'+part+'.bin.gz',
-                       'sha256':'a'*64, 'source_url':'https://api.stlouisfed.org/fred/series'+('/observations' if part=='observations' else '')+'?series_id='+sid+('&units=lin' if part=='observations' else '')}
+                       'sha256':'a'*64, 'source_url':'https://api.stlouisfed.org/fred/series'+('/observations' if part=='observations' else '')+'?series_id='+sid+('&units=lin&limit=400&sort_order=desc' if part=='observations' else '')}
                 for part in ('definition','observations')}
     return {'definition': {'seriess':[{'id':sid,'title':sid,'frequency_short':frequency,'units':unit,'seasonal_adjustment':'Not Seasonally Adjusted'}]},
             'observations': {'units':'lin','count':len(data),'limit':400,'offset':0,'observations':[{'date':d,'value':v} for d,v in data]},
@@ -90,6 +90,25 @@ class ReportObservationsTests(unittest.TestCase):
         for patch in ({'count':5}, {'offset':1}, {'limit':3}):
             x=inputs();x['observations'].update(patch)
             with self.assertRaises(ValueError):compile(x)
+
+    def test_long_bounded_history_and_request_identity_are_explicit(self):
+        rows=[((date(2026,9,18)-timedelta(days=i)).isoformat(),str(i+1)) for i in range(2000)]
+        x=inputs(frequency='D',rows=rows)
+        x['observations']['limit']=4000
+        x['evidence']['observations']['source_url']=x['evidence']['observations']['source_url'].replace('limit=400&','limit=4000&')+'&observation_start=2016-09-18&observation_end=2026-09-18'
+        out=compile(x)
+        self.assertEqual(out['coverage']['returned'],2000)
+        self.assertTrue(out['coverage']['complete_query'])
+        self.assertFalse(out['coverage']['complete_history'])
+        self.assertEqual(out['coverage']['requested_start'],'2016-09-18')
+        self.assertEqual(len(out['history']),60)
+        self.assertEqual(out['coverage']['eligible_observations'],2000)
+        for mutation in ('limit','bound','page'):
+            bad=copy.deepcopy(x)
+            if mutation=='limit':bad['evidence']['observations']['source_url']=bad['evidence']['observations']['source_url'].replace('limit=4000','limit=400')
+            elif mutation=='bound':bad['evidence']['observations']['source_url']=bad['evidence']['observations']['source_url'].replace('observation_start=2016-09-18','observation_start=2026-09-18')
+            else:bad['observations']['limit']=4001
+            with self.assertRaises(ValueError):compile(bad)
 
     def test_preadvertised_policy_dates_are_retained_but_not_observations(self):
         out=compile(inputs('IORB','D',[('2026-09-21','3.9'),('2026-09-19','3.9'),('2026-09-18','3.9'),('2026-09-17','3.9')],'Percent'),'IORB')

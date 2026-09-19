@@ -18,6 +18,8 @@ MAX_BYTES = 4 * 1024 * 1024
 CURRENT = 'data/report-measurements.json'
 _rate_lock = threading.Lock()
 _last_request = 0.0
+OBSERVATION_LIMIT = 4000
+HISTORY_POLICY = 'native-levels-four-thousand-observations.v1'
 
 
 def now():
@@ -59,7 +61,7 @@ def original(client, bucket, sid, part, key, deadline):
     path = 'series'
     if part == 'observations':
         path += '/observations'
-        params.update(sort_order='desc', limit=400, units='lin')
+        params.update(sort_order='desc',limit=OBSERVATION_LIMIT,units='lin')
     url = 'https://api.stlouisfed.org/fred/'+path+'?'+urlencode(params)
     # build_opener avoids the legacy urllib.urlopen cache shim. Cached synthetic
     # FRED-shaped JSON must never be relabeled as an original HTTP response.
@@ -98,7 +100,8 @@ def acquire(client, bucket, sid, key, deadline):
     cache_key = 'data/report-research/cache/'+sid+'.json'
     cached, etag = get(client, bucket, cache_key, 128*1024)
     try:
-        if cached and cached.get('contract') == 'report-source-cache.v1' and age(cached['acquired_at']) <= 3600:
+        if (cached and cached.get('contract') == 'report-source-cache.v1'
+                and cached.get('history_policy') == HISTORY_POLICY and age(cached['acquired_at']) <= 3600):
             return load_input(client, bucket, cached), None
         definition = receipt = definition_at = None
         if cached and cached.get('contract') == 'report-source-cache.v1' and age(cached['definition_acquired_at']) <= 86400:
@@ -107,7 +110,8 @@ def acquire(client, bucket, sid, key, deadline):
         if definition is None:
             definition, receipt, definition_at = original(client, bucket, sid, 'definition', key, deadline)
         observations, obs_receipt, acquired = original(client, bucket, sid, 'observations', key, deadline)
-        descriptor = {'contract': 'report-source-cache.v1', 'series_id': sid, 'acquired_at': acquired,
+        descriptor = {'contract': 'report-source-cache.v1', 'history_policy':HISTORY_POLICY,
+                      'series_id': sid, 'acquired_at': acquired,
                       'definition_acquired_at': definition_at,
                       'evidence': {'definition': receipt, 'observations': obs_receipt}}
         # Do not overwrite another concurrent acquisition. The run keeps its own
@@ -147,8 +151,13 @@ def publish(client, bucket, catalog, inputs, errors):
                 'scope': output['scope'], 'sizing_eligible': False, 'publication_time_verified': False}
     manifest_key = 'data/report-research/runs/'+digest(manifest)+'.json'
     immutable(client, bucket, manifest_key, encoded(manifest), 'application/json')
-    reconstructed = {sid: load_input(client, bucket, item) for sid, item in manifest['inputs'].items()}
-    if digest(build(catalog, reconstructed, stamp, errors)) != manifest['output_sha256']:
+    class RetainedInputs:
+        # Re-read one original pair at a time. A second complete expanded
+        # response graph would unnecessarily double the collector's peak RAM.
+        def get(self, sid):
+            item = manifest['inputs'].get(sid)
+            return load_input(client, bucket, item) if item else None
+    if digest(build(catalog, RetainedInputs(), stamp, errors)) != manifest['output_sha256']:
         raise ValueError('retained original replay differs')
     output['replay'] = {'manifest_key': manifest_key, 'output_sha256': manifest['output_sha256'], 'compiler_sha256': compiler_sha}
     for _ in range(4):
