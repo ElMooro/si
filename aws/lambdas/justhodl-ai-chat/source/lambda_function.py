@@ -235,49 +235,9 @@ def build_context(message):
         lines.append(f"[FED LIQUIDITY] Net:${net}B  30d_chg:${chg30}B  Regime:{regime_l}")
 
     # ─── LIQUIDITY & CREDIT ENGINE (Khalid-spec FRED + ICE BofA + SLOOS) ──
-    lce = get_s3('data/liquidity-credit-engine.json')
-    if lce:
-        lce_regime = lce.get('regime')
-        comp = lce.get('composite') or {}
-        ser = lce.get('series') or {}
-        interp = lce.get('interpretation') or {}
-        def _v(sid): return (ser.get(sid) or {}).get('latest_value')
-        def _s(sid): return (ser.get(sid) or {}).get('signal')
-        lines.append(f"[LCE REGIME] {lce_regime} composite={comp.get('score')}/100 firing={comp.get('n_firing')}")
-        # ── INTERPRETATION & CALL ──
-        if interp:
-            pillars = interp.get('pillars') or {}
-            lq = (pillars.get('liquidity') or {}).get('state')
-            cr = (pillars.get('credit') or {}).get('state')
-            ld = (pillars.get('lending') or {}).get('state')
-            lines.append(f"[LCE INTERPRETATION] posture={interp.get('overall_posture')} confidence={interp.get('confidence')}")
-            lines.append(f"[LCE PILLARS] liquidity={lq} credit={cr} lending={ld}")
-            lines.append(f"[LCE DECISIVE CALL] {interp.get('decisive_call')}")
-            ta = interp.get('target_allocation') or []
-            if ta:
-                lines.append(f"[LCE TARGET ALLOCATION] " + " · ".join(f"{a.get('ticker')} {a.get('weight_pct')}%" for a in ta[:8]))
-            avd = interp.get('avoid') or []
-            if avd:
-                lines.append(f"[LCE AVOID] " + ", ".join(avd[:6]))
-        lines.append(f"[LCE BALANCE-SHEET] WALCL ${_v('WALCL')}B  WRESBAL ${_v('WRESBAL')}B  TGA ${_v('WTREGEN')}B sig={_s('WTREGEN')}  "
-                     f"MBS ${_v('MBST')}B  Currency_in_circ ${_v('WCURCIR')}B  RRP ${_v('RRPONTSYD')}B")
-        lines.append(f"[LCE FACILITIES] PrimaryCredit(OTHL1690) ${_v('OTHL1690')}B sig={_s('OTHL1690')}  "
-                     f"CB_Swaps(SWPT) ${_v('SWPT')}B sig={_s('SWPT')}  "
-                     f"DiscountWindow(DPCREDIT) ${_v('DPCREDIT')}B")
-        lines.append(f"[LCE HY_OAS] BB(BAMLH0A1HYBB) {_v('BAMLH0A1HYBB')}%  B(BAMLH0A2HYB) {_v('BAMLH0A2HYB')}%  "
-                     f"CCC(BAMLH0A3HYC) {_v('BAMLH0A3HYC')}% sig={_s('BAMLH0A3HYC')}  "
-                     f"EuroHY {_v('BAMLHE00EHYIOAS')}%  EM_HY_corp {_v('BAMLEMHBHYCRPIOAS')}%")
-        lines.append(f"[LCE IG_OAS] US_IG(BAMLC0A0CM) {_v('BAMLC0A0CM')}%  AAA {_v('BAMLC0A1CAAA')}%  "
-                     f"AA {_v('BAMLC0A2CAA')}%  A {_v('BAMLC0A3CA')}%  BBB {_v('BAMLC0A4CBBB')}%")
-        lines.append(f"[LCE HQM_CORP] 1y={_v('HQMCB1YR')}% 2y={_v('HQMCB2YR')}% 5y={_v('HQMCB5YR')}% "
-                     f"10y={_v('HQMCB10YR')}% 30y={_v('HQMCB30YR')}%")
-        # SLOOS — bank lending standards + demand
-        lines.append(f"[SLOOS TIGHTENING] C&I_large(DRTSCILM) {_v('DRTSCILM')}% sig={_s('DRTSCILM')}  "
-                     f"C&I_small(DRTSCIS) {_v('DRTSCIS')}%  CRE(SUBLPDCRENQ) {_v('SUBLPDCRENQ')}%  "
-                     f"CreditCard(DRTSCLCC) {_v('DRTSCLCC')}%  Auto(STDSAUTO) {_v('STDSAUTO')}%")
-        lines.append(f"[SLOOS DEMAND] C&I_large(DRSDCILM) {_v('DRSDCILM')}%  "
-                     f"C&I_small(DRSDCIS) {_v('DRSDCIS')}%  Mortgage(SUBLPDHMNQ) {_v('SUBLPDHMNQ')}% "
-                     f"(negative = weakening loan demand, recession leading indicator)")
+    from lce_research_model import narrative_context as lce_research_context
+    lce = lce_research_context(get_s3('data/liquidity-credit-engine.json'))
+    lines.append('[LIQUIDITY/CREDIT RESEARCH — EXACT UNITS AND DATES, NO ALLOCATION AUTHORITY] '+json.dumps(lce,sort_keys=True))
 
     # Only bounded, dated research measurements enter narrative context.
     ten = tenor_research_summary(get_s3('data/auction-tenor-signals.json'))

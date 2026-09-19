@@ -333,7 +333,7 @@ def rule_sector_momentum(scores, evidence):
         add(scores, evidence, "SPY", -MILD, "XLF lagging — banks weak")
 
 
-def rule_liquidity_credit_engine(scores, evidence):
+def _legacy_rule_liquidity_credit_engine(scores, evidence):
     """Position sizing based on Liquidity & Credit Engine state.
 
     Reads data/liquidity-credit-engine.json — Khalid-spec FRED + ICE BofA series.
@@ -446,6 +446,14 @@ def rule_liquidity_credit_engine(scores, evidence):
         d7 = f"SLOOS Credit-Card tightening [{sloos_cc_state}] — consumer credit squeeze"
         add(scores, evidence, "QQQ", -MEDIUM, d7)
         add(scores, evidence, "HYG", -STRONG, d7)
+
+
+def rule_liquidity_credit_engine(scores, evidence):
+    """Dated LCE measurements have no independently validated sizing protocol."""
+    fs3("data/liquidity-credit-engine.json")
+    # Preserve source consumption, but neither old thresholds nor a self-declared
+    # eligibility flag grants this legacy allocator an LCE position adjustment.
+    return None
 
 
 def rule_tenor_signals(scores, evidence):

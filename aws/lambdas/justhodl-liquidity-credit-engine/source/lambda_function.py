@@ -1,9 +1,9 @@
-"""Legacy liquidity/credit research monitor.
+"""Source-backed liquidity/credit measurements with retained original replay.
 
-Original FRED metadata, units and calendar-baseline migration is pending.
-Thresholds and portfolio heuristics have not been independently validated.
-The active interpreter abstains and cannot authorize allocation or trade.
-Original-source qualification currently covers the bound ECB CISS context only.
+The active handler reads the canonical FRED warehouse and original responses.
+Official units, calendar comparisons and observation/acquisition clocks survive.
+Legacy collector/scorer code remains audit material without an event route.
+No threshold score, trade instruction or portfolio allocation is authorized.
 """
 import json
 import os
@@ -24,7 +24,7 @@ except Exception:
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/liquidity-credit-engine.json"
-FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+FRED_KEY = None  # Legacy collector is unreachable; the source warehouse owns FRED acquisition.
 
 # ────────────────────────────────────────────────────────────────────────
 # SERIES MAP — every series Khalid specified + supporting context series.
@@ -995,7 +995,7 @@ def lambda_handler(event=None, context=None):
         raise
 
 
-def _do_handler(event=None, context=None):
+def _legacy_do_handler(event=None, context=None):
     started = time.time()
     print("[lce] start")
 
@@ -1090,3 +1090,9 @@ def _do_handler(event=None, context=None):
         "n_series": len(series_out),
         "transitions_count": len(transitions),
     })}
+
+
+def _do_handler(event=None, context=None):
+    from lce_research_store import run
+    result=run(S3,BUCKET)
+    return {'statusCode':200 if result.get('published') else 409,'body':json.dumps(result)}

@@ -19,3 +19,7 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     from daily_macro_consumer_test_support import run as run_daily
     run_daily("ai-chat")
+
+if __name__=="__main__":
+    from lce_consumer_test_support import run as run_lce
+    run_lce("ai-chat")

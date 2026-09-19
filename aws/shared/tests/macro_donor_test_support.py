@@ -156,26 +156,18 @@ class ContractAblations(unittest.TestCase):
 
 
 class ReceiverBuilders(unittest.TestCase):
- def test_actual_lce_handler_cannot_publish_legacy_allocations(self):
+ def test_actual_lce_handler_uses_replay_store_not_legacy_collector_or_allocator(self):
   from ciss_vintage_test_support import load
-  from unittest.mock import patch
+  from unittest.mock import patch,Mock
   from types import SimpleNamespace
-  m=load('justhodl-liquidity-credit-engine');written=[]
-  client=SimpleNamespace(put_object=lambda **kw:written.append(kw))
-  with patch.object(m,'S3',client),patch.object(m,'fred_observations_long',return_value=[]), \
-       patch.object(m,'compute_series',return_value={'available':False}), \
-       patch.object(m,'build_audit_donor_context',return_value=credit_donors({},ciss(),None,NOW)), \
-       patch.object(m,'load_prior',return_value={}), \
-       patch.object(m,'_legacy_interpret_state',side_effect=AssertionError('Legacy allocation interpreter called')), \
-       patch.dict(sys.modules,{'wl_fusion':SimpleNamespace(block=lambda *a:{})}):
+  m=load('justhodl-liquidity-credit-engine')
+  run=Mock(return_value={'published':True,'generated_at':STAMP})
+  with patch.dict(sys.modules,{'lce_research_store':SimpleNamespace(run=run)}), \
+       patch.object(m,'_legacy_do_handler',side_effect=AssertionError('Legacy collector invoked')), \
+       patch.object(m,'_legacy_interpret_state',side_effect=AssertionError('Legacy allocator invoked')):
    response=m.lambda_handler({'suppress_alerts':True},None)
-  self.assertEqual(response['statusCode'],200)
-  out=json.loads(written[-1]['Body']);interp=out['interpretation']
-  self.assertIsNone(out['call']);self.assertFalse(out['calls_eligible']);self.assertFalse(out['sizing_eligible'])
-  self.assertEqual(interp['target_allocation'],[]);self.assertEqual(interp['cross_asset'],{})
-  self.assertIsNone(interp['confidence']);self.assertEqual(interp['overall_posture'],'WAIT')
-  self.assertEqual(out['ciss_systemic']['value'],0)
-  self.assertEqual(out['regime'],'UNAVAILABLE');self.assertIsNone(out['composite']['score'])
+  self.assertEqual(response['statusCode'],200);run.assert_called_once_with(m.S3,m.BUCKET)
+  self.assertIsNone(m.composite_signal({})['score'])
   self.assertIsNone(m.composite_signal({'X':{'available':True,'signal':'UNKNOWN'}})['score'])
   with patch.object(m,'_do_handler',side_effect=ValueError('fixture')), \
        patch.object(m,'_emit_engine_error',side_effect=AssertionError('verification emitted event')):
