@@ -101,6 +101,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .method li{margin:4px 0;}
 .loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
 </style>
+<script src="/jh-ciss-readthrough.js"></script>
 </head>
 <body>
 <header>
@@ -113,10 +114,11 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 </header>
 
 <main>
+<section id="ciss-readthrough" data-ciss-readthrough aria-label="Source evidence and research permissions"></section>
 
 <div class="meta-banner" id="meta-banner">
   <div>
-    <h2>Meta-Regime · 7 Dimensions · 15 Modules</h2>
+    <h2>Meta-Regime · 7 Dimensions · 19 Panels</h2>
     <div class="regime" id="meta-regime">LOADING…</div>
     <div class="narrative" id="meta-narrative">Aggregating 15 Bloomberg-Gap regime modules…</div>
   </div>
@@ -138,10 +140,10 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 <div class="history-bar" id="history-bar"><div class="loading">…</div></div>
 
 <div class="method">
-<h3>Methodology · Bloomberg-Gap Meta-Regime</h3>
+<h3>Methodology · Descriptive Meta-Regime</h3>
 <p>The 15 Bloomberg-Gap modules each emit a regime label for their slice of the market (vol, gamma, credit, funding, retail flow, news, central bank, global cross-section, commodities, insider behavior, etc.). This page fuses them into a single meta-state.</p>
-<p><strong>Step 1 — Module polarity.</strong> Each module's regime label maps to a polarity in <code>{−1, 0, +1}</code>. Polarities are direction-aware: e.g., <code>OVERSHORT</code> funding is bullish-for-spot (squeeze risk), <code>CAPITULATION</code> retail is contrarian-positive, <code>MELTUP_PRONE</code> credit is short-term positive but tail-risk-elevated.</p>
-<p><strong>Step 2 — 7 Dimensions.</strong> Each module belongs to one dimension; dimension score = mean of its constituents.</p>
+<p><strong>Step 1 — Module polarity.</strong> The 15 non-CISS modules use unvalidated heuristic assumptions. Each regime label maps to a descriptive polarity in <code>{−1, 0, +1}</code>. Polarities are direction-aware: e.g., <code>OVERSHORT</code> funding is bullish-for-spot (squeeze risk), <code>CAPITULATION</code> retail is contrarian-positive, <code>MELTUP_PRONE</code> credit is short-term positive but tail-risk-elevated.</p>
+<p><strong>Step 2 — 7 Dimensions.</strong> Each module belongs to one dimension; dimension score = mean of its populated heuristic constituents. Missing dimensions remain unavailable. The four CISS views share one source family and contribute no directional votes.</p>
 <ul>
   <li><code>VOL</code> — dealer-gex, vix-curve · stress vs calm</li>
   <li><code>RISK_ON</code> — credit, crypto-funding, retail · risk appetite</li>
@@ -168,11 +170,13 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 </main>
 
 <script>
-const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-composite.json";
-const HIST_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-composite-history.json";
+const SIDECAR_URL = "/data/regime-composite.json?exact=1";
+const HIST_URL = "/data/regime-composite-history.json?exact=1";
 
-const fmtSigned = n => (n == null) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(1);
-const fmtSignedScore = n => (n == null) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(2);
+const esc=v=>String(v==null?'—':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safePage=v=>typeof v==='string'&&/^\/[A-Za-z0-9_./-]+$/.test(v)&&!v.startsWith('//')&&!v.includes('..')?v:'#';
+const fmtSigned = n => !Number.isFinite(n) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(1);
+const fmtSignedScore = n => !Number.isFinite(n) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(2);
 const fmtAge = m => {
   if (m == null) return "—";
   if (m < 60) return m.toFixed(0) + "min";
@@ -189,6 +193,7 @@ const DIM_LABELS = {
 const DIM_ORDER = ["vol", "risk_on", "liquidity", "policy", "reflation", "smart_money", "fundamentals"];
 
 function render(data) {
+  window.JHCissReadthrough?.render(document.getElementById("ciss-readthrough"),data);
   const banner = document.getElementById('meta-banner');
   banner.className = 'meta-banner ' + (data.meta_class || 'normal');
   const r = document.getElementById('meta-regime');
@@ -200,13 +205,13 @@ function render(data) {
   sc.className = 'val ' + (data.composite_score > 0 ? 'pos' : data.composite_score < 0 ? 'neg' : '');
   document.getElementById('gen-time').textContent = 'GEN ' + (data.generated_at || '').slice(0, 16) + ' UTC';
   document.getElementById('n-modules').textContent =
-    (data.n_modules_with_data || 0) + '/' + (data.n_modules_total || 15) + ' modules · ' +
+    (data.n_modules_with_data || 0) + '/' + (data.n_modules_total || 15) + ' panels with data · ' +
     (data.duration_s || 0).toFixed(1) + 's';
 
   // Dimensions
   const dims = data.dimensions || {};
   document.getElementById('dims-grid').innerHTML = DIM_ORDER.map(d => {
-    const dd = dims[d] || {score: 0, n: 0};
+    const dd = dims[d] || {score: null, n: 0};
     return `<div class="dim ${polClassStrict(dd.score)}">
       <div class="name">${DIM_LABELS[d]}</div>
       <div class="score ${polClass(dd.score)}">${fmtSignedScore(dd.score)}</div>
@@ -217,25 +222,26 @@ function render(data) {
   // Modules
   const mods = data.modules || [];
   document.getElementById('mods-grid').innerHTML = mods.map(m => {
+    const href=m.source_context?.series_id?'/ciss.html?series='+encodeURIComponent(m.source_context.series_id):safePage(m.page);
     if (m.missing) {
-      return `<a class="mod neutral" href="${m.page||'#'}">
+      return `<a class="mod neutral" href="${href}">
         <div class="mod-head">
-          <div class="mod-label"><span class="emoji">${m.emoji||'•'}</span>${m.label}</div>
-          <div class="mod-dim">${DIM_LABELS[m.dimension]||m.dimension}</div>
+          <div class="mod-label"><span class="emoji">${esc(m.emoji||'•')}</span>${esc(m.label)}</div>
+          <div class="mod-dim">${esc(DIM_LABELS[m.dimension]||m.dimension)}</div>
         </div>
         <div class="mod-missing">DATA MISSING</div>
       </a>`;
     }
-    return `<a class="mod ${polClass(m.polarity)}" href="${m.page||'#'}">
+    return `<a class="mod ${polClass(m.polarity)}" href="${href}">
       <div class="mod-head">
-        <div class="mod-label"><span class="emoji">${m.emoji||'•'}</span>${m.label}</div>
-        <div class="mod-dim">${DIM_LABELS[m.dimension]||m.dimension}</div>
+        <div class="mod-label"><span class="emoji">${esc(m.emoji||'•')}</span>${esc(m.label)}</div>
+        <div class="mod-dim">${esc(DIM_LABELS[m.dimension]||m.dimension)}</div>
       </div>
-      <div class="mod-regime ${polClass(m.polarity)}">${(m.regime||'—').replace(/_/g,' ')}</div>
-      <div class="mod-signal">${m.signal || '—'}</div>
+      <div class="mod-regime ${polClass(m.polarity)}">${m.vote_eligible===false?'SOURCE CONTEXT':esc((m.regime||'—').replace(/_/g,' '))}</div>
+      <div class="mod-signal">${esc(m.signal || '—')}</div>
       <div class="mod-foot">
-        <span>polarity ${m.polarity>=0?'+':''}${m.polarity}</span>
-        <span>${fmtAge(m.age_minutes)} ago</span>
+        <span>${m.vote_eligible===false?'no directional vote':'heuristic polarity '+fmtSigned(m.polarity)}</span>
+        <span title="${esc(m.age_basis)}">${m.vote_eligible===false?'ECB source clocks above':'object age at build '+fmtAge(m.age_minutes)}</span>
       </div>
     </a>`;
   }).join('');
@@ -248,6 +254,7 @@ function renderHistory(hist) {
     return;
   }
   const colorFor = (score) => {
+    if (!Number.isFinite(score)) return 'var(--border)';
     if (score >= 30) return 'var(--pos)';
     if (score >= 0) return 'rgba(0,230,118,0.4)';
     if (score >= -30) return 'rgba(255,61,90,0.4)';
@@ -258,11 +265,11 @@ function renderHistory(hist) {
     {label: 'COMPOSITE', vals: snapshots.map(s => s.composite_score)},
   ].concat(DIM_ORDER.map(d => ({
     label: DIM_LABELS[d].toUpperCase(),
-    vals: snapshots.map(s => (s.dim_scores||{})[d] * 100)
+    vals: snapshots.map(s => Number.isFinite((s.dim_scores||{})[d]) ? s.dim_scores[d]*100 : null)
   })));
   document.getElementById('hist-meta').textContent = snapshots.length + ' snapshots';
   document.getElementById('history-bar').innerHTML = series.map(s => {
-    const cells = s.vals.map(v => `<div class="spark-cell" style="background:${colorFor(v)}" title="${v && v.toFixed(0)}"></div>`).join('');
+    const cells = s.vals.map(v => `<div class="spark-cell" style="background:${colorFor(v)}" title="${Number.isFinite(v)?v.toFixed(0):'unavailable'}"></div>`).join('');
     const latest = s.vals[s.vals.length - 1];
     return `<div class="spark-row">
       <div class="spark-label">${s.label}</div>
@@ -274,9 +281,10 @@ function renderHistory(hist) {
 
 async function load() {
   try {
-    const r = await fetch(SIDECAR_URL + "?_=" + Date.now(), {cache: "no-cache"});
+    const r = await fetch(SIDECAR_URL + "&_=" + Date.now(), {cache: "no-store"});
+    if(!r.ok)throw new Error("HTTP "+r.status);
     const data = await r.json();
-    document.getElementById('status').textContent = "live";
+    document.getElementById('status').textContent = "research snapshot";
     render(data);
   } catch (e) {
     document.getElementById('status').textContent = "error";
@@ -284,7 +292,7 @@ async function load() {
     document.getElementById('mods-grid').innerHTML = '<div class="loading">Sidecar not yet generated. Waiting for first Lambda run…</div>';
   }
   try {
-    const r2 = await fetch(HIST_URL + "?_=" + Date.now(), {cache: "no-cache"});
+    const r2 = await fetch(HIST_URL + "&_=" + Date.now(), {cache: "no-store"});
     const hist = await r2.json();
     renderHistory(hist);
   } catch (e) {

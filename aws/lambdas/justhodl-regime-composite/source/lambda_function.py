@@ -59,8 +59,9 @@ import urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+from ciss_readthrough import context as ciss_context, SERIES as CISS_SERIES
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/regime-composite.json"
@@ -263,17 +264,17 @@ MODULES_CFG = [
         "derive": "ciss",
     },
     {
-        "label": "CISS · Money-Market Stress", "emoji": "💵", "key": "data/ciss-stress.json",
+        "label": "CISS · Money-Market Contribution", "emoji": "💵", "key": "data/ciss-stress.json",
         "regime_path": None, "signal_path": None, "polarity_map": None,
         "dimension": "liquidity", "page": "/ciss.html", "derive": "ciss_mm",
     },
     {
-        "label": "CISS · Bond-Market Stress", "emoji": "📉", "key": "data/ciss-stress.json",
+        "label": "CISS · Bond-Market Contribution", "emoji": "📉", "key": "data/ciss-stress.json",
         "regime_path": None, "signal_path": None, "polarity_map": None,
         "dimension": "vol", "page": "/ciss.html", "derive": "ciss_bond",
     },
     {
-        "label": "CISS · Equity-Market Stress", "emoji": "📊", "key": "data/ciss-stress.json",
+        "label": "CISS · Equity-Market Contribution", "emoji": "📊", "key": "data/ciss-stress.json",
         "regime_path": None, "signal_path": None, "polarity_map": None,
         "dimension": "vol", "page": "/ciss.html", "derive": "ciss_equity",
     },
@@ -371,50 +372,15 @@ def derive_thirteenf(payload):
         return None, None, 0
 
 
-def derive_ciss(payload):
-    """ECB CISS composite (euro-area systemic stress, 0-1). Low/calm = easy
-    financial conditions = risk-on (+1); elevated/rising stress = tight
-    conditions = risk-off (-1). Uses the regime band + 1980-now percentile."""
-    try:
-        v = payload.get("ea_composite")
-        reg = payload.get("ea_regime")
-        pct = None
-        for s in payload.get("series", []):
-            if s.get("category") == "ea_headline":
-                pct = s.get("pctile"); break
-        if v is None:
-            return None, None, 0
-        ps = ("%.0f%%ile" % pct) if pct is not None else "—"
-        if reg in ("CRISIS", "STRESS") or (pct is not None and pct >= 75):
-            return "STRESS_HIGH", "CISS %.3f — euro-area systemic stress %s (%s) — tight conditions, risk-off" % (v, reg, ps), -1
-        if reg == "CALM" or (pct is not None and pct <= 25):
-            return "STRESS_LOW", "CISS %.3f — systemic stress %s (%s) — easy conditions, risk-on" % (v, reg, ps), +1
-        return "STRESS_MID", "CISS %.3f — systemic stress %s (%s)" % (v, reg, ps), 0
-    except Exception:
-        return None, None, 0
+def _ciss_context_only(payload, key):
+    q=ciss_context(payload,series_key=CISS_SERIES[key])
+    return None,q['read'],None
 
 
-def _ciss_sub(payload, name):
-    """One CISS sub-index (money/bond/equity market). Low pctile = calm = +1,
-    high = elevated stress = -1, against its own 1999-now distribution."""
-    try:
-        s = next((x for x in payload.get("series", [])
-                  if x.get("area") == "U2" and name in (x.get("indicator") or "")), None)
-        if not s or s.get("pctile") is None:
-            return None, None, 0
-        pct = s["pctile"]; v = s.get("latest")
-        if pct >= 75:
-            return "STRESS_HIGH", "%s CISS %.4f (%.0f%%ile) — elevated stress, risk-off" % (name, v, pct), -1
-        if pct <= 25:
-            return "STRESS_LOW", "%s CISS %.4f (%.0f%%ile) — calm" % (name, v, pct), +1
-        return "STRESS_MID", "%s CISS %.4f (%.0f%%ile)" % (name, v, pct), 0
-    except Exception:
-        return None, None, 0
-
-
-def derive_ciss_mm(p): return _ciss_sub(p, "Money market")
-def derive_ciss_bond(p): return _ciss_sub(p, "Bond market")
-def derive_ciss_equity(p): return _ciss_sub(p, "Equity market")
+def derive_ciss(p):return _ciss_context_only(p,'ciss')
+def derive_ciss_mm(p):return _ciss_context_only(p,'ciss_mm')
+def derive_ciss_bond(p):return _ciss_context_only(p,'ciss_bond')
+def derive_ciss_equity(p):return _ciss_context_only(p,'ciss_equity')
 
 
 DERIVERS = {
@@ -433,7 +399,7 @@ DERIVERS = {
 # FETCH + PROCESS ONE MODULE
 # ═══════════════════════════════════════════════════════════════════════════
 
-def fetch_module(cfg):
+def fetch_module(cfg, ciss_packet=None, now=None):
     """Returns a dict for the module with regime, signal, polarity, age."""
     out = {
         "label": cfg["label"], "emoji": cfg["emoji"], "key": cfg["key"],
@@ -441,6 +407,14 @@ def fetch_module(cfg):
         "regime": None, "signal": None, "polarity": 0, "modified": None, "age_minutes": None,
         "missing": False,
     }
+    out['age_basis']='S3 object LastModified; not the underlying observation date'
+    if cfg.get('derive') in CISS_SERIES:
+        q=ciss_context(ciss_packet,now,series_key=CISS_SERIES[cfg['derive']])
+        out.update(regime=None,signal=q['read'],polarity=None,
+                   missing=q['status']!='fresh',vote_eligible=False,
+                   evidence_family='ecb_ciss',source_context=q,
+                   age_basis='See original source observation, acquisition and warehouse clocks')
+        return out
     try:
         resp = S3.get_object(Bucket=BUCKET, Key=cfg["key"])
         payload = json.loads(resp["Body"].read())
@@ -462,7 +436,9 @@ def fetch_module(cfg):
         signal = get_path(payload, cfg["signal_path"]) if cfg.get("signal_path") else None
         out["regime"] = regime
         out["signal"] = signal
-        out["polarity"] = (cfg["polarity_map"] or {}).get(regime, 0)
+        out["polarity"] = (cfg["polarity_map"] or {}).get(regime)
+    out['descriptive_eligible']=bool(out.get('regime')) and out.get('polarity') is not None
+    if not out.get('regime'):out['missing']=True
     return out
 
 
@@ -476,9 +452,10 @@ DIMENSIONS = ["vol", "risk_on", "liquidity", "policy", "reflation", "smart_money
 def compute_dimensions(modules):
     out = {}
     for dim in DIMENSIONS:
-        constituents = [m for m in modules if m["dimension"] == dim and not m["missing"] and m["regime"]]
+        constituents = [m for m in modules if m["dimension"] == dim and not m["missing"] and m["regime"]
+                        and m.get("vote_eligible") is not False and m.get('descriptive_eligible') is not False and m.get('polarity') is not None]
         if not constituents:
-            out[dim] = {"score": 0.0, "n": 0, "members": []}
+            out[dim] = {"score": None, "n": 0, "members": []}
             continue
         score = sum(m["polarity"] for m in constituents) / len(constituents)
         out[dim] = {
@@ -490,7 +467,11 @@ def compute_dimensions(modules):
 
 
 def classify_meta_regime(dims, modules):
-    """Rule-based 7-state classifier."""
+    """Descriptive heuristic; missing dimensions cannot become neutral votes."""
+    missing=[d for d in DIMENSIONS if not dims.get(d,{}).get('n') or dims[d].get('score') is None]
+    if missing:
+        return 'UNAVAILABLE','Missing descriptive dimensions: '+', '.join(missing)+'. No complete meta-regime is available.','unavailable'
+
     vol = dims.get("vol", {}).get("score", 0)
     risk = dims.get("risk_on", {}).get("score", 0)
     liq = dims.get("liquidity", {}).get("score", 0)
@@ -506,48 +487,48 @@ def classify_meta_regime(dims, modules):
     if negatives >= 5 or (vol <= -1 and risk <= -0.5):
         return ("CRISIS",
                 f"Multiple dimensions in stress (negatives={negatives}). Vol regime fragile. "
-                f"De-risk; preserve capital. Wait for vol cooldown + smart-money capitulation buying.",
+                f"This is an unvalidated stress classification; it does not establish a portfolio action.",
                 "crisis")
 
     # RISK_OFF — vol up + risk-on dimension turning
     if vol <= -0.5 and risk <= -0.5:
         return ("RISK_OFF",
                 f"Vol regime stressed (vol={vol:+.2f}) + risk appetite weakening (risk_on={risk:+.2f}). "
-                f"Reduce equity beta; rotate to defensives; raise cash.",
+                f"The classification describes input labels, without a validated return or allocation implication.",
                 "risk-off")
 
     # DEFENSIVE — 2-3 negatives accumulating
     if negatives >= 2:
         return ("DEFENSIVE",
-                f"{negatives} dimensions negative. Risk-reward shifting; tighten stops, reduce position sizes, watch for vol expansion.",
+                f"{negatives} dimensions negative. The heuristic indicates disagreement with positive input labels; no validated portfolio action follows.",
                 "defensive")
 
     # MELT_UP — vol low, risk-on high, fundamentals strong
     if vol >= 0.5 and risk >= 0.5 and liq >= 0.3 and fund >= 0.5 and pol >= -0.5:
         return ("MELT_UP",
                 f"All risk-supporting dimensions positive (vol={vol:+.1f}, risk={risk:+.1f}, "
-                f"fund={fund:+.1f}). Maximum equity exposure; ride momentum but trail stops.",
+                f"fund={fund:+.1f}). The heuristic labels align positively; this does not establish maximum exposure or a return forecast.",
                 "melt-up")
 
     # LATE_CYCLE — risk-on but policy hawkish + reflation elevated (← typical pre-correction)
     if risk >= 0.3 and pol <= -0.5 and refl >= 0.3:
         return ("LATE_CYCLE",
                 f"Risk-on continues (risk={risk:+.2f}) BUT policy hawkish (pol={pol:+.2f}) + reflation "
-                f"elevated (refl={refl:+.2f}). Late-cycle setup: ride remaining upside but begin scaling out; "
-                f"hedge tail with VIX call spreads; favor reflation winners (energy/materials/financials).",
+                f"elevated (refl={refl:+.2f}). This descriptive pattern has no validated timing or sizing implication. "
+                f"Independent source and model qualification remains required.",
                 "late-cycle")
 
     # GOLDILOCKS — vol low, risk-on moderate, policy not too hawkish, reflation contained
     if vol >= 0.3 and risk >= 0 and pol >= -0.5 and abs(refl) < 0.5 and fund >= 0:
         return ("GOLDILOCKS",
-                f"Vol calm, policy supportive, reflation contained. Classic bull conditions. "
-                f"Stay long equities; lean cyclicals; modest hedging.",
+                f"Vol calm, policy supportive, reflation contained. This is a descriptive combination of labels. "
+                f"It does not establish an equity or hedging instruction.",
                 "goldilocks")
 
     # NORMAL — balanced
     return ("NORMAL",
             f"Dimensions balanced (positives={positives}, negatives={negatives}). No regime extreme; "
-            f"normal market — execute strategy without regime overlay.",
+            f"this is a heuristic label, not evidence of portfolio suitability.",
             "normal")
 
 
@@ -562,7 +543,7 @@ def compute_composite_score(dims):
         if n == 0: continue
         num += s * w
         den += w
-    if den == 0: return 0
+    if den == 0: return None
     return round((num / den) * 100, 1)
 
 
@@ -624,10 +605,14 @@ def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
 
-    # Fetch all modules in parallel
+    # A shared CISS artifact is read once, so its four views cannot mix runs.
+    try:ciss_packet=json.loads(S3.get_object(Bucket=BUCKET,Key="data/ciss-stress.json")["Body"].read())
+    except Exception:ciss_packet=None
+    ciss_systemic=ciss_context(ciss_packet,now)
+    # Fetch all other modules in parallel.
     modules = []
     with ThreadPoolExecutor(max_workers=8) as ex:
-        futures = {ex.submit(fetch_module, cfg): cfg for cfg in MODULES_CFG}
+        futures = {ex.submit(fetch_module, cfg, ciss_packet, now): cfg for cfg in MODULES_CFG}
         for f in as_completed(futures):
             try: modules.append(f.result())
             except Exception as e:
@@ -653,10 +638,22 @@ def lambda_handler(event, context):
         "generated_at": now.isoformat(),
         "wl_research": __import__("wl_fusion").block(('STRESS', 'DOLLAR')),
         "duration_s": round(time.time() - t0, 2),
+        "call": None, "calls_eligible": False, "sizing_eligible": False,
+        "validation_status": "UNVALIDATED_DESCRIPTIVE_HEURISTIC",
+        "decision": {"verb":"WAIT","meaning":"abstain","reason":"Descriptive input labels do not establish a validated return forecast or portfolio size."},
+        "ciss_systemic": ciss_systemic,
+        "dependency_groups": [{"id":"ecb_ciss","source":"data/ciss-stress.json",
+            "views":list(CISS_SERIES),"configured_source_families":1,
+            "usable_source_families":int(ciss_systemic["status"]=="fresh"),"independent_votes":0,
+            "source_replay":ciss_systemic.get('source_replay')}],
+        "source_qualification_scope": "Original-source CISS context only; remaining modules retain their own unverified source/model limits",
         "meta_regime": meta_regime,
         "meta_narrative": meta_narrative,
         "meta_class": meta_class,
         "composite_score": composite_score,
+        "composite_coverage": {"populated_dimensions":[d for d in DIMENSIONS if dims[d]["n"]],
+            "missing_dimensions":[d for d in DIMENSIONS if not dims[d]["n"]],
+            "basis":"Descriptive mean over populated dimensions; partial coverage changes the denominator"},
         "dimensions": dims,
         "modules": modules,
         "n_modules_total": len(MODULES_CFG),
@@ -677,6 +674,8 @@ def lambda_handler(event, context):
     snapshots = history.get("snapshots", [])
     snapshots.append({
         "ts": now.isoformat(),
+        "model_version": VERSION,
+        "ciss_source_replay": ciss_systemic.get('source_replay'),
         "meta_regime": meta_regime,
         "composite_score": composite_score,
         "dim_scores": {d: dims.get(d, {}).get("score", 0) for d in DIMENSIONS},
@@ -685,7 +684,7 @@ def lambda_handler(event, context):
     save_history({"snapshots": snapshots})
 
     # Telegram on regime change
-    if regime_changed:
+    if regime_changed and composite_score is not None and not (isinstance(event,dict) and event.get("suppress_alerts")):
         msg = (f"⚡ <b>META-REGIME CHANGE</b>\n"
                f"<b>{prior_regime} → {meta_regime}</b>\n\n"
                f"Composite score: {composite_score:+.1f}\n"
