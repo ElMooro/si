@@ -1,5 +1,9 @@
 """
-justhodl-eurodollar-plumbing — offshore U.S. dollar funding monitor.
+justhodl-eurodollar-plumbing — retained original funding research.
+
+The active handler at the end of this file publishes funding-original-research.v1.
+The legacy scoring/AI functions below are retained for audit and have no active
+handler route. Historical descriptions below describe that retired method.
 
 The existing justhodl-eurodollar-stress engine is a generic financial-stress
 composite (VIX, OAS, broad dollar). This engine tracks the ACTUAL eurodollar
@@ -532,7 +536,7 @@ def ai_scan(layers, health, verdict, reds, yellows, fx_context=None):
         return {"error": str(e)[:200]}
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     layers = build_layers()
     health, verdict, reds, yellows = composite(layers)
@@ -587,3 +591,24 @@ def lambda_handler(event, context):
                   ContentType="application/json", CacheControl="max-age=900")
     print("[ed] done %.1fs health=%s verdict=%s reds=%d" % (payload["duration_s"], health, verdict, len(reds)))
     return {"statusCode": 200, "body": json.dumps({"ok": True, "health": health, "verdict": verdict})}
+
+
+def lambda_handler(event=None, context=None):
+    """Compile retained original measurements; HTTP reads never recollect or call AI."""
+    from funding_store import run, raw_reader
+    from funding_research import CONTRACT, CURRENT
+    try:
+        request = event.get('requestContext', {}) if isinstance(event, dict) else {}
+        if isinstance(request, dict) and request.get('http'):
+            raw = raw_reader(S3, BUCKET)(CURRENT)
+            if json.loads(raw).get('contract') != CONTRACT:
+                raise ValueError('Original funding research not published yet')
+            return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                    'body': raw.decode('utf-8')}
+        result = run(S3, BUCKET, FMP_KEY)
+        return {'statusCode': 200, 'body': json.dumps(result, allow_nan=False)}
+    except Exception as exc:
+        print('[funding-research] unavailable: ' + type(exc).__name__)
+        return {'statusCode': 503, 'headers': {'Cache-Control': 'no-store'},
+                'body': json.dumps({'status': 'unavailable', 'reason': 'Original funding evidence could not be verified',
+                                    'calls_eligible': False, 'sizing_eligible': False, 'portfolio_action': 'WAIT'})}

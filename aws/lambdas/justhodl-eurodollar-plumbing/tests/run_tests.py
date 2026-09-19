@@ -8,7 +8,7 @@ def test_actual_settlement_assignment():
     from datetime import datetime, timezone
     from pd_fails_context import project
     source=(Path(__file__).resolve().parents[1]/'source/lambda_function.py').read_text(encoding='utf-8')
-    tree=ast.parse(source);handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
+    tree=ast.parse(source);handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_legacy_unvalidated_handler')
     nodes=[n for n in handler.body if isinstance(n,ast.Assign) and 'payload["pd_settlement_fails"]' in (ast.get_source_segment(source,n) or '')]
     assert len(nodes)==1
     assert not any(isinstance(n,ast.Name) and n.id=='out' for n in ast.walk(handler))
@@ -21,4 +21,8 @@ def test_actual_settlement_assignment():
 
 if __name__=="__main__":
     test_actual_settlement_assignment()
+    import unittest
+    suite=unittest.TestLoader().discover(str(Path(__file__).parent),pattern='test_funding*.py')
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not result.wasSuccessful():sys.exit(1)
     run()

@@ -135,11 +135,12 @@ class ReportStoreTests(unittest.TestCase):
         from inflection_research_catalog import extend_catalog as inflection_catalog,SERIES as INFLECTION_SERIES
         from cb_research_catalog import extend_catalog as cb_catalog,SERIES as CB_SERIES
         from reversal_research_catalog import extend_catalog as reversal_catalog,SERIES as REVERSAL_SERIES
+        from funding_research_catalog import extend_catalog as funding_catalog,SERIES as FUNDING_SERIES
         path=ROOT/'aws/lambdas/justhodl-daily-report-v3/source/lambda_function.py'
         node=next(n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         calls=[]
         env={'time':store.time,'json':json,'track_errors':lambda fn:fn,'s3':object(),'S3_BUCKET':'b','FRED_KEY':'private',
-             'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,'include_inflection_series':inflection_catalog,'include_cb_series':cb_catalog,'include_reversal_series':reversal_catalog,
+             'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,'include_inflection_series':inflection_catalog,'include_cb_series':cb_catalog,'include_reversal_series':reversal_catalog,'include_funding_series':funding_catalog,
              'FRED_SERIES':{'ICSA':('macro','Initial Claims')},'run_source_research':lambda *a,**kw:calls.append((a[2],kw)) or {'published':True}}
         exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),env)
         out=env['lambda_handler']({'action':'research_measurements'},None)
@@ -150,6 +151,7 @@ class ReportStoreTests(unittest.TestCase):
         self.assertTrue(set(INFLECTION_SERIES)<=set(calls[0][0]))
         self.assertTrue(set(CB_SERIES)<=set(calls[0][0]))
         self.assertTrue(set(REVERSAL_SERIES)<=set(calls[0][0]))
+        self.assertTrue(set(FUNDING_SERIES)<=set(calls[0][0]))
 
 
 if __name__=='__main__':unittest.main()

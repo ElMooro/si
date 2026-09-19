@@ -697,6 +697,12 @@ def equity_risk(m):
 
 
 def eurodollar_shortage(m, fleet):
+    packet = fleet.get('eurodollar_plumbing') or {}
+    if packet.get('calls_eligible') is False or packet.get('composite_score') is None:
+        return {'state':'UNQUALIFIED','score':None,'points':None,
+                'text':'Dated funding measurements do not establish a calibrated offshore-dollar shortage classifier.',
+                'inputs':{'plumbing':None,'funding_z':None},'source_replay':packet.get('replay'),
+                'calls_eligible':False,'sizing_eligible':False}
     btp = m.get("BTP-Bund")
     ites = m.get("IT-ES")
     oat = m.get("OAT-Bund")
@@ -761,7 +767,8 @@ def heartbeat(m, eq, ed):
         den += w
         loud += v["loud"]
     score = round(100 * num / den) if den else 0
-    score = max(score, eq["score"] - 50 if eq["state"] in ("DUMP RISK", "FLIGHT TO SAFETY") else 0, ed["score"] // 2)
+    score = max(score, eq["score"] - 50 if eq["state"] in ("DUMP RISK", "FLIGHT TO SAFETY") else 0)
+    if ed.get('score') is not None:score = max(score, ed['score'] // 2)
     regime = "ACUTE" if score >= 70 else "ELEVATED" if score >= 45 else "WATCH" if score >= 22 else "CALM"
     loud.sort(reverse=True)
     top = [t for _, t in loud[:5]]

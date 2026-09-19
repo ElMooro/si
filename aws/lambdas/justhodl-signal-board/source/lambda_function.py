@@ -122,12 +122,14 @@ def n_dollar_radar(d):
 
 
 def n_eurodollar_plumbing(d):
+    if d.get('calls_eligible') is False or d.get('contract') == 'funding-original-research.v1':
+        return None, 'Funding measurements are descriptive; no qualified directional vote'
     # plumbing_health 0-100 (FUNCTIONING=high). A seizing offshore-USD funding
     # system is acute, broad risk-off. verdict FUNCTIONING/MILD STRAIN/STRAINED/SEIZING.
     h = d.get("plumbing_health")
     v = d.get("verdict") or "n/a"
     if not isinstance(h, (int, float)):
-        return 0, "Eurodollar plumbing n/a"
+        return None, "Eurodollar plumbing n/a"
     sig = 1 if h >= 78 else 0 if h >= 60 else -1 if h >= 45 else -2
     return sig, f"Eurodollar funding {v} (health {h}/100)"
 

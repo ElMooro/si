@@ -344,6 +344,9 @@ def lambda_handler(event=None, context=None):
     GF["score"]=_sub({"CRITICAL":2.4,"ELEVATED":1.4,"MODERATE":0.4,
                       "COMFORTABLE":-0.5,"ABUNDANT":-0.9,"GREEN":-0.7}.get(sev,0.0)
                      +(0.6 if (swaps or 0)>10 else 0))
+    # Descriptive original evidence is neither a neutral vote nor a stress forecast.
+    if pl.get('calls_eligible') is False or health is None:
+        GF.update(score=None, fresh=False, status='unqualified_funding_vote', source_replay=pl.get('replay'))
 
     # ─── EUROPE ───
     ef=_s3json("data/euro-fragmentation.json",{}) or {}
