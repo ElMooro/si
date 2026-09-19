@@ -265,10 +265,20 @@ def lambda_handler(event=None, context=None):
     fails_doc=read_object('data/settlement-fails.json')
     joined=fails_context(fails_doc)
     treasury=joined.get('treasury') or {}
+    native_fails=(fails_doc.get('contract')=='fr2004-fails-research.v1' and treasury.get('unit')=='usd_bn'
+                  and treasury.get('scope_id')=='treasury_incl_tips' and treasury.get('period_measure')=='cumulative_reported_fails')
     fails_valid=(joined['contract']['usable'] and treasury.get('quality',{}).get('status')=='fresh'
-                 and treasury.get('unit')=='USD_bn_par')
+                 and (treasury.get('unit')=='USD_bn_par' or native_fails))
     fails_rows=clean_series(treasury.get('gross') or []) if fails_valid else []
-    legs['fails']=measured_leg(fails_rows,'data/settlement-fails.json → treasury.gross','USD_bn_par',21,contributes=True)
+    if native_fails:
+        # The existing descriptive review index must not cross reporting-schema periods.
+        history=treasury.get('history') or []
+        active_period=history[-1].get('seriesbreak') if history else None
+        allowed={r['date'] for r in history if r.get('seriesbreak')==active_period and r.get('complete')}
+        fails_rows=[r for r in fails_rows if r[0] in allowed]
+    legs['fails']=measured_leg(fails_rows,'data/settlement-fails.json → treasury.gross',treasury.get('unit'),21,contributes=True)
+    legs['fails'].update(source_replay=fails_doc.get('replay'),valuation_basis=treasury.get('valuation_basis'),
+                        calls_eligible=False,sizing_eligible=False)
     if not fails_valid:
         legs['fails']['quality']['status']='unavailable'
     if fails_valid:

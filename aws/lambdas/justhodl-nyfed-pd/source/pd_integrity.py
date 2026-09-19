@@ -38,7 +38,10 @@ def canonical_fails(doc, now=None):
                       max_observation_age_hours=21*24, now=now)
     t = doc.get('treasury') or {}
     vals = [t.get(k) for k in ('ftd_bn', 'ftr_bn', 'gross_bn')]
-    valid = (t.get('complete') is True and t.get('unit') == 'USD_bn_par'
+    native = (doc.get('contract') == 'fr2004-fails-research.v1' and t.get('unit') == 'usd_bn'
+              and t.get('scope_id') == 'treasury_incl_tips'
+              and t.get('period_measure') == 'cumulative_reported_fails')
+    valid = (t.get('complete') is True and (t.get('unit') == 'USD_bn_par' or native)
              and t.get('quality', {}).get('status') == 'fresh'
              and all(isinstance(v, (int, float)) and not isinstance(v, bool)
                      and math.isfinite(v) and v >= 0 for v in vals))
@@ -49,7 +52,9 @@ def canonical_fails(doc, now=None):
             'producer_generated_at': doc.get('generated_at'),
             'status': 'fresh' if usable else 'unavailable', 'usable': usable,
             'treasury': copy.deepcopy(t) if usable else None,
-            'contract': c, 'reason': None if usable else 'Canonical Treasury fails missing, stale, incomplete or inconsistent'}
+            'contract': c, 'source_replay': doc.get('replay'),
+            'role': 'dated_measurement_context', 'calls_eligible': False, 'sizing_eligible': False,
+            'reason': None if usable else 'Canonical Treasury fails missing, stale, incomplete or inconsistent'}
 
 
 def finalize(doc, fails, class_quality):

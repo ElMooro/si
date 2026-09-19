@@ -98,4 +98,17 @@ class Integrity(unittest.TestCase):
         self.assertEqual(engine.review_score({'fails':leg,'sofr_iorb':leg})[0],75)
 
 
+class NativeFails(unittest.TestCase):
+    def test_native_unit_and_source_period_survive_real_handler(self):
+        doc=copy.deepcopy(FAILS);doc['contract']='fr2004-fails-research.v1';doc['replay']={'manifest_key':'data/fails-research/runs/fixture.json'}
+        tr=doc['treasury'];tr.update(unit='usd_bn',scope_id='treasury_incl_tips',period_measure='cumulative_reported_fails',
+              valuation_basis='cash_principal_ex_accrued_interest; financing_amount_due',
+              history=[{'date':d,'seriesbreak':'SBN2024' if i>=40 else 'SBN2022','complete':True} for i,(d,v) in enumerate(WEEKLY)])
+        out,_,_=run(fails=doc)
+        self.assertEqual(out['legs']['fails']['unit'],'usd_bn');self.assertEqual(out['legs']['fails']['source_replay'],doc['replay'])
+        self.assertFalse(out['legs']['fails']['calls_eligible']);self.assertEqual(out['legs']['fails']['n'],len(WEEKLY)-40)
+        tr['scope_id']='all_asset'
+        out,_,_=run(fails=doc);self.assertEqual(out['legs']['fails']['quality']['status'],'unavailable')
+
+
 if __name__=='__main__':unittest.main()

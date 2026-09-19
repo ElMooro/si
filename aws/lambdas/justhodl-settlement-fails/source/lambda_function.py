@@ -1,20 +1,8 @@
-"""
-justhodl-settlement-fails — dealer settlement fails (fails to deliver & fails to
-receive) from the NY Fed Primary Dealer Statistics (FR 2004).
+"""FR2004 original-source settlement research.
 
-Settlement fails = trades that don't settle on time because the security can't be
-sourced (or cash/collateral can't be moved). They spike during:
-  • collateral squeezes / specials pressure in repo,
-  • forced deleveraging and operational gridlock (2008, Mar-2020),
-  • sharp risk-off bond routs (2022 UK-LDI / gilt-UST stress).
-That makes the fails series a clean plumbing-stress / black-swan / market-top tell:
-when fails blow out, the financial plumbing is jamming.
-
-Reports BOTH sides across 6 asset classes: U.S. Treasury (ex-TIPS), TIPS,
-corporate securities, agency MBS, agency debt, and other (non-agency) MBS.
-
-OUTPUT: data/settlement-fails.json     SCHEDULE: daily 21:30 UTC (PD posts weekly Thu)
-Real official data only — not investment advice.
+The active handler publishes fails_store research or serves the current public
+snapshot for HTTP requests. Former heuristics and the signal emitter are retained
+below as unvalidated legacy source and are unreachable from the active handler.
 """
 import json
 import math
@@ -164,7 +152,7 @@ def _emit_signal(sid, stype, direction, ticker, benchmark, value,
         return False
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
     classes = []
     ftd_all, ftr_all = [], []
@@ -283,3 +271,24 @@ def lambda_handler(event=None, context=None):
         "regime": regime, "score": score, "as_of": out["as_of"], "quality": out["quality"],
         "ust_combined_bn": hs.get("latest"), "ust_pctile": pct,
         "classes": len(classes), "total_combined_bn": (total_comb[-1][1] if total_comb else None)})}
+
+
+def lambda_handler(event=None, context=None):
+    """Publish original-response research; an anonymous HTTP read cannot collect or emit."""
+    from fails_store import run, raw_reader
+    from fails_research import CURRENT, CONTRACT
+    try:
+        request_context = event.get('requestContext', {}) if isinstance(event, dict) else {}
+        if isinstance(request_context, dict) and request_context.get('http'):
+            current = json.loads(raw_reader(S3, BUCKET)(CURRENT))
+            if current.get('contract') != CONTRACT:
+                raise ValueError('Original FR2004 publication is not available yet')
+            return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                    'body': strict_json_dumps(current, separators=(',', ':'))}
+        result = run(S3, BUCKET)
+        return {'statusCode': 200, 'body': strict_json_dumps(result)}
+    except Exception as exc:
+        print('[fails-research] publication unavailable: ' + type(exc).__name__)
+        return {'statusCode': 503, 'headers': {'Cache-Control': 'no-store'},
+                'body': strict_json_dumps({'status': 'unavailable', 'reason': 'Original FR2004 evidence could not be verified',
+                                          'calls_eligible': False, 'sizing_eligible': False, 'portfolio_action': 'WAIT'})}

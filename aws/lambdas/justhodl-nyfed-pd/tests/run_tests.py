@@ -131,5 +131,17 @@ class Integrity(unittest.TestCase):
         self.assertEqual(observation_quality(None)['status'],'incomplete')
 
 
+class NativeFails(unittest.TestCase):
+    def test_current_contract_accepts_explicit_native_units_and_scope(self):
+        doc=copy.deepcopy(FAILS);doc.update(contract='fr2004-fails-research.v1',replay={'manifest_key':'data/fails-research/runs/fixture.json'})
+        doc['treasury'].update(unit='usd_bn',scope_id='treasury_incl_tips',period_measure='cumulative_reported_fails')
+        result=canonical_fails(doc, NOW)
+        self.assertTrue(result['usable']);self.assertEqual(result['treasury']['unit'],'usd_bn')
+        self.assertEqual(result['source_replay'],doc['replay']);self.assertFalse(result['calls_eligible'])
+        for change in ({'scope_id':'ust_ex_tips'},{'period_measure':'daily_stock'},{'unit':'usd_mn'}):
+            bad=copy.deepcopy(doc);bad['treasury'].update(change)
+            self.assertFalse(canonical_fails(bad,NOW)['usable'])
+
+
 if __name__=='__main__':
     unittest.main()
