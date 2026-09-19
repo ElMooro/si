@@ -1112,4 +1112,6 @@ def lambda_handler(event, context):
     from risk_gate_research_store import run
     validation_only = isinstance(event, dict) and (event.get("validate_only") is True or event.get("mode") == "validate_only")
     result = run(s3, S3_BUCKET, validation_only=validation_only)
+    if validation_only:
+        return {"ok": True, **result}
     return {"statusCode": 200, "ok": True, **result}

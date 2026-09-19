@@ -80,7 +80,7 @@ def test_candidate_script_targets_live_and_has_conditional_rollback():
 
 def test_risk_validation_configs_and_minimal_config_preserve_runtime():
     import json
-    for engine, schema in [("katlin", "1.1"), ("risk-gate", "risk-gate.v2.5"), ("risk-sizer", "3.0")]:
+    for engine, schema in [("katlin", "1.1"), ("risk-gate", "risk-gate.v3"), ("risk-sizer", "3.0")]:
         config = json.loads((ROOT / f"aws/lambdas/justhodl-{engine}/config.json").read_text())
         assert config["release_validation"]["schema_version"] == schema
     workflow = deployment_source()

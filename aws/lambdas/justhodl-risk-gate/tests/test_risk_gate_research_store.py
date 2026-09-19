@@ -109,10 +109,22 @@ class ActualHandlerTests(unittest.TestCase):
         module=namespace['_load']()
         with patch('risk_gate_research_store.run',return_value={'validation_only':True}) as mocked:
             result=module.lambda_handler({'validate_only':True},None)
-        self.assertEqual(result['statusCode'],200)
+        self.assertNotIn('statusCode',result);self.assertTrue(result['ok'])
         mocked.assert_called_once_with(module.s3,module.S3_BUCKET,validation_only=True)
         client,source,original=prepared();before=dict(client.objects)
         with patch.object(store,'datetime',Frozen):out=store.run(client,'fixture',validation_only=True)
         self.assertTrue(out['validation_only']);self.assertEqual(before,client.objects)
+        module.s3=client;module.S3_BUCKET='fixture'
+        with patch.object(store,'datetime',Frozen):envelope=module.lambda_handler({'mode':'validate_only'},None)
+        # Mirror the deployment shell's documented direct-or-HTTP envelope contract.
+        body=envelope.get('body') if 'statusCode' in envelope else envelope
+        if isinstance(body,str):body=json.loads(body)
+        config=json.loads((Path(__file__).parents[1]/'config.json').read_text(encoding='utf-8'))
+        self.assertIsInstance(body,dict)
+        self.assertIs(body['ok'],True);self.assertIs(body['validation_only'],True)
+        self.assertEqual(body['schema_version'],config['release_validation']['schema_version'])
+        self.assertTrue(isinstance(body['status'],str) and body['status'])
+        self.assertGreater(body['artifact_size_bytes'],0);self.assertEqual(before,client.objects)
+
 
 if __name__=='__main__':unittest.main()
