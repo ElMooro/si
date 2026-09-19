@@ -143,6 +143,7 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       <h3 class="dim mono" style="letter-spacing:.12em;font-size:11px;margin-bottom:8px">IS IT LEARNING? <span class="help" data-h="Understanding = how well it separates your note categories (1 − validation loss ÷ coin-flip loss). Track record = its dated market calls graded against real prices at 5/21/63 days. Lessons = what it wrote down about its own graded mistakes and carries into the next read.">?</span></h3>
       <div class="mini" id="pl-learning"></div>
       <div id="pl-trend" style="margin-top:10px;font-size:12.5px"></div>
+      <div id="pl-smart" style="margin-top:12px"></div>
       <div id="pl-exam" style="margin-top:12px"></div>
       <div id="pl-wall" style="margin-top:12px"></div>
     </div>
@@ -802,6 +803,15 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       var cls = m.score > best + 0.02 ? "ok" : m.score < best - 0.02 ? "bad" : "warn";
       return "<div><b class=\"" + cls + "\">" + fmt(100 * m.score, 0) + "</b><span>" + esc(label) + " score / 100 on " + fmt(m.n, 0) + " drills (naive prior " + fmt(100 * (bp.score || 0), 0) + ", momentum " + fmt(100 * (bm.score || 0), 0) + ") · direction " + fmt(100 * m.direction_acc, 0) + "% · regime " + fmt(100 * m.regime_acc, 0) + "% · crisis " + fmt(100 * m.crisis_acc, 0) + "%" + (m.missed_crises ? " · missed " + m.missed_crises + " crisis" + (m.missed_crises > 1 ? "es" : "") : "") + (e.n_unanswered ? " · " + e.n_unanswered + " unanswered" : "") + " · " + (e.at ? ago(e.at) : "") + "</span></div>";
     }
+    var rx = d.reasoning_exam || null, ceB = d.coding_exam || null, mxH = ((d.market_exam || {}).holdout || {}).model_scores || null;
+    function pct(x) { return x == null ? "—" : fmt(100 * x, 0) + "%"; }
+    var fams = (rx && rx.families) || {};
+    $("pl-smart").innerHTML = '<div style="font-size:12.5px;margin-bottom:6px">How smart is it right now — the current owned model on held-out exams it never trained on, graded exactly, re-sat every Sunday:</div><div class="mini">'
+      + '<div><b>' + (ceB && ceB.base_score != null ? pct(ceB.base_score) : "—") + '</b><span>coding — HumanEval, 164 problems, tests run for real (base model' + (ceB && ceB.best_candidate ? '; best candidate ' + pct(ceB.best_candidate.score) : '') + ')</span></div>'
+      + '<div><b>' + (fams.gsm8k ? pct(fams.gsm8k.accuracy) : "—") + '</b><span>math word problems — GSM8K test set, ' + (fams.gsm8k ? fams.gsm8k.answered + ' answered' : 'not sat yet') + '</span></div>'
+      + '<div><b>' + (fams.code_reading ? pct(fams.code_reading.accuracy) : "—") + '</b><span>reading code — predict what a program prints, truth by running it, ' + (fams.code_reading ? fams.code_reading.answered + ' programs' : 'not sat yet') + '</span></div>'
+      + '<div><b>' + (mxH && mxH.n ? fmt(100 * mxH.score, 0) : "—") + '</b><span>markets — held-out crisis weeks, score / 100 (naive baselines sit at the same level: no market skill yet)</span></div>'
+      + '</div>' + (rx && rx.at ? '<div class="dim" style="font-size:11.5px;margin-top:4px">reasoning exam sat ' + ago(rx.at) + (rx.adapter_generation ? ' by adapter ' + esc(String(rx.adapter_generation)) : ' by the base model') + '</div>' : '');
     var sw = d.student_wall || null;
     if (sw && sw.week) {
       var byAgent = {};

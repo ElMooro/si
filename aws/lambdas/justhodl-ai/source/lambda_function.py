@@ -308,6 +308,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "market_read": _safe(public_market_read),
         "market_exam": _safe(public_market_exam),
         "coding_exam": _safe(public_coding_exam),
+        "reasoning_exam": _safe(public_reasoning_exam),
         "student_wall": _safe(lambda: get_json(PUBLIC_BUCKET, "data/ai/wall/student-latest.json")),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
@@ -373,6 +374,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "market_read": out.get("market_read"),
         "market_exam": out.get("market_exam"),                     # aggregate scores vs baselines per split -- no drill content
         "coding_exam": out.get("coding_exam"),                     # base vs candidates on the frozen coding exam + the plain-English verdict
+        "reasoning_exam": out.get("reasoning_exam"),               # GSM8K + program-output accuracy of the current owned model
         "student_wall": out.get("student_wall"),                   # the student's latest Monday wall receipt (entries + skips)
         "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
         "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
@@ -1354,6 +1356,14 @@ def public_coding_exam() -> Optional[dict]:
     except Exception:
         pass
     return coding_exam_verdict(base if isinstance(base, dict) else None, candidates, unique_tasks)
+
+
+def public_reasoning_exam() -> Optional[dict]:
+    """Aggregate of the latest reasoning exam (scripts/factory_reasoning_exam.py): per-family accuracy, no item content."""
+    doc = get_json(PRIVATE_BUCKET, "factory/exams/reasoning/latest.json")
+    if not isinstance(doc, dict):
+        return None
+    return {k: doc.get(k) for k in ("run_id", "at", "model", "revision", "adapter_generation", "families")}
 
 
 def public_market_exam() -> Optional[dict]:

@@ -1,0 +1,55 @@
+name: Factory reasoning exam
+
+# How smart is the owned model: GSM8K (held-out test sample) + program-output prediction, graded exactly
+# (scripts/factory_reasoning_exam.py). Results private; the engine projects the aggregate onto data/ai.json.reasoning_exam.
+
+on:
+  workflow_dispatch:
+    inputs:
+      gsm8k:
+        description: 'GSM8K items (fixed seeded sample)'
+        required: false
+        default: '40'
+      code:
+        description: 'program-output items'
+        required: false
+        default: '20'
+  schedule:
+    - cron: '50 13 * * 0'     # Sundays 13:50 UTC, after the market exam
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-reasoning-exam
+  cancel-in-progress: false
+
+jobs:
+  exam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Sit the exam
+        env:
+          GSM8K: ${{ github.event.inputs.gsm8k || '40' }}
+          CODE: ${{ github.event.inputs.code || '20' }}
+        run: |
+          set -euo pipefail
+          pip install --quiet boto3
+          python3 scripts/factory_reasoning_exam.py --gsm8k "$GSM8K" --code "$CODE" --wait-min 25 | tee "$RUNNER_TEMP/exam.log"
+      - name: Refresh the page projection (engine inventory tick)
+        if: always()
+        run: aws lambda invoke --function-name justhodl-ai --invocation-type Event --payload '{"mode":"inventory"}' --cli-binary-format raw-in-base64-out /dev/null
+      - name: Summary
+        if: always()
+        run: |
+          { echo "### Reasoning exam"; echo '```'; tail -3 "$RUNNER_TEMP/exam.log" 2>/dev/null || echo "(no log)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
