@@ -45,8 +45,10 @@ def _wrap_gear_b() -> bool:
             role_arn=role_arn, projected=projected, pricing=pricing, describe_card=describe_card,
             region=region, launch=False,
         )
+        preview["doctrine"] = self_improve.VERSION
+        if preview.get("refusal"):
+            return preview
         if not launch:
-            preview["doctrine"] = self_improve.VERSION
             return preview
         try:
             control = gear_b.load_control(s3, private_bucket)
@@ -58,7 +60,6 @@ def _wrap_gear_b() -> bool:
         if why:
             preview["refusal"] = why
             preview["launched"] = None
-            preview["doctrine"] = self_improve.VERSION
             return preview
         out = orig_tick(
             sm, s3, private_bucket=private_bucket, public_bucket=public_bucket, policy=policy,
