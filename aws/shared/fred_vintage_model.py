@@ -11,6 +11,7 @@ import math
 import re
 
 CONTRACT = 'fred-vintage-periods.v1'
+CATALOG = 'fred-vintage-segments.v1'
 PREFIX = 'data/vintage-research/'
 EARLIEST = '1776-07-04'
 MAX_DATE = '9999-12-31'
@@ -67,6 +68,7 @@ def original(record,sid,endpoint):
     req=record['request'];params=req['params'];raw=record['raw'];receipt=record['evidence']
     if req!=request(sid,endpoint,params['realtime_start'],params['realtime_end'],params.get('offset',0)):
         raise ValueError('source request differs from reviewed contract')
+    if endpoint=='series' and req!=request(sid):raise ValueError('complete definition history required')
     sha=hashlib.sha256(raw).hexdigest()
     key=PREFIX+'originals/'+digest(req)+'/'+sha+'.json.gz'
     if receipt!={'key':key,'sha256':sha,'bytes':len(raw),'request_sha256':digest(req)}:
@@ -84,10 +86,11 @@ def decimal_value(value):
     try:number=Decimal(value)
     except InvalidOperation:raise ValueError('invalid source number') from None
     if not number.is_finite() or not math.isfinite(float(number)):raise ValueError('non-finite source number')
+    if number and not float(number):raise ValueError('source number underflows numeric representation')
     return value
 
 
-def compile_series(sid,definition,pages,generated_at,collection_id,archive_end,collection_started_at):
+def compile_series(sid,definition,pages,generated_at,collection_id,archive_end,collection_started_at,archive_start=None):
     generated=clock(generated_at);day(archive_end)
     if clock(collection_started_at)>generated:raise ValueError('collection begins after completion')
     meta,meta_ref=original(definition,sid,'series')
@@ -98,6 +101,10 @@ def compile_series(sid,definition,pages,generated_at,collection_id,archive_end,c
             raise ValueError('definition identity or interval differs')
         if not row.get('units') or not row.get('frequency_short'):raise ValueError('definition units/frequency missing')
     first=max('1990-01-01',min(row['realtime_start'] for row in definitions))
+    if archive_start is not None:
+        if not day(first)<=day(archive_start)<=day(archive_end):raise ValueError('segment outside definition history')
+        if (day(archive_end)-day(archive_start)).days>=1461:raise ValueError('segment exceeds archive window bound')
+        first=archive_start
     planned=windows(first,archive_end);grouped={span:[] for span in planned}
     references=[];records=[];all_clocks=[clock(meta_ref['acquired_at'])]
     for page in pages:
@@ -145,6 +152,7 @@ def compile_series(sid,definition,pages,generated_at,collection_id,archive_end,c
         'acquisition_completed_at':max(all_clocks).isoformat(),'definitions':definitions,
         'definition_source':meta_ref,'observation_sources':references,'vintages':records,'n_vintages':len(records),
         'coverage':{'status':'complete_requested_windows','archive_start':first,'archive_end':archive_end,
+            'scope':'archive_segment' if archive_start is not None else 'series_archive',
             'windows':len(planned),'pages':len(references),'observation_start':EARLIEST,'observations':len({r['date'] for r in records}),
             'missing_periods':sum(r['value_decimal'] is None for r in records),'all_time_archive_claim':False},
         'point_in_time':False,'historical_feature_replay_ready':False,'sizing_eligible':False,'calls_eligible':False,
@@ -152,8 +160,33 @@ def compile_series(sid,definition,pages,generated_at,collection_id,archive_end,c
         'availability_rule':'A provider archive date is usable from 12:00 UTC on the following calendar day; this conservative research delay is a policy, not a measured release timestamp.'}
 
 
+def compile_catalog(sid,definition,segments,generated_at,collection_id,archive_end,collection_started_at):
+    """Bind bounded, independently replayable segments without materializing all rows."""
+    meta,ref=original(definition,sid,'series');generated=clock(generated_at)
+    if clock(collection_started_at)>generated or clock(ref['acquired_at'])>generated:raise ValueError('invalid catalog clock')
+    definitions=meta['seriess']
+    if not definitions or any(d['id']!=sid for d in definitions):raise ValueError('catalog definitions differ')
+    first=max('1990-01-01',min(d['realtime_start'] for d in definitions));cursor=day(first)
+    total=0;acquired=[ref['acquired_at']]
+    for segment in segments:
+        cov=segment['coverage'];sha=segment['sha256']
+        if not re.fullmatch(r'[a-f0-9]{64}',sha) or segment['key']!=PREFIX+'outputs/'+sha+'.json':raise ValueError('segment identity differs')
+        if cov.get('status')!='complete_requested_windows' or cov.get('scope')!='archive_segment':raise ValueError('incomplete archive segment')
+        if day(cov['archive_start'])!=cursor or day(cov['archive_end'])<cursor:raise ValueError('archive segment gap or overlap')
+        if clock(segment['generated_at'])>generated:raise ValueError('future segment')
+        cursor=day(cov['archive_end'])+timedelta(days=1);total+=segment['n_vintages'];acquired.append(segment['acquired_at'])
+    if cursor!=day(archive_end)+timedelta(days=1):raise ValueError('incomplete final archive segment')
+    return {'contract':CATALOG,'version':'2.1.0','series':sid,'generated_at':generated_at,'updated':generated_at,
+        'collection_id':collection_id,'collection_started_at':collection_started_at,'acquired_at':min(acquired),
+        'definitions':definitions,'definition_source':ref,'segments':segments,'n_vintages':total,
+        'coverage':{'status':'complete_requested_windows','scope':'segmented_series_archive','archive_start':first,
+            'archive_end':archive_end,'segments':len(segments),'observation_start':EARLIEST,'all_time_archive_claim':False},
+        'point_in_time':False,'historical_feature_replay_ready':False,'calls_eligible':False,'sizing_eligible':False,
+        'scope':'Complete declared provider archive in independently original-replayed segments. Segment acquisition clocks remain intact; collection time is not source freshness. No qualified investment model.'}
+
+
 def validate_packet(doc):
-    if not isinstance(doc,dict) or doc.get('contract')!=CONTRACT:raise ValueError('original-bound archive required')
+    if not isinstance(doc,dict) or doc.get('contract') not in (CONTRACT,CATALOG):raise ValueError('original-bound archive required')
     ref=doc.get('replay') or {};payload={k:v for k,v in doc.items() if k!='replay'}
     if ref.get('output_sha256')!=digest(payload):raise ValueError('archive content binding differs')
     if not re.fullmatch(PREFIX+r'runs/[a-f0-9]{64}\.json',ref.get('manifest_key','')):
@@ -162,7 +195,17 @@ def validate_packet(doc):
     return payload
 
 
-def select_asof(doc,decision_at,validate=True):
+def validate_segment(entry,doc,sid):
+    validate_packet(doc)
+    if doc.get('contract')!=CONTRACT or doc.get('series')!=sid or digest(doc)!=entry['sha256']:
+        raise ValueError('retained segment identity differs')
+    if entry['key']!=PREFIX+'outputs/'+entry['sha256']+'.json':raise ValueError('segment path differs')
+    for field in ('coverage','replay','generated_at','acquired_at','n_vintages'):
+        if doc.get(field)!=entry.get(field):raise ValueError('retained segment '+field+' differs')
+    if doc['coverage'].get('scope')!='archive_segment':raise ValueError('archive segment scope required')
+
+
+def select_asof(doc,decision_at,validate=True,read=None):
     """Select the latest observation valid on a completed archive day, including null."""
     if validate:validate_packet(doc)
     decision=clock(decision_at)
@@ -170,6 +213,15 @@ def select_asof(doc,decision_at,validate=True):
     coverage=doc['coverage']
     if archive_day<coverage['archive_start'] or archive_day>coverage['archive_end']:
         return {'status':'outside_retained_archive','selected':None}
+    if doc['contract']==CATALOG:
+        matches=[s for s in doc['segments'] if s['coverage']['archive_start']<=archive_day<=s['coverage']['archive_end']]
+        if len(matches)!=1:raise ValueError('missing or overlapping selected segment')
+        segment=matches[0]
+        if read is None:return {'status':'archive_segment_required','selected':None,'segment':segment}
+        packet=json.loads(read(segment['key']))
+        validate_segment(segment,packet,doc['series'])
+        result=select_asof(packet,decision_at)
+        return {**result,'catalog_replay':doc['replay'],'catalog_collection_id':doc['collection_id']}
     rows=[(i,row) for i,row in enumerate(doc['vintages'])
           if row['date']<=archive_day and row['valid_from']<=archive_day<=row['valid_through']]
     if not rows:return {'status':'unavailable','selected':None}
@@ -237,4 +289,3 @@ def net_liquidity(docs,now=None):
     out['status']='ARCHIVE_RESEARCH' if out['series'] else 'BLOCKED'
     out['reason']='Historical feature definitions, decision timing and out-of-sample investment protocol still require qualification.'
     return out
-

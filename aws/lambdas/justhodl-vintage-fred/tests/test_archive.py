@@ -47,6 +47,84 @@ class ArchiveTests(unittest.TestCase):
         self.assertTrue(row['start_left_censored']);self.assertIsNone(row['known_on'])
         self.assertFalse(d['point_in_time']);self.assertFalse(d['calls_eligible'])
         d=packet(value='0');self.assertEqual(m.select_asof(d,'2026-09-03T12:00:00Z')['selected']['value'],0)
+        with self.assertRaises(ValueError):packet(value='1e-9999')
+
+    def test_partial_definition_query_and_miskeyed_cache_are_rejected(self):
+        definition,page=inputs();meta=json.loads(definition['raw']);meta['realtime_start']='2026-09-01'
+        partial=record('WALCL','series',meta,'2026-09-01',m.MAX_DATE)
+        with self.assertRaisesRegex(ValueError,'complete definition'):
+            m.compile_series('WALCL',partial,[page],STAMP,'one','2026-09-08','2026-09-08T19:00:00Z')
+        client=MemoryS3();req=m.request('WALCL','series/observations','2026-09-01','2026-09-07')
+        cached={k:v for k,v in page.items() if k!='raw'};cached['acquired_at']=store.now()
+        client.objects[m.PREFIX+'cache/'+m.digest(req)+'.json']=m.encoded(cached)
+        with patch.object(store,'load_original',return_value={**cached,'raw':page['raw']}):
+            with self.assertRaisesRegex(ValueError,'cached request identity'):
+                store.acquire(client,'bucket',req,'managed',999999)
+
+    def test_segmented_store_original_replay_and_closed_checkpoint(self):
+        import gzip
+        sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'scripts'))
+        from replay_fred_vintage import replay
+        client=MemoryS3();definition,page=inputs('NFCI',value='0.15',units='Index')
+        definition['acquired_at']=store.now();page['acquired_at']=store.now()
+        compiler_raw=Path(m.__file__).read_bytes();compiler={'sha256':hashlib.sha256(compiler_raw).hexdigest()}
+        compiler['key']=m.PREFIX+'compilers/'+compiler['sha256']+'.py';client.objects[compiler['key']]=compiler_raw
+        calls=[]
+        def acquire(client,bucket,req,*args):
+            calls.append(req);result=definition if req['endpoint']=='series' else page
+            self.assertEqual(req,result['request'])
+            store.immutable(client,bucket,result['evidence']['key'],gzip.compress(result['raw'],mtime=0),'application/gzip')
+            return result
+        with patch.object(store,'acquire',acquire),patch.object(store,'now',return_value=store.now()):
+            entry=store.collect_segmented(client,'bucket','NFCI','managed',99999,'one-collection','2026-09-08',compiler,'2026-09-08T19:00:00Z')
+            second=store.collect_segmented(client,'bucket','NFCI','managed',99999,'second-collection','2026-09-08',compiler,'2026-09-08T19:00:00Z')
+        self.assertEqual(sum(r['endpoint']=='series/observations' for r in calls),1,'checkpoint must avoid re-fetching complete segment')
+        doc=json.loads(client.objects[entry['key']]);m.validate_packet(doc)
+        second_doc=json.loads(client.objects[second['key']]);self.assertEqual(doc['segments'],second_doc['segments'])
+        def read(key):
+            raw=client.objects[key];return gzip.decompress(raw) if key.endswith('.gz') else raw
+        manifest=json.loads(read(entry['replay']['manifest_key']))
+        self.assertEqual(replay(manifest,read),{k:v for k,v in doc.items() if k!='replay'})
+        self.assertEqual(m.select_asof(doc,'2026-09-05T12:00:00Z')['status'],'archive_segment_required')
+        selected=m.select_asof(doc,'2026-09-05T12:00:00Z',read=read)
+        self.assertEqual(selected['selected']['value_decimal'],'0.15')
+        self.assertEqual(selected['catalog_collection_id'],'one-collection')
+        bad=deepcopy(manifest);bad['segments'][0]['coverage']['archive_start']='2026-09-02'
+        with self.assertRaisesRegex(ValueError,'gap or overlap'):
+            m.compile_catalog('NFCI',definition,bad['segments'],store.now(),'one','2026-09-08','2026-09-08T19:00:00Z')
+        key=doc['segments'][0]['key'];old=client.objects[key];corrupt=json.loads(old);corrupt['n_vintages']=123;client.objects[key]=m.encoded(corrupt)
+        with self.assertRaises(ValueError):m.select_asof(doc,'2026-09-05T12:00:00Z',read=read)
+        with self.assertRaises(ValueError):replay(manifest,read)
+
+    def test_transient_timeout_retries_original_request_without_advancing_cache_clock(self):
+        from unittest.mock import Mock
+        client=MemoryS3();definition,_=inputs();opener=Mock()
+        opener.open.side_effect=[TimeoutError('temporary'),io.BytesIO(definition['raw'])]
+        with patch.object(store.urllib.request,'build_opener',return_value=opener),patch.object(store.time,'sleep'):
+            result=store.acquire(client,'bucket',definition['request'],'managed',store.time.monotonic()+100)
+        self.assertEqual(opener.open.call_count,2)
+        self.assertEqual(result['raw'],definition['raw'])
+        with patch.object(store.urllib.request,'build_opener',side_effect=AssertionError('cache should reuse originals')):
+            cached=store.acquire(client,'bucket',definition['request'],'managed',store.time.monotonic()+100)
+        self.assertEqual(cached['acquired_at'],result['acquired_at'])
+
+    def test_catalog_requires_complete_adjacent_segments_and_pins_each_descriptor(self):
+        definition,page=inputs('NFCI','1','Index');segments=[];packets={}
+        for start,end,value in [('2026-09-01','2026-09-04','1'),('2026-09-05','2026-09-08','2')]:
+            body=json.loads(page['raw']);body.update(realtime_start=start,realtime_end=end)
+            body['observations'][0].update(realtime_start=start,realtime_end=end,value=value)
+            doc=seal(m.compile_series('NFCI',definition,[record('NFCI','series/observations',body,start,end)],STAMP,'segment-'+start,end,'2026-09-08T19:00:00Z',start))
+            sha=m.digest(doc);entry={k:doc[k] for k in ('coverage','replay','generated_at','acquired_at','n_vintages')}
+            entry.update(key=m.PREFIX+'outputs/'+sha+'.json',sha256=sha);segments.append(entry);packets[entry['key']]=m.encoded(doc)
+        catalog=seal(m.compile_catalog('NFCI',definition,segments,STAMP,'catalog','2026-09-08','2026-09-08T19:00:00Z'))
+        self.assertEqual(catalog['n_vintages'],2)
+        self.assertEqual(m.select_asof(catalog,'2026-09-05T12:00:00Z',read=packets.__getitem__)['selected']['value_decimal'],'1')
+        self.assertEqual(m.select_asof(catalog,'2026-09-06T12:00:00Z',read=packets.__getitem__)['selected']['value_decimal'],'2')
+        for bad in (segments[:1],segments[1:],list(reversed(segments)),segments+segments[-1:]):
+            with self.assertRaises(ValueError):m.compile_catalog('NFCI',definition,bad,STAMP,'catalog','2026-09-08','2026-09-08T19:00:00Z')
+        bad=deepcopy(segments[0]);bad['n_vintages']=5
+        with self.assertRaisesRegex(ValueError,'n_vintages'):
+            m.validate_segment(bad,json.loads(packets[bad['key']]),'NFCI')
 
     def test_dated_definitions_and_revision_validity_are_selected_together(self):
         definition,page=inputs();meta=json.loads(definition['raw']);body=json.loads(page['raw'])

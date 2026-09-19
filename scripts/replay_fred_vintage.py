@@ -23,16 +23,25 @@ def read_public(key):
 
 
 def replay(manifest,read=read_public):
-    if manifest.get('contract')!='fred-vintage-replay.v1':raise ValueError('unsupported vintage replay')
+    if manifest.get('contract') not in ('fred-vintage-replay.v1','fred-vintage-catalog-replay.v1'):raise ValueError('unsupported vintage replay')
     local=Path(model.__file__).read_bytes();ref=manifest['compiler']
     if hashlib.sha256(local).hexdigest()!=ref['sha256'] or read(ref['key'])!=local:
         raise ValueError('reviewed/retained compiler differs; use matching release checkout')
     def original(descriptor):
         raw=read(descriptor['evidence']['key'])
         return {**descriptor,'raw':raw}
-    output=model.compile_series(manifest['series'],original(manifest['definition']),
-        [original(d) for d in manifest['pages']],manifest['generated_at'],manifest['collection_id'],
-        manifest['archive_end'],manifest['collection_started_at'])
+    if manifest['contract']=='fred-vintage-catalog-replay.v1':
+        for entry in manifest['segments']:
+            doc=json.loads(read(entry['key']));model.validate_segment(entry,doc,manifest['series'])
+            key=doc['replay']['manifest_key'];child=json.loads(read(key))
+            if key!=model.PREFIX+'runs/'+model.digest(child)+'.json':raise ValueError('segment run identity differs')
+            if replay(child,read)!={k:v for k,v in doc.items() if k!='replay'}:raise ValueError('segment original replay differs')
+        output=model.compile_catalog(manifest['series'],original(manifest['definition']),manifest['segments'],
+            manifest['generated_at'],manifest['collection_id'],manifest['archive_end'],manifest['collection_started_at'])
+    else:
+        output=model.compile_series(manifest['series'],original(manifest['definition']),
+            [original(d) for d in manifest['pages']],manifest['generated_at'],manifest['collection_id'],
+            manifest['archive_end'],manifest['collection_started_at'],manifest.get('archive_start'))
     if model.digest(output)!=manifest['output_sha256']:raise ValueError('archive replay differs')
     return output
 

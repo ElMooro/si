@@ -160,5 +160,6 @@ def legacy_unvalidated_handler(event=None, context=None):
 
 
 def lambda_handler(event=None, context=None):
+    """Original archives; high-revision series use bounded replayable segments."""
     from vintage_source_store import run
     return run(s3,BUCKET,FRED_KEY)
