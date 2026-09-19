@@ -1,107 +1,20 @@
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global Flow Desk — JustHodl.AI</title><!-- FLOW DESK v2 -->
-<style>
-:root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
-.wrap{max-width:1320px;margin:0 auto;padding:24px 18px 70px}
-h1{font-size:20px;margin:0 0 2px;letter-spacing:.4px}
-.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
-.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:13px;margin-bottom:14px}
-.dial{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative}
-.dial h3,.c h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2);font-weight:600}
-.big{font-family:var(--mono);font-size:33px;font-weight:800;line-height:1}
-.lab{font-family:var(--mono);font-size:11.5px;margin-top:4px}
-.bar{height:7px;background:#101a2b;border-radius:5px;margin-top:10px;position:relative;overflow:hidden}
-.bar i{position:absolute;top:0;bottom:0;width:2px;background:#fff6;left:50%}
-.bar b{position:absolute;top:0;bottom:0;border-radius:5px}
-.comp{color:var(--fg3);font-size:10px;margin-top:8px;font-family:var(--mono);line-height:1.7}
-.spark{position:absolute;right:14px;top:14px;opacity:.9}
-.dossier{background:linear-gradient(160deg,#0f1c31,#0a1322);border:1px solid #274668;border-radius:14px;padding:16px 20px;margin:0 0 14px;font-size:14px;line-height:1.7}
-.dossier h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.8px;color:var(--cy)}
-.dsrc{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:8px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:13px}
-.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
-.wide{grid-column:1/-1}
-.kv{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin:5px 0;gap:8px}
-.kv .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hbar{flex:1;height:6px;background:#0f1828;border-radius:4px;margin:0 4px;position:relative;min-width:40px}
-.hbar b{position:absolute;top:0;bottom:0;border-radius:4px}
-.chip{font-size:9.5px;padding:2px 7px;border-radius:10px;font-family:var(--mono);white-space:nowrap}
-.chip.in{background:#0d2b22;color:var(--gr);border:1px solid #1c4a3a}
-.chip.out{background:#2d1218;color:var(--rd);border:1px solid #52222c}
-.chip.neu{background:#12203a;color:var(--cy);border:1px solid #22406b}
-.chip.warm{background:#2b230d;color:var(--am);border:1px solid #4a3d1c}
-.g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}.vi{color:var(--vi)}
-.load{color:var(--fg3);font-family:var(--mono);padding:44px;text-align:center}
-@media(max-width:700px){.big{font-size:27px}}
-</style></head><body><div class="wrap">
-<h1>🌍 GLOBAL FLOW DESK — WHERE MONEY IS GOING</h1>
-<div class="sub" id="meta">Assembling flows…</div>
-<div id="app" class="load">Loading…</div>
-<script src="/jh-nav-drawer.js" defer></script>
-<script>
-const fin=v=>Number.isFinite(v);
-const F=v=>fin(v)||typeof v==='string'?v:'—';
-const mUsd=v=>!fin(v)?'—':(v>0?'+':'−')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.abs(v).toFixed(0)+'M');
-const col=v=>!fin(v)?'var(--fg3)':v>0?'var(--gr)':v<0?'var(--rd)':'var(--cy)';
-const esc=s=>String(s??'').replace(/</g,'&lt;');
-function spark(rows,key,w=118,h=34){
- const vs=rows.map(r=>r[key]).filter(fin); if(vs.length<3)return'';
- const mn=Math.min(...vs,0),mx=Math.max(...vs,0),rg=(mx-mn)||1;
- const pts=rows.filter(r=>fin(r[key])).map((r,i,a)=>`${(i/(a.length-1))*w},${h-((r[key]-mn)/rg)*h}`).join(' ');
- const zero=h-((0-mn)/rg)*h;
- return `<svg class="spark" width="${w}" height="${h}"><line x1="0" y1="${zero}" x2="${w}" y2="${zero}" stroke="#ffffff22"/><polyline points="${pts}" fill="none" stroke="var(--cy)" stroke-width="1.6"/></svg>`;
-}
-function hbars(items,fmt,max){
- const mx=max??Math.max(...items.map(x=>Math.abs(x.v)||0),1);
- return items.map(x=>{const w=Math.min(100,Math.abs(x.v)/mx*100);
-  return `<div class="kv"><span class="nm">${esc(x.nm)}</span><span class="hbar"><b style="width:${w}%;${x.v>=0?'left:0;':'right:0;'}background:${col(x.v)}"></b></span><b style="color:${col(x.v)};white-space:nowrap">${fmt(x.v)}</b>${x.chip??''}</div>`}).join('');
-}
-(async()=>{
- let d;try{d=await(await fetch('data/global-flow-desk.json',{cache:'no-store'})).json()}catch(e){}
- const app=document.getElementById('app');
- if(!d||!d.inst_vs_retail){app.textContent='Feed unavailable — data/global-flow-desk.json failed strict JSON parse or fetch.';return}
- document.getElementById('meta').textContent=`${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC · ${d.hot_money.n_scored} countries scored · engine v${d.version}`;
- const IR=d.inst_vs_retail,H=d.history||[],HOT=d.hot_money,C=d.asset_classes||{},S=d.sectors||{},CP=d.capex||{};
- const clsRows=Object.entries(C).map(([k,v])=>({nm:k.replace(/_/g,' '),v:v.net_5d_usd_m})).filter(r=>fin(r.v)).sort((a,b)=>b.v-a.v);
- const secRows=(S.ranked||[]).map(x=>({nm:x.etf,v:x.net_5d_usd_m})).filter(r=>fin(r.v));
- const ctry=Object.entries(HOT.countries||{}).map(([c,e])=>({nm:c,v:e.score,e})).sort((a,b)=>b.v-a.v);
- const dial=(t,v,l,extra,sk)=>`<div class="dial">${sk||''}<h3>${t}</h3>
-   <div class="big" style="color:${v>10?'var(--gr)':v<-10?'var(--rd)':'var(--cy)'}">${fin(v)?(v>0?'+':'')+v.toFixed(1):'—'}</div>
-   <div class="lab" style="color:${v>10?'var(--gr)':v<-10?'var(--rd)':'var(--cy)'}">${esc(l)}</div>
-   <div class="bar"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.min(48,Math.abs(v||0)/2)}%;background:${col(v)}"></b><i></i></div>
-   <div class="comp">${extra}</div></div>`;
- app.className='';app.innerHTML=`
- <div class="hero">
-  ${dial('INSTITUTIONAL COMPOSITE',IR.institutional,IR.institutional>10?'ACCUMULATING':IR.institutional<-10?'DISTRIBUTING':'NEUTRAL',
-    `OWN-DIX ${F(IR.own_dix_pct)}% · radar breadth ${F(IR.radar_breadth_pct)}%`,spark(H,'inst'))}
-  ${dial('RETAIL COMPOSITE',IR.retail,IR.retail>10?'BUYING':IR.retail<-10?'FLEEING':'NEUTRAL',
-    `AAII spread ${fin(IR.aaii_spread_pct)?(IR.aaii_spread_pct>0?'+':'')+IR.aaii_spread_pct+'pts':'—'} · stablecoin 7d ${mUsd(IR.stablecoin_7d_usd_m)}`,spark(H,'retail'))}
-  <div class="dial"><h3>DIVERGENCE VERDICT</h3>
-   <div class="big" style="font-size:23px;color:${String(IR.divergence).includes('CONFLICT')?'var(--am)':'var(--cy)'}">${esc(IR.divergence)}</div>
-   <div class="comp" style="margin-top:12px">Hot money IN: <b class="g">${(HOT.top_inflows||[]).join(', ')}</b><br>Hot money OUT: <b class="r">${(HOT.top_outflows||[]).join(', ')}</b></div>
-   ${HOT.warming_note?`<div class="comp"><span class="chip warm">WARMING ×${(HOT.warming_etfs||[]).length}</span> ${esc(HOT.warming_note)}</div>`:''}</div>
- </div>
- <div class="dossier"><h3>🤖 AI DESK BRIEF</h3>${esc(d.ai_brief)}<div class="dsrc">source: ${d.ai_brief_src==='llm'?'LLM synthesis':'deterministic synthesis (LLM offline)'} · daily 22:50 UTC</div></div>
- <div class="grid">
-  <div class="c wide"><h3>💵 HOT MONEY — COUNTRY MAP <small style="color:var(--fg3)">(country ETF 5d $ + TIC 12m Δ + FX 20d momentum)</small></h3>
-   ${ctry.map(x=>`<div class="kv"><span class="nm">${esc(x.nm)}</span>
-     <span class="hbar"><b style="width:${Math.min(100,Math.abs(x.v))}%;${x.v>=0?'left:0;':'right:0;'}background:${col(x.v)}"></b></span>
-     <b style="color:${col(x.v)}">${(x.v>0?'+':'')+x.v}</b>
-     <span class="comp" style="margin:0;min-width:150px;text-align:right">ETF ${mUsd(x.e.etf_5d_usd_m)}${fin(x.e.fx_mom_pct)?' · FX '+(x.e.fx_mom_pct>0?'+':'')+x.e.fx_mom_pct+'%':''}${fin(x.e.tic_12m_usd_b)?' · TIC '+(x.e.tic_12m_usd_b>0?'+':'')+x.e.tic_12m_usd_b+'B':''}</span>
-     <span class="chip ${x.e.verdict==='HOT MONEY IN'?'in':x.e.verdict==='HOT MONEY OUT'?'out':'neu'}">${x.e.verdict.replace('HOT MONEY ','')}</span></div>`).join('')}</div>
-  <div class="c"><h3>🏦 ASSET-CLASS LADDER (net 5d)</h3>${hbars(clsRows,mUsd)}</div>
-  <div class="c"><h3>🔄 SECTOR ROTATION (net 5d)</h3>${hbars(secRows,mUsd)}
-   <div class="comp">LEADERS <b class="g">${(S.leaders||[]).join(' ')}</b> · LAGGARDS <b class="r">${(S.laggards||[]).join(' ')}</b></div></div>
-  <div class="c wide"><h3>🏗️ CAPEX PULSE ${CP.status==='OK'?'':'<span class="chip warm">'+esc(CP.status)+'</span>'}</h3>
-   ${CP.status==='OK'?`<div class="kv"><span class="nm">HYPERSCALERS (AI buildout)</span><b class="cy">$${F(CP.hyperscalers_ttm_b)}B</b><b style="color:${col(CP.hyperscalers_yoy_pct)}">${fin(CP.hyperscalers_yoy_pct)?(CP.hyperscalers_yoy_pct>0?'+':'')+CP.hyperscalers_yoy_pct+'% yoy':''}</b></div>
-   <div class="kv"><span class="nm">MARKET (top-160)</span><b class="cy">$${F(CP.market_ttm_b)}B</b><b style="color:${col(CP.market_yoy_pct)}">${fin(CP.market_yoy_pct)?(CP.market_yoy_pct>0?'+':'')+CP.market_yoy_pct+'% yoy':''}</b></div>
-   <div class="comp">top accelerators: <b class="g">${(CP.top_accelerators||[]).join(' ')}</b>${CP.top_sector?` · hottest sector: <b class="a">${esc(CP.top_sector.name)} +${CP.top_sector.yoy_pct}%</b>`:''} · TTM capex, FMP quarterly, FX-converted</div>`:`<div class="comp">${esc(CP.source||'')}</div>`}</div>
- </div>
- <div class="c" style="margin-top:13px"><div class="comp">${esc(d.method)}</div></div>`;
-})();
-</script></div>
-<script defer src="/jh-page-ai.js"></script>
-<script src="/sidebar.js" defer></script>
-</body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Global Flow Research — JustHodl.AI</title><meta name="description" content="Reproducible fund issuance comparisons, issuer classifications, complete group histories and explicit portfolio scenarios."><style>
+:root{--bg:#0b0e13;--card:#12161f;--fg:#d7dde8;--dim:#a5afbd;--bd:#28323f;--cyan:#d5b372}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1250px;margin:auto;padding:28px 18px 70px}a{color:var(--cyan);overflow-wrap:anywhere}h1{font-size:clamp(26px,3vw,38px);line-height:1.2;margin:.4em 0}h2{font-size:22px;margin:6px 0 14px}p{margin:10px 0}.eyebrow{font-size:12px;letter-spacing:1.5px;color:var(--cyan)}.dim{color:var(--dim);font-size:12px}.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px;margin:18px 0;min-width:0;overflow-wrap:anywhere}.lead-nav{display:flex;gap:18px;flex-wrap:wrap}#state{color:var(--cyan)}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--bd);border-radius:10px;background:var(--card);padding:18px;min-width:0}.metric div{font-size:12px;min-height:48px;color:var(--dim)}.metric strong{display:block;font-size:27px;overflow-wrap:anywhere}.metric span{font-size:11px;color:var(--dim)}.controls{display:flex;gap:15px;align-items:end;flex-wrap:wrap;margin:18px 0}.controls label{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}.controls select{width:100%;max-width:100%}button,input,select{font:inherit;color:var(--fg);background:#161e2a;border:1px solid #4a5669;border-radius:6px;padding:10px 12px;min-height:44px;min-width:0}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.text-button{color:var(--cyan)}.table-scroll{position:relative;overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;font-size:13px}th{text-align:left;color:var(--dim);font-size:12px}td,th{padding:11px;border-bottom:1px solid var(--bd);vertical-align:top;min-width:110px}.pagination{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:15px}#chart svg{width:100%;height:auto;display:block}#chart text{fill:var(--dim);font-size:13px}details{margin-top:18px;border-top:1px solid var(--bd);padding-top:12px}summary{cursor:pointer;min-height:44px}code{font-size:12px;overflow-wrap:anywhere;white-space:pre-wrap}.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.scenario-grid label{display:flex;flex-direction:column;gap:5px}.scenario-grid input{width:100%}.scenario-grid button{align-self:end}.warning{border-left:3px solid var(--cyan);padding:10px 14px;background:#201e1a}#scenario-result{margin:14px 0}#permanent{display:inline-block;min-height:40px;padding:8px 0}@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.controls{display:block}.controls label{margin:10px 0}.scenario-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){main{padding:18px 10px 55px}.panel{padding:16px}.metric{padding:12px}.metric strong{font-size:23px}.table-scroll table{min-width:580px}.scenario-grid{grid-template-columns:1fr}}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}#positions input{width:135px}#positions input[data-field="label"]{width:180px}.scenario-actions{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:16px 0}.scenario-actions label{display:flex;flex-direction:column;gap:5px}.scenario-actions input{width:160px}:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+</style></head><body><main>
+<nav class="lead-nav" aria-label="Research links"><a href="/etf-research.html">Issuer fund research</a><a href="/capital-inflows.html">Cross-border transactions</a><a href="/calls.html">Calls</a></nav>
+<header class="panel"><div class="eyebrow">GLOBAL FLOW DESK · COMPARABLE FUND EVIDENCE</div><h1>Compare the flows. Understand the exposure.</h1><p>Trace fund issuance estimates to dated issuer records, inspect complete histories and test your own portfolio assumptions.</p><p id="state" aria-live="polite">Verifying retained research…</p><p id="asof" class="dim"></p><a id="permanent">Permanent research snapshot</a></header>
+<section aria-label="Research coverage"><div class="cards" id="cards"></div></section>
+<p class="warning">NAV-valued changes in fund shares are descriptive issuance estimates. They do not identify institutional or retail investors, national capital flows, or purchases of underlying securities. Overlapping groups must not be added together.</p>
+<p id="brief"></p>
+<div class="controls"><label for="selection">Research group<select id="selection"></select></label></div>
+<section class="panel" id="detail" aria-label="Selected group"></section>
+<section class="panel"><h2 id="history-title">Complete covered-fund history</h2><div class="controls"><label for="chart-window">Measurement window<select id="chart-window"><option value="five">Five issuer observations</option><option value="one">One issuer observation</option></select></label><label for="range">Chart range<select id="range"><option value="65">Latest 65 reference dates</option><option value="260" selected>Latest 260 reference dates</option><option value="0">All retained reference dates</option></select></label></div><div id="chart"></div><details><summary>Exact dated subtotals and covered funds</summary><div id="history"></div><div class="pagination"><button id="prev" type="button" disabled>Previous records</button><span id="page-count" aria-live="polite"></span><button id="next" type="button" disabled>Next records</button></div></details><button id="download-history" type="button" disabled>Download complete selected history</button><p class="dim">History uses the retained IVV issuer calendar. A subtotal includes only funds with valid observations for that exact window; its membership can change. Current classifications and current historical issuer files are not a point-in-time investment backtest.</p></section>
+<section class="panel"><h2>Compare the same observation period</h2><p>Reported issuer classifications are separate from configured research baskets. Every subtotal shows its covered and configured fund counts. Fund mandates do not establish where investors reside.</p><details><summary>Open all group comparisons</summary><div id="comparison"></div></details><details><summary>Configured funds without a same-period estimate</summary><p id="gaps"></p></details></section>
+<section class="panel"><h2>Keep cross-border transactions in their own timeframe</h2><p>Treasury TIC measures monthly reported securities transactions. It is separate evidence from daily fund share changes.</p><div id="tic-context"></div></section>
+<section class="panel"><h2>Test a portfolio scenario</h2><p>Enter up to twelve long positions and explicit assumptions over one common horizon. The result is the combined USD profit or loss of those assumptions.</p><form id="scenario-form"><div class="table-scroll"><table><thead><tr><th>Position name</th><th>Market value · USD</th><th>Local price change · %</th><th>USD per local currency change · %</th><th>Cash income · USD</th><th>Costs · USD</th><th>Position</th></tr></thead><tbody id="positions"></tbody></table></div><div class="scenario-actions"><button id="add-position" type="button">Add position</button><label for="s-days">Scenario horizon · days<input id="s-days" type="number" min="1" max="3650" step="1" required></label><button type="submit">Calculate entered scenario</button></div></form><div id="scenario-result" aria-live="polite">No assumptions entered.</div><div id="scenario-rows"></div><button id="download-scenario" type="button" disabled>Download assumptions and calculation</button><p class="warning">Use zero FX change when your price-change assumption is already in USD. Do not count currency exposure twice. A positive FX change means the local currency strengthens against USD.</p><p class="dim">Enter price changes excluding separately entered cash income. Enter income and costs in USD over the stated horizon. There is no annualization, inferred probability, fund-flow return forecast, tax model, margin model or automatic leveraged-fund compounding. Your accounts are not read or changed.</p></section>
+<section class="panel"><h2>Retained cross-asset context</h2><p>Existing upstream packets remain available in full. Unreviewed context is not blended into the fund estimates or converted into investor identity, a risk score or a trading vote.</p><details><summary>Inspect every preserved input</summary><div id="contexts"></div></details></section>
+<section class="panel"><h2>Evidence and reproduction</h2><div id="evidence"></div><p class="warning">This descriptive research does not authorize Calls, position sizing or execution. A portfolio scenario reports your entered assumptions; it is not a recommendation.</p></section>
+</main><script src="/jh-tic-research.js" defer></script><script src="/jh-flow-research.js" defer></script><script src="/jh-flow-research-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>

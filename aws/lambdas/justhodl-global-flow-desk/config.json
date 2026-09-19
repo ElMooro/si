@@ -3,13 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 512,
-  "timeout": 240,
+  "memory": 1024,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Global capital-flow synthesis: asset-class $ ladder, sector rotation, institutional-vs-retail divergence, country hot-money map (ETF+TIC+FX), capex impulse, AI brief.",
+  "description": "Reproducible dated fund comparisons, issuer taxonomy, coverage and separately retained cross-asset context. Research only.",
   "schedule": {
     "name": "justhodl-global-flow-desk-daily",
     "expression": "cron(50 22 ? * MON-FRI *)",

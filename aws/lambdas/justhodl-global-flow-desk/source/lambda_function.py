@@ -111,7 +111,7 @@ def _clean_brief(txt):
     return t if 90 <= len(t) <= 720 else None
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     tf = _j("data/etf-true-flows.json", {}) or {}
     fmap_daily = {m.get("ticker"): m for m in (_j("etf-flows/daily.json", {}) or {}).get("metrics", []) if m.get("ticker")}
@@ -359,3 +359,24 @@ def lambda_handler(event=None, context=None):
             "inst": inst, "retail": retail, "divergence": div,
             "hot_in": hot["top_inflows"][:3], "hot_out": hot["top_outflows"][:3],
             "n_countries": hot["n_scored"], "ai": bool(brief)}
+
+
+def lambda_handler(event=None, context=None):
+    """Publish a reproducible descriptive view; public HTTP requests only read it."""
+    from flow_desk_research import CONTRACT, CURRENT, encoded
+    from flow_desk_store import reader, run
+    try:
+        event = event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            packet = json.loads(reader(s3, BUCKET)(CURRENT))
+            if packet.get('contract') != CONTRACT:
+                raise ValueError('Verified flow research publication unavailable')
+            return {'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                    'body': encoded(packet).decode()}
+        result = run(s3, BUCKET)
+        return {'statusCode': 200, 'body': encoded(result).decode()}
+    except Exception as exc:
+        print('[flow-research] ' + type(exc).__name__)
+        return {'statusCode': 503,
+                'body': json.dumps({'ok': False, 'reason': 'Verified flow research unavailable; preceding publication retained.'})}

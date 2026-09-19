@@ -111,6 +111,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/capital-inflows.json','capital-inflows.json','data/tic-research-verification.json',
       'data/foreign-flows.json','foreign-flows.json','data/tic-flows.json','tic-flows.json','data/foreign-research-verification.json','data/official-pulse.json','official-pulse.json','data/official-research-verification.json',
       'data/etf-true-flows.json','etf-true-flows.json','data/etf-research-verification.json',
+      'data/global-flow-desk.json','global-flow-desk.json','data/flow-desk-research-verification.json',
       'data/liquidity-reversal.json','data/credit-composite.json','data/settlement-fails.json','data/nyfed-primary-dealer.json','data/primary-dealers.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',

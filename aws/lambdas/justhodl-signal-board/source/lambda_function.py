@@ -1142,7 +1142,7 @@ def n_xray(d):
         len(b.get("dis_warnings") or []),len(b.get("laggards_watch") or []))
 
 
-def n_globalflows(d):
+def _legacy_unvalidated_globalflows(d):
     """Where money is going: class ladder + inst/retail divergence + hot-money map."""
     ir=(d.get("inst_vs_retail") or {}); hot=(d.get("hot_money") or {})
     inst,ret=ir.get("institutional"),ir.get("retail")
@@ -1151,6 +1151,17 @@ def n_globalflows(d):
     return sig,"GLOBAL FLOWS inst %s / retail %s — %s; hot in %s out %s"%(
         inst,ret,(ir.get("divergence") or "")[:34],
         ",".join((hot.get("top_inflows") or [])[:2]),",".join((hot.get("top_outflows") or [])[:2]))
+
+
+def n_globalflows(d):
+    """Fund observations and unqualified legacy identities cannot vote on returns."""
+    if d.get('contract') == 'global-flow-research.v1':
+        quality = d.get('quality') or {}
+        period = d.get('period') or {}
+        return None, 'FLOW RESEARCH %s/%s funds, %s to %s; descriptive, no trading vote' % (
+            quality.get('aligned_funds'), quality.get('configured_funds'),
+            period.get('start_date'), period.get('end_date'))
+    return None, 'Global flow source unqualified; investor identity and hot-money scores do not authorize a trading vote'
 
 
 def n_capex(d):
