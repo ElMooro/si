@@ -1,8 +1,8 @@
 """Provider-reported income and split reconciliation, never an expected return."""
 from datetime import date,timedelta
-from decimal import Decimal,InvalidOperation
+from decimal import Decimal,InvalidOperation,localcontext,ROUND_HALF_EVEN
 from collections import Counter
-import math,re,statistics
+import re
 
 def decimal(value,positive=False,nonnegative=False):
     if isinstance(value,bool) or value is None or len(str(value))>60:raise ValueError('finite original number required')
@@ -34,6 +34,17 @@ def split_factor(splits,start,end):
         if start<r['date']<=end:
             factor*=Decimal(r['numerator_decimal'])/Decimal(r['denominator_decimal']);used.append(r['row_index'])
     return factor,used
+
+def annualized_volatility(sample):
+    """Portable arithmetic: no operating-system libm or float summation order."""
+    with localcontext() as ctx:
+        ctx.prec=42;ctx.rounding=ROUND_HALF_EVEN
+        values=[Decimal(r['value_decimal']) for r in sample]
+        returns=[(b/a).ln() for a,b in zip(values,values[1:])]
+        if len(returns)<2:raise ValueError('sample volatility requires two returns')
+        mean=sum(returns)/len(returns)
+        variance=sum((r-mean)**2 for r in returns)/(len(returns)-1)
+        return format((variance.sqrt()*Decimal(252).sqrt()*100).quantize(Decimal('.00000001')),'f')
 
 def compile_equity(symbol,documents,as_of):
     """Documents must already be independently verified against retained responses.
@@ -112,8 +123,9 @@ def compile_equity(symbol,documents,as_of):
     for n in (20,60,252):
         sample=prices[-n-1:]
         usable=len(sample)==n+1 and all(r['status']=='split_reconciled' for r in sample) and all(1<=(day(b['date'])-day(a['date'])).days<=6 for a,b in zip(sample,sample[1:]))
-        returns=[math.log(float(b['value_decimal'])/float(a['value_decimal'])) for a,b in zip(sample,sample[1:])] if usable else []
-        volatility[str(n)]={'returns':len(returns),'annualized_pct':statistics.stdev(returns)*math.sqrt(252)*100 if usable else None,
+        annualized=annualized_volatility(sample) if usable else None
+        volatility[str(n)]={'returns':n if usable else 0,'annualized_pct':float(annualized) if annualized is not None else None,
+          'annualized_pct_decimal':annualized,'arithmetic':'Decimal ln, sample variance and sqrt at 42 digits; round-half-even to 8 decimal percentage places.',
           'from':sample[0]['date'] if sample else None,'to':sample[-1]['date'] if sample else None,
           'basis':'Sample log-return standard deviation on independently split-adjusted closes; 252-session annualization. Not dividend total return, a Sharpe ratio or a forecast.'}
     return {'symbol':symbol,'identity':identity,'as_of':anchor,'price_decimal':str(price),'price_row_index':latest['row_index'],

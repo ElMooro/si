@@ -8,6 +8,10 @@ test('current board withholds expired observations, while selected archived valu
  p.calls_eligible=true;assert.throws(()=>api.boundary(p),/contract/);
 });
 test('legacy numeric fragility and rankings cannot enter the research boundary',()=>{const p=packet();p.unwind_overlay.cohort_fragility=0;assert.throws(()=>api.boundary(p));p.unwind_overlay.cohort_fragility=null;p.cross_asset_top=[{symbol:'X'}];assert.throws(()=>api.boundary(p),/rankings/);});
+test('daily equity freshness uses the prior New York weekday with explicit holiday uncertainty',()=>{
+ assert.equal(api.expectedPriceDate(Date.parse('2026-09-21T14:00:00Z')),'2026-09-18');assert.equal(api.expectedPriceDate(Date.parse('2026-09-22T14:00:00Z')),'2026-09-21');
+ const r={...row(),symbol:'HDV',quality:{...row().quality,acquired_at:'2026-09-22T13:00:00Z'}};assert.equal(api.status(r,Date.parse('2026-09-22T14:00:00Z')),'release_due_unverified');
+});
 test('equity scenario reconciles realized price, cash, tax, partial funding and fees',()=>{
  const x={shares:100,start:100,end:90,distributions:2,funded:.5,rate:6,days:360,basis:360,tax:15,fees:20},r=api.scenario('equity',x);
  assert.equal(r.net_pnl,-1150);assert.equal(r.initial_value,10000);assert.equal(r.return_on_initial_value_pct,-11.5);assert.equal(r.break_even_end_price_or_fx,101.5);
@@ -36,6 +40,12 @@ test('equity board searches and pages without changing metric meanings',()=>{
 test('missing observations break lines; corporate-action event plots show points',()=>{
  const h={id:'x',unit:'USD',frequency:'D',rows:[{date:'2026-09-01',value_decimal:'2'},{date:'2026-09-02',value_decimal:null},{date:'2026-09-03',value_decimal:'3'}]},d=api.chart(h).match(/<path d="([^"]*)"/)[1];
  assert.equal((d.match(/M/g)||[]).length,2);assert.ok(!d.includes('L'));assert.match(api.chart({...h,frequency:'event'}),/<circle/);
+});
+test('split history plots the reported new-to-old share ratio, never a return',()=>{
+ const h={id:'FMP:HDV',kind:'splits',unit:'ratio',frequency:'event',rows:[{date:'2026-04-29',numerator_decimal:'5',denominator_decimal:'1',row_index:0}]};
+ assert.match(api.chart(h),/new shares \/ old share/);assert.match(api.chart(h),/not an investment return/);assert.match(api.chart(h),/<circle/);
+ const p=packet();p.comparisons.TIPS={id:'TIPS',name:'Nominal yield gap',unit:'percentage_points',status:'real_nominal_comparison_prohibited',as_of:'2026-09-18',value_decimal:null};
+ assert.match(api.detail(p,'TIPS',at),/Real yield: nominal funding comparison disabled/);
 });
 test('labels cannot inject markup; evidence paths remain public and bounded',()=>{const p=packet();p.measurements.DFF.name='<img onerror="x">';assert.match(api.detail(p,'DFF',at),/&lt;img/);assert.equal(api.path('data/../../secret'),null);assert.equal(api.path('https://example.com'),null);});
 test('snapshot verifies immutable manifest, output hash and clock before rendering',async()=>{

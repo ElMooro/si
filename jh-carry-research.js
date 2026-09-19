@@ -12,6 +12,8 @@
  }
  function chart(h,range=260){
   if(!h)return '<p>No retained history.</p>';
+  if(h.kind==='splits')return '<p>Reported split ratios: new shares per old share. A point at 5 means five shares replaced one; it is not an investment return.</p>'+chart({...h,kind:'split_ratio_chart',unit:'new shares / old share',rows:h.rows.map(r=>({...r,value_decimal:String(Number(r.numerator_decimal)/Number(r.denominator_decimal))}))},range);
+  if(h.kind==='distributions')return '<p>Provider-reported ex-date schedule, including announced events. A point does not establish that cash was paid; inspect each payment date below.</p>'+chart({...h,kind:'distribution_chart'},range);
   const rows=(range?h.rows.slice(-range):h.rows).map(r=>({...r,value:r.value_decimal===null?null:Number(r.value_decimal)})),valid=rows.filter(r=>r.value!==null&&Number.isFinite(r.value));
   if(!valid.length)return '<p>No numeric observations in this range.</p>';
   const W=1050,H=250,pad=60,min=Math.min(...valid.map(r=>r.value)),max=Math.max(...valid.map(r=>r.value)),span=max-min||1,from=Date.parse(rows[0].date),to=Date.parse(rows.at(-1).date),xs=d=>pad+(Date.parse(d)-from)/Math.max(86400000,to-from)*(W-2*pad),ys=v=>H-pad-(v-min)/span*(H-2*pad);
@@ -50,10 +52,15 @@
    for(const k of histories(r)){const h=r[k];if(h.key!==PREFIX+'histories/'+h.sha256+'.json'||!Number.isInteger(h.observations)||h.observations<1)throw Error('History identity differs');}
   }return p;
  }
+ function expectedPriceDate(at){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(at)).map(v=>[v.type,v.value]));
+  const d=new Date(Date.UTC(+p.year,+p.month-1,+p.day)-86400000);while([0,6].includes(d.getUTCDay()))d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);
+ }
  function status(r,at=Date.now(),pinned=false){
   if(!r)return 'unavailable';const q=r.quality;if(!q)return r.status||'unavailable';if(q.status!=='fresh')return q.status;
   if(pinned)return 'fresh_at_snapshot';const age=at-Date.parse(q.acquired_at);
   if(!Number.isFinite(age)||age<0||age>26*3600000)return 'expired_source';
+  if(r.symbol&&r.as_of<expectedPriceDate(at))return 'release_due_unverified';
   const days=Math.floor(at/86400000)-Math.floor(Date.parse(r.as_of)/86400000);
   if(!Number.isFinite(days)||days<0||days>q.max_observation_age_days)return 'stale_observation';return 'fresh';
  }
@@ -78,7 +85,7 @@
  function detail(p,id,at,pinned){
   const r=selected(p,id);if(!r)return '<p>No original measurements available for this selection.</p>';
   const refs=[];function walk(v){if(v?.evidence?.key){refs.push(v);return;}if(v&&typeof v==='object')for(const x of Object.values(v))walk(x);}walk(r.originals);
-  let text=`<h2>${esc(r.name||id)}</h2><p>Observation ${esc(r.as_of)} · ${words(status(r,at,pinned))}. This panel preserves the selected snapshot, including historical or stale observations.</p>`;
+  let text=`<h2>${esc(r.status==='real_nominal_comparison_prohibited'?'Real yield: nominal funding comparison disabled':r.name||id)}</h2><p>Observation ${esc(r.as_of)} · ${words(status(r,at,pinned))}. This panel preserves the selected snapshot, including historical or stale observations.</p>`;
   if(r.symbol){const d=r.trailing_distribution,f=r.funding_reference_comparison;
    text+=table(['Reported item','Value / period'],[
     ['USD price per current share',esc(r.price_decimal)],['Trailing ex-date distributions per current share · USD',esc(d.current_share_distribution_decimal)],
@@ -126,6 +133,6 @@
   return {contract:'carry-entered-scenario.v1',kind,assumptions:{...inputs},currency,components,net_pnl:net,initial_value:initial,return_on_initial_value_pct:initial>0?100*net/initial:null,
    break_even_end_price_or_fx:breakeven,formula,limitations:scenarioLimits[kind],forecast:false,position_size:null,execution_eligible:false};
  }
- const api={CONTRACT,PREFIX,esc,number,words,path,link,table,choices,selected,histories,boundary,status,current,summary,detail,history,chart,sha,loadSnapshot,loadHistory,scenarioFields,scenarioLimits,scenario};
+ const api={CONTRACT,PREFIX,esc,number,words,path,link,table,choices,selected,histories,boundary,expectedPriceDate,status,current,summary,detail,history,chart,sha,loadSnapshot,loadHistory,scenarioFields,scenarioLimits,scenario};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.CarryResearch=api;
 })(typeof globalThis==='object'?globalThis:this);

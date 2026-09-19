@@ -134,7 +134,7 @@ def build(inputs,read,at):
     for identifier,item in comparisons.items():
         rows=item.pop('rows');item['history']=shard(identifier,item['unit'],item['frequency'],rows,artifacts,'matched_rate_comparison');item.update(AUTHORITY)
     statuses=Counter(r['quality']['status'] for r in [*measured.values(),*equities.values()]);missing=len(catalog.FRED)+1+len(catalog.EQUITIES)-len(measured)-len(equities)
-    out={'contract':CONTRACT,'version':'2.0.0','methodology_version':'original_income_and_matched_rates.v1','generated_at':at,
+    out={'contract':CONTRACT,'version':'2.0.1','methodology_version':'original_income_and_matched_rates.v2','generated_at':at,
       'headline':'Dated distribution income and funding comparisons; no calibrated carry allocation or unwind forecast.',
       'quality':{'status':'partial' if measured or equities else 'unavailable','source_status_counts':dict(statuses),'unavailable_source_families':missing,
         'basis':'Each observation has its own date and acquisition limit. Missing commodity curves and unqualified signals remain unavailable.'},

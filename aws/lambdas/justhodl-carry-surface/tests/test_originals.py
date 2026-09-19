@@ -52,6 +52,26 @@ def fred_refs(client,sid='DFF',value='4'):
     return {'definition':definition,'observations':[retain(client,url,doc)]}
 
 class Originals(unittest.TestCase):
+    def test_volatility_is_independent_of_host_float_math_and_ambient_decimal_context(self):
+        from decimal import localcontext,ROUND_DOWN,ROUND_UP
+        sample=[{'value_decimal':v} for v in ('100','110','99')]
+        with localcontext() as ctx:
+            ctx.prec=12;ctx.rounding=ROUND_DOWN;a=e.annualized_volatility(sample)
+        with localcontext() as ctx:
+            ctx.prec=60;ctx.rounding=ROUND_UP;b=e.annualized_volatility(sample)
+        import math
+        # Two-return closed form: |ln(1.1)-ln(0.9)| * sqrt(126) * 100.
+        self.assertEqual(a,b);self.assertEqual(a,'225.25229700')
+        self.assertAlmostEqual(float(a),math.log(11/9)*math.sqrt(126)*100,places=7)
+        self.assertEqual(e.annualized_volatility([{'value_decimal':'100'}]*21),'0.00000000')
+
+    def test_nominal_price_cadence_allows_weekends_without_calling_a_missing_weekday_fresh(self):
+        self.assertEqual(n.expected_price_weekday('2026-09-21T14:00:00Z'),'2026-09-18')
+        self.assertEqual(n.expected_price_weekday('2026-09-22T14:00:00Z'),'2026-09-21')
+        client=Storage();refs=equity_refs(client)
+        for ref in refs.values():ref['acquired_at']='2026-09-22T13:00:00Z'
+        self.assertEqual(n.equity('HDV',refs,s.raw_reader(client,'b'),'2026-09-22T14:00:00Z')['quality']['status'],'release_due_unverified')
+
     def test_split_adjusted_distribution_income_and_price_are_independent(self):
         p=e.compile_equity('HDV',documents(),'2026-09-18')
         self.assertEqual(p['trailing_distribution']['current_share_distribution_decimal'],'0.5')

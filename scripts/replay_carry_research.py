@@ -2,7 +2,7 @@
 import argparse,json,re,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/lambdas/justhodl-carry-carry/source')]
+sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/lambdas/justhodl-carry-surface/source')]
 import carry_research as model
 from carry_store import replay
 from replay_fred_vintage import read_public

@@ -114,6 +114,11 @@ def completed_cutoff(at):
     # This deliberately lags an after-close refresh rather than assume a session has finalized.
     return (clock(at).astimezone(ZoneInfo('America/New_York')).date()-timedelta(days=1)).isoformat()
 
+def expected_price_weekday(at):
+    cutoff=day(completed_cutoff(at))
+    while cutoff.weekday()>=5:cutoff-=timedelta(days=1)
+    return cutoff.isoformat()
+
 def equity(symbol,refs,read,at):
     if set(refs)!=set(catalog.FMP_PATHS):raise ValueError('complete reviewed FMP endpoint set required')
     docs={path:original(refs[path],read,fmp_url(symbol,path),at) for path in catalog.FMP_PATHS}
@@ -122,5 +127,8 @@ def equity(symbol,refs,read,at):
     acquired=min((r['acquired_at'] for r in refs.values()),key=clock)
     item.update(id='FMP:'+symbol,name=symbol,unit='USD_per_current_share',frequency='D',originals=refs,
       quality=quality(item['as_of'],acquired,at,'D',item['price_adjustment_status']!='split_reconciled'))
+    item['quality']['nominal_expected_price_date']=expected_price_weekday(at)
+    item['quality']['price_cadence']='Prior New York weekday close; exchange-holiday exceptions are not verified.'
+    if item['quality']['status']=='fresh' and item['as_of']<expected_price_weekday(at):item['quality']['status']='release_due_unverified'
     item['price_cutoff']={'through':completed_cutoff(at),'basis':'Preceding New York calendar date; not an exchange-holiday calendar or intraday quote.'}
     return item
