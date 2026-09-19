@@ -65,7 +65,7 @@ def fred(series_id, limit=40, vintage=None):
         return []
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     published = now.isoformat()
@@ -191,3 +191,20 @@ def lambda_handler(event=None, context=None):
     print(f"[capital-inflows] asof={asof} into_us_12mo=${into_12}B net=${net_12}B "
           f"3mo_ann=${into_3ann}B regime={regime} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps(out["headline"])}
+
+
+def lambda_handler(event=None, context=None):
+    """Original TIC research; HTTP serves the retained packet without collection."""
+    from tic_research import CONTRACT, CURRENT, encoded
+    from tic_store import raw_reader, run
+    try:
+        event=event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            packet=json.loads(raw_reader(S3,BUCKET)(CURRENT))
+            if packet.get('contract')!=CONTRACT:raise ValueError('reviewed TIC publication unavailable')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':encoded(packet).decode()}
+        result=run(S3,BUCKET,FRED_KEY,context)
+        return {'statusCode':200,'body':encoded(result).decode()}
+    except Exception as exc:
+        print('[tic-research] '+type(exc).__name__)
+        return {'statusCode':503,'body':json.dumps({'ok':False,'reason':'Original TIC research unavailable; last verified publication retained.'})}

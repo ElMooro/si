@@ -523,7 +523,9 @@ def lambda_handler(event, context):
     # ── capital-inflows overlay (foreign funding of US assets — the dollar/RORO tap) ──
     capital_inflows = None
     _ci = _read("data/capital-inflows.json") or {}
-    if _ci.get("ok"):
+    if (_ci.get("calls_eligible") is True and _ci.get("sizing_eligible") is True
+            and (_ci.get("quality") or {}).get("status") == "fresh"
+            and (_ci.get("decision_qualification") or {}).get("status") == "qualified"):
         ci_reg = _ci.get("regime")
         into12 = (_ci.get("headline") or {}).get("foreign_net_into_us_lt_12mo_b")
         risk_on = score >= 12; risk_off = score <= -12
@@ -545,6 +547,13 @@ def lambda_handler(event, context):
         capital_inflows = {"regime": ci_reg, "foreign_net_into_us_lt_12mo_b": into12,
                            "confirmation": cconf, "note": cnote}
         all_tells.append(f"Capital inflows: {ci_reg} ({cconf})")
+
+    elif _ci:
+        capital_inflows = {"regime": "MONITOR_ONLY", "source_regime": _ci.get("regime"),
+            "foreign_net_into_us_lt_12mo_b": (_ci.get("headline") or {}).get("foreign_net_into_us_lt_12mo_b"),
+            "observation_date": _ci.get("data_asof"), "quality": _ci.get("quality"), "replay": _ci.get("replay"),
+            "calls_eligible": False, "sizing_eligible": False, "confirmation": "NOT_QUALIFIED",
+            "note": "Monthly securities transactions retained as dated research; no validated effect on market returns or position size."}
 
     # ── secondary risk overlay: aggregate the vol-structure / credit / stress engines
     #    (these alpha-graded islands fed nothing; they now corroborate the RORO read) ──

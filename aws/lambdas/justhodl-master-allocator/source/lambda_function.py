@@ -325,7 +325,9 @@ def gather_signals():
     ci = read_json("data/capital-inflows.json")
     ust = (ci.get("by_asset_class") or {}).get("treasuries") or {}
     lm, r12 = ust.get("latest_month_b"), ust.get("rolling_12mo_b")
-    if isinstance(lm, (int, float)) and isinstance(r12, (int, float)) and r12:
+    if (ci.get("sizing_eligible") is True and (ci.get("quality") or {}).get("status") == "fresh"
+            and (ci.get("decision_qualification") or {}).get("status") == "qualified"
+            and type(lm) in (int, float) and type(r12) in (int, float) and r12):
         run_rate_m = r12 / 12.0
         out["foreign_bond_demand"] = {
             "value": round(lm, 1),

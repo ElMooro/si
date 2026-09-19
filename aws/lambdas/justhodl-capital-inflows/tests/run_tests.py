@@ -42,7 +42,7 @@ def run(missing=None):
         value=10000 if sid==engine.TOTAL_INTO_US else 4000 if sid.endswith("99990") else 6000 if sid.endswith("99991") else 2500
         return [(d,value) for d in DATES]
     with patch.object(engine,"fred",side_effect=fred),patch.object(engine,"S3",types.SimpleNamespace(put_object=lambda **kw:writes.append(kw))):
-        assert engine.lambda_handler({},None)["statusCode"]==200
+        assert engine._legacy_unvalidated_handler({},None)["statusCode"]==200
     return json.loads(writes[0]["Body"])
 
 
@@ -66,3 +66,5 @@ if __name__=="__main__":
     tests=[f for n,f in list(globals().items()) if n.startswith("test_")]
     for f in tests:f()
     print(f"TIC integrity tests passed: {len(tests)}")
+    import subprocess
+    subprocess.run([sys.executable,str(Path(__file__).with_name('test_originals.py'))],check=True)

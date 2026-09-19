@@ -62,7 +62,10 @@ def lambda_handler(event=None, context=None):
         "carry_drivers": [d.get("driver") for d in (roro.get("drivers") or [])[:4]],
     }
 
-    foreign = {"regime": ci.get("regime"), "by_asset_class": ci.get("by_asset_class")}
+    foreign = {"regime": "MONITOR_ONLY", "source_regime": ci.get("regime"), "by_asset_class": ci.get("by_asset_class"),
+        "observation_date": ci.get("data_asof"), "source_generated_at": ci.get("generated_at"),
+        "quality": ci.get("quality"), "replay": ci.get("replay"), "calls_eligible": False, "sizing_eligible": False,
+        "note": "Dated securities transactions; synthesis does not grant forecasting or allocation authority."}
 
     dist = dp.get("distribution") or {}
     dark = {

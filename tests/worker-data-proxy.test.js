@@ -108,6 +108,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/eurodollar-plumbing.json','eurodollar-plumbing.json','data/funding-research-verification.json',
       'data/yen-carry.json','yen-carry.json','data/yen-research-verification.json',
       'data/carry-surface.json','carry-surface.json','data/carry-research-verification.json',
+      'data/capital-inflows.json','capital-inflows.json','data/tic-research-verification.json',
       'data/liquidity-reversal.json','data/credit-composite.json','data/settlement-fails.json','data/nyfed-primary-dealer.json','data/primary-dealers.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',
