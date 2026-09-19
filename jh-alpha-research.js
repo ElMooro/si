@@ -74,6 +74,13 @@
    return line?`<p>${safe}</p>`:'';
   }).join('');
  }
+ function boundBrief(brief,currentManifest){
+  assertBoundary(brief,'alpha-brief-research.v1');
+  const source=brief.source_replay?.manifest_key;
+  if(typeof source!=='string'||!/^data\/alpha-research\/runs\/[a-f0-9]{64}\.json$/.test(source))throw Error('Brief source run required');
+  const note=source===currentManifest?'':'<p class="warning">This daily brief uses an earlier research snapshot. Its date and retained source are shown below; it has not been recalculated from the current cards.</p>';
+  return note+briefMarkup(brief.brief_markdown);
+ }
  async function bytes(fetcher,key,limit=8*1024*1024){
   if(!path(key))throw Error('Unsupported evidence path');const response=await fetcher(path(key),{cache:'no-store'});
   if(!response.ok)throw Error('Research artifact unavailable');const reader=response.body.getReader(),parts=[];let size=0;
@@ -90,6 +97,6 @@
   if(p.generated_at!==m.generated_at)throw Error('Snapshot clock differs');
   p.replay={manifest_key:key,output_sha256:ref.sha256,input_key:m.input?.key};return p;
  }
- const api={CONTRACT,PREFIX,esc,num,path,recent,render,scenario,briefMarkup,loadSnapshot,sha};
+ const api={CONTRACT,PREFIX,esc,num,path,recent,render,scenario,briefMarkup,boundBrief,loadSnapshot,sha};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.AlphaResearch=api;
 })(typeof globalThis==='object'?globalThis:this);

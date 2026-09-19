@@ -21,8 +21,7 @@
    const response=await fetch('/data/alpha-brief.json',{cache:'no-store'});if(!response.ok)throw Error('Brief unavailable');const current=await response.json();
    const briefId=current.replay?.manifest_key?.match(/^data\/alpha-research\/runs\/([a-f0-9]{64})\.json$/)?.[1];const brief=await api.loadSnapshot(briefId,window.fetch.bind(window),'brief');
    if(current.replay.output_sha256!==brief.replay.output_sha256||current.generated_at!==brief.generated_at)throw Error('Brief pointer differs');
-   if(brief.source_replay?.manifest_key!==packet.replay.manifest_key){$('brief').textContent='The daily brief is based on an earlier research snapshot. Its source snapshot is linked below.';}
-   else $('brief').innerHTML=api.briefMarkup(brief.brief_markdown);
+   $('brief').innerHTML=api.boundBrief(brief,packet.replay.manifest_key);
    const link=document.createElement('a');link.href=api.path(brief.source_replay.manifest_key);link.textContent='Daily brief source snapshot manifest';$('brief-links').replaceChildren(link);
    function briefAge(){$('brief-age').textContent=api.recent(brief.quality.source_generated_at,Date.now(),4)?'Brief source within the 4-hour research snapshot policy.':'Brief source is stale; retained context only.';}briefAge();setInterval(briefAge,60000);
   }catch(error){$('brief').textContent='Daily brief unavailable: '+error.message+'. Research decisions remain visible above.';}
