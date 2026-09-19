@@ -147,3 +147,15 @@ class ControlledExecution:
             "max_estimated_cost_usd": float(self.budget.max_estimated_cost_usd),
             "operations": list(self.operations),
         }
+
+
+def _install_ai_doctrine() -> None:
+    """Fail-closed: a missing wrap must not break governance."""
+    try:
+        import gear_b_doctrine
+        gear_b_doctrine.install()
+    except Exception:
+        return
+
+
+_install_ai_doctrine()
