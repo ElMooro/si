@@ -63,4 +63,6 @@ class Yen(unittest.TestCase):
         self.assertIsNone(out['carry_width']['executable_carry'])
 
 
-if __name__=='__main__':unittest.main()
+if __name__=='__main__':
+    from test_originals import Originals
+    unittest.main()

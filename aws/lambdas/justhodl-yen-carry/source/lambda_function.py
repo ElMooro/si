@@ -223,7 +223,7 @@ def build_measurements(series,positioning,today=None):
             'triggers':[],'eurodollar_read':None,'cross_reference':{}}
 
 
-def lambda_handler(event,context):
+def _legacy_unvalidated_handler(event,context):
     started=time.monotonic();series={};errors=[]
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures={pool.submit(fred,sid):name for name,sid in FRED_SERIES.items()};pos_future=pool.submit(fetch_cftc)
@@ -238,3 +238,19 @@ def lambda_handler(event,context):
     for key in (f"data/yen-carry/measurements/{out['generated_at'][:10]}.json",OUT_KEY):
         s3.put_object(Bucket=S3_BUCKET,Key=key,Body=body,ContentType='application/json',CacheControl='public, max-age=3600')
     return {'statusCode':200,'ok':out['ok'],'quality':out['quality']}
+
+
+def lambda_handler(event=None,context=None):
+    from yen_store import run,raw_reader
+    from yen_research import CONTRACT,CURRENT
+    try:
+        request=event.get('requestContext',{}) if isinstance(event,dict) else {}
+        if isinstance(request,dict) and request.get('http'):
+            raw=raw_reader(s3,S3_BUCKET)(CURRENT)
+            if json.loads(raw).get('contract')!=CONTRACT:raise ValueError('Original yen research not published')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':raw.decode('utf-8')}
+        return {'statusCode':200,'body':json.dumps(run(s3,S3_BUCKET,FRED_KEY),allow_nan=False)}
+    except Exception as exc:
+        print('[yen-research] unavailable: '+type(exc).__name__)
+        return {'statusCode':503,'headers':{'Cache-Control':'no-store'},'body':json.dumps({'status':'unavailable',
+          'reason':'Original yen evidence could not be verified','calls_eligible':False,'sizing_eligible':False,'portfolio_action':'WAIT'})}

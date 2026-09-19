@@ -383,6 +383,8 @@ def lambda_handler(event=None, context=None):
         "fresh":_fresh(yc)}
     JP["score"]=_sub({"RISING SHARPLY":2.0,"RISING":1.0}.get(JP["carry_stress"] or "",0)
                      +max(0,(JP["jgb10_chg_6m_pp"] or 0))*2)
+    if yc.get('calls_eligible') is False or yc.get('unwind_risk_score') is None:
+        JP.update(score=None, fresh=False, status='unqualified_yen_vote', source_replay=yc.get('replay'))
 
     # ─── EM ───
     EM={"em_hy_minus_us_hy_bps":_bps(_first(cs,("em_hy_minus_us_hy",))),

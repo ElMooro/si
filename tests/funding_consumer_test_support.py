@@ -28,5 +28,10 @@ def run(name):
             scope={'health':health,'pl':packet,'GF':{'score':50,'fresh':True}}
             exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-desk-boundary','exec'),scope)
             assert scope['GF']['score'] is None and scope['GF']['fresh'] is False
+        node=next(n for n in handler.body if isinstance(n,ast.If) and 'unqualified_yen_vote' in ast.unparse(n))
+        for packet in ({},{'calls_eligible':False,'unwind_risk_score':100},{'unwind_risk_score':None}):
+            scope={'yc':packet,'JP':{'score':50,'fresh':True}}
+            exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-yen-desk-boundary','exec'),scope)
+            assert scope['JP']['score'] is None and scope['JP']['fresh'] is False
     else:raise ValueError('unsupported consumer')
     print(name+': funding abstention boundary passed')

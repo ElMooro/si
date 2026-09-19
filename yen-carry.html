@@ -1,129 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Yen Funding &amp; FX Measurements · JustHodl.AI</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🇯🇵</text></svg>">
-<style>
-:root{
-  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
-  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
-}
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
-.container{max-width:1180px;margin:0 auto;padding:24px}
-header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
-h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
-nav.crumbs{margin-top:10px}
-nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
-nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
-.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
-.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
-.hero .big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;margin:5px 0}
-.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
-.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
-.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
-.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
-.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
-.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
-.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
-.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
-.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
-.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
-.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
-.stat .v{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:2px}
-.stat .s{font-family:var(--mono);font-size:9px;color:var(--dim)}
-.cbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:14px}
-.cb{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:8px;padding:15px}
-.cb .name{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
-.cb .big2{font-family:var(--mono);font-size:22px;font-weight:700;margin:6px 0 2px}
-.cb .tag{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px}
-.cb .det{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:6px;line-height:1.6}
-.cb .rd{color:var(--mute);font-size:11.5px;margin-top:8px;line-height:1.55}
-.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
-.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
-.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
-.trg{margin:6px 0 0;padding-left:18px}
-.trg li{color:var(--mute);font-size:12px;line-height:1.65;margin-bottom:3px}
-.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
-.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
-.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
-.xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>🇯🇵 Yen Funding &amp; FX Measurements</h1>
-    <p class="subtitle">Dated Japan funding-rate proxies, BOJ assets, US–Japan yield comparisons, USD/JPY returns and volatility, and CFTC leveraged-fund futures positioning. Each measurement shows its observation period and scope. Executable carry returns and unwind probabilities require additional inputs and validation.</p>
-    <nav class="crumbs">
-      <a href="/index.html">desk</a>
-      <a href="/cb-injection.html">cb injection &amp; carry</a>
-      <a href="/ecb-detail.html">ecb liquidity</a>
-      <a href="/eurodollar.html">eurodollar</a>
-    </nav>
-  </header>
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yen Funding Research — JustHodl.AI</title><style>
+:root{--bg:#0b0e13;--card:#12161f;--line:#28323f;--txt:#d7dde8;--dim:#a5afbd;--accent:#58c8a6}*{box-sizing:border-box}body{margin:0 auto;padding:28px 18px 70px;max-width:1250px;background:var(--bg);color:var(--txt);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--accent);overflow-wrap:anywhere}h1{font-size:clamp(25px,3vw,36px);line-height:1.2;margin:.4em 0}h2{font-size:22px}h3{font-size:17px;margin:24px 0 8px}p{margin:10px 0}.eyebrow{font-size:12px;letter-spacing:1.5px;color:var(--accent)}.dim,#asof{color:var(--dim);font-size:12px}.warning{border-left:3px solid #dcaa52;padding:10px 14px;background:#201e1a}.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin:18px 0;min-width:0}.controls{display:flex;gap:15px;align-items:end;flex-wrap:wrap;margin:16px 0}.controls label{display:flex;flex-direction:column;gap:5px;min-width:180px;flex:1}.controls input,.controls select,button{font:inherit;color:var(--txt);background:#161e2a;border:1px solid #4a5669;border-radius:6px;padding:10px 12px;min-height:44px}.controls input,.controls select{width:100%}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.inspect{color:var(--accent);text-align:left;white-space:normal;overflow-wrap:anywhere;min-width:100px}.table-scroll{overflow:auto;max-width:100%}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;color:var(--dim);font-size:11px;font-weight:600}th,td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;min-width:100px;overflow-wrap:anywhere}td:first-child{max-width:310px}.pagination{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:15px 0}#detail{outline-offset:5px;overflow-wrap:anywhere}#detail:focus{outline:2px solid var(--accent)}code{font-size:12px;overflow-wrap:anywhere}details{border-top:1px solid var(--line);padding-top:12px;margin-top:18px}summary{cursor:pointer;min-height:44px}.history-chart{width:100%;height:auto;background:#0e141d}.history-chart text{fill:var(--dim);font-size:12px}.permanent{display:inline-block;padding:8px 0;min-height:40px}@media(max-width:600px){body{padding:18px 10px 55px}.panel{padding:16px}.controls{display:block}.controls label{margin:10px 0}.table-scroll table{min-width:830px}#families table,#fails table{min-width:650px}}
+ .deliver{color:#d9ad65}.receive{color:#61afd3}
+.controls label{min-width:0}.controls select{max-width:100%}#asof{overflow-wrap:anywhere}button[data-select]{color:var(--accent);overflow-wrap:anywhere}#review td:nth-child(2){min-width:320px}
 
-  <div id="hero"><div class="loading">LOADING YEN CARRY &amp; BOJ LIQUIDITY…</div></div>
-
-  <div id="risk"></div>
-
-  <div id="call"></div>
-
-  <h2>Funding rates · FX · JGB yields · CFTC futures</h2>
-  <div class="cbs" id="cards"></div>
-
-  <div id="trig"></div>
-  <div id="edollar"></div>
-
-  <p class="note" id="note"></p>
-  <p class="timestamp" id="ts"></p>
-</div>
-<script>
-const S3="data/";
-const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
-const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
-const sgn=(v,d=0)=>v==null?"—":(v>0?"+":"")+num(v,d);
-async function main(){
-  const d=await J('yen-carry.json');const age=Date.now()-Date.parse(d?.generated_at);
-  if(!d||d.methodology_version!=='yen-dated-measurements.v2'||!Number.isFinite(age)||age<0||age>4*864e5){document.getElementById('hero').innerHTML='<div class="loading">Current validated yen measurements unavailable</div>';return;}
-  const F=d.boj_funding_leg||{},W=d.carry_width||{},X=d.fx_detonator||{},G=d.jgb_long_end||{},P=d.positioning||{},O=d.observations||{};
-  document.getElementById('hero').innerHTML=`<div class="hero"><div class="lab">Yen funding and FX observations</div><div class="big">${esc(d.quality?.status)}</div><div class="meta">${esc(d.headline)}</div></div>`;
-  document.getElementById('risk').innerHTML='';document.getElementById('call').innerHTML='';
-  const source=name=>{const o=O[name]||{},q=o.quality||{};return `${esc(q.observation_date||'unavailable')} · ${esc(q.frequency||'')} · ${esc(q.status||'unavailable')} · ${esc(o.series_id||'')}`;};
-  const cell=(title,value,detail,note)=>`<div class="cb"><div class="name">${esc(title)}</div><div class="big2">${value}</div><div class="det">${detail}</div><div class="rd">${esc(note)}</div></div>`;
-  const front=W.front_end_proxy||{},gap=W.ten_year_yield_gap||{},pc=P.current||{};
-  document.getElementById('cards').innerHTML=[
-    cell('Japan 3M interbank rate',num(F.jp_short_rate_pct,3)+'%',source('jp_rate_3m'),F.rate_definition),
-    cell('BOJ total assets',num(F.boj_assets_jpy_trillion,2)+' trillion JPY',source('boj_assets'),`6m change ${sgn(F.boj_balance_sheet_chg_6m_pct,2)}%. ${F.note}`),
-    cell('Matched-month rate comparison',sgn(front.spread_pp,3)+' pp',esc(front.observation_month||'unavailable'),front.basis||'Matched monthly observations unavailable'),
-    cell('US–Japan 10Y yield difference',sgn(gap.spread_pp,3)+' pp',esc(gap.observation_month||'unavailable'),'Monthly yield comparison; not an executable carry return.'),
-    cell('USD/JPY',num(X.usdjpy,2),source('usdjpy'),`30-day change ${sgn(X.usdjpy_chg_1m_pct,2)}%; ${X.yen_direction}.`),
-    cell('Realized FX volatility',num(X.realized_vol_20d_pct,2)+'%',`60-return volatility ${num(X.realized_vol_60d_pct,2)}%`,X.basis),
-    cell('Japan 10Y yield',num(G.jgb_10y_pct,3)+'%',source('jgb_10y'),`6m change ${sgn(G.jgb_10y_chg_6m_pp,3)} pp. Does not establish repatriation flows.`),
-    cell('CFTC leveraged-fund net JPY futures',sgn(pc.net_contracts),`${esc(P.quality?.observation_date||'unavailable')} · ${esc(P.quality?.status||'unavailable')}`,P.scope),
-    cell('Net positioning / open interest',sgn(pc.net_pct_open_interest,2)+'%',`${P.history_weeks||0} reports · ${P.baseline_weeks||0} prior baseline weeks`,`z ${sgn(P.net_pct_oi_zscore,2)}; percentile ${num(P.net_pct_oi_percentile,1)}. At least 156 prior reports required; maximum 260.`)
-  ].join('');
-  const scenario=d.funding_scenario||{};
-  document.getElementById('trig').innerHTML=`<div class="panel"><div class="t">Illustrative funding arithmetic</div><div class="r">One-month break-even USD/JPY decline: ${num(scenario.break_even_usdjpy_decline_1m_pct,3)}%.</div><div class="rd">${esc(scenario.assumptions)}</div></div>`;
-  document.getElementById('edollar').innerHTML=`<div class="panel"><div class="t">Required before estimating executable carry</div><div class="r">${esc((W.missing||[]).join(' · '))}</div></div>`;
-  document.getElementById('note').textContent=d.history_basis+' No whole-trade size, unwind probability or action recommendation is inferred.';
-  document.getElementById('ts').textContent='Published '+d.generated_at;
-}
-main();
-</script>
-
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['DTWEXBGS','DEXUSEU','NFCI','DTB3','DGS10']);});</script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+:root{--accent:#d5b372}.measurement{font-size:24px}.scenario-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.scenario-grid label{display:flex;flex-direction:column;gap:5px}.scenario-grid input,.scenario-grid select{background:#161e2a;color:var(--txt);font:inherit;padding:10px;border:1px solid #4a5669;border-radius:6px;min-width:0;width:100%}.scenario-grid button{grid-column:1/-1}.lead-nav{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}#board td:last-child{min-width:270px}#chart{overflow:hidden}.history-chart text{font-size:13px}@media(max-width:600px){.scenario-grid{grid-template-columns:1fr 1fr}.measurement{font-size:20px}#detail th,#detail td{min-width:120px}}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;font-size:12px}#state{color:var(--accent)}</style></head><body>
+<nav class="lead-nav" aria-label="Research links"><a href="/calls.html">Calls</a><a href="/eurodollar.html">Dollar funding</a><a href="/carry.html">Carry surface</a><a href="/yield-curve.html">Yield curve</a></nav>
+<header class="panel"><div class="eyebrow">YEN RESEARCH · ORIGINAL EVIDENCE</div><h1>Understand the funding. Measure the FX risk.</h1><p>Reported rates, balance-sheet levels and futures positions, with complete retained histories and explicit portfolio assumptions.</p><p id="state" aria-live="polite">Verifying original research…</p><p id="asof" class="dim"></p><a id="permanent" class="permanent">Permanent research snapshot</a></header>
+<section class="panel"><h2>Dated measurements</h2><p>A fresh acquisition does not turn a lagged observation into a live quote. Daily H.10 exchange rates are published weekly.</p><div id="board"></div></section>
+<section class="panel"><h2>Rate comparisons, with their limits</h2><p>Same reported month; different instruments. These gaps are neither executable carry nor an unwind forecast.</p><div id="comparisons"></div></section>
+<section class="panel"><h2>JPY futures positioning</h2><div id="positioning"></div></section>
+<div class="controls"><label for="selection">Inspect original series<select id="selection"></select></label><label for="range">Chart history<select id="range"><option value="65">Latest 65 observations</option><option value="260" selected>Latest 260 observations</option><option value="0">All retained observations</option></select></label></div>
+<section class="panel" id="detail" tabindex="-1" aria-label="Selected original evidence"></section>
+<section class="panel"><h2>Retained dated history</h2><div id="chart"></div><details><summary>Exact observations and source references</summary><div id="history"></div><div class="pagination"><button id="prev" type="button">Previous</button><span id="page-count" aria-live="polite"></span><button id="next" type="button">Next</button></div></details></section>
+<section class="panel"><h2>Unhedged funding scenario</h2><p>Borrow JPY to fund a USD asset, accrue simple interest, then convert the asset back to JPY. Enter every assumption; reference rates above are not filled in as executable quotes. No account positions are read.</p>
+<form id="scenario-form" class="scenario-grid">
+<label for="notional">USD asset principal<input id="notional" type="number" min="0" max="1000000000000" step="any" required></label>
+<label for="start">Starting FX · JPY per USD<input id="start" type="number" min="0.000001" step="any" required></label>
+<label for="end">Ending FX · JPY per USD<input id="end" type="number" min="0.000001" step="any" required></label>
+<label for="usd-rate">USD annual rate · %<input id="usd-rate" type="number" min="-20" max="100" step="any" required></label>
+<label for="jpy-rate">JPY borrowing rate · %<input id="jpy-rate" type="number" min="-20" max="100" step="any" required></label>
+<label for="days">Calendar days<input id="days" type="number" min="1" max="3660" step="1" required></label>
+<label for="usd-basis">USD day basis<select id="usd-basis" required><option value="">Choose convention</option><option value="360">Actual / 360</option><option value="365">Actual / 365</option></select></label>
+<label for="jpy-basis">JPY day basis<select id="jpy-basis" required><option value="">Choose convention</option><option value="360">Actual / 360</option><option value="365">Actual / 365</option></select></label>
+<label for="fees">Total fees paid · JPY<input id="fees" type="number" min="0" step="any" required></label>
+<button type="submit">Calculate entered scenario</button></form><div id="scenario-result" aria-live="polite">No assumptions entered.</div><button id="download-scenario" type="button" disabled>Download assumptions and calculation</button>
+<p class="dim">No FX hedge, compounding, security price change, default, margin call or refinancing model. This is a counterfactual payoff calculation, not a forecast or a position recommendation. Fees are a user-entered fixed JPY amount.</p></section>
+<section class="panel"><h2>Research limitations and reproduction</h2><div id="evidence"></div><p class="warning">No qualified unwind probability or allocation is available. Calls and sizing remain disabled for this engine.</p></section>
+<script src="/jh-yen-research.js" defer></script><script src="/jh-yen-page.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>
