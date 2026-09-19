@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quantum Desk — PM Meta-Allocator · JustHodl.AI</title>
+<title>Quantum Desk — Research Aggregation · JustHodl.AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -58,7 +58,8 @@ details.row>summary::-webkit-details-marker{display:none}
 </style></head><body><div class="wrap">
 <h1>Quantum Desk</h1>
 <div class="meta" id="meta">loading…</div>
-<div class="sub">One senior-PM read across the whole platform: regime consensus with every voter shown, risk-gate and canary vetoes, a six-leg asset ladder with its complete audit trail, and a name-level money map corroborated by every ticker-keyed engine in the fleet. Everything below is rendered from the engine's artifact — <b>all of it</b>, including the parts that abstain.</div>
+<div class="sub">Existing engine observations and heuristic rankings, with their inputs and disagreements. These scores have not qualified as return forecasts or position-sizing models. Engines may share sources; their count does not establish independent confirmation.</div>
+<div class="card" style="margin-top:16px"><b>WAIT · research only</b><p>No new trade or position size is authorized here. Abstention does not direct liquidation. <a href="/signal-scorecard.html">Review model validation</a> · <a href="/risk-gate.html">Inspect source-backed Risk Gate</a> · <a href="/data/quantum-desk.json">Original desk packet</a></p></div>
 <div class="hero" id="hero"></div>
 
 <div class="sec" id="histsec" style="display:none">
@@ -69,8 +70,8 @@ details.row>summary::-webkit-details-marker{display:none}
 </div>
 
 <div class="sec" id="decsec" style="display:none">
-  <h2>The call — buy checklist, blockers, and what changed</h2>
-  <div class="note">Everything a buy decision needs in one card: which legs clear 0.50, which vetoes are live, and the overnight deltas.</div>
+  <h2>Research checklist, permission limits and changes</h2>
+  <div class="note">The 0.50 checklist is a heuristic diagnostic. Passing it does not establish an investment edge or authorize a trade.</div>
   <div id="decision"></div>
 </div>
 
@@ -86,31 +87,31 @@ details.row>summary::-webkit-details-marker{display:none}
 </div>
 
 <div class="sec">
-  <h2>Asset ladder — six-leg blend, fully audited</h2>
-  <div class="note">Click any row for its complete leg-by-leg breakdown and audit trail. Missing legs renormalize; nothing is invented. Sparklines appear as daily history accumulates.</div>
+  <h2>Asset ladder — six-component research ranking</h2>
+  <div class="note">Open a row for its reported components. Fixed weights and missing-component renormalization are unvalidated model choices. Scores are not probabilities; source and model qualification remain incomplete.</div>
   <div id="ladder"></div>
   <div class="wline" id="weights"></div>
   <div class="wline" id="labst"></div>
 </div>
 
 <div class="sec">
-  <h2>Money map — names, fleet-corroborated</h2>
-  <div class="note" id="mmnote">Candidates from best-setups, gated by class verdicts and risk sizing, then cross-examined by every per-name engine the census knows.</div>
+  <h2>Money map — names and source-engine context</h2>
+  <div class="note" id="mmnote">Research candidates from best-setups and available per-name engines. Shared-source overlap has not been qualified; no position size follows from the ranking.</div>
   <div class="mmgrid" id="mm"></div>
 </div>
 
 <div class="sec">
-  <h2>Data health — the honesty layer</h2>
-  <div class="note">Each upstream source with live freshness. Stale or missing inputs weakened or removed legs above; nothing was filled in.</div>
+  <h2>Input packet availability</h2>
+  <div class="note">These ages describe upstream packets at the desk build time. They do not verify original observation freshness, completeness or predictive value.</div>
   <div class="health" id="health"></div>
   <div class="wline" id="evstats"></div>
 </div>
 <div class="err" id="err"></div>
 </div>
-<script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-enhance.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
 <script>
-const FEED="https://justhodl-dashboard-live.s3.amazonaws.com/data/quantum-desk.json";
-const HIST="https://justhodl-dashboard-live.s3.amazonaws.com/data/quantum-desk-history.json";
+const FEED="/data/quantum-desk.json";
+const HIST="/data/quantum-desk-history.json";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pct=x=>x==null?"—":(x*100).toFixed(0)+"%";
 const vp=v=>v==="BUY_ZONE"?"p-buy":v==="ACCUMULATE"?"p-acc":v==="NEUTRAL"?"p-neu":v==="AVOID"?"p-avd":"p-abs";
@@ -119,6 +120,17 @@ const LEGDESC={discount:"below 200dma / drawdown depth",asymmetry:"modeled upsid
 function spark(vals,w=110,h=26){if(!vals||vals.length<5)return"";const mn=Math.min(...vals),mx=Math.max(...vals),sp=mx-mn||1;
  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-3-(v-mn)/sp*(h-6)).toFixed(1)}`).join(" ");
  return `<svg class="spark" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="var(--acc2)" stroke-width="1.6"/></svg>`}
+function researchOnly(input){
+ const d=structuredClone(input),note="No qualified portfolio-sizing model; research only. WAIT does not direct liquidation.";
+ d.risk_gate={...(d.risk_gate||{}),posture:"UNAVAILABLE",composite:null,sizing_multiplier:null,allows_new_entries:false,sizing_eligible:false,note};
+ for(const row of d.asset_ladder||[])row.verdict="ABSTAIN";
+ for(const row of d.money_map||[]){row.size_hint_x=null;row.sizing_eligible=false;row.setup_verdict="ABSTAIN";}
+ if(d.best_asset_class)d.best_asset_class.verdict="ABSTAIN";
+ if(d.decision){d.decision.verdict="ABSTAIN";d.decision.blockers=[note,...(d.decision.blockers||[])];}
+ for(const row of d.risk_panel?.veto_stack||[])if(row.name==="risk-gate")Object.assign(row,{state:"UNAVAILABLE",active:true,sizing_x:null,flips_when:"A reviewed sizing model must qualify with reproducible out-of-sample evidence; no threshold alone grants permission."});
+ d.doctrine="Heuristic research only; source, dependency and model qualification remain incomplete. No position size is authorized.";
+ return d;
+}
 function sizingHistory(rows){return rows.map(r=>{
  const x=r.sizing_x,stamp=esc((r.t||"").slice(0,10));
  if(typeof x!=="number"||!Number.isFinite(x)||x<0||x>1)return `<i style="background:transparent;border:1px dashed var(--dim);height:8%" title="${stamp} · sizing unavailable"></i>`;
@@ -127,6 +139,7 @@ function sizingHistory(rows){return rows.map(r=>{
 Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("feed "+r.status);return r.json()}),
              fetch(HIST,{cache:"no-store"}).then(r=>r.ok?r.json():{rows:[]}).catch(()=>({rows:[]}))])
 .then(([d,hd])=>{
+  d=researchOnly(d);
   const H=(hd.rows||[]).slice(-90);
   document.getElementById("meta").textContent=`v${d.version} · ops ${d.ops} · ${d.generated_at} · sources ${d.data_health?.sources_ok}/${d.data_health?.sources_total} · ${d.elapsed_s}s`;
   const reg=d.regime||{},rk=d.risk_gate||{},best=d.best_asset_class,ki=d.khalid_index,cb=d.canary_barometer||{},cov=d.fleet_coverage,es=d.evidence_stats;
@@ -142,9 +155,9 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
       <div class="vs">${(cb.triggered||[]).slice(0,4).map(esc).join(", ")}</div></div>
     <div class="card"><div class="k">Khalid Index</div><div class="v">${ki&&ki.risk_index!=null?ki.risk_index:"—"}${ki&&ki.grade?` <span class="pill p-neu">${esc(ki.grade)}</span>`:""}</div>
       <div class="vs">${esc((ki&&ki.phase)||"")}${ki&&ki.llm_status==="unavailable"?" · llm analysis off":""}</div></div>
-    <div class="card"><div class="k">Best asset class</div><div class="v">${best?esc(best.class):"ABSTAIN"}</div>
+    <div class="card"><div class="k">Highest heuristic rank</div><div class="v">${best?esc(best.class):"ABSTAIN"}</div>
       <div class="vs">${best?`score ${best.score} · <span class="pill ${vp(best.verdict)}">${best.verdict}</span>`:"insufficient live sources"}</div></div>
-    <div class="card"><div class="k">Doctrine</div><div class="vs" style="margin-top:6px">${esc(d.doctrine||"")}</div>
+    <div class="card"><div class="k">Research boundary</div><div class="vs" style="margin-top:6px">${esc(d.doctrine||"")}</div>
       <div class="vs" style="margin-top:6px;opacity:.8">fed by ${cov?.engines??"—"} engines · ${cov?.live_artifacts??"—"} artifacts · ${cov?.ticker_sources_consulted??0} per-name sources</div></div>`;
 
   if(H.length>=2){
@@ -165,7 +178,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
       <div class="v">${esc(dec.class)} · ${dec.score} <span class="pill ${vp(dec.verdict)}">${dec.verdict}</span> <span class="vs">${dec.n_ok}/${(dec.checklist||[]).length} legs clear</span></div>
       <div style="margin-top:10px">${cl}</div>
       <div style="margin-top:10px"><span class="k">blockers</span><div style="margin-top:4px">${bl}</div></div>
-      ${sy&&(sy.regime_prev||dd)?`<div style="margin-top:10px"><span class="k">since previous snapshot</span><div class="vs" style="margin-top:4px">regime ${esc(sy.regime_prev||"—")} → now · sizing ×${sy.sizing_prev??"—"} → ×${(d.risk_gate||{}).sizing_multiplier??"—"}${sy.names_in?` · in: ${sy.names_in.join(", ")}`:""}${sy.names_out?` · out: ${sy.names_out.map(esc).join(", ")}`:""}</div><div style="margin-top:6px">${dd}</div></div>`:""}
+      ${sy&&(sy.regime_prev||dd)?`<div style="margin-top:10px"><span class="k">since previous snapshot</span><div class="vs" style="margin-top:4px">regime ${esc(sy.regime_prev||"—")} → now · sizing ×${sy.sizing_prev??"—"} → ×${(d.risk_gate||{}).sizing_multiplier??"—"}${sy.names_in?` · in: ${sy.names_in.map(esc).join(", ")}`:""}${sy.names_out?` · out: ${sy.names_out.map(esc).join(", ")}`:""}</div><div style="margin-top:6px">${dd}</div></div>`:""}
       <div class="vs" style="margin-top:8px;opacity:.7">${esc(dec.note||"")}</div></div>`;}
   const mb=d.macro_board;
   if(mb){document.getElementById("macrosec").style.display="";
@@ -180,7 +193,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
   const rp=d.risk_panel;
   if(rp){document.getElementById("risksec").style.display="";
     const legs=(rp.gate_legs||[]).map(l=>`<div>${esc(l.name)}<br><b>${esc(l.value??"—")}</b> <span class="vs">${esc(l.state||"")}</span></div>`).join("");
-    const vs2=(rp.veto_stack||[]).map(v=>`<div><span class="${v.active?"dead":"ok"}">●</span> <b>${esc(v.name)}</b> · ${esc(v.state||"")}${v.sizing_x!=null?` · ×${v.sizing_x}`:""}<br><span class="vs">flips when: ${esc(v.flips_when||"")}</span></div>`).join("");
+    const vs2=(rp.veto_stack||[]).map(v=>`<div><span class="${v.active?"dead":"ok"}">●</span> <b>${esc(v.name)}</b> · ${esc(v.state||"")}${v.sizing_x!=null?` · ×${v.sizing_x}`:""}<br><span class="vs">permission condition: ${esc(v.flips_when||"")}</span></div>`).join("");
     const extras=[];
     if(rp.tail_risk)extras.push(`<div><b>tail risk</b><br><span class="vs">${esc(rp.tail_risk.level||"—")}${rp.tail_risk.score!=null?" · "+rp.tail_risk.score:""}</span></div>`);
     if(rp.treasury)extras.push(`<div><b>treasury stress</b><br><span class="vs">${esc(rp.treasury.level||"—")}${rp.treasury.score!=null?" · "+rp.treasury.score:""}</span></div>`);
@@ -206,7 +219,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
       ["asymmetry",a.asymmetry_ratio!=null?a.asymmetry_ratio+":1":null],["asym status",a.asym_status],
       ["drawdown now",a.dd_now_pct!=null?a.dd_now_pct+"%":null],["strategic pctile",a.strategic],
       ["liquidity",a.liquidity],["cycle",a.cycle],["price",cp.price],
-      ["10y ER",cp.er_1y_pct!=null?cp.er_1y_pct+"%":null],["excess vs cash",cp.excess_vs_cash_pp!=null?cp.excess_vs_cash_pp+"pp":null],
+      ["Reported annualized ER (unvalidated)",cp.er_1y_pct!=null?cp.er_1y_pct+"%":null],["excess vs cash",cp.excess_vs_cash_pp!=null?cp.excess_vs_cash_pp+"pp":null],
       ["legs used",r.legs_used]].filter(([,v])=>v!=null&&v!=="")
       .map(([k,v])=>`<div>${esc(k)}<br><b>${esc(v)}</b></div>`).join("");
     return `<details class="row"><summary>
@@ -220,7 +233,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
   document.getElementById("ladder").innerHTML=rows||`<div class="abstain">Ladder ABSTAINS — asset-compass unreadable this run. No ranking is shown rather than a guessed one.</div>`;
   document.getElementById("weights").textContent="Blend weights (env-tunable): "+Object.entries(W).map(([k,v])=>`${k} ${(v*100).toFixed(0)}%`).join(" · ")+(d.weights?.money_map?"   |   money-map: "+Object.entries(d.weights.money_map).map(([k,v])=>`${k} ${(v*100).toFixed(0)}%`).join(" · "):"");
   const labst=(d.asset_ladder||[]).filter(r=>r.verdict==="ABSTAIN").map(r=>r.class);
-  if(labst.length)document.getElementById("labst").textContent="Abstaining classes (insufficient legs): "+labst.join(", ");
+  if(labst.length)document.getElementById("labst").textContent="Abstaining classes (model authority unavailable): "+labst.join(", ");
 
   document.getElementById("mm").innerHTML=(d.money_map||[]).map(m=>{
     const evt=(m.evidence||[]).map(c=>`<tr><td>${esc(c.src)}</td><td>${Object.entries(c).filter(([k])=>k!=="src").map(([k,v])=>`${esc(k)}=${esc(v)}`).join(" · ")||"—"}</td></tr>`).join("");

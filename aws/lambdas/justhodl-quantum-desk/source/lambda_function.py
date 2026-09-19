@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.3.3"
+VERSION = "2.3.4"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -775,8 +775,8 @@ def build_risk_panel(docs, risk, canary):
         {"name": "risk-gate", "state": risk.get("posture"),
          "sizing_x": risk.get("sizing_multiplier"),
          "active": (risk.get("sizing_multiplier") is None or risk["sizing_multiplier"] < 1),
-         "flips_when": "composite recovers above the gate's own "
-                       "threshold (engine-defined)"},
+         "flips_when": "A reviewed portfolio-sizing model qualifies with reproducible "
+                       "out-of-sample evidence and current eligible inputs; no threshold alone grants permission."},
         {"name": "canary-barometer",
          "state": "%s %s" % ((canary or {}).get("level"),
                              (canary or {}).get("score")),
@@ -1401,10 +1401,9 @@ def lambda_handler(event=None, context=None):
     out = {
         "version": VERSION, "ops": OPS,
         "generated_at": _now().isoformat(),
-        "doctrine": ("Buy quality below the 200-day at capitulation with "
-                     "modeled asymmetry, where the regime playbook and "
-                     "liquidity plumbing agree. Missing data ABSTAINS; "
-                     "the risk-gate is never overridden."),
+        "doctrine": ("Research aggregation only. Existing heuristic rankings are not "
+                     "validated return forecasts or independent confirmations. "
+                     "No position size is authorized; abstention does not order liquidation."),
         "regime": reg,
         "risk_gate": risk,
         "khalid_index": _khalid_index_block(docs.get("ka_metrics")),

@@ -54,3 +54,18 @@ test('Quantum sizing history distinguishes unavailable, genuine zero and old pos
  assert.match(render([{sizing_x:0}]),/historical sizing ×0/);assert.match(render([{sizing_x:.75}]),/not a current recommendation/);
  assert.match(render([{sizing_x:'1'}]),/sizing unavailable/);assert.match(render([{sizing_x:NaN}]),/sizing unavailable/);
 });
+
+
+test('Quantum page never turns old cached sizing or self-certified flags into current permission',()=>{
+ const html=fs.readFileSync('quantum-desk.html','utf8');
+ const source=html.slice(html.indexOf('function researchOnly('),html.indexOf('function sizingHistory('));
+ const guard=new Function(source+';return researchOnly;')();
+ const old={risk_gate:{sizing_multiplier:1,allows_new_entries:true},asset_ladder:[{verdict:'BUY_ZONE',score:.9}],money_map:[{size_hint_x:1,setup_verdict:'BUY'}],best_asset_class:{verdict:'BUY_ZONE'},decision:{verdict:'BUY'},risk_panel:{veto_stack:[{name:'risk-gate',active:false,flips_when:'threshold'}]}};
+ const d=guard(old);assert.equal(old.risk_gate.sizing_multiplier,1,'original input preserved');
+ assert.equal(d.risk_gate.sizing_multiplier,null);assert.equal(d.asset_ladder[0].verdict,'ABSTAIN');
+ assert.equal(d.asset_ladder[0].score,.9);assert.equal(d.money_map[0].size_hint_x,null);
+ assert.equal(d.best_asset_class.verdict,'ABSTAIN');assert.equal(d.decision.verdict,'ABSTAIN');
+ assert.match(d.risk_panel.veto_stack[0].flips_when,/out-of-sample/);
+ assert.ok(!html.includes('src="/jh-page-ai.js"'));assert.match(html,/WAIT · research only/);
+ assert.ok(!html.includes('fully audited'));assert.match(html,/const FEED="\/data\/quantum-desk.json"/);
+});

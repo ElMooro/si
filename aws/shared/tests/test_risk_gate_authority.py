@@ -64,6 +64,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(space['build_money_map']({},[],risk)[0][0]['size_hint_x'],0)
         self.assertEqual(space['verdict_for'](.99,{'discount':1},risk),'ABSTAIN')
 
+    def test_quantum_veto_requires_model_qualification_not_threshold_recovery(self):
+        space=functions('justhodl-quantum-desk',['build_risk_panel'],{'_rows_with':lambda *a:[]})
+        row=space['build_risk_panel']({},context(None,NOW),None)['veto_stack'][0]
+        self.assertTrue(row['active']);self.assertIsNone(row['sizing_x'])
+        self.assertIn('out-of-sample evidence',row['flips_when'])
+        self.assertNotIn('composite recovers',row['flips_when'])
+
     def test_market_machine_cannot_recover_an_unqualified_nested_score(self):
         doc={'generated_at':datetime.now(timezone.utc).isoformat(),'posture':'UNAVAILABLE',
              'composite':None,'fleet':{'state':'RISK_ON','score':99}}

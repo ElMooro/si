@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import urllib.parse
 import urllib.request
+import urllib.error
 import boto3
 
 ROOT=Path(__file__).resolve().parents[3]
@@ -16,7 +17,10 @@ from managed_secret import managed_secret
 
 
 def main():
-    key=managed_secret(('FRED_KEY','FRED_API_KEY'),('/justhodl/fred/api-key',))
+    # Use the working producer's existing managed provider configuration; never print it.
+    env=boto3.client('lambda',region_name='us-east-1').get_function_configuration(FunctionName='justhodl-daily-report-v3').get('Environment',{}).get('Variables',{})
+    key=env.get('FRED_API_KEY') or env.get('FRED_KEY') or managed_secret(('FRED_KEY','FRED_API_KEY'),('/justhodl/fred/api-key',))
+    del env
     assert key, 'FRED managed source credential unavailable'
     client=boto3.client('s3',region_name='us-east-1');bucket='justhodl-dashboard-live'
     today=datetime.now(timezone.utc).date().isoformat();proof={}
@@ -29,7 +33,11 @@ def main():
                     params.update(observation_start='2000-01-01',observation_end=today,output_type=1,units='lin',sort_order='asc',limit=1000,offset=0)
                 public='https://api.stlouisfed.org/fred/'+endpoint+'?'+urllib.parse.urlencode(params)
                 req=urllib.request.Request(public+'&api_key='+urllib.parse.quote(key),headers={'User-Agent':'JustHodl-source-audit/1.0'})
-                with urllib.request.urlopen(req,timeout=30) as response:raw=response.read(16*1024*1024+1)
+                try:
+                    with urllib.request.urlopen(req,timeout=30) as response:raw=response.read(16*1024*1024+1)
+                except urllib.error.HTTPError as exc:
+                    message=exc.read(2048).decode('utf-8','replace').replace(key,'[REDACTED]')
+                    raise ValueError('FRED '+sid+' '+endpoint+' HTTP '+str(exc.code)+': '+message[:500]) from None
                 assert len(raw)<=16*1024*1024,'source bound exceeded'
                 doc=json.loads(raw);sha=hashlib.sha256(raw).hexdigest()
                 dest='data/vintage-research/probe-originals/'+sha+'.json.gz'
