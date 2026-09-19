@@ -19,7 +19,7 @@
     host.innerHTML='<strong>Research use and source evidence</strong><p>This desk has no validated trade or position-size authorization. Its screen and stress scores are research descriptions; a percentile is not a crisis probability.</p>'+
       (coverage?`<p>Assessment coverage: ${esc(coverage.assessed)} of ${esc(coverage.universe)} names have at least ${esc(coverage.minimum_axes)} populated axes; ${esc(coverage.insufficient_axes)} lack enough inputs. Input coverage does not establish source quality or predictive accuracy.</p>`:'')+
       `<p><strong>ECB CISS: ${fresh?esc(q.value_decimal):'unavailable'}</strong> · ${esc(q.unit)} · observed ${esc(q.observation_date)} · ${esc(status)}.</p>`+
-      '<p>CISS supplies no short-book tailwind or headwind, and no numerical floor for the global stress score. The connection to asset returns has not been validated.</p>'+
+      '<p>CISS is one dated source family. It supplies no independent directional vote, score adjustment or position size. The connection to asset returns has not been validated.</p>'+
       `<details><summary>Inspect CISS source and interpretation limits</summary><p>${esc(q.series_id)} · acquired ${esc(q.acquired_at)} · warehouse ${esc(q.warehouse_generated_at)}. Source publication time is not independently available.</p>`+
       (run?`<a href="${esc(run)}" target="_blank" rel="noopener">Retained source run</a> · `:'')+
       (original?`<a href="${esc(original)}" target="_blank" rel="noopener">Original CSV (.gz)</a> · `:'')+

@@ -1,29 +1,9 @@
-"""
-justhodl-liquidity-credit-engine
+"""Legacy liquidity/credit research monitor.
 
-Pulls the FRED series Khalid specified for measuring system liquidity and
-credit-market stress, computes WoW/MoM/QoQ/YoY % changes, z-scores (1y, 5y),
-and signal classifications (NORMAL / WATCH / ELEVATED / CRISIS) calibrated
-against historical events (GFC 2008, COVID 2020, SVB 2023, Sep 2019 repo).
-
-CATEGORIES
-  balance_sheet      — Fed assets, reserves, memo collateral
-  liquidity_facilities — central bank swaps, primary credit (FCB stress)
-  credit_spreads     — ICE BofA HY OAS (US/Euro/EM)
-  corporate_yields   — HQM Corporate spot rates
-
-OUTPUT  data/liquidity-credit-engine.json (5min CDN cache)
-SCHEDULE  every 6h (FRED H.4.1 publishes Wednesday 4:30pm ET; ICE BofA daily)
-
-Threshold rationale (research-backed):
-  • CCC HY OAS:    GFC peak 2200bp, COVID peak 1900bp, normal 600-900bp
-  • Euro HY OAS:   GFC peak 2400bp, COVID peak 1100bp, normal 300-500bp
-  • EM HY Corp:    GFC peak 1700bp, COVID peak 1200bp, normal 500-800bp
-  • Primary credit (OTHL1690): SVB spike was $164B; normal $0-2B
-  • CB swaps (SWP1690): COVID peak $446B, normal $0-1B; reactivations are FX-stress signal
-  • Bank reserves week-on-week: -2% in a week = QT acceleration / tightening
-
-Hooks into alert-router on signal-state transitions.
+Original FRED metadata, units and calendar-baseline migration is pending.
+Thresholds and portfolio heuristics have not been independently validated.
+The active interpreter abstains and cannot authorize allocation or trade.
+Original-source qualification currently covers the bound ECB CISS context only.
 """
 import json
 import os
@@ -500,17 +480,19 @@ def composite_signal(by_id):
     for sid, info in by_id.items():
         if not info.get("available"):
             continue
-        sig = info.get("signal", "NORMAL")
-        scores.append(rank.get(sig, 0))
+        sig = info.get("signal")
+        if sig not in rank:continue
+        scores.append(rank[sig])
         cat = info.get("_category", "other")
         if sig in ("ELEVATED", "CRISIS"):
             n_firing_by_cat[cat] = n_firing_by_cat.get(cat, 0) + 1
     if not scores:
-        return {"score": 0, "n_firing": 0, "by_category": {}}
+        return {"score": None, "n_firing": 0, "n_assessed":0, "by_category": {}}
     composite = round(max(scores) * 0.7 + (sum(scores) / len(scores)) * 0.3, 1)
     return {
         "score": composite,
         "n_firing": sum(1 for s in scores if s >= 60),
+        "n_assessed":len(scores),
         "by_category": n_firing_by_cat,
     }
 
@@ -518,6 +500,7 @@ def composite_signal(by_id):
 def regime_classification(composite, by_id):
     """Coarse regime: CALM / WATCH / ELEVATED / ACUTE_STRESS / CRISIS."""
     score = composite["score"]
+    if score is None:return "UNAVAILABLE"
     if score >= 80:
         return "CRISIS"
     if score >= 60:
@@ -594,7 +577,7 @@ def _firing(series, sid):
     return (series.get(sid) or {}).get("signal", "NORMAL") in ("WATCH", "ELEVATED", "CRISIS")
 
 
-def interpret_state(output):
+def _legacy_interpret_state(output):
     """Produce a coherent interpretation + portfolio recommendation from LCE state.
        Returns a dict with liquidity/credit/lending narrative, cross-asset signals,
        target portfolio allocation, hedges, avoids, key risks, decisive call."""
@@ -966,6 +949,25 @@ def interpret_state(output):
 # ────────────────────────────────────────────────────────────────────────
 # Main
 # ────────────────────────────────────────────────────────────────────────
+def interpret_state(output):
+    """No unvalidated threshold score can grant an allocation or trade."""
+    return {
+        'as_of':output.get('generated_at'), 'regime':output.get('regime'),
+        'composite_score':output.get('composite',{}).get('score'),
+        'overall_posture':'WAIT', 'confidence':None, 'pillars':{},
+        'cross_asset':{}, 'target_allocation':[], 'avoid':[], 'hedges':[],
+        'key_risks':[
+            'Original FRED source, metadata, units and calendar-baseline migration is pending for this legacy desk.',
+            'Thresholds and repo review floor have not earned return forecasts or position-size authority.',
+            'Portfolio consequences require verified holdings, prices, constraints and a validated decision model.'
+        ],
+        'decisive_call':'WAIT — research only. No trade, hedge or target allocation is authorized by this heuristic monitor.',
+        'call':None, 'calls_eligible':False, 'sizing_eligible':False,
+        'validation_status':'UNVALIDATED_DESCRIPTIVE_HEURISTIC',
+        'portfolio_consequences':{'status':'UNAVAILABLE', 'reason':'No validated recommendation or verified portfolio snapshot is bound to this desk.'}
+    }
+
+
 def _emit_engine_error(error: Exception, phase: str = "handler"):
     """Best-effort engine.error event. Never raises."""
     try:
@@ -988,7 +990,8 @@ def lambda_handler(event=None, context=None):
     try:
         return _do_handler(event, context)
     except Exception as e:
-        _emit_engine_error(e, phase="handler")
+        if not (isinstance(event,dict) and event.get('suppress_alerts')):
+            _emit_engine_error(e, phase="handler")
         raise
 
 
@@ -1055,6 +1058,10 @@ def _do_handler(event=None, context=None):
         "donor_inputs": donor_inputs,
         "data_status": donor_inputs["coverage_status"],
         "execution_eligible": False,
+        "call":None, "calls_eligible":False, "sizing_eligible":False,
+        "validation_status":"UNVALIDATED_DESCRIPTIVE_HEURISTIC",
+        "source_qualification_scope":"Original-source CISS context only; legacy FRED calculations and repo score are not qualified by this check.",
+        "ciss_systemic":donor_inputs['ciss_stress']['source_context'],
     }
     transitions = detect_transitions(output, prior)
     output["transitions"] = transitions

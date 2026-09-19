@@ -2,6 +2,7 @@
 import ast
 import copy
 import io
+import hashlib
 import json
 import sys
 import time
@@ -22,8 +23,22 @@ def repo(score=80):
 
 
 def ciss():
- return {'generated_at':STAMP,'ea_composite_date':'2026-09-08','ea_composite':0,'ea_regime':'LOW',
-         'series':[{'id':'new','area':'FR','latest':0,'latest_date':'2026-09-08'}, {'id':'old','area':'FR','latest':.8,'latest_date':'2024-01-01','discontinued':True}], 'provenance':{'provider':'ECB'}}
+ from ciss_source_model import build,HEAD,CONTRIBUTIONS
+ from test_ciss_source_model import csv_bytes
+ from ciss_vintage_test_support import seal
+ keys={HEAD:('2026-09-08','0'),**{'CISS.D.U2.Z0Z.4F.EC.'+c+'.CON':('2026-09-08','0') for c in CONTRIBUTIONS},
+       'CISS.D.FR.Z0Z.4F.EC.SS_CIN.IDX':('2026-09-08','0'),
+       'CISS.D.FR.Z0Z.4F.EC.SS_CI.IDX':('2024-01-01','.8')}
+ def item(raw):
+  sha=hashlib.sha256(raw).hexdigest()
+  return {'raw':raw,'acquired_at':STAMP,'evidence':{'first_received_at':STAMP,'captured':True,'provider':'ecb',
+           'sha256':sha,'key':'data/evidence/ecb/'+('a'*64)+'/'+sha+'.bin.gz','fixture':'SYNTHETIC'}}
+ histories={key:item(csv_bytes(key,[(day,value,'A')])) for key,(day,value) in keys.items()}
+ raw=b'\n'.join([v['raw'] if n==0 else v['raw'].split(b'\n',1)[1] for n,v in enumerate(histories.values())])
+ doc=build({'CISS':item(raw)},histories,STAMP)
+ # Explicit producer marker is preserved; age alone must never fabricate it.
+ next(r for r in doc['series'] if r['key'].endswith('SS_CI.IDX'))['discontinued']=True
+ return seal(doc)
 
 
 def fails():
@@ -96,8 +111,28 @@ class ContractAblations(unittest.TestCase):
   d['source']='BIS LBS';self.assertFalse(bis_context(d,NOW)['contract']['usable'])
  def test_ciss_legacy_excluded_and_dates_not_collapsed(self):
   out=fragmentation_context(ciss(),{'FR':{'name':'France','spread_vs_bund_bp':50,'spread_as_of':'2026-08-31'}},NOW)
-  self.assertEqual(len(out['active_series']),1);self.assertEqual(len(out['legacy_discontinued_series']),1)
+  self.assertEqual(len(out['active_series']),8);self.assertEqual(len(out['legacy_discontinued_series']),1)
   self.assertEqual(out['country_spread_context'][0]['join_status'],'CONTEXT_DIFFERENT_DATES')
+  row=out['country_spread_context'][0]
+  self.assertEqual(row['ciss_value'],0);self.assertEqual(row['ciss_value_decimal'],'0')
+  self.assertEqual(row['ciss_unit'],'dimensionless_index');self.assertTrue(row['ciss_evidence']['captured'])
+ def test_ciss_original_binding_clocks_and_missing_rows_are_enforced(self):
+  from ciss_vintage_test_support import seal
+  for kind in ('missing','old_observation','old_acquisition','future'):
+   doc=ciss();row=next(r for r in doc['series'] if r['key']=='CISS.D.FR.Z0Z.4F.EC.SS_CIN.IDX')
+   if kind=='missing':row['latest']=None;row['quality']['status']='missing'
+   elif kind=='old_observation':row['observation_period_end']='2020-01-01'
+   elif kind=='old_acquisition':row['acquired_at']='2020-01-01T00:00:00Z'
+   else:row['observation_period_end']='2099-01-01'
+   out=ciss_context(seal(doc),NOW)
+   self.assertEqual(len(out['active_series']),7,kind);self.assertEqual(len(out['excluded_series']),2)
+   self.assertEqual(len(out['legacy_discontinued_series']),1)
+  doc=ciss();doc['ea_composite']=.9
+  out=ciss_context(doc,NOW);self.assertFalse(out['contract']['usable']);self.assertEqual(out['active_series'],[])
+  self.assertIsNone(out['ea_composite']);self.assertIsNone(out['ea_regime'])
+  self.assertFalse(out['calls_eligible']);self.assertFalse(out['sizing_eligible'])
+  self.assertEqual(out['independent_votes'],0)
+  out=ciss_context(ciss(),NOW+timedelta(days=4));self.assertEqual(out['active_series'],[])
  def test_missing_vintage_is_explicit_and_no_revised_fallback(self):
   out=vintage_net_liquidity({'WALCL':{'updated':STAMP,'vintages':[{'date':'2026-09-01','known_on':'2026-09-02','value':1000}]}},NOW)
   self.assertEqual(out['status'],'BLOCKED');self.assertEqual(out['series'],{})
@@ -121,6 +156,30 @@ class ContractAblations(unittest.TestCase):
 
 
 class ReceiverBuilders(unittest.TestCase):
+ def test_actual_lce_handler_cannot_publish_legacy_allocations(self):
+  from ciss_vintage_test_support import load
+  from unittest.mock import patch
+  from types import SimpleNamespace
+  m=load('justhodl-liquidity-credit-engine');written=[]
+  client=SimpleNamespace(put_object=lambda **kw:written.append(kw))
+  with patch.object(m,'S3',client),patch.object(m,'fred_observations_long',return_value=[]), \
+       patch.object(m,'compute_series',return_value={'available':False}), \
+       patch.object(m,'build_audit_donor_context',return_value=credit_donors({},ciss(),None,NOW)), \
+       patch.object(m,'load_prior',return_value={}), \
+       patch.object(m,'_legacy_interpret_state',side_effect=AssertionError('Legacy allocation interpreter called')), \
+       patch.dict(sys.modules,{'wl_fusion':SimpleNamespace(block=lambda *a:{})}):
+   response=m.lambda_handler({'suppress_alerts':True},None)
+  self.assertEqual(response['statusCode'],200)
+  out=json.loads(written[-1]['Body']);interp=out['interpretation']
+  self.assertIsNone(out['call']);self.assertFalse(out['calls_eligible']);self.assertFalse(out['sizing_eligible'])
+  self.assertEqual(interp['target_allocation'],[]);self.assertEqual(interp['cross_asset'],{})
+  self.assertIsNone(interp['confidence']);self.assertEqual(interp['overall_posture'],'WAIT')
+  self.assertEqual(out['ciss_systemic']['value'],0)
+  self.assertEqual(out['regime'],'UNAVAILABLE');self.assertIsNone(out['composite']['score'])
+  self.assertIsNone(m.composite_signal({'X':{'available':True,'signal':'UNKNOWN'}})['score'])
+  with patch.object(m,'_do_handler',side_effect=ValueError('fixture')), \
+       patch.object(m,'_emit_engine_error',side_effect=AssertionError('verification emitted event')):
+   with self.assertRaises(ValueError):m.lambda_handler({'suppress_alerts':True},None)
  def test_actual_receiver_builders_read_guarded_donors(self):
   specs={'justhodl-liquidity-credit-engine':'credit','justhodl-bond-warroom':'bond','justhodl-repo':'fails','justhodl-eurodollar-plumbing':'bis','justhodl-euro-fragmentation':'ciss','justhodl-liquidity-inflection':'pit','justhodl-liquidity-capacity':'capacity'}
   for engine,kind in specs.items():

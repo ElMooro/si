@@ -5,6 +5,8 @@ financing proxy is an execution quote, and correlated panels do not add votes.
 """
 from datetime import datetime, timezone, timedelta
 from donor_contract import inspect_donor, numeric, get_path, parse_timestamp
+from ciss_readthrough import context as source_ciss_context
+from ciss_source_model import row_is_current
 
 REPO = 'data/repo-market.json'
 FAILS = 'data/settlement-fails.json'
@@ -64,24 +66,39 @@ def fails_context(doc, now=None):
 
 
 def ciss_context(doc, now=None):
+    now = now or datetime.now(timezone.utc)
     doc = doc if isinstance(doc,dict) else {}
+    headline = source_ciss_context(doc, now)
     c = inspect_donor(doc, CISS, 72, observed_paths=('ea_composite_date',),
-                      required_paths=('ea_composite','series','provenance'), now=now,
+                      required_paths=('ea_composite',), now=now,
                       max_observation_age_hours=24*14,
                       units={'ea_composite':'index 0..1', 'country_series':'producer-reported frequency'})
-    value = numeric(doc,'ea_composite')
-    if c['usable'] and (value is None or not 0 <= value <= 1):
-        unavailable(c, 'CISS composite must be finite within 0..1')
+    c['evaluated_at'] = now.isoformat()
+    if headline['status'] != 'fresh':
+        unavailable(c, 'canonical original-source headline did not qualify: '+headline['status'])
     rows = (doc or {}).get('series') or []
     if not isinstance(rows,list):
         rows=[]; unavailable(c,'CISS series schema must be an array')
-    return {'contract':c, 'ea_composite':value if c['usable'] else None,
-            'ea_regime':(doc or {}).get('ea_regime') if c['usable'] else 'UNKNOWN',
-            'active_series':[r for r in rows if isinstance(r,dict) and not r.get('discontinued')] if c['usable'] else [],
-            'legacy_discontinued_series':[r for r in rows if isinstance(r,dict) and r.get('discontinued')] if c['usable'] else [],
+    active=[]; excluded=[]
+    for row in rows:
+        if not isinstance(row,dict):continue
+        reason = ('headline source contract unavailable' if not c['usable'] else
+                  'producer explicitly marks discontinued' if row.get('discontinued') else
+                  'observation or acquisition is unavailable, future or expired' if not row_is_current(row,now.isoformat()) else None)
+        if reason:excluded.append({'series':row,'reason':reason})
+        else:active.append(row)
+    return {'contract':c, 'ea_composite':headline['value'] if c['usable'] else None,
+            'ea_regime':None, 'source_context':headline,
+            'source_replay':headline['source_replay'],
+            'active_series':active, 'excluded_series':excluded,
+            'legacy_discontinued_series':[r for r in rows if isinstance(r,dict) and r.get('discontinued')],
             'categories':(doc or {}).get('categories') if c['usable'] else None,
             'frequency_note':(doc or {}).get('frequency_note'), 'provenance':(doc or {}).get('provenance'),
-            'score_contribution':0, 'overlap_policy':'Context only; existing credit/SovCISS inputs must not vote twice.'}
+            'coverage':{'configured':len(rows),'current':len(active),'excluded':len(excluded)},
+            'coverage_scope':'Current per-series observations within original-source ceilings, conditional on a qualified headline. Age alone never means discontinued.',
+            'call':None, 'calls_eligible':False, 'sizing_eligible':False,
+            'score_contribution':0, 'independent_votes':0, 'evidence_family':'ecb_ciss',
+            'overlap_policy':'Context only; existing credit/SovCISS inputs must not vote twice.'}
 
 
 def credit_donors(repo, ciss, base_score, now=None):
@@ -300,6 +317,9 @@ def fragmentation_context(doc, countries, now=None):
             if row.get('area') != code and row.get('country') not in (code,country.get('name')):continue
             joined.append({'country':code,'indicator':row.get('id'), 'category':row.get('category'),
                            'ciss_value':row.get('latest'),'ciss_as_of':row.get('latest_date'),
+                           'ciss_series_id':row.get('key'),'ciss_value_decimal':row.get('latest_decimal'),
+                           'ciss_unit':row.get('unit'),'ciss_acquired_at':row.get('acquired_at'),
+                           'ciss_evidence':row.get('evidence'),'ciss_source_row':row.get('source_row'),
                            'spread_bps':country.get('spread_vs_bund_bp'),'spread_as_of':country.get('spread_as_of'),
                            'spread_maturity_years':10,
                            'join_status':'SAME_OBSERVATION_DATE' if row.get('latest_date') and row['latest_date']==country.get('spread_as_of') else 'CONTEXT_DIFFERENT_DATES',

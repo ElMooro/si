@@ -19,3 +19,11 @@ test('CISS context renders no directional vote and escapes feed text',()=>{
  assert.ok(html.includes('SOURCE CONTEXT'));assert.ok(html.includes('no directional vote'));assert.ok(html.includes('href="#"'));
  assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('+null'));
 });
+test('partial scores disclose changed denominator and cannot imply complete coverage',()=>{
+ const {ctx,nodes}=page();ctx.render({composite_score:72.2,dimensions:{vol:{score:1,n:2}}});
+ assert.equal(nodes.get('score-label').textContent,'Partial descriptive score');
+ assert.match(nodes.get('score-coverage').textContent,/1\/7 dimensions populated/);
+ assert.match(nodes.get('score-coverage').textContent,/missing/);
+ assert.match(nodes.get('score-coverage').textContent,/no trade or sizing authority/);
+ assert.equal(nodes.get('composite-score').className,'val');
+});

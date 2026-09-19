@@ -105,7 +105,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 </head>
 <body>
 <header>
-<h1>🧭 Meta-Regime <span class="badge">15-MODULE COMPOSITE</span></h1>
+<h1>🧭 Meta-Regime <span class="badge">DESCRIPTIVE RESEARCH</span></h1>
 <div class="header-meta">
 <a href="/" class="nav-back">← justhodl.ai</a>
 <span><span class="dot"></span><span id="status">loading</span></span>
@@ -120,28 +120,28 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   <div>
     <h2>Meta-Regime · 7 Dimensions · 19 Panels</h2>
     <div class="regime" id="meta-regime">LOADING…</div>
-    <div class="narrative" id="meta-narrative">Aggregating 15 Bloomberg-Gap regime modules…</div>
+    <div class="narrative" id="meta-narrative">Loading 15 heuristic modules and four ECB source views…</div>
   </div>
   <div></div>
   <div class="meta-score">
-    <div class="label">Composite Score</div>
+    <div class="label" id="score-label">Descriptive score</div>
     <div class="val" id="composite-score">—</div>
-    <div class="sub">Range −100 to +100</div>
+    <div class="sub" id="score-coverage">Coverage pending</div>
   </div>
 </div>
 
 <div class="section-title">7 Dimensions <span class="right" id="n-modules">—</span></div>
 <div class="dims-grid" id="dims-grid"><div class="loading">…</div></div>
 
-<div class="section-title">15 Modules <span class="right">click to drill down</span></div>
-<div class="mods-grid" id="mods-grid"><div class="loading">Loading 15 modules…</div></div>
+<div class="section-title">19 Panels · 15 Heuristics + 4 ECB Views <span class="right">click to drill down</span></div>
+<div class="mods-grid" id="mods-grid"><div class="loading">Loading research panels…</div></div>
 
 <div class="section-title">Regime History · 24 hours <span class="right" id="hist-meta">—</span></div>
 <div class="history-bar" id="history-bar"><div class="loading">…</div></div>
 
 <div class="method">
 <h3>Methodology · Descriptive Meta-Regime</h3>
-<p>The 15 Bloomberg-Gap modules each emit a regime label for their slice of the market (vol, gamma, credit, funding, retail flow, news, central bank, global cross-section, commodities, insider behavior, etc.). This page fuses them into a single meta-state.</p>
+<p>The 15 legacy heuristic modules each emit a regime label for their slice of the market (vol, gamma, credit, funding, retail flow, news, central bank, global cross-section, commodities, insider behavior, etc.). This page fuses them into a single meta-state.</p>
 <p><strong>Step 1 — Module polarity.</strong> The 15 non-CISS modules use unvalidated heuristic assumptions. Each regime label maps to a descriptive polarity in <code>{−1, 0, +1}</code>. Polarities are direction-aware: e.g., <code>OVERSHORT</code> funding is bullish-for-spot (squeeze risk), <code>CAPITULATION</code> retail is contrarian-positive, <code>MELTUP_PRONE</code> credit is short-term positive but tail-risk-elevated.</p>
 <p><strong>Step 2 — 7 Dimensions.</strong> Each module belongs to one dimension; dimension score = mean of its populated heuristic constituents. Missing dimensions remain unavailable. The four CISS views share one source family and contribute no directional votes.</p>
 <ul>
@@ -153,7 +153,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   <li><code>SMART_MONEY</code> — insider-clusters, 13F, finra-short · institutional positioning</li>
   <li><code>FUNDAMENTALS</code> — earnings-nlp, news-velocity · earnings tone + media flow</li>
 </ul>
-<p><strong>Step 3 — Composite score.</strong> Weighted mean × 100 (range −100..+100). VOL and RISK_ON get higher weights (1.5×) because they're the most predictive of near-term returns.</p>
+<p><strong>Step 3 — Composite score.</strong> Weighted mean × 100 (range −100..+100). Weights are fixed research assumptions: VOL and RISK_ON 1.5, FUNDAMENTALS 1.2, REFLATION 0.7, and the other dimensions 1.0. No predictive advantage has been established. Missing dimensions are omitted from this descriptive mean, changing its denominator; the complete regime remains unavailable.</p>
 <p><strong>Step 4 — Meta-regime classifier (rule-based).</strong></p>
 <ul>
   <li><code>MELT_UP</code> — vol low + risk-on high + fundamentals strong + liquidity supportive</li>
@@ -164,7 +164,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
   <li><code>RISK_OFF</code> — vol up + risk appetite weakening</li>
   <li><code>CRISIS</code> — 5+ dimensions negative or vol explosion</li>
 </ul>
-<p><strong>Why this is useful:</strong> regime changes in any one module can be noise. Concurrent shifts across multiple dimensions are signal. Bloomberg's market-state summary across the top of every terminal does exactly this; here we get the same lens for our 15 proprietary modules, with Telegram alerts on regime change.</p>
+<p><strong>Interpretation limits:</strong> Co-movement is not independent confirmation. Inputs can share sources, use different observation periods, or contain old data. These unvalidated assumptions authorize no trade or position size. Only the ECB source context is qualified here; remaining module evidence and return validation are pending.</p>
 <p><strong>Refresh:</strong> Lambda runs every hour at :15 (after most constituent modules refresh). Snapshots stored 168 hours back.</p>
 </div>
 </main>
@@ -202,7 +202,12 @@ function render(data) {
   document.getElementById('meta-narrative').textContent = data.meta_narrative || '—';
   const sc = document.getElementById('composite-score');
   sc.textContent = fmtSigned(data.composite_score);
-  sc.className = 'val ' + (data.composite_score > 0 ? 'pos' : data.composite_score < 0 ? 'neg' : '');
+  const populated=DIM_ORDER.filter(d=>Number.isFinite(data.dimensions?.[d]?.score)&&data.dimensions[d].n>0);
+  const missing=DIM_ORDER.filter(d=>!populated.includes(d));
+  const partial=missing.length>0;
+  document.getElementById('score-label').textContent=partial?'Partial descriptive score':'Descriptive score · unvalidated';
+  document.getElementById('score-coverage').textContent=populated.length+'/7 dimensions populated'+(partial?' · missing '+missing.map(d=>DIM_LABELS[d]).join(', '):'')+' · no trade or sizing authority';
+  sc.className = 'val';
   document.getElementById('gen-time').textContent = 'GEN ' + (data.generated_at || '').slice(0, 16) + ' UTC';
   document.getElementById('n-modules').textContent =
     (data.n_modules_with_data || 0) + '/' + (data.n_modules_total || 15) + ' panels with data · ' +

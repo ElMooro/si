@@ -294,6 +294,7 @@
   @keyframes shimmer { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
 </style>
 <script src="/ai-brief-kit.js"></script>
+<script src="/jh-ciss-readthrough.js"></script>
 </head>
 <body>
 
@@ -352,14 +353,13 @@
       <div class="sub">used for HQM spread</div>
     </div>
     <div class="hero-stat">
-      <div class="k">DECISIVE STATE</div>
+      <div class="k">DECISION PERMISSION</div>
       <div class="v" id="decisive" style="font-size:14px">—</div>
       <div class="sub" id="decisiveSub" style="line-height:1.4">—</div>
     </div>
   </section>
 
-  <div id="ai-decisive-call" style="margin:18px 0"></div>
-  <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","lce-decisive-call");</script>
+  <section id="ciss-readthrough" data-ciss-readthrough aria-label="Source evidence and research permissions"></section>
 
   <!-- INTERPRETATION & PORTFOLIO ACTIONS -->
   <section class="interp" id="interp">
@@ -367,7 +367,7 @@
     <div class="interp-hero">
       <div class="head">
         <div class="title-row">
-          <h2>📋 Interpretation &amp; Actions</h2>
+          <h2>📋 Research status &amp; decision permissions</h2>
           <span class="conf" id="confLabel">—</span>
         </div>
         <span class="posture" id="postureLabel">—</span>
@@ -387,22 +387,22 @@
 
     <!-- Target portfolio allocation -->
     <div class="alloc" id="allocBlock">
-      <h3>🎯 TARGET PORTFOLIO ALLOCATION <span style="color:var(--text-muted);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none">— based on current LCE state</span></h3>
+      <h3>Portfolio consequences · unavailable until validated</h3>
       <table class="alloc-tbl" id="allocTbl"><tbody><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table>
     </div>
 
     <!-- Avoid / Hedges / Key Risks -->
     <div class="lists-grid">
       <div class="list-card avoid">
-        <h4>✗ ASSETS TO AVOID / EXIT</h4>
+        <h4>Trade instructions</h4>
         <ul id="avoidList"><li>—</li></ul>
       </div>
       <div class="list-card hedges">
-        <h4>✓ HEDGES IN PLACE</h4>
+        <h4>Verified hedge positions</h4>
         <ul id="hedgesList"><li>—</li></ul>
       </div>
       <div class="list-card risks">
-        <h4>⚠ KEY RISKS TO THE CALL</h4>
+        <h4>Outstanding validation</h4>
         <ul id="risksList"><li>—</li></ul>
       </div>
     </div>
@@ -434,8 +434,7 @@
     <p style="margin-top:6px">
       The Liquidity & Credit Engine pulls 51 series from FRED across five categories, every 6 hours,
       and computes per-series <code>WoW</code> · <code>MoM</code> · <code>QoQ</code> · <code>YoY</code> ·
-      <code>z(1y)</code> · <code>z(5y)</code> alongside a signal classification driven by historically-calibrated thresholds
-      (GFC 2008 + COVID 2020 anchors).
+      <code>z(1y)</code> · <code>z(5y)</code> alongside legacy threshold labels. Original-source, units and calendar-baseline validation for these calculations is pending; historical crisis examples do not establish calibration.
     </p>
     <p style="margin-top:6px">
       The <strong>composite score</strong> blends the worst category state (70% weight) with the average state across all
@@ -444,11 +443,7 @@
       <span class="pill ACUTE_STRESS">ACUTE STRESS</span> <span class="pill CRISIS">CRISIS</span>.
     </p>
     <p style="margin-top:6px">
-      LCE state feeds back into the <a href="/intelligence.html">Khalid Index</a> (penalty up to −25),
-      the <a href="/risk.html">Risk Dashboard</a> (liquidity, credit, recession sub-scores),
-      the daily 8AM <a href="/intelligence.html">morning brief</a>, the
-      <a href="/ai-chat">AI chat</a> system prompt, and the position-sizing engine that drives
-      every allocation recommendation.
+      This desk is research-only. Its threshold labels and numerical score have no validated Calls or sizing authority. Portfolio actions remain unavailable until source verification, independent model evaluation and a verified portfolio snapshot support them.
     </p>
     <p style="margin-top:6px;color:var(--text-muted);font-size:11px">
       Data: <a href="https://fred.stlouisfed.org">FRED · St. Louis Fed</a> · Engine source:
@@ -460,7 +455,7 @@
 </div>
 
 <script>
-const SRC = "https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-credit-engine.json";
+const SRC = "/data/liquidity-credit-engine.json?exact=1";
 
 const CAT_META = {
   balance_sheet: {
@@ -540,6 +535,7 @@ async function load() {
 function render() {
   if (!CURRENT) return;
   const d = CURRENT;
+  window.JHCissReadthrough?.render(document.getElementById("ciss-readthrough"),d);
   const series = d.series || {};
   const byCat = d.by_category || {};
   const comp = d.composite || {};
@@ -677,133 +673,24 @@ function render() {
 }
 
 function renderInterpretation(interp) {
-  if (!interp || interp.error) {
-    document.getElementById("decisiveText").textContent =
-      interp ? "Interpretation unavailable: " + interp.error :
-                "Interpretation will appear after next engine run.";
-    return;
-  }
-
-  // Decisive call + posture
-  document.getElementById("decisiveText").innerHTML = interp.decisive_call || "—";
-  const post = (interp.overall_posture || "").replace(/_/g, " ");
-  const postEl = document.getElementById("postureLabel");
-  postEl.textContent = post;
-  postEl.className = "posture " + (interp.overall_posture || "");
-  document.getElementById("confLabel").textContent =
-    "Confidence: " + (interp.confidence || "—");
-
-  // Pillars
-  const pillars = interp.pillars || {};
-  const pillarsGrid = document.getElementById("pillarsGrid");
-  const pillarMeta = {
-    liquidity: { icon:"💧", label:"LIQUIDITY",
-                  states:{ABUNDANT:"good", DRAINING:"watch", STRESSED:"bad", CRISIS:"crisis"} },
-    credit:    { icon:"📉", label:"CREDIT",
-                  states:{HEALTHY:"good", WIDENING:"watch", STRESSED:"bad", PANIC:"crisis"} },
-    lending:   { icon:"🏦", label:"BANK LENDING (SLOOS)",
-                  states:{EASY:"good", MILD_TIGHTENING:"watch", TIGHTENING:"bad", RECESSION_LEVEL:"crisis"} }
-  };
-  pillarsGrid.innerHTML = "";
-  for (const key of ["liquidity","credit","lending"]) {
-    const p = pillars[key] || {};
-    const meta = pillarMeta[key];
-    const stateColor = (meta.states[p.state] || "good");
-    const stateColorClass = {
-      good:'background:rgba(34,197,94,0.14);color:#22c55e',
-      watch:'background:rgba(245,158,11,0.14);color:#f59e0b',
-      bad:'background:rgba(239,107,69,0.14);color:#ef6b45',
-      crisis:'background:rgba(239,68,68,0.14);color:#ef4444'
-    }[stateColor];
-
-    const driversHTML = (p.drivers || []).slice(0, 5)
-      .map(d => `<li>${d}</li>`).join("");
-
-    const card = document.createElement("div");
-    card.className = "pillar-card";
-    card.innerHTML = `
-      <div class="ph">
-        <div class="ph-name">${meta.icon} ${meta.label}</div>
-        <span class="ph-state" style="${stateColorClass}">${(p.state||"—").replace(/_/g," ")}</span>
-      </div>
-      <div class="narrative">${p.narrative || "—"}</div>
-      ${driversHTML ? `<ul class="drivers">${driversHTML}</ul>` : ""}
-    `;
-    pillarsGrid.appendChild(card);
-  }
-
-  // Cross-asset ladder
-  const ca = interp.cross_asset || {};
-  const ladder = document.getElementById("crossAssetLadder");
-  ladder.innerHTML = "";
-  const sigCls = {2:"long-hard",1:"long",0:"neutral",[-1]:"short",[-2]:"short-hard"};
-  const sigLbl = {2:"LONG HARD ↑↑",1:"LONG ↑",0:"NEUTRAL —",[-1]:"UNDERWEIGHT ↓",[-2]:"AVOID / SHORT ↓↓"};
-  const niceName = {us_large_equity:"US Large Cap (SPY/QQQ)", us_small_cap:"US Small Cap (IWM)",
-                     long_duration:"Long Duration (TLT)", gold:"Gold (GLD)", dollar:"Dollar (UUP)",
-                     high_yield:"High Yield (HYG)", emerging_markets:"Emerging Mkts (EEM)",
-                     bitcoin:"Bitcoin (BTC)"};
-  const order = ["us_large_equity","us_small_cap","long_duration","gold","dollar",
-                  "high_yield","emerging_markets","bitcoin"];
-  for (const k of order) {
-    if (!ca[k]) continue;
-    const cls = sigCls[ca[k].signal] || "neutral";
-    const lbl = sigLbl[ca[k].signal] || "—";
-    const cell = document.createElement("div");
-    cell.className = "ladder-cell " + cls;
-    cell.innerHTML = `
-      <div class="name">${niceName[k]||k}</div>
-      <div class="sig">${lbl}</div>
-      <div class="why">${ca[k].rationale || ""}</div>
-    `;
-    ladder.appendChild(cell);
-  }
-
-  // Target allocation
-  const alloc = interp.target_allocation || [];
-  const tbody = document.getElementById("allocTbl").querySelector("tbody");
-  if (alloc.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty">No allocations</td></tr>`;
-  } else {
-    const max = Math.max(...alloc.map(a => a.weight_pct));
-    tbody.innerHTML = alloc.map(a => `
-      <tr>
-        <td class="ticker">${a.ticker}</td>
-        <td class="pct">${a.weight_pct}%</td>
-        <td class="bar-cell">
-          <div class="bar"><div class="bar-fill" style="width:${(a.weight_pct/max*100).toFixed(0)}%"></div></div>
-        </td>
-        <td class="reason">${a.rationale || ""}</td>
-      </tr>
-    `).join("");
-  }
-
-  // Avoid / Hedges / Risks
-  document.getElementById("avoidList").innerHTML =
-    (interp.avoid && interp.avoid.length)
-      ? interp.avoid.map(a => `<li>${a}</li>`).join("")
-      : `<li style="color:var(--text-muted)">None — risk-on environment</li>`;
-  document.getElementById("hedgesList").innerHTML =
-    (interp.hedges && interp.hedges.length)
-      ? interp.hedges.map(h => `<li>${h}</li>`).join("")
-      : `<li style="color:var(--text-muted)">None required at this state</li>`;
-  document.getElementById("risksList").innerHTML =
-    (interp.key_risks && interp.key_risks.length)
-      ? interp.key_risks.map(r => `<li>${r}</li>`).join("")
-      : `<li style="color:var(--text-muted)">—</li>`;
+  document.getElementById('interp').style.display='';
+  document.getElementById('postureLabel').textContent='WAIT · abstain';
+  document.getElementById('confLabel').textContent='Forecast confidence unavailable';
+  document.getElementById('decisiveText').textContent='Research only. No trade, hedge or target allocation is authorized by this heuristic monitor.';
+  document.getElementById('pillarsGrid').innerHTML='';
+  document.getElementById('crossAssetLadder').innerHTML='';
+  document.getElementById('allocTbl').querySelector('tbody').innerHTML='<tr><td colspan="4" class="empty">Unavailable — requires a validated model and a verified portfolio snapshot.</td></tr>';
+  document.getElementById('avoidList').textContent='Unavailable — no trade instruction.';
+  document.getElementById('hedgesList').textContent='Unavailable — this page has no verified portfolio snapshot.';
+  const list=document.getElementById('risksList');list.innerHTML='';
+  const requirements=['Original source, units, freshness and calendar-baseline validation for the legacy FRED calculations.',
+    'Independent evaluation of threshold labels and their relation to asset returns.',
+    'Verified holdings, prices and portfolio constraints before calculating consequences.'];
+  for(const text of requirements){const li=document.createElement('li');li.textContent=text;list.appendChild(li);}
 }
 
 function decisiveCall(d) {
-  const r = d.regime || "NORMAL";
-  if (r === "CRISIS")        return { title:`<span class="pill CRISIS">DEFENSIVE</span>`,
-                                       sub:"Reduce risk, raise cash, long duration + dollar + gold." };
-  if (r === "ACUTE_STRESS")  return { title:`<span class="pill ACUTE_STRESS">REDUCE RISK</span>`,
-                                       sub:"Cut risk-asset exposure 30-50%; rotate into TLT/GLD/UUP." };
-  if (r === "ELEVATED")      return { title:`<span class="pill ELEVATED">CAUTIOUS</span>`,
-                                       sub:"Trim leverage, watch for credit-spread widening + bank tightening." };
-  if (r === "WATCH")         return { title:`<span class="pill WATCH">MONITOR</span>`,
-                                       sub:"Background stress; maintain core risk allocation, watch firing series." };
-  return { title:`<span class="pill NORMAL">RISK-ON OK</span>`,
-            sub:"All systems calm; standard risk-asset allocation supported." };
+  return {title:'<span class="pill">WAIT · ABSTAIN</span>',sub:'Research-only monitor; no validated trade or sizing authority.'};
 }
 
 // ── Filter bar wiring ──
@@ -835,8 +722,6 @@ load();
 setInterval(load, 5 * 60 * 1000);
 </script>
 
-  <script src="/jh-enhance.js" data-feed="data/liquidity-credit-engine.json" data-bars="interpretation.target_allocation:ticker:weight_pct" data-title="Liquidity-credit engine — target allocation (%)" data-sub="regime-driven allocation" ></script>
-  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>addEventListener('load',()=>{try{const n=document.querySelectorAll('#lceTable tr,[data-lce-row]').length;if(n)document.getElementById('lceTotal').textContent=n;}catch(e){}});</script><script src="/jh-wire.js" defer data-feeds="data/sloos.json|justhodl-gap-metrics|SLOOS LENDING STANDARDS;data/cftc-all-cache.json|cftc-futures-positioning-agent|CFTC FUTURES POSITIONING AGENT;regime/current.json|justhodl-bond-regime-detector|BOND REGIME DETECTOR;data/bond-trace.json|justhodl-bond-trace|BOND TRACE;data/cb-stance.json|justhodl-cb-stance|CB STANCE;data/cftc-deep-view.json|justhodl-cftc-deep-view|CFTC DEEP VIEW;data/china-liquidity-history.json|justhodl-china-liquidity|CHINA LIQUIDITY;data/construction-housing.json|justhodl-construction-housing|CONSTRUCTION HOUSING;data/cross-asset-rv-history.json|justhodl-cross-asset-rv|CROSS ASSET RV;data/econ-calendar.json|justhodl-econ-calendar|ECON CALENDAR;data/fed-nlp.json|justhodl-fed-nlp|FED NLP;data/fed-pivot-factor-trades.json|justhodl-fed-pivot-factor-router|FED PIVOT FACTOR ROUTER;data/fedwatch.json|justhodl-fedwatch-rate-probability|FEDWATCH RATE PROBABILITY"></script>
 <script src="/sidebar.js" defer></script>
