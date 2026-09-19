@@ -46,8 +46,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/liquidity-reversal.json"
 WARM = "data/warm/blackswan/"
-FRED_KEY = os.environ.get("FRED_API_KEY",
-                          managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",)))
+FRED_KEY = os.environ.get("FRED_API_KEY", "")  # active research reads retained public originals only
 FRED_BUDGET = 175  # bounded per run; cumulative via warm cache
 YH_BUDGET = {"n": 135}
 CUR_BUDGET = {"n": 45}   # curated symbols + curated composite legs
@@ -1533,7 +1532,7 @@ def analyze(sym, node, name):
 SRC_OF = {}
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     now = datetime.now(timezone.utc)
     wl = s3_json("data/tv-watchlists.json")
     vault = s3_json("data/tradingview.json")
@@ -1841,3 +1840,13 @@ def lambda_handler(event, context):
                                 "list": list_name,
                                 "resolved": len(resolved),
                                 "alarm": alarm})}
+
+
+def lambda_handler(event, context):
+    """Only the reviewed native research route is reachable from Lambda events."""
+    from reversal_store import run
+    try:
+        result = run(s3, BUCKET)
+        return {"statusCode": 200, "body": json.dumps(result)}
+    except Exception:
+        return {"statusCode": 503, "body": json.dumps({"ok": False, "error": "reversal_research_unavailable", "calls_eligible": False})}

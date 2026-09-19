@@ -196,37 +196,11 @@ def lambda_handler(event=None, context=None):
                 % (row.get("industry"), row["boom_score"]),
                 "industry-boom", 1.2)
 
-    # 5) macro layer: commodity inflection + rate path
-    macro = {}
-    lq = (s3_json("data/liquidity-reversal.json") or {}
-          ).get("rows") or []
-    lqmap = {x.get("symbol"): x for x in lq}
-    for sym, label, sect_t in (
-            ("CAPITALCOM:COPPER", "copper", "Basic Materials"),
-            ("TVC:USOIL", "oil", "Energy"),
-            ("TVC:GOLD", "gold", "Basic Materials")):
-        x = lqmap.get(sym) or {}
-        z = x.get("move_z")
-        if isinstance(z, (int, float)) and abs(z) >= 1.5:
-            macro[label + "_z"] = z
-            for i, t in enumerate(ticks):
-                if (sects[i] if i < len(sects) else ""
-                        ) == sect_t:
-                    add(t, "COMMODITY_INFLECTION",
-                        "%s z=%.2f (%s)" % (label, z,
-                                            "up" if z > 0
-                                            else "down"),
-                        "liquidity rows", 1.0)
-    ff = None
-    for cand in ("FRED:DFF", "FRED:FEDFUNDS",
-                 "FRED:DFEDTARU"):
-        x = lqmap.get(cand)
-        if x and x.get("trend_state"):
-            ff = x
-            break
-    if ff:
-        macro["fedfunds_trend"] = ff.get("trend_state")
-        macro["rate_cuts"] = ff.get("trend_state") == "DOWN"
+    # Native descriptive research cannot become a weighted stock catalyst.
+    from reversal_consumer_context import context as reversal_context
+    macro = {"liquidity_reversal": reversal_context(s3_json("data/liquidity-reversal.json")),
+             "fedfunds_trend": None, "rate_cuts": None, "commodity_inflections": [],
+             "reason": "Unsigned shocks and falling market rates do not establish bullish catalysts or policy cuts"}
 
     for t, e in by.items():
         e["catalysts"].sort(key=lambda c: -c["weight"])

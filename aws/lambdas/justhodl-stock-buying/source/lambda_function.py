@@ -406,14 +406,10 @@ def khalid_five(row, us10y, kmiss):
 
 
 def fetch_us10y():
-    for key in ("data/liquidity-reversal.json",
-                "data/blackswan-watch.json"):
-        d = s3_json(key) or {}
-        for x in d.get("rows") or []:
-            if x.get("symbol") == "FRED:DGS10" and \
-                    isinstance(x.get("last"), (int, float)):
-                return float(x["last"])
-    return None
+    from reversal_consumer_context import native_yield
+    evidence = native_yield(s3, BUCKET)
+    globals()["_US10Y_EVIDENCE"] = evidence
+    return evidence["value"]
 
 
 def lambda_handler(event=None, context=None):
@@ -967,6 +963,7 @@ def lambda_handler(event=None, context=None):
         "engine": "justhodl-stock-buying",
         "matrix_probe": globals().get("_MXP"),
         "us10y_pct": globals().get("_US10Y"),
+        "us10y_evidence": globals().get("_US10Y_EVIDENCE"),
         "khalid_five_missing": globals().get("_KMISS"),
         "crows_len": len(crows),
         "cmode": cmode,
@@ -975,6 +972,7 @@ def lambda_handler(event=None, context=None):
         "census_source": ck, "census_mode": cmode,
         "matrix_probe": globals().get("_MXP"),
         "us10y_pct": globals().get("_US10Y"),
+        "us10y_evidence": globals().get("_US10Y_EVIDENCE"),
         "khalid_five_missing": globals().get("_KMISS"),
         "census_fields_sample": field_census,
         "lanes": globals().get("_LANES"),

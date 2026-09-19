@@ -726,20 +726,8 @@ def lambda_handler(event, context):
             "doctrine": "Khalid's DXY-leads family: mechanical "
                         "polarity dials (observed, never "
                         "load-bearing)"}
-    lq = s3_json("data/liquidity-reversal.json")
-    if lq and (lq.get("liquidity") or {}).get("trend_label"):
-        L = lq["liquidity"]
-        canaries["liquidity_reversal"] = {
-            "state": ("RED" if "CONFIRMED" in
-                      str(L.get("reversal_label")) else
-                      "AMBER" if "FORMING" in
-                      str(L.get("reversal_label")) else "CALM"),
-            "trend": L.get("trend_label"),
-            "trend_score": L.get("trend_score"),
-            "reversal": L.get("reversal_label"),
-            "reversal_score": L.get("reversal_score"),
-            "doctrine": "global liquidity trend/reversal dials "
-                        "(observed, never load-bearing)"}
+    from reversal_consumer_context import context as reversal_context
+    canaries["liquidity_reversal"] = reversal_context(s3_json("data/liquidity-reversal.json"), now)
     cl = s3_json(WARM + "fred_claims.json")
     if cl and cl.get("status") == "OK":
         se = cl.get("series") or []

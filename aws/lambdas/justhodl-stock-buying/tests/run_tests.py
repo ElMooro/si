@@ -106,6 +106,12 @@ def test_eps_beats_none_when_nothing_reported(mod):
     assert mod.eps_beats([{"epsActual": 1.0, "epsEstimated": 0.0}]) == (1, [])
 
 
+def test_reversal_native_source_boundary():
+    sys.path.insert(0, str(HERE.parents[2] / "shared/tests"))
+    from reversal_consumer_tests import run
+    run("stock-buying")
+
+
 def main():
     mod = _load()
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

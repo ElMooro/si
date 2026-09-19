@@ -11,6 +11,7 @@ from lce_research_catalog import extend_catalog as include_lce_series
 from risk_gate_research_catalog import extend_catalog as include_risk_gate_series
 from inflection_research_catalog import extend_catalog as include_inflection_series
 from cb_research_catalog import extend_catalog as include_cb_series
+from reversal_research_catalog import extend_catalog as include_reversal_series
 from daily_macro_store import run as publish_daily_macro
 from daily_market_store import collect as collect_market_sources
 import json, urllib.request, os, time, boto3
@@ -1916,7 +1917,7 @@ def _legacy_lambda_handler_unvalidated(event, context):
         # cannot invoke the legacy scorer, stock allocation, news or AI paths.
         catalog = {sid: {'category': cat, 'display_name': name}
                    for sid, (cat, name) in FRED_SERIES.items()}
-        catalog = include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog))))
+        catalog = include_reversal_series(include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog)))))
         remaining = context.get_remaining_time_in_millis()/1000 if context else 900
         try:
             result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,
@@ -2192,7 +2193,7 @@ def lambda_handler(event, context):
     if payload.get('action') == 'research_measurements':
         catalog = {sid: {'category': cat, 'display_name': name}
                    for sid, (cat, name) in FRED_SERIES.items()}
-        catalog = include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog))))
+        catalog = include_reversal_series(include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog)))))
         remaining = context.get_remaining_time_in_millis()/1000 if context else 900
         try:
             result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,

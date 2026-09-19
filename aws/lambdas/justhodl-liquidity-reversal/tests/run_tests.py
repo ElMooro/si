@@ -17,7 +17,7 @@ with patch.dict(sys.modules, {'boto3':types.SimpleNamespace(client=lambda *a,**k
 writes={}
 fake=types.SimpleNamespace(put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))
 with patch.object(e,'s3',fake),patch.object(e,'s3_json',return_value={}):
-    result=e.lambda_handler({},None)
+    result=e._legacy_unvalidated_handler({},None)
 doc=writes[e.OUT_KEY]
 assert doc['generated_at']==doc['as_of'] and datetime.fromisoformat(doc['generated_at']).tzinfo
 assert doc['rows']==[] and doc['liquidity']['trend_score'] is None
@@ -27,3 +27,8 @@ assert doc['pd_settlement_fails']['quality']['status']=='unavailable'
 assert doc['pd_settlement_fails']['combined_bn'] is None
 assert not json.loads(result['body'])['ok']
 print('Liquidity reversal publication, dates and missing-source checks passed')
+
+import unittest
+suite=unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern="test_research.py")
+result=unittest.TextTestRunner(verbosity=2).run(suite)
+sys.exit(0 if result.wasSuccessful() else 1)
