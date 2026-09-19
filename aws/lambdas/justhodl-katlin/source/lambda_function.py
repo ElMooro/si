@@ -1946,6 +1946,8 @@ def war_room(F):
         missing.append("leg error: %s" % str(e_)[:80])
     try:
         gl = F["liquidity"]
+        if gl.get("calls_eligible") is not True:
+            gl = {}  # Research context cannot acquire a synthetic 45-point risk vote.
         imp = fnum(gl.get("impulse_13w") or gl.get("global_impulse_13w_pct"))
         glr = str(gl.get("regime") or "")
         if imp is not None or glr:

@@ -540,7 +540,7 @@ def leg_strategic(fr_doc, cls, name):
 
 
 def leg_plumbing(liq_doc, cls):
-    if not liq_doc:
+    if not liq_doc or liq_doc.get("calls_eligible") is not True:
         return None, None
     slope = None
     def _scan(d, depth=3):

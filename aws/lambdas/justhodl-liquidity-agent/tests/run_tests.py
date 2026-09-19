@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 SOURCE = Path(__file__).resolve().parents[1] / "source"
 sys.path.insert(0, str(SOURCE))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shared"))
 from liquidity_contract import core_quality, unavailable_payload
 
 with patch.dict(sys.modules, {"boto3": types.SimpleNamespace(client=lambda *a, **kw: None),

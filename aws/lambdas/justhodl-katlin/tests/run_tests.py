@@ -55,6 +55,13 @@ def _auth(cap=50, allows=True, mode="SELECTIVE", hours_ago=1, vetoes=None):
 
 
 
+def test_unqualified_liquidity_never_becomes_a_synthetic_45_point_vote(mod):
+    for value in ({"regime":"UNQUALIFIED"}, {"calls_eligible":False,"regime":"EXPANDING","global_impulse_13w_pct":99}):
+        packet={**value,"generated_at":_iso(1)}
+        result=mod.war_room({"liquidity":packet})
+        assert not any(row["source"]=="global-liquidity" for row in result["legs"])
+
+
 def test_authority_cap_binds_and_desk_opinion_is_kept_separately(mod):
     wr = mod.war_room({"risk_gate": _gate(), "khalid_risk": _auth(cap=50)})
     assert wr["local"]["posture"] == "FULL_RISK" and wr["local"]["exposure_cap_pct"] == 100, wr["local"]

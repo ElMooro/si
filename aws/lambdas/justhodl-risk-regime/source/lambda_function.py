@@ -485,7 +485,7 @@ def lambda_handler(event, context):
     NEGL = ("TIGHT", "CONTRACT", "DRAIN", "SCARCE", "STRESS", "HEADWIND", "FALLING")
     lr = {}
     _gl = _read("data/global-liquidity.json") or {}
-    lr["global"] = _tilt(_gl.get("regime"), POSL, NEGL)
+    lr["global"] = _tilt(_gl.get("regime"), POSL, NEGL) if _gl.get("calls_eligible") is True else None
     _chl = _read("data/china-liquidity.json") or {}
     lr["china"] = _tilt(_chl.get("regime"), POSL, NEGL)
     _rl = _read("data/repo-lending.json") or {}
@@ -495,10 +495,10 @@ def lambda_handler(event, context):
     lr["cb_injection"] = (1 if _imp > 0 else -1 if _imp < 0 else 0) if isinstance(_imp, (int, float)) else 0
     _cl = _read("data/crypto-liquidity.json") or {}
     lr["crypto_drypowder"] = _tilt(_cl.get("regime"), POSL, NEGL)
-    lr = {k: v for k, v in lr.items() if k in lr}
+    lr = {k: v for k, v in lr.items() if v is not None}
     net_liq = sum(lr.values())
     liquidity = None
-    if any(_read("data/" + f + ".json") for f in ("global-liquidity", "repo-lending")):
+    if _gl.get("calls_eligible") is True or _rl:
         liq_state = "EXPANSIONARY" if net_liq >= 2 else "CONTRACTIONARY" if net_liq <= -2 else "NEUTRAL"
         risk_on = score >= 12; risk_off = score <= -12
         if risk_on and liq_state == "CONTRACTIONARY":

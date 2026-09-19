@@ -562,51 +562,22 @@ def _find_cb_map(obj, _d=0):
 
 def build_part4(catalog):
     out = {}
-    # (A) global 4-CB stack
+    # Original-bound three-bank subtotal; retain China context separately.
+    from global_liquidity_readthrough import context as global_context
     gl = _sfeed("data/global-liquidity.json")
     cn = _sfeed("data/china-liquidity.json")
-    stack, notes = {}, []
-    if isinstance(gl, dict):
-        # ops 4423: DISCOVER the component map rather than guessing its key —
-        # the same technique that found treasury-noise:noise_bps.
-        comp = None
-        for k in ("components_usd_bn", "components", "cb_components",
-                  "by_cb", "central_banks", "stack"):
-            v = gl.get(k)
-            if isinstance(v, dict) and any(
-                    isinstance(x, (int, float)) for x in v.values()):
-                comp = v
-                break
-        if comp is None:
-            comp = _find_cb_map(gl)
-        if isinstance(comp, dict):
-            stack.update({str(k): float(v) for k, v in comp.items()
-                          if isinstance(v, (int, float))})
-        for k in ("total_usd_bn", "global_total_usd_bn", "total"):
-            if isinstance(gl.get(k), (int, float)):
-                out["global_total_usd_bn"] = gl[k]
-                break
-        for k in ("change_13w_pct", "change_52w_pct"):
-            if isinstance(gl.get(k), (int, float)):
-                out[k] = gl[k]
-    else:
-        notes.append("global-liquidity.json unavailable")
-    if isinstance(cn, dict):
-        for k in ("pboc_assets_usd_bn", "pboc_balance_sheet_usd_bn",
-                  "china_m2_usd_bn"):
-            if isinstance(cn.get(k), (int, float)):
-                stack.setdefault("PBOC", cn[k])
-                break
-        ci = cn.get("credit_impulse")
-        if isinstance(ci, (int, float)):
-            out["china_credit_impulse"] = ci
-        elif isinstance(cn.get("credit_impulse_flow_yoy_pct"), (int, float)):
-            out["china_credit_impulse"] = cn["credit_impulse_flow_yoy_pct"]
-    else:
-        notes.append("china-liquidity.json unavailable")
-    out["global_stack_usd_bn"] = stack
-    out["global_stack_note"] = ("Fed+ECB+BOJ+PBOC balance sheets in USD; "
-                               "page was US-only before (Perplexity Part-4 A)")
+    researched = global_context(gl)
+    notes = []
+    out["global_stack_usd_bn"] = researched["components_usd_bn"]
+    out["global_total_usd_bn"] = None  # Three institutions do not establish a global total.
+    out["three_bank_total_usd_bn"] = researched["three_bank_total_usd_bn"]
+    out["global_stack_note"] = researched["scope"]
+    out["global_research"] = researched
+    out["china_context"] = {"status": "UNQUALIFIED_CONTEXT" if isinstance(cn, dict) else "unavailable",
+                            "packet": cn, "included_in_three_bank_subtotal": False,
+                            "calls_eligible": False, "sizing_eligible": False}
+    if researched["status"] != "descriptive":
+        notes.append("Three-bank original-bound research unavailable or expired")
 
     # Broad USD and its statistics must come from the same identified series.
     cd = (catalog.get("dollar") or {}).get("DTWEXBGS") or {}

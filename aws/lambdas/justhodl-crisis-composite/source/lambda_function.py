@@ -174,6 +174,8 @@ def comp_internals(d):
 
 
 def comp_liquidity(d):
+    if not isinstance(d, dict) or d.get("calls_eligible") is not True:
+        return None  # An unqualified/missing label is abstention, never 50 crisis points.
     return label_to_crisis(dig(d, "regime"), LIQ_MAP)
 
 

@@ -635,7 +635,7 @@ def rule_global_liquidity(scores, evidence):
     """Global central-bank liquidity tide — expanding lifts risk, contracting
     fades it. China credit impulse reinforces the commodity complex."""
     d = fs3("data/global-liquidity.json")
-    reg = d.get("regime")
+    reg = d.get("regime") if d.get("calls_eligible") is True else None
     if reg:
         desc = f"global liquidity {reg}"
         if reg in ("EXPANDING", "EASING"):

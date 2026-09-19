@@ -114,7 +114,7 @@ function mutablePublication(path) {
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json',
     'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json', 'risk-radar.json', 'global-stress.json', 'regime-composite.json', 'liquidity-credit-engine.json', 'risk-gate.json',
     'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json',
-    'liquidity-inflection-decisive-call.json'].includes(key) ||
+    'liquidity-inflection-decisive-call.json', 'global-liquidity.json', 'global-liquidity-history.json'].includes(key) ||
     /^vintage\/(?:_index|[A-Z0-9_]+)\.json$/.test(key) ||
     /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||
     /^[a-z0-9-]+-verification\.json$/.test(key);

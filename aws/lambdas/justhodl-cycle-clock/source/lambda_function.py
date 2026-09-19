@@ -1021,7 +1021,7 @@ def lambda_handler(event, context):
     base_squeeze = (num_ / den_) if den_ else None
 
     # liquidity-DIRECTION modifier: draining adds, easing subtracts
-    impulse = num(_get(gliq, "global_impulse_13w_pct"))
+    impulse = num(_get(gliq, "global_impulse_13w_pct")) if _get(gliq, "calls_eligible") is True else None
     lce_liq_state = _get(lce, "interpretation", "pillars", "liquidity", "state")
     flow_regime = _get(lflow, "regime")
     net_30d = _get(lflow, "deltas", "1m", "net")
@@ -1091,7 +1091,7 @@ def lambda_handler(event, context):
         divergences.append(f"GROWTH SPLIT: global business cycle reads {gbc_phase} "
                            f"(CLI {gbc_cli}, {gbc_expansion_breadth}% breadth) while the US macro regime is "
                            f"{quad} — global growth engines bullish, US/inflation engines cautious.")
-    if _get(gliq, "regime") in ("NEUTRAL", "EASING", "LOOSE") and lce_liq_state in ("DRAINING", "TIGHTENING"):
+    if _get(gliq, "calls_eligible") is True and _get(gliq, "regime") in ("NEUTRAL", "EASING", "LOOSE") and lce_liq_state in ("DRAINING", "TIGHTENING"):
         divergences.append(f"LIQUIDITY SPLIT: aggregate central-bank liquidity is {_get(gliq, 'regime')}/flat, "
                            f"but the credit-engine liquidity pillar is {lce_liq_state} — a draining flicker under a calm surface.")
     rlabel = _get(rmap, "regime", "label")

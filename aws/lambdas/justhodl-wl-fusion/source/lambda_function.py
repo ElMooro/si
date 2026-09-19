@@ -140,6 +140,8 @@ def lambda_handler(event, context):
             doc = gj(key)
             if not doc:
                 continue
+            if key == "data/global-liquidity.json" and doc.get("calls_eligible") is not True:
+                continue  # Abstention is not an opposing directional regime.
             state = dig(doc, fields)
             if state is None:
                 continue

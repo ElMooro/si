@@ -144,7 +144,7 @@ def pct_change_n_weeks(series_dates_values, weeks):
     return None
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     print(f"[global-liquidity] starting {datetime.now(timezone.utc).isoformat()}")
     if not FRED_KEY:
@@ -338,3 +338,14 @@ def lambda_handler(event, context):
         "ok": True, "regime": regime, "impulse_13w_pct": round(impulse, 2),
         "gli_trillions": out["global_liquidity_index"]["total_usd_trillions"],
         "fred_failed": failed})}
+
+
+def lambda_handler(event=None, context=None):
+    """Only original-bound public research; no route to the legacy voting model."""
+    from global_liquidity_store import run
+    try:
+        result = run(s3, S3_BUCKET)
+        return {'statusCode': 200 if result['published'] and result['history_published'] else 409,
+                'body': json.dumps(result)}
+    except Exception as exc:
+        return {'statusCode': 503, 'body': json.dumps({'ok': False, 'error': type(exc).__name__})}

@@ -1173,19 +1173,20 @@ function renderPart4(p4){
     });
     h+='</div><div style="font-size:10px;color:var(--text3,#888);margin-top:8px;font-style:italic">'+e(cs.brain_rule||'')+'</div></div>';
   }
-  const st=p4.global_stack_usd_bn||{};
+  const gr=p4.global_research||{},ga=(Date.now()-Date.parse(gr.generated_at))/3600000;
+  const st=gr.status==='descriptive'&&Number.isFinite(ga)&&ga>=0&&ga<=26?(p4.global_stack_usd_bn||{}):{};
   if(Object.keys(st).length){
     let tot=0; Object.keys(st).forEach(function(k){ if(isFinite(st[k])) tot+=st[k]; }); if(!tot) tot=1;
     const cols=['#4a7dbf','#4caf7d','#c98b3a','#a05aa0','#777'];
     h+='<div style="border:1px solid var(--border,#222);border-radius:10px;padding:14px;background:var(--card,#12161c)">'
-      +'<div style="font-weight:600;font-size:14px">Global Liquidity \u2014 Fed \u00b7 ECB \u00b7 BOJ \u00b7 PBOC</div>'
-      +(p4.global_total_usd_bn!=null?'<div style="font-size:22px;font-weight:700;margin-top:4px">$'+n(p4.global_total_usd_bn,0)+'B</div>':'')
+      +'<div style="font-weight:600;font-size:14px">Three-bank balance-sheet subtotal</div>'
+      +(p4.three_bank_total_usd_bn!=null?'<div style="font-size:22px;font-weight:700;margin-top:4px">$'+n(p4.three_bank_total_usd_bn,0)+'B</div>':'')
       +'<div style="display:flex;height:22px;border-radius:5px;overflow:hidden;margin-top:10px">';
     Object.keys(st).forEach(function(k,i){ const w=Math.max(1,(st[k]/tot)*100);
       h+='<div title="'+e(k)+'" style="width:'+w+'%;background:'+cols[i%cols.length]+'"></div>'; });
     h+='</div><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">';
     Object.keys(st).forEach(function(k,i){ h+='<span style="font-size:11px"><span style="display:inline-block;width:9px;height:9px;background:'+cols[i%cols.length]+';border-radius:2px;margin-right:4px"></span>'+e(k)+' $'+n(st[k],0)+'B</span>'; });
-    h+='</div>'+(p4.china_credit_impulse!=null?'<div style="font-size:11px;color:var(--text3,#888);margin-top:8px">China credit impulse: '+n(p4.china_credit_impulse,2)+'</div>':'')+'</div>';
+    h+='</div><p>'+e(p4.global_stack_note||'Three-bank subtotal only.')+'</p><a href="/global-liquidity.html">Inspect native balances, FX contributions and original sources</a></div>';
   }
   if(p4.join_notes&&p4.join_notes.length) h+='<div style="font-size:10px;color:var(--text3,#888);margin-top:8px">joins pending: '+e(p4.join_notes.join(' \u00b7 '))+'</div>';
   host.innerHTML=h;
@@ -1205,7 +1206,7 @@ setInterval(loadData, 600000);
 </div>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<p class="jh-research-link"><a href="/inflection.html">Liquidity research: dated 13-week slope, acceleration and original evidence</a>. This descriptive research has no Calls vote or sizing permission.</p>
+<p class="jh-research-link"><a href="/global-liquidity.html">Global balance-sheet research</a> · <a href="/inflection.html">Liquidity research: dated 13-week slope, acceleration and original evidence</a>. This descriptive research has no Calls vote or sizing permission.</p>
 
 <script>
 /* ops 4501: generic NaN guard — sweep text nodes, replace NaN/Infinity/undefined with em-dash */
