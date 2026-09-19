@@ -18,7 +18,7 @@ import fred_vintage_model as model
 BUCKET='justhodl-dashboard-live'
 MAX_BYTES=64*1024*1024
 MAX_PAGES=20
-SEGMENTED_SERIES={'NFCI','STLFSI4'}
+SEGMENTED_SERIES={'NFCI','STLFSI4','T10Y2Y'}
 _rate_lock=threading.Lock()
 _last_request=0.0
 
@@ -79,14 +79,14 @@ def acquire(client,bucket,req,api_key,deadline):
     url='https://api.stlouisfed.org/fred/'+req['endpoint']+'?'+urllib.parse.urlencode({**req['params'],'api_key':api_key})
     opener=urllib.request.build_opener()  # bypass any legacy synthetic urllib shim
     for attempt in range(3):
-        if time.monotonic()>deadline-25:raise TimeoutError('source acquisition deadline')
+        if time.monotonic()>deadline-50:raise TimeoutError('source acquisition deadline')
         with _rate_lock:
             pause=max(0,.65-(time.monotonic()-_last_request))
             if pause:time.sleep(pause)
             _last_request=time.monotonic()
         try:
             request=urllib.request.Request(url,headers={'User-Agent':'JustHodl original archive research'})
-            with opener.open(request,timeout=20) as response:raw=bounded(response)
+            with opener.open(request,timeout=45) as response:raw=bounded(response)
             acquired=now();body=json.loads(raw)
             if 'error_code' in body:raise ValueError('provider rejected archive request')
             sha=hashlib.sha256(raw).hexdigest();key=model.PREFIX+'originals/'+model.digest(req)+'/'+sha+'.json.gz'
