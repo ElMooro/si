@@ -47,6 +47,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
 .xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
 table{width:100%;border-collapse:collapse;margin-top:12px;font-family:var(--mono);font-size:12px}th,td{padding:10px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--mute);font-weight:500}small{color:var(--dim)}a{color:var(--cyan)}
+h3{margin:0 0 10px;font-family:var(--mono)} .table{overflow-x:auto} .cb{min-width:0;overflow-wrap:anywhere} details{margin:12px 0} summary{cursor:pointer;color:var(--cyan)} pre{white-space:pre-wrap;overflow-wrap:anywhere} select{background:var(--panel);color:var(--txt);padding:8px;border:1px solid var(--line)} .cbs>.jh-section-badge{grid-column:1/-1;justify-self:start} @media(max-width:540px){.container{padding:18px}.hero .big{font-size:26px}}
 </style>
 </head>
 <body>
@@ -64,62 +65,26 @@ table{width:100%;border-collapse:collapse;margin-top:12px;font-family:var(--mono
 
   <div id="hero"><div class="loading">LOADING CENTRAL-BANK MEASUREMENTS…</div></div>
 
+  <p><a href="/cb-injection.html">Load latest research</a> · <a href="/global-liquidity.html">Three-bank USD valuation research</a></p>
+  <label for="horizon">Calendar comparison: </label><select id="horizon"><option value="1">1 month</option><option value="6">6 months</option><option value="12">12 months</option></select>
   <h2>Balance sheets and rates</h2>
   <div class="cbs" id="cbs"></div>
 
   <h2>Component reconciliation</h2>
   <div id="carry"></div>
 
+  <h2>Dated FX quotations</h2>
   <div id="edollar"></div>
+  <h2>Settlement fails: separate scopes</h2>
+  <div id="fails"></div>
+  <h2>Reproduce this research</h2>
+  <div id="evidence"></div>
 
   <p class="note" id="note"></p>
   <p class="timestamp" id="ts"></p>
 </div>
-<script>
-const esc=s=>(s==null?'':String(s)).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-const num=(n,d=2)=>typeof n==='number'&&Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:d}):'Unavailable';
-const label=s=>esc(String(s||'unavailable').replaceAll('_',' '));
-function current(m){
-  const q=m?.quality||{},age=(Date.now()-Date.parse(q.observation_date))/864e5;
-  return q.status==='fresh'&&Number.isFinite(age)&&age>=0&&age<(q.max_age_days+1);
-}
-function cbCard(b){
-  const m=b.balance_sheet||{},r=b.rate||{};
-  return `<div class="cb" style="border-top-color:var(--cyan)">
-    <div class="name">${esc(b.cb)}</div><div class="ccy">${label(b.quality?.status)} coverage</div>
-    <div class="stance">${num(current(m)?m.latest:null)} ${esc(m.unit||'')}</div>
-    <div class="det">Total assets · ${esc(m.quality?.observation_date||'no observation')} · ${esc(m.source_id)}</div>
-    <div class="det">${current(m)?label(m.quality.status):'Unavailable or expired'}</div>
-    <div class="rd">${esc(b.rate_definition)}: <b>${num(current(r)?r.latest:null,3)}${current(r)?'%':''}</b><br>
-      ${esc(r.quality?.observation_date||'no observation')} · ${esc(r.source_id)} · ${current(r)?'fresh':'unavailable or expired'}</div>
-  </div>`;
-}
-function components(b){
-  const d=b.decomposition||{},rows=d.components||{},age=(Date.now()-Date.parse(d.observation_date))/864e5;
-  const aligned=d.status==='partial_attribution'&&age>=0&&age<22;
-  const body=Object.entries(rows).map(([name,m])=>`<tr><td>${label(name)}<br><small>${esc(m.source_id)}</small></td><td>${num(aligned?m.aligned_value:null)}</td><td>${num(aligned?m.aligned_change_1m:null)}</td></tr>`).join('');
-  return `<div class="panel" style="border-left-color:var(--cyan)"><div class="t">${esc(b.cb)} · component stocks</div>
-    <div class="r">${label(d.status)}${aligned?` · ${esc(d.start_date)} → ${esc(d.observation_date)} · ${esc(d.unit)}`:''}</div>
-    ${body?`<div style="overflow-x:auto"><table><thead><tr><th>Component</th><th>Aligned level</th><th>Calendar-month change</th></tr></thead><tbody>${body}<tr><td>Other assets and adjustments</td><td>${num(aligned?d.other_assets_and_adjustments_level:null)}</td><td>${num(aligned?d.other_assets_and_adjustments_change_1m:null)}</td></tr></tbody></table></div>`:''}
-    <div class="r">${aligned?`Total stock change ${num(d.stock_change_1m)} ${esc(d.unit)}. Accounting residual ${num(d.reconciliation_residual,6)}.`:'A complete set of current components on matching dates is unavailable.'}
-      Net policy injection: <b>not identified</b>. ${esc((d.missing||[]).join('; '))}</div></div>`;
-}
-async function main(){
-  let d;try{const r=await fetch('data/cb-injection.json?_='+Date.now());if(r.ok)d=await r.json();}catch{}
-  const age=Date.now()-Date.parse(d?.generated_at);
-  if(!d||d.methodology_version!=='cb-component-measurements.v2'||!Number.isFinite(age)||age<0||age>4*864e5){
-    document.getElementById('hero').innerHTML='<div class="loading">Current validated central-bank measurements unavailable</div>';return;
-  }
-  document.getElementById('hero').innerHTML=`<div class="hero" style="border-left-color:var(--cyan)"><div class="lab">Central-bank measurement coverage · ${label(d.quality?.status)}</div><div class="big">Stocks &amp; rates</div><div class="meta">${esc(d.headline)}</div></div>`;
-  document.getElementById('cbs').innerHTML=(d.central_banks||[]).map(cbCard).join('');
-  document.getElementById('carry').innerHTML=(d.central_banks||[]).map(components).join('');
-  document.getElementById('edollar').innerHTML=`<div class="panel"><div class="t">Dated FX context</div><div class="fx">${Object.entries(d.fx_context||{}).map(([name,m])=>`<div class="leg">${esc(name)} <b>${num(current(m)?m.latest:null,4)}</b> ${esc(m.unit)}<br>${esc(m.quality?.observation_date||'no observation')} · ${current(m)?'fresh':'unavailable or expired'}</div>`).join('')}</div><div class="r">These exchange rates provide context. Carry returns require matched funding instruments, hedging costs and forward points. <a href="/yen-carry.html">View yen funding measurements</a>.</div></div>`;
-  document.getElementById('note').textContent=d.note||'';
-  document.getElementById('ts').textContent=`Published ${d.generated_at} · ${d.methodology_version}`;
-}
-main();
-</script>
-  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-cb-research.js" defer></script>
+<script src="/jh-cb-page.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

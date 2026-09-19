@@ -7,6 +7,9 @@ from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
+ROOT=Path(__file__).resolve().parents[4]
+sys.path[:0]=[str(ROOT/'aws/shared'),str(Path(__file__).resolve().parents[1]/'source')]
+
 with patch.dict(sys.modules, {'boto3': types.SimpleNamespace(client=lambda *a, **k: None),
                              'managed_secret': types.SimpleNamespace(managed_secret=lambda *a, **k: 'test'),
                              '_fred_shim': types.SimpleNamespace()}):
@@ -25,11 +28,21 @@ def stocks():
 
 
 class CentralBankMeasurements(unittest.TestCase):
-    def test_registered_archive_family_keeps_measurements_and_null_legacy_forecasts(self):
+    def test_active_handler_has_no_legacy_event_route(self):
+        import cb_store
+        result={'published':True,'replay':{'manifest_key':'fixture'},'paid_ai_calls':0}
+        with patch.object(cb_store,'run',return_value=result) as active,patch.object(e,'_legacy_unvalidated_handler',side_effect=AssertionError('Legacy path')):
+            out=e.lambda_handler({'mode':'legacy'},None)
+        self.assertEqual(out['statusCode'],200);self.assertEqual(json.loads(out['body']),result);active.assert_called_once()
+        with patch.object(cb_store,'run',side_effect=ValueError('sensitive error detail')):
+            out=e.lambda_handler({},None)
+        self.assertEqual(out['statusCode'],503);self.assertNotIn('sensitive',out['body'])
+
+    def test_legacy_archive_family_remains_available_for_audit(self):
         writes={}
         client=types.SimpleNamespace(put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))
         with patch.object(e,'s3',client),patch.object(e,'fred',return_value=[]),patch.object(e,'ecb_portfolio',return_value=[]),patch.object(e,'ecb_archive',return_value=[]):
-            e.lambda_handler({},None)
+            e._legacy_unvalidated_handler({},None)
         snapshots=[v for k,v in writes.items() if k.startswith('data/cb-injection/snapshots/')]
         self.assertEqual(len(snapshots),1)
         self.assertEqual(snapshots[0]['methodology_version'],e.METHOD)
@@ -105,4 +118,7 @@ class CentralBankMeasurements(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    suite=unittest.TestLoader().loadTestsFromTestCase(CentralBankMeasurements)
+    suite.addTests(unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern='test_research.py'))
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)

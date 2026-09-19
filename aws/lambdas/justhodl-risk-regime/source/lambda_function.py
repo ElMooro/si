@@ -492,7 +492,9 @@ def lambda_handler(event, context):
     lr["repo_funding"] = _tilt(_rl.get("regime"), POSL, NEGL)
     _cbi = _read("data/cb-injection.json") or {}
     _imp = _cbi.get("global_injection_impulse")
-    lr["cb_injection"] = (1 if _imp > 0 else -1 if _imp < 0 else 0) if isinstance(_imp, (int, float)) else 0
+    lr["cb_injection"] = ((1 if _imp > 0 else -1 if _imp < 0 else 0)
+                          if _cbi.get("calls_eligible") is True and type(_imp) in (int, float)
+                          and -float('inf') < _imp < float('inf') else None)
     _cl = _read("data/crypto-liquidity.json") or {}
     lr["crypto_drypowder"] = _tilt(_cl.get("regime"), POSL, NEGL)
     lr = {k: v for k, v in lr.items() if v is not None}

@@ -47,6 +47,16 @@ class Tests(unittest.TestCase):
                   '    if lce_liq_state and',scope)
         self.assertIsNone(out['impulse']);self.assertEqual(out['direction_mod'],0);self.assertEqual(out['flickers'],[])
 
+    def test_cb_stock_context_is_abstention_not_a_neutral_or_directional_vote(self):
+        for packet in ({'global_injection_impulse':99},{'calls_eligible':False,'global_injection_impulse':-99},
+                       {'calls_eligible':True,'global_injection_impulse':float('nan')},
+                       {'calls_eligible':True,'global_injection_impulse':True}):
+            scope={'_read':lambda key:packet if key=='data/cb-injection.json' else {},'score':40,'posture':{'size_mult':1},'all_tells':[]}
+            out=block('risk-regime','    # ── liquidity overlay (wires the liquidity cluster; core RORO driver, confirmation not core score) ──\n',
+                      '    # ── capital-inflows overlay',scope)
+            self.assertNotIn('cb_injection',out['lr']);self.assertIsNone(out['liquidity'])
+            self.assertEqual(out['posture']['size_mult'],1)
+
     def test_watchlist_fusion_does_not_call_abstention_an_opposing_regime(self):
         saved={}
         class Storage:

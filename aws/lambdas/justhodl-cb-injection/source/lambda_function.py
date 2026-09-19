@@ -208,7 +208,7 @@ def build_measurements(data,ecb,today=None):
                    'Residual assets and valuation effects remain explicit unknowns; balance-sheet growth does not establish QE, and a rate cut is not a measured cash injection.'}
 
 
-def lambda_handler(event,context):
+def _legacy_unvalidated_handler(event,context):
     started=time.monotonic();data={};ecb={};errors=[]
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures={pool.submit(fred,sid):('fred',name) for name,sid in SERIES.items()}
@@ -246,3 +246,13 @@ def lambda_handler(event,context):
     for key in (f"data/cb-injection/measurements/{out['generated_at'][:10]}.json",OUT_KEY):
         s3.put_object(Bucket=S3_BUCKET,Key=key,Body=body,ContentType='application/json',CacheControl='public, max-age=3600')
     return {'statusCode':200,'body':json.dumps({'quality':out['quality'],'ok':out['ok']})}
+
+
+def lambda_handler(event=None,context=None):
+    """Public original-source research only; legacy scores are not an event route."""
+    from cb_store import run
+    try:
+        result=run(s3,S3_BUCKET)
+        return {'statusCode':200 if result['published'] else 409,'body':json.dumps(result)}
+    except Exception as exc:
+        return {'statusCode':503,'body':json.dumps({'ok':False,'error':type(exc).__name__})}
