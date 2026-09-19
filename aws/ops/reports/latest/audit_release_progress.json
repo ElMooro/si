@@ -1,14 +1,14 @@
 {
-  "observed_at": "2026-09-19T04:11:39.271943+00:00",
+  "observed_at": "2026-09-19T04:11:45.141186+00:00",
   "runs": [
     {
       "id": 35420537850,
       "path": ".github/workflows/pages.yml",
       "head_sha": "12c1a9629d6017b8195a9f7f88356424d2c861c9",
-      "status": "waiting",
+      "status": "in_progress",
       "conclusion": null,
       "created_at": "2026-09-19T04:09:42Z",
-      "updated_at": "2026-09-19T04:11:24Z",
+      "updated_at": "2026-09-19T04:11:28Z",
       "jobs": [
         {
           "id": 105837258231,
@@ -223,11 +223,52 @@
         {
           "id": 105837474458,
           "name": "deploy",
-          "status": "queued",
+          "status": "in_progress",
           "conclusion": null,
-          "started_at": "2026-09-19T04:11:23Z",
+          "started_at": "2026-09-19T04:11:27Z",
           "completed_at": null,
-          "steps": []
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T04:11:28Z",
+              "completed_at": "2026-09-19T04:11:28Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T04:11:28Z",
+              "completed_at": "2026-09-19T04:11:34Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T04:11:34Z",
+              "completed_at": "2026-09-19T04:11:34Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "in_progress",
+              "conclusion": null,
+              "started_at": "2026-09-19T04:11:34Z",
+              "completed_at": null
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "pending",
+              "conclusion": null,
+              "started_at": null,
+              "completed_at": null
+            }
+          ]
         }
       ]
     },
