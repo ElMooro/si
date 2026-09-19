@@ -66,7 +66,18 @@ def main():
                     raise
                 before[key] = None
         scheduler = boto3.client('scheduler', region_name='us-east-1')
-        schedule = scheduler.get_schedule(Name='justhodl-holdings-originals-research', GroupName='default')
+        # The code receipt is written before schedule reconciliation. Wait only
+        # for an absent schedule; a present but different target still fails.
+        deadline = time.monotonic() + 600
+        while True:
+            try:
+                schedule = scheduler.get_schedule(Name='justhodl-holdings-originals-research', GroupName='default')
+                break
+            except Exception as exc:
+                if getattr(exc, 'response', {}).get('Error', {}).get('Code') != 'ResourceNotFoundException':
+                    raise
+                assert time.monotonic() < deadline, 'Deployed Scheduler binding was not observed'
+                time.sleep(15)
         assert schedule['State'] == 'ENABLED' and schedule['ScheduleExpression'] == 'cron(40 0/2 * * ? *)'
         assert schedule['ScheduleExpressionTimezone'] == 'UTC'
         assert schedule['Target']['Arn'] == conf['FunctionArn']
