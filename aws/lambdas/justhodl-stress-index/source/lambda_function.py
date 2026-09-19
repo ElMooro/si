@@ -278,6 +278,11 @@ def build_overlay():
         if not o:
             out.append({"key": key, "label": label, "stress": None, "status": "unavailable"})
             continue
+        if key == "data/carry-surface.json" and not (
+                o.get("calls_eligible") is True and o.get("quality", {}).get("status") == "fresh"
+                and o.get("decision_qualification", {}).get("status") == "qualified"):
+            out.append({"key": key, "label": label, "stress": None, "status": "unqualified_carry"})
+            continue
         raw = _dig(o, field)
         if not isinstance(raw, (int, float)):
             out.append({"key": key, "label": label, "stress": None, "status": "no_score"})

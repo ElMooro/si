@@ -4,6 +4,17 @@ const {pathToFileURL} = require('node:url');
 const path = require('node:path');
 const modulePath = pathToFileURL(path.join(__dirname, '../cloudflare/workers/justhodl-data-proxy/src/reviewed-artifacts.js')).href;
 
+test('carry research exposes fixed source-status codes without weakening raw-diagnostic blocking or caching', async()=>{
+  const {reviewedArtifact,serveReviewedArtifact}=await import(modulePath),original=globalThis.fetch;
+  const document={contract:'carry-original-research.v1',errors:2,source_status_codes:{MUNI:'HTTP_400',INR:'original_source_unavailable'},calls_eligible:false};
+  try{
+    globalThis.fetch=async(url,options)=>{assert.equal(options.cache,'no-store');assert.equal(options.cf,undefined);return Response.json(document);};
+    const request=new Request('https://example.test/data/carry-surface.json'),review=reviewedArtifact('data/carry-surface.json');
+    const response=await serveReviewedArtifact(request,review,'https://origin.test',{});assert.equal(response.status,200);assert.deepEqual(await response.json(),document);
+    document.equities={X:{headers:{token:'SYNTHETIC_SECRET'}}};assert.equal((await serveReviewedArtifact(request,review,'https://origin.test',{})).status,503);
+  }finally{globalThis.fetch=original;}
+});
+
 test('digest transport replies and unreviewed generations never reach public users', async () => {
   const {reviewedArtifact, serveReviewedArtifact} = await import(modulePath);
   const review = reviewedArtifact('data/_alerts/digest-2026-01-01-close.json');

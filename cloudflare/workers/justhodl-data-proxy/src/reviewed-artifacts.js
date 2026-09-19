@@ -94,7 +94,7 @@ export async function serveReviewedArtifact(request, review, bucket, cors) {
   if (request.headers.has('Range')) return unavailable(416);
   try {
     const source = await fetch(bucket + '/' + review.key + '?public_review=20260910.v1',
-      {headers: {'Cache-Control': 'no-cache'}, cf: {cacheEverything: false, cacheTtl: 0}});
+      {headers: {'Cache-Control': 'no-cache'}, cache: 'no-store'});
     if (!source.ok) return unavailable(source.status === 404 ? 404 : 503);
     let bytes = await boundedRead(source);
     if (bytes[0] === 0x1f && bytes[1] === 0x8b) {

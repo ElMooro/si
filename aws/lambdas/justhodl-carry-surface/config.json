@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "UNIVERSAL CARRY SURFACE - institutional cross-asset carry engine: which asset is the market paying most to hold across equity / FX / FI / commodity / crypto. Z-scored within class, ranked cross-asset, carry-momentum vs 7D/30D, Sharpe-of-carry leaders.",
+  "description": "Original-backed distribution income, corporate-action reconciliation and dated rate comparisons. Research only; explicit hypothetical portfolio scenarios. No automatic allocations or alerts.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "OUT_KEY": "data/carry-surface.json",
@@ -19,6 +19,6 @@
   "schedule": {
     "rule_name": "carry-surface-4h",
     "cron": "rate(4 hours)",
-    "description": "Carry surface refresh every 4 hours — cross-asset carry ranks + momentum"
+    "description": "Retain and verify original carry research every 4 hours"
   }
 }

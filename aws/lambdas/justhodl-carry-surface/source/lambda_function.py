@@ -1,7 +1,9 @@
 """
 justhodl-carry-surface
 ======================
-UNIVERSAL CARRY SURFACE — institutional-grade cross-asset carry engine.
+Original research entry point is lambda_handler at the end of this module.
+Historical heuristic implementation retained below for audit compatibility only;
+it is not invoked by scheduled or public production requests.
 
 Carry = the expected return from HOLDING an asset assuming all variables
 remain unchanged. It's the "do nothing" return. Academic literature (AQR's
@@ -985,7 +987,7 @@ def _carry_massive_fx():
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     try:
         return _lambda_handler_inner(event, context)
     except Exception as exc:
@@ -1142,6 +1144,23 @@ def _lambda_handler_inner(event=None, context=None):
             'elapsed_s': round(elapsed, 2),
         }),
     }
+
+
+def lambda_handler(event=None,context=None):
+    """Public reads never collect data. Scheduled execution verifies originals before publishing."""
+    from carry_store import run,raw_reader
+    from carry_research import CONTRACT,CURRENT
+    try:
+        request=event.get('requestContext',{}) if isinstance(event,dict) else {}
+        if isinstance(request,dict) and request.get('http'):
+            raw=raw_reader(s3,BUCKET)(CURRENT)
+            if json.loads(raw).get('contract')!=CONTRACT:raise ValueError('Original carry research not published')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':raw.decode('utf-8')}
+        return {'statusCode':200,'body':json.dumps(run(s3,BUCKET,FRED_KEY,FMP_KEY,context),allow_nan=False)}
+    except Exception as exc:
+        print('[carry-research] unavailable: '+type(exc).__name__)
+        return {'statusCode':503,'headers':{'Cache-Control':'no-store'},'body':json.dumps({'status':'unavailable',
+          'reason':'Original carry evidence could not be verified','calls_eligible':False,'sizing_eligible':False,'portfolio_action':'WAIT'})}
 
 
 if __name__ == "__main__":

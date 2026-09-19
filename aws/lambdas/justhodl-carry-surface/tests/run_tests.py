@@ -102,7 +102,7 @@ def test_optional_history_failure_does_not_block_public_snapshot():
         "maybe_send_telegram": lambda *a: (_ for _ in ()).throw(AssertionError("must not send alerts")),
     }
     with patch.multiple(engine, **patches):
-        result = engine.lambda_handler({"suppress_alerts": True})
+        result = engine._legacy_unvalidated_handler({"suppress_alerts": True})
     assert result["statusCode"] == 200 and len(writes) == 1
     published = json.loads(writes[0]["Body"])
     assert published["public_history_review"] == "20260910.v1"
@@ -114,3 +114,6 @@ if __name__ == "__main__":
     for test in tests:
         test()
     print(f"Carry contracts passed: {len(tests)}")
+    import unittest
+    suite=unittest.defaultTestLoader.discover(str(Path(__file__).parent),pattern='test_originals.py')
+    if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():sys.exit(1)
